@@ -63,6 +63,7 @@ const translations: TranslationDeepObject<typeof en> = {
         search: 'Buscar',
         reports: 'Informes',
         spend: 'Gastos',
+        insights: 'Información',
         find: 'Encontrar',
         searchWithThreeDots: 'Buscar...',
         select: 'Seleccionar',
@@ -2540,6 +2541,10 @@ const translations: TranslationDeepObject<typeof en> = {
             connectionLink
                 ? `La conexión de tu tarjeta ${cardName} se ha interrumpido. <a href="${connectionLink}">Inicia sesión en tu banco</a> para arreglarla.`
                 : `La conexión de tu tarjeta ${cardName} se ha interrumpido. Inicia sesión en tu banco para arreglarla.`,
+        conciergeBrokenConnection30Days: (cardName: string, connectionLink?: string) =>
+            connectionLink
+                ? `La conexión de tu ${cardName} se ha interrumpido desde hace 30 días. <a href="${connectionLink}">Inicia sesión en tu banco</a> para solucionarlo o <a href="${connectionLink}">elimina la tarjeta</a> si ya no la usas. No perderás ningún gasto enviado si la eliminas.`
+                : `La conexión de tu ${cardName} se ha interrumpido durante 30 días. Inicia sesión en tu banco para solucionarlo o elimina la tarjeta si ya no la utilizas. No perderás ningún gasto enviado si la eliminas.`,
         addAdditionalCards: 'Añadir más tarjetas',
         upgradeDescription: '¿Necesitas añadir más tarjetas? Crea un espacio de trabajo para añadir tarjetas personales o asignar tarjetas de empresa a todo el equipo.',
         onlyAvailableOnPlan: ({formattedPrice}: {formattedPrice: string}) =>
@@ -4570,6 +4575,7 @@ ${amount} para ${merchant} - ${date}`,
             accounting: 'Contabilidad',
             hr: 'HR',
             recruiting: 'Reclutamiento',
+            mcp: 'MCP',
             receiptPartners: 'Socios de recibos',
             rules: 'Reglas',
             plan: 'Plan',
@@ -4713,6 +4719,25 @@ ${amount} para ${merchant} - ${date}`,
         createdForClient: {
             title: '¡Has creado un espacio de trabajo para tu cliente!',
             description: 'Excelentes noticias 🎉. Contáctanos si necesitan ayuda con la configuración.',
+        },
+        mcp: {
+            connectors: 'Conectores',
+            connectorsSubtitle: 'Conecta un asistente de IA a tu cuenta de Expensify.',
+            connect: 'Conectar',
+            helpPrompt: '¿Necesitas ayuda para conectar?',
+            helpLink: 'Lee nuestra guía.',
+            claude: {
+                title: 'Claude',
+                subtitle: 'de Anthropic',
+            },
+            cursor: {
+                title: 'Cursor',
+                subtitle: 'de Anysphere',
+            },
+            chatgpt: {
+                title: 'ChatGPT',
+                subtitle: 'de OpenAI',
+            },
         },
         receiptPartners: {
             uber: {
@@ -6439,6 +6464,10 @@ ${amount} para ${merchant} - ${date}`,
                 title: 'Contabilidad',
                 subtitle: 'Sincroniza tu plan de cuentas y otras opciones.',
             },
+            mcp: {
+                title: 'MCP',
+                subtitle: 'Conecta un asistente de IA a tu cuenta de Expensify.',
+            },
             receiptPartners: {
                 title: 'Socios de recibos',
                 subtitle: 'Importación automática de recibos.',
@@ -8074,6 +8103,13 @@ ${reportName}`,
                     'Las reglas de categoría establecen una tasa de impuesto predeterminada. Activa los impuestos en la configuración de tu espacio de trabajo para usarlos.',
                 categoryRulesApplyGoingForwardTitle: 'Las reglas de categoría se aplican de ahora en adelante',
                 categoryRulesApplyGoingForwardPrompt: 'Se aplica una tasa de impuesto predeterminada a los nuevos gastos de esta categoría. Los gastos que ya existen no cambiarán.',
+                confirmErrorCategoryTaxMoveIsWorkspaceDefault:
+                    'El tipo impositivo seleccionado es ahora el predeterminado de tu espacio de trabajo, por lo que esta regla ya no es válida. Elige un tipo impositivo diferente.',
+                addTaxRateFirstTitle: 'Añade primero una tasa de impuesto',
+                addTaxRateFirstPrompt:
+                    'Las reglas de categoría establecen una tasa de impuestos predeterminada. Añade una tasa de impuestos distinta de la predeterminada de tu espacio de trabajo para poder usarlas.',
+                createRuleFromExpenseAction: 'Crear una norma',
+                createRuleFromExpensePrompt: 'para aplicar tus cambios a todos los gastos que coincidan con tus criterios.',
             },
             categoryRules: {
                 title: 'Reglas de categoría',
@@ -8094,7 +8130,8 @@ ${reportName}`,
                 flagAmountsOverSubtitle: 'Esto anula el importe máximo para todos los gastos.',
                 expenseLimitTypes: {
                     expense: 'Gasto individual',
-                    expenseSubtitle: 'Señala importes de gastos por categoría. Esta regla anula la regla general del espacio de trabajo para el importe máximo de gastos.',
+                    expenseSubtitle:
+                        'Marca importes de gastos por categoría. Esta regla sustituye la regla general del espacio de trabajo para el importe máximo de gasto. Las reservas de varios días se evalúan usando la media por noche.',
                     daily: 'Total por categoría',
                     dailySubtitle: 'Marcar el gasto total por día por categoría en cada informe de gastos.',
                 },
@@ -9387,7 +9424,7 @@ ${reportName}`,
                 [CONST.SEARCH.WITHDRAWAL_TYPE.TRAVEL_BILLING]: 'Facturación consolidada de viajes',
             },
             is: 'Es',
-            has: {submittedViolation: 'Infracción enviada'},
+            has: {submittedViolation: 'Infracción enviada', approvedViolation: 'Infracción aprobada'},
             action: {
                 [CONST.SEARCH.ACTION_FILTERS.SUBMIT]: 'Enviar',
                 [CONST.SEARCH.ACTION_FILTERS.APPROVE]: 'Aprobar',
@@ -9578,6 +9615,16 @@ ${reportName}`,
                 integrationSyncFailedRecurrence: ({count}: {count: number}) => `(Repetido ${count} veces.)`,
                 companyCardConnectionBroken: ({feedName, workspaceCompanyCardRoute}: {feedName: string; workspaceCompanyCardRoute: string}) =>
                     `La conexión ${feedName} está rota. Para restaurar las importaciones de tarjetas, <a href='${workspaceCompanyCardRoute}'>inicia sesión en tu banco</a>.`,
+                companyCardConnectionBroken30Days: ({
+                    feedName,
+                    workspaceCompanyCardRoute,
+                    workspaceCompanyCardSettingsRoute,
+                }: {
+                    feedName: string;
+                    workspaceCompanyCardRoute: string;
+                    workspaceCompanyCardSettingsRoute: string;
+                }) =>
+                    `La conexión ${feedName} se ha interrumpido durante 30 días. <a href='${workspaceCompanyCardRoute}'>Inicia sesión en tu banco</a> para solucionarlo o <a href='${workspaceCompanyCardSettingsRoute}'>elimina la conexión</a> si ya no se utiliza. No perderás ningún gasto enviado si la eliminas.`,
                 plaidBalanceFailure: ({maskedAccountNumber, walletRoute}: {maskedAccountNumber: string; walletRoute: string}) =>
                     `la conexión Plaid con tu cuenta bancaria de empresa está rota. Por favor, <a href='${walletRoute}'>reconecta tu cuenta bancaria ${maskedAccountNumber}</a> para poder seguir usando tus Tarjetas Expensify.`,
                 addEmployee: (email: string, role: string, didJoinPolicy?: boolean) => {
@@ -10548,6 +10595,7 @@ ${reportName}`,
         customUnitRateOutOfDateRangeStartOnly: ({startDate}: {startDate: string}) => `La tasa solo es válida desde ${startDate}`,
         customUnitRateOutOfDateRangeEndOnly: ({endDate}: {endDate: string}) => `La tasa solo es válida hasta ${endDate}`,
         cannotMergeDuplicates: 'Solo puedes combinar gastos en informes en borrador o pendientes. Retíralo e inténtalo de nuevo.',
+        overCategoryLimitPerNight: (formattedLimit: string) => `Tarifa nocturna superior al límite de categoría de ${formattedLimit}/persona`,
         shortName: {
             allTagLevelsRequired: 'Todas las etiquetas obligatorias',
             autoReportedRejectedExpense: 'Gasto rechazado',

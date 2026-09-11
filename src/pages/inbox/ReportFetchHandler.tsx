@@ -354,6 +354,18 @@ function ReportFetchHandler() {
         navigation.setParams({isPendingCreation: undefined});
     }, [isPendingCreationFromRoute, reportOnyx?.reportID, navigation]);
 
+    // A restored or shared route can carry isPendingCreation with no submit behind it. The owning submit writes the
+    // report row within the dismiss transition budget (about 2s) after this screen gains focus, so a focused screen
+    // still without a row after the much longer grace period holds a stale flag. Expire it, or the screen would skip
+    // fetching and never resolve to content or not-found.
+    useEffect(() => {
+        if (!isPendingCreationFromRoute || !isFocused || !!reportOnyx?.reportID) {
+            return;
+        }
+        const timeout = setTimeout(() => navigation.setParams({isPendingCreation: undefined}), CONST.TIMING.STALE_PENDING_CREATION_ROUTE_TIMEOUT);
+        return () => clearTimeout(timeout);
+    }, [isPendingCreationFromRoute, isFocused, reportOnyx?.reportID, navigation]);
+
     useEffect(() => {
         if (!isAnonymousUser) {
             return;
