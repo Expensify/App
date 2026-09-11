@@ -1,3 +1,4 @@
+import useIsCardInWallet from '@components/AddToWalletButton/useIsCardInWallet';
 import Text from '@components/Text';
 
 import useLocalize from '@hooks/useLocalize';
@@ -6,22 +7,20 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import getPlatform from '@libs/getPlatform';
 
 import CONST from '@src/CONST';
-import type {Card} from '@src/types/onyx';
-
-import type {ViewStyle} from 'react-native';
 
 import React from 'react';
 import {View} from 'react-native';
 
-import useIsCardInWallet from './useIsCardInWallet';
+import type AddToWalletStatusTextProps from './types';
 
-function AddToWalletStatusText({card, style}: {card: Card; style?: ViewStyle}) {
+const platform = getPlatform() === CONST.PLATFORM.IOS ? 'Apple' : 'Google';
+
+function AddToWalletStatusText({card, style}: AddToWalletStatusTextProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const platform = getPlatform() === CONST.PLATFORM.IOS ? 'Apple' : 'Google';
-    const {isInWallet} = useIsCardInWallet(card);
+    const {isInWallet, isLoading: isCardLoading, isCardAvailable, isWalletAvailable} = useIsCardInWallet(card);
 
-    if (!isInWallet) {
+    if (!isWalletAvailable || !isCardAvailable || isCardLoading || !isInWallet) {
         return null;
     }
 

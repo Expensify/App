@@ -383,7 +383,7 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                 {!hasDetectedDomainFraud && (
                     <>
                         {(!isCardFrozen(currentCard) || !canManageCardFreeze) && (
-                            <CardDetailsActionButtons style={styles.mb0}>
+                            <CardDetailsActionButtons>
                                 {canManageCardFreeze && currentCard?.state === CONST.EXPENSIFY_CARD.STATE.OPEN && !isCardFrozen(currentCard) && (
                                     <CardDetailsActionButton
                                         onPress={handleFreezePress}
@@ -408,7 +408,7 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                                 card={cardToAdd}
                                 cardHolderName={displayName ?? ''}
                                 cardDescription={expensifyCardTitle}
-                                style={[styles.alignSelfCenter, styles.mb6, styles.mt7]}
+                                style={[styles.alignSelfCenter, styles.mb6]}
                             />
                         )}
                         {shouldShowChangePINRow && isCardPINBlocked && (

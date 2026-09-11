@@ -1,6 +1,6 @@
 import useAppFocusEvent from '@hooks/useAppFocusEvent';
 
-import {isCardInWallet} from '@libs/Wallet';
+import {checkIfWalletIsAvailable, isCardInWallet} from '@libs/Wallet';
 
 import CONST from '@src/CONST';
 import type {Card} from '@src/types/onyx';
@@ -11,10 +11,12 @@ type UseIsCardInWalletType = {
     isInWallet: boolean | null;
     isLoading: boolean;
     isCardAvailable: boolean;
+    isWalletAvailable: boolean;
 };
 
 function useIsCardInWallet(card: Card): UseIsCardInWalletType {
     const [isInWallet, setIsInWallet] = useState<boolean | null>(null);
+    const [isWalletAvailable, setIsWalletAvailable] = useState(false);
     const isCardAvailable = card.state === CONST.EXPENSIFY_CARD.STATE.OPEN;
     const [isLoading, setIsLoading] = useState(false);
     const checkIfCardIsInWallet = useCallback(() => {
@@ -38,6 +40,20 @@ function useIsCardInWallet(card: Card): UseIsCardInWalletType {
         checkIfCardIsInWallet();
     }, [checkIfCardIsInWallet, isCardAvailable, card]);
 
+    useEffect(() => {
+        if (!isCardAvailable) {
+            return;
+        }
+
+        checkIfWalletIsAvailable()
+            .then((result) => {
+                setIsWalletAvailable(result);
+            })
+            .catch(() => {
+                setIsWalletAvailable(false);
+            });
+    }, [isCardAvailable]);
+
     // Recheck card status when app regains focus in case user manually adds card to wallet outside the app
     useAppFocusEvent(
         useCallback(() => {
@@ -52,6 +68,7 @@ function useIsCardInWallet(card: Card): UseIsCardInWalletType {
         isInWallet,
         isLoading,
         isCardAvailable,
+        isWalletAvailable,
     };
 }
 
