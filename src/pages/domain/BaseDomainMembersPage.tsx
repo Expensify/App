@@ -17,19 +17,16 @@ import {View} from 'react-native';
 import DomainNotFoundPageWrapper from './DomainNotFoundPageWrapper';
 
 type BaseDomainMembersPageProps = {
-    /** The ID of the domain used for the not found wrapper */
     domainAccountID: number;
 
     /** The list of members to display in the table */
     members: DomainMemberRowData[];
 
-    /** The title of the header */
     headerTitle: string;
 
     /** Content to display in the header (e.g., Add/Settings buttons) */
     headerContent?: React.ReactNode;
 
-    /** Stores list of selected members */
     selectedMembers?: string[];
 
     /** Setter for a list of selected members */
@@ -38,7 +35,6 @@ type BaseDomainMembersPageProps = {
     /** Whether the selection mode header should be shown (changes title and hides icon) */
     useSelectionModeHeader?: boolean;
 
-    /** Custom back button press handler */
     onBackButtonPress?: () => void;
 
     /** Filter configuration for the group filter dropdown */
@@ -47,7 +43,6 @@ type BaseDomainMembersPageProps = {
     /** Callback to determine whether a member matches the active group filter */
     isItemInFilter?: IsItemInFilterCallback<DomainMemberRowData>;
 
-    /** Whether the group filter should be shown */
     shouldShowGroupFilter: boolean;
 
     /** Whether the group column should be shown in the table */

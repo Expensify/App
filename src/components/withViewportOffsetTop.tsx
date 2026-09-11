@@ -6,8 +6,10 @@ import type {ComponentType} from 'react';
 import React, {useEffect, useState} from 'react';
 
 type ViewportOffsetTopProps = {
-    // viewportOffsetTop returns the offset of the top edge of the visual viewport from the
-    // top edge of the layout viewport in CSS pixels, when the visual viewport is resized.
+    /**
+     * Offset of the top edge of the visual viewport from the top edge of the layout viewport
+     * in CSS pixels, when the visual viewport is resized.
+     */
     viewportOffsetTop: number;
 };
 
