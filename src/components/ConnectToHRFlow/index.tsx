@@ -5,17 +5,20 @@ import {openLink} from '@userActions/Link';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 
-import {useEffect} from 'react';
+import {useEffect, useRef} from 'react';
 
 import type ConnectToHRFlowProps from './types';
 
 function ConnectToHRFlow({setupLink}: ConnectToHRFlowProps) {
     const {environmentURL} = useEnvironment();
     const [session] = useOnyx(ONYXKEYS.SESSION);
+    const sessionRef = useRef(session);
+    useEffect(() => {
+        sessionRef.current = session;
+    }, [session]);
 
     useEffect(() => {
-        openLink(setupLink, environmentURL, false, session);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        openLink(setupLink, environmentURL, false, sessionRef.current);
     }, [environmentURL, setupLink]);
 
     return null;
