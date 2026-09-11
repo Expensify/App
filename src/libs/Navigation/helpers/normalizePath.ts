@@ -12,14 +12,12 @@ function collapseRepeatedSlashes(path: string): string {
  * Adds the leading '/' Expensify paths use but react-navigation doesn't, and collapses repeated slashes.
  */
 function normalizePath(path: string) {
-    // Split at the first '?' or '#': only the pathname decides how the browser resolves the origin,
     const suffixIndex = path.search(/[?#]/);
     const pathOnly = suffixIndex === -1 ? path : path.slice(0, suffixIndex);
     const suffix = suffixIndex === -1 ? '' : path.slice(suffixIndex);
 
     if (pathOnly.includes('//')) {
-        // The query and fragment are excluded because they can carry data we shouldn't ship.
-        Log.alert('[Navigation] normalizePath received a malformed path', {path: pathOnly});
+        Log.alert('[Navigation] normalizePath received a malformed path');
     }
 
     const collapsedPath = collapseRepeatedSlashes(pathOnly);
