@@ -90,6 +90,7 @@ function getMockReportLoadingState(
     selector: unknown,
     hasOnceLoadedReportActions = true,
     paginationState: {
+        isLoadingInitialReportActions?: boolean;
         isLoadingOlderReportActions?: boolean;
         hasLoadingOlderReportActionsError?: boolean;
         isLoadingNewerReportActions?: boolean;
@@ -211,6 +212,8 @@ type MockLegendListProps = {
     maintainScrollAtEnd?: {animated: boolean} | false;
     maintainScrollAtEndThreshold?: number;
     maintainVisibleContentPosition?: boolean;
+    // eslint-disable-next-line @typescript-eslint/naming-convention
+    experimental_hideItemsUntilMeasured?: boolean;
     ListHeaderComponent?: React.ReactNode;
     ListFooterComponent?: React.ReactNode;
     ListFooterComponentStyle?: unknown;
@@ -278,6 +281,7 @@ const mockUseMarkAsRead: jest.Mock = jest.requireMock('@hooks/useMarkAsRead');
 const mockUseReportActionsScroll: jest.Mock = jest.requireMock('@hooks/useReportActionsScroll');
 const mockMarkOpenReportEnd: jest.Mock = jest.requireMock('@libs/telemetry/markOpenReportEnd');
 let mockHasOnceLoadedReportActions = true;
+let mockIsLoadingInitialReportActions = false;
 let mockIsLoadingOlderReportActions = false;
 let mockHasLoadingOlderReportActionsError = false;
 let mockIsLoadingNewerReportActions = false;
@@ -364,6 +368,7 @@ describe('ReportActionsList (body)', () => {
     beforeEach(() => {
         jest.clearAllMocks();
         mockHasOnceLoadedReportActions = true;
+        mockIsLoadingInitialReportActions = false;
         mockInitialScrollIndex = undefined;
         mockInitialScrollIndexParams = undefined;
         mockIsLoadingOlderReportActions = false;
@@ -435,6 +440,7 @@ describe('ReportActionsList (body)', () => {
             if (key.includes('reportLoadingState')) {
                 return [
                     getMockReportLoadingState(options?.selector, mockHasOnceLoadedReportActions, {
+                        isLoadingInitialReportActions: mockIsLoadingInitialReportActions,
                         isLoadingOlderReportActions: mockIsLoadingOlderReportActions,
                         hasLoadingOlderReportActionsError: mockHasLoadingOlderReportActionsError,
                         isLoadingNewerReportActions: mockIsLoadingNewerReportActions,
@@ -468,6 +474,7 @@ describe('ReportActionsList (body)', () => {
         expect(getCapturedListProps()?.maintainScrollAtEnd).toEqual({animated: false});
         expect(getCapturedListProps()?.maintainScrollAtEndThreshold).toBe(0.01);
         expect(getCapturedListProps()?.maintainVisibleContentPosition).toBe(true);
+        expect(getCapturedListProps()?.experimental_hideItemsUntilMeasured).toBe(true);
     });
 
     it('initially aligns the seed page to the end', () => {
@@ -522,6 +529,7 @@ describe('ReportActionsList (body)', () => {
     it('keeps the initial viewport covered until the hydrated LegendList finishes rendering it', async () => {
         mockUseNetwork.mockReturnValue({isOffline: false});
         mockHasOnceLoadedReportActions = false;
+        mockIsLoadingInitialReportActions = true;
         mockShouldCallLegendListOnLoad = false;
         const view = renderReportActionsList();
 
@@ -548,6 +556,22 @@ describe('ReportActionsList (body)', () => {
             getCapturedListProps()?.onLoad?.();
         });
         expect(screen.queryByTestId('ReportActionsSkeletonView')).toBeNull();
+    });
+
+    it('releases the initial viewport cover after a terminal OpenReport failure', () => {
+        mockUseNetwork.mockReturnValue({isOffline: false});
+        mockHasOnceLoadedReportActions = false;
+        mockIsLoadingInitialReportActions = false;
+        mockShouldCallLegendListOnLoad = false;
+        renderReportActionsList();
+
+        expect(screen.getByTestId('ReportActionsSkeletonCover')).toBeTruthy();
+
+        act(() => {
+            getCapturedListProps()?.onLoad?.();
+        });
+
+        expect(screen.queryByTestId('ReportActionsSkeletonCover')).toBeNull();
     });
 
     it('keeps the initial actions visible until the hydrated page is complete', async () => {
@@ -1232,7 +1256,12 @@ describe('ReportActionsList (body)', () => {
             },
         ];
 
-        const setupMainDMConciergeMocks = (sessionStartTime: string | null = SESSION_START, showFullHistory = false, hasOnceLoadedReportActions = true) => {
+        const setupMainDMConciergeMocks = (
+            sessionStartTime: string | null = SESSION_START,
+            showFullHistory = false,
+            hasOnceLoadedReportActions = true,
+            isLoadingInitialReportActions = false,
+        ) => {
             jest.spyOn(ReportActionsUtils, 'shouldReportActionBeVisible').mockReturnValue(true);
             mockUseNetwork.mockReturnValue({isOffline: false});
             mockUseIsInSidePanel.mockReturnValue(false);
@@ -1251,7 +1280,7 @@ describe('ReportActionsList (body)', () => {
                     return [false, {status: 'loaded'}];
                 }
                 if (key.includes('reportLoadingState')) {
-                    return [getMockReportLoadingState(options?.selector, hasOnceLoadedReportActions), {status: 'loaded'}];
+                    return [getMockReportLoadingState(options?.selector, hasOnceLoadedReportActions, {isLoadingInitialReportActions}), {status: 'loaded'}];
                 }
                 if (key.includes('reportActions')) {
                     return [[], {status: 'loaded'}];
@@ -1419,7 +1448,7 @@ describe('ReportActionsList (body)', () => {
             // Simulates a page refresh: hasOnceLoadedReportActions is RAM-only and resets to false,
             // but report actions persist in Onyx cache. Keep the cached list covered until OpenReport
             // finishes so the final hydrated viewport is the first report content the user sees.
-            setupMainDMConciergeMocks(SESSION_START, false, false);
+            setupMainDMConciergeMocks(SESSION_START, false, false, true);
 
             mockUsePaginatedReportActions.mockReturnValue({
                 ...defaultPaginatedReportActionsResult,
