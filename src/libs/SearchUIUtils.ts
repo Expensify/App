@@ -5399,17 +5399,82 @@ function getStatusOptions(translate: LocalizedTranslate, type: SearchDataTypes) 
     }
 }
 
-function getHasOptions(translate: LocalizedTranslate, type: SearchDataTypes) {
+type HasOptionAvailability = {
+    shouldShowTag: boolean;
+    shouldShowCategory: boolean;
+    shouldShowSubmittedViolation: boolean;
+    shouldShowApprovedViolation: boolean;
+};
+
+type GetHasOptionsConfig = {
+    policies?: OnyxCollection<OnyxTypes.Policy>;
+    policyCategories?: OnyxCollection<OnyxTypes.PolicyCategories>;
+    /** Skip workspace feature filtering so already-selected values still resolve to labels. */
+    shouldShowAllOptions?: boolean;
+    /**
+     * Keep these values in the picker even when their workspace feature is off.
+     * Needed so a saved/query selection like has:tag is not cleared when toggling another option.
+     */
+    selectedValues?: readonly string[];
+};
+
+/**
+ * Which expense `has:` options can apply for the current user, based on accessible workspaces.
+ * Pass an empty collection when the user has no workspaces so Tag/Category/Submitted/Approved violation stay hidden.
+ */
+function getHasOptionAvailability(policies: OnyxCollection<OnyxTypes.Policy> | undefined, policyCategories?: OnyxCollection<OnyxTypes.PolicyCategories>): HasOptionAvailability {
+    let shouldShowTag = false;
+    let shouldShowCategory = false;
+    let shouldShowSubmittedViolation = false;
+    let shouldShowApprovedViolation = false;
+
+    for (const policy of Object.values(policies ?? {})) {
+        if (!policy || policy.isJoinRequestPending || !isGroupPolicy(policy)) {
+            continue;
+        }
+
+        shouldShowTag ||= policy.areTagsEnabled === true;
+        shouldShowCategory ||= policy.areCategoriesEnabled === true;
+        // Migrated Control workspaces leave areRulesEnabled undefined. Fall back to Classic category rules in that case.
+        const shouldShowRulesBasedViolation = arePolicyRulesEnabled(policy, policy.id ? policyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policy.id}`] : undefined);
+        shouldShowSubmittedViolation ||= shouldShowRulesBasedViolation;
+        shouldShowApprovedViolation ||= shouldShowRulesBasedViolation;
+
+        if (shouldShowTag && shouldShowCategory && shouldShowSubmittedViolation && shouldShowApprovedViolation) {
+            break;
+        }
+    }
+
+    return {shouldShowTag, shouldShowCategory, shouldShowSubmittedViolation, shouldShowApprovedViolation};
+}
+
+/**
+ * Options for the `has:` filter / autocomplete. Tag, Category, Submitted violation, and Approved violation are omitted when
+ * no accessible workspace has the matching feature enabled. Pass `policies` from the picker and autocomplete.
+ * Pass `shouldShowAllOptions` for display/validation so already-selected values still resolve to labels.
+ * Pass `selectedValues` in the picker so query/saved selections stay selectable until the user clears them.
+ */
+function getHasOptions(translate: LocalizedTranslate, type: SearchDataTypes, config: GetHasOptionsConfig = {}) {
+    const {policies, policyCategories, shouldShowAllOptions = false, selectedValues} = config;
+
     switch (type) {
-        case CONST.SEARCH.DATA_TYPES.EXPENSE:
+        case CONST.SEARCH.DATA_TYPES.EXPENSE: {
+            const availability = shouldShowAllOptions
+                ? {shouldShowTag: true, shouldShowCategory: true, shouldShowSubmittedViolation: true, shouldShowApprovedViolation: true}
+                : getHasOptionAvailability(policies, policyCategories);
+            const shouldShowTag = availability.shouldShowTag || !!selectedValues?.includes(CONST.SEARCH.HAS_VALUES.TAG);
+            const shouldShowCategory = availability.shouldShowCategory || !!selectedValues?.includes(CONST.SEARCH.HAS_VALUES.CATEGORY);
+            const shouldShowSubmittedViolation = availability.shouldShowSubmittedViolation || !!selectedValues?.includes(CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION);
+            const shouldShowApprovedViolation = availability.shouldShowApprovedViolation || !!selectedValues?.includes(CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION);
             return [
                 {text: translate('common.receipt'), value: CONST.SEARCH.HAS_VALUES.RECEIPT},
                 {text: translate('common.attachment'), value: CONST.SEARCH.HAS_VALUES.ATTACHMENT},
-                {text: translate('common.tag'), value: CONST.SEARCH.HAS_VALUES.TAG},
-                {text: translate('common.category'), value: CONST.SEARCH.HAS_VALUES.CATEGORY},
-                {text: translate('search.filters.has.submittedViolation'), value: CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION},
-                {text: translate('search.filters.has.approvedViolation'), value: CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION},
+                ...(shouldShowTag ? [{text: translate('common.tag'), value: CONST.SEARCH.HAS_VALUES.TAG}] : []),
+                ...(shouldShowCategory ? [{text: translate('common.category'), value: CONST.SEARCH.HAS_VALUES.CATEGORY}] : []),
+                ...(shouldShowSubmittedViolation ? [{text: translate('search.filters.has.submittedViolation'), value: CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION}] : []),
+                ...(shouldShowApprovedViolation ? [{text: translate('search.filters.has.approvedViolation'), value: CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION}] : []),
             ];
+        }
         case CONST.SEARCH.DATA_TYPES.CHAT:
             return [
                 {text: translate('common.link'), value: CONST.SEARCH.HAS_VALUES.LINK},
@@ -6209,7 +6274,7 @@ function getDisplayValue(
         if (!hasValues?.length) {
             return;
         }
-        const hasOptions = getHasOptions(translate, type);
+        const hasOptions = getHasOptions(translate, type, {shouldShowAllOptions: true});
         return hasOptions
             .filter((option) => hasValues.includes(option.value))
             .map((option) => option.text)
@@ -6457,9 +6522,15 @@ function getSingleSelectFilterOptions(filterKey: SearchAdvancedFiltersKey, trans
     return [];
 }
 
-function getMultiSelectFilterOptions(filterKey: SearchAdvancedFiltersKey, type: SearchDataTypes, translate: LocalizedTranslate) {
+function getMultiSelectFilterOptions(
+    filterKey: SearchAdvancedFiltersKey,
+    type: SearchDataTypes,
+    translate: LocalizedTranslate,
+    policies?: OnyxCollection<OnyxTypes.Policy>,
+    policyCategories?: OnyxCollection<OnyxTypes.PolicyCategories>,
+) {
     if (filterKey === FILTER_KEYS.HAS) {
-        return getHasOptions(translate, type);
+        return getHasOptions(translate, type, {policies, policyCategories});
     }
 
     if (filterKey === FILTER_KEYS.IS) {
@@ -7262,7 +7333,7 @@ function filterValidHasValues(hasValues: HasFilterValues | undefined, type: Sear
         return undefined;
     }
 
-    const validHasOptions = getHasOptions(translate, type);
+    const validHasOptions = getHasOptions(translate, type, {shouldShowAllOptions: true});
     const validHasValues = new Set(validHasOptions.map((option) => option.value));
     const filteredHasValues = hasValues.filter((hasValue) => validHasValues.has(hasValue));
 
