@@ -373,6 +373,7 @@ function addMerchantRuleSuggestionRollback(
 /** Updates the billable field of an expense */
 function updateMoneyRequestBillable({
     transactionID,
+    transaction,
     transactionThreadReport,
     parentReport,
     iouReportOwnerLogin,
@@ -392,6 +393,7 @@ function updateMoneyRequestBillable({
     rules,
 }: {
     transactionID: string | undefined;
+    transaction?: OnyxEntry<OnyxTypes.Transaction>;
     transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
     parentReport: OnyxEntry<OnyxTypes.Report>;
     iouReportOwnerLogin: string | undefined;
@@ -438,11 +440,20 @@ function updateMoneyRequestBillable({
     });
     addMerchantRuleSuggestionRollback(onyxData, transactionID, CONST.MERCHANT_RULE_SUGGESTION_FIELDS.BILLABLE);
     API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_BILLABLE, params, onyxData);
-    trackMerchantRuleSuggestion(transactionID, CONST.MERCHANT_RULE_SUGGESTION_FIELDS.BILLABLE, transactionThreadReport.reportID, policy, policyCategories);
+    trackMerchantRuleSuggestion({
+        transactionID,
+        field: CONST.MERCHANT_RULE_SUGGESTION_FIELDS.BILLABLE,
+        reportID: transactionThreadReport.reportID,
+        policy,
+        policyCategories,
+        transaction,
+        parentReport,
+    });
 }
 
 function updateMoneyRequestReimbursable({
     transactionID,
+    transaction,
     transactionThreadReport,
     parentReport,
     iouReportOwnerLogin,
@@ -463,6 +474,7 @@ function updateMoneyRequestReimbursable({
     rules,
 }: {
     transactionID: string | undefined;
+    transaction?: OnyxEntry<OnyxTypes.Transaction>;
     transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
     parentReport: OnyxEntry<OnyxTypes.Report>;
     iouReportOwnerLogin: string | undefined;
@@ -511,7 +523,15 @@ function updateMoneyRequestReimbursable({
     });
     addMerchantRuleSuggestionRollback(onyxData, transactionID, CONST.MERCHANT_RULE_SUGGESTION_FIELDS.REIMBURSABLE);
     API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_REIMBURSABLE, params, onyxData);
-    trackMerchantRuleSuggestion(transactionID, CONST.MERCHANT_RULE_SUGGESTION_FIELDS.REIMBURSABLE, transactionThreadReport.reportID, policy, policyCategories);
+    trackMerchantRuleSuggestion({
+        transactionID,
+        field: CONST.MERCHANT_RULE_SUGGESTION_FIELDS.REIMBURSABLE,
+        reportID: transactionThreadReport.reportID,
+        policy,
+        policyCategories,
+        transaction,
+        parentReport,
+    });
 }
 
 /** Updates the merchant field of an expense */
@@ -869,6 +889,8 @@ type UpdateMoneyRequestTagParams = {
     tag: string;
     /** Which level of a multi-level tag was edited, so the "Create a rule" callout can seed that level alone */
     tagListIndex?: number;
+    /** Whether the edit came from a list of expenses, where the "Create a rule" callout has nowhere to appear */
+    isEditedFromExpenseList?: boolean;
     policy: OnyxEntry<OnyxTypes.Policy>;
     policyTagList: OnyxEntry<OnyxTypes.PolicyTagLists>;
     policyRecentlyUsedTags: OnyxEntry<RecentlyUsedTags>;
@@ -896,6 +918,7 @@ function updateMoneyRequestTag({
     iouReportOwnerLogin,
     tag,
     tagListIndex,
+    isEditedFromExpenseList,
     policy,
     policyTagList,
     policyRecentlyUsedTags,
@@ -951,7 +974,17 @@ function updateMoneyRequestTag({
     }
     addMerchantRuleSuggestionRollback(onyxData, transactionID, CONST.MERCHANT_RULE_SUGGESTION_FIELDS.TAG, editedTagLevels);
     API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_TAG, params, onyxData);
-    trackMerchantRuleSuggestion(transactionID, CONST.MERCHANT_RULE_SUGGESTION_FIELDS.TAG, transactionThreadReport?.reportID, policy, policyCategories, editedTagLevels);
+    trackMerchantRuleSuggestion({
+        transactionID,
+        field: CONST.MERCHANT_RULE_SUGGESTION_FIELDS.TAG,
+        reportID: transactionThreadReport?.reportID,
+        policy,
+        policyCategories,
+        transaction,
+        parentReport,
+        editedTagLevels,
+        isEditedFromExpenseList,
+    });
 }
 
 /** Updates the created tax amount of an expense */
@@ -1019,6 +1052,7 @@ function updateMoneyRequestTaxAmount({
 
 type UpdateMoneyRequestTaxRateParams = {
     transactionID: string | undefined;
+    transaction?: OnyxEntry<OnyxTypes.Transaction>;
     transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
     parentReport: OnyxEntry<OnyxTypes.Report>;
     iouReportOwnerLogin: string | undefined;
@@ -1043,6 +1077,7 @@ type UpdateMoneyRequestTaxRateParams = {
 /** Updates the created tax rate of an expense */
 function updateMoneyRequestTaxRate({
     transactionID,
+    transaction,
     transactionThreadReport,
     parentReport,
     iouReportOwnerLogin,
@@ -1091,7 +1126,15 @@ function updateMoneyRequestTaxRate({
 
     addMerchantRuleSuggestionRollback(onyxData, transactionID, CONST.MERCHANT_RULE_SUGGESTION_FIELDS.TAX);
     API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_TAX_RATE, params, onyxData);
-    trackMerchantRuleSuggestion(transactionID, CONST.MERCHANT_RULE_SUGGESTION_FIELDS.TAX, transactionThreadReport?.reportID, policy, policyCategories);
+    trackMerchantRuleSuggestion({
+        transactionID,
+        field: CONST.MERCHANT_RULE_SUGGESTION_FIELDS.TAX,
+        reportID: transactionThreadReport?.reportID,
+        policy,
+        policyCategories,
+        transaction,
+        parentReport,
+    });
 }
 
 type UpdateMoneyRequestDistanceParams = {
@@ -1273,6 +1316,7 @@ function updateMoneyRequestCategory({
     parentReport,
     iouReportOwnerLogin,
     category,
+    isEditedFromExpenseList,
     policy,
     policyTagList,
     policyCategories,
@@ -1295,6 +1339,8 @@ function updateMoneyRequestCategory({
     parentReport: OnyxEntry<OnyxTypes.Report>;
     iouReportOwnerLogin: string | undefined;
     category: string;
+    /** Whether the edit came from a list of expenses, where the "Create a rule" callout has nowhere to appear */
+    isEditedFromExpenseList?: boolean;
     policy: OnyxEntry<OnyxTypes.Policy>;
     policyTagList: OnyxEntry<OnyxTypes.PolicyTagLists>;
     policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>;
@@ -1340,7 +1386,16 @@ function updateMoneyRequestCategory({
     });
     addMerchantRuleSuggestionRollback(onyxData, transactionID, CONST.MERCHANT_RULE_SUGGESTION_FIELDS.CATEGORY);
     API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_CATEGORY, params, onyxData);
-    trackMerchantRuleSuggestion(transactionID, CONST.MERCHANT_RULE_SUGGESTION_FIELDS.CATEGORY, transactionThreadReport?.reportID, policy, policyCategories);
+    trackMerchantRuleSuggestion({
+        transactionID,
+        field: CONST.MERCHANT_RULE_SUGGESTION_FIELDS.CATEGORY,
+        reportID: transactionThreadReport?.reportID,
+        policy,
+        policyCategories,
+        transaction,
+        parentReport,
+        isEditedFromExpenseList,
+    });
 }
 
 /** Updates the description of an expense */
@@ -1351,6 +1406,7 @@ function updateMoneyRequestDescription({
     parentReport,
     iouReportOwnerLogin,
     comment,
+    isEditedFromExpenseList,
     policy,
     policyTagList,
     policyCategories,
@@ -1372,6 +1428,8 @@ function updateMoneyRequestDescription({
     parentReport: OnyxEntry<OnyxTypes.Report>;
     iouReportOwnerLogin: string | undefined;
     comment: string;
+    /** Whether the edit came from a list of expenses, where the "Create a rule" callout has nowhere to appear */
+    isEditedFromExpenseList?: boolean;
     policy: OnyxEntry<OnyxTypes.Policy>;
     policyTagList: OnyxEntry<OnyxTypes.PolicyTagLists>;
     policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>;
@@ -1432,7 +1490,16 @@ function updateMoneyRequestDescription({
     params.description = parsedComment;
     addMerchantRuleSuggestionRollback(onyxData, transactionID, CONST.MERCHANT_RULE_SUGGESTION_FIELDS.DESCRIPTION);
     API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_DESCRIPTION, params, onyxData);
-    trackMerchantRuleSuggestion(transactionID, CONST.MERCHANT_RULE_SUGGESTION_FIELDS.DESCRIPTION, transactionThreadReport?.reportID, policy, policyCategories);
+    trackMerchantRuleSuggestion({
+        transactionID,
+        field: CONST.MERCHANT_RULE_SUGGESTION_FIELDS.DESCRIPTION,
+        reportID: transactionThreadReport?.reportID,
+        policy,
+        policyCategories,
+        transaction,
+        parentReport,
+        isEditedFromExpenseList,
+    });
 }
 
 /** Updates the distance rate of an expense */
