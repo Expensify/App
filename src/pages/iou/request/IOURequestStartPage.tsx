@@ -82,8 +82,12 @@ function IOURequestStartPage({
     const isLoadingTransaction = isLoadingOnyxValue(transactionResult);
     const perDiemInputRef = useRef<AnimatedTextInputRef | null>(null);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const iouRequestStartPoliciesSelector = useMemo(
+        () => createIOURequestStartPoliciesSelector(currentUserPersonalDetails.login, iouType === CONST.IOU.TYPE.INVOICE),
+        [currentUserPersonalDetails.login, iouType],
+    );
     const [iouRequestStartPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
-        selector: createIOURequestStartPoliciesSelector(currentUserPersonalDetails.login, iouType === CONST.IOU.TYPE.INVOICE),
+        selector: iouRequestStartPoliciesSelector,
     });
     const tabTitles = {
         [CONST.IOU.TYPE.REQUEST]: translate('iou.createExpense'),
@@ -212,11 +216,12 @@ function IOURequestStartPage({
     const shouldEmbedConfirmation = shouldUseTab || iouType === CONST.IOU.TYPE.PAY;
 
     const [isSignDirty, setIsSignDirty] = useState(false);
+    const [hasSubmitted, setHasSubmitted] = useState(false);
     const hasSubmittedRef = useRef(false);
 
     const hasAmountChanged = transaction?.isAmountSet === true;
     const getEmbeddedHasUnsavedChanges = () => shouldEmbedConfirmation && !hasSubmittedRef.current && (isSignDirty || hasAmountChanged);
-    const isEmbeddedDirty = getEmbeddedHasUnsavedChanges();
+    const isEmbeddedDirty = shouldEmbedConfirmation && !hasSubmitted && (isSignDirty || hasAmountChanged);
 
     const {suppressDiscardPrompt} = useDiscardChangesConfirmation({
         getHasUnsavedChanges: getEmbeddedHasUnsavedChanges,
@@ -225,6 +230,7 @@ function IOURequestStartPage({
 
     const suppressEmbeddedDiscardPrompt = () => {
         hasSubmittedRef.current = true;
+        setHasSubmitted(true);
         suppressDiscardPrompt();
     };
 
