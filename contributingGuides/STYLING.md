@@ -22,7 +22,7 @@ These helper styles are loosely based on the [Bootstrap system of CSS utility he
 Two kinds of values must never be written by hand in a component: font sizes and the paddings or margins that change between narrow and wide layouts.
 
 - **Type**: use `<Text variant="...">` (see `src/styles/typography.ts`). Raw `fontSize` / `lineHeight` are blocked by `rulesdir/no-raw-typography`.
-- **Responsive insets**: use `useLayoutSpacing()` (see `src/styles/layoutSpacing.ts`). It resolves `cardPadding` and `pageGutter` for the current layout and returns ready styles (`cardGap`, the space between stacked cards, is read by the style sheet): `cardPadding`, `cardPaddingHorizontal`, `cardPaddingBottom`, `cardPaddingLeft`, `cardMarginHorizontal`, `cardEdgeToEdge`, `pageGutter`, `pageGutterMargin`. Picking a spacing helper with a layout flag is blocked by `rulesdir/no-layout-spacing-conditional`.
+- **Responsive insets**: use `useLayoutSpacing()` (see `src/styles/layoutSpacing.ts`). It resolves `cardPadding` and `pageGutter` for the current layout and returns ready styles (`cardGap`, the space between stacked cards, is also read directly by the style sheet for the Home layout): `cardPadding`, `cardPaddingHorizontal`, `cardPaddingBottom`, `cardPaddingLeft`, `cardMarginHorizontal`, `cardEdgeToEdge`, `cardGapBottom`, `pageGutter`, `pageGutterMargin`. Picking a spacing helper with a layout flag is blocked by `rulesdir/no-layout-spacing-conditional`.
 
 ```tsx
 // Bad - the card inset is decided here, so every card row has to agree by hand

@@ -121,12 +121,12 @@ function Section({
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const {cardPadding, pageGutterMargin} = useLayoutSpacing();
+    const {cardPadding, pageGutterMargin, cardGapBottom} = useLayoutSpacing();
     const isLottie = isIllustrationLottieAnimation(illustration);
 
     const lottieIllustration = isLottie ? illustration : undefined;
     return (
-        <View style={[styles.pageWrapper, styles.cardSectionContainer, pageGutterMargin, containerStyles, (isCentralPane || !!illustration) && styles.p0]}>
+        <View style={[styles.pageWrapper, styles.cardSectionContainer, pageGutterMargin, cardGapBottom, containerStyles, (isCentralPane || !!illustration) && styles.p0]}>
             {banner}
             {cardLayout === CARD_LAYOUT.ICON_ON_TOP && (
                 <IconSection

@@ -35,7 +35,7 @@ function CardRow() {
 }
 ```
 
-Available from `useLayoutSpacing()`: `cardPadding`, `cardPaddingHorizontal`, `cardPaddingBottom`, `cardPaddingLeft`, `cardMarginHorizontal`, `cardEdgeToEdge`, `pageGutter`, `pageGutterMargin`. Tokens live in `src/styles/layoutSpacing.ts`; add a new one there rather than writing a ternary.
+Available from `useLayoutSpacing()`: `cardPadding`, `cardPaddingHorizontal`, `cardPaddingBottom`, `cardPaddingLeft`, `cardMarginHorizontal`, `cardEdgeToEdge`, `cardGapBottom`, `pageGutter`, `pageGutterMargin`. Tokens live in `src/styles/layoutSpacing.ts`; add a new one there rather than writing a ternary.
 
 ---
 

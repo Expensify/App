@@ -15,15 +15,17 @@ function resolveLayoutSpacing(shouldUseNarrowLayout: boolean) {
     const size = shouldUseNarrowLayout ? 'narrow' : 'wide';
     const cardPadding = layoutSpacing.cardPadding[size];
     const pageGutter = layoutSpacing.pageGutter[size];
+    const cardGap = layoutSpacing.cardGap[size];
 
     return {
-        values: {cardPadding, pageGutter},
+        values: {cardPadding, pageGutter, cardGap},
         cardPadding: {padding: cardPadding},
         cardPaddingHorizontal: {paddingHorizontal: cardPadding},
         cardPaddingBottom: {paddingBottom: cardPadding},
         cardPaddingLeft: {paddingLeft: cardPadding},
         cardMarginHorizontal: {marginHorizontal: cardPadding},
         cardEdgeToEdge: {marginHorizontal: -cardPadding},
+        cardGapBottom: {marginBottom: cardGap},
         pageGutter: {paddingHorizontal: pageGutter},
         pageGutterMargin: {marginHorizontal: pageGutter},
     };
