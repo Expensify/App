@@ -8,6 +8,7 @@ import type {TabSelectorBaseItem} from '@components/TabSelector/types';
 
 import useCleanupSelectedOptions from '@hooks/useCleanupSelectedOptions';
 import useConfirmModal from '@hooks/useConfirmModal';
+import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
@@ -81,6 +82,7 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
     useWorkspaceDocumentTitle(policy?.name, 'workspace.common.rules');
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {pageGutter} = useLayoutSpacing();
     const icons = useMemoizedLazyExpensifyIcons(['Plus', 'Feed', 'CreditCardExclamation', 'DocumentMagicWand', 'Task', 'Flag', 'Bot', 'Trashcan', 'Table']);
     const {canWrite: canWriteRules, showReadOnlyModal} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.RULES);
     const {isBetaEnabled} = usePermissions();
@@ -357,8 +359,7 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
         </View>
     );
     // Outside the list so it stays pinned: it counts selected rows, which is useless once it scrolls away.
-    const separateLineButtons =
-        shouldDisplayButtonsInSeparateLine && !!headerButtons ? <View style={[styles.flexShrink0, styles.pl5, styles.pr5, styles.pb5, styles.w100]}>{headerButtons}</View> : null;
+    const separateLineButtons = shouldDisplayButtonsInSeparateLine && !!headerButtons ? <View style={[styles.flexShrink0, pageGutter, styles.pb5, styles.w100]}>{headerButtons}</View> : null;
     const sharedTableTabProps = {
         policyID,
         canWriteRules,
