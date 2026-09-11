@@ -1,9 +1,9 @@
 name: Seed Jest perf cache
 
-# One `reassure --baseline` run, writing both entries the Reassure perf jobs read. Cache entries are
-# scoped to the ref that wrote them, so writing from main is what shares them and keeps them off fork
-# PRs. No paths filter: a run that finds an entry present skips the work, so the probe on every push is
-# what rebuilds an evicted one.
+# One `reassure --baseline` run, writing the Jest transform cache the perf jobs restore and this
+# commit's baseline. Cache entries are scoped to the ref that wrote them, so writing from main is what
+# shares them and keeps them off fork PRs. No paths filter: the probe on every push is what rebuilds an
+# evicted transform entry.
 
 on:
   push:
@@ -27,8 +27,8 @@ jobs:
       - name: Setup NodeJS
         uses: ./.github/actions/composite/setupNode
 
-      # Keyed on the commit alone: the perf workflow looks this up by the PR's base.sha, which can lag
-      # main by one push - a miss there is a cold baseline, never a wrong one.
+      # Keyed on the commit alone, so a PR run can look it up by its own base.sha. Nothing restores it
+      # yet; a lookup that misses is a cold baseline, never a wrong one.
       - name: Look up this commit's baseline
         id: lookupBaseline
         # v5.0.1
