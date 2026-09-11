@@ -258,7 +258,7 @@ describe('Navigate', () => {
             expect(lastRootRoute?.state?.routes.at(-1)?.name).toBe(SCREENS.RIGHT_MODAL.SETTINGS);
         });
 
-        it('shows Subscription behind the payment-card RHP when navigating from Reports', () => {
+        it('shows Profile behind the display name RHP when navigating from Reports', () => {
             render(
                 <TestNavigationContainer
                     initialState={{
@@ -296,7 +296,7 @@ describe('Navigate', () => {
             );
 
             act(() => {
-                Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION_ADD_PAYMENT_CARD);
+                Navigation.navigate(ROUTES.SETTINGS_DISPLAY_NAME);
             });
 
             const rootState = navigationRef.current?.getRootState();
@@ -307,7 +307,7 @@ describe('Navigate', () => {
             const tabState = rootState?.routes.at(0)?.state;
             const activeTab = tabState?.routes.at(tabState.index ?? 0);
             expect(activeTab?.name).toBe(NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR);
-            expect(activeTab?.state?.routes.at(-1)?.name).toBe(SCREENS.SETTINGS.SUBSCRIPTION.ROOT);
+            expect(activeTab?.state?.routes.at(-1)?.name).toBe(SCREENS.SETTINGS.PROFILE.ROOT);
         });
 
         it('preserves report navigation history when opening a workspace from an RHP', () => {
