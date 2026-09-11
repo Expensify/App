@@ -3,6 +3,7 @@ import {act, render, screen, waitFor} from '@testing-library/react-native';
 import ComposeProviders from '@components/ComposeProviders';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import MoneyRequestView from '@components/ReportActionItem/MoneyRequestView';
+import ScreenWrapperStatusContext from '@components/ScreenWrapper/ScreenWrapperStatusContext';
 
 import initOnyxDerivedValues from '@userActions/OnyxDerived';
 
@@ -100,23 +101,27 @@ const expenseReportID = 'expense_mrv_123';
 const parentReportActionID = 'parent_action_mrv';
 const transactionID = 'txn_mrv_test';
 
+const SCREEN_WRAPPER_STATUS = {didScreenTransitionEnd: true, shouldUseNarrowLayoutOnWideRHP: false, isSafeAreaTopPaddingApplied: true, isSafeAreaBottomPaddingApplied: true};
+
 const renderMoneyRequestView = (threadReport: ReturnType<typeof LHNTestUtils.getFakeReport>, policy?: PartialDeep<Policy>) =>
     render(
         <ComposeProviders components={[OnyxListItemProvider]}>
-            <MoneyRequestView
-                transactionThreadReport={threadReport}
-                parentReportID={expenseReportID}
-                expensePolicy={createMock<Policy>({
-                    id: policyID,
-                    type: CONST.POLICY.TYPE.TEAM,
-                    role: CONST.POLICY.ROLE.ADMIN,
-                    name: 'Test Policy',
-                    owner: currentUserEmail,
-                    outputCurrency: CONST.CURRENCY.USD,
-                    ...policy,
-                })}
-                shouldShowAnimatedBackground={false}
-            />
+            <ScreenWrapperStatusContext.Provider value={SCREEN_WRAPPER_STATUS}>
+                <MoneyRequestView
+                    transactionThreadReport={threadReport}
+                    parentReportID={expenseReportID}
+                    expensePolicy={createMock<Policy>({
+                        id: policyID,
+                        type: CONST.POLICY.TYPE.TEAM,
+                        role: CONST.POLICY.ROLE.ADMIN,
+                        name: 'Test Policy',
+                        owner: currentUserEmail,
+                        outputCurrency: CONST.CURRENCY.USD,
+                        ...policy,
+                    })}
+                    shouldShowAnimatedBackground={false}
+                />
+            </ScreenWrapperStatusContext.Provider>
         </ComposeProviders>,
     );
 
@@ -214,6 +219,61 @@ describe('MoneyRequestView edit fields', () => {
             expect(screen.getByTestId('menu-item-common.merchant')).toBeOnTheScreen();
             expect(screen.getByTestId('menu-item-common.merchant')).toHaveTextContent('editable');
         });
+    });
+
+    it('shows the Category and Tag rows from the report policy when nothing is selected yet', async () => {
+        const threadReport = {
+            ...LHNTestUtils.getFakeReport(),
+            parentReportID: expenseReportID,
+            parentReportActionID,
+        };
+
+        await setupTestData();
+
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, {
+                Travel: {name: 'Travel', enabled: true},
+            });
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {
+                Location: {name: 'Location', orderWeight: 0, required: false, tags: {Berlin: {name: 'Berlin', enabled: true}}},
+            });
+        });
+
+        renderMoneyRequestView(threadReport, {areCategoriesEnabled: true, areTagsEnabled: true});
+        await waitForBatchedUpdatesWithAct();
+
+        await waitFor(() => {
+            expect(screen.getByTestId('menu-item-common.category')).toBeOnTheScreen();
+            expect(screen.getByTestId('menu-item-Location')).toBeOnTheScreen();
+        });
+    });
+
+    it('hides the Category and Tag rows when the categories and tags belong to a different policy', async () => {
+        const threadReport = {
+            ...LHNTestUtils.getFakeReport(),
+            parentReportID: expenseReportID,
+            parentReportActionID,
+        };
+
+        await setupTestData();
+
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}someOtherPolicy`, {
+                Travel: {name: 'Travel', enabled: true},
+            });
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_TAGS}someOtherPolicy`, {
+                Location: {name: 'Location', orderWeight: 0, required: false, tags: {Berlin: {name: 'Berlin', enabled: true}}},
+            });
+        });
+
+        renderMoneyRequestView(threadReport, {areCategoriesEnabled: true, areTagsEnabled: true});
+        await waitForBatchedUpdatesWithAct();
+
+        await waitFor(() => {
+            expect(screen.getByTestId('menu-item-common.merchant')).toBeOnTheScreen();
+        });
+        expect(screen.queryByTestId('menu-item-common.category')).not.toBeOnTheScreen();
+        expect(screen.queryByTestId('menu-item-Location')).not.toBeOnTheScreen();
     });
 
     it('should show tax fields when tax tracking is disabled but transaction has tax data', async () => {

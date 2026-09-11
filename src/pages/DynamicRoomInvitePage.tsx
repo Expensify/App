@@ -24,6 +24,7 @@ import {inviteToRoom, inviteToRoomAction, searchUserInServer} from '@libs/action
 import {clearUserSearchPhrase, updateUserSearchPhrase} from '@libs/actions/RoomMembersUserSearchPhrase';
 import {READ_COMMANDS} from '@libs/API/types';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
+import getPlatform from '@libs/getPlatform';
 import HttpUtils from '@libs/HttpUtils';
 import {appendCountryCode} from '@libs/LoginUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
@@ -74,7 +75,7 @@ function DynamicRoomInvitePage({report, policy, didScreenTransitionEnd}: Dynamic
     });
     const delegateAccountID = useDelegateAccountID();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const [isSearchingForReports] = useOnyx(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS);
+    const [isSearchingForUsers] = useOnyx(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_USERS);
     const isReportArchived = useReportIsArchived(report.reportID);
     const {isLoading, startWithLoading} = usePressLoading();
 
@@ -247,12 +248,14 @@ function DynamicRoomInvitePage({report, policy, didScreenTransitionEnd}: Dynamic
                     confirmButtonOptions={{
                         isDisabled: !validSelectedOptions.length,
                         onConfirm: inviteUsers,
+                        isFooterConfirmEnabled: validSelectedOptions.length > 0,
+                        isFooterConfirmEnterKeyEnabled: getPlatform() !== CONST.PLATFORM.ANDROID,
                     }}
                     shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
                     shouldUpdateFocusedIndex
                     shouldPreventAutoScrollOnSelect
                     shouldShowLoadingPlaceholder={!areOptionsInitialized}
-                    isLoadingNewOptions={!!isSearchingForReports}
+                    isLoadingNewOptions={!!isSearchingForUsers}
                     shouldShowTextInput
                     canSelectMultiple
                     footerContent={footerContent}

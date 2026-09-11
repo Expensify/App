@@ -15,7 +15,6 @@ type DisplayNamesWithoutTooltipProps = ForwardedFSClassProps & {
     /** Arbitrary styles of the displayName text */
     textStyles?: StyleProp<TextStyle>;
 
-    /** Number of lines before wrapping */
     numberOfLines?: number;
 
     /** Additional Text component to render after the displayNames */

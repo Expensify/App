@@ -1,15 +1,17 @@
 import {loadIllustration} from '@components/Icon/IllustrationLoader';
 import type {IllustrationName} from '@components/Icon/IllustrationLoader';
+import MenuItem from '@components/MenuItem';
 import Section from '@components/Section';
 import Text from '@components/Text';
 
 import {useMemoizedLazyAsset, useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTwoFactorAuthRoute from '@hooks/useTwoFactorAuthRoute';
 
 import Navigation from '@navigation/Navigation';
+
+import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 
 import React from 'react';
 import {View} from 'react-native';
@@ -17,7 +19,6 @@ import {View} from 'react-native';
 function Enable2FACard() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {asset: ShieldYellow} = useMemoizedLazyAsset(() => loadIllustration('ShieldYellow' as IllustrationName));
     const icons = useMemoizedLazyExpensifyIcons(['Shield']);
     const {getTwoFactorAuthRoute} = useTwoFactorAuthRoute();
@@ -28,18 +29,24 @@ function Enable2FACard() {
             icon={ShieldYellow}
             titleStyles={styles.mb4}
             containerStyles={styles.mh5}
-            menuItems={[
-                {
-                    title: translate('connectBankAccountStep.secureYourAccount'),
-                    onPress: () => Navigation.navigate(getTwoFactorAuthRoute()),
-                    icon: icons.Shield,
-                    shouldShowRightIcon: true,
-                    outerWrapperStyle: shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8,
-                },
-            ]}
         >
             <View style={styles.mb6}>
                 <Text>{translate('connectBankAccountStep.enable2FAText')}</Text>
+            </View>
+            <View style={styles.mhn5}>
+                <MenuItem.Root onPress={callFunctionIfActionIsAllowed(() => Navigation.navigate(getTwoFactorAuthRoute()))}>
+                    <MenuItem.Row>
+                        <MenuItem.Leading>
+                            <MenuItem.Icon src={icons.Shield} />
+                        </MenuItem.Leading>
+                        <MenuItem.Content>
+                            <MenuItem.Title>{translate('connectBankAccountStep.secureYourAccount')}</MenuItem.Title>
+                        </MenuItem.Content>
+                        <MenuItem.Trailing>
+                            <MenuItem.Chevron />
+                        </MenuItem.Trailing>
+                    </MenuItem.Row>
+                </MenuItem.Root>
             </View>
         </Section>
     );

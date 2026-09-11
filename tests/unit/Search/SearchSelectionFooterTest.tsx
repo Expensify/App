@@ -106,6 +106,7 @@ function buildSelectedTransaction(currency: string, groupCurrency?: string, grou
         action: CONST.SEARCH.ACTION_TYPES.VIEW,
         policyID: undefined,
         amount: 100,
+        displayAmount: 100,
         currency,
         groupCurrency,
         groupAmount,
@@ -167,6 +168,42 @@ describe('SearchSelectionFooter', () => {
         await waitForBatchedUpdates();
 
         expect(mockCapturedFooterProps.current).toEqual(expect.objectContaining({count: 10, total: 36000, currency: CONST.CURRENCY.USD}));
+    });
+
+    it('nets a selected credit against a selected expense instead of summing their magnitudes', async () => {
+        mockSelectedTransactions.current = {
+            transaction1: {...buildSelectedTransaction(CONST.CURRENCY.USD), displayAmount: 10000},
+            transaction2: {...buildSelectedTransaction(CONST.CURRENCY.USD), displayAmount: -10000},
+        };
+
+        render(<SearchSelectionFooter searchResults={buildSearchResults(CONST.CURRENCY.USD, 5)} />);
+        await waitForBatchedUpdates();
+
+        expect(mockCapturedFooterProps.current).toEqual(expect.objectContaining({count: 2, total: 0}));
+    });
+
+    it('nets a selected credit against a selected expense when the amounts differ', async () => {
+        mockSelectedTransactions.current = {
+            transaction1: {...buildSelectedTransaction(CONST.CURRENCY.USD), displayAmount: 10000},
+            transaction2: {...buildSelectedTransaction(CONST.CURRENCY.USD), displayAmount: -4000},
+        };
+
+        render(<SearchSelectionFooter searchResults={buildSearchResults(CONST.CURRENCY.USD, 5)} />);
+        await waitForBatchedUpdates();
+
+        expect(mockCapturedFooterProps.current).toEqual(expect.objectContaining({count: 2, total: 6000}));
+    });
+
+    it('adds back an excluded credit rather than subtracting it from the server total', async () => {
+        // The server total already counts the credit as -$100, so dropping it from the selection raises the total.
+        mockSelectedTransactions.current = {};
+        mockExcludedTransactions.current = {transaction1: {...buildSelectedTransaction(CONST.CURRENCY.USD), displayAmount: -10000}};
+        mockAreAllMatchingItemsSelected.current = true;
+
+        render(<SearchSelectionFooter searchResults={buildSearchResults(CONST.CURRENCY.USD, 172, 36000)} />);
+        await waitForBatchedUpdates();
+
+        expect(mockCapturedFooterProps.current).toEqual(expect.objectContaining({count: 171, total: 46000, currency: CONST.CURRENCY.USD}));
     });
 
     it("offers the user's live payment currency as the Reset target when there is no active workspace", async () => {
@@ -269,8 +306,7 @@ describe('SearchSelectionFooter', () => {
         it('stamps an unselected cash back group with the positive figure its own entry would produce', async () => {
             const groups = await renderGroupedSearch();
 
-            // selectionBuilders gives a selected cash back row groupAmount: +Math.abs(total), so a negative stamp here
-            // would never match the freshness check and the cached conversion could never be reused.
+            // A credit's total is negative, so negating it keeps the stamp positive and matching getEntrySource.
             expect(groups?.[CASH_BACK_KEY]).toEqual({[PAYMENT_CURRENCY]: 2500});
         });
 

@@ -43,7 +43,6 @@ type SearchResultsInfo = {
     /** Current search results offset/cursor */
     offset: number;
 
-    /** Type of search */
     type: SearchDataTypes;
 
     /** The hash of the current search */
@@ -56,10 +55,7 @@ type SearchResultsInfo = {
      * whether they have created any invoice yet when the search type is invoice */
     hasResults: boolean;
 
-    /** Whether the search results are currently loading */
     isLoading: boolean;
-
-    /** The sort by of the current search */
     sortBy: SearchSortBy;
 
     /** The sort order of the current search */
@@ -136,7 +132,6 @@ type SearchTask = {
 
 /** Model of member grouped search result */
 type SearchMemberGroup = {
-    /** Account ID */
     accountID: number;
 
     /** Number of transactions */
@@ -163,13 +158,8 @@ type SearchCardGroup = {
     /** Currency of total value */
     currency: string;
 
-    /** Bank name */
     bank: string;
-
-    /** Card name */
     cardName: string;
-
-    /** Card ID */
     cardID: number;
 
     /** Last four Primary Account Number digits */
@@ -196,7 +186,6 @@ type SearchWithdrawalIDGroup = {
     /** Masked account number */
     accountNumber: string;
 
-    /** Bank name */
     bankName: BankName;
 
     /** When the withdrawal completed */
@@ -235,7 +224,6 @@ type SearchWithdrawalIDGroup = {
 
 /** Model of category grouped search result */
 type SearchCategoryGroup = {
-    /** Category name */
     category: string;
 
     /** Number of transactions */
@@ -250,7 +238,6 @@ type SearchCategoryGroup = {
 
 /** Model of merchant grouped search result */
 type SearchMerchantGroup = {
-    /** Merchant name */
     merchant: string;
 
     /** Number of transactions */
@@ -265,7 +252,6 @@ type SearchMerchantGroup = {
 
 /** Model of tag grouped search result */
 type SearchTagGroup = {
-    /** Tag name */
     tag: string;
 
     /** Number of transactions */
@@ -280,7 +266,6 @@ type SearchTagGroup = {
 
 /** Model of month grouped search result */
 type SearchMonthGroup = {
-    /** Year */
     year: number;
 
     /** Month (1-12) */
@@ -313,7 +298,6 @@ type SearchWeekGroup = {
 
 /** Model of year grouped search result */
 type SearchYearGroup = {
-    /** Year */
     year: number;
 
     /** Number of transactions */
@@ -328,7 +312,6 @@ type SearchYearGroup = {
 
 /** Model of quarter grouped search result */
 type SearchQuarterGroup = {
-    /** Year */
     year: number;
 
     /** Quarter (1-4) */
@@ -369,10 +352,7 @@ type SearchResultDataType = PrefixedRecord<typeof ONYXKEYS.COLLECTION.TRANSACTIO
 
 /** Model of search results */
 type SearchResults = {
-    /** Current search results state */
     search: SearchResultsInfo;
-
-    /** Search results data */
     data: SearchResultDataType;
 
     /** Whether search data is being fetched from server */

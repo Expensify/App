@@ -60,15 +60,16 @@ function getTransactionCount(transactionKeys: string[], transactions: SelectedTr
     }, 0);
 }
 
-function getTransactionTotal(transactions: SelectedTransactionInfo[]): number {
-    return transactions.reduce((total, transaction) => total - (transaction.groupAmount ?? -Math.abs(transaction.amount)), 0);
-}
-
 // The live default-currency figure a row contributes to the footer total (also what the footer falls back to before a
 // conversion arrives). The footer stamps each conversion against this value and compares it on every render, so an
 // inline edit that moves it is detected and the cached conversion is fetched again.
+// Sources are expense-signed (the negation of the displayed amount), so callers sum them with `total - source`.
 function getEntrySource(entry: SelectedTransactionInfo): number {
-    return entry.groupAmount ?? -Math.abs(entry.amount);
+    return entry.groupAmount ?? -entry.displayAmount;
+}
+
+function getTransactionTotal(transactions: SelectedTransactionInfo[]): number {
+    return transactions.reduce((total, transaction) => total - getEntrySource(transaction), 0);
 }
 
 // Every selected row needs a fresh cached conversion for the target currency before the selected total can be shown
@@ -105,7 +106,7 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
     const {selectedTransactions, excludedTransactions = getEmptyObject<SelectedTransactions>(), areAllMatchingItemsSelected, selectedReports} = useSearchSelectionContext();
     const {currentSearchResults} = useSearchResultsContext();
     const {currentSearchHash, currentSearchKey, currentSearchQueryJSON} = useSearchQueryContext();
-    const shouldAllowFooterTotals = useSearchShouldCalculateTotals(currentSearchKey, currentSearchQueryJSON?.hash, true, areAllMatchingItemsSelected);
+    const shouldAllowFooterTotals = useSearchShouldCalculateTotals(currentSearchKey, true, areAllMatchingItemsSelected);
     const {isOffline} = useNetwork();
     const activePolicy = useActivePolicy();
     // The server converts search figures to the active policy's currency when the query carries no explicit target.
@@ -202,8 +203,7 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
     // Source figures for every loaded group, not just the selected ones. The grouped response caches every group's
     // converted value, so stamping them all lets a later selection of another group reuse the cache instead of
     // re-running the grouped query. Uses the same expense-signed figure as getEntrySource so a stamp always matches
-    // the live source the freshness checks compare against, which is why cash back is signed the other way here:
-    // selectionBuilders gives a selected cash back row a positive groupAmount, and a mismatch would never go fresh.
+    // the live source the freshness checks compare against.
     const loadedGroupSourceByKey = useMemo(() => {
         const data = currentSearchResults?.data;
         if (!isGroupedSearch || !data) {
@@ -216,8 +216,7 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
             }
             const group: unknown = data[key];
             if (group && typeof group === 'object' && 'total' in group && typeof group.total === 'number') {
-                const isCashBack = 'isCashBack' in group && group.isCashBack === true;
-                sources[key] = isCashBack ? Math.abs(group.total) : -Math.abs(group.total);
+                sources[key] = -group.total;
             }
         }
         return sources;
@@ -484,7 +483,7 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
                             convertedAmount = convertedTransactions?.[transaction.transaction.transactionID]?.[selectedCurrency];
                         }
                     }
-                    return acc - (convertedAmount ?? transaction.groupAmount ?? -Math.abs(transaction.amount));
+                    return acc - (convertedAmount ?? getEntrySource(transaction));
                 }, 0);
             }
 
@@ -502,7 +501,7 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
                       } else if (transactionID) {
                           convertedAmount = convertedTransactions?.[transactionID]?.[selectedCurrency];
                       }
-                      return total - (convertedAmount ?? transaction.groupAmount ?? -Math.abs(transaction.amount));
+                      return total - (convertedAmount ?? getEntrySource(transaction));
                   }, 0)
                 : 0;
             return {
