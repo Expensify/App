@@ -79,7 +79,46 @@ function openPolicyTagsPage(policyID: string) {
         policyID,
     };
 
-    API.read(READ_COMMANDS.OPEN_POLICY_TAGS_PAGE, params);
+    type TagsLoadingKey = typeof ONYXKEYS.COLLECTION.RAM_ONLY_POLICY_TAGS_LOADING_STATE;
+    const loadingStateKey = `${ONYXKEYS.COLLECTION.RAM_ONLY_POLICY_TAGS_LOADING_STATE}${policyID}` as const;
+
+    const optimisticData: Array<OnyxUpdate<TagsLoadingKey>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: loadingStateKey,
+            value: {isLoading: true},
+        },
+    ];
+
+    // `hasOnceLoaded` is only ever written here, so a read that never landed leaves the policy eligible for a retry.
+    // The collection existing in Onyx cannot stand in for this: it may hold only the tag already on the expense.
+    const successData: Array<OnyxUpdate<TagsLoadingKey>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: loadingStateKey,
+            value: {isLoading: false, hasOnceLoaded: true},
+        },
+    ];
+
+    const failureData: Array<OnyxUpdate<TagsLoadingKey>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: loadingStateKey,
+            value: {isLoading: false},
+        },
+    ];
+
+    API.read(READ_COMMANDS.OPEN_POLICY_TAGS_PAGE, params, {optimisticData, successData, failureData});
+}
+
+/**
+ * Clears the in-flight flag for a policy's tags read.
+ *
+ * A read cut off by a disconnect never gets a response, so its `failureData` never applies and `isLoading` would stay
+ * true for the rest of the session, blocking every retry. Callers clear it on reconnect.
+ */
+function clearPolicyTagsLoadingState(policyID: string) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.RAM_ONLY_POLICY_TAGS_LOADING_STATE}${policyID}`, {isLoading: false});
 }
 
 type BuildOptimisticPolicyRecentlyUsedTagsProps = {
@@ -1549,6 +1588,7 @@ export {
     enablePolicyTags,
     setWorkspaceTagRequired,
     openPolicyTagsPage,
+    clearPolicyTagsLoadingState,
     renamePolicyTag,
     renamePolicyTagList,
     setWorkspaceTagEnabled,

@@ -10,6 +10,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
+import useLoadPolicyTags from '@hooks/useLoadPolicyTags';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -140,7 +141,15 @@ function DynamicIOURequestStepTag({
         return parentTagAtIndex ? [parentTagAtIndex] : undefined;
     }, [parentTransactionTag, tagListIndex]);
 
-    const shouldShowTag = transactionTag || hasEnabledTags(policyTagLists) || !!additionalTagsToInclude?.length;
+    // Backfill the policy's tags here too, not just inside TagPicker: on a lazy-loaded account an absent collection
+    // makes `hasEnabledTags` false, so without this the empty state renders, TagPicker never mounts, and the read it
+    // owns never fires — leaving the user unable to assign a tag to an untagged expense.
+    const {isLoadingPolicyTags} = useLoadPolicyTags(policyID);
+
+    // An absent tags collection means "not read yet", not "this policy has no tags", so keep the picker mounted while
+    // the read is in flight and let it show its own loading state. Once the tags land, a genuinely tag-less policy
+    // falls back to the empty state as before.
+    const shouldShowTag = transactionTag || hasEnabledTags(policyTagLists) || !!additionalTagsToInclude?.length || isLoadingPolicyTags;
 
     const shouldShowNotFoundPage = useShowNotFoundPageInIOUStep(action, iouType, reportActionID, report, transaction);
 
