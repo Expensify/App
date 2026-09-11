@@ -8,6 +8,7 @@ import {getPathFromState as RNGetPathFromState} from '@react-navigation/native';
 
 import getDynamicRouteQueryParams from './dynamicRoutesUtils/getDynamicRouteQueryParams';
 import isDynamicRouteScreen from './dynamicRoutesUtils/isDynamicRouteScreen';
+import joinPathSegments from './dynamicRoutesUtils/joinPathSegments';
 import splitPathAndQuery from './dynamicRoutesUtils/splitPathAndQuery';
 import findFocusedRouteWithOnyxTabGuard from './findFocusedRouteWithOnyxTabGuard';
 
@@ -164,8 +165,7 @@ function getPathFromStateWithDynamicRoute(state: State): string {
     }
     const queryString = mergedParams.toString();
 
-    // Mirror the root-base join in `createDynamicRoute.ts` so a `/` base yields `/suffix`, never `//suffix`.
-    const combinedPath = basePathWithoutQuery === '/' ? `/${suffixPath}` : `${basePathWithoutQuery}/${suffixPath}`;
+    const combinedPath = joinPathSegments(`${basePathWithoutQuery}`, `${suffixPath}`);
 
     // Safety net for this hand-built dynamic branch: guarantee exactly one leading slash and no internal `//`,
     // so the browser never parses a segment as a host and `history.pushState` can't throw a SecurityError.

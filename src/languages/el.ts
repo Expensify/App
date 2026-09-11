@@ -74,6 +74,7 @@ const translations: TranslationDeepObject<typeof en> = {
         search: 'Αναζήτηση',
         reports: 'Αναφορές',
         spend: 'Δαπάνη',
+        insights: 'Στατιστικά',
         find: 'Εύρεση',
         searchWithThreeDots: 'Αναζήτηση...',
         next: 'Επόμενο',
@@ -2675,6 +2676,10 @@ const translations: TranslationDeepObject<typeof en> = {
             connectionLink
                 ? `Η σύνδεση της κάρτας ${cardName} έχει διακοπεί. <a href="${connectionLink}">Συνδεθείτε στην τράπεζά σας</a> για να διορθώσετε την κάρτα.`
                 : `Η σύνδεση της κάρτας ${cardName} έχει διακοπεί. Συνδεθείτε στην τράπεζά σας για να διορθώσετε την κάρτα.`,
+        conciergeBrokenConnection30Days: (cardName: string, connectionLink?: string) =>
+            connectionLink
+                ? `Η σύνδεση της ${cardName} έχει διακοπεί για 30 ημέρες. <a href="${connectionLink}">Συνδεθείτε στην τράπεζά σας</a> για να τη διορθώσετε ή <a href="${connectionLink}">αφαιρέστε την κάρτα</a> αν δεν τη χρησιμοποιείτε πλέον. Δεν θα χάσετε καμία υποβληθείσα δαπάνη αν την αφαιρέσετε.`
+                : `Η σύνδεση της ${cardName} σας έχει διακοπεί για 30 ημέρες. Συνδεθείτε στην τράπεζά σας για να τη διορθώσετε ή αφαιρέστε την κάρτα αν δεν τη χρησιμοποιείτε πλέον. Δεν θα χάσετε καμία υποβληθείσα δαπάνη αν την αφαιρέσετε.`,
         addAdditionalCards: 'Προσθέστε επιπλέον κάρτες',
         upgradeDescription:
             'Χρειάζεστε να προσθέσετε περισσότερες κάρτες; Δημιουργήστε έναν χώρο εργασίας για να προσθέσετε επιπλέον προσωπικές κάρτες ή να αναθέσετε εταιρικές κάρτες σε όλη την ομάδα.',
@@ -4713,6 +4718,7 @@ ${amount} για ${merchant} - ${date}`,
             accounting: 'Λογιστική',
             hr: 'HR',
             recruiting: 'Προσλήψεις',
+            mcp: 'MCP',
             receiptPartners: 'Συνεργάτες αποδείξεων',
             rules: 'Κανόνες',
             displayedAs: 'Εμφανίζεται ως',
@@ -4855,6 +4861,25 @@ ${amount} για ${merchant} - ${date}`,
         createdForClient: {
             title: 'Δημιουργήσατε έναν χώρο εργασίας για τον πελάτη σας!',
             description: 'Καλά νέα 🎉. Επικοινωνήστε μαζί μας αν χρειαστούν βοήθεια με τη ρύθμιση.',
+        },
+        mcp: {
+            connectors: 'Συνδέσεις',
+            connectorsSubtitle: 'Συνδέστε έναν βοηθό AI με τον λογαριασμό σας στο Expensify.',
+            connect: 'Σύνδεση',
+            helpPrompt: 'Χρειάζεστε βοήθεια με τη σύνδεση;',
+            helpLink: 'Διαβάστε τον οδηγό μας.',
+            claude: {
+                title: 'Claude',
+                subtitle: 'από την Anthropic',
+            },
+            cursor: {
+                title: 'Cursor',
+                subtitle: 'από την Anysphere',
+            },
+            chatgpt: {
+                title: 'ChatGPT',
+                subtitle: 'από την OpenAI',
+            },
         },
         receiptPartners: {
             uber: {
@@ -6679,6 +6704,10 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                 title: 'Λογιστική',
                 subtitle: 'Συγχρονίστε το λογιστικό σας σχέδιο και άλλα.',
             },
+            mcp: {
+                title: 'MCP',
+                subtitle: 'Συνδέστε έναν βοηθό AI με τον λογαριασμό σας στο Expensify.',
+            },
             receiptPartners: {
                 title: 'Συνεργάτες αποδείξεων',
                 subtitle: 'Αυτόματη εισαγωγή αποδείξεων.',
@@ -8403,6 +8432,11 @@ ${reportName}`,
                 categoryRulesApplyGoingForwardTitle: 'Οι κανόνες κατηγορίας ισχύουν από εδώ και στο εξής',
                 categoryRulesApplyGoingForwardPrompt:
                     'Ένας προεπιλεγμένος φορολογικός συντελεστής εφαρμόζεται σε νέες δαπάνες σε αυτή την κατηγορία. Οι δαπάνες που υπάρχουν ήδη δεν θα αλλάξουν.',
+                confirmErrorCategoryTaxMoveIsWorkspaceDefault:
+                    'Ο επιλεγμένος φορολογικός συντελεστής είναι πλέον η προεπιλογή για τον χώρο εργασίας σας, επομένως αυτός ο κανόνας δεν είναι πλέον έγκυρος. Επιλέξτε έναν διαφορετικό φορολογικό συντελεστή.',
+                addTaxRateFirstTitle: 'Προσθέστε πρώτα έναν φορολογικό συντελεστή',
+                addTaxRateFirstPrompt:
+                    'Οι κανόνες κατηγορίας ορίζουν έναν προεπιλεγμένο φορολογικό συντελεστή. Προσθέστε έναν φορολογικό συντελεστή διαφορετικό από την προεπιλογή του χώρου εργασίας σας για να τους χρησιμοποιήσετε.',
                 createRuleFromExpenseAction: 'Δημιουργία κανόνα',
                 createRuleFromExpensePrompt: 'για να εφαρμόσετε τις αλλαγές σας σε όλες τις δαπάνες που ταιριάζουν με τα κριτήριά σας.',
             },
@@ -9733,7 +9767,7 @@ ${reportName}`,
                 [CONST.SEARCH.ACTION_FILTERS.PAY]: 'Πληρωμή',
                 [CONST.SEARCH.ACTION_FILTERS.EXPORT]: 'Εξαγωγή',
             },
-            has: {submittedViolation: 'Υποβληθείσα παράβαση'},
+            has: {submittedViolation: 'Υποβληθείσα παράβαση', approvedViolation: 'Εγκεκριμένη παράβαση'},
             filterType: {
                 label: 'Τύπος φίλτρου',
                 has: {positive: 'έχει', negative: 'δεν έχει'},
@@ -9951,6 +9985,16 @@ ${reportName}`,
                 integrationSyncFailedRecurrence: ({count}: {count: number}) => `(Επαναλήφθηκε ${count} φορές.)`,
                 companyCardConnectionBroken: ({feedName, workspaceCompanyCardRoute}: {feedName: string; workspaceCompanyCardRoute: string}) =>
                     `Η σύνδεση ${feedName} δεν λειτουργεί. Για να επαναφέρετε τις εισαγωγές καρτών, <a href='${workspaceCompanyCardRoute}'>συνδεθείτε στην τράπεζά σας</a>.`,
+                companyCardConnectionBroken30Days: ({
+                    feedName,
+                    workspaceCompanyCardRoute,
+                    workspaceCompanyCardSettingsRoute,
+                }: {
+                    feedName: string;
+                    workspaceCompanyCardRoute: string;
+                    workspaceCompanyCardSettingsRoute: string;
+                }) =>
+                    `Η σύνδεση ${feedName} έχει διακοπεί εδώ και 30 ημέρες. <a href='${workspaceCompanyCardRoute}'>Συνδεθείτε στην τράπεζά σας</a> για να τη διορθώσετε ή <a href='${workspaceCompanyCardSettingsRoute}'>καταργήστε τη σύνδεση</a> αν δεν χρησιμοποιείται πλέον. Δεν θα χάσετε καμία υποβληθείσα δαπάνη αν την καταργήσετε.`,
                 plaidBalanceFailure: ({maskedAccountNumber, walletRoute}: {maskedAccountNumber: string; walletRoute: string}) =>
                     `η σύνδεση Plaid με τον επαγγελματικό σας τραπεζικό λογαριασμό έχει διακοπεί. Παρακαλούμε <a href='${walletRoute}'>συνδέστε ξανά τον τραπεζικό σας λογαριασμό ${maskedAccountNumber}</a> ώστε να μπορείτε να συνεχίσετε να χρησιμοποιείτε τις Κάρτες Expensify.`,
                 addEmployee: (email: string, role: string, didJoinPolicy?: boolean) => {
