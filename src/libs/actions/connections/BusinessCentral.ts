@@ -24,6 +24,13 @@ function connectToBusinessCentral(policyID: string, credentials: BusinessCentral
             },
         },
     ];
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS>> = [
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policyID}`,
+            value: null,
+        },
+    ];
     const parameters: ConnectPolicyToBusinessCentralParams = {
         policyID,
         tenantID: credentials.tenantID,
@@ -31,7 +38,7 @@ function connectToBusinessCentral(policyID: string, credentials: BusinessCentral
         clientID: credentials.clientID,
         clientSecret: credentials.clientSecret,
     };
-    write(WRITE_COMMANDS.CONNECT_POLICY_TO_BUSINESS_CENTRAL, parameters, {optimisticData});
+    write(WRITE_COMMANDS.CONNECT_POLICY_TO_BUSINESS_CENTRAL, parameters, {optimisticData, failureData});
 }
 
 function clearBusinessCentralErrorField(policyID: string, fieldName: string) {

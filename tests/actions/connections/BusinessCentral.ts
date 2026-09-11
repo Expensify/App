@@ -85,6 +85,23 @@ describe('actions/connections/BusinessCentral', () => {
                 ],
             });
         });
+
+        it('clears the sync progress when the request is rejected', () => {
+            // Given a policy being linked to Business Central
+
+            // When the connection is initiated
+            connectToBusinessCentral(MOCK_POLICY_ID, MOCK_CREDENTIALS);
+
+            // Then a rejected request clears the optimistic sync progress, otherwise the Accounting page would keep showing the spinner
+            expect(getFirstWriteOnyxData()).toMatchObject({
+                failureData: [
+                    {
+                        key: `${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${MOCK_POLICY_ID}`,
+                        value: null,
+                    },
+                ],
+            });
+        });
     });
 
     describe('clearBusinessCentralErrorField', () => {
