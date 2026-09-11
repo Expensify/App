@@ -1273,7 +1273,7 @@ describe('Session', () => {
             await Onyx.merge(ONYXKEYS.LAST_VISITED_PATH, '/search?q=status:outstanding');
             await waitForBatchedUpdates();
 
-            await SignInRedirect.default(undefined, true);
+            await SignInRedirect.default(CONST.SIGN_OUT_REASON.SAML_REQUIRED, undefined, true);
             await waitForBatchedUpdates();
 
             expect(await getOnyxValue(ONYXKEYS.LAST_VISITED_PATH)).toBe('/search?q=status:outstanding');
@@ -1284,7 +1284,7 @@ describe('Session', () => {
             await Onyx.merge(ONYXKEYS.LAST_VISITED_PATH, '/search?q=status:outstanding');
             await waitForBatchedUpdates();
 
-            await SignInRedirect.default();
+            await SignInRedirect.default(CONST.SIGN_OUT_REASON.USER_SIGN_OUT);
             await waitForBatchedUpdates();
 
             expect(await getOnyxValue(ONYXKEYS.LAST_VISITED_PATH)).toBeUndefined();
