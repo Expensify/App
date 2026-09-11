@@ -56,27 +56,27 @@ const loadedChildren = [
     {transactionID: '2', keyForList: '2', currency: 'USD', amount: -642, report: {reportID: '11'}},
 ] as unknown as TransactionListItemType[];
 
-const makeReportTransaction = (transactionID: string, reportID: string) =>
+const makeReportTransaction = (transactionID: string, reportID: string, amount = -500) =>
     // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- minimal fixture: only fields read by selection builders are required
     ({
         transactionID,
         keyForList: transactionID,
         currency: 'USD',
-        amount: -500,
+        amount,
         reportID,
         report: {reportID},
         action: CONST.SEARCH.ACTION_TYPES.VIEW,
     }) as unknown as TransactionListItemType;
 
-const makeExpenseReport = (reportID: string, transactionIDs: string[]) =>
+const makeExpenseReport = (reportID: string, transactionIDs: string[], transactionAmount = -500) =>
     // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- minimal fixture: only fields read by report selection are required
     ({
         groupedBy: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
         reportID,
         keyForList: reportID,
-        transactions: transactionIDs.map((transactionID) => makeReportTransaction(transactionID, reportID)),
+        transactions: transactionIDs.map((transactionID) => makeReportTransaction(transactionID, reportID, transactionAmount)),
         currency: 'USD',
-        total: -500 * transactionIDs.length,
+        total: transactionAmount * transactionIDs.length,
         type: CONST.REPORT.TYPE.EXPENSE,
     }) as unknown as TransactionReportGroupListItemType;
 
@@ -84,6 +84,25 @@ const firstReport = makeExpenseReport('report-1', ['report-1-transaction-1', 're
 const secondReport = makeExpenseReport('report-2', ['report-2-transaction-1']);
 const thirdReport = makeExpenseReport('report-3', ['report-3-transaction-1']);
 let reportFilteredData: TransactionReportGroupListItemType[] = [firstReport, secondReport];
+
+function makeReportSearchResults(): SearchResults {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- minimal fixture: only fields read by the selection reconciliation are required
+    return {
+        data: {},
+        search: {
+            type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
+            hash: 2,
+            sortBy: CONST.SEARCH.TABLE_COLUMNS.DATE,
+            sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
+            offset: 0,
+            hasMoreResults: true,
+            hasResults: true,
+            isLoading: false,
+        },
+    } as unknown as SearchResults;
+}
+
+let reportSearchResults = makeReportSearchResults();
 
 const FLAT_TRANSACTION_ID = 'flat-1';
 
@@ -171,7 +190,7 @@ function ReportsWrapper({children}: {children: React.ReactNode}) {
             <SearchWriteActionsProvider
                 filteredData={reportFilteredData}
                 totalSelectableItemsCount={totalSelectableItemsCount}
-                searchResults={undefined}
+                searchResults={reportSearchResults}
                 transactions={undefined}
                 isMobileSelectionModeEnabled={false}
                 type={CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT}
@@ -235,6 +254,7 @@ describe('Lazily loaded group selection', () => {
         flatFilteredData = [flatExpense];
         flatSearchResults = makeFlatSearchResults(flatExpense);
         reportFilteredData = [firstReport, secondReport];
+        reportSearchResults = makeReportSearchResults();
         await act(async () => {
             await Onyx.clear();
             await waitForBatchedUpdatesWithAct();
@@ -377,5 +397,59 @@ describe('Lazily loaded group selection', () => {
         expect(result.current.areAllMatchingItemsSelected).toBe(true);
         expect(Object.keys(result.current.selectedTransactions)).toEqual(['report-2-transaction-1', 'report-3-transaction-1', 'report-1-transaction-1', 'report-1-transaction-2']);
         expect(result.current.excludedTransactions).toEqual({});
+    });
+
+    it("refreshes an excluded report's expenses when their live amounts change", async () => {
+        const {result, rerender} = renderReportSelection();
+
+        await act(async () => {
+            result.current.toggleAll();
+            result.current.selectAllMatchingItems(true);
+            await waitForBatchedUpdatesWithAct();
+        });
+        await act(async () => {
+            result.current.toggle(firstReport);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        expect(result.current.excludedTransactions['report-1-transaction-1']?.amount).toBe(-500);
+        expect(result.current.excludedTransactions['report-1-transaction-2']?.amount).toBe(-500);
+
+        const updatedFirstReport = makeExpenseReport('report-1', ['report-1-transaction-1', 'report-1-transaction-2'], -700);
+        reportFilteredData = [updatedFirstReport, secondReport];
+        reportSearchResults = makeReportSearchResults();
+        rerender({});
+        await act(async () => waitForBatchedUpdatesWithAct());
+
+        expect(result.current.excludedTransactions['report-1-transaction-1']?.amount).toBe(-700);
+        expect(result.current.excludedTransactions['report-1-transaction-2']?.amount).toBe(-700);
+        expect(result.current.areAllMatchingItemsSelected).toBe(true);
+    });
+
+    it('keeps a report excluded when its first expense is added', async () => {
+        const emptyReport = makeExpenseReport('empty-report', []);
+        reportFilteredData = [emptyReport, secondReport];
+        const {result, rerender} = renderReportSelection();
+
+        await act(async () => {
+            result.current.toggleAll();
+            result.current.selectAllMatchingItems(true);
+            await waitForBatchedUpdatesWithAct();
+        });
+        await act(async () => {
+            result.current.toggle(emptyReport);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        expect(result.current.excludedTransactions['empty-report']).toBeDefined();
+
+        reportFilteredData = [makeExpenseReport('empty-report', ['empty-report-transaction-1']), secondReport];
+        reportSearchResults = makeReportSearchResults();
+        rerender({});
+        await act(async () => waitForBatchedUpdatesWithAct());
+
+        expect(result.current.excludedTransactions['empty-report']).toBeDefined();
+        expect(result.current.selectedTransactions['empty-report-transaction-1']).toBeUndefined();
+        expect(result.current.areAllMatchingItemsSelected).toBe(true);
     });
 });
