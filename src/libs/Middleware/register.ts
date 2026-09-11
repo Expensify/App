@@ -13,6 +13,7 @@ import {
     Pagination,
     Reauthentication,
     RecordFullReconnectTime,
+    ReplaceOptimisticAgentAccountID,
     SaveResponseInOnyx,
     SentryServerTiming,
     SupportalPermission,
@@ -57,6 +58,9 @@ function registerMiddlewares() {
 
     // If an optimistic ID is not used by the server, this will update the remaining serialized requests using that optimistic ID to use the correct ID instead.
     addMiddleware(HandleUnusedOptimisticID);
+
+    // Rewrites the remaining serialized requests when the response maps an optimistic agent accountID to the server-assigned one.
+    addMiddleware(ReplaceOptimisticAgentAccountID);
 
     addMiddleware(Pagination);
 

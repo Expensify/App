@@ -41913,7 +41913,7 @@ var require_lib2 = __commonJS({
 var require_awesome_phonenumber = __commonJS({
   "node_modules/awesome-phonenumber/index.js"(exports, module) {
     var exportedName = "PhoneNumber$$module$src$index";
-    var lib = require_lib2()[exportedName] || (typeof globalThis !== "undefined" && globalThis || typeof global !== "undefined" && global || typeof window !== "undefined" && window || typeof self !== "undefined" && self || exports)[exportedName];
+    module.exports = require_lib2()[exportedName] || (typeof globalThis !== "undefined" && globalThis || typeof global !== "undefined" && global || typeof window !== "undefined" && window || typeof self !== "undefined" && self || exports)[exportedName];
     Object.defineProperty(
       module.exports,
       "__esModule",
@@ -41922,9 +41922,8 @@ var require_awesome_phonenumber = __commonJS({
       }
     );
     module.exports.parsePhoneNumber = (...args) => {
-      "worklet";
       try {
-        const ret = lib(...args).toJSON();
+        const ret = module.exports(...args).toJSON();
         if (!ret.valid && !ret.possible) {
           ret.possible = false;
           if (!ret.possibility)
@@ -41940,13 +41939,13 @@ var require_awesome_phonenumber = __commonJS({
         };
       }
     };
-    module.exports.getCountryCodeForRegionCode = lib.getCountryCodeForRegionCode;
-    module.exports.getRegionCodeForCountryCode = lib.getRegionCodeForCountryCode;
-    module.exports.getSupportedCallingCodes = lib.getSupportedCallingCodes;
-    module.exports.getSupportedRegionCodes = lib.getSupportedRegionCodes;
-    module.exports.getExample = lib.getExample;
-    module.exports.getAsYouType = lib.getAsYouType;
-    module.exports.getNumberFrom = lib.getNumberFrom;
+    module.exports.getCountryCodeForRegionCode = module.exports.getCountryCodeForRegionCode;
+    module.exports.getRegionCodeForCountryCode = module.exports.getRegionCodeForCountryCode;
+    module.exports.getSupportedCallingCodes = module.exports.getSupportedCallingCodes;
+    module.exports.getSupportedRegionCodes = module.exports.getSupportedRegionCodes;
+    module.exports.getExample = module.exports.getExample;
+    module.exports.getAsYouType = module.exports.getAsYouType;
+    module.exports.getNumberFrom = module.exports.getNumberFrom;
   }
 });
 
@@ -42229,7 +42228,6 @@ var require_surrogate_pairs = __commonJS({
 // node_modules/html-entities/lib/index.js
 var require_lib3 = __commonJS({
   "node_modules/html-entities/lib/index.js"(exports) {
-    "worklet";
     "use strict";
     var __assign = exports && exports.__assign || function() {
       __assign = Object.assign || function(t) {
@@ -52845,6 +52843,11 @@ ${duplicateDetection_default}
 var DUPLICATE_CHECK_WITHDRAW_MESSAGE = "#### \u{1F6AB} Duplicated proposal withdrawn by \u{1F916} ProposalPolice.";
 var SUBSTANTIVE_EDIT_MESSAGE_PREFIX = "\u{1F6A8} Edited by **proposal-police**:";
 var SUBSTANTIVE_EDIT_MESSAGE_REGEX = /^🚨 Edited by \*\*proposal-police\*\*:[^\n]*\n+/;
+function stripSubstantiveEditBanner(body) {
+  const trimmedStart = body.trimStart();
+  const stripped = trimmedStart.replace(SUBSTANTIVE_EDIT_MESSAGE_REGEX, "");
+  return stripped === trimmedStart ? body : stripped;
+}
 function buildTemplateReminderMessage(proposalAuthor) {
   return `\u26A0\uFE0F @${proposalAuthor} Thanks for your proposal. Please update it to follow the [proposal template](https://github.com/Expensify/App/blob/main/contributingGuides/PROPOSAL_TEMPLATE.md?plain=1), as proposals are only reviewed if they follow that format (note the mandatory sections).`;
 }
@@ -66353,14 +66356,19 @@ async function run() {
     }
     return;
   }
-  if (isCommentEditedEvent(payload) && payload.comment.body.trim().startsWith(SUBSTANTIVE_EDIT_MESSAGE_PREFIX)) {
-    console.log("Comment was already edited by proposal-police once, so only refreshing its recorded copy.\n", payload.comment.body);
-    await refreshStoredProposal(openAI, issueNumber, commentID, payload.comment.user.login, payload.comment.body.trim().replace(SUBSTANTIVE_EDIT_MESSAGE_REGEX, ""));
+  const previousProposalBody = stripSubstantiveEditBanner(payload.changes.body?.from ?? "");
+  const editedProposalBody = stripSubstantiveEditBanner(payload.comment?.body ?? "");
+  const isAlreadyBannered = editedProposalBody !== (payload.comment?.body ?? "");
+  if (previousProposalBody === editedProposalBody) {
+    console.log("Proposal text is unchanged after stripping any edit banner, skipping the edit check.");
+    if (isAlreadyBannered) {
+      await refreshStoredProposal(openAI, issueNumber, commentID, payload.comment.user.login, editedProposalBody);
+    }
     return;
   }
   const response = await openAI.promptResponses({
     instructions: buildEditCheckInstructions(),
-    input: buildEditCheckInput(payload.changes.body?.from, payload.comment?.body),
+    input: buildEditCheckInput(previousProposalBody, editedProposalBody),
     model: PROPOSAL_POLICE_MODEL,
     promptCacheKey: "proposal-police-edit-check",
     textFormat: EDIT_CHECK_RESPONSE_FORMAT
@@ -66372,6 +66380,9 @@ async function run() {
   const action = parsedResponse?.action ?? CONST_default.NO_ACTION;
   if (action === CONST_default.NO_ACTION) {
     console.log("Detected NO_ACTION for comment, returning early.");
+    if (isAlreadyBannered) {
+      await refreshStoredProposal(openAI, issueNumber, commentID, payload.comment.user.login, editedProposalBody);
+    }
     return;
   }
   if (action === CONST_default.ACTION_EDIT) {
@@ -66382,9 +66393,9 @@ async function run() {
       comment_id: commentID,
       body: `${buildSubstantiveEditMessage(formattedDate)}
 
-${payload.comment?.body}`
+${editedProposalBody}`
     });
-    await refreshStoredProposal(openAI, issueNumber, commentID, payload.comment?.user.login ?? "", payload.comment?.body ?? "");
+    await refreshStoredProposal(openAI, issueNumber, commentID, payload.comment?.user.login ?? "", editedProposalBody);
   }
 }
 if (import.meta.main) {
