@@ -1237,6 +1237,14 @@ const translations: TranslationDeepObject<typeof en> = {
         }),
         importCompanyCardTransactionsPendingMessage: 'Le nuove carte e transazioni potrebbero impiegare un po’ di tempo per apparire, attendi per favore.',
         importMembersRolePermissionWarning: "Non hai l'autorizzazione per assegnare alcuni ruoli ai membri. I nuovi membri interessati sono stati invitati come membri.",
+        importMerchantRulesSkippedVendors: ({count}: {count: number}) => ({
+            one: '1 fornitore è stato ignorato perché non esiste in questo spazio di lavoro.',
+            other: `${count} fornitori sono stati ignorati perché non esistono in questo spazio di lavoro.`,
+        }),
+        importMerchantRulesSkippedSuppliers: ({count}: {count: number}) => ({
+            one: '1 fornitore è stato ignorato perché non esiste in questo spazio di lavoro.',
+            other: `${count} fornitori sono stati ignorati perché non esistono in questo spazio di lavoro.`,
+        }),
     },
     receipt: {
         upload: 'Carica ricevuta',
@@ -8024,6 +8032,8 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
                 importColumnUpdatedCategory: 'Categoria aggiornata',
                 importColumnUpdatedTag: 'Tag aggiornato',
                 importColumnUpdatedDescription: 'Descrizione aggiornata',
+                importColumnUpdatedVendor: 'Fornitore aggiornato',
+                importColumnUpdatedSupplier: 'Fornitore aggiornato',
                 expensesWith: 'Per le spese con:',
                 expensesExactlyMatching: 'Per le spese che corrispondono esattamente a:',
                 applyUpdates: 'Applica questi aggiornamenti:',

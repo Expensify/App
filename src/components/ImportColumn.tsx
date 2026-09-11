@@ -160,6 +160,11 @@ function findColumnName(header: string, columnRoles?: ColumnRole[]): string {
             attribute = CONST.CSV_IMPORT_COLUMNS.TAG;
             break;
 
+        case 'updatedvendor':
+        case 'updatedsupplier':
+            attribute = CONST.CSV_IMPORT_COLUMNS.VENDOR;
+            break;
+
         case 'reimbursable':
         case 'reimburseable':
             attribute = CONST.CSV_IMPORT_COLUMNS.REIMBURSABLE;

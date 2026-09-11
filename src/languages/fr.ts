@@ -1242,6 +1242,14 @@ const translations: TranslationDeepObject<typeof en> = {
         }),
         importCompanyCardTransactionsPendingMessage: 'L’apparition de nouvelles cartes et transactions peut prendre un certain temps, veuillez patienter.',
         importMembersRolePermissionWarning: 'Vous n’avez pas l’autorisation d’assigner certains rôles de membre. Tous les nouveaux membres concernés ont été invités en tant que membres.',
+        importMerchantRulesSkippedVendors: ({count}: {count: number}) => ({
+            one: '1 fournisseur a été ignoré car il n’existe pas dans cet espace de travail.',
+            other: `${count} fournisseurs ont été ignorés car ils n’existent pas dans cet espace de travail.`,
+        }),
+        importMerchantRulesSkippedSuppliers: ({count}: {count: number}) => ({
+            one: '1 fournisseur a été ignoré car il n’existe pas dans cet espace de travail.',
+            other: `${count} fournisseurs ont été ignorés car ils n'existent pas dans cet espace de travail.`,
+        }),
     },
     receipt: {
         upload: 'Télécharger le reçu',
@@ -8087,6 +8095,8 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
                 importColumnUpdatedCategory: 'Catégorie mise à jour',
                 importColumnUpdatedTag: 'Tag mis à jour',
                 importColumnUpdatedDescription: 'Description mise à jour',
+                importColumnUpdatedVendor: 'Fournisseur mis à jour',
+                importColumnUpdatedSupplier: 'Fournisseur mis à jour',
                 expensesWith: 'Pour les dépenses avec :',
                 expensesExactlyMatching: 'Pour les dépenses correspondant exactement :',
                 applyUpdates: 'Appliquer ces mises à jour :',

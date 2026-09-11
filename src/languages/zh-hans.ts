@@ -1187,6 +1187,14 @@ const translations: TranslationDeepObject<typeof en> = {
         }),
         importCompanyCardTransactionsPendingMessage: '新卡片和交易可能需要一些时间才会显示，请耐心等待。',
         importMembersRolePermissionWarning: '您没有权限分配某些成员角色。所有受影响的新成员已按普通成员身份被邀请。',
+        importMerchantRulesSkippedVendors: ({count}: {count: number}) => ({
+            one: '有 1 个供应商已被跳过，因为它在此工作区中不存在。',
+            other: `已跳过 ${count} 个供应商，因为它们在此工作区中不存在。`,
+        }),
+        importMerchantRulesSkippedSuppliers: ({count}: {count: number}) => ({
+            one: '已跳过 1 个供应商，因为它在此工作区中不存在。',
+            other: `已跳过 ${count} 个供应商，因为它们在此工作区中不存在。`,
+        }),
     },
     receipt: {
         upload: '上传收据',
@@ -7731,6 +7739,8 @@ ${reportName}`,
                 importColumnUpdatedCategory: '更新后的类别',
                 importColumnUpdatedTag: '更新后的标签',
                 importColumnUpdatedDescription: '更新后的描述',
+                importColumnUpdatedVendor: '已更新供应商',
+                importColumnUpdatedSupplier: '已更新供应商',
                 expensesWith: '针对以下费用：',
                 expensesExactlyMatching: '对于完全匹配以下条件的报销：',
                 applyUpdates: '应用这些更新：',
