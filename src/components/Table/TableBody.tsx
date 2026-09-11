@@ -11,7 +11,7 @@ import type {LegendListRenderItemProps, ViewToken} from '@legendapp/list/react-n
 import type {StyleProp, ViewProps, ViewStyle} from 'react-native';
 
 import {LegendList} from '@legendapp/list/react-native';
-import React, {useCallback, useMemo} from 'react';
+import React from 'react';
 import {StyleSheet, View} from 'react-native';
 
 import type {TableData} from '.';
@@ -168,37 +168,24 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
     const shouldApplyBodyRowGroup = isTableSemanticsEnabled && !tableListMetadata.hasPageHeader;
     const semanticTableHasHeader = !tableListMetadata.hasPageHeader || tableListMetadata.shouldRenderStickyHeader;
     const semanticColumnCount = columns.length + (selectionEnabled ? 1 : 0);
-    const rowExtraData = useMemo(
-        () => ({extraData, renderItem, tableHeaderElement, tableListMetadata, isTableSemanticsEnabled}),
-        [extraData, renderItem, tableHeaderElement, tableListMetadata, isTableSemanticsEnabled],
-    );
+    const rowExtraData = {extraData, renderItem, tableHeaderElement, tableListMetadata, isTableSemanticsEnabled};
     const tableBodyAccessibilityProps = tableListMetadata.hasPageHeader
         ? getTableContainerAccessibilityProps(shouldApplyPageHeaderTable, title, filteredAndSortedData.length, semanticColumnCount, semanticTableHasHeader)
         : getRowGroupAccessibilityProps(shouldApplyBodyRowGroup);
-    const handleViewableItemsChanged: NonNullable<typeof onViewableItemsChanged> = useCallback(
-        (info) => onViewableItemsChanged?.(getDataViewabilityInfo(info, tableListMetadata)),
-        [onViewableItemsChanged, tableListMetadata],
-    );
+    const handleViewableItemsChanged: NonNullable<typeof onViewableItemsChanged> = (info) => onViewableItemsChanged?.(getDataViewabilityInfo(info, tableListMetadata));
 
-    const viewabilityConfigCallbackPairsForList = useMemo(
-        () =>
-            viewabilityConfigCallbackPairs?.map((pair) => ({
-                ...pair,
-                onViewableItemsChanged: pair.onViewableItemsChanged ? (info: ViewabilityInfo) => pair.onViewableItemsChanged?.(getDataViewabilityInfo(info, tableListMetadata)) : null,
-            })),
-        [tableListMetadata, viewabilityConfigCallbackPairs],
-    );
+    const viewabilityConfigCallbackPairsForList = viewabilityConfigCallbackPairs?.map((pair) => ({
+        ...pair,
+        onViewableItemsChanged: pair.onViewableItemsChanged ? (info: ViewabilityInfo) => pair.onViewableItemsChanged?.(getDataViewabilityInfo(info, tableListMetadata)) : null,
+    }));
 
-    const overrideItemLayoutForList: NonNullable<typeof overrideItemLayout> = useCallback(
-        (layout, item, index, maxColumns) => {
-            if (getSyntheticRowKind(index, tableListMetadata) !== 'data') {
-                return;
-            }
+    const overrideItemLayoutForList: NonNullable<typeof overrideItemLayout> = (layout, item, index, maxColumns) => {
+        if (getSyntheticRowKind(index, tableListMetadata) !== 'data') {
+            return;
+        }
 
-            overrideItemLayout?.(layout, item, getDataIndex(index, tableListMetadata), maxColumns, extraData);
-        },
-        [extraData, overrideItemLayout, tableListMetadata],
-    );
+        overrideItemLayout?.(layout, item, getDataIndex(index, tableListMetadata), maxColumns, extraData);
+    };
 
     let initialScrollIndexForList = initialScrollIndex;
     if (typeof initialScrollIndex === 'number') {

@@ -17,7 +17,7 @@ import ROUTES from '@src/ROUTES';
 
 import type {LegendListRenderItemProps} from '@legendapp/list/react-native';
 
-import React, {useMemo} from 'react';
+import React from 'react';
 
 import type {DistanceRateTableItemData} from './WorkspaceDistanceRatesTableRow';
 
@@ -126,15 +126,12 @@ function WorkspaceDistanceRatesTable({ratesData, policyID, selectionEnabled, sel
           ]
         : undefined;
 
-    const statusLabels = useMemo(
-        () => ({
-            [CONST.CUSTOM_UNITS.RATE_STATUS.ACTIVE]: translate('workspace.distanceRates.statusActive'),
-            [CONST.CUSTOM_UNITS.RATE_STATUS.FUTURE]: translate('workspace.distanceRates.statusFuture'),
-            [CONST.CUSTOM_UNITS.RATE_STATUS.EXPIRED]: translate('workspace.distanceRates.statusExpired'),
-            [CONST.CUSTOM_UNITS.RATE_STATUS.INACTIVE]: translate('workspace.distanceRates.statusInactive'),
-        }),
-        [translate],
-    );
+    const statusLabels = {
+        [CONST.CUSTOM_UNITS.RATE_STATUS.ACTIVE]: translate('workspace.distanceRates.statusActive'),
+        [CONST.CUSTOM_UNITS.RATE_STATUS.FUTURE]: translate('workspace.distanceRates.statusFuture'),
+        [CONST.CUSTOM_UNITS.RATE_STATUS.EXPIRED]: translate('workspace.distanceRates.statusExpired'),
+        [CONST.CUSTOM_UNITS.RATE_STATUS.INACTIVE]: translate('workspace.distanceRates.statusInactive'),
+    };
 
     const renderItem = ({item, index}: LegendListRenderItemProps<DistanceRateTableItemData>) => (
         <WorkspaceDistanceRatesTableRow

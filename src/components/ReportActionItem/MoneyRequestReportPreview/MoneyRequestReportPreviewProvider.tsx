@@ -29,7 +29,7 @@ import type {LegendListProps} from '@legendapp/list/react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {useFocusEffect} from '@react-navigation/native';
-import React, {useCallback, useDeferredValue, useState} from 'react';
+import React, {useDeferredValue, useState} from 'react';
 
 import type {MoneyRequestReportPreviewStyleType} from './types';
 
@@ -118,18 +118,16 @@ function MoneyRequestReportPreviewProvider({
         methodID: number | undefined;
     } | null>(null);
 
-    useFocusEffect(
-        useCallback(() => {
-            if (!isTransitionPending) {
-                return;
-            }
-            const handle = TransitionTracker.runAfterTransitions({
-                callback: () => setIsTransitionPending(false),
-                waitForUpcomingTransition: true,
-            });
-            return () => handle.cancel();
-        }, [isTransitionPending]),
-    );
+    useFocusEffect(() => {
+        if (!isTransitionPending) {
+            return;
+        }
+        const handle = TransitionTracker.runAfterTransitions({
+            callback: () => setIsTransitionPending(false),
+            waitForUpcomingTransition: true,
+        });
+        return () => handle.cancel();
+    });
 
     const shouldShowLoading = chatReportLoadingState != null && chatReportLoadingState.hasOnceLoadedReportActions !== true && transactions.length === 0 && !isOptimisticChatReport;
     const [transactionViolations] = useReportTransactionViolations(transactions);
@@ -207,7 +205,7 @@ function MoneyRequestReportPreviewProvider({
         onOrderedTransactionsChange,
     });
 
-    const openReportFromPreview = useCallback(() => {
+    const openReportFromPreview = () => {
         if (!iouReportID) {
             return;
         }
@@ -232,13 +230,13 @@ function MoneyRequestReportPreviewProvider({
         } else {
             Navigation.navigate(ROUTES.EXPENSE_REPORT_RHP.getRoute({reportID: iouReportID, backTo}));
         }
-    }, [iouReportID, isSmallScreenWidth, onCancelPendingPress]);
+    };
 
     // Only the pay flow opens this menu; approve surfaces its partial/full choice in the approve dropdown instead.
-    const onHoldMenuOpen = useCallback((paymentType?: PaymentMethodType, canPay?: boolean, methodID?: number) => {
+    const onHoldMenuOpen = (paymentType?: PaymentMethodType, canPay?: boolean, methodID?: number) => {
         setHoldMenu({paymentType, canPay: !!canPay, methodID});
-    }, []);
-    const onHoldMenuClose = useCallback(() => setHoldMenu(null), []);
+    };
+    const onHoldMenuClose = () => setHoldMenu(null);
 
     const shouldShowCarouselArrows = !shouldUseNarrowLayout && !shouldShowAccessPlaceHolder && transactions.length > 2 && reportPreviewStyles.expenseCountVisible;
     const buttonMaxWidth =

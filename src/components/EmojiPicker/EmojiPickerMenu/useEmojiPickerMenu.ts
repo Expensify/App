@@ -17,16 +17,16 @@ import calculateModalHeightInLandscapeMode from '@src/utils/calculateModalHeight
 
 import type {LegendListRef} from '@legendapp/list/react-native';
 
-import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import {useEffect, useRef, useState} from 'react';
 
 const useEmojiPickerMenu = () => {
     const emojiListRef = useRef<LegendListRef>(null);
     const [frequentlyUsedEmojis] = useOnyx(ONYXKEYS.FREQUENTLY_USED_EMOJIS);
 
-    const allEmojis = useMemo(() => mergeEmojisWithFrequentlyUsedEmojis(emojis, processFrequentlyUsedEmojis(frequentlyUsedEmojis)), [frequentlyUsedEmojis]);
-    const headerEmojis = useMemo(() => getHeaderEmojis(allEmojis), [allEmojis]);
-    const headerRowIndices = useMemo(() => headerEmojis.map((headerEmoji) => headerEmoji.index), [headerEmojis]);
-    const spacersIndexes = useMemo(() => getSpacersIndexes(allEmojis), [allEmojis]);
+    const allEmojis = mergeEmojisWithFrequentlyUsedEmojis(emojis, processFrequentlyUsedEmojis(frequentlyUsedEmojis));
+    const headerEmojis = getHeaderEmojis(allEmojis);
+    const headerRowIndices = headerEmojis.map((headerEmoji) => headerEmoji.index);
+    const spacersIndexes = getSpacersIndexes(allEmojis);
     const [filteredEmojis, setFilteredEmojis] = useState<EmojiPickerList>(allEmojis);
     const [headerIndices, setHeaderIndices] = useState(headerRowIndices);
     const isListFiltered = allEmojis.length !== filteredEmojis.length;
@@ -60,15 +60,12 @@ const useEmojiPickerMenu = () => {
     /**
      * Suggest emojis based on the search term
      */
-    const suggestEmojisCallback = useCallback(
-        (searchTerm: string) => {
-            const normalizedSearchTerm = searchTerm.toLowerCase().trim().replaceAll(':', '');
-            const emojisSuggestions = suggestEmojis(`:${normalizedSearchTerm}`, preferredLocale, allEmojis.length);
+    const suggestEmojisCallback = (searchTerm: string) => {
+        const normalizedSearchTerm = searchTerm.toLowerCase().trim().replaceAll(':', '');
+        const emojisSuggestions = suggestEmojis(`:${normalizedSearchTerm}`, preferredLocale, allEmojis.length);
 
-            return [normalizedSearchTerm, emojisSuggestions] as const;
-        },
-        [allEmojis.length, preferredLocale],
-    );
+        return [normalizedSearchTerm, emojisSuggestions] as const;
+    };
 
     return {
         allEmojis,

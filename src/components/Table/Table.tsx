@@ -20,7 +20,7 @@ import type {LegendListRef} from '@legendapp/list/react-native';
 import type {ReactElement} from 'react';
 import type {LayoutChangeEvent} from 'react-native';
 
-import React, {useEffect, useImperativeHandle, useLayoutEffect, useMemo, useRef, useState} from 'react';
+import React, {useEffect, useImperativeHandle, useLayoutEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 import type {TableListMetadata} from './buildTableListData';
@@ -413,15 +413,11 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
     });
     const shouldRenderStickyHeader = processedData.length > 0 && !!tableHeaderElement && hasPageHeader && !(shouldUseNarrowTableLayout && !title);
 
-    const tableListMetadata = useMemo(
-        () =>
-            getTableListMetadata({
-                listHeaderElement,
-                listHeaderComponent: listProps.ListHeaderComponent,
-                shouldRenderStickyHeader,
-            }),
-        [listHeaderElement, listProps.ListHeaderComponent, shouldRenderStickyHeader],
-    );
+    const tableListMetadata = getTableListMetadata({
+        listHeaderElement,
+        listHeaderComponent: listProps.ListHeaderComponent,
+        shouldRenderStickyHeader,
+    });
     /**
      * Exposes table control methods through the ref.
      * Uses a Proxy to also forward LegendList methods such as scrollToIndex.

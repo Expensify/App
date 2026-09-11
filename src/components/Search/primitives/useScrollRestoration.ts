@@ -4,7 +4,7 @@ import type {LegendListRef} from '@legendapp/list/react-native';
 import type {RefObject} from 'react';
 
 import {useFocusEffect, useRoute} from '@react-navigation/native';
-import {useCallback, useContext} from 'react';
+import {useContext} from 'react';
 
 /**
  * Restores the Search list's vertical scroll position when the screen regains focus.
@@ -17,18 +17,16 @@ function useScrollRestoration(listRef: RefObject<LegendListRef | null>) {
     const route = useRoute();
     const {getScrollOffset} = useContext(ScrollOffsetContext);
 
-    useFocusEffect(
-        useCallback(() => {
-            const offset = getScrollOffset(route);
-            requestAnimationFrame(() => {
-                if (!offset || !listRef.current) {
-                    return;
-                }
+    useFocusEffect(() => {
+        const offset = getScrollOffset(route);
+        requestAnimationFrame(() => {
+            if (!offset || !listRef.current) {
+                return;
+            }
 
-                listRef.current.scrollToOffset({offset, animated: false});
-            });
-        }, [getScrollOffset, route, listRef]),
-    );
+            listRef.current.scrollToOffset({offset, animated: false});
+        });
+    });
 }
 
 export default useScrollRestoration;

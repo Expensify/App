@@ -1,7 +1,7 @@
 import type {SearchListItem} from '@components/Search/SearchList/ListItem/types';
 
 import {AnimatedLegendList} from '@legendapp/list/reanimated';
-import React, {useCallback} from 'react';
+import React from 'react';
 
 import type BaseSearchListProps from './types';
 
@@ -21,12 +21,9 @@ function BaseSearchList({
     getItemType,
     getFixedItemSize,
 }: BaseSearchListProps) {
-    const renderItemWithoutKeyboardFocus = useCallback(
-        ({item, index}: {item: SearchListItem; index: number}) => {
-            return renderItem(item, index, false, undefined);
-        },
-        [renderItem],
-    );
+    const renderItemWithoutKeyboardFocus = ({item, index}: {item: SearchListItem; index: number}) => {
+        return renderItem(item, index, false, undefined);
+    };
 
     return (
         <AnimatedLegendList

@@ -10,7 +10,7 @@ import type {LegendListRef, LegendListRenderItemProps, ViewToken as LegendListVi
 import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent, StyleProp, ViewStyle, ViewToken} from 'react-native';
 
 import {LegendList} from '@legendapp/list/react-native';
-import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 import type {ExternalScrollLegendListTableHandle} from './ExternalScrollLegendListTable';
@@ -213,10 +213,7 @@ function MoneyRequestReportUnifiedList({
         });
     };
 
-    const listExtraData = useMemo(
-        () => ({reportActionsExtraData, renderReportAction, renderTransactionListItem: controller.renderTransactionListItem, afterListContent: controller.afterListContent}),
-        [reportActionsExtraData, renderReportAction, controller.renderTransactionListItem, controller.afterListContent],
-    );
+    const listExtraData = {reportActionsExtraData, renderReportAction, renderTransactionListItem: controller.renderTransactionListItem, afterListContent: controller.afterListContent};
 
     const dispatchRenderItem = ({item, index}: LegendListRenderItemProps<UnifiedListItem>) => {
         switch (item.type) {
@@ -311,16 +308,13 @@ function MoneyRequestReportUnifiedList({
         />
     );
 
-    const setListRef = useCallback(
-        (instance: LegendListRef | null) => {
-            const targetListRef = listRef;
-            if (!targetListRef) {
-                return;
-            }
-            targetListRef.current = instance;
-        },
-        [listRef],
-    );
+    const setListRef = (instance: LegendListRef | null) => {
+        const targetListRef = listRef;
+        if (!targetListRef) {
+            return;
+        }
+        targetListRef.current = instance;
+    };
 
     return (
         <LegendList<UnifiedListItem>
@@ -391,4 +385,4 @@ function MoneyRequestReportUnifiedList({
     );
 }
 
-export default memo(MoneyRequestReportUnifiedList);
+export default MoneyRequestReportUnifiedList;
