@@ -49,7 +49,7 @@ The receiving admin must validate their copy (required for US accounts) before u
 
 **For US accounts:**
 - The account shows a **Pending** badge with a **Please confirm test transactions** message and a **Confirm** action.
-- The admin must validate the account with the test transactions before using it. Opening the account goes straight to **Validate your bank account**.
+- The admin must validate the account with the test transactions before using it. Opening the account from **Wallet** shows **Validate your bank account**, or **Continue setup** and **Start over** first — in which case they click **Continue setup** to reach the validation screen.
 - After validation, the account is ready to use
  
 **For non-US accounts:**

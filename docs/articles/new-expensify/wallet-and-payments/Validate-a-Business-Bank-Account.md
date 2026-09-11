@@ -1,7 +1,7 @@
 ---
 title: Validate a Business Bank Account
 description: Enter test transaction amounts to complete validation of a business bank account in Expensify.
-keywords: [New Expensify, validate bank account, test deposits, ACH validation, business bank verification, confirm test transactions, micro-transactions, pending bank account, Pending badge, validation failed, test deposits wrong, Fix button missing, Unlock button missing, bank account pending, verification expired, wrong amounts, validation locked, validate from Workflows, Please confirm test transactions]
+keywords: [New Expensify, validate bank account, test deposits, ACH validation, business bank verification, confirm test transactions, micro-transactions, pending bank account, Pending badge, validation failed, test deposits wrong, Fix button missing, Unlock button missing, bank account pending, verification expired, wrong amounts, validation locked, validate from Workflows, Please confirm test transactions, Continue setup, Start over]
 internalScope: Audience is all members with a pending business bank account. Covers entering test transactions to validate a bank account from Wallet and from a workspace's Workflows page. Does not cover initial bank account setup, sharing, unsharing, or unlocking.
 ---
 
@@ -35,8 +35,9 @@ When you see the three test amounts post to your bank account:
 
 1. In the navigation tabs (on the left on web, on the bottom on mobile) go to **Account > Wallet**.
 2. In the **Bank accounts** section, click the business bank account with the **Pending** badge. It shows the message **Please confirm test transactions** and a **Confirm** action.
-3. On the **Validate your bank account** screen that appears, enter each amount in **Transaction 1**, **Transaction 2**, and **Transaction 3**.
-4. Click **Validate**.
+3. If **Continue setup** and **Start over** appear instead of the validation screen, click **Continue setup**. Don't click **Start over**, which clears the setup already completed for the account.
+4. On the **Validate your bank account** screen, enter each amount in **Transaction 1**, **Transaction 2**, and **Transaction 3**.
+5. Click **Validate**.
 
 Once the values are confirmed, your business bank account is fully connected and ready to use.
 
@@ -70,7 +71,12 @@ Purpose: Confirms members are clicking the correct row in Workflows, since a pen
 
 ## What happens when you open a pending US business bank account
 
-A pending US business bank account has already been submitted, so Expensify takes you directly to **Validate your bank account** from either **Wallet** or **Workflows**. You are not asked to continue or restart setup.
+A pending US business bank account has already been submitted, so there is no setup left to finish. Which screen opens depends on how you get there:
+
+- **Workflows**, or **Account > Wallet** when you are a Workspace Admin or Payments Admin on the workspace the account belongs to: Expensify takes you straight to **Validate your bank account**, and **Continue setup** and **Start over** are not shown.
+- **Account > Wallet** in every other case, including a business bank account that is not connected to a workspace: **Continue setup** and **Start over** are shown first. Click **Continue setup** to reach the same **Validate your bank account** screen. **Start over** discards the completed setup and restarts it from the beginning, so avoid it unless you intend to redo the whole account.
+
+Either route ends on the same validation screen, and neither asks you to re-enter company or ownership details.
 
 This applies only to US bank accounts, because they are the accounts that receive test transactions. A non-US business bank account that is still being set up shows an **Incomplete** badge with a **Finish** action, and opening it resumes setup where you left off. [Learn how to connect an international business bank account](/articles/new-expensify/wallet-and-payments/Enable-Global-Reimbursement).
 
