@@ -8,7 +8,6 @@ import usePolicy from '@hooks/usePolicy';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
 import navigationRef from '@libs/Navigation/navigationRef';
-import {waitFor as waitForReceiptUpgrade} from '@libs/ReceiptStorage/receiptUpgrades';
 import {cancelSpan} from '@libs/telemetry/activeSpans';
 
 import getFileSource from '@pages/iou/request/step/IOURequestStepScan/utils/getFileSource';
@@ -41,13 +40,6 @@ type ScanEditReceiptProps = {
  * ScanEditReceipt — replace an existing receipt and navigate back.
  * Simplest variant: no multi-scan, no participants, no confirmation page.
  */
-/**
- * How long the request waits for the better photo before going out with what is on disk. It matches the
- * window `ReceiptStorage.locate` gives every other flow, and costs nothing on screen because the page has
- * already gone back by then.
- */
-const RECEIPT_UPGRADE_WAIT_MS = 10000;
-
 function ScanEditReceipt({report, transactionID, backTo, isEditing}: ScanEditReceiptProps) {
     const {translate} = useLocalize();
     const policy = usePolicy(report?.policyID);
@@ -77,21 +69,15 @@ function ScanEditReceipt({report, transactionID, backTo, isEditing}: ScanEditRec
         cancelSpan(CONST.TELEMETRY.SPAN_RECEIPT_PREPARE);
         if (isEditing) {
             setMoneyRequestReceipt(transactionID, source, file.name ?? '', false, file.type);
-
-            // `replaceReceipt` sends the file object itself rather than a receipt source, so this upload
-            // never reaches `ReceiptStorage.locate` and cannot wait there. Hold the request back until the
-            // full-resolution photo has landed, while the screen goes back straight away.
-            waitForReceiptUpgrade(file.name ?? '', RECEIPT_UPGRADE_WAIT_MS).then(() => {
-                replaceReceipt({
-                    transaction,
-                    file: file as File,
-                    source,
-                    transactionPolicy: policy,
-                    transactionPolicyCategories: policyCategories,
-                    transactionPolicyTagList: policyTagList,
-                    transactionViolations,
-                    transactionReport,
-                });
+            replaceReceipt({
+                transaction,
+                file: file as File,
+                source,
+                transactionPolicy: policy,
+                transactionPolicyCategories: policyCategories,
+                transactionPolicyTagList: policyTagList,
+                transactionViolations,
+                transactionReport,
             });
         } else {
             setMoneyRequestReceipt(transactionID, source, file.name ?? '', true, file.type);
@@ -121,6 +107,9 @@ function ScanEditReceipt({report, transactionID, backTo, isEditing}: ScanEditRec
                 onPicked={validateFiles}
                 onAttachmentPickerStatusChange={setIsLoaderVisible}
                 isReplacingReceipt
+                // This screen goes back on capture, which unmounts the camera and cancels a photo still in
+                // flight, so the upgrade could not land here even when it is wanted.
+                canUpgradeReceiptQuality={false}
             />
         </StepScreenDragAndDropWrapper>
     );

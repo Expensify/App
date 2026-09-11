@@ -7,6 +7,7 @@ const receiptStorage: ReceiptStorage = {
     overwrite: (durableName) => Promise.resolve(durableName),
     discard: () => Promise.resolve(),
     locate: (source) => Promise.resolve(typeof source === 'string' ? source : undefined),
+    settle: () => Promise.resolve(),
     toLocalUri: (durableName) => durableName,
     resolve: (source) => (typeof source === 'string' ? source : undefined),
 };

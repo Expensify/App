@@ -45,7 +45,7 @@ const BLINK_DURATION_MS = 80;
  * Renders a react-native-vision-camera viewfinder with shutter, flash toggle, gallery picker, and focus gesture.
  * Calls `onCapture(file, source)` for each photo taken or file picked from the gallery.
  */
-function Camera({onCapture, onPicked, shouldAcceptMultipleFiles = false, onLayout, onAttachmentPickerStatusChange, onMultiScanSubmit}: CameraProps) {
+function Camera({onCapture, onPicked, shouldAcceptMultipleFiles = false, onLayout, onAttachmentPickerStatusChange, onMultiScanSubmit, canUpgradeReceiptQuality = true}: CameraProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -175,16 +175,15 @@ function Camera({onCapture, onPicked, shouldAcceptMultipleFiles = false, onLayou
 
         // `takeSnapshot` saves a screen-sized screenshot of the preview, so on that path a full-resolution
         // `takePhoto` runs alongside it and replaces the receipt file once it lands. Nothing below awaits it.
-        const shouldUpgradeToPhoto = !isMultiScanEnabled && !shouldTakePhoto({flash, hasFlash, isInLandscapeMode});
+        const shouldUpgradeToPhoto = canUpgradeReceiptQuality && !isMultiScanEnabled && !shouldTakePhoto({flash, hasFlash, isInLandscapeMode});
 
         // The snapshot goes first so its request reaches the native queue ahead of the still. On iOS it
         // reads the most recent video frame, which a photo capture can interrupt.
         const receiptCapture = captureReceipt(camera.current, {flash, hasFlash, isPlatformMuted, path, isInLandscapeMode});
 
-        if (shouldUpgradeToPhoto) {
-            startPhotoCapture(camera.current);
-        }
-
+        // Handlers attached before the photo capture starts: a synchronous throw from `startPhotoCapture`
+        // would otherwise leave this promise unhandled, losing the receipt with no alert. The native
+        // snapshot request is already out, so this does not change the order they reach the camera.
         receiptCapture
             .then((photo: PhotoFile) => {
                 endSpanWithAttributes(CONST.TELEMETRY.SPAN_RECEIPT_CAPTURE, {
@@ -223,6 +222,10 @@ function Camera({onCapture, onPicked, shouldAcceptMultipleFiles = false, onLayou
                 Log.warn('Error taking photo', error);
                 discardPendingPhoto();
             });
+
+        if (shouldUpgradeToPhoto) {
+            startPhotoCapture(camera.current);
+        }
     };
 
     // Wait for camera permission status to render

@@ -1,41 +1,31 @@
 import Log from '@libs/Log';
 import ReceiptStorage from '@libs/ReceiptStorage';
-import {finish as finishUpgrade, start as startUpgrade} from '@libs/ReceiptStorage/receiptUpgrades';
-import {endSpanWithAttributes, startSpan} from '@libs/telemetry/activeSpans';
+import {finish as finishUpgrade, isClaimedForRead as wasReceiptClaimed, recordUpgrade, start as startUpgrade} from '@libs/ReceiptStorage/receiptUpgrades';
 
 import rotatePhotoToUpright from '@pages/iou/request/step/IOURequestStepScan/utils/rotatePhotoToUpright';
 
-import CONST from '@src/CONST';
-
 import type {Camera, PhotoFile} from 'react-native-vision-camera';
 
-import {useRef, useState} from 'react';
+import {useEffect, useRef, useState} from 'react';
 import RNFS from 'react-native-fs';
 
 /**
- * Runs the full-resolution photo capture that upgrades a receipt taken with `takeSnapshot`.
- */
-
-/**
- * How long the camera session is held open waiting for the photo. After that the receipt keeps the
- * snapshot, which is how this path behaved before the upgrade.
+ * How long the camera session is held open for the photo. After that the receipt keeps the snapshot. Both
+ * caps bound the upgrade only: an upload claims the file as it stands rather than waiting on either.
  */
 const PHOTO_CAPTURE_TIMEOUT_MS = 3000;
 
-/**
- * Deletes a photo that has no consumer. A failure only leaves a file in the OS temp directory, so it is
- * logged and not surfaced.
- */
+/** Cap on the rotate step, so a manipulator that never settles cannot leave the receipt marked as changing. */
+const ROTATE_TIMEOUT_MS = 5000;
+
+/** Deletes a photo that has no consumer. A failure only strands a file in the OS temp directory. */
 function discardPhoto(path: string) {
     ReceiptStorage.discard(path).catch((error: unknown) => {
         Log.warn('[PhotoUpgrade] could not delete the abandoned photo', {error: error instanceof Error ? error.message : String(error)});
     });
 }
 
-/**
- * Deletes the photo once the pending capture produces one. Callers set `isDiscarded` first, so a photo
- * that lands before this runs is deleted by the capture handler instead.
- */
+/** Callers call `discard` first, so a photo landing before this runs is deleted by the capture handler. */
 function discardWhenItLands(pending: PendingPhoto) {
     pending.promise
         .then((photo) => {
@@ -49,30 +39,82 @@ function discardWhenItLands(pending: PendingPhoto) {
         });
 }
 
+/**
+ * Rejects when `promise` outlives `capMs`, so a step that never settles cannot hold the upgrade open.
+ * `discardLateResult` deletes a result that arrives afterwards, which nothing else is left to clean up.
+ */
+function withDeadline<T>(promise: Promise<T>, capMs: number, step: string, discardLateResult?: (value: T) => void): Promise<T> {
+    let cap: ReturnType<typeof setTimeout>;
+    let hasTimedOut = false;
+    const deadline = new Promise<never>((_resolve, reject) => {
+        cap = setTimeout(() => {
+            hasTimedOut = true;
+            reject(new Error(`[PhotoUpgrade] ${step} did not finish within ${capMs}ms`));
+        }, capMs);
+    });
+
+    if (discardLateResult) {
+        promise
+            .then((value) => {
+                if (!hasTimedOut) {
+                    return;
+                }
+                discardLateResult(value);
+            })
+            .catch(() => {
+                // A rejection is the race's to report, and there is no result to clean up.
+            });
+    }
+
+    return Promise.race([promise, deadline]).finally(() => clearTimeout(cap));
+}
+
 type PendingPhoto = {
-    /** Resolves with the temporary photo, or `undefined` when the capture failed or missed the deadline. */
+    /** Resolves `undefined` when the capture failed or missed the deadline. */
     promise: Promise<PhotoFile | undefined>;
 
-    /** Set once the photo has no consumer, so anything that lands afterwards is deleted. */
-    isDiscarded: boolean;
+    /** Gives up on the photo, so whatever lands afterwards is deleted instead of kept. */
+    discard: () => void;
 };
+
+function abandonPending(pending: PendingPhoto) {
+    pending.discard();
+    discardWhenItLands(pending);
+}
 
 /**
  * Upgrades a receipt captured with `takeSnapshot`, a screen-sized screenshot of the preview, to the
  * full-resolution `takePhoto` photo.
  *
- * `startPhotoCapture` starts the photo at the shutter and nothing awaits it, so the snapshot keeps driving
- * navigation, and `upgradeReceiptWithPhoto` swaps the photo onto that receipt in place under the same
- * durable name. `hasPendingPhotoCapture` holds the camera session open, since closing it during a capture
- * cancels the photo with "Camera is closed."
+ * Nothing awaits `startPhotoCapture`, so the snapshot keeps driving navigation, and the photo is swapped
+ * in under the same durable name once it lands. `hasPendingPhotoCapture` holds the camera session open:
+ * closing it mid-capture cancels the photo with "Camera is closed."
  */
 function usePhotoUpgrade() {
     const [hasPendingPhotoCapture, setHasPendingPhotoCapture] = useState(false);
     const pendingPhotoRef = useRef<PendingPhoto | undefined>(undefined);
 
-    // Retaking a receipt can leave two captures in flight, so count them. With a single flag, the first
-    // capture to settle would close the session under the second one.
+    // Holds the camera session open across the race. Counted rather than a flag because it is released
+    // when the race settles, which can be while the capture behind it is still running.
     const captureCountRef = useRef(0);
+
+    // Captures the camera has not finished yet. Not the same as `captureCountRef`, which follows the race
+    // below and reaches zero once that gives up — the capture itself runs on past that, and cannot be
+    // called off.
+    const photosInFlightRef = useRef(0);
+
+    // A capture nobody claimed outlives the screen, so its file has to be cleaned up from here.
+    useEffect(
+        () => () => {
+            const pending = pendingPhotoRef.current;
+            if (!pending) {
+                return;
+            }
+            pendingPhotoRef.current = undefined;
+            abandonPending(pending);
+        },
+        [],
+    );
 
     const releaseSession = () => {
         captureCountRef.current -= 1;
@@ -83,16 +125,41 @@ function usePhotoUpgrade() {
     };
 
     const startPhotoCapture = (camera: Camera) => {
-        const pending: PendingPhoto = {isDiscarded: false, promise: Promise.resolve(undefined)};
+        // This capture was never handed a receipt, and the shutter below replaces it. Cleared before the
+        // guard, so a capture that skips the upgrade cannot inherit this one's photo.
+        const orphaned = pendingPhotoRef.current;
+        pendingPhotoRef.current = undefined;
+        if (orphaned) {
+            abandonPending(orphaned);
+        }
 
-        // The photo goes to the temp directory, not the receipts folder, so ReceiptStorage stays the only
-        // writer there and an abandoned photo never sits among the receipts looking like one.
-        const capture = camera.takePhoto({flash: 'off', enableShutterSound: false, path: RNFS.TemporaryDirectoryPath}).then(
+        // Abandoning a capture does not stop it: `discard` only marks the result for deletion, and
+        // vision-camera cannot cancel a `takePhoto`. A second one started over a capture still running
+        // makes them contend, and the next `takeSnapshot` pays for it — 6.6s measured against an 80ms
+        // baseline. A receipt keeping its snapshot is the cheaper loss.
+        if (photosInFlightRef.current > 0) {
+            Log.info('[PhotoUpgrade] a full-resolution capture is still running, so this receipt keeps its snapshot');
+            return;
+        }
+
+        let isDiscarded = false;
+
+        // Temp directory, not the receipts folder, so ReceiptStorage stays its only writer and a discarded
+        // photo never sits among the receipts.
+        const nativeCapture = camera.takePhoto({flash: 'off', enableShutterSound: false, path: RNFS.TemporaryDirectoryPath});
+
+        // Released when the capture settles, which is what the guard above reads.
+        photosInFlightRef.current += 1;
+        const releasePhotoSlot = () => {
+            photosInFlightRef.current -= 1;
+        };
+        nativeCapture.then(releasePhotoSlot, releasePhotoSlot);
+
+        const capture = nativeCapture.then(
             (photo) => {
-                if (!pending.isDiscarded) {
+                if (!isDiscarded) {
                     return photo;
                 }
-                // This one has no consumer, so it does not stay on disk.
                 discardPhoto(photo.path);
                 return undefined;
             },
@@ -102,19 +169,18 @@ function usePhotoUpgrade() {
             },
         );
 
-        // The deadline outlives the screen on purpose, since the swap finishes after the scan page is gone
-        // and a late arrival needs deleting too.
+        // Outlives the screen on purpose: the swap finishes after the scan page is gone, and a late
+        // arrival still needs deleting.
         let deadlineTimeout: ReturnType<typeof setTimeout>;
         const deadline = new Promise<undefined>((resolve) => {
             deadlineTimeout = setTimeout(() => {
-                pending.isDiscarded = true;
+                isDiscarded = true;
                 resolve(undefined);
             }, PHOTO_CAPTURE_TIMEOUT_MS);
         });
 
-        // The session is released when the race settles, not when the swap finishes. Once the photo is on
-        // disk the camera is free, and the rotate and replace steps run without it.
-        pending.promise = Promise.race([capture, deadline]).then((photo) => {
+        // Released when the race settles, not when the swap finishes: the rotate and swap need no camera.
+        const promise = Promise.race([capture, deadline]).then((photo) => {
             clearTimeout(deadlineTimeout);
             releaseSession();
 
@@ -126,17 +192,14 @@ function usePhotoUpgrade() {
             return photo;
         });
 
-        pendingPhotoRef.current = pending;
+        pendingPhotoRef.current = {
+            promise,
+            discard: () => {
+                isDiscarded = true;
+            },
+        };
         captureCountRef.current += 1;
         setHasPendingPhotoCapture(true);
-
-        // Nothing about this upgrade is visible to the user, so the span is the only way to tell a receipt
-        // that was upgraded from one that quietly kept its snapshot.
-        startSpan(CONST.TELEMETRY.SPAN_RECEIPT_PHOTO_UPGRADE, {
-            name: CONST.TELEMETRY.SPAN_RECEIPT_PHOTO_UPGRADE,
-            op: CONST.TELEMETRY.SPAN_RECEIPT_PHOTO_UPGRADE,
-            attributes: {[CONST.TELEMETRY.ATTRIBUTE_PLATFORM]: CONST.TELEMETRY.SPAN_PLATFORM.NATIVE},
-        });
     };
 
     const upgradeReceiptWithPhoto = (durableName: string) => {
@@ -146,47 +209,67 @@ function usePhotoUpgrade() {
         }
         pendingPhotoRef.current = undefined;
 
-        // Anything that reads or shows this receipt can now wait for the better file, or refresh once it
-        // arrives, instead of taking the snapshot it is about to replace.
+        // From here a reader can claim these bytes, and a view can refresh once they change.
         startUpgrade(durableName);
 
         pending.promise
             .then((photo) => {
                 if (!photo) {
-                    endSpanWithAttributes(CONST.TELEMETRY.SPAN_RECEIPT_PHOTO_UPGRADE, {
-                        [CONST.TELEMETRY.ATTRIBUTE_UPGRADE_OUTCOME]: CONST.TELEMETRY.UPGRADE_OUTCOME.NO_PHOTO,
-                    });
                     return undefined;
                 }
 
-                return rotatePhotoToUpright(photo.path).then((uprightPath) =>
-                    ReceiptStorage.overwrite(durableName, uprightPath ?? photo.path).then(() => {
-                        Log.info('[PhotoUpgrade] receipt upgraded to the full-resolution photo', false, {
-                            width: photo.width,
-                            height: photo.height,
-                            wasRotated: !!uprightPath,
-                        });
-                        endSpanWithAttributes(CONST.TELEMETRY.SPAN_RECEIPT_PHOTO_UPGRADE, {
-                            [CONST.TELEMETRY.ATTRIBUTE_UPGRADE_OUTCOME]: CONST.TELEMETRY.UPGRADE_OUTCOME.UPGRADED,
-                            [CONST.TELEMETRY.ATTRIBUTE_PHOTO_WIDTH]: photo.width,
-                            [CONST.TELEMETRY.ATTRIBUTE_PHOTO_HEIGHT]: photo.height,
-                        });
-
-                        if (!uprightPath) {
-                            return;
-                        }
-                        // `overwrite` moved the rotated copy, so the original is left behind, and its cleanup
-                        // must not fail an upgrade that already went through.
+                return withDeadline(rotatePhotoToUpright(photo.path, photo.orientation), ROTATE_TIMEOUT_MS, 'rotate', (latePath) => {
+                    // The swap gave up on this rotate, so the copy it went on to write is left orphaned.
+                    if (!latePath) {
+                        return;
+                    }
+                    discardPhoto(latePath);
+                }).then((uprightPath) => {
+                    // An upload is sending the snapshot. Renaming now would hand it the old bytes, the
+                    // new ones, or a missing file.
+                    if (wasReceiptClaimed(durableName)) {
                         discardPhoto(photo.path);
-                    }),
-                );
+                        if (uprightPath) {
+                            discardPhoto(uprightPath);
+                        }
+                        return undefined;
+                    }
+
+                    // Asked again immediately before the rename, since everything between the two checks
+                    // yields.
+                    return ReceiptStorage.overwrite(durableName, uprightPath ?? photo.path, () => wasReceiptClaimed(durableName))
+                        .then(() => {
+                            Log.info('[PhotoUpgrade] receipt upgraded to the full-resolution photo', false, {
+                                width: photo.width,
+                                height: photo.height,
+                                wasRotated: !!uprightPath,
+                            });
+                            // Only now have the bytes changed, which is what reloads the unchanged path.
+                            recordUpgrade(durableName);
+
+                            if (!uprightPath) {
+                                return;
+                            }
+                            // `overwrite` moved the rotated copy, leaving the original behind. Its
+                            // cleanup must not fail an upgrade that already went through.
+                            discardPhoto(photo.path);
+                        })
+                        .catch((error: unknown) => {
+                            // `overwrite` can reject before it moves the rotated copy.
+                            if (uprightPath) {
+                                discardPhoto(uprightPath);
+                            }
+                            throw error;
+                        });
+                });
             })
             .catch((error: unknown) => {
-                Log.warn('[PhotoUpgrade] keeping the snapshot, upgrade failed', {error: error instanceof Error ? error.message : String(error)});
-                endSpanWithAttributes(CONST.TELEMETRY.SPAN_RECEIPT_PHOTO_UPGRADE, {
-                    [CONST.TELEMETRY.ATTRIBUTE_UPGRADE_OUTCOME]: CONST.TELEMETRY.UPGRADE_OUTCOME.FAILED,
+                // A swap that backed out for an upload is not a failure, and gets its own outcome.
+                const wasClaimed = wasReceiptClaimed(durableName);
+                Log.warn(`[PhotoUpgrade] keeping the snapshot, upgrade ${wasClaimed ? 'claimed for upload' : 'failed'}`, {
+                    error: error instanceof Error ? error.message : String(error),
                 });
-                pending.isDiscarded = true;
+                pending.discard();
                 discardWhenItLands(pending);
             })
             .finally(() => finishUpgrade(durableName));
@@ -198,11 +281,7 @@ function usePhotoUpgrade() {
             return;
         }
         pendingPhotoRef.current = undefined;
-        endSpanWithAttributes(CONST.TELEMETRY.SPAN_RECEIPT_PHOTO_UPGRADE, {
-            [CONST.TELEMETRY.ATTRIBUTE_UPGRADE_OUTCOME]: CONST.TELEMETRY.UPGRADE_OUTCOME.ABANDONED,
-        });
-        pending.isDiscarded = true;
-        discardWhenItLands(pending);
+        abandonPending(pending);
     };
 
     return {hasPendingPhotoCapture, startPhotoCapture, upgradeReceiptWithPhoto, discardPendingPhoto};

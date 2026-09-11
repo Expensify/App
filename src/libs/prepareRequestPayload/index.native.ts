@@ -23,6 +23,12 @@ const prepareRequestPayload: PrepareRequestPayload = (command, data, initiatedOf
                 return Promise.resolve();
             }
 
+            // The assertion is FormData's signature being narrower than what request data can hold.
+            const appendValueAsIs = () => {
+                validateFormDataParameter(command, key, value);
+                formData.append(key, value as string | Blob);
+            };
+
             if (key === 'receipt') {
                 const {source, name, type, receiptTraceId} = value as Omit<File, 'source'> & Pick<Receipt, 'receiptTraceId' | 'source'>;
 
@@ -47,6 +53,13 @@ const prepareRequestPayload: PrepareRequestPayload = (command, data, initiatedOf
                         formData.append(key, receiptFormData as File);
                     });
                 }
+
+                // ReplaceReceipt sends the file object rather than a receipt source, so it never reaches
+                // `locate` and claims here instead. Claiming here rather than before the action keeps the
+                // optimistic write and queue entry immediate, so a receipt replaced offline is never lost.
+                if (name) {
+                    return ReceiptStorage.settle(name).then(appendValueAsIs);
+                }
             }
 
             if (key === 'file' && initiatedOffline) {
@@ -69,8 +82,7 @@ const prepareRequestPayload: PrepareRequestPayload = (command, data, initiatedOf
                 });
             }
 
-            validateFormDataParameter(command, key, value);
-            formData.append(key, value as string | Blob);
+            appendValueAsIs();
 
             return Promise.resolve();
         });

@@ -1,24 +1,26 @@
 /**
- * Tracks receipts whose file is about to be replaced by a better capture, so the rest of the app can wait
- * for the swap or react to it instead of reading a receipt that is about to change.
+ * Tracks receipts whose file is about to be replaced by a better capture.
  *
- * Keyed by durable name, because that is the receipt's identity everywhere else. Entries live only as long
- * as the upgrade: nothing here survives a relaunch, and a receipt with no entry is simply not changing.
+ * Nothing here waits for an upgrade. Every reader is a request the sequential queue is processing, so a
+ * wait would put camera and rotation time in front of every later write, for an optional improvement. A
+ * reader claims the receipt instead, and the upgrade drops its photo.
+ *
+ * Keyed by durable name. Nothing survives a relaunch, and a receipt with no entry is not changing.
  */
 
 import Log from '@libs/Log';
 
-type PendingUpgrade = {
-    /** Resolves once the upgrade has finished, bailed or failed. */
-    promise: Promise<void>;
+/** Most receipts one launch keeps a version count for. Trimmed oldest-first beyond this. */
+const MAX_TRACKED_UPGRADE_COUNTS = 50;
 
-    /** Settles `promise`. Called by `finish`. */
-    settle: () => void;
+type PendingUpgrade = {
+    /** Set once a reader has claimed the receipt, so the file must not change under it. */
+    isClaimed: boolean;
 };
 
 const upgradesInFlight = new Map<string, PendingUpgrade>();
 
-/** How many times each receipt has been upgraded this launch. Lets a view tell one version from the next. */
+/** How many times each receipt has been upgraded this launch, so a view can tell one version from the next. */
 const upgradeCounts = new Map<string, number>();
 
 const listeners = new Set<() => void>();
@@ -35,11 +37,7 @@ function start(durableName: string) {
         return;
     }
 
-    let settle: () => void = () => {};
-    const promise = new Promise<void>((resolveUpgrade) => {
-        settle = resolveUpgrade;
-    });
-    upgradesInFlight.set(durableName, {promise, settle});
+    upgradesInFlight.set(durableName, {isClaimed: false});
     notify();
 }
 
@@ -51,48 +49,58 @@ function finish(durableName: string) {
     }
 
     upgradesInFlight.delete(durableName);
-    upgradeCounts.set(durableName, (upgradeCounts.get(durableName) ?? 0) + 1);
-    upgrade.settle();
     notify();
 }
 
 /**
- * Waits for a receipt to stop changing. Resolves immediately when nothing is in flight, and gives up after
- * `capMs` so a stalled upgrade cannot hold a caller open. Never rejects: the caller reads the file either
- * way, and the upgrade reports its own failures.
+ * Records that a receipt's bytes actually changed. A view keys its image source on this count, so it moves
+ * only when the file did.
  */
-function waitFor(durableName: string, capMs: number): Promise<void> {
-    const upgrade = upgradesInFlight.get(durableName);
-    if (!upgrade) {
-        return Promise.resolve();
+function recordUpgrade(durableName: string) {
+    upgradeCounts.set(durableName, (upgradeCounts.get(durableName) ?? 0) + 1);
+
+    // Map iteration is insertion-ordered, and re-setting a key keeps its original position, so the front
+    // holds the receipts least likely to still be on screen.
+    while (upgradeCounts.size > MAX_TRACKED_UPGRADE_COUNTS) {
+        const oldest = upgradeCounts.keys().next().value;
+        if (oldest === undefined) {
+            break;
+        }
+        upgradeCounts.delete(oldest);
     }
 
-    return new Promise((settle) => {
-        const cap = setTimeout(() => {
-            Log.warn('[ReceiptUpgrades] gave up waiting for a receipt upgrade', {durableName, capMs});
-            settle();
-        }, capMs);
-        upgrade.promise.then(() => {
-            clearTimeout(cap);
-            settle();
-        });
-    });
+    notify();
 }
 
 /**
- * How many upgrades this receipt has been through. A view that renders the file can put this in its image
- * source, so the same path counts as a different image once the bytes behind it change.
+ * Claims the receipt's current bytes, so the upgrade leaves the file alone. Returns straight away.
+ *
+ * The upgrade honours this at its last guard before the first rename. A claim landing after that guard
+ * cannot stop the swap, which is the one case a reader still has to wait out.
  */
+function claimForRead(durableName: string) {
+    const upgrade = upgradesInFlight.get(durableName);
+    if (!upgrade || upgrade.isClaimed) {
+        return;
+    }
+
+    upgrade.isClaimed = true;
+    Log.info('[ReceiptUpgrades] a reader claimed the receipt, so the upgrade will keep the snapshot', false, {durableName});
+}
+
 function getUpgradeCount(durableName: string): number {
     return upgradeCounts.get(durableName) ?? 0;
 }
 
-/** Whether this receipt is being upgraded right now. */
+/** Whether a reader has claimed this receipt, meaning its bytes are already on their way to the server. */
+function isClaimedForRead(durableName: string): boolean {
+    return upgradesInFlight.get(durableName)?.isClaimed ?? false;
+}
+
 function isUpgrading(durableName: string): boolean {
     return upgradesInFlight.has(durableName);
 }
 
-/** Subscribes to changes, for components that show a receipt while it is being upgraded. */
 function subscribe(listener: () => void): () => void {
     listeners.add(listener);
     return () => {
@@ -100,4 +108,4 @@ function subscribe(listener: () => void): () => void {
     };
 }
 
-export {start, finish, waitFor, isUpgrading, getUpgradeCount, subscribe};
+export {start, finish, recordUpgrade, claimForRead, isUpgrading, isClaimedForRead, getUpgradeCount, subscribe};
