@@ -36,10 +36,7 @@ type WorkspaceTaxesTableRowProps = {
     /** Data about the tax rate */
     item: WorkspaceTaxTableRowData;
 
-    /** The index of the row relative to all other rows */
     rowIndex: number;
-
-    /** Whether to use narrow table row layout */
     shouldUseNarrowTableLayout: boolean;
 };
 

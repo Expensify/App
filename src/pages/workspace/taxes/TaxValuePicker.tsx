@@ -29,7 +29,6 @@ type TaxValuePickerProps = {
     /** Callback to call when the input changes. */
     onInputChange?: (value: string | undefined) => void;
 
-    /** Callback to call when the component is pressed. */
     onPress?: (event: GestureResponderEvent | KeyboardEvent) => void;
 };
 

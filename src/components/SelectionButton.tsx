@@ -37,7 +37,6 @@ type BaseSelectionButtonProps = Partial<ChildrenProps> &
         /** Additional styles to add to the indicator container */
         containerStyle?: StyleProp<ViewStyle>;
 
-        /** Callback that is called when mousedown is triggered. */
         onMouseDown?: MouseEventHandler;
 
         /** The size of the indicator container */
@@ -49,10 +48,7 @@ type BaseSelectionButtonProps = Partial<ChildrenProps> &
         /** The size of the caret (checkmark) */
         caretSize?: number;
 
-        /** An accessibility label */
         accessibilityLabel: string;
-
-        /** An accessibility hint */
         accessibilityHint?: string;
 
         /** stop propagation of the mouse down event */
@@ -61,16 +57,12 @@ type BaseSelectionButtonProps = Partial<ChildrenProps> &
         /** Whether the button should be selected when pressing Enter key */
         shouldSelectOnPressEnter?: boolean;
 
-        /** Additional styles to add to the outer wrapper */
         wrapperStyle?: StyleProp<ViewStyle>;
 
         /** Used to locate this view in end-to-end tests. */
         testID?: string;
 
-        /** Reference to the outer element */
         ref?: ForwardedRef<View>;
-
-        /** Tab index */
         tabIndex?: 0 | -1;
 
         /** Whether the button is accessible to screen readers */

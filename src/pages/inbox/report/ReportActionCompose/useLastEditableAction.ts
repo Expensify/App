@@ -21,6 +21,7 @@ function useLastEditableAction(reportID: string): OnyxEntry<OnyxTypes.ReportActi
 
     const parentReportAction = useParentReportAction(report);
     const [transactionThreadReportActionsOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${effectiveTransactionThreadReportID}`);
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const transactionThreadReportActionsArray = transactionThreadReportActionsOnyx ? Object.values(transactionThreadReportActionsOnyx) : [];
     const combinedReportActions = getCombinedReportActions(filteredReportActions, effectiveTransactionThreadReportID ?? null, transactionThreadReportActionsArray);
 
@@ -28,7 +29,7 @@ function useLastEditableAction(reportID: string): OnyxEntry<OnyxTypes.ReportActi
     const actionsForLastEditable = isOnSearchMoneyRequestReport ? filteredReportActions : combinedReportActions;
 
     // reportActions is intentionally omitted: money request actions are filtered out first, so canEditReportAction never reaches the canEditMoneyRequest check that reads them
-    return [...actionsForLastEditable, parentReportAction].find((action) => !isMoneyRequestAction(action) && canEditReportAction(action, undefined, undefined));
+    return [...actionsForLastEditable, parentReportAction].find((action) => !isMoneyRequestAction(action) && canEditReportAction(action, undefined, rules));
 }
 
 export default useLastEditableAction;

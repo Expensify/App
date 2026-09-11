@@ -91,7 +91,6 @@ function ProductMarketingWindowManager({topmostRouteName}: ProductMarketingWindo
     const illustrationNames = announcement ? [announcement.admin.visual, announcement.member?.visual].flatMap((visual) => (visual?.type === 'illustration' ? [visual.name] : [])) : [];
     const illustrations = useMemoizedLazyIllustrations(illustrationNames);
     const variant = getProductMarketingAnnouncementVariant(announcement, !!targetAdminPolicyID, lastDismissedMarketingWindow);
-    const isMemberVariantUnavailable = variant === announcement?.member && !isBetaEnabled(CONST.BETAS.CUSTOM_AGENT);
     const isVendorMatchingBetaEnabled = isBetaEnabled(CONST.BETAS.VENDOR_MATCHING);
     const shouldPrefetchTargetPolicyConnections = isVendorMatchingBetaEnabled && !!targetAdminPolicyID && targetAdminPolicyID !== activePolicyID;
     const {isFetchNeeded, isLoadingFetchedFlag, hasBeenFetched} = usePolicyConnectionsPrefetch(targetAdminPolicy, shouldPrefetchTargetPolicyConnections);
@@ -120,7 +119,6 @@ function ProductMarketingWindowManager({topmostRouteName}: ProductMarketingWindo
     if (
         !announcement ||
         !variant ||
-        isMemberVariantUnavailable ||
         isLoading ||
         isProductMarketingWindowCovered ||
         isAnonymousSession ||

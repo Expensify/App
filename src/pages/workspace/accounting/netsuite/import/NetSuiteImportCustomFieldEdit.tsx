@@ -37,12 +37,8 @@ type NetSuiteImportCustomFieldViewProps = WithPolicyConnectionsProps & {
             /** Whether the record is of type custom segment or list */
             importCustomField: ImportCustomFieldsKeys;
 
-            /** Index of the current record */
             valueIndex: number;
-
-            /** Selected field of the current record  */
             fieldName: string;
-
             policyID: string;
         };
     };

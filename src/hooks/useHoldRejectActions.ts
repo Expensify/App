@@ -57,6 +57,7 @@ function useHoldRejectActions({reportID, onHoldEducationalOpen, onRejectModalOpe
     const [dismissedRejectUseExplanation] = useOnyx(ONYXKEYS.NVP_DISMISSED_REJECT_USE_EXPLANATION);
     const [dismissedHoldUseExplanation] = useOnyx(ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const shouldSuppressPromotionalUI = useShouldSuppressPromotionalUI();
 
     const isReportSubmitter = isCurrentUserSubmitter(chatIOUReport);
@@ -91,6 +92,7 @@ function useHoldRejectActions({reportID, onHoldEducationalOpen, onRejectModalOpe
                         transactionViolations,
                         isTrackIntentUser,
                         delegateAccountID,
+                        rules,
                     );
                 } else if (shouldShowHoldEducationalModal) {
                     onHoldEducationalOpen();
@@ -123,6 +125,7 @@ function useHoldRejectActions({reportID, onHoldEducationalOpen, onRejectModalOpe
                     transactionViolations,
                     isTrackIntentUser,
                     delegateAccountID,
+                    rules,
                 );
             },
         },

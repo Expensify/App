@@ -30,7 +30,6 @@ type Response<TKey extends OnyxKey> = {
     /** ID of the request that triggered this response */
     requestID?: string;
 
-    /** Report ID of the updated report */
     reportID?: string;
 
     /**
@@ -48,7 +47,6 @@ type Response<TKey extends OnyxKey> = {
     /** Registered multifactor public keys */
     publicKeys?: string[];
 
-    /** Multifactor authentication challenge object */
     challenge?: MultifactorAuthenticationChallengeObject;
 
     /** User session auth token when connecting as a delegate */
@@ -85,13 +83,8 @@ type Response<TKey extends OnyxKey> = {
     // eslint-disable-next-line @typescript-eslint/naming-convention
     shared_secret?: string;
 
-    /** Setup Url */
     setupUrl?: string;
-
-    /** The accountID of the user */
     accountID?: number;
-
-    /** The email of the user */
     email?: string;
 
     /** If there is older data to load for pagination commands */

@@ -1,12 +1,16 @@
 import {getAdminExpensifyCardFeedEntries, partitionExpensifyCardFeedsForSelector} from '@libs/ExpensifyCardFeedSelectorUtils';
-import type {ExpensifyCardFeedEntry} from '@libs/ExpensifyCardFeedSelectorUtils';
+import type {ExpensifyCardFeedEntry, ExpensifyCardFeedProgram} from '@libs/ExpensifyCardFeedSelectorUtils';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useOnyx from './useOnyx';
 
-function useExpensifyCardFeedsForFeedSelector(policyID: string | undefined): {
+/** Pass a program set (e.g. TRAVEL_US) to list travel feeds; defaults to the US/GB card feeds. */
+function useExpensifyCardFeedsForFeedSelector(
+    policyID: string | undefined,
+    programs?: ExpensifyCardFeedProgram[],
+): {
     primaryFeeds: ExpensifyCardFeedEntry[];
     otherFeeds: ExpensifyCardFeedEntry[];
     allFeeds: ExpensifyCardFeedEntry[];
@@ -19,7 +23,7 @@ function useExpensifyCardFeedsForFeedSelector(policyID: string | undefined): {
     if (!policyID) {
         return {primaryFeeds: [], otherFeeds: [], allFeeds: []};
     }
-    const allFeeds = getAdminExpensifyCardFeedEntries(cardSettingsCollection, policies, domains, currentUserAccountID);
+    const allFeeds = getAdminExpensifyCardFeedEntries(cardSettingsCollection, policies, domains, currentUserAccountID, programs);
     const {primary, other} = partitionExpensifyCardFeedsForSelector(allFeeds, policyID);
     return {primaryFeeds: primary, otherFeeds: other, allFeeds};
 }

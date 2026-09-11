@@ -35,7 +35,6 @@ type DatePickerBaseProps = ForwardedFSClassProps & {
     /** Saves a draft of the input value when used in a form */
     shouldSaveDraft?: boolean;
 
-    /** ID of the wrapping form */
     formID?: keyof OnyxFormValuesMapping;
 
     /**
@@ -102,7 +101,6 @@ type DatePickerProps = {
     /** Saves a draft of the input value when used in a form */
     shouldSaveDraft?: boolean;
 
-    /** ID of the wrapping form */
     formID?: keyof OnyxFormValuesMapping;
 
     /** Whether the modal is visible */
@@ -111,7 +109,6 @@ type DatePickerProps = {
     /** Callback to close the modal */
     onClose: () => void;
 
-    /** Callback when date is selected */
     onSelected?: (value: string) => void;
 
     /** Whether to close the modal when browser navigation changes */

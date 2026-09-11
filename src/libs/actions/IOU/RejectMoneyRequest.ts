@@ -42,7 +42,7 @@ import SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 
 import Onyx from 'react-native-onyx';
 
@@ -84,6 +84,11 @@ type RejectMoneyRequestOptions = {
     setExistingRejectedReport?: (report: OnyxEntry<OnyxTypes.Report>) => void;
 };
 
+type RejectMoneyRequestRulesAndOptions = {
+    rules: OnyxCollection<OnyxTypes.Rule>;
+    options?: RejectMoneyRequestOptions;
+};
+
 function dismissRejectUseExplanation() {
     const parameters: SetNameValuePairParams = {
         name: ONYXKEYS.NVP_DISMISSED_REJECT_USE_EXPLANATION,
@@ -122,6 +127,7 @@ type PrepareRejectMoneyRequestDataParams = {
     betas: OnyxEntry<OnyxTypes.Beta[]>;
     delegateAccountID: number | undefined;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
+    rules: OnyxCollection<OnyxTypes.Rule>;
     options?: RejectMoneyRequestOptions;
     shouldUseBulkAction?: boolean;
 };
@@ -136,6 +142,7 @@ function prepareRejectMoneyRequestData({
     betas,
     delegateAccountID,
     getCurrencyDecimals,
+    rules,
     options,
     shouldUseBulkAction,
 }: PrepareRejectMoneyRequestDataParams): RejectMoneyRequestData | undefined {
@@ -496,6 +503,7 @@ function prepareRejectMoneyRequestData({
                 reportTransactions,
                 betas,
                 getCurrencyDecimals,
+                rules,
             });
             const [, createdActionForExpenseReport, iouAction] = buildOptimisticMoneyRequestEntities({
                 getCurrencyDecimals,
@@ -936,7 +944,7 @@ function rejectMoneyRequest(
     betas: OnyxEntry<OnyxTypes.Beta[]>,
     delegateAccountID: number | undefined,
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'],
-    options?: RejectMoneyRequestOptions,
+    {rules, options}: RejectMoneyRequestRulesAndOptions,
 ): Route | undefined {
     const data = prepareRejectMoneyRequestData({
         transactionID,
@@ -948,6 +956,7 @@ function rejectMoneyRequest(
         betas,
         delegateAccountID,
         getCurrencyDecimals,
+        rules,
         options,
     });
     if (!data) {
@@ -1037,6 +1046,7 @@ function rejectExpenseReport(
     currentUserAvatarSource: AvatarSource | undefined,
     isTrackIntentUser: boolean | undefined,
     delegateAccountID: number | undefined,
+    rules: OnyxCollection<OnyxTypes.Rule>,
 ) {
     const {reportID} = report;
     const isRejectToSubmitter = targetAccountID === report.ownerAccountID;
@@ -1068,12 +1078,14 @@ function rejectExpenseReport(
               predictedNextStatus: CONST.REPORT.STATUS_NUM.OPEN,
               isRejectedReport: true,
               isTrackIntentUser,
+              rules,
           })
         : buildOptimisticNextStep({
               report,
               predictedNextStatus: CONST.REPORT.STATUS_NUM.SUBMITTED,
               bypassNextApproverID: targetAccountID,
               isTrackIntentUser,
+              rules,
           });
 
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [

@@ -5,9 +5,6 @@ import React, {createContext, useContext, useState} from 'react';
 import FullScreenLoadingIndicator from './FullscreenLoadingIndicator';
 
 type FullScreenLoaderStateContextType = {
-    /**
-     * Whether the full screen loader is visible.
-     */
     isLoaderVisible: boolean;
 };
 

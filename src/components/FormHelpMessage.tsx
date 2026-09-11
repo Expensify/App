@@ -32,7 +32,6 @@ type FormHelpMessageProps = {
     /** Container style props */
     style?: StyleProp<ViewStyle>;
 
-    /** Whether to show dot indicator */
     shouldShowRedDotIndicator?: boolean;
 
     /** Whether should render error text as HTML or as Text */

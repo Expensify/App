@@ -54,6 +54,7 @@ function ReportAddApproverPage({report, isLoadingReportData, policy}: ReportAddA
     const currentUserDetails = useCurrentUserPersonalDetails();
     const hasViolations = hasViolationsReportUtils(report?.reportID, transactionViolations, currentUserDetails.accountID, currentUserDetails.login ?? '');
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
     const employeeList = policy?.employeeList;
     const allApprovers = (() => {
@@ -107,6 +108,7 @@ function ReportAddApproverPage({report, isLoadingReportData, policy}: ReportAddA
                 accountID: currentUserDetails.accountID,
                 email: currentUserDetails.email ?? '',
                 policy,
+                rules,
                 hasViolations,
                 isASAPSubmitBetaEnabled,
                 isTrackIntentUser,

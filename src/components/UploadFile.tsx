@@ -15,7 +15,7 @@ import React from 'react';
 import {View} from 'react-native';
 
 import AttachmentPicker from './AttachmentPicker';
-import Button from './ButtonComposed';
+import Button from './Button';
 import DotIndicatorMessage from './DotIndicatorMessage';
 import Icon from './Icon';
 import {PressableWithFeedback} from './Pressable';
@@ -25,16 +25,9 @@ type UploadFileProps = {
     /** Text displayed on button when no file is uploaded */
     buttonText: string;
 
-    /** Name of currently uploaded file */
     uploadedFiles: FileObject[];
-
-    /** Handler that fires when file is selected for upload */
     onUpload: (files: FileObject[]) => void;
-
-    /** Handler that fires when file is removed */
     onRemove: (fileUri: string) => void;
-
-    /** Array containing accepted file types */
     acceptedFileTypes: Array<ValueOf<typeof CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS>>;
 
     /** Styles to be assigned to Container */
@@ -52,7 +45,6 @@ type UploadFileProps = {
     /** Whether to allow multiple files to be selected. */
     fileLimit?: number;
 
-    /** The total size limit of the files that can be selected. */
     totalFilesSizeLimit?: number;
 
     /** The maximum size of a single file that can be selected. */

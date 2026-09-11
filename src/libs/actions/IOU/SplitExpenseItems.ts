@@ -643,7 +643,6 @@ type ResetSplitExpensesByDateRangeParams = {
     /** Whether the split is created in a self-DM */
     isSelfDMSplit: boolean;
 
-    /** The output currency of the personal policy */
     personalPolicyOutputCurrency: string | undefined;
 
     /** Resolves the symbol of a currency */

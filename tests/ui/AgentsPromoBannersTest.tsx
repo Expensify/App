@@ -109,7 +109,7 @@ const renderRulesPage = () =>
         </ComposeProviders>,
     );
 
-async function setupOnyxBaseline({withCustomAgentBeta}: {withCustomAgentBeta: boolean}) {
+async function setupOnyxBaseline() {
     await Onyx.clear();
     await Onyx.set(ONYXKEYS.HAS_LOADED_APP, true);
     await Onyx.set(ONYXKEYS.IS_LOADING_REPORT_DATA, false);
@@ -118,9 +118,6 @@ async function setupOnyxBaseline({withCustomAgentBeta}: {withCustomAgentBeta: bo
         [USER_ACCOUNT_ID]: buildPersonalDetails(USER_EMAIL, USER_ACCOUNT_ID, 'Admin'),
     });
     await Onyx.merge(ONYXKEYS.SESSION, {email: USER_EMAIL, accountID: USER_ACCOUNT_ID});
-    if (withCustomAgentBeta) {
-        await Onyx.set(ONYXKEYS.BETAS, [CONST.BETAS.CUSTOM_AGENT]);
-    }
 }
 
 describe('Agents promo banners', () => {
@@ -136,9 +133,9 @@ describe('Agents promo banners', () => {
         });
     });
 
-    it('renders agentsRulesBanner above IndividualExpenseRulesSection when customAgent beta is active, and hides it after dismissal', async () => {
+    it('renders agentsRulesBanner above IndividualExpenseRulesSection and hides it after dismissal', async () => {
         await act(async () => {
-            await setupOnyxBaseline({withCustomAgentBeta: true});
+            await setupOnyxBaseline();
             await waitForBatchedUpdatesWithAct();
         });
 
@@ -157,17 +154,6 @@ describe('Agents promo banners', () => {
             await waitForBatchedUpdatesWithAct();
         });
 
-        expect(screen.queryByText(en.workspace.rules.agentsPromoBanner.subtitle)).toBeNull();
-    });
-
-    it('does not render the agents rules banner when customAgent beta is inactive', async () => {
-        await act(async () => {
-            await setupOnyxBaseline({withCustomAgentBeta: false});
-            await waitForBatchedUpdatesWithAct();
-        });
-
-        renderRulesPage();
-        await waitForBatchedUpdatesWithAct();
         expect(screen.queryByText(en.workspace.rules.agentsPromoBanner.subtitle)).toBeNull();
     });
 });

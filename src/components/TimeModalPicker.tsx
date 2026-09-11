@@ -17,7 +17,6 @@ import ScreenWrapper from './ScreenWrapper';
 import TimePicker from './TimePicker/TimePicker';
 
 type TimeModalPickerProps = {
-    /** Current value of the selected item */
     value?: string;
 
     /** Callback when the list item is selected */
@@ -26,10 +25,7 @@ type TimeModalPickerProps = {
     /** Form Error description */
     errorText?: string;
 
-    /** Label for the picker */
     label: string;
-
-    /** Reference to the outer element */
     ref?: ForwardedRef<View>;
 };
 

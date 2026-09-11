@@ -86,6 +86,7 @@ function SearchStaticList({
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const [hasCompletedGuidedSetupFlow] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasCompletedGuidedSetupFlowSelector});
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
     const [showPendingExpensePlaceholder, setShowPendingExpensePlaceholder] = useState(
         () => hasDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH) || Navigation.getIsFullscreenPreInsertedUnderRHP(),
@@ -109,6 +110,7 @@ function SearchStaticList({
             translate,
             formatPhoneNumber,
             bankAccountList: undefined,
+            rules,
             conciergeReportID,
             convertToDisplayString,
             reportAttributesDerivedValue: undefined,

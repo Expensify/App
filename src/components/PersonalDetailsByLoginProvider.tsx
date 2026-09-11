@@ -22,7 +22,6 @@ type PersonalDetailsByLoginStore = {
     /** Registers a listener that is called whenever the map changes, and returns its unsubscribe function */
     subscribe: (listener: Listener) => () => void;
 
-    /** Returns the current map */
     getSnapshot: () => PersonalDetailsByLogin;
 };
 

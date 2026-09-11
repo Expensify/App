@@ -5,7 +5,6 @@ import type {ValueOf} from 'type-fest';
 
 /** Props shared by every avatar layout primitive */
 type BaseAvatarProps = {
-    /** Size of the avatar(s) to render */
     size: ValueOf<typeof CONST.AVATAR_SIZE>;
 
     /** Display name used as a fallback for the avatar tooltip */

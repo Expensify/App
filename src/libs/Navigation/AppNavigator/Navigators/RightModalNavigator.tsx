@@ -117,6 +117,7 @@ function SecondaryOverlay() {
 const loadRHPReportScreen = () => require<ReactComponentModule>('../../../../pages/inbox/RHPReportScreen').default;
 const loadSearchMoneyRequestReportPage = () => require<ReactComponentModule>('../../../../pages/Search/SearchMoneyRequestReportPage').default;
 const loadSearchSavePage = () => require<ReactComponentModule>('../../../../pages/Search/SearchSavePage').default;
+const loadBetaOverridesPage = () => require<ReactComponentModule>('../../../../pages/settings/Troubleshoot/BetaOverridesPage').default;
 
 type RightModalDialogFrameProps = {
     /** Whether the RHP container should carry dialog semantics (role=dialog + aria-modal) — true on wide layout. */
@@ -477,6 +478,10 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                                 name={SCREENS.RIGHT_MODAL.SEARCH_SAVE}
                                 getComponent={loadSearchSavePage}
                                 options={modalStackScreenOptions}
+                            />
+                            <Stack.Screen
+                                name={SCREENS.RIGHT_MODAL.BETA_OVERRIDES}
+                                getComponent={loadBetaOverridesPage}
                             />
                             <Stack.Screen
                                 name={SCREENS.RIGHT_MODAL.SEARCH_ADVANCED_FILTERS}

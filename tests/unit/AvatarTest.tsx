@@ -322,6 +322,26 @@ describe('Avatar', () => {
             expect(getHiddenTestId(workspaceFallbackTestID)).toBeTruthy();
         });
 
+        it('WorkspaceAvatar still renders the default workspace icon when avatarID is missing', async () => {
+            const workspaceFallbackTestID = getDefaultWorkspaceAvatarTestID(WORKSPACE_NAME);
+
+            // A `policy_` Onyx record is merged field-by-field, so `policy.id` can still be undefined on the
+            // fallback-icon branch. That used to throw out of render and white-screen the whole app.
+            render(
+                <ComposeProviders components={[ThemeProviderWithLight, ThemeStylesProvider, OnyxListItemProvider, LocaleContextProvider]}>
+                    <WorkspaceAvatar
+                        name={WORKSPACE_NAME}
+                        avatarID={undefined}
+                    />
+                </ComposeProviders>,
+            );
+
+            await waitForBatchedUpdates();
+
+            expect(screen.queryByTestId(AVATAR_IMAGE_TEST_ID)).toBeNull();
+            expect(getHiddenTestId(workspaceFallbackTestID)).toBeTruthy();
+        });
+
         it('assigns different workspace avatar colors for distinct hex policy IDs', () => {
             const naNColor = getDefaultWorkspaceAvatarColor('NaN');
             const hexPolicyColor = getDefaultWorkspaceAvatarColor(HEX_POLICY_ID_STARTING_WITH_LETTER);

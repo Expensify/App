@@ -39,6 +39,7 @@ function SearchAddApproverPage() {
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const {clearSelectedTransactions} = useSearchSelectionActions();
     const {selectedReports} = useSearchSelectionContext();
     const {isLoading, startWithLoading} = usePressLoading();
@@ -145,6 +146,7 @@ function SearchAddApproverPage() {
                     accountID: currentUserDetails.accountID,
                     email: currentUserDetails.email ?? '',
                     policy,
+                    rules,
                     hasViolations,
                     isASAPSubmitBetaEnabled,
                     isTrackIntentUser,

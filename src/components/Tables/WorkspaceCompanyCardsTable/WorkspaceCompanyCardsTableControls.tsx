@@ -27,13 +27,8 @@ import type {WorkspaceCompanyCardTableItemData} from './WorkspaceCompanyCardsTab
 type WorkspaceCompanyCardBulkActionType = 'unassign' | 'viewTransactions' | 'exportCSV';
 
 type WorkspaceCompanyCardsTableControlsProps = {
-    /** Current policy id */
     policyID: string;
-
-    /** Domain or workspace account ID */
     domainOrWorkspaceAccountID: number;
-
-    /** Bank name */
     bankName: UseCompanyCardsResult['bankName'];
 
     /** Whether the current member can edit company cards */

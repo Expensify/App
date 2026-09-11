@@ -26,28 +26,16 @@ import {createOutstandingReportsForPolicySelector, reportFieldTransactionStateSe
 import useTransactionSelector from './useTransactionSelector';
 
 type ReportFieldProps = {
-    /** The selected participants */
     selectedParticipants: Participant[];
-
-    /** The type of the IOU */
     iouType: Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND>;
-
-    /** The report ID */
     reportID: string;
-
-    /** The report action ID */
     reportActionID: string | undefined;
 
     /** The action to perform */
     action: IOUAction;
 
-    /** The transaction ID */
     transactionID: string | undefined;
-
-    /** Flag indicating if it is a per diem request */
     isPerDiemRequest: boolean;
-
-    /** Flag indicating if it is a policy expense chat */
     isPolicyExpenseChat: boolean;
 };
 
@@ -58,6 +46,7 @@ function ReportField({selectedParticipants, iouType, reportID, reportActionID, a
     const policyID = selectedParticipants?.at(0)?.policyID;
     const [outstandingReportsForPolicy] = useOnyx(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID, {selector: createOutstandingReportsForPolicySelector(policyID)});
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
     // Self-resolved narrow slice of the transaction; replaces the previously prop-drilled `transaction` object.
     const transactionState = useTransactionSelector(transactionID, reportFieldTransactionStateSelector);
@@ -78,11 +67,11 @@ function ReportField({selectedParticipants, iouType, reportID, reportActionID, a
      * Also we need to check if transaction report exists in outstanding reports in order to show a correct report name.
      */
     const transactionReportNameValuePair = reportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${transactionReportID}`];
-    const shouldUseTransactionReport = (!!transactionReportEntry && isReportOutstanding(transactionReportEntry, policyID, transactionReportNameValuePair, false)) || isUnreported;
+    const shouldUseTransactionReport = (!!transactionReportEntry && isReportOutstanding(transactionReportEntry, policyID, rules, transactionReportNameValuePair, false)) || isUnreported;
 
     const ownerAccountID = selectedParticipants?.at(0)?.ownerAccountID;
 
-    const availableOutstandingReports = getOutstandingReportsForUser(policyID, ownerAccountID, reportNameValuePairs, outstandingReportsForPolicy ?? {}, false).sort((a, b) =>
+    const availableOutstandingReports = getOutstandingReportsForUser(policyID, ownerAccountID, rules, reportNameValuePairs, outstandingReportsForPolicy ?? {}, false).sort((a, b) =>
         localeCompare(a?.reportName?.toLowerCase() ?? '', b?.reportName?.toLowerCase() ?? ''),
     );
 

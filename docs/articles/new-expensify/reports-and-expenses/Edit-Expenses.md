@@ -1,8 +1,8 @@
 ---
 title: Edit Expenses
 description: Learn how to edit individual expenses, and edit multiple expenses at once.
-keywords: [bulk edit expenses, edit multiple expenses Expensify, update expenses in bulk, modify multiple expenses, inline editing, edit expense inline]
-internalScope: Audience is all members. Covers editing expenses individually and in bulk editing multiple expenses at once. Does not cover creating, submitting or reopening reports. 
+keywords: [bulk edit expenses, edit multiple expenses Expensify, update expenses in bulk, modify multiple expenses, inline editing, edit expense inline, bulk edit attendees, add attendees to multiple expenses]
+internalScope: Audience is all members. Covers editing expenses individually and in bulk editing multiple expenses at once, including adding attendees in bulk. Does not cover creating, submitting or reopening reports. 
 ---
 
 # Edit Expenses 
@@ -46,6 +46,21 @@ Use edit multiple to update the same field across several expenses simultaneousl
 **Note:** If editing is not allowed on a field for any of the selected expenses, that field will not be available for editing. 
 
 ---
+
+## How to add attendees to multiple expenses at once
+
+**Attendees** appears in the **Edit multiple expenses** panel when every selected expense belongs to a Workspace on the Control plan that has **Attendee tracking** enabled. [Learn how to enable Workspace Rules](/articles/new-expensify/workspaces/Workspace-Rules).
+
+1. In the navigation tabs (on the left on web, on the bottom on mobile), go to **Spend > Expenses**. 
+2. Select 2 or more expenses using the checkboxes.
+3. Click **Selected**. 
+4. Choose **Edit multiple**.
+5. Click **Attendees**.
+6. Select attendees from **Recents**, **Contacts**, or enter a name, email, or phone number.
+7. Click **Save**.
+8. Click **Save** again to apply your changes to every selected expense.
+
+---
 ## What expense fields can be edited 
 
 On Draft and Outstanding reports, you can edit: 
@@ -85,6 +100,14 @@ No, expenses on Paid and Done reports are locked and cannot be reopened for edit
 ## Why are some fields not editable in the Edit multiple panel?
 
 If a field is restricted for any selected expense (for example, amount on a card expense), it will be disabled in the **Edit multiple** panel.
+
+## Why don't I see the Attendees field in Edit multiple?
+
+**Attendees** only appears when every expense you selected sits on a Workspace that is on the Control plan and has **Attendee tracking** enabled under **Rules**. It is not available for invoices or for personal expenses that aren't on a Workspace.
+
+## Does editing attendees in bulk keep the attendees already on my expenses?
+
+No. The attendees you select replace the ones already on selected expense.
 
 ## Why can't I see the Edit multiple option?
 

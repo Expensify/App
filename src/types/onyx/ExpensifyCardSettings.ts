@@ -15,7 +15,6 @@ type ExpensifyCardSettingsBase = {
     /** The total amount of cash back earned thus far */
     earnedCashback?: number;
 
-    /** The date of the last settlement */
     monthlySettlementDate?: Date;
 
     /** Whether monthly option should appear in the settlement frequency settings */
@@ -48,7 +47,6 @@ type ExpensifyCardSettingsBase = {
     /** Policy IDs linked to this Expensify Card feed (when present, drives feed grouping in the admin selector) */
     linkedPolicyIDs?: string[];
 
-    /** The Marqeta business token */
     marqetaBusinessToken?: number;
 
     /** Name of the domain card was issued for */

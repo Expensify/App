@@ -7,34 +7,21 @@ import type {KeyboardTypeOptions, NativeSyntheticEvent, StyleProp, TextInputSele
 import type {ValueOf} from 'type-fest';
 
 type BaseTextInputWithSymbolProps = {
-    /** Formatted amount */
     formattedAmount: string;
 
     /** Function to call when amount in text input is changed */
     onChangeAmount?: (amount: string) => void;
 
-    /** Function to call when symbol button is pressed */
     onSymbolButtonPress?: () => void;
 
     /** Placeholder value for amount text input */
     placeholder: string;
 
-    /** Symbol of the input */
     symbol: string;
-
-    /** Position of the symbol */
     symbolPosition?: ValueOf<typeof CONST.TEXT_INPUT_SYMBOL_POSITION>;
-
-    /** Whether the symbol is pressable */
     isSymbolPressable?: boolean;
-
-    /** Whether to hide the symbol */
     hideSymbol?: boolean;
-
-    /** Selection Object */
     selection?: TextSelection;
-
-    /** Function to call when selection in text input is changed */
     onSelectionChange?: (event: TextInputSelectionChangeEvent) => void;
 
     /** Function to call to handle key presses in the text input */
@@ -53,25 +40,18 @@ type BaseTextInputWithSymbolProps = {
     /** Whether to disable native keyboard on mobile */
     disableKeyboard?: boolean;
 
-    /** Style for the input */
     style?: StyleProp<TextStyle>;
-
-    /** Style for the container */
     containerStyle?: StyleProp<ViewStyle>;
 
     /** Character to be shown before the amount */
     prefixCharacter?: string;
 
-    /** Style for the prefix */
     prefixStyle?: StyleProp<TextStyle>;
-
-    /** Style for the prefix container */
     prefixContainerStyle?: StyleProp<ViewStyle>;
 
     /** Customizes the touchable wrapper of the TextInput component */
     touchableInputWrapperStyle?: StyleProp<ViewStyle>;
 
-    /** Style for the symbol */
     symbolTextStyle?: StyleProp<TextStyle>;
 
     /** Max length for the amount input */
@@ -89,13 +69,11 @@ type BaseTextInputWithSymbolProps = {
     /** Function to toggle the amount to negative */
     toggleNegative?: () => void;
 
-    /** Style for the negative symbol */
     negativeSymbolStyle?: StyleProp<TextStyle>;
 
     /** The test ID of TextInput. Used to locate the view in end-to-end tests. */
     testID?: string;
 
-    /** Determines which keyboard to open */
     keyboardType?: KeyboardTypeOptions;
 
     /** Component to render on the right hand side of the input - only shown if clear button is not rendered */

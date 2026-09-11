@@ -17,9 +17,7 @@ type CopyTextToClipboardProps = {
     /** The text to display and copy to the clipboard */
     text?: string;
 
-    /** Styles to apply to the text */
     textStyles?: StyleProp<TextStyle>;
-
     urlToCopy?: string;
 
     accessibilityRole?: AccessibilityRole;

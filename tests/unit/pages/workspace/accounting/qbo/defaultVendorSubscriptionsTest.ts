@@ -10,7 +10,7 @@ type NonReimbursableDestination = QBOConnectionConfig['nonReimbursableExpensesEx
 
 const POLICY_ID = 'policy123';
 
-const EXISTING_CONNECTIONS = {sageIntacct: false, qbd: false, certinia: false, rillet: false, dualEntry: false};
+const EXISTING_CONNECTIONS = {sageIntacct: false, qbd: false, certinia: false, rillet: false, dualEntry: false, campfire: false};
 
 // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
 const mockTranslate = ((key: string) => key) as unknown as LocaleContextProps['translate'];

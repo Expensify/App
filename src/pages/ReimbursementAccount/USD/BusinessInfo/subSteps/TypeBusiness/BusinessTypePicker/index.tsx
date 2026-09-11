@@ -15,7 +15,6 @@ import type {BusinessTypeItemType, IncorporationType} from './types';
 import BusinessTypeSelectorModal from './BusinessTypeSelectorModal';
 
 type BusinessTypePickerProps = {
-    /** Error text to display */
     errorText?: string;
 
     /** Business type to display */
@@ -24,10 +23,7 @@ type BusinessTypePickerProps = {
     /** Callback to call when the input changes */
     onInputChange?: (value: string) => void;
 
-    /** Label to display on field */
     label: string;
-
-    /** Any additional styles to apply */
     wrapperStyle: StyleProp<ViewStyle>;
 
     /**  Callback to call when the picker modal is dismissed */

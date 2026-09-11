@@ -1,7 +1,7 @@
 /**
  * Renders the advanced Merchant filter input, match type, and negation controls.
  */
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import MerchantMatchTypeSelector from '@components/Search/FilterComponents/MerchantMatchTypeSelector';
 import NegatableFilter from '@components/Search/FilterComponents/NegatableFilter';
 import useTextFilterValidation from '@components/Search/hooks/useTextFilterValidation';

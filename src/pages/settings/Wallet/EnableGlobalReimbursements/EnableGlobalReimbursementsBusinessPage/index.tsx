@@ -1,10 +1,14 @@
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 
+import useEnableGlobalReimbursementsNavigation from '@hooks/useEnableGlobalReimbursementsNavigation';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useRootNavigationState from '@hooks/useRootNavigationState';
 import useSubPage from '@hooks/useSubPage';
 
 import {getCorpayOnboardingFields} from '@libs/actions/BankAccounts';
+import getActiveTabName from '@libs/Navigation/helpers/getActiveTabName';
+import {isFullScreenName} from '@libs/Navigation/helpers/isNavigatorName';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -13,8 +17,8 @@ import {clearErrors} from '@userActions/FormActions';
 
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
+import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
 import React, {useEffect} from 'react';
@@ -27,7 +31,10 @@ import Confirmation from './subPages/Confirmation';
 import PaymentVolume from './subPages/PaymentVolume';
 import RegistrationNumber from './subPages/RegistrationNumber';
 
-type EnableGlobalReimbursementsBusinessPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.WALLET.ENABLE_GLOBAL_REIMBURSEMENTS_BUSINESS>;
+type EnableGlobalReimbursementsBusinessPageProps = PlatformStackScreenProps<
+    SettingsNavigatorParamList,
+    typeof SCREENS.SETTINGS.WALLET.ENABLE_GLOBAL_REIMBURSEMENTS_BUSINESS | typeof SCREENS.SETTINGS.WALLET.DYNAMIC_ENABLE_GLOBAL_REIMBURSEMENTS_BUSINESS
+>;
 
 const pages = [
     {pageName: CONST.ENABLE_GLOBAL_REIMBURSEMENTS.PAGE_NAME.BUSINESS_INFO.REGISTRATION_NUMBER, component: RegistrationNumber},
@@ -41,17 +48,29 @@ function EnableGlobalReimbursementsBusinessPage({route}: EnableGlobalReimburseme
     const {translate} = useLocalize();
     const bankAccountID = route.params?.bankAccountID;
     const [bankAccount] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {selector: (list) => list?.[bankAccountID]});
-    const currency = bankAccount?.bankCurrency ?? '';
-    const country = bankAccount?.bankCountry as Country;
+    const country = (route.params?.bankCountry ?? bankAccount?.bankCountry ?? '') as Country;
+    const currency = route.params?.bankCurrency ?? bankAccount?.bankCurrency ?? '';
+
+    const persistedRouteParams = {
+        bankCountry: country || undefined,
+        bankCurrency: currency || undefined,
+    };
+
+    const {getAgreementsRoute, getBusinessRoute, getRootBackPath, isDynamic} = useEnableGlobalReimbursementsNavigation();
+    const topmostFullScreenRoute = useRootNavigationState((state) => state?.routes.findLast((navigationRoute) => isFullScreenName(navigationRoute.name)));
+    const activeTab = getActiveTabName(topmostFullScreenRoute);
+
+    const buildBusinessRoute = (subPage: string, action?: 'edit') => getBusinessRoute(Number(bankAccountID), subPage, action, persistedRouteParams);
 
     const goToAgreementsPage = () => {
-        Navigation.navigate(ROUTES.SETTINGS_WALLET_ENABLE_GLOBAL_REIMBURSEMENTS_AGREEMENTS.getRoute(Number(bankAccountID)));
+        Navigation.navigate(getAgreementsRoute(Number(bankAccountID), persistedRouteParams), isDynamic ? {forceReplace: true} : undefined);
     };
 
     const {CurrentPage, isEditing, pageIndex, prevPage, nextPage, moveTo} = useSubPage<BusinessInfoSubPageProps>({
         pages,
         onFinished: goToAgreementsPage,
-        buildRoute: (pageName, action) => ROUTES.SETTINGS_WALLET_ENABLE_GLOBAL_REIMBURSEMENTS_BUSINESS.getRoute(Number(bankAccountID), pageName, action),
+        buildRoute: (pageName, action) => buildBusinessRoute(pageName, action),
+        shouldReplaceRoute: isDynamic,
     });
 
     useEffect(() => {
@@ -63,7 +82,12 @@ function EnableGlobalReimbursementsBusinessPage({route}: EnableGlobalReimburseme
     }, []);
 
     const goBackToConfirmStep = () => {
-        Navigation.goBack(ROUTES.SETTINGS_WALLET_ENABLE_GLOBAL_REIMBURSEMENTS_BUSINESS.getRoute(Number(bankAccountID), CONST.ENABLE_GLOBAL_REIMBURSEMENTS.PAGE_NAME.BUSINESS_INFO.CONFIRM));
+        const confirmRoute = buildBusinessRoute(CONST.ENABLE_GLOBAL_REIMBURSEMENTS.PAGE_NAME.BUSINESS_INFO.CONFIRM);
+        if (isDynamic) {
+            Navigation.navigate(confirmRoute, {forceReplace: true});
+            return;
+        }
+        Navigation.goBack(confirmRoute);
     };
 
     const handleBackButtonPress = () => {
@@ -74,7 +98,22 @@ function EnableGlobalReimbursementsBusinessPage({route}: EnableGlobalReimburseme
         }
 
         if (pageIndex === 0) {
-            Navigation.goBack();
+            if (isDynamic) {
+                Navigation.goBack(getRootBackPath());
+                return;
+            }
+
+            switch (activeTab) {
+                case NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR:
+                    Navigation.goBack(getRootBackPath());
+                    break;
+                case NAVIGATORS.REPORTS_SPLIT_NAVIGATOR:
+                    Navigation.closeRHPFlow();
+                    break;
+                default:
+                    Navigation.goBack();
+                    break;
+            }
             return;
         }
 

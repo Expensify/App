@@ -21,7 +21,6 @@ import {
     canEditFieldOfMoneyRequest,
     canUserPerformWriteAction as canUserPerformWriteActionReportUtils,
     generateReportID,
-    getAddExpenseDropdownOptions,
     getPolicyExpenseChat,
     isDM,
     isSelfDM,
@@ -43,6 +42,7 @@ import {
 
 import {getNavigationUrlOnMoneyRequestDelete} from '@userActions/IOU/DeleteMoneyRequest';
 import {getMoneyRequestParticipantsFromReport, startMoneyRequest} from '@userActions/IOU/MoneyRequest';
+import {getAddExpenseDropdownOptions} from '@userActions/IOU/StartExpenseFlows';
 import {setDeleteTransactionNavigateBackUrl} from '@userActions/Report';
 
 import CONST from '@src/CONST';
@@ -159,6 +159,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [isSelfTourViewed = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const isTrackIntentUser = isTrackOnboardingChoice(introSelected?.choice);
 
     // Billing keys
@@ -217,6 +218,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
             outstandingReportsByPolicyID,
             reportNameValuePairs,
             transaction: singleTransaction,
+            rules,
         }) &&
         canUserPerformWriteActionReportUtils(moneyRequestReport, isChatReportArchived);
 
@@ -288,6 +290,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
                 formatPhoneNumber,
                 participantsPolicyTags,
                 conciergeChat,
+                rules,
             });
         }
     };
@@ -470,6 +473,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
                     getCurrencyDecimals,
                     participantsPolicyTags: reportDuplicateParticipantsPolicyTags,
                     conciergeChat,
+                    rules,
                 });
             },
         },

@@ -6,7 +6,6 @@ import type SCREENS from '@src/SCREENS';
 type OnboardingEmployeesProps = PlatformStackScreenProps<OnboardingModalNavigatorParamList, typeof SCREENS.ONBOARDING.EMPLOYEES>;
 
 type BaseOnboardingEmployeesProps = OnboardingEmployeesProps & {
-    /* Whether to use native styles tailored for native devices */
     shouldUseNativeStyles: boolean;
 };
 

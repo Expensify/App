@@ -21,10 +21,9 @@ import {delegateEmailSelector} from '@selectors/Account';
 import React from 'react';
 import {View} from 'react-native';
 
-import Button from './ButtonComposed';
+import Button from './Button';
 
 type TaskHeaderActionButtonProps = {
-    /** The report currently being looked at */
     report: OnyxTypes.Report;
 };
 

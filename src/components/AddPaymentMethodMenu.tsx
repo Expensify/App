@@ -27,19 +27,13 @@ import type BaseModalProps from './Modal/types';
 import PopoverMenu from './PopoverMenu';
 
 type AddPaymentMethodMenuProps = {
-    /** Should the component be visible? */
     isVisible: boolean;
-
-    /** Callback to execute when the component closes. */
     onClose: () => void;
-
-    /** Callback to execute when the payment method is selected. */
     onItemSelected: (paymentMethod: PaymentMethod) => void;
 
     /** The IOU/Expense report we are paying */
     iouReport?: OnyxEntry<Report>;
 
-    /** Anchor position for the AddPaymentMenu. */
     anchorPosition: AnchorPosition;
 
     /** Where the popover should be positioned relative to the anchor points. */
@@ -48,7 +42,6 @@ type AddPaymentMethodMenuProps = {
     /** Popover anchor ref */
     anchorRef: RefObject<View | HTMLDivElement | null>;
 
-    /** Whether the personal bank account option should be shown */
     shouldShowPersonalBankAccountOption?: boolean;
 };
 

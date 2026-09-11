@@ -24,7 +24,6 @@ import {format as formatDate} from 'date-fns';
 import React, {createContext, useEffect, useState} from 'react';
 
 type LocaleContextProviderProps = {
-    /** Actual content wrapped by this component */
     children: React.ReactNode;
 };
 

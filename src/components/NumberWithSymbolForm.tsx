@@ -34,7 +34,7 @@ import type {BaseTextInputRef} from './TextInput/BaseTextInput/types';
 import type {TextInputWithSymbolProps} from './TextInputWithSymbol/types';
 
 import BigNumberPad from './BigNumberPad';
-import Button from './ButtonComposed';
+import Button from './Button';
 import FormHelpMessage from './FormHelpMessage';
 import ScrollView from './ScrollView';
 import TextInput from './TextInput';
@@ -48,19 +48,16 @@ type NumberWithSymbolFormProps = {
     /** Callback to update the value in the FormProvider */
     onInputChange?: (number: string) => void;
 
-    /** Number of decimals to display in the number */
     decimals?: number;
 
     /** Currency of the input */
     currency?: string;
 
-    /** Whether the big number pad should be shown */
     shouldShowBigNumberPad?: boolean;
 
     /** Footer to display at the bottom of the form */
     footer?: React.ReactNode;
 
-    /** Reference to the number form */
     numberFormRef?: ForwardedRef<NumberWithSymbolFormRef>;
 
     /** Error to display at the bottom of the form */
@@ -72,10 +69,7 @@ type NumberWithSymbolFormProps = {
     /** Custom label for the TextInput */
     label?: string;
 
-    /** Whether to wrap the input in a container */
     shouldWrapInputInContainer?: boolean;
-
-    /** Style applied to the outer ScrollView */
     scrollViewStyle?: StyleProp<ViewStyle>;
 
     /** Whether to refocus the input when clicking on the ScrollView empty space */
@@ -96,7 +90,6 @@ type NumberWithSymbolFormProps = {
     /** Whether to allow direct negative input (for split amounts where value is already negative) */
     allowNegativeInput?: boolean;
 
-    /** Style for the negative symbol */
     negativeSymbolStyle?: StyleProp<TextStyle>;
 
     /** Whether to use dynamic font size for the amount input */
@@ -105,22 +98,14 @@ type NumberWithSymbolFormProps = {
     /** Whether the input is disabled or not */
     disabled?: boolean;
 
-    /** Reference to the outer element */
     ref?: ForwardedRef<BaseTextInputRef>;
-
-    /** Callback when the user presses the submit key (Enter) */
     onSubmitEditing?: () => void;
-
-    /** Determines which keyboard to open */
     keyboardType?: KeyboardTypeOptions;
-
-    /** Whether to show the flip (+/-) button */
     shouldShowFlipButton?: boolean;
 
     /** Whether to show the currency selection button */
     shouldShowCurrencyButton?: boolean;
 
-    /** Callback when currency button is pressed */
     onCurrencyButtonPress?: () => void;
 
     /**

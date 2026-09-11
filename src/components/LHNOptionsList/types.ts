@@ -17,16 +17,12 @@ type CustomLHNOptionsListProps = {
     /** Extra styles for the section list container */
     contentContainerStyles?: StyleProp<ViewStyle>;
 
-    /** List of reports */
     data: Report[];
-
-    /** Callback to fire when a row is selected */
     onSelectRow?: (optionItem: OptionData, popoverAnchor: RefObject<View | null>) => void;
 
     /** Toggle between compact and default view of the option */
     optionMode: OptionMode;
 
-    /** Whether to allow option focus or not */
     shouldDisableFocusOptions?: boolean;
 
     /** Callback to fire when the list is laid out */
@@ -39,22 +35,14 @@ type OptionRowLHNDataProps = {
     /** Whether row should be focused */
     isOptionFocused?: boolean;
 
-    /** List of users' personal details */
     personalDetails?: PersonalDetailsList;
-
-    /** The full data of the report */
     fullReport: OnyxEntry<Report>;
-
-    /** The transaction thread report associated with the current report, if any */
     oneTransactionThreadReport: OnyxEntry<Report>;
 
     /** The policy which the user has access to and which the report could be tied to */
     policy?: OnyxEntry<Policy>;
 
-    /** Invoice receiver policy */
     invoiceReceiverPolicy?: OnyxEntry<Policy>;
-
-    /** The reportID of the report */
     reportID: string;
 
     /** Toggle between compact and default view */
@@ -66,10 +54,7 @@ type OptionRowLHNDataProps = {
     /** Callback to execute when the OptionList lays out */
     onLayout?: (event: LayoutChangeEvent) => void;
 
-    /** The report attributes for the report */
     reportAttributes: OnyxEntry<ReportAttributes>;
-
-    /** The derived report attributes for all reports */
     reportAttributesDerived?: ReportAttributesDerivedValue['reports'];
 
     /** TestID of the row, indicating order */
@@ -77,7 +62,6 @@ type OptionRowLHNDataProps = {
 };
 
 type OptionRowLHNProps = {
-    /** Whether this option is currently in focus so we can modify its style */
     isOptionFocused?: boolean;
 
     /** A function that is called when an option is selected. Selected option is passed as a param */
@@ -86,7 +70,6 @@ type OptionRowLHNProps = {
     /** Toggle between compact and default view */
     viewMode?: OptionMode;
 
-    /** The item that should be rendered */
     optionItem: OptionData;
 
     /** Whether a report contains a draft */

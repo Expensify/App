@@ -1,7 +1,7 @@
 /**
  * Resolves the route used to restore the latest Spend search.
  */
-import {buildCannedSearchQuery, buildSearchQueryJSON, buildSearchQueryString, isSearchRootParams} from '@libs/SearchQueryUtils';
+import {buildCannedSearchQuery, buildSearchQueryJSON, buildSearchQueryString, getValidLastQuery, isSearchRootParams} from '@libs/SearchQueryUtils';
 
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -14,7 +14,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 
 import getLastRoute from './getLastRoute';
 
-function getSearchTabRoute(rootState: NavigationState, lastSearchParams: OnyxEntry<LastSearchParams>) {
+function getSearchTabRoute(rootState: NavigationState, lastSearchParams: OnyxEntry<LastSearchParams>, lastExpensesSearchQuery: string | undefined) {
     const lastSearchRoute = getLastRoute(rootState, NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR, SCREENS.SEARCH.ROOT);
 
     if (isSearchRootParams(lastSearchRoute?.params)) {
@@ -31,7 +31,8 @@ function getSearchTabRoute(rootState: NavigationState, lastSearchParams: OnyxEnt
     const lastQueryJSON = lastSearchParams?.queryJSON;
     const lastQueryFromOnyx = lastQueryJSON ? buildSearchQueryString(lastQueryJSON) : undefined;
     const defaultSearchQuery = buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.EXPENSE});
-    return ROUTES.SEARCH_ROOT.getRoute({query: lastQueryFromOnyx ?? defaultSearchQuery});
+    const fallbackSearchQuery = getValidLastQuery(lastExpensesSearchQuery, defaultSearchQuery);
+    return ROUTES.SEARCH_ROOT.getRoute({query: lastQueryFromOnyx ?? fallbackSearchQuery});
 }
 
 export default getSearchTabRoute;

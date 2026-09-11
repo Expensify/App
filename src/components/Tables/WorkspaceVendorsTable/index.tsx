@@ -1,5 +1,5 @@
 import type {CompareItemsCallback, IsItemInSearchCallback, TableColumn, TableData} from '@components/Table';
-import Table from '@components/Table';
+import Table, {composeTableListHeader} from '@components/Table';
 import TextWithTooltip from '@components/TextWithTooltip';
 
 import useLocalize from '@hooks/useLocalize';
@@ -21,10 +21,14 @@ type WorkspaceVendorTableRowData = TableData & {
 };
 
 type WorkspaceVendorsTableProps = {
+    /** Vendor rows to render */
     vendors: WorkspaceVendorTableRowData[];
+
+    /** Page-level content rendered above the table header inside the scrollable list */
+    headerComponent?: React.ReactElement;
 };
 
-function WorkspaceVendorsTable({vendors}: WorkspaceVendorsTableProps) {
+function WorkspaceVendorsTable({vendors, headerComponent}: WorkspaceVendorsTableProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
 
@@ -63,6 +67,8 @@ function WorkspaceVendorsTable({vendors}: WorkspaceVendorsTableProps) {
         </Table.Row>
     );
 
+    const tableHeaderComponent = composeTableListHeader(headerComponent, <Table.FilterBar label={translate('workspace.vendors.findVendor')} />);
+
     return (
         <Table
             data={vendors}
@@ -74,7 +80,7 @@ function WorkspaceVendorsTable({vendors}: WorkspaceVendorsTableProps) {
             renderItem={renderVendorItem}
             keyExtractor={(item) => item.keyForList}
         >
-            <Table.FilterBar label={translate('workspace.vendors.findVendor')} />
+            <Table.ListHeader>{tableHeaderComponent}</Table.ListHeader>
             <Table.EmptyState
                 title={translate('workspace.vendors.emptyTitle')}
                 subtitleText={translate('workspace.vendors.emptySubtitle')}

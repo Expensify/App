@@ -5,6 +5,7 @@ import ScrollView from '@components/ScrollView';
 import useActivePolicy from '@hooks/useActivePolicy';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useHasActiveAdminPolicies from '@hooks/useHasActiveAdminPolicies';
+import useHasOwnedPaidPolicy from '@hooks/useHasOwnedPaidPolicy';
 import useLastWorkspaceNumber from '@hooks/useLastWorkspaceNumber';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -45,6 +46,7 @@ function PersonalCardUpgradePage() {
     const {accountID, email = ''} = currentUserPersonalDetails;
     const activePolicy = useActivePolicy();
     const hasActiveAdminPolicies = useHasActiveAdminPolicies();
+    const hasOwnedPaidPolicy = useHasOwnedPaidPolicy();
     const lastWorkspaceNumber = useLastWorkspaceNumber();
 
     const onUpgrade = () => {
@@ -52,7 +54,6 @@ function PersonalCardUpgradePage() {
             introSelected,
             policyName: generateDefaultWorkspaceName(email, lastWorkspaceNumber, translate),
             currency: currentUserPersonalDetails.localCurrencyCode ?? CONST.CURRENCY.USD,
-            policyOwnerEmail: '',
             transitionFromOldDot: false,
             makeMeAdmin: false,
             policyID,
@@ -65,6 +66,7 @@ function PersonalCardUpgradePage() {
             isSelfTourViewed,
             betas,
             hasActiveAdminPolicies,
+            hasOwnedPaidPolicy,
         });
         setIsUpgraded(true);
     };

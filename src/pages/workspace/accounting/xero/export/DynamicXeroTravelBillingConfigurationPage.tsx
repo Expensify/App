@@ -1,4 +1,6 @@
 import ConnectionLayout from '@components/ConnectionLayout';
+import FormHelpMessage from '@components/FormHelpMessage';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 
@@ -46,12 +48,15 @@ function DynamicXeroTravelBillingConfigurationPage({policy}: WithPolicyConnectio
             connectionName={CONST.POLICY.CONNECTIONS.NAME.XERO}
             onBackButtonPress={() => Navigation.goBack(backPath)}
         >
-            <MenuItemWithTopDescription
-                title={translate('workspace.xero.bankTransactions')}
-                description={translate('workspace.accounting.exportAs')}
-                helperText={translate('workspace.xero.travelInvoicingDescription')}
-                interactive={false}
-                shouldShowRightIcon={false}
+            <MenuItemField
+                name={translate('workspace.accounting.exportAs')}
+                value={translate('workspace.xero.bankTransactions')}
+            />
+            <FormHelpMessage
+                isError={false}
+                shouldShowRedDotIndicator={false}
+                message={translate('workspace.xero.travelInvoicingDescription')}
+                style={[styles.mt0, styles.mb0, styles.ph5, styles.pb5]}
             />
             <OfflineWithFeedback
                 pendingAction={settingsPendingAction(payableAccountSetting, config?.pendingFields)}

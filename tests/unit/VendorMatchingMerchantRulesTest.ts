@@ -207,7 +207,7 @@ describe('Vendor matching on merchant rules', () => {
             vendor: translateLocal(isXeroActiveMatchingSource(policy) ? 'common.supplier' : 'common.vendor').toLowerCase(),
         });
 
-        const describeRule = (policy: Policy, vendorID: string) => getRuleDescription(buildVendorRule(vendorID), translateLocal, buildLabels(policy), policy);
+        const describeRule = (policy: Policy, vendorID: string) => getRuleDescription(buildVendorRule(vendorID), translateLocal, buildLabels(policy), policy, undefined);
 
         it('resolves the vendor name when the vendor is in the loaded list', () => {
             const policy = buildQBOPolicy([{id: 'v-1', name: 'Acme Co', currency: 'USD'}]);

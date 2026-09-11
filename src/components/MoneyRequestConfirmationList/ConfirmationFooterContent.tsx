@@ -1,4 +1,4 @@
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import FormHelpMessage from '@components/FormHelpMessage';
@@ -63,13 +63,11 @@ type ConfirmationFooterContentProps = {
     /** Number of expenses that will be created on confirm (drives bulk copy) */
     expensesNumber: number;
 
-    /** Optional callback to show a confirm-modal before removing an expense */
     showRemoveExpenseConfirmModal: (() => void) | undefined;
 
     /** Whether the product-training tooltip should anchor to the button */
     shouldShowProductTrainingTooltip: boolean;
 
-    /** Renders the product-training tooltip content */
     renderProductTrainingTooltip: () => React.ReactElement;
 };
 

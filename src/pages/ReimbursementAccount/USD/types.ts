@@ -7,13 +7,8 @@ type USDPageProps = {
     /** Handles submit button press */
     onSubmit: () => void;
 
-    /** Handles back button press */
     onBackButtonPress: () => void;
-
-    /** ID of current policy */
     policyID?: string;
-
-    /** Name of the current sub page */
     currentSubPage?: string;
 
     /** Array of step names for the progress indicator */

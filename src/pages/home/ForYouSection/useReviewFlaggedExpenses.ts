@@ -33,7 +33,6 @@ type ReviewFlaggedExpenses = {
 
 /** A transaction that should surface in the "Review X expenses" row, paired with its parent report. */
 type FlaggedExpense = {
-    /** ID of the flagged transaction */
     transactionID: string;
     /** ID of the parent expense report */
     reportID: string;

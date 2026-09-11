@@ -24,7 +24,6 @@ type CountrySelectorProps = {
     /** Callback called when the country changes. */
     onInputChange?: (value?: string) => void;
 
-    /** Current selected country  */
     value?: Country | '';
 
     /** inputID used by the Form component */
@@ -34,7 +33,6 @@ type CountrySelectorProps = {
     /** Callback to call when the picker modal is dismissed */
     onBlur?: () => void;
 
-    /** Reference to the outer element */
     ref?: ForwardedRef<View>;
 };
 

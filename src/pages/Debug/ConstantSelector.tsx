@@ -23,7 +23,6 @@ type ConstantSelectorProps = {
     /** Current selected constant  */
     value?: string;
 
-    /** Name of the field */
     name: string;
 
     /** inputID used by the Form component */
@@ -35,7 +34,7 @@ type ConstantSelectorProps = {
 
     policyID?: string;
 
-    // The ref is required by InputWrapper, even though it's not used in this component yet.
+    /** The ref is required by InputWrapper, even though it's not used in this component yet */
     ref: ForwardedRef<View>;
 };
 

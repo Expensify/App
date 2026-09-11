@@ -28,7 +28,6 @@ import React, {useCallback, useEffect, useState} from 'react';
 import {View} from 'react-native';
 
 type WorkspaceOwnerPaymentCardFormProps = {
-    /** The policy */
     policy: OnyxEntry<OnyxTypes.Policy>;
 };
 

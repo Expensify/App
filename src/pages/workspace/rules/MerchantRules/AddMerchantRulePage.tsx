@@ -15,7 +15,7 @@ import React, {useEffect} from 'react';
 
 import MerchantRulePageBase from './MerchantRulePageBase';
 
-type AddMerchantRulePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_MERCHANT_NEW>;
+type AddMerchantRulePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_MERCHANT_NEW | typeof SCREENS.WORKSPACE.DYNAMIC_RULES_MERCHANT_NEW>;
 
 function AddMerchantRulePage({route}: AddMerchantRulePageProps) {
     const {policyID} = route.params;

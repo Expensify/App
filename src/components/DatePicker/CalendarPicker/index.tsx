@@ -42,7 +42,6 @@ type CalendarPickerProps = {
     /** Day component to render for dates */
     DayComponent?: typeof Day;
 
-    /** A function called when the date is selected */
     onSelected?: (selectedDate: string) => void;
 
     /** Optional style override for the header container */

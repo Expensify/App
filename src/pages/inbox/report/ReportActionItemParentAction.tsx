@@ -27,32 +27,17 @@ import AnimatedEmptyStateBackground from './AnimatedEmptyStateBackground';
 import RepliesDivider from './RepliesDivider';
 
 type ReportActionItemParentActionProps = {
-    /** All the data of the action item */
     action: ReportAction;
-
-    /** Flag to show, hide the thread divider line */
     shouldHideThreadDividerLine?: boolean;
 
     /** The id of the report */
 
     reportID: string;
-
-    /** The current report is displayed */
     report: OnyxEntry<Report>;
-
-    /** The transaction thread report associated with the current report, if any */
     transactionThreadReport: OnyxEntry<Report>;
-
-    /** Report actions belonging to the report's parent */
     parentReportAction: OnyxEntry<ReportAction>;
-
-    /** Whether we should display "Replies" divider */
     shouldDisplayReplyDivider: boolean;
-
-    /** If this is the first visible report action */
     isFirstVisibleReportAction: boolean;
-
-    /** If the thread divider line will be used */
     shouldUseThreadDividerLine?: boolean;
 };
 

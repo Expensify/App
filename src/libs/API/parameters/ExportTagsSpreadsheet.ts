@@ -1,5 +1,4 @@
 type ExportTagsSpreadsheetParams = {
-    /** ID of the policy */
     policyID: string;
 };
 

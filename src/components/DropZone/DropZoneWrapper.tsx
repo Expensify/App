@@ -13,7 +13,6 @@ type DropZoneWrapperProps = {
     /** Callback to execute when a file is dropped */
     onDrop: (event: DragEvent) => void;
 
-    /** Function to render the children */
     children: (props: {isDraggingOver: boolean}) => ReactNode;
 };
 

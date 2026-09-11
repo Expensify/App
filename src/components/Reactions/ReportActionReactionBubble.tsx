@@ -25,7 +25,6 @@ type ReportActionReactionBubbleProps = {
     /** IDs of users who reacted with this emoji */
     userAccountIDs: number[];
 
-    /** Name of the reaction emoji */
     reactionEmojiName: string;
 
     /** Called when the bubble is pressed (toggles reaction) */

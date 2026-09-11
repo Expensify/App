@@ -15,16 +15,12 @@ type RenderSuggestionMenuItemProps<TSuggestion> = {
 };
 
 type AutoCompleteSuggestionsProps<TSuggestion> = {
-    /** Array of suggestions */
     suggestions: TSuggestion[];
 
     /** Function used to render each suggestion, returned JSX will be enclosed inside a Pressable component */
     renderSuggestionMenuItem: (item: TSuggestion, index: number) => ReactElement;
 
-    /** Create unique keys for each suggestion item */
     keyExtractor: (item: TSuggestion, index: number) => string;
-
-    /** The index of the highlighted suggestion */
     highlightedSuggestionIndex: number;
 
     /** Fired when the user selects a suggestion */
@@ -35,7 +31,6 @@ type AutoCompleteSuggestionsProps<TSuggestion> = {
      * When this value is false, the suggester will have a height of 2.5 items. When this value is true, the height can be up to 5 items.  */
     isSuggestionPickerLarge: boolean;
 
-    /** create accessibility label for each item */
     accessibilityLabelExtractor: (item: TSuggestion, index: number) => string;
 
     /** Measures the parent container's position and dimensions. Also add a cursor coordinates */

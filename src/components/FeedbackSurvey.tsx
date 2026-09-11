@@ -28,19 +28,13 @@ type FeedbackSurveyProps = {
     /** A unique Onyx key identifying the form */
     formID: typeof ONYXKEYS.FORMS.DISABLE_AUTO_RENEW_SURVEY_FORM | typeof ONYXKEYS.FORMS.CANCEL_SUBSCRIPTION_FORM;
 
-    /** Title of the survey */
     title: string;
-
-    /** Description of the survey */
     description: string;
-
-    /** Callback to be called when the survey is submitted */
     onSubmit: (reason: FeedbackSurveyOptionID, note?: string) => void;
 
     /** Optional text to render over the submit button */
     footerText?: React.ReactNode;
 
-    /** Indicates whether note field is required  */
     isNoteRequired?: boolean;
 
     /** Indicates whether a loading indicator should be shown */

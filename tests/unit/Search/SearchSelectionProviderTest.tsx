@@ -25,6 +25,8 @@ const queryContextValue: SearchQueryContextValue = {
     currentSimilarSearchHash: 1,
     currentSearchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES,
     currentSearchQueryJSON: expenseQueryJSON,
+    currentDefaultSearchQueryJSON: undefined,
+    currentDefaultSearchQueryFilterKeys: new Set(),
     suggestedSearches: getEmptyObject<SearchQueryContextValue['suggestedSearches']>(),
     shouldResetSearchQuery: false,
 };
@@ -47,6 +49,7 @@ function buildSelected(...keys: string[]): SelectedTransactions {
                 reportID: 'report_1',
                 policyID: 'policy_1',
                 amount: 100,
+                displayAmount: 100,
                 currency: 'USD',
             },
         ]),

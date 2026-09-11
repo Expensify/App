@@ -52,6 +52,7 @@ import type {
     QuickAction,
     RecentWaypoint,
     Report,
+    Rule,
     Transaction,
     TransactionViolation,
 } from '@src/types/onyx';
@@ -100,11 +101,13 @@ type CreateTransactionParams = {
     optimisticTransactionIDs: string[];
     optimisticChatReportID: string | undefined;
     currentUserLocalCurrency: string | undefined;
+    isDraftChatReport: boolean;
     isTrackIntentUser: boolean | undefined;
     delegateAccountID: number | undefined;
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     conciergeChat: OnyxEntry<Report>;
+    rules: OnyxCollection<Rule>;
 };
 
 type SetMoneyRequestCommuterExclusionFieldsParams = {
@@ -149,11 +152,13 @@ function createTransaction({
     optimisticTransactionIDs,
     optimisticChatReportID,
     currentUserLocalCurrency,
+    isDraftChatReport,
     isTrackIntentUser,
     delegateAccountID,
     formatPhoneNumber,
     getCurrencyDecimals,
     conciergeChat,
+    rules,
 }: CreateTransactionParams) {
     const draftTransactionIDs = Object.keys(allTransactionDrafts ?? {});
 
@@ -179,6 +184,7 @@ function createTransaction({
             trackExpense({
                 report,
                 isDraftPolicy: false,
+                isDraftChatReport,
                 existingTransaction: transaction,
                 participantParams: {
                     payeeEmail: currentUserEmail,
@@ -216,6 +222,7 @@ function createTransaction({
                 delegateAccountID,
                 reportActionsList: undefined,
                 getCurrencyDecimals,
+                rules,
             });
         } else {
             const existingTransactionID = getExistingTransactionID(transaction?.linkedTrackedExpenseReportAction);
@@ -263,32 +270,62 @@ function createTransaction({
                 delegateAccountID,
                 formatPhoneNumber,
                 getCurrencyDecimals,
+                rules,
             });
         }
     }
 }
 
-function getMoneyRequestParticipantOptions(
-    currentUserAccountID: number,
-    report: OnyxEntry<Report>,
-    policy: OnyxEntry<Policy>,
-    personalDetails: OnyxEntry<PersonalDetailsList>,
-    conciergeReportID: string | undefined,
-    privateIsArchived: boolean | undefined,
-    reportAttributesDerived: ReportAttributesDerivedValue['reports'] | undefined,
-    reportDraft: OnyxEntry<Report> | undefined,
-    translate: LocalizedTranslate,
-    dateFnsLocale: DateFnsLocale | undefined,
-): Array<Participant | OptionData> {
+type GetMoneyRequestParticipantOptionsParams = {
+    currentUserAccountID: number;
+    report: OnyxEntry<Report>;
+    policy: OnyxEntry<Policy>;
+    personalDetails: OnyxEntry<PersonalDetailsList>;
+    conciergeReportID: string | undefined;
+    privateIsArchived: boolean | undefined;
+    rules: OnyxCollection<Rule>;
+    reportAttributesDerived: ReportAttributesDerivedValue['reports'] | undefined;
+    reportDraft: OnyxEntry<Report> | undefined;
+    translate: LocalizedTranslate;
+    convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
+    dateFnsLocale: DateFnsLocale | undefined;
+};
+
+function getMoneyRequestParticipantOptions({
+    currentUserAccountID,
+    report,
+    policy,
+    personalDetails,
+    conciergeReportID,
+    privateIsArchived,
+    rules,
+    reportAttributesDerived,
+    reportDraft,
+    translate,
+    convertToDisplayString,
+    dateFnsLocale,
+}: GetMoneyRequestParticipantOptionsParams): Array<Participant | OptionData> {
     const selectedParticipants = getMoneyRequestParticipantsFromReport(report, currentUserAccountID);
     return selectedParticipants.map((participant) => {
         const participantAccountID = participant?.accountID ?? CONST.DEFAULT_NUMBER_ID;
         return participantAccountID
             ? getParticipantsOption(participant, personalDetails, translate)
-            : getReportOption(participant, privateIsArchived, policy, personalDetails, conciergeReportID, reportAttributesDerived, reportDraft, currentUserAccountID, {
-                  translate,
-                  dateFnsLocale,
-              });
+            : getReportOption(
+                  participant,
+                  privateIsArchived,
+                  policy,
+                  personalDetails,
+                  conciergeReportID,
+                  reportAttributesDerived,
+                  reportDraft,
+                  currentUserAccountID,
+                  {
+                      translate,
+                      dateFnsLocale,
+                      convertToDisplayString,
+                  },
+                  rules,
+              );
     });
 }
 

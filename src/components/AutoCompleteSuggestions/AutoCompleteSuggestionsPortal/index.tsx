@@ -2,6 +2,8 @@ import BaseAutoCompleteSuggestions from '@components/AutoCompleteSuggestions/Bas
 
 import useStyleUtils from '@hooks/useStyleUtils';
 
+import variables from '@styles/variables';
+
 import type {ReactElement} from 'react';
 
 import React from 'react';
@@ -12,6 +14,8 @@ import type {AutoCompleteSuggestionsPortalProps} from './types';
 
 import getBottomSuggestionPadding from './getBottomSuggestionPadding';
 import TransparentOverlay from './TransparentOverlay/TransparentOverlay';
+
+const zIndexStyle = {zIndex: variables.autoCompleteSuggestionsZIndex};
 
 /**
  * On the mobile-web platform, when long-pressing on auto-complete suggestions,
@@ -25,9 +29,7 @@ function AutoCompleteSuggestionsPortal<TSuggestion>({
     width = 0,
     bottom = 0,
     resetSuggestions = () => {},
-    // isInLandscapeMode is only used on native platforms to adjust the bottom padding
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    isInLandscapeMode = false,
+    isMenuAbove = false,
     ...props
 }: AutoCompleteSuggestionsPortalProps<TSuggestion>): ReactElement | null | false {
     const StyleUtils = useStyleUtils();
@@ -46,8 +48,13 @@ function AutoCompleteSuggestionsPortal<TSuggestion>({
         bodyElement &&
         ReactDOM.createPortal(
             <>
-                <TransparentOverlay onPress={resetSuggestions} />
-                <View style={StyleUtils.getBaseAutoCompleteSuggestionContainerStyle({left, width, bottom: bottom - getBottomSuggestionPadding()})}>{componentToRender}</View>
+                <TransparentOverlay
+                    onPress={resetSuggestions}
+                    style={zIndexStyle}
+                />
+                <View style={[StyleUtils.getBaseAutoCompleteSuggestionContainerStyle({left, width, bottom: bottom - getBottomSuggestionPadding(isMenuAbove)}), zIndexStyle]}>
+                    {componentToRender}
+                </View>
             </>,
             bodyElement,
         )

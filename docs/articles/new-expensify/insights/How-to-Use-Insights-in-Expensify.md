@@ -32,9 +32,7 @@ You can access Insights on both web and mobile.
 
 ---
 
-# Available Insights
-
-## Spend over time
+## How to use Spend over time
 
 Spend over time shows how total expenses change across a selected date range.
 
@@ -48,7 +46,7 @@ You can use Spend over time to:
 
 [Learn more about the Spend over time report](https://help.expensify.com/articles/new-expensify/insights/View-the-Spend-over-time-report). 
 
-## Top Spenders
+## How to use Top Spenders
 
 Top Spenders shows which members submitted the highest total expenses in the previous calendar month.
 
@@ -63,7 +61,7 @@ You can use Top Spenders to:
 
 ---
 
-## Top Categories 
+## How to use Top Categories 
 
 Top Categories shows which expense categories had the highest total spend in the previous calendar month.
 
@@ -77,7 +75,7 @@ You can use Top Categories to:
 
 ---
 
-## Top Merchants
+## How to use Top Merchants
 
 Top Merchants shows which merchants or vendors received the highest total payments in the previous calendar month.
 
@@ -88,6 +86,20 @@ You can use Top Merchants to:
 - Monitor subscription and recurring expenses
 
 [Learn more about the Top Merchants report](https://help.expensify.com/articles/new-expensify/insights/View-the-Top-Merchants-report)
+
+---
+
+## How to use Violations by submitter
+
+Violations by submitter shows which members submitted the most expenses that broke your workspace rules in the previous calendar month. It’s available to Workspace Admins and Auditors on Control workspaces that have Rules enabled.
+
+You can use Violations by submitter to:
+
+- See who is repeatedly submitting expenses with policy violations
+- Spot compliance patterns without reviewing reports one by one
+- Prioritize coaching or policy guidance for specific members
+
+[Learn more about the Violations by submitter report](https://help.expensify.com/articles/new-expensify/insights/View-the-Violations-by-submitter-report)
 
 ---
 
@@ -149,7 +161,7 @@ If you want to build your own grouped report:
 
 This allows you to automate recurring analysis without rebuilding the search each time.
 
-[Learn how to use search operators and grouping](https://help.expensify.com/articles/new-expensify/reports-and-expenses/Using-search-operators)
+[Learn how to use search operators and grouping](/articles/new-expensify/reports-and-expenses/Using-search-operators)
 
 ---
 

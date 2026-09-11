@@ -12,7 +12,6 @@ import React, {useState} from 'react';
 import CountrySelectorModal from './CountrySelectorModal';
 
 type CountryPickerProps = {
-    /** Current value of the selected item */
     value?: string;
 
     /** Callback when the list item is selected */

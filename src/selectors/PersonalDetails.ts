@@ -94,10 +94,27 @@ const isOptimisticPersonalDetailSelector =
         return isPersonalDetailOptimistic(personalDetailsList[accountID]);
     };
 
+/**
+ * Returns only the personal details that were created optimistically. The optimistic set is tiny compared to the whole
+ * personal details list, so subscribers using it don't re-render every time an unrelated (server-backed) detail changes.
+ */
+const optimisticPersonalDetailsSelector = (personalDetailsList: OnyxEntry<PersonalDetailsList>): PersonalDetailsList => {
+    const optimisticPersonalDetails: PersonalDetailsList = {};
+    for (const [accountID, personalDetail] of Object.entries(personalDetailsList ?? {})) {
+        if (!personalDetail?.isOptimisticPersonalDetail) {
+            continue;
+        }
+        optimisticPersonalDetails[accountID] = personalDetail;
+    }
+    return optimisticPersonalDetails;
+};
+
 const newAccountIDsAndLoginsSelector = (invitedEmailsToAccountIDs: InvitedEmailsToAccountIDs | undefined) => (personalDetailsList: OnyxEntry<PersonalDetailsList>) =>
     getNewAccountIDsAndLogins(invitedEmailsToAccountIDs, personalDetailsList);
 
 const displayNameSelector = (personalDetails: PersonalDetails | undefined) => personalDetails?.displayName;
+
+const accountIDSelector = (personalDetails: PersonalDetails | undefined) => personalDetails?.accountID;
 
 export {
     avatarStyleColorSelector,
@@ -111,7 +128,9 @@ export {
     doesPersonalDetailExistSelector,
     accountIDToLoginSelector,
     isOptimisticPersonalDetailSelector,
+    optimisticPersonalDetailsSelector,
     createDisplayDetailsByAccountIDsSelector,
     newAccountIDsAndLoginsSelector,
     displayNameSelector,
+    accountIDSelector,
 };

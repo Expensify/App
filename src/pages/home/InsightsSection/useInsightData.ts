@@ -66,6 +66,7 @@ function useInsightData(config: SearchTypeMenuItem | undefined) {
     const {accountID, login} = useCurrentUserPersonalDetails();
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [searchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${queryJSON?.hash}`);
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
     const {isOffline} = useNetwork();
     const isFocused = useIsFocused();
@@ -113,6 +114,7 @@ function useInsightData(config: SearchTypeMenuItem | undefined) {
                       translate,
                       formatPhoneNumber,
                       bankAccountList: undefined,
+                      rules,
                       conciergeReportID,
                       convertToDisplayString,
                       reportAttributesDerivedValue: undefined,

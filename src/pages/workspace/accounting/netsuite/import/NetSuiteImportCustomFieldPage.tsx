@@ -1,4 +1,4 @@
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import ConnectionLayout from '@components/ConnectionLayout';
 import FixedFooter from '@components/FixedFooter';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
@@ -47,10 +47,7 @@ type HelpLinkComponentProps = {
     /** Callback to localize content */
     translate: LocaleContextProps['translate'];
 
-    /** Theme styles to apply to the component */
     styles: ThemeStyles;
-
-    /** Text alignment style for the Text component   */
     alignmentStyle: StyleProp<TextStyle>;
 };
 

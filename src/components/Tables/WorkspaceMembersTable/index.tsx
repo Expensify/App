@@ -7,6 +7,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import {getPolicyApproverLogins, isControlPolicy, isSubmitPolicy} from '@libs/PolicyUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
 
+import {fontScale} from '@styles/typography';
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
@@ -90,8 +91,8 @@ export default function WorkspaceMembersTable({
                 // The cell stacks the member's name above their email, so whichever of the two renders wider decides the
                 // column's width.
                 getContentToMeasure: (item) => [
-                    {text: item.name, fontSize: variables.fontSizeNormal},
-                    {text: item.email, fontSize: variables.fontSizeLabel},
+                    {text: item.name, fontSize: fontScale.text},
+                    {text: item.email, fontSize: fontScale.label},
                 ],
                 extraWidth: MEMBER_CELL_AVATAR_WIDTH,
             },
@@ -104,7 +105,7 @@ export default function WorkspaceMembersTable({
                       key: 'customField1' as const,
                       label: translate('workspace.common.customField1'),
                       dynamicSizing: {
-                          getContentToMeasure: (item: WorkspaceMemberRowData) => (item.employeeUserID ? [{text: item.employeeUserID, fontSize: variables.fontSizeNormal}] : []),
+                          getContentToMeasure: (item: WorkspaceMemberRowData) => (item.employeeUserID ? [{text: item.employeeUserID, fontSize: fontScale.text}] : []),
                       },
                   },
               ]
@@ -116,7 +117,7 @@ export default function WorkspaceMembersTable({
                       key: 'customField2' as const,
                       label: translate('workspace.common.customField2'),
                       dynamicSizing: {
-                          getContentToMeasure: (item: WorkspaceMemberRowData) => (item.employeePayrollID ? [{text: item.employeePayrollID, fontSize: variables.fontSizeNormal}] : []),
+                          getContentToMeasure: (item: WorkspaceMemberRowData) => (item.employeePayrollID ? [{text: item.employeePayrollID, fontSize: fontScale.text}] : []),
                       },
                   },
               ]
@@ -126,7 +127,7 @@ export default function WorkspaceMembersTable({
             label: translate('common.role'),
             sortable: true,
             dynamicSizing: {
-                getContentToMeasure: (item) => [{text: translate('workspace.common.roleName', item.role), fontSize: variables.fontSizeNormal}],
+                getContentToMeasure: (item) => [{text: translate('workspace.common.roleName', item.role), fontSize: fontScale.text}],
                 // A role is one of a short, known set of labels, so the column always shows them in full.
                 shouldFitContent: true,
             },

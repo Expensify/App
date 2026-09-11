@@ -40,7 +40,6 @@ import RenderHTML from './RenderHTML';
 import Text from './Text';
 
 type ReportWelcomeTextProps = {
-    /** The report currently being looked at */
     report: OnyxEntry<Report>;
 
     /** The policy for the current route */
@@ -69,9 +68,10 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
     const isInvoiceRoom = isInvoiceRoomReportUtils(report);
     const isSystemChat = isSystemChatReportUtils(report);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const isDefault = !(isChatRoom || isPolicyExpenseChat || isSelfDM || isSystemChat);
     const participantAccountIDs = getParticipantsAccountIDsForDisplay(report, undefined, true, true, reportMetadata);
-    const moneyRequestOptions = temporary_getMoneyRequestOptions(report, policy, participantAccountIDs, betas, isReportArchived, isRestrictedToPreferredPolicy);
+    const moneyRequestOptions = temporary_getMoneyRequestOptions(report, policy, participantAccountIDs, betas, rules, isReportArchived, isRestrictedToPreferredPolicy);
     const policyName = getPolicyName({report, unavailableTranslation: translate('workspace.common.unavailable')});
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 

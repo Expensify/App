@@ -13,10 +13,7 @@ import ReportActionComposeUtils from './ReportActionComposeUtils';
 import updateNativeTextInputValue from './updateNativeTextInputValue';
 
 type UseEditComposerToggleProps = {
-    /** The selection of the composer */
     selection: TextSelection;
-
-    /** The ref to the composer */
     composerRef: RefObject<ComposerRef | null>;
 
     /** Handle changing the selection of the composer */
@@ -56,9 +53,7 @@ function useEditComposerToggle({selection, composerRef, onFocus, onValueChange, 
         isEditingInComposer?: boolean;
         /** Whether to move the selection to the end of the text */
         shouldMoveSelectionToEnd?: boolean;
-        /** The selection to apply */
         selection?: TextSelection | null;
-        /** Whether to force a native value update */
         shouldForceNativeValueUpdate?: boolean;
     };
 

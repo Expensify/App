@@ -17,13 +17,15 @@ import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Policy} from '@src/types/onyx';
 
 import React from 'react';
 
-type AddVendorPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_MERCHANT_VENDOR>;
+import useMerchantRuleRoute from './useMerchantRuleRoute';
+
+type AddVendorPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_MERCHANT_VENDOR | typeof SCREENS.WORKSPACE.DYNAMIC_RULES_MERCHANT_VENDOR>;
 
 type VendorSelectionItem = {name: string; value: string};
 
@@ -42,7 +44,7 @@ function getSelectedVendorItem(policy: Policy | undefined, vendorID: string | un
 
 function AddVendorPage({route}: AddVendorPageProps) {
     const {policyID, ruleID} = route.params;
-    const isEditing = ruleID !== ROUTES.NEW;
+    const {backToRoute} = useMerchantRuleRoute(DYNAMIC_ROUTES.RULES_MERCHANT_VENDOR_FROM_EXPENSE.path, policyID, ruleID);
 
     const {translate} = useLocalize();
     const policy = usePolicy(policyID);
@@ -63,8 +65,6 @@ function AddVendorPage({route}: AddVendorPageProps) {
     const selectedVendorItem = getSelectedVendorItem(policy, form?.vendorID, unavailableLabel);
 
     const vendorItems = getVendorSelectionItems(policy);
-
-    const backToRoute = isEditing ? ROUTES.RULES_MERCHANT_EDIT.getRoute(policyID, ruleID) : ROUTES.RULES_MERCHANT_NEW.getRoute(policyID);
 
     const saveVendor = (value?: string) => {
         updateDraftMerchantRule({vendorID: value});

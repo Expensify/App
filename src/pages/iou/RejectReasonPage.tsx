@@ -44,6 +44,7 @@ function RejectReasonPage({route}: RejectReasonPageProps) {
     const {superWideRHPRouteKeys} = useWideRHPState();
     const {accountID: currentUserAccountID, login: currentUserLogin} = useCurrentUserPersonalDetails();
     const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const delegateAccountID = useDelegateAccountID();
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
@@ -63,6 +64,7 @@ function RejectReasonPage({route}: RejectReasonPageProps) {
             betas,
             delegateAccountID,
             getCurrencyDecimals,
+            {rules},
         );
         removeTransaction(transactionID);
         // If the super wide rhp is not opened, dismiss the entire modal.

@@ -14,6 +14,7 @@ import {canUserPerformWriteAction, generateReportID, isConciergeChatReport} from
 import {startSpan} from '@libs/telemetry/activeSpans';
 import getSendMessageListWeight from '@libs/telemetry/getSendMessageListWeight';
 import getSendMessageSource from '@libs/telemetry/getSendMessageSource';
+import {getSendMessageVisibleSpanID} from '@libs/telemetry/sendMessageSpans';
 
 import {useActionListContext} from '@pages/inbox/ActionListContext';
 
@@ -111,7 +112,7 @@ function useComposerSubmit(reportID: string) {
                 [CONST.TELEMETRY.ATTRIBUTE_REPORT_ACTION_COUNT]: reportActionCount,
                 [CONST.TELEMETRY.ATTRIBUTE_MONEY_REQUEST_PREVIEW_COUNT]: moneyRequestPreviewCount,
             };
-            startSpan(`${CONST.TELEMETRY.SPAN_SEND_MESSAGE_VISIBLE}_${optimisticReportActionID}`, {
+            startSpan(getSendMessageVisibleSpanID(optimisticReportActionID), {
                 name: 'send-message-visible',
                 op: CONST.TELEMETRY.SPAN_SEND_MESSAGE_VISIBLE,
                 attributes,

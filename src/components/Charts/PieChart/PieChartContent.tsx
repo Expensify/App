@@ -21,7 +21,6 @@ import {Pie, PolarChart} from 'victory-native';
 import PaddedPieSlice from './PaddedPieSlice';
 
 type PieChartProps = ChartProps & {
-    /** Callback when a slice is pressed */
     onSlicePress?: (dataPoint: ChartDataPoint, index: number) => void;
 
     /** Symbol/unit for value labels in tooltip (e.g., '$', '€'). */

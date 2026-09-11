@@ -1,5 +1,5 @@
 import AccountSwitcherSkeletonView from '@components/AccountSwitcherSkeletonView';
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import FeedSelector from '@components/FeedSelector';
 import Icon from '@components/Icon';
 import RenderHTML from '@components/RenderHTML';
@@ -36,10 +36,7 @@ import getShouldShowBrokenConnectionError from './getShouldShowBrokenConnectionE
 const FEED_SELECTOR_SKELETON_WIDTH = 289;
 
 type WorkspaceCompanyCardsTableHeaderButtonsProps = {
-    /** Current policy id */
     policyID: string;
-
-    /** Currently selected feed */
     feedName: CompanyCardFeedWithDomainID;
 
     /** Whether the feed is loading */
@@ -48,7 +45,6 @@ type WorkspaceCompanyCardsTableHeaderButtonsProps = {
     /** Whether the current member can edit company cards */
     canWriteCompanyCards: boolean;
 
-    /** Card feed icon */
     CardFeedIcon: React.ReactNode;
 };
 

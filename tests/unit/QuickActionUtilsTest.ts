@@ -65,24 +65,24 @@ describe('QuickActionUtils', () => {
             };
 
             it('should restrict REQUEST action on DMs', () => {
-                const withoutRestrictionsResult = isQuickActionAllowed(requestManualAction, DMReport, undefined, false, [CONST.BETAS.ALL], false);
-                const withRestrictionsResult = isQuickActionAllowed(requestManualAction, DMReport, undefined, false, [CONST.BETAS.ALL], true);
+                const withoutRestrictionsResult = isQuickActionAllowed(requestManualAction, DMReport, undefined, false, [CONST.BETAS.ALL], undefined, false);
+                const withRestrictionsResult = isQuickActionAllowed(requestManualAction, DMReport, undefined, false, [CONST.BETAS.ALL], undefined, true);
 
                 expect(withoutRestrictionsResult).toBe(true);
                 expect(withRestrictionsResult).toBe(false);
             });
 
             it('should restrict SPLIT action on DMs', () => {
-                const withoutRestrictionsResult = isQuickActionAllowed(splitManualAction, DMReport, undefined, false, [CONST.BETAS.ALL], false);
-                const withRestrictionsResult = isQuickActionAllowed(splitManualAction, DMReport, undefined, false, [CONST.BETAS.ALL], true);
+                const withoutRestrictionsResult = isQuickActionAllowed(splitManualAction, DMReport, undefined, false, [CONST.BETAS.ALL], undefined, false);
+                const withRestrictionsResult = isQuickActionAllowed(splitManualAction, DMReport, undefined, false, [CONST.BETAS.ALL], undefined, true);
 
                 expect(withoutRestrictionsResult).toBe(true);
                 expect(withRestrictionsResult).toBe(false);
             });
 
             it('should restrict SEND_MONEY action on DMs', () => {
-                const withoutRestrictionsResult = isQuickActionAllowed(sendMoneyAction, DMReport, undefined, false, [CONST.BETAS.ALL], false);
-                const withRestrictionsResult = isQuickActionAllowed(sendMoneyAction, DMReport, undefined, false, [CONST.BETAS.ALL], true);
+                const withoutRestrictionsResult = isQuickActionAllowed(sendMoneyAction, DMReport, undefined, false, [CONST.BETAS.ALL], undefined, false);
+                const withRestrictionsResult = isQuickActionAllowed(sendMoneyAction, DMReport, undefined, false, [CONST.BETAS.ALL], undefined, true);
 
                 expect(withoutRestrictionsResult).toBe(true);
                 expect(withRestrictionsResult).toBe(false);
@@ -91,8 +91,8 @@ describe('QuickActionUtils', () => {
             it('should restrict SPLIT action on Group chats', () => {
                 const groupChatReport: Report = LHNTestUtils.getFakeReport([1, 2, 3, 4]);
 
-                const withoutRestrictionsResult = isQuickActionAllowed(splitManualAction, groupChatReport, undefined, false, [CONST.BETAS.ALL], false);
-                const withRestrictionsResult = isQuickActionAllowed(splitManualAction, groupChatReport, undefined, false, [CONST.BETAS.ALL], true);
+                const withoutRestrictionsResult = isQuickActionAllowed(splitManualAction, groupChatReport, undefined, false, [CONST.BETAS.ALL], undefined, false);
+                const withRestrictionsResult = isQuickActionAllowed(splitManualAction, groupChatReport, undefined, false, [CONST.BETAS.ALL], undefined, true);
 
                 expect(withoutRestrictionsResult).toBe(true);
                 expect(withRestrictionsResult).toBe(false);
@@ -104,8 +104,8 @@ describe('QuickActionUtils', () => {
                     chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
                 };
 
-                const withoutRestrictionsResult = isQuickActionAllowed(splitManualAction, policyRoomReport, undefined, false, [CONST.BETAS.ALL], false);
-                const withRestrictionsResult = isQuickActionAllowed(splitManualAction, policyRoomReport, undefined, false, [CONST.BETAS.ALL], true);
+                const withoutRestrictionsResult = isQuickActionAllowed(splitManualAction, policyRoomReport, undefined, false, [CONST.BETAS.ALL], undefined, false);
+                const withRestrictionsResult = isQuickActionAllowed(splitManualAction, policyRoomReport, undefined, false, [CONST.BETAS.ALL], undefined, true);
 
                 expect(withoutRestrictionsResult).toBe(true);
                 expect(withRestrictionsResult).toBe(false);
@@ -161,7 +161,7 @@ describe('QuickActionUtils', () => {
                 mockedPolicyUtils.isControlPolicy.mockReturnValue(true);
                 mockedPolicyUtils.isPerDiemEnabled.mockReturnValue(true);
 
-                expect(isQuickActionAllowed(perDiemAction, report, policy, false, [CONST.BETAS.ALL], false)).toBe(true);
+                expect(isQuickActionAllowed(perDiemAction, report, policy, false, [CONST.BETAS.ALL], undefined, false)).toBe(true);
             });
             it("should not allow per diem action when policy doesn't have per diem rates", () => {
                 mockedPolicyUtils.getPerDiemCustomUnit.mockReturnValue(undefined);
@@ -169,7 +169,7 @@ describe('QuickActionUtils', () => {
                     id: '1',
                     arePerDiemRatesEnabled: true,
                 });
-                expect(isQuickActionAllowed(perDiemAction, report, policy, false, [CONST.BETAS.ALL], false)).toBe(false);
+                expect(isQuickActionAllowed(perDiemAction, report, policy, false, [CONST.BETAS.ALL], undefined, false)).toBe(false);
             });
             it("should not allow per diem action when policy doesn't have per diem enabled", () => {
                 mockedPolicyUtils.isControlPolicy.mockReturnValue(true);
@@ -178,7 +178,7 @@ describe('QuickActionUtils', () => {
                     id: '1',
                     arePerDiemRatesEnabled: false,
                 });
-                expect(isQuickActionAllowed(perDiemAction, report, policy, false, [CONST.BETAS.ALL], false)).toBe(false);
+                expect(isQuickActionAllowed(perDiemAction, report, policy, false, [CONST.BETAS.ALL], undefined, false)).toBe(false);
             });
             it('should not allow per diem action when policy is not a control workspace', () => {
                 const perDiemCustomUnit = {
@@ -202,7 +202,7 @@ describe('QuickActionUtils', () => {
                     },
                 });
 
-                expect(isQuickActionAllowed(perDiemAction, report, policy, false, [CONST.BETAS.ALL], false)).toBe(false);
+                expect(isQuickActionAllowed(perDiemAction, report, policy, false, [CONST.BETAS.ALL], undefined, false)).toBe(false);
             });
         });
 
@@ -226,6 +226,7 @@ describe('QuickActionUtils', () => {
                         }),
                         false,
                         [CONST.BETAS.ALL],
+                        undefined,
                         false,
                     ),
                 ).toBe(true);
@@ -248,6 +249,7 @@ describe('QuickActionUtils', () => {
                         }),
                         false,
                         [CONST.BETAS.ALL],
+                        undefined,
                         false,
                     ),
                 ).toBe(false);

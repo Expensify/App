@@ -21,7 +21,6 @@ import type {OnyxEntry} from 'react-native-onyx';
 import React from 'react';
 
 type UnreportedTransactionActionProps = {
-    /** The action when a transaction is unreported */
     action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION>;
 
     /** Original report from which the given reportAction is first created */

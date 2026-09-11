@@ -309,8 +309,8 @@ describe('YourSpendSection — third-party rows', () => {
         render(<YourSpendSection />);
         const row = screen.getByTestId(`your-spend-card-row-${THIRD_PARTY_CARD_ID}`);
         // The mock MenuItem renders as a Pressable wrapping a description Text. fireEvent.press
-        // requires a Pressable target, so we press the description text inside the row.
-        const description = within(row).getByText('homePage.yourSpend.recentTransactions');
+        // requires a Pressable target, so we press the description text (the card's last four) inside the row.
+        const description = within(row).getByText('9876');
         fireEvent.press(description);
         expect(Navigation.navigate).toHaveBeenLastCalledWith(ROUTES.SEARCH_ROOT.getRoute({query: THIRD_PARTY_QUERY}));
     });

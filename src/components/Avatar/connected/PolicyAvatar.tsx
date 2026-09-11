@@ -20,7 +20,6 @@ type PolicyAvatarProps = {
     /** Account to render as the subscript on the workspace avatar. Omit to render the workspace avatar on its own. */
     accountID?: number;
 
-    /** Size of the avatar */
     size?: ValueOf<typeof CONST.AVATAR_SIZE>;
 
     /** Workspace name used to seed the default avatar, and as a fallback for the avatar tooltip */
@@ -29,7 +28,6 @@ type PolicyAvatarProps = {
     /** Container styles for the avatar. Replaces the size-derived default container styles when provided. Only applies to the single-avatar layout. */
     containerStyle?: StyleProp<ViewStyle>;
 
-    /** Border color for the subscript avatar */
     subscriptAvatarBorderColor?: ColorValue;
 };
 

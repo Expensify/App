@@ -3,9 +3,10 @@ import PrevNextButtons from '@components/PrevNextButtons';
 import {useWideRHPActions} from '@components/WideRHPContextProvider';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 
-import {createTransactionThreadReport, setOptimisticTransactionThread} from '@libs/actions/Report';
+import {createTransactionThreadReport, openReport, setOptimisticTransactionThread} from '@libs/actions/Report';
 import {clearActiveTransactionIDs} from '@libs/actions/TransactionThreadNavigation';
 import type {RightModalNavigatorParamList} from '@libs/Navigation/types';
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
@@ -22,9 +23,9 @@ import getEmptyArray from '@src/types/utils/getEmptyArray';
 import type {GestureResponderEvent} from 'react-native';
 import type {OnyxCollection} from 'react-native-onyx';
 
-import {findFocusedRoute} from '@react-navigation/native';
+import {findFocusedRoute, useIsFocused} from '@react-navigation/native';
 import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
-import React, {startTransition, useCallback, useEffect, useMemo} from 'react';
+import React, {startTransition, useCallback, useEffect, useMemo, useRef} from 'react';
 
 type MoneyRequestReportRHPNavigationButtonsProps = {
     currentTransactionID: string;
@@ -43,6 +44,10 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
 
     const {email: currentUserEmail, accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const {markReportRHPWidth} = useWideRHPActions();
+    const {isOffline} = useNetwork();
+    const isFocused = useIsFocused();
+
+    const pendingSiblingRef = useRef<{transactionID: string; originRoute: string} | null>(null);
 
     const {prevTransactionID, nextTransactionID} = useMemo(() => {
         if (!transactionIDsList || transactionIDsList.length < 2) {
@@ -125,9 +130,16 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
         };
     }, []);
 
-    if (transactionIDsList.length < 2) {
-        return;
-    }
+    const stageSiblingPress = (transactionID: string | undefined, parentReportID: string | undefined) => {
+        // Offline there is no fetch to wait for, so the caller builds the thread optimistically instead.
+        if (!transactionID || !parentReportID || isOffline) {
+            return false;
+        }
+        pendingSiblingRef.current = {transactionID, originRoute: Navigation.getActiveRoute()};
+        // Always true here: we are fetching this report's actions, so it must not overwrite its cached name.
+        openReport({reportID: parentReportID, introSelected, conciergeChat, betas, currentUserAccountID, hasReportActions: true});
+        return true;
+    };
 
     const onNext = (e: GestureResponderEvent | KeyboardEvent | undefined) => {
         e?.preventDefault();
@@ -167,6 +179,11 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
                     ),
                 );
             });
+            return;
+        }
+
+        // A thread created before the parent action loads would have no parent, so wait for the fetch.
+        if (!nextParentReportAction && stageSiblingPress(nextTransactionID, nextTransaction?.reportID)) {
             return;
         }
 
@@ -245,6 +262,11 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
             return;
         }
 
+        // A thread created before the parent action loads would have no parent, so wait for the fetch.
+        if (!prevParentReportAction && stageSiblingPress(prevTransactionID, prevTransaction?.reportID)) {
+            return;
+        }
+
         const prevThreadReportID = prevParentReportAction?.childReportID;
         const navigationParams = {
             reportID: prevThreadReportID,
@@ -281,6 +303,33 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
             requestAnimationFrame(() => startTransition(() => Navigation.setParams(navigationParams)));
         });
     };
+
+    // Replays a staged press once its parent action arrives, but only if the user is still where they pressed —
+    // this screen stays mounted under a pushed RHP, and resuming from there would yank them out with a stale backTo.
+    useEffect(() => {
+        const pending = pendingSiblingRef.current;
+        if (!pending) {
+            return;
+        }
+        if (!isFocused || Navigation.getActiveRoute() !== pending.originRoute) {
+            pendingSiblingRef.current = null;
+            return;
+        }
+        if (pending.transactionID === nextTransactionID && nextParentReportAction) {
+            pendingSiblingRef.current = null;
+            onNext(undefined);
+            return;
+        }
+        if (pending.transactionID === prevTransactionID && prevParentReportAction) {
+            pendingSiblingRef.current = null;
+            onPrevious(undefined);
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- onNext/onPrevious are rebuilt every render, so listing them would defeat the dependency list
+    }, [isFocused, nextTransactionID, nextParentReportAction, prevTransactionID, prevParentReportAction]);
+
+    if (transactionIDsList.length < 2) {
+        return;
+    }
 
     return (
         <PrevNextButtons

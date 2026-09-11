@@ -12,7 +12,6 @@ type RequestorStepProps = {
     /** Handles submit button press (URL-based navigation) */
     onSubmit?: () => void;
 
-    /** Reference to the outer element */
     ref?: ForwardedRef<View>;
 
     /** Back to URL for preserving navigation context */

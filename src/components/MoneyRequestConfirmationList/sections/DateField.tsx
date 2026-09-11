@@ -35,9 +35,7 @@ type DateFieldProps = {
     shouldDisplayFieldError: boolean;
     didConfirm: boolean;
     isReadOnly: boolean;
-    isNewManualExpenseFlowEnabled: boolean;
     formError: string;
-    clearFormErrors: (errors: string[]) => void;
     transactionID: string | undefined;
     action: IOUAction;
     iouType: Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND>;
@@ -45,19 +43,7 @@ type DateFieldProps = {
     reportActionID: string | undefined;
 };
 
-function DateField({
-    shouldDisplayFieldError,
-    didConfirm,
-    isReadOnly,
-    isNewManualExpenseFlowEnabled,
-    formError,
-    clearFormErrors,
-    transactionID,
-    action,
-    iouType,
-    reportID,
-    reportActionID,
-}: DateFieldProps) {
+function DateField({shouldDisplayFieldError, didConfirm, isReadOnly, formError, transactionID, action, iouType, reportID, reportActionID}: DateFieldProps) {
     const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
     const {isEditingSplitBill} = useConfirmationFields();
     const styles = useThemeStyles();
@@ -92,10 +78,6 @@ function DateField({
             return;
         }
 
-        if (newDate) {
-            clearFormErrors(['common.error.fieldRequired']);
-        }
-
         if (isEditingSplitBill) {
             setDraftSplitTransaction(transactionID, splitDraftTransaction, {created: newDate}, getCurrencyDecimals, getCurrencySymbol);
             return;
@@ -121,7 +103,7 @@ function DateField({
         }
     };
 
-    if (isNewManualExpenseFlowEnabled && !isReadOnly) {
+    if (!isReadOnly) {
         return (
             <View style={[styles.mh4, styles.mb2]}>
                 <DatePicker

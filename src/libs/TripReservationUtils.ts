@@ -1,5 +1,6 @@
 import CONST from '@src/CONST';
 import type {Report} from '@src/types/onyx';
+import type ReportNameValuePairs from '@src/types/onyx/ReportNameValuePairs';
 import type {Reservation, ReservationTimeDetails, ReservationType} from '@src/types/onyx/Transaction';
 import type Transaction from '@src/types/onyx/Transaction';
 import type {AirPnr, CarPnr, HotelPnr, Pnr, PnrData, PnrTraveler, RailPnr, TripData} from '@src/types/onyx/TripData';
@@ -502,9 +503,9 @@ function getReservationsFromSpotnanaPayload(reportID: string, tripData?: TripDat
     return reservations.sort((a, b) => new Date(a.reservation.start.date).getTime() - new Date(b.reservation.start.date).getTime());
 }
 
-function getReservationsFromTripReport(tripReport?: Report, transactions?: Transaction[]): ReservationData[] {
-    if (tripReport?.tripData?.payload) {
-        return getReservationsFromSpotnanaPayload(tripReport.reportID, tripReport.tripData.payload);
+function getReservationsFromTripReport(tripReport?: Report, reportNameValuePairs?: ReportNameValuePairs, transactions?: Transaction[]): ReservationData[] {
+    if (tripReport && reportNameValuePairs?.tripData?.payload) {
+        return getReservationsFromSpotnanaPayload(tripReport.reportID, reportNameValuePairs.tripData.payload);
     }
     if (transactions) {
         return getReservationsFromTripTransactions(transactions);
@@ -521,8 +522,8 @@ function formatTransitLocationLabel(reservationTimeDetails: ReservationTimeDetai
     return longName ? `${longName} (${shortName})` : `(${shortName})`;
 }
 
-function getPNRReservationDataFromTripReport(tripReport?: Report, transactions?: Transaction[]): ReservationPNRData[] {
-    const reservations = getReservationsFromTripReport(tripReport, transactions);
+function getPNRReservationDataFromTripReport(tripReport?: Report, reportNameValuePairs?: ReportNameValuePairs, transactions?: Transaction[]): ReservationPNRData[] {
+    const reservations = getReservationsFromTripReport(tripReport, reportNameValuePairs, transactions);
     if (reservations.length === 0) {
         return [];
     }
@@ -547,7 +548,7 @@ function getPNRReservationDataFromTripReport(tripReport?: Report, transactions?:
     }
 
     return Array.from(pnrMap.values()).map((pnrData) => {
-        const pnrPayloadData = tripReport?.tripData?.payload?.pnrs?.find((pnr) => pnrData.pnrID === pnr.pnrId);
+        const pnrPayloadData = reportNameValuePairs?.tripData?.payload?.pnrs?.find((pnr) => pnrData.pnrID === pnr.pnrId);
         return {
             ...pnrData,
             totalFareAmount: ((pnrPayloadData?.data?.totalFareAmount?.base?.amount ?? 0) + (pnrPayloadData?.data?.totalFareAmount?.tax?.amount ?? 0)) * 100,
@@ -556,14 +557,17 @@ function getPNRReservationDataFromTripReport(tripReport?: Report, transactions?:
     });
 }
 
-function getTripTotal(tripReport: Report): {
+function getTripTotal(
+    tripReport: Report,
+    reportNameValuePairs?: ReportNameValuePairs,
+): {
     totalDisplaySpend: number;
     currency?: string;
 } {
-    if (tripReport?.tripData?.payload) {
+    if (reportNameValuePairs?.tripData?.payload) {
         return {
-            totalDisplaySpend: (tripReport.tripData.payload.tripPaymentInfo?.totalFare?.amount ?? 0) * 100,
-            currency: tripReport.tripData.payload.tripPaymentInfo?.totalFare?.currencyCode,
+            totalDisplaySpend: (reportNameValuePairs.tripData.payload.tripPaymentInfo?.totalFare?.amount ?? 0) * 100,
+            currency: reportNameValuePairs.tripData.payload.tripPaymentInfo?.totalFare?.currencyCode,
         };
     }
 

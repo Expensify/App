@@ -48,6 +48,7 @@ function useReportPreviewActionDecision({
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [iouReportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${iouReportID}`);
     const [ownerLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(iouReport?.ownerAccountID)});
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
     const isDEWPolicy = hasDynamicExternalWorkflow(policy);
     const isDEWSubmitPending = hasPendingDEWSubmit(iouReportMetadata, isDEWPolicy);
@@ -97,6 +98,7 @@ function useReportPreviewActionDecision({
         violationsData: transactionViolations,
         reportMetadata: iouReportMetadata,
         ownerLogin,
+        rules,
     });
 
     return {reportPreviewAction, canIOUBePaid, onlyShowPayElsewhere, shouldShowPayButton, connectedIntegration};

@@ -12,13 +12,11 @@ import React from 'react';
 import {View} from 'react-native';
 
 type EmojiSuggestionItemProps = {
-    /** The emoji to render */
     item: Emoji;
 
     /** Emoji prefix that follows the colon, highlighted within the rendered name */
     prefix: string;
 
-    /** Stores user's preferred skin tone */
     preferredSkinToneIndex: number;
 };
 

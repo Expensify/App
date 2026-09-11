@@ -4,7 +4,7 @@ import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import variables from '@styles/variables';
+import {fontScale} from '@styles/typography';
 
 import type {CustomRendererProps, TBlock} from 'react-native-render-html';
 
@@ -16,11 +16,11 @@ function EditedRenderer({tnode, TDefaultRenderer, style, ...defaultRendererProps
     const {translate} = useLocalize();
     const isPendingDelete = !!(tnode.attributes.deleted !== undefined);
     return (
-        <Text fontSize={variables.fontSizeSmall}>
-            <Text fontSize={variables.fontSizeSmall}> </Text>
+        <Text fontSize={fontScale.micro}>
+            <Text fontSize={fontScale.micro}> </Text>
             <Text
                 {...defaultRendererProps}
-                fontSize={variables.fontSizeSmall}
+                fontSize={fontScale.micro}
                 color={theme.textSupporting}
                 style={[styles.editedLabelStyles, isPendingDelete && styles.offlineFeedbackDeleted]}
             >

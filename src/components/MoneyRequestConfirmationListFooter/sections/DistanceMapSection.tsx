@@ -11,21 +11,7 @@ import type {Transaction} from '@src/types/onyx';
 import React from 'react';
 import {View} from 'react-native';
 
-/**
- * Two-level guard: the outer component uses the context-level discriminators (no transaction reads)
- * to short-circuit on every non-distance / manual / odometer flow. The inner component is the only
- * place that subscribes to the transaction slice, so flows where the map can never render avoid the
- * extra Onyx subscriptions.
- */
 function DistanceMapSection() {
-    const {isDistanceRequest, isManualDistanceRequest, isOdometerDistanceRequest} = useConfirmationFields();
-    if (!isDistanceRequest || isManualDistanceRequest || isOdometerDistanceRequest) {
-        return null;
-    }
-    return <DistanceMapSectionContent />;
-}
-
-function DistanceMapSectionContent() {
     const styles = useThemeStyles();
     const {iouType, transactionID, isReadOnly} = useConfirmationFields();
     const transaction = useTransactionSelector(transactionID, distanceMapSliceSelector);

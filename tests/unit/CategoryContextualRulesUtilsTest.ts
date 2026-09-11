@@ -1,5 +1,4 @@
 import getCategoryContextualRules from '@libs/CategoryContextualRulesUtils';
-import {convertToDisplayString} from '@libs/CurrencyUtils';
 
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
@@ -7,7 +6,7 @@ import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {PolicyCategory} from '@src/types/onyx';
 
 import createRandomPolicy from '../utils/collections/policies';
-import {translateLocal} from '../utils/TestHelper';
+import {convertToDisplayString, translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const policy = {

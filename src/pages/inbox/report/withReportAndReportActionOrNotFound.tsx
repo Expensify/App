@@ -30,7 +30,6 @@ type WithReportAndReportActionOrNotFoundProps = PlatformStackScreenProps<
     FlagCommentNavigatorParamList & SplitDetailsNavigatorParamList,
     typeof SCREENS.DYNAMIC_FLAG_COMMENT | typeof SCREENS.SPLIT_DETAILS.DYNAMIC_ROOT
 > & {
-    /** The report currently being looked at */
     report: OnyxTypes.Report;
 
     /** The reportAction from the current route */
@@ -39,7 +38,6 @@ type WithReportAndReportActionOrNotFoundProps = PlatformStackScreenProps<
     /** The parent report if the current report is a thread and it has a parent */
     parentReport: OnyxEntry<OnyxTypes.Report>;
 
-    /** The report's parentReportAction */
     parentReportAction: NonNullable<OnyxEntry<OnyxTypes.ReportAction>> | null;
 };
 

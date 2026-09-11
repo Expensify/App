@@ -1,4 +1,4 @@
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import ReportFieldBase from '@components/Search/FilterComponents/ReportField';
 import type {ReportFieldHandle} from '@components/Search/FilterComponents/ReportField';
 

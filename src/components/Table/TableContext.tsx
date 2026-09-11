@@ -73,7 +73,6 @@ type TableContextValue<DataType extends TableData, ColumnKey extends string = st
     /** Filter configuration for dropdown filters. */
     filterConfig: FilterConfig<FilterKey> | undefined;
 
-    /** Currently active filter values. */
     activeFilters: Partial<Record<FilterKey, string[]>>;
 
     /** Currently active sorting configuration. */
@@ -85,7 +84,6 @@ type TableContextValue<DataType extends TableData, ColumnKey extends string = st
     /** The column sorting is locked to on narrow layouts, where user sorting is ignored. */
     narrowLayoutSortColumn: ColumnKey | undefined;
 
-    /** Currently active search string. */
     activeSearchString: string;
 
     /** Methods exposed by the Table component for programmatic control. */

@@ -3,7 +3,8 @@ import Log from '@libs/Log';
 import TAB_SCREENS from '@libs/Navigation/AppNavigator/Navigators/TAB_SCREENS';
 import buildTabNavigatorNestedState from '@libs/Navigation/helpers/buildTabNavigatorNestedState';
 import getStateFromPath from '@libs/Navigation/helpers/getStateFromPath';
-import {isFullScreenName} from '@libs/Navigation/helpers/isNavigatorName';
+import hasNativeSwipeBackGesture from '@libs/Navigation/helpers/hasNativeSwipeBackGesture';
+import {isFullScreenName, isPreMountBufferHostName} from '@libs/Navigation/helpers/isNavigatorName';
 import {SIDEBAR_TO_SPLIT, SPLIT_TO_SIDEBAR} from '@libs/Navigation/linkingConfig/RELATIONS';
 import type {NavigationPartialRoute, ReportsSplitNavigatorParamList} from '@libs/Navigation/types';
 import {isRecord} from '@libs/ObjectUtils';
@@ -34,6 +35,7 @@ const SCREENS_WITH_NAVIGATION_TAB_BAR = new Set([
     SCREENS.SEARCH.ROOT,
     SCREENS.WORKSPACES_LIST,
     SCREENS.HOME,
+    SCREENS.INSIGHTS,
 ]);
 
 const MODAL_ROUTES_TO_DISMISS = new Set<string>([
@@ -476,9 +478,22 @@ function markFocusedTabRouteForRemount(tabState: TabStateForReplacement, existin
  * State transition for tab targets: [Tab(A), RHP] -> [Tab(B), RHP]
  * State transition for other fullscreen targets: [FS, RHP] -> [FS, FS', RHP]
  *
- * @see removePreInsertedFullscreenIfNeeded in Navigation.ts — the caller that cleans up
+ * @see removePreInsertedFullscreenIfNeeded in helpers/preMountBuffer.ts — the caller that cleans up
  *      the pre-insertion when the user cancels.
  */
+
+/**
+ * Guards against a native swipe-back gesture popping the RHP before JS cleanup runs; web has no such
+ * gesture. Only inserted when the caller opts in, since some callers dismiss synchronously with no
+ * gesture involved and never clear the buffer afterward - inserting one there would leave it stuck on top.
+ */
+function buildPreMountBufferRoute(rhpRouteKey: string, shouldInsertPreMountBuffer: boolean | undefined): StackNavigationState<ParamListBase>['routes'][number] | undefined {
+    if (!hasNativeSwipeBackGesture() || !shouldInsertPreMountBuffer) {
+        return undefined;
+    }
+    return {name: SCREENS.PRE_MOUNT_BUFFER, key: `pre-mount-buffer-${rhpRouteKey}`};
+}
+
 function handleReplaceFullscreenUnderRHP(
     state: StackNavigationState<ParamListBase>,
     action: ReplaceFullscreenUnderRHPActionType,
@@ -531,7 +546,16 @@ function handleReplaceFullscreenUnderRHP(
         preInsertedOriginalTabRoute = existingTabState?.routes?.length
             ? existingTabRoute
             : ({...existingTabRoute, state: buildTabNavigatorNestedState({name: TAB_SCREENS[0]})} as StackNavigationState<ParamListBase>['routes'][number]);
-        const newRoutes = [...routesWithoutRHP.slice(0, tabNavIndex), updatedTabRoute, ...routesWithoutRHP.slice(tabNavIndex + 1), rhpRoute];
+        // Add Buffer to the routes this call returns, rather than as a separate dispatch afterward. A
+        // second dispatch would re-run state rehydration on top of the placeholder tab state built
+        // above, permanently locking in that placeholder instead of letting it resolve normally.
+        const bufferRouteForTab = buildPreMountBufferRoute(rhpRoute.key, action.payload.shouldInsertPreMountBuffer);
+        const newRoutes = [...routesWithoutRHP];
+        newRoutes[tabNavIndex] = updatedTabRoute;
+        if (bufferRouteForTab) {
+            newRoutes.push(bufferRouteForTab);
+        }
+        newRoutes.push(rhpRoute);
         return stackRouter.getRehydratedState({...state, routes: newRoutes, index: newRoutes.length - 1}, configOptions);
     }
 
@@ -558,10 +582,18 @@ function handleReplaceFullscreenUnderRHP(
     }
 
     const rehydratedStateAfterPush = stackRouter.getRehydratedState(stateAfterPush, configOptions);
+    // Build Buffer into this same dispatch (same reasoning as the tab branch above).
+    const bufferRouteForPush = buildPreMountBufferRoute(rhpRoute.key, action.payload.shouldInsertPreMountBuffer);
+    const routesWithRHP = [...rehydratedStateAfterPush.routes];
+    if (bufferRouteForPush) {
+        routesWithRHP.push(bufferRouteForPush);
+    }
+    routesWithRHP.push(rhpRoute);
+
     return {
         ...rehydratedStateAfterPush,
-        routes: [...rehydratedStateAfterPush.routes, rhpRoute],
-        index: rehydratedStateAfterPush.routes.length,
+        routes: routesWithRHP,
+        index: routesWithRHP.length - 1,
     };
 }
 
@@ -583,11 +615,11 @@ function handleRemoveFullscreenUnderRHP(
     stackRouter: Router<StackNavigationState<ParamListBase>, CommonActions.Action | StackActionType>,
 ) {
     const rhpRoute = state.routes.at(-1);
-    if (rhpRoute?.name !== NAVIGATORS.RIGHT_MODAL_NAVIGATOR) {
+    if (!isPreMountBufferHostName(rhpRoute?.name)) {
         return null;
     }
 
-    const routesWithoutRHP = state.routes.slice(0, -1);
+    const routesWithoutRHP = state.routes.slice(0, -1).filter((r) => r.name !== SCREENS.PRE_MOUNT_BUFFER);
 
     // Tab-switch path: restore the original TAB_NAVIGATOR route saved during pre-insertion.
     if (preInsertedOriginalTabRoute) {

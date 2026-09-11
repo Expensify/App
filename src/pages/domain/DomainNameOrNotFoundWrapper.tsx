@@ -13,7 +13,6 @@ import type {ReactNode} from 'react';
 import React from 'react';
 
 type DomainNameOrNotFoundWrapperProps = {
-    /** AccountID of the domain */
     domainAccountID: number;
 
     /** Called when the not found page's link is pressed */

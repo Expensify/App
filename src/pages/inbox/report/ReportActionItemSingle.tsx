@@ -39,7 +39,6 @@ import ReportActionItemFragment from './ReportActionItemFragment';
 import VacationDelegateText from './VacationDelegateText';
 
 type ReportActionItemSingleProps = Partial<ChildrenProps> & {
-    /** All the data of the action */
     action: OnyxEntry<ReportAction>;
 
     /** Styles for the outermost View */
@@ -51,13 +50,8 @@ type ReportActionItemSingleProps = Partial<ChildrenProps> & {
     /** IOU Report for this action, if any */
     iouReport?: OnyxEntry<Report>;
 
-    /** Show header for action */
     showHeader?: boolean;
-
-    /** If the action is being hovered */
     isHovered?: boolean;
-
-    /** If the action is active */
     isActive?: boolean;
 };
 

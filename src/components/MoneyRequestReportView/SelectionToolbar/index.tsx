@@ -46,7 +46,6 @@ import SelectAllCheckbox from './SelectAllCheckbox';
 import SelectionDropdown from './SelectionDropdown';
 
 type SelectionToolbarProps = {
-    /** The reportID of the report */
     reportID: string;
 
     /** Filtered transactions for this report */
@@ -306,7 +305,6 @@ function SelectionToolbar({reportID, transactions, reportActions}: SelectionTool
             {isHoldMenuVisible && requestType !== undefined && (
                 <ProcessMoneyReportHoldMenu
                     nonHeldAmount={!hasOnlyHeldExpenses && hasValidNonHeldAmount ? nonHeldAmount : undefined}
-                    requestType={requestType}
                     fullAmount={fullAmount}
                     onClose={handleHoldMenuClose}
                     isVisible={isHoldMenuVisible}

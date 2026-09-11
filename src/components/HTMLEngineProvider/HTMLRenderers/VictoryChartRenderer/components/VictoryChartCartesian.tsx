@@ -28,7 +28,6 @@ type VictoryChartCartesianProps = {
     /** When true, renders without visible chrome (used for snapshots/tests) */
     headless?: boolean;
 
-    /** Callback invoked with render args on each chart render pass */
     onRenderArgs?: (renderArgs: CartesianChartRenderArg<CartesianChartData, YKey>) => void;
 };
 

@@ -10,7 +10,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {getEffectiveDistance} from '@libs/GPSDraftDetailsUtils';
 
-import variables from '@styles/variables';
+import {fontScale} from '@styles/typography';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Unit} from '@src/types/onyx/Policy';
@@ -43,7 +43,7 @@ function DistanceCounter({unit}: DistanceCounterProps) {
             style={[styles.ph0]}
             icon={icons.Crosshair}
             shouldIconUseAutoWidthStyle
-            descriptionTextStyle={StyleUtils.getFontSizeStyle(variables.fontSizeLabel)}
+            descriptionTextStyle={StyleUtils.getFontSizeStyle(fontScale.label)}
         />
     );
 }

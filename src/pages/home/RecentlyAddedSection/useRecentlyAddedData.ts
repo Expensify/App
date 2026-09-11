@@ -20,7 +20,6 @@ import {useEffect, useEffectEvent, useMemo, useState} from 'react';
 
 /** A single expense row surfaced by the Recently added slot. */
 type RecentlyAddedExpense = {
-    /** The transaction's ID */
     transactionID: string;
 
     /** The report to open when the row is pressed */

@@ -29,10 +29,7 @@ type UseSearchingProps<T> = {
  * @template T - The type of items in the data array.
  */
 type SearchingMethods = {
-    /** Callback to update the search string. */
     updateSearchString: (value: string) => void;
-
-    /** Callback to get the active search string. */
     getActiveSearchString: () => string;
 };
 

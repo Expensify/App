@@ -1,7 +1,7 @@
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 
 import CONST from '@src/CONST';
-import type {Policy, Report, ReportAction, Transaction, TransactionViolations} from '@src/types/onyx';
+import type {Policy, Report, ReportAction, Rule, Transaction, TransactionViolations} from '@src/types/onyx';
 import type {ReportNextStep} from '@src/types/onyx/Report';
 
 import type {Locale as DateFnsLocale} from 'date-fns';
@@ -45,6 +45,7 @@ type BuildNextStepNewParams = {
     bypassNextApproverID?: number;
     isTrackIntentUser: boolean | undefined;
     translate?: LocaleContextProps['translate'];
+    rules: OnyxCollection<Rule>;
 };
 
 type GetReportNextStepParams = {
@@ -55,6 +56,7 @@ type GetReportNextStepParams = {
     transactionViolations: OnyxCollection<TransactionViolations>;
     currentUserEmail: string;
     currentUserAccountID: number;
+    rules: OnyxCollection<Rule>;
 };
 
 function buildNextStepMessage(
@@ -116,6 +118,7 @@ function buildOptimisticNextStep(params: BuildNextStepNewParams): ReportNextStep
         isRejectedReport: isRejectedReportParam,
         bypassNextApproverID,
         isTrackIntentUser,
+        rules,
     } = params;
 
     if (!isExpenseReport(report)) {
@@ -127,7 +130,7 @@ function buildOptimisticNextStep(params: BuildNextStepNewParams): ReportNextStep
     const isInstantSubmitEnabled = autoReportingFrequency === CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT;
     const shouldShowFixMessage = hasViolations && isInstantSubmitEnabled && !isASAPSubmitBetaEnabled;
     const hasTransactions = doesReportContainTransactions(report);
-    const approverAccountID = bypassNextApproverID ?? getNextApproverAccountID(report, isUnapprove);
+    const approverAccountID = bypassNextApproverID ?? getNextApproverAccountID(report, rules, isUnapprove);
     const reimburserAccountID = getReimburserAccountID(policy);
     const {reimbursableSpend} = getMoneyRequestSpendBreakdown(report);
 
@@ -166,7 +169,7 @@ function buildOptimisticNextStep(params: BuildNextStepNewParams): ReportNextStep
             }
             if (isReopen) {
                 nextStep = {
-                    messageKey: shouldShowMarkAsDone({isTrackIntentUser, report, policy})
+                    messageKey: shouldShowMarkAsDone({isTrackIntentUser, report, policy, rules})
                         ? CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_MARK_AS_DONE
                         : CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_SUBMIT,
                     icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
@@ -233,6 +236,7 @@ function buildOptimisticNextStep(params: BuildNextStepNewParams): ReportNextStep
                         isTrackIntentUser,
                         report,
                         policy,
+                        rules,
                     })
                         ? CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_MARK_AS_DONE
                         : CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_SUBMIT,
@@ -316,7 +320,16 @@ function buildOptimisticFixIssueNextStep(ownerAccountID: number): ReportNextStep
     };
 }
 
-function getReportNextStep({moneyRequestReport, moneyRequestReportOwnerLogin, transactions, policy, transactionViolations, currentUserEmail, currentUserAccountID}: GetReportNextStepParams) {
+function getReportNextStep({
+    moneyRequestReport,
+    moneyRequestReportOwnerLogin,
+    transactions,
+    policy,
+    transactionViolations,
+    currentUserEmail,
+    currentUserAccountID,
+    rules,
+}: GetReportNextStepParams) {
     const {reimbursableSpend} = getMoneyRequestSpendBreakdown(moneyRequestReport);
     const shouldShowNoFurtherAction =
         reimbursableSpend === 0 &&
@@ -339,7 +352,7 @@ function getReportNextStep({moneyRequestReport, moneyRequestReportOwnerLogin, tr
     // When prevent self-approval is enabled & the current user is submitter AND they're submitting to themselves, we need to show the optimistic next step
     // We should always show this optimistic message for policies with preventSelfApproval
     // to avoid any flicker during transitions between online/offline states
-    if (shouldBlockSubmitDueToPreventSelfApproval(moneyRequestReport, policy)) {
+    if (shouldBlockSubmitDueToPreventSelfApproval(moneyRequestReport, policy, rules)) {
         return buildOptimisticNextStepForPreventSelfApprovalsEnabled();
     }
 

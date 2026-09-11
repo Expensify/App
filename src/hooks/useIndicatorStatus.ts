@@ -8,7 +8,6 @@ type IndicatorStatusResult = {
     /** The indicator dot color: danger for errors, success for info or no issues. */
     indicatorColor: string;
 
-    /** The indicator status. */
     status: IndicatorStatus | undefined;
 
     /** The policy ID associated with the indicator. */

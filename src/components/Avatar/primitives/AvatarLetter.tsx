@@ -29,7 +29,6 @@ type AvatarLetterProps = AvatarPrimitivesCommonProps & {
     /** Styles for View wrapping the initials. */
     containerStyles?: StyleProp<ViewStyle & ImageStyle>;
 
-    /** Additional styles for the wrapping View. */
     containerAdditionalStyles?: StyleProp<ViewStyle>;
 };
 

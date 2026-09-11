@@ -1,7 +1,6 @@
 import type {ReactNode} from 'react';
 
 type DragAndDropProviderProps = {
-    /** Children to render inside this component. */
     children: ReactNode;
 
     /** Should this dropZone be disabled? */

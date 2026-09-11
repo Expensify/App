@@ -192,6 +192,7 @@ describe('buildOnyxDataForMoneyRequest', () => {
                     optimisticParams: buildBaseOptimisticParams(IOU_REPORT_ID),
                     delegateAccountID: undefined,
                     isTrackIntentUser: false,
+                    rules: undefined,
                 };
             }
 
@@ -335,6 +336,7 @@ describe('buildOnyxDataForMoneyRequest', () => {
                     optimisticParams: buildBaseOptimisticParams(IOU_REPORT_ID),
                     delegateAccountID: undefined,
                     isTrackIntentUser: false,
+                    rules: undefined,
                 };
             }
 
@@ -377,6 +379,7 @@ describe('buildOnyxDataForMoneyRequest', () => {
                     optimisticParams: buildBaseOptimisticParams(IOU_REPORT_ID),
                     delegateAccountID: undefined,
                     isTrackIntentUser: false,
+                    rules: undefined,
                 };
             }
 
@@ -425,6 +428,7 @@ describe('buildOnyxDataForMoneyRequest', () => {
                 },
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                rules: undefined,
             };
         }
 
@@ -511,6 +515,7 @@ describe('buildOnyxDataForMoneyRequest', () => {
             delegateAccountID: undefined,
             isTrackIntentUser: false,
             formatPhoneNumber: mockFormatPhoneNumber,
+            rules: undefined,
         });
 
         const personalDetailsEntry = result.onyxData.optimisticData?.find((entry) => entry.key === ONYXKEYS.PERSONAL_DETAILS_LIST);
