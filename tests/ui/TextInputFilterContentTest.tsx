@@ -46,7 +46,7 @@ jest.mock('@components/AutoGrowHeightInputContainer', () => ({
         return MockReact.createElement(MockView, {testID: 'auto-grow-container'}, children(420));
     },
 }));
-jest.mock('@components/ButtonComposed', () => {
+jest.mock('@components/Button', () => {
     function MockButton(props: ButtonMockProps) {
         mockButton(props);
         return props.children;

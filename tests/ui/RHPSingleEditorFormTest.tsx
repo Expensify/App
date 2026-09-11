@@ -12,6 +12,7 @@ import WorkspaceNamePage from '@pages/workspace/WorkspaceNamePage';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 import EXPENSE_RULE_INPUT_IDS from '@src/types/form/ExpenseRuleForm';
+import SEARCH_RENAME_INPUT_IDS from '@src/types/form/SearchSavedSearchRenameForm';
 
 import type {ComponentType, ReactNode} from 'react';
 
@@ -127,13 +128,13 @@ describe('Single-editor RHP form boundaries', () => {
         const props = createMock<React.ComponentProps<typeof SavedSearchRenamePage>>({route: {params: {id: 'saved-search-1'}}});
         render(<SavedSearchRenamePage {...props} />);
 
-        const values = {name: 'Travel\r\nExpenses'};
+        const values = {[SEARCH_RENAME_INPUT_IDS.NAME]: 'Travel\r\nExpenses'};
         expect(getForm().validate(values)).toEqual({});
         getForm().onSubmit(values);
         await Promise.resolve();
 
         expect(saveSearch).toHaveBeenCalledWith({id: 'saved-search-1', queryJSON: {type: 'expense'}, newName: 'Travel Expenses'});
-        expect(values.name).toBe('Travel\r\nExpenses');
+        expect(values[SEARCH_RENAME_INPUT_IDS.NAME]).toBe('Travel\r\nExpenses');
         expect(mockInput.mock.calls.at(-1)?.[0]).toEqual(expect.objectContaining({autoGrowSingleLine: true, maxAutoGrowHeight: 396}));
     });
 

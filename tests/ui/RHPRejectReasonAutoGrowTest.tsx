@@ -4,6 +4,8 @@ import HoldReasonFormView from '@pages/iou/HoldReasonFormView';
 import RejectReasonFormView from '@pages/iou/RejectReasonFormView';
 import RejectExpenseReportPage from '@pages/RejectExpenseReportPage';
 
+import ONYXKEYS from '@src/ONYXKEYS';
+
 import React from 'react';
 import {View} from 'react-native';
 
@@ -100,6 +102,24 @@ jest.mock('@libs/PersonalDetailsUtils', () => ({
 }));
 jest.mock('@userActions/IOU/RejectMoneyRequest', () => ({rejectExpenseReport: jest.fn()}));
 
+function mockReportData(hasPreviousApprover = false) {
+    mockUseOnyx.mockImplementation((key) => {
+        if (key === `${ONYXKEYS.COLLECTION.REPORT}1`) {
+            return [{reportID: '1', ownerAccountID: 2}];
+        }
+        if (key === `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1`) {
+            return [hasPreviousApprover ? 3 : undefined];
+        }
+        if (key === ONYXKEYS.PERSONAL_DETAILS_LIST) {
+            return [{submitterEmail: 'submitter@example.com', lastForwardedActorEmail: hasPreviousApprover ? 'approver@example.com' : undefined}];
+        }
+        if (key === ONYXKEYS.NVP_INTRO_SELECTED) {
+            return [false];
+        }
+        return [undefined];
+    });
+}
+
 function expectMeasuredHeightPropagation() {
     expect(mockAutoGrowContainer).toHaveBeenCalled();
     expect(mockInputWrapper.mock.calls.at(-1)?.[0]).toEqual(expect.objectContaining({maxAutoGrowHeight: 396}));
@@ -146,11 +166,7 @@ describe('RHP rejection reason inputs', () => {
     });
 
     it('passes the measured available height to the report rejection input', () => {
-        mockUseOnyx
-            .mockReturnValueOnce([{reportID: '1', ownerAccountID: 2}])
-            .mockReturnValueOnce([undefined])
-            .mockReturnValueOnce([{submitterEmail: 'submitter@example.com', lastForwardedActorEmail: undefined}])
-            .mockReturnValueOnce([false]);
+        mockReportData();
 
         render(<RejectExpenseReportPage {...getReportPageProps()} />);
 
@@ -160,11 +176,7 @@ describe('RHP rejection reason inputs', () => {
     });
 
     it('keeps the optional previous-approver selector outside the measured report input', () => {
-        mockUseOnyx
-            .mockReturnValueOnce([{reportID: '1', ownerAccountID: 2}])
-            .mockReturnValueOnce([3])
-            .mockReturnValueOnce([{submitterEmail: 'submitter@example.com', lastForwardedActorEmail: 'approver@example.com'}])
-            .mockReturnValueOnce([false]);
+        mockReportData(true);
 
         render(<RejectExpenseReportPage {...getReportPageProps()} />);
 
