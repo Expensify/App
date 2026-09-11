@@ -1,4 +1,4 @@
-import {act, render, screen, waitFor} from '@testing-library/react-native';
+import {act, fireEvent, render, screen, waitFor} from '@testing-library/react-native';
 
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
@@ -6,6 +6,8 @@ import {ModalProvider} from '@components/Modal/Global/ModalContext';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
 import ExpensifyCardPreferredWorkspaceToggle from '@pages/domain/Groups/ExpensifyCardPreferredWorkspaceToggle';
+
+import {updateDomainSecurityGroup} from '@userActions/Domain';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -17,6 +19,17 @@ import Onyx from 'react-native-onyx';
 
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
+
+jest.mock('@userActions/Domain', () => ({
+    updateDomainSecurityGroup: jest.fn(),
+    clearDomainSecurityGroupSettingError: jest.fn(),
+}));
+
+// The switch defers onToggle inside a requestAnimationFrame, so run it synchronously to keep the press assertions deterministic.
+jest.spyOn(global, 'requestAnimationFrame').mockImplementation((callback: FrameRequestCallback) => {
+    callback(0);
+    return 0;
+});
 
 const domainAccountID = 424242;
 const groupID = '1001';
@@ -34,6 +47,9 @@ const group: DomainSecurityGroup = {
     restrictedPrimaryPolicyID: 'A1B2C3',
     overridePreferredPolicyWithCardPolicy: false,
 };
+
+// Same group with the override already on, mirroring a group that had a card feed when the setting was turned on.
+const activeGroup: DomainSecurityGroup = {...group, overridePreferredPolicyWithCardPolicy: true};
 
 // Resolved lazily at assertion time: IntlStore has not loaded the locale yet at module load.
 const getToggleLabel = () => TestHelper.translateLocal('domain.groups.expensifyCardPreferredWorkspace');
@@ -54,9 +70,9 @@ const renderToggle = () =>
         </ComposeProviders>,
     );
 
-const seedGroup = async () => {
+const seedGroup = async (groupToSeed: DomainSecurityGroup = group) => {
     await act(async () => {
-        await Onyx.merge(domainKey, {[groupKey]: group});
+        await Onyx.merge(domainKey, {[groupKey]: groupToSeed});
     });
 };
 
@@ -115,6 +131,48 @@ describe('ExpensifyCardPreferredWorkspaceToggle', () => {
         const switchNode = screen.getByRole(CONST.ROLE.SWITCH);
         expect(switchNode.props.accessibilityLabel).toContain(getToggleLabel());
         expect(switchNode.props.accessibilityLabel).not.toContain(getLockedSuffix());
+
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
+    it('keeps an already-on toggle manually disable-able after the card feed is removed', async () => {
+        // Given a group that has the override on but no card feed on the domain (e.g. the feed was removed while it was on)
+        await seedGroup(activeGroup);
+
+        // When the toggle renders
+        const {unmount} = renderToggle();
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the switch is on and NOT locked, so the admin can still turn it off manually even though a feed is required to turn it back on
+        await waitFor(() => {
+            expect(screen.getByRole(CONST.ROLE.SWITCH, {checked: true})).toBeOnTheScreen();
+        });
+        const switchNode = screen.getByRole(CONST.ROLE.SWITCH, {checked: true});
+        expect(switchNode.props.accessibilityLabel).not.toContain(getLockedSuffix());
+
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
+    it('turns the override off when the on toggle is pressed with no card feed', async () => {
+        // Given the group that is on with no card feed
+        await seedGroup(activeGroup);
+        const {unmount} = renderToggle();
+        await waitForBatchedUpdatesWithAct();
+
+        // When the admin presses the switch to turn it off
+        fireEvent.press(screen.getByRole(CONST.ROLE.SWITCH));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the override is written as false through the normal update action (no dependency on the card feed being present)
+        expect(updateDomainSecurityGroup).toHaveBeenCalledWith(
+            domainAccountID,
+            groupID,
+            expect.objectContaining({overridePreferredPolicyWithCardPolicy: true}),
+            {overridePreferredPolicyWithCardPolicy: false},
+            'overridePreferredPolicyWithCardPolicy',
+        );
 
         unmount();
         await waitForBatchedUpdatesWithAct();
