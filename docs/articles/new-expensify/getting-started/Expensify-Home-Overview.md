@@ -1,8 +1,8 @@
 ---
 title: Expensify Home Overview
 description: Learn what you’ll see on Home and how it helps you understand what needs attention, get oriented, and stay informed when you sign in. 
-keywords: [New Expensify, Expensify Home, Home, Home tab, For you, Recently added, recently added expenses, view all expenses, Discover, Announcements, time-sensitive, urgent alerts, Expensify Card fraud, broken bank connection, Your spend, awaiting approval, repaid, recent transactions, Expensify Card, Spend over time, spending chart, insights, insight switcher, Top spenders, Top categories, Top merchants, Chart unavailable, Getting started, onboarding checklist, track and budget my expenses, organize my personal spending, personal spending, customize spend categories, link personal card]
-internalScope: Audience is all Expensify members. Covers what Home is and what appears on it, including the For you, Recently added, Spend over time and other insights, Discover, Announcements, Time-sensitive, Getting started, and Your spend sections. Does not cover how to complete actions like submitting, approving, paying, exporting, or fixing expenses.
+keywords: [New Expensify, Expensify Home, Home, Home tab, For you, Recently added, recently added expenses, view all expenses, Discover, Announcements, time-sensitive, urgent alerts, Expensify Card fraud, broken bank connection, Your spend, awaiting approval, repaid, recent transactions, Expensify Card, Spend over time, spending chart, insights, insight switcher, Top spenders, Top categories, Top merchants, Chart unavailable, Getting started, onboarding checklist, track and budget my expenses, organize my personal spending, personal spending, customize spend categories, link personal card, Upcoming travel, upcoming trips on Home, flight to, hotel in, car rental in, train to, traveler]
+internalScope: Audience is all Expensify members. Covers what Home is and what appears on it, including the For you, Recently added, Upcoming travel, Spend over time and other insights, Discover, Announcements, Time-sensitive, Getting started, and Your spend sections. Does not cover how to complete actions like submitting, approving, paying, exporting, or fixing expenses, and does not cover booking or managing travel.
 
 ---
 
@@ -33,6 +33,7 @@ Home includes:
 - **Time-sensitive alerts** (when applicable)
 - **For you**
 - **Recently added**
+- **Upcoming travel** (when applicable)
 - **Spend over time** and other insights (when applicable)
 - **Getting started** (when applicable)
 - **Discover**
@@ -83,6 +84,26 @@ The **Recently added** section shows your most recently added expenses, so you c
 
 - Select any expense to open it.
 - To see your full list of expenses, select the three dots **(⋮)** in the **Recently added** section, then select **View all expenses**.
+
+---
+
+## How the Upcoming travel section works on Home
+
+The **Upcoming travel** section shows the trip reservations that start in the next 7 days on trips where you are listed as a traveler.
+
+Each row shows the reservation and when it starts, for example:
+- **Flight to Lisbon** — In 3 days
+- **Hotel in Lisbon** — In 1 week
+- **Car rental in Lisbon** — Today
+- **Train to Porto** — In 1 day
+
+Canceled reservations stay in the list and are labeled **Canceled**.
+
+Select any row to open the full details for that reservation.
+
+You’re listed as a traveler when a booking is made in your name, including bookings a travel arranger makes for you. Trips you booked for someone else don’t appear here, because you aren’t the traveler on those reservations.
+
+To review every trip instead of just the next 7 days, learn how to [view upcoming and past trips](/articles/travel/managing-trips/View-Upcoming-and-Past-Trips).
 
 ---
 
@@ -182,6 +203,10 @@ The **Recently added** section always appears on Home. If you haven’t added an
 ## Why don’t I see the Time-sensitive section?
 
 The **Time-sensitive** section only appears when there is an urgent issue or limited-time action that requires attention. If everything is up to date, this section will not be visible.
+
+## Why don’t I see the Upcoming travel section?
+
+The **Upcoming travel** section only appears when you have at least one reservation starting in the next 7 days on a trip where you are listed as a traveler. If you have no reservation in that window, or the only upcoming trips are ones you booked for someone else, the section won’t be visible.
 
 ## Why don’t I see the Spend over time section?
 
