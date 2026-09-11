@@ -77,7 +77,7 @@ function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButt
 
     const styles = useThemeStyles();
 
-    const {isWideRHPDisplayedOnWideLayout, isSuperWideRHPDisplayedOnWideLayout} = useResponsiveLayoutOnWideRHP();
+    const {isWideRHPDisplayedOnWideLayout, isSuperWideRHPDisplayedOnWideLayout, shouldUseNarrowLayout: shouldUseNarrowLayoutOnWideRHP} = useResponsiveLayoutOnWideRHP();
 
     const shouldShowHeaderButtonsInHeaderRow = isInLandscapeMode || !shouldDisplayNarrowVersion || isWideRHPDisplayedOnWideLayout || isSuperWideRHPDisplayedOnWideLayout;
     const isReportInRHP = route.name !== SCREENS.REPORT;
@@ -105,15 +105,19 @@ function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButt
             turnOffMobileSelectionMode();
         }
 
-        return (
-            <HeaderWithBackButton
-                title={translate('common.selectMultiple')}
-                onBackButtonPress={() => {
-                    clearSelectedTransactions(true);
-                    turnOffMobileSelectionMode();
-                }}
-            />
-        );
+        // In a wide/super-wide RHP on a wide screen the header stays in its wide state and shows the "X selected"
+        // dropdown instead, matching the transaction list and the selection toolbar which are both wide-RHP aware.
+        if (shouldUseNarrowLayoutOnWideRHP) {
+            return (
+                <HeaderWithBackButton
+                    title={translate('common.selectMultiple')}
+                    onBackButtonPress={() => {
+                        clearSelectedTransactions(true);
+                        turnOffMobileSelectionMode();
+                    }}
+                />
+            );
+        }
     }
 
     return (
