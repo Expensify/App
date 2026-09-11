@@ -54,7 +54,7 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
     const styles = useThemeStyles();
     const {localeCompare, translate, formatPhoneNumber} = useLocalize();
     const {isOffline} = useNetwork();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {shouldUseNarrowLayout, isInLandscapeMode} = useResponsiveLayout();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
     const [isDebugModeEnabled] = useOnyx(ONYXKEYS.IS_DEBUG_MODE_ENABLED);
@@ -260,28 +260,28 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
         clearDelegatorErrors({delegatedAccess: account?.delegatedAccess});
     };
 
-    const displayNameStyle = shouldUseNarrowLayout ? [styles.textHeadlineH1, styles.textAlignCenter] : [styles.textBold, styles.textLarge, styles.flexShrink1, styles.lineHeightXLarge];
-    const avatarSize = shouldUseNarrowLayout ? CONST.AVATAR_SIZE.XXXX_LARGE : CONST.AVATAR_SIZE.DEFAULT;
+    // A landscape phone is still a narrow layout, but the tall stacked header would eat most of the screen height there.
+    const shouldStackHeader = shouldUseNarrowLayout && !isInLandscapeMode;
+    const displayNameStyle = shouldStackHeader ? [styles.textHeadlineH1, styles.textAlignCenter] : [styles.textBold, styles.textLarge, styles.flexShrink1, styles.lineHeightXLarge];
+    const avatarSize = shouldStackHeader ? CONST.AVATAR_SIZE.XXXX_LARGE : CONST.AVATAR_SIZE.DEFAULT;
 
     return (
         <>
             <View
                 style={
-                    shouldUseNarrowLayout
+                    shouldStackHeader
                         ? [styles.alignItemsCenter, styles.gap4, styles.w100]
                         : [styles.flexRow, styles.gap3, styles.alignItemsCenter, styles.flexGrow1, styles.flex1, styles.mnw0]
                 }
             >
                 <View
                     style={
-                        shouldUseNarrowLayout
+                        shouldStackHeader
                             ? [styles.alignItemsCenter, styles.gap3, styles.w100]
                             : [styles.flexRow, styles.gap3, styles.alignItemsCenter, styles.flex1, styles.flexShrink1, styles.mnw0, styles.justifyContentCenter]
                     }
                 >
                     <UserAvatar
-                        // The underlying Image is memoized on `source` alone, so a size-only change never reaches it. Remount just this avatar when the breakpoint changes.
-                        key={avatarSize}
                         size={avatarSize}
                         accountID={currentUserPersonalDetails.accountID}
                         source={currentUserPersonalDetails.avatar}
@@ -289,7 +289,7 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
                     />
                     <View
                         style={
-                            shouldUseNarrowLayout
+                            shouldStackHeader
                                 ? [styles.alignItemsCenter, styles.gap1, styles.w100]
                                 : [styles.flex1, styles.flexShrink1, styles.flexBasis0, styles.justifyContentCenter, styles.gap1]
                         }
@@ -311,13 +311,13 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
                         )}
                         <Text
                             numberOfLines={1}
-                            style={[styles.colorMuted, styles.fontSizeLabel, shouldUseNarrowLayout && styles.textAlignCenter]}
+                            style={[styles.colorMuted, styles.fontSizeLabel, shouldStackHeader && styles.textAlignCenter]}
                         >
                             {Str.removeSMSDomain(currentUserPersonalDetails.login ?? '')}
                         </Text>
                         {!!isDebugModeEnabled && (
                             <Text
-                                style={[styles.textLabelSupporting, styles.mt1, styles.w100, shouldUseNarrowLayout && styles.textAlignCenter]}
+                                style={[styles.textLabelSupporting, styles.mt1, styles.w100, shouldStackHeader && styles.textAlignCenter]}
                                 numberOfLines={1}
                             >
                                 AccountID: {accountID}

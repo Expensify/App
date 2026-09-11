@@ -19,6 +19,7 @@ import {Circle} from 'react-native-svg';
 const BAR_HEIGHT = 8;
 const NAME_BAR_WIDTH_RATIO = 0.45;
 const LOGIN_BAR_WIDTH_RATIO = 0.55;
+const SWITCH_BUTTON_WIDTH = 96;
 
 type AccountSwitcherSkeletonViewProps = {
     shouldAnimate?: boolean;
@@ -28,11 +29,21 @@ type AccountSwitcherSkeletonViewProps = {
     /** Whether to stack the bars under a centered avatar, mirroring the narrow-layout account header */
     shouldStack?: boolean;
 
+    /** Whether the stacked header will render a "Switch accounts" button below the login, so its row can be reserved */
+    shouldShowSwitchButton?: boolean;
+
     /** Additional styles for the skeleton view */
     style?: StyleProp<ViewStyle>;
 };
 
-function AccountSwitcherSkeletonView({shouldAnimate = true, avatarSize = CONST.AVATAR_SIZE.DEFAULT, width, shouldStack = false, style}: AccountSwitcherSkeletonViewProps) {
+function AccountSwitcherSkeletonView({
+    shouldAnimate = true,
+    avatarSize = CONST.AVATAR_SIZE.DEFAULT,
+    width,
+    shouldStack = false,
+    shouldShowSwitchButton = false,
+    style,
+}: AccountSwitcherSkeletonViewProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -41,17 +52,15 @@ function AccountSwitcherSkeletonView({shouldAnimate = true, avatarSize = CONST.A
     const startPositionX = avatarPlaceholderRadius;
     const rectXTranslation = startPositionX + avatarPlaceholderRadius + styles.gap3.gap;
 
-    // Rect can only be positioned by transform, which takes pixels, so the centered bars need a real width to
-    // offset from. Callers that already know it pass `width`; the rest are measured.
     const [measuredWidth, setMeasuredWidth] = useState(0);
     const stackedWidth = width ?? measuredWidth;
     const onLayout = (event: LayoutChangeEvent) => setMeasuredWidth(event.nativeEvent.layout.width);
 
-    // The loaded header is the avatar, then the display name on an h1 line, then the login on a normal line. The
-    // skeleton has to reserve all three plus the gaps between them, or the menu below shifts once details arrive.
     const nameLineTop = avatarPlaceholderSize + styles.gap3.gap;
     const loginLineTop = nameLineTop + variables.lineHeightSizeH1 + styles.gap1.gap;
-    const stackedHeight = loginLineTop + variables.lineHeightNormal;
+    const loginLineBottom = loginLineTop + variables.lineHeightNormal;
+    const switchButtonTop = loginLineBottom + styles.gap4.gap;
+    const stackedHeight = shouldShowSwitchButton ? switchButtonTop + variables.componentSizeSmall : loginLineBottom;
 
     const nameBarWidth = stackedWidth * NAME_BAR_WIDTH_RATIO;
     const loginBarWidth = stackedWidth * LOGIN_BAR_WIDTH_RATIO;
@@ -62,7 +71,6 @@ function AccountSwitcherSkeletonView({shouldAnimate = true, avatarSize = CONST.A
             onLayout={shouldStack && width === undefined ? onLayout : undefined}
         >
             {shouldStack && !stackedWidth ? (
-                // Hold the final height until the width lands so the first frame doesn't shift the menu below it.
                 <View style={StyleUtils.getHeight(stackedHeight)} />
             ) : (
                 <SkeletonViewContentLoader
@@ -89,6 +97,14 @@ function AccountSwitcherSkeletonView({shouldAnimate = true, avatarSize = CONST.A
                                 width={loginBarWidth}
                                 height={BAR_HEIGHT}
                             />
+                            {!!shouldShowSwitchButton && (
+                                <SkeletonRect
+                                    transform={[{translateX: (stackedWidth - SWITCH_BUTTON_WIDTH) / 2}, {translateY: switchButtonTop}]}
+                                    width={SWITCH_BUTTON_WIDTH}
+                                    height={variables.componentSizeSmall}
+                                    borderRadius={variables.buttonBorderRadius}
+                                />
+                            )}
                         </>
                     ) : (
                         <>
