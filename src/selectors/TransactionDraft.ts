@@ -1,9 +1,10 @@
-import type {ReadonlyOnyx, ReadonlyOnyxCollection} from '@src/types/onyx';
 import type Transaction from '@src/types/onyx/Transaction';
+import type {ReadonlyOnyxCollection} from '@src/types/utils/ReadonlyOnyx';
 
 import type {OnyxCollection} from 'react-native-onyx';
+import type {ReadonlyDeep} from 'type-fest';
 
-const validTransactionDraftsSelector = <TDraft extends ReadonlyOnyx<Transaction>>(drafts: OnyxCollection<TDraft>): Record<string, TDraft> =>
+const validTransactionDraftsSelector = <TDraft extends ReadonlyDeep<Transaction>>(drafts: OnyxCollection<TDraft>): Record<string, TDraft> =>
     Object.values(drafts ?? {}).reduce<Record<string, TDraft>>((acc, draft) => {
         if (draft) {
             acc[draft.transactionID] = draft;

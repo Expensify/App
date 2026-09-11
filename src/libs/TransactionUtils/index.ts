@@ -66,9 +66,6 @@ import type {
     Policy,
     PolicyCategories,
     PolicyTagLists,
-    ReadonlyOnyx,
-    ReadonlyOnyxEntry,
-    ReadonlyOnyxInputOrEntry,
     RecentWaypoint,
     Report,
     ReviewDuplicates,
@@ -95,10 +92,11 @@ import type {
     WaypointCollection,
 } from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import type {ReadonlyOnyxEntry, ReadonlyOnyxInputOrEntry} from '@src/types/utils/ReadonlyOnyx';
 
 import type {Locale as DateFnsLocale} from 'date-fns';
 import type {NullishDeep, OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
+import type {ReadonlyDeep, ValueOf} from 'type-fest';
 
 import {format, isValid, parse} from 'date-fns';
 import {SafeString, Str} from 'expensify-common';
@@ -589,7 +587,7 @@ function buildOptimisticTransaction(params: BuildOptimisticTransactionParams): T
 /**
  * Check if the transaction has an Ereceipt
  */
-function hasEReceipt(transaction: ReadonlyOnyx<Transaction> | undefined | null): boolean {
+function hasEReceipt(transaction: ReadonlyDeep<Transaction> | undefined | null): boolean {
     return !!transaction?.hasEReceipt;
 }
 
@@ -792,7 +790,7 @@ function getUpdatedTransaction({
     getCurrencyDecimals,
     getCurrencySymbol,
 }: {
-    transaction: ReadonlyOnyx<Transaction>;
+    transaction: ReadonlyDeep<Transaction>;
     transactionChanges: TransactionChanges;
     isFromExpenseReport: boolean;
     shouldUpdateReceiptState?: boolean;
@@ -3554,7 +3552,7 @@ function willFieldBeAutomaticallyFilled(transaction: OnyxEntry<Transaction>, fie
     return autoFillableFields.includes(fieldType);
 }
 
-function isExpenseUnreported(transaction?: ReadonlyOnyx<Transaction>): transaction is ReadonlyOnyx<UnreportedTransaction> {
+function isExpenseUnreported(transaction?: ReadonlyDeep<Transaction>): transaction is ReadonlyDeep<UnreportedTransaction> {
     return transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
 }
 

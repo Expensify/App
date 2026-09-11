@@ -3,15 +3,17 @@ import type {LocaleContextProps} from '@components/LocaleContextProvider';
 
 import CONST from '@src/CONST';
 import type {IOURequestType} from '@src/CONST';
-import type {LastSelectedDistanceRates, OnyxInputOrEntry, ReadonlyOnyx, ReadonlyOnyxEntry, Transaction} from '@src/types/onyx';
+import type {LastSelectedDistanceRates, OnyxInputOrEntry, Transaction} from '@src/types/onyx';
 import type DefaultP2PMileageRate from '@src/types/onyx/DefaultP2PMileageRate';
 import type {Unit} from '@src/types/onyx/Policy';
 import type Policy from '@src/types/onyx/Policy';
 import type {TransactionCustomUnit} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import type {ReadonlyOnyxEntry} from '@src/types/utils/ReadonlyOnyx';
 
 import type {Locale as DateFnsLocale} from 'date-fns';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {ReadonlyDeep} from 'type-fest';
 
 import {format, parseISO} from 'date-fns';
 
@@ -379,7 +381,7 @@ function getTransactionCommuterExclusionData({
     transaction: OnyxEntry<Transaction>;
     policy: OnyxEntry<Policy>;
     customUnit?: TransactionCustomUnit;
-    storedCustomUnit?: ReadonlyOnyx<TransactionCustomUnit>;
+    storedCustomUnit?: ReadonlyDeep<TransactionCustomUnit>;
     translate?: LocaleContextProps['translate'];
     toLocaleDigit?: LocaleContextProps['toLocaleDigit'];
     getCurrencySymbol?: CurrencyListActionsContextType['getCurrencySymbol'];

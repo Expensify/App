@@ -1,5 +1,5 @@
 import type TransactionType from '@src/types/onyx/Transaction';
-import type {ReadonlyOnyxEntry} from '@src/types/onyx/Transaction';
+import type {ReadonlyOnyxEntry} from '@src/types/utils/ReadonlyOnyx';
 
 import type {OnyxCollection} from 'react-native-onyx';
 

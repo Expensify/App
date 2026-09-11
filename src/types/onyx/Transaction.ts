@@ -9,12 +9,10 @@ import type ONYXKEYS from '@src/ONYXKEYS';
 import type {FileObject} from '@src/types/utils/Attachment';
 import type CollectionDataSet from '@src/types/utils/CollectionDataSet';
 
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import type {KeysOfUnion, ReadonlyDeep, ValueOf} from 'type-fest';
+import type {KeysOfUnion, ValueOf} from 'type-fest';
 
 import type {Accountant, Attendee, Participant, Split, SplitExpense} from './IOU';
 import type * as OnyxCommon from './OnyxCommon';
-import type OnyxInputOrEntry from './OnyxInputOrEntry';
 import type {Unit} from './Policy';
 import type RecentWaypoint from './RecentWaypoint';
 import type ReportAction from './ReportAction';
@@ -723,32 +721,6 @@ type TransactionChanges = Partial<Transaction> & AdditionalTransactionChanges;
 /** Collection of mock transactions, indexed by `transactions_${transactionID}` */
 type TransactionCollectionDataSet = CollectionDataSet<typeof ONYXKEYS.COLLECTION.TRANSACTION>;
 
-/**
- * A deeply-immutable view of an Onyx value.
- *
- * Values handed back by `Onyx.get()` ARE the cached objects, not copies, so mutating one corrupts the
- * cache for every other reader. Wrapping a read value in `ReadonlyOnyx` makes that a compile error
- * instead of a convention reviewers have to remember. Re-exported from `@src/types/onyx` so a call site
- * gets it from the same place it gets `Transaction`, with no direct `type-fest` dependency.
- *
- * To go back to a mutable value, deep-clone it with `lodash/cloneDeep` and cast the result back to the
- * mutable type.
- */
-type ReadonlyOnyx<T> = ReadonlyDeep<T>;
-
-/**
- * `ReadonlyOnyx` applied to the Onyx wrapper types, so a call site reads `ReadonlyOnyxEntry<Transaction>`
- * instead of `ReadonlyOnyx<OnyxEntry<Transaction>>`. Each is an identical, shorter drop-in
- * for that inline form — the deep readonly wrapper distributes over the union.
- *
- * A readonly `OnyxEntry` — the shape a `useOnyx` read hands back.
- */
-type ReadonlyOnyxEntry<T> = ReadonlyOnyx<OnyxEntry<T>>;
-/** A readonly `OnyxInputOrEntry` — a value that may be a write input or a stored entry. */
-type ReadonlyOnyxInputOrEntry<T> = ReadonlyOnyx<OnyxInputOrEntry<T>>;
-/** A readonly `OnyxCollection` — the shape a whole collection key hands back. */
-type ReadonlyOnyxCollection<T> = ReadonlyOnyx<OnyxCollection<T>>;
-
 /** Transaction that is not associated with any report */
 type UnreportedTransaction = Omit<Transaction, 'reportID'> & {
     /** The ID of the report that this transaction is associated with. */
@@ -775,8 +747,4 @@ export type {
     TransactionCustomUnit,
     TransactionCommentVendor,
     UnreportedTransaction,
-    ReadonlyOnyx,
-    ReadonlyOnyxEntry,
-    ReadonlyOnyxInputOrEntry,
-    ReadonlyOnyxCollection,
 };

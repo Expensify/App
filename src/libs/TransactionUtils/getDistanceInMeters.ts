@@ -1,8 +1,9 @@
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 
 import CONST from '@src/CONST';
-import type {ReadonlyOnyxInputOrEntry, Transaction} from '@src/types/onyx';
+import type {Transaction} from '@src/types/onyx';
 import type {Unit} from '@src/types/onyx/Policy';
+import type {ReadonlyOnyxInputOrEntry} from '@src/types/utils/ReadonlyOnyx';
 
 import getSelectedRouteKey from './getSelectedRouteKey';
 

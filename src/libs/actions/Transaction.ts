@@ -71,7 +71,6 @@ import type {
     Policy,
     PolicyCategories,
     PolicyTagLists,
-    ReadonlyOnyx,
     RecentWaypoint,
     Report,
     ReportAction,
@@ -90,6 +89,7 @@ import type {Waypoint, WaypointCollection} from '@src/types/onyx/Transaction';
 import type TransactionState from '@src/types/utils/TransactionStateType';
 
 import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxKey, OnyxUpdate} from 'react-native-onyx';
+import type {ReadonlyDeep} from 'type-fest';
 
 import {originalTransactionIDSelector} from '@selectors/Transaction';
 import {getUnixTime} from 'date-fns';
@@ -102,7 +102,7 @@ type SaveWaypointProps = {
     index: string;
     waypoint: RecentWaypoint | null;
     isDraft?: boolean;
-    recentWaypointsList?: ReadonlyOnyx<RecentWaypoint[]>;
+    recentWaypointsList?: ReadonlyDeep<RecentWaypoint[]>;
     isSplitDraftTransaction?: boolean;
 };
 

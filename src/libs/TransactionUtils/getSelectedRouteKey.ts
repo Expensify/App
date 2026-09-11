@@ -1,5 +1,6 @@
 import CONST from '@src/CONST';
-import type {ReadonlyOnyxInputOrEntry, Transaction} from '@src/types/onyx';
+import type {Transaction} from '@src/types/onyx';
+import type {ReadonlyOnyxInputOrEntry} from '@src/types/utils/ReadonlyOnyx';
 
 // Kept in its own file to avoid circular dependencies. `comment.selectedRouteKey` is frontend-only —
 // only the selected route's distance survives a save, echoed as `comment.customUnit.routeDistanceMeters`
