@@ -51,6 +51,8 @@ const ONYXKEYS = {
 
     /** Ordered reportIDs from the latest SearchForReports response, used to display server search results in the tier order Auth returned. */
     RAM_ONLY_SEARCH_RESULT_REPORT_IDS: 'searchResultReportIDs',
+    /** Boolean flag set whenever we are searching for users in the server */
+    RAM_ONLY_IS_SEARCHING_FOR_USERS: 'isSearchingForUsers',
 
     /** Boolean flag indicating a SignInWithShortLivedAuthToken request is in flight. RAM-only so an interrupted request never persists a stuck `true` to IndexedDB and blocks future reauth attempts. */
     RAM_ONLY_IS_AUTHENTICATING_WITH_SHORT_LIVED_TOKEN: 'isAuthenticatingWithShortLivedToken',
@@ -506,7 +508,6 @@ const ONYXKEYS = {
     LAST_ACCESSED_WORKSPACE_POLICY_ID: 'lastAccessedWorkspacePolicyID',
 
     /** Is app in beta version */
-    IS_BETA: 'isBeta',
 
     /** Whether we're checking if the room is public or not */
     RAM_ONLY_IS_CHECKING_PUBLIC_ROOM: 'isCheckingPublicRoom',
@@ -622,6 +623,9 @@ const ONYXKEYS = {
     /** Indicates whether the debug mode is currently enabled */
     IS_DEBUG_MODE_ENABLED: 'isDebugModeEnabled',
 
+    /** Local overrides for beta feature flags, set from the Test Tool Menu on dev/staging. Takes precedence over the server-provided betas */
+    BETA_OVERRIDES: 'betaOverrides',
+
     /** Indicates whether the git branch name should be shown in the browser tab title */
     SHOULD_SHOW_BRANCH_NAME_IN_TITLE: 'shouldShowBranchNameInTitle',
 
@@ -678,6 +682,9 @@ const ONYXKEYS = {
     /** Session-scoped flag: user dismissed the "enable notifications" banner in the Concierge chat */
     RAM_ONLY_HAS_DISMISSED_CONCIERGE_NOTIFICATION_BANNER: 'hasDismissedConciergeNotificationBanner',
 
+    /** Session-scoped record of the latest expense edit that could become a merchant rule, driving the "Create a rule" callout */
+    RAM_ONLY_MERCHANT_RULE_SUGGESTION: 'merchantRuleSuggestion',
+
     NVP_PRIVATE_CANCELLATION_DETAILS: 'nvp_private_cancellationDetails',
 
     /** Stores the information about duplicated workspace */
@@ -718,6 +725,9 @@ const ONYXKEYS = {
 
     /** Stores the information about the recent searches */
     RECENT_SEARCHES: 'nvp_recentSearches',
+
+    /** Stores the last query for each suggested/saved search */
+    SEARCH_FILTERS: 'nvp_searchFilters',
 
     /** Stores the current search page context (e.g., whether to show the search query) */
     SEARCH_CONTEXT: 'searchContext',
@@ -771,6 +781,9 @@ const ONYXKEYS = {
     /** Information about travel provisioning process */
     TRAVEL_PROVISIONING: 'travelProvisioning',
 
+    /** Signals the UI to show the Enable Global Reimbursements modal when a pay attempt fails because the workspace USD VBBA is not set up on Corpay */
+    RAM_ONLY_CORPAY_PAY_MODAL: 'corpayPayModal',
+
     /** Stores the information about the state of side panel */
     NVP_SIDE_PANEL: 'nvp_sidePanel',
 
@@ -800,6 +813,9 @@ const ONYXKEYS = {
 
     /** Persisted draft for the new-agent avatar selection flow */
     AGENT_NEW_AVATAR_DRAFT: 'agentNewAvatarDraft',
+
+    /** Maps an agent's optimistic accountID to the real one assigned by CreateAgent, consumed and cleared by replaceOptimisticAgentWithActualAgent */
+    OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING: 'optimisticAgentAccountIDMapping',
 
     /** Set when the rooms page has finished loading for the first time */
     ARE_POLICY_ROOMS_LOADED: 'arePolicyRoomsLoaded',
@@ -902,6 +918,12 @@ const ONYXKEYS = {
         REPORT: 'report_',
         REPORT_NAME_VALUE_PAIRS: 'reportNameValuePairs_',
         REPORT_DRAFT: 'reportDraft_',
+        // Boolean marker (no report data) flagging that report_<id> is a speculative copy of reportDraft_<id>, written by
+        // preMountDraftReport so a pre-mounted destination can render before submit. Must persist (not RAM-only): the
+        // report_<id> row it points at lives in the persisted REPORT collection, and Onyx RAM-only applies per key or whole
+        // collection, not per row, so that row survives an app kill (where no unmount cleanup runs). A RAM-only marker would
+        // vanish while the row stays behind. The next launch uses this marker to find and delete it.
+        REPORT_PRE_MOUNTED_DRAFT: 'reportPreMountedDraft_',
         // REPORT_METADATA holds report-level business state that is NOT the report itself
         // (optimistic flag, pending chat members, report-level errors, DEW pendingExpenseAction).
         // Loading flags / pagination cursors / last-visit timestamp live in dedicated
@@ -1315,6 +1337,8 @@ const ONYXKEYS = {
         RILLET_CREDENTIALS_FORM_DRAFT: 'rilletCredentialsFormDraft',
         DUALENTRY_CREDENTIALS_FORM: 'dualEntryCredentialsForm',
         DUALENTRY_CREDENTIALS_FORM_DRAFT: 'dualEntryCredentialsFormDraft',
+        CAMPFIRE_CREDENTIALS_FORM: 'campfireCredentialsForm',
+        CAMPFIRE_CREDENTIALS_FORM_DRAFT: 'campfireCredentialsFormDraft',
     },
     DERIVED: {
         REPORT_ATTRIBUTES: 'reportAttributes',
@@ -1468,6 +1492,7 @@ type OnyxFormValuesMapping = {
     [ONYXKEYS.FORMS.EDIT_AGENT_RULE_FORM]: FormTypes.EditAgentRuleForm;
     [ONYXKEYS.FORMS.RILLET_CREDENTIALS_FORM]: FormTypes.RilletCredentialsForm;
     [ONYXKEYS.FORMS.DUALENTRY_CREDENTIALS_FORM]: FormTypes.DualEntryCredentialsForm;
+    [ONYXKEYS.FORMS.CAMPFIRE_CREDENTIALS_FORM]: FormTypes.CampfireCredentialsForm;
 };
 
 type OnyxFormDraftValuesMapping = {
@@ -1497,6 +1522,7 @@ type OnyxCollectionValuesMapping = {
     [ONYXKEYS.COLLECTION.REPORT]: OnyxTypes.Report;
     [ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS]: OnyxTypes.ReportNameValuePairs;
     [ONYXKEYS.COLLECTION.REPORT_DRAFT]: OnyxTypes.Report;
+    [ONYXKEYS.COLLECTION.REPORT_PRE_MOUNTED_DRAFT]: boolean;
     [ONYXKEYS.COLLECTION.REPORT_METADATA]: OnyxTypes.ReportMetadata;
     [ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE]: OnyxTypes.ReportLoadingState;
     [ONYXKEYS.COLLECTION.RAM_ONLY_COMPANY_CARDS_LOADING_STATE]: OnyxTypes.CompanyCardsLoadingState;
@@ -1574,6 +1600,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.NVP_TRY_NEW_DOT]: OnyxTypes.TryNewDot;
     [ONYXKEYS.RECENT_SEARCHES]: Record<string, OnyxTypes.RecentSearchItem>;
     [ONYXKEYS.SAVED_SEARCHES]: OnyxTypes.SaveSearch;
+    [ONYXKEYS.SEARCH_FILTERS]: OnyxTypes.SearchFilters;
     [ONYXKEYS.NVP_HAS_SEEDED_MY_EXPENSES_SEARCH]: boolean;
     [ONYXKEYS.SEARCH_CONTEXT]: OnyxTypes.SearchContext;
     [ONYXKEYS.SEARCH_FOOTER_CONVERSION]: OnyxTypes.SearchFooterConversion;
@@ -1710,6 +1737,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.IS_LOADING_APP]: boolean;
     [ONYXKEYS.ARE_AGENTS_LOADED]: boolean;
     [ONYXKEYS.AGENT_NEW_AVATAR_DRAFT]: OnyxTypes.AgentNewAvatarDraft;
+    [ONYXKEYS.OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING]: Record<string, number>;
     [ONYXKEYS.ARE_POLICY_ROOMS_LOADED]: Record<string, boolean>;
     [ONYXKEYS.HAS_LOADED_APP]: boolean;
     [ONYXKEYS.NVP_HAS_SEEN_FOR_YOU_TODO]: boolean;
@@ -1720,7 +1748,6 @@ type OnyxValuesMapping = {
         | typeof CONST.SEARCH.SEARCH_KEYS.TOP_MERCHANTS;
     [ONYXKEYS.WALLET_TRANSFER]: OnyxTypes.WalletTransfer;
     [ONYXKEYS.LAST_ACCESSED_WORKSPACE_POLICY_ID]: string;
-    [ONYXKEYS.IS_BETA]: boolean;
     [ONYXKEYS.RAM_ONLY_IS_CHECKING_PUBLIC_ROOM]: boolean;
     [ONYXKEYS.VIEWING_PUBLIC_ROOM_REPORT_ID]: string;
     [ONYXKEYS.MY_DOMAIN_SECURITY_GROUPS]: Record<string, OnyxTypes.DomainSecurityGroupMembership>;
@@ -1744,6 +1771,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.ONBOARDING_LAST_VISITED_PATH]: string;
     [ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS]: boolean;
     [ONYXKEYS.RAM_ONLY_SEARCH_RESULT_REPORT_IDS]: string[] | null;
+    [ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_USERS]: boolean;
     [ONYXKEYS.RAM_ONLY_IS_AUTHENTICATING_WITH_SHORT_LIVED_TOKEN]: boolean;
     [ONYXKEYS.LAST_VISITED_PATH]: string | undefined;
     [ONYXKEYS.REPORT_LAST_VISIT_TIMES]: OnyxTypes.ReportLastVisitTimes;
@@ -1759,6 +1787,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.ACTIVE_SERVER]: ValueOf<typeof CONST.SERVER>;
     [ONYXKEYS.CLOUDFLARE_SESSION]: OnyxTypes.CloudflareSession;
     [ONYXKEYS.IS_DEBUG_MODE_ENABLED]: boolean;
+    [ONYXKEYS.BETA_OVERRIDES]: OnyxTypes.BetaOverrides;
     [ONYXKEYS.SHOULD_SHOW_BRANCH_NAME_IN_TITLE]: boolean;
     [ONYXKEYS.IS_SENTRY_DEBUG_ENABLED]: boolean;
     [ONYXKEYS.IS_SENTRY_SEND_ENABLED]: boolean;
@@ -1777,6 +1806,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.ASSIGN_CARD]: OnyxTypes.AssignCard;
     [ONYXKEYS.RAM_ONLY_MOBILE_SELECTION_MODE]: boolean;
     [ONYXKEYS.RAM_ONLY_HAS_DISMISSED_CONCIERGE_NOTIFICATION_BANNER]: boolean;
+    [ONYXKEYS.RAM_ONLY_MERCHANT_RULE_SUGGESTION]: OnyxTypes.MerchantRuleSuggestion;
     [ONYXKEYS.DUPLICATE_WORKSPACE]: OnyxTypes.DuplicateWorkspace;
     [ONYXKEYS.COPY_POLICY_SETTINGS]: OnyxTypes.CopyPolicySettings;
     [ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL]: string;
@@ -1819,6 +1849,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.CORPAY_ONBOARDING_FIELDS]: OnyxTypes.CorpayOnboardingFields;
     [ONYXKEYS.LAST_FULL_RECONNECT_TIME]: string;
     [ONYXKEYS.TRAVEL_PROVISIONING]: OnyxTypes.TravelProvisioning;
+    [ONYXKEYS.RAM_ONLY_CORPAY_PAY_MODAL]: OnyxTypes.CorpayPayModal;
     [ONYXKEYS.IS_LOADING_BILL_WHEN_DOWNGRADE]: boolean | undefined;
     [ONYXKEYS.SHOULD_BILL_WHEN_DOWNGRADING]: boolean | undefined;
     [ONYXKEYS.BILLING_RECEIPT_DETAILS]: OnyxTypes.BillingReceiptDetails;

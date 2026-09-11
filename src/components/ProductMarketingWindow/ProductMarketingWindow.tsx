@@ -1,5 +1,5 @@
 import ActivityIndicator from '@components/ActivityIndicator';
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import Image from '@components/Image';
 import ImageSVG from '@components/ImageSVG';
 import Text from '@components/Text';

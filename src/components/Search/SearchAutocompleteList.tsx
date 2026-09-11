@@ -204,6 +204,8 @@ function SearchAutocompleteList({
     const allCards = personalAndWorkspaceCards ?? CONST.EMPTY_OBJECT;
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [searchResultReportIDs] = useOnyx(ONYXKEYS.RAM_ONLY_SEARCH_RESULT_REPORT_IDS);
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
+    const [searchResultReportIDs] = useOnyx(ONYXKEYS.RAM_ONLY_SEARCH_RESULT_REPORT_IDS);
     const effectiveInputQueryValue = inputQueryValue ?? autocompleteQueryValue;
     const hasEffectiveInputQuery = effectiveInputQueryValue.trim() !== '';
     // hasEffectiveInputQuery reflects the immediate input (used to hide recent searches the moment the user types).
@@ -280,6 +282,7 @@ function SearchAutocompleteList({
             conciergeReportID,
             isTrackIntentUser,
             translate,
+            rules,
         }).options;
     }, [
         listOptions,
@@ -299,6 +302,7 @@ function SearchAutocompleteList({
         translate,
         dateFnsLocale,
         convertToDisplayString,
+        rules,
     ]);
 
     const serverReportsOptions = useMemo(() => {
@@ -334,6 +338,7 @@ function SearchAutocompleteList({
             conciergeReportID,
             isTrackIntentUser,
             translate,
+            rules,
         }).options;
         const optionsByReportID = new Map(options.recentReports.map((option) => [option.reportID, option]));
         return orderedReportIDs.map((reportID) => optionsByReportID.get(reportID)).filter((option): option is OptionData => !!option);
@@ -357,6 +362,7 @@ function SearchAutocompleteList({
         conciergeReportID,
         isTrackIntentUser,
         translate,
+        rules,
     ]);
 
     const [isInitialRender, setIsInitialRender] = useState(true);
@@ -549,13 +555,17 @@ function SearchAutocompleteList({
     // debounce below so they don't fire a server request on every keystroke.
     const hasUpstreamDebounce = inputQueryValue !== undefined;
 
-    const debounceHandleSearch = useDebounce(() => {
-        if (!handleSearch || !autocompleteQueryWithoutFilters) {
-            return;
-        }
+    const debounceHandleSearch = useDebounce(
+        () => {
+            if (!handleSearch || !autocompleteQueryWithoutFilters) {
+                return;
+            }
 
-        handleSearch(autocompleteQueryWithoutFilters);
-    }, CONST.TIMING.SEARCH_OPTION_LIST_DEBOUNCE_TIME);
+            handleSearch(autocompleteQueryWithoutFilters);
+        },
+        CONST.TIMING.SEARCH_OPTION_LIST_DEBOUNCE_TIME,
+        {maxWait: CONST.TIMING.SEARCH_OPTION_LIST_DEBOUNCE_TIME},
+    );
 
     useEffect(() => {
         if (!handleSearch) {
@@ -880,7 +890,9 @@ function SearchAutocompleteList({
             }}
             shouldSingleExecuteRowSelect
             ref={setListRef}
-            initialScrollIndex={0}
+            // Index 0 pins the wide layout to the top, where `initiallyFocusedItemKey` resolves to a row below the
+            // "Recent searches" section. The narrow layout focuses no row, so it has no scroll target.
+            initialScrollIndex={shouldUseNarrowLayout ? undefined : 0}
             initiallyFocusedItemKey={!shouldUseNarrowLayout ? defaultFocusedKey : undefined}
             shouldHighlightInitiallyFocusedItem={!shouldUseNarrowLayout}
             shouldScrollToFocusedIndex={!isInitialRender}

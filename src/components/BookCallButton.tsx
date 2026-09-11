@@ -9,7 +9,7 @@ import CONST from '@src/CONST';
 import type {StyleProp, ViewStyle} from 'react-native';
 
 import UserAvatar from './Avatar/UserAvatar';
-import Button from './ButtonComposed';
+import Button from './Button';
 import {usePersonalDetails} from './OnyxListItemProvider';
 
 type BookCallButtonProps = {

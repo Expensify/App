@@ -77,6 +77,15 @@ const OPTIONS_PER_SCREEN: Partial<Record<Screen, PlatformStackNavigationOptions>
     [SCREENS.SETTINGS.WALLET.PERSONAL_CARD_ADD_NEW]: {
         animationTypeForReplace: 'push',
     },
+    [SCREENS.SETTINGS.WALLET.DYNAMIC_ENABLE_GLOBAL_REIMBURSEMENTS_BUSINESS]: {
+        animationTypeForReplace: 'push',
+    },
+    [SCREENS.SETTINGS.WALLET.DYNAMIC_ENABLE_GLOBAL_REIMBURSEMENTS_AGREEMENTS]: {
+        animationTypeForReplace: 'push',
+    },
+    [SCREENS.SETTINGS.WALLET.DYNAMIC_ENABLE_GLOBAL_REIMBURSEMENTS_SIGN]: {
+        animationTypeForReplace: 'push',
+    },
     [SCREENS.SEARCH.DYNAMIC_MONEY_REQUEST_REPORT_HOLD_TRANSACTIONS]: {
         animation: Animations.NONE,
     },
@@ -461,6 +470,12 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.SETTINGS.WALLET.ENABLE_GLOBAL_REIMBURSEMENTS_AGREEMENTS]: () =>
         require<ReactComponentModule>('../../../../pages/settings/Wallet/EnableGlobalReimbursements/EnableGlobalReimbursementsAgreementsPage').default,
     [SCREENS.SETTINGS.WALLET.ENABLE_GLOBAL_REIMBURSEMENTS_SIGN]: () =>
+        require<ReactComponentModule>('../../../../pages/settings/Wallet/EnableGlobalReimbursements/EnableGlobalReimbursementsSignPage').default,
+    [SCREENS.SETTINGS.WALLET.DYNAMIC_ENABLE_GLOBAL_REIMBURSEMENTS_BUSINESS]: () =>
+        require<ReactComponentModule>('../../../../pages/settings/Wallet/EnableGlobalReimbursements/EnableGlobalReimbursementsBusinessPage').default,
+    [SCREENS.SETTINGS.WALLET.DYNAMIC_ENABLE_GLOBAL_REIMBURSEMENTS_AGREEMENTS]: () =>
+        require<ReactComponentModule>('../../../../pages/settings/Wallet/EnableGlobalReimbursements/EnableGlobalReimbursementsAgreementsPage').default,
+    [SCREENS.SETTINGS.WALLET.DYNAMIC_ENABLE_GLOBAL_REIMBURSEMENTS_SIGN]: () =>
         require<ReactComponentModule>('../../../../pages/settings/Wallet/EnableGlobalReimbursements/EnableGlobalReimbursementsSignPage').default,
     [SCREENS.SETTINGS.WALLET.SHARE_BANK_ACCOUNT]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/ShareBankAccount/ShareBankAccount').default,
     [SCREENS.SETTINGS.WALLET.TRAVEL_CVV]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/TravelCVVPage/TravelCVVPage').default,
@@ -948,6 +963,10 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
         require<ReactComponentModule>('../../../../pages/workspace/accounting/dualentry/advanced/DualEntryTravelInvoicingSettlementAccountPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.DUALENTRY_TRAVEL_BILLING_PAYABLE_ACCOUNT]: () =>
         require<ReactComponentModule>('../../../../pages/workspace/accounting/dualentry/advanced/DualEntryTravelInvoicingPayableAccountPage').default,
+    [SCREENS.WORKSPACE.ACCOUNTING.CAMPFIRE_SETUP]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/campfire/CampfireSetupPage').default,
+    [SCREENS.WORKSPACE.ACCOUNTING.CAMPFIRE_EXISTING_CONNECTIONS]: () =>
+        require<ReactComponentModule>('../../../../pages/workspace/accounting/campfire/CampfireExistingConnectionsPage').default,
+    [SCREENS.WORKSPACE.ACCOUNTING.CAMPFIRE_SUBSIDIARY_SELECTOR]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/campfire/CampfireSubsidiarySelector').default,
     [SCREENS.WORKSPACE.ACCOUNTING.CARD_RECONCILIATION]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/reconciliation/CardReconciliationPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.CARD_RECONCILIATION_SAGE_INTACCT_AUTO_SYNC]: () =>
         require<ReactComponentModule>('../../../../pages/workspace/accounting/reconciliation/CardReconciliationSageIntacctAutoSyncPage').default,
@@ -1037,6 +1056,16 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.WORKSPACE.REPORT_FIELDS_EDIT_INITIAL_VALUE]: () => require<ReactComponentModule>('../../../../pages/workspace/reports/ReportFieldsInitialValuePage').default,
     [SCREENS.WORKSPACE.REPORT_FIELDS_TYPE_SELECTOR]: () => require<ReactComponentModule>('../../../../pages/workspace/reports/TypeSelector/TypeSelectorPage').default,
     [SCREENS.WORKSPACE.REPORT_FIELDS_EDIT_VALUE]: () => require<ReactComponentModule>('../../../../pages/workspace/reports/ReportFieldsEditValuePage').default,
+    [SCREENS.WORKSPACE.INVOICE_FIELDS_CREATE]: () => require<ReactComponentModule>('../../../../pages/workspace/invoices/CreateInvoiceFieldsPage').default,
+    [SCREENS.WORKSPACE.DYNAMIC_INVOICE_FIELDS_INITIAL_LIST_VALUE]: () =>
+        require<ReactComponentModule>('../../../../pages/workspace/invoices/DynamicInvoiceFieldsInitialListValuePage').default,
+    [SCREENS.WORKSPACE.INVOICE_FIELDS_SETTINGS]: () => require<ReactComponentModule>('../../../../pages/workspace/invoices/InvoiceFieldsSettingsPage').default,
+    [SCREENS.WORKSPACE.INVOICE_FIELDS_LIST_VALUES]: () => require<ReactComponentModule>('../../../../pages/workspace/invoices/InvoiceFieldsListValuesPage').default,
+    [SCREENS.WORKSPACE.INVOICE_FIELDS_ADD_VALUE]: () => require<ReactComponentModule>('../../../../pages/workspace/invoices/InvoiceFieldsAddListValuePage').default,
+    [SCREENS.WORKSPACE.INVOICE_FIELDS_VALUE_SETTINGS]: () => require<ReactComponentModule>('../../../../pages/workspace/invoices/InvoiceFieldsValueSettingsPage').default,
+    [SCREENS.WORKSPACE.INVOICE_FIELDS_EDIT_INITIAL_VALUE]: () => require<ReactComponentModule>('../../../../pages/workspace/invoices/InvoiceFieldsInitialValuePage').default,
+    [SCREENS.WORKSPACE.INVOICE_FIELDS_TYPE_SELECTOR]: () => require<ReactComponentModule>('../../../../pages/workspace/invoices/InvoiceFieldsTypeSelectorPage').default,
+    [SCREENS.WORKSPACE.INVOICE_FIELDS_EDIT_VALUE]: () => require<ReactComponentModule>('../../../../pages/workspace/invoices/InvoiceFieldsEditValuePage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.CERTINIA_IMPORT]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/certinia/import/CertiniaImportPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.CERTINIA_DIMENSION_MAPPING]: () =>
         require<ReactComponentModule>('../../../../pages/workspace/accounting/certinia/import/CertiniaDimensionMappingPage').default,
@@ -1139,6 +1168,18 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.WORKSPACE.RULES_MERCHANT_BILLABLE]: () => require<ReactComponentModule>('../../../../pages/workspace/rules/MerchantRules/AddBillablePage').default,
     [SCREENS.WORKSPACE.RULES_MERCHANT_PREVIEW_MATCHES]: () => require<ReactComponentModule>('../../../../pages/workspace/rules/MerchantRules/PreviewMatchesPage').default,
     [SCREENS.WORKSPACE.RULES_MERCHANT_EDIT]: () => require<ReactComponentModule>('../../../../pages/workspace/rules/MerchantRules/EditMerchantRulePage').default,
+    [SCREENS.WORKSPACE.DYNAMIC_RULES_MERCHANT_NEW]: () => require<ReactComponentModule>('../../../../pages/workspace/rules/MerchantRules/AddMerchantRulePage').default,
+    [SCREENS.WORKSPACE.DYNAMIC_RULES_MERCHANT_MERCHANT_TO_MATCH]: () => require<ReactComponentModule>('../../../../pages/workspace/rules/MerchantRules/AddMerchantToMatchPage').default,
+    [SCREENS.WORKSPACE.DYNAMIC_RULES_MERCHANT_MATCH_TYPE]: () => require<ReactComponentModule>('../../../../pages/workspace/rules/MerchantRules/AddMatchTypePage').default,
+    [SCREENS.WORKSPACE.DYNAMIC_RULES_MERCHANT_MERCHANT]: () => require<ReactComponentModule>('../../../../pages/workspace/rules/MerchantRules/AddMerchantPage').default,
+    [SCREENS.WORKSPACE.DYNAMIC_RULES_MERCHANT_CATEGORY]: () => require<ReactComponentModule>('../../../../pages/workspace/rules/MerchantRules/AddCategoryPage').default,
+    [SCREENS.WORKSPACE.DYNAMIC_RULES_MERCHANT_TAG]: () => require<ReactComponentModule>('../../../../pages/workspace/rules/MerchantRules/AddTagPage').default,
+    [SCREENS.WORKSPACE.DYNAMIC_RULES_MERCHANT_TAX]: () => require<ReactComponentModule>('../../../../pages/workspace/rules/MerchantRules/AddTaxPage').default,
+    [SCREENS.WORKSPACE.DYNAMIC_RULES_MERCHANT_VENDOR]: () => require<ReactComponentModule>('../../../../pages/workspace/rules/MerchantRules/AddVendorPage').default,
+    [SCREENS.WORKSPACE.DYNAMIC_RULES_MERCHANT_DESCRIPTION]: () => require<ReactComponentModule>('../../../../pages/workspace/rules/MerchantRules/AddDescriptionPage').default,
+    [SCREENS.WORKSPACE.DYNAMIC_RULES_MERCHANT_REIMBURSABLE]: () => require<ReactComponentModule>('../../../../pages/workspace/rules/MerchantRules/AddReimbursablePage').default,
+    [SCREENS.WORKSPACE.DYNAMIC_RULES_MERCHANT_BILLABLE]: () => require<ReactComponentModule>('../../../../pages/workspace/rules/MerchantRules/AddBillablePage').default,
+    [SCREENS.WORKSPACE.DYNAMIC_RULES_MERCHANT_PREVIEW_MATCHES]: () => require<ReactComponentModule>('../../../../pages/workspace/rules/MerchantRules/PreviewMatchesPage').default,
     [SCREENS.WORKSPACE.RULES_CATEGORY_TO_MATCH]: () => require<ReactComponentModule>('../../../../pages/workspace/rules/MerchantRules/AddCategoryToMatchPage').default,
     [SCREENS.WORKSPACE.RULES_CATEGORY_TAX_EDIT]: () => require<ReactComponentModule>('../../../../pages/workspace/rules/MerchantRules/EditCategoryTaxRulePage').default,
     [SCREENS.WORKSPACE.RULES_AGENT_NEW]: () => require<ReactComponentModule>('../../../../pages/workspace/rules/AgentRules/AddAgentRulePage').default,

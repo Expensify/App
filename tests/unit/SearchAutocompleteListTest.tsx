@@ -11,6 +11,8 @@ import Text from '@components/Text';
 import type {PrivateIsArchivedMap} from '@hooks/usePrivateIsArchivedMap';
 
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
+import * as API from '@libs/API';
+import {READ_COMMANDS} from '@libs/API/types';
 import {setHasRadio} from '@libs/NetworkState';
 import type * as OptionsListUtilsModule from '@libs/OptionsListUtils';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
@@ -173,13 +175,21 @@ const mockedBetas = Object.values(CONST.BETAS);
 const mockedPersonalDetails = getMockedPersonalDetails(10);
 const EMPTY_PRIVATE_IS_ARCHIVED_MAP: PrivateIsArchivedMap = {};
 const CURRENT_USER_ACCOUNT_ID = 1;
-const mockedOptions = createFilteredOptionList(mockedPersonalDetails, mockedReports, undefined, EMPTY_PRIVATE_IS_ARCHIVED_MAP, undefined, {
-    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-    dateFnsLocale: undefined,
-    convertToDisplayString: TestHelper.convertToDisplayString,
-    conciergeReportID: undefined,
-    isSearching: true,
-});
+const mockedOptions = createFilteredOptionList(
+    mockedPersonalDetails,
+    mockedReports,
+    undefined,
+    EMPTY_PRIVATE_IS_ARCHIVED_MAP,
+    undefined,
+    {
+        currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+        dateFnsLocale: undefined,
+        convertToDisplayString: TestHelper.convertToDisplayString,
+        conciergeReportID: undefined,
+        isSearching: true,
+    },
+    undefined,
+);
 const OFFLINE_INDICATOR_SAFE_AREA_CONTEXT_ENABLED = {addSafeAreaPadding: true};
 const OFFLINE_INDICATOR_SAFE_AREA_CONTEXT_DISABLED = {addSafeAreaPadding: false};
 
@@ -464,6 +474,7 @@ describe('SearchAutocompleteList', () => {
                     conciergeReportID: undefined,
                     isSearching: true,
                 },
+                undefined,
             ),
             isLoading: false,
             loadMore: jest.fn(),
@@ -554,6 +565,7 @@ describe('SearchAutocompleteList', () => {
                     conciergeReportID: undefined,
                     isSearching: true,
                 },
+                undefined,
             ),
             isLoading: false,
             loadMore: jest.fn(),
@@ -590,6 +602,25 @@ describe('SearchAutocompleteList', () => {
 
         afterEach(() => {
             getSearchOptionsSpy.mockRestore();
+        });
+
+        it('searches reports and users for an active query', async () => {
+            await waitForBatchedUpdates();
+            await Onyx.multiSet({
+                ...mockedReports,
+                [ONYXKEYS.PERSONAL_DETAILS_LIST]: mockedPersonalDetails,
+                [ONYXKEYS.BETAS]: mockedBetas,
+            });
+
+            render(<SearchRouterWrapper />);
+            await flushAllUpdates();
+
+            const textInput = screen.getByTestId('search-autocomplete-text-input');
+            fireEvent.changeText(textInput, 'Alice');
+            await flushAllUpdates();
+
+            const requestedCommands = jest.mocked(API.read).mock.calls.map(([command]) => command);
+            expect(requestedCommands).toEqual(expect.arrayContaining([READ_COMMANDS.SEARCH_FOR_REPORTS, READ_COMMANDS.SEARCH_FOR_USERS]));
         });
 
         it('should display "Recent chats" section when query is empty', async () => {
