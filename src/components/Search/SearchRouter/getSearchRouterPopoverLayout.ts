@@ -25,4 +25,3 @@ function getSearchRouterPopoverLayout(windowHeight: number): SearchRouterPopover
 }
 
 export default getSearchRouterPopoverLayout;
-export type {SearchRouterPopoverLayout};
