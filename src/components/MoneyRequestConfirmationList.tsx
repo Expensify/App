@@ -93,6 +93,9 @@ type MoneyRequestConfirmationListProps = {
     /** Reports whether the inline amount sign differs from its initial value (new manual expense flow). */
     onSignDirtyChange?: (isSignDirty: boolean) => void;
 
+    /** Reports whether the inline amount currency differs from its initial value (new manual expense flow). */
+    onCurrencyDirtyChange?: (isCurrencyDirty: boolean) => void;
+
     /** Should the list be read only, and not editable? */
     isReadOnly?: boolean;
 
@@ -196,6 +199,7 @@ function MoneyRequestConfirmationList({
     isTimeRequest = false,
     shouldHideToSection = false,
     onSignDirtyChange,
+    onCurrencyDirtyChange,
 }: MoneyRequestConfirmationListProps) {
     const policyCategories = usePolicyCategoriesForConfirmation(policyID);
     const {policyTags, policyTagLists} = usePolicyTagsForConfirmation(policyID);
@@ -545,6 +549,7 @@ function MoneyRequestConfirmationList({
             onSubmitForm={confirm}
             onTaxAmountEmptyChange={setIsTaxAmountEmpty}
             onSignDirtyChange={onSignDirtyChange}
+            onCurrencyDirtyChange={onCurrencyDirtyChange}
         >
             <View style={isCompactMode ? styles.flex1 : undefined}>
                 <MoneyRequestConfirmationListFooter

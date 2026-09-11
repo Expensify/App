@@ -25,6 +25,7 @@ const CURRENT_USER_EMAIL = 'invoice.sender@example.com';
 
 let mockGetHasUnsavedChanges: (() => boolean) | undefined;
 let mockOnSignDirtyChange: ((isSignDirty: boolean) => void) | undefined;
+let mockOnCurrencyDirtyChange: ((isCurrencyDirty: boolean) => void) | undefined;
 let mockSuppressEmbeddedDiscardPrompt: (() => void) | undefined;
 let mockOnTabSelected: ((tab: string) => void) | undefined;
 
@@ -71,8 +72,17 @@ jest.mock('@pages/iou/request/step/IOURequestStepScan', () => () => null);
 jest.mock('@pages/iou/request/step/IOURequestStepConfirmation', () => {
     const ReactModule = jest.requireActual<typeof React>('react');
     const {View} = jest.requireActual<{View: React.ComponentType<{testID: string}>}>('react-native');
-    const ConfirmationStub = ({onSignDirtyChange, suppressDiscardPrompt}: {onSignDirtyChange?: (isSignDirty: boolean) => void; suppressDiscardPrompt?: () => void}) => {
+    const ConfirmationStub = ({
+        onSignDirtyChange,
+        onCurrencyDirtyChange,
+        suppressDiscardPrompt,
+    }: {
+        onSignDirtyChange?: (isSignDirty: boolean) => void;
+        onCurrencyDirtyChange?: (isCurrencyDirty: boolean) => void;
+        suppressDiscardPrompt?: () => void;
+    }) => {
         mockOnSignDirtyChange = onSignDirtyChange;
+        mockOnCurrencyDirtyChange = onCurrencyDirtyChange;
         mockSuppressEmbeddedDiscardPrompt = suppressDiscardPrompt;
         return ReactModule.createElement(View, {testID: 'EmbeddedConfirmation'});
     };
@@ -105,6 +115,7 @@ describe('IOURequestStartPage manual tab content', () => {
     afterEach(async () => {
         mockGetHasUnsavedChanges = undefined;
         mockOnSignDirtyChange = undefined;
+        mockOnCurrencyDirtyChange = undefined;
         mockSuppressEmbeddedDiscardPrompt = undefined;
         mockOnTabSelected = undefined;
         await act(async () => {
@@ -199,6 +210,16 @@ describe('IOURequestStartPage manual tab content', () => {
 
         act(() => {
             mockOnSignDirtyChange?.(false);
+        });
+        expect(mockGetHasUnsavedChanges?.()).toBe(false);
+
+        act(() => {
+            mockOnCurrencyDirtyChange?.(true);
+        });
+        expect(mockGetHasUnsavedChanges?.()).toBe(true);
+
+        act(() => {
+            mockOnCurrencyDirtyChange?.(false);
         });
         expect(mockGetHasUnsavedChanges?.()).toBe(false);
 
