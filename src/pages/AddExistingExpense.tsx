@@ -112,11 +112,12 @@ function AddExistingExpense({route}: AddExistingExpensePageType) {
         </FixedFooter>
     );
 
+    // This must not read `errorMessage`. The Table keeps a reference to this callback and re-runs its clear-selection
+    // effects whenever that reference changes, so reading the error here would make setting the error immediately
+    // trigger a selection change that clears it again in the same commit.
     const onRowSelectionChange = (selectedRowKeys: string[]) => {
         setSelectedIds(new Set(selectedRowKeys));
-        if (errorMessage) {
-            setErrorMessage('');
-        }
+        setErrorMessage('');
     };
 
     const paginationFooterContent = shouldShowUnreportedTransactionsSkeletons ? <UnreportedExpensesSkeleton fixedNumberOfItems={3} /> : undefined;

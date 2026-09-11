@@ -12,8 +12,6 @@ import type Transaction from '@src/types/onyx/Transaction';
 
 import type {ListRenderItemInfo} from '@shopify/flash-list';
 
-import React from 'react';
-
 import AddExistingExpenseTableRow from './AddExistingExpenseTableRow';
 
 type ExpenseTableColumnKey = 'date' | 'amount';
@@ -121,6 +119,8 @@ function AddExistingExpenseTable({data, selectedKeys, onRowSelectionChange, onEn
             columns={columns}
             selectionEnabled
             shouldEnableSelectionInNarrowPaneModal
+            // Expenses are confirmed in one batch, so narrowing the list to find the next one must not drop what is already picked.
+            shouldPreserveSelectionOnSearch
             selectedKeys={selectedKeys}
             onRowSelectionChange={onRowSelectionChange}
             initialSortColumn="date"
