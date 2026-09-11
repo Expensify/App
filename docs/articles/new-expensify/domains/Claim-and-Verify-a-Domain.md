@@ -1,7 +1,7 @@
 ---
 title: Claim and Verify a Domain
 description: Learn how to claim and verify a private domain in New Expensify to enable SAML login and unlock enhanced security features.
-internalScope: Audience is Domain Admins and IT admins. Covers claiming a domain, requesting admin access to a domain someone else already set up, and verifying domain ownership via DNS. Does not cover SAML configuration details, Domain Members management, Domain Groups, or login troubleshooting.
+internalScope: Audience is Domain Admins and IT admins. Covers claiming a domain, requesting admin access to a domain someone else already set up, and verifying domain ownership via DNS. Does not cover how a Domain Admin approves or denies those requests, SAML configuration details, Domain Members management, Domain Groups, or login troubleshooting.
 keywords: [New Expensify, claim domain, verify domain, private domain, domain settings, enhanced security, SAML, domain admin, domain verification, DNS TXT record, verify domain for SAML, how to verify domain, SAML setup, domain already set up, domain exists, ask for admin access, request admin access, domain already exists in your account]
 ---
 
@@ -68,11 +68,12 @@ Purpose: Confirms members have hit the expected page rather than an error, so th
 
 ## What happens after you ask for admin access
 
-- Your request goes to the existing Domain Admins for that domain. An admin has to add you before you can manage it.
+- Your request goes to the existing Domain Admins for that domain, who see it in a **Requests** section on their **Admins** page. One of them has to approve it before you can manage the domain.
+- An admin can also deny the request, which clears it without giving you access. You can ask again if that happens.
 - The domain does **not** appear on your **Domains** tab while the request is pending, because you don’t have access to it yet.
 - If you start the flow again for the same domain before an admin responds, the **Domain exists** page shows a disabled **Request sent** button so you don’t send a duplicate request.
 
-[Learn how to add and manage Domain Admins](/articles/new-expensify/domains/Domain-Admins) to see what you'll be able to do once an admin adds you.
+[Learn how to add and manage Domain Admins](/articles/new-expensify/domains/Domain-Admins) to see what you'll be able to do once an admin approves your request.
 
 ## How to verify a domain
 
@@ -102,7 +103,7 @@ Each private domain can only be set up once, and someone at your company got the
 
 ## Why does the domain I requested access to not show on my Domains tab?
 
-Requesting access doesn't give you access. The domain only appears on your **Domains** tab after an existing Domain Admin adds you as a Domain Admin.
+Requesting access doesn't give you access. The domain only appears on your **Domains** tab after an existing Domain Admin approves your request or adds you as a Domain Admin. If no one has acted on it yet, or an admin denied it, the domain stays off your **Domains** tab.
 
 ## Why does the button say Request sent?
 
