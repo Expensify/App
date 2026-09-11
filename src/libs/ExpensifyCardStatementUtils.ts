@@ -195,9 +195,15 @@ function getExpensifyCardStatementSelection(
     // A statement covers one feed, so group the selected settlements by feed (fundID, not feedCountry: one program can
     // have several feeds). Group before checking exportability so a selection spanning more than one feed still trips
     // the multi-feed message, even when the user is not an admin of one of those feeds. A settlement with no fundID
-    // already spans multiple feeds, so key it uniquely by entryID to keep it a distinct feed.
+    // already spans multiple feeds, so key it uniquely by entryID to keep it a distinct feed. Cash back credits have
+    // no fundID either but belong to no feed at all, so they are folded into the selected feed afterwards.
     const feedsByKey = new Map<string, ExpensifyCardStatementFeed>();
+    const cashBackGroups: SearchWithdrawalIDGroup[] = [];
     for (const settlementGroup of selectedSettlementGroups) {
+        if (settlementGroup.isCashBack) {
+            cashBackGroups.push(settlementGroup);
+            continue;
+        }
         const feedKey = settlementGroup.fundID !== undefined ? `fund_${settlementGroup.fundID}` : `entry_${settlementGroup.entryID}`;
         const existingFeed = feedsByKey.get(feedKey);
         if (existingFeed) {
@@ -221,6 +227,21 @@ function getExpensifyCardStatementSelection(
     // user isn't silently given a statement for only the feeds they administer.
     if (feeds.length > 1) {
         return {feeds, hasMultipleFeeds: true};
+    }
+
+    if (cashBackGroups.length > 0) {
+        const selectedFeed = feeds.at(0);
+        if (selectedFeed) {
+            selectedFeed.entryIDs.push(...cashBackGroups.map((group) => group.entryID));
+        } else {
+            feeds.push({
+                policyID: scopedPolicyID,
+                feedCountry: cashBackGroups.at(0)?.feedCountry,
+                fundID: undefined,
+                entryIDs: cashBackGroups.map((group) => group.entryID),
+                canExportStatement: cashBackGroups.every((group) => !!group.canExportStatement),
+            });
+        }
     }
 
     // Single feed: the export is admin-only, and the backend stamps canExportStatement per settlement (same
