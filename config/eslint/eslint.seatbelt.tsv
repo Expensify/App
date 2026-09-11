@@ -1135,7 +1135,6 @@
 "../../src/pages/workspace/accounting/netsuite/export/DynamicNetSuiteDateSelectPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/workspace/accounting/netsuite/export/DynamicNetSuiteExportExpensesDestinationSelectPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/workspace/accounting/netsuite/export/DynamicNetSuiteExportExpensesJournalPostingPreferenceSelectPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/pages/workspace/accounting/netsuite/export/DynamicNetSuiteInvoiceItemPreferenceSelectPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/workspace/accounting/netsuite/export/NetSuiteTravelBillingJournalPostingPreferenceSelectPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/workspace/accounting/netsuite/import/NetSuiteImportCustomersOrProjectSelectPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/workspace/accounting/netsuite/import/NetSuiteImportCustomersOrProjectsPage.tsx"	"no-restricted-syntax"	2
