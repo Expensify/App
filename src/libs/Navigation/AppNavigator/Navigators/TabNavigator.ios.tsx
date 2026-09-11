@@ -1,6 +1,10 @@
+import buildingsSelectedIcon from '@assets/images/native-tab-icons/buildings-selected.png';
 import buildingsIcon from '@assets/images/native-tab-icons/buildings.png';
+import homeSelectedIcon from '@assets/images/native-tab-icons/home-selected.png';
 import homeIcon from '@assets/images/native-tab-icons/home.png';
+import inboxSelectedIcon from '@assets/images/native-tab-icons/inbox-selected.png';
 import inboxIcon from '@assets/images/native-tab-icons/inbox.png';
+import receiptMultipleSelectedIcon from '@assets/images/native-tab-icons/receipt-multiple-selected.png';
 import receiptMultipleIcon from '@assets/images/native-tab-icons/receipt-multiple.png';
 
 import FloatingCameraButton from '@components/FloatingCameraButton';
@@ -38,6 +42,7 @@ import SCREENS from '@src/SCREENS';
 
 import type {NativeBottomTabIcon, NativeBottomTabNavigatorProps} from '@react-navigation/bottom-tabs/unstable';
 import type {NavigationAction, NavigationState, PartialState, Router, TabNavigationState} from '@react-navigation/native';
+import type {ImageSourcePropType} from 'react-native';
 
 import {createNativeBottomTabNavigator} from '@react-navigation/bottom-tabs/unstable';
 import {findFocusedRoute, useNavigation, useNavigationState, useRoute} from '@react-navigation/native';
@@ -52,10 +57,14 @@ import WorkspaceNavigator from './WorkspaceNavigator';
 
 const Tab = createNativeBottomTabNavigator<TabNavigatorParamList>();
 
-const HOME_TAB_ICON = {type: 'image', source: homeIcon} as const;
-const INBOX_TAB_ICON = {type: 'image', source: inboxIcon} as const;
-const SPEND_TAB_ICON = {type: 'image', source: receiptMultipleIcon} as const;
-const WORKSPACES_TAB_ICON = {type: 'image', source: buildingsIcon} as const;
+const getNativeTabIcon =
+    (source: ImageSourcePropType, selectedSource: ImageSourcePropType) =>
+    ({focused}: {focused: boolean}): NativeBottomTabIcon => ({type: 'image', source: focused ? selectedSource : source, tinted: false});
+
+const HOME_TAB_ICON = getNativeTabIcon(homeIcon, homeSelectedIcon);
+const INBOX_TAB_ICON = getNativeTabIcon(inboxIcon, inboxSelectedIcon);
+const SPEND_TAB_ICON = getNativeTabIcon(receiptMultipleIcon, receiptMultipleSelectedIcon);
+const WORKSPACES_TAB_ICON = getNativeTabIcon(buildingsIcon, buildingsSelectedIcon);
 const ACCOUNT_TAB_ICON = {type: 'sfSymbol', name: 'person.crop.circle'} as const;
 
 const TAB_ROOT_SCREENS_WITHOUT_GESTURE = new Set<string>([SCREENS.HOME, SCREENS.INBOX, SCREENS.SEARCH.ROOT, SCREENS.INSIGHTS, SCREENS.SETTINGS.ROOT]);

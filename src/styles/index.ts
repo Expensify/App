@@ -1984,7 +1984,7 @@ const staticStyles = (theme: ThemeColors) =>
         nativeTabBarFloatingButtons: {
             position: 'absolute',
             right: 0,
-            bottom: variables.bottomTabHeight,
+            bottom: variables.bottomTabHeight + spacing.gap3.gap,
             left: 0,
             height: 0,
             zIndex: 10,
