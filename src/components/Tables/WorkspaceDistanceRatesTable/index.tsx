@@ -14,6 +14,7 @@ import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+import type {Unit} from '@src/types/onyx/Policy';
 
 import type {ListRenderItemInfo} from '@shopify/flash-list';
 
@@ -28,6 +29,7 @@ type DistanceRatesTableColumnKey = 'status' | 'name' | 'rate' | 'startDate' | 'e
 type WorkspaceDistanceRatesTableProps = {
     ratesData: DistanceRateTableItemData[];
     policyID: string;
+    unit?: Unit;
     selectionEnabled: boolean;
     selectedKeys: string[];
     canWriteDistanceRates: boolean;
@@ -42,7 +44,16 @@ const STATUS_ORDER: Record<string, number> = {
     [CONST.CUSTOM_UNITS.RATE_STATUS.INACTIVE]: 3,
 };
 
-function WorkspaceDistanceRatesTable({ratesData, policyID, selectionEnabled, selectedKeys, canWriteDistanceRates, onRowSelectionChange, headerComponent}: WorkspaceDistanceRatesTableProps) {
+function WorkspaceDistanceRatesTable({
+    ratesData,
+    policyID,
+    unit,
+    selectionEnabled,
+    selectedKeys,
+    canWriteDistanceRates,
+    onRowSelectionChange,
+    headerComponent,
+}: WorkspaceDistanceRatesTableProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Plus']);
@@ -118,7 +129,7 @@ function WorkspaceDistanceRatesTable({ratesData, policyID, selectionEnabled, sel
                   icon: icons.Plus,
                   buttonText: translate('workspace.distanceRates.addRate'),
 
-                  success: true,
+                  buttonVariant: CONST.BUTTON_VARIANT.SUCCESS,
                   buttonAction: () => {
                       Navigation.navigate(ROUTES.WORKSPACE_CREATE_DISTANCE_RATE.getRoute(policyID));
                   },
@@ -144,6 +155,7 @@ function WorkspaceDistanceRatesTable({ratesData, policyID, selectionEnabled, sel
             shouldUseNarrowTableLayout={shouldUseNarrowTableLayout}
             shouldShowDateColumns={hasAnyDateBound}
             statusLabels={statusLabels}
+            unit={unit}
         />
     );
 

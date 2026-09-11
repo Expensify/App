@@ -32,6 +32,8 @@ const mockSearchStateContext = {
     currentSearchHash: 12345,
     currentSearchKey: undefined,
     currentSearchQueryJSON: undefined,
+    currentDefaultSearchQueryJSON: undefined,
+    currentDefaultSearchQueryFilterKeys: new Set(),
     currentSearchResults: undefined,
     currentSearchTransactionsByReportID: new Map(),
     currentSearchViolations: {},
@@ -64,12 +66,15 @@ const mockSearchActionsContext = {
     selectAllMatchingItems: jest.fn(),
     setShouldResetSearchQuery: jest.fn(),
     setSortedReportIDs: jest.fn(),
+    setCurrentSearchKey: jest.fn(),
+    resetSearchKey: jest.fn(),
 } satisfies SearchActionsContextValue;
 
 const createMonthListItem = (year: number, month: number, options: Partial<TransactionMonthGroupListItemType> = {}): TransactionMonthGroupListItemType => ({
     year,
     month,
     formattedMonth: options.formattedMonth ?? `January ${year}`,
+    shortFormattedMonth: options.shortFormattedMonth ?? `Jan ’${String(year).slice(-2)}`,
     count: options.count ?? 5,
     currency: options.currency ?? 'USD',
     total: options.total ?? 250,

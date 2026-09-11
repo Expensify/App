@@ -25,13 +25,14 @@ import getMinimalAction from './getMinimalAction';
 
 const defaultLinkToOptions: LinkToOptions = {
     forceReplace: false,
+    skipMatchingFullScreenRoute: false,
 };
 
 /**
  * Leaf screen names that represent the root/landing view of each tab.
  * Used to distinguish plain tab switches from cross-tab deep navigations.
  */
-const ROOT_TAB_SCREENS = new Set<string>([SCREENS.HOME, SCREENS.INBOX, SCREENS.SEARCH.ROOT, SCREENS.SETTINGS.ROOT, SCREENS.WORKSPACES_LIST]);
+const ROOT_TAB_SCREENS = new Set<string>([SCREENS.HOME, SCREENS.INBOX, SCREENS.SEARCH.ROOT, SCREENS.INSIGHTS, SCREENS.SETTINGS.ROOT, SCREENS.WORKSPACES_LIST]);
 
 function areNamesAndParamsEqual(currentState: NavigationState<RootNavigatorParamList>, stateFromPath: PartialState<NavigationState<RootNavigatorParamList>>) {
     const currentFocusedRoute = findFocusedRoute(currentState);
@@ -134,7 +135,25 @@ function shouldChangeToMatchingFullScreen(
     return newFocusedRoute?.name === SCREENS.SETTINGS.SUBSCRIPTION.ADD_PAYMENT_CARD && lastActiveScreen !== SCREENS.SETTINGS.SUBSCRIPTION.ROOT;
 }
 
-export {isSwitchingTabsWithinTabNavigator, getActiveScreenInRoute, shouldChangeToMatchingFullScreen, isNavigatingToReportActionWithinSameReport};
+/**
+ * Preserves nested split state under `params.state`, where React Navigation expects it.
+ * Omitting it rebuilds the workspace split without its policy-scoped route history.
+ */
+function getMatchingFullScreenRouteParams(
+    matchingFullScreenRoute: NavigationPartialRoute,
+): NavigationPartialRoute['params'] | {screen: string; params: NavigationPartialRoute['params'] | undefined} {
+    const lastRoute = matchingFullScreenRoute.state?.routes?.at(-1);
+    if (!lastRoute) {
+        return matchingFullScreenRoute.params;
+    }
+
+    return {
+        screen: lastRoute.name,
+        params: lastRoute.state ? {...lastRoute.params, state: lastRoute.state} : lastRoute.params,
+    };
+}
+
+export {isSwitchingTabsWithinTabNavigator, getActiveScreenInRoute, getMatchingFullScreenRouteParams, shouldChangeToMatchingFullScreen, isNavigatingToReportActionWithinSameReport};
 
 export default function linkTo(navigation: NavigationContainerRef<RootNavigatorParamList> | null, path: Route, options?: LinkToOptions) {
     if (!navigation) {
@@ -142,7 +161,7 @@ export default function linkTo(navigation: NavigationContainerRef<RootNavigatorP
     }
 
     // We know that the options are always defined because we have default options.
-    const {forceReplace} = {...defaultLinkToOptions, ...options} as Required<LinkToOptions>;
+    const {forceReplace, skipMatchingFullScreenRoute} = {...defaultLinkToOptions, ...options} as Required<LinkToOptions>;
 
     const normalizedPath = normalizePath(path) as Route;
     const normalizedPathAfterRedirection = (getMatchingNewRoute(normalizedPath) ?? normalizedPath) as Route;
@@ -222,7 +241,7 @@ export default function linkTo(navigation: NavigationContainerRef<RootNavigatorP
     // If we deep link to a RHP page, we want to make sure we have the correct full screen route under the overlay.
     // Skip when current top is already RHP — the underlying tab is already in place, and the extra dispatch
     // would corrupt the navigation state. Issue: https://github.com/Expensify/App/issues/89006
-    if (shouldCheckFullScreenRouteMatching(action) && currentState.routes[currentState.index]?.name !== NAVIGATORS.RIGHT_MODAL_NAVIGATOR) {
+    if (!skipMatchingFullScreenRoute && shouldCheckFullScreenRouteMatching(action) && currentState.routes[currentState.index]?.name !== NAVIGATORS.RIGHT_MODAL_NAVIGATOR) {
         const newFocusedRoute = findFocusedRoute(stateFromPath);
         if (newFocusedRoute) {
             // getMatchingFullScreenRoute returns a TAB_NAVIGATOR wrapper; unwrap it to get the
@@ -254,10 +273,9 @@ export default function linkTo(navigation: NavigationContainerRef<RootNavigatorP
                     navigation.dispatch(additionalAction);
                 } else {
                     // Navigate within the existing TAB_NAVIGATOR (tab switch) rather than pushing a new one.
-                    const lastRouteInMatchingFullScreen = matchingFullScreenRoute.state?.routes?.at(-1);
                     const additionalAction = CommonActions.navigate(NAVIGATORS.TAB_NAVIGATOR, {
                         screen: matchingFullScreenRoute.name,
-                        params: lastRouteInMatchingFullScreen ? {screen: lastRouteInMatchingFullScreen.name, params: lastRouteInMatchingFullScreen.params} : matchingFullScreenRoute.params,
+                        params: getMatchingFullScreenRouteParams(matchingFullScreenRoute),
                     });
                     navigation.dispatch(additionalAction);
                 }

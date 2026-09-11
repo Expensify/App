@@ -24,19 +24,22 @@ import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
 import {enablePolicyTravel} from '@libs/actions/Policy/Travel';
 import {filterInactiveCards, getAllCardsForWorkspace, getCardSettings, getCompanyFeeds, isSmartLimitEnabled as isSmartLimitEnabledUtil} from '@libs/CardUtils';
 import {getLatestErrorField} from '@libs/ErrorUtils';
-import {getConnectedHRProvider, isAnyHRConnected, isGustoConnected, isMergeHRConnected, isZenefitsConnected} from '@libs/HRUtils';
+import {getConnectedHRProvider, isAnyHRConnected, isGustoConnected, isZenefitsConnected} from '@libs/merge/HRUtils';
+import {isMergeConnected} from '@libs/merge/MergeUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import {
     arePolicyRulesEnabled,
     canPolicyAccessFeature,
+    getConnectedIntegration,
     getDistanceRateCustomUnit,
     getPerDiemCustomUnit,
     hasAccountingConnections,
     hasAccountingFeatureConnection,
     hasVendorFeature,
     isControlPolicy,
+    isMCPEnabled,
     isPerDiemEnabled,
     isTimeTrackingEnabled,
     tryNavigateToSubmitWorkspaceUpgrade,
@@ -57,6 +60,7 @@ import {
     enablePolicyConnections,
     enablePolicyHR,
     enablePolicyInvoicing,
+    enablePolicyMCP,
     enablePolicyReceiptPartners,
     enablePolicyRules,
     enablePolicyTaxes,
@@ -110,6 +114,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
         'ReceiptPartners',
         'Clock',
         'Members',
+        'AiAutomation',
     ]);
 
     const policyID = policy?.id;
@@ -158,9 +163,23 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
     // connection, and when the data has already been fetched.
     usePolicyConnectionsPrefetch(policy, true);
 
-    // Beta members see the row on any workspace so they can tell the feature exists. Everyone else
-    // only sees it once a connection actually scopes the vendor field, which post-GA means QBO.
-    const shouldShowVendorsFeature = isVendorMatchingEnabled || hasVendorFeature(policy, isVendorMatchingEnabled);
+    // Visibility is gated on a supported integration (QBO / Xero / Sage Intacct) being connected,
+    // not on the export config actually scoping vendors. That way members on a supported workspace
+    // still see the row so they can discover the feature even when the row is locked OFF (export
+    // config not yet set). NetSuite / QuickBooks Desktop / no connection hide the row.
+    // `hasVendorFeature` stays as the narrower `isActive` predicate (is the export config scoping
+    // vendors right now), so it can't double as the visibility gate.
+    //
+    // Beta gating mirrors `hasVendorFeature`: QBO (R1) is GA, so a connected QBO workspace always
+    // sees the row regardless of the `vendorMatching` beta. Sage Intacct (R2), Xero (R3), and Rillet (R4)
+    // haven't reached GA, so they only show the row while the beta is enabled.
+    const vendorMatchingConnection = getConnectedIntegration(policy, [
+        CONST.POLICY.CONNECTIONS.NAME.QBO,
+        CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT,
+        CONST.POLICY.CONNECTIONS.NAME.XERO,
+        CONST.POLICY.CONNECTIONS.NAME.RILLET,
+    ]);
+    const shouldShowVendorsFeature = vendorMatchingConnection === CONST.POLICY.CONNECTIONS.NAME.QBO || (isVendorMatchingEnabled && !!vendorMatchingConnection);
 
     const warnAccountingManagesOrganizeFeature = async () => {
         if (!hasAccountingConnection || !policyID) {
@@ -176,6 +195,15 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
             return;
         }
         Navigation.navigate(ROUTES.POLICY_ACCOUNTING.getRoute(policyID));
+    };
+
+    const warnVendorsManagedByAccounting = async () => {
+        await showConfirmModal({
+            title: translate('workspace.moreFeatures.vendors.disabledTitle'),
+            prompt: translate('workspace.moreFeatures.vendors.disabledMessage'),
+            confirmText: translate('common.buttonConfirm'),
+            shouldShowCancelButton: false,
+        });
     };
 
     const warnDisconnectAccountingFirst = async () => {
@@ -215,7 +243,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
             integration = translate('workspace.hr.zenefits.title');
         } else if (isGustoConnected(policy)) {
             integration = translate('workspace.hr.gusto.title');
-        } else if (isMergeHRConnected(policy)) {
+        } else if (isMergeConnected(policy, CONST.POLICY.CONNECTIONS.NAME.MERGE_HR)) {
             integration = getConnectedHRProvider(policy)?.displayName ?? '';
         }
         await showConfirmModal({
@@ -397,6 +425,27 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                                 Navigation.navigate(ROUTES.WORKSPACE_RECEIPT_PARTNERS.getRoute(policyID));
                             }}
                         />
+                        <MoreFeatureToggle
+                            icon={illustrations.AiAutomation}
+                            title={translate('workspace.moreFeatures.mcp.title')}
+                            subtitle={translate('workspace.moreFeatures.mcp.subtitle')}
+                            isActive={isMCPEnabled(policy)}
+                            pendingAction={policy?.pendingFields?.isMCPEnabled}
+                            disabled={!canWriteMoreFeatures}
+                            disabledAction={withReadOnlyFallback()}
+                            onToggle={(isEnabled) => {
+                                if (!policyID) {
+                                    return;
+                                }
+                                enablePolicyMCP(policyID, isEnabled);
+                            }}
+                            onPress={() => {
+                                if (!policyID) {
+                                    return;
+                                }
+                                Navigation.navigate(ROUTES.WORKSPACE_MCP.getRoute(policyID));
+                            }}
+                        />
                     </MoreFeaturesSection>
 
                     <MoreFeaturesSection title={translate('workspace.moreFeatures.organizeSection.title')}>
@@ -476,7 +525,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                                 // get the read-only modal via withReadOnlyFallback(). Row-body navigation stays active when the
                                 // feature is available. This will be unlocked in the follow-up PR that wires up the toggle.
                                 disabled
-                                disabledAction={withReadOnlyFallback()}
+                                disabledAction={withReadOnlyFallback(warnVendorsManagedByAccounting)}
                                 onToggle={() => {}}
                                 onPress={() => {
                                     if (!policyID) {

@@ -1,4 +1,4 @@
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DomainMemberBulkActionType, DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import DecisionModal from '@components/DecisionModal';
@@ -165,7 +165,7 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
             prompt: translate('domain.members.closeAccountPrompt'),
             confirmText: translate('domain.members.closeAccount', {count: selectedMembers.length}),
             cancelText: translate('common.cancel'),
-            danger: true,
+            buttonVariant: CONST.BUTTON_VARIANT.DANGER,
             shouldShowCancelButton: true,
         });
 
@@ -228,7 +228,6 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
                     prompt: translate('common.downloadFailedDescription'),
                     confirmText: translate('common.buttonConfirm'),
                     shouldShowCancelButton: false,
-                    success: false,
                     shouldHandleNavigationBack: true,
                 });
             },

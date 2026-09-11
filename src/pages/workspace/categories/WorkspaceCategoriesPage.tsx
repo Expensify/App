@@ -1,5 +1,5 @@
 import ActivityIndicator from '@components/ActivityIndicator';
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import DecisionModal from '@components/DecisionModal';
@@ -452,7 +452,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                             prompt: translate(selectedCategoryKeys.length === 1 ? 'workspace.categories.deleteCategoryPrompt' : 'workspace.categories.deleteCategoriesPrompt'),
                             confirmText: translate('common.delete'),
                             cancelText: translate('common.cancel'),
-                            danger: true,
+                            buttonVariant: CONST.BUTTON_VARIANT.DANGER,
                         });
                         if (action === ModalActions.CONFIRM) {
                             handleDeleteCategories();
@@ -639,7 +639,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                   icon: icons.Plus,
                   buttonText: translate('workspace.categories.addCategory'),
                   buttonAction: navigateToCreateCategoryPage,
-                  success: true,
+                  buttonVariant: CONST.BUTTON_VARIANT.SUCCESS,
               },
           ]
         : undefined;
