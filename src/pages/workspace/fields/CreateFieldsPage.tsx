@@ -97,7 +97,7 @@ function CreateFieldsPage({policy, policyID, isInvoiceField, listValuesRoute, ge
 
             if (!isRequiredFulfilled(name)) {
                 errors[INPUT_IDS.NAME] = translate(isInvoiceField ? 'workspace.invoiceFields.invoiceFieldNameRequiredError' : 'workspace.reportFields.reportFieldNameRequiredError');
-            } else if (isReportFieldNameExisting(policy?.fieldList, name, fieldTarget)) {
+            } else if (isReportFieldNameExisting(policy?.fieldList, name)) {
                 errors[INPUT_IDS.NAME] = translate(isInvoiceField ? 'workspace.invoiceFields.existingInvoiceFieldNameError' : 'workspace.reportFields.existingReportFieldNameError');
             } else if ([...name].length > CONST.WORKSPACE_REPORT_FIELD_POLICY_MAX_LENGTH) {
                 addErrorMessage(errors, INPUT_IDS.NAME, translate('common.error.characterLimitExceedCounter', [...name].length, CONST.WORKSPACE_REPORT_FIELD_POLICY_MAX_LENGTH));
@@ -140,12 +140,12 @@ function CreateFieldsPage({policy, policyID, isInvoiceField, listValuesRoute, ge
         (values: Record<string, string>) => {
             const errors: Record<string, string> = {};
             const name = values[INPUT_IDS.NAME];
-            if (isReportFieldNameExisting(policy?.fieldList, name, fieldTarget)) {
+            if (isReportFieldNameExisting(policy?.fieldList, name)) {
                 errors[INPUT_IDS.NAME] = translate(isInvoiceField ? 'workspace.invoiceFields.existingInvoiceFieldNameError' : 'workspace.reportFields.existingReportFieldNameError');
             }
             return errors;
         },
-        [fieldTarget, isInvoiceField, policy?.fieldList, translate],
+        [isInvoiceField, policy?.fieldList, translate],
     );
 
     const handleOnValueCommitted = (initialValue: string) => {

@@ -39,11 +39,12 @@ describe('Pop to sidebar after resize from wide to narrow layout', () => {
                             {
                                 name: NAVIGATORS.TAB_NAVIGATOR,
                                 state: {
-                                    index: 3,
+                                    index: 4,
                                     routes: [
                                         {name: SCREENS.HOME},
                                         {name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR},
                                         {name: NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR},
+                                        {name: SCREENS.INSIGHTS},
                                         {
                                             name: NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR,
                                             state: {
@@ -74,7 +75,7 @@ describe('Pop to sidebar after resize from wide to narrow layout', () => {
             );
 
             const tabState = navigationRef.current?.getRootState().routes.at(0)?.state;
-            const settingsSplitBeforePopToSidebar = tabState?.routes.at(3);
+            const settingsSplitBeforePopToSidebar = tabState?.routes.at(4);
             expect(settingsSplitBeforePopToSidebar?.state?.index).toBe(3);
 
             // When we pop with LHN on top of stack
@@ -84,7 +85,7 @@ describe('Pop to sidebar after resize from wide to narrow layout', () => {
 
             // Then all screens should be popped of the stack and only settings root left
             const tabStateAfter = navigationRef.current?.getRootState().routes.at(0)?.state;
-            const settingsSplitAfterPopToSidebar = tabStateAfter?.routes.at(3);
+            const settingsSplitAfterPopToSidebar = tabStateAfter?.routes.at(4);
             expect(settingsSplitAfterPopToSidebar?.state?.index).toBe(0);
             expect(settingsSplitAfterPopToSidebar?.state?.routes.at(-1)?.name).toBe(SCREENS.SETTINGS.ROOT);
         });
@@ -123,6 +124,7 @@ describe('Pop to sidebar after resize from wide to narrow layout', () => {
                                             },
                                         },
                                         {name: NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR},
+                                        {name: SCREENS.INSIGHTS},
                                         {name: NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR},
                                         {name: NAVIGATORS.WORKSPACE_NAVIGATOR},
                                     ],

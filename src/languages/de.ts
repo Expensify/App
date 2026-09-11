@@ -75,6 +75,7 @@ const translations: TranslationDeepObject<typeof en> = {
         search: 'Suche',
         reports: 'Berichte',
         spend: 'Ausgaben',
+        insights: 'Einblicke',
         find: 'Finden',
         searchWithThreeDots: 'Suchen...',
         next: 'Weiter',
@@ -2617,6 +2618,10 @@ const translations: TranslationDeepObject<typeof en> = {
             connectionLink
                 ? `Die Verbindung Ihrer ${cardName}-Karte ist unterbrochen. <a href="${connectionLink}">Melden Sie sich bei Ihrer Bank an</a>, um die Karte zu reparieren.`
                 : `Die Verbindung Ihrer ${cardName}-Karte ist unterbrochen. Melden Sie sich bei Ihrer Bank an, um die Karte zu reparieren.`,
+        conciergeBrokenConnection30Days: (cardName: string, connectionLink?: string) =>
+            connectionLink
+                ? `Ihre ${cardName}-Verbindung ist seit 30 Tagen unterbrochen. <a href="${connectionLink}">Melden Sie sich bei Ihrer Bank an</a>, um sie zu reparieren, oder <a href="${connectionLink}">entfernen Sie die Karte</a>, wenn sie nicht mehr verwendet wird. Bereits eingereichte Ausgaben gehen beim Entfernen nicht verloren.`
+                : `Ihre ${cardName}-Verbindung ist seit 30 Tagen unterbrochen. Melden Sie sich bei Ihrer Bank an, um sie zu beheben, oder entfernen Sie die Karte, wenn sie nicht mehr verwendet wird. Sie verlieren keine eingereichten Ausgaben, wenn Sie sie entfernen.`,
         fixCard: 'Karte reparieren',
         addAdditionalCards: 'Weitere Karten hinzufügen',
         upgradeDescription: 'Müssen Sie weitere Karten hinzufügen? Erstellen Sie einen Workspace, um weitere persönliche Karten hinzuzufügen oder Firmenkarten dem gesamten Team zuzuweisen.',
@@ -4639,6 +4644,7 @@ ${amount} für ${merchant} – ${date}`,
             travel: 'Reisen',
             members: 'Mitglieder',
             accounting: 'Buchhaltung',
+            mcp: 'MCP',
             receiptPartners: 'Belegpartner',
             rules: 'Regeln',
             displayedAs: 'Angezeigt als',
@@ -4776,6 +4782,25 @@ ${amount} für ${merchant} – ${date}`,
         createdForClient: {
             title: 'Du hast einen Workspace für deinen Kunden erstellt!',
             description: 'Großartige Neuigkeiten 🎉. Kontaktiere uns, wenn sie Hilfe bei der Einrichtung benötigen.',
+        },
+        mcp: {
+            connectors: 'Konnektoren',
+            connectorsSubtitle: 'Verbinde einen KI-Assistenten mit deinem Expensify-Konto.',
+            connect: 'Verbinden',
+            helpPrompt: 'Brauchst du Hilfe beim Verbinden?',
+            helpLink: 'Lies unsere Anleitung.',
+            claude: {
+                title: 'Claude',
+                subtitle: 'von Anthropic',
+            },
+            cursor: {
+                title: 'Cursor',
+                subtitle: 'von Anysphere',
+            },
+            chatgpt: {
+                title: 'ChatGPT',
+                subtitle: 'von OpenAI',
+            },
         },
         receiptPartners: {
             uber: {
@@ -6554,6 +6579,10 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                 title: 'Buchhaltung',
                 subtitle: 'Synchronisieren Sie Ihren Kontenplan und mehr.',
             },
+            mcp: {
+                title: 'MCP',
+                subtitle: 'Verbinde einen KI-Assistenten mit deinem Expensify-Konto.',
+            },
             receiptPartners: {
                 title: 'Belegpartner',
                 subtitle: 'Belege automatisch importieren.',
@@ -8075,6 +8104,13 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
                 turnOnTaxesFirstPrompt: 'Kategorienregeln legen einen Standardsteuersatz fest. Aktivieren Sie Steuern in Ihren Workspace-Einstellungen, um sie zu verwenden.',
                 categoryRulesApplyGoingForwardTitle: 'Kategorienregeln gelten ab jetzt',
                 categoryRulesApplyGoingForwardPrompt: 'Ein Standardsatz für Steuern gilt für neue Ausgaben in dieser Kategorie. Bereits vorhandene Ausgaben werden nicht geändert.',
+                confirmErrorCategoryTaxMoveIsWorkspaceDefault:
+                    'Der ausgewählte Steuersatz ist jetzt die Voreinstellung für Ihren Workspace, daher ist diese Regel nicht mehr gültig. Wählen Sie einen anderen Steuersatz.',
+                addTaxRateFirstTitle: 'Fügen Sie zuerst einen Steuersatz hinzu',
+                addTaxRateFirstPrompt:
+                    'Kategorienregeln legen einen standardmäßigen Steuersatz fest. Fügen Sie einen anderen Steuersatz als den Standard Ihres Arbeitsbereichs hinzu, um sie zu verwenden.',
+                createRuleFromExpenseAction: 'Regel erstellen',
+                createRuleFromExpensePrompt: 'um Ihre Änderungen auf alle Ausgaben anzuwenden, die Ihren Kriterien entsprechen.',
             },
             categoryRules: {
                 title: 'Kategorienregeln',
@@ -8095,7 +8131,8 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
                 flagAmountsOverSubtitle: 'Dadurch wird der Höchstbetrag für alle Ausgaben überschrieben.',
                 expenseLimitTypes: {
                     expense: 'Einzelne Ausgabe',
-                    expenseSubtitle: 'Betrag von Ausgaben nach Kategorie kennzeichnen. Diese Regel überschreibt die allgemeine Arbeitsbereichsregel für den maximalen Ausgabenbetrag.',
+                    expenseSubtitle:
+                        'Beträge von Ausgaben nach Kategorie kennzeichnen. Diese Regel überschreibt die allgemeine Arbeitsbereichsregel für den maximalen Ausgabenbetrag. Mehrtägige Reservierungen werden anhand des Durchschnitts pro Nacht bewertet.',
                     daily: 'Kategoriesumme',
                     dailySubtitle: 'Markiere die gesamte tägliche Kategorienaussage pro Spesenbericht.',
                 },
@@ -9520,7 +9557,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 [CONST.SEARCH.WITHDRAWAL_TYPE.TRAVEL_BILLING]: 'Konsolidierte Reiseabrechnung',
             },
             is: 'Ist',
-            has: {submittedViolation: 'Eingereichter Verstoß'},
+            has: {submittedViolation: 'Eingereichter Verstoß', approvedViolation: 'Genehmigter Verstoß'},
             action: {
                 [CONST.SEARCH.ACTION_FILTERS.SUBMIT]: 'Senden',
                 [CONST.SEARCH.ACTION_FILTERS.APPROVE]: 'Genehmigen',
@@ -9744,6 +9781,16 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 integrationSyncFailedRecurrence: ({count}: {count: number}) => `(${count} Mal wiederholt.)`,
                 companyCardConnectionBroken: ({feedName, workspaceCompanyCardRoute}: {feedName: string; workspaceCompanyCardRoute: string}) =>
                     `Die Verbindung für ${feedName} ist unterbrochen. Um Kartenimporte wiederherzustellen, <a href='${workspaceCompanyCardRoute}'>melden Sie sich bei Ihrer Bank an</a>.`,
+                companyCardConnectionBroken30Days: ({
+                    feedName,
+                    workspaceCompanyCardRoute,
+                    workspaceCompanyCardSettingsRoute,
+                }: {
+                    feedName: string;
+                    workspaceCompanyCardRoute: string;
+                    workspaceCompanyCardSettingsRoute: string;
+                }) =>
+                    `Die ${feedName}-Verbindung besteht seit 30 Tagen nicht mehr. <a href='${workspaceCompanyCardRoute}'>Melden Sie sich bei Ihrer Bank an</a>, um sie zu beheben, oder <a href='${workspaceCompanyCardSettingsRoute}'>entfernen Sie die Verbindung</a>, wenn sie nicht mehr verwendet wird. Bereits eingereichte Ausgaben gehen beim Entfernen nicht verloren.`,
                 plaidBalanceFailure: ({maskedAccountNumber, walletRoute}: {maskedAccountNumber: string; walletRoute: string}) =>
                     `Die Plaid-Verbindung zu Ihrem Geschäftskonto ist unterbrochen. Bitte <a href='${walletRoute}'>verbinden Sie Ihr Bankkonto ${maskedAccountNumber} erneut</a>, damit Sie Ihre Expensify Karten weiterhin verwenden können.`,
                 addEmployee: (email: string, role: string, didJoinPolicy?: boolean) => {
@@ -10335,6 +10382,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         customUnitRateOutOfDateRangeStartOnly: ({startDate}: {startDate: string}) => `Der Satz gilt erst ab dem ${startDate}`,
         customUnitRateOutOfDateRangeEndOnly: ({endDate}: {endDate: string}) => `Satz gilt nur bis ${endDate}`,
         cannotMergeDuplicates: 'Sie können Ausgaben nur in Entwürfen oder offenen Berichten zusammenführen. Ziehen Sie den Bericht zurück und versuchen Sie es erneut.',
+        overCategoryLimitPerNight: (formattedLimit: string) => `Nächtlicher Satz über dem Kategorienlimit von ${formattedLimit}/Person`,
         shortName: {
             allTagLevelsRequired: 'Alle Tags erforderlich',
             autoReportedRejectedExpense: 'Ausgabe abgelehnt',
