@@ -18,8 +18,8 @@ const EXPENSE_REPORT_ID = '54321';
 const TRANSACTION_ID = '11111';
 const SIBLING_TRANSACTION_ID = '22222';
 
-// Inlined rather than read off `ONYXKEYS`: a `jest.mock` factory may only close over locals initialized with a literal.
-// The test below asserts the two stay in sync.
+// Inlined because a `jest.mock` factory may only close over locals initialized with a literal. A test below asserts
+// the two stay in sync.
 const TRANSACTION_THREAD_NAVIGATION_TRANSACTION_IDS_KEY = 'transactionThreadNavigationTransactionIDs';
 
 const mockNavigate = jest.fn();
@@ -113,9 +113,8 @@ describe('OneTransactionThreadRedirectHandler', () => {
     });
 
     it('keeps the thread route while the prev/next carousel is stepping through a sibling set', async () => {
-        // Home "Recently added", "Review N flagged expenses" and the duplicate review list all seed a cross-report
-        // sibling set and open the thread precisely because the arrows only exist in the thread's header. Redirecting
-        // to the parent report would swap in `MoneyReportHeader` and dead-end the carousel mid-review.
+        // Home "Recently added", "Review N flagged expenses" and the duplicate review list open a thread precisely for
+        // the prev/next arrows, which only exist in the thread's header. Redirecting would dead-end them mid-review.
         mockSiblingTransactionIDs = [TRANSACTION_ID, SIBLING_TRANSACTION_ID];
 
         render(<OneTransactionThreadRedirectHandler />);
@@ -152,8 +151,8 @@ describe('OneTransactionThreadRedirectHandler', () => {
         await waitForBatchedUpdatesWithAct();
         expect(mockNavigate).not.toHaveBeenCalled();
 
-        // `clearActiveTransactionIDs` runs when the carousel unmounts. Acting on that would eject the user out of a
-        // thread they are still paging through, so the suppression is latched for the thread it was observed on.
+        // `clearActiveTransactionIDs` runs when the carousel unmounts. Acting on that would redirect out of a thread
+        // the user is still paging through, so the suppression is latched per thread.
         mockSiblingTransactionIDs = undefined;
         rerender(<OneTransactionThreadRedirectHandler />);
 
@@ -180,7 +179,7 @@ describe('OneTransactionThreadRedirectHandler', () => {
     });
 
     it('keeps the thread route when a sibling expense is deleted while the user is reading it', async () => {
-        // Two expenses, so this thread is not redundant and the user is on it legitimately.
+        // Two expenses, so the user is on this thread legitimately.
         mockParentTransactionCount = 2;
         mockOneTransactionThreadReportID = undefined;
 
@@ -189,8 +188,8 @@ describe('OneTransactionThreadRedirectHandler', () => {
         await waitForBatchedUpdatesWithAct();
         expect(mockNavigate).not.toHaveBeenCalled();
 
-        // Someone deletes the other expense. `transactionCount` is merged optimistically, so the report becomes a
-        // single-expense one underneath the user - but the thread they are reading must stay put.
+        // Someone deletes the other expense, so the report becomes a single-expense one underneath the user - but the
+        // thread they are reading must stay put.
         mockParentTransactionCount = 1;
         mockOneTransactionThreadReportID = THREAD_REPORT_ID;
         rerender(<OneTransactionThreadRedirectHandler />);
@@ -202,7 +201,7 @@ describe('OneTransactionThreadRedirectHandler', () => {
     });
 
     it('still redirects when the parent report only loads after the thread has mounted', async () => {
-        // A cold open: nothing about the parent is in Onyx yet, so no answer can be latched.
+        // A cold open: nothing about the parent is in Onyx yet.
         mockParentTransactionCount = undefined;
 
         const {rerender} = render(<OneTransactionThreadRedirectHandler />);
@@ -232,8 +231,8 @@ describe('OneTransactionThreadRedirectHandler', () => {
 
         await waitForBatchedUpdatesWithAct();
 
-        // Sending a comment jumps the report to its live tail, which clears the anchor it was opened with. The user is
-        // still reading the thread, so this must not become a redirect.
+        // Sending a comment jumps to the live tail, clearing the anchor the route was opened with. The user is still
+        // reading the thread, so this must not become a redirect.
         mockRouteParams = {reportID: THREAD_REPORT_ID, reportActionID: ''};
         rerender(<OneTransactionThreadRedirectHandler />);
 
@@ -251,7 +250,7 @@ describe('OneTransactionThreadRedirectHandler', () => {
         await waitForBatchedUpdatesWithAct();
         expect(mockNavigate).not.toHaveBeenCalled();
 
-        // The screen is not remounted when a later route swaps in another thread, so the latch has to be per report.
+        // The screen is not remounted when a later route swaps in another thread, so the latch is per report.
         mockRouteParams = {reportID: '67890'};
         rerender(<OneTransactionThreadRedirectHandler />);
 
@@ -350,8 +349,8 @@ describe('OneTransactionThreadRedirectHandler', () => {
         ['the inbox report', SCREENS.REPORT, `/r/${EXPENSE_REPORT_ID}/9999`],
         ['the search RHP report', SCREENS.RIGHT_MODAL.SEARCH_REPORT, `/search/view/${EXPENSE_REPORT_ID}/9999`],
     ])('goes back to the parent report when backTo is %s anchored at one of its actions', async (_name, routeName, backTo) => {
-        // `backTo` is `Navigation.getActiveRoute()`, and both routes end in an optional `:reportActionID`, so it can
-        // carry an anchor. It still renders the parent, so this must not fall through to a replace.
+        // Both routes end in an optional `:reportActionID`, so `backTo` can carry an anchor and still render the
+        // parent. That must not fall through to a replace.
         mockRouteName = routeName;
         mockRouteParams = {reportID: THREAD_REPORT_ID, backTo};
 
@@ -368,9 +367,8 @@ describe('OneTransactionThreadRedirectHandler', () => {
         ['a sub-route of the search money request report', SCREENS.RIGHT_MODAL.SEARCH_REPORT, `/search/r/${EXPENSE_REPORT_ID}/duplicates/review/${THREAD_REPORT_ID}`],
         ['a sub-route of the expense report RHP', SCREENS.RIGHT_MODAL.SEARCH_REPORT, `/e/${EXPENSE_REPORT_ID}/duplicates/review/${THREAD_REPORT_ID}`],
     ])('does not go back when backTo points at %s rather than the report itself', async (_name, routeName, backTo) => {
-        // `createDynamicRoute` builds a dynamic modal's path as `<activeRoute>/<suffix>`, so any modal opened from the
-        // parent report is nested under it. Popping onto one would drop the user back into the page they came from -
-        // for Review duplicates that is the list whose row they just tapped, making the row a dead control.
+        // `createDynamicRoute` nests dynamic modals under the active route. Popping onto one would drop the user back
+        // into the page they came from - for Review duplicates, the list whose row they just tapped.
         mockRouteName = routeName;
         mockRouteParams = {reportID: THREAD_REPORT_ID, backTo};
 
@@ -396,7 +394,7 @@ describe('OneTransactionThreadRedirectHandler', () => {
 
         render(<OneTransactionThreadRedirectHandler />);
 
-        // The redirect is deferred behind `isNavigationReady()`, so microtasks have to flush before "nothing happened"
+        // The redirect is deferred behind `isNavigationReady()`, so microtasks must flush before "nothing happened"
         // means anything - `waitFor` would resolve on the first tick and pass either way.
         await waitForBatchedUpdatesWithAct();
 

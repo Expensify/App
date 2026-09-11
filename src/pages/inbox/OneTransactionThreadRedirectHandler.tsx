@@ -20,8 +20,8 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {useIsFocused, useRoute} from '@react-navigation/native';
 import {useEffect, useRef} from 'react';
 
-// `RHPReportScreen` also backs `SCREENS.RIGHT_MODAL.AGENT_REPORT`. Redirecting from there would eject the user out of
-// the modal, so this handler opts in by route name instead of assuming every screen that mounts it is redirectable.
+// `RHPReportScreen` also backs `AGENT_REPORT`, where a redirect would eject the user out of the modal, so this handler
+// opts in by route name.
 type ReportScreenRoute =
     | PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>
     | PlatformStackRouteProp<RightModalNavigatorParamList, typeof SCREENS.RIGHT_MODAL.SEARCH_REPORT>
@@ -31,26 +31,19 @@ function selectTransactionCount(report: OnyxEntry<Report>): number | undefined {
     return report?.transactionCount;
 }
 
-// A report action ID is always a numeric string, so this tells the optional `:reportActionID` anchor apart from the
-// path segment of a sub-route that merely happens to be nested under the report.
+// Report action IDs are numeric, which tells the optional `:reportActionID` anchor apart from a nested sub-route.
 const REPORT_ACTION_ID_SEGMENT = /^\d+$/;
 
-/**
- * Whether `backTo` points at the report we are about to redirect to. `backTo` is captured from the active route when
- * the thread is opened (see `getReportRouteForCurrentContext`), so it holds the parent whenever the thread was opened
- * from it - the common case.
- */
+/** Whether `backTo` points at the report we are about to redirect to. */
 function isBackToParentReport(backTo: Route | undefined, parentReportID: string): backTo is Route {
     if (!backTo) {
         return false;
     }
 
-    // `backTo` is captured with a leading slash and may carry query params of its own.
+    // `backTo` has a leading slash and may carry query params of its own.
     const backToPath = backTo.replace(/^\//, '').replace(/\?.*$/, '');
 
-    // Every route that renders the parent expense report itself. `backTo` is whichever one the thread was opened from.
-    // Only `REPORT_WITH_ID` and `SEARCH_REPORT` end in an optional `:reportActionID`; `SEARCH_MONEY_REQUEST_REPORT`
-    // and `EXPENSE_REPORT_RHP` are the bare report, so nothing may follow them.
+    // Every route that renders the parent report itself. Only the first two end in an optional `:reportActionID`.
     const parentReportRoutes: Array<{path: string; hasOptionalReportActionID: boolean}> = [
         {path: ROUTES.REPORT_WITH_ID.getRoute(parentReportID), hasOptionalReportActionID: true},
         {path: ROUTES.SEARCH_REPORT.getRoute({reportID: parentReportID}), hasOptionalReportActionID: true},
@@ -58,12 +51,9 @@ function isBackToParentReport(backTo: Route | undefined, parentReportID: string)
         {path: ROUTES.EXPENSE_REPORT_RHP.getRoute({reportID: parentReportID}), hasOptionalReportActionID: false},
     ];
 
-    // `backTo` is captured with `Navigation.getActiveRoute()`, so it can carry the `:reportActionID` anchor -
-    // `cleanStaleReportActionBackToParam` exists to rewrite exactly that shape - and `/r/<parent>/<actionID>` still
-    // renders the parent, so that one trailing segment is accepted. Anything else nested under the report is a
-    // different screen: `createDynamicRoute` builds dynamic modals as `<activeRoute>/<suffix>`, so a bare prefix match
-    // would treat `/r/<parent>/duplicates/review/<thread>` as the parent and pop the user back into the review page
-    // they just came from.
+    // `/r/<parent>/<actionID>` still renders the parent, so one numeric trailing segment is accepted. A bare prefix
+    // match would not do: `createDynamicRoute` nests dynamic modals under the active route, so
+    // `/r/<parent>/duplicates/review/<thread>` would look like the parent and pop the user back into the review page.
     return parentReportRoutes.some(({path, hasOptionalReportActionID}) => {
         if (backToPath === path) {
             return true;
@@ -76,17 +66,14 @@ function isBackToParentReport(backTo: Route | undefined, parentReportID: string)
 }
 
 /**
- * Renders nothing. A single-expense report already renders its only expense inline (see
- * `shouldDisplayReportTableView`), so that expense's transaction thread duplicates the report itself. Whenever a route
- * lands on such a thread - deep link, push notification, stale history entry, or a call site that resolved the IOU
- * action's `childReportID` without checking the transaction count - replace it with the report.
- *
- * Search already applies this rule at its own call sites; this handler is the route-level backstop for everything else.
+ * Renders nothing. A single-expense report renders its only expense inline (see `shouldDisplayReportTableView`), so
+ * that expense's transaction thread duplicates the report. This replaces such a route with the report itself - the
+ * route-level backstop for entry points that don't check the transaction count themselves.
  */
 function OneTransactionThreadRedirectHandler() {
     const route = useRoute<ReportScreenRoute>();
 
-    // Only the two routes this handler was written for. Anything else that mounts `ReportScreen` is left alone.
+    // Only the two routes this handler was written for; anything else that mounts `ReportScreen` is left alone.
     const redirectableRoute = route.name === SCREENS.REPORT || route.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT ? route : undefined;
 
     const reportIDFromRoute = getNonEmptyStringOnyxID(redirectableRoute?.params?.reportID);
@@ -95,61 +82,50 @@ function OneTransactionThreadRedirectHandler() {
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDFromRoute}`);
     const parentReportID = getNonEmptyStringOnyxID(report?.parentReportID);
 
-    // A gate the shared definition does not have: that derivation reads whatever report actions are in Onyx, so a
-    // multi-expense report still paginating in can briefly look like a single-expense one - and navigating on that is
-    // unrecoverable. Read as the raw count rather than as a boolean so the effect below can tell "the parent has not
-    // loaded yet" apart from "the parent holds more than one expense".
+    // A multi-expense report still paginating in can briefly look like a single-expense one, so gate on the server
+    // count too. Kept as the raw count so the effect below can tell "not loaded yet" from "more than one expense".
     const [parentTransactionCount] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`, {selector: selectTransactionCount});
     const isParentOneTransactionReport = parentTransactionCount === 1;
 
-    // The same definition `HeaderView` and `SidebarUtils` use, so the redirect and the views that render the thread
-    // agree. Gated on the parent's transaction count first: without it every plain comment thread would subscribe to
-    // its chat's entire report action list. Passing `undefined` keeps the hook call unconditional but inert.
+    // The same definition `HeaderView` and `SidebarUtils` use, so the redirect and the thread's own views agree.
+    // Passing `undefined` keeps the call inert, so plain comment threads don't subscribe to their chat's action list.
     const isOneTransactionThread = useIsOneTransactionThread(isParentOneTransactionReport ? report : undefined);
 
-    // The prev/next carousel lives only in `MoneyRequestHeader`, which only a transaction thread renders - the parent
-    // report gets `MoneyReportHeader` and no arrows. So every flow that seeds a *cross-report* sibling set and opens a
-    // thread for the arrows (Home "Recently added", "Review N flagged expenses", the duplicate review list) would lose
-    // them the moment one sibling happens to be alone on its report, dead-ending the carousel mid-review. Sibling sets
-    // are written before the thread route is opened, so they are already in Onyx by the time this mounts.
+    // The prev/next arrows only exist in a thread's header, so the flows that open a thread for them (Home "Recently
+    // added", "Review N flagged expenses", the duplicate review list) would dead-end mid-review if we redirected.
     const parentReportAction = useParentReportAction(isParentOneTransactionReport ? report : undefined);
     const transactionID = getLinkedTransactionID(parentReportAction);
     const [siblingTransactionIDs] = useOnyx(ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_TRANSACTION_IDS);
 
-    // Mirrors the carousel's own render gate (it bails below two siblings), plus a membership check so a sibling set
-    // left behind by an unrelated report does not suppress a legitimate redirect.
+    // Mirrors the carousel's own render gate, plus a membership check so a stale sibling set left behind by another
+    // report does not suppress a legitimate redirect.
     const isInActiveTransactionCarousel = !!transactionID && (siblingTransactionIDs?.length ?? 0) > 1 && !!siblingTransactionIDs?.includes(transactionID);
 
     // A message deep link points at an action inside the thread, so dropping the thread route would drop its anchor.
     const hasLinkedReportAction = !!redirectableRoute?.params?.reportActionID;
 
-    // A push notification opens its target with `referrer=notification`, which is what lets `useMarkAsRead` mark the
-    // report read without waiting on window focus, so it has to survive the redirect. It only exists on the inbox route.
+    // `referrer=notification` is what lets `useMarkAsRead` mark the report read without waiting on window focus, so it
+    // has to survive the redirect. It only exists on the inbox route.
     const referrer = redirectableRoute?.name === SCREENS.REPORT ? redirectableRoute.params?.referrer : undefined;
 
     const shouldRedirectToParentReport = !!redirectableRoute && !!parentReportID && isParentOneTransactionReport && isOneTransactionThread;
 
-    // The replace unmounts this screen, but Onyx updates can land before the transition finishes. Keyed by report so a
-    // later route onto a different thread still redirects.
+    // Onyx updates can land before the replace finishes. Keyed by report so a later route onto another thread still
+    // redirects.
     const redirectedFromReportIDRef = useRef<string | undefined>(undefined);
 
-    // `reportActionID` is mutable, and the app clears it on this very route while the user is still reading the
-    // thread - jumping to the live tail once they send a comment (`useReportActionsNewActionLiveTail`), or dropping an
-    // anchor whose action got deleted (`LinkedActionNotFoundGuard`). Reading it live would turn either into a redirect
-    // that ejects the user mid-session, so latch how the route was opened instead. Keyed by report, because this
-    // handler is not remounted when a later route swaps the screen's `reportID` for another thread.
+    // The app clears `reportActionID` on this route mid-session - jumping to the live tail after the user sends a
+    // comment, or dropping an anchor whose action got deleted. Reading it live would redirect the user out of a thread
+    // they are still reading, so latch how the route was opened instead. Keyed by report as above.
     const openedWithLinkedActionRef = useRef<{reportID: string | undefined; hadLinkedReportAction: boolean} | undefined>(undefined);
 
-    // `transactionCount` is merged optimistically when an expense is deleted (see `Transaction.ts`), so a report whose
-    // thread the user is legitimately reading drops from many expenses to one the moment a *sibling* expense is
-    // deleted. Reading the count live would then redirect mid-read, and the replace drops the thread route so Back
-    // does not undo it. Only the count the parent had when this thread was opened may authorize the redirect. Keyed by
-    // report as above, and latched only once the count is known - `undefined` means the parent has not loaded yet, so
-    // a cold open still redirects when the real count arrives.
+    // Deleting a *sibling* expense drops `transactionCount` to 1 optimistically, so reading it live would redirect out
+    // of a thread the user is legitimately reading. Only the count at open time may authorize the redirect. Latched
+    // once the count is known, so a cold open still redirects when the real count arrives.
     const openedWithParentTransactionCountRef = useRef<{reportID: string | undefined; transactionCount: number} | undefined>(undefined);
 
-    // Sticky per report: the carousel clears its sibling set when it unmounts, so reading it live would let a redirect
-    // fire late and eject the user out of a thread they are still paging through.
+    // Sticky per report: the carousel clears its sibling set on unmount, so reading it live would let a redirect fire
+    // late, out of a thread the user is still paging through.
     const suppressedForCarouselReportIDRef = useRef<string | undefined>(undefined);
 
     useEffect(() => {
@@ -182,12 +158,11 @@ function OneTransactionThreadRedirectHandler() {
         }
         redirectedFromReportIDRef.current = reportIDFromRoute;
 
-        // Reuse the route's own `backTo`, not the active route - that points at the thread we are replacing and would
-        // bounce the user straight back here.
+        // The route's own `backTo`, not the active route - that points at the thread we are replacing.
         const backTo = redirectableRoute?.params?.backTo;
 
-        // `backTo` already points at the parent we want. Replacing would leave `parent -> parent?backTo=parent` on the
-        // stack, so the first Back appears to do nothing. Pop onto the parent that is already there instead.
+        // Replacing would stack `parent -> parent?backTo=parent`, so the first Back would appear to do nothing. Pop
+        // onto the parent already on the stack instead.
         if (isBackToParentReport(backTo, parentReportID)) {
             Navigation.isNavigationReady().then(() => {
                 Navigation.goBack(backTo);

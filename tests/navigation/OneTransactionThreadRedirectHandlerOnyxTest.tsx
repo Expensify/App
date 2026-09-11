@@ -92,8 +92,8 @@ async function seedOnyx(transactionCount: number, actions: Array<ReportAction<ty
 }
 
 /**
- * `OneTransactionThreadRedirectHandlerTest` mocks the hooks to pin down the decision table; this suite feeds the
- * handler real Onyx data, so it catches a wrong Onyx key or reportID that the mocked suite would happily pass.
+ * `OneTransactionThreadRedirectHandlerTest` mocks the hooks to pin down the decision table. This suite feeds the
+ * handler real Onyx data, so it catches a wrong Onyx key or reportID that the mocked suite would pass.
  */
 describe('OneTransactionThreadRedirectHandler with real Onyx data', () => {
     beforeAll(() => {
@@ -133,9 +133,8 @@ describe('OneTransactionThreadRedirectHandler with real Onyx data', () => {
         await waitForBatchedUpdatesWithAct();
         expect(mockNavigate).not.toHaveBeenCalled();
 
-        // Deleting the *other* expense drops the parent to a single-expense report. `transactionCount` is merged
-        // optimistically, so this lands while the user is still reading a thread that is not redundant - and the
-        // replace would drop the thread route, leaving no way back.
+        // Deleting the *other* expense drops the parent to a single-expense report while the user is still reading
+        // this thread, and the replace would drop the thread route, leaving no way back.
         await act(async () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${EXPENSE_REPORT_ID}`, {transactionCount: 1});
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${EXPENSE_REPORT_ID}`, {action2: null});
