@@ -17,6 +17,7 @@ import {detachReceipt, navigateToStartStepIfScanFileCannotBeRead, replaceReceipt
 import {removeMoneyRequestOdometerImage, setMoneyRequestOdometerImage} from '@libs/actions/OdometerTransactionUtils';
 import {openReport} from '@libs/actions/Report';
 import cropOrRotateImage from '@libs/cropOrRotateImage';
+import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
 import fetchImage from '@libs/fetchImage';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import getPlatform from '@libs/getPlatform';
@@ -125,7 +126,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
     const odometerFile = typeof odometerImage !== 'string' ? odometerImage : undefined;
     const odometerFilename = odometerFile?.name ?? (typeof odometerImage === 'string' ? odometerImage.split('/').pop() : undefined);
     const odometerUriExtension = odometerFilename?.split('.').pop()?.toLowerCase();
-    const odometerFileType = (odometerFile as Partial<File>)?.type ?? (odometerUriExtension ? `image/${odometerUriExtension}` : CONST.IMAGE_FILE_FORMAT.JPEG);
+    const odometerFileType = odometerFile?.type ?? (odometerUriExtension ? `image/${odometerUriExtension}` : CONST.IMAGE_FILE_FORMAT.JPEG);
     const [odometerImageSource, setOdometerImageSource] = useState<string | undefined>(undefined);
 
     useEffect(() => {
@@ -309,7 +310,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
     const allowDownload = !isEReceipt;
 
     const applyDurableReceipt = useCallback(
-        (imageUri: string, filename: string, file: File, isSameReceipt?: boolean) => {
+        (imageUri: string, filename: string, file: File | CustomRNImageManipulatorResult, isSameReceipt?: boolean) => {
             if (!transaction?.transactionID) {
                 return Promise.resolve();
             }
@@ -320,7 +321,10 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
                     return imageUri;
                 })
                 .then((durableUri) => {
-                    const durableFile = Object.assign(new File([file], file.name || filename, {type: file.type}), {uri: durableUri, source: durableUri});
+                    const durableFile =
+                        typeof File !== 'undefined' && file instanceof File
+                            ? Object.assign(new File([file], file.name || filename, {type: file.type}), {uri: durableUri, source: durableUri})
+                            : {...file, uri: durableUri, source: durableUri};
                     if (isOdometerImage) {
                         setMoneyRequestOdometerImage(transaction, imageType, durableFile, isDraftTransaction, !isEditingConfirmation);
                     } else if (isDraftTransaction) {
@@ -344,12 +348,12 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
     );
 
     const rotateReceipt = useCallback(() => {
-        if (!transaction?.transactionID || !sourceUri || !isImage) {
+        if (!transaction?.transactionID || typeof sourceUri !== 'string' || !sourceUri || !isImage) {
             return;
         }
 
         setIsRotating(true);
-        cropOrRotateImage(sourceUri as string, [{rotate: -90}], {
+        cropOrRotateImage(sourceUri, [{rotate: -90}], {
             compress: 1,
             name: fileName,
             type: fileType,
@@ -366,7 +370,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
                     return Promise.resolve();
                 }
 
-                const file = rotatedImage as File;
+                const file = rotatedImage;
                 const rotatedFilename = file.name ?? receiptFilename;
 
                 return applyDurableReceipt(imageUriResult, rotatedFilename, file, true).then(() => {
@@ -404,14 +408,14 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
     }, []);
 
     const saveCrop = useCallback(() => {
-        if (!transaction?.transactionID || !sourceUri || !isImage || !cropRect || cropRect.width < 1 || cropRect.height < 1) {
+        if (!transaction?.transactionID || typeof sourceUri !== 'string' || !sourceUri || !isImage || !cropRect || cropRect.width < 1 || cropRect.height < 1) {
             exitCropMode();
             return;
         }
 
         setIsCropSaving(true);
         cropOrRotateImage(
-            sourceUri as string,
+            sourceUri,
             [
                 {
                     crop: {
@@ -440,7 +444,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
                     return Promise.resolve();
                 }
 
-                const file = croppedImage as File;
+                const file = croppedImage;
                 const croppedFilename = file.name ?? receiptFilename;
 
                 return applyDurableReceipt(imageUriResult, croppedFilename, file).then(() => {
@@ -573,7 +577,22 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
                 )}
                 {isPDF && !isNative && (
                     <Button
-                        onPress={() => setPdfRotation((prev) => ((prev + 270) % 360) as RotationDegrees)}
+                        onPress={() =>
+                            setPdfRotation((prev) => {
+                                switch (prev) {
+                                    case 0:
+                                        return 270;
+                                    case 270:
+                                        return 180;
+                                    case 180:
+                                        return 90;
+                                    case 90:
+                                        return 0;
+                                    default:
+                                        return prev;
+                                }
+                            })
+                        }
                         style={styles.transactionReceiptButton}
                     >
                         <Button.Icon src={expensifyIcons.Rotate} />
@@ -648,13 +667,14 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
     ]);
 
     const customAttachmentContent = useMemo(() => {
-        if (!isCropping || (!sourceUri && !source)) {
+        const imageUri = sourceUri || source;
+        if (!isCropping || typeof imageUri !== 'string' || !imageUri) {
             return null;
         }
 
         return (
             <ReceiptCropView
-                imageUri={(sourceUri || source) as string}
+                imageUri={imageUri}
                 onCropChange={handleCropChange}
                 isAuthTokenRequired={sourceUri ? false : isAuthTokenRequired}
             />
