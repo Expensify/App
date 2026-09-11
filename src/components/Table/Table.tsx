@@ -268,6 +268,7 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
     isItemInFilter,
     isItemInSearch,
     initialSortColumn,
+    initialSortOrder,
     narrowLayoutSortColumn,
     children,
     selectionEnabled,
@@ -304,6 +305,7 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
     } = useSorting<DataType, ColumnKey>({
         compareItems,
         initialSortColumn,
+        initialSortOrder,
         narrowLayoutSortColumn,
         shouldUseNarrowTableLayout,
     });
