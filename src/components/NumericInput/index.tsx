@@ -2,6 +2,7 @@ import NumericCurrencyButton from '@components/NumericButtons/NumericCurrencyBut
 
 import NumericInputComponent from './NumericInput';
 import NumericError from './primitives/NumericError';
+import NumericFlipButton from './primitives/NumericFlipButton';
 import NumericInputContainer from './primitives/NumericInputContainer';
 import NumericMinusSign from './primitives/NumericMinusSign';
 import NumericSymbol from './primitives/NumericSymbol';
@@ -42,6 +43,9 @@ import NumericTextInput from './primitives/NumericTextInput';
 const NumericInput = Object.assign(NumericInputComponent, {
     /** Opens the currency selector. */
     CurrencyButton: NumericCurrencyButton,
+
+    /** Toggles the sign of the value. Renders only when the root allows negative values. */
+    FlipButton: NumericFlipButton,
 
     /** Renders the number itself, displaying and editing the magnitude of the canonical value. */
     TextInput: NumericTextInput,

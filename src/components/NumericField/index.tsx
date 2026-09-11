@@ -1,6 +1,7 @@
 import NumericCurrencyButton from '@components/NumericButtons/NumericCurrencyButton';
 
 import NumericFieldComponent from './NumericField';
+import NumericFlipButton from './primitives/NumericFlipButton';
 import NumericTextInput from './primitives/NumericTextInput';
 
 /**
@@ -35,6 +36,9 @@ import NumericTextInput from './primitives/NumericTextInput';
 const NumericField = Object.assign(NumericFieldComponent, {
     /** Opens the currency selector. */
     CurrencyButton: NumericCurrencyButton,
+
+    /** Toggles the sign of the value. Renders only when the root allows negative values. */
+    FlipButton: NumericFlipButton,
 
     /** Renders a numeric input using the standard text input component. */
     TextInput: NumericTextInput,
