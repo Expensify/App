@@ -68,7 +68,9 @@ jobs:
       - name: Setup Claude review toolkit
         if: steps.set-authorized.outputs.IS_AUTHORIZED == 'true'
         id: toolkit
-        uses: Expensify/GitHub-Actions/.github/actions/claude-review-toolkit@2b751e9a86d8690f53443cce0ce886079eccea76
+        uses: Expensify/GitHub-Actions/.github/actions/claude-review-toolkit@54bfb8923d4f94c3cb209bfbad362fca9f0816f5
+        with:
+          rules_directory: .claude/skills/app-coding-standards/rules
 
       - name: Mark review as in progress
         if: steps.set-authorized.outputs.IS_AUTHORIZED == 'true'
