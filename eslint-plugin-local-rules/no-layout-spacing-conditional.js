@@ -87,7 +87,7 @@ function create(context) {
                 context.report({
                     node,
                     messageId: 'layoutSpacingConditionalKnown',
-                    data: {test: isNegated ? `!${flagName}` : flagName, narrow: narrow, wide: wide, replacement},
+                    data: {test: isNegated ? `!${flagName}` : flagName, narrow, wide, replacement},
                 });
                 return;
             }

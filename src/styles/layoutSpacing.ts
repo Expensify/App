@@ -9,8 +9,6 @@ const layoutSpacing = {
     cardGap: {narrow: 12, wide: 20},
 } as const satisfies Record<string, LayoutSpacingToken>;
 
-type LayoutSpacingName = keyof typeof layoutSpacing;
-
 function resolveLayoutSpacing(shouldUseNarrowLayout: boolean) {
     const size = shouldUseNarrowLayout ? 'narrow' : 'wide';
     const cardPadding = layoutSpacing.cardPadding[size];
@@ -35,4 +33,4 @@ type LayoutSpacing = ReturnType<typeof resolveLayoutSpacing>;
 
 export default layoutSpacing;
 export {resolveLayoutSpacing};
-export type {LayoutSpacing, LayoutSpacingName, LayoutSpacingToken};
+export type {LayoutSpacing};
