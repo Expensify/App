@@ -7225,6 +7225,10 @@ const CONST = {
             ITEMIZED: 'itemized',
             HOTEL: 'hotel',
         },
+        TRANSACTION_STATUS: {
+            PENDING: 'pending',
+            POSTED: 'posted',
+        },
         // Hotel needs historical receipts backfilled with isHotelReservation before it can return results
         SELECTABLE_RECEIPT_TYPES: ['ereceipt', 'itemized'],
         WITHDRAWAL_TYPE: {
@@ -7783,6 +7787,7 @@ const CONST = {
             AMOUNT: 'amount',
             EXPENSE_TYPE: 'expenseType',
             RECEIPT_TYPE: 'receiptType',
+            TRANSACTION_STATUS: 'transactionStatus',
             CURRENCY: 'currency',
             GROUP_CURRENCY: 'groupCurrency',
             MERCHANT: 'merchant',
@@ -7869,6 +7874,7 @@ const CONST = {
             AMOUNT_REIMBURSED: 'amount-reimbursed',
             EXPENSE_TYPE: 'expense-type',
             RECEIPT_TYPE: 'receipt-type',
+            TRANSACTION_STATUS: 'transaction-status',
             CURRENCY: 'currency',
             GROUP_CURRENCY: 'group-currency',
             MERCHANT: 'merchant',

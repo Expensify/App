@@ -9699,6 +9699,12 @@ const translations = {
                 [CONST.SEARCH.GROUP_BY.QUARTER]: 'Quarter',
             },
             feed: 'Feed',
+            transactionStatus: {
+                label: 'Transaction status',
+                [CONST.SEARCH.TRANSACTION_STATUS.PENDING]: 'Pending',
+                [CONST.SEARCH.TRANSACTION_STATUS.POSTED]: 'Posted',
+                hint: 'Only applies to card transactions.',
+            },
             withdrawalType: {
                 [CONST.SEARCH.WITHDRAWAL_TYPE.EXPENSIFY_CARD]: 'Expensify Card',
                 [CONST.SEARCH.WITHDRAWAL_TYPE.REIMBURSEMENT]: 'Reimbursement',

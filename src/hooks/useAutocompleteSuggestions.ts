@@ -78,6 +78,7 @@ const GROUP_BY_FRIENDLY_VALUES = Object.values(CONST.SEARCH.GROUP_BY).map((value
 const VIEW_FRIENDLY_VALUES = Object.values(CONST.SEARCH.VIEW).map((value) => getUserFriendlyValue(value));
 const EXPENSE_TYPE_FRIENDLY_VALUES = Object.values(CONST.SEARCH.TRANSACTION_TYPE).map((value) => getUserFriendlyValue(value));
 const RECEIPT_TYPE_FRIENDLY_VALUES = CONST.SEARCH.SELECTABLE_RECEIPT_TYPES.map((value) => getUserFriendlyValue(value));
+const TRANSACTION_STATUS_FRIENDLY_VALUES = Object.values(CONST.SEARCH.TRANSACTION_STATUS).map((value) => getUserFriendlyValue(value));
 const WITHDRAWAL_TYPE_VALUES = Object.values(CONST.SEARCH.WITHDRAWAL_TYPE);
 const WITHDRAWAL_STATUS_VALUES = Object.values(CONST.SEARCH.SETTLEMENT_STATUS);
 const PAID_STATUS_VALUES = Object.values(CONST.SEARCH.PAID_STATUS);
@@ -414,6 +415,16 @@ function useAutocompleteSuggestions({
             return filteredReceiptTypes.map((receiptType) => ({
                 filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.RECEIPT_TYPE,
                 text: receiptType,
+            }));
+        }
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.TRANSACTION_STATUS: {
+            const filteredTransactionStatuses = TRANSACTION_STATUS_FRIENDLY_VALUES.filter(
+                (transactionStatus) => transactionStatus.includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.has(transactionStatus),
+            ).sort();
+
+            return filteredTransactionStatuses.map((transactionStatus) => ({
+                filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.TRANSACTION_STATUS,
+                text: transactionStatus,
             }));
         }
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_TYPE: {

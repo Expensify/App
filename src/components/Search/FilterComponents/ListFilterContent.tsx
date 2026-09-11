@@ -1,4 +1,5 @@
 import type {Filter, SearchAmountFilterKeys, SearchDateFilterKeys, SearchFilterCommonProps, SearchTextFilterKeys} from '@components/Search/types';
+import Text from '@components/Text';
 
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -6,6 +7,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {isFilterNegatable} from '@libs/SearchQueryUtils';
 import {getMultiSelectFilterOptions, getSingleSelectFilterOptions} from '@libs/SearchUIUtils';
 import type {SearchFilter} from '@libs/SearchUIUtils';
+
+import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import type {SearchAdvancedFiltersForm} from '@src/types/form/SearchAdvancedFiltersForm';
@@ -41,7 +44,11 @@ type ListFilterContentProps = SearchFilterCommonProps<SearchAdvancedFiltersForm[
     onNegationChange: (isNegated: boolean) => void;
 };
 
-type SingleSelectFilterKeys = typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.BILLABLE | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.REIMBURSABLE | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_TYPE;
+type SingleSelectFilterKeys =
+    | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.BILLABLE
+    | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.REIMBURSABLE
+    | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_TYPE
+    | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.TRANSACTION_STATUS;
 type SingleSelectListFilterContentProps = SearchFilterCommonProps<SearchAdvancedFiltersForm[SingleSelectFilterKeys] | undefined> & {
     baseFilterKey: SingleSelectFilterKeys;
 };
@@ -59,15 +66,28 @@ type MultiSelectListFilterContentProps = SearchFilterCommonProps<SearchAdvancedF
     type: SearchDataTypes | undefined;
 };
 
+/** Matches `styles.mv3` applied to the hint below. */
+const HINT_VERTICAL_MARGIN = 12;
+
 function SingleSelectListFilterContent({baseFilterKey, value, selectionListStyle, footer, onChange}: SingleSelectListFilterContentProps) {
     const {translate} = useLocalize();
+    const styles = useThemeStyles();
     const items = getSingleSelectFilterOptions(baseFilterKey, translate);
+
+    // Pending and posted are only ever set on card transactions, so the filter says so rather than encoding the caveat in its name.
+    const hasHint = baseFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.TRANSACTION_STATUS;
+    const header = hasHint ? <Text style={[styles.mh5, styles.mv3, styles.textLabelSupportingNormal]}>{translate('search.filters.transactionStatus.hint')}</Text> : undefined;
+
+    // The hint renders inside the popover's fixed-height list, so its height has to be added back or it eats a row's worth of space.
+    const headerHeight = hasHint ? variables.lineHeightNormal + HINT_VERTICAL_MARGIN * 2 : undefined;
 
     return (
         <SingleSelect
             items={items}
             value={items.find((option) => option.value === value)}
             selectionListStyle={selectionListStyle}
+            header={header}
+            headerHeight={headerHeight}
             footer={footer}
             allowDeselect
             onChange={(item) => onChange(item?.value)}
@@ -178,6 +198,7 @@ function ListFilterContent({
         }
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.BILLABLE:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.REIMBURSABLE:
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.TRANSACTION_STATUS:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_TYPE: {
             const isSingleSelectFilterValue = (v: ListFilterContentProps['value']): v is SingleSelectListFilterContentProps['value'] => {
                 return typeof v === 'string';
