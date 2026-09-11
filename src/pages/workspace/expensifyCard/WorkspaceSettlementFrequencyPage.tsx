@@ -10,7 +10,7 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {updateSettlementFrequency as updateSettlementFrequencyUtil} from '@libs/actions/Card';
-import {getCardProgramKey, getCardSettings, getMonthlySettlementDate} from '@libs/CardUtils';
+import {getCardProgramKey, getCardSettings} from '@libs/CardUtils';
 import Log from '@libs/Log';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 
@@ -78,7 +78,7 @@ function WorkspaceSettlementFrequencyPage({route}: WorkspaceSettlementFrequencyP
             Log.alert('[WorkspaceSettlementFrequencyPage] saveSettlementFrequency called without a detected card program key');
             return;
         }
-        updateSettlementFrequencyUtil(defaultFundID, programKey, currentFrequency, getMonthlySettlementDate(settings?.monthlySettlementDate));
+        updateSettlementFrequencyUtil(defaultFundID, programKey, currentFrequency, settings?.monthlySettlementDate);
         Navigation.goBack();
     };
 

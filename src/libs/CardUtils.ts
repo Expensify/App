@@ -1507,23 +1507,18 @@ function isLastScrapePastDismissThreshold(card: Card): boolean {
 }
 
 /**
- * Resolve the Expensify Card monthly settlement date into a date whose day of the month can be displayed.
+ * Turn the Expensify Card monthly settlement day of the month into a date, so it can be formatted for display.
  *
- * The backend sends the settlement date as a day of the month, so it reaches Onyx as a number and cannot be handed to
- * `new Date()`: `new Date(10)` is 10 *milliseconds* after the Unix epoch, which is the 31st of December 1969 anywhere
- * west of UTC, so every workspace would show the same wrong day. A real `Date` only ever arrives from one of our own
- * optimistic writes, which store `new Date()` purely as a truthy "settles monthly" marker.
+ * The value is a day of the month and must never be handed to `new Date()` directly: `new Date(10)` is 10
+ * *milliseconds* after the Unix epoch, which is the 31st of December 1969 anywhere west of UTC, so every workspace
+ * would show the same wrong day.
  *
- * @param monthlySettlementDate the settlement date as it arrived in Onyx
- * @returns the settlement date, or undefined when no real day of the month can be resolved from the value
+ * @param monthlySettlementDate the day of the month the workspace settles on
+ * @returns a date on that day of the month, or undefined when the value is not a day of the month
  */
 function getMonthlySettlementDate(monthlySettlementDate: ExpensifyCardSettingsBase['monthlySettlementDate']): Date | undefined {
     if (!monthlySettlementDate) {
         return undefined;
-    }
-
-    if (monthlySettlementDate instanceof Date) {
-        return Number.isNaN(monthlySettlementDate.getTime()) ? undefined : monthlySettlementDate;
     }
 
     // A day of the month carries no month or year, so anchor it to January of the current year: every day from the 1st

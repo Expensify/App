@@ -210,7 +210,7 @@ describe('TravelBilling', () => {
         const workspaceAccountID = 456;
         const cardSettingsKey = getTravelBillingCardSettingsKey(workspaceAccountID);
 
-        const monthlySettlementDate = new Date('2026-01-01');
+        const monthlySettlementDate = 1;
         clearTravelBillingSettlementFrequencyErrors(workspaceAccountID, monthlySettlementDate);
 
         expect(spyOnyxMerge).toHaveBeenCalledWith(cardSettingsKey, {
@@ -230,11 +230,13 @@ describe('TravelBilling', () => {
     it('updateTravelBillingSettlementFrequency sends correct optimistic, success, and failure data', () => {
         const workspaceAccountID = 456;
         const frequency = CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.MONTHLY;
-        const currentMonthlySettlementDate = new Date('2024-01-01');
+        const currentMonthlySettlementDate = 1;
         const cardSettingsKey = getTravelBillingCardSettingsKey(workspaceAccountID);
 
-        // Set fake time to ensure deterministic optimistic data
+        // Set fake time to ensure deterministic optimistic data. The optimistic day of the month is read in local time,
+        // so derive the expected day from the mocked date rather than hard-coding it.
         const mockDate = new Date('2024-05-20');
+        const mockDayOfMonth = mockDate.getDate();
         jest.useFakeTimers();
         jest.setSystemTime(mockDate);
 
@@ -252,7 +254,7 @@ describe('TravelBilling', () => {
                         key: cardSettingsKey,
                         value: expect.objectContaining({
                             [CONST.TRAVEL.PROGRAM_TRAVEL_US]: expect.objectContaining({
-                                monthlySettlementDate: mockDate,
+                                monthlySettlementDate: mockDayOfMonth,
                                 previousMonthlySettlementDate: currentMonthlySettlementDate,
                             }),
                             pendingFields: expect.objectContaining({
@@ -269,7 +271,7 @@ describe('TravelBilling', () => {
                         key: cardSettingsKey,
                         value: expect.objectContaining({
                             [CONST.TRAVEL.PROGRAM_TRAVEL_US]: expect.objectContaining({
-                                monthlySettlementDate: mockDate,
+                                monthlySettlementDate: mockDayOfMonth,
                                 previousMonthlySettlementDate: null,
                             }),
                             pendingFields: expect.objectContaining({
@@ -286,7 +288,7 @@ describe('TravelBilling', () => {
                         key: cardSettingsKey,
                         value: expect.objectContaining({
                             [CONST.TRAVEL.PROGRAM_TRAVEL_US]: expect.objectContaining({
-                                monthlySettlementDate: mockDate,
+                                monthlySettlementDate: mockDayOfMonth,
                                 previousMonthlySettlementDate: currentMonthlySettlementDate,
                             }),
                             pendingFields: expect.objectContaining({

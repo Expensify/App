@@ -5025,12 +5025,7 @@ describe('getDomainByFundID', () => {
 });
 
 describe('getMonthlySettlementDate', () => {
-    it('keeps a `Date`, which is what our own optimistic writes store', () => {
-        const settlementDate = new Date('2024-01-27');
-        expect(getMonthlySettlementDate(settlementDate)).toBe(settlementDate);
-    });
-
-    it('reads a number as the day of the month, not as milliseconds since the epoch', () => {
+    it('reads the value as the day of the month, not as milliseconds since the epoch', () => {
         expect(getMonthlySettlementDate(10)?.getDate()).toBe(10);
     });
 
@@ -5043,14 +5038,11 @@ describe('getMonthlySettlementDate', () => {
         expect(getMonthlySettlementDate(undefined)).toBeUndefined();
     });
 
-    it('returns undefined for a number that cannot be a day of the month', () => {
+    it('returns undefined for a value that cannot be a day of the month', () => {
         expect(getMonthlySettlementDate(0)).toBeUndefined();
         expect(getMonthlySettlementDate(32)).toBeUndefined();
         expect(getMonthlySettlementDate(10.5)).toBeUndefined();
         expect(getMonthlySettlementDate(1706353253)).toBeUndefined();
-    });
-
-    it('returns undefined for an invalid `Date`', () => {
-        expect(getMonthlySettlementDate(new Date('not a date'))).toBeUndefined();
+        expect(getMonthlySettlementDate(NaN)).toBeUndefined();
     });
 });
