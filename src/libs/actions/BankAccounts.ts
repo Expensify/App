@@ -443,8 +443,7 @@ function getOnyxDataForConnectingVBBAAndLastPaymentMethod(policyID?: string, las
 /**
  * Submit Bank Account step with Plaid data so php can perform some checks.
  *
- * @returns true when the user was redirected to the manual flow (Chase returns dummy numbers via Plaid),
- * in which case no bank account was created and the caller must not advance to the next step.
+ * @returns true when redirected to the manual flow (Chase Plaid dummy numbers).
  */
 function connectBankAccountWithPlaid(bankAccountID: number, selectedPlaidBankAccount: PlaidBankAccount, policyID: string | undefined): boolean {
     const isChaseBank = selectedPlaidBankAccount.bankName?.toLowerCase() === CONST.BANK_NAMES.CHASE;

@@ -94,7 +94,7 @@ function BankInfo({onBackButtonPress, onSubmit, policyID}: BankInfoProps) {
                 policyID,
             );
 
-            // No bank account was created; stay on this step so the manual form can create it before advancing.
+            // No bank account was created. Stay on this step so the manual form can create it before advancing.
             if (redirectedToManual) {
                 return;
             }
