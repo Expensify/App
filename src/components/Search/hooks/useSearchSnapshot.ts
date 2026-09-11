@@ -13,7 +13,7 @@ import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import useReportAttributes from '@hooks/useReportAttributes';
 
 import {isDefaultExpensesQuery} from '@libs/SearchQueryUtils';
-import {getColumnsToShow, getSections, getSortedSections, getValidGroupBy, isSearchDataLoaded} from '@libs/SearchUIUtils';
+import {getColumnsToShow, getSections, getSortedSections, getSortedTransactionData, getValidGroupBy, isSearchDataLoaded} from '@libs/SearchUIUtils';
 import {shouldShowAttendees} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
@@ -119,6 +119,7 @@ function useSearchSnapshot({queryJSON, searchResults, newSearchResultKeys, trans
     const [policyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
     const [visibleColumns] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {selector: columnsSelector});
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
     // Inject an optimistically-created transaction the server has not indexed yet so its row mounts
     // immediately.
@@ -193,6 +194,7 @@ function useSearchSnapshot({queryJSON, searchResults, newSearchResultKeys, trans
             translate,
             formatPhoneNumber,
             bankAccountList,
+            rules,
             groupBy: validGroupBy,
             reportActions: exportReportActions,
             currentSearch: currentSearchKey,
@@ -226,6 +228,7 @@ function useSearchSnapshot({queryJSON, searchResults, newSearchResultKeys, trans
         translate,
         formatPhoneNumber,
         bankAccountList,
+        rules,
         validGroupBy,
         exportReportActions,
         currentSearchKey,
@@ -273,6 +276,7 @@ function useSearchSnapshot({queryJSON, searchResults, newSearchResultKeys, trans
                 currentAccountID: accountID,
                 currentUserEmail: email ?? '',
                 bankAccountList,
+                rules,
                 translate,
                 formatPhoneNumber,
                 isActionLoadingSet,
@@ -282,10 +286,11 @@ function useSearchSnapshot({queryJSON, searchResults, newSearchResultKeys, trans
                 reportActions: exportReportActions,
                 reportAttributesDerivedValue: undefined,
             });
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- group children are flat transactions
+            const typedGroupTransactions = groupTransactions as TransactionListItemType[];
             return {
                 ...item,
-                // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- group children are flat transactions
-                transactions: groupTransactions as TransactionListItemType[],
+                transactions: getSortedTransactionData(typedGroupTransactions, localeCompare, translate, CONST.SEARCH.TABLE_COLUMNS.DATE, CONST.SEARCH.SORT_ORDER.DESC),
             };
         });
     }, [
@@ -297,7 +302,9 @@ function useSearchSnapshot({queryJSON, searchResults, newSearchResultKeys, trans
         accountID,
         email,
         bankAccountList,
+        rules,
         translate,
+        localeCompare,
         formatPhoneNumber,
         isActionLoadingSet,
         cardFeeds,

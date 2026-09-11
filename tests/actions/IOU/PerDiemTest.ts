@@ -5,6 +5,7 @@ import {
     computePerDiemExpenseAmount,
     getPerDiemExpenseInformation,
     getPerDiemExpensePolicyID,
+    hasCompletePerDiemCustomUnit,
     removeSubrate,
     submitPerDiemExpense,
     updateSubrate,
@@ -335,6 +336,7 @@ describe('PerDiem', () => {
                 existingIOUReport: undefined,
                 betas: [CONST.BETAS.ALL],
                 currentUserAccountIDParam: 123,
+                rules: undefined,
             });
             const policyTags = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${earlyPolicyID}`] ?? {};
 
@@ -357,6 +359,7 @@ describe('PerDiem', () => {
                 formatPhoneNumber,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                rules: undefined,
             });
 
             expect(result.onyxData).toBeDefined();
@@ -440,6 +443,7 @@ describe('PerDiem', () => {
                 existingIOUReport: undefined,
                 betas: [CONST.BETAS.ALL],
                 currentUserAccountIDParam: 123,
+                rules: undefined,
             });
             const policyTags = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${earlyPolicyID}`] ?? {};
 
@@ -464,6 +468,7 @@ describe('PerDiem', () => {
                 formatPhoneNumber,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                rules: undefined,
             });
 
             // Then: Verify the result structure and key values
@@ -545,6 +550,7 @@ describe('PerDiem', () => {
                 existingIOUReport: undefined,
                 betas: [CONST.BETAS.ALL],
                 currentUserAccountIDParam: 123,
+                rules: undefined,
             });
             const policyTags = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${earlyPolicyID}`] ?? {};
 
@@ -567,6 +573,7 @@ describe('PerDiem', () => {
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
                 formatPhoneNumber,
+                rules: undefined,
             });
 
             // The builder must not produce a transaction thread — the backend creates it lazily when first needed.
@@ -663,6 +670,7 @@ describe('PerDiem', () => {
                 existingIOUReport: undefined,
                 betas: [CONST.BETAS.ALL],
                 currentUserAccountIDParam: 123,
+                rules: undefined,
             });
             const policyTags = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${earlyPolicyID}`] ?? {};
 
@@ -685,6 +693,7 @@ describe('PerDiem', () => {
                 formatPhoneNumber,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                rules: undefined,
             });
 
             // Then: Verify the result uses existing chat report
@@ -768,6 +777,7 @@ describe('PerDiem', () => {
                 existingIOUReport: undefined,
                 betas: [CONST.BETAS.ALL],
                 currentUserAccountIDParam: 123,
+                rules: undefined,
             });
             const policyTags = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${earlyPolicyID}`] ?? {};
 
@@ -791,6 +801,7 @@ describe('PerDiem', () => {
                 formatPhoneNumber,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                rules: undefined,
             });
 
             // Then: Verify policy expense chat handling
@@ -850,6 +861,7 @@ describe('PerDiem', () => {
                 existingIOUReport: undefined,
                 betas,
                 currentUserAccountIDParam: currentUserPersonalDetails.accountID,
+                rules: undefined,
             });
             const policyTags = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${earlyPolicyID}`] ?? {};
 
@@ -886,6 +898,7 @@ describe('PerDiem', () => {
                 formatPhoneNumber,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                rules: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -939,6 +952,7 @@ describe('PerDiem', () => {
                 existingIOUReport: undefined,
                 betas,
                 currentUserAccountIDParam: currentUserPersonalDetails.accountID,
+                rules: undefined,
             });
             const policyTags = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${earlyPolicyID}`] ?? {};
 
@@ -974,6 +988,7 @@ describe('PerDiem', () => {
                 formatPhoneNumber,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                rules: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -1042,6 +1057,7 @@ describe('PerDiem', () => {
                 existingIOUReport: undefined,
                 betas: [CONST.BETAS.ALL],
                 currentUserAccountIDParam: RORY_ACCOUNT_ID,
+                rules: undefined,
             });
             const policyTags = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${earlyPolicyID}`] ?? {};
 
@@ -1064,6 +1080,7 @@ describe('PerDiem', () => {
                 formatPhoneNumber,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                rules: undefined,
             });
 
             // Then the result should be valid (personalDetails is correctly passed through the chain)
@@ -1113,6 +1130,7 @@ describe('PerDiem', () => {
                 existingIOUReport: undefined,
                 betas,
                 currentUserAccountIDParam: currentUserPersonalDetails.accountID,
+                rules: undefined,
             });
             const policyTags = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${earlyPolicyID}`] ?? {};
 
@@ -1147,6 +1165,7 @@ describe('PerDiem', () => {
                 formatPhoneNumber,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                rules: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -1165,6 +1184,39 @@ describe('PerDiem', () => {
 
             const perDiemTransactions = Object.values(transactions ?? {}).filter((tx) => tx?.iouRequestType === CONST.IOU.REQUEST_TYPE.PER_DIEM);
             expect(perDiemTransactions.length).toBeGreaterThan(0);
+        });
+    });
+
+    describe('hasCompletePerDiemCustomUnit', () => {
+        const completeCustomUnit: TransactionCustomUnit = {
+            customUnitID: 'unit-1',
+            customUnitRateID: 'rate-1',
+            subRates: [{id: 'sub-1', name: 'Meals', quantity: 1, rate: 2500}],
+            attributes: {dates: {start: '2026-04-24', end: '2026-04-24'}},
+        };
+
+        it('is true when every required field is present', () => {
+            expect(hasCompletePerDiemCustomUnit(completeCustomUnit)).toBe(true);
+        });
+
+        it('is false when the custom unit is undefined', () => {
+            expect(hasCompletePerDiemCustomUnit(undefined)).toBe(false);
+        });
+
+        it('is false when the customUnitID is missing', () => {
+            expect(hasCompletePerDiemCustomUnit({...completeCustomUnit, customUnitID: undefined})).toBe(false);
+        });
+
+        it('is false when the customUnitRateID is missing', () => {
+            expect(hasCompletePerDiemCustomUnit({...completeCustomUnit, customUnitRateID: undefined})).toBe(false);
+        });
+
+        it('is false when there are no sub-rates', () => {
+            expect(hasCompletePerDiemCustomUnit({...completeCustomUnit, subRates: []})).toBe(false);
+        });
+
+        it('is false when the attributes are missing', () => {
+            expect(hasCompletePerDiemCustomUnit({...completeCustomUnit, attributes: undefined})).toBe(false);
         });
     });
 });

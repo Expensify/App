@@ -42,6 +42,7 @@ function useTodoCounts(enabled = true): {counts: TodoCounts; singleReportIDs: To
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [personalDetailsList] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
     // Holds the most recent result so a frozen (inactive) consumer can keep returning it without recomputing.
     const [frozen, setFrozen] = useState<{counts: TodoCounts; singleReportIDs: TodoSingleReportIDs} | null>(null);
@@ -66,6 +67,7 @@ function useTodoCounts(enabled = true): {counts: TodoCounts; singleReportIDs: To
         currentUserAccountID: userAccountID,
         login,
         areTransactionsLoaded: transactionsMetadata.status === 'loaded',
+        rules,
     });
 
     const counts: TodoCounts = {

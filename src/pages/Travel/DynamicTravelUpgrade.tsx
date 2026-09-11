@@ -9,6 +9,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {getActivePolicies, isPaidGroupPolicy} from '@libs/PolicyUtils';
 
@@ -17,7 +18,7 @@ import UpgradeIntro from '@pages/workspace/upgrade/UpgradeIntro';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 
 import React from 'react';
 
@@ -34,7 +35,7 @@ function DynamicTravelUpgrade() {
     const isUpgraded = groupPaidPolicies.length > 0;
 
     const openWorkspaceConfirmation = () => {
-        Navigation.navigate(ROUTES.TRAVEL_WORKSPACE_CONFIRMATION.getRoute(Navigation.getActiveRoute()));
+        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.TRAVEL_WORKSPACE_CONFIRMATION.path));
     };
 
     return (

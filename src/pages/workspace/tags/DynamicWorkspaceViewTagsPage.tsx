@@ -226,13 +226,14 @@ function DynamicWorkspaceViewTagsPage({route}: DynamicWorkspaceViewTagsProps) {
                 icon: icons.Trashcan,
                 text: translate(selectedTags.length === 1 ? 'workspace.tags.deleteTag' : 'workspace.tags.deleteTags'),
                 value: CONST.POLICY.BULK_ACTION_TYPES.DELETE,
+                shouldSkipFocusRestore: true,
                 onSelected: async () => {
                     const {action} = await showConfirmModal({
                         title: translate(selectedTags.length === 1 ? 'workspace.tags.deleteTag' : 'workspace.tags.deleteTags'),
                         prompt: translate(selectedTags.length === 1 ? 'workspace.tags.deleteTagConfirmation' : 'workspace.tags.deleteTagsConfirmation'),
                         confirmText: translate('common.delete'),
                         cancelText: translate('common.cancel'),
-                        danger: true,
+                        buttonVariant: CONST.BUTTON_VARIANT.DANGER,
                     });
                     if (action === ModalActions.CONFIRM) {
                         deletePolicyTags(policyData, selectedTags);
@@ -268,6 +269,7 @@ function DynamicWorkspaceViewTagsPage({route}: DynamicWorkspaceViewTagsProps) {
                 icon: icons.Close,
                 text: translate(enabledTagCount === 1 ? 'workspace.tags.disableTag' : 'workspace.tags.disableTags'),
                 value: CONST.POLICY.BULK_ACTION_TYPES.DISABLE,
+                shouldSkipFocusRestore: isDisablingOrDeletingLastEnabledTag(currentPolicyTag, selectedTagsObject),
                 onSelected: () => {
                     if (isDisablingOrDeletingLastEnabledTag(currentPolicyTag, selectedTagsObject)) {
                         showConfirmModal({
@@ -331,6 +333,81 @@ function DynamicWorkspaceViewTagsPage({route}: DynamicWorkspaceViewTagsProps) {
     const selectionModeHeader = isMobileSelectionModeEnabled && isSmallScreenWidth;
 
     const headerButtons = getHeaderButtons();
+    const tableHeaderComponent = (
+        <>
+            {shouldDisplayButtonsInSeparateLine && !!headerButtons && <View style={[styles.pl5, styles.pr5]}>{headerButtons}</View>}
+            {/* Required is configured from Rules once the revamp is on, so this toggle is pre-revamp only. */}
+            {!hasDependentTags && !isRulesRevampEnabled && (
+                <View style={[styles.pv4, styles.ph5]}>
+                    <ToggleSettingOptionRow
+                        title={translate('common.required')}
+                        switchAccessibilityLabel={translate('common.required')}
+                        isActive={!!currentPolicyTag?.required}
+                        onToggle={(on) => {
+                            if (!canWriteTags) {
+                                showReadOnlyModal();
+                                return;
+                            }
+
+                            if (!isMultiLevelTags) {
+                                showConfirmModal({
+                                    title: translate('workspace.tags.cannotMakeTagListRequired.title'),
+                                    prompt: translate('workspace.tags.cannotMakeTagListRequired.description'),
+                                    confirmText: translate('common.buttonConfirm'),
+                                    shouldShowCancelButton: false,
+                                });
+                                return;
+                            }
+                            if (isMakingLastRequiredTagListOptional(policy, policyTags, [currentPolicyTag])) {
+                                showConfirmModal({
+                                    title: translate('workspace.tags.cannotMakeAllTagsOptional.title'),
+                                    prompt: translate('workspace.tags.cannotMakeAllTagsOptional.description'),
+                                    confirmText: translate('common.buttonConfirm'),
+                                    shouldShowCancelButton: false,
+                                });
+                                return;
+                            }
+                            setPolicyTagsRequired(policyData, on, orderWeight);
+                        }}
+                        pendingAction={currentPolicyTag.pendingFields?.required}
+                        errors={currentPolicyTag?.errorFields?.required ?? undefined}
+                        onCloseError={() =>
+                            clearPolicyTagListErrorField({
+                                policyID,
+                                tagListIndex: orderWeight,
+                                errorField: 'required',
+                                policyTags,
+                            })
+                        }
+                        disabled={!canWriteTags || (!currentPolicyTag?.required && !Object.values(currentPolicyTag?.tags ?? {}).some((tag) => tag.enabled))}
+                        disabledAction={withReadOnlyFallback()}
+                        showLockIcon={!canWriteTags || !isMultiLevelTags || isMakingLastRequiredTagListOptional(policy, policyTags, [currentPolicyTag])}
+                    />
+                </View>
+            )}
+            <OfflineWithFeedback
+                errors={currentPolicyTag.errors}
+                onClose={() =>
+                    clearPolicyTagListErrors({
+                        policyID,
+                        tagListIndex: currentPolicyTag.orderWeight,
+                        policyTags,
+                    })
+                }
+                pendingAction={currentPolicyTag.pendingAction}
+                errorRowStyles={styles.mh5}
+            >
+                <MenuItemWithTopDescription
+                    title={getCleanedTagName(currentPolicyTag.name)}
+                    description={translate(`workspace.tags.customTagName`)}
+                    onPress={navigateToEditTag}
+                    shouldShowRightIcon={canWriteTags}
+                    interactive={canWriteTags}
+                    wrapperStyle={isRulesRevampEnabled ? styles.mb5 : undefined}
+                />
+            </OfflineWithFeedback>
+        </>
+    );
 
     return (
         <AccessOrNotFoundWrapper
@@ -357,77 +434,7 @@ function DynamicWorkspaceViewTagsPage({route}: DynamicWorkspaceViewTagsProps) {
                 >
                     {!shouldDisplayButtonsInSeparateLine && headerButtons}
                 </HeaderWithBackButton>
-                {shouldDisplayButtonsInSeparateLine && !!headerButtons && <View style={[styles.pl5, styles.pr5]}>{headerButtons}</View>}
-                {/* Required is configured from Rules once the revamp is on, so this toggle is pre-revamp only. */}
-                {!hasDependentTags && !isRulesRevampEnabled && (
-                    <View style={[styles.pv4, styles.ph5]}>
-                        <ToggleSettingOptionRow
-                            title={translate('common.required')}
-                            switchAccessibilityLabel={translate('common.required')}
-                            isActive={!!currentPolicyTag?.required}
-                            onToggle={(on) => {
-                                if (!canWriteTags) {
-                                    showReadOnlyModal();
-                                    return;
-                                }
-
-                                if (!isMultiLevelTags) {
-                                    showConfirmModal({
-                                        title: translate('workspace.tags.cannotMakeTagListRequired.title'),
-                                        prompt: translate('workspace.tags.cannotMakeTagListRequired.description'),
-                                        confirmText: translate('common.buttonConfirm'),
-                                        shouldShowCancelButton: false,
-                                    });
-                                    return;
-                                }
-                                if (isMakingLastRequiredTagListOptional(policy, policyTags, [currentPolicyTag])) {
-                                    showConfirmModal({
-                                        title: translate('workspace.tags.cannotMakeAllTagsOptional.title'),
-                                        prompt: translate('workspace.tags.cannotMakeAllTagsOptional.description'),
-                                        confirmText: translate('common.buttonConfirm'),
-                                        shouldShowCancelButton: false,
-                                    });
-                                    return;
-                                }
-                                setPolicyTagsRequired(policyData, on, orderWeight);
-                            }}
-                            pendingAction={currentPolicyTag.pendingFields?.required}
-                            errors={currentPolicyTag?.errorFields?.required ?? undefined}
-                            onCloseError={() =>
-                                clearPolicyTagListErrorField({
-                                    policyID,
-                                    tagListIndex: orderWeight,
-                                    errorField: 'required',
-                                    policyTags,
-                                })
-                            }
-                            disabled={!canWriteTags || (!currentPolicyTag?.required && !Object.values(currentPolicyTag?.tags ?? {}).some((tag) => tag.enabled))}
-                            disabledAction={withReadOnlyFallback()}
-                            showLockIcon={!canWriteTags || !isMultiLevelTags || isMakingLastRequiredTagListOptional(policy, policyTags, [currentPolicyTag])}
-                        />
-                    </View>
-                )}
-                <OfflineWithFeedback
-                    errors={currentPolicyTag.errors}
-                    onClose={() =>
-                        clearPolicyTagListErrors({
-                            policyID,
-                            tagListIndex: currentPolicyTag.orderWeight,
-                            policyTags,
-                        })
-                    }
-                    pendingAction={currentPolicyTag.pendingAction}
-                    errorRowStyles={styles.mh5}
-                >
-                    <MenuItemWithTopDescription
-                        title={getCleanedTagName(currentPolicyTag.name)}
-                        description={translate(`workspace.tags.customTagName`)}
-                        onPress={navigateToEditTag}
-                        shouldShowRightIcon={canWriteTags}
-                        interactive={canWriteTags}
-                        wrapperStyle={isRulesRevampEnabled ? styles.mb5 : undefined}
-                    />
-                </OfflineWithFeedback>
+                {(tagRows.length === 0 || isLoading) && tableHeaderComponent}
                 {isLoading && (
                     <ActivityIndicator
                         size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
@@ -440,6 +447,7 @@ function DynamicWorkspaceViewTagsPage({route}: DynamicWorkspaceViewTagsProps) {
                         hasDependentTags={hasDependentTags}
                         selectionEnabled={canWriteTags && !hasDependentTags}
                         selectedKeys={selectedTags}
+                        headerComponent={tableHeaderComponent}
                         onRowSelectionChange={setSelectedTags}
                     />
                 )}

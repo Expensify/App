@@ -27,8 +27,8 @@ import Navigation from '@libs/Navigation/Navigation';
 import {canSendInvoice, getDefaultChatEnabledPolicy, getGroupPoliciesWhereReportCanBeCreated} from '@libs/PolicyUtils';
 import {generateReportID, hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
 import {getAllPolicyValues, getFilterFromQuery, isDefaultExpenseReportsQuery, isDefaultExpensesQuery, isSearchBeforeViolationsSnapshotStarted} from '@libs/SearchQueryUtils';
-import type {SearchTypeMenuSection} from '@libs/SearchUIUtils';
 import {TODO_SEARCH_KEYS} from '@libs/SearchUIUtils';
+import type {SearchTypeMenuSection} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -80,7 +80,7 @@ type EmptySearchViewItem = {
 
 function EmptySearchView({similarSearchHash, type, hasResults, queryJSON, violationSnapshotStartedAt, onScroll, contentContainerStyle}: EmptySearchViewProps) {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const {typeMenuSections} = useSearchTypeMenuSections();
+    const typeMenuSections = useSearchTypeMenuSections();
 
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
 
@@ -156,6 +156,7 @@ function EmptySearchViewContent({
         selector: hasExpenseReportsSelector,
     });
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
     const defaultChatEnabledPolicy = getDefaultChatEnabledPolicy(groupPoliciesWithChatEnabled as Array<OnyxEntry<Policy>>, activePolicy);
 
@@ -180,6 +181,7 @@ function EmptySearchViewContent({
             betas,
             isTrackIntentUser,
             getCurrencyDecimals,
+            rules,
             false,
             shouldDismissEmptyReportsConfirmation,
         );
@@ -311,7 +313,7 @@ function EmptySearchViewContent({
                                       {
                                           buttonText: translate('quickAction.createReport'),
                                           buttonAction: createReport,
-                                          success: true,
+                                          buttonVariant: CONST.BUTTON_VARIANT.SUCCESS,
                                       },
                                   ]
                                 : []),
@@ -335,7 +337,7 @@ function EmptySearchViewContent({
                         };
                     } else if (!hasResults || !hasTransactions) {
                         content = {
-                            ...defaultViewItemHeader.folder,
+                            ...defaultViewItemHeader.expenses,
                             title: translate('search.searchResults.emptyExpenseResults.title'),
                             subtitle: translate(hasSeenTour ? 'search.searchResults.emptyExpenseResults.subtitleWithOnlyCreateButton' : 'search.searchResults.emptyExpenseResults.subtitle'),
                             buttons: [
@@ -350,7 +352,7 @@ function EmptySearchViewContent({
                                 {
                                     buttonText: translate('iou.createExpense'),
                                     buttonAction: () => handleCreateMoneyRequest(CONST.IOU.TYPE.CREATE),
-                                    success: true,
+                                    buttonVariant: CONST.BUTTON_VARIANT.SUCCESS,
                                 },
                             ],
                         };
@@ -387,7 +389,7 @@ function EmptySearchViewContent({
                                       {
                                           buttonText: translate('workspace.invoices.sendInvoice'),
                                           buttonAction: () => handleCreateMoneyRequest(CONST.IOU.TYPE.INVOICE),
-                                          success: true,
+                                          buttonVariant: CONST.BUTTON_VARIANT.SUCCESS,
                                       },
                                   ]
                                 : []),

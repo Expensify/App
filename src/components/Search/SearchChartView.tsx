@@ -21,7 +21,6 @@ import SearchLineChart from './SearchLineChart';
 import SearchPieChart from './SearchPieChart';
 
 type SearchChartViewProps = {
-    /** The current search query JSON */
     queryJSON: Readonly<SearchQueryJSON>;
 
     /** The view type (bar, etc.) */
@@ -33,7 +32,6 @@ type SearchChartViewProps = {
     /** Grouped transaction data from search results */
     data: GroupedItem[];
 
-    /** Whether data is loading */
     isLoading?: boolean;
 };
 
@@ -54,7 +52,7 @@ function SearchChartView({queryJSON, view, groupBy, data, isLoading}: SearchChar
     const {preferredLocale} = useLocalize();
     const {getCurrencySymbol} = useCurrencyListActions();
 
-    const {getLabel, getFilterQuery} = CHART_GROUP_BY_CONFIG[groupBy];
+    const {getLabel, getShortLabel, getFilterQuery} = CHART_GROUP_BY_CONFIG[groupBy];
     const ChartComponent = CHART_VIEW_TO_COMPONENT[view];
 
     const handleItemPress = (filterQuery: string) => {
@@ -90,6 +88,7 @@ function SearchChartView({queryJSON, view, groupBy, data, isLoading}: SearchChar
         <ChartComponent
             data={data}
             getLabel={(item) => StringUtils.normalize(getLabel(item))}
+            getShortLabel={getShortLabel}
             getFilterQuery={getFilterQuery}
             onItemPress={handleItemPress}
             isLoading={isLoading}

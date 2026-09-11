@@ -25,22 +25,17 @@ type StateSelectorProps = {
     /** Form error text. e.g when no state is selected */
     errorText?: string;
 
-    /** Current selected state  */
     value?: State | '';
 
     /** Callback to call when the input changes */
     onInputChange?: (value: string) => void;
 
-    /** Label to display on field */
     label?: string;
-
-    /** Any additional styles to apply */
     wrapperStyle?: MenuItemProps['wrapperStyle'];
 
     /** Callback to call when the picker modal is dismissed */
     onBlur?: () => void;
 
-    /** Reference to the outer element */
     ref?: ForwardedRef<View>;
 };
 
