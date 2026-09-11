@@ -146,12 +146,12 @@ describe('WorkspaceCardSettingsPage', () => {
             expect(screen.getByText('Expensify cards will settle on the 10th of each month.')).toBeTruthy();
         });
 
-        it('shows the settlement day the backend sent as a datetime', async () => {
-            // Given a card that settles monthly, sent in the Expensify DB datetime format
+        it('shows the first of the month as the settlement day', async () => {
+            // Given a card that settles monthly on the 1st, the smallest day the backend can send
             await act(async () => {
                 await Onyx.merge(cardSettingsKey, {
                     isMonthlySettlementAllowed: true,
-                    monthlySettlementDate: '2024-01-27 11:00:53',
+                    monthlySettlementDate: 1,
                 });
                 await waitForBatchedUpdatesWithAct();
             });
@@ -160,16 +160,16 @@ describe('WorkspaceCardSettingsPage', () => {
             renderWorkspaceCardSettingsPage();
             await waitForBatchedUpdatesWithAct();
 
-            // Then the hint shows the day of that datetime
-            expect(screen.getByText('Expensify cards will settle on the 27th of each month.')).toBeTruthy();
+            // Then the hint shows the 1st
+            expect(screen.getByText('Expensify cards will settle on the 1st of each month.')).toBeTruthy();
         });
 
         it('shows no settlement date hint when the settlement date cannot be read', async () => {
-            // Given a card that settles monthly but whose settlement date holds no readable day
+            // Given a card that settles monthly but whose settlement date is not a day of the month
             await act(async () => {
                 await Onyx.merge(cardSettingsKey, {
                     isMonthlySettlementAllowed: true,
-                    monthlySettlementDate: 'unparseable',
+                    monthlySettlementDate: 1706353253,
                 });
                 await waitForBatchedUpdatesWithAct();
             });
