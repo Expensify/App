@@ -22,6 +22,13 @@ type PlatformStackNavigationState<ParamList extends ParamListBase> = StackNaviga
 
 type NavigationLayoutMode = 'narrow' | 'wide';
 
+type SplitRenderConfig = {
+    sidebarRouteName: string;
+    sidebarWidth: number;
+    mode: NavigationLayoutMode;
+    persistentRouteNames: string[];
+};
+
 // Common event map merged from both stack and native-stack navigations.
 type CommonStackNavigationEventMap = CommonProperties<StackNavigationEventMap, NativeStackNavigationEventMap>;
 
@@ -34,7 +41,6 @@ type PlatformSpecificEventMap = StackNavigationOptions | NativeStackNavigationOp
 // Router options used in the PlatformStackNavigation
 type PlatformStackRouterOptions = StackRouterOptions & {
     parentRoute?: RouteProp<ParamListBase>;
-    layoutMode?: NavigationLayoutMode;
     getShouldUseNarrowLayout?: () => boolean;
 };
 
@@ -84,6 +90,7 @@ type PlatformStackNavigatorProps<ParamList extends ParamListBase, RouterOptions 
         persistentScreens?: Array<Extract<keyof ParamList, string>>;
         defaultCentralScreen?: Extract<keyof ParamList, string>;
         sidebarScreen?: Extract<keyof ParamList, string>;
+        splitRenderConfig?: SplitRenderConfig;
     };
 
 // The "screenOptions" and "defaultScreenOptions" can either be an object of navigation options or
@@ -100,6 +107,7 @@ export {isRouteBasedScreenOptions};
 export type {
     PlatformStackNavigationState,
     NavigationLayoutMode,
+    SplitRenderConfig,
     PlatformStackNavigationEventMap,
     PlatformSpecificEventMap,
     PlatformStackRouterOptions,

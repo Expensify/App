@@ -1,13 +1,18 @@
+import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getPreservedNavigatorState, setPreservedNavigatorState} from '@libs/Navigation/AppNavigator/createSplitNavigator/usePreserveNavigatorState';
-import usePrototypeLayoutMode from '@libs/Navigation/AppNavigator/usePrototypeLayoutMode';
+import {NavigationLayoutContextProvider} from '@libs/Navigation/AppNavigator/NavigationLayoutContext';
+import useNavigationLayoutPolicy from '@libs/Navigation/AppNavigator/useNavigationLayoutPolicy';
 import {bottomTabScreenLayoutWrapper} from '@libs/Navigation/PlatformStackNavigation/ScreenLayout';
 import type {TabNavigatorParamList} from '@libs/Navigation/types';
 
 import HomePage from '@pages/home/HomePage';
 
+import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
 
@@ -20,6 +25,7 @@ import type {NavigationAction, NavigationState, Router, TabNavigationState} from
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import {findFocusedRoute, useNavigation, useNavigationState, useRoute} from '@react-navigation/native';
 import React, {useEffect} from 'react';
+import {View} from 'react-native';
 
 import ReportsSplitNavigator from './ReportsSplitNavigator';
 import SearchFullscreenNavigator from './SearchFullscreenNavigator';
@@ -47,8 +53,12 @@ const TAB_SCREEN_OPTIONS_BASE = {
 
 function TabNavigator() {
     const {shouldUseNarrowLayout: shouldUseNarrowLayoutFallback} = useResponsiveLayout();
-    const layoutMode = usePrototypeLayoutMode();
+    const {isBetaEnabled} = usePermissions();
+    const navigationLayoutPolicy = useNavigationLayoutPolicy(isBetaEnabled(CONST.BETAS.NATIVE_RESPONSIVE_LAYOUT));
+    const layoutMode = navigationLayoutPolicy?.mode ?? 'narrow';
     const shouldUseNarrowLayout = layoutMode ? layoutMode === 'narrow' : shouldUseNarrowLayoutFallback;
+    const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const theme = useTheme();
     const navigation = useNavigation();
     const parentNavigation = navigation.getParent();
@@ -60,7 +70,11 @@ function TabNavigator() {
     const tabState = useNavigationState((parentState) => parentState.routes.find((r) => r.key === route.key)?.state as NavigationState | undefined);
 
     useEffect(() => {
-        if (!shouldUseNarrowLayout || !parentNavigation) {
+        if (!parentNavigation) {
+            return;
+        }
+        if (!shouldUseNarrowLayout) {
+            parentNavigation.setOptions({gestureEnabled: false});
             return;
         }
         const isRootScreen = TAB_ROOT_SCREENS_WITHOUT_GESTURE.has(focusedRouteName ?? '');
@@ -95,34 +109,44 @@ function TabNavigator() {
     };
 
     return (
-        <Tab.Navigator
-            backBehavior="fullHistory"
-            tabBar={renderTabBar}
-            screenOptions={screenOptions}
-            screenLayout={bottomTabScreenLayoutWrapper}
-            UNSTABLE_router={tabRouterOverride}
-        >
-            <Tab.Screen
-                name={SCREENS.HOME}
-                component={HomePage}
-            />
-            <Tab.Screen
-                name={NAVIGATORS.REPORTS_SPLIT_NAVIGATOR}
-                component={ReportsSplitNavigator}
-            />
-            <Tab.Screen
-                name={NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR}
-                component={SearchFullscreenNavigator}
-            />
-            <Tab.Screen
-                name={NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR}
-                component={SettingsSplitNavigator}
-            />
-            <Tab.Screen
-                name={NAVIGATORS.WORKSPACE_NAVIGATOR}
-                component={WorkspaceNavigator}
-            />
-        </Tab.Navigator>
+        <NavigationLayoutContextProvider policy={navigationLayoutPolicy}>
+            <View
+                style={[
+                    styles.flex1,
+                    !shouldUseNarrowLayout && StyleUtils.getPaddingLeft(navigationLayoutPolicy?.safeAreaInsets.left ?? 0),
+                    !shouldUseNarrowLayout && StyleUtils.getPaddingRight(navigationLayoutPolicy?.safeAreaInsets.right ?? 0),
+                ]}
+            >
+                <Tab.Navigator
+                    backBehavior="fullHistory"
+                    tabBar={renderTabBar}
+                    screenOptions={screenOptions}
+                    screenLayout={bottomTabScreenLayoutWrapper}
+                    UNSTABLE_router={tabRouterOverride}
+                >
+                    <Tab.Screen
+                        name={SCREENS.HOME}
+                        component={HomePage}
+                    />
+                    <Tab.Screen
+                        name={NAVIGATORS.REPORTS_SPLIT_NAVIGATOR}
+                        component={ReportsSplitNavigator}
+                    />
+                    <Tab.Screen
+                        name={NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR}
+                        component={SearchFullscreenNavigator}
+                    />
+                    <Tab.Screen
+                        name={NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR}
+                        component={SettingsSplitNavigator}
+                    />
+                    <Tab.Screen
+                        name={NAVIGATORS.WORKSPACE_NAVIGATOR}
+                        component={WorkspaceNavigator}
+                    />
+                </Tab.Navigator>
+            </View>
+        </NavigationLayoutContextProvider>
     );
 }
 

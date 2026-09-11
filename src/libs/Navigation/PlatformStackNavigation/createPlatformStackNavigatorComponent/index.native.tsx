@@ -1,3 +1,4 @@
+import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import convertToNativeNavigationOptions from '@libs/Navigation/PlatformStackNavigation/navigationOptions/convertToNativeNavigationOptions';
@@ -20,6 +21,7 @@ import {NativeStackView} from '@react-navigation/native-stack';
 import React from 'react';
 import {View} from 'react-native';
 
+import getNativeSplitRenderState from './getNativeSplitRenderState';
 import wrapDescriptorsWithNonTopScreensBehavior from './wrapDescriptorsWithNonTopScreensBehavior';
 
 type PlatformNavigatorImplProps<RouterOptions extends PlatformStackRouterOptions = PlatformStackRouterOptions> = PlatformStackNavigatorProps<ParamListBase, RouterOptions> & {
@@ -29,7 +31,6 @@ type PlatformNavigatorImplProps<RouterOptions extends PlatformStackRouterOptions
     ExtraContent?: CreatePlatformStackNavigatorComponentOptions<RouterOptions>['ExtraContent'];
     NavigationContentWrapper?: CreatePlatformStackNavigatorComponentOptions<RouterOptions>['NavigationContentWrapper'];
     Effects?: CreatePlatformStackNavigatorComponentOptions<RouterOptions>['Effects'];
-    supportsSplitLayout?: boolean;
     displayName: string;
 };
 
@@ -42,7 +43,7 @@ function PlatformNavigatorImpl<RouterOptions extends PlatformStackRouterOptions 
     sidebarScreen,
     defaultCentralScreen,
     parentRoute,
-    layoutMode,
+    splitRenderConfig,
     persistentScreens,
     createRouter,
     getCustomState,
@@ -50,11 +51,12 @@ function PlatformNavigatorImpl<RouterOptions extends PlatformStackRouterOptions 
     ExtraContent,
     NavigationContentWrapper,
     Effects,
-    supportsSplitLayout,
     displayName,
     ...props
 }: PlatformNavigatorImplProps<RouterOptions>) {
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
+    const layoutMode = splitRenderConfig?.mode;
     const {shouldUseNarrowLayout, getShouldUseNarrowLayout} = useNavigationLayoutMode(layoutMode);
     const {
         navigation,
@@ -80,7 +82,6 @@ function PlatformNavigatorImpl<RouterOptions extends PlatformStackRouterOptions 
             sidebarScreen,
             defaultCentralScreen,
             parentRoute,
-            layoutMode,
             getShouldUseNarrowLayout,
             screenLayout,
         },
@@ -96,38 +97,29 @@ function PlatformNavigatorImpl<RouterOptions extends PlatformStackRouterOptions 
         shouldUseNarrowLayout,
     };
 
-    const state = getCustomState?.({...customCodeProps, shouldUseNarrowLayout}) ?? originalState;
+    const state = !shouldUseNarrowLayout && splitRenderConfig ? originalState : (getCustomState?.({...customCodeProps, shouldUseNarrowLayout}) ?? originalState);
     const customCodePropsWithCustomState: CustomCodeProps<NativeStackNavigationOptions, NativeStackNavigationEventMap, ParamListBase, StackActionHelpers<ParamListBase>> = {
         ...customCodeProps,
         state,
     };
 
-    const persistentScreensForCurrentLayout = !shouldUseNarrowLayout && supportsSplitLayout ? persistentScreens : undefined;
+    const configuredPersistentScreens = splitRenderConfig?.persistentRouteNames ?? persistentScreens;
+    const persistentScreensForCurrentLayout = !shouldUseNarrowLayout && splitRenderConfig ? configuredPersistentScreens : undefined;
     const wrappedDescriptors = wrapDescriptorsWithNonTopScreensBehavior(descriptors, state, persistentScreensForCurrentLayout);
 
-    const sidebarRoute = !shouldUseNarrowLayout && supportsSplitLayout ? state.routes.find((stateRoute) => stateRoute.name === sidebarScreen) : undefined;
-    const centralRoutes = sidebarRoute ? state.routes.filter((stateRoute) => stateRoute.key !== sidebarRoute.key) : [];
-    const shouldRenderSplitLayout = !!sidebarRoute && centralRoutes.length > 0;
-    const centralState = shouldRenderSplitLayout
-        ? {
-              ...state,
-              routeNames: state.routeNames.filter((routeName) => routeName !== sidebarScreen),
-              routes: centralRoutes,
-              index: centralRoutes.length - 1,
-              preloadedRoutes: state.preloadedRoutes.filter((preloadedRoute) => preloadedRoute.name !== sidebarScreen),
-          }
-        : state;
-    const sidebarDescriptor = sidebarRoute ? wrappedDescriptors[sidebarRoute.key] : undefined;
+    const splitRenderState = !shouldUseNarrowLayout && splitRenderConfig ? getNativeSplitRenderState(state, splitRenderConfig.sidebarRouteName) : undefined;
+    const sidebarDescriptor = splitRenderState ? wrappedDescriptors[splitRenderState.sidebarRoute.key] : undefined;
+    const splitSidebarWidth = splitRenderConfig?.sidebarWidth;
 
     const content = (
         <NavigationContent>
-            {shouldRenderSplitLayout ? (
+            {splitRenderState && splitSidebarWidth !== undefined ? (
                 <View style={[styles.flex1, styles.flexRow]}>
-                    <View style={styles.nativeSplitNavigatorSidebar}>{sidebarDescriptor?.render()}</View>
-                    <View style={styles.flex1}>
+                    <View style={[styles.nativeSplitNavigatorSidebar, StyleUtils.getWidthStyle(splitSidebarWidth)]}>{sidebarDescriptor?.render()}</View>
+                    <View style={[styles.flex1, styles.mnw0, styles.overflowHidden]}>
                         <NativeStackView
                             {...props}
-                            state={centralState}
+                            state={splitRenderState.centralState}
                             descriptors={wrappedDescriptors}
                             navigation={navigation}
                             describe={describe}
@@ -168,7 +160,6 @@ function createPlatformStackNavigatorComponent<RouterOptions extends PlatformSta
                 ExtraContent={options?.ExtraContent}
                 NavigationContentWrapper={options?.NavigationContentWrapper}
                 Effects={options?.Effects}
-                supportsSplitLayout={options?.supportsSplitLayout}
                 displayName={displayName}
                 {...props}
             />

@@ -34,7 +34,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import usePrototypeLayoutMode from '@libs/Navigation/AppNavigator/usePrototypeLayoutMode';
+import {useNavigationLayoutContext} from '@libs/Navigation/AppNavigator/NavigationLayoutContext';
 import Parser from '@libs/Parser';
 import {getPersonalDetailByEmail, getPersonalDetailsForAccountIDs} from '@libs/PersonalDetailsUtils';
 import {getHumanAgentAccountIDFromReportAction, getHumanAgentFirstName, isTransactionThread} from '@libs/ReportActionsUtils';
@@ -112,7 +112,7 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
     const icons = useMemoizedLazyExpensifyIcons(['BackArrow', 'Close', 'DotIndicator']);
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth, shouldUseNarrowLayout: shouldUseNarrowLayoutFallback, isInNarrowPaneModal, isInLandscapeMode} = useResponsiveLayout();
-    const layoutMode = usePrototypeLayoutMode();
+    const layoutMode = useNavigationLayoutContext()?.mode;
     const shouldUseNarrowLayout = isInNarrowPaneModal || (layoutMode ? layoutMode === 'narrow' : shouldUseNarrowLayoutFallback);
     const isInSidePanel = useIsInSidePanel();
     const route = useRoute();

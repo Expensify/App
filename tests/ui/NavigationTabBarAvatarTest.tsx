@@ -10,9 +10,6 @@ import CONST from '@src/CONST';
 
 import React from 'react';
 
-// Mock responsive layout to force wide layout
-jest.mock('@hooks/useResponsiveLayout', () => (): {shouldUseNarrowLayout: boolean} => ({shouldUseNarrowLayout: false}));
-
 // Silence reanimated warnings
 jest.mock('react-native-reanimated', () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
@@ -27,6 +24,7 @@ describe('NavigationTabBarAvatar hover', () => {
             <OnyxListItemProvider>
                 <NavigationTabBarAvatar
                     onPress={onPress}
+                    isWideLayout
                     isSelected={false}
                     // Provide stable wrapper style so we can query by role
                     style={{}}

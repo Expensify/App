@@ -29,7 +29,9 @@ jest.mock('@hooks/useResponsiveLayout', () => ({
     __esModule: true,
     default: () => ({shouldUseNarrowLayout: mockShouldUseNarrowLayout, isInLandscapeMode: false}),
 }));
-jest.mock('@libs/Navigation/AppNavigator/usePrototypeLayoutMode', () => ({__esModule: true, default: () => mockLayoutMode}));
+jest.mock('@libs/Navigation/AppNavigator/NavigationLayoutContext', () => ({
+    useNavigationLayoutContext: () => (mockLayoutMode ? {mode: mockLayoutMode} : undefined),
+}));
 
 jest.mock('@hooks/useThemeStyles', () => ({__esModule: true, default: () => ({})}));
 jest.mock('@hooks/useStyleUtils', () => ({__esModule: true, default: () => ({getSafeAreaMargins: () => ({marginBottom: 0})})}));

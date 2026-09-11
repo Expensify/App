@@ -11,6 +11,8 @@ import type {SettingsSplitNavigatorParamList} from '@libs/Navigation/types';
 import InitialSettingsPage from '@pages/settings/InitialSettingsPage';
 import ProfilePage from '@pages/settings/Profile/ProfilePage';
 
+import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import SCREENS from '@src/SCREENS';
 
@@ -47,7 +49,12 @@ describe('Resize screen', () => {
                 sidebarScreen={SCREENS.SETTINGS.ROOT}
                 defaultCentralScreen={SCREENS.SETTINGS.PROFILE.ROOT}
                 parentRoute={CONST.NAVIGATION_TESTS.DEFAULT_PARENT_ROUTE}
-                layoutMode={layoutMode}
+                splitRenderConfig={{
+                    sidebarRouteName: SCREENS.SETTINGS.ROOT,
+                    sidebarWidth: variables.sideBarWithLHBWidth,
+                    mode: layoutMode,
+                    persistentRouteNames: [SCREENS.SETTINGS.ROOT],
+                }}
             >
                 <Split.Screen
                     name={SCREENS.SETTINGS.ROOT}

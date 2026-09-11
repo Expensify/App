@@ -106,6 +106,7 @@ function NavigationTabBar({selectedTab, shouldShowFloatingButtons = true, layout
                                     onPress={navigateToNewDotHome}
                                     role={CONST.ROLE.TAB}
                                     accessibilityLabel={translate('common.home')}
+                                    wrapperStyle={styles.leftNavigationTabBarItem}
                                     style={({hovered}) => [styles.leftNavigationTabBarItem, hovered && styles.navigationTabBarItemHovered]}
                                     sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.HOME}
                                 >
@@ -132,11 +133,12 @@ function NavigationTabBar({selectedTab, shouldShowFloatingButtons = true, layout
                                 />
                                 <NavigationTabBarAvatar
                                     style={styles.leftNavigationTabBarItem}
+                                    isWideLayout
                                     isSelected={selectedTab === NAVIGATION_TABS.SETTINGS}
                                     onPress={navigateToSettings}
                                 />
                             </View>
-                            <View style={styles.leftNavigationTabBarFAB}>
+                            <View style={[styles.leftNavigationTabBarFAB, styles.leftNavigationTabBarFABPosition(safeAreaPaddingBottom)]}>
                                 <SupportalSwitcherButton isSidebarHovered={isSidebarHovered} />
                                 <NavigationTabBarFloatingActionButton />
                             </View>
@@ -182,6 +184,7 @@ function NavigationTabBar({selectedTab, shouldShowFloatingButtons = true, layout
                 />
                 <NavigationTabBarAvatar
                     style={styles.navigationTabBarItem}
+                    isWideLayout={false}
                     isSelected={selectedTab === NAVIGATION_TABS.SETTINGS}
                     onPress={navigateToSettings}
                 />

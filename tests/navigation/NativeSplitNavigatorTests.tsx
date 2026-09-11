@@ -7,10 +7,12 @@ import createSplitNavigator from '@libs/Navigation/AppNavigator/createSplitNavig
 import navigationRef from '@libs/Navigation/navigationRef';
 import type {ReportsSplitNavigatorParamList} from '@libs/Navigation/types';
 
+import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import SCREENS from '@src/SCREENS';
 
-import {CommonActions, NavigationContainer} from '@react-navigation/native';
+import {CommonActions, NavigationContainer, StackActions} from '@react-navigation/native';
 import React from 'react';
 import {View} from 'react-native';
 
@@ -47,7 +49,12 @@ describe('NativeSplitNavigator', () => {
                     defaultCentralScreen={SCREENS.REPORT}
                     persistentScreens={[SCREENS.INBOX]}
                     parentRoute={CONST.NAVIGATION_TESTS.DEFAULT_PARENT_ROUTE}
-                    layoutMode="wide"
+                    splitRenderConfig={{
+                        sidebarRouteName: SCREENS.INBOX,
+                        sidebarWidth: variables.sideBarWithLHBWidth,
+                        mode: 'wide',
+                        persistentRouteNames: [SCREENS.INBOX],
+                    }}
                 >
                     <Split.Screen
                         name={SCREENS.INBOX}
@@ -75,5 +82,50 @@ describe('NativeSplitNavigator', () => {
         const stateAfterSidebarNavigation = navigationRef.current?.getRootState();
         expect(stateAfterSidebarNavigation?.routes.map((route) => route.name)).toEqual([SCREENS.INBOX, SCREENS.REPORT]);
         expect(stateAfterSidebarNavigation?.index).toBe(1);
+    });
+
+    it('preserves canonical route keys across wide-to-narrow-to-wide changes', async () => {
+        const renderNavigator = (mode: 'narrow' | 'wide') => (
+            <NavigationContainer
+                ref={navigationRef}
+                initialState={{routes: [{name: SCREENS.INBOX}]}}
+            >
+                <Split.Navigator
+                    sidebarScreen={SCREENS.INBOX}
+                    defaultCentralScreen={SCREENS.REPORT}
+                    persistentScreens={[SCREENS.INBOX]}
+                    parentRoute={CONST.NAVIGATION_TESTS.DEFAULT_PARENT_ROUTE}
+                    splitRenderConfig={{
+                        sidebarRouteName: SCREENS.INBOX,
+                        sidebarWidth: variables.sideBarWithLHBWidth,
+                        mode,
+                        persistentRouteNames: [SCREENS.INBOX],
+                    }}
+                >
+                    <Split.Screen
+                        name={SCREENS.INBOX}
+                        component={SidebarScreen}
+                    />
+                    <Split.Screen
+                        name={SCREENS.REPORT}
+                        component={CentralScreen}
+                    />
+                </Split.Navigator>
+            </NavigationContainer>
+        );
+        const {rerender} = render(renderNavigator('wide'));
+
+        await waitFor(() => expect(navigationRef.current?.getRootState().routes).toHaveLength(2));
+        act(() => navigationRef.current?.dispatch(StackActions.push(SCREENS.REPORT, {reportID: '2'})));
+
+        const routeKeys = navigationRef.current?.getRootState().routes.map((route) => route.key);
+        expect(routeKeys).toHaveLength(3);
+
+        rerender(renderNavigator('narrow'));
+        await waitFor(() => expect(navigationRef.current?.getRootState().routes.map((route) => route.key)).toEqual(routeKeys));
+
+        rerender(renderNavigator('wide'));
+        await waitFor(() => expect(navigationRef.current?.getRootState().routes.map((route) => route.key)).toEqual(routeKeys));
+        expect(navigationRef.current?.getRootState().index).toBe(2);
     });
 });

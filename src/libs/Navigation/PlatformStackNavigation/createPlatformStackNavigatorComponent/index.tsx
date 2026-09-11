@@ -38,7 +38,7 @@ function PlatformNavigatorImpl<RouterOptions extends PlatformStackRouterOptions 
     sidebarScreen,
     defaultCentralScreen,
     parentRoute,
-    layoutMode,
+    splitRenderConfig,
     persistentScreens,
     createRouter,
     getCustomState,
@@ -49,7 +49,7 @@ function PlatformNavigatorImpl<RouterOptions extends PlatformStackRouterOptions 
     displayName,
     ...props
 }: PlatformNavigatorImplProps<RouterOptions>) {
-    const {shouldUseNarrowLayout, getShouldUseNarrowLayout} = useNavigationLayoutMode(layoutMode);
+    const {shouldUseNarrowLayout, getShouldUseNarrowLayout} = useNavigationLayoutMode(splitRenderConfig?.mode);
     const {
         navigation,
         state: originalState,
@@ -74,7 +74,6 @@ function PlatformNavigatorImpl<RouterOptions extends PlatformStackRouterOptions 
             defaultCentralScreen,
             sidebarScreen,
             parentRoute,
-            layoutMode,
             getShouldUseNarrowLayout,
             persistentScreens,
             screenLayout,

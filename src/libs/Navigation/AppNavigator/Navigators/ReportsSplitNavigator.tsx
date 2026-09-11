@@ -3,7 +3,7 @@ import usePermissions from '@hooks/usePermissions';
 
 import createSplitNavigator from '@libs/Navigation/AppNavigator/createSplitNavigator';
 import FreezeWrapper from '@libs/Navigation/AppNavigator/FreezeWrapper';
-import usePrototypeLayoutMode from '@libs/Navigation/AppNavigator/usePrototypeLayoutMode';
+import {useNavigationLayoutContext} from '@libs/Navigation/AppNavigator/NavigationLayoutContext';
 import useSplitNavigatorScreenOptions from '@libs/Navigation/AppNavigator/useSplitNavigatorScreenOptions';
 import getCurrentUrl from '@libs/Navigation/currentUrl';
 import shouldOpenOnAdminRoom from '@libs/Navigation/helpers/shouldOpenOnAdminRoom';
@@ -12,6 +12,8 @@ import type {NavigationStateRoute, ReportsSplitNavigatorParamList, TabNavigatorP
 import * as ReportUtils from '@libs/ReportUtils';
 
 import type {ReportScreenProps} from '@pages/inbox/ReportScreen';
+
+import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import type NAVIGATORS from '@src/NAVIGATORS';
@@ -32,7 +34,7 @@ const Split = createSplitNavigator<ReportsSplitNavigatorParamList>();
  */
 function ReportsSplitNavigator({navigation, route}: PlatformStackScreenProps<TabNavigatorParamList, typeof NAVIGATORS.REPORTS_SPLIT_NAVIGATOR>) {
     const {isBetaEnabled} = usePermissions();
-    const layoutMode = usePrototypeLayoutMode();
+    const layoutMode = useNavigationLayoutContext()?.mode;
     const splitNavigatorScreenOptions = useSplitNavigatorScreenOptions(layoutMode);
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
     const isOpenOnAdminRoom = shouldOpenOnAdminRoom();
@@ -85,7 +87,16 @@ function ReportsSplitNavigator({navigation, route}: PlatformStackScreenProps<Tab
                 sidebarScreen={SCREENS.INBOX}
                 defaultCentralScreen={SCREENS.REPORT}
                 parentRoute={route}
-                layoutMode={layoutMode}
+                splitRenderConfig={
+                    layoutMode
+                        ? {
+                              sidebarRouteName: SCREENS.INBOX,
+                              sidebarWidth: variables.sideBarWithLHBWidth,
+                              mode: layoutMode,
+                              persistentRouteNames: [SCREENS.INBOX],
+                          }
+                        : undefined
+                }
                 screenOptions={splitNavigatorScreenOptions.centralScreen}
             >
                 <Split.Screen

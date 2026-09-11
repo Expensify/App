@@ -58,7 +58,6 @@ type CreatePlatformStackNavigatorComponentOptions<RouterOptions extends Platform
     Effects?: NavigatorEffects<ParamList>;
     ExtraContent?: ExtraContent;
     NavigationContentWrapper?: NavigationContentWrapper;
-    supportsSplitLayout?: boolean;
 };
 
 export type {CustomCodeProps, CustomStateHookProps, CustomEffectsHookProps, CreatePlatformStackNavigatorComponentOptions, ExtraContentProps};

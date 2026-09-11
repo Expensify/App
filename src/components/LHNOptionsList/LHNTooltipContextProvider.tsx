@@ -2,7 +2,7 @@ import useOnyx from '@hooks/useOnyx';
 import useReportAttributes from '@hooks/useReportAttributes';
 import useRootNavigationState from '@hooks/useRootNavigationState';
 
-import usePrototypeLayoutMode from '@libs/Navigation/AppNavigator/usePrototypeLayoutMode';
+import {useNavigationLayoutContext} from '@libs/Navigation/AppNavigator/NavigationLayoutContext';
 
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -35,7 +35,7 @@ function LHNTooltipContextProvider({data, children}: LHNTooltipContextProviderPr
     const firstReportIDWithGBRorRBR = firstReport?.reportID;
 
     const isFocused = useIsFocused();
-    const layoutMode = usePrototypeLayoutMode();
+    const layoutMode = useNavigationLayoutContext()?.mode;
     const isScreenFocused = isFocused || layoutMode === 'wide';
     const isReportsSplitNavigatorLast = useRootNavigationState((state) => state?.routes?.at(-1)?.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR);
 

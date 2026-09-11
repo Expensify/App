@@ -4,7 +4,7 @@ import useOnyx from '@hooks/useOnyx';
 import {useSidebarOrderedReportsState} from '@hooks/useSidebarOrderedReports';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import usePrototypeLayoutMode from '@libs/Navigation/AppNavigator/usePrototypeLayoutMode';
+import {useNavigationLayoutContext} from '@libs/Navigation/AppNavigator/NavigationLayoutContext';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -24,7 +24,7 @@ type SidebarLinksDataProps = {
 
 function SidebarLinksData({insets}: SidebarLinksDataProps) {
     const isFocused = useIsFocused();
-    const layoutMode = usePrototypeLayoutMode();
+    const layoutMode = useNavigationLayoutContext()?.mode;
     const isVisible = isFocused || layoutMode === 'wide';
     const styles = useThemeStyles();
     const {translate} = useLocalize();

@@ -41,7 +41,9 @@ jest.mock('@react-navigation/native', () => {
 
 jest.mock('@hooks/useCurrentUserPersonalDetails');
 let mockLayoutMode: NavigationLayoutMode | undefined;
-jest.mock('@libs/Navigation/AppNavigator/usePrototypeLayoutMode', () => ({__esModule: true, default: () => mockLayoutMode}));
+jest.mock('@libs/Navigation/AppNavigator/NavigationLayoutContext', () => ({
+    useNavigationLayoutContext: () => (mockLayoutMode ? {mode: mockLayoutMode} : undefined),
+}));
 jest.mock('@userActions/Report', () => ({
     ...jest.requireActual<typeof ReportType>('@userActions/Report'),
     joinRoom: jest.fn(),

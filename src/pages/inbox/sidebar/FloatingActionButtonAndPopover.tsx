@@ -2,6 +2,7 @@ import useDragoverDismiss from '@hooks/useDragoverDismiss';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {useNavigationLayoutContext} from '@libs/Navigation/AppNavigator/NavigationLayoutContext';
 import {generateReportID} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
@@ -27,7 +28,9 @@ import TravelMenuItem from './FABPopoverContent/menuItems/TravelMenuItem';
  */
 function FloatingActionButtonAndPopover() {
     const styles = useThemeStyles();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {shouldUseNarrowLayout: shouldUseNarrowLayoutFallback} = useResponsiveLayout();
+    const layoutMode = useNavigationLayoutContext()?.mode;
+    const shouldUseNarrowLayout = layoutMode ? layoutMode === 'narrow' : shouldUseNarrowLayoutFallback;
     const isFocused = useIsFocused();
 
     const [isCreateMenuActive, setIsCreateMenuActive] = useState(false);
@@ -63,7 +66,7 @@ function FloatingActionButtonAndPopover() {
     };
 
     return (
-        <View style={[styles.justifyContentCenter, styles.flexGrow1, styles.gap3, shouldUseNarrowLayout ? styles.w100 : styles.pv4]}>
+        <View style={[styles.justifyContentCenter, shouldUseNarrowLayout && styles.flexGrow1, styles.gap3, shouldUseNarrowLayout ? styles.w100 : styles.pv4]}>
             <FABPopoverMenu
                 isVisible={isCreateMenuActive && (!shouldUseNarrowLayout || isFocused)}
                 onClose={hideCreateMenu}
