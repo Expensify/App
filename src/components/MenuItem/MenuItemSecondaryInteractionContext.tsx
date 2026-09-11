@@ -30,11 +30,17 @@ function useMenuItemSecondaryInteraction(handler: MenuItemSecondaryInteractionHa
         handlerRef.current = handler;
     }, [handler]);
 
+    // Built once and kept, so re-registering the same sub-component is the no-op the registry expects
+    const registeredHandlerRef = useRef<MenuItemSecondaryInteractionHandler | undefined>(undefined);
+
     useEffect(() => {
         if (!isEnabled || !register) {
             return;
         }
-        return register((event, anchor) => handlerRef.current?.(event, anchor));
+        if (!registeredHandlerRef.current) {
+            registeredHandlerRef.current = (event, anchor) => handlerRef.current?.(event, anchor);
+        }
+        return register(registeredHandlerRef.current);
     }, [isEnabled, register]);
 }
 
@@ -45,12 +51,16 @@ function useMenuItemSecondaryInteraction(handler: MenuItemSecondaryInteractionHa
  * The handler lives in state rather than a ref because the row has to know during render whether it
  * has one: a row with nobody registered passes `undefined` to its pressable, and that is what leaves
  * the native context menu in place on the web instead of swallowing every right-click.
+ *
+ * Like the label registry in `MenuItemAccessibilityContext`, a write is a no-op when the value is
+ * unchanged, so an unrelated re-render that re-registers the handler already in place doesn't churn
+ * the row's state.
  */
 function useMenuItemSecondaryInteractionRegistry() {
     const [handler, setHandler] = useState<MenuItemSecondaryInteractionHandler | undefined>(undefined);
 
     const register: RegisterMenuItemSecondaryInteraction = (nextHandler) => {
-        setHandler(() => nextHandler);
+        setHandler((currentHandler: MenuItemSecondaryInteractionHandler | undefined) => (currentHandler === nextHandler ? currentHandler : nextHandler));
 
         // A later registrant may already own the row by now, so only give it back if it is still ours
         return () => setHandler((currentHandler: MenuItemSecondaryInteractionHandler | undefined) => (currentHandler === nextHandler ? undefined : currentHandler));
