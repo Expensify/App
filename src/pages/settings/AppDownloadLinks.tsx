@@ -16,41 +16,13 @@ import Navigation from '@libs/Navigation/Navigation';
 import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 
 import CONST from '@src/CONST';
-import type {TranslationPaths} from '@src/languages/types';
-import type IconAsset from '@src/types/utils/IconAsset';
 
 import React from 'react';
-
-type DownloadMenuItem = {
-    translationKey: TranslationPaths;
-    action: () => void;
-    link: string;
-    icon: IconAsset;
-};
 
 function AppDownloadLinksPage() {
     const icons = useMemoizedLazyExpensifyIcons(['Android', 'Apple']);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-
-    const menuItems: DownloadMenuItem[] = [
-        {
-            translationKey: 'initialSettingsPage.appDownloadLinks.android.label',
-            action: () => {
-                openExternalLink(CONST.APP_DOWNLOAD_LINKS.ANDROID);
-            },
-            link: CONST.APP_DOWNLOAD_LINKS.ANDROID,
-            icon: icons.Android,
-        },
-        {
-            translationKey: 'initialSettingsPage.appDownloadLinks.ios.label',
-            action: () => {
-                openExternalLink(CONST.APP_DOWNLOAD_LINKS.IOS, true);
-            },
-            link: CONST.APP_DOWNLOAD_LINKS.IOS,
-            icon: icons.Apple,
-        },
-    ];
 
     return (
         <ScreenWrapper testID="AppDownloadLinksPage">
@@ -70,24 +42,32 @@ function AppDownloadLinksPage() {
             />
 
             <ScrollView style={[styles.mt3]}>
-                {menuItems.map((item) => (
-                    <MenuItem.Root
-                        key={item.translationKey}
-                        onPress={callFunctionIfActionIsAllowed(item.action)}
-                    >
-                        <MenuItem.Row>
-                            <MenuItem.Leading>
-                                <MenuItem.Icon src={item.icon} />
-                            </MenuItem.Leading>
-                            <MenuItem.Content>
-                                <MenuItem.Title>{translate(item.translationKey)}</MenuItem.Title>
-                            </MenuItem.Content>
-                            <MenuItem.Trailing>
-                                <MenuItem.ExternalLink link={item.link} />
-                            </MenuItem.Trailing>
-                        </MenuItem.Row>
-                    </MenuItem.Root>
-                ))}
+                <MenuItem.Root onPress={callFunctionIfActionIsAllowed(() => openExternalLink(CONST.APP_DOWNLOAD_LINKS.ANDROID))}>
+                    <MenuItem.Row>
+                        <MenuItem.Leading>
+                            <MenuItem.Icon src={icons.Android} />
+                        </MenuItem.Leading>
+                        <MenuItem.Content>
+                            <MenuItem.Title>{translate('initialSettingsPage.appDownloadLinks.android.label')}</MenuItem.Title>
+                        </MenuItem.Content>
+                        <MenuItem.Trailing>
+                            <MenuItem.ExternalLink link={CONST.APP_DOWNLOAD_LINKS.ANDROID} />
+                        </MenuItem.Trailing>
+                    </MenuItem.Row>
+                </MenuItem.Root>
+                <MenuItem.Root onPress={callFunctionIfActionIsAllowed(() => openExternalLink(CONST.APP_DOWNLOAD_LINKS.IOS, true))}>
+                    <MenuItem.Row>
+                        <MenuItem.Leading>
+                            <MenuItem.Icon src={icons.Apple} />
+                        </MenuItem.Leading>
+                        <MenuItem.Content>
+                            <MenuItem.Title>{translate('initialSettingsPage.appDownloadLinks.ios.label')}</MenuItem.Title>
+                        </MenuItem.Content>
+                        <MenuItem.Trailing>
+                            <MenuItem.ExternalLink link={CONST.APP_DOWNLOAD_LINKS.IOS} />
+                        </MenuItem.Trailing>
+                    </MenuItem.Row>
+                </MenuItem.Root>
             </ScrollView>
         </ScreenWrapper>
     );
