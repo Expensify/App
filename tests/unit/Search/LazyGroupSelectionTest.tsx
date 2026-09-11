@@ -427,6 +427,31 @@ describe('Lazily loaded group selection', () => {
         expect(result.current.areAllMatchingItemsSelected).toBe(true);
     });
 
+    it('keeps a new expense excluded when it is added to an excluded report', async () => {
+        const {result, rerender} = renderReportSelection();
+
+        await act(async () => {
+            result.current.toggleAll();
+            result.current.selectAllMatchingItems(true);
+            await waitForBatchedUpdatesWithAct();
+        });
+        await act(async () => {
+            result.current.toggle(firstReport);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        const updatedFirstReport = makeExpenseReport('report-1', ['report-1-transaction-1', 'report-1-transaction-2', 'report-1-transaction-3']);
+        reportFilteredData = [updatedFirstReport, secondReport];
+        reportSearchResults = makeReportSearchResults();
+        rerender({});
+        await act(async () => waitForBatchedUpdatesWithAct());
+
+        expect(Object.keys(result.current.selectedTransactions)).toEqual(['report-2-transaction-1']);
+        expect(Object.keys(result.current.excludedTransactions)).toEqual(['report-1-transaction-3', 'report-1-transaction-1', 'report-1-transaction-2']);
+        expect(result.current.selectedReports.map((report) => report.reportID)).toEqual(['report-2']);
+        expect(result.current.areAllMatchingItemsSelected).toBe(true);
+    });
+
     it('keeps a report excluded when its first expense is added', async () => {
         const emptyReport = makeExpenseReport('empty-report', []);
         reportFilteredData = [emptyReport, secondReport];

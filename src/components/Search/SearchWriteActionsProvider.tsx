@@ -132,7 +132,15 @@ function useReconcileSelectionWithData({
             return;
         }
         const newTransactionList: SelectedTransactions = {};
+        const inferredExcludedTransactions: SelectedTransactions = {};
         const liveSelectionEntries = new Map<string, SelectedTransactionInfo>();
+        const excludedReportKeys = new Set(
+            isExpenseReportType
+                ? Object.values(excludedTransactions)
+                      .map((transaction) => transaction.groupKey)
+                      .filter((groupKey): groupKey is string => !!groupKey)
+                : [],
+        );
         if (areItemsGrouped) {
             for (const transactionGroup of filteredData) {
                 if (!Object.hasOwn(transactionGroup, 'transactions') || !('transactions' in transactionGroup)) {
@@ -167,7 +175,10 @@ function useReconcileSelectionWithData({
                     (transaction) => (!!transaction.keyForList && transaction.keyForList in selectedTransactions) || transaction.transactionID in selectedTransactions,
                 );
                 const propagateSelectionToAllRows = (isExpenseReportType && (wasReportSelected || hasIndividualSelectedInGroup)) || (wasReportSelected && !isExpenseReportType);
-                const isParentGroupExcluded = (type === CONST.SEARCH.DATA_TYPES.EXPENSE || isExpenseReportType) && !!reportKey && Object.hasOwn(excludedTransactions, reportKey);
+                const isParentGroupExcluded =
+                    !!reportKey &&
+                    ((type === CONST.SEARCH.DATA_TYPES.EXPENSE && Object.hasOwn(excludedTransactions, reportKey)) ||
+                        (isExpenseReportType && (Object.hasOwn(excludedTransactions, reportKey) || excludedReportKeys.has(reportKey))));
 
                 for (const transactionItem of transactionGroup.transactions) {
                     const listKey = transactionItem.keyForList ?? transactionItem.transactionID;
@@ -177,7 +188,7 @@ function useReconcileSelectionWithData({
 
                     // Include transaction if: already individually selected, part of select-all, or group-level propagation (expense report / empty group expanded)
                     const shouldInclude = !isExcluded && (isSelected || areAllMatchingItemsSelected || propagateSelectionToAllRows);
-                    if (!shouldInclude && !isDirectlyExcluded) {
+                    if (!shouldInclude && !isDirectlyExcluded && !(isExpenseReportType && isParentGroupExcluded)) {
                         continue;
                     }
 
@@ -209,11 +220,15 @@ function useReconcileSelectionWithData({
                         isSelected: !isExcluded && (areAllMatchingItemsSelected || !!previousSelection?.isSelected || propagateSelectionToAllRows),
                         canReject: transactionItem.report ? canRejectReportAction(transactionItem.report, currentUserAccountID, transactionItem.policy) : false,
                         policyID: transactionItem.report?.policyID,
-                        groupKey: previousSelection?.groupKey ?? (propagateSelectionToAllRows && !isExpenseReportType ? reportKey : undefined),
+                        groupKey:
+                            previousSelection?.groupKey ?? ((propagateSelectionToAllRows && !isExpenseReportType) || (isExpenseReportType && isParentGroupExcluded) ? reportKey : undefined),
                         isSelectedViaGroup: previousSelection?.isSelectedViaGroup,
                     };
                     liveSelectionEntries.set(listKey, liveSelectionEntry);
                     liveSelectionEntries.set(transactionItem.transactionID, liveSelectionEntry);
+                    if (isExpenseReportType && isParentGroupExcluded && !isDirectlyExcluded) {
+                        inferredExcludedTransactions[listKey] = liveSelectionEntry;
+                    }
                     if (shouldInclude) {
                         newTransactionList[listKey] = liveSelectionEntry;
                     }
@@ -265,7 +280,7 @@ function useReconcileSelectionWithData({
 
         let reconciledExcludedTransactions = excludedTransactions;
         if (shouldReconcileExcludedTransactions && areAllMatchingItemsSelected && !isEmptyObject(excludedTransactions)) {
-            const nextExcludedTransactions: SelectedTransactions = {};
+            const nextExcludedTransactions: SelectedTransactions = {...inferredExcludedTransactions};
             for (const [key, excludedTransaction] of Object.entries(excludedTransactions)) {
                 const transactionID = excludedTransaction.transaction?.transactionID;
                 const liveEntry = liveSelectionEntries.get(key) ?? (transactionID ? liveSelectionEntries.get(transactionID) : undefined);
