@@ -137,6 +137,7 @@
         "oxfmtrc",
         "oxlint",
         "oxlintrc",
+        "tsgo",
         "tsgolint",
         "ungated",
         "fillyjonk",
@@ -1243,6 +1244,7 @@
         "tests/unit/usePersonalDetailSearchSelectorTest.tsx",
         "config/eslint/eslint.seatbelt.tsv",
         "config/oxlint/oxlint.seatbelt.tsv",
+        "INVESTIGATION DOCS/**",
         "tests/unit/BankAccountUtilsTest.ts",
         "tests/unit/__snapshots__/ReportAlternateTextParityTest.ts.snap",
         "evals/proposalPolice/fixtures/**"
