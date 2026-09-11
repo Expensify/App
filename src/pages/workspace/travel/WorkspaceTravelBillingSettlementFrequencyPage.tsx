@@ -11,7 +11,7 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {updateTravelBillingSettlementFrequency} from '@libs/actions/TravelBilling';
-import {getCardSettings} from '@libs/CardUtils';
+import {getCardSettings, getMonthlySettlementDate} from '@libs/CardUtils';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -65,10 +65,10 @@ function WorkspaceTravelBillingSettlementFrequencyPage({route}: WorkspaceTravelB
         isSelected: frequency === selectedFrequency,
     }));
 
-    const monthlySettlementDate = travelSettings?.monthlySettlementDate;
+    const monthlySettlementDate = getMonthlySettlementDate(travelSettings?.monthlySettlementDate);
     const saveAndGoBack = () => {
         if (selectedFrequency && (selectedFrequency !== currentFrequency || hasFrequencyError)) {
-            updateTravelBillingSettlementFrequency(defaultFundID, selectedFrequency, monthlySettlementDate ? new Date(monthlySettlementDate) : undefined);
+            updateTravelBillingSettlementFrequency(defaultFundID, selectedFrequency, monthlySettlementDate);
         }
         Navigation.goBack();
     };

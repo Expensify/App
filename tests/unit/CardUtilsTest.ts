@@ -51,6 +51,7 @@ import {
     getFeedType,
     getFilteredCardList,
     getMonthFromExpirationDateString,
+    getMonthlySettlementDate,
     getOriginalCompanyFeeds,
     getPlaidInstitutionIconUrl,
     getPlaidInstitutionId,
@@ -5020,5 +5021,55 @@ describe('getDomainByFundID', () => {
             [`${ONYXKEYS.COLLECTION.DOMAIN}2`]: domain,
         };
         expect(getDomainByFundID(domains, FUND_ID)).toBe(domain);
+    });
+});
+
+describe('getMonthlySettlementDate', () => {
+    it('keeps a `Date`, which is what our own optimistic writes store', () => {
+        const settlementDate = new Date('2024-01-27');
+        expect(getMonthlySettlementDate(settlementDate)).toBe(settlementDate);
+    });
+
+    it('reads a number as the day of the month, not as milliseconds since the epoch', () => {
+        expect(getMonthlySettlementDate(10)?.getDate()).toBe(10);
+    });
+
+    it('resolves every day of the month to its own day', () => {
+        const days = Array.from({length: 31}, (value, index) => index + 1);
+        expect(days.map((day) => getMonthlySettlementDate(day)?.getDate())).toEqual(days);
+    });
+
+    it('reads a day of the month sent as a string', () => {
+        expect(getMonthlySettlementDate('10')?.getDate()).toBe(10);
+        expect(getMonthlySettlementDate('01')?.getDate()).toBe(1);
+    });
+
+    it('parses the Expensify DB datetime format', () => {
+        expect(getMonthlySettlementDate('2024-01-27 11:00:53')?.getDate()).toBe(27);
+    });
+
+    it('parses a date without a time as a local date, so the day never shifts', () => {
+        expect(getMonthlySettlementDate('2024-01-27')?.getDate()).toBe(27);
+    });
+
+    it('parses an ISO 8601 datetime', () => {
+        expect(getMonthlySettlementDate('2024-01-27T11:00:53Z')?.getDate()).toBe(27);
+    });
+
+    it('returns undefined when the workspace has no settlement date', () => {
+        expect(getMonthlySettlementDate(undefined)).toBeUndefined();
+        expect(getMonthlySettlementDate('')).toBeUndefined();
+    });
+
+    it('returns undefined for a number that cannot be a day of the month', () => {
+        expect(getMonthlySettlementDate(0)).toBeUndefined();
+        expect(getMonthlySettlementDate(32)).toBeUndefined();
+        expect(getMonthlySettlementDate(10.5)).toBeUndefined();
+        expect(getMonthlySettlementDate(1706353253)).toBeUndefined();
+    });
+
+    it('returns undefined for a value no day of the month can be read from', () => {
+        expect(getMonthlySettlementDate('the 10th')).toBeUndefined();
+        expect(getMonthlySettlementDate(new Date('not a date'))).toBeUndefined();
     });
 });

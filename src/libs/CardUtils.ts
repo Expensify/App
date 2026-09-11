@@ -1507,6 +1507,52 @@ function isLastScrapePastDismissThreshold(card: Card): boolean {
 }
 
 /**
+ * Resolve the Expensify Card monthly settlement date into a date whose day of the month can be displayed.
+ *
+ * A real `Date` only ever arrives from our own optimistic writes; anything the backend sends comes through Onyx as a
+ * string or a number, so the value has to be narrowed at runtime. A bare day of the month is the shape that matters
+ * most: `new Date(10)` is 10 *milliseconds* after the Unix epoch, which is the 31st of December 1969 anywhere west of
+ * UTC, so every workspace would show the same wrong day.
+ *
+ * @param monthlySettlementDate the settlement date as it arrived in Onyx
+ * @returns the settlement date, or undefined when no real day of the month can be resolved from the value
+ */
+function getMonthlySettlementDate(monthlySettlementDate: ExpensifyCardSettingsBase['monthlySettlementDate']): Date | undefined {
+    if (!monthlySettlementDate) {
+        return undefined;
+    }
+
+    if (monthlySettlementDate instanceof Date) {
+        return Number.isNaN(monthlySettlementDate.getTime()) ? undefined : monthlySettlementDate;
+    }
+
+    // A day of the month on its own (10 or "10") carries no month or year, so anchor it to January of the current year:
+    // every day from the 1st to the 31st exists there, and only the day is ever displayed. Any other number is
+    // ambiguous (a timestamp in seconds and one in milliseconds are indistinguishable here), so it resolves to nothing
+    // rather than to a wrong day.
+    if (typeof monthlySettlementDate === 'number' || /^\d{1,2}$/.test(monthlySettlementDate)) {
+        const dayOfMonth = Number(monthlySettlementDate);
+        if (!Number.isInteger(dayOfMonth) || dayOfMonth < 1 || dayOfMonth > 31) {
+            return undefined;
+        }
+        return new Date(new Date().getFullYear(), 0, dayOfMonth);
+    }
+
+    // Parse the Expensify DB datetime format ("2024-11-27 11:00:53") and the date-only format ("2024-11-27") explicitly
+    // first, the same way `isLastScrapePastDismissThreshold` handles `lastScrape`: both parse in local time, so the day
+    // survives, while `new Date()` reads a date-only string as UTC midnight and lands on the previous day west of UTC.
+    // Fall back to `new Date()` for anything else, which parses full ISO 8601 reliably.
+    let settlementDate = parse(monthlySettlementDate, 'yyyy-MM-dd HH:mm:ss', new Date());
+    if (Number.isNaN(settlementDate.getTime())) {
+        settlementDate = parse(monthlySettlementDate, CONST.DATE.FNS_FORMAT_STRING, new Date());
+    }
+    if (Number.isNaN(settlementDate.getTime())) {
+        settlementDate = new Date(monthlySettlementDate);
+    }
+    return Number.isNaN(settlementDate.getTime()) ? undefined : settlementDate;
+}
+
+/**
  * Check whether a broken card connection has been unresolved long enough that we should stop
  * actively prompting the user (remove the time-sensitive task and the RBR). The error itself is
  * kept, so this is only used to gate the proactive surfacing, not the underlying broken state.
@@ -2227,6 +2273,7 @@ export {
     getCardConnectionStatusDisplay,
     isBrokenConnectionPastDismissThreshold,
     isLastScrapePastDismissThreshold,
+    getMonthlySettlementDate,
     isSmartLimitEnabled,
     lastFourNumbersFromCardName,
     isMatchingCard,

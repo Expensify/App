@@ -15,7 +15,12 @@ type ExpensifyCardSettingsBase = {
     /** The total amount of cash back earned thus far */
     earnedCashback?: number;
 
-    monthlySettlementDate?: Date;
+    /**
+     * The day of the month Expensify Cards settle on, when the workspace settles monthly. A `Date` only when it comes
+     * from one of our own optimistic writes — the backend sends a string or a day-of-month number, so read it through
+     * `getMonthlySettlementDate` rather than passing it straight to `new Date()`.
+     */
+    monthlySettlementDate?: Date | string | number;
 
     /** Whether monthly option should appear in the settlement frequency settings */
     isMonthlySettlementAllowed?: boolean;
