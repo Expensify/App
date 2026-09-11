@@ -107,6 +107,9 @@ function ScanEditReceipt({report, transactionID, backTo, isEditing}: ScanEditRec
                 onPicked={validateFiles}
                 onAttachmentPickerStatusChange={setIsLoaderVisible}
                 isReplacingReceipt
+                // This screen goes back on capture, which unmounts the camera and cancels a photo still in
+                // flight, so the upgrade could not land here even when it is wanted.
+                canUpgradeReceiptQuality={false}
             />
         </StepScreenDragAndDropWrapper>
     );

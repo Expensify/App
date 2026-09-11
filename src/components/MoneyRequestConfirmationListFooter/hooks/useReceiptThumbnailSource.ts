@@ -1,4 +1,5 @@
 import useLocalReceiptThumbnail from '@hooks/useLocalReceiptThumbnail';
+import useReceiptUpgradeCount from '@hooks/useReceiptUpgradeCount';
 
 import type {ThumbnailAndImageURI} from '@libs/ReceiptUtils';
 import {getThumbnailAndImageURIs} from '@libs/ReceiptUtils';
@@ -42,10 +43,18 @@ function useReceiptThumbnailSource({transaction, receiptPath, receiptFilename}: 
     // (react-hooks/refs). React handles this synchronously before painting, so there is no visible
     // double-render or layout thrash.
     const resolvedReceiptImageStr = resolvedReceiptImage != null ? String(resolvedReceiptImage) : undefined;
-    const [initialLocalSource, setInitialLocalSource] = useState<{source: string | undefined; resolvedImage: string | undefined}>({source: undefined, resolvedImage: undefined});
-    if (isLocalFile && (initialLocalSource.source === undefined || initialLocalSource.resolvedImage !== resolvedReceiptImageStr)) {
+
+    // Pinning the source keeps a late thumbnail from flashing, but a receipt replaced by a better capture
+    // has to get through, so the count of upgrades is part of what is pinned.
+    const upgradeCount = useReceiptUpgradeCount(resolvedReceiptImageStr);
+    const [initialLocalSource, setInitialLocalSource] = useState<{source: string | undefined; resolvedImage: string | undefined; upgradeCount: number}>({
+        source: undefined,
+        resolvedImage: undefined,
+        upgradeCount: 0,
+    });
+    if (isLocalFile && (initialLocalSource.source === undefined || initialLocalSource.resolvedImage !== resolvedReceiptImageStr || initialLocalSource.upgradeCount !== upgradeCount)) {
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- empty string fallback is intentional: we want to skip the empty-string case in the OR chain, not treat it as a valid source
-        setInitialLocalSource({source: thumbnailUri || resolvedReceiptImageStr || '', resolvedImage: resolvedReceiptImageStr});
+        setInitialLocalSource({source: thumbnailUri || resolvedReceiptImageStr || '', resolvedImage: resolvedReceiptImageStr, upgradeCount});
     }
 
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- empty string fallback is intentional: we want to skip the empty-string case in the OR chain, not treat it as a valid source

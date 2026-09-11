@@ -25,6 +25,15 @@ type CameraProps = {
 
     /** Called when the user taps the multi-scan submit button on the preview ribbon. Used by native and mobile web. */
     onMultiScanSubmit?: () => void;
+
+    /**
+     * Whether a portrait, flash-off capture may be upgraded to the full-resolution photo after the shutter.
+     *
+     * Only a screen that stays mounted while the capture finishes can do this, since closing the camera
+     * session cancels the photo. Screens that pop or dismiss on capture opt out, because attempting it
+     * costs a capture and a temporary file and records a quality miss that never had a chance.
+     */
+    canUpgradeReceiptQuality?: boolean;
 };
 
 export default CameraProps;

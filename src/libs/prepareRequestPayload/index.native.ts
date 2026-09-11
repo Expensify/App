@@ -1,4 +1,3 @@
-import checkFileExists from '@libs/fileDownload/checkFileExists';
 import {readFileAsync} from '@libs/fileDownload/FileUtils';
 import ReceiptStorage from '@libs/ReceiptStorage';
 import {logReceiptDropped} from '@libs/telemetry/ReceiptObservability';
@@ -24,6 +23,12 @@ const prepareRequestPayload: PrepareRequestPayload = (command, data, initiatedOf
                 return Promise.resolve();
             }
 
+            // The assertion is FormData's signature being narrower than what request data can hold.
+            const appendValueAsIs = () => {
+                validateFormDataParameter(command, key, value);
+                formData.append(key, value as string | Blob);
+            };
+
             if (key === 'receipt') {
                 const {source, name, type, receiptTraceId} = value as Omit<File, 'source'> & Pick<Receipt, 'receiptTraceId' | 'source'>;
 
@@ -33,10 +38,8 @@ const prepareRequestPayload: PrepareRequestPayload = (command, data, initiatedOf
                         return Promise.resolve();
                     }
 
-                    const localUri = ReceiptStorage.resolve(source) ?? source;
-
-                    return checkFileExists(localUri).then((exists) => {
-                        if (!exists) {
+                    return ReceiptStorage.locate(source).then((localUri) => {
+                        if (!localUri) {
                             const transactionID = typeof data.transactionID === 'string' ? data.transactionID : undefined;
                             logReceiptDropped({receiptTraceId, transactionID, command, source, fileName: name});
                             return;
@@ -49,6 +52,13 @@ const prepareRequestPayload: PrepareRequestPayload = (command, data, initiatedOf
                         validateFormDataParameter(command, key, receiptFormData);
                         formData.append(key, receiptFormData as File);
                     });
+                }
+
+                // ReplaceReceipt sends the file object rather than a receipt source, so it never reaches
+                // `locate` and claims here instead. Claiming here rather than before the action keeps the
+                // optimistic write and queue entry immediate, so a receipt replaced offline is never lost.
+                if (name) {
+                    return ReceiptStorage.settle(name).then(appendValueAsIs);
                 }
             }
 
@@ -72,8 +82,7 @@ const prepareRequestPayload: PrepareRequestPayload = (command, data, initiatedOf
                 });
             }
 
-            validateFormDataParameter(command, key, value);
-            formData.append(key, value as string | Blob);
+            appendValueAsIs();
 
             return Promise.resolve();
         });
