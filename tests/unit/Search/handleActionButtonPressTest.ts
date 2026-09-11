@@ -359,6 +359,7 @@ describe('handleActionButtonPress', () => {
             delegateAccountID: undefined,
             isTrackIntentUser: false,
             allViolations: undefined,
+            rules: undefined,
         });
         expect(goToItem).not.toHaveBeenCalled();
     });
@@ -387,6 +388,7 @@ describe('handleActionButtonPress', () => {
             delegateAccountID: undefined,
             isTrackIntentUser: false,
             allViolations: undefined,
+            rules: undefined,
         });
 
         expect(approveMoneyRequestMock).toHaveBeenCalledWith(expect.objectContaining({full: true}));
@@ -415,6 +417,7 @@ describe('handleActionButtonPress', () => {
             delegateAccountID: undefined,
             isTrackIntentUser: false,
             allViolations: undefined,
+            rules: undefined,
         });
         expect(goToItem).toHaveBeenCalledTimes(0);
     });
@@ -448,6 +451,7 @@ describe('handleActionButtonPress', () => {
             delegateAccountID: undefined,
             isTrackIntentUser: false,
             allViolations,
+            rules: undefined,
             conciergeChat: undefined,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
         });

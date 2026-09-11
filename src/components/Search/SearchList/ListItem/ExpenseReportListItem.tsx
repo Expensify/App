@@ -114,6 +114,7 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['DotIndicator']);
     const currentUserDetails = useCurrentUserPersonalDetails();
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
     // Fetch live policy categories from Onyx to sync violations at render time
     const [parentPolicy] = useOnyxWithoutSnapshots(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(reportItem.policyID)}`);
@@ -125,6 +126,7 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
         policy: parentPolicy,
         report: parentReport,
         isTrackIntentUser,
+        rules,
     });
 
     const searchData = currentSearchResults?.data;
@@ -280,6 +282,7 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
             // whole TRANSACTION_VIOLATIONS collection, so the Approve action reads live data without re-rendering
             // every row on unrelated violation changes.
             allViolations: liveViolationsForSnapshotTransactions,
+            rules,
             conciergeChat,
         });
     }, [
@@ -319,6 +322,7 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
         delegateAccountID,
         isTrackIntentUser,
         liveViolationsForSnapshotTransactions,
+        rules,
         conciergeChat,
         shouldShowMarkAsDoneCopy,
     ]);

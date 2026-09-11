@@ -48,6 +48,7 @@ function useConfirmApproval(reportID: string | undefined, startApprovedAnimation
     });
     const {transactions: reportTransactions} = useTransactionsAndViolationsForReport(moneyRequestReport?.reportID);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const hasViolations = hasViolationsReportUtils(moneyRequestReport?.reportID, allTransactionViolations, accountID, email ?? '');
@@ -65,6 +66,7 @@ function useConfirmApproval(reportID: string | undefined, startApprovedAnimation
             getCurrencyDecimals,
             expenseReport: moneyRequestReport,
             expenseReportPolicy: policy,
+            rules,
             currentUserAccountIDParam: accountID,
             currentUserEmailParam: email ?? '',
             hasViolations,

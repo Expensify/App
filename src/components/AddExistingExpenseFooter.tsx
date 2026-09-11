@@ -25,7 +25,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import React from 'react';
 
-import Button from './ButtonComposed';
+import Button from './Button';
 import FormHelpMessage from './FormHelpMessage';
 import {usePersonalDetails, useSession} from './OnyxListItemProvider';
 
@@ -62,6 +62,7 @@ function AddExistingExpenseFooter({selectedIds, report, reportToConfirm, policy,
     const [selfDMReportID] = useOnyx(ONYXKEYS.SELF_DM_REPORT_ID);
     const [selfDMReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(selfDMReportID)}`);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
     const [transactions] = useTransactionsByID([...selectedIds]);
     const reports = useChangeTransactionsReportReports(transactions, reportToConfirm?.reportID);
@@ -93,6 +94,7 @@ function AddExistingExpenseFooter({selectedIds, report, reportToConfirm, policy,
                         delegateAccountID,
                         isTrackIntentUser,
                         formatPhoneNumber,
+                        rules,
                     });
                 } else {
                     changeTransactionsReport({
@@ -107,6 +109,7 @@ function AddExistingExpenseFooter({selectedIds, report, reportToConfirm, policy,
                         transactions,
                         allTransactionViolation: transactionViolations,
                         reports,
+                        rules,
                         isTrackIntentUser,
                         personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
                         selfDMReportActions,
