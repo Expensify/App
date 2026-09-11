@@ -20,7 +20,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import type {EdgeInsets} from 'react-native-safe-area-context';
 import type {ValueOf} from 'type-fest';
 
-import {PixelRatio, Dimensions as RNDimensions, StyleSheet} from 'react-native';
+import {PixelRatio, Platform, Dimensions as RNDimensions, StyleSheet} from 'react-native';
 
 import type {ThemeStyles} from '..';
 import type {
@@ -2454,8 +2454,7 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
 
     getStyleWithEnvSafeAreaPadding: (style: ViewStyle): ViewStyle => ({
         ...style,
-        paddingLeft: 'env(safe-area-inset-left)',
-        paddingRight: 'env(safe-area-inset-right)',
+        ...Platform.select({web: {paddingLeft: 'env(safe-area-inset-left)', paddingRight: 'env(safe-area-inset-right)'}}),
     }),
 });
 

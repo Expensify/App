@@ -4,6 +4,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {isMobileChrome, isMobileSafari} from '@libs/Browser';
+import getRHPLayoutValue from '@libs/Navigation/helpers/getRHPLayoutValue';
 
 import variables from '@styles/variables';
 
@@ -45,7 +46,7 @@ const useModalCardStyleInterpolator = (): ModalCardStyleInterpolator => {
         const cardStyle = StyleUtils.getCardStyles(screen.width);
 
         if (applySidePanelOffset) {
-            cardStyle.paddingRight = sidePanelOffset.current;
+            cardStyle.paddingRight = getRHPLayoutValue(0, sidePanelOffset.current);
         }
 
         // Suppress card entry animation while the side panel is mid-transition on narrow layout — keeps the

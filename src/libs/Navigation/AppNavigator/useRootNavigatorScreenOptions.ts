@@ -52,8 +52,6 @@ const useRootNavigatorScreenOptions = () => {
             animation: Animations.SLIDE_FROM_RIGHT,
             // We want pop in RHP since there are some flows that would work weird otherwise
             animationTypeForReplace: 'pop',
-            // Transparent presentation keeps the base split visible underneath the RHP.
-            native: shouldUseNarrowLayout ? undefined : {presentation: Presentation.TRANSPARENT_MODAL, contentStyle: themeStyles.bgTransparent},
             web: {
                 presentation: Presentation.TRANSPARENT_MODAL,
                 cardStyleInterpolator: (props: StackCardInterpolationProps) =>
@@ -69,23 +67,21 @@ const useRootNavigatorScreenOptions = () => {
             presentation: Presentation.TRANSPARENT_MODAL,
             web: {
                 cardOverlayEnabled: false,
-                cardStyle: {
+                cardStyle: StyleUtils.getStyleWithEnvSafeAreaPadding({
                     ...StyleUtils.getNavigationModalCardStyle(),
+                    ...themeStyles.modalStackNavigatorContainer,
                     backgroundColor: 'transparent',
                     width: '100%',
                     top: 0,
                     left: 0,
-                    position: 'fixed',
-                    paddingLeft: 'env(safe-area-inset-left)',
-                    paddingRight: 'env(safe-area-inset-right)',
-                },
+                }),
                 cardStyleInterpolator: (props: StackCardInterpolationProps) => modalCardStyleInterpolator({props, enter: onboardingEnter}),
             },
         },
         centeredModalNavigator: {
             presentation: Presentation.TRANSPARENT_MODAL,
-            native: {
-                contentStyle: {
+            web: {
+                cardStyle: {
                     ...StyleUtils.getBackgroundColorWithOpacityStyle(theme.overlay, variables.overlayOpacity),
                 },
             },

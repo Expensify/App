@@ -6728,7 +6728,7 @@ const dynamicStyles = (theme: ThemeColors) =>
         // The width is shrunk by the Side Panel offset at the call site (passed in), so the super wide
         // sheet's left edge stays put instead of being pushed off-screen while the Side Panel is open.
         // See https://github.com/Expensify/App/issues/99035
-        getSuperWideRHPExtendedCardInterpolatorStyles: (width: Animated.AnimatedSubtraction<number>) =>
+        getSuperWideRHPExtendedCardInterpolatorStyles: (width: number | Animated.AnimatedSubtraction<number>) =>
             ({
                 position: 'absolute',
                 height: '100%',

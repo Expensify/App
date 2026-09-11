@@ -1,4 +1,4 @@
-import {animatedSuperWideRHPWidth, useWideRHPState} from '@components/WideRHPContextProvider';
+import {animatedSuperWideRHPWidth, animatedWideRHPWidth, useWideRHPState} from '@components/WideRHPContextProvider';
 
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSidePanelState from '@hooks/useSidePanelState';
@@ -12,6 +12,7 @@ import RHP_WEB_TRANSITION_SPEC from '@libs/Navigation/AppNavigator/RHPTransition
 import useModalCardStyleInterpolator from '@libs/Navigation/AppNavigator/useModalCardStyleInterpolator';
 import calculateReceiptPaneRHPWidth from '@libs/Navigation/helpers/calculateReceiptPaneRHPWidth';
 import calculateSuperWideRHPWidth from '@libs/Navigation/helpers/calculateSuperWideRHPWidth';
+import getRHPLayoutValue from '@libs/Navigation/helpers/getRHPLayoutValue';
 import type {PlatformStackNavigationOptions, PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 
 import variables from '@styles/variables';
@@ -57,12 +58,14 @@ function useWideModalStackScreenOptions() {
                     cardStyleInterpolator = enhanceCardStyleInterpolator(baseInterpolator, {
                         // Shrink the super wide sheet by the Side Panel width while it is open so the sheet's
                         // left edge stays put instead of being pushed off-screen. See https://github.com/Expensify/App/issues/99035
-                        cardStyle: styles.getSuperWideRHPExtendedCardInterpolatorStyles(Animated.subtract(animatedSuperWideRHPWidth, sidePanelOffset.current)),
+                        cardStyle: styles.getSuperWideRHPExtendedCardInterpolatorStyles(
+                            getRHPLayoutValue(nativeWidth, Animated.subtract<number>(animatedSuperWideRHPWidth, sidePanelOffset.current)),
+                        ),
                     });
                 } else if (wideRHPRouteKeys.includes(route.key)) {
                     nativeWidth = calculateReceiptPaneRHPWidth(windowWidth) + variables.sideBarWidth;
                     cardStyleInterpolator = enhanceCardStyleInterpolator(baseInterpolator, {
-                        cardStyle: styles.wideRHPExtendedCardInterpolatorStyles,
+                        cardStyle: {...styles.wideRHPExtendedCardInterpolatorStyles, width: getRHPLayoutValue(nativeWidth, animatedWideRHPWidth)},
                     });
                     // single RHPs displayed above the wide RHP need to be positioned
                 } else if (superWideRHPRouteKeys.length > 0 || wideRHPRouteKeys.length > 0) {
