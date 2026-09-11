@@ -102,6 +102,7 @@ describe('actions/IOU/BulkEdit', () => {
                 delegateAccountID: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 getCurrencySymbol: getCurrencySymbolLocal,
+                rules: undefined,
             });
 
             const updates = getBulkEditUpdates(writeSpy);
@@ -177,6 +178,7 @@ describe('actions/IOU/BulkEdit', () => {
                 delegateAccountID: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 getCurrencySymbol: getCurrencySymbolLocal,
+                rules: undefined,
             });
 
             expect(writeSpy).not.toHaveBeenCalled();
@@ -241,6 +243,7 @@ describe('actions/IOU/BulkEdit', () => {
                 delegateAccountID: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 getCurrencySymbol: getCurrencySymbolLocal,
+                rules: undefined,
             });
 
             const getOptimisticTotal = (callIndex: number) => {
@@ -314,6 +317,7 @@ describe('actions/IOU/BulkEdit', () => {
                 delegateAccountID: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 getCurrencySymbol: getCurrencySymbolLocal,
+                rules: undefined,
             });
 
             const updates = getBulkEditUpdates(writeSpy);
@@ -391,6 +395,7 @@ describe('actions/IOU/BulkEdit', () => {
                 delegateAccountID: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 getCurrencySymbol: getCurrencySymbolLocal,
+                rules: undefined,
             });
 
             const updates = getBulkEditUpdates(writeSpy);
@@ -458,6 +463,7 @@ describe('actions/IOU/BulkEdit', () => {
                 delegateAccountID: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 getCurrencySymbol: getCurrencySymbolLocal,
+                rules: undefined,
             });
 
             const updates = getBulkEditUpdates(writeSpy);
@@ -524,6 +530,7 @@ describe('actions/IOU/BulkEdit', () => {
                 delegateAccountID: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 getCurrencySymbol: getCurrencySymbolLocal,
+                rules: undefined,
             });
 
             expect(writeSpy).toHaveBeenCalled();
@@ -596,6 +603,7 @@ describe('actions/IOU/BulkEdit', () => {
                 delegateAccountID: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 getCurrencySymbol: getCurrencySymbolLocal,
+                rules: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -655,6 +663,7 @@ describe('actions/IOU/BulkEdit', () => {
                 delegateAccountID: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 getCurrencySymbol: getCurrencySymbolLocal,
+                rules: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -717,6 +726,7 @@ describe('actions/IOU/BulkEdit', () => {
                 delegateAccountID: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 getCurrencySymbol: getCurrencySymbolLocal,
+                rules: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -786,6 +796,7 @@ describe('actions/IOU/BulkEdit', () => {
                 delegateAccountID: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 getCurrencySymbol: getCurrencySymbolLocal,
+                rules: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -855,6 +866,7 @@ describe('actions/IOU/BulkEdit', () => {
                 delegateAccountID: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 getCurrencySymbol: getCurrencySymbolLocal,
+                rules: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -935,6 +947,7 @@ describe('actions/IOU/BulkEdit', () => {
                 delegateAccountID: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 getCurrencySymbol: getCurrencySymbolLocal,
+                rules: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -1003,6 +1016,7 @@ describe('actions/IOU/BulkEdit', () => {
                 delegateAccountID: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 getCurrencySymbol: getCurrencySymbolLocal,
+                rules: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -1083,6 +1097,7 @@ describe('actions/IOU/BulkEdit', () => {
                 delegateAccountID: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 getCurrencySymbol: getCurrencySymbolLocal,
+                rules: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -1178,6 +1193,7 @@ describe('actions/IOU/BulkEdit', () => {
                 delegateAccountID: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 getCurrencySymbol: getCurrencySymbolLocal,
+                rules: undefined,
             });
 
             // Each transaction keeps its OWN Indication/Phase. Only the shared parent level changed.
@@ -1265,6 +1281,7 @@ describe('actions/IOU/BulkEdit', () => {
                 delegateAccountID: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 getCurrencySymbol: getCurrencySymbolLocal,
+                rules: undefined,
             });
 
             // Parent (CostCenter) is preserved. The edited Indication level is updated. The stale PhaseP is
@@ -1356,6 +1373,7 @@ describe('actions/IOU/BulkEdit', () => {
                 delegateAccountID: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 getCurrencySymbol: getCurrencySymbolLocal,
+                rules: undefined,
             });
 
             // Each expense keeps its OWN CostCenter. Only the deselected Indication level is cleared.
@@ -1440,6 +1458,7 @@ describe('actions/IOU/BulkEdit', () => {
                 delegateAccountID: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 getCurrencySymbol: getCurrencySymbolLocal,
+                rules: undefined,
             });
 
             // The parent is preserved. The deselected level and the now-invalid Phase below it are dropped.
@@ -1499,6 +1518,7 @@ describe('actions/IOU/BulkEdit', () => {
                 delegateAccountID: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 getCurrencySymbol: getCurrencySymbolLocal,
+                rules: undefined,
             });
 
             // category/billable changes must be silently dropped for IOUs —
@@ -1567,6 +1587,7 @@ describe('actions/IOU/BulkEdit', () => {
                 delegateAccountID: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 getCurrencySymbol: getCurrencySymbolLocal,
+                rules: undefined,
             });
 
             expect(writeSpy).toHaveBeenCalled();
@@ -1658,6 +1679,7 @@ describe('actions/IOU/BulkEdit', () => {
                 delegateAccountID: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 getCurrencySymbol: getCurrencySymbolLocal,
+                rules: undefined,
             });
 
             // Then: the optimistic transaction update should use the transaction's own policy for tax resolution.
@@ -1754,6 +1776,7 @@ describe('actions/IOU/BulkEdit', () => {
                 delegateAccountID: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 getCurrencySymbol: getCurrencySymbolLocal,
+                rules: undefined,
             });
 
             // Then: buildOptimisticModifiedExpenseReportAction should receive the transaction's own policy,
@@ -1827,6 +1850,7 @@ describe('actions/IOU/BulkEdit', () => {
                 delegateAccountID: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 getCurrencySymbol: getCurrencySymbolLocal,
+                rules: undefined,
             });
 
             const updates = getBulkEditUpdates(writeSpy);
@@ -1900,6 +1924,7 @@ describe('actions/IOU/BulkEdit', () => {
                 delegateAccountID: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 getCurrencySymbol: getCurrencySymbolLocal,
+                rules: undefined,
             });
 
             const updates = getBulkEditUpdates(writeSpy);
@@ -1966,6 +1991,7 @@ describe('actions/IOU/BulkEdit', () => {
                 delegateAccountID: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 getCurrencySymbol: getCurrencySymbolLocal,
+                rules: undefined,
             });
 
             const updates = getBulkEditUpdates(writeSpy);
@@ -2026,6 +2052,7 @@ describe('actions/IOU/BulkEdit', () => {
                 delegateAccountID: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 getCurrencySymbol: getCurrencySymbolLocal,
+                rules: undefined,
             });
 
             expect(writeSpy).toHaveBeenCalled();
@@ -2134,6 +2161,7 @@ describe('actions/IOU/BulkEdit', () => {
                 delegateAccountID: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 getCurrencySymbol: getCurrencySymbolLocal,
+                rules: undefined,
             });
 
             expect(writeSpy).toHaveBeenCalled();
@@ -2230,6 +2258,7 @@ describe('actions/IOU/BulkEdit', () => {
                 personalDetailsList: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 getCurrencySymbol: getCurrencySymbolLocal,
+                rules: undefined,
             });
 
             const iouReportNames = getOptimisticReportNamesFromWriteSpy(writeSpy, iouReportID);
@@ -2316,6 +2345,7 @@ describe('actions/IOU/BulkEdit', () => {
                 personalDetailsList: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 getCurrencySymbol: getCurrencySymbolLocal,
+                rules: undefined,
             });
 
             const iouReportNames = getOptimisticReportNamesFromWriteSpy(writeSpy, iouReportID);
@@ -2417,6 +2447,7 @@ describe('actions/IOU/BulkEdit', () => {
                 personalDetailsList: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 getCurrencySymbol: getCurrencySymbolLocal,
+                rules: undefined,
             });
 
             const iouReportNames = getOptimisticReportNamesFromWriteSpy(writeSpy, iouReportID);
@@ -2502,6 +2533,7 @@ describe('actions/IOU/BulkEdit', () => {
                 personalDetailsList: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 getCurrencySymbol: getCurrencySymbolLocal,
+                rules: undefined,
             });
 
             const iouReportNames = getOptimisticReportNamesFromWriteSpy(writeSpy, iouReportID);
@@ -2580,6 +2612,7 @@ describe('actions/IOU/BulkEdit', () => {
                 personalDetailsList: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 getCurrencySymbol: getCurrencySymbolLocal,
+                rules: undefined,
             });
 
             const iouReportNames = getOptimisticReportNamesFromWriteSpy(writeSpy, iouReportID);
@@ -2660,6 +2693,7 @@ describe('actions/IOU/BulkEdit', () => {
                 personalDetailsList: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 getCurrencySymbol: getCurrencySymbolLocal,
+                rules: undefined,
             });
 
             const iouReportNames = getOptimisticReportNamesFromWriteSpy(writeSpy, iouReportID);
@@ -2742,6 +2776,7 @@ describe('actions/IOU/BulkEdit', () => {
                 allPolicies: {
                     [`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`]: policy,
                 },
+                rules: undefined,
             });
 
             expect(writeSpy).toHaveBeenCalledTimes(1);
@@ -2832,6 +2867,7 @@ describe('actions/IOU/BulkEdit', () => {
                 allPolicies: {
                     [`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`]: policy,
                 },
+                rules: undefined,
             });
 
             expect(writeSpy).toHaveBeenCalledTimes(1);
@@ -2914,6 +2950,7 @@ describe('actions/IOU/BulkEdit', () => {
                 allPolicies: {
                     [`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`]: policy,
                 },
+                rules: undefined,
             });
 
             expect(writeSpy).toHaveBeenCalledTimes(2);

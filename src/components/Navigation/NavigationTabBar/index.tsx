@@ -8,6 +8,7 @@ import {PressableWithFeedback} from '@components/Pressable';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -29,6 +30,7 @@ import React from 'react';
 import {View} from 'react-native';
 
 import InboxTabButton from './InboxTabButton';
+import InsightsTabButton from './InsightsTabButton';
 import NAVIGATION_TABS from './NAVIGATION_TABS';
 import SearchTabButton from './SearchTabButton';
 import TabBarItem from './TabBarItem';
@@ -43,6 +45,8 @@ function NavigationTabBar({selectedTab, shouldShowFloatingButtons = true}: Navig
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [isDebugModeEnabled] = useOnyx(ONYXKEYS.IS_DEBUG_MODE_ENABLED);
+    const {isBetaEnabled} = usePermissions();
+    const isInsightsTabVisible = isBetaEnabled(CONST.BETAS.INSIGHTS_PAGE);
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['ExpensifyAppIcon', 'Home']);
 
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -119,6 +123,12 @@ function NavigationTabBar({selectedTab, shouldShowFloatingButtons = true}: Navig
                                     selectedTab={selectedTab}
                                     isWideLayout
                                 />
+                                {isInsightsTabVisible && (
+                                    <InsightsTabButton
+                                        selectedTab={selectedTab}
+                                        isWideLayout
+                                    />
+                                )}
                                 <WorkspacesTabButton
                                     selectedTab={selectedTab}
                                     isWideLayout
@@ -169,6 +179,12 @@ function NavigationTabBar({selectedTab, shouldShowFloatingButtons = true}: Navig
                     selectedTab={selectedTab}
                     isWideLayout={false}
                 />
+                {isInsightsTabVisible && (
+                    <InsightsTabButton
+                        selectedTab={selectedTab}
+                        isWideLayout={false}
+                    />
+                )}
                 <WorkspacesTabButton
                     selectedTab={selectedTab}
                     isWideLayout={false}
