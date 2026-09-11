@@ -20,8 +20,6 @@ const LABEL_WIDTH = 120;
 const COUNT_WIDTH = 70;
 const AMOUNT_WIDTH = 64;
 const SHARE_WIDTH = 84;
-/** `ItemListSkeletonView` adds `mr5` to every row, so that much of the container is not drawable. */
-const ROW_RIGHT_MARGIN = 20;
 
 type InsightsDataTableSkeletonProps = {
     /** How many rows to draw. Without it the skeleton measures its own height, which is zero here. */
@@ -34,7 +32,7 @@ type InsightsDataTableSkeletonProps = {
 /** Placeholder rows shown in place of `InsightsDataTable` while the chart's data loads. */
 function InsightsDataTableSkeleton({fixedNumItems, shouldShowAvatar}: InsightsDataTableSkeletonProps) {
     const styles = useThemeStyles();
-    const {onLayout, containerWidth} = useContainerWidth(ROW_RIGHT_MARGIN);
+    const {onLayout, containerWidth} = useContainerWidth();
 
     const textStartX = shouldShowAvatar ? AVATAR_SIZE + AVATAR_GAP : 0;
     // Right-aligned bars, the way the row's amount and share are.
@@ -50,6 +48,8 @@ function InsightsDataTableSkeleton({fixedNumItems, shouldShowAvatar}: InsightsDa
                 shouldAnimate
                 fixedNumItems={fixedNumItems}
                 itemViewHeight={ROW_HEIGHT}
+                itemViewStyle={styles.mr0}
+                itemContainerStyle={styles.borderBottom}
                 renderSkeletonItem={() => (
                     <>
                         {shouldShowAvatar && (
