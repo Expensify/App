@@ -250,9 +250,7 @@ function CreateFieldsPage({policy, policyID, isInvoiceField, listValuesRoute, ge
                                 <MenuItemField
                                     name={translate('common.initialValue')}
                                     value={translate('common.currentDate')}
-                                >
-                                    <MenuItem.RightLabel>{translate('common.required')}</MenuItem.RightLabel>
-                                </MenuItemField>
+                                />
                             )}
 
                             {inputValues[INPUT_IDS.TYPE] === CONST.REPORT_FIELD_TYPES.LIST && availableListValuesLength > 0 && (
