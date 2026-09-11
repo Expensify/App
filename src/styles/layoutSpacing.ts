@@ -6,6 +6,7 @@ type LayoutSpacingToken = {
 const layoutSpacing = {
     cardPadding: {narrow: 24, wide: 32},
     pageGutter: {narrow: 12, wide: 20},
+    cardGap: {narrow: 12, wide: 20},
 } as const satisfies Record<string, LayoutSpacingToken>;
 
 type LayoutSpacingName = keyof typeof layoutSpacing;
