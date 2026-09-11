@@ -1,5 +1,5 @@
 import type Transaction from '@src/types/onyx/Transaction';
-import type {ReadonlyOnyx} from '@src/types/onyx/Transaction';
+import type {ReadonlyOnyx, ReadonlyOnyxCollection} from '@src/types/onyx/Transaction';
 
 import type {OnyxCollection} from 'react-native-onyx';
 
@@ -11,7 +11,7 @@ const validTransactionDraftsSelector = <TDraft extends ReadonlyOnyx<Transaction>
         return acc;
     }, {});
 
-const validTransactionDraftIDsSelector = (drafts: ReadonlyOnyx<OnyxCollection<Transaction>>): string[] =>
+const validTransactionDraftIDsSelector = (drafts: ReadonlyOnyxCollection<Transaction>): string[] =>
     Object.values(drafts ?? {}).reduce<string[]>((acc, draft) => {
         if (draft) {
             acc.push(draft.transactionID);
