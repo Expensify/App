@@ -1425,10 +1425,10 @@ function isCardConnectionBroken(card: Card): boolean {
 
 /**
  * Whether a card's connection has a problem worth reflecting in its status. This is broader than
- * `isCardConnectionBroken`, which ignores some scrape statuses so we do not prompt about them (e.g. 434). The server
- * still records a connection error for those, so keying the status off the narrower check leaves the card reading
- * Active with that error shown right underneath it. Requiring an error as well as a failed scrape keeps this to cards
- * that are visibly reporting a problem.
+ * `isCardConnectionBroken`, which ignores some scrape statuses so we do not prompt about them. One of those, 434,
+ * still needs the user to act because the bank changed the account number, so a card reporting it would otherwise
+ * read as Active. This keys off the scrape result rather than the card's errors, which the user can dismiss and
+ * which would then leave a still-broken card reading as Active.
  *
  * @param card the card to check
  * @returns true if the card's connection has a problem to show, false otherwise
@@ -1440,7 +1440,7 @@ function hasCardConnectionIssue(card: Card): boolean {
     if (isCardConnectionBroken(card)) {
         return true;
     }
-    return !!card.lastScrapeResult && card.lastScrapeResult !== CONST.JSON_CODE.SUCCESS && !isEmptyObject(card.errors);
+    return !!card.lastScrapeResult && CONST.COMPANY_CARDS.ACTIONABLE_IGNORED_SCRAPE_STATUSES.includes(card.lastScrapeResult);
 }
 
 /**

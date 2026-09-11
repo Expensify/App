@@ -4444,15 +4444,22 @@ describe('CardUtils', () => {
             expect(hasCardConnectionIssue(card)).toBe(true);
         });
 
-        // 434 is an ignored status so isCardConnectionBroken is false for it, but the server still records the error.
-        it('returns true for an ignored scrape status that carries a server error', () => {
+        // 434 is an ignored status, so isCardConnectionBroken is false for it even though the bank changed the account
+        // number and the user has to act.
+        it('returns true for an actionable ignored scrape status', () => {
             const card: Card = {...createRandomCard(1), lastScrapeResult: 434, errors: {connectionError: 'The account number appears to have changed at the bank.'}};
             expect(isCardConnectionBroken(card)).toBe(false);
             expect(hasCardConnectionIssue(card)).toBe(true);
         });
 
-        it('returns false for an ignored scrape status with no error to show', () => {
+        // Dismissing the row error clears card.errors, so keying off it would flip a still-broken card to Active.
+        it('stays true for an actionable ignored scrape status after its errors are dismissed', () => {
             const card: Card = {...createRandomCard(1), lastScrapeResult: 434, errors: undefined};
+            expect(hasCardConnectionIssue(card)).toBe(true);
+        });
+
+        it('returns false for an ignored scrape status that needs no action', () => {
+            const card: Card = {...createRandomCard(1), lastScrapeResult: 530, errors: {someError: 'Transient server error'}};
             expect(hasCardConnectionIssue(card)).toBe(false);
         });
 
