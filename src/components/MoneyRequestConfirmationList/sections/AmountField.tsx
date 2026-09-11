@@ -65,7 +65,7 @@ function AmountField({
     setFormError,
     isParticipantPickerVisible = false,
 }: AmountFieldProps) {
-    const {isEditingSplitBill, isReadOnly, didConfirm, transactionID, action, iouType, reportID, reportActionID, onAmountDigitsChange, onNegativeChange} = useConfirmationFields();
+    const {isEditingSplitBill, isReadOnly, didConfirm, transactionID, action, iouType, reportID, reportActionID, onSignDirtyChange} = useConfirmationFields();
     const shouldAutoFocusOnMount = !canUseTouchScreen();
     const styles = useThemeStyles();
     const {translate, preferredLocale} = useLocalize();
@@ -75,7 +75,7 @@ function AmountField({
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const amountInputRef = useRef<BaseTextInputRef | null>(null);
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-    const hasEnteredValidAmountRef = useRef(false);
+    const baselineIsNegativeRef = useRef(amount < 0);
 
     const transactionSlice = useTransactionSelector(transactionID, amountSliceSelector);
 
@@ -250,22 +250,13 @@ function AmountField({
 
     const handleAmountChange = (newAmount: string) => {
         const isNegative = newAmount.startsWith('-');
-        const digits = newAmount.replace('-', '').trim();
         const isInputEmpty = newAmount.trim() === '';
         const parsedAmount = getBackendAmountFromInput(newAmount);
-        const shouldResetNegativeState = isInputEmpty || (parsedAmount === null && hasEnteredValidAmountRef.current);
+        const shouldResetSignDirty = isInputEmpty || (parsedAmount === null && transactionSlice?.isAmountSet === true);
 
-        // Reset the parent-owned sign state in the same input event that clears the amount.
         // A standalone minus sign is dirty, but deleting a previously entered negative amount back to
         // that sign clears the field and must reset the discard-confirmation state.
-        onNegativeChange?.(shouldResetNegativeState ? false : isNegative);
-        onAmountDigitsChange?.(digits);
-
-        if (parsedAmount === null && shouldResetNegativeState) {
-            hasEnteredValidAmountRef.current = false;
-        } else if (parsedAmount !== null) {
-            hasEnteredValidAmountRef.current = true;
-        }
+        onSignDirtyChange?.(!shouldResetSignDirty && isNegative !== baselineIsNegativeRef.current);
 
         if (!transactionID) {
             return;

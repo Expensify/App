@@ -90,11 +90,8 @@ type MoneyRequestConfirmationListProps = {
     /** Payee of the expense with login */
     payeePersonalDetails?: OnyxEntry<OnyxTypes.PersonalDetails> | null;
 
-    /** Reports changes to the numeric digits of the inline amount field (new manual expense flow). */
-    onAmountDigitsChange?: (digits: string) => void;
-
-    /** Reports whether the inline amount is negative (new manual expense flow). */
-    onNegativeChange?: (isNegative: boolean) => void;
+    /** Reports whether the inline amount sign differs from its initial value (new manual expense flow). */
+    onSignDirtyChange?: (isSignDirty: boolean) => void;
 
     /** Should the list be read only, and not editable? */
     isReadOnly?: boolean;
@@ -198,8 +195,7 @@ function MoneyRequestConfirmationList({
     showRemoveExpenseConfirmModal,
     isTimeRequest = false,
     shouldHideToSection = false,
-    onAmountDigitsChange,
-    onNegativeChange,
+    onSignDirtyChange,
 }: MoneyRequestConfirmationListProps) {
     const policyCategories = usePolicyCategoriesForConfirmation(policyID);
     const {policyTags, policyTagLists} = usePolicyTagsForConfirmation(policyID);
@@ -548,8 +544,7 @@ function MoneyRequestConfirmationList({
             scrollFocusedInputIntoView={scrollFocusedInputIntoView}
             onSubmitForm={confirm}
             onTaxAmountEmptyChange={setIsTaxAmountEmpty}
-            onAmountDigitsChange={onAmountDigitsChange}
-            onNegativeChange={onNegativeChange}
+            onSignDirtyChange={onSignDirtyChange}
         >
             <View style={isCompactMode ? styles.flex1 : undefined}>
                 <MoneyRequestConfirmationListFooter

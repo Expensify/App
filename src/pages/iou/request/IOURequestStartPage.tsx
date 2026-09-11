@@ -211,13 +211,10 @@ function IOURequestStartPage({
     // mounts for PAY - the embedded confirmation carries the amount inline, so there is no separate step left to skip.
     const shouldEmbedConfirmation = shouldUseTab || iouType === CONST.IOU.TYPE.PAY;
 
-    const [initialIsNegative, setInitialIsNegative] = useState(false);
-    const [isAmountNegative, setIsAmountNegative] = useState(false);
-    const [typedAmount, setTypedAmount] = useState<string | undefined>(undefined);
+    const [isSignDirty, setIsSignDirty] = useState(false);
 
-    const hasSignChanged = isAmountNegative !== initialIsNegative;
-    const hasAmountChanged = typedAmount !== undefined ? typedAmount !== '' : transaction?.isAmountSet === true;
-    const isEmbeddedDirty = shouldEmbedConfirmation && (hasSignChanged || hasAmountChanged);
+    const hasAmountChanged = transaction?.isAmountSet === true;
+    const isEmbeddedDirty = shouldEmbedConfirmation && (isSignDirty || hasAmountChanged);
 
     const {suppressDiscardPrompt} = useDiscardChangesConfirmation({
         getHasUnsavedChanges: () => isEmbeddedDirty,
@@ -287,8 +284,7 @@ function IOURequestStartPage({
                 route={route}
                 navigation={navigation}
                 shouldHideHeader
-                onAmountDigitsChange={setTypedAmount}
-                onNegativeChange={setIsAmountNegative}
+                onSignDirtyChange={setIsSignDirty}
                 suppressDiscardPrompt={suppressDiscardPrompt}
             />
         );
@@ -327,9 +323,7 @@ function IOURequestStartPage({
                                 id={CONST.TAB.IOU_REQUEST_TYPE}
                                 defaultSelectedTab={defaultSelectedTab}
                                 onTabSelected={(newIOUType) => {
-                                    setIsAmountNegative(false);
-                                    setInitialIsNegative(false);
-                                    setTypedAmount(undefined);
+                                    setIsSignDirty(false);
                                     resetIOUTypeIfChanged(newIOUType);
                                 }}
                                 onTabSelect={onTabSelectFocusHandler}

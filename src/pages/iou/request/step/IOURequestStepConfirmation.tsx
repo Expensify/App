@@ -127,11 +127,8 @@ type IOURequestStepConfirmationProps = WithWritableReportOrNotFoundProps<IOURequ
     WithFullTransactionOrNotFoundProps<IOURequestStepConfirmationIncomingRouteName> & {
         shouldHideHeader?: boolean;
 
-        /** Reports changes to the numeric digits of the inline amount field (new manual expense flow) */
-        onAmountDigitsChange?: (digits: string) => void;
-
-        /** Reports whether the inline amount is negative (new manual expense flow) */
-        onNegativeChange?: (isNegative: boolean) => void;
+        /** Reports whether the inline amount sign differs from its initial value (new manual expense flow) */
+        onSignDirtyChange?: (isSignDirty: boolean) => void;
 
         /** Suppresses the parent discard prompt when the embedded confirmation starts a successful submit */
         suppressDiscardPrompt?: () => void;
@@ -145,8 +142,7 @@ function IOURequestStepConfirmationContent({
     isLoadingTransaction,
     shouldHideHeader = false,
     navigation,
-    onAmountDigitsChange,
-    onNegativeChange,
+    onSignDirtyChange,
     suppressDiscardPrompt,
 }: IOURequestStepConfirmationProps) {
     const {getCurrencyDecimals, convertToDisplayString} = useCurrencyListActions();
@@ -1169,8 +1165,7 @@ function IOURequestStepConfirmationContent({
                                     isReceiptEditable
                                     isTimeRequest={isTimeRequest}
                                     shouldHideToSection={shouldHideToSection}
-                                    onAmountDigitsChange={onAmountDigitsChange}
-                                    onNegativeChange={onNegativeChange}
+                                    onSignDirtyChange={onSignDirtyChange}
                                 />
                             )}
                         </SubmitExpenseOrchestrator>
