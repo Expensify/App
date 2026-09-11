@@ -195,6 +195,7 @@ describe('MoneyRequestReportView', () => {
         renderMoneyRequestReportView(jest.fn());
 
         expect(screen.getByTestId('ReportActionsSkeletonCover')).toBeTruthy();
+        expect(mockReportActionsSkeletonView.mock.calls.at(-1)?.at(0)).toEqual(expect.objectContaining({shouldAnimate: true}));
         expect(mockReportActionsListBody).not.toHaveBeenCalled();
         expect(mockMoneyRequestReportActionsList).not.toHaveBeenCalled();
     });
@@ -216,6 +217,7 @@ describe('MoneyRequestReportView', () => {
         renderMoneyRequestReportView(jest.fn());
 
         expect(screen.getByTestId('ReportActionsSkeletonCover')).toBeTruthy();
+        expect(mockReportActionsSkeletonView.mock.calls.at(-1)?.at(0)).toEqual(expect.objectContaining({shouldAnimate: true}));
         expect(mockReportActionsListBody).not.toHaveBeenCalled();
         expect(mockMoneyRequestReportActionsList).not.toHaveBeenCalled();
     });

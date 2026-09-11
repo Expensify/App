@@ -7,13 +7,30 @@ import {View} from 'react-native';
 
 import ReportActionsSkeletonView from './ReportActionsSkeletonView';
 
-type ReportActionsSkeletonCoverProps = {
+type ReportActionsSkeletonContainerProps = {
     /** The skeleton content to place at the bottom of the report viewport */
-    children?: ReactNode;
+    children: ReactNode;
 };
 
-/** Fills the report-actions viewport with a consistently positioned loading skeleton. */
-function ReportActionsSkeletonCover({children}: ReportActionsSkeletonCoverProps) {
+/** Fills the report-actions viewport with a consistently positioned static loading skeleton. */
+function ReportActionsSkeletonCover() {
+    return (
+        <ReportActionsSkeletonContainer>
+            <ReportActionsSkeletonView shouldAnimate={false} />
+        </ReportActionsSkeletonContainer>
+    );
+}
+
+/** Fills the report-actions viewport with a consistently positioned animated loading skeleton. */
+function ReportActionsAnimatedSkeletonCover() {
+    return (
+        <ReportActionsSkeletonContainer>
+            <ReportActionsSkeletonView shouldAnimate />
+        </ReportActionsSkeletonContainer>
+    );
+}
+
+function ReportActionsSkeletonContainer({children}: ReportActionsSkeletonContainerProps) {
     const styles = useThemeStyles();
 
     return (
@@ -22,9 +39,10 @@ function ReportActionsSkeletonCover({children}: ReportActionsSkeletonCoverProps)
             testID="ReportActionsSkeletonCover"
             style={[styles.flex1, styles.appBG, styles.overflowHidden, styles.justifyContentEnd, styles.pb4]}
         >
-            {children ?? <ReportActionsSkeletonView />}
+            {children}
         </View>
     );
 }
 
+export {ReportActionsAnimatedSkeletonCover};
 export default ReportActionsSkeletonCover;
