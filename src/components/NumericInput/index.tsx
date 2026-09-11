@@ -1,3 +1,13 @@
+import NumericCurrencyButton from '@components/NumericButtons/NumericCurrencyButton';
+
+import NumericInputComponent from './NumericInput';
+import NumericError from './primitives/NumericError';
+import NumericInputContainer from './primitives/NumericInputContainer';
+import NumericMinusSign from './primitives/NumericMinusSign';
+import NumericSymbol from './primitives/NumericSymbol';
+import NumericSymbolButton from './primitives/NumericSymbolButton';
+import NumericTextInput from './primitives/NumericTextInput';
+
 /**
  * NumericInput is a composable numeric editing experience for symbol and number-pad interactions.
  *
@@ -28,15 +38,11 @@
  * primitive because number-pad layouts position it differently. A composition that needs shared dynamic sizing can
  * read `useNumericDynamicFontSize` once and pass the resulting style to its rendered primitives.
  */
-import NumericInputComponent from './NumericInput';
-import NumericError from './primitives/NumericError';
-import NumericInputContainer from './primitives/NumericInputContainer';
-import NumericMinusSign from './primitives/NumericMinusSign';
-import NumericSymbol from './primitives/NumericSymbol';
-import NumericSymbolButton from './primitives/NumericSymbolButton';
-import NumericTextInput from './primitives/NumericTextInput';
 
 const NumericInput = Object.assign(NumericInputComponent, {
+    /** Opens the currency selector. */
+    CurrencyButton: NumericCurrencyButton,
+
     /** Renders the number itself, displaying and editing the magnitude of the canonical value. */
     TextInput: NumericTextInput,
 
