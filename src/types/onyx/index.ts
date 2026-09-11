@@ -147,7 +147,6 @@ import type PrivatePromoDiscount from './PrivatePromoDiscount';
 import type PrivateSubscription from './PrivateSubscription';
 import type PurchaseList from './PurchaseList';
 import type QuickAction from './QuickAction';
-import type ReadonlyOnyx from './ReadonlyOnyx';
 import type {ReadonlyOnyxCollection, ReadonlyOnyxEntry, ReadonlyOnyxInputOrEntry} from './ReadonlyOnyx';
 import type RecentlyUsedCategories from './RecentlyUsedCategories';
 import type RecentlyUsedReportFields from './RecentlyUsedReportFields';
@@ -297,7 +296,6 @@ export type {
     Modal,
     Network,
     OnyxInputOrEntry,
-    ReadonlyOnyx,
     ReadonlyOnyxEntry,
     ReadonlyOnyxInputOrEntry,
     ReadonlyOnyxCollection,

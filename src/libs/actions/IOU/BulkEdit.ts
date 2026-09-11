@@ -46,7 +46,7 @@ import type {SearchResultDataType} from '@src/types/onyx/SearchResults';
 import type {TransactionChanges} from '@src/types/onyx/Transaction';
 
 import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
+import type {ReadonlyDeep, ValueOf} from 'type-fest';
 
 import {deepEqual} from 'fast-equals';
 // lodashUnionBy de-dupes recent attendees by email/displayName in one pass; no lodash-free equivalent is used here
@@ -58,7 +58,7 @@ import {getRecentAttendees} from '.';
 import {getUpdatedMoneyRequestReportData} from './MoneyRequestBuilder';
 
 type SnapshotDataDraft = {
-    -readonly [TKey in keyof NullishDeep<SearchResultDataType>]: OnyxTypes.ReadonlyOnyx<NullishDeep<SearchResultDataType>[TKey]>;
+    -readonly [TKey in keyof NullishDeep<SearchResultDataType>]: ReadonlyDeep<NullishDeep<SearchResultDataType>[TKey]>;
 };
 
 type BulkEditWriteOnyxData = {

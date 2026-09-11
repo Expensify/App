@@ -4,24 +4,18 @@ import type {ReadonlyDeep} from 'type-fest';
 import type OnyxInputOrEntry from './OnyxInputOrEntry';
 
 /**
- * A deeply-immutable view of an Onyx value. `Onyx.get` hands back the cached object itself, not a copy.
+ * A readonly `OnyxEntry`. `Onyx.get` hands back the cached object itself, not a copy.
  */
-type ReadonlyOnyx<TOnyxValue> = ReadonlyDeep<TOnyxValue>;
-
-/**
- * A readonly `OnyxEntry`.
- */
-type ReadonlyOnyxEntry<TOnyxValue> = ReadonlyOnyx<OnyxEntry<TOnyxValue>>;
+type ReadonlyOnyxEntry<TOnyxValue> = ReadonlyDeep<OnyxEntry<TOnyxValue>>;
 
 /**
  * A readonly `OnyxInputOrEntry`.
  */
-type ReadonlyOnyxInputOrEntry<TOnyxValue> = ReadonlyOnyx<OnyxInputOrEntry<TOnyxValue>>;
+type ReadonlyOnyxInputOrEntry<TOnyxValue> = ReadonlyDeep<OnyxInputOrEntry<TOnyxValue>>;
 
 /**
  * A readonly `OnyxCollection`.
  */
-type ReadonlyOnyxCollection<TOnyxValue> = ReadonlyOnyx<OnyxCollection<TOnyxValue>>;
+type ReadonlyOnyxCollection<TOnyxValue> = ReadonlyDeep<OnyxCollection<TOnyxValue>>;
 
-export default ReadonlyOnyx;
 export type {ReadonlyOnyxCollection, ReadonlyOnyxEntry, ReadonlyOnyxInputOrEntry};
