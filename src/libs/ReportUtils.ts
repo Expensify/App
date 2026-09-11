@@ -4526,8 +4526,6 @@ function getReasonAndReportActionThatRequiresAttention(
         };
     }
 
-    // Same reasoning as resolvePolicy below: prefer the report metadata collection the caller already holds
-    // (e.g. reportAttributes.ts's own OnyxDerived dependency) over the module cache filled by our own Onyx.connect.
     const optionReportMetadata = reportMetadataParam ?? allReportMetadata?.[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${optionOrReport.reportID}`];
     // Prefer the policies collection callers already have on hand (e.g. reportAttributes.ts's own OnyxDerived
     // dependency) over the deprecated allPolicies module cache, which is populated by its own independently-timed
