@@ -23,7 +23,6 @@ type AccountAvatarWithCardFeedProps = {
     /** Border color for the subscript card feed icon container */
     borderColor?: ColorValue;
 
-    /** Size of the avatar */
     size?: ValueOf<typeof CONST.AVATAR_SIZE>;
 
     /** Display name used as a fallback for the avatar tooltip */
