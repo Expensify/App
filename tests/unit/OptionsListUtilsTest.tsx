@@ -2565,7 +2565,6 @@ describe('OptionsListUtils', () => {
             const hydrated = hydrateContactOption(shell);
             const withConcierge = createOption({
                 dateFnsLocale: undefined,
-                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 convertToDisplayString,
                 accountIDs: [PARITY_ACCOUNT_ID],
                 personalDetails: PARITY_PERSONAL_DETAILS,
@@ -6952,7 +6951,6 @@ describe('OptionsListUtils', () => {
 
             const result = createOption({
                 dateFnsLocale: undefined,
-                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 convertToDisplayString,
                 conciergeReportID: undefined,
                 accountIDs: [1, 2],
@@ -7028,7 +7026,6 @@ describe('OptionsListUtils', () => {
             // Should not throw when reports is undefined
             const result = createOption({
                 dateFnsLocale: undefined,
-                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 convertToDisplayString,
                 conciergeReportID: undefined,
                 accountIDs: [1, 2],
@@ -10087,7 +10084,6 @@ describe('OptionsListUtils', () => {
             // When we call createOption with the linked chat report
             const result = createOption({
                 dateFnsLocale: undefined,
-                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 convertToDisplayString,
                 conciergeReportID: undefined,
                 accountIDs: [1, 2],
