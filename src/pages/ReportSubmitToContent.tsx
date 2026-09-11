@@ -99,16 +99,17 @@ function ReportSubmitToContent({
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const {isOffline} = useNetwork();
     const {currentSearchQueryJSON, currentSearchKey} = useSearchQueryContext();
     const {currentSearchResults} = useSearchResultsContext();
-    const shouldCalculateTotals = useSearchShouldCalculateTotals(currentSearchKey, currentSearchQueryJSON?.hash, true);
+    const shouldCalculateTotals = useSearchShouldCalculateTotals(currentSearchKey, true);
     const lazyIllustrations = useMemoizedLazyIllustrations(['PaperAirplane']);
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const hasViolations = hasViolationsReportUtils(report?.reportID, transactionViolations, currentUserDetails.accountID, currentUserDetails.login ?? '');
 
-    const prepopulatedEmail = getSubmitToEmail(policy, report, submitterLogin);
+    const prepopulatedEmail = getSubmitToEmail(policy, report, submitterLogin, rules);
 
     const [userSelectedManagerEmail, setUserSelectedManagerEmail] = useState<string | undefined>();
     const [extraSubmitToRecipients, setExtraSubmitToRecipients] = useState<WorkspaceMemberItem[]>([]);
@@ -220,6 +221,7 @@ function ReportSubmitToContent({
             countryCode,
             selectedOptions: [],
             loginsToExclude: CONST.EXPENSIFY_EMAILS_OBJECT,
+            rules,
         });
 
         if (!inviteOption?.login) {
@@ -243,6 +245,7 @@ function ReportSubmitToContent({
         personalDetails,
         dateFnsLocale,
         convertToDisplayString,
+        rules,
         currentUserDetails.accountID,
     ]);
 
@@ -316,6 +319,7 @@ function ReportSubmitToContent({
             getCurrencyDecimals,
             expenseReport: report,
             policy,
+            rules,
             currentUserAccountIDParam: currentUserDetails.accountID,
             currentUserEmailParam: currentUserDetails.email ?? '',
             hasViolations,
@@ -376,6 +380,7 @@ function ReportSubmitToContent({
         shouldDismissRHPAfterSubmit,
         isTrackIntentUser,
         getCurrencyDecimals,
+        rules,
     ]);
 
     const onSelectMember = useCallback(

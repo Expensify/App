@@ -49,6 +49,7 @@ function useGroupChatDraftParticipantSync(
     const [draftParticipants, draftParticipantsMetadata] = useOnyx(ONYXKEYS.NEW_GROUP_CHAT_DRAFT, {
         selector: draftParticipantsSelector,
     });
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
     const restoreParticipantsFromDraft = useEffectEvent(() => {
         // Flip the ref first so the useOnyx selector disables the subscription
@@ -73,6 +74,7 @@ function useGroupChatDraftParticipantSync(
                       loginList,
                       currentUserEmail,
                       currentUserAccountID,
+                      rules,
                   });
             if (option) {
                 result.push({...option, isSelected: true});
