@@ -2475,12 +2475,160 @@ type BusinessCentralCompany = {
 };
 
 /**
+ * Value of a dimension retrieved from Business Central.
+ */
+type BusinessCentralDimensionValue = {
+    /** Code identifying the value within its dimension */
+    code: string;
+
+    /** Name of the value */
+    name: string;
+
+    /** Whether Business Central blocks the value from being posted to */
+    blocked: boolean;
+};
+
+/**
+ * Dimension retrieved from Business Central. Dimensions are imported as tags.
+ */
+type BusinessCentralDimension = {
+    /** Code identifying the dimension */
+    code: string;
+
+    /** Name of the dimension */
+    name: string;
+
+    /** Values the dimension can take */
+    values: BusinessCentralDimensionValue[];
+};
+
+/**
+ * Vendor retrieved from Business Central.
+ */
+type BusinessCentralVendor = {
+    /** Unique identifier of the vendor */
+    id: string;
+
+    /** Vendor number shown in Business Central */
+    number: string;
+
+    /** Name of the vendor */
+    name: string;
+
+    /** Email address associated with the vendor */
+    email: string;
+
+    /** Expensify identifier stored on the vendor by the Business Central extension */
+    expensifyVendorId: string;
+
+    /** When the vendor was last modified in Business Central */
+    lastModifiedDateTime: string;
+};
+
+/**
+ * Payment method retrieved from Business Central.
+ */
+type BusinessCentralPaymentMethod = {
+    /** Code identifying the payment method */
+    code: string;
+
+    /** Description of the payment method */
+    description: string;
+
+    /** Number of the balancing account the payment method posts to */
+    balAccountNumber: string;
+};
+
+/**
+ * Bank account retrieved from Business Central.
+ */
+type BusinessCentralBankAccount = {
+    /** Unique identifier of the bank account */
+    id: string;
+
+    /** Bank account number shown in Business Central */
+    number: string;
+
+    /** Name of the bank account */
+    name: string;
+};
+
+/**
+ * VAT posting setup retrieved from Business Central. VAT posting setups are imported as tax rates.
+ */
+type BusinessCentralVATPostingSetup = {
+    /** VAT business posting group the setup applies to */
+    vatBusPostingGroup: string;
+
+    /** VAT product posting group the setup applies to */
+    vatProdPostingGroup: string;
+
+    /** Identifier of the VAT rate */
+    vatIdentifier: string;
+
+    /** VAT percentage the setup applies */
+    vatPercent: number;
+};
+
+/**
  * Connection data retrieved from Business Central.
  */
 type BusinessCentralConnectionData = {
     /** Companies the connection can import from */
     companies?: BusinessCentralCompany[];
+
+    /** Dimensions of the selected company */
+    dimensions?: BusinessCentralDimension[];
+
+    /** Vendors of the selected company */
+    vendors?: BusinessCentralVendor[];
+
+    /** Payment methods of the selected company */
+    paymentMethods?: BusinessCentralPaymentMethod[];
+
+    /** Bank accounts of the selected company */
+    bankAccounts?: BusinessCentralBankAccount[];
+
+    /** VAT posting setups of the selected company */
+    vatPostingSetups?: BusinessCentralVATPostingSetup[];
 };
+
+/**
+ * Credentials identifying the Business Central environment the connection reads from.
+ * The client ID and client secret are encrypted and only stored on the server.
+ */
+type BusinessCentralCredentials = {
+    /** Entra ID tenant that hosts the environment */
+    tenantID: string;
+
+    /** Name of the Business Central environment */
+    environmentName: string;
+};
+
+/**
+ * Coding configuration for Business Central.
+ */
+type BusinessCentralCoding = {
+    /**
+     * How each dimension is imported into Expensify, keyed by dimension code.
+     * Populated once a sync has read the dimensions of the selected company.
+     */
+    fieldMappings?: Record<string, ValueOf<typeof CONST.BUSINESS_CENTRAL_MAPPING_VALUE>>;
+
+    /** Whether VAT posting setups are imported as tax rates */
+    syncTaxRates: boolean;
+
+    /** Whether items are imported */
+    syncItems: boolean;
+};
+
+/** Offline feedback key for field mapping */
+type BusinessCentralCodingFieldMappingsOfflineFeedbackKey = `${typeof CONST.BUSINESS_CENTRAL_CONFIG.FIELD_MAPPING_PREFIX}${string}`;
+
+/**
+ * Offline feedback keys for `BusinessCentralCoding`
+ */
+type BusinessCentralCodingOfflineFeedbackKeys = keyof Omit<BusinessCentralCoding, 'fieldMappings'> | BusinessCentralCodingFieldMappingsOfflineFeedbackKey;
 
 /**
  * Automatic synchronization settings for Business Central.
@@ -2495,11 +2643,20 @@ type BusinessCentralAutoSync = {
  */
 type BusinessCentralConnectionsConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
     {
+        /** Credentials identifying the connected environment */
+        credentials: BusinessCentralCredentials;
+
         /** ID of the company the workspace syncs with */
         companyID: string;
 
         /** Whether the connection has been configured */
         isConfigured: boolean;
+
+        /** Whether categories newly imported from Business Central are enabled on the workspace */
+        enableNewCategories: boolean;
+
+        /** Coding settings */
+        coding?: BusinessCentralCoding;
 
         /** Auto-sync settings */
         autoSync?: BusinessCentralAutoSync;
@@ -2510,7 +2667,7 @@ type BusinessCentralConnectionsConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Collection of form field errors  */
         errorFields?: OnyxCommon.ErrorFields;
     },
-    'companyID'
+    'companyID' | 'enableNewCategories' | BusinessCentralCodingOfflineFeedbackKeys | keyof BusinessCentralAutoSync
 >;
 
 /** Gusto connection data */
