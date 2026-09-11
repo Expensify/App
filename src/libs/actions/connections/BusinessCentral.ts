@@ -10,9 +10,7 @@ import type {OnyxUpdate} from 'react-native-onyx';
 
 import Onyx from 'react-native-onyx';
 
-type BusinessCentralCredentials = Omit<ConnectPolicyToBusinessCentralParams, 'policyID'>;
-
-function connectToBusinessCentral(policyID: string, credentials: BusinessCentralCredentials) {
+function connectToBusinessCentral(policyID: string, credentials: Omit<ConnectPolicyToBusinessCentralParams, 'policyID'>) {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
