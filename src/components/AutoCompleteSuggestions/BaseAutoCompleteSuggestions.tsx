@@ -12,7 +12,7 @@ import type {LegendListRef} from '@legendapp/list/react-native';
 import type {ReactElement} from 'react';
 
 import {LegendList} from '@legendapp/list/react-native';
-import React, {useCallback, useEffect, useRef} from 'react';
+import React, {useEffect, useRef} from 'react';
 import Animated, {Easing, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 
 import type {AutoCompleteSuggestionsPortalProps} from './AutoCompleteSuggestionsPortal';
@@ -42,31 +42,25 @@ function BaseAutoCompleteSuggestionsImpl({
     /**
      * Render a suggestion menu item component.
      */
-    const renderItem = useCallback(
-        ({item, index}: RenderSuggestionMenuItemProps<unknown>): ReactElement => (
-            <PressableWithFeedback
-                style={({hovered}) => StyleUtils.getAutoCompleteSuggestionItemStyle(highlightedSuggestionIndex, CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTION_ROW_HEIGHT, hovered, index)}
-                hoverDimmingValue={1}
-                onMouseDown={(e) => e.preventDefault()}
-                onPress={() => onSelect(index)}
-                onLongPress={() => {}}
-                accessibilityLabel={accessibilityLabelExtractor(item, index)}
-                role={CONST.ROLE.MENUITEM}
-                sentryLabel={CONST.SENTRY_LABEL.BASE_AUTO_COMPLETE_SUGGESTIONS.MENU_ITEM}
-            >
-                {renderSuggestionMenuItem(item, index)}
-            </PressableWithFeedback>
-        ),
-        [accessibilityLabelExtractor, renderSuggestionMenuItem, StyleUtils, highlightedSuggestionIndex, onSelect],
+    const renderItem = ({item, index}: RenderSuggestionMenuItemProps<unknown>): ReactElement => (
+        <PressableWithFeedback
+            style={({hovered}) => StyleUtils.getAutoCompleteSuggestionItemStyle(highlightedSuggestionIndex, CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTION_ROW_HEIGHT, hovered, index)}
+            hoverDimmingValue={1}
+            onMouseDown={(e) => e.preventDefault()}
+            onPress={() => onSelect(index)}
+            onLongPress={() => {}}
+            accessibilityLabel={accessibilityLabelExtractor(item, index)}
+            role={CONST.ROLE.MENUITEM}
+            sentryLabel={CONST.SENTRY_LABEL.BASE_AUTO_COMPLETE_SUGGESTIONS.MENU_ITEM}
+        >
+            {renderSuggestionMenuItem(item, index)}
+        </PressableWithFeedback>
     );
-
     const innerHeight = CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTION_ROW_HEIGHT * suggestions.length;
-
     const animatedStyles = useAnimatedStyle(() => ({
         opacity: fadeInOpacity.get(),
         ...StyleUtils.getAutoCompleteSuggestionContainerStyle(rowHeight.get()),
     }));
-
     useEffect(() => {
         if (measuredHeightOfSuggestionRows === prevRowHeightRef.current) {
             fadeInOpacity.set(
@@ -85,20 +79,20 @@ function BaseAutoCompleteSuggestionsImpl({
                 }),
             );
         }
-
         prevRowHeightRef.current = measuredHeightOfSuggestionRows;
     }, [suggestions.length, rowHeight, measuredHeightOfSuggestionRows, prevRowHeightRef, fadeInOpacity]);
-
     useEffect(() => {
         if (!scrollRef.current) {
             return;
         }
         // When using cursor control (moving the cursor with the space bar on the keyboard) on Android, moving the cursor too fast may cause an error.
         try {
-            scrollRef.current.scrollToIndex({index: highlightedSuggestionIndex, animated: true});
+            scrollRef.current.scrollToIndex({
+                index: highlightedSuggestionIndex,
+                animated: true,
+            });
         } catch (e) {}
     }, [highlightedSuggestionIndex]);
-
     return (
         <Animated.View
             style={[styles.autoCompleteSuggestionsContainer, animatedStyles]}
@@ -125,9 +119,7 @@ function BaseAutoCompleteSuggestionsImpl({
         </Animated.View>
     );
 }
-
 function BaseAutoCompleteSuggestions<TSuggestion>(props: ExternalProps<TSuggestion>) {
     return <BaseAutoCompleteSuggestionsImpl {...(props as ExternalProps<unknown>)} />;
 }
-
 export default BaseAutoCompleteSuggestions;

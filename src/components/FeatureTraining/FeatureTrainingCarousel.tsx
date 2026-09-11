@@ -7,7 +7,7 @@ import type {ReactElement, ReactNode} from 'react';
 import type {LayoutChangeEvent, ViewStyle} from 'react-native';
 
 import {LegendList} from '@legendapp/list/react-native';
-import React, {cloneElement, isValidElement, useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {cloneElement, isValidElement, useEffect, useRef, useState} from 'react';
 import {Platform, View} from 'react-native';
 
 import type {FeatureTrainingActionsValue, FeatureTrainingStateValue} from './context';
@@ -23,15 +23,20 @@ import Illustration from './primitives/Illustration';
 import Page from './primitives/Page';
 import PaginationDots from './primitives/PaginationDots';
 
-const CAROUSEL_VIEWABILITY_CONFIG = {itemVisiblePercentThreshold: 95};
-
-const WEB_CAROUSEL_PAGE_SNAP_STYLE: ViewStyle = Platform.OS === 'web' ? ({scrollSnapAlign: 'start', scrollSnapStop: 'always'} as ViewStyle) : {};
-
+const CAROUSEL_VIEWABILITY_CONFIG = {
+    itemVisiblePercentThreshold: 95,
+};
+const WEB_CAROUSEL_PAGE_SNAP_STYLE: ViewStyle =
+    Platform.OS === 'web'
+        ? ({
+              scrollSnapAlign: 'start',
+              scrollSnapStop: 'always',
+          } as ViewStyle)
+        : {};
 type BodyElement = ReactElement<React.ComponentProps<typeof Body>>;
 type BodyTextElement = ReactElement<React.ComponentProps<typeof BodyText>>;
 type IllustrationElement = ReactElement<IllustrationProps>;
 type PageElement = ReactElement<React.ComponentProps<typeof Page>>;
-
 function isBodyElement(child: ReactElement): child is BodyElement {
     return child.type === Body;
 }
@@ -44,13 +49,11 @@ function isIllustrationElement(child: ReactElement): child is IllustrationElemen
 function isPageElement(child: ReactElement): child is PageElement {
     return child.type === Page;
 }
-
 type SplitPage = {
     illustration: IllustrationElement | null;
     body: BodyElement | null;
     bodyText: BodyTextElement | null;
 };
-
 function splitPageChildren(pageChildren: ReactNode): SplitPage {
     let illustration: IllustrationElement | null = null;
     let body: BodyElement | null = null;
@@ -73,9 +76,12 @@ function splitPageChildren(pageChildren: ReactNode): SplitPage {
             });
         }
     });
-    return {illustration, body, bodyText};
+    return {
+        illustration,
+        body,
+        bodyText,
+    };
 }
-
 function FeatureTrainingCarousel({
     onConfirm,
     onClose,
@@ -89,13 +95,19 @@ function FeatureTrainingCarousel({
     const [carouselViewportWidth, setCarouselViewportWidth] = useState(0);
     const horizontalListRef = useRef<LegendListRef>(null);
     const lastReportedPage = useRef(0);
-
     const [contentMinHeight, setContentMinHeight] = useState<number | undefined>(undefined);
     const measuredHeightsRef = useRef<Record<number, number>>({});
-
-    const {Wrapper, wrapperProps, setContainerHeight, shouldUseScrollView: usingScrollView, isInLandscapeMode} = useScrollableWrapper({shouldUseScrollView, width});
-
-    const pages = useMemo(() => {
+    const {
+        Wrapper,
+        wrapperProps,
+        setContainerHeight,
+        shouldUseScrollView: usingScrollView,
+        isInLandscapeMode,
+    } = useScrollableWrapper({
+        shouldUseScrollView,
+        width,
+    });
+    const pages = (() => {
         const pageList: SplitPage[] = [];
         React.Children.forEach(children, (child) => {
             if (!isValidElement(child) || !isPageElement(child)) {
@@ -104,14 +116,12 @@ function FeatureTrainingCarousel({
             pageList.push(splitPageChildren(child.props.children));
         });
         return pageList;
-    }, [children]);
-
+    })();
     const onPageChangeRef = useRef(onPageChange);
     useEffect(() => {
         onPageChangeRef.current = onPageChange;
     }, [onPageChange]);
-
-    const onViewableItemsChanged = useCallback(({viewableItems}: {viewableItems: ViewToken[]}) => {
+    const onViewableItemsChanged = ({viewableItems}: {viewableItems: ViewToken[]}) => {
         const entry = viewableItems.at(0);
         if (entry?.index == null || entry.index === lastReportedPage.current) {
             return;
@@ -119,19 +129,22 @@ function FeatureTrainingCarousel({
         lastReportedPage.current = entry.index;
         setCurrentPage(entry.index);
         onPageChangeRef.current?.(entry.index);
-    }, []);
-
-    const advance = useCallback(() => {
-        horizontalListRef.current?.scrollToIndex({index: Math.min(currentPage + 1, pages.length - 1), animated: true});
-    }, [currentPage, pages.length]);
-
-    const goBack = useCallback(() => {
+    };
+    const advance = () => {
+        horizontalListRef.current?.scrollToIndex({
+            index: Math.min(currentPage + 1, pages.length - 1),
+            animated: true,
+        });
+    };
+    const goBack = () => {
         if (currentPage <= 0) {
             return;
         }
-        horizontalListRef.current?.scrollToIndex({index: Math.max(currentPage - 1, 0), animated: true});
-    }, [currentPage]);
-
+        horizontalListRef.current?.scrollToIndex({
+            index: Math.max(currentPage - 1, 0),
+            animated: true,
+        });
+    };
     const pageCountRef = useRef(pages.length);
     useEffect(() => {
         pageCountRef.current = pages.length;
@@ -144,10 +157,12 @@ function FeatureTrainingCarousel({
         if (carouselViewportWidth <= 0) {
             return;
         }
-        horizontalListRef.current?.scrollToOffset({offset: lastReportedPage.current * carouselViewportWidth, animated: false});
+        horizontalListRef.current?.scrollToOffset({
+            offset: lastReportedPage.current * carouselViewportWidth,
+            animated: false,
+        });
     }, [carouselViewportWidth]);
-
-    const recordPageHeight = useCallback((index: number, measured: number) => {
+    const recordPageHeight = (index: number, measured: number) => {
         if (measuredHeightsRef.current[index] === measured) {
             return;
         }
@@ -156,61 +171,52 @@ function FeatureTrainingCarousel({
             return;
         }
         setContentMinHeight(Math.max(...Object.values(measuredHeightsRef.current)));
-    }, []);
-
+    };
     const isLastPage = pages.length === 0 || currentPage >= pages.length - 1;
-
-    const handleConfirm = useCallback(() => {
+    const handleConfirm = () => {
         onConfirm?.(false);
-    }, [onConfirm]);
-
-    const handleClose = useCallback(() => onClose?.(), [onClose]);
-
-    const stateValue = useMemo<FeatureTrainingStateValue>(
-        () => ({
-            willShowAgain: true,
-            shouldShowLoadingImmediatelyOnPress: isLastPage ? undefined : false,
-            isCarousel: true,
-            confirmSentryLabel,
-            currentPage,
-            pageCount: pages.length,
-            isLastPage,
-            contentMinHeight,
-        }),
-        [isLastPage, confirmSentryLabel, currentPage, pages.length, contentMinHeight],
-    );
-
-    const actionsValue = useMemo<FeatureTrainingActionsValue>(
-        () => ({
-            toggleWillShowAgain: () => {},
-            handleConfirm,
-            handleClose,
-            advance,
-            goBack,
-        }),
-        [handleConfirm, handleClose, advance, goBack],
-    );
-
+    };
+    const handleClose = () => onClose?.();
+    const stateValue: FeatureTrainingStateValue = {
+        willShowAgain: true,
+        shouldShowLoadingImmediatelyOnPress: isLastPage ? undefined : false,
+        isCarousel: true,
+        confirmSentryLabel,
+        currentPage,
+        pageCount: pages.length,
+        isLastPage,
+        contentMinHeight,
+    };
+    const actionsValue: FeatureTrainingActionsValue = {
+        toggleWillShowAgain: () => {},
+        handleConfirm,
+        handleClose,
+        advance,
+        goBack,
+    };
     const currentPageBody = pages.at(currentPage)?.body ?? null;
-    const carouselExtraData = useMemo(() => ({currentPage, carouselViewportWidth}), [currentPage, carouselViewportWidth]);
-
-    const onWrapperLayout = useCallback(
-        (e: LayoutChangeEvent) => {
-            const newWidth = e.nativeEvent.layout.width;
-            if (newWidth === carouselViewportWidth || newWidth <= 0) {
-                return;
-            }
-            setCarouselViewportWidth(newWidth);
-            if (!usingScrollView) {
-                return;
-            }
-            setContainerHeight(e.nativeEvent.layout.height);
-        },
-        [carouselViewportWidth, usingScrollView, setContainerHeight],
-    );
-
-    const probeStyle = useMemo<ViewStyle>(() => ({position: 'absolute', left: 0, top: 0, width: carouselViewportWidth, opacity: 0}), [carouselViewportWidth]);
-
+    const carouselExtraData = {
+        currentPage,
+        carouselViewportWidth,
+    };
+    const onWrapperLayout = (e: LayoutChangeEvent) => {
+        const newWidth = e.nativeEvent.layout.width;
+        if (newWidth === carouselViewportWidth || newWidth <= 0) {
+            return;
+        }
+        setCarouselViewportWidth(newWidth);
+        if (!usingScrollView) {
+            return;
+        }
+        setContainerHeight(e.nativeEvent.layout.height);
+    };
+    const probeStyle: ViewStyle = {
+        position: 'absolute',
+        left: 0,
+        top: 0,
+        width: carouselViewportWidth,
+        opacity: 0,
+    };
     return (
         <FeatureTrainingStateContext.Provider value={stateValue}>
             <FeatureTrainingActionsContext.Provider value={actionsValue}>
@@ -261,8 +267,19 @@ function FeatureTrainingCarousel({
                                     onViewableItemsChanged={onViewableItemsChanged}
                                     getFixedItemSize={() => carouselViewportWidth}
                                     renderItem={({item, index}) => (
-                                        <View style={[{width: carouselViewportWidth}, WEB_CAROUSEL_PAGE_SNAP_STYLE]}>
-                                            {item.illustration == null ? null : cloneElement(item.illustration, {isFocused: index === currentPage})}
+                                        <View
+                                            style={[
+                                                {
+                                                    width: carouselViewportWidth,
+                                                },
+                                                WEB_CAROUSEL_PAGE_SNAP_STYLE,
+                                            ]}
+                                        >
+                                            {item.illustration == null
+                                                ? null
+                                                : cloneElement(item.illustration, {
+                                                      isFocused: index === currentPage,
+                                                  })}
                                         </View>
                                     )}
                                 />
@@ -277,9 +294,7 @@ function FeatureTrainingCarousel({
         </FeatureTrainingStateContext.Provider>
     );
 }
-
 FeatureTrainingCarousel.displayName = 'FeatureTraining.Carousel';
-
 type ProbePageProps = {
     index: number;
     bodyText: BodyTextElement;
@@ -291,9 +306,13 @@ type ProbePageProps = {
 // Body's horizontal margins so the probe text wraps at the same width as the visible page.
 function ProbePage({index, bodyText, onMeasure}: ProbePageProps) {
     const styles = useThemeStyles();
-    const onLayout = useCallback((event: LayoutChangeEvent) => onMeasure(index, event.nativeEvent.layout.height), [index, onMeasure]);
-
-    return <View style={styles.mh5}>{cloneElement(bodyText, {onLayout})}</View>;
+    const onLayout = (event: LayoutChangeEvent) => onMeasure(index, event.nativeEvent.layout.height);
+    return (
+        <View style={styles.mh5}>
+            {cloneElement(bodyText, {
+                onLayout,
+            })}
+        </View>
+    );
 }
-
 export default FeatureTrainingCarousel;

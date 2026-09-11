@@ -6,7 +6,7 @@ import type {LegendListRef, LegendListRenderItemProps} from '@legendapp/list/rea
 import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
 
 import {LegendList} from '@legendapp/list/react-native';
-import React, {useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
+import React, {useEffect, useImperativeHandle, useRef, useState} from 'react';
 import {View} from 'react-native';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
 import Animated, {useAnimatedStyle, useSharedValue} from 'react-native-reanimated';
@@ -20,9 +20,7 @@ import {getDragTargetIndex, reorderItems} from './utils';
 const AUTOSCROLL_EDGE_SIZE = 60;
 const AUTOSCROLL_STEP = 20;
 const ACTIVE_ITEM_Z_INDEX = 999;
-
 type SharedNumber = ReturnType<typeof useSharedValue<number>>;
-
 type DraggableRowProps = {
     activeIndex: SharedNumber;
     children: React.ReactNode;
@@ -34,37 +32,40 @@ type DraggableRowProps = {
     onLayout: (index: number, event: LayoutChangeEvent) => void;
     translationY: SharedNumber;
 };
-
 function DraggableRow({activeIndex, children, disabled, index, onDragCancel, onDragEnd, onDragUpdate, onLayout, translationY}: DraggableRowProps) {
-    const gesture = useMemo(
-        () =>
-            Gesture.Pan()
-                .enabled(!disabled)
-                .manualActivation(true)
-                .onTouchesMove((_event, stateManager) => {
-                    if (activeIndex.get() !== index) {
-                        return;
-                    }
-                    stateManager.activate();
-                })
-                .onUpdate((event) => scheduleOnRN(onDragUpdate, index, event.translationY))
-                .onEnd((event, success) => {
-                    if (!success) {
-                        return;
-                    }
-                    scheduleOnRN(onDragEnd, index, event.translationY);
-                })
-                .onFinalize(() => scheduleOnRN(onDragCancel, index))
-                .withTestId(`draggable-list-row-${index}`),
-        [activeIndex, disabled, index, onDragCancel, onDragEnd, onDragUpdate],
-    );
+    const gesture = Gesture.Pan()
+        .enabled(!disabled)
+        .manualActivation(true)
+        .onTouchesMove((_event, stateManager) => {
+            if (activeIndex.get() !== index) {
+                return;
+            }
+            stateManager.activate();
+        })
+        .onUpdate((event) => scheduleOnRN(onDragUpdate, index, event.translationY))
+        .onEnd((event, success) => {
+            if (!success) {
+                return;
+            }
+            scheduleOnRN(onDragEnd, index, event.translationY);
+        })
+        .onFinalize(() => scheduleOnRN(onDragCancel, index))
+        .withTestId(`draggable-list-row-${index}`);
     const animatedStyle = useAnimatedStyle(() => {
         if (activeIndex.get() !== index) {
-            return {zIndex: 0};
+            return {
+                zIndex: 0,
+            };
         }
-        return {transform: [{translateY: translationY.get()}], zIndex: 1};
+        return {
+            transform: [
+                {
+                    translateY: translationY.get(),
+                },
+            ],
+            zIndex: 1,
+        };
     });
-
     return (
         <GestureDetector gesture={gesture}>
             <Animated.View
@@ -77,7 +78,6 @@ function DraggableRow({activeIndex, children, disabled, index, onDragCancel, onD
         </GestureDetector>
     );
 }
-
 function DraggableList<T>({
     ref,
     data,
@@ -87,7 +87,9 @@ function DraggableList<T>({
     isItemDragDisabled,
     ListFooterComponent,
     disableScroll = false,
-}: DraggableListProps<T> & {ref?: React.Ref<DraggableListRef>}) {
+}: DraggableListProps<T> & {
+    ref?: React.Ref<DraggableListRef>;
+}) {
     const styles = useThemeStyles();
     const listRef = useRef<LegendListRef>(null);
     const measuredItemSizesRef = useRef<Array<number | undefined>>([]);
@@ -102,18 +104,19 @@ function DraggableList<T>({
     const [activeItemIndex, setActiveItemIndex] = useState<number | null>(null);
     const activeIndex = useSharedValue(-1);
     const translationY = useSharedValue(0);
-    const listExtraData = {activeItemIndex, isItemDragDisabled, renderItem};
-
+    const listExtraData = {
+        activeItemIndex,
+        isItemDragDisabled,
+        renderItem,
+    };
     useImperativeHandle(ref, () => ({
         scrollToEnd: (options) => {
             listRef.current?.scrollToEnd(options);
         },
     }));
-
     useEffect(() => {
         measuredItemSizesRef.current = [];
     }, [data]);
-
     useEffect(
         () => () => {
             if (autoscrollFrameRef.current === null) {
@@ -123,7 +126,6 @@ function DraggableList<T>({
         },
         [],
     );
-
     const stopAutoscroll = () => {
         if (autoscrollFrameRef.current === null) {
             return;
@@ -131,7 +133,6 @@ function DraggableList<T>({
         cancelAnimationFrame(autoscrollFrameRef.current);
         autoscrollFrameRef.current = null;
     };
-
     const getItemLayouts = () => {
         const listState = listRef.current?.getState();
         let fallbackOffset = 0;
@@ -142,10 +143,14 @@ function DraggableList<T>({
             const stateOffset = listState?.positionAtIndex?.(index);
             const offset = typeof stateOffset === 'number' && Number.isFinite(stateOffset) ? stateOffset : fallbackOffset;
             fallbackOffset = offset + size;
-            return size > 0 ? {offset, size} : undefined;
+            return size > 0
+                ? {
+                      offset,
+                      size,
+                  }
+                : undefined;
         });
     };
-
     const startDrag = (index: number) => {
         if (activeItemIndexRef.current !== null) {
             return;
@@ -163,7 +168,6 @@ function DraggableList<T>({
         setLegendListItemZIndex(listRef.current, index, ACTIVE_ITEM_Z_INDEX);
         setActiveItemIndex(index);
     };
-
     const updateDragPosition = (index: number, gestureTranslationY: number) => {
         if (activeItemIndexRef.current !== index) {
             return;
@@ -172,7 +176,6 @@ function DraggableList<T>({
         translationY.set(gestureTranslationY + scrollDelta);
         const itemLayouts = getItemLayouts();
         targetIndexRef.current = getDragTargetIndex(itemLayouts, index, gestureTranslationY + scrollDelta);
-
         if (disableScroll) {
             return;
         }
@@ -183,7 +186,6 @@ function DraggableList<T>({
         if (!activeLayout || viewportSize <= 0) {
             return;
         }
-
         const centerInViewport = activeLayout.offset + activeLayout.size / 2 + gestureTranslationY - initialScrollOffsetRef.current;
         const maxOffset = Math.max(0, contentSize - viewportSize);
         let nextOffset = scrollOffsetRef.current;
@@ -195,13 +197,14 @@ function DraggableList<T>({
         if (nextOffset === scrollOffsetRef.current) {
             return;
         }
-
-        listRef.current?.scrollToOffset({offset: nextOffset, animated: false});
+        listRef.current?.scrollToOffset({
+            offset: nextOffset,
+            animated: false,
+        });
         // iOS does not emit intermediate scroll events for every programmatic step, so keep the
         // feedback loop moving with the offset we just requested.
         scrollOffsetRef.current = nextOffset;
     };
-
     const runAutoscrollFrame = () => {
         const index = activeItemIndexRef.current;
         if (index === null) {
@@ -211,7 +214,6 @@ function DraggableList<T>({
         updateDragPosition(index, lastGestureTranslationRef.current);
         autoscrollFrameRef.current = requestAnimationFrame(runAutoscrollFrame);
     };
-
     const updateDrag = (index: number, gestureTranslationY: number) => {
         lastGestureTranslationRef.current = gestureTranslationY;
         updateDragPosition(index, gestureTranslationY);
@@ -219,7 +221,6 @@ function DraggableList<T>({
             autoscrollFrameRef.current = requestAnimationFrame(runAutoscrollFrame);
         }
     };
-
     const resetDrag = () => {
         stopAutoscroll();
         const activeIndexToReset = activeItemIndexRef.current;
@@ -232,43 +233,37 @@ function DraggableList<T>({
         targetIndexRef.current = null;
         setActiveItemIndex(null);
     };
-
     const finishDrag = (index: number, gestureTranslationY: number) => {
         updateDrag(index, gestureTranslationY);
         const targetIndex = targetIndexRef.current ?? index;
         resetDrag();
-
         if (targetIndex === index) {
             return;
         }
-        onDragEnd?.({data: reorderItems(data, index, targetIndex)});
+        onDragEnd?.({
+            data: reorderItems(data, index, targetIndex),
+        });
     };
-
     const cancelDrag = (index: number) => {
         if (activeItemIndexRef.current !== index) {
             return;
         }
         resetDrag();
     };
-
     const recordItemLayout = (index: number, event: LayoutChangeEvent) => {
         measuredItemSizesRef.current[index] = event.nativeEvent.layout.height;
     };
-
     const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
         scrollOffsetRef.current = event.nativeEvent.contentOffset.y;
         viewportSizeRef.current = event.nativeEvent.layoutMeasurement.height;
         contentSizeRef.current = event.nativeEvent.contentSize.height;
     };
-
     const handleListLayout = (event: LayoutChangeEvent) => {
         viewportSizeRef.current = event.nativeEvent.layout.height;
     };
-
     const handleContentSizeChange = (_width: number, height: number) => {
         contentSizeRef.current = height;
     };
-
     const renderRow = ({item, index}: LegendListRenderItemProps<T>) => {
         const content = renderItem({
             item,
@@ -276,7 +271,6 @@ function DraggableList<T>({
             isActive: activeItemIndex === index,
             drag: () => startDrag(index),
         });
-
         return (
             <DraggableRow
                 activeIndex={activeIndex}
@@ -292,7 +286,6 @@ function DraggableList<T>({
             </DraggableRow>
         );
     };
-
     return (
         <View style={styles.flex1}>
             <LegendList
@@ -310,11 +303,16 @@ function DraggableList<T>({
                 contentContainerStyle={styles.flexGrow1}
                 ListFooterComponent={ListFooterComponent}
                 ListFooterComponentStyle={styles.flex1}
-                alwaysRender={activeItemIndex === null ? undefined : {indices: [activeItemIndex]}}
+                alwaysRender={
+                    activeItemIndex === null
+                        ? undefined
+                        : {
+                              indices: [activeItemIndex],
+                          }
+                }
                 testID="draggable-list"
             />
         </View>
     );
 }
-
 export default DraggableList;

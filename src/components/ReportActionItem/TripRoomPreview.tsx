@@ -36,7 +36,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 
 import {LegendList} from '@legendapp/list/react-native';
 import {Str} from 'expensify-common';
-import React, {useMemo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 
 type TripRoomPreviewProps = {
@@ -48,29 +48,22 @@ type TripRoomPreviewProps = {
     /** Whether the corresponding report action item is hovered */
     isHovered?: boolean;
 };
-
 const selectCurrency = (report: OnyxEntry<Report>) => report?.currency;
-
 type ReservationViewProps = {
     reservation: Reservation;
     onPress?: () => void;
     isCancelled?: boolean;
 };
-
 function ReservationView({reservation, onPress, isCancelled}: ReservationViewProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Plane', 'PlaneCircleSlash', 'Bed', 'BedCircleSlash', 'CarWithKey', 'CarCircleSlash', 'Train', 'TrainCircleSlash', 'Luggage']);
-
     const reservationIcon = getTripReservationIcon(expensifyIcons, reservation.type, isCancelled);
     const title = reservation.type === CONST.RESERVATION_TYPE.CAR ? reservation.carInfo?.name : Str.recapitalize(reservation.start.longName ?? '');
-
     const description = translate(`travel.${reservation.type}`);
-
     const cancelledStyle = isCancelled ? styles.textSupporting : undefined;
-
     let titleComponent = (
         <Text
             numberOfLines={1}
@@ -80,11 +73,9 @@ function ReservationView({reservation, onPress, isCancelled}: ReservationViewPro
             {title}
         </Text>
     );
-
     if (reservation.type === CONST.RESERVATION_TYPE.FLIGHT || reservation.type === CONST.RESERVATION_TYPE.TRAIN) {
         const startName = reservation.type === CONST.RESERVATION_TYPE.FLIGHT ? reservation.start.shortName : reservation.start.longName;
         const endName = reservation.type === CONST.RESERVATION_TYPE.FLIGHT ? reservation.end.shortName : reservation.end.longName;
-
         titleComponent = (
             <Text
                 numberOfLines={2}
@@ -95,9 +86,7 @@ function ReservationView({reservation, onPress, isCancelled}: ReservationViewPro
             </Text>
         );
     }
-
     const displayDescription = formatCancelledDescription(translate('iou.canceled'), description, isCancelled);
-
     return (
         <MenuItemWithTopDescription
             description={displayDescription}
@@ -119,43 +108,34 @@ function ReservationView({reservation, onPress, isCancelled}: ReservationViewPro
         />
     );
 }
-
 function TripRoomPreview({action, containerStyles, isHovered = false}: TripRoomPreviewProps) {
     const styles = useThemeStyles();
     const {translate, dateFnsLocale} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
     const {anchor: contextMenuAnchorRef, shouldDisplayContextMenu = true, originalReportID} = useShowContextMenuState();
     const {checkIfContextMenuActive} = useShowContextMenuActions();
-
     const originalMessage = getOriginalMessage(action);
     const linkedReportID = originalMessage && 'linkedReportID' in originalMessage ? originalMessage.linkedReportID : undefined;
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${linkedReportID}`);
-    const [iouReportCurrency] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReport?.iouReportID}`, {selector: selectCurrency});
-
+    const [iouReportCurrency] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReport?.iouReportID}`, {
+        selector: selectCurrency,
+    });
     const chatReportID = chatReport?.reportID ?? linkedReportID;
     const tripTransactions = useTripTransactions(chatReportID);
-
     const reservationsData: ReservationData[] = getReservationsFromTripReport(chatReport, tripTransactions);
     const dateInfo =
         chatReport?.tripData?.startDate && chatReport?.tripData?.endDate
             ? DateUtils.getFormattedDateRange(translate, dateFnsLocale, new Date(chatReport.tripData.startDate), new Date(chatReport.tripData.endDate))
             : '';
     const reportCurrency = iouReportCurrency ?? chatReport?.currency;
-
     const {totalDisplaySpend = 0, currency = reportCurrency} = chatReport ? getTripTotal(chatReport) : {};
-
-    const displayAmount = useMemo(() => {
-        if (totalDisplaySpend) {
-            return convertToDisplayString(totalDisplaySpend, currency);
-        }
-
-        return convertToDisplayString(
-            tripTransactions?.reduce((acc, transaction) => acc + Math.abs(transaction.amount), 0),
-            currency,
+    const displayAmount = convertToDisplayString(totalDisplaySpend || tripTransactions?.reduce((acc, transaction) => acc + Math.abs(transaction.amount), 0), currency);
+    const navigateToTrip = () =>
+        Navigation.navigate(
+            getReportRouteForCurrentContext({
+                reportID: chatReportID,
+            }),
         );
-    }, [convertToDisplayString, currency, totalDisplaySpend, tripTransactions]);
-
-    const navigateToTrip = () => Navigation.navigate(getReportRouteForCurrentContext({reportID: chatReportID}));
     const renderItem = ({item}: LegendListRenderItemProps<ReservationData>) => (
         <ReservationView
             reservation={item.reservation}
@@ -163,7 +143,6 @@ function TripRoomPreview({action, containerStyles, isHovered = false}: TripRoomP
             isCancelled={item.isCancelled}
         />
     );
-
     return (
         <OfflineWithFeedback
             pendingAction={action?.pendingAction}
@@ -217,5 +196,4 @@ function TripRoomPreview({action, containerStyles, isHovered = false}: TripRoomP
         </OfflineWithFeedback>
     );
 }
-
 export default TripRoomPreview;

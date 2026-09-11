@@ -43,7 +43,7 @@ import {LegendList} from '@legendapp/list/react-native';
  *    Do NOT add new subscriptions unless absolutely necessary for correctness.
  */
 import {useFocusEffect} from '@react-navigation/native';
-import React, {useCallback, useRef, useState} from 'react';
+import React, {useRef, useState} from 'react';
 import {View} from 'react-native';
 
 import type {TransactionListItemType} from './SearchList/ListItem/types';
@@ -54,7 +54,6 @@ import SearchTableHeader from './SearchTableHeader';
 
 const STATIC_LIST_MAX_ITEMS = 10;
 const DEFAULT_COLUMNS: SearchColumnType[] = [];
-
 type SearchStaticListProps = {
     searchResults: SearchResults | undefined;
     queryJSON: SearchQueryJSON;
@@ -65,7 +64,6 @@ type SearchStaticListProps = {
     canSelectMultiple?: boolean;
     columns?: SearchColumnType[];
 };
-
 function SearchStaticList({
     searchResults,
     queryJSON,
@@ -85,23 +83,23 @@ function SearchStaticList({
     const personalDetails = usePersonalDetails();
     const accountID = session?.accountID ?? CONST.DEFAULT_NUMBER_ID;
     const email = session?.email;
-    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
-    const [hasCompletedGuidedSetupFlow] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasCompletedGuidedSetupFlowSelector});
+    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
+        selector: hasSeenTourSelector,
+    });
+    const [hasCompletedGuidedSetupFlow] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
+        selector: hasCompletedGuidedSetupFlowSelector,
+    });
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
-
     const [showPendingExpensePlaceholder, setShowPendingExpensePlaceholder] = useState(
         () => hasDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH) || Navigation.getIsFullscreenPreInsertedUnderRHP(),
     );
-
     const {type, sortBy, sortOrder, groupBy} = queryJSON;
     const validGroupBy = getValidGroupBy(groupBy);
     const searchData = searchResults?.data;
-
     const sortedData = (() => {
         if (!searchData) {
             return [] as TransactionListItemType[];
         }
-
         const [filteredData] = getSections({
             dateFnsLocale,
             type,
@@ -115,7 +113,6 @@ function SearchStaticList({
             convertToDisplayString,
             reportAttributesDerivedValue: undefined,
         });
-
         return getSortedSections(type, filteredData, localeCompare, translate, sortBy, sortOrder, validGroupBy)
             .filter((item): item is TransactionListItemType => 'transactionID' in item && item.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
             .slice(0, STATIC_LIST_MAX_ITEMS);
@@ -123,22 +120,17 @@ function SearchStaticList({
 
     // Sync the pending-expense placeholder on focus and notify the parent that
     // the destination is visible (focus signal for the dual-gate span ending).
-    useFocusEffect(
-        useCallback(() => {
-            const hasPendingWrite = hasDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH);
-            if (!showPendingExpensePlaceholder && hasPendingWrite) {
-                setShowPendingExpensePlaceholder(true);
-            } else if (showPendingExpensePlaceholder && !hasPendingWrite && sortedData.length > 0) {
-                setShowPendingExpensePlaceholder(false);
-            }
-
-            onDestinationVisible?.(sortedData.length === 0, 'focus');
-        }, [showPendingExpensePlaceholder, sortedData.length, onDestinationVisible]),
-    );
-
+    useFocusEffect(() => {
+        const hasPendingWrite = hasDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH);
+        if (!showPendingExpensePlaceholder && hasPendingWrite) {
+            setShowPendingExpensePlaceholder(true);
+        } else if (showPendingExpensePlaceholder && !hasPendingWrite && sortedData.length > 0) {
+            setShowPendingExpensePlaceholder(false);
+        }
+        onDestinationVisible?.(sortedData.length === 0, 'focus');
+    });
     const onPressItem = (item: TransactionListItemType) => {
         const backTo = Navigation.getActiveRoute();
-
         if (!item.reportAction?.childReportID) {
             const shouldOpenTransactionThread = !isOneTransactionReport(item.report) || item.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
             // betas, introSelected and conciergeChat are passed as undefined to avoid extra Onyx subscriptions in this lightweight placeholder.
@@ -163,39 +155,48 @@ function SearchStaticList({
                 return;
             }
         }
-
         const isFromSelfDM = item.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
         const isFromOneTransactionReport = isOneTransactionReport(item.report);
-
         let reportID = item.reportID;
         if (item.reportAction?.childReportID && (isFromSelfDM || !isFromOneTransactionReport)) {
             reportID = item.reportAction.childReportID;
         }
-
         if (!reportID) {
             return;
         }
-
-        requestAnimationFrame(() => Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID, backTo})));
+        requestAnimationFrame(() =>
+            Navigation.navigate(
+                ROUTES.SEARCH_REPORT.getRoute({
+                    reportID,
+                    backTo,
+                }),
+            ),
+        );
     };
-
     const renderItem = ({item, index}: LegendListRenderItemProps<TransactionListItemType>) => {
         if (!('transactionID' in item)) {
             return null;
         }
-
         const participantFromDisplayName = item.formattedFrom ?? item.from?.displayName ?? '';
         const shouldShowUserInfo = !!item.from;
         const isFirstItem = index === 0;
         const isLastItem = index === sortedData.length - 1;
-
         const stateNum = item.report?.stateNum;
         const statusNum = item.report?.statusNum;
         const isDeleted = isDeletedTransaction(item);
-        const statusText = getReportStatusTranslation({stateNum, statusNum, translate, isDeleted});
+        const statusText = getReportStatusTranslation({
+            stateNum,
+            statusNum,
+            translate,
+            isDeleted,
+        });
         const reportStatusColorStyle = getReportStatusColorStyle(theme, stateNum, statusNum, isDeleted);
-        const statusTooltipText = getReportStatusTooltipTranslation({stateNum, statusNum, translate, isDeleted});
-
+        const statusTooltipText = getReportStatusTooltipTranslation({
+            stateNum,
+            statusNum,
+            translate,
+            isDeleted,
+        });
         return (
             <PressableWithoutFeedback
                 sentryLabel="SearchStaticList-item"
@@ -208,7 +209,9 @@ function SearchStaticList({
                         styles.mh5,
                         styles.flex1,
                         styles.userSelectNone,
-                        {backgroundColor: theme.highlightBG},
+                        {
+                            backgroundColor: theme.highlightBG,
+                        },
                         isFirstItem && styles.tableTopRadius,
                         isLastItem && [styles.tableBottomRadius, styles.overflowHidden],
                         !isLastItem && styles.borderBottom,
@@ -258,18 +261,24 @@ function SearchStaticList({
             </PressableWithoutFeedback>
         );
     };
-
     const hasWideFooter = !shouldUseNarrowLayout || showPendingExpensePlaceholder;
-
     const renderWideItem = ({item, index}: LegendListRenderItemProps<TransactionListItemType>, dataLength: number) => {
         if (!('transactionID' in item)) {
             return null;
         }
         const isLastItem = index === dataLength - 1 && !hasWideFooter;
-
         return (
             <View
-                style={[styles.mh5, styles.flex1, {backgroundColor: theme.highlightBG}, styles.userSelectNone, isLastItem && styles.tableBottomRadius, isLastItem && styles.overflowHidden]}
+                style={[
+                    styles.mh5,
+                    styles.flex1,
+                    {
+                        backgroundColor: theme.highlightBG,
+                    },
+                    styles.userSelectNone,
+                    isLastItem && styles.tableBottomRadius,
+                    isLastItem && styles.overflowHidden,
+                ]}
             >
                 <PressableWithoutFeedback
                     sentryLabel="SearchStaticList-wide-item"
@@ -307,20 +316,16 @@ function SearchStaticList({
             </View>
         );
     };
-
     const keyExtractor = (item: TransactionListItemType) => item.keyForList;
-
     const hasEndedSpanRef = useRef(false);
     const onLayout = () => {
         if (hasEndedSpanRef.current) {
             return;
         }
         hasEndedSpanRef.current = true;
-
         onDestinationVisible?.(sortedData.length === 0, 'layout');
         onLayoutProp?.();
     };
-
     if (sortedData.length === 0 && showPendingExpensePlaceholder) {
         return (
             <View
@@ -335,11 +340,9 @@ function SearchStaticList({
             </View>
         );
     }
-
     if (sortedData.length === 0) {
         return <View onLayout={onLayout} />;
     }
-
     return (
         <View
             style={styles.flex1}
@@ -398,7 +401,5 @@ function SearchStaticList({
         </View>
     );
 }
-
 SearchStaticList.displayName = 'SearchStaticList';
-
 export default SearchStaticList;
