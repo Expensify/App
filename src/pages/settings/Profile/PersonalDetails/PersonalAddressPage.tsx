@@ -22,6 +22,7 @@ import React, {useMemo} from 'react';
  * @param values - form input values
  */
 function updateAddress(values: FormOnyxValues<typeof ONYXKEYS.FORMS.HOME_ADDRESS_FORM>, addresses: Address[]) {
+    const currentAddress = addresses.find((address) => address.current) ?? addresses.at(-1);
     updateAddressPersonalDetails(
         addresses,
         values.addressLine1?.trim() ?? '',
@@ -30,6 +31,8 @@ function updateAddress(values: FormOnyxValues<typeof ONYXKEYS.FORMS.HOME_ADDRESS
         values.state.trim(),
         values?.zipPostCode?.trim().toUpperCase() ?? '',
         values.country,
+        values.lat ?? currentAddress?.lat,
+        values.lng ?? currentAddress?.lng,
     );
 }
 
