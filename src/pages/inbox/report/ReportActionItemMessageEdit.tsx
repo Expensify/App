@@ -49,7 +49,7 @@ import useComposerSuggestions from './ReportActionCompose/useComposerSuggestions
 import useDebouncedCommentMaxLengthValidation from './ReportActionCompose/useDebouncedCommentMaxLengthValidation';
 import useEditMessage from './ReportActionCompose/useEditMessage';
 import {useReportActionActiveEdit, useReportActionActiveEditActions} from './ReportActionEditMessageContext';
-import ReportActionIndexContext, {ReportActionIsNewestContext, ReportActionScrollToNewestContext} from './ReportActionIndexContext';
+import ReportActionIndexContext, {ReportActionScrollToNewestContext} from './ReportActionIndexContext';
 import shouldUseEmojiPickerSelection from './shouldUseEmojiPickerSelection';
 import useDebouncedSaveDraft from './useDebouncedSaveDraft';
 import useDraftMessageVideoAttributeCache from './useDraftMessageVideoAttributeCache';
@@ -77,8 +77,7 @@ const DEFAULT_MODAL_VALUE = {
 };
 
 function ReportActionItemMessageEdit({action, reportID, originalReportID, policyID, ref}: ReportActionItemMessageEditProps) {
-    const index = useContext(ReportActionIndexContext);
-    const isNewestOverride = useContext(ReportActionIsNewestContext);
+    const {index, isNewest} = useContext(ReportActionIndexContext);
     const scrollToNewestAction = useContext(ReportActionScrollToNewestContext);
     const [preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE] = useOnyx(ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE);
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportID)}`);
@@ -251,7 +250,7 @@ function ReportActionItemMessageEdit({action, reportID, originalReportID, policy
         reportID,
         originalReportID,
         reportAction: action,
-        shouldScrollToLastMessage: isNewestOverride ?? index === 0,
+        shouldScrollToLastMessage: isNewest,
         scrollToLastMessage: scrollToNewestAction,
         debouncedCommentMaxLengthValidation,
         composerRef,

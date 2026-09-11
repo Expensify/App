@@ -50,7 +50,7 @@ import {useActionListContext, useActionListRef} from '@pages/inbox/ActionListCon
 import {useAgentZeroStatus} from '@pages/inbox/AgentZeroStatusContext';
 import {useConciergeDraft} from '@pages/inbox/ConciergeDraftContext';
 import FloatingMessageCounter from '@pages/inbox/report/FloatingMessageCounter';
-import ReportActionIndexContext, {ReportActionIsNewestContext, ReportActionScrollToNewestContext} from '@pages/inbox/report/ReportActionIndexContext';
+import {ReportActionPositionContextProvider, ReportActionScrollToNewestContext} from '@pages/inbox/report/ReportActionIndexContext';
 import ReportActionsListItemRenderer from '@pages/inbox/report/ReportActionsListItemRenderer';
 import {getUnreadMarkerReportAction} from '@pages/inbox/report/shouldDisplayNewMarkerOnReportAction';
 import useReportUnreadMessageScrollTracking from '@pages/inbox/report/useReportUnreadMessageScrollTracking';
@@ -640,26 +640,27 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
 
             return (
                 <ReportActionScrollToNewestContext.Provider value={scrollToBottom}>
-                    <ReportActionIsNewestContext.Provider value={isNewestReportAction}>
-                        <ReportActionIndexContext.Provider value={indexWithinReportActions}>
-                            <ReportActionsListItemRenderer
-                                reportAction={reportAction}
-                                parentReportAction={parentReportAction}
-                                parentReportActionForTransactionThread={EmptyParentReportActionForTransactionThread}
-                                report={reportStable}
-                                transactionThreadReport={transactionThreadReport}
-                                chatReport={chatReport}
-                                displayAsGroup={displayAsGroup}
-                                shouldDisplayNewMarker={reportAction.reportActionID === unreadMarkerReportActionID}
-                                shouldDisplayReplyDivider={visibleReportActions.length > 1}
-                                isFirstVisibleReportAction={firstVisibleReportActionID === reportAction.reportActionID}
-                                shouldHideThreadDividerLine
-                                linkedReportActionID={linkedReportActionID}
-                                isHarvestCreatedExpenseReport={shouldShowHarvestCreatedAction}
-                                shouldDisableContextMenuForConciergeDraft={shouldDisableContextMenuForConciergeDraft}
-                            />
-                        </ReportActionIndexContext.Provider>
-                    </ReportActionIsNewestContext.Provider>
+                    <ReportActionPositionContextProvider
+                        index={indexWithinReportActions}
+                        isNewest={isNewestReportAction}
+                    >
+                        <ReportActionsListItemRenderer
+                            reportAction={reportAction}
+                            parentReportAction={parentReportAction}
+                            parentReportActionForTransactionThread={EmptyParentReportActionForTransactionThread}
+                            report={reportStable}
+                            transactionThreadReport={transactionThreadReport}
+                            chatReport={chatReport}
+                            displayAsGroup={displayAsGroup}
+                            shouldDisplayNewMarker={reportAction.reportActionID === unreadMarkerReportActionID}
+                            shouldDisplayReplyDivider={visibleReportActions.length > 1}
+                            isFirstVisibleReportAction={firstVisibleReportActionID === reportAction.reportActionID}
+                            shouldHideThreadDividerLine
+                            linkedReportActionID={linkedReportActionID}
+                            isHarvestCreatedExpenseReport={shouldShowHarvestCreatedAction}
+                            shouldDisableContextMenuForConciergeDraft={shouldDisableContextMenuForConciergeDraft}
+                        />
+                    </ReportActionPositionContextProvider>
                 </ReportActionScrollToNewestContext.Provider>
             );
         },

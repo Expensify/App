@@ -196,11 +196,11 @@ jest.mock('@hooks/useFilterSelectedTransactions', () => jest.fn());
 jest.mock('@hooks/useLoadReportActions', () => jest.fn(() => ({loadOlderChats: jest.fn(), loadNewerChats: jest.fn()})));
 jest.mock('@pages/inbox/report/ReportActionsListItemRenderer', () => {
     const ReactActual = jest.requireActual<typeof React>('react');
-    const {ReportActionIsNewestContext: ReportActionIsNewestContextActual, ReportActionScrollToNewestContext: ReportActionScrollToNewestContextActual} =
+    const {default: ReportActionIndexContextActual, ReportActionScrollToNewestContext: ReportActionScrollToNewestContextActual} =
         jest.requireActual<typeof ReportActionIndexContexts>('@pages/inbox/report/ReportActionIndexContext');
 
     return jest.fn(() => {
-        mockIsNewestReportAction = ReactActual.useContext(ReportActionIsNewestContextActual);
+        mockIsNewestReportAction = ReactActual.useContext(ReportActionIndexContextActual).isNewest;
         mockScrollToNewestAction = ReactActual.useContext(ReportActionScrollToNewestContextActual);
         return null;
     });

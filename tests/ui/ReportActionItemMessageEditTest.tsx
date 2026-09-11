@@ -9,7 +9,7 @@ import {editReportComment} from '@libs/actions/Report';
 
 import * as ReportActionContextMenu from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
 import {ReportActionEditMessageContextProvider} from '@pages/inbox/report/ReportActionEditMessageContext';
-import ReportActionIndexContext, {ReportActionIsNewestContext, ReportActionScrollToNewestContext} from '@pages/inbox/report/ReportActionIndexContext';
+import {ReportActionPositionContextProvider, ReportActionScrollToNewestContext} from '@pages/inbox/report/ReportActionIndexContext';
 import type {ReportActionItemMessageEditProps} from '@pages/inbox/report/ReportActionItemMessageEdit';
 import ReportActionItemMessageEdit from '@pages/inbox/report/ReportActionItemMessageEdit';
 import {draftMessageVideoAttributeCache} from '@pages/inbox/report/useDraftMessageVideoAttributeCache';
@@ -91,14 +91,15 @@ const renderReportActionItemMessageEdit = (props?: Partial<ReportActionItemMessa
     return render(
         <ReportScreenProviders>
             <ReportActionScrollToNewestContext.Provider value={listContext?.scrollToNewestAction}>
-                <ReportActionIsNewestContext.Provider value={listContext?.isNewest}>
-                    <ReportActionIndexContext.Provider value={listContext?.index ?? 0}>
-                        <ReportActionItemMessageEdit
-                            {...defaultProps}
-                            {...props}
-                        />
-                    </ReportActionIndexContext.Provider>
-                </ReportActionIsNewestContext.Provider>
+                <ReportActionPositionContextProvider
+                    index={listContext?.index ?? 0}
+                    isNewest={listContext?.isNewest ?? true}
+                >
+                    <ReportActionItemMessageEdit
+                        {...defaultProps}
+                        {...props}
+                    />
+                </ReportActionPositionContextProvider>
             </ReportActionScrollToNewestContext.Provider>
         </ReportScreenProviders>,
     );
