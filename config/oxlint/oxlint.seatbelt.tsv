@@ -141,7 +141,6 @@
 "../../src/components/EmojiPicker/EmojiPickerMenu/index.tsx"	"react-hooks/refs"	2
 "../../src/components/EmojiPicker/EmojiPickerMenu/useEmojiPickerMenu.ts"	"react-hooks/set-state-in-effect"	2
 "../../src/components/EmptySelectionListContent.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/components/EnvironmentBadge.tsx"	"no-restricted-syntax"	1
 "../../src/components/EReceiptWithSizeCalculation.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/FeatureTraining/FeatureTrainingCarousel.tsx"	"@typescript-eslint/no-unnecessary-type-assertion"	1
 "../../src/components/FilePicker/index.native.tsx"	"react-hooks/refs"	1
@@ -556,7 +555,6 @@
 "../../src/libs/actions/Chronos.ts"	"no-restricted-syntax"	1
 "../../src/libs/actions/clearOnyxAndSeedFullReconnect.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/actions/ClearReportActionErrors.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/libs/actions/ClearReportActionErrors.ts"	"import/no-cycle"	4
 "../../src/libs/actions/CompanyCards.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	1
 "../../src/libs/actions/CompanyCards.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/libs/actions/CompanyCards.ts"	"no-restricted-imports"	1
@@ -588,7 +586,7 @@
 "../../src/libs/actions/IOU/BulkEdit.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/libs/actions/IOU/BulkEdit.ts"	"no-restricted-syntax"	2
 "../../src/libs/actions/IOU/DeleteMoneyRequest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/libs/actions/IOU/DeleteMoneyRequest.ts"	"import/no-cycle"	8
+"../../src/libs/actions/IOU/DeleteMoneyRequest.ts"	"import/no-cycle"	1
 "../../src/libs/actions/IOU/DeleteMoneyRequest.ts"	"no-restricted-syntax"	1
 "../../src/libs/actions/IOU/Duplicate.ts"	"@typescript-eslint/no-unsafe-type-assertion"	9
 "../../src/libs/actions/IOU/Duplicate.ts"	"no-restricted-syntax"	2
@@ -598,17 +596,16 @@
 "../../src/libs/actions/IOU/Hold.ts"	"no-restricted-syntax"	2
 "../../src/libs/actions/IOU/index.ts"	"rulesdir/no-onyx-connect"	11
 "../../src/libs/actions/IOU/MoneyRequest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/libs/actions/IOU/MoneyRequest.ts"	"import/no-cycle"	11
+"../../src/libs/actions/IOU/MoneyRequest.ts"	"import/no-cycle"	1
 "../../src/libs/actions/IOU/MoneyRequestBuilder.ts"	"@typescript-eslint/no-deprecated/getReportTransactions"	2
 "../../src/libs/actions/IOU/MoneyRequestBuilder.ts"	"@typescript-eslint/no-deprecated/originalMessage"	1
 "../../src/libs/actions/IOU/MoneyRequestBuilder.ts"	"@typescript-eslint/no-deprecated/translateLocal"	1
 "../../src/libs/actions/IOU/MoneyRequestBuilder.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
-"../../src/libs/actions/IOU/MoneyRequestBuilder.ts"	"import/no-cycle"	9
-"../../src/libs/actions/IOU/NavigationHelpers.ts"	"import/no-cycle"	2
+"../../src/libs/actions/IOU/MoneyRequestBuilder.ts"	"import/no-cycle"	1
 "../../src/libs/actions/IOU/PayMoneyRequest.ts"	"@typescript-eslint/no-deprecated/getReportTransactions"	2
 "../../src/libs/actions/IOU/PayMoneyRequest.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	1
 "../../src/libs/actions/IOU/PayMoneyRequest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
-"../../src/libs/actions/IOU/PayMoneyRequest.ts"	"import/no-cycle"	12
+"../../src/libs/actions/IOU/PayMoneyRequest.ts"	"import/no-cycle"	1
 "../../src/libs/actions/IOU/PayMoneyRequest.ts"	"no-restricted-imports"	1
 "../../src/libs/actions/IOU/PayMoneyRequest.ts"	"no-restricted-syntax"	1
 "../../src/libs/actions/IOU/PerDiem.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	1
@@ -617,13 +614,12 @@
 "../../src/libs/actions/IOU/Receipt.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	1
 "../../src/libs/actions/IOU/Receipt.ts"	"no-restricted-syntax"	1
 "../../src/libs/actions/IOU/RejectMoneyRequest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/libs/actions/IOU/RejectMoneyRequest.ts"	"import/no-cycle"	7
 "../../src/libs/actions/IOU/RejectMoneyRequest.ts"	"no-restricted-syntax"	1
 "../../src/libs/actions/IOU/ReportWorkflow.ts"	"@typescript-eslint/no-deprecated/getReportTransactions"	5
-"../../src/libs/actions/IOU/ReportWorkflow.ts"	"import/no-cycle"	9
+"../../src/libs/actions/IOU/ReportWorkflow.ts"	"import/no-cycle"	8
 "../../src/libs/actions/IOU/ReportWorkflow.ts"	"no-restricted-imports"	1
 "../../src/libs/actions/IOU/ReportWorkflow.ts"	"no-restricted-syntax"	1
-"../../src/libs/actions/IOU/SearchUpdate.ts"	"import/no-cycle"	3
+"../../src/libs/actions/IOU/SearchUpdate.ts"	"import/no-cycle"	1
 "../../src/libs/actions/IOU/SendInvoice.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/actions/IOU/SendInvoice.ts"	"no-restricted-syntax"	1
 "../../src/libs/actions/IOU/SendMoney.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
@@ -637,7 +633,7 @@
 "../../src/libs/actions/IOU/SplitTransactionUpdate.ts"	"@typescript-eslint/no-unsafe-type-assertion"	20
 "../../src/libs/actions/IOU/TrackExpense.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	4
 "../../src/libs/actions/IOU/TrackExpense.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
-"../../src/libs/actions/IOU/TrackExpense.ts"	"import/no-cycle"	16
+"../../src/libs/actions/IOU/TrackExpense.ts"	"import/no-cycle"	3
 "../../src/libs/actions/IOU/TrackExpense.ts"	"no-restricted-syntax"	2
 "../../src/libs/actions/IOU/UpdateMoneyRequest.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	2
 "../../src/libs/actions/IOU/UpdateMoneyRequest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
@@ -692,7 +688,6 @@
 "../../src/libs/actions/Policy/ReportField.ts"	"no-restricted-syntax"	4
 "../../src/libs/actions/Policy/Rules.ts"	"no-restricted-syntax"	3
 "../../src/libs/actions/Policy/Tag.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/libs/actions/Policy/Tag.ts"	"import/no-cycle"	5
 "../../src/libs/actions/Policy/Tag.ts"	"no-restricted-imports"	1
 "../../src/libs/actions/Policy/Tag.ts"	"no-restricted-syntax"	4
 "../../src/libs/actions/Policy/Travel.ts"	"no-restricted-syntax"	2
@@ -710,7 +705,7 @@
 "../../src/libs/actions/Report/index.ts"	"@typescript-eslint/no-deprecated/videoAttributeCache"	1
 "../../src/libs/actions/Report/index.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	4
 "../../src/libs/actions/Report/index.ts"	"@typescript-eslint/no-unsafe-type-assertion"	19
-"../../src/libs/actions/Report/index.ts"	"import/no-cycle"	24
+"../../src/libs/actions/Report/index.ts"	"import/no-cycle"	25
 "../../src/libs/actions/Report/index.ts"	"no-restricted-syntax"	7
 "../../src/libs/actions/Report/index.ts"	"rulesdir/no-onyx-connect"	3
 "../../src/libs/actions/Report/MarkAllMessageAsRead.tsx"	"no-restricted-syntax"	1
@@ -722,9 +717,10 @@
 "../../src/libs/actions/Search.ts"	"@typescript-eslint/no-misused-promises"	1
 "../../src/libs/actions/Search.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	6
 "../../src/libs/actions/Search.ts"	"@typescript-eslint/no-unsafe-type-assertion"	16
-"../../src/libs/actions/Search.ts"	"import/no-cycle"	14
+"../../src/libs/actions/Search.ts"	"import/no-cycle"	2
+"../../src/libs/actions/Session/index.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	1
 "../../src/libs/actions/Session/index.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
-"../../src/libs/actions/Session/index.ts"	"import/no-cycle"	8
+"../../src/libs/actions/Session/index.ts"	"import/no-cycle"	9
 "../../src/libs/actions/Session/index.ts"	"no-restricted-syntax"	9
 "../../src/libs/actions/Session/index.ts"	"rulesdir/no-onyx-connect"	2
 "../../src/libs/actions/SignInRedirect.ts"	"import/no-cycle"	2
@@ -747,7 +743,6 @@
 "../../src/libs/actions/Transaction.ts"	"import/no-cycle"	7
 "../../src/libs/actions/Transaction.ts"	"no-restricted-syntax"	2
 "../../src/libs/actions/TransactionEdit.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/libs/actions/TransactionEdit.ts"	"import/no-cycle"	1
 "../../src/libs/actions/Travel.ts"	"no-restricted-syntax"	1
 "../../src/libs/actions/TravelBilling.ts"	"no-restricted-syntax"	3
 "../../src/libs/actions/UnreportedExpenses.tsx"	"no-restricted-syntax"	1
@@ -833,9 +828,7 @@
 "../../src/libs/HttpUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../src/libs/ImportOnyxStateUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	7
 "../../src/libs/InputUtils/index.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
-"../../src/libs/interceptAnonymousUser.ts"	"import/no-cycle"	1
 "../../src/libs/interceptAnonymousUser.ts"	"no-restricted-syntax"	1
-"../../src/libs/IOUUtils.ts"	"import/no-cycle"	6
 "../../src/libs/KeyboardShortcut/bindHandlerToKeydownEvent/index.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/KeyboardShortcut/index.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../src/libs/KeyboardShortcut/isEnterWhileComposition.ts"	"@typescript-eslint/no-deprecated/event.keyCode"	1
@@ -905,7 +898,6 @@
 "../../src/libs/Navigation/helpers/buildTabNavigatorNestedState.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	1
 "../../src/libs/Navigation/helpers/createNormalizedConfigs.ts"	"@typescript-eslint/no-deprecated/escape"	1
 "../../src/libs/Navigation/helpers/createNormalizedConfigs.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/libs/Navigation/helpers/dismissModalAndOpenReportInInboxTab.ts"	"import/no-cycle"	1
 "../../src/libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute.ts"	"import/no-cycle"	1
 "../../src/libs/Navigation/helpers/dynamicRoutesUtils/getDynamicRouteAdaptedState.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	5
@@ -939,7 +931,6 @@
 "../../src/libs/Navigation/helpers/linkTo/index.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	2
 "../../src/libs/Navigation/helpers/linkTo/index.ts"	"@typescript-eslint/no-unsafe-type-assertion"	16
 "../../src/libs/Navigation/helpers/linkTo/index.ts"	"import/no-cycle"	3
-"../../src/libs/Navigation/helpers/navigateAfterExpenseCreate.ts"	"import/no-cycle"	3
 "../../src/libs/Navigation/helpers/navigateToWorkspacesPage.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	1
 "../../src/libs/Navigation/helpers/navigateToWorkspacesPage.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/Navigation/helpers/popReportsSplitNavigatorToReport.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
@@ -994,7 +985,6 @@
 "../../src/libs/ParsingUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/PaymentUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/libs/PaymentUtils.ts"	"import/no-cycle"	3
-"../../src/libs/PerDiemRequestUtils.ts"	"import/no-cycle"	1
 "../../src/libs/PersonalDetailsUtils.ts"	"@typescript-eslint/no-deprecated/translateLocal"	2
 "../../src/libs/PersonalDetailsUtils.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	1
 "../../src/libs/PersonalDetailsUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
@@ -1030,7 +1020,6 @@
 "../../src/libs/ReportNameUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/libs/ReportNameUtils.ts"	"import/no-cycle"	7
 "../../src/libs/ReportPreviewActionUtils.ts"	"@typescript-eslint/no-deprecated/getReportTransactions"	1
-"../../src/libs/ReportPrimaryActionUtils.ts"	"import/no-cycle"	4
 "../../src/libs/ReportPrimaryActionUtils.ts"	"no-restricted-imports"	1
 "../../src/libs/ReportTitleUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/ReportTitleUtils.ts"	"import/no-cycle"	1
@@ -1040,8 +1029,8 @@
 "../../src/libs/ReportUtils.ts"	"@typescript-eslint/no-deprecated/originalMessage"	22
 "../../src/libs/ReportUtils.ts"	"@typescript-eslint/no-deprecated/translateLocal"	8
 "../../src/libs/ReportUtils.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	15
-"../../src/libs/ReportUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	33
-"../../src/libs/ReportUtils.ts"	"import/no-cycle"	22
+"../../src/libs/ReportUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	32
+"../../src/libs/ReportUtils.ts"	"import/no-cycle"	17
 "../../src/libs/ReportUtils.ts"	"rulesdir/no-onyx-connect"	15
 "../../src/libs/sanitizeLogParams.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/libs/SearchAutocompleteUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
@@ -1052,7 +1041,7 @@
 "../../src/libs/SearchUIUtils.ts"	"@typescript-eslint/no-deprecated/deprecatedGetReportName"	2
 "../../src/libs/SearchUIUtils.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	4
 "../../src/libs/SearchUIUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	71
-"../../src/libs/SearchUIUtils.ts"	"import/no-cycle"	17
+"../../src/libs/SearchUIUtils.ts"	"import/no-cycle"	2
 "../../src/libs/SearchUIUtils.ts"	"no-restricted-imports"	1
 "../../src/libs/SelectionScraper/index.ts"	"@typescript-eslint/no-unsafe-type-assertion"	4
 "../../src/libs/ShortcutManager/index.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	1
@@ -1071,7 +1060,6 @@
 "../../src/libs/TaskUtils.ts"	"import/no-cycle"	2
 "../../src/libs/telemetry/forwardLogsToSentry.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/TransactionPreviewUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/libs/TransactionPreviewUtils.ts"	"import/no-cycle"	7
 "../../src/libs/TransactionUtils/getDistanceInMeters.ts"	"import/no-cycle"	1
 "../../src/libs/TransactionUtils/index.ts"	"@typescript-eslint/no-deprecated/getReportTransactions"	2
 "../../src/libs/TransactionUtils/index.ts"	"@typescript-eslint/no-deprecated/translateLocal"	3
@@ -1114,6 +1102,7 @@
 "../../src/pages/EnablePayments/Wallet/PersonalInfo/substeps/DateOfBirthStep.tsx"	"@typescript-eslint/no-unnecessary-type-assertion"	1
 "../../src/pages/EnablePayments/Wallet/PersonalInfo/substeps/DateOfBirthStep.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../src/pages/EnablePayments/Wallet/utils/getSubstepValues.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
+"../../src/pages/home/ForYouSection/ConciergePromptBox.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/home/GettingStartedSection/hooks/useGettingStartedItems.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/home/GettingStartedSection/hooks/useGettingStartedItems.ts"	"no-restricted-imports"	1
 "../../src/pages/home/TimeSensitiveSection/items/FixCompanyCardConnection.tsx"	"@typescript-eslint/no-unnecessary-type-assertion"	1
@@ -1168,7 +1157,6 @@
 "../../src/pages/inbox/sidebar/FABPopoverContent/menuItems/InvoiceMenuItem.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/inbox/sidebar/FABPopoverContent/menuItems/NewWorkspaceMenuItem.tsx"	"@typescript-eslint/no-unnecessary-type-assertion"	1
 "../../src/pages/inbox/sidebar/FABPopoverContent/menuItems/NewWorkspaceMenuItem.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/pages/inbox/sidebar/FABPopoverContent/menuItems/QuickActionMenuItem.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../src/pages/inbox/sidebar/FABPopoverContent/menuItems/TravelMenuItem.tsx"	"no-restricted-imports"	1
 "../../src/pages/inbox/sidebar/FABPopoverContent/useScanActions.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/pages/inbox/sidebar/SidebarLinks.tsx"	"react-hooks/preserve-manual-memoization"	2
@@ -1761,6 +1749,7 @@
 "../../tests/unit/IOUUtilsTest.ts"	"@typescript-eslint/no-deprecated/originalMessage"	1
 "../../tests/unit/IOUUtilsTest.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	5
 "../../tests/unit/IOUUtilsTest.ts"	"no-restricted-imports"	1
+"../../tests/unit/LastVisitedPathOnBackgroundTest.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	2
 "../../tests/unit/LHNAvatarPipelineTest.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	7
 "../../tests/unit/libs/TransactionThreadNavigationUtilsTest.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	1
 "../../tests/unit/MerchantRuleSuggestionUtilsTest.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	1
@@ -1807,7 +1796,7 @@
 "../../tests/unit/ReportUtilsTest.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	7
 "../../tests/unit/ReportUtilsTest.ts"	"no-restricted-imports"	1
 "../../tests/unit/Search/SearchQueryUtilsTest.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	3
-"../../tests/unit/Search/SearchUIUtilsTest.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	1
+"../../tests/unit/Search/SearchUIUtilsTest.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	4
 "../../tests/unit/Search/yourSpendApplicabilityTest.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	2
 "../../tests/unit/SearchActionsTest.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	5
 "../../tests/unit/SearchAutocompleteListTest.tsx"	"@typescript-eslint/no-deprecated/originalMessage"	3
