@@ -8,6 +8,7 @@ import type {Policy, Report} from '@src/types/onyx';
 import type {OutstandingReportsByPolicyIDDerivedValue} from '@src/types/onyx/DerivedValues';
 import {toCollectionDataSet} from '@src/types/utils/CollectionDataSet';
 
+import lodashDeepClone from 'lodash/cloneDeep';
 import Onyx from 'react-native-onyx';
 
 import createRandomPolicy from '../utils/collections/policies';
@@ -16,11 +17,13 @@ import {createExpenseReport, createInvoiceReport} from '../utils/collections/rep
 import createRandomTransaction from '../utils/collections/transaction';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
-// Onyx.get returns deeply read-only data. canEditFieldOfMoneyRequest only reads this derived value,
-// so the assertions below can treat it as the mutable derived type.
+// Onyx.get hands back the cached object itself, typed ReadonlyOnyx. canEditFieldOfMoneyRequest still takes the
+// mutable derived type, so deep-clone the read value and cast the clone back rather than widening its signature
+// (which would cascade into getOutstandingReportsForUser and its callers).
 async function getOutstandingReportsByPolicyID(): Promise<OutstandingReportsByPolicyIDDerivedValue | undefined> {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- canEditFieldOfMoneyRequest only reads this derived value, so unwrapping the deep readonly here avoids widening its signature
-    return (await Onyx.get(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID)) as OutstandingReportsByPolicyIDDerivedValue | undefined;
+    const outstandingReports = await Onyx.get(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID);
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- lodashDeepClone loses the type; the clone is a fresh mutable derived value
+    return outstandingReports ? (lodashDeepClone(outstandingReports) as OutstandingReportsByPolicyIDDerivedValue) : undefined;
 }
 
 const currentUserAccountID = 5;

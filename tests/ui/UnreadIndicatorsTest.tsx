@@ -24,6 +24,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 /* eslint-disable @typescript-eslint/naming-convention */
 import {addSeconds, format, subMinutes, subSeconds} from 'date-fns';
 import {toZonedTime} from 'date-fns-tz';
+import lodashDeepClone from 'lodash/cloneDeep';
 import React from 'react';
 import {AppState, DeviceEventEmitter} from 'react-native';
 import Onyx from 'react-native-onyx';
@@ -258,11 +259,13 @@ async function signInAndGetAppWithUnreadChat(): Promise<void> {
     await waitForBatchedUpdatesWithAct();
 }
 
-// Onyx.get returns deeply read-only data. addComment and deleteReportComment only read the report they are
-// handed, so this suite unwraps it to the mutable type rather than widening those signatures.
+// Onyx.get hands back the cached object itself, typed ReadonlyOnyx. addComment and deleteReportComment still
+// take a mutable Report, so deep-clone the read value and cast the clone back rather than widening their
+// signatures — cloning is what keeps the cache safe, the cast only restores the type.
 async function getReportForWrite(reportID: string): Promise<Report | undefined> {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- addComment and deleteReportComment only read the report, so unwrapping the deep readonly here avoids widening their signatures
-    return (await Onyx.get(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`)) as Report | undefined;
+    const report = await Onyx.get(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- lodashDeepClone loses the type; the clone is a fresh mutable Report
+    return report ? (lodashDeepClone(report) as Report) : undefined;
 }
 
 describe('Unread Indicators', () => {

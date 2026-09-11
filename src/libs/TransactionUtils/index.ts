@@ -66,6 +66,7 @@ import type {
     Policy,
     PolicyCategories,
     PolicyTagLists,
+    ReadonlyOnyxInputOrEntry,
     RecentWaypoint,
     Report,
     ReviewDuplicates,
@@ -95,7 +96,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {Locale as DateFnsLocale} from 'date-fns';
 import type {NullishDeep, OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import type {ReadonlyDeep, ValueOf} from 'type-fest';
+import type {ValueOf} from 'type-fest';
 
 import {format, isValid, parse} from 'date-fns';
 import {SafeString, Str} from 'expensify-common';
@@ -3730,7 +3731,7 @@ function getSelectedRouteDistance(transaction: OnyxEntry<Transaction>): number |
  * picking an alternate route, that route's distance — so the comparison has to be against the *selected* route and not
  * the primary one, or every alternate route selection would look like an override.
  */
-function hasManualDistanceOverride(transaction: ReadonlyDeep<OnyxInputOrEntry<Transaction>>): boolean {
+function hasManualDistanceOverride(transaction: ReadonlyOnyxInputOrEntry<Transaction>): boolean {
     const quantity = transaction?.comment?.customUnit?.quantity;
     const selectedRouteDistanceInMeters = transaction?.routes?.[getSelectedRouteKey(transaction)]?.distance;
     if (quantity == null || !selectedRouteDistanceInMeters) {
