@@ -8,7 +8,7 @@ import type {OnyxUpdate} from 'react-native-onyx';
 
 import Onyx from 'react-native-onyx';
 
-const DEFAULT_ROOMS_PAGE_SIZE = 25;
+const DEFAULT_ROOMS_PAGE_SIZE = 50;
 
 /**
  * Fetches a single page of the policy's rooms. The rooms are merged into the report collection by the response's
