@@ -37,13 +37,8 @@ type ParentNavigationSubtitleProps = {
     /** Current Report ID (to check hasParentAccess) */
     reportID?: string;
 
-    /** parent Report ID */
     parentReportID?: string;
-
-    /** parent Report Action ID */
     parentReportActionID?: string;
-
-    /** PressableWithoutFeedback additional styles */
     pressableStyles?: StyleProp<TextStyle>;
 
     /** Whether to open the parent report link in the current tab if possible */
@@ -55,19 +50,10 @@ type ParentNavigationSubtitleProps = {
     /** Text to display in a tooltip shown on hover of the status badge */
     statusTooltipText?: string;
 
-    /** The style of the text */
     textStyles?: StyleProp<TextStyle>;
-
-    /** The background color for the status text */
     statusTextBackgroundColor?: ColorValue;
-
-    /** The text color for the status text */
     statusTextColor?: ColorValue;
-
-    /** The style of the status text container */
     statusTextContainerStyles?: StyleProp<ViewStyle>;
-
-    /** The number of lines for the subtitle */
     subtitleNumberOfLines?: number;
 
     /** AccountID of the human agent assisting Concierge, gates the "- assisted by [...]" suffix */
@@ -76,7 +62,6 @@ type ParentNavigationSubtitleProps = {
     /** Display name of the human agent; falls back to a generic label when missing */
     humanAgentName?: string;
 
-    /** Whether to show the "from" prefix */
     shouldShowFromPrefix?: boolean;
 };
 

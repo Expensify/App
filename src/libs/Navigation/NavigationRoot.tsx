@@ -54,7 +54,6 @@ type NavigationRootProps = {
     /** Stores path of last visited page */
     lastVisitedPath: Route;
 
-    /** Initial url */
     initialUrl: string | null;
 
     /** Fired when react-navigation is ready */
@@ -79,7 +78,7 @@ function trackFullstoryPageView(state: NavigationState) {
 /**
  * Intercept navigation state changes and log it
  */
-function parseAndLogRoute(state: NavigationState) {
+function parseAndLogRoute(state: NavigationState, authenticated: boolean) {
     if (!state) {
         return;
     }
@@ -88,7 +87,8 @@ function parseAndLogRoute(state: NavigationState) {
 
     const focusedRoute = findFocusedRoute(state);
 
-    if (focusedRoute && !CONST.EXCLUDE_FROM_LAST_VISITED_PATH.includes(focusedRoute?.name)) {
+    // Signed-out screens are never restored, and saving one would overwrite the page a forced re-auth returns to.
+    if (authenticated && focusedRoute && !CONST.EXCLUDE_FROM_LAST_VISITED_PATH.includes(focusedRoute?.name)) {
         updateLastVisitedPath(currentPath);
         if (currentPath.startsWith(`/${ROUTES.ONBOARDING_ROOT.route}`)) {
             updateOnboardingLastVisitedPath(currentPath);
@@ -280,7 +280,7 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
         Sentry.addBreadcrumb({message: `[NAVIGATION] screen: ${currentRoute?.name}, params: ${JSON.stringify(currentRoute?.params ?? {})}`, category: 'navigation'});
 
         updateCurrentReportID(state);
-        parseAndLogRoute(state);
+        parseAndLogRoute(state, authenticated);
 
         // We want to clean saved scroll offsets for screens that aren't anymore in the state.
         cleanStaleScrollOffsets(state);

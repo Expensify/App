@@ -69,40 +69,20 @@ type MoneyRequestOptions = Record<
 >;
 
 type AttachmentPickerWithMenuItemsProps = {
-    /** The report currently being looked at */
     report: OnyxEntry<OnyxTypes.Report>;
-
-    /** The personal details of the current user */
     currentUserPersonalDetails: OnyxTypes.PersonalDetails;
-
-    /** Callback when the attachment is picked */
     onAttachmentPicked: (url: FileObject | FileObject[]) => void;
 
     /** Whether or not the full size composer is available */
     isFullComposerAvailable: boolean;
 
-    /** Whether or not the composer is full size */
     isComposerFullSize: boolean;
-
-    /** Whether or not the attachment picker is disabled */
     disabled?: boolean;
-
-    /** Sets the menu visibility */
     setMenuVisibility: (isVisible: boolean) => void;
-
-    /** Whether or not the menu is visible */
     isMenuVisible: boolean;
-
-    /** Report ID */
     reportID: string;
-
-    /** Called when opening the attachment picker */
     onTriggerAttachmentPicker: () => void;
-
-    /** Called when cancelling the attachment picker */
     onCanceledAttachmentPicker?: () => void;
-
-    /** Called when the menu with the items is closed after it was open */
     onMenuClosed?: () => void;
 
     /** Called when the add action button is pressed */
@@ -111,7 +91,6 @@ type AttachmentPickerWithMenuItemsProps = {
     /** Called when the menu item is selected */
     onItemSelected: () => void;
 
-    /** A ref for the add action button */
     actionButtonRef: React.RefObject<HTMLDivElement | View | null>;
 
     /** A function that toggles isScrollLikelyLayoutTriggered flag for a certain period of time */
@@ -196,6 +175,7 @@ function AttachmentPickerWithMenuItems({
     const hasViolations = hasViolationsReportUtils(undefined, transactionViolations, accountID, '');
     const shouldShowEmptyReportConfirmation = useShouldShowEmptyReportConfirmation(report?.policyID);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const {getCurrencyDecimals} = useCurrencyListActions();
 
     const selectOption = useCallback(
@@ -229,6 +209,7 @@ function AttachmentPickerWithMenuItems({
                         betas,
                         isTrackIntentUser,
                         getCurrencyDecimals,
+                        rules,
                         true,
                         shouldDismissEmptyReportsConfirmation,
                     ),
@@ -240,7 +221,7 @@ function AttachmentPickerWithMenuItems({
         if (shouldShowEmptyReportConfirmation) {
             openCreateReportConfirmation();
         } else {
-            createNewReport(currentUserPersonalDetails, isASAPSubmitBetaEnabled, hasViolations, policy, betas, isTrackIntentUser, getCurrencyDecimals, true, false);
+            createNewReport(currentUserPersonalDetails, isASAPSubmitBetaEnabled, hasViolations, policy, betas, isTrackIntentUser, getCurrencyDecimals, rules, true, false);
         }
     };
 
@@ -332,7 +313,7 @@ function AttachmentPickerWithMenuItems({
             ],
         };
 
-        const moneyRequestOptionsList = temporary_getMoneyRequestOptions(report, policy, reportParticipantIDs ?? [], betas, isReportArchived, isRestrictedToPreferredPolicy).map(
+        const moneyRequestOptionsList = temporary_getMoneyRequestOptions(report, policy, reportParticipantIDs ?? [], betas, rules, isReportArchived, isRestrictedToPreferredPolicy).map(
             (option) => options[option],
         );
 
@@ -354,6 +335,7 @@ function AttachmentPickerWithMenuItems({
         icons,
         betas,
         draftTransactionIDs,
+        rules,
     ]);
 
     const createReportOption: PopoverMenuItem[] = useMemo(() => {

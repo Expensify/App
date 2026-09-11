@@ -42,6 +42,7 @@ import {
     enablePolicyAutoReimbursementLimit,
     enablePolicyConnections,
     enablePolicyHR,
+    enablePolicyInvoiceFields,
     enablePolicyInvoicing,
     enablePolicyReportFields,
     enablePolicyRules,
@@ -136,6 +137,7 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
     const policyData = usePolicyData(policyID);
     const policyDataRef = useRef(policyData);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
     useEffect(() => {
         policyDataRef.current = policyData;
@@ -175,6 +177,8 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
                         return;
                     }
                 }
+            case CONST.UPGRADE_FEATURE_INTRO_MAPPING.invoiceFields.id:
+                return Navigation.goBack(ROUTES.WORKSPACE_INVOICES.getRoute(policyID));
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.companyCards.id:
                 return route.params.backTo ? Navigation.goBack(route.params.backTo) : Navigation.goBack();
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.rules.id:
@@ -266,6 +270,9 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
                     }
                 }
                 break;
+            case CONST.UPGRADE_FEATURE_INTRO_MAPPING.invoiceFields.id:
+                enablePolicyInvoiceFields(policyID, true);
+                break;
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.rules.id:
                 // Re-enabling would re-run the sidebar's "just enabled" highlight on a row that already shows.
                 if (!policy?.areRulesEnabled) {
@@ -292,7 +299,7 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
                 break;
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.id:
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvalSubmit.id:
-                setWorkspaceApprovalMode(policy, defaultApprover, CONST.POLICY.APPROVAL_MODE.ADVANCED, accountID, email, isTrackIntentUser);
+                setWorkspaceApprovalMode(policy, defaultApprover, CONST.POLICY.APPROVAL_MODE.ADVANCED, accountID, email, isTrackIntentUser, rules);
                 break;
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvalSubmitReport.id:
                 break;
@@ -355,6 +362,7 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
         categoryId,
         getReviewWorkspaceSettingsTaskCompletion,
         isTrackIntentUser,
+        rules,
     ]);
 
     useWorkspaceUpgradeConfirmation({

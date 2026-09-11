@@ -44,16 +44,6 @@ rulesdir.RULES_DIR = [expensifyRulesDir, localRulesDir];
 
 const restrictedImportPaths = [
     {
-        name: '@components/Button',
-        importNames: ['default'],
-        message: 'The legacy Button is deprecated. Please use the composed Button from `@components/ButtonComposed` instead. Importing the `ButtonProps` type from here is still allowed.',
-    },
-    {
-        name: '@src/components/Button',
-        importNames: ['default'],
-        message: 'The legacy Button is deprecated. Please use the composed Button from `@components/ButtonComposed` instead. Importing the `ButtonProps` type from here is still allowed.',
-    },
-    {
         name: 'react-native',
         importNames: [
             'useWindowDimensions',
@@ -280,7 +270,9 @@ const config = defineConfig([
 
         languageOptions: {
             parserOptions: {
-                project: path.resolve(projectRoot, 'tsconfig.json'),
+                // The app project, not the root solution: the solution owns no files, so typed linting
+                // has nothing to resolve against there.
+                project: path.resolve(projectRoot, 'tsconfig.app.json'),
                 projectService: false,
             },
 
@@ -722,7 +714,10 @@ const config = defineConfig([
     },
 
     {
-        files: ['scripts/**/*.ts', 'tests/tooling/**/*.ts', 'server/{libs,plugins,stubs}/**/*.{ts,tsx}', 'evals/**/*.ts'],
+        // `prompts` is not Bun code, but the Bun program is the one that owns it: `scripts`,
+        // `evals` and `tests/tooling` are its callers. (The Node program lists it too, for the
+        // Proposal Police GitHub Action.)
+        files: ['scripts/**/*.ts', 'tests/tooling/**/*.ts', 'server/{libs,plugins,stubs}/**/*.{ts,tsx}', 'evals/**/*.ts', 'prompts/**/*.ts'],
         languageOptions: {
             parserOptions: {
                 project: path.resolve(projectRoot, 'tsconfig.bun.json'),
