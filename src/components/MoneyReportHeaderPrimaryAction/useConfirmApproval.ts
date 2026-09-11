@@ -11,8 +11,8 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {isSubmitPolicy} from '@libs/PolicyUtils';
 import {hasHeldExpensesFromTransactions as hasHeldExpensesReportUtils, hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
 
-import type {AdditionalPayOnyxData} from '@userActions/IOU/PayMoneyRequest';
 import {approveMoneyRequest} from '@userActions/IOU/ReportWorkflow';
+import type AdditionalPayOnyxData from '@userActions/IOU/types/AdditionalPayOnyxData';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
