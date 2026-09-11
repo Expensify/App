@@ -132,6 +132,34 @@ describe('AccountSwitcher', () => {
         expect(screen.getByTestId(`PopoverMenuItem-${DELEGATOR_DISPLAY_NAME}`)).toBeOnTheScreen();
     });
 
+    it('reserves the Switch button row while an account switch reloads the account data', async () => {
+        await addDelegator();
+
+        renderAccountSwitcher();
+        await waitForBatchedUpdatesWithAct();
+
+        expect(screen.getByText(SWITCH_BUTTON_TEXT)).toBeOnTheScreen();
+        expect(screen.queryByTestId(CONST.ACCOUNT_SWITCHER_BUTTON_PLACEHOLDER_TEST_ID)).toBeNull();
+
+        // Connecting as a delegate wipes ONYXKEYS.ACCOUNT and refetches it, so the button goes away
+        // for the length of that request while the name and email stay on screen.
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.ACCOUNT, null);
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        expect(screen.queryByText(SWITCH_BUTTON_TEXT)).toBeNull();
+        expect(screen.getByTestId(CONST.ACCOUNT_SWITCHER_BUTTON_PLACEHOLDER_TEST_ID)).toBeOnTheScreen();
+    });
+
+    it('does not reserve the Switch button row for a user who has never been able to switch accounts', async () => {
+        renderAccountSwitcher();
+        await waitForBatchedUpdatesWithAct();
+
+        expect(screen.queryByText(SWITCH_BUTTON_TEXT)).toBeNull();
+        expect(screen.queryByTestId(CONST.ACCOUNT_SWITCHER_BUTTON_PLACEHOLDER_TEST_ID)).toBeNull();
+    });
+
     it('does not open the account switcher popover when the name or email is pressed', async () => {
         await addDelegator();
 
