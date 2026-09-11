@@ -1,0 +1,38 @@
+diff --git a/node_modules/react-native-onyx/dist/Onyx.d.ts b/node_modules/react-native-onyx/dist/Onyx.d.ts
+index b9848a6..c4045b1 100644
+--- a/node_modules/react-native-onyx/dist/Onyx.d.ts
++++ b/node_modules/react-native-onyx/dist/Onyx.d.ts
+@@ -1,4 +1,5 @@
+ import * as Logger from './Logger';
++import type { ReadonlyDeep } from 'type-fest';
+ import type { CollectionKeyBase, ConnectOptions, InitOptions, OnyxKey, OnyxMergeCollectionInput, OnyxMergeInput, OnyxMultiSetInput, OnyxSetCollectionInput, OnyxSetInput, OnyxUpdate, OnyxValue, SetOptions } from './types';
+ import type { Connection } from './OnyxConnectionManager';
+ /** Initialize the store with actions and listening for storage events */
+@@ -170,7 +171,7 @@ declare function setCollection<TKey extends CollectionKeyBase>(collectionKey: TK
+  * @param key ONYXKEY to read, either a collection key or a single key
+  * @returns The current value, or `undefined` if the key has none.
+  */
+-declare function get<TKey extends OnyxKey>(key: TKey): Promise<OnyxValue<TKey>>;
++declare function get<TKey extends OnyxKey>(key: TKey): Promise<ReadonlyDeep<OnyxValue<TKey>>>;
+ declare const Onyx: {
+     METHOD: {
+         readonly SET: "set";
+diff --git a/node_modules/react-native-onyx/dist/types.d.ts b/node_modules/react-native-onyx/dist/types.d.ts
+index cb91605..f974c46 100644
+--- a/node_modules/react-native-onyx/dist/types.d.ts
++++ b/node_modules/react-native-onyx/dist/types.d.ts
+@@ -1,4 +1,4 @@
+-import type { Merge } from 'type-fest';
++import type { Merge, ReadonlyDeep } from 'type-fest';
+ import type OnyxUtils from './OnyxUtils';
+ import type { OnyxMethod } from './OnyxUtils';
+ import type { FastMergeReplaceNullPatch } from './utils';
+@@ -219,7 +219,7 @@ type OnyxCollectionInputValue<TOnyxValue> = OnyxInputValue<Record<string, TOnyxV
+  * Setting a key to `null` will remove the key from the store.
+  * `undefined` is not allowed for setting values, because it will have no effect on the data.
+  */
+-type OnyxInput<TKey extends OnyxKey> = OnyxInputValue<NullishDeep<KeyValueMapping[TKey]>>;
++type OnyxInput<TKey extends OnyxKey> = ReadonlyDeep<OnyxInputValue<NullishDeep<KeyValueMapping[TKey]>>>;
+ /**
+  * Represents a mapping object where each `OnyxKey` maps to either a value of its corresponding type in `KeyValueMapping` or `null`.
+  *
