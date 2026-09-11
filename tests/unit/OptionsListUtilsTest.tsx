@@ -10306,10 +10306,12 @@ describe('OptionsListUtils', () => {
                     report,
                     personalDetails: {...PERSONAL_DETAILS, [ownerAccountID]: {accountID: ownerAccountID, login: SUBMITTER_LOGIN, displayName: 'Submitter'}},
                     privateIsArchived: undefined,
+                    rules: undefined,
                     policy: undefined,
                     sortedActions: {[reportID]: [reimbursedAction]},
                     conciergeReportID: undefined,
                     config: {showChatPreviewLine: true},
+                    convertToDisplayString,
                 };
             };
 
