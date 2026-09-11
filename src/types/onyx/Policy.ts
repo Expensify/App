@@ -2469,9 +2469,6 @@ type BusinessCentralCompany = {
 
     /** Name shown to admins when picking a company */
     displayName: string;
-
-    /** Currency code the company reports in */
-    currencyCode: string;
 };
 
 /**
@@ -2483,9 +2480,6 @@ type BusinessCentralDimensionValue = {
 
     /** Name of the value */
     name: string;
-
-    /** Whether Business Central blocks the value from being posted to */
-    blocked: boolean;
 };
 
 /**
@@ -2518,6 +2512,9 @@ type BusinessCentralVendor = {
     /** Email address associated with the vendor */
     email: string;
 
+    /** Blocked state reported by Business Central, empty when the vendor is not blocked */
+    blocked: string;
+
     /** Expensify identifier stored on the vendor by the Business Central extension */
     expensifyVendorId: string;
 
@@ -2529,14 +2526,14 @@ type BusinessCentralVendor = {
  * Payment method retrieved from Business Central.
  */
 type BusinessCentralPaymentMethod = {
+    /** Unique identifier of the payment method */
+    id: string;
+
     /** Code identifying the payment method */
     code: string;
 
-    /** Description of the payment method */
-    description: string;
-
-    /** Number of the balancing account the payment method posts to */
-    balAccountNumber: string;
+    /** Name of the payment method */
+    name: string;
 };
 
 /**
@@ -2558,16 +2555,16 @@ type BusinessCentralBankAccount = {
  */
 type BusinessCentralVATPostingSetup = {
     /** VAT business posting group the setup applies to */
-    vatBusPostingGroup: string;
+    vatBusinessPostingGroup: string;
 
     /** VAT product posting group the setup applies to */
-    vatProdPostingGroup: string;
+    vatProductPostingGroup: string;
 
     /** Identifier of the VAT rate */
     vatIdentifier: string;
 
     /** VAT percentage the setup applies */
-    vatPercent: number;
+    vatPercentage: number;
 };
 
 /**
@@ -2591,6 +2588,29 @@ type BusinessCentralConnectionData = {
 
     /** VAT posting setups of the selected company */
     vatPostingSetups?: BusinessCentralVATPostingSetup[];
+};
+
+/**
+ * Expensify setup record of the selected company, written by the Business Central extension.
+ */
+type BusinessCentralSetup = {
+    /** Unique identifier of the setup record */
+    id: string;
+
+    /** General journal template the connection posts to */
+    genJournalTemplateName: string;
+
+    /** General journal batch the connection posts to */
+    genJournalBatchName: string;
+
+    /** Template applied to employees the connection creates */
+    defaultEmployeeTemplate: string;
+
+    /** Template applied to vendors the connection creates */
+    defaultVendorTemplate: string;
+
+    /** When the setup record was last modified in Business Central */
+    lastModifiedDateTime: string;
 };
 
 /**
@@ -2648,6 +2668,9 @@ type BusinessCentralConnectionsConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** ID of the company the workspace syncs with */
         companyID: string;
+
+        /** Setup record read from the selected company */
+        setup?: BusinessCentralSetup;
 
         /** Whether the connection has been configured */
         isConfigured: boolean;
