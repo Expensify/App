@@ -738,7 +738,7 @@ type ReadonlyOnyx<T> = ReadonlyDeep<T>;
 
 /**
  * `ReadonlyOnyx` applied to the Onyx wrapper types, so a call site reads `ReadonlyOnyxEntry<Transaction>`
- * instead of `ReadonlyOnyx<OnyxEntry<Transaction>>`. Each is a definitionally-identical, shorter drop-in
+ * instead of `ReadonlyOnyx<OnyxEntry<Transaction>>`. Each is an identical, shorter drop-in
  * for that inline form — the deep readonly wrapper distributes over the union.
  *
  * A readonly `OnyxEntry` — the shape a `useOnyx` read hands back.
