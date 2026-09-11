@@ -149,11 +149,11 @@ function convertToDisplayStringEnLocale(amountInCents: number, currency: string 
 }
 
 /**
- * Same as convertToDisplayStringWithoutCurrency but always formats with the `en` locale, with decimals
- * injected. Used alongside convertToDisplayStringEnLocale for stored values (e.g. formula-computed
- * report titles) that must not depend on the viewer's locale or this module's Onyx fallback.
+ * Given an amount in "cents", format it for the passed locale without the currency symbol. Decimals are
+ * injected so this function does not depend on this module's Onyx fallback.
  */
-function convertToDisplayStringWithoutCurrencyEnLocale(
+function convertToDisplayStringWithoutCurrencyForLocale(
+    locale: Locale | undefined,
     amountInCents: number,
     currency: string | undefined,
     getCurrencyDecimalsImpl: CurrencyListActionsContextType['getCurrencyDecimals'],
@@ -161,7 +161,7 @@ function convertToDisplayStringWithoutCurrencyEnLocale(
     const sanitizedCurrency = sanitizeCurrencyCode(currency);
     const decimals = getCurrencyDecimalsImpl(sanitizedCurrency);
     const convertedAmount = convertToFrontendAmountAsInteger(amountInCents, decimals);
-    return formatToParts(CONST.LOCALES.EN, convertedAmount, {
+    return formatToParts(locale, convertedAmount, {
         style: 'currency',
         currency: sanitizedCurrency,
 
@@ -175,6 +175,19 @@ function convertToDisplayStringWithoutCurrencyEnLocale(
         .filter((x) => x.type !== 'literal' || x.value.trim().length !== 0)
         .map((x) => x.value)
         .join('');
+}
+
+/**
+ * Same as convertToDisplayStringWithoutCurrency but always formats with the `en` locale, with decimals
+ * injected. Used alongside convertToDisplayStringEnLocale for stored values (e.g. formula-computed
+ * report titles) that must not depend on the viewer's locale or this module's Onyx fallback.
+ */
+function convertToDisplayStringWithoutCurrencyEnLocale(
+    amountInCents: number,
+    currency: string | undefined,
+    getCurrencyDecimalsImpl: CurrencyListActionsContextType['getCurrencyDecimals'],
+): string {
+    return convertToDisplayStringWithoutCurrencyForLocale(CONST.LOCALES.EN, amountInCents, currency, getCurrencyDecimalsImpl);
 }
 
 /**
@@ -226,5 +239,6 @@ export {
     convertToDisplayStringEnLocale,
     convertAmountToDisplayString,
     convertToDisplayStringWithoutCurrencyEnLocale,
+    convertToDisplayStringWithoutCurrencyForLocale,
     convertToShortDisplayString,
 };
