@@ -92,6 +92,7 @@ function UpgradeIntro({feature, onUpgrade, buttonDisabled, loading, isCategorizi
         'RilletSquare',
         'DualEntrySquare',
         'CampfireSquare',
+        'BusinessCentralSquare',
         'AdvancedApprovalsSquare',
         'Unlock',
     ]);

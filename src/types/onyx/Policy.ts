@@ -3601,6 +3601,4 @@ export type {
     CampfireConnectionsConfig,
     CampfireSubsidiary,
     BusinessCentralCompany,
-    BusinessCentralConnectionData,
-    BusinessCentralConnectionsConfig,
 };
