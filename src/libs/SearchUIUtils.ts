@@ -132,6 +132,7 @@ import {
     getSubmitToAccountID,
     getTagGLCode,
     isArchivedOrPendingDeletePolicy,
+    isControlPolicy,
     isGroupPolicy,
     isPaidGroupPolicy,
     isPolicyAdmin,
@@ -1234,7 +1235,7 @@ function getSuggestedSearchesVisibility(
         const isEligibleForTopCategoriesSuggestion = isGroupPolicyEligible && policy.areCategoriesEnabled === true;
         const isEligibleForTopMerchantsSuggestion = isGroupPolicyEligible;
         const isEligibleForViolationsBySubmitterSuggestion =
-            isGroupPolicyEligible &&
+            isControlPolicy(policy) &&
             (isAdmin || isAuditor) &&
             arePolicyRulesEnabled(policy, policy.id ? policyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policy.id}`] : undefined) &&
             memberCount >= 2;
