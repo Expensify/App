@@ -66,6 +66,7 @@ import type {
     Policy,
     PolicyCategories,
     PolicyTagLists,
+    ReadonlyOnyxInputOrEntry,
     RecentWaypoint,
     Report,
     ReviewDuplicates,
@@ -3753,7 +3754,7 @@ function getSelectedRouteDistance(transaction: OnyxEntry<Transaction>): number |
  * picking an alternate route, that route's distance — so the comparison has to be against the *selected* route and not
  * the primary one, or every alternate route selection would look like an override.
  */
-function hasManualDistanceOverride(transaction: OnyxInputOrEntry<Transaction>): boolean {
+function hasManualDistanceOverride(transaction: ReadonlyOnyxInputOrEntry<Transaction>): boolean {
     const quantity = transaction?.comment?.customUnit?.quantity;
     const selectedRouteDistanceInMeters = transaction?.routes?.[getSelectedRouteKey(transaction)]?.distance;
     if (quantity == null || !selectedRouteDistanceInMeters) {

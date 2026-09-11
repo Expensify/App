@@ -9,6 +9,7 @@ import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, PolicyCategories, PolicyTagLists, Report, Transaction, TransactionViolation} from '@src/types/onyx';
 import type {TransactionCollectionDataSet} from '@src/types/onyx/Transaction';
+import isArray from '@src/types/utils/isArray';
 
 import Onyx from 'react-native-onyx';
 
@@ -971,7 +972,7 @@ describe('getViolationsOnyxData', () => {
                 isInvoiceTransaction: false,
             });
             const violations = getTransactionViolationsFromResult(result);
-            const itemizedReceiptViolation = violations.find((v: TransactionViolation) => v.name === CONST.VIOLATIONS.ITEMIZED_RECEIPT_REQUIRED);
+            const itemizedReceiptViolation = violations.find((v) => v.name === CONST.VIOLATIONS.ITEMIZED_RECEIPT_REQUIRED);
             expect(itemizedReceiptViolation).toBeDefined();
             expect(itemizedReceiptViolation?.type).toBe(CONST.VIOLATION_TYPES.VIOLATION);
         });
@@ -993,7 +994,7 @@ describe('getViolationsOnyxData', () => {
                 isInvoiceTransaction: false,
             });
             const violations = getTransactionViolationsFromResult(result);
-            const foundReceiptRequiredViolation = violations.find((v: TransactionViolation) => v.name === CONST.VIOLATIONS.RECEIPT_REQUIRED);
+            const foundReceiptRequiredViolation = violations.find((v) => v.name === CONST.VIOLATIONS.RECEIPT_REQUIRED);
             expect(foundReceiptRequiredViolation).toBeUndefined();
         });
 
@@ -1014,8 +1015,8 @@ describe('getViolationsOnyxData', () => {
                 isInvoiceTransaction: false,
             });
             const violations = getTransactionViolationsFromResult(result);
-            const receiptViolation = violations.find((v: TransactionViolation) => v.name === CONST.VIOLATIONS.RECEIPT_REQUIRED);
-            const itemizedReceiptViolation = violations.find((v: TransactionViolation) => v.name === CONST.VIOLATIONS.ITEMIZED_RECEIPT_REQUIRED);
+            const receiptViolation = violations.find((v) => v.name === CONST.VIOLATIONS.RECEIPT_REQUIRED);
+            const itemizedReceiptViolation = violations.find((v) => v.name === CONST.VIOLATIONS.ITEMIZED_RECEIPT_REQUIRED);
             // Should have itemized receipt violation but NOT regular receipt violation
             expect(itemizedReceiptViolation).toBeDefined();
             expect(receiptViolation).toBeUndefined();
@@ -1038,7 +1039,7 @@ describe('getViolationsOnyxData', () => {
                 isInvoiceTransaction: false,
             });
             const violations = getTransactionViolationsFromResult(result);
-            const itemizedReceiptViolation = violations.find((v: TransactionViolation) => v.name === CONST.VIOLATIONS.ITEMIZED_RECEIPT_REQUIRED);
+            const itemizedReceiptViolation = violations.find((v) => v.name === CONST.VIOLATIONS.ITEMIZED_RECEIPT_REQUIRED);
             expect(itemizedReceiptViolation).toBeUndefined();
         });
 
@@ -1059,12 +1060,12 @@ describe('getViolationsOnyxData', () => {
                 isInvoiceTransaction: false,
             });
             const violations = getTransactionViolationsFromResult(result);
-            const itemizedReceiptViolation = violations.find((v: TransactionViolation) => v.name === CONST.VIOLATIONS.ITEMIZED_RECEIPT_REQUIRED);
+            const itemizedReceiptViolation = violations.find((v) => v.name === CONST.VIOLATIONS.ITEMIZED_RECEIPT_REQUIRED);
             expect(itemizedReceiptViolation).toBeUndefined();
         });
 
         describe('multi-day reservations are measured against the nightly rate', () => {
-            const getViolations = (): TransactionViolation[] => {
+            const getViolations = () => {
                 const result = ViolationsUtils.getViolationsOnyxData({
                     ownerLogin: undefined,
                     updatedTransaction: transaction,
@@ -1075,10 +1076,10 @@ describe('getViolationsOnyxData', () => {
                     hasDependentTags: false,
                     isInvoiceTransaction: false,
                 });
-                return Array.isArray(result.value) ? result.value : [];
+                return isArray(result.value) ? result.value : [];
             };
 
-            const findOverLimit = (violations: TransactionViolation[]) => violations.find((violation) => violation.name === CONST.VIOLATIONS.OVER_LIMIT);
+            const findOverLimit = (violations: ReturnType<typeof getViolations>) => violations.find((violation) => violation.name === CONST.VIOLATIONS.OVER_LIMIT);
 
             it('should add overLimit violation when the total amount exceeds the workspace limit, regardless of nightly average', () => {
                 // 5 nights: nightly average equals the limit, but the total is 5x over it
@@ -1173,7 +1174,7 @@ describe('getViolationsOnyxData', () => {
         });
 
         describe('multi-day reservations are measured against the category nightly rate', () => {
-            const getViolations = (): TransactionViolation[] => {
+            const getViolations = () => {
                 const result = ViolationsUtils.getViolationsOnyxData({
                     ownerLogin: undefined,
                     updatedTransaction: transaction,
@@ -1184,10 +1185,10 @@ describe('getViolationsOnyxData', () => {
                     hasDependentTags: false,
                     isInvoiceTransaction: false,
                 });
-                return Array.isArray(result.value) ? result.value : [];
+                return isArray(result.value) ? result.value : [];
             };
 
-            const findCategoryOverLimit = (violations: TransactionViolation[]) => violations.find((violation) => violation.name === CONST.VIOLATIONS.OVER_CATEGORY_LIMIT);
+            const findCategoryOverLimit = (violations: ReturnType<typeof getViolations>) => violations.find((violation) => violation.name === CONST.VIOLATIONS.OVER_CATEGORY_LIMIT);
 
             beforeEach(() => {
                 transaction.category = 'Hotel';
@@ -1305,7 +1306,7 @@ describe('getViolationsOnyxData', () => {
                 isInvoiceTransaction: false,
             });
             const violations = getTransactionViolationsFromResult(result);
-            const itemizedReceiptViolation = violations.find((v: TransactionViolation) => v.name === CONST.VIOLATIONS.ITEMIZED_RECEIPT_REQUIRED);
+            const itemizedReceiptViolation = violations.find((v) => v.name === CONST.VIOLATIONS.ITEMIZED_RECEIPT_REQUIRED);
             expect(itemizedReceiptViolation).toBeDefined();
             expect(itemizedReceiptViolation?.data).toBeUndefined(); // Category-level violations don't have data
         });
@@ -1325,7 +1326,7 @@ describe('getViolationsOnyxData', () => {
                 isInvoiceTransaction: false,
             });
             const violations = getTransactionViolationsFromResult(result);
-            const itemizedReceiptViolation = violations.find((v: TransactionViolation) => v.name === CONST.VIOLATIONS.ITEMIZED_RECEIPT_REQUIRED);
+            const itemizedReceiptViolation = violations.find((v) => v.name === CONST.VIOLATIONS.ITEMIZED_RECEIPT_REQUIRED);
             expect(itemizedReceiptViolation).toBeUndefined(); // Category "Never" should override policy
         });
 
@@ -1344,7 +1345,7 @@ describe('getViolationsOnyxData', () => {
                 isInvoiceTransaction: false,
             });
             const violations = getTransactionViolationsFromResult(result);
-            const itemizedReceiptViolation = violations.find((v: TransactionViolation) => v.name === CONST.VIOLATIONS.ITEMIZED_RECEIPT_REQUIRED);
+            const itemizedReceiptViolation = violations.find((v) => v.name === CONST.VIOLATIONS.ITEMIZED_RECEIPT_REQUIRED);
             expect(itemizedReceiptViolation).toBeDefined(); // Should follow policy threshold
         });
 
@@ -1371,8 +1372,8 @@ describe('getViolationsOnyxData', () => {
             const violations = getTransactionViolationsFromResult(result);
 
             // Then the itemized violation should be removed and replaced with receiptRequired because the policy still requires receipts
-            const itemizedViolation = violations.find((v: TransactionViolation) => v.name === CONST.VIOLATIONS.ITEMIZED_RECEIPT_REQUIRED);
-            const receiptViolation = violations.find((v: TransactionViolation) => v.name === CONST.VIOLATIONS.RECEIPT_REQUIRED);
+            const itemizedViolation = violations.find((v) => v.name === CONST.VIOLATIONS.ITEMIZED_RECEIPT_REQUIRED);
+            const receiptViolation = violations.find((v) => v.name === CONST.VIOLATIONS.RECEIPT_REQUIRED);
             expect(itemizedViolation).toBeUndefined();
             expect(receiptViolation).toBeDefined();
         });
@@ -1399,7 +1400,7 @@ describe('getViolationsOnyxData', () => {
             const violations = getTransactionViolationsFromResult(result);
 
             // Then the violation should have updated threshold data to reflect the current policy settings
-            const itemizedViolation = violations.find((v: TransactionViolation) => v.name === CONST.VIOLATIONS.ITEMIZED_RECEIPT_REQUIRED);
+            const itemizedViolation = violations.find((v) => v.name === CONST.VIOLATIONS.ITEMIZED_RECEIPT_REQUIRED);
             expect(itemizedViolation).toBeDefined();
             expect(itemizedViolation?.data?.amount).toBe(7500);
             expect(itemizedViolation?.data?.currency).toBe(CONST.CURRENCY.USD);
@@ -1428,8 +1429,8 @@ describe('getViolationsOnyxData', () => {
             const violations = getTransactionViolationsFromResult(result);
 
             // Then itemized should supersede receipt because itemized is more restrictive
-            const receiptViolation = violations.find((v: TransactionViolation) => v.name === CONST.VIOLATIONS.RECEIPT_REQUIRED);
-            const itemizedViolation = violations.find((v: TransactionViolation) => v.name === CONST.VIOLATIONS.ITEMIZED_RECEIPT_REQUIRED);
+            const receiptViolation = violations.find((v) => v.name === CONST.VIOLATIONS.RECEIPT_REQUIRED);
+            const itemizedViolation = violations.find((v) => v.name === CONST.VIOLATIONS.ITEMIZED_RECEIPT_REQUIRED);
             expect(receiptViolation).toBeUndefined();
             expect(itemizedViolation).toBeDefined();
         });
@@ -1457,8 +1458,8 @@ describe('getViolationsOnyxData', () => {
             const violations = getTransactionViolationsFromResult(result);
 
             // Then no receipt violations should exist because category overrides take precedence over policy settings
-            const itemizedViolation = violations.find((v: TransactionViolation) => v.name === CONST.VIOLATIONS.ITEMIZED_RECEIPT_REQUIRED);
-            const receiptViolation = violations.find((v: TransactionViolation) => v.name === CONST.VIOLATIONS.RECEIPT_REQUIRED);
+            const itemizedViolation = violations.find((v) => v.name === CONST.VIOLATIONS.ITEMIZED_RECEIPT_REQUIRED);
+            const receiptViolation = violations.find((v) => v.name === CONST.VIOLATIONS.RECEIPT_REQUIRED);
             expect(itemizedViolation).toBeUndefined();
             expect(receiptViolation).toBeUndefined();
         });
