@@ -2457,7 +2457,9 @@ describe('ReportAlternateTextUtils', () => {
                     [action.reportActionID]: action,
                 });
                 const lastMessage = getLastMessageTextForReport({
+                    rules: undefined,
                     dateFnsLocale: undefined,
+                    convertToDisplayString,
                     conciergeReportID: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     personalDetails: undefined,
@@ -2466,7 +2468,6 @@ describe('ReportAlternateTextUtils', () => {
                     lastActorDetails: null,
                     policy: undefined,
                     isReportArchived: false,
-
                     currentUserLogin: CURRENT_USER_LOGIN,
                 });
                 expect(lastMessage).toBe(getOverLimitForwardsToUpdateMessage(translateLocal, action, convertToDisplayString));
@@ -2491,7 +2492,9 @@ describe('ReportAlternateTextUtils', () => {
                     [action.reportActionID]: action,
                 });
                 const lastMessage = getLastMessageTextForReport({
+                    rules: undefined,
                     dateFnsLocale: undefined,
+                    convertToDisplayString,
                     conciergeReportID: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     personalDetails: undefined,
@@ -2500,7 +2503,6 @@ describe('ReportAlternateTextUtils', () => {
                     lastActorDetails: null,
                     policy: undefined,
                     isReportArchived: false,
-
                     currentUserLogin: CURRENT_USER_LOGIN,
                 });
                 expect(lastMessage).toBe(getApprovalLimitUpdateMessage(translateLocal, action, convertToDisplayString));
