@@ -35,7 +35,7 @@ import {View} from 'react-native';
 import type {PopoverMenuItem} from './PopoverMenu';
 
 import UserAvatar from './Avatar/UserAvatar';
-import Button from './ButtonComposed';
+import Button from './Button';
 import {ModalActions} from './Modal/Global/ModalContext';
 import PopoverMenu from './PopoverMenu';
 import {useProductTrainingContext} from './ProductTrainingContext';
@@ -44,7 +44,7 @@ import Tooltip from './Tooltip';
 import EducationalTooltip from './Tooltip/EducationalTooltip';
 
 type AccountSwitcherProps = {
-    /* Whether the screen is focused. Used to hide the product training tooltip */
+    /** Whether the screen is focused. Used to hide the product training tooltip */
     isScreenFocused: boolean;
 };
 
