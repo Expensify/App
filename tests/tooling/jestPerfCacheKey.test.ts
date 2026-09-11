@@ -3,18 +3,11 @@ import {describe, expect, it} from 'bun:test';
 import fs from 'fs';
 
 /**
- * reassurePerformanceTests.yml restores a Jest transform cache that seedJestPerfCache.yml writes.
- * Two agreements between those files have to hold, and neither file references the other, so
- * reading either one alone cannot tell you whether it still does:
- *
- * 1. Every copy of the cache key is byte-identical - a restore keyed differently from the save is a
- *    permanent miss and the perf jobs just go cold again. (test.yml caches the same .jest-cache
- *    path under its own key and policy; deliberate, and out of scope here.)
- * 2. Both workflows run on one runner class, so the transform output is interchangeable between
- *    them. The same holds for the baseline the seed measures, once the perf workflow reads it
- *    instead of measuring its own: that key hashes only runner.os and runner.arch, neither of which
- *    moves with a vcpu count, so a split class would not rotate the key - it would compare
- *    durations across hardware on a check gated at DURATION_DEVIATION_PERCENTAGE: 20.
+ * reassurePerformanceTests.yml restores a Jest transform cache that seedJestPerfCache.yml writes, and
+ * neither file references the other, so two agreements are asserted from outside both: one cache key,
+ * byte-identical, or every restore is a permanent miss; and one runner class, or the transform output
+ * is not interchangeable and the durations are compared across hardware. (test.yml caches the same
+ * path under its own key and policy; out of scope here.)
  */
 
 const PERF_WORKFLOW = '.github/workflows/reassurePerformanceTests.yml';
@@ -26,9 +19,8 @@ type Job = {'runs-on'?: string; steps?: Step[]};
 type Workflow = {jobs: Record<string, Job>};
 
 function readWorkflow(path: string): Workflow {
-    // Bun.YAML rather than js-yaml: js-yaml is only present as a hoisted transitive at v3 while the
-    // repo declares @types/js-yaml v4, so importing it would rest on an undeclared package whose
-    // types do not match its runtime.
+    // Bun.YAML rather than js-yaml: js-yaml is only a hoisted transitive at v3 while the repo declares
+    // @types/js-yaml v4, so importing it would rest on an undeclared package with mismatched types.
     // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- Bun.YAML.parse returns unknown, and every field this test reads is optional, so a shape mismatch fails an assertion rather than throwing
     return Bun.YAML.parse(fs.readFileSync(path, 'utf8')) as Workflow;
 }
