@@ -6,6 +6,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {
     Card,
+    CardList,
     PersonalDetails,
     PersonalDetailsList,
     Policy,
@@ -18,6 +19,7 @@ import type {
     Rule,
     Transaction,
     VisibleReportActionsDerivedValue,
+    WorkspaceCardsList,
 } from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
@@ -36,7 +38,7 @@ import createDynamicRoute from './Navigation/helpers/dynamicRoutesUtils/createDy
 import {getIsOffline} from './NetworkState';
 import Parser from './Parser';
 import {getLoginByAccountID, getPersonalDetailsByID, getPersonalDetailsForAccountIDs, getPersonalDetailsListByIDs, temporaryGetDisplayNameOrDefault} from './PersonalDetailsUtils';
-import {getCleanedTagName, hasDynamicExternalWorkflow} from './PolicyUtils';
+import {getCleanedTagName, hasDynamicExternalWorkflow, isPolicyAdmin} from './PolicyUtils';
 import {
     getActionableCard3DSTransactionApprovalMessage,
     getActionableCardFraudAlertResolutionMessage,
@@ -245,6 +247,7 @@ import {getAddExpensifyCardRuleMessage, getRemoveExpensifyCardRuleMessage, getUp
 import StringUtils from './StringUtils';
 import {getTaskCreatedMessage, getTaskReportActionMessage} from './TaskUtils';
 import {getAmount as getTransactionAmount, getCurrency as getTransactionCurrency, getDescription, isScanning} from './TransactionUtils';
+import {getTravelBillingFeedID} from './TravelBillingUtils';
 
 let allReports: OnyxCollection<Report>;
 // connectWithoutView is justified: this is module-level, non-render preview computation shared by LHN and Search;
@@ -1603,9 +1606,38 @@ function getReportAlternateText({
     return alternateText;
 }
 
+function getExpensifyCardFromReportAction({
+    reportAction,
+    policy,
+    cardList,
+    workspaceCardList,
+}: {
+    reportAction: OnyxEntry<ReportAction>;
+    policy: OnyxEntry<Policy>;
+    cardList: OnyxEntry<CardList>;
+    workspaceCardList: OnyxCollection<WorkspaceCardsList>;
+}): Card | undefined {
+    const workspaceAccountID = policy?.policyAccountID ?? CONST.DEFAULT_NUMBER_ID;
+
+    const cardIssuedActionOriginalMessage = isCardIssuedAction(reportAction) ? getOriginalMessage(reportAction) : undefined;
+    const cardID = cardIssuedActionOriginalMessage?.cardID ?? CONST.DEFAULT_NUMBER_ID;
+    if (!isPolicyAdmin(policy)) {
+        return cardList?.[cardID];
+    }
+
+    // Issued Expensify Cards live on one of two Onyx keys: regular cards on the 2-segment key,
+    // Travel Billing cards on the `_TRAVEL_US` variant. Check both.
+    return (
+        workspaceCardList?.[`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`]?.[cardID] ??
+        workspaceCardList?.[`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${getTravelBillingFeedID(workspaceAccountID)}`]?.[cardID] ??
+        cardList?.[cardID]
+    );
+}
+
 export {
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     deprecatedCachedOneTransactionThreadReportIDs,
+    getExpensifyCardFromReportAction,
     getLastActorDisplayName,
     getLastActorDisplayNameFromLastVisibleActions,
     getLastMessageTextForReport,
