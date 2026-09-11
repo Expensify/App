@@ -118,6 +118,7 @@ function DynamicIOURequestStepTaxRatePage({
             taxCode: '',
             taxValue: '',
             taxAmount: 0,
+            transaction: currentTransaction,
             policy,
             policyTagList: policyTags,
             policyCategories,
