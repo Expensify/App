@@ -1,6 +1,6 @@
 import type {PropsWithChildren} from 'react';
 
-import {createContext, useMemo} from 'react';
+import {createContext} from 'react';
 
 type ReportActionPosition = {
     index: number;
@@ -21,9 +21,7 @@ const ReportActionIndexContext = createContext<ReportActionPosition>({index: 0, 
 const ReportActionScrollToNewestContext = createContext<(() => void) | undefined>(undefined);
 
 function ReportActionPositionContextProvider({children, index, isNewest}: PropsWithChildren<ReportActionPosition>) {
-    const value = useMemo(() => ({index, isNewest}), [index, isNewest]);
-
-    return <ReportActionIndexContext.Provider value={value}>{children}</ReportActionIndexContext.Provider>;
+    return <ReportActionIndexContext.Provider value={{index, isNewest}}>{children}</ReportActionIndexContext.Provider>;
 }
 
 export {ReportActionPositionContextProvider, ReportActionScrollToNewestContext};
