@@ -10512,6 +10512,7 @@ const buildSplitFlowParams = async ({withExistingSplitChildren = false, asSelfDM
         getCurrencyDecimals: getCurrencyDecimalsLocal,
         formatPhoneNumber,
         getCurrencySymbol: getCurrencySymbolLocal,
+        rules: undefined,
     };
 
     return {expenseReport, iouAction, params};
