@@ -23,6 +23,7 @@ import {
     getCompanyCardFeedWithDomainIDForCard,
     getPlaidInstitutionIconUrl,
     hasCardConnectionIssue,
+    hasErrorNewerThanLastScrape,
     isActionableVirtualExpensifyCard,
     isCardConnectionBroken,
     doesCardConnectionNeedReauthentication,
@@ -321,7 +322,9 @@ function PaymentMethodList({
                     policyID: policyIDForCard,
                 });
                 const shouldShowCardConnectionMessage = !!cardConnectionStatusDisplay?.messageKey;
-                const shouldShowCardErrorMessages = !shouldShowCardConnectionMessage || !!card.pendingAction;
+                // The connection message replaces the server's own connection error, but an error recorded after the last
+                // sync came from something the user just did, so it is kept.
+                const shouldShowCardErrorMessages = !shouldShowCardConnectionMessage || !!card.pendingAction || hasErrorNewerThanLastScrape(card);
                 const shouldShowCardLastSync = shouldShowConnectionStatus && !isExpensifyCard(card) && !isCSVCard;
                 let cardLastSyncText: string | undefined;
                 if (shouldShowCardLastSync) {

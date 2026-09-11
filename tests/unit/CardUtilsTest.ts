@@ -59,6 +59,7 @@ import {
     getYearFromExpirationDateString,
     hasAssignedCardMatching,
     hasCardConnectionIssue,
+    hasErrorNewerThanLastScrape,
     hasIssuedExpensifyCard,
     hasOnlyOneCardToAssign,
     isBrokenConnectionPastDismissThreshold,
@@ -4471,6 +4472,36 @@ describe('CardUtils', () => {
         it('returns false while a scrape is pending', () => {
             const card: Card = {...createRandomCard(1), lastScrapeResult: 403, pendingFields: {lastScrape: 'update'}, errors: {connectionError: 'Broken'}};
             expect(hasCardConnectionIssue(card)).toBe(false);
+        });
+    });
+
+    describe('hasErrorNewerThanLastScrape', () => {
+        it('returns false when the card has no errors', () => {
+            const card: Card = {...createRandomCard(1), lastScrape: '2025-10-05 11:00:00', errors: undefined};
+            expect(hasErrorNewerThanLastScrape(card)).toBe(false);
+        });
+
+        // The server records the connection error at scrape time, so an error with the same timestamp is that one.
+        it('returns false for an error recorded at the last sync', () => {
+            const lastScrapeMicroseconds = new Date('2025-10-05T11:00:00').getTime() * 1000;
+            const card: Card = {...createRandomCard(1), lastScrape: '2025-10-05 11:00:00', errors: {[lastScrapeMicroseconds]: 'Connection broken'}};
+            expect(hasErrorNewerThanLastScrape(card)).toBe(false);
+        });
+
+        // A failed unassignment is recorded now, long after the last sync, and has to stay visible.
+        it('returns true for an error recorded after the last sync', () => {
+            const card: Card = {...createRandomCard(1), lastScrape: '2025-10-05 11:00:00', errors: {[Date.now() * 1000]: 'Failed to unassign this card'}};
+            expect(hasErrorNewerThanLastScrape(card)).toBe(true);
+        });
+
+        it('returns true when there is an error but no last sync to compare against', () => {
+            const card: Card = {...createRandomCard(1), lastScrape: undefined, errors: {1700000000000000: 'Failed to unassign this card'}};
+            expect(hasErrorNewerThanLastScrape(card)).toBe(true);
+        });
+
+        it('parses an ISO 8601 last sync', () => {
+            const card: Card = {...createRandomCard(1), lastScrape: '2025-10-05T11:00:00', errors: {[Date.now() * 1000]: 'Failed to unassign this card'}};
+            expect(hasErrorNewerThanLastScrape(card)).toBe(true);
         });
     });
 

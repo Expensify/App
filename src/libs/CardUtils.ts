@@ -1497,6 +1497,47 @@ function getCardConnectionStatusDisplay({
 }
 
 /**
+ * Parses a card's last sync. `card.lastScrape` is usually the Expensify DB datetime format ("2024-11-27 11:00:53"),
+ * but a personal card's value can arrive as ISO 8601 ("2024-11-27T11:00:53Z"). The DB format is tried explicitly
+ * first because its `new Date()` handling is not portable across JS engines, then `new Date()` handles ISO 8601.
+ *
+ * @param card the card to read
+ * @returns the parsed date, or undefined when there is no usable value
+ */
+function parseCardLastScrape(card: Card): Date | undefined {
+    if (!card.lastScrape) {
+        return undefined;
+    }
+    let lastScrapeDate = parse(card.lastScrape, 'yyyy-MM-dd HH:mm:ss', new Date());
+    if (Number.isNaN(lastScrapeDate.getTime())) {
+        lastScrapeDate = new Date(card.lastScrape);
+    }
+    return Number.isNaN(lastScrapeDate.getTime()) ? undefined : lastScrapeDate;
+}
+
+/**
+ * Whether the card carries an error recorded after its last sync. The server writes a connection error at scrape
+ * time, so anything newer came from something the user just did (a failed unassignment, for example) and has to stay
+ * visible even when a connection message is already on the row.
+ *
+ * @param card the card to check
+ * @returns true if an error is newer than the last sync, false otherwise
+ */
+function hasErrorNewerThanLastScrape(card: Card): boolean {
+    const errorKeys = Object.keys(card.errors ?? {});
+    if (errorKeys.length === 0) {
+        return false;
+    }
+    const lastScrapeDate = parseCardLastScrape(card);
+    if (!lastScrapeDate) {
+        return true;
+    }
+    // Error keys are microseconds, `lastScrape` is milliseconds.
+    const lastScrapeMicroseconds = lastScrapeDate.getTime() * 1000;
+    return errorKeys.some((errorKey) => Number(errorKey) > lastScrapeMicroseconds);
+}
+
+/**
  * Check whether a card's last successful sync is at least the dismiss threshold (90 days) old.
  *
  * `lastScrape` is the last successful update timestamp (a separate `lastImportAttempt` tracks
@@ -1509,18 +1550,8 @@ function getCardConnectionStatusDisplay({
  * @returns true if the last successful sync is at least the grace period old
  */
 function isLastScrapePastDismissThreshold(card: Card): boolean {
-    if (!card.lastScrape) {
-        return false;
-    }
-    // `card.lastScrape` is usually the Expensify DB datetime format ("2024-11-27 11:00:53"), but a personal card's value can
-    // arrive as ISO 8601 ("2024-11-27T11:00:53Z"). Try the DB format explicitly first (its `new Date()` handling isn't
-    // portable across JS engines), then fall back to `new Date()`, which parses ISO 8601 reliably. Without the fallback an
-    // ISO value fails the DB parse, the difference is NaN, and the connection is never dismissed (the RBR stays forever).
-    let lastScrapeDate = parse(card.lastScrape, 'yyyy-MM-dd HH:mm:ss', new Date());
-    if (Number.isNaN(lastScrapeDate.getTime())) {
-        lastScrapeDate = new Date(card.lastScrape);
-    }
-    if (Number.isNaN(lastScrapeDate.getTime())) {
+    const lastScrapeDate = parseCardLastScrape(card);
+    if (!lastScrapeDate) {
         return false;
     }
     return DateUtils.getDifferenceInDaysFromNow(lastScrapeDate) >= CONST.COMPANY_CARDS.BROKEN_CONNECTION_DISMISS_AFTER_DAYS;
@@ -2242,6 +2273,7 @@ export {
     isCardHiddenFromSearch,
     getCSVFeedType,
     getFeedType,
+    hasErrorNewerThanLastScrape,
     isCardConnectionBroken,
     hasCardConnectionIssue,
     doesCardConnectionNeedReauthentication,
