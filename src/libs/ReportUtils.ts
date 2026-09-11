@@ -38,6 +38,8 @@ import type {
     PolicyReportField,
     PolicyTagLists,
     PolicyTags,
+    ReadonlyOnyxEntry,
+    ReadonlyOnyxInputOrEntry,
     Report,
     ReportAction,
     ReportAttributesDerivedValue,
@@ -73,6 +75,7 @@ import type {PendingChatMember} from '@src/types/onyx/ReportMetadata';
 import type {OnyxData} from '@src/types/onyx/Request';
 import type {Comment, TransactionChanges, WaypointCollection} from '@src/types/onyx/Transaction';
 import type {FileObject} from '@src/types/utils/Attachment';
+import isArray from '@src/types/utils/isArray';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject, isEmptyValueObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
@@ -81,7 +84,7 @@ import type {Locale as DateFnsLocale} from 'date-fns';
 import type {ColorValue} from 'react-native';
 import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import type {SvgProps} from 'react-native-svg';
-import type {SetRequired, TupleToUnion, ValueOf} from 'type-fest';
+import type {ReadonlyDeep, SetRequired, TupleToUnion, ValueOf} from 'type-fest';
 
 /* eslint-disable max-lines */
 import {findFocusedRoute} from '@react-navigation/native';
@@ -1455,7 +1458,7 @@ function isChatReport(report: OnyxEntry<Report>): boolean {
     return report?.type === CONST.REPORT.TYPE.CHAT;
 }
 
-function isInvoiceReport(report: OnyxInputOrEntry<Report>): boolean {
+function isInvoiceReport(report: ReadonlyOnyxInputOrEntry<Report>): boolean {
     return report?.type === CONST.REPORT.TYPE.INVOICE;
 }
 
@@ -1488,7 +1491,7 @@ function isReportIDApproved(reportID: string | undefined) {
 /**
  * Checks if a report is an Expense report.
  */
-function isExpenseReport(reportOrID: OnyxInputOrEntry<Report> | string): boolean {
+function isExpenseReport(reportOrID: ReadonlyOnyxInputOrEntry<Report> | string): boolean {
     const report = typeof reportOrID === 'string' ? (getReport(reportOrID, deprecatedAllReports) ?? null) : reportOrID;
     return report?.type === CONST.REPORT.TYPE.EXPENSE;
 }
@@ -1496,7 +1499,7 @@ function isExpenseReport(reportOrID: OnyxInputOrEntry<Report> | string): boolean
 /**
  * Checks if a report is an IOU report using report or reportID
  */
-function isIOUReport(reportOrID: OnyxInputOrEntry<Report> | string): boolean {
+function isIOUReport(reportOrID: ReadonlyOnyxInputOrEntry<Report> | string): boolean {
     const report = typeof reportOrID === 'string' ? (getReport(reportOrID, deprecatedAllReports) ?? null) : reportOrID;
     return report?.type === CONST.REPORT.TYPE.IOU;
 }
@@ -1563,7 +1566,7 @@ function isReportManager(report: OnyxEntry<Report>, currentUserAccountID?: numbe
 /**
  * Checks if the supplied report has been approved
  */
-function isReportApproved({report, parentReportAction = undefined}: {report: OnyxInputOrEntry<Report>; parentReportAction?: OnyxEntry<ReportAction> | undefined}): boolean {
+function isReportApproved({report, parentReportAction = undefined}: {report: ReadonlyOnyxInputOrEntry<Report>; parentReportAction?: OnyxEntry<ReportAction> | undefined}): boolean {
     if (!report) {
         return parentReportAction?.childStateNum === CONST.REPORT.STATE_NUM.APPROVED && parentReportAction?.childStatusNum === CONST.REPORT.STATUS_NUM.APPROVED;
     }
@@ -1580,7 +1583,7 @@ function isReportManuallyReimbursed(report: OnyxEntry<Report>): boolean {
 /**
  * Checks if the supplied report is an expense report in Open state and status.
  */
-function isOpenExpenseReport(report: OnyxInputOrEntry<Report>): boolean {
+function isOpenExpenseReport(report: ReadonlyOnyxInputOrEntry<Report>): boolean {
     return isExpenseReport(report) && report?.stateNum === CONST.REPORT.STATE_NUM.OPEN && report?.statusNum === CONST.REPORT.STATUS_NUM.OPEN;
 }
 
@@ -1632,7 +1635,7 @@ function isSettled(reportOrID: OnyxInputOrEntry<Report> | string | undefined, re
  * Whether the current user is the submitter of the report
  */
 // TODO: currentUserAccountID will be required eventually so this becomes a pure function. Subscribe the data via useOnyx and pass it from the component. Refactor issue: https://github.com/Expensify/App/issues/66412
-function isCurrentUserSubmitter(report: OnyxEntry<Report>, currentUserAccountID?: number): boolean {
+function isCurrentUserSubmitter(report: ReadonlyOnyxEntry<Report>, currentUserAccountID?: number): boolean {
     return !!report && report.ownerAccountID === (currentUserAccountID ?? deprecatedCurrentUserAccountID);
 }
 
@@ -2026,11 +2029,11 @@ function shouldEnableNegative(report: OnyxEntry<Report>, policy?: OnyxEntry<Poli
 /**
  * Returns true if report is still being processed
  */
-function isProcessingReport(report: OnyxEntry<Report>): boolean {
+function isProcessingReport(report: ReadonlyOnyxEntry<Report>): boolean {
     return report?.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED && report?.statusNum === CONST.REPORT.STATUS_NUM.SUBMITTED;
 }
 
-function isOpenReport(report: OnyxEntry<Report>): boolean {
+function isOpenReport(report: ReadonlyOnyxEntry<Report>): boolean {
     return report?.stateNum === CONST.REPORT.STATE_NUM.OPEN && report?.statusNum === CONST.REPORT.STATUS_NUM.OPEN;
 }
 
@@ -2059,7 +2062,7 @@ function isReportOpenOrUnsubmitted(reportID: string | undefined, reports: OnyxCo
     return report.stateNum === CONST.REPORT.STATE_NUM.OPEN;
 }
 
-function hasReportBeenForwardedSinceLastSubmit(report: OnyxEntry<Report>, reportActions?: OnyxEntry<ReportActions>): boolean {
+function hasReportBeenForwardedSinceLastSubmit(report: ReadonlyOnyxEntry<Report>, reportActions?: OnyxEntry<ReportActions>): boolean {
     if (!report?.reportID) {
         return false;
     }
@@ -2070,7 +2073,7 @@ function hasReportBeenForwardedSinceLastSubmit(report: OnyxEntry<Report>, report
     return reportActionsArray.some((action) => isForwardedAction(action) && action.created > lastSubmittedAt);
 }
 
-function isAwaitingFirstLevelApproval(report: OnyxEntry<Report>, rules: OnyxCollection<Rule>): boolean {
+function isAwaitingFirstLevelApproval(report: ReadonlyOnyxEntry<Report>, rules: OnyxCollection<Rule>): boolean {
     if (!report) {
         return false;
     }
@@ -2407,7 +2410,7 @@ function pushTransactionViolationsOnyxData(
 
             // Keep the pre-toggle taxOutOfPolicy state when the update isn't about tax tracking.
             const recomputedViolations = optimisticViolations.value;
-            if (!isTaxTrackingUpdate && Array.isArray(recomputedViolations)) {
+            if (!isTaxTrackingUpdate && isArray(recomputedViolations)) {
                 const preservedTaxViolations = (existingViolations ?? []).filter((violation) => violation.name === CONST.VIOLATIONS.TAX_OUT_OF_POLICY);
                 optimisticViolations.value = [...recomputedViolations.filter((violation) => violation.name !== CONST.VIOLATIONS.TAX_OUT_OF_POLICY), ...preservedTaxViolations];
             }
@@ -2647,7 +2650,7 @@ function getHarvestOriginalReportID(origin?: string, originalID?: string): strin
 /**
  * Whether the provided report is a closed report
  */
-function isClosedReport(report: OnyxInputOrEntry<Report>): boolean {
+function isClosedReport(report: ReadonlyOnyxInputOrEntry<Report>): boolean {
     return report?.statusNum === CONST.REPORT.STATUS_NUM.CLOSED;
 }
 
@@ -2807,7 +2810,7 @@ function isMoneyRequest(reportOrID: OnyxEntry<Report> | string): boolean {
 /**
  * Checks if a report is an IOU or expense report.
  */
-function isMoneyRequestReport(reportOrID: OnyxInputOrEntry<Report> | string, reports?: Report[] | OnyxCollection<Report>): boolean {
+function isMoneyRequestReport(reportOrID: ReadonlyOnyxInputOrEntry<Report> | string, reports?: Report[] | OnyxCollection<Report>): boolean {
     const report = typeof reportOrID === 'string' ? (getReport(reportOrID, reports ?? deprecatedAllReports) ?? null) : reportOrID;
     return isIOUReport(report) || isExpenseReport(report);
 }
@@ -3023,7 +3026,7 @@ function getChildReportNotificationPreference(reportAction: OnyxInputOrEntry<Rep
     return isActionCreator(reportAction) ? CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS : CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
 }
 
-function canAddOrDeleteTransactions(moneyRequestReport: OnyxEntry<Report>, rules: OnyxCollection<Rule>, isReportArchived = false): boolean {
+function canAddOrDeleteTransactions(moneyRequestReport: ReadonlyOnyxEntry<Report>, rules: OnyxCollection<Rule>, isReportArchived = false): boolean {
     if (!(isMoneyRequestReport(moneyRequestReport) || isInvoiceReport(moneyRequestReport)) || isReportArchived) {
         return false;
     }
@@ -3052,7 +3055,7 @@ function canAddOrDeleteTransactions(moneyRequestReport: OnyxEntry<Report>, rules
  * Returns false if:
  * - if current user is not the submitter of an expense report
  */
-function canAddTransaction(moneyRequestReport: OnyxEntry<Report>, rules: OnyxCollection<Rule>, isReportArchived = false, isMovingTransaction = false): boolean {
+function canAddTransaction(moneyRequestReport: ReadonlyOnyxEntry<Report>, rules: OnyxCollection<Rule>, isReportArchived = false, isMovingTransaction = false): boolean {
     if (!isMoneyRequestReport(moneyRequestReport)) {
         return false;
     }
@@ -5348,7 +5351,7 @@ function canEditFieldOfMoneyRequest({
     fieldToEdit: ValueOf<typeof CONST.EDIT_REQUEST_FIELD>;
     isDeleteAction?: boolean;
     isChatReportArchived?: boolean;
-    outstandingReportsByPolicyID?: OutstandingReportsByPolicyIDDerivedValue;
+    outstandingReportsByPolicyID?: ReadonlyDeep<OutstandingReportsByPolicyIDDerivedValue>;
     transaction: OnyxEntry<Transaction>;
     report?: OnyxInputOrEntry<Report>;
     policy?: OnyxEntry<Policy>;
@@ -12108,12 +12111,12 @@ function canLeaveChat(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, curr
 /**
  * Check if a report is forwarded or not
  */
-function isForwardedReport(report: OnyxEntry<Report>, rules: OnyxCollection<Rule>): boolean {
+function isForwardedReport(report: ReadonlyOnyxEntry<Report>, rules: OnyxCollection<Rule>): boolean {
     return isProcessingReport(report) && !isAwaitingFirstLevelApproval(report, rules);
 }
 
 function isReportOutstanding(
-    iouReport: OnyxInputOrEntry<Report>,
+    iouReport: ReadonlyOnyxInputOrEntry<Report>,
     policyID: string | undefined,
     rules: OnyxCollection<Rule>,
     // Temporarily optional while archived report checks are migrated in smaller PRs. Remove this fallback as part of https://github.com/Expensify/App/issues/66422.
@@ -12151,15 +12154,15 @@ function isReportOutstanding(
  * @param reports - Collection of reports to filter
  * @returns Array of outstanding expense reports
  */
-function getOutstandingReportsForUser(
+function getOutstandingReportsForUser<TReport extends ReadonlyOnyxEntry<Report>>(
     policyID: string | undefined,
     reportOwnerAccountID: number | undefined,
     rules: OnyxCollection<Rule>,
     // Temporarily optional while archived report checks are migrated in smaller PRs. Remove this fallback as part of https://github.com/Expensify/App/issues/66422.
-    reportNameValuePairs?: OnyxCollection<ReportNameValuePairs>,
-    reports: OnyxCollection<Report> = deprecatedAllReports,
+    reportNameValuePairs: OnyxCollection<ReportNameValuePairs> | undefined,
+    reports: Record<string, TReport> | null,
     allowSubmitted = true,
-): Array<OnyxEntry<Report>> {
+): TReport[] {
     if (!reports) {
         return [];
     }
@@ -12178,8 +12181,8 @@ function getOutstandingReportsForUser(
  * @param selectedReportID ID of the selected report which needs to be at the beginning.
  */
 function sortOutstandingReportsBySelected(
-    report1: OnyxEntry<Report>,
-    report2: OnyxEntry<Report>,
+    report1: ReadonlyOnyxEntry<Report>,
+    report2: ReadonlyOnyxEntry<Report>,
     selectedReportID: string | undefined,
     localeCompare: LocaleContextProps['localeCompare'],
 ): number {
