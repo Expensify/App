@@ -70,7 +70,7 @@ function SearchFooterPopup({
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [selectedFooterFilter, setSelectedFooterFilter] = useState<
-        typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.FOOTER_COUNT | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.FOOTER_TOTAL | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.FOOTER_CURRENCY | null
+        typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.FOOTER_COUNT | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.FOOTER_TOTAL | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.FOOTER_CURRENCY | null
     >(null);
 
     const countItems: Array<SingleSelectItem<SearchFooterCount>> = [
@@ -87,7 +87,7 @@ function SearchFooterPopup({
                         shouldShowRightIcon
                         description={translate('common.count')}
                         title={countItems.find((item) => item.value === countType)?.text}
-                        onPress={() => setSelectedFooterFilter(CONST.SEARCH.SYNTAX_ROOT_KEYS.FOOTER_COUNT)}
+                        onPress={() => setSelectedFooterFilter(CONST.SEARCH.SYNTAX_FILTER_KEYS.FOOTER_COUNT)}
                         sentryLabel={CONST.SENTRY_LABEL.SEARCH.FOOTER_COUNT}
                     />
                 )}
@@ -99,7 +99,7 @@ function SearchFooterPopup({
                         interactive={!isTotalLoading}
                         description={translate('common.total')}
                         title={totalItems.find((item) => item.value === totalType)?.text}
-                        onPress={() => setSelectedFooterFilter(CONST.SEARCH.SYNTAX_ROOT_KEYS.FOOTER_TOTAL)}
+                        onPress={() => setSelectedFooterFilter(CONST.SEARCH.SYNTAX_FILTER_KEYS.FOOTER_TOTAL)}
                         sentryLabel={CONST.SENTRY_LABEL.SEARCH.FOOTER_TOTAL}
                     />
                 )}
@@ -108,7 +108,7 @@ function SearchFooterPopup({
                     interactive={!isTotalLoading}
                     description={translate('common.currency')}
                     title={currency ?? defaultCurrency}
-                    onPress={() => setSelectedFooterFilter(CONST.SEARCH.SYNTAX_ROOT_KEYS.FOOTER_CURRENCY)}
+                    onPress={() => setSelectedFooterFilter(CONST.SEARCH.SYNTAX_FILTER_KEYS.FOOTER_CURRENCY)}
                     sentryLabel={CONST.SENTRY_LABEL.SEARCH.FOOTER_CURRENCY}
                 />
             </ScrollView>
@@ -117,7 +117,7 @@ function SearchFooterPopup({
 
     const goBack = () => setSelectedFooterFilter(null);
 
-    if (selectedFooterFilter === CONST.SEARCH.SYNTAX_ROOT_KEYS.FOOTER_COUNT) {
+    if (selectedFooterFilter === CONST.SEARCH.SYNTAX_FILTER_KEYS.FOOTER_COUNT) {
         return (
             <SingleSelectPopup
                 items={countItems}
@@ -132,7 +132,7 @@ function SearchFooterPopup({
         );
     }
 
-    if (selectedFooterFilter === CONST.SEARCH.SYNTAX_ROOT_KEYS.FOOTER_TOTAL) {
+    if (selectedFooterFilter === CONST.SEARCH.SYNTAX_FILTER_KEYS.FOOTER_TOTAL) {
         return (
             <SingleSelectPopup
                 items={totalItems}

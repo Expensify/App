@@ -24,6 +24,7 @@ import {
     getFilterDisplayValue,
     getFilterFormValues,
     getFilterFromQuery,
+    getFooterSelectionFromQuery,
     queryHasSubmittedViolationFilter,
     getDateFilterRange,
     getKeywordQueryWithCurrentSearchContext,
@@ -327,7 +328,8 @@ describe('SearchQueryUtils', () => {
 
             expect(result).toContain('footerCount:reports');
             expect(result).toContain('footerTotal:reimbursable');
-            expect(result).toContain('footerCurrency:EUR');
+            // The currency is read back upper-cased; the query keeps whatever case was typed, which nothing depends on.
+            expect(result).toContain('footerCurrency:eur');
         });
 
         test('rebuilds a single value containing a comma as one value', () => {
@@ -2244,8 +2246,8 @@ describe('SearchQueryUtils', () => {
             const reports = buildSearchQueryJSON('type:expense-report footerCount:reports');
             const noSelection = buildSearchQueryJSON('type:expense-report');
 
-            expect(expenses?.footerCount).toEqual(CONST.SEARCH.FOOTER_COUNT.EXPENSES);
-            expect(reports?.footerCount).toEqual(CONST.SEARCH.FOOTER_COUNT.REPORTS);
+            expect(getFooterSelectionFromQuery(expenses).footerCount).toEqual(CONST.SEARCH.FOOTER_COUNT.EXPENSES);
+            expect(getFooterSelectionFromQuery(reports).footerCount).toEqual(CONST.SEARCH.FOOTER_COUNT.REPORTS);
             expect(expenses?.hash).toEqual(reports?.hash);
             expect(expenses?.hash).toEqual(noSelection?.hash);
             expect(expenses?.recentSearchHash).toEqual(noSelection?.recentSearchHash);
@@ -2259,16 +2261,18 @@ describe('SearchQueryUtils', () => {
             expect(total?.hash).not.toEqual(reimbursable?.hash);
         });
 
-        it('gives each footer currency selection its own primary hash', () => {
+        it('leaves every hash alone for the footer currency, which the backend ignores and the client converts', () => {
+            const noSelection = buildSearchQueryJSON('type:expense');
             const usd = buildSearchQueryJSON('type:expense footerCurrency:USD');
             const eur = buildSearchQueryJSON('type:expense footerCurrency:EUR');
 
-            expect(usd?.hash).not.toEqual(eur?.hash);
+            expect(usd?.hash).toEqual(eur?.hash);
+            expect(usd?.hash).toEqual(noSelection?.hash);
         });
 
-        it('keeps the footer total and currency selections out of the recent and similar search hashes, since they change no result', () => {
+        it('keeps every footer selection out of the recent and similar search hashes, since none of them changes a result', () => {
             const noSelection = buildSearchQueryJSON('type:expense');
-            const withSelections = buildSearchQueryJSON('type:expense footerTotal:billable footerCurrency:EUR');
+            const withSelections = buildSearchQueryJSON('type:expense footerCount:reports footerTotal:billable footerCurrency:EUR');
 
             expect(withSelections?.recentSearchHash).toEqual(noSelection?.recentSearchHash);
             expect(withSelections?.similarSearchHash).toEqual(noSelection?.similarSearchHash);
@@ -2278,17 +2282,17 @@ describe('SearchQueryUtils', () => {
             const noSelection = buildSearchQueryJSON('type:expense');
             const junk = buildSearchQueryJSON('type:expense footerCount:pandas footerTotal:whatever');
 
-            expect(junk?.footerCount).toBeUndefined();
-            expect(junk?.footerTotal).toBeUndefined();
+            expect(getFooterSelectionFromQuery(junk).footerCount).toBeUndefined();
+            expect(getFooterSelectionFromQuery(junk).footerTotal).toBeUndefined();
             expect(junk?.hash).toEqual(noSelection?.hash);
         });
 
-        it('normalizes the footer currency to upper case, so the same currency in either case shares one snapshot', () => {
+        it('reads the footer currency back in upper case, so the same currency in either case is one selection', () => {
             const lower = buildSearchQueryJSON('type:expense footerCurrency:eur');
             const upper = buildSearchQueryJSON('type:expense footerCurrency:EUR');
 
-            expect(lower?.footerCurrency).toEqual('EUR');
-            expect(lower?.hash).toEqual(upper?.hash);
+            expect(getFooterSelectionFromQuery(lower).footerCurrency).toEqual('EUR');
+            expect(getFooterSelectionFromQuery(upper).footerCurrency).toEqual('EUR');
         });
 
         it('leaves the hashes of a query carrying no footer selection unchanged, so existing saved searches keep theirs', () => {
@@ -3835,23 +3839,18 @@ describe('SearchQueryUtils', () => {
     }
 
     describe('Spend footer selections sent to the backend', () => {
-        it('serializes the footer selections as top-level keys, not as filters the backend matches rows on', () => {
+        it('serializes the footer selections inside the filters, which is where the backend reads them', () => {
             const queryJSON = buildSearchQueryJSON('type:expense footerCount:reports footerTotal:billable footerCurrency:EUR');
 
             if (!queryJSON) {
                 throw new Error('Failed to parse query string');
             }
 
-            const serialized: unknown = JSON.parse(serializeQueryJSONForBackend(queryJSON));
+            const serialized = serializeQueryJSONForBackend(queryJSON);
 
-            expect(serialized).toEqual(
-                expect.objectContaining({
-                    footerCount: CONST.SEARCH.FOOTER_COUNT.REPORTS,
-                    footerTotal: CONST.SEARCH.FOOTER_TOTAL.BILLABLE,
-                    footerCurrency: 'EUR',
-                    filters: null,
-                }),
-            );
+            expect(serialized).toContain('"left":"footerTotal","right":"billable"');
+            expect(serialized).toContain('"left":"footerCount","right":"reports"');
+            expect(serialized).toContain('"left":"footerCurrency","right":"EUR"');
         });
     });
 

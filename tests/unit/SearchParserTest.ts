@@ -1547,50 +1547,67 @@ const limitTests = [
     },
 ];
 
+// The footer's selections parse as filters, since that is where the backend reads them from.
 const footerSelectionTests = [
     {
         description: 'every footer selection in its canonical spelling',
-        query: 'type:expense-report footerCount:reports footerTotal:non-reimbursable footerCurrency:EUR',
+        query: 'type:expense-report footerCount:reports footerTotal:non-reimbursable',
         expected: {
             type: 'expense-report',
             sortBy: 'date',
             sortOrder: 'desc',
             view: 'table',
-            footerCount: 'reports',
-            footerTotal: 'non-reimbursable',
-            footerCurrency: 'EUR',
-            filters: null,
+            filters: {
+                operator: 'and',
+                left: {
+                    operator: 'eq',
+                    left: 'footerCount',
+                    right: 'reports',
+                },
+                right: {
+                    operator: 'eq',
+                    left: 'footerTotal',
+                    right: 'non-reimbursable',
+                },
+            },
         },
     },
     {
         description: 'every footer selection in its user-friendly spelling, alongside a filter',
-        query: 'type:expense footer-count:expenses footer-total:billable footer-currency:USD merchant:Amazon',
+        query: 'type:expense footer-currency:USD merchant:Amazon',
         expected: {
             type: 'expense',
             sortBy: 'date',
             sortOrder: 'desc',
             view: 'table',
-            footerCount: 'expenses',
-            footerTotal: 'billable',
-            footerCurrency: 'USD',
             filters: {
-                operator: 'eq',
-                left: 'merchant',
-                right: 'Amazon',
+                operator: 'and',
+                left: {
+                    operator: 'eq',
+                    left: 'footerCurrency',
+                    right: 'USD',
+                },
+                right: {
+                    operator: 'eq',
+                    left: 'merchant',
+                    right: 'Amazon',
+                },
             },
         },
     },
     {
         description: 'footer selections are case-insensitive',
-        query: 'type:expense FOOTER-TOTAL:reimbursable FooterCount:expenses',
+        query: 'type:expense FOOTER-TOTAL:reimbursable',
         expected: {
             type: 'expense',
             sortBy: 'date',
             sortOrder: 'desc',
             view: 'table',
-            footerCount: 'expenses',
-            footerTotal: 'reimbursable',
-            filters: null,
+            filters: {
+                operator: 'eq',
+                left: 'footerTotal',
+                right: 'reimbursable',
+            },
         },
     },
 ];

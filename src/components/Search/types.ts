@@ -370,10 +370,7 @@ type SearchFilterKey =
     | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY
     | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.VIEW
     | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.COLUMNS
-    | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.LIMIT
-    | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.FOOTER_COUNT
-    | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.FOOTER_TOTAL
-    | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.FOOTER_CURRENCY;
+    | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.LIMIT;
 
 type RawFilterKey = SyntaxFilterKey | ValueOf<typeof CONST.SEARCH.SYNTAX_ROOT_KEYS>;
 
@@ -396,12 +393,6 @@ type SearchQueryAST = {
     rawFilterList?: RawQueryFilter[];
     columns?: SearchCustomColumnIds | SearchCustomColumnIds[];
     limit?: number;
-    /** Which count the Spend footer displays. Both counts come back on every search, so this is applied client-side. */
-    footerCount?: SearchFooterCount;
-    /** Which aggregate the Spend footer displays as its total. The backend computes it, so changing it retriggers the search. */
-    footerTotal?: SearchFooterTotal;
-    /** Currency the Spend footer's total is displayed in. The backend converts to it, so changing it retriggers the search. */
-    footerCurrency?: string;
 };
 
 type SearchQueryJSON = {

@@ -5632,25 +5632,6 @@ function getFooterTotalItems(translate: LocalizedTranslate) {
     return Object.values(CONST.SEARCH.FOOTER_TOTAL).map<SingleSelectItem<SearchFooterTotal>>((value) => ({text: labels[value], value}));
 }
 
-/**
- * The figure the Spend footer shows for the selected total. The backend may answer either by filling the matching
- * aggregate field or by returning the requested aggregate as `total`, so fall back to `total` when the field is absent.
- */
-function getFooterTotalAmount(metadata: SearchResults['search'] | undefined, totalType: SearchFooterTotal | undefined) {
-    switch (totalType) {
-        case CONST.SEARCH.FOOTER_TOTAL.REIMBURSABLE:
-            return metadata?.reimbursableTotal ?? metadata?.total;
-        case CONST.SEARCH.FOOTER_TOTAL.NON_REIMBURSABLE:
-            return metadata?.nonReimbursableTotal ?? metadata?.total;
-        case CONST.SEARCH.FOOTER_TOTAL.BILLABLE:
-            return metadata?.billableTotal ?? metadata?.total;
-        case CONST.SEARCH.FOOTER_TOTAL.NON_BILLABLE:
-            return metadata?.nonBillableTotal ?? metadata?.total;
-        default:
-            return metadata?.total;
-    }
-}
-
 function getCurrencyOptions(currencyList: OnyxTypes.CurrencyList, getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol']) {
     return Object.keys(currencyList).reduce(
         (options, currencyCode) => {
@@ -7498,7 +7479,6 @@ export {
     getGroupBySections,
     getViewOptions,
     getFooterTotalItems,
-    getFooterTotalAmount,
     getCurrencyOptions,
     getFeedOptions,
     getWideAmountIndicators,

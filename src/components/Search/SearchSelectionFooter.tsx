@@ -6,8 +6,8 @@ import useSearchShouldCalculateTotals from '@hooks/useSearchShouldCalculateTotal
 import {close} from '@libs/actions/Modal';
 import {getFooterConvertedAmounts} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
-import {buildSearchQueryString} from '@libs/SearchQueryUtils';
-import {getFooterTotalAmount, isGroupEntry} from '@libs/SearchUIUtils';
+import {getFooterSelectionFromQuery, getQueryWithFooterSelection} from '@libs/SearchQueryUtils';
+import {isGroupEntry} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -122,8 +122,11 @@ function SearchSelectionFooter({searchResults, onDisplayChange}: SearchSelection
         selectedCurrency: undefined,
         defaultCurrency: undefined,
     });
+    const footerSelection = getFooterSelectionFromQuery(currentSearchQueryJSON);
     const isCurrentFooterState = footerCurrencyState.searchHash === currentSearchHash;
-    const selectedCurrency = isCurrentFooterState ? footerCurrencyState.selectedCurrency : undefined;
+    // The query carries the currency across a reload and into a saved search, so it is what an untouched footer starts
+    // from; this session's own pick wins once made, since it also covers a Reset back to the default.
+    const selectedCurrency = (isCurrentFooterState ? footerCurrencyState.selectedCurrency : undefined) ?? footerSelection.footerCurrency;
     const defaultFooterCurrency = isCurrentFooterState ? footerCurrencyState.defaultCurrency : undefined;
 
     // The Auth command merges converted figures here (by transaction, report, group, and query hash, each nested
@@ -283,13 +286,13 @@ function SearchSelectionFooter({searchResults, onDisplayChange}: SearchSelection
     const isFooterDescribingWholeSearch = !hasPartialSelection && excludedTransactionsKeys.length === 0;
     const defaultFooterCountType = isReportsSearch ? CONST.SEARCH.FOOTER_COUNT.REPORTS : CONST.SEARCH.FOOTER_COUNT.EXPENSES;
     const shouldShowCountSelector = isFooterDescribingWholeSearch && !shouldUseLiveData && (isExpenseType || isReportsSearch) && typeof metadataReportCount === 'number';
-    const footerCountType = shouldShowCountSelector ? (currentSearchQueryJSON?.footerCount ?? defaultFooterCountType) : undefined;
+    const footerCountType = shouldShowCountSelector ? (footerSelection.footerCount ?? defaultFooterCountType) : undefined;
 
     // The four aggregates are computed by the backend, so the total selector only applies to the whole-search figures —
     // a selection's subtotal is summed on the client from rows that carry no aggregate of their own. An empty result set
     // has no total to break down either, so it keeps the plain total spend with no selector.
     const shouldShowTotalSelector = isFooterDescribingWholeSearch && !shouldUseLiveData && !!metadataCount;
-    const footerTotalType = shouldShowTotalSelector ? (currentSearchQueryJSON?.footerTotal ?? CONST.SEARCH.FOOTER_TOTAL.TOTAL) : undefined;
+    const footerTotalType = shouldShowTotalSelector ? (footerSelection.footerTotal ?? CONST.SEARCH.FOOTER_TOTAL.TOTAL) : undefined;
 
     // Use the per-selection (client) total for a partial selection; nothing-selected and everything-selected both fall
     // to the whole-search grand total, which every search type now returns converted, keyed by the search hash.
@@ -468,53 +471,45 @@ function SearchSelectionFooter({searchResults, onDisplayChange}: SearchSelection
         transactionSourceByID,
     ]);
 
-    // Total and currency change what the backend computes, so applying either re-runs the search under a new hash. The
-    // page is told first, so it keeps the current rows on screen: the selection changes the figures, never which rows match.
-    const reloadWithFooterSelection = (selection: {footerTotal?: SearchFooterTotal; footerCurrency?: string}) => {
+    // Every selection is written into the query, so it is restored with the search (and saved with a saved search). The
+    // query is rebuilt from the one on display rather than through the advanced-filters form: this footer is a
+    // self-subscribing leaf that re-renders on every checkbox press, and the form route would subscribe it to the whole
+    // policy collection. useSearchFilterSync writes the form from the query, so the form still follows.
+    //
+    // `shouldReloadResults` says whether the backend's answer actually changes. Only `footerTotal` does — it swaps which
+    // aggregate comes back as the search total — so only that one enters the query hash and re-runs the search. The page
+    // is told first, so the rows stay on screen while it loads: the selection never changes which rows match.
+    const applyFooterSelection = (selection: {footerCount?: SearchFooterCount; footerTotal?: SearchFooterTotal; footerCurrency?: string}, shouldReloadResults = false) => {
         if (!currentSearchQueryJSON) {
             return;
         }
 
-        const nextQuery = buildSearchQueryString({...currentSearchQueryJSON, ...selection});
+        const nextQuery = getQueryWithFooterSelection(currentSearchQueryJSON, selection);
         close(() => {
-            onDisplayChange();
+            if (shouldReloadResults) {
+                onDisplayChange();
+            }
             Navigation.setParams({q: nextQuery, rawQuery: undefined});
         });
     };
 
     const handleFooterCurrencyChange = (currency: string) => {
-        // While the footer describes the whole search the backend converts the figures (and any aggregate it is
-        // computing) into the chosen currency. A selection's subtotal is summed on the client instead, so that case
-        // keeps converting through the conversion cache.
-        if (isFooterDescribingWholeSearch) {
-            reloadWithFooterSelection({footerCurrency: currency});
-            return;
-        }
-
+        // The backend ignores `footerCurrency`: the figures are converted on the client, through the conversion cache
+        // below, whose own totals honour `footerTotal` too. Writing it into the query only carries the selection.
         setFooterCurrencyState({
             searchHash: currentSearchHash,
             selectedCurrency: currency,
             defaultCurrency: effectiveDefaultCurrency,
         });
+        applyFooterSelection({footerCurrency: currency});
     };
 
     const handleFooterTotalChange = (nextTotalType: SearchFooterTotal) => {
-        reloadWithFooterSelection({footerTotal: nextTotalType});
+        applyFooterSelection({footerTotal: nextTotalType}, true);
     };
 
-    // The count selection lives in the query (so it persists with the search) but is left out of the query hash, so
-    // applying it re-renders the footer from the counts this search already returned instead of running a new one.
-    //
-    // The query is rebuilt from the one being displayed rather than through the advanced-filters form: this footer is a
-    // self-subscribing leaf that re-renders on every checkbox press, and the form route would subscribe it to the whole
-    // policy collection. The form is written from the query by useSearchFilterSync, so it still follows this change.
     const handleFooterCountChange = (nextCountType: SearchFooterCount) => {
-        if (!currentSearchQueryJSON) {
-            return;
-        }
-
-        const nextQuery = buildSearchQueryString({...currentSearchQueryJSON, footerCount: nextCountType});
-        close(() => Navigation.setParams({q: nextQuery, rawQuery: undefined}));
+        applyFooterSelection({footerCount: nextCountType});
     };
 
     const footerData = useMemo(() => {
@@ -621,15 +616,12 @@ function SearchSelectionFooter({searchResults, onDisplayChange}: SearchSelection
     const isFooterTotalLoading = isFooterTotalConverting || (!hasPartialSelection && (isFooterReloading || (!!metadata?.isLoading && metadata?.offset === 0)));
 
     const footerCount = footerCountType === CONST.SEARCH.FOOTER_COUNT.REPORTS ? metadataReportCount : footerData.count;
-    // Only the whole-search branch has an aggregate to show; every other branch is a client-side sum of selected rows.
-    const footerTotal = footerTotalType && footerTotalType !== CONST.SEARCH.FOOTER_TOTAL.TOTAL ? getFooterTotalAmount(metadata, footerTotalType) : footerData.total;
-
     return (
         <SearchPageFooter
             count={footerCount}
             countType={footerCountType}
             defaultCountType={defaultFooterCountType}
-            total={footerTotal}
+            total={footerData.total}
             totalType={footerTotalType}
             currency={footerData.currency}
             defaultCurrency={searchTargetCurrency}

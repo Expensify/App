@@ -1,7 +1,7 @@
 import {act, render} from '@testing-library/react-native';
 
 import SearchSelectionFooter from '@components/Search/SearchSelectionFooter';
-import type {SearchFooterCount, SearchFooterTotal, SelectedTransactionInfo, SelectedTransactions} from '@components/Search/types';
+import type {SearchFooterCount, SearchFooterTotal, SearchQueryJSON, SelectedTransactionInfo, SelectedTransactions} from '@components/Search/types';
 
 import {getFooterConvertedAmounts} from '@libs/actions/Search';
 import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
@@ -38,12 +38,19 @@ jest.mock('@libs/actions/Modal', () => ({
 type MockSearchQueryContext = {
     currentSearchHash: number;
     currentSearchKey: undefined;
-    currentSearchQueryJSON: {hash: number; type: SearchResults['search']['type']; footerCount?: SearchFooterCount; footerTotal?: SearchFooterTotal} | undefined;
+    currentSearchQueryJSON: Readonly<SearchQueryJSON> | undefined;
 };
 
 const mockSearchQueryContext: {current: MockSearchQueryContext} = {
-    current: {currentSearchHash: 1, currentSearchKey: undefined, currentSearchQueryJSON: {hash: 1, type: CONST.SEARCH.DATA_TYPES.EXPENSE}},
+    current: {currentSearchHash: 1, currentSearchKey: undefined, currentSearchQueryJSON: buildSearchQueryJSON('type:expense')},
 };
+
+// The footer reads its selections out of the query's filters, so tests drive it with real parsed queries. The hash is
+// kept separate from the query's own: the snapshot the footer displays is stamped with hash 1 throughout, and a
+// mismatch between the two is what tells the footer a re-run is in flight.
+function setSearchQuery(query: string, currentSearchHash = 1) {
+    mockSearchQueryContext.current = {currentSearchHash, currentSearchKey: undefined, currentSearchQueryJSON: buildSearchQueryJSON(query)};
+}
 const mockSelectedTransactions: {current: SelectedTransactions} = {current: {}};
 const mockExcludedTransactions: {current: SelectedTransactions} = {current: {}};
 const mockAreAllMatchingItemsSelected = {current: false};
@@ -145,7 +152,7 @@ describe('SearchSelectionFooter', () => {
     });
 
     beforeEach(async () => {
-        mockSearchQueryContext.current = {currentSearchHash: 1, currentSearchKey: undefined, currentSearchQueryJSON: {hash: 1, type: CONST.SEARCH.DATA_TYPES.EXPENSE}};
+        setSearchQuery('type:expense');
         mockSelectedTransactions.current = {transaction1: buildSelectedTransaction(SELECTED_EXPENSE_CURRENCY)};
         mockExcludedTransactions.current = {};
         mockAreAllMatchingItemsSelected.current = false;
@@ -181,11 +188,7 @@ describe('SearchSelectionFooter', () => {
     });
 
     it('keeps the expense-report server count and total unchanged', async () => {
-        mockSearchQueryContext.current = {
-            currentSearchHash: 1,
-            currentSearchKey: undefined,
-            currentSearchQueryJSON: {hash: 1, type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT},
-        };
+        setSearchQuery('type:expense-report');
         mockSelectedTransactions.current = {};
         mockExcludedTransactions.current = {
             transaction1: buildSelectedTransaction(CONST.CURRENCY.USD),
@@ -336,287 +339,280 @@ describe('SearchSelectionFooter', () => {
         expect(getFooterConvertedAmounts).not.toHaveBeenCalled();
         expect(mockCapturedFooterProps.current?.currency).toBe(PAYMENT_CURRENCY);
     });
-});
-describe('total selector', () => {
-    it('defaults to the plain total spend and reads the aggregate the query selects', async () => {
-        mockSelectedTransactions.current = {};
 
-        const {rerender} = render(
-            <SearchSelectionFooter
-                searchResults={buildSearchResults(CONST.CURRENCY.USD, 10, 36000)}
-                onDisplayChange={mockOnDisplayChange}
-            />,
-        );
-        await waitForBatchedUpdates();
+    describe('total selector', () => {
+        it('defaults to the plain total spend and reads the aggregate the query selects', async () => {
+            mockSelectedTransactions.current = {};
 
-        expect(mockCapturedFooterProps.current).toEqual(expect.objectContaining({totalType: CONST.SEARCH.FOOTER_TOTAL.TOTAL, total: 36000}));
-
-        mockSearchQueryContext.current = {
-            currentSearchHash: 1,
-            currentSearchKey: undefined,
-            currentSearchQueryJSON: {hash: 1, type: CONST.SEARCH.DATA_TYPES.EXPENSE, footerTotal: CONST.SEARCH.FOOTER_TOTAL.REIMBURSABLE},
-        };
-        const searchResults = buildSearchResults(CONST.CURRENCY.USD, 10, 36000);
-        searchResults.search.reimbursableTotal = 12000;
-
-        rerender(
-            <SearchSelectionFooter
-                searchResults={searchResults}
-                onDisplayChange={mockOnDisplayChange}
-            />,
-        );
-        await waitForBatchedUpdates();
-
-        expect(mockCapturedFooterProps.current).toEqual(expect.objectContaining({totalType: CONST.SEARCH.FOOTER_TOTAL.REIMBURSABLE, total: 12000}));
-    });
-
-    it('falls back to the plain total when the backend answers with the aggregate in `total` instead of its own field', async () => {
-        mockSearchQueryContext.current = {
-            currentSearchHash: 1,
-            currentSearchKey: undefined,
-            currentSearchQueryJSON: {hash: 1, type: CONST.SEARCH.DATA_TYPES.EXPENSE, footerTotal: CONST.SEARCH.FOOTER_TOTAL.BILLABLE},
-        };
-        mockSelectedTransactions.current = {};
-
-        render(
-            <SearchSelectionFooter
-                searchResults={buildSearchResults(CONST.CURRENCY.USD, 10, 4200)}
-                onDisplayChange={mockOnDisplayChange}
-            />,
-        );
-        await waitForBatchedUpdates();
-
-        expect(mockCapturedFooterProps.current?.total).toBe(4200);
-    });
-
-    it('offers no total selector on an empty result set', async () => {
-        mockSelectedTransactions.current = {};
-
-        render(
-            <SearchSelectionFooter
-                searchResults={buildSearchResults(CONST.CURRENCY.USD, 0, 0)}
-                onDisplayChange={mockOnDisplayChange}
-            />,
-        );
-        await waitForBatchedUpdates();
-
-        expect(mockCapturedFooterProps.current?.totalType).toBeUndefined();
-    });
-
-    it('re-runs the search when a total is applied, holding the current results on screen', async () => {
-        mockSearchQueryContext.current = {currentSearchHash: 1, currentSearchKey: undefined, currentSearchQueryJSON: buildSearchQueryJSON('type:expense')};
-        mockSelectedTransactions.current = {};
-
-        render(
-            <SearchSelectionFooter
-                searchResults={buildSearchResults(CONST.CURRENCY.USD, 10, 36000)}
-                onDisplayChange={mockOnDisplayChange}
-            />,
-        );
-        await waitForBatchedUpdates();
-
-        await act(async () => {
-            mockCapturedFooterProps.current?.onTotalChange?.(CONST.SEARCH.FOOTER_TOTAL.REIMBURSABLE);
+            const {rerender} = render(
+                <SearchSelectionFooter
+                    searchResults={buildSearchResults(CONST.CURRENCY.USD, 10, 36000)}
+                    onDisplayChange={mockOnDisplayChange}
+                />,
+            );
             await waitForBatchedUpdates();
+
+            expect(mockCapturedFooterProps.current).toEqual(expect.objectContaining({totalType: CONST.SEARCH.FOOTER_TOTAL.TOTAL, total: 36000}));
+
+            setSearchQuery('type:expense footerTotal:reimbursable');
+            // The backend swaps the aggregate into `total` itself, so the footer just displays the total it was sent.
+            const searchResults = buildSearchResults(CONST.CURRENCY.USD, 10, 12000);
+
+            rerender(
+                <SearchSelectionFooter
+                    searchResults={searchResults}
+                    onDisplayChange={mockOnDisplayChange}
+                />,
+            );
+            await waitForBatchedUpdates();
+
+            expect(mockCapturedFooterProps.current).toEqual(expect.objectContaining({totalType: CONST.SEARCH.FOOTER_TOTAL.REIMBURSABLE, total: 12000}));
         });
 
-        expect(mockOnDisplayChange).toHaveBeenCalledTimes(1);
-        expect(mockSetParams.mock.calls.at(0)?.at(0)?.q).toContain('footerTotal:reimbursable');
-    });
+        it('falls back to the plain total when the backend answers with the aggregate in `total` instead of its own field', async () => {
+            setSearchQuery('type:expense footerTotal:billable');
+            mockSelectedTransactions.current = {};
 
-    it('skeletons the total while the re-run search is in flight, leaving the count alone', async () => {
-        // The page still shows the previous hash's results while the new snapshot loads.
-        mockSearchQueryContext.current = {currentSearchHash: 2, currentSearchKey: undefined, currentSearchQueryJSON: {hash: 2, type: CONST.SEARCH.DATA_TYPES.EXPENSE}};
-        mockSelectedTransactions.current = {};
-
-        render(
-            <SearchSelectionFooter
-                searchResults={buildSearchResults(CONST.CURRENCY.USD, 10, 36000, CONST.SEARCH.DATA_TYPES.EXPENSE, 4)}
-                onDisplayChange={mockOnDisplayChange}
-            />,
-        );
-        await waitForBatchedUpdates();
-
-        expect(mockCapturedFooterProps.current?.isTotalLoading).toBe(true);
-        expect(mockCapturedFooterProps.current?.count).toBe(10);
-    });
-});
-
-describe('currency selector', () => {
-    it('re-runs the search rather than converting on the client while the footer describes the whole search', async () => {
-        mockSearchQueryContext.current = {currentSearchHash: 1, currentSearchKey: undefined, currentSearchQueryJSON: buildSearchQueryJSON('type:expense')};
-        mockSelectedTransactions.current = {};
-
-        render(
-            <SearchSelectionFooter
-                searchResults={buildSearchResults(CONST.CURRENCY.USD, 10, 36000)}
-                onDisplayChange={mockOnDisplayChange}
-            />,
-        );
-        await waitForBatchedUpdates();
-
-        await act(async () => {
-            mockCapturedFooterProps.current?.onCurrencyChange?.(CONST.CURRENCY.EUR);
+            render(
+                <SearchSelectionFooter
+                    searchResults={buildSearchResults(CONST.CURRENCY.USD, 10, 4200)}
+                    onDisplayChange={mockOnDisplayChange}
+                />,
+            );
             await waitForBatchedUpdates();
+
+            expect(mockCapturedFooterProps.current?.total).toBe(4200);
         });
 
-        expect(mockSetParams.mock.calls.at(0)?.at(0)?.q).toContain('footerCurrency:EUR');
-        expect(mockOnDisplayChange).toHaveBeenCalledTimes(1);
-        // The backend returns the figures already converted, so no client-side conversion is requested.
-        expect(getFooterConvertedAmounts).not.toHaveBeenCalled();
-    });
-});
+        it('offers no total selector on an empty result set', async () => {
+            mockSelectedTransactions.current = {};
 
-describe('count selector', () => {
-    it('defaults an expense-report search to the report count', async () => {
-        mockSearchQueryContext.current = {
-            currentSearchHash: 1,
-            currentSearchKey: undefined,
-            currentSearchQueryJSON: {hash: 1, type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT},
-        };
-        mockSelectedTransactions.current = {};
-
-        render(
-            <SearchSelectionFooter
-                searchResults={buildSearchResults(CONST.CURRENCY.USD, 1204, 36000, CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT, 87)}
-                onDisplayChange={mockOnDisplayChange}
-            />,
-        );
-        await waitForBatchedUpdates();
-
-        expect(mockCapturedFooterProps.current).toEqual(
-            expect.objectContaining({count: 87, countType: CONST.SEARCH.FOOTER_COUNT.REPORTS, defaultCountType: CONST.SEARCH.FOOTER_COUNT.REPORTS}),
-        );
-    });
-
-    it('defaults an expense search to the expense count', async () => {
-        mockSelectedTransactions.current = {};
-
-        render(
-            <SearchSelectionFooter
-                searchResults={buildSearchResults(CONST.CURRENCY.USD, 1204, 36000, CONST.SEARCH.DATA_TYPES.EXPENSE, 87)}
-                onDisplayChange={mockOnDisplayChange}
-            />,
-        );
-        await waitForBatchedUpdates();
-
-        expect(mockCapturedFooterProps.current).toEqual(
-            expect.objectContaining({count: 1204, countType: CONST.SEARCH.FOOTER_COUNT.EXPENSES, defaultCountType: CONST.SEARCH.FOOTER_COUNT.EXPENSES}),
-        );
-    });
-
-    it('shows the expense count on an expense-report search once the query selects it, without a new search', async () => {
-        mockSearchQueryContext.current = {
-            currentSearchHash: 1,
-            currentSearchKey: undefined,
-            currentSearchQueryJSON: {hash: 1, type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT, footerCount: CONST.SEARCH.FOOTER_COUNT.EXPENSES},
-        };
-        mockSelectedTransactions.current = {};
-
-        render(
-            <SearchSelectionFooter
-                searchResults={buildSearchResults(CONST.CURRENCY.USD, 1204, 36000, CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT, 87)}
-                onDisplayChange={mockOnDisplayChange}
-            />,
-        );
-        await waitForBatchedUpdates();
-
-        expect(mockCapturedFooterProps.current).toEqual(expect.objectContaining({count: 1204, countType: CONST.SEARCH.FOOTER_COUNT.EXPENSES}));
-    });
-
-    it('offers the count selector once every matching item is selected, since the footer is back on the whole search', async () => {
-        mockSearchQueryContext.current = {
-            currentSearchHash: 1,
-            currentSearchKey: undefined,
-            currentSearchQueryJSON: {hash: 1, type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT},
-        };
-        // Select-all keeps the loaded rows selected while the footer shows the server's whole-search figures.
-        mockSelectedTransactions.current = {transaction1: buildSelectedTransaction(CONST.CURRENCY.USD)};
-        mockAreAllMatchingItemsSelected.current = true;
-
-        render(
-            <SearchSelectionFooter
-                searchResults={buildSearchResults(CONST.CURRENCY.USD, 1204, 36000, CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT, 87)}
-                onDisplayChange={mockOnDisplayChange}
-            />,
-        );
-        await waitForBatchedUpdates();
-
-        expect(mockCapturedFooterProps.current).toEqual(expect.objectContaining({count: 87, countType: CONST.SEARCH.FOOTER_COUNT.REPORTS}));
-    });
-
-    it('offers no count selector while the footer describes a partial selection', async () => {
-        mockSearchQueryContext.current = {
-            currentSearchHash: 1,
-            currentSearchKey: undefined,
-            currentSearchQueryJSON: {hash: 1, type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT, footerCount: CONST.SEARCH.FOOTER_COUNT.REPORTS},
-        };
-        mockSelectedTransactions.current = {transaction1: buildSelectedTransaction(CONST.CURRENCY.USD)};
-
-        render(
-            <SearchSelectionFooter
-                searchResults={buildSearchResults(CONST.CURRENCY.USD, 1204, 36000, CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT, 87)}
-                onDisplayChange={mockOnDisplayChange}
-            />,
-        );
-        await waitForBatchedUpdates();
-
-        // The selection is counted in expenses, so the report count must not be displayed against it.
-        expect(mockCapturedFooterProps.current?.countType).toBeUndefined();
-        expect(mockCapturedFooterProps.current?.count).toBe(1);
-    });
-
-    it('offers no count selector while a select-all has exclusions, since the report count cannot account for them', async () => {
-        mockSelectedTransactions.current = {};
-        mockExcludedTransactions.current = {transaction1: buildSelectedTransaction(CONST.CURRENCY.USD)};
-        mockAreAllMatchingItemsSelected.current = true;
-
-        render(
-            <SearchSelectionFooter
-                searchResults={buildSearchResults(CONST.CURRENCY.USD, 172, 36000, CONST.SEARCH.DATA_TYPES.EXPENSE, 87)}
-                onDisplayChange={mockOnDisplayChange}
-            />,
-        );
-        await waitForBatchedUpdates();
-
-        expect(mockCapturedFooterProps.current?.countType).toBeUndefined();
-        expect(mockCapturedFooterProps.current?.count).toBe(171);
-    });
-
-    it('applies a count change by writing it into the query, which leaves the search hash alone', async () => {
-        // A real parsed query, since applying the change rebuilds the query string from it.
-        mockSearchQueryContext.current = {currentSearchHash: 1, currentSearchKey: undefined, currentSearchQueryJSON: buildSearchQueryJSON('type:expense')};
-        mockSelectedTransactions.current = {};
-
-        render(
-            <SearchSelectionFooter
-                searchResults={buildSearchResults(CONST.CURRENCY.USD, 1204, 36000, CONST.SEARCH.DATA_TYPES.EXPENSE, 87)}
-                onDisplayChange={mockOnDisplayChange}
-            />,
-        );
-        await waitForBatchedUpdates();
-
-        await act(async () => {
-            mockCapturedFooterProps.current?.onCountChange?.(CONST.SEARCH.FOOTER_COUNT.REPORTS);
+            render(
+                <SearchSelectionFooter
+                    searchResults={buildSearchResults(CONST.CURRENCY.USD, 0, 0)}
+                    onDisplayChange={mockOnDisplayChange}
+                />,
+            );
             await waitForBatchedUpdates();
+
+            expect(mockCapturedFooterProps.current?.totalType).toBeUndefined();
         });
 
-        expect(mockSetParams).toHaveBeenCalledTimes(1);
-        expect(mockSetParams.mock.calls.at(0)?.at(0)?.q).toContain('footerCount:reports');
+        it('re-runs the search when a total is applied, holding the current results on screen', async () => {
+            setSearchQuery('type:expense');
+            mockSelectedTransactions.current = {};
+
+            render(
+                <SearchSelectionFooter
+                    searchResults={buildSearchResults(CONST.CURRENCY.USD, 10, 36000)}
+                    onDisplayChange={mockOnDisplayChange}
+                />,
+            );
+            await waitForBatchedUpdates();
+
+            await act(async () => {
+                mockCapturedFooterProps.current?.onTotalChange?.(CONST.SEARCH.FOOTER_TOTAL.REIMBURSABLE);
+                await waitForBatchedUpdates();
+            });
+
+            expect(mockOnDisplayChange).toHaveBeenCalledTimes(1);
+            expect(mockSetParams.mock.calls.at(0)?.at(0)?.q).toContain('footerTotal:reimbursable');
+        });
+
+        it('skeletons the total while the re-run search is in flight, leaving the count alone', async () => {
+            // The page still shows the previous hash's results while the new snapshot loads.
+            setSearchQuery('type:expense', 2);
+            mockSelectedTransactions.current = {};
+
+            render(
+                <SearchSelectionFooter
+                    searchResults={buildSearchResults(CONST.CURRENCY.USD, 10, 36000, CONST.SEARCH.DATA_TYPES.EXPENSE, 4)}
+                    onDisplayChange={mockOnDisplayChange}
+                />,
+            );
+            await waitForBatchedUpdates();
+
+            expect(mockCapturedFooterProps.current?.isTotalLoading).toBe(true);
+            expect(mockCapturedFooterProps.current?.count).toBe(10);
+        });
     });
 
-    it('offers no count selector when the search returned no report count', async () => {
-        mockSelectedTransactions.current = {};
+    describe('currency selector', () => {
+        it('converts on the client and carries the choice in the query, without re-running the search', async () => {
+            setSearchQuery('type:expense');
+            mockSelectedTransactions.current = {};
 
-        render(
-            <SearchSelectionFooter
-                searchResults={buildSearchResults(CONST.CURRENCY.USD, 1204, 36000, CONST.SEARCH.DATA_TYPES.EXPENSE)}
-                onDisplayChange={mockOnDisplayChange}
-            />,
-        );
-        await waitForBatchedUpdates();
+            render(
+                <SearchSelectionFooter
+                    searchResults={buildSearchResults(CONST.CURRENCY.USD, 10, 36000)}
+                    onDisplayChange={mockOnDisplayChange}
+                />,
+            );
+            await waitForBatchedUpdates();
 
-        expect(mockCapturedFooterProps.current?.countType).toBeUndefined();
-        expect(mockCapturedFooterProps.current?.count).toBe(1204);
+            await act(async () => {
+                mockCapturedFooterProps.current?.onCurrencyChange?.(CONST.CURRENCY.EUR);
+                await waitForBatchedUpdates();
+            });
+
+            // The backend ignores footerCurrency, so the conversion is requested from the client...
+            expect(getFooterConvertedAmounts).toHaveBeenCalledWith(expect.objectContaining({targetCurrency: CONST.CURRENCY.EUR}));
+            // ...while the query carries the choice so it survives a reload, with no results reload of its own.
+            expect(mockSetParams.mock.calls.at(0)?.at(0)?.q).toContain('footerCurrency:EUR');
+            expect(mockOnDisplayChange).not.toHaveBeenCalled();
+        });
+
+        it('starts from the currency the query carries, so a saved search reopens on it', async () => {
+            setSearchQuery('type:expense footerCurrency:EUR');
+            mockSelectedTransactions.current = {};
+
+            render(
+                <SearchSelectionFooter
+                    searchResults={buildSearchResults(CONST.CURRENCY.USD, 10, 36000)}
+                    onDisplayChange={mockOnDisplayChange}
+                />,
+            );
+            await waitForBatchedUpdates();
+
+            expect(getFooterConvertedAmounts).toHaveBeenCalledWith(expect.objectContaining({targetCurrency: CONST.CURRENCY.EUR}));
+        });
+    });
+
+    describe('count selector', () => {
+        it('defaults an expense-report search to the report count', async () => {
+            setSearchQuery('type:expense-report');
+            mockSelectedTransactions.current = {};
+
+            render(
+                <SearchSelectionFooter
+                    searchResults={buildSearchResults(CONST.CURRENCY.USD, 1204, 36000, CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT, 87)}
+                    onDisplayChange={mockOnDisplayChange}
+                />,
+            );
+            await waitForBatchedUpdates();
+
+            expect(mockCapturedFooterProps.current).toEqual(
+                expect.objectContaining({count: 87, countType: CONST.SEARCH.FOOTER_COUNT.REPORTS, defaultCountType: CONST.SEARCH.FOOTER_COUNT.REPORTS}),
+            );
+        });
+
+        it('defaults an expense search to the expense count', async () => {
+            mockSelectedTransactions.current = {};
+
+            render(
+                <SearchSelectionFooter
+                    searchResults={buildSearchResults(CONST.CURRENCY.USD, 1204, 36000, CONST.SEARCH.DATA_TYPES.EXPENSE, 87)}
+                    onDisplayChange={mockOnDisplayChange}
+                />,
+            );
+            await waitForBatchedUpdates();
+
+            expect(mockCapturedFooterProps.current).toEqual(
+                expect.objectContaining({count: 1204, countType: CONST.SEARCH.FOOTER_COUNT.EXPENSES, defaultCountType: CONST.SEARCH.FOOTER_COUNT.EXPENSES}),
+            );
+        });
+
+        it('shows the expense count on an expense-report search once the query selects it, without a new search', async () => {
+            setSearchQuery('type:expense-report footerCount:expenses');
+            mockSelectedTransactions.current = {};
+
+            render(
+                <SearchSelectionFooter
+                    searchResults={buildSearchResults(CONST.CURRENCY.USD, 1204, 36000, CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT, 87)}
+                    onDisplayChange={mockOnDisplayChange}
+                />,
+            );
+            await waitForBatchedUpdates();
+
+            expect(mockCapturedFooterProps.current).toEqual(expect.objectContaining({count: 1204, countType: CONST.SEARCH.FOOTER_COUNT.EXPENSES}));
+        });
+
+        it('offers the count selector once every matching item is selected, since the footer is back on the whole search', async () => {
+            setSearchQuery('type:expense-report');
+            // Select-all keeps the loaded rows selected while the footer shows the server's whole-search figures.
+            mockSelectedTransactions.current = {transaction1: buildSelectedTransaction(CONST.CURRENCY.USD)};
+            mockAreAllMatchingItemsSelected.current = true;
+
+            render(
+                <SearchSelectionFooter
+                    searchResults={buildSearchResults(CONST.CURRENCY.USD, 1204, 36000, CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT, 87)}
+                    onDisplayChange={mockOnDisplayChange}
+                />,
+            );
+            await waitForBatchedUpdates();
+
+            expect(mockCapturedFooterProps.current).toEqual(expect.objectContaining({count: 87, countType: CONST.SEARCH.FOOTER_COUNT.REPORTS}));
+        });
+
+        it('offers no count selector while the footer describes a partial selection', async () => {
+            setSearchQuery('type:expense-report footerCount:reports');
+            mockSelectedTransactions.current = {transaction1: buildSelectedTransaction(CONST.CURRENCY.USD)};
+
+            render(
+                <SearchSelectionFooter
+                    searchResults={buildSearchResults(CONST.CURRENCY.USD, 1204, 36000, CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT, 87)}
+                    onDisplayChange={mockOnDisplayChange}
+                />,
+            );
+            await waitForBatchedUpdates();
+
+            // The selection is counted in expenses, so the report count must not be displayed against it.
+            expect(mockCapturedFooterProps.current?.countType).toBeUndefined();
+            expect(mockCapturedFooterProps.current?.count).toBe(1);
+        });
+
+        it('offers no count selector while a select-all has exclusions, since the report count cannot account for them', async () => {
+            mockSelectedTransactions.current = {};
+            mockExcludedTransactions.current = {transaction1: buildSelectedTransaction(CONST.CURRENCY.USD)};
+            mockAreAllMatchingItemsSelected.current = true;
+
+            render(
+                <SearchSelectionFooter
+                    searchResults={buildSearchResults(CONST.CURRENCY.USD, 172, 36000, CONST.SEARCH.DATA_TYPES.EXPENSE, 87)}
+                    onDisplayChange={mockOnDisplayChange}
+                />,
+            );
+            await waitForBatchedUpdates();
+
+            expect(mockCapturedFooterProps.current?.countType).toBeUndefined();
+            expect(mockCapturedFooterProps.current?.count).toBe(171);
+        });
+
+        it('applies a count change by writing it into the query, which leaves the search hash alone', async () => {
+            // A real parsed query, since applying the change rebuilds the query string from it.
+            setSearchQuery('type:expense');
+            mockSelectedTransactions.current = {};
+
+            render(
+                <SearchSelectionFooter
+                    searchResults={buildSearchResults(CONST.CURRENCY.USD, 1204, 36000, CONST.SEARCH.DATA_TYPES.EXPENSE, 87)}
+                    onDisplayChange={mockOnDisplayChange}
+                />,
+            );
+            await waitForBatchedUpdates();
+
+            await act(async () => {
+                mockCapturedFooterProps.current?.onCountChange?.(CONST.SEARCH.FOOTER_COUNT.REPORTS);
+                await waitForBatchedUpdates();
+            });
+
+            expect(mockSetParams).toHaveBeenCalledTimes(1);
+            expect(mockSetParams.mock.calls.at(0)?.at(0)?.q).toContain('footerCount:reports');
+        });
+
+        it('offers no count selector when the search returned no report count', async () => {
+            mockSelectedTransactions.current = {};
+
+            render(
+                <SearchSelectionFooter
+                    searchResults={buildSearchResults(CONST.CURRENCY.USD, 1204, 36000, CONST.SEARCH.DATA_TYPES.EXPENSE)}
+                    onDisplayChange={mockOnDisplayChange}
+                />,
+            );
+            await waitForBatchedUpdates();
+
+            expect(mockCapturedFooterProps.current?.countType).toBeUndefined();
+            expect(mockCapturedFooterProps.current?.count).toBe(1204);
+        });
     });
 });

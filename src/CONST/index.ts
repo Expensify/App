@@ -7767,9 +7767,6 @@ const CONST = {
             GROUP_BY: 'groupBy',
             COLUMNS: 'columns',
             LIMIT: 'limit',
-            FOOTER_COUNT: 'footerCount',
-            FOOTER_TOTAL: 'footerTotal',
-            FOOTER_CURRENCY: 'footerCurrency',
         },
         VIEW: {
             TABLE: 'table',
@@ -7844,6 +7841,12 @@ const CONST = {
             SUBMITTER_USER_ID: 'submitterUserID',
             SUBMITTER_PAYROLL_ID: 'submitterPayrollID',
             ORDER_DEAL_NUMBERS: 'orderDealNumbers',
+            // The Spend footer's display selections. They travel as filters because that is where the backend reads
+            // them from, but they never narrow the result set: only `footerTotal` changes the response, by swapping
+            // which aggregate comes back as the search total.
+            FOOTER_COUNT: 'footerCount',
+            FOOTER_TOTAL: 'footerTotal',
+            FOOTER_CURRENCY: 'footerCurrency',
         },
         REPORT_FIELD: {
             // All report fields start with this, so use this to check if a search key is a report field

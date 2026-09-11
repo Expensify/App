@@ -1285,7 +1285,16 @@ function peg$parse(input, options) {
                                                                                                         if (s1 === peg$FAILED) {
                                                                                                           s1 = peg$parsestatus();
                                                                                                           if (s1 === peg$FAILED) {
-                                                                                                            s1 = peg$parsereportFieldDynamic();
+                                                                                                            s1 = peg$parsefooterCount();
+                                                                                                            if (s1 === peg$FAILED) {
+                                                                                                              s1 = peg$parsefooterCurrency();
+                                                                                                              if (s1 === peg$FAILED) {
+                                                                                                                s1 = peg$parsefooterTotal();
+                                                                                                                if (s1 === peg$FAILED) {
+                                                                                                                  s1 = peg$parsereportFieldDynamic();
+                                                                                                                }
+                                                                                                              }
+                                                                                                            }
                                                                                                           }
                                                                                                         }
                                                                                                       }
@@ -1385,15 +1394,6 @@ function peg$parse(input, options) {
               s1 = peg$parselimit();
               if (s1 === peg$FAILED) {
                 s1 = peg$parseview();
-                if (s1 === peg$FAILED) {
-                  s1 = peg$parsefooterCount();
-                  if (s1 === peg$FAILED) {
-                    s1 = peg$parsefooterCurrency();
-                    if (s1 === peg$FAILED) {
-                      s1 = peg$parsefooterTotal();
-                    }
-                  }
-                }
               }
             }
           }

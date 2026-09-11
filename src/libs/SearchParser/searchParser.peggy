@@ -308,6 +308,9 @@ key "key"
       / purchaseAmount
       / policyID
       / status
+      / footerCount
+      / footerCurrency
+      / footerTotal
       / reportFieldDynamic
     )
 
@@ -317,7 +320,7 @@ filterKey
       return k;
     }
     
-defaultKey "default key" = @(type / sortBy / sortOrder / groupBy / columns / limit / view / footerCount / footerCurrency / footerTotal)
+defaultKey "default key" = @(type / sortBy / sortOrder / groupBy / columns / limit / view)
 
 identifier
   = (","+)? parts:(values / quotedString / alphanumeric)|1.., ","+| empty:(","+)? {
