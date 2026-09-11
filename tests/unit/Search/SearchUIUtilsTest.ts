@@ -13245,24 +13245,25 @@ describe('SearchUIUtils', () => {
             tag: {text: translateLocal('common.tag'), value: CONST.SEARCH.HAS_VALUES.TAG},
             category: {text: translateLocal('common.category'), value: CONST.SEARCH.HAS_VALUES.CATEGORY},
             submittedViolation: {text: translateLocal('search.filters.has.submittedViolation'), value: CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION},
+            approvedViolation: {text: translateLocal('search.filters.has.approvedViolation'), value: CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION},
         });
 
         test('returns all expense has options when shouldShowAllOptions is set (display/validation path)', () => {
-            const {receipt, attachment, tag, category, submittedViolation} = getExpenseHasOptions();
+            const {receipt, attachment, tag, category, submittedViolation, approvedViolation} = getExpenseHasOptions();
             const result = SearchUIUtils.getHasOptions(translateLocal, CONST.SEARCH.DATA_TYPES.EXPENSE, {shouldShowAllOptions: true});
 
-            expect(result).toEqual([receipt, attachment, tag, category, submittedViolation]);
+            expect(result).toEqual([receipt, attachment, tag, category, submittedViolation, approvedViolation]);
         });
 
         test('hides Tag, Category, and Submitted violation when the user has no workspaces', () => {
-            const {receipt, attachment} = getExpenseHasOptions();
+            const {receipt, attachment, approvedViolation} = getExpenseHasOptions();
             const result = SearchUIUtils.getHasOptions(translateLocal, CONST.SEARCH.DATA_TYPES.EXPENSE, {policies: {}});
 
-            expect(result).toEqual([receipt, attachment]);
+            expect(result).toEqual([receipt, attachment, approvedViolation]);
         });
 
         test('shows Tag only when at least one accessible workspace has tags enabled', () => {
-            const {receipt, attachment, tag} = getExpenseHasOptions();
+            const {receipt, attachment, tag, approvedViolation} = getExpenseHasOptions();
             const policies: OnyxCollection<OnyxTypes.Policy> = {
                 [`${ONYXKEYS.COLLECTION.POLICY}1`]: {
                     ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
@@ -13274,7 +13275,7 @@ describe('SearchUIUtils', () => {
 
             const result = SearchUIUtils.getHasOptions(translateLocal, CONST.SEARCH.DATA_TYPES.EXPENSE, {policies});
 
-            expect(result).toEqual([receipt, attachment, tag]);
+            expect(result).toEqual([receipt, attachment, tag, approvedViolation]);
         });
 
         test('hides Tag when no accessible workspace has tags enabled', () => {
@@ -13295,7 +13296,7 @@ describe('SearchUIUtils', () => {
         });
 
         test('shows Category only when at least one accessible workspace has categories enabled', () => {
-            const {receipt, attachment, category} = getExpenseHasOptions();
+            const {receipt, attachment, category, approvedViolation} = getExpenseHasOptions();
             const policies: OnyxCollection<OnyxTypes.Policy> = {
                 [`${ONYXKEYS.COLLECTION.POLICY}1`]: {
                     ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
@@ -13307,7 +13308,7 @@ describe('SearchUIUtils', () => {
 
             const result = SearchUIUtils.getHasOptions(translateLocal, CONST.SEARCH.DATA_TYPES.EXPENSE, {policies});
 
-            expect(result).toEqual([receipt, attachment, category]);
+            expect(result).toEqual([receipt, attachment, category, approvedViolation]);
         });
 
         test('hides Category when no accessible workspace has categories enabled', () => {
@@ -13328,7 +13329,7 @@ describe('SearchUIUtils', () => {
         });
 
         test('shows Submitted violation only when at least one accessible workspace has Rules enabled', () => {
-            const {receipt, attachment, submittedViolation} = getExpenseHasOptions();
+            const {receipt, attachment, submittedViolation, approvedViolation} = getExpenseHasOptions();
             const policies: OnyxCollection<OnyxTypes.Policy> = {
                 [`${ONYXKEYS.COLLECTION.POLICY}1`]: {
                     ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
@@ -13340,7 +13341,7 @@ describe('SearchUIUtils', () => {
 
             const result = SearchUIUtils.getHasOptions(translateLocal, CONST.SEARCH.DATA_TYPES.EXPENSE, {policies});
 
-            expect(result).toEqual([receipt, attachment, submittedViolation]);
+            expect(result).toEqual([receipt, attachment, submittedViolation, approvedViolation]);
         });
 
         test('hides Submitted violation when no accessible workspace has Rules enabled', () => {
@@ -13361,7 +13362,7 @@ describe('SearchUIUtils', () => {
         });
 
         test('ignores personal policies when deciding which has options to show', () => {
-            const {receipt, attachment} = getExpenseHasOptions();
+            const {receipt, attachment, approvedViolation} = getExpenseHasOptions();
             const policies: OnyxCollection<OnyxTypes.Policy> = {
                 [`${ONYXKEYS.COLLECTION.POLICY}1`]: {
                     ...createRandomPolicy(1, CONST.POLICY.TYPE.PERSONAL),
@@ -13373,11 +13374,11 @@ describe('SearchUIUtils', () => {
 
             const result = SearchUIUtils.getHasOptions(translateLocal, CONST.SEARCH.DATA_TYPES.EXPENSE, {policies});
 
-            expect(result).toEqual([receipt, attachment]);
+            expect(result).toEqual([receipt, attachment, approvedViolation]);
         });
 
         test('ignores pending workspace joins when deciding which has options to show', () => {
-            const {receipt, attachment} = getExpenseHasOptions();
+            const {receipt, attachment, approvedViolation} = getExpenseHasOptions();
             const policies: OnyxCollection<OnyxTypes.Policy> = {
                 [`${ONYXKEYS.COLLECTION.POLICY}1`]: {
                     ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
@@ -13390,11 +13391,11 @@ describe('SearchUIUtils', () => {
 
             const result = SearchUIUtils.getHasOptions(translateLocal, CONST.SEARCH.DATA_TYPES.EXPENSE, {policies});
 
-            expect(result).toEqual([receipt, attachment]);
+            expect(result).toEqual([receipt, attachment, approvedViolation]);
         });
 
         test('shows Submitted violation for Collect workspaces with Rules enabled without Rules Revamp', () => {
-            const {receipt, attachment, submittedViolation} = getExpenseHasOptions();
+            const {receipt, attachment, submittedViolation, approvedViolation} = getExpenseHasOptions();
             const policies: OnyxCollection<OnyxTypes.Policy> = {
                 [`${ONYXKEYS.COLLECTION.POLICY}1`]: {
                     ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
@@ -13406,11 +13407,11 @@ describe('SearchUIUtils', () => {
 
             const result = SearchUIUtils.getHasOptions(translateLocal, CONST.SEARCH.DATA_TYPES.EXPENSE, {policies});
 
-            expect(result).toEqual([receipt, attachment, submittedViolation]);
+            expect(result).toEqual([receipt, attachment, submittedViolation, approvedViolation]);
         });
 
         test('keeps already-selected Tag/Category/Submitted violation when those workspace features are off', () => {
-            const {receipt, attachment, tag, category, submittedViolation} = getExpenseHasOptions();
+            const {receipt, attachment, tag, category, submittedViolation, approvedViolation} = getExpenseHasOptions();
             const policies: OnyxCollection<OnyxTypes.Policy> = {
                 [`${ONYXKEYS.COLLECTION.POLICY}1`]: {
                     ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
@@ -13425,18 +13426,15 @@ describe('SearchUIUtils', () => {
                 selectedValues: [CONST.SEARCH.HAS_VALUES.TAG, CONST.SEARCH.HAS_VALUES.CATEGORY, CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION],
             });
 
-            expect(result).toEqual([receipt, attachment, tag, category, submittedViolation]);
+            expect(result).toEqual([receipt, attachment, tag, category, submittedViolation, approvedViolation]);
         });
 
-        test('returns expense has options including submitted and approved violation', () => {
+        test('returns expense has options including approved violation', () => {
             const result = SearchUIUtils.getHasOptions(translateLocal, CONST.SEARCH.DATA_TYPES.EXPENSE);
 
             expect(result).toEqual([
                 {text: translateLocal('common.receipt'), value: CONST.SEARCH.HAS_VALUES.RECEIPT},
                 {text: translateLocal('common.attachment'), value: CONST.SEARCH.HAS_VALUES.ATTACHMENT},
-                {text: translateLocal('common.tag'), value: CONST.SEARCH.HAS_VALUES.TAG},
-                {text: translateLocal('common.category'), value: CONST.SEARCH.HAS_VALUES.CATEGORY},
-                {text: translateLocal('search.filters.has.submittedViolation'), value: CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION},
                 {text: translateLocal('search.filters.has.approvedViolation'), value: CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION},
             ]);
         });
