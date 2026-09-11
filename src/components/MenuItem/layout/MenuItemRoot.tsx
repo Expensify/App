@@ -6,9 +6,12 @@ import {MenuItemConfigContext, MenuItemInteractionContext} from '@components/Men
 import MenuItemSecondaryInteractionContext, {useMenuItemSecondaryInteractionRegistry} from '@components/MenuItem/MenuItemSecondaryInteractionContext';
 import PressableWithSecondaryInteraction from '@components/PressableWithSecondaryInteraction';
 
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import ControlSelection from '@libs/ControlSelection';
+import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import getButtonState from '@libs/getButtonState';
 
 import variables from '@styles/variables';
@@ -44,9 +47,10 @@ function MenuItemRoot({children, onPress, isDisabled = false, sentryLabel, testI
     const StyleUtils = useStyleUtils();
     const pressableRef = useRef<View>(null);
     const isCompactPopover = useIsCompactPopover();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const isInteractive = !!onPress;
 
-    const {accessibilityLabel: derivedAccessibilityLabel, accessibilityActions} = useMenuItemAccessibility();
+    const {accessibilityLabel: derivedAccessibilityLabel, accessibilityHint, accessibilityActions} = useMenuItemAccessibility();
     const {handler: registeredSecondaryInteraction, register: registerSecondaryInteraction} = useMenuItemSecondaryInteractionRegistry();
 
     useRemoveNonInteractiveClickHandler(pressableRef, isInteractive);
@@ -78,6 +82,9 @@ function MenuItemRoot({children, onPress, isDisabled = false, sentryLabel, testI
                 {(isHovered) => (
                     <PressableWithSecondaryInteraction
                         onPress={onPressAction}
+                        // A long press on a touch device starts a text selection underneath the context menu the row is about to open, so block it for as long as the press lasts
+                        onPressIn={() => !!onSecondaryInteractionAction && shouldUseNarrowLayout && canUseTouchScreen() && ControlSelection.block()}
+                        onPressOut={ControlSelection.unblock}
                         onSecondaryInteraction={onSecondaryInteractionAction}
                         activeOpacity={!isInteractive ? 1 : variables.pressDimValue}
                         opacityAnimationDuration={variables.instantAnimationDuration}
