@@ -187,6 +187,13 @@ function Search({
 
     const [, cardFeedsResult] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER);
 
+    // one page of local rows per resolved snapshot offset. offset is written optimistically at request time,
+    // so hold the limit there until isLoading clears, otherwise the next rows show before the response lands
+    const liveRowLimit = Math.max(
+        CONST.SEARCH.RESULTS_PAGE_SIZE,
+        searchResults?.search?.isLoading ? (searchResults?.search?.offset ?? 0) : (searchResults?.search?.offset ?? 0) + CONST.SEARCH.RESULTS_PAGE_SIZE,
+    );
+
     const searchDataType = useMemo(() => (shouldUseLiveData ? CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT : searchResults?.search?.type), [shouldUseLiveData, searchResults?.search?.type]);
     const isExpenseAllMatchingSelection = type === CONST.SEARCH.DATA_TYPES.EXPENSE && areAllMatchingItemsSelected;
     const isAllMatchingItemsCountMissing = isExpenseAllMatchingSelection && typeof searchResults?.search?.count !== 'number';
@@ -282,6 +289,7 @@ function Search({
         newSearchResultKeys,
         transactions,
         reportActions,
+        visibleRowLimit: shouldUseLiveData ? liveRowLimit : undefined,
     });
 
     // Mirror `hasQueuedHighlights` into a ref so the post-create-flow `useFocusEffect`
