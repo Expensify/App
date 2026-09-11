@@ -23,7 +23,8 @@ import Navigation from '@navigation/Navigation';
 
 import type * as ReportUserActions from '@userActions/Report';
 import {createTransactionThreadReport} from '@userActions/Report';
-import * as SearchUtils from '@userActions/Search';
+import type * as SearchUtils from '@userActions/Search';
+import {setOptimisticDataForTransactionThreadPreview} from '@userActions/Search';
 
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
@@ -61,13 +62,11 @@ jest.mock('@userActions/Report', () => ({
     ...jest.requireActual<typeof ReportUserActions>('@userActions/Report'),
     createTransactionThreadReport: jest.fn(),
 }));
+jest.mock('@userActions/Search', () => ({
+    ...jest.requireActual<typeof SearchUtils>('@userActions/Search'),
+    setOptimisticDataForTransactionThreadPreview: jest.fn(),
+}));
 jest.mock('@hooks/useCardFeedsForDisplay', () => jest.fn(() => ({defaultCardFeed: null, cardFeedsByPolicy: {}})));
-
-// @userActions/Search and @libs/SearchUIUtils import each other, so a jest.mock factory for @userActions/Search runs
-// twice - once for this file's import and once for the circular re-entry from SearchUIUtils - handing the two of them
-// separate mocks. Spying on the single real module instead keeps one mock that records the calls SearchUIUtils makes.
-const realSetOptimisticDataForTransactionThreadPreview = SearchUtils.setOptimisticDataForTransactionThreadPreview;
-const setOptimisticDataForTransactionThreadPreview = jest.spyOn(SearchUtils, 'setOptimisticDataForTransactionThreadPreview').mockImplementation();
 
 const adminAccountID = 18439984;
 const adminEmail = 'admin@policy.com';
@@ -12561,14 +12560,17 @@ describe('SearchUIUtils', () => {
             hasTransactionThreadReport: true,
         };
 
-        // These tests need the real implementation, so put it back on the spy before each test
+        // These tests need the real implementation, so restore it before each test
         beforeEach(() => {
-            setOptimisticDataForTransactionThreadPreview.mockImplementation(realSetOptimisticDataForTransactionThreadPreview);
+            jest.mocked(setOptimisticDataForTransactionThreadPreview).mockRestore();
+            // Re-import the real implementation
+            const realModule = jest.requireActual<typeof SearchUtils>('@userActions/Search');
+            jest.mocked(setOptimisticDataForTransactionThreadPreview).mockImplementation(realModule.setOptimisticDataForTransactionThreadPreview);
         });
 
         it('Should create an optimistic parent report if the hasParentReport is false', async () => {
             const transactionListItem = getTransactionListItem(0);
-            SearchUtils.setOptimisticDataForTransactionThreadPreview(transactionListItem, {...transactionPreviewData, hasParentReport: false}, getCurrencyDecimalsLocal);
+            setOptimisticDataForTransactionThreadPreview(transactionListItem, {...transactionPreviewData, hasParentReport: false}, getCurrencyDecimalsLocal);
 
             await waitForBatchedUpdates();
 
@@ -12580,7 +12582,7 @@ describe('SearchUIUtils', () => {
 
         it('Should create an optimistic parent report action if the hasParentReportAction is false', async () => {
             const transactionListItem = getTransactionListItem(0);
-            SearchUtils.setOptimisticDataForTransactionThreadPreview(transactionListItem, {...transactionPreviewData, hasParentReportAction: false}, getCurrencyDecimalsLocal);
+            setOptimisticDataForTransactionThreadPreview(transactionListItem, {...transactionPreviewData, hasParentReportAction: false}, getCurrencyDecimalsLocal);
 
             await waitForBatchedUpdates();
 
@@ -12592,7 +12594,7 @@ describe('SearchUIUtils', () => {
 
         it('Should create an optimistic transaction if the hasTransaction is false', async () => {
             const transactionListItem = getTransactionListItem(0);
-            SearchUtils.setOptimisticDataForTransactionThreadPreview(transactionListItem, {...transactionPreviewData, hasTransaction: false}, getCurrencyDecimalsLocal);
+            setOptimisticDataForTransactionThreadPreview(transactionListItem, {...transactionPreviewData, hasTransaction: false}, getCurrencyDecimalsLocal);
 
             await waitForBatchedUpdates();
 
@@ -12603,7 +12605,7 @@ describe('SearchUIUtils', () => {
 
         it('Should create an optimistic transaction thread if the hasTransactionThreadReport is false', async () => {
             const transactionListItem = getTransactionListItem(0);
-            SearchUtils.setOptimisticDataForTransactionThreadPreview(transactionListItem, {...transactionPreviewData, hasTransactionThreadReport: false}, getCurrencyDecimalsLocal, '456');
+            setOptimisticDataForTransactionThreadPreview(transactionListItem, {...transactionPreviewData, hasTransactionThreadReport: false}, getCurrencyDecimalsLocal, '456');
 
             await waitForBatchedUpdates();
 
