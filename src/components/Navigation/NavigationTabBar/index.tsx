@@ -191,7 +191,7 @@ function NavigationTabBar({selectedTab, shouldShowFloatingButtons = true}: Navig
                     selectedTab={selectedTab}
                     isWideLayout={false}
                 />
-                {shouldShowAccountTab && (
+                {!isInsightsTabVisible && (
                     <NavigationTabBarAvatar
                         style={styles.navigationTabBarItem}
                         isSelected={selectedTab === NAVIGATION_TABS.SETTINGS}
