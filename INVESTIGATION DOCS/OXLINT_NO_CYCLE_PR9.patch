@@ -1,0 +1,281 @@
+diff --git a/src/components/ReportActionItem/TransactionPreview/TransactionPreviewContent.tsx b/src/components/ReportActionItem/TransactionPreview/TransactionPreviewContent.tsx
+index fca4bb5a35f..4f740fd3ded 100644
+--- a/src/components/ReportActionItem/TransactionPreview/TransactionPreviewContent.tsx
++++ b/src/components/ReportActionItem/TransactionPreview/TransactionPreviewContent.tsx
+@@ -32,7 +32,8 @@ import type {TransactionDetails} from '@libs/ReportUtils';
+ import {canEditMoneyRequest, getTransactionDetails, isPolicyExpenseChat, isReportApproved, isSettled} from '@libs/ReportUtils';
+ import StringUtils from '@libs/StringUtils';
+ import type {TranslationPathOrText} from '@libs/TransactionPreviewUtils';
+-import {createTransactionPreviewConditionals, getIOUPayerAndReceiver, getTransactionPreviewTextAndTranslationPaths} from '@libs/TransactionPreviewUtils';
++import getIOUPayerAndReceiver from '@libs/getIOUPayerAndReceiver';
++import {createTransactionPreviewConditionals, getTransactionPreviewTextAndTranslationPaths} from '@libs/TransactionPreviewUtils';
+ import {isManagedCardTransaction as isCardTransactionUtils, isGPSDistanceRequest, isMapDistanceRequest, isScanning} from '@libs/TransactionUtils';
+ import ViolationsUtils, {filterReceiptViolations} from '@libs/Violations/ViolationsUtils';
+ 
+diff --git a/src/libs/PaymentUtils.ts b/src/libs/PaymentUtils.ts
+index 955e66f68bf..6df63b9b8cc 100644
+--- a/src/libs/PaymentUtils.ts
++++ b/src/libs/PaymentUtils.ts
+@@ -27,10 +27,12 @@ import isEmpty from 'lodash/isEmpty';
+ 
+ import {approveMoneyRequest} from './actions/IOU/ReportWorkflow';
+ import {isBankAccountPartiallySetup} from './BankAccountUtils';
++import getBankAccountLastFourDigits from './getBankAccountLastFourDigits';
+ import BankAccountModel from './models/BankAccount';
+ import Navigation from './Navigation/Navigation';
+ import {shouldRestrictUserBillableActions} from './SubscriptionUtils';
+ 
++
+ type KYCFlowEvent = GestureResponderEvent | KeyboardEvent | undefined;
+ type TriggerKYCFlow = (params: ContinueActionParams) => void;
+ type AccountType = ValueOf<typeof CONST.PAYMENT_METHODS> | undefined;
+@@ -338,26 +340,6 @@ function getActivePaymentType(
+     };
+ }
+ 
+-/**
+- * Get the last 4 digits of a bank account used for payment.
+- *
+- * `policyACHAccountNumber` is the account number of the policy's default reimbursement account
+- * (`policy.achAccount.accountNumber`), used as a fallback when the payment doesn't name an account.
+- */
+-function getBankAccountLastFourDigits(bankAccountID: number | undefined, bankAccountList: OnyxEntry<Record<string, BankAccount>>, policyACHAccountNumber: string | undefined): string {
+-    const bankAccount = bankAccountID ? bankAccountList?.[bankAccountID] : null;
+-
+-    if (bankAccount?.accountData?.accountNumber) {
+-        return bankAccount.accountData.accountNumber.slice(-4);
+-    }
+-
+-    // If bankAccountID is provided but not found in bankAccountList, return '' to avoid showing policy account digits for multi-VBBA payments.
+-    if (bankAccountID != null) {
+-        return '';
+-    }
+-    return policyACHAccountNumber?.slice(-4) ?? '';
+-}
+-
+ export {
+     hasExpensifyPaymentMethod,
+     getPaymentMethodDescription,
+diff --git a/src/libs/ReportUtils.ts b/src/libs/ReportUtils.ts
+index 69aeb8a825e..6c93dde2ac9 100644
+--- a/src/libs/ReportUtils.ts
++++ b/src/libs/ReportUtils.ts
+@@ -146,7 +146,7 @@ import {getDBTimeWithSkew, getServerAnchoredDBTime} from './NetworkState';
+ import {rand64} from './NumberUtils';
+ import Parser from './Parser';
+ import {getParsedMessageWithShortMentions} from './ParsingUtils';
+-import {getBankAccountLastFourDigits} from './PaymentUtils';
++import getBankAccountLastFourDigits from './getBankAccountLastFourDigits';
+ import Permissions from './Permissions';
+ import {getAccountIDsByLogins, getDisplayNameOrDefault, getLoginByAccountID, getPersonalDetailByEmail, temporaryGetDisplayNameOrDefault} from './PersonalDetailsUtils';
+ import {
+diff --git a/src/libs/SearchUIUtils.ts b/src/libs/SearchUIUtils.ts
+index 56f5b595274..b3cef69f504 100644
+--- a/src/libs/SearchUIUtils.ts
++++ b/src/libs/SearchUIUtils.ts
+@@ -205,7 +205,7 @@ import {
+     withExactMatchFilterKeys,
+ } from './SearchQueryUtils';
+ import StringUtils from './StringUtils';
+-import {getIOUPayerAndReceiver} from './TransactionPreviewUtils';
++import getIOUPayerAndReceiver from './getIOUPayerAndReceiver';
+ import {
+     getAmount,
+     getAttendees,
+diff --git a/src/libs/TransactionPreviewUtils.ts b/src/libs/TransactionPreviewUtils.ts
+index 2f89d6bbfd3..2636fe00df0 100644
+--- a/src/libs/TransactionPreviewUtils.ts
++++ b/src/libs/TransactionPreviewUtils.ts
+@@ -53,32 +53,6 @@ import {
+ import {isInvalidMerchantValue} from './ValidationUtils';
+ import {filterReceiptViolations, isHardViolationOrRateDateWarning} from './Violations/ViolationsUtils';
+ 
+-const emptyPersonalDetails: OnyxTypes.PersonalDetails = {
+-    accountID: CONST.REPORT.OWNER_ACCOUNT_ID_FAKE,
+-    avatar: '',
+-    displayName: undefined,
+-    login: undefined,
+-};
+-
+-/**
+- * Returns the data for displaying payer and receiver (`from` and `to`) values for given ids and amount.
+- * In IOU transactions we can deduce who is the payer and receiver based on sign (positive/negative) of the amount.
+- */
+-function getIOUPayerAndReceiver(managerID: number, ownerAccountID: number, personalDetails: OnyxTypes.PersonalDetailsList | undefined, amount: number) {
+-    let fromID = ownerAccountID;
+-    let toID = managerID;
+-
+-    if (amount < 0) {
+-        fromID = managerID;
+-        toID = ownerAccountID;
+-    }
+-
+-    return {
+-        from: personalDetails ? personalDetails[fromID] : emptyPersonalDetails,
+-        to: personalDetails ? personalDetails[toID] : emptyPersonalDetails,
+-    };
+-}
+-
+ const getReviewNavigationRoute = (
+     backTo: string,
+     threadReportID: string,
+@@ -588,7 +562,6 @@ function compareByRBR(
+ 
+ export {
+     getReviewNavigationRoute,
+-    getIOUPayerAndReceiver,
+     getTransactionPreviewTextAndTranslationPaths,
+     createTransactionPreviewConditionals,
+     getViolationTranslatePath,
+diff --git a/src/libs/actions/Link.ts b/src/libs/actions/Link.ts
+index 690f913020b..8cac3361fe0 100644
+--- a/src/libs/actions/Link.ts
++++ b/src/libs/actions/Link.ts
+@@ -2,6 +2,7 @@ import * as API from '@libs/API';
+ import type {GenerateSpotnanaTokenParams} from '@libs/API/parameters';
+ import {SIDE_EFFECT_REQUEST_COMMANDS} from '@libs/API/types';
+ import asyncOpenURL from '@libs/asyncOpenURL';
++import openExternalLink from '@libs/openExternalLink';
+ import * as Environment from '@libs/Environment/Environment';
+ import getIsNarrowLayout from '@libs/getIsNarrowLayout';
+ import isPublicScreenRoute from '@libs/isPublicScreenRoute';
+@@ -77,13 +78,6 @@ function buildOldDotURL(url: string, shortLivedAuthToken?: string): Promise<stri
+     });
+ }
+ 
+-/**
+- * @param shouldSkipCustomSafariLogic When true, we will use `Linking.openURL` even if the browser is Safari.
+- */
+-function openExternalLink(url: string, shouldSkipCustomSafariLogic = false, shouldOpenInSameTab = false) {
+-    asyncOpenURL(Promise.resolve(), url, shouldSkipCustomSafariLogic, shouldOpenInSameTab);
+-}
+-
+ function openOldDotLink(url: string, shouldOpenInSameTab = false) {
+     if (getIsOffline()) {
+         buildOldDotURL(url).then((oldDotURL) => openExternalLink(oldDotURL, undefined, shouldOpenInSameTab));
+diff --git a/src/libs/fileDownload/DownloadUtils.ts b/src/libs/fileDownload/DownloadUtils.ts
+index 06be97a92e3..0d99a661a2b 100644
+--- a/src/libs/fileDownload/DownloadUtils.ts
++++ b/src/libs/fileDownload/DownloadUtils.ts
+@@ -1,7 +1,7 @@
+ import * as ApiUtils from '@libs/ApiUtils';
+ import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
+ 
+-import * as Link from '@userActions/Link';
++import openExternalLink from '@libs/openExternalLink';
+ 
+ import CONST from '@src/CONST';
+ 
+@@ -59,7 +59,7 @@ const fetchFileDownload: FileDownload = (
+     ) {
+         // Different origin URLs might pose a CORS issue during direct downloads.
+         // Opening in a new tab avoids this limitation, letting the browser handle the download.
+-        Link.openExternalLink(url);
++        openExternalLink(url);
+         return Promise.resolve();
+     }
+ 
+@@ -89,7 +89,7 @@ const fetchFileDownload: FileDownload = (
+                 onDownloadFailed();
+             } else {
+                 // file could not be downloaded, open sourceURL in new tab
+-                Link.openExternalLink(url);
++                openExternalLink(url);
+             }
+         });
+ };
+diff --git a/src/libs/getBankAccountLastFourDigits.ts b/src/libs/getBankAccountLastFourDigits.ts
+new file mode 100644
+index 00000000000..c8cc703a679
+--- /dev/null
++++ b/src/libs/getBankAccountLastFourDigits.ts
+@@ -0,0 +1,28 @@
++import type {BankAccount} from '@src/types/onyx';
++
++import type {OnyxEntry} from 'react-native-onyx';
++
++/**
++ * Returns the last four digits of the bank account a payment was made from.
++ *
++ * Lives in its own module rather than in `PaymentUtils` so that callers needing only this can avoid importing
++ * the whole payment utility module, which reaches into the card and policy layers and closes import cycles.
++ *
++ * @param policyACHAccountNumber The workspace's reimbursement account number (`policy.achAccount.accountNumber`),
++ * used as a fallback when the payment doesn't name an account.
++ */
++function getBankAccountLastFourDigits(bankAccountID: number | undefined, bankAccountList: OnyxEntry<Record<string, BankAccount>>, policyACHAccountNumber: string | undefined): string {
++    const bankAccount = bankAccountID ? bankAccountList?.[bankAccountID] : null;
++
++    if (bankAccount?.accountData?.accountNumber) {
++        return bankAccount.accountData.accountNumber.slice(-4);
++    }
++
++    // If bankAccountID is provided but not found in bankAccountList, return '' to avoid showing policy account digits for multi-VBBA payments.
++    if (bankAccountID != null) {
++        return '';
++    }
++    return policyACHAccountNumber?.slice(-4) ?? '';
++}
++
++export default getBankAccountLastFourDigits;
+diff --git a/src/libs/getIOUPayerAndReceiver.ts b/src/libs/getIOUPayerAndReceiver.ts
+new file mode 100644
+index 00000000000..38ae4d18d3a
+--- /dev/null
++++ b/src/libs/getIOUPayerAndReceiver.ts
+@@ -0,0 +1,34 @@
++import CONST from '@src/CONST';
++import type * as OnyxTypes from '@src/types/onyx';
++
++const emptyPersonalDetails: OnyxTypes.PersonalDetails = {
++    accountID: CONST.REPORT.OWNER_ACCOUNT_ID_FAKE,
++    avatar: '',
++    displayName: undefined,
++    login: undefined,
++};
++
++/**
++ * Returns the data for displaying payer and receiver (`from` and `to`) values for given ids and amount.
++ * In IOU transactions we can deduce who is the payer and receiver based on sign (positive/negative) of the amount.
++ *
++ * Lives in its own module rather than in `TransactionPreviewUtils` so that callers needing only this can avoid
++ * importing the whole preview utility module, which reaches into the report and action layers and closes import
++ * cycles.
++ */
++function getIOUPayerAndReceiver(managerID: number, ownerAccountID: number, personalDetails: OnyxTypes.PersonalDetailsList | undefined, amount: number) {
++    let fromID = ownerAccountID;
++    let toID = managerID;
++
++    if (amount < 0) {
++        fromID = managerID;
++        toID = ownerAccountID;
++    }
++
++    return {
++        from: personalDetails ? personalDetails[fromID] : emptyPersonalDetails,
++        to: personalDetails ? personalDetails[toID] : emptyPersonalDetails,
++    };
++}
++
++export default getIOUPayerAndReceiver;
+diff --git a/src/libs/openExternalLink.ts b/src/libs/openExternalLink.ts
+new file mode 100644
+index 00000000000..07466ccc3aa
+--- /dev/null
++++ b/src/libs/openExternalLink.ts
+@@ -0,0 +1,15 @@
++import asyncOpenURL from './asyncOpenURL';
++
++/**
++ * Opens a URL outside the app.
++ *
++ * Lives in its own module rather than in `actions/Link` so that callers needing only this can avoid importing
++ * the whole link action module, which reaches into the report and session layers and closes import cycles.
++ *
++ * @param shouldSkipCustomSafariLogic When true, we will use `Linking.openURL` even if the browser is Safari.
++ */
++function openExternalLink(url: string, shouldSkipCustomSafariLogic = false, shouldOpenInSameTab = false) {
++    asyncOpenURL(Promise.resolve(), url, shouldSkipCustomSafariLogic, shouldOpenInSameTab);
++}
++
++export default openExternalLink;
