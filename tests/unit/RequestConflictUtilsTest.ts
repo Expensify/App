@@ -164,7 +164,10 @@ describe('RequestConflictUtils', () => {
 
     it('resolveEditCommentWithNewAddCommentRequest should rename the queued attachment when the edit renamed it', () => {
         const reportActionID = '2';
-        const persistedRequests = [{command: 'AddTextAndAttachment', data: {reportActionID, reportComment: 'test', file: {uri: 'blob:local', name: 'data.csv'}, attachmentID: '5'}}, {command: 'OpenReport'}];
+        const persistedRequests = [
+            {command: 'AddTextAndAttachment', data: {reportActionID, reportComment: 'test', file: {uri: 'blob:local', name: 'data.csv'}, attachmentID: '5'}},
+            {command: 'OpenReport'},
+        ];
         const parameters = {reportID: '1', reportActionID, reportComment: 'text edited'};
         const result = resolveEditCommentWithNewAddCommentRequest(persistedRequests, parameters, reportActionID, 0, false, 'renamed.csv');
         expect(result).toEqual({
