@@ -126,13 +126,13 @@ function CertiniaAdvancedPage({policy}: WithPolicyConnectionsProps) {
                     onCloseError={() => clearFinancialForceErrorField(policyID, CONST.CERTINIA_CONFIG.SYNC_REIMBURSED_REPORTS)}
                 />
             )}
-            {!isPSA && canConfigureCurrencyConversionFees && (
+            {!isPSA && canConfigureCurrencyConversionFees && !!advancedConfig?.syncReimbursedReports && (
                 <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.CERTINIA_CONFIG.FX_EXPENSE_ACCOUNT], config?.pendingFields)}>
                     <MenuItemWithTopDescription
                         shouldShowRightIcon
                         title={selectedFxExpenseAccountName}
                         description={translate('workspace.certinia.fxExpenseAccount')}
-                        wrapperStyle={[styles.sectionMenuItemTopDescription]}
+                        wrapperStyle={[styles.ph5, styles.pv3]}
                         onPress={!advancedPath ? undefined : () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_CERTINIA_FX_EXPENSE_ACCOUNT.path, advancedPath))}
                         brickRoadIndicator={areSettingsInErrorFields([CONST.CERTINIA_CONFIG.FX_EXPENSE_ACCOUNT], config?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                     />
