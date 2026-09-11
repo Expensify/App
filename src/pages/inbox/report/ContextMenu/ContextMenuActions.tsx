@@ -1221,6 +1221,11 @@ const ContextMenuActions: ContextMenuAction[] = [
                     );
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED)) {
                     Clipboard.setString(getMarkedReimbursedMessage(translate, reportAction));
+                } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.AGENT_PROMPT_UPDATED)) {
+                    const originalMessage = getOriginalMessage(reportAction);
+                    if (originalMessage) {
+                        Clipboard.setString(translate('agentPromptUpdated', originalMessage));
+                    }
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.REIMBURSED)) {
                     Clipboard.setString(
                         getReimbursedMessage(
