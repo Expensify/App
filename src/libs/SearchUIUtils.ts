@@ -5434,8 +5434,7 @@ function getHasOptionAvailability(policies: OnyxCollection<OnyxTypes.Policy> | u
         shouldShowTag ||= policy.areTagsEnabled === true;
         shouldShowCategory ||= policy.areCategoriesEnabled === true;
         // Migrated Control workspaces leave areRulesEnabled undefined. Fall back to Classic category rules in that case.
-        // Pass true for Rules Revamp so Collect workspaces with Rules enabled still count. This filter is not gated on that beta.
-        shouldShowSubmittedViolation ||= arePolicyRulesEnabled(policy, policy.id ? policyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policy.id}`] : undefined, true);
+        shouldShowSubmittedViolation ||= arePolicyRulesEnabled(policy, policy.id ? policyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policy.id}`] : undefined);
 
         if (shouldShowTag && shouldShowCategory && shouldShowSubmittedViolation) {
             break;
