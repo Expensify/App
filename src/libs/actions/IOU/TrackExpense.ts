@@ -131,8 +131,8 @@ import {
     getTransactionWithPreservedLocalReceiptSource,
 } from './MoneyRequestBuilder';
 import {highlightTransactionOnSearchRouteIfNeeded} from './NavigationHelpers';
-import resolveWriteBarrier, {IMMEDIATE} from './resolveWriteBarrier';
 import {addPendingNewTransactionIDs, isOneToTwoTransactionTransition} from './PendingNewTransactions';
+import resolveWriteBarrier, {IMMEDIATE} from './resolveWriteBarrier';
 import {getSearchOnyxUpdate} from './SearchUpdate';
 
 type TrackExpenseInformation = {
