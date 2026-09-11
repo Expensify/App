@@ -1,8 +1,3 @@
-/**
- * Inline-editable limit cell for the workspace Expensify cards table. Edits the
- * amount in place with a currency-prefixed integer input, and saves through the
- * caller's persistence handler.
- */
 import {EditableCell, useInlineEditState} from '@components/EditableCell';
 import type {EditableProps} from '@components/EditableCell';
 import NumberWithSymbolForm from '@components/NumberWithSymbolForm';

@@ -1,7 +1,3 @@
-/**
- * Inline-editable amount cell for the workspace per diem table. Edits the amount in place
- * with a currency-prefixed number input, and saves through the caller's persistence handler.
- */
 import {EditableCell, useInlineEditState} from '@components/EditableCell';
 import type {EditableProps} from '@components/EditableCell';
 import NumberWithSymbolForm from '@components/NumberWithSymbolForm';

@@ -1,7 +1,3 @@
-/**
- * Inline-editable limit type cell for the workspace Expensify cards table. Opens a limit type
- * picker popover and saves through the caller's persistence handler.
- */
 import {EditableCell, usePopoverEditState} from '@components/EditableCell';
 import TextWithTooltip from '@components/TextWithTooltip';
 import WorkspaceExpensifyCardLimitTypePickerModal from '@components/WorkspaceExpensifyCardLimitTypePickerModal';

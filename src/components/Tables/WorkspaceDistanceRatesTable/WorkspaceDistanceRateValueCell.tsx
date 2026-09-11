@@ -1,7 +1,3 @@
-/**
- * Inline-editable rate cell for the workspace distance rates table. Edits the amount in place
- * with a currency-prefixed number input, and saves through the caller's persistence handler.
- */
 import {EditableCell, useInlineEditState} from '@components/EditableCell';
 import type {EditableProps} from '@components/EditableCell';
 import NumberWithSymbolForm from '@components/NumberWithSymbolForm';
