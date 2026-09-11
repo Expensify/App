@@ -3055,6 +3055,8 @@ ${amount} für ${merchant} – ${date}`,
             updateAvatar: 'Beim Aktualisieren des Avatars dieser Vertretung ist ein Problem aufgetreten',
         },
     },
+    agentPromptUpdated: ({updatedBy, previousPrompt, newPrompt}: {updatedBy: string; previousPrompt: string; newPrompt: string}) =>
+        `${updatedBy} hat die Anweisungen dieses Agenten aktualisiert.\nVorherige Anweisungen:\n${previousPrompt}\nNeue Anweisungen:\n${newPrompt}`,
     newAgentPage: {
         title: 'Neue:r Agent:in',
         buildCustomAgent: 'Eigenen Agenten erstellen',

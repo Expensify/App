@@ -3037,6 +3037,8 @@ ${amount} para ${merchant} - ${date}`,
             updateAvatar: 'Ocorreu um problema ao atualizar o avatar deste agente',
         },
     },
+    agentPromptUpdated: ({updatedBy, previousPrompt, newPrompt}: {updatedBy: string; previousPrompt: string; newPrompt: string}) =>
+        `${updatedBy} atualizou as instruções deste agente.\nInstruções anteriores:\n${previousPrompt}\nNovas instruções:\n${newPrompt}`,
     newAgentPage: {
         title: 'Novo agente',
         buildCustomAgent: 'Criar agente personalizado',

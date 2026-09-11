@@ -3019,6 +3019,8 @@ ${date} の ${merchant} への ${amount}`,
             updateAvatar: 'このエージェントのアバターを更新する際に問題が発生しました',
         },
     },
+    agentPromptUpdated: ({updatedBy, previousPrompt, newPrompt}: {updatedBy: string; previousPrompt: string; newPrompt: string}) =>
+        `${updatedBy} がこのエージェントの指示を更新しました。\n以前の指示:\n${previousPrompt}\n新しい指示:\n${newPrompt}`,
     newAgentPage: {
         title: '新しいエージェント',
         buildCustomAgent: 'カスタムエージェントを作成',

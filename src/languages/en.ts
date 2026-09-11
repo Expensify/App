@@ -3141,6 +3141,8 @@ const translations = {
             updateAvatar: "There was a problem updating this agent's avatar",
         },
     },
+    agentPromptUpdated: ({updatedBy, previousPrompt, newPrompt}: {updatedBy: string; previousPrompt: string; newPrompt: string}) =>
+        `${updatedBy} updated this agent's instructions.\nPrevious instructions:\n${previousPrompt}\nNew instructions:\n${newPrompt}`,
     newAgentPage: {
         title: 'New agent',
         buildCustomAgent: 'Build custom agent',

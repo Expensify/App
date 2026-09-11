@@ -2942,6 +2942,8 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             updateAvatar: '更新此代理的头像时出现问题',
         },
     },
+    agentPromptUpdated: ({updatedBy, previousPrompt, newPrompt}: {updatedBy: string; previousPrompt: string; newPrompt: string}) =>
+        `${updatedBy} 更新了此智能体的指令。\n之前的指令：\n${previousPrompt}\n新的指令：\n${newPrompt}`,
     newAgentPage: {
         title: '新代理',
         buildCustomAgent: '构建自定义代理',
