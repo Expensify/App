@@ -159,6 +159,7 @@ function SuggestionMention({
             [policyID, isGroupPolicyReport],
         ),
         CONST.TIMING.SEARCH_OPTION_LIST_DEBOUNCE_TIME,
+        {maxWait: CONST.TIMING.SEARCH_OPTION_LIST_DEBOUNCE_TIME},
     );
 
     const formatLoginPrivateDomain = useCallback(
@@ -576,6 +577,8 @@ function SuggestionMention({
             [calculateMentionSuggestion],
         ),
         CONST.TIMING.SUGGESTION_DEBOUNCE_TIME,
+        // maxWait keeps the suggestions refreshing while a key is held down.
+        {maxWait: CONST.TIMING.SUGGESTION_DEBOUNCE_TIME},
     );
 
     useEffect(() => {
