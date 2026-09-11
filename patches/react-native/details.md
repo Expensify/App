@@ -1,5 +1,12 @@
 # `react-native` patches
 
+### [react-native+0.86.0+041+android-child-rectangle-scroll-control.patch](react-native+0.86.0+041+android-child-rectangle-scroll-control.patch)
+
+- Reason: Adds an opt-in Android vertical ScrollView control for child rectangle requests, allowing Table search to own caret positioning without disabling native child-focus scrolling such as Tab navigation. Defaults and the existing scrollsChildToFocus behavior are preserved, including recycled-view defaults.
+- Upstream PR/issue: Not filed.
+- E/App issue: https://github.com/Expensify/App/issues/99373
+- PR Introducing Patch: https://github.com/Expensify/App/pull/99451
+
 ### [react-native+0.86.0+001+initial.patch](react-native+0.86.0+001+initial.patch)
 
 - Reason: Fixes keyboard flickering issue when opening/closing modals. When an input is blurred and a modal is opened, the `rootView` becomes the `firstResponder`, causing the system to retain an incorrect keyboard state. This leads to keyboard flickering when the modal is closed. The patch adds code to resign the `rootView`'s `firstResponder` status before presenting the modal to prevent this issue.

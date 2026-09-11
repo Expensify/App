@@ -12,14 +12,14 @@ import type {StyleProp, ViewProps, ViewStyle} from 'react-native';
 
 import {FlashList} from '@shopify/flash-list';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
-import {StyleSheet, View} from 'react-native';
+import {Platform, StyleSheet, View} from 'react-native';
 
 import type {TableData} from '.';
 import type {TableListMetadata} from './buildTableListData';
 
 import {buildTableListData, getAdjustedStickyHeaderIndices, getDataIndex, getListIndex, getSyntheticRowKind} from './buildTableListData';
 import {getRowGroupAccessibilityProps, getTableContainerAccessibilityProps, getVirtualizedRowSemanticID, shouldUseTableSemantics} from './tableAccessibility';
-import {TableRowSemanticIDContext, useTableContext} from './TableContext';
+import {TableRowSemanticIDContext, TableScrollHeaderFocusContext, useTableContext} from './TableContext';
 
 /**
  * Props for the TableBody component.
@@ -105,6 +105,8 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
         processedData: filteredAndSortedData,
         listProps,
         listRef,
+        focusedSearchInputID,
+        setFocusedSearchInputID,
         listContainerRef,
         trackScrollOffset,
         title,
@@ -136,6 +138,7 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
         onViewableItemsChanged,
         overrideItemLayout,
         renderItem,
+        stickyHeaderConfig,
         stickyHeaderIndices,
         viewabilityConfigCallbackPairs,
         ...restListProps
@@ -239,10 +242,12 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
     };
 
     const pageHeaderElement = tableListMetadata.hasPageHeader ? (
-        <View>
-            {renderListComponent(ListHeaderComponent)}
-            {listHeaderElement}
-        </View>
+        <TableScrollHeaderFocusContext.Provider value={setFocusedSearchInputID}>
+            <View>
+                {renderListComponent(ListHeaderComponent)}
+                {listHeaderElement}
+            </View>
+        </TableScrollHeaderFocusContext.Provider>
     ) : null;
 
     const EmptyResultComponent = (
@@ -395,6 +400,10 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
                 onLoad={handleLoad}
                 onChangeStickyIndex={handleChangeStickyIndex}
                 stickyHeaderIndices={hasRows && canRenderStickyHeader ? adjustedStickyHeaderIndices : undefined}
+                stickyHeaderConfig={{
+                    hideWhenInactive: Platform.OS === 'android' && tableListMetadata.shouldRenderStickyHeader,
+                    ...stickyHeaderConfig,
+                }}
                 contentContainerStyle={[
                     listContentContainerStyle,
                     tableBodyContentContainerStyle,
@@ -421,6 +430,9 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
                     onScroll?.(event);
                 }}
                 {...restListProps}
+                scrollsChildRectangleOnScreen={
+                    restListProps.scrollsChildRectangleOnScreen ?? (Platform.OS === 'android' && !restListProps.horizontal && focusedSearchInputID ? false : undefined)
+                }
                 scrollEnabled={scrollEnabled}
             />
         </View>

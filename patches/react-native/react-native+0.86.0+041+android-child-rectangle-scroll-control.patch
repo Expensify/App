@@ -1,0 +1,123 @@
+diff --git a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/scroll/ReactScrollView.java b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/scroll/ReactScrollView.java
+index 3bc7f7c..ba4dad2 100644
+--- a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/scroll/ReactScrollView.java
++++ b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/scroll/ReactScrollView.java
+@@ -134,6 +134,7 @@ public class ReactScrollView extends ScrollView
+   private int mFadingEdgeLengthEnd;
+   private boolean mEmittedOverScrollSinceScrollBegin;
+   private boolean mScrollsChildToFocus = true;
++  private boolean mScrollsChildRectangleOnScreen = true;
+ 
+   public ReactScrollView(Context context) {
+     this(context, null);
+@@ -198,6 +199,7 @@ public class ReactScrollView extends ScrollView
+     mFadingEdgeLengthEnd = 0;
+     mEmittedOverScrollSinceScrollBegin = false;
+     mScrollsChildToFocus = true;
++    mScrollsChildRectangleOnScreen = true;
+   }
+ 
+   /* package */ void recycleView() {
+@@ -305,6 +307,10 @@ public class ReactScrollView extends ScrollView
+     mScrollsChildToFocus = scrollsChildToFocus;
+   }
+ 
++  public void setScrollsChildRectangleOnScreen(boolean scrollsChildRectangleOnScreen) {
++    mScrollsChildRectangleOnScreen = scrollsChildRectangleOnScreen;
++  }
++
+   public void setDecelerationRate(float decelerationRate) {
+     getReactScrollViewScrollState().setDecelerationRate(decelerationRate);
+ 
+@@ -531,7 +537,7 @@ public class ReactScrollView extends ScrollView
+ 
+   @Override
+   public boolean requestChildRectangleOnScreen(View child, Rect rectangle, boolean immediate) {
+-    if (!mScrollsChildToFocus) {
++    if (!mScrollsChildToFocus || !mScrollsChildRectangleOnScreen) {
+       return false;
+     }
+     return super.requestChildRectangleOnScreen(child, rectangle, immediate);
+diff --git a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/scroll/ReactScrollViewManager.kt b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/scroll/ReactScrollViewManager.kt
+index 0de168f..3a84608 100644
+--- a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/scroll/ReactScrollViewManager.kt
++++ b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/scroll/ReactScrollViewManager.kt
+@@ -109,6 +109,14 @@ constructor(private val fpsListener: FpsListener? = null) :
+     view.setScrollsChildToFocus(scrollsChildToFocus)
+   }
+ 
++  @ReactProp(name = "scrollsChildRectangleOnScreen", defaultBoolean = true)
++  public fun setScrollsChildRectangleOnScreen(
++      view: ReactScrollView,
++      scrollsChildRectangleOnScreen: Boolean,
++  ) {
++    view.setScrollsChildRectangleOnScreen(scrollsChildRectangleOnScreen)
++  }
++
+   @ReactProp(name = "snapToInterval")
+   public fun setSnapToInterval(view: ReactScrollView, snapToInterval: Float) {
+     // snapToInterval needs to be exposed as a float because of the Javascript interface.
+diff --git a/node_modules/react-native/Libraries/Components/ScrollView/ScrollView.js b/node_modules/react-native/Libraries/Components/ScrollView/ScrollView.js
+index c8392ea..57153e5 100644
+--- a/node_modules/react-native/Libraries/Components/ScrollView/ScrollView.js
++++ b/node_modules/react-native/Libraries/Components/ScrollView/ScrollView.js
+@@ -396,6 +396,15 @@ export type ScrollViewPropsAndroid = Readonly<{
+    * @platform android
+    */
+   scrollsChildToFocus?: ?boolean,
++  /**
++   * When false, a vertical ScrollView ignores child rectangle requests, such as
++   * caret visibility updates, without disabling scrolling when focus moves to a
++   * different child. The default is true. scrollsChildToFocus=false still disables
++   * both behaviors.
++   *
++   * @platform android
++   */
++  scrollsChildRectangleOnScreen?: ?boolean,
+ }>;
+ 
+ type StickyHeaderComponentType = component(
+diff --git a/node_modules/react-native/Libraries/Components/ScrollView/ScrollView.d.ts b/node_modules/react-native/Libraries/Components/ScrollView/ScrollView.d.ts
+index bd9f153..bf4cf91 100644
+--- a/node_modules/react-native/Libraries/Components/ScrollView/ScrollView.d.ts
++++ b/node_modules/react-native/Libraries/Components/ScrollView/ScrollView.d.ts
+@@ -595,6 +595,15 @@ export interface ScrollViewPropsAndroid {
+    * @platform android
+    */
+   scrollsChildToFocus?: boolean | undefined;
++  /**
++   * When false, a vertical ScrollView ignores child rectangle requests, such as
++   * caret visibility updates, without disabling scrolling when focus moves to a
++   * different child. The default is true. scrollsChildToFocus=false still disables
++   * both behaviors.
++   *
++   * @platform android
++   */
++  scrollsChildRectangleOnScreen?: boolean | undefined;
+ }
+ 
+ export interface ScrollViewProps
+diff --git a/node_modules/react-native/Libraries/Components/ScrollView/ScrollViewNativeComponent.js b/node_modules/react-native/Libraries/Components/ScrollView/ScrollViewNativeComponent.js
+index eeee1a6..a31e70f 100644
+--- a/node_modules/react-native/Libraries/Components/ScrollView/ScrollViewNativeComponent.js
++++ b/node_modules/react-native/Libraries/Components/ScrollView/ScrollViewNativeComponent.js
+@@ -78,6 +78,7 @@ export const __INTERNAL_VIEW_CONFIG: PartialViewConfig =
+           pointerEvents: true,
+           isInvertedVirtualizedList: true,
+           scrollsChildToFocus: true,
++          scrollsChildRectangleOnScreen: true,
+         },
+       }
+     : {
+diff --git a/node_modules/react-native/Libraries/Components/ScrollView/ScrollViewNativeComponentType.js b/node_modules/react-native/Libraries/Components/ScrollView/ScrollViewNativeComponentType.js
+index 9cd18a3..b57ff53 100644
+--- a/node_modules/react-native/Libraries/Components/ScrollView/ScrollViewNativeComponentType.js
++++ b/node_modules/react-native/Libraries/Components/ScrollView/ScrollViewNativeComponentType.js
+@@ -70,6 +70,7 @@ export type ScrollViewNativeProps = Readonly<{
+   scrollToOverflowEnabled?: ?boolean,
+   scrollsToTop?: ?boolean,
+   scrollsChildToFocus?: ?boolean,
++  scrollsChildRectangleOnScreen?: ?boolean,
+   sendMomentumEvents?: ?boolean,
+   showsHorizontalScrollIndicator?: ?boolean,
+   showsVerticalScrollIndicator?: ?boolean,

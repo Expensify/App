@@ -325,6 +325,7 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
     const processedData = highlightMiddleware(selectionData);
 
     const listRef = useRef<FlashListRef<DataType>>(null);
+    const [focusedSearchInputID, setFocusedSearchInputID] = useState<string | null>(null);
     const releaseBackgroundInputFocusSuppressionRef = useRef<(() => void) | null>(null);
     const mobileSelectionModalRowKeyRef = useRef(mobileSelectionModalRowKey);
     const [shouldSubmitMobileSelection, setShouldSubmitMobileSelection] = useState(false);
@@ -454,6 +455,8 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
         noResultsStateElement,
         listRef,
         listContainerRef,
+        focusedSearchInputID,
+        setFocusedSearchInputID,
         trackScrollOffset,
         scrollInputIntoView,
         listProps,

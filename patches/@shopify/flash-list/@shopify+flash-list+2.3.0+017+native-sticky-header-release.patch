@@ -1,0 +1,289 @@
+diff --git a/node_modules/@shopify/flash-list/src/FlashListProps.ts b/node_modules/@shopify/flash-list/src/FlashListProps.ts
+index 5a5c0f5..8ae9991 100644
+--- a/node_modules/@shopify/flash-list/src/FlashListProps.ts
++++ b/node_modules/@shopify/flash-list/src/FlashListProps.ts
+@@ -466,6 +466,12 @@ export interface FlashListProps<TItem>
+          * @default false
+          */
+         hideRelatedCell?: boolean;
++        /**
++         * Hide the stale sticky overlay at its scroll boundary before JS releases it.
++         * Opt-in for one non-inverted, zero-offset sticky header with a visible related cell.
++         * @default false
++         */
++        hideWhenInactive?: boolean;
+       }
+     | undefined;
+ }
+diff --git a/node_modules/@shopify/flash-list/dist/FlashListProps.d.ts b/node_modules/@shopify/flash-list/dist/FlashListProps.d.ts
+index 01bb221..634c416 100644
+--- a/node_modules/@shopify/flash-list/dist/FlashListProps.d.ts
++++ b/node_modules/@shopify/flash-list/dist/FlashListProps.d.ts
+@@ -360,6 +360,12 @@ export interface FlashListProps<TItem> extends Omit<ScrollViewProps, "maintainVi
+          * @default false
+          */
+         hideRelatedCell?: boolean;
++        /**
++         * Hide the stale sticky overlay at its scroll boundary before JS releases it.
++         * Opt-in for one non-inverted, zero-offset sticky header with a visible related cell.
++         * @default false
++         */
++        hideWhenInactive?: boolean;
+     } | undefined;
+ }
+-//# sourceMappingURL=FlashListProps.d.ts.map
+\ No newline at end of file
++//# sourceMappingURL=FlashListProps.d.ts.map
+diff --git a/node_modules/@shopify/flash-list/src/recyclerview/components/StickyHeaders.tsx b/node_modules/@shopify/flash-list/src/recyclerview/components/StickyHeaders.tsx
+index 286b4da..552c3b4 100644
+--- a/node_modules/@shopify/flash-list/src/recyclerview/components/StickyHeaders.tsx
++++ b/node_modules/@shopify/flash-list/src/recyclerview/components/StickyHeaders.tsx
+@@ -54,11 +54,14 @@ export interface StickyHeaderProps<TItem> {
+ export interface StickyHeaderRef {
+   /** Reports scroll events to update sticky header positions */
+   reportScrollEvent: (event: NativeScrollEvent) => void;
++  /** Refresh the native visibility boundary after item or page-header layout changes. */
++  reportLayout: () => void;
+ }
+ 
+ interface StickyHeaderState {
+   currentStickyIndex: number;
+   pushStartsAt: number;
++  currentStickyStart: number;
+ }
+ 
+ export const StickyHeaders = <TItem,>({
+@@ -77,16 +80,22 @@ export const StickyHeaders = <TItem,>({
+     {
+       currentStickyIndex: -1,
+       pushStartsAt: Number.MAX_SAFE_INTEGER,
++      currentStickyStart: 0,
+     }
+   );
+ 
+-  const { currentStickyIndex, pushStartsAt } = stickyHeaderState;
++  const { currentStickyIndex, pushStartsAt, currentStickyStart } = stickyHeaderState;
+ 
+   // sort indices and memoize compute
+   const sortedIndices = useMemo(() => {
+     return [...stickyHeaderIndices].sort((first, second) => first - second);
+   }, [stickyHeaderIndices]);
+ 
++  const shouldHideWhenInactive =
++    recyclerViewManager.props.stickyHeaderConfig?.hideWhenInactive === true &&
++    !recyclerViewManager.props.stickyHeaderConfig?.hideRelatedCell &&
++    !inverted && stickyHeaderOffset === 0 && sortedIndices.length === 1;
++
+   const legthInvalid =
+     sortedIndices.length === 0 ||
+     recyclerViewManager.getDataLength() <=
+@@ -124,14 +133,19 @@ export const StickyHeaders = <TItem,>({
+ 
+     // Push should start when the next header reaches the bottom of the current sticky header
+     const newPushStartsAt = newNextStickyY - newCurrentStickyHeight;
++    const newCurrentStickyStart = shouldHideWhenInactive
++      ? (recyclerViewManager.tryGetLayout(newStickyIndex)?.y ?? 0) + recyclerViewManager.firstItemOffset
++      : 0;
+ 
+     if (
+       newStickyIndex !== currentStickyIndex ||
+-      newPushStartsAt !== pushStartsAt
++      newPushStartsAt !== pushStartsAt ||
++      newCurrentStickyStart !== currentStickyStart
+     ) {
+       setStickyHeaderState({
+         currentStickyIndex: newStickyIndex,
+         pushStartsAt: newPushStartsAt - stickyHeaderOffset,
++        currentStickyStart: newCurrentStickyStart,
+       });
+     }
+ 
+@@ -146,6 +160,8 @@ export const StickyHeaders = <TItem,>({
+     pushStartsAt,
+     onChangeStickyIndex,
+     stickyHeaderOffset,
++    shouldHideWhenInactive,
++    currentStickyStart,
+   ]);
+ 
+   useEffect(() => {
+@@ -159,8 +175,12 @@ export const StickyHeaders = <TItem,>({
+       reportScrollEvent: () => {
+         compute();
+       },
++      reportLayout: () => {
++        if (!shouldHideWhenInactive) return;
++        compute();
++      },
+     }),
+-    [compute]
++    [compute, shouldHideWhenInactive]
+   );
+ 
+   const refHolder = useRef(new Map()).current;
+@@ -175,8 +195,13 @@ export const StickyHeaders = <TItem,>({
+         outputRange: [0, -currentStickyHeight],
+         extrapolate: "clamp",
+       }),
+-      opacity:
+-        stickyHeaderOffset > 0
++      opacity: shouldHideWhenInactive
++        ? scrollY.interpolate({
++            inputRange: [currentStickyStart - 1, currentStickyStart],
++            outputRange: [0, 1],
++            extrapolate: "clamp",
++          })
++        : stickyHeaderOffset > 0
+           ? scrollY.interpolate({
+               inputRange: [pushStartsAt, pushStartsAt + currentStickyHeight],
+               outputRange: [1, 0],
+@@ -190,6 +215,8 @@ export const StickyHeaders = <TItem,>({
+     scrollY,
+     pushStartsAt,
+     stickyHeaderOffset,
++    shouldHideWhenInactive,
++    currentStickyStart,
+   ]);
+ 
+   // Memoize header content
+diff --git a/node_modules/@shopify/flash-list/dist/recyclerview/components/StickyHeaders.js b/node_modules/@shopify/flash-list/dist/recyclerview/components/StickyHeaders.js
+index c38ac7a..f86578a 100644
+--- a/node_modules/@shopify/flash-list/dist/recyclerview/components/StickyHeaders.js
++++ b/node_modules/@shopify/flash-list/dist/recyclerview/components/StickyHeaders.js
+@@ -11,12 +11,17 @@ export const StickyHeaders = ({ stickyHeaderIndices, stickyHeaderOffset, renderI
+     const [stickyHeaderState, setStickyHeaderState] = useState({
+         currentStickyIndex: -1,
+         pushStartsAt: Number.MAX_SAFE_INTEGER,
++        currentStickyStart: 0,
+     });
+-    const { currentStickyIndex, pushStartsAt } = stickyHeaderState;
++    const { currentStickyIndex, pushStartsAt, currentStickyStart } = stickyHeaderState;
+     // sort indices and memoize compute
+     const sortedIndices = useMemo(() => {
+         return [...stickyHeaderIndices].sort((first, second) => first - second);
+     }, [stickyHeaderIndices]);
++    const shouldHideWhenInactive =
++        recyclerViewManager.props.stickyHeaderConfig?.hideWhenInactive === true &&
++        !recyclerViewManager.props.stickyHeaderConfig?.hideRelatedCell &&
++        !inverted && stickyHeaderOffset === 0 && sortedIndices.length === 1;
+     const legthInvalid = sortedIndices.length === 0 ||
+         recyclerViewManager.getDataLength() <=
+             sortedIndices[sortedIndices.length - 1];
+@@ -42,11 +47,16 @@ export const StickyHeaders = ({ stickyHeaderIndices, stickyHeaderOffset, renderI
+         const newCurrentStickyHeight = (_f = (_e = recyclerViewManager.tryGetLayout(newStickyIndex)) === null || _e === void 0 ? void 0 : _e.height) !== null && _f !== void 0 ? _f : 0;
+         // Push should start when the next header reaches the bottom of the current sticky header
+         const newPushStartsAt = newNextStickyY - newCurrentStickyHeight;
++        const newCurrentStickyStart = shouldHideWhenInactive
++            ? (recyclerViewManager.tryGetLayout(newStickyIndex)?.y ?? 0) + recyclerViewManager.firstItemOffset
++            : 0;
+         if (newStickyIndex !== currentStickyIndex ||
+-            newPushStartsAt !== pushStartsAt) {
++            newPushStartsAt !== pushStartsAt ||
++            newCurrentStickyStart !== currentStickyStart) {
+             setStickyHeaderState({
+                 currentStickyIndex: newStickyIndex,
+                 pushStartsAt: newPushStartsAt - stickyHeaderOffset,
++                currentStickyStart: newCurrentStickyStart,
+             });
+         }
+         if (newStickyIndex !== currentStickyIndex) {
+@@ -60,6 +70,8 @@ export const StickyHeaders = ({ stickyHeaderIndices, stickyHeaderOffset, renderI
+         pushStartsAt,
+         onChangeStickyIndex,
+         stickyHeaderOffset,
++        shouldHideWhenInactive,
++        currentStickyStart,
+     ]);
+     useEffect(() => {
+         compute();
+@@ -69,7 +81,11 @@ export const StickyHeaders = ({ stickyHeaderIndices, stickyHeaderOffset, renderI
+         reportScrollEvent: () => {
+             compute();
+         },
+-    }), [compute]);
++        reportLayout: () => {
++            if (!shouldHideWhenInactive) return;
++            compute();
++        },
++    }), [compute, shouldHideWhenInactive]);
+     const refHolder = useRef(new Map()).current;
+     const { translateY, opacity } = useMemo(() => {
+         var _a, _b;
+@@ -80,7 +96,13 @@ export const StickyHeaders = ({ stickyHeaderIndices, stickyHeaderOffset, renderI
+                 outputRange: [0, -currentStickyHeight],
+                 extrapolate: "clamp",
+             }),
+-            opacity: stickyHeaderOffset > 0
++            opacity: shouldHideWhenInactive
++                ? scrollY.interpolate({
++                    inputRange: [currentStickyStart - 1, currentStickyStart],
++                    outputRange: [0, 1],
++                    extrapolate: "clamp",
++                })
++                : stickyHeaderOffset > 0
+                 ? scrollY.interpolate({
+                     inputRange: [pushStartsAt, pushStartsAt + currentStickyHeight],
+                     outputRange: [1, 0],
+@@ -94,6 +116,8 @@ export const StickyHeaders = ({ stickyHeaderIndices, stickyHeaderOffset, renderI
+         scrollY,
+         pushStartsAt,
+         stickyHeaderOffset,
++        shouldHideWhenInactive,
++        currentStickyStart,
+     ]);
+     // Memoize header content
+     const headerContent = useMemo(() => {
+@@ -146,4 +170,4 @@ function findCurrentStickyIndex(sortedIndices, adjustedValue, getY) {
+     }
+     return result;
+ }
+-//# sourceMappingURL=StickyHeaders.js.map
+\ No newline at end of file
++//# sourceMappingURL=StickyHeaders.js.map
+diff --git a/node_modules/@shopify/flash-list/dist/recyclerview/components/StickyHeaders.d.ts b/node_modules/@shopify/flash-list/dist/recyclerview/components/StickyHeaders.d.ts
+index 263b286..28533dc 100644
+--- a/node_modules/@shopify/flash-list/dist/recyclerview/components/StickyHeaders.d.ts
++++ b/node_modules/@shopify/flash-list/dist/recyclerview/components/StickyHeaders.d.ts
+@@ -39,6 +39,8 @@ export interface StickyHeaderProps<TItem> {
+ export interface StickyHeaderRef {
+     /** Reports scroll events to update sticky header positions */
+     reportScrollEvent: (event: NativeScrollEvent) => void;
++    /** Refresh the native visibility boundary after item or page-header layout changes. */
++    reportLayout: () => void;
+ }
+ export declare const StickyHeaders: <TItem>({ stickyHeaderIndices, stickyHeaderOffset, renderItem, stickyHeaderRef, recyclerViewManager, scrollY, data, extraData, onChangeStickyIndex, inverted, }: StickyHeaderProps<TItem>) => React.JSX.Element | null;
+-//# sourceMappingURL=StickyHeaders.d.ts.map
+\ No newline at end of file
++//# sourceMappingURL=StickyHeaders.d.ts.map
+diff --git a/node_modules/@shopify/flash-list/src/recyclerview/RecyclerView.tsx b/node_modules/@shopify/flash-list/src/recyclerview/RecyclerView.tsx
+index 09607b4..19a258b 100644
+--- a/node_modules/@shopify/flash-list/src/recyclerview/RecyclerView.tsx
++++ b/node_modules/@shopify/flash-list/src/recyclerview/RecyclerView.tsx
+@@ -342,6 +342,8 @@ const RecyclerViewComponent = <T,>(
+       applyOffsetCorrection();
+     }
+ 
++    stickyHeaderRef.current?.reportLayout();
++
+     if (
+       horizontal &&
+       recyclerViewManager.hasLayout() &&
+diff --git a/node_modules/@shopify/flash-list/dist/recyclerview/RecyclerView.js b/node_modules/@shopify/flash-list/dist/recyclerview/RecyclerView.js
+index c719f11..8c176fb 100644
+--- a/node_modules/@shopify/flash-list/dist/recyclerview/RecyclerView.js
++++ b/node_modules/@shopify/flash-list/dist/recyclerview/RecyclerView.js
+@@ -212,6 +212,7 @@ const RecyclerViewComponent = (props, ref) => {
+             (_b = viewHolderCollectionRef.current) === null || _b === void 0 ? void 0 : _b.commitLayout();
+             applyOffsetCorrection();
+         }
++        stickyHeaderRef.current?.reportLayout();
+         if (horizontal &&
+             recyclerViewManager.hasLayout() &&
+             recyclerViewManager.getWindowSize().height > 0) {
+@@ -506,4 +507,4 @@ RecyclerViewComponent.displayName = "FlashList";
+ // Create and export the memoized, forwarded ref component
+ const RecyclerView = React.memo(forwardRef(RecyclerViewComponent));
+ export { RecyclerView };
+-//# sourceMappingURL=RecyclerView.js.map
+\ No newline at end of file
++//# sourceMappingURL=RecyclerView.js.map
