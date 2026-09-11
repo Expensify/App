@@ -6737,13 +6737,7 @@ describe('OptionsListUtils', () => {
         it('should match a user with an accented name when searching using non-accented characters', () => {
             // Given a report with accented characters in the text property
             // cspell:disable-next-line
-            const reports: OptionData[] = [
-                {
-                    text: "Álex Timón D'artagnan Zo-e",
-                    reportID: 'accented',
-                    keyForList: 'accented',
-                },
-            ];
+            const reports: OptionData[] = [{text: "Álex Timón D'artagnan Zo-e", reportID: 'accented', keyForList: 'accented'}];
             // Given a search term with non-accented characters
             // cspell:disable-next-line
             const searchTerms = ['Alex Timon Dartagnan Zoe'];
