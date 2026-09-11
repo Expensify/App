@@ -14,6 +14,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {sortIconsByName} from '@libs/ReportUtils';
+import withRenderTiming from '@libs/telemetry/renderTimings';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -265,4 +266,4 @@ function ReportActionAvatars({
     );
 }
 
-export default ReportActionAvatars;
+export default withRenderTiming('ReportActionAvatars', ReportActionAvatars);

@@ -29,6 +29,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {getReportAction} from '@libs/ReportActionsUtils';
 import {getReportOrDraftReport} from '@libs/ReportUtils';
 import {createAndOpenSearchTransactionThread, getColumnsToShow, getTableMinWidth} from '@libs/SearchUIUtils';
+import withRenderTiming from '@libs/telemetry/renderTimings';
 import {isDeletedTransaction, isTransactionPendingDelete} from '@libs/TransactionUtils';
 
 import type {TransactionPreviewData} from '@userActions/Search';
@@ -432,8 +433,10 @@ function TransactionGroupListExpandedImpl({
     );
 }
 
+const TimedTransactionGroupListExpandedImpl = withRenderTiming('TransactionGroupListExpanded', TransactionGroupListExpandedImpl);
+
 function TransactionGroupListExpanded<TItem extends ListItem>(props: TransactionGroupListExpandedProps<TItem>) {
-    return <TransactionGroupListExpandedImpl {...(props as TransactionGroupListExpandedProps<ListItem>)} />;
+    return <TimedTransactionGroupListExpandedImpl {...(props as TransactionGroupListExpandedProps<ListItem>)} />;
 }
 
 export default TransactionGroupListExpanded;

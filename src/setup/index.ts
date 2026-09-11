@@ -4,6 +4,7 @@ import intlPolyfill from '@libs/IntlPolyfill';
 import registerMiddlewares from '@libs/Middleware/register';
 import {startMainQueue} from '@libs/Network';
 import registerReportActionsPagination from '@libs/registerReportActionsPagination';
+import instrumentPersonalDetailsMerge from '@libs/telemetry/instrumentPersonalDetailsMerge';
 
 import {setDeviceID} from '@userActions/Device';
 import initOnyxDerivedValues from '@userActions/OnyxDerived';
@@ -97,6 +98,8 @@ export default function () {
             ONYXKEYS.RAM_ONLY_CORPAY_PAY_MODAL,
         ],
     });
+
+    instrumentPersonalDetailsMerge();
 
     cleanupPreMountedDraftReports();
 
