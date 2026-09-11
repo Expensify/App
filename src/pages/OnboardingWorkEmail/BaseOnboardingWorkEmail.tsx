@@ -128,7 +128,7 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
         // A Concierge task always opens the work-email form while the primary login is unvalidated, so the user can
         // replace a pending work email. Advancing to validation happens only after a submission in this modal session.
         if (isConciergeTaskFlow) {
-            if (isCurrentPrimaryValidated) {
+            if (isCurrentPrimaryValidated && !account?.isFromPublicDomain) {
                 Navigation.navigate(ROUTES.ONBOARDING_WORKSPACES.getRoute(), {forceReplace: true});
                 return;
             }

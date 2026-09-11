@@ -33,6 +33,9 @@ function OnboardingMergingAccountBlockedView({workEmail, isVsb}: OnboardingMergi
     const [onboardingErrorMessage] = useOnyx(ONYXKEYS.ONBOARDING_ERROR_MESSAGE_TRANSLATION_KEY);
 
     const getErrorSubtitle = () => {
+        if (onboardingErrorMessage === 'onboarding.mergeBlockScreen.validatedPublicDomainSubtitle') {
+            return translate(onboardingErrorMessage, workEmail);
+        }
         if (onboardingErrorMessage) {
             return translate(onboardingErrorMessage);
         }

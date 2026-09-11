@@ -3297,6 +3297,8 @@ ${date} の ${merchant} への ${amount}`,
             title: '勤務用メールアドレスを追加できませんでした',
             subtitle: (workEmail: string | undefined) =>
                 `${workEmail} を追加できませんでした。後で「設定」からもう一度お試しいただくか、ガイダンスについて Concierge にチャットでお問い合わせください。`,
+            validatedPublicDomainSubtitle: (workEmail: string | undefined) =>
+                `${workEmail} を追加できませんでした。これらのアカウントを統合するには、サインアウトし、${workEmail} のメールアドレスでサインインしてから、「アカウント」>「セキュリティ」>「アカウントを統合」に移動して手続きを完了してください。`,
             workAccountClosedSubtitle:
                 'このメールアドレスに関連付けられている業務用アカウントは停止されています。再有効化するには会社の管理者にご連絡いただくか、別のメールアドレスでサインアップしてください。',
         },

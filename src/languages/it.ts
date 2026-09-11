@@ -3333,6 +3333,8 @@ ${amount} per ${merchant} - ${date}`,
             title: "Impossibile aggiungere l'email di lavoro",
             subtitle: (workEmail: string | undefined) =>
                 `Non è stato possibile aggiungere ${workEmail}. Riprova più tardi in Impostazioni oppure chatta con Concierge per ricevere assistenza.`,
+            validatedPublicDomainSubtitle: (workEmail: string | undefined) =>
+                `Non è stato possibile aggiungere ${workEmail}. Per unire questi account, esci, accedi usando la tua email ${workEmail} e vai a Account > Sicurezza > Unisci account per completare il processo.`,
             workAccountClosedSubtitle:
                 'L’account di lavoro associato a questa email è chiuso. Contatta l’amministratore della tua azienda per riattivarlo oppure registrati con un’altra email.',
         },

@@ -3323,6 +3323,8 @@ ${amount} para ${merchant} - ${date}`,
             title: 'Não foi possível adicionar o e-mail de trabalho',
             subtitle: (workEmail: string | undefined) =>
                 `Não foi possível adicionar ${workEmail}. Tente novamente mais tarde em Configurações ou converse com o Concierge para obter orientação.`,
+            validatedPublicDomainSubtitle: (workEmail: string | undefined) =>
+                `Não foi possível adicionar ${workEmail}. Para mesclar estas contas, saia, entre usando seu e-mail ${workEmail} e vá para Conta > Segurança > Mesclar contas para concluir o processo.`,
             workAccountClosedSubtitle:
                 'A conta de trabalho associada a este e-mail foi encerrada. Entre em contato com o administrador da sua empresa para reativá-la ou inscreva-se com um e-mail diferente.',
         },

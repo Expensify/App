@@ -3437,6 +3437,8 @@ const translations = {
         mergeBlockScreen: {
             title: 'Couldn’t add work email',
             subtitle: (workEmail: string | undefined) => `We couldn’t add ${workEmail}. Please try again later in Settings or chat with Concierge for guidance.`,
+            validatedPublicDomainSubtitle: (workEmail: string | undefined) =>
+                `We couldn’t add ${workEmail}. To merge these accounts, please sign out, log in using your ${workEmail} email and go to Account > Security > Merge Accounts to complete the process.`,
             workAccountClosedSubtitle: 'The work account associated with this email is closed. Please contact your company admin to reactivate it, or sign up with a different email.',
         },
         tasks: {

@@ -1661,6 +1661,9 @@ function AddWorkEmail(
             Onyx.merge(ONYXKEYS.ONBOARDING_ERROR_MESSAGE_TRANSLATION_KEY, 'onboarding.mergeBlockScreen.workAccountClosedSubtitle');
             return;
         }
+        if (addWorkEmailTaskReport && response?.message === '403 Forbidden') {
+            Onyx.merge(ONYXKEYS.ONBOARDING_ERROR_MESSAGE_TRANSLATION_KEY, 'onboarding.mergeBlockScreen.validatedPublicDomainSubtitle');
+        }
         Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {isMergingAccountBlocked: true});
     });
 }
