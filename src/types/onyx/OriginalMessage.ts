@@ -1516,18 +1516,6 @@ type OriginalMessageSettlementAccountLocked = {
 };
 
 /**
- * Original message for Expensify Card issue/replacement actions
- */
-type IssueNewCardOriginalMessage = OriginalMessage<
-    | typeof CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS
-    | typeof CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED
-    | typeof CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED_VIRTUAL
-    | typeof CONST.REPORT.ACTIONS.TYPE.CARD_ASSIGNED
-    | typeof CONST.REPORT.ACTIONS.TYPE.CARD_REPLACED_VIRTUAL
-    | typeof CONST.REPORT.ACTIONS.TYPE.CARD_REPLACED
->;
-
-/**
  * Model of a HOME_ADDRESS_REQUIRED Concierge report action.
  */
 type OriginalMessageHomeAddressRequired = {
@@ -1706,7 +1694,6 @@ export type {
     JoinWorkspaceResolution,
     OriginalMessageModifiedExpense,
     OriginalMessageExportIntegration,
-    IssueNewCardOriginalMessage,
     OriginalMessageChangePolicy,
     OriginalMessageMovedTransaction,
     PolicyBudgetFrequency,
