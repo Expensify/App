@@ -200,7 +200,7 @@
     "react-native-nitro-fetch": "1.5.4",
     "react-native-nitro-modules": "0.36.3",
     "react-native-nitro-sqlite": "9.6.0",
-    "react-native-onyx": "git+https://github.com/Expensify/react-native-onyx.git#d8ae5b9e459e44bc7760d19714104b3f45831a2c",
+    "react-native-onyx": "git+https://github.com/Expensify/react-native-onyx.git#e60b59af586bb15a311f542bcaaed87b1e17ca80",
     "react-native-pager-view": "8.0.0",
     "react-native-pdf": "7.0.2",
     "react-native-permissions": "^5.4.0",
