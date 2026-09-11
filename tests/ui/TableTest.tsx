@@ -192,13 +192,22 @@ jest.mock('@shopify/flash-list', () => {
             ref: React.Ref<{
                 scrollToIndex: typeof mockFlashListScrollToIndex;
                 scrollToItem: typeof mockFlashListScrollToItem;
-                scrollToOffset: typeof mockFlashListScrollToOffset;
+                scrollToOffset: (params: {offset: number; animated?: boolean}) => void;
                 getLayout: typeof mockFlashListGetLayout;
                 computeVisibleIndices: typeof mockFlashListComputeVisibleIndices;
                 getFirstVisibleIndex: typeof mockFlashListGetFirstVisibleIndex;
             }>,
         ) => {
             mockFlashListProps.push(props);
+            const nativeScrollRef = ReactLocal.useRef<typeof mockFlashListScrollToOffset | null>(null);
+            // Animated.ScrollView detaches its callback ref during updates and attaches it after its
+            // children's layout effects. FlashList silently ignores scrollToOffset while that ref is null.
+            ReactLocal.useLayoutEffect(() => {
+                nativeScrollRef.current = mockFlashListScrollToOffset;
+                return () => {
+                    nativeScrollRef.current = null;
+                };
+            });
             const data = props.data ?? [];
             const stickyHeaderIndex = props.stickyHeaderIndices?.at(0);
             const stickyHeaderItem = stickyHeaderIndex === undefined ? undefined : data.at(stickyHeaderIndex);
@@ -211,14 +220,20 @@ jest.mock('@shopify/flash-list', () => {
                     mockFlashListUnmount();
                 };
             }, []);
-            ReactLocal.useImperativeHandle(ref, () => ({
-                scrollToIndex: mockFlashListScrollToIndex,
-                scrollToItem: mockFlashListScrollToItem,
-                scrollToOffset: mockFlashListScrollToOffset,
-                getLayout: mockFlashListGetLayout,
-                computeVisibleIndices: mockFlashListComputeVisibleIndices,
-                getFirstVisibleIndex: mockFlashListGetFirstVisibleIndex,
-            }));
+            ReactLocal.useImperativeHandle(
+                ref,
+                () => ({
+                    scrollToIndex: mockFlashListScrollToIndex,
+                    scrollToItem: mockFlashListScrollToItem,
+                    scrollToOffset: (params: {offset: number; animated?: boolean}) => {
+                        nativeScrollRef.current?.(params);
+                    },
+                    getLayout: mockFlashListGetLayout,
+                    computeVisibleIndices: mockFlashListComputeVisibleIndices,
+                    getFirstVisibleIndex: mockFlashListGetFirstVisibleIndex,
+                }),
+                [],
+            );
 
             return (
                 <RNView testID="flash-list">
@@ -2158,6 +2173,73 @@ describe('Table', () => {
 
             fireEvent.changeText(searchInput, '');
             expect(screen.getByTestId('row-2')).toBeTruthy();
+        });
+
+        it('should reset a focused page-header table offset when search or filtered results change', async () => {
+            const props = createDefaultProps();
+            const tableRef = React.createRef<TableHandle<TestItem, TestColumnKey, 'category'>>();
+            const filterConfig: FilterConfig<'category'> = {
+                category: {
+                    label: 'Category',
+                    options: [{label: 'Vegetable', value: 'vegetable'}],
+                },
+            };
+
+            render(
+                <Table<TestItem, TestColumnKey, 'category'>
+                    ref={tableRef}
+                    data={props.data}
+                    columns={props.columns}
+                    renderItem={props.renderItem}
+                    keyExtractor={props.keyExtractor}
+                    filters={filterConfig}
+                    isItemInFilter={(item, filterValues) => filterValues.length === 0 || filterValues.includes(item.category)}
+                    isItemInSearch={props.isItemInSearch}
+                >
+                    <Table.ListHeader>
+                        <Table.FilterBar label="Search" />
+                    </Table.ListHeader>
+                    <Table.Body />
+                </Table>,
+            );
+
+            const searchInput = screen.getByTestId('search-input');
+            fireEvent(searchInput, 'focus');
+            mockFlashListScrollToOffset.mockClear();
+
+            fireEvent.changeText(searchInput, ' ');
+            expect(mockFlashListScrollToOffset).toHaveBeenLastCalledWith({offset: 0, animated: false});
+            mockFlashListScrollToOffset.mockClear();
+
+            fireEvent.changeText(searchInput, 'apple');
+            expect(mockFlashListScrollToOffset).toHaveBeenLastCalledWith({offset: 0, animated: false});
+            mockFlashListScrollToOffset.mockClear();
+
+            fireEvent.changeText(screen.getByTestId('search-input'), 'apple ');
+            expect(mockFlashListScrollToOffset).toHaveBeenLastCalledWith({offset: 0, animated: false});
+            mockFlashListScrollToOffset.mockClear();
+
+            fireEvent.changeText(screen.getByTestId('search-input'), '');
+            expect(mockFlashListScrollToOffset).toHaveBeenLastCalledWith({offset: 0, animated: false});
+            mockFlashListScrollToOffset.mockClear();
+
+            act(() => {
+                tableRef.current?.updateSearchString('apple');
+            });
+
+            expect(mockFlashListScrollToOffset).toHaveBeenLastCalledWith({offset: 0, animated: false});
+            mockFlashListScrollToOffset.mockClear();
+
+            act(() => {
+                tableRef.current?.updateFilter({key: 'category', value: ['vegetable']});
+            });
+
+            expect(screen.getByTestId('search-input').props.value).toBe('apple');
+            expect(mockFlashListProps.at(-1)?.data).toHaveLength(0);
+            await waitFor(() => {
+                expect(mockFlashListScrollToOffset).toHaveBeenCalledTimes(1);
+                expect(mockFlashListScrollToOffset).toHaveBeenCalledWith({offset: 0, animated: false});
+            });
         });
 
         it('should search by multiple fields when isItemInSearch checks multiple properties', () => {

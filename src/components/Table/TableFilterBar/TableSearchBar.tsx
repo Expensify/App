@@ -75,6 +75,15 @@ function TableSearchBar({label}: TableSearchBarProps) {
         listRef.current?.scrollToOffset({offset: 0, animated: false});
     }, [isEmptyResult, listRef]);
 
+    // Wait until native scroll refs are reattached after layout effects so FlashList can apply the reset.
+    useEffect(() => {
+        if (!isTextInputFocused(inputRef)) {
+            return;
+        }
+
+        listRef.current?.scrollToOffset({offset: 0, animated: false});
+    }, [activeSearchString, listRef]);
+
     const handleSearchStringChange = (text: string) => {
         updateSearchString(text);
         onSearchStringChange?.(text);
