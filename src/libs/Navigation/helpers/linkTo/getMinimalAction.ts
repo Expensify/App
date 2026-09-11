@@ -23,6 +23,8 @@ function isNamedActionPayload(payload: unknown): payload is ActionPayload & {nam
     return isRecord(payload) && typeof payload.name === 'string';
 }
 
+// Workspace and domain screens carry their split's scope params (policyID or domainAccountID),
+// so the focused screen can identify the scope when the sidebar is absent.
 function getSplitScopeComparisonValues(currentRoute: NavigationRoute, payload: unknown) {
     if (!isNamedActionPayload(payload)) {
         return;
@@ -104,6 +106,7 @@ function getMinimalAction(action: NavigationAction, state: NavigationState): Min
         const payload = currentAction.payload;
         const isDifferentSplitScope = hasDifferentSplitScope(currentRoute, payload);
         if (!currentRoute.state || isDifferentSplitScope) {
+            // Keep different workspace/domain scopes in separate splits so the existing sidebar is not reused.
             if (isDifferentSplitScope && currentAction.type !== CONST.NAVIGATION.ACTION_TYPE.REPLACE) {
                 currentAction = {...currentAction, type: CONST.NAVIGATION.ACTION_TYPE.PUSH};
                 scopedSplitPayload = payload;
