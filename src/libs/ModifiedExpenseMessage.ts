@@ -276,7 +276,7 @@ function getForReportAction({
     policyCategories,
     currentUserAccountID,
     currentUserLogin,
-    reportName,
+    movedFromReportName,
 }: {
     translate: LocalizedTranslate;
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
@@ -291,13 +291,13 @@ function getForReportAction({
     policyCategories?: OnyxEntry<PolicyCategories>;
     currentUserAccountID: number | undefined;
     currentUserLogin: string;
-    reportName: string | undefined;
+    movedFromReportName: string | undefined;
 }): string {
     if (!isModifiedExpenseAction(reportAction)) {
         return '';
     }
 
-    const movedFromOrToReportMessage = getMovedFromOrToReportMessage(translate, movedFromReport, movedToReport, currentUserAccountID, policy, reportName);
+    const movedFromOrToReportMessage = getMovedFromOrToReportMessage(translate, movedFromReport, movedToReport, currentUserAccountID, policy, movedFromReportName);
     if (movedFromOrToReportMessage) {
         return movedFromOrToReportMessage;
     }

@@ -275,7 +275,7 @@ describe('ModifiedExpenseMessage', () => {
                     policyTags: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: CURRENT_USER_LOGIN,
-                    reportName: undefined,
+                    movedFromReportName: undefined,
                 });
 
                 expect(result).toEqual(expectedResult);
@@ -305,7 +305,7 @@ describe('ModifiedExpenseMessage', () => {
                     policyTags: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: CURRENT_USER_LOGIN,
-                    reportName: undefined,
+                    movedFromReportName: undefined,
                 });
 
                 expect(result).toEqual(expectedResult);
@@ -334,7 +334,7 @@ describe('ModifiedExpenseMessage', () => {
                     policyTags: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: CURRENT_USER_LOGIN,
-                    reportName: undefined,
+                    movedFromReportName: undefined,
                 });
 
                 expect(result).toEqual(expectedResult);
@@ -365,7 +365,7 @@ describe('ModifiedExpenseMessage', () => {
                     policyTags: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: CURRENT_USER_LOGIN,
-                    reportName: undefined,
+                    movedFromReportName: undefined,
                 });
 
                 expect(result).toEqual(expectedResult);
@@ -397,7 +397,7 @@ describe('ModifiedExpenseMessage', () => {
                     policyTags: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: CURRENT_USER_LOGIN,
-                    reportName: undefined,
+                    movedFromReportName: undefined,
                 });
 
                 expect(result).toEqual(expectedResult);
@@ -431,7 +431,7 @@ describe('ModifiedExpenseMessage', () => {
                     policyTags: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: CURRENT_USER_LOGIN,
-                    reportName: undefined,
+                    movedFromReportName: undefined,
                 });
 
                 expect(result).toEqual(expectedResult);
@@ -463,7 +463,7 @@ describe('ModifiedExpenseMessage', () => {
                     policyTags: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: CURRENT_USER_LOGIN,
-                    reportName: undefined,
+                    movedFromReportName: undefined,
                 });
 
                 expect(result).toEqual(expectedResult);
@@ -500,7 +500,7 @@ describe('ModifiedExpenseMessage', () => {
                     policyTags: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: CURRENT_USER_LOGIN,
-                    reportName: undefined,
+                    movedFromReportName: undefined,
                 });
 
                 expect(result).toEqual(expectedResult);
@@ -535,7 +535,7 @@ describe('ModifiedExpenseMessage', () => {
                     policyTags: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: CURRENT_USER_LOGIN,
-                    reportName: undefined,
+                    movedFromReportName: undefined,
                 });
 
                 expect(result).toEqual(expectedResult);
@@ -563,7 +563,7 @@ describe('ModifiedExpenseMessage', () => {
                     policyTags: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: CURRENT_USER_LOGIN,
-                    reportName: undefined,
+                    movedFromReportName: undefined,
                 });
 
                 expect(result).toEqual(expectedResult);
@@ -591,7 +591,7 @@ describe('ModifiedExpenseMessage', () => {
                     policyTags: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: CURRENT_USER_LOGIN,
-                    reportName: undefined,
+                    movedFromReportName: undefined,
                 });
 
                 expect(result).toEqual(expectedResult);
@@ -619,7 +619,7 @@ describe('ModifiedExpenseMessage', () => {
                     policyTags: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: CURRENT_USER_LOGIN,
-                    reportName: undefined,
+                    movedFromReportName: undefined,
                 });
 
                 expect(result).toEqual(expectedResult);
@@ -647,7 +647,7 @@ describe('ModifiedExpenseMessage', () => {
                     policyTags: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: CURRENT_USER_LOGIN,
-                    reportName: undefined,
+                    movedFromReportName: undefined,
                 });
 
                 expect(result).toEqual(expectedResult);
@@ -675,7 +675,7 @@ describe('ModifiedExpenseMessage', () => {
                     policyTags: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: CURRENT_USER_LOGIN,
-                    reportName: undefined,
+                    movedFromReportName: undefined,
                 });
 
                 expect(result).toEqual(expectedResult);
@@ -705,7 +705,7 @@ describe('ModifiedExpenseMessage', () => {
                     policyTags: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: CURRENT_USER_LOGIN,
-                    reportName: undefined,
+                    movedFromReportName: undefined,
                 });
 
                 expect(result).toEqual(expectedResult);
@@ -737,7 +737,7 @@ describe('ModifiedExpenseMessage', () => {
                     policyTags: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: CURRENT_USER_LOGIN,
-                    reportName: undefined,
+                    movedFromReportName: undefined,
                 });
 
                 expect(result).toEqual(expectedResult);
@@ -765,7 +765,7 @@ describe('ModifiedExpenseMessage', () => {
                     policyTags: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: CURRENT_USER_LOGIN,
-                    reportName: undefined,
+                    movedFromReportName: undefined,
                 });
 
                 expect(result).toEqual(expectedResult);
@@ -795,7 +795,7 @@ describe('ModifiedExpenseMessage', () => {
                     policyTags: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: CURRENT_USER_LOGIN,
-                    reportName: undefined,
+                    movedFromReportName: undefined,
                 });
 
                 expect(result).toEqual(expectedResult);
@@ -827,7 +827,7 @@ describe('ModifiedExpenseMessage', () => {
                     policyTags: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: CURRENT_USER_LOGIN,
-                    reportName: undefined,
+                    movedFromReportName: undefined,
                 });
 
                 expect(result).toEqual(expectedResult);
@@ -855,7 +855,7 @@ describe('ModifiedExpenseMessage', () => {
                     policyTags: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: CURRENT_USER_LOGIN,
-                    reportName: undefined,
+                    movedFromReportName: undefined,
                 });
 
                 expect(result).toEqual(expectedResult);
@@ -882,7 +882,7 @@ describe('ModifiedExpenseMessage', () => {
                     policyTags: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: CURRENT_USER_LOGIN,
-                    reportName: undefined,
+                    movedFromReportName: undefined,
                 });
 
                 expect(result).toEqual(expectedResult);
@@ -913,7 +913,7 @@ describe('ModifiedExpenseMessage', () => {
                     policyTags: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: CURRENT_USER_LOGIN,
-                    reportName: undefined,
+                    movedFromReportName: undefined,
                 });
                 expect(result).toEqual(expectedResult);
             });
@@ -943,7 +943,7 @@ describe('ModifiedExpenseMessage', () => {
                     policyTags: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: CURRENT_USER_LOGIN,
-                    reportName: undefined,
+                    movedFromReportName: undefined,
                 });
                 expect(result).toEqual(expectedResult);
             });
@@ -975,7 +975,7 @@ describe('ModifiedExpenseMessage', () => {
                     policyTags: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: CURRENT_USER_LOGIN,
-                    reportName: undefined,
+                    movedFromReportName: undefined,
                 });
                 expect(result).toEqual(expectedResult);
             });
@@ -1004,7 +1004,7 @@ describe('ModifiedExpenseMessage', () => {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: CURRENT_USER_LOGIN,
                     movedFromReport,
-                    reportName: undefined,
+                    movedFromReportName: undefined,
                 });
                 expect(result).toEqual(expectedResult);
             });
@@ -1032,7 +1032,7 @@ describe('ModifiedExpenseMessage', () => {
                     policyTags: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: CURRENT_USER_LOGIN,
-                    reportName: undefined,
+                    movedFromReportName: undefined,
                 });
 
                 expect(result).toEqual(expectedResult);
@@ -1061,7 +1061,7 @@ describe('ModifiedExpenseMessage', () => {
                     policyTags: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: CURRENT_USER_LOGIN,
-                    reportName: undefined,
+                    movedFromReportName: undefined,
                 });
 
                 expect(result).toEqual(expectedResult);
@@ -1090,7 +1090,7 @@ describe('ModifiedExpenseMessage', () => {
                     policyTags: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: CURRENT_USER_LOGIN,
-                    reportName: undefined,
+                    movedFromReportName: undefined,
                 });
 
                 expect(result).toEqual(expectedResult);
@@ -1119,7 +1119,7 @@ describe('ModifiedExpenseMessage', () => {
                     policyTags: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: CURRENT_USER_LOGIN,
-                    reportName: undefined,
+                    movedFromReportName: undefined,
                 });
 
                 expect(result).toEqual(expectedResult);
@@ -1148,7 +1148,7 @@ describe('ModifiedExpenseMessage', () => {
                     policyTags: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: CURRENT_USER_LOGIN,
-                    reportName: undefined,
+                    movedFromReportName: undefined,
                 });
 
                 expect(result).toEqual(expectedResult);
@@ -1178,7 +1178,7 @@ describe('ModifiedExpenseMessage', () => {
                     policyTags: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: CURRENT_USER_LOGIN,
-                    reportName: undefined,
+                    movedFromReportName: undefined,
                 });
 
                 // Verify the policyID in the URL exactly matches the policy.id (case-preserved)
@@ -1210,7 +1210,7 @@ describe('ModifiedExpenseMessage', () => {
                     policyTags: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: CURRENT_USER_LOGIN,
-                    reportName: undefined,
+                    movedFromReportName: undefined,
                 });
 
                 expect(result).toEqual(expectedResult);
@@ -1239,7 +1239,7 @@ describe('ModifiedExpenseMessage', () => {
                     policyTags: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: CURRENT_USER_LOGIN,
-                    reportName: undefined,
+                    movedFromReportName: undefined,
                 });
 
                 expect(result).toEqual(expectedResult);
@@ -1267,7 +1267,7 @@ describe('ModifiedExpenseMessage', () => {
                     policyTags: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: CURRENT_USER_LOGIN,
-                    reportName: undefined,
+                    movedFromReportName: undefined,
                 });
 
                 expect(result).toEqual(expectedResult);
@@ -1296,7 +1296,7 @@ describe('ModifiedExpenseMessage', () => {
                     policyTags: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: CURRENT_USER_LOGIN,
-                    reportName: undefined,
+                    movedFromReportName: undefined,
                 });
 
                 expect(result).toEqual(expectedResult);
@@ -1341,7 +1341,7 @@ describe('ModifiedExpenseMessage', () => {
                     policyTags: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: CURRENT_USER_LOGIN,
-                    reportName: undefined,
+                    movedFromReportName: undefined,
                 });
 
                 const expectedResult = `marked the expense as "billable", marked the expense as "reimbursable", set the category to "Travel", and merchant to "McDonald's" via <a href="${environmentURL}/workspaces/1234/rules">workspace rules</a>`;
@@ -1376,7 +1376,7 @@ describe('ModifiedExpenseMessage', () => {
                     policyTags: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: CURRENT_USER_LOGIN,
-                    reportName: undefined,
+                    movedFromReportName: undefined,
                 });
 
                 const expectedResult = `set the tax rate to "New Tax Rate" via <a href="${environmentURL}/workspaces/1234/rules">workspace rules</a>`;
@@ -1404,7 +1404,7 @@ describe('ModifiedExpenseMessage', () => {
                     policyTags: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: CURRENT_USER_LOGIN,
-                    reportName: undefined,
+                    movedFromReportName: undefined,
                 });
 
                 const expectedResult = `set the tax rate to "" via <a href="${environmentURL}/workspaces/1234/rules">workspace rules</a>`;
@@ -1432,7 +1432,7 @@ describe('ModifiedExpenseMessage', () => {
                     policyTags: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: CURRENT_USER_LOGIN,
-                    reportName: undefined,
+                    movedFromReportName: undefined,
                 });
 
                 const expectedResult = `set the category to "Travel" and merchant to "McDonald's" via <a href="${environmentURL}/workspaces/1234/rules">workspace rules</a>`;
@@ -1460,7 +1460,7 @@ describe('ModifiedExpenseMessage', () => {
                     policyTags: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: CURRENT_USER_LOGIN,
-                    reportName: undefined,
+                    movedFromReportName: undefined,
                 });
 
                 const expectedResult = `marked the expense as "billable" via <a href="${environmentURL}/workspaces/1234/rules">workspace rules</a>`;
@@ -1489,7 +1489,7 @@ describe('ModifiedExpenseMessage', () => {
                     policyTags: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: CURRENT_USER_LOGIN,
-                    reportName: undefined,
+                    movedFromReportName: undefined,
                 });
 
                 const expectedResult = `marked the expense as "reimbursable" and marked the expense as "billable" via <a href="${environmentURL}/workspaces/1234/rules">workspace rules</a>`;
@@ -1520,7 +1520,7 @@ describe('ModifiedExpenseMessage', () => {
                     policyTags: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: CURRENT_USER_LOGIN,
-                    reportName: undefined,
+                    movedFromReportName: undefined,
                 });
 
                 expect(result).toContain(CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL);
@@ -1550,7 +1550,7 @@ describe('ModifiedExpenseMessage', () => {
                     policyTags: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: CURRENT_USER_LOGIN,
-                    reportName: undefined,
+                    movedFromReportName: undefined,
                 });
 
                 expect(result).toEqual(expectedResult);
@@ -1579,7 +1579,7 @@ describe('ModifiedExpenseMessage', () => {
                     policyTags: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: CURRENT_USER_LOGIN,
-                    reportName: undefined,
+                    movedFromReportName: undefined,
                 });
 
                 expect(result).toEqual(expectedResult);
@@ -1611,7 +1611,7 @@ describe('ModifiedExpenseMessage', () => {
                     policyTags: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: 'test@example.com',
-                    reportName: undefined,
+                    movedFromReportName: undefined,
                 });
 
                 expect(result).toEqual(expectedResult);
@@ -1635,7 +1635,7 @@ describe('ModifiedExpenseMessage', () => {
                     policyTags: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: 'test@example.com',
-                    reportName: undefined,
+                    movedFromReportName: undefined,
                 });
 
                 expect(result).toEqual(expectedResult);
@@ -1664,7 +1664,7 @@ describe('ModifiedExpenseMessage', () => {
                     policyTags: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: 'test@example.com',
-                    reportName: undefined,
+                    movedFromReportName: undefined,
                 });
 
                 expect(result).toEqual(expectedResult);
@@ -1691,7 +1691,7 @@ describe('ModifiedExpenseMessage', () => {
                     policyTags: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: 'test@example.com',
-                    reportName: undefined,
+                    movedFromReportName: undefined,
                 });
 
                 expect(result).toEqual('set the amount to $18.00');
@@ -1717,7 +1717,7 @@ describe('ModifiedExpenseMessage', () => {
                     policyTags: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: 'test@example.com',
-                    reportName: undefined,
+                    movedFromReportName: undefined,
                 });
 
                 expect(result).toEqual('changed the amount to $25.00 (previously $18.00)');
@@ -1749,7 +1749,7 @@ describe('ModifiedExpenseMessage', () => {
                     policyTags: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: 'test@example.com',
-                    reportName: undefined,
+                    movedFromReportName: undefined,
                 });
 
                 expect(result).toEqual(expectedResult);
@@ -1777,7 +1777,7 @@ describe('ModifiedExpenseMessage', () => {
                     policyTags: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: 'test@example.com',
-                    reportName: undefined,
+                    movedFromReportName: undefined,
                 });
 
                 expect(result).toEqual(expectedResult);
@@ -1805,7 +1805,7 @@ describe('ModifiedExpenseMessage', () => {
                     policyTags: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: 'test@example.com',
-                    reportName: undefined,
+                    movedFromReportName: undefined,
                 });
 
                 expect(result).toEqual(expectedResult);
@@ -1833,7 +1833,7 @@ describe('ModifiedExpenseMessage', () => {
                     policyTags: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: 'test@example.com',
-                    reportName: undefined,
+                    movedFromReportName: undefined,
                 });
 
                 expect(result).toEqual(expectedResult);
@@ -1857,7 +1857,7 @@ describe('ModifiedExpenseMessage', () => {
                     policyTags: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: 'test@example.com',
-                    reportName: undefined,
+                    movedFromReportName: undefined,
                 });
 
                 expect(result).toEqual(expectedResult);
@@ -1886,7 +1886,7 @@ describe('ModifiedExpenseMessage', () => {
                     policyTags: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: 'test@example.com',
-                    reportName: undefined,
+                    movedFromReportName: undefined,
                 });
 
                 expect(result).toEqual(expectedResult);
@@ -1910,7 +1910,7 @@ describe('ModifiedExpenseMessage', () => {
                     policyTags: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: 'test@example.com',
-                    reportName: undefined,
+                    movedFromReportName: undefined,
                 });
 
                 expect(result).toEqual(expectedResult);
@@ -1939,7 +1939,7 @@ describe('ModifiedExpenseMessage', () => {
                     policyTags: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: 'test@example.com',
-                    reportName: undefined,
+                    movedFromReportName: undefined,
                 });
 
                 expect(result).toEqual(expectedResult);
@@ -1965,7 +1965,7 @@ describe('ModifiedExpenseMessage', () => {
                     policyTags: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: 'test@example.com',
-                    reportName: undefined,
+                    movedFromReportName: undefined,
                 });
 
                 expect(result).toEqual(expectedResult);
@@ -1991,7 +1991,7 @@ describe('ModifiedExpenseMessage', () => {
                     policyTags: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: 'test@example.com',
-                    reportName: undefined,
+                    movedFromReportName: undefined,
                 });
 
                 // Verify the policyID in the URL exactly matches the policy.id (case-preserved)
@@ -2025,7 +2025,7 @@ describe('ModifiedExpenseMessage', () => {
                     policyTags: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: 'test@example.com',
-                    reportName: undefined,
+                    movedFromReportName: undefined,
                 });
                 expect(result).toEqual(expectedResult);
             });
@@ -2054,7 +2054,7 @@ describe('ModifiedExpenseMessage', () => {
                     policyTags: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: 'test@example.com',
-                    reportName: undefined,
+                    movedFromReportName: undefined,
                 });
                 expect(result).toEqual(expectedResult);
             });
@@ -2088,7 +2088,7 @@ describe('ModifiedExpenseMessage', () => {
                     policyTags: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: 'test@example.com',
-                    reportName: undefined,
+                    movedFromReportName: undefined,
                 });
                 const expectedResult = translate(CONST.LOCALES.EN as 'en', 'iou.movedFromReport', 'Some Report');
                 expect(result).toEqual(expectedResult);
@@ -2123,7 +2123,7 @@ describe('ModifiedExpenseMessage', () => {
                     policyTags: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: 'test@example.com',
-                    reportName: undefined,
+                    movedFromReportName: undefined,
                 });
                 const expectedResult = translate(CONST.LOCALES.EN as 'en', 'iou.movedFromPersonalSpace', movedToReport.reportName, policy.name);
                 expect(result).toEqual(expectedResult);
@@ -2149,7 +2149,7 @@ describe('ModifiedExpenseMessage', () => {
                     policyTags: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: 'test@example.com',
-                    reportName: undefined,
+                    movedFromReportName: undefined,
                 });
                 const expectedResult = translate(CONST.LOCALES.EN as 'en', 'iou.movedFromPersonalSpace', movedToReport.reportName, movedToReport.policyName);
                 expect(result).toEqual(expectedResult);
@@ -2171,7 +2171,7 @@ describe('ModifiedExpenseMessage', () => {
                     policyTags: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: 'test@example.com',
-                    reportName: undefined,
+                    movedFromReportName: undefined,
                 });
 
                 expect(result).toEqual('');
@@ -2193,7 +2193,7 @@ describe('ModifiedExpenseMessage', () => {
                     policyTags: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: 'test@example.com',
-                    reportName: undefined,
+                    movedFromReportName: undefined,
                 });
 
                 expect(result).toEqual('');
@@ -2218,7 +2218,7 @@ describe('ModifiedExpenseMessage', () => {
                     policyTags: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: 'test@example.com',
-                    reportName: undefined,
+                    movedFromReportName: undefined,
                 });
 
                 expect(result).toEqual(expectedResult);
@@ -2242,7 +2242,7 @@ describe('ModifiedExpenseMessage', () => {
                     policyTags: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: 'test@example.com',
-                    reportName: undefined,
+                    movedFromReportName: undefined,
                 });
 
                 expect(result).toEqual(expectedResult);
@@ -2270,7 +2270,7 @@ describe('ModifiedExpenseMessage', () => {
                     policyTags: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: 'test@example.com',
-                    reportName: undefined,
+                    movedFromReportName: undefined,
                 });
 
                 expect(result).toEqual(expectedResult);
@@ -2294,7 +2294,7 @@ describe('ModifiedExpenseMessage', () => {
                     policyTags: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: 'test@example.com',
-                    reportName: undefined,
+                    movedFromReportName: undefined,
                 });
 
                 expect(result).toEqual(expectedResult);
@@ -2322,7 +2322,7 @@ describe('ModifiedExpenseMessage', () => {
                     policyTags: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: 'test@example.com',
-                    reportName: undefined,
+                    movedFromReportName: undefined,
                 });
 
                 expect(result).toEqual(expectedResult);
@@ -2346,7 +2346,7 @@ describe('ModifiedExpenseMessage', () => {
                     policyTags: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: 'test@example.com',
-                    reportName: undefined,
+                    movedFromReportName: undefined,
                 });
 
                 expect(result).toEqual(expectedResult);
@@ -2371,7 +2371,7 @@ describe('ModifiedExpenseMessage', () => {
                     policyTags: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: 'test@example.com',
-                    reportName: undefined,
+                    movedFromReportName: undefined,
                 });
 
                 expect(result).toEqual(expectedResult);
@@ -2395,7 +2395,7 @@ describe('ModifiedExpenseMessage', () => {
                     policyTags: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: 'test@example.com',
-                    reportName: undefined,
+                    movedFromReportName: undefined,
                 });
 
                 expect(result).toEqual(expectedResult);
@@ -2424,7 +2424,7 @@ describe('ModifiedExpenseMessage', () => {
                     policyTags: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: CURRENT_USER_LOGIN,
-                    reportName: undefined,
+                    movedFromReportName: undefined,
                 });
 
                 expect(result).toEqual('changed the attendees to Alice, Bob (previously Alice)');
@@ -2448,7 +2448,7 @@ describe('ModifiedExpenseMessage', () => {
                     policyTags: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: CURRENT_USER_LOGIN,
-                    reportName: undefined,
+                    movedFromReportName: undefined,
                 });
 
                 expect(result).toEqual('set the attendees to Alice');
@@ -2472,7 +2472,7 @@ describe('ModifiedExpenseMessage', () => {
                     policyTags: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: CURRENT_USER_LOGIN,
-                    reportName: undefined,
+                    movedFromReportName: undefined,
                 });
 
                 expect(result).toEqual('removed the attendees (previously Alice)');
@@ -2526,7 +2526,7 @@ describe('ModifiedExpenseMessage', () => {
                         policyTags: undefined,
                         currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                         currentUserLogin: CURRENT_USER_LOGIN,
-                        reportName: undefined,
+                        movedFromReportName: undefined,
                     });
                     expect(result).toEqual('set the vendor to "Acme"');
                 });
@@ -2551,7 +2551,7 @@ describe('ModifiedExpenseMessage', () => {
                         policyTags: undefined,
                         currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                         currentUserLogin: CURRENT_USER_LOGIN,
-                        reportName: undefined,
+                        movedFromReportName: undefined,
                     });
                     expect(result).toEqual('changed the vendor to "Office Supplies" (previously "Acme")');
                 });
@@ -2575,7 +2575,7 @@ describe('ModifiedExpenseMessage', () => {
                         policyTags: undefined,
                         currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                         currentUserLogin: CURRENT_USER_LOGIN,
-                        reportName: undefined,
+                        movedFromReportName: undefined,
                     });
                     expect(result).toEqual('removed the vendor (previously "Acme")');
                 });
@@ -2599,7 +2599,7 @@ describe('ModifiedExpenseMessage', () => {
                         policyTags: undefined,
                         currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                         currentUserLogin: CURRENT_USER_LOGIN,
-                        reportName: undefined,
+                        movedFromReportName: undefined,
                     });
                     expect(result).toEqual('set the vendor to "v-deleted"');
                 });
@@ -2623,7 +2623,7 @@ describe('ModifiedExpenseMessage', () => {
                         policyTags: undefined,
                         currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                         currentUserLogin: CURRENT_USER_LOGIN,
-                        reportName: undefined,
+                        movedFromReportName: undefined,
                     });
                     expect(result).toEqual('set the vendor to "Amazon"');
                 });
@@ -2669,7 +2669,7 @@ describe('ModifiedExpenseMessage', () => {
                         policyTags: undefined,
                         currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                         currentUserLogin: CURRENT_USER_LOGIN,
-                        reportName: undefined,
+                        movedFromReportName: undefined,
                     });
                     expect(result).toEqual('set the supplier to "Acme Xero"');
                 });
@@ -2691,7 +2691,7 @@ describe('ModifiedExpenseMessage', () => {
                         policyTags: undefined,
                         currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                         currentUserLogin: CURRENT_USER_LOGIN,
-                        reportName: undefined,
+                        movedFromReportName: undefined,
                     });
                     expect(result).toEqual('changed the supplier to "Office Supplies Xero" (previously "Acme Xero")');
                 });
@@ -2712,7 +2712,7 @@ describe('ModifiedExpenseMessage', () => {
                         policyTags: undefined,
                         currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                         currentUserLogin: CURRENT_USER_LOGIN,
-                        reportName: undefined,
+                        movedFromReportName: undefined,
                     });
                     expect(result).toEqual('set the supplier to "xcDeleted"');
                 });

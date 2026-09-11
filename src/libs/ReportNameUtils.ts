@@ -1079,7 +1079,7 @@ function computeChatThreadReportName({
             policy,
             currentUserAccountID,
             currentUserLogin,
-            reportName: undefined,
+            movedFromReportName: undefined,
         });
         // Strip HTML tags for plain text display in report previews
         const modifiedMessage = Parser.htmlToText(modifiedMessageWithHTML);

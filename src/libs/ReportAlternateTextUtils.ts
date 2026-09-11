@@ -619,7 +619,7 @@ function getLastMessageTextForReport({
             policyTags,
             currentUserAccountID,
             currentUserLogin: currentUserLogin ?? '',
-            reportName: undefined,
+            movedFromReportName: undefined,
         });
         // Strip HTML tags for plain text display in options list
         const properSchemaForModifiedExpenseMessage = Parser.htmlToText(properSchemaForModifiedExpenseMessageWithHTML);

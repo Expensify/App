@@ -201,7 +201,7 @@ export default {
             policyTags,
             currentUserAccountID,
             currentUserLogin,
-            reportName: derivedMovedFromReportName,
+            movedFromReportName: derivedMovedFromReportName,
         });
         // Strip HTML tags for plain text notification body
         const body = getTextFromHtml(bodyWithHTML);
