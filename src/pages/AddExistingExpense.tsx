@@ -1,5 +1,6 @@
 import AddExistingExpenseFooter from '@components/AddExistingExpenseFooter';
 import EmptyStateComponent from '@components/EmptyStateComponent';
+import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -95,15 +96,20 @@ function AddExistingExpense({route}: AddExistingExpensePageType) {
     }));
 
     const footerContent = (
-        <AddExistingExpenseFooter
-            selectedIds={selectedIds}
-            report={report}
-            reportToConfirm={reportToConfirm}
-            policy={policy}
-            policyCategories={policyCategories}
-            errorMessage={errorMessage}
-            setErrorMessage={setErrorMessage}
-        />
+        <FixedFooter
+            style={styles.mtAuto}
+            addBottomSafeAreaPadding
+        >
+            <AddExistingExpenseFooter
+                selectedIds={selectedIds}
+                report={report}
+                reportToConfirm={reportToConfirm}
+                policy={policy}
+                policyCategories={policyCategories}
+                errorMessage={errorMessage}
+                setErrorMessage={setErrorMessage}
+            />
+        </FixedFooter>
     );
 
     const onRowSelectionChange = (selectedRowKeys: string[]) => {
