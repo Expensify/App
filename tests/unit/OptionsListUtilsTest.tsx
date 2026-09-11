@@ -6396,6 +6396,7 @@ describe('OptionsListUtils', () => {
         });
 
         it('matches an uppercase accented query against a group participant', () => {
+            // cspell:ignore José JOSÉ
             const groupReport: SearchOption<Report> = {
                 ...report,
                 item: {...createRandomReport(1, undefined), chatType: CONST.REPORT.CHAT_TYPE.GROUP},
