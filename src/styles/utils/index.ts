@@ -1041,19 +1041,23 @@ function getBaseAutoCompleteSuggestionContainerStyle({left, bottom, width}: GetB
 
 const shouldPreventScroll = shouldPreventScrollOnAutoCompleteSuggestion();
 
+const suggestionContainerBorderWidth = 2;
+const suggestionContainerChromeHeight = 2 * CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTER_INNER_PADDING + (shouldPreventScroll ? suggestionContainerBorderWidth : 0);
+
 /**
  * Gets the correct position for auto complete suggestion container
  */
 function getAutoCompleteSuggestionContainerStyle(itemsHeight: number): ViewStyle {
     'worklet';
 
-    const borderWidth = 2;
-    const height = itemsHeight + 2 * CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTER_INNER_PADDING + (shouldPreventScroll ? borderWidth : 0);
-
     return {
-        height,
+        height: itemsHeight + suggestionContainerChromeHeight,
         minHeight: CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTION_ROW_HEIGHT,
     };
+}
+
+function getAutoCompleteSuggestionContainerHeight(itemsHeight: number): number {
+    return itemsHeight + suggestionContainerChromeHeight;
 }
 
 function getEmojiReactionBubbleTextStyle(isContextMenu = false): TextStyle {
@@ -1413,6 +1417,7 @@ const staticStyleUtils = {
     displayIfTrue,
     getAmountFontSizeAndLineHeight,
     getAmountInputFontSize,
+    getAutoCompleteSuggestionContainerHeight,
     getAutoCompleteSuggestionContainerStyle,
     getAvatarBorderRadius,
     getAvatarBorderStyle,
