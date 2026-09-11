@@ -27,7 +27,6 @@ function NumericTextInput({
     shouldApplyPaddingToContainer,
     shouldUseDefaultLineHeightForPrefix,
     onSubmitEditing,
-    submitBehavior = 'submit',
     testID,
     touchableInputWrapperStyle,
     style,
@@ -69,7 +68,7 @@ function NumericTextInput({
             selection={selection}
             shouldApplyPaddingToContainer={shouldApplyPaddingToContainer}
             shouldUseDefaultLineHeightForPrefix={shouldUseDefaultLineHeightForPrefix}
-            submitBehavior={submitBehavior}
+            submitBehavior="submit"
             testID={testID}
             touchableInputWrapperStyle={touchableInputWrapperStyle}
             value={formattedNumber}

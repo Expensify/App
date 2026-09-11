@@ -394,22 +394,13 @@ describe('NumericField.TextInput', () => {
         expect(inputOnKeyPress).toHaveBeenCalledTimes(1);
     });
 
-    it('submits without blurring when no submit behavior is given', async () => {
-        // Given a TextInput without an explicit submit behavior
+    it('uses submit behavior by default', async () => {
+        // Given a NumericField.TextInput
         renderTextInput({testID: INPUT_TEST_ID}, {value: '10'});
         await waitForBatchedUpdatesWithAct();
 
         // Then Enter submits without blurring
         expect(screen.getByTestId(INPUT_TEST_ID).props.submitBehavior).toBe('submit');
-    });
-
-    it("preserves the caller's submit behavior override", async () => {
-        // Given a TextInput with an explicit blur-and-submit behavior
-        renderTextInput({testID: INPUT_TEST_ID, submitBehavior: 'blurAndSubmit'}, {value: '10'});
-        await waitForBatchedUpdatesWithAct();
-
-        // Then the override reaches the underlying input
-        expect(screen.getByTestId(INPUT_TEST_ID).props.submitBehavior).toBe('blurAndSubmit');
     });
 
     it('collapses the selection onto its end when clearSelection is called', async () => {
