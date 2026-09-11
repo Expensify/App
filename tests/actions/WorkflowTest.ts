@@ -506,6 +506,57 @@ describe('actions/Workflow', () => {
     });
 
     describe('removeApprovalWorkflow', () => {
+        it('should optimistically point the removed workflow members at the default approver instead of leaving submitsTo empty', async () => {
+            mockFetch.pause();
+
+            // Given a policy whose default approver is not the owner, so the test also proves the value comes from
+            // `getDefaultApprover` rather than falling back to the owner
+            const policy = createMock<Policy>({
+                id: '123456789',
+                name: 'Test Workspace',
+                role: 'admin',
+                type: 'corporate',
+                owner: ownerEmail,
+                approver: employee2Email,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+                employeeList: {
+                    [ownerEmail]: {email: ownerEmail, forwardsTo: '', role: 'admin', submitsTo: employee2Email},
+                    [employee1Email]: {email: employee1Email, forwardsTo: '', role: 'user', submitsTo: employee2Email},
+                    [employee2Email]: {email: employee2Email, forwardsTo: '', role: 'user', submitsTo: employee2Email},
+                    [employee3Email]: {email: employee3Email, forwardsTo: '', role: 'user', submitsTo: employee1Email},
+                },
+            });
+
+            // The non-default workflow being removed: employee3 submits to employee1
+            const approvalWorkflow = {
+                members: [{email: employee3Email, displayName: employee3Email}],
+                approvers: [{email: employee1Email, displayName: employee1Email, isCircularReference: false}],
+                availableMembers: [],
+                usedApproverEmails: [employee2Email],
+                isDefault: false,
+                action: 'remove',
+                originalApprovers: [],
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+            await Onyx.merge(ONYXKEYS.SESSION, {authToken: '123456789'});
+            await waitForBatchedUpdates();
+
+            // When removing that workflow while the request is still in flight
+            removeApprovalWorkflow(approvalWorkflow, policy);
+            await waitForBatchedUpdates();
+
+            // Then the member reads as submitting to the default approver rather than to nobody. Storing the empty
+            // string the request carries would blank this member's approver until the response lands, and for as long
+            // as the user stays offline.
+            const updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`);
+            expect(updatedPolicy?.employeeList?.[employee3Email]?.submitsTo).toBe(employee2Email);
+            expect(updatedPolicy?.employeeList?.[employee3Email]?.pendingFields?.submitsTo).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+
+            await mockFetch.resume();
+            await waitForBatchedUpdates();
+        });
+
         it('should keep ADVANCED approval mode when default approver has forwardsTo chain', async () => {
             mockFetch.pause();
 

@@ -6,6 +6,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 
 import {getPolicyApproverLogins, isControlPolicy, isSubmitPolicy} from '@libs/PolicyUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
+import type {AvatarSource} from '@libs/UserAvatarUtils';
 
 import {fontScale} from '@styles/typography';
 import variables from '@styles/variables';
@@ -21,7 +22,7 @@ import React from 'react';
 
 import WorkspaceMembersTableRow from './WorkspaceMembersTableRow';
 
-type WorkspaceMembersTableColumnKey = 'member' | 'role' | 'actions' | 'customField1' | 'customField2';
+type WorkspaceMembersTableColumnKey = 'member' | 'approver' | 'role' | 'actions' | 'customField1' | 'customField2';
 
 type WorkspaceMemberRowData = TableData & {
     accountID: number;
@@ -29,6 +30,9 @@ type WorkspaceMemberRowData = TableData & {
     role?: string;
     employeeUserID?: string;
     employeePayrollID?: string;
+    approverAvatar?: AvatarSource;
+    approverAccountID?: number;
+    approverDisplayName?: string;
     name: string;
     email: string;
     shouldShowEmployeeUserID: boolean;
@@ -49,12 +53,17 @@ type WorkspaceMembersTableProps = {
     selectedKeys: string[];
     shouldShowCustomField1Column: boolean;
     shouldShowCustomField2Column: boolean;
+    shouldShowApproverColumn: boolean;
+    hasMultiLevelWorkflow: boolean;
     onRowSelectionChange: (selectedRowKeys: string[]) => void;
     headerComponent?: React.ReactElement;
 };
 
 /** Width the member cell's avatar and the space after it take before the name and email start. */
 const MEMBER_CELL_AVATAR_WIDTH = variables.avatarSizeSmall + 12;
+
+/** Width the approver cell's avatar and the space after it take before the name starts. */
+const APPROVER_CELL_AVATAR_WIDTH = variables.avatarSizeXxxSmall + 8;
 
 const WORKSPACE_MEMBER_FILTER_VALUES = {
     ADMINS: 'admins',
@@ -74,11 +83,13 @@ export default function WorkspaceMembersTable({
     selectedKeys,
     shouldShowCustomField1Column,
     shouldShowCustomField2Column,
+    shouldShowApproverColumn,
+    hasMultiLevelWorkflow,
     members,
     onRowSelectionChange,
     headerComponent,
 }: WorkspaceMembersTableProps) {
-    const {translate, localeCompare} = useLocalize();
+    const {translate, localeCompare, toLocaleOrdinalWithWords} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
     const shouldUseNarrowTableLayout = shouldUseNarrowLayout || isMediumScreenWidth;
 
@@ -98,6 +109,20 @@ export default function WorkspaceMembersTable({
             },
         },
 
+        ...(shouldShowApproverColumn
+            ? [
+                  {
+                      sortable: true,
+                      key: 'approver' as const,
+                      // One header for the whole table, so it follows the deepest workflow in the workspace.
+                      label: hasMultiLevelWorkflow ? `${toLocaleOrdinalWithWords(1)} ${translate('common.approver').toLowerCase()}` : translate('common.approver'),
+                      dynamicSizing: {
+                          getContentToMeasure: (item: WorkspaceMemberRowData) => (item.approverDisplayName ? [{text: item.approverDisplayName, fontSize: fontScale.text}] : []),
+                          extraWidth: APPROVER_CELL_AVATAR_WIDTH,
+                      },
+                  },
+              ]
+            : []),
         ...(shouldShowCustomField1Column
             ? [
                   {
@@ -165,6 +190,32 @@ export default function WorkspaceMembersTable({
 
             if (roleComparison !== 0) {
                 return roleComparison * orderMultiplier;
+            }
+
+            return memberNameComparison;
+        }
+
+        if (activeSorting.columnKey === 'approver') {
+            const item1ApproverName = item1.approverDisplayName;
+            const item2ApproverName = item2.approverDisplayName;
+
+            if (!item1ApproverName && !item2ApproverName) {
+                return memberNameComparison;
+            }
+
+            // Members without an approver sort last in both directions.
+            if (!item1ApproverName) {
+                return 1;
+            }
+
+            if (!item2ApproverName) {
+                return -1;
+            }
+
+            const approverNameComparison = localeCompare(item1ApproverName, item2ApproverName);
+
+            if (approverNameComparison !== 0) {
+                return approverNameComparison * orderMultiplier;
             }
 
             return memberNameComparison;
@@ -336,6 +387,7 @@ export default function WorkspaceMembersTable({
                 shouldUseNarrowTableLayout={shouldUseNarrowTableLayout}
                 shouldShowCustomField1Column={shouldShowCustomField1Column}
                 shouldShowCustomField2Column={shouldShowCustomField2Column}
+                shouldShowApproverColumn={shouldShowApproverColumn}
             />
         );
     };
