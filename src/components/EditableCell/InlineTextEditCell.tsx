@@ -25,9 +25,6 @@ type InlineTextEditCellProps = {
     /** Accessibility label for the text input while editing */
     accessibilityLabel: string;
 
-    /** Whether to show a tooltip over the display text */
-    shouldShowTooltip?: boolean;
-
     /** Style applied to the display text and to the TextInput while editing, so font size and color stay in sync */
     displayTextStyle?: StyleProp<TextStyle>;
 
@@ -47,7 +44,7 @@ const trimValue = (input: string) => input.trim();
  * original value, matching the Spend inline-edit behavior. On narrow layouts `EditableCell` renders
  * the display text only, so tables keep their existing tap-to-navigate behavior there.
  */
-function InlineTextEditCell({value, accessibilityLabel, shouldShowTooltip = true, displayTextStyle, canEdit, onSave, sanitize = trimValue}: InlineTextEditCellProps) {
+function InlineTextEditCell({value, accessibilityLabel, displayTextStyle, canEdit, onSave, sanitize = trimValue}: InlineTextEditCellProps) {
     const styles = useThemeStyles();
     const inputRef = useRef<BaseTextInputRef | null>(null);
 
@@ -94,7 +91,7 @@ function InlineTextEditCell({value, accessibilityLabel, shouldShowTooltip = true
             }
         >
             <TextWithTooltip
-                shouldShowTooltip={shouldShowTooltip}
+                shouldShowTooltip
                 text={localValue}
                 numberOfLines={1}
                 style={displayTextStyle}
