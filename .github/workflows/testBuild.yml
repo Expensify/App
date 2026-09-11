@@ -8,9 +8,9 @@ on:
         description: The Expensify/App pull request URL (e.g., https://github.com/Expensify/App/pull/12345). Defaults to main.
         required: false
         default: ''
-      # Pull Request URL from Mobile-Expensify repo for correct placement of OD app. It will take precedence over MOBILE-EXPENSIFY from App's PR description if both are specified. If nothing is specified defaults to Mobile-Expensify's main
+      # Pull Request URL from Mobile-Expensify repo for correct placement of OD app. It will take precedence over MOBILE-EXPENSIFY from App's PR description if both are specified. If nothing is specified, the commit pinned by the App submodule is used.
       MOBILE_EXPENSIFY_PULL_REQUEST_URL:
-        description: The Expensify/Mobile-Expensify pull request URL. Defaults to main. Overrides MOBILE-EXPENSIFY set in App's PR description.
+        description: The Expensify/Mobile-Expensify pull request URL. Defaults to the pinned submodule commit. Overrides MOBILE-EXPENSIFY set in App's PR description.
         required: false
         default: ''
       REVIEWED_CODE:
