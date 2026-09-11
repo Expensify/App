@@ -74,6 +74,7 @@ function useSelectionModeReportActions({
         `${ONYXKEYS.COLLECTION.POLICY}${chatReport?.invoiceReceiver && 'policyID' in chatReport.invoiceReceiver ? chatReport.invoiceReceiver.policyID : undefined}`,
     );
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
     const isChatReportArchived = useReportIsArchived(chatReport?.reportID);
 
@@ -91,6 +92,9 @@ function useSelectionModeReportActions({
         handleSubmitReport: lifecycleHandleSubmitReport,
         shouldBlockSubmit,
         isBlockSubmitDueToPreventSelfApproval,
+        approveSubMenuItems,
+        approveSubMenuHeaderText,
+        shouldShowApproveSubMenu,
     } = useLifecycleActions({
         reportID: report?.reportID,
         startApprovedAnimation: () => {},
@@ -145,6 +149,7 @@ function useSelectionModeReportActions({
         isChatReportArchived,
         invoiceReceiverPolicy,
         ownerLogin: submitterLogin,
+        rules,
         isOffline,
     });
 
@@ -170,6 +175,7 @@ function useSelectionModeReportActions({
             outstandingReportsByPolicyID,
             isChatReportArchived,
             isOffline,
+            rules,
         });
     })();
 
@@ -230,11 +236,11 @@ function useSelectionModeReportActions({
 
     // Build report-level action menu
     const selectionModeReportLevelActions = (() => {
-        const actions: Array<DropdownOption<string> & Pick<PopoverMenuItem, 'backButtonText' | 'rightIcon' | 'subMenuItems'>> = [];
+        const actions: Array<DropdownOption<string> & Pick<PopoverMenuItem, 'backButtonText' | 'rightIcon' | 'subMenuItems' | 'subMenuHeaderText'>> = [];
         let idx = 0;
         if (hasSubmitAction && !effectiveShouldBlockSubmit) {
             actions[idx++] = {
-                text: shouldShowMarkAsDone({policy, report, isTrackIntentUser}) ? translate('common.markAsDone') : translate('common.submit'),
+                text: shouldShowMarkAsDone({policy, report, isTrackIntentUser, rules}) ? translate('common.markAsDone') : translate('common.submit'),
                 icon: expensifyIcons.Send,
                 value: CONST.REPORT.PRIMARY_ACTIONS.SUBMIT,
                 onSelected: handleSubmitReport,
@@ -245,7 +251,12 @@ function useSelectionModeReportActions({
                 text: translate('iou.approve'),
                 icon: expensifyIcons.ThumbsUp,
                 value: CONST.REPORT.PRIMARY_ACTIONS.APPROVE,
-                onSelected: confirmApproval,
+                rightIcon: shouldShowApproveSubMenu ? expensifyIcons.ArrowRight : undefined,
+                backButtonText: shouldShowApproveSubMenu ? translate('iou.approve') : undefined,
+                subMenuItems: shouldShowApproveSubMenu ? approveSubMenuItems : undefined,
+                subMenuHeaderText: shouldShowApproveSubMenu ? approveSubMenuHeaderText : undefined,
+                // Only reached when there is no submenu; otherwise PopoverMenu opens the submenu instead.
+                onSelected: () => confirmApproval(),
             };
         }
         if (hasPayAction && !(isOffline && !canAllowSettlement)) {
