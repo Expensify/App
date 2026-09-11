@@ -27,8 +27,7 @@ import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
-// eslint-disable-next-line no-restricted-imports
-import type {GestureResponderEvent, Text as RNText} from 'react-native';
+import type {GestureResponderEvent} from 'react-native';
 
 import React, {useRef} from 'react';
 import {View} from 'react-native';
@@ -40,7 +39,7 @@ function BusinessCentralPrerequisitesPage({route}: BusinessCentralPrerequisitesP
     const styles = useThemeStyles();
     const icons = useMemoizedLazyExpensifyIcons(['NewWindow', 'Task']);
     const illustrations = useMemoizedLazyIllustrations(['Computer']);
-    const popoverAnchor = useRef<View | RNText | null>(null);
+    const popoverAnchor = useRef<View>(null);
     const policyID: string = route.params.policyID;
 
     const menuItems = [
