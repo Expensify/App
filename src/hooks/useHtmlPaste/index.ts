@@ -1,5 +1,3 @@
-import {emojiNameTable} from '@assets/emojis';
-
 import {containsOnlyEmojis} from '@libs/EmojiUtils';
 import {isStandaloneURL, toMarkdownLink} from '@libs/MarkdownLinkHelpers';
 import Parser from '@libs/Parser';
@@ -45,14 +43,6 @@ const insertAtCaret = (target: HTMLElement, insertedText: string, maxLength: num
 };
 
 /**
- * Converts recognized emoji shortcodes to Unicode characters.
- *
- * @param text Text that may contain emoji shortcodes.
- * @returns Text with recognized shortcodes replaced by Unicode characters.
- */
-const convertEmojiImageShortcodesToUnicode = (text: string): string => text.replaceAll(CONST.REGEX.EMOJI_NAME, (shortcode) => emojiNameTable[shortcode.slice(1, -1)]?.code ?? shortcode);
-
-/**
  * Recovers an emoji from iOS Safari's pasted image alt text, which can contain a hexadecimal codepoint filename instead of the emoji.
  * For example, `1f389@2x.png` is converted to `🎉` before the image is parsed as Markdown.
  *
@@ -89,6 +79,8 @@ const isEmojiImage = (image: HTMLImageElement): boolean => {
     return dataset.stringifyEmoji !== undefined || dataset.stringifyType === 'emoji';
 };
 
+const isIOSSafariEmojiImage = (image: HTMLImageElement): boolean => image.src.startsWith('blob:') && CONST.REGEX.EMOJI_IMAGE_ALT.test(image.alt);
+
 /**
  * Returns the text that should replace an emoji image during paste.
  *
@@ -96,9 +88,7 @@ const isEmojiImage = (image: HTMLImageElement): boolean => {
  * @returns Unicode emoji, shortcode text, or an empty string when the image should remain unchanged.
  */
 const getEmojiReplacementText = (image: HTMLImageElement): string => {
-    const shouldReadEmojiFromAlt = isEmojiImage(image) || image.src.startsWith('blob:');
-
-    if (shouldReadEmojiFromAlt) {
+    if (isIOSSafariEmojiImage(image)) {
         const emojiFromImageAlt = getEmojiFromImageAlt(image.alt);
 
         if (emojiFromImageAlt) {
@@ -107,12 +97,6 @@ const getEmojiReplacementText = (image: HTMLImageElement): string => {
     }
 
     if (isEmojiImage(image)) {
-        // Slack can put shortcode text in emoji image alt text, e.g. ":tada:".
-        const emojiFromShortcode = convertEmojiImageShortcodesToUnicode(image.alt);
-        if (emojiFromShortcode !== image.alt) {
-            return emojiFromShortcode;
-        }
-
         return image.alt;
     }
 
