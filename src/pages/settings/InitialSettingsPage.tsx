@@ -147,7 +147,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                 breadcrumbLabel={translate('initialSettingsPage.account')}
                 shouldDisplaySearch={shouldUseNarrowLayout}
                 shouldDisplayHelpButton={shouldUseNarrowLayout}
-                shouldDisplayAccountButton={false}
+                shouldDisplayAccountButton={shouldUseNarrowLayout}
             />
             <ScrollView
                 ref={scrollViewRef}
