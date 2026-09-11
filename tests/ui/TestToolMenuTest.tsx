@@ -8,7 +8,7 @@ import type * as MultifactorAuthenticationSharedValues from '@libs/MultifactorAu
 import MULTIFACTOR_AUTHENTICATION_VALUES from '@libs/MultifactorAuthentication/VALUES';
 
 import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 
 import React from 'react';
 
@@ -363,9 +363,9 @@ describe('TestToolMenu beta overrides', () => {
         // When The row is pressed
         fireEvent.press(screen.getByText('common.view'));
 
-        // Then The modal is dismissed first, because it and the overrides page cannot both be open
+        // Then The modal is dismissed first, because it and the overrides page cannot both be open, and the page opens over the modal's backTo screen
         expect(mockDismissModal).toHaveBeenCalledTimes(1);
-        expect(mockNavigate).toHaveBeenCalledWith(ROUTES.SETTINGS_TROUBLESHOOT_BETA_OVERRIDES, {skipMatchingFullScreenRoute: true});
+        expect(mockNavigate).toHaveBeenCalledWith(`${ROUTES.HOME}/${DYNAMIC_ROUTES.BETA_OVERRIDES.path}`);
     });
 
     it('does not dismiss any modal when opened inline on the Troubleshoot page', () => {
@@ -376,8 +376,8 @@ describe('TestToolMenu beta overrides', () => {
         // When The row is pressed
         fireEvent.press(screen.getByText('common.view'));
 
-        // Then Nothing is dismissed, because there is no modal open in this context
+        // Then Nothing is dismissed, because there is no modal open in this context, and the page opens over Troubleshoot
         expect(mockDismissModal).not.toHaveBeenCalled();
-        expect(mockNavigate).toHaveBeenCalledWith(ROUTES.SETTINGS_TROUBLESHOOT_BETA_OVERRIDES, {skipMatchingFullScreenRoute: true});
+        expect(mockNavigate).toHaveBeenCalledWith(`${ROUTES.SETTINGS_TROUBLESHOOT}/${DYNAMIC_ROUTES.BETA_OVERRIDES.path}`);
     });
 });

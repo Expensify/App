@@ -1412,6 +1412,11 @@ const DYNAMIC_ROUTES = {
         path: 'keyboard-shortcuts',
         entryScreens: ['*'],
     },
+    BETA_OVERRIDES: {
+        path: 'beta-overrides',
+        // Opened from the Test Tools modal, which can be summoned on any screen
+        entryScreens: ['*'],
+    },
     SETTINGS_TAG_APPROVER: {
         path: 'tag-approver',
         entryScreens: [SCREENS.SETTINGS_TAGS.DYNAMIC_SETTINGS_TAG_SETTINGS],
@@ -2608,7 +2613,6 @@ const ROUTES = {
     SETTINGS_STATUS_CLEAR_AFTER_TIME: 'settings/profile/status/clear-after/time',
     SETTINGS_VACATION_DELEGATE: 'settings/profile/status/vacation-delegate',
     SETTINGS_TROUBLESHOOT: 'settings/troubleshoot',
-    SETTINGS_TROUBLESHOOT_BETA_OVERRIDES: 'settings/troubleshoot/beta-overrides',
     SETTINGS_HELP: 'settings/help',
 
     SETTINGS_SAVE_THE_WORLD: 'settings/teachersunite',

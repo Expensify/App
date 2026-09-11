@@ -167,10 +167,6 @@ function TestRightModalNavigator() {
                 name={SCREENS.RIGHT_MODAL.SETTINGS}
                 getComponent={getEmptyComponent()}
             />
-            <RightModalNavigatorStack.Screen
-                name={SCREENS.RIGHT_MODAL.BETA_OVERRIDES}
-                getComponent={getEmptyComponent()}
-            />
         </RightModalNavigatorStack.Navigator>
     );
 }

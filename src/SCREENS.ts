@@ -96,6 +96,7 @@ const SCREENS = {
         DYNAMIC_EXIT_SURVEY_CONFIRM: 'Dynamic_ExitSurvey_Confirm',
         DYNAMIC_EXIT_SURVEY_REASON: 'Dynamic_ExitSurvey_Reason',
         DYNAMIC_KEYBOARD_SHORTCUTS: 'Dynamic_Keyboard_Shortcuts',
+        DYNAMIC_BETA_OVERRIDES: 'Dynamic_Beta_Overrides',
         DYNAMIC_SAGE_INTACCT_EXPORT: 'Dynamic_Sage_Intacct_Export',
 
         PROFILE: {
@@ -307,7 +308,6 @@ const SCREENS = {
         REPORT_EXPORT: 'Report_Export',
         MISSING_PERSONAL_DETAILS: 'MissingPersonalDetails',
         DEBUG: 'Debug',
-        BETA_OVERRIDES: 'BetaOverrides',
         ADD_EXISTING_EXPENSE: 'AddExistingExpense',
         SCHEDULE_CALL: 'ScheduleCall',
         REPORT_CHANGE_APPROVER: 'Report_Change_Approver',
