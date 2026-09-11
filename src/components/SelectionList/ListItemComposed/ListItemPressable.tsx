@@ -176,6 +176,7 @@ function ListItemPressable<TItem extends ListItem>({
             >
                 <ListItemContext.Provider
                     value={{
+                        isFocused: !!isFocused,
                         isFocusVisible: !!isFocusVisible,
                         shouldShowTooltip,
                         isDisabled: !!isDisabled,

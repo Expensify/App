@@ -66,7 +66,6 @@ function UserSelectionListItem<TItem extends ListItem>({
             onSelectionButtonPress={onSelectionButtonPress}
             onDismissError={onDismissError}
             shouldPreventEnterKeySubmit={shouldPreventEnterKeySubmit}
-            rightHandSideComponent={item.rightElement}
             pressableStyle={pressableStyle}
             onFocus={onFocus}
             shouldSyncFocus={shouldSyncFocus}

@@ -141,7 +141,7 @@ function SearchRouterItem(props: UserListItemProps<AutocompleteListItem> | Searc
         return <SearchQueryListItem {...props} />;
     }
 
-    const {item, isFocused, showTooltip, isDisabled, onSelectRow, onDismissError, shouldPreventEnterKeySubmit, rightHandSideComponent, onFocus, shouldSyncFocus, wrapperStyle} = props;
+    const {item, isFocused, showTooltip, isDisabled, onSelectRow, onDismissError, shouldPreventEnterKeySubmit, onFocus, shouldSyncFocus, wrapperStyle} = props;
     const fsClass = FS.getChatFSClass((item as SearchOption<Report> | undefined)?.item);
 
     return (
@@ -153,7 +153,6 @@ function SearchRouterItem(props: UserListItemProps<AutocompleteListItem> | Searc
             onSelectRow={onSelectRow}
             onDismissError={onDismissError}
             shouldPreventEnterKeySubmit={shouldPreventEnterKeySubmit}
-            rightHandSideComponent={rightHandSideComponent}
             onFocus={onFocus}
             shouldSyncFocus={shouldSyncFocus}
             wrapperStyle={wrapperStyle}
@@ -527,7 +526,6 @@ function SearchAutocompleteList({
                 keyForList,
                 pressableStyle: styles.br2,
                 text: StringUtils.lineBreaksToSpaces(shouldParserToHTML ? Parser.htmlToText(option.text ?? '') : (option.text ?? '')),
-                wrapperStyle: [styles.pr3, styles.pl3],
             } as AutocompleteListItem;
         });
 

@@ -58,6 +58,13 @@ type ListItem<K extends string | number = string> = {
     leftElement?: ReactNode;
     rightElement?: ReactNode;
 
+    /**
+     * Standalone control rendered at the very end of the row: after the selection button and outside the row's
+     * accessible content group, so screen readers can focus it independently. Use `rightElement` instead for
+     * content that belongs beside the text (badges, inline icons).
+     */
+    actionElement?: ReactNode;
+
     /** Icons for the user (can be multiple if it's a Workspace) */
     icons?: Icon[];
 
@@ -170,7 +177,7 @@ type CommonListItemProps<TItem extends ListItem> = {
 
     /** Overrides the row's selected state (aria-selected, highlight). Defaults to `item.isSelected`; pass it when selection isn't stored on the item itself. */
     isSelected?: boolean;
-} & TRightHandSideComponent<TItem>;
+};
 
 type ListItemFocusEventHandler = (event: NativeSyntheticEvent<ExtendedTargetedEvent>) => void;
 
@@ -180,10 +187,6 @@ type ExtendedTargetedEvent = TargetedEvent & {
         /** A boolean value that indicates whether the device dispatches touch events. */
         firesTouchEvents: boolean;
     };
-};
-
-type TRightHandSideComponent<TItem extends ListItem> = {
-    rightHandSideComponent?: ((item: TItem, isFocused?: boolean) => ReactNode | null | undefined) | ReactNode | null;
 };
 
 type ListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
@@ -228,13 +231,10 @@ type ListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
 
 /**
  * Props of the composed ListItem pressable root. Row content is passed as plain children; hover/focus/tooltip state reaches it through ListItemContext.
- * Content-level props (wrapper style, right-hand component, multiline options) are omitted: the pressable never reads them, so the variant that renders them declares them.
+ * Content-level props (wrapper style, multiline options) are omitted: the pressable never reads them, so the variant that renders them declares them.
  */
 type ListItemPressableProps<TItem extends ListItem> = PropsWithChildren<
-    Omit<
-        CommonListItemProps<TItem>,
-        'showTooltip' | 'wrapperStyle' | 'rightHandSideComponent' | 'isMultilineSupported' | 'isAlternateTextMultilineSupported' | 'alternateTextNumberOfLines' | 'titleNumberOfLines'
-    > & {
+    Omit<CommonListItemProps<TItem>, 'showTooltip' | 'wrapperStyle' | 'isMultilineSupported' | 'isAlternateTextMultilineSupported' | 'alternateTextNumberOfLines' | 'titleNumberOfLines'> & {
         item: TItem;
 
         /** Whether content inside the row should show tooltips (provided to children via ListItemContext) */
@@ -272,12 +272,11 @@ type SpendRuleListItemType = ListItem & {
 
 /** Props for SelectableListItem, which extends the composed ListItem pressable with selection button support. */
 type SelectableListItemProps<TItem extends ListItem> = Omit<ListItemPressableProps<TItem>, 'containerStyle' | 'shouldShowTooltip'> &
-    ForwardedFSClassProps &
-    TRightHandSideComponent<TItem> & {
+    ForwardedFSClassProps & {
         /** Whether text in the row should show tooltips on overflow (forwarded to the pressable as shouldShowTooltip) */
         showTooltip: boolean;
 
-        /** Style of the row View that lays out the selection button, children, and right-hand component */
+        /** Style of the row View that lays out the selection button, children, and the item's action element */
         wrapperStyle?: StyleProp<ViewStyle>;
 
         /** Callback to fire when the selection button is pressed */

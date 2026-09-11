@@ -35,7 +35,6 @@ function ListItemRenderer<TItem extends ListItem>({
     selectRow,
     onSelectionButtonPress,
     onDismissError,
-    rightHandSideComponent,
     isMultilineSupported,
     isAlternateTextMultilineSupported,
     alternateTextNumberOfLines,
@@ -83,7 +82,6 @@ function ListItemRenderer<TItem extends ListItem>({
                 onSelectionButtonPress={handleOnSelectionButtonPress()}
                 onDismissError={() => onDismissError?.(item)}
                 shouldPreventEnterKeySubmit={shouldPreventEnterKeySubmit}
-                rightHandSideComponent={rightHandSideComponent}
                 isMultilineSupported={isMultilineSupported}
                 isAlternateTextMultilineSupported={isAlternateTextMultilineSupported}
                 alternateTextNumberOfLines={alternateTextNumberOfLines}

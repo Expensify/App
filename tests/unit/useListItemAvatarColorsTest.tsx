@@ -34,7 +34,9 @@ const backgroundAndBorder = (color: string) => ({backgroundColor: color, borderC
 const renderColors = ({isFocusVisible, isHovered}: {isFocusVisible: boolean; isHovered: boolean}) =>
     renderHook(() => ({subscriptAvatarBorderColor: useListItemSubscriptAvatarBorderColor(), secondaryAvatarContainerStyle: useListItemSecondaryAvatarContainerStyle()}), {
         wrapper: ({children}) => (
-            <ListItemContext.Provider value={{isFocusVisible, shouldShowTooltip: false, isDisabled: false, isInteractive: true, shouldDisableAccessibleGrouping: false}}>
+            <ListItemContext.Provider
+                value={{isFocusVisible, isFocused: isFocusVisible, shouldShowTooltip: false, isDisabled: false, isInteractive: true, shouldDisableAccessibleGrouping: false}}
+            >
                 <ListItemHoverContext.Provider value={isHovered}>{children}</ListItemHoverContext.Provider>
             </ListItemContext.Provider>
         ),

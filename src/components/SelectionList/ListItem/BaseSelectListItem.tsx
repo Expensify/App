@@ -32,7 +32,6 @@ function BaseSelectListItem<TItem extends ListItem>({
     onSelectRow,
     onDismissError,
     shouldPreventEnterKeySubmit,
-    rightHandSideComponent,
     isMultilineSupported = false,
     isAlternateTextMultilineSupported = false,
     alternateTextNumberOfLines = 2,
@@ -82,7 +81,6 @@ function BaseSelectListItem<TItem extends ListItem>({
             onSelectRow={onSelectRow}
             onDismissError={onDismissError}
             shouldPreventEnterKeySubmit={shouldPreventEnterKeySubmit}
-            rightHandSideComponent={rightHandSideComponent}
             canSelectMultiple={canSelectMultiple}
             onFocus={onFocus}
             shouldSyncFocus={shouldSyncFocus}

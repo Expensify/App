@@ -27,6 +27,7 @@ import type {PersonalPolicyTypeExcludedProps} from '@pages/settings/Subscription
 import CONST from '@src/CONST';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 
+import type {ReactNode} from 'react';
 import type {ValueOf} from 'type-fest';
 
 import {format} from 'date-fns';
@@ -44,6 +45,7 @@ type WorkspacePlanTypeItem = {
     alternateText: string;
     keyForList: ValueOf<typeof CONST.POLICY.TYPE>;
     isSelected: boolean;
+    actionElement?: ReactNode;
 };
 function DynamicWorkspaceOverviewPlanTypePage({policy}: WithPolicyProps) {
     const [currentPlan, setCurrentPlan] = useState(policy?.type);
@@ -65,6 +67,12 @@ function DynamicWorkspaceOverviewPlanTypePage({policy}: WithPolicyProps) {
         setCurrentPlan(policy?.type);
     }, [policy?.type]);
 
+    const isControl = policy?.type === CONST.POLICY.TYPE.CORPORATE;
+    const isAnnual = privateSubscription?.type === CONST.SUBSCRIPTION.TYPE.ANNUAL;
+
+    /** If user has the annual Control plan and their first billing cycle is completed, they cannot downgrade the Workspace plan to Collect. */
+    const isPlanTypeLocked = isControl && isAnnual && !policy.canDowngrade;
+
     const isCurrentPolicySubmit = isSubmitPolicy(policy);
     const workspacePlanTypes = Object.values(CONST.POLICY.TYPE)
         .filter((type) => {
@@ -85,25 +93,19 @@ function DynamicWorkspaceOverviewPlanTypePage({policy}: WithPolicyProps) {
             alternateText: translate(`workspace.planTypePage.planTypes.${policyType as PersonalPolicyTypeExcludedProps}.description`),
             keyForList: policyType,
             isSelected: policyType === currentPlan,
+            actionElement:
+                isPlanTypeLocked && policyType === policy?.type ? (
+                    <Icon
+                        src={expensifyIcons.Lock}
+                        fill={theme.success}
+                    />
+                ) : undefined,
         }))
         .reverse();
 
-    const isControl = policy?.type === CONST.POLICY.TYPE.CORPORATE;
-    const isAnnual = privateSubscription?.type === CONST.SUBSCRIPTION.TYPE.ANNUAL;
     const autoRenewalDate = privateSubscription?.endDate
         ? format(privateSubscription.endDate, CONST.DATE.MONTH_DAY_YEAR_ORDINAL_FORMAT, {locale: dateFnsLocale})
         : CardSectionUtils.getNextBillingDate(dateFnsLocale);
-
-    /** If user has the annual Control plan and their first billing cycle is completed, they cannot downgrade the Workspace plan to Collect. */
-    const isPlanTypeLocked = isControl && isAnnual && !policy.canDowngrade;
-
-    const lockedIcon = (option: WorkspacePlanTypeItem) =>
-        option.value === policy?.type ? (
-            <Icon
-                src={expensifyIcons.Lock}
-                fill={theme.success}
-            />
-        ) : null;
 
     const handleUpdatePlan = () => {
         // Submit policies don't expose SUBMIT in the option list, but the editor can
@@ -174,7 +176,6 @@ function DynamicWorkspaceOverviewPlanTypePage({policy}: WithPolicyProps) {
                             onSelectRow={(option) => {
                                 setCurrentPlan(option.value);
                             }}
-                            rightHandSideComponent={isPlanTypeLocked ? lockedIcon : null}
                             shouldUpdateFocusedIndex
                             shouldSingleExecuteRowSelect
                             shouldIgnoreFocus

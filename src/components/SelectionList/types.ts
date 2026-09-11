@@ -5,7 +5,7 @@ import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import type CONST from '@src/CONST';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 
-import type {ReactElement, Ref} from 'react';
+import type {Ref} from 'react';
 import type {GestureResponderEvent, InputModeOptions, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
 
@@ -47,7 +47,6 @@ type BaseSelectionListProps<TItem extends ListItem> = {
     footerContent?: React.ReactNode;
     listFooterContent?: React.JSX.Element | null | undefined;
     shouldShowLoadingPlaceholder?: boolean;
-    rightHandSideComponent?: ((item: TItem, isFocused?: boolean) => ReactElement | null | undefined) | ReactElement | null;
     shouldShowTooltips?: boolean;
     customListHeaderContent?: React.JSX.Element | null;
     onSelectionButtonPress?: (item: TItem) => void;

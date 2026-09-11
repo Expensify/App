@@ -24,7 +24,6 @@ function UserListItem<TItem extends ListItem>({
     onSelectionButtonPress,
     onDismissError,
     shouldPreventEnterKeySubmit,
-    rightHandSideComponent,
     onFocus,
     shouldSyncFocus,
     wrapperStyle,
@@ -34,9 +33,8 @@ function UserListItem<TItem extends ListItem>({
     shouldHighlightSelectedItem,
     selectionButtonPosition = CONST.SELECTION_BUTTON_POSITION.RIGHT,
 }: UserListItemProps<TItem>) {
-    const renderedRightComponent = typeof rightHandSideComponent === 'function' ? rightHandSideComponent(item, isFocused) : rightHandSideComponent;
     // Disable accessible grouping when a right-side button is visible, so VoiceOver can focus it independently.
-    const shouldDisableAccessibleGrouping = !!renderedRightComponent && !canSelectMultiple;
+    const shouldDisableAccessibleGrouping = !!item.actionElement && !canSelectMultiple;
 
     const selectionButton = !item.shouldHideSelectionButton && (
         <ListItemComposed.SelectionButton
@@ -73,7 +71,7 @@ function UserListItem<TItem extends ListItem>({
                 />
                 {shouldShowRBRIndicator(item) && <ListItemComposed.RBRIndicator item={item} />}
                 {selectionButtonPosition === CONST.SELECTION_BUTTON_POSITION.RIGHT && selectionButton}
-                {renderedRightComponent}
+                {item.actionElement}
             </ListItemComposed.Row>
             {!!item.invitedSecondaryLogin && <ListItemComposed.InvitedSecondaryLoginFooter invitedSecondaryLogin={item.invitedSecondaryLogin} />}
         </ListItemComposed>

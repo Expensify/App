@@ -6,7 +6,6 @@ import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import BareUserListItem from '@components/SelectionList/ListItem/BareUserListItem';
-import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -51,6 +50,7 @@ function UnshareBankAccount({route}: ShareBankAccountProps) {
     const totalAdmins = bankAccountList?.[bankAccountID]?.accountData?.sharees?.length;
     const adminEmails = admins?.filter((admin) => admin !== currentUserPersonalDetails?.email) ?? [];
     const adminPersonalDetails = usePersonalDetailsByLogins(adminEmails);
+    const isLoading = unsharedBankAccountData?.isLoading ?? false;
     const adminsWithInfo = adminEmails.map((admin) => {
         const personalDetails = adminPersonalDetails[admin];
         const formattedAdmin = formatMemberForList({
@@ -62,7 +62,22 @@ function UnshareBankAccount({route}: ShareBankAccountProps) {
             pendingAction: personalDetails?.pendingAction,
             reportID: '',
         });
-        return {...formattedAdmin, isInteractive: false};
+        return {
+            ...formattedAdmin,
+            isInteractive: false,
+            actionElement: (
+                <Button
+                    isLoading={isLoading && unsharedBankAccountData?.email === formattedAdmin.login}
+                    size={CONST.BUTTON_SIZE.SMALL}
+                    isDisabled={isLoading}
+                    variant={CONST.BUTTON_VARIANT.DANGER}
+                    onPress={() => setUnshareUser({login: formattedAdmin.login, text: formattedAdmin.text})}
+                >
+                    <Button.KeyboardShortcut />
+                    <Button.Text>{translate('common.unshare')}</Button.Text>
+                </Button>
+            ),
+        };
     });
 
     let adminsList = adminsWithInfo;
@@ -76,7 +91,6 @@ function UnshareBankAccount({route}: ShareBankAccountProps) {
     const isExpensifyCardSettlementAccount = bankAccountList?.[bankAccountID]?.isExpensifyCardSettlementAccount ?? false;
     const shouldShowTextInput = Number(totalAdmins) >= CONST.STANDARD_LIST_ITEM_LIMIT;
     const textInputLabel = shouldShowTextInput ? translate('common.search') : undefined;
-    const isLoading = unsharedBankAccountData?.isLoading ?? false;
     const shouldShowSuccess = unsharedBankAccountData?.shouldShowSuccess ?? false;
 
     useEffect(() => {
@@ -116,24 +130,6 @@ function UnshareBankAccount({route}: ShareBankAccountProps) {
         setShowExpensifyCardErrorModal(false);
     };
 
-    const itemRightSideComponent = (item: ListItem) => {
-        const promptUnshare = () => setUnshareUser({login: item?.login, text: item?.text});
-        const isUnshareButtonLoading = isLoading && unsharedBankAccountData?.email === item?.login;
-
-        return (
-            <Button
-                isLoading={isUnshareButtonLoading}
-                size={CONST.BUTTON_SIZE.SMALL}
-                isDisabled={isLoading}
-                variant={CONST.BUTTON_VARIANT.DANGER}
-                onPress={promptUnshare}
-            >
-                <Button.KeyboardShortcut />
-                <Button.Text>{translate('common.unshare')}</Button.Text>
-            </Button>
-        );
-    };
-
     const onButtonPress = () => Navigation.goBack(ROUTES.SETTINGS_WALLET);
 
     const getHeaderSearchMessage = () => {
@@ -160,7 +156,6 @@ function UnshareBankAccount({route}: ShareBankAccountProps) {
                     }}
                     data={adminsList}
                     shouldShowListEmptyContent={false}
-                    rightHandSideComponent={itemRightSideComponent}
                     footerContent={
                         <ErrorMessageRow
                             errors={isExpensifyCardError ? null : unsharedBankAccountData?.errors}

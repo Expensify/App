@@ -27,7 +27,6 @@ function InviteMemberListItem<TItem extends ListItem>({
     onSelectRow,
     onSelectionButtonPress,
     onDismissError,
-    rightHandSideComponent,
     onFocus,
     shouldSyncFocus,
     wrapperStyle,
@@ -102,7 +101,7 @@ function InviteMemberListItem<TItem extends ListItem>({
                         canSelectMultiple={canSelectMultiple}
                     />
                 )}
-                {typeof rightHandSideComponent === 'function' ? rightHandSideComponent(item, isFocused) : rightHandSideComponent}
+                {item.actionElement}
             </ListItemComposed.Row>
             {!!item.invitedSecondaryLogin && <ListItemComposed.InvitedSecondaryLoginFooter invitedSecondaryLogin={item.invitedSecondaryLogin} />}
         </ListItemComposed>

@@ -58,13 +58,15 @@ function TravelDomainListItem<TItem extends ListItem>({
             onSelectionButtonPress={onSelectionButtonPress}
             onFocus={onFocus}
             shouldSyncFocus={shouldSyncFocus}
-            rightHandSideComponent={showRecommendedTag ? <Badge text={translate('travel.domainSelector.recommended')} /> : undefined}
             selectionButtonPosition={selectionButtonPosition}
         >
-            <ListItemComposed.Title
-                text={item.text ?? ''}
-                style={titleStyle}
-            />
+            <>
+                <ListItemComposed.Title
+                    text={item.text ?? ''}
+                    style={titleStyle}
+                />
+                {showRecommendedTag && <Badge text={translate('travel.domainSelector.recommended')} />}
+            </>
         </SelectableListItem>
     );
 }

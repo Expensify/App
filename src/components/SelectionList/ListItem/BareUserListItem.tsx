@@ -23,7 +23,6 @@ function BareUserListItem<TItem extends ListItem>({
     onSelectRow,
     onDismissError,
     shouldPreventEnterKeySubmit,
-    rightHandSideComponent,
     onFocus,
     shouldSyncFocus,
     wrapperStyle,
@@ -32,9 +31,8 @@ function BareUserListItem<TItem extends ListItem>({
     shouldDisableHoverStyle,
     shouldHighlightSelectedItem,
 }: UserListItemProps<TItem>) {
-    const renderedRightComponent = typeof rightHandSideComponent === 'function' ? rightHandSideComponent(item, isFocused) : rightHandSideComponent;
     // Disable accessible grouping when a right-side button is visible, so VoiceOver can focus it independently.
-    const shouldDisableAccessibleGrouping = !!renderedRightComponent;
+    const shouldDisableAccessibleGrouping = !!item.actionElement;
 
     return (
         <ListItemComposed
@@ -59,7 +57,7 @@ function BareUserListItem<TItem extends ListItem>({
                     forwardedFSClass={forwardedFSClass}
                 />
                 {shouldShowRBRIndicator(item) && <ListItemComposed.RBRIndicator item={item} />}
-                {renderedRightComponent}
+                {item.actionElement}
             </ListItemComposed.Row>
             {!!item.invitedSecondaryLogin && <ListItemComposed.InvitedSecondaryLoginFooter invitedSecondaryLogin={item.invitedSecondaryLogin} />}
         </ListItemComposed>
