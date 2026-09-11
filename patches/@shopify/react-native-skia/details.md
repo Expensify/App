@@ -130,11 +130,15 @@
 
     One case gets worse than before: a screen unmounted while hidden. Its
     cleanup already ran at hide time, when the canvas was still connected, so
-    React runs none at unmount and the context is only reclaimed by the
-    browser's LRU force-loss once the cap is hit. Before the patch every
-    unmount, background screen or not, released its context synchronously.
-    Mounted screens are unchanged, each held a live context before Activity
-    too. Upstream #4002 has the same gap.
+    React runs none at unmount and the context, with its full-size drawing
+    buffer, is only reclaimed by the browser's LRU force-loss once the cap is
+    hit. Before the patch every unmount, background screen or not, released
+    its context synchronously. Mounted screens are unchanged, each held a live
+    context before Activity too. Upstream #4002 skips the same release, but it
+    is less exposed: its dispose() frees the surface, the GrContext, the
+    CanvasKit context handle and the drawing buffer at every hide, so only the
+    context slot survives there. Freeing the buffer is the canvas size reset
+    that would blank the backdrop, which is why this patch does not copy it.
     ```
 
 - Upstream PR/issue: https://github.com/Shopify/react-native-skia/issues/3976, fixed by https://github.com/Shopify/react-native-skia/pull/4002 (merged 2026-09-02, not in any release as of 2026-09-09; the latest is 2.11.2). Its dispose() applies the same isConnected guard (deferred by a microtask, since its caller is a layout effect) and adds context-restore handling, but it also zeroes the canvas size on cleanup, so a hidden Activity screen would show a blank chart in the backdrop. When the Skia dependency is bumped past that merge, either accept the blank backdrop and drop this patch or replace it with a patch that only removes the size reset.
