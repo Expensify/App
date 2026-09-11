@@ -85,6 +85,7 @@ const translations = {
         search: 'Search',
         reports: 'Reports',
         spend: 'Spend',
+        insights: 'Insights',
         find: 'Find',
         searchWithThreeDots: 'Search...',
         next: 'Next',
@@ -511,6 +512,8 @@ const translations = {
         none: 'None',
         unstableInternetConnection: 'Unstable internet connection. Please check your network and try again.',
         enableGlobalReimbursements: 'Enable Global Reimbursements',
+        corpayPayModalTitle: 'Pay report',
+        corpayPayModalPrompt: 'This submitter has a non-USD bank account. Enable global reimbursements to pay the report, or ask them to add a USD bank account.',
         purchaseAmount: 'Purchase amount',
         originalAmount: 'Original amount',
         frequency: 'Frequency',
@@ -1001,7 +1004,7 @@ const translations = {
         tooltip: 'Get started here!',
     },
     homePage: {
-        forYou: 'For you',
+        toDos: 'To-dos',
         conciergePrompt: {
             goodMorning: ({name}: {name?: string}) => (name ? `Good morning, ${name}.` : 'Good morning.'),
             goodAfternoon: ({name}: {name?: string}) => (name ? `Good afternoon, ${name}.` : 'Good afternoon.'),
@@ -1029,12 +1032,12 @@ const translations = {
             addShippingAddress: {
                 title: 'We need your shipping address',
                 subtitle: 'Provide an address to receive your Expensify Card.',
-                cta: 'Add address',
+                cta: 'Add',
             },
             addVirtualCardPersonalDetails: {
                 title: 'Add your details to view and start using your Expensify Card.',
                 subtitle: 'Expensify Card',
-                cta: 'Add details',
+                cta: 'Add',
             },
             addPaymentCard: {
                 title: 'Add a payment card to keep using Expensify',
@@ -1064,7 +1067,7 @@ const translations = {
             addHomeAddress: {
                 title: 'Add your home address for distance tracking',
                 subtitle: 'Account',
-                cta: 'Add address',
+                cta: 'Add',
             },
             fixFailedBilling: {
                 title: "We couldn't bill your card on file",
@@ -1101,7 +1104,6 @@ const translations = {
             title: 'Your spend',
             awaitingApproval: 'Awaiting approval',
             repaidLast30Days: 'Repaid last 30 days',
-            recentTransactions: ({lastFour}: {lastFour: string}) => `Recent transactions • ${lastFour}`,
         },
         seeMore: ({count}: {count: number}) => `See ${count} more`,
         discoverSection: {
@@ -1195,6 +1197,8 @@ const translations = {
             setupRules: 'Set up spend rules',
             customizeSpendCategories: 'Customize spend categories',
             customizeSpendCategoriesSubText: 'Organize and classify expenses',
+            customizeExpenseCategories: 'Customize your expense categories',
+            customizeExpenseCategoriesSubText: 'Add your company’s categories to code your expenses',
             createExpense: 'Create an expense',
             createExpenseSubText: 'Scan, drag and drop, or manually enter an expense using the + button',
             linkPersonalCard: 'Link personal card',
@@ -1356,6 +1360,7 @@ const translations = {
         addAdditionalReceipt: 'Add additional receipt',
         scanFailed: "The receipt couldn't be scanned, as it's missing a merchant, date, or amount.",
         crop: 'Crop',
+        pageCount: ({pageCount}: {pageCount: number}) => `Page 1 of ${pageCount}`,
         addAReceipt: {
             phrase1: 'Add a receipt',
             phrase2: 'or drag and drop one here',
@@ -1749,11 +1754,8 @@ const translations = {
         noDuplicatesTitle: 'All set!',
         noDuplicatesDescription: 'There are no duplicate transactions for review here.',
         confirmApprove: 'Confirm approval amount',
-        confirmApprovalAmount: 'Approve only compliant expenses, or approve the entire report.',
-        confirmApprovalAllHoldAmount: () => ({
-            one: 'This expense is on hold. Do you want to approve anyway?',
-            other: 'These expenses are on hold. Do you want to approve anyway?',
-        }),
+        confirmApprovalWithHeldAmount: 'Report contains held expenses. Approve only compliant expenses, or approve the entire report?',
+        confirmApprovalAllHoldAmount: 'All expenses are on hold. Approve anyway?',
         confirmPay: 'Confirm payment amount',
         confirmPayAmount: "Pay what's not on hold, or pay the entire report.",
         confirmPayAllHoldAmount: () => ({
@@ -2398,6 +2400,11 @@ const translations = {
             usingImportedState: 'You are using imported state. Press here to clear it.',
             debugMode: 'Debug mode',
             showBranchNameInTitle: 'Show branch name in browser title',
+            betaOverrides: 'Beta overrides',
+            betaOverridesDescription:
+                'Overrides are local to this device and only affect frontend checks. A beta keeps an override only while it differs from your account betas, so toggling it back removes the override. “Reset all overrides” restores the values from your account. Some betas are gated on the backend too, so those can still fail at the request level.',
+            resetAllOverrides: 'Reset all overrides',
+            overridden: 'Overridden',
             invalidFile: 'Invalid file',
             invalidFileDescription: 'The file you are trying to import is not valid. Please try again.',
             invalidateWithDelay: 'Invalidate with delay',
@@ -2715,6 +2722,10 @@ const translations = {
             connectionLink
                 ? `Your ${cardName} card connection is broken. <a href="${connectionLink}">Log into your bank</a> to fix the card.`
                 : `Your ${cardName} card connection is broken. Log into your bank to fix the card.`,
+        conciergeBrokenConnection30Days: (cardName: string, connectionLink?: string) =>
+            connectionLink
+                ? `Your ${cardName} connection has been broken for 30 days. <a href="${connectionLink}">Log into your bank</a> to fix it or <a href="${connectionLink}">remove the card</a> if it's no longer in use. You won't lose any submitted expenses if you remove it.`
+                : `Your ${cardName} connection has been broken for 30 days. Log into your bank to fix it or remove the card if it's no longer in use. You won't lose any submitted expenses if you remove it.`,
         addAdditionalCards: 'Add additional cards',
         upgradeDescription: 'Need to add more cards? Create a workspace to add additional personal cards or assign company cards to the entire team.',
         onlyAvailableOnPlan: ({formattedPrice}: {formattedPrice: string}) =>
@@ -3260,6 +3271,7 @@ const translations = {
         unread: 'Unread',
         markAllAsRead: 'Mark all as read',
         markAllAsReadConfirmationPrompt: 'Are you sure you want to mark all chats as read?',
+        markAllTodosAsReadConfirmationPrompt: 'Are you sure you want to mark all to-do chats as read?',
     },
     reportDetailsPage: {
         goToRoom: 'Go to room',
@@ -3437,6 +3449,7 @@ const translations = {
             title: 'Couldn’t add work email',
             subtitle: (workEmail: string | undefined) => `We couldn’t add ${workEmail}. Please try again later in Settings or chat with Concierge for guidance.`,
             workAccountClosedSubtitle: 'The work account associated with this email is closed. Please contact your company admin to reactivate it, or sign up with a different email.',
+            domainControlledSubtitle: (workEmail: string | undefined) => `${workEmail} is a domain controlled login for an existing Expensify account.`,
         },
         tasks: {
             testDriveAdminTask: {
@@ -4284,8 +4297,7 @@ const translations = {
         legalFirstName: 'Legal first name',
         legalLastName: 'Legal last name',
         enterTheDateOfBirthOfTheOwner: "What's the owner's date of birth?",
-        enterTheLast4: 'What are the last 4 digits of the owner’s Social Security Number?',
-        last4SSN: 'Last 4 of SSN',
+        enterTheSSN: "What's the owner's Social Security Number?",
         dontWorry: "Don't worry, we don't do any personal credit checks!",
         enterTheOwnersAddress: "What's the owner's address?",
         letsDoubleCheck: 'Let’s double check that everything looks right.',
@@ -4312,13 +4324,12 @@ const translations = {
         whatsYourDOB: "What's your date of birth?",
         whatsTheOwnersAddress: "What's the owner's address?",
         whatsYourAddress: "What's your address?",
-        whatAreTheLast: "What are the last 4 digits of the owner's Social Security Number?",
-        whatsYourLast: 'What are the last 4 digits of your Social Security Number?',
+        whatsTheOwnersSSN: "What's the owner's Social Security Number?",
+        whatsYourSSN: 'What is your Social Security Number?',
         whatsYourNationality: 'What is your country of citizenship?',
         whatsTheOwnersNationality: "What's the owner's country of citizenship?",
         countryOfCitizenship: 'Country of citizenship',
         dontWorry: "Don't worry, we don't do any personal credit checks!",
-        last4: 'Last 4 of SSN',
         whyDoWeAsk: 'Why do we ask for this?',
         letsDoubleCheck: 'Let’s double check that everything looks right.',
         legalName: 'Legal name',
@@ -4340,6 +4351,8 @@ const translations = {
         proofOfBeneficialOwner: 'Proof of beneficial owner',
         proofOfBeneficialOwnerDescription:
             "Please provide a signed attestation and org chart from a public accountant, notary, or lawyer verifying ownership of 25% or more of the business. It must be dated within the last three months and include the signer's license number.",
+        proofOfBeneficialOwnerDescriptionCA:
+            'Please provide your Schedule 50 (Shareholder Information) from your most recent T2 corporate income tax return, showing every individual who owns 25% or more of the business.',
         copyOfID: 'Copy of ID for beneficial owner',
         copyOfIDDescription: "Examples: Passport, driver's license, etc.",
         proofOfAddress: 'Address proof for beneficial owner',
@@ -4738,6 +4751,7 @@ const translations = {
             customFieldHint: 'Add custom coding that applies to all spend from this member.',
             reports: 'Reports',
             reportFields: 'Report fields',
+            invoiceFields: 'Invoice fields',
             reportTitle: 'Report title',
             reportField: 'Report field',
             taxes: 'Taxes',
@@ -4749,6 +4763,8 @@ const translations = {
             rooms: 'Rooms',
             accounting: 'Accounting',
             hr: 'HR',
+            recruiting: 'Recruiting',
+            mcp: 'MCP',
             receiptPartners: 'Receipt partners',
             rules: 'Rules',
             displayedAs: 'Displayed as',
@@ -4891,6 +4907,25 @@ const translations = {
         createdForClient: {
             title: "You've created a workspace for your client!",
             description: 'Great news 🎉. Reach out to us if they need any help with the setup.',
+        },
+        mcp: {
+            connectors: 'Connectors',
+            connectorsSubtitle: 'Connect an AI assistant to your Expensify account.',
+            connect: 'Connect',
+            helpPrompt: 'Need help connecting?',
+            helpLink: 'Read our guide.',
+            claude: {
+                title: 'Claude',
+                subtitle: 'by Anthropic',
+            },
+            cursor: {
+                title: 'Cursor',
+                subtitle: 'by Anysphere',
+            },
+            chatgpt: {
+                title: 'ChatGPT',
+                subtitle: 'by OpenAI',
+            },
         },
         receiptPartners: {
             uber: {
@@ -5111,7 +5146,6 @@ const translations = {
             exportInvoicesDescription: (integrationName = 'QuickBooks Online') => `Use this account when exporting invoices to ${integrationName}.`,
             exportCompanyCardsDescription: (integrationName = 'QuickBooks Online') => `Set how company card purchases export to ${integrationName}.`,
             vendor: 'Vendor',
-            defaultVendorDescription: 'Set a default vendor that will apply to all credit card transactions upon export.',
             exportOutOfPocketExpensesDescription: (integrationName = 'QuickBooks Online') => `Set how out-of-pocket expenses export to ${integrationName}.`,
             exportCheckDescription: "We'll create an itemized check for each Expensify report and send it from the bank account below.",
             exportJournalEntryDescription: "We'll create an itemized journal entry for each Expensify report and post it to the account below.",
@@ -5273,8 +5307,6 @@ const translations = {
             },
             noAccountsFound: 'No accounts found',
             noAccountsFoundDescription: 'Please add the account in Xero and sync the connection again',
-            defaultSupplier: 'Default supplier',
-            defaultSupplierDescription: 'Set a default supplier that will apply to all credit card transactions upon export.',
             noSuppliersFound: 'No suppliers found',
             noSuppliersFoundDescription: 'Please add the supplier in Xero and sync the connection again.',
             accountingMethods: {
@@ -6079,6 +6111,16 @@ const translations = {
                 label: 'Travel Invoicing payable account',
             },
         },
+        campfire: {
+            campfireSetup: 'Campfire setup',
+            enterCredentials: 'Enter your Campfire API key',
+            howToFindAPIKey:
+                '<strong>Finding your API key.</strong><ol><li>Log in to Campfire</li><li>Navigate to Settings -> API Keys</li><li>Create API key</li><li>Paste the API key below</li></ol>',
+            subsidiary: 'Subsidiary',
+            subsidiarySelectDescription: "Choose the subsidiary in Campfire that you'd like to import data from.",
+            noSubsidiariesFound: 'No subsidiaries found',
+            noSubsidiariesFoundDescription: 'Please add an entity in Campfire and sync the connection again',
+        },
         type: {
             free: 'Free',
             control: 'Control',
@@ -6461,6 +6503,9 @@ const translations = {
                         title: 'Consolidated Travel Billing',
                         subtitle: 'Centralize all travel spend in a monthly bill instead of paying at time of purchase.',
                         learnHow: 'Learn how.',
+                        setUpNewFeed: 'Set up a new travel feed',
+                        feedSelectorIntro:
+                            'Your organization already has a Consolidated Travel Billing feed set up. Select it to keep this workspace’s travel spend on the same monthly bill.',
                         subsections: {
                             currentTravelSpendLabel: 'Current travel spend',
                             currentTravelSpendPaymentQueued: (amount: string) => `Payment of ${amount} is queued and will be processed soon.`,
@@ -6642,6 +6687,10 @@ const translations = {
                 title: 'Accounting',
                 subtitle: 'Sync your chart of accounts and more.',
             },
+            mcp: {
+                title: 'MCP',
+                subtitle: 'Connect an AI assistant to your Expensify account.',
+            },
             receiptPartners: {
                 title: 'Receipt partners',
                 subtitle: 'Automatically import receipts.',
@@ -6704,6 +6753,7 @@ const translations = {
             subtitle: "Report fields apply to all spend and can be helpful when you'd like to prompt for extra information.",
             disableReportFields: 'Disable report fields',
             disableReportFieldsConfirmation: 'Are you sure? Text and date fields will be deleted, and lists will be disabled.',
+            cannotDisableImportedReportFields: 'Report fields imported from your accounting connection cannot be disabled.',
             importedFromAccountingSoftware: 'The report fields below are imported from your',
             textType: 'Text',
             dateType: 'Date',
@@ -6742,6 +6792,29 @@ const translations = {
             unsupportedFormulaValueError: (value: string) => `Formula field ${value} not recognized`,
             reportFieldInitialValueRequiredError: 'Please choose a report field initial value',
             genericFailureMessage: 'An error occurred while updating the report field. Please try again.',
+        },
+        invoiceFields: {
+            subtitle: "Invoice fields can be helpful when you'd like to include extra information.",
+            importedFromAccountingSoftware: 'The invoice fields below are imported from your',
+            disableInvoiceFields: 'Disable invoice fields',
+            disableInvoiceFieldsConfirmation: 'Are you sure? Invoice fields will be disabled on invoices.',
+            delete: 'Delete invoice field',
+            deleteConfirmation: 'Are you sure you want to delete this invoice field?',
+            findInvoiceField: 'Find invoice field',
+            nameInputSubtitle: 'Choose a name for the invoice field.',
+            typeInputSubtitle: 'Choose what type of invoice field to use.',
+            initialValueInputSubtitle: 'Enter a starting value to show in the invoice field.',
+            listValuesInputSubtitle: 'These values will appear in your invoice field dropdown. Enabled values can be selected by members.',
+            listInputSubtitle: 'These values will appear in your invoice field list. Enabled values can be selected by members.',
+            emptyInvoiceFieldsValues: {
+                title: 'No list values yet',
+                subtitle: 'Add custom values to appear on invoices.',
+            },
+            existingInvoiceFieldNameError: 'An invoice field with this name already exists',
+            invoiceFieldNameRequiredError: 'Please enter an invoice field name',
+            invoiceFieldTypeRequiredError: 'Please choose an invoice field type',
+            invoiceFieldInitialValueRequiredError: 'Please choose an invoice field initial value',
+            addField: 'Add field',
         },
         vendors: {
             emptyTitle: 'No vendors yet',
@@ -7122,6 +7195,7 @@ const translations = {
             intacct: 'Sage Intacct',
             rillet: 'Rillet',
             dualEntry: 'DualEntry',
+            campfire: 'Campfire',
             sap: 'SAP',
             oracle: 'Oracle',
             microsoftDynamics: 'Microsoft Dynamics',
@@ -7143,6 +7217,8 @@ const translations = {
                         return 'Rillet';
                     case CONST.POLICY.CONNECTIONS.NAME.DUALENTRY:
                         return 'DualEntry';
+                    case CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE:
+                        return 'Campfire';
                     default: {
                         return '';
                     }
@@ -7365,6 +7441,18 @@ const translations = {
                             return 'Syncing card settlements';
                         case 'dualEntrySyncTravelSettlements':
                             return 'Syncing travel settlements';
+                        case 'campfireSyncTitle':
+                            return 'Syncing Campfire data';
+                        case 'campfireSyncConnection':
+                            return 'Initializing connection to Campfire';
+                        case 'campfireSyncImportData':
+                            return 'Loading data';
+                        case 'campfireSyncPayments':
+                            return 'Syncing vendor payments';
+                        case 'campfireSyncCardSettlements':
+                            return 'Syncing card settlements';
+                        case 'campfireSyncTravelSettlements':
+                            return 'Syncing travel settlements';
                         default: {
                             return `Translation missing for stage: ${stage}`;
                         }
@@ -7380,11 +7468,14 @@ const translations = {
             exportCompanyCard: 'Export company card expenses as',
             exportDate: 'Export date',
             defaultVendor: 'Default vendor',
-            defaultVendorHelperText: (isSet: boolean) =>
-                isSet
+            // fallbackVendorName is the vendor the integration auto-creates when nothing matches. Only integrations
+            // that actually create one pass it. The rest get the first sentence alone, because telling a Xero admin
+            // their expenses will export as "Credit Card Misc." describes a fallback Xero doesn't have.
+            defaultVendorHelperText: (isSet: boolean, fallbackVendorName?: string) =>
+                isSet || !fallbackVendorName
                     ? `Expenses that don't auto-match will default to this vendor.`
-                    : `Expenses that don't auto-match will default to this vendor. Otherwise, they'll export as Credit Card Misc.`,
-            defaultVendorSelectHeader: (connectionName: string) => `Choose a default ${connectionName} vendor for expenses that don't match automatically.`,
+                    : `Expenses that don't auto-match will default to this vendor. Otherwise, they'll export as ${fallbackVendorName}.`,
+            defaultVendorSelectHeader: `Choose a default vendor for expenses that don't match automatically.`,
             defaultAccount: 'Default account',
             autoSync: 'Auto-sync',
             autoSyncDescription: 'Sync NetSuite and Expensify automatically, every day. Export finalized report in realtime',
@@ -7410,30 +7501,14 @@ const translations = {
         },
         hr: {
             title: 'HR',
-            connections: 'Connections',
             connectionsSubtitle:
                 "Connect to your HR system to sync employee data, auto-match reimbursements to the right people, and keep your team's expenses accurate without the manual work.",
             subtitle: 'Connect HR tools and keep employee approvals in sync.',
-            connect: 'Connect',
-            findIntegration: 'Find integration',
-            syncNow: 'Sync now',
-            disconnect: 'Disconnect',
-            disconnectTitle: (providerName: string) => `Disconnect ${providerName}`,
-            disconnectPrompt: (providerName: string) => `Are you sure you want to disconnect ${providerName}?`,
             alreadyConnectedTitle: 'Cannot connect to multiple HR platforms',
             alreadyConnectedPrompt: 'You must disconnect your current HR platform before connecting another.',
-            lastSync: (relativeDate: string) => `Last synced ${relativeDate}`,
-            notSync: 'Not synced',
-            syncError: (providerName: string) => `Can't connect to ${providerName}`,
-            authenticationError: (providerName: string) => `Can't connect to ${providerName} due to an expired connection.`,
-            reconnect: 'Reconnect',
-            reconnectLink: 'Reconnect.',
             connectionDescription: (providerName: string) => `Connect ${providerName} to keep employee approvals in sync with your workspace.`,
-            approvalMode: 'Approval mode',
             providerApprovalMode: (providerName: string) => `${providerName} approval mode`,
-            finalApprover: 'Final approver',
             providerFinalApprover: (providerName: string) => `${providerName} final approver`,
-            notSet: 'Not set',
             syncing: 'Syncing employees',
             syncingModalTitle: 'Your connection is syncing',
             syncingModalDescription: "The first connection can take some time. You'll be notified of any errors.",
@@ -7442,13 +7517,10 @@ const translations = {
             approvalModeWarningPrompt: (providerName: string, helpSiteURL: string) =>
                 `Are you sure you would like to change the approval mode for this workspace? Learn more about the different ${providerName}-enabled workflow modes in our <a href="${helpSiteURL}">help site</a>.`,
             approvalModeWarningConfirm: 'Change approval mode',
-            approvalModes: {
-                basic: {label: 'Basic approval', description: 'All users submit to a single person for processing and approval.'},
-                manager: {
-                    label: 'Manager approval',
-                    description: (providerName: string) => `Employees submit reports to their direct manager configured in ${providerName}.`,
-                },
-                custom: {label: 'Custom approval', description: "I'll manually setup approval workflows in Expensify."},
+            approvalModeDescriptions: {
+                basic: 'All users submit to a single person for processing and approval.',
+                manager: (providerName: string) => `Employees submit reports to their direct manager configured in ${providerName}.`,
+                custom: "I'll manually setup approval workflows in Expensify.",
             },
             syncStageName: (stage: PolicyConnectionSyncStage) => {
                 switch (stage) {
@@ -7488,17 +7560,56 @@ const translations = {
             zenefits: {
                 title: 'TriNet',
             },
+            setupIncomplete: (setupLink: string | undefined) =>
+                `<muted-text-label>Connected. ${setupLink ? `<a href="${setupLink}">Complete setup</a>` : 'Complete setup'} to import employees.</muted-text-label>`,
             mergeHR: {
-                completeSetup: 'Complete setup',
-                setupIncomplete: (setupLink: string | undefined) =>
-                    `<muted-text-label>Connected. ${setupLink ? `<a href="${setupLink}">Complete setup</a>` : 'Complete setup'} to import employees.</muted-text-label>`,
                 groups: {
                     title: 'Groups',
                     description: 'Choose the groups of employees you would like to sync with this workspace',
                 },
             },
         },
+        recruiting: {
+            title: 'Recruiting',
+            connectionsSubtitle:
+                "Connect to your recruiting system to sync candidate data, auto-match reimbursements to the right people, and keep your team's expenses accurate without the manual work.",
+            alreadyConnectedTitle: 'Cannot connect to multiple ATS platforms',
+            alreadyConnectedPrompt: 'You must disconnect your current ATS before connecting another.',
+            syncing: 'Syncing candidates',
+            setupIncomplete: (setupLink: string | undefined) =>
+                `<muted-text-label>Connected. ${setupLink ? `<a href="${setupLink}">Complete setup</a>` : 'Complete setup'} to import candidates.</muted-text-label>`,
+            dontSeeYourATS: `<muted-text-label>Don't see your ATS here? <a href="#">Ask Concierge</a> and we can add it.</muted-text-label>`,
+            importSettings: 'Import settings',
+            defaultApprover: 'Default approver',
+            approverFields: {
+                recruiter: 'Recruiter',
+                recruitingCoordinator: 'Recruiting coordinator',
+            },
+        },
         merge: {
+            connections: 'Connections',
+            connect: 'Connect',
+            findIntegration: 'Find integration',
+            syncNow: 'Sync now',
+            disconnect: 'Disconnect',
+            disconnectTitle: (providerName: string) => `Disconnect ${providerName}`,
+            disconnectPrompt: (providerName: string) => `Are you sure you want to disconnect ${providerName}?`,
+            lastSync: (relativeDate: string) => `Last synced ${relativeDate}`,
+            notSync: 'Not synced',
+            syncError: (providerName: string) => `Can't connect to ${providerName}`,
+            authenticationError: (providerName: string) => `Can't connect to ${providerName} due to an expired connection.`,
+            reconnect: 'Reconnect',
+            reconnectLink: 'Reconnect.',
+            notSet: 'Not set',
+            completeSetup: 'Complete setup',
+            approvalMode: 'Approval mode',
+            finalApprover: 'Final approver',
+            approvalModes: {
+                basic: 'Basic approval',
+                manager: 'Manager approval',
+                advanced: 'Advanced approval',
+                custom: 'Custom approval',
+            },
             syncLimitReached: {
                 title: 'Try again tomorrow',
                 prompt: "You've reached your sync limit for the day.",
@@ -7558,12 +7669,12 @@ const translations = {
                 summaryDisabled: 'No commute exclusion',
                 summaryFixedDistance: ({distance, unit}: {distance: number; unit: string}) => `Exclude ${distance} ${unit} per claim`,
                 summaryHomeAndOffice: 'Use home and office locations',
-                optionDisabledTitle: 'Do not exclude commutes',
+                optionDisabledTitle: 'Do not exclude commute',
                 optionDisabledHelp: 'No commute is removed from claims.',
-                optionFixedDistanceTitle: 'Exclude a fixed distance per claim',
-                optionFixedDistanceHelp: 'Remove the same commute distance from each claim. Best for members who submit one claim per workday.',
-                optionHomeAndOfficeTitle: 'Calculate by home and office',
-                optionHomeAndOfficeHelp: 'Use member’s home address, work arrangement, and office assignment to calculate commute exclusions.',
+                optionFixedDistanceTitle: 'Remove fixed distance',
+                optionFixedDistanceHelp: 'Subtracts the same distance from every claim.',
+                optionHomeAndOfficeTitle: 'Exclude usual commute',
+                optionHomeAndOfficeHelp: "Subtracts each member's regular commute based on their home, work arrangement, and office.",
                 distanceLabel: 'Distance',
                 workspaceAddressRequired: {
                     title: 'Not so fast...',
@@ -7758,6 +7869,12 @@ const translations = {
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>Report fields are only available on the Control plan, starting at <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per member per month.` : `per active member per month.`}</muted-text>`,
             },
+            invoiceFields: {
+                title: 'Invoice fields',
+                description: `Invoice fields let you include extra invoice-level details on invoices.`,
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Invoice fields are only available on the Control plan, starting at <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per member per month.` : `per active member per month.`}</muted-text>`,
+            },
             [CONST.POLICY.CONNECTIONS.NAME.NETSUITE]: {
                 title: 'NetSuite',
                 description: `Enjoy automated syncing and reduce manual entries with the Expensify + NetSuite integration. Gain in-depth, realtime financial insights with native and custom segment support, including project and customer mapping.`,
@@ -7799,6 +7916,12 @@ const translations = {
                 description: `Enjoy automated syncing and reduce manual entries with the Expensify + DualEntry integration. Align expense coding dimensions and tax sync with your DualEntry setup for clearer financial visibility.`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>Our DualEntry integration is only available on the Control plan, starting at <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per member per month.` : `per active member per month.`}</muted-text>`,
+            },
+            [CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE]: {
+                title: 'Campfire',
+                description: `Enjoy automated syncing and reduce manual entries with the Expensify + Campfire integration. Align expense coding dimensions and tax sync with your Campfire setup for clearer financial visibility.`,
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Our Campfire integration is only available on the Control plan, starting at <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per member per month.` : `per active member per month.`}</muted-text>`,
             },
             [CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.id]: {
                 title: 'Advanced Approvals',
@@ -8211,6 +8334,8 @@ const translations = {
                 subtitle: 'Set merchant rules so expenses arrive correctly coded and require less cleanup.',
                 addRule: 'Add merchant rule',
                 findRule: 'Find merchant rule',
+                createRuleFromExpenseAction: 'Create a rule',
+                createRuleFromExpensePrompt: 'to apply your changes to all expenses that match your criteria.',
                 addRuleTitle: 'Add rule',
                 editRuleTitle: 'Edit rule',
                 importRulesTitle: 'Import merchant rules',
@@ -8251,6 +8376,25 @@ const translations = {
                 expenseDefaultsSubtitle: 'Update fields without submitter doing anything',
                 ifAnyExpenseMatches: 'If any expense matches:',
                 thenApplyFollowingDefaults: 'Then apply the following defaults:',
+                confirmErrorCategory: 'Please select a category',
+                confirmErrorCategoryTax: 'Please select a tax rate',
+                confirmErrorCategoryTaxMoveIsWorkspaceDefault: 'The selected tax rate is now your workspace default, so this rule is no longer valid. Choose a different tax rate.',
+                confirmErrorCondition: 'Please enter a merchant',
+                confirmErrorConditionAndDefault: 'Enter a merchant, and apply at least one default',
+                turnOnTaxesFirstTitle: 'Turn on taxes first',
+                turnOnTaxesFirstPrompt: 'Category rules set a default tax rate. Turn on taxes in your workspace settings to use them.',
+                addTaxRateFirstTitle: 'Add a tax rate first',
+                addTaxRateFirstPrompt: 'Category rules set a default tax rate. Add a tax rate other than your workspace default to use them.',
+                categoryRulesApplyGoingForwardTitle: 'Category rules apply going forward',
+                categoryRulesApplyGoingForwardPrompt: "A default tax rate applies to new expenses in this category. Expenses that already exist won't change.",
+            },
+            expenseDefaultType: {
+                title: 'Apply expense defaults',
+                subtitle: 'What should this rule match on?',
+                merchant: 'Merchant',
+                merchantDescription: 'Update fields on expenses from a specific merchant',
+                category: 'Category',
+                categoryDescription: 'Set a default tax rate for a specific category',
             },
             newRule: {
                 title: 'New rule',
@@ -8259,12 +8403,12 @@ const translations = {
                 restrictCardSpendDescription: 'Block or limit spend at the point of sale',
                 flagForReview: 'Flag for review',
                 flagForReviewDescription: 'Notify approvers when expenses exceed category limits',
-                requireFields: 'Field requirements',
+                requireFields: 'Set field requirements',
                 requireFieldsDescription: 'Require specific expense fields or waive requiring them.',
                 applyExpenseDefaults: 'Apply expense defaults',
                 applyExpenseDefaultsDescription: 'Update fields without submitter doing anything',
-                createAgentRule: 'Agent rule',
-                createAgentRuleDescription: 'Describe flexible rules that run when you need.',
+                createAgentRule: 'Describe agent rule',
+                createAgentRuleDescription: 'Create flexible rules that run when you need.',
             },
             expenseDefaultsTable: {
                 tableColumnType: 'Type',
@@ -8273,6 +8417,7 @@ const translations = {
                 findRule: 'Find rule',
                 rename: 'Rename',
                 update: 'Update',
+                categoryIs: (category: string) => `Category is "${category}"`,
                 merchantIs: (merchant: string) => `Merchant is "${merchant}"`,
                 merchantTypeIs: (merchantType: string) => `Merchant type is "${merchantType}"`,
             },
@@ -8283,6 +8428,7 @@ const translations = {
             },
             requireFieldsTable: {
                 tableColumnType: 'Type',
+                typeLabel: 'Require',
                 tableColumnCondition: 'Condition',
                 tableColumnRule: 'Rule',
                 findRule: 'Find rule',
@@ -8304,6 +8450,11 @@ const translations = {
             categoriesDisabledEmptyState: {
                 title: 'Categories are not enabled',
                 subtitle: 'Enable categories to gain more control of your spend.',
+            },
+            taxesDisabledEmptyState: {
+                title: 'Taxes are not enabled',
+                subtitle: 'Enable taxes to document and reclaim eligible taxes.',
+                cta: 'Enable taxes',
             },
             requireFieldsRule: {
                 title: 'Field requirements',
@@ -9556,6 +9707,7 @@ const translations = {
             is: 'Is',
             has: {
                 submittedViolation: 'Submitted violation',
+                approvedViolation: 'Approved violation',
             },
             action: {
                 [CONST.SEARCH.ACTION_FILTERS.SUBMIT]: 'Submit',
@@ -9636,10 +9788,15 @@ const translations = {
         exportedTo: 'Exported to',
         exportAll: {
             selectAllMatchingItems: 'Select all matching items',
+            allMatchingItemsSelected: 'All matching items selected',
             selectAllOnThisPage: 'Select all on this page',
         },
         errors: {
             pleaseSelectDatesForBothFromAndTo: 'Please select dates for both From and To',
+        },
+        mergeReports: {
+            title: 'Merge reports',
+            description: 'Select the report to keep. All expenses will be moved into it and the other reports will be deleted.',
         },
     },
     genericErrorPage: {
@@ -9727,6 +9884,7 @@ const translations = {
                         const labelTranslations: Record<string, string> = {
                             [CONST.REPORT.EXPORT_OPTION_LABELS.EXPENSE_LEVEL_EXPORT]: translations.export.expenseLevelExport,
                             [CONST.REPORT.EXPORT_OPTION_LABELS.REPORT_LEVEL_EXPORT]: translations.export.reportLevelExport,
+                            [CONST.REPORT.EXPORT_OPTION_LABELS.RECONCILIATION_ALL_EXPENSES]: translations.export.reconciliationAllExpenses,
                         };
                         const translatedLabel = labelTranslations[label] || label;
                         return `exported to ${translatedLabel}`;
@@ -9767,6 +9925,16 @@ const translations = {
                 integrationSyncFailedRecurrence: ({count}: {count: number}) => `(Repeated ${count} times.)`,
                 companyCardConnectionBroken: ({feedName, workspaceCompanyCardRoute}: {feedName: string; workspaceCompanyCardRoute: string}) =>
                     `The ${feedName} connection is broken. To restore card imports, <a href='${workspaceCompanyCardRoute}'>log into your bank</a>.`,
+                companyCardConnectionBroken30Days: ({
+                    feedName,
+                    workspaceCompanyCardRoute,
+                    workspaceCompanyCardSettingsRoute,
+                }: {
+                    feedName: string;
+                    workspaceCompanyCardRoute: string;
+                    workspaceCompanyCardSettingsRoute: string;
+                }) =>
+                    `The ${feedName} connection has been broken for 30 days. <a href='${workspaceCompanyCardRoute}'>Log into your bank</a> to fix it or <a href='${workspaceCompanyCardSettingsRoute}'>remove the connection</a> if it's no longer in use. You won't lose any submitted expenses if you remove it.`,
                 plaidBalanceFailure: ({maskedAccountNumber, walletRoute}: {maskedAccountNumber: string; walletRoute: string}) =>
                     `the Plaid connection to your business bank account is broken. Please <a href='${walletRoute}'>reconnect your bank account ${maskedAccountNumber}</a> so you can continue to use your Expensify Cards.`,
                 addEmployee: (email: string, role: string, didJoinPolicy?: boolean) => {
@@ -10998,6 +11166,7 @@ const translations = {
         reportLevelExport: 'All Data - report level',
         expenseLevelExport: 'All Data - expense level',
         multipleTaxExport: 'Canadian Multiple Tax Export',
+        reconciliationAllExpenses: 'Reconciliation - All Expenses',
         exportInProgress: 'Export in progress',
         conciergeWillSend: 'Concierge will send you the file shortly.',
     },
@@ -11028,6 +11197,7 @@ const translations = {
         notVerified: 'Not verified',
         retry: 'Retry',
         requestSent: 'Request sent',
+        requestAccessError: "We couldn't send your request. Please try again.",
         verifyDomain: {
             title: 'Verify domain',
             beforeProceeding: ({domainName}: {domainName: string}) => `Before proceeding, verify that you own <strong>${domainName}</strong> by updating its DNS settings.`,
@@ -11087,12 +11257,12 @@ const translations = {
             setMetadataGenericError: "Couldn't set SAML MetaData",
         },
         accessRestricted: {
-            title: 'Access restricted',
-            subtitle: (domainName: string) => `Please verify yourself as an authorized company administrator for <strong>${domainName}</strong> if you need control over:`,
-            companyCardManagement: 'Company card management',
-            accountCreationAndDeletion: 'Account creation and deletion',
-            workspaceCreation: 'Workspace creation',
-            samlSSO: 'SAML SSO',
+            headerTitle: 'Access restricted',
+            title: 'Verification required',
+            description: (domainName: string) =>
+                `<muted-text><centered-text>Please verify yourself as an authorized company administrator for <strong>${domainName}</strong> or request access from existing admins.</centered-text></muted-text>`,
+            requestAdminAccess: 'Request admin access',
+            verifyYourself: 'Verify yourself',
         },
         addDomain: {
             title: 'Add domain',
@@ -11106,7 +11276,6 @@ const translations = {
             title: 'Domain already set up. Request access?',
             description: 'Someone already set this domain up in Expensify. Want to request admin access?',
             requestAccess: 'Ask for admin access',
-            requestAccessError: "We couldn't send your request. Please try again.",
         },
         domainAdded: {
             title: 'Domain added',

@@ -60,6 +60,13 @@ Expensify offers pre-built export templates, or you can build your own custom ex
 
 **Note** Currently, it's not possible to build custom export templates on New Expensify, they can only be created on Expensify Classic. However, once built they will be available on New Expensify when exporting reports. [Learn how to build a custom export template in Expensify Classic](/articles/expensify-classic/spending-insights/Export-Expenses-And-Reports#create-a-custom-export-template).  
 
+When you export, the file either downloads immediately or is prepared in the background:
+
+- **Immediate download** – **Basic export** and **Export current view**, when you export selected reports or use **Select all on this page**.
+- **Prepared in the background** – When you use **Select all** to export all matching reports, or select **All Data - expense level**, **All Data - report level**, or a **Custom template**.
+
+While an export is being prepared, either wait for it to download automatically or select **Send me the file when it's ready** to close the export window and receive the file later. When it's ready, Expensify delivers it through Concierge and by email. If the export can't be generated, an error appears in the export window, or is delivered through Concierge if **Send me the file when it's ready** was selected.
+
 ## How to download a single report as a PDF
 
 1. In the navigation tabs (on the left on web, on the bottom on mobile), go to **Spend > Reports**. 
@@ -111,11 +118,23 @@ You can download the receipts on several reports at once in a single ZIP file.
 
 ## Where do I find the exported CSV file?
 
-For the Basic Export template, the file downloads directly to your device. For all other templates, Concierge sends the file to you in a direct message. Open your Concierge chat in the **Inbox** to find it.
+**Basic export** and **Export current view** download directly to your device. Other templates — and any export started with **Select all** — are prepared in the background; the file then downloads automatically, or is delivered through Concierge and by email if you selected **Send me the file when it's ready**.
 
 ## What happens if some reports fail to download as PDFs?
 
 When you download multiple reports as PDFs, a message tells you how many of the selected reports were exported. If any reports could not be generated, open your Concierge chat in the **Inbox** to see which reports failed.
+
+## What happens if I refresh the page while my download is preparing?
+
+Your download keeps preparing, and the status window comes back on its own. Expensify tracks each download that is still preparing or ready to save, so when you refresh the page or close and reopen Expensify, the status window reappears with the current status. Select **Download file** once it shows **Your file is ready!**.
+
+This applies to the downloads that show a preparing status window, whether you start them from the **Reports** page or from a report's **More** menu: **Export** with any template other than **Basic export**, **Download receipts**, and **Download as PDF** when you selected more than one report.
+
+It does not apply to:
+
+- **Basic export**, which downloads straight to your device without a status window.
+- **Download as PDF** for a single report, which uses its own window that does not reappear after a refresh. Start the download again to get a new PDF.
+- **Send me the file when it's ready** — Concierge sends that file to you in a chat message instead, so no status window reappears.
 
 ## Why don't I see Download receipts on a report?
 
