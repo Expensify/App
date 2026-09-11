@@ -44,7 +44,7 @@ import type {
     State,
 } from './types';
 
-import {clearPreInsertedOriginalTabRoute, getPreInsertedOriginalTabRoute} from './AppNavigator/createRootStackNavigator/GetStateForActionHandlers';
+import {getPreInsertedOriginalTabRoute} from './AppNavigator/createRootStackNavigator/GetStateForActionHandlers';
 import getInitialSplitNavigatorState from './AppNavigator/createSplitNavigator/getInitialSplitNavigatorState';
 import originalCloseRHPFlow from './helpers/closeRHPFlow';
 import getActiveTabName from './helpers/getActiveTabName';
@@ -59,6 +59,16 @@ import isSideModalNavigator from './helpers/isSideModalNavigator';
 import linkTo from './helpers/linkTo';
 import getMinimalAction from './helpers/linkTo/getMinimalAction';
 import {popAndRealignMfaMarker} from './helpers/mfaModalMarkerPreservation';
+import {
+    canNativeSwipeDismissRHP,
+    captureBufferTransaction,
+    clearFullscreenPreInsertedFlag,
+    getIsFullscreenPreInsertedUnderRHP,
+    getPreInsertedFullscreenRouteName,
+    markFullscreenPreInsertedUnderRHP,
+    recoverFromPreMountBuffer,
+    removePreInsertedFullscreenIfNeeded,
+} from './helpers/preMountBuffer';
 import replaceWithSplitNavigator from './helpers/replaceWithSplitNavigator';
 import setNavigationActionToMicrotaskQueue from './helpers/setNavigationActionToMicrotaskQueue';
 import {linkingConfig} from './linkingConfig';
@@ -826,18 +836,20 @@ function navContainsProtectedRoutes(state: State | undefined): boolean {
 function waitForProtectedRoutes() {
     return new Promise<void>((resolve) => {
         isNavigationReady().then(() => {
-            const currentState = navigationRef.current?.getState();
-            if (navContainsProtectedRoutes(currentState)) {
+            // `getState()` and the `state` event expose the container's own copy of the state, which has
+            // `routeNames` stripped until a navigator pushes its state up after mounting. Use `getRootState()`,
+            // which reads the hydrated state from the navigator and always carries `routeNames`.
+            if (navContainsProtectedRoutes(navigationRef.getRootState())) {
                 resolve();
                 return;
             }
 
-            const unsubscribe = navigationRef.current?.addListener('state', ({data}) => {
-                const state = data?.state;
-                if (navContainsProtectedRoutes(state)) {
-                    unsubscribe?.();
-                    resolve();
+            const unsubscribe = navigationRef.addListener('state', () => {
+                if (!navContainsProtectedRoutes(navigationRef.getRootState())) {
+                    return;
                 }
+                unsubscribe();
+                resolve();
             });
         });
     });
@@ -953,6 +965,12 @@ const dismissModalWithReport = (
         const isReportsSplitTopmostFullScreen = isReportTopmostSplitNavigator();
         if (topmostReportID === reportID && areReportsIDsDefined && isReportsSplitTopmostFullScreen) {
             options?.onBeforeNavigate?.(false);
+            // Clear any pre-insert/buffer state for this report before dismissing, or the buffer logic
+            // sees the RHP disappear unexpectedly and reverts back to whatever was showing before this
+            // report was pre-inserted, replacing it even though it's already the report we want to end up on.
+            if (getIsFullscreenPreInsertedUnderRHP()) {
+                clearFullscreenPreInsertedFlag();
+            }
             dismissModal({afterTransition: options?.afterTransition});
             return;
         }
@@ -1128,13 +1146,6 @@ function revealRouteBeforeDismissingModal(route: Route, options?: {afterTransiti
     });
 }
 
-// Module-level state tracking the pre-inserted fullscreen route. This follows the same
-// pattern as other module-level navigation state in this file (e.g. pendingRoute).
-// It is only mutated from preInsertFullscreenUnderRHP / clearFullscreenPreInsertedFlag /
-// removePreInsertedFullscreenIfNeeded, which are always called from the JS thread.
-let isFullscreenPreInsertedUnderRHP = false;
-let preInsertedFullscreenRouteName: string | undefined;
-
 /**
  * Pre-inserts a fullscreen route (e.g. Search) underneath the currently open RHP on narrow layout.
  * The route renders behind the fullscreen RHP so that when the user later submits,
@@ -1150,7 +1161,7 @@ function preInsertFullscreenUnderRHP(route: Route) {
         return;
     }
 
-    if (isFullscreenPreInsertedUnderRHP) {
+    if (getIsFullscreenPreInsertedUnderRHP()) {
         return;
     }
 
@@ -1171,7 +1182,7 @@ function preInsertFullscreenUnderRHP(route: Route) {
 
     navigationRef.current.dispatch({
         type: CONST.NAVIGATION.ACTION_TYPE.REPLACE_FULLSCREEN_UNDER_RHP,
-        payload: {route},
+        payload: {route, shouldInsertPreMountBuffer: canNativeSwipeDismissRHP()},
     });
 
     const stateAfter = navigationRef.current.getRootState();
@@ -1183,99 +1194,11 @@ function preInsertFullscreenUnderRHP(route: Route) {
         return;
     }
 
-    isFullscreenPreInsertedUnderRHP = true;
-    preInsertedFullscreenRouteName = targetRouteName;
+    markFullscreenPreInsertedUnderRHP(targetRouteName);
 
     DeviceEventEmitter.emit(CONST.MODAL_EVENTS.DISABLE_RHP_ANIMATION);
-}
 
-function getIsFullscreenPreInsertedUnderRHP() {
-    return isFullscreenPreInsertedUnderRHP;
-}
-
-function getPreInsertedFullscreenRouteName() {
-    return preInsertedFullscreenRouteName;
-}
-
-function clearFullscreenPreInsertedFlag() {
-    isFullscreenPreInsertedUnderRHP = false;
-    preInsertedFullscreenRouteName = undefined;
-    clearPreInsertedOriginalTabRoute();
-}
-
-/**
- * Removes a pre-inserted fullscreen route when the user backs out without submitting.
- * If the RHP is still on top, the pre-inserted route is popped from under it.
- * If the RHP is already gone (back-dismissed), the pre-inserted route is the topmost
- * fullscreen and is popped directly.
- */
-function removePreInsertedFullscreenIfNeeded() {
-    if (!isFullscreenPreInsertedUnderRHP) {
-        return;
-    }
-
-    const routeNameToRemove = preInsertedFullscreenRouteName;
-
-    isFullscreenPreInsertedUnderRHP = false;
-    preInsertedFullscreenRouteName = undefined;
-
-    DeviceEventEmitter.emit(CONST.MODAL_EVENTS.RESTORE_RHP_ANIMATION);
-
-    const rootState = navigationRef.getRootState();
-    if (!rootState) {
-        return;
-    }
-
-    const topRoute = rootState.routes.at(-1);
-    const isRHPStillOnTop = topRoute?.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR;
-
-    if (isRHPStillOnTop && routeNameToRemove) {
-        navigationRef.current?.dispatch({
-            type: CONST.NAVIGATION.ACTION_TYPE.REMOVE_FULLSCREEN_UNDER_RHP,
-            payload: {expectedRouteName: routeNameToRemove},
-        });
-        return;
-    }
-
-    // RHP already dismissed. For the tab-switch path, jump back to the original tab.
-    // For the push path, pop the pre-inserted route directly.
-    const originalTabRoute = getPreInsertedOriginalTabRoute();
-    if (originalTabRoute) {
-        clearPreInsertedOriginalTabRoute();
-        const originalTabState = originalTabRoute.state;
-        const originalFocusedTabIndex = originalTabState?.index ?? 0;
-        const originalTabName = originalTabState?.routes?.[originalFocusedTabIndex]?.name;
-        if (originalTabName) {
-            requestAnimationFrame(() => {
-                const currentState = navigationRef.getRootState();
-                const tabNavRoute = currentState?.routes.findLast((r) => r.name === NAVIGATORS.TAB_NAVIGATOR);
-                if (!tabNavRoute?.state?.key) {
-                    return;
-                }
-                navigationRef.current?.dispatch({
-                    ...TabActions.jumpTo(originalTabName),
-                    target: tabNavRoute.state.key,
-                });
-            });
-        }
-        return;
-    }
-
-    // Push path: the pre-inserted fullscreen is now the topmost route; pop it.
-    // Deferred to the next frame to avoid dispatching during a React commit.
-    // Capture the route key now so the rAF callback can match on identity, not just name.
-    const targetRouteKey = rootState.routes.at(-1)?.key;
-    requestAnimationFrame(() => {
-        const currentState = navigationRef.getRootState();
-        const topmostRoute = currentState?.routes.at(-1);
-        if (!topmostRoute || topmostRoute.key !== targetRouteKey || topmostRoute.name !== routeNameToRemove) {
-            return;
-        }
-        if (!navigationRef.current?.canGoBack()) {
-            return;
-        }
-        navigationRef.current.goBack();
-    });
+    captureBufferTransaction(stateAfter, wasTabSwitched);
 }
 
 function getTopmostSearchReportRouteParams(state = navigationRef.getRootState()): RightModalNavigatorParamList[typeof SCREENS.RIGHT_MODAL.SEARCH_REPORT] | undefined {
@@ -1344,6 +1267,7 @@ export default {
     getIsFullscreenPreInsertedUnderRHP,
     getPreInsertedFullscreenRouteName,
     clearFullscreenPreInsertedFlag,
+    recoverFromPreMountBuffer,
     removePreInsertedFullscreenIfNeeded,
     getTopmostSearchReportID,
     getTopmostSuperWideRHPReportParams,

@@ -5,11 +5,10 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Attachment} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-import type {OnyxCollection} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 import RNFS from 'react-native-fs';
 import Onyx from 'react-native-onyx';
-import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
 
 const OLD_ATTACHMENT_DIR = `${RNFS.DocumentDirectoryPath}/attachments`;
 const NEW_ATTACHMENT_DIR = `${RNFS.CachesDirectoryPath}/attachments`;
@@ -62,7 +61,16 @@ function moveAttachmentCache(): Promise<void> {
  * later launches skip it entirely.
  */
 function updateAttachmentRecordPaths(): Promise<void> {
-    return OnyxUtils.get(ONYXKEYS.ATTACHMENT_RECORD_PATHS_MIGRATED).then((hasMigrated) => {
+    return new Promise<OnyxEntry<boolean>>((resolve) => {
+        // The migration runs before React renders, so its persisted flag cannot be read with useOnyx or supplied by a component
+        const connection = Onyx.connectWithoutView({
+            key: ONYXKEYS.ATTACHMENT_RECORD_PATHS_MIGRATED,
+            callback: (hasMigrated) => {
+                Onyx.disconnect(connection);
+                resolve(hasMigrated);
+            },
+        });
+    }).then((hasMigrated) => {
         if (hasMigrated) {
             return;
         }
