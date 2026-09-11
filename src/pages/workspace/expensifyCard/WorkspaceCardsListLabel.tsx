@@ -1,4 +1,4 @@
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import Icon from '@components/Icon';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import Popover from '@components/Popover';
