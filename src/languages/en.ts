@@ -85,6 +85,7 @@ const translations = {
         search: 'Search',
         reports: 'Reports',
         spend: 'Spend',
+        insights: 'Insights',
         find: 'Find',
         searchWithThreeDots: 'Search...',
         next: 'Next',
@@ -511,6 +512,8 @@ const translations = {
         none: 'None',
         unstableInternetConnection: 'Unstable internet connection. Please check your network and try again.',
         enableGlobalReimbursements: 'Enable Global Reimbursements',
+        corpayPayModalTitle: 'Pay report',
+        corpayPayModalPrompt: 'This submitter has a non-USD bank account. Enable global reimbursements to pay the report, or ask them to add a USD bank account.',
         purchaseAmount: 'Purchase amount',
         originalAmount: 'Original amount',
         frequency: 'Frequency',
@@ -2719,6 +2722,10 @@ const translations = {
             connectionLink
                 ? `Your ${cardName} card connection is broken. <a href="${connectionLink}">Log into your bank</a> to fix the card.`
                 : `Your ${cardName} card connection is broken. Log into your bank to fix the card.`,
+        conciergeBrokenConnection30Days: (cardName: string, connectionLink?: string) =>
+            connectionLink
+                ? `Your ${cardName} connection has been broken for 30 days. <a href="${connectionLink}">Log into your bank</a> to fix it or <a href="${connectionLink}">remove the card</a> if it's no longer in use. You won't lose any submitted expenses if you remove it.`
+                : `Your ${cardName} connection has been broken for 30 days. Log into your bank to fix it or remove the card if it's no longer in use. You won't lose any submitted expenses if you remove it.`,
         addAdditionalCards: 'Add additional cards',
         upgradeDescription: 'Need to add more cards? Create a workspace to add additional personal cards or assign company cards to the entire team.',
         onlyAvailableOnPlan: ({formattedPrice}: {formattedPrice: string}) =>
@@ -3264,6 +3271,7 @@ const translations = {
         unread: 'Unread',
         markAllAsRead: 'Mark all as read',
         markAllAsReadConfirmationPrompt: 'Are you sure you want to mark all chats as read?',
+        markAllTodosAsReadConfirmationPrompt: 'Are you sure you want to mark all to-do chats as read?',
     },
     reportDetailsPage: {
         goToRoom: 'Go to room',
@@ -4756,6 +4764,7 @@ const translations = {
             accounting: 'Accounting',
             hr: 'HR',
             recruiting: 'Recruiting',
+            mcp: 'MCP',
             receiptPartners: 'Receipt partners',
             rules: 'Rules',
             displayedAs: 'Displayed as',
@@ -4898,6 +4907,25 @@ const translations = {
         createdForClient: {
             title: "You've created a workspace for your client!",
             description: 'Great news 🎉. Reach out to us if they need any help with the setup.',
+        },
+        mcp: {
+            connectors: 'Connectors',
+            connectorsSubtitle: 'Connect an AI assistant to your Expensify account.',
+            connect: 'Connect',
+            helpPrompt: 'Need help connecting?',
+            helpLink: 'Read our guide.',
+            claude: {
+                title: 'Claude',
+                subtitle: 'by Anthropic',
+            },
+            cursor: {
+                title: 'Cursor',
+                subtitle: 'by Anysphere',
+            },
+            chatgpt: {
+                title: 'ChatGPT',
+                subtitle: 'by OpenAI',
+            },
         },
         receiptPartners: {
             uber: {
@@ -6083,6 +6111,16 @@ const translations = {
                 label: 'Travel Invoicing payable account',
             },
         },
+        campfire: {
+            campfireSetup: 'Campfire setup',
+            enterCredentials: 'Enter your Campfire API key',
+            howToFindAPIKey:
+                '<strong>Finding your API key.</strong><ol><li>Log in to Campfire</li><li>Navigate to Settings -> API Keys</li><li>Create API key</li><li>Paste the API key below</li></ol>',
+            subsidiary: 'Subsidiary',
+            subsidiarySelectDescription: "Choose the subsidiary in Campfire that you'd like to import data from.",
+            noSubsidiariesFound: 'No subsidiaries found',
+            noSubsidiariesFoundDescription: 'Please add an entity in Campfire and sync the connection again',
+        },
         type: {
             free: 'Free',
             control: 'Control',
@@ -6649,6 +6687,10 @@ const translations = {
                 title: 'Accounting',
                 subtitle: 'Sync your chart of accounts and more.',
             },
+            mcp: {
+                title: 'MCP',
+                subtitle: 'Connect an AI assistant to your Expensify account.',
+            },
             receiptPartners: {
                 title: 'Receipt partners',
                 subtitle: 'Automatically import receipts.',
@@ -7153,6 +7195,7 @@ const translations = {
             intacct: 'Sage Intacct',
             rillet: 'Rillet',
             dualEntry: 'DualEntry',
+            campfire: 'Campfire',
             sap: 'SAP',
             oracle: 'Oracle',
             microsoftDynamics: 'Microsoft Dynamics',
@@ -7174,6 +7217,8 @@ const translations = {
                         return 'Rillet';
                     case CONST.POLICY.CONNECTIONS.NAME.DUALENTRY:
                         return 'DualEntry';
+                    case CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE:
+                        return 'Campfire';
                     default: {
                         return '';
                     }
@@ -7395,6 +7440,18 @@ const translations = {
                         case 'dualEntrySyncCardSettlements':
                             return 'Syncing card settlements';
                         case 'dualEntrySyncTravelSettlements':
+                            return 'Syncing travel settlements';
+                        case 'campfireSyncTitle':
+                            return 'Syncing Campfire data';
+                        case 'campfireSyncConnection':
+                            return 'Initializing connection to Campfire';
+                        case 'campfireSyncImportData':
+                            return 'Loading data';
+                        case 'campfireSyncPayments':
+                            return 'Syncing vendor payments';
+                        case 'campfireSyncCardSettlements':
+                            return 'Syncing card settlements';
+                        case 'campfireSyncTravelSettlements':
                             return 'Syncing travel settlements';
                         default: {
                             return `Translation missing for stage: ${stage}`;
@@ -7860,6 +7917,12 @@ const translations = {
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>Our DualEntry integration is only available on the Control plan, starting at <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per member per month.` : `per active member per month.`}</muted-text>`,
             },
+            [CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE]: {
+                title: 'Campfire',
+                description: `Enjoy automated syncing and reduce manual entries with the Expensify + Campfire integration. Align expense coding dimensions and tax sync with your Campfire setup for clearer financial visibility.`,
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Our Campfire integration is only available on the Control plan, starting at <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per member per month.` : `per active member per month.`}</muted-text>`,
+            },
             [CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.id]: {
                 title: 'Advanced Approvals',
                 description: `If you want to add more layers of approval to the mix – or just make sure the largest expenses get another set of eyes – we’ve got you covered. Advanced approvals help you put the right checks in place at every level so you keep your team’s spend under control.`,
@@ -8271,6 +8334,8 @@ const translations = {
                 subtitle: 'Set merchant rules so expenses arrive correctly coded and require less cleanup.',
                 addRule: 'Add merchant rule',
                 findRule: 'Find merchant rule',
+                createRuleFromExpenseAction: 'Create a rule',
+                createRuleFromExpensePrompt: 'to apply your changes to all expenses that match your criteria.',
                 addRuleTitle: 'Add rule',
                 editRuleTitle: 'Edit rule',
                 importRulesTitle: 'Import merchant rules',
@@ -8313,10 +8378,13 @@ const translations = {
                 thenApplyFollowingDefaults: 'Then apply the following defaults:',
                 confirmErrorCategory: 'Please select a category',
                 confirmErrorCategoryTax: 'Please select a tax rate',
+                confirmErrorCategoryTaxMoveIsWorkspaceDefault: 'The selected tax rate is now your workspace default, so this rule is no longer valid. Choose a different tax rate.',
                 confirmErrorCondition: 'Please enter a merchant',
                 confirmErrorConditionAndDefault: 'Enter a merchant, and apply at least one default',
                 turnOnTaxesFirstTitle: 'Turn on taxes first',
                 turnOnTaxesFirstPrompt: 'Category rules set a default tax rate. Turn on taxes in your workspace settings to use them.',
+                addTaxRateFirstTitle: 'Add a tax rate first',
+                addTaxRateFirstPrompt: 'Category rules set a default tax rate. Add a tax rate other than your workspace default to use them.',
                 categoryRulesApplyGoingForwardTitle: 'Category rules apply going forward',
                 categoryRulesApplyGoingForwardPrompt: "A default tax rate applies to new expenses in this category. Expenses that already exist won't change.",
             },
@@ -8452,7 +8520,8 @@ const translations = {
                 flagAmountsOverSubtitle: 'This overrides the max amount for all expenses.',
                 expenseLimitTypes: {
                     expense: 'Individual expense',
-                    expenseSubtitle: 'Flag expense amounts by category. This rule overrides the general workspace rule for max expense amount.',
+                    expenseSubtitle:
+                        'Flag expense amounts by category. This rule overrides the general workspace rule for max expense amount. Multi-day reservations are evaluated using the per-night average.',
                     daily: 'Category total',
                     dailySubtitle: 'Flag total daily category spend per expense report.',
                 },
@@ -9639,6 +9708,7 @@ const translations = {
             is: 'Is',
             has: {
                 submittedViolation: 'Submitted violation',
+                approvedViolation: 'Approved violation',
             },
             action: {
                 [CONST.SEARCH.ACTION_FILTERS.SUBMIT]: 'Submit',
@@ -9856,6 +9926,16 @@ const translations = {
                 integrationSyncFailedRecurrence: ({count}: {count: number}) => `(Repeated ${count} times.)`,
                 companyCardConnectionBroken: ({feedName, workspaceCompanyCardRoute}: {feedName: string; workspaceCompanyCardRoute: string}) =>
                     `The ${feedName} connection is broken. To restore card imports, <a href='${workspaceCompanyCardRoute}'>log into your bank</a>.`,
+                companyCardConnectionBroken30Days: ({
+                    feedName,
+                    workspaceCompanyCardRoute,
+                    workspaceCompanyCardSettingsRoute,
+                }: {
+                    feedName: string;
+                    workspaceCompanyCardRoute: string;
+                    workspaceCompanyCardSettingsRoute: string;
+                }) =>
+                    `The ${feedName} connection has been broken for 30 days. <a href='${workspaceCompanyCardRoute}'>Log into your bank</a> to fix it or <a href='${workspaceCompanyCardSettingsRoute}'>remove the connection</a> if it's no longer in use. You won't lose any submitted expenses if you remove it.`,
                 plaidBalanceFailure: ({maskedAccountNumber, walletRoute}: {maskedAccountNumber: string; walletRoute: string}) =>
                     `the Plaid connection to your business bank account is broken. Please <a href='${walletRoute}'>reconnect your bank account ${maskedAccountNumber}</a> so you can continue to use your Expensify Cards.`,
                 addEmployee: (email: string, role: string, didJoinPolicy?: boolean) => {
@@ -10302,6 +10382,7 @@ const translations = {
         overAutoApprovalLimit: (formattedLimit: string) => `Expense exceeds auto-approval limit of ${formattedLimit}`,
         overCategoryLimit: (formattedLimit: string) => `Amount over ${formattedLimit}/person category limit`,
         overLimit: (formattedLimit: string) => `Amount over ${formattedLimit}/person limit`,
+        overCategoryLimitPerNight: (formattedLimit: string) => `Nightly rate over ${formattedLimit}/person category limit`,
         overTripLimit: (formattedLimit: string) => `Amount over ${formattedLimit}/trip limit`,
         overLimitAttendee: (formattedLimit: string) => `Amount over ${formattedLimit}/person limit`,
         perDayLimit: (formattedLimit: string) => `Amount over daily ${formattedLimit}/person category limit`,
@@ -11118,6 +11199,7 @@ const translations = {
         notVerified: 'Not verified',
         retry: 'Retry',
         requestSent: 'Request sent',
+        requestAccessError: "We couldn't send your request. Please try again.",
         verifyDomain: {
             title: 'Verify domain',
             beforeProceeding: ({domainName}: {domainName: string}) => `Before proceeding, verify that you own <strong>${domainName}</strong> by updating its DNS settings.`,
@@ -11177,12 +11259,12 @@ const translations = {
             setMetadataGenericError: "Couldn't set SAML MetaData",
         },
         accessRestricted: {
-            title: 'Access restricted',
-            subtitle: (domainName: string) => `Please verify yourself as an authorized company administrator for <strong>${domainName}</strong> if you need control over:`,
-            companyCardManagement: 'Company card management',
-            accountCreationAndDeletion: 'Account creation and deletion',
-            workspaceCreation: 'Workspace creation',
-            samlSSO: 'SAML SSO',
+            headerTitle: 'Access restricted',
+            title: 'Verification required',
+            description: (domainName: string) =>
+                `<muted-text><centered-text>Please verify yourself as an authorized company administrator for <strong>${domainName}</strong> or request access from existing admins.</centered-text></muted-text>`,
+            requestAdminAccess: 'Request admin access',
+            verifyYourself: 'Verify yourself',
         },
         addDomain: {
             title: 'Add domain',
@@ -11196,7 +11278,6 @@ const translations = {
             title: 'Domain already set up. Request access?',
             description: 'Someone already set this domain up in Expensify. Want to request admin access?',
             requestAccess: 'Ask for admin access',
-            requestAccessError: "We couldn't send your request. Please try again.",
         },
         domainAdded: {
             title: 'Domain added',

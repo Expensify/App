@@ -85,6 +85,7 @@ function DynamicIOURequestStepTaxRatePage({
 
     useRestartOnReceiptFailure(transaction, reportIDFromRoute, iouType, action);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
     const currentTransaction = isEditingSplitBill && !isEmptyObject(splitDraftTransaction) ? splitDraftTransaction : transaction;
     const taxRates = policy?.taxRates;
@@ -129,6 +130,7 @@ function DynamicIOURequestStepTaxRatePage({
             violations: allTransactionViolations,
             getCurrencyDecimals,
             getCurrencySymbol,
+            rules,
         };
 
         // Clearing the tax on a split must update the split draft, not the optimistic transaction, otherwise the
