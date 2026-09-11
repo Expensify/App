@@ -1574,9 +1574,16 @@ type OriginalMessageTravelNudge = {
 
 /** Prompt values and modifier identity recorded when an agent's instructions change. */
 type OriginalMessageAgentPromptUpdated = {
+    /** Agent instructions stored before the update */
     previousPrompt: string;
+
+    /** Agent instructions stored after the update */
     newPrompt: string;
+
+    /** Account ID of the user who changed the instructions */
     updatedByAccountID: number;
+
+    /** Login of the user who changed the instructions, displayed in the audit message */
     updatedBy: string;
 };
 
