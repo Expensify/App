@@ -3,9 +3,11 @@ import TAB_SCREENS from '@libs/Navigation/AppNavigator/Navigators/TAB_SCREENS';
 import {
     RHP_TO_DOMAIN,
     RHP_TO_HOME,
+    RHP_TO_HOME_DEEPLINK,
     RHP_TO_SEARCH,
     RHP_TO_SEARCH_DEEPLINK,
     RHP_TO_SETTINGS,
+    RHP_TO_SETTINGS_DEEPLINK,
     RHP_TO_SIDEBAR,
     RHP_TO_WORKSPACE,
     RHP_TO_WORKSPACES_LIST,
@@ -152,7 +154,7 @@ function getMatchingFullScreenRoute(route: NavigationRoute, isDeeplink = false) 
         return getTabNavigatorState({name: NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR, state: searchState});
     }
 
-    if (RHP_TO_HOME[route.name]) {
+    if (RHP_TO_HOME[route.name] ?? (isDeeplink ? RHP_TO_HOME_DEEPLINK[route.name] : undefined)) {
         return {
             ...getTabNavigatorState({name: SCREENS.HOME}),
             path: normalizePath(ROUTES.HOME),
@@ -193,13 +195,14 @@ function getMatchingFullScreenRoute(route: NavigationRoute, isDeeplink = false) 
         });
     }
 
-    if (RHP_TO_SETTINGS[route.name]) {
-        const paramsFromRoute = getParamsFromRoute(RHP_TO_SETTINGS[route.name]);
+    const matchingSettingsScreen = RHP_TO_SETTINGS[route.name] ?? (isDeeplink ? RHP_TO_SETTINGS_DEEPLINK[route.name] : undefined);
+    if (matchingSettingsScreen) {
+        const paramsFromRoute = getParamsFromRoute(matchingSettingsScreen);
 
         const settingsState = getInitialSplitNavigatorState(
             {name: SCREENS.SETTINGS.ROOT},
             {
-                name: RHP_TO_SETTINGS[route.name],
+                name: matchingSettingsScreen,
                 params: paramsFromRoute.length > 0 ? pick(route.params, paramsFromRoute) : undefined,
             },
         );

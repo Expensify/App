@@ -7,6 +7,7 @@ import QRShare from '@components/QRShare';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -18,6 +19,7 @@ import {showContextMenu} from '@pages/inbox/report/ContextMenu/ReportActionConte
 
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 
 import type {View} from 'react-native';
 
@@ -29,11 +31,12 @@ type DownloadMenuItem = MenuItemProps & {
     link: string;
 };
 
-function AppDownloadLinksPage() {
+function DynamicAppDownloadLinksPage() {
     const icons = useMemoizedLazyExpensifyIcons(['Android', 'Apple', 'Monitor', 'NewWindow']);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const popoverAnchor = useRef<View>(null);
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.APP_DOWNLOAD_LINKS.path);
 
     const menuItems: DownloadMenuItem[] = [
         {
@@ -60,7 +63,7 @@ function AppDownloadLinksPage() {
         <ScreenWrapper testID="AppDownloadLinksPage">
             <HeaderWithBackButton
                 title={translate('initialSettingsPage.aboutPage.appDownloadLinks')}
-                onBackButtonPress={() => Navigation.goBack()}
+                onBackButtonPress={() => Navigation.goBack(backPath)}
             />
 
             <QRShare
@@ -101,4 +104,4 @@ function AppDownloadLinksPage() {
     );
 }
 
-export default AppDownloadLinksPage;
+export default DynamicAppDownloadLinksPage;
