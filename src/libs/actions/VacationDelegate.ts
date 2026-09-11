@@ -159,7 +159,7 @@ function deleteVacationDelegate(vacationDelegate?: VacationDelegate) {
 }
 
 function clearVacationDelegateError(previousDelegate?: string) {
-    return Onyx.merge(ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE, {
+    Onyx.merge(ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE, {
         errors: null,
         pendingAction: null,
         delegate: previousDelegate ?? null,
