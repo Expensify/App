@@ -1,11 +1,15 @@
 ---
 title: Prohibited Expenses Rule
-description: Learn how to enable and use the Prohibited expenses rule to automatically flag receipts with restricted items such as alcohol, gambling, tobacco, or handwritten receipts.
-keywords: [New Expensify, prohibited expenses, receipt violation, SmartScan, alcohol, gambling, handwritten receipts, expense rules, workspace settings, line item compliance]
-internalScope: Audience is Workspace Admins. Covers enabling and configuring the Prohibited Expenses rule. Does not cover general workspace rules or SmartScan configuration.
+description: Learn how to use the Flag receipt line items rule to automatically flag receipts with restricted items such as alcohol, gambling, tobacco, or handwritten receipts.
+keywords: [New Expensify, prohibited expenses, flag receipt line items, receipt violation, SmartScan, alcohol, gambling, handwritten receipts, expense rules, workspace rules, general tab, line item compliance]
+internalScope: Audience is Workspace Admins. Covers configuring the Flag receipt line items rule and understanding the violations it creates. Does not cover other workspace rules or SmartScan configuration.
 ---
 
-Enable the Prohibited Expenses rule to help Workspace Admins enforce compliance by automatically flagging receipts that contain restricted purchases like alcohol, gambling, or tobacco, or that are handwritten. This rule uses Expensify’s AI-powered SmartScan to review individual line items and alert admins when prohibited categories are detected.
+# Prohibited Expenses Rule
+
+The Prohibited Expenses rule helps Workspace Admins enforce compliance by automatically flagging receipts that contain restricted purchases like alcohol, gambling, or tobacco, or that are handwritten. This rule uses Expensify's AI-powered SmartScan to review individual line items and alert admins when prohibited categories are detected.
+
+In New Expensify, the rule is called **Flag receipt line items** and lives on the **General** tab of the **Rules** page.
 
 Once set up, SmartScan reviews scanned receipts at the line-item level:
 
@@ -15,28 +19,34 @@ Once set up, SmartScan reviews scanned receipts at the line-item level:
 
 ---
 
-# Set Up Prohibited Expenses Rules
+## Who can configure the Prohibited Expenses rule
 
-To turn on the Prohibited Expenses rule:
-
-1. In the **navigation tabs** (on the left on web, and at the bottom on mobile), click **Workspaces**.
-2. Click your **workspace name**.
-3. Click **Rules**, then **Expenses**.
-4. Scroll to the **Prohibited Expenses** section.
-5. Toggle on the rule.
-6. Select the prohibited categories you want to monitor:
-   - Adult entertainment
-   - Alcohol
-   - Gambling
-   - Handwritten receipts
-   - Hotel incidentals
-   - Tobacco
-
-**Note:** This rule is **off by default**. Workspace Admins must enable it and choose the categories to monitor.
+- Only **Workspace Admins** can enable or adjust this rule.
+- **Rules** must be enabled for the workspace. [Learn how to enable Workspace Rules](/articles/new-expensify/workspaces/Workspace-Rules#how-to-enable-workspace-rules).
 
 ---
 
-# When a Prohibited Item Is Detected
+## How to set up the Prohibited Expenses rule
+
+1. In the **navigation tabs** (on the left on web, and at the bottom on mobile), click **Workspaces**.
+2. Click your **workspace name**.
+3. Click **Rules**.
+4. On the **General** tab, click **Flag receipt line items**.
+5. Select the prohibited categories you want to monitor:
+   - Adult entertainment
+   - Alcohol
+   - Gambling
+   - Gift card purchases
+   - Handwritten receipts
+   - Hotel incidentals
+   - Tobacco
+6. Click **Save**.
+
+**Note:** **Gambling** and **Adult entertainment** are selected by default. Workspace Admins can add or remove any of the other categories.
+
+---
+
+## What happens when a prohibited item is detected
 
 If SmartScan finds a prohibited item in a receipt:
 
@@ -50,11 +60,10 @@ If SmartScan finds a prohibited item in a receipt:
 
 # FAQ
 
-## Who Can Enable the Prohibited Expenses Rule?
+## Will SmartScan still work if I clear every category?
 
-Only **Workspace Admins** can enable or adjust this rule.
+Yes. SmartScan will still extract the merchant, date, and amount. However, it won't scan for prohibited items unless at least one category is selected.
 
-## Will SmartScan Still Work if the Rule Is Off?
+## Where did the Prohibited Expenses section go?
 
-Yes. SmartScan will still extract the merchant, date, and amount. However, it won’t scan for prohibited items unless the rule is enabled.
-
+It is now the **Flag receipt line items** rule on the **General** tab of the **Rules** page. [Learn how to configure Workspace Rules](/articles/new-expensify/workspaces/Workspace-Rules).
