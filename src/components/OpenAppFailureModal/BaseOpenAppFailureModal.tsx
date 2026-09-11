@@ -1,4 +1,4 @@
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import Header from '@components/Header';
 import Modal from '@components/Modal';
 import Text from '@components/Text';

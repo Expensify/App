@@ -97,10 +97,12 @@ function TransactionItemRow({
 }: TransactionItemRowProps) {
     const shouldDeferRBR = !shouldSkipDeferRBR;
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const shouldShowMarkAsDoneCopy = shouldShowMarkAsDone({
         policy,
         report,
         isTrackIntentUser,
+        rules,
     });
     const styles = useThemeStyles();
     const {translate} = useLocalize();

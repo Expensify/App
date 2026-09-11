@@ -12,7 +12,7 @@ import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {setDraftMerchantRule} from '@libs/actions/User';
-import {hasUsableTaxRates} from '@libs/CategoryTaxRulesUtils';
+import {hasSelectableCategoryTaxRate, hasUsableTaxRates} from '@libs/CategoryTaxRulesUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -49,7 +49,12 @@ function ExpenseDefaultTypePage({route}: ExpenseDefaultTypePageProps) {
 
     // A category rule only sets a default tax rate, so it needs a rate to choose from. The card stays listed either
     // way: hiding it would drop the admin on a one-option page with no hint of what is missing.
+    //
+    // Taxes being on is not enough. Every rate can be disabled, and the workspace default can be the only one left,
+    // which a category rule can't apply. Opening the editor then led to a picker with nothing in it, so the lock reads
+    // the same rule the picker does and the two reasons get their own explainer.
     const areTaxesEnabled = hasUsableTaxRates(policy);
+    const canPickCategoryTaxRate = hasSelectableCategoryTaxRate(policy);
 
     // Scoping rides in the draft rather than the URL, so the editor keeps it when a picker routes back to the plain
     // create URL. Setting it here also starts the rule from a clean draft.
@@ -58,10 +63,10 @@ function ExpenseDefaultTypePage({route}: ExpenseDefaultTypePageProps) {
         Navigation.navigate(ROUTES.RULES_MERCHANT_NEW.getRoute(policyID));
     };
 
-    const showTurnOnTaxesFirstExplainer = () => {
+    const showMissingTaxRateExplainer = () => {
         showConfirmModal({
-            title: translate('workspace.rules.merchantRules.turnOnTaxesFirstTitle'),
-            prompt: translate('workspace.rules.merchantRules.turnOnTaxesFirstPrompt'),
+            title: translate(areTaxesEnabled ? 'workspace.rules.merchantRules.addTaxRateFirstTitle' : 'workspace.rules.merchantRules.turnOnTaxesFirstTitle'),
+            prompt: translate(areTaxesEnabled ? 'workspace.rules.merchantRules.addTaxRateFirstPrompt' : 'workspace.rules.merchantRules.turnOnTaxesFirstPrompt'),
             confirmText: translate('common.buttonConfirm'),
             shouldShowCancelButton: false,
         });
@@ -81,8 +86,8 @@ function ExpenseDefaultTypePage({route}: ExpenseDefaultTypePageProps) {
             icon: illustrations.FolderOpen,
             title: translate('workspace.rules.expenseDefaultType.category'),
             description: translate('workspace.rules.expenseDefaultType.categoryDescription'),
-            onPress: areTaxesEnabled ? () => openEditorScopedTo(CONST.POLICY.EXPENSE_DEFAULT_RULE_TYPE.CATEGORY) : showTurnOnTaxesFirstExplainer,
-            isLocked: !areTaxesEnabled,
+            onPress: canPickCategoryTaxRate ? () => openEditorScopedTo(CONST.POLICY.EXPENSE_DEFAULT_RULE_TYPE.CATEGORY) : showMissingTaxRateExplainer,
+            isLocked: !canPickCategoryTaxRate,
         },
     ];
 
