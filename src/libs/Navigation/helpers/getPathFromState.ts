@@ -8,6 +8,7 @@ import {getPathFromState as RNGetPathFromState} from '@react-navigation/native';
 
 import getDynamicRouteQueryParams from './dynamicRoutesUtils/getDynamicRouteQueryParams';
 import isDynamicRouteScreen from './dynamicRoutesUtils/isDynamicRouteScreen';
+import joinPathSegments from './dynamicRoutesUtils/joinPathSegments';
 import splitPathAndQuery from './dynamicRoutesUtils/splitPathAndQuery';
 import findFocusedRouteWithOnyxTabGuard from './findFocusedRouteWithOnyxTabGuard';
 import {collapseRepeatedSlashes} from './normalizePath';
@@ -165,8 +166,7 @@ function getPathFromStateWithDynamicRoute(state: State): string {
     }
     const queryString = mergedParams.toString();
 
-    // Mirror the root-base join in `createDynamicRoute.ts` so a `/` base yields `/suffix`, never `//suffix`.
-    const combinedPath = basePathWithoutQuery === '/' ? `/${suffixPath}` : `${basePathWithoutQuery}/${suffixPath}`;
+    const combinedPath = joinPathSegments(`${basePathWithoutQuery}`, `${suffixPath}`);
 
     const normalizedPath = collapseRepeatedSlashes(`/${combinedPath}`);
     if (normalizedPath !== combinedPath) {

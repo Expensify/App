@@ -59,12 +59,11 @@ import {
     hasOnlyHeldExpenses,
     hasViolations as hasViolationsReportUtils,
     isExpenseReport,
-    isInvoiceReport,
     isIOUReport as isIOUReportUtil,
 } from '@libs/ReportUtils';
 import {buildSearchQueryJSON, buildSearchQueryString, serializeQueryJSONForBackend} from '@libs/SearchQueryUtils';
 import type {SearchKey} from '@libs/SearchUIUtils';
-import {isTransactionGroupListItemType} from '@libs/SearchUIUtils';
+import {isTransactionGroupListItemType, savedSearchIDToSearchKey} from '@libs/SearchUIUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {cancelSpan, endSpan, startSpan} from '@libs/telemetry/activeSpans';
 import {hasOnlyPendingCardTransactions} from '@libs/TransactionUtils';
@@ -82,6 +81,7 @@ import type {
     IntroSelected,
     LastPaymentMethod,
     LastPaymentMethodType,
+    OnyxInputOrEntry,
     Policy,
     Report,
     ReportAction,
@@ -105,8 +105,8 @@ import {SafeString} from 'expensify-common';
 import isEmpty from 'lodash/isEmpty';
 import Onyx from 'react-native-onyx';
 
-import type {AdditionalPayOnyxData} from './IOU/PayMoneyRequest';
 import type {RejectMoneyRequestData} from './IOU/RejectMoneyRequest';
+import type AdditionalPayOnyxData from './IOU/types/AdditionalPayOnyxData';
 
 import {markExportInitiatedLocally} from './Export';
 import {payMoneyRequest} from './IOU/PayMoneyRequest';
@@ -523,16 +523,16 @@ function getLastPolicyPaymentMethod(
     return result as ValueOf<typeof CONST.IOU.PAYMENT_TYPE> | undefined;
 }
 
-function getReportType(reportID?: string) {
-    if (isIOUReportUtil(reportID)) {
+function getReportType(report: OnyxInputOrEntry<Report> | SelectedReports) {
+    if (isIOUReportUtil(report?.reportID)) {
         return CONST.REPORT.TYPE.IOU;
     }
 
-    if (isInvoiceReport(reportID)) {
+    if (report?.type === CONST.REPORT.TYPE.INVOICE) {
         return CONST.REPORT.TYPE.INVOICE;
     }
 
-    if (isExpenseReport(reportID)) {
+    if (isExpenseReport(report?.reportID)) {
         return CONST.REPORT.TYPE.EXPENSE;
     }
 
@@ -649,12 +649,11 @@ function getPayActionCallback({
     getCurrencyDecimals,
     rules,
 }: GetPayActionCallbackParams) {
-    const lastPolicyPaymentMethod = getLastPolicyPaymentMethod(item.policyID, personalPolicyID, lastPaymentMethod, getReportType(item.reportID));
-
     if (!item.reportID) {
         Log.info('[SearchPay] Dropping row pay: item has no reportID');
         return;
     }
+    const lastPolicyPaymentMethod = getLastPolicyPaymentMethod(item.policyID, personalPolicyID, lastPaymentMethod, getReportType(snapshotReport));
 
     if (!lastPolicyPaymentMethod || !Object.values(CONST.IOU.PAYMENT_TYPE).includes(lastPolicyPaymentMethod)) {
         goToItem();
@@ -862,7 +861,7 @@ function getOnyxLoadingData(
     return {optimisticData, finallyData, failureData};
 }
 
-function saveSearch({queryJSON, newName}: {queryJSON: Readonly<SearchQueryJSON>; newName?: string}) {
+function saveSearch({id, queryJSON, newName}: {id: string; queryJSON: Readonly<SearchQueryJSON>; newName?: string}) {
     const saveSearchName = newName ?? queryJSON?.inputQuery ?? '';
     const jsonQuery = JSON.stringify(queryJSON);
 
@@ -871,7 +870,7 @@ function saveSearch({queryJSON, newName}: {queryJSON: Readonly<SearchQueryJSON>;
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.SAVED_SEARCHES}`,
             value: {
-                [queryJSON.hash]: {
+                [id]: {
                     pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                     name: saveSearchName,
                     query: queryJSON.inputQuery,
@@ -885,7 +884,7 @@ function saveSearch({queryJSON, newName}: {queryJSON: Readonly<SearchQueryJSON>;
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.SAVED_SEARCHES}`,
             value: {
-                [queryJSON.hash]: null,
+                [id]: null,
             },
         },
     ];
@@ -895,13 +894,13 @@ function saveSearch({queryJSON, newName}: {queryJSON: Readonly<SearchQueryJSON>;
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.SAVED_SEARCHES}`,
             value: {
-                [queryJSON.hash]: {
+                [id]: {
                     pendingAction: null,
                 },
             },
         },
     ];
-    write(WRITE_COMMANDS.SAVE_SEARCH, {jsonQuery, newName: saveSearchName}, {optimisticData, failureData, successData});
+    write(WRITE_COMMANDS.SAVE_SEARCH, {jsonQuery, savedSearchID: id, newName: saveSearchName}, {optimisticData, failureData, successData});
 }
 
 function seedMyExpensesSearch(currentUserAccountID: number, searchName: string, savedSearches: OnyxEntry<SaveSearch>) {
@@ -963,43 +962,50 @@ function seedMyExpensesSearch(currentUserAccountID: number, searchName: string, 
         },
     ];
 
-    write(WRITE_COMMANDS.SAVE_SEARCH, {jsonQuery, newName: searchName}, {optimisticData, failureData, successData});
+    write(WRITE_COMMANDS.SAVE_SEARCH, {jsonQuery, savedSearchID: queryJSON.hash.toString(), newName: searchName}, {optimisticData, failureData, successData});
 }
 
-function deleteSavedSearch(hash: number) {
+function deleteSavedSearch(savedSearchID: string) {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.SAVED_SEARCHES>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.SAVED_SEARCHES}`,
+            key: ONYXKEYS.SAVED_SEARCHES,
             value: {
-                [hash]: {
+                [savedSearchID]: {
                     pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                 },
             },
         },
     ];
-    const successData: Array<OnyxUpdate<typeof ONYXKEYS.SAVED_SEARCHES>> = [
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.SAVED_SEARCHES | typeof ONYXKEYS.SEARCH_FILTERS>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.SAVED_SEARCHES}`,
+            key: ONYXKEYS.SAVED_SEARCHES,
             value: {
-                [hash]: null,
+                [savedSearchID]: null,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.SEARCH_FILTERS,
+            value: {
+                [savedSearchIDToSearchKey(savedSearchID)]: null,
             },
         },
     ];
     const failureData: Array<OnyxUpdate<typeof ONYXKEYS.SAVED_SEARCHES>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.SAVED_SEARCHES}`,
+            key: ONYXKEYS.SAVED_SEARCHES,
             value: {
-                [hash]: {
+                [savedSearchID]: {
                     pendingAction: null,
                 },
             },
         },
     ];
 
-    write(WRITE_COMMANDS.DELETE_SAVED_SEARCH, {hash}, {optimisticData, failureData, successData});
+    write(WRITE_COMMANDS.DELETE_SAVED_SEARCH, {savedSearchID}, {optimisticData, failureData, successData});
 }
 
 /**
@@ -1220,7 +1226,7 @@ function search({
     const inFlightRequestState: InFlightSearchRequest = {shouldCalculateTotals, shouldSaveRecentSearch};
     inFlightSearchRequests.set(dedupeKey, inFlightRequestState);
 
-    const {optimisticData, finallyData, failureData} = getOnyxLoadingData(queryJSON.hash, queryJSON, offset, true, shouldCalculateTotals);
+    const onyxLoadingData = getOnyxLoadingData(queryJSON.hash, queryJSON, offset, true, shouldCalculateTotals);
     const {backendQueryJSON, limit, exactMatchFilterKeys} = getBackendQueryJSON(queryJSON);
     const query = {
         ...backendQueryJSON,
@@ -1239,6 +1245,22 @@ function search({
             queryJSON,
             offset,
             allowPostSearchRecount: false,
+        });
+    }
+
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT | typeof ONYXKEYS.SEARCH_FILTERS>> = [...(onyxLoadingData.optimisticData ?? [])];
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT | typeof ONYXKEYS.SEARCH_FILTERS>> = [...(onyxLoadingData.failureData ?? [])];
+    const finallyData = onyxLoadingData.finallyData;
+
+    if (searchKey) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.SEARCH_FILTERS,
+            value: {
+                [searchKey]: {
+                    query: query.inputQuery,
+                },
+            },
         });
     }
 
@@ -2167,7 +2189,7 @@ function getPayOption(
     const firstTransaction = selectedTransactions?.[transactionKeys.at(0) ?? ''];
     const payableReports = selectedReports.filter((report) => report.canPay);
     const firstPayableReport = payableReports.at(0);
-    const getSelectedReportType = (report: SelectedReports | undefined) => report?.type ?? getReportType(report?.reportID);
+    const getSelectedReportType = (report: SelectedReports | undefined) => report?.type ?? getReportType(report);
     const hasLastPaymentMethod =
         selectedReports.length > 0
             ? payableReports.every((report) => !!getLastPolicyPaymentMethod(report.policyID, personalPolicyID, lastPaymentMethods))
@@ -2184,7 +2206,7 @@ function getPayOption(
             : transactionKeys.every(
                   (transactionIDKey) =>
                       selectedTransactions[transactionIDKey].action === CONST.SEARCH.ACTION_TYPES.PAY &&
-                      getReportType(selectedTransactions[transactionIDKey].reportID) === getReportType(firstTransaction?.reportID),
+                      getReportType(selectedTransactions[transactionIDKey].report) === getReportType(firstTransaction?.report),
               );
 
     return {
