@@ -196,6 +196,7 @@ import type SuggestedAgentRule from './SuggestedAgentRule';
 import type SupportalPermissionDenied from './SupportalPermissionDenied';
 import type Task from './Task';
 import type Transaction from './Transaction';
+import type {ReadonlyOnyx} from './Transaction';
 import type TransactionPending3DSReview from './TransactionPending3DSReview';
 import type TransactionsPending3DSReview from './TransactionsPending3DSReview';
 import type {TransactionViolation, ViolationName} from './TransactionViolation';
@@ -360,6 +361,7 @@ export type {
     TaxRates,
     TaxRatesWithDefault,
     Transaction,
+    ReadonlyOnyx,
     MerchantRuleSuggestion,
     MergeTransaction,
     TransactionViolation,
