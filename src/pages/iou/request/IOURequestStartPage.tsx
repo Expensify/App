@@ -216,7 +216,7 @@ function IOURequestStartPage({
     const [typedAmount, setTypedAmount] = useState<string | undefined>(undefined);
 
     const hasSignChanged = isAmountNegative !== initialIsNegative;
-    const hasAmountChanged = typedAmount !== undefined && typedAmount !== '';
+    const hasAmountChanged = typedAmount !== undefined ? typedAmount !== '' : transaction?.isAmountSet === true;
     const isEmbeddedDirty = shouldEmbedConfirmation && (hasSignChanged || hasAmountChanged);
 
     const {suppressDiscardPrompt} = useDiscardChangesConfirmation({
