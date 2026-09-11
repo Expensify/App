@@ -1704,7 +1704,6 @@ function MoneyRequestView({
                         <MenuItemWithTopDescription
                             title={tripRoomName}
                             description={translate('travel.trip')}
-                            descriptionTextStyle={styles.userSelectNone}
                             style={[styles.moneyRequestMenuItem]}
                             titleStyle={styles.flex1}
                             numberOfLinesTitle={2}
