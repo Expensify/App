@@ -1,3 +1,4 @@
+import type {Dispatch, SetStateAction} from 'react';
 import type {GestureResponderEvent, View} from 'react-native';
 
 import {createContext, useContext, useEffect, useRef, useState} from 'react';
@@ -42,6 +43,16 @@ function useMenuItemSecondaryInteraction(handler: MenuItemSecondaryInteractionHa
     }, [isEnabled, register]);
 }
 
+/** Builds the row's `register` around its state setter, outside the hook so the identity has nothing to close over per render */
+function createSecondaryInteractionRegister(setHandler: Dispatch<SetStateAction<MenuItemSecondaryInteractionHandler | undefined>>): RegisterMenuItemSecondaryInteraction {
+    return (nextHandler) => {
+        setHandler((currentHandler: MenuItemSecondaryInteractionHandler | undefined) => (currentHandler === nextHandler ? currentHandler : nextHandler));
+
+        // A later registrant may own the row by now, so only give it back if it is still ours
+        return () => setHandler((currentHandler: MenuItemSecondaryInteractionHandler | undefined) => (currentHandler === nextHandler ? undefined : currentHandler));
+    };
+}
+
 /**
  * The row's side of the registry: the handler a sub-component took the row over with, if any, and the
  * `register` to publish to them. Re-registering the handler already in place is a no-op.
@@ -49,12 +60,9 @@ function useMenuItemSecondaryInteraction(handler: MenuItemSecondaryInteractionHa
 function useMenuItemSecondaryInteractionRegistry() {
     const [handler, setHandler] = useState<MenuItemSecondaryInteractionHandler | undefined>(undefined);
 
-    const register: RegisterMenuItemSecondaryInteraction = (nextHandler) => {
-        setHandler((currentHandler: MenuItemSecondaryInteractionHandler | undefined) => (currentHandler === nextHandler ? currentHandler : nextHandler));
-
-        // A later registrant may own the row by now, so only give it back if it is still ours
-        return () => setHandler((currentHandler: MenuItemSecondaryInteractionHandler | undefined) => (currentHandler === nextHandler ? undefined : currentHandler));
-    };
+    // Built once and kept, the same way a sub-component keeps the handler it hands over: `register` is an
+    // effect dependency on their side, so a fresh identity every render would re-register on every render
+    const [register] = useState<RegisterMenuItemSecondaryInteraction>(() => createSecondaryInteractionRegister(setHandler));
 
     return {handler, register};
 }
