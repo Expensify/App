@@ -97,6 +97,7 @@ function ExportDownloadStatusModal({exportID, isVisible, onClose, failedBody}: E
             return;
         }
         downloadFile();
+        onClose();
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isReady, fileName, shouldSendFromConcierge, isEmptyReceipts]);
 
