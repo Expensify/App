@@ -189,7 +189,7 @@ function RejectExpenseReportPage({route}: RejectExpenseReportPageProps) {
                 onBeforeSubmit={handleBeforeSubmit}
                 enabledWhenOffline
                 shouldHideFixErrorsAlert
-                isSubmitActionDangerous
+                buttonVariant={CONST.BUTTON_VARIANT.DANGER}
                 submitFlexEnabled={false}
                 shouldRenderFooterAboveSubmit
                 footerContent={selectionError ? <FormHelpMessage message={selectionError} /> : undefined}

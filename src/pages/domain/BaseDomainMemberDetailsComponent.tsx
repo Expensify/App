@@ -1,4 +1,4 @@
-import Avatar from '@components/Avatar';
+import UserAvatar from '@components/Avatar/UserAvatar';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemNavigation from '@components/MenuItem/presets/MenuItemNavigation';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -31,10 +31,7 @@ import {View} from 'react-native';
 import DomainNotFoundPageWrapper from './DomainNotFoundPageWrapper';
 
 type BaseDomainMemberDetailsComponentProps = {
-    /** Domain ID */
     domainAccountID: number;
-
-    /** User account ID */
     accountID: number;
 
     /** List of additional fields (e.g., force 2FA) */
@@ -72,11 +69,10 @@ function BaseDomainMemberDetailsComponent({domainAccountID, accountID, children,
                     <View style={[styles.containerWithSpaceBetween, styles.pointerEventsBoxNone, styles.justifyContentStart]}>
                         <View style={[styles.avatarSectionWrapper, styles.pb0]}>
                             <OfflineWithFeedback pendingAction={personalDetails?.pendingFields?.avatar}>
-                                <Avatar
+                                <UserAvatar
                                     containerStyles={[styles.mb4, styles.noOutline]}
                                     source={personalDetails?.avatar}
-                                    avatarID={accountID}
-                                    type={CONST.ICON_TYPE_AVATAR}
+                                    accountID={accountID}
                                     size={CONST.AVATAR_SIZE.XXXX_LARGE}
                                     fallbackIcon={personalDetails?.fallbackIcon}
                                 />

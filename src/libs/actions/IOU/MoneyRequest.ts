@@ -11,7 +11,7 @@ import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
 import {getCustomUnitID} from '@libs/PerDiemRequestUtils';
-import {getDistanceRateCustomUnit, isTaxTrackingEnabled} from '@libs/PolicyUtils';
+import {getDistanceRateCustomUnit, isTaxTrackingEnabled, resolveCurrentTaxCode} from '@libs/PolicyUtils';
 import {
     getReportOrDraftReport,
     isInvoiceRoom,
@@ -100,6 +100,7 @@ type CreateTransactionParams = {
     optimisticTransactionIDs: string[];
     optimisticChatReportID: string | undefined;
     currentUserLocalCurrency: string | undefined;
+    isDraftChatReport: boolean;
     isTrackIntentUser: boolean | undefined;
     delegateAccountID: number | undefined;
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
@@ -149,6 +150,7 @@ function createTransaction({
     optimisticTransactionIDs,
     optimisticChatReportID,
     currentUserLocalCurrency,
+    isDraftChatReport,
     isTrackIntentUser,
     delegateAccountID,
     formatPhoneNumber,
@@ -164,7 +166,7 @@ function createTransaction({
         receipt.state = CONST.IOU.RECEIPT_STATE.SCAN_READY;
         const policy = policyParams?.policy;
         const defaultTaxCode = getDefaultTaxCode(policy, transaction);
-        const taxCode = (transaction?.taxCode ? transaction.taxCode : defaultTaxCode) ?? '';
+        const taxCode = resolveCurrentTaxCode(policy, (transaction?.taxCode ? transaction.taxCode : defaultTaxCode) ?? '');
         const taxAmount = transaction?.taxAmount ?? 0;
         const optimisticTransactionID = optimisticTransactionIDs.at(index);
         const submittedCommand = iouType === CONST.IOU.TYPE.TRACK && report ? WRITE_COMMANDS.TRACK_EXPENSE : WRITE_COMMANDS.REQUEST_MONEY;
@@ -179,6 +181,7 @@ function createTransaction({
             trackExpense({
                 report,
                 isDraftPolicy: false,
+                isDraftChatReport,
                 existingTransaction: transaction,
                 participantParams: {
                     payeeEmail: currentUserEmail,
@@ -268,18 +271,33 @@ function createTransaction({
     }
 }
 
-function getMoneyRequestParticipantOptions(
-    currentUserAccountID: number,
-    report: OnyxEntry<Report>,
-    policy: OnyxEntry<Policy>,
-    personalDetails: OnyxEntry<PersonalDetailsList>,
-    conciergeReportID: string | undefined,
-    privateIsArchived: boolean | undefined,
-    reportAttributesDerived: ReportAttributesDerivedValue['reports'] | undefined,
-    reportDraft: OnyxEntry<Report> | undefined,
-    translate: LocalizedTranslate,
-    dateFnsLocale: DateFnsLocale | undefined,
-): Array<Participant | OptionData> {
+type GetMoneyRequestParticipantOptionsParams = {
+    currentUserAccountID: number;
+    report: OnyxEntry<Report>;
+    policy: OnyxEntry<Policy>;
+    personalDetails: OnyxEntry<PersonalDetailsList>;
+    conciergeReportID: string | undefined;
+    privateIsArchived: boolean | undefined;
+    reportAttributesDerived: ReportAttributesDerivedValue['reports'] | undefined;
+    reportDraft: OnyxEntry<Report> | undefined;
+    translate: LocalizedTranslate;
+    convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
+    dateFnsLocale: DateFnsLocale | undefined;
+};
+
+function getMoneyRequestParticipantOptions({
+    currentUserAccountID,
+    report,
+    policy,
+    personalDetails,
+    conciergeReportID,
+    privateIsArchived,
+    reportAttributesDerived,
+    reportDraft,
+    translate,
+    convertToDisplayString,
+    dateFnsLocale,
+}: GetMoneyRequestParticipantOptionsParams): Array<Participant | OptionData> {
     const selectedParticipants = getMoneyRequestParticipantsFromReport(report, currentUserAccountID);
     return selectedParticipants.map((participant) => {
         const participantAccountID = participant?.accountID ?? CONST.DEFAULT_NUMBER_ID;
@@ -288,6 +306,7 @@ function getMoneyRequestParticipantOptions(
             : getReportOption(participant, privateIsArchived, policy, personalDetails, conciergeReportID, reportAttributesDerived, reportDraft, currentUserAccountID, {
                   translate,
                   dateFnsLocale,
+                  convertToDisplayString,
               });
     });
 }

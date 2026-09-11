@@ -4,12 +4,13 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {clearOnyxAndResetApp} from '@libs/actions/App';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 import React from 'react';
 import {View} from 'react-native';
 
-import Button from './Button';
+import Button from './ButtonComposed';
 
 function ImportedStateIndicator() {
     const styles = useThemeStyles();
@@ -23,14 +24,13 @@ function ImportedStateIndicator() {
     return (
         <View style={[styles.buttonDanger]}>
             <Button
-                danger
-                small
-                shouldRemoveLeftBorderRadius
-                shouldRemoveRightBorderRadius
-                text={translate('initialSettingsPage.troubleshoot.usingImportedState')}
+                variant={CONST.BUTTON_VARIANT.DANGER}
+                size={CONST.BUTTON_SIZE.SMALL}
+                removeBorderRadius={CONST.BUTTON_REMOVE_BORDER_RADIUS.ALL}
                 onPress={() => clearOnyxAndResetApp(true)}
-                textStyles={[styles.fontWeightNormal]}
-            />
+            >
+                <Button.Text style={[styles.fontWeightNormal]}>{translate('initialSettingsPage.troubleshoot.usingImportedState')}</Button.Text>
+            </Button>
         </View>
     );
 }

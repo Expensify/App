@@ -7,6 +7,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ImageSVG from '@components/ImageSVG';
 import MenuItem from '@components/MenuItem';
 import MenuItemAction from '@components/MenuItem/presets/MenuItemAction';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -107,12 +108,14 @@ function DynamicWorkspaceExpensifyCardDetailsPage({route}: DynamicWorkspaceExpen
         'CreditCardLock',
         'XeroSquare',
         'QBOSquare',
+        'IntuitSquare',
         'NetSuiteSquare',
         'IntacctSquare',
         'QBDSquare',
         'CertiniaSquare',
         'RilletSquare',
         'DualEntrySquare',
+        'CampfireSquare',
         'GustoSquare',
     ]);
     const illustrations = useMemoizedLazyIllustrations(['ExpensifyCardImage']);
@@ -195,7 +198,7 @@ function DynamicWorkspaceExpensifyCardDetailsPage({route}: DynamicWorkspaceExpen
             prompt: translate('workspace.card.deactivateCardModal.deactivateConfirmation'),
             confirmText: translate('workspace.card.deactivateCardModal.deactivate'),
             cancelText: translate('common.cancel'),
-            danger: true,
+            buttonVariant: CONST.BUTTON_VARIANT.DANGER,
         }).then(({action}) => {
             if (action !== ModalActions.CONFIRM) {
                 return;
@@ -214,7 +217,7 @@ function DynamicWorkspaceExpensifyCardDetailsPage({route}: DynamicWorkspaceExpen
             prompt: translate('cardPage.freezeDescription'),
             confirmText: translate('cardPage.freezeCard'),
             cancelText: translate('common.cancel'),
-            danger: true,
+            buttonVariant: CONST.BUTTON_VARIANT.DANGER,
         }).then((result) => {
             if (result.action !== ModalActions.CONFIRM || !card) {
                 return;
@@ -389,12 +392,10 @@ function DynamicWorkspaceExpensifyCardDetailsPage({route}: DynamicWorkspaceExpen
                     )}
 
                     <OfflineWithFeedback pendingAction={card?.nameValuePairs?.pendingFields?.cardTitle}>
-                        <MenuItemWithTopDescription
-                            description={translate('workspace.card.issueNewCard.cardName')}
-                            title={card?.nameValuePairs?.cardTitle}
-                            shouldShowRightIcon={canWriteExpensifyCard}
-                            onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.EXPENSIFY_CARD_NAME.path))}
-                            interactive={canWriteExpensifyCard}
+                        <MenuItemField
+                            name={translate('workspace.card.issueNewCard.cardName')}
+                            onPress={canWriteExpensifyCard ? () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.EXPENSIFY_CARD_NAME.path)) : undefined}
+                            value={card?.nameValuePairs?.cardTitle}
                         />
                     </OfflineWithFeedback>
                     <MenuItemWithTopDescription
@@ -432,12 +433,10 @@ function DynamicWorkspaceExpensifyCardDetailsPage({route}: DynamicWorkspaceExpen
                         />
                     </OfflineWithFeedback>
                     <OfflineWithFeedback pendingAction={card?.nameValuePairs?.pendingFields?.unapprovedExpenseLimit}>
-                        <MenuItemWithTopDescription
-                            description={translate('workspace.expensifyCard.cardLimit')}
-                            title={formattedLimit}
-                            shouldShowRightIcon={canWriteExpensifyCard}
-                            onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.EXPENSIFY_CARD_LIMIT.path))}
-                            interactive={canWriteExpensifyCard}
+                        <MenuItemField
+                            name={translate('workspace.expensifyCard.cardLimit')}
+                            onPress={canWriteExpensifyCard ? () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.EXPENSIFY_CARD_LIMIT.path)) : undefined}
+                            value={formattedLimit}
                         />
                     </OfflineWithFeedback>
                     <View style={styles.mt6}>
@@ -477,7 +476,7 @@ function DynamicWorkspaceExpensifyCardDetailsPage({route}: DynamicWorkspaceExpen
                                     description={exportMenuItem.shouldHideMenuItemDescription ? undefined : exportMenuItem.description}
                                     title={exportMenuItem.title}
                                     numberOfLinesTitle={2}
-                                    icon={exportMenuItem.shouldShowMenuItemIcon ? getIntegrationIcon(connectedIntegration, expensifyIcons) : undefined}
+                                    icon={exportMenuItem.shouldShowMenuItemIcon ? getIntegrationIcon(connectedIntegration, expensifyIcons, policy) : undefined}
                                     iconType={CONST.ICON_TYPE_AVATAR}
                                     avatarSize={CONST.AVATAR_SIZE.X_SMALL}
                                     shouldShowRightIcon={canWriteExpensifyCard}

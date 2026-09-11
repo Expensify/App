@@ -124,9 +124,8 @@ describe('WorkspaceUpgrade', () => {
     it('should upgrade a Submit workspace to Corporate when unlocking a Control-tier rules feature', async () => {
         const policy: Policy = {...LHNTestUtils.getFakePolicy(), type: CONST.POLICY.TYPE.SUBMIT};
 
-        // Given a Submit workspace and the Submit 2026 beta enabled
+        // Given a Submit workspace
         await act(async () => {
-            await Onyx.set(ONYXKEYS.BETAS, [CONST.BETAS.SUBMIT_2026]);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
         });
 
@@ -147,10 +146,10 @@ describe('WorkspaceUpgrade', () => {
         await waitForBatchedUpdates();
     });
 
-    it('should show Collect pricing and upgrade a beta-off Submit workspace when unlocking a Collect-tier feature', async () => {
+    it('should show Collect pricing and upgrade a Submit workspace when unlocking a Collect-tier feature', async () => {
         const policy: Policy = {...LHNTestUtils.getFakePolicy(), type: CONST.POLICY.TYPE.SUBMIT};
 
-        // Given a Submit workspace without the Submit 2026 beta
+        // Given a Submit workspace
         await act(async () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
         });

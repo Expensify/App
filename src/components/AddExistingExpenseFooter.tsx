@@ -25,7 +25,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import React from 'react';
 
-import Button from './Button';
+import Button from './ButtonComposed';
 import FormHelpMessage from './FormHelpMessage';
 import {usePersonalDetails, useSession} from './OnyxListItemProvider';
 
@@ -34,13 +34,9 @@ type AddExistingExpenseFooterProps = {
     selectedIds: Set<string>;
     /** The report to add expenses to */
     report: OnyxEntry<Report>;
-    /** The report to confirm */
     reportToConfirm: OnyxEntry<Report>;
-    /** The policy */
     policy: OnyxEntry<Policy>;
-    /** The policy categories */
     policyCategories: OnyxEntry<PolicyCategories>;
-    /** Error message displayed in this component */
     errorMessage: string;
     /** Function for setting new error message */
     setErrorMessage: React.Dispatch<React.SetStateAction<string>>;
@@ -51,7 +47,7 @@ function AddExistingExpenseFooter({selectedIds, report, reportToConfirm, policy,
     const styles = useThemeStyles();
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
-    const {getCurrencyDecimals} = useCurrencyListActions();
+    const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
     const session = useSession();
     const personalDetails = usePersonalDetails();
     const delegateAccountID = useDelegateAccountID();
@@ -116,6 +112,7 @@ function AddExistingExpenseFooter({selectedIds, report, reportToConfirm, policy,
                         selfDMReportActions,
                         delegateAccountID,
                         getCurrencyDecimals,
+                        getCurrencySymbol,
                     });
                 }
             },
@@ -132,14 +129,14 @@ function AddExistingExpenseFooter({selectedIds, report, reportToConfirm, policy,
                 />
             )}
             <Button
-                success
-                large
+                variant={CONST.BUTTON_VARIANT.SUCCESS}
+                size={CONST.BUTTON_SIZE.LARGE}
                 style={[styles.w100, styles.justifyContentCenter]}
-                text={translate('iou.addExistingExpenseConfirm')}
                 onPress={handleConfirm}
-                pressOnEnter
-                enterKeyEventListenerPriority={1}
-            />
+            >
+                <Button.KeyboardShortcut enterKeyEventListenerPriority={1} />
+                <Button.Text>{translate('iou.addExistingExpenseConfirm')}</Button.Text>
+            </Button>
         </>
     );
 }

@@ -8,6 +8,7 @@ import GithubUtils from '@github/libs/GithubUtils';
 import * as core from '@actions/core';
 
 import createMock from '../utils/createMock';
+import materializeOctokitNamespace from '../utils/materializeOctokitNamespace';
 
 type GetIssueMethod = InternalOctokit['rest']['issues']['get'];
 type ListCommentsMethod = InternalOctokit['rest']['issues']['listComments'];
@@ -41,6 +42,7 @@ beforeAll(() => {
     if (!GithubUtils.internalOctokit) {
         throw new Error('Expected GitHubUtils to initialize Octokit');
     }
+    GithubUtils.internalOctokit.rest.issues = materializeOctokitNamespace(GithubUtils.internalOctokit.rest.issues);
     mockGetIssue = jest.spyOn(GithubUtils.internalOctokit.rest.issues, 'get');
     mockListComments = jest.spyOn(GithubUtils.internalOctokit.rest.issues, 'listComments');
 });

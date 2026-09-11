@@ -1,4 +1,4 @@
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
@@ -22,7 +22,6 @@ type PDFPasswordFormProps = {
     /** If the submitted password is invalid (show an error message) */
     isPasswordInvalid?: boolean;
 
-    /** If loading indicator should be shown */
     shouldShowLoadingIndicator?: boolean;
 
     /** Notify parent that the password form has been submitted */
@@ -140,13 +139,14 @@ function PDFPasswordForm({isFocused, isPasswordInvalid = false, shouldShowLoadin
             <Button
                 // Keep focus on the TextInput effectively keeping keyboard open
                 onMouseDown={(e) => e.preventDefault()}
-                text={translate('common.confirm')}
                 onPress={submitPassword}
                 style={styles.mt4}
                 isLoading={shouldShowLoadingIndicator}
-                pressOnEnter
-                large
-            />
+                size={CONST.BUTTON_SIZE.LARGE}
+            >
+                <Button.KeyboardShortcut />
+                <Button.Text>{translate('common.confirm')}</Button.Text>
+            </Button>
         </ScrollView>
     ) : (
         <View style={[styles.flex1, styles.justifyContentCenter]}>

@@ -15,7 +15,6 @@ type ExpensifyCardSettingsBase = {
     /** The total amount of cash back earned thus far */
     earnedCashback?: number;
 
-    /** The date of the last settlement */
     monthlySettlementDate?: Date;
 
     /** Whether monthly option should appear in the settlement frequency settings */
@@ -27,7 +26,7 @@ type ExpensifyCardSettingsBase = {
     /** The bank account chosen for the card settlement */
     paymentBankAccountID?: number;
 
-    /** Whether the card program (e.g., Travel Invoicing) is enabled */
+    /** Whether the card program (e.g., Travel Billing) is enabled */
     isEnabled?: boolean;
 
     /** The previous bank account chosen for the card settlement, used for reverting failed updates */
@@ -48,7 +47,6 @@ type ExpensifyCardSettingsBase = {
     /** Policy IDs linked to this Expensify Card feed (when present, drives feed grouping in the admin selector) */
     linkedPolicyIDs?: string[];
 
-    /** The Marqeta business token */
     marqetaBusinessToken?: number;
 
     /** Name of the domain card was issued for */
@@ -72,7 +70,7 @@ type ExpensifyCardSettingsBase = {
     /** Credit limit for the card program */
     limit?: number;
 
-    /** Per-user monthly spend limit for travel invoicing cards (in cents) */
+    /** Per-user monthly spend limit for travel billing cards (in cents) */
     monthlySpendLimitPerUser?: number;
 
     /** Currency for the card program (e.g. USD, GBP, EUR) */
@@ -142,7 +140,7 @@ type ExpensifyCardSettings = OnyxCommon.OnyxValueWithOfflineFeedback<
          *
          */
         GB?: NestedExpensifyCardSettings;
-        /** Nested Travel Invoicing settings from backend */
+        /** Nested Travel Billing settings from backend */
 
         /**
          *

@@ -6,6 +6,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import {useCallback, useMemo, useState} from 'react';
 
+import {useCurrencyListActions} from './useCurrencyList';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useLocalize from './useLocalize';
 import useOnyx from './useOnyx';
@@ -18,8 +19,8 @@ type UseFilteredOptionsConfig = {
     maxRecentReports?: number;
     /** Whether the hook should be enabled (default: true) */
     enabled?: boolean;
-    /** Whether to include P2P personal details (default: true) */
-    includeP2P?: boolean;
+    /** Whether to build contact shells. This value must match the downstream `includeP2P` value. */
+    includeP2P: boolean;
     /** Number of reports to load per batch when paginating (default: 100) */
     batchSize?: number;
     /** Whether to enable dynamic loading/pagination (default: true) */
@@ -68,6 +69,7 @@ type UseFilteredOptionsResult = {
  * const {options, isLoading} = useFilteredOptions({
  *   maxRecentReports: 500,
  *   enabled: didScreenTransitionEnd,
+ *   includeP2P: true,
  * });
  *
  * <SelectionList
@@ -75,8 +77,8 @@ type UseFilteredOptionsResult = {
  *   shouldShowLoadingPlaceholder={isLoading}
  * />
  */
-function useFilteredOptions(config: UseFilteredOptionsConfig = {}): UseFilteredOptionsResult {
-    const {maxRecentReports = 500, enabled = true, includeP2P = true, batchSize = 100, isSearching = false, deferContactsUntilSearch = false} = config;
+function useFilteredOptions(config: UseFilteredOptionsConfig): UseFilteredOptionsResult {
+    const {maxRecentReports = 500, enabled = true, includeP2P, batchSize = 100, isSearching = false, deferContactsUntilSearch = false} = config;
 
     const [reportsLimit, setReportsLimit] = useState(maxRecentReports);
 
@@ -89,6 +91,7 @@ function useFilteredOptions(config: UseFilteredOptionsConfig = {}): UseFilteredO
 
     // Option building is locale-dependent, so a consumer that stays mounted through a language switch recomputes.
     const {preferredLocale, dateFnsLocale} = useLocalize();
+    const {convertToDisplayString} = useCurrencyListActions();
 
     // Sorted report actions from the RAM_ONLY_SORTED_REPORT_ACTIONS derived value; a new reference on
     // every recompute, so it doubles as the report-actions invalidation signal for the option-list cache.
@@ -109,7 +112,17 @@ function useFilteredOptions(config: UseFilteredOptionsConfig = {}): UseFilteredO
                       reportAttributesDerived,
                       privateIsArchivedMap,
                       allPolicies,
-                      {currentUserAccountID, dateFnsLocale, conciergeReportID, maxRecentReports: reportsLimit, includeP2P, isSearching, deferContactsUntilSearch, locale: preferredLocale},
+                      {
+                          currentUserAccountID,
+                          dateFnsLocale,
+                          convertToDisplayString,
+                          conciergeReportID,
+                          maxRecentReports: reportsLimit,
+                          includeP2P,
+                          isSearching,
+                          deferContactsUntilSearch,
+                          locale: preferredLocale,
+                      },
                       undefined,
                       undefined,
                       isTrackIntentUser,
@@ -133,6 +146,7 @@ function useFilteredOptions(config: UseFilteredOptionsConfig = {}): UseFilteredO
             sortedActions,
             currentUserAccountID,
             dateFnsLocale,
+            convertToDisplayString,
         ],
     );
 

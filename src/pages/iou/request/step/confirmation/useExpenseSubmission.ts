@@ -1,9 +1,11 @@
 import useActivePolicy from '@hooks/useActivePolicy';
+import useBlockDistanceRequest from '@hooks/useBlockDistanceRequest';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useLastWorkspaceNumber from '@hooks/useLastWorkspaceNumber';
 import useLocalize from '@hooks/useLocalize';
 import useMoneyRequestPolicyTags from '@hooks/useMoneyRequestPolicyTags';
+import useNetwork from '@hooks/useNetwork';
 import useOnboardingTaskInformation from '@hooks/useOnboardingTaskInformation';
 import useOnyx from '@hooks/useOnyx';
 import useParentReportAction from '@hooks/useParentReportAction';
@@ -16,20 +18,22 @@ import useTransactionsByID from '@hooks/useTransactionsByID';
 import {generateDefaultWorkspaceName} from '@libs/actions/Policy/Policy';
 import {completeTestDriveTask} from '@libs/actions/Task';
 import {WRITE_COMMANDS} from '@libs/API/types';
+import {reserveDeferredWriteChannel} from '@libs/deferredLayoutWrite';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import getCurrentPosition from '@libs/getCurrentPosition';
 import {getStringifiedGPSCoordinates} from '@libs/GPSDraftDetailsUtils';
-import {getExistingTransactionID, isSelfDMSoleDestination, resolveOptimisticChatReportID} from '@libs/IOUUtils';
+import {getExistingTransactionID, getReusableP2PReportID, isLookingAroundSearchRoutingActive, isSelfDMSoleDestination, resolveOptimisticChatReportID} from '@libs/IOUUtils';
 import Log from '@libs/Log';
 import cleanupAfterExpenseCreate from '@libs/Navigation/helpers/cleanupAfterExpenseCreate';
 import cleanupAndNavigateAfterExpenseCreate from '@libs/Navigation/helpers/cleanupAndNavigateAfterExpenseCreate';
-import dismissModalAndOpenReportInInboxTabHelper from '@libs/Navigation/helpers/dismissModalAndOpenReportInInboxTab';
+import dismissModalAndOpenReportInInboxTab from '@libs/Navigation/helpers/dismissModalAndOpenReportInInboxTab';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import navigateAfterExpenseCreate from '@libs/Navigation/helpers/navigateAfterExpenseCreate';
+import Navigation from '@libs/Navigation/Navigation';
 import {rand64, roundToTwoDecimalPlaces} from '@libs/NumberUtils';
 import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
 import {getNewAccountIDsAndLogins} from '@libs/PersonalDetailsUtils';
-import {isTaxTrackingEnabled} from '@libs/PolicyUtils';
+import {isTaxTrackingEnabled, resolveCurrentTaxCode} from '@libs/PolicyUtils';
 import {
     findSelfDMReportID,
     generateReportID,
@@ -57,11 +61,10 @@ import {
 
 import {resolveChatTargetForSubmitCleanup} from '@pages/iou/request/step/resolveChatTarget';
 
-import {isOneToTwoTransactionTransition} from '@userActions/IOU/PendingNewTransactions';
-import {getPerDiemExpensePolicyID, submitPerDiemExpenseForSelfDM, submitPerDiemExpense as submitPerDiemExpenseIOUActions} from '@userActions/IOU/PerDiem';
+import {getPerDiemExpensePolicyID, hasCompletePerDiemCustomUnit, submitPerDiemExpenseForSelfDM, submitPerDiemExpense as submitPerDiemExpenseIOUActions} from '@userActions/IOU/PerDiem';
 import {getReceiverType, sendInvoice} from '@userActions/IOU/SendInvoice';
 import {sendMoneyElsewhere, sendMoneyWithWallet} from '@userActions/IOU/SendMoney';
-import {createDistanceRequest as createDistanceRequestIOUActions, splitBill, splitBillAndOpenReport, startSplitBill} from '@userActions/IOU/Split';
+import {createDistanceRequest as createDistanceRequestIOUActions, resolveOptimisticSplitChatReportID, splitBill, splitBillAndOpenReport, startSplitBill} from '@userActions/IOU/Split';
 import {requestMoney as requestMoneyIOUActions, trackExpense as trackExpenseIOUActions} from '@userActions/IOU/TrackExpense';
 import type {GPSPoint as GpsPoint} from '@userActions/IOU/types/TrackExpenseTransactionParams';
 
@@ -147,6 +150,13 @@ type UseExpenseSubmissionParams = {
 
     // Navigation
     backToReport?: string;
+
+    /**
+     * Called once validation has passed and the write is guaranteed to happen. Clear a pre-mount
+     * pre-mount marker here, not earlier - clearing it before validation could pass risks orphaning
+     * the pre-mounted report if validation then bails with no write.
+     */
+    onExpenseWriteWillStart?: () => void;
 };
 
 type SendMoneyReportIDs = {
@@ -195,6 +205,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         draftTransactionIDs,
         privateIsArchivedMap,
         backToReport,
+        onExpenseWriteWillStart,
     } = params;
 
     // Localization
@@ -238,7 +249,10 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
     const reportTransactions = useReportTransactions(report?.reportID);
     const isMoneyRequestReport = isMoneyRequestReportReportUtils(report);
     const currentChatReport = isMoneyRequestReport ? getReportOrDraftReport(report?.chatReportID) : report;
-    const [isDraftChatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${currentChatReport?.reportID}`, {selector: isDraftReportSelector});
+    const isSelfDMDestination = isSelfDMSoleDestination(participants, iouType, currentUserPersonalDetails.accountID);
+    // A self-DM destination passes `undefined` as the chat to trackExpense, which then resolves the chat to the self-DM — a real report that is never a draft
+    const destinationChatReportID = isSelfDMDestination ? undefined : currentChatReport?.reportID;
+    const [isDraftChatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${destinationChatReportID}`, {selector: isDraftReportSelector});
     const moneyRequestReportID = isMoneyRequestReport ? report?.reportID : '';
     const [moneyRequestReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${moneyRequestReportID}`);
     const selectedParticipants = participants.filter((participant) => participant.selected);
@@ -260,8 +274,6 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         );
     }
     const selectedParticipantsForRequest = iouType === CONST.IOU.TYPE.SPLIT ? splitParticipants : selectedParticipants;
-
-    const isSelfDMDestination = isSelfDMSoleDestination(participants, iouType, currentUserPersonalDetails.accountID);
 
     const firstSelectedParticipantReportID = selectedParticipantsForRequest.at(0)?.reportID;
     const [selectedParticipantsReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${firstSelectedParticipantReportID}`);
@@ -292,6 +304,8 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
     const [odometerDraft] = useOnyx(ONYXKEYS.ODOMETER_DRAFT);
     const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
     const isTrackIntentUser = isTrackOnboardingChoice(introSelected?.choice);
+    const {isOffline} = useNetwork();
+    const isLookingAroundUser = isLookingAroundSearchRoutingActive(introSelected?.choice === CONST.ONBOARDING_CHOICES.LOOKING_AROUND, isOffline);
     // Onboarding task data
     const {
         taskReport: viewTourTaskReport,
@@ -316,14 +330,22 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
             : transactionDistance;
     const modifiedTransactionDistance = isModifiedGPSDistanceRequest ? transactionDistance : undefined;
     const defaultTaxCode = getDefaultTaxCode(policy, transaction);
+    const taxCode = (transaction?.taxCode ? transaction?.taxCode : defaultTaxCode) ?? '';
     const transactionTaxCode = isTaxTrackingEnabled(isPolicyExpenseChat || isUnreported || isTrackExpense || isSelfDMDestination, policy, isDistanceRequest, isPerDiemRequest, isTimeRequest)
-        ? ((transaction?.taxCode ? transaction?.taxCode : defaultTaxCode) ?? '')
+        ? resolveCurrentTaxCode(policy, taxCode)
         : '';
     const transactionTaxAmount = transaction?.taxAmount ?? 0;
     const transactionTaxValue = transaction?.taxValue ?? getTaxValue(policy, transaction, transactionTaxCode) ?? '';
 
     const transactionIDs = transactions?.map((tx) => tx.transactionID);
     const [storedTransactions] = useTransactionsByID(transactionIDs);
+
+    const blockDistanceRequestIfNeeded = useBlockDistanceRequest({
+        policyID: policy?.id,
+        isDistanceRequest,
+        isManualDistanceRequest,
+        isOdometerDistanceRequest,
+    });
 
     function performPostBatchCleanup({
         participant,
@@ -372,6 +394,8 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
             backToReport: navigateBackToReport,
             optimisticChatReportID: chatReportID,
             linkedTrackedExpenseReportAction: lastTransaction?.linkedTrackedExpenseReportAction,
+            isLookingAroundUser,
+            isSelfDMDestination,
         });
     }
 
@@ -405,8 +429,15 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         if (requiresLinkedTracked && !transactions.every((item) => item.linkedTrackedExpenseReportAction && item.linkedTrackedExpenseReportID)) {
             return;
         }
+        onExpenseWriteWillStart?.();
 
-        const optimisticChatReportID = generateReportID();
+        // For a brand-new P2P recipient, reuse the optimistic report ID the confirmation screen already
+        // committed to the transaction, so the chat report built here is the one the screen subscribes
+        // to - otherwise it'd wait forever on an ID that's never created.
+        const transactionReportID = transaction?.reportID;
+        const reusableP2PReportID = getReusableP2PReportID(participant, transactionReportID);
+        const participantAccountIDs = [participant.accountID ?? CONST.DEFAULT_NUMBER_ID, currentUserPersonalDetails.accountID];
+        const {chatReportID: optimisticChatReportID} = resolveOptimisticChatReportID(participantAccountIDs, undefined, reusableP2PReportID);
         const optimisticCreatedReportActionID = rand64();
         const optimisticReportPreviewActionID = rand64();
         let existingIOUReport: Report | undefined;
@@ -590,34 +621,43 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         if (!participant || isEmptyObject(transaction.comment) || isEmptyObject(transaction.comment.customUnit)) {
             return;
         }
+        onExpenseWriteWillStart?.();
         if (isTrackExpense) {
-            const optimisticChatReportID = selfDMReport?.reportID ?? generateReportID();
-            submitPerDiemExpenseForSelfDM({
-                dateFnsLocale,
-                getCurrencyDecimals,
-                selfDMReport,
-                policy,
-                transactionParams: {
-                    currency: transaction.currency,
-                    created: transaction.created,
-                    comment: trimmedComment,
-                    category: transaction.category,
-                    tag: transaction.tag,
-                    customUnit: transaction.comment?.customUnit,
-                    billable: transaction.billable,
-                    reimbursable: transaction.reimbursable,
-                    attendees: transaction.comment?.attendees,
-                    isFromGlobalCreate: getIsFromGlobalCreate(transaction),
-                },
-                currentUserAccountIDParam: currentUserPersonalDetails.accountID,
-                currentUserEmailParam: currentUserPersonalDetails.login ?? '',
-                quickAction,
-                optimisticChatReportID,
-                delegateAccountID,
-                isTrackIntentUser,
-            });
-            if (shouldHandleNavigation) {
-                dismissModalAndOpenReportInInboxTabHelper(optimisticChatReportID, false, false);
+            // Mirror the action's bail: a submit it would no-op must not clean up or dismiss.
+            if (!isEmptyObject(policy) && hasCompletePerDiemCustomUnit(transaction.comment?.customUnit)) {
+                const optimisticChatReportID = selfDMReport?.reportID ?? generateReportID();
+                submitPerDiemExpenseForSelfDM({
+                    dateFnsLocale,
+                    getCurrencyDecimals,
+                    selfDMReport,
+                    policy,
+                    transactionParams: {
+                        currency: transaction.currency,
+                        created: transaction.created,
+                        comment: trimmedComment,
+                        category: transaction.category,
+                        tag: transaction.tag,
+                        customUnit: transaction.comment?.customUnit,
+                        billable: transaction.billable,
+                        reimbursable: transaction.reimbursable,
+                        attendees: transaction.comment?.attendees,
+                        isFromGlobalCreate: getIsFromGlobalCreate(transaction),
+                    },
+                    currentUserAccountIDParam: currentUserPersonalDetails.accountID,
+                    currentUserEmailParam: currentUserPersonalDetails.login ?? '',
+                    quickAction,
+                    optimisticChatReportID,
+                    delegateAccountID,
+                    isTrackIntentUser,
+                });
+                if (shouldHandleNavigation) {
+                    cleanupAfterExpenseCreate({draftTransactionIDs: [CONST.IOU.OPTIMISTIC_TRANSACTION_ID], shouldWaitForUpcomingTransition: true});
+                    dismissModalAndOpenReportInInboxTab(optimisticChatReportID, false, false);
+                } else {
+                    cleanupAfterExpenseCreate({draftTransactionIDs: [CONST.IOU.OPTIMISTIC_TRANSACTION_ID]});
+                }
+            } else {
+                Log.alert('[useExpenseSubmission] Skipped per diem self-DM submit: missing policy or incomplete custom unit');
             }
         } else {
             const isExpenseReport = isMoneyRequestReportReportUtils(report);
@@ -627,11 +667,20 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
             } else if (!report?.reportID && participant.isPolicyExpenseChat && participant.reportID) {
                 existingChatReport = getReportOrDraftReport(participant.reportID);
             }
-            const {optimisticChatReportID, chatReportID} = resolveOptimisticChatReportID(
-                [participant.accountID ?? CONST.DEFAULT_NUMBER_ID, currentUserPersonalDetails.accountID],
-                existingChatReport,
-            );
+            // The recipient can be swapped without this screen remounting, so `existingChatReport` above
+            // can still be whoever was selected before. Use the ID confirmation committed for the current
+            // pick instead, so the pre-mounted report stays aligned with a brand-new P2P recipient.
+            const transactionReportID = transaction.reportID;
+            // Reuse it so the pre-mounted screen subscribes to the report created on submission.
+            const reusableP2PReportID = !isExpenseReport ? getReusableP2PReportID(participant, transactionReportID) : undefined;
+            const participantAccountIDs = [participant.accountID ?? CONST.DEFAULT_NUMBER_ID, currentUserPersonalDetails.accountID];
+            const reportIDs =
+                !isExpenseReport && !participant.isPolicyExpenseChat
+                    ? resolveOptimisticChatReportID(participantAccountIDs, undefined, reusableP2PReportID)
+                    : resolveOptimisticChatReportID(participantAccountIDs, existingChatReport);
+            const {optimisticChatReportID, chatReportID} = reportIDs;
             const activeReportID = isExpenseReport ? report?.reportID : chatReportID;
+            const notifyReportID = isExpenseReport && Navigation.getTopmostReportId() === report?.reportID ? report?.reportID : chatReportID;
 
             const perDiemParticipantParams = {
                 payeeEmail: currentUserPersonalDetails.login,
@@ -675,22 +724,26 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 betas,
                 personalDetails,
                 optimisticChatReportID,
+                notifyReportID,
                 formatPhoneNumber,
                 delegateAccountID,
                 isTrackIntentUser,
             });
             const targetReportID = backToReport ?? activeReportID;
-            // When backToReport exists we are creating the expense from chat, not the expense report, so no pending transaction registration needed.
-            const isOneToTwoTransition = !backToReport && isOneToTwoTransactionTransition(isMoneyRequestReport, reportTransactions);
 
+            if (result) {
+                cleanupAfterExpenseCreate({draftTransactionIDs: [CONST.IOU.OPTIMISTIC_TRANSACTION_ID], shouldWaitForUpcomingTransition: shouldHandleNavigation});
+            }
             if (result && targetReportID) {
                 navigateAfterExpenseCreate({
                     activeReportID: targetReportID,
                     transactionID: result.transactionID,
                     isFromGlobalCreate: getIsFromGlobalCreate(transaction),
                     hasMultipleTransactions: reportTransactions.length > 0,
-                    shouldAddPendingNewTransactionIDs: (shouldHandleNavigation && targetReportID === chatReportID) || isOneToTwoTransition,
+                    shouldAddPendingNewTransactionIDs: shouldHandleNavigation && targetReportID === chatReportID,
                     shouldNavigate: shouldHandleNavigation,
+                    isLookingAroundUser,
+                    isSelfDMDestination,
                 });
             }
         }
@@ -710,6 +763,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         if (requiresLinkedTracked && !transactions.every((item) => item.linkedTrackedExpenseReportAction && item.linkedTrackedExpenseReportID)) {
             return;
         }
+        onExpenseWriteWillStart?.();
         const optimisticSelfDMReportID = selfDMReport?.reportID ?? generateReportID();
         // When the destination resolved to the current user/self-DM, force the self-DM as the chat (clearing any
         // non-self route report) so getTrackExpenseInformation defaults to the self-DM instead of the route report.
@@ -744,7 +798,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 getCurrencyDecimals,
                 report: trackReport,
                 isDraftPolicy,
-                isDraftChatReport,
+                isDraftChatReport: !!isDraftChatReport,
                 action,
                 existingTransaction: item,
                 participantParams: {
@@ -836,13 +890,11 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         if (!participant) {
             return;
         }
+        onExpenseWriteWillStart?.();
 
-        // For a brand-new P2P recipient (no existing chat), the confirmation screen has already committed the draft
-        // transaction to a freshly generated optimistic reportID via setTransactionReport. Build the optimistic chat
-        // report at that same ID so the report the screen subscribes to is the one that actually gets created.
-        // Otherwise the builder mints a different ID and the screen hangs waiting on a report that never materializes.
-        const isBrandNewP2PRecipient = !report && !participant.isPolicyExpenseChat && !participant.reportID;
-        const optimisticChatReportID = isBrandNewP2PRecipient && !!transaction.reportID && transaction.reportID !== CONST.REPORT.UNREPORTED_REPORT_ID ? transaction.reportID : undefined;
+        // Same reasoning as above: reuse the confirmation screen's optimistic report ID for a brand-new
+        // P2P recipient, so the screen isn't left subscribed to a report ID that's never created.
+        const optimisticChatReportID = getReusableP2PReportID(participant, transaction.reportID);
         const shouldIncludeCommuterExclusionOverrides = hasAppliedCommuterExclusion(transaction);
 
         const {chatReportID: distanceChatReportID, transactionID: distanceTransactionID} = createDistanceRequestIOUActions({
@@ -920,6 +972,10 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
     }
 
     function createTransaction(locationPermissionGranted = false, shouldHandleNavigation = true) {
+        if (blockDistanceRequestIfNeeded()) {
+            return;
+        }
+
         setIsConfirmed(true);
         const trimmedComment = transaction?.comment?.comment?.trim() ?? '';
 
@@ -989,6 +1045,11 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
             return;
         }
 
+        // The action hardcodes shouldDeferForSearch:false, so reserve here when a split write will actually run and land back on Search.
+        if (shouldDeferSplitForSearch && currentUserPersonalDetails.login && !!transaction) {
+            reserveDeferredWriteChannel(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH);
+        }
+
         // IOUs created from a group report will have a reportID param in the route.
         // Since the user is already viewing the report, we don't need to navigate them to the report
         if (iouType === CONST.IOU.TYPE.SPLIT && !transaction?.isFromGlobalCreate) {
@@ -1021,13 +1082,17 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                     policyRecentlyUsedCurrencies,
                     betas,
                     personalDetails,
-                    shouldHandleNavigation,
-                    shouldDeferForSearch: shouldDeferSplitForSearch,
                     delegateAccountID,
                     isTrackIntentUser,
                     formatPhoneNumber,
                     participantsPolicyTags,
                 });
+                if (shouldHandleNavigation) {
+                    cleanupAfterExpenseCreate({draftTransactionIDs: [CONST.IOU.OPTIMISTIC_TRANSACTION_ID], shouldWaitForUpcomingTransition: true});
+                    dismissModalAndOpenReportInInboxTab(report?.reportID, undefined, reportTransactions.length > 0);
+                } else {
+                    cleanupAfterExpenseCreate({draftTransactionIDs: [CONST.IOU.OPTIMISTIC_TRANSACTION_ID]});
+                }
             }
             markSubmitExpenseEnd();
             return;
@@ -1036,6 +1101,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         // If the split expense is created from the global create menu, we also navigate the user to the group report
         if (iouType === CONST.IOU.TYPE.SPLIT) {
             if (currentUserPersonalDetails.login && !!transaction) {
+                const {optimisticSplitChatReportID, chatReportID} = resolveOptimisticSplitChatReportID(undefined, splitParticipants, currentUserPersonalDetails.accountID);
                 splitBillAndOpenReport({
                     getCurrencyDecimals,
                     participants: splitParticipants,
@@ -1063,13 +1129,19 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                     policyRecentlyUsedCurrencies,
                     betas,
                     personalDetails,
-                    shouldHandleNavigation,
-                    shouldDeferForSearch: shouldDeferSplitForSearch,
+                    optimisticSplitChatReportID,
                     delegateAccountID,
                     isTrackIntentUser,
                     formatPhoneNumber,
                     participantsPolicyTags,
                 });
+                if (shouldHandleNavigation) {
+                    cleanupAfterExpenseCreate({draftTransactionIDs: [CONST.IOU.OPTIMISTIC_TRANSACTION_ID], shouldWaitForUpcomingTransition: true});
+                    // A split lands in a group DM or 1:1 chat, and transactions are never attached to a chat report.
+                    dismissModalAndOpenReportInInboxTab(chatReportID, undefined, false);
+                } else {
+                    cleanupAfterExpenseCreate({draftTransactionIDs: [CONST.IOU.OPTIMISTIC_TRANSACTION_ID]});
+                }
             }
             markSubmitExpenseEnd();
             return;
@@ -1190,9 +1262,12 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
 
         const {optimisticChatReportID, chatReportID} =
             resolvedReportIDs ?? resolveOptimisticChatReportID([participant.accountID ?? CONST.DEFAULT_NUMBER_ID, currentUserPersonalDetails.accountID], report);
+        // An explicit optimistic ID means the selected recipient has no chat yet. Do not let a stale page-level
+        // report override that ID in getSendMoneyParams when the recipient changed without remounting this screen.
+        const sendMoneyReport = optimisticChatReportID ? undefined : report;
         const sendMoneyParams = {
             getCurrencyDecimals,
-            report,
+            report: sendMoneyReport,
             quickAction,
             amount: transaction.amount,
             currency,
@@ -1209,16 +1284,18 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         };
 
         if (paymentMethod === CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
+            onExpenseWriteWillStart?.();
             setIsConfirmed(true);
             sendMoneyElsewhere(sendMoneyParams);
         } else if (paymentMethod === CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
+            onExpenseWriteWillStart?.();
             setIsConfirmed(true);
             sendMoneyWithWallet(sendMoneyParams);
         } else {
             return;
         }
         if (shouldHandleNavigation) {
-            dismissModalAndOpenReportInInboxTabHelper(chatReportID, undefined, reportTransactions.length > 0);
+            dismissModalAndOpenReportInInboxTab(chatReportID, undefined, reportTransactions.length > 0);
         }
     }
 

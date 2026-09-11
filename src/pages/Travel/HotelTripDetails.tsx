@@ -1,3 +1,4 @@
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import Text from '@components/Text';
 import UserPills from '@components/UserPills';
@@ -33,10 +34,10 @@ function HotelTripDetails({reservation, personalDetails}: HotelTripDetailsProps)
         [CONST.CANCELLATION_POLICY.PARTIALLY_REFUNDABLE]: translate('travel.hotelDetails.cancellationPolicies.partiallyRefundable'),
     };
 
-    const checkInDate = DateUtils.getFormattedTransportDateAndHour(new Date(reservation.start.date), dateFnsLocale);
-    const checkOutDate = DateUtils.getFormattedTransportDateAndHour(new Date(reservation.end.date), dateFnsLocale);
+    const checkInDate = DateUtils.getFormattedTransportDateAndHour(translate, dateFnsLocale, new Date(reservation.start.date));
+    const checkOutDate = DateUtils.getFormattedTransportDateAndHour(translate, dateFnsLocale, new Date(reservation.end.date));
     const cancellationText = reservation.cancellationDeadline
-        ? `${translate('travel.hotelDetails.cancellationUntil')} ${DateUtils.getFormattedCancellationDate(reservation.cancellationDeadline, dateFnsLocale)}`
+        ? `${translate('travel.hotelDetails.cancellationUntil')} ${DateUtils.getFormattedCancellationDate(translate, dateFnsLocale, reservation.cancellationDeadline)}`
         : cancellationMapping[reservation.cancellationPolicy ?? CONST.CANCELLATION_POLICY.UNKNOWN];
 
     const displayName = personalDetails?.displayName ?? reservation.travelerPersonalInfo?.name;
@@ -65,10 +66,9 @@ function HotelTripDetails({reservation, personalDetails}: HotelTripDetailsProps)
             />
 
             {!!reservation.roomClass && (
-                <MenuItemWithTopDescription
-                    description={translate('travel.hotelDetails.roomType')}
-                    title={reservation.roomClass.trim()}
-                    interactive={false}
+                <MenuItemField
+                    name={translate('travel.hotelDetails.roomType')}
+                    value={reservation.roomClass.trim()}
                 />
             )}
             {!!cancellationText && (

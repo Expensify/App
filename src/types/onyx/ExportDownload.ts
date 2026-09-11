@@ -10,10 +10,9 @@ type ExportDownloadType = ValueOf<typeof CONST.EXPORT_DOWNLOAD.TYPE>;
 
 /** Model of an export download entry */
 type ExportDownload = {
-    /** Current state of the export download */
     state: ExportDownloadState;
 
-    /** Type of export (csv or pdf), used to show the correct failure message */
+    /** Type of export (csv, pdf or receipts), used to show the correct failure message */
     exportType?: ExportDownloadType;
 
     /** URL to download the exported file when state is ready */

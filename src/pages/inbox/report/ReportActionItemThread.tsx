@@ -1,6 +1,6 @@
+import MultiAccountAvatar from '@components/Avatar/connected/MultiAccountAvatar';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import PressableWithSecondaryInteraction from '@components/PressableWithSecondaryInteraction';
-import ReportActionAvatars from '@components/ReportActionAvatars';
 import Text from '@components/Text';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -23,10 +23,7 @@ import React from 'react';
 import {View} from 'react-native';
 
 type ReportActionItemThreadProps = {
-    /** The current report */
     report: OnyxEntry<Report>;
-
-    /** All the data of the action item */
     reportAction: ReportAction;
 
     /** Whether the thread item / message is being hovered */
@@ -50,6 +47,8 @@ function ReportActionItemThread({report, reportAction, isHovered, onSecondaryInt
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const personalDetails = usePersonalDetails();
 
     const numberOfReplies = reportAction.childVisibleActionCount ?? 0;
@@ -72,7 +71,17 @@ function ReportActionItemThread({report, reportAction, isHovered, onSecondaryInt
                 <PressableWithSecondaryInteraction
                     onPress={() => {
                         const participantsPersonalDetails = getParticipantsPersonalDetails([currentUserAccountID, Number(reportAction.actorAccountID)], personalDetails);
-                        navigateToAndOpenChildReport(childReport, reportAction, report, currentUserAccountID, introSelected, betas, participantsPersonalDetails, isSelfTourViewed);
+                        navigateToAndOpenChildReport(
+                            childReport,
+                            reportAction,
+                            report,
+                            currentUserAccountID,
+                            introSelected,
+                            betas,
+                            participantsPersonalDetails,
+                            isSelfTourViewed,
+                            conciergeChat,
+                        );
                     }}
                     role={CONST.ROLE.BUTTON}
                     accessibilityLabel={`${numberOfReplies} ${replyText}`}
@@ -80,14 +89,14 @@ function ReportActionItemThread({report, reportAction, isHovered, onSecondaryInt
                     sentryLabel={CONST.SENTRY_LABEL.REPORT.REPORT_ACTION_ITEM_THREAD}
                 >
                     <View style={[styles.flexRow, styles.alignItemsCenter, styles.mt2]}>
-                        <ReportActionAvatars
+                        <MultiAccountAvatar
                             size={CONST.AVATAR_SIZE.SMALL}
                             accountIDs={accountIDs}
-                            horizontalStacking={{
+                            horizontalOptions={{
                                 isHovered,
                                 isActive,
                             }}
-                            sort={CONST.REPORT_ACTION_AVATARS.SORT_BY.NAME}
+                            sortBy={[CONST.REPORT_ACTION_AVATARS.SORT_BY.NAME]}
                             isInReportAction
                         />
                         <View style={[styles.flex1, styles.flexRow, styles.lh140Percent, styles.alignItemsEnd]}>

@@ -28,7 +28,7 @@ Expensify offers flexible options to search and export expenses and reports in v
    - **Basic Export** – Simplified, essential fields (date, amount, merchant, category, receipt URL).
    - **All Data – Expense Level Export** – One row per expense with full data.
    - **All Data – Report Level Export** – One row per report with summary data.
-   - **Current view** – A CSV that matches the columns currently shown on the page. Set the columns using **Display** > **Edit columns**. Not available when a **Group by** filter is applied.
+   - **Current view** – A CSV that matches the columns currently shown on the page. Set the columns using **Display** > **Edit columns**. When a **Group by** filter is applied, the CSV keeps each group as its own section and uses those same columns.
    - **Custom Templates** – Any template created by you or your Workspace Admin (if available).
 
 After you choose a template, a status window appears while your file is prepared. When it’s ready, the file downloads automatically—if it doesn’t, click **Download file**. You can also click **Send me the file when it’s ready** to have **Concierge** send you the file via chat instead.
@@ -65,11 +65,11 @@ When you group expenses on the **Spend** page, you can export the grouped result
 3. Click **Apply**.
 4. Check the box next to the groups you want to export, or use the top checkbox to select all.
 5. Click the selection button at the top (for example, **1 selected**).
-6. Select **Basic export**.
+6. Select **Current view**.
 
 In the exported file:
 - Each group appears as its own section with a header row.
-- The expenses in each group are listed below their group header.
+- The expenses in each group are listed below their group header, using the columns currently shown on the page. Set the columns using **Display** > **Edit columns**.
 
 > **Note:** If you expand the groups and select the individual expenses instead of the groups, each expense is exported as its own row without grouping.
 
@@ -104,7 +104,7 @@ Yes, use the **All Data – Report Level Export** template. All other templates 
 
 ## Can I keep my groups when I export?
 
-Yes. Group your expenses using **Display** > **Group by**, select the groups, then choose **Basic export**. The exported file keeps each group as its own section with the expenses listed below their group header.
+Yes. Group your expenses using **Display** > **Group by**, select the groups, then choose **Current view**. The exported file keeps each group as its own section with the expenses listed below their group header, using the columns currently shown on the page.
 
 ## Can I export in PDF or XLS format?
 
@@ -126,6 +126,10 @@ Ensure your workspace is connected to a supported accounting platform. [Click he
 ## How do I receive my export?
 
 A status window appears while your file is prepared, and the file downloads automatically when it’s ready (if it doesn’t, use the **Download file** button). If you’d rather not wait, click/tap **Send me the file when it’s ready** and **Concierge** will send it to you in a chat message.
+
+## What happens if I refresh the page while my file is preparing?
+
+Your file keeps preparing, and the status window comes back on its own. Expensify tracks each download that is still preparing or ready to save, so when you refresh the page or close and reopen Expensify, the status window reappears with the current status. Click **Download file** once it shows **Your file is ready!**. This does not apply when you choose **Send me the file when it’s ready** — **Concierge** sends that file to you in a chat message instead.
 
 ## Can I export expenses or reports in bulk?
 

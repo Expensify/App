@@ -4,6 +4,7 @@ import InviteMemberListItem from '@components/SelectionList/ListItem/InviteMembe
 import SelectionListWithSections from '@components/SelectionList/SelectionListWithSections';
 import type {TextInputOptions} from '@components/SelectionList/types';
 
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useFilteredOptions from '@hooks/useFilteredOptions';
@@ -26,7 +27,6 @@ import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import passthroughPolicyTagListSelector from '@src/selectors/PolicyTagList';
 
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import React, {useEffect} from 'react';
@@ -49,11 +49,14 @@ function getSelectedOptionData(option: Option & Pick<OptionData, 'reportID'>): O
 
 function InSelector({value = [], selectionListTextInputStyle, selectionListStyle, autoFocus, ready = true, footer, onChange}: InSelectorProps) {
     const {translate, dateFnsLocale} = useLocalize();
+    const {convertToDisplayString} = useCurrencyListActions();
     const personalDetails = usePersonalDetails();
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const {options, isLoading} = useFilteredOptions({
         enabled: ready,
         isSearching: !!debouncedSearchTerm.trim(),
+        // The sections below read recentReports and never personalDetails, so contacts would never reach the list.
+        includeP2P: false,
     });
 
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
@@ -71,7 +74,7 @@ function InSelector({value = [], selectionListTextInputStyle, selectionListStyle
     const cleanSearchTerm = searchTerm.trim().toLowerCase();
     const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT);
     const privateIsArchivedMap = usePrivateIsArchivedMap();
-    const [policyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {selector: passthroughPolicyTagListSelector});
+    const [policyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
 
@@ -83,6 +86,7 @@ function InSelector({value = [], selectionListTextInputStyle, selectionListStyle
             ...getSelectedOptionData(
                 createOptionFromReport({
                     dateFnsLocale,
+                    convertToDisplayString,
                     report: {...reportData, reportID: id},
                     personalDetails,
                     privateIsArchived,
@@ -101,7 +105,7 @@ function InSelector({value = [], selectionListTextInputStyle, selectionListStyle
         const alternateText = getAlternateText(
             report,
             {},
-            {dateFnsLocale, isReportArchived, personalDetails, policy, reportAttributesDerived, policyTags: reportPolicyTags, conciergeReportID, isTrackIntentUser},
+            {dateFnsLocale, convertToDisplayString, isReportArchived, personalDetails, policy, reportAttributesDerived, policyTags: reportPolicyTags, conciergeReportID, isTrackIntentUser},
         );
         return {...report, alternateText};
     };
@@ -118,6 +122,7 @@ function InSelector({value = [], selectionListTextInputStyle, selectionListStyle
             ? defaultListOptions
             : getSearchOptions({
                   dateFnsLocale,
+                  convertToDisplayString,
                   options,
                   draftComments,
                   betas: undefined,
@@ -136,6 +141,7 @@ function InSelector({value = [], selectionListTextInputStyle, selectionListStyle
 
     const chatOptions = filterAndOrderOptions(defaultOptions, cleanSearchTerm, countryCode, loginList, currentUserEmail, currentUserAccountID, personalDetails, {
         dateFnsLocale,
+        convertToDisplayString,
         selectedOptions,
         excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
     });

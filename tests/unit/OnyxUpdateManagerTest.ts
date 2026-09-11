@@ -1,4 +1,5 @@
 import {isClientTheLeader} from '@libs/ActiveClientManager';
+import {WRITE_COMMANDS} from '@libs/API/types';
 import Log from '@libs/Log';
 import * as SequentialQueue from '@libs/Network/SequentialQueue';
 
@@ -7,10 +8,14 @@ import type {OnyxUpdatesMock} from '@userActions/__mocks__/OnyxUpdates';
 import * as OnyxUpdateManager from '@userActions/OnyxUpdateManager';
 import type {OnyxUpdateManagerUtilsMock} from '@userActions/OnyxUpdateManager/utils/__mocks__';
 import type {ApplyUpdatesMock} from '@userActions/OnyxUpdateManager/utils/__mocks__/applyUpdates';
+import type * as OnyxUpdatesImport from '@userActions/OnyxUpdates';
+import * as PersistedRequests from '@userActions/PersistedRequests';
 
 import CONST from '@src/CONST';
+import {flushQueue} from '@src/libs/actions/QueuedOnyxUpdates';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {OnyxUpdatesFromServer} from '@src/types/onyx';
+import type {AnyRequest} from '@src/types/onyx/Request';
 
 import Onyx from 'react-native-onyx';
 
@@ -41,6 +46,7 @@ jest.mock('@libs/ActiveClientManager', () => ({
 const mockedIsClientTheLeader = jest.mocked(isClientTheLeader);
 
 const OnyxUpdates = jest.requireMock<OnyxUpdatesMock<never>>('@userActions/OnyxUpdates');
+const ActualOnyxUpdates = jest.requireActual<typeof OnyxUpdatesImport>('@userActions/OnyxUpdates');
 const App = jest.requireMock<AppActionsMock>('@userActions/App');
 const ApplyUpdates = jest.requireMock<ApplyUpdatesMock>('@userActions/OnyxUpdateManager/utils/applyUpdates');
 const OnyxUpdateManagerUtils = jest.requireMock<OnyxUpdateManagerUtilsMock>('@userActions/OnyxUpdateManager/utils');
@@ -568,20 +574,41 @@ describe('OnyxUpdateManager', () => {
         expect(App.reconnectApp).not.toHaveBeenCalled();
     });
 
-    it('should not escalate or back off when the fetch response reports progress', async () => {
-        // Progress is read from the response itself: its lastUpdateID is past the ID the fetch was fired
-        // from, so this is not a stall even though nothing was applied yet.
+    it('should escalate when the fetch response is ahead of the client but the client did not move', async () => {
         App.mockValues.missingOnyxUpdatesResponse = {jsonCode: 200, lastUpdateID: 2, onyxData: []};
 
         OnyxUpdateManager.handleMissingOnyxUpdates(update3);
         await OnyxUpdateManager.queryPromise;
-        expect(App.reconnectApp).not.toHaveBeenCalled();
-        const fetchCalls = App.getMissingOnyxUpdates.mock.calls.length;
 
-        OnyxUpdateManager.handleMissingOnyxUpdates(update5);
+        expect(lastUpdateIDAppliedToClient).toBe(1);
+        expect(App.reconnectApp).toHaveBeenCalledTimes(1);
+        expect(App.reconnectApp).toHaveBeenCalledWith(1);
+    });
+
+    it('should escalate when a WRITE staged for the deferred flush sits above the fetch origin', async () => {
+        // Given a WRITE staged for the deferred flush, which raises the pending marker above the persisted watermark
+        await ActualOnyxUpdates.apply({
+            type: CONST.ONYX_UPDATE_TYPES.HTTPS,
+            previousUpdateID: 1,
+            lastUpdateID: 500,
+            request: {command: 'AddComment', data: {apiRequestType: CONST.API_REQUEST_TYPE.WRITE}},
+            response: {jsonCode: 200, onyxData: []},
+        });
+        await waitForBatchedUpdates();
+        expect(ActualOnyxUpdates.getEffectiveLastUpdateID()).toBe(500);
+        expect(ActualOnyxUpdates.getPersistedLastUpdateID()).toBe(1);
+
+        // When a fetch fired from the persisted watermark (the push notification path) answers without applying anything
+        App.mockValues.missingOnyxUpdatesResponse = {jsonCode: 200, onyxData: []};
+        OnyxUpdateManager.handleMissingOnyxUpdates(update3, 1);
         await OnyxUpdateManager.queryPromise;
-        expect(App.getMissingOnyxUpdates.mock.calls.length).toBeGreaterThan(fetchCalls);
-        expect(App.reconnectApp).not.toHaveBeenCalled();
+
+        // Then the staged WRITE does not count as progress, because it never served the requested range
+        expect(App.reconnectApp).toHaveBeenCalledTimes(1);
+        expect(App.reconnectApp).toHaveBeenCalledWith(1);
+
+        await flushQueue();
+        await waitForBatchedUpdates();
     });
 
     it('should not escalate when the client advances through another path while the fetch is in flight', async () => {
@@ -721,6 +748,86 @@ describe('OnyxUpdateManager', () => {
             OnyxUpdateManager.handleMissingOnyxUpdates(update3);
             await OnyxUpdateManager.queryPromise;
             expect(App.getMissingOnyxUpdates).not.toHaveBeenCalled();
+        });
+    });
+
+    describe('in-flight reconnect coverage', () => {
+        const putReconnectOnTheWire = (data: {updateIDFrom?: number}) => {
+            let landTheReconnect: () => void = () => {};
+            const reconnectLanded = new Promise<void>((resolve) => {
+                landTheReconnect = resolve;
+            });
+            jest.spyOn(PersistedRequests, 'getOngoingRequest').mockReturnValue({command: WRITE_COMMANDS.RECONNECT_APP, data} as AnyRequest);
+            jest.spyOn(SequentialQueue, 'getCurrentRequest').mockReturnValue(reconnectLanded);
+            return landTheReconnect;
+        };
+
+        it('should wait for an in-flight ReconnectApp that already covers the gap instead of asking for the same range again', async () => {
+            // Given a reconnect on the wire asking from where the client stopped, whose flight nothing on the client records today.
+            const landTheReconnect = putReconnectOnTheWire({updateIDFrom: 1});
+
+            // When an update arrives whose predecessor falls inside the range that reconnect is already carrying.
+            const cycle = OnyxUpdateManager.handleMissingOnyxUpdates(update3);
+            await waitForBatchedUpdates();
+
+            // Then nothing is asked for on top of it, because 97.8% of these fetches re-requested a range wholly inside the reconnect.
+            expect(App.getMissingOnyxUpdates).not.toHaveBeenCalled();
+
+            // When that reconnect lands without closing the hole.
+            landTheReconnect();
+            await cycle;
+
+            // Then the range it left open is still fetched, which is what stops the suppression from swallowing a real gap.
+            expect(App.getMissingOnyxUpdates).toHaveBeenCalledTimes(1);
+            expect(App.getMissingOnyxUpdates).toHaveBeenCalledWith(1, 2);
+        });
+
+        it('should treat a full ReconnectApp on the wire as covering every gap, since it re-downloads everything', async () => {
+            // Given a full reconnect on the wire, which carries no updateIDFrom and so cannot start above the client.
+            const landTheReconnect = putReconnectOnTheWire({});
+
+            // When a gap is detected. Reading "no updateIDFrom" as "covers nothing" would leave the app's widest catch-up double-fetching.
+            const cycle = OnyxUpdateManager.handleMissingOnyxUpdates(update3);
+            await waitForBatchedUpdates();
+
+            // Then nothing is asked for on top of it.
+            expect(App.getMissingOnyxUpdates).not.toHaveBeenCalled();
+
+            landTheReconnect();
+            await cycle;
+        });
+
+        it('should fall back to the normal fetch when the ongoing reconnect is a stale record with nothing on the wire', async () => {
+            // Given a persisted ongoing reconnect restored on boot, naming a request that is no longer in flight.
+            jest.spyOn(PersistedRequests, 'getOngoingRequest').mockReturnValue({command: WRITE_COMMANDS.RECONNECT_APP, data: {updateIDFrom: 1}} as AnyRequest);
+
+            // When a gap is detected against it.
+            await OnyxUpdateManager.handleMissingOnyxUpdates(update3);
+
+            // Then it self-heals into a fetch rather than holding the queue paused until the watchdog.
+            expect(App.getMissingOnyxUpdates).toHaveBeenCalledWith(1, 2);
+        });
+
+        it('should still fetch when the in-flight ReconnectApp starts ahead of the client, so a real hole is never jumped', async () => {
+            // Given a reconnect on the wire asking from update 2 while the client is still at update 1.
+            putReconnectOnTheWire({updateIDFrom: 2});
+
+            // When a gap is detected. Its response cannot close a hole below its own updateIDFrom.
+            await OnyxUpdateManager.handleMissingOnyxUpdates(update3);
+
+            // Then the normal fetch still runs, instead of stranding the client one update short forever.
+            expect(App.getMissingOnyxUpdates).toHaveBeenCalledTimes(1);
+        });
+
+        it('should still fetch when the request on the wire is not a reconnect, because no other command returns a range', async () => {
+            // Given an ordinary WRITE on the wire, which brings no update range back.
+            jest.spyOn(PersistedRequests, 'getOngoingRequest').mockReturnValue({command: WRITE_COMMANDS.ADD_COMMENT, data: {}} as AnyRequest);
+
+            // When a gap is detected.
+            await OnyxUpdateManager.handleMissingOnyxUpdates(update3);
+
+            // Then the gap is closed the usual way.
+            expect(App.getMissingOnyxUpdates).toHaveBeenCalledTimes(1);
         });
     });
 

@@ -2,6 +2,7 @@ import {renderScrollComponent as renderActionSheetAwareScrollView} from '@compon
 import InvertedFlashList from '@components/FlashList/InvertedFlashList';
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
 
+import useConciergeSessionStartTime from '@hooks/useConciergeSessionStartTime';
 import useEnvironment from '@hooks/useEnvironment';
 import useLinkedMessageOfflineLoading from '@hooks/useLinkedMessageOfflineLoading';
 import useLocalize from '@hooks/useLocalize';
@@ -47,7 +48,6 @@ import type {ReportsSplitNavigatorParamList} from '@navigation/types';
 
 import {useActionListContext, useActionListRef} from '@pages/inbox/ActionListContext';
 import {useConciergeDraft, useConciergeDraftActions} from '@pages/inbox/ConciergeDraftContext';
-import {useConciergeSessionState} from '@pages/inbox/ConciergeSessionContext';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -77,7 +77,7 @@ type ReportActionsListContentProps = {
     /** The ID of the report to display actions for */
     reportID: string;
 
-    /** Callback executed on list layout */
+    conciergeChat: OnyxEntry<OnyxTypes.Report>;
     onLayout?: (event: LayoutChangeEvent) => void;
 };
 
@@ -102,7 +102,7 @@ function keyExtractor(item: OnyxTypes.ReportAction): string {
  * UI-close hooks (`useUnreadMarker` / `useMarkAsRead` / `useReportActionsScroll`). `ReportActionsSkeletonGuard`
  * mounts it only once content is ready, so those hooks never run while a skeleton shows.
  */
-function ReportActionsListContent({reportID, onLayout}: ReportActionsListContentProps) {
+function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportActionsListContentProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {windowHeight} = useWindowDimensions();
@@ -131,7 +131,7 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListContent
     const {isOffline} = useNetwork();
     const route = useRoute<PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
     const reportActionIDFromRoute = route?.params?.reportActionID;
-    const {sessionStartTime} = useConciergeSessionState();
+    const sessionStartTime = useConciergeSessionStartTime();
 
     const didLayout = useRef(false);
 
@@ -188,6 +188,7 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListContent
         oldestUnreadReportActionID: oldestUnreadReportAction?.reportActionID,
         isScrolledOverThreshold: hasScrolledOverThreshold,
         hasOnceLoadedReportActions: !!hasOnceLoadedReportActions,
+        newMessageBoundaryTime: isConciergeHiddenHistory ? sessionStartTime : undefined,
     });
 
     const {markNewestActionAsRead, completeSkippedMarkAsRead} = useMarkAsRead({
@@ -275,6 +276,7 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListContent
         onLoad,
     } = useReportActionsScroll({
         reportID,
+        conciergeChat,
         report,
         transactionThreadReport,
         parentReportAction,
@@ -326,7 +328,6 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListContent
         reportID,
         actionTargetReportActionID: reportAttributes?.actionTargetReportActionID,
         actionBadgeTargetIndex,
-        actionBadge: reportAttributes?.actionBadge,
         renderedVisibleReportActions,
         scrollToActionBadgeTarget,
     });
@@ -414,7 +415,7 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListContent
 
     const listFooterComponent = shouldShowOfflineSkeleton ? <ReportActionsSkeletonView shouldAnimate={false} /> : undefined;
 
-    const shouldUseMarkAsDoneCopy = shouldShowMarkAsDone({
+    const shouldShowMarkAsDoneCopy = shouldShowMarkAsDone({
         policy,
         report,
         isTrackIntentUser,
@@ -431,9 +432,7 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListContent
 
         didLayout.current = true;
 
-        if (report) {
-            markOpenReportEnd(report, {warm: true});
-        }
+        markOpenReportEnd(reportID, report, {warm: true});
     };
 
     // The guard only mounts this content when the report is loaded, so this is effectively unreachable.
@@ -452,7 +451,7 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListContent
                 actionBadge={!isProduction && isActionBadgeAboveViewport ? reportAttributes?.actionBadge : undefined}
                 actionBadgeBrickRoadStatus={!isProduction && isActionBadgeAboveViewport ? reportAttributes?.brickRoadStatus : undefined}
                 onActionBadgePress={scrollToActionBadgeTarget}
-                isMarkAsDone={shouldUseMarkAsDoneCopy}
+                shouldShowMarkAsDoneCopy={shouldShowMarkAsDoneCopy}
             />
             <ReportActionsListPaddingView
                 report={report}
@@ -507,11 +506,12 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListContent
  * Public report-actions list. Thin composition that wraps the content in `ReportActionsSkeletonGuard`,
  * which owns the data pipeline + skeleton decision and only mounts the content once it is ready.
  */
-function ReportActionsList({reportID, onLayout}: ReportActionsListProps) {
+function ReportActionsList({reportID, conciergeChat, onLayout}: ReportActionsListProps) {
     return (
         <ReportActionsSkeletonGuard reportID={reportID}>
             <ReportActionsListContent
                 reportID={reportID}
+                conciergeChat={conciergeChat}
                 onLayout={onLayout}
             />
         </ReportActionsSkeletonGuard>

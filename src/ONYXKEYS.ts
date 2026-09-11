@@ -34,6 +34,9 @@ const ONYXKEYS = {
     /** Contains the default rate and unit to use for P2P distance expenses, based on the user's personal policy outputCurrency (default / report currency). */
     DEFAULT_P2P_MILEAGE_RATE: 'defaultP2PMileageRate',
 
+    /** Government-published reference mileage rates, returned by OpenPolicyDistanceRatesPage */
+    GOVERNMENT_MILEAGE_RATES: 'governmentMileageRates',
+
     /** A unique ID for the device */
     DEVICE_ID: 'deviceID',
 
@@ -333,6 +336,9 @@ const ONYXKEYS = {
     /** The end date (epoch timestamp) of the workspace owner’s grace period after the free trial ends. */
     NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END: 'nvp_private_billingGracePeriodEnd',
 
+    /** The end date (epoch timestamp) of the workspace owner’s grace period for an overdue Consolidated Travel Billing invoice. */
+    NVP_PRIVATE_OWNER_TRAVEL_BILLING_GRACE_PERIOD_END: 'nvp_private_travelBillingGracePeriodEnd',
+
     /**  The NVP containing the target url to navigate to when deleting a transaction */
     NVP_DELETE_TRANSACTION_NAVIGATE_BACK_URL: 'nvp_deleteTransactionNavigateBackURL',
 
@@ -419,8 +425,8 @@ const ONYXKEYS = {
     /** Stores information about the user's saved statements */
     WALLET_STATEMENT: 'walletStatement',
 
-    /** Stores information about the user's travel invoice statements */
-    TRAVEL_INVOICE_STATEMENT: 'travelInvoiceStatement',
+    /** Stores information about the user's travel billing statements */
+    TRAVEL_BILLING_STATEMENT: 'travelInvoiceStatement',
 
     /** Stores information about the user's Expensify Card statements */
     EXPENSIFY_CARD_STATEMENT: 'expensifyCardStatement',
@@ -453,7 +459,6 @@ const ONYXKEYS = {
     /** Stores information about the share bank account during setup */
     SHARE_BANK_ACCOUNT: 'shareBankAccount',
 
-    /** Is report data loading? */
     IS_LOADING_REPORT_DATA: 'isLoadingReportData',
 
     /** Set when we are loading bank accounts for share page */
@@ -462,10 +467,8 @@ const ONYXKEYS = {
     /** Set when we are loading the bulk change approver page */
     IS_LOADING_BULK_CHANGE_APPROVER_PAGE: 'isLoadingBulkChangeApproverPage',
 
-    /** Is report data loading? */
     IS_LOADING_APP: 'isLoadingApp',
 
-    /** Is loading policy rules preview? */
     IS_LOADING_POLICY_CODING_RULES_PREVIEW: 'isLoadingPolicyCodingRulesPreview',
 
     /** Is loading agent rule suggestions for the add-rule Suggestions tab? */
@@ -489,10 +492,8 @@ const ONYXKEYS = {
     /** Set while search filter category data is loading */
     RAM_ONLY_IS_LOADING_SEARCH_FILTERS_CATEGORY_DATA: 'isLoadingSearchFiltersCategoryData',
 
-    /** Is the app loaded? */
     HAS_LOADED_APP: 'hasLoadedApp',
 
-    /** Is the test tools modal open? */
     IS_TEST_TOOLS_MODAL_OPEN: 'isTestToolsModalOpen',
 
     /** Stores information about active wallet transfer amount, selectedAccountID, status, etc */
@@ -581,6 +582,9 @@ const ONYXKEYS = {
     // Max width supported for HTML <canvas> element
     MAX_CANVAS_WIDTH: 'maxCanvasWidth',
 
+    // Whether the MoveFilesOutOfDocuments migration has rewritten attachment record paths, so later launches skip the collection scan
+    ATTACHMENT_RECORD_PATHS_MIGRATED: 'attachmentRecordPathsMigrated',
+
     // Stores last visited path
     LAST_VISITED_PATH: 'lastVisitedPath',
 
@@ -603,11 +607,20 @@ const ONYXKEYS = {
     /** Indicates whether we should mask fragile user data while exporting onyx state or not */
     SHOULD_MASK_ONYX_STATE: 'shouldMaskOnyxState',
 
-    /** Indicates whether we should use the staging version of the secure API server */
+    /** @deprecated Use ACTIVE_SERVER. */
     SHOULD_USE_STAGING_SERVER: 'shouldUseStagingServer',
+
+    /** Which server environment the app talks to */
+    ACTIVE_SERVER: 'activeServer',
+
+    /** OAuth session used to reach the Cloudflare Access-protected QA server */
+    CLOUDFLARE_SESSION: 'cloudflareSession',
 
     /** Indicates whether the debug mode is currently enabled */
     IS_DEBUG_MODE_ENABLED: 'isDebugModeEnabled',
+
+    /** Local overrides for beta feature flags, set from the Test Tool Menu on dev/staging. Takes precedence over the server-provided betas */
+    BETA_OVERRIDES: 'betaOverrides',
 
     /** Indicates whether the git branch name should be shown in the browser tab title */
     SHOULD_SHOW_BRANCH_NAME_IN_TITLE: 'shouldShowBranchNameInTitle',
@@ -691,6 +704,9 @@ const ONYXKEYS = {
     /** Stores the route to open after changing app permission from settings */
     LAST_ROUTE: 'lastRoute',
 
+    /** Stores the last measured Onyx database size, so the next app start can attach it to telemetry spans right away */
+    LAST_MEASURED_DATABASE_SIZE: 'lastMeasuredDatabaseSize',
+
     /** Stores the information if user loaded the Onyx state through Import feature  */
     IS_USING_IMPORTED_STATE: 'isUsingImportedState',
 
@@ -715,7 +731,6 @@ const ONYXKEYS = {
     /** Stores recently used currencies */
     RECENTLY_USED_CURRENCIES: 'nvp_recentlyUsedCurrencies',
 
-    /** Company cards custom names */
     NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES: 'nvp_expensify_ccCustomNames',
 
     /** Whether to kick off the "Concierge is thinking" indicator when AgentZeroStatusGate mounts */
@@ -723,6 +738,9 @@ const ONYXKEYS = {
 
     /** The user's Concierge reportID */
     CONCIERGE_REPORT_ID: 'conciergeReportID',
+
+    /** Draft message typed into the Concierge prompt box on the home page */
+    CONCIERGE_PROMPT_DRAFT: 'conciergePromptDraft',
 
     /** The user's Self DM reportID */
     SELF_DM_REPORT_ID: 'selfDMReportID',
@@ -752,6 +770,9 @@ const ONYXKEYS = {
 
     /** Information about travel provisioning process */
     TRAVEL_PROVISIONING: 'travelProvisioning',
+
+    /** Signals the UI to show the Enable Global Reimbursements modal when a pay attempt fails because the workspace USD VBBA is not set up on Corpay */
+    RAM_ONLY_CORPAY_PAY_MODAL: 'corpayPayModal',
 
     /** Stores the information about the state of side panel */
     NVP_SIDE_PANEL: 'nvp_sidePanel',
@@ -793,7 +814,6 @@ const ONYXKEYS = {
      */
     SHOULD_BILL_WHEN_DOWNGRADING: 'shouldBillWhenDowngrading',
 
-    /** Billing receipt details */
     BILLING_RECEIPT_DETAILS: 'billingReceiptDetails',
 
     /** Set this gets redirected from global reimbursements flow */
@@ -802,7 +822,6 @@ const ONYXKEYS = {
     /** Stores information for OpenUnreportedExpensesPage API call pagination */
     HAS_MORE_UNREPORTED_TRANSACTIONS_RESULTS: 'hasMoreUnreportedTransactionsResults',
 
-    /** Is unreported transactions loading */
     IS_LOADING_UNREPORTED_TRANSACTIONS: 'isLoadingUnreportedTransactions',
 
     /** Stores information for InitiateBankAccountUnlock API call */
@@ -867,6 +886,7 @@ const ONYXKEYS = {
         POLICY_CATEGORIES_DRAFT: 'policyCategoriesDraft_',
         POLICY_RECENTLY_USED_CATEGORIES: 'policyRecentlyUsedCategories_',
         POLICY_TAGS: 'policyTags_',
+        POLICY_VENDORS: 'policyVendors_',
         POLICY_RECENTLY_USED_TAGS: 'nvp_recentlyUsedTags_',
         POLICY_RECENTLY_USED_DESTINATIONS: 'nvp_recentlyUsedDestinations_',
         // Whether the policy's connection data was attempted to be fetched in
@@ -876,6 +896,8 @@ const ONYXKEYS = {
         POLICY_HAS_CONNECTIONS_DATA_BEEN_FETCHED: 'policyHasConnectionsDataBeenFetched_',
         POLICY_CONNECTION_SYNC_PROGRESS: 'policyConnectionSyncProgress_',
         POLICY_MERGE_HR_INITIAL_SYNC_MODAL_SHOWN: 'policyMergeHRInitialSyncModalShown_',
+        POLICY_MERGE_ATS_INITIAL_SYNC_MODAL_SHOWN: 'policyMergeATSInitialSyncModalShown_',
+        RULE: 'rules_',
         WORKSPACE_INVITE_MEMBERS_DRAFT: 'workspaceInviteMembersDraft_',
         WORKSPACE_INVITE_MESSAGE_DRAFT: 'workspaceInviteMessageDraft_',
         WORKSPACE_INVITE_ROLE_DRAFT: 'workspaceInviteRoleDraft_',
@@ -883,6 +905,12 @@ const ONYXKEYS = {
         REPORT: 'report_',
         REPORT_NAME_VALUE_PAIRS: 'reportNameValuePairs_',
         REPORT_DRAFT: 'reportDraft_',
+        // Boolean marker (no report data) flagging that report_<id> is a speculative copy of reportDraft_<id>, written by
+        // preMountDraftReport so a pre-mounted destination can render before submit. Must persist (not RAM-only): the
+        // report_<id> row it points at lives in the persisted REPORT collection, and Onyx RAM-only applies per key or whole
+        // collection, not per row, so that row survives an app kill (where no unmount cleanup runs). A RAM-only marker would
+        // vanish while the row stays behind. The next launch uses this marker to find and delete it.
+        REPORT_PRE_MOUNTED_DRAFT: 'reportPreMountedDraft_',
         // REPORT_METADATA holds report-level business state that is NOT the report itself
         // (optimistic flag, pending chat members, report-level errors, DEW pendingExpenseAction).
         // Loading flags / pagination cursors / last-visit timestamp live in dedicated
@@ -895,6 +923,9 @@ const ONYXKEYS = {
         /** Session-scoped loading flags for company cards page and feeds.
          *  Registered as RAM-only in `setup/index.ts`. */
         RAM_ONLY_COMPANY_CARDS_LOADING_STATE: 'companyCardsLoadingState_',
+        /** Session-scoped loading flags for the Expensify Card page, keyed by policyID.
+         *  Registered as RAM-only in `setup/index.ts`. */
+        RAM_ONLY_EXPENSIFY_CARD_LOADING_STATE: 'expensifyCardLoadingState_',
         /** Pagination cursors for a report's action list. */
         REPORT_PAGINATION_STATE: 'reportPaginationState_',
         REPORT_ACTIONS: 'reportActions_',
@@ -907,6 +938,7 @@ const ONYXKEYS = {
         PENDING_CONCIERGE_RESPONSE: 'pendingConciergeResponse_',
         CONCIERGE_PENDING_FOLLOWUP_LIST: 'conciergePendingFollowupList_',
         REPORT_USER_IS_LEAVING_ROOM: 'reportUserIsLeavingRoom_',
+        /** Deprecated: security group data now uses SHARED_NVP_SECURITY_GROUP. Kept so the legacy key is still read during the backend rollout. */
         SECURITY_GROUP: 'securityGroup_',
         TRANSACTION: 'transactions_',
         TRANSACTION_VIOLATIONS: 'transactionViolations_',
@@ -939,13 +971,15 @@ const ONYXKEYS = {
         /** The collection of card feeds */
         SHARED_NVP_PRIVATE_DOMAIN_MEMBER: 'sharedNVP_private_domain_member_',
 
+        /** Collection of domain security groups, keyed as <securityGroupID>_<domainAccountID> (the domain account owns the shared NVP) */
+        SHARED_NVP_SECURITY_GROUP: 'sharedNVP_domain_securityGroup_',
+
         /**
          * Stores the card list for a given fundID and feed in the format: cards_<fundID>_<bankName>
          * So for example: cards_12345_Expensify Card
          */
         WORKSPACE_CARDS_LIST: 'cards_',
 
-        /** Expensify cards settings */
         PRIVATE_EXPENSIFY_CARD_SETTINGS: 'private_expensifyCardSettings_',
 
         /** Expensify cards bank account for a given workspace */
@@ -966,17 +1000,17 @@ const ONYXKEYS = {
         /** The selected accounting integration bank account ID for card reconciliation */
         EXPENSIFY_CARD_RECONCILIATION_BANK_ACCOUNT_ID: 'expensifyCard_bankAccount_',
 
-        /** Stores which connection is set up to use Travel Invoicing Continuous Reconciliation */
-        TRAVEL_INVOICING_CONTINUOUS_RECONCILIATION_CONNECTION: 'travelInvoicing_continuousReconciliationConnection_',
+        /** Stores which connection is set up to use Travel Billing Continuous Reconciliation */
+        TRAVEL_BILLING_CONTINUOUS_RECONCILIATION_CONNECTION: 'travelInvoicing_continuousReconciliationConnection_',
 
-        /** The value that indicates whether Travel Invoicing Continuous Reconciliation should be used on the workspace */
-        TRAVEL_INVOICING_USE_CONTINUOUS_RECONCILIATION: 'travelInvoicing_useContinuousReconciliation_',
+        /** The value that indicates whether Travel Billing Continuous Reconciliation should be used on the workspace */
+        TRAVEL_BILLING_USE_CONTINUOUS_RECONCILIATION: 'travelInvoicing_useContinuousReconciliation_',
 
-        /** Pending action for Travel Invoicing Continuous Reconciliation enabled status */
-        TRAVEL_INVOICING_USE_CONTINUOUS_RECONCILIATION_PENDING_ACTION: 'travelInvoicing_useContinuousReconciliationPendingAction_',
+        /** Pending action for Travel Billing Continuous Reconciliation enabled status */
+        TRAVEL_BILLING_USE_CONTINUOUS_RECONCILIATION_PENDING_ACTION: 'travelInvoicing_useContinuousReconciliationPendingAction_',
 
-        /** The selected accounting integration bank account ID for Travel Invoicing reconciliation */
-        TRAVEL_INVOICING_RECONCILIATION_BANK_ACCOUNT_ID: 'travelInvoicing_reconciliationBankAccount_',
+        /** The selected accounting integration bank account ID for Travel Billing reconciliation */
+        TRAVEL_BILLING_RECONCILIATION_BANK_ACCOUNT_ID: 'travelInvoicing_reconciliationBankAccount_',
 
         /** Currently displaying feed */
         LAST_SELECTED_FEED: 'lastSelectedFeed_',
@@ -1001,7 +1035,6 @@ const ONYXKEYS = {
         /** SAML login metadata for a domain */
         SAML_METADATA: 'saml_metadata_',
 
-        /** Pending actions for a domain */
         DOMAIN_PENDING_ACTIONS: 'domainPendingActions_',
 
         /** Errors related to a domain */
@@ -1181,8 +1214,8 @@ const ONYXKEYS = {
         EDIT_EXPENSIFY_CARD_NAME_DRAFT_FORM: 'editExpensifyCardNameDraft',
         EDIT_EXPENSIFY_CARD_LIMIT_FORM: 'editExpensifyCardLimit',
         EDIT_EXPENSIFY_CARD_LIMIT_DRAFT_FORM: 'editExpensifyCardLimitDraft',
-        EDIT_TRAVEL_INVOICING_MONTHLY_LIMIT_FORM: 'editTravelInvoicingMonthlyLimit',
-        EDIT_TRAVEL_INVOICING_MONTHLY_LIMIT_DRAFT_FORM: 'editTravelInvoicingMonthlyLimitDraft',
+        EDIT_TRAVEL_BILLING_MONTHLY_LIMIT_FORM: 'editTravelInvoicingMonthlyLimit',
+        EDIT_TRAVEL_BILLING_MONTHLY_LIMIT_DRAFT_FORM: 'editTravelInvoicingMonthlyLimitDraft',
         TRAVEL_LEGAL_ENTITY_TAX_ID_FORM: 'travelLegalEntityTaxIDForm',
         TRAVEL_LEGAL_ENTITY_TAX_ID_DRAFT_FORM: 'travelLegalEntityTaxIDFormDraft',
         EDIT_EXPENSIFY_CARD_LIMIT_TYPE_FORM: 'editExpensifyCardLimitType',
@@ -1291,6 +1324,8 @@ const ONYXKEYS = {
         RILLET_CREDENTIALS_FORM_DRAFT: 'rilletCredentialsFormDraft',
         DUALENTRY_CREDENTIALS_FORM: 'dualEntryCredentialsForm',
         DUALENTRY_CREDENTIALS_FORM_DRAFT: 'dualEntryCredentialsFormDraft',
+        CAMPFIRE_CREDENTIALS_FORM: 'campfireCredentialsForm',
+        CAMPFIRE_CREDENTIALS_FORM_DRAFT: 'campfireCredentialsFormDraft',
     },
     DERIVED: {
         REPORT_ATTRIBUTES: 'reportAttributes',
@@ -1302,6 +1337,7 @@ const ONYXKEYS = {
         CARD_FEED_ERRORS: 'cardFeedErrors',
         RAM_ONLY_SORTED_REPORT_ACTIONS: 'sortedReportActions',
         LOGIN_TO_ACCOUNT_ID_MAP: 'loginToAccountIDMap',
+        GUIDE_ACCOUNT_IDS: 'guideAccountIDs',
     },
 
     /** Stores HybridApp specific state required to interoperate with OldDot */
@@ -1388,7 +1424,7 @@ type OnyxFormValuesMapping = {
     [ONYXKEYS.FORMS.COMPANY_CARD_LAYOUT_NAME_FORM]: FormTypes.CompanyCardLayoutNameForm;
     [ONYXKEYS.FORMS.EDIT_EXPENSIFY_CARD_NAME_FORM]: FormTypes.EditExpensifyCardNameForm;
     [ONYXKEYS.FORMS.EDIT_EXPENSIFY_CARD_LIMIT_FORM]: FormTypes.EditExpensifyCardLimitForm;
-    [ONYXKEYS.FORMS.EDIT_TRAVEL_INVOICING_MONTHLY_LIMIT_FORM]: FormTypes.EditTravelInvoicingMonthlyLimitForm;
+    [ONYXKEYS.FORMS.EDIT_TRAVEL_BILLING_MONTHLY_LIMIT_FORM]: FormTypes.EditTravelBillingMonthlyLimitForm;
     [ONYXKEYS.FORMS.TRAVEL_LEGAL_ENTITY_TAX_ID_FORM]: FormTypes.TravelLegalEntityTaxIDForm;
     [ONYXKEYS.FORMS.EDIT_EXPENSIFY_CARD_LIMIT_TYPE_FORM]: FormTypes.EditExpensifyCardLimitTypeForm;
     [ONYXKEYS.FORMS.SAGE_INTACCT_CREDENTIALS_FORM]: FormTypes.SageIntactCredentialsForm;
@@ -1443,6 +1479,7 @@ type OnyxFormValuesMapping = {
     [ONYXKEYS.FORMS.EDIT_AGENT_RULE_FORM]: FormTypes.EditAgentRuleForm;
     [ONYXKEYS.FORMS.RILLET_CREDENTIALS_FORM]: FormTypes.RilletCredentialsForm;
     [ONYXKEYS.FORMS.DUALENTRY_CREDENTIALS_FORM]: FormTypes.DualEntryCredentialsForm;
+    [ONYXKEYS.FORMS.CAMPFIRE_CREDENTIALS_FORM]: FormTypes.CampfireCredentialsForm;
 };
 
 type OnyxFormDraftValuesMapping = {
@@ -1456,9 +1493,11 @@ type OnyxCollectionValuesMapping = {
     [ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD]: OnyxTypes.ExportDownload;
     [ONYXKEYS.COLLECTION.POLICY]: OnyxTypes.Policy;
     [ONYXKEYS.COLLECTION.POLICY_DRAFTS]: OnyxTypes.Policy;
+    [ONYXKEYS.COLLECTION.RULE]: OnyxTypes.Rule;
     [ONYXKEYS.COLLECTION.POLICY_CATEGORIES]: OnyxTypes.PolicyCategories;
     [ONYXKEYS.COLLECTION.POLICY_CATEGORIES_DRAFT]: OnyxTypes.PolicyCategories;
     [ONYXKEYS.COLLECTION.POLICY_TAGS]: OnyxTypes.PolicyTagLists;
+    [ONYXKEYS.COLLECTION.POLICY_VENDORS]: OnyxTypes.PolicyVendors;
     [ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES]: OnyxTypes.RecentlyUsedCategories;
     [ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_DESTINATIONS]: OnyxTypes.RecentlyUsedCategories;
     [ONYXKEYS.COLLECTION.POLICY_HAS_CONNECTIONS_DATA_BEEN_FETCHED]: boolean;
@@ -1470,9 +1509,11 @@ type OnyxCollectionValuesMapping = {
     [ONYXKEYS.COLLECTION.REPORT]: OnyxTypes.Report;
     [ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS]: OnyxTypes.ReportNameValuePairs;
     [ONYXKEYS.COLLECTION.REPORT_DRAFT]: OnyxTypes.Report;
+    [ONYXKEYS.COLLECTION.REPORT_PRE_MOUNTED_DRAFT]: boolean;
     [ONYXKEYS.COLLECTION.REPORT_METADATA]: OnyxTypes.ReportMetadata;
     [ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE]: OnyxTypes.ReportLoadingState;
     [ONYXKEYS.COLLECTION.RAM_ONLY_COMPANY_CARDS_LOADING_STATE]: OnyxTypes.CompanyCardsLoadingState;
+    [ONYXKEYS.COLLECTION.RAM_ONLY_EXPENSIFY_CARD_LOADING_STATE]: OnyxTypes.ExpensifyCardLoadingState;
     [ONYXKEYS.COLLECTION.REPORT_PAGINATION_STATE]: OnyxTypes.ReportPaginationState;
     [ONYXKEYS.COLLECTION.REPORT_ACTIONS]: OnyxTypes.ReportActions;
     [ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS]: OnyxTypes.ReportActionsDrafts;
@@ -1486,6 +1527,7 @@ type OnyxCollectionValuesMapping = {
     [ONYXKEYS.COLLECTION.CONCIERGE_PENDING_FOLLOWUP_LIST]: OnyxTypes.ConciergePendingFollowupList;
     [ONYXKEYS.COLLECTION.REPORT_USER_IS_LEAVING_ROOM]: boolean;
     [ONYXKEYS.COLLECTION.SECURITY_GROUP]: OnyxTypes.SecurityGroup;
+    [ONYXKEYS.COLLECTION.SHARED_NVP_SECURITY_GROUP]: OnyxTypes.SecurityGroup;
     [ONYXKEYS.COLLECTION.TRANSACTION]: OnyxTypes.Transaction;
     [ONYXKEYS.COLLECTION.TRANSACTION_DRAFT]: OnyxTypes.Transaction;
     [ONYXKEYS.COLLECTION.SKIP_CONFIRMATION]: boolean;
@@ -1502,6 +1544,7 @@ type OnyxCollectionValuesMapping = {
     [ONYXKEYS.COLLECTION.POLICY_JOIN_MEMBER]: OnyxTypes.PolicyJoinMember;
     [ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS]: OnyxTypes.PolicyConnectionSyncProgress;
     [ONYXKEYS.COLLECTION.POLICY_MERGE_HR_INITIAL_SYNC_MODAL_SHOWN]: boolean;
+    [ONYXKEYS.COLLECTION.POLICY_MERGE_ATS_INITIAL_SYNC_MODAL_SHOWN]: boolean;
     [ONYXKEYS.COLLECTION.SNAPSHOT]: OnyxTypes.SearchResults;
     [ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT]: OnyxTypes.AgentPrompt;
     [ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END]: OnyxTypes.BillingGraceEndPeriod;
@@ -1515,10 +1558,10 @@ type OnyxCollectionValuesMapping = {
     [ONYXKEYS.COLLECTION.EXPENSIFY_CARD_USE_CONTINUOUS_RECONCILIATION]: boolean | string;
     [ONYXKEYS.COLLECTION.EXPENSIFY_CARD_USE_CONTINUOUS_RECONCILIATION_PENDING_ACTION]: OnyxTypes.CardContinuousReconciliation;
     [ONYXKEYS.COLLECTION.EXPENSIFY_CARD_RECONCILIATION_BANK_ACCOUNT_ID]: string;
-    [ONYXKEYS.COLLECTION.TRAVEL_INVOICING_CONTINUOUS_RECONCILIATION_CONNECTION]: OnyxTypes.PolicyConnectionName;
-    [ONYXKEYS.COLLECTION.TRAVEL_INVOICING_USE_CONTINUOUS_RECONCILIATION]: boolean;
-    [ONYXKEYS.COLLECTION.TRAVEL_INVOICING_USE_CONTINUOUS_RECONCILIATION_PENDING_ACTION]: OnyxTypes.CardContinuousReconciliation;
-    [ONYXKEYS.COLLECTION.TRAVEL_INVOICING_RECONCILIATION_BANK_ACCOUNT_ID]: string;
+    [ONYXKEYS.COLLECTION.TRAVEL_BILLING_CONTINUOUS_RECONCILIATION_CONNECTION]: OnyxTypes.PolicyConnectionName;
+    [ONYXKEYS.COLLECTION.TRAVEL_BILLING_USE_CONTINUOUS_RECONCILIATION]: boolean;
+    [ONYXKEYS.COLLECTION.TRAVEL_BILLING_USE_CONTINUOUS_RECONCILIATION_PENDING_ACTION]: OnyxTypes.CardContinuousReconciliation;
+    [ONYXKEYS.COLLECTION.TRAVEL_BILLING_RECONCILIATION_BANK_ACCOUNT_ID]: string;
     [ONYXKEYS.COLLECTION.LAST_SELECTED_FEED]: OnyxTypes.CompanyCardFeedWithDomainID;
     [ONYXKEYS.COLLECTION.LAST_SELECTED_EXPENSIFY_CARD_FEED]: OnyxTypes.FundID;
     [ONYXKEYS.COLLECTION.NVP_EXPENSIFY_ON_CARD_WAITLIST]: OnyxTypes.CardOnWaitlist;
@@ -1536,6 +1579,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.ACCOUNT]: OnyxTypes.Account;
     [ONYXKEYS.ACCOUNT_MANAGER_REPORT_ID]: string;
     [ONYXKEYS.DEFAULT_P2P_MILEAGE_RATE]: DefaultP2PMileageRate;
+    [ONYXKEYS.GOVERNMENT_MILEAGE_RATES]: OnyxTypes.GovernmentMileageRate[];
 
     [ONYXKEYS.NVP_ONBOARDING]: Onboarding;
 
@@ -1650,7 +1694,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.CARD_SUPPORTED_COUNTRIES]: Record<string, string[]>;
     [ONYXKEYS.CARD_LIST]: OnyxTypes.CardList;
     [ONYXKEYS.WALLET_STATEMENT]: OnyxTypes.WalletStatement;
-    [ONYXKEYS.TRAVEL_INVOICE_STATEMENT]: OnyxTypes.TravelInvoiceStatement;
+    [ONYXKEYS.TRAVEL_BILLING_STATEMENT]: OnyxTypes.TravelBillingStatement;
     [ONYXKEYS.EXPENSIFY_CARD_STATEMENT]: OnyxTypes.ExpensifyCardStatement;
     [ONYXKEYS.PURCHASE_LIST]: OnyxTypes.PurchaseList;
     [ONYXKEYS.PERSONAL_BANK_ACCOUNT]: OnyxTypes.PersonalBankAccount;
@@ -1692,7 +1736,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.IS_BETA]: boolean;
     [ONYXKEYS.RAM_ONLY_IS_CHECKING_PUBLIC_ROOM]: boolean;
     [ONYXKEYS.VIEWING_PUBLIC_ROOM_REPORT_ID]: string;
-    [ONYXKEYS.MY_DOMAIN_SECURITY_GROUPS]: Record<string, string>;
+    [ONYXKEYS.MY_DOMAIN_SECURITY_GROUPS]: Record<string, OnyxTypes.DomainSecurityGroupMembership>;
     [ONYXKEYS.RAM_ONLY_DOMAIN_MEMBERS_SELECTED_FOR_MOVE]: string[];
     [ONYXKEYS.VERIFY_3DS_SUBSCRIPTION]: string;
     [ONYXKEYS.PREFERRED_THEME]: ValueOf<typeof CONST.THEME>;
@@ -1722,8 +1766,12 @@ type OnyxValuesMapping = {
     [ONYXKEYS.PLAID_CURRENT_EVENT]: string;
     [ONYXKEYS.NVP_PRIVATE_TAX_EXEMPT]: boolean;
     [ONYXKEYS.SHOULD_MASK_ONYX_STATE]: boolean;
+    // eslint-disable-next-line @typescript-eslint/no-deprecated -- the key stays typed while it is still read
     [ONYXKEYS.SHOULD_USE_STAGING_SERVER]: boolean;
+    [ONYXKEYS.ACTIVE_SERVER]: ValueOf<typeof CONST.SERVER>;
+    [ONYXKEYS.CLOUDFLARE_SESSION]: OnyxTypes.CloudflareSession;
     [ONYXKEYS.IS_DEBUG_MODE_ENABLED]: boolean;
+    [ONYXKEYS.BETA_OVERRIDES]: OnyxTypes.BetaOverrides;
     [ONYXKEYS.SHOULD_SHOW_BRANCH_NAME_IN_TITLE]: boolean;
     [ONYXKEYS.IS_SENTRY_DEBUG_ENABLED]: boolean;
     [ONYXKEYS.IS_SENTRY_SEND_ENABLED]: boolean;
@@ -1751,6 +1799,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.NVP_PRIVATE_FREEBIE_CREDITS]: number;
     [ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED]: number;
     [ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END]: number;
+    [ONYXKEYS.NVP_PRIVATE_OWNER_TRAVEL_BILLING_GRACE_PERIOD_END]: number;
     [ONYXKEYS.NVP_DELETE_TRANSACTION_NAVIGATE_BACK_URL]: string | undefined;
     [ONYXKEYS.NVP_RECONNECT_APP_IF_FULL_RECONNECT_BEFORE]: string;
     [ONYXKEYS.NVP_PRIVATE_FIRST_POLICY_CREATED_DATE]: string;
@@ -1764,10 +1813,12 @@ type OnyxValuesMapping = {
     [ONYXKEYS.IMPORTED_SPREADSHEET_MEMBER_DATA]: OnyxTypes.ImportedSpreadsheetMemberData[];
     [ONYXKEYS.IMPORTED_SPREADSHEET_MEMBER_ROLE]: ValueOf<typeof CONST.POLICY.ROLE>;
     [ONYXKEYS.LAST_ROUTE]: string;
+    [ONYXKEYS.LAST_MEASURED_DATABASE_SIZE]: OnyxTypes.DatabaseSizeMeasurement;
     [ONYXKEYS.IS_USING_IMPORTED_STATE]: boolean;
     [ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES]: Record<string, string>;
     [ONYXKEYS.CONCIERGE_THINKING_KICKOFF]: boolean;
     [ONYXKEYS.CONCIERGE_REPORT_ID]: string;
+    [ONYXKEYS.CONCIERGE_PROMPT_DRAFT]: string;
     [ONYXKEYS.SELF_DM_REPORT_ID]: string;
     [ONYXKEYS.SHARE_UNKNOWN_USER_DETAILS]: Participant;
     [ONYXKEYS.SHARE_TEMP_FILE]: OnyxTypes.ShareTempFile;
@@ -1777,9 +1828,11 @@ type OnyxValuesMapping = {
     [ONYXKEYS.PRESERVED_ACCOUNT]: OnyxTypes.Account;
     [ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING]: OnyxTypes.DismissedProductTraining;
     [ONYXKEYS.NVP_SUBMIT_MIGRATION_MODAL_SHOWN]: boolean;
+    [ONYXKEYS.ATTACHMENT_RECORD_PATHS_MIGRATED]: boolean;
     [ONYXKEYS.CORPAY_ONBOARDING_FIELDS]: OnyxTypes.CorpayOnboardingFields;
     [ONYXKEYS.LAST_FULL_RECONNECT_TIME]: string;
     [ONYXKEYS.TRAVEL_PROVISIONING]: OnyxTypes.TravelProvisioning;
+    [ONYXKEYS.RAM_ONLY_CORPAY_PAY_MODAL]: OnyxTypes.CorpayPayModal;
     [ONYXKEYS.IS_LOADING_BILL_WHEN_DOWNGRADE]: boolean | undefined;
     [ONYXKEYS.SHOULD_BILL_WHEN_DOWNGRADING]: boolean | undefined;
     [ONYXKEYS.BILLING_RECEIPT_DETAILS]: OnyxTypes.BillingReceiptDetails;
@@ -1829,6 +1882,7 @@ type OnyxDerivedValuesMapping = {
     [ONYXKEYS.DERIVED.CARD_FEED_ERRORS]: OnyxTypes.CardFeedErrorsDerivedValue;
     [ONYXKEYS.DERIVED.RAM_ONLY_SORTED_REPORT_ACTIONS]: OnyxTypes.SortedReportActionsDerivedValue;
     [ONYXKEYS.DERIVED.LOGIN_TO_ACCOUNT_ID_MAP]: OnyxTypes.LoginToAccountIDMapDerivedValue;
+    [ONYXKEYS.DERIVED.GUIDE_ACCOUNT_IDS]: OnyxTypes.GuideAccountIDsDerivedValue;
 };
 
 type OnyxValues = OnyxValuesMapping & OnyxCollectionValuesMapping & OnyxFormValuesMapping & OnyxFormDraftValuesMapping & OnyxDerivedValuesMapping;

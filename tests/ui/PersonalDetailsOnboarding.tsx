@@ -185,7 +185,7 @@ describe('OnboardingPersonalDetails Page', () => {
         await waitForBatchedUpdatesWithAct();
     });
 
-    it('should navigate to Onboarding workspaces page when submitting form with EMPLOYER + Submit2026 beta and validated private domain', async () => {
+    it('should navigate to Onboarding workspaces page when submitting form with EMPLOYER and validated private domain', async () => {
         const testEmail = 'test@user.com';
         await TestHelper.signInWithTestUser();
 
@@ -202,7 +202,6 @@ describe('OnboardingPersonalDetails Page', () => {
                 },
             });
             await Onyx.set(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED, CONST.ONBOARDING_CHOICES.EMPLOYER);
-            await Onyx.set(ONYXKEYS.BETAS, [CONST.BETAS.SUBMIT_2026]);
         });
 
         const {unmount} = renderOnboardingPersonalDetailsPage(SCREENS.ONBOARDING.PERSONAL_DETAILS, {backTo: ''});
@@ -219,7 +218,7 @@ describe('OnboardingPersonalDetails Page', () => {
         await waitForBatchedUpdatesWithAct();
     });
 
-    it('should create a Submit workspace when submitting form with EMPLOYER + Submit2026 beta and public domain', async () => {
+    it('should create a Submit workspace when submitting form with EMPLOYER and public domain', async () => {
         jest.spyOn(Navigation, 'dismissModal').mockImplementation(() => {});
         jest.spyOn(Navigation, 'setNavigationActionToMicrotaskQueue').mockImplementation((callback: () => void) => callback());
 
@@ -231,7 +230,6 @@ describe('OnboardingPersonalDetails Page', () => {
                 hasAccessibleDomainPolicies: false,
             });
             await Onyx.set(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED, CONST.ONBOARDING_CHOICES.EMPLOYER);
-            await Onyx.set(ONYXKEYS.BETAS, [CONST.BETAS.SUBMIT_2026]);
         });
 
         const {unmount} = renderOnboardingPersonalDetailsPage(SCREENS.ONBOARDING.PERSONAL_DETAILS, {backTo: ''});

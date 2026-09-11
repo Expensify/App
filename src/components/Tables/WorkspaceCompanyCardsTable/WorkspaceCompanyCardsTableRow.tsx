@@ -1,6 +1,6 @@
+import AccountAvatarWithCardFeed from '@components/Avatar/connected/AccountAvatarWithCardFeed';
 import Button from '@components/ButtonComposed';
 import Icon from '@components/Icon';
-import ReportActionAvatars from '@components/ReportActionAvatars';
 import type {TableData} from '@components/Table';
 import Table from '@components/Table';
 import {getCellAccessibilityProps, shouldUseTableSemantics} from '@components/Table/tableAccessibility';
@@ -28,27 +28,15 @@ import {View} from 'react-native';
 
 type WorkspaceCompanyCardTableRowData = TableData &
     CardAssignmentData & {
-        /** Whether the card is deleted */
         isCardDeleted: boolean;
-
-        /** Whether the card is assigned */
         isAssigned: boolean;
-
-        /** Assigned card */
         assignedCard?: Card;
-
-        /** On dismiss error callback */
         onDismissError?: () => void;
     };
 
 type WorkspaceCompanyCardTableRowProps = {
-    /** The workspace company card table item */
     item: WorkspaceCompanyCardTableRowData;
-
-    /** Selected card feed */
     feedName?: CompanyCardFeedWithDomainID;
-
-    /** Card feed icon element */
     CardFeedIcon?: React.ReactNode;
 
     /** Whether to disable assign card button */
@@ -57,10 +45,7 @@ type WorkspaceCompanyCardTableRowProps = {
     /** Whether the current member can edit company cards */
     canWriteCompanyCards: boolean;
 
-    /** Whether to use narrow table row layout */
     shouldUseNarrowTableLayout: boolean;
-
-    /** The index of the row */
     rowIndex: number;
 
     /**
@@ -145,13 +130,13 @@ function WorkspaceCompanyCardTableRow({
                         {...getCellAccessibilityProps(isTableSemanticsEnabled)}
                     >
                         {isAssigned ? (
-                            <ReportActionAvatars
-                                noRightMarginOnSubscriptContainer
+                            <AccountAvatarWithCardFeed
+                                accountID={cardholder?.accountID ?? CONST.DEFAULT_NUMBER_ID}
+                                cardFeed={assignedCard?.bank as CompanyCardFeed}
+                                cardFeedIconSize={subscriptCardFeedIconSize}
+                                borderColor={hovered ? theme.hoverComponentBG : theme.highlightBG}
+                                containerStyle={styles.mr0}
                                 size={avatarSize}
-                                accountIDs={cardholder?.accountID ? [cardholder.accountID] : []}
-                                subscriptCardFeed={assignedCard?.bank as CompanyCardFeed}
-                                subscriptCardFeedIconSize={subscriptCardFeedIconSize}
-                                subscriptAvatarBorderColor={hovered ? theme.hoverComponentBG : theme.highlightBG}
                             />
                         ) : (
                             CardFeedIcon

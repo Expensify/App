@@ -1,4 +1,4 @@
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
@@ -52,9 +52,7 @@ type ValidateCodeFormProps = {
     /** Specifies autocomplete hints for the system, so it can provide autofill */
     autoComplete?: AutoCompleteVariant;
 
-    /** Forwarded inner ref */
     ref?: ForwardedRef<ValidateCodeFormHandle>;
-
     hasValidateCodeBeenSent?: boolean;
 
     /** The pending action of validateCode being sent
@@ -69,16 +67,9 @@ type ValidateCodeFormProps = {
      */
     validateCodeActionErrorField: string;
 
-    /** The error of submitting  */
     validateError?: Errors;
-
-    /** Function is called when submitting form  */
     handleSubmitForm: (validateCode: string) => void;
-
-    /** Styles for the button */
     buttonStyles?: StyleProp<ViewStyle>;
-
-    /** Function to clear error of the form */
     clearError: () => void;
 
     /** Whether to show the verify button  */
@@ -90,13 +81,8 @@ type ValidateCodeFormProps = {
     /** Function is called when validate code modal is mounted and on validateCode resend */
     sendValidateCode: () => void;
 
-    /** Whether the form is loading or not */
     isLoading?: boolean;
-
-    /** Whether to show skip button */
     shouldShowSkipButton?: boolean;
-
-    /** Function to call when skip button is pressed */
     handleSkipButtonPress?: () => void;
 
     /** Whether the modal is used as a page modal. Used to determine input auto focus timing. */
@@ -412,26 +398,27 @@ function BaseValidateCodeForm({
             >
                 {shouldShowSkipButton && (
                     <Button
-                        text={translate('common.skip')}
                         onPress={handleSkipButtonPress}
                         style={[styles.mt4]}
-                        success={false}
-                        large
+                        size={CONST.BUTTON_SIZE.LARGE}
                         sentryLabel={CONST.SENTRY_LABEL.VALIDATE_CODE.SKIP}
-                    />
+                    >
+                        <Button.Text>{translate('common.skip')}</Button.Text>
+                    </Button>
                 )}
                 {!hideSubmitButton && (
                     <Button
                         isDisabled={isOffline}
-                        text={submitButtonText ?? translate('common.verify')}
                         onPress={validateAndSubmitForm}
                         style={[shouldShowSkipButton ? styles.mt3 : styles.mt4]}
-                        success
-                        large
+                        variant={CONST.BUTTON_VARIANT.SUCCESS}
+                        size={CONST.BUTTON_SIZE.LARGE}
                         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                         isLoading={account?.isLoading || isLoading}
                         sentryLabel={CONST.SENTRY_LABEL.VALIDATE_CODE.VERIFY}
-                    />
+                    >
+                        <Button.Text>{submitButtonText ?? translate('common.verify')}</Button.Text>
+                    </Button>
                 )}
             </OfflineWithFeedback>
         </>

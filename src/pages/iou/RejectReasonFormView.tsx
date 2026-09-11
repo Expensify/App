@@ -13,6 +13,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import Navigation from '@libs/Navigation/Navigation';
 
+import CONST from '@src/CONST';
 import type ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/MoneyRequestRejectReasonForm';
@@ -21,10 +22,7 @@ import React from 'react';
 import {View} from 'react-native';
 
 type RejectReasonFormViewProps = {
-    /** Submit function for submitting form */
     onSubmit: (values: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_REJECT_FORM>) => void;
-
-    /** Submit function for validating form */
     validate: (values: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_REJECT_FORM>) => Partial<Record<'comment', string | undefined>>;
 
     /** Link to previous page */
@@ -54,7 +52,7 @@ function RejectReasonFormView({backTo, validate, onSubmit}: RejectReasonFormView
                 validate={validate}
                 enabledWhenOffline
                 shouldHideFixErrorsAlert
-                isSubmitActionDangerous
+                buttonVariant={CONST.BUTTON_VARIANT.DANGER}
                 submitFlexEnabled={false}
             >
                 <View style={styles.mb6}>

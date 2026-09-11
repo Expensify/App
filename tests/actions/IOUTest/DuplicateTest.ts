@@ -551,6 +551,7 @@ describe('actions/Duplicate', () => {
                 accountID: participantAccountIDs.at(index),
             }));
             openReport({
+                conciergeChat: undefined,
                 hasReportActions: true,
                 reportID: transactionThreadReport1.reportID,
                 introSelected: undefined,
@@ -562,6 +563,7 @@ describe('actions/Duplicate', () => {
                 currentUserAccountID: RORY_ACCOUNT_ID,
             });
             openReport({
+                conciergeChat: undefined,
                 hasReportActions: true,
                 reportID: transactionThreadReport2.reportID,
                 introSelected: undefined,
@@ -1938,6 +1940,168 @@ describe('actions/Duplicate', () => {
             expect(duplicatedTransaction?.iouRequestType).toBe(CONST.IOU.REQUEST_TYPE.MANUAL);
         });
 
+        it.each([
+            ['no target policy is provided', undefined, 'reported-source'],
+            ['a target policy is provided for an unreported source', mockPolicy, CONST.REPORT.UNREPORTED_REPORT_ID],
+        ])('should duplicate a GPS distance expense as manual distance when %s', async (_description, targetPolicy, reportID) => {
+            const transactionID = 'gps-unreported-1';
+            const mockGPSDistanceTransaction = {
+                ...mockTransaction,
+                transactionID,
+                reportID,
+                amount: mockTransaction.amount * -1,
+                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_GPS,
+                comment: {
+                    type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+                    customUnit: {
+                        distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                        name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                        quantity: 56.78,
+                    },
+                    waypoints: {
+                        waypoint0: {address: 'Start', lat: 37.7749, lng: -122.4194},
+                        waypoint1: {address: 'End', lat: 34.0522, lng: -118.2437},
+                    },
+                },
+            };
+
+            await Onyx.clear();
+
+            duplicateExpenseTransaction({
+                dateFnsLocale: undefined,
+                conciergeChat: undefined,
+                transaction: mockGPSDistanceTransaction,
+                optimisticChatReportID: mockOptimisticChatReportID,
+                optimisticIOUReportID: mockOptimisticIOUReportID,
+                isASAPSubmitBetaEnabled: mockIsASAPSubmitBetaEnabled,
+                introSelected: undefined,
+                quickAction: undefined,
+                policyRecentlyUsedCurrencies: [],
+                isSelfTourViewed: false,
+                customUnitPolicyID: targetPolicy?.id,
+                targetPolicy,
+                targetPolicyCategories: targetPolicy ? fakePolicyCategories : undefined,
+                targetReport: targetPolicy ? policyExpenseChat : undefined,
+                existingTransactionDraft: undefined,
+                betas: [CONST.BETAS.ALL],
+                personalDetails: {},
+                recentWaypoints,
+                targetPolicyTags,
+                policyTagList: targetPolicyTags ?? {},
+                currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                currentUserLocalCurrency: undefined,
+                delegateAccountID: undefined,
+                isTrackIntentUser: false,
+                formatPhoneNumber,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                participantsPolicyTags: {},
+            });
+
+            await waitForBatchedUpdates();
+
+            const trackExpenseCall = writeSpy.mock.calls.find(isWriteMockCallForCommand(WRITE_COMMANDS.TRACK_EXPENSE));
+            expect(trackExpenseCall).toBeDefined();
+            expect(trackExpenseCall?.[1]).toEqual(
+                expect.objectContaining({
+                    distance: 56.78,
+                    distanceRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL,
+                    waypoints: undefined,
+                }),
+            );
+
+            let duplicatedTransaction: OnyxEntry<Transaction>;
+            await getOnyxData({
+                key: ONYXKEYS.COLLECTION.TRANSACTION,
+                callback: (allTransactions) => {
+                    duplicatedTransaction = Object.values(allTransactions ?? {}).find((t) => !!t);
+                },
+            });
+
+            expect(duplicatedTransaction?.transactionID).not.toBe(transactionID);
+            expect(duplicatedTransaction?.iouRequestType).toBe(CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL);
+            expect(duplicatedTransaction?.comment?.waypoints).toBeUndefined();
+            expect(duplicatedTransaction?.comment?.customUnit?.quantity).toBe(56.78);
+        });
+
+        it('should keep reported workspace GPS distance duplicates as GPS with waypoints', async () => {
+            const transactionID = 'gps-reported-1';
+            const mockGPSDistanceTransaction = {
+                ...mockTransaction,
+                transactionID,
+                reportID: 'reported-gps-report',
+                amount: mockTransaction.amount * -1,
+                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_GPS,
+                comment: {
+                    type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+                    customUnit: {
+                        distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                        name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                        quantity: 56.78,
+                    },
+                    waypoints: {
+                        waypoint0: {address: 'Start', lat: 37.7749, lng: -122.4194},
+                        waypoint1: {address: 'End', lat: 34.0522, lng: -118.2437},
+                    },
+                },
+            };
+
+            await Onyx.clear();
+
+            duplicateExpenseTransaction({
+                dateFnsLocale: undefined,
+                conciergeChat: undefined,
+                transaction: mockGPSDistanceTransaction,
+                optimisticChatReportID: mockOptimisticChatReportID,
+                optimisticIOUReportID: mockOptimisticIOUReportID,
+                isASAPSubmitBetaEnabled: mockIsASAPSubmitBetaEnabled,
+                introSelected: undefined,
+                quickAction: undefined,
+                policyRecentlyUsedCurrencies: [],
+                isSelfTourViewed: false,
+                customUnitPolicyID: mockPolicy.id,
+                targetPolicy: mockPolicy,
+                targetPolicyCategories: fakePolicyCategories,
+                targetReport: policyExpenseChat,
+                existingTransactionDraft: undefined,
+                betas: [CONST.BETAS.ALL],
+                personalDetails: {},
+                recentWaypoints,
+                targetPolicyTags,
+                policyTagList: targetPolicyTags ?? {},
+                currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                currentUserLocalCurrency: undefined,
+                delegateAccountID: undefined,
+                isTrackIntentUser: false,
+                formatPhoneNumber,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                participantsPolicyTags: {},
+            });
+
+            await waitForBatchedUpdates();
+
+            const distanceCall = writeSpy.mock.calls.find(isWriteMockCallForCommand(WRITE_COMMANDS.CREATE_DISTANCE_REQUEST));
+            expect(distanceCall).toBeDefined();
+            expect(writeSpy.mock.calls.find(isWriteMockCallForCommand(WRITE_COMMANDS.TRACK_EXPENSE))).toBeUndefined();
+            expect(distanceCall?.[1]).toEqual(
+                expect.objectContaining({
+                    distanceRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_GPS,
+                }),
+            );
+            expect(distanceCall?.[1]?.waypoints).toBeDefined();
+            expect(distanceCall?.[1]?.waypoints).not.toBe('null');
+
+            let duplicatedTransaction: OnyxEntry<Transaction>;
+            await getOnyxData({
+                key: ONYXKEYS.COLLECTION.TRANSACTION,
+                callback: (allTransactions) => {
+                    duplicatedTransaction = Object.values(allTransactions ?? {}).find((t) => !!t);
+                },
+            });
+
+            expect(duplicatedTransaction?.transactionID).not.toBe(transactionID);
+            expect(duplicatedTransaction?.iouRequestType).toBe(CONST.IOU.REQUEST_TYPE.DISTANCE_GPS);
+        });
+
         it('should create a duplicate expense successfully (previously with transaction drafts)', async () => {
             const {waypoints, ...restOfComment} = mockTransaction.comment ?? {};
             const mockCashExpenseTransaction = {
@@ -2214,6 +2378,55 @@ describe('actions/Duplicate', () => {
 
             // Verify API was called with TRACK_EXPENSE (trackExpense path, not requestMoney)
             expect(writeSpy).toHaveBeenCalledWith(WRITE_COMMANDS.TRACK_EXPENSE, expect.objectContaining({}), expect.objectContaining({}));
+        });
+
+        it('should call trackExpense when the source expense is unreported even though a targetPolicy is provided', async () => {
+            const {waypoints, ...restOfComment} = mockTransaction.comment ?? {};
+            const mockUnreportedTransaction = {
+                ...mockTransaction,
+                reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+                amount: mockTransaction.amount * -1,
+                comment: {
+                    ...restOfComment,
+                },
+            };
+
+            await Onyx.clear();
+
+            duplicateExpenseTransaction({
+                dateFnsLocale: undefined,
+                conciergeChat: undefined,
+                transaction: mockUnreportedTransaction,
+                optimisticChatReportID: mockOptimisticChatReportID,
+                optimisticIOUReportID: mockOptimisticIOUReportID,
+                isASAPSubmitBetaEnabled: mockIsASAPSubmitBetaEnabled,
+                introSelected: undefined,
+                quickAction: undefined,
+                policyRecentlyUsedCurrencies: [],
+                isSelfTourViewed: false,
+                customUnitPolicyID: '',
+                targetPolicy: mockPolicy,
+                targetPolicyCategories: fakePolicyCategories,
+                targetReport: policyExpenseChat,
+                existingTransactionDraft: undefined,
+                betas: [CONST.BETAS.ALL],
+                personalDetails: mockPersonalDetails,
+                recentWaypoints,
+                targetPolicyTags,
+                policyTagList: targetPolicyTags ?? {},
+                currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                currentUserLocalCurrency: undefined,
+                delegateAccountID: undefined,
+                isTrackIntentUser: false,
+                formatPhoneNumber,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                participantsPolicyTags: {},
+            });
+
+            await waitForBatchedUpdates();
+
+            expect(writeSpy).toHaveBeenCalledWith(WRITE_COMMANDS.TRACK_EXPENSE, expect.objectContaining({}), expect.objectContaining({}));
+            expect(writeSpy).not.toHaveBeenCalledWith(WRITE_COMMANDS.REQUEST_MONEY, expect.objectContaining({}), expect.objectContaining({}));
         });
 
         it('should call createDistanceRequest for distance transactions', async () => {
@@ -3115,6 +3328,11 @@ describe('actions/Duplicate', () => {
             const waypoints = distanceCall?.[1]?.waypoints;
             expect(waypoints).toBeDefined();
             expect(waypoints).not.toBe('null');
+            expect(distanceCall?.[1]).toEqual(
+                expect.objectContaining({
+                    distanceRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
+                }),
+            );
         });
 
         it('should correctly route a report with mixed cash, distance, and per diem transactions', async () => {
@@ -3352,6 +3570,63 @@ describe('actions/Duplicate', () => {
             const iouReportIDs = new Set(requestMoneyCalls.map((call) => call[1].iouReportID));
             expect(iouReportIDs.size).toBe(1);
         });
+
+        it('should not defer auto submit when the last selected expense is unreported', async () => {
+            const reportedTransaction: Transaction = {
+                ...createRandomTransaction(1),
+                transactionID: 'bulk_reported',
+                amount: -500,
+                currency: 'USD',
+            };
+            const unreportedTransaction: Transaction = {
+                ...createRandomTransaction(2),
+                transactionID: 'bulk_unreported',
+                reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+                amount: -300,
+                currency: 'USD',
+            };
+            const allTransactions = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}bulk_reported`]: reportedTransaction,
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}bulk_unreported`]: unreportedTransaction,
+            };
+
+            bulkDuplicateExpenses({
+                dateFnsLocale: undefined,
+                conciergeChat: undefined,
+                transactionIDs: ['bulk_reported', 'bulk_unreported'],
+                allTransactions,
+                sourcePolicyIDMap: {},
+                targetPolicy: mockPolicy,
+                targetPolicyCategories: fakePolicyCategories,
+                targetPolicyTags: {},
+                targetReport: policyExpenseChat,
+                policyTagList: {},
+                personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
+                isASAPSubmitBetaEnabled: false,
+                introSelected: undefined,
+                quickAction: undefined,
+                policyRecentlyUsedCurrencies: [],
+                isSelfTourViewed: false,
+                transactionDrafts: undefined,
+                betas: [CONST.BETAS.ALL],
+                recentWaypoints: [],
+                currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                currentUserLocalCurrency: undefined,
+                delegateAccountID: undefined,
+                isTrackIntentUser: false,
+                formatPhoneNumber,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                participantsPolicyTags: {},
+            });
+
+            await waitForBatchedUpdates();
+
+            const requestMoneyCalls = writeSpy.mock.calls.filter(isWriteMockCallForCommand(WRITE_COMMANDS.REQUEST_MONEY));
+            const trackExpenseCalls = writeSpy.mock.calls.filter(isWriteMockCallForCommand(WRITE_COMMANDS.TRACK_EXPENSE));
+            expect(requestMoneyCalls).toHaveLength(1);
+            expect(trackExpenseCalls).toHaveLength(1);
+            expect(requestMoneyCalls.at(0)?.[1].shouldDeferAutoSubmit).toBeFalsy();
+        });
     });
 
     describe('bulkDuplicateReports', () => {
@@ -3517,11 +3792,72 @@ describe('actions/Duplicate', () => {
                 [`${ONYXKEYS.COLLECTION.REPORT}${ACTIVE_PEC_REPORT_ID}`]: activePolicyExpenseChat,
             };
 
-            bulkDuplicateReports(getDefaultBulkParams(['rpt1', 'rpt2'], {allReports}));
+            await bulkDuplicateReports(getDefaultBulkParams(['rpt1', 'rpt2'], {allReports}));
             await waitForBatchedUpdates();
 
             expect(countWriteCommandCalls(WRITE_COMMANDS.CREATE_APP_REPORT)).toBe(2);
             expect(countWriteCommandCalls(WRITE_COMMANDS.REQUEST_MONEY)).toBe(2);
+        });
+
+        it('should not duplicate every selected report in a single synchronous pass', async () => {
+            const reportIDs = ['rpt1', 'rpt2', 'rpt3'];
+            const allReports: Record<string, Report> = {
+                [`${ONYXKEYS.COLLECTION.REPORT}${ACTIVE_PEC_REPORT_ID}`]: activePolicyExpenseChat,
+            };
+
+            for (const reportID of reportIDs) {
+                allReports[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`] = {
+                    reportID,
+                    policyID: SOURCE_POLICY_ID,
+                    ownerAccountID: RORY_ACCOUNT_ID,
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                    reportName: `Report ${reportID}`,
+                    chatReportID: ACTIVE_PEC_REPORT_ID,
+                };
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}tx-${reportID}`, createCashTransaction(`1${reportID.slice(-1)}`, reportID));
+            }
+
+            const duplicating = bulkDuplicateReports(getDefaultBulkParams(reportIDs, {allReports}));
+
+            expect(countWriteCommandCalls(WRITE_COMMANDS.CREATE_APP_REPORT)).toBe(1);
+            expect(countWriteCommandCalls(WRITE_COMMANDS.REQUEST_MONEY)).toBe(1);
+
+            await duplicating;
+            await waitForBatchedUpdates();
+
+            expect(countWriteCommandCalls(WRITE_COMMANDS.CREATE_APP_REPORT)).toBe(3);
+            expect(countWriteCommandCalls(WRITE_COMMANDS.REQUEST_MONEY)).toBe(3);
+        });
+
+        it('should stop duplicating the remaining reports when the account changes mid-flight', async () => {
+            await Onyx.merge(ONYXKEYS.SESSION, {accountID: RORY_ACCOUNT_ID});
+            await waitForBatchedUpdates();
+
+            const reportIDs = ['rpt1', 'rpt2', 'rpt3'];
+            const allReports: Record<string, Report> = {
+                [`${ONYXKEYS.COLLECTION.REPORT}${ACTIVE_PEC_REPORT_ID}`]: activePolicyExpenseChat,
+            };
+            for (const reportID of reportIDs) {
+                allReports[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`] = {
+                    reportID,
+                    policyID: SOURCE_POLICY_ID,
+                    ownerAccountID: RORY_ACCOUNT_ID,
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                    reportName: `Report ${reportID}`,
+                    chatReportID: ACTIVE_PEC_REPORT_ID,
+                };
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}tx-${reportID}`, createCashTransaction(`1${reportID.slice(-1)}`, reportID));
+            }
+
+            const duplicating = bulkDuplicateReports(getDefaultBulkParams(reportIDs, {allReports}));
+            expect(countWriteCommandCalls(WRITE_COMMANDS.CREATE_APP_REPORT)).toBe(1);
+
+            await Onyx.merge(ONYXKEYS.SESSION, {accountID: RORY_ACCOUNT_ID + 1});
+            await waitForBatchedUpdates();
+            await duplicating;
+
+            expect(countWriteCommandCalls(WRITE_COMMANDS.CREATE_APP_REPORT)).toBe(1);
+            expect(countWriteCommandCalls(WRITE_COMMANDS.REQUEST_MONEY)).toBe(1);
         });
 
         it('should use source policy when accessible, and fall back to default policy when not', async () => {
@@ -3565,7 +3901,7 @@ describe('actions/Duplicate', () => {
                 [`${ONYXKEYS.COLLECTION.REPORT}${ACTIVE_PEC_REPORT_ID}`]: activePolicyExpenseChat,
             };
 
-            bulkDuplicateReports(
+            await bulkDuplicateReports(
                 getDefaultBulkParams(['rpt1', 'rpt2'], {
                     allReports,
                     allPolicyCategories: {
@@ -3609,7 +3945,7 @@ describe('actions/Duplicate', () => {
                 [`${ONYXKEYS.COLLECTION.REPORT}${ACTIVE_PEC_REPORT_ID}`]: activePolicyExpenseChat,
             };
 
-            bulkDuplicateReports(getDefaultBulkParams(['rpt1'], {allReports}));
+            await bulkDuplicateReports(getDefaultBulkParams(['rpt1'], {allReports}));
             await waitForBatchedUpdates();
 
             expect(countWriteCommandCalls(WRITE_COMMANDS.CREATE_APP_REPORT)).toBe(1);
@@ -3634,7 +3970,7 @@ describe('actions/Duplicate', () => {
                 [`${ONYXKEYS.COLLECTION.REPORT}${ACTIVE_PEC_REPORT_ID}`]: activePolicyExpenseChat,
             };
 
-            bulkDuplicateReports(getDefaultBulkParams(['rpt1'], {allReports}));
+            await bulkDuplicateReports(getDefaultBulkParams(['rpt1'], {allReports}));
             await waitForBatchedUpdates();
 
             expect(countWriteCommandCalls(WRITE_COMMANDS.CREATE_APP_REPORT)).toBe(1);
@@ -3670,7 +4006,7 @@ describe('actions/Duplicate', () => {
                 [`${ONYXKEYS.COLLECTION.REPORT}${ACTIVE_PEC_REPORT_ID}`]: activePolicyExpenseChat,
             };
 
-            bulkDuplicateReports(getDefaultBulkParams(['rpt1'], {allReports}));
+            await bulkDuplicateReports(getDefaultBulkParams(['rpt1'], {allReports}));
             await waitForBatchedUpdates();
 
             expect(countWriteCommandCalls(WRITE_COMMANDS.CREATE_APP_REPORT)).toBe(1);
@@ -3698,7 +4034,7 @@ describe('actions/Duplicate', () => {
                 [`${ONYXKEYS.COLLECTION.REPORT}${ACTIVE_PEC_REPORT_ID}`]: activePolicyExpenseChat,
             };
 
-            bulkDuplicateReports(getDefaultBulkParams(['rpt1', 'nonexistent1', 'nonexistent2'], {allReports}));
+            await bulkDuplicateReports(getDefaultBulkParams(['rpt1', 'nonexistent1', 'nonexistent2'], {allReports}));
             await waitForBatchedUpdates();
 
             expect(countWriteCommandCalls(WRITE_COMMANDS.CREATE_APP_REPORT)).toBe(1);
@@ -3720,7 +4056,7 @@ describe('actions/Duplicate', () => {
                 [`${ONYXKEYS.COLLECTION.REPORT}${ACTIVE_PEC_REPORT_ID}`]: activePolicyExpenseChat,
             };
 
-            bulkDuplicateReports(getDefaultBulkParams(['rpt1'], {allReports}));
+            await bulkDuplicateReports(getDefaultBulkParams(['rpt1'], {allReports}));
             await waitForBatchedUpdates();
 
             expect(countWriteCommandCalls(WRITE_COMMANDS.CREATE_APP_REPORT)).toBe(1);
@@ -3758,7 +4094,7 @@ describe('actions/Duplicate', () => {
                 [`${ONYXKEYS.COLLECTION.REPORT}${ACTIVE_PEC_REPORT_ID}`]: activePolicyExpenseChat,
             };
 
-            bulkDuplicateReports(getDefaultBulkParams(['rpt1', 'rpt2'], {allReports}));
+            await bulkDuplicateReports(getDefaultBulkParams(['rpt1', 'rpt2'], {allReports}));
             await waitForBatchedUpdates();
 
             expect(countWriteCommandCalls(WRITE_COMMANDS.CREATE_APP_REPORT)).toBe(2);
@@ -3812,7 +4148,7 @@ describe('actions/Duplicate', () => {
                 [`${ONYXKEYS.COLLECTION.REPORT}${ACTIVE_PEC_REPORT_ID}`]: activePolicyExpenseChat,
             };
 
-            bulkDuplicateReports(
+            await bulkDuplicateReports(
                 getDefaultBulkParams(['rpt1', 'rpt2'], {
                     allReports,
                     allPolicyTags: {
@@ -3852,7 +4188,7 @@ describe('actions/Duplicate', () => {
                 [`${ONYXKEYS.COLLECTION.REPORT}${ACTIVE_PEC_REPORT_ID}`]: activePolicyExpenseChat,
             };
 
-            bulkDuplicateReports(getDefaultBulkParams(['rpt1'], {allReports}));
+            await bulkDuplicateReports(getDefaultBulkParams(['rpt1'], {allReports}));
             await waitForBatchedUpdates();
 
             expect(countWriteCommandCalls(WRITE_COMMANDS.CREATE_APP_REPORT)).toBe(1);

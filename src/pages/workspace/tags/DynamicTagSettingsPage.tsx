@@ -1,5 +1,6 @@
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemAction from '@components/MenuItem/presets/MenuItemAction';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -14,6 +15,7 @@ import useEnvironment from '@hooks/useEnvironment';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
+import usePersonalDetailByLogin from '@hooks/usePersonalDetailByLogin';
 import usePolicyData from '@hooks/usePolicyData';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -23,7 +25,6 @@ import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/crea
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {isDisablingOrDeletingLastEnabledTag} from '@libs/OptionsListUtils';
-import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import {
     arePolicyRulesEnabled,
     getCleanedTagName,
@@ -73,8 +74,7 @@ function DynamicTagSettingsPage({route, navigation}: DynamicTagSettingsPageProps
     const isQuickSettingsFlow = route.name === SCREENS.SETTINGS_TAGS.DYNAMIC_SETTINGS_TAG_SETTINGS;
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.SETTINGS_TAG_SETTINGS.path);
     const tagApprover = getTagApproverRule(policy, route.params?.tagName)?.approver ?? '';
-    const approver = getPersonalDetailByEmail(tagApprover);
-    const approverText = formatPhoneNumber(approver?.displayName ?? tagApprover);
+    const approverText = usePersonalDetailByLogin(tagApprover, (personalDetails) => formatPhoneNumber(personalDetails?.displayName ?? tagApprover));
     const hasDependentTags = hasDependentTagsPolicyUtils(policy, policyTags);
     const currentPolicyTag = hasDependentTags
         ? Object.values(policyTag.tags ?? {}).find((tag) => tag?.name === tagName && tag.rules?.parentTagsFilter === parentTagsFilter)
@@ -92,6 +92,8 @@ function DynamicTagSettingsPage({route, navigation}: DynamicTagSettingsPageProps
     if (!currentPolicyTag) {
         return <NotFoundPage />;
     }
+
+    const cleanedTagName = getCleanedTagName(currentPolicyTag.name);
 
     const updateWorkspaceTagEnabled = (value: boolean) => {
         if (shouldPreventDisableOrDelete) {
@@ -197,12 +199,10 @@ function DynamicTagSettingsPage({route, navigation}: DynamicTagSettingsPageProps
                         </OfflineWithFeedback>
                     )}
                     <OfflineWithFeedback pendingAction={currentPolicyTag.pendingFields?.name}>
-                        <MenuItemWithTopDescription
-                            title={getCleanedTagName(currentPolicyTag.name)}
-                            description={translate(`common.name`)}
-                            onPress={navigateToEditTag}
-                            interactive={canWriteTags && !hasDependentTags}
-                            shouldShowRightIcon={canWriteTags && !hasDependentTags}
+                        <MenuItemField
+                            name={translate(`common.name`)}
+                            onPress={canWriteTags && !hasDependentTags ? navigateToEditTag : undefined}
+                            value={cleanedTagName}
                         />
                     </OfflineWithFeedback>
                     {(!hasDependentTags || !!currentPolicyTag?.['GL Code']) && (
@@ -259,7 +259,7 @@ function DynamicTagSettingsPage({route, navigation}: DynamicTagSettingsPageProps
                                     prompt: translate('workspace.tags.deleteTagConfirmation'),
                                     confirmText: translate('common.delete'),
                                     cancelText: translate('common.cancel'),
-                                    danger: true,
+                                    buttonVariant: CONST.BUTTON_VARIANT.DANGER,
                                 });
                                 if (action === ModalActions.CONFIRM) {
                                     if (!currentPolicyTag?.name) {

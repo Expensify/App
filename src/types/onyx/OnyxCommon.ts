@@ -33,9 +33,6 @@ type Errors = Record<string, string | null>;
  * Error object for a translation key
  */
 type TranslationKeyError = {
-    /**
-     * The translation key
-     */
     translationKey: TranslationPaths;
 };
 
@@ -53,7 +50,6 @@ type AvatarType = typeof CONST.ICON_TYPE_AVATAR | typeof CONST.ICON_TYPE_WORKSPA
 
 /** Icon properties */
 type Icon = {
-    /** Avatar source to display */
     source: AvatarSource;
 
     /** Denotes whether it is an avatar or a workspace avatar */
@@ -62,14 +58,14 @@ type Icon = {
     /** Owner of the avatar. If user, displayName. If workspace, policy name */
     name?: string;
 
+    /** Display name of the account, embedded at build time so consumers can sort icons by name without a personal-details subscription */
+    displayName?: string;
+
     /** Avatar id */
     id?: number | string;
 
     /** A fallback avatar icon to display when there is an error on loading avatar from remote URL. */
     fallbackIcon?: AvatarSource;
-
-    /** Fill color of the icon */
-    fill?: string;
 };
 
 export type {Icon, PendingAction, PendingFields, ErrorFields, Errors, AvatarType, OnyxValueWithOfflineFeedback, TranslationKeyError, TranslationKeyErrors};

@@ -6,13 +6,11 @@ import ValidateCodeForm from '@components/ValidateCodeActionModal/ValidateCodeFo
 
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {updateOnboardingValuesAndNavigation} from '@libs/actions/Welcome';
 import Navigation from '@libs/Navigation/Navigation';
-import {getVisibleJoinablePoliciesCount} from '@libs/OnboardingUtils';
 import {expensifyLoginsSelector, isCurrentUserValidated} from '@libs/UserUtils';
 
 import {clearGetAccessiblePoliciesErrors, getAccessiblePolicies} from '@userActions/Policy/Policy';
@@ -41,12 +39,9 @@ function BaseOnboardingPrivateDomain({shouldUseNativeStyles, route}: BaseOnboard
             isFromPublicDomain: acc?.isFromPublicDomain,
         }),
     });
-    const {isBetaEnabled} = usePermissions();
-    const canUseSubmit2026 = isBetaEnabled(CONST.BETAS.SUBMIT_2026);
-
     const [getAccessiblePoliciesAction] = useOnyx(ONYXKEYS.VALIDATE_USER_AND_GET_ACCESSIBLE_POLICIES);
     const [joinablePolicies] = useOnyx(ONYXKEYS.JOINABLE_POLICIES);
-    const joinablePoliciesLength = getVisibleJoinablePoliciesCount(joinablePolicies, canUseSubmit2026);
+    const joinablePoliciesLength = Object.keys(joinablePolicies ?? {}).length;
 
     const {onboardingIsMediumOrLargerScreenWidth} = useResponsiveLayout();
 

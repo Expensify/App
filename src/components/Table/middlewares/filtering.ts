@@ -16,6 +16,12 @@ type FilterConfigEntry = {
     label: string;
     filterType?: ValueOf<typeof CONST.TABLES.FILTER_TYPE>;
     options: Array<{label: string; value: string}>;
+
+    /**
+     * When true, the filter's options render inline in the popover and each selection applies immediately,
+     * instead of being staged behind an "Apply" button. Only takes effect for `MULTI_SELECT` filters.
+     */
+    immediate?: boolean;
 };
 
 /**
@@ -32,10 +38,7 @@ type IsItemInFilterCallback<DataType extends TableData> = (item: DataType, value
  *  Methods exposed by the table to control filtering.
  */
 type FilteringMethods<FilterKey extends string = string> = {
-    /** Callback to update a filter value. */
     updateFilter: (params: {key: FilterKey; value: string[]}) => void;
-
-    /** Callback to get the active filters. */
     getActiveFilters: () => Record<FilterKey, string[]>;
 };
 
@@ -124,15 +127,9 @@ function filter<DataType extends TableData, FilterKey extends string = string>({
 
     return data.filter((item) => {
         return filterKeys.every((filterKey) => {
-            const filterValue = currentFilters[filterKey];
-
-            // When no filter value is set, we keep the item.
-            if (!filterValue?.length) {
-                return true;
-            }
+            const filterValue = currentFilters[filterKey] ?? [];
 
             if (!isItemInFilter) {
-                // Without a filter callback, we do not exclude any items.
                 return true;
             }
 

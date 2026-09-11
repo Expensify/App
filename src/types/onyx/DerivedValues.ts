@@ -15,17 +15,11 @@ import type TransactionViolations from './TransactionViolation';
  * The attributes of a report.
  */
 type ReportAttributes = {
-    /**
-     * The name of the report.
-     */
     reportName: string;
     /**
      * Whether the report is empty (has no visible messages).
      */
     isEmpty: boolean;
-    /**
-     * The status of the brick road.
-     */
     brickRoadStatus: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS> | undefined;
     /**
      * Whether the report requires attention from current user.
@@ -39,9 +33,6 @@ type ReportAttributes = {
      * The reportActionID that the action badge refers to, used for deep linking when the LHN row is pressed.
      */
     actionTargetReportActionID?: string;
-    /**
-     * The errors of the report.
-     */
     reportErrors: Errors;
     /**
      * The reportID of the one-transaction thread report, if applicable.
@@ -61,9 +52,6 @@ type ReportAttributes = {
  * The derived value for report attributes.
  */
 type ReportAttributesDerivedValue = {
-    /**
-     * The report attributes.
-     */
     reports: Record<string, ReportAttributes>;
     /**
      * The locale used to compute the report attributes.
@@ -104,9 +92,6 @@ type VisibleReportActionsDerivedValue = Record<string, Record<string, boolean>>;
  * The errors of a card.
  */
 type CardErrors = {
-    /**
-     * The errors of the card.
-     */
     errors?: Card['errors'];
     /**
      * The form field errors of the card.
@@ -137,24 +122,26 @@ type CardFeedErrorState = {
      */
     hasFeedErrors: boolean;
 
-    /**
-     * Whether some workspace has errors.
-     */
     hasWorkspaceErrors: boolean;
 
     /**
-     * Whether some feed connection is broken.
+     * Whether some feed connection is broken. This stays true for as long as the connection is broken, so the
+     * Company cards page keeps offering the "log into your bank" fix and the reconnect can complete.
      */
     isFeedConnectionBroken: boolean;
+
+    /**
+     * Whether we should still actively prompt the user about the broken connection (the RBR dots and the
+     * time-sensitive home task). Unlike `isFeedConnectionBroken` this turns false once the connection has been
+     * unresolved past the grace period, so we stop nagging without taking away the ability to fix it.
+     */
+    shouldPromptBrokenConnection: boolean;
 };
 
 /**
  * The errors of a card feed.
  */
 type FeedErrors = CardFeedErrorState & {
-    /**
-     * The errors of the feed.
-     */
     feedErrors?: Errors;
     /**
      * The errors of all cards for a specific feed within a workspace/domain.
@@ -180,44 +167,13 @@ type CardFeedErrors = {
      */
     cardFeedErrors: CardFeedErrorsObject;
 
-    /**
-     * The cards with a broken feed connection.
-     */
     cardsWithBrokenFeedConnection: Record<string, Card>;
-
-    /**
-     * The personal cards with a broken connection.
-     */
     personalCardsWithBrokenConnection: Record<string, Card>;
-
-    /**
-     * Whether to show the RBR for each workspace account ID.
-     */
     shouldShowRbrForWorkspaceAccountID: Record<number, boolean>;
-
-    /**
-     * Whether to show the RBR for each feed name with domain ID.
-     */
     shouldShowRbrForFeedNameWithDomainID: Record<string, boolean>;
-
-    /**
-     * The errors of all card feeds.
-     */
     all: CardFeedErrorState;
-
-    /**
-     * The errors of company cards.
-     */
     companyCards: CardFeedErrorState;
-
-    /**
-     * The errors of expensify card.
-     */
     expensifyCard: CardFeedErrorState;
-
-    /**
-     * The errors of personal card.
-     */
     personalCard: CardFeedErrorState;
 };
 
@@ -256,6 +212,12 @@ type PersonalAndWorkspaceCardListDerivedValue = CardList;
  */
 type LoginToAccountIDMapDerivedValue = Record<string, number>;
 
+/**
+ * The accountIDs of every Expensify Guide known to the personal details list, sorted ascending.
+ * Lets callers check for a guide participant without re-scanning the whole list (see issue #66413).
+ */
+type GuideAccountIDsDerivedValue = number[];
+
 export type {
     ReportAttributes,
     ReportAttributesDerivedValue,
@@ -268,6 +230,7 @@ export type {
     PersonalAndWorkspaceCardListDerivedValue,
     CardFeedErrorsDerivedValue,
     LoginToAccountIDMapDerivedValue,
+    GuideAccountIDsDerivedValue,
     CardFeedErrorsObject,
     CardFeedErrorState,
     CardFeedErrors,

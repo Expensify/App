@@ -701,7 +701,7 @@ function getReportFromHoldRequestsOnyxData({
     optimisticHoldReportExpenseActionIDs: OptimisticHoldReportExpenseActionID[];
     optimisticReportActionCopyIDs: OptimisticReportActionCopyIDs;
     optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.TRANSACTION>>;
-    successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>>;
+    successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>>;
     failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.TRANSACTION>>;
 } {
     const {holdReportActions, holdTransactions} = getHoldReportActionsAndTransactions(iouReport?.reportID, iouReport, shouldMoveHeldTransactions, shouldMoveScanFailedTransactions);
@@ -770,6 +770,7 @@ function getReportFromHoldRequestsOnyxData({
     }
 
     const updateHeldReports: Record<string, Pick<OnyxTypes.Report, 'parentReportActionID' | 'parentReportID' | 'chatReportID'>> = {};
+    const revertHeldReports: Record<string, Pick<OnyxTypes.Report, 'parentReportActionID' | 'parentReportID' | 'chatReportID'>> = {};
     const addHoldReportActions: OnyxTypes.ReportActions = {};
     const addHoldReportActionsSuccess: OnyxCollection<NullishDeep<OnyxTypes.ReportAction>> = {};
     const deleteHoldReportActions: Record<string, Pick<OnyxTypes.ReportAction, 'message'>> = {};
@@ -809,6 +810,11 @@ function getReportFromHoldRequestsOnyxData({
                 parentReportActionID: reportActionID,
                 parentReportID: optimisticExpenseReport.reportID,
                 chatReportID: optimisticExpenseReport.reportID,
+            };
+            revertHeldReports[`${ONYXKEYS.COLLECTION.REPORT}${heldReport.reportID}`] = {
+                parentReportActionID: heldReport.parentReportActionID,
+                parentReportID: heldReport.parentReportID,
+                chatReportID: heldReport.chatReportID,
             };
         }
     }
@@ -903,7 +909,7 @@ function getReportFromHoldRequestsOnyxData({
         bringHeldTransactionsBack[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`] = transaction;
     }
 
-    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
@@ -955,6 +961,11 @@ function getReportFromHoldRequestsOnyxData({
             onyxMethod: Onyx.METHOD.MERGE_COLLECTION,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}`,
             value: bringHeldTransactionsBack,
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE_COLLECTION,
+            key: `${ONYXKEYS.COLLECTION.REPORT}`,
+            value: revertHeldReports,
         },
     ];
 
@@ -1009,30 +1020,6 @@ function getReportFromHoldRequestsOnyxData({
                 [optimisticCreatedReportForUnapprovedAction.reportActionID]: null,
             },
         });
-    }
-
-    // The backend creates its own report for the moved scan-failed expenses instead of reusing optimisticHoldReportID,
-    // so the optimistic one has to be dropped once the real report arrives, otherwise it lingers as an empty report.
-    if (shouldMoveScanFailedTransactions) {
-        successData.push(
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticExpenseReport.reportID}`,
-                value: null,
-            },
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticExpenseReport.reportID}`,
-                value: null,
-            },
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
-                value: {
-                    [optimisticExpenseReportPreview.reportActionID]: null,
-                },
-            },
-        );
     }
 
     return {

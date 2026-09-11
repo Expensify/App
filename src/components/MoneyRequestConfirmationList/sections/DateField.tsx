@@ -12,6 +12,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {setMoneyRequestCreated, updateDistanceRateOnExpenseDateChange} from '@libs/actions/IOU/MoneyRequest';
 import {shouldUseTransactionDraft} from '@libs/IOUUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {isPolicyExpenseChat as isPolicyExpenseChatReportUtil} from '@libs/ReportUtils';
 
@@ -20,7 +21,7 @@ import {setDraftSplitTransaction} from '@userActions/IOU/Split';
 import CONST from '@src/CONST';
 import type {IOUAction, IOUType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/MoneyRequestDateForm';
 
 import {format} from 'date-fns';
@@ -34,9 +35,7 @@ type DateFieldProps = {
     shouldDisplayFieldError: boolean;
     didConfirm: boolean;
     isReadOnly: boolean;
-    isNewManualExpenseFlowEnabled: boolean;
     formError: string;
-    clearFormErrors: (errors: string[]) => void;
     transactionID: string | undefined;
     action: IOUAction;
     iouType: Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND>;
@@ -44,20 +43,8 @@ type DateFieldProps = {
     reportActionID: string | undefined;
 };
 
-function DateField({
-    shouldDisplayFieldError,
-    didConfirm,
-    isReadOnly,
-    isNewManualExpenseFlowEnabled,
-    formError,
-    clearFormErrors,
-    transactionID,
-    action,
-    iouType,
-    reportID,
-    reportActionID,
-}: DateFieldProps) {
-    const {getCurrencyDecimals} = useCurrencyListActions();
+function DateField({shouldDisplayFieldError, didConfirm, isReadOnly, formError, transactionID, action, iouType, reportID, reportActionID}: DateFieldProps) {
+    const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
     const {isEditingSplitBill} = useConfirmationFields();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -91,12 +78,8 @@ function DateField({
             return;
         }
 
-        if (newDate) {
-            clearFormErrors(['common.error.fieldRequired']);
-        }
-
         if (isEditingSplitBill) {
-            setDraftSplitTransaction(transactionID, splitDraftTransaction, {created: newDate});
+            setDraftSplitTransaction(transactionID, splitDraftTransaction, {created: newDate}, getCurrencyDecimals, getCurrencySymbol);
             return;
         }
 
@@ -120,7 +103,7 @@ function DateField({
         }
     };
 
-    if (isNewManualExpenseFlowEnabled && !isReadOnly) {
+    if (!isReadOnly) {
         return (
             <View style={[styles.mh4, styles.mb2]}>
                 <DatePicker
@@ -150,7 +133,7 @@ function DateField({
                     return;
                 }
 
-                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_DATE.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRoute(), reportActionID));
+                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_DATE.getRoute(action, iouType, transactionID, reportID, reportActionID)));
             }}
             disabled={didConfirm}
             interactive={!isReadOnly}

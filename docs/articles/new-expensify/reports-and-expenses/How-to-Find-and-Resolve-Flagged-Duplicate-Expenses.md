@@ -108,3 +108,7 @@ Often, but not always. Expensify also compares additional receipt details, such 
 
 Expensify may automatically review flagged duplicates in the background. If it determines the expenses are clearly not the same purchase, it dismisses the violation and adds a note that Concierge resolved the duplicate, with an **Explain** link describing why. If Expensify is not confident, the flag stays so you can resolve it manually.
 
+## Why do I see "You can only merge expenses on draft or outstanding reports"?
+
+You can only resolve flagged duplicates when the expense you're keeping is on a report in the Draft or Outstanding state. This message appears when that report is no longer editable — for example, it has been approved, closed, or reimbursed. Retract the report to make it editable again, then reopen **Review duplicates** and try again.
+

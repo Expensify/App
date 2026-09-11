@@ -14,11 +14,12 @@ import Text from '@components/Text';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
+import useIsGlobalReimbursementFXEnabled from '@hooks/useIsGlobalReimbursementFXEnabled';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
+import usePersonalDetailByLogin from '@hooks/usePersonalDetailByLogin';
 import usePolicy from '@hooks/usePolicy';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -28,8 +29,8 @@ import {getBankAccountConnectionStatus, isBankAccountPartiallySetup} from '@libs
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPaymentMethodDescription} from '@libs/PaymentUtils';
-import {getPersonalDetailByEmail, temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
-import {canAccessSubmitWorkspaceFeatures, isPolicyAdmin} from '@libs/PolicyUtils';
+import {temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
+import {isPolicyAdmin, isSubmitPolicy} from '@libs/PolicyUtils';
 import {hasInProgressVBBA} from '@libs/ReimbursementAccountUtils';
 import {getEligibleExistingBusinessBankAccounts} from '@libs/WorkflowUtils';
 
@@ -44,7 +45,7 @@ import ROUTES from '@src/ROUTES';
 import type {TupleToUnion} from 'type-fest';
 
 import {hasSeenTourSelector} from '@selectors/Onboarding';
-import React, {useCallback, useMemo} from 'react';
+import React, {useCallback} from 'react';
 import {View} from 'react-native';
 
 import WorkflowsSectionCard from './WorkflowsSectionCard';
@@ -59,14 +60,10 @@ function WorkflowsPaymentsTab({policyID}: WorkflowsPaymentsTabProps) {
     const {translate, formatPhoneNumber} = useLocalize();
     const styles = useThemeStyles();
     const policy = usePolicy(policyID);
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['DotIndicator', 'Plus']);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Plus']);
     const {showConfirmModal} = useConfirmModal();
     const {isOffline} = useNetwork();
-    const {isBetaEnabled} = usePermissions();
-    const isSubmit2026BetaEnabled = isBetaEnabled(CONST.BETAS.SUBMIT_2026);
-    const isGlobalReimbursementsBetaEnabled = isBetaEnabled(CONST.BETAS.GLOBAL_REIMBURSEMENTS);
-    const isGlobalReimbursementFXBetaEnabled = isBetaEnabled(CONST.BETAS.GLOBAL_REIMBURSEMENT_FX);
-    const isWalletConnectionStatusBetaEnabled = isBetaEnabled(CONST.BETAS.WALLET_CONNECTION_STATUS);
+    const isGlobalReimbursementFXEnabled = useIsGlobalReimbursementFXEnabled();
 
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
@@ -89,20 +86,17 @@ function WorkflowsPaymentsTab({policyID}: WorkflowsPaymentsTabProps) {
     const {isAccountLocked} = useLockedAccountState();
     const {showLockedAccountModal} = useLockedAccountActions();
 
-    const canAccessSubmit2026Features = canAccessSubmitWorkspaceFeatures(policy, isSubmit2026BetaEnabled);
-    const canAccessWalletConnectionStatusFeatures = canAccessSubmitWorkspaceFeatures(policy, isWalletConnectionStatusBetaEnabled);
+    const isSubmitPolicyWorkspace = isSubmitPolicy(policy);
     const hasValidExistingAccounts = getEligibleExistingBusinessBankAccounts(bankAccountList, policy?.outputCurrency, true).length > 0;
 
     const policyReimburserEmail = policy?.achAccount?.reimburser ?? policy?.owner;
-    const displayNameForAuthorizedPayer = useMemo(
-        () =>
-            temporaryGetDisplayNameOrDefault({
-                passedPersonalDetails: getPersonalDetailByEmail(policyReimburserEmail ?? ''),
-                defaultValue: policyReimburserEmail,
-                translate,
-                formatPhoneNumber,
-            }),
-        [policyReimburserEmail, translate, formatPhoneNumber],
+    const displayNameForAuthorizedPayer = usePersonalDetailByLogin(policyReimburserEmail, (details) =>
+        temporaryGetDisplayNameOrDefault({
+            passedPersonalDetails: details,
+            defaultValue: policyReimburserEmail,
+            translate,
+            formatPhoneNumber,
+        }),
     );
 
     const isNonUSDWorkspace = policy?.outputCurrency !== CONST.CURRENCY.USD;
@@ -152,17 +146,10 @@ function WorkflowsPaymentsTab({policyID}: WorkflowsPaymentsTabProps) {
     });
 
     const hasReimburserError = !!policy?.errorFields?.reimburser;
-    const getBadgeText = (accountState: string | undefined) => {
-        switch (accountState) {
-            case CONST.BANK_ACCOUNT.STATE.SETUP:
-                return translate('common.actionRequired');
-            case CONST.BANK_ACCOUNT.STATE.LOCKED:
-                return translate('common.locked');
-            default:
-                return undefined;
-        }
-    };
-    const bankConnectionStatus = canAccessWalletConnectionStatusFeatures ? getBankAccountConnectionStatus(state) : undefined;
+    // `||` not `??`: bankCurrency can be an empty string, which should fall through to additionalData.
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const bankAccountCurrency = bankAccountConnectedToWorkspace?.bankCurrency || bankAccountConnectedToWorkspace?.accountData?.additionalData?.currency;
+    const bankConnectionStatus = getBankAccountConnectionStatus(state, bankAccountCurrency);
     const bankConnectionBrickRoadIndicator = bankConnectionStatus?.brickRoadIndicator ?? (hasReimburserError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined);
     const bankConnectionStatusAddon = bankConnectionStatus ? (
         <ConnectionStatusBadge
@@ -173,8 +160,10 @@ function WorkflowsPaymentsTab({policyID}: WorkflowsPaymentsTabProps) {
     ) : undefined;
     const bankConnectionMessage = bankConnectionStatus?.messageKey ? translate(bankConnectionStatus.messageKey) : undefined;
     const bankConnectionActionText = bankConnectionStatus?.actionKey ? translate(bankConnectionStatus.actionKey) : undefined;
-    const bankBadgeIcon = !canAccessWalletConnectionStatusFeatures && (isAccountInSetupState || (isBusinessBankAccountLocked && canWritePayments)) ? expensifyIcons.DotIndicator : undefined;
-    const canInteractWithBankAccountRow = canWritePayments && !isOffline;
+    const canInteractWithBankAccountRow = canWritePayments && !isOffline && !isBankAccountPendingDelete;
+    // Only the reimburser can send the unlock request, so a locked account offers no action to anyone else rather than
+    // an Unlock button that would instead start connecting a different bank account.
+    const canPerformBankAccountAction = !isBusinessBankAccountLocked || isUserReimburser;
 
     const updateWorkspaceCurrencyPrompt = (
         <View style={[styles.renderHTML, styles.flexRow]}>
@@ -207,17 +196,10 @@ function WorkflowsPaymentsTab({policyID}: WorkflowsPaymentsTabProps) {
         });
     };
 
-    let bankAccountMenuItemOnPress: React.ComponentProps<typeof MenuItem>['onPress'];
-    if (canAccessWalletConnectionStatusFeatures) {
-        bankAccountMenuItemOnPress = canInteractWithBankAccountRow ? handleBankAccountPress : undefined;
-    } else {
-        bankAccountMenuItemOnPress = canWritePayments ? handleBankAccountPress : undefined;
-    }
-
     const bankAccountMenuItemProps: React.ComponentProps<typeof MenuItem> = {
         title: bankTitle,
         description: getPaymentMethodDescription(CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT, accountData, translate),
-        onPress: bankAccountMenuItemOnPress,
+        onPress: canInteractWithBankAccountRow ? handleBankAccountPress : undefined,
         displayInDefaultIconColor: true,
         icon: bankIcon.icon,
         iconHeight: bankIcon.iconHeight ?? bankIcon.iconSize,
@@ -225,28 +207,16 @@ function WorkflowsPaymentsTab({policyID}: WorkflowsPaymentsTabProps) {
         iconStyles: bankIcon.iconStyles,
         titleStyle: isBankAccountPendingDelete ? styles.offlineFeedbackDeleted : undefined,
         descriptionTextStyle: isBankAccountPendingDelete ? styles.offlineFeedbackDeleted : undefined,
-        disabled: isOffline || !canWritePayments,
         sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.BANK_ACCOUNT,
-        shouldShowRightIcon: canWritePayments,
-        interactive: canWritePayments,
         shouldGreyOutWhenDisabled: !policy?.pendingFields?.reimbursementChoice,
-        ...(canAccessWalletConnectionStatusFeatures
-            ? {
-                  badgeIcon: bankBadgeIcon,
-                  descriptionAddon: bankConnectionStatusAddon,
-                  shouldRemoveBackground: true,
-                  shouldRemoveHoverBackground: true,
-                  wrapperStyle: styles.ph0,
-                  brickRoadIndicator: bankConnectionMessage ? undefined : bankConnectionBrickRoadIndicator,
-              }
-            : {
-                  badgeText: getBadgeText(accountData?.state),
-                  badgeIcon: isAccountInSetupState || (isBusinessBankAccountLocked && canWritePayments) ? expensifyIcons.DotIndicator : undefined,
-                  isBadgeSuccess: isAccountInSetupState,
-                  isBadgeError: isBusinessBankAccountLocked && canWritePayments,
-                  wrapperStyle: [styles.sectionMenuItemTopDescription, styles.mt3, styles.mbn3],
-                  brickRoadIndicator: hasReimburserError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
-              }),
+        disabled: isOffline || !canWritePayments || isBankAccountPendingDelete,
+        shouldShowRightIcon: canWritePayments && !isBankAccountPendingDelete,
+        interactive: canWritePayments && !isBankAccountPendingDelete,
+        descriptionAddon: bankConnectionStatusAddon,
+        shouldRemoveBackground: true,
+        shouldRemoveHoverBackground: true,
+        wrapperStyle: styles.ph0,
+        brickRoadIndicator: bankConnectionMessage ? undefined : bankConnectionBrickRoadIndicator,
     };
     const bankAccountMenuItem = <MenuItem {...bankAccountMenuItemProps} />;
 
@@ -260,7 +230,7 @@ function WorkflowsPaymentsTab({policyID}: WorkflowsPaymentsTabProps) {
                     showReadOnlyModal();
                     return;
                 }
-                if (isEnabled && canAccessSubmit2026Features) {
+                if (isEnabled && isSubmitPolicyWorkspace) {
                     Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.payments.alias, workflowsBackTo));
                     return;
                 }
@@ -294,29 +264,25 @@ function WorkflowsPaymentsTab({policyID}: WorkflowsPaymentsTabProps) {
                             <View style={[styles.sectionMenuItemTopDescription, styles.mt5, styles.pb1, styles.pt1]}>
                                 <Text style={[styles.textLabelSupportingNormal, styles.colorMuted]}>{translate('workflowsPayerPage.paymentAccount')}</Text>
                             </View>
-                            {canAccessWalletConnectionStatusFeatures ? (
-                                <Hoverable>
-                                    {(isHovered) => (
-                                        <View style={[styles.sectionMenuItemTopDescription, styles.mt3, styles.mbn3, isHovered && styles.hoveredComponentBG]}>
-                                            {bankAccountMenuItem}
-                                            {!!bankConnectionMessage && (
-                                                <View style={styles.mb2}>
-                                                    <ConnectionStatusMessage
-                                                        message={bankConnectionMessage}
-                                                        actionText={bankConnectionActionText}
-                                                        onActionPress={canInteractWithBankAccountRow ? handleBankAccountPress : undefined}
-                                                        isActionDisabled={!canInteractWithBankAccountRow}
-                                                        statusTone="danger"
-                                                        shouldIncludeHorizontalPadding={false}
-                                                    />
-                                                </View>
-                                            )}
-                                        </View>
-                                    )}
-                                </Hoverable>
-                            ) : (
-                                bankAccountMenuItem
-                            )}
+                            <Hoverable>
+                                {(isHovered) => (
+                                    <View style={[styles.sectionMenuItemTopDescription, styles.mt3, styles.mbn3, isHovered && styles.hoveredComponentBG]}>
+                                        {bankAccountMenuItem}
+                                        {!!bankConnectionMessage && (
+                                            <View style={styles.mb2}>
+                                                <ConnectionStatusMessage
+                                                    message={bankConnectionMessage}
+                                                    actionText={bankConnectionActionText}
+                                                    onActionPress={canWritePayments && canPerformBankAccountAction ? handleBankAccountPress : undefined}
+                                                    isActionDisabled={!canInteractWithBankAccountRow}
+                                                    statusTone="danger"
+                                                    shouldIncludeHorizontalPadding={false}
+                                                />
+                                            </View>
+                                        )}
+                                    </View>
+                                )}
+                            </Hoverable>
                         </OfflineWithFeedback>
                     ) : (
                         canWritePayments && (
@@ -390,32 +356,29 @@ function WorkflowsPaymentsTab({policyID}: WorkflowsPaymentsTabProps) {
                             />
                         </OfflineWithFeedback>
                     )}
-                    {policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES &&
-                        canWritePayments &&
-                        isGlobalReimbursementsBetaEnabled &&
-                        isGlobalReimbursementFXBetaEnabled && (
-                            <OfflineWithFeedback
-                                pendingAction={policy?.pendingFields?.globalReimbursementFXPreferCompany}
-                                errors={getLatestErrorField(policy ?? {}, CONST.POLICY.COLLECTION_KEYS.GLOBAL_REIMBURSEMENT_FX_PREFER_COMPANY)}
-                                onClose={() => clearPolicyErrorField(policy?.id, CONST.POLICY.COLLECTION_KEYS.GLOBAL_REIMBURSEMENT_FX_PREFER_COMPANY)}
-                                errorRowStyles={[styles.mt3]}
-                            >
-                                <MenuItemWithTopDescription
-                                    title={
-                                        policy?.globalReimbursementFXPreferCompany
-                                            ? translate('workflowsCurrencyConversionFeesPage.companyPays')
-                                            : translate('workflowsCurrencyConversionFeesPage.employeePays')
-                                    }
-                                    titleStyle={styles.textNormalThemeText}
-                                    descriptionTextStyle={styles.textLabelSupportingNormal}
-                                    description={translate('workflowsCurrencyConversionFeesPage.title')}
-                                    onPress={() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_CURRENCY_CONVERSION_FEES.getRoute(policyID))}
-                                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.CURRENCY_CONVERSION_FEES}
-                                    shouldShowRightIcon
-                                    wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mt3, styles.mbn3]}
-                                />
-                            </OfflineWithFeedback>
-                        )}
+                    {policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES && canWritePayments && isGlobalReimbursementFXEnabled && (
+                        <OfflineWithFeedback
+                            pendingAction={policy?.pendingFields?.globalReimbursementFXPreferCompany}
+                            errors={getLatestErrorField(policy ?? {}, CONST.POLICY.COLLECTION_KEYS.GLOBAL_REIMBURSEMENT_FX_PREFER_COMPANY)}
+                            onClose={() => clearPolicyErrorField(policy?.id, CONST.POLICY.COLLECTION_KEYS.GLOBAL_REIMBURSEMENT_FX_PREFER_COMPANY)}
+                            errorRowStyles={[styles.mt3]}
+                        >
+                            <MenuItemWithTopDescription
+                                title={
+                                    policy?.globalReimbursementFXPreferCompany
+                                        ? translate('workflowsCurrencyConversionFeesPage.companyPays')
+                                        : translate('workflowsCurrencyConversionFeesPage.employeePays')
+                                }
+                                titleStyle={styles.textNormalThemeText}
+                                descriptionTextStyle={styles.textLabelSupportingNormal}
+                                description={translate('workflowsCurrencyConversionFeesPage.title')}
+                                onPress={() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_CURRENCY_CONVERSION_FEES.getRoute(policyID))}
+                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.CURRENCY_CONVERSION_FEES}
+                                shouldShowRightIcon
+                                wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mt3, styles.mbn3]}
+                            />
+                        </OfflineWithFeedback>
+                    )}
                 </>
             }
             isActive={policy?.reimbursementChoice !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO}

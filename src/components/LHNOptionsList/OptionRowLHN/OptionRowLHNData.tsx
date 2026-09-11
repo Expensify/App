@@ -53,7 +53,7 @@ function OptionRowLHNData({
     const {currentReportID: currentReportIDValue} = useCurrentReportIDState();
     const isReportFocused = isOptionFocused && currentReportIDValue === reportID;
     const {translate, localeCompare, dateFnsLocale, formatPhoneNumber} = useLocalize();
-    const {convertToDisplayString} = useCurrencyListActions();
+    const {convertToDisplayString, convertToDisplayStringWithoutCurrency} = useCurrencyListActions();
     const {login, accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
     const oneTransactionThreadReportID = oneTransactionThreadReport?.reportID;
@@ -162,6 +162,7 @@ function OptionRowLHNData({
         lastAction,
         translate,
         convertToDisplayString,
+        convertToDisplayStringWithoutCurrency,
         localeCompare,
         isReportArchived,
         lastActionReport,
@@ -204,7 +205,7 @@ function OptionRowLHNData({
         return isReportFocused ? null : <View style={placeholderRowStyle} />;
     }
 
-    const shouldUseMarkAsDone =
+    const shouldShowMarkAsDoneCopy =
         shouldShowMarkAsDone({
             report: fullReport,
             isTrackIntentUser,
@@ -218,7 +219,7 @@ function OptionRowLHNData({
             isOptionFocused={isReportFocused}
             optionItem={finalOptionItem}
             hasDraftComment={hasDraftComment}
-            isMarkAsDone={shouldUseMarkAsDone}
+            shouldShowMarkAsDoneCopy={shouldShowMarkAsDoneCopy}
         />
     );
 }

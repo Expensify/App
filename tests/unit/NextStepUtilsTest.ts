@@ -1,6 +1,5 @@
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 
-import DateUtils from '@libs/DateUtils';
 import {
     buildNextStepMessage,
     buildOptimisticNextStepForPreventSelfApprovalsEnabled,
@@ -18,7 +17,7 @@ import {toCollectionDataSet} from '@src/types/utils/CollectionDataSet';
 
 import type {OnyxCollection} from 'react-native-onyx';
 
-import {format} from 'date-fns';
+import {execFileSync} from 'child_process';
 import Onyx from 'react-native-onyx';
 
 import createMock from '../utils/createMock';
@@ -48,7 +47,6 @@ describe('libs/NextStepUtils', () => {
             role: 'admin',
             type: 'team',
             outputCurrency: CONST.CURRENCY.USD,
-            isPolicyExpenseChatEnabled: true,
             reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
         };
         const report = buildOptimisticExpenseReport({
@@ -280,38 +278,62 @@ describe('libs/NextStepUtils', () => {
                     expect(result).toMatchObject(expectedResult);
                 });
 
-                test('monthly on the 2nd', () => {
-                    // Waiting for userSubmitter's expense(s) to automatically submit on the 2nd of each month
-                    const expectedResult: ReportNextStep = {
+                describe('monthly on the 2nd', () => {
+                    const buildMonthlyOnThe2ndNextStep = () =>
+                        buildOptimisticNextStep({
+                            report,
+                            policy: {
+                                ...policy,
+                                autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MONTHLY,
+                                autoReportingOffset: 2,
+                                harvesting: {
+                                    enabled: true,
+                                },
+                            },
+                            currentUserAccountIDParam: currentUserAccountID,
+                            currentUserEmailParam: currentUserEmail,
+                            hasViolations: false,
+                            isASAPSubmitBetaEnabled: false,
+                            predictedNextStatus: CONST.REPORT.STATUS_NUM.OPEN,
+                            shouldFixViolations: false,
+                            isUnapprove: false,
+                            isReopen: false,
+                            isTrackIntentUser: false,
+                        });
+
+                    const expectedResultWithEtaDate = (dateTime: string): ReportNextStep => ({
                         messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_AUTOMATIC_SUBMIT,
                         icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
                         actorAccountID: currentUserAccountID,
                         eta: {
-                            dateTime: format(DateUtils.getNextNthOfMonth(2), 'yyyy-MM-dd'),
+                            dateTime,
                         },
-                    };
-                    const result = buildOptimisticNextStep({
-                        report,
-                        policy: {
-                            ...policy,
-                            autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MONTHLY,
-                            autoReportingOffset: 2,
-                            harvesting: {
-                                enabled: true,
-                            },
-                        },
-                        currentUserAccountIDParam: currentUserAccountID,
-                        currentUserEmailParam: currentUserEmail,
-                        hasViolations: false,
-                        isASAPSubmitBetaEnabled: false,
-                        predictedNextStatus: CONST.REPORT.STATUS_NUM.OPEN,
-                        shouldFixViolations: false,
-                        isUnapprove: false,
-                        isReopen: false,
-                        isTrackIntentUser: false,
                     });
 
-                    expect(result).toMatchObject(expectedResult);
+                    afterEach(() => {
+                        jest.useRealTimers();
+                    });
+
+                    test('is the 2nd of this month when the 2nd is still ahead', () => {
+                        jest.useFakeTimers();
+                        jest.setSystemTime(new Date('2026-01-01T12:00:00Z'));
+
+                        expect(buildMonthlyOnThe2ndNextStep()).toMatchObject(expectedResultWithEtaDate('2026-01-02'));
+                    });
+
+                    test('is today when today is the 2nd', () => {
+                        jest.useFakeTimers();
+                        jest.setSystemTime(new Date('2026-01-02T12:00:00Z'));
+
+                        expect(buildMonthlyOnThe2ndNextStep()).toMatchObject(expectedResultWithEtaDate('2026-01-02'));
+                    });
+
+                    test('is the 2nd of next month once the 2nd has passed', () => {
+                        jest.useFakeTimers();
+                        jest.setSystemTime(new Date('2026-01-15T12:00:00Z'));
+
+                        expect(buildMonthlyOnThe2ndNextStep()).toMatchObject(expectedResultWithEtaDate('2026-02-02'));
+                    });
                 });
 
                 test('monthly on the last day', () => {
@@ -937,7 +959,6 @@ describe('libs/NextStepUtils', () => {
                 type: CONST.POLICY.TYPE.TEAM,
                 owner: currentUserEmail,
                 outputCurrency: CONST.CURRENCY.USD,
-                isPolicyExpenseChatEnabled: true,
                 reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
                 approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
                 approver: currentUserEmail,
@@ -991,7 +1012,6 @@ describe('libs/NextStepUtils', () => {
                 type: CONST.POLICY.TYPE.TEAM,
                 owner: currentUserEmail,
                 outputCurrency: CONST.CURRENCY.USD,
-                isPolicyExpenseChatEnabled: true,
                 reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
                 approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
                 approver: currentUserEmail,
@@ -1134,6 +1154,68 @@ describe('libs/NextStepUtils', () => {
             expect(formatPhoneNumberMock).toHaveBeenCalledWith(phoneActorLogin);
             expect(message).toBe(`<next-step>Waiting for formatted:${phoneActorLogin} to submit expenses.</next-step>`);
         });
+
+        it('renders a monthly automatic-submit eta using the day-of-month it encodes, not one shifted by UTC parsing', () => {
+            // A date-only `eta.dateTime` must render as the same day it encodes regardless of the browser timezone.
+            // Native `new Date('2026-08-15')` parses as UTC midnight and shows the 14th in UTC-negative timezones;
+            // `parseISO` keeps it at local midnight so the ordinal day matches the workspace setting.
+            const nextStep: ReportNextStep = {
+                messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_AUTOMATIC_SUBMIT,
+                icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
+                actorAccountID: 999999,
+                eta: {dateTime: '2026-08-15'},
+            };
+            // Echo the rendered eta (parameter index 2) so we can assert the ordinal day the user actually sees.
+            const translateEta: LocalizedTranslate = (path, ...parameters) => {
+                if (path === 'nextStep.message.waitingForAutomaticSubmit') {
+                    return String(parameters.at(2));
+                }
+                return translateLocal(path, ...parameters);
+            };
+
+            const message = buildNextStepMessage(nextStep, translateEta, undefined, 999999, formatPhoneNumber);
+            expect(message).toBe('<next-step>15th</next-step>');
+        });
+
+        describe('renders a monthly automatic-submit eta on the encoded day of month in every timezone', () => {
+            // `buildNextStepMessage` renders a date-only `eta.dateTime` with date-fns, which uses the ambient system
+            // timezone. Jest is pinned to UTC (`TZ=utc`) and V8 caches that at process start, so we cannot change the
+            // timezone from inside this process. UTC is also the one zone where the bug is invisible, because UTC
+            // midnight and local midnight coincide. To exercise real UTC-negative/positive offsets we run the same
+            // parse+format expression used by buildNextStepMessage (see src/libs/NextStepUtils.ts:86) in a child
+            // `node` process with a real `TZ`. `fixed` mirrors the shipped `parseISO` parsing; `legacy` mirrors the
+            // old `new Date` parsing that caused the regression.
+            const renderEtaDayInTimezone = (timezone: string): {fixed: string; legacy: string} => {
+                const dateOnly = '2026-08-15';
+                // Print the fixed (`parseISO`) and legacy (`new Date`) ordinals space-separated so the parent can read
+                // them back as plain strings without an unsafe cast.
+                const script = `const {format,parseISO}=require('date-fns');process.stdout.write([format(parseISO('${dateOnly}'),'do'),format(new Date('${dateOnly}'),'do')].join(' '));`;
+                const out = execFileSync(process.execPath, ['-e', script], {env: {...process.env, TZ: timezone}, encoding: 'utf8'});
+                const [fixed, legacy] = out.split(' ');
+                return {fixed, legacy};
+            };
+
+            it.each([
+                ['Asia/Tokyo', 'positive'],
+                ['Europe/Paris', 'positive'],
+                ['UTC', 'zero'],
+                ['America/New_York', 'negative'],
+                ['America/Los_Angeles', 'negative'],
+                ['Pacific/Honolulu', 'negative'],
+            ])('renders the encoded day (15th) in %s (%s UTC offset)', (timezone, offsetSign) => {
+                const {fixed, legacy} = renderEtaDayInTimezone(timezone);
+
+                // The shipped fix renders the encoded day in every timezone.
+                expect(fixed).toBe('15th');
+
+                // In UTC-negative zones the old `new Date` parsing shifts the day back by one. Asserting it here both
+                // documents the regression and guarantees the child really ran in a UTC-negative zone. Otherwise this
+                // would read '15th' and fail loudly instead of the test silently degrading into a UTC-only no-op.
+                if (offsetSign === 'negative') {
+                    expect(legacy).toBe('14th');
+                }
+            });
+        });
     });
 
     describe('buildOptimisticNextStep', () => {
@@ -1148,7 +1230,6 @@ describe('libs/NextStepUtils', () => {
             type: CONST.POLICY.TYPE.TEAM,
             owner: currentUserEmail,
             outputCurrency: CONST.CURRENCY.USD,
-            isPolicyExpenseChatEnabled: true,
             reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
             approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
             approver: currentUserEmail,

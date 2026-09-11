@@ -20,6 +20,7 @@ import cropOrRotateImage from '@libs/cropOrRotateImage';
 import fetchImage from '@libs/fetchImage';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import getPlatform from '@libs/getPlatform';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import ReceiptStorage from '@libs/ReceiptStorage';
 import {getThumbnailAndImageURIs} from '@libs/ReceiptUtils';
@@ -44,13 +45,14 @@ import type {AttachmentModalScreenProps} from '@pages/media/AttachmentModalScree
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {ReceiptSource} from '@src/types/onyx/Transaction';
 import type {FileObject} from '@src/types/utils/Attachment';
 
 import type {RotationDegrees} from 'react-fast-pdf';
 
+import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
 import {Str} from 'expensify-common';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
@@ -74,6 +76,9 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
+    const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
     const policy = usePolicy(report?.policyID);
     const platform = getPlatform();
     const isNative = platform === CONST.PLATFORM.ANDROID || platform === CONST.PLATFORM.IOS;
@@ -188,7 +193,16 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
         if ((!!report && !!transaction) || isDraftTransaction) {
             return;
         }
-        openReport({reportID, introSelected, betas, hasReportActions, currentUserAccountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID});
+        openReport({
+            reportID,
+            introSelected,
+            conciergeChat,
+            betas,
+            hasReportActions,
+            currentUserAccountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+            isSelfTourViewed: guidedSetupAndTourStatus?.isSelfTourViewed,
+            hasCompletedGuidedSetupFlow: guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
+        });
         // I'm disabling the warning, as it expects to use exhaustive deps, even though we want this useEffect to run only on the first render.
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
@@ -234,11 +248,9 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
             receiptType,
             () =>
                 Navigation.goBack(
-                    ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(
-                        CONST.IOU.ACTION.CREATE,
-                        iouType,
-                        transactionID,
-                        reportID,
+                    createDynamicRoute(
+                        DYNAMIC_ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID),
+                        // The confirmation page is the explicit base so the scan step still goes back to it once the receipt is retaken.
                         ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(action, iouType, transactionID, reportID),
                     ),
                 ),
@@ -471,7 +483,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
                             prompt: isOdometerImage ? translate('distance.odometer.deleteOdometerPhotoConfirmation') : translate('receipt.deleteConfirmation'),
                             confirmText: translate('common.delete'),
                             cancelText: translate('common.cancel'),
-                            danger: true,
+                            buttonVariant: CONST.BUTTON_VARIANT.DANGER,
                         });
 
                         if (result.action !== ModalActions.CONFIRM) {
@@ -574,12 +586,14 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
                             const getDestinationRoute = () => {
                                 return isOdometerImage
                                     ? ROUTES.ODOMETER_IMAGE.getRoute(action ?? CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID, imageType, isEditingConfirmation, backToReport)
-                                    : ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(
-                                          action ?? CONST.IOU.ACTION.EDIT,
-                                          iouType,
-                                          draftTransactionID ?? transaction?.transactionID,
-                                          report?.reportID,
-                                          Navigation.getActiveRoute(),
+                                    : // `getDestinationRoute` runs after the modal is dismissed, so the base is the screen underneath it.
+                                      createDynamicRoute(
+                                          DYNAMIC_ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(
+                                              action ?? CONST.IOU.ACTION.EDIT,
+                                              iouType,
+                                              draftTransactionID ?? transaction?.transactionID,
+                                              report?.reportID,
+                                          ),
                                       );
                             };
 

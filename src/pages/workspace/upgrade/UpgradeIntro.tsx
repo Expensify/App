@@ -84,12 +84,14 @@ function UpgradeIntro({feature, onUpgrade, buttonDisabled, loading, isCategorizi
     ]);
     const illustrationIcons = useMemoizedLazyExpensifyIcons([
         'IntacctSquare',
+        'IntuitSquare',
         'NetSuiteSquare',
         'QBDSquare',
         'QBOSquare',
         'CertiniaSquare',
         'RilletSquare',
         'DualEntrySquare',
+        'CampfireSquare',
         'AdvancedApprovalsSquare',
         'Unlock',
     ]);

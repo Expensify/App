@@ -16,7 +16,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePersonalDetailSearchSelector from '@hooks/usePersonalDetailSearchSelector';
 import usePressLoading from '@hooks/usePressLoading';
-import useReportAttributes from '@hooks/useReportAttributes';
+import {useDerivedReportNameByReportID} from '@hooks/useReportAttributes';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -24,6 +24,7 @@ import {inviteToRoom, inviteToRoomAction, searchUserInServer} from '@libs/action
 import {clearUserSearchPhrase, updateUserSearchPhrase} from '@libs/actions/RoomMembersUserSearchPhrase';
 import {READ_COMMANDS} from '@libs/API/types';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
+import getPlatform from '@libs/getPlatform';
 import HttpUtils from '@libs/HttpUtils';
 import {appendCountryCode} from '@libs/LoginUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
@@ -35,7 +36,7 @@ import {getHeaderMessage} from '@libs/PersonalDetailOptionsListUtils';
 import {addSMSDomainIfPhoneNumber, parsePhoneNumber} from '@libs/PhoneNumber';
 import type {MemberEmailsToAccountIDs} from '@libs/PolicyUtils';
 import {isPolicyEmployee as isPolicyEmployeeUtil} from '@libs/PolicyUtils';
-import {deprecatedGetReportName} from '@libs/ReportNameUtils';
+import {getReportName} from '@libs/ReportNameUtils';
 import {getParticipantsAccountIDsForDisplay, isPolicyExpenseChat} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
@@ -63,7 +64,7 @@ type DynamicRoomInvitePageProps = WithReportOrNotFoundProps &
 type MembersSection = SectionListData<OptionData, Section<OptionData>>;
 function DynamicRoomInvitePage({report, policy, didScreenTransitionEnd}: DynamicRoomInvitePageProps) {
     const styles = useThemeStyles();
-    const reportAttributes = useReportAttributes();
+    const derivedReportName = useDerivedReportNameByReportID(report?.reportID);
     const {translate, formatPhoneNumber} = useLocalize();
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.ROOM_INVITE.path);
     const [userSearchPhrase] = useOnyx(ONYXKEYS.ROOM_MEMBERS_USER_SEARCH_PHRASE);
@@ -134,7 +135,7 @@ function DynamicRoomInvitePage({report, policy, didScreenTransitionEnd}: Dynamic
     const isPolicyEmployee = isPolicyEmployeeUtil(report?.policyID, policy);
     const reportDetailsRoute = reportID ? createDynamicRoute(DYNAMIC_ROUTES.REPORT_DETAILS.path, ROUTES.REPORT_WITH_ID.getRoute(reportID)) : undefined;
     const backRoute = reportID && (!isPolicyEmployee || isReportArchived) ? reportDetailsRoute : backPath;
-    const reportName = deprecatedGetReportName(report, reportAttributes);
+    const reportName = getReportName(report, derivedReportName);
 
     const ancestors = useAncestors(report);
 
@@ -247,6 +248,8 @@ function DynamicRoomInvitePage({report, policy, didScreenTransitionEnd}: Dynamic
                     confirmButtonOptions={{
                         isDisabled: !validSelectedOptions.length,
                         onConfirm: inviteUsers,
+                        isFooterConfirmEnabled: validSelectedOptions.length > 0,
+                        isFooterConfirmEnterKeyEnabled: getPlatform() !== CONST.PLATFORM.ANDROID,
                     }}
                     shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
                     shouldUpdateFocusedIndex

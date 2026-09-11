@@ -1,6 +1,9 @@
+import CONST from '@src/CONST';
+import {READ_COMMANDS, WRITE_COMMANDS} from '@src/libs/API/types';
 import Log from '@src/libs/Log';
 import * as Request from '@src/libs/Request';
 import type {Middleware} from '@src/libs/Request';
+import {endSpan, endSpanWithAttributes, startSpan} from '@src/libs/telemetry/activeSpans';
 import type * as OnyxTypes from '@src/types/onyx';
 
 import * as TestHelper from '../utils/TestHelper';
@@ -11,11 +14,23 @@ jest.mock('@src/libs/Log', () => ({
     default: {info: jest.fn(), alert: jest.fn(), warn: jest.fn(), hmmm: jest.fn()},
 }));
 
+jest.mock('@src/libs/telemetry/activeSpans', () => ({
+    startSpan: jest.fn(),
+    endSpan: jest.fn(),
+    endSpanWithAttributes: jest.fn(),
+    cancelSpan: jest.fn(),
+}));
+
+const MOCK_REQUEST_ID = 'req-123';
+
 // eslint-disable-next-line @typescript-eslint/unbound-method -- jest.fn() mock doesn't rely on `this` binding
 const mockLogAlert = jest.mocked(Log.alert);
+const mockStartSpan = jest.mocked(startSpan);
+const mockEndSpan = jest.mocked(endSpan);
+const mockEndSpanWithAttributes = jest.mocked(endSpanWithAttributes);
 
 beforeAll(() => {
-    global.fetch = TestHelper.getGlobalFetchMock();
+    global.fetch = TestHelper.getGlobalFetchMock({json: () => Promise.resolve({jsonCode: 200, requestID: MOCK_REQUEST_ID})});
 });
 
 beforeEach(() => {
@@ -103,4 +118,41 @@ test('Request.processWithMiddleware() passes real Error rejections through untou
             expect(catchHandler.mock.calls.at(0)?.at(0)).toBe(originalError);
             expect(mockLogAlert).not.toHaveBeenCalled();
         });
+});
+
+test('Request.processWithMiddleware() measures the request phases for measured commands only', () => {
+    // Given a Search request, which is in MEASURED_REQUEST_PHASE_COMMANDS
+    return Request.processWithMiddleware({command: READ_COMMANDS.SEARCH, data: {authToken: 'testToken'}}).then(() => {
+        // Then every phase around the network call and the Onyx apply is opened under the SearchData names, and each one is closed again
+        const startedSpanIds = mockStartSpan.mock.calls.map(([spanId]) => spanId);
+        const endedSpanIds = [...mockEndSpan.mock.calls, ...mockEndSpanWithAttributes.mock.calls].map(([spanId]) => spanId);
+        const measuredPhases = [CONST.TELEMETRY.SPAN_SEARCH_DATA.WAIT, CONST.TELEMETRY.SPAN_SEARCH_DATA.DOWNLOAD, CONST.TELEMETRY.SPAN_SEARCH_DATA.APPLY];
+        expect(measuredPhases.filter((phase) => startedSpanIds.some((spanId) => spanId.startsWith(`${phase}_`)))).toEqual(measuredPhases);
+        expect([...endedSpanIds].sort()).toEqual([...startedSpanIds].sort());
+
+        // And the server's requestID is stamped on the phases that can see it, so one attempt's spans can be joined in Sentry
+        const applySpanId = startedSpanIds.find((spanId) => spanId.startsWith(`${CONST.TELEMETRY.SPAN_SEARCH_DATA.APPLY}_`));
+        expect(mockEndSpanWithAttributes).toHaveBeenCalledWith(applySpanId, {[CONST.TELEMETRY.ATTRIBUTE_REQUEST_ID]: MOCK_REQUEST_ID});
+
+        // And an unmeasured command opens no phase spans at all
+        jest.clearAllMocks();
+        return Request.processWithMiddleware(request).then(() => {
+            expect(mockStartSpan).not.toHaveBeenCalled();
+        });
+    });
+});
+
+test('Request.processWithMiddleware() keeps startup on the StartupData span names', () => {
+    // Adding a measured command must not move OpenApp onto shared span names, or its history in Sentry breaks
+    return Request.processWithMiddleware({command: WRITE_COMMANDS.OPEN_APP, data: {authToken: 'testToken'}}).then(() => {
+        const startedSpanIds = mockStartSpan.mock.calls.map(([spanId]) => spanId);
+        const startupPhases = [
+            CONST.TELEMETRY.SPAN_STARTUP_DATA.WAIT,
+            CONST.TELEMETRY.SPAN_STARTUP_DATA.DOWNLOAD,
+            CONST.TELEMETRY.SPAN_STARTUP_DATA.APPLY,
+            CONST.TELEMETRY.SPAN_STARTUP_DATA.RENDER,
+        ];
+        expect(startupPhases.filter((phase) => startedSpanIds.some((spanId) => spanId.startsWith(`${phase}_`)))).toEqual(startupPhases);
+        expect(startedSpanIds.some((spanId) => spanId.startsWith('SearchData.'))).toBe(false);
+    });
 });
