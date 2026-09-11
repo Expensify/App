@@ -48,6 +48,8 @@ const useRHPScreenOptions = (): PlatformStackNavigationOptions => {
             headerShown: false,
             animation: Animations.SLIDE_FROM_RIGHT,
             gestureDirection: 'horizontal',
+            // Inner RHPs must also retain the wider report underneath them.
+            native: isSmallScreenWidth ? undefined : {presentation: 'containedTransparentModal', contentStyle: styles.bgTransparent},
             web: {
                 // The .forHorizontalIOS interpolator from `@react-navigation` is misbehaving on Safari, so we override it with Expensify custom interpolator
                 cardStyleInterpolator: isSafari()
@@ -60,7 +62,7 @@ const useRHPScreenOptions = (): PlatformStackNavigationOptions => {
                 transitionSpec: isSmallScreenWidth ? undefined : RHP_WEB_TRANSITION_SPEC,
             },
         };
-    }, [customInterpolator, shouldAdjustInterpolatorProps, isSmallScreenWidth, styles.navigationScreenCardStyle]);
+    }, [customInterpolator, shouldAdjustInterpolatorProps, isSmallScreenWidth, styles.bgTransparent, styles.navigationScreenCardStyle]);
 };
 
 export default useRHPScreenOptions;

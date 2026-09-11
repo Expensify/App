@@ -52,6 +52,8 @@ const useRootNavigatorScreenOptions = () => {
             animation: Animations.SLIDE_FROM_RIGHT,
             // We want pop in RHP since there are some flows that would work weird otherwise
             animationTypeForReplace: 'pop',
+            // Transparent presentation keeps the base split visible underneath the RHP.
+            native: shouldUseNarrowLayout ? undefined : {presentation: Presentation.TRANSPARENT_MODAL, contentStyle: themeStyles.bgTransparent},
             web: {
                 presentation: Presentation.TRANSPARENT_MODAL,
                 cardStyleInterpolator: (props: StackCardInterpolationProps) =>

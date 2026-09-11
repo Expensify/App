@@ -9,8 +9,14 @@ import {
 } from '@components/WideRHPContextProvider';
 
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 
 import Overlay from '@libs/Navigation/AppNavigator/Navigators/Overlay';
+import calculateReceiptPaneRHPWidth from '@libs/Navigation/helpers/calculateReceiptPaneRHPWidth';
+import calculateSuperWideRHPWidth from '@libs/Navigation/helpers/calculateSuperWideRHPWidth';
+import getRHPLayoutValue from '@libs/Navigation/helpers/getRHPLayoutValue';
+
+import variables from '@styles/variables';
 
 import {useRoute} from '@react-navigation/native';
 import React from 'react';
@@ -20,6 +26,9 @@ function SecondaryOverlay() {
         useWideRHPState();
 
     const route = useRoute();
+    const {windowWidth} = useWindowDimensions();
+    const receiptWidth = calculateReceiptPaneRHPWidth(windowWidth);
+    const superWideWidth = calculateSuperWideRHPWidth(windowWidth);
 
     const isWide = !!route?.key && wideRHPRouteKeys.includes(route.key);
     const isSuperWide = !!route?.key && superWideRHPRouteKeys.includes(route.key);
@@ -45,7 +54,7 @@ function SecondaryOverlay() {
             <Overlay
                 progress={secondOverlayRHPOnWideRHPProgress}
                 // If RHP is displayed on Wide RHP which is displayed above the Super Wide RHP, the secondary overlay's position left should be calculated from the left edge of the super wide RHP.
-                positionLeftValue={animatedReceiptPaneRHPWidth}
+                positionLeftValue={getRHPLayoutValue(receiptWidth, animatedReceiptPaneRHPWidth)}
             />
         );
     }
@@ -54,7 +63,7 @@ function SecondaryOverlay() {
         return (
             <Overlay
                 progress={secondOverlayWideRHPProgress}
-                positionLeftValue={modalStackOverlayWideRHPPositionLeft}
+                positionLeftValue={getRHPLayoutValue(superWideWidth - receiptWidth - variables.sideBarWidth, modalStackOverlayWideRHPPositionLeft)}
             />
         );
     }
@@ -63,7 +72,7 @@ function SecondaryOverlay() {
         return (
             <Overlay
                 progress={secondOverlayRHPOnSuperWideRHPProgress}
-                positionLeftValue={modalStackOverlaySuperWideRHPPositionLeft}
+                positionLeftValue={getRHPLayoutValue(superWideWidth - variables.sideBarWidth, modalStackOverlaySuperWideRHPPositionLeft)}
             />
         );
     }
