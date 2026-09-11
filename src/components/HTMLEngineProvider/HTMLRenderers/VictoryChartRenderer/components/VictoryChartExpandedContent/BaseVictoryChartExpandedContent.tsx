@@ -6,18 +6,14 @@ import {useSharedValue} from 'react-native-reanimated';
 import type VictoryChartExpandedContentProps from './types';
 
 import ExpandedChartBox from './ExpandedChartBox';
-import useExpandedChartLayout from './useExpandedChartLayout';
 
 /**
- * Touch-device zoom for the expanded chart, mirroring the Lightbox/image-attachment pattern: the
- * chart is rendered ONCE at a fixed high resolution (like a 2x image asset) and handed to
- * MultiGestureCanvas at that intrinsic size. The canvas computes the fit scale itself and owns the
- * single transform for fitting, centering, and pinch/double-tap zooming — no manual transforms of
- * our own, since nested transforms rasterize the inner layer and blur it on native.
+ * Touch devices: the chart is rendered once at the zoomed size and MultiGestureCanvas owns the
+ * fit/pinch/double-tap transform, like the Lightbox does for image attachments.
  */
-function BaseVictoryChartExpandedContent({availableSize, isVisible, onSwipeDown}: VictoryChartExpandedContentProps) {
-    const {hasLayout, fitScale, zoomHeadroom, renderWidth, renderHeight, clippedRenderHeight, backgroundColor, borderRadius, isPolar} = useExpandedChartLayout(availableSize);
-    // No pager wraps this canvas, so scrolling never needs to be handed back to one.
+function BaseVictoryChartExpandedContent({availableSize, layout, isVisible, onSwipeDown}: VictoryChartExpandedContentProps) {
+    const {hasLayout, fitScale, zoomHeadroom, renderWidth, renderHeight, clippedRenderHeight, backgroundColor, renderBorderRadius, isPolar} = layout;
+    // No pager wraps this canvas
     const isPagerScrollEnabled = useSharedValue(false);
 
     if (!hasLayout) {
@@ -29,8 +25,7 @@ function BaseVictoryChartExpandedContent({availableSize, isVisible, onSwipeDown}
             isActive={isVisible}
             canvasSize={availableSize}
             contentSize={{width: renderWidth, height: clippedRenderHeight}}
-            // Zooming past the rendered resolution would upscale pixels and blur the chart — cap
-            // the zoom at the headroom the chart was actually rendered with.
+            // Zooming past the rendered resolution would blur the chart
             zoomRange={{max: zoomHeadroom}}
             isUsedInCarousel={false}
             isPagerScrollEnabled={isPagerScrollEnabled}
@@ -42,7 +37,7 @@ function BaseVictoryChartExpandedContent({availableSize, isVisible, onSwipeDown}
                 clippedHeight={clippedRenderHeight}
                 providerScale={fitScale * zoomHeadroom}
                 backgroundColor={backgroundColor}
-                borderRadius={borderRadius}
+                borderRadius={renderBorderRadius}
                 isPolar={isPolar}
             />
         </MultiGestureCanvas>

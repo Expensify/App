@@ -18,36 +18,28 @@ import type VictoryChartExpandedContentProps from './types';
 
 import BaseVictoryChartExpandedContent from './BaseVictoryChartExpandedContent';
 import ExpandedChartBox from './ExpandedChartBox';
-import useExpandedChartLayout from './useExpandedChartLayout';
 
 /**
- * Desktop-web zoom for the expanded chart, mirroring the image attachment viewer (ImageView):
- * a zoom-in/zoom-out cursor, click to zoom into the clicked spot, mouse scroll (or drag while
- * zoomed) to pan — via the same useClickZoomPan hook the image viewer uses.
- *
- * Like a high-resolution image, the chart is rendered ONCE at the zoomed size and displayed
- * downscaled while fitted (crisp both ways), so toggling zoom only changes CSS — the Skia canvas
- * never re-renders and there is no flicker.
+ * Desktop web: click-to-zoom with scroll/drag panning, like the image attachment viewer. The chart
+ * is rendered once at the zoomed size and shown downscaled while fitted, so zooming is CSS-only.
  */
-function DesktopVictoryChartExpandedContent({availableSize, isVisible}: VictoryChartExpandedContentProps) {
+function DesktopVictoryChartExpandedContent({availableSize, layout, isVisible}: VictoryChartExpandedContentProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const scrollableRef = useRef<RNView & HTMLDivElement>(null);
-    const layout = useExpandedChartLayout(availableSize);
 
-    // On large displays the fitted chart can already use all the zoom headroom, in which case
-    // clicking could not enlarge anything — hide the zoom affordance entirely.
+    // No headroom (very large displays) means clicking couldn't enlarge anything
     const canZoom = layout.zoomHeadroom > 1;
 
+    // Click offsets are reported in the chart's own (render-space) coordinates, so no conversion is needed
     const {isZoomed, isDragging, onContainerPressIn, onContainerPress, resetZoom} = useClickZoomPan({
         scrollableRef,
         containerSize: availableSize,
-        zoomFactor: layout.zoomHeadroom,
+        zoomFactor: 1,
     });
 
-    // The modal stays mounted after closing so it reopens fast — reset the zoom so it never
-    // reopens in a stale zoomed state (the touch path resets via MultiGestureCanvas.isActive).
+    // Don't reopen in a stale zoomed state
     useEffect(() => {
         if (isVisible) {
             return;
@@ -66,8 +58,6 @@ function DesktopVictoryChartExpandedContent({availableSize, isVisible}: VictoryC
                 styles.overflowHidden,
             ]}
         >
-            {/* The chart is always rendered at the zoomed size; while fitted it is displayed
-                downscaled — like a 2x image asset — so zooming never re-renders the canvas. */}
             <View style={StyleUtils.getTopLeftTransformScaleStyle(isZoomed ? 1 : 1 / layout.zoomHeadroom)}>
                 <ExpandedChartBox
                     width={layout.renderWidth}
@@ -75,7 +65,7 @@ function DesktopVictoryChartExpandedContent({availableSize, isVisible}: VictoryC
                     clippedHeight={layout.clippedRenderHeight}
                     providerScale={layout.fitScale * layout.zoomHeadroom}
                     backgroundColor={layout.backgroundColor}
-                    borderRadius={layout.borderRadius}
+                    borderRadius={layout.renderBorderRadius}
                     isPolar={layout.isPolar}
                 />
             </View>
@@ -87,9 +77,7 @@ function DesktopVictoryChartExpandedContent({availableSize, isVisible}: VictoryC
             ref={scrollableRef}
             style={[styles.flex1, styles.w100, styles.overflowAuto, styles.pRelative]}
         >
-            {/* Fills the viewport so the fitted chart centers. Centering is dropped while zoomed:
-                flex-centering content larger than the scroll viewport pushes its start edges before
-                the scroll origin, making the top/left of the chart unreachable. */}
+            {/* Centering is dropped while zoomed: centered overflow would push the chart's top/left past the scroll origin */}
             <View style={[styles.mnw100, styles.mnh100, !isZoomed && styles.justifyContentCenter, !isZoomed && styles.alignItemsCenter]}>
                 {canZoom ? (
                     <PressableWithoutFeedback
@@ -112,10 +100,7 @@ function DesktopVictoryChartExpandedContent({availableSize, isVisible}: VictoryC
 
 DesktopVictoryChartExpandedContent.displayName = 'DesktopVictoryChartExpandedContent';
 
-/**
- * On touch devices the expanded chart zooms like the Lightbox (pinch/double-tap via
- * MultiGestureCanvas); on desktop web it zooms like the image attachment viewer (click + scroll).
- */
+/** Touch devices zoom like the Lightbox; desktop web zooms like the image attachment viewer. */
 function VictoryChartExpandedContent(props: VictoryChartExpandedContentProps) {
     if (canUseTouchScreenUtil()) {
         return <BaseVictoryChartExpandedContent {...props} />;

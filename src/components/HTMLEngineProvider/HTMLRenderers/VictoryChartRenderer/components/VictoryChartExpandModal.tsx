@@ -11,7 +11,7 @@ import CONST from '@src/CONST';
 
 import type {LayoutChangeEvent} from 'react-native';
 
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 
@@ -27,10 +27,9 @@ type VictoryChartExpandModalProps = {
 };
 
 /**
- * Centered full-screen modal that presents the current chart scaled up to the viewport, with
- * platform-appropriate zoom mirroring the image attachment viewer: pinch/double-tap on touch
- * devices, click + scroll on desktop web.
- * Must be rendered inside a VictoryChartProvider so the chart can read the parsed chart context.
+ * Full-screen modal presenting the current chart scaled up to the viewport, with attachment-style
+ * zoom (pinch/double-tap on touch, click + scroll on desktop web). Must be rendered inside a
+ * VictoryChartProvider.
  */
 function VictoryChartExpandModal({isVisible, onClose}: VictoryChartExpandModalProps) {
     const styles = useThemeStyles();
@@ -39,37 +38,42 @@ function VictoryChartExpandModal({isVisible, onClose}: VictoryChartExpandModalPr
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [availableSize, setAvailableSize] = useState({width: 0, height: 0});
+    // The chart stays mounted through the close animation and is released once the modal has hidden
+    const [isHidden, setIsHidden] = useState(!isVisible);
     const layout = useExpandedChartLayout(availableSize);
 
+    useEffect(() => {
+        if (!isVisible) {
+            return;
+        }
+        setIsHidden(false);
+    }, [isVisible]);
+
     const onContainerLayout = (event: LayoutChangeEvent) => {
-        // Ignore layout changes while the modal is closing — re-measuring mid-animation
-        // would rescale the chart and cause a visible flicker.
+        // Re-measuring mid close animation would rescale the chart
         if (!isVisible) {
             return;
         }
         const {width, height} = event.nativeEvent.layout;
-        // Avoid re-render churn when the layout callback fires without an actual size change.
         setAvailableSize((prev) => (prev.width === width && prev.height === height ? prev : {width, height}));
     };
 
     const isMeasured = availableSize.width > 0 && availableSize.height > 0;
+    const shouldRenderChart = isMeasured && (isVisible || !isHidden);
 
     return (
         <Modal
             isVisible={isVisible}
             type={CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE}
             onClose={onClose}
-            // On web, the device/browser back button should close only this modal, not the report page behind it.
+            onModalHide={() => setIsHidden(true)}
+            // Browser back should close only the modal, not the report behind it
             shouldHandleNavigationBack
             enableEdgeToEdgeBottomSafeAreaPadding
         >
-            {/* GestureHandlerRootView is required for MultiGestureCanvas gestures to work inside a
-                modal on Android, which hosts modals in a separate native window — the same reason
-                the attachment modal wraps its content in one. It also explicitly paints the modal
-                surface: during the close animation the unpainted modal base can flash through as
-                white, which is clearly visible on dark themes. */}
+            {/* GestureHandlerRootView is required for gestures inside an Android modal (separate native window),
+                and painting appBG here avoids the unpainted modal base flashing through on dark themes */}
             <GestureHandlerRootView style={[styles.flex1, StyleUtils.getBackgroundColorStyle(theme.appBG)]}>
-                {/* Header matches the attachment modal: back button on narrow layouts, close button on the right otherwise. */}
                 <HeaderWithBackButton
                     title={translate('common.details')}
                     shouldShowBorderBottom
@@ -78,34 +82,31 @@ function VictoryChartExpandModal({isVisible, onClose}: VictoryChartExpandModalPr
                     onBackButtonPress={onClose}
                     onCloseButtonPress={onClose}
                 />
-                {/* Padding lives on the outer view; the inner view is measured so the fit scale never
-                exceeds the actual content area and the side gutters are preserved. */}
                 <View style={[styles.flex1, styles.ph5]}>
                     <View
                         style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter]}
                         onLayout={onContainerLayout}
                     >
-                        {isMeasured &&
+                        {shouldRenderChart &&
                             (layout.hasLayout ? (
                                 <VictoryChartExpandedContent
                                     availableSize={availableSize}
+                                    layout={layout}
                                     isVisible={isVisible}
                                     onSwipeDown={onClose}
                                 />
                             ) : (
-                                // Charts without design dimensions have no design-based label coordinates, so fluid
-                                // rendering is safe. Background/rounding are still applied so the expanded chart
-                                // keeps the same themed container the inline fluid path renders with.
+                                // Charts without design dimensions render fluid, like inline
                                 <View
                                     style={[
                                         styles.w100,
                                         styles.flex1,
                                         layout.backgroundColor !== undefined && StyleUtils.getBackgroundColorStyle(layout.backgroundColor),
-                                        layout.borderRadius !== undefined && StyleUtils.getBorderRadiusStyle(layout.borderRadius),
+                                        layout.designBorderRadius !== undefined && StyleUtils.getBorderRadiusStyle(layout.designBorderRadius),
                                         styles.overflowHidden,
                                     ]}
                                 >
-                                    <VictoryChartContent />
+                                    <VictoryChartContent shouldUseStaticCanvas />
                                 </View>
                             ))}
                     </View>

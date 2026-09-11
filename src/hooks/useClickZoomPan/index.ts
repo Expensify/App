@@ -1,48 +1,19 @@
 import {canUseTouchScreen as canUseTouchScreenUtil} from '@libs/DeviceCapabilities';
 
-import type {Dimensions} from '@src/types/utils/Layout';
-
-import type {RefObject, SyntheticEvent} from 'react';
-import type {GestureResponderEvent, View} from 'react-native';
+import type {SyntheticEvent} from 'react';
+import type {GestureResponderEvent} from 'react-native';
 
 import {useEffect, useState} from 'react';
 
+import type UseClickZoomPan from './types';
+
 type ZoomDelta = {offsetX: number; offsetY: number};
 
-type UseClickZoomPanParams = {
-    /** The scrollable element the zoomed content overflows into */
-    scrollableRef: RefObject<(View & HTMLDivElement) | null>;
-
-    /** The size of the visible scroll area, used to center the clicked point after zooming */
-    containerSize: Dimensions;
-
-    /** Multiplier that maps a point in displayed (fitted) space to the same point in zoomed space */
-    zoomFactor: number;
-};
-
-type UseClickZoomPanResult = {
-    /** Whether the content is currently zoomed in */
-    isZoomed: boolean;
-
-    /** Whether the user is currently dragging to pan the zoomed content */
-    isDragging: boolean;
-
-    /** Press-in handler for the pressable zoom area — records the drag start position */
-    onContainerPressIn: (e: GestureResponderEvent) => void;
-
-    /** Press handler for the pressable zoom area — toggles zoom or ends a drag */
-    onContainerPress: (e?: GestureResponderEvent | KeyboardEvent | SyntheticEvent<Element, PointerEvent>) => void;
-
-    /** Resets all zoom/drag state, e.g. when the content reloads or its container closes */
-    resetZoom: () => void;
-};
-
 /**
- * Desktop-web click-to-zoom with scroll/drag panning, shared by the image attachment viewer
- * (ImageView) and the expanded chart so both zoom identically: click zooms in centered on the
- * clicked point, mouse scroll or drag pans while zoomed, and clicking again zooms back out.
+ * Desktop-web click-to-zoom with scroll/drag panning, shared by ImageView and the expanded chart:
+ * click zooms in centered on the clicked point, scroll or drag pans, click again zooms out.
  */
-function useClickZoomPan({scrollableRef, containerSize, zoomFactor}: UseClickZoomPanParams): UseClickZoomPanResult {
+const useClickZoomPan: UseClickZoomPan = ({scrollableRef, containerSize, zoomFactor}) => {
     const canUseTouchScreen = canUseTouchScreenUtil();
 
     const [isZoomed, setIsZoomed] = useState(false);
@@ -94,8 +65,7 @@ function useClickZoomPan({scrollableRef, containerSize, zoomFactor}: UseClickZoo
             if (e && 'nativeEvent' in e && e.nativeEvent instanceof PointerEvent) {
                 const {offsetX, offsetY} = e.nativeEvent;
 
-                // Multiplying clicked positions by the zoom factor to get zoomed-space coordinates
-                // so that once we zoom we will scroll to the clicked location.
+                // Convert the click into zoomed-space coordinates so we scroll to the clicked location once zoomed
                 const delta = getScrollOffset(offsetX * zoomFactor, offsetY * zoomFactor);
                 setZoomDelta(delta);
             } else {
@@ -107,13 +77,11 @@ function useClickZoomPan({scrollableRef, containerSize, zoomFactor}: UseClickZoo
             setIsDragging(false);
             setIsMouseDown(false);
         } else {
-            // We first zoom and once its done then we scroll to the location the user clicked.
             setIsZoomed(!isZoomed);
             setIsMouseDown(false);
         }
     };
 
-    // No manual memoization anywhere in this hook — React Compiler stabilizes these callbacks.
     const resetZoom = () => {
         setIsZoomed(false);
         setIsDragging(false);
@@ -170,6 +138,6 @@ function useClickZoomPan({scrollableRef, containerSize, zoomFactor}: UseClickZoo
     }, [canUseTouchScreen, trackMovement, trackPointerPosition]);
 
     return {isZoomed, isDragging, onContainerPressIn, onContainerPress, resetZoom};
-}
+};
 
 export default useClickZoomPan;

@@ -8,10 +8,8 @@ import {Skia} from '@shopify/react-native-skia';
 import scalePixels from './scalePixels';
 
 /**
- * Scales every pixel-space value of a parsed chart context by a uniform factor, so the chart can be
- * re-rendered natively at a larger target size (sharp Skia output) instead of raster-upscaling the
- * design-size render. Data-space values (data points, domains, tick values) are left untouched —
- * the chart's axes map them into the larger canvas automatically.
+ * Scales every pixel-space value of a parsed chart context by a uniform factor so the chart can be
+ * re-rendered natively at a larger size. Data-space values (points, domains, ticks) are untouched.
  */
 
 function scaleRecordValues(record: Record<number, number> | undefined, scale: number): Record<number, number> | undefined {
@@ -69,9 +67,8 @@ function scalePadding(padding: number | SidedPixelValues | undefined, scale: num
 }
 
 /**
- * Rebuilds a Skia font at the scaled size using the chart's shared typeface; the original font
- * object is left untouched. The typeface must be passed in rather than read via `font.getTypeface()`
- * because CanvasKit (web) returns a raw pointer there that cannot be passed back into `Skia.Font`.
+ * Rebuilds a Skia font at the scaled size. The typeface is passed in because on web `font.getTypeface()`
+ * returns a raw pointer that CanvasKit refuses to reuse.
  */
 function scaleFont(font: SkFont | null | undefined, scale: number, typeface: SkTypeface | null): SkFont | null | undefined {
     if (!font || !typeface) {
@@ -113,5 +110,16 @@ function scaleVictoryChartContextValue(value: VictoryChartContextValue, scale: n
     };
 }
 
+/** Disposes the axis fonts a scaled context created, leaving the original (shared) fonts untouched. */
+function disposeScaledFonts(scaled: VictoryChartContextValue, original: VictoryChartContextValue) {
+    const originalFonts = new Set([original.xAxis?.font, ...(original.yAxis ?? []).map((axis) => axis.font)]);
+    const scaledFonts = [scaled.xAxis?.font, ...(scaled.yAxis ?? []).map((axis) => axis.font)];
+    for (const font of scaledFonts) {
+        if (font && !originalFonts.has(font)) {
+            font.dispose();
+        }
+    }
+}
+
 export default scaleVictoryChartContextValue;
-export {scaleLabelItem};
+export {scaleLabelItem, disposeScaledFonts};
