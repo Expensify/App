@@ -210,7 +210,12 @@ describe('SearchSelectionFooter', () => {
             transaction2: {...buildSelectedTransaction(CONST.CURRENCY.USD), displayAmount: -10000},
         };
 
-        render(<SearchSelectionFooter searchResults={buildSearchResults(CONST.CURRENCY.USD, 5)} />);
+        render(
+            <SearchSelectionFooter
+                searchResults={buildSearchResults(CONST.CURRENCY.USD, 5)}
+                onDisplayChange={mockOnDisplayChange}
+            />,
+        );
         await waitForBatchedUpdates();
 
         expect(mockCapturedFooterProps.current).toEqual(expect.objectContaining({count: 2, total: 0}));
@@ -222,7 +227,12 @@ describe('SearchSelectionFooter', () => {
             transaction2: {...buildSelectedTransaction(CONST.CURRENCY.USD), displayAmount: -4000},
         };
 
-        render(<SearchSelectionFooter searchResults={buildSearchResults(CONST.CURRENCY.USD, 5)} />);
+        render(
+            <SearchSelectionFooter
+                searchResults={buildSearchResults(CONST.CURRENCY.USD, 5)}
+                onDisplayChange={mockOnDisplayChange}
+            />,
+        );
         await waitForBatchedUpdates();
 
         expect(mockCapturedFooterProps.current).toEqual(expect.objectContaining({count: 2, total: 6000}));
@@ -234,7 +244,12 @@ describe('SearchSelectionFooter', () => {
         mockExcludedTransactions.current = {transaction1: {...buildSelectedTransaction(CONST.CURRENCY.USD), displayAmount: -10000}};
         mockAreAllMatchingItemsSelected.current = true;
 
-        render(<SearchSelectionFooter searchResults={buildSearchResults(CONST.CURRENCY.USD, 172, 36000)} />);
+        render(
+            <SearchSelectionFooter
+                searchResults={buildSearchResults(CONST.CURRENCY.USD, 172, 36000)}
+                onDisplayChange={mockOnDisplayChange}
+            />,
+        );
         await waitForBatchedUpdates();
 
         expect(mockCapturedFooterProps.current).toEqual(expect.objectContaining({count: 171, total: 46000, currency: CONST.CURRENCY.USD}));
