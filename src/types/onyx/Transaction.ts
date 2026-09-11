@@ -731,7 +731,8 @@ type TransactionCollectionDataSet = CollectionDataSet<typeof ONYXKEYS.COLLECTION
  * instead of a convention reviewers have to remember. Re-exported from `@src/types/onyx` so a call site
  * gets it from the same place it gets `Transaction`, with no direct `type-fest` dependency.
  *
- * To go back to a mutable value, deep-clone it with `cloneMutable` from `@libs/cloneMutable`.
+ * To go back to a mutable value, deep-clone it with `lodash/cloneDeep` and cast the result back to the
+ * mutable type.
  */
 type ReadonlyOnyx<T> = ReadonlyDeep<T>;
 

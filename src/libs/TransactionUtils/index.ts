@@ -10,7 +10,6 @@ import type {MergeDuplicatesParams} from '@libs/API/parameters';
 import {convertAttendeesToArray, normalizeAttendees} from '@libs/AttendeeUtils';
 import {isPersonalCard, isTravelCardTransaction} from '@libs/CardUtils';
 import {getCategoryDefaultTaxRate, isCategoryMissing} from '@libs/CategoryUtils';
-import cloneMutable from '@libs/cloneMutable';
 import {convertToBackendAmount} from '@libs/CurrencyUtils';
 import type {MachineDateFormat} from '@libs/DateUtils';
 import DateUtils from '@libs/DateUtils';
@@ -104,6 +103,7 @@ import type {ValueOf} from 'type-fest';
 import {format, isValid, parse} from 'date-fns';
 import {SafeString, Str} from 'expensify-common';
 import {deepEqual} from 'fast-equals';
+import lodashDeepClone from 'lodash/cloneDeep';
 import lodashSet from 'lodash/set';
 import Onyx from 'react-native-onyx';
 
@@ -806,7 +806,7 @@ function getUpdatedTransaction({
     const isUnReportedExpense = transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
 
     // Only changing the first level fields so no need for deep clone now
-    const updatedTransaction = cloneMutable<Transaction>(transaction);
+    const updatedTransaction = lodashDeepClone(transaction) as Transaction;
     let shouldStopSmartscan = false;
 
     // The comment property does not have its modifiedComment counterpart
