@@ -10,11 +10,12 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getThumbnailAndImageURIs} from '@libs/ReceiptUtils';
-import {hasReceiptSource, isPerDiemRequest} from '@libs/TransactionUtils';
+import {hasReceiptSource, isMapBasedDistanceRequest, isPerDiemRequest} from '@libs/TransactionUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
 
 import variables from '@styles/variables';
 
+import CONST from '@src/CONST';
 import type {Transaction} from '@src/types/onyx';
 
 import type {ViewStyle} from 'react-native';
@@ -64,6 +65,7 @@ function ReceiptCell({
     const isMissingReceiptSource = !hasReceiptSource(transactionItem);
     const isEReceipt = transactionItem.hasEReceipt && isMissingReceiptSource;
     const isPerDiem = isPerDiemRequest(transactionItem) && isMissingReceiptSource;
+    const isMapDistanceRequest = isMapBasedDistanceRequest(transactionItem);
     const receiptURIs = getThumbnailAndImageURIs(transactionItem, null, null);
     const filename = receiptURIs.filename ?? '';
 
@@ -86,8 +88,10 @@ function ReceiptCell({
                 StyleUtils.getBorderRadiusStyle(variables.componentBorderRadiusSmall),
                 styles.overflowHidden,
                 backgroundStyles,
+                isMapDistanceRequest && styles.userSelectNone,
                 style,
             ]}
+            dataSet={isMapDistanceRequest ? {[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true} : undefined}
             onMouseEnter={handleMouseEnter}
             onMouseLeave={bind.onMouseLeave}
         >
