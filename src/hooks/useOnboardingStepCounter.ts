@@ -1,13 +1,10 @@
 import {getOnboardingStepCounter} from '@libs/getOnboardingStepCounter';
 import type {OnboardingFlowContext, OnboardingScreen, OnboardingStepResult} from '@libs/getOnboardingStepCounter';
-import {getVisibleJoinablePoliciesCount} from '@libs/OnboardingUtils';
 import {expensifyLoginsSelector, isCurrentUserValidated} from '@libs/UserUtils';
 
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 import useOnyx from './useOnyx';
-import usePermissions from './usePermissions';
 
 function useOnboardingStepCounter(page: OnboardingScreen, overrides: Partial<Pick<OnboardingFlowContext, 'isAccountingEnabled'>> = {}): OnboardingStepResult | undefined {
     const [onboarding] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
@@ -17,7 +14,6 @@ function useOnboardingStepCounter(page: OnboardingScreen, overrides: Partial<Pic
     const [joinablePolicies] = useOnyx(ONYXKEYS.JOINABLE_POLICIES);
     const [loginList] = useOnyx(ONYXKEYS.LOGINS, {selector: expensifyLoginsSelector});
     const [session] = useOnyx(ONYXKEYS.SESSION);
-    const {isBetaEnabled} = usePermissions();
 
     return getOnboardingStepCounter(page, {
         signupQualifier: onboarding?.signupQualifier,
@@ -27,7 +23,7 @@ function useOnboardingStepCounter(page: OnboardingScreen, overrides: Partial<Pic
         isMergeAccountStepSkipped: onboarding?.isMergeAccountStepSkipped,
         isAccountingEnabled: overrides.isAccountingEnabled ?? isAccountingEnabled ?? undefined,
         isAccountValidated: isCurrentUserValidated(loginList, session?.email),
-        hasJoinablePolicies: getVisibleJoinablePoliciesCount(joinablePolicies, isBetaEnabled(CONST.BETAS.SUBMIT_2026)) > 0,
+        hasJoinablePolicies: Object.keys(joinablePolicies ?? {}).length > 0,
     });
 }
 

@@ -24,14 +24,14 @@ type AvatarImageProps = AvatarPrimitivesCommonProps & {
 };
 
 /** Renders an avatar as a remote image. */
-function AvatarImage({avatarSource, size, type, imageStyles, imageContainerAdditionalStyles, onImageError}: AvatarImageProps) {
+function AvatarImage({avatarSource, size, shape, imageStyles, imageContainerAdditionalStyles, onImageError}: AvatarImageProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const imageStyle = [StyleUtils.getAvatarStyle(size), imageStyles, styles.noBorderRadius];
     const imageContainerStyle = imageStyles ? [StyleUtils.getAvatarStyle(size), styles.bgTransparent, imageStyles] : undefined;
 
     return (
-        <View style={[imageContainerStyle, StyleUtils.getAvatarBorderStyle(size, type), imageContainerAdditionalStyles]}>
+        <View style={[imageContainerStyle, StyleUtils.getAvatarBorderStyle(size, shape), imageContainerAdditionalStyles]}>
             {/* eslint-disable-next-line react-native-a11y/has-valid-accessibility-ignores-invert-colors -- Custom Image wrapper does not support this prop. */}
             <Image
                 source={{uri: avatarSource}}

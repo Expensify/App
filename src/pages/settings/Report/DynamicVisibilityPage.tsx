@@ -69,7 +69,7 @@ function DynamicVisibilityPage({report}: DynamicVisibilityProps) {
                 confirmText: translate('common.yes'),
                 cancelText: translate('common.no'),
                 shouldShowCancelButton: true,
-                danger: true,
+                buttonVariant: CONST.BUTTON_VARIANT.DANGER,
             });
             if (result.action !== ModalActions.CONFIRM) {
                 return;
@@ -88,7 +88,7 @@ function DynamicVisibilityPage({report}: DynamicVisibilityProps) {
 
     return (
         <ScreenWrapper
-            includeSafeAreaPaddingBottom={false}
+            enableEdgeToEdgeBottomSafeAreaPadding
             testID="VisibilityPage"
         >
             <FullPageNotFoundView shouldShow={shouldDisableVisibility}>

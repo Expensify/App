@@ -59,25 +59,21 @@ function isCustomDateModifier(dateModifier: SearchDateModifier | null): dateModi
 }
 
 type DatePresetFilterBaseHandle = {
-    /** Gets date values */
     getDateValues: () => SearchDateValues;
 
     /** Gets the formatted range display text for current date values */
     getRangeDisplayText: () => string;
 
-    /** Clears date values */
     clearDateValues: () => void;
 
     /** Sets the date value of the selected date modifier to the ephemeral date value (the selected date in calendar) */
     setDateValueOfSelectedDateModifier: () => void;
 
-    /** Clears the date value of the selected date modifier */
     clearDateValueOfSelectedDateModifier: () => void;
 
     /** Restores the Range value to what it was when Range mode was entered, discarding any unsaved ephemeral picks */
     restoreRangeToEntrySnapshot: () => void;
 
-    /** Resets date values to the provided defaults */
     resetDateValuesToDefault: () => void;
 
     /** Validates the selected date modifier input */
@@ -85,31 +81,23 @@ type DatePresetFilterBaseHandle = {
 };
 
 type DatePresetFilterBaseProps = {
-    /** Default date values */
     defaultDateValues: SearchDateValues;
-
-    /** Selected date modifier */
     selectedDateModifier: SearchDateModifier | null;
-
-    /** Callback when a date modifier is selected */
     onSelectDateModifier: (dateModifier: SearchDateModifier | null) => void;
-
-    /** The date presets */
     presets?: SearchDatePreset[];
+
+    /** Whether to show the "Custom date" (On/After/Before) option. Defaults to true. */
+    shouldShowCustomDate?: boolean;
 
     /** Whether the search advanced filters form Onyx data is loading or not */
     isSearchAdvancedFiltersFormLoading?: boolean;
 
-    /** Callback when date values change */
     onDateValuesChange?: (dateValues: SearchDateValues) => void;
-
-    /** Callback when range validation error changes */
     onRangeValidationErrorChange?: (shouldShowRangeError: boolean) => void;
 
     /** Force vertical stacking of calendars in range picker */
     forceVerticalCalendars?: boolean;
 
-    /** The ref handle */
     ref: Ref<DatePresetFilterBaseHandle>;
 };
 
@@ -125,6 +113,7 @@ function DatePresetFilterBase({
     selectedDateModifier,
     onSelectDateModifier,
     presets,
+    shouldShowCustomDate = true,
     isSearchAdvancedFiltersFormLoading,
     onDateValuesChange,
     onRangeValidationErrorChange,
@@ -134,20 +123,23 @@ function DatePresetFilterBase({
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {translate} = useLocalize();
+    const {translate, dateFnsLocale} = useLocalize();
 
     const shouldShowHorizontalRule = !!presets?.length;
     const customDateTitle = translate('search.filters.date.customDate');
     const customRangeTitle = translate('search.filters.date.customRange');
     const normalizedDefaultDateValues = useMemo(() => normalizeDateValues(defaultDateValues), [defaultDateValues]);
 
-    const getRangeDisplayTextFromDateValues = useCallback((dateValues: SearchDateValues) => {
-        const rangeValue = dateValues[CONST.SEARCH.DATE_MODIFIERS.RANGE];
-        if (!rangeValue) {
-            return '';
-        }
-        return getDateRangeDisplayValueFromFormValue(rangeValue, dateValues[CONST.SEARCH.DATE_MODIFIERS.AFTER], dateValues[CONST.SEARCH.DATE_MODIFIERS.BEFORE]);
-    }, []);
+    const getRangeDisplayTextFromDateValues = useCallback(
+        (dateValues: SearchDateValues) => {
+            const rangeValue = dateValues[CONST.SEARCH.DATE_MODIFIERS.RANGE];
+            if (!rangeValue) {
+                return '';
+            }
+            return getDateRangeDisplayValueFromFormValue(dateFnsLocale, rangeValue, dateValues[CONST.SEARCH.DATE_MODIFIERS.AFTER], dateValues[CONST.SEARCH.DATE_MODIFIERS.BEFORE]);
+        },
+        [dateFnsLocale],
+    );
 
     const getRangeEphemeralValuesFromDateValues = useCallback((dateValues: SearchDateValues) => {
         const rangeBoundaries = getRangeBoundariesFromFormValue(dateValues[CONST.SEARCH.DATE_MODIFIERS.RANGE]);
@@ -408,7 +400,6 @@ function DatePresetFilterBase({
                     {presets?.map((preset) => (
                         <SingleSelectListItem
                             key={preset}
-                            keyForList={preset}
                             showTooltip
                             item={{
                                 keyForList: preset,
@@ -430,13 +421,15 @@ function DatePresetFilterBase({
                         style={[StyleUtils.getBorderColorStyle(theme.border), styles.mh3]}
                     />
                 )}
-                <MenuItem
-                    shouldShowRightIcon
-                    viewMode={CONST.OPTION_MODE.COMPACT}
-                    title={customDateTitle}
-                    description={customDateDescription}
-                    onPress={selectCustomDateMode}
-                />
+                {shouldShowCustomDate && (
+                    <MenuItem
+                        shouldShowRightIcon
+                        viewMode={CONST.OPTION_MODE.COMPACT}
+                        title={customDateTitle}
+                        description={customDateDescription}
+                        onPress={selectCustomDateMode}
+                    />
+                )}
                 <MenuItem
                     shouldShowRightIcon
                     viewMode={CONST.OPTION_MODE.COMPACT}
@@ -481,7 +474,6 @@ function DatePresetFilterBase({
             {CONST.SEARCH.CUSTOM_DATE_MODIFIERS.map((dateModifier) => (
                 <SingleSelectListItem
                     key={dateModifier}
-                    keyForList={dateModifier}
                     showTooltip
                     item={{
                         keyForList: dateModifier,

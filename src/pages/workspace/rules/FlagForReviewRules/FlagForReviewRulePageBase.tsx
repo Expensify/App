@@ -21,12 +21,13 @@ import Tab from '@libs/actions/Tab';
 import {clearDraftFlagForReviewRule, setDraftFlagForReviewRule} from '@libs/actions/User';
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
 import {convertToBackendAmount} from '@libs/CurrencyUtils';
-import {getFlagForReviewFormFromCategory, getFlagForReviewRuleAmountError, saveFlagForReviewRule} from '@libs/FlagForReviewRulesUtils';
+import {deleteFlagForReviewRule, getFlagForReviewFormFromCategory, getFlagForReviewRuleAmountError, hasExplicitFlagAmount, saveFlagForReviewRule} from '@libs/FlagForReviewRulesUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+import useRuleDeleteHeaderProps from '@pages/workspace/rules/useRuleDeleteHeaderProps';
 
 import variables from '@styles/variables';
 
@@ -92,6 +93,7 @@ function FlagForReviewRulePageBase({
     const selectedCategoryName = form?.[INPUT_IDS.CATEGORY];
     const categoryDisplayName = selectedCategoryName ? getDecodedCategoryName(selectedCategoryName) : undefined;
 
+    const draftMaxExpenseAmount = form?.[INPUT_IDS.MAX_EXPENSE_AMOUNT];
     const parsedMaxAmount = Number.parseFloat(form?.[INPUT_IDS.MAX_EXPENSE_AMOUNT] ?? '');
     const maxAmountMenuTitle = Number.isFinite(parsedMaxAmount) ? convertToDisplayString(convertToBackendAmount(parsedMaxAmount), policyCurrency) : '';
 
@@ -114,14 +116,18 @@ function FlagForReviewRulePageBase({
             return;
         }
 
-        if (selectedCategoryName === categoryName) {
+        // A draft holding the category *and* an amount is either already seeded or the user's in-progress edit, so
+        // leave it alone. A draft with only the category came from the create flow's initial seed, which is what
+        // happens when this page opens before policyCategories has loaded: the rule is only recognized once the
+        // category arrives, and the amount still has to be seeded then.
+        if (selectedCategoryName === categoryName && draftMaxExpenseAmount !== undefined) {
             initializedDraftForRuleKeyRef.current = categoryName;
             return;
         }
 
         initializedDraftForRuleKeyRef.current = categoryName;
         setDraftFlagForReviewRule(getFlagForReviewFormFromCategory(category, getCurrencyDecimals, policyCurrency));
-    }, [category, categoryName, getCurrencyDecimals, initialCategoryName, isEditing, policyCurrency, selectedCategoryName]);
+    }, [category, categoryName, draftMaxExpenseAmount, getCurrencyDecimals, initialCategoryName, isEditing, policyCurrency, selectedCategoryName]);
     const fetchPolicyData = useCallback(() => {
         if (!policy?.areCategoriesEnabled || policyCategories) {
             return;
@@ -146,7 +152,9 @@ function FlagForReviewRulePageBase({
 
         saveFlagForReviewRule(policyID, policyData.categories, form, isEditing ? categoryName : undefined);
 
-        if (!isEditing && isRulesRevampEnabled) {
+        // initialCategoryName is also set when the create screen is editing a category's existing rule, and in that
+        // case going back one step would land on the New rule hub instead of the category we came from.
+        if ((!isEditing || !!initialCategoryName) && isRulesRevampEnabled) {
             const savedCategoryName = form[INPUT_IDS.CATEGORY] ?? initialCategoryName;
             if (initialCategoryName && savedCategoryName) {
                 Navigation.goBack(categorySettingsBackPath ?? getWorkspaceCategorySettingsRoute(policyID, savedCategoryName));
@@ -174,6 +182,21 @@ function FlagForReviewRulePageBase({
         handleSave();
     };
 
+    // The rule IS the category's flag amount, so there is only something to delete once one is set, and the category's
+    // own pending state is the rule's: while a delete is in flight, deleting again would fire the same write twice.
+    const isRuleBeingDeleted = category?.pendingFields?.maxExpenseAmount === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+    const {deleteHeaderProps} = useRuleDeleteHeaderProps({
+        canDelete: canWriteRules && isEditing && hasExplicitFlagAmount(category?.maxExpenseAmount) && !isRuleBeingDeleted,
+        onDelete: () => {
+            deleteFlagForReviewRule(policyID, categoryName ?? '', policyData.categories);
+            return true;
+        },
+        sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.RULES.FLAG_FOR_REVIEW_RULE_DELETE,
+        // Category settings opens this rule itself, so going back a screen would land on the New rule hub the user
+        // never passed through. Same route the save path picks, for the same reason.
+        backTo: initialCategoryName ? (categorySettingsBackPath ?? getWorkspaceCategorySettingsRoute(policyID, initialCategoryName)) : undefined,
+    });
+
     if (isEditing && categoryName && !category) {
         return <NotFoundPage />;
     }
@@ -198,7 +221,7 @@ function FlagForReviewRulePageBase({
         <AccessOrNotFoundWrapper
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED}
-            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
+            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
             policyFeature={CONST.POLICY.POLICY_FEATURE.RULES}
             shouldBeBlocked={!isRulesRevampEnabled}
         >
@@ -207,11 +230,14 @@ function FlagForReviewRulePageBase({
                 offlineIndicatorStyle={styles.mtAuto}
                 includeSafeAreaPaddingBottom
             >
-                <HeaderWithBackButton title={translate('workspace.rules.flagForReviewRule.title')} />
+                <HeaderWithBackButton
+                    title={translate('workspace.rules.flagForReviewRule.title')}
+                    {...deleteHeaderProps}
+                />
                 <ScrollView contentContainerStyle={[styles.flexGrow1]}>
                     <View style={[styles.ph5, styles.pv3, styles.gap6]}>
                         <Text style={[styles.textNormal, styles.textSupporting]}>{translate('workspace.rules.flagForReviewRule.subtitle')}</Text>
-                        <Text style={[styles.textLabel, styles.textSupporting, styles.lh16]}>{translate('workspace.rules.merchantRules.ifAnyExpenseMatches')}</Text>
+                        <Text style={[styles.textLabel, styles.textStrong, styles.lh16]}>{translate('workspace.rules.merchantRules.ifAnyExpenseMatches')}</Text>
                     </View>
                     <MenuItemWithTopDescription
                         description={translate('common.category')}
@@ -247,6 +273,15 @@ function FlagForReviewRulePageBase({
                         iconHeight={variables.iconSizeNormal}
                         shouldIconUseAutoWidthStyle
                         sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.FLAG_FOR_REVIEW_RULE_AMOUNT}
+                    />
+                    <View style={[styles.sectionDividerLine, styles.mh5, styles.mv3]} />
+                    <Text style={[styles.textLabel, styles.textStrong, styles.lh16, styles.ph5, styles.pv3]}>{translate('workspace.rules.flagForReviewRule.thenDoTheFollowing')}</Text>
+                    <MenuItemWithTopDescription
+                        description={translate('workspace.rules.flagForReviewRule.flagType')}
+                        title={translate('workspace.rules.flagForReviewRule.flagTypeWarning')}
+                        furtherDetails={translate('workspace.rules.flagForReviewRule.flagTypeWarningDescription')}
+                        interactive={false}
+                        shouldShowRightIcon={false}
                     />
                 </ScrollView>
                 {footer}

@@ -1,4 +1,5 @@
 import Button from '@components/Button';
+import ButtonDisabledWhenOffline from '@components/Button/composed/ButtonDisabledWhenOffline';
 import SafariFormWrapper from '@components/Form/SafariFormWrapper';
 import FormHelpMessage from '@components/FormHelpMessage';
 import Icon from '@components/Icon';
@@ -299,9 +300,9 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
 
         const accountID = credentials?.accountID;
         if (accountID) {
-            signInWithValidateCode(accountID, validateCode, preferredLocale, recoveryCodeOr2faCode);
+            signInWithValidateCode(accountID, validateCode, preferredLocale, recoveryCodeOr2faCode, credentials?.validateCode, credentials?.authToken);
         } else {
-            signIn(validateCode, preferredLocale, recoveryCodeOr2faCode);
+            signIn(validateCode, preferredLocale, recoveryCodeOr2faCode, credentials?.login, credentials?.validateCode, credentials?.authToken);
         }
     }, [
         account?.isLoading,
@@ -309,6 +310,8 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
         account?.requiresTwoFactorAuth,
         credentials?.validateCode,
         credentials?.accountID,
+        credentials?.login,
+        credentials?.authToken,
         isUsingRecoveryCode,
         recoveryCode,
         twoFactorAuthCode,
@@ -432,16 +435,16 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
                 </View>
             )}
             <View>
-                <Button
-                    isDisabled={isOffline}
-                    success
-                    large
+                <ButtonDisabledWhenOffline
+                    variant={CONST.BUTTON_VARIANT.SUCCESS}
+                    size={CONST.BUTTON_SIZE.LARGE}
                     style={[styles.mv3]}
-                    text={translate('common.signIn')}
                     isLoading={isValidateCodeFormSubmitting}
                     onPress={validateAndSubmitForm}
                     sentryLabel={CONST.SENTRY_LABEL.SIGN_IN.SIGN_IN_BUTTON}
-                />
+                >
+                    <Button.Text>{translate('common.signIn')}</Button.Text>
+                </ButtonDisabledWhenOffline>
                 <ChangeExpensifyLoginLink onPress={clearSignInData} />
             </View>
             <View style={[styles.mt5, styles.signInPageWelcomeTextContainer]}>

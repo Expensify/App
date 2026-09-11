@@ -17,6 +17,7 @@ const FULLY_SUPPORTED_LOCALES = {
  */
 const BETA_LOCALES = {
     DE: 'de',
+    EL: 'el',
     IT: 'it',
     JA: 'ja',
     NL: 'nl',
@@ -54,6 +55,7 @@ const LOCALE_TO_LANGUAGE_STRING = {
     [FULLY_SUPPORTED_LOCALES.ES]: 'Español',
     [FULLY_SUPPORTED_LOCALES.FR]: 'Français',
     [BETA_LOCALES.DE]: 'Deutsch',
+    [BETA_LOCALES.EL]: 'Ελληνικά',
     [BETA_LOCALES.IT]: 'Italiano',
     [BETA_LOCALES.JA]: '日本語',
     [BETA_LOCALES.NL]: 'Nederlands',

@@ -43,7 +43,7 @@ function AutoUpdateTime({timezone}: AutoUpdateTimeProps) {
         <View style={[styles.w100, styles.detailsPageSectionContainer]}>
             <MenuItemWithTopDescription
                 style={[styles.ph0]}
-                title={`${DateUtils.formatToLocalTime(currentUserLocalTime)} ${timezoneName}`}
+                title={`${DateUtils.formatToLocalTime(translate, currentUserLocalTime)} ${timezoneName}`}
                 description={translate('detailsPage.localTime')}
                 interactive={false}
             />

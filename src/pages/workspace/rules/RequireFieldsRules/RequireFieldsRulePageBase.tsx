@@ -23,6 +23,7 @@ import {getDecodedCategoryName} from '@libs/CategoryUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {isAttendeeTrackingEnabled} from '@libs/PolicyUtils';
 import {
+    categoryHasAnyRequireFieldsRule,
     deleteRequireFieldsRule,
     getActiveFieldRequirementsDirection,
     getEffectiveRequireFieldsRuleForm,
@@ -30,6 +31,7 @@ import {
     getRequireFieldsFieldClearKeys,
     getRequireFieldsFieldSettingUpdate,
     getRequireFieldsFormFromCategory,
+    getRequireFieldsPendingActionForCategory,
     getRequireFieldsRuleKey,
     getRequireFieldsRuleValidationError,
     hasRequireFieldsRuleChanges,
@@ -39,6 +41,7 @@ import type {FieldRequirementsDirection} from '@libs/RequireFieldsRulesUtils';
 
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+import useRuleDeleteHeaderProps from '@pages/workspace/rules/useRuleDeleteHeaderProps';
 
 import variables from '@styles/variables';
 
@@ -161,6 +164,9 @@ function RequireFieldsRulePageBase({policyID, categoryName, initialCategoryName,
         }
     }
 
+    // Otherwise cleared only on save, so backing out left the draft for the next rule to inherit.
+    useEffect(() => () => clearDraftRequireFieldsRule(), []);
+
     useEffect(() => {
         if (!isEditing) {
             if (initializedDraftForRuleKeyRef.current !== ROUTES.NEW) {
@@ -224,6 +230,11 @@ function RequireFieldsRulePageBase({policyID, categoryName, initialCategoryName,
             isVisible: true,
         },
         {
+            key: INPUT_IDS.ATTENDEES_SETTING,
+            label: translate('iou.attendees'),
+            isVisible: isAttendeeFieldApplicable,
+        },
+        {
             key: INPUT_IDS.RECEIPT_SETTING,
             label: translate('common.receipt'),
             isVisible: true,
@@ -232,11 +243,6 @@ function RequireFieldsRulePageBase({policyID, categoryName, initialCategoryName,
             key: INPUT_IDS.ITEMIZED_RECEIPT_SETTING,
             label: translate('workspace.rules.requireFieldsRule.itemizedReceipt'),
             isVisible: true,
-        },
-        {
-            key: INPUT_IDS.ATTENDEES_SETTING,
-            label: translate('iou.attendees'),
-            isVisible: isAttendeeFieldApplicable,
         },
     ];
 
@@ -350,7 +356,7 @@ function RequireFieldsRulePageBase({policyID, categoryName, initialCategoryName,
 
         if (isEditing && !didChangeCategory && !hasRequireFieldsRuleChanges(selectedCategory ?? category, formToSave, touchedFields, clearedFields)) {
             clearDraftRequireFieldsRule();
-            Navigation.goBack();
+            Navigation.goBack(initialCategoryName ? (categorySettingsBackPath ?? getWorkspaceCategorySettingsRoute(policyID, initialCategoryName)) : undefined);
             return;
         }
 
@@ -364,7 +370,9 @@ function RequireFieldsRulePageBase({policyID, categoryName, initialCategoryName,
 
         clearDraftRequireFieldsRule();
 
-        if (!isEditing && isRulesRevampEnabled) {
+        // initialCategoryName is also set when the create screen is editing a category's existing rule, and in that
+        // case going back one step would land on the New rule hub instead of the category we came from.
+        if ((!isEditing || !!initialCategoryName) && isRulesRevampEnabled) {
             const savedCategoryName = savedCategory ?? initialCategoryName;
             if (initialCategoryName && savedCategoryName) {
                 Navigation.goBack(categorySettingsBackPath ?? getWorkspaceCategorySettingsRoute(policyID, savedCategoryName));
@@ -392,6 +400,21 @@ function RequireFieldsRulePageBase({policyID, categoryName, initialCategoryName,
         handleSave();
     };
 
+    // The rule is the set of field requirements on the category, so it only exists once one of them is on, and the
+    // category's own pending state is the rule's: while a delete is in flight, deleting again would repeat the writes.
+    const isRuleBeingDeleted = !!category && getRequireFieldsPendingActionForCategory(category) === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+    const {deleteHeaderProps} = useRuleDeleteHeaderProps({
+        canDelete: canWriteRules && isEditing && !!category && categoryHasAnyRequireFieldsRule(category) && !isRuleBeingDeleted,
+        onDelete: () => {
+            deleteRequireFieldsRule(policyData, getRequireFieldsRuleKey(categoryName ?? ''));
+            return true;
+        },
+        sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.RULES.REQUIRE_FIELDS_RULE_DELETE,
+        // Category settings opens this rule itself, so going back a screen would land on the New rule hub the user
+        // never passed through. Same route the save path picks, for the same reason.
+        backTo: initialCategoryName ? (categorySettingsBackPath ?? getWorkspaceCategorySettingsRoute(policyID, initialCategoryName)) : undefined,
+    });
+
     if (isEditing && categoryName && !category) {
         return <NotFoundPage />;
     }
@@ -417,7 +440,7 @@ function RequireFieldsRulePageBase({policyID, categoryName, initialCategoryName,
         <AccessOrNotFoundWrapper
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED}
-            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
+            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
             policyFeature={CONST.POLICY.POLICY_FEATURE.RULES}
             shouldBeBlocked={!isRulesRevampEnabled}
         >
@@ -426,11 +449,14 @@ function RequireFieldsRulePageBase({policyID, categoryName, initialCategoryName,
                 offlineIndicatorStyle={styles.mtAuto}
                 includeSafeAreaPaddingBottom
             >
-                <HeaderWithBackButton title={translate('workspace.rules.requireFieldsRule.title')} />
+                <HeaderWithBackButton
+                    title={translate('workspace.rules.requireFieldsRule.title')}
+                    {...deleteHeaderProps}
+                />
                 <ScrollView contentContainerStyle={[styles.flexGrow1]}>
                     <View style={[styles.ph5, styles.pv3, styles.gap6]}>
                         <Text style={[styles.textNormal, styles.textSupporting]}>{translate('workspace.rules.requireFieldsRule.subtitle')}</Text>
-                        <Text style={[styles.textLabel, styles.textSupporting, styles.lh16]}>{translate('workspace.rules.merchantRules.ifAnyExpenseMatches')}</Text>
+                        <Text style={[styles.textLabel, styles.textStrong, styles.lh16]}>{translate('workspace.rules.merchantRules.ifAnyExpenseMatches')}</Text>
                     </View>
                     <MenuItemWithTopDescription
                         description={translate('common.category')}
@@ -447,7 +473,7 @@ function RequireFieldsRulePageBase({policyID, categoryName, initialCategoryName,
                     />
                     <View style={[styles.sectionDividerLine, styles.mh5, styles.mv3]} />
                     <View style={[styles.ph5, styles.pv3]}>
-                        <Text style={[styles.textLabel, styles.textSupporting, styles.lh16]}>{translate('workspace.rules.requireFieldsRule.doTheFollowing')}</Text>
+                        <Text style={[styles.textLabel, styles.textStrong, styles.lh16]}>{translate('workspace.rules.requireFieldsRule.doTheFollowing')}</Text>
                     </View>
                     {fieldSettings
                         .filter((field) => field.isVisible)

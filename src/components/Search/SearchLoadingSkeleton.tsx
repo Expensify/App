@@ -4,7 +4,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {endSpanWithAttributes} from '@libs/telemetry/activeSpans';
 import {endNavigateToReportsFirstPaint} from '@libs/telemetry/navigateToReportsSpans';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 
 import CONST from '@src/CONST';
 
@@ -13,18 +12,12 @@ import type {StyleProp, ViewStyle} from 'react-native';
 import React from 'react';
 import Animated, {FadeIn, FadeOut} from 'react-native-reanimated';
 
-import useStuckSkeletonLog from './hooks/useStuckSkeletonLog';
-
 type SearchLoadingSkeletonProps = {
     containerStyle?: StyleProp<ViewStyle>;
-    reasonAttributes: SkeletonSpanReasonAttributes;
 };
 
-function SearchLoadingSkeleton({containerStyle, reasonAttributes}: SearchLoadingSkeletonProps) {
+function SearchLoadingSkeleton({containerStyle}: SearchLoadingSkeletonProps) {
     const styles = useThemeStyles();
-    const skeletonReasonAttributes = reasonAttributes ?? {context: 'SearchLoadingSkeleton'};
-
-    useStuckSkeletonLog(skeletonReasonAttributes);
 
     return (
         <Animated.View
@@ -39,7 +32,6 @@ function SearchLoadingSkeleton({containerStyle, reasonAttributes}: SearchLoading
             <SearchRowSkeleton
                 shouldAnimate
                 containerStyle={containerStyle}
-                reasonAttributes={skeletonReasonAttributes}
             />
         </Animated.View>
     );

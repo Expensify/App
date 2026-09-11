@@ -1,6 +1,8 @@
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import useStallLogger from '@hooks/useStallLogger';
 
 import {downloadReportPDF} from '@libs/actions/Report';
 
@@ -31,8 +33,18 @@ function ReportPDFDownloadModal({reportID, isVisible, onClose, onModalHide, onCa
     const currentUserLogin = currentUserPersonalDetails?.login ?? '';
     const encryptedAuthToken = session?.encryptedAuthToken ?? '';
     const reportName = report?.reportName ?? '';
+    const {isOffline} = useNetwork();
 
     const hasFinishedPDFDownload = !!reportPDFFilename && reportPDFFilename !== CONST.REPORT_DETAILS_MENU_ITEM.ERROR;
+
+    // reportPDFFilename only ever resolves via a backend-pushed Onyx update (no client timeout), so a filename
+    // that never arrives and never errors leaves the spinner stuck with nothing else to log it. See Expensify#667674.
+    // Excluded while offline: the request is legitimately queued and waiting for connectivity, not stuck.
+    // Keyed by reportID (not just a boolean) so if this modal is ever reused for a different report without
+    // unmounting, the timer restarts against the new report instead of firing late and blaming the wrong one.
+    useStallLogger(isVisible && !isOffline && !reportPDFFilename ? reportID : false, '[PDFStall] reportPDFFilename never resolved to a filename or error while the download modal was open', {
+        reportID,
+    });
 
     const message = (() => {
         if (reportPDFFilename === CONST.REPORT_DETAILS_MENU_ITEM.ERROR) {
@@ -56,11 +68,11 @@ function ReportPDFDownloadModal({reportID, isVisible, onClose, onModalHide, onCa
     return (
         <PDFDownloadModal
             isVisible={isVisible}
+            shouldTreatModalAsCovering
             onClose={handleClose}
             onModalHide={onModalHide}
             hasFinishedPDFDownload={hasFinishedPDFDownload}
             message={message}
-            loadingReasonContext="MoneyReportHeader.PDFModal"
             onDownloadPDF={() => {
                 if (!reportPDFFilename || reportPDFFilename === CONST.REPORT_DETAILS_MENU_ITEM.ERROR) {
                     return;

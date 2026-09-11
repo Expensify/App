@@ -27,6 +27,10 @@ on:
         description: Force a full native build, bypassing Rock remote cache
         type: string
         default: 'false'
+      download-dsyms:
+        description: Download the prebuilt react-native dSYMs so Sentry can symbolicate its native frames. Off by default - it adds two large downloads per build.
+        type: boolean
+        default: false
 
     outputs:
       IOS_VERSION:
@@ -50,8 +54,8 @@ jobs:
     name: Build iOS HybridApp
     runs-on: blacksmith-12vcpu-macos-latest
     env:
-      DEVELOPER_DIR: /Applications/Xcode_26.6.app/Contents/Developer
       PULL_REQUEST_NUMBER: ${{ inputs.pull-request-number }}
+      RCT_SYMBOLICATE_PREBUILT_FRAMEWORKS: ${{ inputs.download-dsyms && '1' || '0' }}
     outputs:
       IOS_VERSION: ${{ steps.getIOSVersion.outputs.IOS_VERSION }}
       ROCK_ARTIFACT_URL: ${{ steps.set-artifact-url.outputs.ARTIFACT_URL }}
@@ -73,6 +77,10 @@ jobs:
           cd Mobile-Expensify
           git fetch origin ${{ inputs.mobile-expensify-ref }}
           git checkout ${{ inputs.mobile-expensify-ref }}
+
+      - name: Set up Xcode version
+        id: xcodeVersion
+        uses: ./.github/actions/composite/getXcodeVersion
 
       - name: Compute custom build identifier
         id: computeIdentifier
@@ -109,13 +117,33 @@ jobs:
       - name: Install New Expensify Gems
         run: bundle install
 
+      - name: Resolve react-native artifact version
+        id: resolve-rn-artifacts
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          RESULT=$(./node_modules/.bin/bun scripts/artifacts-utils/resolve-artifacts.ts --platform=ios --hybrid=true --new-dot-root="$GITHUB_WORKSPACE")
+          VERSION=$(echo "$RESULT" | jq -r '.version // "source"')
+          if [ -z "$VERSION" ]; then
+            echo "::error::Could not resolve react-native artifact version from resolve-artifacts.ts output: $RESULT"
+            exit 1
+          fi
+          echo "VERSION=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Cache react-native artifacts
+        # v5.0.1
+        uses: actions/cache@9255dc7a253b0ccc959486e2bca901246202afeb
+        with:
+          path: ~/Library/Caches/Expensify/react-native-artifacts
+          key: ${{ runner.os }}-rn-artifacts-react-hybrid-${{ steps.resolve-rn-artifacts.outputs.VERSION }}-dsyms-${{ inputs.download-dsyms }}
+
       - name: Cache Pod dependencies
         # v5.0.1
         uses: actions/cache@9255dc7a253b0ccc959486e2bca901246202afeb
         id: pods-cache
         with:
           path: Mobile-Expensify/iOS/Pods
-          key: ${{ runner.os }}-pods-cache-${{ hashFiles('Mobile-Expensify/iOS/Podfile.lock', 'firebase.json') }}
+          key: ${{ runner.os }}-pods-cache-${{ steps.xcodeVersion.outputs.version }}-${{ hashFiles('Mobile-Expensify/iOS/Podfile.lock', 'firebase.json') }}
 
       - name: Compare Podfile.lock and Manifest.lock
         id: compare-podfile-and-manifest

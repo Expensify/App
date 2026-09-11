@@ -57,7 +57,7 @@ function WorkspaceSpendRulesTableRow({item, rowIndex, shouldUseNarrowTableLayout
     const showSectionHeader = hasMultipleTypes && (rowIndex === 0 || !!prevItem?.isDefault !== !!item.isDefault);
 
     const lockIcon = item.isDefault ? (
-        <Tooltip text={translate('common.locked')}>
+        <Tooltip text={translate('workspace.rules.spendRules.defaultRulesCannotBeDeleted')}>
             <View>
                 <Icon
                     src={Expensicons.Lock}

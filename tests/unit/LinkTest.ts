@@ -7,7 +7,7 @@ import * as Url from '@libs/Url';
 
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
-import {openLink} from '@src/libs/actions/Link';
+import {getInternalNewExpensifyPath, openLink} from '@src/libs/actions/Link';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
@@ -187,21 +187,21 @@ describe('Link.openLink', () => {
     });
 
     it('opens an expense report link in the expense RHP on wide layout', () => {
-        mockReports['expense-report'] = {isMoneyRequest: true};
+        mockReports['expense-report-rhp'] = {isMoneyRequest: true};
 
-        openLink(`${CONST.NEW_EXPENSIFY_URL}/r/expense-report`, environmentURL);
+        openLink(`${CONST.NEW_EXPENSIFY_URL}/r/expense-report-rhp`, environmentURL);
 
-        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.EXPENSE_REPORT_RHP.getRoute({reportID: 'expense-report', backTo: activeRoute}));
+        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.EXPENSE_REPORT_RHP.getRoute({reportID: 'expense-report-rhp', backTo: activeRoute}));
     });
 
     it('opens expense report action links in the report RHP so the linked action is preserved', () => {
-        mockReports['expense-report'] = {isMoneyRequest: true};
+        mockReports['expense-report-rhp'] = {isMoneyRequest: true};
 
-        openLink(`${CONST.NEW_EXPENSIFY_URL}/r/expense-report/123456789`, environmentURL);
+        openLink(`${CONST.NEW_EXPENSIFY_URL}/r/expense-report-rhp/123456789`, environmentURL);
 
         expect(Navigation.navigate).toHaveBeenCalledWith(
             ROUTES.SEARCH_REPORT.getRoute({
-                reportID: 'expense-report',
+                reportID: 'expense-report-rhp',
                 reportActionID: '123456789',
                 backTo: activeRoute,
             }),
@@ -348,5 +348,32 @@ describe('Link.openLink', () => {
                 'true',
             ),
         );
+    });
+});
+
+describe('Link.getInternalNewExpensifyPath', () => {
+    // NEW_EXPENSIFY_URL carries a trailing slash and the other two do not, so let URL join them.
+    it.each([
+        ['production', CONST.NEW_EXPENSIFY_URL],
+        ['staging', CONST.STAGING_NEW_EXPENSIFY_URL],
+        ['QA', CONST.QA_NEW_EXPENSIFY_URL],
+    ])('treats a %s link as internal and returns its path', (_environment, origin) => {
+        expect(getInternalNewExpensifyPath(new URL('/r/1234', origin).href)).toBe('r/1234');
+    });
+
+    it('matches the dev server by prefix, so any port counts as internal', () => {
+        expect(getInternalNewExpensifyPath(`${CONST.DEV_NEW_EXPENSIFY_URL}8082/r/1234`)).toBe('r/1234');
+    });
+
+    it('treats an unrelated origin as external', () => {
+        expect(getInternalNewExpensifyPath('https://example.com/r/1234')).toBe('');
+    });
+
+    it.each(CONST.PATHS_TO_TREAT_AS_EXTERNAL)('treats %s as external even on an internal origin', (externalPath) => {
+        expect(getInternalNewExpensifyPath(new URL(`/${externalPath}`, CONST.QA_NEW_EXPENSIFY_URL).href)).toBe('');
+    });
+
+    it('returns an empty path for an empty href', () => {
+        expect(getInternalNewExpensifyPath('')).toBe('');
     });
 });

@@ -73,19 +73,16 @@ type ScreenWrapperProps = Omit<ScreenWrapperContainerProps, 'children'> &
             | PlatformStackNavigationProp<ReportsSplitNavigatorParamList>
             | PlatformStackNavigationProp<RightModalNavigatorParamList>;
 
-        /** A unique ID to find the screen wrapper in tests */
         testID: string;
 
         /** Returns a function as a child to pass insets to or a node to render without insets */
         children: ReactNode | ((props: ScreenWrapperChildrenProps) => ReactNode);
 
-        /** Additional styles to add */
         style?: StyleProp<ViewStyle>;
 
         /** Whether to disable the safe area padding for (nested) offline indicators */
         disableOfflineIndicatorSafeAreaPadding?: boolean;
 
-        /** Settings for the focus trap */
         focusTrapSettings?: FocusTrapForScreenProps['focusTrapSettings'];
 
         /** Called when navigated Screen's transition is finished. It does not fire when user exit the page. */
@@ -157,15 +154,9 @@ function ScreenWrapper({
     const isMobileWebNarrowLayout = getPlatform() === CONST.PLATFORM.WEB && isMobile() && shouldUseNarrowLayout;
     const shouldMoveAccessibilityFocus = isMobileWebNarrowLayout && isInNarrowPane;
     const shouldHideFromAccessibility = isMobileWebNarrowLayout && !isFocused;
-    const {addSafeAreaPadding, showOnSmallScreens, showOnWideScreens, originalValues} = useContext(ScreenWrapperOfflineIndicatorContext);
+    const {addSafeAreaPadding, showOnSmallScreens, showOnWideScreens} = useContext(ScreenWrapperOfflineIndicatorContext);
     const offlineIndicatorContextValue = useMemo(() => {
         const newAddSafeAreaPadding = isInNarrowPane ? isSmallScreenWidth : addSafeAreaPadding;
-
-        const newOriginalValues = originalValues ?? {
-            addSafeAreaPadding: newAddSafeAreaPadding,
-            showOnSmallScreens,
-            showOnWideScreens,
-        };
 
         return {
             // Allows for individual screens to disable the offline indicator safe area padding for the screen and all nested ScreenWrapper components.
@@ -173,11 +164,8 @@ function ScreenWrapper({
             // Prevent any nested ScreenWrapper components from rendering another offline indicator.
             showOnSmallScreens: false,
             showOnWideScreens: false,
-            // Pass down the original values by the outermost ScreenWrapperOfflineIndicatorContext.Provider,
-            // to allow nested ScreenWrapperOfflineIndicatorContext.Provider to access these values. (e.g. in Modals)
-            originalValues: newOriginalValues,
         };
-    }, [addSafeAreaPadding, disableOfflineIndicatorSafeAreaPadding, isInNarrowPane, isSmallScreenWidth, originalValues, showOnSmallScreens, showOnWideScreens]);
+    }, [addSafeAreaPadding, disableOfflineIndicatorSafeAreaPadding, isInNarrowPane, isSmallScreenWidth]);
 
     /** If there is no bottom content, the mobile offline indicator will stick to the bottom of the screen by default. */
     const displayStickySmallScreenOfflineIndicator = shouldSmallScreenOfflineIndicatorStickToBottom && !bottomContent;

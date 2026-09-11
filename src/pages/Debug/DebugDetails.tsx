@@ -1,4 +1,4 @@
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import CheckboxWithLabel from '@components/CheckboxWithLabel';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -39,10 +39,7 @@ type DebugDetailsProps = {
     /** The report or report action data to be displayed and edited. */
     data: OnyxEntry<Report> | OnyxEntry<ReportAction> | OnyxEntry<Transaction> | OnyxEntry<TransactionViolation>;
 
-    /** Whether the provided policy has enabled tags */
     policyHasEnabledTags?: boolean;
-
-    /** ID of the provided policy */
     policyID?: string;
 
     /** Metadata UI */
@@ -112,7 +109,12 @@ function DebugDetails({formType, data, policyHasEnabledTags, policyID, children,
                 try {
                     validate(key, DebugUtils.onyxDataToString(value));
                 } catch (e) {
-                    const {cause, message} = e as SyntaxError;
+                    if (!(e instanceof Error)) {
+                        newErrors[key] = String(e);
+                        continue;
+                    }
+
+                    const {message, cause} = e;
                     newErrors[key] = cause || message === 'debug.missingValue' ? translate(message as TranslationPaths, cause as never) : message;
                 }
             }

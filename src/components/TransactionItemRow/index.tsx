@@ -97,10 +97,12 @@ function TransactionItemRow({
 }: TransactionItemRowProps) {
     const shouldDeferRBR = !shouldSkipDeferRBR;
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
-    const shouldUseMarkAsDoneCopy = shouldShowMarkAsDone({
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
+    const shouldShowMarkAsDoneCopy = shouldShowMarkAsDone({
         policy,
         report,
         isTrackIntentUser,
+        rules,
     });
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -241,7 +243,7 @@ function TransactionItemRow({
     };
 
     const description = getDescription(transactionItem);
-    const exchangeRateMessage = getExchangeRate(transactionItem, report?.currency ?? policy?.outputCurrency);
+    const exchangeRateMessage = getExchangeRate(transactionItem, report?.currency ?? policy?.outputCurrency, true);
     const cardName = getCompanyCardDescription(translate, transactionItem?.cardName, transactionItem?.cardID, nonPersonalAndWorkspaceCards, transactionItem?.feedCountry);
     const isUnreported = transactionItem.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
     const shouldShowAttendees = (isUnreported ? !!isAttendeesEnabledForMovingPolicy : shouldShowAttendeesUtils(CONST.IOU.TYPE.SUBMIT, policy)) && transactionAttendees.length > 0;
@@ -264,7 +266,7 @@ function TransactionItemRow({
             createdAt={createdAt}
             transactionThreadReportID={transactionThreadReportID}
             shouldDeferRBR={shouldDeferRBR}
-            isMarkAsDone={shouldUseMarkAsDoneCopy}
+            shouldShowMarkAsDoneCopy={shouldShowMarkAsDoneCopy}
         />
     );
 }

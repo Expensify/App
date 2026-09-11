@@ -23,8 +23,9 @@ import React from 'react';
 import {View} from 'react-native';
 import Animated from 'react-native-reanimated';
 
+import getGridTemplateColumns from './getGridTemplateColumns';
 import {assignCellColumnIndexes, getCellAccessibilityProps, getRowAccessibilityProps, shouldUseTableSemantics} from './tableAccessibility';
-import {useTableContext} from './TableContext';
+import {useTableContext, useTableRowSemanticID} from './TableContext';
 
 type TableRowProps = Omit<PressableWithFeedbackProps, 'accessible' | 'accessibilityLabel'> & {
     /** When true, indicates that the view is an accessibility element.  By default, all the rows are accessible. */
@@ -36,10 +37,7 @@ type TableRowProps = Omit<PressableWithFeedbackProps, 'accessible' | 'accessibil
     /** Whether or not the table row is pressable or not */
     interactive: boolean;
 
-    /** Whether or not the table row should be disabled */
     disabled?: boolean;
-
-    /** The index of the row in the table */
     rowIndex: number;
 
     /** Attributes for when the client is offline and there is an error related to the table row */
@@ -64,6 +62,11 @@ export default function TableRow({
     offlineWithFeedback,
     checkboxReplacementElement,
     rowFooter,
+    id,
+    'aria-hidden': ariaHidden,
+    focusable,
+    fullDisabled,
+    tabIndex,
     ...props
 }: TableRowProps) {
     const theme = useTheme();
@@ -71,7 +74,21 @@ export default function TableRow({
     const {translate} = useLocalize();
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth, shouldUseNarrowLayout, isInNarrowPaneModal} = useResponsiveLayout();
-    const {processedData, columns, shouldUseNarrowTableLayout, tableMethods, selectionEnabled, isMobileSelectionEnabled, shouldEnableSelectionInNarrowPaneModal = false} = useTableContext();
+    const {
+        processedData,
+        columns,
+        shouldUseNarrowTableLayout,
+        tableMethods,
+        selectionEnabled,
+        isMobileSelectionEnabled,
+        shouldEnableSelectionInNarrowPaneModal = false,
+        tableListMetadata,
+        dynamicGridTemplateColumns,
+    } = useTableContext();
+    const semanticRowID = useTableRowSemanticID();
+    const semanticTableHasHeader = !tableListMetadata.hasPageHeader || tableListMetadata.shouldRenderStickyHeader;
+    const isAccessibilityHidden = semanticRowID === null || ariaHidden === true;
+    const inertProps = isAccessibilityHidden ? {inert: true} : {};
 
     // Tables inside a narrow pane modal (RHP) opt into keying the selection UX off the real screen size (isSmallScreenWidth),
     // because shouldUseNarrowLayout is always true in an RHP and would otherwise suppress selection entirely. All other
@@ -82,10 +99,12 @@ export default function TableRow({
     const item = processedData.at(rowIndex);
     const rowCount = processedData.length;
     const isTableSemanticsEnabled = shouldUseTableSemantics(shouldUseNarrowTableLayout);
-    const gridTemplateColumns = columns.map((column) => (column.width ? `${column.width}px` : '1fr'));
+    // The tracks resolved from the columns' content are shared by the header and every row, so they take precedence over
+    // the static ones. They're only ever set on wide web layouts.
+    const gridTemplateColumns = dynamicGridTemplateColumns ? [...dynamicGridTemplateColumns] : getGridTemplateColumns(columns);
     const isSelectionCheckboxVisible = selectionEnabled && (isMobileSelectionEnabled || !selectionUsesNarrowLayout);
 
-    const isDisabled = !!disabled;
+    const isDisabled = !!disabled || isAccessibilityHidden;
     const isFirstRow = rowIndex === 0;
     const isLastRow = rowIndex === rowCount - 1;
 
@@ -167,9 +186,10 @@ export default function TableRow({
                 containerStyle={styles.m0}
                 style={styles.flex1}
                 isChecked={!!item.selected}
-                disabled={!!item.disabled || !!item.isSelectionDisabled}
+                disabled={isAccessibilityHidden || !!item.disabled || !!item.isSelectionDisabled}
                 accessibilityLabel={translate('common.select')}
                 onPress={(event) => handleCheckboxPress(event)}
+                tabIndex={isAccessibilityHidden ? -1 : undefined}
             />
         );
 
@@ -191,7 +211,7 @@ export default function TableRow({
         }
 
         if (!selectionUsesNarrowLayout || !isMobileSelectionEnabled || !selectionEnabled) {
-            onPress?.();
+            onPress?.(event);
             return;
         }
 
@@ -220,7 +240,8 @@ export default function TableRow({
             <PressableWithFeedback
                 accessible={accessible}
                 accessibilityLabel={accessibilityLabel}
-                id={`table-row-${item.keyForList}`}
+                id={isAccessibilityHidden ? undefined : (semanticRowID ?? id ?? `table-row-${item.keyForList}`)}
+                aria-hidden={isAccessibilityHidden ? true : undefined}
                 style={tableRowPressableStyles}
                 sentryLabel={sentryLabel}
                 interactive={interactive}
@@ -228,7 +249,7 @@ export default function TableRow({
                 hoverStyle={tableRowPressableHoverStyle}
                 pressDimmingValue={!interactive ? undefined : 1}
                 role={interactive ? CONST.ROLE.BUTTON : CONST.ROLE.PRESENTATION}
-                {...getRowAccessibilityProps(isTableSemanticsEnabled, rowIndex)}
+                {...getRowAccessibilityProps(isTableSemanticsEnabled, rowIndex, false, semanticTableHasHeader)}
                 onMouseDown={(e) => {
                     const target = e?.target;
 
@@ -251,6 +272,10 @@ export default function TableRow({
                 onPress={(event) => handleRowPress(event)}
                 onLongPress={handleRowLongPress}
                 {...props}
+                {...inertProps}
+                focusable={isAccessibilityHidden ? false : focusable}
+                fullDisabled={isAccessibilityHidden || fullDisabled}
+                tabIndex={isAccessibilityHidden ? -1 : tabIndex}
             >
                 {(state) => {
                     const rowCells = (

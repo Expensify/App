@@ -114,12 +114,10 @@ function PIN({onNext}: CustomSubPageProps) {
                 </View>
 
                 <View style={[styles.flexRow, styles.justifyContentCenter, styles.mv4, styles.alignItemsCenter, styles.w100]}>
-                    <Button
-                        icon={isPINHidden ? icons.Eye : icons.EyeDisabled}
-                        text={isPINHidden ? translate('cardPage.revealPin') : translate('cardPage.hidePin')}
-                        onPress={togglePINVisibility}
-                        medium
-                    />
+                    <Button onPress={togglePINVisibility}>
+                        <Button.Icon src={isPINHidden ? icons.Eye : icons.EyeDisabled} />
+                        <Button.Text>{isPINHidden ? translate('cardPage.revealPin') : translate('cardPage.hidePin')}</Button.Text>
+                    </Button>
                 </View>
             </View>
         </FormProvider>

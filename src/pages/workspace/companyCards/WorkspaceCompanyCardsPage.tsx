@@ -5,7 +5,6 @@ import type {WorkspaceCompanyCardsTableHandle} from '@components/Tables/Workspac
 import useAssignCard from '@hooks/useAssignCard';
 import useCompanyCards from '@hooks/useCompanyCards';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
@@ -37,7 +36,6 @@ function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
     const policyID = route.params.policyID;
     const {translate} = useLocalize();
     const {login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
-    const memoizedIllustrations = useMemoizedLazyIllustrations(['CompanyCard']);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
     const companyCardsTableRef = useRef<WorkspaceCompanyCardsTableHandle>(null);
@@ -75,9 +73,15 @@ function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
         onReconnect: loadPolicyCompanyCardsPage,
     });
 
+    // A freshly created workspace has no account ID until the back end returns one, so we can't treat the policy as loaded yet.
+    // Offline that response can never arrive, so we consider the policy loaded to avoid showing a spinner that would never resolve.
+    const isPolicyLoaded = !!policy && (policy.policyAccountID !== undefined || isOffline);
+
     const isLoading = !isOffline && (!allCardFeeds || (isFeedAdded && isLoadingOnyxValue(cardListMetadata)));
 
     const hasFeedsLoaded = !!allCardFeeds && Object.keys(allCardFeeds).length > 0;
+
+    const isPageFetchPending = !hasFeedsLoaded;
 
     useEffect(() => {
         if (isOffline || hasFeedsLoaded) {
@@ -102,6 +106,7 @@ function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
     const [shouldShowOfflineModal, setShouldShowOfflineModal] = useState(false);
     const {assignCard, isAssigningCardDisabled} = useAssignCard({feedName, policyID, setShouldShowOfflineModal});
     const canWriteCompanyCards = canMemberWrite(policy, currentUserLogin, CONST.POLICY.POLICY_FEATURE.COMPANY_CARDS);
+    const isSelectionModeEnabled = isMobileSelectionModeEnabled && shouldUseNarrowLayout;
 
     const handleBackButtonPress = () => {
         if (isMobileSelectionModeEnabled) {
@@ -120,11 +125,11 @@ function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
             policyFeature={CONST.POLICY.POLICY_FEATURE.COMPANY_CARDS}
         >
             <WorkspacePageWithSections
-                icon={memoizedIllustrations.CompanyCard}
-                headerText={translate('workspace.common.companyCards')}
+                headerText={translate(isSelectionModeEnabled ? 'common.selectMultiple' : 'workspace.common.companyCards')}
                 route={route}
                 policyFeature={CONST.POLICY.POLICY_FEATURE.COMPANY_CARDS}
                 onBackButtonPress={handleBackButtonPress}
+                shouldUseHeadlineHeader={!isSelectionModeEnabled}
                 shouldShowOfflineIndicatorInWideScreen
                 showLoadingAsFirstRender={false}
                 addBottomSafeAreaPadding
@@ -132,12 +137,14 @@ function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
                 <WorkspaceCompanyCardsTable
                     ref={companyCardsTableRef}
                     policyID={policyID}
-                    isPolicyLoaded={!!policy}
+                    isPolicyLoaded={isPolicyLoaded}
+                    isPageFetchPending={isPageFetchPending}
                     domainOrWorkspaceAccountID={domainOrWorkspaceAccountID}
                     companyCards={companyCards}
                     onAssignCard={assignCard}
                     isAssigningCardDisabled={isAssigningCardDisabled || !canWriteCompanyCards}
                     canWriteCompanyCards={canWriteCompanyCards}
+                    isSelectionModeEnabled={isSelectionModeEnabled}
                     onReloadPage={loadPolicyCompanyCardsPage}
                     onReloadFeed={loadPolicyCompanyCardsFeed}
                 />

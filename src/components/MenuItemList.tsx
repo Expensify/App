@@ -21,22 +21,14 @@ import OfflineWithFeedback from './OfflineWithFeedback';
 type MenuItemLink = string | (() => Promise<string>);
 
 type MenuItemWithLink = MenuItemProps & {
-    /** The link to open when the menu item is clicked */
     link?: MenuItemLink;
 
     /** A unique key for the menu item */
     key?: string;
 
-    /** The pending action for the menu item */
     pendingAction?: OnyxCommon.PendingAction | null;
-
-    /** A function to dismiss the pending action */
     onPendingActionDismiss?: () => void;
-
-    /** The error for the menu item */
     error?: OnyxCommon.Errors | null;
-
-    /** Whether we should force opacity */
     shouldForceOpacity?: boolean;
 };
 
@@ -47,16 +39,12 @@ type MenuItemListProps = {
     /** Whether or not to use the single execution hook */
     shouldUseSingleExecution?: boolean;
 
-    /** Any additional styles to apply for each item */
     wrapperStyle?: StyleProp<ViewStyle>;
 
     /** Icon to display on the left side of each item */
     icon?: IconAsset;
 
-    /** Icon Width */
     iconWidth?: number;
-
-    /** Icon Height */
     iconHeight?: number;
 };
 
@@ -113,6 +101,7 @@ function MenuItemList({menuItems = [], shouldUseSingleExecution = false, wrapper
                     iconHeight={iconHeight}
                     {...menuItemProps}
                     disabled={!!menuItemProps.disabled || isExecuting}
+                    shouldGreyOutWhenDisabled={menuItemProps.shouldGreyOutWhenDisabled ?? !!menuItemProps.disabled}
                     onPress={shouldUseSingleExecution ? singleExecution(menuItemProps.onPress) : menuItemProps.onPress}
                     isFocused={isFocused}
                 />

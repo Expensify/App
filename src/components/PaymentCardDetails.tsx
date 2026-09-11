@@ -26,17 +26,16 @@ type PaymentCardDetailsProps = {
     /** Optional right side content (e.g. action menu) */
     rightComponent?: ReactNode;
 
-    /** Optional wrapper styles */
     wrapperStyle?: StyleProp<ViewStyle>;
 };
 
 function PaymentCardDetails({card, rightComponent, wrapperStyle}: PaymentCardDetailsProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
-    const {translate} = useLocalize();
+    const {translate, dateFnsLocale} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['CreditCard']);
 
-    const cardMonth = DateUtils.getMonthNames()[(card?.accountData?.cardMonth ?? 1) - 1];
+    const cardMonth = DateUtils.getMonthNames(dateFnsLocale)[(card?.accountData?.cardMonth ?? 1) - 1];
 
     if (!card?.accountData || isEmptyObject(card?.accountData)) {
         return null;

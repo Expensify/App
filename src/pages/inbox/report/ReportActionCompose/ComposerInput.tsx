@@ -1,6 +1,5 @@
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 
-import useIsScrollLikelyLayoutTriggered from '@hooks/useIsScrollLikelyLayoutTriggered';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
@@ -48,7 +47,7 @@ function ComposerInput() {
     const isSubmittingEdit = isEditingInComposer || didResetComposerHeightWhileEditing;
 
     const {submitDraftAndClearComposer, validateAndSubmitDraft} = useComposerSubmit(reportID);
-    const {pickAttachments, PDFValidationComponent, ErrorModal} = useAttachmentPicker(reportID);
+    const {pickAttachments, PDFValidationComponent} = useAttachmentPicker(reportID);
 
     const [isComposerFullSize = false] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${reportID}`);
     const [blockedFromConcierge] = useOnyx(ONYXKEYS.NVP_BLOCKED_FROM_CONCIERGE);
@@ -64,8 +63,6 @@ function ComposerInput() {
     const measureContainer = (callback: MeasureInWindowOnSuccessCallback) => {
         containerRef.current?.measureInWindow(callback);
     };
-
-    const {isScrollLayoutTriggered, raiseIsScrollLayoutTriggered} = useIsScrollLikelyLayoutTriggered();
 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const isReportArchived = useReportIsArchived(report?.reportID);
@@ -90,8 +87,6 @@ function ComposerInput() {
                 ref={setComposerRef}
                 suggestionsRef={suggestionsRef}
                 isNextModalWillOpenRef={isNextModalWillOpenRef}
-                isScrollLikelyLayoutTriggered={isScrollLayoutTriggered}
-                raiseIsScrollLikelyLayoutTriggered={raiseIsScrollLayoutTriggered}
                 reportID={reportID}
                 policyID={report?.policyID}
                 includeChronos={chatIncludesChronos(report)}
@@ -116,7 +111,6 @@ function ComposerInput() {
                 forwardedFSClass={fsClass}
             />
             {PDFValidationComponent}
-            {ErrorModal}
         </>
     );
 }

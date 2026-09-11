@@ -12,9 +12,10 @@ import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {getDecodedLeafCategoryName} from '@libs/CategoryUtils';
+import {getDecodedFullCategoryName} from '@libs/CategoryUtils';
 import {getCommaSeparatedTagNameWithSanitizedColons} from '@libs/PolicyUtils';
 
+import {fontScale} from '@styles/typography';
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
@@ -101,7 +102,7 @@ function SplitListItem<TItem extends ListItem>({
     const textContentAccessibilityLabel = [
         splitItem.headerText,
         splitItem.merchant,
-        splitItem.category ? getDecodedLeafCategoryName(splitItem.category) : undefined,
+        splitItem.category ? getDecodedFullCategoryName(splitItem.category) : undefined,
         splitItem.tags?.at(0) ? getCommaSeparatedTagNameWithSanitizedColons(splitItem.tags.at(0) ?? '') : undefined,
     ]
         .filter(Boolean)
@@ -119,9 +120,7 @@ function SplitListItem<TItem extends ListItem>({
             onSelectRow={onSelectRow}
             shouldPreventEnterKeySubmit={shouldPreventEnterKeySubmit}
             rightHandSideComponent={rightHandSideComponent}
-            keyForList={item.keyForList}
             onFocus={onFocus}
-            pendingAction={item.pendingAction}
             accessible={!splitItem.isEditable}
         >
             <View style={[styles.flexRow, styles.containerWithSpaceBetween, styles.p3]}>
@@ -148,7 +147,7 @@ function SplitListItem<TItem extends ListItem>({
                         <View style={[styles.minHeight5, styles.justifyContentCenter]}>
                             <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsStretch, styles.gap1]}>
                                 <Text
-                                    fontSize={variables.fontSizeNormal}
+                                    fontSize={fontScale.text}
                                     style={[styles.flexShrink1]}
                                     numberOfLines={1}
                                 >
@@ -180,7 +179,7 @@ function SplitListItem<TItem extends ListItem>({
                                         numberOfLines={1}
                                         style={[styles.textMicroSupporting, styles.pre, styles.flexShrink1]}
                                     >
-                                        {getDecodedLeafCategoryName(splitItem.category)}
+                                        {getDecodedFullCategoryName(splitItem.category)}
                                     </Text>
                                 </View>
                             )}

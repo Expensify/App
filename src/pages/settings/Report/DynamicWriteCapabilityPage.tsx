@@ -57,7 +57,7 @@ function DynamicWriteCapabilityPage({report, policy}: DynamicWriteCapabilityPage
 
     return (
         <ScreenWrapper
-            includeSafeAreaPaddingBottom={false}
+            enableEdgeToEdgeBottomSafeAreaPadding
             testID="WriteCapabilityPage"
         >
             <FullPageNotFoundView shouldShow={!isAbleToEdit}>

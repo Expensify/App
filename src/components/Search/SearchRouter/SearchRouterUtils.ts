@@ -58,10 +58,10 @@ function getContextualReportData(state: NavigationState | undefined): Contextual
 
 function getContextualSearchAutocompleteKey(item: SearchQueryItem, policies: OnyxCollection<OnyxTypes.Policy>, reports?: OnyxCollection<OnyxTypes.Report>) {
     if (item.roomType === CONST.SEARCH.DATA_TYPES.INVOICE) {
-        return `${CONST.SEARCH.SYNTAX_FILTER_KEYS.TO}:${item.searchQuery}`;
+        return `${CONST.SEARCH.SYNTAX_FILTER_KEYS.TO}:${item.searchQuery ?? ''}`;
     }
     if (item.roomType === CONST.SEARCH.DATA_TYPES.CHAT) {
-        return `${CONST.SEARCH.SYNTAX_FILTER_KEYS.IN}:${item.searchQuery}`;
+        return `${CONST.SEARCH.SYNTAX_FILTER_KEYS.IN}:${item.searchQuery ?? ''}`;
     }
     if (item.roomType === CONST.SEARCH.DATA_TYPES.EXPENSE) {
         return `${CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID}:${item.policyID ? getPolicyNameWithFallback(item.policyID, policies, reports) : ''}`;

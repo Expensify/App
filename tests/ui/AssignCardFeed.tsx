@@ -5,6 +5,7 @@ import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
 import {CurrentReportIDContextProvider} from '@hooks/useCurrentReportID';
+import useNetwork from '@hooks/useNetwork';
 import * as useResponsiveLayoutModule from '@hooks/useResponsiveLayout';
 import type ResponsiveLayoutResult from '@hooks/useResponsiveLayout/types';
 
@@ -31,6 +32,7 @@ import {NavigationContainer} from '@react-navigation/native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 
+import createMock from '../utils/createMock';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
@@ -38,10 +40,10 @@ import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct'
 const WORKSPACE_ACCOUNT_ID = 5678;
 
 // Commercial feed (VCF) - has encrypted card numbers
-const COMMERCIAL_FEED = `${CONST.COMPANY_CARD.FEED_BANK_NAME.VISA}#${WORKSPACE_ACCOUNT_ID}` as CompanyCardFeedWithDomainID;
+const COMMERCIAL_FEED: CompanyCardFeedWithDomainID = `${CONST.COMPANY_CARD.FEED_BANK_NAME.VISA}#${WORKSPACE_ACCOUNT_ID}`;
 
 // Direct feed (Plaid) - card name equals card ID
-const DIRECT_FEED = `plaid.ins_123#${WORKSPACE_ACCOUNT_ID}` as CompanyCardFeedWithDomainID;
+const DIRECT_FEED = `plaid.ins_123#${WORKSPACE_ACCOUNT_ID}`;
 
 const CARD_ID = '1234';
 
@@ -144,6 +146,14 @@ const renderConfirmationStep = (initialParams: SettingsNavigatorParamList[typeof
     );
 };
 
+const renderDirectConfirmationStep = (policyID: string) =>
+    renderConfirmationStep({
+        policyID,
+        // @ts-expect-error -- Plaid feed identifiers are accepted at runtime but are not represented by the company-feed union.
+        feed: DIRECT_FEED,
+        cardID: CARD_ID,
+    });
+
 /**
  * Creates mock assign card data for testing.
  *
@@ -165,18 +175,22 @@ const createMockAssignCardData = (options: {feedType: 'commercial' | 'direct'; e
     // For direct feeds, encryptedCardNumber equals the card name
     // cspell:disable-next-line
     const encryptedCardNumber = feedType === 'commercial' ? 'v12:74E3CA3C4C0FA02FDCF754FDSFDSF' : 'Plaid Checking 0000';
-    const bankName: CompanyCardFeed = feedType === 'commercial' ? CONST.COMPANY_CARD.FEED_BANK_NAME.VISA : ('plaid.ins_123' as CompanyCardFeed);
+    // The assignment flow accepts dynamic Plaid feed names at runtime, but the company-feed model only enumerates known feeds.
+    // @ts-expect-error -- This is the deliberate runtime Plaid-vs-model boundary covered by the direct-feed scenarios below.
+    const directFeedName: CompanyCardFeed = 'plaid.ins_123';
+    const bankName: CompanyCardFeed = feedType === 'commercial' ? CONST.COMPANY_CARD.FEED_BANK_NAME.VISA : directFeedName;
+    const commonCardToAssign = {
+        bankName,
+        email,
+        cardName,
+        customCardName,
+        encryptedCardNumber,
+        dateOption: CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.FROM_BEGINNING,
+        startDate: '2024-12-27',
+    };
 
     return {
-        cardToAssign: {
-            bankName,
-            email,
-            cardName,
-            customCardName,
-            encryptedCardNumber,
-            dateOption: CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.FROM_BEGINNING,
-            startDate: '2024-12-27',
-        },
+        cardToAssign: commonCardToAssign,
         currentStep: CONST.COMPANY_CARD.STEP.CONFIRMATION,
         isEditing: false,
     };
@@ -192,10 +206,11 @@ describe('AssignCardFeed', () => {
 
     beforeEach(() => {
         // Mock the useResponsiveLayout hook to control layout behavior in tests.
-        jest.spyOn(useResponsiveLayoutModule, 'default').mockReturnValue({
+        const wideLayout = createMock<ResponsiveLayoutResult>({
             isSmallScreenWidth: false,
             shouldUseNarrowLayout: false,
-        } as ResponsiveLayoutResult);
+        });
+        jest.spyOn(useResponsiveLayoutModule, 'default').mockReturnValue(wideLayout);
     });
 
     afterEach(async () => {
@@ -212,6 +227,7 @@ describe('AssignCardFeed', () => {
 
             const policy = {
                 ...LHNTestUtils.getFakePolicy(),
+                areCompanyCardsEnabled: true,
                 role: CONST.POLICY.ROLE.ADMIN,
                 employeeList: {
                     // eslint-disable-next-line @typescript-eslint/naming-convention
@@ -252,6 +268,7 @@ describe('AssignCardFeed', () => {
 
             const policy = {
                 ...LHNTestUtils.getFakePolicy(),
+                areCompanyCardsEnabled: true,
                 role: CONST.POLICY.ROLE.ADMIN,
                 employeeList: {
                     // eslint-disable-next-line @typescript-eslint/naming-convention
@@ -290,6 +307,7 @@ describe('AssignCardFeed', () => {
 
             const policy = {
                 ...LHNTestUtils.getFakePolicy(),
+                areCompanyCardsEnabled: true,
                 role: CONST.POLICY.ROLE.ADMIN,
                 employeeList: {
                     // eslint-disable-next-line @typescript-eslint/naming-convention
@@ -542,6 +560,7 @@ describe('AssignCardFeed', () => {
 
             const policy = {
                 ...LHNTestUtils.getFakePolicy(),
+                areCompanyCardsEnabled: true,
                 role: CONST.POLICY.ROLE.ADMIN,
                 employeeList: {
                     // eslint-disable-next-line @typescript-eslint/naming-convention
@@ -601,6 +620,7 @@ describe('AssignCardFeed', () => {
 
             const policy = {
                 ...LHNTestUtils.getFakePolicy(),
+                areCompanyCardsEnabled: true,
                 role: CONST.POLICY.ROLE.ADMIN,
                 employeeList: {
                     // eslint-disable-next-line @typescript-eslint/naming-convention
@@ -641,6 +661,65 @@ describe('AssignCardFeed', () => {
             mockedGoBack.mockClear();
             await waitForBatchedUpdatesWithAct();
         });
+
+        it('should keep the Next button usable while offline (regression #97426)', async () => {
+            await TestHelper.signInWithTestUser();
+
+            // Selecting a cardholder is a local-state-only step, so Next must stay enabled offline. Before the fix the
+            // FormAlertWithSubmitButton force-disabled the button offline, so neither the error nor navigation fired.
+            const mockedUseNetwork = jest.mocked(useNetwork);
+            mockedUseNetwork.mockReturnValue({isOffline: true});
+
+            const navigateSpy = jest.spyOn(Navigation, 'navigate');
+
+            const policy = {
+                ...LHNTestUtils.getFakePolicy(),
+                areCompanyCardsEnabled: true,
+                role: CONST.POLICY.ROLE.ADMIN,
+                employeeList: {
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    'testaccount+1@gmail.com': {email: 'testaccount+1@gmail.com'},
+                },
+            };
+
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+                setHasRadio(true);
+                await Onyx.merge(ONYXKEYS.ASSIGN_CARD, {
+                    currentStep: CONST.COMPANY_CARD.STEP.ASSIGNEE,
+                    isEditing: false,
+                });
+            });
+
+            const {unmount} = renderAssigneeStep({
+                policyID: policy.id,
+                feed: COMMERCIAL_FEED,
+                cardID: CARD_ID,
+            });
+
+            await waitForBatchedUpdatesWithAct();
+
+            // Offline: pressing Next with no selection still fires and surfaces the empty-selection error.
+            await waitFor(() => {
+                expect(screen.getByText('Next')).toBeOnTheScreen();
+            });
+            fireEvent.press(screen.getByText('Next'));
+            await waitForBatchedUpdatesWithAct();
+            expect(screen.getByText('Please select a cardholder to continue')).toBeOnTheScreen();
+            expect(navigateSpy).not.toHaveBeenCalled();
+
+            // Offline: selecting a cardholder and pressing Next still navigates.
+            fireEvent.press(screen.getByText('testaccount+1@gmail.com'));
+            await waitForBatchedUpdatesWithAct();
+            fireEvent.press(screen.getByText('Next'));
+            await waitForBatchedUpdatesWithAct();
+            expect(navigateSpy).toHaveBeenCalledWith(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_CARD_SELECTION.getRoute({policyID: policy.id, feed: COMMERCIAL_FEED, cardID: CARD_ID}));
+
+            unmount();
+            navigateSpy.mockRestore();
+            mockedUseNetwork.mockReturnValue({isOffline: false});
+            await waitForBatchedUpdatesWithAct();
+        });
     });
 
     describe('ConfirmationStep - Commercial feed card assignment', () => {
@@ -648,6 +727,7 @@ describe('AssignCardFeed', () => {
             await TestHelper.signInWithTestUser();
             const policy = {
                 ...LHNTestUtils.getFakePolicy(),
+                areCompanyCardsEnabled: true,
                 role: CONST.POLICY.ROLE.ADMIN,
                 policyAccountID: WORKSPACE_ACCOUNT_ID,
             };
@@ -681,6 +761,7 @@ describe('AssignCardFeed', () => {
             await TestHelper.signInWithTestUser();
             const policy = {
                 ...LHNTestUtils.getFakePolicy(),
+                areCompanyCardsEnabled: true,
                 role: CONST.POLICY.ROLE.ADMIN,
                 policyAccountID: WORKSPACE_ACCOUNT_ID,
             };
@@ -718,6 +799,7 @@ describe('AssignCardFeed', () => {
             await TestHelper.signInWithTestUser();
             const policy = {
                 ...LHNTestUtils.getFakePolicy(),
+                areCompanyCardsEnabled: true,
                 role: CONST.POLICY.ROLE.ADMIN,
                 policyAccountID: WORKSPACE_ACCOUNT_ID,
             };
@@ -730,11 +812,7 @@ describe('AssignCardFeed', () => {
                 await Onyx.merge(ONYXKEYS.ASSIGN_CARD, createMockAssignCardData({feedType: 'direct'}));
             });
 
-            const {unmount} = renderConfirmationStep({
-                policyID: policy.id,
-                feed: DIRECT_FEED,
-                cardID: CARD_ID,
-            });
+            const {unmount} = renderDirectConfirmationStep(policy.id);
 
             await waitForBatchedUpdatesWithAct();
 
@@ -750,6 +828,7 @@ describe('AssignCardFeed', () => {
             await TestHelper.signInWithTestUser();
             const policy = {
                 ...LHNTestUtils.getFakePolicy(),
+                areCompanyCardsEnabled: true,
                 role: CONST.POLICY.ROLE.ADMIN,
                 policyAccountID: WORKSPACE_ACCOUNT_ID,
             };
@@ -762,11 +841,7 @@ describe('AssignCardFeed', () => {
                 await Onyx.merge(ONYXKEYS.ASSIGN_CARD, createMockAssignCardData({feedType: 'direct', cardName}));
             });
 
-            const {unmount} = renderConfirmationStep({
-                policyID: policy.id,
-                feed: DIRECT_FEED,
-                cardID: CARD_ID,
-            });
+            const {unmount} = renderDirectConfirmationStep(policy.id);
 
             await waitForBatchedUpdatesWithAct();
 
@@ -787,6 +862,7 @@ describe('AssignCardFeed', () => {
             await TestHelper.signInWithTestUser();
             const policy = {
                 ...LHNTestUtils.getFakePolicy(),
+                areCompanyCardsEnabled: true,
                 role: CONST.POLICY.ROLE.ADMIN,
                 policyAccountID: WORKSPACE_ACCOUNT_ID,
             };
@@ -823,6 +899,7 @@ describe('AssignCardFeed', () => {
             await TestHelper.signInWithTestUser();
             const policy = {
                 ...LHNTestUtils.getFakePolicy(),
+                areCompanyCardsEnabled: true,
                 role: CONST.POLICY.ROLE.ADMIN,
                 policyAccountID: WORKSPACE_ACCOUNT_ID,
             };
@@ -839,11 +916,7 @@ describe('AssignCardFeed', () => {
                 await Onyx.merge(ONYXKEYS.ASSIGN_CARD, mockData);
             });
 
-            const {unmount} = renderConfirmationStep({
-                policyID: policy.id,
-                feed: DIRECT_FEED,
-                cardID: CARD_ID,
-            });
+            const {unmount} = renderDirectConfirmationStep(policy.id);
 
             await waitForBatchedUpdatesWithAct();
 
@@ -864,6 +937,7 @@ describe('AssignCardFeed', () => {
 
             const policy = {
                 ...LHNTestUtils.getFakePolicy(),
+                areCompanyCardsEnabled: true,
                 role: CONST.POLICY.ROLE.ADMIN,
                 employeeList: {
                     // eslint-disable-next-line @typescript-eslint/naming-convention
@@ -904,6 +978,7 @@ describe('AssignCardFeed', () => {
 
             const policy = {
                 ...LHNTestUtils.getFakePolicy(),
+                areCompanyCardsEnabled: true,
                 role: CONST.POLICY.ROLE.ADMIN,
                 employeeList: {
                     // eslint-disable-next-line @typescript-eslint/naming-convention
@@ -947,6 +1022,7 @@ describe('AssignCardFeed', () => {
 
             const policy = {
                 ...LHNTestUtils.getFakePolicy(),
+                areCompanyCardsEnabled: true,
                 role: CONST.POLICY.ROLE.ADMIN,
                 policyAccountID: WORKSPACE_ACCOUNT_ID,
             };
@@ -983,6 +1059,7 @@ describe('AssignCardFeed', () => {
 
             const policy = {
                 ...LHNTestUtils.getFakePolicy(),
+                areCompanyCardsEnabled: true,
                 role: CONST.POLICY.ROLE.ADMIN,
                 policyAccountID: WORKSPACE_ACCOUNT_ID,
             };
@@ -1031,6 +1108,7 @@ describe('AssignCardFeed', () => {
 
             const policy = {
                 ...LHNTestUtils.getFakePolicy(),
+                areCompanyCardsEnabled: true,
                 role: CONST.POLICY.ROLE.ADMIN,
                 policyAccountID: WORKSPACE_ACCOUNT_ID,
             };
@@ -1081,6 +1159,7 @@ describe('AssignCardFeed', () => {
 
             const policy = {
                 ...LHNTestUtils.getFakePolicy(),
+                areCompanyCardsEnabled: true,
                 role: CONST.POLICY.ROLE.ADMIN,
                 policyAccountID: WORKSPACE_ACCOUNT_ID,
             };
@@ -1128,6 +1207,7 @@ describe('AssignCardFeed', () => {
 
             const policy = {
                 ...LHNTestUtils.getFakePolicy(),
+                areCompanyCardsEnabled: true,
                 role: CONST.POLICY.ROLE.ADMIN,
                 policyAccountID: WORKSPACE_ACCOUNT_ID,
             };
@@ -1191,6 +1271,7 @@ describe('AssignCardFeed', () => {
 
             const policy = {
                 ...LHNTestUtils.getFakePolicy(),
+                areCompanyCardsEnabled: true,
                 role: CONST.POLICY.ROLE.ADMIN,
                 policyAccountID: WORKSPACE_ACCOUNT_ID,
             };
@@ -1271,6 +1352,7 @@ describe('AssignCardFeed', () => {
 
             const policy = {
                 ...LHNTestUtils.getFakePolicy(),
+                areCompanyCardsEnabled: true,
                 role: CONST.POLICY.ROLE.ADMIN,
                 policyAccountID: WORKSPACE_ACCOUNT_ID,
             };
@@ -1308,6 +1390,7 @@ describe('AssignCardFeed', () => {
 
             const policy = {
                 ...LHNTestUtils.getFakePolicy(),
+                areCompanyCardsEnabled: true,
                 role: CONST.POLICY.ROLE.ADMIN,
                 policyAccountID: WORKSPACE_ACCOUNT_ID,
             };
@@ -1358,6 +1441,7 @@ describe('AssignCardFeed', () => {
 
             const policy = {
                 ...LHNTestUtils.getFakePolicy(),
+                areCompanyCardsEnabled: true,
                 role: CONST.POLICY.ROLE.ADMIN,
                 policyAccountID: WORKSPACE_ACCOUNT_ID,
             };

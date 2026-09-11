@@ -26,7 +26,7 @@ jest.mock('@components/ProductTrainingContext', () => ({
 
 // useResponsiveLayout determines LHB visibility. Mock a wide layout to keep behaviour deterministic.
 jest.mock('@hooks/useResponsiveLayout', () => jest.fn());
-const mockedUseResponsiveLayout = useResponsiveLayout as jest.MockedFunction<typeof useResponsiveLayout>;
+const mockedUseResponsiveLayout = jest.mocked(useResponsiveLayout);
 
 let mockUseAnimatedStyleUpdater: () => Record<string, unknown>;
 // Silence react-native-reanimated warnings in Jest

@@ -1,5 +1,11 @@
+import type useDefaultAvatars from '@hooks/useDefaultAvatars';
+
 import CONST from '@src/CONST';
+import type {PersonalDetailsList} from '@src/types/onyx';
+import type {Icon} from '@src/types/onyx/OnyxCommon';
 import type IconAsset from '@src/types/utils/IconAsset';
+
+import type {OnyxEntry} from 'react-native-onyx';
 
 import {md5, Str} from 'expensify-common';
 
@@ -9,6 +15,7 @@ import type {DefaultAvatarIDs} from './Avatars/UserAvatarCatalog.types';
 import {findAvatarIDFromURL, findCatalogMatchForURL, findLocalAvatarForURL} from './Avatars/AvatarLookup';
 import {DEFAULT_LETTER_AVATAR_SCHEME, isLetterAvatarSchemeKey, LETTER_AVATAR_COLOR_KEYS, LETTER_AVATAR_SCHEMES} from './Avatars/letterAvatarPalette';
 import {DEFAULT_AVATAR_PREFIX, USER_AVATARS} from './Avatars/UserAvatarCatalog';
+import {addSMSDomainIfPhoneNumber} from './PhoneNumber';
 
 type AvatarRange = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | 16 | 17 | 18 | 19 | 20 | 21 | 22 | 23 | 24;
 
@@ -55,8 +62,10 @@ type GetAvatarArgsType = CommonAvatarArgsType & {
     avatarSource?: AvatarSource;
 };
 
+type DefaultAvatars = ReturnType<typeof useDefaultAvatars>;
+
 type DefaultAvatarsType = {
-    defaultAvatars: Record<'ConciergeAvatar' | 'NotificationsAvatar', IconAsset>;
+    defaultAvatars: DefaultAvatars;
 };
 
 /**
@@ -166,6 +175,16 @@ function getCatalogAvatarNameFromURL(avatarURL?: AvatarSource): string | undefin
         return undefined;
     }
     return findAvatarIDFromURL(avatarURL);
+}
+
+/** Narrows an avatar owner ID to a numeric account ID. User-avatar path only — a workspace policyID yields the anonymous default; use `WorkspaceAvatar` instead. */
+function getAccountIDFromAvatarID(avatarID?: number | string): number {
+    if (avatarID === undefined) {
+        return CONST.DEFAULT_NUMBER_ID;
+    }
+    // Number() (unlike parseInt) rejects a policyID like '1A2B...' whole, instead of extracting a bogus leading account ID.
+    const accountID = Number(avatarID);
+    return Number.isNaN(accountID) ? CONST.DEFAULT_NUMBER_ID : accountID;
 }
 
 /**
@@ -478,6 +497,45 @@ function getSmallSizeAvatar(args: GetAvatarArgsType & DefaultAvatarsType): Avata
     return `${source.substring(0, lastPeriodIndex)}_128${source.substring(lastPeriodIndex)}`;
 }
 
+type BuildUserIconArgsType = DefaultAvatarsType & {
+    /** Account ID whose avatar is being resolved */
+    accountID: number;
+
+    /** Personal details from the `OnyxListItemProvider` context */
+    personalDetails: OnyxEntry<PersonalDetailsList>;
+
+    /**
+     * Email tied to an invited (not-yet-registered) account. Its presence also seeds a deterministic fallback avatar,
+     * so an invited account keeps the same avatar before and after it registers.
+     */
+    invitedEmail?: string;
+
+    /** Overrides the icon name, which otherwise comes from the account's login. Pass `''` to leave it blank. */
+    name?: string;
+
+    /**
+     * Login of the account being resolved. When personal details aren't loaded yet, it seeds a deterministic
+     * letter-avatar `source` (drawn locally) so the avatar renders instead of the generic gray fallback.
+     */
+    accountEmail?: string;
+};
+
+/**
+ * Resolves a single account ID into an avatar {@link Icon} using the personal-details context and the default-avatar set.
+ * Shared by `AccountAvatar` and `useReportActionAvatars` so the resolution stays in one place.
+ */
+function buildUserIcon({accountID, personalDetails, defaultAvatars, invitedEmail, name, accountEmail}: BuildUserIconArgsType): Icon {
+    const seededSource = accountEmail ? getDefaultAvatarURL({accountID, accountEmail: addSMSDomainIfPhoneNumber(accountEmail)}) : undefined;
+    return {
+        id: accountID,
+        type: CONST.ICON_TYPE_AVATAR,
+        source: personalDetails?.[accountID]?.avatar ?? seededSource ?? defaultAvatars.FallbackAvatar,
+        name: name ?? personalDetails?.[accountID]?.login ?? invitedEmail ?? accountEmail ?? '',
+        displayName: personalDetails?.[accountID]?.displayName ?? personalDetails?.[accountID]?.login ?? accountEmail,
+        fallbackIcon: invitedEmail ? getDefaultAvatar({accountID, accountEmail: addSMSDomainIfPhoneNumber(invitedEmail), defaultAvatars}) : undefined,
+    };
+}
+
 /**
  * Swaps a catalog-backed avatar URL for its bundled local SVG so it renders without a network request.
  * Non-catalog sources (uploaded image URLs, SVG components, or undefined) are returned unchanged.
@@ -487,6 +545,8 @@ function optimizeAvatarSource(source?: AvatarSource): AvatarSource | undefined {
 }
 
 export {
+    buildUserIcon,
+    getAccountIDFromAvatarID,
     getAvatar,
     getAvatarURL,
     getDefaultAvatar,

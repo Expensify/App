@@ -1,5 +1,5 @@
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 
@@ -14,6 +14,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {settingsPendingAction} from '@libs/PolicyUtils';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+import {getQuickbooksOnlineIntegrationName} from '@pages/workspace/accounting/utils';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
@@ -30,6 +31,7 @@ import React, {useCallback} from 'react';
 function DynamicQuickbooksOnlineAutoSyncPage({policy, route}: WithPolicyConnectionsProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const integrationName = getQuickbooksOnlineIntegrationName(policy, translate);
     const config = policy?.connections?.quickbooksOnline?.config;
     const policyID = route.params.policyID;
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_AUTO_SYNC.path);
@@ -59,10 +61,10 @@ function DynamicQuickbooksOnlineAutoSyncPage({policy, route}: WithPolicyConnecti
                 />
                 <ToggleSettingOptionRow
                     title={translate('workspace.accounting.autoSync')}
-                    subtitle={translate('workspace.qbo.advancedConfig.autoSyncDescription')}
+                    subtitle={translate('workspace.qbo.advancedConfig.autoSyncDescription', integrationName)}
                     isActive={!!config?.autoSync?.enabled}
                     wrapperStyle={[styles.pv2, styles.mh5]}
-                    switchAccessibilityLabel={translate('workspace.qbo.advancedConfig.autoSyncDescription')}
+                    switchAccessibilityLabel={translate('workspace.qbo.advancedConfig.autoSyncDescription', integrationName)}
                     shouldPlaceSubtitleBelowSwitch
                     onCloseError={() => clearQuickbooksOnlineAutoSyncErrorField(policyID)}
                     onToggle={(isEnabled) => updateQuickbooksOnlineAutoSync(policyID, isEnabled)}
@@ -71,14 +73,13 @@ function DynamicQuickbooksOnlineAutoSyncPage({policy, route}: WithPolicyConnecti
                 />
                 {!!config?.autoSync?.enabled && (
                     <OfflineWithFeedback pendingAction={pendingAction}>
-                        <MenuItemWithTopDescription
-                            title={
+                        <MenuItemField
+                            value={
                                 accountingMethod === COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL
                                     ? translate(`workspace.qbo.accountingMethods.values.${COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL}` as TranslationPaths)
                                     : translate(`workspace.qbo.accountingMethods.values.${COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH}` as TranslationPaths)
                             }
-                            description={translate('workspace.qbo.accountingMethods.label')}
-                            shouldShowRightIcon
+                            name={translate('workspace.qbo.accountingMethods.label')}
                             onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_ACCOUNTING_METHOD.path))}
                         />
                     </OfflineWithFeedback>

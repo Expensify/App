@@ -5,7 +5,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import getArrayDepth from '@libs/getArrayDepth';
-import {getWaypointIndex} from '@libs/TransactionUtils';
+import {getSelectedRouteKey, getWaypointIndex} from '@libs/TransactionUtils';
 
 import {init as initMapboxToken, stop as stopMapboxToken} from '@userActions/MapboxToken';
 
@@ -29,23 +29,20 @@ type ConfirmedRouteProps = {
     /** Whether the size of the route pending icon is smaller. */
     isSmallerIcon?: boolean;
 
-    /** Whether it should have border radius */
     shouldHaveBorderRadius?: boolean;
 
     /** Whether it should display the Mapbox map only when the route/coordinates exist otherwise
      * it will display pending map icon */
     requireRouteToDisplayMap?: boolean;
 
-    /** Whether the map is interactive or not */
     interactive?: boolean;
-
-    /** Whether it should display the compass on the map */
     shouldDisplayCompass?: boolean;
 };
 
 function ConfirmedRoute({transaction, isSmallerIcon, shouldHaveBorderRadius = true, requireRouteToDisplayMap = false, interactive, shouldDisplayCompass = true}: ConfirmedRouteProps) {
     const {isOffline} = useNetwork();
-    const {route0: route} = transaction?.routes ?? {};
+    const selectedRouteKey = getSelectedRouteKey(transaction);
+    const route = transaction?.routes?.[selectedRouteKey] ?? transaction?.routes?.[CONST.TRANSACTION.DEFAULT_ROUTE_KEY];
     const waypoints = transaction?.comment?.waypoints ?? {};
     const coordinates = route?.geometry?.coordinates ?? [];
     const styles = useThemeStyles();
@@ -93,7 +90,7 @@ function ConfirmedRoute({transaction, isSmallerIcon, shouldHaveBorderRadius = tr
                 zoom: CONST.MAPBOX.DEFAULT_ZOOM,
                 location: waypointMarkers?.at(0)?.coordinate ?? CONST.MAPBOX.DEFAULT_COORDINATE,
             }}
-            directionCoordinates={coordinates as Array<[number, number]>}
+            directionCoordinates={coordinates}
             style={[styles.mapView, shouldHaveBorderRadius && styles.br4]}
             waypoints={waypointMarkers}
             styleURL={CONST.MAPBOX.STYLE_URL}

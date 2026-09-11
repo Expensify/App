@@ -13,7 +13,6 @@ import {getEmptyObject} from '@src/types/utils/EmptyObject';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 import {filterCardsHiddenFromSearch} from '@selectors/Card';
-import passthroughPolicyTagListSelector from '@selectors/PolicyTagList';
 import {emailSelector} from '@selectors/Session';
 
 import useLocalize from './useLocalize';
@@ -34,6 +33,7 @@ const typeFiltersKeys = {
             CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID,
         ],
         [
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPENSE_TYPE,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY,
@@ -50,10 +50,12 @@ const typeFiltersKeys = {
             CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_AMOUNT,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_CURRENCY,
-            CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPENSE_TYPE,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.RECEIPT_TYPE,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_FIELD,
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTER_USER_ID,
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTER_PAYROLL_ID,
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.ORDER_DEAL_NUMBERS,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD,
         ],
@@ -63,6 +65,7 @@ const typeFiltersKeys = {
             CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED_TO,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID,
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID_BY,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED,
         ],
         [
@@ -83,12 +86,18 @@ const typeFiltersKeys = {
         [
             CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.TOTAL,
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT_DEBITED,
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT_REIMBURSED,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED_TO,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID_STATUS,
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID_BY,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.TITLE,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_FIELD,
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTER_USER_ID,
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTER_PAYROLL_ID,
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.ORDER_DEAL_NUMBERS,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD,
         ],
         [CONST.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTED, CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVED, CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED, CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID],
@@ -127,6 +136,7 @@ const typeFiltersKeys = {
             CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVED,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID,
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID_BY,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.TOTAL,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.TITLE,
@@ -168,6 +178,7 @@ const typeFiltersKeys = {
             CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED_TO,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID,
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID_BY,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.TOTAL,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.TITLE,
@@ -271,6 +282,7 @@ function advancedSearchPoliciesSelector(policies: OnyxCollection<Policy>): OnyxC
             areInvoicesEnabled: policy.areInvoicesEnabled,
             isAttendeeTrackingEnabled: policy.isAttendeeTrackingEnabled,
             fieldList: policy.fieldList,
+            archivedDate: policy.archivedDate,
         } as Policy;
     }
     return result;
@@ -299,6 +311,7 @@ function useAdvancedSearchFiltersWorkspaces(policies: OnyxCollection<Policy>, se
         selectedPolicyIDs: undefined,
         searchTerm: searchTerm ?? '',
         localeCompare,
+        includeArchivedPolicy: true,
     });
 
     return {workspaces, shouldShowWorkspaceSearchInput};
@@ -312,7 +325,7 @@ function useAdvancedSearchFilters(type: SearchDataTypes | undefined, policyID: F
     const [shouldDisplayCardFilter] = useOnyx(ONYXKEYS.DERIVED.PERSONAL_AND_WORKSPACE_CARD_LIST, {selector: shouldDisplayCardFilterSelector});
     const [policies = getEmptyObject<NonNullable<OnyxCollection<Policy>>>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: advancedSearchPoliciesSelector});
     const [policyDerived] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: policyDerivedSelector});
-    const [allPolicyTagLists = getEmptyObject<NonNullable<OnyxCollection<PolicyTagLists>>>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {selector: passthroughPolicyTagListSelector});
+    const [allPolicyTagLists = getEmptyObject<NonNullable<OnyxCollection<PolicyTagLists>>>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
     const selectedPolicyTagLists = policyID?.value?.length ? getAllPolicyValues(policyID, ONYXKEYS.COLLECTION.POLICY_TAGS, allPolicyTagLists) : [];
     const [hasTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {selector: hasTagsSelector});
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);

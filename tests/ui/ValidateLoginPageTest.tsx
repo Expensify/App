@@ -60,6 +60,11 @@ jest.mock('@libs/Navigation/Navigation', () => ({
         },
         isReady: () => true,
     },
+    // Mirrors the real helper, which resets the stack to TAB_NAVIGATOR, so the assertions below can keep
+    // checking the payload the navigator actually receives.
+    resetToAppRoot: () => {
+        mockNavigationReset({index: 0, routes: [{name: 'TabNavigator'}]});
+    },
 }));
 
 // Mock the session actions the page calls so `signInWithValidateCode` doesn't hit the API and the
@@ -162,7 +167,7 @@ describe('ValidateLoginPage', () => {
         expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.HOME, {forceReplace: true});
     });
 
-    it('Should hand off to exitTo (not redirect Home) for a first-time invitee opening an exitTo magic link', async () => {
+    it('Should hand off to exitTo (not redirect Home) for a first-time invitee opening an exitTo security link', async () => {
         // Regression for #94549: an invited member opens `/v/<id>/<code>?exitTo=<destination>` with no
         // cached `login` and JUST_SIGNED_IN. Before the fix `isUserClickedSignIn` matched this exactly and
         // its focus effect force-redirected Home, clobbering the exitTo navigation. Excluding `exitTo`

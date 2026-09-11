@@ -1,10 +1,11 @@
-import Button from '@components/ButtonComposed';
+import MultiAccountAvatar from '@components/Avatar/connected/MultiAccountAvatar';
+import Button from '@components/Button';
+import ButtonDisabledWhenOffline from '@components/Button/composed/ButtonDisabledWhenOffline';
 import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
-import ReportActionAvatars from '@components/ReportActionAvatars';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 
@@ -12,14 +13,15 @@ import useCloseImportPage from '@hooks/useCloseImportPage';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useImportSpreadsheetConfirmModal from '@hooks/useImportSpreadsheetConfirmModal';
 import useLocalize from '@hooks/useLocalize';
-import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {closeImportPage} from '@libs/actions/ImportSpreadsheet';
 import {openExternalLink} from '@libs/actions/Link';
 import {clearImportedSpreadsheetMemberData, importPolicyMembers} from '@libs/actions/Policy/Member';
+import Tab from '@libs/actions/Tab';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -56,7 +58,8 @@ function ImportedMembersConfirmationPage({route}: ImportedMembersConfirmationPag
     const canAssignElevatedRoles = canMemberAssignElevatedRole(policy, currentUserLogin);
     const role = canMemberAssignRole(policy, currentUserLogin, roleFromOnyx) ? roleFromOnyx : CONST.POLICY.ROLE.USER;
     const [isImporting, setIsImporting] = useState(false);
-    const {isOffline} = useNetwork();
+    const {isBetaEnabled} = usePermissions();
+    const isRulesRevampEnabled = isBetaEnabled(CONST.BETAS.RULES_REVAMP);
 
     const personalDetails = usePersonalDetails();
     const {setIsClosing} = useCloseImportPage();
@@ -103,10 +106,15 @@ function ImportedMembersConfirmationPage({route}: ImportedMembersConfirmationPag
     // to the page the import was started from.
     const isWorkflowsImport = route.name === SCREENS.WORKSPACE.WORKFLOWS_IMPORTED_CONFIRMATION;
 
+    // Only reached once the import succeeded. Workflows returns to a tabbed page that reopens on the tab the user left,
+    // so point it at Approvals — otherwise the workflows just imported are hidden behind whichever tab that was.
     const closeImportPageAndModal = () => {
         setIsClosing(true);
         setIsImporting(false);
         closeImportPage();
+        if (isWorkflowsImport && isRulesRevampEnabled) {
+            Tab.setSelectedTab(CONST.TAB.WORKFLOWS_TAB_TYPE, CONST.TAB.WORKFLOWS.APPROVALS);
+        }
         Navigation.goBack(isWorkflowsImport ? ROUTES.WORKSPACE_WORKFLOWS.getRoute(policyID) : ROUTES.WORKSPACE_MEMBERS.getRoute(policyID));
     };
 
@@ -147,13 +155,12 @@ function ImportedMembersConfirmationPage({route}: ImportedMembersConfirmationPag
             />
             <View style={styles.ph5}>
                 <View style={[styles.mv4, styles.justifyContentCenter, styles.alignItemsCenter]}>
-                    <ReportActionAvatars
+                    <MultiAccountAvatar
                         size={CONST.AVATAR_SIZE.XXX_LARGE}
                         accountIDs={Object.values(invitedEmailsToAccountIDsDraft ?? {})}
-                        horizontalStacking={{
-                            displayInRows: true,
+                        horizontalOptions={{
+                            maxRows: 2,
                         }}
-                        secondaryAvatarContainerStyle={[styles.secondAvatarInline]}
                     />
                 </View>
                 <View style={[styles.mb5]}>
@@ -161,28 +168,25 @@ function ImportedMembersConfirmationPage({route}: ImportedMembersConfirmationPag
                 </View>
                 <View style={[styles.mb3]}>
                     <View style={[styles.mhn5, styles.mb3]}>
-                        <MenuItemWithTopDescription
-                            title={translate(`workspace.common.roleName`, role)}
-                            description={translate('common.role')}
-                            shouldShowRightIcon={canAssignElevatedRoles}
-                            interactive={canAssignElevatedRoles}
-                            onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.IMPORTED_MEMBERS_ROLE.path))}
+                        <MenuItemField
+                            name={translate('common.role')}
+                            onPress={canAssignElevatedRoles ? () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.IMPORTED_MEMBERS_ROLE.path)) : undefined}
+                            value={translate(`workspace.common.roleName`, role)}
                         />
                     </View>
                 </View>
             </View>
             <FixedFooter style={[styles.flex1, styles.justifyContentEnd]}>
-                <Button
+                <ButtonDisabledWhenOffline
                     onPress={importMembers}
                     isLoading={isImporting}
-                    isDisabled={isOffline}
                     variant={CONST.BUTTON_VARIANT.SUCCESS}
                     size={CONST.BUTTON_SIZE.LARGE}
                     style={styles.mb3}
                 >
                     <Button.KeyboardShortcut />
                     <Button.Text>{isWorkflowsImport ? translate('common.invite') : translate('common.import')}</Button.Text>
-                </Button>
+                </ButtonDisabledWhenOffline>
                 <PressableWithoutFeedback
                     onPress={openPrivacyURL}
                     role={CONST.ROLE.LINK}

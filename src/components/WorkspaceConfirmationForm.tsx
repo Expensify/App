@@ -3,10 +3,11 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePersonalDetailByLogin from '@hooks/usePersonalDetailByLogin';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWorkspaceConfirmationAvatar from '@hooks/useWorkspaceConfirmationAvatar';
 
 import {clearDraftValues} from '@libs/actions/FormActions';
+import type {PolicyOwner} from '@libs/actions/Policy/Policy';
 import {generateDefaultWorkspaceName, generatePolicyID} from '@libs/actions/Policy/Policy';
 import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
 import {addErrorMessage} from '@libs/ErrorUtils';
@@ -14,12 +15,12 @@ import getFirstAlphaNumericCharacter from '@libs/getFirstAlphaNumericCharacter';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {getDefaultWorkspacePlanType, getUserFriendlyWorkspaceType} from '@libs/PolicyUtils';
-import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 import {isRequiredFulfilled} from '@libs/ValidationUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
+import {accountIDSelector, displayNameSelector} from '@src/selectors/PersonalDetails';
 import {lastWorkspaceNumberSelector} from '@src/selectors/Policy';
 import type {PolicyType} from '@src/types/form/WorkspaceConfirmationForm';
 import INPUT_IDS from '@src/types/form/WorkspaceConfirmationForm';
@@ -33,6 +34,7 @@ import {View} from 'react-native';
 
 import type {FormInputErrors, FormOnyxValues} from './Form/types';
 
+import WorkspaceAvatar from './Avatar/WorkspaceAvatar';
 import AvatarWithImagePicker from './AvatarWithImagePicker';
 import CurrencySelector from './CurrencySelector';
 import FormProvider from './Form/FormProvider';
@@ -48,7 +50,7 @@ type WorkspaceConfirmationSubmitFunctionParams = {
     name: string;
     currency: string;
     planType?: PolicyType;
-    owner?: string;
+    owner?: PolicyOwner;
     makeMeAdmin: boolean;
     avatarFile: File | CustomRNImageManipulatorResult | undefined;
     policyID: string;
@@ -61,13 +63,11 @@ type WorkspaceConfirmationFormProps = {
      */
     policyOwnerEmail?: string;
 
-    /** Submit function */
     onSubmit: (params: WorkspaceConfirmationSubmitFunctionParams) => void;
 
     /** Go back function */
     onBackButtonPress?: () => void;
 
-    /** Whether bottom safe area padding should be added */
     addBottomSafeAreaPadding?: boolean;
 
     /** Whether the submit button should display a loading spinner (e.g. while the new workspace is revealed) */
@@ -130,8 +130,9 @@ function WorkspaceConfirmationForm({
     const [draftValues] = useOnyx(ONYXKEYS.FORMS.WORKSPACE_CONFIRMATION_FORM_DRAFT);
 
     const email = policyOwnerEmail || (session?.email ?? '');
-    const lastWorkspaceNumber = lastWorkspaceNumberSelector(policies, email);
-    const defaultWorkspaceName = generateDefaultWorkspaceName(email, lastWorkspaceNumber, translate);
+    const userDisplayName = usePersonalDetailByLogin(email, displayNameSelector);
+    const lastWorkspaceNumber = lastWorkspaceNumberSelector(policies, email, userDisplayName);
+    const defaultWorkspaceName = generateDefaultWorkspaceName(email, lastWorkspaceNumber, translate, userDisplayName);
     const [workspaceNameFirstCharacter, setWorkspaceNameFirstCharacter] = useState(defaultWorkspaceName ?? '');
 
     const userCurrency = draftValues?.currency ?? currentUserPersonalDetails?.localCurrencyCode ?? CONST.CURRENCY.USD;
@@ -141,6 +142,7 @@ function WorkspaceConfirmationForm({
 
     const userOwner = draftValues?.owner ?? defaultOwner;
     const ownerDisplayName = userOwner;
+    const ownerAccountID = usePersonalDetailByLogin(userOwner, accountIDSelector);
 
     const [makeMeAdmin, setMakeMeAdmin] = useState(true);
     const currentUserEmail = session?.email ?? '';
@@ -161,12 +163,14 @@ function WorkspaceConfirmationForm({
 
     const stashedLocalAvatarImage = workspaceAvatar?.avatarUri ?? undefined;
 
-    const DefaultAvatar = useWorkspaceConfirmationAvatar({
-        policyID,
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- nullish coalescing cannot be used if left side can be empty string
-        source: stashedLocalAvatarImage || getDefaultWorkspaceAvatar(workspaceNameFirstCharacter),
-        name: workspaceNameFirstCharacter,
-    });
+    const workspaceAvatarNode = (
+        <WorkspaceAvatar
+            source={stashedLocalAvatarImage}
+            size={CONST.AVATAR_SIZE.XXXX_LARGE}
+            name={workspaceNameFirstCharacter}
+            avatarID={policyID ?? CONST.DEFAULT_NUMBER_ID}
+        />
+    );
 
     return (
         <>
@@ -190,8 +194,8 @@ function WorkspaceConfirmationForm({
                 </View>
                 <AvatarWithImagePicker
                     isUsingDefaultAvatar={!stashedLocalAvatarImage}
-                    avatarID={policyID}
                     source={stashedLocalAvatarImage}
+                    avatar={workspaceAvatarNode}
                     onImageSelected={(image) => {
                         setAvatarFile(image);
                         setWorkspaceAvatar({avatarUri: image.uri ?? '', avatarFileName: image.name ?? '', avatarFileType: image.type});
@@ -200,13 +204,9 @@ function WorkspaceConfirmationForm({
                         setAvatarFile(undefined);
                         setWorkspaceAvatar({avatarUri: null, avatarFileName: null, avatarFileType: null});
                     }}
-                    size={CONST.AVATAR_SIZE.XXXX_LARGE}
-                    avatarStyle={styles.alignSelfCenter}
                     editIcon={icons.Camera}
                     editIconStyle={styles.smallEditIconAccount}
-                    type={CONST.ICON_TYPE_WORKSPACE}
                     style={[styles.w100, styles.alignItemsCenter, styles.mv4, styles.mb6, styles.alignSelfCenter, styles.ph5]}
-                    DefaultAvatar={DefaultAvatar}
                     editorMaskImage={icons.ImageCropSquareMask}
                 />
                 <FormProvider
@@ -221,7 +221,7 @@ function WorkspaceConfirmationForm({
                             name: val[INPUT_IDS.NAME],
                             currency: val[INPUT_IDS.CURRENCY],
                             planType: isApprovedAccountant ? val[INPUT_IDS.PLAN_TYPE] : undefined,
-                            owner: isApprovedAccountant ? val[INPUT_IDS.OWNER] : '',
+                            owner: isApprovedAccountant ? {email: val[INPUT_IDS.OWNER], accountID: ownerAccountID} : undefined,
                             makeMeAdmin: isApprovedAccountant && isOwnerDifferentFromCurrentUser ? makeMeAdmin : false,
                             avatarFile,
                             policyID,

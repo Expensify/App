@@ -39,7 +39,6 @@ import ReportActionItemFragment from './ReportActionItemFragment';
 import VacationDelegateText from './VacationDelegateText';
 
 type ReportActionItemSingleProps = Partial<ChildrenProps> & {
-    /** All the data of the action */
     action: OnyxEntry<ReportAction>;
 
     /** Styles for the outermost View */
@@ -51,13 +50,8 @@ type ReportActionItemSingleProps = Partial<ChildrenProps> & {
     /** IOU Report for this action, if any */
     iouReport?: OnyxEntry<Report>;
 
-    /** Show header for action */
     showHeader?: boolean;
-
-    /** If the action is being hovered */
     isHovered?: boolean;
-
-    /** If the action is active */
     isActive?: boolean;
 };
 
@@ -86,7 +80,7 @@ function ReportActionItemSingle({
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {translate} = useLocalize();
+    const {translate, dateFnsLocale} = useLocalize();
     const isOnSearch = useIsOnSearch();
 
     const {avatarType, avatars, details, source, reportPreviewSenderID} = useReportActionAvatars({report: potentialIOUReport ?? report, action, shouldUseRealActor: isOnSearch});
@@ -145,7 +139,13 @@ function ReportActionItemSingle({
 
     const currentSelectedTimezone = currentUserPersonalDetails?.timezone?.selected ?? CONST.DEFAULT_TIME_ZONE.selected;
     const hasEmojiStatus = !details.shouldDisplayAllActors && details.status?.emojiCode;
-    const formattedDate = DateUtils.getStatusUntilDate(translate, details.status?.clearAfter ?? '', details.timezone?.selected ?? CONST.DEFAULT_TIME_ZONE.selected, currentSelectedTimezone);
+    const formattedDate = DateUtils.getStatusUntilDate(
+        translate,
+        dateFnsLocale,
+        details.status?.clearAfter ?? '',
+        details.timezone?.selected ?? CONST.DEFAULT_TIME_ZONE.selected,
+        currentSelectedTimezone,
+    );
     const statusText = details.status?.text ?? '';
     const statusTooltipText = formattedDate ? `${statusText ? `${statusText} ` : ''}(${formattedDate})` : statusText;
 
@@ -167,7 +167,6 @@ function ReportActionItemSingle({
                         subscriptAvatarBorderColor={getBackgroundColor()}
                         noRightMarginOnSubscriptContainer
                         isInReportAction
-                        shouldShowTooltip
                         secondaryAvatarContainerStyle={[
                             StyleUtils.getBackgroundAndBorderStyle(theme.appBG),
                             isHovered ? StyleUtils.getBackgroundAndBorderStyle(theme.hoverComponentBG) : undefined,

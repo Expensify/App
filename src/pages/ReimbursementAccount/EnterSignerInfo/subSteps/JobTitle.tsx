@@ -4,7 +4,7 @@ import SingleFieldStep from '@components/SubStepForms/SingleFieldStep';
 import useEnterSignerInfoStepFormSubmit from '@hooks/useEnterSignerInfoStepFormSubmit';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import type {SubStepProps} from '@hooks/useSubStep/types';
+import type {SubPageProps} from '@hooks/useSubPage/types';
 
 import {getFieldRequiredErrors} from '@libs/ValidationUtils';
 
@@ -14,7 +14,7 @@ import INPUT_IDS from '@src/types/form/EnterSignerInfoForm';
 
 import React, {useCallback} from 'react';
 
-function JobTitle({onNext, onMove, isEditing}: SubStepProps) {
+function JobTitle({onNext, onMove, isEditing}: SubPageProps) {
     const {translate} = useLocalize();
 
     const [enterSignerInfoFormDraft] = useOnyx(ONYXKEYS.FORMS.ENTER_SINGER_INFO_FORM_DRAFT);
@@ -48,6 +48,7 @@ function JobTitle({onNext, onMove, isEditing}: SubStepProps) {
             inputMode={CONST.INPUT_MODE.TEXT}
             defaultValue={defaultValue}
             shouldShowHelpLinks={false}
+            shouldDelayAutoFocus
         />
     );
 }

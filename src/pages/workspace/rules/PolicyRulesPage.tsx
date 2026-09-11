@@ -3,7 +3,7 @@ import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import SpendRulesSection from '@components/SpendRules/SpendRulesSection';
 
-import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
@@ -54,12 +54,10 @@ function PolicyRulesPage(props: PolicyRulesPageProps) {
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine();
-    const illustrations = useMemoizedLazyIllustrations(['Rules']);
     const icons = useMemoizedLazyExpensifyIcons(['Table']);
     const {canWrite: canWriteRules, showReadOnlyModal, withReadOnlyFallback} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.RULES);
     const {isBetaEnabled} = usePermissions();
     const isRulesRevampEnabled = isBetaEnabled(CONST.BETAS.RULES_REVAMP);
-    const isCustomAgentBetaEnabled = isBetaEnabled(CONST.BETAS.CUSTOM_AGENT);
     const [isAgentsRulesBannerDismissed = false] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {selector: agentsRulesBannerDismissedSelector});
 
     const fetchRules = useCallback(() => {
@@ -108,7 +106,6 @@ function PolicyRulesPage(props: PolicyRulesPageProps) {
                 headerText={translate('workspace.common.rules')}
                 shouldShowOfflineIndicatorInWideScreen
                 route={route}
-                icon={illustrations.Rules}
                 policyFeature={CONST.POLICY.POLICY_FEATURE.RULES}
                 shouldShowNotFoundPage={false}
                 shouldShowLoading={false}
@@ -117,7 +114,7 @@ function PolicyRulesPage(props: PolicyRulesPageProps) {
             >
                 {shouldDisplayButtonsInSeparateLine && <View style={[styles.pl5, styles.pr5]}>{headerButtons}</View>}
                 <View style={[styles.mt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
-                    {isCustomAgentBetaEnabled && !isAgentsRulesBannerDismissed && (
+                    {!isAgentsRulesBannerDismissed && (
                         <AgentPromotionalBanner
                             title={translate('workspace.rules.agentsPromoBanner.title')}
                             subtitle={translate('workspace.rules.agentsPromoBanner.subtitle')}
@@ -152,13 +149,11 @@ function PolicyRulesPage(props: PolicyRulesPageProps) {
                             showReadOnlyModal={showReadOnlyModal}
                         />
                     )}
-                    {isCustomAgentBetaEnabled && (
-                        <AgentRulesSection
-                            policyID={policyID}
-                            canWriteRules={canWriteRules}
-                            showReadOnlyModal={showReadOnlyModal}
-                        />
-                    )}
+                    <AgentRulesSection
+                        policyID={policyID}
+                        canWriteRules={canWriteRules}
+                        showReadOnlyModal={showReadOnlyModal}
+                    />
                 </View>
             </WorkspacePageWithSections>
         </AccessOrNotFoundWrapper>

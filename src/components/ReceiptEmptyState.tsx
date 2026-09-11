@@ -29,10 +29,7 @@ type ReceiptEmptyStateProps = {
     /** Whether the receipt action is disabled */
     disabled?: boolean;
 
-    /** Whether the receipt is a thumbnail */
     isThumbnail?: boolean;
-
-    /** Whether the receipt is in the money request view */
     isInMoneyRequestView?: boolean;
 
     /** Whether the receipt empty state should extend to the full height of the container. */
@@ -46,7 +43,6 @@ type ReceiptEmptyStateProps = {
     /** Callback to be called when the image loads */
     onLoad?: () => void;
 
-    /** Whether it's displayed in Wide RHP */
     isDisplayedInWideRHP?: boolean;
 
     /** Callback to be called when a receipt is selected */
@@ -93,7 +89,7 @@ function ReceiptEmptyState({
     const [isHovered, setIsHovered] = useState(false);
     const icons = useMemoizedLazyExpensifyIcons(['Receipt', 'ReceiptPlus']);
 
-    const {validateFiles, PDFValidationComponent, ErrorModal} = useFilesValidation(setReceiptFile);
+    const {validateFiles, PDFValidationComponent} = useFilesValidation(setReceiptFile);
 
     const Wrapper = onPress ? PressableWithoutFeedback : View;
     const containerStyle = isCompact
@@ -139,7 +135,6 @@ function ReceiptEmptyState({
                     style={containerStyle}
                 >
                     {PDFValidationComponent}
-                    {ErrorModal}
                     {isCompact ? (
                         <View style={[styles.flexRow, styles.justifyContentCenter, styles.alignItemsCenter, styles.gap2]}>
                             <Icon
@@ -170,7 +165,7 @@ function ReceiptEmptyState({
                                             <ReceiptPlaceholderPlusIcon
                                                 circleFill={theme.success}
                                                 plusFill={theme.receiptPlaceholderPlus}
-                                                size={StyleUtils.getAvatarSize(CONST.AVATAR_SIZE.SMALL)}
+                                                size={StyleUtils.getAvatarSize(CONST.AVATAR_SIZE.SMALL) - styles.moneyRequestAttachReceiptThumbnailIcon.borderWidth * 2}
                                             />
                                         </View>
                                     )}

@@ -37,7 +37,7 @@ jobs:
       IOS_VERSION: ${{ steps.getIOSVersion.outputs.IOS_VERSION }}
     steps:
       - name: Checkout
-        uses: useblacksmith/checkout@1c9394c220d293645707b625ba9d79685f093a8f # v1
+        uses: useblacksmith/checkout@0647fdbab2614a5eb86d2971070e325060d91056 # v1.7.0
         with:
           ref: ${{ inputs.ENVIRONMENT || github.sha }}
           token: ${{ secrets.OS_BOTIFY_TOKEN }}
@@ -215,7 +215,7 @@ jobs:
     if: ${{ fromJSON(needs.prep.outputs.SHOULD_BUILD_NATIVE) }}
     steps:
       - name: Checkout
-        uses: useblacksmith/checkout@1c9394c220d293645707b625ba9d79685f093a8f # v1
+        uses: useblacksmith/checkout@0647fdbab2614a5eb86d2971070e325060d91056 # v1.7.0
         with:
           ref: ${{ needs.prep.outputs.DEPLOY_SHA }}
 
@@ -269,7 +269,7 @@ jobs:
     if: ${{ always() && !cancelled() && needs.prep.outputs.DEPLOY_ENV == 'production' && needs.androidBuild.result != 'failure' && needs.androidUploadGooglePlay.result != 'failure' }}
     steps:
       - name: Checkout
-        uses: useblacksmith/checkout@1c9394c220d293645707b625ba9d79685f093a8f # v1
+        uses: useblacksmith/checkout@0647fdbab2614a5eb86d2971070e325060d91056 # v1.7.0
         with:
           ref: ${{ needs.prep.outputs.DEPLOY_SHA }}
 
@@ -441,8 +441,6 @@ jobs:
     needs: [prep, iosBuild]
     runs-on: blacksmith-12vcpu-macos-latest
     if: ${{ fromJSON(needs.prep.outputs.SHOULD_BUILD_NATIVE) }}
-    env:
-      DEVELOPER_DIR: /Applications/Xcode_26.6.app/Contents/Developer
     steps:
       - name: Checkout
         # Upstream checkout on macOS - Blacksmith's git-mirror cache can't work there (see workflows/README.md)
@@ -451,6 +449,9 @@ jobs:
           ref: ${{ needs.prep.outputs.DEPLOY_SHA }}
           token: ${{ secrets.OS_BOTIFY_TOKEN }}
           submodules: true
+
+      - name: Set up Xcode version
+        uses: ./.github/actions/composite/getXcodeVersion
 
       - name: Download iOS build artifact
         # v7
@@ -522,14 +523,15 @@ jobs:
     needs: [prep, iosBuild, iosUploadTestflight]
     runs-on: blacksmith-12vcpu-macos-latest
     if: ${{ always() && !cancelled() && needs.prep.outputs.DEPLOY_ENV == 'production' && needs.iosBuild.result != 'failure' && needs.iosUploadTestflight.result != 'failure' }}
-    env:
-      DEVELOPER_DIR: /Applications/Xcode_26.6.app/Contents/Developer
     steps:
       - name: Checkout
         # Upstream checkout on macOS - Blacksmith's git-mirror cache can't work there (see workflows/README.md)
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           ref: ${{ needs.prep.outputs.DEPLOY_SHA }}
+
+      - name: Set up Xcode version
+        uses: ./.github/actions/composite/getXcodeVersion
 
       - name: Setup Ruby
         # v1.310.0
@@ -703,7 +705,7 @@ jobs:
     runs-on: blacksmith-4vcpu-ubuntu-2404
     steps:
       - name: Checkout
-        uses: useblacksmith/checkout@1c9394c220d293645707b625ba9d79685f093a8f # v1
+        uses: useblacksmith/checkout@0647fdbab2614a5eb86d2971070e325060d91056 # v1.7.0
         with:
           ref: ${{ needs.prep.outputs.DEPLOY_SHA }}
 
@@ -765,7 +767,7 @@ jobs:
     continue-on-error: true
     steps:
       - name: Checkout
-        uses: useblacksmith/checkout@1c9394c220d293645707b625ba9d79685f093a8f # v1
+        uses: useblacksmith/checkout@0647fdbab2614a5eb86d2971070e325060d91056 # v1.7.0
         with:
           ref: ${{ needs.prep.outputs.DEPLOY_SHA }}
 
@@ -809,7 +811,7 @@ jobs:
       ]
     steps:
       - name: Checkout
-        uses: useblacksmith/checkout@1c9394c220d293645707b625ba9d79685f093a8f # v1
+        uses: useblacksmith/checkout@0647fdbab2614a5eb86d2971070e325060d91056 # v1.7.0
 
       - name: Post Slack message on failure
         uses: ./.github/actions/composite/announceFailedWorkflowInSlack
@@ -940,15 +942,27 @@ jobs:
   autoRetestRequestForCP:
     name: File retest request for cherry-picked deploy-blocker fixes
     runs-on: blacksmith-2vcpu-ubuntu-2404
-    # Only for a cherry-pick to staging, once every platform is on staging.
-    if: ${{ github.repository == 'Expensify/App' && needs.prep.outputs.DEPLOY_ENV == 'staging' && fromJSON(needs.prep.outputs.IS_CHERRY_PICK) && fromJSON(needs.checkDeploymentSuccess.outputs.IS_ALL_PLATFORMS_DEPLOYED) }}
+    # androidSubmit/iosSubmit always skip on staging (they're prod-only), so the implicit
+    # success() check would skip this job too unless we override it with always().
+    if: ${{ always() && github.repository == 'Expensify/App' && needs.prep.outputs.DEPLOY_ENV == 'staging' && fromJSON(needs.prep.outputs.IS_CHERRY_PICK) && fromJSON(needs.checkDeploymentSuccess.outputs.IS_ALL_PLATFORMS_DEPLOYED) }}
     needs: [prep, checkDeploymentSuccess]
     steps:
       - name: Checkout
-        uses: useblacksmith/checkout@1c9394c220d293645707b625ba9d79685f093a8f # v1
+        uses: useblacksmith/checkout@0647fdbab2614a5eb86d2971070e325060d91056 # v1.7.0
 
       - name: Setup Node
         uses: ./.github/actions/composite/setupNode
+
+      # The retest request tags the cherry-pick requester, which means reading the employee whitelist in Salt.
+      # Only the OSBotify app token can read that repo.
+      - name: Setup git for OSBotify
+        id: setupGitForOSBotify
+        uses: Expensify/GitHub-Actions/setupGitForOSBotify@main
+        with:
+          OP_VAULT: ${{ vars.OP_VAULT }}
+          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+          OS_BOTIFY_APP_ID: ${{ secrets.OS_BOTIFY_APP_ID }}
+          OS_BOTIFY_PRIVATE_KEY: ${{ secrets.OS_BOTIFY_PRIVATE_KEY }}
 
       - name: Load retest webhook from 1Password
         id: loadWebhook
@@ -963,7 +977,7 @@ jobs:
       - name: File retest request
         run: npx bun scripts/createRetestRequestForCP.ts --deploy-sha=${{ needs.prep.outputs.DEPLOY_SHA }} --deploy-tag=${{ needs.prep.outputs.TAG }}
         env:
-          GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
+          GITHUB_TOKEN: ${{ steps.setupGitForOSBotify.outputs.OS_BOTIFY_API_TOKEN }}
           SLACK_RETEST_WEBHOOK: ${{ steps.loadWebhook.outputs.SLACK_RETEST_WEBHOOK }}
 
   createRelease:
@@ -1109,7 +1123,7 @@ jobs:
       SENTRY_URL: ${{ steps.sentry-upload.outputs.SENTRY_URL }}
     steps:
       - name: Checkout
-        uses: useblacksmith/checkout@1c9394c220d293645707b625ba9d79685f093a8f # v1
+        uses: useblacksmith/checkout@0647fdbab2614a5eb86d2971070e325060d91056 # v1.7.0
 
       - name: Upload to Sentry for size analysis
         id: sentry-upload
@@ -1138,7 +1152,7 @@ jobs:
       SENTRY_URL: ${{ steps.sentry-upload.outputs.SENTRY_URL }}
     steps:
       - name: Checkout
-        uses: useblacksmith/checkout@1c9394c220d293645707b625ba9d79685f093a8f # v1
+        uses: useblacksmith/checkout@0647fdbab2614a5eb86d2971070e325060d91056 # v1.7.0
 
       - name: Upload to Sentry for size analysis
         id: sentry-upload

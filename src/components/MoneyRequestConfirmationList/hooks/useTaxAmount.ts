@@ -6,6 +6,7 @@ import {calculateTaxAmount, getDefaultTaxCode, getTaxValue, hasTaxRateWithMatchi
 
 import CONST from '@src/CONST';
 import type * as OnyxTypes from '@src/types/onyx';
+import type {Unit} from '@src/types/onyx/Policy';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
@@ -31,6 +32,9 @@ type UseTaxAmountParams = {
     /** Distance value used to compute the taxable amount for distance requests */
     distance: number;
 
+    /** Active distance unit for the selected mileage rate */
+    distanceUnit: Unit | undefined;
+
     /** Currency the transaction had on the previous render, used to detect currency changes */
     previousTransactionCurrency: string | undefined;
 };
@@ -51,6 +55,7 @@ function useTaxAmount({
     isMovingTransactionFromTrackExpense,
     customUnitRateID,
     distance,
+    distanceUnit,
     previousTransactionCurrency,
 }: UseTaxAmountParams) {
     const {getCurrencyDecimals} = useCurrencyListActions();
@@ -61,8 +66,15 @@ function useTaxAmount({
     const previousDefaultTaxCode = getDefaultTaxCode(policy, transaction, previousTransactionCurrency);
     const shouldKeepCurrentTaxSelection = hasTaxRateWithMatchingValue(policy, transaction) && transaction?.taxCode !== previousDefaultTaxCode;
 
+    const commuterExclusionData = isDistanceRequest
+        ? DistanceRequestUtils.getCommuterExclusionDisplayData(
+              transaction?.comment?.customUnit,
+              transaction?.comment?.customUnit?.distanceUnit ?? distanceUnit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+          )
+        : null;
+    const taxableDistance = commuterExclusionData ? DistanceRequestUtils.convertToDistanceInMeters(commuterExclusionData.reimbursableDistance, commuterExclusionData.distanceUnit) : distance;
     // Calculate and set tax amount in transaction draft
-    const taxableAmount = isDistanceRequest ? DistanceRequestUtils.getTaxableAmount(policy, customUnitRateID, distance) : Math.abs(transaction?.amount ?? 0);
+    const taxableAmount = isDistanceRequest ? DistanceRequestUtils.getTaxableAmount(policy, customUnitRateID, taxableDistance) : Math.abs(transaction?.amount ?? 0);
     // First we'll try to get the tax value from the chosen policy and if not found, we'll try to get it from the policy for moving expenses (only if the transaction is moving from track expense)
     const taxPercentage =
         getTaxValue(policy, transaction, transaction?.taxCode ?? defaultTaxCode) ??
