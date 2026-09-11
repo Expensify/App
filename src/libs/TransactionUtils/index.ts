@@ -97,7 +97,7 @@ import type {Locale as DateFnsLocale} from 'date-fns';
 import type {NullishDeep, OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
-import {format, isValid, parse} from 'date-fns';
+import {differenceInCalendarDays, format, isValid, parse, parseISO} from 'date-fns';
 import {SafeString, Str} from 'expensify-common';
 import {deepEqual} from 'fast-equals';
 import lodashDeepClone from 'lodash/cloneDeep';
@@ -1939,7 +1939,7 @@ function isReceiptBeingScanned(transaction: OnyxInputOrEntry<Transaction>): bool
 /**
  * Check if category is being analyzed (manual request creation or auto-categorization grace period)
  */
-function isCategoryBeingAnalyzed(transaction: OnyxEntry<Transaction>): boolean {
+function isCategoryBeingAnalyzed(transaction: OnyxEntry<Transaction>, report: OnyxEntry<Report>): boolean {
     if (!transaction) {
         return false;
     }
@@ -1960,7 +1960,7 @@ function isCategoryBeingAnalyzed(transaction: OnyxEntry<Transaction>): boolean {
     }
 
     // Invoice expense is not auto-categorized
-    if (isInvoiceReport(transaction.reportID)) {
+    if (isInvoiceReport(report)) {
         return false;
     }
 
@@ -2274,7 +2274,7 @@ function shouldShowViolation(
         return isAttendeeTrackingEnabledForPolicy(policy);
     }
 
-    if (violationName === CONST.VIOLATIONS.MISSING_CATEGORY && isCategoryBeingAnalyzed(transaction)) {
+    if (violationName === CONST.VIOLATIONS.MISSING_CATEGORY && isCategoryBeingAnalyzed(transaction, iouReport)) {
         return false;
     }
 
@@ -2667,6 +2667,29 @@ function isCustomUnitRateIDForP2P(transaction: OnyxInputOrEntry<Transaction>): b
 
 function hasReservationList(transaction: Transaction | undefined | null): boolean {
     return !!transaction?.receipt?.reservationList && transaction?.receipt?.reservationList.length > 0;
+}
+
+/**
+ * Returns the number of nights covered by a SmartScanned reservation receipt, or 0 when the
+ * transaction has no usable reservation range.
+ */
+function getReservationNights(transaction: OnyxEntry<Transaction>): number {
+    const startDate = transaction?.receipt?.hotelReservationStartDate;
+    const endDate = transaction?.receipt?.hotelReservationEndDate;
+    if (!startDate || !endDate) {
+        return 0;
+    }
+
+    // The dates are calendar days with no time component, so they are parsed as local dates and compared by calendar
+    // day. Anchoring them to UTC instead would let a DST shift within the stay swallow or invent a night.
+    const start = parseISO(startDate);
+    const end = parseISO(endDate);
+    if (!isValid(start) || !isValid(end)) {
+        return 0;
+    }
+
+    const nights = differenceInCalendarDays(end, start);
+    return nights > 0 ? nights : 0;
 }
 
 /**
@@ -3928,4 +3951,5 @@ export {
     isDeletedTransaction,
     getDistanceRequestType,
     isUnreportedManagedCardTransaction,
+    getReservationNights,
 };
