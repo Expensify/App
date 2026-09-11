@@ -86,6 +86,7 @@ function useFilteredOptions(config: UseFilteredOptionsConfig): UseFilteredOption
     const [allPersonalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const reportAttributesDerived = useReportAttributes();
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
 
@@ -123,6 +124,7 @@ function useFilteredOptions(config: UseFilteredOptionsConfig): UseFilteredOption
                           deferContactsUntilSearch,
                           locale: preferredLocale,
                       },
+                      rules,
                       undefined,
                       undefined,
                       isTrackIntentUser,
@@ -137,6 +139,7 @@ function useFilteredOptions(config: UseFilteredOptionsConfig): UseFilteredOption
             privateIsArchivedMap,
             allPolicies,
             conciergeReportID,
+            rules,
             reportsLimit,
             includeP2P,
             isSearching,
