@@ -9817,6 +9817,8 @@ describe('createDistanceRequest', () => {
             participants: [],
             delegateAccountID: undefined,
         });
+        // The notification is deferred until the write starts, so let the barrier settle first
+        await waitForBatchedUpdates();
 
         expect(notifyNewAction).toHaveBeenCalledTimes(1);
     });

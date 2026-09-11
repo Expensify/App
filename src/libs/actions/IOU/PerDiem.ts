@@ -1182,11 +1182,10 @@ function submitPerDiemExpense(submitPerDiemExpenseInformation: PerDiemExpenseInf
         parameters,
         onyxData,
         resolveWriteBarrier({writeBarrier, optimisticWatchKey: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`}),
+        {onWriteStarted: () => notifyNewAction(notifyReportID ?? chatReport.reportID, undefined, participantParams.payeeAccountID === currentUserAccountIDParam)},
     );
 
     highlightTransactionOnSearchRouteIfNeeded(isFromGlobalCreate, transaction.transactionID, CONST.SEARCH.DATA_TYPES.EXPENSE);
-
-    notifyNewAction(notifyReportID ?? chatReport.reportID, undefined, participantParams.payeeAccountID === currentUserAccountIDParam);
 
     return {iouReport, transactionID: transaction.transactionID};
 }

@@ -2695,6 +2695,9 @@ function trackExpense(params: CreateTrackExpenseParams) {
         playSound(SOUNDS.DONE);
     }
 
+    const notifyTrackedAction = () => notifyNewAction(activeReportID, undefined, payeeAccountID === currentUserAccountIDParam);
+    let isNotificationDeferredToWrite = false;
+
     switch (action) {
         case CONST.IOU.ACTION.CATEGORIZE: {
             if (!linkedTrackedExpenseReportAction || !linkedTrackedExpenseReportID) {
@@ -2925,7 +2928,9 @@ function trackExpense(params: CreateTrackExpenseParams) {
                 parameters,
                 onyxData,
                 resolveWriteBarrier({writeBarrier, isRetry: params.isRetry, optimisticWatchKey: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction?.transactionID}`}),
+                {onWriteStarted: notifyTrackedAction},
             );
+            isNotificationDeferredToWrite = true;
         }
     }
 
@@ -2933,7 +2938,9 @@ function trackExpense(params: CreateTrackExpenseParams) {
         highlightTransactionOnSearchRouteIfNeeded(isFromGlobalCreate, transaction?.transactionID, CONST.SEARCH.DATA_TYPES.EXPENSE);
     }
 
-    notifyNewAction(activeReportID, undefined, payeeAccountID === currentUserAccountIDParam);
+    if (!isNotificationDeferredToWrite) {
+        notifyTrackedAction();
+    }
 }
 
 /**

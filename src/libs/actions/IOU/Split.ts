@@ -2382,13 +2382,10 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
         parameters,
         onyxData,
         resolveWriteBarrier({writeBarrier, optimisticWatchKey: `${ONYXKEYS.COLLECTION.TRANSACTION}${parameters.transactionID}`}),
+        {onWriteStarted: isMoneyRequestReport ? undefined : () => notifyNewAction(activeReportID, undefined, true)},
     );
 
     highlightTransactionOnSearchRouteIfNeeded(isFromGlobalCreate, parameters.transactionID, CONST.SEARCH.DATA_TYPES.EXPENSE);
-
-    if (!isMoneyRequestReport) {
-        notifyNewAction(activeReportID, undefined, true);
-    }
 
     return {iouReport: distanceIouReport, chatReportID: parameters.chatReportID, transactionID: parameters.transactionID};
 }
