@@ -1,8 +1,3 @@
-/**
- * Actions for the Dynamics 365 Business Central accounting connection. Connecting is asynchronous: the backend
- * validates the credentials in a sync job and pushes the resulting connection to the policy, so the only optimistic
- * state written here is the sync progress the Accounting page uses to show that the connection is being set up.
- */
 import {write} from '@libs/API';
 import type {ConnectPolicyToBusinessCentralParams, UpdateBusinessCentralCompanyParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
