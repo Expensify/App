@@ -35,7 +35,7 @@ function CardRow() {
 }
 ```
 
-Available from `useLayoutSpacing()`: `cardPadding`, `cardPaddingHorizontal`, `cardPaddingBottom`, `cardPaddingLeft`, `cardMarginHorizontal`, `cardEdgeToEdge`, `cardGapBottom`, `pageGutter`, `pageGutterMargin`. Tokens live in `src/styles/layoutSpacing.ts`; add a new one there rather than writing a ternary.
+Available from `useLayoutSpacing()`: `cardPadding`, `cardPaddingHorizontal`, `cardPaddingBottom`, `cardPaddingLeft`, `cardMarginHorizontal`, `cardEdgeToEdge`, `cardGapBottom`, `pageGutter`, `pageGutterMargin`, `pageGutterRight`. Tokens live in `src/styles/layoutSpacing.ts`; add a new one there rather than writing a ternary.
 
 ---
 
@@ -43,7 +43,7 @@ Available from `useLayoutSpacing()`: `cardPadding`, `cardPaddingHorizontal`, `ca
 
 Flag ONLY when ALL of these are true:
 
-- The changed code picks a `styles.p*`, `styles.ph*`, `styles.pl*`, `styles.pr*`, `styles.m*`, `styles.mh*` or `styles.mhn*` helper with `shouldUseNarrowLayout`, `isSmallScreenWidth` or another layout flag, or sets a raw `fontSize` / `lineHeight`
+- The changed code picks a horizontal inset helper by layout flag where the pair spells the card padding values (the `5` step narrow, the `8` step wide, e.g. `styles.ph5 : styles.ph8`, `styles.mhn5 : styles.mhn8`), or sets a raw `fontSize` / `lineHeight`
 - A matching token exists (`cardPadding*`, `pageGutter*`, or a `Text` variant)
 
 **DO NOT flag if:**

@@ -1,3 +1,4 @@
+import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -37,6 +38,7 @@ type WorkspaceListLayoutProps = {
 
 function WorkspaceListHeaderContent({activeTabKey, headerButton, shouldShowHeaderButton = true}: WorkspaceListHeaderContentProps) {
     const styles = useThemeStyles();
+    const {pageGutterRight} = useLayoutSpacing();
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Globe', 'Building']);
     const navigationOptions = [
@@ -67,7 +69,7 @@ function WorkspaceListHeaderContent({activeTabKey, headerButton, shouldShowHeade
     };
 
     return (
-        <View style={[styles.flexRow, styles.justifyContentBetween, styles.pr5, styles.pt1, styles.pb2]}>
+        <View style={[styles.flexRow, styles.justifyContentBetween, pageGutterRight, styles.pt1, styles.pb2]}>
             <TabSelectorBase
                 tabs={navigationOptions}
                 activeTabKey={activeTabKey}

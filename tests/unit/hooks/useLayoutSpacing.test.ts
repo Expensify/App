@@ -22,6 +22,7 @@ describe('useLayoutSpacing', () => {
         expect(result.current.cardGapBottom).toEqual({marginBottom: layoutSpacing.cardGap.narrow});
         expect(result.current.pageGutter).toEqual({paddingHorizontal: layoutSpacing.pageGutter.narrow});
         expect(result.current.pageGutterMargin).toEqual({marginHorizontal: layoutSpacing.pageGutter.narrow});
+        expect(result.current.pageGutterRight).toEqual({paddingRight: layoutSpacing.pageGutter.narrow});
     });
 
     it('resolves wide values on a wide layout', () => {

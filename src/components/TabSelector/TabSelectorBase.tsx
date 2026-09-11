@@ -1,5 +1,6 @@
 import ScrollView from '@components/ScrollView';
 
+import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import useScrollEventEmitter from '@hooks/useScrollEventEmitter';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -35,6 +36,7 @@ function TabSelectorBase<K extends string = string>({
 }: TabSelectorBaseProps<K>) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const {pageGutter} = useLayoutSpacing();
 
     const routesLength = tabs.length;
 
@@ -71,7 +73,7 @@ function TabSelectorBase<K extends string = string>({
             // (equalWidth) divide their intrinsic content width instead of the viewport. Giving the content
             // container a definite width lets the flex children split it evenly. Scoped to equalWidth so normal
             // overflowing/scrollable tab rows are not constrained.
-            contentContainerStyle={[styles.tabSelectorContentContainer, equalWidth && styles.w100, contentContainerStyles]}
+            contentContainerStyle={[styles.tabSelectorContentContainer, pageGutter, equalWidth && styles.w100, contentContainerStyles]}
             horizontal
             showsHorizontalScrollIndicator={false}
             keyboardShouldPersistTaps="handled"

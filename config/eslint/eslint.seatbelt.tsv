@@ -59,13 +59,11 @@
 "../../src/components/AmountTextInput.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/AnchorForAttachmentsOnly/index.tsx"	"no-restricted-syntax"	1
 "../../src/components/AnchorForCommentsOnly/index.tsx"	"no-restricted-syntax"	1
-"../../src/components/AnimatedCollapsible/index.tsx"	"rulesdir/no-layout-spacing-conditional"	1
 "../../src/components/AnimatedFlatListWithCellRenderer.tsx"	"@typescript-eslint/no-deprecated/Animated.createAnimatedComponent"	1
 "../../src/components/AnimatedFlatListWithCellRenderer.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/components/AnimatedSubmitButton/index.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/AnimatedSubmitButton/index.tsx"	"react-hooks/refs"	4
 "../../src/components/AnimatedSubmitButton/index.tsx"	"react-hooks/set-state-in-effect"	1
-"../../src/components/ApprovalWorkflowSection.tsx"	"rulesdir/no-layout-spacing-conditional"	1
 "../../src/components/AttachmentPicker/index.native.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/AttachmentPicker/index.native.tsx"	"react-hooks/refs"	1
 "../../src/components/AttachmentPicker/index.tsx"	"react-hooks/refs"	1
@@ -109,19 +107,6 @@
 "../../src/components/ConnectToXeroFlow/index.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/components/CountryPicker/CountrySelectorModal.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/CountryPicker/index.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/components/DatePicker/CalendarPicker/index.tsx"	"rulesdir/no-layout-spacing-conditional"	1
-"../../src/components/EmojiPicker/EmojiPickerMenu/index.tsx"	"rulesdir/no-layout-spacing-conditional"	1
-"../../src/components/MoneyRequestReportView/MoneyRequestReportGroupHeader.tsx"	"rulesdir/no-layout-spacing-conditional"	2
-"../../src/components/Search/SearchList/ListItem/BaseListItemHeader.tsx"	"rulesdir/no-layout-spacing-conditional"	1
-"../../src/components/Search/SearchList/ListItem/CardListItemHeader.tsx"	"rulesdir/no-layout-spacing-conditional"	1
-"../../src/components/Search/SearchList/ListItem/MemberListItemHeader.tsx"	"rulesdir/no-layout-spacing-conditional"	1
-"../../src/components/Search/SearchList/ListItem/TransactionGroupListExpanded.tsx"	"rulesdir/no-layout-spacing-conditional"	1
-"../../src/components/Search/SearchList/ListItem/WithdrawalIDListItemHeader.tsx"	"rulesdir/no-layout-spacing-conditional"	1
-"../../src/components/Search/SearchPageHeader/SearchPageInput.tsx"	"rulesdir/no-layout-spacing-conditional"	2
-"../../src/components/Search/SearchRouter/SearchRouter.tsx"	"rulesdir/no-layout-spacing-conditional"	1
-"../../src/components/Search/primitives/SelectionTopBar.tsx"	"rulesdir/no-layout-spacing-conditional"	1
-"../../src/components/SearchBar/CompactSearchBar.tsx"	"rulesdir/no-layout-spacing-conditional"	1
-"../../src/components/SelectionList/components/TextInput.tsx"	"rulesdir/no-layout-spacing-conditional"	1
 "../../src/components/createOnyxContext.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/components/DatePicker/CalendarPicker/MonthPickerModal.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/components/DatePicker/CalendarPicker/YearPickerModal.tsx"	"react-hooks/set-state-in-effect"	1
@@ -144,7 +129,6 @@
 "../../src/components/EmojiPicker/EmojiPickerMenu/useEmojiPickerMenu.ts"	"react-hooks/set-state-in-effect"	2
 "../../src/components/EmojiPicker/EmojiSkinToneList.tsx"	"react-hooks/set-state-in-effect"	2
 "../../src/components/EmptySelectionListContent.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/components/EnvironmentBadge.tsx"	"no-restricted-syntax"	1
 "../../src/components/EReceiptWithSizeCalculation.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/FeedbackSurvey.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/components/FilePicker/index.native.tsx"	"react-hooks/refs"	1
@@ -859,7 +843,7 @@
 "../../src/libs/ReportUtils.ts"	"@typescript-eslint/no-deprecated/getPolicy"	27
 "../../src/libs/ReportUtils.ts"	"@typescript-eslint/no-deprecated/getReportTransactions"	17
 "../../src/libs/ReportUtils.ts"	"@typescript-eslint/no-deprecated/translateLocal"	8
-"../../src/libs/ReportUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	33
+"../../src/libs/ReportUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	32
 "../../src/libs/ReportUtils.ts"	"rulesdir/no-onyx-connect"	15
 "../../src/libs/sanitizeLogParams.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/libs/SearchAutocompleteUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
@@ -917,6 +901,7 @@
 "../../src/pages/EnablePayments/shared/IdologyQuestions.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/EnablePayments/Wallet/PersonalInfo/substeps/DateOfBirthStep.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../src/pages/EnablePayments/Wallet/utils/getSubstepValues.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
+"../../src/pages/home/ForYouSection/ConciergePromptBox.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/home/GettingStartedSection/hooks/useGettingStartedItems.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/home/GettingStartedSection/hooks/useGettingStartedItems.ts"	"no-restricted-imports"	1
 "../../src/pages/home/TimeSensitiveSection/items/FixCompanyCardConnection.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
@@ -949,7 +934,6 @@
 "../../src/pages/inbox/report/ReportActionItem.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/pages/inbox/report/ReportActionItemMessageEdit.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/pages/inbox/report/ReportActionItemMessageEdit.tsx"	"no-restricted-syntax"	1
-"../../src/pages/inbox/report/ReportActionItemMessageEdit.tsx"	"react-hooks/preserve-manual-memoization"	1
 "../../src/pages/inbox/report/ReportActionItemMessageEdit.tsx"	"react-hooks/refs"	5
 "../../src/pages/inbox/report/ReportActionItemMessageEdit.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/pages/inbox/report/SearchActionHeader.tsx"	"@typescript-eslint/no-deprecated/fontSize"	1
@@ -966,7 +950,6 @@
 "../../src/pages/inbox/sidebar/FABPopoverContent/menuItems/CreateReportMenuItem.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/inbox/sidebar/FABPopoverContent/menuItems/InvoiceMenuItem.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/inbox/sidebar/FABPopoverContent/menuItems/NewWorkspaceMenuItem.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/pages/inbox/sidebar/FABPopoverContent/menuItems/QuickActionMenuItem.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../src/pages/inbox/sidebar/FABPopoverContent/menuItems/TravelMenuItem.tsx"	"no-restricted-imports"	1
 "../../src/pages/inbox/sidebar/FABPopoverContent/useScanActions.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/pages/iou/DynamicSplitExpensePage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
@@ -1083,7 +1066,6 @@
 "../../src/pages/settings/Subscription/PaymentCard/ChangeBillingCurrency/index.tsx"	"no-restricted-syntax"	1
 "../../src/pages/settings/Subscription/PaymentCard/DynamicPaymentCardCurrencySelectorPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/settings/Subscription/SubscriptionPlan/ComparePlansModal.tsx"	"react-hooks/set-state-in-effect"	1
-"../../src/pages/settings/Subscription/SubscriptionPlan/ComparePlansModal.tsx"	"rulesdir/no-layout-spacing-conditional"	2
 "../../src/pages/settings/Wallet/BankAccountPurposePage/substeps/CountrySelection.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/settings/Wallet/ChooseTransferAccountPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/settings/Wallet/CountrySelectionList.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
@@ -1115,7 +1097,6 @@
 "../../src/pages/signin/SignInPageLayout/SignInHeroCopy.tsx"	"rulesdir/no-raw-typography"	2
 "../../src/pages/signin/SignInPageLayout/SignInPageContent.tsx"	"rulesdir/no-raw-typography"	2
 "../../src/pages/signin/SMSDeliveryFailurePage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
-"../../src/pages/signin/SignInPageLayout/index.tsx"	"rulesdir/no-layout-spacing-conditional"	2
 "../../src/pages/signin/ValidateCodeForm/BaseValidateCodeForm.tsx"	"react-hooks/set-state-in-effect"	4
 "../../src/pages/tasks/DynamicTaskShareDestinationSelectorModal.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/pages/TeachersUnite/SaveTheWorldPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
@@ -1241,7 +1222,6 @@
 "../../src/pages/workspace/DynamicWorkspaceOverviewPlanTypePage.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/pages/workspace/expensifyCard/DynamicExpensifyCardLimitTypePage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/workspace/expensifyCard/DynamicWorkspaceSettlementAccountPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	3
-"../../src/pages/workspace/expensifyCard/WorkspaceCardsListLabel.tsx"	"rulesdir/no-layout-spacing-conditional"	1
 "../../src/pages/workspace/expensifyCard/issueNew/LimitTypeStep.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/workspace/expensifyCard/issueNew/spendRules/SetSpendRulesStep.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/workspace/expensifyCard/WorkspaceExpensifyCardBankAccounts.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
@@ -1270,7 +1250,6 @@
 "../../src/pages/workspace/withPolicy.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../src/pages/workspace/withPolicyAndFullscreenLoading.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/workspace/withPolicyConnections.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/pages/workspace/workflows/tabs/WorkflowsApprovalsTab.tsx"	"rulesdir/no-layout-spacing-conditional"	2
 "../../src/pages/workspace/workflows/tabs/WorkflowsPaymentsTab.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/pages/workspace/workflows/WorkspaceAutoReportingFrequencyPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/pages/workspace/workflows/WorkspaceAutoReportingMonthlyOffsetPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
@@ -1291,7 +1270,6 @@
 "../../src/setup/moduleInitPolyfill.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/setup/telemetry/index.web.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/stories/AddressSearch.stories.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/stories/Button.stories.tsx"	"no-restricted-imports"	1
 "../../src/stories/ButtonWithDropdownMenu.stories.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/stories/DragAndDrop.stories.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/stories/EReceipt.stories.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
@@ -1386,7 +1364,6 @@
 "../../tests/actions/ReportTest.ts"	"no-restricted-imports"	1
 "../../tests/actions/TaskTest.ts"	"no-restricted-imports"	1
 "../../tests/actions/TransactionTest.ts"	"no-restricted-imports"	1
-"../../tests/ui/components/Button.tsx"	"no-restricted-imports"	1
 "../../tests/ui/ComposerTest.tsx"	"rulesdir/no-raw-typography"	1
 "../../tests/ui/MoneyRequestReportPreview.test.tsx"	"no-restricted-imports"	1
 "../../tests/ui/WorkspaceMoreFeaturesPageTest.tsx"	"no-restricted-imports"	1
