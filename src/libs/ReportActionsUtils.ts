@@ -3415,23 +3415,16 @@ function getWorkspaceCustomUnitRateUpdatedMessage(translate: LocalizedTranslate,
 }
 
 /**
- * Builds the Concierge system message explaining that the distance rate of an expense was updated automatically.
+ * Builds the Concierge system message explaining that the distance rates of a report's expenses were re-selected automatically.
  */
 function getConciergeAutoSelectDistanceRateMessage(translate: LocalizedTranslate, action: ReportAction): string {
-    const {rate, currency, unit, policyName, changeType} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.CONCIERGE_AUTO_SELECT_DISTANCE_RATE>) ?? {};
+    const {policyName} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.CONCIERGE_AUTO_SELECT_DISTANCE_RATE>) ?? {};
 
-    if (!rate || !currency || !unit || !policyName) {
+    if (!policyName) {
         return getReportActionText(action);
     }
 
-    // The rate is stored in the CONST.POLICY.CUSTOM_UNIT_RATE_BASE_OFFSET scale, which is the scale convertAmountToDisplayString divides by, so 67 is displayed as $0.67.
-    const formattedRate = `${convertAmountToDisplayString(rate, currency)} / ${unit}`;
-
-    if (changeType === CONST.REPORT.CONCIERGE_AUTO_SELECT_DISTANCE_RATE_CHANGE_TYPE.REPORT_MOVED) {
-        return translate('iou.conciergeAutoSelectedDistanceRateForMovedReport', {rate: formattedRate, policyName});
-    }
-
-    return translate('iou.conciergeAutoSelectedDistanceRate', {rate: formattedRate, policyName});
+    return translate('iou.conciergeAutoSelectedDistanceRates', {policyName});
 }
 
 function getWorkspaceCustomUnitRateDeletedMessage(translate: LocalizedTranslate, action: ReportAction): string {

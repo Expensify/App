@@ -1940,10 +1940,6 @@ const CONST = {
             ACCEPT: 'accept',
             DECLINE: 'decline',
         },
-        CONCIERGE_AUTO_SELECT_DISTANCE_RATE_CHANGE_TYPE: {
-            WORKSPACE_CHANGED: 'workspaceChanged',
-            REPORT_MOVED: 'reportMoved',
-        },
         ARCHIVE_REASON: {
             DEFAULT: 'default',
             ACCOUNT_CLOSED: 'accountClosed',
@@ -5493,7 +5489,6 @@ const CONST = {
         OTHER_INVISIBLE_CHARACTERS: /[\u3164\u115f\u1160\uffa0\u2800]/g,
         SHORT_MENTION_HTML: /<mention-short>(.*?)<\/mention-short>/g,
         REPORT_ID_FROM_PATH: /(?<!\/search)\/r\/(\d+)/,
-        DISTANCE_MERCHANT: /^[0-9.]+ \w+ @ (-|-\()?[^0-9.\s]{1,3} ?[0-9.]+\)? \/ \w+$/,
         WHITESPACE: /\s+/g,
 
         get EXPENSIFY_POLICY_DOMAIN_NAME() {

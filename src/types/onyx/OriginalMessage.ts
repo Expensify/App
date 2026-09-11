@@ -7,7 +7,7 @@ import type {CardID} from './Card';
 import type {PolicyRuleTaxRate} from './ExpenseRule';
 import type {Attendee} from './IOU';
 import type {OldDotOriginalMessageMap} from './OldDotAction';
-import type {AllConnectionName, Unit} from './Policy';
+import type {AllConnectionName} from './Policy';
 import type {PolicyChangeLogCopyReportActionNames} from './ReportAction';
 import type ReportActionName from './ReportActionName';
 import type {Reservation, TransactionCommentVendor} from './Transaction';
@@ -955,22 +955,14 @@ type OriginalMessageConciergeAutoMatchVendor = {
     reasoning?: string;
 };
 
-/** Model of `concierge auto select distance rate` report action — emitted when the distance rate of an expense is changed automatically because its workspace changed. */
+/**
+ * Model of `concierge auto select distance rate` report action — posted on an expense report when the report's workspace changes and the distance rates of its expenses are
+ * re-selected automatically. The individual rate changes are described by a `MODIFIED_EXPENSE` action on each expense's transaction thread, so this action names no rate itself:
+ * one report can hold many distance expenses, and each can end up on a different rate.
+ */
 type OriginalMessageConciergeAutoSelectDistanceRate = {
-    /** The new rate, in the `CONST.POLICY.CUSTOM_UNIT_RATE_BASE_OFFSET` scale (e.g. 67 renders as $0.67) */
-    rate?: number;
-
-    /** Currency of the new rate */
-    currency?: string;
-
-    /** Distance unit of the new rate */
-    unit?: Unit;
-
-    /** Name of the workspace the new rate belongs to */
+    /** Name of the workspace the report was moved to, whose rates were applied */
     policyName?: string;
-
-    /** Whether the workspace of the expense changed directly, or the report the expense belongs to was moved to another workspace */
-    changeType?: ValueOf<typeof CONST.REPORT.CONCIERGE_AUTO_SELECT_DISTANCE_RATE_CHANGE_TYPE>;
 };
 
 /** Policy rules modified fields. Each member holds the new value the rule wrote, not the current one */

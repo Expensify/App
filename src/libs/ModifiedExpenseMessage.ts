@@ -128,18 +128,37 @@ function getMessageLine(translate: LocalizedTranslate, prefix: string, messageFr
     }, prefix);
 }
 
+/**
+ * Splits the distance half of a distance merchant ("10.00 mi") into its quantity and its unit. The quantity is only comparable within one unit, because the same journey
+ * reads as a different number in miles and in kilometers.
+ */
+function splitDistanceAndUnit(distance: string): [quantity: string, unit: string] {
+    const separatorIndex = distance.lastIndexOf(' ');
+    if (separatorIndex === -1) {
+        return [distance, ''];
+    }
+    return [distance.slice(0, separatorIndex), distance.slice(separatorIndex + 1)];
+}
+
 function getForDistanceRequest(translate: LocalizedTranslate, newMerchant: string, oldMerchant: string, newAmount: string, oldAmount: string): string {
     let changedField: 'distance' | 'rate' = 'distance';
 
-    if (CONST.REGEX.DISTANCE_MERCHANT.test(newMerchant) && CONST.REGEX.DISTANCE_MERCHANT.test(oldMerchant)) {
-        const oldValues = oldMerchant.split('@');
-        const oldDistance = oldValues.at(0)?.trim() ?? '';
-        const oldRate = oldValues.at(1)?.trim() ?? '';
-        const newValues = newMerchant.split('@');
-        const newDistance = newValues.at(0)?.trim() ?? '';
-        const newRate = newValues.at(1)?.trim() ?? '';
+    const oldValues = oldMerchant.split(CONST.DISTANCE_MERCHANT_SEPARATOR).map((value) => value.trim());
+    const newValues = newMerchant.split(CONST.DISTANCE_MERCHANT_SEPARATOR).map((value) => value.trim());
 
-        if (oldDistance === newDistance && oldRate !== newRate) {
+    // Both merchants have to be "<distance> @ <rate>" for either half to be comparable. This is a structural check rather than a format one on purpose: matching the rendered
+    // merchant against a regex also asserts the number formatting, which is localized, so it rejected valid merchants in every locale that writes decimals with a comma.
+    if (oldValues.length === 2 && newValues.length === 2 && oldValues.every(Boolean) && newValues.every(Boolean)) {
+        const [oldDistance, oldUnit] = splitDistanceAndUnit(oldValues.at(0) ?? '');
+        const [newDistance, newUnit] = splitDistanceAndUnit(newValues.at(0) ?? '');
+        const oldRate = oldValues.at(1);
+        const newRate = newValues.at(1);
+
+        // A changed unit means the journey was re-expressed, not re-measured, so the distance itself is unchanged even though the number is. That is what happens when an
+        // expense lands on a workspace whose rates are in the other unit, and it used to be reported as a distance change.
+        const didDistanceChange = oldUnit === newUnit && oldDistance !== newDistance;
+
+        if (!didDistanceChange && oldRate !== newRate) {
             changedField = 'rate';
         }
     } else {

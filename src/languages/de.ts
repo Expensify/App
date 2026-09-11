@@ -1862,9 +1862,7 @@ const translations: TranslationDeepObject<typeof en> = {
             prompt: 'Aktivieren Sie Tags im Workspace, um die Ausgabendetails zu bearbeiten oder den Tag aus dieser Ausgabe zu löschen.',
             confirmText: 'Tag löschen',
         },
-        conciergeAutoSelectedDistanceRate: ({rate, policyName}: {rate: string; policyName: string}) => `Satz auf ${rate} für den neuen Workspace „${policyName}“ aktualisiert`,
-        conciergeAutoSelectedDistanceRateForMovedReport: ({rate, policyName}: {rate: string; policyName: string}) =>
-            `Satz pro Einheit auf ${rate} für den neuen Bericht-Arbeitsbereich aktualisiert – ${policyName}`,
+        conciergeAutoSelectedDistanceRates: ({policyName}: {policyName: string}) => `Entfernungssätze für den neuen Workspace „${policyName}“ aktualisiert`,
     },
     transactionMerge: {
         listPage: {

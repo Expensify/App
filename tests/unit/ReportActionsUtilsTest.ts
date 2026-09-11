@@ -1598,44 +1598,32 @@ describe('ReportActionsUtils', () => {
             };
         }
 
-        it('should describe a direct workspace change', () => {
-            // Given an action whose workspace changed directly
-            const action = buildConciergeAutoSelectDistanceRateAction({
-                rate: 67,
-                currency: 'USD',
-                unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
-                policyName: "Hal's Burgers",
-                changeType: CONST.REPORT.CONCIERGE_AUTO_SELECT_DISTANCE_RATE_CHANGE_TYPE.WORKSPACE_CHANGED,
-            });
+        it('should name the workspace the report moved to', () => {
+            // Given an action for a report whose workspace changed
+            const action = buildConciergeAutoSelectDistanceRateAction({policyName: "Hal's Burgers"});
 
             // When building the message
             const message = ReportActionsUtils.getConciergeAutoSelectDistanceRateMessage(translateLocal, action);
 
-            // Then it should name the new workspace and the formatted rate
-            expect(message).toBe("rate updated to $0.67 / mi for the new workspace - Hal's Burgers");
+            // Then it should name the new workspace, and no individual rate, because each expense on the report can land on a different one
+            expect(message).toBe("distance rates updated for the new workspace - Hal's Burgers");
         });
 
-        it('should describe a report that moved to another workspace', () => {
-            // Given an action triggered by the report moving to another workspace
-            const action = buildConciergeAutoSelectDistanceRateAction({
-                rate: 67,
-                currency: 'USD',
-                unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
-                policyName: "Hal's Burgers",
-                changeType: CONST.REPORT.CONCIERGE_AUTO_SELECT_DISTANCE_RATE_CHANGE_TYPE.REPORT_MOVED,
-            });
+        it('should not escape a workspace name that contains markup', () => {
+            // Given a workspace name that looks like markup
+            const action = buildConciergeAutoSelectDistanceRateAction({policyName: '<strong>Ops</strong>'});
 
             // When building the message
             const message = ReportActionsUtils.getConciergeAutoSelectDistanceRateMessage(translateLocal, action);
 
-            // Then it should say the workspace of the report changed
-            expect(message).toBe("rate updated to $0.67 / mi for the new report’s workspace - Hal's Burgers");
+            // Then the name should be interpolated as-is, because this helper returns plain text
+            expect(message).toBe('distance rates updated for the new workspace - <strong>Ops</strong>');
         });
 
-        it('should fall back to the text of the action when the rate details are missing', () => {
-            // Given an action without the rate details
+        it('should fall back to the text of the action when the workspace name is missing', () => {
+            // Given an action without a workspace name
             const backendText = 'rate updated by the backend';
-            const action = buildConciergeAutoSelectDistanceRateAction({policyName: "Hal's Burgers"}, backendText);
+            const action = buildConciergeAutoSelectDistanceRateAction({}, backendText);
 
             // When building the message
             const message = ReportActionsUtils.getConciergeAutoSelectDistanceRateMessage(translateLocal, action);
@@ -1646,13 +1634,7 @@ describe('ReportActionsUtils', () => {
 
         it('should be used for the message fragments of the action', () => {
             // Given a CONCIERGE_AUTO_SELECT_DISTANCE_RATE action
-            const action = buildConciergeAutoSelectDistanceRateAction({
-                rate: 67,
-                currency: 'USD',
-                unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
-                policyName: "Hal's Burgers",
-                changeType: CONST.REPORT.CONCIERGE_AUTO_SELECT_DISTANCE_RATE_CHANGE_TYPE.WORKSPACE_CHANGED,
-            });
+            const action = buildConciergeAutoSelectDistanceRateAction({policyName: "Hal's Burgers"});
 
             // When getting the message fragments of the action
             const fragments = ReportActionsUtils.getReportActionMessageFragments(translateLocal, action);
@@ -1664,13 +1646,7 @@ describe('ReportActionsUtils', () => {
 
         it('should be visible in the report', () => {
             // Given a CONCIERGE_AUTO_SELECT_DISTANCE_RATE action
-            const action = buildConciergeAutoSelectDistanceRateAction({
-                rate: 67,
-                currency: 'USD',
-                unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
-                policyName: "Hal's Burgers",
-                changeType: CONST.REPORT.CONCIERGE_AUTO_SELECT_DISTANCE_RATE_CHANGE_TYPE.WORKSPACE_CHANGED,
-            });
+            const action = buildConciergeAutoSelectDistanceRateAction({policyName: "Hal's Burgers"});
 
             // Then the action should not be filtered out as an unsupported action type
             expect(ReportActionsUtils.shouldReportActionBeVisible(action, action.reportActionID, true)).toBe(true);

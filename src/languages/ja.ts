@@ -1840,9 +1840,7 @@ const translations: TranslationDeepObject<typeof en> = {
             prompt: 'ワークスペースでタグを有効にすると、この経費の詳細を編集したり、この経費からタグを削除したりできます。',
             confirmText: 'タグを削除',
         },
-        conciergeAutoSelectedDistanceRate: ({rate, policyName}: {rate: string; policyName: string}) => `新しいワークスペース「${policyName}」のレートが ${rate} に更新されました`,
-        conciergeAutoSelectedDistanceRateForMovedReport: ({rate, policyName}: {rate: string; policyName: string}) =>
-            `新しいレポートのワークスペース（${policyName}）の距離単価を ${rate} に更新しました`,
+        conciergeAutoSelectedDistanceRates: ({policyName}: {policyName: string}) => `新しいワークスペース「${policyName}」の距離レートが更新されました`,
     },
     transactionMerge: {
         listPage: {
