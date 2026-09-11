@@ -7,7 +7,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
-import {hasPendingAdminRequestsSelector, isAdminSelector, pendingAdminRequesterAccountIDsSelector} from '@selectors/Domain';
+import {adminshipRequesterPendingActionSelector, isAdminSelector, pendingAdminRequesterAccountIDsSelector} from '@selectors/Domain';
 
 import {getLatestError} from './ErrorUtils';
 
@@ -81,9 +81,19 @@ function getStaleAdminshipRequesterErrorAccountIDs(previousRequesterAccountIDs: 
 
 /**
  * Checks if the given account is a domain admin with pending adminship requests to review.
+ *
+ * A requester that has just been denied keeps its entry until the decline lands, so the row can render offline and on
+ * failure, see `declineDomainAdminshipRequest`. There is nothing left to review next to it, so its `DELETE` pending
+ * action takes it out of the count.
  */
-function hasPendingDomainAdminRequestsToReview(domain: OnyxEntry<Domain>, currentUserAccountID: number | undefined): boolean {
-    return isAdminSelector(currentUserAccountID)(domain) && hasPendingAdminRequestsSelector(domain);
+function hasPendingDomainAdminRequestsToReview(domain: OnyxEntry<Domain>, currentUserAccountID: number | undefined, domainPendingActions?: OnyxEntry<DomainPendingAction>): boolean {
+    if (!isAdminSelector(currentUserAccountID)(domain)) {
+        return false;
+    }
+
+    const requesterPendingActions = adminshipRequesterPendingActionSelector(domainPendingActions);
+
+    return pendingAdminRequesterAccountIDsSelector(domain).some((accountID) => requesterPendingActions[accountID]?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
 }
 
 /**

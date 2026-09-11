@@ -19,7 +19,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
 
 import {clearStaleAdminshipRequesterErrors, openDomainPage} from '@libs/actions/Domain';
-import {getStaleAdminshipRequesterErrorAccountIDs} from '@libs/DomainUtils';
+import {getStaleAdminshipRequesterErrorAccountIDs, hasPendingDomainAdminRequestsToReview} from '@libs/DomainUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 
@@ -55,9 +55,10 @@ function DomainInitialPage({route}: DomainInitialPageProps) {
     useDocumentTitle(domainName ?? '');
     const isAdmin = isAdminSelector(currentUserAccountID)(domain);
     const [domainErrors] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`);
+    const [domainPendingActions] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`);
     const requesterAccountIDs = pendingAdminRequesterAccountIDsSelector(domain);
     const previousRequesterAccountIDs = usePrevious(requesterAccountIDs);
-    const hasPendingAdminRequests = requesterAccountIDs.length > 0;
+    const hasPendingAdminRequests = hasPendingDomainAdminRequestsToReview(domain, currentUserAccountID, domainPendingActions);
 
     useEffect(() => {
         clearStaleAdminshipRequesterErrors(domainAccountID, getStaleAdminshipRequesterErrorAccountIDs(previousRequesterAccountIDs, requesterAccountIDs, domainErrors));

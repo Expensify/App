@@ -243,11 +243,6 @@ function pendingAdminRequesterAccountIDsSelector(domain: OnyxEntry<Domain>): num
     return accountIDs.length > 0 ? accountIDs : getEmptyArray<number>();
 }
 
-/** Reports whether the domain has any pending adminship requests. */
-function hasPendingAdminRequestsSelector(domain: OnyxEntry<Domain>): boolean {
-    return pendingAdminRequesterAccountIDsSelector(domain).length > 0;
-}
-
 const adminshipRequesterPendingActionSelector = (pendingAction: OnyxEntry<DomainPendingActions>) => pendingAction?.adminshipRequester ?? {};
 
 /** Creates a selector that extracts the pending action for a security group's setting */
@@ -294,7 +289,6 @@ export {
     isAdminSelector,
     hasPendingAdminshipRequestSelector,
     pendingAdminRequesterAccountIDsSelector,
-    hasPendingAdminRequestsSelector,
     adminshipRequesterPendingActionSelector,
     selectGroupByID,
     domainSecurityGroupSettingPendingActionSelector,

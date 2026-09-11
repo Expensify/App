@@ -401,6 +401,7 @@ describe('usePolicyIndicatorChecks', () => {
         const requesterAccountID = 777;
         const domainAccountID = 1;
         const domainKey = `${ONYXKEYS.COLLECTION.DOMAIN}domain1` as const;
+        const domainPendingActionsKey = `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}domain1` as const;
 
         beforeEach(async () => {
             await Onyx.clear();
@@ -431,6 +432,35 @@ describe('usePolicyIndicatorChecks', () => {
             await waitForBatchedUpdatesWithAct();
 
             expect(result.current.domainInfoStatus).toBe(CONST.INDICATOR_STATUS.HAS_PENDING_DOMAIN_ADMIN_REQUESTS);
+        });
+
+        it('does not return an indicator when the last pending request has been denied but the decline has not landed yet', async () => {
+            const domainWithAdmin: Domain = {
+                validated: true,
+                accountID: domainAccountID,
+                email: 'domain.com',
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                domain_defaultSecurityGroupID: '',
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                domain_adminRequesters: {[requesterAccountID]: 'read'},
+            };
+            Reflect.set(domainWithAdmin, `${CONST.DOMAIN.EXPENSIFY_ADMIN_ACCESS_PREFIX}${domainAdminAccountID}`, domainAdminAccountID);
+
+            await act(async () => {
+                await Onyx.multiSet({
+                    [ONYXKEYS.SESSION]: {accountID: domainAdminAccountID, email: userID},
+                    [domainKey]: domainWithAdmin,
+                    [domainPendingActionsKey]: {
+                        adminshipRequester: {[requesterAccountID]: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}},
+                    },
+                } satisfies OnyxMultiSetInput);
+                await waitForBatchedUpdatesWithAct();
+            });
+
+            const {result} = renderHook(() => usePolicyIndicatorChecks());
+            await waitForBatchedUpdatesWithAct();
+
+            expect(result.current.domainInfoStatus).toBeUndefined();
         });
 
         it('does not return an indicator when the current user is only a requester, not a domain admin', async () => {

@@ -15,7 +15,6 @@ import {
     domainSecurityGroupSettingPendingActionSelector,
     domainSettingsPrimaryContactSelector,
     groupsSelector,
-    hasPendingAdminRequestsSelector,
     hasPendingAdminshipRequestSelector,
     isAdminSelector,
     isSecurityGroupEntry,
@@ -913,27 +912,6 @@ describe('domainSelectors', () => {
         it('Should return an empty array when domain_adminRequesters is empty', () => {
             const domain = createDomainFixture({boundaryEntries: {domain_adminRequesters: {}}});
             expect(pendingAdminRequesterAccountIDsSelector(domain)).toEqual([]);
-        });
-    });
-
-    describe('hasPendingAdminRequestsSelector', () => {
-        it('Should return false if the domain object is undefined', () => {
-            expect(hasPendingAdminRequestsSelector(undefined)).toBe(false);
-        });
-
-        it('Should return false when there are no pending requesters', () => {
-            const domain = createDomainFixture();
-            expect(hasPendingAdminRequestsSelector(domain)).toBe(false);
-        });
-
-        it('Should return true when at least one requester is pending', () => {
-            const domain = createDomainFixture({boundaryEntries: {domain_adminRequesters: {[userID1]: 'read'}}});
-            expect(hasPendingAdminRequestsSelector(domain)).toBe(true);
-        });
-
-        it('Should return false when the only requester entry is a null tombstone', () => {
-            const domain = createDomainFixture({boundaryEntries: {domain_adminRequesters: {[userID1]: null}}});
-            expect(hasPendingAdminRequestsSelector(domain)).toBe(false);
         });
     });
 

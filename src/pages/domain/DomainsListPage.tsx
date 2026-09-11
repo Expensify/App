@@ -13,14 +13,14 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {clearStaleDomainFromFailedCreation} from '@libs/actions/Domain';
-import {getDomainBrickRoadIndicator, hasDomainErrors} from '@libs/DomainUtils';
+import {getDomainBrickRoadIndicator, hasDomainErrors, hasPendingDomainAdminRequestsToReview} from '@libs/DomainUtils';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import Navigation from '@libs/Navigation/Navigation';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import {hasPendingAdminRequestsSelector, isAdminSelector} from '@src/selectors/Domain';
+import {isAdminSelector} from '@src/selectors/Domain';
 import {accountIDSelector} from '@src/selectors/Session';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
@@ -42,6 +42,7 @@ function DomainsListPage() {
     const [currentUserAccountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
     const [allDomains] = useOnyx(ONYXKEYS.COLLECTION.DOMAIN);
     const [allDomainErrors] = useOnyx(ONYXKEYS.COLLECTION.DOMAIN_ERRORS);
+    const [allDomainPendingActions] = useOnyx(ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS);
     const [createDomainForm] = useOnyx(ONYXKEYS.FORMS.CREATE_DOMAIN_FORM);
 
     const failedDomainAccountID = createDomainForm?.domainAccountID;
@@ -90,7 +91,10 @@ function DomainsListPage() {
                 errors: domainErrors?.errors,
                 pendingAction: domain.pendingAction,
                 disabled: domain.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-                brickRoadIndicator: getDomainBrickRoadIndicator(hasDomainErrors(domainErrors, domain), isDomainAdmin && hasPendingAdminRequestsSelector(domain)),
+                brickRoadIndicator: getDomainBrickRoadIndicator(
+                    hasDomainErrors(domainErrors, domain),
+                    hasPendingDomainAdminRequestsToReview(domain, currentUserAccountID, allDomainPendingActions?.[`${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domain.accountID}`]),
+                ),
                 action: () => navigateToDomain({domainAccountID: domain.accountID, isAdmin: isDomainAdmin}),
             });
         }

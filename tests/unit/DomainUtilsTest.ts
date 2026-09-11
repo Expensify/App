@@ -215,6 +215,46 @@ describe('DomainUtils', () => {
             };
             expect(hasPendingDomainAdminRequestsToReview(domain, currentUserAccountID)).toBe(false);
         });
+
+        it('should return false when the only pending request has already been denied', () => {
+            const domain: Domain = {
+                ...baseDomain,
+                [adminPermissionKey]: currentUserAccountID,
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                domain_adminRequesters: {[requesterAccountID]: 'read'},
+            };
+            const domainPendingActions: DomainPendingAction = {
+                adminshipRequester: {[requesterAccountID]: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}},
+            };
+            expect(hasPendingDomainAdminRequestsToReview(domain, currentUserAccountID, domainPendingActions)).toBe(false);
+        });
+
+        it('should return true when a denied request leaves another one to review', () => {
+            const otherRequesterAccountID = 100;
+            const domain: Domain = {
+                ...baseDomain,
+                [adminPermissionKey]: currentUserAccountID,
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                domain_adminRequesters: {[requesterAccountID]: 'read', [otherRequesterAccountID]: 'read'},
+            };
+            const domainPendingActions: DomainPendingAction = {
+                adminshipRequester: {[requesterAccountID]: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}},
+            };
+            expect(hasPendingDomainAdminRequestsToReview(domain, currentUserAccountID, domainPendingActions)).toBe(true);
+        });
+
+        it('should return true when a denied request failed, since its pending action is cleared', () => {
+            const domain: Domain = {
+                ...baseDomain,
+                [adminPermissionKey]: currentUserAccountID,
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                domain_adminRequesters: {[requesterAccountID]: 'read'},
+            };
+            const domainPendingActions: DomainPendingAction = {
+                adminshipRequester: {[requesterAccountID]: {pendingAction: null}},
+            };
+            expect(hasPendingDomainAdminRequestsToReview(domain, currentUserAccountID, domainPendingActions)).toBe(true);
+        });
     });
 
     describe('hasDomainAdminsSettingsErrors', () => {
