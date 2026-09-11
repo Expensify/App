@@ -133,8 +133,6 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
     const selectableCardKeySet = useMemo(() => new Set(allCards.map((card) => String(card.cardID))), [allCards]);
     const validatedSelectedCardKeys = useMemo(() => selectedCardKeys.filter((key) => selectableCardKeySet.has(key)), [selectedCardKeys, selectableCardKeySet]);
     const selectedCardIDs = useMemo(() => validatedSelectedCardKeys.map((key) => Number(key)), [validatedSelectedCardKeys]);
-    // Inline editing and selection are mutually exclusive (matching Spend): while the user is selecting rows,
-    // the row press toggles selection, so the inline edit affordance is hidden until the selection is cleared.
     const isSelectionModeActive = selectedCardKeys.length > 0 || isMobileSelectionModeEnabled;
 
     const clearTableSelection = useCallback(() => {

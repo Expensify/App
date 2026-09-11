@@ -43,12 +43,12 @@ type WorkspaceTagTableRowData = TableData & {
     isSwitchDisabled?: boolean;
     showEnabledSwitch: boolean;
     showRequiredSwitch: boolean;
-    /** Whether the tag name can be edited inline from the table. Only single-level tags opt in. */
+    /** Only single-level tags opt in. */
     canEditName?: boolean;
     action: () => void;
     onToggleEnabled?: (enabled: boolean) => void;
     onToggleRequired?: (required: boolean) => void;
-    /** Persists an inline rename of the tag name. Provided only when `canEditName` is supported. */
+    /** Provided only when `canEditName` is supported. */
     onRenameName?: (newName: string) => void;
     onClose: () => void;
 };

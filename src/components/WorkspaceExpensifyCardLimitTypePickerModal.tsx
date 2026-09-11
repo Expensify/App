@@ -47,7 +47,6 @@ type LimitTypeListItem = ListItem<CardLimitType> & {
 };
 
 type WorkspaceExpensifyCardLimitTypePickerModalProps = {
-    /** Callback to close the modal */
     onClose: () => void;
 
     /** The policy whose approval workflow gates the Smart Limit option */
@@ -56,10 +55,8 @@ type WorkspaceExpensifyCardLimitTypePickerModalProps = {
     /** The card whose limit type is being edited */
     card: Card;
 
-    /** Currently selected limit type */
     selectedLimitType?: CardLimitType;
 
-    /** Called when the user confirms a limit type selection */
     onSelected?: (limitType: CardLimitType) => void;
 } & Omit<PopoverWithMeasuredContentProps, 'anchorRef' | 'children' | 'onClose'>;
 

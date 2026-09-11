@@ -154,8 +154,6 @@ function PolicyDistanceRatesPage({
 
     useCleanupSelectedOptions(clearTableSelection);
 
-    // Inline editing and selection are mutually exclusive (matching Spend): while the user is selecting rows,
-    // the row press toggles selection, so the inline edit affordance is hidden until the selection is cleared.
     const isSelectionModeActive = selectedDistanceRates.length > 0 || isMobileSelectionModeEnabled;
 
     const canDisableOrDeleteSelectedRates = useMemo(

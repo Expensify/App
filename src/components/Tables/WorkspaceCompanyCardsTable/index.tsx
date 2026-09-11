@@ -182,8 +182,6 @@ function WorkspaceCompanyCardsTable({
     const isGB = countryByIp === CONST.COUNTRY.GB;
     const shouldShowGBDisclaimer = isGB && (isNoFeed || hasNoAssignedCard);
     const shouldUseNarrowTableLayout = shouldUseNarrowLayout || isMediumScreenWidth;
-    // Inline editing and selection are mutually exclusive (matching Spend): while the user is selecting rows,
-    // the row press toggles selection, so the inline edit affordance is hidden until the selection is cleared.
     const isSelectionModeActive = selectedCardKeys.length > 0 || isSelectionModeEnabled;
 
     const columns: Array<TableColumn<CompanyCardsTableColumnKey>> = [

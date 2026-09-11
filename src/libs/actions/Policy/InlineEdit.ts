@@ -27,15 +27,6 @@ import type {CustomUnit, Rate} from '@src/types/onyx/Policy';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
-/**
- * Shared persistence helpers for inline editing of workspace policy items (categories, tags, distance
- * rates, etc.) from their respective Workspace Editor tables.
- *
- * Each helper delegates to the canonical item action (e.g. `renamePolicyCategory`) which owns the
- * optimistic Onyx write, the API call, and failure rollback. Name validation is shared with the RHP
- * edit forms and lives alongside the item's utils (e.g. `getCategoryNameError` in `CategoryUtils`).
- * Add new items as additional sections below rather than creating a file per item.
- */
 import {renamePolicyCategory} from './Category';
 import {updatePolicyDistanceRateName, updatePolicyDistanceRateValue} from './DistanceRate';
 import {updateWorkspaceMembersRole} from './Member';
@@ -43,9 +34,7 @@ import {editPerDiemRateAmount, editPerDiemRateDestination, editPerDiemRateSubrat
 import {renamePolicyTag} from './Tag';
 
 /**
- * Renames a category from an inline table edit. Sanitizes the input and delegates to the canonical
- * rename action. Silently no-ops when the name is unchanged or fails validation (matching the Spend
- * inline-edit behavior, where an invalid edit reverts to the original value without an error).
+ * Renames a category from an inline table edit.
  */
 function renameCategoryInline(policyData: PolicyData, currentName: string, newName: string): void {
     const sanitized = sanitizeCategoryName(newName);
@@ -58,10 +47,7 @@ function renameCategoryInline(policyData: PolicyData, currentName: string, newNa
 }
 
 /**
- * Renames a single-level tag from an inline table edit. `oldName` is the raw (escaped) tag name used as
- * the Onyx key, while the cell edits the decoded display name. Sanitizes the input and delegates to the
- * canonical rename action. Silently no-ops when the name is unchanged or fails validation (matching the
- * Spend inline-edit behavior, where an invalid edit reverts to the original value without an error).
+ * Renames a single-level tag from an inline table edit.
  */
 function renameTagInline(policyData: PolicyData, oldName: string, newName: string): void {
     const sanitized = sanitizeTagName(newName);
@@ -76,9 +62,7 @@ function renameTagInline(policyData: PolicyData, oldName: string, newName: strin
 }
 
 /**
- * Renames a company card from an inline table edit. Sanitizes the input and delegates to the canonical
- * rename action. Silently no-ops when the name is unchanged or fails validation (matching the Spend
- * inline-edit behavior, where an invalid edit reverts to the original value without an error).
+ * Renames a company card from an inline table edit.
  */
 function renameCompanyCardInline(domainOrWorkspaceAccountID: number, cardID: string, newName: string, bankName: CompanyCardFeedWithNumber, currentName: string): void {
     const sanitized = sanitizeCompanyCardName(newName);
@@ -91,10 +75,7 @@ function renameCompanyCardInline(domainOrWorkspaceAccountID: number, cardID: str
 }
 
 /**
- * Renames an Expensify card from an inline table edit. Delegates to the canonical rename action
- * without extra sanitization, matching the RHP edit form. Silently no-ops when the name is
- * unchanged or fails validation (matching the Spend inline-edit behavior, where an invalid edit
- * reverts to the original value without an error).
+ * Renames an Expensify card from an inline table edit.
  */
 function renameExpensifyCardInline(workspaceAccountID: number, cardID: number, newName: string, currentName: string): void {
     if (newName === currentName || getExpensifyCardNameError(newName)) {
@@ -105,10 +86,7 @@ function renameExpensifyCardInline(workspaceAccountID: number, cardID: number, n
 }
 
 /**
- * Renames a distance rate from an inline table edit. Sanitizes the input and delegates to the
- * canonical rename action. Silently no-ops when the name is unchanged or fails validation
- * (matching the Spend inline-edit behavior, where an invalid edit reverts to the original
- * value without an error).
+ * Renames a distance rate from an inline table edit.
  */
 function renameDistanceRateInline(policyID: string, customUnit: CustomUnit, rate: Rate, newName: string): void {
     const sanitized = sanitizeDistanceRateName(newName);
@@ -123,9 +101,7 @@ function renameDistanceRateInline(policyID: string, customUnit: CustomUnit, rate
 }
 
 /**
- * Updates a distance rate amount from an inline table edit. Delegates to the canonical rate
- * action. Silently no-ops when the amount is unchanged or fails validation (matching the Spend
- * inline-edit behavior, where an invalid edit reverts to the original value without an error).
+ * Updates a distance rate amount from an inline table edit. Delegates to the canonical rate action.
  */
 function updateDistanceRateValueInline(policyID: string, customUnit: CustomUnit, rate: Rate, newRate: string, toLocaleDigit: (arg: string) => string): void {
     if (getDistanceRateValueError(newRate, toLocaleDigit)) {
@@ -158,8 +134,8 @@ function isPolicyRole(role: string): role is ValueOf<typeof CONST.POLICY.ROLE> {
 
 /**
  * Changes a member's role from an inline table edit. Delegates to the canonical role action, which
- * owns the optimistic Onyx write, the API call, and failure rollback. Silently no-ops when the role
- * is unchanged or not a known policy role (matching the Spend inline-edit behavior).
+ * owns the optimistic Onyx write, the API call, and failure rollback. No-ops when the role is
+ * unchanged or not a known policy role.
  */
 function updateMemberRoleInline(policy: OnyxEntry<Policy>, memberLogin: string, accountID: number, currentRole: string | undefined, newRole: string): void {
     if (!memberLogin || newRole === currentRole || !isPolicyRole(newRole)) {
@@ -184,8 +160,7 @@ function isCardLimitType(limitType: string): limitType is CardLimitType {
 /**
  * Changes an Expensify card's limit type from an inline table edit. Delegates to the canonical
  * limit type action, which owns the optimistic Onyx write, the API call, and failure rollback.
- * Dates are left unchanged. Silently no-ops when the type is unchanged, unknown, or not valid
- * for the card (matching the Spend inline-edit behavior).
+ * Dates are left unchanged. No-ops when the type is unchanged, unknown, or not valid for the card.
  */
 function updateExpensifyCardLimitTypeInline(workspaceAccountID: number, card: Card, newLimitType: string): void {
     const currentLimitType = card.nameValuePairs?.limitType;
@@ -205,9 +180,7 @@ function updateExpensifyCardLimitTypeInline(workspaceAccountID: number, card: Ca
 }
 
 /**
- * Updates an Expensify card limit from an inline table edit. `newLimit` is the dollar
- * amount as a string. Silently no-ops when the amount is unchanged or fails validation,
- * matching the Spend inline-edit behavior.
+ * Updates an Expensify card limit from an inline table edit. `newLimit` is the dollar amount as a string.
  */
 function updateExpensifyCardLimitInline(workspaceAccountID: number, card: Card, newLimit: string): void {
     if (getExpensifyCardLimitError(newLimit)) {
@@ -224,9 +197,7 @@ function updateExpensifyCardLimitInline(workspaceAccountID: number, card: Card, 
 }
 
 /**
- * Renames a per diem destination from an inline table edit. Destination is stored on the rate, so
- * every subrate row for that destination updates together, matching the RHP. Silently no-ops when
- * the name is unchanged or fails validation (matching the Spend inline-edit behavior).
+ * Renames a per diem destination from an inline table edit.
  */
 function renamePerDiemDestinationInline(policyID: string, rateID: string, customUnit: CustomUnit | undefined, currentName: string, newName: string): void {
     const sanitized = sanitizePerDiemName(newName);
@@ -239,10 +210,7 @@ function renamePerDiemDestinationInline(policyID: string, rateID: string, custom
 }
 
 /**
- * Renames a per diem subrate from an inline table edit. Sanitizes the input and delegates to the
- * canonical rename action. Silently no-ops when the name is unchanged or fails validation
- * (matching the Spend inline-edit behavior, where an invalid edit reverts to the original
- * value without an error).
+ * Renames a per diem subrate from an inline table edit.
  */
 function renamePerDiemSubrateInline(policyID: string, rateID: string, subRateID: string, customUnit: CustomUnit | undefined, currentName: string, newName: string): void {
     const sanitized = sanitizePerDiemName(newName);
@@ -255,9 +223,7 @@ function renamePerDiemSubrateInline(policyID: string, rateID: string, subRateID:
 }
 
 /**
- * Updates a per diem amount from an inline table edit. `newAmount` is the frontend dollar
- * string. Silently no-ops when the amount is unchanged or fails validation (matching the Spend
- * inline-edit behavior).
+ * Updates a per diem amount from an inline table edit. `newAmount` is the frontend dollar string.
  */
 function updatePerDiemAmountInline(policyID: string, rateID: string, subRateID: string, customUnit: CustomUnit | undefined, currentRate: number, newAmount: string): void {
     if (getPerDiemAmountError(newAmount)) {

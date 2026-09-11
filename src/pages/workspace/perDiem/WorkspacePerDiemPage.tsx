@@ -178,8 +178,6 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
 
     const hasVisibleSubRates = allSubRates.some((subRate) => subRate.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isOffline);
 
-    // Inline editing and selection are mutually exclusive (matching Spend): while the user is selecting rows,
-    // the row press toggles selection, so the inline edit affordance is hidden until the selection is cleared.
     const isSelectionModeActive = selectedSubRateKeys.length > 0 || isMobileSelectionModeEnabled;
 
     const perDiemRows: PerDiemTableRowData[] = useMemo(

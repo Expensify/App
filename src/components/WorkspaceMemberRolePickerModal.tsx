@@ -34,19 +34,16 @@ const DEFAULT_ANCHOR_ALIGNMENT = {
 };
 
 type WorkspaceMemberRolePickerModalProps = {
-    /** Callback to close the modal */
     onClose: () => void;
 
     /** The policy whose assignable roles should be shown */
     policy: OnyxEntry<Policy>;
 
-    /** Currently selected role */
     selectedRole?: string;
 
-    /** When provided, restricts the selectable roles to this set (e.g. an Authorized Payer may only be an Admin or Payments Admin) */
+    /** When provided, restricts the selectable roles to this set. */
     allowedRoles?: Array<ValueOf<typeof CONST.POLICY.ROLE>>;
 
-    /** Called when the user confirms a role selection */
     onSelected?: (role: ValueOf<typeof CONST.POLICY.ROLE>) => void;
 } & Omit<PopoverWithMeasuredContentProps, 'anchorRef' | 'children' | 'onClose'>;
 

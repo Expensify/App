@@ -47,11 +47,8 @@ type WorkspaceExpensifyCardTableRowData = TableData & {
     frozenDate?: string;
     errors?: OnyxCommon.Errors;
     pendingAction?: OnyxCommon.PendingAction;
-    /** Whether the card name can be edited inline from the table */
     canEditName?: boolean;
-    /** Whether the card limit type can be edited inline from the table */
     canEditLimitType?: boolean;
-    /** Whether the card limit can be edited inline from the table */
     canEditLimit?: boolean;
     action: () => void;
     onRenameName?: (newName: string) => void;

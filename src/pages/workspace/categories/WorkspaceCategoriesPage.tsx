@@ -265,8 +265,6 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     const shouldShowGLCodeColumn = Object.values(policyCategories ?? {}).some((category) => !!category['GL Code']) && isControlPolicyWithWideLayout;
     const shouldShowApproverColumn = isControlPolicyWithWideLayout && arePolicyRulesEnabled(policy, policyCategories) && Object.keys(categoryApproverEmails).length > 0;
 
-    // Inline editing and selection are mutually exclusive (matching Spend): while the user is selecting rows,
-    // the row press toggles selection, so the inline edit affordance is hidden until the selection is cleared.
     const isSelectionModeActive = selectedCategoryKeys.length > 0 || isMobileSelectionModeEnabled;
 
     const categoryRows = useMemo<WorkspaceCategoryTableRowData[]>(() => {

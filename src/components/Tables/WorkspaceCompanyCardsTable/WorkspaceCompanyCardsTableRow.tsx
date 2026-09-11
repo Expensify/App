@@ -36,10 +36,9 @@ type WorkspaceCompanyCardTableRowData = TableData &
         /** Whether the card name can be edited inline from the table. Only assigned cards opt in. */
         canEditName?: boolean;
 
-        /** Persists an inline rename of the card name. Provided only when `canEditName` is supported. */
+        /** Provided only when `canEditName` is supported. */
         onRenameName?: (newName: string) => void;
 
-        /** On dismiss error callback */
         onDismissError?: () => void;
     };
 

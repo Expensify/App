@@ -22,7 +22,6 @@ type InlineTextEditCellProps = {
     /** Current value shown in display mode and used as the initial edit buffer */
     value: string;
 
-    /** Accessibility label for the text input while editing */
     accessibilityLabel: string;
 
     /** Style applied to the display text and to the TextInput while editing, so font size and color stay in sync */
@@ -36,13 +35,13 @@ type InlineTextEditCellProps = {
 const trimValue = (input: string) => input.trim();
 
 /**
- * Generic inline text editing cell for tables. Composes `EditableCell` with an inline `TextInput`
- * and the shared inline edit state (buffered value, save-on-blur, escape-to-cancel). Domain tables
- * supply the value, a `canEdit` flag, and an `onSave` handler that performs the actual persistence.
+ * Generic inline text editing cell for tables. Composes EditableCell with an inline TextInput
+ * and the shared inline edit state. Domain tables supply the value, a canEdit flag, and an onSave
+ * handler that performs the actual persistence.
  *
- * Invalid values are handled by `onSave` (which no-ops on rejection); the cell then reverts to the
- * original value, matching the Spend inline-edit behavior. On narrow layouts `EditableCell` renders
- * the display text only, so tables keep their existing tap-to-navigate behavior there.
+ * Invalid values are handled by onSave, which no-ops on rejection. The cell then reverts to the
+ * original value. On narrow layouts EditableCell renders the display text only, so tables keep
+ * their existing tap-to-navigate behavior there.
  */
 function InlineTextEditCell({value, accessibilityLabel, displayTextStyle, canEdit, onSave, sanitize = trimValue}: InlineTextEditCellProps) {
     const styles = useThemeStyles();
@@ -79,10 +78,8 @@ function InlineTextEditCell({value, accessibilityLabel, displayTextStyle, canEdi
                     onSubmitEditing={save}
                     autoFocus
                     submitBehavior="blurAndSubmit"
-                    // Match the display cell's type (e.g. supporting label size on Expensify card names).
+                    // Match the display cell's type.
                     inputStyle={displayTextStyle}
-                    // EditableCell owns the cell's hover and focus styles (border, background).
-                    // Suppress TextInput's own border and background to avoid visual conflicts.
                     textInputContainerStyles={styles.editableCellInputStyle}
                     touchableInputWrapperStyle={styles.editableCellInputStyle}
                     hideFocusedState

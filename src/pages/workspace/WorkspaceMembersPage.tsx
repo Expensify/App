@@ -402,8 +402,6 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     // Submit workspaces have a flat role model where every member, including the owner, is an Editor.
     const isSubmitWorkspace = isSubmitPolicy(policy);
 
-    // Inline editing and selection are mutually exclusive (matching Spend): while the user is selecting rows,
-    // the row press toggles selection, so the inline edit affordance is hidden until the selection is cleared.
     const isSelectionModeActive = selectedEmployees.length > 0 || isMobileSelectionModeEnabled;
     const workspaceReimburserEmail = getReimburserEmail(policy);
     // Role assignment is a Collect/Control capability. Submit locks every member to Editor.

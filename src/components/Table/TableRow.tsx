@@ -89,7 +89,7 @@ export default function TableRow({
     const semanticRowID = useTableRowSemanticID();
 
     // Inline cell editing shares this app-global state. While any cell is being edited, a row press is the click that
-    // dismisses the editor rather than a navigation intent, so navigation/selection must be suppressed for that tap.
+    // dismisses the editor rather than a navigation intent, so navigation must be suppressed for that tap.
     const {isEditingCell} = useEditingCellState();
     const wasEditingOnMouseDownRef = useRef(false);
     const semanticTableHasHeader = !tableListMetadata.hasPageHeader || tableListMetadata.shouldRenderStickyHeader;
@@ -212,14 +212,14 @@ export default function TableRow({
     };
 
     const handleRowPress = (event?: GestureResponderEvent | KeyboardEvent | undefined) => {
-        // Consume the tap that dismissed an editing cell — a second tap will activate the row.
+        // Consume the tap that dismissed an editing cell. A second tap will activate the row.
         // We check the ref rather than isEditingCell because blur fires before onPress and resets the state.
         if (wasEditingOnMouseDownRef.current) {
             wasEditingOnMouseDownRef.current = false;
             return;
         }
 
-        // react-native-web fires onPress on Space for role="button" elements; suppress it while a cell is being edited.
+        // react-native-web fires onPress on Space for role="button" elements. Suppress it while a cell is being edited.
         if (isEditingCell) {
             return;
         }

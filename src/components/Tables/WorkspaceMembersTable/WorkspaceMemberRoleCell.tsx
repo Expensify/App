@@ -1,6 +1,6 @@
 /**
- * Inline-editable role cell for the workspace members table. Opens a role picker popover, matching
- * the Spend category cell, and saves through the caller's persistence handler.
+ * Inline-editable role cell for the workspace members table. Opens a role picker popover and saves
+ * through the caller's persistence handler.
  */
 import {EditableCell, usePopoverEditState} from '@components/EditableCell';
 import Text from '@components/Text';

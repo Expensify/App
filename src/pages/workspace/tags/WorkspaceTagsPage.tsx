@@ -349,8 +349,6 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
         }
     }, [canWriteTags, hasDependentTags, isMultiLevelTags, policyTagLists, updateWorkspaceRequiresTag]);
 
-    // Inline editing and selection are mutually exclusive (matching Spend): while the user is selecting rows,
-    // the row press toggles selection, so the inline edit affordance is hidden until the selection is cleared.
     const isSelectionModeActive = selectedTagKeys.length > 0 || isMobileSelectionModeEnabled;
 
     const tagRows = useMemo<WorkspaceTagTableRowData[]>(() => {
