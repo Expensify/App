@@ -9,6 +9,7 @@ import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, PolicyCategories, PolicyTagLists, Report, Transaction, TransactionViolation} from '@src/types/onyx';
 import type {TransactionCollectionDataSet} from '@src/types/onyx/Transaction';
+import isArray from '@src/types/utils/isArray';
 
 import Onyx from 'react-native-onyx';
 
@@ -1064,7 +1065,7 @@ describe('getViolationsOnyxData', () => {
         });
 
         describe('multi-day reservations are measured against the nightly rate', () => {
-            const getViolations = (): TransactionViolation[] => {
+            const getViolations = () => {
                 const result = ViolationsUtils.getViolationsOnyxData({
                     ownerLogin: undefined,
                     updatedTransaction: transaction,
@@ -1075,10 +1076,10 @@ describe('getViolationsOnyxData', () => {
                     hasDependentTags: false,
                     isInvoiceTransaction: false,
                 });
-                return Array.isArray(result.value) ? result.value : [];
+                return isArray(result.value) ? result.value : [];
             };
 
-            const findOverLimit = (violations: TransactionViolation[]) => violations.find((violation) => violation.name === CONST.VIOLATIONS.OVER_LIMIT);
+            const findOverLimit = (violations: ReturnType<typeof getViolations>) => violations.find((violation) => violation.name === CONST.VIOLATIONS.OVER_LIMIT);
 
             it('should add overLimit violation when the total amount exceeds the workspace limit, regardless of nightly average', () => {
                 // 5 nights: nightly average equals the limit, but the total is 5x over it
@@ -1173,7 +1174,7 @@ describe('getViolationsOnyxData', () => {
         });
 
         describe('multi-day reservations are measured against the category nightly rate', () => {
-            const getViolations = (): TransactionViolation[] => {
+            const getViolations = () => {
                 const result = ViolationsUtils.getViolationsOnyxData({
                     ownerLogin: undefined,
                     updatedTransaction: transaction,
@@ -1184,10 +1185,10 @@ describe('getViolationsOnyxData', () => {
                     hasDependentTags: false,
                     isInvoiceTransaction: false,
                 });
-                return Array.isArray(result.value) ? result.value : [];
+                return isArray(result.value) ? result.value : [];
             };
 
-            const findCategoryOverLimit = (violations: TransactionViolation[]) => violations.find((violation) => violation.name === CONST.VIOLATIONS.OVER_CATEGORY_LIMIT);
+            const findCategoryOverLimit = (violations: ReturnType<typeof getViolations>) => violations.find((violation) => violation.name === CONST.VIOLATIONS.OVER_CATEGORY_LIMIT);
 
             beforeEach(() => {
                 transaction.category = 'Hotel';
