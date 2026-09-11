@@ -6620,6 +6620,35 @@ const CONST = {
         DANGER: 'danger',
     },
 
+    BULK_ACTION_BAR: {
+        /** How many of a selection's actions get a button of their own in the bar before the rest move behind "More". */
+        MAX_INLINE_ACTIONS: 3,
+
+        /** The same at the in-between widths, which do not have the room for a third button. */
+        MAX_INLINE_ACTIONS_MEDIUM_SCREEN: 2,
+
+        /**
+         * Room left between the bar and the edges of the container it floats in. The bar sheds an action before it gets
+         * this close to an edge, rather than only once it has already touched one.
+         */
+        EDGE_MARGIN: 24,
+
+        /** How far the bar floats above the bottom of the container it is rendered in. */
+        BOTTOM_OFFSET: 20,
+
+        /** Breathing room left between the bar and the last row of the list it floats over. */
+        LIST_GAP: 12,
+
+        /** How far below its resting place the bar starts before it springs up into view. */
+        SLIDE_IN_DISTANCE: 24,
+
+        /**
+         * Spring the bar settles into place with. Overdamped, matching the canvas gestures, so it arrives quickly and
+         * without a bounce. The default spring wobbles noticeably over this short a travel.
+         */
+        SLIDE_IN_SPRING: {mass: 1, stiffness: 1000, damping: 500},
+    },
+
     BUTTON_REMOVE_BORDER_RADIUS: {
         LEFT: 'left',
         RIGHT: 'right',
@@ -8898,6 +8927,10 @@ const CONST = {
         BILLING_BANNER: {
             RIGHT_ICON: 'BillingBanner-RightIcon',
         },
+        BULK_ACTION_BAR: {
+            CLEAR_SELECTION: 'BulkActionBar-ClearSelection',
+            MORE: 'BulkActionBar-More',
+        },
         ACCOUNT_MANAGER_BOOK_CALL: {
             BUTTON: 'AccountManagerBookCallButton-Button',
         },
@@ -9028,7 +9061,6 @@ const CONST = {
             FILTER_LIMIT: 'Search-FilterLimit',
             ADVANCED_FILTERS_BUTTON: 'Search-AdvancedFiltersButton',
             COLUMNS_BUTTON: 'Search-ColumnsButton',
-            BULK_ACTIONS_DROPDOWN: 'Search-BulkActionsDropdown',
             SELECT_ALL_CHECKBOX: 'Search-SelectAllCheckbox',
             SELECTION_MODE_MENU_ITEM: 'Search-SelectionModeMenuItem',
             FILTER_RESET_BUTTON: 'Search-FilterResetButton',

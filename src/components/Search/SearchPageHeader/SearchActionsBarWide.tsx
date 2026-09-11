@@ -1,11 +1,7 @@
-import SearchBulkActionsButton from '@components/Search/SearchBulkActionsButton';
-import {useSearchSelectionContext} from '@components/Search/SearchContext';
-import {useSelectionCounts} from '@components/Search/SearchSelectionProvider';
 import type {SearchQueryJSON} from '@components/Search/types';
 
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import CONST from '@src/CONST';
 import type {SearchResults} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
@@ -28,34 +24,25 @@ type SearchActionsBarWideProps = {
 
 function SearchActionsBarWide({queryJSON, searchResults, onSort}: SearchActionsBarWideProps) {
     const styles = useThemeStyles();
-    const {hasSelectedTransactions} = useSearchSelectionContext();
-    const {selected} = useSelectionCounts();
-    const shouldShowBulkActions = queryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE ? hasSelectedTransactions : selected > 0;
 
+    // Selecting rows no longer swaps this bar out for the bulk actions: those moved to the floating BulkActionBar over
+    // the list, so the search input and filters stay available while a selection is being built up.
     return (
         <View style={[styles.searchActionsBarContainer]}>
-            {shouldShowBulkActions ? (
-                <View style={styles.searchBulkActionsButton}>
-                    <SearchBulkActionsButton queryJSON={queryJSON} />
-                </View>
-            ) : (
-                <>
-                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.pRelative, styles.w100, styles.flexWrap, styles.flexShrink1, styles.gap2, styles.zIndex10]}>
-                        <SearchPageInput queryJSON={queryJSON} />
-                        <SearchFiltersBarWide queryJSON={queryJSON} />
-                    </View>
-                    <View style={styles.filtersBar}>
-                        <SearchAdvancedFiltersButton queryJSON={queryJSON} />
-                        <SearchDisplayDropdownButton
-                            queryJSON={queryJSON}
-                            searchResults={searchResults}
-                            onSort={onSort}
-                        />
-                        <SearchSaveButton />
-                        <SearchActionsBarCreateButton />
-                    </View>
-                </>
-            )}
+            <View style={[styles.flexRow, styles.alignItemsCenter, styles.pRelative, styles.w100, styles.flexWrap, styles.flexShrink1, styles.gap2, styles.zIndex10]}>
+                <SearchPageInput queryJSON={queryJSON} />
+                <SearchFiltersBarWide queryJSON={queryJSON} />
+            </View>
+            <View style={styles.filtersBar}>
+                <SearchAdvancedFiltersButton queryJSON={queryJSON} />
+                <SearchDisplayDropdownButton
+                    queryJSON={queryJSON}
+                    searchResults={searchResults}
+                    onSort={onSort}
+                />
+                <SearchSaveButton />
+                <SearchActionsBarCreateButton />
+            </View>
         </View>
     );
 }

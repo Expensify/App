@@ -9,11 +9,17 @@ import CONST from '@src/CONST';
 
 import React from 'react';
 
+type MockBulkActionBarProps = {
+    selectedCount: number;
+    isSelectedCountLoading: boolean;
+};
+
 type MockButtonProps = {
     customText: string;
     isLoading: boolean;
 };
 
+const mockBulkActionBar = jest.fn<null, [MockBulkActionBarProps]>(() => null);
 const mockButtonWithDropdownMenu = jest.fn<null, [MockButtonProps]>(() => null);
 let mockExcludedTransactions: SelectedTransactions = {};
 let mockSearchCount: number | undefined;
@@ -21,7 +27,12 @@ let mockSearchReportCount: number | undefined;
 let mockSearchIsLoading = false;
 let mockIsOffline = false;
 let mockAreAllMatchingItemsSelected = true;
+let mockShouldUseNarrowLayout = false;
 
+jest.mock('@components/BulkActionBar', () => ({
+    __esModule: true,
+    default: (props: MockBulkActionBarProps) => mockBulkActionBar(props),
+}));
 jest.mock('@components/ButtonWithDropdownMenu', () => ({
     __esModule: true,
     default: (props: MockButtonProps) => mockButtonWithDropdownMenu(props),
@@ -50,7 +61,7 @@ jest.mock('@hooks/useLocalize', () => ({
 jest.mock('@hooks/useNetwork', () => ({__esModule: true, default: () => ({isOffline: mockIsOffline})}));
 jest.mock('@hooks/useResponsiveLayout', () => ({
     __esModule: true,
-    default: () => ({shouldUseNarrowLayout: false, isSmallScreenWidth: false}),
+    default: () => ({shouldUseNarrowLayout: mockShouldUseNarrowLayout, isSmallScreenWidth: mockShouldUseNarrowLayout}),
 }));
 jest.mock('@hooks/useCurrentUserPersonalDetails', () => ({__esModule: true, default: () => ({accountID: 1})}));
 jest.mock('@hooks/useOnyx', () => ({__esModule: true, default: () => [undefined]}));
@@ -78,6 +89,9 @@ jest.mock('@components/Search/SearchContext', () => ({
         excludedTransactions: mockExcludedTransactions,
         selectedReports: [],
         areAllMatchingItemsSelected: mockAreAllMatchingItemsSelected,
+    }),
+    useSearchSelectionActions: () => ({
+        clearSelectedTransactions: jest.fn(),
     }),
     useSearchResultsContext: () => ({
         currentSearchResults: {search: {count: mockSearchCount, reportCount: mockSearchReportCount, isLoading: mockSearchIsLoading}},
@@ -118,7 +132,17 @@ function makeTransaction(): SelectedTransactions[string] {
     };
 }
 
-function getButtonProps(): {customText: string; isLoading: boolean} {
+/** The wide layout's floating bar, which labels the selection with a count of its own. */
+function getBarProps(): {selectedCount: number; isSelectedCountLoading: boolean} {
+    const props = mockBulkActionBar.mock.calls.at(-1)?.at(0);
+    if (!props) {
+        throw new Error('BulkActionBar was not rendered');
+    }
+    return {selectedCount: props.selectedCount, isSelectedCountLoading: props.isSelectedCountLoading};
+}
+
+/** The narrow layout's dropdown, which is the only place the selection label itself is rendered. */
+function getButtonProps(): MockButtonProps {
     const props = mockButtonWithDropdownMenu.mock.calls.at(-1)?.at(0);
     if (!props) {
         throw new Error('ButtonWithDropdownMenu was not rendered');
@@ -135,9 +159,11 @@ describe('SearchBulkActionsButton all-matching label', () => {
         mockSearchIsLoading = false;
         mockIsOffline = false;
         mockAreAllMatchingItemsSelected = true;
+        mockShouldUseNarrowLayout = false;
     });
 
     it('shows the all-matching label and keeps loading while the server count is missing', () => {
+        mockShouldUseNarrowLayout = true;
         mockSearchIsLoading = true;
 
         render(<SearchBulkActionsButton queryJSON={queryJSON} />);
@@ -146,11 +172,28 @@ describe('SearchBulkActionsButton all-matching label', () => {
     });
 
     it('keeps the all-matching label when the server count arrives and there are no exclusions', () => {
+        mockShouldUseNarrowLayout = true;
         mockSearchCount = 172;
 
         render(<SearchBulkActionsButton queryJSON={queryJSON} />);
 
         expect(getButtonProps()).toEqual({customText: 'search.exportAll.allMatchingItemsSelected', isLoading: false});
+    });
+
+    it('counts the whole matching set on the bar, which has no room for the all-matching label', () => {
+        mockSearchCount = 172;
+
+        render(<SearchBulkActionsButton queryJSON={queryJSON} />);
+
+        expect(getBarProps()).toEqual({selectedCount: 172, isSelectedCountLoading: false});
+    });
+
+    it('keeps the bar loading while the server count is missing, falling back to the loaded count', () => {
+        mockSearchIsLoading = true;
+
+        render(<SearchBulkActionsButton queryJSON={queryJSON} />);
+
+        expect(getBarProps()).toEqual({selectedCount: 1, isSelectedCountLoading: true});
     });
 
     it('shows the exact count after an item is excluded', () => {
@@ -159,10 +202,11 @@ describe('SearchBulkActionsButton all-matching label', () => {
 
         render(<SearchBulkActionsButton queryJSON={queryJSON} />);
 
-        expect(getButtonProps()).toEqual({customText: 'workspace.common.selected:171', isLoading: false});
+        expect(getBarProps()).toEqual({selectedCount: 171, isSelectedCountLoading: false});
     });
 
     it('keeps the numeric label for page-only selection', () => {
+        mockShouldUseNarrowLayout = true;
         mockAreAllMatchingItemsSelected = false;
 
         render(<SearchBulkActionsButton queryJSON={queryJSON} />);
@@ -176,7 +220,7 @@ describe('SearchBulkActionsButton all-matching label', () => {
 
         render(<SearchBulkActionsButton queryJSON={queryJSON} />);
 
-        expect(getButtonProps()).toEqual({customText: 'workspace.common.selected:1', isLoading: true});
+        expect(getBarProps()).toEqual({selectedCount: 1, isSelectedCountLoading: true});
     });
 
     it('shows the loaded selected count when an expense is excluded offline before the server count is available', () => {
@@ -185,7 +229,7 @@ describe('SearchBulkActionsButton all-matching label', () => {
 
         render(<SearchBulkActionsButton queryJSON={queryJSON} />);
 
-        expect(getButtonProps()).toEqual({customText: 'workspace.common.selected:1', isLoading: false});
+        expect(getBarProps()).toEqual({selectedCount: 1, isSelectedCountLoading: false});
     });
 
     it('keeps loading for expense reports while the server report count is missing, falling back to the loaded report count', () => {
@@ -193,7 +237,7 @@ describe('SearchBulkActionsButton all-matching label', () => {
 
         render(<SearchBulkActionsButton queryJSON={reportQueryJSON} />);
 
-        expect(getButtonProps()).toEqual({customText: 'workspace.common.selected:1', isLoading: true});
+        expect(getBarProps()).toEqual({selectedCount: 1, isSelectedCountLoading: true});
     });
 
     it('labels expense reports with the server report count, not the expense count', () => {
@@ -204,7 +248,7 @@ describe('SearchBulkActionsButton all-matching label', () => {
 
         render(<SearchBulkActionsButton queryJSON={reportQueryJSON} />);
 
-        expect(getButtonProps()).toEqual({customText: 'workspace.common.selected:50', isLoading: false});
+        expect(getBarProps()).toEqual({selectedCount: 50, isSelectedCountLoading: false});
     });
 
     it('falls back to the loaded report count for expense reports offline before the report count arrives', () => {
@@ -212,6 +256,6 @@ describe('SearchBulkActionsButton all-matching label', () => {
 
         render(<SearchBulkActionsButton queryJSON={reportQueryJSON} />);
 
-        expect(getButtonProps()).toEqual({customText: 'workspace.common.selected:1', isLoading: false});
+        expect(getBarProps()).toEqual({selectedCount: 1, isSelectedCountLoading: false});
     });
 });
