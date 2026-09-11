@@ -350,6 +350,28 @@ describe('BookTravelButton', () => {
             expect(Navigation.navigate).toHaveBeenCalledWith(ENABLE_TRAVEL_ROUTE);
             expect(screen.queryByText(/add a work email as your primary login/)).toBeNull();
         });
+
+        it('falls back to the session email when primaryLogin is stored as an empty string', async () => {
+            // Given a validated admin whose account.primaryLogin is present but empty, a state the app writes in practice
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, provisionedPolicy);
+                await Onyx.merge(ONYXKEYS.ACCOUNT, {validated: true, primaryLogin: ''});
+                await Onyx.merge(ONYXKEYS.SESSION, {email: USER_LOGIN});
+                await Onyx.merge(ONYXKEYS.NVP_TRAVEL_SETTINGS, {hasAcceptedTerms: false});
+                await Onyx.merge(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, {legalFirstName: 'Test', legalLastName: 'User'});
+                await waitForBatchedUpdatesWithAct();
+            });
+            renderBookTravelButton();
+            await waitForBatchedUpdatesWithAct();
+
+            // When the admin presses the book travel button
+            fireEvent.press(screen.getByText('Book a trip'));
+            await waitForBatchedUpdatesWithAct();
+
+            // Then travel enablement proceeds rather than surfacing the "add a work email" error
+            expect(Navigation.navigate).toHaveBeenCalledWith(ENABLE_TRAVEL_ROUTE);
+            expect(screen.queryByText(/add a work email as your primary login/)).toBeNull();
+        });
     });
 
     describe('when the user has a personal-email login', () => {
