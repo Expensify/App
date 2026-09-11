@@ -53,6 +53,8 @@ const translations: TranslationDeepObject<typeof en> = {
         unshare: 'Αναίρεση κοινής χρήσης',
         yes: 'Ναι',
         no: 'Όχι',
+        approve: 'Έγκριση',
+        deny: 'Άρνηση',
         dontChange: 'Να μην αλλάξει',
         ok: 'OK',
         notNow: 'Όχι τώρα',
@@ -2676,6 +2678,10 @@ const translations: TranslationDeepObject<typeof en> = {
             connectionLink
                 ? `Η σύνδεση της κάρτας ${cardName} έχει διακοπεί. <a href="${connectionLink}">Συνδεθείτε στην τράπεζά σας</a> για να διορθώσετε την κάρτα.`
                 : `Η σύνδεση της κάρτας ${cardName} έχει διακοπεί. Συνδεθείτε στην τράπεζά σας για να διορθώσετε την κάρτα.`,
+        conciergeBrokenConnection30Days: (cardName: string, connectionLink?: string) =>
+            connectionLink
+                ? `Η σύνδεση της ${cardName} έχει διακοπεί για 30 ημέρες. <a href="${connectionLink}">Συνδεθείτε στην τράπεζά σας</a> για να τη διορθώσετε ή <a href="${connectionLink}">αφαιρέστε την κάρτα</a> αν δεν τη χρησιμοποιείτε πλέον. Δεν θα χάσετε καμία υποβληθείσα δαπάνη αν την αφαιρέσετε.`
+                : `Η σύνδεση της ${cardName} σας έχει διακοπεί για 30 ημέρες. Συνδεθείτε στην τράπεζά σας για να τη διορθώσετε ή αφαιρέστε την κάρτα αν δεν τη χρησιμοποιείτε πλέον. Δεν θα χάσετε καμία υποβληθείσα δαπάνη αν την αφαιρέσετε.`,
         addAdditionalCards: 'Προσθέστε επιπλέον κάρτες',
         upgradeDescription:
             'Χρειάζεστε να προσθέσετε περισσότερες κάρτες; Δημιουργήστε έναν χώρο εργασίας για να προσθέσετε επιπλέον προσωπικές κάρτες ή να αναθέσετε εταιρικές κάρτες σε όλη την ομάδα.',
@@ -8546,7 +8552,8 @@ ${reportName}`,
                 flagAmountsOverSubtitle: 'Αυτό παρακάμπτει το μέγιστο ποσό για όλες τις δαπάνες.',
                 expenseLimitTypes: {
                     expense: 'Ατομική δαπάνη',
-                    expenseSubtitle: 'Σημαδέψτε τα ποσά εξόδων ανά κατηγορία. Αυτός ο κανόνας παρακάμπτει τον γενικό κανόνα χώρου εργασίας για το μέγιστο ποσό εξόδου.',
+                    expenseSubtitle:
+                        'Επισήμανση ποσών εξόδων ανά κατηγορία. Αυτός ο κανόνας παρακάμπτει τον γενικό κανόνα χώρου εργασίας για το μέγιστο ποσό εξόδου. Οι κρατήσεις πολλών ημερών αξιολογούνται με βάση τον μέσο όρο ανά διανυκτέρευση.',
                     daily: 'Σύνολο κατηγορίας',
                     dailySubtitle: 'Σήμανση συνολικής ημερήσιας δαπάνης ανά κατηγορία για κάθε αναφορά εξόδων.',
                 },
@@ -9981,6 +9988,16 @@ ${reportName}`,
                 integrationSyncFailedRecurrence: ({count}: {count: number}) => `(Επαναλήφθηκε ${count} φορές.)`,
                 companyCardConnectionBroken: ({feedName, workspaceCompanyCardRoute}: {feedName: string; workspaceCompanyCardRoute: string}) =>
                     `Η σύνδεση ${feedName} δεν λειτουργεί. Για να επαναφέρετε τις εισαγωγές καρτών, <a href='${workspaceCompanyCardRoute}'>συνδεθείτε στην τράπεζά σας</a>.`,
+                companyCardConnectionBroken30Days: ({
+                    feedName,
+                    workspaceCompanyCardRoute,
+                    workspaceCompanyCardSettingsRoute,
+                }: {
+                    feedName: string;
+                    workspaceCompanyCardRoute: string;
+                    workspaceCompanyCardSettingsRoute: string;
+                }) =>
+                    `Η σύνδεση ${feedName} έχει διακοπεί εδώ και 30 ημέρες. <a href='${workspaceCompanyCardRoute}'>Συνδεθείτε στην τράπεζά σας</a> για να τη διορθώσετε ή <a href='${workspaceCompanyCardSettingsRoute}'>καταργήστε τη σύνδεση</a> αν δεν χρησιμοποιείται πλέον. Δεν θα χάσετε καμία υποβληθείσα δαπάνη αν την καταργήσετε.`,
                 plaidBalanceFailure: ({maskedAccountNumber, walletRoute}: {maskedAccountNumber: string; walletRoute: string}) =>
                     `η σύνδεση Plaid με τον επαγγελματικό σας τραπεζικό λογαριασμό έχει διακοπεί. Παρακαλούμε <a href='${walletRoute}'>συνδέστε ξανά τον τραπεζικό σας λογαριασμό ${maskedAccountNumber}</a> ώστε να μπορείτε να συνεχίσετε να χρησιμοποιείτε τις Κάρτες Expensify.`,
                 addEmployee: (email: string, role: string, didJoinPolicy?: boolean) => {
@@ -10582,6 +10599,7 @@ ${reportName}`,
         companyCardRequired: 'Απαιτούνται αγορές με εταιρική κάρτα',
         noRoute: 'Παρακαλούμε επιλέξτε μια έγκυρη διεύθυνση',
         cannotMergeDuplicates: 'Μπορείτε να συγχωνεύετε έξοδα μόνο σε πρόχειρες ή εκκρεμείς αναφορές. Ανακαλέστε την και δοκιμάστε ξανά.',
+        overCategoryLimitPerNight: (formattedLimit: string) => `Νυχτερινή τιμή πάνω από το όριο κατηγορίας ${formattedLimit}/άτομο`,
         shortName: {
             allTagLevelsRequired: 'Απαιτούνται όλες οι ετικέτες',
             autoReportedRejectedExpense: 'Η δαπάνη απορρίφθηκε',
@@ -11309,6 +11327,9 @@ ${reportName}`,
             consolidatedDomainBillingError: 'Η ενοποιημένη χρέωση τομέα δεν ήταν δυνατό να αλλάξει. Δοκιμάστε ξανά αργότερα.',
             addAdmin: 'Προσθήκη διαχειριστή',
             addAdminError: 'Δεν είναι δυνατή η προσθήκη αυτού του μέλους ως διαχειριστή. Παρακαλούμε δοκιμάστε ξανά.',
+            requests: 'Αιτήματα',
+            approveRequestError: 'Δεν είναι δυνατή η έγκριση αυτού του αιτήματος. Παρακαλούμε δοκιμάστε ξανά.',
+            declineRequestError: 'Δεν είναι δυνατή η άρνηση αυτού του αιτήματος. Παρακαλούμε δοκιμάστε ξανά.',
             revokeAdminAccess: 'Ανακαλέστε πρόσβαση διαχειριστή',
             cantRevokeAdminAccess: 'Δεν είναι δυνατή η ανάκληση της πρόσβασης διαχειριστή από το τεχνικό σημείο επαφής',
             error: {

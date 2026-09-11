@@ -42,6 +42,8 @@ const translations: TranslationDeepObject<typeof en> = {
         unshare: 'Dejar de compartir',
         yes: 'Sí',
         no: 'No',
+        approve: 'Aprobar',
+        deny: 'Rechazar',
         dontChange: 'No cambiar',
         ok: 'OK',
         notNow: 'Ahora no',
@@ -2541,6 +2543,10 @@ const translations: TranslationDeepObject<typeof en> = {
             connectionLink
                 ? `La conexión de tu tarjeta ${cardName} se ha interrumpido. <a href="${connectionLink}">Inicia sesión en tu banco</a> para arreglarla.`
                 : `La conexión de tu tarjeta ${cardName} se ha interrumpido. Inicia sesión en tu banco para arreglarla.`,
+        conciergeBrokenConnection30Days: (cardName: string, connectionLink?: string) =>
+            connectionLink
+                ? `La conexión de tu ${cardName} se ha interrumpido desde hace 30 días. <a href="${connectionLink}">Inicia sesión en tu banco</a> para solucionarlo o <a href="${connectionLink}">elimina la tarjeta</a> si ya no la usas. No perderás ningún gasto enviado si la eliminas.`
+                : `La conexión de tu ${cardName} se ha interrumpido durante 30 días. Inicia sesión en tu banco para solucionarlo o elimina la tarjeta si ya no la utilizas. No perderás ningún gasto enviado si la eliminas.`,
         addAdditionalCards: 'Añadir más tarjetas',
         upgradeDescription: '¿Necesitas añadir más tarjetas? Crea un espacio de trabajo para añadir tarjetas personales o asignar tarjetas de empresa a todo el equipo.',
         onlyAvailableOnPlan: ({formattedPrice}: {formattedPrice: string}) =>
@@ -8126,7 +8132,8 @@ ${reportName}`,
                 flagAmountsOverSubtitle: 'Esto anula el importe máximo para todos los gastos.',
                 expenseLimitTypes: {
                     expense: 'Gasto individual',
-                    expenseSubtitle: 'Señala importes de gastos por categoría. Esta regla anula la regla general del espacio de trabajo para el importe máximo de gastos.',
+                    expenseSubtitle:
+                        'Marca importes de gastos por categoría. Esta regla sustituye la regla general del espacio de trabajo para el importe máximo de gasto. Las reservas de varios días se evalúan usando la media por noche.',
                     daily: 'Total por categoría',
                     dailySubtitle: 'Marcar el gasto total por día por categoría en cada informe de gastos.',
                 },
@@ -9610,6 +9617,16 @@ ${reportName}`,
                 integrationSyncFailedRecurrence: ({count}: {count: number}) => `(Repetido ${count} veces.)`,
                 companyCardConnectionBroken: ({feedName, workspaceCompanyCardRoute}: {feedName: string; workspaceCompanyCardRoute: string}) =>
                     `La conexión ${feedName} está rota. Para restaurar las importaciones de tarjetas, <a href='${workspaceCompanyCardRoute}'>inicia sesión en tu banco</a>.`,
+                companyCardConnectionBroken30Days: ({
+                    feedName,
+                    workspaceCompanyCardRoute,
+                    workspaceCompanyCardSettingsRoute,
+                }: {
+                    feedName: string;
+                    workspaceCompanyCardRoute: string;
+                    workspaceCompanyCardSettingsRoute: string;
+                }) =>
+                    `La conexión ${feedName} se ha interrumpido durante 30 días. <a href='${workspaceCompanyCardRoute}'>Inicia sesión en tu banco</a> para solucionarlo o <a href='${workspaceCompanyCardSettingsRoute}'>elimina la conexión</a> si ya no se utiliza. No perderás ningún gasto enviado si la eliminas.`,
                 plaidBalanceFailure: ({maskedAccountNumber, walletRoute}: {maskedAccountNumber: string; walletRoute: string}) =>
                     `la conexión Plaid con tu cuenta bancaria de empresa está rota. Por favor, <a href='${walletRoute}'>reconecta tu cuenta bancaria ${maskedAccountNumber}</a> para poder seguir usando tus Tarjetas Expensify.`,
                 addEmployee: (email: string, role: string, didJoinPolicy?: boolean) => {
@@ -10580,6 +10597,7 @@ ${reportName}`,
         customUnitRateOutOfDateRangeStartOnly: ({startDate}: {startDate: string}) => `La tasa solo es válida desde ${startDate}`,
         customUnitRateOutOfDateRangeEndOnly: ({endDate}: {endDate: string}) => `La tasa solo es válida hasta ${endDate}`,
         cannotMergeDuplicates: 'Solo puedes combinar gastos en informes en borrador o pendientes. Retíralo e inténtalo de nuevo.',
+        overCategoryLimitPerNight: (formattedLimit: string) => `Tarifa nocturna superior al límite de categoría de ${formattedLimit}/persona`,
         shortName: {
             allTagLevelsRequired: 'Todas las etiquetas obligatorias',
             autoReportedRejectedExpense: 'Gasto rechazado',
@@ -11326,6 +11344,9 @@ ${reportName}`,
             consolidatedDomainBillingError: 'No se pudo cambiar la facturación consolidada del dominio. Por favor, inténtalo de nuevo más tarde.',
             addAdmin: 'Añadir administrador',
             addAdminError: 'No se pudo añadir a este miembro como administrador. Por favor, inténtalo de nuevo.',
+            requests: 'Solicitudes',
+            approveRequestError: 'No se pudo aprobar esta solicitud. Por favor, inténtalo de nuevo.',
+            declineRequestError: 'No se pudo rechazar esta solicitud. Por favor, inténtalo de nuevo.',
             revokeAdminAccess: 'Revocar acceso de administrador',
             cantRevokeAdminAccess: 'No se puede revocar el acceso de administrador del contacto técnico',
             error: {

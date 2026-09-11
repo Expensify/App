@@ -58,6 +58,8 @@ const translations: TranslationDeepObject<typeof en> = {
         unshare: 'Cofnij udostępnianie',
         yes: 'Tak',
         no: 'Nie',
+        approve: 'Zatwierdź',
+        deny: 'Odrzuć',
         dontChange: 'Nie zmieniaj',
         ok: 'OK',
         notNow: 'Nie teraz',
@@ -2650,6 +2652,10 @@ const translations: TranslationDeepObject<typeof en> = {
             connectionLink
                 ? `Połączenie Twojej karty ${cardName} jest przerwane. <a href="${connectionLink}">Zaloguj się do swojego banku</a>, aby naprawić kartę.`
                 : `Połączenie Twojej karty ${cardName} jest przerwane. Zaloguj się do swojego banku, aby naprawić kartę.`,
+        conciergeBrokenConnection30Days: (cardName: string, connectionLink?: string) =>
+            connectionLink
+                ? `Twoje połączenie z kartą ${cardName} jest zerwane od 30 dni. <a href="${connectionLink}">Zaloguj się do swojego banku</a>, żeby to naprawić albo <a href="${connectionLink}">usuń kartę</a>, jeśli już jej nie używasz. Nie stracisz żadnych wysłanych wydatków, jeśli ją usuniesz.`
+                : `Twoje połączenie z kartą ${cardName} jest zerwane od 30 dni. Zaloguj się do swojego banku, żeby to naprawić, albo usuń kartę, jeśli już jej nie używasz. Nie stracisz żadnych wysłanych wydatków, jeśli ją usuniesz.`,
         addAdditionalCards: 'Dodaj kolejne karty',
         upgradeDescription: 'Potrzebujesz dodać więcej kart? Utwórz obszar roboczy, aby dodać kolejne karty osobiste lub przypisać karty firmowe całemu zespołowi.',
         onlyAvailableOnPlan: ({formattedPrice}: {formattedPrice: string}) =>
@@ -8086,7 +8092,8 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
                 flagAmountsOverSubtitle: 'To zastępuje maksymalną kwotę dla wszystkich wydatków.',
                 expenseLimitTypes: {
                     expense: 'Pojedynczy wydatek',
-                    expenseSubtitle: 'Oznaczaj kwoty wydatków według kategorii. Ta reguła zastępuje ogólną regułę maksymalnej kwoty wydatku dla przestrzeni roboczej.',
+                    expenseSubtitle:
+                        'Oznaczaj kwoty wydatków według kategorii. Ta reguła zastępuje ogólną regułę obszaru roboczego dotyczącą maksymalnej kwoty wydatku. Rezerwacje wielodniowe są oceniane na podstawie średniej za noc.',
                     daily: 'Suma kategorii',
                     dailySubtitle: 'Oznaczaj łączną dzienną kwotę wydatków według kategorii dla każdego raportu wydatków.',
                 },
@@ -9722,6 +9729,16 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
                 integrationSyncFailedRecurrence: ({count}: {count: number}) => `(Powtórzono ${count} razy.)`,
                 companyCardConnectionBroken: ({feedName, workspaceCompanyCardRoute}: {feedName: string; workspaceCompanyCardRoute: string}) =>
                     `Połączenie ${feedName} jest przerwane. Aby przywrócić importy kart, <a href='${workspaceCompanyCardRoute}'>zaloguj się do swojego banku</a>.`,
+                companyCardConnectionBroken30Days: ({
+                    feedName,
+                    workspaceCompanyCardRoute,
+                    workspaceCompanyCardSettingsRoute,
+                }: {
+                    feedName: string;
+                    workspaceCompanyCardRoute: string;
+                    workspaceCompanyCardSettingsRoute: string;
+                }) =>
+                    `Połączenie ${feedName} jest zerwane od 30 dni. <a href='${workspaceCompanyCardRoute}'>Zaloguj się do swojego banku</a>, żeby je naprawić albo <a href='${workspaceCompanyCardSettingsRoute}'>usuń połączenie</a>, jeśli nie jest już używane. Nie stracisz żadnych przesłanych wydatków, jeśli je usuniesz.`,
                 plaidBalanceFailure: ({maskedAccountNumber, walletRoute}: {maskedAccountNumber: string; walletRoute: string}) =>
                     `połączenie Plaid z twoim firmowym kontem bankowym jest przerwane. Proszę, <a href='${walletRoute}'>połącz ponownie swoje konto bankowe ${maskedAccountNumber}</a>, aby móc dalej używać Kart Expensify.`,
                 addEmployee: (email: string, role: string, didJoinPolicy?: boolean) => {
@@ -10308,6 +10325,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
         customUnitRateOutOfDateRangeStartOnly: ({startDate}: {startDate: string}) => `Stawka jest ważna tylko od ${startDate}`,
         customUnitRateOutOfDateRangeEndOnly: ({endDate}: {endDate: string}) => `Stawka jest ważna tylko do ${endDate}`,
         cannotMergeDuplicates: 'Możesz łączyć wydatki tylko w szkicach lub otwartych raportach. Wycofaj go i spróbuj ponownie.',
+        overCategoryLimitPerNight: (formattedLimit: string) => `Cena za noc powyżej limitu kategorii ${formattedLimit}/osoba`,
         shortName: {
             allTagLevelsRequired: 'Wymagane są wszystkie tagi',
             autoReportedRejectedExpense: 'Wydatek odrzucony',
@@ -11059,6 +11077,9 @@ Oto *paragon testowy*, żeby pokazać Ci, jak to działa:`,
             consolidatedDomainBillingError: 'Nie można było zmienić zbiorczego rozliczania domeny. Spróbuj ponownie później.',
             addAdmin: 'Dodaj administratora',
             addAdminError: 'Nie można dodać tego członka jako administratora. Spróbuj ponownie.',
+            requests: 'Prośby',
+            approveRequestError: 'Nie można zatwierdzić tej prośby. Spróbuj ponownie.',
+            declineRequestError: 'Nie można odrzucić tej prośby. Spróbuj ponownie.',
             revokeAdminAccess: 'Wycofaj dostęp administratora',
             cantRevokeAdminAccess: 'Nie można odebrać dostępu administratora osobie kontaktowej ds. technicznych',
             error: {
