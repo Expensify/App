@@ -5403,6 +5403,7 @@ type HasOptionAvailability = {
     shouldShowTag: boolean;
     shouldShowCategory: boolean;
     shouldShowSubmittedViolation: boolean;
+    shouldShowApprovedViolation: boolean;
 };
 
 type GetHasOptionsConfig = {
@@ -5419,12 +5420,13 @@ type GetHasOptionsConfig = {
 
 /**
  * Which expense `has:` options can apply for the current user, based on accessible workspaces.
- * Pass an empty collection when the user has no workspaces so Tag/Category/Submitted violation stay hidden.
+ * Pass an empty collection when the user has no workspaces so Tag/Category/Submitted/Approved violation stay hidden.
  */
 function getHasOptionAvailability(policies: OnyxCollection<OnyxTypes.Policy> | undefined, policyCategories?: OnyxCollection<OnyxTypes.PolicyCategories>): HasOptionAvailability {
     let shouldShowTag = false;
     let shouldShowCategory = false;
     let shouldShowSubmittedViolation = false;
+    let shouldShowApprovedViolation = false;
 
     for (const policy of Object.values(policies ?? {})) {
         if (!policy || policy.isJoinRequestPending || !isGroupPolicy(policy)) {
@@ -5434,18 +5436,20 @@ function getHasOptionAvailability(policies: OnyxCollection<OnyxTypes.Policy> | u
         shouldShowTag ||= policy.areTagsEnabled === true;
         shouldShowCategory ||= policy.areCategoriesEnabled === true;
         // Migrated Control workspaces leave areRulesEnabled undefined. Fall back to Classic category rules in that case.
-        shouldShowSubmittedViolation ||= arePolicyRulesEnabled(policy, policy.id ? policyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policy.id}`] : undefined);
+        const shouldShowRulesBasedViolation = arePolicyRulesEnabled(policy, policy.id ? policyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policy.id}`] : undefined);
+        shouldShowSubmittedViolation ||= shouldShowRulesBasedViolation;
+        shouldShowApprovedViolation ||= shouldShowRulesBasedViolation;
 
-        if (shouldShowTag && shouldShowCategory && shouldShowSubmittedViolation) {
+        if (shouldShowTag && shouldShowCategory && shouldShowSubmittedViolation && shouldShowApprovedViolation) {
             break;
         }
     }
 
-    return {shouldShowTag, shouldShowCategory, shouldShowSubmittedViolation};
+    return {shouldShowTag, shouldShowCategory, shouldShowSubmittedViolation, shouldShowApprovedViolation};
 }
 
 /**
- * Options for the `has:` filter / autocomplete. Tag, Category, and Submitted violation are omitted when
+ * Options for the `has:` filter / autocomplete. Tag, Category, Submitted violation, and Approved violation are omitted when
  * no accessible workspace has the matching feature enabled. Pass `policies` from the picker and autocomplete.
  * Pass `shouldShowAllOptions` for display/validation so already-selected values still resolve to labels.
  * Pass `selectedValues` in the picker so query/saved selections stay selectable until the user clears them.
@@ -5456,18 +5460,19 @@ function getHasOptions(translate: LocalizedTranslate, type: SearchDataTypes, con
     switch (type) {
         case CONST.SEARCH.DATA_TYPES.EXPENSE: {
             const availability = shouldShowAllOptions
-                ? {shouldShowTag: true, shouldShowCategory: true, shouldShowSubmittedViolation: true}
+                ? {shouldShowTag: true, shouldShowCategory: true, shouldShowSubmittedViolation: true, shouldShowApprovedViolation: true}
                 : getHasOptionAvailability(policies, policyCategories);
             const shouldShowTag = availability.shouldShowTag || !!selectedValues?.includes(CONST.SEARCH.HAS_VALUES.TAG);
             const shouldShowCategory = availability.shouldShowCategory || !!selectedValues?.includes(CONST.SEARCH.HAS_VALUES.CATEGORY);
             const shouldShowSubmittedViolation = availability.shouldShowSubmittedViolation || !!selectedValues?.includes(CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION);
+            const shouldShowApprovedViolation = availability.shouldShowApprovedViolation || !!selectedValues?.includes(CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION);
             return [
                 {text: translate('common.receipt'), value: CONST.SEARCH.HAS_VALUES.RECEIPT},
                 {text: translate('common.attachment'), value: CONST.SEARCH.HAS_VALUES.ATTACHMENT},
                 ...(shouldShowTag ? [{text: translate('common.tag'), value: CONST.SEARCH.HAS_VALUES.TAG}] : []),
                 ...(shouldShowCategory ? [{text: translate('common.category'), value: CONST.SEARCH.HAS_VALUES.CATEGORY}] : []),
                 ...(shouldShowSubmittedViolation ? [{text: translate('search.filters.has.submittedViolation'), value: CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION}] : []),
-                {text: translate('search.filters.has.approvedViolation'), value: CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION},
+                ...(shouldShowApprovedViolation ? [{text: translate('search.filters.has.approvedViolation'), value: CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION}] : []),
             ];
         }
         case CONST.SEARCH.DATA_TYPES.CHAT:
