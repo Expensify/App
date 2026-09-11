@@ -885,11 +885,11 @@ function sendInvoice({
 
     playSound(SOUNDS.DONE);
 
-    API.writeWhenReady(WRITE_COMMANDS.SEND_INVOICE, parameters, onyxData, resolveWriteBarrier({writeBarrier, optimisticWatchKey: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`}));
+    API.writeWhenReady(WRITE_COMMANDS.SEND_INVOICE, parameters, onyxData, resolveWriteBarrier({writeBarrier, optimisticWatchKey: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`}), {
+        onWriteStarted: () => notifyNewAction(invoiceRoom.reportID, undefined, true),
+    });
 
     highlightTransactionOnSearchRouteIfNeeded(isFromGlobalCreate, transactionID, CONST.SEARCH.DATA_TYPES.INVOICE);
-
-    notifyNewAction(invoiceRoom.reportID, undefined, true);
 }
 
 export {getReceiverType, getSendInvoiceInformation, sendInvoice};
