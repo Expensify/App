@@ -1,7 +1,7 @@
 ---
 title: Fix a Broken Company Card Feed Connection
 description: Learn how to fix a broken company card connection in Expensify so transactions resume importing correctly.
-keywords: [fix company card connection, troubleshoot card feed, Expensify card errors, reconnect bank feed]
+keywords: [fix company card connection, troubleshoot card feed, Expensify card errors, reconnect bank feed, card connection broken for 30 days, remove card feed]
 internalScope: Audience is Workspace Admins. Covers fixing broken company card connections and resolving connection errors. Does not cover CSV imports, missing transactions, or feed monitoring.
 ---
 
@@ -20,6 +20,19 @@ Workspace Admins see indicators in Expensify when a company card feed is broken:
 - An expense with an imported card receipt shows a pending message that the bank connection is broken or needs re-authentication
 
 These reminders appear while the connection has recently broken. If a company card feed has gone 90 days or more without a successful sync, the **Time Sensitive** notification on **Home** and the red dot on the workspace row stop showing. The “Card feed connection is broken” banner remains on the **Company cards** page for direct (bank-connected) feeds, so a Workspace Admin can still reconnect the feed at any time.
+
+---
+
+## What the 30-day broken company card connection reminder means
+
+If a company card feed is still broken 30 days after it first stopped working, Concierge posts a follow-up message in the #admins room of the workspace that owns the feed. The message names the feed and gives you two choices:
+
+- Log into your bank to restore the connection.
+- Remove the connection if the feed is no longer in use.
+
+The message links to the **Company cards** page so you can reconnect the feed, and to the **Company cards** settings page so you can select **Remove card feed** instead. Removing a feed unassigns all of its cards and deletes unsubmitted transactions, but submitted expenses are not affected.
+
+You only receive this reminder once per broken feed, and only if the connection is still broken on day 30.
 
 ---
 
@@ -100,6 +113,14 @@ After fixing the feed, you can update an assigned company card manually from the
 ## What should I do if the connection still fails after retrying?
 
 Double-check your bank credentials by logging into your bank, and complete any required steps in your bank portal. If the issue continues, contact Concierge with the cardholder email and last four digits of the card.
+
+## Why did Concierge message the #admins room again after 30 days?
+
+Concierge posts a second message in the #admins room when a company card feed has been broken for 30 days. It's a reminder that transactions still aren't importing, and it lets you either log into your bank to fix the feed or remove the connection if you no longer use it.
+
+## Will I lose expenses if I remove a broken company card feed?
+
+No. Expenses that have already been submitted stay in Expensify. Removing a card feed unassigns every card on that feed and deletes unsubmitted transactions from those cards.
 
 ## Why did the Home notification and workspace red dot disappear while the feed is still broken?
 
