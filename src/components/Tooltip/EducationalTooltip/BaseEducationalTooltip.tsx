@@ -152,6 +152,9 @@ function BaseEducationalTooltip({
             return;
         }
         // When tooltip is used inside an animated view (e.g. popover), we need to wait for the animation to finish before measuring content.
+        if (hasDisplayedTooltipRef.current) {
+            return;
+        }
         const timerID = setTimeout(() => {
             show.current?.();
             // Mark the first display as done only once it has actually happened, so paths that re-measure
