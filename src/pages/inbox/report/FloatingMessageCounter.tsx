@@ -1,4 +1,4 @@
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import Icon from '@components/Icon';
 import Text from '@components/Text';
 import getActionBadgeText from '@components/utils/getActionBadgeText';

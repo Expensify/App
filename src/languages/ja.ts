@@ -75,6 +75,7 @@ const translations: TranslationDeepObject<typeof en> = {
         search: '検索',
         reports: 'レポート',
         spend: '支出',
+        insights: 'インサイト',
         find: '検索',
         searchWithThreeDots: '検索…',
         next: '次へ',
@@ -2594,6 +2595,10 @@ const translations: TranslationDeepObject<typeof en> = {
             connectionLink
                 ? `${cardName}カードとの接続が切れています。カードを修正するには、<a href="${connectionLink}">銀行にログイン</a>してください。`
                 : `${cardName}カードとの接続が切れています。カードを修正するには、銀行にログインしてください。`,
+        conciergeBrokenConnection30Days: (cardName: string, connectionLink?: string) =>
+            connectionLink
+                ? `${cardName} との接続が30日間切れています。修正するには<a href="${connectionLink}">銀行にログイン</a>するか、もう使用していない場合は<a href="${connectionLink}">カードを削除</a>してください。カードを削除しても、送信済みの経費は失われません。`
+                : `${cardName} との接続が30日間切断されています。復旧するには銀行にログインするか、もう使用していない場合はカードを削除してください。削除しても、送信済みの経費は失われません。`,
         addAdditionalCards: '他のカードを追加',
         upgradeDescription: 'さらにカードを追加しますか？ワークスペースを作成して、個人カードを追加するか、会社カードをチーム全体に割り当てることができます。',
         onlyAvailableOnPlan: ({formattedPrice}: {formattedPrice: string}) =>
@@ -4578,6 +4583,7 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             travel: '出張',
             members: 'メンバー',
             accounting: '会計',
+            mcp: 'MCP',
             receiptPartners: '領収書パートナー',
             rules: 'ルール',
             displayedAs: '表示形式',
@@ -4714,6 +4720,25 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
         createdForClient: {
             title: 'クライアントのワークスペースを作成しました！',
             description: '素晴らしいニュースです 🎉。セットアップにサポートが必要な場合はお問い合わせください。',
+        },
+        mcp: {
+            connectors: 'コネクタ',
+            connectorsSubtitle: 'AIアシスタントをExpensifyアカウントに接続します。',
+            connect: '接続',
+            helpPrompt: '接続にお困りですか？',
+            helpLink: 'ガイドをご覧ください。',
+            claude: {
+                title: 'Claude',
+                subtitle: 'Anthropic 提供',
+            },
+            cursor: {
+                title: 'Cursor',
+                subtitle: 'Anysphere 提供',
+            },
+            chatgpt: {
+                title: 'ChatGPT',
+                subtitle: 'OpenAI 提供',
+            },
         },
         receiptPartners: {
             uber: {
@@ -6439,6 +6464,10 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                 title: '会計',
                 subtitle: '勘定科目表などを同期します。',
             },
+            mcp: {
+                title: 'MCP',
+                subtitle: 'AIアシスタントをExpensifyアカウントに接続します。',
+            },
             receiptPartners: {
                 title: '領収書パートナー',
                 subtitle: '領収書を自動で取り込みます。',
@@ -7937,6 +7966,11 @@ ${reportName}`,
                 turnOnTaxesFirstPrompt: 'カテゴリルールでは、デフォルトの税率を設定できます。利用するには、ワークスペース設定で税金を有効にしてください。',
                 categoryRulesApplyGoingForwardTitle: 'カテゴリルールは今後に適用されます',
                 categoryRulesApplyGoingForwardPrompt: 'このカテゴリーの新しい経費には、デフォルトの税率が適用されます。既存の経費は変更されません。',
+                confirmErrorCategoryTaxMoveIsWorkspaceDefault: '選択した税率がワークスペースのデフォルトになっているため、このルールは無効になりました。別の税率を選択してください。',
+                addTaxRateFirstTitle: '先に税率を追加してください',
+                addTaxRateFirstPrompt: 'カテゴリルールではデフォルトの税率が設定されます。ワークスペースのデフォルト以外の税率を追加してから、カテゴリルールを使用してください。',
+                createRuleFromExpenseAction: 'ルールを作成',
+                createRuleFromExpensePrompt: '条件に一致するすべての経費に変更を適用します。',
             },
             categoryRules: {
                 title: 'カテゴリルール',
@@ -9359,7 +9393,7 @@ ${reportName}`,
                 [CONST.SEARCH.WITHDRAWAL_TYPE.TRAVEL_BILLING]: '出張費の一括請求',
             },
             is: 'は',
-            has: {submittedViolation: '違反を送信しました'},
+            has: {submittedViolation: '違反を送信しました', approvedViolation: '承認済みの違反'},
             action: {
                 [CONST.SEARCH.ACTION_FILTERS.SUBMIT]: '送信',
                 [CONST.SEARCH.ACTION_FILTERS.APPROVE]: '承認',
@@ -9569,6 +9603,16 @@ ${reportName}`,
                 integrationSyncFailedRecurrence: ({count}: {count: number}) => `（${count} 回繰り返し）`,
                 companyCardConnectionBroken: ({feedName, workspaceCompanyCardRoute}: {feedName: string; workspaceCompanyCardRoute: string}) =>
                     `${feedName} との接続が切断されています。カードの取引明細の取込を再開するには、<a href='${workspaceCompanyCardRoute}'>銀行にログイン</a>してください。`,
+                companyCardConnectionBroken30Days: ({
+                    feedName,
+                    workspaceCompanyCardRoute,
+                    workspaceCompanyCardSettingsRoute,
+                }: {
+                    feedName: string;
+                    workspaceCompanyCardRoute: string;
+                    workspaceCompanyCardSettingsRoute: string;
+                }) =>
+                    `${feedName} との接続が 30 日間切断されています。修正するには<a href='${workspaceCompanyCardRoute}'>銀行にログイン</a>するか、もう使用していない場合は<a href='${workspaceCompanyCardSettingsRoute}'>接続を削除</a>してください。削除しても、送信済みの経費が失われることはありません。`,
                 plaidBalanceFailure: ({maskedAccountNumber, walletRoute}: {maskedAccountNumber: string; walletRoute: string}) =>
                     `Plaid によるビジネス銀行口座との接続が切断されています。Expensify カードを引き続きご利用いただくために、<a href='${walletRoute}'>銀行口座 ${maskedAccountNumber} を再接続</a>してください。`,
                 addEmployee: (email: string, role: string, didJoinPolicy?: boolean) => {
