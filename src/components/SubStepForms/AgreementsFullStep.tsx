@@ -47,7 +47,6 @@ type AgreementsFullStepProps<TFormID extends keyof OnyxFormValuesMapping> = {
     /** Default values for inputs */
     defaultValues: Partial<Record<FormOnyxKeys<TFormID>, boolean>>;
 
-    /** The ID of the form */
     formID: TFormID;
 
     /** Input IDs for field in the form */
@@ -61,7 +60,6 @@ type AgreementsFullStepProps<TFormID extends keyof OnyxFormValuesMapping> = {
     /** Indicates that action is being processed */
     isLoading: boolean;
 
-    /** Handles back button press */
     onBackButtonPress: () => void;
 
     /** Handles submit button press */
@@ -70,7 +68,6 @@ type AgreementsFullStepProps<TFormID extends keyof OnyxFormValuesMapping> = {
     /** Currency of related account */
     currency: string;
 
-    /** Array of step names */
     stepNames?: readonly string[];
 
     /** Index of currently active step in header */

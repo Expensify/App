@@ -1,4 +1,4 @@
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import FeatureList from '@components/FeatureList';
 
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';

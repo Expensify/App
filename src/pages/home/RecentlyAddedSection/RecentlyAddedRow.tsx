@@ -20,7 +20,6 @@ import {View} from 'react-native';
 import type {RecentlyAddedExpense} from './useRecentlyAddedData';
 
 type RecentlyAddedRowProps = {
-    /** The expense to render */
     expense: RecentlyAddedExpense;
 
     /** Called when the row is pressed */

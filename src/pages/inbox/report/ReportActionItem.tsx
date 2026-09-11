@@ -112,13 +112,8 @@ type ReportActionItemProps = {
     /** The chat report associated with the report for this action (report.chatReportID) */
     chatReport: OnyxEntry<OnyxTypes.Report>;
 
-    /** Report action belonging to the report's parent */
     parentReportAction: OnyxEntry<OnyxTypes.ReportAction>;
-
-    /** The transaction thread report's parentReportAction */
     parentReportActionForTransactionThread?: OnyxEntry<OnyxTypes.ReportAction>;
-
-    /** All the data of the action item */
     action: OnyxTypes.ReportAction;
 
     /** Should the comment have the appearance of being grouped with the previous comment? */
@@ -127,7 +122,6 @@ type ReportActionItemProps = {
     /** Should we display the new marker on top of the comment? */
     shouldDisplayNewMarker: boolean;
 
-    /** Flag to show, hide the thread divider line */
     shouldHideThreadDividerLine?: boolean;
 
     /** Report action ID that was referenced in the deeplink to report  */
@@ -136,7 +130,6 @@ type ReportActionItemProps = {
     /** Callback to be called on onPress */
     onPress?: () => void;
 
-    /** If this is the first visible report action */
     isFirstVisibleReportAction: boolean;
 
     /**
@@ -145,13 +138,8 @@ type ReportActionItemProps = {
      */
     isThreadReportParentAction?: boolean;
 
-    /** IF the thread divider line will be used */
     shouldUseThreadDividerLine?: boolean;
-
-    /** Whether context menu should be displayed */
     shouldDisplayContextMenu?: boolean;
-
-    /** Linked transaction route error */
     linkedTransactionRouteError?: Errors;
 
     /** Whether to show border for MoneyRequestReportPreviewContent */

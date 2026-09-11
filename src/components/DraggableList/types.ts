@@ -26,7 +26,6 @@ type DraggableListProps<T> = {
     /** Called when a row is selected via Enter/Space key */
     onSelectRow?: (item: T) => void;
 
-    /** Whether dragging is disabled for the given item */
     isItemDragDisabled?: (item: T) => boolean;
 
     /** Whether the given item should be skipped during keyboard navigation */
@@ -35,7 +34,6 @@ type DraggableListProps<T> = {
     /** Rendered at the bottom of all the items. Just like in the FlatList. */
     ListFooterComponent?: React.ReactElement;
 
-    /** Disables scrolling of the list */
     disableScroll?: boolean;
 
     /** Externally controlled focused index. When provided, DraggableList skips its internal keyboard navigation. */

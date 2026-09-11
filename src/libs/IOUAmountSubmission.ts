@@ -89,6 +89,7 @@ type SubmitAmountArgs = {
     isOffline?: boolean;
 
     // Submit-time Onyx data — supplied by the screen via AmountSubmitDataSync so this module owns no subscriptions.
+    rules: OnyxCollection<OnyxTypes.Rule>;
     allPersonalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
     allReports: OnyxCollection<OnyxTypes.Report>;
     allReportDrafts: OnyxCollection<OnyxTypes.Report>;
@@ -260,6 +261,7 @@ function buildReportParticipants(args: SubmitAmountArgs) {
         translate,
         dateFnsLocale,
         convertToDisplayString,
+        rules,
     } = args;
     const selectedParticipants = getMoneyRequestParticipantsFromReport(report, currentUserPersonalDetails.accountID);
     const reportAttributesReports = reportAttributesDerivedValue?.reports;
@@ -284,6 +286,7 @@ function buildReportParticipants(args: SubmitAmountArgs) {
                       dateFnsLocale,
                       convertToDisplayString,
                   },
+                  rules,
               });
     });
 }
@@ -358,6 +361,7 @@ function submitSkipConfirmationExpense(args: SubmitAmountArgs, ctx: SubmitAmount
         isTrackIntentUser,
         formatPhoneNumber,
         getCurrencyDecimals,
+        rules,
     } = args;
     const {currentUserAccountID, currentUserEmail, existingTransactionID, isASAPSubmitBetaEnabled, newAmount: backendAmount} = ctx;
 
@@ -407,6 +411,7 @@ function submitSkipConfirmationExpense(args: SubmitAmountArgs, ctx: SubmitAmount
                 delegateAccountID,
                 reportActionsList: undefined,
                 getCurrencyDecimals,
+                rules,
             });
         } else {
             const existingTransactionDraft = existingTransactionID ? transactionDrafts?.[existingTransactionID] : undefined;
@@ -447,6 +452,7 @@ function submitSkipConfirmationExpense(args: SubmitAmountArgs, ctx: SubmitAmount
                 isTrackIntentUser,
                 formatPhoneNumber,
                 getCurrencyDecimals,
+                rules,
             });
         }
         cleanupAfterSkipConfirmSubmit(overrides.shouldHandleNavigation, {
@@ -635,6 +641,7 @@ function submitEditAmount(args: SubmitAmountArgs, ctx: SubmitAmountContext): voi
         reportPolicyTags,
         getCurrencyDecimals,
         getCurrencySymbol,
+        rules,
     } = args;
     const {currentTransaction, allowNegative, disableOppositeConversion, isSplitBill, currentUserAccountID, currentUserEmail, isASAPSubmitBetaEnabled, newAmount} = ctx;
 
@@ -692,6 +699,7 @@ function submitEditAmount(args: SubmitAmountArgs, ctx: SubmitAmountContext): voi
         isTrackIntentUser,
         getCurrencyDecimals,
         getCurrencySymbol,
+        rules,
     });
     navigateBack();
 }
