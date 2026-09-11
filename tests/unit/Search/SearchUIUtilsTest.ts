@@ -17,7 +17,7 @@ import type {
 } from '@components/Search/SearchList/ListItem/types';
 import {GROUP_ITEM_TYPES} from '@components/Search/SearchList/ListItem/types';
 import {getExpenseHeaders} from '@components/Search/SearchTableHeader';
-import type {SearchColumnType, SelectedTransactionInfo, SortOrder} from '@components/Search/types';
+import type {SearchColumnType, SearchFilterKey, SelectedTransactionInfo, SortOrder} from '@components/Search/types';
 
 import Navigation from '@navigation/Navigation';
 
@@ -2253,15 +2253,15 @@ describe('SearchUIUtils', () => {
     });
     describe('Test getAction', () => {
         test('Should return `View` action for an invalid key', () => {
-            const action = SearchUIUtils.getActions(searchResults.data, {}, 'invalid_key', CONST.SEARCH.SEARCH_KEYS.EXPENSES, '', adminAccountID, {}, {}).at(0);
+            const action = SearchUIUtils.getActions(searchResults.data, {}, 'invalid_key', CONST.SEARCH.SEARCH_KEYS.EXPENSES, '', adminAccountID, {}, {}, undefined).at(0);
             expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.VIEW);
         });
 
         test('Should return `Submit` action for transaction on policy with delayed submission and no violations', () => {
-            let action = SearchUIUtils.getActions(searchResults.data, {}, `report_${reportID}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, '', adminAccountID, {}, {}).at(0);
+            let action = SearchUIUtils.getActions(searchResults.data, {}, `report_${reportID}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, '', adminAccountID, {}, {}, undefined).at(0);
             expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.SUBMIT);
 
-            action = SearchUIUtils.getActions(searchResults.data, {}, `transactions_${transactionID}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, '', adminAccountID, {}, {}).at(0);
+            action = SearchUIUtils.getActions(searchResults.data, {}, `transactions_${transactionID}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, '', adminAccountID, {}, {}, undefined).at(0);
             expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.SUBMIT);
         });
 
@@ -2295,7 +2295,9 @@ describe('SearchUIUtils', () => {
                 },
             };
 
-            const action = SearchUIUtils.getActions(localSearchResults, {}, `report_${submitReportID}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, adminEmail, adminAccountID, {}, {}).at(0);
+            const action = SearchUIUtils.getActions(localSearchResults, {}, `report_${submitReportID}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, adminEmail, adminAccountID, {}, {}, undefined).at(
+                0,
+            );
             expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.SUBMIT);
         });
 
@@ -2318,11 +2320,21 @@ describe('SearchUIUtils', () => {
                     managerID: adminAccountID,
                 },
             };
-            expect(SearchUIUtils.getActions(localSearchResults, allViolations, `report_${reportID2}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, '', submitterAccountID, {}, {}).at(0)).toStrictEqual(
-                CONST.SEARCH.ACTION_TYPES.VIEW,
-            );
             expect(
-                SearchUIUtils.getActions(localSearchResults, allViolations, `transactions_${transactionID2}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, '', submitterAccountID, {}, {}).at(0),
+                SearchUIUtils.getActions(localSearchResults, allViolations, `report_${reportID2}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, '', submitterAccountID, {}, {}, undefined).at(0),
+            ).toStrictEqual(CONST.SEARCH.ACTION_TYPES.VIEW);
+            expect(
+                SearchUIUtils.getActions(
+                    localSearchResults,
+                    allViolations,
+                    `transactions_${transactionID2}`,
+                    CONST.SEARCH.SEARCH_KEYS.EXPENSES,
+                    '',
+                    submitterAccountID,
+                    {},
+                    {},
+                    undefined,
+                ).at(0),
             ).toStrictEqual(CONST.SEARCH.ACTION_TYPES.VIEW);
         });
 
@@ -2341,7 +2353,7 @@ describe('SearchUIUtils', () => {
                 },
             };
 
-            const action = SearchUIUtils.getActions(localSearchResults, {}, paidReportID, CONST.SEARCH.SEARCH_KEYS.EXPENSES, '', submitterAccountID, {}, {}).at(0);
+            const action = SearchUIUtils.getActions(localSearchResults, {}, paidReportID, CONST.SEARCH.SEARCH_KEYS.EXPENSES, '', submitterAccountID, {}, {}, undefined).at(0);
             expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.PAID);
         });
 
@@ -2365,7 +2377,7 @@ describe('SearchUIUtils', () => {
                 },
             };
 
-            const action = SearchUIUtils.getActions(localSearchResults, {}, paidReportID, CONST.SEARCH.SEARCH_KEYS.EXPENSES, '', submitterAccountID, {}, {}).at(0);
+            const action = SearchUIUtils.getActions(localSearchResults, {}, paidReportID, CONST.SEARCH.SEARCH_KEYS.EXPENSES, '', submitterAccountID, {}, {}, undefined).at(0);
             expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.PAID);
         });
 
@@ -2381,7 +2393,7 @@ describe('SearchUIUtils', () => {
                 },
             };
 
-            const action = SearchUIUtils.getActions(localSearchResults, {}, `report_${closedReportID}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, '', submitterAccountID, {}, {}).at(0);
+            const action = SearchUIUtils.getActions(localSearchResults, {}, `report_${closedReportID}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, '', submitterAccountID, {}, {}, undefined).at(0);
 
             expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.PAY);
         });
@@ -2399,13 +2411,13 @@ describe('SearchUIUtils', () => {
                 },
             };
 
-            const action = SearchUIUtils.getActions(localSearchResults, {}, `report_${closedReportID}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, '', submitterAccountID, {}, {}).at(0);
+            const action = SearchUIUtils.getActions(localSearchResults, {}, `report_${closedReportID}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, '', submitterAccountID, {}, {}, undefined).at(0);
 
             expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.DONE);
         });
 
         test('Should return `View` action for non-money request reports', () => {
-            const action = SearchUIUtils.getActions(searchResults.data, {}, `report_${reportID4}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, '', submitterAccountID, {}, {}).at(0);
+            const action = SearchUIUtils.getActions(searchResults.data, {}, `report_${reportID4}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, '', submitterAccountID, {}, {}, undefined).at(0);
             expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.VIEW);
         });
 
@@ -2419,7 +2431,17 @@ describe('SearchUIUtils', () => {
                     reportID: 'non_existent_report',
                 },
             };
-            const action = SearchUIUtils.getActions(localSearchResults, {}, `transactions_${orphanedTransactionID}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, '', submitterAccountID, {}, {}).at(0);
+            const action = SearchUIUtils.getActions(
+                localSearchResults,
+                {},
+                `transactions_${orphanedTransactionID}`,
+                CONST.SEARCH.SEARCH_KEYS.EXPENSES,
+                '',
+                submitterAccountID,
+                {},
+                {},
+                undefined,
+            ).at(0);
             expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.VIEW);
         });
         test('Should return `View` action for a transaction in a multi-transaction report', () => {
@@ -2437,14 +2459,24 @@ describe('SearchUIUtils', () => {
                     reportID: multiTransactionReportID,
                 },
             };
-            const action = SearchUIUtils.getActions(localSearchResults, {}, `transactions_${multiTransactionID}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, '', submitterAccountID, {}, {}).at(0);
+            const action = SearchUIUtils.getActions(
+                localSearchResults,
+                {},
+                `transactions_${multiTransactionID}`,
+                CONST.SEARCH.SEARCH_KEYS.EXPENSES,
+                '',
+                submitterAccountID,
+                {},
+                {},
+                undefined,
+            ).at(0);
             expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.VIEW);
         });
         test('Should return `Pay` action for an IOU report ready to be paid', async () => {
             Onyx.merge(ONYXKEYS.SESSION, {accountID: adminAccountID});
             await waitForBatchedUpdates();
             const iouReportKey = `report_${reportID3}`;
-            const action = SearchUIUtils.getActions(searchResults.data, {}, iouReportKey, CONST.SEARCH.SEARCH_KEYS.EXPENSES, '', adminAccountID, {}, {}).at(0);
+            const action = SearchUIUtils.getActions(searchResults.data, {}, iouReportKey, CONST.SEARCH.SEARCH_KEYS.EXPENSES, '', adminAccountID, {}, {}, undefined).at(0);
             expect(action).toEqual(CONST.SEARCH.ACTION_TYPES.PAY);
         });
 
@@ -2479,7 +2511,7 @@ describe('SearchUIUtils', () => {
                 },
             });
 
-            const actions = SearchUIUtils.getActions(localSearchResults, {}, `report_${exportReportID}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, adminEmail, adminAccountID, {}, {});
+            const actions = SearchUIUtils.getActions(localSearchResults, {}, `report_${exportReportID}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, adminEmail, adminAccountID, {}, {}, undefined);
 
             expect(actions).toContain(CONST.SEARCH.ACTION_TYPES.EXPORT_TO_ACCOUNTING);
         });
@@ -2530,6 +2562,7 @@ describe('SearchUIUtils', () => {
                 adminAccountID,
                 {},
                 {},
+                undefined,
                 dewReportActions,
             ).at(0);
             expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.SUBMIT);
@@ -2577,6 +2610,7 @@ describe('SearchUIUtils', () => {
                 adminAccountID,
                 {},
                 {},
+                undefined,
                 dewReportActions,
             ).at(0);
             expect(action).not.toStrictEqual(CONST.SEARCH.ACTION_TYPES.VIEW);
@@ -2626,6 +2660,7 @@ describe('SearchUIUtils', () => {
                 adminAccountID,
                 {},
                 {},
+                undefined,
                 nonDewReportActions,
             ).at(0);
             expect(action).not.toStrictEqual(CONST.SEARCH.ACTION_TYPES.VIEW);
@@ -2643,6 +2678,7 @@ describe('SearchUIUtils', () => {
                 translate: translateLocal,
                 formatPhoneNumber,
                 bankAccountList: {},
+                rules: undefined,
                 conciergeReportID: undefined,
                 convertToDisplayString,
                 reportAttributesDerivedValue: undefined,
@@ -2662,6 +2698,7 @@ describe('SearchUIUtils', () => {
                 translate: translateLocal,
                 formatPhoneNumber,
                 bankAccountList: {},
+                rules: undefined,
                 conciergeReportID: undefined,
                 convertToDisplayString,
                 reportAttributesDerivedValue: undefined,
@@ -2682,6 +2719,7 @@ describe('SearchUIUtils', () => {
                 translate: translateLocal,
                 formatPhoneNumber,
                 bankAccountList: {},
+                rules: undefined,
                 conciergeReportID: undefined,
                 convertToDisplayString,
                 reportAttributesDerivedValue: undefined,
@@ -2702,6 +2740,7 @@ describe('SearchUIUtils', () => {
                 translate: translateLocal,
                 formatPhoneNumber,
                 bankAccountList: {},
+                rules: undefined,
                 conciergeReportID: undefined,
                 convertToDisplayString,
                 reportAttributesDerivedValue: {},
@@ -2721,6 +2760,7 @@ describe('SearchUIUtils', () => {
                     translate: translateLocal,
                     formatPhoneNumber,
                     bankAccountList: {},
+                    rules: undefined,
                     conciergeReportID: undefined,
                     convertToDisplayString,
                     reportAttributesDerivedValue: {},
@@ -2752,6 +2792,7 @@ describe('SearchUIUtils', () => {
                     translate: translateLocal,
                     formatPhoneNumber,
                     bankAccountList: {},
+                    rules: undefined,
                     conciergeReportID: undefined,
                     convertToDisplayString,
                     reportAttributesDerivedValue: {},
@@ -2792,6 +2833,7 @@ describe('SearchUIUtils', () => {
                     translate: translateLocal,
                     formatPhoneNumber,
                     bankAccountList: {},
+                    rules: undefined,
                     conciergeReportID: undefined,
                     convertToDisplayString,
                     reportAttributesDerivedValue: {},
@@ -2829,6 +2871,7 @@ describe('SearchUIUtils', () => {
                     translate: translateLocal,
                     formatPhoneNumber,
                     bankAccountList: {},
+                    rules: undefined,
                     conciergeReportID: undefined,
                     convertToDisplayString,
                     reportAttributesDerivedValue: {},
@@ -2881,6 +2924,7 @@ describe('SearchUIUtils', () => {
                     translate: translateLocal,
                     formatPhoneNumber,
                     bankAccountList: {},
+                    rules: undefined,
                     conciergeReportID: undefined,
                     convertToDisplayString,
                     reportAttributesDerivedValue: {},
@@ -2910,6 +2954,7 @@ describe('SearchUIUtils', () => {
                     translate: translateLocal,
                     formatPhoneNumber,
                     bankAccountList: {},
+                    rules: undefined,
                     conciergeReportID: undefined,
                     convertToDisplayString,
                     reportAttributesDerivedValue: {},
@@ -2939,6 +2984,7 @@ describe('SearchUIUtils', () => {
                     translate: translateLocal,
                     formatPhoneNumber,
                     bankAccountList: {},
+                    rules: undefined,
                     conciergeReportID: undefined,
                     convertToDisplayString,
                     reportAttributesDerivedValue: {},
@@ -2968,6 +3014,7 @@ describe('SearchUIUtils', () => {
                     translate: translateLocal,
                     formatPhoneNumber,
                     bankAccountList: {},
+                    rules: undefined,
                     conciergeReportID: undefined,
                     convertToDisplayString,
                     reportAttributesDerivedValue: {},
@@ -3010,6 +3057,7 @@ describe('SearchUIUtils', () => {
                     translate: translateLocal,
                     formatPhoneNumber,
                     bankAccountList: {},
+                    rules: undefined,
                     conciergeReportID: undefined,
                     convertToDisplayString,
                     reportAttributesDerivedValue: {},
@@ -3030,6 +3078,7 @@ describe('SearchUIUtils', () => {
                     translate: translateLocal,
                     formatPhoneNumber,
                     bankAccountList: {},
+                    rules: undefined,
                     conciergeReportID: undefined,
                     onyxPersonalDetailsList,
                     convertToDisplayString,
@@ -3075,6 +3124,7 @@ describe('SearchUIUtils', () => {
                     translate: translateLocal,
                     formatPhoneNumber,
                     bankAccountList: {},
+                    rules: undefined,
                     conciergeReportID: undefined,
                     onyxPersonalDetailsList,
                     convertToDisplayString,
@@ -3123,6 +3173,7 @@ describe('SearchUIUtils', () => {
                     translate: translateLocal,
                     formatPhoneNumber,
                     bankAccountList: {},
+                    rules: undefined,
                     conciergeReportID: undefined,
                     convertToDisplayString,
                     reportAttributesDerivedValue: {},
@@ -3143,6 +3194,7 @@ describe('SearchUIUtils', () => {
                     translate: translateLocal,
                     formatPhoneNumber,
                     bankAccountList: {},
+                    rules: undefined,
                     conciergeReportID: undefined,
                     onyxPersonalDetailsList,
                     convertToDisplayString,
@@ -3182,6 +3234,7 @@ describe('SearchUIUtils', () => {
                     translate: translateLocal,
                     formatPhoneNumber,
                     bankAccountList: {},
+                    rules: undefined,
                     conciergeReportID: undefined,
                     convertToDisplayString,
                     reportAttributesDerivedValue: {},
@@ -3203,6 +3256,7 @@ describe('SearchUIUtils', () => {
                     translate: translateLocal,
                     formatPhoneNumber,
                     bankAccountList: {},
+                    rules: undefined,
                     conciergeReportID: undefined,
                     onyxPersonalDetailsList,
                     convertToDisplayString,
@@ -3249,6 +3303,7 @@ describe('SearchUIUtils', () => {
                     translate: translateLocal,
                     formatPhoneNumber,
                     bankAccountList: {},
+                    rules: undefined,
                     conciergeReportID: undefined,
                     onyxPersonalDetailsList,
                     convertToDisplayString,
@@ -3300,6 +3355,7 @@ describe('SearchUIUtils', () => {
                 translate: translateLocal,
                 formatPhoneNumber,
                 bankAccountList: {},
+                rules: undefined,
                 conciergeReportID: undefined,
                 convertToDisplayString,
                 reportAttributesDerivedValue: {},
@@ -3313,6 +3369,7 @@ describe('SearchUIUtils', () => {
                 translate: translateLocal,
                 formatPhoneNumber,
                 bankAccountList: {},
+                rules: undefined,
                 conciergeReportID: undefined,
                 convertToDisplayString,
                 reportAttributesDerivedValue: {},
@@ -3339,6 +3396,7 @@ describe('SearchUIUtils', () => {
                     translate: translateLocal,
                     formatPhoneNumber,
                     bankAccountList: {},
+                    rules: undefined,
                     groupBy: CONST.SEARCH.GROUP_BY.FROM,
                     conciergeReportID: undefined,
                     convertToDisplayString,
@@ -3359,6 +3417,7 @@ describe('SearchUIUtils', () => {
                 translate: translateWithHiddenMarker,
                 formatPhoneNumber,
                 bankAccountList: {},
+                rules: undefined,
                 groupBy: CONST.SEARCH.GROUP_BY.FROM,
                 conciergeReportID: undefined,
                 convertToDisplayString,
@@ -3387,6 +3446,7 @@ describe('SearchUIUtils', () => {
                     translate: translateLocal,
                     formatPhoneNumber,
                     bankAccountList: {},
+                    rules: undefined,
                     groupBy: CONST.SEARCH.GROUP_BY.CARD,
                     cardFeeds: mockCardFeeds,
                     conciergeReportID: undefined,
@@ -3482,6 +3542,7 @@ describe('SearchUIUtils', () => {
                     translate: translateLocal,
                     formatPhoneNumber,
                     bankAccountList: {},
+                    rules: undefined,
                     groupBy: CONST.SEARCH.GROUP_BY.CARD,
                     cardFeeds,
                     cardList,
@@ -3514,6 +3575,7 @@ describe('SearchUIUtils', () => {
                     translate: translateLocal,
                     formatPhoneNumber,
                     bankAccountList: {},
+                    rules: undefined,
                     groupBy: CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID,
                     conciergeReportID: undefined,
                     convertToDisplayString,
@@ -3543,6 +3605,7 @@ describe('SearchUIUtils', () => {
                     translate: translateLocal,
                     formatPhoneNumber,
                     bankAccountList: {},
+                    rules: undefined,
                     groupBy: CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID,
                     conciergeReportID: undefined,
                     convertToDisplayString,
@@ -3565,6 +3628,7 @@ describe('SearchUIUtils', () => {
                     translate: translateLocal,
                     formatPhoneNumber,
                     bankAccountList: {},
+                    rules: undefined,
                     groupBy: CONST.SEARCH.GROUP_BY.CATEGORY,
                     conciergeReportID: undefined,
                     convertToDisplayString,
@@ -3600,6 +3664,7 @@ describe('SearchUIUtils', () => {
                     translate: translateLocal,
                     formatPhoneNumber,
                     bankAccountList: {},
+                    rules: undefined,
                     groupBy: CONST.SEARCH.GROUP_BY.CATEGORY,
                     conciergeReportID: undefined,
                     convertToDisplayString,
@@ -3671,6 +3736,7 @@ describe('SearchUIUtils', () => {
                     translate: translateLocal,
                     formatPhoneNumber,
                     bankAccountList: {},
+                    rules: undefined,
                     groupBy: CONST.SEARCH.GROUP_BY.MONTH,
                     conciergeReportID: undefined,
                     convertToDisplayString,
@@ -3708,6 +3774,7 @@ describe('SearchUIUtils', () => {
                     translate: translateLocal,
                     formatPhoneNumber,
                     bankAccountList: {},
+                    rules: undefined,
                     groupBy: CONST.SEARCH.GROUP_BY.MONTH,
                     conciergeReportID: undefined,
                     convertToDisplayString,
@@ -3732,6 +3799,7 @@ describe('SearchUIUtils', () => {
                     translate: translateLocal,
                     formatPhoneNumber,
                     bankAccountList: {},
+                    rules: undefined,
                     groupBy: CONST.SEARCH.GROUP_BY.MONTH,
                     conciergeReportID: undefined,
                     convertToDisplayString,
@@ -3819,6 +3887,7 @@ describe('SearchUIUtils', () => {
                     translate: translateLocal,
                     formatPhoneNumber,
                     bankAccountList: {},
+                    rules: undefined,
                     groupBy: CONST.SEARCH.GROUP_BY.YEAR,
                     conciergeReportID: undefined,
                     convertToDisplayString,
@@ -3854,6 +3923,7 @@ describe('SearchUIUtils', () => {
                     translate: translateLocal,
                     formatPhoneNumber,
                     bankAccountList: {},
+                    rules: undefined,
                     groupBy: CONST.SEARCH.GROUP_BY.YEAR,
                     conciergeReportID: undefined,
                     convertToDisplayString,
@@ -3878,6 +3948,7 @@ describe('SearchUIUtils', () => {
                     translate: translateLocal,
                     formatPhoneNumber,
                     bankAccountList: {},
+                    rules: undefined,
                     groupBy: CONST.SEARCH.GROUP_BY.YEAR,
                     conciergeReportID: undefined,
                     convertToDisplayString,
@@ -4265,6 +4336,7 @@ describe('SearchUIUtils', () => {
                     translate: translateLocal,
                     formatPhoneNumber,
                     bankAccountList: {},
+                    rules: undefined,
                     groupBy: CONST.SEARCH.GROUP_BY.QUARTER,
                     conciergeReportID: undefined,
                     convertToDisplayString,
@@ -4302,6 +4374,7 @@ describe('SearchUIUtils', () => {
                     translate: translateLocal,
                     formatPhoneNumber,
                     bankAccountList: {},
+                    rules: undefined,
                     groupBy: CONST.SEARCH.GROUP_BY.QUARTER,
                     conciergeReportID: undefined,
                     convertToDisplayString,
@@ -4326,6 +4399,7 @@ describe('SearchUIUtils', () => {
                     translate: translateLocal,
                     formatPhoneNumber,
                     bankAccountList: {},
+                    rules: undefined,
                     groupBy: CONST.SEARCH.GROUP_BY.QUARTER,
                     conciergeReportID: undefined,
                     convertToDisplayString,
@@ -4395,6 +4469,7 @@ describe('SearchUIUtils', () => {
                     translate: translateLocal,
                     formatPhoneNumber,
                     bankAccountList: {},
+                    rules: undefined,
                     groupBy: CONST.SEARCH.GROUP_BY.WEEK,
                     conciergeReportID: undefined,
                     convertToDisplayString,
@@ -4430,6 +4505,7 @@ describe('SearchUIUtils', () => {
                     translate: translateLocal,
                     formatPhoneNumber,
                     bankAccountList: {},
+                    rules: undefined,
                     groupBy: CONST.SEARCH.GROUP_BY.WEEK,
                     conciergeReportID: undefined,
                     convertToDisplayString,
@@ -4474,6 +4550,7 @@ describe('SearchUIUtils', () => {
                     translate: translateLocal,
                     formatPhoneNumber,
                     bankAccountList: {},
+                    rules: undefined,
                     groupBy: CONST.SEARCH.GROUP_BY.CATEGORY,
                     queryJSON: {
                         type: CONST.SEARCH.DATA_TYPES.EXPENSE,
@@ -4539,6 +4616,7 @@ describe('SearchUIUtils', () => {
                     translate: translateLocal,
                     formatPhoneNumber,
                     bankAccountList: {},
+                    rules: undefined,
                     groupBy: CONST.SEARCH.GROUP_BY.CATEGORY,
                     conciergeReportID: undefined,
                     convertToDisplayString,
@@ -4586,6 +4664,7 @@ describe('SearchUIUtils', () => {
                     translate: translateLocal,
                     formatPhoneNumber,
                     bankAccountList: {},
+                    rules: undefined,
                     groupBy: CONST.SEARCH.GROUP_BY.CATEGORY,
                     conciergeReportID: undefined,
                     convertToDisplayString,
@@ -4622,6 +4701,7 @@ describe('SearchUIUtils', () => {
                     translate: translateLocal,
                     formatPhoneNumber,
                     bankAccountList: {},
+                    rules: undefined,
                     groupBy: CONST.SEARCH.GROUP_BY.CATEGORY,
                     conciergeReportID: undefined,
                     convertToDisplayString,
@@ -4663,6 +4743,7 @@ describe('SearchUIUtils', () => {
                     translate: translateLocal,
                     formatPhoneNumber,
                     bankAccountList: {},
+                    rules: undefined,
                     groupBy: CONST.SEARCH.GROUP_BY.CATEGORY,
                     conciergeReportID: undefined,
                     convertToDisplayString,
@@ -4692,6 +4773,7 @@ describe('SearchUIUtils', () => {
                     translate: translateLocal,
                     formatPhoneNumber,
                     bankAccountList: {},
+                    rules: undefined,
                     groupBy: CONST.SEARCH.GROUP_BY.MERCHANT,
                     conciergeReportID: undefined,
                     convertToDisplayString,
@@ -4728,6 +4810,7 @@ describe('SearchUIUtils', () => {
                     translate: translateLocal,
                     formatPhoneNumber,
                     bankAccountList: {},
+                    rules: undefined,
                     groupBy: CONST.SEARCH.GROUP_BY.MERCHANT,
                     conciergeReportID: undefined,
                     convertToDisplayString,
@@ -4763,6 +4846,7 @@ describe('SearchUIUtils', () => {
                     translate: translateLocal,
                     formatPhoneNumber,
                     bankAccountList: {},
+                    rules: undefined,
                     groupBy: CONST.SEARCH.GROUP_BY.MERCHANT,
                     queryJSON: {
                         type: CONST.SEARCH.DATA_TYPES.EXPENSE,
@@ -4817,6 +4901,7 @@ describe('SearchUIUtils', () => {
                     translate: translateLocal,
                     formatPhoneNumber,
                     bankAccountList: {},
+                    rules: undefined,
                     groupBy: CONST.SEARCH.GROUP_BY.MERCHANT,
                     queryJSON: {
                         type: CONST.SEARCH.DATA_TYPES.EXPENSE,
@@ -4870,6 +4955,7 @@ describe('SearchUIUtils', () => {
                     translate: translateLocal,
                     formatPhoneNumber,
                     bankAccountList: {},
+                    rules: undefined,
                     groupBy: CONST.SEARCH.GROUP_BY.MERCHANT,
                     queryJSON: {
                         type: CONST.SEARCH.DATA_TYPES.EXPENSE,
@@ -4923,6 +5009,7 @@ describe('SearchUIUtils', () => {
                     translate: translateLocal,
                     formatPhoneNumber,
                     bankAccountList: {},
+                    rules: undefined,
                     groupBy: CONST.SEARCH.GROUP_BY.MERCHANT,
                     queryJSON: {
                         type: CONST.SEARCH.DATA_TYPES.EXPENSE,
@@ -4997,6 +5084,7 @@ describe('SearchUIUtils', () => {
                     translate: translateLocal,
                     formatPhoneNumber,
                     bankAccountList: {},
+                    rules: undefined,
                     groupBy: CONST.SEARCH.GROUP_BY.MERCHANT,
                     queryJSON: {
                         type: CONST.SEARCH.DATA_TYPES.EXPENSE,
@@ -5063,6 +5151,7 @@ describe('SearchUIUtils', () => {
                     translate: translateLocal,
                     formatPhoneNumber,
                     bankAccountList: {},
+                    rules: undefined,
                     groupBy: CONST.SEARCH.GROUP_BY.MERCHANT,
                     conciergeReportID: undefined,
                     convertToDisplayString,
@@ -5111,6 +5200,7 @@ describe('SearchUIUtils', () => {
                     translate: translateLocal,
                     formatPhoneNumber,
                     bankAccountList: {},
+                    rules: undefined,
                     groupBy: CONST.SEARCH.GROUP_BY.MERCHANT,
                     conciergeReportID: undefined,
                     convertToDisplayString,
@@ -5137,6 +5227,7 @@ describe('SearchUIUtils', () => {
                     translate: translateLocal,
                     formatPhoneNumber,
                     bankAccountList: {},
+                    rules: undefined,
                     groupBy: CONST.SEARCH.GROUP_BY.TAG,
                     conciergeReportID: undefined,
                     convertToDisplayString,
@@ -5168,6 +5259,7 @@ describe('SearchUIUtils', () => {
                     translate: translateLocal,
                     formatPhoneNumber,
                     bankAccountList: {},
+                    rules: undefined,
                     groupBy: CONST.SEARCH.GROUP_BY.TAG,
                     conciergeReportID: undefined,
                     convertToDisplayString,
@@ -5209,6 +5301,7 @@ describe('SearchUIUtils', () => {
                     translate: translateLocal,
                     formatPhoneNumber,
                     bankAccountList: {},
+                    rules: undefined,
                     groupBy: CONST.SEARCH.GROUP_BY.TAG,
                     conciergeReportID: undefined,
                     convertToDisplayString,
@@ -5243,6 +5336,7 @@ describe('SearchUIUtils', () => {
                     translate: translateLocal,
                     formatPhoneNumber,
                     bankAccountList: {},
+                    rules: undefined,
                     groupBy: CONST.SEARCH.GROUP_BY.TAG,
                     conciergeReportID: undefined,
                     convertToDisplayString,
@@ -5298,6 +5392,7 @@ describe('SearchUIUtils', () => {
                     translate: translateLocal,
                     formatPhoneNumber,
                     bankAccountList: {},
+                    rules: undefined,
                     groupBy: CONST.SEARCH.GROUP_BY.TAG,
                     queryJSON: {
                         type: CONST.SEARCH.DATA_TYPES.EXPENSE,
@@ -5377,6 +5472,7 @@ describe('SearchUIUtils', () => {
                     translate: translateLocal,
                     formatPhoneNumber,
                     bankAccountList: {},
+                    rules: undefined,
                     conciergeReportID: '999',
                     convertToDisplayString,
                     reportAttributesDerivedValue: {},
@@ -5449,6 +5545,7 @@ describe('SearchUIUtils', () => {
                 translate: translateLocal,
                 formatPhoneNumber,
                 bankAccountList: {},
+                rules: undefined,
                 conciergeReportID: '999',
                 convertToDisplayString,
                 reportAttributesDerivedValue: undefined,
@@ -5492,6 +5589,7 @@ describe('SearchUIUtils', () => {
                 translate: translateWithHiddenMarker,
                 formatPhoneNumber,
                 bankAccountList: {},
+                rules: undefined,
                 conciergeReportID: undefined,
                 convertToDisplayString,
                 reportAttributesDerivedValue: undefined,
@@ -5516,6 +5614,7 @@ describe('SearchUIUtils', () => {
                     translate: translateLocal,
                     formatPhoneNumber,
                     bankAccountList: {},
+                    rules: undefined,
                     conciergeReportID: '999',
                     convertToDisplayString,
                     reportAttributesDerivedValue: {},
@@ -5588,6 +5687,7 @@ describe('SearchUIUtils', () => {
                     translate: translateLocal,
                     formatPhoneNumber,
                     bankAccountList: {},
+                    rules: undefined,
                     conciergeReportID: '999',
                     convertToDisplayString,
                     reportAttributesDerivedValue: {},
@@ -5647,6 +5747,7 @@ describe('SearchUIUtils', () => {
                     translate: translateLocal,
                     formatPhoneNumber,
                     bankAccountList: {},
+                    rules: undefined,
                     conciergeReportID: '999',
                     convertToDisplayString,
                     reportAttributesDerivedValue: {},
@@ -5705,6 +5806,7 @@ describe('SearchUIUtils', () => {
                     translate: translateLocal,
                     formatPhoneNumber,
                     bankAccountList: {},
+                    rules: undefined,
                     conciergeReportID: '999',
                     convertToDisplayString,
                     reportAttributesDerivedValue: {},
@@ -5765,6 +5867,7 @@ describe('SearchUIUtils', () => {
                     translate: translateLocal,
                     formatPhoneNumber,
                     bankAccountList: {},
+                    rules: undefined,
                     conciergeReportID: undefined,
                     convertToDisplayString,
                     reportAttributesDerivedValue: {},
@@ -5775,6 +5878,233 @@ describe('SearchUIUtils', () => {
             expect(result).toHaveLength(1);
             expect(count).toBe(1);
             expect(result.at(0)?.reportName).toBe('Task without concierge');
+        });
+
+        describe('task status filter uses the live report instead of the stale snapshot', () => {
+            const staleTaskReportID = 'task_report_700';
+            const staleCreatorID = 121212;
+            const staleAssigneeID = 131313;
+
+            // The snapshot still says the task is open — this is exactly what `completeTask` leaves behind,
+            // because it only writes to `report_<taskID>` and never patches `snapshot_<hash>`.
+            const snapshotTask = createMock<SearchTask>({
+                type: CONST.REPORT.TYPE.TASK,
+                accountID: staleCreatorID,
+                reportID: staleTaskReportID,
+                reportName: 'Stale outstanding task',
+                description: 'Completed but still in the snapshot as open',
+                managerID: staleAssigneeID,
+                parentReportID: 'parent_stale',
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                created: '2025-02-05 10:00:00',
+            });
+
+            const staleTaskData = createMock<OnyxTypes.SearchResults['data']>({
+                personalDetailsList: {
+                    [staleCreatorID]: {
+                        accountID: staleCreatorID,
+                        avatar: '',
+                        displayName: 'Stale Creator',
+                        login: 'creator@test.com',
+                    },
+                    [staleAssigneeID]: {
+                        accountID: staleAssigneeID,
+                        avatar: '',
+                        displayName: 'Stale Assignee',
+                        login: 'assignee@test.com',
+                    },
+                },
+                [`report_${staleTaskReportID}`]: snapshotTask,
+            });
+
+            const getStaleTaskSections = (query: string) =>
+                getSectionsByType(
+                    SearchUIUtils.getSections({
+                        dateFnsLocale: undefined,
+                        type: CONST.SEARCH.DATA_TYPES.TASK,
+                        data: staleTaskData,
+                        currentAccountID: staleCreatorID,
+                        currentUserEmail: 'creator@test.com',
+                        translate: translateLocal,
+                        formatPhoneNumber,
+                        bankAccountList: {},
+                        rules: undefined,
+                        conciergeReportID: '999',
+                        convertToDisplayString,
+                        reportAttributesDerivedValue: {},
+                        queryJSON: buildSearchQueryJSON(query),
+                    }),
+                    SearchUIUtils.isTaskListItemType,
+                );
+
+            beforeEach(async () => {
+                // The live report has been completed, mirroring what `completeTask` merges into Onyx.
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${staleTaskReportID}`, {
+                    ...snapshotTask,
+                    stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                    statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+                });
+                await waitForBatchedUpdates();
+            });
+
+            afterEach(async () => {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${staleTaskReportID}`, null);
+                await waitForBatchedUpdates();
+            });
+
+            it('drops a completed task from the outstanding filter', () => {
+                const [result, count] = getStaleTaskSections('type:task status:outstanding');
+
+                expect(result).toHaveLength(0);
+                expect(count).toBe(0);
+            });
+
+            it('keeps a completed task in the completed filter and reports its live status', () => {
+                const [result, count] = getStaleTaskSections('type:task status:completed');
+
+                expect(result).toHaveLength(1);
+                expect(count).toBe(1);
+                expect(result.at(0)?.statusNum).toBe(CONST.REPORT.STATUS_NUM.APPROVED);
+                expect(result.at(0)?.stateNum).toBe(CONST.REPORT.STATE_NUM.APPROVED);
+            });
+
+            it('keeps a still-open task in the outstanding filter', async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${staleTaskReportID}`, {
+                    stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                    statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                });
+                await waitForBatchedUpdates();
+
+                const [result, count] = getStaleTaskSections('type:task status:outstanding');
+
+                expect(result).toHaveLength(1);
+                expect(count).toBe(1);
+                expect(result.at(0)?.reportName).toBe('Stale outstanding task');
+            });
+
+            // A negated filter (`-status:completed`) keeps every status *except* the excluded ones, so it has to be
+            // judged against the live report too. `-` is the negation prefix and `status` is negatable, so these
+            // queries are reachable by typing them into the search router.
+            it('drops a completed task from a negated completed filter', () => {
+                const [result, count] = getStaleTaskSections('type:task -status:completed');
+
+                expect(result).toHaveLength(0);
+                expect(count).toBe(0);
+            });
+
+            it('keeps a completed task in a negated outstanding filter', () => {
+                const [result, count] = getStaleTaskSections('type:task -status:outstanding');
+
+                expect(result).toHaveLength(1);
+                expect(count).toBe(1);
+                expect(result.at(0)?.statusNum).toBe(CONST.REPORT.STATUS_NUM.APPROVED);
+            });
+
+            it('keeps a still-open task in a negated completed filter', async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${staleTaskReportID}`, {
+                    stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                    statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                });
+                await waitForBatchedUpdates();
+
+                const [result, count] = getStaleTaskSections('type:task -status:completed');
+
+                expect(result).toHaveLength(1);
+                expect(count).toBe(1);
+                expect(result.at(0)?.statusNum).toBe(CONST.REPORT.STATUS_NUM.OPEN);
+            });
+        });
+
+        describe('reopening a task re-filters against the live report', () => {
+            const reopenedTaskReportID = 'task_report_701';
+            const reopenedCreatorID = 141414;
+            const reopenedAssigneeID = 151515;
+
+            // Mirror image of the complete case: `reopenTask` writes only to `report_<taskID>`, so the snapshot is
+            // left claiming the task is still completed.
+            const completedSnapshotTask = createMock<SearchTask>({
+                type: CONST.REPORT.TYPE.TASK,
+                accountID: reopenedCreatorID,
+                reportID: reopenedTaskReportID,
+                reportName: 'Stale completed task',
+                description: 'Reopened but still in the snapshot as completed',
+                managerID: reopenedAssigneeID,
+                parentReportID: 'parent_reopened',
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+                created: '2025-02-06 10:00:00',
+            });
+
+            const reopenedTaskData = createMock<OnyxTypes.SearchResults['data']>({
+                personalDetailsList: {
+                    [reopenedCreatorID]: {
+                        accountID: reopenedCreatorID,
+                        avatar: '',
+                        displayName: 'Reopened Creator',
+                        login: 'reopencreator@test.com',
+                    },
+                    [reopenedAssigneeID]: {
+                        accountID: reopenedAssigneeID,
+                        avatar: '',
+                        displayName: 'Reopened Assignee',
+                        login: 'reopenassignee@test.com',
+                    },
+                },
+                [`report_${reopenedTaskReportID}`]: completedSnapshotTask,
+            });
+
+            const getReopenedTaskSections = (query: string) =>
+                getSectionsByType(
+                    SearchUIUtils.getSections({
+                        dateFnsLocale: undefined,
+                        type: CONST.SEARCH.DATA_TYPES.TASK,
+                        data: reopenedTaskData,
+                        currentAccountID: reopenedCreatorID,
+                        currentUserEmail: 'reopencreator@test.com',
+                        translate: translateLocal,
+                        formatPhoneNumber,
+                        bankAccountList: {},
+                        rules: undefined,
+                        conciergeReportID: '999',
+                        convertToDisplayString,
+                        reportAttributesDerivedValue: {},
+                        queryJSON: buildSearchQueryJSON(query),
+                    }),
+                    SearchUIUtils.isTaskListItemType,
+                );
+
+            beforeEach(async () => {
+                // The live report has been reopened, mirroring what `reopenTask` merges into Onyx.
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reopenedTaskReportID}`, {
+                    ...completedSnapshotTask,
+                    stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                    statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                });
+                await waitForBatchedUpdates();
+            });
+
+            afterEach(async () => {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reopenedTaskReportID}`, null);
+                await waitForBatchedUpdates();
+            });
+
+            it('drops a reopened task from the completed filter', () => {
+                const [result, count] = getReopenedTaskSections('type:task status:completed');
+
+                expect(result).toHaveLength(0);
+                expect(count).toBe(0);
+            });
+
+            it('shows a reopened task under the outstanding filter with its live status', () => {
+                const [result, count] = getReopenedTaskSections('type:task status:outstanding');
+
+                expect(result).toHaveLength(1);
+                expect(count).toBe(1);
+                expect(result.at(0)?.reportName).toBe('Stale completed task');
+                expect(result.at(0)?.statusNum).toBe(CONST.REPORT.STATUS_NUM.OPEN);
+                expect(result.at(0)?.stateNum).toBe(CONST.REPORT.STATE_NUM.OPEN);
+            });
         });
 
         describe('getReportSections computed fields (totalDisplaySpend, nonReimbursableSpend, reimbursableSpend, isAllScanning)', () => {
@@ -5819,6 +6149,7 @@ describe('SearchUIUtils', () => {
                         translate: translateLocal,
                         formatPhoneNumber,
                         bankAccountList: {},
+                        rules: undefined,
                         conciergeReportID: undefined,
                         convertToDisplayString,
                         reportAttributesDerivedValue: {},
@@ -5938,6 +6269,7 @@ describe('SearchUIUtils', () => {
                         translate: translateLocal,
                         formatPhoneNumber,
                         bankAccountList: {},
+                        rules: undefined,
                         conciergeReportID: undefined,
                         convertToDisplayString,
                         reportAttributesDerivedValue: {},
@@ -6091,6 +6423,7 @@ describe('SearchUIUtils', () => {
                         translate: translateLocal,
                         formatPhoneNumber,
                         bankAccountList: {},
+                        rules: undefined,
                         conciergeReportID: undefined,
                         ...options,
                         convertToDisplayString,
@@ -6453,6 +6786,42 @@ describe('SearchUIUtils', () => {
                 const item = sections.find((s) => s.transactionID === filterTestTxID);
                 expect(item?.submitted).toBe('');
             });
+
+            it('should keep the negative sign on formattedTotal for an unreported (tracked) credit', () => {
+                const data = makeFilterTestData({}, {reportID: CONST.REPORT.UNREPORTED_REPORT_ID, amount: 5000});
+                const [sections] = callGetTransactionsSections(data);
+                const item = sections.find((s) => s.transactionID === filterTestTxID);
+                expect(item?.formattedTotal).toBe(-5000);
+            });
+
+            // Amounts are stored with the opposite sign, so these three rows render +$80.00, -$40.00 and +$10.00.
+            function makeAmountSortData() {
+                const baseTransaction = searchResults.data[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+                return makeFilterTestData(
+                    {},
+                    {reportID: CONST.REPORT.UNREPORTED_REPORT_ID, amount: -8000},
+                    {
+                        [`${ONYXKEYS.COLLECTION.TRANSACTION}sort-credit`]: {...baseTransaction, transactionID: 'sort-credit', reportID: CONST.REPORT.UNREPORTED_REPORT_ID, amount: 4000},
+                        [`${ONYXKEYS.COLLECTION.TRANSACTION}sort-small`]: {...baseTransaction, transactionID: 'sort-small', reportID: CONST.REPORT.UNREPORTED_REPORT_ID, amount: -1000},
+                    },
+                );
+            }
+
+            function getAmountSortedIDs(sortOrder: SortOrder) {
+                const [sections] = callGetTransactionsSections(makeAmountSortData());
+                const rows = sections.filter((section) => [filterTestTxID, 'sort-credit', 'sort-small'].includes(section.transactionID));
+                expect(rows).toHaveLength(3);
+                const sorted = SearchUIUtils.getSortedSections(CONST.SEARCH.DATA_TYPES.EXPENSE, rows, localeCompare, translateLocal, CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT, sortOrder);
+                return sorted.map((item) => ('transactionID' in item ? item.transactionID : undefined));
+            }
+
+            it('should rank a credit below every positive expense when sorting the Amount column descending', () => {
+                expect(getAmountSortedIDs(CONST.SEARCH.SORT_ORDER.DESC)).toEqual([filterTestTxID, 'sort-small', 'sort-credit']);
+            });
+
+            it('should rank a credit above every positive expense when sorting the Amount column ascending', () => {
+                expect(getAmountSortedIDs(CONST.SEARCH.SORT_ORDER.ASC)).toEqual(['sort-credit', 'sort-small', filterTestTxID]);
+            });
         });
 
         describe('getReportSections filtering and edge cases', () => {
@@ -6489,6 +6858,7 @@ describe('SearchUIUtils', () => {
                         translate: translateLocal,
                         formatPhoneNumber,
                         bankAccountList: {},
+                        rules: undefined,
                         conciergeReportID: undefined,
                         ...options,
                         convertToDisplayString,
@@ -8159,6 +8529,7 @@ describe('SearchUIUtils', () => {
                     translate: translateLocal,
                     formatPhoneNumber,
                     bankAccountList: {},
+                    rules: undefined,
                     groupBy: CONST.SEARCH.GROUP_BY.TAG,
                     conciergeReportID: undefined,
                     convertToDisplayString,
@@ -9606,7 +9977,17 @@ describe('SearchUIUtils', () => {
         Onyx.merge(ONYXKEYS.SESSION, {accountID: overlimitApproverAccountID});
         searchResults.data[`policy_${policyID}`].role = CONST.POLICY.ROLE.USER;
         return waitForBatchedUpdates().then(() => {
-            let action = SearchUIUtils.getActions(searchResults.data, allViolations, `report_${reportID2}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, '', overlimitApproverAccountID, {}, {}).at(0);
+            let action = SearchUIUtils.getActions(
+                searchResults.data,
+                allViolations,
+                `report_${reportID2}`,
+                CONST.SEARCH.SEARCH_KEYS.EXPENSES,
+                '',
+                overlimitApproverAccountID,
+                {},
+                {},
+                undefined,
+            ).at(0);
             expect(action).toEqual(CONST.SEARCH.ACTION_TYPES.VIEW);
 
             action = SearchUIUtils.getActions(
@@ -9618,6 +9999,7 @@ describe('SearchUIUtils', () => {
                 overlimitApproverAccountID,
                 {},
                 {},
+                undefined,
             ).at(0);
             expect(action).toEqual(CONST.SEARCH.ACTION_TYPES.VIEW);
         });
@@ -9732,7 +10114,7 @@ describe('SearchUIUtils', () => {
             },
         };
         return waitForBatchedUpdates().then(() => {
-            const action = SearchUIUtils.getActions(result.data, allViolations, 'report_6523565988285061', CONST.SEARCH.SEARCH_KEYS.EXPENSES, '', adminAccountID, {}, {}).at(0);
+            const action = SearchUIUtils.getActions(result.data, allViolations, 'report_6523565988285061', CONST.SEARCH.SEARCH_KEYS.EXPENSES, '', adminAccountID, {}, {}, undefined).at(0);
             expect(action).toEqual(CONST.SEARCH.ACTION_TYPES.APPROVE);
         });
     });
@@ -12428,7 +12810,7 @@ describe('SearchUIUtils', () => {
 
             await Onyx.merge(ONYXKEYS.SESSION, {accountID: TEST_ACCOUNT_ID});
 
-            expect(SearchUIUtils.shouldShowDeleteOption(selectedTransactions, currentSearchResults, TEST_ACCOUNT_ID)).toBe(true);
+            expect(SearchUIUtils.shouldShowDeleteOption(selectedTransactions, currentSearchResults, TEST_ACCOUNT_ID, undefined)).toBe(true);
         });
 
         it('should show delete option for unreported expense which can be deleted', async () => {
@@ -12614,7 +12996,7 @@ describe('SearchUIUtils', () => {
 
             await Onyx.merge(ONYXKEYS.SESSION, {accountID: TEST_ACCOUNT_ID});
 
-            expect(SearchUIUtils.shouldShowDeleteOption(selectedTransactions, currentSearchResults, TEST_ACCOUNT_ID)).toBe(true);
+            expect(SearchUIUtils.shouldShowDeleteOption(selectedTransactions, currentSearchResults, TEST_ACCOUNT_ID, undefined)).toBe(true);
         });
     });
     describe('getToFieldValueForTransaction', () => {
@@ -12848,7 +13230,7 @@ describe('SearchUIUtils', () => {
     });
 
     describe('getHasOptions', () => {
-        test('returns expense has options including submitted violation', () => {
+        test('returns expense has options including submitted and approved violation', () => {
             const result = SearchUIUtils.getHasOptions(translateLocal, CONST.SEARCH.DATA_TYPES.EXPENSE);
 
             expect(result).toEqual([
@@ -12857,10 +13239,11 @@ describe('SearchUIUtils', () => {
                 {text: translateLocal('common.tag'), value: CONST.SEARCH.HAS_VALUES.TAG},
                 {text: translateLocal('common.category'), value: CONST.SEARCH.HAS_VALUES.CATEGORY},
                 {text: translateLocal('search.filters.has.submittedViolation'), value: CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION},
+                {text: translateLocal('search.filters.has.approvedViolation'), value: CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION},
             ]);
         });
 
-        test('returns chat has options without submitted violation', () => {
+        test('returns chat has options without submitted or approved violation', () => {
             const result = SearchUIUtils.getHasOptions(translateLocal, CONST.SEARCH.DATA_TYPES.CHAT);
 
             expect(result).toEqual([
@@ -12871,6 +13254,21 @@ describe('SearchUIUtils', () => {
 
         test('returns empty array for unsupported search types', () => {
             expect(SearchUIUtils.getHasOptions(translateLocal, CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT)).toEqual([]);
+        });
+
+        test('does not include approved-violation for non-expense search types', () => {
+            const nonExpenseTypes = [
+                CONST.SEARCH.DATA_TYPES.CHAT,
+                CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
+                CONST.SEARCH.DATA_TYPES.INVOICE,
+                CONST.SEARCH.DATA_TYPES.TASK,
+                CONST.SEARCH.DATA_TYPES.TRIP,
+            ];
+
+            for (const type of nonExpenseTypes) {
+                const result = SearchUIUtils.getHasOptions(translateLocal, type);
+                expect(result.some((option) => option.value === CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION)).toBe(false);
+            }
         });
     });
 
@@ -13053,11 +13451,262 @@ describe('SearchUIUtils', () => {
         });
     });
 
+    describe('getApprovedViolationsForTransaction', () => {
+        const transactionIDForViolations = 'tx-approved-violations-1';
+        const otherTransactionID = 'tx-approved-violations-2';
+
+        const createApprovalAction = (
+            actionName: typeof CONST.REPORT.ACTIONS.TYPE.FORWARDED | typeof CONST.REPORT.ACTIONS.TYPE.APPROVED,
+            violations?: {transactions: Record<string, Array<{name: string}>>},
+            reportActionID = 'approval-action-1',
+        ): OnyxTypes.ReportAction =>
+            ({
+                reportActionID,
+                actionName,
+                created: '2025-01-01 00:00:00',
+                originalMessage: {
+                    amount: 1000,
+                    currency: CONST.CURRENCY.USD,
+                    expenseReportID: '1',
+                    ...(violations ? {violations} : {}),
+                },
+            }) as OnyxTypes.ReportAction;
+
+        test('returns undefined when reportActions or transactionID is missing', () => {
+            expect(SearchUIUtils.getApprovedViolationsForTransaction(undefined, transactionIDForViolations, translateLocal)).toBeUndefined();
+            expect(SearchUIUtils.getApprovedViolationsForTransaction([], transactionIDForViolations, translateLocal)).toBeUndefined();
+            expect(SearchUIUtils.getApprovedViolationsForTransaction([createApprovalAction(CONST.REPORT.ACTIONS.TYPE.FORWARDED)], undefined, translateLocal)).toBeUndefined();
+        });
+
+        test('ignores report actions that are not APPROVED or FORWARDED', () => {
+            const submittedAction = {
+                reportActionID: 'submit-1',
+                actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
+                created: '2025-01-01 00:00:00',
+                originalMessage: {
+                    amount: 1000,
+                    currency: CONST.CURRENCY.USD,
+                    violations: {
+                        transactions: {
+                            [transactionIDForViolations]: [{name: CONST.VIOLATIONS.MISSING_CATEGORY}],
+                        },
+                    },
+                },
+            } as OnyxTypes.ReportAction;
+
+            expect(SearchUIUtils.getApprovedViolationsForTransaction([submittedAction], transactionIDForViolations, translateLocal)).toBeUndefined();
+        });
+
+        test('returns comma-separated translated violation labels from a FORWARDED action', () => {
+            const forwardedAction = createApprovalAction(CONST.REPORT.ACTIONS.TYPE.FORWARDED, {
+                transactions: {
+                    [transactionIDForViolations]: [{name: CONST.VIOLATIONS.MISSING_CATEGORY}, {name: CONST.VIOLATIONS.MISSING_COMMENT}],
+                },
+            });
+
+            expect(SearchUIUtils.getApprovedViolationsForTransaction([forwardedAction], transactionIDForViolations, translateLocal)).toBe(
+                `${translateLocal('violations.shortName.missingCategory')}, ${translateLocal('violations.shortName.missingComment')}`,
+            );
+        });
+
+        test('returns comma-separated translated violation labels from an APPROVED action', () => {
+            const approvedAction = createApprovalAction(CONST.REPORT.ACTIONS.TYPE.APPROVED, {
+                transactions: {
+                    [transactionIDForViolations]: [{name: CONST.VIOLATIONS.MISSING_CATEGORY}, {name: CONST.VIOLATIONS.OVER_LIMIT}],
+                },
+            });
+
+            expect(SearchUIUtils.getApprovedViolationsForTransaction([approvedAction], transactionIDForViolations, translateLocal)).toBe(
+                `${translateLocal('violations.shortName.missingCategory')}, ${translateLocal('violations.shortName.overLimit')}`,
+            );
+        });
+
+        test('aggregates across APPROVED and FORWARDED actions and dedupes by name', () => {
+            const forwardedAction = createApprovalAction(
+                CONST.REPORT.ACTIONS.TYPE.FORWARDED,
+                {
+                    transactions: {
+                        [transactionIDForViolations]: [{name: CONST.VIOLATIONS.MISSING_CATEGORY}, {name: CONST.VIOLATIONS.MISSING_TAG}],
+                    },
+                },
+                'forward-1',
+            );
+            const approvedAction = createApprovalAction(
+                CONST.REPORT.ACTIONS.TYPE.APPROVED,
+                {
+                    transactions: {
+                        [transactionIDForViolations]: [{name: CONST.VIOLATIONS.MISSING_CATEGORY}, {name: CONST.VIOLATIONS.RECEIPT_REQUIRED}],
+                    },
+                },
+                'approved-1',
+            );
+
+            expect(SearchUIUtils.getApprovedViolationsForTransaction([forwardedAction, approvedAction], transactionIDForViolations, translateLocal)).toBe(
+                `${translateLocal('violations.shortName.missingCategory')}, ${translateLocal('violations.shortName.missingTag')}, ${translateLocal('violations.shortName.receiptRequired')}`,
+            );
+        });
+
+        test('omits receiptRequired when itemizedReceiptRequired is also present', () => {
+            const forwardedAction = createApprovalAction(CONST.REPORT.ACTIONS.TYPE.FORWARDED, {
+                transactions: {
+                    [transactionIDForViolations]: [{name: CONST.VIOLATIONS.RECEIPT_REQUIRED}, {name: CONST.VIOLATIONS.ITEMIZED_RECEIPT_REQUIRED}],
+                },
+            });
+
+            expect(SearchUIUtils.getApprovedViolationsForTransaction([forwardedAction], transactionIDForViolations, translateLocal)).toBe(
+                translateLocal('violations.shortName.itemizedReceiptRequired'),
+            );
+        });
+
+        test('falls back to the raw identifier when no short-name translation exists', () => {
+            const unknownViolationName = 'unknownApprovedViolation';
+            const forwardedAction = createApprovalAction(CONST.REPORT.ACTIONS.TYPE.FORWARDED, {
+                transactions: {
+                    [transactionIDForViolations]: [{name: unknownViolationName}],
+                },
+            });
+
+            expect(SearchUIUtils.getApprovedViolationsForTransaction([forwardedAction], transactionIDForViolations, translateLocal)).toBe(unknownViolationName);
+        });
+
+        test('ignores violations for other transaction IDs', () => {
+            const forwardedAction = createApprovalAction(CONST.REPORT.ACTIONS.TYPE.FORWARDED, {
+                transactions: {
+                    [otherTransactionID]: [{name: CONST.VIOLATIONS.MISSING_CATEGORY}],
+                },
+            });
+
+            expect(SearchUIUtils.getApprovedViolationsForTransaction([forwardedAction], transactionIDForViolations, translateLocal)).toBeUndefined();
+        });
+
+        test('returns undefined when approval actions have no violations for the transaction', () => {
+            const forwardedAction = createApprovalAction(CONST.REPORT.ACTIONS.TYPE.FORWARDED, {
+                transactions: {
+                    [transactionIDForViolations]: [],
+                },
+            });
+            const approvedActionWithoutViolations = createApprovalAction(CONST.REPORT.ACTIONS.TYPE.APPROVED);
+
+            expect(SearchUIUtils.getApprovedViolationsForTransaction([forwardedAction], transactionIDForViolations, translateLocal)).toBeUndefined();
+            expect(SearchUIUtils.getApprovedViolationsForTransaction([approvedActionWithoutViolations], transactionIDForViolations, translateLocal)).toBeUndefined();
+        });
+    });
+
+    describe('getViolationsForTransaction', () => {
+        const transactionIDForViolations = 'tx-has-violations-1';
+
+        const createSubmittedAction = (violations?: {transactions: Record<string, Array<{name: string}>>}): OnyxTypes.ReportAction =>
+            ({
+                reportActionID: 'submit-action-1',
+                actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
+                created: '2025-01-01 00:00:00',
+                originalMessage: {
+                    amount: 1000,
+                    currency: CONST.CURRENCY.USD,
+                    ...(violations ? {violations} : {}),
+                },
+            }) as OnyxTypes.ReportAction;
+
+        const createApprovedAction = (violations?: {transactions: Record<string, Array<{name: string}>>}): OnyxTypes.ReportAction =>
+            ({
+                reportActionID: 'approved-action-1',
+                actionName: CONST.REPORT.ACTIONS.TYPE.APPROVED,
+                created: '2025-01-01 00:00:00',
+                originalMessage: {
+                    amount: 1000,
+                    currency: CONST.CURRENCY.USD,
+                    expenseReportID: '1',
+                    ...(violations ? {violations} : {}),
+                },
+            }) as OnyxTypes.ReportAction;
+
+        test('returns undefined when the has filter does not include submitted or approved violation', () => {
+            const reportActions = [
+                createSubmittedAction({
+                    transactions: {
+                        [transactionIDForViolations]: [{name: CONST.VIOLATIONS.MISSING_CATEGORY}],
+                    },
+                }),
+            ];
+
+            expect(SearchUIUtils.getViolationsForTransaction(reportActions, transactionIDForViolations, undefined, translateLocal)).toBeUndefined();
+            expect(SearchUIUtils.getViolationsForTransaction(reportActions, transactionIDForViolations, [CONST.SEARCH.HAS_VALUES.RECEIPT], translateLocal)).toBeUndefined();
+        });
+
+        test('returns only submitted violations when the has filter is submitted-violation', () => {
+            const reportActions = [
+                createSubmittedAction({
+                    transactions: {
+                        [transactionIDForViolations]: [{name: CONST.VIOLATIONS.MISSING_CATEGORY}],
+                    },
+                }),
+                createApprovedAction({
+                    transactions: {
+                        [transactionIDForViolations]: [{name: CONST.VIOLATIONS.MISSING_COMMENT}],
+                    },
+                }),
+            ];
+
+            expect(SearchUIUtils.getViolationsForTransaction(reportActions, transactionIDForViolations, [CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION], translateLocal)).toBe(
+                translateLocal('violations.shortName.missingCategory'),
+            );
+        });
+
+        test('returns only approved violations when the has filter is approved-violation', () => {
+            const reportActions = [
+                createSubmittedAction({
+                    transactions: {
+                        [transactionIDForViolations]: [{name: CONST.VIOLATIONS.MISSING_CATEGORY}],
+                    },
+                }),
+                createApprovedAction({
+                    transactions: {
+                        [transactionIDForViolations]: [{name: CONST.VIOLATIONS.MISSING_COMMENT}],
+                    },
+                }),
+            ];
+
+            expect(SearchUIUtils.getViolationsForTransaction(reportActions, transactionIDForViolations, [CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION], translateLocal)).toBe(
+                translateLocal('violations.shortName.missingComment'),
+            );
+        });
+
+        test('combines submitted and approved violations and removes duplicates', () => {
+            const reportActions = [
+                createSubmittedAction({
+                    transactions: {
+                        [transactionIDForViolations]: [{name: CONST.VIOLATIONS.MISSING_CATEGORY}, {name: CONST.VIOLATIONS.MISSING_TAG}],
+                    },
+                }),
+                createApprovedAction({
+                    transactions: {
+                        [transactionIDForViolations]: [{name: CONST.VIOLATIONS.MISSING_CATEGORY}, {name: CONST.VIOLATIONS.OVER_LIMIT}],
+                    },
+                }),
+            ];
+
+            expect(
+                SearchUIUtils.getViolationsForTransaction(
+                    reportActions,
+                    transactionIDForViolations,
+                    [CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION, CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION],
+                    translateLocal,
+                ),
+            ).toBe(`${translateLocal('violations.shortName.missingCategory')}, ${translateLocal('violations.shortName.missingTag')}, ${translateLocal('violations.shortName.overLimit')}`);
+        });
+    });
+
     describe('getDisplayValue', () => {
         test('returns translated has option labels from getHasOptions', () => {
             const result = SearchUIUtils.getDisplayValue('has', {has: [CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION]}, CONST.SEARCH.DATA_TYPES.EXPENSE, translateLocal, localeCompare);
 
             expect(result).toBe(translateLocal('search.filters.has.submittedViolation'));
+        });
+
+        test('returns translated approved violation has option label', () => {
+            const result = SearchUIUtils.getDisplayValue('has', {has: [CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION]}, CONST.SEARCH.DATA_TYPES.EXPENSE, translateLocal, localeCompare);
+
+            expect(result).toBe(translateLocal('search.filters.has.approvedViolation'));
         });
 
         test('returns multiple has option labels joined by comma', () => {
@@ -13086,12 +13735,18 @@ describe('SearchUIUtils', () => {
         });
 
         test('should filter and return only valid hasValues', () => {
-            // Valid values for EXPENSE: receipt, attachment, tag, category, submitted-violation
+            // Valid values for EXPENSE: receipt, attachment, tag, category, submitted-violation, approved-violation
             // Invalid value: link (only valid for CHAT)
-            const hasValues = [CONST.SEARCH.HAS_VALUES.RECEIPT, CONST.SEARCH.HAS_VALUES.TAG, CONST.SEARCH.HAS_VALUES.LINK, CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION];
+            const hasValues = [
+                CONST.SEARCH.HAS_VALUES.RECEIPT,
+                CONST.SEARCH.HAS_VALUES.TAG,
+                CONST.SEARCH.HAS_VALUES.LINK,
+                CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION,
+                CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION,
+            ];
             const result = SearchUIUtils.filterValidHasValues(hasValues, CONST.SEARCH.DATA_TYPES.EXPENSE, translateLocal);
 
-            expect(result).toEqual([CONST.SEARCH.HAS_VALUES.RECEIPT, CONST.SEARCH.HAS_VALUES.TAG, CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION]);
+            expect(result).toEqual([CONST.SEARCH.HAS_VALUES.RECEIPT, CONST.SEARCH.HAS_VALUES.TAG, CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION, CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION]);
         });
     });
 
@@ -13289,6 +13944,53 @@ describe('SearchUIUtils', () => {
             expect(SearchUIUtils.isTextFilterKey('')).toBe(false);
         });
     });
+
+    describe('searchKeyToSavedSearchID', () => {
+        it('strips the prefix to recover the saved search ID', () => {
+            expect(SearchUIUtils.searchKeyToSavedSearchID(`${CONST.SEARCH.SAVED_SEARCH_PREFIX}12345`)).toBe('12345');
+        });
+
+        it('returns undefined for a non saved-search key', () => {
+            expect(SearchUIUtils.searchKeyToSavedSearchID(CONST.SEARCH.SEARCH_KEYS.EXPENSES)).toBeUndefined();
+        });
+
+        it('returns undefined when the key is undefined', () => {
+            expect(SearchUIUtils.searchKeyToSavedSearchID(undefined)).toBeUndefined();
+        });
+    });
+
+    describe('savedSearchIDToSearchKey', () => {
+        it('prefixes a saved search ID to build a search key', () => {
+            expect(SearchUIUtils.savedSearchIDToSearchKey('12345')).toBe(`${CONST.SEARCH.SAVED_SEARCH_PREFIX}12345`);
+        });
+    });
+
+    describe('mapFiltersFormToLabelValueList', () => {
+        const convertToDisplayStringWithoutCurrency = jest.fn((amount = 0) => `${amount}`);
+
+        it('places default filters before non-default filters', () => {
+            const form = {
+                [CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD]: 'hotel',
+                [CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT]: 'Amazon',
+            };
+            const defaultKeys = new Set<SearchFilterKey>([CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT]);
+
+            const result = SearchUIUtils.mapFiltersFormToLabelValueList(
+                form,
+                defaultKeys,
+                new Set(),
+                translateLocal,
+                undefined,
+                localeCompare,
+                convertToDisplayStringWithoutCurrency,
+                (filterKey, isDefault) => ({isDefault}),
+            );
+
+            expect(result.map((filter) => filter.key)).toEqual([CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT, CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD]);
+            expect(result.at(0)?.isDefault).toBe(true);
+            expect(result.at(1)?.isDefault).toBe(false);
+        });
+    });
 });
 
 describe('getCardDescriptionForSearchTable', () => {
@@ -13469,6 +14171,54 @@ describe('splitGroupsIntoPairs', () => {
     });
 });
 
+describe('getLastSearchQuery', () => {
+    const submitKey = CONST.SEARCH.SEARCH_KEYS.SUBMIT;
+    const savedSearchKey = SearchUIUtils.savedSearchIDToSearchKey('100');
+    const submitQuery = `type:${CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT} merchant:Zulu`;
+    const savedSearchQuery = `type:${CONST.SEARCH.DATA_TYPES.EXPENSE} merchant:Starbucks`;
+
+    const searchFilters: OnyxTypes.SearchFilters = {
+        [submitKey]: {query: submitQuery, timestamp: '2026-08-21 00:00:00.000'},
+        [savedSearchKey]: {query: savedSearchQuery, timestamp: '2026-08-21 00:00:00.000'},
+        [CONST.SEARCH.SEARCH_KEYS.EXPENSES]: {query: `type:${CONST.SEARCH.DATA_TYPES.EXPENSE}`, timestamp: '2026-08-21 00:00:00.000'},
+        [CONST.SEARCH.SEARCH_KEYS.REPORTS]: {query: `type:${CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT}`, timestamp: '2026-08-21 00:00:00.000'},
+        [CONST.SEARCH.SEARCH_KEYS.EXPORT]: {query: `type:${CONST.SEARCH.DATA_TYPES.EXPENSE} exported:false`, timestamp: '2026-08-21 00:00:00.000'},
+        [CONST.SEARCH.SEARCH_KEYS.STATEMENTS]: {query: `type:${CONST.SEARCH.DATA_TYPES.EXPENSE} feed:Expensify`, timestamp: '2026-08-21 00:00:00.000'},
+        [CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CASH]: {query: `type:${CONST.SEARCH.DATA_TYPES.EXPENSE} reimbursable:true`, timestamp: '2026-08-21 00:00:00.000'},
+        [CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CARD]: {query: `type:${CONST.SEARCH.DATA_TYPES.EXPENSE} reimbursable:false`, timestamp: '2026-08-21 00:00:00.000'},
+        [CONST.SEARCH.SEARCH_KEYS.RECONCILIATION]: {query: `type:${CONST.SEARCH.DATA_TYPES.EXPENSE} posted:2026-08`, timestamp: '2026-08-21 00:00:00.000'},
+        [CONST.SEARCH.SEARCH_KEYS.TOP_SPENDERS]: {query: `type:${CONST.SEARCH.DATA_TYPES.EXPENSE} groupBy:from`, timestamp: '2026-08-21 00:00:00.000'},
+        [CONST.SEARCH.SEARCH_KEYS.TOP_CATEGORIES]: {query: `type:${CONST.SEARCH.DATA_TYPES.EXPENSE} groupBy:category`, timestamp: '2026-08-21 00:00:00.000'},
+        [CONST.SEARCH.SEARCH_KEYS.TOP_MERCHANTS]: {query: `type:${CONST.SEARCH.DATA_TYPES.EXPENSE} groupBy:merchant`, timestamp: '2026-08-21 00:00:00.000'},
+        [CONST.SEARCH.SEARCH_KEYS.SPEND_OVER_TIME]: {query: `type:${CONST.SEARCH.DATA_TYPES.EXPENSE} groupBy:month`, timestamp: '2026-08-21 00:00:00.000'},
+        [CONST.SEARCH.SEARCH_KEYS.VIOLATIONS_BY_SUBMITTER]: {
+            query: `type:${CONST.SEARCH.DATA_TYPES.EXPENSE} groupBy:${CONST.SEARCH.GROUP_BY.FROM} has:${CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION}`,
+            timestamp: '2026-08-21 00:00:00.000',
+        },
+        // Legacy string format, kept for the assertions below.
+        [CONST.SEARCH.SEARCH_KEYS.APPROVE]: `type:${CONST.SEARCH.DATA_TYPES.EXPENSE} merchant:Amazon`,
+        [CONST.SEARCH.SEARCH_KEYS.PAY]: `type:${CONST.SEARCH.DATA_TYPES.EXPENSE} merchant:Uber`,
+    };
+
+    it('returns the query of the filter stored for the search key', () => {
+        expect(SearchUIUtils.getLastSearchQuery(searchFilters, submitKey)).toBe(submitQuery);
+        expect(SearchUIUtils.getLastSearchQuery(searchFilters, savedSearchKey)).toBe(savedSearchQuery);
+    });
+
+    it('returns undefined for a filter stored in the legacy string format', () => {
+        expect(SearchUIUtils.getLastSearchQuery(searchFilters, CONST.SEARCH.SEARCH_KEYS.APPROVE)).toBeUndefined();
+        expect(SearchUIUtils.getLastSearchQuery(searchFilters, CONST.SEARCH.SEARCH_KEYS.PAY)).toBeUndefined();
+    });
+
+    it('returns undefined when the search key has no filter', () => {
+        expect(SearchUIUtils.getLastSearchQuery(searchFilters, SearchUIUtils.savedSearchIDToSearchKey('200'))).toBeUndefined();
+    });
+
+    it('returns undefined when there are no filters at all', () => {
+        expect(SearchUIUtils.getLastSearchQuery(undefined, submitKey)).toBeUndefined();
+    });
+});
+
 describe('getSavedSearchIconName', () => {
     it.each([
         [CONST.SEARCH.DATA_TYPES.EXPENSE, 'type:expense', 'ReceiptBookmark'],
@@ -13502,5 +14252,99 @@ describe('getSavedSearchIconName', () => {
         // The guard short-circuits before buildSearchQueryJSON, so no parse (and no console error) happens.
         expect(spy).not.toHaveBeenCalled();
         spy.mockRestore();
+    });
+});
+
+describe('hasFilterContentValuesChanged', () => {
+    const SYNTAX_FILTER_KEYS = CONST.SEARCH.SYNTAX_FILTER_KEYS;
+    type FilterKey = Parameters<typeof SearchUIUtils.hasFilterContentValuesChanged>[0];
+    type FilterValues = Parameters<typeof SearchUIUtils.hasFilterContentValuesChanged>[1];
+    type ContentValuesCase = {
+        /** The kind of content the filter is given, which decides what it reads. */
+        kind: string;
+
+        /** The filter whose content is being judged. */
+        filterKey: FilterKey;
+
+        /** Two forms differing only in something that content reads. */
+        read: [FilterValues, FilterValues];
+
+        /** Two forms differing only in something it does not, where there is such a thing. */
+        ignored?: [FilterValues, FilterValues];
+    };
+
+    // One case per kind of content, because each is handed a different slice of the form.
+    const contentValuesCases: ContentValuesCase[] = [
+        {
+            kind: 'list',
+            filterKey: SYNTAX_FILTER_KEYS.FROM,
+            read: [{[SYNTAX_FILTER_KEYS.FROM]: ['1']}, {[SYNTAX_FILTER_KEYS.FROM]: ['2']}],
+            ignored: [{[SYNTAX_FILTER_KEYS.FROM]: ['1']}, {[SYNTAX_FILTER_KEYS.FROM]: ['1'], [SYNTAX_FILTER_KEYS.TO]: ['2']}],
+        },
+        {
+            kind: 'list, negated',
+            filterKey: SYNTAX_FILTER_KEYS.FROM,
+            // Built the way the content builds it, so the negated key cannot drift.
+            read: [SearchQueryUtils.getFilterFormValues(SYNTAX_FILTER_KEYS.FROM, ['1'], false), SearchQueryUtils.getFilterFormValues(SYNTAX_FILTER_KEYS.FROM, ['1'], true)],
+        },
+        {
+            kind: 'list, reading the search type it offers options for',
+            filterKey: SYNTAX_FILTER_KEYS.CATEGORY,
+            read: [{type: CONST.SEARCH.DATA_TYPES.EXPENSE}, {type: CONST.SEARCH.DATA_TYPES.INVOICE}],
+        },
+        {
+            kind: 'list, reading the workspace that narrows its options',
+            filterKey: SYNTAX_FILTER_KEYS.CATEGORY,
+            read: [{[SYNTAX_FILTER_KEYS.POLICY_ID]: ['1']}, {[SYNTAX_FILTER_KEYS.POLICY_ID]: ['2']}],
+        },
+        {
+            kind: 'text',
+            filterKey: SYNTAX_FILTER_KEYS.MERCHANT,
+            read: [{[SYNTAX_FILTER_KEYS.MERCHANT]: 'a'}, {[SYNTAX_FILTER_KEYS.MERCHANT]: 'b'}],
+            // A text content offers no options, so the search type is nothing to it.
+            ignored: [{[SYNTAX_FILTER_KEYS.MERCHANT]: 'a'}, {[SYNTAX_FILTER_KEYS.MERCHANT]: 'a', type: CONST.SEARCH.DATA_TYPES.INVOICE}],
+        },
+        {
+            kind: 'amount',
+            filterKey: SYNTAX_FILTER_KEYS.AMOUNT,
+            read: [
+                {[`${SYNTAX_FILTER_KEYS.AMOUNT}${CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN}`]: '10'},
+                {[`${SYNTAX_FILTER_KEYS.AMOUNT}${CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN}`]: '20'},
+            ],
+            ignored: [
+                {[`${SYNTAX_FILTER_KEYS.AMOUNT}${CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN}`]: '10'},
+                {[`${SYNTAX_FILTER_KEYS.AMOUNT}${CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN}`]: '10', type: CONST.SEARCH.DATA_TYPES.INVOICE},
+            ],
+        },
+        {
+            kind: 'date',
+            filterKey: SYNTAX_FILTER_KEYS.DATE,
+            read: [{[`${SYNTAX_FILTER_KEYS.DATE}${CONST.SEARCH.DATE_MODIFIERS.AFTER}`]: '2026-01-01'}, {[`${SYNTAX_FILTER_KEYS.DATE}${CONST.SEARCH.DATE_MODIFIERS.AFTER}`]: '2026-02-01'}],
+            ignored: [
+                {[`${SYNTAX_FILTER_KEYS.DATE}${CONST.SEARCH.DATE_MODIFIERS.AFTER}`]: '2026-01-01'},
+                {[`${SYNTAX_FILTER_KEYS.DATE}${CONST.SEARCH.DATE_MODIFIERS.AFTER}`]: '2026-01-01', type: CONST.SEARCH.DATA_TYPES.INVOICE},
+            ],
+        },
+        {
+            // The date content offers card periods only when a feed is picked, so it reads whether one is.
+            kind: 'date, reading whether a feed is picked',
+            filterKey: SYNTAX_FILTER_KEYS.DATE,
+            read: [{}, {[SYNTAX_FILTER_KEYS.FEED]: ['1']}],
+            ignored: [{[SYNTAX_FILTER_KEYS.FEED]: ['1']}, {[SYNTAX_FILTER_KEYS.FEED]: ['2']}],
+        },
+        {
+            // The report field content is handed the whole form, so nothing in it is outside what it reads.
+            kind: 'report field',
+            filterKey: SYNTAX_FILTER_KEYS.REPORT_FIELD,
+            read: [{[SYNTAX_FILTER_KEYS.MERCHANT]: 'a'}, {[SYNTAX_FILTER_KEYS.MERCHANT]: 'b'}],
+        },
+    ];
+
+    it.each(contentValuesCases)('$kind: reports a change to what it reads and none to what it does not', ({filterKey, read, ignored}) => {
+        expect(SearchUIUtils.hasFilterContentValuesChanged(filterKey, read.at(0), read.at(1))).toBe(true);
+
+        if (ignored) {
+            expect(SearchUIUtils.hasFilterContentValuesChanged(filterKey, ignored.at(0), ignored.at(1))).toBe(false);
+        }
     });
 });

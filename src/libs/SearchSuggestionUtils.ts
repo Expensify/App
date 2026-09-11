@@ -145,7 +145,7 @@ function getSuggestedSearches(
     defaultFeedID?: string,
     shouldShowExpensifyCard?: boolean,
     activeExpensifyCardFeedID?: string,
-): Record<ValueOf<typeof CONST.SEARCH.SEARCH_KEYS>, SearchTypeMenuItem> {
+): Record<SearchKey, SearchTypeMenuItem> {
     // Card accruals (UNAPPROVED_CARD) defaults to the active workspace's Expensify Card when it has one,
     // falling back to the company/bank feed otherwise. Other feed-based searches keep using `defaultFeedID`.
     const unapprovedCardFeedID = activeExpensifyCardFeedID ?? defaultFeedID;
