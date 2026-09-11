@@ -24,7 +24,8 @@ function SearchColumnsPage() {
     const allGroupCustomColumns = getCustomColumns(groupBy);
     const defaultGroupCustomColumns = getCustomColumnDefault(groupBy);
     const defaultTypeCustomColumns = [...getCustomColumnDefault(queryType)];
-    const shouldRequireViolationsColumn = !!searchAdvancedFiltersForm?.has?.includes(CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION);
+    const shouldRequireViolationsColumn =
+        !!searchAdvancedFiltersForm?.has?.includes(CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION) || !!searchAdvancedFiltersForm?.has?.includes(CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION);
 
     const currentColumns = [...(searchAdvancedFiltersForm?.columns ?? [])];
 

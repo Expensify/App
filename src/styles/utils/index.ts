@@ -1042,19 +1042,23 @@ function getBaseAutoCompleteSuggestionContainerStyle({left, bottom, width}: GetB
 
 const shouldPreventScroll = shouldPreventScrollOnAutoCompleteSuggestion();
 
+const suggestionContainerBorderWidth = 2;
+const suggestionContainerChromeHeight = 2 * CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTER_INNER_PADDING + (shouldPreventScroll ? suggestionContainerBorderWidth : 0);
+
 /**
  * Gets the correct position for auto complete suggestion container
  */
 function getAutoCompleteSuggestionContainerStyle(itemsHeight: number): ViewStyle {
     'worklet';
 
-    const borderWidth = 2;
-    const height = itemsHeight + 2 * CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTER_INNER_PADDING + (shouldPreventScroll ? borderWidth : 0);
-
     return {
-        height,
+        height: itemsHeight + suggestionContainerChromeHeight,
         minHeight: CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTION_ROW_HEIGHT,
     };
+}
+
+function getAutoCompleteSuggestionContainerHeight(itemsHeight: number): number {
+    return itemsHeight + suggestionContainerChromeHeight;
 }
 
 function getEmojiReactionBubbleTextStyle(isContextMenu = false): TextStyle {
@@ -1414,6 +1418,7 @@ const staticStyleUtils = {
     displayIfTrue,
     getAmountFontSizeAndLineHeight,
     getAmountInputFontSize,
+    getAutoCompleteSuggestionContainerHeight,
     getAutoCompleteSuggestionContainerStyle,
     getAvatarBorderRadius,
     getAvatarBorderStyle,
@@ -1643,19 +1648,6 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
             return theme.badgeDangerText;
         }
         return theme.icon;
-    },
-
-    getEnvironmentBadgeStyle: (isSuccess: boolean, isError: boolean, isAdhoc: boolean): ViewStyle => {
-        if (isAdhoc) {
-            return styles.badgeAdHocSuccess;
-        }
-        if (isSuccess) {
-            return styles.badgeEnvironmentSuccess;
-        }
-        if (isError) {
-            return styles.badgeEnvironmentDanger;
-        }
-        return {};
     },
 
     /**
@@ -2468,9 +2460,15 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
         paddingBottom: safeAreaPaddingBottom,
         backgroundColor: theme.appBG,
     }),
+
+    getStyleWithEnvSafeAreaPadding: (style: ViewStyle): ViewStyle => ({
+        ...style,
+        paddingLeft: 'env(safe-area-inset-left)',
+        paddingRight: 'env(safe-area-inset-right)',
+    }),
 });
 
 type StyleUtilsType = ReturnType<typeof createStyleUtils>;
 
 export default createStyleUtils;
-export type {StyleUtilsType, AvatarShape, AvatarSizeName};
+export type {StyleUtilsType, AvatarShape, GetReportTableColumnStylesParams, AvatarSizeName};

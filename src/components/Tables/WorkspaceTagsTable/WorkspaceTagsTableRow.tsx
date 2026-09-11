@@ -21,13 +21,8 @@ import {View} from 'react-native';
 import type {WorkspaceTagTableRowData} from '.';
 
 type WorkspaceTagsTableRowProps = {
-    /** Data about the tag or tag list */
     item: WorkspaceTagTableRowData;
-
-    /** The index of the row relative to all other rows */
     rowIndex: number;
-
-    /** Whether to use narrow table row layout */
     shouldUseNarrowTableLayout: boolean;
 
     /** Whether the GL Code column is visible on web screens or not */
@@ -66,16 +61,15 @@ export default function WorkspaceTagsTableRow({
         item.name,
         tagCountSubtitle,
         enabledStatusLabel,
-        item.showRequiredSwitch && item.required ? translate('common.required') : null,
         shouldShowGLCodeColumn && item.glCode ? `${translate('workspace.tags.glCode')}: ${item.glCode}` : null,
         shouldShowApproverColumn && item.approverDisplayName ? `${translate('common.approver')}: ${item.approverDisplayName}` : null,
     ]
         .filter(Boolean)
         .join(', ');
 
-    const switchValue = item.showRequiredSwitch ? !!item.required : item.enabled;
-    const switchAccessibilityLabel = item.showRequiredSwitch ? translate('workspace.tags.requiresTag') : translate('workspace.tags.enableTag');
-    const handleSwitchToggle = item.showRequiredSwitch ? item.onToggleRequired : item.onToggleEnabled;
+    const switchValue = item.enabled;
+    const switchAccessibilityLabel = translate('workspace.tags.enableTag');
+    const handleSwitchToggle = item.onToggleEnabled;
     const isSwitchControlDisabled = !!item.disabled || !!item.isSwitchDisabled;
 
     return (
@@ -160,7 +154,7 @@ export default function WorkspaceTagsTableRow({
                         </View>
                     )}
 
-                    {(item.showEnabledSwitch || item.showRequiredSwitch) && !!handleSwitchToggle && (
+                    {item.showEnabledSwitch && !!handleSwitchToggle && (
                         <View
                             style={[styles.justifyContentCenter, styles.alignItemsEnd]}
                             {...getCellAccessibilityProps(isTableSemanticsEnabled)}

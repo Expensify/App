@@ -96,16 +96,12 @@ type PaymentMethodListProps = {
     /** List container style */
     style?: StyleProp<ViewStyle>;
 
-    /** List item style */
     listItemStyle?: StyleProp<ViewStyle>;
 
     /** Whether the add bank account button should be shown on the list */
     shouldShowAddBankAccount?: boolean;
 
-    /** Additional style for the add bank account item */
     addBankAccountItemStyle?: StyleProp<ViewStyle>;
-
-    /** Whether the assigned cards should be shown on the list */
     shouldShowAssignedCards?: boolean;
 
     /** Whether connection statuses and sync details should be shown */
@@ -126,22 +122,14 @@ type PaymentMethodListProps = {
     /** Whether the bank accounts should be displayed in private and business sections */
     shouldShowBankAccountSections?: boolean;
 
-    /** The policy ID associated with the workspace, if component is rendered in workspace context */
-    policyID?: string;
-
     /** Function to be called when the user presses the add bank account button */
     onAddBankAccountPress?: () => void;
 
     /** The icon to be displayed in the right side of the payment method item */
     itemIconRight?: IconAsset;
 
-    /** Type of payment method to filter by */
     filterType?: ValueOf<typeof CONST.BANK_ACCOUNT.TYPE>;
-
-    /* Currency of payment method to filter by */
     filterCurrency?: string;
-
-    /** Account states to exclude from the list */
     excludeStates?: Array<ValueOf<typeof CONST.BANK_ACCOUNT.STATE>>;
 
     /** Bank account ID of an account that we do not want to show (i.e. it's already connected) */
@@ -150,10 +138,7 @@ type PaymentMethodListProps = {
     /** Whether to show the default badge for the payment method */
     shouldHideDefaultBadge?: boolean;
 
-    /** Optional array of menu items to be displayed in the three dots menu */
     threeDotsMenuItems?: PopoverMenuItem[];
-
-    /** Callback for when the three dots menu is pressed */
     onThreeDotsMenuPress?: PaymentMethodPressHandler | CardPressHandler;
 };
 
@@ -194,7 +179,6 @@ function PaymentMethodList({
     shouldShowRightIcon = true,
     invoiceTransferBankAccountID,
     shouldShowBankAccountSections = false,
-    policyID = '',
     onAddBankAccountPress = () => {},
     itemIconRight,
     filterType,
@@ -645,12 +629,7 @@ function PaymentMethodList({
 
     const onPressItem = () => {
         if (!isUserValidated && !shouldSkipDefaultAccountValidation) {
-            const path = Navigation.getActiveRoute();
-            if (path.includes(ROUTES.WORKSPACES_LIST.route) && policyID) {
-                Navigation.navigate(ROUTES.WORKSPACE_INVOICES_VERIFY_ACCOUNT.getRoute(policyID));
-            } else {
-                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.ADD_BANK_ACCOUNT_VERIFY_ACCOUNT.path));
-            }
+            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.ADD_BANK_ACCOUNT_VERIFY_ACCOUNT.path));
             return;
         }
         onAddBankAccountPress();

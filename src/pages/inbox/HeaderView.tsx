@@ -1,6 +1,6 @@
 import ReportAvatar from '@components/Avatar/connected/ReportAvatar';
 import BookCallButton from '@components/BookCallButton';
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import CaretWrapper from '@components/CaretWrapper';
 import ChronosTimerHeaderButton from '@components/ChronosTimerHeaderButton';
 import DisplayNames from '@components/DisplayNames';
@@ -36,7 +36,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Parser from '@libs/Parser';
 import {getPersonalDetailByEmail, getPersonalDetailsForAccountIDs} from '@libs/PersonalDetailsUtils';
-import {getHumanAgentAccountIDFromReportAction, getHumanAgentFirstName} from '@libs/ReportActionsUtils';
+import {getHumanAgentAccountIDFromReportAction, getHumanAgentFirstName, isTransactionThread} from '@libs/ReportActionsUtils';
 import {getReportNameFromNames} from '@libs/ReportAttributesUtils';
 import {getReportName} from '@libs/ReportNameUtils';
 import {
@@ -101,7 +101,6 @@ type HeaderViewProps = {
     /** Toggles the navigationMenu open and closed */
     onNavigationMenuButtonClicked: () => void;
 
-    /** The reportID of the current report */
     reportID: string | undefined;
 };
 
@@ -137,6 +136,7 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
     const isReportArchived = isArchivedReport(reportNameValuePairs);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
     const {translate, localeCompare, formatPhoneNumber} = useLocalize();
     const theme = useTheme();
@@ -161,9 +161,9 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
     const isChatRoom = isChatRoomReportUtils(report);
     const isPolicyExpenseChat = isPolicyExpenseChatReportUtils(report);
     const isTaskReport = isTaskReportReportUtils(report);
-    // This is used to check if the report is a chat thread and has a parent invoice report.
-    const isParentInvoiceAndIsChatThread = isChatThread && !!parentReport && isInvoiceReport(parentReport);
-    const reportHeaderData = (!isTaskReport && !isChatThread && report?.parentReportID) || isParentInvoiceAndIsChatThread ? parentReport : report;
+    // Transaction threads under an invoice use the invoice report header. Other threads use their parent action message.
+    const isParentInvoiceAndIsTransactionThread = isChatThread && !!parentReport && isInvoiceReport(parentReport) && isTransactionThread(parentReportAction);
+    const reportHeaderData = (!isTaskReport && !isChatThread && report?.parentReportID) || isParentInvoiceAndIsTransactionThread ? parentReport : report;
     const isParentOneTransactionThread = isOneTransactionThread(parentReport, grandParentReport, grandParentReportAction);
     const parentNavigationReport = isParentOneTransactionThread ? parentReport : reportHeaderData;
     const derivedNames = useDerivedReportNamesByReportIDs([parentNavigationReport?.parentReportID, reportHeaderData?.reportID]);
@@ -174,13 +174,13 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     // Use sorted display names for the title for group chats on native small screen widths
     const title = getReportName(reportHeaderData, derivedReportHeaderName);
-    const subtitle = getChatRoomSubtitle(reportHeaderData, reportHeaderDataPolicy, conciergeReportID, translate, false, isReportHeaderDataArchived);
+    const subtitle = getChatRoomSubtitle(reportHeaderData, reportHeaderDataPolicy, conciergeReportID, translate, rules, false, isReportHeaderDataArchived);
     // This is used to get the status badge for invoice report subtitle.
-    const statusTextForInvoiceReport = isParentInvoiceAndIsChatThread
+    const statusTextForInvoiceReport = isParentInvoiceAndIsTransactionThread
         ? getReportStatusTranslation({stateNum: reportHeaderData?.stateNum, statusNum: reportHeaderData?.statusNum, translate})
         : undefined;
-    const statusColorForInvoiceReport = isParentInvoiceAndIsChatThread ? getReportStatusColorStyle(theme, reportHeaderData?.stateNum, reportHeaderData?.statusNum) : {};
-    const statusTooltipForInvoiceReport = isParentInvoiceAndIsChatThread
+    const statusColorForInvoiceReport = isParentInvoiceAndIsTransactionThread ? getReportStatusColorStyle(theme, reportHeaderData?.stateNum, reportHeaderData?.statusNum) : {};
+    const statusTooltipForInvoiceReport = isParentInvoiceAndIsTransactionThread
         ? getReportStatusTooltipTranslation({stateNum: reportHeaderData?.stateNum, statusNum: reportHeaderData?.statusNum, translate})
         : undefined;
     const isParentReportHeaderDataArchived = useReportIsArchived(reportHeaderData?.parentReportID);
