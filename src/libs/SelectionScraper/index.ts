@@ -45,10 +45,6 @@ function getCopyableElementText(element: globalThis.Element, selection: Selectio
 }
 
 function replaceElementContentWithLines(element: globalThis.Element, lines: string[]) {
-    while (element.firstChild) {
-        element.removeChild(element.firstChild);
-    }
-
     for (const [index, line] of lines.entries()) {
         if (index > 0) {
             element.appendChild(document.createElement('br'));
