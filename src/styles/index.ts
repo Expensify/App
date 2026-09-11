@@ -2224,8 +2224,8 @@ const staticStyles = (theme: ThemeColors) =>
             overflow: 'hidden',
         },
 
+        // Height is intentionally omitted: it is responsive, so it comes from useContentHeaderHeight().contentHeaderHeightStyle at the call site.
         appContentHeader: {
-            height: variables.contentHeaderHeight,
             justifyContent: 'center',
             display: 'flex',
             paddingRight: 20,
@@ -2236,9 +2236,9 @@ const staticStyles = (theme: ThemeColors) =>
             flexDirection: 'row',
         },
 
+        // Height is intentionally omitted: it is responsive, so it comes from useContentHeaderHeight().contentHeaderHeightStyle at the call site.
         LHNToggle: {
             alignItems: 'center',
-            height: variables.contentHeaderHeight,
             justifyContent: 'center',
             paddingRight: 10,
         },
@@ -2887,12 +2887,12 @@ const staticStyles = (theme: ThemeColors) =>
 
         pointerEventsBoxNone,
 
+        // Height is intentionally omitted: it is responsive, so it comes from useContentHeaderHeight().contentHeaderHeightStyle at the call site.
         headerBar: {
             overflow: 'hidden',
             justifyContent: 'center',
             display: 'flex',
             paddingLeft: 20,
-            height: variables.contentHeaderHeight,
             width: '100%',
         },
 
