@@ -75,6 +75,7 @@ const translations: TranslationDeepObject<typeof en> = {
         search: '搜索',
         reports: '报表',
         spend: '支出',
+        insights: '洞察',
         find: '查找',
         searchWithThreeDots: '搜索…',
         next: '下一步',
@@ -2528,6 +2529,10 @@ const translations: TranslationDeepObject<typeof en> = {
         brokenConnection: '您的银行卡连接已断开。',
         conciergeBrokenConnection: (cardName: string, connectionLink?: string) =>
             connectionLink ? `您的 ${cardName} 卡连接已中断。<a href="${connectionLink}">登录您的网上银行</a>以修复该卡。` : `您的 ${cardName} 卡连接已中断。登录您的网上银行以修复该卡。`,
+        conciergeBrokenConnection30Days: (cardName: string, connectionLink?: string) =>
+            connectionLink
+                ? `您的 ${cardName} 连接已中断 30 天。请<a href="${connectionLink}">登录您的银行</a>以修复连接，或者如果该卡已不再使用，请<a href="${connectionLink}">移除该卡</a>。如果您移除它，已提交的报销不会丢失。`
+                : `您的 ${cardName} 连接已中断 30 天。请登录您的网上银行进行修复，或者如果该卡已不再使用，请将其移除。移除后，您已提交的报销不会丢失。`,
         addAdditionalCards: '添加其他卡片',
         upgradeDescription: '需要添加更多卡片吗？创建工作区以添加其他个人卡片或将公司卡片分配给整个团队。',
         onlyAvailableOnPlan: ({formattedPrice}: {formattedPrice: string}) => `<muted-text>此功能在 Collect 套餐中可用，每位成员每月费用为 <strong>${formattedPrice}</strong>。</muted-text>`,
@@ -4466,6 +4471,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             travel: '差旅',
             members: '成员',
             accounting: '会计',
+            mcp: 'MCP',
             receiptPartners: '收据合作伙伴',
             rules: '规则',
             displayedAs: '显示为',
@@ -4600,6 +4606,25 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         createdForClient: {
             title: '您已为客户创建了工作区！',
             description: '好消息 🎉。如果他们在设置方面需要帮助，请联系我们。',
+        },
+        mcp: {
+            connectors: '连接器',
+            connectorsSubtitle: '将 AI 助手连接到您的 Expensify 账户。',
+            connect: '连接',
+            helpPrompt: '需要帮助连接吗？',
+            helpLink: '阅读我们的指南。',
+            claude: {
+                title: 'Claude',
+                subtitle: '由 Anthropic 提供',
+            },
+            cursor: {
+                title: 'Cursor',
+                subtitle: '由 Anysphere 提供',
+            },
+            chatgpt: {
+                title: 'ChatGPT',
+                subtitle: '由 OpenAI 提供',
+            },
         },
         receiptPartners: {
             uber: {
@@ -6279,6 +6304,10 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 title: '会计',
                 subtitle: '同步您的科目表等数据。',
             },
+            mcp: {
+                title: 'MCP',
+                subtitle: '将 AI 助手连接到您的 Expensify 账户。',
+            },
             receiptPartners: {
                 title: '收据合作伙伴',
                 subtitle: '自动导入收据。',
@@ -7741,6 +7770,11 @@ ${reportName}`,
                 turnOnTaxesFirstPrompt: '类别规则会设置默认税率。请在工作区设置中启用税费以使用此功能。',
                 categoryRulesApplyGoingForwardTitle: '类别规则将从现在起生效',
                 categoryRulesApplyGoingForwardPrompt: '此类别中的新报销将应用默认税率，已存在的报销不会改变。',
+                confirmErrorCategoryTaxMoveIsWorkspaceDefault: '所选税率现在已成为您的工作区默认税率，因此此规则不再有效。请选择其他税率。',
+                addTaxRateFirstTitle: '请先添加税率',
+                addTaxRateFirstPrompt: '类别规则会设置一个默认税率。请添加一个不同于工作区默认值的税率以使用类别规则。',
+                createRuleFromExpenseAction: '创建规则',
+                createRuleFromExpensePrompt: '将您的更改应用于所有符合条件的报销。',
             },
             categoryRules: {
                 title: '类别规则',
@@ -9112,7 +9146,7 @@ ${reportName}`,
                 [CONST.SEARCH.WITHDRAWAL_TYPE.TRAVEL_BILLING]: '合并差旅账单',
             },
             is: '是',
-            has: {submittedViolation: '已提交违规'},
+            has: {submittedViolation: '已提交违规', approvedViolation: '已批准违规'},
             action: {
                 [CONST.SEARCH.ACTION_FILTERS.SUBMIT]: '提交',
                 [CONST.SEARCH.ACTION_FILTERS.APPROVE]: '批准',
@@ -9321,6 +9355,16 @@ ${reportName}`,
                 integrationSyncFailedRecurrence: ({count}: {count: number}) => `（重复 ${count} 次。）`,
                 companyCardConnectionBroken: ({feedName, workspaceCompanyCardRoute}: {feedName: string; workspaceCompanyCardRoute: string}) =>
                     `${feedName} 连接已中断。要恢复银行卡导入，请<a href='${workspaceCompanyCardRoute}'>登录您的银行账户</a>。`,
+                companyCardConnectionBroken30Days: ({
+                    feedName,
+                    workspaceCompanyCardRoute,
+                    workspaceCompanyCardSettingsRoute,
+                }: {
+                    feedName: string;
+                    workspaceCompanyCardRoute: string;
+                    workspaceCompanyCardSettingsRoute: string;
+                }) =>
+                    `${feedName} 连接已中断 30 天。请<a href='${workspaceCompanyCardRoute}'>登录您的银行</a>进行修复，或者如果不再使用，请<a href='${workspaceCompanyCardSettingsRoute}'>移除该连接</a>。移除后，您已提交的报销不会丢失。`,
                 plaidBalanceFailure: ({maskedAccountNumber, walletRoute}: {maskedAccountNumber: string; walletRoute: string}) =>
                     `您与企业银行账户的 Plaid 连接已中断。请<a href='${walletRoute}'>重新连接您的银行账户 ${maskedAccountNumber}</a>，以便继续使用 Expensify 卡。`,
                 addEmployee: (email: string, role: string, didJoinPolicy?: boolean) => {
