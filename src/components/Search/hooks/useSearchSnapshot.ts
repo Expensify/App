@@ -76,6 +76,8 @@ type UseSearchSnapshotParams = {
      *  full-collection reads. */
     transactions: OptimisticTrackingParams['transactions'];
     reportActions: OptimisticTrackingParams['reportActions'];
+    /** Row cap for `data`. Live searches page on this instead of a server cursor. `undefined` = no cap. */
+    visibleRowLimit?: number;
 };
 
 const EMPTY_DATA: SearchListItem[] = [];
@@ -93,7 +95,7 @@ const hashToString = (queryHash?: number) => (queryHash || queryHash === 0 ? Str
  * per-group sub-snapshots, and absorbs the optimistic-row resilience. Returns the sorted rows plus the
  * list-level meta and the optimistic-tracking carriers that `<Search>` consumes.
  */
-function useSearchSnapshot({queryJSON, searchResults, newSearchResultKeys, transactions, reportActions}: UseSearchSnapshotParams): SearchSnapshotResult {
+function useSearchSnapshot({queryJSON, searchResults, newSearchResultKeys, transactions, reportActions, visibleRowLimit}: UseSearchSnapshotParams): SearchSnapshotResult {
     const {type, sortBy, sortOrder, hash, groupBy} = queryJSON;
 
     const {isOffline} = useNetwork();
@@ -401,8 +403,11 @@ function useSearchSnapshot({queryJSON, searchResults, newSearchResultKeys, trans
               return item.transactions.length === 0 || !subSnapshot || !subSnapshot?.search?.hasMoreResults;
           });
 
+    // slice after the sort so page 2 continues the order on screen
+    const visibleData = visibleRowLimit !== undefined && stableSortedData.length > visibleRowLimit ? stableSortedData.slice(0, visibleRowLimit) : stableSortedData;
+
     return {
-        data: stableSortedData,
+        data: visibleData,
         chartData,
         filteredData,
         filteredDataLength,

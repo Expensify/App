@@ -429,4 +429,36 @@ describe('useSearchSnapshot', () => {
         expect(result.current.chartData).toBe(firstChartData);
         expect(result.current.data).toBe(firstData);
     });
+
+    it('caps data at visibleRowLimit while leaving chartData and the row count untouched', () => {
+        const searchResults = makeSearchResults();
+        mockUseOptimisticSearchTracking.mockReturnValue(trackingReturn(searchResults.data));
+        const rows = Array.from({length: 5}, (_value, index) => ({transactionID: `${index}`, keyForList: `${index}`}));
+        mockGetSections.mockReturnValue([rows, rows.length, false]);
+        mockGetSortedSections.mockReturnValue(rows);
+
+        const {result, rerender} = renderHook((visibleRowLimit?: number) =>
+            useSearchSnapshot({
+                queryJSON: makeQueryJSON(),
+                searchResults,
+                newSearchResultKeys: undefined,
+                transactions: undefined,
+                reportActions: undefined,
+                visibleRowLimit,
+            }),
+        );
+
+        expect(result.current.data).toHaveLength(5);
+
+        rerender(2);
+
+        expect(result.current.data.map((item) => item.keyForList)).toEqual(['0', '1']);
+        expect(result.current.chartData).toHaveLength(5);
+        expect(result.current.filteredDataLength).toBe(5);
+
+        rerender(10);
+
+        // a fresh array here re-renders the list on every pass
+        expect(result.current.data).toBe(result.current.chartData);
+    });
 });
