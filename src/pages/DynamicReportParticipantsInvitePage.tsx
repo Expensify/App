@@ -19,6 +19,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {inviteToGroupChat, searchUserInServer} from '@libs/actions/Report';
 import {clearUserSearchPhrase, updateUserSearchPhrase} from '@libs/actions/RoomMembersUserSearchPhrase';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
+import getPlatform from '@libs/getPlatform';
 import {appendCountryCode} from '@libs/LoginUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getHeaderMessage} from '@libs/PersonalDetailOptionsListUtils';
@@ -208,6 +209,8 @@ function DynamicReportParticipantsInvitePage({report}: DynamicReportParticipants
                     ListItem={InviteMemberListItem}
                     confirmButtonOptions={{
                         onConfirm: inviteUsers,
+                        isFooterConfirmEnabled: selectedOptions.length > 0,
+                        isFooterConfirmEnterKeyEnabled: getPlatform() !== CONST.PLATFORM.ANDROID,
                     }}
                     shouldShowTextInput
                     textInputOptions={textInputOptions}

@@ -1,4 +1,4 @@
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import FormHelpMessage from '@components/FormHelpMessage';
 import KeyboardAvoidingView from '@components/KeyboardAvoidingView';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
@@ -176,6 +176,7 @@ function IOURequestStepDistanceOdometer({
     const blockDistanceRequestIfNeeded = useBlockDistanceRequest({
         policyID: report?.policyID ?? (shouldAutoReportToDefaultWorkspace ? defaultExpensePolicy?.id : undefined),
         isOdometerDistanceRequest: true,
+        isEditingExistingDistanceRequest: isEditing,
     });
 
     const mileageRate = DistanceRequestUtils.getRate({
@@ -203,6 +204,7 @@ function IOURequestStepDistanceOdometer({
 
     const [odometerDraft] = useOnyx(ONYXKEYS.ODOMETER_DRAFT);
     const isTrackIntentUser = isTrackOnboardingChoice(introSelected?.choice);
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
     const {
         startReading,
@@ -450,6 +452,7 @@ function IOURequestStepDistanceOdometer({
                     violations: allTransactionViolations,
                     getCurrencyDecimals,
                     getCurrencySymbol,
+                    rules,
                 });
             }
             Navigation.goBack();

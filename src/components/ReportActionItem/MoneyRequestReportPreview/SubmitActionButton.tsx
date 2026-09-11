@@ -86,6 +86,7 @@ function SubmitActionButtonContent() {
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
     const {transactionViolations} = useReportPreviewTransactionViolations();
 
@@ -121,7 +122,7 @@ function SubmitActionButtonContent() {
             getTransactionViolations(transaction, transactionViolations, currentUserEmail, currentUserAccountID, iouReport, submitterLogin, policy) ?? [];
     }
 
-    const isBlockSubmitDueToPreventSelfApproval = shouldBlockSubmitDueToPreventSelfApproval(iouReport, policy);
+    const isBlockSubmitDueToPreventSelfApproval = shouldBlockSubmitDueToPreventSelfApproval(iouReport, policy, rules);
     const isBlockSubmitDueToStrictPolicyRules = shouldBlockSubmitDueToStrictPolicyRules(
         iouReport?.reportID,
         filteredTransactionViolations,
@@ -136,6 +137,7 @@ function SubmitActionButtonContent() {
         isTrackIntentUser,
         report: iouReport,
         policy,
+        rules,
     });
 
     const handleSubmit = () => {
@@ -167,6 +169,7 @@ function SubmitActionButtonContent() {
                 getCurrencyDecimals,
                 expenseReport: iouReport,
                 policy,
+                rules,
                 currentUserAccountIDParam: currentUserAccountID,
                 currentUserEmailParam: currentUserEmail,
                 hasViolations,
