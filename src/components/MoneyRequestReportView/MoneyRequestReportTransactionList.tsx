@@ -1,4 +1,4 @@
-import LinkButton from '@components/ButtonComposed/composed/LinkButton';
+import LinkButton from '@components/Button/composed/LinkButton';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import Checkbox from '@components/Checkbox';
 import type FlatListRefType from '@components/FlashList/types';
@@ -42,7 +42,6 @@ import {groupTransactionsByCategory, groupTransactionsByTag} from '@libs/ReportL
 import {
     canAddTransaction,
     getActionErrorsByTransaction,
-    getAddExpenseDropdownOptions,
     getBillableAndTaxTotal,
     getMoneyRequestSpendBreakdown,
     getReportOfflinePendingActionAndErrors,
@@ -64,6 +63,8 @@ import isReportOpenInSuperWideRHP from '@navigation/helpers/isReportOpenInSuperW
 import Navigation from '@navigation/Navigation';
 
 import variables from '@styles/variables';
+
+import {getAddExpenseDropdownOptions} from '@userActions/IOU/StartExpenseFlows';
 
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -188,7 +189,6 @@ type MoneyRequestReportTransactionListProps = {
     /** Whether the report actions are being loaded, used to show 'Comments' during loading state */
     isLoadingInitialReportActions?: boolean;
 
-    /** Callback executed on layout */
     onLayout?: (event: LayoutChangeEvent) => void;
 
     /** Reversed list of report actions to render below the transactions section in the unified list. */
@@ -306,7 +306,8 @@ function MoneyRequestReportTransactionList({
     const ownerLoginSelector = useMemo(() => personalDetailsLoginSelector(report?.ownerAccountID), [report?.ownerAccountID]);
     const [ownerLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: ownerLoginSelector});
     const isReportArchived = useReportIsArchived(report?.reportID);
-    const shouldShowAddExpenseButton = canAddTransaction(report, isReportArchived) && isCurrentUserSubmitter(report);
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
+    const shouldShowAddExpenseButton = canAddTransaction(report, rules, isReportArchived) && isCurrentUserSubmitter(report);
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const [lastDistanceExpenseType] = useOnyx(ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE);
