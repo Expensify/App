@@ -1,4 +1,4 @@
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -35,6 +35,7 @@ import {getSpendRuleFormValuesFromCardRule, getTruncatedSpendRuleSummary} from '
 
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+import useRuleDeleteHeaderProps from '@pages/workspace/rules/useRuleDeleteHeaderProps';
 
 import variables from '@styles/variables';
 
@@ -246,30 +247,27 @@ function SpendRulePageBase({policyID, ruleID, titleKey, testID, upgradeBackTo}: 
     };
 
     const deleteRule = () => {
-        if (!canWriteSpendRules) {
-            return;
-        }
-
         if (!existingRule) {
-            return;
+            return false;
         }
 
-        showConfirmModal({
-            title: translate('workspace.rules.spendRules.deleteRule'),
-            prompt: translate('workspace.rules.spendRules.deleteRuleConfirmation'),
-            confirmText: translate('common.delete'),
-            cancelText: translate('common.cancel'),
-            buttonVariant: CONST.BUTTON_VARIANT.DANGER,
-        }).then((result) => {
-            if (result.action !== ModalActions.CONFIRM) {
-                return;
-            }
-
-            deleteExpensifyCardRule(domainAccountID, currentRuleID, existingRule);
-            clearDraftSpendRule();
-            Navigation.goBack();
-        });
+        deleteExpensifyCardRule(domainAccountID, currentRuleID, existingRule);
+        clearDraftSpendRule();
+        return true;
     };
+
+    const isRuleBeingDeleted = existingRule?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+    const canDeleteRule = canWriteSpendRules && isEditingRule && !!existingRule && !isRuleBeingDeleted;
+
+    // Wallet and the classic rules page both reach this editor without the revamp beta, so the trashcan waits for the
+    // beta and the labelled footer button below covers everyone else.
+    const {deleteHeaderProps, confirmDelete} = useRuleDeleteHeaderProps({
+        canDelete: canDeleteRule && isRulesRevampEnabled,
+        onDelete: deleteRule,
+        sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.RULES.SPEND_RULE_DELETE,
+        titleKey: 'workspace.rules.spendRules.deleteRule',
+        promptKey: 'workspace.rules.spendRules.deleteRuleConfirmation',
+    });
 
     const setSpendRuleRestrictionType = (action: ValueOf<typeof CONST.SPEND_RULES.ACTION> | null) => {
         if (!canWriteSpendRules) {
@@ -512,7 +510,10 @@ function SpendRulePageBase({policyID, ruleID, titleKey, testID, upgradeBackTo}: 
                 includeSafeAreaPaddingBottom
                 shouldEnableKeyboardAvoidingView={false}
             >
-                <HeaderWithBackButton title={translate(isRulesRevampEnabled ? 'workspace.rules.spendRules.restrictCardSpendTitle' : titleKey)} />
+                <HeaderWithBackButton
+                    title={translate(isRulesRevampEnabled ? 'workspace.rules.spendRules.restrictCardSpendTitle' : titleKey)}
+                    {...deleteHeaderProps}
+                />
                 <ScrollView contentContainerStyle={[styles.flexGrow1]}>{isRulesRevampEnabled ? revampFormContent : legacyFormContent}</ScrollView>
                 {canWriteSpendRules && (
                     <FormAlertWithSubmitButton
@@ -527,12 +528,14 @@ function SpendRulePageBase({policyID, ruleID, titleKey, testID, upgradeBackTo}: 
                         sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.SPEND_RULE_SAVE}
                         shouldRenderFooterAboveSubmit
                         footerContent={
-                            isEditingRule ? (
+                            /* Pre-revamp this delete was a labelled button here rather than the header trashcan, and
+                               Wallet still reaches this page without the beta, so that is what those users keep. */
+                            canDeleteRule && !isRulesRevampEnabled ? (
                                 <Button
                                     size={CONST.BUTTON_SIZE.LARGE}
-                                    onPress={deleteRule}
+                                    onPress={confirmDelete}
                                     style={[styles.mb4]}
-                                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_DELETE}
+                                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.SPEND_RULE_DELETE}
                                 >
                                     <Button.Text>{translate('workspace.rules.spendRules.deleteRule')}</Button.Text>
                                 </Button>

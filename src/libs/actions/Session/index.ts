@@ -27,6 +27,7 @@ import getPlatform from '@libs/getPlatform';
 import HttpUtils from '@libs/HttpUtils';
 import Log from '@libs/Log';
 import {findMatchingDynamicSuffix} from '@libs/Navigation/helpers/dynamicRoutesUtils/findAllMatchingDynamicSuffixes';
+import getAdaptedStateFromPath from '@libs/Navigation/helpers/getAdaptedStateFromPath';
 import Navigation from '@libs/Navigation/Navigation';
 import navigationRef from '@libs/Navigation/navigationRef';
 import * as MainQueue from '@libs/Network/MainQueue';
@@ -363,6 +364,7 @@ const KEYS_TO_PRESERVE_SUPPORTAL = [
     ONYXKEYS.NETWORK,
     ONYXKEYS.ACTIVE_SERVER,
     ONYXKEYS.IS_DEBUG_MODE_ENABLED,
+    ONYXKEYS.BETA_OVERRIDES,
 
     // Preserve IS_USING_IMPORTED_STATE so that when transitioning to/from supportal,
     // we know if we're in imported state mode and should skip API calls that would cause infinite loading
@@ -823,10 +825,14 @@ function setupNewDotAfterTransitionFromOldDot(hybridAppSettings: HybridAppSettin
             }
 
             for (const [key, value] of Object.entries(newDotOnyxValues)) {
+                if (value === undefined) {
+                    continue;
+                }
+
                 onyxUpdates.push({
                     onyxMethod: Onyx.METHOD.MERGE,
                     key,
-                    value: value ?? {},
+                    value,
                 } as OnyxUpdate<keyof typeof newDotOnyxValues>);
             }
 
@@ -876,7 +882,7 @@ function beginGoogleSignIn(token: string | null, preferredLocale: Locale | undef
  * Will create a temporary login for the user in the passed authenticate response which is used when
  * re-authenticating after an authToken expires.
  */
-function signInWithShortLivedAuthToken(authToken: string, isSAML = false) {
+function signInWithShortLivedAuthToken(authToken: string, isSAML = false, exitTo?: string) {
     const {optimisticData, failureData, finallyData} = getShortLivedLoginParams(false, isSAML);
     const authMethod = isSAML ? CONST.AUTH_METHOD.SAML : CONST.AUTH_METHOD.SHORT_LIVED_AUTH_TOKEN;
     // Set the in-flight guard synchronously, before awaiting device info. optimisticData below (which also sets this key)
@@ -889,6 +895,26 @@ function signInWithShortLivedAuthToken(authToken: string, isSAML = false) {
         API.read(READ_COMMANDS.SIGN_IN_WITH_SHORT_LIVED_AUTH_TOKEN, {authToken, skipReauthentication: true, authMethod, deviceInfo}, {optimisticData, failureData, finallyData});
     });
     NetworkStore.setLastShortAuthToken(authToken);
+    if (!exitTo) {
+        return;
+    }
+
+    const login = credentials.login;
+    // waitForUserSignIn keeps a single resolver that openReportFromDeepLink may already hold, so wait on the routes instead.
+    Navigation.waitForProtectedRoutes().then(() => {
+        // A failed sign-in leaves this waiting, so a later sign-in by another account must not land on this page.
+        if (!login || deprecatedSession.email?.toLowerCase() !== login.toLowerCase()) {
+            return;
+        }
+        try {
+            // Rebuilt like a cold start restore of this path.
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+            navigationRef.resetRoot({...getAdaptedStateFromPath(exitTo as Route), stale: true});
+        } catch (error) {
+            // A path saved by an older build may no longer exist, and the sign-in already landed on Home.
+            Log.warn('Unable to return to the last visited path after SAML sign in', {error});
+        }
+    });
 }
 
 /**
