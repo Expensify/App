@@ -260,7 +260,7 @@ function SearchPageNarrow({
                                         isMobileSelectionModeEnabled={false}
                                     />
                                 </View>
-                                <View style={[styles.flex1]}>
+                                <View style={styles.flex1}>
                                     <Animated.View style={[topBarAnimatedStyle, styles.narrowSearchRouterInactiveStyle, styles.flex1, styles.appBG, styles.searchTopBarZIndexStyle]}>
                                         <PulsingView
                                             shouldPulse={!isHeaderInteractive}
@@ -309,7 +309,7 @@ function SearchPageNarrow({
                                 />
                             </>
                         )}
-                        <View style={[styles.flex1]}>
+                        <View style={styles.flex1}>
                             {useStaticRendering && (
                                 <>
                                     {isInteractive && (

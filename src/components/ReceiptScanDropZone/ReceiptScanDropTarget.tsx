@@ -7,6 +7,8 @@ import useReceiptScanDrop from '@hooks/useReceiptScanDrop';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {shouldAcceptDrop} from '@libs/DragAndDropUtils';
+
 import htmlDivElementRef from '@src/types/utils/htmlDivElementRef';
 
 import type {StyleProp, View, ViewStyle} from 'react-native';
@@ -23,10 +25,6 @@ type ReceiptScanDropTargetProps = {
     /** Reports the drag-over state back to the drop zone, which publishes it through DragAndDropStateContext */
     onDraggingOverChange: (isDraggingOver: boolean) => void;
 };
-
-function shouldAcceptDrop(event: DragEvent): boolean {
-    return !!event.dataTransfer?.types.some((type) => type === 'Files');
-}
 
 /**
  * Owns the receipt scan drag-and-drop logic and the drop overlay.
