@@ -4,24 +4,26 @@ const meta = {
     type: 'problem',
     docs: {
         description:
-            'Disallow picking a horizontal inset (padding or margin) by switching on the layout size. Responsive insets must come from useLayoutSpacing() so every screen agrees on the same values.',
+            'Disallow spelling the card inset by hand as a narrow/wide ternary over spacing helpers. Card padding must come from useLayoutSpacing() so every screen agrees on the same values.',
         recommended: 'error',
     },
     schema: [],
     messages: {
         layoutSpacingConditional:
-            'Do not pick `{{spacing}}` by switching on `{{test}}`. Use the matching style from `useLayoutSpacing()` (src/styles/layoutSpacing.ts) so the value stays in one place.',
-        layoutSpacingConditionalKnown: 'Replace `{{test}} ? styles.{{narrow}} : styles.{{wide}}` with `{{replacement}}` from `useLayoutSpacing()` (src/styles/layoutSpacing.ts).',
+            '`{{test}} ? styles.{{first}} : styles.{{second}}` spells the card inset by hand. Use the matching style from `useLayoutSpacing()` (src/styles/layoutSpacing.ts) so the value stays in one place.',
+        layoutSpacingConditionalKnown: 'Replace `{{test}} ? styles.{{first}} : styles.{{second}}` with `{{replacement}}` from `useLayoutSpacing()` (src/styles/layoutSpacing.ts).',
     },
 };
 
-const LAYOUT_FLAGS = new Set(['shouldUseNarrowLayout', 'isSmallScreenWidth', 'isMediumScreenWidth', 'isLargeScreenWidth', 'isExtraSmallScreenWidth']);
+const NARROW_FLAGS = new Set(['shouldUseNarrowLayout', 'isSmallScreenWidth', 'isExtraSmallScreenWidth']);
+const WIDE_FLAGS = new Set(['isLargeScreenWidth', 'isExtraLargeScreenWidth']);
 const KNOWN_REPLACEMENTS = {
     'ph5:ph8': 'cardPaddingHorizontal',
     'p5:p8': 'cardPadding',
     'mhn5:mhn8': 'cardEdgeToEdge',
 };
-const SPACING_CLASS_PATTERN = /^[pm](?:h|l|r|hn|ln|rn)?\d+$/;
+const SPACING_CLASS_PATTERN = /^([pm](?:h|l|r|hn|ln|rn)?)(\d+)$/;
+const CARD_PADDING_STEPS = {narrow: '5', wide: '8'};
 const TS_WRAPPER_TYPES = new Set(['TSAsExpression', 'TSSatisfiesExpression', 'TSNonNullExpression', 'TSTypeAssertion']);
 
 function unwrap(node) {
@@ -53,16 +55,23 @@ function findSpacingClassName(node) {
     return getSpacingClassName(unwrapped);
 }
 
-function getLayoutFlagName(test) {
+function getLayoutFlag(test) {
     const unwrapped = unwrap(test);
     if (unwrapped.type === 'UnaryExpression' && unwrapped.operator === '!') {
-        return getLayoutFlagName(unwrapped.argument);
+        const inner = getLayoutFlag(unwrapped.argument);
+        return inner ? {name: `!${inner.name}`, isNarrowWhenTrue: !inner.isNarrowWhenTrue} : undefined;
     }
-    if (unwrapped.type === 'Identifier' && LAYOUT_FLAGS.has(unwrapped.name)) {
-        return unwrapped.name;
+    let flagName;
+    if (unwrapped.type === 'Identifier') {
+        flagName = unwrapped.name;
+    } else if (unwrapped.type === 'MemberExpression' && !unwrapped.computed && unwrapped.property.type === 'Identifier') {
+        flagName = unwrapped.property.name;
     }
-    if (unwrapped.type === 'MemberExpression' && !unwrapped.computed && unwrapped.property.type === 'Identifier' && LAYOUT_FLAGS.has(unwrapped.property.name)) {
-        return unwrapped.property.name;
+    if (NARROW_FLAGS.has(flagName)) {
+        return {name: flagName, isNarrowWhenTrue: true};
+    }
+    if (WIDE_FLAGS.has(flagName)) {
+        return {name: flagName, isNarrowWhenTrue: false};
     }
     return undefined;
 }
@@ -70,32 +79,29 @@ function getLayoutFlagName(test) {
 function create(context) {
     return {
         ConditionalExpression(node) {
-            const flagName = getLayoutFlagName(node.test);
-            if (!flagName) {
+            const flag = getLayoutFlag(node.test);
+            if (!flag) {
                 return;
             }
-            const narrow = findSpacingClassName(node.consequent);
-            const wide = findSpacingClassName(node.alternate);
-            const spacing = narrow ?? wide;
-            if (!spacing) {
+            const first = findSpacingClassName(node.consequent);
+            const second = findSpacingClassName(node.alternate);
+            if (!first || !second) {
                 return;
             }
-            const isNegated = unwrap(node.test).type === 'UnaryExpression';
-            const pair = isNegated ? `${wide}:${narrow}` : `${narrow}:${wide}`;
-            const replacement = KNOWN_REPLACEMENTS[pair];
-            if (replacement && getSpacingClassName(node.consequent) && getSpacingClassName(node.alternate)) {
-                context.report({
-                    node,
-                    messageId: 'layoutSpacingConditionalKnown',
-                    data: {test: isNegated ? `!${flagName}` : flagName, narrow, wide, replacement},
-                });
+            const narrow = flag.isNarrowWhenTrue ? first : second;
+            const wide = flag.isNarrowWhenTrue ? second : first;
+            const [, narrowPrefix, narrowStep] = SPACING_CLASS_PATTERN.exec(narrow);
+            const [, widePrefix, wideStep] = SPACING_CLASS_PATTERN.exec(wide);
+            if (narrowPrefix !== widePrefix || narrowStep !== CARD_PADDING_STEPS.narrow || wideStep !== CARD_PADDING_STEPS.wide) {
                 return;
             }
-            context.report({
-                node,
-                messageId: 'layoutSpacingConditional',
-                data: {spacing, test: flagName},
-            });
+            const replacement = KNOWN_REPLACEMENTS[`${narrow}:${wide}`];
+            const data = {test: flag.name, first, second};
+            if (replacement) {
+                context.report({node, messageId: 'layoutSpacingConditionalKnown', data: {...data, replacement}});
+                return;
+            }
+            context.report({node, messageId: 'layoutSpacingConditional', data});
         },
     };
 }

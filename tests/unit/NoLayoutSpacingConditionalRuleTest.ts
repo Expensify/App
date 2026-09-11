@@ -63,31 +63,43 @@ describe('no-layout-spacing-conditional', () => {
             'const style = shouldUseNarrowLayout ? styles.pb2 : styles.pb5;',
             'const style = shouldUseNarrowLayout ? styles.mt3 : styles.mt5;',
             'const style = shouldUseNarrowLayout ? styles.gap3 : styles.gap5;',
+            'const style = shouldUseNarrowLayout ? styles.ph3 : styles.ph2;',
+            'const style = shouldUseNarrowLayout ? styles.mh5 : styles.mh2;',
+            'const style = isLargeScreenWidth ? styles.mr3 : styles.mr2;',
+            'const style = shouldUseNarrowLayout ? styles.p3 : styles.p4;',
+            'const style = shouldUseNarrowLayout ? styles.ph5 : styles.mh8;',
+            'const style = shouldUseNarrowLayout ? styles.ph5 : undefined;',
+            'const style = isLargeScreenWidth ? styles.ph5 : styles.ph8;',
+            'const style = isMediumScreenWidth ? styles.ph5 : styles.ph8;',
         ],
         invalid: [
             {
                 code: 'const style = shouldUseNarrowLayout ? styles.ph5 : styles.ph8;',
-                errors: [{messageId: 'layoutSpacingConditionalKnown', data: {test: 'shouldUseNarrowLayout', narrow: 'ph5', wide: 'ph8', replacement: 'cardPaddingHorizontal'}}],
+                errors: [{messageId: 'layoutSpacingConditionalKnown', data: {test: 'shouldUseNarrowLayout', first: 'ph5', second: 'ph8', replacement: 'cardPaddingHorizontal'}}],
             },
             {
                 code: 'const style = isSmallScreenWidth ? styles.p5 : styles.p8;',
-                errors: [{messageId: 'layoutSpacingConditionalKnown', data: {test: 'isSmallScreenWidth', narrow: 'p5', wide: 'p8', replacement: 'cardPadding'}}],
+                errors: [{messageId: 'layoutSpacingConditionalKnown', data: {test: 'isSmallScreenWidth', first: 'p5', second: 'p8', replacement: 'cardPadding'}}],
             },
             {
                 code: 'const style = shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8;',
-                errors: [{messageId: 'layoutSpacingConditionalKnown', data: {test: 'shouldUseNarrowLayout', narrow: 'mhn5', wide: 'mhn8', replacement: 'cardEdgeToEdge'}}],
+                errors: [{messageId: 'layoutSpacingConditionalKnown', data: {test: 'shouldUseNarrowLayout', first: 'mhn5', second: 'mhn8', replacement: 'cardEdgeToEdge'}}],
             },
             {
                 code: 'const style = shouldUseNarrowLayout ? [styles.ph5, styles.pb5] : [styles.ph8, styles.pb8];',
-                errors: [{messageId: 'layoutSpacingConditional'}],
+                errors: [{messageId: 'layoutSpacingConditionalKnown'}],
             },
             {
                 code: 'const style = shouldUseNarrowLayout ? styles.ph5 : [styles.ph8, styles.pt3];',
-                errors: [{messageId: 'layoutSpacingConditional'}],
+                errors: [{messageId: 'layoutSpacingConditionalKnown'}],
             },
             {
                 code: 'const style = !shouldUseNarrowLayout ? styles.ph8 : styles.ph5;',
-                errors: [{messageId: 'layoutSpacingConditionalKnown', data: {test: '!shouldUseNarrowLayout', narrow: 'ph8', wide: 'ph5', replacement: 'cardPaddingHorizontal'}}],
+                errors: [{messageId: 'layoutSpacingConditionalKnown', data: {test: '!shouldUseNarrowLayout', first: 'ph8', second: 'ph5', replacement: 'cardPaddingHorizontal'}}],
+            },
+            {
+                code: 'const style = isLargeScreenWidth ? styles.ph8 : styles.ph5;',
+                errors: [{messageId: 'layoutSpacingConditionalKnown', data: {test: 'isLargeScreenWidth', first: 'ph8', second: 'ph5', replacement: 'cardPaddingHorizontal'}}],
             },
             {
                 code: 'const style = layout.shouldUseNarrowLayout ? styles.ph5 : styles.ph8;',
@@ -99,6 +111,10 @@ describe('no-layout-spacing-conditional', () => {
             },
             {
                 code: 'const style = shouldUseNarrowLayout ? styles.pl5 : styles.pl8;',
+                errors: [{messageId: 'layoutSpacingConditional', data: {test: 'shouldUseNarrowLayout', first: 'pl5', second: 'pl8'}}],
+            },
+            {
+                code: 'const style = isLargeScreenWidth ? styles.mr8 : styles.mr5;',
                 errors: [{messageId: 'layoutSpacingConditional'}],
             },
         ],
