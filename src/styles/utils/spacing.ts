@@ -767,6 +767,10 @@ export default {
         paddingTop: 40,
     },
 
+    pt16: {
+        paddingTop: 64,
+    },
+
     pt20: {
         paddingTop: 80,
     },
