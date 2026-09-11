@@ -1,4 +1,4 @@
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import KYCWall from '@components/KYCWall';
 import {KYCWallContext} from '@components/KYCWall/KYCWallContext';
 
@@ -28,7 +28,6 @@ import {tierNameSelector} from '@selectors/UserWallet';
 import React, {useContext} from 'react';
 
 type ReimbursementQueuedContentProps = {
-    /** The reimbursement queued action */
     action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_QUEUED>;
 
     /** The chat report this action belongs to */

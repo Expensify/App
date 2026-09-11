@@ -172,6 +172,10 @@ type RequestMoneyInformation = {
     gpsPoint?: GPSPoint;
     action?: IOUAction;
     transactionParams: RequestMoneyTransactionParams;
+    newReportTotal?: number;
+    newReimbursableTotal?: number;
+    newNonReimbursableTotal?: number;
+    newUnheldReimbursableTotal?: number;
     isRetry?: boolean;
     shouldPlaySound?: boolean;
     /** Retry-path cleanup only; the action itself never reads this. */
@@ -199,6 +203,7 @@ type RequestMoneyInformation = {
     isTrackIntentUser: boolean | undefined;
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
+    rules: OnyxCollection<OnyxTypes.Rule>;
 };
 
 type MoneyRequestInformationParams = {
@@ -214,7 +219,9 @@ type MoneyRequestInformationParams = {
     existingTransaction?: OnyxEntry<OnyxTypes.Transaction>;
     retryParams?: StartSplitBilActionParams | CreateTrackExpenseParams | RequestMoneyInformation | ReplaceReceiptRetryParams;
     newReportTotal?: number;
+    newReimbursableTotal?: number;
     newNonReimbursableTotal?: number;
+    newUnheldReimbursableTotal?: number;
     testDriveCommentReportActionID?: string;
     optimisticChatReportID?: string;
     optimisticCreatedReportActionID?: string;
@@ -236,6 +243,7 @@ type MoneyRequestInformationParams = {
     delegateAccountID: number | undefined;
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
+    rules: OnyxCollection<OnyxTypes.Rule>;
 };
 
 type MoneyRequestOptimisticParams = {
@@ -292,6 +300,7 @@ type BuildOnyxDataForMoneyRequestParams = {
     shouldSkipReportHighlightRail?: boolean;
     isTrackIntentUser: boolean | undefined;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
+    rules: OnyxCollection<OnyxTypes.Rule>;
 };
 
 type BuildOnyxDataForTestDriveIOUParams = {
@@ -458,6 +467,7 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
         shouldSkipReportHighlightRail,
         isTrackIntentUser,
         getCurrencyDecimals,
+        rules,
     } = moneyRequestParams;
     const {policy, policyCategories, policyTagList} = policyParams;
     const {
@@ -1160,6 +1170,7 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
             hasViolations,
             isASAPSubmitBetaEnabled,
             isTrackIntentUser,
+            rules,
         });
         onyxData.optimisticData?.push(violationsOnyxData);
         onyxData.optimisticData?.push({
@@ -1270,7 +1281,9 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         moneyRequestReportID = '',
         retryParams,
         newReportTotal,
+        newReimbursableTotal,
         newNonReimbursableTotal,
+        newUnheldReimbursableTotal,
         testDriveCommentReportActionID,
         optimisticChatReportID,
         optimisticCreatedReportActionID,
@@ -1293,6 +1306,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         isTrackIntentUser,
         formatPhoneNumber,
         getCurrencyDecimals,
+        rules,
     } = moneyRequestInformation;
     const {payeeAccountID = currentUserAccountIDParam, payeeEmail = currentUserEmailParam, participant} = participantParams;
     const {policy, policyCategories, policyTagList, policyRecentlyUsedCategories, policyRecentlyUsedTags} = policyParams;
@@ -1396,7 +1410,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
 
     const shouldCreateNewMoneyRequestReport = isSplitExpense
         ? false
-        : shouldCreateNewMoneyRequestReportReportUtils(iouReport, chatReport, isScanRequest, betas, action, !!moneyRequestReportID);
+        : shouldCreateNewMoneyRequestReportReportUtils(iouReport, chatReport, isScanRequest, betas, rules, action, !!moneyRequestReportID);
 
     // Generate IDs upfront so we can pass them to buildOptimisticExpenseReport for formula computation
     const optimisticTransactionID = existingTransactionID ?? providedOptimisticTransactionID ?? rand64();
@@ -1424,6 +1438,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
                   reportTransactions,
                   betas,
                   getCurrencyDecimals,
+                  rules,
               })
             : buildOptimisticIOUReport(payeeAccountID, payerAccountID, reportAmount, chatReport.reportID, currency, getCurrencyDecimals, undefined, undefined, optimisticReportID);
     } else if (isPolicyExpenseChat) {
@@ -1432,11 +1447,17 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         const previousReimbursableTotal = getReimbursableTotal(iouReport);
         const previousUnheldReimbursableTotal = getUnheldReimbursableTotal(iouReport);
         iouReport = {...iouReport};
+        const isCurrencyMatching = iouReport?.currency === currency;
+        // A `new*Total` override is already expressed in the report's currency, so unlike the raw per-transaction
+        // arithmetic below, it does not need the transaction's own currency to match the report's. That guard is
+        // precisely why an expense in another currency otherwise never reaches the total.
+        // Compared with `!== undefined` so a legitimate total of 0 is applied instead of being read as "no override".
+        const hasReportTotalOverride = newReportTotal !== undefined;
         // Because of the Expense reports are stored as negative values, we subtract the total from the amount
-        if (iouReport?.currency === currency) {
+        if (isCurrencyMatching || hasReportTotalOverride) {
             if (!Number.isNaN(iouReport.total) && iouReport.total !== undefined) {
                 // Use newReportTotal in scenarios where the total is based on more than just the current transaction, and we need to override it manually
-                if (newReportTotal) {
+                if (hasReportTotalOverride) {
                     iouReport.total = newReportTotal;
                 } else {
                     iouReport.total -= reportAmount;
@@ -1445,23 +1466,32 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
                 if (!reimbursable) {
                     if (newNonReimbursableTotal !== undefined) {
                         iouReport.nonReimbursableTotal = newNonReimbursableTotal;
-                    } else {
+                    } else if (isCurrencyMatching) {
                         iouReport.nonReimbursableTotal = (iouReport.nonReimbursableTotal ?? 0) - reportAmount;
                     }
-                } else {
+                } else if (isCurrencyMatching) {
                     // Reimbursable transaction: reflect the change in the freshly tracked reimbursableTotal too.
                     iouReport.reimbursableTotal = previousReimbursableTotal - reportAmount;
+                }
+
+                // The reimbursable totals are what the report preview and details actually read, so they are
+                // overridable in their own right. `total` alone leaves them pinned at whatever they were seeded with.
+                if (newReimbursableTotal !== undefined) {
+                    iouReport.reimbursableTotal = newReimbursableTotal;
+                }
+                if (newUnheldReimbursableTotal !== undefined) {
+                    iouReport.unheldReimbursableTotal = newUnheldReimbursableTotal;
                 }
                 didUpdateOptimisticTotal = true;
             }
             if (typeof iouReport.unheldTotal === 'number') {
                 // Use newReportTotal in scenarios where the total is based on more than just the current transaction amount, and we need to override it manually
-                if (newReportTotal) {
+                if (hasReportTotalOverride) {
                     iouReport.unheldTotal = newReportTotal;
                 } else {
                     iouReport.unheldTotal -= reportAmount;
                 }
-                if (reimbursable) {
+                if (reimbursable && newUnheldReimbursableTotal === undefined && isCurrencyMatching) {
                     iouReport.unheldReimbursableTotal = previousUnheldReimbursableTotal - reportAmount;
                 }
             }
@@ -1688,6 +1718,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         hasViolations,
         isASAPSubmitBetaEnabled,
         isTrackIntentUser,
+        rules,
     });
 
     // STEP 5: Build Onyx Data
@@ -1698,6 +1729,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         shouldGenerateTransactionThreadReport,
         isOneOnOneSplit: isSplitExpense,
         isReverseSplitOperation,
+        rules,
         policyParams: {
             policy,
             policyCategories,

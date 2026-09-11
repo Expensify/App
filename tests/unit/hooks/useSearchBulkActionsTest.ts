@@ -231,6 +231,7 @@ function makeSelectedTransaction(overrides: Partial<SelectedTransactions[string]
         reportID: 'report1',
         policyID: 'policy1',
         amount: 100,
+        displayAmount: 100,
         currency: 'USD',
         isFromOneTransactionReport: false,
         ...overrides,

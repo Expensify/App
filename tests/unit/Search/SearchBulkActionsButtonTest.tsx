@@ -114,6 +114,7 @@ function makeTransaction(reportID = 'report1'): SelectedTransactions[string] {
         reportID,
         policyID: 'policy1',
         amount: 100,
+        displayAmount: 100,
         currency: 'USD',
     };
 }
