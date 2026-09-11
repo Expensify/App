@@ -197,6 +197,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
                 formatPhoneNumber,
+                rules: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -458,6 +459,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
                 formatPhoneNumber,
+                rules: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -725,6 +727,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                     isTrackIntentUser: false,
                     getCurrencyDecimals: getCurrencyDecimalsLocal,
                     getCurrencySymbol: getCurrencySymbolLocal,
+                    rules: undefined,
                 });
             }
             await waitForBatchedUpdates();
@@ -1174,6 +1177,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                     delegateAccountID: undefined,
                     isTrackIntentUser: false,
                     formatPhoneNumber,
+                    rules: undefined,
                 });
             }
 
@@ -1263,6 +1267,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
                 formatPhoneNumber,
+                rules: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -1445,6 +1450,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                     delegateAccountID: undefined,
                     isTrackIntentUser: false,
                     formatPhoneNumber,
+                    rules: undefined,
                 });
             }
 
