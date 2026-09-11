@@ -1,9 +1,6 @@
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
-import useSkeletonSpan from '@libs/telemetry/useSkeletonSpan';
-
 import variables from '@styles/variables';
 
 import React from 'react';
@@ -14,13 +11,11 @@ import SkeletonViewContentLoader from './SkeletonViewContentLoader';
 
 type TransactionPreviewSkeletonViewProps = {
     transactionPreviewWidth: number | string;
-    reasonAttributes: SkeletonSpanReasonAttributes;
 };
 
-function TransactionPreviewSkeletonView({transactionPreviewWidth, reasonAttributes}: TransactionPreviewSkeletonViewProps) {
+function TransactionPreviewSkeletonView({transactionPreviewWidth}: TransactionPreviewSkeletonViewProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
-    useSkeletonSpan('TransactionPreviewSkeletonView', reasonAttributes);
 
     const height = variables.transactionPreviewSkeletonHeight;
     const widthOfTheLeftSkeleton = 120;

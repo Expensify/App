@@ -1,22 +1,22 @@
 import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDefaultWorkspaceTravelGuard from '@hooks/useDefaultWorkspaceTravelGuard';
 import useEnvironment from '@hooks/useEnvironment';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
+import useScreenBoundDynamicRoute from '@hooks/useScreenBoundDynamicRoute';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useVerifyAccountAndResume from '@hooks/useVerifyAccountAndResume';
 
-import {cleanupTravelProvisioningSession, requestTravelAccess, setTravelProvisioningNextStep} from '@libs/actions/Travel';
-import getTravelAcceptTermsRoute from '@libs/getTravelAcceptTermsRoute';
+import {cleanupTravelProvisioningSession, requestTravelAccess} from '@libs/actions/Travel';
 import {isEmailPublicDomain} from '@libs/LoginUtils';
-import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {openTravelDotLink} from '@libs/openTravelDotLink';
-import {areTravelPersonalDetailsMissing} from '@libs/PersonalDetailsUtils';
-import {getActivePolicies, getAdminsPrivateEmailDomains, isPaidGroupPolicy, isWorkspaceProvisionedForTravel} from '@libs/PolicyUtils';
+import {getActivePolicies, getAdminsPrivateEmailDomains, hasAcceptedTravelTerms, isPaidGroupPolicy, isWorkspaceProvisionedForTravel} from '@libs/PolicyUtils';
 import {getSearchParamFromPath} from '@libs/Url';
 
 import colors from '@styles/theme/colors';
@@ -24,15 +24,13 @@ import colors from '@styles/theme/colors';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
-import type {Route} from '@src/ROUTES';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type WithSentryLabel from '@src/types/utils/SentryLabel';
 
 import type {ReactElement} from 'react';
 
 import {emailSelector} from '@selectors/Session';
 import {Str} from 'expensify-common';
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 
 import Button from './Button';
 import DotIndicatorMessage from './DotIndicatorMessage';
@@ -41,30 +39,19 @@ import RenderHTML from './RenderHTML';
 type BookTravelButtonProps = WithSentryLabel & {
     text: string;
     activePolicyID?: string;
-
-    /** Whether to render the error message below the button */
     shouldRenderErrorMessageBelowButton?: boolean;
-
-    /** Function to set the shouldScrollToBottom state */
     setShouldScrollToBottom?: (shouldScrollToBottom: boolean) => void;
-
     shouldShowVerifyAccountModal?: boolean;
 
     /** Whether to render a large button */
     large?: boolean;
 };
 
-const navigateToAcceptTerms = (acceptTermsRoute: Route, domain: string, isUserValidated?: boolean, policyID?: string) => {
-    // Remove the previous provision session information if any is cached.
-    cleanupTravelProvisioningSession();
-    if (isUserValidated) {
-        Navigation.navigate(acceptTermsRoute);
-        return;
-    }
-    Navigation.navigate(ROUTES.TRAVEL_VERIFY_ACCOUNT.getRoute(domain, policyID, Navigation.getActiveRoute()));
-};
-
 const hasPolicyIDInActiveRoute = () => getSearchParamFromPath(Navigation.getActiveRoute(), CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID) !== null;
+
+// Avoids a duplicate policyID query param when the active route already has one (e.g. opened from the FAB).
+const getPolicyDynamicSuffix = (dynamicRoute: {path: string; getRoute: (policyID?: string) => string}, policyID?: string) =>
+    hasPolicyIDInActiveRoute() ? dynamicRoute.path : dynamicRoute.getRoute(policyID);
 
 function BookTravelButton({
     text,
@@ -80,30 +67,47 @@ function BookTravelButton({
     const illustrations = useMemoizedLazyIllustrations(['RocketDude']);
     const {translate} = useLocalize();
     const {environmentURL} = useEnvironment();
-    const phoneErrorMethodsRoute = `${environmentURL}/${ROUTES.SETTINGS_CONTACT_METHODS.getRoute(Navigation.getActiveRoute())}`;
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
-    const isUserValidated = account?.validated ?? false;
     const primaryLogin = account?.primaryLogin ?? '';
 
     const policy = usePolicy(activePolicyID);
+    const blockIfDefaultWorkspaceLacksTravel = useDefaultWorkspaceTravelGuard();
     const [errorMessage, setErrorMessage] = useState<string | ReactElement>('');
     const [travelSettings] = useOnyx(ONYXKEYS.NVP_TRAVEL_SETTINGS);
     const [sessionEmail] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector});
     const primaryContactMethod = primaryLogin ?? sessionEmail ?? '';
     const {isBetaEnabled} = usePermissions();
     const {showConfirmModal} = useConfirmModal();
-    const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const {login: currentUserLogin} = useCurrentUserPersonalDetails();
+    const buildDynamicRoute = useScreenBoundDynamicRoute();
     const activePolicies = getActivePolicies(policies, currentUserLogin);
     const groupPaidPolicies = activePolicies.filter((activePolicy) => activePolicy.type !== CONST.POLICY.TYPE.PERSONAL && isPaidGroupPolicy(activePolicy));
 
-    // Ref to track if we should auto-resume the booking flow after returning from TravelLegalNamePage
-    const shouldResumeBookingRef = useRef(false);
+    const {isUserValidated, verifyAccountAndResume} = useVerifyAccountAndResume((resumeBooking?: () => void) => resumeBooking?.());
+
+    const completeTravelAccessRequest = () => {
+        if (shouldShowVerifyAccountModal) {
+            showConfirmModal({
+                title: translate('travel.verifyCompany.title'),
+                titleStyles: styles.textHeadlineH1,
+                titleContainerStyles: styles.mb2,
+                prompt: translate('travel.verifyCompany.message'),
+                promptStyles: styles.mb2,
+                confirmText: translate('common.buttonConfirm'),
+                shouldShowCancelButton: false,
+                image: illustrations.RocketDude,
+                imageStyles: StyleUtils.getBackgroundColorStyle(colors.ice600),
+            });
+        }
+        if (!travelSettings?.lastTravelSignupRequestTime) {
+            requestTravelAccess();
+        }
+    };
 
     const navigateToPublicDomainError = () => {
-        const dynamicSuffix = hasPolicyIDInActiveRoute() ? DYNAMIC_ROUTES.TRAVEL_PUBLIC_DOMAIN_ERROR.path : DYNAMIC_ROUTES.TRAVEL_PUBLIC_DOMAIN_ERROR.getRoute(activePolicyID);
-        Navigation.navigate(createDynamicRoute(dynamicSuffix));
+        const dynamicSuffix = getPolicyDynamicSuffix(DYNAMIC_ROUTES.TRAVEL_PUBLIC_DOMAIN_ERROR, activePolicyID);
+        Navigation.navigate(buildDynamicRoute(dynamicSuffix));
     };
 
     useEffect(() => {
@@ -133,6 +137,7 @@ function BookTravelButton({
 
         // The primary login of the user is where Spotnana sends the emails with booking confirmations, itinerary etc. It can't be a phone number.
         if (!primaryContactMethod || Str.isSMSLogin(primaryContactMethod)) {
+            const phoneErrorMethodsRoute = `${environmentURL}/${buildDynamicRoute(DYNAMIC_ROUTES.CONTACT_METHODS.path)}`;
             setErrorMessage(<RenderHTML html={translate('travel.phoneError', phoneErrorMethodsRoute)} />);
             return;
         }
@@ -143,11 +148,8 @@ function BookTravelButton({
             return;
         }
 
-        if (areTravelPersonalDetailsMissing(privatePersonalDetails)) {
-            shouldResumeBookingRef.current = true;
-            Navigation.navigate(ROUTES.WORKSPACE_TRAVEL_MISSING_PERSONAL_DETAILS.getRoute(policy?.id ?? String(CONST.DEFAULT_NUMBER_ID)));
-            return;
-        }
+        const isPolicyProvisioned = isWorkspaceProvisionedForTravel(policy?.travelSettings);
+        const hasPolicyAcceptedTravelTerms = hasAcceptedTravelTerms(policy, travelSettings);
 
         const adminDomains = getAdminsPrivateEmailDomains(policy);
         if (adminDomains.length === 0) {
@@ -156,7 +158,7 @@ function BookTravelButton({
         }
 
         if (groupPaidPolicies.length < 1) {
-            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.TRAVEL_UPGRADE.path));
+            Navigation.navigate(buildDynamicRoute(DYNAMIC_ROUTES.TRAVEL_UPGRADE.path));
             return;
         }
 
@@ -165,79 +167,34 @@ function BookTravelButton({
             return;
         }
 
-        const isPolicyProvisioned = isWorkspaceProvisionedForTravel(policy?.travelSettings);
-        if (policy?.travelSettings?.hasAcceptedTerms ?? (travelSettings?.hasAcceptedTerms && isPolicyProvisioned)) {
-            openTravelDotLink(policy?.id);
-        } else if (isPolicyProvisioned) {
-            // Send the default so the Travel-access check runs against the workspace owner's domain, not the acting admin's.
-            if (!isUserValidated) {
-                setTravelProvisioningNextStep(getTravelAcceptTermsRoute(CONST.TRAVEL.DEFAULT_DOMAIN, activePolicyID, policy));
-                Navigation.navigate(ROUTES.TRAVEL_VERIFY_ACCOUNT.getRoute(CONST.TRAVEL.DEFAULT_DOMAIN, activePolicyID, Navigation.getActiveRoute()));
+        if (hasPolicyAcceptedTravelTerms) {
+            if (blockIfDefaultWorkspaceLacksTravel()) {
                 return;
             }
-            navigateToAcceptTerms(getTravelAcceptTermsRoute(CONST.TRAVEL.DEFAULT_DOMAIN, activePolicyID, policy), CONST.TRAVEL.DEFAULT_DOMAIN, true, activePolicyID ?? undefined);
-        } else if (!isBetaEnabled(CONST.BETAS.IS_TRAVEL_VERIFIED)) {
-            if (!isUserValidated) {
-                Navigation.navigate(ROUTES.TRAVEL_VERIFY_ACCOUNT.getRoute(undefined, activePolicyID, Navigation.getActiveRoute()));
-                return;
-            }
-            if (shouldShowVerifyAccountModal) {
-                showConfirmModal({
-                    title: translate('travel.verifyCompany.title'),
-                    titleStyles: styles.textHeadlineH1,
-                    titleContainerStyles: styles.mb2,
-                    prompt: translate('travel.verifyCompany.message'),
-                    promptStyles: styles.mb2,
-                    confirmText: translate('common.buttonConfirm'),
-                    shouldShowCancelButton: false,
-                    image: illustrations.RocketDude,
-                    imageStyles: StyleUtils.getBackgroundColorStyle(colors.ice600),
-                });
-            }
-            if (!travelSettings?.lastTravelSignupRequestTime) {
-                requestTravelAccess();
-            }
-        }
-        // Determine the domain to associate with the workspace during provisioning in Spotnana.
-        // - If all admins share the same private domain, the workspace is tied to it automatically.
-        // - If admins have multiple private domains, the user must select one.
-        // - Public domains are not allowed; an error page is shown in that case.
-        else if (adminDomains.length === 1) {
-            const domain = adminDomains.at(0) ?? CONST.TRAVEL.DEFAULT_DOMAIN;
-            // Always validate OTP first before proceeding to address details or terms acceptance
-            if (!isUserValidated) {
-                // Determine where to redirect after OTP validation
-                const nextStep = isEmptyObject(policy?.address)
-                    ? ROUTES.TRAVEL_WORKSPACE_ADDRESS.getRoute(domain, activePolicyID, Navigation.getActiveRoute())
-                    : getTravelAcceptTermsRoute(domain, activePolicyID, policy);
-                setTravelProvisioningNextStep(nextStep);
-                Navigation.navigate(ROUTES.TRAVEL_VERIFY_ACCOUNT.getRoute(domain, activePolicyID, Navigation.getActiveRoute()));
-                return;
-            }
-            if (isEmptyObject(policy?.address)) {
-                // Spotnana requires an address anytime an entity is created for a policy
-                Navigation.navigate(ROUTES.TRAVEL_WORKSPACE_ADDRESS.getRoute(domain, activePolicyID, Navigation.getActiveRoute()));
-            } else {
-                navigateToAcceptTerms(getTravelAcceptTermsRoute(domain, activePolicyID, policy), domain, !!isUserValidated, activePolicyID ?? undefined);
-            }
-        } else {
-            const dynamicSuffix = hasPolicyIDInActiveRoute() ? DYNAMIC_ROUTES.TRAVEL_DOMAIN_SELECTOR.path : DYNAMIC_ROUTES.TRAVEL_DOMAIN_SELECTOR.getRoute(activePolicyID);
-            Navigation.navigate(createDynamicRoute(dynamicSuffix));
-        }
-    };
 
-    // Auto-resume the booking flow after returning from TravelLegalNamePage
-    // When the user saves their legal name and navigates back, privatePersonalDetails updates
-    // and this effect re-triggers bookATrip() to continue the booking flow
-    useEffect(() => {
-        if (!shouldResumeBookingRef.current || areTravelPersonalDetailsMissing(privatePersonalDetails)) {
+            openTravelDotLink(policy?.id);
             return;
         }
 
-        shouldResumeBookingRef.current = false;
-        bookATrip();
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- we only want to trigger this effect when privatePersonalDetails changes
-    }, [privatePersonalDetails]);
+        // Legacy request-access path for not-yet-provisioned workspaces when the self-serve provisioning beta is off.
+        if (!isPolicyProvisioned && !isBetaEnabled(CONST.BETAS.IS_TRAVEL_VERIFIED)) {
+            if (!isUserValidated) {
+                verifyAccountAndResume(completeTravelAccessRequest);
+                return;
+            }
+            completeTravelAccessRequest();
+            return;
+        }
+
+        // Hand off to the enablement stepper, which computes and collects only the steps this workspace still needs.
+        cleanupTravelProvisioningSession();
+        const enableTravelRoute = ROUTES.TRAVEL_ENABLE.getRoute(activePolicyID ?? String(CONST.DEFAULT_NUMBER_ID));
+        if (!isUserValidated) {
+            verifyAccountAndResume(() => Navigation.navigate(enableTravelRoute));
+            return;
+        }
+        Navigation.navigate(enableTravelRoute);
+    };
 
     return (
         <>
@@ -249,15 +206,16 @@ function BookTravelButton({
                 />
             )}
             <Button
-                text={text}
                 onPress={bookATrip}
                 accessibilityLabel={translate('travel.bookTravel')}
                 style={large ? styles.w100 : undefined}
                 isDisabled={!activePolicyID}
-                success
-                large={large}
+                variant={CONST.BUTTON_VARIANT.SUCCESS}
+                size={large ? CONST.BUTTON_SIZE.LARGE : undefined}
                 sentryLabel={sentryLabel}
-            />
+            >
+                <Button.Text>{text}</Button.Text>
+            </Button>
             {shouldRenderErrorMessageBelowButton && !!errorMessage && (
                 <DotIndicatorMessage
                     style={[styles.mb1, styles.pt3]}

@@ -7,7 +7,6 @@ import type {ReceiptFile} from '@pages/iou/request/step/IOURequestStepScan/types
 import {setMoneyRequestReceipt} from '@userActions/IOU/Receipt';
 import {buildOptimisticTransactionAndCreateDraft, removeDraftTransactionsByIDs} from '@userActions/TransactionEdit';
 
-import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 import type Transaction from '@src/types/onyx/Transaction';
 import type {FileObject} from '@src/types/utils/Attachment';
 
@@ -18,7 +17,6 @@ type BuildReceiptFilesParams = {
     getFileSource: (file: FileObject) => string;
     initialTransaction: OnyxEntry<Transaction>;
     initialTransactionID: string;
-    currentUserPersonalDetails: CurrentUserPersonalDetails;
     reportID: string;
     shouldAcceptMultipleFiles: boolean;
     isMultiScanEnabled: boolean;
@@ -43,7 +41,6 @@ function buildReceiptFiles({
     getFileSource,
     initialTransaction,
     initialTransactionID,
-    currentUserPersonalDetails,
     reportID,
     shouldAcceptMultipleFiles,
     isMultiScanEnabled,
@@ -67,7 +64,6 @@ function buildReceiptFiles({
             ? initialTransaction
             : buildOptimisticTransactionAndCreateDraft({
                   initialTransaction: initialTransaction as Partial<Transaction>,
-                  currentUserPersonalDetails,
                   reportID,
               });
 

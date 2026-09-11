@@ -2,7 +2,7 @@ import {getLastVisibleAction, getLastVisibleMessage, getSortedReportActionsForDi
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ReportActions} from '@src/types/onyx/ReportAction';
+import type {ReportActions, ReportActionsCollectionDataSet} from '@src/types/onyx/ReportAction';
 import type ReportAction from '@src/types/onyx/ReportAction';
 
 import {getLastClosedReportAction} from '@selectors/ReportAction';
@@ -13,24 +13,27 @@ import createCollection from '../utils/collections/createCollection';
 import createRandomReportAction from '../utils/collections/reportActions';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
-const getMockedReportActionsMap = (reportsLength = 10, actionsPerReportLength = 100) => {
-    const mockReportActions = Array.from({length: actionsPerReportLength}, (v, i) => {
-        const reportActionKey = i + 1;
-        const reportAction = createRandomReportAction(reportActionKey);
+type ActionsToMerge = NonNullable<Parameters<typeof getLastVisibleAction>[2]>;
 
-        return {[reportActionKey]: reportAction};
-    });
+const getMockedReportActionsMap = (reportsLength = 10, actionsPerReportLength = 100): ReportActionsCollectionDataSet => {
+    const mockReportActions: ReportActions = {};
+    for (let actionIndex = 1; actionIndex <= actionsPerReportLength; actionIndex++) {
+        mockReportActions[actionIndex] = createRandomReportAction(actionIndex);
+    }
 
-    const reportKeysMap = Array.from({length: reportsLength}, (v, i) => {
-        const key = i + 1;
+    const reportActionsMap: ReportActionsCollectionDataSet = {};
+    for (let reportIndex = 1; reportIndex <= reportsLength; reportIndex++) {
+        const reportActions: ReportActions = {};
+        for (const [actionKey, reportAction] of Object.entries(mockReportActions)) {
+            reportActions[actionKey] = reportAction;
+        }
+        reportActionsMap[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportIndex}`] = reportActions;
+    }
 
-        return {[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${key}`]: Object.assign({}, ...mockReportActions) as Partial<ReportAction>};
-    });
-
-    return Object.assign({}, ...reportKeysMap) as Partial<ReportAction>;
+    return reportActionsMap;
 };
 
-const mockedReportActionsMap: Partial<ReportAction> = getMockedReportActionsMap(2, 10000);
+const mockedReportActionsMap: ReportActionsCollectionDataSet = getMockedReportActionsMap(2, 10000);
 
 const reportActions = createCollection<ReportAction>(
     (item) => `${item.reportActionID}`,
@@ -46,9 +49,7 @@ describe('ReportActionsUtils', () => {
             evictableKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS],
         });
 
-        Onyx.multiSet({
-            ...mockedReportActionsMap,
-        });
+        Onyx.multiSet(mockedReportActionsMap);
     });
 
     afterAll(() => {
@@ -73,7 +74,7 @@ describe('ReportActionsUtils', () => {
     test('[ReportActionsUtils] getLastVisibleAction on 10k reportActions with actionsToMerge', async () => {
         const parentReportActionId = '1';
         const fakeParentAction = reportActions[parentReportActionId];
-        const actionsToMerge = {
+        const actionsToMerge: ActionsToMerge = {
             [parentReportActionId]: {
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                 previousMessage: fakeParentAction.message,
@@ -88,9 +89,9 @@ describe('ReportActionsUtils', () => {
                     },
                 ],
                 errors: null,
-                linkMetaData: [],
+                linkMetadata: [],
             },
-        } as unknown as ReportActions;
+        };
 
         await waitForBatchedUpdates();
         await measureFunction(() => getLastVisibleAction(reportId, true, actionsToMerge));
@@ -104,7 +105,7 @@ describe('ReportActionsUtils', () => {
     test('[ReportActionsUtils] getLastVisibleMessage on 10k ReportActions with actionsToMerge', async () => {
         const parentReportActionId = '1';
         const fakeParentAction = reportActions[parentReportActionId];
-        const actionsToMerge = {
+        const actionsToMerge: ActionsToMerge = {
             [parentReportActionId]: {
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                 previousMessage: fakeParentAction.message,
@@ -119,9 +120,9 @@ describe('ReportActionsUtils', () => {
                     },
                 ],
                 errors: null,
-                linkMetaData: [],
+                linkMetadata: [],
             },
-        } as unknown as ReportActions;
+        };
 
         await waitForBatchedUpdates();
         await measureFunction(() => getLastVisibleMessage(reportId, true, actionsToMerge));

@@ -41,10 +41,7 @@ type DotIndicatorMessageProps = {
     /** Additional styles to apply to the container */
     style?: StyleProp<ViewStyle>;
 
-    /** Additional styles to apply to the text */
     textStyles?: StyleProp<TextStyle>;
-
-    /** A function to dismiss error */
     dismissError?: () => void;
 };
 
@@ -140,18 +137,20 @@ function DotIndicatorMessage({messages = {}, style, type, textStyles, dismissErr
         const buttonsRow = (
             <View style={[styles.flexRow, styles.gap3]}>
                 <Button
-                    small
-                    text={translate('iou.error.saveReceipt')}
+                    size={CONST.BUTTON_SIZE.SMALL}
                     onPress={() => {
                         fileDownload(translate, receiptError.source, receiptError.filename);
                     }}
-                />
+                >
+                    <Button.Text>{translate('iou.error.saveReceipt')}</Button.Text>
+                </Button>
                 <Button
-                    small
-                    danger
-                    text={translate('iou.deleteExpense', {count: 1})}
+                    variant={CONST.BUTTON_VARIANT.DANGER}
+                    size={CONST.BUTTON_SIZE.SMALL}
                     onPress={dismissError}
-                />
+                >
+                    <Button.Text>{translate('iou.deleteExpense', {count: 1})}</Button.Text>
+                </Button>
             </View>
         );
         if (!isStackedLayout) {

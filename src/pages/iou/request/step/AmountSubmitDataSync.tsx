@@ -34,7 +34,6 @@ type AmountSubmitData = Pick<
     | 'transactionDrafts'
     | 'transactionViolations'
     | 'storedTransaction'
-    | 'parentReportNextStep'
     | 'policyCategories'
     | 'userBillingGracePeriodEnds'
     | 'duplicateTransactions'
@@ -50,6 +49,8 @@ type AmountSubmitData = Pick<
     | 'amountOwed'
     | 'ownerBillingGracePeriodEnd'
     | 'conciergeReportID'
+    | 'conciergeChat'
+    | 'rules'
 >;
 
 type AmountSubmitDataSyncProps = {
@@ -86,7 +87,6 @@ function AmountSubmitDataSync({report, transaction, transactionID, policyID, isE
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
-    const [parentReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
     const existingTransactionID = getExistingTransactionID(transaction?.linkedTrackedExpenseReportAction);
     const [storedTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(existingTransactionID)}`);
     const reportIDToCheck = isMoneyRequestReport(report) ? report?.chatReportID : report?.reportID;
@@ -102,6 +102,8 @@ function AmountSubmitDataSync({report, transaction, transactionID, policyID, isE
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
     const duplicateTransactionIDs = isEditing && transactionID ? [transactionID] : [];
     const {duplicateTransactions, duplicateTransactionViolations} = useDuplicateTransactionsAndViolations(duplicateTransactionIDs);
@@ -123,7 +125,6 @@ function AmountSubmitDataSync({report, transaction, transactionID, policyID, isE
             transactionDrafts,
             transactionViolations,
             storedTransaction,
-            parentReportNextStep,
             policyCategories,
             userBillingGracePeriodEnds,
             duplicateTransactions,
@@ -139,6 +140,8 @@ function AmountSubmitDataSync({report, transaction, transactionID, policyID, isE
             amountOwed,
             ownerBillingGracePeriodEnd,
             conciergeReportID,
+            conciergeChat,
+            rules,
         };
     }, [
         submitDataRef,
@@ -154,7 +157,6 @@ function AmountSubmitDataSync({report, transaction, transactionID, policyID, isE
         transactionDrafts,
         transactionViolations,
         storedTransaction,
-        parentReportNextStep,
         policyCategories,
         userBillingGracePeriodEnds,
         duplicateTransactions,
@@ -170,6 +172,8 @@ function AmountSubmitDataSync({report, transaction, transactionID, policyID, isE
         amountOwed,
         ownerBillingGracePeriodEnd,
         conciergeReportID,
+        conciergeChat,
+        rules,
     ]);
 
     return null;

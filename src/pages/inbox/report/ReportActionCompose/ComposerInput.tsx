@@ -1,6 +1,5 @@
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 
-import useIsScrollLikelyLayoutTriggered from '@hooks/useIsScrollLikelyLayoutTriggered';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
@@ -25,7 +24,7 @@ import type {MeasureInWindowOnSuccessCallback} from 'react-native';
 
 import React from 'react';
 
-import {useComposerActions, useComposerMeta, useComposerSendState, useComposerState} from './ComposerContext';
+import {useComposerActions, useComposerEditState, useComposerMeta, useComposerSendState, useComposerState} from './ComposerContext';
 import ComposerWithSuggestions from './ComposerWithSuggestions';
 import useAttachmentPicker from './useAttachmentPicker';
 import useComposerSubmit from './useComposerSubmit';
@@ -44,9 +43,11 @@ function ComposerInput() {
     const {isBlockedFromConcierge, debouncedCommentMaxLengthValidation} = useComposerSendState();
     const {setIsFullComposerAvailable, onBlur, onFocus, setComposerRef} = useComposerActions();
     const {containerRef, suggestionsRef, isNextModalWillOpenRef} = useComposerMeta();
+    const {isEditingInComposer, didResetComposerHeightWhileEditing} = useComposerEditState();
+    const isSubmittingEdit = isEditingInComposer || didResetComposerHeightWhileEditing;
 
     const {submitDraftAndClearComposer, validateAndSubmitDraft} = useComposerSubmit(reportID);
-    const {pickAttachments, PDFValidationComponent, ErrorModal} = useAttachmentPicker(reportID);
+    const {pickAttachments, PDFValidationComponent} = useAttachmentPicker(reportID);
 
     const [isComposerFullSize = false] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${reportID}`);
     const [blockedFromConcierge] = useOnyx(ONYXKEYS.NVP_BLOCKED_FROM_CONCIERGE);
@@ -62,8 +63,6 @@ function ComposerInput() {
     const measureContainer = (callback: MeasureInWindowOnSuccessCallback) => {
         containerRef.current?.measureInWindow(callback);
     };
-
-    const {isScrollLayoutTriggered, raiseIsScrollLayoutTriggered} = useIsScrollLikelyLayoutTriggered();
 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const isReportArchived = useReportIsArchived(report?.reportID);
@@ -88,8 +87,6 @@ function ComposerInput() {
                 ref={setComposerRef}
                 suggestionsRef={suggestionsRef}
                 isNextModalWillOpenRef={isNextModalWillOpenRef}
-                isScrollLikelyLayoutTriggered={isScrollLayoutTriggered}
-                raiseIsScrollLikelyLayoutTriggered={raiseIsScrollLayoutTriggered}
                 reportID={reportID}
                 policyID={report?.policyID}
                 includeChronos={chatIncludesChronos(report)}
@@ -98,7 +95,12 @@ function ComposerInput() {
                 inputPlaceholder={inputPlaceholder}
                 isComposerFullSize={isComposerFullSize}
                 setIsFullComposerAvailable={setIsFullComposerAvailable}
-                onPasteFile={(files) => pickAttachments({files})}
+                onPasteFile={(files) => {
+                    if (isSubmittingEdit) {
+                        return;
+                    }
+                    pickAttachments({files});
+                }}
                 onClear={validateAndSubmitDraft}
                 disabled={isBlockedFromConcierge || isEmojiPickerVisible()}
                 onEnterKeyPress={submitDraftAndClearComposer}
@@ -109,7 +111,6 @@ function ComposerInput() {
                 forwardedFSClass={fsClass}
             />
             {PDFValidationComponent}
-            {ErrorModal}
         </>
     );
 }

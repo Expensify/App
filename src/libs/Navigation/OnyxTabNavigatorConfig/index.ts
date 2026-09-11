@@ -1,4 +1,5 @@
 import type {TabRouterOptions} from '@react-navigation/native';
+import type {ViewStyle} from 'react-native';
 
 const defaultScreenOptions = {
     animation: 'default',
@@ -11,4 +12,10 @@ const defaultScreenOptions = {
  */
 const backBehavior: NonNullable<TabRouterOptions['backBehavior']> = 'none';
 
-export {defaultScreenOptions, backBehavior};
+/**
+ * Native has no scroll-container-based clipping to opt out of (the pager is a native `PagerView`), so the pager
+ * container keeps `react-native-tab-view`'s own style. See the web file for why web needs to override it.
+ */
+const pagerContainerStyle: ViewStyle = {};
+
+export {defaultScreenOptions, backBehavior, pagerContainerStyle};

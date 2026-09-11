@@ -7,6 +7,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import colors from '@styles/theme/colors';
 
+import CONST from '@src/CONST';
+
 import React from 'react';
 
 function ReviewingRequest() {
@@ -21,16 +23,17 @@ function ReviewingRequest() {
             subtitle={translate('workspace.moreFeatures.travel.reviewingRequest.subtitle')}
             footer={
                 <Button
-                    text={translate('workspace.moreFeatures.travel.reviewingRequest.ctaText')}
                     style={[styles.w100]}
                     isDisabled
-                    large
-                />
+                    size={CONST.BUTTON_SIZE.LARGE}
+                >
+                    <Button.Text>{translate('workspace.moreFeatures.travel.reviewingRequest.ctaText')}</Button.Text>
+                </Button>
             }
             illustrationBackgroundColor={colors.tangerine700}
             illustration={illustrations.PendingTravel}
             illustrationStyle={styles.travelCardIllustration}
-            illustrationContainerStyle={[styles.emptyStateCardIllustrationContainer, styles.justifyContentCenter]}
+            illustrationContainerStyle={[styles.emptyStateCardIllustrationContainer, styles.justifyContentCenter, styles.cardSectionIllustrationContainer]}
             titleStyles={styles.textHeadlineH1}
         />
     );

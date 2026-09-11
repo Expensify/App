@@ -1,5 +1,7 @@
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 
+import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
+
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {Policy, PolicyCategories, PolicyTagLists, Report, ReportAction, ReportAttributesDerivedValue} from '@src/types/onyx';
@@ -12,13 +14,10 @@ import type {Entries, ValueOf} from 'type-fest';
 import isEmpty from 'lodash/isEmpty';
 
 import {getDecodedCategoryName, isCategoryMissing} from './CategoryUtils';
-import {convertToDisplayString} from './CurrencyUtils';
 import DateUtils from './DateUtils';
 import {getEnvironmentURL} from './Environment/Environment';
 import {formatList} from './Localize';
 import Log from './Log';
-import Parser from './Parser';
-import {getPersonalDetailByEmail} from './PersonalDetailsUtils';
 import {
     arePolicyRulesEnabled,
     findVendorByID,
@@ -93,7 +92,7 @@ function buildDateChangeFragment(
     if (!oldCreated || !created) {
         return;
     }
-    const formattedOldCreated = DateUtils.formatWithUTCTimeZone(oldCreated, CONST.DATE.FNS_FORMAT_STRING);
+    const formattedOldCreated = DateUtils.formatMachineDateWithUTCTimeZone(oldCreated, CONST.DATE.FNS_FORMAT_STRING);
     buildMessageFragmentForValue(translate, created, formattedOldCreated, translate('common.date'), false, setFragments, removalFragments, changeFragments);
 }
 
@@ -153,7 +152,7 @@ function getForDistanceRequest(translate: LocalizedTranslate, newMerchant: strin
     return translate('iou.updatedTheDistanceMerchant', translatedChangedField, newMerchant, oldMerchant, newAmount, oldAmount);
 }
 
-function getForExpenseMovedFromSelfDM(translate: LocalizedTranslate, destinationReport: OnyxEntry<Report>, currentUserLogin: string, policy: OnyxEntry<Policy>) {
+function getForExpenseMovedFromSelfDM(translate: LocalizedTranslate, destinationReport: OnyxEntry<Report>, currentUserAccountID: number | undefined, policy: OnyxEntry<Policy>) {
     const rootParentReport = getRootParentReport({report: destinationReport});
     // In OldDot, expenses could be moved to a self-DM. Return the corresponding message for this case.
     if (isSelfDM(rootParentReport)) {
@@ -162,7 +161,6 @@ function getForExpenseMovedFromSelfDM(translate: LocalizedTranslate, destination
     // In NewDot, the "Move report" flow only supports moving expenses from self-DM to:
     // - A policy expense chat
     // - A 1:1 DM
-    const currentUserAccountID = getPersonalDetailByEmail(currentUserLogin)?.accountID;
     const reportName = isPolicyExpenseChat(rootParentReport)
         ? getPolicyExpenseChatName({report: rootParentReport, translate})
         : buildReportNameFromParticipantNames({report: rootParentReport, currentUserAccountID, translate});
@@ -171,7 +169,7 @@ function getForExpenseMovedFromSelfDM(translate: LocalizedTranslate, destination
     if (isEmpty(policyName) && !reportName) {
         return translate('iou.changedTheExpense');
     }
-    return translate('iou.movedFromPersonalSpace', {reportName, workspaceName: !isEmpty(policyName) ? policyName : undefined});
+    return translate('iou.movedFromPersonalSpace', reportName, !isEmpty(policyName) ? policyName : undefined);
 }
 
 function getMovedReportID(reportAction: OnyxEntry<ReportAction>, type: ValueOf<typeof CONST.REPORT.MOVE_TYPE>): string | undefined {
@@ -187,12 +185,12 @@ function getMovedFromOrToReportMessage(
     translate: LocalizedTranslate,
     movedFromReport: OnyxEntry<Report> | undefined,
     movedToReport: OnyxEntry<Report> | undefined,
-    currentUserLogin: string,
+    currentUserAccountID: number | undefined,
     policy: OnyxEntry<Policy>,
     reportAttributes?: ReportAttributesDerivedValue['reports'],
 ): string | undefined {
     if (movedToReport) {
-        return getForExpenseMovedFromSelfDM(translate, movedToReport, currentUserLogin, policy);
+        return getForExpenseMovedFromSelfDM(translate, movedToReport, currentUserAccountID, policy);
     }
 
     if (movedFromReport) {
@@ -247,7 +245,7 @@ function getRulesModifiedMessage(
         }
         // The backend saves the description field as `comment` key, but we need to display it as `description` key.
         if (key === 'comment') {
-            return translate('iou.rulesModifiedFields.common', 'description', Parser.htmlToMarkdown(updatedValue), isFirst);
+            return translate('iou.rulesModifiedFields.common', 'description', updatedValue, isFirst);
         }
 
         return translate('iou.rulesModifiedFields.common', key, updatedValue, isFirst);
@@ -269,16 +267,19 @@ function getRulesModifiedMessage(
  */
 function getForReportAction({
     translate,
+    convertToDisplayString,
     reportAction,
     policy,
     movedFromReport,
     movedToReport,
     policyTags,
     policyCategories,
+    currentUserAccountID,
     currentUserLogin,
     reportAttributes,
 }: {
     translate: LocalizedTranslate;
+    convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
     reportAction: OnyxEntry<ReportAction>;
     policy: OnyxEntry<Policy>;
     movedFromReport?: OnyxEntry<Report>;
@@ -288,6 +289,7 @@ function getForReportAction({
     // See https://github.com/Expensify/App/pull/75562
     policyTags?: OnyxEntry<PolicyTagLists>;
     policyCategories?: OnyxEntry<PolicyCategories>;
+    currentUserAccountID: number | undefined;
     currentUserLogin: string;
     reportAttributes?: ReportAttributesDerivedValue['reports'];
 }): string {
@@ -295,7 +297,7 @@ function getForReportAction({
         return '';
     }
 
-    const movedFromOrToReportMessage = getMovedFromOrToReportMessage(translate, movedFromReport, movedToReport, currentUserLogin, policy, reportAttributes);
+    const movedFromOrToReportMessage = getMovedFromOrToReportMessage(translate, movedFromReport, movedToReport, currentUserAccountID, policy, reportAttributes);
     if (movedFromOrToReportMessage) {
         return movedFromOrToReportMessage;
     }
@@ -359,8 +361,8 @@ function getForReportAction({
 
         buildMessageFragmentForValue(
             translate,
-            Parser.htmlToMarkdown(reportActionOriginalMessage?.newComment ?? ''),
-            Parser.htmlToMarkdown(reportActionOriginalMessage?.oldComment ?? ''),
+            reportActionOriginalMessage?.newComment ?? '',
+            reportActionOriginalMessage?.oldComment ?? '',
             descriptionLabel,
             true,
             setFragments,
@@ -496,18 +498,18 @@ function getForReportAction({
     // fallback.
     const hasModifiedVendor = isReportActionOriginalMessageAnObject && ('oldVendor' in reportActionOriginalMessage || 'vendor' in reportActionOriginalMessage);
     if (hasModifiedVendor) {
-        // Vendor is stored on the action as `{externalID, isManuallySet}` (or absent/null). Resolve
-        // the display name from any connection that has the vendor data (QBO, Intacct, or Xero),
-        // without gating on the workspace's current export mode — a past "set vendor" action should
-        // still render the vendor name after an admin switches the non-reimbursable export type. If
-        // the vendor has been removed from the integration entirely the name is unrecoverable, so
-        // fall back to the externalID so the fragment still identifies which vendor was set rather
-        // than rendering `set vendor ""`.
+        // Vendor is stored on the action as `{externalID, name?, wasManuallySet}` (or absent/null).
+        // Resolve the display name from any connection that has the vendor data (QBO, Intacct, or
+        // Xero), without gating on the workspace's current export mode — a past "set vendor" action
+        // should still render the vendor name after an admin switches the non-reimbursable export
+        // type. When no connection has the vendor any more, prefer the display name persisted on the
+        // action, then fall back to the externalID so the fragment still identifies which vendor was
+        // set rather than rendering `set vendor ""`.
         const resolveVendorName = (entry: typeof reportActionOriginalMessage.vendor): string => {
             if (!entry?.externalID) {
                 return '';
             }
-            return findVendorByID(policy, entry.externalID)?.name ?? entry.externalID;
+            return findVendorByID(policy, entry.externalID)?.name ?? entry.name ?? entry.externalID;
         };
         buildMessageFragmentForValue(
             translate,
@@ -523,8 +525,8 @@ function getForReportAction({
 
     const hasModifiedAttendees = isReportActionOriginalMessageAnObject && 'oldAttendees' in reportActionOriginalMessage && 'newAttendees' in reportActionOriginalMessage;
     if (hasModifiedAttendees) {
-        const [oldAttendees, attendees] = getFormattedAttendees(reportActionOriginalMessage.newAttendees, reportActionOriginalMessage.oldAttendees);
-        buildMessageFragmentForValue(translate, oldAttendees, attendees, translate('iou.attendees'), false, setFragments, removalFragments, changeFragments);
+        const [oldAttendees, newAttendees] = getFormattedAttendees(reportActionOriginalMessage.oldAttendees, reportActionOriginalMessage.newAttendees);
+        buildMessageFragmentForValue(translate, newAttendees, oldAttendees, translate('iou.attendees'), false, setFragments, removalFragments, changeFragments);
     }
 
     const hasPersonalRulesModifiedFields = isReportActionOriginalMessageAnObject && 'personalRulesModifiedFields' in reportActionOriginalMessage;

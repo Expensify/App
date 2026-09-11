@@ -13,6 +13,7 @@ let credentials: Credentials | null | undefined;
 let lastShortAuthToken: string | null | undefined;
 let authToken: string | null | undefined;
 let authTokenType: ValueOf<typeof CONST.AUTH_TOKEN_TYPES> | null;
+let accountID: number | null | undefined;
 let authenticating = false;
 
 let resolveIsReadyPromise: (args?: unknown[]) => void;
@@ -45,6 +46,7 @@ Onyx.connectWithoutView({
     callback: (val) => {
         authToken = val?.authToken ?? null;
         authTokenType = val?.authTokenType ?? null;
+        accountID = val?.accountID ?? null;
         checkRequiredData();
     },
 });
@@ -65,6 +67,10 @@ function getCredentials(): Credentials | null | undefined {
 
 function getAuthToken(): string | null | undefined {
     return authToken;
+}
+
+function getAccountID(): number | null | undefined {
+    return accountID;
 }
 
 function getLastShortAuthToken(): string | null | undefined {
@@ -97,6 +103,7 @@ function setIsAuthenticating(val: boolean) {
 
 export {
     getAuthToken,
+    getAccountID,
     setAuthToken,
     getCurrentUserEmail,
     hasReadRequiredDataFromStorage,

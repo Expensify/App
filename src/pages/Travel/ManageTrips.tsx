@@ -84,12 +84,13 @@ function ManageTrips({policyID}: ManageTripsProps) {
                         footer={
                             <>
                                 <Button
-                                    text={translate('travel.bookDemo')}
                                     onPress={navigateToBookTravelDemo}
                                     accessibilityLabel={translate('travel.bookDemo')}
                                     style={[styles.w100, styles.mb3]}
-                                    large
-                                />
+                                    size={CONST.BUTTON_SIZE.LARGE}
+                                >
+                                    <Button.Text>{translate('travel.bookDemo')}</Button.Text>
+                                </Button>
                                 <BookTravelButton
                                     text={translate('travel.bookTravel')}
                                     shouldRenderErrorMessageBelowButton

@@ -18,6 +18,7 @@ import type BankAccount from './BankAccount';
 import type BankAccountShareDetails from './BankAccountShareDetails';
 import type Beta from './Beta';
 import type BetaConfiguration from './BetaConfiguration';
+import type BetaOverrides from './BetaOverrides';
 import type BillingGraceEndPeriod from './BillingGraceEndPeriod';
 import type BillingReceiptDetails from './BillingReceiptDetails';
 import type BillingStatus from './BillingStatus';
@@ -43,6 +44,7 @@ import type {
 } from './CardFeeds';
 import type CardOnWaitlist from './CardOnWaitlist';
 import type ChronosTimeTracking from './ChronosTimeTracking';
+import type CloudflareSession from './CloudflareSession';
 import type CodingRuleMatchingTransaction from './CodingRuleMatchingTransaction';
 import type CompanyCardsLoadingState from './CompanyCardsLoadingState';
 import type ConciergePendingFollowupList from './ConciergePendingFollowupList';
@@ -50,12 +52,15 @@ import type CopyPolicySettings from './CopyPolicySettings';
 import type CopyPolicySettingsNVP from './CopyPolicySettingsNVP';
 import type {CorpayFields, CorpayFormField} from './CorpayFields';
 import type {CorpayOnboardingFields} from './CorpayOnboardingFields';
+import type CorpayPayModal from './CorpayPayModal';
 import type Credentials from './Credentials';
 import type Currency from './Currency';
 import type {CurrencyList} from './Currency';
 import type CustomStatusDraft from './CustomStatusDraft';
+import type DatabaseSizeMeasurement from './DatabaseSizeMeasurement';
 import type {
     CardFeedErrorsDerivedValue,
+    GuideAccountIDsDerivedValue,
     LoginToAccountIDMapDerivedValue,
     NonPersonalAndWorkspaceCardListDerivedValue,
     OutstandingReportsByPolicyIDDerivedValue,
@@ -77,13 +82,16 @@ import type Download from './Download';
 import type DuplicateWorkspace from './DuplicateWorkspace';
 import type ExpenseRule from './ExpenseRule';
 import type ExpensifyCardBankAccountMetadata from './ExpensifyCardBankAccountMetadata';
+import type ExpensifyCardLoadingState from './ExpensifyCardLoadingState';
 import type ExpensifyCardSettings from './ExpensifyCardSettings';
 import type {ExpensifyCardSettingsBase, NestedExpensifyCardSettings} from './ExpensifyCardSettings';
+import type ExpensifyCardStatement from './ExpensifyCardStatement';
 import type ExportDownload from './ExportDownload';
 import type ExportTemplate from './ExportTemplate';
 import type FrequentlyUsedEmoji from './FrequentlyUsedEmoji';
 import type {FundList} from './Fund';
 import type Fund from './Fund';
+import type GovernmentMileageRate from './GovernmentMileageRate';
 import type GpsDraftDetails from './GpsDraftDetails';
 import type HybridApp from './HybridApp';
 import type ImportedSpreadsheet from './ImportedSpreadsheet';
@@ -105,9 +113,11 @@ import type Login from './Login';
 import type {Login as NewLogin} from './Logins';
 import type Logins from './Logins';
 import type MapboxAccessToken from './MapboxAccessToken';
+import type MerchantRuleSuggestion from './MerchantRuleSuggestion';
 import type MergeTransaction from './MergeTransaction';
 import type Modal from './Modal';
 import type Network from './Network';
+import type NewAgentTemplate from './NewAgentTemplate';
 import type NewGroupChatDraft from './NewGroupChatDraft';
 import type OdometerDraft from './OdometerDraft';
 import type Onboarding from './Onboarding';
@@ -131,6 +141,7 @@ import type PolicyEmployee from './PolicyEmployee';
 import type PolicyJoinMember from './PolicyJoinMember';
 import type PolicyOwnershipChangeChecks from './PolicyOwnershipChangeChecks';
 import type {ParticipantsPolicyTags, PolicyTag, PolicyTagLists, PolicyTags} from './PolicyTag';
+import type PolicyVendors from './PolicyVendor';
 import type PrivatePersonalDetails from './PrivatePersonalDetails';
 import type PrivatePromoDiscount from './PrivatePromoDiscount';
 import type PrivateSubscription from './PrivateSubscription';
@@ -154,7 +165,6 @@ import type ReportLoadingState from './ReportLoadingState';
 import type ReportMetadata from './ReportMetadata';
 import type ReportNameValuePairs from './ReportNameValuePairs';
 import type LastSearchParams from './ReportNavigation';
-import type ReportNextStepDeprecated from './ReportNextStepDeprecated';
 import type ReportPaginationState from './ReportPaginationState';
 import type ReportUserIsTyping from './ReportUserIsTyping';
 import type ReportViolationName from './ReportViolationName';
@@ -162,14 +172,18 @@ import type Request from './Request';
 import type {AnyRequest} from './Request';
 import type Response from './Response';
 import type ReviewDuplicates from './ReviewDuplicates';
+import type Rule from './Rule';
 import type {SavedCSVColumnLayoutData, SavedCSVColumnLayoutList} from './SavedCSVColumnLayout';
 import type {SaveSearch} from './SaveSearch';
 import type ScheduleCallDraft from './ScheduleCallDraft';
 import type ScreenShareRequest from './ScreenShareRequest';
 import type SearchContext from './SearchContext';
+import type SearchFilters from './SearchFilters';
+import type SearchFooterConversion from './SearchFooterConversion';
 import type SearchResults from './SearchResults';
 import type SearchSidebar from './SearchSidebar';
 import type SecurityGroup from './SecurityGroup';
+import type {DomainSecurityGroupMembership} from './SecurityGroup';
 import type SelectedTabRequest from './SelectedTabRequest';
 import type Session from './Session';
 import type ShareBankAccount from './ShareBankAccount';
@@ -177,6 +191,7 @@ import type ShareTempFile from './ShareTempFile';
 import type SidePanel from './SidePanel';
 import type {SidePanelContext} from './SidePanel';
 import type StripeCustomerID from './StripeCustomerID';
+import type SuggestedAgent from './SuggestedAgent';
 import type SuggestedAgentRule from './SuggestedAgentRule';
 import type SupportalPermissionDenied from './SupportalPermissionDenied';
 import type Task from './Task';
@@ -185,7 +200,7 @@ import type TransactionPending3DSReview from './TransactionPending3DSReview';
 import type TransactionsPending3DSReview from './TransactionsPending3DSReview';
 import type {TransactionViolation, ViolationName} from './TransactionViolation';
 import type TransactionViolations from './TransactionViolation';
-import type TravelInvoiceStatement from './TravelInvoiceStatement';
+import type TravelBillingStatement from './TravelBillingStatement';
 import type TravelProvisioning from './TravelProvisioning';
 import type {TravelSettings, WorkspaceTravelSettings} from './TravelSettings';
 import type TryNewDot from './TryNewDot';
@@ -195,8 +210,8 @@ import type UserMetadata from './UserMetadata';
 import type UserWallet from './UserWallet';
 import type VacationDelegate from './VacationDelegate';
 import type ValidateDomainTwoFactorCode from './ValidateDomainTwoFactorCode';
-import type ValidateMagicCodeAction from './ValidateMagicCodeAction';
 import type ValidateUserAndGetAccessiblePolicies from './ValidateUserAndGetAccessiblePolicies';
+import type VerifyValidateCodeAction from './VerifyValidateCodeAction';
 import type WalletAdditionalDetails from './WalletAdditionalDetails';
 import type {WalletAdditionalQuestionDetails} from './WalletAdditionalDetails';
 import type WalletOnfido from './WalletOnfido';
@@ -221,6 +236,7 @@ export type {
     Beta,
     AddNewPersonalCard,
     BetaConfiguration,
+    BetaOverrides,
     BlockedFromConcierge,
     Card,
     CardList,
@@ -231,6 +247,7 @@ export type {
     Currency,
     CurrencyList,
     CustomStatusDraft,
+    DatabaseSizeMeasurement,
     UnshareBankAccount,
     DismissedReferralBanners,
     Domain,
@@ -245,10 +262,12 @@ export type {
     ExpensifyCardSettingsBase,
     NestedExpensifyCardSettings,
     ExpensifyCardBankAccountMetadata,
+    ExpensifyCardLoadingState,
     FrequentlyUsedEmoji,
     Fund,
     FundID,
     FundList,
+    GovernmentMileageRate,
     GpsDraftDetails,
     IntroSelected,
     IssueNewCard,
@@ -291,6 +310,7 @@ export type {
     Policy,
     PolicyCategories,
     PolicyCategory,
+    PolicyVendors,
     PolicyEmployee,
     PolicyEmployeeList,
     PolicyConnectionName,
@@ -311,6 +331,7 @@ export type {
     RecentlyUsedTags,
     ReimbursementAccount,
     Report,
+    Rule,
     ReportNameValuePairs,
     ReportAction,
     ReportActionReactions,
@@ -320,7 +341,6 @@ export type {
     ReportLastVisitTimes,
     ReportLoadingState,
     ReportMetadata,
-    ReportNextStepDeprecated,
     ReportPaginationState,
     ReportViolationName,
     ReportLayoutGroupBy,
@@ -332,6 +352,7 @@ export type {
     Response,
     ScreenShareRequest,
     SecurityGroup,
+    DomainSecurityGroupMembership,
     SelectedTabRequest,
     Session,
     Task,
@@ -339,6 +360,7 @@ export type {
     TaxRates,
     TaxRatesWithDefault,
     Transaction,
+    MerchantRuleSuggestion,
     MergeTransaction,
     TransactionViolation,
     TransactionViolations,
@@ -351,7 +373,8 @@ export type {
     WalletAdditionalDetails,
     WalletAdditionalQuestionDetails,
     WalletOnfido,
-    TravelInvoiceStatement,
+    ExpensifyCardStatement,
+    TravelBillingStatement,
     WalletStatement,
     WalletTerms,
     WalletTransfer,
@@ -365,6 +388,7 @@ export type {
     LastPaymentMethod,
     LastSelectedDistanceRates,
     InvitedEmailsToAccountIDs,
+    NewAgentTemplate,
     NewGroupChatDraft,
     PolicyJoinMember,
     SearchResults,
@@ -383,8 +407,10 @@ export type {
     WorkspaceCardFeedsStatus,
     DomainSettings,
     SaveSearch,
+    SearchFilters,
     RecentSearchItem,
     SearchContext,
+    SearchFooterConversion,
     SearchSidebar,
     ImportedSpreadsheet,
     BankAccountShareDetails,
@@ -393,13 +419,14 @@ export type {
     OnboardingPurpose,
     OnboardingRHPVariant,
     ValidateDomainTwoFactorCode,
-    ValidateMagicCodeAction,
+    VerifyValidateCodeAction,
     ShareTempFile,
     CorpayFields,
     CorpayFormField,
     JoinablePolicies,
     DismissedProductTraining,
     TravelProvisioning,
+    CorpayPayModal,
     SidePanel,
     SidePanelContext,
     LastPaymentMethodType,
@@ -413,6 +440,7 @@ export type {
     PersonalAndWorkspaceCardListDerivedValue,
     CardFeedErrorsDerivedValue,
     LoginToAccountIDMapDerivedValue,
+    GuideAccountIDsDerivedValue,
     ScheduleCallDraft,
     ValidateUserAndGetAccessiblePolicies,
     VacationDelegate,
@@ -426,6 +454,7 @@ export type {
     DomainPendingActions,
     DomainSecurityGroup,
     ChronosTimeTracking,
+    CloudflareSession,
     CodingRuleMatchingTransaction,
     UserSecurityGroupData,
     DeviceBiometrics,
@@ -434,4 +463,5 @@ export type {
     AgentNewAvatarDraft,
     AgentPrompt,
     SuggestedAgentRule,
+    SuggestedAgent,
 };

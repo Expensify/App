@@ -24,7 +24,6 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {getCurrentAddress, getStreetLines} from '@libs/PersonalDetailsUtils';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {doesContainReservedWord, getAgeRequirementError, isRequiredFulfilled, isValidDisplayName, isValidPhoneNumber} from '@libs/ValidationUtils';
 
 import CONST from '@src/CONST';
@@ -76,15 +75,15 @@ function PrivatePersonalDetailsPage() {
 
     const normalizedState = resolveStateCode(state);
 
-    // Draft values seed local state on remount (e.g. returning from the magic-code page) so the address-search
+    // Draft values seed local state on remount (e.g. returning from the confirm-validate-code page) so the address-search
     // suggestion's country/state choices survive a back-navigation instead of reverting to geolocation defaults.
     const draftCountry = draftValues?.[INPUT_IDS.COUNTRY] ?? '';
     const draftState = draftValues?.[INPUT_IDS.STATE] ?? '';
     const [selectedCountry, setSelectedCountry] = useState<Country | ''>(draftCountry || country || ((defaultCountry as Country | undefined) ?? ''));
     const [selectedState, setSelectedState] = useState(draftState || normalizedState);
 
-    // The draft is what feeds the confirm-magic-code page; clearing it on every unmount wipes the submission
-    // payload as soon as we navigate to the magic-code RHP. Skip clearing in that case and let the magic-code
+    // The draft is what feeds the confirm-validate-code page; clearing it on every unmount wipes the submission
+    // payload as soon as we navigate to the confirm-validate-code RHP. Skip clearing in that case and let the confirm-validate-code
     // success path (or the next intentional back out) handle cleanup.
     const skipClearDraftOnUnmountRef = useRef(false);
     useEffect(
@@ -223,18 +222,11 @@ function PrivatePersonalDetailsPage() {
         // a field, so write the full form values to the draft before navigating so the confirm step submits them.
         setDraftValues(ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM, values);
         skipClearDraftOnUnmountRef.current = true;
-        Navigation.navigate(ROUTES.SETTINGS_PRIVATE_PERSONAL_DETAILS_CONFIRM_MAGIC_CODE);
+        Navigation.navigate(ROUTES.SETTINGS_PRIVATE_PERSONAL_DETAILS_CONFIRM_VALIDATE_CODE);
     };
 
-    const reasonAttributes: SkeletonSpanReasonAttributes = {context: 'PrivatePersonalDetailsPage', isLoadingApp};
-
     if (isLoadingApp) {
-        return (
-            <FullScreenLoadingIndicator
-                reasonAttributes={reasonAttributes}
-                shouldUseGoBackButton
-            />
-        );
+        return <FullScreenLoadingIndicator shouldUseGoBackButton />;
     }
 
     return (

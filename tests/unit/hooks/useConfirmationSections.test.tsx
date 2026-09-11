@@ -13,12 +13,14 @@ import React from 'react';
 import {View} from 'react-native';
 import Onyx from 'react-native-onyx';
 
+import createMock from '../../utils/createMock';
 import waitForBatchedUpdatesWithAct from '../../utils/waitForBatchedUpdatesWithAct';
 
 type Params = Parameters<typeof useConfirmationSections>[0];
 
 const payee = {accountID: 1, login: 'me@test.com'} as CurrentUserPersonalDetails;
-const otherParticipant = {accountID: 2, login: 'other@test.com', keyForList: '2'} as unknown as Participant;
+const smsPayee = {accountID: 3, login: '+18332403627@expensify.sms'} as CurrentUserPersonalDetails;
+const otherParticipant = createMock<Participant>({accountID: 2, login: 'other@test.com', keyForList: '2'});
 const splitParticipant = {accountID: 2, keyForList: '2', login: 'other@test.com'} as Participant & {keyForList: string};
 
 function makeBase(overrides: Partial<Params> = {}): Params {
@@ -56,6 +58,11 @@ describe('useConfirmationSections', () => {
         expect(result.current.at(1)?.data).toHaveLength(1);
     });
 
+    it('formats split payee SMS login using the localized phone-number formatter', () => {
+        const {result} = renderHook(() => useConfirmationSections(makeBase({isTypeSplit: true, payeePersonalDetails: smsPayee as OnyxTypes.PersonalDetails})), {wrapper: Wrapper});
+        expect(result.current.at(0)?.data.at(0)?.text).toBe('(833) 240-3627');
+    });
+
     it('produces a single "to" section for non-split types', () => {
         const {result} = renderHook(() => useConfirmationSections(makeBase()), {wrapper: Wrapper});
         expect(result.current).toHaveLength(1);
@@ -73,11 +80,19 @@ describe('useConfirmationSections', () => {
     it('flags participants as interactive only when canEditParticipant is true', () => {
         const {result: editable} = renderHook(() => useConfirmationSections(makeBase({canEditParticipant: true})), {wrapper: Wrapper});
         const {result: readonly} = renderHook(() => useConfirmationSections(makeBase({canEditParticipant: false})), {wrapper: Wrapper});
-        const editableRow = editable.current.at(0)?.data.at(0) as {isInteractive?: boolean; shouldShowRightCaret?: boolean} | undefined;
-        const readonlyRow = readonly.current.at(0)?.data.at(0) as {isInteractive?: boolean; shouldShowRightCaret?: boolean} | undefined;
-        expect(editableRow?.isInteractive).toBe(true);
-        expect(editableRow?.shouldShowRightCaret).toBe(true);
-        expect(readonlyRow?.isInteractive).toBe(false);
-        expect(readonlyRow?.shouldShowRightCaret).toBe(false);
+        const editableRow = editable.current.at(0)?.data.find((item) => item.keyForList === otherParticipant.keyForList);
+        const readonlyRow = readonly.current.at(0)?.data.find((item) => item.keyForList === otherParticipant.keyForList);
+
+        if (!editableRow || !('isInteractive' in editableRow) || !('shouldShowRightCaret' in editableRow)) {
+            throw new Error('Expected the editable participant row to expose its interaction state');
+        }
+        if (!readonlyRow || !('isInteractive' in readonlyRow) || !('shouldShowRightCaret' in readonlyRow)) {
+            throw new Error('Expected the read-only participant row to expose its interaction state');
+        }
+
+        expect(editableRow.isInteractive).toBe(true);
+        expect(editableRow.shouldShowRightCaret).toBe(true);
+        expect(readonlyRow.isInteractive).toBe(false);
+        expect(readonlyRow.shouldShowRightCaret).toBe(false);
     });
 });

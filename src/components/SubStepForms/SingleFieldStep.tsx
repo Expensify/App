@@ -8,7 +8,7 @@ import TextInput from '@components/TextInput';
 
 import useDelayedAutoFocus from '@hooks/useDelayedAutoFocus';
 import useLocalize from '@hooks/useLocalize';
-import type {SubStepProps} from '@hooks/useSubStep/types';
+import type {SubPageProps} from '@hooks/useSubPage/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
@@ -23,12 +23,9 @@ import type {InputModeOptions} from 'react-native';
 import React, {useRef} from 'react';
 import {View} from 'react-native';
 
-type SingleFieldStepProps<TFormID extends keyof OnyxFormValuesMapping> = SubStepProps &
+type SingleFieldStepProps<TFormID extends keyof OnyxFormValuesMapping> = SubPageProps &
     ForwardedFSClassProps & {
-        /** The ID of the form */
         formID: TFormID;
-
-        /** The title of the form */
         formTitle: string;
 
         /** The disclaimer to show below the form title */
@@ -37,25 +34,15 @@ type SingleFieldStepProps<TFormID extends keyof OnyxFormValuesMapping> = SubStep
         /** The validation function to call when the form is submitted */
         validate: (values: FormOnyxValues<TFormID>) => FormInputErrors<TFormID>;
 
-        /** A function to call when the form is submitted */
         onSubmit: (values: FormOnyxValues<TFormID>) => void;
-
-        /** The ID of the form input */
         inputId: string;
-
-        /** The label of the input */
         inputLabel: string;
-
-        /** The mode of the input */
         inputMode?: InputModeOptions;
 
         /** The default values for the form */
         defaultValue: string;
 
-        /** Whether to show help links */
         shouldShowHelpLinks?: boolean;
-
-        /** Max length of the field */
         maxLength?: number;
 
         /** Should the submit button be enabled when offline */

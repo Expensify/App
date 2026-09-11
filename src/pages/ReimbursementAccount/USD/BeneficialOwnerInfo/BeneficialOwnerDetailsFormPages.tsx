@@ -37,10 +37,7 @@ const pages = [
 ];
 
 type BeneficialOwnerDetailsFormPagesProps = {
-    /** ID of current policy */
     policyID?: string;
-
-    /** ID of the beneficial owner being modified */
     beneficialOwnerBeingModifiedID: string;
 
     /** Setter for the beneficial owner being modified */
@@ -100,7 +97,7 @@ function BeneficialOwnerDetailsFormPages({
     }, [buildRoute, isEditing, isEditingCreatedBeneficialOwner, pageIndex, prevPage, hasExistingBeneficialOwners]);
 
     if (isRedirecting) {
-        return <FullScreenLoadingIndicator reasonAttributes={{context: 'BeneficialOwnerDetailsFormPages', isRedirecting}} />;
+        return <FullScreenLoadingIndicator />;
     }
 
     return (

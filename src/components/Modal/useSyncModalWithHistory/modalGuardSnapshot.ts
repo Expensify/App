@@ -13,14 +13,14 @@ const EMPTY_MODAL_GUARD_SNAPSHOT: ModalGuardSnapshot = {
 
 const EMPTY_MODAL_GUARD_SNAPSHOT_KEY = 'false:0';
 
-function getModalGuardSnapshot(sentinel: string): ModalGuardSnapshot {
+function getModalGuardSnapshot(guardEntry: string): ModalGuardSnapshot {
     if (!navigationRef.isReady()) {
         return EMPTY_MODAL_GUARD_SNAPSHOT;
     }
 
     const state = navigationRef.getRootState();
     return {
-        guardPresent: !!state?.history?.includes(sentinel),
+        guardPresent: !!state?.history?.includes(guardEntry),
         routesLength: state?.routes?.length ?? 0,
     };
 }
@@ -29,8 +29,8 @@ function serializeModalGuardSnapshot(snapshot: ModalGuardSnapshot): string {
     return `${snapshot.guardPresent}:${snapshot.routesLength}`;
 }
 
-function getModalGuardSnapshotKey(sentinel: string): string {
-    return serializeModalGuardSnapshot(getModalGuardSnapshot(sentinel));
+function getModalGuardSnapshotKey(guardEntry: string): string {
+    return serializeModalGuardSnapshot(getModalGuardSnapshot(guardEntry));
 }
 
 function parseModalGuardSnapshotKey(snapshotKey: string): ModalGuardSnapshot {

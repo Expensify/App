@@ -31,7 +31,6 @@ type FeatureListProps = {
     /** The text to display in the subtitle of the section */
     subtitle?: string;
 
-    /** The component to display custom subtitle */
     renderSubtitle?: () => ReactNode;
 
     /** Text of the call to action button */
@@ -43,31 +42,20 @@ type FeatureListProps = {
     /** Action to call on cta button press */
     onCtaPress?: () => void;
 
-    /** A list of menuItems representing the feature list. */
     menuItems: FeatureListItem[];
 
     /** The illustration to display in the header. Can be an image or a JSON object representing a Lottie animation. */
     illustration: DotLottieAnimation | IconAsset | undefined;
 
-    /** The style passed to the illustration */
     illustrationStyle?: StyleProp<ViewStyle>;
 
     /** The background color to apply in the upper half of the screen. */
     illustrationBackgroundColor?: string;
 
-    /** Customize the Illustration container */
     illustrationContainerStyle?: StyleProp<ViewStyle>;
-
-    /** The style used for the title */
     titleStyles?: StyleProp<TextStyle>;
-
-    /** Padding for content on large screens */
     contentPaddingOnLargeScreens?: {padding: number};
-
-    /** Custom content to display in the footer */
     footer?: ReactNode;
-
-    /** Whether the button should be disabled */
     isButtonDisabled?: boolean;
 
     /** Additional styles to apply to the CTA button inner container */
@@ -136,17 +124,18 @@ function FeatureList({
                 </View>
                 {!!ctaText && (
                     <Button
-                        text={ctaText}
                         onPress={onCtaPress}
                         accessibilityLabel={ctaAccessibilityLabel}
                         style={styles.w100}
                         innerStyles={buttonInnerStyles}
                         hoverStyles={buttonHoverStyles}
-                        success
+                        variant={CONST.BUTTON_VARIANT.SUCCESS}
                         isDisabled={isButtonDisabled}
-                        large
+                        size={CONST.BUTTON_SIZE.LARGE}
                         sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.FEATURE_LIST.CTA_BUTTON}
-                    />
+                    >
+                        <Button.Text>{ctaText}</Button.Text>
+                    </Button>
                 )}
                 {!!footer && footer}
             </View>

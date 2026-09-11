@@ -1,4 +1,3 @@
-import {useCurrencyListActions, useCurrencyListState} from '@components/CurrencyListContextProvider';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
@@ -8,6 +7,7 @@ import MultiSelectListItem from '@components/SelectionList/ListItem/MultiSelectL
 import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 
+import {useCurrencyListActions, useCurrencyListState} from '@hooks/useCurrencyList';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useSearchResults from '@hooks/useSearchResults';
@@ -25,13 +25,11 @@ import React, {useState} from 'react';
 import {View} from 'react-native';
 
 type SpendRulesCurrencyBaseProps = {
-    /** The currently selected currencies */
     currencies: string[];
 
     /** The settlement currency of the currently selected cards */
     settlementCurrency: string;
 
-    /** Handle the currencies changing */
     onCurrenciesChange: (currencies: string[]) => void;
 };
 
@@ -141,7 +139,6 @@ export default function SpendRulesCurrencyBase({currencies, settlementCurrency, 
             <MultiSelectListItem
                 isFocused={false}
                 showTooltip={false}
-                keyForList="select-all"
                 item={{keyForList: 'select-all', text: translate('workspace.rules.spendRules.allCurrencies'), isSelected: areAllCurrenciesSelected}}
                 onSelectRow={toggleSelectAll}
             />

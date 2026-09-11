@@ -82,13 +82,8 @@ type OpenPersonalBankAccountSetupViewProps = {
     /** The policyID of the policy to set the bank account on */
     policyID?: string;
 
-    /** The source of the bank account */
     source?: string;
-
-    /** Whether to set up a US bank account */
     shouldSetUpUSBankAccount?: boolean;
-
-    /** Whether the user is validated */
     isUserValidated?: boolean;
 
     /** Route to navigate to after adding a bank account when the KYC flow should continue */
@@ -157,11 +152,12 @@ function openPersonalBankAccountSetupView({
         Onyx.set(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT, null);
 
         if (!isUserValidated) {
-            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.ADD_BANK_ACCOUNT_VERIFY_ACCOUNT.path));
+            // This flow always adds a personal deposit account, so the purpose screen is skipped once the account is validated.
+            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.ADD_BANK_ACCOUNT_VERIFY_ACCOUNT.getRoute(true, shouldSetUpUSBankAccount)));
             return;
         }
         if (shouldSetUpUSBankAccount) {
-            Navigation.navigate(ROUTES.SETTINGS_ADD_US_BANK_ACCOUNT);
+            Navigation.navigate(ROUTES.SETTINGS_ADD_US_BANK_ACCOUNT.getRoute());
             return;
         }
         Navigation.navigate(ROUTES.SETTINGS_ADD_BANK_ACCOUNT.getRoute(Navigation.getActiveRoute()));
@@ -447,7 +443,7 @@ function getOnyxDataForConnectingVBBAAndLastPaymentMethod(policyID?: string, las
 /**
  * Submit Bank Account step with Plaid data so php can perform some checks.
  */
-function connectBankAccountWithPlaid(bankAccountID: number, selectedPlaidBankAccount: PlaidBankAccount, policyID: string) {
+function connectBankAccountWithPlaid(bankAccountID: number, selectedPlaidBankAccount: PlaidBankAccount, policyID: string | undefined) {
     const isChaseBank = selectedPlaidBankAccount.bankName?.toLowerCase() === CONST.BANK_NAMES.CHASE;
     if (bankAccountID === CONST.DEFAULT_NUMBER_ID && isChaseBank) {
         Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {
@@ -915,6 +911,11 @@ function createCorpayBankAccount(fields: ReimbursementAccountForm, policyID: str
 }
 
 function getCorpayOnboardingFields(country: Country | '') {
+    // No request when there is no country yet — the calling effects re-fire once Onyx hydrates the selected country.
+    if (!country) {
+        return;
+    }
+
     return API.read(READ_COMMANDS.GET_CORPAY_ONBOARDING_FIELDS, {countryISO: country});
 }
 
@@ -1372,7 +1373,7 @@ function acceptACHContractForBankAccount(bankAccountID: number, params: ACHContr
 /**
  * Create the bank account with manually entered data.
  */
-function connectBankAccountManually(bankAccountID: number, bankAccount: PlaidBankAccount, policyID: string) {
+function connectBankAccountManually(bankAccountID: number, bankAccount: PlaidBankAccount, policyID: string | undefined) {
     const parameters: ConnectBankAccountParams = {
         bankAccountID: !Number.isNaN(bankAccountID) ? bankAccountID : CONST.DEFAULT_NUMBER_ID,
         routingNumber: bankAccount.routingNumber,

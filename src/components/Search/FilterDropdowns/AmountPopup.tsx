@@ -17,7 +17,7 @@ import React, {useState} from 'react';
 import BasePopup from './BasePopup';
 
 type AmountPopupProps = {
-    filterKey: SearchAmountFilterKeys;
+    baseFilterKey: SearchAmountFilterKeys;
     label: string;
     value: SearchAmountValues;
     updateFilterForm: (value: Partial<SearchAdvancedFiltersForm>) => void;
@@ -59,7 +59,7 @@ function AmountInput({title, value, name, onSave, onBackButtonPress}: AmountInpu
     );
 }
 
-function AmountPopup({filterKey, label, value, closeOverlay, updateFilterForm}: AmountPopupProps) {
+function AmountPopup({baseFilterKey, label, value, closeOverlay, updateFilterForm}: AmountPopupProps) {
     const {translate} = useLocalize();
     const [selectedModifier, setSelectedModifier] = useState<ValueOf<typeof CONST.SEARCH.AMOUNT_MODIFIERS> | null>(null);
     const [amountValues, setAmountValues] = useState(value);
@@ -106,7 +106,7 @@ function AmountPopup({filterKey, label, value, closeOverlay, updateFilterForm}: 
             <AmountInput
                 title={title[selectedModifier]}
                 value={formatAmount(amountValues[selectedModifier])}
-                name={`${filterKey}${selectedModifier}`}
+                name={`${baseFilterKey}${selectedModifier}`}
                 onBackButtonPress={goBack}
                 onSave={save}
             />
@@ -115,9 +115,9 @@ function AmountPopup({filterKey, label, value, closeOverlay, updateFilterForm}: 
 
     const onChange = (values: SearchAmountValues) => {
         const formValues: Record<string, string | undefined> = {};
-        formValues[`${filterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.EQUAL_TO}`] = values[CONST.SEARCH.AMOUNT_MODIFIERS.EQUAL_TO];
-        formValues[`${filterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN}`] = values[CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN];
-        formValues[`${filterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN}`] = values[CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN];
+        formValues[`${baseFilterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.EQUAL_TO}`] = values[CONST.SEARCH.AMOUNT_MODIFIERS.EQUAL_TO];
+        formValues[`${baseFilterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN}`] = values[CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN];
+        formValues[`${baseFilterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN}`] = values[CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN];
         updateFilterForm(formValues);
         closeOverlay();
     };

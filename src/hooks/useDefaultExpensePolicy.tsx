@@ -1,3 +1,4 @@
+import isTeachersUnitePolicyID from '@libs/isTeachersUnitePolicyID';
 import {isGroupPolicy, isPolicyAccessible} from '@libs/PolicyUtils';
 
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -20,7 +21,7 @@ function getSingleGroupPolicyID(policies: OnyxCollection<Policy>, login: string)
 
     let singlePolicyID: string | undefined;
     for (const policy of Object.values(policies)) {
-        if (!policy || !isGroupPolicy(policy) || !isPolicyAccessible(policy, login)) {
+        if (!policy || !isGroupPolicy(policy) || !isPolicyAccessible(policy, login) || isTeachersUnitePolicyID(policy.id)) {
             continue;
         }
         if (!singlePolicyID) {
@@ -48,11 +49,12 @@ export default function useDefaultExpensePolicy() {
     // Per-key lookup for the single group policy (only fires when that specific policy changes)
     const [singleGroupPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${singleGroupPolicyID}`);
 
-    if (isRestrictedToPreferredPolicy && isGroupPolicy(preferredPolicy) && isPolicyAccessible(preferredPolicy, login)) {
+    // Teachers Unite only supports expenses via split expense , so it can never be the default destination for a new expense.
+    if (isRestrictedToPreferredPolicy && isGroupPolicy(preferredPolicy) && isPolicyAccessible(preferredPolicy, login) && !isTeachersUnitePolicyID(preferredPolicy?.id)) {
         return preferredPolicy;
     }
 
-    if (isGroupPolicy(activePolicy) && isPolicyAccessible(activePolicy, login)) {
+    if (isGroupPolicy(activePolicy) && isPolicyAccessible(activePolicy, login) && !isTeachersUnitePolicyID(activePolicy?.id)) {
         return activePolicy;
     }
 

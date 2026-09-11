@@ -28,10 +28,7 @@ type EarlyDiscountBannerProps = {
     /** Whether the banner is being displayed on the subscription page. */
     isSubscriptionPage: boolean;
 
-    /** The Onboarding help dropdown button to display */
     onboardingHelpDropdownButton?: React.JSX.Element;
-
-    /** Function to trigger when the discount banner is dismissed */
     onDismissedDiscountBanner?: () => void;
 
     /** Has user active Schedule call with guide */
@@ -91,11 +88,12 @@ function EarlyDiscountBanner({isSubscriptionPage, onboardingHelpDropdownButton, 
             <View style={[styles.flexRow, styles.gap2, smallScreenStyle, styles.alignItemsCenter]}>
                 {onboardingHelpDropdownButton}
                 <Button
-                    success={!hasActiveScheduledCall}
+                    variant={!hasActiveScheduledCall ? CONST.BUTTON_VARIANT.SUCCESS : undefined}
                     style={shouldDisplayButtonsInSeparateLine ? [styles.earlyDiscountButton, styles.flexGrow2] : styles.mr2}
-                    text={translate('subscription.billingBanner.earlyDiscount.claimOffer')}
                     onPress={() => Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION.getRoute(Navigation.getActiveRoute()))}
-                />
+                >
+                    <Button.Text>{translate('subscription.billingBanner.earlyDiscount.claimOffer')}</Button.Text>
+                </Button>
                 {!shouldDisplayButtonsInSeparateLine && dismissButton}
             </View>
         );

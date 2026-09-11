@@ -14,7 +14,6 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getSubscriptionPlanInfo, isSubscriptionTypeOfInvoicing} from '@libs/SubscriptionUtils';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 
 import variables from '@styles/variables';
 
@@ -31,13 +30,11 @@ import SubscriptionPlanCardActionButton from './SubscriptionPlanCardActionButton
 type PersonalPolicyTypeExcludedProps = Exclude<ValueOf<typeof CONST.POLICY.TYPE>, 'personal'>;
 
 type SubscriptionPlanCardProps = {
-    /** Subscription plan to display */
     subscriptionPlan: PersonalPolicyTypeExcludedProps | null;
 
     /** Whether the plan card was rendered inside the comparison modal */
     isFromComparisonModal?: boolean;
 
-    /** Closes comparison modal */
     closeComparisonModal?: () => void;
 };
 
@@ -63,7 +60,6 @@ function SubscriptionPlanCard({subscriptionPlan, isFromComparisonModal = false, 
     );
     const isSelected = isFromComparisonModal && subscriptionPlan === currentSubscriptionPlan;
     const benefitsColumns = shouldUseNarrowLayout || isFromComparisonModal ? 1 : 2;
-    const subscriptionLoadingReasonAttributes: SkeletonSpanReasonAttributes = {context: 'SubscriptionPlanCard', isLoading: !privateSubscription};
 
     const renderBenefits = () => {
         return (
@@ -120,7 +116,7 @@ function SubscriptionPlanCard({subscriptionPlan, isFromComparisonModal = false, 
         <View style={[styles.borderedContentCard, styles.borderRadiusComponentLarge, styles.mt5, styles.flex1, isSelected && styles.borderColorFocus, styles.justifyContentBetween]}>
             {!privateSubscription ? (
                 <View style={shouldUseNarrowLayout ? styles.p5 : [styles.p8, styles.pb6]}>
-                    <ActivityIndicator reasonAttributes={subscriptionLoadingReasonAttributes} />
+                    <ActivityIndicator />
                 </View>
             ) : (
                 <>

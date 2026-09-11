@@ -3,6 +3,7 @@ import type {ReactNode} from 'react';
 import {useEffect, useRef} from 'react';
 
 import type UseAccessibilityAnnouncementOptions from './types';
+import type {AriaLivePoliteness} from './types';
 
 const VISUALLY_HIDDEN_STYLE: Partial<CSSStyleDeclaration> = {
     position: 'absolute',
@@ -24,7 +25,7 @@ const VISUALLY_HIDDEN_STYLE: Partial<CSSStyleDeclaration> = {
  */
 const ANNOUNCEMENT_DELAY_MS = 300;
 
-let wrapper: HTMLDivElement | null = null;
+const wrappers: Partial<Record<AriaLivePoliteness, HTMLDivElement>> = {};
 
 function getAnnouncementRoot(): HTMLElement {
     const activeElement = document.activeElement;
@@ -38,61 +39,74 @@ function getAnnouncementRoot(): HTMLElement {
     return modalDialogs.item(modalDialogs.length - 1) ?? document.body;
 }
 
-function getWrapper(): HTMLDivElement {
+function getWrapper(politeness: AriaLivePoliteness): HTMLDivElement {
     const root = getAnnouncementRoot();
+    const existing = wrappers[politeness];
 
-    if (wrapper && root.contains(wrapper)) {
-        return wrapper;
+    if (existing && root.contains(existing)) {
+        return existing;
     }
 
-    if (wrapper?.parentElement && wrapper.parentElement !== root) {
-        wrapper.parentElement.removeChild(wrapper);
-        wrapper = null;
+    if (existing?.parentElement) {
+        existing.parentElement.removeChild(existing);
     }
 
-    wrapper = document.createElement('div');
-    wrapper.setAttribute('aria-live', 'assertive');
+    const wrapper = document.createElement('div');
+    wrapper.setAttribute('aria-live', politeness);
     wrapper.setAttribute('aria-atomic', 'true');
     Object.assign(wrapper.style, VISUALLY_HIDDEN_STYLE);
     root.appendChild(wrapper);
+    wrappers[politeness] = wrapper;
 
     return wrapper;
 }
 
 function useAccessibilityAnnouncement(message: string | ReactNode, shouldAnnounceMessage: boolean, options?: UseAccessibilityAnnouncementOptions) {
     const shouldAnnounceOnWeb = options?.shouldAnnounceOnWeb ?? false;
-    const prevShouldAnnounceRef = useRef(false);
+    const politeness = options?.politeness ?? 'assertive';
+    const previousKeyRef = useRef(options?.announcementKey);
+    const previousMessageRef = useRef('');
 
     useEffect(() => {
         if (!shouldAnnounceMessage) {
-            prevShouldAnnounceRef.current = false;
+            previousMessageRef.current = '';
             return;
         }
 
-        if (prevShouldAnnounceRef.current || !shouldAnnounceOnWeb || typeof message !== 'string' || !message.trim()) {
+        if (!shouldAnnounceOnWeb || typeof message !== 'string' || !message.trim()) {
             return;
         }
 
-        prevShouldAnnounceRef.current = true;
+        const keyChanged = options?.announcementKey !== undefined && options.announcementKey !== previousKeyRef.current;
+        previousKeyRef.current = options?.announcementKey;
+
+        // Same gate as native: skip duplicates unless the message or announcementKey changes.
+        if (!keyChanged && previousMessageRef.current === message) {
+            return;
+        }
+
+        previousMessageRef.current = message;
 
         const timer = setTimeout(() => {
-            const container = getWrapper();
+            const container = getWrapper(politeness);
 
             while (container.firstChild) {
                 container.removeChild(container.firstChild);
             }
 
             const node = document.createElement('div');
-            node.setAttribute('role', 'alert');
+            // role=alert is mapped to assertive interruption — only use it for assertive announces.
+            if (politeness === 'assertive') {
+                node.setAttribute('role', 'alert');
+            }
             node.textContent = message;
             container.appendChild(node);
         }, ANNOUNCEMENT_DELAY_MS);
 
         return () => {
             clearTimeout(timer);
-            prevShouldAnnounceRef.current = false;
         };
-    }, [message, shouldAnnounceMessage, shouldAnnounceOnWeb]);
+    }, [message, shouldAnnounceMessage, shouldAnnounceOnWeb, politeness, options?.announcementKey]);
 }
 
 export default useAccessibilityAnnouncement;

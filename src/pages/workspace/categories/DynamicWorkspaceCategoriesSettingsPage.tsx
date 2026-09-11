@@ -8,6 +8,7 @@ import Text from '@components/Text';
 
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
+import usePermissions from '@hooks/usePermissions';
 import usePolicyData from '@hooks/usePolicyData';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -16,14 +17,14 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
-import {getCurrentConnectionName} from '@libs/PolicyUtils';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+import {getCurrentAccountingIntegrationName} from '@pages/workspace/accounting/utils';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 
-import {setWorkspaceRequiresCategory} from '@userActions/Policy/Category';
+import {setPolicyShowCategoryGLCodes, setWorkspaceRequiresCategory} from '@userActions/Policy/Category';
 import {clearPolicyErrorField} from '@userActions/Policy/Policy';
 
 import CONST from '@src/CONST';
@@ -43,9 +44,11 @@ function DynamicWorkspaceCategoriesSettingsPage({policy, route}: DynamicWorkspac
     const {policyID} = route.params;
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {isBetaEnabled} = usePermissions();
+    const isRulesRevampEnabled = isBetaEnabled(CONST.BETAS.RULES_REVAMP);
     const policyData = usePolicyData(policyID);
     const isConnectedToAccounting = Object.keys(policy?.connections ?? {}).length > 0;
-    const currentConnectionName = getCurrentConnectionName(policy);
+    const currentConnectionName = getCurrentAccountingIntegrationName(policy, translate);
     const isQuickSettingsFlow = route.name === SCREENS.SETTINGS_CATEGORIES.DYNAMIC_SETTINGS_CATEGORIES_SETTINGS;
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.SETTINGS_CATEGORIES_SETTINGS.path);
     const toggleSubtitle = isConnectedToAccounting && currentConnectionName ? translate('workspace.categories.needCategoryForExportToIntegration', currentConnectionName) : undefined;
@@ -56,6 +59,10 @@ function DynamicWorkspaceCategoriesSettingsPage({policy, route}: DynamicWorkspac
         },
         [policyData],
     );
+
+    const updateShowCategoryGLCodes = (value: boolean) => {
+        setPolicyShowCategoryGLCodes(policyID, value);
+    };
 
     const data = useMemo(() => {
         if (!policyData.policy?.mccGroup) {
@@ -75,6 +82,9 @@ function DynamicWorkspaceCategoriesSettingsPage({policy, route}: DynamicWorkspac
 
     const hasEnabledCategories = hasEnabledOptions(policyData.categories);
     const isToggleDisabled = !policy?.areCategoriesEnabled || !hasEnabledCategories || isConnectedToAccounting;
+
+    // Under the revamp only the GL codes toggle is left here, so the page has nothing to show without it.
+    const shouldBlockEmptySettings = isRulesRevampEnabled && !policy?.glCodes;
 
     const onSelectItem = (item: ListItem) => {
         if (!item.groupID) {
@@ -101,6 +111,7 @@ function DynamicWorkspaceCategoriesSettingsPage({policy, route}: DynamicWorkspac
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CATEGORIES_ENABLED}
+            shouldBeBlocked={shouldBlockEmptySettings}
         >
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
@@ -112,31 +123,51 @@ function DynamicWorkspaceCategoriesSettingsPage({policy, route}: DynamicWorkspac
                     onBackButtonPress={() => Navigation.goBack(isQuickSettingsFlow ? backPath : undefined)}
                 />
                 <ScrollView contentContainerStyle={[styles.flexGrow1]}>
-                    <ToggleSettingOptionRow
-                        title={translate('workspace.categories.requiresCategory')}
-                        subtitle={toggleSubtitle}
-                        switchAccessibilityLabel={translate('workspace.categories.requiresCategory')}
-                        isActive={policy?.requiresCategory ?? false}
-                        onToggle={updateWorkspaceRequiresCategory}
-                        pendingAction={policy?.pendingFields?.requiresCategory}
-                        disabled={isToggleDisabled}
-                        wrapperStyle={[styles.pv2, styles.mh5]}
-                        errors={policy?.errorFields?.requiresCategory ?? undefined}
-                        onCloseError={() => clearPolicyErrorField(policy?.id, 'requiresCategory')}
-                        shouldPlaceSubtitleBelowSwitch
-                    />
-                    <View style={[styles.sectionDividerLine, styles.mh5, styles.mv6]} />
-                    <View style={[styles.containerWithSpaceBetween]}>
-                        {!!policyData.policy && (data?.length ?? 0) > 0 && (
-                            <SelectionList
-                                addBottomSafeAreaPadding
-                                customListHeaderContent={selectionListHeaderContent}
-                                data={data}
-                                ListItem={SpendCategorySelectorListItem}
-                                onSelectRow={onSelectItem}
-                            />
-                        )}
-                    </View>
+                    {!isRulesRevampEnabled && (
+                        <ToggleSettingOptionRow
+                            title={translate('workspace.categories.requiresCategory')}
+                            subtitle={toggleSubtitle}
+                            switchAccessibilityLabel={translate('workspace.categories.requiresCategory')}
+                            isActive={policy?.requiresCategory ?? false}
+                            onToggle={updateWorkspaceRequiresCategory}
+                            pendingAction={policy?.pendingFields?.requiresCategory}
+                            disabled={isToggleDisabled}
+                            wrapperStyle={[styles.pv2, styles.mh5]}
+                            errors={policy?.errorFields?.requiresCategory ?? undefined}
+                            onCloseError={() => clearPolicyErrorField(policy?.id, 'requiresCategory')}
+                            shouldPlaceSubtitleBelowSwitch
+                        />
+                    )}
+                    {!!policy?.glCodes && (
+                        <ToggleSettingOptionRow
+                            title={translate('workspace.categories.showCategoryGLCodes')}
+                            switchAccessibilityLabel={translate('workspace.categories.showCategoryGLCodes')}
+                            isActive={policy?.showCategoryGLCodes ?? false}
+                            onToggle={updateShowCategoryGLCodes}
+                            pendingAction={policy?.pendingFields?.showCategoryGLCodes}
+                            disabled={!policy?.areCategoriesEnabled}
+                            wrapperStyle={[styles.pv2, styles.mh5]}
+                            errors={policy?.errorFields?.showCategoryGLCodes ?? undefined}
+                            onCloseError={() => clearPolicyErrorField(policy?.id, 'showCategoryGLCodes')}
+                        />
+                    )}
+                    {/* Default spend categories moved to Rules > Expense defaults, so they'd be a second source of truth here. */}
+                    {!isRulesRevampEnabled && (
+                        <>
+                            <View style={[styles.sectionDividerLine, styles.mh5, styles.mv6]} />
+                            <View style={[styles.containerWithSpaceBetween]}>
+                                {!!policyData.policy && (data?.length ?? 0) > 0 && (
+                                    <SelectionList
+                                        addBottomSafeAreaPadding
+                                        customListHeaderContent={selectionListHeaderContent}
+                                        data={data}
+                                        ListItem={SpendCategorySelectorListItem}
+                                        onSelectRow={onSelectItem}
+                                    />
+                                )}
+                            </View>
+                        </>
+                    )}
                 </ScrollView>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>

@@ -45,6 +45,9 @@ type TrackedExpenseTransactionParams = Omit<BaseTransactionParams, 'taxCode' | '
     taxAmount: number;
     taxValue?: string;
     attendees?: Attendee[];
+
+    /** Distance in meters of the alternate map route the user picked, so the backend doesn't fall back to the primary route */
+    selectedRouteDistance?: number;
 };
 
 type TrackedExpensePolicyParams = {

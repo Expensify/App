@@ -1,3 +1,4 @@
+import {searchKeyToSavedSearchID} from '@libs/SearchUIUtils';
 import type {SearchKey} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
@@ -7,16 +8,22 @@ import {useMemo} from 'react';
 
 import useOnyx from './useOnyx';
 
-function useSearchShouldCalculateTotals(searchKey: SearchKey | undefined, searchHash: number | undefined, enabled: boolean, areAllMatchingItemsSelected = false) {
+function getSearchRequestOffsetForMissingAllMatchingCount(offset: number, serverOffset: number | undefined, isAllMatchingItemsCountMissing: boolean): number {
+    if (!isAllMatchingItemsCountMissing) {
+        return offset;
+    }
+    return Math.min(offset, serverOffset ?? offset);
+}
+
+function useSearchShouldCalculateTotals(searchKey: SearchKey | undefined, enabled: boolean, areAllMatchingItemsSelected = false) {
     const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES);
 
     const shouldCalculateTotals = useMemo(() => {
-        // When the user selects all matching items we always want the server-computed count/total,
-        // even for an ad-hoc query that isn't a suggested or saved search. This must bypass the
-        // `enabled` (offset === 0) gate so totals are still requested when more results were loaded
-        // before select-all was triggered.
+        // All-matching selections need the server-computed count/total, including for ad-hoc queries.
+        // The caller enables this only while the initial offset is active or the count is still missing,
+        // so later pagination requests can avoid recalculating totals.
         if (areAllMatchingItemsSelected) {
-            return true;
+            return enabled;
         }
 
         if (!enabled) {
@@ -40,15 +47,18 @@ function useSearchShouldCalculateTotals(searchKey: SearchKey | undefined, search
             CONST.SEARCH.SEARCH_KEYS.TOP_MERCHANTS,
             CONST.SEARCH.SEARCH_KEYS.TOP_SPENDERS,
             CONST.SEARCH.SEARCH_KEYS.SPEND_OVER_TIME,
+            CONST.SEARCH.SEARCH_KEYS.VIOLATIONS_BY_SUBMITTER,
         ];
 
         const isSuggestedSearchWithTotals = eligibleSearchKeys.includes(searchKey);
-        const isSavedSearch = searchHash !== undefined && savedSearches && !!savedSearches[searchHash];
+        const savedSearchID = searchKeyToSavedSearchID(searchKey);
+        const isSavedSearch = savedSearchID !== undefined && savedSearches && !!savedSearches[savedSearchID];
 
         return isSuggestedSearchWithTotals || isSavedSearch;
-    }, [enabled, savedSearches, searchKey, searchHash, areAllMatchingItemsSelected]);
+    }, [enabled, savedSearches, searchKey, areAllMatchingItemsSelected]);
 
     return shouldCalculateTotals ?? false;
 }
 
 export default useSearchShouldCalculateTotals;
+export {getSearchRequestOffsetForMissingAllMatchingCount};

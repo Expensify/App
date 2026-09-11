@@ -13,12 +13,12 @@ import {useSyncExternalStore} from 'react';
  *   - Physical card PIN — surfaced by the reveal-PIN flow on physical cards.
  *   - Virtual card details (PAN/expiration/CVV) — surfaced when revealing a
  *     virtual card, either through the SCA reveal flow (UK/EU cards, where the
- *     MFA scenario callback runs outside React) or the magic-code reveal flow
+ *     MFA scenario callback runs outside React) or the validateCode reveal flow
  *     (US cards). Both drop the details here for the card page to pick up.
  *
  * A third store tracks the virtual-card reveal loading flag. It is not a secret,
- * but it is colocated here because the magic-code reveal request runs on a
- * separate screen (the confirm-magic-code RHP) from the card page that renders
+ * but it is colocated here because the validateCode reveal request runs on a
+ * separate screen (the confirm-validate-code RHP) from the card page that renders
  * the loading state, so both screens need a shared, non-persisted place for it.
  *
  * Each store keeps only one entry at a time so at most one card's secret is in

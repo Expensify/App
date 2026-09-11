@@ -1,6 +1,6 @@
 import CompactMenuContext from '@components/CompactMenuContext';
-import MenuItem from '@components/MenuItem';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItemAction from '@components/MenuItem/presets/MenuItemAction';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import ScrollView from '@components/ScrollView';
 import useUpdateFilterQuery from '@components/Search/hooks/useUpdateFilterQuery';
 import type {SearchQueryJSON} from '@components/Search/types';
@@ -26,8 +26,8 @@ import type {OnyxEntry} from 'react-native-onyx';
 
 import React, {useState} from 'react';
 
+import CurrencyPopup from './CurrencyPopup';
 import GroupByPopup from './GroupByPopup';
-import GroupCurrencyPopup from './GroupCurrencyPopup';
 import SingleSelectPopup from './SingleSelectPopup';
 import SortByPopup from './SortByPopup';
 import SortOrderPopup from './SortOrderPopup';
@@ -80,52 +80,47 @@ function DisplayPopup({queryJSON, searchResults, closeOverlay, onSort}: DisplayP
 
         return (
             <ScrollView contentContainerStyle={[styles.pv4]}>
-                <MenuItemWithTopDescription
-                    shouldShowRightIcon
-                    description={translate('search.display.sortBy')}
-                    title={`${translate(getSearchColumnTranslationKey(sortByValue))} ${CONST.DOT_SEPARATOR} ${translate(`search.filters.sortOrder.${sortOrderValue}`)}`}
+                <MenuItemField
+                    name={translate('search.display.sortBy')}
                     onPress={() => setSelectedDisplayFilter(CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_BY)}
                     sentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_SORT_BY}
+                    value={`${translate(getSearchColumnTranslationKey(sortByValue))} ${CONST.DOT_SEPARATOR} ${translate(`search.filters.sortOrder.${sortOrderValue}`)}`}
                 />
                 {(isExpenseType || isTripType) && (
-                    <MenuItemWithTopDescription
-                        shouldShowRightIcon
-                        description={translate('search.display.groupBy')}
-                        title={groupByValue ? translate(`search.filters.groupBy.${groupByValue}`) : undefined}
+                    <MenuItemField
+                        name={translate('search.display.groupBy')}
                         onPress={() => setSelectedDisplayFilter(CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY)}
                         sentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_GROUP_BY}
+                        value={groupByValue ? translate(`search.filters.groupBy.${groupByValue}`) : undefined}
                     />
                 )}
                 {!!groupBy && (
-                    <MenuItemWithTopDescription
-                        shouldShowRightIcon
-                        description={translate('common.groupCurrency')}
-                        title={groupCurrencyValue}
+                    <MenuItemField
+                        name={translate('common.groupCurrency')}
                         onPress={() => setSelectedDisplayFilter(CONST.SEARCH.SYNTAX_FILTER_KEYS.GROUP_CURRENCY)}
                         sentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_GROUP_CURRENCY}
+                        value={groupCurrencyValue}
                     />
                 )}
                 {isExpenseType && !!groupByValue && (
-                    <MenuItemWithTopDescription
-                        shouldShowRightIcon
-                        description={translate('search.view.label')}
-                        title={viewValue ? translate(`search.view.${viewValue}`) : undefined}
+                    <MenuItemField
+                        name={translate('search.view.label')}
                         onPress={() => setSelectedDisplayFilter(CONST.SEARCH.SYNTAX_ROOT_KEYS.VIEW)}
                         sentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_VIEW}
+                        value={viewValue ? translate(`search.view.${viewValue}`) : undefined}
                     />
                 )}
                 {isExpenseType && (
-                    <MenuItemWithTopDescription
-                        shouldShowRightIcon
-                        description={translate('search.display.limitResults')}
-                        title={limitValue}
+                    <MenuItemField
+                        name={translate('search.display.limitResults')}
                         onPress={() => setSelectedDisplayFilter(CONST.SEARCH.SYNTAX_ROOT_KEYS.LIMIT)}
                         sentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_LIMIT}
+                        value={limitValue}
                     />
                 )}
                 {shouldShowColumnsButton && (
                     <CompactMenuContext.Provider value>
-                        <MenuItem
+                        <MenuItemAction
                             icon={expensifyIcons.Columns}
                             title={translate('search.editColumns')}
                             onPress={() => {
@@ -193,10 +188,13 @@ function DisplayPopup({queryJSON, searchResults, closeOverlay, onSort}: DisplayP
             );
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.GROUP_CURRENCY:
             return (
-                <GroupCurrencyPopup
+                <CurrencyPopup
+                    value={searchAdvancedFilters[CONST.SEARCH.SYNTAX_FILTER_KEYS.GROUP_CURRENCY]}
                     onChange={(item) => updateFilterForm({groupCurrency: item?.value})}
+                    label={translate('common.groupCurrency')}
                     onBackButtonPress={goBack}
                     closeOverlay={closeOverlay}
+                    searchPlaceholder={translate('common.groupCurrency')}
                 />
             );
         case CONST.SEARCH.SYNTAX_ROOT_KEYS.VIEW:

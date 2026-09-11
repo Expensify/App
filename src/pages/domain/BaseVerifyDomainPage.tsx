@@ -20,7 +20,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {getDomainValidationCode, resetDomainValidationError, validateDomain} from '@libs/actions/Domain';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 
@@ -48,7 +47,6 @@ function OrderedListRow({index, children}: PropsWithChildren<{index: number}>) {
 }
 
 type BaseVerifyDomainPageProps = {
-    /** The accountID of the domain */
     domainAccountID: number;
 
     /** Route to navigate to after successful verification */
@@ -93,11 +91,7 @@ function BaseVerifyDomainPage({domainAccountID, forwardTo}: BaseVerifyDomainPage
 
     const isLoadingDomain = isLoadingOnyxValue(domainMetadata);
     if (isLoadingDomain) {
-        const reasonAttributes: SkeletonSpanReasonAttributes = {
-            context: 'BaseVerifyDomainPage',
-            isLoadingDomain,
-        };
-        return <FullScreenLoadingIndicator reasonAttributes={reasonAttributes} />;
+        return <FullScreenLoadingIndicator />;
     }
 
     if (!domain) {

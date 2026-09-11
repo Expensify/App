@@ -1,6 +1,8 @@
 import type {FilterConfig, IsItemInFilterCallback} from '@components/Table';
 import type {DomainMemberRowData, DomainMembersTableFilterKey} from '@components/Tables/DomainMembersTable';
 
+import {sortAlphabetically} from '@libs/OptionsListUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
@@ -29,7 +31,7 @@ type UseDomainGroupFilterResult = {
 };
 
 function useDomainGroupFilter(domainAccountID: number): UseDomainGroupFilterResult {
-    const {translate} = useLocalize();
+    const {translate, localeCompare} = useLocalize();
 
     const [groups] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {
         selector: groupsSelector,
@@ -38,30 +40,40 @@ function useDomainGroupFilter(domainAccountID: number): UseDomainGroupFilterResu
     const shouldShowGroupFilter = (groups?.length ?? 0) > 1;
     const shouldShowGroupColumn = (groups?.length ?? 0) > 0;
 
+    const groupFilterOptions = sortAlphabetically(
+        (groups ?? []).map((group) => ({
+            label: group.details.name ?? '',
+            value: group.id,
+        })),
+        'label',
+        localeCompare,
+    );
+
     const filterConfig: FilterConfig<DomainMembersTableFilterKey> | undefined = !shouldShowGroupFilter
         ? undefined
         : {
               group: {
                   label: translate('common.group'),
-                  filterType: CONST.TABLES.FILTER_TYPE.SINGLE_SELECT,
-                  options: (groups ?? []).map((group) => ({
-                      label: group.details.name ?? '',
-                      value: group.id,
-                  })),
+                  filterType: CONST.TABLES.FILTER_TYPE.MULTI_SELECT,
+                  options: groupFilterOptions,
               },
           };
 
     const isItemInFilter: IsItemInFilterCallback<DomainMemberRowData> | undefined = !shouldShowGroupFilter
         ? undefined
         : (item, filterValues) => {
-              const filterValue = filterValues.at(0);
-              const matchedGroup = groups?.find((group) => group.id === filterValue);
-
-              if (!matchedGroup) {
+              if (filterValues.length === 0) {
                   return true;
               }
 
-              return String(item.accountID) in matchedGroup.details.shared;
+              // Ignore stale/removed group IDs so the table stays stable until
+              // DomainMembersGroupFilterSync clears invalid selections.
+              const selectedGroups = (groups ?? []).filter((group) => filterValues.includes(group.id));
+              if (selectedGroups.length === 0) {
+                  return true;
+              }
+
+              return selectedGroups.some((group) => String(item.accountID) in group.details.shared);
           };
 
     return {

@@ -3,8 +3,6 @@ import type FlatListRefType from '@components/FlashList/types';
 
 import useWindowDimensions from '@hooks/useWindowDimensions';
 
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
-
 import variables from '@styles/variables';
 
 import type * as OnyxTypes from '@src/types/onyx';
@@ -82,6 +80,9 @@ type MoneyRequestReportUnifiedListProps = {
     /** Renders a single report action. */
     renderReportAction: (reportAction: OnyxTypes.ReportAction, indexWithinReportActions: number) => React.ReactElement;
 
+    /** Values outside the list data that should trigger report action rows to update. */
+    reportActionsExtraData: unknown;
+
     /** ID of the report action deep-linked to, if any. */
     linkedReportActionID: string | undefined;
 
@@ -91,22 +92,17 @@ type MoneyRequestReportUnifiedListProps = {
     /** Ref to the underlying list, shared via the ActionList context. */
     listRef: FlatListRefType;
 
-    /** Accessibility label for the list. */
     accessibilityLabel: string;
 
     /** Called when the list lays out. */
     onLayout: () => void;
 
-    /** Called on scroll. */
     onScroll: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
 
     /** Called when the user starts dragging the list. */
     onScrollBeginDrag: () => void;
 
-    /** Called when the list content size changes. */
     onContentSizeChange: () => void;
-
-    /** Called when the set of viewable items changes. */
     onViewableItemsChanged: (info: {viewableItems: ViewToken[]; changed: ViewToken[]}) => void;
 
     /** Called when the end of the list is reached (older actions). */
@@ -115,7 +111,6 @@ type MoneyRequestReportUnifiedListProps = {
     /** Called when the start of the list is reached (newer actions). */
     onStartReached: () => void;
 
-    /** Style applied to the list's content container. */
     contentContainerStyle: StyleProp<ViewStyle>;
 
     /** Whether the app is offline. */
@@ -123,9 +118,6 @@ type MoneyRequestReportUnifiedListProps = {
 
     /** Whether the initial batch of report actions is still loading. */
     isLoadingInitialActions: boolean;
-
-    /** Attributes describing why the skeleton is shown, for telemetry. */
-    skeletonReasonAttributes: SkeletonSpanReasonAttributes;
 
     /** Reports the index of the last list item so callers can jump to the bottom via scrollToIndex (which renders the
      * landing region, unlike scrollToEnd's estimated-offset jump that leaves the bottom blank on large lists). */
@@ -141,6 +133,7 @@ function MoneyRequestReportUnifiedList({
     policy,
     visibleReportActions,
     renderReportAction,
+    reportActionsExtraData,
     linkedReportActionID,
     newTransactionID,
     listRef,
@@ -155,7 +148,6 @@ function MoneyRequestReportUnifiedList({
     contentContainerStyle,
     isOffline,
     isLoadingInitialActions,
-    skeletonReasonAttributes,
     onLastItemIndexChange,
     listFooterComponent,
 }: MoneyRequestReportUnifiedListProps) {
@@ -340,6 +332,7 @@ function MoneyRequestReportUnifiedList({
             accessibilityLabel={accessibilityLabel}
             testID="money-request-report-actions-list"
             data={data}
+            extraData={reportActionsExtraData}
             renderItem={dispatchRenderItem}
             keyExtractor={unifiedListKeyExtractor}
             getItemType={unifiedListItemType}
@@ -389,10 +382,10 @@ function MoneyRequestReportUnifiedList({
             onScrollBeginDrag={onScrollBeginDrag}
             onContentSizeChange={onContentSizeChange}
             contentContainerStyle={contentContainerStyle}
-            ListEmptyComponent={shouldShowActionsLoadingSkeleton ? <ReportActionsListLoadingSkeleton reasonAttributes={skeletonReasonAttributes} /> : undefined}
+            ListEmptyComponent={shouldShowActionsLoadingSkeleton ? <ReportActionsListLoadingSkeleton /> : undefined}
             ListFooterComponent={
                 <>
-                    {shouldInlineTransactions && shouldShowActionsLoadingSkeleton && <ReportActionsListLoadingSkeleton reasonAttributes={skeletonReasonAttributes} />}
+                    {shouldInlineTransactions && shouldShowActionsLoadingSkeleton && <ReportActionsListLoadingSkeleton />}
                     {listFooterComponent}
                 </>
             }

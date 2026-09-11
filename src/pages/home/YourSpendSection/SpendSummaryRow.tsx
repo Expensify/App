@@ -58,12 +58,16 @@ type SpendSummaryRowProps = {
     iconSrc: IconAsset;
     onPress: () => void;
     wrapperStyle: StyleProp<ViewStyle>;
-    // Position of this row within the Your spend list. Used to vary the skeleton
-    // title width across stacked rows, mirroring `ForYouSkeleton`.
+    /**
+     * Position of this row within the Your spend list. Used to vary the skeleton
+     * title width across stacked rows, mirroring `ForYouSkeleton`.
+     */
     skeletonRowIndex: number;
+    /** Greys the total when a queued offline change may have made it stale. */
+    isStale?: boolean;
 };
 
-function SpendSummaryRow({state, testIDPrefix, description, totals, iconSrc, onPress, wrapperStyle, skeletonRowIndex}: SpendSummaryRowProps) {
+function SpendSummaryRow({state, testIDPrefix, description, totals, iconSrc, onPress, wrapperStyle, skeletonRowIndex, isStale = false}: SpendSummaryRowProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -108,11 +112,11 @@ function SpendSummaryRow({state, testIDPrefix, description, totals, iconSrc, onP
             <MenuItemWithTopDescription
                 description={description}
                 title={totals.total !== undefined ? convertToDisplayString(totals.total, totals.currency) : undefined}
-                titleStyle={styles.textBold}
+                titleStyle={[styles.textBold, isStale && styles.offlineFeedbackPending]}
                 onPress={onPress}
                 shouldShowRightIcon
                 leftComponent={
-                    <View style={styles.getWidgetItemIconContainerStyle(theme.border)}>
+                    <View style={styles.widgetItemIconContainer}>
                         <Icon
                             src={iconSrc}
                             fill={theme.icon}

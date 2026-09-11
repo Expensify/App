@@ -130,7 +130,7 @@ function getSearchParamFromPath(path: string, param: string) {
     return getParamFromQueryString(backToQueryString);
 }
 
-type UrlWithParams<TBase extends string> = `${TBase}${'' | `?${string}` | `&${string}`}`;
+type UrlWithParams<TBase extends string> = TBase | `${TBase}${`?${string}` | `&${string}`}`;
 type UrlParams = {backTo?: string; forwardTo?: string} & Record<string, string | number | undefined>;
 /**
  * Generate a URL with properly encoded query parameters.
@@ -139,7 +139,8 @@ type UrlParams = {backTo?: string; forwardTo?: string} & Record<string, string |
  * @param params - Object containing key-value pairs for query parameters.
  * @returns A URL string with encoded query parameters.
  */
-function getUrlWithParams<TBase extends string, TParams extends UrlParams>(baseUrl: TBase, params: TParams): UrlWithParams<TBase> {
+function getUrlWithParams<TBase extends string, TParams extends UrlParams>(baseUrl: TBase, params: TParams): UrlWithParams<TBase>;
+function getUrlWithParams(baseUrl: string, params: UrlParams): string {
     const [path, existingQuery] = baseUrl.split('?', 2);
     const searchParams = new URLSearchParams(existingQuery || '');
 
@@ -150,7 +151,25 @@ function getUrlWithParams<TBase extends string, TParams extends UrlParams>(baseU
     }
 
     const queryString = searchParams.toString();
-    return (queryString ? `${path}?${queryString}` : path) as UrlWithParams<TBase>;
+    return queryString ? `${path}?${queryString}` : path;
 }
 
-export {getSearchParamFromUrl, getSearchParamFromPath, hasSameExpensifyOrigin, getPathFromURL, appendParam, hasURL, addLeadingForwardSlash, extractUrlDomain, getUrlWithParams};
+/**
+ * Whether a URL or route carries a Submit-via-PDF secure access key (the `secureKey` query param).
+ */
+function hasSecureLinkKey(url: string | null | undefined): boolean {
+    return !!url?.includes('secureKey=');
+}
+
+export {
+    getSearchParamFromUrl,
+    getSearchParamFromPath,
+    hasSameExpensifyOrigin,
+    getPathFromURL,
+    appendParam,
+    hasURL,
+    addLeadingForwardSlash,
+    extractUrlDomain,
+    getUrlWithParams,
+    hasSecureLinkKey,
+};

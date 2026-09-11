@@ -39,6 +39,7 @@ function useAutoCreateSubmitWorkspace() {
         formatPhoneNumber,
         isRestrictedPolicyCreation,
         hasActiveAdminPolicies,
+        hasOwnedPaidPolicy,
         onboardingMessages,
         lastWorkspaceNumber,
         shouldUseNarrowLayout,
@@ -68,7 +69,7 @@ function useAutoCreateSubmitWorkspace() {
 
             const {adminsChatReportID: newAdminsChatReportID, policyID: newPolicyID} = shouldCreateWorkspace
                 ? createWorkspace({
-                      policyOwnerEmail: undefined,
+                      policyOwner: undefined,
                       makeMeAdmin: true,
                       policyName: generateDefaultWorkspaceName(currentUserEmail, lastWorkspaceNumber, translate, displayName),
                       policyID: generatePolicyID(),
@@ -78,6 +79,7 @@ function useAutoCreateSubmitWorkspace() {
                       shouldAddOnboardingTasks: false,
                       introSelected,
                       activePolicy,
+                      conciergeChat,
                       currentUserAccountIDParam: currentUserAccountID,
                       currentUserEmailParam: currentUserEmail,
                       shouldAddGuideWelcomeMessage: false,
@@ -85,6 +87,7 @@ function useAutoCreateSubmitWorkspace() {
                       betas,
                       isSelfTourViewed,
                       hasActiveAdminPolicies,
+                      hasOwnedPaidPolicy,
                   })
                 : {adminsChatReportID: onboardingAdminsChatReportID, policyID: onboardingPolicyID};
 
@@ -100,6 +103,10 @@ function useAutoCreateSubmitWorkspace() {
                         introSelected,
                         isSelfTourViewed,
                         conciergeChat,
+                        // Creating a Submit workspace posts a Concierge welcome with suggested responses in its
+                        // #admins room, so a Concierge DM checklist on top of that is a competing second onboarding
+                        // experience. Without a new workspace there is no #admins welcome, so the checklist stays.
+                        shouldSkipConciergeOnboarding: shouldCreateWorkspace,
                     });
                 } catch (error) {
                     // Swallow onboarding completion failures so a network error doesn't block workspace
@@ -141,6 +148,7 @@ function useAutoCreateSubmitWorkspace() {
             onboardingMessages,
             betas,
             hasActiveAdminPolicies,
+            hasOwnedPaidPolicy,
             shouldUseNarrowLayout,
             conciergeChat,
         ],

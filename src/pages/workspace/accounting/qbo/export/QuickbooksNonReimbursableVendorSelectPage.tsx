@@ -1,6 +1,7 @@
 import BlockingView from '@components/BlockingViews/BlockingView';
 import type {ListItem} from '@components/SelectionList/types';
 import SelectionScreen from '@components/SelectionScreen';
+import Text from '@components/Text';
 
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -11,6 +12,7 @@ import {settingsPendingAction} from '@libs/PolicyUtils';
 
 import Navigation from '@navigation/Navigation';
 
+import {getQuickbooksOnlineIntegrationName} from '@pages/workspace/accounting/utils';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 
 import variables from '@styles/variables';
@@ -20,6 +22,7 @@ import {clearQBOErrorField} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 
 import React from 'react';
+import {View} from 'react-native';
 
 type VendorConfigKey = 'nonReimbursableBillDefaultVendor' | 'nonReimbursableCreditCardDefaultVendor';
 
@@ -43,6 +46,7 @@ type QuickbooksNonReimbursableVendorSelectPageProps = {
 
 function QuickbooksNonReimbursableVendorSelectPage({policy, configKey, updateVendor, displayName}: QuickbooksNonReimbursableVendorSelectPageProps) {
     const {translate} = useLocalize();
+    const integrationName = getQuickbooksOnlineIntegrationName(policy, translate);
     const styles = useThemeStyles();
     const illustrations = useMemoizedLazyIllustrations(['Telescope']);
     const {vendors} = policy?.connections?.quickbooksOnline?.data ?? {};
@@ -72,13 +76,19 @@ function QuickbooksNonReimbursableVendorSelectPage({policy, configKey, updateVen
         Navigation.goBack();
     };
 
+    const listHeaderContent = (
+        <View style={[styles.pb2, styles.ph5]}>
+            <Text style={[styles.pb5, styles.textNormal]}>{translate('workspace.accounting.defaultVendorSelectHeader')}</Text>
+        </View>
+    );
+
     const listEmptyContent = (
         <BlockingView
             icon={illustrations.Telescope}
             iconWidth={variables.emptyListIconWidth}
             iconHeight={variables.emptyListIconHeight}
             title={translate('workspace.qbo.noAccountsFound')}
-            subtitle={translate('workspace.qbo.noAccountsFoundDescription')}
+            subtitle={translate('workspace.qbo.noAccountsFoundDescription', integrationName)}
             containerStyle={styles.pb10}
         />
     );
@@ -90,6 +100,7 @@ function QuickbooksNonReimbursableVendorSelectPage({policy, configKey, updateVen
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             displayName={displayName}
             title="workspace.accounting.defaultVendor"
+            headerContent={listHeaderContent}
             data={data}
             onSelectRow={selectVendor}
             shouldSingleExecuteRowSelect

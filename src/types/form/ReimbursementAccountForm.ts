@@ -157,6 +157,7 @@ const INPUT_IDS = {
             SIGNER_COMPLETE_RESIDENTIAL_ADDRESS: 'signerCompleteResidentialAddress',
             DOWNLOADED_PDS_AND_FSG: 'downloadedPDSandFSG',
             ACH_AUTHORIZATION_FORM: 'achAuthorizationForm',
+            BANK_STATEMENT: 'bankStatement',
             SECOND_SIGNER_EMAIL: 'secondSignerEmail',
             SECOND_SIGNER_FULL_NAME: 'secondSignerFullName',
             SECOND_SIGNER_DATE_OF_BIRTH: 'secondSignerDateOfBirth',
@@ -454,6 +455,7 @@ type NonUSDReimbursementAccountAdditionalProps = {
 
     /** Powerform required for US and CA workspaces */
     [INPUT_IDS.ADDITIONAL_DATA.CORPAY.ACH_AUTHORIZATION_FORM]: FileObject[];
+    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.BANK_STATEMENT]: FileObject[];
 };
 
 type ReimbursementAccountForm = ReimbursementAccountFormExtraProps &

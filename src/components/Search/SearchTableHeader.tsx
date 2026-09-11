@@ -112,6 +112,11 @@ const getExpenseHeaders = (groupBy?: SearchGroupBy): SearchColumnConfig[] => [
         canEdit: true,
     },
     {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS,
+        translationKey: 'common.violations',
+        isColumnSortable: false,
+    },
+    {
         columnName: CONST.SEARCH.TABLE_COLUMNS.TAG_GL_CODE,
         translationKey: 'common.tagGLCode',
         sortColumnName: CONST.SEARCH.SORT_BY_COLUMNS.TAG_GL_CODE,
@@ -192,7 +197,6 @@ const getExpenseHeaders = (groupBy?: SearchGroupBy): SearchColumnConfig[] => [
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.EXPORTED_TO,
         translationKey: 'search.exportedTo',
-        isColumnSortable: false,
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.ACTION,
@@ -230,7 +234,6 @@ const taskHeaders: SearchColumnConfig[] = [
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.EXPORTED_TO,
         translationKey: 'search.exportedTo',
-        isColumnSortable: false,
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.ACTION,
@@ -265,6 +268,10 @@ const getExpenseReportHeaders = (profileIcon?: IconAsset): SearchColumnConfig[] 
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.FIRST_APPROVED,
         translationKey: 'search.filters.firstApproved',
+    },
+    {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.PAID_BY,
+        translationKey: 'search.filters.paidBy',
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.EXPORTED,
@@ -319,6 +326,14 @@ const getExpenseReportHeaders = (profileIcon?: IconAsset): SearchColumnConfig[] 
         translationKey: 'common.internationalReimbursementIDs',
     },
     {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.AMOUNT_DEBITED,
+        translationKey: 'common.amountDebited',
+    },
+    {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.AMOUNT_REIMBURSED,
+        translationKey: 'common.amountReimbursed',
+    },
+    {
         columnName: CONST.SEARCH.TABLE_COLUMNS.BASE_62_REPORT_ID,
         translationKey: 'common.reportID',
     },
@@ -329,7 +344,6 @@ const getExpenseReportHeaders = (profileIcon?: IconAsset): SearchColumnConfig[] 
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.EXPORTED_TO,
         translationKey: 'search.exportedTo',
-        isColumnSortable: false,
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.ACTION,
@@ -339,18 +353,17 @@ const getExpenseReportHeaders = (profileIcon?: IconAsset): SearchColumnConfig[] 
 ];
 
 const getTransactionGroupHeaders = (groupBy: SearchGroupBy, icons: SearchHeaderIcons): SearchColumnConfig[] => {
-    const commonGroupHeaders: SearchColumnConfig[] = [
-        {
-            columnName: CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES,
-            translationKey: 'common.expenses' as TranslationPaths,
-            isColumnSortable: true,
-        },
-        {
-            columnName: CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL,
-            translationKey: 'common.total' as TranslationPaths,
-            isColumnSortable: true,
-        },
-    ];
+    const groupExpensesHeader: SearchColumnConfig = {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES,
+        translationKey: 'common.expenses' as TranslationPaths,
+        isColumnSortable: true,
+    };
+    const groupTotalHeader: SearchColumnConfig = {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL,
+        translationKey: 'common.total' as TranslationPaths,
+        isColumnSortable: true,
+    };
+    const commonGroupHeaders: SearchColumnConfig[] = [groupExpensesHeader, groupTotalHeader];
     switch (groupBy) {
         case CONST.SEARCH.GROUP_BY.FROM:
             return [
@@ -408,7 +421,18 @@ const getTransactionGroupHeaders = (groupBy: SearchGroupBy, icons: SearchHeaderI
                     columnName: CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWAL_ID,
                     translationKey: 'common.withdrawalID',
                 },
-                ...commonGroupHeaders,
+                groupExpensesHeader,
+                {
+                    columnName: CONST.SEARCH.TABLE_COLUMNS.GROUP_AMOUNT_DEBITED,
+                    translationKey: 'common.amountDebited',
+                    isColumnSortable: true,
+                },
+                {
+                    columnName: CONST.SEARCH.TABLE_COLUMNS.GROUP_AMOUNT_REIMBURSED,
+                    translationKey: 'common.amountReimbursed',
+                    isColumnSortable: true,
+                },
+                groupTotalHeader,
             ];
         case CONST.SEARCH.GROUP_BY.CATEGORY:
             return [

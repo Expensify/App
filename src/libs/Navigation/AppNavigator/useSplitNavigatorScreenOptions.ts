@@ -19,6 +19,9 @@ import useModalCardStyleInterpolator from './useModalCardStyleInterpolator';
 
 const IS_MOBILE_SAFARI = isMobileSafari();
 
+// `dvw` instead of `%`: a percentage resolves against the transformed parent card, whose box already has the gutters removed, insetting them twice.
+const NARROW_CARD_SAFE_AREA_WIDTH = 'calc(100dvw - env(safe-area-inset-left) - env(safe-area-inset-right))';
+
 type SplitNavigatorScreenOptions = {
     sidebarScreen: PlatformStackNavigationOptions;
     centralScreen: PlatformStackNavigationOptions;
@@ -49,7 +52,7 @@ const useSplitNavigatorScreenOptions = () => {
                 cardStyleInterpolator: (props: StackCardInterpolationProps) => modalCardStyleInterpolator({props, enter: {kind: 'slide-from-width'}}),
                 cardStyle: {
                     ...StyleUtils.getNavigationModalCardStyle(),
-                    width: shouldUseNarrowLayout ? '100%' : variables.sideBarWithLHBWidth,
+                    width: shouldUseNarrowLayout ? NARROW_CARD_SAFE_AREA_WIDTH : variables.sideBarWithLHBWidth,
                     marginLeft: shouldUseNarrowLayout ? 0 : -variables.sideBarWithLHBWidth,
                     ...(shouldUseNarrowLayout ? {} : themeStyles.borderRight),
                 },
@@ -66,7 +69,7 @@ const useSplitNavigatorScreenOptions = () => {
             web: {
                 cardStyleInterpolator: (props: StackCardInterpolationProps) => modalCardStyleInterpolator({props, enter: centralScreenEnter}),
                 cardStyle: shouldUseNarrowLayout
-                    ? StyleUtils.getNavigationModalCardStyle()
+                    ? {...StyleUtils.getNavigationModalCardStyle(), width: NARROW_CARD_SAFE_AREA_WIDTH}
                     : {
                           ...themeStyles.h100,
                       },

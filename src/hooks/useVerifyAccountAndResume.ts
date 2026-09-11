@@ -14,7 +14,7 @@ import useOnyx from './useOnyx';
 type ResumePayload = (() => void) | undefined;
 
 /**
- * Returns a trigger that sends an unvalidated user to the verify-account (magic code) screen and,
+ * Returns a trigger that sends an unvalidated user to the verify-account (security code) screen and,
  * once they validate there, calls `onResume` with the payload the trigger stored.
  */
 function useVerifyAccountAndResume(onResume: (payload: ResumePayload) => void) {

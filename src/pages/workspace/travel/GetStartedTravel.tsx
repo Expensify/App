@@ -34,7 +34,7 @@ function GetStartedTravel({policyID, canWriteTravelFeature, showReadOnlyModal}: 
             illustrationBackgroundColor={colors.tangerine700}
             illustration={illustrations.PendingTravel}
             illustrationStyle={styles.travelCardIllustration}
-            illustrationContainerStyle={[styles.emptyStateCardIllustrationContainer, styles.justifyContentCenter]}
+            illustrationContainerStyle={[styles.emptyStateCardIllustrationContainer, styles.justifyContentCenter, styles.cardSectionIllustrationContainer]}
             titleStyles={styles.textHeadlineH1}
             footer={
                 canWriteTravelFeature ? (
@@ -47,16 +47,17 @@ function GetStartedTravel({policyID, canWriteTravelFeature, showReadOnlyModal}: 
                     />
                 ) : (
                     <Button
-                        text={translate('workspace.moreFeatures.travel.getStarted.ctaText')}
                         onPress={showReadOnlyModal}
                         accessibilityLabel={translate('travel.bookTravel')}
                         style={styles.w100}
                         innerStyles={styles.buttonOpacityDisabled}
                         hoverStyles={styles.buttonOpacityDisabled}
-                        success
-                        large
+                        variant={CONST.BUTTON_VARIANT.SUCCESS}
+                        size={CONST.BUTTON_SIZE.LARGE}
                         sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.TRAVEL.GET_STARTED_BUTTON}
-                    />
+                    >
+                        <Button.Text>{translate('workspace.moreFeatures.travel.getStarted.ctaText')}</Button.Text>
+                    </Button>
                 )
             }
         />

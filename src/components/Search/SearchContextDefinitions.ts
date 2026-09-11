@@ -5,6 +5,7 @@ import CONST from '@src/CONST';
 import React from 'react';
 
 import type {
+    QueryFilterKey,
     SearchQueryActionsValue,
     SearchQueryContextValue,
     SearchResultsActionsValue,
@@ -23,16 +24,24 @@ const defaultSearchQueryContext: SearchQueryContextValue = {
     currentSimilarSearchHash: -1,
     currentSearchKey: undefined,
     currentSearchQueryJSON: undefined,
+    currentDefaultSearchQueryJSON: undefined,
+    currentDefaultSearchQueryFilterKeys: new Set<QueryFilterKey>(),
     suggestedSearches: {} as Record<SearchKey, SearchTypeMenuItem>,
     shouldResetSearchQuery: false,
 };
 
 const defaultSearchQueryActions: SearchQueryActionsValue = {
     setShouldResetSearchQuery: () => {},
+    setCurrentSearchKey: () => {},
+    resetSearchKey: () => {},
 };
+
+const EMPTY_TRANSACTIONS_BY_REPORT_ID: SearchResultsContextValue['currentSearchTransactionsByReportID'] = new Map();
 
 const defaultSearchResultsContext: SearchResultsContextValue = {
     currentSearchResults: undefined,
+    currentSearchTransactionsByReportID: EMPTY_TRANSACTIONS_BY_REPORT_ID,
+    currentSearchViolations: CONST.EMPTY_OBJECT,
     shouldUseLiveData: false,
     sortedReportIDs: CONST.EMPTY_ARRAY,
     shouldShowFiltersBarLoading: false,
@@ -48,6 +57,7 @@ const defaultSearchResultsActions: SearchResultsActionsValue = {
 const defaultSearchSelectionContext: SearchSelectionContextValue = {
     currentSelectedTransactionReportID: undefined,
     selectedTransactions: {},
+    excludedTransactions: {},
     selectedTransactionIDs: [],
     selectedReports: [],
     shouldTurnOffSelectionMode: false,
@@ -79,6 +89,7 @@ const SearchSelectionActionsContext = React.createContext<SearchSelectionActions
 const SearchRowSelectionActionsContext = React.createContext<SearchRowSelectionActionsValue>(defaultRowSelectionActions);
 
 export {
+    EMPTY_TRANSACTIONS_BY_REPORT_ID,
     SearchQueryContext,
     SearchQueryActionsContext,
     SearchResultsContext,
