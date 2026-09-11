@@ -11,6 +11,8 @@ type UpdatePrivatePersonalDetailsParams = {
     validateCode: string;
     addressState: string;
     addressProvince: string;
+    addressLat?: string;
+    addressLng?: string;
 };
 
 export default UpdatePrivatePersonalDetailsParams;
