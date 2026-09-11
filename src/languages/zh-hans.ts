@@ -54,6 +54,8 @@ const translations: TranslationDeepObject<typeof en> = {
         unshare: '取消共享',
         yes: '是',
         no: '否',
+        approve: '批准',
+        deny: '拒绝',
         dontChange: '不更改',
         ok: 'OK',
         notNow: '暂不处理',
@@ -2529,6 +2531,10 @@ const translations: TranslationDeepObject<typeof en> = {
         brokenConnection: '您的银行卡连接已断开。',
         conciergeBrokenConnection: (cardName: string, connectionLink?: string) =>
             connectionLink ? `您的 ${cardName} 卡连接已中断。<a href="${connectionLink}">登录您的网上银行</a>以修复该卡。` : `您的 ${cardName} 卡连接已中断。登录您的网上银行以修复该卡。`,
+        conciergeBrokenConnection30Days: (cardName: string, connectionLink?: string) =>
+            connectionLink
+                ? `您的 ${cardName} 连接已中断 30 天。请<a href="${connectionLink}">登录您的银行</a>以修复连接，或者如果该卡已不再使用，请<a href="${connectionLink}">移除该卡</a>。如果您移除它，已提交的报销不会丢失。`
+                : `您的 ${cardName} 连接已中断 30 天。请登录您的网上银行进行修复，或者如果该卡已不再使用，请将其移除。移除后，您已提交的报销不会丢失。`,
         addAdditionalCards: '添加其他卡片',
         upgradeDescription: '需要添加更多卡片吗？创建工作区以添加其他个人卡片或将公司卡片分配给整个团队。',
         onlyAvailableOnPlan: ({formattedPrice}: {formattedPrice: string}) => `<muted-text>此功能在 Collect 套餐中可用，每位成员每月费用为 <strong>${formattedPrice}</strong>。</muted-text>`,
@@ -7660,7 +7666,6 @@ ${reportName}`,
                 alwaysReimbursableDescription: '费用始终报销给员工',
                 alwaysNonReimbursable: '始终不予报销',
                 alwaysNonReimbursableDescription: '从不向员工报销费用',
-                billableDefault: '默认计费',
                 billableDefaultDescription: '选择现金和信用卡报销是否默认为可计费。',
                 billable: '可计费',
                 billableDescription: '费用通常会重新向客户计费',
@@ -7687,10 +7692,12 @@ ${reportName}`,
                 publicReceiptVisibilityHintDisabled: '只有拥有包含该收据的报表访问权限的 Expensify 成员才能查看收据。',
                 enableTagsToUnlockTitle: '启用标签？',
                 enableTagsToUnlockPrompt: '启用“标签”（位于“更多功能”下）以解锁。',
-                enableTagsAndRequirePrompt: '确定要启用标签，并将其设为所有报销的必填项吗？',
                 enableCategoriesToUnlockTitle: '启用类别？',
                 enableCategoriesToUnlockPrompt: '启用“类别”（位于“更多功能”下）以解锁。',
                 enableCategoriesAndRequirePrompt: '确定要启用类别，并要求所有报销都必须选择类别吗？',
+                enableTagsPrompt: '确定要启用标签吗？在至少有一个标签后，您可以要求所有报销都必须选择标签。',
+                noTagsToRequirePrompt: '您还没有任何标签。请创建一个标签。',
+                noCategoriesToRequirePrompt: '您还没有任何类别。请创建一个类别。',
             },
             expenseReportRules: {
                 title: '高级',
@@ -7790,7 +7797,7 @@ ${reportName}`,
                 flagAmountsOverSubtitle: '这将覆盖所有报销的最高金额限制。',
                 expenseLimitTypes: {
                     expense: '单笔报销',
-                    expenseSubtitle: '按类别标记报销金额。此规则会覆盖工作区的一般最高报销金额规则。',
+                    expenseSubtitle: '按类别标记报销金额。此规则会覆盖工作区的一般最高报销金额规则。多天预订将按每晚平均金额进行评估。',
                     daily: '类别总计',
                     dailySubtitle: '标记每份报销单中各类别的每日总支出。',
                 },
@@ -9351,6 +9358,16 @@ ${reportName}`,
                 integrationSyncFailedRecurrence: ({count}: {count: number}) => `（重复 ${count} 次。）`,
                 companyCardConnectionBroken: ({feedName, workspaceCompanyCardRoute}: {feedName: string; workspaceCompanyCardRoute: string}) =>
                     `${feedName} 连接已中断。要恢复银行卡导入，请<a href='${workspaceCompanyCardRoute}'>登录您的银行账户</a>。`,
+                companyCardConnectionBroken30Days: ({
+                    feedName,
+                    workspaceCompanyCardRoute,
+                    workspaceCompanyCardSettingsRoute,
+                }: {
+                    feedName: string;
+                    workspaceCompanyCardRoute: string;
+                    workspaceCompanyCardSettingsRoute: string;
+                }) =>
+                    `${feedName} 连接已中断 30 天。请<a href='${workspaceCompanyCardRoute}'>登录您的银行</a>进行修复，或者如果不再使用，请<a href='${workspaceCompanyCardSettingsRoute}'>移除该连接</a>。移除后，您已提交的报销不会丢失。`,
                 plaidBalanceFailure: ({maskedAccountNumber, walletRoute}: {maskedAccountNumber: string; walletRoute: string}) =>
                     `您与企业银行账户的 Plaid 连接已中断。请<a href='${walletRoute}'>重新连接您的银行账户 ${maskedAccountNumber}</a>，以便继续使用 Expensify 卡。`,
                 addEmployee: (email: string, role: string, didJoinPolicy?: boolean) => {
@@ -9924,6 +9941,7 @@ ${reportName}`,
         customUnitRateOutOfDateRangeStartOnly: ({startDate}: {startDate: string}) => `费率仅自 ${startDate} 起有效`,
         customUnitRateOutOfDateRangeEndOnly: ({endDate}: {endDate: string}) => `该费率仅在 ${endDate} 之前有效`,
         cannotMergeDuplicates: '您只能在草稿或未结报销单中合并报销。请先撤回后重试。',
+        overCategoryLimitPerNight: (formattedLimit: string) => `每晚房价超过每人类别限额 ${formattedLimit}`,
         shortName: {
             allTagLevelsRequired: '所有标签为必填项',
             autoReportedRejectedExpense: '报销已被拒绝',
@@ -10654,6 +10672,9 @@ ${reportName}`,
             consolidatedDomainBillingError: '无法更改合并域账单。请稍后再试。',
             addAdmin: '添加管理员',
             addAdminError: '无法将此成员添加为管理员。请重试。',
+            requests: '请求',
+            approveRequestError: '无法批准此请求。请重试。',
+            declineRequestError: '无法拒绝此请求。请重试。',
             revokeAdminAccess: '撤销管理员访问权限',
             cantRevokeAdminAccess: '无法撤销技术联系人的管理员权限',
             error: {
