@@ -381,6 +381,7 @@ describe('Lazily loaded group selection', () => {
         expect(result.current.areAllMatchingItemsSelected).toBe(true);
         expect(Object.keys(result.current.selectedTransactions)).toEqual(['report-2-transaction-1']);
         expect(Object.keys(result.current.excludedTransactions)).toEqual(['report-1-transaction-1', 'report-1-transaction-2']);
+        expect(result.current.selectedReports.map((report) => report.reportID)).toEqual(['report-2']);
 
         reportFilteredData = [firstReport, secondReport, thirdReport];
         rerender({});

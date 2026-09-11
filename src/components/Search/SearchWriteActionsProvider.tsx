@@ -525,6 +525,7 @@ function SearchWriteActionsProvider({
                 };
             },
             {
+                ...(isExpenseReportType ? {data: filteredData} : {}),
                 totalSelectableItemsCount,
                 shouldPreserveAllMatchingSelection,
                 shouldClearAllMatchingSelectionWhenEmpty: isOffline || searchResults?.search?.hasMoreResults === false,

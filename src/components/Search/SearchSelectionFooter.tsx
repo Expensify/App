@@ -13,7 +13,7 @@ import {getEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 
 import type {SelectedTransactionInfo, SelectedTransactions} from './types';
 
@@ -116,6 +116,9 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
         selectedCurrency: undefined,
         defaultCurrency: undefined,
     });
+    // Onyx delivers an optimistic source stamp asynchronously. Bridge that short gap locally so a render caused by
+    // selection reconciliation cannot dispatch the same report conversion twice before the stamp is observed.
+    const pendingReportConversionSources = useRef<Record<string, Record<string, number>>>({});
     const isCurrentFooterState = footerCurrencyState.searchHash === currentSearchHash;
     const selectedCurrency = isCurrentFooterState ? footerCurrencyState.selectedCurrency : undefined;
     const defaultFooterCurrency = isCurrentFooterState ? footerCurrencyState.defaultCurrency : undefined;
@@ -278,7 +281,8 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
     );
     const wasGroupRequested = useCallback((key: string, currency: string) => conversionSources?.groups?.[key]?.[currency] === groupSourceByKey[key], [conversionSources, groupSourceByKey]);
     const wasReportRequested = useCallback(
-        (reportID: string, currency: string) => conversionSources?.reports?.[reportID]?.[currency] === reportSourceByID[reportID],
+        (reportID: string, currency: string) =>
+            conversionSources?.reports?.[reportID]?.[currency] === reportSourceByID[reportID] || pendingReportConversionSources.current[reportID]?.[currency] === reportSourceByID[reportID],
         [conversionSources, reportSourceByID],
     );
 
@@ -364,6 +368,12 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
                 // their cached figures, so growing a selection converts just the delta.
                 const reportIDsToConvert = selectedReportIDs.filter((reportID) => !wasReportRequested(reportID, selectedCurrency));
                 if (reportIDsToConvert.length > 0) {
+                    for (const reportID of reportIDsToConvert) {
+                        pendingReportConversionSources.current[reportID] = {
+                            ...pendingReportConversionSources.current[reportID],
+                            [selectedCurrency]: reportSourceByID[reportID],
+                        };
+                    }
                     getFooterConvertedAmounts({
                         queryJSON: currentSearchQueryJSON,
                         searchKey: currentSearchKey,
@@ -410,6 +420,12 @@ function SearchSelectionFooter({searchResults}: SearchSelectionFooterProps) {
         if (isReportsSearch) {
             const excludedReportIDsToConvert = excludedReportIDs.filter((reportID) => !wasReportRequested(reportID, selectedCurrency));
             if (excludedReportIDsToConvert.length > 0) {
+                for (const reportID of excludedReportIDsToConvert) {
+                    pendingReportConversionSources.current[reportID] = {
+                        ...pendingReportConversionSources.current[reportID],
+                        [selectedCurrency]: reportSourceByID[reportID],
+                    };
+                }
                 getFooterConvertedAmounts({
                     queryJSON: currentSearchQueryJSON,
                     searchKey: currentSearchKey,

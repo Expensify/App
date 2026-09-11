@@ -225,6 +225,43 @@ describe('SearchSelectionFooter', () => {
         expect(mockCapturedFooterProps.current).toEqual(expect.objectContaining({count: 2, total: 200, currency: CONST.CURRENCY.USD}));
     });
 
+    it('does not request the same report conversion twice before the optimistic source stamp is observed', async () => {
+        mockSearchQueryContext.current = {
+            currentSearchHash: 1,
+            currentSearchKey: undefined,
+            currentSearchQueryJSON: {hash: 1, type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT},
+        };
+        mockSelectedTransactions.current = {transaction2: buildSelectedTransaction(CONST.CURRENCY.USD, undefined, -100, 'report2')};
+        mockExcludedTransactions.current = {
+            transaction1: buildSelectedTransaction(CONST.CURRENCY.USD, undefined, -100, 'report1'),
+        };
+        mockSelectedReports.current = [buildSelectedReport('report2', -100)];
+        mockAreAllMatchingItemsSelected.current = true;
+        const searchResults = buildSearchResults(CONST.CURRENCY.USD, 2, 200, CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT);
+        const {rerender} = render(<SearchSelectionFooter searchResults={searchResults} />);
+        await waitForBatchedUpdates();
+
+        await act(async () => {
+            mockCapturedFooterProps.current?.onCurrencyChange?.(CONST.CURRENCY.EUR);
+            await waitForBatchedUpdates();
+        });
+
+        // Reconciliation can provide an equivalent selectedReports array before Onyx publishes the optimistic source
+        // stamp. That render must not issue the same report conversion again.
+        mockSelectedReports.current = [...mockSelectedReports.current];
+        rerender(<SearchSelectionFooter searchResults={searchResults} />);
+        await waitForBatchedUpdates();
+
+        const reportConversionCalls = jest.mocked(getFooterConvertedAmounts).mock.calls.filter(([params]) => params.reportIDList === 'report1');
+        expect(reportConversionCalls).toHaveLength(1);
+        expect(reportConversionCalls.at(0)?.at(0)).toEqual(
+            expect.objectContaining({
+                targetCurrency: CONST.CURRENCY.EUR,
+                sources: {reports: {report1: {[CONST.CURRENCY.EUR]: -100}}},
+            }),
+        );
+    });
+
     it('nets a selected credit against a selected expense instead of summing their magnitudes', async () => {
         mockSelectedTransactions.current = {
             transaction1: {...buildSelectedTransaction(CONST.CURRENCY.USD), displayAmount: 10000},
