@@ -9,12 +9,10 @@ import type ONYXKEYS from '@src/ONYXKEYS';
 import type {FileObject} from '@src/types/utils/Attachment';
 import type CollectionDataSet from '@src/types/utils/CollectionDataSet';
 
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import type {KeysOfUnion, ReadonlyDeep, ValueOf} from 'type-fest';
+import type {KeysOfUnion, ValueOf} from 'type-fest';
 
 import type {Accountant, Attendee, Participant, Split, SplitExpense} from './IOU';
 import type * as OnyxCommon from './OnyxCommon';
-import type OnyxInputOrEntry from './OnyxInputOrEntry';
 import type {Unit} from './Policy';
 import type RecentWaypoint from './RecentWaypoint';
 import type ReportAction from './ReportAction';
@@ -723,16 +721,6 @@ type TransactionChanges = Partial<Transaction> & AdditionalTransactionChanges;
 /** Collection of mock transactions, indexed by `transactions_${transactionID}` */
 type TransactionCollectionDataSet = CollectionDataSet<typeof ONYXKEYS.COLLECTION.TRANSACTION>;
 
-/** A deeply-immutable view of an Onyx value. `Onyx.get` hands back the cached object itself, not a copy. */
-type ReadonlyOnyx<T> = ReadonlyDeep<T>;
-
-/** A readonly `OnyxEntry`. */
-type ReadonlyOnyxEntry<T> = ReadonlyOnyx<OnyxEntry<T>>;
-/** A readonly `OnyxInputOrEntry`. */
-type ReadonlyOnyxInputOrEntry<T> = ReadonlyOnyx<OnyxInputOrEntry<T>>;
-/** A readonly `OnyxCollection`. */
-type ReadonlyOnyxCollection<T> = ReadonlyOnyx<OnyxCollection<T>>;
-
 /** Transaction that is not associated with any report */
 type UnreportedTransaction = Omit<Transaction, 'reportID'> & {
     /** The ID of the report that this transaction is associated with. */
@@ -759,8 +747,4 @@ export type {
     TransactionCustomUnit,
     TransactionCommentVendor,
     UnreportedTransaction,
-    ReadonlyOnyx,
-    ReadonlyOnyxEntry,
-    ReadonlyOnyxInputOrEntry,
-    ReadonlyOnyxCollection,
 };
