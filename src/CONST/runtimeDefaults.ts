@@ -92,6 +92,7 @@ const CONST_RUNTIME_DEFAULTS: ConstRuntime = {
     EXCLUDE_FROM_LAST_VISITED_PATH: [
         'not-found',
         'SAMLSignIn',
+        'TransitionBetweenApps',
         'ValidateLogin',
         'Dynamic_MigratedUserWelcomeModal_Root',
         'Dynamic_SubmitPlanWelcomeModal_Root',
