@@ -27,6 +27,7 @@ export type {default as ConnectPolicyToMergeParams} from './ConnectPolicyToMerge
 export type {default as ConnectPolicyToZenefitsParams} from './ConnectPolicyToZenefitsParams';
 export type {default as ConnectPolicyToRilletParams} from './ConnectPolicyToRilletParams';
 export type {default as ConnectPolicyToDualEntryParams} from './ConnectPolicyToDualEntryParams';
+export type {default as ConnectPolicyToCampfireParams} from './ConnectPolicyToCampfireParams';
 export type {default as ConnectPolicyToBusinessCentralParams} from './ConnectPolicyToBusinessCentralParams';
 export type {default as OpenPolicyProfilePageParams} from './OpenPolicyProfilePageParams';
 export type {default as OpenPolicyInitialPageParams} from './OpenPolicyInitialPageParams';
@@ -77,6 +78,8 @@ export type {default as UpdateDualEntrySettlementsAccountParams} from './UpdateD
 export type {default as UpdateDualEntrySyncTravelInvoicingSettlementsParams} from './UpdateDualEntrySyncTravelInvoicingSettlementsParams';
 export type {default as UpdateDualEntryTravelInvoicingSettlementsAccountParams} from './UpdateDualEntryTravelInvoicingSettlementsAccountParams';
 export type {default as UpdateDualEntryTravelInvoicingPayableAccountParams} from './UpdateDualEntryTravelInvoicingPayableAccountParams';
+export type {default as SyncPolicyToCampfireParams} from './SyncPolicyToCampfireParams';
+export type {default as UpdateCampfireSubsidiaryParams} from './UpdateCampfireSubsidiaryParams';
 export type {default as SyncPolicyToBusinessCentralParams} from './SyncPolicyToBusinessCentralParams';
 export type {default as UpdateBusinessCentralCompanyParams} from './UpdateBusinessCentralCompanyParams';
 export type {default as UpdateBusinessCentralEnableNewCategoriesParams} from './UpdateBusinessCentralEnableNewCategoriesParams';
@@ -302,6 +305,7 @@ export type {default as EnablePolicyCategoriesParams} from './EnablePolicyCatego
 export type {default as EnablePolicyConnectionsParams} from './EnablePolicyConnectionsParams';
 export type {default as EnablePolicyHRParams} from './EnablePolicyHRParams';
 export type {default as EnablePolicyRecruitingParams} from './EnablePolicyRecruitingParams';
+export type {default as EnablePolicyMCPParams} from './EnablePolicyMCPParams';
 export type {default as TogglePolicyReceiptPartnersParams} from './TogglePolicyReceiptPartnersParams';
 export type {default as EnablePolicyDistanceRatesParams} from './EnablePolicyDistanceRatesParams';
 export type {default as EnablePolicyTravelParams} from './EnablePolicyTravelParams';

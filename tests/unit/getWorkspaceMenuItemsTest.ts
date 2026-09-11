@@ -33,6 +33,7 @@ const icons = {
     InvoiceGeneric: mockIcon,
     Gear: mockIcon,
     Bolt: mockIcon,
+    Bot: mockIcon,
     UserPlus: mockIcon,
 };
 
@@ -480,6 +481,7 @@ describe('getWorkspaceMenuItems', () => {
             'workspace.common.hr',
             'workspace.common.recruiting',
             'workspace.common.receiptPartners',
+            'workspace.common.mcp',
             'workspace.common.categories',
             'workspace.common.vendors',
             'workspace.common.tags',
@@ -504,6 +506,7 @@ describe('getWorkspaceMenuItems', () => {
             ROUTES.WORKSPACE_HR.getRoute(policy.id),
             ROUTES.WORKSPACE_RECRUITING.getRoute(policy.id),
             ROUTES.WORKSPACE_RECEIPT_PARTNERS.getRoute(policy.id),
+            ROUTES.WORKSPACE_MCP.getRoute(policy.id),
             ROUTES.WORKSPACE_CATEGORIES.getRoute(policy.id),
             ROUTES.WORKSPACE_VENDORS.getRoute(policy.id),
             ROUTES.WORKSPACE_TAGS.getRoute(policy.id),
@@ -528,6 +531,7 @@ describe('getWorkspaceMenuItems', () => {
             SCREENS.WORKSPACE.HR,
             SCREENS.WORKSPACE.RECRUITING,
             SCREENS.WORKSPACE.RECEIPT_PARTNERS,
+            SCREENS.WORKSPACE.MCP,
             SCREENS.WORKSPACE.CATEGORIES,
             SCREENS.WORKSPACE.VENDORS,
             SCREENS.WORKSPACE.TAGS,

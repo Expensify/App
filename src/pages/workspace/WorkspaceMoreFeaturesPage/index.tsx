@@ -40,6 +40,7 @@ import {
     hasAccountingFeatureConnection,
     hasVendorFeature,
     isControlPolicy,
+    isMCPEnabled,
     isPerDiemEnabled,
     isPolicyFeatureEnabled,
     isPolicyTaxEnabled,
@@ -63,6 +64,7 @@ import {
     enablePolicyHR,
     enablePolicyInvoicing,
     enablePolicyRecruiting,
+    enablePolicyMCP,
     enablePolicyReceiptPartners,
     enablePolicyRules,
     enablePolicyTaxes,
@@ -117,6 +119,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
         'ReceiptPartners',
         'Clock',
         'Members',
+        'AiAutomation',
         'NewUser',
     ]);
 
@@ -170,9 +173,14 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
     // vendors right now), so it can't double as the visibility gate.
     //
     // Beta gating mirrors `hasVendorFeature`: QBO (R1) is GA, so a connected QBO workspace always
-    // sees the row regardless of the `vendorMatching` beta. Sage Intacct (R2) and Xero (R3) haven't
-    // reached GA, so they only show the row while the beta is enabled.
-    const vendorMatchingConnection = getConnectedIntegration(policy, [CONST.POLICY.CONNECTIONS.NAME.QBO, CONST.POLICY.CONNECTIONS.NAME.XERO, CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT]);
+    // sees the row regardless of the `vendorMatching` beta. Sage Intacct (R2), Xero (R3), and Rillet (R4)
+    // haven't reached GA, so they only show the row while the beta is enabled.
+    const vendorMatchingConnection = getConnectedIntegration(policy, [
+        CONST.POLICY.CONNECTIONS.NAME.QBO,
+        CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT,
+        CONST.POLICY.CONNECTIONS.NAME.XERO,
+        CONST.POLICY.CONNECTIONS.NAME.RILLET,
+    ]);
     const shouldShowVendorsFeature = vendorMatchingConnection === CONST.POLICY.CONNECTIONS.NAME.QBO || (isVendorMatchingEnabled && !!vendorMatchingConnection);
 
     const warnAccountingManagesOrganizeFeature = async () => {
@@ -467,6 +475,27 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                                 }}
                             />
                         )}
+                        <MoreFeatureToggle
+                            icon={illustrations.AiAutomation}
+                            title={translate('workspace.moreFeatures.mcp.title')}
+                            subtitle={translate('workspace.moreFeatures.mcp.subtitle')}
+                            isActive={isMCPEnabled(policy)}
+                            pendingAction={policy?.pendingFields?.isMCPEnabled}
+                            disabled={!canWriteMoreFeatures}
+                            disabledAction={withReadOnlyFallback()}
+                            onToggle={(isEnabled) => {
+                                if (!policyID) {
+                                    return;
+                                }
+                                enablePolicyMCP(policyID, isEnabled);
+                            }}
+                            onPress={() => {
+                                if (!policyID) {
+                                    return;
+                                }
+                                Navigation.navigate(ROUTES.WORKSPACE_MCP.getRoute(policyID));
+                            }}
+                        />
                     </MoreFeaturesSection>
 
                     <MoreFeaturesSection title={translate('workspace.moreFeatures.organizeSection.title')}>
