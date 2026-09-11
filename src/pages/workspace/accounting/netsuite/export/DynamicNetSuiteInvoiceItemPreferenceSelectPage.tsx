@@ -1,4 +1,4 @@
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import ConnectionLayout from '@components/ConnectionLayout';
 import FixedFooter from '@components/FixedFooter';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -6,7 +6,6 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import SelectionList from '@components/SelectionList';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import type {ListItem, SelectionListHandle} from '@components/SelectionList/types';
-import type {SelectorType} from '@components/SelectionScreen';
 
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
@@ -135,8 +134,8 @@ function DynamicNetSuiteInvoiceItemPreferenceSelectPage({policy}: WithPolicyConn
                 <SelectionList
                     ref={selectionListRef}
                     data={options}
-                    onSelectRow={(selection: SelectorType) => {
-                        setDraftPreference((selection as MenuListItem).value);
+                    onSelectRow={(selection: MenuListItem) => {
+                        setDraftPreference(selection.value);
                     }}
                     ListItem={SingleSelectListItem}
                     listFooterContent={invoiceItemFooterContent}
