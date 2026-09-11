@@ -106,6 +106,7 @@ jest.mock('@hooks/useLocalize', () => ({
                 ['initialSettingsPage.help', 'Help'],
                 ['search.tabs.reports', 'Reports'],
                 ['search.tabs.expenses', 'Expenses'],
+                ['search.tabs.topSpenders', 'Top spenders'],
                 ['workspace.common.profile', 'Overview'],
             ]);
             return translations.get(key) ?? key;
@@ -766,8 +767,8 @@ describe('Workspace Search Router navigation source', () => {
         expect(navigateToWorkspaceSettingsRoute).toHaveBeenCalledWith(ROUTES.WORKSPACE_OVERVIEW.getRoute(policy.id), policy.id, false, SCREENS.WORKSPACE.PROFILE);
     });
 
-    it('composes localized Workspace suggestions after top-level rows with hook-level filtering and beta flags', () => {
-        const activePolicy = createWorkspacePolicy('1', 'Active Workspace');
+    it('composes localized Workspace suggestions after top-level and Spend rows with hook-level filtering and beta flags', () => {
+        const activePolicy = createWorkspacePolicy('1', 'Spend Workspace');
         const deletedPolicy = createWorkspacePolicy('2', 'Deleted Workspace', {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE});
         const policies = {
             [`${ONYXKEYS.COLLECTION.POLICY}${activePolicy.id}`]: activePolicy,
@@ -801,6 +802,10 @@ describe('Workspace Search Router navigation source', () => {
                     createSpendMenuItem(CONST.SEARCH.SEARCH_KEYS.REPORTS, 'search.tabs.reports', 'Document', 'type:expense-report'),
                 ],
             },
+            {
+                translationPath: 'search.tabs.insights',
+                menuItems: [createSpendMenuItem(CONST.SEARCH.SEARCH_KEYS.TOP_SPENDERS, 'search.tabs.topSpenders', 'UserEye', 'type:expense groupBy:from')],
+            },
         ]);
         mockUseSettingsNavigationMenuData.mockReturnValue({
             accountMenuItemsData: {
@@ -812,10 +817,10 @@ describe('Workspace Search Router navigation source', () => {
         const actualGetWorkspaceMenuItems = jest.requireActual<{default: GetWorkspaceMenuItems}>('@pages/workspace/getWorkspaceMenuItems').default;
         jest.mocked(getWorkspaceMenuItems).mockImplementationOnce((params) => actualGetWorkspaceMenuItems(params).filter((item) => item.screenName === SCREENS.WORKSPACE.PROFILE));
 
-        const {result} = renderHook(() => useNavigationSuggestions('go to workspace'));
+        const {result} = renderHook(() => useNavigationSuggestions('go to spend'));
 
-        expect(result.current.map((item) => item.keyForList)).toEqual(['topLevelWorkspaces', `workspace_1_${SCREENS.WORKSPACE.PROFILE}`]);
-        expect(result.current.at(1)).toMatchObject({text: 'Go to Overview'});
+        expect(result.current.map((item) => item.keyForList)).toEqual(['topLevelSpend', `spend_${CONST.SEARCH.SEARCH_KEYS.TOP_SPENDERS}`, `workspace_1_${SCREENS.WORKSPACE.PROFILE}`]);
+        expect(result.current.at(2)).toMatchObject({text: 'Go to Overview'});
         expect(result.current.some((item) => item.keyForList?.startsWith('workspace_2_'))).toBe(false);
         expect(getWorkspaceMenuItems).toHaveBeenCalledTimes(1);
         expect(getWorkspaceMenuItems).toHaveBeenCalledWith(
