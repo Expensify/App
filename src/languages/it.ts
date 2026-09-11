@@ -75,6 +75,7 @@ const translations: TranslationDeepObject<typeof en> = {
         search: 'Cerca',
         reports: 'Report',
         spend: 'Spese',
+        insights: 'Analisi',
         find: 'Trova',
         searchWithThreeDots: 'Cerca...',
         next: 'Avanti',
@@ -4612,6 +4613,7 @@ ${amount} per ${merchant} - ${date}`,
             travel: 'Viaggi',
             members: 'Membri',
             accounting: 'Contabilità',
+            mcp: 'MCP',
             receiptPartners: 'Partner ricevute',
             rules: 'Regole',
             displayedAs: 'Visualizzato come',
@@ -4748,6 +4750,25 @@ ${amount} per ${merchant} - ${date}`,
         createdForClient: {
             title: 'Hai creato uno spazio di lavoro per il tuo cliente!',
             description: 'Ottime notizie 🎉. Contattaci se hanno bisogno di aiuto con la configurazione.',
+        },
+        mcp: {
+            connectors: 'Connettori',
+            connectorsSubtitle: 'Collega un assistente IA al tuo account Expensify.',
+            connect: 'Connetti',
+            helpPrompt: 'Hai bisogno di aiuto con la connessione?',
+            helpLink: 'Leggi la nostra guida.',
+            claude: {
+                title: 'Claude',
+                subtitle: 'di Anthropic',
+            },
+            cursor: {
+                title: 'Cursor',
+                subtitle: 'di Anysphere',
+            },
+            chatgpt: {
+                title: 'ChatGPT',
+                subtitle: 'di OpenAI',
+            },
         },
         receiptPartners: {
             uber: {
@@ -6521,6 +6542,10 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                 title: 'Contabilità',
                 subtitle: 'Sincronizza il tuo piano dei conti e altro ancora.',
             },
+            mcp: {
+                title: 'MCP',
+                subtitle: 'Collega un assistente IA al tuo account Expensify.',
+            },
             receiptPartners: {
                 title: 'Partner ricevute',
                 subtitle: 'Importa automaticamente le ricevute.',
@@ -8034,6 +8059,11 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
                 turnOnTaxesFirstPrompt: 'Le regole di categoria impostano un’aliquota fiscale predefinita. Attiva le imposte nelle impostazioni dello spazio di lavoro per usarle.',
                 categoryRulesApplyGoingForwardTitle: 'Le regole di categoria si applicano da ora in poi',
                 categoryRulesApplyGoingForwardPrompt: 'Un’aliquota fiscale predefinita viene applicata alle nuove spese in questa categoria. Le spese già esistenti non verranno modificate.',
+                confirmErrorCategoryTaxMoveIsWorkspaceDefault:
+                    'L’aliquota fiscale selezionata è ora quella predefinita del tuo workspace, quindi questa regola non è più valida. Scegli un’altra aliquota fiscale.',
+                addTaxRateFirstTitle: "Aggiungi prima un'aliquota fiscale",
+                addTaxRateFirstPrompt:
+                    'Le regole di categoria impostano un’aliquota fiscale predefinita. Aggiungi un’aliquota diversa da quella predefinita dello spazio di lavoro per poterle usare.',
                 createRuleFromExpenseAction: 'Crea una regola',
                 createRuleFromExpensePrompt: 'per applicare le modifiche a tutte le spese che corrispondono ai tuoi criteri.',
             },
@@ -9510,7 +9540,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
                 [CONST.SEARCH.WITHDRAWAL_TYPE.TRAVEL_BILLING]: 'Fatturazione viaggio consolidata',
             },
             is: 'È',
-            has: {submittedViolation: 'Violazione inviata'},
+            has: {submittedViolation: 'Violazione inviata', approvedViolation: 'Violazione approvata'},
             action: {
                 [CONST.SEARCH.ACTION_FILTERS.SUBMIT]: 'Invia',
                 [CONST.SEARCH.ACTION_FILTERS.APPROVE]: 'Approva',

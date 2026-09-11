@@ -75,6 +75,7 @@ const translations: TranslationDeepObject<typeof en> = {
         search: 'Rechercher',
         reports: 'Notes de frais',
         spend: 'Dépenses',
+        insights: 'Analyses',
         find: 'Rechercher',
         searchWithThreeDots: 'Rechercher...',
         next: 'Suivant',
@@ -4647,6 +4648,7 @@ ${amount} pour ${merchant} - ${date}`,
             travel: 'Déplacements',
             members: 'Membres',
             accounting: 'Comptabilité',
+            mcp: 'MCP',
             receiptPartners: 'Partenaires de reçus',
             rules: 'Règles',
             displayedAs: 'Affiché comme',
@@ -4783,6 +4785,25 @@ ${amount} pour ${merchant} - ${date}`,
         createdForClient: {
             title: 'Vous avez créé un espace de travail pour votre client !',
             description: "Excellente nouvelle 🎉. Contactez-nous si votre client a besoin d'aide pour la configuration.",
+        },
+        mcp: {
+            connectors: 'Connecteurs',
+            connectorsSubtitle: 'Connectez un assistant IA à votre compte Expensify.',
+            connect: 'Connecter',
+            helpPrompt: "Besoin d'aide pour la connexion ?",
+            helpLink: 'Consultez notre guide.',
+            claude: {
+                title: 'Claude',
+                subtitle: 'par Anthropic',
+            },
+            cursor: {
+                title: 'Cursor',
+                subtitle: 'par Anysphere',
+            },
+            chatgpt: {
+                title: 'ChatGPT',
+                subtitle: 'par OpenAI',
+            },
         },
         receiptPartners: {
             uber: {
@@ -6571,6 +6592,10 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                 title: 'Comptabilité',
                 subtitle: 'Synchronisez votre plan comptable et plus encore.',
             },
+            mcp: {
+                title: 'MCP',
+                subtitle: 'Connectez un assistant IA à votre compte Expensify.',
+            },
             receiptPartners: {
                 title: 'Partenaires de reçus',
                 subtitle: 'Importer automatiquement les reçus.',
@@ -8098,6 +8123,11 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
                 categoryRulesApplyGoingForwardTitle: 'Les règles de catégorie s’appliquent à partir de maintenant',
                 categoryRulesApplyGoingForwardPrompt:
                     'Un taux de taxe par défaut s’applique aux nouvelles dépenses de cette catégorie. Les dépenses déjà existantes ne seront pas modifiées.',
+                confirmErrorCategoryTaxMoveIsWorkspaceDefault:
+                    'Le taux de taxe sélectionné est désormais le taux par défaut de votre espace de travail, cette règle n’est donc plus valide. Choisissez un autre taux de taxe.',
+                addTaxRateFirstTitle: 'Ajoutez d’abord un taux de taxe',
+                addTaxRateFirstPrompt:
+                    'Les règles de catégorie définissent un taux de taxe par défaut. Ajoutez un taux de taxe autre que le taux par défaut de votre espace de travail pour les utiliser.',
                 createRuleFromExpenseAction: 'Créer une règle',
                 createRuleFromExpensePrompt: 'pour appliquer vos modifications à toutes les dépenses qui correspondent à vos critères.',
             },
@@ -9572,7 +9602,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 [CONST.SEARCH.WITHDRAWAL_TYPE.TRAVEL_BILLING]: 'Facturation de voyages consolidée',
             },
             is: 'Est',
-            has: {submittedViolation: 'Infraction soumise'},
+            has: {submittedViolation: 'Infraction soumise', approvedViolation: 'Violation approuvée'},
             action: {
                 [CONST.SEARCH.ACTION_FILTERS.SUBMIT]: 'Soumettre',
                 [CONST.SEARCH.ACTION_FILTERS.APPROVE]: 'Approuver',
