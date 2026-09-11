@@ -36,7 +36,6 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import {delegateEmailSelector} from '@selectors/Account';
 import React, {useCallback, useRef} from 'react';
-import {View} from 'react-native';
 
 type TaskTitlePageProps = WithReportOrNotFoundProps & WithCurrentUserPersonalDetailsProps;
 

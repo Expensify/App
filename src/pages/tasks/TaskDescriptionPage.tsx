@@ -37,7 +37,6 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {useFocusEffect} from '@react-navigation/native';
 import {delegateEmailSelector} from '@selectors/Account';
 import React, {useCallback, useRef} from 'react';
-import {View} from 'react-native';
 
 type TaskDescriptionPageProps = WithReportOrNotFoundProps & WithCurrentUserPersonalDetailsProps;
 

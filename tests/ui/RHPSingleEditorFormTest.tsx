@@ -3,9 +3,11 @@ import {render} from '@testing-library/react-native';
 import TextBase from '@components/Rule/TextBase';
 
 import {updateGeneralSettings} from '@libs/actions/Policy/Policy';
+import {saveSearch} from '@libs/actions/Search';
 import {hasCircularReferences} from '@libs/Formula';
 
 import EditReportFieldText from '@pages/EditReportFieldText';
+import SavedSearchRenamePage from '@pages/Search/SavedSearchRenamePage';
 import WorkspaceNamePage from '@pages/workspace/WorkspaceNamePage';
 
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -35,6 +37,7 @@ type AutoGrowProps = {
 };
 
 const MockView = View;
+const mockSavedSearch = jest.fn<unknown, []>();
 const mockForm = jest.fn<void, [FormProps]>();
 const mockInput = jest.fn<void, [InputProps]>();
 const mockAutoGrow = jest.fn<void, [AutoGrowProps]>();
@@ -74,15 +77,21 @@ jest.mock('@pages/workspace/AccessOrNotFoundWrapper', () => ({
 }));
 jest.mock('@pages/workspace/withPolicy', () => ({__esModule: true, default: (component: ComponentType) => component}));
 jest.mock('@hooks/useAutoFocusInput', () => () => ({inputCallbackRef: jest.fn()}));
-jest.mock('@hooks/useOnyx', () => () => [undefined]);
+jest.mock('@hooks/useOnyx', () => () => [mockSavedSearch()]);
+jest.mock('@components/BlockingViews/FullPageNotFoundView', () => ({
+    __esModule: true,
+    default: ({children, shouldShow}: {children: ReactNode; shouldShow: boolean}) => (shouldShow ? null : children),
+}));
 jest.mock('@hooks/useReviewWorkspaceSettingsTaskCompletion', () => () => () => undefined);
 jest.mock('@hooks/useLocalize', () => () => ({translate: (key: string) => key}));
 jest.mock('@hooks/useThemeStyles', () => () => ({flex1: {}, flexGrow1: {}, ph5: {}, mb4: {}, mb5: {}}));
 jest.mock('@libs/Navigation/Navigation', () => ({
     __esModule: true,
-    default: {goBack: jest.fn(), setNavigationActionToMicrotaskQueue: jest.fn()},
+    default: {goBack: jest.fn(), setNavigationActionToMicrotaskQueue: jest.fn(), dismissModal: jest.fn(), isNavigationReady: jest.fn(() => Promise.resolve()), navigate: jest.fn()},
 }));
 jest.mock('@libs/actions/Policy/Policy', () => ({updateGeneralSettings: jest.fn()}));
+jest.mock('@libs/actions/Search', () => ({saveSearch: jest.fn()}));
+jest.mock('@libs/SearchQueryUtils', () => ({buildSearchQueryJSON: jest.fn(() => ({type: 'expense'}))}));
 jest.mock('@libs/Formula', () => ({hasCircularReferences: jest.fn(() => false)}));
 
 function getForm() {
@@ -96,6 +105,7 @@ function getForm() {
 describe('Single-editor RHP form boundaries', () => {
     beforeEach(() => {
         jest.clearAllMocks();
+        mockSavedSearch.mockReturnValue(undefined);
     });
 
     it('saves a wrapping workspace name as one line without changing other settings', () => {
@@ -110,6 +120,29 @@ describe('Single-editor RHP form boundaries', () => {
         expect(values.name).toBe('Design\r\nTeam\nEast');
         expect(mockInput.mock.calls.at(-1)?.[0]).toEqual(expect.objectContaining({autoGrowSingleLine: true, maxAutoGrowHeight: 396}));
         expect(getForm().submitFlexEnabled).toBe(false);
+    });
+
+    it('renames the existing saved search by ID with a normalized growing input', async () => {
+        mockSavedSearch.mockReturnValue({name: 'Old search', query: 'type:expense'});
+        const props = createMock<React.ComponentProps<typeof SavedSearchRenamePage>>({route: {params: {id: 'saved-search-1'}}});
+        render(<SavedSearchRenamePage {...props} />);
+
+        const values = {name: 'Travel\r\nExpenses'};
+        expect(getForm().validate(values)).toEqual({});
+        getForm().onSubmit(values);
+        await Promise.resolve();
+
+        expect(saveSearch).toHaveBeenCalledWith({id: 'saved-search-1', queryJSON: {type: 'expense'}, newName: 'Travel Expenses'});
+        expect(values.name).toBe('Travel\r\nExpenses');
+        expect(mockInput.mock.calls.at(-1)?.[0]).toEqual(expect.objectContaining({autoGrowSingleLine: true, maxAutoGrowHeight: 396}));
+    });
+
+    it('does not render a growing rename input when the saved search is missing', () => {
+        const props = createMock<React.ComponentProps<typeof SavedSearchRenamePage>>({route: {params: {id: 'missing'}}});
+        render(<SavedSearchRenamePage {...props} />);
+
+        expect(mockAutoGrow).not.toHaveBeenCalled();
+        expect(saveSearch).not.toHaveBeenCalled();
     });
 
     it('retains normalized report-field validation and saving when the editor grows', () => {

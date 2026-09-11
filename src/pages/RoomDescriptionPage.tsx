@@ -34,7 +34,6 @@ import type {OnyxEntry} from 'react-native-onyx';
 
 import {useFocusEffect} from '@react-navigation/native';
 import React, {useCallback, useRef, useState} from 'react';
-import {View} from 'react-native';
 
 type RoomDescriptionPageProps = {
     /** Policy for the current report */

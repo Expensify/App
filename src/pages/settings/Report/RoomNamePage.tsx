@@ -28,7 +28,6 @@ import type {Report} from '@src/types/onyx';
 
 import {useIsFocused} from '@react-navigation/native';
 import React, {useCallback} from 'react';
-import {View} from 'react-native';
 
 type RoomNamePageProps = {
     report: Report;
