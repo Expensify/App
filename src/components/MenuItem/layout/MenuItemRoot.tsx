@@ -3,7 +3,8 @@ import useIsCompactPopover from '@components/MenuItem/hooks/useIsCompactPopover'
 import useRemoveNonInteractiveClickHandler from '@components/MenuItem/hooks/useRemoveNonInteractiveClickHandler';
 import MenuItemAccessibilityContext, {useMenuItemAccessibility} from '@components/MenuItem/MenuItemAccessibilityContext';
 import {MenuItemConfigContext, MenuItemInteractionContext} from '@components/MenuItem/MenuItemContext';
-import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
+import MenuItemSecondaryInteractionContext, {useMenuItemSecondaryInteractionRegistry} from '@components/MenuItem/MenuItemSecondaryInteractionContext';
+import PressableWithSecondaryInteraction from '@components/PressableWithSecondaryInteraction';
 
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -46,6 +47,7 @@ function MenuItemRoot({children, onPress, isDisabled = false, sentryLabel, testI
     const isInteractive = !!onPress;
 
     const {accessibilityLabel: derivedAccessibilityLabel, accessibilityActions} = useMenuItemAccessibility();
+    const {handler: registeredSecondaryInteraction, register: registerSecondaryInteraction} = useMenuItemSecondaryInteractionRegistry();
 
     useRemoveNonInteractiveClickHandler(pressableRef, isInteractive);
 
@@ -65,14 +67,20 @@ function MenuItemRoot({children, onPress, isDisabled = false, sentryLabel, testI
         onPress?.(event);
     };
 
+    // Left undefined when no sub-component wants it, so the web keeps its native context menu on an ordinary row
+    const onSecondaryInteractionAction = registeredSecondaryInteraction
+        ? (event: GestureResponderEvent | MouseEvent) => registeredSecondaryInteraction(event, pressableRef.current)
+        : undefined;
+
     return (
         <MenuItemConfigContext.Provider value={{isDisabled, isInteractive}}>
             <Hoverable>
                 {(isHovered) => (
-                    <PressableWithFeedback
+                    <PressableWithSecondaryInteraction
                         onPress={onPressAction}
-                        pressDimmingValue={!isInteractive ? 1 : variables.pressDimValue}
-                        dimAnimationDuration={variables.instantAnimationDuration}
+                        onSecondaryInteraction={onSecondaryInteractionAction}
+                        activeOpacity={!isInteractive ? 1 : variables.pressDimValue}
+                        opacityAnimationDuration={variables.instantAnimationDuration}
                         style={({pressed}) =>
                             [
                                 styles.popoverMenuItem,
@@ -94,17 +102,19 @@ function MenuItemRoot({children, onPress, isDisabled = false, sentryLabel, testI
                     >
                         {({pressed}) => (
                             <MenuItemAccessibilityContext.Provider value={accessibilityLabel === undefined ? accessibilityActions : undefined}>
-                                <MenuItemInteractionContext.Provider
-                                    value={{
-                                        isHovered,
-                                        isPressed: pressed,
-                                    }}
-                                >
-                                    <View style={styles.flex1}>{children}</View>
-                                </MenuItemInteractionContext.Provider>
+                                <MenuItemSecondaryInteractionContext.Provider value={registerSecondaryInteraction}>
+                                    <MenuItemInteractionContext.Provider
+                                        value={{
+                                            isHovered,
+                                            isPressed: pressed,
+                                        }}
+                                    >
+                                        <View style={styles.flex1}>{children}</View>
+                                    </MenuItemInteractionContext.Provider>
+                                </MenuItemSecondaryInteractionContext.Provider>
                             </MenuItemAccessibilityContext.Provider>
                         )}
-                    </PressableWithFeedback>
+                    </PressableWithSecondaryInteraction>
                 )}
             </Hoverable>
         </MenuItemConfigContext.Provider>

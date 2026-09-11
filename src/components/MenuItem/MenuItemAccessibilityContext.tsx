@@ -13,6 +13,7 @@ type MenuItemLabelSlot = TupleToUnion<typeof MENU_ITEM_LABEL_SLOTS>;
 /** Accessibility facts a sub-component can contribute about its row, announced after the label as their own sentences */
 const MENU_ITEM_ACCESSIBILITY_ANNOUNCEMENT = {
     OPENS_IN_NEW_TAB: 'opensInNewTab',
+    CONTEXT_MENU_AVAILABLE: 'contextMenuAvailable',
 } as const;
 
 type MenuItemAccessibilityAnnouncement = ValueOf<typeof MENU_ITEM_ACCESSIBILITY_ANNOUNCEMENT>;

@@ -41,6 +41,8 @@ import MenuItemTitle from './leaves/content/MenuItemTitle';
 import MenuItemIcon from './leaves/leading/MenuItemIcon';
 import MenuItemChevron from './leaves/trailing/icons/MenuItemChevron';
 import MenuItemNewWindowIcon from './leaves/trailing/icons/MenuItemNewWindowIcon';
+import MenuItemCopy from './leaves/trailing/MenuItemCopy';
+import MenuItemExternalLink from './leaves/trailing/MenuItemExternalLink';
 import MenuItemRightLabel from './leaves/trailing/MenuItemRightLabel';
 import LegacyMenuItem from './MenuItem';
 
@@ -60,6 +62,8 @@ const MenuItem = Object.assign(LegacyMenuItem, {
     Chevron: MenuItemChevron,
     NewWindowIcon: MenuItemNewWindowIcon,
     RightLabel: MenuItemRightLabel,
+    Copy: MenuItemCopy,
+    ExternalLink: MenuItemExternalLink,
 });
 
 export default MenuItem;
