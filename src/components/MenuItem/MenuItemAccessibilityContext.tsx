@@ -1,3 +1,5 @@
+import getContextMenuAccessibilityProps from '@components/utils/getContextMenuAccessibilityProps';
+
 import type {TupleToUnion, ValueOf} from 'type-fest';
 
 import {createContext, useContext, useEffect, useState} from 'react';
@@ -18,8 +20,19 @@ const MENU_ITEM_ACCESSIBILITY_ANNOUNCEMENT = {
 
 type MenuItemAccessibilityAnnouncement = ValueOf<typeof MENU_ITEM_ACCESSIBILITY_ANNOUNCEMENT>;
 
-/** The announcement slots in the order they are announced */
-const MENU_ITEM_ANNOUNCEMENT_SLOTS = Object.values(MENU_ITEM_ACCESSIBILITY_ANNOUNCEMENT);
+/**
+ * Announcements that say something about the row itself, so they belong in its name and are read
+ * every time it takes focus. In the order they are announced, after the label.
+ */
+const MENU_ITEM_LABEL_ANNOUNCEMENT_SLOTS = [MENU_ITEM_ACCESSIBILITY_ANNOUNCEMENT.OPENS_IN_NEW_TAB];
+
+/**
+ * Announcements that tell the user which gesture does what. Those are hints rather than part of the
+ * name: on native they belong in `accessibilityHint`, which a screen reader reads separately and the
+ * user can switch off. The web has no equivalent of that setting, so
+ * `getContextMenuAccessibilityProps` folds them back into the label there.
+ */
+const MENU_ITEM_HINT_ANNOUNCEMENT_SLOTS = [MENU_ITEM_ACCESSIBILITY_ANNOUNCEMENT.CONTEXT_MENU_AVAILABLE];
 
 type MenuItemAccessibilityActions = {
     /** Registers a label (the title or description text) under a fixed slot key */
@@ -102,7 +115,10 @@ function useKeyedRegistry<TKey, TValue>() {
     return {entries, register, unregister};
 }
 
-/** Assembles the row's accessibility label from what its sub-components registered, plus the value for `MenuItemAccessibilityContext.Provider` */
+/**
+ * Assembles the row's accessibility label and hint from what its sub-components registered, plus the
+ * value for `MenuItemAccessibilityContext.Provider`
+ */
 function useMenuItemAccessibility() {
     // Text contributed by the text leaves, keyed by the line each one occupies
     const {entries: labels, register: registerLabel, unregister: unregisterLabel} = useKeyedRegistry<MenuItemLabelSlot, string>();
@@ -116,10 +132,16 @@ function useMenuItemAccessibility() {
         .filter(Boolean)
         .join(', ');
 
-    const announcementTexts = MENU_ITEM_ANNOUNCEMENT_SLOTS.map((announcement) => announcements.get(announcement)).filter(Boolean);
-    const accessibilityLabel = [derivedLabel, ...announcementTexts].filter(Boolean).join('. ');
+    const labelAnnouncements = MENU_ITEM_LABEL_ANNOUNCEMENT_SLOTS.map((announcement) => announcements.get(announcement)).filter(Boolean);
+    const hintAnnouncements = MENU_ITEM_HINT_ANNOUNCEMENT_SLOTS.map((announcement) => announcements.get(announcement)).filter(Boolean);
 
-    return {accessibilityLabel, accessibilityActions};
+    // Keeps the hints out of the name on native, and folds them into it on the web
+    const {accessibilityLabel, accessibilityHint} = getContextMenuAccessibilityProps({
+        accessibilityLabel: [derivedLabel, ...labelAnnouncements].filter(Boolean).join('. '),
+        contextMenuHint: hintAnnouncements.join('. ') || undefined,
+    });
+
+    return {accessibilityLabel, accessibilityHint, accessibilityActions};
 }
 
 export default MenuItemAccessibilityContext;

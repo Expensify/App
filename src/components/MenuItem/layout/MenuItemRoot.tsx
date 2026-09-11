@@ -95,6 +95,7 @@ function MenuItemRoot({children, onPress, isDisabled = false, sentryLabel, testI
                         ref={pressableRef}
                         role={isInteractive ? CONST.ROLE.BUTTON : undefined}
                         accessibilityLabel={accessibilityLabel ?? derivedAccessibilityLabel}
+                        accessibilityHint={accessibilityHint}
                         accessible
                         tabIndex={isInteractive ? 0 : -1}
                         sentryLabel={sentryLabel}

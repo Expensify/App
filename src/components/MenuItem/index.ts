@@ -5,8 +5,10 @@
  * imports keep working), extended with the compound sub-components following the
  * composition-over-configuration pattern.
  *
- * The row's accessibility label is derived from the text leaves, announced top line first and followed by the
- * hints trailing leaves register.
+ * The row's accessibility label is derived from the text leaves, announced top line first and followed
+ * by the facts trailing leaves register. Anything a leaf registers as a gesture hint instead — "long
+ * press for the URL", say — lands in the row's `accessibilityHint` on native, so a screen reader reads
+ * it apart from the name and the user can switch it off.
  *
  * @example Simple navigation row
  * ```tsx
