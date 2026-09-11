@@ -3,8 +3,6 @@ import SkeletonRect from '@components/SkeletonRect';
 import useContainerWidth from '@hooks/useContainerWidth';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import variables from '@styles/variables';
-
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
 
@@ -53,32 +51,32 @@ function UnreportedExpensesSkeleton({fixedNumberOfItems}: UnreportedExpensesSkel
             return (
                 <>
                     <SkeletonRect
-                        transform={[{translateX: 16}, {translateY: 20}]}
+                        transform={[{translateX: 16}, {translateY: 26}]}
                         width={20}
                         height={20}
                     />
                     <SkeletonRect
-                        transform={[{translateX: 48}, {translateY: 10}]}
+                        transform={[{translateX: 48}, {translateY: 16}]}
                         width={36}
                         height={40}
                     />
                     <SkeletonRect
-                        transform={[{translateX: 96}, {translateY: 12}]}
+                        transform={[{translateX: 96}, {translateY: 18}]}
                         width={getMessageSkeletonWidth(args.itemIndex)}
                         height={12}
                     />
                     <SkeletonRect
-                        transform={[{translateX: 96}, {translateY: 36}]}
+                        transform={[{translateX: 96}, {translateY: 42}]}
                         width={60}
                         height={8}
                     />
                     <SkeletonRect
-                        transform={[{translateX: pageWidth - 16 - getExpenseAmountSkeletonWidth(args.itemIndex)}, {translateY: 12}]}
+                        transform={[{translateX: pageWidth - 16 - getExpenseAmountSkeletonWidth(args.itemIndex)}, {translateY: 18}]}
                         width={getExpenseAmountSkeletonWidth(args.itemIndex)}
                         height={12}
                     />
                     <SkeletonRect
-                        transform={[{translateX: pageWidth - 16 - 32}, {translateY: 36}]}
+                        transform={[{translateX: pageWidth - 16 - 32}, {translateY: 42}]}
                         width={32}
                         height={8}
                     />
@@ -94,7 +92,7 @@ function UnreportedExpensesSkeleton({fixedNumberOfItems}: UnreportedExpensesSkel
             onLayout={onLayout}
         >
             <ItemListSkeletonView
-                itemViewHeight={variables.tableRowHeightCompact}
+                itemViewHeight={72}
                 itemViewStyle={[styles.highlightBG, styles.mr0]}
                 itemContainerStyle={styles.borderBottom}
                 style={[styles.mh5, styles.overflowHidden, styles.tableBottomRadius, isPaginationFooter && styles.borderTop]}
