@@ -79,6 +79,7 @@ const translations: TranslationDeepObject<typeof en> = {
         search: 'Szukaj',
         reports: 'Raporty',
         spend: 'Wydatki',
+        insights: 'Analityka',
         find: 'Znajdź',
         searchWithThreeDots: 'Szukaj...',
         next: 'Dalej',
@@ -2649,6 +2650,10 @@ const translations: TranslationDeepObject<typeof en> = {
             connectionLink
                 ? `Połączenie Twojej karty ${cardName} jest przerwane. <a href="${connectionLink}">Zaloguj się do swojego banku</a>, aby naprawić kartę.`
                 : `Połączenie Twojej karty ${cardName} jest przerwane. Zaloguj się do swojego banku, aby naprawić kartę.`,
+        conciergeBrokenConnection30Days: (cardName: string, connectionLink?: string) =>
+            connectionLink
+                ? `Twoje połączenie z kartą ${cardName} jest zerwane od 30 dni. <a href="${connectionLink}">Zaloguj się do swojego banku</a>, żeby to naprawić albo <a href="${connectionLink}">usuń kartę</a>, jeśli już jej nie używasz. Nie stracisz żadnych wysłanych wydatków, jeśli ją usuniesz.`
+                : `Twoje połączenie z kartą ${cardName} jest zerwane od 30 dni. Zaloguj się do swojego banku, żeby to naprawić, albo usuń kartę, jeśli już jej nie używasz. Nie stracisz żadnych wysłanych wydatków, jeśli ją usuniesz.`,
         addAdditionalCards: 'Dodaj kolejne karty',
         upgradeDescription: 'Potrzebujesz dodać więcej kart? Utwórz obszar roboczy, aby dodać kolejne karty osobiste lub przypisać karty firmowe całemu zespołowi.',
         onlyAvailableOnPlan: ({formattedPrice}: {formattedPrice: string}) =>
@@ -4641,6 +4646,7 @@ ${amount} dla ${merchant} - ${date}`,
             travel: 'Podróże',
             members: 'Członkowie',
             accounting: 'Księgowość',
+            mcp: 'MCP',
             receiptPartners: 'Partnerzy paragonów',
             rules: 'Zasady',
             displayedAs: 'Wyświetlane jako',
@@ -4777,6 +4783,25 @@ ${amount} dla ${merchant} - ${date}`,
         createdForClient: {
             title: 'Utworzyłeś przestrzeń roboczą dla swojego klienta!',
             description: 'Świetna wiadomość 🎉. Skontaktuj się z nami, jeśli potrzebują pomocy przy konfiguracji.',
+        },
+        mcp: {
+            connectors: 'Konektory',
+            connectorsSubtitle: 'Połącz asystenta AI ze swoim kontem Expensify.',
+            connect: 'Połącz',
+            helpPrompt: 'Potrzebujesz pomocy z połączeniem?',
+            helpLink: 'Przeczytaj nasz przewodnik.',
+            claude: {
+                title: 'Claude',
+                subtitle: 'od Anthropic',
+            },
+            cursor: {
+                title: 'Cursor',
+                subtitle: 'od Anysphere',
+            },
+            chatgpt: {
+                title: 'ChatGPT',
+                subtitle: 'od OpenAI',
+            },
         },
         receiptPartners: {
             uber: {
@@ -6529,6 +6554,10 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
             connections: {
                 title: 'Księgowość',
                 subtitle: 'Synchronizuj swój plan kont i więcej.',
+            },
+            mcp: {
+                title: 'MCP',
+                subtitle: 'Połącz asystenta AI ze swoim kontem Expensify.',
             },
             receiptPartners: {
                 title: 'Partnerzy paragonów',
@@ -9477,7 +9506,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
                 [CONST.SEARCH.WITHDRAWAL_TYPE.TRAVEL_BILLING]: 'Zbiorcze rozliczanie podróży',
             },
             is: 'Jest',
-            has: {submittedViolation: 'Zgłoszone naruszenie'},
+            has: {submittedViolation: 'Zgłoszone naruszenie', approvedViolation: 'Zatwierdzone naruszenie'},
             action: {
                 [CONST.SEARCH.ACTION_FILTERS.SUBMIT]: 'Wyślij',
                 [CONST.SEARCH.ACTION_FILTERS.APPROVE]: 'Zatwierdź',
@@ -9571,7 +9600,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             unapprovedCard: 'Rozliczenia narosłe na kartach',
             statements: 'Wyciągi z karty',
             reconciliation: 'Uzgadnianie bankowe',
-            insights: 'Wnioski',
+            insights: 'Analityka',
             topSpenders: 'Najwięksi wydający',
             topCategories: 'Najpopularniejsze kategorie',
             topMerchants: 'Najważniejsi sprzedawcy',
@@ -9697,6 +9726,16 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
                 integrationSyncFailedRecurrence: ({count}: {count: number}) => `(Powtórzono ${count} razy.)`,
                 companyCardConnectionBroken: ({feedName, workspaceCompanyCardRoute}: {feedName: string; workspaceCompanyCardRoute: string}) =>
                     `Połączenie ${feedName} jest przerwane. Aby przywrócić importy kart, <a href='${workspaceCompanyCardRoute}'>zaloguj się do swojego banku</a>.`,
+                companyCardConnectionBroken30Days: ({
+                    feedName,
+                    workspaceCompanyCardRoute,
+                    workspaceCompanyCardSettingsRoute,
+                }: {
+                    feedName: string;
+                    workspaceCompanyCardRoute: string;
+                    workspaceCompanyCardSettingsRoute: string;
+                }) =>
+                    `Połączenie ${feedName} jest zerwane od 30 dni. <a href='${workspaceCompanyCardRoute}'>Zaloguj się do swojego banku</a>, żeby je naprawić albo <a href='${workspaceCompanyCardSettingsRoute}'>usuń połączenie</a>, jeśli nie jest już używane. Nie stracisz żadnych przesłanych wydatków, jeśli je usuniesz.`,
                 plaidBalanceFailure: ({maskedAccountNumber, walletRoute}: {maskedAccountNumber: string; walletRoute: string}) =>
                     `połączenie Plaid z twoim firmowym kontem bankowym jest przerwane. Proszę, <a href='${walletRoute}'>połącz ponownie swoje konto bankowe ${maskedAccountNumber}</a>, aby móc dalej używać Kart Expensify.`,
                 addEmployee: (email: string, role: string, didJoinPolicy?: boolean) => {
