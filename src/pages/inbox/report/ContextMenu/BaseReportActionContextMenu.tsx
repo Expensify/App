@@ -243,6 +243,7 @@ function BaseReportActionContextMenu({
     const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const personalDetails = usePersonalDetails();
     const reportAttributes = useReportAttributes();
@@ -303,6 +304,7 @@ function BaseReportActionContextMenu({
                 transactions,
                 isHarvestReport,
                 currentUserAccountID: currentUserPersonalDetails?.accountID,
+                rules,
             }),
     );
 
@@ -442,6 +444,7 @@ function BaseReportActionContextMenu({
                                 reportAttributes,
                                 originalReportOfUnapprovedTransaction,
                                 memberChangeLogRoomReportName,
+                                rules,
                             };
 
                             if ('renderContent' in contextAction) {

@@ -17,7 +17,7 @@ import React from 'react';
 
 import type {LocaleContextProps} from './LocaleContextProvider';
 
-import Button from './ButtonComposed';
+import Button from './Button';
 import ButtonWithDropdownMenu from './ButtonWithDropdownMenu';
 
 type ExpenseHeaderApprovalButtonProps = {
