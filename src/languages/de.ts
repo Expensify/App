@@ -9708,6 +9708,8 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             category: 'Kategorie',
             tag: 'Tag',
         },
+        viewAsTable: 'Als Tabelle anzeigen',
+        viewAsSingleExpense: 'Als einzelne Ausgabe anzeigen',
     },
     report: {
         newReport: {
