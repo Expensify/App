@@ -114,6 +114,14 @@ const createWorkspaceListPoliciesSelector =
 
             const isArchived = isArchivedPolicy(policy);
             const isJoinRequestPending = !!policy.isJoinRequestPending && !!policy.policyDetailsForNonMembers;
+
+            // A `policy_` record is merged field-by-field, so a freshly joined workspace can show up here before its
+            // `id` has landed. Such a row has no key, no avatar seed and nothing to navigate to, so skip it until the
+            // next update fills it in. Join requests are exempt because they carry their ID in `nonMemberDetails`.
+            if (!policy.id && !isJoinRequestPending) {
+                continue;
+            }
+
             let nonMemberDetails: WorkspaceListPolicy['nonMemberDetails'];
             if (isJoinRequestPending) {
                 const nonMemberEntry = Object.entries(policy.policyDetailsForNonMembers ?? {}).at(0);

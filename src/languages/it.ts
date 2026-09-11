@@ -75,6 +75,7 @@ const translations: TranslationDeepObject<typeof en> = {
         search: 'Cerca',
         reports: 'Report',
         spend: 'Spese',
+        insights: 'Analisi',
         find: 'Trova',
         searchWithThreeDots: 'Cerca...',
         next: 'Avanti',
@@ -2611,6 +2612,10 @@ const translations: TranslationDeepObject<typeof en> = {
             connectionLink
                 ? `La connessione della tua carta ${cardName} non funziona. <a href="${connectionLink}">Accedi alla tua banca</a> per sistemare la carta.`
                 : `La connessione della tua carta ${cardName} non funziona. Accedi alla tua banca per sistemare la carta.`,
+        conciergeBrokenConnection30Days: (cardName: string, connectionLink?: string) =>
+            connectionLink
+                ? `La connessione della tua ${cardName} è interrotta da 30 giorni. <a href="${connectionLink}">Accedi alla tua banca</a> per sistemarla oppure <a href="${connectionLink}">rimuovi la carta</a> se non la usi più. Non perderai le spese già inviate se la rimuovi.`
+                : `La connessione della tua ${cardName} è interrotta da 30 giorni. Accedi alla tua banca per sistemarla oppure rimuovi la carta se non la usi più. Non perderai nessuna spesa inviata se la rimuovi.`,
         addAdditionalCards: 'Aggiungi altre carte',
         upgradeDescription: 'Devi aggiungere altre carte? Crea uno spazio di lavoro per aggiungere carte personali o assegnare carte aziendali a tutto il team.',
         onlyAvailableOnPlan: ({formattedPrice}: {formattedPrice: string}) => `<muted-text>Disponibile nel piano Collect, <strong>${formattedPrice}</strong> per membro al mese.</muted-text>`,
@@ -4612,6 +4617,7 @@ ${amount} per ${merchant} - ${date}`,
             travel: 'Viaggi',
             members: 'Membri',
             accounting: 'Contabilità',
+            mcp: 'MCP',
             receiptPartners: 'Partner ricevute',
             rules: 'Regole',
             displayedAs: 'Visualizzato come',
@@ -4748,6 +4754,25 @@ ${amount} per ${merchant} - ${date}`,
         createdForClient: {
             title: 'Hai creato uno spazio di lavoro per il tuo cliente!',
             description: 'Ottime notizie 🎉. Contattaci se hanno bisogno di aiuto con la configurazione.',
+        },
+        mcp: {
+            connectors: 'Connettori',
+            connectorsSubtitle: 'Collega un assistente IA al tuo account Expensify.',
+            connect: 'Connetti',
+            helpPrompt: 'Hai bisogno di aiuto con la connessione?',
+            helpLink: 'Leggi la nostra guida.',
+            claude: {
+                title: 'Claude',
+                subtitle: 'di Anthropic',
+            },
+            cursor: {
+                title: 'Cursor',
+                subtitle: 'di Anysphere',
+            },
+            chatgpt: {
+                title: 'ChatGPT',
+                subtitle: 'di OpenAI',
+            },
         },
         receiptPartners: {
             uber: {
@@ -6521,6 +6546,10 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                 title: 'Contabilità',
                 subtitle: 'Sincronizza il tuo piano dei conti e altro ancora.',
             },
+            mcp: {
+                title: 'MCP',
+                subtitle: 'Collega un assistente IA al tuo account Expensify.',
+            },
             receiptPartners: {
                 title: 'Partner ricevute',
                 subtitle: 'Importa automaticamente le ricevute.',
@@ -8034,6 +8063,11 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
                 turnOnTaxesFirstPrompt: 'Le regole di categoria impostano un’aliquota fiscale predefinita. Attiva le imposte nelle impostazioni dello spazio di lavoro per usarle.',
                 categoryRulesApplyGoingForwardTitle: 'Le regole di categoria si applicano da ora in poi',
                 categoryRulesApplyGoingForwardPrompt: 'Un’aliquota fiscale predefinita viene applicata alle nuove spese in questa categoria. Le spese già esistenti non verranno modificate.',
+                confirmErrorCategoryTaxMoveIsWorkspaceDefault:
+                    'L’aliquota fiscale selezionata è ora quella predefinita del tuo workspace, quindi questa regola non è più valida. Scegli un’altra aliquota fiscale.',
+                addTaxRateFirstTitle: "Aggiungi prima un'aliquota fiscale",
+                addTaxRateFirstPrompt:
+                    'Le regole di categoria impostano un’aliquota fiscale predefinita. Aggiungi un’aliquota diversa da quella predefinita dello spazio di lavoro per poterle usare.',
                 createRuleFromExpenseAction: 'Crea una regola',
                 createRuleFromExpensePrompt: 'per applicare le modifiche a tutte le spese che corrispondono ai tuoi criteri.',
             },
@@ -9481,7 +9515,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
                 [CONST.SEARCH.WITHDRAWAL_TYPE.TRAVEL_BILLING]: 'Fatturazione viaggio consolidata',
             },
             is: 'È',
-            has: {submittedViolation: 'Violazione inviata'},
+            has: {submittedViolation: 'Violazione inviata', approvedViolation: 'Violazione approvata'},
             action: {
                 [CONST.SEARCH.ACTION_FILTERS.SUBMIT]: 'Invia',
                 [CONST.SEARCH.ACTION_FILTERS.APPROVE]: 'Approva',
@@ -9702,6 +9736,16 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
                 integrationSyncFailedRecurrence: ({count}: {count: number}) => `(Ripetuto ${count} volte.)`,
                 companyCardConnectionBroken: ({feedName, workspaceCompanyCardRoute}: {feedName: string; workspaceCompanyCardRoute: string}) =>
                     `La connessione ${feedName} è interrotta. Per ripristinare le importazioni della carta, <a href='${workspaceCompanyCardRoute}'>accedi alla tua banca</a>.`,
+                companyCardConnectionBroken30Days: ({
+                    feedName,
+                    workspaceCompanyCardRoute,
+                    workspaceCompanyCardSettingsRoute,
+                }: {
+                    feedName: string;
+                    workspaceCompanyCardRoute: string;
+                    workspaceCompanyCardSettingsRoute: string;
+                }) =>
+                    `La connessione ${feedName} è interrotta da 30 giorni. <a href='${workspaceCompanyCardRoute}'>Accedi alla tua banca</a> per risolvere il problema oppure <a href='${workspaceCompanyCardSettingsRoute}'>rimuovi la connessione</a> se non è più utilizzata. Non perderai nessuna spesa inviata se la rimuovi.`,
                 plaidBalanceFailure: ({maskedAccountNumber, walletRoute}: {maskedAccountNumber: string; walletRoute: string}) =>
                     `la connessione Plaid al conto bancario della tua azienda non funziona. Per favore, <a href='${walletRoute}'>ricollega il conto bancario ${maskedAccountNumber}</a> così puoi continuare a usare le tue Carte Expensify.`,
                 addEmployee: (email: string, role: string, didJoinPolicy?: boolean) => {
