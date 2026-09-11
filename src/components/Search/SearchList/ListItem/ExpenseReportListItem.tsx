@@ -8,7 +8,7 @@ import {
     useSearchSubmitPopoverGuard,
 } from '@components/ReportSubmitToPopoverAnchor';
 import {useSearchQueryContext, useSearchResultsContext} from '@components/Search/SearchContext';
-import BaseListItem from '@components/SelectionList/ListItem/BaseListItem';
+import ListItemComposed from '@components/SelectionList/ListItemComposed';
 import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 
@@ -375,15 +375,6 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
         [styles, isSelected, isLargeScreenWidth, isFirstItem, isLastItem, isPendingDelete, StyleUtils],
     );
 
-    const listItemWrapperStyle = useMemo(
-        () => [
-            styles.flex1,
-            styles.userSelectNone,
-            isLargeScreenWidth ? {...styles.flexRow, ...styles.justifyContentBetween, ...styles.alignItemsCenter} : {...styles.flexColumn, ...styles.alignItemsStretch},
-        ],
-        [styles, isLargeScreenWidth],
-    );
-
     // The animated style is applied inline, so the `borderRadius: 0` it carries wins over the static
     // `tableTopRadius`/`tableBottomRadius` below and squares off the list's outer corners. Skip it for the first
     // and last rows only, so every other row keeps its existing (already square) behavior.
@@ -474,7 +465,7 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
 
     // Keep nested controls reachable: a group on web, and accessible={false} on iOS (which otherwise collapses children).
     return (
-        <BaseListItem
+        <ListItemComposed
             item={item}
             isSelected={isSelected}
             accessible={canSelectMultiple && shouldBreakAccessibilityGrouping() ? false : undefined}
@@ -482,9 +473,8 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
             accessibilityLabel={rowAccessibilityLabel}
             shouldUseOptionRole={false}
             pressableStyle={listItemPressableStyle}
-            wrapperStyle={listItemWrapperStyle}
             isFocused={isFocused}
-            showTooltip={showTooltip}
+            shouldShowTooltip={showTooltip}
             canSelectMultiple={canSelectMultiple}
             onSelectRow={onSelectRow}
             onFocus={onFocus}
@@ -503,41 +493,36 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
             isDisabled={isPendingDelete}
             shouldDisableHoverStyle={isPendingDelete}
         >
-            {(hovered) => (
-                <View style={[styles.flex1]}>
-                    {!isLargeScreenWidth && (
-                        <UserInfoAndActionButtonRow
-                            item={liveReportItem}
-                            shouldShowUserInfo={!!reportItem?.from}
-                            stateNum={reportItem.stateNum}
-                            statusNum={reportItem.statusNum}
-                            isSelected={isSelected}
-                        />
-                    )}
-                    <AvatarTooltipsProvider isEnabled={showTooltip}>
-                        <ExpenseReportListItemRow
-                            item={liveReportItem}
-                            columns={columns}
-                            reportActions={reportActions}
-                            isActionLoading={isActionLoading ?? isLoading}
-                            canSelectMultiple={canSelectMultiple}
-                            onCheckboxPress={handleSelectionButtonPress}
-                            onButtonPress={handleOnButtonPress}
-                            chatReport={chatReport}
-                            isSelectAllChecked={isSelected}
-                            isIndeterminate={isIndeterminate}
-                            isDisabledCheckbox={isDisabledCheckbox}
-                            isHovered={hovered}
-                            isFocused={isFocused}
-                            isPendingDelete={isPendingDelete}
-                            shouldDisableActionPointerEvents={shouldDisableSearchSubmitPress}
-                            shouldShowMarkAsDoneCopy={shouldShowMarkAsDoneCopy}
-                        />
-                    </AvatarTooltipsProvider>
-                    {getDescription}
-                </View>
-            )}
-        </BaseListItem>
+            <View style={[styles.flex1, styles.userSelectNone]}>
+                {!isLargeScreenWidth && (
+                    <UserInfoAndActionButtonRow
+                        item={liveReportItem}
+                        shouldShowUserInfo={!!reportItem?.from}
+                        stateNum={reportItem.stateNum}
+                        statusNum={reportItem.statusNum}
+                        isSelected={isSelected}
+                    />
+                )}
+                <AvatarTooltipsProvider isEnabled={showTooltip}>
+                    <ExpenseReportListItemRow
+                        item={liveReportItem}
+                        columns={columns}
+                        reportActions={reportActions}
+                        isActionLoading={isActionLoading ?? isLoading}
+                        canSelectMultiple={canSelectMultiple}
+                        onCheckboxPress={handleSelectionButtonPress}
+                        onButtonPress={handleOnButtonPress}
+                        chatReport={chatReport}
+                        isSelectAllChecked={isSelected}
+                        isIndeterminate={isIndeterminate}
+                        isDisabledCheckbox={isDisabledCheckbox}
+                        shouldDisableActionPointerEvents={shouldDisableSearchSubmitPress}
+                        shouldShowMarkAsDoneCopy={shouldShowMarkAsDoneCopy}
+                    />
+                </AvatarTooltipsProvider>
+                {getDescription}
+            </View>
+        </ListItemComposed>
     );
 }
 

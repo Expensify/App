@@ -7,12 +7,19 @@ import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 
+import type {ReactNode} from 'react';
+
 import React from 'react';
 import {View} from 'react-native';
 
-import type {BaseSelectListItemProps, ListItem} from './types';
+import type {ListItem, ListItemProps} from './types';
 
 import SelectableListItem from './SelectableListItem';
+
+type BaseSelectListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
+    /** Element rendered before the text column. Falls back to `item.leftElement` when omitted. */
+    leftElement?: ReactNode;
+};
 
 /**
  * A text-only row with a title and optional subtitle. Serves as the base for SingleSelectListItem and MultiSelectListItem.

@@ -1,6 +1,6 @@
 import RadioButton from '@components/RadioButton';
-import BaseListItem from '@components/SelectionList/ListItem/BaseListItem';
 import type {ListItemProps} from '@components/SelectionList/ListItem/types';
+import ListItemComposed from '@components/SelectionList/ListItemComposed';
 import type {ListItem} from '@components/SelectionList/types';
 
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -29,19 +29,16 @@ function SearchMergeReportsListItem<TItem extends ListItem>({item, isFocused, sh
         isLastItem && [styles.tableBottomRadius, styles.overflowHidden],
     ];
 
-    const listItemWrapperStyle = [styles.flex1, styles.userSelectNone, styles.flexColumn, styles.alignItemsStretch];
-
     const selectRow = () => {
         onSelectRow(item);
     };
 
     return (
-        <BaseListItem
+        <ListItemComposed
             item={item}
             pressableStyle={listItemPressableStyle}
-            wrapperStyle={listItemWrapperStyle}
             isFocused={isFocused}
-            showTooltip={showTooltip}
+            shouldShowTooltip={showTooltip}
             onSelectRow={onSelectRow}
             onFocus={onFocus}
             shouldSyncFocus={shouldSyncFocus}
@@ -55,37 +52,35 @@ function SearchMergeReportsListItem<TItem extends ListItem>({item, isFocused, sh
             accessible={false}
             shouldDisableHoverStyle={false}
         >
-            {() => (
-                <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.flex1, styles.gap3, styles.cursorPointer]}>
-                    <View style={[styles.flex1]}>
-                        <UserInfoAndActionButtonRow
-                            item={reportItem}
-                            shouldShowUserInfo={!!reportItem?.from}
-                            stateNum={reportItem.stateNum}
-                            statusNum={reportItem.statusNum}
-                            isSelected={isSelected}
-                        />
-                        <ExpenseReportListItemRowNarrow
-                            item={reportItem}
-                            onCheckboxPress={selectRow}
-                            canSelectMultiple={false}
-                            isSelectAllChecked={isSelected}
-                            isIndeterminate={false}
-                            isDisabledCheckbox={false}
-                        />
-                    </View>
-                    <RadioButton
-                        onPress={selectRow}
-                        isChecked={isSelected}
-                        containerStyle={styles.m0}
-                        disabled={false}
-                        accessibilityLabel={item.text ?? ''}
-                        shouldStopMouseDownPropagation
-                        style={styles.cursorUnset}
+            <View style={[styles.flex1, styles.userSelectNone, styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.gap3, styles.cursorPointer]}>
+                <View style={[styles.flex1]}>
+                    <UserInfoAndActionButtonRow
+                        item={reportItem}
+                        shouldShowUserInfo={!!reportItem?.from}
+                        stateNum={reportItem.stateNum}
+                        statusNum={reportItem.statusNum}
+                        isSelected={isSelected}
+                    />
+                    <ExpenseReportListItemRowNarrow
+                        item={reportItem}
+                        onCheckboxPress={selectRow}
+                        canSelectMultiple={false}
+                        isSelectAllChecked={isSelected}
+                        isIndeterminate={false}
+                        isDisabledCheckbox={false}
                     />
                 </View>
-            )}
-        </BaseListItem>
+                <RadioButton
+                    onPress={selectRow}
+                    isChecked={isSelected}
+                    containerStyle={styles.m0}
+                    disabled={false}
+                    accessibilityLabel={item.text ?? ''}
+                    shouldStopMouseDownPropagation
+                    style={styles.cursorUnset}
+                />
+            </View>
+        </ListItemComposed>
     );
 }
 

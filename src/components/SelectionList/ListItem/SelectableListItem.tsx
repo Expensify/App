@@ -26,7 +26,6 @@ function SelectableListItem<TItem extends ListItem>({
     isSelected,
     showTooltip,
     wrapperStyle,
-    testID,
     forwardedFSClass,
     pressableStyle,
     pressableWrapperStyle,
@@ -81,7 +80,6 @@ function SelectableListItem<TItem extends ListItem>({
             shouldUseOptionRole={shouldUseOptionRole}
         >
             <View
-                testID={testID}
                 style={wrapperStyle}
                 fsClass={forwardedFSClass}
             >

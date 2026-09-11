@@ -1,5 +1,6 @@
 import Badge from '@components/Badge';
 import Checkbox from '@components/Checkbox';
+import ListItemComposed from '@components/SelectionList/ListItemComposed';
 import Text from '@components/Text';
 
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -10,65 +11,60 @@ import CONST from '@src/CONST';
 import React from 'react';
 import {View} from 'react-native';
 
-import type {ListItem, SpendRuleListItemProps, SpendRuleListItemType} from './types';
+import type {ListItem, ListItemProps, SpendRuleListItemType} from './types';
 
-import BaseListItem from './BaseListItem';
-
-function SpendRuleListItem<TItem extends ListItem>({item, onSelectRow}: SpendRuleListItemProps<TItem>) {
+function SpendRuleListItem<TItem extends ListItem>({item, onSelectRow}: ListItemProps<TItem>) {
     const styles = useThemeStyles();
     const {getMinimumWidth} = useStyleUtils();
 
     const cardRule = item as unknown as SpendRuleListItemType;
 
-    const rightHandSideComponent = () => (
-        <Checkbox
-            shouldSelectOnPressEnter
-            containerBorderRadius={999}
-            disabled={!item.isSelected}
-            isChecked={!!item.isSelected}
-            accessibilityLabel={item.text ?? ''}
-            onPress={() => onSelectRow(item)}
-        />
-    );
-
     return (
-        <BaseListItem
+        <ListItemComposed
             item={item}
             onSelectRow={onSelectRow}
-            showTooltip={false}
-            rightHandSideComponent={rightHandSideComponent}
-            wrapperStyle={[styles.flex1, styles.justifyContentBetween, styles.sidebarLinkInner, styles.userSelectNone, styles.optionRow]}
+            shouldShowTooltip={false}
         >
-            <View style={[styles.flexColumn, styles.gap2, styles.flex1]}>
-                <Text
-                    numberOfLines={2}
-                    style={[styles.textLabelSupporting, styles.fontSizeLabel]}
-                >
-                    {cardRule.summary}
-                </Text>
-
-                {cardRule.summaryParts.map((part) => (
-                    <View
-                        key={part.text}
-                        style={[styles.flexRow, styles.gap2, styles.alignItemsStart, styles.mb2]}
+            <View style={[styles.flex1, styles.justifyContentBetween, styles.sidebarLinkInner, styles.userSelectNone, styles.optionRow]}>
+                <View style={[styles.flexColumn, styles.gap2, styles.flex1]}>
+                    <Text
+                        numberOfLines={2}
+                        style={[styles.textLabelSupporting, styles.fontSizeLabel]}
                     >
-                        <Badge
-                            isCondensed
-                            text={part.badgeLabel}
-                            error={part.variant === CONST.SPEND_RULES.BADGE_VARIANTS.ERROR}
-                            success={part.variant === CONST.SPEND_RULES.BADGE_VARIANTS.SUCCESS}
-                            badgeStyles={[styles.ml0, styles.justifyContentCenter, getMinimumWidth(40)]}
-                        />
-                        <Text
-                            numberOfLines={2}
-                            style={[styles.flex1, styles.flexShrink1, styles.themeTextColor]}
+                        {cardRule.summary}
+                    </Text>
+
+                    {cardRule.summaryParts.map((part) => (
+                        <View
+                            key={part.text}
+                            style={[styles.flexRow, styles.gap2, styles.alignItemsStart, styles.mb2]}
                         >
-                            {part.text}
-                        </Text>
-                    </View>
-                ))}
+                            <Badge
+                                isCondensed
+                                text={part.badgeLabel}
+                                error={part.variant === CONST.SPEND_RULES.BADGE_VARIANTS.ERROR}
+                                success={part.variant === CONST.SPEND_RULES.BADGE_VARIANTS.SUCCESS}
+                                badgeStyles={[styles.ml0, styles.justifyContentCenter, getMinimumWidth(40)]}
+                            />
+                            <Text
+                                numberOfLines={2}
+                                style={[styles.flex1, styles.flexShrink1, styles.themeTextColor]}
+                            >
+                                {part.text}
+                            </Text>
+                        </View>
+                    ))}
+                </View>
+                <Checkbox
+                    shouldSelectOnPressEnter
+                    containerBorderRadius={999}
+                    disabled={!item.isSelected}
+                    isChecked={!!item.isSelected}
+                    accessibilityLabel={item.text ?? ''}
+                    onPress={() => onSelectRow(item)}
+                />
             </View>
-        </BaseListItem>
+        </ListItemComposed>
     );
 }
 

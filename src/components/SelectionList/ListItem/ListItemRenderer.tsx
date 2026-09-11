@@ -6,25 +6,19 @@ import type useSingleExecution from '@hooks/useSingleExecution';
 import {isMobileChrome} from '@libs/Browser';
 import {isTransactionGroupListItemType} from '@libs/SearchUIUtils';
 
-import type {NativeSyntheticEvent, StyleProp, TextStyle, ViewStyle} from 'react-native';
+import type {NativeSyntheticEvent} from 'react-native';
 
 import React from 'react';
 
-import type {ExtendedTargetedEvent, ListItem, SelectableListItemProps} from './types';
+import type {ExtendedTargetedEvent, ListItem, ListItemProps} from './types';
 
-type ListItemRendererProps<TItem extends ListItem> = Omit<SelectableListItemProps<TItem>, 'onSelectRow'> &
+type ListItemRendererProps<TItem extends ListItem> = Omit<ListItemProps<TItem>, 'onSelectRow'> &
     Pick<SelectionListProps<TItem>, 'ListItem' | 'shouldIgnoreFocus' | 'shouldSingleExecuteRowSelect'> & {
         index: number;
         normalizedIndex?: number;
         selectRow: (item: TItem, indexToFocus?: number) => void;
         setFocusedIndex: ReturnType<typeof useArrowKeyFocusManager>[1];
         singleExecution: ReturnType<typeof useSingleExecution>['singleExecution'];
-        titleStyles?: StyleProp<TextStyle>;
-        titleContainerStyles?: StyleProp<ViewStyle>;
-        isFirstItem?: boolean;
-        isLastItem?: boolean;
-        shouldHighlightSelectedItem?: boolean;
-        shouldPreventEnterKeySubmit?: boolean;
     };
 
 function ListItemRenderer<TItem extends ListItem>({

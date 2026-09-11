@@ -10,6 +10,7 @@ import TotalCell from '@components/Search/SearchList/ListItem/TotalCell';
 import UserInfoCell from '@components/Search/SearchList/ListItem/UserInfoCell';
 import WorkspaceCell from '@components/Search/SearchList/ListItem/WorkspaceCell';
 import {useRowSelection} from '@components/Search/SearchSelectionProvider';
+import {useListItemContext, useListItemHovered} from '@components/SelectionList/ListItemContext';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -36,15 +37,11 @@ function ExpenseReportListItemRowWide({
     onButtonPress = () => {},
     isActionLoading,
     chatReport,
-    containerStyle,
     canSelectMultiple,
     isSelectAllChecked,
     isIndeterminate,
     isDisabledCheckbox,
     columns = [],
-    isHovered = false,
-    isFocused = false,
-    isPendingDelete = false,
     shouldDisableActionPointerEvents = false,
     shouldShowMarkAsDoneCopy,
 }: ExpenseReportListItemRowWideProps) {
@@ -53,6 +50,8 @@ function ExpenseReportListItemRowWide({
     const theme = useTheme();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
     const {isSelected} = useRowSelection(item.keyForList);
+    const isHovered = useListItemHovered();
+    const {isDisabled} = useListItemContext();
 
     const currency = item.currency ?? CONST.CURRENCY.USD;
     const {totalDisplaySpend = 0, nonReimbursableSpend = 0, reimbursableSpend = 0, isAllScanning: isScanning = false} = item;
@@ -62,14 +61,7 @@ function ExpenseReportListItemRowWide({
     const {debitedAmount, debitedCurrency, creditedAmount, creditedCurrency} = item;
 
     const columnComponents = {
-        [CONST.SEARCH.TABLE_COLUMNS.AVATAR]: (
-            <ExpenseReportListItemAvatar
-                item={item}
-                isHovered={isHovered}
-                isFocused={isFocused}
-                isLargeScreenWidth
-            />
-        ),
+        [CONST.SEARCH.TABLE_COLUMNS.AVATAR]: <ExpenseReportListItemAvatar item={item} />,
         [CONST.SEARCH.TABLE_COLUMNS.DATE]: (
             <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.DATE, {isDateColumnWide: item.shouldShowYear})]}>
                 <DateCell
@@ -294,7 +286,7 @@ function ExpenseReportListItemRowWide({
                         amount={item.total}
                         chatReport={chatReport}
                         shouldShowMarkAsDoneCopy={shouldShowMarkAsDoneCopy}
-                        shouldDisablePointerEvents={isPendingDelete || shouldDisableActionPointerEvents}
+                        shouldDisablePointerEvents={isDisabled || shouldDisableActionPointerEvents}
                     />
                 </ReportSubmitToPopoverMeasurableAnchor>
             </View>
@@ -310,7 +302,7 @@ function ExpenseReportListItemRowWide({
     };
 
     return (
-        <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap3, containerStyle]}>
+        <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap3]}>
             <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap3]}>
                 {!!canSelectMultiple && (
                     <Checkbox

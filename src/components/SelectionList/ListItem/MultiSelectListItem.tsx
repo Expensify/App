@@ -6,7 +6,7 @@ import CONST from '@src/CONST';
 
 import React from 'react';
 
-import type {ListItem, MultiSelectListItemProps} from './types';
+import type {ListItem, ListItemProps} from './types';
 
 import BaseSelectListItem from './BaseSelectListItem';
 
@@ -32,7 +32,7 @@ function MultiSelectListItem<TItem extends ListItem>({
     titleStyles,
     shouldHighlightSelectedItem,
     titleNumberOfLines,
-}: MultiSelectListItemProps<TItem>) {
+}: ListItemProps<TItem>) {
     const styles = useThemeStyles();
     const icon = item.icons?.at(0);
 

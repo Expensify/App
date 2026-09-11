@@ -1,6 +1,6 @@
 import Icon from '@components/Icon';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
-import type {ListItem} from '@components/SelectionList/types';
+import ListItemComposed from '@components/SelectionList/ListItemComposed';
 import Text from '@components/Text';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 
@@ -15,7 +15,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {getDecodedFullCategoryName} from '@libs/CategoryUtils';
 import {getCommaSeparatedTagNameWithSanitizedColons} from '@libs/PolicyUtils';
 
-import {fontScale} from '@styles/typography';
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
@@ -23,9 +22,8 @@ import CONST from '@src/CONST';
 import React, {useCallback, useState} from 'react';
 import {View} from 'react-native';
 
-import type {SplitListItemProps, SplitListItemType} from './types';
+import type {ListItem, ListItemProps, SplitListItemType} from './types';
 
-import BaseListItem from './BaseListItem';
 import SplitAmountDisplay from './SplitListItem/SplitAmountDisplay';
 import SplitListItemInput from './SplitListItem/SplitListItemInput';
 
@@ -40,17 +38,16 @@ function SplitListItem<TItem extends ListItem>({
     isDisabled,
     onSelectRow,
     shouldPreventEnterKeySubmit,
-    rightHandSideComponent,
     onFocus,
     onInputFocus,
     onInputBlur,
-}: SplitListItemProps<TItem>) {
+}: ListItemProps<TItem>) {
+    const splitItem = item as unknown as SplitListItemType;
     const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'Folder', 'Tag']);
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {convertToDisplayStringWithoutCurrency} = useCurrencyListActions();
-    const splitItem = item as unknown as SplitListItemType;
 
     const formattedOriginalAmount = convertToDisplayStringWithoutCurrency(splitItem.originalAmount, splitItem.currency);
 
@@ -109,23 +106,22 @@ function SplitListItem<TItem extends ListItem>({
         .join(', ');
 
     return (
-        <BaseListItem
+        <ListItemComposed
             item={item}
             isFocused={isFocused}
             pressableWrapperStyle={[styles.mh4, styles.mv1, styles.flex1, styles.justifyContentBetween, styles.userSelectNone, styles.br3, animatedHighlightStyle]}
             hoverStyle={[styles.br2, {borderColor: theme.hoverComponentBG}]}
             pressableStyle={[styles.br2, styles.bgTransparent]}
             isDisabled={isDisabled}
-            showTooltip={showTooltip}
+            shouldShowTooltip={showTooltip}
             onSelectRow={onSelectRow}
             shouldPreventEnterKeySubmit={shouldPreventEnterKeySubmit}
-            rightHandSideComponent={rightHandSideComponent}
             onFocus={onFocus}
             accessible={!splitItem.isEditable}
         >
             <View style={[styles.flexRow, styles.containerWithSpaceBetween, styles.p3]}>
                 <View
-                    style={[styles.flex1]}
+                    style={styles.flex1}
                     accessible={splitItem.isEditable}
                     accessibilityLabel={textContentAccessibilityLabel}
                     aria-label={splitItem.isEditable ? textContentAccessibilityLabel : undefined}
@@ -147,8 +143,7 @@ function SplitListItem<TItem extends ListItem>({
                         <View style={[styles.minHeight5, styles.justifyContentCenter]}>
                             <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsStretch, styles.gap1]}>
                                 <Text
-                                    fontSize={fontScale.text}
-                                    style={[styles.flexShrink1]}
+                                    style={styles.flexShrink1}
                                     numberOfLines={1}
                                 >
                                     {splitItem.merchant}
@@ -164,7 +159,7 @@ function SplitListItem<TItem extends ListItem>({
                     </View>
                     {isBottomVisible && (
                         <View
-                            style={[styles.splitItemBottomContent]}
+                            style={styles.splitItemBottomContent}
                             aria-hidden={splitItem.isEditable ? true : undefined}
                         >
                             {!!splitItem.category && (
@@ -202,8 +197,8 @@ function SplitListItem<TItem extends ListItem>({
                         </View>
                     )}
                 </View>
-                <View style={[styles.flexRow]}>
-                    <View style={[styles.justifyContentCenter]}>
+                <View style={styles.flexRow}>
+                    <View style={styles.justifyContentCenter}>
                         <SplitListItemInput
                             isPercentageMode={isPercentageMode}
                             splitItem={splitItem}
@@ -217,7 +212,7 @@ function SplitListItem<TItem extends ListItem>({
                             inputCallbackRef={inputCallbackRef}
                         />
                     </View>
-                    <View style={[styles.popoverMenuIcon]}>
+                    <View style={styles.popoverMenuIcon}>
                         {!splitItem.isEditable ? null : (
                             <PressableWithFeedback
                                 onPress={() => onSelectRow(item)}
@@ -235,7 +230,7 @@ function SplitListItem<TItem extends ListItem>({
                     </View>
                 </View>
             </View>
-        </BaseListItem>
+        </ListItemComposed>
     );
 }
 

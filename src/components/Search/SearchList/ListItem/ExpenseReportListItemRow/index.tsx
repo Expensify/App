@@ -20,13 +20,9 @@ function ExpenseReportListItemRow(props: ExpenseReportListItemRowProps) {
                 onButtonPress={props.onButtonPress}
                 onCheckboxPress={props.onCheckboxPress}
                 chatReport={props.chatReport}
-                containerStyle={props.containerStyle}
                 isSelectAllChecked={props.isSelectAllChecked}
                 isIndeterminate={props.isIndeterminate}
                 isDisabledCheckbox={props.isDisabledCheckbox}
-                isHovered={props.isHovered}
-                isFocused={props.isFocused}
-                isPendingDelete={props.isPendingDelete}
                 shouldDisableActionPointerEvents={props.shouldDisableActionPointerEvents}
                 columns={props.columns}
                 shouldShowMarkAsDoneCopy={props.shouldShowMarkAsDoneCopy}

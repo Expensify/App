@@ -1,3 +1,4 @@
+import type {SearchRouterItem} from '@components/Search/SearchAutocompleteList';
 import type {TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 
@@ -8,8 +9,31 @@ import type {ReactElement, Ref} from 'react';
 import type {GestureResponderEvent, InputModeOptions, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
 
-import type {ListItem, ValidListItem} from './ListItem/types';
+import type BareUserListItem from './ListItem/BareUserListItem';
+import type InviteMemberListItem from './ListItem/InviteMemberListItem';
+import type MultiSelectListItem from './ListItem/MultiSelectListItem';
+import type SingleSelectListItem from './ListItem/SingleSelectListItem';
+import type SingleSelectWithAvatarListItem from './ListItem/SingleSelectWithAvatarListItem';
+import type SpendCategorySelectorListItem from './ListItem/SpendCategorySelectorListItem';
+import type SplitListItem from './ListItem/SplitListItem';
+import type TravelDomainListItem from './ListItem/TravelDomainListItem';
+import type {ListItem} from './ListItem/types';
+import type UserListItem from './ListItem/UserListItem';
+import type UserSelectionListItem from './ListItem/UserSelectionListItem';
 import type {SelectionListWithSectionsHandle, SelectionListWithSectionsProps} from './SelectionListWithSections/types';
+
+type ValidListItem =
+    | typeof InviteMemberListItem
+    | typeof MultiSelectListItem
+    | typeof SearchRouterItem
+    | typeof SingleSelectListItem
+    | typeof SingleSelectWithAvatarListItem
+    | typeof SpendCategorySelectorListItem
+    | typeof SplitListItem
+    | typeof TravelDomainListItem
+    | typeof BareUserListItem
+    | typeof UserListItem
+    | typeof UserSelectionListItem;
 
 /**
  * Base props shared between SelectionList and SelectionListWithSections.

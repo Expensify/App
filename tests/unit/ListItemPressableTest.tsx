@@ -1,6 +1,6 @@
 import {fireEvent, render, screen} from '@testing-library/react-native';
 
-import BaseListItem from '@components/SelectionList/ListItem/BaseListItem';
+import ListItemComposed from '@components/SelectionList/ListItemComposed';
 
 import useHover from '@hooks/useHover';
 
@@ -10,7 +10,11 @@ jest.mock('@hooks/useHover', () => jest.fn());
 
 const mockedUseHover = jest.mocked(useHover);
 
-describe('BaseListItem', () => {
+describe('ListItemPressable', () => {
+    beforeEach(() => {
+        mockedUseHover.mockReturnValue({hovered: false, deviceHasHoverSupport: true, bind: {onMouseEnter: jest.fn(), onMouseLeave: jest.fn()}});
+    });
+
     it('hover should work correctly', () => {
         const mouseEnterMock = jest.fn();
         const mouseLeaveMock = jest.fn();
@@ -23,10 +27,10 @@ describe('BaseListItem', () => {
             },
         });
         render(
-            <BaseListItem
+            <ListItemComposed
                 item={{keyForList: '1'}}
                 onSelectRow={() => {}}
-                showTooltip={false}
+                shouldShowTooltip={false}
                 isFocused={false}
             />,
         );
@@ -38,13 +42,12 @@ describe('BaseListItem', () => {
     });
 
     it('should use the accessibilityLabel prop as the row name when provided', () => {
-        mockedUseHover.mockReturnValue({hovered: false, deviceHasHoverSupport: true, bind: {onMouseEnter: jest.fn(), onMouseLeave: jest.fn()}});
         render(
-            <BaseListItem
+            <ListItemComposed
                 item={{keyForList: '1', text: 'Item text'}}
                 accessibilityLabel="Custom row name"
                 onSelectRow={() => {}}
-                showTooltip={false}
+                shouldShowTooltip={false}
                 isFocused={false}
             />,
         );
@@ -53,12 +56,11 @@ describe('BaseListItem', () => {
     });
 
     it('should fall back to the item-derived label when accessibilityLabel is omitted', () => {
-        mockedUseHover.mockReturnValue({hovered: false, deviceHasHoverSupport: true, bind: {onMouseEnter: jest.fn(), onMouseLeave: jest.fn()}});
         render(
-            <BaseListItem
+            <ListItemComposed
                 item={{keyForList: '1', text: 'Item text'}}
                 onSelectRow={() => {}}
-                showTooltip={false}
+                shouldShowTooltip={false}
                 isFocused={false}
             />,
         );
@@ -66,13 +68,12 @@ describe('BaseListItem', () => {
     });
 
     it('should keep the button role for a navigational row when shouldUseOptionRole is false', () => {
-        mockedUseHover.mockReturnValue({hovered: false, deviceHasHoverSupport: true, bind: {onMouseEnter: jest.fn(), onMouseLeave: jest.fn()}});
         render(
-            <BaseListItem
+            <ListItemComposed
                 item={{keyForList: '1', text: 'Item text'}}
                 shouldUseOptionRole={false}
                 onSelectRow={() => {}}
-                showTooltip={false}
+                shouldShowTooltip={false}
                 isFocused={false}
             />,
         );
@@ -80,12 +81,11 @@ describe('BaseListItem', () => {
     });
 
     it('should resolve a single-select row to the option role by default', () => {
-        mockedUseHover.mockReturnValue({hovered: false, deviceHasHoverSupport: true, bind: {onMouseEnter: jest.fn(), onMouseLeave: jest.fn()}});
         render(
-            <BaseListItem
+            <ListItemComposed
                 item={{keyForList: '1', text: 'Item text'}}
                 onSelectRow={() => {}}
-                showTooltip={false}
+                shouldShowTooltip={false}
                 isFocused={false}
             />,
         );
@@ -93,40 +93,28 @@ describe('BaseListItem', () => {
     });
 
     it('should be presentational (not a button) when accessible is false, so nested controls stay reachable', () => {
-        mockedUseHover.mockReturnValue({hovered: false, deviceHasHoverSupport: true, bind: {onMouseEnter: jest.fn(), onMouseLeave: jest.fn()}});
         render(
-            <BaseListItem
+            <ListItemComposed
                 item={{keyForList: '1', text: 'Item text'}}
                 accessible={false}
                 onSelectRow={() => {}}
-                showTooltip={false}
+                shouldShowTooltip={false}
                 isFocused={false}
             />,
         );
         expect(screen.queryByRole(CONST.ROLE.BUTTON)).toBeNull();
     });
 
-    it('should drive the row selected state from the isSelected prop when selection is not on the item', () => {
-        mockedUseHover.mockReturnValue({hovered: false, deviceHasHoverSupport: true, bind: {onMouseEnter: jest.fn(), onMouseLeave: jest.fn()}});
+    it.each([
+        ['the isSelected prop', {keyForList: '1', text: 'Item text'}, true],
+        ['item.isSelected', {keyForList: '1', text: 'Item text', isSelected: true}, undefined],
+    ])('should drive the row selected state from %s', (_source, item, isSelected) => {
         render(
-            <BaseListItem
-                item={{keyForList: '1', text: 'Item text'}}
-                isSelected
+            <ListItemComposed
+                item={item}
+                isSelected={isSelected}
                 onSelectRow={() => {}}
-                showTooltip={false}
-                isFocused={false}
-            />,
-        );
-        expect(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}1`).props.accessibilityState).toEqual(expect.objectContaining({selected: true}));
-    });
-
-    it('should fall back to item.isSelected for the row selected state when the isSelected prop is omitted', () => {
-        mockedUseHover.mockReturnValue({hovered: false, deviceHasHoverSupport: true, bind: {onMouseEnter: jest.fn(), onMouseLeave: jest.fn()}});
-        render(
-            <BaseListItem
-                item={{keyForList: '1', text: 'Item text', isSelected: true}}
-                onSelectRow={() => {}}
-                showTooltip={false}
+                shouldShowTooltip={false}
                 isFocused={false}
             />,
         );
