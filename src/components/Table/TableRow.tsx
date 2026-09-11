@@ -109,7 +109,7 @@ export default function TableRow({
     const isFirstRow = rowIndex === 0;
     // A footer (e.g. a pagination loading skeleton) renders its own content directly below the rows, so the last data
     // row shouldn't round its bottom corners in that case, that footer's own last element should instead.
-    const isLastRow = rowIndex === rowCount - 1 && !listProps.ListFooterComponent;
+    const isLastRow = rowIndex === rowCount - 1 && !listProps?.ListFooterComponent;
 
     if (selectionEnabled && isSelectionCheckboxVisible) {
         gridTemplateColumns.unshift(`${variables.tableCheckboxColumnWidth}px`);
