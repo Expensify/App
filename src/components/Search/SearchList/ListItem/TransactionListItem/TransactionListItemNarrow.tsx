@@ -7,6 +7,7 @@ import type {ListItem} from '@components/SelectionList/types';
 import TransactionItemRow from '@components/TransactionItemRow';
 
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
+import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useSyncFocus from '@hooks/useSyncFocus';
 import useTheme from '@hooks/useTheme';
@@ -48,6 +49,7 @@ function TransactionListItemNarrow<TItem extends ListItem>({
     isAttendeesEnabledForMovingPolicy,
 }: TransactionListItemNarrowProps<TItem>) {
     const styles = useThemeStyles();
+    const {pageGutterMargin} = useLayoutSpacing();
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
     const pressableRef = useRef<View>(null);
@@ -140,7 +142,7 @@ function TransactionListItemNarrow<TItem extends ListItem>({
                 ]}
                 onFocus={onFocus}
                 wrapperStyle={[
-                    styles.mh5,
+                    pageGutterMargin,
                     styles.flex1,
                     animatedHighlightStyle,
                     styles.userSelectNone,

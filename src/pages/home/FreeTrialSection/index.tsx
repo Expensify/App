@@ -4,9 +4,9 @@ import {PressableWithoutFeedback} from '@components/Pressable';
 import Text from '@components/Text';
 import WidgetContainer from '@components/WidgetContainer';
 
+import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -46,7 +46,7 @@ function FreeTrialSection() {
     const {translate} = useLocalize();
     const theme = useTheme();
     const styles = useThemeStyles();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {cardPaddingHorizontal} = useLayoutSpacing();
     const illustrations = useMemoizedLazyIllustrations(['TreasureChest']);
     const {shouldShowFreeTrialSection, discountType, daysLeft, discountInfo} = useFreeTrial();
 
@@ -84,7 +84,7 @@ function FreeTrialSection() {
                 role={CONST.ROLE.BUTTON}
                 sentryLabel={CONST.SENTRY_LABEL.HOME_PAGE.WIDGET_ITEM}
             >
-                <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap3, styles.pt3, styles.pb8, shouldUseNarrowLayout ? styles.ph5 : styles.ph8]}>
+                <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap3, styles.pt3, styles.pb8, cardPaddingHorizontal]}>
                     <Icon
                         src={illustrations.TreasureChest}
                         width={ILLUSTRATION_SIZE}

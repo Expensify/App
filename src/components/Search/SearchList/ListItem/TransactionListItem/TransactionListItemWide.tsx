@@ -7,6 +7,7 @@ import TransactionItemRow from '@components/TransactionItemRow';
 import {useEditingCellState} from '@components/TransactionItemRow/EditableCell';
 
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
+import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useSyncFocus from '@hooks/useSyncFocus';
 import useTheme from '@hooks/useTheme';
@@ -51,6 +52,7 @@ function TransactionListItemWide<TItem extends ListItem>({
     chatReport,
 }: TransactionListItemWideProps<TItem>) {
     const styles = useThemeStyles();
+    const {pageGutterMargin} = useLayoutSpacing();
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
     const pressableRef = useRef<View>(null);
@@ -173,7 +175,7 @@ function TransactionListItemWide<TItem extends ListItem>({
                     isDeletedTransaction && styles.cursorDefault,
                 ]}
                 onFocus={onFocus}
-                wrapperStyle={[styles.mh5, styles.flex1, animatedHighlightStyle, styles.userSelectNone, isLastItem && [styles.tableBottomRadius, styles.overflowHidden]]}
+                wrapperStyle={[pageGutterMargin, styles.flex1, animatedHighlightStyle, styles.userSelectNone, isLastItem && [styles.tableBottomRadius, styles.overflowHidden]]}
             >
                 {({hovered}) => (
                     <TransactionItemRow

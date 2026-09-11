@@ -3,6 +3,7 @@ import Icon from '@components/Icon';
 import {PressableWithFeedback} from '@components/Pressable';
 import Text from '@components/Text';
 
+import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -67,6 +68,7 @@ type TableHeaderProps = ViewProps & {
 function TableHeader<DataType extends TableData, ColumnKey extends string = string>({style, isStickyListHeader = false, isAccessibilityHidden = false, ...props}: TableHeaderProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const {pageGutterMargin} = useLayoutSpacing();
     const {translate} = useLocalize();
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
@@ -123,7 +125,7 @@ function TableHeader<DataType extends TableData, ColumnKey extends string = stri
         <View
             style={[
                 styles.pv2,
-                styles.mh5,
+                pageGutterMargin,
                 styles.highlightBG,
                 styles.borderBottom,
                 styles.tableTopRadius,

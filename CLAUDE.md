@@ -63,6 +63,7 @@ Do not use `useMemo`, `useCallback`, or `React.memo` in components or hooks that
 ### Code Quality
 
 - **ESLint**: Linter. Pre-existing violations are grandfathered via the seatbelt ratchet in `scripts/lint/`.
+- **Design tokens**: font sizes come from `<Text variant="...">`, and paddings or margins that differ between narrow and wide layouts come from `useLayoutSpacing()` (`cardPaddingHorizontal`, `pageGutter`, ...). Never write `shouldUseNarrowLayout ? styles.ph5 : styles.ph8` or a raw `fontSize`. See `contributingGuides/STYLING.md`.
 
 ### Post-Edit Checklist (IMPORTANT)
 

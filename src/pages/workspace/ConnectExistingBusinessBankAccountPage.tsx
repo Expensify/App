@@ -4,6 +4,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 
+import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -46,6 +47,7 @@ function ConnectExistingBusinessBankAccountPage({route}: ConnectExistingBusiness
     const policyName = policy?.name ?? '';
     const policyCurrency = policy?.outputCurrency ?? '';
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {cardPaddingHorizontal, cardPaddingBottom, cardEdgeToEdge} = useLayoutSpacing();
     const isChangingBankAccount = route.params?.source === CONST.BANK_ACCOUNT.CONNECT_EXISTING_SOURCE.CHANGE_BANK_ACCOUNT;
     const isBankAccountFullySetup = !!policy?.achAccount && (policy.achAccount.state === CONST.BANK_ACCOUNT.STATE.OPEN || policy.achAccount.state === CONST.BANK_ACCOUNT.STATE.LOCKED);
     const connectedBankAccount = Object.values(bankAccountList ?? {}).find((bankAccount) => bankAccount?.accountData?.additionalData?.policyID === policyID);
@@ -129,13 +131,13 @@ function ConnectExistingBusinessBankAccountPage({route}: ConnectExistingBusiness
                     <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
                 </View>
             ) : (
-                <ScrollView style={[styles.w100, shouldUseNarrowLayout ? [styles.pt3, styles.ph5, styles.pb5] : [styles.pt5, styles.ph8, styles.pb8]]}>
+                <ScrollView style={[styles.w100, cardPaddingHorizontal, shouldUseNarrowLayout ? styles.pt3 : styles.pt5, cardPaddingBottom]}>
                     <Text>{translate('workspace.bankAccount.chooseAnExisting')}</Text>
                     <PaymentMethodList
                         onPress={handleItemPress}
                         onAddBankAccountPress={handleAddBankAccountPress}
-                        style={[styles.mt5, [shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8]]}
-                        listItemStyle={shouldUseNarrowLayout ? styles.ph5 : styles.ph8}
+                        style={[styles.mt5, cardEdgeToEdge]}
+                        listItemStyle={cardPaddingHorizontal}
                         itemIconRight={icons.ArrowRight}
                         filterType={CONST.BANK_ACCOUNT.TYPE.BUSINESS}
                         filterCurrency={policyCurrency}

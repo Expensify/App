@@ -1,5 +1,6 @@
 import WidgetContainer from '@components/WidgetContainer';
 
+import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -25,6 +26,7 @@ function YourSpendSection() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {cardPaddingHorizontal} = useLayoutSpacing();
     const icons = useMemoizedLazyExpensifyIcons(['ThumbsUpHourglass', 'MoneyBag']);
     const [isExpanded, setIsExpanded] = useState(false);
 
@@ -42,7 +44,7 @@ function YourSpendSection() {
         return null;
     }
 
-    const wrapperStyle = [styles.alignItemsCenter, shouldUseNarrowLayout ? styles.ph5 : styles.ph8];
+    const wrapperStyle = [styles.alignItemsCenter, cardPaddingHorizontal];
     const visibleSummaryRowsCount = (isApprovalRowVisible ? 1 : 0) + (isPaymentRowVisible ? 1 : 0);
     const cardLimit = Math.max(0, CONST.HOME.SECTION_VISIBLE_LIMIT - visibleSummaryRowsCount);
     const hiddenCount = Math.max(0, cardRows.length - cardLimit);

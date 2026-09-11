@@ -9,10 +9,10 @@ import Section from '@components/Section';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 
+import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -41,7 +41,7 @@ function AccountFlowEntryPoint({policyName = '', onBackButtonPress}: AccountFlow
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {cardEdgeToEdge} = useLayoutSpacing();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Bank', 'Connect', 'Lightbulb', 'Lock']);
 
     const [isPlaidDisabled] = useOnyx(ONYXKEYS.IS_PLAID_DISABLED);
@@ -110,7 +110,7 @@ function AccountFlowEntryPoint({policyName = '', onBackButtonPress}: AccountFlow
                             {translate('workspace.bankAccount.connectBankAccountNote')}
                         </Text>
                     </View>
-                    <View style={[styles.mt4, shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8]}>
+                    <View style={[styles.mt4, cardEdgeToEdge]}>
                         <MenuItemNavigation
                             title={translate('bankAccount.connectOnlineWithPlaid')}
                             icon={expensifyIcons.Bank}

@@ -7,6 +7,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 
 import useDocumentTitle from '@hooks/useDocumentTitle';
+import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -32,6 +33,7 @@ import YourSpendSection from './YourSpendSection';
 
 function HomePage() {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {pageGutter} = useLayoutSpacing();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     useDocumentTitle(translate('common.home'));
@@ -66,7 +68,7 @@ function HomePage() {
                         shouldDisplayHelpButton
                     />
                     <ScrollView
-                        contentContainerStyle={styles.homePageContentContainer}
+                        contentContainerStyle={[styles.homePageContentContainer, pageGutter]}
                         addBottomSafeAreaPadding
                         keyboardShouldPersistTaps="handled"
                     >

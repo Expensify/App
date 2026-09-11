@@ -3,6 +3,7 @@ import BaseListItem from '@components/SelectionList/ListItem/BaseListItem';
 import type {ListItemProps} from '@components/SelectionList/ListItem/types';
 import type {ListItem} from '@components/SelectionList/types';
 
+import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -17,6 +18,7 @@ import UserInfoAndActionButtonRow from './UserInfoAndActionButtonRow';
 function SearchMergeReportsListItem<TItem extends ListItem>({item, isFocused, showTooltip, onSelectRow, onFocus, shouldSyncFocus, isLastItem, isFirstItem}: ListItemProps<TItem>) {
     const reportItem = item as unknown as ExpenseReportListItemType;
     const styles = useThemeStyles();
+    const {pageGutterMargin} = useLayoutSpacing();
     const StyleUtils = useStyleUtils();
     const isSelected = item.isSelected ?? false;
 
@@ -47,7 +49,7 @@ function SearchMergeReportsListItem<TItem extends ListItem>({item, isFocused, sh
             shouldSyncFocus={shouldSyncFocus}
             hoverStyle={isSelected && styles.activeComponentBG}
             pressableWrapperStyle={[
-                styles.mh5,
+                pageGutterMargin,
                 isFirstItem && styles.tableTopRadius,
                 isLastItem && styles.tableBottomRadius,
                 !isLastItem && StyleUtils.getSelectedBorderBottomStyle(isSelected),
