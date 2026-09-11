@@ -57,10 +57,6 @@ import Onyx from 'react-native-onyx';
 import {getRecentAttendees} from '.';
 import {getUpdatedMoneyRequestReportData} from './MoneyRequestBuilder';
 
-/**
- * A snapshot `data` object under construction. The container is mutable so keys can be assigned one at a time,
- * while each value keeps the readonly shape it has when it comes out of an Onyx write input (`OnyxUpdate['value']`).
- */
 type SnapshotDataDraft = {
     -readonly [TKey in keyof NullishDeep<SearchResultDataType>]: OnyxTypes.ReadonlyOnyx<NullishDeep<SearchResultDataType>[TKey]>;
 };

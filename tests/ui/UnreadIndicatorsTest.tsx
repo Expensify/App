@@ -259,12 +259,9 @@ async function signInAndGetAppWithUnreadChat(): Promise<void> {
     await waitForBatchedUpdatesWithAct();
 }
 
-// Onyx.get hands back the cached object itself, typed ReadonlyOnyx. addComment and deleteReportComment still
-// take a mutable Report, so deep-clone the read value and cast the clone back rather than widening their
-// signatures — cloning is what keeps the cache safe, the cast only restores the type.
 async function getReportForWrite(reportID: string): Promise<Report | undefined> {
     const report = await Onyx.get(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- lodashDeepClone loses the type; the clone is a fresh mutable Report
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- lodashDeepClone loses the type
     return report ? (lodashDeepClone(report) as Report) : undefined;
 }
 
