@@ -483,7 +483,8 @@ async function applySeatbelt(messages: LintMessage[], options: SeatbeltOptions, 
     const shouldWrite = anyChanged && !options.frozen && !options.readOnly;
     if (pruned > 0) {
         const verb = shouldWrite ? 'removed' : 'would remove';
-        console.log(`eslint-seatbelt: ${verb} ${pruned} baseline row(s) for deleted files`);
+        // stderr, not stdout: --format=json writes the report to stdout and this would corrupt it.
+        console.error(`eslint-seatbelt: ${verb} ${pruned} baseline row(s) for deleted files`);
     }
     if (shouldWrite) {
         await writeTSVAtomically(options.seatbeltFile, tsv);
