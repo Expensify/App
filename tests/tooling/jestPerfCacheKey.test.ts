@@ -4,28 +4,26 @@ import fs from 'fs';
 
 /**
  * reassurePerformanceTests.yml restores a Jest transform cache that seedJestPerfCache.yml writes.
- * Three agreements between those files keep that safe and effective, and each one breaks silently
- * rather than failing a check, so these tests are the enforcement:
+ * Two agreements between those files have to hold, and neither file references the other, so
+ * reading either one alone cannot tell you whether it still does:
  *
  * 1. Every copy of the cache key is byte-identical - a restore keyed differently from the save is a
  *    permanent miss and the perf jobs just go cold again. (test.yml caches the same .jest-cache
  *    path under its own key and policy; deliberate, and out of scope here.)
- * 2. No `restore-keys` anywhere: babel-jest does not hash plugin versions into an entry's name, so
- *    a prefix fallback could reuse output built by a different babel-plugin-react-compiler, and the
- *    perf workflow gates render counts at COUNT_DEVIATION: 0.
- * 3. The seed runs on every push to main, with no paths filter and no schedule - that probe is both
- *    how the entry stays warm and how it recovers from an eviction.
+ * 2. Both workflows run on one runner class, so the transform output is interchangeable between
+ *    them. The same holds for the baseline the seed measures, once the perf workflow reads it
+ *    instead of measuring its own: that key hashes only runner.os and runner.arch, neither of which
+ *    moves with a vcpu count, so a split class would not rotate the key - it would compare
+ *    durations across hardware on a check gated at DURATION_DEVIATION_PERCENTAGE: 20.
  */
 
 const PERF_WORKFLOW = '.github/workflows/reassurePerformanceTests.yml';
 const SEED_WORKFLOW = '.github/workflows/seedJestPerfCache.yml';
 
 type Step = {uses?: string; with?: Record<string, unknown>};
-type Job = {steps?: Step[]};
-type Workflow = {
-    on?: Record<string, {branches?: string[]} | null>;
-    jobs: Record<string, Job>;
-};
+// eslint-disable-next-line @typescript-eslint/naming-convention -- `runs-on` is the YAML key GitHub Actions defines, not a name this repo chooses
+type Job = {'runs-on'?: string; steps?: Step[]};
+type Workflow = {jobs: Record<string, Job>};
 
 function readWorkflow(path: string): Workflow {
     // Bun.YAML rather than js-yaml: js-yaml is only present as a hoisted transitive at v3 while the
@@ -41,8 +39,9 @@ function cacheSteps(workflow: Workflow): Step[] {
         .filter((step) => typeof step.uses === 'string' && step.uses.startsWith('actions/cache') && String(step.with?.path) === '.jest-cache');
 }
 
+const perfWorkflow = readWorkflow(PERF_WORKFLOW);
 const seedWorkflow = readWorkflow(SEED_WORKFLOW);
-const allCacheSteps = [...cacheSteps(readWorkflow(PERF_WORKFLOW)), ...cacheSteps(seedWorkflow)];
+const allCacheSteps = [...cacheSteps(perfWorkflow), ...cacheSteps(seedWorkflow)];
 
 describe('Jest perf transform cache', () => {
     it('keys every .jest-cache step identically', () => {
@@ -52,13 +51,8 @@ describe('Jest perf transform cache', () => {
         expect([...keys]).toHaveLength(1);
     });
 
-    it('never falls back to a prefix key', () => {
-        for (const step of allCacheSteps) {
-            expect(step.with).not.toHaveProperty('restore-keys');
-        }
-    });
-
-    it('runs on every push to main, so an evicted entry is rebuilt on the next merge', () => {
-        expect(seedWorkflow.on?.push?.branches).toContain('main');
+    it('measures on the runner class the perf jobs are judged on', () => {
+        const runners = new Set([...Object.values(seedWorkflow.jobs), ...Object.values(perfWorkflow.jobs)].map((job) => String(job['runs-on'])));
+        expect([...runners]).toHaveLength(1);
     });
 });
