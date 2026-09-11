@@ -1,8 +1,8 @@
 ---
 title: Merchant Rules
 description: Learn how to enable and use Merchant Rules to automatically apply consistent expense coding based on the expense merchant name.
-keywords: [New Expensify, workspace merchant rules, merchant rules, auto-categorize by merchant, expense automation, expense rules, workspace settings, import merchant rules, bulk import merchant rules, merchant rules spreadsheet]
-internalScope: Audience is Workspace Admins on the Control plan. Covers creating, using, and bulk-importing Merchant Rules to apply consistent expense coding based on merchant name. Does not cover personal expense rules, Category Rules, Tag Rules, or troubleshooting rule conflicts.
+keywords: [New Expensify, workspace merchant rules, merchant rules, auto-categorize by merchant, expense automation, expense rules, workspace settings, import merchant rules, bulk import merchant rules, merchant rules spreadsheet, create a rule from an expense, create a rule prompt]
+internalScope: Audience is Workspace Admins on the Control plan. Covers creating Merchant Rules from workspace settings or from an expense you edited, using them, and bulk-importing them to apply consistent expense coding based on merchant name. Does not cover personal expense rules, Category Rules, Tag Rules, or troubleshooting rule conflicts.
 ---
 
 # Merchant Rules
@@ -26,6 +26,26 @@ To create a Merchant Rule:
 5. Select the fields you want the rule to update. 
 6. Optionally apply the rule to existing unsubmitted expenses and review matching expenses using **Preview matches**.
 7. Select **Save Rule**
+
+---
+
+## How to create a Merchant Rule from an expense you edited
+
+When you recode a workspace expense, Expensify offers to turn that change into a Merchant Rule, so you don't have to build the rule from scratch in workspace settings.
+
+1. Open the expense.
+2. Change the **Category**, **Tag**, **Tax**, **Description**, **Billable**, or **Reimbursable** field.
+3. Click **Create a rule** in the prompt that appears on the expense.
+4. Review the rule, which is pre-filled with the expense merchant and every field you changed on that expense.
+5. Click **Save rule**.
+
+The prompt appears on the expense itself. It doesn't appear when you change a field from a list of expenses, such as a report or your search results.
+
+<!-- SCREENSHOT:
+Suggestion: An expense detail view immediately after a Category change, with the "Create a rule" prompt visible below the expense fields.
+Location: Immediately after the steps in "How to create a Merchant Rule from an expense you edited".
+Purpose: The prompt appears only after an edit and is easy to miss, so admins ask where the shortcut is rather than which fields they changed.
+-->
 
 ---
 
@@ -123,6 +143,21 @@ Common reasons include:
 - Another rule matched first.
 - A field was manually set during expense creation.
 - The rule was created after the expense and wasn't applied retroactively, unless you select "apply to existing expenses" when creating the rule.
+
+## Why doesn't the Create a rule prompt appear on my expense?
+
+The prompt only appears when the rule it would create could match the expense. It doesn't appear when:
+
+- The expense has no merchant yet, such as a receipt that is still scanning or whose scan failed.
+- The expense is a distance or per diem expense, because Expensify sets the merchant on those.
+- The expense is an invoice, because Merchant Rules apply to expenses.
+- The expense isn't on the workspace yet, such as an expense in your self DM that you haven't submitted.
+- You changed the field from a list of expenses instead of from the expense itself.
+- You changed only the **Merchant**, **Amount**, or **Date**.
+- The workspace isn't on the Control plan, or **Rules** isn't enabled on it.
+- You don't have permission to edit that workspace's rules.
+
+You can still build the rule yourself from workspace settings. Learn how to [create a single Merchant Rule](#how-to-create-a-single-merchant-rule).
 
 ## How do I clear a Category, Tag, or Tax value from a Merchant Rule?
 
