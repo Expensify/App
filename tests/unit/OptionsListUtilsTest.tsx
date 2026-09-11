@@ -8612,6 +8612,7 @@ describe('OptionsListUtils', () => {
                 reportDraft: undefined,
                 currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
                 localize: {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString},
+                rules: undefined,
             });
             const optionWithoutConcierge = getReportOption({
                 participant,
