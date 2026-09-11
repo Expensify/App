@@ -1,4 +1,5 @@
 import Log from '@libs/Log';
+import {sanitizeUrlForLogging} from '@libs/sanitizeLogParams';
 
 /**
  * Collapses runs of two or more slashes into one. Pass the pathname only: a query or fragment can legitimately
@@ -16,11 +17,13 @@ function normalizePath(path: string) {
     const pathOnly = suffixIndex === -1 ? path : path.slice(0, suffixIndex);
     const suffix = suffixIndex === -1 ? '' : path.slice(suffixIndex);
 
-    if (pathOnly.includes('//')) {
-        Log.alert('[Navigation] normalizePath received a malformed path');
-    }
-
     const collapsedPath = collapseRepeatedSlashes(pathOnly);
+
+    if (pathOnly.includes('//')) {
+        // The collapsed path is logged, not the raw one: repeated slashes break the `/v/:accountID/:validateCode`
+        // pattern `sanitizeUrlForLogging` matches on, so redaction only works once they're gone.
+        Log.alert('[Navigation] normalizePath received a malformed path', {path: sanitizeUrlForLogging(collapsedPath)});
+    }
 
     return `${collapsedPath.startsWith('/') ? collapsedPath : `/${collapsedPath}`}${suffix}`;
 }

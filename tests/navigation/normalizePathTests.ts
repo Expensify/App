@@ -27,12 +27,21 @@ describe('normalizePath', () => {
         expect(normalizePath(input)).toBe(expected);
     });
 
-    it('alerts with the path and without the query when the path is malformed', () => {
-        normalizePath('//workspaces/ABC123/accounting?q=secret');
+    it('alerts once for a malformed path, logging it without the query', () => {
+        normalizePath('//settings/profile?q=secret');
 
         expect(mockLogAlert).toHaveBeenCalledTimes(1);
-        expect(mockLogAlert).toHaveBeenCalledWith(expect.stringContaining('malformed path'), expect.objectContaining({path: '//workspaces/ABC123/accounting'}));
+        expect(mockLogAlert).toHaveBeenCalledWith(expect.stringContaining('malformed path'), {path: '/settings/profile'});
         expect(JSON.stringify(mockLogAlert.mock.calls)).not.toContain('secret');
+    });
+
+    // Redaction relies on the `/v/:accountID/:validateCode` shape, which repeated slashes break, so the
+    // collapsed path is what gets logged.
+    it.each(['//v/123/validatecode', '/v//123/validatecode', '/v/123//validatecode', '//u/456/validatecode'])('redacts the validate code in %s', (input) => {
+        normalizePath(input);
+
+        expect(JSON.stringify(mockLogAlert.mock.calls)).not.toContain('validatecode');
+        expect(JSON.stringify(mockLogAlert.mock.calls)).toContain('redacted');
     });
 
     it('keeps a fragment intact, including a slash pair inside it', () => {
