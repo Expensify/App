@@ -66,6 +66,7 @@ Onyx.connectWithoutView({
 });
 
 let reportAttributesDerived: ReportAttributesDerivedValue['reports'] | undefined;
+// This subscription is used to update the unread indicators count which is not linked to UI and it does not update any UI state.
 Onyx.connectWithoutView({
     key: ONYXKEYS.DERIVED.REPORT_ATTRIBUTES,
     callback: (value) => {
