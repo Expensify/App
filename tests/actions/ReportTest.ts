@@ -4815,7 +4815,7 @@ describe('actions/Report', () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`, iouReport);
 
                 // When converting the IOU report to an expense report
-                const result = Report.convertIOUReportToExpenseReport(iouReport, policy, policyID, 'expenseChat302', undefined, TestHelper.getCurrencyDecimalsLocal, []);
+                const result = Report.convertIOUReportToExpenseReport(iouReport, policy, policyID, 'expenseChat302', undefined, TestHelper.getCurrencyDecimalsLocal, undefined, []);
 
                 // Then every total column flips sign together with `total`
                 const reportUpdate = result.optimisticData.find((update) => update.key === `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`);
@@ -4859,7 +4859,7 @@ describe('actions/Report', () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`, iouReport);
 
                 // When converting the IOU report to an expense report
-                const result = Report.convertIOUReportToExpenseReport(iouReport, policy, policyID, 'expenseChat303', undefined, TestHelper.getCurrencyDecimalsLocal, []);
+                const result = Report.convertIOUReportToExpenseReport(iouReport, policy, policyID, 'expenseChat303', undefined, TestHelper.getCurrencyDecimalsLocal, undefined, []);
 
                 // Then only `total` is negated -- writing the missing siblings as -0 would make `getReimbursableTotal`
                 // return -0 instead of falling back to `total`, and the Total would render as $0.00.
