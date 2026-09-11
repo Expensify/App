@@ -88,6 +88,7 @@ function useFilteredOptions(config: UseFilteredOptionsConfig): UseFilteredOption
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [pendingDeleteMemberAccountIDsByReportID] = useOnyx(ONYXKEYS.COLLECTION.REPORT_METADATA, {selector: pendingDeleteMemberAccountIDsByReportIDSelector});
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const reportAttributesDerived = useReportAttributes();
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
 
@@ -126,6 +127,7 @@ function useFilteredOptions(config: UseFilteredOptionsConfig): UseFilteredOption
                           locale: preferredLocale,
                           pendingDeleteMemberAccountIDsByReportID,
                       },
+                      rules,
                       undefined,
                       undefined,
                       isTrackIntentUser,
@@ -140,6 +142,7 @@ function useFilteredOptions(config: UseFilteredOptionsConfig): UseFilteredOption
             privateIsArchivedMap,
             allPolicies,
             conciergeReportID,
+            rules,
             reportsLimit,
             includeP2P,
             isSearching,
