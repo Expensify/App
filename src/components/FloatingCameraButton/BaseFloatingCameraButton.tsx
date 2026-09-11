@@ -32,6 +32,7 @@ import type IconAsset from '@src/types/utils/IconAsset';
 
 import type {OnyxCollection} from 'react-native-onyx';
 
+import {GlassView, isGlassEffectAPIAvailable, isLiquidGlassAvailable} from 'expo-glass-effect';
 import React, {useEffect, useState} from 'react';
 import {Platform, View} from 'react-native';
 
@@ -40,7 +41,7 @@ type BaseFloatingCameraButtonProps = {
 };
 
 function BaseFloatingCameraButton({icon}: BaseFloatingCameraButtonProps) {
-    const {textLight} = useTheme();
+    const {success, textLight} = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {accountID} = useCurrentUserPersonalDetails();
@@ -57,6 +58,7 @@ function BaseFloatingCameraButton({icon}: BaseFloatingCameraButtonProps) {
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const [reportID] = useState(() => generateReportID());
+    const shouldUseLiquidGlass = isLiquidGlassAvailable() && isGlassEffectAPIAvailable();
 
     const policyChatForActivePolicySelector = (reports: OnyxCollection<OnyxTypes.Report>) => {
         if (isEmptyObject(activePolicy) || !isGroupPolicy(activePolicy)) {
@@ -111,17 +113,34 @@ function BaseFloatingCameraButton({icon}: BaseFloatingCameraButtonProps) {
             testID="floating-camera-button"
             sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.FLOATING_CAMERA_BUTTON}
         >
-            <View
-                style={styles.floatingActionButton}
-                testID="floating-camera-button-container"
-            >
-                <Icon
-                    fill={textLight}
-                    src={icon}
-                    width={variables.iconSizeNormal}
-                    height={variables.iconSizeNormal}
-                />
-            </View>
+            {shouldUseLiquidGlass ? (
+                <GlassView
+                    style={[styles.floatingActionButton, styles.bgTransparent]}
+                    glassEffectStyle="regular"
+                    tintColor={success}
+                    isInteractive
+                    testID="floating-camera-button-container"
+                >
+                    <Icon
+                        fill={textLight}
+                        src={icon}
+                        width={variables.iconSizeNormal}
+                        height={variables.iconSizeNormal}
+                    />
+                </GlassView>
+            ) : (
+                <View
+                    style={styles.floatingActionButton}
+                    testID="floating-camera-button-container"
+                >
+                    <Icon
+                        fill={textLight}
+                        src={icon}
+                        width={variables.iconSizeNormal}
+                        height={variables.iconSizeNormal}
+                    />
+                </View>
+            )}
         </PressableWithoutFeedback>
     );
 }

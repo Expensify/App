@@ -149,6 +149,7 @@
     "expo-asset": "57.0.7",
     "expo-audio": "57.0.3",
     "expo-font": "57.0.1",
+    "expo-glass-effect": "~57.0.3",
     "expo-image": "57.0.1",
     "expo-image-manipulator": "57.0.6",
     "expo-location": "57.0.6",
