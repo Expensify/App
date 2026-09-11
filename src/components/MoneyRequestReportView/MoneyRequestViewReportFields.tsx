@@ -91,6 +91,7 @@ function MoneyRequestViewReportFields({report, policy, pendingAction}: MoneyRequ
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${getNonEmptyStringOnyxID(report?.reportID)}`);
     const {getCurrencyDecimals} = useCurrencyListActions();
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
     const sortedPolicyReportFields = useMemo<EnrichedPolicyReportField[]>((): EnrichedPolicyReportField[] => {
         const {fieldValues, fieldsByName} = getReportFieldMaps(report, policy?.fieldList ?? {}, reportNameValuePairs);
@@ -102,7 +103,7 @@ function MoneyRequestViewReportFields({report, policy, pendingAction}: MoneyRequ
             .sort(({orderWeight: firstOrderWeight}, {orderWeight: secondOrderWeight}) => firstOrderWeight - secondOrderWeight)
             .map((field): EnrichedPolicyReportField => {
                 const fieldValue = resolveReportFieldValue(field, report, policy, fieldValues, fieldsByName, getCurrencyDecimals);
-                const isFieldDisabled = isReportFieldDisabledForUser(report, field, policy, currentUserAccountID);
+                const isFieldDisabled = isReportFieldDisabledForUser(report, field, policy, currentUserAccountID, rules);
                 const isDeletedFormulaField = field.type === CONST.REPORT_FIELD_TYPES.FORMULA && field.deletable;
                 const fieldKey = getReportFieldKey(field.fieldID);
 
@@ -118,7 +119,7 @@ function MoneyRequestViewReportFields({report, policy, pendingAction}: MoneyRequ
                     violationTranslation,
                 };
             });
-    }, [policy, report, currentUserAccountID, reportNameValuePairs, getCurrencyDecimals]);
+    }, [policy, report, currentUserAccountID, reportNameValuePairs, getCurrencyDecimals, rules]);
 
     // `sortedPolicyReportFields` already excludes fields hidden by `shouldHideSingleReportField`, including the title field.
     // If no displayable custom fields remain, the early return below hides the section.

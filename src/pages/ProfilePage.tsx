@@ -18,6 +18,7 @@ import Text from '@components/Text';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
+import useIsSupportalSession from '@hooks/useIsSupportalSession';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -106,6 +107,7 @@ function ProfilePage({route}: ProfilePageProps) {
     const [hasReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {selector: Boolean});
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
+    const isSupportalSession = useIsSupportalSession();
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.PROFILE.path);
 
     const styles = useThemeStyles();
@@ -214,6 +216,7 @@ function ProfilePage({route}: ProfilePageProps) {
                 betas,
                 hasReportActions,
                 conciergeChat,
+                isSupportalSession,
             }),
         );
     }

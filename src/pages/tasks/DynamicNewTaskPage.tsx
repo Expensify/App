@@ -73,6 +73,7 @@ function DynamicNewTaskPage() {
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const derivedSharedDestinationReportName = useDerivedReportNameByReportID(parentReport?.reportID);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const delegateAccountID = useDelegateAccountID();
@@ -92,6 +93,7 @@ function DynamicNewTaskPage() {
               policy,
               conciergeReportID,
               translate,
+              rules,
               derivedSharedDestinationReportName,
               pendingDeleteMemberAccountIDs,
           )
