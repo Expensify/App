@@ -87,7 +87,6 @@ import {
     canEditMoneyRequest,
     canUserPerformWriteAction as canUserPerformWriteActionReportUtils,
     getTransactionDetails,
-    getTripIDFromTransactionParentReportID,
     isExpenseReport,
     isInvoiceReport,
     isOpenReport,
@@ -395,6 +394,7 @@ function MoneyRequestView({
     const isCancelled = moneyRequestReport?.isCancelledIOU;
     const isChatReportArchived = useReportIsArchived(moneyRequestReport?.chatReportID);
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const pendingAction = transaction?.pendingAction;
     const shouldShowPaid = isSettled && transactionReimbursable && !pendingAction;
 
@@ -403,7 +403,9 @@ function MoneyRequestView({
     const isReportArchived = useReportIsArchived(transactionThreadReport?.reportID);
     const isEditable = !!canUserPerformWriteActionReportUtils(transactionThreadReport, isReportArchived) && !readonly;
     const canEdit =
-        isMoneyRequestAction(parentReportAction) && canEditMoneyRequest(parentReportAction, transaction, isChatReportArchived, moneyRequestReport, policy, parentReportActions) && isEditable;
+        isMoneyRequestAction(parentReportAction) &&
+        canEditMoneyRequest(parentReportAction, transaction, rules, isChatReportArchived, moneyRequestReport, policy, parentReportActions) &&
+        isEditable;
     const companyCardPageURL = `${environmentURL}/${ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(transactionThreadReport?.policyID)}`;
     const {personalCardsWithBrokenConnection} = useCardFeedErrors();
     const connectionLink = getBrokenConnectionUrlToFixPersonalCard(personalCardsWithBrokenConnection, environmentURL);
@@ -416,7 +418,7 @@ function MoneyRequestView({
     const isSplitAvailable =
         moneyRequestReport &&
         transaction &&
-        isSplitAction(moneyRequestReport, [transaction], originalTransaction, currentUserPersonalDetails.login ?? '', currentUserPersonalDetails.accountID, policy);
+        isSplitAction(moneyRequestReport, [transaction], originalTransaction, currentUserPersonalDetails.login ?? '', currentUserPersonalDetails.accountID, rules, policy);
 
     const canEditTaxFields = canEdit && !isDistanceRequest;
     const canEditAmount =
@@ -428,6 +430,7 @@ function MoneyRequestView({
             isChatReportArchived,
             reportNameValuePairs,
             transaction,
+            rules,
         }) ||
             (shouldShowSplitIndicator && isSplitAvailable));
     const canEditMerchant =
@@ -440,6 +443,7 @@ function MoneyRequestView({
             transaction,
             report: moneyRequestReport,
             policy,
+            rules,
         });
 
     const canEditDate =
@@ -452,6 +456,7 @@ function MoneyRequestView({
             transaction,
             report: moneyRequestReport,
             policy,
+            rules,
         });
 
     const canEditDistanceOrRate = isPolicyAccessible(policy, currentUserEmailParam) || isTrackExpense || isP2PDistanceRequest;
@@ -467,6 +472,7 @@ function MoneyRequestView({
             transaction,
             report: moneyRequestReport,
             policy,
+            rules,
         }) &&
         canEditDistanceOrRate;
 
@@ -480,6 +486,7 @@ function MoneyRequestView({
             transaction,
             report: moneyRequestReport,
             policy,
+            rules,
         }) &&
         canEditDistanceOrRate;
 
@@ -494,6 +501,7 @@ function MoneyRequestView({
             transaction,
             report: moneyRequestReport,
             policy,
+            rules,
         }) &&
         (!isPerDiemRequest || canSubmitPerDiemExpenseFromWorkspace(policy) || (isExpenseUnreported && !!perDiemOriginalPolicy));
 
@@ -534,6 +542,7 @@ function MoneyRequestView({
             transaction,
             report: moneyRequestReport,
             policy,
+            rules,
         });
     const shouldShowAttendees = shouldShowAttendeesTransactionUtils(iouType, policy);
 
@@ -557,27 +566,21 @@ function MoneyRequestView({
     const shouldShowVendor = hasVendorFeature(policy, isBetaEnabled(CONST.BETAS.VENDOR_MATCHING)) && !(updatedTransaction?.reimbursable ?? !!transactionReimbursable) && !isInvoice;
     const vendorFieldLabel = isXeroActiveMatchingSource(policy) ? translate('common.supplier') : translate('common.vendor');
 
-    const tripID = getTripIDFromTransactionParentReportID(parentReport?.parentReportID);
-    const shouldShowViewTripDetails = hasReservationList(transaction) && !!tripID;
-
     const transactionTripID = transaction?.comment?.tripID;
+    const [tripRoomReportID] = useOnyxWithoutSnapshots(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {
+        selector: (allReportNameValuePairs: OnyxCollection<OnyxTypes.ReportNameValuePairs>): string | undefined => {
+            if (!transactionTripID || !allReportNameValuePairs) {
+                return undefined;
+            }
 
-    // Trip rooms are the grandparent report, so check that first before scanning the collection.
-    const grandparentReportID = parentReport?.parentReportID;
-    const tripRoomReportSelector = (reports: OnyxCollection<OnyxTypes.Report>): OnyxEntry<OnyxTypes.Report> => {
-        if (!transactionTripID || !reports) {
-            return undefined;
-        }
-        const grandparent = grandparentReportID ? reports[`${ONYXKEYS.COLLECTION.REPORT}${grandparentReportID}`] : undefined;
-        const match =
-            grandparent?.tripData?.tripID === transactionTripID ? grandparent : Object.values(reports).find((candidateReport) => candidateReport?.tripData?.tripID === transactionTripID);
-        if (!match?.reportID) {
-            return undefined;
-        }
-        return match;
-    };
-    const [tripRoomReport] = useOnyxWithoutSnapshots(ONYXKEYS.COLLECTION.REPORT, {selector: tripRoomReportSelector});
-    const tripRoomReportID = tripRoomReport?.reportID;
+            const tripRoomReportNameValuePairsKey = Object.keys(allReportNameValuePairs).find((key) => allReportNameValuePairs[key]?.tripData?.tripID === transactionTripID);
+            return tripRoomReportNameValuePairsKey?.replace(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, '');
+        },
+    });
+    const [tripRoomReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${tripRoomReportID}`);
+    const [tripRoomReportNameValuePairs] = useOnyxWithoutSnapshots(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${tripRoomReportID}`);
+    const tripID = tripRoomReportNameValuePairs?.tripData?.tripID;
+    const shouldShowViewTripDetails = hasReservationList(transaction) && !!tripID;
 
     const derivedReportNames = useDerivedReportNamesByReportIDs([tripRoomReportID, parentReport?.reportID]);
 
@@ -717,6 +720,7 @@ function MoneyRequestView({
             isTrackIntentUser,
             getCurrencyDecimals,
             getCurrencySymbol,
+            rules,
         });
     };
 
@@ -744,6 +748,7 @@ function MoneyRequestView({
             violations: allTransactionViolations,
             getCurrencyDecimals,
             getCurrencySymbol,
+            rules,
         });
     };
 
@@ -889,6 +894,7 @@ function MoneyRequestView({
                 violations: allTransactionViolations,
                 getCurrencyDecimals,
                 getCurrencySymbol,
+                rules,
             });
         });
     };
@@ -927,6 +933,7 @@ function MoneyRequestView({
                 violations: allTransactionViolations,
                 getCurrencyDecimals,
                 getCurrencySymbol,
+                rules,
             });
         });
     };
@@ -954,6 +961,7 @@ function MoneyRequestView({
                 parentReport,
                 iouReportOwnerLogin,
                 tag: updatedTag,
+                tagListIndex,
                 policy,
                 policyTagList,
                 policyRecentlyUsedTags: undefined,
@@ -968,6 +976,7 @@ function MoneyRequestView({
                 violations: allTransactionViolations,
                 getCurrencyDecimals,
                 getCurrencySymbol,
+                rules,
             });
         });
     };

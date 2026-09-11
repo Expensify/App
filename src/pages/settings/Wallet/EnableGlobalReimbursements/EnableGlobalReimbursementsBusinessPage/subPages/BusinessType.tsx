@@ -1,8 +1,10 @@
+import ActivityIndicator from '@components/ActivityIndicator';
 import PushRowFieldsStep from '@components/SubStepForms/PushRowFieldsStep';
 
 import useEnableGlobalReimbursementsStepFormSubmit from '@hooks/useEnableGlobalReimbursementsStepFormSubmit';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useThemeStyles from '@hooks/useThemeStyles';
 
 import getListOptionsFromCorpayPicklist from '@pages/ReimbursementAccount/NonUSD/utils/getListOptionsFromCorpayPicklist';
 import type {BusinessInfoSubPageProps} from '@pages/settings/Wallet/EnableGlobalReimbursements/EnableGlobalReimbursementsBusinessPage/types';
@@ -11,12 +13,14 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/EnableGlobalReimbursementsForm';
 
 import React, {useMemo} from 'react';
+import {View} from 'react-native';
 
 const {APPLICANT_TYPE_ID, BUSINESS_CATEGORY} = INPUT_IDS;
 const STEP_FIELDS = [APPLICANT_TYPE_ID, BUSINESS_CATEGORY];
 
 function BusinessType({onNext, onMove, isEditing}: BusinessInfoSubPageProps) {
     const {translate} = useLocalize();
+    const styles = useThemeStyles();
     const [enableGlobalReimbursementsDraft] = useOnyx(ONYXKEYS.FORMS.ENABLE_GLOBAL_REIMBURSEMENTS_DRAFT);
     const [corpayOnboardingFields] = useOnyx(ONYXKEYS.CORPAY_ONBOARDING_FIELDS);
 
@@ -55,7 +59,11 @@ function BusinessType({onNext, onMove, isEditing}: BusinessInfoSubPageProps) {
     });
 
     if (corpayOnboardingFields === undefined) {
-        return null;
+        return (
+            <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter]}>
+                <ActivityIndicator />
+            </View>
+        );
     }
 
     return (

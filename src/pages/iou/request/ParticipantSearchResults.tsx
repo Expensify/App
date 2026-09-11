@@ -164,7 +164,7 @@ function ParticipantSearchResults({
     const {isOffline} = useNetwork();
     const personalDetails = usePersonalDetails();
     const {didScreenTransitionEnd} = useScreenWrapperTransitionStatus();
-    const [isSearchingForReports] = useOnyx(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS);
+    const [isSearchingForUsers] = useOnyx(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_USERS);
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
     const [loginList] = useOnyx(ONYXKEYS.LOGINS, {selector: expensifyLoginsSelector});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
@@ -183,6 +183,7 @@ function ParticipantSearchResults({
     // Policy and billing data — owned here, used for getValidOptionsConfig and billing gate in onSelectRow
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const getReportByID = useSelectedExpenseReports(participants);
     const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`];
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
@@ -317,6 +318,7 @@ function ParticipantSearchResults({
             translate,
             convertToDisplayString,
             dateFnsLocale,
+            rules,
             personalDetails,
             true,
             undefined,
@@ -394,6 +396,7 @@ function ParticipantSearchResults({
                               userToInviteExpenseReportPolicy,
                               {translate, dateFnsLocale, convertToDisplayString},
                               currentUserAccountID,
+                              rules,
                               reportAttributesDerived,
                           )
                         : getParticipantsOption(participant, personalDetails, translate);
@@ -521,7 +524,7 @@ function ParticipantSearchResults({
     ) : null;
 
     const ClickableImportContactTextComponent =
-        !searchTerm.length && !isSearchingForReports ? (
+        !searchTerm.length && !isSearchingForUsers ? (
             <ImportContactButton
                 showImportContacts={contactState?.showImportUI ?? showImportContacts}
                 inputHelperText={translate('contact.importContactsTitle')}
@@ -557,6 +560,10 @@ function ParticipantSearchResults({
         <SelectionListWithSections
             confirmButtonOptions={{
                 onConfirm: handleConfirmSelection,
+                isFooterConfirmEnabled: selectedOptions.length > 0 || isCategorizeOrShareAction,
+                // Pass the footer Next button's disabled state so Enter falls back to the list when split-bill disables Next;
+                // otherwise Enter can't toggle off the conflicting row.
+                isDisabled: shouldShowSplitBillErrorMessage,
             }}
             sections={sections}
             ListItem={InviteMemberListItem}
@@ -578,7 +585,7 @@ function ParticipantSearchResults({
             shouldShowLoadingPlaceholder={shouldShowLoadingPlaceholder}
             shouldShowTextInput
             canSelectMultiple={isIOUSplit && isAllowedToSplit}
-            isLoadingNewOptions={!!isSearchingForReports}
+            isLoadingNewOptions={!!isSearchingForUsers}
             shouldShowListEmptyContent={shouldShowListEmptyContent}
             ref={selectionListRef}
             onEndReached={onListEndReached}

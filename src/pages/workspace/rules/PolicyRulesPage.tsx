@@ -58,7 +58,6 @@ function PolicyRulesPage(props: PolicyRulesPageProps) {
     const {canWrite: canWriteRules, showReadOnlyModal, withReadOnlyFallback} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.RULES);
     const {isBetaEnabled} = usePermissions();
     const isRulesRevampEnabled = isBetaEnabled(CONST.BETAS.RULES_REVAMP);
-    const isCustomAgentBetaEnabled = isBetaEnabled(CONST.BETAS.CUSTOM_AGENT);
     const [isAgentsRulesBannerDismissed = false] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {selector: agentsRulesBannerDismissedSelector});
 
     const fetchRules = useCallback(() => {
@@ -115,7 +114,7 @@ function PolicyRulesPage(props: PolicyRulesPageProps) {
             >
                 {shouldDisplayButtonsInSeparateLine && <View style={[styles.pl5, styles.pr5]}>{headerButtons}</View>}
                 <View style={[styles.mt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
-                    {isCustomAgentBetaEnabled && !isAgentsRulesBannerDismissed && (
+                    {!isAgentsRulesBannerDismissed && (
                         <AgentPromotionalBanner
                             title={translate('workspace.rules.agentsPromoBanner.title')}
                             subtitle={translate('workspace.rules.agentsPromoBanner.subtitle')}
@@ -150,13 +149,11 @@ function PolicyRulesPage(props: PolicyRulesPageProps) {
                             showReadOnlyModal={showReadOnlyModal}
                         />
                     )}
-                    {isCustomAgentBetaEnabled && (
-                        <AgentRulesSection
-                            policyID={policyID}
-                            canWriteRules={canWriteRules}
-                            showReadOnlyModal={showReadOnlyModal}
-                        />
-                    )}
+                    <AgentRulesSection
+                        policyID={policyID}
+                        canWriteRules={canWriteRules}
+                        showReadOnlyModal={showReadOnlyModal}
+                    />
                 </View>
             </WorkspacePageWithSections>
         </AccessOrNotFoundWrapper>

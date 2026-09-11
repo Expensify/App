@@ -75,6 +75,7 @@ const translations: TranslationDeepObject<typeof en> = {
         search: 'Suche',
         reports: 'Berichte',
         spend: 'Ausgaben',
+        insights: 'Einblicke',
         find: 'Finden',
         searchWithThreeDots: 'Suchen...',
         next: 'Weiter',
@@ -465,6 +466,9 @@ const translations: TranslationDeepObject<typeof en> = {
         none: 'Keine',
         unstableInternetConnection: 'Instabile Internetverbindung. Bitte überprüfe dein Netzwerk und versuche es erneut.',
         enableGlobalReimbursements: 'Globale Rückerstattungen aktivieren',
+        corpayPayModalTitle: 'Bericht bezahlen',
+        corpayPayModalPrompt:
+            'Diese einreichende Person hat ein Bankkonto in einer anderen Währung als USD. Aktiviere globale Rückerstattungen, um den Bericht zu bezahlen, oder bitte sie, ein USD-Bankkonto hinzuzufügen.',
         purchaseAmount: 'Kaufbetrag',
         originalAmount: 'Ursprünglicher Betrag',
         frequency: 'Häufigkeit',
@@ -2296,6 +2300,11 @@ const translations: TranslationDeepObject<typeof en> = {
             sentryHighlightedSpanOps: 'Hervorgehobene Spannen-Namen',
             sentryHighlightedSpanOpsPlaceholder: 'ui.interaktion.klick, navigation, ui.laden',
             showBranchNameInTitle: 'Branch-Namen im Browser-Titel anzeigen',
+            betaOverrides: 'Beta-Überschreibungen',
+            betaOverridesDescription:
+                'Überschreibungen gelten nur für dieses Gerät und wirken sich nur auf Frontend-Prüfungen aus. Eine Beta behält eine Überschreibung nur so lange, wie sie von den Betas Ihres Kontos abweicht; schalten Sie sie zurück, wird die Überschreibung entfernt. „Alle Überschreibungen zurücksetzen“ stellt die Werte Ihres Kontos wieder her. Einige Betas werden zusätzlich vom Backend gesteuert und können daher weiterhin auf Anfrageebene fehlschlagen.',
+            resetAllOverrides: 'Alle Überschreibungen zurücksetzen',
+            overridden: 'Überschrieben',
             qaAuth: 'QA-Authentifizierung (Cloudflare)',
             qaAuthRunProbe: 'Test ausführen',
             qaAuthSession: 'QA-Authentifizierungssitzung',
@@ -2609,6 +2618,10 @@ const translations: TranslationDeepObject<typeof en> = {
             connectionLink
                 ? `Die Verbindung Ihrer ${cardName}-Karte ist unterbrochen. <a href="${connectionLink}">Melden Sie sich bei Ihrer Bank an</a>, um die Karte zu reparieren.`
                 : `Die Verbindung Ihrer ${cardName}-Karte ist unterbrochen. Melden Sie sich bei Ihrer Bank an, um die Karte zu reparieren.`,
+        conciergeBrokenConnection30Days: (cardName: string, connectionLink?: string) =>
+            connectionLink
+                ? `Ihre ${cardName}-Verbindung ist seit 30 Tagen unterbrochen. <a href="${connectionLink}">Melden Sie sich bei Ihrer Bank an</a>, um sie zu reparieren, oder <a href="${connectionLink}">entfernen Sie die Karte</a>, wenn sie nicht mehr verwendet wird. Bereits eingereichte Ausgaben gehen beim Entfernen nicht verloren.`
+                : `Ihre ${cardName}-Verbindung ist seit 30 Tagen unterbrochen. Melden Sie sich bei Ihrer Bank an, um sie zu beheben, oder entfernen Sie die Karte, wenn sie nicht mehr verwendet wird. Sie verlieren keine eingereichten Ausgaben, wenn Sie sie entfernen.`,
         fixCard: 'Karte reparieren',
         addAdditionalCards: 'Weitere Karten hinzufügen',
         upgradeDescription: 'Müssen Sie weitere Karten hinzufügen? Erstellen Sie einen Workspace, um weitere persönliche Karten hinzuzufügen oder Firmenkarten dem gesamten Team zuzuweisen.',
@@ -3160,6 +3173,7 @@ ${amount} für ${merchant} – ${date}`,
         unread: 'Ungelesen',
         markAllAsRead: 'Alle als gelesen markieren',
         markAllAsReadConfirmationPrompt: 'Möchtest du wirklich alle Chats als gelesen markieren?',
+        markAllTodosAsReadConfirmationPrompt: 'Möchtest du wirklich alle offenen Chats als gelesen markieren?',
     },
     reportDetailsPage: {
         inWorkspace: (policyName: string) => `in ${policyName}`,
@@ -4620,6 +4634,7 @@ ${amount} für ${merchant} – ${date}`,
             customFieldHint: 'Füge benutzerdefinierte Codierung hinzu, die für alle Ausgaben dieses Mitglieds gilt.',
             reports: 'Berichte',
             reportFields: 'Berichtsfelder',
+            invoiceFields: 'Rechnungsfelder',
             reportTitle: 'Berichtstitel',
             reportField: 'Berichts­feld',
             taxes: 'Steuern',
@@ -4629,6 +4644,7 @@ ${amount} für ${merchant} – ${date}`,
             travel: 'Reisen',
             members: 'Mitglieder',
             accounting: 'Buchhaltung',
+            mcp: 'MCP',
             receiptPartners: 'Belegpartner',
             rules: 'Regeln',
             displayedAs: 'Angezeigt als',
@@ -4766,6 +4782,25 @@ ${amount} für ${merchant} – ${date}`,
         createdForClient: {
             title: 'Du hast einen Workspace für deinen Kunden erstellt!',
             description: 'Großartige Neuigkeiten 🎉. Kontaktiere uns, wenn sie Hilfe bei der Einrichtung benötigen.',
+        },
+        mcp: {
+            connectors: 'Konnektoren',
+            connectorsSubtitle: 'Verbinde einen KI-Assistenten mit deinem Expensify-Konto.',
+            connect: 'Verbinden',
+            helpPrompt: 'Brauchst du Hilfe beim Verbinden?',
+            helpLink: 'Lies unsere Anleitung.',
+            claude: {
+                title: 'Claude',
+                subtitle: 'von Anthropic',
+            },
+            cursor: {
+                title: 'Cursor',
+                subtitle: 'von Anysphere',
+            },
+            chatgpt: {
+                title: 'ChatGPT',
+                subtitle: 'von OpenAI',
+            },
         },
         receiptPartners: {
             uber: {
@@ -6544,6 +6579,10 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                 title: 'Buchhaltung',
                 subtitle: 'Synchronisieren Sie Ihren Kontenplan und mehr.',
             },
+            mcp: {
+                title: 'MCP',
+                subtitle: 'Verbinde einen KI-Assistenten mit deinem Expensify-Konto.',
+            },
             receiptPartners: {
                 title: 'Belegpartner',
                 subtitle: 'Belege automatisch importieren.',
@@ -6643,6 +6682,29 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             unsupportedFormulaValueError: (value: string) => `Formelfeld ${value} nicht erkannt`,
             reportFieldInitialValueRequiredError: 'Bitte wähle einen Anfangswert für ein Berichtsfeld aus',
             genericFailureMessage: 'Beim Aktualisieren des Berichtfelds ist ein Fehler aufgetreten. Bitte versuche es erneut.',
+        },
+        invoiceFields: {
+            subtitle: 'Rechnungsfelder können hilfreich sein, wenn du zusätzliche Informationen einfügen möchtest.',
+            importedFromAccountingSoftware: 'Die folgenden Rechnungsfelder werden importiert aus Ihrem',
+            disableInvoiceFields: 'Rechnungsfelder deaktivieren',
+            disableInvoiceFieldsConfirmation: 'Sind Sie sicher? Rechnungsfelder werden auf Rechnungen deaktiviert.',
+            delete: 'Rechnungsfeld löschen',
+            deleteConfirmation: 'Sind Sie sicher, dass Sie dieses Rechnungsfeld löschen möchten?',
+            findInvoiceField: 'Rechnungsfeld suchen',
+            nameInputSubtitle: 'Wähle einen Namen für das Rechnungsfeld.',
+            typeInputSubtitle: 'Wähle aus, welcher Rechnungsfeldtyp verwendet werden soll.',
+            initialValueInputSubtitle: 'Gib einen Startwert ein, der im Rechnungsfeld angezeigt werden soll.',
+            listValuesInputSubtitle: 'Diese Werte werden im Dropdown-Menü des Rechnungsfelds angezeigt. Aktivierte Werte können von Mitgliedern ausgewählt werden.',
+            listInputSubtitle: 'Diese Werte werden in der Rechnungsfeldliste angezeigt. Aktivierte Werte können von Mitgliedern ausgewählt werden.',
+            emptyInvoiceFieldsValues: {
+                title: 'Noch keine Listenwerte',
+                subtitle: 'Füge benutzerdefinierte Werte hinzu, die auf Rechnungen angezeigt werden.',
+            },
+            existingInvoiceFieldNameError: 'Ein Rechnungsfeld mit diesem Namen existiert bereits',
+            invoiceFieldNameRequiredError: 'Bitte gib einen Namen für das Rechnungsfeld ein',
+            invoiceFieldTypeRequiredError: 'Bitte wähle einen Rechnungsfeldtyp aus',
+            invoiceFieldInitialValueRequiredError: 'Bitte wähle einen Anfangswert für ein Rechnungsfeld aus',
+            addField: 'Feld hinzufügen',
         },
         vendors: {
             emptyTitle: 'Noch keine Lieferanten',
@@ -7039,6 +7101,8 @@ Der Control-Tarif beginnt bei 9 $ pro aktivem Mitglied und Monat.`,
                         return 'Rillet';
                     case CONST.POLICY.CONNECTIONS.NAME.DUALENTRY:
                         return 'DualEntry';
+                    case CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE:
+                        return 'Campfire';
                     default: {
                         return '';
                     }
@@ -7099,7 +7163,7 @@ Der Control-Tarif beginnt bei 9 $ pro aktivem Mitglied und Monat.`,
                     switch (stage) {
                         case 'quickbooksOnlineImportCustomers':
                         case 'quickbooksDesktopImportCustomers':
-                            return 'Kunden werden importiert';
+                            return 'Kund:innen werden importiert';
                         case 'quickbooksOnlineImportEmployees':
                         case 'netSuiteSyncImportEmployees':
                         case 'intacctImportEmployees':
@@ -7110,24 +7174,24 @@ Der Control-Tarif beginnt bei 9 $ pro aktivem Mitglied und Monat.`,
                             return 'Konten werden importiert';
                         case 'quickbooksOnlineImportClasses':
                         case 'quickbooksDesktopImportClasses':
-                            return 'Klassen werden importiert';
+                            return 'Klassen importieren';
                         case 'quickbooksOnlineImportLocations':
                             return 'Standorte werden importiert';
                         case 'quickbooksOnlineImportProcessing':
                             return 'Importierte Daten werden verarbeitet';
                         case 'quickbooksOnlineSyncBillPayments':
                         case 'intacctImportSyncBillPayments':
-                            return 'Synchronisieren von erstatteten Berichten und Rechnungszahlungen';
+                            return 'Synchronisierung erstatteter Berichte und Rechnungszahlungen';
                         case 'quickbooksOnlineSyncTaxCodes':
                             return 'Steuercodes werden importiert';
                         case 'quickbooksOnlineCheckConnection':
-                            return `${integrationName}-Verbindung wird überprüft`;
+                            return `Überprüfe ${integrationName}-Verbindung`;
                         case 'quickbooksOnlineImportMain':
-                            return `Importieren von ${integrationName}-Daten`;
+                            return `${integrationName}-Daten werden importiert`;
                         case 'startingImportXero':
                             return 'Xero-Daten werden importiert';
                         case 'startingImportQBO':
-                            return `Importieren von ${integrationName}-Daten`;
+                            return `${integrationName}-Daten werden importiert`;
                         case 'startingImportQBD':
                         case 'quickbooksDesktopImportMore':
                             return 'QuickBooks Desktop-Daten importieren';
@@ -7136,11 +7200,11 @@ Der Control-Tarif beginnt bei 9 $ pro aktivem Mitglied und Monat.`,
                         case 'quickbooksDesktopImportApproveCertificate':
                             return 'Genehmigungszertifikat wird importiert';
                         case 'quickbooksDesktopImportDimensions':
-                            return 'Importieren von Dimensionen';
+                            return 'Dimensionen werden importiert';
                         case 'quickbooksDesktopImportSavePolicy':
-                            return 'Richtlinie zum Speichern importieren';
+                            return 'Richtlinie wird importiert gespeichert';
                         case 'quickbooksDesktopWebConnectorReminder':
-                            return 'Daten werden noch mit QuickBooks synchronisiert … Bitte stellen Sie sicher, dass der Web Connector ausgeführt wird';
+                            return 'Synchronisiere weiterhin Daten mit QuickBooks ... Bitte stellen Sie sicher, dass der Web Connector ausgeführt wird';
                         case 'quickbooksOnlineSyncTitle':
                             return `${integrationName}-Daten werden synchronisiert`;
                         case 'quickbooksOnlineSyncLoadData':
@@ -7150,19 +7214,19 @@ Der Control-Tarif beginnt bei 9 $ pro aktivem Mitglied und Monat.`,
                         case 'quickbooksOnlineSyncApplyCategories':
                             return 'Kategorien werden aktualisiert';
                         case 'quickbooksOnlineSyncApplyCustomers':
-                            return 'Kunden/Projekte werden aktualisiert';
+                            return 'Kund:innen/Projekte werden aktualisiert';
                         case 'quickbooksOnlineSyncApplyEmployees':
                             return 'Personenliste wird aktualisiert';
                         case 'quickbooksOnlineSyncApplyClassesLocations':
-                            return 'Berichts­felder werden aktualisiert';
+                            return 'Berichtsfelder werden aktualisiert';
                         case 'jobDone':
-                            return 'Warten auf das Laden der importierten Daten';
+                            return 'Warten, bis importierte Daten geladen sind';
                         case 'xeroSyncImportChartOfAccounts':
                             return 'Kontenplan wird synchronisiert';
                         case 'xeroSyncImportCategories':
                             return 'Kategorien werden synchronisiert';
                         case 'xeroSyncImportCustomers':
-                            return 'Kunden werden synchronisiert';
+                            return 'Kund:innen werden synchronisiert';
                         case 'xeroSyncXeroReimbursedReports':
                             return 'Expensify-Berichte als erstattet markieren';
                         case 'xeroSyncExpensifyReimbursedReports':
@@ -7180,11 +7244,11 @@ Der Control-Tarif beginnt bei 9 $ pro aktivem Mitglied und Monat.`,
                         case 'netSuiteSyncConnection':
                             return 'Verbindung zu NetSuite wird initialisiert';
                         case 'netSuiteSyncCustomers':
-                            return 'Kunden werden importiert';
+                            return 'Kund:innen werden importiert';
                         case 'netSuiteSyncInitData':
-                            return 'Daten werden aus NetSuite abgerufen';
+                            return 'Daten werden von NetSuite abgerufen';
                         case 'netSuiteSyncImportTaxes':
-                            return 'Steuern werden importiert';
+                            return 'Steuern importieren';
                         case 'netSuiteSyncImportItems':
                             return 'Elemente werden importiert';
                         case 'netSuiteSyncData':
@@ -7198,7 +7262,7 @@ Der Control-Tarif beginnt bei 9 $ pro aktivem Mitglied und Monat.`,
                         case 'netSuiteSyncReportFields':
                             return 'Daten als Expensify-Berichts­felder importieren';
                         case 'netSuiteSyncTags':
-                            return 'Import von Daten als Expensify-Tags';
+                            return 'Daten als Expensify-Tags importieren';
                         case 'netSuiteSyncUpdateConnectionData':
                             return 'Verbindungsinformationen werden aktualisiert';
                         case 'netSuiteSyncNetSuiteReimbursedReports':
@@ -7206,22 +7270,22 @@ Der Control-Tarif beginnt bei 9 $ pro aktivem Mitglied und Monat.`,
                         case 'netSuiteSyncExpensifyReimbursedReports':
                             return 'NetSuite-Rechnungen als bezahlt markieren';
                         case 'netSuiteImportVendorsTitle':
-                            return 'Lieferanten importieren';
+                            return 'Lieferanten werden importiert';
                         case 'netSuiteImportCustomListsTitle':
-                            return 'Import benutzerdefinierter Listen';
+                            return 'Benutzerdefinierte Listen importieren';
                         case 'netSuiteSyncImportCustomLists':
-                            return 'Import benutzerdefinierter Listen';
+                            return 'Benutzerdefinierte Listen importieren';
                         case 'netSuiteSyncImportSubsidiaries':
-                            return 'Import von Tochtergesellschaften';
+                            return 'Importieren von Tochtergesellschaften';
                         case 'netSuiteSyncImportVendors':
                         case 'quickbooksDesktopImportVendors':
-                            return 'Lieferanten importieren';
+                            return 'Lieferanten werden importiert';
                         case 'intacctCheckConnection':
-                            return 'Sage Intacct-Verbindung wird überprüft';
+                            return 'Sage-Intacct-Verbindung wird überprüft';
                         case 'intacctImportDimensions':
-                            return 'Sage-Intacct-Dimensionen importieren';
+                            return 'Importieren von Sage Intacct-Dimensionen';
                         case 'intacctImportTitle':
-                            return 'Import von Sage-Intacct-Daten';
+                            return 'Sage Intacct-Daten werden importiert';
                         case 'financialForceSyncTitle':
                             return 'Certinia-Daten werden synchronisiert';
                         case 'financialForceSyncStep':
@@ -7231,7 +7295,7 @@ Der Control-Tarif beginnt bei 9 $ pro aktivem Mitglied und Monat.`,
                         case 'financialForceSyncTags':
                             return 'Tags werden importiert';
                         case 'financialForceSyncVendors':
-                            return 'Lieferanten importieren';
+                            return 'Lieferanten werden importiert';
                         case 'financialForceSyncContacts':
                             return 'Kontakte werden importiert';
                         case 'financialForceSyncCompanies':
@@ -7239,7 +7303,7 @@ Der Control-Tarif beginnt bei 9 $ pro aktivem Mitglied und Monat.`,
                         case 'financialForceSyncUsers':
                             return 'Benutzer importieren';
                         case 'financialForceSyncDimensions':
-                            return 'Importieren von Dimensionen';
+                            return 'Dimensionen werden importiert';
                         case 'financialForceMarkAsReimbursed':
                             return 'Berichte als erstattet markieren';
                         case 'rilletSyncTitle':
@@ -7249,19 +7313,31 @@ Der Control-Tarif beginnt bei 9 $ pro aktivem Mitglied und Monat.`,
                         case 'rilletSyncImportData':
                             return 'Daten werden geladen';
                         case 'dualEntrySyncTitle':
-                            return 'Synchronisiere DualEntry-Daten';
+                            return 'Daten für DualEntry werden synchronisiert';
                         case 'dualEntrySyncConnection':
                             return 'Verbindung zu DualEntry wird initialisiert';
                         case 'dualEntrySyncImportData':
                             return 'Daten werden geladen';
                         case 'dualEntrySyncPayments':
-                            return 'Anbieterzahlungen werden synchronisiert';
+                            return 'Lieferantenzahlungen werden synchronisiert';
                         case 'dualEntrySyncCardSettlements':
                             return 'Kartenausgleiche werden synchronisiert';
                         case 'dualEntrySyncTravelSettlements':
                             return 'Reiseabrechnungen werden synchronisiert';
+                        case 'campfireSyncTitle':
+                            return 'Campfire-Daten werden synchronisiert';
+                        case 'campfireSyncConnection':
+                            return 'Verbindung zu Campfire wird initialisiert';
+                        case 'campfireSyncImportData':
+                            return 'Daten werden geladen';
+                        case 'campfireSyncPayments':
+                            return 'Lieferantenzahlungen werden synchronisiert';
+                        case 'campfireSyncCardSettlements':
+                            return 'Kartenausgleiche werden synchronisiert';
+                        case 'campfireSyncTravelSettlements':
+                            return 'Reiseabrechnungen werden synchronisiert';
                         default: {
-                            return `Übersetzung für Stufe fehlt: ${stage}`;
+                            return `Übersetzung fehlt für Stufe: ${stage}`;
                         }
                     }
                 },
@@ -7302,6 +7378,7 @@ Der Control-Tarif beginnt bei 9 $ pro aktivem Mitglied und Monat.`,
             syncTravelInvoicingSettlements: 'Konsolidierte Reiseabrechnungs-Abrechnungen synchronisieren',
             syncTravelInvoicingSettlementsNoAccountTooltip: 'Zum Aktivieren legen Sie ein Konto für Ihre Exporte fest.',
             syncTravelInvoicingSettlementsNoAutoSyncTooltip: 'Zum Entsperren automatische Synchronisierung aktivieren.',
+            campfire: 'Campfire',
         },
         export: {
             notReadyHeading: 'Nicht bereit zum Export',
@@ -7567,6 +7644,12 @@ ${reportName}`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>Berichtsfelder sind nur im Control-Tarif verfügbar, ab <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `pro Mitglied und Monat.` : `pro aktivem Mitglied und Monat.`}</muted-text>`,
             },
+            invoiceFields: {
+                title: 'Rechnungsfelder',
+                description: `Mit Rechnungsfeldern kannst du zusätzliche Details auf Rechnungsebene in Rechnungen aufnehmen.`,
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Rechnungsfelder sind nur im Control-Tarif verfügbar, ab <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `pro Mitglied und Monat.` : `pro aktivem Mitglied und Monat.`}</muted-text>`,
+            },
             [CONST.POLICY.CONNECTIONS.NAME.NETSUITE]: {
                 title: 'NetSuite',
                 description: `Profitiere von automatischer Synchronisierung und reduziere manuelle Eingaben mit der Expensify + NetSuite-Integration. Gewinne detaillierte Finanzanalysen in Echtzeit mit nativer und benutzerdefinierter Segmentunterstützung, einschließlich Projekt- und Kundenzuordnung.`,
@@ -7608,6 +7691,12 @@ ${reportName}`,
                 description: `Profitiere von automatisierter Synchronisierung und reduziere manuelle Eingaben mit der Expensify + DualEntry-Integration. Richte Spesenkodierungsdimensionen und die Steuersynchronisierung auf deine DualEntry-Einrichtung aus, um eine klarere finanzielle Übersicht zu erhalten.`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>Unsere DualEntry-Integration ist nur im Control-Tarif verfügbar, beginnend bei <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `pro Mitglied und Monat.` : `pro aktivem Mitglied und Monat.`}</muted-text>`,
+            },
+            [CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE]: {
+                title: 'Campfire',
+                description: `Profitiere von automatisierter Synchronisierung und reduziere manuelle Eingaben mit der Expensify + Campfire-Integration. Richte Spesenkodierungsdimensionen und die Steuersynchronisierung auf deine Campfire-Einrichtung aus, um eine klarere finanzielle Übersicht zu erhalten.`,
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Unsere Campfire-Integration ist nur im Control-Tarif verfügbar, beginnend bei <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `pro Mitglied und Monat.` : `pro aktivem Mitglied und Monat.`}</muted-text>`,
             },
             [CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.id]: {
                 title: 'Erweiterte Genehmigungen',
@@ -8015,6 +8104,13 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
                 turnOnTaxesFirstPrompt: 'Kategorienregeln legen einen Standardsteuersatz fest. Aktivieren Sie Steuern in Ihren Workspace-Einstellungen, um sie zu verwenden.',
                 categoryRulesApplyGoingForwardTitle: 'Kategorienregeln gelten ab jetzt',
                 categoryRulesApplyGoingForwardPrompt: 'Ein Standardsatz für Steuern gilt für neue Ausgaben in dieser Kategorie. Bereits vorhandene Ausgaben werden nicht geändert.',
+                confirmErrorCategoryTaxMoveIsWorkspaceDefault:
+                    'Der ausgewählte Steuersatz ist jetzt die Voreinstellung für Ihren Workspace, daher ist diese Regel nicht mehr gültig. Wählen Sie einen anderen Steuersatz.',
+                addTaxRateFirstTitle: 'Fügen Sie zuerst einen Steuersatz hinzu',
+                addTaxRateFirstPrompt:
+                    'Kategorienregeln legen einen standardmäßigen Steuersatz fest. Fügen Sie einen anderen Steuersatz als den Standard Ihres Arbeitsbereichs hinzu, um sie zu verwenden.',
+                createRuleFromExpenseAction: 'Regel erstellen',
+                createRuleFromExpensePrompt: 'um Ihre Änderungen auf alle Ausgaben anzuwenden, die Ihren Kriterien entsprechen.',
             },
             categoryRules: {
                 title: 'Kategorienregeln',
@@ -8545,6 +8641,16 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         emptyDomain: {
             title: 'Stärken Sie Ihre Sicherheit mit Domains',
             subtitle: 'Verlangen Sie, dass Mitglieder in Ihrer Domain sich per Single Sign-On anmelden, schränken Sie das Erstellen von Arbeitsbereichen ein und mehr.',
+        },
+        campfire: {
+            campfireSetup: 'Campfire-Einrichtung',
+            enterCredentials: 'Geben Sie Ihren Campfire-API-Schlüssel ein',
+            howToFindAPIKey:
+                '<strong>So finden Sie Ihren API-Schlüssel.</strong><ol><li>Melden Sie sich bei Campfire an</li><li>Navigieren Sie zu Einstellungen -> API-Schlüssel</li><li>Erstellen Sie einen API-Schlüssel</li><li>Fügen Sie den API-Schlüssel unten ein</li></ol>',
+            subsidiary: 'Tochtergesellschaft',
+            subsidiarySelectDescription: 'Wählen Sie die Tochtergesellschaft in Campfire aus, von der Sie Daten importieren möchten.',
+            noSubsidiariesFound: 'Keine Tochtergesellschaften gefunden',
+            noSubsidiariesFoundDescription: 'Bitte fügen Sie eine Entität in Campfire hinzu und synchronisieren Sie die Verbindung erneut',
         },
     },
     getAssistancePage: {
@@ -9450,7 +9556,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 [CONST.SEARCH.WITHDRAWAL_TYPE.TRAVEL_BILLING]: 'Konsolidierte Reiseabrechnung',
             },
             is: 'Ist',
-            has: {submittedViolation: 'Eingereichter Verstoß'},
+            has: {submittedViolation: 'Eingereichter Verstoß', approvedViolation: 'Genehmigter Verstoß'},
             action: {
                 [CONST.SEARCH.ACTION_FILTERS.SUBMIT]: 'Senden',
                 [CONST.SEARCH.ACTION_FILTERS.APPROVE]: 'Genehmigen',
@@ -9674,6 +9780,16 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 integrationSyncFailedRecurrence: ({count}: {count: number}) => `(${count} Mal wiederholt.)`,
                 companyCardConnectionBroken: ({feedName, workspaceCompanyCardRoute}: {feedName: string; workspaceCompanyCardRoute: string}) =>
                     `Die Verbindung für ${feedName} ist unterbrochen. Um Kartenimporte wiederherzustellen, <a href='${workspaceCompanyCardRoute}'>melden Sie sich bei Ihrer Bank an</a>.`,
+                companyCardConnectionBroken30Days: ({
+                    feedName,
+                    workspaceCompanyCardRoute,
+                    workspaceCompanyCardSettingsRoute,
+                }: {
+                    feedName: string;
+                    workspaceCompanyCardRoute: string;
+                    workspaceCompanyCardSettingsRoute: string;
+                }) =>
+                    `Die ${feedName}-Verbindung besteht seit 30 Tagen nicht mehr. <a href='${workspaceCompanyCardRoute}'>Melden Sie sich bei Ihrer Bank an</a>, um sie zu beheben, oder <a href='${workspaceCompanyCardSettingsRoute}'>entfernen Sie die Verbindung</a>, wenn sie nicht mehr verwendet wird. Bereits eingereichte Ausgaben gehen beim Entfernen nicht verloren.`,
                 plaidBalanceFailure: ({maskedAccountNumber, walletRoute}: {maskedAccountNumber: string; walletRoute: string}) =>
                     `Die Plaid-Verbindung zu Ihrem Geschäftskonto ist unterbrochen. Bitte <a href='${walletRoute}'>verbinden Sie Ihr Bankkonto ${maskedAccountNumber} erneut</a>, damit Sie Ihre Expensify Karten weiterhin verwenden können.`,
                 addEmployee: (email: string, role: string, didJoinPolicy?: boolean) => {
@@ -10912,6 +11028,7 @@ Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
         notVerified: 'Nicht verifiziert',
         retry: 'Wiederholen',
         requestSent: 'Anfrage gesendet',
+        requestAccessError: 'Wir konnten deine Anfrage nicht senden. Bitte versuche es erneut.',
         verifyDomain: {
             title: 'Domain bestätigen',
             beforeProceeding: ({domainName}: {domainName: string}) =>
@@ -10972,13 +11089,12 @@ Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
             setMetadataGenericError: 'SAML-Metadaten konnten nicht festgelegt werden',
         },
         accessRestricted: {
-            title: 'Zugriff eingeschränkt',
-            subtitle: (domainName: string) =>
-                `Bitte bestätigen Sie sich als autorisierte/r Firmenadministrator/in für <strong>${domainName}</strong>, wenn Sie die Kontrolle über Folgendes benötigen:`,
-            companyCardManagement: 'Firmenkartenverwaltung',
-            accountCreationAndDeletion: 'Kontoerstellung und -löschung',
-            workspaceCreation: 'Bereichserstellung',
-            samlSSO: 'SAML-SSO',
+            headerTitle: 'Zugriff eingeschränkt',
+            title: 'Verifizierung erforderlich',
+            description: (domainName: string) =>
+                `<muted-text><centered-text>Bitte bestätige dich als autorisierte/r Firmenadministrator/in für <strong>${domainName}</strong> oder fordere Zugriff von bestehenden Administratoren an.</centered-text></muted-text>`,
+            requestAdminAccess: 'Admin-Zugriff anfordern',
+            verifyYourself: 'Verifiziere dich',
         },
         addDomain: {
             title: 'Domain hinzufügen',
@@ -10992,7 +11108,6 @@ Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
             title: 'Domain bereits eingerichtet. Zugriff anfragen?',
             description: 'Jemand hat diese Domain bereits in Expensify eingerichtet. Möchtest du Administratorzugriff anfragen?',
             requestAccess: 'Admin-Zugriff anfragen',
-            requestAccessError: 'Wir konnten deine Anfrage nicht senden. Bitte versuche es erneut.',
         },
         domainAdded: {
             title: 'Domain hinzugefügt',

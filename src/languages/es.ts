@@ -17,7 +17,7 @@ import type {ValueOf} from 'type-fest';
 import {CONST as COMMON_CONST, Str} from 'expensify-common';
 
 import type en from './en';
-import type {PolicyConnectionSyncStage} from './TranslationTypes';
+import type {AllConnectionName, PolicyConnectionSyncStage} from './TranslationTypes';
 import type {TranslationDeepObject} from './types';
 const translations: TranslationDeepObject<typeof en> = {
     common: {
@@ -63,6 +63,7 @@ const translations: TranslationDeepObject<typeof en> = {
         search: 'Buscar',
         reports: 'Informes',
         spend: 'Gastos',
+        insights: 'Información',
         find: 'Encontrar',
         searchWithThreeDots: 'Buscar...',
         select: 'Seleccionar',
@@ -453,6 +454,9 @@ const translations: TranslationDeepObject<typeof en> = {
         none: 'Ninguno',
         unstableInternetConnection: 'Conexión a internet inestable. Por favor, revisa tu red e inténtalo de nuevo.',
         enableGlobalReimbursements: 'Habilitar Reembolsos Globales',
+        corpayPayModalTitle: 'Pagar informe',
+        corpayPayModalPrompt:
+            'Esta persona que envió el informe tiene una cuenta bancaria que no es en USD. Habilita los reembolsos globales para pagar el informe, o pídele que añada una cuenta bancaria en USD.',
         purchaseAmount: 'Importe de compra',
         originalAmount: 'Importe original',
         frequency: 'Frecuencia',
@@ -2219,6 +2223,11 @@ const translations: TranslationDeepObject<typeof en> = {
             sentryHighlightedSpanOps: 'Nombres de spans resaltados',
             sentryHighlightedSpanOpsPlaceholder: 'ui.interaction.click, navigation, ui.load',
             showBranchNameInTitle: 'Mostrar nombre de rama en el título del navegador',
+            betaOverrides: 'Anulaciones de betas',
+            betaOverridesDescription:
+                'Las anulaciones solo se aplican a este dispositivo y solo afectan a las comprobaciones del frontend. Una beta conserva una anulación solo mientras difiere de las betas de tu cuenta, por lo que al volver a cambiarla se elimina la anulación. «Restablecer todas las anulaciones» recupera los valores de tu cuenta. Algunas betas también están controladas por el backend, así que pueden fallar a nivel de solicitud.',
+            resetAllOverrides: 'Restablecer todas las anulaciones',
+            overridden: 'Anulada',
             qaAuth: 'Autenticación QA (Cloudflare)',
             qaAuthRunProbe: 'Ejecutar prueba',
             qaAuthSession: 'Sesión de autenticación QA',
@@ -2532,6 +2541,10 @@ const translations: TranslationDeepObject<typeof en> = {
             connectionLink
                 ? `La conexión de tu tarjeta ${cardName} se ha interrumpido. <a href="${connectionLink}">Inicia sesión en tu banco</a> para arreglarla.`
                 : `La conexión de tu tarjeta ${cardName} se ha interrumpido. Inicia sesión en tu banco para arreglarla.`,
+        conciergeBrokenConnection30Days: (cardName: string, connectionLink?: string) =>
+            connectionLink
+                ? `La conexión de tu ${cardName} se ha interrumpido desde hace 30 días. <a href="${connectionLink}">Inicia sesión en tu banco</a> para solucionarlo o <a href="${connectionLink}">elimina la tarjeta</a> si ya no la usas. No perderás ningún gasto enviado si la eliminas.`
+                : `La conexión de tu ${cardName} se ha interrumpido durante 30 días. Inicia sesión en tu banco para solucionarlo o elimina la tarjeta si ya no la utilizas. No perderás ningún gasto enviado si la eliminas.`,
         addAdditionalCards: 'Añadir más tarjetas',
         upgradeDescription: '¿Necesitas añadir más tarjetas? Crea un espacio de trabajo para añadir tarjetas personales o asignar tarjetas de empresa a todo el equipo.',
         onlyAvailableOnPlan: ({formattedPrice}: {formattedPrice: string}) =>
@@ -3068,6 +3081,7 @@ ${amount} para ${merchant} - ${date}`,
         unread: 'No leído',
         markAllAsRead: 'Marcar todo como leído',
         markAllAsReadConfirmationPrompt: '¿Seguro que quieres marcar todos los chats como leídos?',
+        markAllTodosAsReadConfirmationPrompt: '¿Seguro que quieres marcar como leídos todos los chats pendientes?',
     },
     reportDetailsPage: {
         goToRoom: 'Ir a la sala',
@@ -4549,6 +4563,7 @@ ${amount} para ${merchant} - ${date}`,
             customFieldHint: 'Añade una codificación personalizada que se aplique a todos los gastos de este miembro.',
             reports: 'Informes',
             reportFields: 'Campos de informe',
+            invoiceFields: 'Campos de factura',
             reportTitle: 'El título del informe.',
             taxes: 'Impuestos',
             bills: 'Pagar facturas',
@@ -4560,6 +4575,7 @@ ${amount} para ${merchant} - ${date}`,
             accounting: 'Contabilidad',
             hr: 'HR',
             recruiting: 'Reclutamiento',
+            mcp: 'MCP',
             receiptPartners: 'Socios de recibos',
             rules: 'Reglas',
             plan: 'Plan',
@@ -4703,6 +4719,25 @@ ${amount} para ${merchant} - ${date}`,
         createdForClient: {
             title: '¡Has creado un espacio de trabajo para tu cliente!',
             description: 'Excelentes noticias 🎉. Contáctanos si necesitan ayuda con la configuración.',
+        },
+        mcp: {
+            connectors: 'Conectores',
+            connectorsSubtitle: 'Conecta un asistente de IA a tu cuenta de Expensify.',
+            connect: 'Conectar',
+            helpPrompt: '¿Necesitas ayuda para conectar?',
+            helpLink: 'Lee nuestra guía.',
+            claude: {
+                title: 'Claude',
+                subtitle: 'de Anthropic',
+            },
+            cursor: {
+                title: 'Cursor',
+                subtitle: 'de Anysphere',
+            },
+            chatgpt: {
+                title: 'ChatGPT',
+                subtitle: 'de OpenAI',
+            },
         },
         receiptPartners: {
             uber: {
@@ -6429,6 +6464,10 @@ ${amount} para ${merchant} - ${date}`,
                 title: 'Contabilidad',
                 subtitle: 'Sincroniza tu plan de cuentas y otras opciones.',
             },
+            mcp: {
+                title: 'MCP',
+                subtitle: 'Conecta un asistente de IA a tu cuenta de Expensify.',
+            },
             receiptPartners: {
                 title: 'Socios de recibos',
                 subtitle: 'Importación automática de recibos.',
@@ -6522,6 +6561,29 @@ ${amount} para ${merchant} - ${date}`,
             unsupportedFormulaValueError: (value) => `El campo de fórmula ${value} no se reconoce`,
             reportFieldInitialValueRequiredError: 'Elige un valor inicial de campo de informe',
             genericFailureMessage: 'Se ha producido un error al actualizar el campo de informe. Por favor, inténtalo de nuevo.',
+        },
+        invoiceFields: {
+            subtitle: 'Los campos de factura pueden ayudarte cuando quieras incluir información adicional.',
+            importedFromAccountingSoftware: 'Campos de factura importados desde',
+            disableInvoiceFields: 'Desactivar campos de factura',
+            disableInvoiceFieldsConfirmation: '¿Estás seguro? Los campos de factura se desactivarán en las facturas.',
+            delete: 'Eliminar campo de factura',
+            deleteConfirmation: '¿Seguro que deseas eliminar este campo de factura?',
+            findInvoiceField: 'Buscar campo de factura',
+            nameInputSubtitle: 'Elige un nombre para el campo de factura.',
+            typeInputSubtitle: 'Elige qué tipo de campo de factura usar.',
+            initialValueInputSubtitle: 'Ingresa un valor inicial para mostrar en el campo de factura.',
+            listValuesInputSubtitle: 'Estos valores aparecerán en el menú desplegable del campo de factura. Los miembros pueden seleccionar los valores activados.',
+            listInputSubtitle: 'Estos valores aparecerán en la lista del campo de factura. Los miembros pueden seleccionar los valores activados.',
+            emptyInvoiceFieldsValues: {
+                title: 'Aún no hay valores de lista',
+                subtitle: 'Agrega valores personalizados para que aparezcan en las facturas.',
+            },
+            existingInvoiceFieldNameError: 'Ya existe un campo de factura con este nombre',
+            invoiceFieldNameRequiredError: 'Ingresa un nombre para el campo de factura',
+            invoiceFieldTypeRequiredError: 'Elige un tipo de campo de factura',
+            invoiceFieldInitialValueRequiredError: 'Elige un valor inicial para el campo de factura',
+            addField: 'Añadir campo',
         },
         vendors: {
             emptyTitle: 'Todavía no hay proveedores',
@@ -6842,7 +6904,7 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
             talkYourAccountManager: 'Chatea con tu gestor de cuenta.',
             talkToConcierge: 'Chatear con Concierge.',
             needAnotherAccounting: '¿Necesitas otro software de contabilidad? ',
-            connectionName: (connectionName) => {
+            connectionName: (connectionName: AllConnectionName) => {
                 switch (connectionName) {
                     case CONST.POLICY.CONNECTIONS.NAME.QBO:
                         return 'QuickBooks Online';
@@ -6856,6 +6918,8 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
                         return 'Rillet';
                     case CONST.POLICY.CONNECTIONS.NAME.DUALENTRY:
                         return 'DualEntry';
+                    case CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE:
+                        return 'Campfire';
                     default: {
                         return '';
                     }
@@ -6928,14 +6992,14 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
                             return 'Importando cuentas';
                         case 'quickbooksOnlineImportClasses':
                         case 'quickbooksDesktopImportClasses':
-                            return 'Importación de clases';
+                            return 'Importar clases';
                         case 'quickbooksOnlineImportLocations':
                             return 'Importando ubicaciones';
                         case 'quickbooksOnlineImportProcessing':
                             return 'Procesando datos importados';
                         case 'quickbooksOnlineSyncBillPayments':
                         case 'intacctImportSyncBillPayments':
-                            return 'Sincronizar informes reembolsados y pagos de facturas';
+                            return 'Sincronización de informes reembolsados y pagos de facturas';
                         case 'quickbooksOnlineSyncTaxCodes':
                             return 'Importando códigos de impuestos';
                         case 'quickbooksOnlineCheckConnection':
@@ -6958,7 +7022,7 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
                         case 'quickbooksDesktopImportSavePolicy':
                             return 'Importando política de guardado';
                         case 'quickbooksDesktopWebConnectorReminder':
-                            return 'Sincronizando datos con QuickBooks... Asegúrate de que Web Connector esté en ejecución';
+                            return 'Todavía se están sincronizando los datos con QuickBooks... Asegúrate de que Web Connector esté en ejecución';
                         case 'quickbooksOnlineSyncTitle':
                             return `Sincronizando datos de ${integrationName}`;
                         case 'quickbooksOnlineSyncLoadData':
@@ -6968,7 +7032,7 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
                         case 'quickbooksOnlineSyncApplyCategories':
                             return 'Actualizando categorías';
                         case 'quickbooksOnlineSyncApplyCustomers':
-                            return 'Actualizar clientes/proyectos';
+                            return 'Actualización de clientes/proyectos';
                         case 'quickbooksOnlineSyncApplyEmployees':
                             return 'Actualizando la lista de personas';
                         case 'quickbooksOnlineSyncApplyClassesLocations':
@@ -6976,7 +7040,7 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
                         case 'jobDone':
                             return 'Esperando a que se carguen los datos importados';
                         case 'xeroSyncImportChartOfAccounts':
-                            return 'Sincronizando el plan de cuentas';
+                            return 'Sincronizando plan de cuentas';
                         case 'xeroSyncImportCategories':
                             return 'Sincronizando categorías';
                         case 'xeroSyncImportCustomers':
@@ -6984,7 +7048,7 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
                         case 'xeroSyncXeroReimbursedReports':
                             return 'Marcar los informes de Expensify como reembolsados';
                         case 'xeroSyncExpensifyReimbursedReports':
-                            return 'Marcar facturas y comprobantes de Xero como pagados';
+                            return 'Marcar facturas y cobros de Xero como pagados';
                         case 'xeroSyncImportTrackingCategories':
                             return 'Sincronizando categorías de seguimiento';
                         case 'xeroSyncImportBankAccounts':
@@ -6996,11 +7060,11 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
                         case 'xeroSyncTitle':
                             return 'Sincronizando datos de Xero';
                         case 'netSuiteSyncConnection':
-                            return 'Iniciando conexión a NetSuite';
+                            return 'Iniciando la conexión con NetSuite';
                         case 'netSuiteSyncCustomers':
                             return 'Importando clientes';
                         case 'netSuiteSyncInitData':
-                            return 'Obteniendo datos desde NetSuite';
+                            return 'Recuperando datos de NetSuite';
                         case 'netSuiteSyncImportTaxes':
                             return 'Importando impuestos';
                         case 'netSuiteSyncImportItems':
@@ -7022,18 +7086,18 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
                         case 'netSuiteSyncNetSuiteReimbursedReports':
                             return 'Marcar los informes de Expensify como reembolsados';
                         case 'netSuiteSyncExpensifyReimbursedReports':
-                            return 'Marcar facturas y recibos de NetSuite como pagados';
+                            return 'Marcar las facturas y los recibos de NetSuite como pagados';
                         case 'netSuiteImportVendorsTitle':
-                            return 'Importando proveedores';
+                            return 'Importación de proveedores';
                         case 'netSuiteImportCustomListsTitle':
-                            return 'Importar listas personalizadas';
+                            return 'Importación de listas personalizadas';
                         case 'netSuiteSyncImportCustomLists':
-                            return 'Importar listas personalizadas';
+                            return 'Importación de listas personalizadas';
                         case 'netSuiteSyncImportSubsidiaries':
-                            return 'Importando filiales';
+                            return 'Importación de subsidiarias';
                         case 'netSuiteSyncImportVendors':
                         case 'quickbooksDesktopImportVendors':
-                            return 'Importando proveedores';
+                            return 'Importación de proveedores';
                         case 'intacctCheckConnection':
                             return 'Comprobando la conexión con Sage Intacct';
                         case 'intacctImportDimensions':
@@ -7049,13 +7113,13 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
                         case 'financialForceSyncTags':
                             return 'Importando etiquetas';
                         case 'financialForceSyncVendors':
-                            return 'Importando proveedores';
+                            return 'Importación de proveedores';
                         case 'financialForceSyncContacts':
                             return 'Importando contactos';
                         case 'financialForceSyncCompanies':
                             return 'Importando empresas';
                         case 'financialForceSyncUsers':
-                            return 'Importación de usuarios';
+                            return 'Importando usuarios';
                         case 'financialForceSyncDimensions':
                             return 'Importando dimensiones';
                         case 'financialForceMarkAsReimbursed':
@@ -7063,7 +7127,7 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
                         case 'rilletSyncTitle':
                             return 'Sincronizando datos de Rillet';
                         case 'rilletSyncConnection':
-                            return 'Iniciando conexión con Rillet';
+                            return 'Inicializando la conexión con Rillet';
                         case 'rilletSyncImportData':
                             return 'Cargando datos';
                         case 'dualEntrySyncTitle':
@@ -7077,6 +7141,18 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
                         case 'dualEntrySyncCardSettlements':
                             return 'Sincronizando liquidaciones de tarjetas';
                         case 'dualEntrySyncTravelSettlements':
+                            return 'Sincronizando liquidaciones de viaje';
+                        case 'campfireSyncTitle':
+                            return 'Sincronizando datos de Campfire';
+                        case 'campfireSyncConnection':
+                            return 'Iniciando conexión con Campfire';
+                        case 'campfireSyncImportData':
+                            return 'Cargando datos';
+                        case 'campfireSyncPayments':
+                            return 'Sincronizando pagos a proveedores';
+                        case 'campfireSyncCardSettlements':
+                            return 'Sincronizando liquidaciones de tarjetas';
+                        case 'campfireSyncTravelSettlements':
                             return 'Sincronizando liquidaciones de viaje';
                         default: {
                             return `Falta la traducción para la etapa: ${stage}`;
@@ -7120,6 +7196,7 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
             syncTravelInvoicingSettlements: 'Sincronizar liquidaciones de facturación de viajes consolidadas',
             syncTravelInvoicingSettlementsNoAccountTooltip: 'Para desbloquearlo, configura una cuenta para tus exportaciones.',
             syncTravelInvoicingSettlementsNoAutoSyncTooltip: 'Para desbloquear, habilita la sincronización automática.',
+            campfire: 'Campfire',
         },
         card: {
             issueCard: 'Emitir tarjeta',
@@ -7570,6 +7647,12 @@ ${reportName}`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}) =>
                     `<muted-text>Los campos de informe sólo están disponibles en el plan Controlar, a partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `por miembro al mes.` : `por miembro activo al mes.`}</muted-text>`,
             },
+            invoiceFields: {
+                title: 'Campos de factura',
+                description: `Los campos de factura te permiten incluir detalles adicionales a nivel de factura.`,
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}) =>
+                    `<muted-text>Los campos de factura sólo están disponibles en el plan Controlar, a partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `por miembro al mes.` : `por miembro activo al mes.`}</muted-text>`,
+            },
             [CONST.POLICY.CONNECTIONS.NAME.NETSUITE]: {
                 title: 'NetSuite',
                 description: `Disfruta de la sincronización automática y reduce las entradas manuales con la integración Expensify + NetSuite. Obtén información financiera en profundidad y en tiempo real con la compatibilidad nativa y personalizada con segmentos, incluida la asignación de proyectos y clientes.`,
@@ -7611,6 +7694,12 @@ ${reportName}`,
                 description: `Disfruta de la sincronización automatizada y reduce las entradas manuales con la integración Expensify + DualEntry. Alinea dimensiones de codificación de gastos y la sincronización de impuestos con tu configuración de DualEntry para una visibilidad financiera más clara.`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}) =>
                     `<muted-text>Nuestra integración con DualEntry solo está disponible en el plan Controlar, a partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `por miembro al mes.` : `por miembro activo al mes.`}</muted-text>`,
+            },
+            [CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE]: {
+                title: 'Campfire',
+                description: `Disfruta de la sincronización automatizada y reduce las entradas manuales con la integración Expensify + Campfire. Alinea dimensiones de codificación de gastos y la sincronización de impuestos con tu configuración de Campfire para una visibilidad financiera más clara.`,
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}) =>
+                    `<muted-text>Nuestra integración con Campfire solo está disponible en el plan Controlar, a partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `por miembro al mes.` : `por miembro activo al mes.`}</muted-text>`,
             },
             [CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.id]: {
                 title: 'Aprobaciones anticipadas',
@@ -8014,6 +8103,13 @@ ${reportName}`,
                     'Las reglas de categoría establecen una tasa de impuesto predeterminada. Activa los impuestos en la configuración de tu espacio de trabajo para usarlos.',
                 categoryRulesApplyGoingForwardTitle: 'Las reglas de categoría se aplican de ahora en adelante',
                 categoryRulesApplyGoingForwardPrompt: 'Se aplica una tasa de impuesto predeterminada a los nuevos gastos de esta categoría. Los gastos que ya existen no cambiarán.',
+                confirmErrorCategoryTaxMoveIsWorkspaceDefault:
+                    'El tipo impositivo seleccionado es ahora el predeterminado de tu espacio de trabajo, por lo que esta regla ya no es válida. Elige un tipo impositivo diferente.',
+                addTaxRateFirstTitle: 'Añade primero una tasa de impuesto',
+                addTaxRateFirstPrompt:
+                    'Las reglas de categoría establecen una tasa de impuestos predeterminada. Añade una tasa de impuestos distinta de la predeterminada de tu espacio de trabajo para poder usarlas.',
+                createRuleFromExpenseAction: 'Crear una norma',
+                createRuleFromExpensePrompt: 'para aplicar tus cambios a todos los gastos que coincidan con tus criterios.',
             },
             categoryRules: {
                 title: 'Reglas de categoría',
@@ -8385,6 +8481,16 @@ ${reportName}`,
         emptyDomain: {
             title: 'Mejora tu seguridad con dominios',
             subtitle: 'Exige que los miembros de tu dominio inicien sesión mediante inicio de sesión único, restrinjan la creación de espacios de trabajo y más.',
+        },
+        campfire: {
+            campfireSetup: 'Configuración de Campfire',
+            enterCredentials: 'Introduce tu clave de API de Campfire',
+            howToFindAPIKey:
+                '<strong>Encontrar tu clave de API.</strong><ol><li>Inicia sesión en Campfire</li><li>Ve a Configuración -> Claves de API</li><li>Crea una clave de API</li><li>Pega la clave de API abajo</li></ol>',
+            subsidiary: 'Filial',
+            subsidiarySelectDescription: 'Elige la filial en Campfire de la que te gustaría importar datos.',
+            noSubsidiariesFound: 'No se han encontrado filiales',
+            noSubsidiariesFoundDescription: 'Por favor, añade una entidad en Campfire y sincroniza la conexión de nuevo',
         },
     },
     getAssistancePage: {
@@ -9317,7 +9423,7 @@ ${reportName}`,
                 [CONST.SEARCH.WITHDRAWAL_TYPE.TRAVEL_BILLING]: 'Facturación consolidada de viajes',
             },
             is: 'Es',
-            has: {submittedViolation: 'Infracción enviada'},
+            has: {submittedViolation: 'Infracción enviada', approvedViolation: 'Infracción aprobada'},
             action: {
                 [CONST.SEARCH.ACTION_FILTERS.SUBMIT]: 'Enviar',
                 [CONST.SEARCH.ACTION_FILTERS.APPROVE]: 'Aprobar',
@@ -9508,6 +9614,16 @@ ${reportName}`,
                 integrationSyncFailedRecurrence: ({count}: {count: number}) => `(Repetido ${count} veces.)`,
                 companyCardConnectionBroken: ({feedName, workspaceCompanyCardRoute}: {feedName: string; workspaceCompanyCardRoute: string}) =>
                     `La conexión ${feedName} está rota. Para restaurar las importaciones de tarjetas, <a href='${workspaceCompanyCardRoute}'>inicia sesión en tu banco</a>.`,
+                companyCardConnectionBroken30Days: ({
+                    feedName,
+                    workspaceCompanyCardRoute,
+                    workspaceCompanyCardSettingsRoute,
+                }: {
+                    feedName: string;
+                    workspaceCompanyCardRoute: string;
+                    workspaceCompanyCardSettingsRoute: string;
+                }) =>
+                    `La conexión ${feedName} se ha interrumpido durante 30 días. <a href='${workspaceCompanyCardRoute}'>Inicia sesión en tu banco</a> para solucionarlo o <a href='${workspaceCompanyCardSettingsRoute}'>elimina la conexión</a> si ya no se utiliza. No perderás ningún gasto enviado si la eliminas.`,
                 plaidBalanceFailure: ({maskedAccountNumber, walletRoute}: {maskedAccountNumber: string; walletRoute: string}) =>
                     `la conexión Plaid con tu cuenta bancaria de empresa está rota. Por favor, <a href='${walletRoute}'>reconecta tu cuenta bancaria ${maskedAccountNumber}</a> para poder seguir usando tus Tarjetas Expensify.`,
                 addEmployee: (email: string, role: string, didJoinPolicy?: boolean) => {
@@ -11119,6 +11235,7 @@ ${reportName}`,
         notVerified: 'No verificado',
         retry: 'Reintentar',
         requestSent: 'Solicitud enviada',
+        requestAccessError: 'No pudimos enviar tu solicitud. Por favor, inténtalo de nuevo.',
         verifyDomain: {
             title: 'Verificar dominio',
             beforeProceeding: ({domainName}: {domainName: string}) =>
@@ -11180,12 +11297,12 @@ ${reportName}`,
             setMetadataGenericError: 'No se pudieron establecer los metadatos de SAML',
         },
         accessRestricted: {
-            title: 'Acceso restringido',
-            subtitle: (domainName: string) => `Por favor, verifícate como un administrador autorizado de la empresa para <strong>${domainName}</strong> si necesitas control sobre:`,
-            companyCardManagement: 'Gestión de tarjetas de la empresa',
-            accountCreationAndDeletion: 'Creación y eliminación de cuentas',
-            workspaceCreation: 'Creación de espacios de trabajo',
-            samlSSO: 'SAML SSO',
+            headerTitle: 'Acceso restringido',
+            title: 'Verificación requerida',
+            description: (domainName: string) =>
+                `<muted-text><centered-text>Por favor, verifícate como administrador autorizado de la empresa para <strong>${domainName}</strong> o solicita acceso a los administradores existentes.</centered-text></muted-text>`,
+            requestAdminAccess: 'Solicitar acceso de administrador',
+            verifyYourself: 'Verifícate',
         },
         addDomain: {
             title: 'Añadir dominio',
@@ -11199,7 +11316,6 @@ ${reportName}`,
             title: 'Dominio ya configurado. ¿Solicitar acceso?',
             description: 'Alguien ya configuró este dominio en Expensify. ¿Quieres solicitar acceso de administrador?',
             requestAccess: 'Solicitar acceso de administrador',
-            requestAccessError: 'No pudimos enviar tu solicitud. Por favor, inténtalo de nuevo.',
         },
         domainAdded: {
             title: 'Dominio añadido',

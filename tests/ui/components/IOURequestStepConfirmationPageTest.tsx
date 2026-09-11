@@ -3,18 +3,27 @@ import {act, fireEvent, render, screen, waitFor} from '@testing-library/react-na
 import {CurrentUserPersonalDetailsProvider} from '@components/CurrentUserPersonalDetailsProvider';
 import HTMLEngineProvider from '@components/HTMLEngineProvider';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
+import * as ConfirmAction from '@components/MoneyRequestConfirmationList/confirmAction';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import type {ParticipantPickerProps} from '@components/ParticipantPicker/types';
 import ScreenWrapper from '@components/ScreenWrapper';
 
 import {startSplitBill} from '@libs/actions/IOU/Split';
+import getIsNarrowLayout from '@libs/getIsNarrowLayout';
+import * as IOUUtils from '@libs/IOUUtils';
+import * as SubmitWithDismissFirst from '@libs/Navigation/helpers/submitWithDismissFirst';
+import Navigation from '@libs/Navigation/Navigation';
+// eslint-disable-next-line no-restricted-imports -- Namespace import is required to spy on getChatByParticipants without replacing the production module.
+import * as ReportUtils from '@libs/ReportUtils';
 
 import IOURequestStepConfirmationWithWritableReportOrNotFound, {IOURequestStepConfirmationContentWithWritableReportOrNotFound} from '@pages/iou/request/step/IOURequestStepConfirmation';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type {Policy, TaxRatesWithDefault} from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
+import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type Transaction from '@src/types/onyx/Transaction';
 import type {WaypointCollection} from '@src/types/onyx/Transaction';
 
@@ -29,7 +38,7 @@ import * as Split from '../../../src/libs/actions/IOU/Split';
 import * as TrackExpense from '../../../src/libs/actions/IOU/TrackExpense';
 import createRandomPolicy from '../../utils/collections/policies';
 import createMockScreenNavigation from '../../utils/createMockScreenNavigation';
-import {signInWithTestUser, translateLocal} from '../../utils/TestHelper';
+import {setupGlobalFetchMock, signInWithTestUser, translateLocal} from '../../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../../utils/waitForBatchedUpdatesWithAct';
 
 jest.mock('@rnmapbox/maps', () => {
@@ -213,6 +222,14 @@ const TRANSACTION_ID = '1';
 const POLICY_ID = 'test-policy-id';
 const POLICY_CHAT_REPORT_ID = '595';
 
+const mockSendMoneyElsewhere = jest.fn();
+jest.mock('@userActions/IOU/SendMoney', () => ({
+    sendMoneyElsewhere: (...args: unknown[]) => {
+        mockSendMoneyElsewhere(...args);
+    },
+    sendMoneyWithWallet: jest.fn(),
+}));
+
 // Helper to create a policy with tax and distance enabled
 function createPolicyWithTaxAndDistance(): Policy {
     const taxRates: TaxRatesWithDefault = {
@@ -320,6 +337,9 @@ const DEFAULT_SPLIT_TRANSACTION: Transaction = {
 };
 
 describe('IOURequestStepConfirmationPageTest', () => {
+    // Writes fired during render (e.g. UpdatePreferredLocale) must not hit the real network and leave retry backoff across tests
+    setupGlobalFetchMock();
+
     beforeEach(() => {
         jest.clearAllMocks();
         resetScreenFocusListeners();
@@ -1001,6 +1021,166 @@ describe('IOURequestStepConfirmationPageTest', () => {
             return /^Create .*expense/i;
         }
 
+        it('uses the transaction optimistic report ID for a brand-new P2P pre-mount and pay destination', async () => {
+            // Given a brand-new P2P recipient with no existing chat, so the screen must reuse the
+            // transaction's optimistic report ID rather than one a builder would otherwise mint
+            const optimisticP2PReportID = 'optimistic-p2p-report-1';
+            const transactionID = 'tx-new-p2p';
+            let sendMoney: ((paymentMethod: PaymentMethodType | undefined) => void) | undefined;
+            const originalBuildConfirmAction = ConfirmAction.default;
+            const buildConfirmActionSpy = jest.spyOn(ConfirmAction, 'default').mockImplementation((params) => {
+                sendMoney = params.onSendMoney;
+                return originalBuildConfirmAction(params);
+            });
+            const submitWithDismissFirstSpy = jest.spyOn(SubmitWithDismissFirst, 'submitWithDismissFirst').mockImplementation((params) => {
+                params.executeWrite({shouldHandleNavigation: false});
+            });
+            const getChatByParticipantsSpy = jest.spyOn(ReportUtils, 'getChatByParticipants').mockReturnValue(undefined);
+            const getReusableP2PReportIDSpy = jest.spyOn(IOUUtils, 'getReusableP2PReportID').mockReturnValue(optimisticP2PReportID);
+            jest.mocked(getIsNarrowLayout).mockReturnValue(true);
+
+            try {
+                await act(async () => {
+                    await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {
+                        transactionID,
+                        reportID: optimisticP2PReportID,
+                        amount: 1000,
+                        isAmountSet: true,
+                        currency: 'USD',
+                        merchant: 'Test',
+                        created: '2025-01-15',
+                        isFromGlobalCreate: true,
+                        iouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL,
+                        participants: [{accountID: PARTICIPANT_ACCOUNT_ID, selected: true}],
+                    });
+                });
+
+                render(
+                    <OnyxListItemProvider>
+                        <HTMLProviderWrapper>
+                            <CurrentUserPersonalDetailsProvider>
+                                <LocaleContextProvider>
+                                    <IOURequestStepConfirmationWithWritableReportOrNotFound
+                                        route={{
+                                            key: 'Money_Request_Step_Confirmation',
+                                            name: 'Money_Request_Step_Confirmation',
+                                            params: {
+                                                action: CONST.IOU.ACTION.CREATE,
+                                                iouType: CONST.IOU.TYPE.PAY,
+                                                transactionID,
+                                                reportID: optimisticP2PReportID,
+                                            },
+                                        }}
+                                        navigation={mockNavigation}
+                                    />
+                                </LocaleContextProvider>
+                            </CurrentUserPersonalDetailsProvider>
+                        </HTMLProviderWrapper>
+                    </OnyxListItemProvider>,
+                );
+
+                // When the screen renders and resolves the P2P destination
+                await waitForBatchedUpdatesWithAct();
+
+                expect(getChatByParticipantsSpy).toHaveBeenCalled();
+                expect(getReusableP2PReportIDSpy).toHaveBeenCalledWith(expect.objectContaining({accountID: PARTICIPANT_ACCOUNT_ID}), optimisticP2PReportID);
+                // Then it pre-mounts the report at the transaction's own optimistic ID, not a different one
+                await waitFor(
+                    () =>
+                        expect(Navigation.preInsertFullscreenUnderRHP).toHaveBeenCalledWith(
+                            ROUTES.REPORT_WITH_ID.getRoute(optimisticP2PReportID, undefined, undefined, undefined, undefined, true),
+                        ),
+                    {timeout: 2000},
+                );
+
+                // When the user sends money
+                act(() => sendMoney?.(CONST.IOU.PAYMENT_TYPE.ELSEWHERE));
+
+                // Then submission also uses that same optimistic report ID, so the pre-mounted screen ends up
+                // subscribed to the report that actually gets created
+                expect(submitWithDismissFirstSpy).toHaveBeenCalledWith(expect.objectContaining({destinationReportID: optimisticP2PReportID}));
+                expect(mockSendMoneyElsewhere).toHaveBeenCalledWith(expect.objectContaining({optimisticChatReportID: optimisticP2PReportID}));
+            } finally {
+                buildConfirmActionSpy.mockRestore();
+                submitWithDismissFirstSpy.mockRestore();
+                getChatByParticipantsSpy.mockRestore();
+                getReusableP2PReportIDSpy.mockRestore();
+                jest.mocked(getIsNarrowLayout).mockReturnValue(false);
+            }
+        });
+
+        it('keeps the IOU report as pre-mount destination when the flow starts from it, instead of the participant chat', async () => {
+            // Given an existing 1:1 chat and an IOU report under it, and a flow started from that IOU report to add another expense
+            const chatReportID = 'p2p-chat-1';
+            const iouReportID = 'p2p-iou-report-1';
+            const transactionID = 'tx-from-iou-report';
+            const getChatByParticipantsSpy = jest.spyOn(ReportUtils, 'getChatByParticipants').mockReturnValue({reportID: chatReportID});
+            jest.mocked(getIsNarrowLayout).mockReturnValue(true);
+
+            try {
+                await act(async () => {
+                    await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`, {
+                        reportID: chatReportID,
+                        type: CONST.REPORT.TYPE.CHAT,
+                        participants: {[ACCOUNT_ID]: {}, [PARTICIPANT_ACCOUNT_ID]: {}},
+                    });
+                    await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`, {
+                        reportID: iouReportID,
+                        chatReportID,
+                        type: CONST.REPORT.TYPE.IOU,
+                        ownerAccountID: ACCOUNT_ID,
+                        managerID: PARTICIPANT_ACCOUNT_ID,
+                    });
+                    await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {
+                        transactionID,
+                        reportID: iouReportID,
+                        amount: 1000,
+                        isAmountSet: true,
+                        currency: 'USD',
+                        merchant: 'Test',
+                        created: '2025-01-15',
+                        iouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL,
+                        participants: [{accountID: PARTICIPANT_ACCOUNT_ID, reportID: chatReportID, selected: true}],
+                    });
+                });
+
+                render(
+                    <OnyxListItemProvider>
+                        <HTMLProviderWrapper>
+                            <CurrentUserPersonalDetailsProvider>
+                                <LocaleContextProvider>
+                                    <IOURequestStepConfirmationWithWritableReportOrNotFound
+                                        route={{
+                                            key: 'Money_Request_Step_Confirmation',
+                                            name: 'Money_Request_Step_Confirmation',
+                                            params: {
+                                                action: CONST.IOU.ACTION.CREATE,
+                                                iouType: CONST.IOU.TYPE.SUBMIT,
+                                                transactionID,
+                                                reportID: iouReportID,
+                                            },
+                                        }}
+                                        navigation={mockNavigation}
+                                    />
+                                </LocaleContextProvider>
+                            </CurrentUserPersonalDetailsProvider>
+                        </HTMLProviderWrapper>
+                    </OnyxListItemProvider>,
+                );
+
+                // When the screen renders and resolves the pre-mount destination
+                await waitForBatchedUpdatesWithAct();
+
+                // Then the IOU report the flow started from is pre-inserted, not the participant chat the lookup resolved
+                expect(getChatByParticipantsSpy).toHaveBeenCalled();
+                await waitFor(() => expect(Navigation.preInsertFullscreenUnderRHP).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(iouReportID)), {timeout: 2000});
+                expect(Navigation.preInsertFullscreenUnderRHP).not.toHaveBeenCalledWith(expect.stringContaining(chatReportID));
+            } finally {
+                getChatByParticipantsSpy.mockRestore();
+                jest.mocked(getIsNarrowLayout).mockReturnValue(false);
+            }
+        });
+
         it('should not fallback to route report when transaction report differs and is not usable', async () => {
             const routeReportID = '100';
             const transactionReportID = '200';
@@ -1502,9 +1682,6 @@ describe('IOURequestStepConfirmationPageTest', () => {
             mockSelectedParticipants = [];
             mockSelectedPolicy = undefined;
             await signInWithTestUser(ACCOUNT_ID, ACCOUNT_LOGIN);
-            await act(async () => {
-                await Onyx.set(ONYXKEYS.BETAS, [CONST.BETAS.NEW_MANUAL_EXPENSE_FLOW]);
-            });
         });
 
         function confirmationScreen() {
@@ -1652,7 +1829,6 @@ describe('IOURequestStepConfirmationPageTest', () => {
             mockSelectedPolicy = undefined;
             await signInWithTestUser(ACCOUNT_ID, ACCOUNT_LOGIN);
             await act(async () => {
-                await Onyx.set(ONYXKEYS.BETAS, [CONST.BETAS.NEW_MANUAL_EXPENSE_FLOW]);
                 await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${SOURCE_POLICY_ID}`, {...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE, 'Source policy'), id: SOURCE_POLICY_ID});
                 await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${DESTINATION_POLICY_ID}`, {
                     ...createRandomPolicy(2, CONST.POLICY.TYPE.CORPORATE, 'Destination policy'),
@@ -1828,9 +2004,6 @@ describe('IOURequestStepConfirmationPageTest', () => {
         beforeEach(async () => {
             mockSelectedParticipants = [];
             await signInWithTestUser(ACCOUNT_ID, ACCOUNT_LOGIN);
-            await act(async () => {
-                await Onyx.set(ONYXKEYS.BETAS, [CONST.BETAS.NEW_MANUAL_EXPENSE_FLOW]);
-            });
         });
 
         /**
