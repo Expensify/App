@@ -35,7 +35,7 @@ import type Rule from '@src/types/onyx/Rule';
 
 import createRandomPolicy from '../utils/collections/policies';
 import createMock from '../utils/createMock';
-import {buildPersonalDetails, convertToDisplayString, localeCompare, translateLocal} from '../utils/TestHelper';
+import {buildPersonalDetails, convertToDisplayString, formatPhoneNumber, localeCompare, translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const personalDetails: PersonalDetailsList = {};
@@ -1474,6 +1474,7 @@ describe('WorkflowUtils', () => {
                 approver: undefined,
                 currency: 'USD',
                 translate: translateLocal,
+                formatPhoneNumber,
                 convertToDisplayString,
             });
 
@@ -1487,6 +1488,7 @@ describe('WorkflowUtils', () => {
                 approver,
                 currency: 'USD',
                 translate: translateLocal,
+                formatPhoneNumber,
                 convertToDisplayString,
             });
 
@@ -1500,6 +1502,7 @@ describe('WorkflowUtils', () => {
                 approver,
                 currency: 'USD',
                 translate: translateLocal,
+                formatPhoneNumber,
                 convertToDisplayString,
             });
 
@@ -1513,6 +1516,7 @@ describe('WorkflowUtils', () => {
                 approver,
                 currency: 'USD',
                 translate: translateLocal,
+                formatPhoneNumber,
                 convertToDisplayString,
             });
 
@@ -1526,6 +1530,7 @@ describe('WorkflowUtils', () => {
                 approver,
                 currency: 'USD',
                 translate: translateLocal,
+                formatPhoneNumber,
                 convertToDisplayString,
             });
 
@@ -1543,6 +1548,7 @@ describe('WorkflowUtils', () => {
                 approver,
                 currency: 'USD',
                 translate: translateLocal,
+                formatPhoneNumber,
                 convertToDisplayString,
             });
 

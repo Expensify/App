@@ -3,7 +3,7 @@
  */
 import WorkspaceAvatar from '@components/Avatar/WorkspaceAvatar';
 import getSearchTabRoute from '@components/Navigation/NavigationTabBar/getSearchTabRoute';
-import {useSearchSelectionActions} from '@components/Search/SearchContext';
+import {useSearchQueryActions, useSearchSelectionActions} from '@components/Search/SearchContext';
 import type {SearchQueryItem} from '@components/Search/SearchList/ListItem/SearchQueryListItem';
 import TextWithIconCell from '@components/Search/SearchList/ListItem/TextWithIconCell';
 import TextWithTooltip from '@components/TextWithTooltip';
@@ -24,8 +24,8 @@ import navigateToWorkspaceSettingsRoute from '@libs/Navigation/helpers/navigateT
 import Navigation from '@libs/Navigation/Navigation';
 import {shouldShowPolicy} from '@libs/PolicyUtils';
 import navigateToCannedSpendSearch from '@libs/SearchNavigationUtils';
-import {SEARCH_TYPE_MENU_ICON_NAMES} from '@libs/SearchUIUtils';
-import type {SearchTypeMenuItem, SearchTypeMenuSection} from '@libs/SearchUIUtils';
+import {getLastSearchQuery, SEARCH_TYPE_MENU_ICON_NAMES} from '@libs/SearchUIUtils';
+import type {SearchKey, SearchTypeMenuItem, SearchTypeMenuSection} from '@libs/SearchUIUtils';
 
 import navigationRef from '@navigation/navigationRef';
 
@@ -44,6 +44,7 @@ import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import {isAdminSelector} from '@src/selectors/Domain';
+import {lastExpensesSearchQuerySelector} from '@src/selectors/SearchFilters';
 import {emailSelector} from '@src/selectors/Session';
 import type * as OnyxTypes from '@src/types/onyx';
 import type IconAsset from '@src/types/utils/IconAsset';
@@ -86,6 +87,7 @@ const SEARCH_ROUTER_ICON_NAMES = [
     'Clock',
     'InvoiceGeneric',
     'Bolt',
+    'Bot',
 ] as const;
 
 // Saved searches are user-defined searches, not canned destinations, so they are excluded from go-to navigation suggestions.
@@ -112,7 +114,7 @@ type BuildSpendNavigationItemsParams = {
     rightElement: ReactNode;
     getItemText: (item: SearchTypeMenuItem) => string;
     getDestinationText: (destination: string) => string;
-    onSelect: (searchQuery: string) => void;
+    onSelect: (searchKey: SearchKey, searchQuery: string) => void;
 };
 
 type BuildWorkspaceNavigationItemsParams = {
@@ -131,10 +133,6 @@ type BuildWorkspaceNavigationItemsParams = {
     /** Whether pending offline state should be considered by Workspace visibility rules. */
     isOffline: boolean;
 
-    /** Whether the Rules Revamp beta is enabled for the current user. */
-    isRulesRevampBetaEnabled: boolean;
-
-    /** Whether the Vendor Matching beta is enabled for the current user. */
     isVendorMatchingBetaEnabled: boolean;
 
     /** Whether navigation should use the narrow-layout Workspace flow. */
@@ -257,7 +255,7 @@ function buildSpendNavigationItems({sections, icons, rightElement, getItemText, 
                 return {
                     text: getDestinationText(itemText),
                     singleIcon: icons[item.icon],
-                    action: () => onSelect(item.searchQuery),
+                    action: () => onSelect(item.key, item.searchQuery),
                     keyForList: `spend_${item.key}`,
                     rightElement,
                     matchTerms: [itemText],
@@ -272,7 +270,6 @@ function buildWorkspaceNavigationItems({
     currentUserLogin,
     icons,
     isOffline,
-    isRulesRevampBetaEnabled,
     isVendorMatchingBetaEnabled,
     shouldUseNarrowLayout,
     convertToDisplayString,
@@ -291,7 +288,6 @@ function buildWorkspaceNavigationItems({
                 currentUserLogin,
                 icons,
                 policyCategories: policyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policy.id}`],
-                isRulesRevampBetaEnabled,
                 isVendorMatchingBetaEnabled,
                 convertToDisplayString,
             });
@@ -373,13 +369,15 @@ function useNavigationSuggestions(query: string, shouldWatchForApprovals = true)
     const icons = useMemoizedLazyExpensifyIcons(SEARCH_ROUTER_ICON_NAMES);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [lastSearchParams] = useOnyx(ONYXKEYS.REPORT_NAVIGATION_LAST_SEARCH_QUERY);
+    const [searchFilters] = useOnyx(ONYXKEYS.SEARCH_FILTERS);
     const [allDomains] = useOnyx(ONYXKEYS.COLLECTION.DOMAIN);
     const createItems = useCreateNavigationSuggestions(query);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [policyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
     const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector});
     const {clearSelectedTransactions} = useSearchSelectionActions();
-    const {typeMenuSections} = useSearchTypeMenuSections(undefined, shouldWatchForApprovals);
+    const typeMenuSections = useSearchTypeMenuSections(shouldWatchForApprovals);
+    const {setCurrentSearchKey} = useSearchQueryActions();
     const {accountMenuItemsData, generalMenuItemsData} = useSettingsNavigationMenuData();
 
     const topLevelItems = buildTopLevelNavigationItems({
@@ -392,7 +390,7 @@ function useNavigationSuggestions(query: string, shouldWatchForApprovals = true)
             account: translate('initialSettingsPage.account'),
         },
         icons,
-        getSpendRoute: () => getSearchTabRoute(navigationRef.getRootState(), lastSearchParams),
+        getSpendRoute: () => getSearchTabRoute(navigationRef.getRootState(), lastSearchParams, lastExpensesSearchQuerySelector(searchFilters)),
         getDestinationText: (destination) => getGoToText(translate, destination),
     });
 
@@ -410,7 +408,8 @@ function useNavigationSuggestions(query: string, shouldWatchForApprovals = true)
         ),
         getItemText: (item) => translate(item.translationPath),
         getDestinationText: (destination) => getGoToText(translate, destination),
-        onSelect: (searchQuery) => navigateToCannedSpendSearch(searchQuery, clearSelectedTransactions),
+        onSelect: (searchKey, searchQuery) =>
+            navigateToCannedSpendSearch(searchKey, searchQuery, getLastSearchQuery(searchFilters, searchKey), clearSelectedTransactions, setCurrentSearchKey),
     });
 
     const workspaceItems = buildWorkspaceNavigationItems({
@@ -419,7 +418,6 @@ function useNavigationSuggestions(query: string, shouldWatchForApprovals = true)
         currentUserLogin,
         icons,
         isOffline: !!isOffline,
-        isRulesRevampBetaEnabled: isBetaEnabled(CONST.BETAS.RULES_REVAMP),
         isVendorMatchingBetaEnabled: isBetaEnabled(CONST.BETAS.VENDOR_MATCHING),
         shouldUseNarrowLayout,
         convertToDisplayString,

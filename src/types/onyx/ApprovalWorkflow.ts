@@ -152,9 +152,6 @@ type ApprovalWorkflowOnyx = Omit<ApprovalWorkflow, 'approvers'> & {
      */
     usedApproverEmails: string[];
 
-    /**
-     * Errors for the workflow
-     */
     errors?: Record<string, TranslationPaths>;
 
     /**

@@ -40,9 +40,30 @@ type PageEntry = {
     lastSubPage?: string;
 };
 
+function CountryPage({onBackButtonPress, onSubmit, stepNames, policyID}: USDPageProps) {
+    return (
+        <Country
+            onBackButtonPress={onBackButtonPress}
+            onSubmit={onSubmit}
+            stepNames={stepNames ?? CONST.BANK_ACCOUNT.STEP_NAMES}
+            policyID={policyID}
+        />
+    );
+}
+
+function BankInfoPage({onBackButtonPress, onSubmit, policyID}: USDPageProps) {
+    return (
+        <BankInfo
+            onBackButtonPress={onBackButtonPress}
+            onSubmit={onSubmit}
+            policyID={policyID}
+        />
+    );
+}
+
 const pages: PageEntry[] = [
-    {pageName: PAGE_NAMES.COUNTRY, component: Country as React.ComponentType<USDPageProps>},
-    {pageName: PAGE_NAMES.BANK_ACCOUNT, component: BankInfo as React.ComponentType<USDPageProps>, firstSubPage: BANK_INFO_SUB_PAGES.PLAID, lastSubPage: BANK_INFO_SUB_PAGES.PLAID},
+    {pageName: PAGE_NAMES.COUNTRY, component: CountryPage},
+    {pageName: PAGE_NAMES.BANK_ACCOUNT, component: BankInfoPage, firstSubPage: BANK_INFO_SUB_PAGES.PLAID, lastSubPage: BANK_INFO_SUB_PAGES.PLAID},
     {
         pageName: PAGE_NAMES.REQUESTOR,
         component: RequestorStep as React.ComponentType<USDPageProps>,
@@ -93,7 +114,7 @@ function USDVerifiedBankAccountFlowPage({route}: USDVerifiedBankAccountFlowPageP
     }, [currentPage]);
 
     const currentEntry = pages.at(currentPageIndex);
-    const CurrentPage = currentEntry?.component ?? (Country as React.ComponentType<USDPageProps>);
+    const CurrentPage = currentEntry?.component ?? CountryPage;
     const isRequestorStep = currentEntry?.pageName === PAGE_NAMES.REQUESTOR;
 
     const shouldSkipVerifyIdentity = useCallback((pageName?: string) => pageName === PAGE_NAMES.VERIFY_IDENTITY && isOnfidoSetupComplete, [isOnfidoSetupComplete]);
@@ -132,9 +153,14 @@ function USDVerifiedBankAccountFlowPage({route}: USDVerifiedBankAccountFlowPageP
 
     const onBackButtonPress = useCallback(() => {
         // When the bank account is pending validation it has already been submitted, so stepping back through the
-        // setup pages doesn't make sense. Pop back to the entry point screen the user came from.
+        // setup pages doesn't make sense. Leave the flow entirely rather than popping to ReimbursementAccountPage:
+        // that page redirects a pending account straight back here, so returning to it would trap the user in a loop.
         if (currentEntry?.pageName === PAGE_NAMES.VALIDATION && reimbursementAccount?.achData?.state === CONST.BANK_ACCOUNT.STATE.PENDING) {
-            Navigation.goBack(ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute({policyID, backTo}));
+            if (backTo) {
+                Navigation.goBack(backTo);
+            } else {
+                Navigation.dismissModal();
+            }
             return;
         }
 

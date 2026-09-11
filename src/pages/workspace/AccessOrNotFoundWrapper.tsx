@@ -5,7 +5,6 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useIsWorkspacesTabFocused from '@hooks/useIsWorkspacesTabFocused';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
 import usePreferredPolicy from '@hooks/usePreferredPolicy';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -33,13 +32,13 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-import type {Beta, Report} from '@src/types/onyx';
+import type {Beta, Report, Rule} from '@src/types/onyx';
 import type {PolicyFeatureName} from '@src/types/onyx/Policy';
 import type Policy from '@src/types/onyx/Policy';
 import callOrReturn from '@src/types/utils/callOrReturn';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 /* eslint-disable rulesdir/no-negated-variables */
 import {useIsFocused} from '@react-navigation/native';
@@ -58,12 +57,13 @@ const ACCESS_VARIANTS = {
         iouType?: IOUType,
         isReportArchived?: boolean,
         isRestrictedToPreferredPolicy?: boolean,
+        rules?: OnyxCollection<Rule>,
     ) =>
         !!iouType &&
         isValidMoneyRequestType(iouType) &&
         // Allow the user to submit the expense if we are submitting the expense in global menu or the report can create the expense
 
-        (isEmptyObject(report?.reportID) || canCreateRequest(report, policy, iouType, isReportArchived, betas, isRestrictedToPreferredPolicy)) &&
+        (isEmptyObject(report?.reportID) || canCreateRequest(report, policy, iouType, isReportArchived, betas, rules, isRestrictedToPreferredPolicy)) &&
         (iouType !== CONST.IOU.TYPE.INVOICE || canSendInvoice),
 } as const satisfies Record<
     string,
@@ -76,6 +76,7 @@ const ACCESS_VARIANTS = {
         iouType?: IOUType,
         isArchivedReport?: boolean,
         isRestrictedToPreferredPolicy?: boolean,
+        rules?: OnyxCollection<Rule>,
     ) => boolean
 >;
 
@@ -88,12 +89,10 @@ type AccessOrNotFoundWrapperChildrenProps = {
     /** The report currently being looked at */
     policy: OnyxEntry<Policy>;
 
-    /** Indicated whether the report data is loading */
     isLoadingReportData: OnyxEntry<boolean>;
 };
 
 type AccessOrNotFoundWrapperProps = {
-    /** The children to render */
     children: ((props: AccessOrNotFoundWrapperChildrenProps) => React.ReactNode) | React.ReactNode;
 
     /** The id of the report that holds the transaction */
@@ -175,8 +174,8 @@ function AccessOrNotFoundWrapper({
     const [isLoadingReportData = true] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA);
     const {login = ''} = useCurrentUserPersonalDetails();
     const {isRestrictedToPreferredPolicy} = usePreferredPolicy();
-    const {isBetaEnabled} = usePermissions();
     const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
     const isPolicyIDInRoute = !!policyID?.length;
     const isMoneyRequest = !!iouType && isValidMoneyRequestType(iouType);
@@ -199,9 +198,7 @@ function AccessOrNotFoundWrapper({
     const shouldShowFullScreenLoadingIndicator = !isMoneyRequest && (isLoadingReportData !== false || !!policy?.isLoading) && isPolicyEmpty;
 
     // Pass categories so that migrated corporate policies with only Classic category rules (areRulesEnabled === undefined) are correctly treated as enabled.
-    // Collect workspaces can only access Rules when the rulesRevamp beta is enabled.
-    const isRulesRevampEnabled = isBetaEnabled(CONST.BETAS.RULES_REVAMP);
-    const isFeatureEnabled = featureName ? isPolicyFeatureEnabledUtil(policy, featureName, policyCategories, isRulesRevampEnabled) : true;
+    const isFeatureEnabled = featureName ? isPolicyFeatureEnabledUtil(policy, featureName, policyCategories) : true;
 
     const {isOffline} = useNetwork();
 
@@ -210,7 +207,7 @@ function AccessOrNotFoundWrapper({
     const isPageAccessible = accessVariantsToCheck.reduce((acc, variant) => {
         const accessFunction = ACCESS_VARIANTS[variant];
         if (variant === CONST.IOU.ACCESS_VARIANTS.CREATE) {
-            return acc && accessFunction(policy, login, report, !!canSendInvoice, betas, iouType, isReportArchived, isRestrictedToPreferredPolicy);
+            return acc && accessFunction(policy, login, report, !!canSendInvoice, betas, iouType, isReportArchived, isRestrictedToPreferredPolicy, rules);
         }
         if (variant === CONST.POLICY.ACCESS_VARIANTS.ADMIN) {
             return acc && canEditWorkspaceSettings(policy, login, canBeAccessedIfArchived);
