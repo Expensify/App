@@ -110,7 +110,7 @@ async function createCircularAvatarIcon(uri: string): Promise<string | undefined
     return `data:image/png;base64,${base64}`;
 }
 
-function NativeTabLayout({children, state}: NativeTabLayoutProps) {
+function NativeTabLayout({children, state, descriptors}: NativeTabLayoutProps) {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {isBlockingViewVisible} = useFullScreenBlockingViewState();
     const [isDebugModeEnabled] = useOnyx(ONYXKEYS.IS_DEBUG_MODE_ENABLED);
@@ -118,6 +118,13 @@ function NativeTabLayout({children, state}: NativeTabLayoutProps) {
     const activeRoute = state.routes[state.index];
     const selectedTab = ROUTE_TO_NAVIGATION_TAB[activeRoute?.name ?? SCREENS.HOME] ?? NAVIGATION_TABS.HOME;
     const shouldShowFloatingButtons = shouldUseNarrowLayout && isTabRouteAtRoot(activeRoute) && !isBlockingViewVisible;
+    const activeTabNavigation = activeRoute ? descriptors[activeRoute.key]?.navigation : undefined;
+
+    useEffect(() => {
+        activeTabNavigation?.setOptions({
+            tabBarStyle: {display: shouldShowFloatingButtons ? 'flex' : 'none'},
+        });
+    }, [activeTabNavigation, shouldShowFloatingButtons]);
 
     return (
         <View style={styles.flex1}>
@@ -144,7 +151,6 @@ const renderNativeTabLayout = (props: NativeTabLayoutProps) => <NativeTabLayout 
 function TabNavigator() {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const theme = useTheme();
-    const {isBlockingViewVisible} = useFullScreenBlockingViewState();
     const {chatTabBrickRoad} = useSidebarOrderedReportsState();
     const {indicatorColor: workspacesIndicatorColor, status: workspacesIndicatorStatus} = useWorkspacesTabIndicatorStatus();
     const {indicatorColor: accountIndicatorColor, status: accountIndicatorStatus} = useAccountTabIndicatorStatus();
@@ -223,17 +229,14 @@ function TabNavigator() {
         },
     });
 
-    const screenOptions = ({route: tabRoute}: {route: {state?: NavigationState; params?: unknown}}) => ({
+    const screenOptions = {
         headerShown: false,
         lazy: true,
         tabBarActiveTintColor: theme.iconMenu,
         tabBarInactiveTintColor: theme.icon,
         tabBarControllerMode: 'tabBar' as const,
         tabBarMinimizeBehavior: 'none' as const,
-        tabBarStyle: {
-            display: !shouldUseNarrowLayout || (isTabRouteAtRoot(tabRoute) && !isBlockingViewVisible) ? ('flex' as const) : ('none' as const),
-        },
-    });
+    };
 
     return (
         <Tab.Navigator
