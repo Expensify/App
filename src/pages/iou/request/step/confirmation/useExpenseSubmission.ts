@@ -1019,6 +1019,11 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
 
         // The manual split below sends transaction.amount, which stays 0 until SmartScan returns, so a scan with no matching receipt has nothing to write yet rather than a $0 split.
         if (iouType === CONST.IOU.TYPE.SPLIT && isScanRequestTransactionUtils(transaction) && scannedItems.length === 0) {
+            // The tap is a silent no-op from the user's side, so leave a trace for whoever has to explain it later.
+            Log.warn('[useExpenseSubmission] Scan split submitted with no receipt file for any transaction being submitted', {
+                transactionCount: transactions.length,
+                receiptFileCount: Object.keys(receiptFiles).length,
+            });
             releaseSubmitLock();
             markSubmitExpenseEnd();
             return;

@@ -1467,8 +1467,8 @@ function getOrCreateOptimisticSplitChatReport(
                   optimisticReportID: optimisticSplitChatReportID,
               });
 
-    // Later splits add to the chat the first one created, which they cannot see because getAllReports lags, and API.write is serialized so that chat exists server side before they are sent.
-    if (!isFirstSplitInBatch) {
+    // A later split joins the chat the first one is creating, which it cannot see yet, so without the caller's id there is no chat to join and it has to create its own.
+    if (!isFirstSplitInBatch && optimisticSplitChatReportID) {
         return {existingSplitChatReport: splitChatReport, splitChatReport};
     }
 

@@ -1790,6 +1790,44 @@ describe('startSplitBill', () => {
         expect(createdActions).toHaveLength(1);
     });
 
+    it('creates the chat for a later split that was given no optimistic chat ID, rather than merging into one nothing created', async () => {
+        const participants: IOUParticipant[] = [
+            {accountID: 987500, login: 'orphan-guard-1@test.com'},
+            {accountID: 987501, login: 'orphan-guard-2@test.com'},
+        ];
+
+        // isFirstSplitInBatch:false says "the chat already exists", but with no ID there is no such chat, so this split has to create its own.
+        startSplitBill({
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
+            participants,
+            currentUserLogin: currentUserPersonalDetails.login ?? '',
+            currentUserAccountID: currentUserPersonalDetails.accountID,
+            comment: 'orphan guard',
+            receipt: {},
+            category: undefined,
+            tag: undefined,
+            currency: CONST.CURRENCY.USD,
+            taxCode: '',
+            taxAmount: 0,
+            policyRecentlyUsedTags: undefined,
+            quickAction: {},
+            policyRecentlyUsedCurrencies: [],
+            participantsPolicyTags: {},
+            delegateAccountID: undefined,
+            formatPhoneNumber,
+            isFirstSplitInBatch: false,
+        });
+        await waitForBatchedUpdates();
+
+        const allReportActions = await getOnyxValue(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
+        const splitChatActions = Object.values(allReportActions ?? {}).find((reportActions) =>
+            Object.values(reportActions ?? {}).some((action) => isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.IOU) && getOriginalMessage(action)?.comment === 'orphan guard'),
+        );
+        const createdActions = Object.values(splitChatActions ?? {}).filter((action) => isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.CREATED));
+
+        expect(createdActions).toHaveLength(1);
+    });
+
     it('should update the policyRecentlyUsedTags when tag is provided', async () => {
         // Given a policy recently used tags
         const policyID = 'A';

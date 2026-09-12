@@ -4,6 +4,7 @@ import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
 import type * as MoneyRequestActions from '@libs/actions/IOU/MoneyRequest';
+import type * as SplitActions from '@libs/actions/IOU/Split';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {MoneyRequestNavigatorParamList} from '@libs/Navigation/types';
 
@@ -38,6 +39,15 @@ const mockCleanupAfterSkipConfirmSubmit = jest.fn();
 const mockResolveChatTargetForScan = jest.fn(() => ({report: undefined, chatReportID: 'chat-resolved', optimisticChatReportID: 'optimistic-resolved'}));
 // Fire the write synchronously with the fallback override so createTransaction + cleanup run inline.
 const mockSubmitWithDismissFirst = jest.fn((params: {executeWrite: (overrides: {shouldHandleNavigation: boolean}) => void}) => params.executeWrite({shouldHandleNavigation: true}));
+type StartSplitBill = typeof SplitActions.startSplitBill;
+type ResolveOptimisticSplitChatReportID = typeof SplitActions.resolveOptimisticSplitChatReportID;
+const mockStartSplitBill = jest.fn<ReturnType<StartSplitBill>, Parameters<StartSplitBill>>();
+const mockResolveOptimisticSplitChatReportID = jest.fn<ReturnType<ResolveOptimisticSplitChatReportID>, Parameters<ResolveOptimisticSplitChatReportID>>(() => ({
+    optimisticSplitChatReportID: 'optimistic-split-chat',
+    chatReportID: 'optimistic-split-chat',
+}));
+// Read at render time, so the route-type switch has to be a mutable binding rather than a literal in the factory.
+let mockScanIouType = 'submit';
 
 jest.mock('react-native-permissions', () => ({
     RESULTS: {GRANTED: 'granted', DENIED: 'denied', UNAVAILABLE: 'unavailable', BLOCKED: 'blocked', LIMITED: 'limited'},
@@ -61,8 +71,17 @@ jest.mock('react-native-vision-camera', () => ({
 
 jest.mock('@pages/iou/request/step/IOURequestStepScan/hooks/useScanRouteParams', () => ({
     __esModule: true,
-    default: () => ({iouType: 'submit', routeName: 'Money_Request_Create'}),
+    default: () => ({iouType: mockScanIouType, routeName: 'Money_Request_Create'}),
 }));
+
+jest.mock('@libs/actions/IOU/Split', () => {
+    const actual = jest.requireActual<typeof SplitActions>('@libs/actions/IOU/Split');
+    return {
+        ...actual,
+        startSplitBill: (...args: Parameters<StartSplitBill>) => mockStartSplitBill(...args),
+        resolveOptimisticSplitChatReportID: (...args: Parameters<ResolveOptimisticSplitChatReportID>) => mockResolveOptimisticSplitChatReportID(...args),
+    };
+});
 
 jest.mock('@hooks/useFilesValidation', () => {
     const ReactLib = jest.requireActual<typeof React>('react');
@@ -127,11 +146,13 @@ describe('ScanSkipConfirmation submit orchestration', () => {
     beforeEach(() => {
         triggerFileSelection = null;
         capturedCreateTransactionArg = undefined;
+        mockScanIouType = CONST.IOU.TYPE.SUBMIT;
     });
 
     afterEach(async () => {
         jest.clearAllMocks();
         mockResolveChatTargetForScan.mockReturnValue({report: undefined, chatReportID: 'chat-resolved', optimisticChatReportID: 'optimistic-resolved'});
+        mockResolveOptimisticSplitChatReportID.mockReturnValue({optimisticSplitChatReportID: 'optimistic-split-chat', chatReportID: 'optimistic-split-chat'});
         mockSubmitWithDismissFirst.mockImplementation((params) => params.executeWrite({shouldHandleNavigation: true}));
         await Onyx.clear();
     });
@@ -194,5 +215,59 @@ describe('ScanSkipConfirmation submit orchestration', () => {
 
         expect(mockCleanupAfterSkipConfirmSubmit).toHaveBeenCalledTimes(1);
         expect(mockCleanupAfterSkipConfirmSubmit).toHaveBeenCalledWith(true, expect.objectContaining({optimisticChatReportID: 'chat-resolved'}));
+    });
+
+    it('marks a skip-confirm split as the first of its batch so it creates the chat it navigates to', async () => {
+        mockScanIouType = CONST.IOU.TYPE.SPLIT;
+        const transaction = createRandomTransaction(1);
+        transaction.reportID = REPORT_ID;
+        transaction.transactionID = TRANSACTION_ID;
+        transaction.isFromGlobalCreate = false;
+        transaction.amount = 100;
+        transaction.receipt = undefined;
+
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, createMinimalReport());
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {id: POLICY_ID, name: 'Test', type: CONST.POLICY.TYPE.TEAM});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`, transaction);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${TRANSACTION_ID}`, true);
+        });
+        await waitForBatchedUpdates();
+
+        render(
+            <OnyxListItemProvider>
+                <LocaleContextProvider>
+                    <NavigationContainer>
+                        <IOURequestStepScan
+                            route={createMock<ScanRoute>({
+                                key: 'StepScanSkipSplit',
+                                name: SCREENS.MONEY_REQUEST.CREATE,
+                                params: {
+                                    action: CONST.IOU.ACTION.CREATE,
+                                    iouType: CONST.IOU.TYPE.SPLIT,
+                                    reportID: REPORT_ID,
+                                    transactionID: TRANSACTION_ID,
+                                },
+                            })}
+                            navigation={createMock<PlatformStackScreenProps<MoneyRequestNavigatorParamList, typeof SCREENS.MONEY_REQUEST.CREATE>['navigation']>({})}
+                        />
+                    </NavigationContainer>
+                </LocaleContextProvider>
+            </OnyxListItemProvider>,
+        );
+
+        await waitForBatchedUpdatesWithAct();
+        expect(triggerFileSelection).not.toBeNull();
+
+        const receiptFile = {name: 'receipt.png', type: 'image/png', size: 100, uri: 'file://receipt.png'} as FileObject;
+        await act(async () => {
+            triggerFileSelection?.([receiptFile]);
+        });
+        await waitForBatchedUpdates();
+
+        // Skip confirm splits only the first scanned receipt, so it is always the one that creates the chat.
+        expect(mockStartSplitBill).toHaveBeenCalledTimes(1);
+        expect(mockStartSplitBill).toHaveBeenCalledWith(expect.objectContaining({isFirstSplitInBatch: true, optimisticSplitChatReportID: 'optimistic-split-chat'}));
+        expect(mockCreateTransaction).not.toHaveBeenCalled();
     });
 });
