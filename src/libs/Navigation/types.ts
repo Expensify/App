@@ -1450,6 +1450,7 @@ type SettingsNavigatorParamList = {
         isFromDomainCardDetail?: string;
     };
     [SCREENS.SETTINGS.DYNAMIC_KEYBOARD_SHORTCUTS]: undefined;
+    [SCREENS.SETTINGS.DYNAMIC_APP_DOWNLOAD_LINKS]: undefined;
     [SCREENS.WORKSPACE.TAX_CREATE]: {
         policyID: string;
     };

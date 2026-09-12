@@ -23,11 +23,13 @@ import {getActiveServer} from '@libs/ApiUtils';
 import navigateToCardTransactions from '@libs/CardNavigationUtils';
 import {getCardFeedIcon, getPlaidInstitutionIconUrl, isCardConnectionBroken, isPersonalCard} from '@libs/CardUtils';
 import {getLatestErrorField} from '@libs/ErrorUtils';
+import getActiveTabName from '@libs/Navigation/helpers/getActiveTabName';
+import {isFullScreenName} from '@libs/Navigation/helpers/isNavigatorName';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 
-import Navigation from '@navigation/Navigation';
+import Navigation, {navigationRef} from '@navigation/Navigation';
 
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 
@@ -37,6 +39,7 @@ import {clearCardErrorField, deletePersonalCard, syncCard, unassignCard} from '@
 
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
+import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -104,6 +107,11 @@ function PersonalCardDetailsPage({route}: PersonalCardDetailsPageProps) {
         });
     };
 
+    const getExitFallbackRoute = () => {
+        const topmostFullScreenRoute = navigationRef.current?.getRootState()?.routes.findLast((rootRoute) => isFullScreenName(rootRoute.name));
+        return getActiveTabName(topmostFullScreenRoute) === NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR ? ROUTES.SETTINGS_WALLET : undefined;
+    };
+
     const updateCard = () => {
         if (!card) {
             return;
@@ -134,7 +142,7 @@ function PersonalCardDetailsPage({route}: PersonalCardDetailsPageProps) {
                 return;
             }
             const savedColumnLayout = savedColumnLayouts?.[card.cardID];
-            Navigation.goBack(ROUTES.SETTINGS_WALLET, {
+            Navigation.goBack(getExitFallbackRoute(), {
                 afterTransition: () => deletePersonalCard({cardID: card.cardID, card, allTransactions, allReports, savedColumnLayout}),
             });
         });
@@ -174,7 +182,7 @@ function PersonalCardDetailsPage({route}: PersonalCardDetailsPageProps) {
         >
             <HeaderWithBackButton
                 title={translate('workspace.moreFeatures.companyCards.cardDetails')}
-                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WALLET)}
+                onBackButtonPress={() => Navigation.goBack(getExitFallbackRoute())}
             />
             <ScrollView addBottomSafeAreaPadding>
                 <View style={[styles.walletCard, styles.mb3]}>

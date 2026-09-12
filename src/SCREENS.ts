@@ -79,7 +79,6 @@ const SCREENS = {
         COPILOT: 'Settings_Copilot',
         ABOUT: 'Settings_About',
         SAVE_THE_WORLD: 'Settings_TeachersUnite',
-        APP_DOWNLOAD_LINKS: 'Settings_App_Download_Links',
         ADD_DEBIT_CARD: 'Settings_Add_Debit_Card',
         ADD_BANK_ACCOUNT: 'Settings_Add_Bank_Account',
         ADD_US_BANK_ACCOUNT: 'Settings_Add_US_Bank_Account',
@@ -97,6 +96,7 @@ const SCREENS = {
         DYNAMIC_EXIT_SURVEY_CONFIRM: 'Dynamic_ExitSurvey_Confirm',
         DYNAMIC_EXIT_SURVEY_REASON: 'Dynamic_ExitSurvey_Reason',
         DYNAMIC_KEYBOARD_SHORTCUTS: 'Dynamic_Keyboard_Shortcuts',
+        DYNAMIC_APP_DOWNLOAD_LINKS: 'Dynamic_App_Download_Links',
         DYNAMIC_SAGE_INTACCT_EXPORT: 'Dynamic_Sage_Intacct_Export',
 
         PROFILE: {
