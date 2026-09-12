@@ -1948,6 +1948,27 @@ describe('IOURequestStepConfirmationPageTest', () => {
             expect(draftTransaction?.tag).toBe('');
         });
 
+        it('restores the cleared category when the destination workspace still has it enabled', async () => {
+            const SHARED_CATEGORY = 'Shared category';
+
+            await act(async () => {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${TRANSACTION_ID}`, {
+                    transactionID: TRANSACTION_ID,
+                    reportID: SOURCE_CHAT_REPORT_ID,
+                    category: SHARED_CATEGORY,
+                });
+                await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${DESTINATION_POLICY_ID}`, {
+                    [SHARED_CATEGORY]: {name: SHARED_CATEGORY, enabled: true},
+                });
+            });
+            await renderConfirmationOnSourceWorkspace({category: SHARED_CATEGORY});
+
+            await selectParticipants([createWorkspaceParticipant(DESTINATION_CHAT_REPORT_ID, DESTINATION_POLICY_ID)]);
+
+            const draftTransaction = await getDraftTransaction();
+            expect(draftTransaction?.category).toBe(SHARED_CATEGORY);
+        });
+
         it('keeps the category and the tag when the same workspace is selected again', async () => {
             // Given a manual expense assigned to the source workspace with one of its categories and tags selected
             await renderConfirmationOnSourceWorkspace();

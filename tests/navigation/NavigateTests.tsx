@@ -4,6 +4,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 
 import SidePanelActions from '@libs/actions/SidePanel';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
+import getPathFromState from '@libs/Navigation/helpers/getPathFromState';
 import Navigation from '@libs/Navigation/Navigation';
 import navigationRef from '@libs/Navigation/navigationRef';
 
@@ -42,11 +43,12 @@ describe('Navigate', () => {
                             {
                                 name: NAVIGATORS.TAB_NAVIGATOR,
                                 state: {
-                                    index: 3,
+                                    index: 4,
                                     routes: [
                                         {name: SCREENS.HOME},
                                         {name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR},
                                         {name: NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR},
+                                        {name: SCREENS.INSIGHTS},
                                         {
                                             name: NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR,
                                             state: {
@@ -68,7 +70,7 @@ describe('Navigate', () => {
             );
 
             const tabState = navigationRef.current?.getRootState().routes.at(0)?.state;
-            const settingsSplitBeforeGoBack = tabState?.routes.at(3);
+            const settingsSplitBeforeGoBack = tabState?.routes.at(4);
             expect(settingsSplitBeforeGoBack?.state?.index).toBe(0);
             expect(settingsSplitBeforeGoBack?.state?.routes.at(-1)?.name).toBe(SCREENS.SETTINGS.ROOT);
 
@@ -79,7 +81,7 @@ describe('Navigate', () => {
 
             // Then push a new page to the current split navigator
             const tabStateAfter = navigationRef.current?.getRootState().routes.at(0)?.state;
-            const settingsSplitAfterGoBack = tabStateAfter?.routes.at(3);
+            const settingsSplitAfterGoBack = tabStateAfter?.routes.at(4);
             expect(settingsSplitAfterGoBack?.state?.index).toBe(1);
             expect(settingsSplitAfterGoBack?.state?.routes.at(-1)?.name).toBe(SCREENS.SETTINGS.PROFILE.ROOT);
         });
@@ -94,11 +96,12 @@ describe('Navigate', () => {
                             {
                                 name: NAVIGATORS.TAB_NAVIGATOR,
                                 state: {
-                                    index: 3,
+                                    index: 4,
                                     routes: [
                                         {name: SCREENS.HOME},
                                         {name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR},
                                         {name: NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR},
+                                        {name: SCREENS.INSIGHTS},
                                         {
                                             name: NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR,
                                             state: {
@@ -123,7 +126,7 @@ describe('Navigate', () => {
             );
 
             const tabState = navigationRef.current?.getRootState().routes.at(0)?.state;
-            const settingsSplitBeforeGoBack = tabState?.routes.at(3);
+            const settingsSplitBeforeGoBack = tabState?.routes.at(4);
             expect(settingsSplitBeforeGoBack?.state?.index).toBe(1);
             expect(settingsSplitBeforeGoBack?.state?.routes.at(-1)?.name).toBe(SCREENS.SETTINGS.PROFILE.ROOT);
 
@@ -134,9 +137,158 @@ describe('Navigate', () => {
 
             // Then replace the current page with the page passed to the navigate function
             const tabStateAfter = navigationRef.current?.getRootState().routes.at(0)?.state;
-            const settingsSplitAfterGoBack = tabStateAfter?.routes.at(3);
+            const settingsSplitAfterGoBack = tabStateAfter?.routes.at(4);
             expect(settingsSplitAfterGoBack?.state?.index).toBe(1);
             expect(settingsSplitAfterGoBack?.state?.routes.at(-1)?.name).toBe(SCREENS.SETTINGS.ABOUT);
+        });
+
+        it('returns to the Workspaces list after directly opening a Workspace subpage without its sidebar', () => {
+            render(
+                <TestNavigationContainer
+                    initialState={{
+                        index: 0,
+                        routes: [
+                            {
+                                name: NAVIGATORS.TAB_NAVIGATOR,
+                                state: {
+                                    index: 4,
+                                    routes: [
+                                        {name: SCREENS.HOME},
+                                        {name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR},
+                                        {name: NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR},
+                                        {name: NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR},
+                                        {
+                                            name: NAVIGATORS.WORKSPACE_NAVIGATOR,
+                                            state: {
+                                                index: 0,
+                                                routes: [{name: SCREENS.WORKSPACES_LIST}],
+                                            },
+                                        },
+                                    ],
+                                },
+                            },
+                        ],
+                    }}
+                />,
+            );
+
+            act(() => {
+                Navigation.navigate(ROUTES.WORKSPACE_MEMBERS.getRoute('workspace-a'), {shouldSkipInitialSplitNavigatorSidebar: true});
+            });
+
+            const workspaceStateAfterNavigate = navigationRef.current?.getRootState().routes.at(0)?.state?.routes.at(4)?.state;
+            expect(workspaceStateAfterNavigate?.routes.at(0)?.name).toBe(SCREENS.WORKSPACES_LIST);
+            expect(workspaceStateAfterNavigate?.routes.at(-1)?.name).toBe(NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR);
+            const workspaceSplitState = workspaceStateAfterNavigate?.routes.at(-1)?.state;
+            expect(workspaceSplitState?.routes).toHaveLength(1);
+            expect(workspaceSplitState?.routes.some((route) => route.name === SCREENS.WORKSPACE.INITIAL)).toBe(false);
+            expect(workspaceSplitState?.routes.at(-1)?.params).not.toHaveProperty('shouldSkipInitialSidebar');
+
+            act(() => {
+                Navigation.goBack();
+            });
+
+            const workspaceStateAfterGoBack = navigationRef.current?.getRootState().routes.at(0)?.state?.routes.at(4)?.state;
+            expect(workspaceStateAfterGoBack?.routes.at(-1)?.name).toBe(SCREENS.WORKSPACES_LIST);
+        });
+
+        it('removes the sidebar marker when the Workspace split navigator is already mounted', () => {
+            render(
+                <TestNavigationContainer
+                    initialState={{
+                        index: 0,
+                        routes: [
+                            {
+                                name: NAVIGATORS.TAB_NAVIGATOR,
+                                state: {
+                                    index: 4,
+                                    routes: [
+                                        {name: SCREENS.HOME},
+                                        {name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR},
+                                        {name: NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR},
+                                        {name: NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR},
+                                        {
+                                            name: NAVIGATORS.WORKSPACE_NAVIGATOR,
+                                            state: {
+                                                index: 1,
+                                                routes: [
+                                                    {name: SCREENS.WORKSPACES_LIST},
+                                                    {
+                                                        name: NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR,
+                                                        state: {
+                                                            index: 1,
+                                                            routes: [
+                                                                {name: SCREENS.WORKSPACE.INITIAL, params: {policyID: 'workspace-a'}},
+                                                                {name: SCREENS.WORKSPACE.PROFILE, params: {policyID: 'workspace-a'}},
+                                                            ],
+                                                        },
+                                                    },
+                                                ],
+                                            },
+                                        },
+                                    ],
+                                },
+                            },
+                        ],
+                    }}
+                />,
+            );
+
+            act(() => {
+                Navigation.navigate(ROUTES.WORKSPACE_MEMBERS.getRoute('workspace-a'), {shouldSkipInitialSplitNavigatorSidebar: true});
+            });
+
+            const rootState = navigationRef.current?.getRootState();
+            if (!rootState) {
+                throw new Error('Expected the navigation state to be initialized');
+            }
+            const workspaceState = rootState.routes.at(0)?.state?.routes.at(4)?.state;
+            const workspaceSplitState = workspaceState?.routes.at(-1)?.state;
+            expect(workspaceSplitState?.routes.at(-1)?.name).toBe(SCREENS.WORKSPACE.MEMBERS);
+            expect(workspaceSplitState?.routes.at(-1)?.params).toEqual({policyID: 'workspace-a'});
+            expect(getPathFromState(rootState)).toBe('/workspaces/workspace-a/members');
+
+            act(() => {
+                Navigation.goBack();
+            });
+
+            const workspaceStateAfterGoBack = navigationRef.current?.getRootState().routes.at(0)?.state?.routes.at(4)?.state;
+            expect(workspaceStateAfterGoBack?.routes.at(-1)?.state?.routes.at(-1)?.name).toBe(SCREENS.WORKSPACE.PROFILE);
+        });
+
+        it('removes the internal sidebar marker without leaving empty params', () => {
+            render(
+                <TestNavigationContainer
+                    initialState={{
+                        index: 0,
+                        routes: [
+                            {
+                                name: NAVIGATORS.TAB_NAVIGATOR,
+                                state: {
+                                    index: 0,
+                                    routes: [
+                                        {name: SCREENS.HOME},
+                                        {name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR},
+                                        {name: NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR},
+                                        {name: NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR},
+                                        {name: NAVIGATORS.WORKSPACE_NAVIGATOR},
+                                    ],
+                                },
+                            },
+                        ],
+                    }}
+                />,
+            );
+
+            act(() => {
+                Navigation.navigate(ROUTES.SETTINGS_ABOUT, {shouldSkipInitialSplitNavigatorSidebar: true});
+            });
+
+            const activeTabState = navigationRef.current?.getRootState().routes.at(-1)?.state;
+            const settingsSplit = activeTabState?.routes.findLast((route) => route.name === NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR);
+            expect(settingsSplit?.state?.routes).toHaveLength(1);
+            expect(settingsSplit?.state?.routes.at(-1)?.name).toBe(SCREENS.SETTINGS.ABOUT);
+            expect(settingsSplit?.state?.routes.at(-1)?.params).toBeUndefined();
         });
 
         it('to the page from the different split navigator', () => {
@@ -149,11 +301,12 @@ describe('Navigate', () => {
                             {
                                 name: NAVIGATORS.TAB_NAVIGATOR,
                                 state: {
-                                    index: 3,
+                                    index: 4,
                                     routes: [
                                         {name: SCREENS.HOME},
                                         {name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR},
                                         {name: NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR},
+                                        {name: SCREENS.INSIGHTS},
                                         {
                                             name: NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR,
                                             state: {
@@ -224,6 +377,7 @@ describe('Navigate', () => {
                                             },
                                         },
                                         {name: NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR},
+                                        {name: SCREENS.INSIGHTS},
                                         {name: NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR},
                                         {name: NAVIGATORS.WORKSPACE_NAVIGATOR},
                                     ],
@@ -274,6 +428,7 @@ describe('Navigate', () => {
                                             },
                                         },
                                         {name: NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR},
+                                        {name: SCREENS.INSIGHTS},
                                         {
                                             name: NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR,
                                             state: {
@@ -325,6 +480,7 @@ describe('Navigate', () => {
                                             },
                                         },
                                         {name: NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR},
+                                        {name: SCREENS.INSIGHTS},
                                         {name: NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR},
                                         {name: NAVIGATORS.WORKSPACE_NAVIGATOR},
                                     ],
@@ -364,11 +520,12 @@ describe('Navigate', () => {
                             {
                                 name: NAVIGATORS.TAB_NAVIGATOR,
                                 state: {
-                                    index: 3,
+                                    index: 4,
                                     routes: [
                                         {name: SCREENS.HOME},
                                         {name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR},
                                         {name: NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR},
+                                        {name: SCREENS.INSIGHTS},
                                         {
                                             name: NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR,
                                             state: {
@@ -443,6 +600,7 @@ describe('Navigate', () => {
                                                 },
                                             },
                                             {name: NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR},
+                                            {name: SCREENS.INSIGHTS},
                                             {name: NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR},
                                             {name: NAVIGATORS.WORKSPACE_NAVIGATOR},
                                         ],
@@ -500,6 +658,7 @@ describe('Navigate', () => {
                                             },
                                         },
                                         {name: NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR},
+                                        {name: SCREENS.INSIGHTS},
                                         {name: NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR},
                                         {name: NAVIGATORS.WORKSPACE_NAVIGATOR},
                                     ],
@@ -526,6 +685,55 @@ describe('Navigate', () => {
             // Then side panel should close on narrow screen
             expect(closeSidePanelSpy).toHaveBeenCalledWith(true);
             expect(closeSidePanelSpy).toHaveBeenCalledTimes(1);
+        });
+    });
+
+    describe('on the wide layout', () => {
+        beforeEach(() => {
+            mockedGetIsNarrowLayout.mockReturnValue(false);
+            mockedUseResponsiveLayout.mockReturnValue({...CONST.NAVIGATION_TESTS.DEFAULT_USE_RESPONSIVE_LAYOUT_VALUE, shouldUseNarrowLayout: false});
+        });
+
+        it('keeps the Workspace sidebar while removing the internal sidebar marker', () => {
+            render(
+                <TestNavigationContainer
+                    initialState={{
+                        index: 0,
+                        routes: [
+                            {
+                                name: NAVIGATORS.TAB_NAVIGATOR,
+                                state: {
+                                    index: 4,
+                                    routes: [
+                                        {name: SCREENS.HOME},
+                                        {name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR},
+                                        {name: NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR},
+                                        {name: NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR},
+                                        {
+                                            name: NAVIGATORS.WORKSPACE_NAVIGATOR,
+                                            state: {
+                                                index: 0,
+                                                routes: [{name: SCREENS.WORKSPACES_LIST}],
+                                            },
+                                        },
+                                    ],
+                                },
+                            },
+                        ],
+                    }}
+                />,
+            );
+
+            act(() => {
+                Navigation.navigate(ROUTES.WORKSPACE_MEMBERS.getRoute('workspace-a'), {shouldSkipInitialSplitNavigatorSidebar: true});
+            });
+
+            const workspaceState = navigationRef.current?.getRootState().routes.at(0)?.state?.routes.at(4)?.state;
+            const workspaceSplitState = workspaceState?.routes.at(-1)?.state;
+            expect(workspaceSplitState?.routes.at(0)?.name).toBe(SCREENS.WORKSPACE.INITIAL);
+            expect(workspaceSplitState?.routes.at(0)?.params).toEqual({policyID: 'workspace-a'});
+            expect(workspaceSplitState?.routes.at(-1)?.name).toBe(SCREENS.WORKSPACE.MEMBERS);
+            expect(workspaceSplitState?.routes.at(-1)?.params).not.toHaveProperty('shouldSkipInitialSidebar');
         });
     });
 });

@@ -133,6 +133,7 @@ export default {
     tableRowHeight: 56,
     tableRowHeightCompact: 60,
     tableRowPaddingVertical: 8,
+    tableRowPaddingVerticalCompact: 16,
     tableRowPaddingHorizontal: 12,
     htmlTableRowMinHeight: 40,
     htmlTableHeaderRowMinHeight: 30,
@@ -151,7 +152,7 @@ export default {
     tableCardStatusColumnWidth: 128,
     workspaceTagsTableCountColumnWidth: 100,
     domainTableActionColumnWidth: 64,
-    domainAdminsTableActionColumnWidth: 140,
+    domainAdminsTableActionColumnWidth: 220,
     agentsTableActionColumnWidth: 260,
     workspaceTableActionColumnWidth: 64,
     workspaceMembersRoleColumnWidth: 148,
@@ -285,6 +286,7 @@ export default {
     reportActionItemImagesMoreCornerTriangleWidth: 40,
     popoverZIndex: 10000,
     modalBaseZIndex: 9999,
+    autoCompleteSuggestionsZIndex: 9999,
     sidePanelZIndex: 9998,
     modalRightDockedZIndex: 9997,
     modalLowestZIndex: 9996,
@@ -527,4 +529,19 @@ export default {
     permissionViewPaddingVertical: 108,
     permissionViewPaddingHorizontal: 61,
     permissionViewPaddingVerticalLandscape: 16,
+
+    // Search table chrome, shared by the dynamic column sizing and the horizontal scroller.
+    // The gap a row renders between two adjacent columns, matching its `gap3` styling.
+    searchTableColumnGap: 12,
+    // The margin and padding each row sits inside on both sides, from `mh5` on its wrapper and `ph3` on the row.
+    searchTableRowChromeWidth: (20 + 12) * 2,
+    searchTableRowCheckboxWidth: 24,
+    // What the status badge spends around its label, from `condensedBadge`'s horizontal padding and `defaultBadge`'s border.
+    statusBadgeChromeWidth: 6 * 2 + 1 * 2,
+    // What an editable cell spends around its value, from `editableCell`'s padding and the border it reserves for its focus ring.
+    editableCellChromeWidth: 4 * 2 + 1 * 2,
+    // What the edit button covers at the trailing edge of an editable cell, from `editableCellEditButton` and the inset it sits at.
+    editableCellEditButtonWidth: 28 + 4,
+    // How short a value has to be before that edit button is worth reserving room for.
+    narrowEditableContentWidth: 60,
 } as const;

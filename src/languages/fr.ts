@@ -54,6 +54,8 @@ const translations: TranslationDeepObject<typeof en> = {
         unshare: 'Arrêter le partage',
         yes: 'Oui',
         no: 'Non',
+        approve: 'Approuver',
+        deny: 'Refuser',
         dontChange: 'Ne pas modifier',
         ok: 'OK',
         notNow: 'Pas maintenant',
@@ -75,6 +77,7 @@ const translations: TranslationDeepObject<typeof en> = {
         search: 'Rechercher',
         reports: 'Notes de frais',
         spend: 'Dépenses',
+        insights: 'Analyses',
         find: 'Rechercher',
         searchWithThreeDots: 'Rechercher...',
         next: 'Suivant',
@@ -2624,6 +2627,10 @@ const translations: TranslationDeepObject<typeof en> = {
             connectionLink
                 ? `La connexion de votre carte ${cardName} est rompue. <a href="${connectionLink}">Connectez-vous à votre banque</a> pour corriger la carte.`
                 : `La connexion de votre carte ${cardName} est rompue. Connectez-vous à votre banque pour corriger la carte.`,
+        conciergeBrokenConnection30Days: (cardName: string, connectionLink?: string) =>
+            connectionLink
+                ? `Votre connexion ${cardName} est rompue depuis 30 jours. <a href="${connectionLink}">Connectez-vous à votre banque</a> pour la corriger ou <a href="${connectionLink}">supprimez la carte</a> si elle n’est plus utilisée. Vous ne perdrez aucune dépense soumise si vous la supprimez.`
+                : `La connexion de votre ${cardName} est rompue depuis 30 jours. Connectez-vous à votre banque pour la réparer ou supprimez la carte si elle n’est plus utilisée. Vous ne perdrez aucune dépense soumise si vous la supprimez.`,
         addAdditionalCards: "Ajouter d'autres cartes",
         upgradeDescription: "Vous devez ajouter plus de cartes ? Créez un espace de travail pour ajouter des cartes personnelles ou assigner des cartes d'entreprise à toute l'équipe.",
         onlyAvailableOnPlan: ({formattedPrice}: {formattedPrice: string}) =>
@@ -4647,6 +4654,7 @@ ${amount} pour ${merchant} - ${date}`,
             travel: 'Déplacements',
             members: 'Membres',
             accounting: 'Comptabilité',
+            mcp: 'MCP',
             receiptPartners: 'Partenaires de reçus',
             rules: 'Règles',
             displayedAs: 'Affiché comme',
@@ -4783,6 +4791,25 @@ ${amount} pour ${merchant} - ${date}`,
         createdForClient: {
             title: 'Vous avez créé un espace de travail pour votre client !',
             description: "Excellente nouvelle 🎉. Contactez-nous si votre client a besoin d'aide pour la configuration.",
+        },
+        mcp: {
+            connectors: 'Connecteurs',
+            connectorsSubtitle: 'Connectez un assistant IA à votre compte Expensify.',
+            connect: 'Connecter',
+            helpPrompt: "Besoin d'aide pour la connexion ?",
+            helpLink: 'Consultez notre guide.',
+            claude: {
+                title: 'Claude',
+                subtitle: 'par Anthropic',
+            },
+            cursor: {
+                title: 'Cursor',
+                subtitle: 'par Anysphere',
+            },
+            chatgpt: {
+                title: 'ChatGPT',
+                subtitle: 'par OpenAI',
+            },
         },
         receiptPartners: {
             uber: {
@@ -6571,6 +6598,10 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                 title: 'Comptabilité',
                 subtitle: 'Synchronisez votre plan comptable et plus encore.',
             },
+            mcp: {
+                title: 'MCP',
+                subtitle: 'Connectez un assistant IA à votre compte Expensify.',
+            },
             receiptPartners: {
                 title: 'Partenaires de reçus',
                 subtitle: 'Importer automatiquement les reçus.',
@@ -7985,7 +8016,6 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
                 alwaysReimbursableDescription: 'Les dépenses sont toujours remboursées aux employés',
                 alwaysNonReimbursable: 'Toujours non remboursable',
                 alwaysNonReimbursableDescription: 'Les dépenses ne sont jamais remboursées aux employés',
-                billableDefault: 'Facturable par défaut',
                 billableDefaultDescription: 'Choisissez si les dépenses en espèces et par carte de crédit doivent être facturables par défaut.',
                 billable: 'Facturable',
                 billableDescription: 'Les dépenses sont le plus souvent refacturées aux clients',
@@ -8012,10 +8042,12 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
                 publicReceiptVisibilityHintDisabled: 'Les reçus ne sont visibles que par les membres Expensify ayant accès à la note de frais contenant le reçu.',
                 enableTagsToUnlockTitle: 'Activer les tags ?',
                 enableTagsToUnlockPrompt: 'Activez les tags (sous Plus de fonctionnalités) pour débloquer.',
-                enableTagsAndRequirePrompt: 'Voulez-vous vraiment activer les tags et les rendre obligatoires pour toutes les dépenses ?',
                 enableCategoriesToUnlockTitle: 'Activer les catégories ?',
                 enableCategoriesToUnlockPrompt: 'Activez les catégories (dans Plus de fonctionnalités) pour déverrouiller.',
                 enableCategoriesAndRequirePrompt: 'Voulez-vous vraiment activer les catégories et les rendre obligatoires pour toutes les dépenses ?',
+                enableTagsPrompt: 'Voulez-vous vraiment activer les tags ? Vous pourrez les rendre obligatoires pour toutes les dépenses une fois que vous aurez au moins un tag.',
+                noTagsToRequirePrompt: "Vous n'avez aucun tag. Veuillez créer un tag.",
+                noCategoriesToRequirePrompt: 'Vous n’avez aucune catégorie. Veuillez créer une catégorie.',
             },
             expenseReportRules: {
                 title: 'Avancé',
@@ -8098,6 +8130,13 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
                 categoryRulesApplyGoingForwardTitle: 'Les règles de catégorie s’appliquent à partir de maintenant',
                 categoryRulesApplyGoingForwardPrompt:
                     'Un taux de taxe par défaut s’applique aux nouvelles dépenses de cette catégorie. Les dépenses déjà existantes ne seront pas modifiées.',
+                confirmErrorCategoryTaxMoveIsWorkspaceDefault:
+                    'Le taux de taxe sélectionné est désormais le taux par défaut de votre espace de travail, cette règle n’est donc plus valide. Choisissez un autre taux de taxe.',
+                addTaxRateFirstTitle: 'Ajoutez d’abord un taux de taxe',
+                addTaxRateFirstPrompt:
+                    'Les règles de catégorie définissent un taux de taxe par défaut. Ajoutez un taux de taxe autre que le taux par défaut de votre espace de travail pour les utiliser.',
+                createRuleFromExpenseAction: 'Créer une règle',
+                createRuleFromExpensePrompt: 'pour appliquer vos modifications à toutes les dépenses qui correspondent à vos critères.',
             },
             categoryRules: {
                 title: 'Règles de catégorie',
@@ -8119,7 +8158,7 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
                 expenseLimitTypes: {
                     expense: 'Dépense individuelle',
                     expenseSubtitle:
-                        'Signaler les montants des dépenses par catégorie. Cette règle remplace la règle générale de l’espace de travail concernant le montant maximal d’une dépense.',
+                        'Signaler les montants de dépense par catégorie. Cette règle remplace la règle générale de l’espace de travail pour le montant maximal de dépense. Les réservations de plusieurs jours sont évaluées selon la moyenne par nuit.',
                     daily: 'Total par catégorie',
                     dailySubtitle: 'Signaler le montant quotidien total par catégorie pour chaque note de frais.',
                 },
@@ -9541,7 +9580,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 [CONST.SEARCH.WITHDRAWAL_TYPE.TRAVEL_BILLING]: 'Facturation de voyages consolidée',
             },
             is: 'Est',
-            has: {submittedViolation: 'Infraction soumise'},
+            has: {submittedViolation: 'Infraction soumise', approvedViolation: 'Violation approuvée'},
             action: {
                 [CONST.SEARCH.ACTION_FILTERS.SUBMIT]: 'Soumettre',
                 [CONST.SEARCH.ACTION_FILTERS.APPROVE]: 'Approuver',
@@ -9765,6 +9804,16 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 integrationSyncFailedRecurrence: ({count}: {count: number}) => `(Répété ${count} fois.)`,
                 companyCardConnectionBroken: ({feedName, workspaceCompanyCardRoute}: {feedName: string; workspaceCompanyCardRoute: string}) =>
                     `La connexion ${feedName} est interrompue. Pour rétablir l’importation des cartes, <a href='${workspaceCompanyCardRoute}'>connectez-vous à votre banque</a>.`,
+                companyCardConnectionBroken30Days: ({
+                    feedName,
+                    workspaceCompanyCardRoute,
+                    workspaceCompanyCardSettingsRoute,
+                }: {
+                    feedName: string;
+                    workspaceCompanyCardRoute: string;
+                    workspaceCompanyCardSettingsRoute: string;
+                }) =>
+                    `La connexion ${feedName} est interrompue depuis 30 jours. <a href='${workspaceCompanyCardRoute}'>Connectez-vous à votre banque</a> pour la corriger ou <a href='${workspaceCompanyCardSettingsRoute}'>supprimez la connexion</a> si elle n’est plus utilisée. Vous ne perdrez aucune dépense soumise si vous la supprimez.`,
                 plaidBalanceFailure: ({maskedAccountNumber, walletRoute}: {maskedAccountNumber: string; walletRoute: string}) =>
                     `la connexion Plaid à votre compte bancaire professionnel est rompue. Veuillez <a href='${walletRoute}'>reconnecter votre compte bancaire ${maskedAccountNumber}</a> afin de pouvoir continuer à utiliser vos Cartes Expensify.`,
                 addEmployee: (email: string, role: string, didJoinPolicy?: boolean) => {
@@ -10355,6 +10404,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         customUnitRateOutOfDateRangeStartOnly: ({startDate}: {startDate: string}) => `Le taux n’est valable qu’à partir du ${startDate}`,
         customUnitRateOutOfDateRangeEndOnly: ({endDate}: {endDate: string}) => `Le taux n’est valable que jusqu’au ${endDate}`,
         cannotMergeDuplicates: 'Vous ne pouvez fusionner des dépenses que sur des notes de frais à l’état de brouillon ou en circulation. Retirez-la puis réessayez.',
+        overCategoryLimitPerNight: (formattedLimit: string) => `Tarif de nuit supérieur à la limite de catégorie de ${formattedLimit}/personne`,
         shortName: {
             allTagLevelsRequired: 'Tous les tags sont obligatoires',
             autoReportedRejectedExpense: 'Dépense rejetée',
@@ -11107,6 +11157,9 @@ Voici un *reçu test* pour vous montrer comment ça fonctionne :`,
             consolidatedDomainBillingError: 'La facturation de domaine consolidée n’a pas pu être modifiée. Veuillez réessayer plus tard.',
             addAdmin: 'Ajouter un administrateur',
             addAdminError: 'Impossible d’ajouter ce membre en tant qu’administrateur. Veuillez réessayer.',
+            requests: 'Demandes',
+            approveRequestError: 'Impossible d’approuver cette demande. Veuillez réessayer.',
+            declineRequestError: 'Impossible de refuser cette demande. Veuillez réessayer.',
             revokeAdminAccess: 'Révoquer l’accès administrateur',
             cantRevokeAdminAccess: "Impossible de révoquer l'accès administrateur au contact technique",
             error: {
