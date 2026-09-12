@@ -1,9 +1,11 @@
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 
 import useIsAgentAccount from '@hooks/useIsAgentAccount';
+import useOnyx from '@hooks/useOnyx';
 
 import Navigation from '@libs/Navigation/Navigation';
 
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
 import {useFocusEffect, useIsFocused} from '@react-navigation/native';
@@ -17,8 +19,10 @@ function withAgentAccessDenied(getComponent: () => React.ComponentType): () => R
             ProtectedComponent = (props) => {
                 const isAgent = useIsAgentAccount();
                 const isFocused = useIsFocused();
+                const [isSwitchingToDelegator] = useOnyx(ONYXKEYS.IS_SWITCHING_TO_DELEGATOR);
                 const isAlreadyOnRedirectTarget = Navigation.isActiveRoute(ROUTES.SETTINGS_PROFILE.route);
                 const shouldRedirect = isAgent === true && !isAlreadyOnRedirectTarget;
+                const shouldShowNotFoundPage = !isSwitchingToDelegator && isAgent === true;
 
                 const redirectAgentAway = useCallback(() => {
                     if (isAgent !== true) {
@@ -76,7 +80,7 @@ function withAgentAccessDenied(getComponent: () => React.ComponentType): () => R
                 if (isAgent === undefined || shouldRedirect) {
                     return null;
                 }
-                if (isAgent === true) {
+                if (shouldShowNotFoundPage) {
                     return (
                         <FullPageNotFoundView
                             shouldShow
