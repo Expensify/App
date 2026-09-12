@@ -1790,8 +1790,8 @@ const translations: TranslationDeepObject<typeof en> = {
             reassignedApproverMessage: (managerID: number) => `heeft de goedkeurder opnieuw toegewezen aan <mention-user accountID="${managerID}"/> via een workflow-update`,
             reassignedApprovalMessage: (newApproverID: number, previousApproverID?: number) =>
                 previousApproverID
-                    ? `heeft de goedkeuring opnieuw toegewezen aan <mention-user accountID="${newApproverID}"/>, <mention-user accountID="${previousApproverID}"/> overgeslagen`
-                    : `heeft de goedkeuring opnieuw toegewezen aan <mention-user accountID="${newApproverID}"/>`,
+                    ? `heeft de goedkeurder gewijzigd naar <mention-user accountID="${newApproverID}"/>, <mention-user accountID="${previousApproverID}"/> overgeslagen`
+                    : `heeft de goedkeurder gewijzigd naar <mention-user accountID="${newApproverID}"/>`,
             actions: {
                 addApprover: 'Goedkeurder toevoegen',
                 addApproverSubtitle: 'Voeg een extra fiatteur toe aan de bestaande workflow.',

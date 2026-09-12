@@ -1731,8 +1731,8 @@ const translations: TranslationDeepObject<typeof en> = {
             reassignedApproverMessage: (managerID: number) => `已通过工作流更新将审批人重新分配给 <mention-user accountID="${managerID}"/>`,
             reassignedApprovalMessage: (newApproverID: number, previousApproverID?: number) =>
                 previousApproverID
-                    ? `已将审批重新分配给 <mention-user accountID="${newApproverID}"/>，跳过了 <mention-user accountID="${previousApproverID}"/>`
-                    : `已将审批重新分配给 <mention-user accountID="${newApproverID}"/>`,
+                    ? `已将审批人更改为 <mention-user accountID="${newApproverID}"/>，跳过了 <mention-user accountID="${previousApproverID}"/>`
+                    : `已将审批人更改为 <mention-user accountID="${newApproverID}"/>`,
             actions: {
                 addApprover: '添加审批人',
                 addApproverSubtitle: '向现有工作流程添加额外审批人。',

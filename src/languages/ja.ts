@@ -1776,8 +1776,8 @@ const translations: TranslationDeepObject<typeof en> = {
             reassignedApproverMessage: (managerID: number) => `ワークフローの更新により承認者を <mention-user accountID="${managerID}"/> に再割り当てしました`,
             reassignedApprovalMessage: (newApproverID: number, previousApproverID?: number) =>
                 previousApproverID
-                    ? `承認を <mention-user accountID="${newApproverID}"/> に再割り当てし、<mention-user accountID="${previousApproverID}"/> をスキップしました`
-                    : `承認を <mention-user accountID="${newApproverID}"/> に再割り当てしました`,
+                    ? `承認者を <mention-user accountID="${newApproverID}"/> に変更し、<mention-user accountID="${previousApproverID}"/> をスキップしました`
+                    : `承認者を <mention-user accountID="${newApproverID}"/> に変更しました`,
             actions: {
                 addApprover: '承認者を追加',
                 addApproverSubtitle: '既存のワークフローに追加の承認者を追加します。',

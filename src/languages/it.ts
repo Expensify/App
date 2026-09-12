@@ -1793,8 +1793,8 @@ const translations: TranslationDeepObject<typeof en> = {
             reassignedApproverMessage: (managerID: number) => `ha riassegnato l'approvatore a <mention-user accountID="${managerID}"/> tramite un aggiornamento del flusso di lavoro`,
             reassignedApprovalMessage: (newApproverID: number, previousApproverID?: number) =>
                 previousApproverID
-                    ? `ha riassegnato l'approvazione a <mention-user accountID="${newApproverID}"/>, ha saltato <mention-user accountID="${previousApproverID}"/>`
-                    : `ha riassegnato l'approvazione a <mention-user accountID="${newApproverID}"/>`,
+                    ? `ha cambiato l’approvatore in <mention-user accountID="${newApproverID}"/>, ha saltato <mention-user accountID="${previousApproverID}"/>`
+                    : `ha cambiato l’approvatore in <mention-user accountID="${newApproverID}"/>`,
             actions: {
                 addApprover: 'Aggiungi approvatore',
                 addApproverSubtitle: 'Aggiungi un ulteriore approvatore al flusso di approvazione esistente.',

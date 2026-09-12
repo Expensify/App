@@ -1802,8 +1802,8 @@ const translations: TranslationDeepObject<typeof en> = {
             reassignedApproverMessage: (managerID: number) => `a réaffecté l'approbateur à <mention-user accountID="${managerID}"/> via une mise à jour du flux de travail`,
             reassignedApprovalMessage: (newApproverID: number, previousApproverID?: number) =>
                 previousApproverID
-                    ? `a réaffecté l'approbation à <mention-user accountID="${newApproverID}"/>, a ignoré <mention-user accountID="${previousApproverID}"/>`
-                    : `a réaffecté l'approbation à <mention-user accountID="${newApproverID}"/>`,
+                    ? `a changé l'approbateur en <mention-user accountID="${newApproverID}"/>, a ignoré <mention-user accountID="${previousApproverID}"/>`
+                    : `a changé l'approbateur en <mention-user accountID="${newApproverID}"/>`,
             actions: {
                 addApprover: 'Ajouter un approbateur',
                 addApproverSubtitle: 'Ajouter un approbateur supplémentaire au circuit d’approbation existant.',

@@ -57,6 +57,7 @@ function ReportReassignApproverPage({report, policy}: ReportReassignApproverPage
     const {isBetaEnabled} = usePermissions();
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const hasViolations = hasViolationsReportUtils(report?.reportID, transactionViolations, currentUserDetails.accountID, currentUserDetails.login ?? '');
 
     const employeeList = policy?.employeeList;
@@ -122,6 +123,7 @@ function ReportReassignApproverPage({report, policy}: ReportReassignApproverPage
                 accountID: currentUserDetails.accountID,
                 email: currentUserDetails.email ?? '',
                 policy,
+                rules,
                 hasViolations,
                 isASAPSubmitBetaEnabled: isBetaEnabled(CONST.BETAS.ASAP_SUBMIT),
                 isTrackIntentUser,
@@ -142,7 +144,7 @@ function ReportReassignApproverPage({report, policy}: ReportReassignApproverPage
             shouldShowLoadingImmediatelyOnPress={false}
             containerStyles={[styles.flexReset, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto]}
             enabledWhenOffline
-            shouldBlendOpacity
+            blendButtonOpacity
         />
     );
 

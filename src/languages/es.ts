@@ -1794,8 +1794,8 @@ const translations: TranslationDeepObject<typeof en> = {
             reassignedApproverMessage: (managerID) => `reasignó el aprobador a <mention-user accountID="${managerID}"/> mediante una actualización de flujo de trabajo`,
             reassignedApprovalMessage: (newApproverID, previousApproverID) =>
                 previousApproverID
-                    ? `reasignó la aprobación a <mention-user accountID="${newApproverID}"/>, omitió a <mention-user accountID="${previousApproverID}"/>`
-                    : `reasignó la aprobación a <mention-user accountID="${newApproverID}"/>`,
+                    ? `cambió el aprobador a <mention-user accountID="${newApproverID}"/>, omitió a <mention-user accountID="${previousApproverID}"/>`
+                    : `cambió el aprobador a <mention-user accountID="${newApproverID}"/>`,
             actions: {
                 addApprover: 'Añadir aprobador',
                 addApproverSubtitle: 'Añade un aprobador adicional al flujo de trabajo existente.',

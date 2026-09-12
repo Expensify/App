@@ -1821,8 +1821,8 @@ const translations: TranslationDeepObject<typeof en> = {
             reassignedApproverMessage: (managerID: number) => `ponownie przypisał(a) akceptującego do <mention-user accountID="${managerID}"/> w wyniku aktualizacji przepływu pracy`,
             reassignedApprovalMessage: (newApproverID: number, previousApproverID?: number) =>
                 previousApproverID
-                    ? `ponownie przypisał(a) zatwierdzenie do <mention-user accountID="${newApproverID}"/>, pominął(-ęła) <mention-user accountID="${previousApproverID}"/>`
-                    : `ponownie przypisał(a) zatwierdzenie do <mention-user accountID="${newApproverID}"/>`,
+                    ? `zmienił(a) akceptującego na <mention-user accountID="${newApproverID}"/>, pominął(-ęła) <mention-user accountID="${previousApproverID}"/>`
+                    : `zmienił(a) akceptującego na <mention-user accountID="${newApproverID}"/>`,
             actions: {
                 addApprover: 'Dodaj zatwierdzającego',
                 addApproverSubtitle: 'Dodaj dodatkową osobę zatwierdzającą do istniejącego przepływu zatwierdzania.',

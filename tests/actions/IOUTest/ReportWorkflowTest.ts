@@ -4024,6 +4024,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 accountID: CARLOS_ACCOUNT_ID,
                 email: CARLOS_EMAIL,
                 policy,
+                rules: undefined,
                 hasViolations: false,
                 isASAPSubmitBetaEnabled: false,
                 isTrackIntentUser: false,

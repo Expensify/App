@@ -1795,8 +1795,8 @@ const translations: TranslationDeepObject<typeof en> = {
             reassignedApproverMessage: (managerID: number) => `hat den Genehmigenden über eine Workflow-Aktualisierung neu zu <mention-user accountID="${managerID}"/> zugewiesen`,
             reassignedApprovalMessage: (newApproverID: number, previousApproverID?: number) =>
                 previousApproverID
-                    ? `hat die Genehmigung neu an <mention-user accountID="${newApproverID}"/> zugewiesen, <mention-user accountID="${previousApproverID}"/> übersprungen`
-                    : `hat die Genehmigung neu an <mention-user accountID="${newApproverID}"/> zugewiesen`,
+                    ? `Genehmigenden in <mention-user accountID="${newApproverID}"/> geändert, <mention-user accountID="${previousApproverID}"/> übersprungen`
+                    : `Genehmigenden in <mention-user accountID="${newApproverID}"/> geändert`,
             actions: {
                 addApprover: 'Genehmiger hinzufügen',
                 addApproverSubtitle: 'Füge dem bestehenden Workflow eine weitere genehmigende Person hinzu.',
