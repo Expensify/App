@@ -384,6 +384,76 @@ describe('useAccountIndicatorChecks', () => {
             expect(result.current.accountStatus).not.toBe(CONST.INDICATOR_STATUS.HAS_PAYMENT_METHOD_ERROR);
         });
 
+        // A failed action writes a fresh error long after the last sync, and it still has to lead the user to it.
+        it('surfaces a personal card error recorded after the grace period has passed', async () => {
+            await act(async () => {
+                await Onyx.multiSet(
+                    createMock<OnyxMultiSetInput>({
+                        [ONYXKEYS.USER_WALLET]: {},
+                        [ONYXKEYS.BANK_ACCOUNT_LIST]: {},
+                        [ONYXKEYS.REIMBURSEMENT_ACCOUNT]: {},
+                        [ONYXKEYS.LOGINS]: {},
+                        [ONYXKEYS.WALLET_TERMS]: {},
+                        [ONYXKEYS.PRIVATE_PERSONAL_DETAILS]: {},
+                        [ONYXKEYS.NVP_PRIVATE_BILLING_DISPUTE_PENDING]: 0,
+                        [ONYXKEYS.CARD_LIST]: {
+                            card1: {
+                                cardID: 1,
+                                lastScrapeResult: 403,
+                                lastScrape: '2020-01-01 00:00:00',
+                                errors: {[Date.now() * 1000]: 'Failed to unassign this card.'},
+                            },
+                        },
+                        [ONYXKEYS.SESSION]: {email: userID},
+                    }),
+                );
+                await waitForBatchedUpdatesWithAct();
+            });
+
+            const {result} = renderHook(() => useAccountIndicatorChecks());
+            await waitForBatchedUpdatesWithAct();
+
+            expect(result.current.accountStatus).toBe(CONST.INDICATOR_STATUS.HAS_PAYMENT_METHOD_ERROR);
+        });
+
+        it('surfaces a company card error recorded after the grace period has passed', async () => {
+            await act(async () => {
+                await Onyx.multiSet(
+                    createMock<OnyxMultiSetInput>({
+                        [ONYXKEYS.USER_WALLET]: {},
+                        [ONYXKEYS.BANK_ACCOUNT_LIST]: {},
+                        [ONYXKEYS.REIMBURSEMENT_ACCOUNT]: {},
+                        [ONYXKEYS.LOGINS]: {},
+                        [ONYXKEYS.WALLET_TERMS]: {},
+                        [ONYXKEYS.PRIVATE_PERSONAL_DETAILS]: {},
+                        [ONYXKEYS.NVP_PRIVATE_BILLING_DISPUTE_PENDING]: 0,
+                        [ONYXKEYS.CARD_LIST]: {
+                            card1: {
+                                cardID: 1,
+                                bank: cardFeed.feedName,
+                                fundID: String(cardFeed.policyAccountID),
+                                lastScrapeResult: 403,
+                                lastScrape: '2020-01-01 00:00:00',
+                                errors: {[Date.now() * 1000]: 'Failed to unassign this card.'},
+                            },
+                        },
+                        [`${ONYXKEYS.COLLECTION.POLICY}1` as const]: {
+                            id: '1',
+                            policyAccountID: cardFeed.policyAccountID,
+                            role: CONST.POLICY.ROLE.USER,
+                        },
+                        [ONYXKEYS.SESSION]: {email: userID},
+                    }),
+                );
+                await waitForBatchedUpdatesWithAct();
+            });
+
+            const {result} = renderHook(() => useAccountIndicatorChecks());
+            await waitForBatchedUpdatesWithAct();
+
+            expect(result.current.accountStatus).toBe(CONST.INDICATOR_STATUS.HAS_PAYMENT_METHOD_ERROR);
+        });
+
         it('still surfaces a company card broken connection on the Account button within the grace period', async () => {
             const recentScrape = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString().slice(0, 19).replace('T', ' ');
             await act(async () => {

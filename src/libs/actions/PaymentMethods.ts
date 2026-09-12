@@ -436,17 +436,17 @@ function hasPaymentMethodError(
 
     const policyList = Object.values(policies ?? {}).filter(Boolean);
     const hasRelevantCardError = cardsWithErrors.some((card) => {
-        if (CardUtils.isPersonalCard(card)) {
-            // A personal card's connection error is surfaced as a card error too, so once the card has gone without a
-            // successful sync past the grace period we stop leading the user to it and it must no longer light the RBR.
-            // This is deliberately keyed on the last successful sync rather than `isCardConnectionBroken`: the server
-            // sets the connection error even for scrape statuses that check treats as ignored (e.g. 434).
-            return !CardUtils.isLastScrapePastDismissThreshold(card);
-        }
-        // A company card follows the same grace period: past it we stop leading the user to the error, though the error
-        // itself stays on the card row and on the feed so it can still be fixed.
-        if (CardUtils.isLastScrapePastDismissThreshold(card)) {
+        // A card's connection error is surfaced as a card error too, so once the card has gone without a successful
+        // sync past the grace period we stop leading the user to it and it must no longer light the RBR. The threshold
+        // is keyed on the last successful sync rather than `isCardConnectionBroken` because the server sets the
+        // connection error even for scrape statuses that check treats as ignored (e.g. 434). An error recorded after
+        // the last sync came from something the user just did, so it still has to light the RBR.
+        const isStaleConnectionErrorOnly = CardUtils.isLastScrapePastDismissThreshold(card) && !CardUtils.hasErrorNewerThanLastScrape(card);
+        if (isStaleConnectionErrorOnly) {
             return false;
+        }
+        if (CardUtils.isPersonalCard(card)) {
+            return true;
         }
         const workspaceAccountID = Number(card?.fundID);
         const policy = policyList.find((p) => p?.policyAccountID === workspaceAccountID);
