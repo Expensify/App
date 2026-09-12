@@ -1,7 +1,18 @@
+import type {GpsDraftDetails} from '@src/types/onyx';
 import type {GPSPoint, TrimmedGPSPoint} from '@src/types/onyx/GpsDraftDetails';
 import geodesicDistance from '@src/utils/geodesicDistance';
 
 import {reverseGeocodeAsync} from 'expo-location';
+
+/**
+ * The recorded trip, normalized to always hold at least one segment. Reading through here is what lets writers
+ * pop the last segment without having to guard the shape themselves.
+ */
+function getGpsPoints(gpsDraftDetails: GpsDraftDetails | undefined): GPSPoint[][] {
+    const gpsPoints = gpsDraftDetails?.gpsPoints;
+
+    return gpsPoints?.length ? gpsPoints : [[]];
+}
 
 /**
  * Point level helpers for GPS distance requests. These live outside GPSDraftDetailsUtils so that
@@ -66,4 +77,4 @@ function calculateTrimmedEndPoint(gpsPoints: GPSPoint[][], targetDistanceMeters:
     return null;
 }
 
-export {addressFromGpsPoint, coordinatesToString, calculateTrimmedEndPoint};
+export {addressFromGpsPoint, coordinatesToString, calculateTrimmedEndPoint, getGpsPoints};

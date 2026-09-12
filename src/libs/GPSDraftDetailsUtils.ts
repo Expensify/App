@@ -11,8 +11,8 @@ import type {SetRequired} from 'type-fest';
 
 import {hasStartedLocationUpdatesAsync, stopLocationUpdatesAsync} from 'expo-location';
 
-import {removeLastSegment, setEndWaypointAddress, setIsTracking} from './actions/GPSDraftDetails';
-import {addressFromGpsPoint, calculateTrimmedEndPoint, coordinatesToString} from './GPSPointUtils';
+import {removeLastSegment, resetGPSDraftDetails, setEndWaypointAddress, setIsTracking} from './actions/GPSDraftDetails';
+import {addressFromGpsPoint, calculateTrimmedEndPoint, coordinatesToString, getGpsPoints} from './GPSPointUtils';
 import {roundToTwoDecimalPlaces} from './NumberUtils';
 
 type GPSWaypointCollection = Record<string, SetRequired<Waypoint, 'keyForList' | 'lat' | 'lng' | 'address'>>;
@@ -130,14 +130,17 @@ async function stopGpsTrip(isOffline: boolean, gpsPoints: GPSPoint[][], skipLast
         await stopLocationUpdatesAsync(BACKGROUND_LOCATION_TRACKING_TASK_NAME).catch((error) => console.error('[GPS distance request] Failed to stop location tracking', error));
     }
 
-    setIsTracking(false);
     stopGpsTripNotification();
 
     const lastSegment = gpsPoints.at(-1);
 
-    if (!lastSegment) {
+    // A trip that recorded nothing is not a trip, so it leaves no draft behind
+    if (!lastSegment || gpsPoints.flat().length === 0) {
+        resetGPSDraftDetails();
         return;
     }
+
+    setIsTracking(false);
 
     if (isLastSegmentEmptyOrHasOnlyOnePoint(lastSegment)) {
         // Dropping the sole segment would leave no points, which reads as a trip that never started
@@ -193,10 +196,6 @@ function getTotalGpsTripPointsInLastSegment(gpsPoints: GPSPoint[][]): number {
 
 function isTripStopped(gpsDraftDetails: GpsDraftDetails | undefined): boolean {
     return !gpsDraftDetails?.isTracking && getTotalGpsTripPoints(gpsDraftDetails) > 0;
-}
-
-function getGpsPoints(gpsDraftDetails: GpsDraftDetails | undefined): GPSPoint[][] {
-    return gpsDraftDetails?.gpsPoints ?? [[]];
 }
 
 function getFirstGpsPoint(gpsDraftDetails: GpsDraftDetails | undefined): GPSPoint | undefined {

@@ -413,12 +413,12 @@ describe('GPSDraftDetailsUtils', () => {
             expect((await getStoppedDraft())?.gpsPoints).toEqual([[point(0, 0), point(0, 1, {value: '0,1', type: 'coordinates'})]]);
         });
 
-        it('leaves a single segment that is still empty untouched', async () => {
+        it('clears the draft when the trip recorded nothing', async () => {
             const gpsPoints = await trackTrip([[]]);
 
             await stopGpsTrip(false, gpsPoints);
 
-            expect((await getStoppedDraft())?.gpsPoints).toEqual([[]]);
+            expect(await getStoppedDraft()).toBeUndefined();
         });
 
         it('drops a resumed segment that holds a single point', async () => {
