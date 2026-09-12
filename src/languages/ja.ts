@@ -54,6 +54,8 @@ const translations: TranslationDeepObject<typeof en> = {
         unshare: '共有を解除',
         yes: 'はい',
         no: 'いいえ',
+        approve: '承認',
+        deny: '拒否',
         dontChange: '変更しない',
         ok: 'OK',
         notNow: '今はしない',
@@ -952,6 +954,14 @@ const translations: TranslationDeepObject<typeof en> = {
             addPaymentCard: {title: 'Expensify を引き続きご利用いただくには、支払いカードを追加してください', subtitle: 'アカウント ＞ サブスクリプション', cta: '追加'},
             addBankAccount: {title: '銀行口座を追加して払い戻しを受け取りましょう'},
             activateCard: {title: 'Expensify カードを有効化する', subtitle: 'カードを認証して支出を始めましょう。', cta: '有効化'},
+            confirmDigitalWalletAddition: {
+                title: ({walletName}: {walletName: string}) => `${walletName}カードの追加には承認が必要です`,
+                subtitle: 'Expensify カード',
+                cta: 'レビュー',
+                appleWallet: 'Apple Wallet',
+                googleWallet: 'Google ウォレット',
+                digitalWallet: 'デジタルウォレット',
+            },
             reviewCardFraud: {
                 title: 'Expensify カードの不正利用の可能性を確認する',
                 titleWithDetails: ({amount, merchant}: {amount: string; merchant: string}) => `${merchant} での不正の可能性がある ${amount} を確認`,
@@ -2595,6 +2605,10 @@ const translations: TranslationDeepObject<typeof en> = {
             connectionLink
                 ? `${cardName}カードとの接続が切れています。カードを修正するには、<a href="${connectionLink}">銀行にログイン</a>してください。`
                 : `${cardName}カードとの接続が切れています。カードを修正するには、銀行にログインしてください。`,
+        conciergeBrokenConnection30Days: (cardName: string, connectionLink?: string) =>
+            connectionLink
+                ? `${cardName} との接続が30日間切れています。修正するには<a href="${connectionLink}">銀行にログイン</a>するか、もう使用していない場合は<a href="${connectionLink}">カードを削除</a>してください。カードを削除しても、送信済みの経費は失われません。`
+                : `${cardName} との接続が30日間切断されています。復旧するには銀行にログインするか、もう使用していない場合はカードを削除してください。削除しても、送信済みの経費は失われません。`,
         addAdditionalCards: '他のカードを追加',
         upgradeDescription: 'さらにカードを追加しますか？ワークスペースを作成して、個人カードを追加するか、会社カードをチーム全体に割り当てることができます。',
         onlyAvailableOnPlan: ({formattedPrice}: {formattedPrice: string}) =>
@@ -2688,6 +2702,22 @@ const translations: TranslationDeepObject<typeof en> = {
             accountRequiresAttention: 'このアカウントには対応が必要です',
             unlock: 'ロック解除',
         },
+    },
+    addCardToDigitalWallet: {
+        title: ({walletName}: {walletName: string}) => `${walletName} にカードを追加`,
+        appleWallet: 'Apple Wallet',
+        googleWallet: 'Google ウォレット',
+        digitalWallet: 'デジタルウォレット',
+        confirmHeading: 'リクエストを確認してください',
+        confirmDescription: ({walletName, lastFourDigits}: {walletName: string; lastFourDigits: string}) => `${walletName} に、末尾が ${lastFourDigits} の Expensify カードを追加しますか？`,
+        deny: '拒否',
+        confirm: '確認',
+        verifyTitle: 'ご本人様確認を行います',
+        enterSecurityCode: (contactMethod: string) => `このリクエストを確認するために、${contactMethod} に送信されたセキュリティコードを入力してください。1～2分以内に届きます。`,
+        successHeading: '成功しました！',
+        successDescription: ({walletName}: {walletName: string}) => `カードは${walletName}でご利用いただける状態になりました。`,
+        deniedHeading: 'リクエストは拒否されました',
+        deniedDescription: ({walletName}: {walletName: string}) => `お使いのカードは${walletName}に追加されていません。`,
     },
     cardPage: {
         expensifyCard: 'Expensify カード',
@@ -4579,6 +4609,7 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             travel: '出張',
             members: 'メンバー',
             accounting: '会計',
+            mcp: 'MCP',
             receiptPartners: '領収書パートナー',
             rules: 'ルール',
             displayedAs: '表示形式',
@@ -4715,6 +4746,25 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
         createdForClient: {
             title: 'クライアントのワークスペースを作成しました！',
             description: '素晴らしいニュースです 🎉。セットアップにサポートが必要な場合はお問い合わせください。',
+        },
+        mcp: {
+            connectors: 'コネクタ',
+            connectorsSubtitle: 'AIアシスタントをExpensifyアカウントに接続します。',
+            connect: '接続',
+            helpPrompt: '接続にお困りですか？',
+            helpLink: 'ガイドをご覧ください。',
+            claude: {
+                title: 'Claude',
+                subtitle: 'Anthropic 提供',
+            },
+            cursor: {
+                title: 'Cursor',
+                subtitle: 'Anysphere 提供',
+            },
+            chatgpt: {
+                title: 'ChatGPT',
+                subtitle: 'OpenAI 提供',
+            },
         },
         receiptPartners: {
             uber: {
@@ -6440,6 +6490,10 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                 title: '会計',
                 subtitle: '勘定科目表などを同期します。',
             },
+            mcp: {
+                title: 'MCP',
+                subtitle: 'AIアシスタントをExpensifyアカウントに接続します。',
+            },
             receiptPartners: {
                 title: '領収書パートナー',
                 subtitle: '領収書を自動で取り込みます。',
@@ -7827,7 +7881,6 @@ ${reportName}`,
                 alwaysReimbursableDescription: '経費は常に従業員に払い戻されます',
                 alwaysNonReimbursable: '常に精算対象外',
                 alwaysNonReimbursableDescription: '経費は従業員に精算されません',
-                billableDefault: '請求可能のデフォルト',
                 billableDefaultDescription: '現金およびクレジットカード経費をデフォルトで請求可能にするかどうかを選択してください。',
                 billable: '請求可能',
                 billableDescription: '経費は多くの場合、クライアントに再請求されます',
@@ -7854,10 +7907,12 @@ ${reportName}`,
                 publicReceiptVisibilityHintDisabled: 'レシートは、そのレシートを含むレポートへのアクセス権を持つ Expensify のメンバーのみが閲覧できます。',
                 enableTagsToUnlockTitle: 'タグを有効にしますか？',
                 enableTagsToUnlockPrompt: '有効にするには、「その他の機能」でタグを有効化してください。',
-                enableTagsAndRequirePrompt: 'タグを有効にし、すべての経費でタグを必須にしてもよろしいですか？',
                 enableCategoriesToUnlockTitle: 'カテゴリーを有効にしますか？',
                 enableCategoriesToUnlockPrompt: 'ロックを解除するには、［その他の機能］で［カテゴリ］を有効にしてください。',
                 enableCategoriesAndRequirePrompt: 'カテゴリを有効にし、すべての経費でカテゴリを必須にしてもよろしいですか？',
+                enableTagsPrompt: 'タグを有効にしてもよろしいですか？タグが少なくとも1つある場合、すべての経費でタグの入力を必須にできます。',
+                noTagsToRequirePrompt: 'タグがありません。タグを作成してください。',
+                noCategoriesToRequirePrompt: 'カテゴリがありません。カテゴリを作成してください。',
             },
             expenseReportRules: {
                 title: '詳細設定',
@@ -7962,7 +8017,8 @@ ${reportName}`,
                 flagAmountsOverSubtitle: 'これは、すべての経費の上限金額を上書きします。',
                 expenseLimitTypes: {
                     expense: '個別経費',
-                    expenseSubtitle: 'カテゴリごとに経費金額にフラグを付けます。このルールは、経費金額の上限に関するワークスペース全体の一般ルールを上書きします。',
+                    expenseSubtitle:
+                        'カテゴリごとに経費金額にフラグを付けます。このルールは、経費金額の上限に関するワークスペース全体の一般ルールを上書きします。複数日にわたる予約は、1泊あたりの平均額で評価されます。',
                     daily: 'カテゴリ合計',
                     dailySubtitle: '経費レポートごとに、カテゴリ別の1日あたり合計支出をフラグ設定する。',
                 },
@@ -9365,7 +9421,7 @@ ${reportName}`,
                 [CONST.SEARCH.WITHDRAWAL_TYPE.TRAVEL_BILLING]: '出張費の一括請求',
             },
             is: 'は',
-            has: {submittedViolation: '違反を送信しました'},
+            has: {submittedViolation: '違反を送信しました', approvedViolation: '承認済みの違反'},
             action: {
                 [CONST.SEARCH.ACTION_FILTERS.SUBMIT]: '送信',
                 [CONST.SEARCH.ACTION_FILTERS.APPROVE]: '承認',
@@ -9575,6 +9631,16 @@ ${reportName}`,
                 integrationSyncFailedRecurrence: ({count}: {count: number}) => `（${count} 回繰り返し）`,
                 companyCardConnectionBroken: ({feedName, workspaceCompanyCardRoute}: {feedName: string; workspaceCompanyCardRoute: string}) =>
                     `${feedName} との接続が切断されています。カードの取引明細の取込を再開するには、<a href='${workspaceCompanyCardRoute}'>銀行にログイン</a>してください。`,
+                companyCardConnectionBroken30Days: ({
+                    feedName,
+                    workspaceCompanyCardRoute,
+                    workspaceCompanyCardSettingsRoute,
+                }: {
+                    feedName: string;
+                    workspaceCompanyCardRoute: string;
+                    workspaceCompanyCardSettingsRoute: string;
+                }) =>
+                    `${feedName} との接続が 30 日間切断されています。修正するには<a href='${workspaceCompanyCardRoute}'>銀行にログイン</a>するか、もう使用していない場合は<a href='${workspaceCompanyCardSettingsRoute}'>接続を削除</a>してください。削除しても、送信済みの経費が失われることはありません。`,
                 plaidBalanceFailure: ({maskedAccountNumber, walletRoute}: {maskedAccountNumber: string; walletRoute: string}) =>
                     `Plaid によるビジネス銀行口座との接続が切断されています。Expensify カードを引き続きご利用いただくために、<a href='${walletRoute}'>銀行口座 ${maskedAccountNumber} を再接続</a>してください。`,
                 addEmployee: (email: string, role: string, didJoinPolicy?: boolean) => {
@@ -10158,6 +10224,7 @@ ${reportName}`,
         customUnitRateOutOfDateRangeStartOnly: ({startDate}: {startDate: string}) => `料金は${startDate}からのみ有効です`,
         customUnitRateOutOfDateRangeEndOnly: ({endDate}: {endDate: string}) => `料金は${endDate}までのみ有効です`,
         cannotMergeDuplicates: '経費を統合できるのは、下書きまたは未清算のレポートのみです。レポートを取り下げて、もう一度お試しください。',
+        overCategoryLimitPerNight: (formattedLimit: string) => `1人あたりのカテゴリ上限額 ${formattedLimit} を超える宿泊単価`,
         shortName: {
             allTagLevelsRequired: 'すべてのタグが必須です',
             autoReportedRejectedExpense: '経費が却下されました',
@@ -10899,6 +10966,9 @@ ${reportName}`,
             consolidatedDomainBillingError: '統合ドメインの請求を変更できませんでした。後でもう一度お試しください。',
             addAdmin: '管理者を追加',
             addAdminError: 'このメンバーを管理者として追加できませんでした。もう一度お試しください。',
+            requests: 'リクエスト',
+            approveRequestError: 'このリクエストを承認できませんでした。もう一度お試しください。',
+            declineRequestError: 'このリクエストを拒否できませんでした。もう一度お試しください。',
             revokeAdminAccess: '管理者アクセスを取り消す',
             cantRevokeAdminAccess: '技術担当者から管理者アクセス権を取り消すことはできません',
             error: {
