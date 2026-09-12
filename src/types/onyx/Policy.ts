@@ -2779,7 +2779,7 @@ type ACHAccount = {
 
 /** Commuter exclusion configuration for a policy */
 type CommuterExclusions = OnyxCommon.OnyxValueWithOfflineFeedback<{
-    /** How commuter mileage is excluded - R2 will add 'homeAndOffice' */
+    /** How commuter mileage is excluded */
     method: ValueOf<typeof CONST.POLICY.COMMUTER_EXCLUSION_METHOD>;
 
     /** Distance subtracted from each claim when method is 'fixedDistance' */
@@ -2787,6 +2787,12 @@ type CommuterExclusions = OnyxCommon.OnyxValueWithOfflineFeedback<{
 
     /** Distance unit stored alongside fixedDistance ('mi' or 'km'). Mirrors the policy distance custom unit at the time it was set. */
     fixedDistanceUnit?: string;
+
+    /**
+     * Default work arrangement for the workspace's members when method is 'homeAndOffice'. True means members
+     * commute to an office, false means they have no regular workplace. Absent until an admin sets it.
+     */
+    isOfficeWorkArrangement?: boolean;
 }>;
 
 /** Prohibited expense types */

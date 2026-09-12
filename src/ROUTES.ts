@@ -3842,6 +3842,10 @@ const ROUTES = {
         route: 'workspaces/:policyID/distance-rates/settings/commuter-exclusions',
         getRoute: (policyID: string) => `workspaces/${policyID}/distance-rates/settings/commuter-exclusions` as const,
     },
+    WORKSPACE_DISTANCE_RATES_WORK_ARRANGEMENT: {
+        route: 'workspaces/:policyID/distance-rates/settings/commuter-exclusions/work-arrangement',
+        getRoute: (policyID: string) => `workspaces/${policyID}/distance-rates/settings/commuter-exclusions/work-arrangement` as const,
+    },
     WORKSPACE_DISTANCE_RATE_DETAILS: {
         route: 'workspaces/:policyID/distance-rates/:rateID',
         getRoute: (policyID: string, rateID: string) => `workspaces/${policyID}/distance-rates/${rateID}` as const,
