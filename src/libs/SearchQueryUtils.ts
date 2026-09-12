@@ -279,7 +279,8 @@ function tokenizeKeywordSegments(keywords: string) {
             }
 
             if (char === '\\') {
-                index += index + 1 < keywords.length ? 2 : 1;
+                // Match the search parser's escapedChar rule: a backslash does not escape whitespace.
+                index += /[,"“”\\]/.test(keywords.at(index + 1) ?? '') ? 2 : 1;
                 continue;
             }
 

@@ -4004,6 +4004,37 @@ describe('SearchQueryUtils', () => {
             expect(displayedKeyword).toBe('"foo,bar"');
         });
 
+        it('should keep backslashes around whitespace as separate keywords', () => {
+            const currentQueryJSON = buildSearchQueryJSON('type:expense');
+            if (!currentQueryJSON) {
+                throw new Error('Expected currentQueryJSON to be defined');
+            }
+
+            const keyword = String.raw`foo\ \bar`;
+            const result = getQueryWithUpdatedValues(getKeywordQueryWithCurrentSearchContext(keyword, currentQueryJSON));
+            const resultQueryJSON = buildSearchQueryJSON(result ?? '');
+            const keywordFilter = resultQueryJSON?.flatFilters.find((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD);
+
+            expect(keywordFilter?.filters.map((filter) => filter.value)).toEqual(['foo\\', String.raw`\bar`]);
+
+            const displayedKeyword = keywordFilter?.filters.map((filter) => sanitizeSearchValue(filter.value.toString())).join(' ') ?? '';
+            const resubmittedResult = resultQueryJSON ? getQueryWithUpdatedValues(getKeywordQueryWithCurrentSearchContext(displayedKeyword, resultQueryJSON)) : undefined;
+            const resubmittedKeywordFilter = buildSearchQueryJSON(resubmittedResult ?? '')?.flatFilters.find((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD);
+            expect(resubmittedKeywordFilter?.filters).toEqual(keywordFilter?.filters);
+        });
+
+        it('should keep an explicitly quoted backslash-space keyword as one phrase', () => {
+            const currentQueryJSON = buildSearchQueryJSON('type:expense');
+            if (!currentQueryJSON) {
+                throw new Error('Expected currentQueryJSON to be defined');
+            }
+
+            const result = getQueryWithUpdatedValues(getKeywordQueryWithCurrentSearchContext(String.raw`"foo\ \bar"`, currentQueryJSON));
+            const keywordFilter = buildSearchQueryJSON(result ?? '')?.flatFilters.find((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD);
+
+            expect(keywordFilter?.filters.map((filter) => filter.value)).toEqual([String.raw`foo\ \bar`]);
+        });
+
         it('should escape input that uses a comparison operator with a filter key', () => {
             const currentQueryJSON = buildSearchQueryJSON('type:trip status:all');
 
