@@ -50,6 +50,7 @@ type UseUnreadMarkerResult = {
 };
 
 const lastReadTimeSelector = (report: OnyxTypes.Report | undefined) => report?.lastReadTime ?? '';
+const manuallyMarkedUnreadReportActionIDSelector = (report: OnyxTypes.Report | undefined) => report?.manuallyMarkedUnreadReportActionID ?? null;
 
 function useUnreadMarker({
     reportID,
@@ -69,6 +70,10 @@ function useUnreadMarker({
         selector: lastReadTimeSelector,
     });
     const reportLastReadTime = reportLastReadTimeValue ?? '';
+
+    const [manuallyMarkedUnreadReportActionID] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
+        selector: manuallyMarkedUnreadReportActionIDSelector,
+    });
 
     const [unreadMarkerTime, setUnreadMarkerTime] = useState(reportLastReadTime);
 
@@ -127,6 +132,7 @@ function useUnreadMarker({
         isReversed: false,
         isAnonymousUser,
         prevUnreadMarkerReportActionID,
+        manuallyMarkedUnreadReportActionID,
         hasWindowFocus: Visibility.hasFocus(),
         newMessageBoundaryTime,
     });
@@ -135,6 +141,7 @@ function useUnreadMarker({
     const [unreadMarkerReportActionID, unreadMarkerReportActionIndex]: [string | null, number] =
         oldestUnreadReportActionMarker && (scanned[0] === null || scanned[0] === oldestUnreadReportActionMarker[0]) ? oldestUnreadReportActionMarker : scanned;
 
+    // Track whatever the marker last landed on. The self-message guard lives in shouldDisplayNewMarkerOnReportAction.
     if (prevUnreadMarkerReportActionID !== unreadMarkerReportActionID) {
         setPrevUnreadMarkerReportActionID(unreadMarkerReportActionID);
     }
