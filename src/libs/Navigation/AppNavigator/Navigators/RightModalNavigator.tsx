@@ -22,6 +22,7 @@ import hideKeyboardOnSwipe from '@libs/Navigation/AppNavigator/hideKeyboardOnSwi
 import * as ModalStackNavigators from '@libs/Navigation/AppNavigator/ModalStackNavigators';
 import useModalStackScreenOptions from '@libs/Navigation/AppNavigator/ModalStackNavigators/useModalStackScreenOptions';
 import useRHPScreenOptions from '@libs/Navigation/AppNavigator/useRHPScreenOptions';
+import {useRHPFrameStyle} from '@libs/Navigation/AppNavigator/useRHPTransition';
 import calculateReceiptPaneRHPWidth from '@libs/Navigation/helpers/calculateReceiptPaneRHPWidth';
 import calculateSuperWideRHPWidth from '@libs/Navigation/helpers/calculateSuperWideRHPWidth';
 import getRHPLayoutValue from '@libs/Navigation/helpers/getRHPLayoutValue';
@@ -146,6 +147,7 @@ type RightModalDialogFrameProps = {
 function RightModalDialogFrame({hasDialogSemantics, style, onContainerRef, children}: RightModalDialogFrameProps) {
     const {dialogAriaLabel} = useDialogLabelData();
     const hasName = !!dialogAriaLabel;
+    const frameStyle = useRHPFrameStyle();
 
     return (
         <Animated.View
@@ -155,7 +157,7 @@ function RightModalDialogFrame({hasDialogSemantics, style, onContainerRef, child
             aria-label={hasDialogSemantics && hasName ? dialogAriaLabel : undefined}
             // Focusable so SRs / claimDialogFocus can land on the dialog when it has no nested controls.
             tabIndex={hasDialogSemantics ? -1 : undefined}
-            style={style}
+            style={[style, frameStyle]}
         >
             {children}
         </Animated.View>
@@ -214,17 +216,13 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
         superWideRHPSidePanelOffset,
     );
 
-    const animatedWidthStyle = useMemo(() => {
-        let width: number = singleRHPWidth;
-        if (superWideRHPRouteKeys.length > 0) {
-            width = calculateSuperWideRHPWidth(windowWidth);
-        } else if (wideRHPRouteKeys.length > 0) {
-            width = getWideRHPWidth(windowWidth);
-        }
-        return {
-            width: shouldUseNarrowLayout ? '100%' : getRHPLayoutValue(width, animatedWidth),
-        } as const;
-    }, [animatedWidth, shouldUseNarrowLayout, superWideRHPRouteKeys.length, wideRHPRouteKeys.length, windowWidth]);
+    let rhpWidth: number = singleRHPWidth;
+    if (superWideRHPRouteKeys.length > 0) {
+        rhpWidth = calculateSuperWideRHPWidth(windowWidth);
+    } else if (wideRHPRouteKeys.length > 0) {
+        rhpWidth = getWideRHPWidth(windowWidth);
+    }
+    const animatedWidthStyle = {width: shouldUseNarrowLayout ? '100%' : getRHPLayoutValue(rhpWidth, animatedWidth)} as const;
 
     const overlayPositionLeft = useMemo(() => -1 * calculateSuperWideRHPWidth(windowWidth), [windowWidth]);
 
@@ -292,6 +290,7 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                 {!shouldUseNarrowLayout && (
                     <Overlay
                         positionLeftValue={overlayPositionLeft}
+                        dismissalPositionRight={rhpWidth}
                         onPress={handleOverlayPress}
                     />
                 )}

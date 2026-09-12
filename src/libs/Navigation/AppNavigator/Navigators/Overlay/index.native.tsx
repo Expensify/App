@@ -1,37 +1,52 @@
-// Native-stack owns transitions; this scrim only handles dimming and dismissal.
+// Visual dimming and pointer dismissal are separate. Screen readers dismiss through the active panel's controls.
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 
-import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import variables from '@styles/variables';
-
-import CONST from '@src/CONST';
-
+import {useIsFocused} from '@react-navigation/native';
+import {useCardAnimation} from '@react-navigation/stack';
 import React from 'react';
 // eslint-disable-next-line no-restricted-imports
 import {Animated} from 'react-native';
 
 import type {BaseOverlayProps} from './BaseOverlay';
 
-function Overlay({onPress, positionLeftValue = -2 * variables.sideBarWidth, positionRightValue = 0}: BaseOverlayProps) {
+function Overlay({onPress, progress, positionLeftValue = 0, positionRightValue = 0, dismissalPositionRight}: BaseOverlayProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {current} = useCardAnimation();
+    const isFocused = useIsFocused();
+    // Native has no off-window card gutter to cover. Do not export off-window hit bounds.
+    const left = typeof positionLeftValue === 'number' ? Math.max(0, positionLeftValue) : positionLeftValue;
 
     return (
-        <Animated.View
-            aria-hidden
-            style={[styles.pAbsolute, styles.t0, styles.b0, styles.overlayBackground, {left: positionLeftValue, right: positionRightValue, opacity: variables.overlayOpacity}]}
-        >
-            <PressableWithoutFeedback
-                style={[styles.flex1, styles.boxShadowNone]}
-                onPress={onPress}
-                accessibilityLabel={translate('common.close')}
-                role={CONST.ROLE.BUTTON}
-                testID="rhp-overlay-dismiss"
-                sentryLabel="RHPOverlay-Dismiss"
+        <>
+            <Animated.View
+                testID="rhp-overlay"
+                pointerEvents="none"
+                accessible={false}
+                accessibilityElementsHidden
+                importantForAccessibility="no-hide-descendants"
+                style={[
+                    styles.pAbsolute,
+                    styles.t0,
+                    styles.b0,
+                    styles.overlayBackground,
+                    styles.overlayStyles({progress: progress ?? current.progress, positionLeftValue: left, positionRightValue}),
+                ]}
             />
-        </Animated.View>
+            {!!onPress && isFocused && (
+                <PressableWithoutFeedback
+                    style={[styles.pAbsolute, styles.t0, styles.b0, styles.boxShadowNone, {left, right: dismissalPositionRight ?? positionRightValue}]}
+                    onPress={onPress}
+                    accessible={false}
+                    accessibilityElementsHidden
+                    importantForAccessibility="no-hide-descendants"
+                    shouldUseAutoHitSlop={false}
+                    testID="rhp-overlay-dismiss"
+                    sentryLabel="RHPOverlay-Dismiss"
+                />
+            )}
+        </>
     );
 }
 

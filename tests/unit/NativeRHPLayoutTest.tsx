@@ -8,7 +8,9 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 
 import useModalStackScreenOptions from '@libs/Navigation/AppNavigator/ModalStackNavigators/useModalStackScreenOptions';
+import useModalCardStyleInterpolator from '@libs/Navigation/AppNavigator/useModalCardStyleInterpolator';
 import useRHPScreenOptions from '@libs/Navigation/AppNavigator/useRHPScreenOptions';
+import {useRHPFrameStyle} from '@libs/Navigation/AppNavigator/useRHPTransition';
 import useRootNavigatorScreenOptions from '@libs/Navigation/AppNavigator/useRootNavigatorScreenOptions';
 import convertToJSStackNavigationOptions from '@libs/Navigation/PlatformStackNavigation/navigationOptions/convertToJSStackNavigationOptions';
 
@@ -16,6 +18,7 @@ import CONST from '@src/CONST';
 
 import type {StackCardInterpolationProps} from '@react-navigation/stack';
 
+import {useCardAnimation} from '@react-navigation/stack';
 // eslint-disable-next-line no-restricted-imports
 import {Animated, StyleSheet} from 'react-native';
 
@@ -23,16 +26,49 @@ import createMock from '../utils/createMock';
 
 jest.mock('@hooks/useResponsiveLayout', () => jest.fn());
 jest.mock('@hooks/useWindowDimensions', () => jest.fn());
+jest.mock('@react-navigation/stack', () => ({
+    ...jest.requireActual('@react-navigation/stack'),
+    useCardAnimation: jest.fn(),
+}));
 jest.mock('@components/WideRHPContextProvider', () => ({
     ...jest.requireActual<typeof WideRHPContextProvider>('@components/WideRHPContextProvider'),
     useWideRHPState: jest.fn(),
 }));
 
 describe('Native RHP layout', () => {
+    let animation: StackCardInterpolationProps;
+
     beforeEach(() => {
         jest.mocked(useWindowDimensions).mockReturnValue({windowWidth: 1180, windowHeight: 820});
         jest.mocked(useResponsiveLayout).mockReturnValue({...CONST.NAVIGATION_TESTS.DEFAULT_USE_RESPONSIVE_LAYOUT_VALUE, isSmallScreenWidth: false, shouldUseNarrowLayout: false});
         jest.mocked(useWideRHPState).mockReturnValue({...defaultWideRHPStateContextValue, superWideRHPRouteKeys: ['expense'], wideRHPRouteKeys: ['transaction']});
+        animation = createMock<StackCardInterpolationProps>({current: {progress: new Animated.Value(0.25)}, inverted: new Animated.Value(1), layouts: {screen: {width: 1180, height: 820}}});
+        jest.mocked(useCardAnimation).mockReturnValue(animation);
+    });
+
+    it('keeps the wide host stationary and applies the same root progress only to the panel', () => {
+        const {result} = renderHook(() => ({root: useRootNavigatorScreenOptions(), frame: useRHPFrameStyle()}));
+        const host = result.current.root.rightModalNavigator.web?.cardStyleInterpolator?.(animation).cardStyle;
+
+        expect(host).not.toHaveProperty('transform');
+        expect(host).not.toHaveProperty('opacity');
+        expect(result.current.frame).toMatchObject({opacity: animation.current.progress, transform: [{translateX: expect.anything()}]});
+    });
+
+    it('keeps narrow motion on the root card without applying a second panel transform', () => {
+        jest.mocked(useResponsiveLayout).mockReturnValue({...CONST.NAVIGATION_TESTS.DEFAULT_USE_RESPONSIVE_LAYOUT_VALUE, isSmallScreenWidth: true, shouldUseNarrowLayout: true});
+        const {result} = renderHook(() => ({root: useRootNavigatorScreenOptions(), frame: useRHPFrameStyle()}));
+
+        expect(result.current.frame).toBeUndefined();
+        expect(result.current.root.rightModalNavigator.web?.cardStyleInterpolator?.(animation).cardStyle).toHaveProperty('transform');
+    });
+
+    it('preserves the shared interpolator used by the independent MFA navigator', () => {
+        const {result} = renderHook(() => useModalCardStyleInterpolator());
+        const style = result.current({props: animation, enter: {kind: 'slide-from-width'}}).cardStyle;
+
+        expect(style).toHaveProperty('transform');
+        expect(style).not.toHaveProperty('opacity');
     });
 
     it('keeps the transaction narrower than its underlying expense report', () => {

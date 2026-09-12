@@ -20,6 +20,7 @@ import type {
 import wrapDescriptorsWithNonTopScreensBehavior from './createPlatformStackNavigatorComponent/wrapDescriptorsWithNonTopScreensBehavior';
 import convertToJSStackNavigationOptions from './navigationOptions/convertToJSStackNavigationOptions';
 import screenLayout from './ScreenLayout';
+import StackScreenAccessibility from './StackScreenAccessibility';
 
 type PlatformNavigatorImplProps<RouterOptions extends PlatformStackRouterOptions = PlatformStackRouterOptions> = PlatformStackNavigatorProps<ParamListBase, RouterOptions> & {
     createRouter: NonNullable<CreatePlatformStackNavigatorComponentOptions<RouterOptions>['createRouter']>;
@@ -105,6 +106,16 @@ function PlatformNavigatorImpl<RouterOptions extends PlatformStackRouterOptions 
     };
 
     const wrappedDescriptors = wrapDescriptorsWithNonTopScreensBehavior(descriptors, state, persistentScreens);
+    const focusedKey = state.routes[state.index]?.key;
+    const accessibleDescriptors = Object.fromEntries(
+        Object.entries(wrappedDescriptors).map(([key, descriptor]) => [
+            key,
+            {
+                ...descriptor,
+                render: () => <StackScreenAccessibility isFocused={key === focusedKey}>{descriptor.render()}</StackScreenAccessibility>,
+            },
+        ]),
+    );
 
     const content = (
         <NavigationContent>
@@ -112,7 +123,7 @@ function PlatformNavigatorImpl<RouterOptions extends PlatformStackRouterOptions 
                 {...props}
                 direction="ltr"
                 state={mappedState}
-                descriptors={wrappedDescriptors}
+                descriptors={accessibleDescriptors}
                 navigation={navigation}
                 describe={describe}
             />
