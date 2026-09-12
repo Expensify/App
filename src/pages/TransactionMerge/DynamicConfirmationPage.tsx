@@ -92,7 +92,11 @@ function DynamicConfirmationPage({route}: DynamicConfirmationPageProps) {
 
     const [sourceReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(sourceTransaction?.reportID)}`);
     const sourceIOUAction = sourceTransaction ? getIOUActionForTransactionID(Object.values(sourceReportActions ?? {}), sourceTransaction.transactionID) : undefined;
-    const [sourceTransactionThreadReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(sourceIOUAction?.childReportID)}`);
+    const selfDMSourceIOUAction =
+        selfDMReport?.reportID && sourceTransaction ? getIOUActionForTransactionID(Object.values(selfDMReportActions ?? {}), sourceTransaction.transactionID) : undefined;
+    const sourceThreadReportID = sourceIOUAction?.childReportID ?? selfDMSourceIOUAction?.childReportID;
+    const [sourceTransactionThreadReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(sourceThreadReportID)}`);
+    const [sourceIOUActionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(sourceThreadReportID)}`);
 
     // Build the merged transaction data for display
     const mergedTransactionData = buildMergedTransactionData(targetTransaction, mergeTransaction);
@@ -135,6 +139,7 @@ function DynamicConfirmationPage({route}: DynamicConfirmationPageProps) {
             reportPolicyTags,
             sourceTransactionThreadReportActions,
             sourceIOUAction,
+            sourceIOUActionThreadReport,
             rules,
         });
 

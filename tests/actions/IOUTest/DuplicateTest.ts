@@ -229,6 +229,9 @@ describe('actions/Duplicate', () => {
                     [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${duplicate1ID}`]: duplicate1Violations,
                     [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${duplicate2ID}`]: duplicate2Violations,
                 },
+                allReportsList: {
+                    [`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]: expenseReport,
+                },
                 allReportActionsList: {
                     [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`]: {action456: iouAction1, action789: iouAction2},
                     [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${childReportID}`]: {},
@@ -341,6 +344,9 @@ describe('actions/Duplicate', () => {
                     [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`]: {action789: iouAction1},
                     [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${childReportID}`]: passedInChildReportActions,
                 },
+                allReportsList: {
+                    [`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]: expenseReport,
+                },
             });
             await waitForBatchedUpdates();
 
@@ -354,6 +360,100 @@ describe('actions/Duplicate', () => {
                         expect.objectContaining({
                             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${childReportID}`,
                             value: passedInChildReportActions,
+                        }),
+                    ]),
+                }),
+            );
+        });
+
+        it('threads allReportsList into the transaction-thread cleanup instead of relying on the deprecated reports cache', async () => {
+            // Given: A duplicate whose expense report and transaction thread are already cached in Onyx
+            const reportID = 'reportReports';
+            const mainTransactionID = 'mainReports';
+            const duplicate1ID = 'dupReports';
+            const childReportID = 'childReports';
+
+            const mainTransaction = createMockTransaction(mainTransactionID, reportID);
+            const duplicateTransaction1 = createMockTransaction(duplicate1ID, reportID, 100);
+            const mainViolations = createMockViolations();
+            const duplicate1Violations = createMockViolations();
+
+            const iouAction1 = createMockIouAction(duplicate1ID, 'action789', childReportID);
+
+            // The values already cached via the deprecated Onyx.connect-backed reports accessor —
+            // deliberately different from what's passed via allReportsList below.
+            const cachedExpenseReport = createMockReport(reportID, 500);
+            const cachedThreadReport = createMockReport(childReportID, 999);
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${mainTransactionID}`, mainTransaction);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${duplicate1ID}`, duplicateTransaction1);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, cachedExpenseReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${childReportID}`, cachedThreadReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${mainTransactionID}`, mainViolations);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${duplicate1ID}`, duplicate1Violations);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {action789: iouAction1});
+            await waitForBatchedUpdates();
+
+            // The reports explicitly passed in, distinct from the cached ones above.
+            const passedExpenseReport = createMockReport(reportID, 200);
+            const passedThreadReport = createMockReport(childReportID, 42);
+
+            // When: Call mergeDuplicates, passing allReportsList with DIFFERENT values for the source and child reports
+            mergeDuplicates({
+                transactionID: mainTransactionID,
+                transactionIDList: [duplicate1ID],
+                created: '2024-01-01 12:00:00',
+                merchant: 'Updated Merchant',
+                amount: 200,
+                currency: CONST.CURRENCY.EUR,
+                category: 'Travel',
+                comment: 'Updated comment',
+                billable: true,
+                reimbursable: false,
+                tag: 'UpdatedProject',
+                taxCode: '',
+                receiptID: 123,
+                reportID,
+                currentUserLogin: RORY_EMAIL,
+                currentUserAccountID: RORY_ACCOUNT_ID,
+                allTransactionViolations: {
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${mainTransactionID}`]: mainViolations,
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${duplicate1ID}`]: duplicate1Violations,
+                },
+                allReportsList: {
+                    [`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]: passedExpenseReport,
+                    [`${ONYXKEYS.COLLECTION.REPORT}${childReportID}`]: passedThreadReport,
+                },
+                allReportActionsList: {
+                    [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`]: {action789: iouAction1},
+                    [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${childReportID}`]: {},
+                },
+            });
+            await waitForBatchedUpdates();
+
+            // Then: The source-report total math and the transaction-thread rollback data use the PASSED-IN reports,
+            // not the stale cached ones — proving mergeDuplicates used the explicit allReportsList slice instead of
+            // the deprecated reports cache.
+            expect(writeSpy).toHaveBeenCalledWith(
+                WRITE_COMMANDS.MERGE_DUPLICATES,
+                expect.anything(),
+                expect.objectContaining({
+                    optimisticData: expect.arrayContaining([
+                        expect.objectContaining({
+                            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+                            value: expect.objectContaining({total: (passedExpenseReport.total ?? 0) - duplicateTransaction1.amount}),
+                        }),
+                    ]),
+                }),
+            );
+            expect(writeSpy).toHaveBeenCalledWith(
+                WRITE_COMMANDS.MERGE_DUPLICATES,
+                expect.anything(),
+                expect.objectContaining({
+                    failureData: expect.arrayContaining([
+                        expect.objectContaining({
+                            key: `${ONYXKEYS.COLLECTION.REPORT}${childReportID}`,
+                            value: passedThreadReport,
                         }),
                     ]),
                 }),
@@ -395,6 +495,9 @@ describe('actions/Duplicate', () => {
                 currentUserLogin: RORY_EMAIL,
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 allTransactionViolations: {[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${mainTransactionID}`]: []},
+                allReportsList: {
+                    [`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]: expenseReport,
+                },
                 allReportActionsList: {[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`]: {}},
             });
             await waitForBatchedUpdates();
@@ -455,6 +558,7 @@ describe('actions/Duplicate', () => {
                     [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${mainTransactionID}`]: [],
                     [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${duplicate1ID}`]: [],
                 },
+                allReportsList: {},
                 allReportActionsList: {[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`]: {}},
             });
             await waitForBatchedUpdates();
@@ -668,6 +772,15 @@ describe('actions/Duplicate', () => {
                 reportID,
             };
 
+            // Mirror what the page passes: the full REPORT collection from useOnyx(ONYXKEYS.COLLECTION.REPORT),
+            // including the transaction thread reports created optimistically above.
+            const allReportsList = {
+                [`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`]: chatReport,
+                [`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]: expenseReport,
+                [`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReport1.reportID}`]: transactionThreadReport1,
+                [`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReport2.reportID}`]: transactionThreadReport2,
+            };
+
             // When: Call mergeDuplicates
             mergeDuplicates({
                 ...mergeParams,
@@ -678,6 +791,7 @@ describe('actions/Duplicate', () => {
                     [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${duplicate1ID}`]: duplicate1Violations,
                     [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${duplicate2ID}`]: duplicate2Violations,
                 },
+                allReportsList,
                 allReportActionsList: {[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`]: {[iouAction1ID]: iouAction1, [iouAction2ID]: iouAction2}},
             });
             await waitForBatchedUpdates();
@@ -785,6 +899,9 @@ describe('actions/Duplicate', () => {
                     [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${mainTransactionID}`]: mainViolations,
                     [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${duplicate1ID}`]: duplicate1Violations,
                 },
+                allReportsList: {
+                    [`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]: expenseReport,
+                },
                 allReportActionsList: {[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`]: {mainAction123: mainIouAction, action456: dupIouAction}},
             });
             await waitForBatchedUpdates();
@@ -872,6 +989,10 @@ describe('actions/Duplicate', () => {
                 allTransactionViolations: {
                     [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${mainTransactionID}`]: mainViolations,
                     [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${crossReportDuplicateID}`]: crossDuplicateViolations,
+                },
+                allReportsList: {
+                    [`${ONYXKEYS.COLLECTION.REPORT}${keptReportID}`]: keptReport,
+                    [`${ONYXKEYS.COLLECTION.REPORT}${crossReportID}`]: crossReport,
                 },
                 allReportActionsList: {
                     [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${keptReportID}`]: {actionMain: mainIouAction},
