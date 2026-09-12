@@ -50,11 +50,12 @@ function BusinessTypeSelectorModal({isVisible, currentBusinessType, onBusinessTy
                 onClose();
                 Navigation.dismissModal();
             }}
+            enableEdgeToEdgeBottomSafeAreaPadding
         >
             <ScreenWrapper
                 style={[styles.pb0]}
                 includePaddingTop={false}
-                includeSafeAreaPaddingBottom={false}
+                enableEdgeToEdgeBottomSafeAreaPadding
                 testID="BusinessTypeSelectorModal"
             >
                 <HeaderWithBackButton
@@ -69,6 +70,7 @@ function BusinessTypeSelectorModal({isVisible, currentBusinessType, onBusinessTy
                     shouldSingleExecuteRowSelect
                     shouldStopPropagation
                     ListItem={SingleSelectListItem}
+                    addBottomSafeAreaPadding
                 />
             </ScreenWrapper>
         </Modal>

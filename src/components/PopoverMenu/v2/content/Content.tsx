@@ -1,5 +1,6 @@
 import {useRootVisibility} from '@components/PopoverMenu/v2/root/RootContext';
 
+import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSuppressSpaceScroll from '@hooks/useSuppressSpaceScroll';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -10,6 +11,7 @@ import type {BasePopoverProps} from './BaseContent';
 
 import BaseContent from './BaseContent';
 import useMaxHeightStyle from './useMaxHeightStyle';
+import useShouldAddBottomSafeAreaPadding from './useShouldAddBottomSafeAreaPadding';
 
 type ContentProps = BasePopoverProps;
 
@@ -23,12 +25,18 @@ function Content({containerStyles, ...rest}: ContentProps): React.ReactElement |
 
     const maxHeightStyle = useMaxHeightStyle();
 
+    const shouldAddBottomSafeAreaPadding = useShouldAddBottomSafeAreaPadding();
+    const bottomSafeAreaPaddingStyle = useBottomSafeSafeAreaPaddingStyle({
+        addBottomSafeAreaPadding: shouldAddBottomSafeAreaPadding,
+        style: [isSmallScreenWidth ? styles.pv4 : styles.pv2, containerStyles],
+    });
+
     return (
         <BaseContent
             {...rest}
             componentName={Content.displayName}
             maxHeightStyle={maxHeightStyle}
-            containerStyles={[isSmallScreenWidth ? styles.pv4 : styles.pv2, containerStyles]}
+            containerStyles={bottomSafeAreaPaddingStyle}
         />
     );
 }
