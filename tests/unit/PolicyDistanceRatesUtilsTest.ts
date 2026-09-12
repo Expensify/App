@@ -8,7 +8,6 @@ import {
     isCurrencySupportedForAutoUpdate,
     isGovernmentRateUnmodified,
     isMapOrGPSRequired,
-    sanitizeDistanceRateName,
     validateTaxClaimableValue,
 } from '@libs/PolicyDistanceRatesUtils';
 
@@ -272,12 +271,6 @@ describe('PolicyDistanceRatesUtils', () => {
         it('should accept a positive rate with up to four decimal places', () => {
             expect(getDistanceRateValueError('0.67', toLocaleDigit)).toBeUndefined();
             expect(getDistanceRateValueError('0.6700', toLocaleDigit)).toBeUndefined();
-        });
-    });
-
-    describe('sanitizeDistanceRateName', () => {
-        it('should convert non-breaking spaces and trim surrounding whitespace', () => {
-            expect(sanitizeDistanceRateName(`\u00A0Custom rate\u00A0`)).toBe('Custom rate');
         });
     });
 });

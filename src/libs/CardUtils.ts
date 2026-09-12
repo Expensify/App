@@ -1305,18 +1305,13 @@ function getDefaultCardName(cardholder?: string) {
 /** The reason a proposed company card name is invalid. Callers translate it via `getCompanyCardNameErrorMessage`. */
 type CompanyCardNameError = 'required' | 'tooLong';
 
-/** Normalizes a company card name by converting non-breaking spaces and trimming surrounding whitespace. */
-function sanitizeCompanyCardName(name: string): string {
-    return name.replaceAll(CONST.REGEX.NON_BREAKING_SPACE, ' ').trim();
-}
-
 /**
  * Validates a company card name against every rule (required, length). This is the single source of
  * truth shared by the RHP edit form, the assign-card name step, and inline table editing. Returns an
  * error code, or undefined when the name is valid.
  */
 function getCompanyCardNameError(newName: string): CompanyCardNameError | undefined {
-    const sanitized = sanitizeCompanyCardName(newName);
+    const sanitized = StringUtils.sanitizeName(newName);
 
     if (!sanitized) {
         return 'required';
@@ -1336,7 +1331,7 @@ function getCompanyCardNameErrorMessage(translate: LocaleContextProps['translate
             return translate('common.error.fieldRequired');
         case 'tooLong':
         default:
-            return translate('common.error.characterLimitExceedCounter', StringUtils.getUTF8ByteLength(sanitizeCompanyCardName(name)), CONST.STANDARD_LENGTH_LIMIT);
+            return translate('common.error.characterLimitExceedCounter', StringUtils.getUTF8ByteLength(StringUtils.sanitizeName(name)), CONST.STANDARD_LENGTH_LIMIT);
     }
 }
 
@@ -2417,7 +2412,6 @@ export {
     hasOnlyOneCardToAssign,
     checkIfNewFeedConnected,
     getDefaultCardName,
-    sanitizeCompanyCardName,
     getCompanyCardNameError,
     getCompanyCardNameErrorMessage,
     getExpensifyCardNameError,

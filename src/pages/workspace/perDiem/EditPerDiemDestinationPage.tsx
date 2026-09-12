@@ -13,8 +13,9 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import {getPerDiemNameError, getPerDiemNameErrorMessage, sanitizePerDiemName} from '@libs/PolicyPerDiemUtils';
+import {getPerDiemNameError, getPerDiemNameErrorMessage} from '@libs/PolicyPerDiemUtils';
 import {getPerDiemCustomUnit} from '@libs/PolicyUtils';
+import StringUtils from '@libs/StringUtils';
 
 import type {SettingsNavigatorParamList} from '@navigation/types';
 
@@ -64,7 +65,7 @@ function EditPerDiemDestinationPage({route}: EditPerDiemDestinationPageProps) {
 
     const editDestination = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_PER_DIEM_FORM>) => {
-            const newDestination = sanitizePerDiemName(values.destination);
+            const newDestination = StringUtils.sanitizeName(values.destination);
             if (newDestination !== selectedRate?.name) {
                 editPerDiemRateDestination(policyID, rateID, customUnit, newDestination);
             }

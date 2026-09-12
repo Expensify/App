@@ -12,8 +12,9 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import {getPerDiemNameError, getPerDiemNameErrorMessage, sanitizePerDiemName} from '@libs/PolicyPerDiemUtils';
+import {getPerDiemNameError, getPerDiemNameErrorMessage} from '@libs/PolicyPerDiemUtils';
 import {getPerDiemCustomUnit} from '@libs/PolicyUtils';
+import StringUtils from '@libs/StringUtils';
 
 import type {SettingsNavigatorParamList} from '@navigation/types';
 
@@ -59,7 +60,7 @@ function EditPerDiemSubratePage({route}: EditPerDiemSubratePageProps) {
     };
 
     const editSubrate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_PER_DIEM_FORM>) => {
-        const newSubrate = sanitizePerDiemName(values.subrate);
+        const newSubrate = StringUtils.sanitizeName(values.subrate);
         if (newSubrate !== selectedSubrate?.name) {
             editPerDiemRateSubrate(policyID, rateID, subRateID, customUnit, newSubrate);
         }

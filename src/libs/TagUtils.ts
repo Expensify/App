@@ -6,6 +6,7 @@ import type {PolicyTags} from '@src/types/onyx';
 import {Str} from 'expensify-common';
 
 import {escapeTagName} from './PolicyUtils';
+import StringUtils from './StringUtils';
 
 /**
  * Checks if a tag value is missing/empty
@@ -37,11 +38,6 @@ function getDecodedTagName(tagName: string): string {
 /** The reason a proposed tag name is invalid. Callers translate it via `getTagNameErrorMessage`. */
 type TagNameError = 'required' | 'existing' | 'invalid' | 'tooLong';
 
-/** Normalizes a tag name by converting non-breaking spaces and trimming surrounding whitespace. */
-function sanitizeTagName(name: string): string {
-    return name.replaceAll(CONST.REGEX.NON_BREAKING_SPACE, ' ').trim();
-}
-
 /**
  * Validates a tag name against every rule (required, reserved, unique, length). This is the single
  * source of truth shared by the create form, the RHP edit form, and inline table editing. Pass
@@ -49,7 +45,7 @@ function sanitizeTagName(name: string): string {
  * as a duplicate. Returns an error code, or undefined when the name is valid.
  */
 function getTagNameError(tags: PolicyTags | undefined, newName: string, currentName?: string): TagNameError | undefined {
-    const sanitized = sanitizeTagName(newName);
+    const sanitized = StringUtils.sanitizeName(newName);
 
     if (!sanitized) {
         return 'required';
@@ -85,9 +81,9 @@ function getTagNameErrorMessage(translate: LocaleContextProps['translate'], erro
             return translate('workspace.tags.invalidTagNameError');
         case 'tooLong':
         default:
-            return translate('common.error.characterLimitExceedCounter', [...sanitizeTagName(name)].length, CONST.API_TRANSACTION_TAG_MAX_LENGTH);
+            return translate('common.error.characterLimitExceedCounter', [...StringUtils.sanitizeName(name)].length, CONST.API_TRANSACTION_TAG_MAX_LENGTH);
     }
 }
 
-export {isTagMissing, trimTag, getDecodedTagName, sanitizeTagName, getTagNameError, getTagNameErrorMessage};
+export {isTagMissing, trimTag, getDecodedTagName, getTagNameError, getTagNameErrorMessage};
 export type {TagNameError};

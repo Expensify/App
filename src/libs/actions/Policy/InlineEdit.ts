@@ -5,20 +5,14 @@
  */
 import type PolicyData from '@hooks/usePolicyData/types';
 
-import {
-    getCompanyCardNameError,
-    getExpensifyCardLimitError,
-    getExpensifyCardNameError,
-    getExpensifyCardNewAvailableSpend,
-    sanitizeCompanyCardName,
-    shouldShowExpensifyCardFixedLimitType,
-} from '@libs/CardUtils';
-import {getCategoryNameError, sanitizeCategoryName} from '@libs/CategoryUtils';
+import {getCompanyCardNameError, getExpensifyCardLimitError, getExpensifyCardNameError, getExpensifyCardNewAvailableSpend, shouldShowExpensifyCardFixedLimitType} from '@libs/CardUtils';
+import {getCategoryNameError} from '@libs/CategoryUtils';
 import {convertToBackendAmount} from '@libs/CurrencyUtils';
-import {getDistanceRateNameError, getDistanceRateValueError, sanitizeDistanceRateName} from '@libs/PolicyDistanceRatesUtils';
-import {getPerDiemAmountError, getPerDiemNameError, sanitizePerDiemName} from '@libs/PolicyPerDiemUtils';
+import {getDistanceRateNameError, getDistanceRateValueError} from '@libs/PolicyDistanceRatesUtils';
+import {getPerDiemAmountError, getPerDiemNameError} from '@libs/PolicyPerDiemUtils';
 import {getCleanedTagName, getTagList} from '@libs/PolicyUtils';
-import {getTagNameError, sanitizeTagName} from '@libs/TagUtils';
+import StringUtils from '@libs/StringUtils';
+import {getTagNameError} from '@libs/TagUtils';
 
 import {updateExpensifyCardLimit, updateExpensifyCardLimitType, updateExpensifyCardTitle} from '@userActions/Card';
 import {updateCompanyCardName} from '@userActions/CompanyCards';
@@ -39,7 +33,7 @@ import {editPerDiemRateAmount, editPerDiemRateDestination, editPerDiemRateSubrat
 import {renamePolicyTag} from './Tag';
 
 function renameCategoryInline(policyData: PolicyData, currentName: string, newName: string): void {
-    const sanitized = sanitizeCategoryName(newName);
+    const sanitized = StringUtils.sanitizeName(newName);
 
     if (sanitized === currentName || getCategoryNameError(policyData.categories, newName, currentName)) {
         return;
@@ -49,7 +43,7 @@ function renameCategoryInline(policyData: PolicyData, currentName: string, newNa
 }
 
 function renameTagInline(policyData: PolicyData, oldName: string, newName: string): void {
-    const sanitized = sanitizeTagName(newName);
+    const sanitized = StringUtils.sanitizeName(newName);
     const currentDisplayName = getCleanedTagName(oldName);
     const {tags} = getTagList(policyData.tags, 0);
 
@@ -61,7 +55,7 @@ function renameTagInline(policyData: PolicyData, oldName: string, newName: strin
 }
 
 function renameCompanyCardInline(domainOrWorkspaceAccountID: number, cardID: string, newName: string, bankName: CompanyCardFeedWithNumber, currentName: string): void {
-    const sanitized = sanitizeCompanyCardName(newName);
+    const sanitized = StringUtils.sanitizeName(newName);
 
     if (sanitized === currentName || getCompanyCardNameError(newName)) {
         return;
@@ -79,7 +73,7 @@ function renameExpensifyCardInline(workspaceAccountID: number, cardID: number, n
 }
 
 function renameDistanceRateInline(policyID: string, customUnit: CustomUnit, rate: Rate, newName: string): void {
-    const sanitized = sanitizeDistanceRateName(newName);
+    const sanitized = StringUtils.sanitizeName(newName);
     const currentName = rate.name ?? '';
     const existingRateNames = Object.values(customUnit.rates ?? {}).map((existingRate) => existingRate.name ?? '');
 
@@ -147,7 +141,7 @@ function updateExpensifyCardLimitInline(workspaceAccountID: number, card: Card, 
 }
 
 function renamePerDiemDestinationInline(policyID: string, rateID: string, customUnit: CustomUnit | undefined, currentName: string, newName: string): void {
-    const sanitized = sanitizePerDiemName(newName);
+    const sanitized = StringUtils.sanitizeName(newName);
 
     if (sanitized === currentName || getPerDiemNameError(newName)) {
         return;
@@ -157,7 +151,7 @@ function renamePerDiemDestinationInline(policyID: string, rateID: string, custom
 }
 
 function renamePerDiemSubrateInline(policyID: string, rateID: string, subRateID: string, customUnit: CustomUnit | undefined, currentName: string, newName: string): void {
-    const sanitized = sanitizePerDiemName(newName);
+    const sanitized = StringUtils.sanitizeName(newName);
 
     if (sanitized === currentName || getPerDiemNameError(newName)) {
         return;

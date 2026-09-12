@@ -7,6 +7,7 @@ import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
 
 import {convertToBackendAmount} from './CurrencyUtils';
+import StringUtils from './StringUtils';
 
 /** The reason a proposed per diem destination or subrate name is invalid. */
 type PerDiemNameError = 'required' | 'tooLong';
@@ -14,17 +15,12 @@ type PerDiemNameError = 'required' | 'tooLong';
 /** The reason a proposed per diem amount is invalid. Shared by the RHP edit form and inline table editing. */
 type PerDiemAmountError = 'required';
 
-/** Normalizes a per diem destination or subrate name by converting non-breaking spaces and trimming. */
-function sanitizePerDiemName(name: string): string {
-    return name.replaceAll(CONST.REGEX.NON_BREAKING_SPACE, ' ').trim();
-}
-
 /**
  * Validates a per diem destination or subrate name against the same rules as the RHP edit forms
  * (required and max length). Returns an error code, or undefined when the name is valid.
  */
 function getPerDiemNameError(newName: string): PerDiemNameError | undefined {
-    const sanitized = sanitizePerDiemName(newName);
+    const sanitized = StringUtils.sanitizeName(newName);
 
     if (!sanitized) {
         return 'required';
@@ -45,7 +41,7 @@ function getPerDiemNameErrorMessage(translate: LocaleContextProps['translate'], 
             return translate('common.error.fieldRequired');
         case 'tooLong':
         default:
-            return translate('common.error.characterLimitExceedCounter', [...sanitizePerDiemName(name)].length, CONST.MAX_LENGTH_256);
+            return translate('common.error.characterLimitExceedCounter', [...StringUtils.sanitizeName(name)].length, CONST.MAX_LENGTH_256);
     }
 }
 
@@ -77,5 +73,5 @@ function getPerDiemAmountErrorMessage(translate: LocaleContextProps['translate']
     }
 }
 
-export {sanitizePerDiemName, getPerDiemNameError, getPerDiemNameErrorMessage, getPerDiemAmountError, getPerDiemAmountErrorMessage};
+export {getPerDiemNameError, getPerDiemNameErrorMessage, getPerDiemAmountError, getPerDiemAmountErrorMessage};
 export type {PerDiemNameError, PerDiemAmountError};

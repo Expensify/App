@@ -11,6 +11,8 @@ import type {OnyxCollection} from 'react-native-onyx';
 
 import {Str} from 'expensify-common';
 
+import StringUtils from './StringUtils';
+
 function formatDefaultTaxRateText(translate: LocaleContextProps['translate'], taxID: string, taxRate: TaxRate, policyTaxRates?: TaxRatesWithDefault) {
     const taxRateText = `${taxRate.name} ${CONST.DOT_SEPARATOR} ${taxRate.value}`;
 
@@ -165,11 +167,6 @@ function getDecodedCategoryName(categoryName: string) {
 /** The reason a proposed category name is invalid. Callers translate it via `getCategoryNameErrorMessage`. */
 type CategoryNameError = 'required' | 'existing' | 'invalid' | 'tooLong';
 
-/** Normalizes a category name by converting non-breaking spaces and trimming surrounding whitespace. */
-function sanitizeCategoryName(name: string): string {
-    return name.replaceAll(CONST.REGEX.NON_BREAKING_SPACE, ' ').trim();
-}
-
 /**
  * Validates a category name against every rule (required, unique, reserved, length). This is the single
  * source of truth shared by the create form, the RHP edit form, and inline table editing. Pass
@@ -177,7 +174,7 @@ function sanitizeCategoryName(name: string): string {
  * Returns an error code, or undefined when the name is valid.
  */
 function getCategoryNameError(policyCategories: PolicyCategories | undefined, newName: string, currentName?: string): CategoryNameError | undefined {
-    const sanitized = sanitizeCategoryName(newName);
+    const sanitized = StringUtils.sanitizeName(newName);
 
     if (!sanitized) {
         return 'required';
@@ -210,7 +207,7 @@ function getCategoryNameErrorMessage(translate: LocaleContextProps['translate'],
             return translate('workspace.categories.invalidCategoryName');
         case 'tooLong':
         default:
-            return translate('common.error.characterLimitExceedCounter', [...sanitizeCategoryName(name)].length, CONST.API_TRANSACTION_CATEGORY_MAX_LENGTH);
+            return translate('common.error.characterLimitExceedCounter', [...StringUtils.sanitizeName(name)].length, CONST.API_TRANSACTION_CATEGORY_MAX_LENGTH);
     }
 }
 
@@ -316,7 +313,6 @@ export {
     processCategoryNameSegments,
     getAvailableNonPersonalPolicyCategories,
     hasAnyCategoryRules,
-    sanitizeCategoryName,
     getCategoryNameError,
     getCategoryNameErrorMessage,
 };

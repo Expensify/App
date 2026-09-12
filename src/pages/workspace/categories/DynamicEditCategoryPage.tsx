@@ -7,9 +7,10 @@ import useLocalize from '@hooks/useLocalize';
 import usePolicyData from '@hooks/usePolicyData';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {getCategoryNameError, getCategoryNameErrorMessage, sanitizeCategoryName} from '@libs/CategoryUtils';
+import {getCategoryNameError, getCategoryNameErrorMessage} from '@libs/CategoryUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import StringUtils from '@libs/StringUtils';
 
 import type {SettingsNavigatorParamList} from '@navigation/types';
 
@@ -55,7 +56,7 @@ function DynamicEditCategoryPage({route}: DynamicEditCategoryPageProps) {
 
     const editCategory = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FORM>) => {
-            const newCategoryName = sanitizeCategoryName(values.categoryName);
+            const newCategoryName = StringUtils.sanitizeName(values.categoryName);
             // Do not call the API if the edited category name is the same as the current category name
             if (currentCategoryName !== newCategoryName) {
                 renamePolicyCategory(policyData, {oldName: currentCategoryName, newName: newCategoryName});

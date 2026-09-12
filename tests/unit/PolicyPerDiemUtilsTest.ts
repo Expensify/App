@@ -1,4 +1,4 @@
-import {getPerDiemAmountError, getPerDiemNameError, sanitizePerDiemName} from '@libs/PolicyPerDiemUtils';
+import {getPerDiemAmountError, getPerDiemNameError} from '@libs/PolicyPerDiemUtils';
 
 import CONST from '@src/CONST';
 
@@ -36,12 +36,6 @@ describe('PolicyPerDiemUtils', () => {
             expect(getPerDiemAmountError('50')).toBeUndefined();
             expect(getPerDiemAmountError('50.00')).toBeUndefined();
             expect(getPerDiemAmountError('-10.50')).toBeUndefined();
-        });
-    });
-
-    describe('sanitizePerDiemName', () => {
-        it('should convert non-breaking spaces and trim surrounding whitespace', () => {
-            expect(sanitizePerDiemName(`\u00A0Paris\u00A0`)).toBe('Paris');
         });
     });
 });

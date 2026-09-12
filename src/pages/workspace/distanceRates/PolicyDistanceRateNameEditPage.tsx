@@ -12,8 +12,9 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import {getDistanceRateNameError, getDistanceRateNameErrorMessage, sanitizeDistanceRateName} from '@libs/PolicyDistanceRatesUtils';
+import {getDistanceRateNameError, getDistanceRateNameErrorMessage} from '@libs/PolicyDistanceRatesUtils';
 import {getDistanceRateCustomUnit} from '@libs/PolicyUtils';
+import StringUtils from '@libs/StringUtils';
 
 import type {SettingsNavigatorParamList} from '@navigation/types';
 
@@ -64,7 +65,7 @@ function PolicyDistanceRateNameEditPage({route}: PolicyDistanceRateNameEditPageP
             if (!customUnit || !rate) {
                 return;
             }
-            const sanitized = sanitizeDistanceRateName(values.rateName);
+            const sanitized = StringUtils.sanitizeName(values.rateName);
             if (currentRateName === sanitized) {
                 Navigation.goBack();
                 return;

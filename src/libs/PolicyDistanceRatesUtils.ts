@@ -17,6 +17,7 @@ import {getMicroSecondOnyxErrorWithTranslationKey} from './ErrorUtils';
 import getPermittedDecimalSeparator from './getPermittedDecimalSeparator';
 import {replaceAllDigits} from './MoneyRequestUtils';
 import {parseFloatAnyLocale} from './NumberUtils';
+import StringUtils from './StringUtils';
 import {isRequiredFulfilled} from './ValidationUtils';
 
 type RateValueForm = typeof ONYXKEYS.FORMS.POLICY_CREATE_DISTANCE_RATE_FORM | typeof ONYXKEYS.FORMS.POLICY_DISTANCE_RATE_EDIT_FORM;
@@ -29,11 +30,6 @@ type DistanceRateNameError = 'required' | 'existing' | 'tooLong';
 /** The reason a proposed distance rate amount is invalid. Shared by the RHP edit form and inline table editing. */
 type DistanceRateValueError = 'invalid' | 'tooLow';
 
-/** Normalizes a distance rate name by converting non-breaking spaces and trimming surrounding whitespace. */
-function sanitizeDistanceRateName(name: string): string {
-    return name.replaceAll(CONST.REGEX.NON_BREAKING_SPACE, ' ').trim();
-}
-
 /**
  * Validates a distance rate name against every rule (required, unique, length). This is the single
  * source of truth shared by the create form, the RHP edit form, and inline table editing. Pass
@@ -41,7 +37,7 @@ function sanitizeDistanceRateName(name: string): string {
  * Returns an error code, or undefined when the name is valid.
  */
 function getDistanceRateNameError(existingRateNames: readonly string[], newName: string, currentName?: string): DistanceRateNameError | undefined {
-    const sanitized = sanitizeDistanceRateName(newName);
+    const sanitized = StringUtils.sanitizeName(newName);
 
     if (!sanitized) {
         return 'required';
@@ -68,7 +64,7 @@ function getDistanceRateNameErrorMessage(translate: LocalizedTranslate, error: D
             return translate('workspace.distanceRates.errors.existingRateName');
         case 'tooLong':
         default:
-            return translate('common.error.characterLimitExceedCounter', [...sanitizeDistanceRateName(name)].length, CONST.TAX_RATES.NAME_MAX_LENGTH);
+            return translate('common.error.characterLimitExceedCounter', [...StringUtils.sanitizeName(name)].length, CONST.TAX_RATES.NAME_MAX_LENGTH);
     }
 }
 
@@ -349,7 +345,6 @@ export {
     isMapOrGPSRequired,
     getDistanceExpenseTypeForPolicy,
     isGovernmentRateUnmodified,
-    sanitizeDistanceRateName,
     getDistanceRateNameError,
     getDistanceRateNameErrorMessage,
     getDistanceRateValueError,
