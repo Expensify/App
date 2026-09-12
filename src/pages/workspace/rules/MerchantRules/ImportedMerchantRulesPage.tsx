@@ -8,7 +8,6 @@ import useImportSpreadsheetConfirmModal from '@hooks/useImportSpreadsheetConfirm
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 
 import {openPolicyCategoriesPage} from '@libs/actions/Policy/Category';
@@ -254,8 +253,6 @@ function ImportedMerchantRulesPage({route}: ImportedMerchantRulesPageProps) {
     const policyID = route.params.policyID;
     const policy = usePolicy(policyID);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
-    const {isBetaEnabled} = usePermissions();
-    const isRulesRevampEnabled = isBetaEnabled(CONST.BETAS.RULES_REVAMP);
 
     // Fetch categories if they're not loaded (e.g. after a cache clear) so imported category cells are
     // validated against the policy's real category list instead of an empty one
@@ -316,10 +313,8 @@ function ImportedMerchantRulesPage({route}: ImportedMerchantRulesPageProps) {
     const closeImportPageAndModal = () => {
         setIsClosing(true);
         setIsImportingRules(false);
-        if (isRulesRevampEnabled) {
-            // Import can start from any tab, so land on the one holding the imported rules.
-            Tab.setSelectedTab(CONST.TAB.RULES_TAB_TYPE, CONST.TAB.RULES.EXPENSE_DEFAULTS);
-        }
+        // Import can start from any tab, so land on the one holding the imported rules.
+        Tab.setSelectedTab(CONST.TAB.RULES_TAB_TYPE, CONST.TAB.RULES.EXPENSE_DEFAULTS);
         Navigation.goBack(ROUTES.WORKSPACE_RULES.getRoute(policyID));
     };
 

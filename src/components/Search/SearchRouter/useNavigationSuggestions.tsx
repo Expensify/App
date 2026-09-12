@@ -133,7 +133,6 @@ type BuildWorkspaceNavigationItemsParams = {
     /** Whether pending offline state should be considered by Workspace visibility rules. */
     isOffline: boolean;
 
-    isRulesRevampBetaEnabled: boolean;
     isVendorMatchingBetaEnabled: boolean;
 
     /** Whether navigation should use the narrow-layout Workspace flow. */
@@ -271,7 +270,6 @@ function buildWorkspaceNavigationItems({
     currentUserLogin,
     icons,
     isOffline,
-    isRulesRevampBetaEnabled,
     isVendorMatchingBetaEnabled,
     shouldUseNarrowLayout,
     convertToDisplayString,
@@ -290,7 +288,6 @@ function buildWorkspaceNavigationItems({
                 currentUserLogin,
                 icons,
                 policyCategories: policyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policy.id}`],
-                isRulesRevampBetaEnabled,
                 isVendorMatchingBetaEnabled,
                 convertToDisplayString,
             });
@@ -421,7 +418,6 @@ function useNavigationSuggestions(query: string, shouldWatchForApprovals = true)
         currentUserLogin,
         icons,
         isOffline: !!isOffline,
-        isRulesRevampBetaEnabled: isBetaEnabled(CONST.BETAS.RULES_REVAMP),
         isVendorMatchingBetaEnabled: isBetaEnabled(CONST.BETAS.VENDOR_MATCHING),
         shouldUseNarrowLayout,
         convertToDisplayString,
