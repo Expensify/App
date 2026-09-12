@@ -10,6 +10,7 @@ import {
     tracingIntegration,
 } from '@libs/telemetry/integrations';
 import {processBeforeSendLogs, processBeforeSendTransactions} from '@libs/telemetry/middlewares';
+import getAppVersion from '@libs/VersionUtils';
 
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
@@ -34,6 +35,7 @@ const EXTENSION_DENY_URLS = [/^chrome-extension:\/\//i, /^moz-extension:\/\//i, 
 const THIRD_PARTY_NOISE_INTEGRATIONS = [thirdPartyErrorFilterIntegration, classCallCheckNoiseFilterIntegration];
 
 function setupSentry(): void {
+    const {semanticVersion, buildNumber} = getAppVersion(pkg.version);
     const integrations = [
         navigationIntegration,
         tracingIntegration,
@@ -56,7 +58,8 @@ function setupSentry(): void {
         enableUserInteractionTracing: true,
         integrations,
         environment: CONFIG.ENVIRONMENT,
-        release: `${pkg.name}@${pkg.version}`,
+        release: `${pkg.name}@${semanticVersion}`,
+        dist: buildNumber,
         ignoreErrors: [
             // UPDATE_REQUIRED is not a real error and makes our errors in Spotnana spike and get rate limited when we bump the app min version, so ignore it
             CONST.ERROR.UPDATE_REQUIRED,
