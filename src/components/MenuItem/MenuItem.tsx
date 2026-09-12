@@ -38,6 +38,7 @@ import {canUseTouchScreen, hasHoverSupport} from '@libs/DeviceCapabilities';
 import {containsCustomEmoji, containsOnlyCustomEmoji} from '@libs/EmojiUtils';
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 import getButtonState from '@libs/getButtonState';
+import getPlatform from '@libs/getPlatform';
 import mergeRefs from '@libs/mergeRefs';
 import Parser from '@libs/Parser';
 import {COPYABLE_TEXT_DATA_SET} from '@libs/SelectionScraper';
@@ -687,6 +688,7 @@ function MenuItem({
     }, [helperText, shouldParseHelperText, shouldEscapeText]);
 
     const shouldRenderTitleAsHTML = shouldRenderAsHTML && !!title && Parser.hasHTMLTags(title);
+    const shouldOverrideHTMLTitleSelection = isTitleSelectable && getPlatform(true) === CONST.PLATFORM.MOBILE_WEB;
 
     const processedTitle = useMemo(() => {
         let titleToWrap = '';
@@ -1039,7 +1041,10 @@ function MenuItem({
                                                                             Titles with shouldRenderAsHTML use baseFontStyle, which differs from combinedTitleTextStyle below.
                                                                         */}
                                                                         {shouldRenderTitleAsHTML || shouldParseTitle ? (
-                                                                            <RenderHTML html={processedTitle} />
+                                                                            <RenderHTML
+                                                                                html={processedTitle}
+                                                                                isSelectable={shouldOverrideHTMLTitleSelection ? true : undefined}
+                                                                            />
                                                                         ) : (
                                                                             <Text style={styles.webViewStyles.baseFontStyle}>{convertToLTR(Parser.htmlToText(processedTitle))}</Text>
                                                                         )}

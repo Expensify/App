@@ -7,8 +7,9 @@ import Parser from '@libs/Parser';
 import type {RenderersProps} from 'react-native-render-html';
 
 import React, {useMemo} from 'react';
-import {RenderHTMLConfigProvider, RenderHTMLSource} from 'react-native-render-html';
+import {RenderHTMLConfigProvider, RenderHTMLSource, useSharedProps} from 'react-native-render-html';
 
+import htmlRenderers from './HTMLEngineProvider/HTMLRenderers';
 import BulletItemRenderer from './HTMLEngineProvider/HTMLRenderers/BulletItemRenderer';
 import ConciergeLinkRenderer from './HTMLEngineProvider/HTMLRenderers/ConciergeLinkRenderer';
 import OLRenderer from './HTMLEngineProvider/HTMLRenderers/OLRenderer';
@@ -46,6 +47,7 @@ function RenderHTML({html: htmlParam, onLinkPress, onConciergeLinkPress, isSelec
 
     const styles = useThemeStyles();
     const {windowWidth} = useWindowDimensions();
+    const sharedProps = useSharedProps();
     const html = useMemo(() => {
         return (
             Parser.replace(htmlParam, {shouldEscapeText: false, filterRules: ['emoji']})
@@ -87,16 +89,34 @@ function RenderHTML({html: htmlParam, onLinkPress, onConciergeLinkPress, isSelec
         />
     );
 
-    return onLinkPress || onConciergeLinkPress ? (
+    if (onLinkPress || onConciergeLinkPress) {
+        return (
+            <RenderHTMLConfigProvider
+                defaultTextProps={{selectable: isSelectable ?? true, allowFontScaling: false, style: styles.overflowVisible}}
+                renderersProps={renderersProps}
+                renderers={renderers}
+            >
+                {htmlSource}
+            </RenderHTMLConfigProvider>
+        );
+    }
+
+    if (isSelectable === undefined) {
+        return htmlSource;
+    }
+
+    return (
         <RenderHTMLConfigProvider
-            defaultTextProps={{selectable: isSelectable ?? true, allowFontScaling: false, style: styles.overflowVisible}}
-            renderersProps={renderersProps}
-            renderers={renderers}
+            {...sharedProps}
+            defaultTextProps={{
+                ...sharedProps.defaultTextProps,
+                selectable: isSelectable,
+                style: [sharedProps.defaultTextProps.style, styles.overflowVisible],
+            }}
+            renderers={htmlRenderers}
         >
             {htmlSource}
         </RenderHTMLConfigProvider>
-    ) : (
-        htmlSource
     );
 }
 
