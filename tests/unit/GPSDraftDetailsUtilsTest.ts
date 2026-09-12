@@ -1,4 +1,3 @@
-import {removeLastSegment, setEndWaypointAddress, setIsTracking} from '@libs/actions/GPSDraftDetails';
 import {
     calculateTrimmedEndPoint,
     getEffectiveDistance,
@@ -11,12 +10,16 @@ import {
     stopGpsTrip,
 } from '@libs/GPSDraftDetailsUtils';
 
+import ONYXKEYS from '@src/ONYXKEYS';
 import type GpsDraftDetails from '@src/types/onyx/GpsDraftDetails';
 import type {GPSPoint, TrimmedGPSPoint} from '@src/types/onyx/GpsDraftDetails';
 import type {Unit} from '@src/types/onyx/Policy';
 import geodesicDistance from '@src/utils/geodesicDistance';
 
-jest.mock('@libs/actions/GPSDraftDetails');
+import Onyx from 'react-native-onyx';
+
+import getOnyxValue from '../utils/getOnyxValue';
+import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const point = (lat: number, long: number, address?: GPSPoint['address']): GPSPoint => ({lat, long, ...(address ? {address} : {})});
 
@@ -304,55 +307,89 @@ describe('GPSDraftDetailsUtils', () => {
     });
 
     describe('stopGpsTrip', () => {
-        beforeEach(() => {
-            jest.clearAllMocks();
+        const startedAddress = {value: 'Amphitheatre Pkwy', type: 'address'} as const;
+
+        beforeAll(() => {
+            Onyx.init({keys: ONYXKEYS});
         });
+
+        beforeEach(async () => {
+            await Onyx.clear();
+        });
+
+        /** Seeds a trip that is being recorded and returns the points the screen would hand to stopGpsTrip */
+        const trackTrip = async (gpsPoints: GPSPoint[][]): Promise<GPSPoint[][]> => {
+            await Onyx.set(ONYXKEYS.GPS_DRAFT_DETAILS, makeDraft({gpsPoints, isTracking: true, distanceInMeters: 0}));
+            return gpsPoints;
+        };
+
+        const getStoppedDraft = async (): Promise<GpsDraftDetails | undefined> => {
+            await waitForBatchedUpdates();
+            return getOnyxValue(ONYXKEYS.GPS_DRAFT_DETAILS);
+        };
 
         it('stops tracking the trip', async () => {
-            await stopGpsTrip(false, [[point(0, 0)]]);
-            expect(setIsTracking).toHaveBeenCalledWith(false);
-        });
-
-        it('keeps the only segment when it holds a single point, so the stopped trip stays visible', async () => {
-            const gpsPoints = [[point(0, 0)]];
+            const gpsPoints = await trackTrip([[point(0, 0, startedAddress)]]);
 
             await stopGpsTrip(false, gpsPoints);
 
-            expect(removeLastSegment).not.toHaveBeenCalled();
+            expect((await getStoppedDraft())?.isTracking).toBe(false);
         });
 
-        it('keeps the only segment when it is still empty', async () => {
-            const gpsPoints: GPSPoint[][] = [[]];
+        it('keeps the recorded point when the trip is a single segment holding one point', async () => {
+            const gpsPoints = await trackTrip([[point(0, 0, startedAddress)]]);
 
             await stopGpsTrip(false, gpsPoints);
 
-            expect(removeLastSegment).not.toHaveBeenCalled();
-            expect(setEndWaypointAddress).not.toHaveBeenCalled();
+            expect((await getStoppedDraft())?.gpsPoints).toEqual([[point(0, 0, startedAddress)]]);
         });
 
-        it('removes a resumed segment that holds a single point', async () => {
-            const gpsPoints = [[point(0, 0), point(0, 1)], [point(1, 0)]];
+        it('leaves that point its start address instead of overwriting it with coordinates', async () => {
+            const gpsPoints = await trackTrip([[point(0, 0, startedAddress)]]);
+
+            await stopGpsTrip(false, gpsPoints, true);
+
+            expect((await getStoppedDraft())?.gpsPoints).toEqual([[point(0, 0, startedAddress)]]);
+        });
+
+        it('gives that point an address when the start lookup never landed', async () => {
+            const gpsPoints = await trackTrip([[point(0, 0)]]);
 
             await stopGpsTrip(false, gpsPoints);
 
-            expect(removeLastSegment).toHaveBeenCalledWith(gpsPoints);
+            expect((await getStoppedDraft())?.gpsPoints).toEqual([[point(0, 0, {value: '0,0', type: 'coordinates'})]]);
         });
 
-        it('removes a resumed segment that is empty', async () => {
-            const gpsPoints: GPSPoint[][] = [[point(0, 0), point(0, 1)], []];
+        it('leaves a single segment that is still empty untouched', async () => {
+            const gpsPoints = await trackTrip([[]]);
 
             await stopGpsTrip(false, gpsPoints);
 
-            expect(removeLastSegment).toHaveBeenCalledWith(gpsPoints);
+            expect((await getStoppedDraft())?.gpsPoints).toEqual([[]]);
         });
 
-        it('sets the end waypoint address when the last segment holds more than one point', async () => {
-            const gpsPoints = [[point(0, 0), point(0, 1)]];
+        it('drops a resumed segment that holds a single point', async () => {
+            const gpsPoints = await trackTrip([[point(0, 0), point(0, 1)], [point(1, 0)]]);
 
             await stopGpsTrip(false, gpsPoints);
 
-            expect(removeLastSegment).not.toHaveBeenCalled();
-            expect(setEndWaypointAddress).toHaveBeenCalledWith({value: '0,1', type: 'coordinates'}, gpsPoints);
+            expect((await getStoppedDraft())?.gpsPoints).toEqual([[point(0, 0), point(0, 1)]]);
+        });
+
+        it('drops a resumed segment that is empty', async () => {
+            const gpsPoints = await trackTrip([[point(0, 0), point(0, 1)], []]);
+
+            await stopGpsTrip(false, gpsPoints);
+
+            expect((await getStoppedDraft())?.gpsPoints).toEqual([[point(0, 0), point(0, 1)]]);
+        });
+
+        it('records the end address when the last segment holds more than one point', async () => {
+            const gpsPoints = await trackTrip([[point(0, 0), point(0, 1)]]);
+
+            await stopGpsTrip(false, gpsPoints);
+
+            expect((await getStoppedDraft())?.gpsPoints).toEqual([[point(0, 0), point(0, 1, {value: '0,1', type: 'coordinates'})]]);
         });
     });
 });

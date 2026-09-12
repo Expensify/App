@@ -143,8 +143,13 @@ async function stopGpsTrip(isOffline: boolean, gpsPoints: GPSPoint[][], skipLast
         // Dropping the sole segment would leave no points, which reads as a trip that never started
         if (gpsPoints.length > 1) {
             removeLastSegment(gpsPoints);
+            return;
         }
-        return;
+
+        // The sole point is both the start and the stop, so it only needs the address below when the start lookup never landed
+        if (lastSegment.at(0)?.address) {
+            return;
+        }
     }
 
     if (skipLastPointAddressFetching) {
