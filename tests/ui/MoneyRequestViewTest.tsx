@@ -374,7 +374,7 @@ describe('MoneyRequestView edit fields', () => {
         });
     });
 
-    it('should show amount as editable for the submitter when a submitted report has not been forwarded', async () => {
+    it('should show amount, merchant and date as editable for the submitter when a submitted report has not been forwarded', async () => {
         const approverAccountID = 999;
         const approverEmail = 'approver@test.com';
         const corporatePolicy = {
@@ -408,10 +408,12 @@ describe('MoneyRequestView edit fields', () => {
 
         await waitFor(() => {
             expect(screen.getByTestId(/^menu-item-iou\.amount/)).toHaveTextContent('editable');
+            expect(screen.getByTestId('menu-item-common.merchant')).toHaveTextContent('editable');
+            expect(screen.getByTestId('menu-item-common.date')).toHaveTextContent('editable');
         });
     });
 
-    it('should show amount as readonly for the submitter after the report was forwarded since the last submit', async () => {
+    it('should show amount, merchant and date as readonly for the submitter after the report was forwarded since the last submit', async () => {
         const approverAccountID = 999;
         const approverEmail = 'approver@test.com';
         const corporatePolicy = {
@@ -447,6 +449,8 @@ describe('MoneyRequestView edit fields', () => {
 
         await waitFor(() => {
             expect(screen.getByTestId(/^menu-item-iou\.amount/)).toHaveTextContent('readonly');
+            expect(screen.getByTestId('menu-item-common.merchant')).toHaveTextContent('readonly');
+            expect(screen.getByTestId('menu-item-common.date')).toHaveTextContent('readonly');
         });
     });
 

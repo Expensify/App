@@ -44,7 +44,7 @@ function getCommonDependentTag(transactions: Array<OnyxEntry<Transaction> | unde
 }
 
 /**
- * Returns the transaction, report, reportAction, and policy for a given transaction ID.
+ * Returns the transaction, report, reportAction, the report's actions, and policy for a given transaction ID.
  * Returns null if the transaction is not found.
  */
 function getTransactionEditContext(
@@ -62,7 +62,7 @@ function getTransactionEditContext(
     const reportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transaction.reportID}`] ?? {};
     const reportAction = getIOUActionForTransactionID(Object.values(reportActions), transactionID);
     const transactionPolicy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
-    return {transaction, report, reportAction, transactionPolicy};
+    return {transaction, report, reportAction, reportActions, transactionPolicy};
 }
 
 /**
