@@ -146,8 +146,8 @@ async function stopGpsTrip(isOffline: boolean, gpsPoints: GPSPoint[][], skipLast
             return;
         }
 
-        // The sole point is both the start and the stop, so it only needs the address below when the start lookup never landed
-        if (lastSegment.at(0)?.address) {
+        // The sole point is both the start and the stop, so its start address is already the end address
+        if (lastSegment.at(0)?.address?.value) {
             return;
         }
     }

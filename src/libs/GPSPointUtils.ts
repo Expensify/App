@@ -18,7 +18,8 @@ async function addressFromGpsPoint(gpsPoint: {lat: number; long: number}): Promi
 
         const address: string = location?.formattedAddress ?? [location?.name, location?.city, location?.region].filter(Boolean).join(', ');
 
-        return address;
+        // A sparse geocode result composes to an empty string, which callers would store as a blank address
+        return address || null;
     } catch (error) {
         console.error('[GPS distance request] Failed to reverse geocode location to postal address: ', error);
         return null;

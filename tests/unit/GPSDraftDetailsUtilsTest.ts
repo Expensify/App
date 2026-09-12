@@ -16,6 +16,9 @@ import type {GPSPoint, TrimmedGPSPoint} from '@src/types/onyx/GpsDraftDetails';
 import type {Unit} from '@src/types/onyx/Policy';
 import geodesicDistance from '@src/utils/geodesicDistance';
 
+import type {LocationGeocodedAddress} from 'expo-location';
+
+import {reverseGeocodeAsync} from 'expo-location';
 import Onyx from 'react-native-onyx';
 
 import getOnyxValue from '../utils/getOnyxValue';
@@ -314,6 +317,7 @@ describe('GPSDraftDetailsUtils', () => {
         });
 
         beforeEach(async () => {
+            jest.mocked(reverseGeocodeAsync).mockClear();
             await Onyx.clear();
         });
 
@@ -360,6 +364,55 @@ describe('GPSDraftDetailsUtils', () => {
             expect((await getStoppedDraft())?.gpsPoints).toEqual([[point(0, 0, {value: '0,0', type: 'coordinates'})]]);
         });
 
+        it('writes coordinates for that point when the caller skips the address lookup', async () => {
+            const gpsPoints = await trackTrip([[point(0, 0)]]);
+
+            await stopGpsTrip(false, gpsPoints, true);
+
+            expect(reverseGeocodeAsync).not.toHaveBeenCalled();
+            expect((await getStoppedDraft())?.gpsPoints).toEqual([[point(0, 0, {value: '0,0', type: 'coordinates'})]]);
+        });
+
+        it('writes coordinates for that point while offline, without looking the address up', async () => {
+            const gpsPoints = await trackTrip([[point(0, 0)]]);
+
+            await stopGpsTrip(true, gpsPoints);
+
+            expect(reverseGeocodeAsync).not.toHaveBeenCalled();
+            expect((await getStoppedDraft())?.gpsPoints).toEqual([[point(0, 0, {value: '0,0', type: 'coordinates'})]]);
+        });
+
+        it('replaces a blank address on that point instead of treating it as resolved', async () => {
+            const gpsPoints = await trackTrip([[point(0, 0, {value: '', type: 'address'})]]);
+
+            await stopGpsTrip(false, gpsPoints);
+
+            expect((await getStoppedDraft())?.gpsPoints).toEqual([[point(0, 0, {value: '0,0', type: 'coordinates'})]]);
+        });
+
+        it('falls back to coordinates when the geocoder returns no usable address fields', async () => {
+            const emptyGeocodedAddress: LocationGeocodedAddress = {
+                city: null,
+                district: null,
+                streetNumber: null,
+                street: null,
+                region: null,
+                subregion: null,
+                country: null,
+                postalCode: null,
+                name: null,
+                isoCountryCode: null,
+                timezone: null,
+                formattedAddress: null,
+            };
+            jest.mocked(reverseGeocodeAsync).mockResolvedValueOnce([emptyGeocodedAddress]);
+            const gpsPoints = await trackTrip([[point(0, 0), point(0, 1)]]);
+
+            await stopGpsTrip(false, gpsPoints);
+
+            expect((await getStoppedDraft())?.gpsPoints).toEqual([[point(0, 0), point(0, 1, {value: '0,1', type: 'coordinates'})]]);
+        });
+
         it('leaves a single segment that is still empty untouched', async () => {
             const gpsPoints = await trackTrip([[]]);
 
@@ -374,6 +427,14 @@ describe('GPSDraftDetailsUtils', () => {
             await stopGpsTrip(false, gpsPoints);
 
             expect((await getStoppedDraft())?.gpsPoints).toEqual([[point(0, 0), point(0, 1)]]);
+        });
+
+        it('leaves a one point trip intact when a resumed segment is dropped', async () => {
+            const gpsPoints = await trackTrip([[point(0, 0, startedAddress)], [point(1, 0)]]);
+
+            await stopGpsTrip(false, gpsPoints);
+
+            expect((await getStoppedDraft())?.gpsPoints).toEqual([[point(0, 0, startedAddress)]]);
         });
 
         it('drops a resumed segment that is empty', async () => {
