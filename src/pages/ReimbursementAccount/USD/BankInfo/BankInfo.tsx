@@ -80,7 +80,7 @@ function BankInfo({onBackButtonPress, onSubmit, policyID}: BankInfoProps) {
             if (plaidAccountIDChanged) {
                 deletePaymentBankAccount(bankAccountID, undefined);
             }
-            connectBankAccountWithPlaid(
+            const redirectedToManual = connectBankAccountWithPlaid(
                 plaidAccountIDChanged ? CONST.DEFAULT_NUMBER_ID : bankAccountID,
                 {
                     [BANK_INFO_STEP_KEYS.ROUTING_NUMBER]: data[BANK_INFO_STEP_KEYS.ROUTING_NUMBER] ?? '',
@@ -93,6 +93,11 @@ function BankInfo({onBackButtonPress, onSubmit, policyID}: BankInfoProps) {
                 },
                 policyID,
             );
+
+            // No bank account was created. Stay on this step so the manual form can create it before advancing.
+            if (redirectedToManual) {
+                return;
+            }
         }
         markSubmitting();
     };
