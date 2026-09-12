@@ -1531,7 +1531,9 @@ function hasErrorNewerThanLastScrape(card: Card): boolean {
     }
     const lastScrapeDate = parseCardLastScrape(card);
     if (!lastScrapeDate) {
-        return true;
+        // A card that has never synced has nothing to compare against, so the error is left to the connection message
+        // rather than shown underneath it.
+        return false;
     }
     // Error keys are microseconds, `lastScrape` is milliseconds.
     const lastScrapeMicroseconds = lastScrapeDate.getTime() * 1000;

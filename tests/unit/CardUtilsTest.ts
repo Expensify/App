@@ -4502,9 +4502,10 @@ describe('CardUtils', () => {
             expect(hasErrorNewerThanLastScrape(card)).toBe(true);
         });
 
-        it('returns true when there is an error but no last sync to compare against', () => {
+        // A card that has never synced cannot be compared against, so its error stays with the connection message.
+        it('returns false when there is an error but no last sync to compare against', () => {
             const card: Card = {...createRandomCard(1), lastScrape: undefined, errors: {1700000000000000: 'Failed to unassign this card'}};
-            expect(hasErrorNewerThanLastScrape(card)).toBe(true);
+            expect(hasErrorNewerThanLastScrape(card)).toBe(false);
         });
 
         it('parses an ISO 8601 last sync', () => {
