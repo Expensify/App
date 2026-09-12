@@ -1914,9 +1914,10 @@ function mergePolicyRecentlyUsedCategories(category: string | undefined, policyR
     return mergedCategories;
 }
 
-function mergePolicyRecentlyUsedCurrencies(currency: string | undefined, policyRecentlyUsedCurrencies: string[]) {
+function mergePolicyRecentlyUsedCurrencies(currency: string | undefined, policyRecentlyUsedCurrencies: OnyxEntry<string[]>) {
     let mergedCurrencies: string[];
-    const currenciesArray = policyRecentlyUsedCurrencies ?? [];
+    // The value is written by the server and can arrive as an object instead of an array, so check the shape instead of relying on `??`.
+    const currenciesArray = Array.isArray(policyRecentlyUsedCurrencies) ? policyRecentlyUsedCurrencies : [];
     if (currency) {
         const currenciesWithNew = [currency, ...currenciesArray];
         mergedCurrencies = Array.from(new Set(currenciesWithNew));
