@@ -1,3 +1,5 @@
+import type {WriteReadyBarrier} from './API/writeWhenReady';
+
 import {SAFETY_TIMEOUT_MS} from './API/writeWhenReady';
 import Log from './Log';
 
@@ -58,6 +60,58 @@ function restartPendingSubmitWriteSafetyTimeout(reportID: string | undefined) {
     startSafetyTimeout(reportID, generation);
 }
 
+type PendingSubmitWrite = {
+    /** Passed to the submit function. Clears the signal once the write attaches to it and it settles or aborts. */
+    barrier: WriteReadyBarrier;
+
+    /**
+     * Call right after the submit function returns. If no write attached and none is still coming, clears the signal
+     * now (validation bailed, or the app was minimized and the write skipped the barrier). If one is still coming,
+     * e.g. after a GPS lookup, only extends the safety timeout so it cannot expire mid-lookup.
+     */
+    settleAfterSubmit: (isWriteStillComing: boolean) => void;
+};
+
+/**
+ * Marks `reportID` pending and ties the clear to `baseBarrier`, so the signal drops when the write goes out rather
+ * than when the submit function returns. A zero-amount GPS submission returns first and only writes after the lookup;
+ * clearing on return would flash the destination's empty state meanwhile.
+ */
+function trackPendingSubmitWriteForReport(reportID: string | undefined, baseBarrier: WriteReadyBarrier): PendingSubmitWrite {
+    const clearPendingWrite = markPendingSubmitWriteForReport(reportID);
+    const forGeneration = generation;
+    let hasWriteAttached = false;
+
+    // Scoped to this submission so a stale barrier attaching late cannot extend a newer submission's window.
+    const restartSafetyTimeout = () => {
+        if (generation !== forGeneration) {
+            return;
+        }
+        restartPendingSubmitWriteSafetyTimeout(reportID);
+    };
+
+    const barrier: WriteReadyBarrier = (abortSignal) => {
+        hasWriteAttached = true;
+        restartSafetyTimeout();
+        // writeWhenReady's early-release paths abort without settling the barrier, so listen for that too.
+        abortSignal.addEventListener('abort', clearPendingWrite);
+        return Promise.resolve(baseBarrier(abortSignal)).finally(clearPendingWrite);
+    };
+
+    const settleAfterSubmit = (isWriteStillComing: boolean) => {
+        if (hasWriteAttached) {
+            return;
+        }
+        if (isWriteStillComing) {
+            restartSafetyTimeout();
+            return;
+        }
+        clearPendingWrite();
+    };
+
+    return {barrier, settleAfterSubmit};
+}
+
 /** Whether a submit write is pending for this specific report, scoped so an unrelated submission can't affect it. */
 function hasPendingSubmitWriteForReport(reportID: string | undefined): boolean {
     if (!reportID) {
@@ -77,4 +131,5 @@ function resetForTesting() {
     generation = 0;
 }
 
-export {markPendingSubmitWriteForReport, restartPendingSubmitWriteSafetyTimeout, hasPendingSubmitWriteForReport, resetForTesting};
+export {markPendingSubmitWriteForReport, trackPendingSubmitWriteForReport, restartPendingSubmitWriteSafetyTimeout, hasPendingSubmitWriteForReport, resetForTesting};
+export type {PendingSubmitWrite};

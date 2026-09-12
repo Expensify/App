@@ -5,10 +5,10 @@ import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 
 import * as API from '@libs/API';
+import type {WriteReadyBarrier} from '@libs/API';
 import type {CompleteSplitBillParams, CreateDistanceRequestParams, SplitBillParams, StartSplitBillParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import DateUtils from '@libs/DateUtils';
-import {deferOrExecuteWrite} from '@libs/deferredLayoutWrite';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import {calculateAmount as calculateIOUAmount, updateIOUOwnerAndTotal} from '@libs/IOUUtils';
 import * as Localize from '@libs/Localize';
@@ -46,7 +46,7 @@ import {
 } from '@libs/ReportUtils';
 import type {OptimisticChatReport} from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
-import {addOptimization, setPendingSubmitFollowUpAction} from '@libs/telemetry/submitFollowUpAction';
+import {setPendingSubmitFollowUpAction} from '@libs/telemetry/submitFollowUpAction';
 import {
     buildOptimisticTransaction,
     getUpdatedTransaction,
@@ -90,6 +90,7 @@ import {
 } from './MoneyRequestBuilder';
 import {highlightTransactionOnSearchRouteIfNeeded} from './NavigationHelpers';
 import {addPendingNewTransactionIDs, isOneToTwoTransactionTransition} from './PendingNewTransactions';
+import resolveWriteBarrier from './resolveWriteBarrier';
 
 type IOURequestType = ValueOf<typeof CONST.IOU.REQUEST_TYPE>;
 
@@ -158,6 +159,9 @@ type CreateDistanceRequestInformation = {
 
     /** Optimistic chat reportID to build the new chat report at, so it matches the ID the confirmation screen already subscribed to (brand-new P2P recipient). */
     optimisticChatReportID?: string;
+
+    /** Readiness barrier the API write waits on, handed down by whoever triggered the navigation. */
+    writeBarrier?: WriteReadyBarrier;
     rules: OnyxCollection<OnyxTypes.Rule>;
 };
 
@@ -207,7 +211,8 @@ type StartSplitBilActionParams = {
     taxValue?: string;
     shouldPlaySound?: boolean;
     shouldHandleNavigation?: boolean;
-    shouldDeferForSearch?: boolean;
+    /** Readiness barrier the API write waits on, handed down by whoever triggered the navigation. */
+    writeBarrier?: WriteReadyBarrier;
     policyRecentlyUsedCategories?: OnyxEntry<OnyxTypes.RecentlyUsedCategories>;
     policyRecentlyUsedTags: OnyxEntry<RecentlyUsedTags>;
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
@@ -265,6 +270,8 @@ type SplitBillActionsParams = {
     betas: OnyxEntry<OnyxTypes.Beta[]>;
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
     optimisticSplitChatReportID?: string;
+    /** Readiness barrier the API write waits on, handed down by whoever triggered the navigation. */
+    writeBarrier?: WriteReadyBarrier;
     delegateAccountID: number | undefined;
     participantsPolicyTags: OnyxTypes.ParticipantsPolicyTags;
     isTrackIntentUser: boolean | undefined;
@@ -305,6 +312,7 @@ function splitBill({
     betas,
     personalDetails,
     optimisticSplitChatReportID,
+    writeBarrier,
     delegateAccountID,
     isTrackIntentUser,
     formatPhoneNumber,
@@ -374,18 +382,13 @@ function splitBill({
     };
 
     playSound(SOUNDS.DONE);
-    deferOrExecuteWrite(
-        () => {
-            API.write(WRITE_COMMANDS.SPLIT_BILL, parameters, onyxData);
-        },
-        {
-            shouldDeferForSearch: false,
-            optimisticWatchKey: `${ONYXKEYS.COLLECTION.TRANSACTION}${parameters.transactionID}`,
-            onDeferred: () => addOptimization(CONST.TELEMETRY.SUBMIT_OPTIMIZATION.DEFERRED_WRITE),
-        },
+    API.writeWhenReady(
+        WRITE_COMMANDS.SPLIT_BILL,
+        parameters,
+        onyxData,
+        resolveWriteBarrier({writeBarrier, optimisticWatchKey: `${ONYXKEYS.COLLECTION.TRANSACTION}${parameters.transactionID}`}),
+        {onWriteStarted: () => notifyNewAction(splitData.chatReportID, undefined, true)},
     );
-
-    notifyNewAction(splitData.chatReportID, undefined, true);
 }
 
 /**
@@ -419,6 +422,7 @@ function splitBillAndOpenReport({
     betas,
     personalDetails,
     optimisticSplitChatReportID,
+    writeBarrier,
     delegateAccountID,
     isTrackIntentUser,
     formatPhoneNumber,
@@ -488,17 +492,13 @@ function splitBillAndOpenReport({
     };
 
     playSound(SOUNDS.DONE);
-    deferOrExecuteWrite(
-        () => {
-            API.write(WRITE_COMMANDS.SPLIT_BILL_AND_OPEN_REPORT, parameters, onyxData);
-        },
-        {
-            shouldDeferForSearch: false,
-            optimisticWatchKey: `${ONYXKEYS.COLLECTION.TRANSACTION}${parameters.transactionID}`,
-            onDeferred: () => addOptimization(CONST.TELEMETRY.SUBMIT_OPTIMIZATION.DEFERRED_WRITE),
-        },
+    API.writeWhenReady(
+        WRITE_COMMANDS.SPLIT_BILL_AND_OPEN_REPORT,
+        parameters,
+        onyxData,
+        resolveWriteBarrier({writeBarrier, optimisticWatchKey: `${ONYXKEYS.COLLECTION.TRANSACTION}${parameters.transactionID}`}),
+        {onWriteStarted: () => notifyNewAction(splitData.chatReportID, undefined, true)},
     );
-    notifyNewAction(splitData.chatReportID, undefined, true);
 }
 
 /** Used exclusively for starting a split expense request that contains a receipt, the split request will be completed once the receipt is scanned
@@ -528,7 +528,7 @@ function startSplitBill({
     policyRecentlyUsedCurrencies,
     participantsPolicyTags,
     shouldHandleNavigation = true,
-    shouldDeferForSearch = false,
+    writeBarrier,
     delegateAccountID,
     formatPhoneNumber,
     getCurrencyDecimals,
@@ -884,22 +884,18 @@ function startSplitBill({
         playSound(SOUNDS.DONE);
     }
 
-    deferOrExecuteWrite(
-        () => {
-            API.write(WRITE_COMMANDS.START_SPLIT_BILL, parameters, {optimisticData, successData, failureData});
-        },
-        {
-            shouldDeferForSearch,
-            optimisticWatchKey: `${ONYXKEYS.COLLECTION.TRANSACTION}${parameters.transactionID}`,
-            onDeferred: () => addOptimization(CONST.TELEMETRY.SUBMIT_OPTIMIZATION.DEFERRED_WRITE),
-        },
+    API.writeWhenReady(
+        WRITE_COMMANDS.START_SPLIT_BILL,
+        parameters,
+        {optimisticData, successData, failureData},
+        resolveWriteBarrier({writeBarrier, optimisticWatchKey: `${ONYXKEYS.COLLECTION.TRANSACTION}${parameters.transactionID}`}),
+        {onWriteStarted: () => notifyNewAction(splitChatReport.reportID, undefined, true)},
     );
 
     if (shouldHandleNavigation) {
         setPendingSubmitFollowUpAction(CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_AND_OPEN_REPORT, splitChatReport.reportID);
         Navigation.dismissModalWithReport({reportID: splitChatReport.reportID});
     }
-    notifyNewAction(splitChatReport.reportID, undefined, true);
 
     // Return the split transactionID for testing purpose
     return {splitTransactionID: splitTransaction.transactionID};
@@ -2086,6 +2082,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
         participantsPolicyTags,
         optimisticChatReportID,
         getCurrencyDecimals,
+        writeBarrier,
         rules,
     } = distanceRequestInformation;
     const {policy, policyCategories, policyTagList, policyRecentlyUsedCategories, policyRecentlyUsedTags} = policyParams;
@@ -2374,27 +2371,21 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
         playSound(SOUNDS.DONE);
     }
 
-    const apiWrite = () => {
-        API.write(WRITE_COMMANDS.CREATE_DISTANCE_REQUEST, parameters, onyxData);
-    };
-
     const activeReportID = isMoneyRequestReport && report?.reportID ? report.reportID : parameters.chatReportID;
 
     if (isOneToTwoTransactionTransition(isMoneyRequestReport, getReportTransactions(moneyRequestReportID))) {
         addPendingNewTransactionIDs(activeReportID, parameters.transactionID);
     }
 
-    deferOrExecuteWrite(apiWrite, {
-        shouldDeferForSearch: false,
-        optimisticWatchKey: `${ONYXKEYS.COLLECTION.TRANSACTION}${parameters.transactionID}`,
-        onDeferred: () => addOptimization(CONST.TELEMETRY.SUBMIT_OPTIMIZATION.DEFERRED_WRITE),
-    });
+    API.writeWhenReady(
+        WRITE_COMMANDS.CREATE_DISTANCE_REQUEST,
+        parameters,
+        onyxData,
+        resolveWriteBarrier({writeBarrier, optimisticWatchKey: `${ONYXKEYS.COLLECTION.TRANSACTION}${parameters.transactionID}`}),
+        {onWriteStarted: isMoneyRequestReport ? undefined : () => notifyNewAction(activeReportID, undefined, true)},
+    );
 
     highlightTransactionOnSearchRouteIfNeeded(isFromGlobalCreate, parameters.transactionID, CONST.SEARCH.DATA_TYPES.EXPENSE);
-
-    if (!isMoneyRequestReport) {
-        notifyNewAction(activeReportID, undefined, true);
-    }
 
     return {iouReport: distanceIouReport, chatReportID: parameters.chatReportID, transactionID: parameters.transactionID};
 }

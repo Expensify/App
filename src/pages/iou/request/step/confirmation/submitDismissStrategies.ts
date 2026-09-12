@@ -1,4 +1,3 @@
-import {flushDeferredWrite} from '@libs/deferredLayoutWrite';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import getTopmostReportParams from '@libs/Navigation/helpers/getTopmostReportParams';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
@@ -17,20 +16,14 @@ function dismissOnly(runAfterDismiss: () => void) {
     Navigation.dismissModal({
         afterTransition: () => {
             endSubmitFollowUpActionSpan(CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_ONLY);
-            flushDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL);
             runAfterDismiss();
         },
     });
 }
 
-// Flush ordering: The DISMISS_MODAL deferred-write channel is flushed by
-// ReportScreen.useFlushDeferredWriteOnFocus (on focus gain) or TransitionTracker (wide layout
-// fallback). createTransaction (via runAfterDismiss) calls deferOrExecuteWrite
-// which either registers the write on the channel or executes immediately:
-//   - Focus fires first -> flushRequested is set -> deferOrExecuteWrite executes immediately
-//   - TransitionTracker fires first -> write is registered -> focus flush executes it later
-// Both orderings are correct. The 5s safety timeout in deferredLayoutWrite covers
-// edge cases where neither trigger fires (e.g. ReportScreen never mounts).
+// runAfterDismiss (and therefore the API write) is gated on TransitionTracker rather than on this
+// navigation's own callback, because dismissModalWithReport has no afterTransition hook. The write's
+// barrier was armed by the caller before this ran, so it releases with the same transition.
 function dismissNarrowWithReport(reportID: string, runAfterDismiss: () => void) {
     setPendingSubmitFollowUpAction(CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_ONLY, reportID);
     Navigation.dismissModalWithReport({reportID}, undefined, {
@@ -54,7 +47,6 @@ function dismissWideToSameReport(reportID: string, runAfterDismiss: () => void) 
     Navigation.dismissModal({
         afterTransition: () => {
             endSubmitFollowUpActionSpan(CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_ONLY, reportID);
-            flushDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL);
             runAfterDismiss();
         },
     });
@@ -63,10 +55,7 @@ function dismissWideToSameReport(reportID: string, runAfterDismiss: () => void) 
 function dismissWideToNewReport(reportID: string, runAfterDismiss: () => void) {
     setPendingSubmitFollowUpAction(CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_AND_OPEN_REPORT, reportID);
     Navigation.revealRouteBeforeDismissingModal(ROUTES.REPORT_WITH_ID.getRoute(reportID), {
-        afterTransition: () => {
-            flushDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL);
-            runAfterDismiss();
-        },
+        afterTransition: runAfterDismiss,
     });
 }
 
