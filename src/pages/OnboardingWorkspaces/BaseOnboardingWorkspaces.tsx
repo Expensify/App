@@ -38,7 +38,7 @@ import type {JoinablePolicy} from '@src/types/onyx/JoinablePolicies';
 
 import {useFocusEffect} from '@react-navigation/native';
 import {hasCompletedGuidedSetupFlowSelector, hasSeenTourSelector} from '@selectors/Onboarding';
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 import type {BaseOnboardingWorkspacesProps} from './types';
@@ -196,13 +196,18 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
 
     const wrapperPadding = onboardingIsMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5;
 
-    useFocusEffect(() => {
-        if (!isValidated || joinablePoliciesLength > 0 || joinablePoliciesLoading) {
-            return;
-        }
+    useFocusEffect(
+        useCallback(() => {
+            if (!isValidated || joinablePoliciesLength > 0 || joinablePoliciesLoading) {
+                return;
+            }
 
-        getAccessiblePolicies();
-    });
+            getAccessiblePolicies();
+            // Loading and policy-count updates must not restart this focus effect: an empty response would otherwise
+            // immediately issue another request. A later screen focus retries if the list is still empty.
+            // eslint-disable-next-line react-hooks/exhaustive-deps
+        }, [isValidated]),
+    );
 
     useEffect(() => {
         if (!isConciergeTaskFlow || joinablePoliciesLoading !== false || joinablePoliciesLength > 0) {
