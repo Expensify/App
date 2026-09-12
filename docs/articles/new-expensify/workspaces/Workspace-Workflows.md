@@ -115,6 +115,8 @@ A CSV file containing your workspace's member and approval workflow details down
 
 **Note:** Downloading requires an internet connection. If you're offline, you'll be prompted to reconnect before the download can start.
 
+**Note:** If your workspace's approval workflow is set up and maintained by Expensify, the **Workflows** page shows the message "A custom approval workflow is enabled on this workspace" and the **More** menu is hidden, so neither **Download workflows** nor **Import workflows** is available. Reach out to your Account Manager or Concierge for the workflow details. [Learn why the approval workflows are hidden](/articles/new-expensify/workspaces/Add-Approvals#why-cant-i-see-the-approval-workflows-on-my-workspace).
+
 ---
 
 # FAQ
