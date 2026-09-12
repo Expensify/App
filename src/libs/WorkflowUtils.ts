@@ -378,7 +378,18 @@ function convertApprovalWorkflowToPolicyEmployees({
 
     const pendingAction = type === CONST.APPROVAL_WORKFLOW.TYPE.CREATE ? CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD : CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE;
 
+    // A circular chain (A forwards to B, B forwards back to A) makes `calculateApprovers` push the repeat before it
+    // breaks, so the approvers array arrives here as [A, B, A]. Rebuilding every entry would let that trailing A
+    // overwrite the first one's `forwardsTo: B` with `''`, silently cutting the chain the caller never edited.
+    // Only the first occurrence of an email describes where it actually forwards, so later repeats are skipped.
+    const handledApproverEmails = new Set<string>();
+
     for (const [index, approver] of approvalWorkflow.approvers.entries()) {
+        if (handledApproverEmails.has(approver.email)) {
+            continue;
+        }
+        handledApproverEmails.add(approver.email);
+
         const nextApprover = approvalWorkflow.approvers.at(index + 1);
         const forwardsTo = type === CONST.APPROVAL_WORKFLOW.TYPE.REMOVE ? '' : (nextApprover?.email ?? '');
         const approvalLimit = type === CONST.APPROVAL_WORKFLOW.TYPE.REMOVE ? null : approver.approvalLimit;
@@ -793,6 +804,15 @@ function buildApproveActions(): ApprovalWorkflowActions {
  */
 function getWorkflowMemberEmails(members: Member[]): string[] {
     return members.map((member) => member.email).filter((email): email is string => !!email);
+}
+
+/**
+ * The members a workflow had that it no longer does, i.e. the `membersToRemove` side of `updateApprovalWorkflow`.
+ * Compared by email because that is the identity the policy's `employeeList` is keyed by; `displayName` and `avatar`
+ * are cosmetic and can differ between the saved workflow and the picker's version of the same member.
+ */
+function getRemovedApprovalWorkflowMembers(originalMembers: Member[], members: Member[]): Member[] {
+    return originalMembers.filter((originalMember) => !members.some((member) => member.email === originalMember.email));
 }
 
 function buildApprovalWorkflowRules(approvalWorkflow: ApprovalWorkflow): ApprovalWorkflowRule[] {
@@ -1731,6 +1751,7 @@ export {
     getApprovalLimitDescription,
     getApprovalWorkflowRulesForPolicy,
     filterRulesForPolicy,
+    getRemovedApprovalWorkflowMembers,
     getRulesSubmitterToFirstApprover,
     getRulesSubmitterToWorkflowKey,
     getWorkflowMemberEmails,
