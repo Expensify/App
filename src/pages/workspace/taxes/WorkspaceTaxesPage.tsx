@@ -17,6 +17,7 @@ import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePolicyData from '@hooks/usePolicyData';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchBackPress from '@hooks/useSearchBackPress';
@@ -53,7 +54,8 @@ import type SCREENS from '@src/SCREENS';
 import type {TaxRate} from '@src/types/onyx';
 
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
-import {View} from 'react-native';
+// eslint-disable-next-line no-restricted-imports
+import {InteractionManager, View} from 'react-native';
 
 type WorkspaceTaxesPageProps = WithPolicyAndFullscreenLoadingProps & PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.TAXES>;
 
@@ -70,6 +72,7 @@ function WorkspaceTaxesPage({
     const {translate, localeCompare} = useLocalize();
     const [selectedTaxesIDs, setSelectedTaxesIDs] = useState<string[]>([]);
     const {showConfirmModal} = useConfirmModal();
+    const policyData = usePolicyData(policyID);
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
     const {canWrite: canWriteTaxes, showReadOnlyModal, withReadOnlyFallback} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.TAXES);
     const defaultExternalID = policy?.taxRates?.defaultExternalID;
@@ -207,13 +210,16 @@ function WorkspaceTaxesPage({
     const isLoading = !isOffline && !policy?.taxRates;
 
     const deleteTaxes = useCallback(() => {
-        if (!policy?.id) {
+        if (!policyData.policy?.id) {
             return;
         }
-        deletePolicyTaxes(policy, selectedTaxesIDs, localeCompare);
+        deletePolicyTaxes(policyData, selectedTaxesIDs, localeCompare);
 
-        setSelectedTaxesIDs([]);
-    }, [policy, selectedTaxesIDs, localeCompare]);
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        InteractionManager.runAfterInteractions(() => {
+            setSelectedTaxesIDs([]);
+        });
+    }, [policyData, selectedTaxesIDs, localeCompare]);
 
     const toggleTaxes = useCallback(
         (isEnabled: boolean) => {
