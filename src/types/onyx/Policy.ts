@@ -2532,8 +2532,8 @@ type BusinessCentralPaymentMethod = {
     /** Code identifying the payment method */
     code: string;
 
-    /** Name of the payment method */
-    name: string;
+    /** Name shown to admins when picking a payment method */
+    displayName: string;
 };
 
 /**
