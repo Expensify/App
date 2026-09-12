@@ -115,12 +115,17 @@ After you submit your details:
 
 Once connected, your business bank account appears in **Account > Wallet**. If you have both personal and business bank accounts, Wallet separates them into **Personal bank accounts** and **Business bank accounts** sections.
 
-Partially set-up accounts display an **Action required** badge. Click the account row to resume setup from where you left off.
+An account that still needs your attention displays a badge that tells you what is left to do:
+
+- **Incomplete** with a **Finish** action means setup was not submitted. Click the account row to resume setup from where you left off.
+- **Pending** with a **Please confirm test transactions** message and a **Confirm** action means the account was submitted and is waiting on test transactions. Click the account row to open **Validate your bank account**. If **Continue setup** and **Start over** appear first, click **Continue setup** to reach it. Learn how to [validate a business bank account](/articles/new-expensify/wallet-and-payments/Validate-a-Business-Bank-Account).
+- **Verifying** means Expensify is reviewing your documentation and no action is needed from you.
+- **Locked** means the account requires attention before it can be used. Learn how to [unlock a business bank account](/articles/new-expensify/wallet-and-payments/Unlock-a-Business-Bank-Account).
 
 <!-- SCREENSHOT:
-Suggestion: Wallet page showing separate Personal and Business bank account sections, with an Action required badge on a partially set-up account
-Location: After the paragraph
-Purpose: Shows the new Wallet layout with separated sections and status badges
+Suggestion: Wallet page showing separate Personal and Business bank account sections, with an Incomplete badge on one account and a Pending badge on another
+Location: After the badge list
+Purpose: Distinguishes the Incomplete and Pending badges, which lead to different screens and are easy to confuse when deciding whether setup still needs to be finished
 -->
 
 ---
