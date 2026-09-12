@@ -1,10 +1,10 @@
 ---
-name: coding-standards
-description: Provides coding standards for React Native — performance patterns, consistency rules, and clean React architecture. Use when writing, modifying, or reviewing code.
+name: app-coding-standards
+description: Provides coding standards for the Expensify App's React Native code, including performance patterns, consistency rules, and clean React architecture. Use when writing, modifying, or reviewing App code.
 alwaysApply: true
 ---
 
-# Expensify Coding Standards
+# Expensify App Coding Standards
 
 Coding standards for the Expensify App. Each standard is a standalone file in `rules/` with reasoning, examples, and applicability conditions.
 

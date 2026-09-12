@@ -1,13 +1,15 @@
 import type {Filter, SearchAmountFilterKeys, SearchDateFilterKeys, SearchFilterCommonProps, SearchTextFilterKeys} from '@components/Search/types';
 
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {isFilterNegatable} from '@libs/SearchQueryUtils';
-import {getMultiSelectFilterOptions, getSingleSelectFilterOptions} from '@libs/SearchUIUtils';
+import {getHasOptions, getMultiSelectFilterOptions, getSingleSelectFilterOptions} from '@libs/SearchUIUtils';
 import type {SearchFilter} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {SearchAdvancedFiltersForm} from '@src/types/form/SearchAdvancedFiltersForm';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 
@@ -59,6 +61,10 @@ type MultiSelectListFilterContentProps = SearchFilterCommonProps<SearchAdvancedF
     type: SearchDataTypes | undefined;
 };
 
+type HasMultiSelectListFilterContentProps = SearchFilterCommonProps<SearchAdvancedFiltersForm[MultiSelectFilterKeys] | undefined> & {
+    type: SearchDataTypes | undefined;
+};
+
 function SingleSelectListFilterContent({baseFilterKey, value, selectionListStyle, footer, onChange}: SingleSelectListFilterContentProps) {
     const {translate} = useLocalize();
     const items = getSingleSelectFilterOptions(baseFilterKey, translate);
@@ -75,8 +81,54 @@ function SingleSelectListFilterContent({baseFilterKey, value, selectionListStyle
     );
 }
 
+/**
+ * HAS is split out so other multi-select filters do not subscribe to the hot policy collections.
+ * Availability is computed in render (not a POLICY selector that closes over categories) so a late
+ * POLICY_CATEGORIES load still recomputes submitted-violation for migrated Control workspaces.
+ */
+function HasMultiSelectListFilterContent({value = [], type = CONST.SEARCH.DATA_TYPES.EXPENSE, selectionListStyle, footer, onChange}: HasMultiSelectListFilterContentProps) {
+    const {translate} = useLocalize();
+    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [policyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
+    const selectedValues = value as string[];
+    // Include already-selected values even when the matching workspace feature is off, otherwise
+    // toggling another option would call onChange without them and clear the saved/query selection.
+    const items = getHasOptions(translate, type, {
+        policies: policies ?? {},
+        policyCategories,
+        selectedValues,
+    });
+    const multiSelectValues = items.filter((item) => selectedValues.includes(item.value));
+
+    return (
+        <MultiSelect
+            items={items}
+            value={multiSelectValues}
+            selectionListStyle={selectionListStyle}
+            isNegatable={isFilterNegatable(CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS)}
+            footer={footer}
+            onChange={(selectedItems) => {
+                onChange(selectedItems.map((item) => item.value));
+            }}
+        />
+    );
+}
+
 function MultiSelectListFilterContent({baseFilterKey, value = [], type = CONST.SEARCH.DATA_TYPES.EXPENSE, selectionListStyle, footer, onChange}: MultiSelectListFilterContentProps) {
     const {translate} = useLocalize();
+
+    if (baseFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS) {
+        return (
+            <HasMultiSelectListFilterContent
+                value={value}
+                type={type}
+                selectionListStyle={selectionListStyle}
+                footer={footer}
+                onChange={onChange}
+            />
+        );
+    }
+
     const items = getMultiSelectFilterOptions(baseFilterKey, type, translate);
     const multiSelectValues = items.filter((item) => (value as string[]).includes(item.value));
 
