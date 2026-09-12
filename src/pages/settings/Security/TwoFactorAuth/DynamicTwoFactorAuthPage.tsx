@@ -26,7 +26,7 @@ import {quitAndNavigateBack, setCodesAreCopied} from '@userActions/TwoFactorAuth
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import {useIsFocused} from '@react-navigation/native';
@@ -65,6 +65,12 @@ function DynamicTwoFactorAuthPage() {
     const is2FAEnabled = !!account?.requiresTwoFactorAuth;
     const is2FASetupInProgress = !!account?.twoFactorAuthSetupInProgress;
 
+    // Once 2FA is enabled this page is only reachable by navigating back into it, so the effect below leaves the flow
+    // and the recovery codes stay hidden so they don't flash first. The forced-onboarding post-verify handoff is the
+    // exception: it sets requiresTwoFactorAuth before Got it clears the setup progress, and the page is still a
+    // legitimate step of that flow, so it must keep both the redirect off and the codes on screen.
+    const shouldLeaveEnabledSetup = is2FAEnabled && !is2FASetupInProgress;
+
     const recoveryCodes = account?.recoveryCodes;
 
     useEffect(() => {
@@ -77,14 +83,18 @@ function DynamicTwoFactorAuthPage() {
 
         // Skip redirect to the enabled page while setup is still in progress (e.g. post-verify handoff
         // during forced onboarding, when requiresTwoFactorAuth becomes true before Got it clears progress).
-        if (isFocused && is2FAEnabled && !is2FASetupInProgress) {
+        if (isFocused && shouldLeaveEnabledSetup) {
             Navigation.isNavigationReady().then(() => {
-                Navigation.navigate(ROUTES.SETTINGS_2FA_ENABLED, {forceReplace: true});
+                // The setup page is only reached with 2FA already enabled by pressing browser Back from the success
+                // page on web (the recovery-codes page stays in history because Download codes uses PUSH). Go back out
+                // of the flow instead of forwarding to the enabled page, which would loop the user straight back to the
+                // success page.
+                Navigation.goBack();
             });
             return;
         }
 
-        if (isLoadingOnyxValue(accountMetadata) || (is2FAEnabled && !is2FASetupInProgress) || account?.recoveryCodes || !isUserValidated) {
+        if (isLoadingOnyxValue(accountMetadata) || shouldLeaveEnabledSetup || account?.recoveryCodes || !isUserValidated) {
             return;
         }
 
@@ -93,8 +103,11 @@ function DynamicTwoFactorAuthPage() {
         }
 
         toggleTwoFactorAuth(true);
+        // `recoveryCodes` is a dependency because the right-modal `beforeRemove` listener clears the 2FA data after
+        // this effect has already run, which happens when a browser back on a freshly loaded page rebuilds the modal.
+        // Without it the page would keep rendering an empty codes box with no way to continue.
         // eslint-disable-next-line react-hooks/exhaustive-deps -- We want to run this when component mounts
-    }, [isUserValidated, accountMetadata.status, isFocused, is2FAEnabled, is2FASetupInProgress]);
+    }, [isUserValidated, accountMetadata.status, isFocused, is2FAEnabled, is2FASetupInProgress, recoveryCodes]);
 
     return (
         <TwoFactorAuthWrapper
@@ -109,7 +122,7 @@ function DynamicTwoFactorAuthPage() {
             onBackButtonPress={() => quitAndNavigateBack(backPath)}
         >
             <ScrollView contentContainerStyle={styles.flexGrow1}>
-                {!!isUserValidated && (
+                {!!isUserValidated && !shouldLeaveEnabledSetup && (
                     <Section
                         title={translate('twoFactorAuth.keepCodesSafe')}
                         containerStyles={[styles.twoFactorAuthSection]}
@@ -138,26 +151,29 @@ function DynamicTwoFactorAuthPage() {
                                                 </Text>
                                             ))}
                                     </View>
-                                    <PressableWithDelayToggle
-                                        text={translate('twoFactorAuth.copyCodes')}
-                                        textChecked={translate('common.copied')}
-                                        icon={icons.Copy}
-                                        inline={false}
-                                        onPress={() => {
-                                            Clipboard.setString(account?.recoveryCodes ?? '');
-                                            setError('');
-                                            setCodesAreCopied();
-                                            announceStatus(translate('common.copied'));
-                                        }}
-                                        styles={[styles.button, styles.buttonMedium, styles.twoFactorAuthCodesButton]}
-                                        wrapperStyles={[styles.twoFactorAuthCodesButtonWrapper, styles.twoFactorAuthCodesButton]}
-                                        textStyles={[styles.buttonMediumText]}
-                                        tooltipText=""
-                                        tooltipTextChecked=""
-                                        accessibilityLabel={`${translate('twoFactorAuth.copy')}, ${translate('twoFactorAuth.stepCodes')}`}
-                                        accessibilityLabelChecked={translate('common.copied')}
-                                        sentryLabel={CONST.SENTRY_LABEL.TWO_FACTOR_AUTH.COPY_CODES}
-                                    />
+                                    {/* Gated like the Download button below, since without codes this copies an empty string */}
+                                    {!!recoveryCodes && (
+                                        <PressableWithDelayToggle
+                                            text={translate('twoFactorAuth.copyCodes')}
+                                            textChecked={translate('common.copied')}
+                                            icon={icons.Copy}
+                                            inline={false}
+                                            onPress={() => {
+                                                Clipboard.setString(account?.recoveryCodes ?? '');
+                                                setError('');
+                                                setCodesAreCopied();
+                                                announceStatus(translate('common.copied'));
+                                            }}
+                                            styles={[styles.button, styles.buttonMedium, styles.twoFactorAuthCodesButton]}
+                                            wrapperStyles={[styles.twoFactorAuthCodesButtonWrapper, styles.twoFactorAuthCodesButton]}
+                                            textStyles={[styles.buttonMediumText]}
+                                            tooltipText=""
+                                            tooltipTextChecked=""
+                                            accessibilityLabel={`${translate('twoFactorAuth.copy')}, ${translate('twoFactorAuth.stepCodes')}`}
+                                            accessibilityLabelChecked={translate('common.copied')}
+                                            sentryLabel={CONST.SENTRY_LABEL.TWO_FACTOR_AUTH.COPY_CODES}
+                                        />
+                                    )}
                                 </>
                             )}
                         </View>
@@ -181,7 +197,7 @@ function DynamicTwoFactorAuthPage() {
                             style={[styles.mb3]}
                         />
                     )}
-                    {!!recoveryCodes && (
+                    {!!recoveryCodes && !shouldLeaveEnabledSetup && (
                         <Button
                             variant={CONST.BUTTON_VARIANT.SUCCESS}
                             size={CONST.BUTTON_SIZE.LARGE}
@@ -191,7 +207,8 @@ function DynamicTwoFactorAuthPage() {
                                 setError('');
                                 setCodesAreCopied();
                                 announceStatus(translate('fileDownload.success.title'));
-                                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.TWO_FACTOR_AUTH_VERIFY.path, backPath), {forceReplace: true});
+                                // PUSH on web so browser Back returns to the recovery codes. Native has no browser Back, so REPLACE.
+                                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.TWO_FACTOR_AUTH_VERIFY.path, backPath), {forceReplace: !isWeb});
                             }}
                         >
                             <Button.Text>{translate('twoFactorAuth.downloadCodes')}</Button.Text>
