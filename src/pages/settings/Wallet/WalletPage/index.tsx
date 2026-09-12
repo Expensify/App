@@ -31,6 +31,7 @@ import type {FormattedSelectedPaymentMethod} from '@hooks/usePaymentMethodState/
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWalletPersonalBankAccountSetup from '@hooks/useWalletPersonalBankAccountSetup';
 
 import {isPersonalBankAccountMissingInfo} from '@libs/BankAccountUtils';
 import {hasDisplayableAssignedCards, isDirectFeed, maskCardNumber} from '@libs/CardUtils';
@@ -44,7 +45,7 @@ import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 import PaymentMethodList from '@pages/settings/Wallet/PaymentMethodList';
 import {getFirstPageName} from '@pages/settings/Wallet/UpdatePersonalBankAccountPage';
 
-import {deletePaymentBankAccount, openPersonalBankAccountSetupView, pressLockedBankAccount, resetPersonalBankAccountForUpdate} from '@userActions/BankAccounts';
+import {deletePaymentBankAccount, openWalletPersonalBankAccountSetup, pressLockedBankAccount, resetPersonalBankAccountForUpdate} from '@userActions/BankAccounts';
 import {deletePersonalCard} from '@userActions/Card';
 import {close as closeModal} from '@userActions/Modal';
 import {clearWalletError, clearWalletTermsError, deletePaymentCard, getPaymentMethods, makeDefaultPaymentMethod as makeDefaultPaymentMethodPaymentMethods} from '@userActions/PaymentMethods';
@@ -76,6 +77,7 @@ const fundListSelector = (allFunds: OnyxEntry<OnyxTypes.FundList>) =>
     Object.fromEntries(Object.entries(allFunds ?? {}).filter(([, item]) => item.accountData?.additionalData?.isP2PDebitCard === true));
 
 function WalletPage() {
+    const walletPersonalBankAccountSetup = useWalletPersonalBankAccountSetup();
     const {convertToDisplayString} = useCurrencyListActions();
     const [bankAccountList = getEmptyObject<OnyxTypes.BankAccountList>()] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [cardList = getEmptyObject<OnyxTypes.CardList>()] = useOnyx(ONYXKEYS.CARD_LIST);
@@ -267,7 +269,15 @@ function WalletPage() {
             Navigation.navigate(ROUTES.SETTINGS_BANK_ACCOUNT_PURPOSE);
             return;
         }
-        openPersonalBankAccountSetupView({});
+        if (walletPersonalBankAccountSetup.isLoading) {
+            return;
+        }
+        openWalletPersonalBankAccountSetup({
+            personalBankAccount: walletPersonalBankAccountSetup.personalBankAccount,
+            personalDraft: walletPersonalBankAccountSetup.personalDraft,
+            internationalDraft: walletPersonalBankAccountSetup.internationalDraft,
+            isUserValidated,
+        });
     };
 
     const makeDefaultPaymentMethod = useCallback(() => {

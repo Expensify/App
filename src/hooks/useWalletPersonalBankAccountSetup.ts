@@ -1,0 +1,21 @@
+/**
+ * Reads the Onyx state needed to open or resume a Wallet-initiated personal bank account setup
+ * and reports whether that state is still loading.
+ */
+import ONYXKEYS from '@src/ONYXKEYS';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+
+import useOnyx from './useOnyx';
+
+function useWalletPersonalBankAccountSetup() {
+    const [personalBankAccount, personalBankAccountMetadata] = useOnyx(ONYXKEYS.PERSONAL_BANK_ACCOUNT);
+    const [personalDraft, personalDraftMetadata] = useOnyx(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT);
+    const [internationalDraft, internationalDraftMetadata] = useOnyx(ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM_DRAFT);
+    const [, plaidDataMetadata] = useOnyx(ONYXKEYS.PLAID_DATA);
+
+    const isLoading = isLoadingOnyxValue(personalBankAccountMetadata, personalDraftMetadata, internationalDraftMetadata, plaidDataMetadata);
+
+    return {personalBankAccount, personalDraft, internationalDraft, isLoading};
+}
+
+export default useWalletPersonalBankAccountSetup;

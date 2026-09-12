@@ -1,4 +1,11 @@
-import {clearPersonalBankAccount, connectBankAccountWithPlaid, openPersonalBankAccountSetupView} from '@libs/actions/BankAccounts';
+import {
+    clearPersonalBankAccount,
+    connectBankAccountWithPlaid,
+    createCorpayBankAccountForWalletFlow,
+    fetchCorpayFields,
+    openPersonalBankAccountSetupView,
+    openWalletPersonalBankAccountSetup,
+} from '@libs/actions/BankAccounts';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
@@ -182,6 +189,125 @@ describe('actions/BankAccounts', () => {
 
             expect(Navigation.navigate).toHaveBeenCalledWith(createDynamicRoute(DYNAMIC_ROUTES.ADD_BANK_ACCOUNT_VERIFY_ACCOUNT.getRoute(true, true)));
             expect(Navigation.navigate).toHaveBeenCalledWith(expect.stringContaining('shouldSetUpUSBankAccount=true'));
+        });
+    });
+
+    describe('openWalletPersonalBankAccountSetup', () => {
+        test('resumes the exact saved US page without clearing its draft', async () => {
+            const personalBankAccount = {
+                source: CONST.BANK_ACCOUNT.SOURCE.WALLET,
+                currentPage: CONST.ADD_PERSONAL_BANK_ACCOUNT.SUB_PAGE_NAMES.PHONE_NUMBER,
+            };
+            const personalDraft = {
+                setupType: CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL,
+                routingNumber: '123456789',
+                accountNumber: '1234',
+            };
+            await Onyx.set(ONYXKEYS.PERSONAL_BANK_ACCOUNT, personalBankAccount);
+            await Onyx.set(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT, personalDraft);
+
+            openWalletPersonalBankAccountSetup({
+                personalBankAccount,
+                personalDraft,
+                internationalDraft: undefined,
+            });
+
+            expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SETTINGS_ADD_US_BANK_ACCOUNT.getRoute(CONST.ADD_PERSONAL_BANK_ACCOUNT.SUB_PAGE_NAMES.PHONE_NUMBER));
+            expect(await getOnyxValue(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT)).toEqual(personalDraft);
+        });
+
+        test('keeps the US resume path through verification and replaces stale entry metadata', async () => {
+            const personalBankAccount = {
+                source: CONST.BANK_ACCOUNT.SOURCE.WALLET,
+                currentPage: CONST.ADD_PERSONAL_BANK_ACCOUNT.SUB_PAGE_NAMES.ADDRESS,
+                exitReportID: '123',
+                policyID: 'policy-1',
+                onSuccessFallbackRoute: ROUTES.ENABLE_PAYMENTS,
+            };
+            const personalDraft = {setupType: CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID} as const;
+            await Onyx.set(ONYXKEYS.PERSONAL_BANK_ACCOUNT, personalBankAccount);
+
+            openWalletPersonalBankAccountSetup({
+                personalBankAccount,
+                personalDraft,
+                internationalDraft: undefined,
+                isUserValidated: false,
+            });
+            await waitForBatchedUpdates();
+
+            expect(await getOnyxValue(ONYXKEYS.PERSONAL_BANK_ACCOUNT)).toEqual({
+                source: CONST.BANK_ACCOUNT.SOURCE.WALLET,
+                currentPage: CONST.ADD_PERSONAL_BANK_ACCOUNT.SUB_PAGE_NAMES.ADDRESS,
+            });
+            expect(Navigation.navigate).toHaveBeenCalledWith(createDynamicRoute(DYNAMIC_ROUTES.ADD_BANK_ACCOUNT_VERIFY_ACCOUNT.getRoute(true, true)));
+        });
+
+        test('starts a fresh flow when the completed setup was dismissed from the Success page', async () => {
+            const personalBankAccount = {
+                source: CONST.BANK_ACCOUNT.SOURCE.WALLET,
+                currentPage: CONST.ADD_PERSONAL_BANK_ACCOUNT.SUB_PAGE_NAMES.CONFIRMATION,
+                shouldShowSuccess: true,
+            };
+            const personalDraft = {
+                setupType: CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL,
+                routingNumber: '123456789',
+                accountNumber: '1234',
+            };
+            await Onyx.set(ONYXKEYS.PERSONAL_BANK_ACCOUNT, personalBankAccount);
+            await Onyx.set(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT, personalDraft);
+
+            jest.mocked(Navigation.navigate).mockClear();
+            openWalletPersonalBankAccountSetup({
+                personalBankAccount,
+                personalDraft,
+                internationalDraft: undefined,
+            });
+            await waitForBatchedUpdates();
+
+            expect(await getOnyxValue(ONYXKEYS.PERSONAL_BANK_ACCOUNT)).toEqual({source: CONST.BANK_ACCOUNT.SOURCE.WALLET});
+            const clearedPersonalDraft = await getOnyxValue(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT);
+            expect(clearedPersonalDraft?.setupType).not.toBe(CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL);
+            expect(clearedPersonalDraft?.routingNumber).toBeUndefined();
+            expect(clearedPersonalDraft?.accountNumber).toBeUndefined();
+            expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SETTINGS_ADD_BANK_ACCOUNT.getRoute('settings/wallet'));
+        });
+
+        test('starts a fresh flow when a completed international setup was dismissed from the Success page', async () => {
+            const personalBankAccount = {source: CONST.BANK_ACCOUNT.SOURCE.WALLET};
+            const internationalDraft = {bankCountry: 'DE', bankCurrency: 'EUR'};
+            await Onyx.set(ONYXKEYS.PERSONAL_BANK_ACCOUNT, personalBankAccount);
+            await Onyx.set(ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM_DRAFT, internationalDraft);
+
+            createCorpayBankAccountForWalletFlow(internationalDraft, '', 'DE', '');
+            await waitForBatchedUpdates();
+
+            const completedInternationalDraft = await getOnyxValue(ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM_DRAFT);
+            expect(completedInternationalDraft).toBeFalsy();
+
+            jest.mocked(Navigation.navigate).mockClear();
+            openWalletPersonalBankAccountSetup({
+                personalBankAccount,
+                personalDraft: undefined,
+                internationalDraft: completedInternationalDraft,
+            });
+            await waitForBatchedUpdates();
+
+            expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SETTINGS_ADD_BANK_ACCOUNT.getRoute('settings/wallet'));
+        });
+
+        test('preserves international values when Corpay fields are refreshed for resume', async () => {
+            await Onyx.set(ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM_DRAFT, {
+                bankCountry: 'GB',
+                bankCurrency: 'GBP',
+                accountNumber: '12345678',
+            });
+
+            fetchCorpayFields('GB', 'GBP', false, false, {preserveExistingDraft: true});
+            await waitForBatchedUpdates();
+
+            expect(await getOnyxValue(ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM_DRAFT)).toEqual(
+                expect.objectContaining({bankCountry: 'GB', bankCurrency: 'GBP', accountNumber: '12345678'}),
+            );
         });
     });
 
