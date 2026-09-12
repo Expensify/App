@@ -178,5 +178,8 @@ Image.displayName = 'Image';
 
 export default React.memo(
     Image,
-    (prevProps: ImageProps, nextProps: ImageProps) => prevProps.source === nextProps.source && prevProps.imageWidthToCalculateHeight === nextProps.imageWidthToCalculateHeight,
+    // `style` is compared because it is what sizes the image: a consumer that restyles in place without changing
+    // the source (an avatar resizing across a breakpoint) would otherwise keep rendering at its old dimensions.
+    (prevProps: ImageProps, nextProps: ImageProps) =>
+        prevProps.source === nextProps.source && prevProps.imageWidthToCalculateHeight === nextProps.imageWidthToCalculateHeight && prevProps.style === nextProps.style,
 );

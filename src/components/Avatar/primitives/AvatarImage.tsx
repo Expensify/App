@@ -34,7 +34,6 @@ function AvatarImage({avatarSource, size, shape, imageStyles, imageContainerAddi
         <View style={[imageContainerStyle, StyleUtils.getAvatarBorderStyle(size, shape), imageContainerAdditionalStyles]}>
             {/* eslint-disable-next-line react-native-a11y/has-valid-accessibility-ignores-invert-colors -- Custom Image wrapper does not support this prop. */}
             <Image
-                key={size}
                 source={{uri: avatarSource}}
                 style={imageStyle}
                 onError={onImageError}
