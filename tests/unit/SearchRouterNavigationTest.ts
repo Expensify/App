@@ -656,7 +656,6 @@ describe('Workspace Search Router navigation source', () => {
             currentUserLogin: workspaceCurrentUserLogin,
             icons: workspaceIcons,
             isOffline,
-            isRulesRevampBetaEnabled: false,
             isVendorMatchingBetaEnabled: false,
             isRecruitingBetaEnabled: false,
             shouldUseNarrowLayout: false,
@@ -777,12 +776,10 @@ describe('Workspace Search Router navigation source', () => {
         expect(getWorkspaceMenuItems).toHaveBeenCalledWith(
             expect.objectContaining({
                 policy: activePolicy,
-                isRulesRevampBetaEnabled: true,
                 isVendorMatchingBetaEnabled: true,
                 isRecruitingBetaEnabled: true,
             }),
         );
-        expect(mockIsBetaEnabled).toHaveBeenCalledWith(CONST.BETAS.RULES_REVAMP);
         expect(mockIsBetaEnabled).toHaveBeenCalledWith(CONST.BETAS.VENDOR_MATCHING);
         expect(mockIsBetaEnabled).toHaveBeenCalledWith(CONST.BETAS.MERGE_ATS);
     });

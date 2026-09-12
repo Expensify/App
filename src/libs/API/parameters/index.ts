@@ -4,6 +4,7 @@ export type {default as ImportMultiLevelTagsParams} from './ImportMultiLevelTags
 export type {default as ImportCSVCompanyCardsParams} from './ImportCSVCompanyCardsParams';
 export type {default as CleanPolicyTagsParams} from './CleanPolicyTagsParams';
 export type {default as ActivatePhysicalExpensifyCardParams} from './ActivatePhysicalExpensifyCardParams';
+export type {default as ApproveDigitalWalletCardAdditionParams} from './ApproveDigitalWalletCardAdditionParams';
 export type {default as AddNewContactMethodParams} from './AddNewContactMethodParams';
 export type {default as AddPaymentCardParams} from './AddPaymentCardParams';
 export type {default as VerifySetupIntentParams} from './VerifySetupIntentParams';
@@ -601,6 +602,7 @@ export type {default as SetPolicyRequireCompanyCardsEnabledParams} from './SetPo
 export type {default as SetTechnicalContactEmailParams} from './SetTechnicalContactEmailParams';
 export type {default as ToggleConsolidatedDomainBillingParams} from './ToggleConsolidatedDomainBillingParams';
 export type {default as RemoveDomainAdminParams} from './RemoveDomainAdminParams';
+export type {default as DeclineDomainAdminshipRequestParams} from './DeclineDomainAdminshipRequestParams';
 export type {default as DeleteDomainMemberParams} from './DeleteDomainMemberParams';
 export type {default as ChangeDomainSecurityGroupParams} from './ChangeDomainSecurityGroupParams';
 export type {default as DeleteDomainParams} from './DeleteDomainParams';

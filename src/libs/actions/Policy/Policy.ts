@@ -6679,14 +6679,6 @@ function setPolicyProhibitedExpenses(policyID: string, prohibitedExpenses: Prohi
  * @param policyID
  * @param prohibitedExpense
  */
-function setPolicyProhibitedExpense(policyID: string, prohibitedExpense: keyof ProhibitedExpenses, currentProhibitedExpense: ProhibitedExpenses | undefined) {
-    const prohibitedExpenses = {
-        ...currentProhibitedExpense,
-        [prohibitedExpense]: !currentProhibitedExpense?.[prohibitedExpense],
-    };
-
-    setPolicyProhibitedExpenses(policyID, prohibitedExpenses, currentProhibitedExpense);
-}
 
 /**
  * Call the API to set the max expense age for the given policy
@@ -8167,7 +8159,6 @@ export {
     setPolicyMaxExpenseAmount,
     setPolicyMaxExpenseAge,
     updateCustomRules,
-    setPolicyProhibitedExpense,
     setPolicyProhibitedExpenses,
     setDuplicateWorkspaceData,
     clearDuplicateWorkspace,

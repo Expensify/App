@@ -1,10 +1,11 @@
+import Button from '@components/Button';
 import ConnectionLayout from '@components/ConnectionLayout';
+import FixedFooter from '@components/FixedFooter';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import SelectionList from '@components/SelectionList';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import type {ListItem, SelectionListHandle} from '@components/SelectionList/types';
-import type {SelectorType} from '@components/SelectionScreen';
 
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
@@ -26,8 +27,7 @@ import {DYNAMIC_ROUTES} from '@src/ROUTES';
 
 import type {ValueOf} from 'type-fest';
 
-import React, {useCallback, useEffect, useMemo, useRef} from 'react';
-import {View} from 'react-native';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 
 type MenuListItem = ListItem & {
     value: ValueOf<typeof CONST.NETSUITE_INVOICE_ITEM_PREFERENCE>;
@@ -46,40 +46,68 @@ function DynamicNetSuiteInvoiceItemPreferenceSelectPage({policy}: WithPolicyConn
 
     const selectedValue = Object.values(CONST.NETSUITE_INVOICE_ITEM_PREFERENCE).find((value) => value === config?.invoiceItemPreference) ?? CONST.NETSUITE_INVOICE_ITEM_PREFERENCE.CREATE;
 
+    const [draftPreference, setDraftPreference] = useState<ValueOf<typeof CONST.NETSUITE_INVOICE_ITEM_PREFERENCE>>();
+    const currentPreference = draftPreference ?? selectedValue;
+
     const options: MenuListItem[] = useMemo(
         () =>
             Object.values(CONST.NETSUITE_INVOICE_ITEM_PREFERENCE).map((postingPreference) => ({
                 value: postingPreference,
                 text: translate(`workspace.netsuite.invoiceItem.values.${postingPreference}.label`),
                 keyForList: postingPreference,
-                isSelected: selectedValue === postingPreference,
+                isSelected: currentPreference === postingPreference,
             })),
-        [selectedValue, translate],
+        [currentPreference, translate],
     );
 
     const goBack = useCallback(() => {
         Navigation.goBack(backPath);
     }, [backPath]);
 
-    const selectInvoicePreference = useCallback(
-        (row: MenuListItem) => {
-            if (row.value !== config?.invoiceItemPreference && policyID) {
-                updateNetSuiteInvoiceItemPreference(policyID, row.value, config?.invoiceItemPreference);
-            }
-            if (row.value === CONST.NETSUITE_INVOICE_ITEM_PREFERENCE.CREATE) {
-                goBack();
-            }
-        },
-        [config?.invoiceItemPreference, policyID, goBack],
-    );
+    const savePreference = useCallback(() => {
+        if (currentPreference !== config?.invoiceItemPreference && policyID) {
+            updateNetSuiteInvoiceItemPreference(policyID, currentPreference, config?.invoiceItemPreference);
+        }
+        // Selecting CREATE completes the flow, so we return to the previous screen. SELECT reveals the invoice-item sub-menu, so we stay.
+        if (currentPreference === CONST.NETSUITE_INVOICE_ITEM_PREFERENCE.CREATE) {
+            goBack();
+        }
+    }, [currentPreference, config?.invoiceItemPreference, policyID, goBack]);
 
-    // Update focused index when selectedValue changes (after an error reverts the selection)
+    // Rendered as the list footer so the invoice-item sub-menu sits directly under the options and the Save button stays pinned to the bottom of the screen.
+    const invoiceItemFooterContent = useMemo(() => {
+        if (config?.invoiceItemPreference !== CONST.NETSUITE_INVOICE_ITEM_PREFERENCE.SELECT) {
+            return null;
+        }
+        return (
+            <OfflineWithFeedback
+                key={translate('workspace.netsuite.invoiceItem.label')}
+                pendingAction={settingsPendingAction([CONST.NETSUITE_CONFIG.INVOICE_ITEM], config?.pendingFields)}
+            >
+                <MenuItemWithTopDescription
+                    description={translate('workspace.netsuite.invoiceItem.label')}
+                    title={selectedItem ? selectedItem.name : undefined}
+                    interactive
+                    shouldShowRightIcon
+                    onPress={() => {
+                        if (!policyID) {
+                            return;
+                        }
+                        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_NETSUITE_INVOICE_ITEM_SELECT.path));
+                    }}
+                    brickRoadIndicator={areSettingsInErrorFields([CONST.NETSUITE_CONFIG.INVOICE_ITEM], config?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                />
+            </OfflineWithFeedback>
+        );
+    }, [config?.invoiceItemPreference, config?.pendingFields, config?.errorFields, policyID, selectedItem, translate]);
+
+    // Update focused index when the current preference changes (after an error reverts the selection)
     useEffect(() => {
         const selectedIndex = options.findIndex((option) => option.isSelected);
         if (selectedIndex !== -1 && selectionListRef.current) {
             selectionListRef.current?.updateFocusedIndex(selectedIndex);
         }
-    }, [selectedValue, options]);
+    }, [currentPreference, options]);
 
     return (
         <ConnectionLayout
@@ -92,6 +120,7 @@ function DynamicNetSuiteInvoiceItemPreferenceSelectPage({policy}: WithPolicyConn
             displayName="DynamicNetSuiteInvoiceItemPreferenceSelectPage"
             policyID={policyID}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.NETSUITE}
+            contentContainerStyle={[styles.flex1]}
             shouldUseScrollView={false}
         >
             <OfflineWithFeedback
@@ -105,38 +134,31 @@ function DynamicNetSuiteInvoiceItemPreferenceSelectPage({policy}: WithPolicyConn
                 <SelectionList
                     ref={selectionListRef}
                     data={options}
-                    onSelectRow={(selection: SelectorType) => {
-                        selectInvoicePreference(selection as MenuListItem);
+                    onSelectRow={(selection: MenuListItem) => {
+                        setDraftPreference(selection.value);
                     }}
                     ListItem={SingleSelectListItem}
+                    listFooterContent={invoiceItemFooterContent}
                     showScrollIndicator
                     shouldUpdateFocusedIndex
                     initiallyFocusedItemKey={options.find((mode) => mode.isSelected)?.keyForList}
                     style={{containerStyle: [styles.pb0]}}
                 />
             </OfflineWithFeedback>
-            {config?.invoiceItemPreference === CONST.NETSUITE_INVOICE_ITEM_PREFERENCE.SELECT && (
-                <View style={[styles.flexGrow1, styles.flexShrink1]}>
-                    <OfflineWithFeedback
-                        key={translate('workspace.netsuite.invoiceItem.label')}
-                        pendingAction={settingsPendingAction([CONST.NETSUITE_CONFIG.INVOICE_ITEM], config?.pendingFields)}
-                    >
-                        <MenuItemWithTopDescription
-                            description={translate('workspace.netsuite.invoiceItem.label')}
-                            title={selectedItem ? selectedItem.name : undefined}
-                            interactive
-                            shouldShowRightIcon
-                            onPress={() => {
-                                if (!policyID) {
-                                    return;
-                                }
-                                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_NETSUITE_INVOICE_ITEM_SELECT.path));
-                            }}
-                            brickRoadIndicator={areSettingsInErrorFields([CONST.NETSUITE_CONFIG.INVOICE_ITEM], config?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                        />
-                    </OfflineWithFeedback>
-                </View>
-            )}
+            {/* The Save button sits outside OfflineWithFeedback so its error row renders directly under the list rather than under the button. */}
+            <FixedFooter
+                style={styles.mtAuto}
+                addBottomSafeAreaPadding
+            >
+                <Button
+                    variant={CONST.BUTTON_VARIANT.SUCCESS}
+                    size={CONST.BUTTON_SIZE.LARGE}
+                    onPress={savePreference}
+                    isDisabled={currentPreference === selectedValue}
+                >
+                    <Button.Text>{translate('common.save')}</Button.Text>
+                </Button>
+            </FixedFooter>
         </ConnectionLayout>
     );
 }

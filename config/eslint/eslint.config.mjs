@@ -688,6 +688,28 @@ const config = defineConfig([
     },
 
     {
+        files: ['**/*.ts', '**/*.tsx'],
+        plugins: {
+            '@typescript-eslint': tseslint.plugin,
+        },
+        rules: {
+            '@typescript-eslint/no-restricted-imports': [
+                'error',
+                {
+                    paths: [
+                        {
+                            name: 'react-native-onyx/dist/OnyxUtils',
+                            message:
+                                'OnyxUtils is not a sanctioned way to read Onyx data. Use useOnyx() from @hooks/useOnyx in render paths, or a short-lived Onyx.connectWithoutView() for non-render logic. Type-only imports are still allowed.',
+                            allowTypeImports: true,
+                        },
+                    ],
+                },
+            ],
+        },
+    },
+
+    {
         files: ['src/**/*'],
         ignores: ['src/languages/**', 'src/CONST/index.ts', 'src/NAICS.ts'],
         rules: {
