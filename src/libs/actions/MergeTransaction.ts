@@ -195,10 +195,22 @@ function getTransactionsForMergingFromAPI(transactionID: string) {
 }
 
 /**
- * Fetches eligible transactions for merging locally
- * This is FE version of READ_COMMANDS.GET_TRANSACTIONS_FOR_MERGING API call
+ * Fetches eligible transactions for merging locally.
+ * This is the offline FE equivalent of the READ_COMMANDS.GET_TRANSACTIONS_FOR_MERGING API call.
+ * Per-candidate admin access is checked against each candidate report’s own workspace so that
+ * cross-workspace admin merges are not granted based on the target’s workspace alone.
+ * When the candidate’s policy is not in the local cache the candidate is excluded rather than
+ * assuming access.
  */
-function getTransactionsForMergingLocally(transactionID: string, targetTransaction: Transaction, transactions: OnyxCollection<Transaction>, rules: OnyxCollection<Rule>, isAdmin = false) {
+function getTransactionsForMergingLocally(
+    transactionID: string,
+    targetTransaction: Transaction,
+    transactions: OnyxCollection<Transaction>,
+    rules: OnyxCollection<Rule>,
+    allPolicies: OnyxCollection<Policy>,
+    currentUserLogin: string | undefined,
+    allReports?: OnyxCollection<Report>,
+) {
     const transactionsArray = Object.values(transactions ?? {});
 
     const eligibleTransactions = transactionsArray.filter((transaction): transaction is Transaction => {
@@ -207,10 +219,30 @@ function getTransactionsForMergingLocally(transactionID: string, targetTransacti
         }
 
         const isUnreportedExpense = !transaction?.reportID || transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
+        if (isUnreportedExpense) {
+            return areTransactionsEligibleForMerge(targetTransaction, transaction) && !isTransactionPendingDelete(transaction);
+        }
+
+        if (!transaction.reportID) {
+            return false;
+        }
+
+        // Resolve admin status against the candidate’s own workspace. If the policy is absent from
+        // the local cache we cannot verify access, so we exclude the candidate rather than assuming
+        // admin rights.
+        const candidateReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction.reportID}`] ?? getReportOrDraftReport(transaction.reportID);
+        const candidatePolicyKey = `${ONYXKEYS.COLLECTION.POLICY}${candidateReport?.policyID}`;
+        const candidatePolicy = candidateReport?.policyID ? (allPolicies?.[candidatePolicyKey] ?? null) : null;
+        const isCandidatePolicyMissing = !!candidateReport?.policyID && candidatePolicy === null;
+        if (isCandidatePolicyMissing) {
+            return false;
+        }
+        const isCandidateAdmin = isPolicyAdmin(candidatePolicy, currentUserLogin);
+
         return (
             areTransactionsEligibleForMerge(targetTransaction, transaction) &&
             !isTransactionPendingDelete(transaction) &&
-            (isUnreportedExpense || (!!transaction.reportID && isMoneyRequestReportEligibleForMerge(transaction.reportID, isAdmin, rules)))
+            isMoneyRequestReportEligibleForMerge(candidateReport, isCandidateAdmin, rules)
         );
     });
 
@@ -227,6 +259,8 @@ function getTransactionsForMerging({
     report,
     currentUserLogin,
     rules,
+    allPolicies,
+    allReports,
 }: {
     isOffline: boolean;
     targetTransaction: Transaction;
@@ -236,22 +270,29 @@ function getTransactionsForMerging({
     currentUserLogin: string | undefined;
     cardList?: CardList;
     rules: OnyxCollection<Rule>;
+    allPolicies?: OnyxCollection<Policy>;
+    allReports?: OnyxCollection<Report>;
 }) {
     const transactionID = targetTransaction.transactionID;
     if (!transactionID) {
         return;
     }
 
-    // Collect/Control workspaces:
-    // - Admins and approvers: The list of eligible expenses will only contain the expenses from the report that the admin/approver triggered the merge from. This is intentionally limited since they’ll only be reviewing one report at a time.
-    // - Submitters will see all their editable expenses, including their IOUs/unreported expenses
+    // Candidate discovery:
+    // - Admins: The list of eligible expenses now includes expenses from the same submitter across all of their draft
+    //   reports where the admin has access. This replaces the previous same-report-only shortcut so admins can initiate
+    //   cross-report merges from either the card or cash expense.
+    // - Managers (non-admin approvers): Still limited to same-report transactions on the processing report they
+    //   triggered the merge from, as they review one report at a time.
+    // - Submitters will see all their editable expenses, including their IOUs/unreported expenses.
     // IOU:
     // - There are no admins/approvers outside of the submitter in these cases, so there’s no consideration for different roles.
-    // - The submitter, who is also the admin, will see all their editable expenses, including their IOUs/unreported expenses
+    // - The submitter, who is also the admin, will see all their editable expenses, including their IOUs/unreported expenses.
     const isAdmin = isPolicyAdmin(policy, currentUserLogin);
     const isManager = isReportManager(report);
 
-    if (isPaidGroupPolicy(policy) && (isAdmin || isManager) && !isCurrentUserSubmitter(report)) {
+    // Managers (non-admin approvers) reviewing a processing report still see only same-report transactions.
+    if (isPaidGroupPolicy(policy) && isManager && !isAdmin && !isCurrentUserSubmitter(report)) {
         const reportTransactions = getReportTransactions(report?.reportID);
         const eligibleTransactions = reportTransactions.filter((transaction): transaction is Transaction => {
             if (!transaction || transaction.transactionID === transactionID) {
@@ -268,7 +309,7 @@ function getTransactionsForMerging({
     }
 
     if (isOffline) {
-        getTransactionsForMergingLocally(transactionID, targetTransaction, transactions, rules, isAdmin);
+        getTransactionsForMergingLocally(transactionID, targetTransaction, transactions, rules, allPolicies ?? null, currentUserLogin, allReports);
     } else {
         getTransactionsForMergingFromAPI(transactionID);
     }

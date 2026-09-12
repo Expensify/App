@@ -1496,6 +1496,457 @@ describe('getTransactionsForMerging', () => {
         const mergeTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${targetTransaction.transactionID}`);
         expect(mergeTransaction).toBeUndefined();
     });
+
+    it('should allow admin to see cash candidates from another open draft report in the same workspace (offline)', async () => {
+        // Given an admin user and two open draft expense reports in the same workspace
+        const adminLogin = 'admin@test.com';
+        const submitterAccountID = 42;
+
+        const policy = {
+            ...createRandomPolicy(1),
+            id: 'workspace-1',
+            type: CONST.POLICY.TYPE.TEAM,
+            role: CONST.POLICY.ROLE.ADMIN,
+        };
+
+        const targetReport = {
+            ...createExpenseReport(1),
+            reportID: 'target-report-1',
+            policyID: 'workspace-1',
+            ownerAccountID: submitterAccountID,
+            stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+        };
+        const otherDraftReport = {
+            ...createExpenseReport(2),
+            reportID: 'other-report-2',
+            policyID: 'workspace-1',
+            ownerAccountID: submitterAccountID,
+            stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+        };
+
+        // Card expense (target) on the first report
+        const targetTransaction = {
+            ...createRandomTransaction(1),
+            transactionID: 'card-tx-1',
+            reportID: 'target-report-1',
+            // Make it a card transaction by giving it a cardNumber
+            cardNumber: '1234',
+            bank: undefined,
+        };
+
+        // Cash expense candidate on the other draft report
+        const candidateTransaction = {
+            ...createRandomTransaction(2),
+            transactionID: 'cash-tx-2',
+            reportID: 'other-report-2',
+            // Cash: no cardNumber, bank, or managedCard
+            cardNumber: undefined,
+            bank: undefined,
+            managedCard: false,
+            amount: 500,
+        };
+
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${targetReport.reportID}`, targetReport);
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${otherDraftReport.reportID}`, otherDraftReport);
+        await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+        await waitForBatchedUpdates();
+
+        const allTransactions = {
+            [`${ONYXKEYS.COLLECTION.TRANSACTION}${targetTransaction.transactionID}`]: targetTransaction,
+            [`${ONYXKEYS.COLLECTION.TRANSACTION}${candidateTransaction.transactionID}`]: candidateTransaction,
+        };
+        const allPolicies = {
+            [`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`]: policy,
+        };
+
+        // When the admin requests merge candidates offline
+        const allReports = {
+            [`${ONYXKEYS.COLLECTION.REPORT}${targetReport.reportID}`]: targetReport,
+            [`${ONYXKEYS.COLLECTION.REPORT}${otherDraftReport.reportID}`]: otherDraftReport,
+        };
+
+        getTransactionsForMerging({
+            isOffline: true,
+            targetTransaction,
+            transactions: allTransactions,
+            policy,
+            report: targetReport,
+            currentUserLogin: adminLogin,
+            rules: null,
+            allPolicies,
+            allReports,
+        });
+        await waitForBatchedUpdates();
+
+        // Then the cash candidate from the other draft report appears in eligible transactions
+        const mergeTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${targetTransaction.transactionID}`);
+        expect(mergeTransaction?.eligibleTransactions?.some((t) => t.transactionID === candidateTransaction.transactionID)).toBe(true);
+    });
+
+    it('should NOT allow admin to see candidates from another workspace where they are not an admin (offline)', async () => {
+        // Given an admin in workspace-1 but only a member in workspace-2
+        const adminLogin = 'admin@test.com';
+        const submitterAccountID = 42;
+
+        const adminPolicy = {
+            ...createRandomPolicy(1),
+            id: 'workspace-1',
+            type: CONST.POLICY.TYPE.TEAM,
+            role: CONST.POLICY.ROLE.ADMIN,
+        };
+        const memberPolicy = {
+            ...createRandomPolicy(2),
+            id: 'workspace-2',
+            type: CONST.POLICY.TYPE.TEAM,
+            role: CONST.POLICY.ROLE.USER,
+        };
+
+        const targetReport = {
+            ...createExpenseReport(1),
+            reportID: 'admin-report-1',
+            policyID: 'workspace-1',
+            ownerAccountID: submitterAccountID,
+            stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+        };
+        const otherWorkspaceReport = {
+            ...createExpenseReport(2),
+            reportID: 'member-report-2',
+            policyID: 'workspace-2',
+            ownerAccountID: submitterAccountID,
+            stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+        };
+
+        const targetTransaction = {
+            ...createRandomTransaction(1),
+            transactionID: 'card-tx-a',
+            reportID: 'admin-report-1',
+            cardNumber: '1234',
+            bank: undefined,
+        };
+
+        const candidateTransaction = {
+            ...createRandomTransaction(2),
+            transactionID: 'cash-tx-b',
+            reportID: 'member-report-2',
+            cardNumber: undefined,
+            bank: undefined,
+            managedCard: false,
+            amount: 500,
+        };
+
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${targetReport.reportID}`, targetReport);
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${otherWorkspaceReport.reportID}`, otherWorkspaceReport);
+        await waitForBatchedUpdates();
+
+        const allTransactions = {
+            [`${ONYXKEYS.COLLECTION.TRANSACTION}${targetTransaction.transactionID}`]: targetTransaction,
+            [`${ONYXKEYS.COLLECTION.TRANSACTION}${candidateTransaction.transactionID}`]: candidateTransaction,
+        };
+        const allPolicies = {
+            [`${ONYXKEYS.COLLECTION.POLICY}${adminPolicy.id}`]: adminPolicy,
+            [`${ONYXKEYS.COLLECTION.POLICY}${memberPolicy.id}`]: memberPolicy,
+        };
+
+        const allReports = {
+            [`${ONYXKEYS.COLLECTION.REPORT}${targetReport.reportID}`]: targetReport,
+            [`${ONYXKEYS.COLLECTION.REPORT}${otherWorkspaceReport.reportID}`]: otherWorkspaceReport,
+        };
+
+        getTransactionsForMerging({
+            isOffline: true,
+            targetTransaction,
+            transactions: allTransactions,
+            policy: adminPolicy,
+            report: targetReport,
+            currentUserLogin: adminLogin,
+            rules: null,
+            allPolicies,
+            allReports,
+        });
+        await waitForBatchedUpdates();
+
+        // Then the candidate from the non-admin workspace is NOT in the eligible list
+        const mergeTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${targetTransaction.transactionID}`);
+        expect(mergeTransaction?.eligibleTransactions?.some((t) => t.transactionID === candidateTransaction.transactionID)).toBe(false);
+    });
+
+    it('should exclude candidates when their policy is missing from the local cache (offline)', async () => {
+        // Given an admin with a candidate whose policy is not cached locally
+        const adminLogin = 'admin@test.com';
+        const submitterAccountID = 42;
+
+        const adminPolicy = {
+            ...createRandomPolicy(1),
+            id: 'workspace-known',
+            type: CONST.POLICY.TYPE.TEAM,
+            role: CONST.POLICY.ROLE.ADMIN,
+        };
+
+        const targetReport = {
+            ...createExpenseReport(1),
+            reportID: 'known-report',
+            policyID: 'workspace-known',
+            ownerAccountID: submitterAccountID,
+            stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+        };
+        const unknownPolicyReport = {
+            ...createExpenseReport(2),
+            reportID: 'unknown-policy-report',
+            policyID: 'workspace-unknown',
+            ownerAccountID: submitterAccountID,
+            stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+        };
+
+        const targetTransaction = {
+            ...createRandomTransaction(1),
+            transactionID: 'card-tx-known',
+            reportID: 'known-report',
+            cardNumber: '9999',
+            bank: undefined,
+        };
+        const candidateTransaction = {
+            ...createRandomTransaction(2),
+            transactionID: 'cash-tx-unknown',
+            reportID: 'unknown-policy-report',
+            cardNumber: undefined,
+            bank: undefined,
+            managedCard: false,
+            amount: 300,
+        };
+
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${targetReport.reportID}`, targetReport);
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${unknownPolicyReport.reportID}`, unknownPolicyReport);
+        await waitForBatchedUpdates();
+
+        const allTransactions = {
+            [`${ONYXKEYS.COLLECTION.TRANSACTION}${targetTransaction.transactionID}`]: targetTransaction,
+            [`${ONYXKEYS.COLLECTION.TRANSACTION}${candidateTransaction.transactionID}`]: candidateTransaction,
+        };
+        // workspace-unknown is intentionally absent from the local policy cache
+        const allPolicies = {
+            [`${ONYXKEYS.COLLECTION.POLICY}${adminPolicy.id}`]: adminPolicy,
+        };
+
+        const allReports = {
+            [`${ONYXKEYS.COLLECTION.REPORT}${targetReport.reportID}`]: targetReport,
+            [`${ONYXKEYS.COLLECTION.REPORT}${unknownPolicyReport.reportID}`]: unknownPolicyReport,
+        };
+
+        getTransactionsForMerging({
+            isOffline: true,
+            targetTransaction,
+            transactions: allTransactions,
+            policy: adminPolicy,
+            report: targetReport,
+            currentUserLogin: adminLogin,
+            rules: null,
+            allPolicies,
+            allReports,
+        });
+        await waitForBatchedUpdates();
+
+        // Then the candidate from the uncached workspace is excluded rather than allowed
+        const mergeTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${targetTransaction.transactionID}`);
+        expect(mergeTransaction?.eligibleTransactions?.some((t) => t.transactionID === candidateTransaction.transactionID)).toBe(false);
+    });
+
+    it('should limit manager (non-admin approver) to same-report candidates on processing reports (offline)', async () => {
+        // Given a manager (not admin) reviewing a processing report
+        const managerLogin = 'manager@test.com';
+        const managerAccountID = 99;
+        const submitterAccountID = 42;
+
+        // Set the session so module-level currentUserAccountID resolves to the manager
+        await Onyx.set(ONYXKEYS.SESSION, {email: managerLogin, accountID: managerAccountID});
+        await waitForBatchedUpdates();
+
+        const policy = {
+            ...createRandomPolicy(1),
+            id: 'workspace-manager',
+            type: CONST.POLICY.TYPE.TEAM,
+            role: CONST.POLICY.ROLE.USER,
+        };
+
+        const processingReport = {
+            ...createExpenseReport(1),
+            reportID: 'processing-report',
+            policyID: 'workspace-manager',
+            ownerAccountID: submitterAccountID,
+            managerID: managerAccountID,
+            stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+            statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+        };
+        const otherOpenReport = {
+            ...createExpenseReport(2),
+            reportID: 'other-open-report',
+            policyID: 'workspace-manager',
+            ownerAccountID: submitterAccountID,
+            stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+        };
+
+        const targetTransaction = {
+            ...createRandomTransaction(1),
+            transactionID: 'card-tx-mgr',
+            reportID: 'processing-report',
+            cardNumber: '5678',
+            bank: undefined,
+        };
+        const sameReportCandidate = {
+            ...createRandomTransaction(2),
+            transactionID: 'cash-tx-same',
+            reportID: 'processing-report',
+            cardNumber: undefined,
+            bank: undefined,
+            managedCard: false,
+            amount: 400,
+        };
+        const otherReportCandidate = {
+            ...createRandomTransaction(3),
+            transactionID: 'cash-tx-other',
+            reportID: 'other-open-report',
+            cardNumber: undefined,
+            bank: undefined,
+            managedCard: false,
+            amount: 600,
+        };
+
+        // Set individual transactions in Onyx so the module-level getReportTransactions can find them
+        await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${targetTransaction.transactionID}`, targetTransaction);
+        await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${sameReportCandidate.transactionID}`, sameReportCandidate);
+        await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${otherReportCandidate.transactionID}`, otherReportCandidate);
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${processingReport.reportID}`, processingReport);
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${otherOpenReport.reportID}`, otherOpenReport);
+        await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+        await waitForBatchedUpdates();
+
+        const allTransactions = {
+            [`${ONYXKEYS.COLLECTION.TRANSACTION}${targetTransaction.transactionID}`]: targetTransaction,
+            [`${ONYXKEYS.COLLECTION.TRANSACTION}${sameReportCandidate.transactionID}`]: sameReportCandidate,
+            [`${ONYXKEYS.COLLECTION.TRANSACTION}${otherReportCandidate.transactionID}`]: otherReportCandidate,
+        };
+        const allPolicies = {
+            [`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`]: policy,
+        };
+
+        const allReports = {
+            [`${ONYXKEYS.COLLECTION.REPORT}${processingReport.reportID}`]: processingReport,
+            [`${ONYXKEYS.COLLECTION.REPORT}${otherOpenReport.reportID}`]: otherOpenReport,
+        };
+
+        getTransactionsForMerging({
+            isOffline: true,
+            targetTransaction,
+            transactions: allTransactions,
+            policy,
+            report: processingReport,
+            currentUserLogin: managerLogin,
+            rules: null,
+            allPolicies,
+            allReports,
+        });
+        await waitForBatchedUpdates();
+
+        const mergeTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${targetTransaction.transactionID}`);
+        // Same-report candidate is included; cross-report candidate is excluded for a non-admin manager
+        expect(mergeTransaction?.eligibleTransactions?.some((t) => t.transactionID === sameReportCandidate.transactionID)).toBe(true);
+        expect(mergeTransaction?.eligibleTransactions?.some((t) => t.transactionID === otherReportCandidate.transactionID)).toBe(false);
+    });
+
+    it('should include candidates from other draft reports for admin who is also the submitter (treated as submitter)', async () => {
+        // Given an admin who is also the report owner (submitter), they go through the submitter path
+        const adminLogin = 'admin-owner@test.com';
+        const adminAccountID = 7;
+
+        // Set the session so module-level currentUserAccountID resolves to the admin/submitter
+        await Onyx.set(ONYXKEYS.SESSION, {email: adminLogin, accountID: adminAccountID});
+        await waitForBatchedUpdates();
+
+        const policy = {
+            ...createRandomPolicy(1),
+            id: 'workspace-self',
+            type: CONST.POLICY.TYPE.TEAM,
+            role: CONST.POLICY.ROLE.ADMIN,
+        };
+
+        const ownReport = {
+            ...createExpenseReport(1),
+            reportID: 'own-report',
+            policyID: 'workspace-self',
+            ownerAccountID: adminAccountID,
+            stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+        };
+        const otherOwnDraftReport = {
+            ...createExpenseReport(2),
+            reportID: 'own-other-report',
+            policyID: 'workspace-self',
+            ownerAccountID: adminAccountID,
+            stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+        };
+
+        const targetTransaction = {
+            ...createRandomTransaction(1),
+            transactionID: 'self-card-tx',
+            reportID: 'own-report',
+            cardNumber: '1111',
+            bank: undefined,
+        };
+        const candidateTransaction = {
+            ...createRandomTransaction(2),
+            transactionID: 'self-cash-tx',
+            reportID: 'own-other-report',
+            cardNumber: undefined,
+            bank: undefined,
+            managedCard: false,
+            amount: 250,
+        };
+
+        // Set individual transactions in Onyx so the offline filter can access them
+        await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${targetTransaction.transactionID}`, targetTransaction);
+        await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${candidateTransaction.transactionID}`, candidateTransaction);
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${ownReport.reportID}`, ownReport);
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${otherOwnDraftReport.reportID}`, otherOwnDraftReport);
+        await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+        await waitForBatchedUpdates();
+
+        const allTransactions = {
+            [`${ONYXKEYS.COLLECTION.TRANSACTION}${targetTransaction.transactionID}`]: targetTransaction,
+            [`${ONYXKEYS.COLLECTION.TRANSACTION}${candidateTransaction.transactionID}`]: candidateTransaction,
+        };
+        const allPolicies = {
+            [`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`]: policy,
+        };
+
+        // Session matches the report ownerAccountID so this is treated as the submitter path
+        const allReports = {
+            [`${ONYXKEYS.COLLECTION.REPORT}${ownReport.reportID}`]: ownReport,
+            [`${ONYXKEYS.COLLECTION.REPORT}${otherOwnDraftReport.reportID}`]: otherOwnDraftReport,
+        };
+
+        getTransactionsForMerging({
+            isOffline: true,
+            targetTransaction,
+            transactions: allTransactions,
+            policy,
+            report: ownReport,
+            currentUserLogin: adminLogin,
+            rules: null,
+            allPolicies,
+            allReports,
+        });
+        await waitForBatchedUpdates();
+
+        const mergeTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${targetTransaction.transactionID}`);
+        expect(mergeTransaction?.eligibleTransactions?.some((t) => t.transactionID === candidateTransaction.transactionID)).toBe(true);
+    });
 });
 
 describe('setupMergeTransactionData', () => {

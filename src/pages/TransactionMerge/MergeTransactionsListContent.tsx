@@ -51,6 +51,8 @@ function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTr
     const currentUserLogin = session?.email;
     const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const {isOffline} = useNetwork();
     const {convertToDisplayString, getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
 
@@ -73,8 +75,21 @@ function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTr
             report: targetTransactionReport,
             currentUserLogin,
             rules,
+            allPolicies,
+            allReports,
         });
-    }, [transactions, isOffline, mergeTransaction?.eligibleTransactions, targetTransactionPolicy, targetTransactionReport, currentUserLogin, targetTransaction, rules]);
+    }, [
+        transactions,
+        isOffline,
+        mergeTransaction?.eligibleTransactions,
+        targetTransactionPolicy,
+        targetTransactionReport,
+        currentUserLogin,
+        targetTransaction,
+        rules,
+        allPolicies,
+        allReports,
+    ]);
 
     const data = !eligibleTransactions
         ? []
