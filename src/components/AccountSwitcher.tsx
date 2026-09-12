@@ -83,9 +83,6 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
     const isActingAsDelegate = !!delegate;
     const canSwitchAccounts = delegators.length > 0 || isActingAsDelegate;
 
-    // Switching accounts resets ONYXKEYS.ACCOUNT and reloads it through OpenApp, which sets IS_LOADING_APP while
-    // HAS_LOADED_APP stays preserved. A cold start clears HAS_LOADED_APP and a warm reload runs ReconnectApp, so
-    // neither looks like this; a revoke reloads nothing, so it settles immediately rather than holding the row.
     const isAccountSwitchInFlight = !!isLoadingApp && !!hasLoadedApp;
     const [wasAbleToSwitchAccounts, setWasAbleToSwitchAccounts] = useState(canSwitchAccounts);
     if (!isAccountSwitchInFlight && wasAbleToSwitchAccounts !== canSwitchAccounts) {
