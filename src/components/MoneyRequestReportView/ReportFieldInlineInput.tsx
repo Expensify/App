@@ -66,9 +66,6 @@ function ReportFieldInlineInput({reportField, fieldKey, value, isDisabled, error
     // opening as a wall of red.
     const [hasBeenBlurred, setHasBeenBlurred] = useState(false);
 
-    // Width of the input, measured so the dropdown matches the field it is anchored to rather than the default 334px.
-    const [triggerWidth, setTriggerWidth] = useState<number | undefined>(undefined);
-
     // Tracks the value that was last sent to the server so a second save attempt for the same value, for example when
     // the input is blurred right after it was submitted, is skipped while the update is still in flight.
     const [lastSavedValue, setLastSavedValue] = useState(value);
@@ -183,6 +180,7 @@ function ReportFieldInlineInput({reportField, fieldKey, value, isDisabled, error
                     shouldShowRecentlyUsedOptions={false}
                     shouldShowSectionTitles={false}
                     shouldPinSelectedOption={shouldPinSelectedOption}
+                    shouldUseCompactRows
                     onSubmit={(form) => {
                         closeOverlay();
                         saveSelectedOption(form[fieldKey] ?? '');
@@ -192,14 +190,13 @@ function ReportFieldInlineInput({reportField, fieldKey, value, isDisabled, error
         );
 
         return (
+            // No `popoverWidth`, so the dropdown falls back to `CONST.POPOVER_DROPDOWN_WIDTH` — the same width every
+            // Spend filter dropdown uses. Matching the field's own width instead made narrow fields open odd, cramped
+            // popovers and wide ones open oversized.
             <FilterPopupButton
-                popoverWidth={triggerWidth}
                 PopoverComponent={renderOptionsPopup}
                 renderButton={({onPress, ref, isExpanded}) => (
-                    <View
-                        ref={ref}
-                        onLayout={(event) => setTriggerWidth(event.nativeEvent.layout.width)}
-                    >
+                    <View ref={ref}>
                         <TextInput
                             inputID={fieldKey}
                             label={label}

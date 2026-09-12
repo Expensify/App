@@ -836,7 +836,8 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
                         onViewableItemsChanged={onViewableItemsChanged}
                         onEndReached={onEndReached}
                         onStartReached={onStartReached}
-                        contentContainerStyle={shouldUseNarrowLayout ? styles.pt4 : styles.pt3}
+                        // 20px between the report header and the first row of content, which is the report field inputs when the report has fields.
+                        contentContainerStyle={styles.pt5}
                         isLoadingInitialActions={isInitialReportLoadPending}
                         /* This list is not inverted, so the footer is the bottom of the message feed —
                            the same position the indicator occupies in the inverted ReportActionsList. */

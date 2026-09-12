@@ -3,6 +3,7 @@ import {act, fireEvent, render, screen} from '@testing-library/react-native';
 import ComposeProviders from '@components/ComposeProviders';
 import MoneyRequestViewReportFields from '@components/MoneyRequestReportView/MoneyRequestViewReportFields';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
+import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
 
 import {updateReportField} from '@libs/actions/Report';
 
@@ -272,5 +273,17 @@ describe('MoneyRequestViewReportFields', () => {
 
         expect(screen.getByLabelText('ListField')).toHaveProp('accessibilityState', {expanded: true});
         expect(screen.getByText('Option2')).toBeOnTheScreen();
+    });
+
+    it('sizes the option popover like the Spend dropdowns instead of matching the field width', async () => {
+        await renderReportFields(1, [buildListField()]);
+
+        fireEvent.press(screen.getByLabelText('ListField'));
+        await waitForBatchedUpdatesWithAct();
+
+        // A popover as narrow as the field it is anchored to looked cramped, so it uses the width every Spend
+        // filter dropdown uses.
+        const popover = screen.UNSAFE_getByType(PopoverWithMeasuredContent);
+        expect(popover.props.popoverDimensions).toEqual(expect.objectContaining({width: CONST.POPOVER_DROPDOWN_WIDTH}));
     });
 });

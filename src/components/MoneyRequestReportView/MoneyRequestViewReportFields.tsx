@@ -28,6 +28,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, PolicyReportField, Report, ReportViolationName} from '@src/types/onyx';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 
+import type {StyleProp, ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import React, {useMemo} from 'react';
@@ -43,6 +44,9 @@ type MoneyRequestViewReportFieldsProps = {
 
     /** Indicates whether we have any pending actions from parent component */
     pendingAction?: PendingAction;
+
+    /** Extra styles for the block. Each call site sits in a container with its own padding, so it sets the spacing it needs. */
+    style?: StyleProp<ViewStyle>;
 };
 
 type EnrichedPolicyReportField = {
@@ -69,6 +73,7 @@ function ReportFieldView(
             <OfflineWithFeedback
                 // Need to return undefined when we have pendingAction to avoid the duplicate pending action
                 pendingAction={pendingAction ? undefined : report?.pendingFields?.[reportField.fieldKey as keyof typeof report.pendingFields]}
+                errors={report?.errorFields?.[reportField.fieldKey]}
                 onClose={() => clearReportFieldKeyErrors(report?.reportID, reportField.fieldKey)}
             >
                 <ReportFieldInlineInput
@@ -84,7 +89,7 @@ function ReportFieldView(
         </View>
     );
 }
-function MoneyRequestViewReportFields({report, policy, pendingAction}: MoneyRequestViewReportFieldsProps) {
+function MoneyRequestViewReportFields({report, policy, pendingAction, style}: MoneyRequestViewReportFieldsProps) {
     const styles = useThemeStyles();
     // The report view is a RightModalNavigator screen shown as a wide RHP, where `useResponsiveLayout` reports a narrow layout at any pane width.
     const {shouldUseNarrowLayout} = useResponsiveLayoutOnWideRHP();
@@ -137,7 +142,7 @@ function MoneyRequestViewReportFields({report, policy, pendingAction}: MoneyRequ
     }
 
     return (
-        <View style={[styles.ph5, styles.mb3, styles.gap3]}>
+        <View style={[styles.ph5, styles.mb3, styles.gap3, style]}>
             {fieldRows.map((fieldRow) => {
                 const rowKey = `reportFieldRow-${fieldRow.at(0)?.fieldKey}`;
 

@@ -357,9 +357,10 @@ describe('MoneyReportView report fields visibility', () => {
         renderMoneyReportView(approvedReport, policy, true);
         await waitForBatchedUpdatesWithAct();
 
-        // The custom field (rendered read-only after approval) must still show for the submitter.
+        // The custom field (rendered read-only after approval) must still show for the submitter. It renders as an
+        // inline input now rather than a row that opens the report field editor, so it's found by its label.
         await waitFor(() => {
-            expect(screen.getByText('Test')).toBeOnTheScreen();
+            expect(screen.getByLabelText('Test')).toBeOnTheScreen();
         });
     });
 

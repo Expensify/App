@@ -10,6 +10,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {getHeaderMessageForNonUserList} from '@libs/OptionsListUtils';
 import {getReportFieldOptionsSection} from '@libs/ReportFieldOptionsListUtils';
 
+import variables from '@styles/variables';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 
 import React from 'react';
@@ -38,6 +40,9 @@ type EditReportFieldDropdownPageProps = {
 
     /** Whether the "Recent" and "All" section titles are rendered */
     shouldShowSectionTitles?: boolean;
+
+    /** Whether options use the shorter 52px row the Spend dropdowns use, instead of the default 64px page row */
+    shouldUseCompactRows?: boolean;
 };
 
 function EditReportFieldDropdown({
@@ -49,6 +54,7 @@ function EditReportFieldDropdown({
     shouldShowRecentlyUsedOptions = true,
     shouldPinSelectedOption = true,
     shouldShowSectionTitles = true,
+    shouldUseCompactRows = false,
 }: EditReportFieldDropdownPageProps) {
     const styles = useThemeStyles();
     const [recentlyUsedReportFields] = useOnyx(ONYXKEYS.RECENTLY_USED_REPORT_FIELDS);
@@ -96,6 +102,10 @@ function EditReportFieldDropdown({
         <SelectionListWithSections
             sections={sections ?? []}
             ListItem={SingleSelectListItem}
+            // Same override the Spend single-select dropdowns use to shorten the default 64px option row. It also makes
+            // the rows match the 52px `getSelectionListPopoverHeight` already assumes, so the popover stops being sized
+            // for less content than it holds.
+            style={shouldUseCompactRows ? {listItemWrapperStyle: {minHeight: variables.optionRowHeightCompact}} : undefined}
             shouldShowTextInput={shouldShowTextInput}
             textInputOptions={textInputOptions}
             onSelectRow={(option) => onSubmit({[fieldKey]: !option?.text || fieldValue === option.text ? '' : option.text})}
