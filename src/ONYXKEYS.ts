@@ -818,9 +818,6 @@ const ONYXKEYS = {
     /** Maps an agent's optimistic accountID to the real one assigned by CreateAgent, consumed and cleared by replaceOptimisticAgentWithActualAgent */
     OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING: 'optimisticAgentAccountIDMapping',
 
-    /** Set when the rooms page has finished loading for the first time */
-    ARE_POLICY_ROOMS_LOADED: 'arePolicyRoomsLoaded',
-
     /**
      * Determines whether billing is required when the user downgrades their plan.
      * If true, the "Pay & Downgrade" RHP will be displayed to guide the user
@@ -1740,7 +1737,6 @@ type OnyxValuesMapping = {
     [ONYXKEYS.AGENT_NEW_AVATAR_DRAFT]: OnyxTypes.AgentNewAvatarDraft;
     [ONYXKEYS.POLICY_ROOMS_METADATA]: Record<string, OnyxTypes.PolicyRoomsMetadata>;
     [ONYXKEYS.OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING]: Record<string, number>;
-    [ONYXKEYS.ARE_POLICY_ROOMS_LOADED]: Record<string, boolean>;
     [ONYXKEYS.HAS_LOADED_APP]: boolean;
     [ONYXKEYS.NVP_HAS_SEEN_FOR_YOU_TODO]: boolean;
     [ONYXKEYS.NVP_HOME_SELECTED_INSIGHT]:
