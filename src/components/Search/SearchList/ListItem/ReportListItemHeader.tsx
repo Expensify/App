@@ -159,7 +159,7 @@ function HeaderFirstRow<TItem extends ListItem>({
                         onPress={() => onCheckboxPress?.(reportItem as unknown as TItem)}
                         isChecked={isSelectAllChecked}
                         isIndeterminate={isIndeterminate}
-                        containerStyle={styles.m0}
+                        containerStyle={styles.checkboxContainerTableRow}
                         disabled={!!isDisabled || reportItem.isDisabledCheckbox}
                         accessibilityLabel={reportItem.text ?? ''}
                         shouldStopMouseDownPropagation

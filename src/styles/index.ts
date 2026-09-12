@@ -3405,6 +3405,14 @@ const staticStyles = (theme: ThemeColors) =>
             backgroundColor: theme.checkBox,
         },
 
+        // Smaller, thinner-bordered checkbox used by the rows of the Search (Spend) tables
+        checkboxContainerTableRow: {
+            margin: 0,
+            height: variables.checkboxSizeTableRow,
+            width: variables.checkboxSizeTableRow,
+            borderWidth: variables.checkboxBorderWidthTableRow,
+        },
+
         validateCodeInputContainer: {
             flexDirection: 'row',
             justifyContent: 'space-between',
