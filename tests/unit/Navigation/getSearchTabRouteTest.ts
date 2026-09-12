@@ -40,7 +40,7 @@ describe('getSearchTabRoute', () => {
             return;
         }
 
-        expect(getSearchTabRoute(rootState, undefined)).toBe(
+        expect(getSearchTabRoute(rootState, undefined, undefined)).toBe(
             ROUTES.SEARCH_ROOT.getRoute({
                 query: buildSearchQueryString(queryJSON),
                 rawQuery: q,
@@ -58,12 +58,27 @@ describe('getSearchTabRoute', () => {
             return;
         }
 
-        expect(getSearchTabRoute(rootState, {queryJSON})).toBe(ROUTES.SEARCH_ROOT.getRoute({query: buildSearchQueryString(queryJSON)}));
+        expect(getSearchTabRoute(rootState, {queryJSON}, undefined)).toBe(ROUTES.SEARCH_ROOT.getRoute({query: buildSearchQueryString(queryJSON)}));
+    });
+
+    it('falls back to the last Expenses search query when there is no navigation route or Onyx query', () => {
+        const lastQuery = `${buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.EXPENSE})} merchant:Uber`;
+        mockGetLastRoute.mockReturnValue(undefined);
+
+        expect(getSearchTabRoute(rootState, undefined, lastQuery)).toBe(ROUTES.SEARCH_ROOT.getRoute({query: lastQuery}));
+    });
+
+    it('falls back to the default expense query when the last Expenses search query is not valid', () => {
+        mockGetLastRoute.mockReturnValue(undefined);
+
+        expect(getSearchTabRoute(rootState, undefined, buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT}))).toBe(
+            ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.EXPENSE})}),
+        );
     });
 
     it('falls back to the default expense query', () => {
         mockGetLastRoute.mockReturnValue(undefined);
 
-        expect(getSearchTabRoute(rootState, undefined)).toBe(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.EXPENSE})}));
+        expect(getSearchTabRoute(rootState, undefined, undefined)).toBe(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.EXPENSE})}));
     });
 });
