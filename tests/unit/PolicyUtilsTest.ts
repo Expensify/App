@@ -39,6 +39,9 @@ import {
     getPolicyIDFromDomainName,
     getRateDisplayValue,
     getReimburserEmail,
+    getAllowedRolesForMember,
+    isPolicyReimburser,
+    PAYER_ROLES,
     getSubmitReportManagerAccountID,
     getSubmitToAccountID,
     getSubmitToEmail,
@@ -1908,6 +1911,55 @@ describe('PolicyUtils', () => {
                 owner: 'owner@example.com',
             });
             expect(getReimburserEmail(policy)).toBeUndefined();
+        });
+    });
+
+    describe('isPolicyReimburser', () => {
+        it('should return true when the member is the Authorized Payer', () => {
+            const policy = createMock<Policy>({
+                id: '1',
+                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
+                reimburser: 'payer@example.com',
+            });
+            expect(isPolicyReimburser(policy, 'payer@example.com')).toBe(true);
+        });
+
+        it('should return false when the member is not the Authorized Payer', () => {
+            const policy = createMock<Policy>({
+                id: '1',
+                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
+                reimburser: 'payer@example.com',
+            });
+            expect(isPolicyReimburser(policy, 'other@example.com')).toBe(false);
+        });
+
+        it('should return false when reimbursement is disabled', () => {
+            const policy = createMock<Policy>({
+                id: '1',
+                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO,
+                reimburser: 'payer@example.com',
+            });
+            expect(isPolicyReimburser(policy, 'payer@example.com')).toBe(false);
+        });
+    });
+
+    describe('getAllowedRolesForMember', () => {
+        it('should restrict the Authorized Payer to payer roles', () => {
+            const policy = createMock<Policy>({
+                id: '1',
+                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
+                reimburser: 'payer@example.com',
+            });
+            expect(getAllowedRolesForMember(policy, 'payer@example.com')).toEqual([...PAYER_ROLES]);
+        });
+
+        it('should not restrict roles for a member who is not the Authorized Payer', () => {
+            const policy = createMock<Policy>({
+                id: '1',
+                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
+                reimburser: 'payer@example.com',
+            });
+            expect(getAllowedRolesForMember(policy, 'other@example.com')).toBeUndefined();
         });
     });
 

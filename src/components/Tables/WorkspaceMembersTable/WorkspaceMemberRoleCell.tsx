@@ -4,7 +4,7 @@ import WorkspaceMemberRolePickerModal from '@components/WorkspaceMemberRolePicke
 
 import useLocalize from '@hooks/useLocalize';
 
-import {getReimburserEmail, PAYER_ROLES} from '@libs/PolicyUtils';
+import {getAllowedRolesForMember} from '@libs/PolicyUtils';
 
 import type {Policy} from '@src/types/onyx';
 
@@ -30,8 +30,7 @@ function WorkspaceMemberRoleCell({role, policy, memberLogin, canEdit, onSave}: W
         onSave,
     });
 
-    const reimburserEmail = getReimburserEmail(policy);
-    const allowedRoles = reimburserEmail === memberLogin ? [...PAYER_ROLES] : undefined;
+    const allowedRoles = getAllowedRolesForMember(policy, memberLogin);
 
     return (
         <EditableCell
