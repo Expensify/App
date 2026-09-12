@@ -176,7 +176,7 @@ describe('Navigate', () => {
                 Navigation.navigate(ROUTES.WORKSPACE_MEMBERS.getRoute('workspace-a'), {shouldSkipInitialSplitNavigatorSidebar: true});
             });
 
-            const workspaceStateAfterNavigate = navigationRef.current?.getRootState().routes.at(0)?.state?.routes.at(4)?.state;
+            const workspaceStateAfterNavigate = navigationRef.current?.getRootState().routes.at(0)?.state?.routes.at(5)?.state;
             expect(workspaceStateAfterNavigate?.routes.at(0)?.name).toBe(SCREENS.WORKSPACES_LIST);
             expect(workspaceStateAfterNavigate?.routes.at(-1)?.name).toBe(NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR);
             const workspaceSplitState = workspaceStateAfterNavigate?.routes.at(-1)?.state;
@@ -188,7 +188,7 @@ describe('Navigate', () => {
                 Navigation.goBack();
             });
 
-            const workspaceStateAfterGoBack = navigationRef.current?.getRootState().routes.at(0)?.state?.routes.at(4)?.state;
+            const workspaceStateAfterGoBack = navigationRef.current?.getRootState().routes.at(0)?.state?.routes.at(5)?.state;
             expect(workspaceStateAfterGoBack?.routes.at(-1)?.name).toBe(SCREENS.WORKSPACES_LIST);
         });
 
@@ -242,7 +242,7 @@ describe('Navigate', () => {
             if (!rootState) {
                 throw new Error('Expected the navigation state to be initialized');
             }
-            const workspaceState = rootState.routes.at(0)?.state?.routes.at(4)?.state;
+            const workspaceState = rootState.routes.at(0)?.state?.routes.at(5)?.state;
             const workspaceSplitState = workspaceState?.routes.at(-1)?.state;
             expect(workspaceSplitState?.routes.at(-1)?.name).toBe(SCREENS.WORKSPACE.MEMBERS);
             expect(workspaceSplitState?.routes.at(-1)?.params).toEqual({policyID: 'workspace-a'});
@@ -252,7 +252,7 @@ describe('Navigate', () => {
                 Navigation.goBack();
             });
 
-            const workspaceStateAfterGoBack = navigationRef.current?.getRootState().routes.at(0)?.state?.routes.at(4)?.state;
+            const workspaceStateAfterGoBack = navigationRef.current?.getRootState().routes.at(0)?.state?.routes.at(5)?.state;
             expect(workspaceStateAfterGoBack?.routes.at(-1)?.state?.routes.at(-1)?.name).toBe(SCREENS.WORKSPACE.PROFILE);
         });
 
@@ -728,7 +728,7 @@ describe('Navigate', () => {
                 Navigation.navigate(ROUTES.WORKSPACE_MEMBERS.getRoute('workspace-a'), {shouldSkipInitialSplitNavigatorSidebar: true});
             });
 
-            const workspaceState = navigationRef.current?.getRootState().routes.at(0)?.state?.routes.at(4)?.state;
+            const workspaceState = navigationRef.current?.getRootState().routes.at(0)?.state?.routes.at(5)?.state;
             const workspaceSplitState = workspaceState?.routes.at(-1)?.state;
             expect(workspaceSplitState?.routes.at(0)?.name).toBe(SCREENS.WORKSPACE.INITIAL);
             expect(workspaceSplitState?.routes.at(0)?.params).toEqual({policyID: 'workspace-a'});

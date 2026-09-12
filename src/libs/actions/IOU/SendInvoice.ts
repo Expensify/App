@@ -9,6 +9,7 @@ import DateUtils from '@libs/DateUtils';
 import {deferOrExecuteWrite} from '@libs/deferredLayoutWrite';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import Log from '@libs/Log';
+import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
 import {resolveCurrentTaxCode} from '@libs/PolicyUtils';
 import {getReportActionHtml, getReportActionText} from '@libs/ReportActionsUtils';
 import type {OptimisticChatReport, OptimisticCreatedReportAction, OptimisticIOUReportAction} from '@libs/ReportUtils';
@@ -662,6 +663,7 @@ function getSendInvoiceInformation({
     const receiverParticipant: Participant | InvoiceReceiver | undefined =
         participants?.find((participant) => participant?.accountID && !participant?.isSender) ?? invoiceChatReport?.invoiceReceiver;
     const receiverAccountID = receiverParticipant && 'accountID' in receiverParticipant && receiverParticipant.accountID ? receiverParticipant.accountID : CONST.DEFAULT_NUMBER_ID;
+    const receiverLogin = addSMSDomainIfPhoneNumber(receiverParticipant && 'login' in receiverParticipant && receiverParticipant.login ? receiverParticipant.login : '');
     let receiver = getPersonalDetailsForAccountID(receiverAccountID);
     let optimisticPersonalDetailListAction = {};
 
@@ -722,7 +724,6 @@ function getSendInvoiceInformation({
     // STEP 4: Add optimistic personal details for participant
     const shouldCreateOptimisticPersonalDetails = isNewChatReport && !getAllPersonalDetails()[receiverAccountID];
     if (shouldCreateOptimisticPersonalDetails) {
-        const receiverLogin = receiverParticipant && 'login' in receiverParticipant && receiverParticipant.login ? receiverParticipant.login : '';
         receiver = {
             accountID: receiverAccountID,
             displayName: formatPhoneNumber(receiverLogin),
@@ -731,6 +732,8 @@ function getSendInvoiceInformation({
         };
 
         optimisticPersonalDetailListAction = {[receiverAccountID]: receiver};
+    } else if (!receiver.login) {
+        receiver = {...receiver, login: receiverLogin};
     }
 
     // STEP 5: Build optimistic reportActions.
