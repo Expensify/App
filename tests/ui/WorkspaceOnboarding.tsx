@@ -308,7 +308,7 @@ describe('OnboardingWorkspaces Page', () => {
         await waitForBatchedUpdatesWithAct();
     });
 
-    it('should return to the Concierge report instead of a completed task thread', async () => {
+    it('should return to the completed task thread', async () => {
         const taskReportID = '456';
         const conciergeReportID = '123';
         const getTopmostReportId = jest.spyOn(Navigation, 'getTopmostReportId').mockReturnValue(taskReportID);
@@ -336,7 +336,7 @@ describe('OnboardingWorkspaces Page', () => {
 
         await waitFor(() => {
             expect(dismissModal).toHaveBeenCalled();
-            expect(navigate).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(conciergeReportID));
+            expect(navigate).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(taskReportID));
         });
 
         getTopmostReportId.mockRestore();
