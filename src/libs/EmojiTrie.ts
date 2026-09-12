@@ -1,5 +1,5 @@
 import emojis, {importEmojiLocale, localeEmojis} from '@assets/emojis';
-import type {Emoji, HeaderEmoji} from '@assets/emojis/types';
+import type {Emoji} from '@assets/emojis/types';
 
 import CONST from '@src/CONST';
 import {FULLY_SUPPORTED_LOCALES} from '@src/CONST/LOCALES';
@@ -12,7 +12,7 @@ import Trie from './Trie';
 type EmojiMetaData = {
     suggestions?: Emoji[];
     code?: string;
-    types?: string[];
+    types?: readonly string[];
     name?: string;
     hexcode?: string;
 };
@@ -64,17 +64,17 @@ function getNameParts(name: string): string[] {
 }
 
 function createTrie(lang: FullySupportedLocale = CONST.LOCALES.DEFAULT): Trie<EmojiMetaData> {
-    const trie = new Trie();
+    const trie = new Trie<EmojiMetaData>();
     const langEmojis = localeEmojis[lang];
     const defaultLangEmojis = localeEmojis[CONST.LOCALES.DEFAULT];
     const isDefaultLocale = lang === CONST.LOCALES.DEFAULT;
 
     for (const pickerEmoji of emojis) {
-        if ((pickerEmoji as HeaderEmoji).header) {
+        if ('header' in pickerEmoji) {
             continue;
         }
 
-        const emoji = pickerEmoji as Emoji;
+        const emoji = pickerEmoji;
 
         const englishName = emoji.name;
         const localeName = langEmojis?.[emoji.code]?.name ?? englishName;
@@ -84,7 +84,7 @@ function createTrie(lang: FullySupportedLocale = CONST.LOCALES.DEFAULT): Trie<Em
         if (isNew) {
             node.metaData = {code: emoji.code, types: emoji.types, name: localeName, hexcode: emoji.hexcode, suggestions: []};
         } else {
-            node.metaData = {suggestions: [...((node.metaData.suggestions as Emoji[] | undefined) ?? [])], code: emoji.code, types: emoji.types, name: localeName, hexcode: emoji.hexcode};
+            node.metaData = {suggestions: [...(node.metaData.suggestions ?? [])], code: emoji.code, types: emoji.types, name: localeName, hexcode: emoji.hexcode};
         }
         if (normalizedName !== localeName) {
             const {node: normNode} = trie.getOrCreate(normalizedName);
@@ -100,7 +100,7 @@ function createTrie(lang: FullySupportedLocale = CONST.LOCALES.DEFAULT): Trie<Em
                 aliasNode.metaData = {code: emoji.code, types: emoji.types, name: localeName, hexcode: emoji.hexcode, suggestions: []};
             } else {
                 aliasNode.metaData = {
-                    suggestions: [...((aliasNode.metaData.suggestions as Emoji[] | undefined) ?? [])],
+                    suggestions: [...(aliasNode.metaData.suggestions ?? [])],
                     code: emoji.code,
                     types: emoji.types,
                     name: localeName,

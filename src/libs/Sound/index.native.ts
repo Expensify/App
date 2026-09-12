@@ -1,3 +1,8 @@
+import attentionSound from '@assets/sounds/attention.mp3';
+import doneSound from '@assets/sounds/done.mp3';
+import receiveSound from '@assets/sounds/receive.mp3';
+import successSound from '@assets/sounds/success.mp3';
+
 import type {AudioSource} from 'expo-audio';
 import type {ValueOf} from 'type-fest';
 
@@ -6,12 +11,12 @@ import {createAudioPlayer, setAudioModeAsync} from 'expo-audio';
 import {getIsMuted, SOUNDS, withMinimalExecutionTime} from './BaseSound';
 
 // Sound assets must be required at compile time
-const SOUND_ASSETS: Record<ValueOf<typeof SOUNDS>, AudioSource> = {
-    [SOUNDS.DONE]: require('@assets/sounds/done.mp3') as AudioSource,
-    [SOUNDS.SUCCESS]: require('@assets/sounds/success.mp3') as AudioSource,
-    [SOUNDS.ATTENTION]: require('@assets/sounds/attention.mp3') as AudioSource,
-    [SOUNDS.RECEIVE]: require('@assets/sounds/receive.mp3') as AudioSource,
-};
+const SOUND_ASSETS = {
+    [SOUNDS.DONE]: doneSound,
+    [SOUNDS.SUCCESS]: successSound,
+    [SOUNDS.ATTENTION]: attentionSound,
+    [SOUNDS.RECEIVE]: receiveSound,
+} satisfies Record<ValueOf<typeof SOUNDS>, Extract<AudioSource, number | string>>;
 
 // Configure audio mode for in-app notification sounds:
 // - playsInSilentMode: false — respect the device's silent/mute switch (iOS)
