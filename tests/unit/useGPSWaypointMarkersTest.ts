@@ -38,6 +38,14 @@ describe('useGPSWaypointMarkers', () => {
         expect(markerTypesFor([[point(0, 0)], [point(1, 0), point(1, 1)]], true)).toEqual(['START_WAYPOINT', 'WAYPOINT']);
     });
 
+    it('keeps the first point of a resumed segment visible while it is the only one recorded', () => {
+        expect(markerTypesFor([[point(0, 0), point(0, 1)], [point(1, 0)]], true)).toEqual(['START_WAYPOINT', 'WAYPOINT', 'WAYPOINT']);
+    });
+
+    it('hides the end marker when a resumed segment has not recorded anything yet', () => {
+        expect(markerTypesFor([[point(0, 0), point(0, 1)], []], true)).toEqual(['START_WAYPOINT']);
+    });
+
     it('shows only a start marker for a trip that recorded a single point', () => {
         expect(markerTypesFor([[point(0, 0)]], false)).toEqual(['START_WAYPOINT']);
     });
