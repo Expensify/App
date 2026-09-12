@@ -1,6 +1,7 @@
 import {renderScrollComponent as renderActionSheetAwareScrollView} from '@components/ActionSheetAwareScrollView';
 import InvertedFlashList from '@components/FlashList/InvertedFlashList';
 import MerchantRuleSuggestionBanner from '@components/MerchantRuleSuggestionBanner';
+import {ReportActionsAnimatedSkeletonCover} from '@components/ReportActionsSkeletonCover';
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
 
 import useConciergeSessionStartTime from '@hooks/useConciergeSessionStartTime';
@@ -66,7 +67,7 @@ import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import React, {useEffect, useRef, useState} from 'react';
 
 import FloatingMessageCounter from './FloatingMessageCounter';
-import ReportActionIndexContext from './ReportActionIndexContext';
+import {ReportActionPositionContextProvider} from './ReportActionIndexContext';
 import {useReportActionsListActions, useReportActionsListState} from './ReportActionsListContext';
 import ReportActionsListHeader from './ReportActionsListHeader';
 import ReportActionsListItemRenderer from './ReportActionsListItemRenderer';
@@ -366,7 +367,10 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
         const shouldDisableContextMenuForConciergeDraft = isDraftPendingCompletion && draftReportActionID === reportAction.reportActionID;
 
         return (
-            <ReportActionIndexContext.Provider value={index}>
+            <ReportActionPositionContextProvider
+                index={index}
+                isNewest={index === 0}
+            >
                 <ReportActionsListItemRenderer
                     reportAction={reportAction}
                     parentReportAction={parentReportAction}
@@ -396,7 +400,7 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
                         onPress={onShowPreviousMessages}
                     />
                 )}
-            </ReportActionIndexContext.Provider>
+            </ReportActionPositionContextProvider>
         );
     };
 
@@ -446,7 +450,7 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
     // It narrows `report` to non-undefined for the render below and stays a safe fallback if the report
     // is cleared mid-session while the latch keeps the content mounted.
     if (!report) {
-        return <ReportActionsSkeletonView />;
+        return <ReportActionsAnimatedSkeletonCover />;
     }
 
     return (

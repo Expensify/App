@@ -1,9 +1,11 @@
 /* eslint-disable @typescript-eslint/no-unsafe-type-assertion */
-import {render} from '@testing-library/react-native';
+import {render, screen} from '@testing-library/react-native';
 
 import MoneyRequestReportActionsList from '@components/MoneyRequestReportView/MoneyRequestReportActionsList';
 import MoneyRequestReportView from '@components/MoneyRequestReportView/MoneyRequestReportView';
+import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
 
+import {useIsAppLoadPending, useIsReportLoadPending} from '@hooks/useInFlightRequests';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
@@ -34,6 +36,10 @@ jest.mock('@hooks/useOnyx', () => jest.fn());
 jest.mock('@hooks/useResponsiveLayout', () => jest.fn());
 jest.mock('@hooks/usePaginatedReportActions', () => jest.fn());
 jest.mock('@hooks/useReportTransactionsCollection', () => jest.fn());
+jest.mock('@hooks/useInFlightRequests', () => ({
+    useIsAppLoadPending: jest.fn(),
+    useIsReportLoadPending: jest.fn(),
+}));
 
 // useThemeStyles throws without a <ThemeStylesProvider>; return a proxy that yields an empty style object
 // for any key so the (mostly-mocked) tree renders without wiring up the full provider stack.
@@ -54,6 +60,8 @@ jest.mock('@components/MoneyReportHeader', () => jest.fn(() => null));
 jest.mock('@components/MoneyRequestHeader', () => jest.fn(() => null));
 jest.mock('@components/CollapsibleHeaderOnKeyboard', () => jest.fn(() => null));
 jest.mock('@components/ReportActionItem/MoneyRequestReceiptView', () => jest.fn(() => null));
+jest.mock('@components/ReportActionsSkeletonView', () => jest.fn(() => null));
+jest.mock('@components/ReportHeaderSkeletonView', () => jest.fn(() => null));
 jest.mock('@pages/inbox/report/ReportFooter', () => jest.fn(() => null));
 jest.mock('@components/OfflineWithFeedback', () => {
     const reactModule = jest.requireActual<typeof React>('react');
@@ -61,12 +69,15 @@ jest.mock('@components/OfflineWithFeedback', () => {
 });
 
 const mockUseNetwork = useNetwork as jest.MockedFunction<typeof useNetwork>;
+const mockUseIsAppLoadPending = jest.mocked(useIsAppLoadPending);
+const mockUseIsReportLoadPending = jest.mocked(useIsReportLoadPending);
 const mockUseOnyx = useOnyx as jest.MockedFunction<typeof useOnyx>;
 const mockUseResponsiveLayout = useResponsiveLayout as jest.MockedFunction<typeof useResponsiveLayout>;
 const mockUsePaginatedReportActions = usePaginatedReportActions as jest.MockedFunction<typeof usePaginatedReportActions>;
 const mockUseReportTransactionsCollection = useReportTransactionsCollection as jest.MockedFunction<typeof useReportTransactionsCollection>;
 const mockMoneyRequestReportActionsList = MoneyRequestReportActionsList as jest.MockedFunction<typeof MoneyRequestReportActionsList>;
 const mockReportActionsListBody = ReportActionsList as jest.MockedFunction<typeof ReportActionsList>;
+const mockReportActionsSkeletonView = jest.mocked(ReportActionsSkeletonView);
 const mockUserTypingEventListener = UserTypingEventListener as jest.MockedFunction<typeof UserTypingEventListener>;
 
 const defaultPaginatedReportActionsResult: ReturnType<typeof usePaginatedReportActions> = {
@@ -134,6 +145,8 @@ describe('MoneyRequestReportView', () => {
         jest.clearAllMocks();
 
         mockUseNetwork.mockReturnValue({isOffline: false});
+        mockUseIsAppLoadPending.mockReturnValue(false);
+        mockUseIsReportLoadPending.mockReturnValue(false);
         mockUsePaginatedReportActions.mockReturnValue(defaultPaginatedReportActionsResult);
         mockUseReportTransactionsCollection.mockReturnValue({});
         mockUseResponsiveLayout.mockReturnValue({
@@ -174,6 +187,39 @@ describe('MoneyRequestReportView', () => {
         renderMoneyRequestReportView(jest.fn());
 
         expect(MoneyRequestReportUtils.shouldWaitForTransactions).toHaveBeenLastCalledWith(mockReport, [], mockReportLoadingState, false, false);
+    });
+
+    it('uses the bottom-padded cover while the report is waiting for transactions', () => {
+        jest.spyOn(MoneyRequestReportUtils, 'shouldWaitForTransactions').mockReturnValue(true);
+
+        renderMoneyRequestReportView(jest.fn());
+
+        expect(screen.getByTestId('ReportActionsSkeletonCover')).toBeTruthy();
+        expect(mockReportActionsSkeletonView.mock.calls.at(-1)?.at(0)).toEqual(expect.objectContaining({shouldAnimate: true}));
+        expect(mockReportActionsListBody).not.toHaveBeenCalled();
+        expect(mockMoneyRequestReportActionsList).not.toHaveBeenCalled();
+    });
+
+    it('uses a static bottom-padded cover while report actions are empty', () => {
+        jest.spyOn(ReportActionsUtils, 'getFilteredReportActionsForReportView').mockReturnValue([]);
+
+        renderMoneyRequestReportView(jest.fn());
+
+        expect(screen.getByTestId('ReportActionsSkeletonCover')).toBeTruthy();
+        expect(mockReportActionsSkeletonView.mock.calls.at(-1)?.at(0)).toEqual(expect.objectContaining({shouldAnimate: false}));
+        expect(mockReportActionsListBody).not.toHaveBeenCalled();
+        expect(mockMoneyRequestReportActionsList).not.toHaveBeenCalled();
+    });
+
+    it('uses the bottom-padded cover while the app is loading', () => {
+        mockUseIsAppLoadPending.mockReturnValue(true);
+
+        renderMoneyRequestReportView(jest.fn());
+
+        expect(screen.getByTestId('ReportActionsSkeletonCover')).toBeTruthy();
+        expect(mockReportActionsSkeletonView.mock.calls.at(-1)?.at(0)).toEqual(expect.objectContaining({shouldAnimate: true}));
+        expect(mockReportActionsListBody).not.toHaveBeenCalled();
+        expect(mockMoneyRequestReportActionsList).not.toHaveBeenCalled();
     });
 
     it('mounts the chat list body and the typing listener (not the table view) for a transaction-thread report', () => {

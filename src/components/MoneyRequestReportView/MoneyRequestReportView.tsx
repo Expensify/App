@@ -3,7 +3,7 @@ import MoneyReportHeader from '@components/MoneyReportHeader';
 import MoneyRequestHeader from '@components/MoneyRequestHeader';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import MoneyRequestReceiptView from '@components/ReportActionItem/MoneyRequestReceiptView';
-import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
+import ReportActionsSkeletonCover, {ReportActionsAnimatedSkeletonCover} from '@components/ReportActionsSkeletonCover';
 import ReportHeaderSkeletonView from '@components/ReportHeaderSkeletonView';
 
 import {useIsAppLoadPending, useIsReportLoadPending} from '@hooks/useInFlightRequests';
@@ -44,7 +44,7 @@ import type {LayoutChangeEvent} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {PortalHost} from '@gorhom/portal';
-import React, {useCallback, useEffect, useMemo} from 'react';
+import {useEffect} from 'react';
 // We use Animated for all functionality related to wide RHP to make it easier
 // to interact with react-navigation components (e.g., CardContainer, interpolator), which also use Animated.
 // eslint-disable-next-line no-restricted-imports
@@ -105,7 +105,7 @@ function InitialLoadingSkeleton({styles, onLayout}: {styles: ThemeStyles; onLayo
             <View style={[styles.appContentHeader, styles.borderBottom]}>
                 <ReportHeaderSkeletonView onBackButtonPress={() => {}} />
             </View>
-            <ReportActionsSkeletonView />
+            <ReportActionsAnimatedSkeletonCover />
         </View>
     );
 }
@@ -126,34 +126,23 @@ function MoneyRequestReportView({report, reportIDFromRoute, reportLoadingState, 
 
     const {reportActions: unfilteredReportActions} = usePaginatedReportActions(reportID);
 
-    const reportActions = useMemo(() => {
-        return getFilteredReportActionsForReportView(unfilteredReportActions);
-    }, [unfilteredReportActions]);
+    const reportActions = getFilteredReportActionsForReportView(unfilteredReportActions);
 
     const reportTransactions = useReportTransactionsCollection(reportID);
-    const transactions = useMemo(() => getAllNonDeletedTransactions(reportTransactions, reportActions, isOffline, true), [reportTransactions, reportActions, isOffline]);
+    const transactions = getAllNonDeletedTransactions(reportTransactions, reportActions, isOffline, true);
 
-    const visibleTransactions = useMemo(() => {
-        if (isOffline) {
-            return transactions;
-        }
-
-        // When there are no pending delete transactions, which is most of the time, we can return the same transactions keeping the same reference avoiding extra work
-        const hasPendingDelete = transactions.some((transaction) => transaction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
-        if (!hasPendingDelete) {
-            return transactions;
-        }
-
-        return transactions.filter((transaction) => transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
-    }, [transactions, isOffline]);
+    // When there are no pending delete transactions, which is most of the time, return the same transactions to keep the same reference and avoid extra work.
+    const hasPendingDelete = transactions.some((transaction) => transaction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+    const visibleTransactions =
+        isOffline || !hasPendingDelete ? transactions : transactions.filter((transaction) => transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
     const reportErrors = visibleTransactions.length === 1 && visibleTransactions.at(0)?.errors ? undefined : allReportErrors;
     const reportTransactionIDs = visibleTransactions.map((transaction) => transaction.transactionID);
     const transactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, reportActions ?? [], isOffline, reportTransactionIDs);
 
     const isReportLoadPending = useIsReportLoadPending(reportID);
-    const dismissReportCreationError = useCallback(() => {
+    const dismissReportCreationError = () => {
         goBackFromSearchMoneyRequest({afterTransition: () => removeFailedReport(reportID)});
-    }, [reportID]);
+    };
 
     // Special case handling a report that is a transaction thread
     // If true we will use the standard `ReportActionsList` to display report data and a special header, anything else is handled via `MoneyRequestReportActionsList`
@@ -171,33 +160,29 @@ function MoneyRequestReportView({report, reportIDFromRoute, reportLoadingState, 
     const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`);
     const shouldShowWideRHPReceipt = visibleTransactions.length === 1 && !isSmallScreenWidth && !!transactionThreadReport;
 
-    const reportHeaderView = useMemo(
-        () =>
-            isTransactionThreadView ? (
-                <MoneyRequestHeader
-                    reportID={report?.reportID}
-                    onBackButtonPress={() => {
-                        if (!backToRoute) {
-                            goBackFromSearchMoneyRequest();
-                            return;
-                        }
-                        Navigation.goBack(backToRoute);
-                    }}
-                />
-            ) : (
-                <MoneyReportHeader
-                    reportID={report?.reportID}
-                    shouldDisplayBackButton
-                    onBackButtonPress={() => {
-                        if (!backToRoute) {
-                            goBackFromSearchMoneyRequest();
-                            return;
-                        }
-                        Navigation.goBack(backToRoute);
-                    }}
-                />
-            ),
-        [backToRoute, isTransactionThreadView, report?.reportID],
+    const reportHeaderView = isTransactionThreadView ? (
+        <MoneyRequestHeader
+            reportID={report?.reportID}
+            onBackButtonPress={() => {
+                if (!backToRoute) {
+                    goBackFromSearchMoneyRequest();
+                    return;
+                }
+                Navigation.goBack(backToRoute);
+            }}
+        />
+    ) : (
+        <MoneyReportHeader
+            reportID={report?.reportID}
+            shouldDisplayBackButton
+            onBackButtonPress={() => {
+                if (!backToRoute) {
+                    goBackFromSearchMoneyRequest();
+                    return;
+                }
+                Navigation.goBack(backToRoute);
+            }}
+        />
     );
 
     // We need to cancel telemetry span when user leaves the screen before full report data is loaded
@@ -217,7 +202,7 @@ function MoneyRequestReportView({report, reportIDFromRoute, reportLoadingState, 
     }
 
     if (shouldShowEmptyActionsSkeleton) {
-        return <ReportActionsSkeletonView shouldAnimate={false} />;
+        return <ReportActionsSkeletonCover />;
     }
 
     if (!report) {
@@ -228,7 +213,7 @@ function MoneyRequestReportView({report, reportIDFromRoute, reportLoadingState, 
         return (
             <View style={styles.flex1}>
                 <ReportHeaderSkeletonView />
-                <ReportActionsSkeletonView />
+                <ReportActionsAnimatedSkeletonCover />
                 {shouldDisplayReportFooter ? <ReportFooter /> : null}
             </View>
         );
