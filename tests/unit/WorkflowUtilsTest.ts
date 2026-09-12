@@ -1421,6 +1421,35 @@ describe('WorkflowUtils', () => {
                 },
             ]);
         });
+
+        it('Should drop a workflow that has no approvers instead of passing it through', () => {
+            // A workflow with no approvers can't be converted back to policy employees, so it must never be emitted
+            const emptyDefaultWorkflow: ApprovalWorkflow = {
+                members: [],
+                approvers: [],
+                isDefault: true,
+            };
+            const approvalWorkflow: ApprovalWorkflow = {
+                members: [buildMember(1), buildMember(2)],
+                approvers: [buildApprover(2)],
+                isDefault: false,
+            };
+
+            const ownerDetails = personalDetails[1];
+            const removedApprover = personalDetails[2];
+
+            if (!removedApprover || !ownerDetails) {
+                return;
+            }
+
+            const result = updateWorkflowDataOnApproverRemoval({
+                approvalWorkflows: [emptyDefaultWorkflow, approvalWorkflow],
+                removedApprover,
+                ownerDetails,
+            });
+
+            expect(result).toEqual([{...approvalWorkflow, approvers: [buildApprover(1)]}]);
+        });
     });
 
     describe('getApprovalLimitDescription', () => {
