@@ -182,8 +182,7 @@ describe('CardReconciliationPage', () => {
 
     it('falls back to a placeholder feed when no card feed is fully set up', async () => {
         // Given a workspace with no Expensify Card feed at all, so the page falls back to the placeholder feed it
-        // builds itself. That placeholder carries today's day of the month as the settlement day — the same
-        // day-of-month shape a real feed uses, so it can never be handed to `new Date()` and read as milliseconds.
+        // builds itself. That placeholder only carries the zero bank account this page actually reads.
         renderCardReconciliationPage(buildPolicy());
         await waitForBatchedUpdatesWithAct();
 

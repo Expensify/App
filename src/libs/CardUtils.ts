@@ -1513,21 +1513,21 @@ function isLastScrapePastDismissThreshold(card: Card): boolean {
  * *milliseconds* after the Unix epoch, which is the 31st of December 1969 anywhere west of UTC, so every workspace
  * would show the same wrong day.
  *
- * @param monthlySettlementDate the day of the month the workspace settles on
+ * @param dayOfMonth the day of the month the workspace settles on
  * @returns a date on that day of the month, or undefined when the value is not a day of the month
  */
-function getMonthlySettlementDate(monthlySettlementDate: ExpensifyCardSettingsBase['monthlySettlementDate']): Date | undefined {
-    if (!monthlySettlementDate) {
+function toMonthlySettlementDate(dayOfMonth: ExpensifyCardSettingsBase['monthlySettlementDate']): Date | undefined {
+    if (!dayOfMonth) {
         return undefined;
     }
 
     // A day of the month carries no month or year, so anchor it to January of the current year: every day from the 1st
     // to the 31st exists there, and only the day is ever displayed. Anything outside that range is not a day of the
     // month, so it resolves to nothing rather than rolling over into the next month and showing a wrong day.
-    if (!Number.isInteger(monthlySettlementDate) || monthlySettlementDate < 1 || monthlySettlementDate > 31) {
+    if (!Number.isInteger(dayOfMonth) || dayOfMonth < 1 || dayOfMonth > 31) {
         return undefined;
     }
-    return new Date(new Date().getFullYear(), 0, monthlySettlementDate);
+    return new Date(new Date().getFullYear(), 0, dayOfMonth);
 }
 
 /**
@@ -2267,7 +2267,7 @@ export {
     getCardConnectionStatusDisplay,
     isBrokenConnectionPastDismissThreshold,
     isLastScrapePastDismissThreshold,
-    getMonthlySettlementDate,
+    toMonthlySettlementDate,
     isSmartLimitEnabled,
     lastFourNumbersFromCardName,
     isMatchingCard,

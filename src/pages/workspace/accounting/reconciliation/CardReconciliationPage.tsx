@@ -62,8 +62,6 @@ function CardReconciliationPage({policy, route}: CardReconciliationPageProps) {
         const initialValue: FullySetUpCardSetting = {
             key: '',
             cardSetting: {
-                monthlySettlementDate: new Date().getDate(),
-                isMonthlySettlementAllowed: false,
                 paymentBankAccountID: CONST.DEFAULT_NUMBER_ID,
             },
         };

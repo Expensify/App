@@ -51,7 +51,6 @@ import {
     getFeedType,
     getFilteredCardList,
     getMonthFromExpirationDateString,
-    getMonthlySettlementDate,
     getOriginalCompanyFeeds,
     getPlaidInstitutionIconUrl,
     getPlaidInstitutionId,
@@ -82,6 +81,7 @@ import {
     maskCardNumber,
     sortCardsByCardholderName,
     splitCardFeedWithDomainID,
+    toMonthlySettlementDate,
 } from '@src/libs/CardUtils';
 import DateUtils from '@src/libs/DateUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -5025,26 +5025,26 @@ describe('getDomainByFundID', () => {
     });
 });
 
-describe('getMonthlySettlementDate', () => {
+describe('toMonthlySettlementDate', () => {
     it('reads the value as the day of the month, not as milliseconds since the epoch', () => {
-        expect(getMonthlySettlementDate(10)?.getDate()).toBe(10);
+        expect(toMonthlySettlementDate(10)?.getDate()).toBe(10);
     });
 
     it('resolves every day of the month to its own day', () => {
         const days = Array.from({length: 31}, (value, index) => index + 1);
-        expect(days.map((day) => getMonthlySettlementDate(day)?.getDate())).toEqual(days);
+        expect(days.map((day) => toMonthlySettlementDate(day)?.getDate())).toEqual(days);
     });
 
     it('returns undefined when the workspace has no settlement date', () => {
-        expect(getMonthlySettlementDate(undefined)).toBeUndefined();
+        expect(toMonthlySettlementDate(undefined)).toBeUndefined();
     });
 
     it('returns undefined for a value that cannot be a day of the month', () => {
-        expect(getMonthlySettlementDate(0)).toBeUndefined();
-        expect(getMonthlySettlementDate(32)).toBeUndefined();
-        expect(getMonthlySettlementDate(10.5)).toBeUndefined();
-        expect(getMonthlySettlementDate(1706353253)).toBeUndefined();
-        expect(getMonthlySettlementDate(NaN)).toBeUndefined();
+        expect(toMonthlySettlementDate(0)).toBeUndefined();
+        expect(toMonthlySettlementDate(32)).toBeUndefined();
+        expect(toMonthlySettlementDate(10.5)).toBeUndefined();
+        expect(toMonthlySettlementDate(1706353253)).toBeUndefined();
+        expect(toMonthlySettlementDate(NaN)).toBeUndefined();
     });
 });
 

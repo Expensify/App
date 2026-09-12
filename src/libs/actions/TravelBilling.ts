@@ -90,7 +90,6 @@ function setTravelBillingSettlementAccount(policyID: string, workspaceAccountID:
 
     let monthlySettlementDate: number | null | undefined;
     if (isFirstEnable) {
-        // The backend picks the real settlement day, so optimistically guess today's day of the month until it responds.
         monthlySettlementDate = new Date().getDate();
     } else if (isDisabling) {
         monthlySettlementDate = null;
@@ -309,7 +308,7 @@ function clearTravelBillingSettlementAccountErrors(workspaceAccountID: number, p
 function updateTravelBillingSettlementFrequency(workspaceAccountID: number, frequency: ValueOf<typeof CONST.EXPENSIFY_CARD.FREQUENCY_SETTING>, currentMonthlySettlementDate?: number) {
     const cardSettingsKey = getTravelBillingCardSettingsKey(workspaceAccountID);
 
-    // If Monthly, set the day of the month (optimistically today, until the backend responds with the real day). If Daily, set null.
+    // If Monthly, set the day of the month (optimistically today). If Daily, set null.
     const monthlySettlementDate = frequency === CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.MONTHLY ? new Date().getDate() : null;
 
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS>> = [

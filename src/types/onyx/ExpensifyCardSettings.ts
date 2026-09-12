@@ -18,7 +18,7 @@ type ExpensifyCardSettingsBase = {
     /**
      * The day of the month Expensify Cards settle on (1-31), when the workspace settles monthly. Never a `Date` — it
      * cannot be handed to `new Date()`, which reads a small number as milliseconds since the epoch. Use
-     * `getMonthlySettlementDate` to turn it into a date for display.
+     * `toMonthlySettlementDate` to turn it into a date for display.
      */
     monthlySettlementDate?: number;
 

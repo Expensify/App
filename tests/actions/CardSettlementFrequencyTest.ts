@@ -78,7 +78,7 @@ describe('actions/Card', () => {
             updateSettlementFrequency(workspaceAccountID, programKey, CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.MONTHLY);
             await waitForBatchedUpdates();
 
-            // `getMonthlySettlementDate` discards anything outside this range, so a value outside it would render no hint at all.
+            // `toMonthlySettlementDate` discards anything outside this range, so a value outside it would render no hint at all.
             const monthlySettlementDate = await getMonthlySettlementDate();
             expect(monthlySettlementDate).toBeGreaterThanOrEqual(1);
             expect(monthlySettlementDate).toBeLessThanOrEqual(31);

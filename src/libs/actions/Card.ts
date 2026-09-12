@@ -656,7 +656,6 @@ function updateSettlementFrequency(
     settlementFrequency: ValueOf<typeof CONST.EXPENSIFY_CARD.FREQUENCY_SETTING>,
     currentFrequency?: number,
 ) {
-    // The backend picks the real settlement day, so optimistically guess today's day of the month until it responds.
     const monthlySettlementDate = settlementFrequency === CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.DAILY ? null : new Date().getDate();
 
     const settlementValue = {[programKey]: {monthlySettlementDate}};
