@@ -1,3 +1,6 @@
+import {emojiNameTable} from '@assets/emojis';
+
+import {containsOnlyEmojis} from '@libs/EmojiUtils';
 import {isStandaloneURL, toMarkdownLink} from '@libs/MarkdownLinkHelpers';
 import Parser from '@libs/Parser';
 
@@ -39,6 +42,80 @@ const insertAtCaret = (target: HTMLElement, insertedText: string, maxLength: num
         // Dispatch input event to trigger Markdown Input to parse the new text
         target.dispatchEvent(new Event('input', {bubbles: true}));
     }
+};
+
+/**
+ * Converts recognized emoji shortcodes to Unicode characters.
+ *
+ * @param text Text that may contain emoji shortcodes.
+ * @returns Text with recognized shortcodes replaced by Unicode characters.
+ */
+const convertEmojiImageShortcodesToUnicode = (text: string): string => text.replaceAll(CONST.REGEX.EMOJI_NAME, (shortcode) => emojiNameTable[shortcode.slice(1, -1)]?.code ?? shortcode);
+
+/**
+ * Converts hexadecimal codepoints in image alt text to an emoji.
+ *
+ * @param alt Alt text to inspect.
+ * @returns The decoded emoji when the alt text represents only an emoji; otherwise, an empty string.
+ */
+const getEmojiFromImageAlt = (alt: string): string => {
+    // iOS Safari can paste emoji images as blob URLs with codepoint filenames in alt text.
+    const emojiHexCodepoints = alt.match(CONST.REGEX.EMOJI_IMAGE_ALT)?.at(1);
+
+    if (!emojiHexCodepoints) {
+        return '';
+    }
+
+    const codepoints = emojiHexCodepoints.split('-').map((codepoint) => Number.parseInt(codepoint, 16));
+
+    if (codepoints.some((codepoint) => Number.isNaN(codepoint) || codepoint > 0x10ffff)) {
+        return '';
+    }
+
+    const emoji = String.fromCodePoint(...codepoints);
+    return containsOnlyEmojis(emoji) ? emoji : '';
+};
+
+/**
+ * Checks whether an image contains the metadata used to identify it as an emoji.
+ *
+ * @param image Image element to inspect.
+ * @returns Whether the image is marked as an emoji.
+ */
+const isEmojiImage = (image: HTMLImageElement): boolean => {
+    const dataset = image.dataset;
+
+    return dataset.stringifyEmoji !== undefined || dataset.stringifyType === 'emoji';
+};
+
+/**
+ * Returns the text that should replace an emoji image during paste.
+ *
+ * @param image Image element being pasted.
+ * @returns Unicode emoji, shortcode text, or an empty string when the image should remain unchanged.
+ */
+const getEmojiReplacementText = (image: HTMLImageElement): string => {
+    const shouldReadEmojiFromAlt = isEmojiImage(image) || image.src.startsWith('blob:');
+
+    if (shouldReadEmojiFromAlt) {
+        const emojiFromImageAlt = getEmojiFromImageAlt(image.alt);
+
+        if (emojiFromImageAlt) {
+            return emojiFromImageAlt;
+        }
+    }
+
+    if (isEmojiImage(image)) {
+        // Slack can put shortcode text in emoji image alt text, e.g. ":tada:".
+        const emojiFromShortcode = convertEmojiImageShortcodesToUnicode(image.alt);
+        if (emojiFromShortcode !== image.alt) {
+            return emojiFromShortcode;
+        }
+
+        return image.alt;
+    }
+
+    return '';
 };
 
 const useHtmlPaste: UseHtmlPaste = (textInputRef, preHtmlPasteCallback, isActive = false, maxLength = CONST.MAX_COMMENT_LENGTH + 1) => {
@@ -151,23 +228,27 @@ const useHtmlPaste: UseHtmlPaste = (textInputRef, preHtmlPasteCallback, isActive
                 const pastedHTML = event.clipboardData.getData(TEXT_HTML);
 
                 const domparser = new DOMParser();
-                const embeddedImages = domparser.parseFromString(pastedHTML, TEXT_HTML).images;
+                const htmlDocument = domparser.parseFromString(pastedHTML, TEXT_HTML);
+                const embeddedImages = Array.from(htmlDocument.images);
 
-                // Exclude parsing img tags in the HTML, as fetching the image via fetch triggers a connect-src Content-Security-Policy error.
-                if (embeddedImages.length > 0 && embeddedImages[0].src) {
-                    // If HTML has emoji, then treat this as plain text.
-                    if (embeddedImages[0].dataset?.stringifyType === 'emoji') {
-                        handlePastePlainText(event);
-                        return;
+                // Replace emoji images before parsing HTML so they do not become inaccessible markdown image URLs.
+                for (const image of embeddedImages) {
+                    const emojiText = getEmojiReplacementText(image);
+
+                    if (!emojiText) {
+                        continue;
                     }
+
+                    image.replaceWith(htmlDocument.createTextNode(emojiText));
                 }
+
                 // If HTML starts with <p dir="ltr">, it means that the text was copied from the markdown input from the native app
                 // and was saved to clipboard with additional styling, so we need to treat this as plain text to avoid adding unnecessary characters.
                 if (pastedHTML.startsWith('<p dir="ltr">')) {
                     handlePastePlainText(event);
                     return;
                 }
-                handlePastedHTML(pastedHTML);
+                handlePastedHTML(htmlDocument.body.innerHTML);
                 return;
             }
             handlePastePlainText(event);

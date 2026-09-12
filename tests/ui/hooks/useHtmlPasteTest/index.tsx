@@ -19,16 +19,26 @@ describe('useHtmlPaste - handlePastePlainText', () => {
     let textInputRef: RefObject<HTMLDivElement | null>;
     let textInputElement: HTMLDivElement;
 
-    const createMockClipboardEvent = (text: string): ClipboardEvent => {
-        return createMock<ClipboardEvent>({
-            clipboardData: {
-                getData: (type: string) => (type === 'text/plain' ? text : ''),
-                files: [],
-                items: [],
-                types: ['text/plain'],
+    /**
+     * Creates a paste event with plain-text and optional HTML clipboard data.
+     *
+     * @param text Plain-text clipboard content.
+     * @param html HTML clipboard content.
+     * @returns A paste event containing the requested clipboard data.
+     */
+    const createMockClipboardEvent = (text: string, html = ''): ClipboardEvent => {
+        const clipboardData = createMock<DataTransfer>({
+            getData: (type: string) => {
+                if (type === 'text/html') {
+                    return html;
+                }
+                return type === 'text/plain' ? text : '';
             },
-            preventDefault: jest.fn(),
+            files: [],
+            items: [],
+            types: html ? ['text/html', 'text/plain'] : ['text/plain'],
         });
+        return Object.assign(new Event('paste', {bubbles: true, cancelable: true}), {clipboardData});
     };
 
     const mockWindowSelection = (selectedText: string) => {
@@ -49,6 +59,7 @@ describe('useHtmlPaste - handlePastePlainText', () => {
         textInputElement = document.createElement('div');
         textInputElement.setAttribute('contenteditable', 'true');
         textInputElement.textContent = '';
+        Object.defineProperty(textInputElement, 'isFocused', {value: () => true});
         document.body.appendChild(textInputElement);
         textInputRef = {current: textInputElement};
 
@@ -154,5 +165,61 @@ describe('useHtmlPaste - handlePastePlainText', () => {
             expect(textInputElement.textContent).toBe(textWithTrailingWhitespace);
             expect(textInputElement.textContent?.endsWith('   ')).toBe(true);
         }
+    });
+
+    it('converts Slack emoji images to Unicode emoji by default while preserving surrounding HTML formatting', async () => {
+        const html = '<p>Normal Text. <img data-stringify-emoji=":tada:" alt=":tada:" src="https://a.slack-edge.com/emoji.png"> <strong>Bold</strong></p>';
+        const event = createMockClipboardEvent('Normal Text. :tada: Bold', html);
+        mockWindowSelection('');
+
+        // @ts-expect-error -- this web test intentionally passes a contenteditable DOM ref to the shared hybrid hook.
+        renderHook(() => useHtmlPaste(textInputRef, undefined, true));
+        await waitForBatchedUpdatesWithAct();
+
+        act(() => document.dispatchEvent(event));
+
+        expect(textInputRef.current?.textContent).toBe('Normal Text. 🎉 *Bold*');
+    });
+
+    it('converts iOS Safari blob emoji image filenames to Unicode emoji', async () => {
+        const html = '<p>Normal Text. <img src="blob:https://new.expensify.com/123" alt="1f389@2x.png"> Bold</p>';
+        const event = createMockClipboardEvent('Normal Text. :tada: Bold', html);
+        mockWindowSelection('');
+
+        // @ts-expect-error -- this web test intentionally passes a contenteditable DOM ref to the shared hybrid hook.
+        renderHook(() => useHtmlPaste(textInputRef, undefined, true));
+        await waitForBatchedUpdatesWithAct();
+
+        act(() => document.dispatchEvent(event));
+
+        expect(textInputRef.current?.textContent).toBe('Normal Text. 🎉 Bold');
+    });
+
+    it('does not convert non-emoji codepoint image filenames to Unicode text', async () => {
+        const html = '<p>Normal Text. <img src="blob:https://new.expensify.com/456" alt="0200.png"> Bold</p>';
+        const event = createMockClipboardEvent('Normal Text. 0200.png Bold', html);
+        mockWindowSelection('');
+
+        // @ts-expect-error -- this web test intentionally passes a contenteditable DOM ref to the shared hybrid hook.
+        renderHook(() => useHtmlPaste(textInputRef, undefined, true));
+        await waitForBatchedUpdatesWithAct();
+
+        act(() => document.dispatchEvent(event));
+
+        expect(textInputRef.current?.textContent).toBe('Normal Text. ![0200.png](blob:https://new.expensify.com/456) Bold');
+    });
+
+    it('does not replace normal images whose alt text is an emoji shortcode', async () => {
+        const html = '<p>Copy image below:</p><img src="https://example.com/image.png" alt=":smile:">';
+        const event = createMockClipboardEvent('Copy image below:', html);
+        mockWindowSelection('');
+
+        // @ts-expect-error -- this web test intentionally passes a contenteditable DOM ref to the shared hybrid hook.
+        renderHook(() => useHtmlPaste(textInputRef, undefined, true));
+        await waitForBatchedUpdatesWithAct();
+
+        act(() => document.dispatchEvent(event));
+
+        expect(textInputRef.current?.textContent).toBe('Copy image below:\n![:smile:](https://example.com/image.png)');
     });
 });
