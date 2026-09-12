@@ -41,6 +41,7 @@ import type {
     NonConnectableBankName,
 } from '@src/types/onyx/CardFeeds';
 import type {CardFeedErrors} from '@src/types/onyx/DerivedValues';
+import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type {SelectedTimezone} from '@src/types/onyx/PersonalDetails';
 import type {Connections} from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -1517,27 +1518,30 @@ function parseCardLastScrape(card: Card): Date | undefined {
 }
 
 /**
- * Whether the card carries an error recorded after its last sync. The server writes a connection error at scrape
- * time, so anything newer came from something the user just did (a failed unassignment, for example) and has to stay
- * visible even when a connection message is already on the row.
+ * The card's errors recorded after its last sync. The server writes the connection error at scrape time, so anything
+ * newer came from something the user just did and has to stay visible even when a connection message already covers
+ * the connection itself.
  *
+ * @param card the card to read
+ * @returns the errors newer than the last sync
+ */
+function getCardErrorsNewerThanLastScrape(card: Card): Errors {
+    const lastScrapeDate = parseCardLastScrape(card);
+    if (!lastScrapeDate) {
+        // A card that has never synced has nothing to compare against, so its errors are left to the connection message.
+        return {};
+    }
+    // Error keys are microseconds, `lastScrape` is milliseconds.
+    const lastScrapeMicroseconds = lastScrapeDate.getTime() * 1000;
+    return Object.fromEntries(Object.entries(card.errors ?? {}).filter(([errorKey]) => Number(errorKey) > lastScrapeMicroseconds));
+}
+
+/**
  * @param card the card to check
  * @returns true if an error is newer than the last sync, false otherwise
  */
 function hasErrorNewerThanLastScrape(card: Card): boolean {
-    const errorKeys = Object.keys(card.errors ?? {});
-    if (errorKeys.length === 0) {
-        return false;
-    }
-    const lastScrapeDate = parseCardLastScrape(card);
-    if (!lastScrapeDate) {
-        // A card that has never synced has nothing to compare against, so the error is left to the connection message
-        // rather than shown underneath it.
-        return false;
-    }
-    // Error keys are microseconds, `lastScrape` is milliseconds.
-    const lastScrapeMicroseconds = lastScrapeDate.getTime() * 1000;
-    return errorKeys.some((errorKey) => Number(errorKey) > lastScrapeMicroseconds);
+    return !isEmptyObject(getCardErrorsNewerThanLastScrape(card));
 }
 
 /**
@@ -2287,6 +2291,7 @@ export {
     isCardHiddenFromSearch,
     getCSVFeedType,
     getFeedType,
+    getCardErrorsNewerThanLastScrape,
     hasErrorNewerThanLastScrape,
     isCardConnectionBroken,
     hasCardConnectionIssue,

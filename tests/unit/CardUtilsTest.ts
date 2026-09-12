@@ -59,6 +59,7 @@ import {
     getWalletProviderNameKey,
     getYearFromExpirationDateString,
     hasAssignedCardMatching,
+    getCardErrorsNewerThanLastScrape,
     hasCardConnectionIssue,
     hasErrorNewerThanLastScrape,
     hasIssuedExpensifyCard,
@@ -4500,6 +4501,14 @@ describe('CardUtils', () => {
         it('returns true for an error recorded after the last sync', () => {
             const card: Card = {...createRandomCard(1), lastScrape: '2025-10-05 11:00:00', errors: {[Date.now() * 1000]: 'Failed to unassign this card'}};
             expect(hasErrorNewerThanLastScrape(card)).toBe(true);
+        });
+
+        // Only the newer error is kept, so a stale connection error is not shown next to the connection message.
+        it('keeps only the errors recorded after the last sync', () => {
+            const staleKey = Date.parse('2025-10-05T11:00:00Z') * 1000;
+            const freshKey = Date.now() * 1000;
+            const card: Card = {...createRandomCard(1), lastScrape: '2025-10-05 11:00:00', errors: {[staleKey]: 'Connection broken', [freshKey]: 'Failed to unassign this card'}};
+            expect(getCardErrorsNewerThanLastScrape(card)).toEqual({[freshKey]: 'Failed to unassign this card'});
         });
 
         // A card that has never synced cannot be compared against, so its error stays with the connection message.

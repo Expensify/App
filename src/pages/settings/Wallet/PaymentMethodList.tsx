@@ -20,10 +20,10 @@ import {
     getCardConnectionStatusDisplay,
     getCardFeedIcon,
     getCardFeedWithDomainID,
+    getCardErrorsNewerThanLastScrape,
     getCompanyCardFeedWithDomainIDForCard,
     getPlaidInstitutionIconUrl,
     hasCardConnectionIssue,
-    hasErrorNewerThanLastScrape,
     isActionableVirtualExpensifyCard,
     isCardConnectionBroken,
     doesCardConnectionNeedReauthentication,
@@ -322,9 +322,10 @@ function PaymentMethodList({
                     policyID: policyIDForCard,
                 });
                 const shouldShowCardConnectionMessage = !!cardConnectionStatusDisplay?.messageKey;
-                // The connection message replaces the server's own connection error, but an error recorded after the last
-                // sync came from something the user just did, so it is kept.
-                const shouldShowCardErrorMessages = !shouldShowCardConnectionMessage || !!card.pendingAction || hasErrorNewerThanLastScrape(card);
+                // The connection message replaces the server's own connection error, so only errors recorded after the
+                // last sync are kept alongside it.
+                const cardErrors = shouldShowCardConnectionMessage && !card.pendingAction ? getCardErrorsNewerThanLastScrape(card) : card.errors;
+                const shouldShowCardErrorMessages = !isEmptyObject(cardErrors);
                 const shouldShowCardLastSync = shouldShowConnectionStatus && !isExpensifyCard(card) && !isCSVCard;
                 let cardLastSyncText: string | undefined;
                 if (shouldShowCardLastSync) {
@@ -420,7 +421,7 @@ function PaymentMethodList({
                         disabled: isDisabled,
                         shouldShowRightIcon,
                         shouldShowThreeDotsMenu: !isUserPersonalCard,
-                        errors: isUserPersonalCard ? undefined : card.errors,
+                        errors: isUserPersonalCard ? undefined : cardErrors,
                         shouldShowErrorMessages: !isUserPersonalCard && shouldShowCardErrorMessages,
                         canDismissError: false,
                         pendingAction: card.pendingAction,
@@ -498,7 +499,7 @@ function PaymentMethodList({
                     shouldShowRightIcon: true,
                     interactive: !isDisabled,
                     disabled: isDisabled,
-                    errors: card.errors,
+                    errors: cardErrors,
                     shouldShowErrorMessages: shouldShowCardErrorMessages,
                     canDismissError: true,
                     pendingAction: card.pendingAction,
