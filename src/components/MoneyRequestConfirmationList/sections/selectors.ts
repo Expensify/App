@@ -8,6 +8,7 @@ import {
     hasReceipt,
     isAmountMissing,
     isCreatedMissing,
+    isFailedScanAmountPlaceholder,
     isMerchantMissing,
     willFieldBeAutomaticallyFilled,
 } from '@libs/TransactionUtils';
@@ -149,6 +150,7 @@ type AmountSlice = {
     comment: {type: NonNullable<Transaction['comment']>['type']; customUnit: NonNullable<Transaction['comment']>['customUnit']} | undefined;
     isAmountMissing: boolean;
     isAmountSet: Transaction['isAmountSet'];
+    isFailedScanAmountPlaceholder: boolean;
     taxCode: Transaction['taxCode'];
 };
 
@@ -166,6 +168,7 @@ const amountSliceSelector = (t: OnyxEntry<Transaction>): AmountSlice | undefined
         comment: t.comment ? {type: t.comment.type, customUnit: t.comment.customUnit} : undefined,
         isAmountMissing: isAmountMissing(t),
         isAmountSet: t.isAmountSet,
+        isFailedScanAmountPlaceholder: isFailedScanAmountPlaceholder(t),
         taxCode: t.taxCode,
     };
 };

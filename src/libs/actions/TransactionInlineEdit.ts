@@ -329,7 +329,7 @@ function editTransactionAmountInline(params: TransactionInlineEditParams, newAmo
     const iouParams = getIouParamsForTransaction(params);
 
     // Keep the existing currency — only the amount is changing from the search table
-    const currency = iouParams.transaction?.modifiedCurrency ?? iouParams.transaction?.currency ?? CONST.CURRENCY.USD;
+    const currency = getCurrency(iouParams.transaction);
     // Recalculate tax from the existing tax code and the new amount
     const taxCode = resolveCurrentTaxCode(iouParams.policy, iouParams.transaction?.taxCode ?? '');
     const taxPercentage = getTaxValue(iouParams.policy, iouParams.transaction, taxCode) ?? '';
