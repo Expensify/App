@@ -1083,6 +1083,10 @@ const translations = {
                 title: "We couldn't bill your card on file",
                 subtitle: 'Subscription',
             },
+            payOverdueInvoice: {
+                title: ({date}: {date: string}) => `Pay your invoice by ${date} to avoid service interruption`,
+                cta: 'Review',
+            },
             unlockBankAccount: {
                 workspaceTitle: 'Your business bank account has been locked',
                 personalTitle: 'Your bank account has been locked',

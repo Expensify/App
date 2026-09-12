@@ -991,6 +991,7 @@ const translations: TranslationDeepObject<typeof en> = {
             },
             addVirtualCardPersonalDetails: {title: 'Expensify カードを表示して利用を開始するには、ご自身の情報を追加してください。', subtitle: 'Expensify カード', cta: '追加'},
             enterSignerInfo: {title: '署名者情報が必要です', subtitle: ({bankAccountLastFour}: {bankAccountLastFour: string}) => `銀行口座 ${bankAccountLastFour}`},
+            payOverdueInvoice: {title: ({date}: {date: string}) => `サービス中断を防ぐために、${date} までに請求書をお支払いください`, cta: '確認'},
         },
         discoverSection: {
             title: '発見',

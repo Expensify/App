@@ -22,6 +22,7 @@ import useTimeSensitiveBilling from './hooks/useTimeSensitiveBilling';
 import useTimeSensitiveCards from './hooks/useTimeSensitiveCards';
 import useTimeSensitiveHomeAddress from './hooks/useTimeSensitiveHomeAddress';
 import useTimeSensitiveLockedBankAccount from './hooks/useTimeSensitiveLockedBankAccount';
+import useTimeSensitiveOverdueInvoice from './hooks/useTimeSensitiveOverdueInvoice';
 import useTimeSensitiveSignerInfo from './hooks/useTimeSensitiveSignerInfo';
 import ActivateCard from './items/ActivateCard';
 import AddBankAccount from './items/AddBankAccount';
@@ -35,6 +36,7 @@ import FixCompanyCardConnection from './items/FixCompanyCardConnection';
 import FixFailedBilling from './items/FixFailedBilling';
 import FixPersonalCardConnection from './items/FixPersonalCardConnection';
 import FixPolicyConnection from './items/FixPolicyConnection';
+import PayOverdueInvoice from './items/PayOverdueInvoice';
 import ReviewCardFraud from './items/ReviewCardFraud';
 import UnlockBankAccount from './items/UnlockBankAccount';
 import ValidateAccount from './items/ValidateAccount';
@@ -77,6 +79,7 @@ function useTimeSensitiveItems(): React.ReactNode[] {
         getExpensifyCardPendingWalletApproval();
     });
     const {shouldShowFixFailedBilling} = useTimeSensitiveBilling();
+    const {shouldShowOverdueInvoice, ownerBillingGracePeriodEnd} = useTimeSensitiveOverdueInvoice();
     const {shouldShowAddHomeAddress} = useTimeSensitiveHomeAddress();
 
     const [connectionSyncProgress] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS);
@@ -134,7 +137,16 @@ function useTimeSensitiveItems(): React.ReactNode[] {
     if (shouldShowFixFailedBilling) {
         items.push(<FixFailedBilling key="fix-failed-billing" />);
     }
-    // Priority 2: Card fraud alerts
+    // Priority 2: Overdue subscription invoice for the billing owner
+    if (shouldShowOverdueInvoice && !!ownerBillingGracePeriodEnd) {
+        items.push(
+            <PayOverdueInvoice
+                key="pay-overdue-invoice"
+                gracePeriodEndUnixSeconds={ownerBillingGracePeriodEnd}
+            />,
+        );
+    }
+    // Priority 3: Card fraud alerts
     if (shouldShowReviewCardFraud) {
         for (const card of cardsWithFraud) {
             if (!card.nameValuePairs?.possibleFraud) {
@@ -148,7 +160,7 @@ function useTimeSensitiveItems(): React.ReactNode[] {
             );
         }
     }
-    // Priority 3: Broken company card connections
+    // Priority 4: Broken company card connections
     for (const connection of brokenCompanyCardConnections) {
         const card = cardFeedErrors.cardsWithBrokenFeedConnection[connection.cardID];
         if (!card) {
@@ -163,7 +175,7 @@ function useTimeSensitiveItems(): React.ReactNode[] {
             />,
         );
     }
-    // Priority 4: Broken personal card connections
+    // Priority 5: Broken personal card connections
     for (const connection of brokenPersonalCardConnections) {
         const card = cardFeedErrors.personalCardsWithBrokenConnection[connection.cardID];
         if (!card) {
@@ -176,7 +188,7 @@ function useTimeSensitiveItems(): React.ReactNode[] {
             />,
         );
     }
-    // Priority 5: Locked bank accounts
+    // Priority 6: Locked bank accounts
     for (const lockedBankAccount of lockedBankAccounts) {
         items.push(
             <UnlockBankAccount
@@ -186,7 +198,7 @@ function useTimeSensitiveItems(): React.ReactNode[] {
             />,
         );
     }
-    // Priority 6: Broken policy connections (accounting + HR)
+    // Priority 7: Broken policy connections (accounting + HR)
     for (const connection of brokenPolicyConnections) {
         items.push(
             <FixPolicyConnection
@@ -198,23 +210,23 @@ function useTimeSensitiveItems(): React.ReactNode[] {
             />,
         );
     }
-    // Priority 7: Validate account
+    // Priority 8: Validate account
     if (shouldShowValidateAccount) {
         items.push(<ValidateAccount key="validate-account" />);
     }
-    // Priority 8: Add home address (commuter exclusions, homeAndOffice method)
+    // Priority 9: Add home address (commuter exclusions, homeAndOffice method)
     if (shouldShowAddHomeAddress) {
         items.push(<AddHomeAddress key="add-home-address" />);
     }
-    // Priority 9: Add payment card (trial ended, no payment card)
+    // Priority 10: Add payment card (trial ended, no payment card)
     if (shouldShowAddPaymentCard) {
         items.push(<AddPaymentCard key="add-payment-card" />);
     }
-    // Priority 10: Add bank account for a queued reimbursement
+    // Priority 11: Add bank account for a queued reimbursement
     if (shouldShowAddBankAccount) {
         items.push(<AddBankAccount key="add-bank-account" />);
     }
-    // Priority 11: Enter signer info for global bank accounts
+    // Priority 12: Enter signer info for global bank accounts
     for (const item of pendingSignerInfo) {
         items.push(
             <EnterSignerInfo
@@ -225,7 +237,7 @@ function useTimeSensitiveItems(): React.ReactNode[] {
             />,
         );
     }
-    // Priority 12: Expensify card shipping
+    // Priority 13: Expensify card shipping
     if (shouldShowAddShippingAddress) {
         for (const card of cardsNeedingShippingAddress) {
             items.push(
@@ -236,7 +248,7 @@ function useTimeSensitiveItems(): React.ReactNode[] {
             );
         }
     }
-    // Priority 13: Expensify card activation
+    // Priority 14: Expensify card activation
     if (shouldShowActivateCard) {
         for (const card of cardsNeedingActivation) {
             items.push(
@@ -247,7 +259,7 @@ function useTimeSensitiveItems(): React.ReactNode[] {
             );
         }
     }
-    // Priority 14: Virtual Expensify card needs personal details before reveal
+    // Priority 15: Virtual Expensify card needs personal details before reveal
     if (shouldShowAddVirtualCardPersonalDetails) {
         for (const card of virtualCardsNeedingPersonalDetails) {
             items.push(

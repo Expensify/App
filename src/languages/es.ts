@@ -1000,6 +1000,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 personalSubtitle: 'Billetera',
             },
             enterSignerInfo: {title: 'Se necesita la información del firmante', subtitle: ({bankAccountLastFour}: {bankAccountLastFour: string}) => `Cuenta bancaria ${bankAccountLastFour}`},
+            payOverdueInvoice: {title: ({date}: {date: string}) => `Paga tu factura antes del ${date} para evitar la interrupción del servicio`, cta: 'Revisar'},
         },
         freeTrialSection: {
             title: ({count}: {count: number}) => ({
