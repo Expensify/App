@@ -57,6 +57,7 @@ import {
     isDistanceRequest as isDistanceRequestTransactionUtils,
     isGPSDistanceRequest as isGPSDistanceRequestTransactionUtils,
     isManualDistanceRequest as isManualDistanceRequestTransactionUtils,
+    isScanRequest as isScanRequestTransactionUtils,
 } from '@libs/TransactionUtils';
 
 import {resolveChatTargetForSubmitCleanup} from '@pages/iou/request/step/resolveChatTarget';
@@ -222,6 +223,12 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
     // UI state
     const [isConfirmed, setIsConfirmed] = useState(false);
     const formHasBeenSubmitted = useRef(false);
+
+    // formHasBeenSubmitted is never reset on its own, so a submit that returns without writing has to hand the page back or every later tap is swallowed.
+    const releaseSubmitLock = () => {
+        formHasBeenSubmitted.current = false;
+        setIsConfirmed(false);
+    };
 
     // Ref so callbacks always read the latest transactionViolations.
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
@@ -1007,8 +1014,15 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
 
         const currentTransactionReceiptFile = transaction?.transactionID ? receiptFiles[transaction.transactionID] : undefined;
         const shouldDeferSplitForSearch = iouType === CONST.IOU.TYPE.SPLIT && isDeferredSearchSubmit;
-        // receiptFiles can hold an entry for a transaction no longer being submitted, so anything with no scan to write falls through to the manual split below.
+        // receiptFiles can hold an entry for a transaction no longer being submitted, so the files are matched against what is actually being submitted.
         const scannedItems = transactions.filter((item) => !!receiptFiles[item.transactionID]);
+
+        // The manual split below sends transaction.amount, which stays 0 until SmartScan returns, so a scan with no matching receipt has nothing to write yet rather than a $0 split.
+        if (iouType === CONST.IOU.TYPE.SPLIT && isScanRequestTransactionUtils(transaction) && scannedItems.length === 0) {
+            releaseSubmitLock();
+            markSubmitExpenseEnd();
+            return;
+        }
 
         // Split flows usually navigate to the destination report internally, but dismiss-first
         // handlers can pass shouldHandleNavigation=false after revealing/dismissing first.
@@ -1058,6 +1072,8 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 if (shouldHandleNavigation) {
                     dismissModalAndOpenReportInInboxTab(chatReportID, undefined, false);
                 }
+            } else {
+                releaseSubmitLock();
             }
             markSubmitExpenseEnd();
             return;

@@ -931,6 +931,37 @@ describe('useExpenseSubmission orchestrator-suppressed cleanup', () => {
             expect(mockSplitBillAction).toHaveBeenCalledTimes(1);
         });
 
+        it('writes nothing and hands the page back when a scan split has no receipt file ready', async () => {
+            mockResolveOptimisticSplitChatReportID.mockReturnValue({optimisticSplitChatReportID: 'optimistic-scan-chat', chatReportID: 'optimistic-scan-chat'});
+            // A scan carries no amount until SmartScan returns, so the manual split below would write a $0 expense.
+            const scannedTransaction = buildTransaction({transactionID: 'transaction-1', amount: 0, iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN});
+            const staleTransactionID = 'stale-transaction';
+            const receiptFiles: Record<string, Receipt> = {[staleTransactionID]: {source: 'file://receipt.jpg'}};
+
+            const {result} = renderHook(() =>
+                useExpenseSubmission(
+                    buildParams({
+                        iouType: CONST.IOU.TYPE.SPLIT,
+                        transaction: scannedTransaction,
+                        transactions: [scannedTransaction],
+                        receiptFiles,
+                    }),
+                ),
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            await act(async () => {
+                result.current.createTransaction(false, true);
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            expect(mockStartSplitBillAction).not.toHaveBeenCalled();
+            expect(mockSplitBillAction).not.toHaveBeenCalled();
+            // The submit lock is released so the next tap works once the receipt map catches up.
+            expect(result.current.isConfirmed).toBe(false);
+            expect(result.current.formHasBeenSubmitted.current).toBe(false);
+        });
+
         it('resolves the chat once and dismisses once when multiple receipts split into one group chat', async () => {
             mockResolveOptimisticSplitChatReportID.mockReturnValue({optimisticSplitChatReportID: 'optimistic-scan-chat', chatReportID: 'optimistic-scan-chat'});
             const firstSplit = buildTransaction({transactionID: 'transaction-1'});
