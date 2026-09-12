@@ -4483,6 +4483,23 @@ describe('CardUtils', () => {
             expect(hasErrorNewerThanLastScrape(card)).toBe(false);
         });
 
+        // The server names its connection error rather than keying it by time, so it stays out of this filter however
+        // long the card has gone without a successful sync, which is the whole grace period for a broken card.
+        it('returns false for the server connection error on a card that stopped syncing long ago', () => {
+            const card: Card = {...createRandomCard(1), lastScrape: '2024-01-05 11:00:00', errors: {connectionError: 'Your card connection is broken.'}};
+            expect(hasErrorNewerThanLastScrape(card)).toBe(false);
+        });
+
+        // A user action on that same stale card is keyed by timestamp, so it still has to come through.
+        it('returns true for a user action error on a card that stopped syncing long ago', () => {
+            const card: Card = {
+                ...createRandomCard(1),
+                lastScrape: '2024-01-05 11:00:00',
+                errors: {connectionError: 'Your card connection is broken.', [Date.now() * 1000]: 'Failed to unassign this card'},
+            };
+            expect(hasErrorNewerThanLastScrape(card)).toBe(true);
+        });
+
         // The server records the connection error at scrape time, so an error with the same timestamp is that one.
         // `lastScrape` has no offset but is UTC, so the expected key is built from the UTC instant rather than a local one.
         it('returns false for an error recorded at the last sync', () => {

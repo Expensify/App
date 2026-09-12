@@ -1518,9 +1518,11 @@ function parseCardLastScrape(card: Card): Date | undefined {
 }
 
 /**
- * The card's errors recorded after its last sync. The server writes the connection error at scrape time, so anything
- * newer came from something the user just did and has to stay visible even when a connection message already covers
- * the connection itself.
+ * The card's errors recorded after its last sync. Something the user just did has to stay visible even when a
+ * connection message already covers the connection itself, and the two are told apart by how they are keyed: the
+ * server names its connection error `connectionError`, while a user action records its error under a microsecond
+ * timestamp. A named key is not a number, so it never reads as newer and the comparison only ever sees the second
+ * kind. That matters because `lastScrape` is the last successful sync, which a broken card never advances.
  *
  * @param card the card to read
  * @returns the errors newer than the last sync
