@@ -314,7 +314,6 @@ function getStableReportSelector(report: OnyxEntry<Report>) {
         privateNotes: report.privateNotes,
         fieldList: report.fieldList,
         permissions: getStablePermissions(report.permissions),
-        tripData: report.tripData,
         welcomeMessage: report.welcomeMessage,
         nextStep: report.nextStep,
         pendingAction: report.pendingAction,
