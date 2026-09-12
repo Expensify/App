@@ -3626,8 +3626,10 @@ ${amount} per ${merchant} - ${date}`,
                 'Dato che vuoi entrare nello spazio di lavoro della tua azienda, non ne ho creato uno per te. Aggiungi la tua email di lavoro e controllerò a quali spazi di lavoro della tua azienda puoi unirti.',
             onboardingJoinWorkspaceValidateEmailMessage: ({companyDomain = ''}: {companyDomain?: string}) =>
                 `Dato che vuoi unirti allo spazio di lavoro della tua azienda, non ne ho creato uno per te. Verifica la tua email e controllerò a quali spazi di lavoro su ${companyDomain} puoi unirti.`,
-            onboardingJoinWorkspaceMessage: ({companyDomain = ''}: {companyDomain?: string}) =>
-                `Dato che vuoi entrare nello spazio di lavoro della tua azienda, non ne ho creato uno per te. Il tuo team su ${companyDomain} è già su Expensify. Dai un’occhiata agli spazi di lavoro a cui puoi unirti.`,
+            onboardingJoinWorkspaceMessage: ({companyDomain = '', joinWorkspaceLink = ''}: {companyDomain?: string; joinWorkspaceLink?: string}) =>
+                `Dato che vuoi entrare nello spazio di lavoro della tua azienda, non ne ho creato uno per te. Il tuo team su ${companyDomain} è già su Expensify. [Dai un’occhiata agli spazi di lavoro a cui puoi unirti.](${joinWorkspaceLink})`,
+            onboardingJoinWorkspaceEmptyMessage:
+                'Sembra che la tua azienda non abbia spazi di lavoro a cui puoi unirti. Contatta il tuo amministratore e chiedigli di invitarti al suo spazio di lavoro.',
         },
         workspace: {
             title: 'Resta organizzato con uno spazio di lavoro',

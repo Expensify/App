@@ -3590,8 +3590,9 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
                 '会社のワークスペースに参加しようとしているようですので、新しいワークスペースは作成していません。勤務先のメールアドレスを追加していただければ、参加できる会社のワークスペースをお調べします。',
             onboardingJoinWorkspaceValidateEmailMessage: ({companyDomain = ''}: {companyDomain?: string}) =>
                 `お勤めの会社のワークスペースに参加しようとしているようですので、新しいワークスペースは作成していません。メールアドレスを確認していただければ、${companyDomain} のどのワークスペースに参加できるかを確認します。`,
-            onboardingJoinWorkspaceMessage: ({companyDomain = ''}: {companyDomain?: string}) =>
-                `あなたは会社のワークスペースに参加しようとしているため、新しく作成していません。${companyDomain} のチームはすでに Expensify を利用しています。参加できるワークスペースを確認してください。`,
+            onboardingJoinWorkspaceMessage: ({companyDomain = '', joinWorkspaceLink = ''}: {companyDomain?: string; joinWorkspaceLink?: string}) =>
+                `あなたは会社のワークスペースに参加しようとしているため、新しく作成していません。${companyDomain} のチームはすでに Expensify を利用しています。[参加できるワークスペースを確認してください。](${joinWorkspaceLink})`,
+            onboardingJoinWorkspaceEmptyMessage: '会社には参加可能なワークスペースがないようです。管理者に連絡して、そのワークスペースに招待してもらってください。',
         },
         workspace: {
             title: 'ワークスペースで整理整頓しよう',

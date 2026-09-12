@@ -472,8 +472,12 @@ const getOnboardingMessages = (locale?: Locale) => {
         tasks: [validateEmailTask],
     };
     const onboardingJoinWorkspaceMessage: OnboardingMessage = {
-        message: ({companyDomain}) => translate(resolvedLocale, 'onboarding.messages.onboardingJoinWorkspaceMessage', {companyDomain}),
+        message: ({companyDomain, joinWorkspaceLink}) => translate(resolvedLocale, 'onboarding.messages.onboardingJoinWorkspaceMessage', {companyDomain, joinWorkspaceLink}),
         tasks: [joinWorkspaceTask],
+    };
+    const onboardingJoinWorkspaceEmptyMessage: OnboardingMessage = {
+        message: translate(resolvedLocale, 'onboarding.messages.onboardingJoinWorkspaceEmptyMessage'),
+        tasks: [],
     };
 
     return {
@@ -500,7 +504,7 @@ const getOnboardingMessages = (locale?: Locale) => {
             addWorkEmail: onboardingJoinWorkspaceAddWorkEmailMessage,
             validateEmail: onboardingJoinWorkspaceValidateEmailMessage,
             joinWorkspace: onboardingJoinWorkspaceMessage,
-            empty: onboardingLookingAroundMessage,
+            empty: onboardingJoinWorkspaceEmptyMessage,
         },
     };
 };

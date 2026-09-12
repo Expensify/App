@@ -3626,8 +3626,10 @@ ${amount} voor ${merchant} - ${date}`,
                 'Omdat je je wilt aansluiten bij de werkruimte van je bedrijf, heb ik er geen voor je aangemaakt. Voeg je werkmail toe en dan kijk ik welke werkruimtes bij jouw bedrijf je kunt joinen.',
             onboardingJoinWorkspaceValidateEmailMessage: ({companyDomain = ''}: {companyDomain?: string}) =>
                 `Omdat je je wilt aansluiten bij de werkruimte van je bedrijf, heb ik er geen voor je aangemaakt. Verifieer je e-mailadres en dan kijk ik welke werkruimtes bij ${companyDomain} je kunt joinen.`,
-            onboardingJoinWorkspaceMessage: ({companyDomain = ''}: {companyDomain?: string}) =>
-                `Omdat je je wilt aansluiten bij de werkruimte van je bedrijf, heb ik er geen voor je aangemaakt. Je team op ${companyDomain} zit al op Expensify. Bekijk de werkruimtes waarbij je je kunt aansluiten.`,
+            onboardingJoinWorkspaceMessage: ({companyDomain = '', joinWorkspaceLink = ''}: {companyDomain?: string; joinWorkspaceLink?: string}) =>
+                `Omdat je je wilt aansluiten bij de werkruimte van je bedrijf, heb ik er geen voor je aangemaakt. Je team op ${companyDomain} zit al op Expensify. [Bekijk de werkruimtes waarbij je je kunt aansluiten.](${joinWorkspaceLink})`,
+            onboardingJoinWorkspaceEmptyMessage:
+                'Het lijkt erop dat je bedrijf geen werkruimtes heeft waar je je bij kunt aansluiten. Neem contact op met je beheerder en vraag om uitgenodigd te worden voor hun werkruimte.',
         },
         workspace: {
             title: 'Blijf georganiseerd met een werkruimte',

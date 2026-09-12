@@ -3637,8 +3637,10 @@ ${amount} für ${merchant} – ${date}`,
                 'Da Sie dem Workspace Ihres Unternehmens beitreten möchten, habe ich keinen eigenen für Sie erstellt. Fügen Sie Ihre geschäftliche E-Mail-Adresse hinzu, und ich prüfe, welchen Workspaces Ihres Unternehmens Sie beitreten können.',
             onboardingJoinWorkspaceValidateEmailMessage: ({companyDomain = ''}: {companyDomain?: string}) =>
                 `Da Sie dem Workspace Ihres Unternehmens beitreten möchten, habe ich keinen eigenen für Sie erstellt. Bestätigen Sie Ihre E-Mail-Adresse, und ich prüfe, welchen Workspaces bei ${companyDomain} Sie beitreten können.`,
-            onboardingJoinWorkspaceMessage: ({companyDomain = ''}: {companyDomain?: string}) =>
-                `Da Sie dem Workspace Ihres Unternehmens beitreten möchten, habe ich keinen für Sie erstellt. Ihr Team unter ${companyDomain} ist bereits auf Expensify. Sehen Sie sich die Workspaces an, denen Sie beitreten können.`,
+            onboardingJoinWorkspaceMessage: ({companyDomain = '', joinWorkspaceLink = ''}: {companyDomain?: string; joinWorkspaceLink?: string}) =>
+                `Da Sie dem Workspace Ihres Unternehmens beitreten möchten, habe ich keinen für Sie erstellt. Ihr Team unter ${companyDomain} ist bereits auf Expensify. [Sehen Sie sich die Workspaces an, denen Sie beitreten können.](${joinWorkspaceLink})`,
+            onboardingJoinWorkspaceEmptyMessage:
+                'Es sieht nicht so aus, als hätte Ihr Unternehmen beitretbare Workspaces. Bitte wenden Sie sich an Ihre Administratorin bzw. Ihren Administrator und bitten Sie darum, zu einem Workspace eingeladen zu werden.',
         },
         workspace: {
             title: 'Bleib mit einem Workspace organisiert',

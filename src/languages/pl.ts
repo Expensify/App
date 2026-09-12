@@ -3654,8 +3654,10 @@ ${amount} dla ${merchant} - ${date}`,
                 'Ponieważ chcesz dołączyć do firmowego obszaru roboczego, nie utworzyłem żadnego dla ciebie. Dodaj swój służbowy adres e‑mail, a sprawdzę, do których obszarów roboczych w twojej firmie możesz dołączyć.',
             onboardingJoinWorkspaceValidateEmailMessage: ({companyDomain = ''}: {companyDomain?: string}) =>
                 `Ponieważ chcesz dołączyć do przestrzeni roboczej swojej firmy, nie utworzyłem żadnej dla ciebie. Potwierdź swój adres e‑mail, a sprawdzę, do których przestrzeni roboczych w domenie ${companyDomain} możesz dołączyć.`,
-            onboardingJoinWorkspaceMessage: ({companyDomain = ''}: {companyDomain?: string}) =>
-                `Ponieważ chcesz dołączyć do firmowej przestrzeni roboczej, nie utworzyłem nowej. Twój zespół w domenie ${companyDomain} już korzysta z Expensify. Zobacz przestrzenie robocze, do których możesz dołączyć.`,
+            onboardingJoinWorkspaceMessage: ({companyDomain = '', joinWorkspaceLink = ''}: {companyDomain?: string; joinWorkspaceLink?: string}) =>
+                `Ponieważ chcesz dołączyć do firmowej przestrzeni roboczej, nie utworzyłem nowej. Twój zespół w domenie ${companyDomain} już korzysta z Expensify. [Zobacz przestrzenie robocze, do których możesz dołączyć.](${joinWorkspaceLink})`,
+            onboardingJoinWorkspaceEmptyMessage:
+                'Wygląda na to, że Twoja firma nie ma przestrzeni roboczych, do których możesz dołączyć. Skontaktuj się z administratorem i poproś o zaproszenie do jego przestrzeni roboczej.',
         },
         workspace: {
             title: 'Zachowaj porządek dzięki przestrzeni roboczej',

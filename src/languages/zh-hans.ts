@@ -3500,8 +3500,9 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             onboardingJoinWorkspaceAddWorkEmailMessage: '由于你想加入你公司的工作区，我就没有为你创建新的工作区。请添加你的工作邮箱，我会检查你在公司可以加入哪些工作区。',
             onboardingJoinWorkspaceValidateEmailMessage: ({companyDomain = ''}: {companyDomain?: string}) =>
                 `由于你想加入你公司的工作区，我就没有为你创建新的工作区。请先验证你的邮箱，我会查看你可以加入哪些位于 ${companyDomain} 的工作区。`,
-            onboardingJoinWorkspaceMessage: ({companyDomain = ''}: {companyDomain?: string}) =>
-                `由于你想加入你们公司的工作区，我没有为你创建新的工作区。你在 ${companyDomain} 的团队已经在使用 Expensify。看看你可以加入哪些工作区。`,
+            onboardingJoinWorkspaceMessage: ({companyDomain = '', joinWorkspaceLink = ''}: {companyDomain?: string; joinWorkspaceLink?: string}) =>
+                `由于你想加入你们公司的工作区，我没有为你创建新的工作区。你在 ${companyDomain} 的团队已经在使用 Expensify。[看看你可以加入哪些工作区。](${joinWorkspaceLink})`,
+            onboardingJoinWorkspaceEmptyMessage: '你的公司似乎没有可加入的工作区。请联系管理员，请他们邀请你加入其工作区。',
         },
         workspace: {
             title: '使用工作区保持井井有条',

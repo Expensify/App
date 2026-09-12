@@ -118,7 +118,7 @@ function createJoinWorkspaceOnboardingContent(contentType: JoinWorkspaceOnboardi
     if (contentType === 'validateEmail') {
         onboardingMessage = joinWorkspaceMessages.validateEmail;
     } else if (contentType === 'empty') {
-        onboardingMessage = {...joinWorkspaceMessages.joinWorkspace, tasks: []};
+        onboardingMessage = joinWorkspaceMessages.empty;
     }
     const onboardingData = prepareOnboardingOnyxData({
         introSelected: {choice: CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE},
