@@ -177,6 +177,18 @@ function sanitizeSearchValue(str: string) {
     return escaped;
 }
 
+function getKeywordQueryForSearchInput(keywords: string[]) {
+    const keywordQuery = keywords.map(sanitizeSearchValue).join(' ');
+
+    // An unmatched opening quote is a literal keyword character, not a phrase delimiter.
+    // Show it as entered only when there is no later quote that could close it on resubmission.
+    if (keywords.at(0)?.startsWith('"') && keywordQuery.startsWith('\\"') && !keywordQuery.slice(2).includes('"')) {
+        return keywordQuery.slice(1);
+    }
+
+    return keywordQuery;
+}
+
 function sanitizeSearchValuePreservingEscapes(str: string) {
     let escaped = '';
 
@@ -252,6 +264,16 @@ function hasUnescapedQuote(str: string) {
     return false;
 }
 
+function hasClosingQuote(str: string, openingQuoteIndex: number) {
+    for (let index = openingQuoteIndex + 1; index < str.length; index++) {
+        if (str.at(index) === '"' && !isEscaped(str, index)) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
 function tokenizeKeywordSegments(keywords: string) {
     const segments: string[] = [];
     let index = 0;
@@ -266,7 +288,7 @@ function tokenizeKeywordSegments(keywords: string) {
         }
 
         const start = index;
-        const startsWithQuote = keywords.at(index) === '"';
+        const startsWithQuote = keywords.at(index) === '"' && hasClosingQuote(keywords, index);
         if (startsWithQuote) {
             index++;
         }
@@ -2879,6 +2901,7 @@ export {
     buildCannedSearchQuery,
     resolvePolicyIDFromName,
     sanitizeSearchValue,
+    getKeywordQueryForSearchInput,
     getQueryWithUpdatedValues,
     getKeywordQueryWithCurrentSearchContext,
     getCurrentSearchQueryJSON,
