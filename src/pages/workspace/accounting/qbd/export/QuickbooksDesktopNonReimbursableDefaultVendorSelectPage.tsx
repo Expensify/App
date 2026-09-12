@@ -36,7 +36,7 @@ function QuickbooksDesktopNonReimbursableDefaultVendorSelectPage({policy}: WithP
     const nonReimbursableBillDefaultVendor = qbdConfig?.export?.nonReimbursableBillDefaultVendor;
 
     const policyID = policy?.id ?? CONST.DEFAULT_NUMBER_ID.toString();
-    const data: CardListItem[] = useMemo(
+    const vendorOptions: CardListItem[] = useMemo(
         () =>
             vendors?.map((vendor) => ({
                 value: vendor.id,
@@ -47,14 +47,29 @@ function QuickbooksDesktopNonReimbursableDefaultVendorSelectPage({policy}: WithP
         [nonReimbursableBillDefaultVendor, vendors],
     );
 
+    const isNonReimbursableBillDefaultVendorNone = !nonReimbursableBillDefaultVendor || nonReimbursableBillDefaultVendor === CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE;
+    const clearOption: CardListItem = useMemo(
+        () => ({
+            value: CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE,
+            text: translate('common.none'),
+            keyForList: CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE,
+            isSelected: isNonReimbursableBillDefaultVendorNone,
+        }),
+        [translate, isNonReimbursableBillDefaultVendorNone],
+    );
+    const shouldShowClearOption = !!nonReimbursableBillDefaultVendor || vendorOptions.length > 0;
+    const data: CardListItem[] = useMemo(() => (shouldShowClearOption ? [clearOption, ...vendorOptions] : vendorOptions), [shouldShowClearOption, clearOption, vendorOptions]);
+
     const selectVendor = useCallback(
         (row: CardListItem) => {
-            if (row.value !== nonReimbursableBillDefaultVendor) {
-                updateQuickbooksDesktopNonReimbursableBillDefaultVendor(policyID, row.value, nonReimbursableBillDefaultVendor);
+            const isAlreadySelected = row.value === nonReimbursableBillDefaultVendor || (row.value === CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE && isNonReimbursableBillDefaultVendorNone);
+            if (isAlreadySelected) {
+                return;
             }
+            updateQuickbooksDesktopNonReimbursableBillDefaultVendor(policyID, row.value, nonReimbursableBillDefaultVendor);
             Navigation.goBack();
         },
-        [nonReimbursableBillDefaultVendor, policyID],
+        [nonReimbursableBillDefaultVendor, isNonReimbursableBillDefaultVendorNone, policyID],
     );
 
     const listEmptyContent = useMemo(
@@ -81,7 +96,7 @@ function QuickbooksDesktopNonReimbursableDefaultVendorSelectPage({policy}: WithP
             data={data}
             onSelectRow={selectVendor}
             shouldSingleExecuteRowSelect
-            initiallyFocusedOptionKey={data.find((mode) => mode.isSelected)?.keyForList}
+            initiallyFocusedOptionKey={shouldShowClearOption ? clearOption.keyForList : data.find((mode) => mode.isSelected)?.keyForList}
             listEmptyContent={listEmptyContent}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.QBD}
             onBackButtonPress={() => Navigation.goBack()}
