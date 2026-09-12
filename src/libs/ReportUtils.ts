@@ -9159,8 +9159,8 @@ function buildOptimisticChangeApproverReportAction(
     let text = `changed the approver to ${newApproverName}`;
     let html = `changed the approver to <mention-user accountID="${managerID}"/>`;
     if (isReassignment) {
-        text = `reassigned approval to ${newApproverName}`;
-        html = `reassigned approval to <mention-user accountID="${managerID}"/>`;
+        text = `changed the approver to ${newApproverName}`;
+        html = `changed the approver to <mention-user accountID="${managerID}"/>`;
         if (previousApproverID) {
             text += `, skipped ${getDisplayNameForParticipant({accountID: previousApproverID, formatPhoneNumber})}`;
             html += `, skipped <mention-user accountID="${previousApproverID}"/>`;

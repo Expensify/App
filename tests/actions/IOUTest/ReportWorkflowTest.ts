@@ -4039,7 +4039,7 @@ describe('actions/IOU/ReportWorkflow', () => {
 
             expect(reportAction.message).toEqual([
                 expect.objectContaining({
-                    html: `reassigned approval to <mention-user accountID="${RORY_ACCOUNT_ID}"/>, skipped <mention-user accountID="${CARLOS_ACCOUNT_ID}"/>`,
+                    html: `changed the approver to <mention-user accountID="${RORY_ACCOUNT_ID}"/>, skipped <mention-user accountID="${CARLOS_ACCOUNT_ID}"/>`,
                 }),
             ]);
             expect(reportAction.originalMessage).toEqual(expect.objectContaining({isReassignment: true, previousApproverID: CARLOS_ACCOUNT_ID}));

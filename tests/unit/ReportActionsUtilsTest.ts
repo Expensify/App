@@ -2270,7 +2270,7 @@ describe('ReportActionsUtils', () => {
                 originalMessage: {mentionedAccountIDs: [2], newApproverID: 2, previousApproverID: 3, isReassignment: true},
             } as ReportAction;
             expect(ReportActionsUtils.getChangedApproverActionMessage(translateLocal, reportAction)).toBe(
-                'reassigned approval to <mention-user accountID="2"/>, skipped <mention-user accountID="3"/>',
+                'changed the approver to <mention-user accountID="2"/>, skipped <mention-user accountID="3"/>',
             );
         });
 
@@ -2282,7 +2282,7 @@ describe('ReportActionsUtils', () => {
                 created: '2024-01-01 00:00:00.000',
                 originalMessage: {mentionedAccountIDs: [2], newApproverID: 2, previousApproverID: 0, isReassignment: true},
             } as ReportAction;
-            expect(ReportActionsUtils.getChangedApproverActionMessage(translateLocal, reportAction)).toBe('reassigned approval to <mention-user accountID="2"/>');
+            expect(ReportActionsUtils.getChangedApproverActionMessage(translateLocal, reportAction)).toBe('changed the approver to <mention-user accountID="2"/>');
         });
 
         it('falls back to the actor for a take control action with no mentioned accounts', () => {
