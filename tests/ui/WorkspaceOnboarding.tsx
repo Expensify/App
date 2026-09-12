@@ -16,7 +16,7 @@ import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 import OnboardingWorkspaces from '@pages/OnboardingWorkspaces';
 
 import {joinAccessiblePolicy} from '@userActions/Policy/Member';
-import {createWorkspace} from '@userActions/Policy/Policy';
+import {createWorkspace, getAccessiblePolicies} from '@userActions/Policy/Policy';
 import {completeOnboarding} from '@userActions/Report';
 import {createJoinWorkspaceOnboardingContent} from '@userActions/Welcome';
 
@@ -36,6 +36,7 @@ import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 const mockCreateWorkspace = jest.mocked(createWorkspace);
+const mockGetAccessiblePolicies = jest.mocked(getAccessiblePolicies);
 const mockCompleteOnboarding = jest.mocked(completeOnboarding);
 const mockJoinAccessiblePolicy = jest.mocked(joinAccessiblePolicy);
 const mockCreateJoinWorkspaceOnboardingContent = jest.mocked(createJoinWorkspaceOnboardingContent);
@@ -70,6 +71,7 @@ jest.mock('@userActions/Policy/Policy', () => {
             policyID: 'test-policy-id',
             adminsChatReportID: 'test-admins-report-id',
         }),
+        getAccessiblePolicies: jest.fn(),
     };
 });
 
@@ -263,6 +265,44 @@ describe('OnboardingWorkspaces Page', () => {
             expect(navigate).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute('123'));
         });
         expect(mockCreateJoinWorkspaceOnboardingContent).toHaveBeenCalledWith('empty', expect.any(String), expect.any(String), undefined);
+
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
+    it('should request accessible policies once when an empty response finishes loading', async () => {
+        await TestHelper.signInWithTestUser();
+
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {
+                hasCompletedGuidedSetupFlow: true,
+            });
+            await Onyx.set(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED, CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE);
+            await Onyx.set(ONYXKEYS.LOGINS, {
+                '1_test@user.com': {
+                    partnerID: CONST.PARTNER_ID.EXPENSIFY,
+                    partnerUserID: 'test@user.com',
+                    validatedDate: '2026-09-12 00:00:00',
+                },
+            });
+            await Onyx.set(ONYXKEYS.JOINABLE_POLICIES, {});
+            await Onyx.set(ONYXKEYS.VALIDATE_USER_AND_GET_ACCESSIBLE_POLICIES, {loading: false});
+        });
+
+        const {unmount} = renderOnboardingWorkspacesPage(SCREENS.ONBOARDING.WORKSPACES, {backTo: ''});
+
+        await waitFor(() => {
+            expect(mockGetAccessiblePolicies).toHaveBeenCalledTimes(1);
+        });
+
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.VALIDATE_USER_AND_GET_ACCESSIBLE_POLICIES, {loading: true});
+            await Onyx.merge(ONYXKEYS.VALIDATE_USER_AND_GET_ACCESSIBLE_POLICIES, {loading: false});
+        });
+
+        await waitForBatchedUpdatesWithAct();
+
+        expect(mockGetAccessiblePolicies).toHaveBeenCalledTimes(1);
 
         unmount();
         await waitForBatchedUpdatesWithAct();
