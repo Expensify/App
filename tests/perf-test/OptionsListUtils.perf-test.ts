@@ -202,6 +202,7 @@ describe('OptionsListUtils', () => {
                 {
                     dateFnsLocale: undefined,
                     convertToDisplayString,
+                    currentUserAccountID: MOCK_CURRENT_USER_ACCOUNT_ID,
                 },
                 undefined,
             );
@@ -233,6 +234,7 @@ describe('OptionsListUtils', () => {
                 {
                     dateFnsLocale: undefined,
                     convertToDisplayString,
+                    currentUserAccountID: MOCK_CURRENT_USER_ACCOUNT_ID,
                 },
                 undefined,
             );
@@ -446,6 +448,7 @@ describe('OptionsListUtils', () => {
                 {
                     dateFnsLocale: undefined,
                     convertToDisplayString,
+                    currentUserAccountID: MOCK_CURRENT_USER_ACCOUNT_ID,
                 },
                 undefined,
             );

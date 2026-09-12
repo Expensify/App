@@ -166,6 +166,7 @@ function InSelector({value = [], selectionListTextInputStyle, selectionListStyle
             convertToDisplayString,
             selectedOptions,
             excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
+            currentUserAccountID,
         },
         rules,
     );

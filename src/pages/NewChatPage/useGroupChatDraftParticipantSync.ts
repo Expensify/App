@@ -73,6 +73,7 @@ function useGroupChatDraftParticipantSync(
                       personalDetails: allPersonalDetails,
                       loginList,
                       currentUserEmail,
+                      currentUserAccountID,
                       rules,
                   });
             if (option) {

@@ -1698,6 +1698,7 @@ function getUserToInviteOption({
     countryCode = CONST.DEFAULT_COUNTRY_CODE,
     loginList = {},
     currentUserEmail,
+    currentUserAccountID,
     visibleReportActionsData = {},
     rules,
 }: GetUserToInviteConfig & {visibleReportActionsData?: VisibleReportActionsDerivedValue; dateFnsLocale: DateFnsLocale | undefined; rules: OnyxCollection<Rule>}): SearchOptionData | null {
@@ -1744,6 +1745,7 @@ function getUserToInviteOption({
         conciergeReportID: undefined,
         config: {showChatPreviewLine},
         visibleReportActionsData,
+        currentUserAccountID,
     });
     userToInvite.isOptimisticAccount = true;
     userToInvite.login = searchValue;
@@ -2443,6 +2445,7 @@ function getValidOptions(
                 excludeLogins: loginsToExclude,
                 shouldAcceptName,
                 searchInputValue,
+                currentUserAccountID,
             },
             rules,
         );
@@ -2885,7 +2888,7 @@ function filterUserToInvite(
     config: FilterUserToInviteConfig,
     rules: OnyxCollection<Rule>,
 ): SearchOptionData | null {
-    const {canInviteUser = true, excludeLogins = {}} = config;
+    const {canInviteUser = true, excludeLogins = {}, currentUserAccountID} = config;
     if (!canInviteUser) {
         return null;
     }
@@ -2914,6 +2917,7 @@ function filterUserToInvite(
         currentUserEmail,
         rules,
         ...config,
+        currentUserAccountID,
     });
 }
 
@@ -2956,6 +2960,7 @@ function filterOptions<T extends SearchOptionData>(
         {
             ...config,
             searchInputValue: searchInputValueForInvite,
+            currentUserAccountID,
         },
         rules,
     );

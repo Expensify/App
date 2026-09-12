@@ -1419,6 +1419,7 @@ describe('OptionsListUtils', () => {
                 personalDetails,
                 {
                     dateFnsLocale: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
                 undefined,
@@ -1983,6 +1984,7 @@ describe('OptionsListUtils', () => {
                 PERSONAL_DETAILS,
                 {
                     dateFnsLocale: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
                 undefined,
@@ -3312,6 +3314,7 @@ describe('OptionsListUtils', () => {
                 PERSONAL_DETAILS,
                 {
                     dateFnsLocale: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
                 undefined,
@@ -3353,6 +3356,7 @@ describe('OptionsListUtils', () => {
                 PERSONAL_DETAILS,
                 {
                     dateFnsLocale: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                     sortByReportTypeInSearch: true,
                 },
@@ -3402,6 +3406,7 @@ describe('OptionsListUtils', () => {
                 PERSONAL_DETAILS,
                 {
                     dateFnsLocale: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
                 undefined,
@@ -3463,6 +3468,7 @@ describe('OptionsListUtils', () => {
                 PERSONAL_DETAILS,
                 {
                     dateFnsLocale: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
                 undefined,
@@ -3521,6 +3527,7 @@ describe('OptionsListUtils', () => {
                 PERSONAL_DETAILS_WITH_PERIODS,
                 {
                     dateFnsLocale: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                     sortByReportTypeInSearch: true,
                 },
@@ -3564,6 +3571,7 @@ describe('OptionsListUtils', () => {
                 PERSONAL_DETAILS,
                 {
                     dateFnsLocale: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
                 undefined,
@@ -3606,6 +3614,7 @@ describe('OptionsListUtils', () => {
                 PERSONAL_DETAILS,
                 {
                     dateFnsLocale: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
                 undefined,
@@ -3658,6 +3667,7 @@ describe('OptionsListUtils', () => {
                 PERSONAL_DETAILS,
                 {
                     dateFnsLocale: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
                 undefined,
@@ -3700,6 +3710,7 @@ describe('OptionsListUtils', () => {
                 PERSONAL_DETAILS,
                 {
                     dateFnsLocale: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
                 undefined,
@@ -3744,6 +3755,7 @@ describe('OptionsListUtils', () => {
                 PERSONAL_DETAILS,
                 {
                     dateFnsLocale: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
                 undefined,
@@ -3779,6 +3791,7 @@ describe('OptionsListUtils', () => {
                 PERSONAL_DETAILS,
                 {
                     dateFnsLocale: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                     excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
                 },
@@ -3820,6 +3833,7 @@ describe('OptionsListUtils', () => {
                 PERSONAL_DETAILS,
                 {
                     dateFnsLocale: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                     excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
                 },
@@ -3861,6 +3875,7 @@ describe('OptionsListUtils', () => {
                 PERSONAL_DETAILS,
                 {
                     dateFnsLocale: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                     maxRecentReportsToShow: 2,
                 },
@@ -3882,6 +3897,7 @@ describe('OptionsListUtils', () => {
                 PERSONAL_DETAILS,
                 {
                     dateFnsLocale: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                     maxRecentReportsToShow: 0,
                 },
@@ -3923,6 +3939,7 @@ describe('OptionsListUtils', () => {
                 PERSONAL_DETAILS,
                 {
                     dateFnsLocale: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
                 undefined,
@@ -3983,6 +4000,7 @@ describe('OptionsListUtils', () => {
                 PERSONAL_DETAILS,
                 {
                     dateFnsLocale: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
                 undefined,
@@ -4046,6 +4064,7 @@ describe('OptionsListUtils', () => {
                 PERSONAL_DETAILS,
                 {
                     dateFnsLocale: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
                 undefined,
@@ -4109,6 +4128,7 @@ describe('OptionsListUtils', () => {
                 PERSONAL_DETAILS,
                 {
                     dateFnsLocale: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
                 undefined,
@@ -4143,6 +4163,7 @@ describe('OptionsListUtils', () => {
                 PERSONAL_DETAILS,
                 {
                     dateFnsLocale: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
                 undefined,
@@ -4479,6 +4500,7 @@ describe('OptionsListUtils', () => {
                 PERSONAL_DETAILS,
                 {
                     dateFnsLocale: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
                 undefined,
@@ -4514,6 +4536,7 @@ describe('OptionsListUtils', () => {
                 PERSONAL_DETAILS,
                 {
                     dateFnsLocale: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
                 undefined,
@@ -4551,6 +4574,7 @@ describe('OptionsListUtils', () => {
                 PERSONAL_DETAILS,
                 {
                     dateFnsLocale: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
                 undefined,
@@ -4588,6 +4612,7 @@ describe('OptionsListUtils', () => {
                 PERSONAL_DETAILS,
                 {
                     dateFnsLocale: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
                 undefined,
@@ -4624,6 +4649,7 @@ describe('OptionsListUtils', () => {
                 PERSONAL_DETAILS,
                 {
                     dateFnsLocale: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
                 undefined,
@@ -4658,6 +4684,7 @@ describe('OptionsListUtils', () => {
                 PERSONAL_DETAILS,
                 {
                     dateFnsLocale: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
                 undefined,
@@ -4697,6 +4724,7 @@ describe('OptionsListUtils', () => {
                 PERSONAL_DETAILS,
                 {
                     dateFnsLocale: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
                 undefined,
@@ -4736,6 +4764,7 @@ describe('OptionsListUtils', () => {
                 PERSONAL_DETAILS,
                 {
                     dateFnsLocale: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
                 undefined,
@@ -4775,6 +4804,7 @@ describe('OptionsListUtils', () => {
                 PERSONAL_DETAILS,
                 {
                     dateFnsLocale: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
                 undefined,
@@ -4813,6 +4843,7 @@ describe('OptionsListUtils', () => {
                 PERSONAL_DETAILS,
                 {
                     dateFnsLocale: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                     shouldAcceptName: false,
                 },
@@ -4849,6 +4880,7 @@ describe('OptionsListUtils', () => {
                 PERSONAL_DETAILS,
                 {
                     dateFnsLocale: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                     shouldAcceptName: true,
                 },
@@ -4884,6 +4916,7 @@ describe('OptionsListUtils', () => {
                 PERSONAL_DETAILS,
                 {
                     dateFnsLocale: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
                 undefined,
@@ -4918,6 +4951,7 @@ describe('OptionsListUtils', () => {
                 PERSONAL_DETAILS,
                 {
                     dateFnsLocale: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                     sortByReportTypeInSearch: true,
                 },
@@ -4957,6 +4991,7 @@ describe('OptionsListUtils', () => {
                 PERSONAL_DETAILS,
                 {
                     dateFnsLocale: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                     maxRecentReportsToShow: 5,
                 },
@@ -5003,6 +5038,7 @@ describe('OptionsListUtils', () => {
                 PERSONAL_DETAILS,
                 {
                     dateFnsLocale: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
                 undefined,
@@ -5043,6 +5079,7 @@ describe('OptionsListUtils', () => {
                 PERSONAL_DETAILS,
                 {
                     dateFnsLocale: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
                 undefined,
@@ -5099,7 +5136,7 @@ describe('OptionsListUtils', () => {
                         CURRENT_USER_EMAIL,
                         CURRENT_USER_ACCOUNT_ID,
                         PERSONAL_DETAILS_WITH_PERIODS,
-                        {dateFnsLocale: undefined, convertToDisplayString, sortByReportTypeInSearch: true},
+                        {dateFnsLocale: undefined, convertToDisplayString, sortByReportTypeInSearch: true, currentUserAccountID: CURRENT_USER_ACCOUNT_ID},
                         undefined,
                     );
 
@@ -5145,6 +5182,7 @@ describe('OptionsListUtils', () => {
                 PERSONAL_DETAILS,
                 {
                     dateFnsLocale: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
                 undefined,
@@ -5203,6 +5241,7 @@ describe('OptionsListUtils', () => {
                 PERSONAL_DETAILS,
                 {
                     dateFnsLocale: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
                 undefined,
@@ -5241,6 +5280,7 @@ describe('OptionsListUtils', () => {
                 PERSONAL_DETAILS,
                 {
                     dateFnsLocale: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
                 undefined,
@@ -5255,6 +5295,7 @@ describe('OptionsListUtils', () => {
                 PERSONAL_DETAILS,
                 {
                     dateFnsLocale: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
                 undefined,
@@ -6952,6 +6993,7 @@ describe('OptionsListUtils', () => {
 
             const result = createOption({
                 dateFnsLocale: undefined,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 convertToDisplayString,
                 conciergeReportID: undefined,
                 accountIDs: [1, 2],
@@ -9662,6 +9704,7 @@ describe('OptionsListUtils', () => {
         it('should not return userToInvite for plain text name when shouldAcceptName is false', () => {
             const result = getUserToInviteOption({
                 dateFnsLocale: undefined,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 convertToDisplayString,
                 searchValue: 'Jeff Amazon',
                 personalDetails: PERSONAL_DETAILS,
@@ -9675,6 +9718,7 @@ describe('OptionsListUtils', () => {
         it('should return userToInvite for plain text name when shouldAcceptName is true', () => {
             const result = getUserToInviteOption({
                 dateFnsLocale: undefined,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 convertToDisplayString,
                 searchValue: 'Jeff Amazon',
                 personalDetails: PERSONAL_DETAILS,
@@ -9685,6 +9729,157 @@ describe('OptionsListUtils', () => {
             });
             expect(result).not.toBeNull();
             expect(result?.login).toBe('Jeff Amazon');
+        });
+
+        it('should return a valid invite option for a new email', () => {
+            const result = getUserToInviteOption({
+                dateFnsLocale: undefined,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                convertToDisplayString,
+                searchValue: 'newuser@example.com',
+                personalDetails: PERSONAL_DETAILS,
+                loginList: {},
+                currentUserEmail: CURRENT_USER_EMAIL,
+                rules: undefined,
+            });
+
+            expect(result).not.toBeNull();
+            expect(result?.login).toBe('newuser@example.com');
+            expect(result?.isOptimisticAccount).toBe(true);
+        });
+
+        it('should return null when searchValue is empty', () => {
+            const result = getUserToInviteOption({
+                dateFnsLocale: undefined,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                convertToDisplayString,
+                searchValue: '',
+                personalDetails: PERSONAL_DETAILS,
+                loginList: {},
+                currentUserEmail: CURRENT_USER_EMAIL,
+                rules: undefined,
+            });
+
+            expect(result).toBeNull();
+        });
+
+        it('should return null when searching for current user email', () => {
+            const result = getUserToInviteOption({
+                dateFnsLocale: undefined,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                convertToDisplayString,
+                searchValue: CURRENT_USER_EMAIL,
+                personalDetails: PERSONAL_DETAILS,
+                loginList: {},
+                currentUserEmail: CURRENT_USER_EMAIL,
+                rules: undefined,
+            });
+
+            expect(result).toBeNull();
+        });
+    });
+
+    describe('filterAndOrderOptions with userToInvite', () => {
+        it('should produce userToInvite when searching for a new email with config', () => {
+            const {options} = getValidOptions(
+                {reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails},
+                allPolicies,
+                {},
+                loginList,
+                CURRENT_USER_ACCOUNT_ID,
+                CURRENT_USER_EMAIL,
+                undefined,
+                {dateFnsLocale: undefined, convertToDisplayString},
+                translateLocal,
+                undefined,
+            );
+
+            const filteredOptions = filterAndOrderOptions(
+                options,
+                'newuser@example.com',
+                COUNTRY_CODE,
+                loginList,
+                CURRENT_USER_EMAIL,
+                CURRENT_USER_ACCOUNT_ID,
+                PERSONAL_DETAILS,
+                {
+                    dateFnsLocale: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    convertToDisplayString,
+                },
+                undefined,
+            );
+
+            expect(filteredOptions.userToInvite).not.toBeNull();
+            expect(filteredOptions.userToInvite?.login).toBe('newuser@example.com');
+            expect(filteredOptions.userToInvite?.isOptimisticAccount).toBe(true);
+        });
+
+        it('should produce userToInvite when searching for a new email without config', () => {
+            const {options} = getValidOptions(
+                {reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails},
+                allPolicies,
+                {},
+                loginList,
+                CURRENT_USER_ACCOUNT_ID,
+                CURRENT_USER_EMAIL,
+                undefined,
+                {dateFnsLocale: undefined, convertToDisplayString},
+                translateLocal,
+                undefined,
+            );
+
+            const filteredOptions = filterAndOrderOptions(
+                options,
+                'anotheruser@example.com',
+                COUNTRY_CODE,
+                loginList,
+                CURRENT_USER_EMAIL,
+                CURRENT_USER_ACCOUNT_ID,
+                PERSONAL_DETAILS,
+                {
+                    dateFnsLocale: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    convertToDisplayString,
+                },
+                undefined,
+            );
+
+            expect(filteredOptions.userToInvite).not.toBeNull();
+            expect(filteredOptions.userToInvite?.login).toBe('anotheruser@example.com');
+        });
+
+        it('should not produce userToInvite when search matches current user', () => {
+            const {options} = getValidOptions(
+                {reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails},
+                allPolicies,
+                {},
+                loginList,
+                CURRENT_USER_ACCOUNT_ID,
+                CURRENT_USER_EMAIL,
+                undefined,
+                {dateFnsLocale: undefined, convertToDisplayString},
+                translateLocal,
+                undefined,
+            );
+
+            const filteredOptions = filterAndOrderOptions(
+                options,
+                CURRENT_USER_EMAIL,
+                COUNTRY_CODE,
+                loginList,
+                CURRENT_USER_EMAIL,
+                CURRENT_USER_ACCOUNT_ID,
+                PERSONAL_DETAILS,
+                {
+                    dateFnsLocale: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    convertToDisplayString,
+                },
+                undefined,
+            );
+
+            expect(filteredOptions.userToInvite).toBeNull();
         });
     });
 
@@ -9736,6 +9931,7 @@ describe('OptionsListUtils', () => {
                 PERSONAL_DETAILS,
                 {
                     dateFnsLocale: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     convertToDisplayString,
                 },
                 undefined,
@@ -9798,6 +9994,7 @@ describe('OptionsListUtils', () => {
             // Given a valid email search value and reports collection
             const result = getUserToInviteOption({
                 dateFnsLocale: undefined,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 convertToDisplayString,
                 searchValue: 'newuser@example.com',
                 loginList: {},
