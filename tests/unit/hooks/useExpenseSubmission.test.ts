@@ -872,7 +872,7 @@ describe('useExpenseSubmission orchestrator-suppressed cleanup', () => {
             await waitForBatchedUpdatesWithAct();
 
             expect(mockStartSplitBillAction).toHaveBeenCalledTimes(1);
-            expect(mockStartSplitBillAction).toHaveBeenCalledWith(expect.objectContaining({optimisticSplitChatReportID: 'optimistic-scan-chat'}));
+            expect(mockStartSplitBillAction).toHaveBeenCalledWith(expect.objectContaining({optimisticSplitChatReportID: 'optimistic-scan-chat', isFirstSplitInBatch: true}));
             expect(mockDismissModalAndOpenReportInInboxTab).toHaveBeenCalledWith('optimistic-scan-chat', undefined, false);
         });
 
@@ -990,8 +990,8 @@ describe('useExpenseSubmission orchestrator-suppressed cleanup', () => {
 
             expect(mockResolveOptimisticSplitChatReportID).toHaveBeenCalledTimes(1);
             expect(mockStartSplitBillAction).toHaveBeenCalledTimes(2);
-            expect(mockStartSplitBillAction).toHaveBeenNthCalledWith(1, expect.objectContaining({optimisticSplitChatReportID: 'optimistic-scan-chat'}));
-            expect(mockStartSplitBillAction).toHaveBeenNthCalledWith(2, expect.objectContaining({optimisticSplitChatReportID: 'optimistic-scan-chat'}));
+            expect(mockStartSplitBillAction).toHaveBeenNthCalledWith(1, expect.objectContaining({optimisticSplitChatReportID: 'optimistic-scan-chat', isFirstSplitInBatch: true}));
+            expect(mockStartSplitBillAction).toHaveBeenNthCalledWith(2, expect.objectContaining({optimisticSplitChatReportID: 'optimistic-scan-chat', isFirstSplitInBatch: false}));
             expect(mockDismissModalAndOpenReportInInboxTab).toHaveBeenCalledTimes(1);
             expect(mockDismissModalAndOpenReportInInboxTab).toHaveBeenCalledWith('optimistic-scan-chat', undefined, false);
         });
