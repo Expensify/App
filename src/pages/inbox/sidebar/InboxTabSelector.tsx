@@ -11,14 +11,17 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePopoverPosition from '@hooks/usePopoverPosition';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import {useSidebarOrderedReportsActions, useSidebarOrderedReportsState} from '@hooks/useSidebarOrderedReports';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import markAllMessagesAsRead from '@libs/actions/Report/MarkAllMessageAsRead';
+import useIsSidebarRouteActive from '@libs/Navigation/helpers/useIsSidebarRouteActive';
 
 import type {AnchorPosition} from '@styles/index';
 
 import CONST from '@src/CONST';
+import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 import type {ValueOf} from 'type-fest';
@@ -34,6 +37,8 @@ const anchorAlignment = {
 
 function InboxTabSelector() {
     const {translate} = useLocalize();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const isScreenFocused = useIsSidebarRouteActive(NAVIGATORS.REPORTS_SPLIT_NAVIGATOR, shouldUseNarrowLayout);
     const styles = useThemeStyles();
     const {activeTab, inboxTabCounts, hasStaleUnreadReport} = useSidebarOrderedReportsState();
     const {setActiveTab, getReportIDsForTab} = useSidebarOrderedReportsActions();
@@ -43,7 +48,7 @@ function InboxTabSelector() {
     // Only show the tooltip if we have unread message > 3 months old.
     const {renderProductTrainingTooltip, shouldShowProductTrainingTooltip, hideProductTrainingTooltip} = useProductTrainingContext(
         CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.MARK_ALL_AS_READ,
-        hasStaleUnreadReport,
+        isScreenFocused && hasStaleUnreadReport,
     );
 
     // Anchor the popover to the tab it was opened from (not the whole tab row) so it opens at that tab's left edge.
