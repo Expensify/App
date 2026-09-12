@@ -1787,10 +1787,6 @@ function isCardPendingReplace(card?: Card) {
  *
  * @param card personal card to check
  */
-function isPersonalCardBrokenConnection(card?: Card) {
-    return card?.lastScrapeResult && !CONST.COMPANY_CARDS.BROKEN_CONNECTION_IGNORED_STATUSES.includes(card?.lastScrapeResult);
-}
-
 function isExpensifyCardPendingAction(card?: Card, privatePersonalDetails?: PrivatePersonalDetails): boolean {
     return (
         card?.bank === CONST.EXPENSIFY_CARD.BANK &&
@@ -2262,7 +2258,6 @@ export {
     isTravelCardTransaction,
     getCompanyFeeds,
     hasCompanyCardFeeds,
-    isPersonalCardBrokenConnection,
     isCustomFeed,
     isCSVUploadFeed,
     isCSVFeedOrExpensifyCard,
