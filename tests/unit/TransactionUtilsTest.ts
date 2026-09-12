@@ -5464,6 +5464,78 @@ describe('doesMoneyRequestDraftHaveUserInput', () => {
     });
 });
 
+describe('hasAllManuallyEnteredScanFields', () => {
+    function generateScanDraft(values: Partial<Transaction> = {}): Transaction {
+        return generateTransaction({iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN, ...values});
+    }
+
+    it('returns false while any of the three fields is still left to SmartScan', () => {
+        expect(TransactionUtils.hasAllManuallyEnteredScanFields(undefined)).toBe(false);
+        expect(TransactionUtils.hasAllManuallyEnteredScanFields(generateScanDraft())).toBe(false);
+        expect(TransactionUtils.hasAllManuallyEnteredScanFields(generateScanDraft({isAmountSet: true, isMerchantSet: true}))).toBe(false);
+    });
+
+    it('returns true once every one of them has been entered', () => {
+        expect(TransactionUtils.hasAllManuallyEnteredScanFields(generateScanDraft({isAmountSet: true, isMerchantSet: true, isCreatedSet: true}))).toBe(true);
+    });
+
+    it('returns false for expense types that populate those fields programmatically', () => {
+        const values = {isAmountSet: true, isMerchantSet: true, isCreatedSet: true};
+        expect(TransactionUtils.hasAllManuallyEnteredScanFields(generateTransaction({iouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL, ...values}))).toBe(false);
+        expect(TransactionUtils.hasAllManuallyEnteredScanFields(generateTransaction({iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE, ...values}))).toBe(false);
+    });
+});
+
+describe('hasAnyManuallyEnteredScanField / isPartiallyEnteredScanExpense', () => {
+    function generateScanDraft(values: Partial<Transaction> = {}): Transaction {
+        return generateTransaction({iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN, ...values});
+    }
+
+    it('reports nothing entered while all three fields are left to SmartScan', () => {
+        expect(TransactionUtils.hasAnyManuallyEnteredScanField(generateScanDraft())).toBe(false);
+        expect(TransactionUtils.isPartiallyEnteredScanExpense(generateScanDraft(), true)).toBe(false);
+    });
+
+    it.each([
+        ['amount', {isAmountSet: true}],
+        ['merchant', {isMerchantSet: true}],
+        ['date', {isCreatedSet: true}],
+    ])('treats the expense as partially filled once only the %s is entered', (_field, values) => {
+        expect(TransactionUtils.hasAnyManuallyEnteredScanField(generateScanDraft(values))).toBe(true);
+        expect(TransactionUtils.isPartiallyEnteredScanExpense(generateScanDraft(values), true)).toBe(true);
+    });
+
+    it('stops reporting a partially filled expense once all three are entered', () => {
+        const complete = generateScanDraft({isAmountSet: true, isMerchantSet: true, isCreatedSet: true});
+        expect(TransactionUtils.hasAnyManuallyEnteredScanField(complete)).toBe(true);
+        expect(TransactionUtils.isPartiallyEnteredScanExpense(complete, true)).toBe(false);
+    });
+
+    it('holds no surface to the rule unless it actually offers the three fields', () => {
+        // Splits, moved tracked expenses and test receipts carry the same flags without ever having shown them.
+        expect(TransactionUtils.isPartiallyEnteredScanExpense(generateScanDraft({isAmountSet: true}), false)).toBe(false);
+    });
+});
+
+describe('buildOptimisticTransaction receipt state', () => {
+    const receipt = {source: 'https://example.com/receipt.jpg', name: 'receipt.jpg', state: CONST.IOU.RECEIPT_STATE.SCAN_READY};
+
+    it('keeps the receipt state the caller validated when no override is given', () => {
+        const transaction = TransactionUtils.buildOptimisticTransaction({
+            transactionParams: {amount: 100, currency: 'USD', reportID: '1', comment: '', created: '2023-10-01', receipt},
+        });
+        expect(transaction.receipt?.state).toBe(CONST.IOU.RECEIPT_STATE.SCAN_READY);
+    });
+
+    it('prefers the override so a scan the user filled in never reads as "Scanning..."', () => {
+        const transaction = TransactionUtils.buildOptimisticTransaction({
+            transactionParams: {amount: 100, currency: 'USD', reportID: '1', comment: '', created: '2023-10-01', receipt, receiptState: CONST.IOU.RECEIPT_STATE.OPEN},
+        });
+        expect(transaction.receipt?.state).toBe(CONST.IOU.RECEIPT_STATE.OPEN);
+        expect(TransactionUtils.isReceiptBeingScanned(transaction)).toBe(false);
+    });
+});
+
 describe('isTransactionSubmittable', () => {
     it('returns true for a transaction that is on hold', () => {
         const transaction = generateTransaction({comment: {hold: 'holdID'}});

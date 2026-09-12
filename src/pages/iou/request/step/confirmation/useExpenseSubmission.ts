@@ -53,10 +53,12 @@ import {
     getSelectedRouteDistance,
     getTaxValue,
     getValidWaypoints,
+    hasAllManuallyEnteredScanFields,
     hasAppliedCommuterExclusion,
     isDistanceRequest as isDistanceRequestTransactionUtils,
     isGPSDistanceRequest as isGPSDistanceRequestTransactionUtils,
     isManualDistanceRequest as isManualDistanceRequestTransactionUtils,
+    isScanRequest as isScanRequestTransactionUtils,
 } from '@libs/TransactionUtils';
 
 import {resolveChatTargetForSubmitCleanup} from '@pages/iou/request/step/resolveChatTarget';
@@ -81,6 +83,7 @@ import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 
 import {delegateEmailSelector} from '@selectors/Account';
 import {hasSeenTourSelector} from '@selectors/Onboarding';
@@ -115,6 +118,9 @@ type UseExpenseSubmissionParams = {
     transaction: OnyxEntry<Transaction>;
     transactions: Transaction[];
     receiptFiles: Record<string, Receipt>;
+
+    /** Whether this surface offers manual entry of the amount / merchant / date. False for splits, test receipts and moved tracked expenses. */
+    canEnterScanFieldsManually: boolean;
 
     // Report data
     report: OnyxEntry<Report>;
@@ -183,6 +189,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         transaction,
         transactions,
         receiptFiles,
+        canEnterScanFieldsManually,
         report,
         reportID,
         policy,
@@ -402,6 +409,19 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
     }
 
     /**
+     * `receiptFiles` bakes in the receipt state during an async validation pass, so it lags the field the user just
+     * typed. Deriving it from the live transaction at submit time keeps SmartScan from scanning over entered values.
+     * `undefined` leaves the validated receipt's own state in place, which is what every other flow submits.
+     */
+    function getCurrentReceiptState(item: Transaction): ValueOf<typeof CONST.IOU.RECEIPT_STATE> | undefined {
+        const receipt = receiptFiles[item.transactionID];
+        if (!receipt || !canEnterScanFieldsManually || receipt.isTestReceipt || receipt.isTestDriveReceipt || !isScanRequestTransactionUtils(item)) {
+            return undefined;
+        }
+        return hasAllManuallyEnteredScanFields(item) ? CONST.IOU.RECEIPT_STATE.OPEN : CONST.IOU.RECEIPT_STATE.SCAN_READY;
+    }
+
+    /**
      * Emits the `[Receipt] submitted` log for one expense as it leaves the confirmation page.
      */
     function logSubmittedReceiptMilestone(item: Transaction, receipt: Receipt | undefined, optimisticTransactionID: string, command: string) {
@@ -539,6 +559,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                     merchant: merchantToUse,
                     comment: item?.comment?.comment?.trim() ?? '',
                     receipt,
+                    receiptState: getCurrentReceiptState(item),
                     category: item.category,
                     tag: item.tag,
                     taxCode: transactionTaxCode,
@@ -827,6 +848,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                     merchant: item.merchant,
                     comment: item?.comment?.comment?.trim() ?? '',
                     receipt: trackReceipt,
+                    receiptState: getCurrentReceiptState(item),
                     category: item.category,
                     tag: item.tag,
                     taxCode: transactionTaxCode,

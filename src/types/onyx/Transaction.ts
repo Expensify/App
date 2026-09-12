@@ -547,6 +547,9 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Whether the merchant has been explicitly set by the user */
         isMerchantSet?: boolean;
 
+        /** Whether the date has been explicitly picked by the user */
+        isCreatedSet?: boolean;
+
         /** The original merchant name */
         merchant: string;
 

@@ -11,6 +11,7 @@ import useExpenseSubmission from '@pages/iou/request/step/confirmation/useExpens
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, PolicyCategories, Report, ReportAction, Transaction} from '@src/types/onyx';
+import type {Receipt} from '@src/types/onyx/Transaction';
 
 import Onyx from 'react-native-onyx';
 
@@ -203,6 +204,7 @@ function buildParams(overrides: Partial<Parameters<typeof useExpenseSubmission>[
         transaction,
         transactions: [transaction],
         receiptFiles: {},
+        canEnterScanFieldsManually: false,
         report: {reportID: REPORT_ID, type: CONST.REPORT.TYPE.CHAT} as Report,
         reportID: REPORT_ID,
         policy: createMock<Policy>({id: 'policy-1'}),
@@ -281,6 +283,74 @@ describe('useExpenseSubmission orchestrator-suppressed cleanup', () => {
                 getChatByParticipantsSpy.mockRestore();
                 getReusableP2PReportIDSpy.mockRestore();
             }
+        });
+
+        describe('receipt state on a Scan the user filled in', () => {
+            function buildScanParams(transactionOverrides: Partial<Transaction>, cachedReceiptState: Receipt['state']) {
+                const transaction = buildTransaction({iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN, ...transactionOverrides});
+                return buildParams({
+                    transaction,
+                    transactions: [transaction],
+                    canEnterScanFieldsManually: true,
+                    receiptFiles: {[TRANSACTION_ID]: createMock<Receipt>({state: cachedReceiptState})},
+                });
+            }
+
+            async function submit(params: Parameters<typeof useExpenseSubmission>[0]) {
+                const {result} = renderHook(() => useExpenseSubmission(params));
+                await waitForBatchedUpdatesWithAct();
+                await act(async () => {
+                    result.current.createTransaction(false, false);
+                });
+                await waitForBatchedUpdatesWithAct();
+            }
+
+            it('submits `open` when all three fields are entered, even while the cached receipt still says SCAN_READY', async () => {
+                // Given a scan the user filled in whose receipt was validated before the last field was entered
+                await submit(buildScanParams({isAmountSet: true, isMerchantSet: true, isCreatedSet: true}, CONST.IOU.RECEIPT_STATE.SCAN_READY));
+
+                // Then SmartScan is told to leave the receipt alone rather than overwriting what the user typed
+                expect(mockRequestMoneyAction).toHaveBeenCalledWith(
+                    expect.objectContaining({
+                        transactionParams: expect.objectContaining({receiptState: CONST.IOU.RECEIPT_STATE.OPEN}),
+                    }),
+                );
+            });
+
+            it('submits `scanready` once a field is cleared again, even while the cached receipt still says OPEN', async () => {
+                // Given a scan whose merchant the user cleared after having filled all three fields
+                await submit(buildScanParams({isAmountSet: true, isMerchantSet: false, isCreatedSet: true}, CONST.IOU.RECEIPT_STATE.OPEN));
+
+                // Then SmartScan is asked to read the receipt so the cleared field still gets filled in
+                expect(mockRequestMoneyAction).toHaveBeenCalledWith(
+                    expect.objectContaining({
+                        transactionParams: expect.objectContaining({receiptState: CONST.IOU.RECEIPT_STATE.SCAN_READY}),
+                    }),
+                );
+            });
+
+            it('sends no override on surfaces that do not expose the scan fields, leaving the validated receipt state alone', async () => {
+                // Given a manual expense with an attached receipt, which the validator already marked `open`
+                const transaction = buildTransaction({iouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL});
+                await submit(
+                    buildParams({
+                        transaction,
+                        transactions: [transaction],
+                        canEnterScanFieldsManually: false,
+                        receiptFiles: {[TRANSACTION_ID]: createMock<Receipt>({state: CONST.IOU.RECEIPT_STATE.OPEN})},
+                    }),
+                );
+
+                // Then no override is sent and the action keeps using the state the validator wrote onto the receipt
+                expect(mockRequestMoneyAction).toHaveBeenCalledWith(
+                    expect.objectContaining({
+                        transactionParams: expect.objectContaining({
+                            receiptState: undefined,
+                            receipt: expect.objectContaining({state: CONST.IOU.RECEIPT_STATE.OPEN}),
+                        }),
+                    }),
+                );
+            });
         });
 
         it('calls cleanupAfterExpenseCreate and skips cleanupAndNavigateAfterExpenseCreate when shouldHandleNavigation=false (orchestrator pre-navigated)', async () => {

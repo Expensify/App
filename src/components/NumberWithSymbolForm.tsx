@@ -106,6 +106,9 @@ type NumberWithSymbolFormProps = {
     /** Whether to show the currency selection button */
     shouldShowCurrencyButton?: boolean;
 
+    /** Extra content rendered at the start of the right-hand side, before the flip and currency buttons. `displayAsTextInput` mode only. */
+    leadingRightHandSideComponent?: React.ReactNode;
+
     onCurrencyButtonPress?: () => void;
 
     /**
@@ -184,6 +187,7 @@ function NumberWithSymbolForm({
     onSubmitEditing,
     shouldShowFlipButton = false,
     shouldShowCurrencyButton = false,
+    leadingRightHandSideComponent,
     onCurrencyButtonPress,
     currencyButtonLabel,
     currencyButtonAccessibilityLabel,
@@ -483,6 +487,7 @@ function NumberWithSymbolForm({
     const textInputRightHandSideComponent = useMemo(() => {
         return (
             <View style={[styles.flexRow, styles.gap2, styles.alignItemsCenter]}>
+                {leadingRightHandSideComponent}
                 {shouldShowFlipButton && allowNegativeInput && canUseTouchScreen && (
                     <Button
                         size={CONST.BUTTON_SIZE.SMALL}
@@ -503,6 +508,10 @@ function NumberWithSymbolForm({
                     <Button
                         size={CONST.BUTTON_SIZE.SMALL}
                         onPress={onTrailingDropdownPress}
+                        // Keep the press from blurring the input. Callers that only reveal these buttons while the
+                        // field is focused would otherwise unmount this one before the press lands, leaving the
+                        // currency unreachable until an amount is typed.
+                        onMouseDown={(e) => e.preventDefault()}
                         contentContainerStyle={styles.justifyContentCenter}
                         accessibilityLabel={currencyButtonAccessibilityLabel ?? `${translate('common.selectCurrency')}, ${currencyOrUnitButtonText}`}
                         isDisabled={disabled}
@@ -521,6 +530,7 @@ function NumberWithSymbolForm({
         allowNegativeInput,
         disabled,
         shouldShowCurrencyButton,
+        leadingRightHandSideComponent,
         styles,
         icons,
         handleFlipPress,
@@ -565,7 +575,7 @@ function NumberWithSymbolForm({
                 onFocus={props.onFocus}
                 onBlur={props.onBlur}
                 testID={props.testID}
-                rightHandSideComponent={shouldShowCurrencyButton || shouldShowFlipButton ? textInputRightHandSideComponent : undefined}
+                rightHandSideComponent={shouldShowCurrencyButton || shouldShowFlipButton || !!leadingRightHandSideComponent ? textInputRightHandSideComponent : undefined}
             />
         );
     }
