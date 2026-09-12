@@ -737,7 +737,7 @@
 "../../src/libs/Navigation/AppNavigator/AuthScreensInitHandler.tsx"	"react-hooks/refs"	1
 "../../src/libs/Navigation/AppNavigator/createRootStackNavigator/GetStateForActionHandlers.ts"	"@typescript-eslint/no-unsafe-type-assertion"	13
 "../../src/libs/Navigation/AppNavigator/createRootStackNavigator/useCustomRootStackNavigatorState/restoreTabNavigatorRoutes.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/libs/Navigation/AppNavigator/createSplitNavigator/SplitRouter.ts"	"@typescript-eslint/no-unsafe-type-assertion"	4
+"../../src/libs/Navigation/AppNavigator/createSplitNavigator/SplitRouter.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../src/libs/Navigation/AppNavigator/createSplitNavigator/usePreserveNavigatorState.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/Navigation/AppNavigator/createWorkspaceNavigator/WorkspaceRouter.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/Navigation/AppNavigator/FreezeWrapper/index.tsx"	"react-hooks/set-state-in-effect"	1
@@ -781,7 +781,7 @@
 "../../src/libs/Navigation/helpers/isTabRouteAtRoot.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/Navigation/helpers/lastVisitedTabPathUtils/index.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/Navigation/helpers/linkTo/getMinimalAction.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/libs/Navigation/helpers/linkTo/index.ts"	"@typescript-eslint/no-unsafe-type-assertion"	16
+"../../src/libs/Navigation/helpers/linkTo/index.ts"	"@typescript-eslint/no-unsafe-type-assertion"	15
 "../../src/libs/Navigation/helpers/navigateToWorkspacesPage.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/Navigation/helpers/popReportsSplitNavigatorToReport.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/Navigation/helpers/replaceCompanyCardsRoute.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
@@ -1135,7 +1135,6 @@
 "../../src/pages/workspace/accounting/netsuite/export/DynamicNetSuiteDateSelectPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/workspace/accounting/netsuite/export/DynamicNetSuiteExportExpensesDestinationSelectPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/workspace/accounting/netsuite/export/DynamicNetSuiteExportExpensesJournalPostingPreferenceSelectPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/pages/workspace/accounting/netsuite/export/DynamicNetSuiteInvoiceItemPreferenceSelectPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/workspace/accounting/netsuite/export/NetSuiteTravelBillingJournalPostingPreferenceSelectPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/workspace/accounting/netsuite/import/NetSuiteImportCustomersOrProjectSelectPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/workspace/accounting/netsuite/import/NetSuiteImportCustomersOrProjectsPage.tsx"	"no-restricted-syntax"	2

@@ -57,6 +57,7 @@ import {
     getPlaidInstitutionId,
     getSelectedFeed,
     getTranslationKeyForCardStatus,
+    getWalletProviderNameKey,
     getYearFromExpirationDateString,
     hasAssignedCardMatching,
     hasIssuedExpensifyCard,
@@ -5044,5 +5045,19 @@ describe('getMonthlySettlementDate', () => {
         expect(getMonthlySettlementDate(10.5)).toBeUndefined();
         expect(getMonthlySettlementDate(1706353253)).toBeUndefined();
         expect(getMonthlySettlementDate(NaN)).toBeUndefined();
+    });
+});
+
+describe('getWalletProviderNameKey', () => {
+    it('maps APPLE_PAY to the Apple Wallet key', () => {
+        expect(getWalletProviderNameKey(CONST.EXPENSIFY_CARD.WALLET_PROVIDER.APPLE_PAY)).toBe('appleWallet');
+    });
+
+    it('maps ANDROID_PAY to the Google Wallet key, since that is how the card provider names Google Wallet', () => {
+        expect(getWalletProviderNameKey(CONST.EXPENSIFY_CARD.WALLET_PROVIDER.ANDROID_PAY)).toBe('googleWallet');
+    });
+
+    it('falls back to the generic key when the provider is missing, which happens when the card provider reports UNKNOWN', () => {
+        expect(getWalletProviderNameKey(undefined)).toBe('digitalWallet');
     });
 });

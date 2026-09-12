@@ -5054,6 +5054,11 @@ const CONST = {
             INDIVIDUAL: 'individual',
             NONE: 'none',
         },
+        WALLET_PROVIDER: {
+            APPLE_PAY: 'APPLE_PAY',
+            ANDROID_PAY: 'ANDROID_PAY',
+        },
+        APPROVE_DIGITAL_WALLET_VALIDATE_CODE_REASON: 'approve_digital_wallet',
         VERIFICATION_STATE: {
             LOADING: 'loading',
             VERIFIED: 'verified',
@@ -8889,8 +8894,11 @@ const CONST = {
             /** How many of the longest strings are measured per column, since character count only approximates rendered width. */
             MEASURED_CANDIDATES_PER_COLUMN: 5,
 
-            /** How narrow a free-text column may be squeezed before the table scrolls instead, matching the ~180px default text column width table libraries use. */
-            MIN_FREE_TEXT_COLUMN_WIDTH: 180,
+            /** How narrow a free-text column may be squeezed before the table scrolls instead. Around 17 characters, so a typical merchant name or full name still reads, and a column is never squeezed below its header regardless. */
+            MIN_FREE_TEXT_COLUMN_WIDTH: 120,
+
+            /** How wide a free-text column may be sized for its content once the table scrolls, so one unusually long value doesn't push every column after it out of view. A table that still fits its columns caps nothing: the spare room is there to be used. */
+            MAX_FREE_TEXT_COLUMN_WIDTH: 180,
         },
     },
 
