@@ -43,6 +43,7 @@ function ReportActionItemMessageWithExplain({message, action, childReport, origi
     const {translate} = useLocalize();
     const personalDetail = useCurrentUserPersonalDetails();
     const {environmentURL} = useEnvironment();
+    const [session] = useOnyx(ONYXKEYS.SESSION);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
@@ -77,7 +78,7 @@ function ReportActionItemMessageWithExplain({message, action, childReport, origi
         }
 
         // For all other links, use the default link handler
-        openLink(href, environmentURL);
+        openLink(href, environmentURL, false, session);
     };
 
     return (

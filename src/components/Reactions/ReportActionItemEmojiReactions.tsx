@@ -70,6 +70,7 @@ function ReportActionItemEmojiReactions({reportAction, reportID, isEditingInline
     const {preferredLocale} = useLocalize();
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const [preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE] = useOnyx(ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE);
+    const [session] = useOnyx(ONYXKEYS.SESSION);
 
     const reportActionID = reportAction.reportActionID;
     const [emojiReactions = getEmptyObject<ReportActionReactions>()] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${reportActionID}`);
@@ -87,7 +88,7 @@ function ReportActionItemEmojiReactions({reportAction, reportID, isEditingInline
 
             TransitionTracker.runAfterTransitions({
                 callback: () => {
-                    signOutAndRedirectToSignIn();
+                    signOutAndRedirectToSignIn(undefined, undefined, true, undefined, session);
                 },
             });
             return;
