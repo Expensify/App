@@ -41,7 +41,6 @@ import {
     removeMembers,
     updateWorkspaceMembersRole,
 } from '@libs/actions/Policy/Member';
-import {removeApprovalWorkflow as removeApprovalWorkflowAction, updateApprovalWorkflow} from '@libs/actions/Workflow';
 import {isRuleBotEnforcingRules} from '@libs/AgentRulesUtils';
 import {getLatestErrorMessageField} from '@libs/ErrorUtils';
 import {getConnectedHRProvider} from '@libs/merge/HRUtils';
@@ -232,6 +231,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     const removeUsers = () => {
         // Check if any of the members are approvers
         const hasApprovers = selectedEmployees.some((email) => isPolicyApprover(policy, email));
+        const approvalWorkflowUpdates: Array<ReturnType<typeof updateWorkflowDataOnApproverRemoval>[number]> = [];
 
         if (hasApprovers) {
             const ownerEmail = ownerDetails.login;
@@ -252,19 +252,12 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                     ownerDetails,
                 });
                 currentWorkflows = updatedWorkflows.filter((workflow) => !workflow.removeApprovalWorkflow);
-                for (const workflow of updatedWorkflows) {
-                    if (workflow?.removeApprovalWorkflow) {
-                        const {removeApprovalWorkflow, ...updatedWorkflow} = workflow;
-                        removeApprovalWorkflowAction(updatedWorkflow, policy);
-                    } else {
-                        updateApprovalWorkflow(workflow, [], [], policy);
-                    }
-                }
+                approvalWorkflowUpdates.push(...updatedWorkflows);
             }
         }
 
         setSelectedEmployees([]);
-        removeMembers(policy, selectedEmployees, policyMemberEmailsToAccountIDs);
+        removeMembers(policy, selectedEmployees, policyMemberEmailsToAccountIDs, approvalWorkflowUpdates);
     };
 
     /**

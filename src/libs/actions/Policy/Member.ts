@@ -22,16 +22,19 @@ import * as PhoneNumber from '@libs/PhoneNumber';
 import {getDefaultApprover, isControlPolicy, isPolicyAdmin, isSubmitPolicy} from '@libs/PolicyUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
+import {convertApprovalWorkflowToPolicyEmployees} from '@libs/WorkflowUtils';
 
 import * as FormActions from '@userActions/FormActions';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ImportedSpreadsheetMemberData, InvitedEmailsToAccountIDs, Policy, PolicyEmployee, PolicyOwnershipChangeChecks, Report, ReportAction, ReportActions} from '@src/types/onyx';
+import type ApprovalWorkflow from '@src/types/onyx/ApprovalWorkflow';
 import type {ImportFinalModal} from '@src/types/onyx/ImportedSpreadsheet';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {JoinWorkspaceResolution} from '@src/types/onyx/OriginalMessage';
 import type {ApprovalRule} from '@src/types/onyx/Policy';
+import type {PolicyEmployeeList} from '@src/types/onyx/PolicyEmployee';
 import type {NotificationPreference, Participant} from '@src/types/onyx/Report';
 import type {OnyxData} from '@src/types/onyx/Request';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -48,6 +51,10 @@ import {createPolicyExpenseChats} from './Policy';
 type WorkspaceMembersRoleData = {
     email: string;
     role: ValueOf<typeof CONST.POLICY.ROLE>;
+};
+
+type ApprovalWorkflowForMemberRemoval = ApprovalWorkflow & {
+    removeApprovalWorkflow?: boolean;
 };
 
 function hasPolicyAdminsRoomsAccess(role: string | undefined): boolean {
@@ -352,7 +359,12 @@ function findNextApproverInChain(policy: OnyxEntry<Policy>, selectedMemberEmails
  * Remove the passed members from the policy employeeList
  * Please see https://github.com/Expensify/App/blob/main/README.md#Security for more details
  */
-function removeMembers(policy: OnyxEntry<Policy>, selectedMemberEmails: string[], policyMemberEmailsToAccountIDs: Record<string, number>) {
+function removeMembers(
+    policy: OnyxEntry<Policy>,
+    selectedMemberEmails: string[],
+    policyMemberEmailsToAccountIDs: Record<string, number>,
+    approvalWorkflowUpdates: ApprovalWorkflowForMemberRemoval[] = [],
+) {
     if (!policy?.id || selectedMemberEmails.length === 0) {
         return;
     }
@@ -418,6 +430,54 @@ function removeMembers(policy: OnyxEntry<Policy>, selectedMemberEmails: string[]
 
     const approvalRules: ApprovalRule[] = policy?.rules?.approvalRules ?? [];
     const optimisticApprovalRules = approvalRules.filter((rule) => !selectedMemberEmails.includes(rule?.approver ?? ''));
+    const optimisticApprover = selectedMemberEmails.includes(policy?.approver ?? '') ? findNextApproverInChain(policy, selectedMemberEmailsWithDuplicates) : policy?.approver;
+    const previousEmployeeList = Object.fromEntries(Object.entries(policy.employeeList ?? {}).map(([key, value]) => [key, {...value, pendingAction: null}])) as PolicyEmployeeList;
+    const workflowEmployees: PolicyEmployeeList = {};
+    let updatedApprovalMode = policy.approvalMode;
+    let updatedDefaultApprover: string | undefined;
+
+    for (const approvalWorkflow of approvalWorkflowUpdates) {
+        const isRemovingApprovalWorkflow = !!approvalWorkflow.removeApprovalWorkflow;
+        const newDefaultApprover = !isRemovingApprovalWorkflow && approvalWorkflow.isDefault ? approvalWorkflow.approvers.at(0)?.email : undefined;
+        const updatedEmployees = convertApprovalWorkflowToPolicyEmployees({
+            previousEmployeeList: {...previousEmployeeList, ...workflowEmployees},
+            approvalWorkflow,
+            type: isRemovingApprovalWorkflow ? CONST.APPROVAL_WORKFLOW.TYPE.REMOVE : CONST.APPROVAL_WORKFLOW.TYPE.UPDATE,
+            defaultApprover: newDefaultApprover ?? getDefaultApprover(policy) ?? '',
+        });
+
+        if (newDefaultApprover) {
+            updatedDefaultApprover = newDefaultApprover;
+            const existing = updatedEmployees[newDefaultApprover] ?? workflowEmployees[newDefaultApprover] ?? previousEmployeeList[newDefaultApprover];
+            if (existing && existing.submitsTo !== newDefaultApprover) {
+                const previousPendingAction = previousEmployeeList[newDefaultApprover]?.pendingAction;
+                updatedEmployees[newDefaultApprover] = {
+                    ...existing,
+                    email: newDefaultApprover,
+                    submitsTo: newDefaultApprover,
+                    pendingAction: previousPendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ? previousPendingAction : CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    pendingFields: {
+                        ...existing.pendingFields,
+                        submitsTo: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    },
+                };
+            }
+        }
+
+        Object.assign(workflowEmployees, updatedEmployees);
+    }
+
+    const hasWorkflowUpdates = !isEmptyObject(workflowEmployees);
+    if (hasWorkflowUpdates) {
+        const effectiveDefaultApprover = updatedDefaultApprover ?? getDefaultApprover(policy) ?? '';
+        const mergedEmployeeList = Object.fromEntries(
+            Object.keys({...previousEmployeeList, ...workflowEmployees}).map((key) => [key, {...previousEmployeeList[key], ...workflowEmployees[key]}]),
+        );
+        const hasMultipleWorkflows = Object.values(mergedEmployeeList).some((employee) => !!employee.submitsTo && employee.submitsTo !== effectiveDefaultApprover);
+        const defaultApproverEmployee = mergedEmployeeList[effectiveDefaultApprover];
+        const hasForwardsToChain = !!defaultApproverEmployee?.forwardsTo || !!defaultApproverEmployee?.overLimitForwardsTo;
+        updatedApprovalMode = hasMultipleWorkflows || hasForwardsToChain ? CONST.POLICY.APPROVAL_MODE.ADVANCED : CONST.POLICY.APPROVAL_MODE.BASIC;
+    }
 
     const optimisticData: Array<
         OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_METADATA | typeof ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS>
@@ -426,8 +486,9 @@ function removeMembers(policy: OnyxEntry<Policy>, selectedMemberEmails: string[]
             onyxMethod: Onyx.METHOD.MERGE,
             key: policyKey,
             value: {
-                employeeList: optimisticMembersState,
-                approver: selectedMemberEmails.includes(policy?.approver ?? '') ? findNextApproverInChain(policy, selectedMemberEmailsWithDuplicates) : policy?.approver,
+                employeeList: {...workflowEmployees, ...optimisticMembersState},
+                approver: updatedDefaultApprover ?? optimisticApprover,
+                ...(hasWorkflowUpdates ? {approvalMode: updatedApprovalMode} : {}),
                 rules: {
                     ...(policy?.rules ?? {}),
                     approvalRules: optimisticApprovalRules,
@@ -441,10 +502,34 @@ function removeMembers(policy: OnyxEntry<Policy>, selectedMemberEmails: string[]
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: policyKey,
-            value: {employeeList: successMembersState},
+            value: {
+                employeeList: {
+                    ...Object.fromEntries(Object.keys(workflowEmployees).map((key) => [key, {pendingAction: null, pendingFields: null}])),
+                    ...successMembersState,
+                },
+            },
         },
     ];
     successData.push(...(announceRoomMembers.successData ?? []), ...(adminRoomMembers.successData ?? []), ...(preferredExporterOnyxData.successData ?? []));
+
+    const workflowEmployeeFields = ['submitsTo', 'forwardsTo', 'approvalLimit', 'overLimitForwardsTo'] as const;
+    const failureWorkflowEmployees = Object.fromEntries(
+        Object.entries(workflowEmployees).map(([email, updatedEmployee]) => {
+            const previousEmployee = policy.employeeList?.[email];
+            const restoredWorkflowFields = Object.fromEntries(workflowEmployeeFields.filter((field) => field in updatedEmployee).map((field) => [field, previousEmployee?.[field] ?? null]));
+            const updatedPendingFieldKeys = workflowEmployeeFields.filter((field) => field in (updatedEmployee.pendingFields ?? {}));
+            const restoredPendingFields = Object.fromEntries(updatedPendingFieldKeys.map((field) => [field, previousEmployee?.pendingFields?.[field] ?? null]));
+
+            return [
+                email,
+                {
+                    ...restoredWorkflowFields,
+                    pendingAction: previousEmployee?.pendingAction ?? null,
+                    ...(updatedPendingFieldKeys.length > 0 ? {pendingFields: restoredPendingFields} : {}),
+                },
+            ];
+        }),
+    );
 
     const failureData: Array<
         OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_METADATA | typeof ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS>
@@ -452,7 +537,12 @@ function removeMembers(policy: OnyxEntry<Policy>, selectedMemberEmails: string[]
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: policyKey,
-            value: {employeeList: failureMembersState, approver: policy?.approver, rules: policy?.rules},
+            value: {
+                employeeList: hasWorkflowUpdates ? {...failureWorkflowEmployees, ...failureMembersState} : failureMembersState,
+                approver: policy?.approver,
+                ...(hasWorkflowUpdates ? {approvalMode: policy.approvalMode} : {}),
+                rules: policy?.rules,
+            },
         },
     ];
     failureData.push(...(announceRoomMembers.failureData ?? []), ...(adminRoomMembers.failureData ?? []), ...(preferredExporterOnyxData.failureData ?? []));
@@ -589,6 +679,8 @@ function removeMembers(policy: OnyxEntry<Policy>, selectedMemberEmails: string[]
 
     const params: DeleteMembersFromWorkspaceParams = {
         emailList: selectedMemberEmails.join(','),
+        ...(hasWorkflowUpdates ? {employees: JSON.stringify(Object.values(workflowEmployees))} : {}),
+        ...(updatedDefaultApprover ? {defaultApprover: updatedDefaultApprover} : {}),
         policyID,
     };
 
