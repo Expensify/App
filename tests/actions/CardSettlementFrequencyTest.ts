@@ -1,7 +1,7 @@
 import CONST from '@src/CONST';
-import {WRITE_COMMANDS} from '@src/libs/API/types';
 import {updateSettlementFrequency} from '@src/libs/actions/Card';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
+import {WRITE_COMMANDS} from '@src/libs/API/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ExpensifyCardSettings} from '@src/types/onyx';
 
