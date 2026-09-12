@@ -1431,7 +1431,7 @@ describe('DebugUtils', () => {
                             modifiedCreated: '',
                         }),
                     };
-                    const reportErrors = getAllReportErrors(MOCK_CHAT_REPORT, MOCK_CHAT_REPORT_ACTIONS, mockTransactions, RORY_ACCOUNT_ID);
+                    const reportErrors = getAllReportErrors(MOCK_CHAT_REPORT, MOCK_CHAT_REPORT_ACTIONS, mockTransactions, RORY_ACCOUNT_ID, undefined);
                     const {reportAction} =
                         DebugUtils.getReasonAndReportActionForRBRInLHNRow(
                             MOCK_CHAT_REPORT,
@@ -1513,7 +1513,7 @@ describe('DebugUtils', () => {
                             modifiedCreated: '',
                         }),
                     };
-                    const reportErrors = getAllReportErrors(MOCK_CHAT_REPORT, MOCK_REPORT_ACTIONS, mockTransactions, RORY_ACCOUNT_ID);
+                    const reportErrors = getAllReportErrors(MOCK_CHAT_REPORT, MOCK_REPORT_ACTIONS, mockTransactions, RORY_ACCOUNT_ID, undefined);
                     const {reportAction} =
                         DebugUtils.getReasonAndReportActionForRBRInLHNRow(
                             MOCK_CHAT_REPORT,
@@ -1571,7 +1571,7 @@ describe('DebugUtils', () => {
                         ],
                     },
                 };
-                const reportErrors = getAllReportErrors(MOCK_REPORT, MOCK_REPORT_ACTIONS, sharedAllTransactions, RORY_ACCOUNT_ID);
+                const reportErrors = getAllReportErrors(MOCK_REPORT, MOCK_REPORT_ACTIONS, sharedAllTransactions, RORY_ACCOUNT_ID, undefined);
                 const {reportAction} =
                     DebugUtils.getReasonAndReportActionForRBRInLHNRow(
                         {
@@ -1611,7 +1611,7 @@ describe('DebugUtils', () => {
                     },
                 };
 
-                const reportErrors = getAllReportErrors(mockedReport, mockedReportActions, sharedAllTransactions, RORY_ACCOUNT_ID);
+                const reportErrors = getAllReportErrors(mockedReport, mockedReportActions, sharedAllTransactions, RORY_ACCOUNT_ID, undefined);
                 const {reason} =
                     DebugUtils.getReasonAndReportActionForRBRInLHNRow(
                         mockedReport,

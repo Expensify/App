@@ -20,6 +20,7 @@ import {
     getActivePoliciesWithExpenseChatAndPerDiemEnabled,
     getAllTaxRates,
     getAllTaxRatesNamesAndValues,
+    getConnectedIntegration,
     getCurrentTaxID,
     getCustomUnitsForDuplication,
     getDefaultChatEnabledPolicy,
@@ -5254,6 +5255,23 @@ describe('getPolicyApproverLogins', () => {
             },
         };
         expect([...getPolicyApproverLogins(policy)]).toEqual(['director@test.com']);
+    });
+});
+
+describe('getConnectedIntegration', () => {
+    it('returns the connected accounting integration when present on the policy', () => {
+        const policy = createMock<Policy>({connections: {quickbooksOnline: {config: {credentials: {scope: ''}}}}});
+        expect(getConnectedIntegration(policy)).toBe(CONST.POLICY.CONNECTIONS.NAME.QBO);
+    });
+
+    it('returns undefined when there is no connected integration', () => {
+        expect(getConnectedIntegration(undefined)).toBeUndefined();
+        expect(getConnectedIntegration(createMock<Policy>({connections: {}}))).toBeUndefined();
+    });
+
+    it('ignores non-accounting connections (e.g. HR integrations)', () => {
+        const policy = createMock<Policy>({connections: {gusto: {data: {}}}});
+        expect(getConnectedIntegration(policy)).toBeUndefined();
     });
 });
 
