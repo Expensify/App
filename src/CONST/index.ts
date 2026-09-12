@@ -1098,7 +1098,6 @@ const CONST = {
         DUALENTRY: 'dualEntry',
         CAMPFIRE: 'campfire',
         BUSINESS_CENTRAL: 'businessCentral',
-        RULES_REVAMP: 'rulesRevamp',
         COMMUTER_EXCLUSIONS: 'commuterExclusions',
         MULTIPLE_APPROVERS: 'multipleApprovers',
         GLOBAL_REIMBURSEMENTS: 'globalReimbursements',
@@ -5055,6 +5054,11 @@ const CONST = {
             INDIVIDUAL: 'individual',
             NONE: 'none',
         },
+        WALLET_PROVIDER: {
+            APPLE_PAY: 'APPLE_PAY',
+            ANDROID_PAY: 'ANDROID_PAY',
+        },
+        APPROVE_DIGITAL_WALLET_VALIDATE_CODE_REASON: 'approve_digital_wallet',
         VERIFICATION_STATE: {
             LOADING: 'loading',
             VERIFIED: 'verified',
@@ -8576,6 +8580,7 @@ const CONST = {
         HAS_EMPLOYEE_CARD_FEED_ERRORS: 'hasEmployeeCardFeedErrors',
         HAS_POLICY_ADMIN_CARD_FEED_ERRORS: 'hasPolicyAdminCardFeedErrors',
         HAS_DOMAIN_ERRORS: 'hasDomainErrors',
+        HAS_PENDING_DOMAIN_ADMIN_REQUESTS: 'hasPendingDomainAdminRequests',
         HAS_LOCKED_BANK_ACCOUNT: 'hasLockedBankAccount',
         HAS_DEVICE_MANAGEMENT_ERROR: 'hasDeviceManagementError',
         HAS_MERGE_HR_SETUP_NEEDED: 'hasMergeHRSetupNeeded',
@@ -8889,8 +8894,11 @@ const CONST = {
             /** How many of the longest strings are measured per column, since character count only approximates rendered width. */
             MEASURED_CANDIDATES_PER_COLUMN: 5,
 
-            /** How narrow a free-text column may be squeezed before the table scrolls instead, matching the ~180px default text column width table libraries use. */
-            MIN_FREE_TEXT_COLUMN_WIDTH: 180,
+            /** How narrow a free-text column may be squeezed before the table scrolls instead. Around 17 characters, so a typical merchant name or full name still reads, and a column is never squeezed below its header regardless. */
+            MIN_FREE_TEXT_COLUMN_WIDTH: 120,
+
+            /** How wide a free-text column may be sized for its content once the table scrolls, so one unusually long value doesn't push every column after it out of view. A table that still fits its columns caps nothing: the spare room is there to be used. */
+            MAX_FREE_TEXT_COLUMN_WIDTH: 180,
         },
     },
 
@@ -9780,6 +9788,9 @@ const CONST = {
         DOMAIN: {
             ADMINS: {
                 ROW: 'DomainAdmins-Row',
+                REQUEST_ROW: 'DomainAdmins-RequestRow',
+                REQUEST_APPROVE: 'DomainAdmins-RequestApprove',
+                REQUEST_DENY: 'DomainAdmins-RequestDeny',
             },
             GROUPS: {
                 CREATE_GROUP_BUTTON: 'DomainGroups-CreateGroupButton',
@@ -9823,6 +9834,18 @@ const CONST = {
             BULK_ACTION_TYPES: {
                 CLOSE_ACCOUNT: 'closeAccount',
                 MOVE_TO_GROUP: 'moveToGroup',
+            },
+        },
+
+        ADMINS: {
+            ROW_TYPE: {
+                GROUP_HEADER: 'groupHeader',
+                REQUEST: 'request',
+                ADMIN: 'admin',
+            },
+            GROUP_ORDER: {
+                REQUESTS: 0,
+                ADMINS: 1,
             },
         },
     },

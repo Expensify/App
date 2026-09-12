@@ -197,6 +197,7 @@ function renderView(overrides: RenderOverrides = {}) {
                 columns={columns}
                 canSelectMultiple={overrides.canSelectMultiple ?? false}
                 isActionColumnWide={false}
+                columnSizeOptions={{}}
                 isMobileSelectionModeEnabled={overrides.isMobileSelectionModeEnabled ?? false}
                 tableHeaderVisible={overrides.tableHeaderVisible ?? false}
                 hasLoadedAllTransactions={overrides.hasLoadedAllTransactions ?? true}
