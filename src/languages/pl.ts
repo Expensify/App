@@ -444,6 +444,7 @@ const translations: TranslationDeepObject<typeof en> = {
         leaveWorkspaceReimburser:
             'Nie możesz opuścić tej przestrzeni roboczej jako osoba rozliczająca wydatki. Ustaw nową osobę rozliczającą w Przestrzenie robocze > Dokonuj lub śledź płatności, a następnie spróbuj ponownie.',
         reimbursable: 'Podlegające zwrotowi',
+        nonReimbursable: 'Nierefundowane',
         editYourProfile: 'Edytuj swój profil',
         comments: 'Komentarze',
         sharedIn: 'Udostępnione w',

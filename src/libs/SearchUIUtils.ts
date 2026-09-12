@@ -40,6 +40,7 @@ import type {
     SearchDateFilterKeys,
     SearchDatePreset,
     SearchFilterKey,
+    SearchFooterTotal,
     SearchGroupBy,
     SearchPaidStatus,
     SearchQueryJSON,
@@ -5689,6 +5690,22 @@ function getViewOptions(translate: LocalizedTranslate) {
     return Object.values(CONST.SEARCH.VIEW).map<SingleSelectItem<SearchView>>((value) => ({text: translate(`search.view.${value}`), value}));
 }
 
+/**
+ * The options the Spend footer's total selector offers, in display order. `Total spend` is the default and always
+ * applies; the four aggregates are computed by the backend, so picking one re-runs the search.
+ */
+function getFooterTotalItems(translate: LocalizedTranslate) {
+    const labels: Record<SearchFooterTotal, string> = {
+        [CONST.SEARCH.FOOTER_TOTAL.TOTAL]: translate('common.spend'),
+        [CONST.SEARCH.FOOTER_TOTAL.REIMBURSABLE]: translate('common.reimbursable'),
+        [CONST.SEARCH.FOOTER_TOTAL.NON_REIMBURSABLE]: translate('common.nonReimbursable'),
+        [CONST.SEARCH.FOOTER_TOTAL.BILLABLE]: translate('common.billable'),
+        [CONST.SEARCH.FOOTER_TOTAL.NON_BILLABLE]: translate('common.nonBillable'),
+    };
+
+    return Object.values(CONST.SEARCH.FOOTER_TOTAL).map<SingleSelectItem<SearchFooterTotal>>((value) => ({text: labels[value], value}));
+}
+
 function getCurrencyOptions(currencyList: OnyxTypes.CurrencyList, getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol']) {
     return Object.keys(currencyList).reduce(
         (options, currencyCode) => {
@@ -7580,6 +7597,7 @@ export {
     getSortOrderOptions,
     getGroupBySections,
     getViewOptions,
+    getFooterTotalItems,
     getCurrencyOptions,
     getFeedOptions,
     getWideAmountIndicators,

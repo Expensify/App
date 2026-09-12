@@ -7780,6 +7780,19 @@ const CONST = {
             LINE: 'line',
             PIE: 'pie',
         },
+        /** Which of the counts every search returns the Spend footer displays. Applied client-side, so it never retriggers a search. */
+        FOOTER_COUNT: {
+            EXPENSES: 'expenses',
+            REPORTS: 'reports',
+        },
+        /** Which aggregate the Spend footer displays as its total. Changing it retriggers the search, since the backend computes the aggregate. */
+        FOOTER_TOTAL: {
+            TOTAL: 'total',
+            REIMBURSABLE: 'reimbursable',
+            NON_REIMBURSABLE: 'non-reimbursable',
+            BILLABLE: 'billable',
+            NON_BILLABLE: 'non-billable',
+        },
         SYNTAX_FILTER_KEYS: {
             TYPE: 'type',
             STATUS: 'status',
@@ -7834,6 +7847,12 @@ const CONST = {
             SUBMITTER_USER_ID: 'submitterUserID',
             SUBMITTER_PAYROLL_ID: 'submitterPayrollID',
             ORDER_DEAL_NUMBERS: 'orderDealNumbers',
+            // The Spend footer's display selections. They travel as filters because that is where the backend reads
+            // them from, but they never narrow the result set: only `footerTotal` changes the response, by swapping
+            // which aggregate comes back as the search total.
+            FOOTER_COUNT: 'footerCount',
+            FOOTER_TOTAL: 'footerTotal',
+            FOOTER_CURRENCY: 'footerCurrency',
         },
         REPORT_FIELD: {
             // All report fields start with this, so use this to check if a search key is a report field
@@ -7918,6 +7937,9 @@ const CONST = {
             ORDER_DEAL_NUMBERS: 'order-deal-numbers',
             COLUMNS: 'columns',
             LIMIT: 'limit',
+            FOOTER_COUNT: 'footer-count',
+            FOOTER_TOTAL: 'footer-total',
+            FOOTER_CURRENCY: 'footer-currency',
         },
         get SEARCH_USER_FRIENDLY_VALUES_MAP() {
             return {
@@ -9034,6 +9056,9 @@ const CONST = {
             FILTER_GROUP_CURRENCY: 'Search-FilterGroupCurrency',
             FILTER_VIEW: 'Search-FilterView',
             FILTER_LIMIT: 'Search-FilterLimit',
+            FOOTER_COUNT: 'Search-FooterCount',
+            FOOTER_TOTAL: 'Search-FooterTotal',
+            FOOTER_CURRENCY: 'Search-FooterCurrency',
             ADVANCED_FILTERS_BUTTON: 'Search-AdvancedFiltersButton',
             COLUMNS_BUTTON: 'Search-ColumnsButton',
             BULK_ACTIONS_DROPDOWN: 'Search-BulkActionsDropdown',

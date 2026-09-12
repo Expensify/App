@@ -441,6 +441,7 @@ const translations: TranslationDeepObject<typeof en> = {
         leaveWorkspaceReimburser:
             'Du kannst diesen Workspace als Erstattungsverantwortliche·r nicht verlassen. Bitte lege unter „Workspaces > Zahlungen senden oder nachverfolgen“ eine·n neue·n Erstattungsverantwortliche·n fest und versuche es erneut.',
         reimbursable: 'Erstattungsfähig',
+        nonReimbursable: 'Nicht erstattungsfähig',
         editYourProfile: 'Profil bearbeiten',
         comments: 'Kommentare',
         sharedIn: 'Geteilt in',

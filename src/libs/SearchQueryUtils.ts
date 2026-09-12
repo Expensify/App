@@ -15,6 +15,8 @@ import type {
     SearchDateKey,
     SearchDatePreset,
     SearchFilterKey,
+    SearchFooterCount,
+    SearchFooterTotal,
     SearchQueryJSON,
     SearchQueryString,
     SearchWithdrawalType,
@@ -108,6 +110,21 @@ const VALID_IS_TYPES = new Set(Object.values(CONST.SEARCH.IS_VALUES));
 const VALID_WITHDRAWAL_TYPES = new Set(Object.values(CONST.SEARCH.WITHDRAWAL_TYPE));
 const VALID_WITHDRAWAL_STATUSES = new Set<string>(Object.values(CONST.SEARCH.SETTLEMENT_STATUS));
 const VALID_PAID_STATUSES = new Set<string>(Object.values(CONST.SEARCH.PAID_STATUS));
+const VALID_FOOTER_COUNTS = new Set<string>(Object.values(CONST.SEARCH.FOOTER_COUNT));
+const VALID_FOOTER_TOTALS = new Set<string>(Object.values(CONST.SEARCH.FOOTER_TOTAL));
+const FOOTER_FILTER_KEYS = new Set<SearchFilterKey>([
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.FOOTER_COUNT,
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.FOOTER_TOTAL,
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.FOOTER_CURRENCY,
+]);
+
+function isFooterCount(value: string): value is SearchFooterCount {
+    return VALID_FOOTER_COUNTS.has(value);
+}
+
+function isFooterTotal(value: string): value is SearchFooterTotal {
+    return VALID_FOOTER_TOTALS.has(value);
+}
 
 // Create reverse lookup maps for O(1) performance
 const createKeyToUserFriendlyMap = () => {
@@ -458,6 +475,48 @@ function getFilterFromQuery(queryJSON: SearchQueryJSON | undefined, filterKey: S
 }
 
 /**
+ * The Spend footer's display selections, read off the query the footer is showing. A value the footer cannot render is
+ * dropped rather than displayed, so a hand-typed one behaves like no selection at all. The currency is upper-cased so
+ * `footerCurrency:eur` and `footerCurrency:EUR` are one selection rather than two.
+ */
+function getFooterSelectionFromQuery(queryJSON: SearchQueryJSON | undefined) {
+    const count = getFilterFromQuery(queryJSON, CONST.SEARCH.SYNTAX_FILTER_KEYS.FOOTER_COUNT).value?.at(0);
+    const total = getFilterFromQuery(queryJSON, CONST.SEARCH.SYNTAX_FILTER_KEYS.FOOTER_TOTAL).value?.at(0);
+    const currency = getFilterFromQuery(queryJSON, CONST.SEARCH.SYNTAX_FILTER_KEYS.FOOTER_CURRENCY).value?.at(0);
+
+    return {
+        footerCount: count && isFooterCount(count) ? count : undefined,
+        footerTotal: total && isFooterTotal(total) ? total : undefined,
+        footerCurrency: currency ? currency.toUpperCase() : undefined,
+    };
+}
+
+/**
+ * The query the Spend footer's selections produce, built from the query the footer is showing. Only `footerTotal`
+ * changes what the backend returns; the other two ride along so the selection is restored with the search.
+ */
+function getQueryWithFooterSelection(
+    queryJSON: SearchQueryJSON | Readonly<SearchQueryJSON>,
+    selection: {footerCount?: SearchFooterCount; footerTotal?: SearchFooterTotal; footerCurrency?: string},
+) {
+    const flatFilters = queryJSON.flatFilters.filter((filter) => !FOOTER_FILTER_KEYS.has(filter.key));
+    const nextSelection = {...getFooterSelectionFromQuery(queryJSON), ...selection};
+
+    for (const [key, value] of [
+        [CONST.SEARCH.SYNTAX_FILTER_KEYS.FOOTER_COUNT, nextSelection.footerCount],
+        [CONST.SEARCH.SYNTAX_FILTER_KEYS.FOOTER_TOTAL, nextSelection.footerTotal],
+        [CONST.SEARCH.SYNTAX_FILTER_KEYS.FOOTER_CURRENCY, nextSelection.footerCurrency],
+    ] as const) {
+        if (!value) {
+            continue;
+        }
+        flatFilters.push({key, filters: [{operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value}]});
+    }
+
+    return buildSearchQueryString({...queryJSON, flatFilters});
+}
+
+/**
  * Whether the query includes a positive `has:submitted-violation` filter.
  * Grouped CSV export uses this so Violations is included even when the query has no saved `columns`.
  */
@@ -666,6 +725,13 @@ function getQueryHashes(query: SearchQueryJSON) {
             continue;
         }
 
+        // The Spend footer's selections ride along as filters but match no rows, so they must not make a query look
+        // like a different (or a less similar) search. `footerTotal` rejoins the primary hash below, after the recent
+        // and similar hashes are taken, because it does change the total the backend returns.
+        if (FOOTER_FILTER_KEYS.has(filterKey)) {
+            continue;
+        }
+
         if (!similarSearchIgnoredFilters.has(filterKey)) {
             filterSet.add(filterKey);
         }
@@ -687,6 +753,19 @@ function getQueryHashes(query: SearchQueryJSON) {
     orderedQuery += ` ${CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_BY}:${query.sortBy}`;
     orderedQuery += ` ${CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_ORDER}:${query.sortOrder}`;
     orderedQuery += ` ${CONST.SEARCH.SYNTAX_ROOT_KEYS.COLUMNS}:${Array.isArray(query.columns) ? query.columns.join(',') : query.columns}`;
+
+    // The footer's total selection decides which aggregate the backend returns as the search total, so each selection
+    // needs its own snapshot and belongs in the primary hash. It is appended conditionally, so a query without one keeps
+    // the hash (and therefore the saved searches and snapshots) it already has.
+    //
+    // The count and currency selections are absent from every hash: the backend ignores both. Every search already
+    // returns each count, and the currency conversion happens client-side, so neither may invalidate the snapshot.
+    // Only a value the footer can actually display is hashed, so a hand-typed one cannot strand the user on a snapshot
+    // of its own that nothing will ever ask for again.
+    const footerTotal = getFilterFromQuery(query, CONST.SEARCH.SYNTAX_FILTER_KEYS.FOOTER_TOTAL).value?.at(0);
+    if (footerTotal && isFooterTotal(footerTotal)) {
+        orderedQuery += ` ${CONST.SEARCH.SYNTAX_FILTER_KEYS.FOOTER_TOTAL}:${footerTotal}`;
+    }
 
     if (query.limit !== undefined) {
         orderedQuery += ` ${CONST.SEARCH.SYNTAX_ROOT_KEYS.LIMIT}:${query.limit}`;
@@ -966,7 +1045,7 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
     }
 
     // We separate type and status filters from other filters to maintain hashes consistency for saved searches
-    const {type, groupBy, view, columns, limit, ...otherFilters} = supportedFilterValues;
+    const {type, groupBy, view, columns, limit, footerCount, footerTotal, footerCurrency, ...otherFilters} = supportedFilterValues;
     const filtersString: string[] = [];
 
     if (options?.sortBy) {
@@ -995,6 +1074,20 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
     if (columns?.length) {
         const filterValueArray = [...new Set<string>(columns)];
         filtersString.push(`${CONST.SEARCH.SYNTAX_ROOT_KEYS.COLUMNS}:${filterValueArray.map((value) => sanitizeSearchValue(value)).join(',')}`);
+    }
+
+    // The Spend footer's display selections. They are filters as far as the query goes — that is where the backend
+    // reads them — but they match no rows: only `footerTotal` changes anything, by swapping the total that comes back.
+    if (footerCount) {
+        filtersString.push(`${CONST.SEARCH.SYNTAX_FILTER_KEYS.FOOTER_COUNT}:${sanitizeSearchValue(footerCount)}`);
+    }
+
+    if (footerTotal) {
+        filtersString.push(`${CONST.SEARCH.SYNTAX_FILTER_KEYS.FOOTER_TOTAL}:${sanitizeSearchValue(footerTotal)}`);
+    }
+
+    if (footerCurrency) {
+        filtersString.push(`${CONST.SEARCH.SYNTAX_FILTER_KEYS.FOOTER_CURRENCY}:${sanitizeSearchValue(footerCurrency)}`);
     }
 
     const mappedFilters = Object.entries(otherFilters)
@@ -1727,6 +1820,19 @@ function buildFilterFormValuesFromQuery(
 
     if (queryJSON.limit !== undefined) {
         filtersForm[FILTER_KEYS.LIMIT] = queryJSON.limit.toString();
+    }
+
+    const footerSelection = getFooterSelectionFromQuery(queryJSON);
+    if (footerSelection.footerCount) {
+        filtersForm[FILTER_KEYS.FOOTER_COUNT] = footerSelection.footerCount;
+    }
+
+    if (footerSelection.footerTotal) {
+        filtersForm[FILTER_KEYS.FOOTER_TOTAL] = footerSelection.footerTotal;
+    }
+
+    if (footerSelection.footerCurrency) {
+        filtersForm[FILTER_KEYS.FOOTER_CURRENCY] = footerSelection.footerCurrency;
     }
 
     return filtersForm;
@@ -2705,6 +2811,8 @@ export {
     getRangeQueryValue,
     getQueryHashWithoutFilters,
     getQueryHashes,
+    getFooterSelectionFromQuery,
+    getQueryWithFooterSelection,
     hasFiltersChangedFromDefault,
     withExactMatchFilterKeys,
     isSearchDatePreset,

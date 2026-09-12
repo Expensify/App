@@ -164,6 +164,8 @@ type TaskSearchStatus = ValueOf<typeof CONST.SEARCH.STATUS.TASK>;
 type SingularSearchStatus = ExpenseSearchStatus | ExpenseReportSearchStatus | InvoiceSearchStatus | TripSearchStatus | TaskSearchStatus;
 type SearchGroupBy = ValueOf<typeof CONST.SEARCH.GROUP_BY>;
 type SearchView = ValueOf<typeof CONST.SEARCH.VIEW>;
+type SearchFooterCount = ValueOf<typeof CONST.SEARCH.FOOTER_COUNT>;
+type SearchFooterTotal = ValueOf<typeof CONST.SEARCH.FOOTER_TOTAL>;
 // PieChart is not implemented so we exclude it here to prevent TypeScript errors in `SearchChartView.tsx`.
 type ChartView = Exclude<SearchView, 'table'>;
 type TableColumnSize = ValueOf<typeof CONST.SEARCH.TABLE_COLUMN_SIZES>;
@@ -527,6 +529,8 @@ export type {
     TableColumnSize,
     SearchGroupBy,
     SearchView,
+    SearchFooterCount,
+    SearchFooterTotal,
     ChartView,
     SingularSearchStatus,
     SearchDatePreset,

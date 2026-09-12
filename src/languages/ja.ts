@@ -440,6 +440,7 @@ const translations: TranslationDeepObject<typeof en> = {
         leaveWorkspaceReimburser:
             '支払担当者であるため、このワークスペースを退出することはできません。［ワークスペース］＞［支払いの作成または追跡］で新しい支払担当者を設定してから、もう一度お試しください。',
         reimbursable: '払い戻し対象',
+        nonReimbursable: '本人精算不可',
         editYourProfile: 'プロフィールを編集',
         comments: 'コメント',
         sharedIn: '共有元',

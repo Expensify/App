@@ -74,7 +74,9 @@ function SearchPage({route}: SearchPageProps) {
 
     const {resetVideoPlayerData} = usePlaybackActionsContext();
 
-    const [isSorting, setIsSorting] = useState(false);
+    // A sort, or a footer total/currency change, re-runs the query under a new hash while matching the same rows. Keep
+    // the previous results on screen for those, so the list does not blank out on a change that cannot alter it.
+    const [isReloadingResults, setIsReloadingResults] = useState(false);
 
     const isCurrentSearchResolved = isSearchDataLoaded(currentSearchResults, currentSearchQueryJSON);
     let searchResults: SearchResults | undefined;
@@ -82,7 +84,7 @@ function SearchPage({route}: SearchPageProps) {
         searchResults = {...currentSearchResults, data: {}};
     } else if (currentSearchResults?.data != null || currentSearchResults?.errors) {
         searchResults = currentSearchResults;
-    } else if (isSorting) {
+    } else if (isReloadingResults) {
         searchResults = lastNonEmptySearchResults;
     }
 
@@ -106,12 +108,12 @@ function SearchPage({route}: SearchPageProps) {
     const prevIsLoading = usePrevious(currentSearchResults?.isLoading);
 
     useEffect(() => {
-        if (!isSorting || !prevIsLoading || currentSearchResults?.isLoading) {
+        if (!isReloadingResults || !prevIsLoading || currentSearchResults?.isLoading) {
             return;
         }
 
-        setIsSorting(false);
-    }, [currentSearchResults?.isLoading, isSorting, prevIsLoading]);
+        setIsReloadingResults(false);
+    }, [currentSearchResults?.isLoading, isReloadingResults, prevIsLoading]);
 
     const handleSearchAction = useCallback((value: SearchParams | string) => {
         if (typeof value === 'string') {
@@ -122,7 +124,11 @@ function SearchPage({route}: SearchPageProps) {
     }, []);
 
     const onSortPressedCallback = useCallback(() => {
-        setIsSorting(true);
+        setIsReloadingResults(true);
+    }, []);
+
+    const onFooterDisplayChangeCallback = useCallback(() => {
+        setIsReloadingResults(true);
     }, []);
 
     const overlayContentContainerStyle = !isMobileSelectionModeEnabled ? styles.searchListContentContainerStyles(!!hasFilterBars) : undefined;
@@ -147,6 +153,7 @@ function SearchPage({route}: SearchPageProps) {
                             searchResults={searchResults}
                             isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
                             onSortPressedCallback={onSortPressedCallback}
+                            onFooterDisplayChange={onFooterDisplayChangeCallback}
                             searchOverlayContent={searchOverlayContent}
                             onSearchContentReady={onSearchContentReady}
                             hasFilterBars={hasFilterBars}
@@ -159,6 +166,7 @@ function SearchPage({route}: SearchPageProps) {
                             isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
                             handleSearchAction={handleSearchAction}
                             onSortPressedCallback={onSortPressedCallback}
+                            onFooterDisplayChange={onFooterDisplayChangeCallback}
                             route={route}
                             searchOverlayContent={searchOverlayContent}
                             onSearchContentReady={onSearchContentReady}
