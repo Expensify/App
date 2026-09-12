@@ -452,7 +452,6 @@ describe('Lazily loaded group selection', () => {
         const {result, rerender} = renderReportSelection();
 
         await act(async () => {
-            result.current.toggleAll();
             result.current.selectAllMatchingItems(true);
             await waitForBatchedUpdatesWithAct();
         });
@@ -544,7 +543,9 @@ describe('Lazily loaded group selection', () => {
         rerender({});
         await act(async () => waitForBatchedUpdatesWithAct());
 
-        expect(result.current.excludedTransactions['empty-report']).toBeDefined();
+        expect(result.current.excludedTransactions['empty-report']).toBeUndefined();
+        expect(Object.keys(result.current.excludedTransactions)).toEqual(['empty-report-transaction-1']);
+        expect(result.current.excludedTransactions['empty-report-transaction-1']?.reportID).toBe('empty-report');
         expect(result.current.selectedTransactions['empty-report-transaction-1']).toBeUndefined();
         expect(result.current.areAllMatchingItemsSelected).toBe(true);
     });

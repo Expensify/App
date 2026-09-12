@@ -134,11 +134,12 @@ function useReconcileSelectionWithData({
         const newTransactionList: SelectedTransactions = {};
         const inferredExcludedTransactions: SelectedTransactions = {};
         const liveSelectionEntries = new Map<string, SelectedTransactionInfo>();
+        const nonEmptyReportKeys = new Set<string>();
         const excludedReportKeys = new Set(
             isExpenseReportType
                 ? Object.values(excludedTransactions)
-                      .map((transaction) => transaction.groupKey)
-                      .filter((groupKey): groupKey is string => !!groupKey)
+                      .map((transaction) => transaction.reportID)
+                      .filter((reportID): reportID is string => !!reportID)
                 : [],
         );
         if (areItemsGrouped) {
@@ -168,6 +169,10 @@ function useReconcileSelectionWithData({
                         };
                     }
                     continue;
+                }
+
+                if (isExpenseReportType && reportKey) {
+                    nonEmptyReportKeys.add(reportKey);
                 }
 
                 // For expense reports: when ANY transaction is selected, we want ALL transactions in the report selected.
@@ -285,6 +290,11 @@ function useReconcileSelectionWithData({
         if (shouldReconcileExcludedTransactions && areAllMatchingItemsSelected && !isEmptyObject(excludedTransactions)) {
             const nextExcludedTransactions: SelectedTransactions = {...inferredExcludedTransactions};
             for (const [key, excludedTransaction] of Object.entries(excludedTransactions)) {
+                // Once an empty excluded report gains children, replace its report-level marker with the current
+                // child exclusions seeded above so the footer counts the report only once.
+                if (isExpenseReportType && key === excludedTransaction.reportID && nonEmptyReportKeys.has(key)) {
+                    continue;
+                }
                 const transactionID = excludedTransaction.transaction?.transactionID;
                 const liveEntry = liveSelectionEntries.get(key) ?? (transactionID ? liveSelectionEntries.get(transactionID) : undefined);
                 if (liveEntry) {
