@@ -2,6 +2,7 @@ import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {COPYABLE_TEXT_DATA_SET} from '@libs/SelectionScraper';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
 
 import CONST from '@src/CONST';
@@ -22,9 +23,10 @@ type UserPillProps = {
     accountID?: number;
     email?: string;
     style?: StyleProp<ViewStyle>;
+    isCopyable?: boolean;
 };
 
-function UserPill({avatar, displayName, accountID, email, style}: UserPillProps) {
+function UserPill({avatar, displayName, accountID, email, style, isCopyable = false}: UserPillProps) {
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {formatPhoneNumber} = useLocalize();
@@ -48,8 +50,10 @@ function UserPill({avatar, displayName, accountID, email, style}: UserPillProps)
                     accountID={accountID ?? CONST.DEFAULT_NUMBER_ID}
                 />
                 <Text
-                    style={styles.userPillText}
+                    style={[styles.userPillText, isCopyable && styles.userSelectText]}
                     numberOfLines={1}
+                    selectable={isCopyable}
+                    dataSet={isCopyable ? COPYABLE_TEXT_DATA_SET : undefined}
                 >
                     {formattedDisplayName}
                 </Text>
