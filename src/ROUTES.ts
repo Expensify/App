@@ -2507,6 +2507,10 @@ const ROUTES = {
         route: 'settings/wallet/card/:cardID/change-pin-atm',
         getRoute: (cardID: string) => `settings/wallet/card/${cardID}/change-pin-atm` as const,
     },
+    SETTINGS_WALLET_CARD_ADD_TO_DIGITAL_WALLET: {
+        route: 'settings/wallet/card/:cardID/add-to-digital-wallet',
+        getRoute: (cardID: string) => `settings/wallet/card/${cardID}/add-to-digital-wallet` as const,
+    },
     SETTINGS_WALLET_CARD_ACTIVATE: {
         route: 'settings/wallet/card/:cardID/activate',
         getRoute: (cardID: string, isFromDomainCardDetail?: boolean) => `settings/wallet/card/${cardID}/activate${isFromDomainCardDetail ? '?isFromDomainCardDetail=true' : ''}` as const,
@@ -3899,6 +3903,15 @@ const ROUTES = {
     POLICY_COPY_SETTINGS_CONFIRM: {
         route: 'policy/:policyID/copy-settings/confirm',
         getRoute: (policyID: string) => `policy/${policyID}/copy-settings/confirm` as const,
+    },
+    WORKSPACE_MCP: {
+        route: 'workspaces/:policyID/mcp',
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the WORKSPACE_MCP route');
+            }
+            return `workspaces/${policyID}/mcp` as const;
+        },
     },
     WORKSPACE_RECEIPT_PARTNERS: {
         route: 'workspaces/:policyID/receipt-partners',

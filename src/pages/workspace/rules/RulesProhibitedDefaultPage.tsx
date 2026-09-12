@@ -8,7 +8,6 @@ import Switch from '@components/Switch';
 import Text from '@components/Text';
 
 import useLocalize from '@hooks/useLocalize';
-import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -18,7 +17,7 @@ import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 
-import {setPolicyProhibitedExpense, setPolicyProhibitedExpenses} from '@userActions/Policy/Policy';
+import {setPolicyProhibitedExpenses} from '@userActions/Policy/Policy';
 
 import CONST from '@src/CONST';
 import type SCREENS from '@src/SCREENS';
@@ -64,8 +63,6 @@ function RulesProhibitedDefaultPage({
 
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const {isBetaEnabled} = usePermissions();
-    const isRevamp = isBetaEnabled(CONST.BETAS.RULES_REVAMP);
 
     const initialProhibitedExpenses = useMemo(() => getProhibitedExpensesState(policy?.prohibitedExpenses), [policy?.prohibitedExpenses]);
     const [draftProhibitedExpenses, setDraftProhibitedExpenses] = useState(initialProhibitedExpenses);
@@ -120,21 +117,21 @@ function RulesProhibitedDefaultPage({
                 testID="RulesProhibitedDefaultPage"
             >
                 <HeaderWithBackButton
-                    title={translate(isRevamp ? 'workspace.rules.generalTab.flagReceiptLineItems' : 'workspace.rules.individualExpenseRules.prohibitedExpenses')}
+                    title={translate('workspace.rules.generalTab.flagReceiptLineItems')}
                     onBackButtonPress={() => Navigation.goBack()}
                 />
                 <ScrollView
-                    style={isRevamp ? [styles.flexGrow1] : undefined}
-                    contentContainerStyle={isRevamp ? [styles.ph5, styles.pb5] : undefined}
+                    style={[styles.flexGrow1]}
+                    contentContainerStyle={[styles.ph5, styles.pb5]}
                     addBottomSafeAreaPadding
                 >
-                    <Text style={[styles.flexRow, styles.alignItemsCenter, styles.mt3, isRevamp ? undefined : styles.mh5, styles.mb5]}>
+                    <Text style={[styles.flexRow, styles.alignItemsCenter, styles.mt3, styles.mb5]}>
                         <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.rules.individualExpenseRules.prohibitedDefaultDescription')}</Text>
                     </Text>
 
                     {PROHIBITED_EXPENSE_KEYS.map((prohibitedExpense) => {
                         const switchComponent = (
-                            <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.mt3, isRevamp ? undefined : styles.mh5, styles.mb5]}>
+                            <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.mt3, styles.mb5]}>
                                 <Text
                                     style={[styles.flex1, styles.mr2]}
                                     accessible={false}
@@ -143,15 +140,9 @@ function RulesProhibitedDefaultPage({
                                     {translate(`workspace.rules.individualExpenseRules.${prohibitedExpense}`)}
                                 </Text>
                                 <Switch
-                                    isOn={isRevamp ? draftProhibitedExpenses[prohibitedExpense] : (policy?.prohibitedExpenses?.[prohibitedExpense] ?? false)}
+                                    isOn={draftProhibitedExpenses[prohibitedExpense]}
                                     accessibilityLabel={translate(`workspace.rules.individualExpenseRules.${prohibitedExpense}`)}
-                                    onToggle={() => {
-                                        if (isRevamp) {
-                                            handleToggle(prohibitedExpense);
-                                            return;
-                                        }
-                                        setPolicyProhibitedExpense(policyID, prohibitedExpense, policy?.prohibitedExpenses);
-                                    }}
+                                    onToggle={() => handleToggle(prohibitedExpense)}
                                 />
                             </View>
                         );
@@ -166,21 +157,19 @@ function RulesProhibitedDefaultPage({
                         );
                     })}
                 </ScrollView>
-                {isRevamp && (
-                    <FixedFooter
-                        addBottomSafeAreaPadding
-                        addOfflineIndicatorBottomSafeAreaPadding
+                <FixedFooter
+                    addBottomSafeAreaPadding
+                    addOfflineIndicatorBottomSafeAreaPadding
+                >
+                    <Button
+                        variant={CONST.BUTTON_VARIANT.SUCCESS}
+                        size={CONST.BUTTON_SIZE.LARGE}
+                        onPress={handleSave}
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.FLAG_RECEIPT_LINE_ITEMS_SAVE}
                     >
-                        <Button
-                            variant={CONST.BUTTON_VARIANT.SUCCESS}
-                            size={CONST.BUTTON_SIZE.LARGE}
-                            onPress={handleSave}
-                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.FLAG_RECEIPT_LINE_ITEMS_SAVE}
-                        >
-                            <Button.Text>{translate('common.save')}</Button.Text>
-                        </Button>
-                    </FixedFooter>
-                )}
+                        <Button.Text>{translate('common.save')}</Button.Text>
+                    </Button>
+                </FixedFooter>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
     );
