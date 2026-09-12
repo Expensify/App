@@ -1,6 +1,7 @@
 import CompactMenuContext from '@components/CompactMenuContext';
 import MenuItemAction from '@components/MenuItem/presets/MenuItemAction';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
+import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ScrollView from '@components/ScrollView';
 import useUpdateFilterQuery from '@components/Search/hooks/useUpdateFilterQuery';
 import type {SearchQueryJSON} from '@components/Search/types';
@@ -13,7 +14,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {close} from '@libs/actions/Modal';
 import Navigation from '@libs/Navigation/Navigation';
-import {getGroupBySections, getSearchColumnTranslationKey, getViewOptions} from '@libs/SearchUIUtils';
+import {getGroupBySections, getSearchColumnTranslationKey, getValidGroupBy, getViewOptions} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -75,6 +76,7 @@ function DisplayPopup({queryJSON, searchResults, closeOverlay, onSort}: DisplayP
         const sortByValue = queryJSON.sortBy;
         const sortOrderValue = queryJSON.sortOrder;
         const groupByValue = searchAdvancedFilters[CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY];
+        const validGroupByValue = getValidGroupBy(groupByValue);
         const groupCurrencyValue = searchAdvancedFilters[CONST.SEARCH.SYNTAX_FILTER_KEYS.GROUP_CURRENCY];
         const viewValue = searchAdvancedFilters[CONST.SEARCH.SYNTAX_ROOT_KEYS.VIEW];
 
@@ -87,11 +89,12 @@ function DisplayPopup({queryJSON, searchResults, closeOverlay, onSort}: DisplayP
                     value={`${translate(getSearchColumnTranslationKey(sortByValue))} ${CONST.DOT_SEPARATOR} ${translate(`search.filters.sortOrder.${sortOrderValue}`)}`}
                 />
                 {(isExpenseType || isTripType) && (
-                    <MenuItemField
-                        name={translate('search.display.groupBy')}
+                    <MenuItemWithTopDescription
+                        shouldShowRightIcon
+                        description={translate('search.display.groupBy')}
+                        title={validGroupByValue ? translate(`search.filters.groupBy.${validGroupByValue}`) : undefined}
                         onPress={() => setSelectedDisplayFilter(CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY)}
                         sentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_GROUP_BY}
-                        value={groupByValue ? translate(`search.filters.groupBy.${groupByValue}`) : undefined}
                     />
                 )}
                 {!!groupBy && (
@@ -102,12 +105,13 @@ function DisplayPopup({queryJSON, searchResults, closeOverlay, onSort}: DisplayP
                         value={groupCurrencyValue}
                     />
                 )}
-                {isExpenseType && !!groupByValue && (
-                    <MenuItemField
-                        name={translate('search.view.label')}
+                {isExpenseType && !!validGroupByValue && (
+                    <MenuItemWithTopDescription
+                        shouldShowRightIcon
+                        description={translate('search.view.label')}
+                        title={viewValue ? translate(`search.view.${viewValue}`) : undefined}
                         onPress={() => setSelectedDisplayFilter(CONST.SEARCH.SYNTAX_ROOT_KEYS.VIEW)}
                         sentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_VIEW}
-                        value={viewValue ? translate(`search.view.${viewValue}`) : undefined}
                     />
                 )}
                 {isExpenseType && (

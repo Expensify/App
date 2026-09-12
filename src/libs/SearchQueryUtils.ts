@@ -108,7 +108,7 @@ const VALID_IS_TYPES = new Set(Object.values(CONST.SEARCH.IS_VALUES));
 const VALID_WITHDRAWAL_TYPES = new Set(Object.values(CONST.SEARCH.WITHDRAWAL_TYPE));
 const VALID_WITHDRAWAL_STATUSES = new Set<string>(Object.values(CONST.SEARCH.SETTLEMENT_STATUS));
 const VALID_PAID_STATUSES = new Set<string>(Object.values(CONST.SEARCH.PAID_STATUS));
-
+const VALID_GROUP_BYS = new Set<string>(Object.values(CONST.SEARCH.GROUP_BY));
 // Create reverse lookup maps for O(1) performance
 const createKeyToUserFriendlyMap = () => {
     const map = new Map<string, string>();
@@ -177,24 +177,199 @@ function sanitizeSearchValue(str: string) {
     return escaped;
 }
 
-const syntaxRegex = new RegExp(`^-?(${Object.values(CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS).join('|')}|report-?field(-.+)+)[:><=].+$`);
+function getKeywordQueryForSearchInput(keywords: string[]) {
+    const keywordQuery = keywords.map(sanitizeSearchValue).join(' ');
+
+    // An unmatched opening quote is a literal keyword character, not a phrase delimiter.
+    // Show it as entered only when there is no later quote that could close it on resubmission.
+    if (keywords.at(0)?.startsWith('"') && keywordQuery.startsWith('\\"') && !keywordQuery.slice(2).includes('"')) {
+        return keywordQuery.slice(1);
+    }
+
+    return keywordQuery;
+}
+
+function sanitizeSearchValuePreservingEscapes(str: string) {
+    let escaped = '';
+
+    for (let index = 0; index < str.length; index++) {
+        const char = str.at(index) ?? '';
+        if (char !== '\\') {
+            escaped += /["“”]/.test(char) ? `\\${char}` : char;
+            continue;
+        }
+
+        let nextIndex = index;
+        while (str.at(nextIndex) === '\\') {
+            nextIndex++;
+        }
+
+        const backslashCount = nextIndex - index;
+        const nextChar = str.at(nextIndex);
+        if (nextChar === ',') {
+            escaped += `${'\\'.repeat(backslashCount)}${nextChar}`;
+            index = nextIndex;
+            continue;
+        }
+
+        if (nextChar && /["“”]/.test(nextChar)) {
+            escaped += `${'\\'.repeat(backslashCount + (backslashCount % 2 === 0 ? 1 : 0))}${nextChar}`;
+            index = nextIndex;
+            continue;
+        }
+
+        escaped += '\\'.repeat(backslashCount + (backslashCount % 2));
+        index = nextIndex - 1;
+    }
+
+    if (escaped.includes(' ') || escaped.includes(`\xA0`) || escaped.includes(',')) {
+        return `"${escaped}"`;
+    }
+
+    return escaped;
+}
+
+const syntaxKeyPattern = `-?(?:${Object.values(CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS).join('|')}|report-?field(?:-[^\\s:><=]+)+)`;
+const syntaxOperatorPattern = '\\*?:|[<>]=?|=';
+const syntaxValuePattern = '"(?:\\\\.|[^"\\\\])*"|[^\\s]+';
+const syntaxSpanRegex = new RegExp(`(^|\\s)(${syntaxKeyPattern})\\s*(${syntaxOperatorPattern})\\s*(${syntaxValuePattern})`, 'gi');
+
+function quoteSyntaxSpans(segment: string) {
+    return segment.replace(syntaxSpanRegex, (match: string, prefix: string) => {
+        const syntaxValue = match.slice(prefix.length).trim();
+        const sanitizedSyntaxValue = sanitizeSearchValuePreservingEscapes(syntaxValue);
+        return `${prefix}${sanitizedSyntaxValue.startsWith('"') ? sanitizedSyntaxValue : `"${sanitizedSyntaxValue}"`}`;
+    });
+}
+
+function isEscaped(str: string, index: number) {
+    let backslashCount = 0;
+    for (let i = index - 1; i >= 0 && str.at(i) === '\\'; i--) {
+        backslashCount++;
+    }
+    return backslashCount % 2 === 1;
+}
+
+function isCompleteQuotedValue(str: string) {
+    return str.startsWith('"') && str.length > 1 && str.endsWith('"') && !isEscaped(str, str.length - 1);
+}
+
+function hasUnescapedQuote(str: string) {
+    for (let index = 0; index < str.length; index++) {
+        if (str.at(index) === '"' && !isEscaped(str, index)) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+function hasClosingQuote(str: string, openingQuoteIndex: number) {
+    for (let index = openingQuoteIndex + 1; index < str.length; index++) {
+        if (str.at(index) === '"' && !isEscaped(str, index)) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+function tokenizeKeywordSegments(keywords: string) {
+    const segments: string[] = [];
+    let index = 0;
+
+    while (index < keywords.length) {
+        while (index < keywords.length && /\s/.test(keywords.at(index) ?? '')) {
+            index++;
+        }
+
+        if (index >= keywords.length) {
+            break;
+        }
+
+        const start = index;
+        const startsWithQuote = keywords.at(index) === '"' && hasClosingQuote(keywords, index);
+        if (startsWithQuote) {
+            index++;
+        }
+
+        while (index < keywords.length) {
+            const char = keywords.at(index);
+
+            if (!startsWithQuote && /\s/.test(char ?? '')) {
+                break;
+            }
+
+            if (char === '\\') {
+                // Match the search parser's escapedChar rule: a backslash does not escape whitespace.
+                index += /[,"“”\\]/.test(keywords.at(index + 1) ?? '') ? 2 : 1;
+                continue;
+            }
+
+            if (char === '"' && startsWithQuote) {
+                index++;
+                break;
+            }
+
+            index++;
+        }
+
+        segments.push(keywords.slice(start, index));
+    }
+
+    return segments;
+}
+
+const syntaxWithoutValueRegex = new RegExp(`^${syntaxKeyPattern}\\s*(?:${syntaxOperatorPattern})$`, 'i');
+const groupByWithoutValueRegex = new RegExp(`^${CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.GROUP_BY}\\s*(?:${syntaxOperatorPattern})$`, 'i');
+
+function shouldCombineKeywordSegments(segment: string, nextSegment: string | undefined) {
+    if (!nextSegment || !syntaxWithoutValueRegex.test(segment)) {
+        return false;
+    }
+
+    const nextSegmentValue = isCompleteQuotedValue(nextSegment) ? nextSegment.slice(1, -1) : nextSegment;
+    return syntaxWithoutValueRegex.test(nextSegment) || (groupByWithoutValueRegex.test(segment) && !VALID_GROUP_BYS.has(nextSegmentValue.toLowerCase()));
+}
+
+function sanitizeIncompleteQuotedValue(str: string) {
+    const sanitized = sanitizeSearchValue(str);
+    return sanitized.startsWith('"') ? sanitized : `"${sanitized}"`;
+}
+
 /**
  * Escapes each keyword that would otherwise be re-interpreted as query syntax by wrapping it in quotes.
  * A keyword that looks like a filter (e.g. `type:expense`) becomes `"type:expense"` so it is matched as a
  * keyword instead of being parsed as the `type` filter. Plain keywords (e.g. `foo`) are left untouched.
  */
 function escapeKeyword(keywords: string) {
-    return (
-        keywords
-            .match(/"([^"]*)"|(\S+)/g)
-            ?.map((q) => {
-                if (q.toLowerCase().match(syntaxRegex)) {
-                    return `"${q}"`;
-                }
-                return q;
-            })
-            .join(' ') ?? ''
-    );
+    const segments = tokenizeKeywordSegments(keywords);
+    let skipNextSegment = false;
+
+    return segments
+        .map((segment, index) => {
+            if (skipNextSegment) {
+                skipNextSegment = false;
+                return '';
+            }
+
+            const nextSegment = segments.at(index + 1);
+            skipNextSegment = shouldCombineKeywordSegments(segment, nextSegment);
+            const q = skipNextSegment ? `${segment} ${nextSegment}` : segment;
+
+            if (q.startsWith('"')) {
+                return isCompleteQuotedValue(q) ? q : sanitizeIncompleteQuotedValue(q);
+            }
+
+            const quotedSyntax = quoteSyntaxSpans(q).trim();
+            if (quotedSyntax !== q) {
+                return quotedSyntax;
+            }
+
+            return hasUnescapedQuote(q) || q.includes('\\') ? sanitizeSearchValuePreservingEscapes(q) : q;
+        })
+        .filter(Boolean)
+        .join(' ');
 }
 
 function getRangeQueryValue(from?: string, to?: string) {
@@ -775,6 +950,7 @@ function getCachedSearchQueryJSON(query: SearchQueryString, rawQuery?: SearchQue
         // Add the full input and hash to the results
         result.inputQuery = query;
         result.flatFilters = flatFilters;
+
         result.isViewExplicitlySet = rawFilterList?.some((filter) => filter.key === CONST.SEARCH.SYNTAX_ROOT_KEYS.VIEW) ?? false;
 
         // Normalize limit before computing hashes to ensure invalid values don't affect hash
@@ -2725,6 +2901,7 @@ export {
     buildCannedSearchQuery,
     resolvePolicyIDFromName,
     sanitizeSearchValue,
+    getKeywordQueryForSearchInput,
     getQueryWithUpdatedValues,
     getKeywordQueryWithCurrentSearchContext,
     getCurrentSearchQueryJSON,

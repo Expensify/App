@@ -26,6 +26,7 @@ import {
     getFilterFromQuery,
     queryHasSubmittedViolationFilter,
     getDateFilterRange,
+    getKeywordQueryForSearchInput,
     getKeywordQueryWithCurrentSearchContext,
     getLastRouteByName,
     getParamsState,
@@ -2667,6 +2668,7 @@ describe('SearchQueryUtils', () => {
 
         test.each([
             ['a straight quote', 'A"B'],
+            ['a straight quote after an astral character', '😀"B'],
             ['a curly quote', 'A“B'],
             ['a backslash', 'A\\B'],
         ])('round-trips a bare keyword containing %s', (_label, keyword) => {
@@ -3860,6 +3862,219 @@ describe('SearchQueryUtils', () => {
             // The user typed "type:expense" as free text, so it must be quoted instead of overriding the context type
             expect(result).toContain('"type:expense"');
             expect(result).toContain('type:trip');
+        });
+
+        it('should stop escaping after the unquoted filter value', () => {
+            const currentQueryJSON = buildSearchQueryJSON('type:trip status:all');
+
+            const result = currentQueryJSON ? getKeywordQueryWithCurrentSearchContext('type:expense foo bar', currentQueryJSON) : '';
+
+            expect(result).toContain('"type:expense" foo bar');
+            expect(result).not.toContain('"type:expense foo bar"');
+        });
+
+        it('should escape syntax with whitespace between the operator and value', () => {
+            const currentQueryJSON = buildSearchQueryJSON('type:expense from:me');
+
+            const result = currentQueryJSON ? getKeywordQueryWithCurrentSearchContext('group-by: reports', currentQueryJSON) : '';
+
+            expect(result).toContain('"group-by: reports"');
+        });
+
+        it('should preserve a valid quoted group-by value as syntax', () => {
+            const currentQueryJSON = buildSearchQueryJSON('type:expense');
+            if (!currentQueryJSON) {
+                throw new Error('Expected currentQueryJSON to be defined');
+            }
+
+            const result = getQueryWithUpdatedValues(getKeywordQueryWithCurrentSearchContext('group-by: "from"', currentQueryJSON));
+            const resultQueryJSON = buildSearchQueryJSON(result ?? '');
+
+            expect(resultQueryJSON?.groupBy).toBe(CONST.SEARCH.GROUP_BY.FROM);
+            expect(result).not.toContain('"group-by: \\"from\\""');
+        });
+
+        it('should preserve valid filter syntax with whitespace between the operator and value', () => {
+            const currentQueryJSON = buildSearchQueryJSON('type:expense');
+
+            const result = currentQueryJSON ? getKeywordQueryWithCurrentSearchContext('from: me', currentQueryJSON) : '';
+            const updatedResult = getQueryWithUpdatedValues(result);
+            const resultQueryJSON = buildSearchQueryJSON(updatedResult ?? '');
+
+            expect(getFilterFromQuery(resultQueryJSON, CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM).value).toEqual([CONST.SEARCH.ME]);
+            expect(updatedResult).not.toContain('"from: me"');
+        });
+
+        it('should preserve terms after consecutive incomplete syntax tokens', () => {
+            const currentQueryJSON = buildSearchQueryJSON('type:trip status:all');
+
+            const result = currentQueryJSON ? getKeywordQueryWithCurrentSearchContext('type: status: foo', currentQueryJSON) : '';
+
+            expect(result).toContain('"type: status:" foo');
+        });
+
+        it('should preserve a trailing keyword after consecutive incomplete filter names', () => {
+            const currentQueryJSON = buildSearchQueryJSON('type:expense');
+            if (!currentQueryJSON) {
+                throw new Error('Expected currentQueryJSON to be defined');
+            }
+
+            const result = getQueryWithUpdatedValues(getKeywordQueryWithCurrentSearchContext('merchant: description: coffee', currentQueryJSON));
+            const resultQueryJSON = buildSearchQueryJSON(result ?? '');
+            const keywordFilter = resultQueryJSON?.flatFilters.find((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD);
+            const displayedKeyword = keywordFilter?.filters.map((filter) => sanitizeSearchValue(filter.value.toString())).join(' ') ?? '';
+
+            expect(keywordFilter?.filters.map((filter) => filter.value)).toEqual(['merchant: description:', 'coffee']);
+            expect(displayedKeyword).toBe('"merchant: description:" coffee');
+        });
+
+        it('should preserve syntax with a quoted multi-word value as separate keyword terms', () => {
+            const currentQueryJSON = buildSearchQueryJSON('type:expense');
+
+            const result = currentQueryJSON ? getKeywordQueryWithCurrentSearchContext('from:"John Doe"', currentQueryJSON) : '';
+            const updatedResult = getQueryWithUpdatedValues(result);
+            const resultQueryJSON = buildSearchQueryJSON(updatedResult ?? '');
+            const keywordFilter = resultQueryJSON?.flatFilters.find((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD);
+
+            expect(keywordFilter?.filters.map((filter) => filter.value)).toEqual(['from:"John', 'Doe"']);
+            expect(getFilterFromQuery(resultQueryJSON, CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM).value).toBeUndefined();
+
+            const displayedKeyword = keywordFilter?.filters.map((filter) => sanitizeSearchValue(filter.value.toString())).join(' ') ?? '';
+            expect(displayedKeyword).toBe('from:\\"John Doe\\"');
+
+            const resubmittedResult = resultQueryJSON ? getQueryWithUpdatedValues(getKeywordQueryWithCurrentSearchContext(displayedKeyword, resultQueryJSON)) : undefined;
+            const resubmittedQueryJSON = buildSearchQueryJSON(resubmittedResult ?? '');
+            const resubmittedKeywordFilter = resubmittedQueryJSON?.flatFilters.find((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD);
+
+            expect(resubmittedKeywordFilter?.filters).toEqual(keywordFilter?.filters);
+            expect(getFilterFromQuery(resubmittedQueryJSON, CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM).value).toBeUndefined();
+        });
+
+        it('should preserve malformed quote and backslash keyword text', () => {
+            const currentQueryJSON = buildSearchQueryJSON('type:expense');
+
+            const unmatchedQuoteResult = currentQueryJSON ? getQueryWithUpdatedValues(getKeywordQueryWithCurrentSearchContext('foo "bar', currentQueryJSON)) : '';
+            const unmatchedQuoteJSON = buildSearchQueryJSON(unmatchedQuoteResult ?? '');
+            const unmatchedQuoteKeywordFilter = unmatchedQuoteJSON?.flatFilters.find((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD);
+
+            expect(unmatchedQuoteKeywordFilter?.filters.map((filter) => filter.value)).toEqual(['foo', '"bar']);
+
+            const trailingBackslashResult = currentQueryJSON ? getQueryWithUpdatedValues(getKeywordQueryWithCurrentSearchContext('back\\', currentQueryJSON)) : '';
+            const trailingBackslashJSON = buildSearchQueryJSON(trailingBackslashResult ?? '');
+            const trailingBackslashKeywordFilter = trailingBackslashJSON?.flatFilters.find((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD);
+
+            expect(trailingBackslashKeywordFilter?.filters.map((filter) => filter.value)).toEqual(['back\\']);
+        });
+
+        it.each([
+            ['"foo bar', ['"foo', 'bar']],
+            ['foo "bar baz', ['foo', '"bar', 'baz']],
+        ])('should keep incomplete quoted input %s as separate keywords across submissions', (keyword, expectedKeywords) => {
+            const currentQueryJSON = buildSearchQueryJSON('type:expense');
+            if (!currentQueryJSON) {
+                throw new Error('Expected currentQueryJSON to be defined');
+            }
+
+            const result = getQueryWithUpdatedValues(getKeywordQueryWithCurrentSearchContext(keyword, currentQueryJSON));
+            const resultQueryJSON = buildSearchQueryJSON(result ?? '');
+            const keywordFilter = resultQueryJSON?.flatFilters.find((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD);
+
+            expect(keywordFilter?.filters.map((filter) => filter.value)).toEqual(expectedKeywords);
+
+            const displayedKeyword = getKeywordQueryForSearchInput(keywordFilter?.filters.map((filter) => filter.value.toString()) ?? []);
+            if (keyword === '"foo bar') {
+                expect(displayedKeyword).toBe(keyword);
+            }
+            const resubmittedResult = resultQueryJSON ? getQueryWithUpdatedValues(getKeywordQueryWithCurrentSearchContext(displayedKeyword, resultQueryJSON)) : undefined;
+            const resubmittedKeywordFilter = buildSearchQueryJSON(resubmittedResult ?? '')?.flatFilters.find((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD);
+            expect(resubmittedKeywordFilter?.filters).toEqual(keywordFilter?.filters);
+        });
+
+        it('should keep a complete quoted keyword as one phrase', () => {
+            const currentQueryJSON = buildSearchQueryJSON('type:expense');
+            if (!currentQueryJSON) {
+                throw new Error('Expected currentQueryJSON to be defined');
+            }
+
+            const result = getQueryWithUpdatedValues(getKeywordQueryWithCurrentSearchContext('"foo bar"', currentQueryJSON));
+            const keywordFilter = buildSearchQueryJSON(result ?? '')?.flatFilters.find((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD);
+
+            expect(keywordFilter?.filters.map((filter) => filter.value)).toEqual(['foo bar']);
+            expect(getKeywordQueryForSearchInput(keywordFilter?.filters.map((filter) => filter.value.toString()) ?? [])).toBe('"foo bar"');
+        });
+
+        it('should keep an escaped opening quote when a later quoted keyword could close it', () => {
+            expect(getKeywordQueryForSearchInput(['"foo', 'bar,baz'])).toBe(String.raw`\"foo "bar,baz"`);
+        });
+
+        it('should preserve backslashes in filter-like keyword text across submissions', () => {
+            const currentQueryJSON = buildSearchQueryJSON('type:expense');
+            if (!currentQueryJSON) {
+                throw new Error('Expected currentQueryJSON to be defined');
+            }
+
+            const keyword = String.raw`description:C:\Temp`;
+
+            const result = getQueryWithUpdatedValues(getKeywordQueryWithCurrentSearchContext(keyword, currentQueryJSON));
+            const resultQueryJSON = buildSearchQueryJSON(result ?? '');
+            const keywordFilter = resultQueryJSON?.flatFilters.find((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD);
+
+            expect(keywordFilter?.filters.at(0)?.value).toBe(keyword);
+
+            const displayedKeyword = keywordFilter?.filters.map((filter) => sanitizeSearchValue(filter.value.toString())).join(' ') ?? '';
+            expect(displayedKeyword).toBe(String.raw`description:C:\\Temp`);
+
+            const resubmittedResult = resultQueryJSON ? getQueryWithUpdatedValues(getKeywordQueryWithCurrentSearchContext(displayedKeyword, resultQueryJSON)) : undefined;
+            const resubmittedQueryJSON = buildSearchQueryJSON(resubmittedResult ?? '');
+            const resubmittedKeywordFilter = resubmittedQueryJSON?.flatFilters.find((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD);
+
+            expect(resubmittedKeywordFilter?.filters).toEqual(keywordFilter?.filters);
+        });
+
+        it('should consume a backslash used to escape a comma in keyword text', () => {
+            const currentQueryJSON = buildSearchQueryJSON('type:expense');
+            if (!currentQueryJSON) {
+                throw new Error('Expected currentQueryJSON to be defined');
+            }
+
+            const result = getQueryWithUpdatedValues(getKeywordQueryWithCurrentSearchContext(String.raw`foo\,bar`, currentQueryJSON));
+            const resultQueryJSON = buildSearchQueryJSON(result ?? '');
+            const keywordFilter = resultQueryJSON?.flatFilters.find((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD);
+            const displayedKeyword = keywordFilter?.filters.map((filter) => sanitizeSearchValue(filter.value.toString())).join(' ') ?? '';
+
+            expect(keywordFilter?.filters.at(0)?.value).toBe('foo,bar');
+            expect(displayedKeyword).toBe('"foo,bar"');
+        });
+
+        it('should keep backslashes around whitespace as separate keywords', () => {
+            const currentQueryJSON = buildSearchQueryJSON('type:expense');
+            if (!currentQueryJSON) {
+                throw new Error('Expected currentQueryJSON to be defined');
+            }
+
+            const keyword = String.raw`foo\ \bar`;
+            const result = getQueryWithUpdatedValues(getKeywordQueryWithCurrentSearchContext(keyword, currentQueryJSON));
+            const resultQueryJSON = buildSearchQueryJSON(result ?? '');
+            const keywordFilter = resultQueryJSON?.flatFilters.find((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD);
+
+            expect(keywordFilter?.filters.map((filter) => filter.value)).toEqual(['foo\\', String.raw`\bar`]);
+
+            const displayedKeyword = keywordFilter?.filters.map((filter) => sanitizeSearchValue(filter.value.toString())).join(' ') ?? '';
+            const resubmittedResult = resultQueryJSON ? getQueryWithUpdatedValues(getKeywordQueryWithCurrentSearchContext(displayedKeyword, resultQueryJSON)) : undefined;
+            const resubmittedKeywordFilter = buildSearchQueryJSON(resubmittedResult ?? '')?.flatFilters.find((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD);
+            expect(resubmittedKeywordFilter?.filters).toEqual(keywordFilter?.filters);
+        });
+
+        it('should keep an explicitly quoted backslash-space keyword as one phrase', () => {
+            const currentQueryJSON = buildSearchQueryJSON('type:expense');
+            if (!currentQueryJSON) {
+                throw new Error('Expected currentQueryJSON to be defined');
+            }
+
+            const result = getQueryWithUpdatedValues(getKeywordQueryWithCurrentSearchContext(String.raw`"foo\ \bar"`, currentQueryJSON));
+            const keywordFilter = buildSearchQueryJSON(result ?? '')?.flatFilters.find((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD);
+
+            expect(keywordFilter?.filters.map((filter) => filter.value)).toEqual([String.raw`foo\ \bar`]);
         });
 
         it('should escape input that uses a comparison operator with a filter key', () => {
