@@ -4483,10 +4483,17 @@ describe('CardUtils', () => {
         });
 
         // The server records the connection error at scrape time, so an error with the same timestamp is that one.
+        // `lastScrape` has no offset but is UTC, so the expected key is built from the UTC instant rather than a local one.
         it('returns false for an error recorded at the last sync', () => {
-            const lastScrapeMicroseconds = new Date('2025-10-05T11:00:00').getTime() * 1000;
+            const lastScrapeMicroseconds = Date.parse('2025-10-05T11:00:00Z') * 1000;
             const card: Card = {...createRandomCard(1), lastScrape: '2025-10-05 11:00:00', errors: {[lastScrapeMicroseconds]: 'Connection broken'}};
             expect(hasErrorNewerThanLastScrape(card)).toBe(false);
+        });
+
+        it('returns true for an error recorded one second after the last sync', () => {
+            const oneSecondAfterLastScrape = (Date.parse('2025-10-05T11:00:00Z') + 1000) * 1000;
+            const card: Card = {...createRandomCard(1), lastScrape: '2025-10-05 11:00:00', errors: {[oneSecondAfterLastScrape]: 'Failed to unassign this card'}};
+            expect(hasErrorNewerThanLastScrape(card)).toBe(true);
         });
 
         // A failed unassignment is recorded now, long after the last sync, and has to stay visible.
@@ -4501,7 +4508,7 @@ describe('CardUtils', () => {
         });
 
         it('parses an ISO 8601 last sync', () => {
-            const card: Card = {...createRandomCard(1), lastScrape: '2025-10-05T11:00:00', errors: {[Date.now() * 1000]: 'Failed to unassign this card'}};
+            const card: Card = {...createRandomCard(1), lastScrape: '2025-10-05T11:00:00Z', errors: {[Date.now() * 1000]: 'Failed to unassign this card'}};
             expect(hasErrorNewerThanLastScrape(card)).toBe(true);
         });
     });

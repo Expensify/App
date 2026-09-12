@@ -50,7 +50,7 @@ import type {Locale as DateFnsLocale} from 'date-fns';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {TupleToUnion, ValueOf} from 'type-fest';
 
-import {format, fromUnixTime, isBefore, parse} from 'date-fns';
+import {format, fromUnixTime, isBefore} from 'date-fns';
 import groupBy from 'lodash/groupBy';
 import lodashSortBy from 'lodash/sortBy';
 
@@ -1498,8 +1498,9 @@ function getCardConnectionStatusDisplay({
 
 /**
  * Parses a card's last sync. `card.lastScrape` is usually the Expensify DB datetime format ("2024-11-27 11:00:53"),
- * but a personal card's value can arrive as ISO 8601 ("2024-11-27T11:00:53Z"). The DB format is tried explicitly
- * first because its `new Date()` handling is not portable across JS engines, then `new Date()` handles ISO 8601.
+ * which carries no offset but is UTC, so it is turned into ISO 8601 with a `Z` rather than read as device local time.
+ * That matches how the App reads a DB datetime elsewhere, see `DateUtils.getLocalDateFromDatetime`. A personal card's
+ * value can already be ISO 8601, which the fallback handles.
  *
  * @param card the card to read
  * @returns the parsed date, or undefined when there is no usable value
@@ -1508,7 +1509,7 @@ function parseCardLastScrape(card: Card): Date | undefined {
     if (!card.lastScrape) {
         return undefined;
     }
-    let lastScrapeDate = parse(card.lastScrape, 'yyyy-MM-dd HH:mm:ss', new Date());
+    let lastScrapeDate = new Date(`${card.lastScrape.replace(' ', 'T')}Z`);
     if (Number.isNaN(lastScrapeDate.getTime())) {
         lastScrapeDate = new Date(card.lastScrape);
     }
