@@ -65,6 +65,8 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
     const [stashedSession] = useOnyx(ONYXKEYS.STASHED_SESSION);
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [gpsDraftDetails] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS);
+    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
+    const [hasLoadedApp] = useOnyx(ONYXKEYS.HAS_LOADED_APP);
 
     const delegate = account?.delegatedAccess?.delegate;
     const delegators = account?.delegatedAccess?.delegators ?? [];
@@ -81,10 +83,12 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
     const isActingAsDelegate = !!delegate;
     const canSwitchAccounts = delegators.length > 0 || isActingAsDelegate;
 
-    // Switching accounts wipes ONYXKEYS.ACCOUNT, so hold the last value while it is missing. Once it is back,
-    // a false value is real (e.g. a delegator revoked access) and must not keep the button's row reserved.
+    // Switching accounts resets ONYXKEYS.ACCOUNT and reloads it through OpenApp, which sets IS_LOADING_APP while
+    // HAS_LOADED_APP stays preserved. A cold start clears HAS_LOADED_APP and a warm reload runs ReconnectApp, so
+    // neither looks like this; a revoke reloads nothing, so it settles immediately rather than holding the row.
+    const isAccountSwitchInFlight = !!isLoadingApp && !!hasLoadedApp;
     const [wasAbleToSwitchAccounts, setWasAbleToSwitchAccounts] = useState(canSwitchAccounts);
-    if (!!account && wasAbleToSwitchAccounts !== canSwitchAccounts) {
+    if (!isAccountSwitchInFlight && wasAbleToSwitchAccounts !== canSwitchAccounts) {
         setWasAbleToSwitchAccounts(canSwitchAccounts);
     }
 
@@ -272,7 +276,7 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
     const shouldStackHeader = shouldUseNarrowLayout && !isInLandscapeMode;
     const displayNameStyle = shouldStackHeader ? [styles.textHeadlineH1, styles.textAlignCenter] : [styles.textBold, styles.textLarge, styles.flexShrink1, styles.lineHeightXLarge];
     const avatarSize = shouldStackHeader ? CONST.AVATAR_SIZE.XXXX_LARGE : CONST.AVATAR_SIZE.DEFAULT;
-    const shouldReserveSwitchButtonRow = shouldStackHeader && wasAbleToSwitchAccounts && !canSwitchAccounts;
+    const shouldReserveSwitchButtonRow = shouldStackHeader && wasAbleToSwitchAccounts && !canSwitchAccounts && isAccountSwitchInFlight;
 
     return (
         <>

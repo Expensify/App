@@ -9,6 +9,8 @@ import PersonalDetailsByLoginProvider from '@components/PersonalDetailsByLoginPr
 
 import {CurrentReportIDContextProvider} from '@hooks/useCurrentReportID';
 
+import {clearOnyxForDelegateTransition} from '@libs/actions/Delegate';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
@@ -88,11 +90,16 @@ async function addDelegator() {
 
 describe('AccountSwitcher', () => {
     beforeAll(() => {
-        Onyx.init({keys: ONYXKEYS});
+        // Mirror src/setup: ACCOUNT has a default key state, so Onyx.clear() resets it to a truthy object
+        // rather than removing it. Without this the switch simulation below can't reproduce production.
+        Onyx.init({keys: ONYXKEYS, initialKeyStates: {[ONYXKEYS.ACCOUNT]: CONST.DEFAULT_ACCOUNT_DATA}});
     });
 
     beforeEach(async () => {
         await TestHelper.signInWithTestUser(CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL);
+        // clearOnyxForDelegateTransition preserves this, so it has to be set for the switch to be distinguishable
+        // from a cold start.
+        await Onyx.set(ONYXKEYS.HAS_LOADED_APP, true);
         await waitForBatchedUpdatesWithAct();
     });
 
@@ -141,15 +148,26 @@ describe('AccountSwitcher', () => {
         expect(screen.getByText(SWITCH_BUTTON_TEXT)).toBeOnTheScreen();
         expect(screen.queryByTestId(CONST.ACCOUNT_SWITCHER_BUTTON_PLACEHOLDER_TEST_ID)).toBeNull();
 
-        // Connecting as a delegate wipes ONYXKEYS.ACCOUNT and fetches it again, so the button goes away
-        // for the length of that request while the name and email stay on screen.
+        // Drive the real transition rather than imitating it: it resets ONYXKEYS.ACCOUNT to its default object
+        // (Onyx.clear does not remove keys that have one) and seeds IS_LOADING_APP, so the button goes away for
+        // the length of the reload while the name and email stay on screen.
         await act(async () => {
-            await Onyx.set(ONYXKEYS.ACCOUNT, null);
+            await clearOnyxForDelegateTransition();
         });
         await waitForBatchedUpdatesWithAct();
 
         expect(screen.queryByText(SWITCH_BUTTON_TEXT)).toBeNull();
         expect(screen.getByTestId(CONST.ACCOUNT_SWITCHER_BUTTON_PLACEHOLDER_TEST_ID)).toBeOnTheScreen();
+
+        // Once OpenApp answers, the row is handed back to the real button.
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.ACCOUNT, {delegatedAccess: {delegate: DELEGATOR_EMAIL}});
+            await Onyx.set(ONYXKEYS.IS_LOADING_APP, false);
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        expect(screen.getByText(SWITCH_BUTTON_TEXT)).toBeOnTheScreen();
+        expect(screen.queryByTestId(CONST.ACCOUNT_SWITCHER_BUTTON_PLACEHOLDER_TEST_ID)).toBeNull();
     });
 
     it('releases the reserved Switch button row when a delegator revokes access', async () => {
