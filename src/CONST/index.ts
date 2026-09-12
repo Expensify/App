@@ -2672,6 +2672,7 @@ const CONST = {
         EXP_ERROR: 666,
         UNABLE_TO_RETRY: 'unableToRetry',
         UPDATE_REQUIRED: 426,
+        TOO_MANY_REQUESTS: 429,
         INCORRECT_VALIDATE_CODE: 451,
         ADMIN_REQUIRED: 460,
         POLICY_DIFF_WARNING: 305,
