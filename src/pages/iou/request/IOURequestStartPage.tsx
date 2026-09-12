@@ -216,13 +216,12 @@ function IOURequestStartPage({
     const shouldEmbedConfirmation = shouldUseTab || iouType === CONST.IOU.TYPE.PAY;
 
     const [isSignDirty, setIsSignDirty] = useState(false);
-    const [isCurrencyDirty, setIsCurrencyDirty] = useState(false);
     const [hasSubmitted, setHasSubmitted] = useState(false);
     const hasSubmittedRef = useRef(false);
 
     const hasAmountChanged = transaction?.isAmountSet === true;
-    const getEmbeddedHasUnsavedChanges = () => shouldEmbedConfirmation && !hasSubmittedRef.current && (isSignDirty || isCurrencyDirty || hasAmountChanged);
-    const isEmbeddedDirty = shouldEmbedConfirmation && !hasSubmitted && (isSignDirty || isCurrencyDirty || hasAmountChanged);
+    const getEmbeddedHasUnsavedChanges = () => shouldEmbedConfirmation && !hasSubmittedRef.current && (isSignDirty || hasAmountChanged);
+    const isEmbeddedDirty = shouldEmbedConfirmation && !hasSubmitted && (isSignDirty || hasAmountChanged);
 
     const {suppressDiscardPrompt} = useDiscardChangesConfirmation({
         getHasUnsavedChanges: getEmbeddedHasUnsavedChanges,
@@ -299,7 +298,6 @@ function IOURequestStartPage({
                 navigation={navigation}
                 shouldHideHeader
                 onSignDirtyChange={setIsSignDirty}
-                onCurrencyDirtyChange={setIsCurrencyDirty}
                 suppressDiscardPrompt={suppressEmbeddedDiscardPrompt}
             />
         );
@@ -339,7 +337,6 @@ function IOURequestStartPage({
                                 defaultSelectedTab={defaultSelectedTab}
                                 onTabSelected={(newIOUType) => {
                                     setIsSignDirty(false);
-                                    setIsCurrencyDirty(false);
                                     resetIOUTypeIfChanged(newIOUType);
                                 }}
                                 onTabSelect={onTabSelectFocusHandler}

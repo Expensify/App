@@ -76,9 +76,6 @@ type ProviderProps = {
     /** Reports whether the inline amount sign differs from its initial value (new manual expense flow) */
     onSignDirtyChange?: (isSignDirty: boolean) => void;
 
-    /** Reports whether the inline amount currency differs from its initial value (new manual expense flow) */
-    onCurrencyDirtyChange?: (isCurrencyDirty: boolean) => void;
-
     /** Block components rendered inside the Provider */
     children: ReactNode;
 };
@@ -106,7 +103,6 @@ function Provider({
     onSubmitForm,
     onTaxAmountEmptyChange,
     onSignDirtyChange,
-    onCurrencyDirtyChange,
     children,
 }: ProviderProps) {
     const value = {
@@ -132,7 +128,6 @@ function Provider({
         onSubmitForm,
         onTaxAmountEmptyChange,
         onSignDirtyChange,
-        onCurrencyDirtyChange,
     };
     return <ConfirmationFieldsContext.Provider value={value}>{children}</ConfirmationFieldsContext.Provider>;
 }

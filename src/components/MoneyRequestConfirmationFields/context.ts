@@ -46,9 +46,6 @@ type ConfirmationFieldsContextValue = {
 
     /** Reports whether the inline amount sign differs from its initial value (new manual expense flow). */
     onSignDirtyChange?: (isSignDirty: boolean) => void;
-
-    /** Reports whether the inline amount currency differs from its initial value (new manual expense flow). */
-    onCurrencyDirtyChange?: (isCurrencyDirty: boolean) => void;
 };
 
 const ConfirmationFieldsContext = createContext<ConfirmationFieldsContextValue | null>(null);

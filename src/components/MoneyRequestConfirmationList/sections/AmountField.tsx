@@ -72,7 +72,7 @@ function AmountField({
     setFormError,
     isParticipantPickerVisible = false,
 }: AmountFieldProps) {
-    const {isEditingSplitBill, isReadOnly, didConfirm, transactionID, action, iouType, reportID, reportActionID, onSignDirtyChange, onCurrencyDirtyChange} = useConfirmationFields();
+    const {isEditingSplitBill, isReadOnly, didConfirm, transactionID, action, iouType, reportID, reportActionID, onSignDirtyChange} = useConfirmationFields();
     const shouldAutoFocusOnMount = !canUseTouchScreen();
     const styles = useThemeStyles();
     const {translate, preferredLocale} = useLocalize();
@@ -108,9 +108,6 @@ function AmountField({
     }
 
     const effectiveCurrency = isDistanceRequest ? distanceRateCurrency : (iouCurrencyCode ?? CONST.CURRENCY.USD);
-    const baselineCurrencyRef = useRef(effectiveCurrency);
-    const hasUserChangedCurrencyRef = useRef(false);
-    const previousRequestTypeRef = useRef(transactionSlice?.iouRequestType);
     const decimals = getCurrencyDecimals(effectiveCurrency);
     // In the manual expense flow the amount field starts empty (transaction.amount defaults to 0 before the user
     // touches it). Once the user explicitly sets an amount – including 0 – isAmountSet becomes true and we show the
@@ -119,21 +116,6 @@ function AmountField({
     const shouldShowEmptyAmount = !transactionSlice?.isAmountSet && transactionSlice?.iouRequestType === CONST.IOU.REQUEST_TYPE.MANUAL;
     const transactionAmount = shouldShowEmptyAmount ? '' : convertToFrontendAmountAsString(amount, decimals);
     const allowNegative = shouldEnableNegative(report, policy, iouType, transactionSlice?.participants);
-
-    useEffect(() => {
-        const requestTypeChanged = previousRequestTypeRef.current !== transactionSlice?.iouRequestType;
-        if (requestTypeChanged) {
-            previousRequestTypeRef.current = transactionSlice?.iouRequestType;
-            hasUserChangedCurrencyRef.current = false;
-            onCurrencyDirtyChange?.(false);
-        }
-
-        // The draft currency may arrive after this field first mounts. Keep the baseline synchronized until the
-        // user selects a currency, then preserve it so a user can return to the original currency and become clean.
-        if (!hasUserChangedCurrencyRef.current) {
-            baselineCurrencyRef.current = effectiveCurrency;
-        }
-    }, [effectiveCurrency, onCurrencyDirtyChange, transactionSlice?.iouRequestType]);
 
     // `autoFocus` on our TextInput only runs on mount. Closing and reopening the RHP often keeps the same mounted
     // instance, so autofocus does not run again. We re-focus when the parent-owned participant picker closes
@@ -259,8 +241,6 @@ function AmountField({
         const parsedAmount = getBackendAmountFromInput(transactionAmount);
         const updatedAmount = parsedAmount ?? amount;
 
-        hasUserChangedCurrencyRef.current = true;
-        onCurrencyDirtyChange?.(value !== baselineCurrencyRef.current);
         buildAndSaveSplitShares(updatedAmount, value);
         if (parsedAmount === null && !isEditingSplitBill) {
             setMoneyRequestCurrency(transactionID, value);
