@@ -1,3 +1,4 @@
+import {removeLastSegment, setEndWaypointAddress, setIsTracking} from '@libs/actions/GPSDraftDetails';
 import {
     calculateTrimmedEndPoint,
     getEffectiveDistance,
@@ -7,12 +8,15 @@ import {
     getStringifiedGPSCoordinates,
     getTrimmedGpsTrip,
     gpsPointsToMapboxCoordinates,
+    stopGpsTrip,
 } from '@libs/GPSDraftDetailsUtils';
 
 import type GpsDraftDetails from '@src/types/onyx/GpsDraftDetails';
 import type {GPSPoint, TrimmedGPSPoint} from '@src/types/onyx/GpsDraftDetails';
 import type {Unit} from '@src/types/onyx/Policy';
 import geodesicDistance from '@src/utils/geodesicDistance';
+
+jest.mock('@libs/actions/GPSDraftDetails');
 
 const point = (lat: number, long: number, address?: GPSPoint['address']): GPSPoint => ({lat, long, ...(address ? {address} : {})});
 
@@ -296,6 +300,59 @@ describe('GPSDraftDetailsUtils', () => {
                     [0.5, 0],
                 ],
             ]);
+        });
+    });
+
+    describe('stopGpsTrip', () => {
+        beforeEach(() => {
+            jest.clearAllMocks();
+        });
+
+        it('stops tracking the trip', async () => {
+            await stopGpsTrip(false, [[point(0, 0)]]);
+            expect(setIsTracking).toHaveBeenCalledWith(false);
+        });
+
+        it('keeps the only segment when it holds a single point, so the stopped trip stays visible', async () => {
+            const gpsPoints = [[point(0, 0)]];
+
+            await stopGpsTrip(false, gpsPoints);
+
+            expect(removeLastSegment).not.toHaveBeenCalled();
+        });
+
+        it('keeps the only segment when it is still empty', async () => {
+            const gpsPoints: GPSPoint[][] = [[]];
+
+            await stopGpsTrip(false, gpsPoints);
+
+            expect(removeLastSegment).not.toHaveBeenCalled();
+            expect(setEndWaypointAddress).not.toHaveBeenCalled();
+        });
+
+        it('removes a resumed segment that holds a single point', async () => {
+            const gpsPoints = [[point(0, 0), point(0, 1)], [point(1, 0)]];
+
+            await stopGpsTrip(false, gpsPoints);
+
+            expect(removeLastSegment).toHaveBeenCalledWith(gpsPoints);
+        });
+
+        it('removes a resumed segment that is empty', async () => {
+            const gpsPoints: GPSPoint[][] = [[point(0, 0), point(0, 1)], []];
+
+            await stopGpsTrip(false, gpsPoints);
+
+            expect(removeLastSegment).toHaveBeenCalledWith(gpsPoints);
+        });
+
+        it('sets the end waypoint address when the last segment holds more than one point', async () => {
+            const gpsPoints = [[point(0, 0), point(0, 1)]];
+
+            await stopGpsTrip(false, gpsPoints);
+
+            expect(removeLastSegment).not.toHaveBeenCalled();
+            expect(setEndWaypointAddress).toHaveBeenCalledWith({value: '0,1', type: 'coordinates'}, gpsPoints);
         });
     });
 });
