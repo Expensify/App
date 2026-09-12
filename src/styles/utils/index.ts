@@ -25,6 +25,7 @@ import {PixelRatio, Dimensions as RNDimensions, StyleSheet} from 'react-native';
 import type {ThemeStyles} from '..';
 import type {
     AllStyles,
+    AvatarShape,
     AvatarSizeName,
     AvatarStyle,
     ButtonSizeValue,
@@ -32,6 +33,7 @@ import type {
     ButtonVariantStyles,
     EReceiptColorName,
     EreceiptColorStyle,
+    GetIconFillColorParams,
     ParsableStyle,
     SVGAvatarColorStyle,
     TextColorStyle,
@@ -299,10 +301,17 @@ function getAvatarBorderWidth(size: AvatarSizeName): ViewStyle {
 }
 
 /**
- * Return the border radius for an avatar
+ * Map an icon type to the avatar shape it renders with
  */
-function getAvatarBorderRadius(size: AvatarSizeName, type?: string): ViewStyle {
-    if (type === CONST.ICON_TYPE_WORKSPACE) {
+function getShapeFromIconType(type?: string): AvatarShape {
+    return type === CONST.ICON_TYPE_WORKSPACE ? CONST.AVATAR_SHAPE.ROUNDED_SQUARE : CONST.AVATAR_SHAPE.CIRCLE;
+}
+
+/**
+ * Return the border radius for an avatar of the given shape
+ */
+function getAvatarBorderRadius(size: AvatarSizeName, shape: AvatarShape): ViewStyle {
+    if (shape === CONST.AVATAR_SHAPE.ROUNDED_SQUARE) {
         return {borderRadius: avatarBorderSizes[size]};
     }
 
@@ -311,12 +320,12 @@ function getAvatarBorderRadius(size: AvatarSizeName, type?: string): ViewStyle {
 }
 
 /**
- * Return the border style for an avatar
+ * Return the border style for an avatar of the given shape
  */
-function getAvatarBorderStyle(size: AvatarSizeName, type: string): ViewStyle {
+function getAvatarBorderStyle(size: AvatarSizeName, shape: AvatarShape): ViewStyle {
     return {
         overflow: 'hidden',
-        ...getAvatarBorderRadius(size, type),
+        ...getAvatarBorderRadius(size, shape),
     };
 }
 
@@ -1032,19 +1041,23 @@ function getBaseAutoCompleteSuggestionContainerStyle({left, bottom, width}: GetB
 
 const shouldPreventScroll = shouldPreventScrollOnAutoCompleteSuggestion();
 
+const suggestionContainerBorderWidth = 2;
+const suggestionContainerChromeHeight = 2 * CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTER_INNER_PADDING + (shouldPreventScroll ? suggestionContainerBorderWidth : 0);
+
 /**
  * Gets the correct position for auto complete suggestion container
  */
 function getAutoCompleteSuggestionContainerStyle(itemsHeight: number): ViewStyle {
     'worklet';
 
-    const borderWidth = 2;
-    const height = itemsHeight + 2 * CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTER_INNER_PADDING + (shouldPreventScroll ? borderWidth : 0);
-
     return {
-        height,
+        height: itemsHeight + suggestionContainerChromeHeight,
         minHeight: CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTION_ROW_HEIGHT,
     };
+}
+
+function getAutoCompleteSuggestionContainerHeight(itemsHeight: number): number {
+    return itemsHeight + suggestionContainerChromeHeight;
 }
 
 function getEmojiReactionBubbleTextStyle(isContextMenu = false): TextStyle {
@@ -1404,6 +1417,7 @@ const staticStyleUtils = {
     displayIfTrue,
     getAmountFontSizeAndLineHeight,
     getAmountInputFontSize,
+    getAutoCompleteSuggestionContainerHeight,
     getAutoCompleteSuggestionContainerStyle,
     getAvatarBorderRadius,
     getAvatarBorderStyle,
@@ -1413,6 +1427,7 @@ const staticStyleUtils = {
     getAvatarSizeWithBorder,
     getAvatarWidthStyle,
     getAvatarSubscriptIconContainerStyle,
+    getShapeFromIconType,
     getBackgroundAndBorderStyle,
     getBackgroundColorStyle,
     getBackgroundColorWithOpacityStyle,
@@ -1634,19 +1649,6 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
         return theme.icon;
     },
 
-    getEnvironmentBadgeStyle: (isSuccess: boolean, isError: boolean, isAdhoc: boolean): ViewStyle => {
-        if (isAdhoc) {
-            return styles.badgeAdHocSuccess;
-        }
-        if (isSuccess) {
-            return styles.badgeEnvironmentSuccess;
-        }
-        if (isError) {
-            return styles.badgeEnvironmentDanger;
-        }
-        return {};
-    },
-
     /**
      * Generate a style for the background color of the button, based on its current state.
      *
@@ -1781,13 +1783,9 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
     getHeightOfValidateCodeInput: (): ViewStyle => ({height: styles.validateCodeInputContainer.height - styles.textInputContainer.borderWidth * 2}),
 
     /**
-     * Generate fill color of an icon based on its state.
-     *
-     * @param buttonState - One of {'default', 'hovered', 'pressed'}
-     * @param isMenuIcon - whether this icon is apart of a list
-     * @param isPane - whether this icon is in a pane, e.g. Account or Workspace Settings
+     * Generate fill color of an icon based on its state. See `GetIconFillColorParams` for what each option does.
      */
-    getIconFillColor: (buttonState: ButtonStateName = CONST.BUTTON_STATES.DEFAULT, isMenuIcon = false, isPane = false): string => {
+    getIconFillColor: ({buttonState = CONST.BUTTON_STATES.DEFAULT, isMenuIcon = false, isPane = false}: GetIconFillColorParams = {}): string => {
         switch (buttonState) {
             case CONST.BUTTON_STATES.ACTIVE:
             case CONST.BUTTON_STATES.PRESSED:
@@ -1917,10 +1915,6 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
         borderColor: isSelected ? theme.buttonHoveredBG : theme.border,
     }),
 
-    getSearchRowBackgroundStyle: (isSelected?: boolean): ViewStyle => ({
-        backgroundColor: isSelected ? theme.activeComponentBG : theme.highlightBG,
-    }),
-
     getSearchTableHighlightBorderRadius: (isLargeScreenWidth: boolean): number => (isLargeScreenWidth ? 0 : variables.componentBorderRadius),
 
     getReportTableColumnStyles: (columnName: string, options: GetReportTableColumnStylesParams = {}): ViewStyle => {
@@ -2009,6 +2003,10 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
             case CONST.SEARCH.TABLE_COLUMNS.GROUP_TAG:
                 columnWidth = {...getWidthStyle(variables.w36), ...styles.flex1};
                 break;
+            case CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS:
+                // Wider than category/tag so short violation labels are less likely to truncate.
+                columnWidth = {...getWidthStyle(variables.w130), ...styles.flex1};
+                break;
             case CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT:
                 columnWidth = {
                     ...getWidthStyle(isTaxAmountColumnWide ? variables.w130 : variables.w96),
@@ -2094,6 +2092,7 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
             case CONST.SEARCH.TABLE_COLUMNS.FROM:
             case CONST.SEARCH.TABLE_COLUMNS.TO:
             case CONST.SEARCH.TABLE_COLUMNS.FIRST_APPROVER:
+            case CONST.SEARCH.TABLE_COLUMNS.PAID_BY:
             case CONST.SEARCH.TABLE_COLUMNS.ASSIGNEE:
             case CONST.SEARCH.TABLE_COLUMNS.TITLE:
             case CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION:
@@ -2457,9 +2456,15 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
         paddingBottom: safeAreaPaddingBottom,
         backgroundColor: theme.appBG,
     }),
+
+    getStyleWithEnvSafeAreaPadding: (style: ViewStyle): ViewStyle => ({
+        ...style,
+        paddingLeft: 'env(safe-area-inset-left)',
+        paddingRight: 'env(safe-area-inset-right)',
+    }),
 });
 
 type StyleUtilsType = ReturnType<typeof createStyleUtils>;
 
 export default createStyleUtils;
-export type {StyleUtilsType, AvatarSizeName};
+export type {StyleUtilsType, AvatarShape, GetReportTableColumnStylesParams, AvatarSizeName};

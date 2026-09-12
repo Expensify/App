@@ -2,6 +2,7 @@ import {useSearchSelectionActions} from '@components/Search/SearchContext';
 import type {SelectedReports} from '@components/Search/types';
 
 import {bulkDuplicateReports} from '@libs/actions/IOU/Duplicate';
+import Log from '@libs/Log';
 import {getPolicyExpenseChat} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
@@ -49,6 +50,7 @@ function useBulkDuplicateReportAction({selectedReports, allReports, searchData}:
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
     const handleDuplicateReports = () => {
         const activePolicyExpenseChat = getPolicyExpenseChat(currentUserPersonalDetails.accountID, defaultExpensePolicy?.id);
@@ -80,6 +82,9 @@ function useBulkDuplicateReportAction({selectedReports, allReports, searchData}:
             formatPhoneNumber,
             getCurrencyDecimals,
             conciergeChat,
+            rules,
+        }).catch((error: unknown) => {
+            Log.warn('[useBulkDuplicateReportAction] Failed to duplicate the selected reports', {error});
         });
 
         clearSelectedTransactions(undefined, true);

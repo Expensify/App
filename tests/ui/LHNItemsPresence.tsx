@@ -614,6 +614,7 @@ describe('SidebarLinksData', () => {
             // Given the SidebarLinks are rendered
             LHNTestUtils.getDefaultRenderedSidebarLinks();
             const expenseReport = buildOptimisticExpenseReport({
+                rules: undefined,
                 chatReportID: chatReportR14932.reportID,
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 policyID: '123',

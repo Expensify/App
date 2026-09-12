@@ -3,6 +3,7 @@ import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import TextInput from '@components/TextInput';
 
+import useAllTransactionViolations from '@hooks/useAllTransactionViolations';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -21,9 +22,10 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import focusComposerWithDelay from '@libs/focusComposerWithDelay';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import {getTransactionDetails, isExpenseRequest, isPolicyExpenseChat} from '@libs/ReportUtils';
+import {isMerchantRequired} from '@libs/MoneyRequestUtils';
+import {getTransactionDetails} from '@libs/ReportUtils';
 import {hasReceipt} from '@libs/TransactionUtils';
-import {isInvalidMerchantValue, isValidInputLength} from '@libs/ValidationUtils';
+import {getMerchantError, isInvalidMerchantValue} from '@libs/ValidationUtils';
 
 import {clearMoneyRequestMerchant, setMoneyRequestMerchant} from '@userActions/IOU/MoneyRequest';
 import {setDraftSplitTransaction} from '@userActions/IOU/Split';
@@ -61,11 +63,13 @@ function DynamicIOURequestStepMerchant({
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_MERCHANT.path);
     const policy = usePolicy(report?.policyID);
     const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
+    const allTransactionViolations = useAllTransactionViolations(transactionID);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report?.policyID}`);
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${report?.policyID}`);
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
     const [iouReportOwnerLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(parentReport?.ownerAccountID)});
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
@@ -90,27 +94,26 @@ function DynamicIOURequestStepMerchant({
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const {isOffline} = useNetwork();
 
-    const isMerchantRequired = isPolicyExpenseChat(report) || isExpenseRequest(report) || transaction?.participants?.some((participant) => !!participant.isPolicyExpenseChat);
+    const isMerchantFieldRequired = isMerchantRequired(report, transaction);
 
     const {navigateBack, armNavigateBack} = useNavigateBackOnSave(isSaved, backPath);
 
     const validate = useCallback(
         (value: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_MERCHANT_FORM>) => {
             const errors: FormInputErrors<typeof ONYXKEYS.FORMS.MONEY_REQUEST_MERCHANT_FORM> = {};
-            const {isValid, byteLength} = isValidInputLength(value.moneyRequestMerchant, CONST.MERCHANT_NAME_MAX_BYTES);
+            const merchantError = getMerchantError(value.moneyRequestMerchant, isMerchantFieldRequired);
 
-            const trimmedMerchant = value.moneyRequestMerchant?.trim();
-            if (isMerchantRequired && !trimmedMerchant) {
+            if (merchantError?.type === 'required') {
                 errors.moneyRequestMerchant = translate('common.error.fieldRequired');
-            } else if (trimmedMerchant && isInvalidMerchantValue(trimmedMerchant)) {
+            } else if (merchantError?.type === 'invalidValue') {
                 errors.moneyRequestMerchant = translate('iou.error.invalidMerchant');
-            } else if (!isValid) {
-                errors.moneyRequestMerchant = translate('common.error.characterLimitExceedCounter', byteLength, CONST.MERCHANT_NAME_MAX_BYTES);
+            } else if (merchantError?.type === 'tooLong') {
+                errors.moneyRequestMerchant = translate('common.error.characterLimitExceedCounter', merchantError.byteLength, CONST.MERCHANT_NAME_MAX_BYTES);
             }
 
             return errors;
         },
-        [isMerchantRequired, translate],
+        [isMerchantFieldRequired, translate],
     );
 
     const updateMerchantRef = (value: string) => {
@@ -160,8 +163,10 @@ function DynamicIOURequestStepMerchant({
                 delegateAccountID,
                 reportPolicyTags,
                 isTrackIntentUser,
+                violations: allTransactionViolations,
                 getCurrencyDecimals,
                 getCurrencySymbol,
+                rules,
             });
         } else if (!newMerchant) {
             clearMoneyRequestMerchant(transactionID);

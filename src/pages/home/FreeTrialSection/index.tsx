@@ -1,4 +1,4 @@
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import Icon from '@components/Icon';
 import {PressableWithoutFeedback} from '@components/Pressable';
 import Text from '@components/Text';
@@ -54,7 +54,7 @@ function FreeTrialSection() {
         return null;
     }
 
-    const title = translate('homePage.freeTrialSection.title', {days: daysLeft});
+    const title = translate('homePage.freeTrialSection.title', {count: daysLeft});
 
     let bodyText: string;
     let ctaText: string;

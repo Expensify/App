@@ -31,23 +31,15 @@ const isUserCancelled = (err: unknown) => {
 };
 
 /**
- * Downloads the file to Documents section in iOS
+ * Downloads the file to the given directory. Files the user asked to download go to Documents,
+ * which the iOS Files app shows to the user as the app's folder because file sharing is enabled.
+ * Files that only need a temporary local copy (e.g. for saving to Photos) go to the cache
+ * directory, which the Files app never exposes.
  */
-function downloadFile(fileUrl: string, fileName: string) {
-    const dirs = RNFetchBlob.fs.dirs;
-
-    // The iOS files will download to documents directory
-    const path = dirs.DocumentDir;
-
-    // Fetching the attachment
+function downloadFile(fileUrl: string, fileName: string, directory: string) {
     return RNFetchBlob.config({
         fileCache: true,
-        path: `${path}/${fileName}`,
-        addAndroidDownloads: {
-            useDownloadManager: true,
-            notification: true,
-            path: `${path}/Expensify/${fileName}`,
-        },
+        path: `${directory}/${fileName}`,
     }).fetch('GET', fileUrl);
 }
 
@@ -71,12 +63,17 @@ const postDownloadFile = (translate: LocalizedTranslate, url: string, fileName?:
         .then((fileData) => {
             const resolvedFileName = fileName ?? 'Expensify';
             const finalFileName = appendTimestamp ? appendTimeToFileName(resolvedFileName) : resolvedFileName;
-            const expensifyDir = `${RNFS.DocumentDirectoryPath}/Expensify`;
+            // The file only exists to be handed to the share sheet, so it is written to the
+            // cache directory, which the iOS Files app never shows to the user
+            const expensifyDir = `${RNFS.CachesDirectoryPath}/Expensify`;
             const localPath = `${expensifyDir}/${finalFileName}`;
             return RNFS.mkdir(expensifyDir).then(() => {
-                return RNFS.writeFile(localPath, fileData, 'utf8')
-                    .then(() => Share.open({url: localPath, failOnCancel: false, saveToFiles: true}))
-                    .then(() => RNFS.unlink(localPath));
+                return (
+                    RNFS.writeFile(localPath, fileData, 'utf8')
+                        // The share sheet lets the user save the file to the Files app. The staged copy is removed afterwards.
+                        .then(() => Share.open({url: localPath, failOnCancel: false, saveToFiles: true}))
+                        .then(() => RNFS.unlink(localPath))
+                );
             });
         })
         .catch((error) => {
@@ -104,24 +101,24 @@ function downloadImage(fileUrl: string) {
  */
 function downloadVideo(fileUrl: string, fileName: string): Promise<PhotoIdentifier> {
     return new Promise((resolve, reject) => {
-        let documentPathUri: string | null = null;
+        let tempPathUri: string | null = null;
         let cameraRollAsset: PhotoIdentifier;
 
-        // Because CameraRoll doesn't allow direct downloads of video with remote URIs, we first download as documents, then copy to photo lib and unlink the original file.
-        downloadFile(fileUrl, fileName)
+        // Because CameraRoll doesn't allow direct downloads of video with remote URIs, we first download to the cache, then copy to photo lib and unlink the temporary file.
+        downloadFile(fileUrl, fileName, RNFetchBlob.fs.dirs.CacheDir)
             .then((attachment) => {
-                documentPathUri = attachment.data as string | null;
-                if (!documentPathUri) {
+                tempPathUri = attachment.data as string | null;
+                if (!tempPathUri) {
                     throw new Error('Error downloading video');
                 }
-                return CameraRoll.saveAsset(documentPathUri);
+                return CameraRoll.saveAsset(tempPathUri);
             })
             .then((attachment) => {
                 cameraRollAsset = attachment;
-                if (!documentPathUri) {
+                if (!tempPathUri) {
                     throw new Error('Error downloading video');
                 }
-                return RNFetchBlob.fs.unlink(documentPathUri);
+                return RNFetchBlob.fs.unlink(tempPathUri);
             })
             .then(() => {
                 resolve(cameraRollAsset);
@@ -154,7 +151,7 @@ const fileDownload: FileDownload = (translate, fileUrl, fileName, successMessage
                     break;
                 }
 
-                fileDownloadPromise = downloadFile(fileUrl, attachmentName);
+                fileDownloadPromise = downloadFile(fileUrl, attachmentName, RNFetchBlob.fs.dirs.DocumentDir);
                 break;
         }
 

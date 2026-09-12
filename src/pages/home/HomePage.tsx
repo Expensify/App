@@ -8,6 +8,7 @@ import ScrollView from '@components/ScrollView';
 
 import useDocumentTitle from '@hooks/useDocumentTitle';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -16,7 +17,8 @@ import variables from '@styles/variables';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 
-import React, {useRef} from 'react';
+import {PortalHost} from '@gorhom/portal';
+import React, {useRef, useState} from 'react';
 import {View} from 'react-native';
 
 import DiscoverSection from './DiscoverSection';
@@ -25,7 +27,6 @@ import FreeTrialSection from './FreeTrialSection';
 import GettingStartedSection from './GettingStartedSection';
 import InsightsSection from './InsightsSection';
 import RecentlyAddedSection from './RecentlyAddedSection';
-import TimeSensitiveSection from './TimeSensitiveSection';
 import UpcomingTravelSection from './UpcomingTravelSection';
 import YourSpendSection from './YourSpendSection';
 
@@ -34,16 +35,25 @@ function HomePage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     useDocumentTitle(translate('common.home'));
+    const {isOffline} = useNetwork();
     const [isLoadingApp = true] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const [isLoadingReportData = false] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA);
-    const isForYouLoading = !!(isLoadingApp || isLoadingReportData);
+    // Offline the underlying commands never send, so the loading flags can stay true forever. Match useLoadingBarVisibility and hide the bar when offline.
+    const isForYouLoading = !isOffline && !!(isLoadingApp || isLoadingReportData);
     const receiptDropTargetRef = useRef<View>(null);
 
+    // Owned here (above the narrow/wide layout branch) so the Concierge "+" menu survives the ForYouSection remount that
+    // happens on breakpoint change, converting between anchored popover and bottom-docked modal instead of vanishing.
+    const [isConciergeMenuVisible, setIsConciergeMenuVisible] = useState(false);
+
     return (
-        <View style={styles.flex1}>
-            <View
-                ref={receiptDropTargetRef}
-                style={styles.flex1}
+        <View
+            ref={receiptDropTargetRef}
+            style={styles.flex1}
+        >
+            <ReceiptScanDropZone
+                dropZoneRef={receiptDropTargetRef}
+                dropWrapperStyle={shouldUseNarrowLayout ? {marginBottom: variables.bottomTabHeight} : undefined}
             >
                 <ScreenWrapper
                     shouldEnablePickerAvoiding={false}
@@ -61,6 +71,7 @@ function HomePage() {
                     <ScrollView
                         contentContainerStyle={styles.homePageContentContainer}
                         addBottomSafeAreaPadding
+                        keyboardShouldPersistTaps="handled"
                     >
                         {!shouldUseNarrowLayout && (
                             <View style={styles.centeredContentWidthLimiter}>
@@ -72,9 +83,11 @@ function HomePage() {
                             {shouldUseNarrowLayout ? (
                                 <>
                                     <FreeTrialSection />
-                                    <TimeSensitiveSection />
+                                    <ForYouSection
+                                        isConciergeMenuVisible={isConciergeMenuVisible}
+                                        setIsConciergeMenuVisible={setIsConciergeMenuVisible}
+                                    />
                                     <GettingStartedSection />
-                                    <ForYouSection />
                                     <UpcomingTravelSection />
                                     <YourSpendSection />
                                     <RecentlyAddedSection />
@@ -87,9 +100,11 @@ function HomePage() {
                                         testID="homePageLeftColumn"
                                         style={styles.homePageLeftColumn}
                                     >
-                                        <TimeSensitiveSection />
+                                        <ForYouSection
+                                            isConciergeMenuVisible={isConciergeMenuVisible}
+                                            setIsConciergeMenuVisible={setIsConciergeMenuVisible}
+                                        />
                                         <GettingStartedSection />
-                                        <ForYouSection />
                                         <InsightsSection />
                                     </View>
                                     <View
@@ -106,12 +121,9 @@ function HomePage() {
                             )}
                         </View>
                     </ScrollView>
+                    <PortalHost name="suggestions" />
                 </ScreenWrapper>
-            </View>
-            <ReceiptScanDropZone
-                targetRef={receiptDropTargetRef}
-                dropWrapperStyle={shouldUseNarrowLayout ? {marginBottom: variables.bottomTabHeight} : undefined}
-            />
+            </ReceiptScanDropZone>
         </View>
     );
 }

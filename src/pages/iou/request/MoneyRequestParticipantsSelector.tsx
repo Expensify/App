@@ -1,16 +1,17 @@
-import DisplayContentsView from '@components/DisplayContentsView';
+import AlwaysPaintedView from '@components/AlwaysPaintedView';
 import type {SelectionListWithSectionsHandle} from '@components/SelectionList/SelectionListWithSections/types';
 
 import useDeferVisibleUntilFocusTransitionEnd from '@hooks/useDeferVisibleUntilFocusTransitionEnd';
-import useThemeStyles from '@hooks/useThemeStyles';
 
 import getPlatform from '@libs/getPlatform';
 
 import type {IOUAction, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
+import type {Policy} from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 
 import type {Ref} from 'react';
+import type {OnyxEntry} from 'react-native-onyx';
 
 import {useIsFocused} from '@react-navigation/native';
 import {Activity, useImperativeHandle, useRef, useState} from 'react';
@@ -21,8 +22,8 @@ type MoneyRequestParticipantsSelectorProps = {
     /** Callback to request parent modal to go to next step, which should be split */
     onFinish?: (value?: string, participants?: Participant[]) => void;
 
-    /** Callback to add participants in MoneyRequestModal */
-    onParticipantsAdded: (value: Participant[]) => void;
+    /** Callback to add participants in MoneyRequestModal. selectedPolicy is forwarded to the confirmation step. */
+    onParticipantsAdded: (value: Participant[], selectedPolicy?: OnyxEntry<Policy>) => void;
 
     /** Selected participants from MoneyRequestModal with login */
     participants?: Participant[] | typeof CONST.EMPTY_ARRAY;
@@ -33,7 +34,6 @@ type MoneyRequestParticipantsSelectorProps = {
     /** The action of the IOU, i.e. create, split, move */
     action: IOUAction;
 
-    /** Whether the IOU is workspaces only */
     isWorkspacesOnly?: boolean;
 
     /** Whether this is a per diem expense request */
@@ -42,7 +42,6 @@ type MoneyRequestParticipantsSelectorProps = {
     /** Whether this is a time expense request */
     isTimeRequest?: boolean;
 
-    /** Whether this is a transaction from a credit card import */
     isTransactionFromCreditCardImport?: boolean;
 
     /** Whether to exclude P2P recipients (and the invite-by-email option) from the list. Used for negative amounts, which P2P chats don't support. */
@@ -54,7 +53,6 @@ type MoneyRequestParticipantsSelectorProps = {
     /** Whether to find the participant matching initiallySelectedReportID and move it to the top of the list */
     shouldMoveSelectedToTop?: boolean;
 
-    /** Callback to handle restricted participant selection */
     onRestrictedParticipantSelected?: () => void;
 
     /** Callback to dismiss the participant picker overlay before the referral banner navigates, so the referral RHP isn't covered */
@@ -66,7 +64,6 @@ type MoneyRequestParticipantsSelectorProps = {
      */
     shouldBlockParticipantSelection?: (policyID?: string) => boolean;
 
-    /** Reference to the outer element */
     ref?: Ref<InputFocusRef>;
 };
 
@@ -93,7 +90,6 @@ function MoneyRequestParticipantsSelector({
     shouldBlockParticipantSelection,
     ref,
 }: MoneyRequestParticipantsSelectorProps) {
-    const styles = useThemeStyles();
     const isFocused = useIsFocused();
     const isActivityVisible = useDeferVisibleUntilFocusTransitionEnd(isFocused);
     const platform = getPlatform();
@@ -112,7 +108,7 @@ function MoneyRequestParticipantsSelector({
 
     return (
         <Activity mode={isActivityVisible ? 'visible' : 'hidden'}>
-            <DisplayContentsView style={styles.flex1}>
+            <AlwaysPaintedView inert={!isFocused}>
                 <ParticipantSearchResults
                     iouType={iouType}
                     action={action}
@@ -134,7 +130,7 @@ function MoneyRequestParticipantsSelector({
                     onCloseParticipantPicker={onCloseParticipantPicker}
                     shouldBlockParticipantSelection={shouldBlockParticipantSelection}
                 />
-            </DisplayContentsView>
+            </AlwaysPaintedView>
         </Activity>
     );
 }

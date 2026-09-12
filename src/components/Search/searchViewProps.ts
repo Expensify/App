@@ -1,13 +1,22 @@
 import type {TransactionPreviewData} from '@libs/actions/Search';
 import type {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
 
-import type {CardList, Transaction} from '@src/types/onyx';
+import type {GetReportTableColumnStylesParams} from '@styles/utils';
+
+import type {CardList, PolicyCategories, PolicyTagLists, Transaction} from '@src/types/onyx';
 
 import type React from 'react';
+import type {ForwardedRef} from 'react';
 import type {NativeScrollEvent, NativeSyntheticEvent, StyleProp, ViewStyle} from 'react-native';
+import type {OnyxCollection} from 'react-native-onyx';
 
 import type {SearchListItem} from './SearchList/ListItem/types';
 import type {SearchColumnType, SearchQueryJSON} from './types';
+
+/** Imperative handle the router uses for highlight-driven scrolling. */
+type SearchListHandle = {
+    scrollToIndex: (index: number, animated?: boolean) => void;
+};
 
 /**
  * Props shared by every dedicated Search view. The router (`<Search>`) builds these once and spreads
@@ -29,7 +38,13 @@ type CommonSearchViewProps = {
     /** Whether the action column uses its wider variant. */
     isActionColumnWide: boolean;
 
-    /** Whether mobile selection mode is on. */
+    /**
+     * Which columns render in their wider variant, decided across the whole search rather than per row: a date carrying
+     * a year, an amount long enough to need the room. The column header already sizes itself from these, so the rows
+     * have to read the same ones or they line up against a header of a different width.
+     */
+    columnSizeOptions: GetReportTableColumnStylesParams;
+
     isMobileSelectionModeEnabled: boolean;
 
     /** The column header element (undefined on narrow layouts). */
@@ -41,7 +56,7 @@ type CommonSearchViewProps = {
     /** Whether everything has been loaded (gates the fully-checked select-all state). */
     hasLoadedAllTransactions?: boolean;
 
-    /** Newly-added transactions (feeds BaseSearchList extraData and the grouped-view child-snapshot refetch). */
+    /** Rows flagged for the post-create highlight animation (feeds BaseSearchList extraData). */
     newTransactions: Transaction[];
 
     /** The navigation handler for a row tap (owned by the router). */
@@ -53,17 +68,16 @@ type CommonSearchViewProps = {
     /** Fires when the list scrolls near its end (router's fetchMoreResults). */
     onEndReached: () => void;
 
-    /** Fires on the list's first layout and on layout changes. */
     onLayout: () => void;
 
     /** Scroll handler forwarded to the list. */
     onScroll?: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
 
-    /** Content container style for the list. */
     contentContainerStyle: StyleProp<ViewStyle>;
-
-    /** Outer container style for the list wrapper. */
     containerStyle: StyleProp<ViewStyle>;
+
+    /** Imperative handle for highlight-driven scrolling, set by the router. */
+    ref?: ForwardedRef<SearchListHandle>;
 };
 
 /** Extra props specific to the transaction views (expense/invoice/trip): attendee tracking and card rendering. */
@@ -73,6 +87,12 @@ type TransactionViewExtras = {
 
     /** Non-personal and workspace cards for row rendering (subscribed once by the router). */
     nonPersonalAndWorkspaceCards?: CardList;
+
+    /** Every policy's categories, used to size the category GL code column from the codes it renders. */
+    policyCategories?: OnyxCollection<PolicyCategories>;
+
+    /** Every policy's tag lists, used to size the tag GL code column from the codes it renders. */
+    policyTags?: OnyxCollection<PolicyTagLists>;
 };
 
 export type {CommonSearchViewProps, TransactionViewExtras};

@@ -6,6 +6,7 @@ import * as defaultAvatars from '@components/Icon/DefaultAvatars';
 import useDefaultAvatars from '@hooks/useDefaultAvatars';
 
 import CONST from '@src/CONST';
+import {addSMSDomainIfPhoneNumber} from '@src/libs/PhoneNumber';
 import * as UserAvatarUtils from '@src/libs/UserAvatarUtils';
 import type {PersonalDetailsList} from '@src/types/onyx';
 
@@ -575,6 +576,35 @@ describe('UserAvatarUtils', () => {
                     defaultAvatars: avatars.current,
                 }),
             );
+        });
+
+        it('should seed a generated letter-avatar URL from accountEmail when personal details are not loaded', () => {
+            const {result: avatars} = renderHook(() => useDefaultAvatars());
+            const accountEmail = 'jane@example.com';
+            const icon = UserAvatarUtils.buildUserIcon({
+                accountID: ACCOUNT_ID,
+                personalDetails: {},
+                defaultAvatars: avatars.current,
+                accountEmail,
+            });
+
+            expect(icon.source).toBe(UserAvatarUtils.getDefaultAvatarURL({accountID: ACCOUNT_ID, accountEmail: addSMSDomainIfPhoneNumber(accountEmail)}));
+            expect(UserAvatarUtils.isGeneratedLetterAvatarURL(icon.source)).toBe(true);
+        });
+
+        it('should fall through to the catalog default for a phone login without personal details', () => {
+            const {result: avatars} = renderHook(() => useDefaultAvatars());
+            const phoneLogin = '+15551234567';
+            const icon = UserAvatarUtils.buildUserIcon({
+                accountID: ACCOUNT_ID,
+                personalDetails: {},
+                defaultAvatars: avatars.current,
+                accountEmail: phoneLogin,
+            });
+
+            // SMS logins have no letter-avatar initials, so the source is the illustrated catalog default, not a generated letter avatar.
+            expect(UserAvatarUtils.isGeneratedLetterAvatarURL(icon.source)).toBe(false);
+            expect(icon.source).toBe(UserAvatarUtils.getDefaultAvatarURL({accountID: ACCOUNT_ID, accountEmail: addSMSDomainIfPhoneNumber(phoneLogin)}));
         });
     });
 

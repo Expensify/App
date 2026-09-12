@@ -24,7 +24,6 @@ import {format as formatDate} from 'date-fns';
 import React, {createContext, useEffect, useState} from 'react';
 
 type LocaleContextProviderProps = {
-    /** Actual content wrapped by this component */
     children: React.ReactNode;
 };
 
@@ -177,7 +176,7 @@ function LocaleContextProvider({children}: LocaleContextProviderProps) {
     const formatTravelDate: LocaleContextProps['formatTravelDate'] = (datetime) => {
         const date = new Date(datetime);
         const formattedDate = formatDate(date, CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT, {locale: dateFnsLocale});
-        const formattedHour = formatDate(date, CONST.DATE.LOCAL_TIME_FORMAT, {locale: dateFnsLocale});
+        const formattedHour = DateUtils.formatTimeWithPeriod(translate, date);
         const at = translateLocalize(currentLocale, 'common.conjunctionAt');
         return `${formattedDate} ${at} ${formattedHour}`;
     };

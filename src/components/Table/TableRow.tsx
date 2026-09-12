@@ -17,7 +17,7 @@ import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 
-import type {GestureResponderEvent, PressableStateCallbackType} from 'react-native';
+import type {GestureResponderEvent, PressableStateCallbackType, ViewStyle} from 'react-native';
 
 import React from 'react';
 import {View} from 'react-native';
@@ -25,7 +25,7 @@ import Animated from 'react-native-reanimated';
 
 import getGridTemplateColumns from './getGridTemplateColumns';
 import {assignCellColumnIndexes, getCellAccessibilityProps, getRowAccessibilityProps, shouldUseTableSemantics} from './tableAccessibility';
-import {useTableContext} from './TableContext';
+import {useTableContext, useTableRowSemanticID} from './TableContext';
 
 type TableRowProps = Omit<PressableWithFeedbackProps, 'accessible' | 'accessibilityLabel'> & {
     /** When true, indicates that the view is an accessibility element.  By default, all the rows are accessible. */
@@ -37,10 +37,7 @@ type TableRowProps = Omit<PressableWithFeedbackProps, 'accessible' | 'accessibil
     /** Whether or not the table row is pressable or not */
     interactive: boolean;
 
-    /** Whether or not the table row should be disabled */
     disabled?: boolean;
-
-    /** The index of the row in the table */
     rowIndex: number;
 
     /** Attributes for when the client is offline and there is an error related to the table row */
@@ -51,6 +48,9 @@ type TableRowProps = Omit<PressableWithFeedbackProps, 'accessible' | 'accessibil
 
     /** Optional content rendered below the row grid */
     rowFooter?: React.ReactNode;
+
+    /** Whether the row is a group header, i.e. a row that labels the rows below it instead of holding data */
+    isGroupHeader?: boolean;
 };
 
 export default function TableRow({
@@ -65,6 +65,12 @@ export default function TableRow({
     offlineWithFeedback,
     checkboxReplacementElement,
     rowFooter,
+    isGroupHeader = false,
+    id,
+    'aria-hidden': ariaHidden,
+    focusable,
+    fullDisabled,
+    tabIndex,
     ...props
 }: TableRowProps) {
     const theme = useTheme();
@@ -80,8 +86,13 @@ export default function TableRow({
         selectionEnabled,
         isMobileSelectionEnabled,
         shouldEnableSelectionInNarrowPaneModal = false,
+        tableListMetadata,
         dynamicGridTemplateColumns,
     } = useTableContext();
+    const semanticRowID = useTableRowSemanticID();
+    const semanticTableHasHeader = !tableListMetadata.hasPageHeader || tableListMetadata.shouldRenderStickyHeader;
+    const isAccessibilityHidden = semanticRowID === null || ariaHidden === true;
+    const inertProps = isAccessibilityHidden ? {inert: true} : {};
 
     // Tables inside a narrow pane modal (RHP) opt into keying the selection UX off the real screen size (isSmallScreenWidth),
     // because shouldUseNarrowLayout is always true in an RHP and would otherwise suppress selection entirely. All other
@@ -97,7 +108,7 @@ export default function TableRow({
     const gridTemplateColumns = dynamicGridTemplateColumns ? [...dynamicGridTemplateColumns] : getGridTemplateColumns(columns);
     const isSelectionCheckboxVisible = selectionEnabled && (isMobileSelectionEnabled || !selectionUsesNarrowLayout);
 
-    const isDisabled = !!disabled;
+    const isDisabled = !!disabled || isAccessibilityHidden;
     const isFirstRow = rowIndex === 0;
     const isLastRow = rowIndex === rowCount - 1;
 
@@ -115,14 +126,28 @@ export default function TableRow({
         return null;
     }
 
+    // A group header only labels the rows below it, so it sizes to its own content rather than being pinned to a data-row
+    // height, and keeps the same padding on every layout.
+    let rowHeightStyle: ViewStyle | undefined = styles.tableRowHeight;
+    let rowVerticalPaddingStyle: ViewStyle = styles.tableRowVerticalPadding;
+    let rowContentHeightStyle: ViewStyle | undefined = styles.tableRowContentHeight;
+    if (isGroupHeader) {
+        rowHeightStyle = undefined;
+        rowContentHeightStyle = undefined;
+    } else if (shouldUseNarrowTableLayout) {
+        rowHeightStyle = styles.tableRowHeightCompact;
+        rowVerticalPaddingStyle = styles.tableRowVerticalPaddingCompact;
+        rowContentHeightStyle = styles.tableRowContentHeightCompact;
+    }
+
     const tableRowPressableStyles = [
         styles.mh5,
-        styles.highlightBG,
+        isGroupHeader ? styles.hoveredComponentBG : styles.highlightBG,
         styles.userSelectNone,
         !isFirstRow && styles.borderTop,
         isLastRow && styles.tableBottomRadius,
         item.selected && [styles.activeComponentBG, {borderColor: theme.buttonHoveredBG}],
-        shouldUseNarrowTableLayout ? styles.tableRowHeightCompact : styles.tableRowHeight,
+        rowHeightStyle,
     ];
 
     const tableRowContentContainerStyles = [
@@ -131,7 +156,7 @@ export default function TableRow({
         animatedHighlightStyle,
         isLastRow && styles.tableBottomRadius,
         shouldUseNarrowTableLayout ? styles.ph4 : styles.ph3,
-        shouldUseNarrowTableLayout ? styles.pv4 : styles.pv2,
+        rowVerticalPaddingStyle,
     ];
 
     const tableRowContentStyles = [
@@ -141,6 +166,7 @@ export default function TableRow({
         styles.alignContentCenter,
         styles.gap3,
         styles.dFlex,
+        rowContentHeightStyle,
         // Use Grid on web when available (will override flex if supported)
         !shouldUseNarrowTableLayout && [styles.dGrid, {gridTemplateColumns: gridTemplateColumns.join(' ')}],
     ];
@@ -179,9 +205,10 @@ export default function TableRow({
                 containerStyle={styles.m0}
                 style={styles.flex1}
                 isChecked={!!item.selected}
-                disabled={!!item.disabled || !!item.isSelectionDisabled}
+                disabled={isAccessibilityHidden || !!item.disabled || !!item.isSelectionDisabled}
                 accessibilityLabel={translate('common.select')}
                 onPress={(event) => handleCheckboxPress(event)}
+                tabIndex={isAccessibilityHidden ? -1 : undefined}
             />
         );
 
@@ -232,7 +259,8 @@ export default function TableRow({
             <PressableWithFeedback
                 accessible={accessible}
                 accessibilityLabel={accessibilityLabel}
-                id={`table-row-${item.keyForList}`}
+                id={isAccessibilityHidden ? undefined : (semanticRowID ?? id ?? `table-row-${item.keyForList}`)}
+                aria-hidden={isAccessibilityHidden ? true : undefined}
                 style={tableRowPressableStyles}
                 sentryLabel={sentryLabel}
                 interactive={interactive}
@@ -240,7 +268,7 @@ export default function TableRow({
                 hoverStyle={tableRowPressableHoverStyle}
                 pressDimmingValue={!interactive ? undefined : 1}
                 role={interactive ? CONST.ROLE.BUTTON : CONST.ROLE.PRESENTATION}
-                {...getRowAccessibilityProps(isTableSemanticsEnabled, rowIndex)}
+                {...getRowAccessibilityProps(isTableSemanticsEnabled, rowIndex, false, semanticTableHasHeader)}
                 onMouseDown={(e) => {
                     const target = e?.target;
 
@@ -263,6 +291,10 @@ export default function TableRow({
                 onPress={(event) => handleRowPress(event)}
                 onLongPress={handleRowLongPress}
                 {...props}
+                {...inertProps}
+                focusable={isAccessibilityHidden ? false : focusable}
+                fullDisabled={isAccessibilityHidden || fullDisabled}
+                tabIndex={isAccessibilityHidden ? -1 : tabIndex}
             >
                 {(state) => {
                     const rowCells = (
