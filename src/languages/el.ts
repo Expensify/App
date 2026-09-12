@@ -11531,6 +11531,8 @@ ${reportName}`,
         closeButton: 'Κλείσιμο',
         addPaymentCardButton: 'Προσθήκη κάρτας πληρωμής',
     },
+    agentPromptUpdated: ({updatedBy, previousPrompt, newPrompt}: {updatedBy: string; previousPrompt: string; newPrompt: string}) =>
+        `Ο χρήστης ${updatedBy} ενημέρωσε τις οδηγίες αυτού του agent.\nΠροηγούμενες οδηγίες:\n${previousPrompt}\nΝέες οδηγίες:\n${newPrompt}`,
     newAgentPage: {
         title: 'Νέος agent',
         buildCustomAgent: 'Δημιουργία προσαρμοσμένου agent',

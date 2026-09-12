@@ -595,6 +595,11 @@ function getLastMessageTextForReport({
         lastMessageTextFromReport = translate('parentReportAction.hiddenMessage');
     } else if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED)) {
         lastMessageTextFromReport = getMarkedReimbursedMessage(translate, lastReportAction);
+    } else if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.AGENT_PROMPT_UPDATED)) {
+        const originalMessage = getOriginalMessage(lastReportAction);
+        if (originalMessage) {
+            lastMessageTextFromReport = translate('agentPromptUpdated', originalMessage);
+        }
     } else if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.REIMBURSED)) {
         lastMessageTextFromReport = getReimbursedMessage(
             translate,

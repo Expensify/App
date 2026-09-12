@@ -3079,6 +3079,8 @@ ${amount} voor ${merchant} - ${date}`,
             updateAvatar: 'Er is een probleem opgetreden bij het bijwerken van de avatar van deze agent',
         },
     },
+    agentPromptUpdated: ({updatedBy, previousPrompt, newPrompt}: {updatedBy: string; previousPrompt: string; newPrompt: string}) =>
+        `${updatedBy} heeft de instructies van deze agent bijgewerkt.\nVorige instructies:\n${previousPrompt}\nNieuwe instructies:\n${newPrompt}`,
     newAgentPage: {
         title: 'Nieuwe agent',
         buildCustomAgent: 'Eigen agent bouwen',

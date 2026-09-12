@@ -467,6 +467,39 @@ describe('ReportAlternateTextUtils', () => {
     });
 
     describe('getLastMessageTextForReport', () => {
+        it('formats an agent prompt update from its original message', () => {
+            const report: Report = createRandomReport(0, undefined);
+            const agentPromptUpdatedAction: ReportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.AGENT_PROMPT_UPDATED,
+                originalMessage: {
+                    previousPrompt: 'Summarize expenses.',
+                    newPrompt: 'Summarize expenses and flag policy exceptions.',
+                    updatedByAccountID: CURRENT_USER_ACCOUNT_ID,
+                    updatedBy: CURRENT_USER_LOGIN,
+                },
+            };
+
+            const lastMessage = getLastMessageTextForReport({
+                dateFnsLocale: undefined,
+                conciergeReportID: undefined,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                personalDetails: undefined,
+                translate: translateLocal,
+                convertToDisplayString,
+                report,
+                lastActorDetails: null,
+                isReportArchived: false,
+                lastAction: agentPromptUpdatedAction,
+                currentUserLogin: CURRENT_USER_LOGIN,
+                rules: undefined,
+            });
+
+            expect(lastMessage).toBe(
+                `${CURRENT_USER_LOGIN} updated this agent's instructions.\nPrevious instructions:\nSummarize expenses.\nNew instructions:\nSummarize expenses and flag policy exceptions.`,
+            );
+        });
+
         describe('getReportPreviewMessage', () => {
             it('should format report preview message correctly for non-policy expense chat with IOU action', async () => {
                 const report: Report = {
