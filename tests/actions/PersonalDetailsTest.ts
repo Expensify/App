@@ -1,5 +1,5 @@
 import * as API from '@libs/API';
-import {WRITE_COMMANDS} from '@libs/API/types';
+import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
@@ -15,6 +15,7 @@ import Onyx from 'react-native-onyx';
 
 import * as PersonalDetailsActions from '../../src/libs/actions/PersonalDetails';
 import createMock from '../utils/createMock';
+import getOnyxValue from '../utils/getOnyxValue';
 import {getRequiredOnyxUpdate, getRequiredOnyxUpdates, getRequiredWriteCall} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
@@ -821,6 +822,80 @@ describe('actions/PersonalDetails', () => {
             await waitForBatchedUpdates();
 
             expect(mockAPI.write).not.toHaveBeenCalled();
+        });
+    });
+
+    describe('updatePersonalDetailsAndShipExpensifyCards', () => {
+        const mockValues = {
+            legalFirstName: 'Jane',
+            legalLastName: 'Doe',
+            phoneNumber: '5551234567',
+            city: 'San Francisco',
+            addressLine1: '123 Main St',
+            addressLine2: '',
+            zipPostCode: '94105',
+            country: CONST.COUNTRY.US as Country,
+            addressState: 'CA',
+            state: 'CA',
+            dob: '1990-01-01',
+        };
+
+        it('should call API.makeRequestWithSideEffects with correct command and Onyx data', async () => {
+            const makeRequestSpy = jest.spyOn(API, 'makeRequestWithSideEffects').mockResolvedValue(undefined);
+
+            PersonalDetailsActions.updatePersonalDetailsAndShipExpensifyCards(mockValues, 'VALIDATE123', 1);
+            await waitForBatchedUpdates();
+
+            expect(makeRequestSpy).toHaveBeenCalledWith(
+                SIDE_EFFECT_REQUEST_COMMANDS.SET_PERSONAL_DETAILS_AND_SHIP_EXPENSIFY_CARDS,
+                expect.objectContaining({validateCode: 'VALIDATE123'}),
+                expect.objectContaining({
+                    optimisticData: [expect.objectContaining({key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS, value: {isLoading: true}})],
+                    finallyData: [expect.objectContaining({key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS, value: {isLoading: false}})],
+                }),
+            );
+        });
+
+        it('should write invalidCardLimit error to Onyx when backend returns 400', async () => {
+            // Given the backend returns a 400 for an invalid (zero) card limit
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls
+            jest.spyOn(API, 'makeRequestWithSideEffects').mockResolvedValue({jsonCode: CONST.JSON_CODE.BAD_REQUEST});
+
+            // When we submit personal details and request a physical card
+            PersonalDetailsActions.updatePersonalDetailsAndShipExpensifyCards(mockValues, 'VALIDATE123', 1);
+            await waitForBatchedUpdates();
+
+            // Then the invalid-card-limit error is written to the private personal details
+            const privatePersonalDetails = await getOnyxValue(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
+            expect(privatePersonalDetails?.errors).toBeTruthy();
+        });
+
+        it('should not write any error to Onyx when backend returns 200', async () => {
+            // Given the backend returns a successful 200 response
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls
+            jest.spyOn(API, 'makeRequestWithSideEffects').mockResolvedValue({jsonCode: CONST.JSON_CODE.SUCCESS});
+
+            // When we submit personal details and request a physical card
+            PersonalDetailsActions.updatePersonalDetailsAndShipExpensifyCards(mockValues, 'VALIDATE123', 1);
+            await waitForBatchedUpdates();
+
+            // Then no error is written to the private personal details
+            const privatePersonalDetails = await getOnyxValue(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
+            expect(privatePersonalDetails?.errors).toBeFalsy();
+        });
+
+        it('should not write any error to Onyx when the response is undefined (e.g. network error)', async () => {
+            // Given the request resolves with no response (e.g. a network failure)
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls
+            jest.spyOn(API, 'makeRequestWithSideEffects').mockResolvedValue(undefined);
+
+            // When we submit personal details and request a physical card
+            PersonalDetailsActions.updatePersonalDetailsAndShipExpensifyCards(mockValues, 'VALIDATE123', 1);
+            await waitForBatchedUpdates();
+
+            // Then no error is written to the private personal details
+            const privatePersonalDetails = await getOnyxValue(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
+            expect(privatePersonalDetails?.errors).toBeFalsy();
         });
     });
 
