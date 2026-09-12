@@ -1788,11 +1788,6 @@ function isCardPendingReplace(card?: Card) {
     );
 }
 
-/**
- * Check if card has a broken connection
- *
- * @param card personal card to check
- */
 function isExpensifyCardPendingAction(card?: Card, privatePersonalDetails?: PrivatePersonalDetails): boolean {
     return (
         card?.bank === CONST.EXPENSIFY_CARD.BANK &&
