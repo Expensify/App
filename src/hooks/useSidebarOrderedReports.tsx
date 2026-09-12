@@ -44,6 +44,8 @@ type SidebarOrderedReportsActionsContextValue = {
     clearLHNCache: () => void;
     setActiveTab: (tab: ValueOf<typeof CONST.INBOX_TAB>) => void;
     setStickyReportID: (reportID: string) => void;
+    /** The report IDs listed under the given Inbox tab, read on demand by bulk tab actions (e.g. "Mark all as read"). */
+    getReportIDsForTab: (tab: ValueOf<typeof CONST.INBOX_TAB>) => string[];
 };
 
 type ReportsToDisplayInLHN = Record<
@@ -72,6 +74,7 @@ const SidebarOrderedReportsActionsContext = createContext<SidebarOrderedReportsA
     clearLHNCache: () => {},
     setActiveTab: () => {},
     setStickyReportID: () => {},
+    getReportIDsForTab: () => [],
 });
 
 // This file does not compile with React Compiler (render-time ref cache below keeps referential
@@ -346,6 +349,17 @@ function SidebarOrderedReportsContextProvider({
     // Derived from the full "All" set (not the currently filtered view).
     const {counts: inboxTabCounts, hasStaleUnreadReport} = useMemo(() => SidebarUtils.getInboxTabSummary(orderedReportIDs, reportsToDisplayInLHN), [orderedReportIDs, reportsToDisplayInLHN]);
 
+    // Held in a ref so getReportIDsForTab stays referentially stable (keeping the actions context stable) and only
+    // filters when a bulk tab action actually asks for a tab's reports, rather than on every LHN update.
+    const inboxTabSourcesRef = useRef({orderedReportIDs, reportsToDisplayInLHN});
+    useEffect(() => {
+        inboxTabSourcesRef.current = {orderedReportIDs, reportsToDisplayInLHN};
+    }, [orderedReportIDs, reportsToDisplayInLHN]);
+    const getReportIDsForTab = useCallback(
+        (tab: ValueOf<typeof CONST.INBOX_TAB>) => SidebarUtils.filterReportsForInboxTab(inboxTabSourcesRef.current.orderedReportIDs, inboxTabSourcesRef.current.reportsToDisplayInLHN, tab),
+        [],
+    );
+
     // Get the actual reports based on the filtered IDs
     const getOrderedReports = useCallback(
         (reportIDs: string[]): OnyxTypes.Report[] => {
@@ -443,7 +457,10 @@ function SidebarOrderedReportsContextProvider({
         reportsToDisplayInLHN,
     ]);
 
-    const actionsValue: SidebarOrderedReportsActionsContextValue = useMemo(() => ({clearLHNCache, setActiveTab, setStickyReportID}), [clearLHNCache, setActiveTab, setStickyReportID]);
+    const actionsValue: SidebarOrderedReportsActionsContextValue = useMemo(
+        () => ({clearLHNCache, setActiveTab, setStickyReportID, getReportIDsForTab}),
+        [clearLHNCache, setActiveTab, setStickyReportID, getReportIDsForTab],
+    );
 
     return (
         <SidebarOrderedReportsStateContext.Provider value={stateValue}>
