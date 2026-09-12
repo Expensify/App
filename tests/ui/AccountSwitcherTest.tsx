@@ -141,7 +141,7 @@ describe('AccountSwitcher', () => {
         expect(screen.getByText(SWITCH_BUTTON_TEXT)).toBeOnTheScreen();
         expect(screen.queryByTestId(CONST.ACCOUNT_SWITCHER_BUTTON_PLACEHOLDER_TEST_ID)).toBeNull();
 
-        // Connecting as a delegate wipes ONYXKEYS.ACCOUNT and refetches it, so the button goes away
+        // Connecting as a delegate wipes ONYXKEYS.ACCOUNT and fetches it again, so the button goes away
         // for the length of that request while the name and email stay on screen.
         await act(async () => {
             await Onyx.set(ONYXKEYS.ACCOUNT, null);
@@ -150,6 +150,25 @@ describe('AccountSwitcher', () => {
 
         expect(screen.queryByText(SWITCH_BUTTON_TEXT)).toBeNull();
         expect(screen.getByTestId(CONST.ACCOUNT_SWITCHER_BUTTON_PLACEHOLDER_TEST_ID)).toBeOnTheScreen();
+    });
+
+    it('releases the reserved Switch button row when a delegator revokes access', async () => {
+        await addDelegator();
+
+        renderAccountSwitcher();
+        await waitForBatchedUpdatesWithAct();
+
+        expect(screen.getByText(SWITCH_BUTTON_TEXT)).toBeOnTheScreen();
+
+        // Revoking access leaves ONYXKEYS.ACCOUNT in place and only empties the delegators, so this is a real
+        // loss of the button rather than the momentary gap an account switch creates.
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.ACCOUNT, {delegatedAccess: {delegators: []}});
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        expect(screen.queryByText(SWITCH_BUTTON_TEXT)).toBeNull();
+        expect(screen.queryByTestId(CONST.ACCOUNT_SWITCHER_BUTTON_PLACEHOLDER_TEST_ID)).toBeNull();
     });
 
     it('does not reserve the Switch button row for a user who has never been able to switch accounts', async () => {

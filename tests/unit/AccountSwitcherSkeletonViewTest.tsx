@@ -40,7 +40,7 @@ function getReservedStackedHeight(shouldShowSwitchButton: boolean): number {
             <AccountSwitcherSkeletonView
                 shouldAnimate={false}
                 avatarSize={CONST.AVATAR_SIZE.XXXX_LARGE}
-                shouldStack
+                shouldStackHeader
                 shouldShowSwitchButton={shouldShowSwitchButton}
             />
         </ComposeProviders>,

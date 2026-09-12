@@ -27,7 +27,7 @@ type AccountSwitcherSkeletonViewProps = {
     width?: number;
 
     /** Whether to stack the bars under a centered avatar, mirroring the narrow-layout account header */
-    shouldStack?: boolean;
+    shouldStackHeader?: boolean;
 
     /** Whether the stacked header will render a "Switch accounts" button below the login, so its row can be reserved */
     shouldShowSwitchButton?: boolean;
@@ -40,7 +40,7 @@ function AccountSwitcherSkeletonView({
     shouldAnimate = true,
     avatarSize = CONST.AVATAR_SIZE.DEFAULT,
     width,
-    shouldStack = false,
+    shouldStackHeader = false,
     shouldShowSwitchButton = false,
     style,
 }: AccountSwitcherSkeletonViewProps) {
@@ -68,24 +68,24 @@ function AccountSwitcherSkeletonView({
     return (
         <View
             style={[width ? undefined : styles.avatarSectionWrapperSkeleton, style]}
-            onLayout={shouldStack && width === undefined ? onLayout : undefined}
+            onLayout={shouldStackHeader && width === undefined ? onLayout : undefined}
         >
-            {shouldStack && !stackedWidth ? (
+            {shouldStackHeader && !stackedWidth ? (
                 <View style={StyleUtils.getHeight(stackedHeight)} />
             ) : (
                 <SkeletonViewContentLoader
                     animate={shouldAnimate}
                     backgroundColor={theme.skeletonLHNIn}
                     foregroundColor={theme.skeletonLHNOut}
-                    width={shouldStack ? stackedWidth : width}
-                    height={shouldStack ? stackedHeight : avatarPlaceholderSize}
+                    width={shouldStackHeader ? stackedWidth : width}
+                    height={shouldStackHeader ? stackedHeight : avatarPlaceholderSize}
                 >
                     <Circle
-                        cx={shouldStack ? stackedWidth / 2 : startPositionX}
+                        cx={shouldStackHeader ? stackedWidth / 2 : startPositionX}
                         cy={avatarPlaceholderRadius}
                         r={avatarPlaceholderRadius}
                     />
-                    {shouldStack ? (
+                    {shouldStackHeader ? (
                         <>
                             <SkeletonRect
                                 transform={[{translateX: (stackedWidth - nameBarWidth) / 2}, {translateY: nameLineTop + (variables.lineHeightSizeH1 - BAR_HEIGHT) / 2}]}

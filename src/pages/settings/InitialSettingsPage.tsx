@@ -112,7 +112,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
             {isPersonalDetailsEmpty ? (
                 <AccountSwitcherSkeletonView
                     avatarSize={shouldStackHeader ? CONST.AVATAR_SIZE.XXXX_LARGE : CONST.AVATAR_SIZE.DEFAULT}
-                    shouldStack={shouldStackHeader}
+                    shouldStackHeader={shouldStackHeader}
                     shouldShowSwitchButton={canSwitchAccounts}
                 />
             ) : (

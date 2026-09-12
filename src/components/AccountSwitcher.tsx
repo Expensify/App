@@ -81,15 +81,11 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
     const isActingAsDelegate = !!delegate;
     const canSwitchAccounts = delegators.length > 0 || isActingAsDelegate;
 
-    // Switching accounts wipes ONYXKEYS.ACCOUNT and refetches it via OpenApp, so `canSwitchAccounts` goes false
-    // for the length of that request while PERSONAL_DETAILS_LIST is preserved and the header stays on screen.
-    // Latching it here reserves the button's row through the reload instead of collapsing it and jumping the
-    // menu below. `isLoadingApp` can't stand in for this: it is also true during a normal cold start, which
-    // would give every user without delegators a phantom gap. Set during render on purpose — an effect would
-    // reserve the row one frame late, which is the frame that jumps.
-    const [hasEverBeenAbleToSwitchAccounts, setHasEverBeenAbleToSwitchAccounts] = useState(canSwitchAccounts);
-    if (canSwitchAccounts && !hasEverBeenAbleToSwitchAccounts) {
-        setHasEverBeenAbleToSwitchAccounts(true);
+    // Switching accounts wipes ONYXKEYS.ACCOUNT, so hold the last value while it is missing. Once it is back,
+    // a false value is real (e.g. a delegator revoked access) and must not keep the button's row reserved.
+    const [wasAbleToSwitchAccounts, setWasAbleToSwitchAccounts] = useState(canSwitchAccounts);
+    if (!!account && wasAbleToSwitchAccounts !== canSwitchAccounts) {
+        setWasAbleToSwitchAccounts(canSwitchAccounts);
     }
 
     const displayName = currentUserPersonalDetails.displayName ?? '';
@@ -276,10 +272,7 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
     const shouldStackHeader = shouldUseNarrowLayout && !isInLandscapeMode;
     const displayNameStyle = shouldStackHeader ? [styles.textHeadlineH1, styles.textAlignCenter] : [styles.textBold, styles.textLarge, styles.flexShrink1, styles.lineHeightXLarge];
     const avatarSize = shouldStackHeader ? CONST.AVATAR_SIZE.XXXX_LARGE : CONST.AVATAR_SIZE.DEFAULT;
-    // Only the stacked header puts the button on its own row, so it is the only layout where losing the
-    // button mid-switch moves anything. In the wide row layout the button sits beside the name and the
-    // menu below it never moves, so there is nothing to reserve.
-    const shouldReserveSwitchButtonRow = shouldStackHeader && hasEverBeenAbleToSwitchAccounts && !canSwitchAccounts;
+    const shouldReserveSwitchButtonRow = shouldStackHeader && wasAbleToSwitchAccounts && !canSwitchAccounts;
 
     return (
         <>
