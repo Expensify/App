@@ -18,7 +18,7 @@ import geodesicDistance from '@src/utils/geodesicDistance';
 
 import type {LocationGeocodedAddress} from 'expo-location';
 
-import {reverseGeocodeAsync} from 'expo-location';
+import {hasStartedLocationUpdatesAsync, reverseGeocodeAsync} from 'expo-location';
 import Onyx from 'react-native-onyx';
 
 import getOnyxValue from '../utils/getOnyxValue';
@@ -413,12 +413,34 @@ describe('GPSDraftDetailsUtils', () => {
             expect((await getStoppedDraft())?.gpsPoints).toEqual([[point(0, 0), point(0, 1, {value: '0,1', type: 'coordinates'})]]);
         });
 
-        it('clears the draft when the trip recorded nothing', async () => {
+        it('marks a trip that recorded nothing as stopped without clearing it', async () => {
             const gpsPoints = await trackTrip([[]]);
 
             await stopGpsTrip(false, gpsPoints);
 
-            expect(await getStoppedDraft()).toBeUndefined();
+            const draft = await getStoppedDraft();
+            expect(draft?.gpsPoints).toEqual([[]]);
+            expect(draft?.isTracking).toBe(false);
+        });
+
+        it('keeps a point that lands while the trip is being stopped', async () => {
+            let releaseLocationCheck: ((isRunning: boolean) => void) | undefined;
+            jest.mocked(hasStartedLocationUpdatesAsync).mockImplementationOnce(
+                () =>
+                    new Promise<boolean>((resolve) => {
+                        releaseLocationCheck = resolve;
+                    }),
+            );
+            const gpsPoints = await trackTrip([[]]);
+
+            const stopping = stopGpsTrip(false, gpsPoints);
+            await Onyx.merge(ONYXKEYS.GPS_DRAFT_DETAILS, {gpsPoints: [[point(0, 0)]]});
+            releaseLocationCheck?.(false);
+            await stopping;
+
+            const draft = await getStoppedDraft();
+            expect(draft?.gpsPoints).toEqual([[point(0, 0)]]);
+            expect(draft?.isTracking).toBe(false);
         });
 
         it('drops a resumed segment that holds a single point', async () => {

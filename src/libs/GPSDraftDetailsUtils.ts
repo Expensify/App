@@ -11,7 +11,7 @@ import type {SetRequired} from 'type-fest';
 
 import {hasStartedLocationUpdatesAsync, stopLocationUpdatesAsync} from 'expo-location';
 
-import {removeLastSegment, resetGPSDraftDetails, setEndWaypointAddress, setIsTracking} from './actions/GPSDraftDetails';
+import {removeLastSegment, setEndWaypointAddress, setIsTracking} from './actions/GPSDraftDetails';
 import {addressFromGpsPoint, calculateTrimmedEndPoint, coordinatesToString, getGpsPoints} from './GPSPointUtils';
 import {roundToTwoDecimalPlaces} from './NumberUtils';
 
@@ -130,17 +130,15 @@ async function stopGpsTrip(isOffline: boolean, gpsPoints: GPSPoint[][], skipLast
         await stopLocationUpdatesAsync(BACKGROUND_LOCATION_TRACKING_TASK_NAME).catch((error) => console.error('[GPS distance request] Failed to stop location tracking', error));
     }
 
+    setIsTracking(false);
     stopGpsTripNotification();
 
     const lastSegment = gpsPoints.at(-1);
 
-    // A trip that recorded nothing is not a trip, so it leaves no draft behind
+    // Never clear an empty trip here: gpsPoints predates the awaits above, so a fix may have landed that clearing would wipe
     if (!lastSegment || gpsPoints.flat().length === 0) {
-        resetGPSDraftDetails();
         return;
     }
-
-    setIsTracking(false);
 
     if (isLastSegmentEmptyOrHasOnlyOnePoint(lastSegment)) {
         // Dropping the sole segment would leave no points, which reads as a trip that never started
