@@ -1002,6 +1002,7 @@ function MoneyRequestView({
                     descriptionTextStyle={styles.userSelectNone}
                     title={distanceToDisplay}
                     hintText={distanceToDisplayHintText}
+                    hintTextStyle={styles.userSelectNone}
                     numberOfLinesTitle={2}
                     interactive={canEditDistance}
                     shouldShowRightIcon={canEditDistance}
