@@ -65,6 +65,7 @@ function WorkspaceDistanceRateValueCell({rate, displayText, canEdit, onSave}: Wo
                     shouldShowBigNumberPad={false}
                     shouldWrapInputInContainer={false}
                     shouldApplyPaddingToContainer={false}
+                    shouldRefocusOnScrollViewClick
                     hideFocusedState
                     onInputChange={setLocalValue}
                     onBlur={save}

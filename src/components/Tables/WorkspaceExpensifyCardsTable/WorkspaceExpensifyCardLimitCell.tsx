@@ -64,6 +64,7 @@ function WorkspaceExpensifyCardLimitCell({limit, currency = CONST.CURRENCY.USD, 
                     shouldShowBigNumberPad={false}
                     shouldWrapInputInContainer={false}
                     shouldApplyPaddingToContainer={false}
+                    shouldRefocusOnScrollViewClick
                     hideFocusedState
                     onInputChange={setLocalValue}
                     onBlur={save}

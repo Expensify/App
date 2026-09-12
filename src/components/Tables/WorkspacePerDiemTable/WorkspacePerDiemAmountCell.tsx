@@ -66,6 +66,7 @@ function WorkspacePerDiemAmountCell({rate, currency, displayText, canEdit, onSav
                     shouldShowBigNumberPad={false}
                     shouldWrapInputInContainer={false}
                     shouldApplyPaddingToContainer={false}
+                    shouldRefocusOnScrollViewClick
                     hideFocusedState
                     onInputChange={setLocalValue}
                     onBlur={save}
