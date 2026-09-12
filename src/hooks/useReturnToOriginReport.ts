@@ -1,6 +1,5 @@
 import Navigation from '@libs/Navigation/Navigation';
 
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
@@ -18,16 +17,11 @@ import useOnyx from './useOnyx';
  */
 function useReturnToOriginReport() {
     const [originReportID] = useState(() => Navigation.getTopmostReportId());
-    const [originReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${originReportID}`);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
-    const originReportType = originReport?.type;
-    const originReportParentID = originReport?.parentReportID;
-
     return useCallback(() => {
         Navigation.dismissModal();
-        const returnReportID = originReportType === CONST.REPORT.TYPE.TASK ? originReportParentID : originReportID;
-        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(returnReportID ?? conciergeReportID));
-    }, [originReportParentID, originReportType, originReportID, conciergeReportID]);
+        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(originReportID ?? conciergeReportID));
+    }, [originReportID, conciergeReportID]);
 }
 
 export default useReturnToOriginReport;
