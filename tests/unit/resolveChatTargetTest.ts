@@ -48,6 +48,7 @@ describe('resolveChatTargetForSubmitCleanup', () => {
         const result = resolveChatTargetForSubmitCleanup({
             participant,
             currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+            participantReportDraft: {},
             report,
             fallbackOptimisticChatReportID: FALLBACK,
             action: CONST.IOU.ACTION.CREATE,
@@ -66,6 +67,7 @@ describe('resolveChatTargetForSubmitCleanup', () => {
         const result = resolveChatTargetForSubmitCleanup({
             participant,
             currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+            participantReportDraft: {},
             report,
             fallbackOptimisticChatReportID: FALLBACK,
             action: CONST.IOU.ACTION.CREATE,
@@ -82,6 +84,7 @@ describe('resolveChatTargetForSubmitCleanup', () => {
         const result = resolveChatTargetForSubmitCleanup({
             participant,
             currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+            participantReportDraft: {},
             report,
             fallbackOptimisticChatReportID: FALLBACK,
             action: CONST.IOU.ACTION.CREATE,
@@ -97,6 +100,7 @@ describe('resolveChatTargetForSubmitCleanup', () => {
         const result = resolveChatTargetForSubmitCleanup({
             participant,
             currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+            participantReportDraft: {},
             report,
             fallbackOptimisticChatReportID: FALLBACK,
             action: CONST.IOU.ACTION.CREATE,
@@ -111,12 +115,31 @@ describe('resolveChatTargetForSubmitCleanup', () => {
         const result = resolveChatTargetForSubmitCleanup({
             participant,
             currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+            participantReportDraft: {},
             report: undefined,
             fallbackOptimisticChatReportID: FALLBACK,
             action: CONST.IOU.ACTION.CREATE,
         });
 
         expect(result).toEqual({report: undefined, chatReportID: 'workspace-1', optimisticChatReportID: undefined});
+    });
+
+    // The participant's workspace chat can exist only as a draft (a workspace being created on the fly), so the
+    // caller has to hand that draft in rather than letting getReportOrDraftReport read the REPORT_DRAFT collection.
+    it('should forward the supplied participantReportDraft to getReportOrDraftReport', () => {
+        const participant: Participant = {isPolicyExpenseChat: true, reportID: 'workspace-draft-1'};
+        const participantReportDraft = createMock<Report>({reportID: 'workspace-draft-1'});
+
+        resolveChatTargetForSubmitCleanup({
+            participant,
+            currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+            participantReportDraft,
+            report: undefined,
+            fallbackOptimisticChatReportID: FALLBACK,
+            action: CONST.IOU.ACTION.CREATE,
+        });
+
+        expect(getReportOrDraftReport).toHaveBeenCalledWith('workspace-draft-1', undefined, undefined, participantReportDraft);
     });
 
     it('should fall back to optimisticChatReportID when participant.isPolicyExpenseChat targets a report not present in the Onyx cache (mirrors action behavior)', () => {
@@ -126,6 +149,7 @@ describe('resolveChatTargetForSubmitCleanup', () => {
         const result = resolveChatTargetForSubmitCleanup({
             participant,
             currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+            participantReportDraft: {},
             report: undefined,
             fallbackOptimisticChatReportID: FALLBACK,
             action: CONST.IOU.ACTION.CREATE,
@@ -142,6 +166,7 @@ describe('resolveChatTargetForSubmitCleanup', () => {
         const result = resolveChatTargetForSubmitCleanup({
             participant,
             currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+            participantReportDraft: {},
             report,
             fallbackOptimisticChatReportID: FALLBACK,
             action: CONST.IOU.ACTION.CREATE,
@@ -159,6 +184,7 @@ describe('resolveChatTargetForSubmitCleanup', () => {
         const result = resolveChatTargetForSubmitCleanup({
             participant,
             currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+            participantReportDraft: {},
             report,
             fallbackOptimisticChatReportID: FALLBACK,
             action: CONST.IOU.ACTION.CREATE,
@@ -173,6 +199,7 @@ describe('resolveChatTargetForSubmitCleanup', () => {
         const result = resolveChatTargetForSubmitCleanup({
             participant,
             currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+            participantReportDraft: {},
             report: undefined,
             fallbackOptimisticChatReportID: FALLBACK,
             action: CONST.IOU.ACTION.CREATE,
@@ -191,6 +218,7 @@ describe('resolveChatTargetForSubmitCleanup', () => {
             const result = resolveChatTargetForSubmitCleanup({
                 participant,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                participantReportDraft: {},
                 report,
                 fallbackOptimisticChatReportID: FALLBACK,
                 action: CONST.IOU.ACTION.SUBMIT,
@@ -208,6 +236,7 @@ describe('resolveChatTargetForSubmitCleanup', () => {
             const result = resolveChatTargetForSubmitCleanup({
                 participant,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                participantReportDraft: {},
                 report,
                 fallbackOptimisticChatReportID: FALLBACK,
                 action: CONST.IOU.ACTION.SUBMIT,
@@ -224,6 +253,7 @@ describe('resolveChatTargetForSubmitCleanup', () => {
             const result = resolveChatTargetForSubmitCleanup({
                 participant,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                participantReportDraft: {},
                 report,
                 fallbackOptimisticChatReportID: FALLBACK,
                 action: CONST.IOU.ACTION.SUBMIT,

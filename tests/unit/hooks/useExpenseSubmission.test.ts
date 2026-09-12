@@ -205,6 +205,7 @@ function buildParams(overrides: Partial<Parameters<typeof useExpenseSubmission>[
         receiptFiles: {},
         report: {reportID: REPORT_ID, type: CONST.REPORT.TYPE.CHAT} as Report,
         reportID: REPORT_ID,
+        reportDrafts: {},
         policy: createMock<Policy>({id: 'policy-1'}),
         policyCategories: {} as PolicyCategories,
         isDraftPolicy: false,
@@ -600,6 +601,59 @@ describe('useExpenseSubmission orchestrator-suppressed cleanup', () => {
     });
 
     describe('per diem path', () => {
+        // submitPerDiemExpense resolves the destination chat through getReportOrDraftReport. For an expense report
+        // whose chat only exists in REPORT_DRAFT, that draft now has to arrive via the reportDrafts param.
+        function renderPerDiemWithDraftChat(reportDrafts: Parameters<typeof useExpenseSubmission>[0]['reportDrafts']) {
+            const perDiemTransaction = buildPerDiemTransaction();
+            return renderHook(() =>
+                useExpenseSubmission(
+                    buildParams({
+                        iouType: CONST.IOU.TYPE.SUBMIT,
+                        requestType: CONST.IOU.REQUEST_TYPE.PER_DIEM,
+                        isPerDiemRequest: true,
+                        transaction: perDiemTransaction,
+                        transactions: [perDiemTransaction],
+                        report: {reportID: 'expense-1', type: CONST.REPORT.TYPE.EXPENSE, chatReportID: 'draft-chat-1'} as Report,
+                        reportDrafts,
+                    }),
+                ),
+            );
+        }
+
+        it('resolves the destination chat from the supplied reportDrafts when it has no real report', async () => {
+            const draftChat = {reportID: 'draft-chat-1', chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT} as Report;
+            const {result} = renderPerDiemWithDraftChat({[`${ONYXKEYS.COLLECTION.REPORT_DRAFT}draft-chat-1`]: draftChat});
+            await waitForBatchedUpdatesWithAct();
+
+            await act(async () => {
+                result.current.createTransaction(false, true);
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            // The draft chat resolved, so no optimistic chat report has to be generated for it.
+            expect(mockSubmitPerDiemExpenseAction).toHaveBeenCalledWith(expect.objectContaining({optimisticChatReportID: undefined}));
+        });
+
+        it('ignores a draft that is only in Onyx and not in the supplied reportDrafts', async () => {
+            // The two sources disagree on purpose: Onyx has the draft, the param does not. The param has to win.
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}draft-chat-1`, {
+                reportID: 'draft-chat-1',
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+            } as Report);
+
+            const {result} = renderPerDiemWithDraftChat({});
+            await waitForBatchedUpdatesWithAct();
+
+            await act(async () => {
+                result.current.createTransaction(false, true);
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            // Nothing resolved the destination chat, so an optimistic chat report had to be generated for it.
+            expect(mockSubmitPerDiemExpenseAction).toHaveBeenCalled();
+            expect(mockSubmitPerDiemExpenseAction).not.toHaveBeenCalledWith(expect.objectContaining({optimisticChatReportID: undefined}));
+        });
+
         it('keeps initial self-DM per diem tracking on submitPerDiemExpenseForSelfDM', async () => {
             const perDiemTransaction = buildPerDiemTransaction();
 

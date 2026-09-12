@@ -335,7 +335,10 @@ function IOURequestStepConfirmationContent({
     );
 
     const sourceReportID = transaction?.reportID ?? reportID;
-    const sourceReport = useMemo(() => (sourceReportID ? getReportOrDraftReport(sourceReportID) : undefined), [sourceReportID]);
+    const sourceReport = useMemo(
+        () => (sourceReportID ? getReportOrDraftReport(sourceReportID, undefined, undefined, reportDrafts?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${sourceReportID}`] ?? {}) : undefined),
+        [sourceReportID, reportDrafts],
+    );
     const {participants: resolvedDefaultParticipants, isLoading: isLoadingDefaultParticipants} = useDefaultParticipants({sourceReport, transaction, iouType});
     const hasSelectedParticipants = (transaction?.participants ?? []).some((participant) => participant?.selected);
     const defaultParticipants = useMemo(() => {
@@ -408,7 +411,12 @@ function IOURequestStepConfirmationContent({
                 return;
             }
             const selectedParticipant = participantsList.at(0);
-            const selectedPolicyID = selectedParticipant?.policyID ?? (selectedParticipant?.reportID ? getReportOrDraftReport(selectedParticipant.reportID)?.policyID : undefined);
+            const selectedPolicyID =
+                selectedParticipant?.policyID ??
+                (selectedParticipant?.reportID
+                    ? getReportOrDraftReport(selectedParticipant.reportID, undefined, undefined, reportDrafts?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${selectedParticipant.reportID}`] ?? {})
+                          ?.policyID
+                    : undefined);
             if (blockDistanceRequestIfNeeded(selectedPolicyID)) {
                 return;
             }
@@ -499,6 +507,7 @@ function IOURequestStepConfirmationContent({
         [
             activeTransactionID,
             closeParticipantPicker,
+            reportDrafts,
             currentUserPersonalDetails.accountID,
             navigation,
             selfDMReport,
@@ -544,7 +553,12 @@ function IOURequestStepConfirmationContent({
                     return true;
                 }
 
-                return !!participant?.reportID && isPolicyExpenseChatUtils(getReportOrDraftReport(participant.reportID));
+                return (
+                    !!participant?.reportID &&
+                    isPolicyExpenseChatUtils(
+                        getReportOrDraftReport(participant.reportID, undefined, undefined, reportDrafts?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${participant.reportID}`] ?? {}),
+                    )
+                );
             });
 
         if (isPolicyExpenseChatUtils(report)) {
@@ -557,7 +571,7 @@ function IOURequestStepConfirmationContent({
         }
 
         return hasPolicyExpenseChat(defaultParticipants);
-    }, [report, transaction?.participants, defaultParticipants]);
+    }, [report, transaction?.participants, defaultParticipants, reportDrafts]);
 
     const isFromGlobalCreate = transaction?.isFromGlobalCreate === true || transaction?.isFromFloatingActionButton === true;
 
@@ -593,6 +607,7 @@ function IOURequestStepConfirmationContent({
     const preMountedDraftReportIDRef = useRef<string | undefined>(undefined);
 
     const {createTransaction, sendMoney, isConfirmed, setIsConfirmed, formHasBeenSubmitted} = useExpenseSubmission({
+        reportDrafts,
         transaction,
         transactions,
         receiptFiles,
