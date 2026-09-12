@@ -1,47 +1,15 @@
 import {BarChart} from '@components/Charts';
-import type {ChartDataPoint} from '@components/Charts';
-
-import {useCurrencyListActions} from '@hooks/useCurrencyList';
-
-import {convertToFrontendAmountAsInteger} from '@libs/CurrencyUtils';
 
 import React from 'react';
 
 import type {SearchChartProps} from './types';
 
-function SearchBarChart({data, getLabel, getShortLabel, getFilterQuery, onItemPress, isLoading, unit, unitPosition}: SearchChartProps) {
-    const {getCurrencyDecimals} = useCurrencyListActions();
-    const chartData: ChartDataPoint[] = data.map((item) => {
-        const currency = item.currency ?? 'USD';
-        const decimals = getCurrencyDecimals(currency);
-        const totalInDisplayUnits = convertToFrontendAmountAsInteger(item.total ?? 0, decimals);
-
-        return {
-            label: getLabel(item),
-            shortLabel: getShortLabel?.(item),
-            total: totalInDisplayUnits,
-        };
-    });
-
-    const handleBarPress = (dataPoint: ChartDataPoint, index: number) => {
-        if (!onItemPress) {
-            return;
-        }
-
-        const item = data.at(index);
-        if (!item) {
-            return;
-        }
-
-        const filterQuery = getFilterQuery(item);
-        onItemPress(filterQuery);
-    };
-
+function SearchBarChart({data, onItemPress, isLoading, unit, unitPosition}: SearchChartProps) {
     return (
         <BarChart
-            data={chartData}
+            data={data}
             isLoading={isLoading}
-            onBarPress={handleBarPress}
+            onBarPress={(dataPoint, index) => onItemPress?.(index)}
             yAxisUnit={unit}
             yAxisUnitPosition={unitPosition}
         />

@@ -6731,6 +6731,9 @@ const staticStyles = (theme: ThemeColors) =>
             width: 12,
             height: 12,
         },
+        chartDataTable: {
+            marginTop: 20,
+        },
         discoverSectionImage: {
             width: '100%',
             height: undefined,
