@@ -41,7 +41,7 @@ type WorkspaceMemberRolePickerModalProps = {
 
     selectedRole?: string;
 
-    /** When provided, restricts the selectable roles to this set. */
+    /** When provided, restricts the selectable roles to this set (e.g. an Authorized Payer may only be an Admin or Payments Admin) */
     allowedRoles?: Array<ValueOf<typeof CONST.POLICY.ROLE>>;
 
     onSelected?: (role: ValueOf<typeof CONST.POLICY.ROLE>) => void;
