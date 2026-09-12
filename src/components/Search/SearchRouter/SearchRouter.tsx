@@ -24,6 +24,7 @@ import useReportOrReportDraft from '@hooks/useReportOrReportDraft';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useRootNavigationState from '@hooks/useRootNavigationState';
 import useSortedActions from '@hooks/useSortedActions';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 
@@ -91,6 +92,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
     const {translate, formatPhoneNumber, dateFnsLocale} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const {setShouldResetSearchQuery, resetSearchKey} = useSearchQueryActions();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserAccountID = currentUserPersonalDetails.accountID;
@@ -526,7 +528,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
 
     return (
         <View
-            style={[styles.flex1, modalWidth, styles.h100, !shouldUseNarrowLayout && styles.overflowHidden, !shouldUseNarrowLayout && {maxHeight: popoverMaxHeight}]}
+            style={[styles.flex1, modalWidth, styles.h100, !shouldUseNarrowLayout && styles.overflowHidden, !shouldUseNarrowLayout && StyleUtils.getMaximumHeight(popoverMaxHeight)]}
             testID="SearchRouter"
             ref={ref}
         >
