@@ -3,7 +3,7 @@ import {renderHook} from '@testing-library/react-native';
 import useGPSWaypointMarkers from '@pages/iou/request/step/IOURequestStepDistanceGPS/useGPSWaypointMarkers';
 
 import type GpsDraftDetails from '@src/types/onyx/GpsDraftDetails';
-import type {GPSPoint} from '@src/types/onyx/GpsDraftDetails';
+import type {GPSPoint, TrimmedGPSPoint} from '@src/types/onyx/GpsDraftDetails';
 import type {Unit} from '@src/types/onyx/Policy';
 
 const point = (lat: number, long: number): GPSPoint => ({lat, long});
@@ -16,8 +16,8 @@ const makeDraft = (gpsPoints: GPSPoint[][], isTracking: boolean): GpsDraftDetail
     unit: 'mi' as Unit,
 });
 
-const markerTypesFor = (gpsPoints: GPSPoint[][], isTracking: boolean): Array<string | undefined> => {
-    const {result} = renderHook(() => useGPSWaypointMarkers({gpsDraftDetails: makeDraft(gpsPoints, isTracking)}));
+const markerTypesFor = (gpsPoints: GPSPoint[][], isTracking: boolean, trimmedEndPoint?: TrimmedGPSPoint): Array<string | undefined> => {
+    const {result} = renderHook(() => useGPSWaypointMarkers({gpsDraftDetails: makeDraft(gpsPoints, isTracking), trimmedEndPoint}));
     return result.current.map(({markerType}) => markerType);
 };
 
@@ -44,6 +44,18 @@ describe('useGPSWaypointMarkers', () => {
 
     it('hides the end marker when a resumed segment has not recorded anything yet', () => {
         expect(markerTypesFor([[point(0, 0), point(0, 1)], []], true)).toEqual(['START_WAYPOINT']);
+    });
+
+    it('marks the trimmed end as the stop', () => {
+        const trimmedEndPoint: TrimmedGPSPoint = {lat: 0, long: 0.5, segmentIndex: 0, precedingPointIndex: 1};
+
+        expect(markerTypesFor([[point(0, 0), point(0, 1), point(0, 2)]], false, trimmedEndPoint)).toEqual(['START_WAYPOINT', 'STOP_WAYPOINT']);
+    });
+
+    it('marks the trimmed end as the stop when the first segment holds a single point', () => {
+        const trimmedEndPoint: TrimmedGPSPoint = {lat: 1, long: 0.5, segmentIndex: 1, precedingPointIndex: 0};
+
+        expect(markerTypesFor([[point(0, 0)], [point(1, 0), point(1, 1), point(1, 2)]], false, trimmedEndPoint)).toEqual(['START_WAYPOINT', 'WAYPOINT', 'STOP_WAYPOINT']);
     });
 
     it('shows only a start marker for a trip that recorded a single point', () => {

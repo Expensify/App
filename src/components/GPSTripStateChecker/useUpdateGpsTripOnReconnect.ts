@@ -22,7 +22,7 @@ function useUpdateGpsTripOnReconnect({gpsPoints}: {gpsPoints: GPSPoint[][]}) {
     // stringified coordinates, so on reconnect we fetch the human readable address to replace it.
     const updateTrimmedEndPointAddress = async (trimmedEndPoint: TrimmedGPSPoint | undefined) => {
         // If the address is already human readable, we don't need to update it
-        if (!trimmedEndPoint || trimmedEndPoint.address?.type === 'address') {
+        if (!trimmedEndPoint || (trimmedEndPoint.address?.type === 'address' && !!trimmedEndPoint.address.value)) {
             return;
         }
 
@@ -40,7 +40,7 @@ function useUpdateGpsTripOnReconnect({gpsPoints}: {gpsPoints: GPSPoint[][]}) {
         for (const [segmentIndex, tripSegment] of gpsPoints.entries()) {
             for (const [pointIndex, point] of tripSegment.entries()) {
                 // If the address is not a coordinates (already human readable), we don't need to update it
-                if (point.address?.type === 'address') {
+                if (point.address?.type === 'address' && !!point.address.value) {
                     continue;
                 }
 

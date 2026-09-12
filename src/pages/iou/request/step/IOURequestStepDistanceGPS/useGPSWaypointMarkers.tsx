@@ -24,6 +24,7 @@ function useGPSWaypointMarkers({gpsDraftDetails, trimmedEndPoint: trimmedEndPoin
 
     return waypointEntries.flatMap(([key, waypoint], index): WayPoint[] => {
         const isStart = index === 0;
+        // A segment with one point contributes one waypoint, not a start and end pair
         const isEnd = index === lastIndex && index !== 0 && !isLastWaypointSegmentStart;
 
         if (isEnd && !isTripStopped) {
