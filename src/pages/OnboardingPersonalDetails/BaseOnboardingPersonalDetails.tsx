@@ -100,8 +100,10 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
                 // Reaching this screen while validated only happens when the join-workspace list turned up empty, since
                 // a non-empty list completes directly from the workspaces screen instead of coming here.
                 let joinWorkspaceMessage = joinWorkspaceMessagesEmpty;
-                if (!isValidated) {
-                    joinWorkspaceMessage = isFromPublicDomain ? joinWorkspaceMessagesAddWorkEmail : joinWorkspaceMessagesValidateEmail;
+                if (isFromPublicDomain) {
+                    joinWorkspaceMessage = joinWorkspaceMessagesAddWorkEmail;
+                } else if (!isValidated) {
+                    joinWorkspaceMessage = joinWorkspaceMessagesValidateEmail;
                 }
                 await completeOnboardingReport({
                     engagementChoice: onboardingPurposeSelected,
