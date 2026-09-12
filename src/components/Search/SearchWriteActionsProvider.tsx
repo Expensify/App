@@ -293,9 +293,9 @@ function useReconcileSelectionWithData({
                     continue;
                 }
 
-                // Lazy group children are held in a separate snapshot. Keep their exclusions while the parent
-                // group is still present; if the parent disappears, the child no longer matches this search.
-                if (excludedTransaction.groupKey && liveSelectionEntries.has(excludedTransaction.groupKey)) {
+                // Lazy expense-group children are held in a separate snapshot. Keep their exclusions while the parent
+                // group is still present; report rows contain their current children, so a missing child was removed.
+                if (!isExpenseReportType && excludedTransaction.groupKey && liveSelectionEntries.has(excludedTransaction.groupKey)) {
                     nextExcludedTransactions[key] = excludedTransaction;
                 }
             }
