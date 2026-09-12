@@ -23,8 +23,8 @@ function useGPSWaypointMarkers({gpsDraftDetails, trimmedEndPoint: trimmedEndPoin
 
     return waypointEntries.flatMap(([key, waypoint], index): WayPoint[] => {
         const isStart = index === 0;
-        // End waypoint can only have odd index, as even indexes are start waypoints of trip segments
-        const isEnd = index === lastIndex && index % 2 === 1;
+        // A segment with one point contributes one waypoint, so waypoint counts can be odd
+        const isEnd = index === lastIndex && index !== 0;
 
         if (isEnd && !isTripStopped) {
             return [];
