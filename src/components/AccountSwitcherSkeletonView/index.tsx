@@ -20,8 +20,6 @@ const BAR_HEIGHT = 8;
 const NAME_BAR_WIDTH_RATIO = 0.45;
 const LOGIN_BAR_WIDTH_RATIO = 0.55;
 const SWITCH_BUTTON_WIDTH = 96;
-// SVG clamps rx and ry independently, so `variables.buttonBorderRadius` would clamp to half the width and
-// half the height and draw an ellipse. Half the height is the pill the CSS radius resolves to on the button.
 const SWITCH_BUTTON_BORDER_RADIUS = variables.componentSizeSmall / 2;
 
 type AccountSwitcherSkeletonViewProps = {
