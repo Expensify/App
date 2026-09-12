@@ -29,7 +29,7 @@ function ListItemSubtitle({text, numberOfLines, forwardedFSClass, style}: ListIt
 
     return (
         <TextWithTooltip
-            shouldShowTooltip={!!shouldShowTooltip}
+            shouldShowTooltip={shouldShowTooltip}
             text={text}
             numberOfLines={numberOfLines}
             style={[styles.textLabelSupporting, styles.lh16, styles.pre, style]}

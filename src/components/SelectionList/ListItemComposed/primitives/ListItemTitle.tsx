@@ -24,7 +24,7 @@ function ListItemTitle({text, numberOfLines, style}: ListItemTitleProps) {
 
     return (
         <TextWithTooltip
-            shouldShowTooltip={!!shouldShowTooltip}
+            shouldShowTooltip={shouldShowTooltip}
             text={text}
             numberOfLines={numberOfLines}
             style={[styles.optionDisplayName, styles.sidebarLinkText, styles.sidebarLinkTextBold, styles.pre, style]}

@@ -3730,6 +3730,16 @@ const staticStyles = (theme: ThemeColors) =>
             ...spacing.ph5,
         },
 
+        listItemRow: {
+            flex: 1,
+            width: '100%',
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            ...spacing.ph5,
+            ...userSelect.userSelectNone,
+        },
+
         dotIndicatorMessage: {
             display: 'flex',
             flexDirection: 'row',
