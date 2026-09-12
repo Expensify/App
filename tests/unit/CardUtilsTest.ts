@@ -4906,16 +4906,10 @@ describe('getCardConnectionStatusDisplay', () => {
         expect(getCardConnectionStatusDisplay({...defaultParams, isCardInactive: true, isExpensifyCard: true, isAdminForCardPolicy: true, policyID: 'ABC123'})).toBeUndefined();
     });
 
-    it('still reports a broken connection for an inactive Expensify Card', () => {
-        expect(getCardConnectionStatusDisplay({...defaultParams, isCardInactive: true, isExpensifyCard: true, isCardBroken: true, policyID: 'ABC123'})).toEqual({
-            statusKey: 'walletPage.cardStatus.inactive',
-            statusTone: 'danger',
-            messageKey: 'walletPage.cardStatus.askAdminToFixConnection',
-            actionKey: undefined,
-            shouldUsePersonalCardFix: false,
-            shouldUseCompanyCardsLink: false,
-            shouldUseReauthMessage: false,
-        });
+    // A feed or workspace error still shows its own dot on the row, but the card has no bank feed, so a connection
+    // message is never the right copy for it.
+    it('returns undefined for an inactive Expensify Card whose feed reports an error', () => {
+        expect(getCardConnectionStatusDisplay({...defaultParams, isCardInactive: true, isExpensifyCard: true, shouldShowRBR: true, policyID: 'ABC123'})).toBeUndefined();
     });
 
     it('does not show a company-cards link without a policy ID', () => {
