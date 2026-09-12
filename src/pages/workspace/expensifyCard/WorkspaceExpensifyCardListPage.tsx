@@ -45,6 +45,7 @@ import {
     isCurrencySupportedForECards,
     shouldConfirmExpensifyCardLimitTypeChange,
 } from '@libs/CardUtils';
+import {convertToBackendAmount} from '@libs/CurrencyUtils';
 import {getExpensifyCardFeedDescription} from '@libs/ExpensifyCardFeedSelectorUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -177,8 +178,8 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
                     canEditLimit: canEditCard,
                     action: () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_EXPENSIFY_CARD_DETAILS.getRoute(card.cardID.toString()))),
                     onRenameName: (newName: string) => renameExpensifyCardInline(fundID, card.cardID, newName, card.nameValuePairs?.cardTitle ?? ''),
-                    onChangeLimitType: (newLimitType?: CardLimitType) => {
-                        if (!newLimitType || newLimitType === card.nameValuePairs?.limitType) {
+                    onChangeLimitType: (newLimitType: CardLimitType) => {
+                        if (newLimitType === card.nameValuePairs?.limitType) {
                             return;
                         }
 
@@ -211,7 +212,7 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
                             return;
                         }
 
-                        const nextLimit = Number(newLimit) * 100;
+                        const nextLimit = convertToBackendAmount(Number(newLimit));
                         if (nextLimit === (card.nameValuePairs?.unapprovedExpenseLimit ?? 0)) {
                             return;
                         }

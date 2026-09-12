@@ -21,7 +21,7 @@ type WorkspaceExpensifyCardLimitTypeCellProps = {
     card: Card;
     policy: OnyxEntry<Policy>;
     canEdit?: boolean;
-    onSave?: (limitType: CardLimitType | undefined) => void;
+    onSave?: (limitType: CardLimitType) => void;
 };
 
 function WorkspaceExpensifyCardLimitTypeCell({limitType, card, policy, canEdit, onSave}: WorkspaceExpensifyCardLimitTypeCellProps) {

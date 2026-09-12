@@ -1,3 +1,8 @@
+/**
+ * Validate-and-delegate helpers for inline edits on workspace settings tables.
+ * Table pages call these instead of the canonical Policy/Card actions so sanitization
+ * and no-op checks stay in one place. Persistence and rollback stay in those actions.
+ */
 import type PolicyData from '@hooks/usePolicyData/types';
 
 import {
@@ -33,9 +38,6 @@ import {updateWorkspaceMembersRole} from './Member';
 import {editPerDiemRateAmount, editPerDiemRateDestination, editPerDiemRateSubrate} from './PerDiem';
 import {renamePolicyTag} from './Tag';
 
-/**
- * Renames a category from an inline table edit.
- */
 function renameCategoryInline(policyData: PolicyData, currentName: string, newName: string): void {
     const sanitized = sanitizeCategoryName(newName);
 
@@ -46,9 +48,6 @@ function renameCategoryInline(policyData: PolicyData, currentName: string, newNa
     renamePolicyCategory(policyData, {oldName: currentName, newName: sanitized});
 }
 
-/**
- * Renames a single-level tag from an inline table edit.
- */
 function renameTagInline(policyData: PolicyData, oldName: string, newName: string): void {
     const sanitized = sanitizeTagName(newName);
     const currentDisplayName = getCleanedTagName(oldName);
@@ -61,9 +60,6 @@ function renameTagInline(policyData: PolicyData, oldName: string, newName: strin
     renamePolicyTag(policyData, {oldName, newName: sanitized}, 0);
 }
 
-/**
- * Renames a company card from an inline table edit.
- */
 function renameCompanyCardInline(domainOrWorkspaceAccountID: number, cardID: string, newName: string, bankName: CompanyCardFeedWithNumber, currentName: string): void {
     const sanitized = sanitizeCompanyCardName(newName);
 
@@ -74,9 +70,6 @@ function renameCompanyCardInline(domainOrWorkspaceAccountID: number, cardID: str
     updateCompanyCardName(domainOrWorkspaceAccountID, cardID, sanitized, bankName, currentName);
 }
 
-/**
- * Renames an Expensify card from an inline table edit.
- */
 function renameExpensifyCardInline(workspaceAccountID: number, cardID: number, newName: string, currentName: string): void {
     if (newName === currentName || getExpensifyCardNameError(newName)) {
         return;
@@ -85,9 +78,6 @@ function renameExpensifyCardInline(workspaceAccountID: number, cardID: number, n
     updateExpensifyCardTitle(workspaceAccountID, cardID, newName, currentName);
 }
 
-/**
- * Renames a distance rate from an inline table edit.
- */
 function renameDistanceRateInline(policyID: string, customUnit: CustomUnit, rate: Rate, newName: string): void {
     const sanitized = sanitizeDistanceRateName(newName);
     const currentName = rate.name ?? '';
@@ -100,9 +90,6 @@ function renameDistanceRateInline(policyID: string, customUnit: CustomUnit, rate
     updatePolicyDistanceRateName(policyID, customUnit, [{...rate, name: sanitized}]);
 }
 
-/**
- * Updates a distance rate amount from an inline table edit. Delegates to the canonical rate action.
- */
 function updateDistanceRateValueInline(policyID: string, customUnit: CustomUnit, rate: Rate, newRate: string, toLocaleDigit: (arg: string) => string): void {
     if (getDistanceRateValueError(newRate, toLocaleDigit)) {
         return;
@@ -116,55 +103,17 @@ function updateDistanceRateValueInline(policyID: string, customUnit: CustomUnit,
     updatePolicyDistanceRateValue(policyID, customUnit, [{...rate, rate: Number(newRate) * CONST.POLICY.CUSTOM_UNIT_RATE_BASE_OFFSET}]);
 }
 
-function isPolicyRole(role: string): role is ValueOf<typeof CONST.POLICY.ROLE> {
-    switch (role) {
-        case CONST.POLICY.ROLE.OWNER:
-        case CONST.POLICY.ROLE.ADMIN:
-        case CONST.POLICY.ROLE.AUDITOR:
-        case CONST.POLICY.ROLE.USER:
-        case CONST.POLICY.ROLE.EDITOR:
-        case CONST.POLICY.ROLE.CARD_ADMIN:
-        case CONST.POLICY.ROLE.PEOPLE_ADMIN:
-        case CONST.POLICY.ROLE.PAYMENTS_ADMIN:
-            return true;
-        default:
-            return false;
-    }
-}
-
-/**
- * Changes a member's role from an inline table edit. Delegates to the canonical role action, which
- * owns the optimistic Onyx write, the API call, and failure rollback. No-ops when the role is
- * unchanged or not a known policy role.
- */
-function updateMemberRoleInline(policy: OnyxEntry<Policy>, memberLogin: string, accountID: number, currentRole: string | undefined, newRole: string): void {
-    if (!memberLogin || newRole === currentRole || !isPolicyRole(newRole)) {
+function updateMemberRoleInline(policy: OnyxEntry<Policy>, memberLogin: string, accountID: number, currentRole: string | undefined, newRole: ValueOf<typeof CONST.POLICY.ROLE>): void {
+    if (!memberLogin || newRole === currentRole) {
         return;
     }
 
     updateWorkspaceMembersRole(policy, [memberLogin], [accountID], newRole);
 }
 
-function isCardLimitType(limitType: string): limitType is CardLimitType {
-    switch (limitType) {
-        case CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART:
-        case CONST.EXPENSIFY_CARD.LIMIT_TYPES.MONTHLY:
-        case CONST.EXPENSIFY_CARD.LIMIT_TYPES.FIXED:
-        case CONST.EXPENSIFY_CARD.LIMIT_TYPES.SINGLE_USE:
-            return true;
-        default:
-            return false;
-    }
-}
-
-/**
- * Changes an Expensify card's limit type from an inline table edit. Delegates to the canonical
- * limit type action, which owns the optimistic Onyx write, the API call, and failure rollback.
- * Dates are left unchanged. No-ops when the type is unchanged, unknown, or not valid for the card.
- */
-function updateExpensifyCardLimitTypeInline(workspaceAccountID: number, card: Card, newLimitType: string): void {
+function updateExpensifyCardLimitTypeInline(workspaceAccountID: number, card: Card, newLimitType: CardLimitType): void {
     const currentLimitType = card.nameValuePairs?.limitType;
-    if (newLimitType === currentLimitType || !isCardLimitType(newLimitType)) {
+    if (newLimitType === currentLimitType) {
         return;
     }
 
@@ -176,7 +125,8 @@ function updateExpensifyCardLimitTypeInline(workspaceAccountID: number, card: Ca
         return;
     }
 
-    updateExpensifyCardLimitType(workspaceAccountID, card.cardID, newLimitType, undefined, card.nameValuePairs);
+    // Leave existing validity dates unchanged. Stored dates are UTC timestamps, not picker strings.
+    updateExpensifyCardLimitType(workspaceAccountID, card.cardID, newLimitType, undefined, card.nameValuePairs, undefined, undefined, undefined, true);
 }
 
 /**
@@ -187,7 +137,7 @@ function updateExpensifyCardLimitInline(workspaceAccountID: number, card: Card, 
         return;
     }
 
-    const nextLimit = Number(newLimit) * 100;
+    const nextLimit = convertToBackendAmount(Number(newLimit));
     const oldLimit = card.nameValuePairs?.unapprovedExpenseLimit ?? 0;
     if (nextLimit === oldLimit) {
         return;
@@ -196,9 +146,6 @@ function updateExpensifyCardLimitInline(workspaceAccountID: number, card: Card, 
     updateExpensifyCardLimit(workspaceAccountID, card.cardID, nextLimit, getExpensifyCardNewAvailableSpend(card, nextLimit), oldLimit, card.availableSpend, card.nameValuePairs?.isVirtual);
 }
 
-/**
- * Renames a per diem destination from an inline table edit.
- */
 function renamePerDiemDestinationInline(policyID: string, rateID: string, customUnit: CustomUnit | undefined, currentName: string, newName: string): void {
     const sanitized = sanitizePerDiemName(newName);
 
@@ -209,9 +156,6 @@ function renamePerDiemDestinationInline(policyID: string, rateID: string, custom
     editPerDiemRateDestination(policyID, rateID, customUnit, sanitized);
 }
 
-/**
- * Renames a per diem subrate from an inline table edit.
- */
 function renamePerDiemSubrateInline(policyID: string, rateID: string, subRateID: string, customUnit: CustomUnit | undefined, currentName: string, newName: string): void {
     const sanitized = sanitizePerDiemName(newName);
 

@@ -16,6 +16,7 @@ import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 
 import type {ListRenderItemInfo} from '@shopify/flash-list';
 import type {OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 
 import React from 'react';
 
@@ -40,7 +41,7 @@ type WorkspaceMemberRowData = TableData & {
     action: () => void;
     dismissError: () => void;
     canEditRole?: boolean;
-    onChangeRole?: (role: string | undefined) => void;
+    onChangeRole?: (role: ValueOf<typeof CONST.POLICY.ROLE>) => void;
 };
 
 type WorkspaceMembersTableProps = {

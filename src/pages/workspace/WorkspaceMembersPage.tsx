@@ -332,8 +332,8 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     );
 
     const changeMemberRole = useCallback(
-        (login: string, accountID: number, currentRole: string | undefined, newRole: string | undefined) => {
-            if (!newRole || newRole === currentRole || !canMemberAssignRole(policy, currentUserLogin ?? '', newRole)) {
+        (login: string, accountID: number, currentRole: string | undefined, newRole: ValueOf<typeof CONST.POLICY.ROLE>) => {
+            if (newRole === currentRole || !canMemberAssignRole(policy, currentUserLogin ?? '', newRole)) {
                 return;
             }
 
