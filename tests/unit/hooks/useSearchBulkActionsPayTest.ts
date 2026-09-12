@@ -181,12 +181,14 @@ jest.mock('@hooks/usePaymentContext', () => ({
 
 const mockClearSelectedTransactions = jest.fn();
 let mockSelectedTransactions: SelectedTransactions = {};
+let mockExcludedTransactions: SelectedTransactions = {};
 let mockSelectedReports: SelectedReports[] = [];
 let mockAreAllMatchingItemsSelected = false;
 
 jest.mock('@components/Search/SearchContext', () => ({
     useSearchSelectionContext: () => ({
         selectedTransactions: mockSelectedTransactions,
+        excludedTransactions: mockExcludedTransactions,
         selectedReports: mockSelectedReports,
         areAllMatchingItemsSelected: mockAreAllMatchingItemsSelected,
     }),
@@ -277,6 +279,7 @@ describe('useSearchBulkActions - Pay option', () => {
         mockShouldEnableBulkPayOption = true;
         mockBulkPayButtonOptions = [{text: 'Pay with bank account', key: CONST.IOU.PAYMENT_TYPE.VBBA}];
         mockAreAllMatchingItemsSelected = false;
+        mockExcludedTransactions = {};
         await Onyx.clear();
         mockSelectedTransactions = {tx1: makeSelectedTransaction()};
         mockSelectedReports = [];
@@ -361,6 +364,27 @@ describe('useSearchBulkActions - Pay option', () => {
         expect(queueBulkPayReports).toHaveBeenCalledWith(expect.any(String));
         expect(payMoneyRequest).not.toHaveBeenCalled();
         expect(mockClearSelectedTransactions).toHaveBeenCalled();
+    });
+
+    it('excludes deselected reports from an all-matching bulk payment', async () => {
+        mockAreAllMatchingItemsSelected = true;
+        mockExcludedTransactions = {tx2: makeSelectedTransaction({reportID: 'excluded-report'})};
+        mockBulkPayButtonOptions = [{text: 'Mark as paid', key: CONST.IOU.PAYMENT_TYPE.ELSEWHERE}];
+
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}));
+
+        await waitFor(() => {
+            expect(getPayOptionFromResult(result.current.headerButtonsOptions)).toBeDefined();
+        });
+
+        const payOption = getPayOptionFromResult(result.current.headerButtonsOptions);
+        await act(async () => {
+            await payOption?.onSelected?.();
+        });
+
+        const serializedQuery = jest.mocked(queueBulkPayReports).mock.calls.at(0)?.at(0);
+        expect(serializedQuery).toBeDefined();
+        expect(serializedQuery).toContain('-reportID:excluded-report');
     });
 
     it('keeps the Pay option under Select all when getPayOption rejects the loaded page', async () => {

@@ -30,7 +30,8 @@ function SearchActionsBarWide({queryJSON, searchResults, onSort}: SearchActionsB
     const styles = useThemeStyles();
     const {hasSelectedTransactions} = useSearchSelectionContext();
     const {selected} = useSelectionCounts();
-    const shouldShowBulkActions = queryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE ? hasSelectedTransactions : selected > 0;
+    const supportsAllMatchingExclusions = queryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE || queryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
+    const shouldShowBulkActions = supportsAllMatchingExclusions ? hasSelectedTransactions : selected > 0;
 
     return (
         <View style={[styles.searchActionsBarContainer]}>
