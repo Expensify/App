@@ -1,3 +1,4 @@
+import AutoGrowHeightInputContainer from '@components/AutoGrowHeightInputContainer';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormOnyxValues} from '@components/Form/types';
@@ -14,6 +15,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {getTaxByID} from '@libs/PolicyUtils';
+import StringUtils from '@libs/StringUtils';
 
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
@@ -27,7 +29,6 @@ import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/WorkspaceTaxNameForm';
 
 import React, {useCallback, useState} from 'react';
-import {View} from 'react-native';
 
 type NamePageProps = WithPolicyAndFullscreenLoadingProps & PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.TAX_NAME>;
 
@@ -40,14 +41,14 @@ function NamePage({
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const currentTaxRate = getTaxByID(policy, taxID);
-    const {inputCallbackRef} = useAutoFocusInput();
+    const {inputCallbackRef} = useAutoFocusInput(true);
 
     const [name, setName] = useState(currentTaxRate?.name ?? '');
 
     const goBack = useCallback(() => Navigation.goBack(ROUTES.WORKSPACE_TAX_EDIT.getRoute(policyID, taxID)), [policyID, taxID]);
 
     const submit = () => {
-        const taxName = name.trim();
+        const taxName = StringUtils.lineBreaksToSpaces(name).trim();
         // Do not call the API if the edited tax name is the same as the current tag name
         if (currentTaxRate?.name !== taxName && policy?.taxRates?.taxes[taxID]) {
             renamePolicyTax(policyID, taxID, taxName, policy?.taxRates?.taxes[taxID]);
@@ -89,28 +90,33 @@ function NamePage({
                 />
 
                 <FormProvider
+                    submitFlexEnabled={false}
                     formID={ONYXKEYS.FORMS.WORKSPACE_TAX_NAME_FORM}
                     submitButtonText={translate('workspace.editor.save')}
                     style={[styles.flexGrow1, styles.ph5]}
                     onSubmit={submit}
                     enabledWhenOffline
-                    validate={validate}
+                    validate={(values) => validate({...values, [INPUT_IDS.NAME]: StringUtils.lineBreaksToSpaces(values[INPUT_IDS.NAME])})}
                     shouldHideFixErrorsAlert
                     addBottomSafeAreaPadding
                     shouldUseStrictHtmlTagValidation
                 >
-                    <View style={styles.mb4}>
-                        <InputWrapper
-                            InputComponent={TextInput}
-                            role={CONST.ROLE.PRESENTATION}
-                            inputID={INPUT_IDS.NAME}
-                            label={translate('workspace.editor.nameInputLabel')}
-                            accessibilityLabel={translate('workspace.editor.nameInputLabel')}
-                            value={name}
-                            onChangeText={setName}
-                            ref={inputCallbackRef}
-                        />
-                    </View>
+                    <AutoGrowHeightInputContainer style={styles.mb4}>
+                        {(maxAutoGrowHeight) => (
+                            <InputWrapper
+                                InputComponent={TextInput}
+                                role={CONST.ROLE.PRESENTATION}
+                                inputID={INPUT_IDS.NAME}
+                                label={translate('workspace.editor.nameInputLabel')}
+                                accessibilityLabel={translate('workspace.editor.nameInputLabel')}
+                                value={name}
+                                onChangeText={setName}
+                                ref={inputCallbackRef}
+                                maxAutoGrowHeight={maxAutoGrowHeight}
+                                autoGrowSingleLine
+                            />
+                        )}
+                    </AutoGrowHeightInputContainer>
                 </FormProvider>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>

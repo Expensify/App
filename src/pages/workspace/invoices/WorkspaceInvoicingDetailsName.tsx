@@ -1,3 +1,4 @@
+import AutoGrowHeightInputContainer from '@components/AutoGrowHeightInputContainer';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
@@ -11,6 +12,7 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import StringUtils from '@libs/StringUtils';
 import {getFieldRequiredErrors} from '@libs/ValidationUtils';
 
 import Navigation from '@navigation/Navigation';
@@ -33,7 +35,7 @@ function WorkspaceInvoicingDetailsName({route}: WorkspaceInvoicingDetailsNamePro
     const {policyID} = route.params;
 
     const {translate} = useLocalize();
-    const {inputCallbackRef} = useAutoFocusInput();
+    const {inputCallbackRef} = useAutoFocusInput(true);
     const styles = useThemeStyles();
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
 
@@ -59,24 +61,31 @@ function WorkspaceInvoicingDetailsName({route}: WorkspaceInvoicingDetailsNamePro
             >
                 <HeaderWithBackButton title={translate('workspace.invoices.companyName')} />
                 <FormProvider
+                    submitFlexEnabled={false}
                     formID={ONYXKEYS.FORMS.WORKSPACE_INVOICES_COMPANY_NAME_FORM}
                     submitButtonText={translate('common.save')}
-                    onSubmit={submit}
+                    onSubmit={(values) => submit({...values, [INPUT_IDS.COMPANY_NAME]: StringUtils.lineBreaksToSpaces(values[INPUT_IDS.COMPANY_NAME])})}
                     style={[styles.flex1, styles.mh5]}
                     enabledWhenOffline
-                    validate={validate}
+                    validate={(values) => validate({...values, [INPUT_IDS.COMPANY_NAME]: StringUtils.lineBreaksToSpaces(values[INPUT_IDS.COMPANY_NAME])})}
                     shouldHideFixErrorsAlert
                     addBottomSafeAreaPadding
                 >
-                    <InputWrapper
-                        InputComponent={TextInput}
-                        inputID={INPUT_IDS.COMPANY_NAME}
-                        label={translate('workspace.invoices.companyName')}
-                        accessibilityLabel={translate('workspace.invoices.companyName')}
-                        role={CONST.ROLE.PRESENTATION}
-                        defaultValue={policy?.invoice?.companyName}
-                        ref={inputCallbackRef}
-                    />
+                    <AutoGrowHeightInputContainer>
+                        {(maxAutoGrowHeight) => (
+                            <InputWrapper
+                                InputComponent={TextInput}
+                                inputID={INPUT_IDS.COMPANY_NAME}
+                                label={translate('workspace.invoices.companyName')}
+                                accessibilityLabel={translate('workspace.invoices.companyName')}
+                                role={CONST.ROLE.PRESENTATION}
+                                defaultValue={policy?.invoice?.companyName}
+                                ref={inputCallbackRef}
+                                maxAutoGrowHeight={maxAutoGrowHeight}
+                                autoGrowSingleLine
+                            />
+                        )}
+                    </AutoGrowHeightInputContainer>
                 </FormProvider>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>

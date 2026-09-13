@@ -1,3 +1,4 @@
+import AutoGrowHeightInputContainer from '@components/AutoGrowHeightInputContainer';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormOnyxValues} from '@components/Form/types';
@@ -11,6 +12,7 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {addErrorMessage} from '@libs/ErrorUtils';
+import StringUtils from '@libs/StringUtils';
 
 import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
@@ -80,15 +82,16 @@ function DomainGroupEditNamePage({route}: DomainGroupEditNamePageProps) {
                     onBackButtonPress={() => Navigation.goBack(ROUTES.DOMAIN_GROUP_DETAILS.getRoute(domainAccountID, groupID))}
                 />
                 <FormProvider
+                    submitFlexEnabled={false}
                     formID={ONYXKEYS.FORMS.EDIT_DOMAIN_GROUP_NAME_FORM}
-                    validate={validate}
+                    validate={(values) => validate({...values, [INPUT_IDS.NAME]: StringUtils.lineBreaksToSpaces(values[INPUT_IDS.NAME])})}
                     onSubmit={(values: FormOnyxValues<typeof ONYXKEYS.FORMS.EDIT_DOMAIN_GROUP_NAME_FORM>) => {
                         if (!group) {
                             return;
                         }
 
-                        if (values.name !== group.name) {
-                            updateDomainSecurityGroup(domainAccountID, groupID, group, {name: values.name}, 'name');
+                        if (StringUtils.lineBreaksToSpaces(values.name) !== group.name) {
+                            updateDomainSecurityGroup(domainAccountID, groupID, group, {name: StringUtils.lineBreaksToSpaces(values.name)}, 'name');
                         }
                         Navigation.goBack(ROUTES.DOMAIN_GROUP_DETAILS.getRoute(domainAccountID, groupID));
                     }}
@@ -96,18 +99,24 @@ function DomainGroupEditNamePage({route}: DomainGroupEditNamePageProps) {
                     enabledWhenOffline
                     style={[styles.flex1, styles.ph5, styles.pb3]}
                 >
-                    <InputWrapper
-                        InputComponent={TextInput}
-                        label={translate('common.name')}
-                        aria-label={translate('common.name')}
-                        role={CONST.ROLE.PRESENTATION}
-                        inputID={INPUT_IDS.NAME}
-                        defaultValue={group?.name ?? ''}
-                        autoCapitalize="none"
-                        spellCheck={false}
-                        enterKeyHint="done"
-                        ref={inputRef}
-                    />
+                    <AutoGrowHeightInputContainer>
+                        {(maxAutoGrowHeight) => (
+                            <InputWrapper
+                                InputComponent={TextInput}
+                                label={translate('common.name')}
+                                aria-label={translate('common.name')}
+                                role={CONST.ROLE.PRESENTATION}
+                                inputID={INPUT_IDS.NAME}
+                                defaultValue={group?.name ?? ''}
+                                autoCapitalize="none"
+                                spellCheck={false}
+                                enterKeyHint="done"
+                                ref={inputRef}
+                                maxAutoGrowHeight={maxAutoGrowHeight}
+                                autoGrowSingleLine
+                            />
+                        )}
+                    </AutoGrowHeightInputContainer>
                 </FormProvider>
             </ScreenWrapper>
         </DomainNotFoundPageWrapper>

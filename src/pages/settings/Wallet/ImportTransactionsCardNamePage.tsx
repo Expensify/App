@@ -1,3 +1,4 @@
+import AutoGrowHeightInputContainer from '@components/AutoGrowHeightInputContainer';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
@@ -13,6 +14,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {setImportTransactionCardName} from '@libs/actions/ImportSpreadsheet';
 import {addErrorMessage} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import StringUtils from '@libs/StringUtils';
 import {isValidInputLength} from '@libs/ValidationUtils';
 
 import CONST from '@src/CONST';
@@ -25,7 +27,7 @@ import {Keyboard} from 'react-native';
 function ImportTransactionsCardNamePage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {inputCallbackRef} = useAutoFocusInput();
+    const {inputCallbackRef} = useAutoFocusInput(true);
     const [importedSpreadsheet] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET);
 
     const submit = useCallback((values: FormOnyxValues<typeof ONYXKEYS.FORMS.IMPORT_TRANSACTIONS_FORM>) => {
@@ -61,23 +63,30 @@ function ImportTransactionsCardNamePage() {
                 onBackButtonPress={() => Navigation.goBack()}
             />
             <FormProvider
+                submitFlexEnabled={false}
                 formID={ONYXKEYS.FORMS.IMPORT_TRANSACTIONS_FORM}
                 submitButtonText={translate('common.save')}
-                onSubmit={submit}
+                onSubmit={(values) => submit({...values, [INPUT_IDS.CARD_DISPLAY_NAME]: StringUtils.lineBreaksToSpaces(values[INPUT_IDS.CARD_DISPLAY_NAME])})}
                 style={[styles.flex1, styles.mh5]}
                 enabledWhenOffline
-                validate={validate}
+                validate={(values) => validate({...values, [INPUT_IDS.CARD_DISPLAY_NAME]: StringUtils.lineBreaksToSpaces(values[INPUT_IDS.CARD_DISPLAY_NAME])})}
                 shouldHideFixErrorsAlert
             >
-                <InputWrapper
-                    InputComponent={TextInput}
-                    inputID={INPUT_IDS.CARD_DISPLAY_NAME}
-                    label={translate('workspace.companyCards.importTransactions.cardDisplayName')}
-                    aria-label={translate('workspace.companyCards.importTransactions.cardDisplayName')}
-                    role={CONST.ROLE.PRESENTATION}
-                    defaultValue={importedSpreadsheet?.importTransactionSettings?.cardDisplayName}
-                    ref={inputCallbackRef}
-                />
+                <AutoGrowHeightInputContainer>
+                    {(maxAutoGrowHeight) => (
+                        <InputWrapper
+                            InputComponent={TextInput}
+                            inputID={INPUT_IDS.CARD_DISPLAY_NAME}
+                            label={translate('workspace.companyCards.importTransactions.cardDisplayName')}
+                            aria-label={translate('workspace.companyCards.importTransactions.cardDisplayName')}
+                            role={CONST.ROLE.PRESENTATION}
+                            defaultValue={importedSpreadsheet?.importTransactionSettings?.cardDisplayName}
+                            ref={inputCallbackRef}
+                            maxAutoGrowHeight={maxAutoGrowHeight}
+                            autoGrowSingleLine
+                        />
+                    )}
+                </AutoGrowHeightInputContainer>
             </FormProvider>
         </ScreenWrapper>
     );

@@ -1,3 +1,4 @@
+import AutoGrowHeightInputContainer from '@components/AutoGrowHeightInputContainer';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormOnyxValues} from '@components/Form/types';
@@ -36,7 +37,7 @@ type TripChatNameEditPageProps = Partial<PlatformStackScreenProps<NewChatNavigat
 function TripChatNameEditPage({report}: TripChatNameEditPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {inputCallbackRef} = useAutoFocusInput();
+    const {inputCallbackRef} = useAutoFocusInput(true);
 
     const reportID = report?.reportID;
     const derivedReportName = useDerivedReportNameByReportID(reportID);
@@ -78,23 +79,30 @@ function TripChatNameEditPage({report}: TripChatNameEditPageProps) {
                 onBackButtonPress={() => Navigation.goBack(createDynamicRoute(DYNAMIC_ROUTES.REPORT_DETAILS.path, ROUTES.REPORT_WITH_ID.getRoute(reportID)))}
             />
             <FormProvider
+                submitFlexEnabled={false}
                 formID={ONYXKEYS.FORMS.NEW_CHAT_NAME_FORM}
-                onSubmit={editName}
+                onSubmit={(values) => editName({...values, [INPUT_IDS.NEW_CHAT_NAME]: StringUtils.lineBreaksToSpaces(values[INPUT_IDS.NEW_CHAT_NAME])})}
                 submitButtonText={translate('common.save')}
-                validate={validate}
+                validate={(values) => validate({...values, [INPUT_IDS.NEW_CHAT_NAME]: StringUtils.lineBreaksToSpaces(values[INPUT_IDS.NEW_CHAT_NAME])})}
                 style={[styles.mh5, styles.flex1]}
                 enabledWhenOffline
                 shouldHideFixErrorsAlert
             >
-                <InputWrapper
-                    InputComponent={TextInput}
-                    defaultValue={currentChatName}
-                    label={translate('common.name')}
-                    accessibilityLabel={translate('common.name')}
-                    inputID={INPUT_IDS.NEW_CHAT_NAME}
-                    role={CONST.ROLE.PRESENTATION}
-                    ref={inputCallbackRef}
-                />
+                <AutoGrowHeightInputContainer>
+                    {(maxAutoGrowHeight) => (
+                        <InputWrapper
+                            InputComponent={TextInput}
+                            defaultValue={currentChatName}
+                            label={translate('common.name')}
+                            accessibilityLabel={translate('common.name')}
+                            inputID={INPUT_IDS.NEW_CHAT_NAME}
+                            role={CONST.ROLE.PRESENTATION}
+                            ref={inputCallbackRef}
+                            maxAutoGrowHeight={maxAutoGrowHeight}
+                            autoGrowSingleLine
+                        />
+                    )}
+                </AutoGrowHeightInputContainer>
             </FormProvider>
         </ScreenWrapper>
     );

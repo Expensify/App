@@ -1,3 +1,4 @@
+import AutoGrowHeightInputContainer from '@components/AutoGrowHeightInputContainer';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
@@ -12,6 +13,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {updateBulkEditDraftTransaction} from '@libs/actions/IOU/BulkEdit';
 import Navigation from '@libs/Navigation/Navigation';
+import StringUtils from '@libs/StringUtils';
 import {isInvalidMerchantValue, isValidInputLength} from '@libs/ValidationUtils';
 
 import CONST from '@src/CONST';
@@ -19,12 +21,11 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/SearchEditMultipleMerchantForm';
 
 import React from 'react';
-import {View} from 'react-native';
 
 function SearchEditMultipleMerchantPage() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const {inputCallbackRef} = useAutoFocusInput();
+    const {inputCallbackRef} = useAutoFocusInput(true);
     const [draftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_BULK_EDIT_TRANSACTION_ID}`);
 
     const currentMerchant = draftTransaction?.merchant ?? '';
@@ -62,25 +63,30 @@ function SearchEditMultipleMerchantPage() {
                 onBackButtonPress={Navigation.goBack}
             />
             <FormProvider
+                submitFlexEnabled={false}
                 style={[styles.flexGrow1, styles.ph5]}
                 formID={ONYXKEYS.FORMS.SEARCH_EDIT_MULTIPLE_MERCHANT_FORM}
-                onSubmit={saveMerchant}
-                validate={validate}
+                onSubmit={(values) => saveMerchant({...values, [INPUT_IDS.MERCHANT]: StringUtils.lineBreaksToSpaces(values[INPUT_IDS.MERCHANT])})}
+                validate={(values) => validate({...values, [INPUT_IDS.MERCHANT]: StringUtils.lineBreaksToSpaces(values[INPUT_IDS.MERCHANT])})}
                 submitButtonText={translate('common.save')}
                 enabledWhenOffline
             >
-                <View style={styles.mb4}>
-                    <InputWrapper
-                        InputComponent={TextInput}
-                        inputID={INPUT_IDS.MERCHANT}
-                        name={INPUT_IDS.MERCHANT}
-                        defaultValue={currentMerchant}
-                        label={translate('common.merchant')}
-                        accessibilityLabel={translate('common.merchant')}
-                        role={CONST.ROLE.PRESENTATION}
-                        ref={inputCallbackRef}
-                    />
-                </View>
+                <AutoGrowHeightInputContainer style={styles.mb4}>
+                    {(maxAutoGrowHeight) => (
+                        <InputWrapper
+                            InputComponent={TextInput}
+                            inputID={INPUT_IDS.MERCHANT}
+                            name={INPUT_IDS.MERCHANT}
+                            defaultValue={currentMerchant}
+                            label={translate('common.merchant')}
+                            accessibilityLabel={translate('common.merchant')}
+                            role={CONST.ROLE.PRESENTATION}
+                            ref={inputCallbackRef}
+                            maxAutoGrowHeight={maxAutoGrowHeight}
+                            autoGrowSingleLine
+                        />
+                    )}
+                </AutoGrowHeightInputContainer>
             </FormProvider>
         </ScreenWrapper>
     );

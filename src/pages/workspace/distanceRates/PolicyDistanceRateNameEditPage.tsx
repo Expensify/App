@@ -1,3 +1,4 @@
+import AutoGrowHeightInputContainer from '@components/AutoGrowHeightInputContainer';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
@@ -13,6 +14,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getDistanceRateCustomUnit} from '@libs/PolicyUtils';
+import StringUtils from '@libs/StringUtils';
 
 import type {SettingsNavigatorParamList} from '@navigation/types';
 
@@ -34,7 +36,7 @@ type PolicyDistanceRateNameEditPageProps = PlatformStackScreenProps<SettingsNavi
 function PolicyDistanceRateNameEditPage({route}: PolicyDistanceRateNameEditPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {inputCallbackRef} = useAutoFocusInput();
+    const {inputCallbackRef} = useAutoFocusInput(true);
 
     const policyID = route.params.policyID;
     const rateID = route.params.rateID;
@@ -99,24 +101,31 @@ function PolicyDistanceRateNameEditPage({route}: PolicyDistanceRateNameEditPageP
                     onBackButtonPress={() => Navigation.goBack()}
                 />
                 <FormProvider
+                    submitFlexEnabled={false}
                     formID={ONYXKEYS.FORMS.POLICY_DISTANCE_RATE_NAME_EDIT_FORM}
-                    onSubmit={submit}
+                    onSubmit={(values) => submit({...values, [INPUT_IDS.RATE_NAME]: StringUtils.lineBreaksToSpaces(values[INPUT_IDS.RATE_NAME])})}
                     submitButtonText={translate('common.save')}
-                    validate={validate}
+                    validate={(values) => validate({...values, [INPUT_IDS.RATE_NAME]: StringUtils.lineBreaksToSpaces(values[INPUT_IDS.RATE_NAME])})}
                     style={[styles.mh5, styles.flex1]}
                     enabledWhenOffline
                     shouldHideFixErrorsAlert
                     addBottomSafeAreaPadding
                 >
-                    <InputWrapper
-                        ref={inputCallbackRef}
-                        InputComponent={TextInput}
-                        defaultValue={currentRateName}
-                        label={translate('common.name')}
-                        accessibilityLabel={translate('common.name')}
-                        inputID={INPUT_IDS.RATE_NAME}
-                        role={CONST.ROLE.PRESENTATION}
-                    />
+                    <AutoGrowHeightInputContainer>
+                        {(maxAutoGrowHeight) => (
+                            <InputWrapper
+                                ref={inputCallbackRef}
+                                InputComponent={TextInput}
+                                defaultValue={currentRateName}
+                                label={translate('common.name')}
+                                accessibilityLabel={translate('common.name')}
+                                inputID={INPUT_IDS.RATE_NAME}
+                                role={CONST.ROLE.PRESENTATION}
+                                maxAutoGrowHeight={maxAutoGrowHeight}
+                                autoGrowSingleLine
+                            />
+                        )}
+                    </AutoGrowHeightInputContainer>
                 </FormProvider>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
