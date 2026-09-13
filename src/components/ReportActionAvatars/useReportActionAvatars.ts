@@ -19,7 +19,6 @@ import {
     getDefaultWorkspaceAvatar,
     getDisplayNameForParticipant,
     getIcons,
-    getIconsForParticipants,
     getWorkspaceIcon,
     isChatThread,
     isInvoiceReport,
@@ -238,12 +237,8 @@ function useReportActionAvatars({
         (isChatReportOnlyProp || isWorkspaceChatWithoutChatReport) && isReportPreviewOrNoAction && !isATripPreview && !isAnInvoiceRoom && !isAccessPlaceholderReportPreview;
     const useNearestReportAvatars = (!accountID || !action) && accountIDs.length === 0;
 
-    const getIconsWithDefaults = (onyxReport: OnyxInputOrEntry<Report>) => {
-        // A Concierge thread is a conversation with Concierge, so it shows Concierge rather than whoever asked.
-        if (isChatThread(onyxReport) && onyxReport?.parentReportID === conciergeReportID) {
-            return getIconsForParticipants([CONST.ACCOUNT_ID.CONCIERGE], personalDetails);
-        }
-        return getIcons(
+    const getIconsWithDefaults = (onyxReport: OnyxInputOrEntry<Report>) =>
+        getIcons(
             onyxReport,
             formatPhoneNumber,
             translate,
@@ -256,8 +251,8 @@ function useReportActionAvatars({
             false,
             // Only a chat report can be a group chat, the other reports passed here (IOU/invoice) never need it.
             onyxReport?.reportID === chatReport?.reportID ? chatReportPendingDeleteMemberAccountIDs : undefined,
+            conciergeReportID,
         );
-    };
 
     const reportIcons = getIconsWithDefaults(chatReport?.reportID ? chatReport : iouReport);
 
