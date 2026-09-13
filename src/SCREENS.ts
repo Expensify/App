@@ -195,6 +195,7 @@ const SCREENS = {
             DYNAMIC_ENABLE_GLOBAL_REIMBURSEMENTS_AGREEMENTS: 'Dynamic_Settings_Wallet_Enable_Global_Reimbursements_Agreements',
             DYNAMIC_ENABLE_GLOBAL_REIMBURSEMENTS_SIGN: 'Dynamic_Settings_Wallet_Enable_Global_Reimbursements_Sign',
             SHARE_BANK_ACCOUNT: 'Settings_Wallet_Share_Bank_Account',
+            DYNAMIC_BANK_ACCOUNT_LINK_PLAID: 'Dynamic_Settings_Wallet_BankAccount_LinkPlaid',
             TRAVEL_CVV: 'Settings_Wallet_Travel_CVV',
             TRAVEL_CVV_VERIFY_ACCOUNT: 'Settings_Wallet_Travel_CVV_VerifyAccount',
             PERSONAL_CARD_DETAILS: 'Settings_Wallet_Personal_Card_Details',
