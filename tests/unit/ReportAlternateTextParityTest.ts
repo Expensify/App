@@ -112,6 +112,7 @@ function getAlternateText({
         currentUserLogin: CURRENT_USER_LOGIN,
         isTrackIntentUser,
         formatPhoneNumber,
+        rules: undefined,
     });
     return result?.alternateText;
 }

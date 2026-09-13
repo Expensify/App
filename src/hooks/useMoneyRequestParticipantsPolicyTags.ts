@@ -3,6 +3,7 @@ import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import {getMoneyRequestParticipantOptions} from '@libs/actions/IOU/MoneyRequest';
 import type {OptionData} from '@libs/ReportUtils';
 
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {Locale, ParticipantsPolicyTags, PersonalDetailsList, Policy, Report} from '@src/types/onyx';
 import type {ReportAttributesDerivedValue} from '@src/types/onyx/DerivedValues';
 import type {Participant} from '@src/types/onyx/IOU';
@@ -15,6 +16,7 @@ import type {Participant} from '@src/types/onyx/IOU';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {useCurrencyListActions} from './useCurrencyList';
+import useOnyx from './useOnyx';
 import useParticipantsPolicyTags from './useParticipantsPolicyTags';
 
 type UseMoneyRequestParticipantsPolicyTagsParams = {
@@ -48,6 +50,7 @@ function useMoneyRequestParticipantsPolicyTags({
     preferredLocale,
 }: UseMoneyRequestParticipantsPolicyTagsParams): UseMoneyRequestParticipantsPolicyTagsResult {
     const {convertToDisplayString} = useCurrencyListActions();
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const participants = getMoneyRequestParticipantOptions({
         currentUserAccountID,
         report,
@@ -55,6 +58,7 @@ function useMoneyRequestParticipantsPolicyTags({
         personalDetails,
         conciergeReportID,
         privateIsArchived: isArchived,
+        rules,
         reportAttributesDerived,
         reportDraft,
         translate,

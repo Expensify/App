@@ -69,6 +69,7 @@ describe('useMoneyRequestParticipantsPolicyTags', () => {
             personalDetails,
             conciergeReportID: 'concierge1',
             privateIsArchived: false,
+            rules: undefined,
             reportAttributesDerived,
             reportDraft,
             translate,

@@ -231,6 +231,7 @@ export default createOnyxDerivedValueConfig({
         ONYXKEYS.NVP_INTRO_SELECTED,
         ONYXKEYS.COLLECTION.REPORT_METADATA,
         ONYXKEYS.CURRENCY_LIST,
+        ONYXKEYS.COLLECTION.RULE,
         ONYXKEYS.NETWORK,
         // Only the trigger matters: the flag's value is read through `IntlStore.hasLocale` below.
         ONYXKEYS.RAM_ONLY_ARE_TRANSLATIONS_LOADING,
@@ -251,6 +252,7 @@ export default createOnyxDerivedValueConfig({
             introSelected,
             reportMetadata,
             currencyList,
+            rules,
         ],
         {currentValue, sourceValues, triggeredKeys},
     ) => {
@@ -616,7 +618,7 @@ export default createOnyxDerivedValueConfig({
                 });
 
                 const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
-                const hasFieldViolations = hasVisibleReportFieldViolations(report, policy, session?.accountID);
+                const hasFieldViolations = hasVisibleReportFieldViolations(report, policy, session?.accountID, rules);
 
                 let brickRoadStatus;
                 let actionBadge;
@@ -694,6 +696,7 @@ export default createOnyxDerivedValueConfig({
                               convertToDisplayStringWithoutCurrency,
                               getCurrencySymbol,
                               pendingDeleteMemberAccountIDs,
+                              rules,
                           }),
                     isEmpty: generateIsEmptyReport(report, isReportArchived),
                     brickRoadStatus,

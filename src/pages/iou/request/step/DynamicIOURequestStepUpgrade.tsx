@@ -109,6 +109,7 @@ function DynamicIOURequestStepUpgrade({
     const [selfDMReportID] = useOnyx(ONYXKEYS.SELF_DM_REPORT_ID);
     const [selfDMReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(selfDMReportID)}`);
     const isTrackIntentUser = isTrackOnboardingChoice(introSelected?.choice);
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
 
     // Search-selected transactions are not in COLLECTION.TRANSACTION — extract from `selectedTransactions` directly.
@@ -144,7 +145,7 @@ function DynamicIOURequestStepUpgrade({
         if (upgradePath === CONST.UPGRADE_PATHS.REPORTS && policyID && selectedTransactionsKeys.includes(transactionID)) {
             const newPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
 
-            const optimisticReport = createNewReport(ownerPersonalDetails, hasViolations, isASAPSubmitBetaEnabled, newPolicy, betas, isTrackIntentUser, getCurrencyDecimals);
+            const optimisticReport = createNewReport(ownerPersonalDetails, hasViolations, isASAPSubmitBetaEnabled, newPolicy, betas, isTrackIntentUser, getCurrencyDecimals, rules);
 
             const policyTagList = policyID ? allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] : {};
             const reportsForCall = {
@@ -165,6 +166,7 @@ function DynamicIOURequestStepUpgrade({
                 transactions,
                 allTransactionViolation: transactionViolations,
                 reports: reportsForCall,
+                rules,
                 selfDMReportActions,
                 isTrackIntentUser,
                 // Expenses move to the upgraded workspace (newPolicy), whose currency drives any distance calculation, so the personal-policy currency is never read here.
@@ -283,6 +285,7 @@ function DynamicIOURequestStepUpgrade({
         delegateAccountID,
         getCurrencyDecimals,
         getCurrencySymbol,
+        rules,
     ]);
 
     const participant = transaction?.participants?.[0];

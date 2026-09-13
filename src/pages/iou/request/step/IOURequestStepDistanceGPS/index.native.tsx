@@ -123,6 +123,7 @@ function IOURequestStepDistanceGPS({
     const shouldSkipConfirmation = !skipConfirmation || !report?.reportID ? false : !(isArchived || isPolicyExpenseChatUtils(report));
 
     const [recentWaypoints] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS);
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const policyTagList = useMoneyRequestPolicyTagsForReport({report, currentUserAccountID: currentUserAccountIDParam});
 
     const {participants, participantsPolicyTags} = useMoneyRequestParticipantsPolicyTags({
@@ -202,6 +203,7 @@ function IOURequestStepDistanceGPS({
             getCurrencySymbol,
             participants,
             participantsPolicyTags,
+            rules,
         });
     };
 
