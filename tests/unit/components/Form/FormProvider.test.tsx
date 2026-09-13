@@ -79,9 +79,9 @@ jest.mock('@src/utils/keyboard', () => ({
 
 const FORM_ID = ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM;
 
-function RegisteredInput({inputID = 'name' as keyof Form}: {inputID?: keyof Form}) {
+function RegisteredInput({inputID = 'name' as keyof Form, clearInputKeysOnChange}: {inputID?: keyof Form; clearInputKeysOnChange?: string[]}) {
     const {registerInput} = React.useContext(FormContext);
-    const inputProps = registerInput(inputID, false, {});
+    const inputProps = registerInput(inputID, false, {clearInputKeysOnChange});
 
     return (
         <PressableWithFeedback
@@ -196,6 +196,37 @@ describe('FormProvider', () => {
         await waitFor(() => {
             expect(FormActions.clearErrors).toHaveBeenCalledWith(FORM_ID);
             expect(FormActions.clearErrorFields).toHaveBeenCalledWith(FORM_ID);
+        });
+    });
+
+    it('clears dependent input values when an input changes', async () => {
+        const onSubmit = jest.fn();
+
+        render(
+            <FormProvider
+                formID={FORM_ID as FormProviderProps<typeof FORM_ID>['formID']}
+                submitButtonText="Submit"
+                validate={() => ({})}
+                onSubmit={onSubmit}
+            >
+                <RegisteredInput
+                    inputID="name"
+                    clearInputKeysOnChange={['lat', 'lng']}
+                />
+                <RegisteredInput inputID="lat" />
+                <RegisteredInput inputID="lng" />
+            </FormProvider>,
+        );
+
+        await waitForBatchedUpdatesWithAct();
+
+        fireEvent.press(screen.getByTestId('mock-input-lat'));
+        fireEvent.press(screen.getByTestId('mock-input-lng'));
+        fireEvent.press(screen.getByTestId('mock-input-name'));
+        fireEvent.press(screen.getByTestId('mock-submit-button'));
+
+        await waitFor(() => {
+            expect(onSubmit).toHaveBeenCalledWith(expect.objectContaining({lat: '', lng: ''}));
         });
     });
 
