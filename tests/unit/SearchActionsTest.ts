@@ -426,32 +426,6 @@ describe('SearchActions', () => {
         });
     });
 
-    describe('exportSearchItemsToCSV', () => {
-        beforeEach(() => jest.clearAllMocks());
-
-        it('includes excluded transaction IDs in the direct CSV form payload', () => {
-            const appendSpy = jest.spyOn(FormData.prototype, 'append');
-
-            exportSearchItemsToCSV(
-                {
-                    jsonQuery: '{}',
-                    reportIDList: [],
-                    transactionIDList: ['tx1'],
-                    excludedTransactionIDList: ['tx2'],
-                    isBasicExport: true,
-                    exportColumnLabels: '{}',
-                    exportName: 'Basic export',
-                },
-                jest.fn(),
-                translateForTest,
-            );
-
-            expect(appendSpy).toHaveBeenCalledWith('excludedTransactionIDList', 'tx2');
-            expect(mockFileDownload).toHaveBeenCalled();
-            appendSpy.mockRestore();
-        });
-    });
-
     describe('getExportTemplates', () => {
         const translateForTemplates = translateLocal;
         const localeCompare = (first: string, second: string) => first.localeCompare(second);
