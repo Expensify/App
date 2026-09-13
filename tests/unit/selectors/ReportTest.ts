@@ -1,7 +1,7 @@
 import CONST from '@src/CONST';
 import type {Report} from '@src/types/onyx';
 
-import {reportAvatarKindSelector} from '@selectors/Report';
+import {expenseReportAvatarSelector, reportAvatarKindSelector, reportPolicyFieldsSelector} from '@selectors/Report';
 
 const REPORT_ID = 'report123';
 const PARENT_REPORT_ID = 'parentReport123';
@@ -50,5 +50,54 @@ describe('reportAvatarKindSelector', () => {
 
     it('should return undefined when the report is not in Onyx', () => {
         expect(reportAvatarKindSelector(undefined)).toBeUndefined();
+    });
+});
+
+describe('expenseReportAvatarSelector', () => {
+    it('should project exactly the fields the expense report avatar renders from', () => {
+        const report = createReport({
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: 42,
+            policyID: 'policy123',
+            policyAvatar: 'https://example.com/policy-avatar.png',
+            policyName: 'Policy Name',
+            oldPolicyName: 'Old Policy Name',
+            chatReportID: 'chatReport123',
+            parentReportID: PARENT_REPORT_ID,
+            // A field the avatar does not read, to prove it is stripped
+            lastMessageText: 'Hello',
+        });
+
+        expect(expenseReportAvatarSelector(report)).toEqual({
+            ownerAccountID: 42,
+            policyID: 'policy123',
+            policyAvatar: 'https://example.com/policy-avatar.png',
+            policyName: 'Policy Name',
+            oldPolicyName: 'Old Policy Name',
+            chatReportID: 'chatReport123',
+            parentReportID: PARENT_REPORT_ID,
+        });
+    });
+
+    it('should return undefined when the report is not in Onyx', () => {
+        expect(expenseReportAvatarSelector(undefined)).toBeUndefined();
+    });
+});
+
+describe('reportPolicyFieldsSelector', () => {
+    it('should project exactly the policy fallback fields', () => {
+        const report = createReport({
+            type: CONST.REPORT.TYPE.CHAT,
+            policyName: 'Policy Name',
+            oldPolicyName: 'Old Policy Name',
+            policyAvatar: 'https://example.com/policy-avatar.png',
+            lastMessageText: 'Hello',
+        });
+
+        expect(reportPolicyFieldsSelector(report)).toEqual({policyName: 'Policy Name', oldPolicyName: 'Old Policy Name', policyAvatar: 'https://example.com/policy-avatar.png'});
+    });
+
+    it('should return undefined when the report is not in Onyx', () => {
+        expect(reportPolicyFieldsSelector(undefined)).toBeUndefined();
     });
 });

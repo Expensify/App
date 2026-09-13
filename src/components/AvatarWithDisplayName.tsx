@@ -7,7 +7,6 @@ import usePolicy from '@hooks/usePolicy';
 import {useDerivedReportNamesByReportIDs} from '@hooks/useReportAttributes';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -193,7 +192,6 @@ function AvatarWithDisplayName({
     const policy = usePolicy(report?.policyID);
     const theme = useTheme();
     const styles = useThemeStyles();
-    const StyleUtils = useStyleUtils();
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to display the edit button only on large screens
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
@@ -289,9 +287,8 @@ function AvatarWithDisplayName({
     const multipleAvatars = (
         <ReportAvatar
             singleAvatarContainerStyle={[styles.actionAvatar, styles.mr3]}
-            subscriptAvatarBorderColor={avatarBorderColor}
+            backdropColor={avatarBorderColor}
             size={size}
-            secondaryAvatarContainerStyle={StyleUtils.getBackgroundAndBorderStyle(avatarBorderColor)}
             reportID={report?.reportID}
         />
     );
@@ -324,7 +321,7 @@ function AvatarWithDisplayName({
                                 accessibilityLabel={title}
                                 role={CONST.ROLE.BUTTON}
                             >
-                                <View style={[styles.flexShrink1]}>{displayNameContent}</View>
+                                <View style={styles.flexShrink1}>{displayNameContent}</View>
                                 <Icon
                                     src={icons.Pencil}
                                     width={variables.iconSizeExtraSmall}

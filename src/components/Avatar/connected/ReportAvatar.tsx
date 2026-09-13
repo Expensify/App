@@ -2,6 +2,7 @@ import type {HorizontalStackingOptions} from '@components/Avatar/layouts/Horizon
 import ReportActionAvatars from '@components/ReportActionAvatars';
 
 import useOnyx from '@hooks/useOnyx';
+import useThemeStyles from '@hooks/useThemeStyles';
 
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 
@@ -15,6 +16,7 @@ import {reportAvatarKindSelector} from '@selectors/Report';
 import React from 'react';
 
 import AccountAvatar from './AccountAvatar';
+import ExpenseReportAvatar from './ExpenseReportAvatar';
 import GroupChatAvatar from './GroupChatAvatar';
 
 type SortingOption = ValueOf<typeof CONST.REPORT_ACTION_AVATARS.SORT_BY>;
@@ -25,8 +27,9 @@ type ReportAvatarProps = {
 
     size?: ValueOf<typeof CONST.AVATAR_SIZE>;
     singleAvatarContainerStyle?: StyleProp<ViewStyle>;
-    secondaryAvatarContainerStyle?: StyleProp<ViewStyle>;
-    subscriptAvatarBorderColor?: ColorValue;
+
+    /** Color of the row surface behind the avatar. Affects secondary avatar so it blends into the row. */
+    backdropColor?: ColorValue;
 
     /** Whether to show the subscript avatar without margin */
     noRightMarginOnSubscriptContainer?: boolean;
@@ -42,7 +45,17 @@ type ReportAvatarProps = {
 };
 
 /** Renders a report's avatars by delegating to the connected avatar matching the report's type. */
-function ReportAvatar({reportID, size = CONST.AVATAR_SIZE.DEFAULT, singleAvatarContainerStyle, horizontalStacking, fallbackDisplayName, ...rest}: ReportAvatarProps) {
+function ReportAvatar({
+    reportID,
+    size = CONST.AVATAR_SIZE.DEFAULT,
+    singleAvatarContainerStyle,
+    backdropColor,
+    noRightMarginOnSubscriptContainer = false,
+    horizontalStacking,
+    fallbackDisplayName,
+    ...rest
+}: ReportAvatarProps) {
+    const styles = useThemeStyles();
     const [kindFromOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportID)}`, {selector: reportAvatarKindSelector});
     const kind = kindFromOnyx ?? CONST.REPORT_AVATAR_KIND.DEFAULT;
 
@@ -68,9 +81,18 @@ function ReportAvatar({reportID, size = CONST.AVATAR_SIZE.DEFAULT, singleAvatarC
                     fallbackDisplayName={fallbackDisplayName}
                 />
             );
+        case CONST.REPORT_AVATAR_KIND.EXPENSE:
+            return (
+                <ExpenseReportAvatar
+                    reportID={reportID}
+                    size={size}
+                    backdropColor={backdropColor}
+                    containerStyle={noRightMarginOnSubscriptContainer ? styles.mr0 : undefined}
+                    fallbackDisplayName={fallbackDisplayName}
+                />
+            );
         // TODO: The remaining kinds still render the legacy component. https://github.com/Expensify/App/issues/94590 adds a
         // dedicated wrapper per kind, one PR at a time. The last of those deletes the ReportActionAvatars import and simplifies props.
-        case CONST.REPORT_AVATAR_KIND.EXPENSE:
         case CONST.REPORT_AVATAR_KIND.IOU:
         case CONST.REPORT_AVATAR_KIND.TASK:
         case CONST.REPORT_AVATAR_KIND.INVOICE:
@@ -84,6 +106,8 @@ function ReportAvatar({reportID, size = CONST.AVATAR_SIZE.DEFAULT, singleAvatarC
                     reportID={reportID}
                     size={size}
                     singleAvatarContainerStyle={singleAvatarContainerStyle}
+                    backdropColor={backdropColor}
+                    noRightMarginOnSubscriptContainer={noRightMarginOnSubscriptContainer}
                     horizontalStacking={horizontalStacking}
                     fallbackDisplayName={fallbackDisplayName}
                     {...rest}

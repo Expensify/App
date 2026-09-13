@@ -57,7 +57,6 @@ type ReportActionAvatarsProps = {
     accountIDs?: number[];
 
     size?: ValueOf<typeof CONST.AVATAR_SIZE>;
-    secondaryAvatarContainerStyle?: StyleProp<ViewStyle>;
 
     /** Whether avatars are displayed within a reportAction */
     isInReportAction?: boolean;
@@ -65,7 +64,8 @@ type ReportActionAvatarsProps = {
     /** Whether to show the subscript avatar without margin */
     noRightMarginOnSubscriptContainer?: boolean;
 
-    subscriptAvatarBorderColor?: ColorValue;
+    /** Color of the row surface behind the avatar. Affects secondary avatar so it blends into the row. */
+    backdropColor?: ColorValue;
 
     /** Subscript card feed to display instead of the second avatar */
     subscriptCardFeed?: CardFeed;
@@ -105,11 +105,10 @@ function ReportActionAvatars({
     horizontalStacking,
     sort: sortAvatars,
     singleAvatarContainerStyle,
-    subscriptAvatarBorderColor,
+    backdropColor,
     noRightMarginOnSubscriptContainer = false,
     subscriptCardFeed,
     subscriptCardFeedIconSize,
-    secondaryAvatarContainerStyle,
     isInReportAction = false,
     fallbackDisplayName,
     invitedEmailsToAccountIDs,
@@ -210,7 +209,7 @@ function ReportActionAvatars({
                 cardFeedIconSize={subscriptCardFeedIconSize}
                 size={size}
                 containerStyle={noRightMarginOnSubscriptContainer ? styles.mr0 : {}}
-                subscriptAvatarBorderColor={subscriptAvatarBorderColor}
+                backdropColor={backdropColor}
                 fallbackDisplayName={fallbackDisplayName}
             />
         );
@@ -223,7 +222,7 @@ function ReportActionAvatars({
                 secondaryAvatar={secondaryAvatar}
                 size={size}
                 containerStyle={noRightMarginOnSubscriptContainer ? styles.mr0 : {}}
-                subscriptAvatarBorderColor={subscriptAvatarBorderColor}
+                backdropColor={backdropColor}
                 fallbackDisplayName={fallbackDisplayName}
             />
         );
@@ -248,7 +247,7 @@ function ReportActionAvatars({
                 size={size}
                 icons={icons}
                 isInReportAction={isInReportAction}
-                secondaryAvatarContainerStyle={secondaryAvatarContainerStyle}
+                backdropColor={backdropColor}
                 isHovered={isHovered}
                 fallbackDisplayName={fallbackDisplayName}
             />

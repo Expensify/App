@@ -6,7 +6,6 @@ import {AvatarTooltipsProvider} from '@components/Avatar/tooltips/AvatarTooltipC
 import type {AvatarIcon} from '@components/Avatar/types';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 
-import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getDelegateAccountIDFromReportAction} from '@libs/ReportActionsUtils';
@@ -34,7 +33,6 @@ type AvatarProps = {
 
 function AvatarInner({optionItem, viewMode, avatarBackgroundColor}: AvatarProps) {
     const styles = useThemeStyles();
-    const StyleUtils = useStyleUtils();
     const personalDetails = usePersonalDetails();
 
     const isInFocusMode = viewMode === CONST.OPTION_MODE.COMPACT;
@@ -79,7 +77,7 @@ function AvatarInner({optionItem, viewMode, avatarBackgroundColor}: AvatarProps)
                 primaryAvatar={primaryIcon}
                 secondaryAvatar={secondaryIcon}
                 size={avatarSize}
-                subscriptAvatarBorderColor={avatarBackgroundColor}
+                backdropColor={avatarBackgroundColor}
             />
         );
     }
@@ -91,7 +89,7 @@ function AvatarInner({optionItem, viewMode, avatarBackgroundColor}: AvatarProps)
                 // Only the two rendered icons are passed: a longer array makes DiagonalAvatars replace the secondary avatar with a "+N" overflow count.
                 icons={[primaryIcon, secondaryIcon]}
                 isInReportAction={false}
-                secondaryAvatarContainerStyle={StyleUtils.getBackgroundAndBorderStyle(avatarBackgroundColor)}
+                backdropColor={avatarBackgroundColor}
             />
         );
     }
