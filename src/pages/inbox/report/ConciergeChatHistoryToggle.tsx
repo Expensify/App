@@ -9,6 +9,8 @@ import {useConciergeSessionActions} from '@pages/inbox/ConciergeSessionContext';
 
 import CONST from '@src/CONST';
 
+import type {StyleProp, ViewStyle} from 'react-native';
+
 import React from 'react';
 import {View} from 'react-native';
 
@@ -24,13 +26,16 @@ type ConciergeChatHistoryToggleProps = {
 
     /** Callback to reveal the earlier conversation */
     onShowPreviousMessages: () => void;
+
+    /** Styles applied to the row wrapping the divider and the button */
+    containerStyles?: StyleProp<ViewStyle>;
 };
 
 /**
- * Expands and collapses the earlier Concierge conversation in the main Concierge DM. It renders as part
- * of the inverted list's header so it sits at the bottom of the conversation, directly above the composer.
+ * Expands and collapses the earlier Concierge conversation in the main Concierge DM. It sits directly
+ * above the composer, either in the welcome column or in the inverted list's header.
  */
-function ConciergeChatHistoryToggle({reportID, hasPreviousMessages, shouldShowFullHistory, onShowPreviousMessages}: ConciergeChatHistoryToggleProps) {
+function ConciergeChatHistoryToggle({reportID, hasPreviousMessages, shouldShowFullHistory, onShowPreviousMessages, containerStyles}: ConciergeChatHistoryToggleProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['UpArrow', 'DownArrow']);
@@ -50,7 +55,7 @@ function ConciergeChatHistoryToggle({reportID, hasPreviousMessages, shouldShowFu
     }
 
     return (
-        <View style={[styles.flexRow, styles.alignItemsCenter, styles.pv3, styles.mh5]}>
+        <View style={[styles.flexRow, styles.alignItemsCenter, styles.pv3, styles.mh5, containerStyles]}>
             <View style={[styles.threadDividerLine, styles.ml0, styles.mr0, styles.flexGrow1]} />
             <Button
                 size={CONST.BUTTON_SIZE.SMALL}

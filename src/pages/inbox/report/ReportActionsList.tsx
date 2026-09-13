@@ -464,13 +464,14 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
 
     if (shouldShowConciergeWelcome) {
         return (
-            <View>
+            <View style={styles.conciergeAskColumn}>
                 <ConciergeWelcome />
                 <ConciergeChatHistoryToggle
                     reportID={reportID}
                     hasPreviousMessages={!!hasPreviousMessages}
                     shouldShowFullHistory={!showHiddenHistory}
                     onShowPreviousMessages={onShowPreviousMessages}
+                    containerStyles={styles.pb5}
                 />
             </View>
         );

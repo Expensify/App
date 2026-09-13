@@ -95,7 +95,7 @@ function ReportFooter() {
     const isSystemChat = isSystemChatUtil(report);
     const isAdminsOnlyPostingRoom = isAdminsOnlyPostingRoomUtil(report);
     const shouldShowComposerForActiveEditDraft = useShouldShowComposerForActiveEditDraft();
-    const {shouldLabelComposerAsNewQuestion} = useConciergeAskState(reportIDFromRoute);
+    const {shouldShowWelcome: shouldShowConciergeWelcome, shouldLabelComposerAsNewQuestion} = useConciergeAskState(reportIDFromRoute);
 
     if (!isCurrentReportLoadedFromOnyx || !report || !reportIDFromRoute) {
         return null;
@@ -121,7 +121,7 @@ function ReportFooter() {
             />
         );
         return (
-            <View style={[chatFooterStyles, isComposerFullSize && styles.chatFooterFullCompose]}>
+            <View style={[chatFooterStyles, shouldShowConciergeWelcome && styles.conciergeAskColumn, isComposerFullSize && styles.chatFooterFullCompose]}>
                 {merchantRuleBanner}
                 {shouldLabelComposerAsNewQuestion && <Text style={[styles.textLabelSupporting, styles.mb1]}>{translate('common.concierge.askNewQuestion')}</Text>}
                 {shouldShowEnableNotificationsBanner ? (
