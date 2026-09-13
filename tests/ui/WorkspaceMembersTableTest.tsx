@@ -115,7 +115,10 @@ describe('WorkspaceMembersTable', () => {
             renderTable(members, tableRef);
             await waitForBatchedUpdatesWithAct();
 
-            const approverHeader = screen.getByLabelText(TestHelper.translateLocal('workflowsPage.approver'));
+            // The table renders a page title, so Table.tsx also renders a duplicate sticky header (hidden from
+            // assistive tech but still queryable) alongside the declared one, hence getAllByLabelText rather than
+            // getByLabelText. Either copy toggles the same shared sorting state.
+            const [approverHeader] = screen.getAllByLabelText(TestHelper.translateLocal('workflowsPage.approver'));
             fireEvent.press(approverHeader);
 
             // Ascending: Ann's members first (tie broken by member name: Adam before Walter), then Zoe's member,

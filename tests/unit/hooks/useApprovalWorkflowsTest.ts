@@ -79,7 +79,11 @@ describe('useApprovalWorkflows', () => {
     it('derives workflows from employeeList when the beta is off', async () => {
         const policy = {
             ...createRandomPolicy(1),
-            employeeList: {[SUBMITTER_EMAIL]: {email: SUBMITTER_EMAIL, submitsTo: APPROVER_EMAIL}},
+            approver: APPROVER_EMAIL,
+            employeeList: {
+                [SUBMITTER_EMAIL]: {email: SUBMITTER_EMAIL, submitsTo: APPROVER_EMAIL},
+                [APPROVER_EMAIL]: {email: APPROVER_EMAIL},
+            },
         };
 
         const {result} = renderHook(() => useApprovalWorkflows({policy, personalDetails, currentUserLogin: CURRENT_USER_LOGIN}));
@@ -96,8 +100,15 @@ describe('useApprovalWorkflows', () => {
         await seedForwardApproveRules(POLICY_ID, SUBMITTER_EMAIL, APPROVER_EMAIL, 'rule');
 
         // employeeList has no submitsTo entry at all: if the hook fell back to the employeeList path (beta not
-        // actually read), this workflow would come back empty instead of built from the rules.
-        const policy = {...createRandomPolicy(1), id: POLICY_ID, employeeList: {[SUBMITTER_EMAIL]: {email: SUBMITTER_EMAIL}}};
+        // actually read), this workflow would come back empty instead of built from the rules. `approver` matches
+        // the rule's approver, so this is the policy's one and only (default) workflow, and no separate empty
+        // placeholder workflow gets prepended for a "default" no one is actually on.
+        const policy = {
+            ...createRandomPolicy(1),
+            id: POLICY_ID,
+            approver: APPROVER_EMAIL,
+            employeeList: {[SUBMITTER_EMAIL]: {email: SUBMITTER_EMAIL}, [APPROVER_EMAIL]: {email: APPROVER_EMAIL}},
+        };
 
         const {result} = renderHook(() => useApprovalWorkflows({policy, personalDetails, currentUserLogin: CURRENT_USER_LOGIN}));
 

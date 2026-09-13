@@ -91,4 +91,29 @@ describe('useDynamicColumnWidths', () => {
 
         expect(widthsFrom(result.current.gridTemplateColumns).at(0)).toBe(60);
     });
+
+    it('adds the cell avatar width on top of the free-text floor', () => {
+        const columnsWithAvatar: Array<TableColumn<string, Row>> = ['first', 'second', 'third'].map((key) => ({
+            key,
+            label: key,
+            sortable: true,
+            dynamicSizing: {getContentToMeasure: (item) => [{text: `${key}-${item.value}`}], extraWidth: 20},
+        }));
+
+        // Squeeze floor: 360 (unclamped, ignoring the extra width) would fit 450, so this stays in the squeeze
+        // branch rather than the scroll one. With the avatar's 20px added on top, the true floor is 140, not 120.
+        const squeezed = renderHook(() =>
+            useDynamicColumnWidths<Row, string>({columns: columnsWithAvatar, data, tableWidth: tableWidthFor(450), isEnabled: true, hasSelectionColumn: false}),
+        );
+        for (const width of widthsFrom(squeezed.result.current.gridTemplateColumns)) {
+            expect(width).toBeGreaterThanOrEqual(140);
+        }
+
+        // Scroll floor: three squeeze floors of 140 overflow 300, so the table scrolls and each column takes the
+        // wider scroll floor plus the avatar width: 180 + 20 = 200.
+        const scrolled = renderHook(() =>
+            useDynamicColumnWidths<Row, string>({columns: columnsWithAvatar, data, tableWidth: tableWidthFor(300), isEnabled: true, hasSelectionColumn: false}),
+        );
+        expect(widthsFrom(scrolled.result.current.gridTemplateColumns)).toEqual([200, 200, 200]);
+    });
 });

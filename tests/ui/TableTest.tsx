@@ -2649,7 +2649,7 @@ describe('Table', () => {
             expect(tableRef.current?.getProcessedData().map((item) => item.name)).toEqual(['Apple', 'Banana', 'Carrot', 'Date', 'Eggplant']);
         });
 
-        it('should cycle asc, then desc, then back to asc when the same header is pressed repeatedly', () => {
+        it('should cycle asc, then desc, then reset to no sorting when the same header is pressed a third time', () => {
             const props = createDefaultProps();
             const tableRef = React.createRef<TableHandle<TestItem, TestColumnKey>>();
             render(
@@ -2674,8 +2674,10 @@ describe('Table', () => {
             fireEvent.press(nameHeader);
             expect(tableRef.current?.getActiveSorting()).toEqual({columnKey: 'name', order: 'desc'});
 
+            // TableHeader's own per-column press count resets sorting entirely on the third press, rather than
+            // cycling back to ascending, per its "asc -> desc -> reset" doc comment.
             fireEvent.press(nameHeader);
-            expect(tableRef.current?.getActiveSorting()).toEqual({columnKey: 'name', order: 'asc'});
+            expect(tableRef.current?.getActiveSorting()).toEqual({columnKey: undefined, order: 'asc'});
         });
 
         it('should restart at ascending when a different header is pressed', () => {

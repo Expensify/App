@@ -2,7 +2,6 @@ import {act, fireEvent, render, screen} from '@testing-library/react-native';
 
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
-import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
 import Navigation from '@libs/Navigation/Navigation';
@@ -49,7 +48,9 @@ jest.mock('@userActions/Workflow', () => {
 
 jest.mock('@hooks/useConfirmModal', () => ({
     __esModule: true,
-    default: () => ({showConfirmModal: () => Promise.resolve({action: ModalActions.CONFIRM})}),
+    // Matches ModalActions.CONFIRM (components/Modal/Global/ModalContext.tsx), inlined since a jest.mock factory
+    // can't reference an out-of-scope import.
+    default: () => ({showConfirmModal: () => Promise.resolve({action: 'CONFIRM'})}),
 }));
 
 jest.mock('@react-navigation/native', () => {
