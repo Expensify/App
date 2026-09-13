@@ -4,6 +4,7 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import {PressableWithFeedback} from '@components/Pressable';
 import ScrollView from '@components/ScrollView';
+import {useSyncedHorizontalScroll} from '@components/Search/hooks/useSyncedHorizontalScroll';
 import SearchTableHeader from '@components/Search/SearchTableHeader';
 import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
@@ -28,7 +29,7 @@ import type {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRout
 import Navigation from '@libs/Navigation/Navigation';
 import {getReportAction} from '@libs/ReportActionsUtils';
 import {getReportOrDraftReport} from '@libs/ReportUtils';
-import {createAndOpenSearchTransactionThread, getColumnsToShow, getTableMinWidth} from '@libs/SearchUIUtils';
+import {createAndOpenSearchTransactionThread, getColumnsToShow, getGroupColumnWidthFlags, getGroupTableScrollLayout} from '@libs/SearchUIUtils';
 import {isDeletedTransaction, isTransactionPendingDelete} from '@libs/TransactionUtils';
 
 import type {TransactionPreviewData} from '@userActions/Search';
@@ -76,6 +77,7 @@ function TransactionGroupListExpandedImpl({
     nonPersonalAndWorkspaceCards,
     onUndelete,
     hideSearchTableHeader,
+    syncScrollKey,
 }: TransactionGroupListExpandedProps<ListItem>) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -165,14 +167,20 @@ function TransactionGroupListExpandedImpl({
     const {isLargeScreenWidth} = useResponsiveLayout();
     const StyleUtils = useStyleUtils();
 
-    const isAmountColumnWide = transactions.some((transaction) => transaction.isAmountColumnWide);
-    const isTaxAmountColumnWide = transactions.some((transaction) => transaction.isTaxAmountColumnWide);
-    const shouldShowYearForSomeTransaction = transactions.some((transaction) => transaction.shouldShowYear);
+    const {isAmountColumnWide, isTaxAmountColumnWide, shouldShowYear: shouldShowYearForSomeTransaction, isActionColumnWide} = getGroupColumnWidthFlags(transactions);
     const amountColumnSize = isAmountColumnWide ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL;
     const taxAmountColumnSize = isTaxAmountColumnWide ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL;
     const dateColumnSize = shouldShowYearForSomeTransaction ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL;
 
-    const isActionColumnWide = transactions.some((transaction) => !!transaction.isActionColumnWide || isDeletedTransaction(transaction));
+    // Shared with GroupHeader, the sticky column labels for these rows, so the two cannot disagree about the table's
+    // width the way this component's fallbackPolicyID and GroupHeader's once silently did.
+    const {minTableWidth, shouldScrollHorizontally} = getGroupTableScrollLayout(currentColumns, CONST.SEARCH.DATA_TYPES.EXPENSE, isActionColumnWide, windowWidth, isLargeScreenWidth);
+
+    // When the group's column header is rendered outside these rows (split groups on wide web), this scroller is the
+    // one the user drags and the header follows the offset it publishes. Without a sync key this is inert and
+    // `syncProps` is empty, so the ScrollView below keeps exactly the props it had before. That covers every other
+    // layout, where the header sits inside this same scroller.
+    const {scrollViewRef: horizontalScrollViewRef, syncProps: horizontalSyncProps} = useSyncedHorizontalScroll(syncScrollKey, shouldScrollHorizontally);
 
     const {markReportRHPWidth} = useWideRHPActions();
     const selectRow = onSelectRow as (item: ListItem, transactionPreviewData?: TransactionPreviewData, event?: ModifiedMouseEvent) => void;
@@ -306,10 +314,6 @@ function TransactionGroupListExpandedImpl({
         openReportInRHP(transaction, event);
     };
 
-    const dataColumns = currentColumns.filter((column) => !column.startsWith(CONST.SEARCH.GROUP_COLUMN_PREFIX)) ?? [];
-    const minTableWidth = getTableMinWidth(dataColumns, CONST.SEARCH.DATA_TYPES.EXPENSE, isActionColumnWide);
-    const shouldScrollHorizontally = isLargeScreenWidth && minTableWidth > windowWidth;
-
     const content = (
         <View style={[styles.flexColumn, styles.flex1]}>
             {isLargeScreenWidth && !hideSearchTableHeader && !(isEmpty && shouldDisplayLoadingIndicator) && (
@@ -420,10 +424,12 @@ function TransactionGroupListExpandedImpl({
 
     return shouldScrollHorizontally ? (
         <ScrollView
+            ref={horizontalScrollViewRef}
             horizontal
             showsHorizontalScrollIndicator
             style={styles.flex1}
             contentContainerStyle={{width: minTableWidth}}
+            {...horizontalSyncProps}
         >
             {content}
         </ScrollView>

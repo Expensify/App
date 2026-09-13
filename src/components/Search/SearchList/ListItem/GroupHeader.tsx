@@ -1,6 +1,7 @@
 import Icon from '@components/Icon';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {PressableWithFeedback} from '@components/Pressable';
+import {useHorizontalScrollFollower} from '@components/Search/hooks/useSyncedHorizontalScroll';
 import SearchTableHeader from '@components/Search/SearchTableHeader';
 import type {SearchColumnType, SearchCustomColumnIds, SearchGroupBy} from '@components/Search/types';
 import type {ExtendedTargetedEvent} from '@components/SelectionList/ListItem/types';
@@ -10,6 +11,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useExpandCollapseAnimation from '@hooks/useExpandCollapseAnimation';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useOnyx from '@hooks/useOnyx';
+import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useSyncFocus from '@hooks/useSyncFocus';
@@ -19,8 +21,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import type {TransactionPreviewData} from '@libs/actions/Search';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import type {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
-import {getColumnsToShow} from '@libs/SearchUIUtils';
-import {isDeletedTransaction, isTransactionPendingDelete} from '@libs/TransactionUtils';
+import {getColumnsToShow, getGroupColumnWidthFlags, getGroupTableScrollLayout} from '@libs/SearchUIUtils';
+import {isTransactionPendingDelete} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -68,6 +70,9 @@ type GroupHeaderProps = SearchListActionProps & {
     isFirstItem: boolean;
     isLastItem: boolean;
     visibleColumns?: SearchCustomColumnIds[];
+
+    /** Window width, passed down so a recycled group header doesn't subscribe to window dimensions of its own. */
+    windowWidth: number;
 };
 
 function GroupHeader({
@@ -91,6 +96,7 @@ function GroupHeader({
     userBillingGracePeriodEnds,
     ownerBillingGracePeriodEnd,
     visibleColumns,
+    windowWidth,
 }: GroupHeaderProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -98,6 +104,7 @@ function GroupHeader({
     const {isLargeScreenWidth} = useResponsiveLayout();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['UpArrow', 'DownArrow']);
     const currentUserDetails = useCurrentUserPersonalDetails();
+    const {policyForMovingExpensesID} = usePolicyForMovingExpenses();
 
     const groupItem = item;
     const isExpenseReportType = searchType === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
@@ -138,33 +145,29 @@ function GroupHeader({
             data: snapshotData,
             visibleColumns,
             type: snapshotSearchType,
+            fallbackPolicyID: policyForMovingExpensesID,
         });
-    }, [isExpenseReportType, columns, snapshotData, snapshotSearchType, currentUserDetails.accountID, visibleColumns]);
+    }, [isExpenseReportType, columns, snapshotData, snapshotSearchType, currentUserDetails.accountID, visibleColumns, policyForMovingExpensesID]);
 
-    const {isSubHeaderAmountColumnWide, isSubHeaderTaxAmountColumnWide, shouldSubHeaderShowYear, isSubHeaderActionColumnWide} = useMemo(() => {
-        let amountWide = false;
-        let taxWide = false;
-        let showYear = false;
-        let actionWide = false;
-        for (const transaction of groupItem.transactions) {
-            if (transaction.isAmountColumnWide) {
-                amountWide = true;
-            }
-            if (transaction.isTaxAmountColumnWide) {
-                taxWide = true;
-            }
-            if (transaction.shouldShowYear) {
-                showYear = true;
-            }
-            if (transaction.isActionColumnWide || isDeletedTransaction(transaction)) {
-                actionWide = true;
-            }
-            if (amountWide && taxWide && showYear && actionWide) {
-                break;
-            }
-        }
-        return {isSubHeaderAmountColumnWide: amountWide, isSubHeaderTaxAmountColumnWide: taxWide, shouldSubHeaderShowYear: showYear, isSubHeaderActionColumnWide: actionWide};
-    }, [groupItem.transactions]);
+    const {
+        isAmountColumnWide: isSubHeaderAmountColumnWide,
+        isTaxAmountColumnWide: isSubHeaderTaxAmountColumnWide,
+        shouldShowYear: shouldSubHeaderShowYear,
+        isActionColumnWide: isSubHeaderActionColumnWide,
+    } = getGroupColumnWidthFlags(groupItem.transactions);
+
+    // Shared with TransactionGroupListExpanded, the rows this header labels, so the two cannot disagree about the
+    // table's width the way GroupHeader's own getColumnsToShow call once silently did.
+    const {minTableWidth: subHeaderMinTableWidth, shouldScrollHorizontally: shouldSubHeaderScrollHorizontally} = getGroupTableScrollLayout(
+        subHeaderColumns,
+        CONST.SEARCH.DATA_TYPES.EXPENSE,
+        isSubHeaderActionColumnWide,
+        windowWidth,
+        isLargeScreenWidth,
+    );
+
+    // The rows this header labels are a sibling list row, and they own the scroller. These labels only follow it.
+    const subHeaderFollowerRef = useHorizontalScrollFollower(item.groupKeyForList, shouldSubHeaderScrollHorizontally);
 
     const {isRendered: isSubHeaderRendered, animatedStyle: subHeaderAnimatedStyle, onLayout: onSubHeaderLayout} = useExpandCollapseAnimation(isExpanded, isExpanded);
 
@@ -321,6 +324,29 @@ function GroupHeader({
         }
     };
 
+    const subHeaderContent = (
+        <View style={[styles.flexColumn, styles.flex1]}>
+            <View style={[styles.searchListHeaderContainerStyle, styles.groupSearchListTableContainerStyle, styles.bgTransparent, styles.pl8]}>
+                <SearchTableHeader
+                    canSelectMultiple
+                    type={CONST.SEARCH.DATA_TYPES.EXPENSE}
+                    onSortPress={() => {}}
+                    sortOrder={undefined}
+                    sortBy={undefined}
+                    shouldShowYear={shouldSubHeaderShowYear}
+                    isAmountColumnWide={isSubHeaderAmountColumnWide}
+                    isTaxAmountColumnWide={isSubHeaderTaxAmountColumnWide}
+                    shouldShowSorting={false}
+                    columns={subHeaderColumns}
+                    groupBy={groupBy}
+                    isExpenseReportView
+                    isActionColumnWide={isSubHeaderActionColumnWide}
+                />
+            </View>
+            <View style={[StyleUtils.getSelectedBorderBottomStyle(isItemSelected), styles.ml3, styles.mr3]} />
+        </View>
+    );
+
     const isLastItemCollapsed = isLastItem && !isExpanded && !isSubHeaderRendered;
     const pressableRef = useRef<View>(null);
 
@@ -419,24 +445,21 @@ function GroupHeader({
                                         style={styles.stickToTop}
                                         onLayout={onSubHeaderLayout}
                                     >
-                                        <View style={[styles.searchListHeaderContainerStyle, styles.groupSearchListTableContainerStyle, styles.bgTransparent, styles.pl8]}>
-                                            <SearchTableHeader
-                                                canSelectMultiple
-                                                type={CONST.SEARCH.DATA_TYPES.EXPENSE}
-                                                onSortPress={() => {}}
-                                                sortOrder={undefined}
-                                                sortBy={undefined}
-                                                shouldShowYear={shouldSubHeaderShowYear}
-                                                isAmountColumnWide={isSubHeaderAmountColumnWide}
-                                                isTaxAmountColumnWide={isSubHeaderTaxAmountColumnWide}
-                                                shouldShowSorting={false}
-                                                columns={subHeaderColumns}
-                                                groupBy={groupBy}
-                                                isExpenseReportView
-                                                isActionColumnWide={isSubHeaderActionColumnWide}
-                                            />
-                                        </View>
-                                        <View style={[StyleUtils.getSelectedBorderBottomStyle(isItemSelected), styles.ml3, styles.mr3]} />
+                                        {shouldSubHeaderScrollHorizontally ? (
+                                            // A clip the follower scrolls, not a ScrollView: the rows below own the scroll
+                                            // and these labels only mirror their offset. `overflow: hidden` still takes a
+                                            // `scrollLeft`, so this moves with the rows while showing no scrollbar of its
+                                            // own and refusing to be dragged. A second real scroller here is what used to
+                                            // let the two drift apart.
+                                            <View
+                                                style={styles.overflowHidden}
+                                                ref={subHeaderFollowerRef}
+                                            >
+                                                <View style={StyleUtils.getWidthStyle(subHeaderMinTableWidth)}>{subHeaderContent}</View>
+                                            </View>
+                                        ) : (
+                                            subHeaderContent
+                                        )}
                                     </View>
                                 )}
                             </Animated.View>
