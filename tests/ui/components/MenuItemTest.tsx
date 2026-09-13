@@ -18,6 +18,12 @@ const mockNewWindowIcon: React.FC<SvgProps> = () => null;
 const mockLinkIcon: React.FC<SvgProps> = () => null;
 const mockDownloadIcon: React.FC<SvgProps> = () => null;
 const mockCheckmarkIcon: React.FC<SvgProps> = () => null;
+const mockRenderHTML = jest.fn((_props: {html: string; isSelectable?: boolean}) => null);
+
+jest.mock('@components/RenderHTML', () => ({
+    __esModule: true,
+    default: (props: {html: string; isSelectable?: boolean}) => mockRenderHTML(props),
+}));
 
 jest.mock('@hooks/useLazyAsset', () => ({
     useMemoizedLazyExpensifyIcons: jest.fn(() => ({
@@ -37,8 +43,39 @@ function Wrapper({children}: {children: React.ReactNode}) {
 
 describe('MenuItem', () => {
     beforeEach(() => {
+        mockRenderHTML.mockClear();
         mockedGetPlatform.mockReturnValue(CONST.PLATFORM.ANDROID);
         mockedGetOperatingSystem.mockReturnValue(CONST.OS.WINDOWS);
+    });
+
+    it('forwards selectable HTML titles to RenderHTML on mobile web', () => {
+        mockedGetPlatform.mockReturnValue(CONST.PLATFORM.MOBILE_WEB);
+
+        render(
+            <Wrapper>
+                <MenuItem
+                    title="<strong>Formatted description</strong>"
+                    shouldRenderAsHTML
+                    isTitleSelectable
+                />
+            </Wrapper>,
+        );
+
+        expect(mockRenderHTML).toHaveBeenCalledWith(expect.objectContaining({isSelectable: true}));
+    });
+
+    it('does not override HTML title selection on native', () => {
+        render(
+            <Wrapper>
+                <MenuItem
+                    title="<strong>Formatted description</strong>"
+                    shouldRenderAsHTML
+                    isTitleSelectable
+                />
+            </Wrapper>,
+        );
+
+        expect(mockRenderHTML).toHaveBeenCalledWith(expect.objectContaining({isSelectable: undefined}));
     });
 
     describe('accessibility label with NewWindow icon', () => {

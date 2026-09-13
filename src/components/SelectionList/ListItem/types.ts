@@ -278,6 +278,9 @@ type BaseListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> &
         shouldHighlightSelectedItem?: boolean;
         shouldDisableHoverStyle?: boolean;
 
+        /** Whether descendants can use native text selection inside the row */
+        shouldAllowTextSelection?: boolean;
+
         /**
          * Whether the pressable should be accessible as a single element.
          * When false, allows child elements (like TextInput) to be independently focusable by screen readers.
