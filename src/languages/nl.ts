@@ -9520,6 +9520,8 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 [CONST.SEARCH.ACTION_FILTERS.EXPORT]: 'Exporteren',
             },
             filterType: {label: 'Filtertype', has: {positive: 'heeft', negative: 'heeft niet'}, is: {positive: 'is', negative: 'is niet'}},
+            created: 'Aangemaakt',
+            createdDate: 'Aanmaakdatum',
         },
         display: {
             label: 'Weergave',

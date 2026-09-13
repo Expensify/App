@@ -43,6 +43,7 @@ jest.mock('@libs/SearchUIUtils', () => ({
     getSuggestedSearches: jest.fn(() => ({})),
     getSuggestedSearchesVisibility: jest.fn(() => ({shouldShowExpensifyCard: false})),
     isTodoSearch: jest.fn(() => false),
+    isCreatedDateType: jest.fn(() => false),
     getSubmittedViolationsForTransaction: jest.fn(() => ''),
     getViolationsForTransaction: jest.fn(() => ''),
 }));

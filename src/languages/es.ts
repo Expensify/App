@@ -9462,6 +9462,8 @@ ${reportName}`,
             },
             reportField: (name, value) => `${name} es ${value}`,
             filterType: {label: 'Tipo de filtro', has: {positive: 'tiene', negative: 'no tiene'}, is: {positive: 'es', negative: 'no es'}},
+            created: 'Creado',
+            createdDate: 'Fecha de creación',
         },
         chartTitles: {
             [CONST.SEARCH.GROUP_BY.FROM]: 'De',
