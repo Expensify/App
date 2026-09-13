@@ -214,6 +214,7 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
         errors?: OnyxCommon.Errors;
 
         isWaitingOnBankAccount?: boolean;
+        canCancelReimbursement?: boolean;
         isCancelledIOU?: boolean;
         hasReportBeenRetracted?: boolean;
         hasReportBeenReopened?: boolean;
