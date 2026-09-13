@@ -11,25 +11,25 @@ import type {ThemeStylesActionsContextType, ThemeStylesStateContextType} from '.
 let cachedState: ThemeStylesStateContextType | undefined;
 let cachedActions: ThemeStylesActionsContextType | undefined;
 
-const defaultThemeStylesStateContextValue = new Proxy({} as ThemeStylesStateContextType, {
-    get(_, prop: keyof ThemeStylesStateContextType) {
+const defaultThemeStylesStateContextValue: ThemeStylesStateContextType = {
+    get styles() {
         if (!cachedState) {
             cachedState = {styles: styles(defaultTheme)};
         }
-        return cachedState[prop];
+        return cachedState.styles;
     },
-});
+};
 
-const defaultThemeStylesActionsContextValue = new Proxy({} as ThemeStylesActionsContextType, {
-    get(_, prop: keyof ThemeStylesActionsContextType) {
+const defaultThemeStylesActionsContextValue: ThemeStylesActionsContextType = {
+    get StyleUtils() {
         if (!cachedActions) {
             if (!cachedState) {
                 cachedState = {styles: styles(defaultTheme)};
             }
             cachedActions = {StyleUtils: createStyleUtils(defaultTheme, cachedState.styles)};
         }
-        return cachedActions[prop];
+        return cachedActions.StyleUtils;
     },
-});
+};
 
 export {defaultThemeStylesStateContextValue, defaultThemeStylesActionsContextValue};
