@@ -453,6 +453,69 @@ function syncCustomUnitRateOutOfDateRangeViolation(violations: TransactionViolat
     );
 }
 
+/**
+ * Syncs the customUnitOutOfPolicy violation with the current policy rate enabled state.
+ * This mirrors syncCustomUnitRateOutOfDateRangeViolation. It keeps Inbox and Spend previews in sync
+ * when a workspace rate is disabled, without waiting for Onyx to recompute.
+ */
+function syncCustomUnitOutOfPolicyViolation(
+    violations: TransactionViolation[],
+    transaction: OnyxEntry<Transaction>,
+    policy: OnyxEntry<Policy>,
+    distanceOriginalPolicy?: OnyxEntry<Policy>,
+): TransactionViolation[] {
+    const isPerDiem = !!transaction && TransactionUtils.isPerDiemRequest(transaction);
+    if (!transaction || (!TransactionUtils.isDistanceRequest(transaction) && !isPerDiem)) {
+        return violations.filter((violation) => violation.name !== CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY);
+    }
+
+    // Per-diem customUnitOutOfPolicy is owned by the Onyx pipeline. Leave it untouched.
+    if (isPerDiem) {
+        return violations;
+    }
+
+    const customUnitRateID = transaction.comment?.customUnit?.customUnitRateID;
+    if (!customUnitRateID) {
+        return violations;
+    }
+
+    const isTransactionOnPolicyExpenseChat = transaction.participants?.some((participant) => participant?.isPolicyExpenseChat);
+    if (TransactionUtils.isCustomUnitRateIDForP2P(transaction) && !isTransactionOnPolicyExpenseChat) {
+        return violations.filter((violation) => violation.name !== CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY);
+    }
+
+    let policyForCustomUnitRate = policy;
+    if (!getDistanceRateCustomUnitRate(policy, customUnitRateID)) {
+        policyForCustomUnitRate = distanceOriginalPolicy ?? policy;
+    }
+
+    const customRate = getDistanceRateCustomUnitRate(policyForCustomUnitRate, customUnitRateID);
+
+    // The rate does not resolve to a workspace rate, which happens when the rate was deleted or when a
+    // Track expense still holds its P2P rate on a workspace chat. Onyx owns the violation in those cases,
+    // so leave it exactly as it is rather than inventing or dropping one here.
+    if (!customRate) {
+        return violations;
+    }
+
+    const hasViolation = violations.some((violation) => violation.name === CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY);
+
+    if (customRate.enabled === false) {
+        return hasViolation
+            ? violations
+            : [
+                  ...violations,
+                  {
+                      name: CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY,
+                      type: CONST.VIOLATION_TYPES.VIOLATION,
+                      showInReview: true,
+                  },
+              ];
+    }
+
+    return hasViolation ? violations.filter((violation) => violation.name !== CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY) : violations;
+}
+
 const ViolationsUtils = {
     /**
      * Checks a transaction for policy violations and returns an object with Onyx method, key and updated transaction
@@ -1237,6 +1300,6 @@ const ViolationsUtils = {
     },
 };
 
-export {getIsViolationFixed, isHardViolationOrRateDateWarning, syncCustomUnitRateOutOfDateRangeViolation};
+export {getIsViolationFixed, isHardViolationOrRateDateWarning, syncCustomUnitOutOfPolicyViolation, syncCustomUnitRateOutOfDateRangeViolation};
 export default ViolationsUtils;
 export {filterReceiptViolations};

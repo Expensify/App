@@ -2,7 +2,13 @@ import {beforeEach} from '@jest/globals';
 
 import Permissions from '@libs/Permissions';
 import {getTransactionViolations, hasWarningTypeViolation, isViolationDismissed} from '@libs/TransactionUtils';
-import ViolationsUtils, {filterReceiptViolations, getIsViolationFixed, isHardViolationOrRateDateWarning, syncCustomUnitRateOutOfDateRangeViolation} from '@libs/Violations/ViolationsUtils';
+import ViolationsUtils, {
+    filterReceiptViolations,
+    getIsViolationFixed,
+    isHardViolationOrRateDateWarning,
+    syncCustomUnitOutOfPolicyViolation,
+    syncCustomUnitRateOutOfDateRangeViolation,
+} from '@libs/Violations/ViolationsUtils';
 
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
@@ -730,6 +736,173 @@ describe('getViolationsOnyxData', () => {
                     },
                 }),
             );
+        });
+    });
+
+    describe('syncCustomUnitOutOfPolicyViolation', () => {
+        const customUnitRateID = 'rate_id';
+
+        beforeEach(() => {
+            transactionViolations = [];
+            transaction.iouRequestType = CONST.IOU.REQUEST_TYPE.DISTANCE;
+            transaction.comment = {
+                ...transaction.comment,
+                customUnit: {
+                    ...(transaction?.comment?.customUnit ?? {}),
+                    customUnitRateID,
+                },
+            };
+            policy.customUnits = {
+                unitId: {
+                    attributes: {unit: 'mi'},
+                    customUnitID: 'unitId',
+                    defaultCategory: 'Car',
+                    enabled: true,
+                    name: 'Distance',
+                    rates: {
+                        [customUnitRateID]: {
+                            currency: 'USD',
+                            customUnitRateID,
+                            enabled: true,
+                            name: 'Default Rate',
+                            rate: 65.5,
+                        },
+                    },
+                },
+            };
+        });
+
+        it('should add the customUnitOutOfPolicy violation when the distance rate is disabled', () => {
+            const rate = policy.customUnits?.unitId.rates[customUnitRateID];
+            if (rate) {
+                rate.enabled = false;
+            }
+
+            const result = syncCustomUnitOutOfPolicyViolation(transactionViolations, transaction, policy);
+
+            expect(result).toContainEqual(
+                expect.objectContaining({
+                    name: CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY,
+                    type: CONST.VIOLATION_TYPES.VIOLATION,
+                    showInReview: true,
+                }),
+            );
+        });
+
+        it('should remove the customUnitOutOfPolicy violation when the distance rate is re-enabled', () => {
+            transactionViolations = [
+                {
+                    name: CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY,
+                    type: CONST.VIOLATION_TYPES.VIOLATION,
+                    showInReview: true,
+                },
+            ];
+
+            const result = syncCustomUnitOutOfPolicyViolation(transactionViolations, transaction, policy);
+
+            expect(result).not.toContainEqual(expect.objectContaining({name: CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY}));
+        });
+
+        it('should leave per-diem customUnitOutOfPolicy violations untouched', () => {
+            transaction.iouRequestType = CONST.IOU.REQUEST_TYPE.PER_DIEM;
+            transaction.comment = {
+                ...transaction.comment,
+                customUnit: {
+                    ...(transaction?.comment?.customUnit ?? {}),
+                    name: CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL,
+                    customUnitRateID: 'per_diem_rate_id',
+                },
+            };
+            transactionViolations = [
+                {
+                    name: CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY,
+                    type: CONST.VIOLATION_TYPES.VIOLATION,
+                    showInReview: true,
+                },
+            ];
+
+            const result = syncCustomUnitOutOfPolicyViolation(transactionViolations, transaction, policy);
+
+            expect(result).toContainEqual(expect.objectContaining({name: CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY}));
+        });
+
+        it('should strip customUnitOutOfPolicy for non-distance non-per-diem transactions', () => {
+            transaction.iouRequestType = CONST.IOU.REQUEST_TYPE.MANUAL;
+            transaction.comment = {...transaction.comment, customUnit: undefined};
+            transactionViolations = [
+                {
+                    name: CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY,
+                    type: CONST.VIOLATION_TYPES.VIOLATION,
+                    showInReview: true,
+                },
+            ];
+
+            const result = syncCustomUnitOutOfPolicyViolation(transactionViolations, transaction, policy);
+
+            expect(result).not.toContainEqual(expect.objectContaining({name: CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY}));
+        });
+
+        it('should not add customUnitOutOfPolicy for a P2P self-DM rate', () => {
+            transaction.comment = {
+                ...transaction.comment,
+                customUnit: {
+                    ...(transaction?.comment?.customUnit ?? {}),
+                    customUnitRateID: CONST.CUSTOM_UNITS.FAKE_P2P_ID,
+                },
+            };
+            transaction.participants = [{accountID: 1, login: 'test@expensify.com'}];
+
+            const result = syncCustomUnitOutOfPolicyViolation(transactionViolations, transaction, policy);
+
+            expect(result).not.toContainEqual(expect.objectContaining({name: CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY}));
+        });
+
+        it('should not add customUnitOutOfPolicy when the rate cannot be resolved (Track unresolvable-rate case)', () => {
+            // Self-DM / Track distance expenses often have no resolvable workspace rate.
+            // Sync must not invent a false "Rate not valid" violation in that case.
+            policy.customUnits = {};
+
+            const result = syncCustomUnitOutOfPolicyViolation(transactionViolations, transaction, policy);
+
+            expect(result).not.toContainEqual(expect.objectContaining({name: CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY}));
+        });
+
+        it('should preserve customUnitOutOfPolicy when the workspace rate was deleted', () => {
+            transactionViolations = [
+                {
+                    name: CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY,
+                    type: CONST.VIOLATION_TYPES.VIOLATION,
+                    showInReview: true,
+                },
+            ];
+            transaction.participants = [{accountID: 1, login: 'admin@expensify.com', isPolicyExpenseChat: true}];
+            policy.customUnits = {};
+
+            const result = syncCustomUnitOutOfPolicyViolation(transactionViolations, transaction, policy);
+
+            expect(result).toContainEqual(expect.objectContaining({name: CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY}));
+        });
+
+        it('should preserve customUnitOutOfPolicy for FAKE_P2P_ID on a policy expense chat', () => {
+            transactionViolations = [
+                {
+                    name: CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY,
+                    type: CONST.VIOLATION_TYPES.VIOLATION,
+                    showInReview: true,
+                },
+            ];
+            transaction.comment = {
+                ...transaction.comment,
+                customUnit: {
+                    ...(transaction?.comment?.customUnit ?? {}),
+                    customUnitRateID: CONST.CUSTOM_UNITS.FAKE_P2P_ID,
+                },
+            };
+            transaction.participants = [{accountID: 1, login: 'admin@expensify.com', isPolicyExpenseChat: true}];
+
+            const result = syncCustomUnitOutOfPolicyViolation(transactionViolations, transaction, policy);
+
+            expect(result).toContainEqual(expect.objectContaining({name: CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY}));
         });
     });
 

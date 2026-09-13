@@ -17,6 +17,7 @@ import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
+import usePolicyData from '@hooks/usePolicyData';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchBackPress from '@hooks/useSearchBackPress';
@@ -68,6 +69,7 @@ function PolicyDistanceRatesPage({
     const {translate} = useLocalize();
     const {showConfirmModal} = useConfirmModal();
     const policy = usePolicy(policyID);
+    const policyData = usePolicyData(policyID);
     useWorkspaceDocumentTitle(policy?.name, 'workspace.common.distanceRates');
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
     const {canWrite: canWriteDistanceRates, showReadOnlyModal} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.DISTANCE_RATES);
@@ -206,12 +208,12 @@ function PolicyDistanceRatesPage({
             }
             const rate = customUnit?.rates?.[rateID];
             if (!rate?.enabled || canDisableOrDeleteRate(rateID)) {
-                setPolicyDistanceRatesEnabled(policyID, customUnit, [{...rate, enabled: value}]);
+                setPolicyDistanceRatesEnabled(policyID, customUnit, [{...rate, enabled: value}], policyData);
             } else {
                 showWarningModal();
             }
         },
-        [canDisableOrDeleteRate, canWriteDistanceRates, customUnit, policyID, showReadOnlyModal, showWarningModal],
+        [canDisableOrDeleteRate, canWriteDistanceRates, customUnit, policyData, policyID, showReadOnlyModal, showWarningModal],
     );
 
     const unitTranslation = translate(`common.${customUnit?.attributes?.unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES}`);
@@ -237,6 +239,7 @@ function PolicyDistanceRatesPage({
                 .map((rateID) => selectableRates[rateID])
                 .filter((rate) => rate.enabled)
                 .map((rate) => ({...rate, enabled: false})),
+            policyData,
         );
         setSelectedDistanceRates([]);
     };
@@ -253,6 +256,7 @@ function PolicyDistanceRatesPage({
                 .map((rateID) => selectableRates[rateID])
                 .filter((rate) => !rate.enabled)
                 .map((rate) => ({...rate, enabled: true})),
+            policyData,
         );
         setSelectedDistanceRates([]);
     };
