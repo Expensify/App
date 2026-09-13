@@ -76,6 +76,7 @@ import type {FileObject} from '@src/types/utils/Attachment';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject, isEmptyValueObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
+import isArray from '@src/types/utils/isArray';
 
 import type {Locale as DateFnsLocale} from 'date-fns';
 import type {ColorValue} from 'react-native';
@@ -2407,7 +2408,7 @@ function pushTransactionViolationsOnyxData(
 
             // Keep the pre-toggle taxOutOfPolicy state when the update isn't about tax tracking.
             const recomputedViolations = optimisticViolations.value;
-            if (!isTaxTrackingUpdate && Array.isArray(recomputedViolations)) {
+            if (!isTaxTrackingUpdate && isArray(recomputedViolations)) {
                 const preservedTaxViolations = (existingViolations ?? []).filter((violation) => violation.name === CONST.VIOLATIONS.TAX_OUT_OF_POLICY);
                 optimisticViolations.value = [...recomputedViolations.filter((violation) => violation.name !== CONST.VIOLATIONS.TAX_OUT_OF_POLICY), ...preservedTaxViolations];
             }
