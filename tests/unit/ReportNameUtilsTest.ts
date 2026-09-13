@@ -452,6 +452,7 @@ describe('ReportNameUtils', () => {
                 reportTransactions: buildTransactionsByReportID(undefined),
                 translate: translateLocal,
                 isTrackIntentUser: false,
+                rules: undefined,
             });
         };
 
