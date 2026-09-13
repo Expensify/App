@@ -1566,7 +1566,9 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
      * Returns auto grow height text input style
      */
     getAutoGrowHeightInputStyle: (textInputHeight: number, maxHeight: number, verticalInset: number): ViewStyle => {
-        if (textInputHeight > maxHeight) {
+        // textInputHeight comes from the hidden measurement, which also includes the input's own vertical padding,
+        // so flip as soon as it no longer fits the fixed height below. Otherwise content can be clipped at some font scales.
+        if (textInputHeight > maxHeight - verticalInset) {
             return {
                 ...styles.pr0,
                 ...styles.overflowAuto,

@@ -46,19 +46,31 @@ describe('getAutoGrowHeightInputStyle', () => {
 
         // The input never scrolls while it is growing, so its fixed height has to be the full container height minus
         // everything its ancestors take up. Otherwise the box resizes at the flip and the scroll offset stops short.
-        expect(getAutoGrowHeightInputStyle(maxHeight, maxHeight, verticalInset)).toEqual(expect.objectContaining({height: maxHeight - verticalInset}));
+        expect(getAutoGrowHeightInputStyle(maxHeight - verticalInset, maxHeight, verticalInset)).toEqual(expect.objectContaining({height: maxHeight - verticalInset}));
     });
 
-    it('keeps the content of the tallest pre flip input within the fixed height', () => {
-        const verticalInset = getAutoGrowHeightInputVerticalInset(getContainerStyle(true), true);
-        // The hidden measurement carries the input padding, so the flip happens once `inputPaddingTop + 8 + lineHeight * lines` passes maxHeight.
-        const linesBeforeFlip = Math.floor((maxHeight - variables.inputPaddingTop - 8) / variables.lineHeightXLarge);
+    // Jest always runs at a font scale of 1, so mirror getValueUsingPixelRatio from variables.ts for the other scales
+    it.each([0.85, 0.9, 1, 1.1, 1.15, 1.3, 2])('never clips content while the input is growing at a font scale of %s', (fontScale) => {
+        const getScaledValue = (defaultValue: number, maxValue: number) => Math.min(defaultValue * fontScale, maxValue);
+        const inputPaddingTop = getScaledValue(15, 21);
+        const inputPaddingBottom = getScaledValue(8, 11);
+        const lineHeight = getScaledValue(20, 24);
+        // borders (1 * 2) + paddingTop (8) + pb1 (4) + label padding
+        const verticalInset = 14 + inputPaddingTop;
 
-        expect(linesBeforeFlip * variables.lineHeightXLarge).toBeLessThanOrEqual(maxHeight - verticalInset);
+        const clippedLineCounts = Array.from({length: 10}, (_, index) => index + 1).filter((lines) => {
+            const contentHeight = lineHeight * lines;
+            // The hidden measurement carries the input's own vertical padding and is capped at maxHeight + 1
+            const textInputHeight = Math.min(inputPaddingTop + inputPaddingBottom + contentHeight, maxHeight + 1);
+            const {height} = getAutoGrowHeightInputStyle(textInputHeight, maxHeight, verticalInset);
+            return typeof height === 'number' && contentHeight > height;
+        });
+
+        expect(clippedLineCounts).toEqual([]);
     });
 
-    it('drops the fixed height and scrolls once the content passes the max height', () => {
-        const style = getAutoGrowHeightInputStyle(maxHeight + 1, maxHeight, 29);
+    it('drops the fixed height and scrolls once the measurement no longer fits the fixed height', () => {
+        const style = getAutoGrowHeightInputStyle(maxHeight - 29 + 1, maxHeight, 29);
 
         expect(style.height).toBeUndefined();
         expect(style.overflow).toBe(mockStyles.overflowAuto.overflow);
