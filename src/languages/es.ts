@@ -361,6 +361,10 @@ const translations: TranslationDeepObject<typeof en> = {
         downgradeWorkspace: 'Desmejora tu espacio de trabajo',
         companyID: 'Empresa ID',
         userID: 'Usuario ID',
+        tenantID: 'ID de inquilino',
+        environmentName: 'Nombre del entorno',
+        clientID: 'ID de cliente',
+        clientSecret: 'Secreto de cliente',
         disable: 'Deshabilitar',
         export: 'Exportar',
         initialValue: 'Valor inicial',
@@ -6948,6 +6952,8 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
                         return 'DualEntry';
                     case CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE:
                         return 'Campfire';
+                    case CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL:
+                        return 'Dynamics 365 Business Central';
                     default: {
                         return '';
                     }
@@ -7182,6 +7188,12 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
                             return 'Sincronizando liquidaciones de tarjetas';
                         case 'campfireSyncTravelSettlements':
                             return 'Sincronizando liquidaciones de viaje';
+                        case 'businessCentralSyncTitle':
+                            return 'Sincronizando datos de Dynamics 365 Business Central';
+                        case 'businessCentralSyncConnection':
+                            return 'Iniciando conexión con Dynamics 365 Business Central';
+                        case 'businessCentralSyncImportData':
+                            return 'Cargando datos';
                         default: {
                             return `Falta la traducción para la etapa: ${stage}`;
                         }
@@ -7225,6 +7237,7 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
             syncTravelInvoicingSettlementsNoAccountTooltip: 'Para desbloquearlo, configura una cuenta para tus exportaciones.',
             syncTravelInvoicingSettlementsNoAutoSyncTooltip: 'Para desbloquear, habilita la sincronización automática.',
             campfire: 'Campfire',
+            businessCentral: 'Dynamics 365 Business Central',
         },
         card: {
             issueCard: 'Emitir tarjeta',
@@ -7728,6 +7741,12 @@ ${reportName}`,
                 description: `Disfruta de la sincronización automatizada y reduce las entradas manuales con la integración Expensify + Campfire. Alinea dimensiones de codificación de gastos y la sincronización de impuestos con tu configuración de Campfire para una visibilidad financiera más clara.`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}) =>
                     `<muted-text>Nuestra integración con Campfire solo está disponible en el plan Controlar, a partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `por miembro al mes.` : `por miembro activo al mes.`}</muted-text>`,
+            },
+            [CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL]: {
+                title: 'Dynamics 365 Business Central',
+                description: `Disfruta de la sincronización automatizada y reduce las entradas manuales con la integración Expensify + Dynamics 365 Business Central. Alinea dimensiones de codificación de gastos y la sincronización de impuestos con tu configuración de Dynamics 365 Business Central para una visibilidad financiera más clara.`,
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}) =>
+                    `<muted-text>Nuestra integración con Dynamics 365 Business Central solo está disponible en el plan Controlar, a partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `por miembro al mes.` : `por miembro activo al mes.`}</muted-text>`,
             },
             [CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.id]: {
                 title: 'Aprobaciones anticipadas',
@@ -8521,6 +8540,17 @@ ${reportName}`,
             subsidiarySelectDescription: 'Elige la filial en Campfire de la que te gustaría importar datos.',
             noSubsidiariesFound: 'No se han encontrado filiales',
             noSubsidiariesFoundDescription: 'Por favor, añade una entidad en Campfire y sincroniza la conexión de nuevo',
+        },
+        businessCentral: {
+            businessCentralSetup: 'Configuración de Dynamics 365 Business Central',
+            prerequisitesTitle: 'Antes de conectar...',
+            followSteps: 'Sigue los pasos de nuestras instrucciones: Conectar con Dynamics 365 Business Central',
+            enterCredentials: 'Introduce los datos de tu Dynamics 365 Business Central',
+            helpArticle: `<muted-text>Consulta este <a href="${CONST.BUSINESS_CENTRAL_HELP_URL}">artículo de ayuda</a> para encontrar esta información.</muted-text>`,
+            company: 'Empresa',
+            companySelectDescription: 'Selecciona la empresa de Dynamics 365 Business Central que quieres sincronizar con este espacio de trabajo.',
+            noCompaniesFound: 'No se han encontrado empresas',
+            noCompaniesFoundDescription: 'Por favor, añade una empresa en Dynamics 365 Business Central y sincroniza la conexión de nuevo',
         },
     },
     getAssistancePage: {

@@ -133,6 +133,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
         'RilletSquare',
         'DualEntrySquare',
         'CampfireSquare',
+        'BusinessCentralSquare',
     ]);
     const [cardFeeds] = useCardFeeds(policyID);
     const [cardLists] = useCardsLists();
@@ -140,6 +141,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
 
     const canUseDualEntryIntegration = isBetaEnabled(CONST.BETAS.DUALENTRY) || !!policy?.connections?.dualEntry;
     const canUseCampfireIntegration = isBetaEnabled(CONST.BETAS.CAMPFIRE) || !!policy?.connections?.campfire;
+    const canUseBusinessCentralIntegration = isBetaEnabled(CONST.BETAS.BUSINESS_CENTRAL) || !!policy?.connections?.businessCentral;
     const accountingIntegrations = useMemo(
         () =>
             CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES.filter((name) => {
@@ -149,9 +151,12 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                 if (name === CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE) {
                     return canUseCampfireIntegration;
                 }
+                if (name === CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL) {
+                    return canUseBusinessCentralIntegration;
+                }
                 return true;
             }),
-        [canUseDualEntryIntegration, canUseCampfireIntegration],
+        [canUseDualEntryIntegration, canUseCampfireIntegration, canUseBusinessCentralIntegration],
     );
     const accountingIntegrationOptions = useMemo(
         () =>
@@ -324,6 +329,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
         const rilletSubsidiaryList = policy?.connections?.rillet?.data?.subsidiaries;
         const dualEntryCompanyList = policy?.connections?.dualEntry?.data?.companies;
         const campfireSubsidiaryList = policy?.connections?.campfire?.data?.subsidiaries;
+        const businessCentralCompanyList = policy?.connections?.businessCentral?.data?.companies;
         const certiniaConfig = policy?.connections?.financialforce?.config;
         const certiniaCompanies = policy?.connections?.financialforce?.data?.companies ?? [];
         const certiniaCompanyID = getCertiniaSelectedCompanyID(certiniaConfig);
@@ -480,6 +486,25 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                           onPress:
                               policyID && canWriteAccounting && campfireSubsidiaryList && campfireSubsidiaryList.length > 1
                                   ? () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_CAMPFIRE_SUBSIDIARY_SELECTOR.getRoute(policyID))
+                                  : undefined,
+                      };
+            case CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL:
+                return !businessCentralCompanyList?.length
+                    ? {}
+                    : {
+                          description: translate('workspace.businessCentral.company'),
+                          iconRight: icons.ArrowRight,
+                          title: businessCentralCompanyList.find((company) => company.id === policy?.connections?.businessCentral?.config?.companyID)?.displayName ?? '',
+                          wrapperStyle: [styles.sectionMenuItemTopDescription],
+                          titleStyle: styles.fontWeightNormal,
+                          shouldShowRightIcon: canWriteAccounting && businessCentralCompanyList.length > 1,
+                          shouldShowDescriptionOnTop: true,
+                          interactive: canWriteAccounting,
+                          pendingAction: policy?.connections?.businessCentral?.config.pendingFields?.companyID,
+                          brickRoadIndicator: policy?.connections?.businessCentral?.config.errorFields?.companyID ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
+                          onPress:
+                              policyID && canWriteAccounting && businessCentralCompanyList.length > 1
+                                  ? () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_BUSINESS_CENTRAL_COMPANY_SELECTOR.getRoute(policyID))
                                   : undefined,
                       };
 

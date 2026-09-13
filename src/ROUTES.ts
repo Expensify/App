@@ -4987,6 +4987,18 @@ const ROUTES = {
         route: 'workspaces/:policyID/accounting/campfire/subsidiary-selector',
         getRoute: (policyID: string) => `workspaces/${policyID}/accounting/campfire/subsidiary-selector` as const,
     },
+    POLICY_ACCOUNTING_BUSINESS_CENTRAL_PREREQUISITES: {
+        route: 'workspaces/:policyID/accounting/business-central/prerequisites',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/business-central/prerequisites` as const,
+    },
+    POLICY_ACCOUNTING_BUSINESS_CENTRAL_SETUP: {
+        route: 'workspaces/:policyID/accounting/business-central/setup',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/business-central/setup` as const,
+    },
+    POLICY_ACCOUNTING_BUSINESS_CENTRAL_COMPANY_SELECTOR: {
+        route: 'workspaces/:policyID/accounting/business-central/company-selector',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/business-central/company-selector` as const,
+    },
     ADD_EXISTING_EXPENSE: {
         route: 'search/r/:reportID/add-existing-expense/:backToReport?',
         getRoute: (reportID: string | undefined, backToReport?: string) => `search/r/${reportID}/add-existing-expense/${backToReport ?? ''}` as const,

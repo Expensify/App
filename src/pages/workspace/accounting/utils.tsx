@@ -1,3 +1,4 @@
+import ConnectToBusinessCentralFlow from '@components/ConnectToBusinessCentralFlow';
 import ConnectToCampfireFlow from '@components/ConnectToCampfireFlow';
 import ConnectToCertiniaFlow from '@components/ConnectToCertiniaFlow';
 import ConnectToDualEntryFlow from '@components/ConnectToDualEntry';
@@ -72,7 +73,17 @@ function getAccountingIntegrationData(
     shouldDisconnectIntegrationBeforeConnecting?: boolean,
     canUseNetSuiteUSATax?: boolean,
     expensifyIcons?: Record<
-        'IntacctSquare' | 'IntuitSquare' | 'QBOSquare' | 'XeroSquare' | 'NetSuiteSquare' | 'QBDSquare' | 'CertiniaSquare' | 'RilletSquare' | 'DualEntrySquare' | 'CampfireSquare',
+        | 'IntacctSquare'
+        | 'IntuitSquare'
+        | 'QBOSquare'
+        | 'XeroSquare'
+        | 'NetSuiteSquare'
+        | 'QBDSquare'
+        | 'CertiniaSquare'
+        | 'RilletSquare'
+        | 'DualEntrySquare'
+        | 'CampfireSquare'
+        | 'BusinessCentralSquare',
         IconAsset
     >,
     cardFeeds?: CombinedCardFeeds,
@@ -621,6 +632,32 @@ function getAccountingIntegrationData(
                 },
                 pendingFields: policy?.connections?.campfire?.config?.pendingFields,
                 errorFields: policy?.connections?.campfire?.config?.errorFields,
+            };
+        }
+        case CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL: {
+            return {
+                title: translate('workspace.accounting.businessCentral'),
+                icon: expensifyIcons?.BusinessCentralSquare,
+                setupConnectionFlow: (
+                    <ConnectToBusinessCentralFlow
+                        policyID={policyID}
+                        key={key}
+                    />
+                ),
+                onImportPagePress: () => null,
+                subscribedImportSettings: [],
+                onExportPagePress: () => null,
+                subscribedExportSettings: [],
+                onAdvancedPagePress: () => null,
+                subscribedAdvancedSettings: [],
+                workspaceUpgradeNavigationDetails: {
+                    integrationAlias: CONST.UPGRADE_FEATURE_INTRO_MAPPING.businessCentral.alias,
+                    backToAfterWorkspaceUpgradeRoute: integrationToDisconnect
+                        ? ROUTES.POLICY_ACCOUNTING.getRoute(policyID, connectionName, integrationToDisconnect, shouldDisconnectIntegrationBeforeConnecting)
+                        : ROUTES.POLICY_ACCOUNTING_BUSINESS_CENTRAL_PREREQUISITES.getRoute(policyID),
+                },
+                pendingFields: policy?.connections?.businessCentral?.config?.pendingFields,
+                errorFields: policy?.connections?.businessCentral?.config?.errorFields,
             };
         }
         default:

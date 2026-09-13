@@ -2457,6 +2457,242 @@ type CampfireConnectionsConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
     CampfireCodingOfflineFeedbackKeys | CampfireExportOfflineFeedbackKeys | keyof CampfireAutoSync | keyof CampfireSync
 >;
 
+/**
+ * A company (legal entity) reachable with the Business Central connection's credentials.
+ */
+type BusinessCentralCompany = {
+    /** Unique identifier of the company */
+    id: string;
+
+    /** Internal name of the company */
+    name: string;
+
+    /** Name shown to admins when picking a company */
+    displayName: string;
+};
+
+/**
+ * Value of a dimension retrieved from Business Central.
+ */
+type BusinessCentralDimensionValue = {
+    /** Code identifying the value within its dimension */
+    code: string;
+
+    /** Name of the value */
+    name: string;
+};
+
+/**
+ * Dimension retrieved from Business Central. Dimensions are imported as tags.
+ */
+type BusinessCentralDimension = {
+    /** Code identifying the dimension */
+    code: string;
+
+    /** Name of the dimension */
+    name: string;
+
+    /** Values the dimension can take */
+    values: BusinessCentralDimensionValue[];
+};
+
+/**
+ * Vendor retrieved from Business Central.
+ */
+type BusinessCentralVendor = {
+    /** Unique identifier of the vendor */
+    id: string;
+
+    /** Vendor number shown in Business Central */
+    number: string;
+
+    /** Name of the vendor */
+    name: string;
+
+    /** Email address associated with the vendor */
+    email: string;
+
+    /** Blocked state reported by Business Central, empty when the vendor is not blocked */
+    blocked: string;
+
+    /** Expensify identifier stored on the vendor by the Business Central extension */
+    expensifyVendorId: string;
+
+    /** When the vendor was last modified in Business Central */
+    lastModifiedDateTime: string;
+};
+
+/**
+ * Payment method retrieved from Business Central.
+ */
+type BusinessCentralPaymentMethod = {
+    /** Unique identifier of the payment method */
+    id: string;
+
+    /** Code identifying the payment method */
+    code: string;
+
+    /** Name shown to admins when picking a payment method */
+    displayName: string;
+};
+
+/**
+ * Bank account retrieved from Business Central.
+ */
+type BusinessCentralBankAccount = {
+    /** Unique identifier of the bank account */
+    id: string;
+
+    /** Bank account number shown in Business Central */
+    number: string;
+
+    /** Name of the bank account */
+    name: string;
+};
+
+/**
+ * VAT posting setup retrieved from Business Central. VAT posting setups are imported as tax rates.
+ */
+type BusinessCentralVATPostingSetup = {
+    /** VAT business posting group the setup applies to */
+    vatBusinessPostingGroup: string;
+
+    /** VAT product posting group the setup applies to */
+    vatProductPostingGroup: string;
+
+    /** Identifier of the VAT rate */
+    vatIdentifier: string;
+
+    /** VAT percentage the setup applies */
+    vatPercentage: number;
+};
+
+/**
+ * Connection data retrieved from Business Central.
+ */
+type BusinessCentralConnectionData = {
+    /** Companies the connection can import from */
+    companies?: BusinessCentralCompany[];
+
+    /** Dimensions of the selected company */
+    dimensions?: BusinessCentralDimension[];
+
+    /** Vendors of the selected company */
+    vendors?: BusinessCentralVendor[];
+
+    /** Payment methods of the selected company */
+    paymentMethods?: BusinessCentralPaymentMethod[];
+
+    /** Bank accounts of the selected company */
+    bankAccounts?: BusinessCentralBankAccount[];
+
+    /** VAT posting setups of the selected company */
+    vatPostingSetups?: BusinessCentralVATPostingSetup[];
+};
+
+/**
+ * Expensify setup record of the selected company, written by the Business Central extension.
+ */
+type BusinessCentralSetup = {
+    /** Unique identifier of the setup record */
+    id: string;
+
+    /** General journal template the connection posts to */
+    genJournalTemplateName: string;
+
+    /** General journal batch the connection posts to */
+    genJournalBatchName: string;
+
+    /** Template applied to employees the connection creates */
+    defaultEmployeeTemplate: string;
+
+    /** Template applied to vendors the connection creates */
+    defaultVendorTemplate: string;
+
+    /** When the setup record was last modified in Business Central */
+    lastModifiedDateTime: string;
+};
+
+/**
+ * Credentials identifying the Business Central environment the connection reads from.
+ * The client ID and client secret are encrypted and only stored on the server.
+ */
+type BusinessCentralCredentials = {
+    /** Entra ID tenant that hosts the environment */
+    tenantID: string;
+
+    /** Name of the Business Central environment */
+    environmentName: string;
+};
+
+/**
+ * Coding configuration for Business Central.
+ */
+type BusinessCentralCoding = {
+    /**
+     * How each dimension is imported into Expensify, keyed by dimension code.
+     * Populated once a sync has read the dimensions of the selected company.
+     */
+    fieldMappings?: Record<string, ValueOf<typeof CONST.BUSINESS_CENTRAL_MAPPING_VALUE>>;
+
+    /** Whether VAT posting setups are imported as tax rates */
+    syncTaxRates: boolean;
+
+    /** Whether items are imported */
+    syncItems: boolean;
+};
+
+/** Offline feedback key for field mapping */
+type BusinessCentralCodingFieldMappingsOfflineFeedbackKey = `${typeof CONST.BUSINESS_CENTRAL_CONFIG.FIELD_MAPPING_PREFIX}${string}`;
+
+/**
+ * Offline feedback keys for `BusinessCentralCoding`
+ */
+type BusinessCentralCodingOfflineFeedbackKeys = keyof Omit<BusinessCentralCoding, 'fieldMappings'> | BusinessCentralCodingFieldMappingsOfflineFeedbackKey;
+
+/**
+ * Automatic synchronization settings for Business Central.
+ */
+type BusinessCentralAutoSync = {
+    /** Whether automatic synchronization is enabled */
+    enabled: boolean;
+};
+
+/**
+ * Connection config for Business Central.
+ */
+type BusinessCentralConnectionsConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
+    {
+        /** Credentials identifying the connected environment */
+        credentials: BusinessCentralCredentials;
+
+        /** ID of the company the workspace syncs with */
+        companyID: string;
+
+        /** Setup record read from the selected company */
+        setup?: BusinessCentralSetup;
+
+        /** Whether the connection has been configured */
+        isConfigured: boolean;
+
+        /** Whether categories newly imported from Business Central are enabled on the workspace */
+        enableNewCategories: boolean;
+
+        /** Coding settings */
+        coding?: BusinessCentralCoding;
+
+        /** Auto-sync settings */
+        autoSync?: BusinessCentralAutoSync;
+
+        /** Collection of errors coming from BE */
+        errors?: OnyxCommon.Errors;
+
+        /** Collection of form field errors  */
+        errorFields?: OnyxCommon.ErrorFields;
+    },
+    'companyID' | 'enableNewCategories' | BusinessCentralCodingOfflineFeedbackKeys | keyof BusinessCentralAutoSync
+>;
+
 /** Gusto connection data */
 type GustoConnectionData = Record<string, never>;
 
@@ -2713,6 +2949,9 @@ type Connections = {
 
     /** Campfire integration connection */
     [CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE]: Connection<CampfireConnectionData, CampfireConnectionsConfig>;
+
+    /** Business Central integration connection */
+    [CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL]: Connection<BusinessCentralConnectionData, BusinessCentralConnectionsConfig>;
 
     /** Gusto integration connection */
     [CONST.POLICY.CONNECTIONS.NAME.GUSTO]: Connection<GustoConnectionData, GustoConnectionConfig>;
@@ -3552,4 +3791,5 @@ export type {
     DualEntrySync,
     CampfireConnectionsConfig,
     CampfireSubsidiary,
+    BusinessCentralCompany,
 };
