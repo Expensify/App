@@ -86,7 +86,7 @@ function TaskView({report, parentReport, action}: TaskViewProps) {
     } = useTaskCheckboxAccessibility(isCompletedFromOnyx, taskTitlePlainText);
 
     const assigneePersonalDetails = report?.managerID ? personalDetails?.[report.managerID] : undefined;
-    const assigneeDisplayName = report?.managerID ? getDisplayNameForParticipant({accountID: report.managerID, formatPhoneNumber, translate}) : '';
+    const assigneeDisplayName = report?.managerID ? getDisplayNameForParticipant({accountID: report.managerID, formatPhoneNumber, hiddenTranslation: translate('common.hidden')}) : '';
 
     const isOpen = isOpenTaskReport(report);
 

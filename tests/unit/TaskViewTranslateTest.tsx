@@ -70,6 +70,6 @@ describe('TaskView', () => {
         await waitForBatchedUpdates();
 
         // The assignee menu item resolves its title via getDisplayNameForParticipant, which must receive the translate from useLocalize.
-        expect(mockGetDisplayNameForParticipant).toHaveBeenCalledWith(expect.objectContaining({accountID: TASK_MANAGER_ACCOUNT_ID, translate: mockTranslate}));
+        expect(mockGetDisplayNameForParticipant).toHaveBeenCalledWith(expect.objectContaining({accountID: TASK_MANAGER_ACCOUNT_ID, hiddenTranslation: 'common.hidden'}));
     });
 });

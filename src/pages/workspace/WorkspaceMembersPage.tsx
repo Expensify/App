@@ -163,14 +163,15 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     const canSelectMultiple = canWriteMembers && (shouldUseNarrowLayout ? isMobileSelectionModeEnabled : true);
 
     const confirmModalPrompt = useMemo(() => {
+        const hiddenText = translate('common.hidden');
         const approverEmail = selectedEmployees.find((selectedEmployee) => isPolicyApprover(policy, selectedEmployee));
 
         if (approverEmail) {
             const approverAccountID = policyMemberEmailsToAccountIDs[approverEmail];
             return translate(
                 'workspace.people.removeMembersWarningPrompt',
-                getDisplayNameForParticipant({accountID: approverAccountID, formatPhoneNumber, translate}),
-                getDisplayNameForParticipant({accountID: policy?.ownerAccountID, formatPhoneNumber, translate}),
+                getDisplayNameForParticipant({accountID: approverAccountID, formatPhoneNumber, hiddenTranslation: hiddenText}),
+                getDisplayNameForParticipant({accountID: policy?.ownerAccountID, formatPhoneNumber, hiddenTranslation: hiddenText}),
             );
         }
 
@@ -180,8 +181,8 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         if (userExporter) {
             const exporterAccountID = policyMemberEmailsToAccountIDs[userExporter];
             return translate('workspace.people.removeMemberPromptExporter', {
-                memberName: getDisplayNameForParticipant({accountID: exporterAccountID, formatPhoneNumber, translate}),
-                workspaceOwner: getDisplayNameForParticipant({accountID: policy?.ownerAccountID, formatPhoneNumber, translate}),
+                memberName: getDisplayNameForParticipant({accountID: exporterAccountID, formatPhoneNumber, hiddenTranslation: hiddenText}),
+                workspaceOwner: getDisplayNameForParticipant({accountID: policy?.ownerAccountID, formatPhoneNumber, hiddenTranslation: hiddenText}),
             });
         }
 

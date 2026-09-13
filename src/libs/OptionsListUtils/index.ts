@@ -403,7 +403,7 @@ function getPersonalDetailOptionText({accountID, hasReport, personalDetails, log
             accountID,
             personalDetailsData: hasReport ? undefined : (personalDetails ?? undefined),
             formatPhoneNumber: formatPhoneNumberPhoneUtils,
-            translate,
+            hiddenTranslation: translate('common.hidden'),
         }) || formatPhoneNumberPhoneUtils(login ?? '')
     );
 }
@@ -487,6 +487,10 @@ function createOption({
     let reportName;
     result.participantsList = personalDetailList;
 
+    // Resolve display-name translations once per option, then pass the strings to getDisplayNameForParticipant.
+    const hiddenText = translateFn('common.hidden');
+    const youText = translateFn('common.you').toLowerCase();
+
     if (report) {
         result.private_isArchived = privateIsArchived;
         result.keyForList = String(report.reportID);
@@ -551,7 +555,8 @@ function createOption({
                       shouldAddCurrentUserPostfix: true,
                       personalDetailsData: personalDetails ?? undefined,
                       formatPhoneNumber: formatPhoneNumberPhoneUtils,
-                      translate: translateFn,
+                      hiddenTranslation: hiddenText,
+                      youTranslation: youText,
                   })
                 : '');
 
