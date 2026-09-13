@@ -219,7 +219,6 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
         isAdminRoom(report) &&
         !!canUserPerformWriteAction(report, isReportArchived) &&
         !isChatThread &&
-        introSelected?.companySize !== CONST.ONBOARDING_COMPANY_SIZE.MICRO &&
         introSelected?.companySize !== CONST.ONBOARDING_COMPANY_SIZE.MICRO_SMALL;
 
     const accountManagerAccountID = bookCallDetails?.accountManagerAccountID;
@@ -231,7 +230,6 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
         !accountManagerAccountID &&
         !!accountGuideDetails?.calendarLink &&
         accountGuideDetails?.email !== CONST.EMAIL.CONCIERGE &&
-        introSelected?.companySize !== CONST.ONBOARDING_COMPANY_SIZE.MICRO &&
         introSelected?.companySize !== CONST.ONBOARDING_COMPANY_SIZE.MICRO_SMALL;
 
     // Show the "Book a call" button in the 1:1 DM with the assigned support person, or in the Concierge chat
@@ -326,7 +324,7 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
     const [onboardingPurposeSelected] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED);
     const isChatUsedForOnboarding = isChatUsedForOnboardingReportUtils(report, onboarding, conciergeReportID, onboardingPurposeSelected);
     const shouldShowRegisterForWebinar =
-        (introSelected?.companySize === CONST.ONBOARDING_COMPANY_SIZE.MICRO || introSelected?.companySize === CONST.ONBOARDING_COMPANY_SIZE.MICRO_SMALL) &&
+        (introSelected?.companySize === CONST.ONBOARDING_COMPANY_SIZE.LEGACY_MICRO || introSelected?.companySize === CONST.ONBOARDING_COMPANY_SIZE.MICRO_SMALL) &&
         (isChatUsedForOnboarding || (isAdminRoom(report) && !isChatThread)) &&
         !shouldMirrorSidePanelHeader;
     const shouldShowOnBoardingHelpDropdownButton = (shouldShowRegisterForWebinar || shouldShowGuideBooking) && !isReportArchived && !shouldMirrorSidePanelHeader;
