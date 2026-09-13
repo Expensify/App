@@ -78,6 +78,9 @@ type MoneyRequestConfirmationListProps = {
     /** Whether the parent-owned participant picker modal is currently open (new manual expense flow). Drives amount autofocus on picker close. */
     isParticipantPickerVisible?: boolean;
 
+    /** Whether the Share Submit flow can edit its participant without setting isFromGlobalCreate. */
+    shouldAllowParticipantEdit?: boolean;
+
     /** Callback to parent modal to pay someone */
     onSendMoney?: (paymentMethod: PaymentMethodType | undefined) => void;
 
@@ -162,6 +165,7 @@ function MoneyRequestConfirmationList({
     onConfirm,
     onOpenParticipantPicker,
     isParticipantPickerVisible = false,
+    shouldAllowParticipantEdit = false,
     iouType = CONST.IOU.TYPE.SUBMIT,
     isOdometerDistanceRequest = false,
     isLoadingReceipt = false,
@@ -245,7 +249,7 @@ function MoneyRequestConfirmationList({
     const isTypeRequest = iouType === CONST.IOU.TYPE.SUBMIT;
     const isTypeSend = iouType === CONST.IOU.TYPE.PAY;
     const isTypeInvoice = iouType === CONST.IOU.TYPE.INVOICE;
-    const isFromGlobalCreateAndCanEditParticipant = !!transaction?.isFromGlobalCreate && !isPerDiemRequest && !isTimeRequest;
+    const isAllowedToEditParticipant = (!!transaction?.isFromGlobalCreate || shouldAllowParticipantEdit) && !isPerDiemRequest && !isTimeRequest;
 
     const transactionID = transaction?.transactionID;
     const previousTransactionCurrency = usePrevious(transaction?.currency);
@@ -410,7 +414,7 @@ function MoneyRequestConfirmationList({
         currentUserAccountID: currentUserPersonalDetails.accountID,
     });
 
-    const canEditParticipant = isFromGlobalCreateAndCanEditParticipant && !isTestReceipt && (!isRestrictedToPreferredPolicy || isTypeInvoice);
+    const canEditParticipant = isAllowedToEditParticipant && !isTestReceipt && (!isRestrictedToPreferredPolicy || isTypeInvoice);
 
     const sections = useConfirmationSections({
         isTypeSplit,
