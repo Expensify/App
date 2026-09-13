@@ -10781,6 +10781,7 @@ ${reportName}`,
         gpsTooltip: '<tooltip>GPS追跡を実行中です！完了したら、下で追跡を停止してください。</tooltip>',
         hasFilterNegation: '<tooltip><strong>-has:receipt</strong> を使って、レシートのない経費を検索します。</tooltip>',
         mileageRateAutoUpdated: '<tooltip>出張日にもとづいてレートを更新しました。</tooltip>',
+        accountMovedToTopBar: '<tooltip>アカウントと個人設定にアクセスします。</tooltip>',
     },
     discardChangesConfirmation: {
         title: '変更を破棄しますか？',

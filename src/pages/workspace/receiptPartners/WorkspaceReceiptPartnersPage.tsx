@@ -308,6 +308,7 @@ function WorkspaceReceiptPartnersPage({route}: WorkspaceReceiptPartnersPageProps
                         shouldShowBackButton={shouldUseNarrowLayout}
                         shouldUseHeadlineHeader
                         shouldDisplayHelpButton
+                        shouldDisplayAccountButton
                         onBackButtonPress={Navigation.goBack}
                     />
                     <ScrollView

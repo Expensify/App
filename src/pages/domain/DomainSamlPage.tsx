@@ -98,6 +98,7 @@ function DomainSamlPage({route}: DomainSamlPageProps) {
                     onBackButtonPress={Navigation.goBack}
                     shouldShowBackButton={shouldUseNarrowLayout}
                     shouldDisplayHelpButton
+                    shouldDisplayAccountButton
                 />
 
                 <ScrollView

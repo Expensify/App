@@ -130,6 +130,7 @@ const avatarBorderSizes = {
     [CONST.AVATAR_SIZE.XX_SMALL]: variables.componentBorderRadiusMedium,
     [CONST.AVATAR_SIZE.X_SMALL]: variables.componentBorderRadiusMedium,
     [CONST.AVATAR_SIZE.SMALL]: variables.componentBorderRadiusMedium,
+    [CONST.AVATAR_SIZE.MID_SMALL]: variables.componentBorderRadiusMedium,
     [CONST.AVATAR_SIZE.DEFAULT]: variables.componentBorderRadiusNormal,
     [CONST.AVATAR_SIZE.LARGE]: variables.componentBorderRadiusLarge,
     [CONST.AVATAR_SIZE.X_LARGE]: variables.componentBorderRadiusLarge,
@@ -144,6 +145,7 @@ const avatarSizes = {
     [CONST.AVATAR_SIZE.XX_SMALL]: variables.avatarSizeXxSmall,
     [CONST.AVATAR_SIZE.X_SMALL]: variables.avatarSizeXSmall,
     [CONST.AVATAR_SIZE.SMALL]: variables.avatarSizeSmall,
+    [CONST.AVATAR_SIZE.MID_SMALL]: variables.avatarSizeMidSmall,
     [CONST.AVATAR_SIZE.DEFAULT]: variables.avatarSizeMedium,
     [CONST.AVATAR_SIZE.LARGE]: variables.avatarSizeLarge,
     [CONST.AVATAR_SIZE.X_LARGE]: variables.avatarSizeXLarge,
@@ -160,6 +162,7 @@ const avatarFontSizes = {
     [CONST.AVATAR_SIZE.XX_SMALL]: variables.fontSizeExtraSmall,
     [CONST.AVATAR_SIZE.X_SMALL]: variables.fontSizeExtraSmall,
     [CONST.AVATAR_SIZE.SMALL]: variables.fontSizeSmall,
+    [CONST.AVATAR_SIZE.MID_SMALL]: variables.fontSizeSmall,
     [CONST.AVATAR_SIZE.DEFAULT]: variables.fontSizeNormal,
     [CONST.AVATAR_SIZE.LARGE]: variables.fontSizeMedium,
     [CONST.AVATAR_SIZE.X_LARGE]: variables.fontSizeMedium,
@@ -174,6 +177,7 @@ const avatarBorderWidths = {
     [CONST.AVATAR_SIZE.XX_SMALL]: variables.avatarBorderWidthSmall,
     [CONST.AVATAR_SIZE.X_SMALL]: variables.avatarBorderWidthSmall,
     [CONST.AVATAR_SIZE.SMALL]: variables.avatarBorderWidthSmall,
+    [CONST.AVATAR_SIZE.MID_SMALL]: variables.avatarBorderWidthSmall,
     [CONST.AVATAR_SIZE.DEFAULT]: variables.avatarBorderWidthDefault,
     [CONST.AVATAR_SIZE.LARGE]: variables.avatarBorderWidthDefault,
     [CONST.AVATAR_SIZE.X_LARGE]: variables.avatarBorderWidthDefault,
@@ -181,6 +185,10 @@ const avatarBorderWidths = {
     [CONST.AVATAR_SIZE.XXX_LARGE]: variables.avatarBorderWidthLarge,
     [CONST.AVATAR_SIZE.XXXX_LARGE]: variables.avatarBorderWidthLarge,
 } satisfies Record<AvatarSizeName, number>;
+
+const selectedAvatarRingBorderWidth = 2;
+const selectedAvatarRingPadding = 1;
+const selectedAvatarRingOffset = selectedAvatarRingBorderWidth + selectedAvatarRingPadding;
 
 /**
  * Converts a color in hexadecimal notation into RGB notation.
@@ -1598,6 +1606,23 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
             marginTop: -(verticalPaddingDiff / 2),
             height: '100%',
             justifyContent: 'center',
+        };
+    },
+
+    /**
+     * Ring drawn around an avatar while its navigation entry is selected
+     */
+    getSelectedAvatarRingStyle: (size: AvatarSizeName): ViewStyle => {
+        const ringSize = getAvatarSize(size) + selectedAvatarRingOffset * 2;
+        return {
+            height: ringSize,
+            width: ringSize,
+            borderRadius: ringSize / 2,
+            padding: selectedAvatarRingPadding,
+            borderWidth: selectedAvatarRingBorderWidth,
+            borderColor: theme.success,
+            right: -selectedAvatarRingOffset,
+            top: -selectedAvatarRingOffset,
         };
     },
 

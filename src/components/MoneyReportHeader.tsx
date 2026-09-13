@@ -37,9 +37,11 @@ type MoneyReportHeaderProps = {
 
     /** Method to trigger when pressing close button of the header */
     onBackButtonPress: () => void;
+
+    shouldDisplayAccountButton?: boolean;
 };
 
-function MoneyReportHeader({reportID, shouldDisplayBackButton = false, onBackButtonPress}: MoneyReportHeaderProps) {
+function MoneyReportHeader({reportID, shouldDisplayBackButton = false, onBackButtonPress, shouldDisplayAccountButton = false}: MoneyReportHeaderProps) {
     return (
         <MoneyReportHeaderModals reportID={reportID}>
             <PaymentAnimationsProvider>
@@ -47,13 +49,14 @@ function MoneyReportHeader({reportID, shouldDisplayBackButton = false, onBackBut
                     reportID={reportID}
                     shouldDisplayBackButton={shouldDisplayBackButton}
                     onBackButtonPress={onBackButtonPress}
+                    shouldDisplayAccountButton={shouldDisplayAccountButton}
                 />
             </PaymentAnimationsProvider>
         </MoneyReportHeaderModals>
     );
 }
 
-function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButton = false, onBackButtonPress}: MoneyReportHeaderProps) {
+function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButton = false, onBackButtonPress, shouldDisplayAccountButton = false}: MoneyReportHeaderProps) {
     const {clearSelectedTransactions} = useSearchSelectionActions();
     const [moneyRequestReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDProp}`);
 
@@ -126,6 +129,7 @@ function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButt
                 shouldShowBackButton={shouldShowBackButton}
                 shouldDisplaySearchRouter={shouldDisplaySearchRouter}
                 shouldDisplayHelpButton={!(isReportInRHP && shouldUseNarrowLayout)}
+                shouldDisplayAccountButton={shouldDisplayAccountButton && !isReportInRHP}
                 onBackButtonPress={onBackButtonPress}
                 shouldShowBorderBottom={false}
                 shouldEnableDetailPageNavigation

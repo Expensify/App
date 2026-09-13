@@ -113,6 +113,7 @@ function DomainGroupsPage({route}: DomainGroupsPageProps) {
                 <HeaderWithBackButton
                     title={translate('domain.groups.title')}
                     shouldDisplayHelpButton
+                    shouldDisplayAccountButton
                     onBackButtonPress={Navigation.popToSidebar}
                     shouldShowBackButton={shouldUseNarrowLayout}
                     shouldUseHeadlineHeader

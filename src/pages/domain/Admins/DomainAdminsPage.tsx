@@ -207,6 +207,7 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
                     shouldShowBackButton={shouldUseNarrowLayout}
                     shouldUseHeadlineHeader
                     shouldDisplayHelpButton
+                    shouldDisplayAccountButton
                 >
                     {!shouldDisplayButtonsInSeparateLine && headerContent}
                 </HeaderWithBackButton>

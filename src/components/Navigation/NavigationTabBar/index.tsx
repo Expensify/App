@@ -133,11 +133,13 @@ function NavigationTabBar({selectedTab, shouldShowFloatingButtons = true}: Navig
                                     selectedTab={selectedTab}
                                     isWideLayout
                                 />
-                                <NavigationTabBarAvatar
-                                    style={styles.leftNavigationTabBarItem}
-                                    isSelected={selectedTab === NAVIGATION_TABS.SETTINGS}
-                                    onPress={navigateToSettings}
-                                />
+                                {!isInsightsTabVisible && (
+                                    <NavigationTabBarAvatar
+                                        style={styles.leftNavigationTabBarItem}
+                                        isSelected={selectedTab === NAVIGATION_TABS.SETTINGS}
+                                        onPress={navigateToSettings}
+                                    />
+                                )}
                             </View>
                             <View style={styles.leftNavigationTabBarFAB}>
                                 <SupportalSwitcherButton isSidebarHovered={isSidebarHovered} />
@@ -189,11 +191,13 @@ function NavigationTabBar({selectedTab, shouldShowFloatingButtons = true}: Navig
                     selectedTab={selectedTab}
                     isWideLayout={false}
                 />
-                <NavigationTabBarAvatar
-                    style={styles.navigationTabBarItem}
-                    isSelected={selectedTab === NAVIGATION_TABS.SETTINGS}
-                    onPress={navigateToSettings}
-                />
+                {!isInsightsTabVisible && (
+                    <NavigationTabBarAvatar
+                        style={styles.navigationTabBarItem}
+                        isSelected={selectedTab === NAVIGATION_TABS.SETTINGS}
+                        onPress={navigateToSettings}
+                    />
+                )}
             </View>
 
             {shouldShowFloatingButtons && (

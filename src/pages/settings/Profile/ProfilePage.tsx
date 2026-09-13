@@ -219,6 +219,7 @@ function ProfilePage() {
                     shouldShowBackButton={shouldUseNarrowLayout}
                     shouldDisplaySearchRouter
                     shouldDisplayHelpButton
+                    shouldDisplayAccountButton
                     shouldUseHeadlineHeader
                 />
             </CollapsibleHeaderOnKeyboard>

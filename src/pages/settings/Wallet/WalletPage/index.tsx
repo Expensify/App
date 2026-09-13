@@ -440,6 +440,7 @@ function WalletPage() {
             shouldShowBackButton={shouldUseNarrowLayout}
             shouldDisplaySearchRouter
             shouldDisplayHelpButton
+            shouldDisplayAccountButton
         />
     );
 

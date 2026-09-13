@@ -80,6 +80,7 @@ function WorkspaceVendorsPage({policy, route}: WorkspaceVendorsPageProps) {
                     shouldUseHeadlineHeader
                     shouldShowBackButton={shouldUseNarrowLayout}
                     shouldDisplayHelpButton
+                    shouldDisplayAccountButton
                     title={translate('workspace.common.vendors')}
                     onBackButtonPress={() => Navigation.goBack()}
                 />
