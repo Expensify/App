@@ -1,9 +1,10 @@
 import {read, write} from '@libs/API';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 
-import {connectBankAccountManually, connectBankAccountWithPlaid, getCorpayOnboardingFields} from '@userActions/BankAccounts';
+import {connectBankAccountManually, connectBankAccountWithPlaid, getCorpayOnboardingFields, resendFailedValidationAmounts} from '@userActions/BankAccounts';
 
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type PlaidBankAccount from '@src/types/onyx/PlaidBankAccount';
 
 jest.mock('@libs/API');
@@ -78,6 +79,79 @@ describe('BankAccounts', () => {
 
             // Then the request is sent with the correct countryISO
             expect(mockRead).toHaveBeenCalledWith(READ_COMMANDS.GET_CORPAY_ONBOARDING_FIELDS, {countryISO: CONST.COUNTRY.GB});
+        });
+    });
+
+    describe('resendFailedValidationAmounts', () => {
+        const bankAccountID = 5555;
+
+        test('sends the ResendFailedValidationAmounts write command with the bankAccountID', () => {
+            resendFailedValidationAmounts(bankAccountID);
+
+            expect(mockWrite).toHaveBeenCalledWith(WRITE_COMMANDS.RESEND_FAILED_VALIDATION_AMOUNTS, {bankAccountID}, expect.anything());
+        });
+
+        test('optimistically marks accountData as pending and clears errors', () => {
+            resendFailedValidationAmounts(bankAccountID);
+
+            const [, , onyxData] = mockWrite.mock.calls.at(-1) ?? [];
+            expect(onyxData?.optimisticData).toEqual([
+                expect.objectContaining({
+                    key: ONYXKEYS.BANK_ACCOUNT_LIST,
+                    value: {
+                        [bankAccountID]: {
+                            pendingFields: {accountData: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+                            errors: null,
+                        },
+                    },
+                }),
+            ]);
+        });
+
+        test('successData clears the pending marker, sets state to PENDING, and clears lastNocCode + errors', () => {
+            resendFailedValidationAmounts(bankAccountID);
+
+            const [, , onyxData] = mockWrite.mock.calls.at(-1) ?? [];
+            expect(onyxData?.successData).toEqual([
+                expect.objectContaining({
+                    key: ONYXKEYS.BANK_ACCOUNT_LIST,
+                    value: {
+                        [bankAccountID]: {
+                            pendingFields: {accountData: null},
+                            accountData: {
+                                state: CONST.BANK_ACCOUNT.STATE.PENDING,
+                                additionalData: {lastNocCode: null},
+                            },
+                            errors: null,
+                        },
+                    },
+                }),
+            ]);
+        });
+
+        test('failureData clears the pending marker and surfaces a generic error message', () => {
+            resendFailedValidationAmounts(bankAccountID);
+
+            expect(mockWrite).toHaveBeenLastCalledWith(
+                WRITE_COMMANDS.RESEND_FAILED_VALIDATION_AMOUNTS,
+                {bankAccountID},
+                expect.objectContaining({
+                    failureData: [
+                        expect.objectContaining({
+                            key: ONYXKEYS.BANK_ACCOUNT_LIST,
+                            value: expect.objectContaining({
+                                [bankAccountID]: expect.objectContaining({
+                                    pendingFields: {accountData: null},
+                                }),
+                            }),
+                        }),
+                    ],
+                }),
+            );
+
+            // Runtime check that the failure patch also carries an errors object (typed matcher would trigger no-unsafe-assignment).
+            const failureValue = mockWrite.mock.calls.at(-1)?.[2]?.failureData?.at(0)?.value;
+            expect(JSON.stringify(failureValue)).toContain('"errors":');
         });
     });
 });

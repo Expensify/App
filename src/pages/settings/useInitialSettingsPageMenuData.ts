@@ -15,7 +15,7 @@ import usePrivateSubscription from '@hooks/usePrivateSubscription';
 
 import {resetExitSurveyForm} from '@libs/actions/ExitSurvey';
 import {closeReactNativeApp} from '@libs/actions/HybridApp';
-import {hasPartiallySetupBankAccount, hasPersonalBankAccountMissingInfo} from '@libs/BankAccountUtils';
+import {hasPartiallySetupBankAccount, hasPersonalBankAccountMissingInfo, hasValidationFailedBankAccount} from '@libs/BankAccountUtils';
 import {hasPendingExpensifyCardAction, hasVirtualExpensifyCardMissingPersonalDetails} from '@libs/CardUtils';
 import {showPermissionErrorAlert} from '@libs/fileDownload/FileUtils';
 import Log from '@libs/Log';
@@ -115,6 +115,7 @@ function useInitialSettingsPageMenuData(currentUserPersonalDetails: CurrentUserP
     let walletBrickRoadIndicator: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS> | undefined;
     if (
         hasLockedBankAccount ||
+        hasValidationFailedBankAccount(bankAccountList) ||
         hasPaymentMethodError(bankAccountList, fundList, allCards, session, policies) ||
         !isEmptyObject(userWallet?.errors) ||
         !isEmptyObject(walletTerms?.errors) ||

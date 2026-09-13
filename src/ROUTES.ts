@@ -223,6 +223,19 @@ const DYNAMIC_ROUTES = {
             }),
         queryParams: ['bankCountry', 'bankCurrency'],
     },
+    FIX_BANK_ACCOUNT: {
+        path: 'fix-bank-account/:bankAccountID',
+        entryScreens: [
+            SCREENS.SETTINGS.WALLET.ROOT,
+            SCREENS.WORKSPACE.WORKFLOWS,
+            SCREENS.RIGHT_MODAL.SEARCH_REPORT,
+            SCREENS.RIGHT_MODAL.EXPENSE_REPORT,
+            SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT,
+            SCREENS.REPORT,
+            SCREENS.SEARCH.ROOT,
+        ],
+        getRoute: (bankAccountID: string) => `fix-bank-account/${bankAccountID}` as const,
+    },
     BANK_ACCOUNT_VERIFY_ACCOUNT: {
         path: 'verify-bank-account',
         entryScreens: [SCREENS.REIMBURSEMENT_ACCOUNT],
