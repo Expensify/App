@@ -40,7 +40,6 @@ import {isBlockedFromChatSelector} from '@selectors/BlockedFromChat';
 import React from 'react';
 import {Keyboard, View} from 'react-native';
 
-import ConciergeQuickActions from './ConciergeQuickActions';
 import EnableNotificationsBanner, {BANNER_COMPOSER_OVERLAP_PX} from './EnableNotificationsBanner';
 import ReportActionCompose from './ReportActionCompose/ReportActionCompose';
 import SystemChatReportFooterMessage from './SystemChatReportFooterMessage';
@@ -96,7 +95,7 @@ function ReportFooter() {
     const isSystemChat = isSystemChatUtil(report);
     const isAdminsOnlyPostingRoom = isAdminsOnlyPostingRoomUtil(report);
     const shouldShowComposerForActiveEditDraft = useShouldShowComposerForActiveEditDraft();
-    const {shouldShowWelcome: shouldShowConciergeWelcome, shouldLabelComposerAsNewQuestion} = useConciergeAskState(reportIDFromRoute);
+    const {shouldLabelComposerAsNewQuestion} = useConciergeAskState(reportIDFromRoute);
 
     if (!isCurrentReportLoadedFromOnyx || !report || !reportIDFromRoute) {
         return null;
@@ -133,7 +132,6 @@ function ReportFooter() {
                 ) : (
                     composer
                 )}
-                {shouldShowConciergeWelcome && <ConciergeQuickActions reportID={reportIDFromRoute} />}
             </View>
         );
     }
