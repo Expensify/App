@@ -8386,6 +8386,44 @@ function buildOptimisticDetachReceipt(reportID: string | undefined, transactionI
 }
 
 /**
+ * Builds an optimistic "added a receipt" action for the transaction thread.
+ * It shares a reportActionID with the server action so the two reconcile.
+ */
+function buildOptimisticReceiptAddedAction(reportID: string | undefined, transactionID: string) {
+    return {
+        actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
+        actorAccountID: deprecatedCurrentUserAccountID,
+        automatic: false,
+        avatar: getCurrentUserAvatar(),
+        created: DateUtils.getDBTime(),
+        isAttachmentOnly: false,
+        originalMessage: {
+            transactionID,
+            receiptAdded: true,
+        },
+        message: [
+            {
+                // The App builds the text from originalMessage, so this placeholder is only used by OldDot.
+                text: 'You',
+                style: 'strong',
+                type: CONST.REPORT.MESSAGE.TYPE.TEXT,
+            },
+        ],
+        person: [
+            {
+                style: 'strong',
+                text: currentUserPersonalDetails?.displayName ?? String(deprecatedCurrentUserAccountID),
+                type: 'TEXT',
+            },
+        ],
+        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+        reportActionID: rand64(),
+        reportID,
+        shouldShow: true,
+    };
+}
+
+/**
  * Updates a report preview action that exists for an IOU report.
  *
  * @param [comment] - User comment for the IOU.
@@ -14199,6 +14237,7 @@ export {
     buildOptimisticWorkspaceChats,
     buildOptimisticCardAssignedReportAction,
     buildOptimisticDetachReceipt,
+    buildOptimisticReceiptAddedAction,
     buildOptimisticRejectReportAction,
     buildOptimisticRejectReportActionComment,
     buildOptimisticReportLevelRejectAction,
