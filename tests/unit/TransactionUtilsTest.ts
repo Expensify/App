@@ -5763,3 +5763,38 @@ describe('getReservationNights', () => {
         expect(TransactionUtils.getReservationNights(generateTransaction({receipt: {hotelReservationStartDate: '2026-11-01', hotelReservationEndDate: '2026-11-02'}}))).toBe(1);
     });
 });
+
+describe('buildOptimisticTransaction distance customUnit', () => {
+    const existingRateID = 'existingRateID';
+
+    function buildManualDistanceDraft(): Transaction {
+        return generateTransaction({
+            iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL,
+            comment: {customUnit: {customUnitRateID: existingRateID, quantity: 10, name: CONST.CUSTOM_UNITS.NAME_DISTANCE}},
+        });
+    }
+
+    it('keeps the existing rate ID when no rate is passed in', () => {
+        const existingTransaction = buildManualDistanceDraft();
+
+        const optimisticTransaction = TransactionUtils.buildOptimisticTransaction({
+            existingTransaction,
+            transactionParams: {amount: 1000, currency: CONST.CURRENCY.USD, reportID: '1', comment: '', created: '2026-09-08', distance: 10},
+        });
+
+        expect(optimisticTransaction.comment?.customUnit?.customUnitRateID).toBe(existingRateID);
+    });
+
+    it('does not mutate the existing transaction customUnit', () => {
+        const existingTransaction = buildManualDistanceDraft();
+
+        const optimisticTransaction = TransactionUtils.buildOptimisticTransaction({
+            existingTransaction,
+            transactionParams: {amount: 1000, currency: CONST.CURRENCY.USD, reportID: '1', comment: '', created: '2026-09-08', distance: 25, customUnitRateID: 'newRateID'},
+        });
+
+        expect(optimisticTransaction.comment?.customUnit?.customUnitRateID).toBe('newRateID');
+        expect(existingTransaction.comment?.customUnit?.customUnitRateID).toBe(existingRateID);
+        expect(existingTransaction.comment?.customUnit?.quantity).toBe(10);
+    });
+});
