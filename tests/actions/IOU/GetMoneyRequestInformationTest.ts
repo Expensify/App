@@ -247,6 +247,7 @@ describe('getMoneyRequestInformation', () => {
         const OLDER_REPORT_ID = 'outstanding-expense-report-older';
         const NEWER_REPORT_ID = 'outstanding-expense-report-newer';
         const OTHER_OWNER_REPORT_ID = 'outstanding-expense-report-other-owner';
+        const PENDING_REPORT_ID = 'expense-report-not-in-onyx-yet';
 
         function buildOutstandingExpenseReport(reportID: string, created: string, ownerAccountID = PAYEE_ACCOUNT_ID): Report {
             return {
@@ -316,6 +317,21 @@ describe('getMoneyRequestInformation', () => {
             const result = getMoneyRequestInformation({...baseParams, getCurrencyDecimals: getCurrencyDecimalsLocal, moneyRequestReportID: OLDER_REPORT_ID});
 
             expect(result.iouReport.reportID).toBe(OLDER_REPORT_ID);
+        });
+
+        it('does not divert to an outstanding report when the chat points at a report that has not loaded yet', async () => {
+            // The chat still points at PENDING_REPORT_ID, but that report has not reached this client yet — an
+            // offline race, not a cleared pointer. Reusing OLDER_REPORT_ID here would put the expense on the wrong report.
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${OLDER_REPORT_ID}`, buildOutstandingExpenseReport(OLDER_REPORT_ID, '2024-01-02'));
+            await waitForBatchedUpdates();
+
+            const result = getMoneyRequestInformation({
+                ...baseParams,
+                parentChatReport: {...parentChatReport, iouReportID: PENDING_REPORT_ID},
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+            });
+
+            expect(result.iouReport.reportID).not.toBe(OLDER_REPORT_ID);
         });
     });
 
