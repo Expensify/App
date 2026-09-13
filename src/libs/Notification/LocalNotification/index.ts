@@ -46,6 +46,7 @@ function showModifiedExpenseNotification({
     currentUserAccountID,
     currentUserLogin,
     reportAttributes,
+    formatPhoneNumber,
 }: LocalNotificationModifiedExpenseParams) {
     const policyID = report.policyID;
     const policyTags = policyID ? allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] : undefined;
@@ -62,6 +63,7 @@ function showModifiedExpenseNotification({
         currentUserAccountID,
         currentUserLogin,
         reportAttributes,
+        formatPhoneNumber,
     });
 }
 

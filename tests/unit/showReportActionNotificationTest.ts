@@ -8,6 +8,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportAttributesDerivedValue} from '@src/types/onyx';
 
 import Onyx from 'react-native-onyx';
+import {formatPhoneNumber} from 'tests/utils/TestHelper';
 
 import createMock from '../utils/createMock';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -102,6 +103,7 @@ describe('showReportActionNotification', () => {
             undefined,
             CURRENT_USER_ACCOUNT_ID,
             CURRENT_USER_LOGIN,
+            formatPhoneNumber,
             REPORT_ATTRIBUTES,
         );
         await waitForBatchedUpdates();
@@ -133,6 +135,7 @@ describe('showReportActionNotification', () => {
             undefined,
             CURRENT_USER_ACCOUNT_ID,
             CURRENT_USER_LOGIN,
+            formatPhoneNumber,
             undefined,
         );
         await waitForBatchedUpdates();
@@ -164,6 +167,7 @@ describe('showReportActionNotification', () => {
             undefined,
             CURRENT_USER_ACCOUNT_ID,
             CURRENT_USER_LOGIN,
+            formatPhoneNumber,
             REPORT_ATTRIBUTES,
         );
         await waitForBatchedUpdates();

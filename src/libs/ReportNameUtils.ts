@@ -230,11 +230,13 @@ const buildReportNameFromParticipantNames = ({
     personalDetailsList: personalDetailsData,
     currentUserAccountID,
     translate,
+    formatPhoneNumber,
 }: {
     report: OnyxEntry<Report>;
     personalDetailsList?: Partial<PersonalDetailsList>;
     currentUserAccountID?: number;
     translate: LocalizedTranslate;
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
 }) =>
     Object.keys(report?.participants ?? {})
         .map(Number)
@@ -246,7 +248,7 @@ const buildReportNameFromParticipantNames = ({
                 accountID,
                 shouldUseShortForm: true,
                 personalDetailsData,
-                formatPhoneNumber: formatPhoneNumberPhoneUtils,
+                formatPhoneNumber,
                 translate,
             }),
         }))
@@ -257,7 +259,7 @@ const buildReportNameFromParticipantNames = ({
                 return getDisplayNameForParticipant({
                     accountID,
                     personalDetailsData,
-                    formatPhoneNumber: formatPhoneNumberPhoneUtils,
+                    formatPhoneNumber,
                     translate,
                 });
             }
@@ -1079,6 +1081,7 @@ function computeChatThreadReportName({
             policy,
             currentUserAccountID,
             currentUserLogin,
+            formatPhoneNumber: formatPhoneNumberPhoneUtils,
         });
         // Strip HTML tags for plain text display in report previews
         const modifiedMessage = Parser.htmlToText(modifiedMessageWithHTML);
@@ -1278,7 +1281,7 @@ function computeReportName({
     }
 
     // Not a room or PolicyExpenseChat, generate title from first 5 other participants
-    formattedName = buildReportNameFromParticipantNames({report, personalDetailsList, currentUserAccountID, translate});
+    formattedName = buildReportNameFromParticipantNames({report, personalDetailsList, currentUserAccountID, translate, formatPhoneNumber: formatPhoneNumberPhoneUtils});
 
     const finalName = formattedName ?? report?.reportName ?? '';
 
