@@ -1,3 +1,3 @@
-type CloseAccountParams = {message: string};
+type CloseAccountParams = {message: string; validateCode: string};
 
 export default CloseAccountParams;
