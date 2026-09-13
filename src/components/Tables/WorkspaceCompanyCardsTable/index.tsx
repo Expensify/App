@@ -14,7 +14,6 @@ import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
-import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -95,7 +94,6 @@ function WorkspaceCompanyCardsTable({
     const {isOffline} = useNetwork();
     const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
-    const policy = usePolicy(policyID);
     const tableRef = useRef<TableHandle<WorkspaceCompanyCardTableItemData, CompanyCardsTableColumnKey>>(null);
 
     const {
@@ -396,7 +394,6 @@ function WorkspaceCompanyCardsTable({
         <WorkspaceCompanyCardsBalanceLabels
             selectedFeed={selectedFeed}
             feedName={feedName}
-            currency={policy?.outputCurrency ?? CONST.CURRENCY.USD}
         />
     ) : undefined;
     const shouldShowPendingUnassignmentLoading = showCards && hasPendingUnassignment && cardsData.length === 0;

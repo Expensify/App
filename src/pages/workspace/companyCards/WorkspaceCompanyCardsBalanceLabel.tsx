@@ -14,11 +14,11 @@ type WorkspaceCompanyCardsBalanceLabelProps = {
     /** Which balance stat this label shows */
     type: typeof CONST.WORKSPACE_CARDS_LIST_LABEL_TYPE.CURRENT_BALANCE | typeof CONST.WORKSPACE_CARDS_LIST_LABEL_TYPE.REMAINING_LIMIT;
 
-    /** Value in cents, or undefined when the bank did not report it */
-    value: number | undefined;
+    /** Value in cents, or null/undefined when the bank did not report it */
+    value: number | null | undefined;
 
     /** Datetime the balance was last fetched, formatted as 'yyyy-MM-dd HH:mm:ss', shown in the tooltip */
-    lastUpdated: string | undefined;
+    lastUpdated: string | null | undefined;
 
     /** Currency the value is denominated in */
     currency: string;
@@ -31,7 +31,7 @@ function WorkspaceCompanyCardsBalanceLabel({type, value, lastUpdated, currency, 
     const {translate, getLocalDateFromDatetime} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
 
-    const displayValue = value === undefined ? translate('workspace.companyCards.balance.notAvailable') : convertToDisplayString(value, currency);
+    const displayValue = typeof value !== 'number' ? translate('workspace.companyCards.balance.notAvailable') : convertToDisplayString(value, currency);
     const formattedLastUpdated = lastUpdated ? format(getLocalDateFromDatetime(lastUpdated), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING) : undefined;
     const description = formattedLastUpdated
         ? translate(`workspace.companyCards.balance.${type}Description`, {lastUpdated: formattedLastUpdated})

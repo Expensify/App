@@ -17,12 +17,9 @@ type WorkspaceCompanyCardsBalanceLabelsProps = {
 
     /** Name of the selected feed, used to determine whether it is a Plaid (direct) feed */
     feedName: CompanyCardFeedWithDomainID | undefined;
-
-    /** Currency to display the balance amounts in */
-    currency: string;
 };
 
-function WorkspaceCompanyCardsBalanceLabels({selectedFeed, feedName, currency}: WorkspaceCompanyCardsBalanceLabelsProps) {
+function WorkspaceCompanyCardsBalanceLabels({selectedFeed, feedName}: WorkspaceCompanyCardsBalanceLabelsProps) {
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
@@ -34,9 +31,10 @@ function WorkspaceCompanyCardsBalanceLabels({selectedFeed, feedName, currency}: 
     const currentBalance = selectedFeed?.currentBalance;
     const remainingLimit = selectedFeed?.remainingLimit;
     const lastUpdated = selectedFeed?.balanceTimestamp;
+    const currency = selectedFeed?.balanceCurrency ?? CONST.CURRENCY.USD;
 
     // Hide the whole block when the bank returned no balance data at all (e.g. the issuer does not provide it).
-    if (currentBalance === undefined && remainingLimit === undefined) {
+    if (typeof currentBalance !== 'number' && typeof remainingLimit !== 'number') {
         return null;
     }
 
