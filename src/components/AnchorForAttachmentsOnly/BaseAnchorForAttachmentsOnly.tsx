@@ -11,6 +11,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
 import {isMobileSafari} from '@libs/Browser';
 import fileDownload from '@libs/fileDownload';
+import {getDownloadFileName} from '@libs/fileDownload/FileUtils';
 
 import {setDownload} from '@userActions/Download';
 
@@ -55,7 +56,7 @@ function BaseAnchorForAttachmentsOnly({style, source = '', displayName = '', onP
                     return;
                 }
                 setDownload(sourceID, true);
-                fileDownload(translate, sourceURLWithAuth, displayName, '', isMobileSafari()).then(() => setDownload(sourceID, false));
+                fileDownload(translate, sourceURLWithAuth, getDownloadFileName(displayName, source), '', isMobileSafari()).then(() => setDownload(sourceID, false));
             }}
             onPressIn={onPressIn}
             onPressOut={onPressOut}
