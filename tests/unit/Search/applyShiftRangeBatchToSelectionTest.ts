@@ -24,6 +24,7 @@ const buildEntry = (item: TransactionListItemType): [string, SelectedTransaction
         selfDMReport: undefined,
         allowNegativeAmount: true,
         parentReport: undefined,
+        rules: undefined,
     });
 
 const lookupsFor = (groupKeyByChildKey: Map<string, string> = new Map(), childrenByGroupKey: Map<string, TransactionListItemType[]> = new Map()) => ({

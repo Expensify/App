@@ -1,4 +1,4 @@
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import RenderHTML from '@components/RenderHTML';
 
@@ -48,11 +48,10 @@ function DomainAdminsSettingsPage({route}: DomainAdminsSettingsPageProps) {
                 errors={getLatestError(domainErrors?.technicalContactEmailErrors)}
                 onClose={() => clearSetPrimaryContactError(domainAccountID)}
             >
-                <MenuItemWithTopDescription
-                    description={translate('domain.admins.primaryContact')}
-                    title={technicalContactSettings?.technicalContactEmail}
-                    shouldShowRightIcon
+                <MenuItemField
+                    name={translate('domain.admins.primaryContact')}
                     onPress={() => Navigation.navigate(ROUTES.DOMAIN_ADD_PRIMARY_CONTACT.getRoute(domainAccountID))}
+                    value={technicalContactSettings?.technicalContactEmail}
                 />
             </OfflineWithFeedback>
             <ToggleSettingOptionRow
