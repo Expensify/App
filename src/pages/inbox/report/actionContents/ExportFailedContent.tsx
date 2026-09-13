@@ -1,4 +1,4 @@
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import RenderHTML from '@components/RenderHTML';
 import ActionableItemButtons from '@components/ReportActionItem/ActionableItemButtons';
 
@@ -12,7 +12,7 @@ import ReportActionItemBasicMessage from '@pages/inbox/report/ReportActionItemBa
 
 import {reExportFailedReports} from '@userActions/Report';
 
-import CONST from '@src/CONST';
+import type CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportAction} from '@src/types/onyx';
 

@@ -18,6 +18,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {
     getChangedApproverActionMessage,
+    getCompanyCardConnectionBroken30DaysMessage,
     getCommuterExclusionMessage,
     getCompanyCardConnectionBrokenMessage,
     getDelegateSubmitMessage,
@@ -70,6 +71,8 @@ import ConciergeAutoMatchVendorContent from './ConciergeAutoMatchVendorContent';
 import ConfirmWhisperContent from './ConfirmWhisperContent';
 import ExportFailedContent from './ExportFailedContent';
 import FraudAlertContent from './FraudAlertContent';
+import HomeAddressRequiredContent from './HomeAddressRequiredContent';
+import IntegrationMessage from './IntegrationMessage';
 import IntegrationSyncFailedMessage from './IntegrationSyncFailedMessage';
 import JoinRequestContent from './JoinRequestContent';
 import MemberChangeContent from './MemberChangeContent';
@@ -86,7 +89,6 @@ import ReportMentionWhisperContent from './ReportMentionWhisperContent';
 import SimpleMessageContent, {isSimpleMessageAction} from './SimpleMessageContent';
 
 type ActionContentRouterProps = {
-    /** All the data of the action item */
     action: OnyxTypes.ReportAction;
 
     /** Report for this action */
@@ -101,16 +103,12 @@ type ActionContentRouterProps = {
     /** The IOU/Expense report we are paying */
     iouReport?: OnyxTypes.Report;
 
-    /** Report ID for the current report */
     reportID: string | undefined;
 
     /** Should the comment have the appearance of being grouped with the previous comment? */
     displayAsGroup: boolean;
 
-    /** ReportAction draft message */
     draftMessage: string | undefined;
-
-    /** Whether the report action is a whisper */
     isWhisper: boolean;
 
     /** Whether the report action is hovered (or context menu / emoji picker active) */
@@ -122,7 +120,6 @@ type ActionContentRouterProps = {
     /** Toggle the hidden state of the message */
     updateHiddenState: (isHiddenValue: boolean) => void;
 
-    /** Whether the provided report is a closed expense report with no expenses */
     isClosedExpenseReportWithNoExpenses?: boolean;
 
     /** Whether the report action is the "Created" action of a harvest-created expense report */
@@ -134,10 +131,7 @@ type ActionContentRouterProps = {
     /** Whether the search-page UI is active */
     isOnSearch: boolean;
 
-    /** Toggle whether the payment method popover is active */
     setIsPaymentMethodPopoverActive: (value: boolean) => void;
-
-    /** Whether the user is a track intent user */
     isTrackIntentUser?: boolean;
 };
 
@@ -212,6 +206,9 @@ function ActionContentRouter({
     if (action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) {
         return (
             <MoneyRequestReportPreview
+                // FlashList recycles cells, so this instance can be handed another report's props. Key forces a remount,
+                // or `useNewTransactions` would consider the new report's transactions as newly added on top of the old report's.
+                key={action.reportActionID}
                 iouReportID={getIOUReportIDFromReportActionPreview(action)}
                 iouReport={iouReport}
                 policyID={policyID}
@@ -480,10 +477,20 @@ function ActionContentRouter({
             />
         );
     }
+    if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.INTEGRATIONS_MESSAGE)) {
+        return <IntegrationMessage action={action} />;
+    }
     if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.COMPANY_CARD_CONNECTION_BROKEN)) {
         return (
             <ReportActionItemBasicMessage message="">
                 <RenderHTML html={`<comment><muted-text>${getCompanyCardConnectionBrokenMessage(translate, action)}</muted-text></comment>`} />
+            </ReportActionItemBasicMessage>
+        );
+    }
+    if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.COMPANY_CARD_CONNECTION_BROKEN_30_DAYS)) {
+        return (
+            <ReportActionItemBasicMessage message="">
+                <RenderHTML html={`<comment><muted-text>${getCompanyCardConnectionBroken30DaysMessage(translate, action)}</muted-text></comment>`} />
             </ReportActionItemBasicMessage>
         );
     }
@@ -519,6 +526,9 @@ function ActionContentRouter({
                 <RenderHTML html={`<comment><muted-text>${getChangedApproverActionMessage(translate, action)}</muted-text></comment>`} />
             </ReportActionItemBasicMessage>
         );
+    }
+    if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.HOME_ADDRESS_REQUIRED)) {
+        return <HomeAddressRequiredContent action={action} />;
     }
     if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.ACTION_DELEGATE_SUBMIT)) {
         const delegateSubmitMessage = getDelegateSubmitMessage(translate, action, currentUserEmail);

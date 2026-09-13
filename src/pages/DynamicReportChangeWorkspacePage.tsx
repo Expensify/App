@@ -7,7 +7,7 @@ import SelectionList from '@components/SelectionList';
 import type {WorkspaceListItemType} from '@components/SelectionList/ListItem/types';
 import UserListItem from '@components/SelectionList/ListItem/UserListItem';
 
-import useCommuterExclusionGuard from '@hooks/useCommuterExclusionGuard';
+import useBlockDistanceRequest from '@hooks/useBlockDistanceRequest';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
@@ -42,7 +42,7 @@ import {
 } from '@libs/ReportUtils';
 import refreshSearchAfterReportAction from '@libs/SearchRefreshUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
-import {hasAppliedCommuterExclusion, isManualDistanceRequest, isOdometerDistanceRequest} from '@libs/TransactionUtils';
+import {hasAppliedCommuterExclusion, isDistanceRequest, isManualDistanceRequest, isOdometerDistanceRequest} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -54,7 +54,7 @@ import type {DismissedProductTraining} from '@src/types/onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
-import React from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 
 import type {WithReportOrNotFoundProps} from './inbox/report/withReportOrNotFound';
@@ -106,16 +106,22 @@ function DynamicReportChangeWorkspacePage({report}: DynamicReportChangeWorkspace
     const [allReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
     const navigateBackFromChangeWorkspacePath = useDynamicBackPath(DYNAMIC_ROUTES.REPORT_CHANGE_WORKSPACE.path);
     const hasCommuterExclusionDistanceRequest = reportTransactions.some((transaction) => hasAppliedCommuterExclusion(transaction));
+    const hasDistanceRequest = reportTransactions.some((transaction) => isDistanceRequest(transaction));
     const hasManualDistanceRequest = reportTransactions.some((transaction) => isManualDistanceRequest(transaction));
     const hasOdometerDistanceRequest = reportTransactions.some((transaction) => isOdometerDistanceRequest(transaction));
-    const blockManualOrOdometerDistanceRequestIfNeeded = useCommuterExclusionGuard({
+    const blockDistanceRequestIfNeeded = useBlockDistanceRequest({
+        isDistanceRequest: hasDistanceRequest,
         isManualDistanceRequest: hasManualDistanceRequest,
         isOdometerDistanceRequest: hasOdometerDistanceRequest,
     });
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const {currentSearchQueryJSON, currentSearchKey} = useSearchQueryContext();
     const {currentSearchResults} = useSearchResultsContext();
-    const shouldCalculateTotals = useSearchShouldCalculateTotals(currentSearchKey, currentSearchQueryJSON?.hash, true);
+    const shouldCalculateTotals = useSearchShouldCalculateTotals(currentSearchKey, true);
+
+    const [draftPolicyID, setDraftPolicyID] = useState<string>();
+    const currentSelection = draftPolicyID ?? report.policyID;
 
     // The snapshot keeps the report row after a workspace change, and only the server can tell whether it still matches the query.
     const refreshSearch = () => {
@@ -133,7 +139,7 @@ function DynamicReportChangeWorkspacePage({report}: DynamicReportChangeWorkspace
         if (!policyID || !policy) {
             return;
         }
-        if (blockManualOrOdometerDistanceRequestIfNeeded(policyID)) {
+        if (blockDistanceRequestIfNeeded(policyID)) {
             return;
         }
         if (shouldRestrictUserBillableActions(policy, ownerBillingGracePeriodEnd, userBillingGracePeriods, amountOwed, currentUserPersonalDetails.accountID)) {
@@ -152,10 +158,11 @@ function DynamicReportChangeWorkspacePage({report}: DynamicReportChangeWorkspace
                 submitterLogin,
                 doesSubmitterPersonalDetailExist ?? false,
                 getCurrencyDecimals,
+                rules,
                 reportTransactions,
             );
             if (!invite?.policyExpenseChatReportID) {
-                moveIOUReportToPolicy(report, policy, reportPreviewAction, getCurrencyDecimals, false, reportTransactions);
+                moveIOUReportToPolicy(report, policy, reportPreviewAction, getCurrencyDecimals, rules, false, reportTransactions);
             }
             refreshSearch();
             return;
@@ -186,6 +193,7 @@ function DynamicReportChangeWorkspacePage({report}: DynamicReportChangeWorkspace
                 reportPreviewAction,
                 isTrackIntentUser,
                 reportTransactions,
+                rules,
             });
             refreshSearch();
             return;
@@ -207,6 +215,7 @@ function DynamicReportChangeWorkspacePage({report}: DynamicReportChangeWorkspace
             reportPreviewAction,
             isTrackIntentUser,
             reportTransactions,
+            rules,
         });
         refreshSearch();
     };
@@ -215,7 +224,8 @@ function DynamicReportChangeWorkspacePage({report}: DynamicReportChangeWorkspace
         policies,
         currentUserLogin: session?.email,
         shouldShowPendingDeletePolicy: false,
-        selectedPolicyIDs: report.policyID ? [report.policyID] : undefined,
+        selectedPolicyIDs: currentSelection ? [currentSelection] : undefined,
+        policyIDsToSortToTop: report.policyID ? [report.policyID] : undefined,
         searchTerm: debouncedSearchTerm,
         localeCompare,
         additionalFilter: (newPolicy) => {
@@ -235,6 +245,13 @@ function DynamicReportChangeWorkspacePage({report}: DynamicReportChangeWorkspace
         headerMessage: shouldShowNoResultsFoundMessage ? translate('common.noResultsFound') : '',
     };
 
+    const confirmButtonOptions = {
+        showButton: true,
+        text: translate('common.save'),
+        onConfirm: () => selectPolicy(currentSelection),
+        isDisabled: !currentSelection || currentSelection === report.policyID,
+    };
+
     if (!isMoneyRequestReport(report) || isMoneyRequestReportPendingDeletion(report) || hasCommuterExclusionDistanceRequest) {
         return <NotFoundPage />;
     }
@@ -242,7 +259,7 @@ function DynamicReportChangeWorkspacePage({report}: DynamicReportChangeWorkspace
     return (
         <ScreenWrapper
             testID="DynamicReportChangeWorkspacePage"
-            includeSafeAreaPaddingBottom
+            enableEdgeToEdgeBottomSafeAreaPadding
             shouldEnableMaxHeight
         >
             {({didScreenTransitionEnd}) => (
@@ -261,11 +278,13 @@ function DynamicReportChangeWorkspacePage({report}: DynamicReportChangeWorkspace
                         <SelectionList<WorkspaceListItemType>
                             ListItem={UserListItem}
                             data={data}
-                            onSelectRow={(option) => selectPolicy(option.policyID)}
+                            onSelectRow={(option) => setDraftPolicyID(option.policyID)}
                             textInputOptions={textInputOptions}
+                            confirmButtonOptions={confirmButtonOptions}
                             initiallyFocusedItemKey={report.policyID}
                             shouldShowLoadingPlaceholder={fetchStatus.status === 'loading' || !didScreenTransitionEnd}
                             disableMaintainingScrollPosition
+                            addBottomSafeAreaPadding
                         />
                     )}
                 </>

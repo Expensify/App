@@ -290,6 +290,19 @@ function getCompanyCardDescription(translate: LocalizedTranslate, transactionCar
     return card.cardName === CONST.EXPENSE.TYPE.CASH_CARD_NAME ? '' : card.cardName;
 }
 
+/**
+ * `cardFeedsForDomain` must be scoped to the card's own domain (keyed by `card.fundID`), not the full
+ * cross-domain collection: a user in two domains can have the same feed key with a different nickname in each.
+ */
+function getCommercialFeedCardDescription(translate: LocalizedTranslate, card: Card | undefined, cardFeedsForDomain: OnyxEntry<CardFeeds>): string | undefined {
+    if (!card?.lastFourPAN || !isCustomFeed(card.bank)) {
+        return undefined;
+    }
+
+    const customFeedName = cardFeedsForDomain?.settings?.companyCardNicknames?.[card.bank];
+    return `${getCustomOrFormattedFeedName(translate, card.bank, customFeedName)} - ${card.lastFourPAN}`;
+}
+
 function isCard(item: Card | Record<string, string>): item is Card {
     return typeof item === 'object' && 'cardID' in item && !!item.cardID && 'bank' in item && !!item.bank;
 }
@@ -1681,6 +1694,22 @@ function isCardPendingActivate(card?: Card) {
     return card?.state === CONST.EXPENSIFY_CARD.STATE.NOT_ACTIVATED;
 }
 
+/** True when this card has a wallet addition waiting for the cardholder to confirm or deny. */
+function isCardPendingDigitalWalletApproval(card?: Card) {
+    return !!card?.nameValuePairs?.pendingDigitalWalletApproval;
+}
+
+/** Maps the card provider's wallet name. Google Wallet comes back as ANDROID_PAY. */
+function getWalletProviderNameKey(walletProvider?: ValueOf<typeof CONST.EXPENSIFY_CARD.WALLET_PROVIDER>): 'appleWallet' | 'googleWallet' | 'digitalWallet' {
+    if (walletProvider === CONST.EXPENSIFY_CARD.WALLET_PROVIDER.APPLE_PAY) {
+        return 'appleWallet';
+    }
+    if (walletProvider === CONST.EXPENSIFY_CARD.WALLET_PROVIDER.ANDROID_PAY) {
+        return 'googleWallet';
+    }
+    return 'digitalWallet';
+}
+
 function isCardWithCustomZeroLimit(card: Card): boolean {
     return !!card.nameValuePairs?.hasCustomUnapprovedExpenseLimit && card.nameValuePairs?.unapprovedExpenseLimit === 0;
 }
@@ -1763,14 +1792,18 @@ function getFundIdFromSettingsKey(key: string) {
     return Number.isNaN(fundID) ? CONST.DEFAULT_NUMBER_ID : fundID;
 }
 
+function getCardFeedWithoutDomainID(feedWithDomainID: string): string {
+    const [feed] = feedWithDomainID.split(CONST.COMPANY_CARD.FEED_KEY_SEPARATOR);
+    return feed;
+}
+
 /** Extract feed from feed with domainID */
 function getCompanyCardFeed(feedWithDomainID: CardFeedWithNumber | CardFeedWithDomainID | undefined): CompanyCardFeedWithNumber {
     if (!feedWithDomainID) {
         return '' as CompanyCardFeedWithNumber;
     }
 
-    const [feed] = feedWithDomainID.split(CONST.COMPANY_CARD.FEED_KEY_SEPARATOR);
-    return feed as CompanyCardFeedWithNumber;
+    return getCardFeedWithoutDomainID(feedWithDomainID) as CompanyCardFeedWithNumber;
 }
 
 /**
@@ -2232,6 +2265,8 @@ export {
     getPersonalBankCardDetailsImage,
     isCardPendingIssue,
     isCardPendingActivate,
+    isCardPendingDigitalWalletApproval,
+    getWalletProviderNameKey,
     isCardPendingReplace,
     isCardWithCustomZeroLimit,
     hasPendingExpensifyCardAction,
@@ -2242,12 +2277,14 @@ export {
     getCardsByCardholderName,
     filterCardsByPersonalDetails,
     getCompanyCardDescription,
+    getCommercialFeedCardDescription,
     getPlaidInstitutionIconUrl,
     getPlaidInstitutionId,
     getCorrectStepForPlaidSelectedBank,
     isDirectFeed,
     feedHasCards,
     getOriginalCompanyFeeds,
+    getCardFeedWithoutDomainID,
     getCompanyCardFeed,
     getCardFeedWithDomainID,
     getCompanyCardFeedWithDomainIDForCard,

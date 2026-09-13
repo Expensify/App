@@ -98,6 +98,7 @@ function ExpenseGroupedSearchView({
     columns,
     canSelectMultiple,
     isActionColumnWide,
+    columnSizeOptions,
     isAttendeesEnabledForMovingPolicy,
     nonPersonalAndWorkspaceCards,
     isMobileSelectionModeEnabled,
@@ -257,6 +258,7 @@ function ExpenseGroupedSearchView({
                     onLongPressRow={onLongPressRow}
                     nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards}
                     onUndelete={handleUndelete}
+                    isFirstItem={index - 1 === firstVisibleIndex}
                     isLastItem={index === lastVisibleIndex && !ListFooterComponent}
                     newTransactionID={containerNewTransactionID}
                 />
@@ -291,7 +293,6 @@ function ExpenseGroupedSearchView({
                     onFocus={onFocus}
                     newTransactionID={newTransactionID}
                     onUndelete={handleUndelete}
-                    keyForList={item.keyForList}
                     isFirstItem={index === firstVisibleIndex}
                     isLastItem={index === lastVisibleIndex && !ListFooterComponent}
                 />
@@ -307,6 +308,7 @@ function ExpenseGroupedSearchView({
             columns={columns}
             type={type}
             isActionColumnWide={isActionColumnWide}
+            columnSizeOptions={columnSizeOptions}
             isHeaderVisible={!!searchTableHeader}
             dataKey={data}
             isKeyboardShown={isKeyboardShown}

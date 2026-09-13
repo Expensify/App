@@ -30,6 +30,7 @@ import {
     getCardHintText,
     getCardsByCardholderName,
     getCardSettings,
+    getCommercialFeedCardDescription,
     getCompanyCardCustomName,
     getCompanyCardDescription,
     getCompanyCardFeed,
@@ -55,6 +56,7 @@ import {
     getPlaidInstitutionId,
     getSelectedFeed,
     getTranslationKeyForCardStatus,
+    getWalletProviderNameKey,
     getYearFromExpirationDateString,
     hasAssignedCardMatching,
     hasIssuedExpensifyCard,
@@ -3442,6 +3444,63 @@ describe('CardUtils', () => {
         });
     });
 
+    describe('getCommercialFeedCardDescription', () => {
+        beforeAll(() => {
+            IntlStore.load(CONST.LOCALES.EN);
+            return waitForBatchedUpdates();
+        });
+
+        const commercialFeedCard: Card = createMock<Card>({
+            bank: CONST.COMPANY_CARD.FEED_BANK_NAME.VISA,
+            cardID: 21310091,
+            cardName: '480801XXXXXX2554',
+            lastFourPAN: '2554',
+        });
+
+        it('returns the feed name and last four for a commercial feed card instead of the masked PAN', () => {
+            const description = getCommercialFeedCardDescription(translateLocal, commercialFeedCard, undefined);
+            expect(description).toBe('Visa cards - 2554');
+        });
+
+        it('prefers the custom feed nickname when the admin has set one on the feed', () => {
+            const description = getCommercialFeedCardDescription(translateLocal, commercialFeedCard, cardFeedsCollection.FAKE_ID_1);
+            expect(description).toBe(`${customFeedName} - 2554`);
+        });
+
+        it("only reads the nickname from the card's own domain, not other domains sharing the same feed key", () => {
+            const otherDomainNickname = 'Other domain Visa';
+            const otherDomainCardFeeds: CardFeeds = {
+                settings: {
+                    companyCardNicknames: {
+                        [CONST.COMPANY_CARD.FEED_BANK_NAME.VISA]: otherDomainNickname,
+                    },
+                },
+            };
+
+            expect(getCommercialFeedCardDescription(translateLocal, commercialFeedCard, cardFeedsCollection.FAKE_ID_1)).toBe(`${customFeedName} - 2554`);
+            expect(getCommercialFeedCardDescription(translateLocal, commercialFeedCard, otherDomainCardFeeds)).toBe(`${otherDomainNickname} - 2554`);
+        });
+
+        it('returns undefined for a direct feed card so the caller falls back to the existing description', () => {
+            const directFeedCard: Card = createMock<Card>({
+                bank: CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE,
+                cardName: 'CREDIT CARD...5501',
+                lastFourPAN: '5501',
+            });
+            const description = getCommercialFeedCardDescription(translateLocal, directFeedCard, cardFeedsCollection.FAKE_ID_1);
+            expect(description).toBe(undefined);
+        });
+
+        it('returns undefined when the card has no lastFourPAN', () => {
+            const cardWithoutLastFour: Card = createMock<Card>({
+                bank: CONST.COMPANY_CARD.FEED_BANK_NAME.VISA,
+                cardName: '480801XXXXXX2554',
+            });
+            const description = getCommercialFeedCardDescription(translateLocal, cardWithoutLastFour, cardFeedsCollection.FAKE_ID_1);
+            expect(description).toBe(undefined);
+        });
+    });
+
     describe('isTravelCardTransaction', () => {
         it("returns true from the transaction's feedCountry even when the card isn't in the viewer's list", () => {
             expect(isTravelCardTransaction(CONST.TRAVEL.PROGRAM_TRAVEL_US, undefined)).toBe(true);
@@ -4962,5 +5021,19 @@ describe('getDomainByFundID', () => {
             [`${ONYXKEYS.COLLECTION.DOMAIN}2`]: domain,
         };
         expect(getDomainByFundID(domains, FUND_ID)).toBe(domain);
+    });
+});
+
+describe('getWalletProviderNameKey', () => {
+    it('maps APPLE_PAY to the Apple Wallet key', () => {
+        expect(getWalletProviderNameKey(CONST.EXPENSIFY_CARD.WALLET_PROVIDER.APPLE_PAY)).toBe('appleWallet');
+    });
+
+    it('maps ANDROID_PAY to the Google Wallet key, since that is how the card provider names Google Wallet', () => {
+        expect(getWalletProviderNameKey(CONST.EXPENSIFY_CARD.WALLET_PROVIDER.ANDROID_PAY)).toBe('googleWallet');
+    });
+
+    it('falls back to the generic key when the provider is missing, which happens when the card provider reports UNKNOWN', () => {
+        expect(getWalletProviderNameKey(undefined)).toBe('digitalWallet');
     });
 });

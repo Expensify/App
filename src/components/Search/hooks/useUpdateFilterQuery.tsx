@@ -1,10 +1,11 @@
+import {useSearchQueryActions, useSearchQueryContext} from '@components/Search/SearchContext';
 import type {SearchQueryJSON} from '@components/Search/types';
 
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 
 import Navigation from '@libs/Navigation/Navigation';
-import {buildFilterQueryWithSortDefaults} from '@libs/SearchQueryUtils';
+import {buildFilterQueryWithSortDefaults, buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 import {filterValidHasValues} from '@libs/SearchUIUtils';
 
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -13,7 +14,10 @@ import {getEmptyObject} from '@src/types/utils/EmptyObject';
 
 function useUpdateFilterQuery(queryJSON: SearchQueryJSON | undefined) {
     const {translate} = useLocalize();
+    const {resetSearchKey} = useSearchQueryActions();
+    const {currentSearchHash} = useSearchQueryContext();
     const [searchAdvancedFiltersForm = getEmptyObject<Partial<SearchAdvancedFiltersForm>>()] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
+    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
 
     function getUpdatedFilterFormValues(currentValues: Partial<SearchAdvancedFiltersForm>, newValues: Partial<SearchAdvancedFiltersForm>) {
         const updatedFilterFormValues: Partial<SearchAdvancedFiltersForm> = {
@@ -42,9 +46,17 @@ function useUpdateFilterQuery(queryJSON: SearchQueryJSON | undefined) {
                 values,
                 {view: searchAdvancedFiltersForm.view, groupBy: searchAdvancedFiltersForm.groupBy},
                 {sortBy: queryJSON?.sortBy, sortOrder: queryJSON?.sortOrder},
+                policies,
             ) ?? '';
         if (!queryString) {
             return;
+        }
+
+        if (values.type && searchAdvancedFiltersForm.type !== values.type) {
+            const newQueryJSON = buildSearchQueryJSON(queryString);
+            if (currentSearchHash !== newQueryJSON?.hash) {
+                resetSearchKey(newQueryJSON);
+            }
         }
 
         Navigation.setParams({q: queryString, rawQuery: undefined});

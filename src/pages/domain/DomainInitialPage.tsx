@@ -12,51 +12,36 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
 
-import {openDomainPage} from '@libs/actions/Domain';
-import {hasDomainAdminsErrors, hasDomainGroupsErrors, hasDomainMembersErrors} from '@libs/DomainUtils';
+import {clearStaleAdminshipRequesterErrors, openDomainPage} from '@libs/actions/Domain';
+import {getStaleAdminshipRequesterErrorAccountIDs, hasPendingDomainAdminRequestsToReview} from '@libs/DomainUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 
-import type DOMAIN_TO_RHP from '@navigation/linkingConfig/RELATIONS/DOMAIN_TO_RHP';
 import type {DomainSplitNavigatorParamList} from '@navigation/types';
 
-import CONST from '@src/CONST';
-import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import SCREENS from '@src/SCREENS';
-import {isAdminSelector} from '@src/selectors/Domain';
-import type IconAsset from '@src/types/utils/IconAsset';
+import type SCREENS from '@src/SCREENS';
+import {isAdminSelector, pendingAdminRequesterAccountIDsSelector} from '@src/selectors/Domain';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
-
-import type {ValueOf} from 'type-fest';
 
 import {findFocusedRoute, useNavigationState} from '@react-navigation/native';
 import {Str} from 'expensify-common';
 import React, {useCallback, useEffect} from 'react';
 import {View} from 'react-native';
 
-type DomainTopLevelScreens = keyof typeof DOMAIN_TO_RHP;
-
-type DomainMenuItem = {
-    translationKey: TranslationPaths;
-    icon: IconAsset;
-    action: () => void;
-    brickRoadIndicator?: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS>;
-    screenName: DomainTopLevelScreens;
-    badgeText?: string;
-    highlighted?: boolean;
-};
+import getDomainMenuItems, {DOMAIN_MENU_ICON_NAMES} from './getDomainMenuItems';
 
 type DomainInitialPageProps = PlatformStackScreenProps<DomainSplitNavigatorParamList, typeof SCREENS.DOMAIN.INITIAL>;
 
 function DomainInitialPage({route}: DomainInitialPageProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['UserLock', 'UserShield', 'User', 'Users']);
+    const icons = useMemoizedLazyExpensifyIcons(DOMAIN_MENU_ICON_NAMES);
     const styles = useThemeStyles();
     const waitForNavigate = useWaitForNavigation();
     const {singleExecution, isExecuting} = useSingleExecution();
@@ -70,36 +55,25 @@ function DomainInitialPage({route}: DomainInitialPageProps) {
     useDocumentTitle(domainName ?? '');
     const isAdmin = isAdminSelector(currentUserAccountID)(domain);
     const [domainErrors] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`);
+    const [domainPendingActions] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`);
+    const requesterAccountIDs = pendingAdminRequesterAccountIDsSelector(domain);
+    const previousRequesterAccountIDs = usePrevious(requesterAccountIDs);
+    const hasPendingAdminRequests = hasPendingDomainAdminRequestsToReview(domain, currentUserAccountID, domainPendingActions);
 
-    const domainMenuItems: DomainMenuItem[] = [
-        {
-            translationKey: 'domain.domainMembers',
-            icon: icons.User,
-            action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.DOMAIN_MEMBERS.getRoute(domainAccountID)))),
-            screenName: SCREENS.DOMAIN.MEMBERS,
-            brickRoadIndicator: hasDomainMembersErrors(domainErrors) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
-        },
-        {
-            translationKey: 'domain.domainAdmins',
-            icon: icons.UserShield,
-            action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.DOMAIN_ADMINS.getRoute(domainAccountID)))),
-            screenName: SCREENS.DOMAIN.ADMINS,
-            brickRoadIndicator: hasDomainAdminsErrors(domainErrors) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
-        },
-        {
-            translationKey: 'domain.groups.title',
-            icon: icons.Users,
-            action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.DOMAIN_GROUPS.getRoute(domainAccountID)))),
-            screenName: SCREENS.DOMAIN.GROUPS,
-            brickRoadIndicator: hasDomainGroupsErrors(domainErrors) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
-        },
-        {
-            translationKey: 'domain.saml',
-            icon: icons.UserLock,
-            action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.DOMAIN_SAML.getRoute(domainAccountID)))),
-            screenName: SCREENS.DOMAIN.SAML,
-        },
-    ];
+    useEffect(() => {
+        clearStaleAdminshipRequesterErrors(domainAccountID, getStaleAdminshipRequesterErrorAccountIDs(previousRequesterAccountIDs, requesterAccountIDs, domainErrors));
+    }, [domainAccountID, previousRequesterAccountIDs, requesterAccountIDs, domainErrors]);
+
+    const domainMenuItems = getDomainMenuItems({
+        domainAccountID,
+        domainErrors,
+        hasPendingAdminRequests,
+        domain,
+        icons,
+    }).map((item) => ({
+        ...item,
+        action: singleExecution(waitForNavigate(() => Navigation.navigate(item.route))),
+    }));
 
     const fetchDomainData = useCallback(() => {
         if (!domainAccountID) {
@@ -155,16 +129,15 @@ function DomainInitialPage({route}: DomainInitialPageProps) {
                         {domainMenuItems.map((item) => (
                             <HighlightableMenuItem
                                 key={item.translationKey}
-                                disabled={isExecuting}
+                                disabled={isExecuting && !(item.screenName && activeRoute?.startsWith(item.screenName))}
                                 title={translate(item.translationKey)}
                                 icon={item.icon}
                                 onPress={item.action}
                                 brickRoadIndicator={item.brickRoadIndicator}
                                 wrapperStyle={styles.sectionMenuItem(shouldUseNarrowLayout)}
-                                highlighted={!!item?.highlighted}
                                 focused={!!(item.screenName && activeRoute?.startsWith(item.screenName))}
-                                badgeText={item.badgeText}
                                 shouldIconUseAutoWidthStyle
+                                shouldGreyOutWhenDisabled={false}
                             />
                         ))}
                     </View>

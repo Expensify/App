@@ -26,7 +26,6 @@ type DefaultPickerEventsCallback = () => void;
 type PickerSize = 'normal' | 'small';
 
 type PickerItem<TPickerValue> = {
-    /** The value of the item that is being selected */
     value: TPickerValue;
 
     /** The text to display for the item */
@@ -60,7 +59,6 @@ type BasePickerProps<TPickerValue> = {
     /** Something to show as the placeholder before something is selected */
     placeholder?: PickerPlaceholder;
 
-    /** Error text to display */
     errorText?: string;
 
     /** Customize the BasePicker container */
@@ -72,7 +70,6 @@ type BasePickerProps<TPickerValue> = {
     /** The ID used to uniquely identify the input in a Form */
     inputID?: string;
 
-    /** Show disabled style when disabled */
     shouldAllowDisabledStyle?: boolean;
 
     /** Saves a draft of the input value when used in a form */
@@ -84,10 +81,7 @@ type BasePickerProps<TPickerValue> = {
     /** A callback method that is called when the value changes and it receives the selected value as an argument */
     onInputChange?: (value: TPickerValue, index?: number) => void;
 
-    /** Size of a picker component */
     size?: PickerSize;
-
-    /** An icon to display with the picker */
     icon?: (size: PickerSize) => ReactElement;
 
     /** Whether we should forward the focus/blur calls to the inner picker * */
@@ -102,7 +96,6 @@ type BasePickerProps<TPickerValue> = {
     /** Hint text that appears below the picker */
     hintText?: string;
 
-    /** Reference to the outer element */
     ref?: ForwardedRef<BasePickerHandle>;
 };
 

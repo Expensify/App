@@ -8,12 +8,14 @@ import Text from '@components/Text';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import DateUtils from '@libs/DateUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import StringUtils from '@libs/StringUtils';
 
@@ -22,7 +24,8 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {ReservationData} from '@src/libs/TripReservationUtils';
 import {formatCancelledDescription, formatTransitLocationLabel, getPNRReservationDataFromTripReport, getTripReservationCode, getTripReservationIcon} from '@src/libs/TripReservationUtils';
-import ROUTES from '@src/ROUTES';
+import ONYXKEYS from '@src/ONYXKEYS';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {Report} from '@src/types/onyx';
 import type {Reservation} from '@src/types/onyx/Transaction';
 import type Transaction from '@src/types/onyx/Transaction';
@@ -170,9 +173,7 @@ function ReservationView({reservation, transactionID, tripRoomReportID, sequence
             iconStyles={[StyleUtils.getTripReservationIconContainer(false), styles.mr3, shouldCenterIcon && styles.alignSelfCenter]}
             secondaryIconFill={theme.icon}
             onPress={() =>
-                Navigation.navigate(
-                    ROUTES.TRAVEL_TRIP_DETAILS.getRoute(tripRoomReportID, transactionID, String(reservation.reservationID), sequenceIndex, Navigation.getReportRHPActiveRoute()),
-                )
+                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.TRAVEL_TRIP_DETAILS.getRoute(tripRoomReportID, transactionID, String(reservation.reservationID), sequenceIndex)))
             }
         />
     );
@@ -182,7 +183,6 @@ type TripDetailsViewProps = {
     /** The active tripRoomReportID, used for Onyx subscription */
     tripRoomReport: OnyxEntry<Report>;
 
-    /** Whether we should display the horizontal rule below the component */
     shouldShowHorizontalRule: boolean;
 
     /** Trip transactions associated with the report */
@@ -249,11 +249,13 @@ function TripDetailsView({tripRoomReport, shouldShowHorizontalRule, tripTransact
         [translate],
     );
 
+    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${tripRoomReport?.reportID}`);
+
     if (!tripRoomReport) {
         return null;
     }
 
-    const reservationsData = getPNRReservationDataFromTripReport(tripRoomReport, tripTransactions);
+    const reservationsData = getPNRReservationDataFromTripReport(tripRoomReport, reportNameValuePairs, tripTransactions);
 
     return (
         <View style={[styles.flex1, styles.ph5]}>

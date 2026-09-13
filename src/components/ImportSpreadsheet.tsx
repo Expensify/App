@@ -23,7 +23,7 @@ import React, {useRef, useState} from 'react';
 import {PanResponder, PixelRatio, Platform, View} from 'react-native';
 import RNFetchBlob from 'react-native-blob-util';
 
-import Button from './ButtonComposed';
+import Button from './Button';
 import DragAndDropConsumer from './DragAndDrop/Consumer';
 import DragAndDropProvider from './DragAndDrop/Provider';
 import FilePicker from './FilePicker';
@@ -34,16 +34,15 @@ import ScreenWrapper from './ScreenWrapper';
 import Text from './Text';
 
 type ImportSpreadsheetProps = {
-    // The route to navigate to when the back button is pressed.
+    /** The route to navigate to when the back button is pressed */
     backTo?: Routes;
 
-    // The route to navigate to after the file import is completed.
+    /** The route to navigate to after the file import is completed */
     goTo: Routes;
 
-    // If true, replace the current route after import instead of pushing on top.
+    /** If true, replace the current route after import instead of pushing on top */
     shouldForceReplaceNavigation?: boolean;
 
-    /** Whether the spreadsheet is importing multi-level tags */
     isImportingMultiLevelTags?: boolean;
 };
 

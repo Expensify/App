@@ -47,10 +47,11 @@ import {rand64} from '@libs/NumberUtils';
 import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
 import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
 import {hasOnlyPersonalPolicies as hasOnlyPersonalPoliciesUtil, isGroupPolicy, resolveCurrentTaxCode} from '@libs/PolicyUtils';
+import ReceiptStorage from '@libs/ReceiptStorage';
 import {shouldValidateFile} from '@libs/ReceiptUtils';
 import {getReportOrDraftReport, isMoneyRequestReport, isSelfDM} from '@libs/ReportUtils';
 import {cancelSpan, endSpan} from '@libs/telemetry/activeSpans';
-import {logReceiptCaptured, logReceiptSubmitted, mintAndStampReceiptTraceId} from '@libs/telemetry/ReceiptObservability';
+import {logReceiptAdoptFailed, logReceiptCaptured, logReceiptSubmitted, mintAndStampReceiptTraceId} from '@libs/telemetry/ReceiptObservability';
 import {cancelTracking} from '@libs/telemetry/submitFollowUpAction';
 import {getDefaultTaxCode, getIsFromGlobalCreate, getTaxValue} from '@libs/TransactionUtils';
 
@@ -84,7 +85,7 @@ function SubmitDetailsPage({
 }: ShareDetailsPageProps) {
     const styles = useThemeStyles();
     const {translate, dateFnsLocale, formatPhoneNumber} = useLocalize();
-    const {getCurrencyDecimals} = useCurrencyListActions();
+    const {getCurrencyDecimals, convertToDisplayString} = useCurrencyListActions();
     const delegateAccountID = useDelegateAccountID();
     const [unknownUserDetails] = useOnyx(ONYXKEYS.SHARE_UNKNOWN_USER_DETAILS);
     const [personalDetails] = useOnyx(`${ONYXKEYS.PERSONAL_DETAILS_LIST}`);
@@ -111,6 +112,7 @@ function SubmitDetailsPage({
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const reportAttributesDerived = useReportAttributes();
     const privateIsArchivedMap = usePrivateIsArchivedMap();
     const [currentDate] = useOnyx(ONYXKEYS.CURRENT_DATE);
@@ -227,10 +229,22 @@ function SubmitDetailsPage({
         const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${participant.reportID}`];
         return participant?.accountID
             ? getParticipantsOption(participant, personalDetails, translate)
-            : getReportOption(participant, privateIsArchived, policy, personalDetails, conciergeReportID, reportAttributesDerived, reportDraft, currentUserPersonalDetails.accountID, {
-                  translate,
-                  dateFnsLocale,
-              });
+            : getReportOption(
+                  participant,
+                  privateIsArchived,
+                  policy,
+                  personalDetails,
+                  conciergeReportID,
+                  reportAttributesDerived,
+                  reportDraft,
+                  currentUserPersonalDetails.accountID,
+                  {
+                      translate,
+                      dateFnsLocale,
+                      convertToDisplayString,
+                  },
+                  rules,
+              );
     });
 
     const isPolicyExpenseChat = participants?.some((participant) => participant.isPolicyExpenseChat);
@@ -269,7 +283,7 @@ function SubmitDetailsPage({
     const [storedTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(existingTransactionID)}`);
     const listOfParticipants = participants.filter((participant) => participant.selected);
     const participant = listOfParticipants.at(0) ?? selectedParticipants.at(0);
-    const reportToSubmit = resolveReportForMoneyRequest({transaction, transactionReport, routeReport: report, policy, reportNameValuePair});
+    const reportToSubmit = resolveReportForMoneyRequest({transaction, transactionReport, routeReport: report, reportNameValuePair, rules});
     const postSubmitNavigationReportID = (isSelfDM(report) ? report : reportToSubmit)?.reportID ?? reportOrAccountID;
     const isIouReport = isMoneyRequestReport(reportToSubmit);
     const policyTagsForRequestMoney = useMoneyRequestPolicyTags({
@@ -296,6 +310,7 @@ function SubmitDetailsPage({
         iouType,
         isCreatingTrackExpense,
         isSelfDMDestination: isSelfDM(report),
+        isOptimisticNewChatDestination: false,
         isLookingAroundUser,
         isMovingTransactionFromTrackExpense: false,
     });
@@ -414,6 +429,7 @@ function SubmitDetailsPage({
                     currentUserLocalCurrency: currentUserPersonalDetails.localCurrencyCode ?? CONST.CURRENCY.USD,
                     delegateAccountID,
                     reportActionsList: undefined,
+                    rules,
                 });
             } else {
                 const existingTransactionDraft = existingTransactionID ? transactionDrafts?.[existingTransactionID] : undefined;
@@ -464,6 +480,7 @@ function SubmitDetailsPage({
                     delegateAccountID,
                     formatPhoneNumber,
                     optimisticChatReportID: routeReportID,
+                    rules,
                 });
             }
         };
@@ -569,17 +586,31 @@ function SubmitDetailsPage({
             return;
         }
         formHasBeenSubmitted.current = true;
-        readFileAsync(
-            currentReceiptSource,
-            currentReceiptName,
-            (file) => onSuccess(file, locationPermissionGranted),
-            () => {
-                // Allow retry after a file-read failure.
-                formHasBeenSubmitted.current = false;
-                setIsConfirming(false);
-            },
-            currentReceiptType,
-        );
+        // Nothing ever deletes from ReceiptStorage, so we only adopt once the user submits. A cancelled share stays in
+        // the share extension's own folder, which the next share wipes.
+        ReceiptStorage.adopt(currentReceiptSource, currentReceiptName)
+            .then((durableName) => {
+                const uri = ReceiptStorage.toLocalUri(durableName);
+                // The shared path is empty once the move lands, and the draft is what a retry re-reads.
+                setMoneyRequestReceipt(CONST.IOU.OPTIMISTIC_TRANSACTION_ID, uri, currentReceiptName, true, currentReceiptType);
+                return uri;
+            })
+            .catch((error: unknown) => {
+                logReceiptAdoptFailed({error, captureSource: 'share'});
+                return currentReceiptSource;
+            })
+            .then((uri) =>
+                readFileAsync(
+                    uri,
+                    currentReceiptName,
+                    (file) => onSuccess(file, locationPermissionGranted),
+                    () => {
+                        formHasBeenSubmitted.current = false;
+                        setIsConfirming(false);
+                    },
+                    currentReceiptType,
+                ),
+            );
     };
 
     const onConfirm = (gpsRequired?: boolean) => {
@@ -654,6 +685,8 @@ function SubmitDetailsPage({
                     <MoneyRequestConfirmationList
                         transaction={transaction}
                         selectedParticipants={participants}
+                        // The Share flow never renders an editable participant row (the transaction is not from global create), so there is nothing to open.
+                        onOpenParticipantPicker={() => {}}
                         iouType={iouType}
                         onToggleBillable={setBillable}
                         onToggleReimbursable={setReimbursable}

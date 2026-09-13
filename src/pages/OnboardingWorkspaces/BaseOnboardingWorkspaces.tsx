@@ -1,5 +1,6 @@
-import Button from '@components/ButtonComposed';
-import LinkButton from '@components/ButtonComposed/composed/LinkButton';
+import Button from '@components/Button';
+import ButtonDisabledWhenOffline from '@components/Button/composed/ButtonDisabledWhenOffline';
+import LinkButton from '@components/Button/composed/LinkButton';
 import OnboardingHeader from '@components/OnboardingHeader';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
@@ -9,7 +10,6 @@ import Text from '@components/Text';
 import useAutoCreateSubmitWorkspace from '@hooks/useAutoCreateSubmitWorkspace';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import useNetwork from '@hooks/useNetwork';
 import useOnboardingMessages from '@hooks/useOnboardingMessages';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
@@ -19,7 +19,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {navigateAfterOnboardingWithMicrotaskQueue, navigateToSubmitWorkspaceAfterOnboardingWithMicrotaskQueue} from '@libs/navigateAfterOnboarding';
 import Navigation from '@libs/Navigation/Navigation';
-import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 import {expensifyLoginsSelector, isCurrentUserValidated} from '@libs/UserUtils';
 
 import {askToJoinPolicy, joinAccessiblePolicy} from '@userActions/Policy/Member';
@@ -40,8 +39,7 @@ import {View} from 'react-native';
 import type {BaseOnboardingWorkspacesProps} from './types';
 
 function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboardingWorkspacesProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['FallbackWorkspaceAvatar', 'DownArrow']);
-    const {isOffline} = useNetwork();
+    const icons = useMemoizedLazyExpensifyIcons(['DownArrow']);
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -122,12 +120,14 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
         .sort((a, b) => b.employeeCount - a.employeeCount)
         .map((policyInfo) => ({
             text: policyInfo.policyName,
-            alternateText: translate('onboarding.workspaceMemberList', policyInfo.employeeCount, policyInfo.policyOwner),
+            alternateText: translate('onboarding.workspaceMemberList', {count: policyInfo.employeeCount, policyOwner: policyInfo.policyOwner}),
+            // The user is not a member of these workspaces yet, so they are absent from Onyx and the avatar falls back
+            // to the default one seeded from `text` - the same icon this list used to build by hand.
+            policyID: policyInfo.policyID,
             keyForList: policyInfo.policyID,
             isDisabled: true,
             rightElement: (
-                <Button
-                    isDisabled={isOffline}
+                <ButtonDisabledWhenOffline
                     variant={CONST.BUTTON_VARIANT.SUCCESS}
                     size={CONST.BUTTON_SIZE.MEDIUM}
                     onPress={() => {
@@ -136,17 +136,8 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
                     sentryLabel={CONST.SENTRY_LABEL.ONBOARDING.JOIN_WORKSPACE}
                 >
                     <Button.Text>{policyInfo.automaticJoiningEnabled ? translate('workspace.workspaceList.joinNow') : translate('workspace.workspaceList.askToJoin')}</Button.Text>
-                </Button>
+                </ButtonDisabledWhenOffline>
             ),
-            icons: [
-                {
-                    id: policyInfo.policyID,
-                    source: getDefaultWorkspaceAvatar(policyInfo.policyName),
-                    fallbackIcon: icons.FallbackWorkspaceAvatar,
-                    name: policyInfo.policyName,
-                    type: CONST.ICON_TYPE_WORKSPACE,
-                },
-            ],
         }));
 
     const hasMoreThanLimit = allPolicyIDItems.length > CONST.ONBOARDING_JOINABLE_WORKSPACES_LIMIT;
