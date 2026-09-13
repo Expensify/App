@@ -800,7 +800,9 @@ function getUpdatedTransaction({
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol'];
 }): Transaction {
-    const isUnReportedExpense = transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
+    // Tracked expenses store the opposite sign, so this has to follow the report the expense ends up on rather than
+    // the one it is on now: a merge moves the expense to Self-DM in the same change set.
+    const isUnReportedExpense = transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID || transactionChanges.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
 
     // Only changing the first level fields so no need for deep clone now
     const updatedTransaction = lodashDeepClone(transaction);
