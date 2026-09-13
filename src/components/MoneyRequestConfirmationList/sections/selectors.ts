@@ -12,7 +12,6 @@ import {
     willFieldBeAutomaticallyFilled,
 } from '@libs/TransactionUtils';
 
-import CONST from '@src/CONST';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 
@@ -328,9 +327,6 @@ const reportFieldTransactionStateSelector = (t: OnyxEntry<Transaction>): ReportF
     };
 };
 
-const createOutstandingReportsForPolicySelector = (policyID: string | undefined) => (derived: OnyxEntry<OnyxTypes.OutstandingReportsByPolicyIDDerivedValue>) =>
-    derived?.[policyID ?? CONST.DEFAULT_NUMBER_ID];
-
 // --- InvoiceSenderField ---
 
 type InvoiceSenderWorkspace = {id: string | undefined; name: string | undefined; avatarURL: string | undefined} | undefined;
@@ -354,7 +350,6 @@ export {
     attendeeSliceSelector,
     categoryStateSelector,
     createCanUpdateSenderWorkspaceSelector,
-    createOutstandingReportsForPolicySelector,
     createTagDisplaySelector,
     dateStateSelector,
     derivedFlagsSliceSelector,

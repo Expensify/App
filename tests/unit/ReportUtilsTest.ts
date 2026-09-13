@@ -173,6 +173,7 @@ import {
     isActionCreator,
     isAdminOwnerApproverOrReportOwner,
     isAllowedToApproveExpenseReport,
+    isApproverOfOutstandingPolicyReports,
     isArchivedNonExpenseReport,
     isArchivedReport,
     isChatUsedForOnboarding,
@@ -11035,6 +11036,67 @@ describe('ReportUtils', () => {
 
             const reportNameValuePair = {private_isArchived: '2024-01-01 00:00:00.000'};
             expect(isReportOutstanding(report, policy.id, undefined, reportNameValuePair)).toBe(false);
+        });
+    });
+
+    describe('isApproverOfOutstandingPolicyReports', () => {
+        const approverAccountID = 123;
+        const buildOutstandingReport = (reportID: number, report: Partial<Report>): OnyxCollection<Report> => ({
+            [`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]: {
+                ...createRandomReport(reportID, undefined),
+                policyID: policy.id,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                ...report,
+            },
+        });
+
+        it('should return true when the member is the approver of a report awaiting their approval', () => {
+            // Given a submitted report whose approver is the member, which is how "Change approver" assigns an approver
+            const outstandingReports = buildOutstandingReport(1, {
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                managerID: approverAccountID,
+            });
+
+            // Then the member is recognized as an approver
+            expect(isApproverOfOutstandingPolicyReports(approverAccountID, outstandingReports)).toBe(true);
+        });
+
+        it('should return false when the member is the approver of an open report', () => {
+            // Given an open report that is not waiting for anyone's approval yet
+            const outstandingReports = buildOutstandingReport(1, {
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                managerID: approverAccountID,
+            });
+
+            // Then the member is not recognized as an approver
+            expect(isApproverOfOutstandingPolicyReports(approverAccountID, outstandingReports)).toBe(false);
+        });
+
+        it('should return false when the member only submitted the report', () => {
+            // Given a submitted report that the member owns but somebody else approves
+            const outstandingReports = buildOutstandingReport(1, {
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                ownerAccountID: approverAccountID,
+                managerID: 456,
+            });
+
+            // Then the member is not recognized as an approver
+            expect(isApproverOfOutstandingPolicyReports(approverAccountID, outstandingReports)).toBe(false);
+        });
+
+        it('should return false when there are no reports or no account ID', () => {
+            const outstandingReports = buildOutstandingReport(1, {
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                managerID: approverAccountID,
+            });
+
+            expect(isApproverOfOutstandingPolicyReports(approverAccountID, undefined)).toBe(false);
+            expect(isApproverOfOutstandingPolicyReports(approverAccountID, {})).toBe(false);
+            expect(isApproverOfOutstandingPolicyReports(undefined, outstandingReports)).toBe(false);
         });
     });
 
