@@ -32,6 +32,9 @@ type UseBlockDistanceRequestParams = {
 
     /** Whether the current flow is for any distance request */
     isDistanceRequest?: boolean;
+
+    /** Whether an existing distance request is being edited */
+    isEditingExistingDistanceRequest?: boolean;
 };
 
 type PolicyRequiringMapOrGPS = {
@@ -69,7 +72,13 @@ const hasHomeAddressSelector = (privatePersonalDetails: OnyxEntry<PrivatePersona
  * When a block occurs, it surfaces the relevant modal and returns true so callers
  * can early return.
  */
-function useBlockDistanceRequest({policyID, isManualDistanceRequest = false, isOdometerDistanceRequest = false, isDistanceRequest = false}: UseBlockDistanceRequestParams) {
+function useBlockDistanceRequest({
+    policyID,
+    isManualDistanceRequest = false,
+    isOdometerDistanceRequest = false,
+    isDistanceRequest = false,
+    isEditingExistingDistanceRequest = false,
+}: UseBlockDistanceRequestParams) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {showConfirmModal} = useConfirmModal();
@@ -79,7 +88,7 @@ function useBlockDistanceRequest({policyID, isManualDistanceRequest = false, isO
 
     const getBlockReason = useCallback(
         (policyIDToCheck: string | undefined): BlockDistanceRequestReason | undefined => {
-            if (!policyIDToCheck || !policiesRequiringMapOrGPS?.[policyIDToCheck]) {
+            if (!policyIDToCheck || !policiesRequiringMapOrGPS?.[policyIDToCheck] || isEditingExistingDistanceRequest) {
                 return;
             }
 
@@ -91,7 +100,7 @@ function useBlockDistanceRequest({policyID, isManualDistanceRequest = false, isO
                 return 'homeAddressRequired';
             }
         },
-        [hasHomeAddress, isDistanceRequest, isManualDistanceRequest, isOdometerDistanceRequest, policiesRequiringMapOrGPS],
+        [hasHomeAddress, isDistanceRequest, isManualDistanceRequest, isOdometerDistanceRequest, isEditingExistingDistanceRequest, policiesRequiringMapOrGPS],
     );
 
     const showBlockModal = useCallback(
