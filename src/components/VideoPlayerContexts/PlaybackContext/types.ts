@@ -56,9 +56,9 @@ type PlaybackStateContextValues = {
     originalParent: View | HTMLDivElement | null;
 
     /**
-     * The shared video element container, if one exists.
+     * Expo renders the web video directly, so this is the element moved between parent containers.
      */
-    sharedElement: View | HTMLDivElement | null;
+    sharedElement: View | HTMLVideoElement | null;
 
     /**
      * Array of currently mounted Video Player instances
@@ -94,7 +94,7 @@ type PlaybackActionsContextValues = {
      * @param playerRef Reference to the VideoPlayer instance.
      * @param viewRef Reference to the VideoView instance.
      * @param parent Parent container for the shared video element.
-     * @param child Child container for the shared video element.
+     * @param child Video element moved between parent containers on web, or a native View.
      * @param isUploading Whether the video is currently uploading.
      * @param videoElementData Metadata describing the video element.
      */
@@ -102,7 +102,7 @@ type PlaybackActionsContextValues = {
         playerRef: VideoPlayer | null,
         viewRef: VideoView | null,
         parent: View | HTMLDivElement | null,
-        child: View | HTMLDivElement | null,
+        child: PlaybackStateContextValues['sharedElement'],
         isUploading: boolean,
         videoElementData: VideoElementData,
     ) => void;

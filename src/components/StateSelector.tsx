@@ -7,6 +7,7 @@ import Navigation from '@libs/Navigation/Navigation';
 
 import CONST from '@src/CONST';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
+import ObjectUtils from '@src/types/utils/ObjectUtils';
 
 import type {ForwardedRef} from 'react';
 import type {View} from 'react-native';
@@ -25,7 +26,7 @@ type StateSelectorProps = {
     /** Form error text. e.g when no state is selected */
     errorText?: string;
 
-    value?: State | '';
+    value?: string;
 
     /** Callback to call when the input changes */
     onInputChange?: (value: string) => void;
@@ -73,7 +74,8 @@ function StateSelector({errorText, onBlur, value: stateCode, label, onInputChang
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [stateFromUrl, onBlur, isFocused]);
 
-    const title = stateCode && stateCode in COMMON_CONST.STATES ? translate(`allStates.${stateCode}.stateName`) : '';
+    const translationStateCode = ObjectUtils.typedKeys(COMMON_CONST.STATES).find((code) => code === stateCode);
+    const title = translationStateCode ? translate(`allStates.${translationStateCode}.stateName`) : '';
     const descStyle = title.length === 0 ? styles.textNormal : null;
 
     return (
