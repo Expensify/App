@@ -21,6 +21,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getBrokenConnectionUrlToFixPersonalCard} from '@libs/CardUtils';
 import {getDecodedLeafCategoryName} from '@libs/CategoryUtils';
+import getIOUPayerAndReceiver from '@libs/getIOUPayerAndReceiver';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {calculateAmount} from '@libs/IOUUtils';
 import Parser from '@libs/Parser';
@@ -32,7 +33,7 @@ import type {TransactionDetails} from '@libs/ReportUtils';
 import {canEditMoneyRequest, getTransactionDetails, isPolicyExpenseChat, isReportApproved, isSettled} from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
 import type {TranslationPathOrText} from '@libs/TransactionPreviewUtils';
-import {createTransactionPreviewConditionals, getIOUPayerAndReceiver, getTransactionPreviewTextAndTranslationPaths} from '@libs/TransactionPreviewUtils';
+import {createTransactionPreviewConditionals, getTransactionPreviewTextAndTranslationPaths} from '@libs/TransactionPreviewUtils';
 import {isManagedCardTransaction as isCardTransactionUtils, isGPSDistanceRequest, isMapDistanceRequest, isScanning} from '@libs/TransactionUtils';
 import ViolationsUtils, {filterReceiptViolations} from '@libs/Violations/ViolationsUtils';
 
