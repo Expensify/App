@@ -121,6 +121,7 @@ function useReconcileSelectionWithData({
 }: ReconcileSelectionParams) {
     const {selectedTransactions, excludedTransactions = getEmptyObject<SelectedTransactions>(), areAllMatchingItemsSelected} = useSearchSelectionContext();
     const {applySelection} = useSearchSelectionActions();
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
     useEffect(() => {
         if (!isFocused) {
@@ -200,6 +201,7 @@ function useReconcileSelectionWithData({
                         selfDMReport,
                         allowNegativeAmount: true,
                         parentReport: itemParentReport,
+                        rules,
                     });
 
                     const liveSelectionEntry: SelectedTransactionInfo = {
@@ -244,6 +246,7 @@ function useReconcileSelectionWithData({
                     selfDMReport,
                     allowNegativeAmount: true,
                     parentReport: itemParentReport,
+                    rules,
                 });
 
                 const liveSelectionEntry: SelectedTransactionInfo = {
@@ -390,6 +393,7 @@ function SearchWriteActionsProvider({
     const selfDMReport = useSelfDMReport();
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
     const [outstandingReportsByPolicyID] = useOnyx(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID);
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const {applySelection} = useSearchSelectionActions();
 
     const searchResultsData = searchResults?.data;
@@ -421,6 +425,7 @@ function SearchWriteActionsProvider({
                         outstandingReportsByPolicyID,
                         selfDMReport,
                         parentReport: itemParentReport,
+                        rules,
                     });
 
                     if (areItemsGrouped && isGroupedItemArray(filteredData)) {
@@ -511,6 +516,7 @@ function SearchWriteActionsProvider({
                                     selfDMReport,
                                     allowNegativeAmount: true,
                                     parentReport: itemParentReport,
+                                    rules,
                                 });
                                 return [key, {...entry, groupKey: item.keyForList, isSelectedViaGroup: !!item.keyForList}];
                             }),
@@ -559,6 +565,7 @@ function SearchWriteActionsProvider({
                                 selfDMReport,
                                 allowNegativeAmount: true,
                                 parentReport: itemParentReport,
+                                rules,
                             });
                             entries.push([key, {...entry, groupKey: item.keyForList, isSelectedViaGroup: !!item.keyForList}]);
                         }
@@ -591,6 +598,7 @@ function SearchWriteActionsProvider({
                             selfDMReport,
                             allowNegativeAmount: true,
                             parentReport: itemParentReport,
+                            rules,
                         }),
                     );
                 }

@@ -71,7 +71,7 @@ function FieldsSettingsPage({
         return <NotFoundPage />;
     }
 
-    const isImportedReportField = isReportFieldImportedFromIntegration(reportField);
+    const isImportedReportField = isReportFieldImportedFromIntegration(reportField, policy);
 
     const isDateFieldType = reportField.type === CONST.REPORT_FIELD_TYPES.DATE;
     const isListFieldType = reportField.type === CONST.REPORT_FIELD_TYPES.LIST;
