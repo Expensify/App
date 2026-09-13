@@ -96,6 +96,14 @@ const buildEmptyField = (): OnyxTypes.PolicyReportField => ({
     value: '',
 });
 
+// A field that cannot be deleted is the one field that must always hold a value, so clearing it is rejected.
+const buildRequiredField = (): OnyxTypes.PolicyReportField => ({
+    ...buildTextField(1),
+    name: 'RequiredField',
+    fieldID: 'requiredField',
+    deletable: false,
+});
+
 const buildListField = (): OnyxTypes.PolicyReportField => ({
     ...buildTextField(1),
     name: 'ListField',
@@ -224,6 +232,45 @@ describe('MoneyRequestViewReportFields', () => {
             reportField: {fieldID: 'field1', value: 'Updated value'},
             previousReportField: {fieldID: 'field1', value: 'Value1'},
         });
+    });
+
+    it('saves the empty value when an optional field is cleared', async () => {
+        await renderReportFields(2);
+
+        const input = screen.getByLabelText('Field1');
+        fireEvent.changeText(input, '');
+        fireEvent(input, 'blur');
+        await waitForBatchedUpdatesWithAct();
+
+        expect(updateReportField).toHaveBeenCalledTimes(1);
+        expect(jest.mocked(updateReportField).mock.calls.at(0)?.at(0)).toMatchObject({
+            reportField: {fieldID: 'field1', value: ''},
+            previousReportField: {fieldID: 'field1', value: 'Value1'},
+        });
+    });
+
+    it('rejects clearing a required field instead of saving it', async () => {
+        await renderReportFields(1, [buildRequiredField()]);
+
+        const input = screen.getByLabelText('RequiredField');
+        fireEvent.changeText(input, '');
+        fireEvent(input, 'blur');
+        await waitForBatchedUpdatesWithAct();
+
+        expect(updateReportField).not.toHaveBeenCalled();
+        expect(screen.getByText('common.error.fieldRequired')).toBeOnTheScreen();
+    });
+
+    it('does not save when the option a list field already holds is picked again', async () => {
+        await renderReportFields(1, [buildListField()]);
+
+        fireEvent.press(screen.getByLabelText('ListField'));
+        await waitForBatchedUpdatesWithAct();
+
+        fireEvent.press(screen.getByTestId('base-list-item-Option1'));
+        await waitForBatchedUpdatesWithAct();
+
+        expect(updateReportField).not.toHaveBeenCalled();
     });
 
     it('does not save when the value is left unchanged', async () => {

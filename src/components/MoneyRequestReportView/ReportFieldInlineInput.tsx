@@ -99,9 +99,12 @@ function ReportFieldInlineInput({reportField, fieldKey, value, isDisabled, error
                 setValidationError(translate('common.error.fieldRequired'));
                 return;
             }
-            // An empty value is never saved, so the input goes back to showing what is stored.
-            setDraftValue(lastSavedValue);
+            // Clearing an optional field is a real change, so the empty value is saved. Any whitespace the user
+            // left behind is normalized away first so the stored value is empty rather than blank.
             setValidationError('');
+            setDraftValue('');
+            setLastSavedValue('');
+            onSaveValue('');
             return;
         }
 

@@ -39,12 +39,11 @@ function useSaveReportField(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>
         }
 
         if (isReportFieldOfTypeTitle(reportField)) {
+            // A report always has a name, so clearing the title is discarded rather than saved.
+            if (value === '') {
+                return;
+            }
             updateReportName(report.reportID, value, report.reportName ?? '');
-            return;
-        }
-
-        // An empty value is not a valid report field value, so it is discarded rather than saved.
-        if (value === '') {
             return;
         }
 

@@ -1,4 +1,4 @@
-import {act, render, screen} from '@testing-library/react-native';
+import {act, fireEvent, render, screen} from '@testing-library/react-native';
 
 import ComposeProviders from '@components/ComposeProviders';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
@@ -83,5 +83,27 @@ describe('EditReportFieldDropdown', () => {
         await renderDropdown({shouldShowRecentlyUsedOptions: false});
 
         expect(screen.getAllByTestId('base-list-item-Bravo')).toHaveLength(1);
+    });
+
+    it('submits the option that was picked', async () => {
+        const onSubmit = jest.fn();
+        await renderDropdown({onSubmit});
+
+        fireEvent.press(screen.getByTestId('base-list-item-Charlie'));
+        await waitForBatchedUpdatesWithAct();
+
+        expect(onSubmit).toHaveBeenCalledWith({[fieldKey]: 'Charlie'});
+    });
+
+    it('submits the current value rather than an empty string when the option already selected is picked again', async () => {
+        const onSubmit = jest.fn();
+        await renderDropdown({onSubmit});
+
+        fireEvent.press(screen.getByTestId('base-list-item-Alpha'));
+        await waitForBatchedUpdatesWithAct();
+
+        // Callers skip a save that would not change anything by comparing this against the stored value, so an empty
+        // string here would be read as "the user cleared the field" instead.
+        expect(onSubmit).toHaveBeenCalledWith({[fieldKey]: 'Alpha'});
     });
 });

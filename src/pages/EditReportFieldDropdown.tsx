@@ -108,7 +108,10 @@ function EditReportFieldDropdown({
             style={shouldUseCompactRows ? {listItemWrapperStyle: {minHeight: variables.optionRowHeightCompact}} : undefined}
             shouldShowTextInput={shouldShowTextInput}
             textInputOptions={textInputOptions}
-            onSelectRow={(option) => onSubmit({[fieldKey]: !option?.text || fieldValue === option.text ? '' : option.text})}
+            // Re-selecting the value the field already holds submits that same value rather than an empty string.
+            // Both call sites compare the submitted value against the stored one and skip the save themselves, so
+            // signalling "no change" this way is no longer needed and leaves '' free to mean "cleared".
+            onSelectRow={(option) => onSubmit({[fieldKey]: option?.text ?? ''})}
             initiallyFocusedItemKey={initialFieldValue}
             shouldUpdateFocusedIndex
         />
