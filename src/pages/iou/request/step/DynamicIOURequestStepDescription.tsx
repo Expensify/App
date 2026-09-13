@@ -154,6 +154,7 @@ function DynamicIOURequestStepDescription({
         if (action === CONST.IOU.ACTION.EDIT) {
             updateMoneyRequestDescription({
                 transactionID: transaction?.transactionID,
+                transaction,
                 transactionThreadReport: report,
                 parentReport,
                 iouReportOwnerLogin,
