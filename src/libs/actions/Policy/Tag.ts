@@ -102,7 +102,9 @@ function buildOptimisticPolicyRecentlyUsedTags({policyTags, policyRecentlyUsedTa
         }
 
         const tagListKey = policyTagKeys.at(index) ?? '';
-        newOptimisticPolicyRecentlyUsedTags[tagListKey] = [...new Set([tag, ...(policyRecentlyUsedTags?.[tagListKey] ?? [])])];
+        // The stored list is written by the server and can arrive as an object instead of an array, so check the shape instead of relying on `??`.
+        const recentlyUsedTagsForList = policyRecentlyUsedTags?.[tagListKey];
+        newOptimisticPolicyRecentlyUsedTags[tagListKey] = [...new Set([tag, ...(Array.isArray(recentlyUsedTagsForList) ? recentlyUsedTagsForList : [])])];
     }
 
     return newOptimisticPolicyRecentlyUsedTags;
