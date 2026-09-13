@@ -1,30 +1,14 @@
 /**
  * Separate from `localeOrdinalMap` because a date is not a rank: Japanese dates read `15日` where the rank is `第15`.
  * Each entry renders the day alone. Any surrounding preposition or unit belongs to the sentence in `<locale>.ts`.
+ * English is absent because its dates read as the rank (`15th`), which `toLocaleOrdinal` already renders.
  */
 import type {Locale} from '@src/CONST/LOCALES';
 import {LOCALES} from '@src/CONST/LOCALES';
 
 type DayOfMonthRenderer = (day: number) => string;
 
-const localeDayOfMonthMap: Record<Locale, DayOfMonthRenderer> = {
-    /** English is the only locale here whose dates take an ordinal suffix, and it varies by digit. */
-    [LOCALES.EN]: (day) => {
-        const lastTwo = day % 100;
-        if (lastTwo >= 11 && lastTwo <= 13) {
-            return `${day}th`;
-        }
-        switch (day % 10) {
-            case 1:
-                return `${day}st`;
-            case 2:
-                return `${day}nd`;
-            case 3:
-                return `${day}rd`;
-            default:
-                return `${day}th`;
-        }
-    },
+const localeDayOfMonthMap: Partial<Record<Locale, DayOfMonthRenderer>> = {
     /** Cardinal except the first, like the other Romance locales here: `el 1.º`, then `el 2`, `el 15`. */
     [LOCALES.ES]: (day) => (day === 1 ? '1.º' : `${day}`),
     /** Only the first of the month takes an ordinal in French: `le 1er`, then `le 2`, `le 15`. */

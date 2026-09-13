@@ -1,7 +1,7 @@
 import extractModuleDefaultExport from '@libs/extractModuleDefaultExport';
 import {refreshIntlFormatterCaches} from '@libs/IntlFormatterCaches';
 import Log from '@libs/Log';
-import {endSpan, endSpanWithAttributes, getSpan, startSpan} from '@libs/telemetry/activeSpans';
+import {cancelSpan, endSpan, endSpanWithAttributes, getSpan, startSpan} from '@libs/telemetry/activeSpans';
 
 import CONST from '@src/CONST';
 import {LOCALES} from '@src/CONST/LOCALES';
@@ -258,6 +258,8 @@ class IntlStore {
             IntlStore.loadToken++;
             // Reset here, because the discarded load's `.then` bails on the token check before reaching its own reset.
             setAreTranslationsLoading(false);
+            // The same bail skips its span, which a superseding load() would cancel by starting its own.
+            cancelSpan(CONST.TELEMETRY.SPAN_LOCALE.TRANSLATIONS_LOAD);
             return Promise.resolve();
         }
         const loaderPromise = IntlStore.loaders[locale];

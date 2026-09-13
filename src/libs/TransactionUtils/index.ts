@@ -1467,34 +1467,28 @@ function getDisplayMerchantOrDescription(transaction: OnyxEntry<Transaction>, lo
     return !isMerchantMissing(transaction) ? getDisplayMerchant(transaction, getMerchant(transaction), locale) : getDescription(transaction);
 }
 
-/** The positional split is only for rows stored before the range was pinned to enUS, whose comma count depends on the locale that wrote them. */
-function getPerDiemDestination(transaction: OnyxEntry<Transaction>, merchant: string): string {
+function getPerDiemDateRange(transaction: OnyxEntry<Transaction>): {start: Date; end: Date} | undefined {
     const {start, end} = transaction?.comment?.customUnit?.attributes?.dates ?? {start: '', end: ''};
-    const startDate = start ? DateUtils.toLocalDate(start) : undefined;
-    const endDate = end ? DateUtils.toLocalDate(end) : undefined;
-    // `getStablePerDiemMerchantDateRange` goes through date-fns, which throws on an Invalid Date, and this runs in render with no error boundary.
-    if (startDate && endDate && !Number.isNaN(startDate.getTime()) && !Number.isNaN(endDate.getTime())) {
-        const dateRangeSuffix = `, ${DateUtils.getStablePerDiemMerchantDateRange(startDate, endDate)}`;
-        if (merchant.endsWith(dateRangeSuffix)) {
-            return merchant.slice(0, -dateRangeSuffix.length);
-        }
-    }
-    const merchantParts = merchant.split(', ');
-    if (merchantParts.length < 3) {
-        return '';
-    }
-    return merchantParts.slice(0, merchantParts.length - 3).join(', ');
+    return start && end ? {start: DateUtils.toLocalDate(start), end: DateUtils.toLocalDate(end)} : undefined;
 }
 
+/**
+ * The destination, or '' when the merchant does not end in the range generated for the transaction's dates. Every writer has
+ * used `<destination>, <MMM d, yyyy> - <MMM d, yyyy>`, in enUS now and in its own language before, so only the day and year
+ * numbers are compared, and a merchant edited since or written for other dates is left alone rather than cut at a guessed comma.
+ */
+function getPerDiemDestination(transaction: OnyxEntry<Transaction>, merchant: string): string {
+    const range = getPerDiemDateRange(transaction);
+    const generatedRange = range && new RegExp(`^(.+), [^,]+ ${range.start.getDate()}, ${range.start.getFullYear()} - [^,]+ ${range.end.getDate()}, ${range.end.getFullYear()}$`, 'u');
+    return generatedRange?.exec(merchant)?.[1] ?? '';
+}
+
+/** The reader's copy of the range, or the stored merchant when the transaction carries no valid dates to rebuild it from. */
 function getPerDiemDates(transaction: OnyxEntry<Transaction>, merchant: string, locale: Locale): string {
-    const {start, end} = transaction?.comment?.customUnit?.attributes?.dates ?? {start: '', end: ''};
-    const startDate = start ? DateUtils.formatToMediumDate(start, locale) : '';
-    const endDate = end ? DateUtils.formatToMediumDate(end, locale) : '';
-    if (!startDate || !endDate) {
-        const merchantParts = merchant.split(', ');
-        return merchantParts.length < 3 ? merchant : merchantParts.slice(-3).join(', ');
-    }
-    return `${startDate} - ${endDate}`;
+    const range = getPerDiemDateRange(transaction);
+    const startLabel = range ? DateUtils.formatToMediumDate(range.start, locale) : '';
+    const endLabel = range ? DateUtils.formatToMediumDate(range.end, locale) : '';
+    return startLabel && endLabel ? `${startLabel} - ${endLabel}` : merchant;
 }
 
 /** The merchant a reader sees. Per diem persists an enUS wire string so every viewer stores the same value, so the reader's copy is rebuilt from the structured dates. */
@@ -1503,9 +1497,8 @@ function getDisplayMerchant(transaction: OnyxEntry<Transaction>, merchant: strin
         return merchant;
     }
     const destination = getPerDiemDestination(transaction, merchant);
-    const dates = getPerDiemDates(transaction, merchant, locale);
-    // Both halves required, else the stored string is closer to right than a bare location or a bare range.
-    return destination && dates ? `${destination}, ${dates}` : merchant;
+    // No destination also covers missing or invalid dates, whose range could not match.
+    return destination ? `${destination}, ${getPerDiemDates(transaction, merchant, locale)}` : merchant;
 }
 
 /**
@@ -1516,7 +1509,7 @@ function getDisplayMerchant(transaction: OnyxEntry<Transaction>, merchant: strin
 function getMerchantName(transaction: TransactionWithOptionalSearchFields, translate: (key: TranslationPaths) => string, locale: Locale): string {
     const shouldShowMerchant = transaction.shouldShowMerchant ?? true;
 
-    // Only the raw merchant: a second pass cannot match the enUS suffix it already replaced, so the positional fallback would eat the commas out of the location.
+    // Search already rendered `formattedMerchant` for this reader.
     let merchant = transaction?.formattedMerchant ?? getDisplayMerchant(transaction, getMerchant(transaction), locale);
 
     if (isScanning(transaction) && shouldShowMerchant) {

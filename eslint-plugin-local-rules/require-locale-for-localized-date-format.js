@@ -124,23 +124,46 @@ function findLocalizedTokens(pattern) {
 }
 
 /**
- * Resolves a format argument to a literal pattern, following `CONST.DATE.*` references and ternaries.
+ * @param {import('eslint').Scope.Scope | null} scope
+ * @param {string} variableName
+ * @returns {import('eslint').Scope.Variable | undefined}
+ */
+function findVariable(scope, variableName) {
+    for (let current = scope; current; current = current.upper) {
+        const variable = current.set.get(variableName);
+        if (variable) {
+            return variable;
+        }
+    }
+    return undefined;
+}
+
+/**
+ * Resolves a format argument to a literal pattern, following `CONST.DATE.*` references, ternaries and aliases.
  * Returns null when the pattern cannot be determined statically.
  *
  * @param {import('estree').Node} node
+ * @param {import('eslint').SourceCode} sourceCode
+ * @param {Set<import('estree').Node>} visited
  * @returns {string | null}
  */
-function resolvePattern(node, scope) {
-    if (!node) {
+function resolvePattern(node, sourceCode, visited = new Set()) {
+    if (!node || visited.has(node)) {
         return null;
     }
-    // Resolve a name to its initializer, else hoisting a format string to a `const` exempts its call site.
+    visited.add(node);
+    // Resolve a name to its initializer, else hoisting a format string to a `const` exempts its call site. Each hop looks the
+    // name up from where it is written, because an alias's initializer lives in the declaring scope, not the call's.
     // A name with no initializer stays unknown: a parameter's literal is visible at the callers, not here.
-    if (node.type === 'Identifier' && scope) {
-        const variable = scope.references.find((reference) => reference.identifier === node)?.resolved;
+    if (node.type === 'Identifier') {
+        const variable = findVariable(sourceCode.getScope(node), node.name);
         const definition = variable?.defs?.length === 1 ? variable.defs.at(0) : undefined;
+        // Its literal is in another file, so it is guarded like an unknown `CONST.DATE` name rather than skipped.
+        if (definition?.type === 'ImportBinding') {
+            return UNKNOWN_LOCALIZED;
+        }
         if (definition?.type === 'Variable' && definition.node.init) {
-            return resolvePattern(definition.node.init, scope);
+            return resolvePattern(definition.node.init, sourceCode, visited);
         }
         return null;
     }
@@ -166,8 +189,8 @@ function resolvePattern(node, scope) {
     }
     // `isPastYear ? A : B`, flagged if either branch is localized.
     if (node.type === 'ConditionalExpression') {
-        const consequent = resolvePattern(node.consequent, scope);
-        const alternate = resolvePattern(node.alternate, scope);
+        const consequent = resolvePattern(node.consequent, sourceCode, visited);
+        const alternate = resolvePattern(node.alternate, sourceCode, visited);
         if (consequent === null && alternate === null) {
             return null;
         }
@@ -252,7 +275,7 @@ function create(context) {
                 return;
             }
 
-            const pattern = resolvePattern(node.arguments.at(formatArgIndex), context.sourceCode.getScope(node));
+            const pattern = resolvePattern(node.arguments.at(formatArgIndex), context.sourceCode);
             if (pattern === null) {
                 return;
             }

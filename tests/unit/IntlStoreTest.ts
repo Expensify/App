@@ -1,3 +1,5 @@
+import {cancelSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
+
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -122,6 +124,19 @@ describe('IntlStore', () => {
                 });
             });
             expect(flag).toBe(false);
+        });
+
+        it('ends the translations span of a load that the already-loaded locale supersedes', async () => {
+            await IntlStore.load(CONST.LOCALES.EN);
+            startSpan(CONST.TELEMETRY.SPAN_LOCALE.ROOT, {name: CONST.TELEMETRY.SPAN_LOCALE.ROOT, op: CONST.TELEMETRY.SPAN_LOCALE.ROOT});
+            const esLoad = IntlStore.load(CONST.LOCALES.ES);
+            expect(getSpan(CONST.TELEMETRY.SPAN_LOCALE.TRANSLATIONS_LOAD)).toBeDefined();
+
+            await IntlStore.load(CONST.LOCALES.EN);
+            await esLoad;
+
+            expect(getSpan(CONST.TELEMETRY.SPAN_LOCALE.TRANSLATIONS_LOAD)).toBeUndefined();
+            cancelSpan(CONST.TELEMETRY.SPAN_LOCALE.ROOT);
         });
 
         it('keeps the boot gate closed when a superseded load caches a locale nothing renders in', async () => {

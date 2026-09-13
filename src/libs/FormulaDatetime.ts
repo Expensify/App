@@ -1,3 +1,5 @@
+import CONST from '@src/CONST';
+
 /**
  * Get ordinal suffix for a day (st, nd, rd, th)
  */
@@ -49,19 +51,16 @@ function calculateDayOfYear(date: Date): number {
     return Math.floor((date.getTime() - yearStart.getTime()) / (1000 * 60 * 60 * 24));
 }
 
+/** Every English month and weekday abbreviates to its first three letters, which is why the short forms are sliced. */
+const ABBREVIATION_LENGTH = 3;
+
 /**
  * A formula resolves to a name stored on the report and read by everyone who opens it, and RFC 2822 fixes its
  * abbreviations in English, so neither may follow the language of whoever triggered the computation.
  */
-const MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'] as const;
-const DAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'] as const;
-
-/** Every English month and weekday abbreviates to its first three letters, which is why the short forms are sliced. */
-const ABBREVIATION_LENGTH = 3;
-
 function getEnglishNames(date: Date) {
-    const fullMonthName = MONTH_NAMES[date.getMonth()];
-    const fullDayName = DAY_NAMES[date.getDay()];
+    const fullMonthName = CONST.DATE.ENGLISH_MONTH_NAMES[date.getMonth()];
+    const fullDayName = CONST.DATE.ENGLISH_DAY_NAMES[date.getDay()];
     return {
         fullMonthName,
         shortMonthName: fullMonthName.slice(0, ABBREVIATION_LENGTH),

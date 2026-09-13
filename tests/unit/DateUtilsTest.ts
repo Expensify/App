@@ -5,7 +5,6 @@ import {clearIntlFormatterCaches, refreshIntlFormatterCaches} from '@libs/IntlFo
 import {translate} from '@libs/Localize';
 
 import CONST from '@src/CONST';
-import type {Locale} from '@src/CONST/LOCALES';
 import IntlStore from '@src/languages/IntlStore';
 import type {TranslationParameters, TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -200,15 +199,23 @@ describe('DateUtils', () => {
     it('should return the date in calendar time when calling datetimeToRelative', () => {
         jest.useFakeTimers().setSystemTime(new Date('2026-03-11T12:00:00Z'));
 
-        // Sub-minute rounds up. date-fns said "less than a minute ago", which Intl cannot express.
+        // Sub-minute reads CLDR's "now" on both sides of the device clock, where date-fns said "less than a minute ago".
         const aFewSecondsAgo = subSeconds(new Date(), 10).toString();
-        expect(DateUtils.datetimeToRelative(LOCALE, aFewSecondsAgo, UTC)).toBe('1 minute ago');
+        expect(DateUtils.datetimeToRelative(LOCALE, aFewSecondsAgo, UTC)).toBe('now');
+
+        const aFewSecondsAhead = new Date(Date.now() + 10_000).toString();
+        expect(DateUtils.datetimeToRelative(LOCALE, aFewSecondsAhead, UTC)).toBe('now');
 
         const aMinuteAgo = subMinutes(new Date(), 1).toString();
         expect(DateUtils.datetimeToRelative(LOCALE, aMinuteAgo, UTC)).toBe('1 minute ago');
 
         const anHourAgo = subHours(new Date(), 1).toString();
         expect(DateUtils.datetimeToRelative(LOCALE, anHourAgo, UTC)).toBe('1 hour ago');
+    });
+
+    it('reads a null datetime as absent, like undefined, rather than as the epoch', () => {
+        jest.useFakeTimers().setSystemTime(new Date('2026-03-11T12:00:00Z'));
+        expect(DateUtils.getLocalDateFromDatetime(LOCALE, UTC, null).getUTCFullYear()).toBe(2026);
     });
 
     it('datetimeToRelative renders localized wording for non-English locales', async () => {
@@ -608,67 +615,20 @@ describe('DateUtils', () => {
             }
         });
 
-        describe('fallback branches', () => {
-            const originalLocale = Intl.Locale;
-
-            /**
-             * Resolves the locale against a stubbed `Intl.Locale` on a freshly required module. The real
-             * `getWeekStartsOn` memoizes, and the blocks above already resolved these locales through real Intl, so
-             * without isolation the cache answers first and the fallback code under test never runs.
-             */
-            function getWeekStartsOnWith(impl: () => Record<string, unknown>, locale: Locale): number {
-                Object.defineProperty(Intl, 'Locale', {value: jest.fn(impl), configurable: true, writable: true});
-                try {
-                    let result = -1;
-                    jest.isolateModules(() => {
-                        const fresh = jest.requireActual<{default: typeof DateUtils}>('@libs/DateUtils').default;
-                        result = fresh.getWeekStartsOn(locale);
-                    });
-                    return result;
-                } finally {
-                    Object.defineProperty(Intl, 'Locale', {value: originalLocale, configurable: true, writable: true});
-                }
-            }
-
-            function throwOnConstruction(): Record<string, unknown> {
-                throw new RangeError('Intl.Locale unavailable');
-            }
-
-            it('reads `weekInfo` property when `getWeekInfo()` method is absent', () => {
-                expect(getWeekStartsOnWith(() => ({weekInfo: {firstDay: 7, weekend: [6, 7], minimalDays: 1}}), CONST.LOCALES.JA)).toBe(0);
-            });
-
-            it('falls back to the CLDR-per-locale map when neither getWeekInfo() nor weekInfo is available', () => {
-                // ja is Sunday-start per CLDR. The static-map fallback preserves that on engines without `getWeekInfo`.
-                expect(getWeekStartsOnWith(() => ({}), CONST.LOCALES.JA)).toBe(0);
-                expect(getWeekStartsOnWith(() => ({}), CONST.LOCALES.FR)).toBe(1);
-            });
-
-            it('falls back to the CLDR-per-locale map when Intl.Locale constructor throws', () => {
-                expect(getWeekStartsOnWith(throwOnConstruction, CONST.LOCALES.JA)).toBe(0);
-                expect(getWeekStartsOnWith(throwOnConstruction, CONST.LOCALES.FR)).toBe(1);
-            });
-
-            it('falls back to the CLDR-per-locale map when firstDay is out of range', () => {
-                expect(getWeekStartsOnWith(() => ({weekInfo: {firstDay: 99, weekend: [6, 7], minimalDays: 1}}), CONST.LOCALES.JA)).toBe(0);
-                expect(getWeekStartsOnWith(() => ({weekInfo: {firstDay: 99, weekend: [6, 7], minimalDays: 1}}), CONST.LOCALES.FR)).toBe(1);
-            });
-
-            it('static CLDR map reproduces Intl.Locale.getWeekInfo for every supported locale', () => {
-                // Read the truth from real Intl first, then disable it, so the two sides come from different sources.
-                // Comparing the map against Intl while Intl is still reachable would compare it against itself.
+        describe('CLDR parity', () => {
+            it('the week-start table reproduces Intl.Locale.getWeekInfo for every supported locale', () => {
                 const probe = new Intl.Locale(CONST.LOCALES.EN);
                 if (typeof probe.getWeekInfo !== 'function') {
                     return;
                 }
                 for (const locale of Object.values(CONST.LOCALES)) {
-                    // `en` carries a product override, asserted on its own below against both sides.
+                    // `en` carries a product override, asserted on its own below.
                     if (locale === CONST.LOCALES.DEFAULT) {
                         continue;
                     }
                     const weekInfo = new Intl.Locale(locale).getWeekInfo();
                     const intlFirstDay = weekInfo.firstDay === 7 ? 0 : weekInfo.firstDay;
-                    expect({locale, fallback: getWeekStartsOnWith(throwOnConstruction, locale)}).toEqual({locale, fallback: intlFirstDay});
+                    expect({locale, weekStartsOn: DateUtils.getWeekStartsOn(locale)}).toEqual({locale, weekStartsOn: intlFirstDay});
                 }
             });
 
@@ -1183,6 +1143,28 @@ describe('DateUtils', () => {
             const start = new Date(2025, 2, 17);
             const end = new Date(2025, 2, 20);
             expect(DateUtils.getFormattedDateRange(translateLocal, start, end, locale)).toBe(expected);
+        });
+
+        it('keeps field order on an engine whose formatToParts reports no fields', () => {
+            const originalDTF = Intl.DateTimeFormat;
+            function LiteralOnlyDTF(locale?: string | string[], options?: Intl.DateTimeFormatOptions) {
+                const real = new originalDTF(locale, options);
+                return {
+                    format: (date?: Date) => real.format(date),
+                    formatToParts: (date?: Date) => [{type: 'literal', value: real.format(date)}],
+                    resolvedOptions: () => real.resolvedOptions(),
+                };
+            }
+            Object.defineProperty(Intl, 'DateTimeFormat', {value: LiteralOnlyDTF, configurable: true, writable: true});
+            try {
+                jest.isolateModules(() => {
+                    const fresh = jest.requireActual<{default: typeof DateUtils}>('@libs/DateUtils').default;
+                    expect(fresh.getFormattedDateRange(translateLocal, new Date(2025, 2, 17), new Date(2025, 2, 20), CONST.LOCALES.ES)).toBe('17-20 mar');
+                    expect(fresh.getLocalizedDatePlaceholder(CONST.LOCALES.DE)).toBe('DD.MM.YYYY');
+                });
+            } finally {
+                Object.defineProperty(Intl, 'DateTimeFormat', {value: originalDTF, configurable: true, writable: true});
+            }
         });
 
         it('getFormattedDateRangeForSearch returns empty rather than an orphan separator on an unparsable boundary', () => {

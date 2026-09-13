@@ -110,8 +110,9 @@ function toLocaleDayOfMonth(locale: Locale, day: number): string {
     if (!Number.isFinite(day)) {
         return '';
     }
-    // The tag reaches here from an Onyx NVP, so a malformed persisted value would index the map to undefined.
-    return (localeDayOfMonthMap[locale] ?? localeDayOfMonthMap[LOCALES.DEFAULT])(day);
+    // The tag reaches here from an Onyx NVP, so a malformed persisted value must not index either map to undefined.
+    const supportedLocale = locale in localeOrdinalMap ? locale : LOCALES.DEFAULT;
+    return localeDayOfMonthMap[supportedLocale]?.(day) ?? toLocaleOrdinal(supportedLocale, day);
 }
 
 export {toLocaleDigit, toLocaleOrdinal, toLocaleDayOfMonth, fromLocaleDigit};

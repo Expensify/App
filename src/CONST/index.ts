@@ -698,6 +698,8 @@ const CONST = {
         FNS_DB_FORMAT_STRING: 'yyyy-MM-dd HH:mm:ss.SSS',
         SECONDS_PER_DAY: 24 * 60 * 60,
         MONTH_DAYS,
+        ENGLISH_MONTH_NAMES: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
+        ENGLISH_DAY_NAMES: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
         INTL_FORMATS: {
             SHORT_TIME: {timeStyle: 'short'},
             SHORT_DATE: {dateStyle: 'short'},

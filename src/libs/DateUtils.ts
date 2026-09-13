@@ -89,9 +89,6 @@ function getDeviceTimeZone(): string | undefined {
 }
 
 const WEEK_DAYS = [0, 1, 2, 3, 4, 5, 6] as const satisfies readonly WeekDay[];
-function isWeekDay(value: number): value is WeekDay {
-    return (WEEK_DAYS as readonly number[]).includes(value);
-}
 
 /** Hand-rolled rather than `memoize`: this runs per rendered cell, and that cache scans its entries linearly. */
 function cacheIntlDateTimeFormat(cacheKey: string, formatter: Intl.DateTimeFormat | null): void {
@@ -107,10 +104,9 @@ function cacheIntlDateTimeFormat(cacheKey: string, formatter: Intl.DateTimeForma
 function getIntlDateTimeFormat(locale: Locale, formatKey: IntlFormatKey, requestedTimeZone?: string): Intl.DateTimeFormat | null {
     const timeZone = requestedTimeZone ?? getDeviceTimeZone();
     const cacheKey = `${locale}|${formatKey}|${timeZone ?? ''}`;
-    if (intlDateTimeFormatCache.has(cacheKey)) {
-        const cached = intlDateTimeFormatCache.get(cacheKey) ?? null;
-        intlDateTimeFormatCache.delete(cacheKey);
-        intlDateTimeFormatCache.set(cacheKey, cached);
+    // `null` is a cached failure, `undefined` a miss.
+    const cached = intlDateTimeFormatCache.get(cacheKey);
+    if (cached !== undefined) {
         return cached;
     }
     const preset = CONST.DATE.INTL_FORMATS[formatKey];
@@ -158,14 +154,13 @@ function formatIntl(locale: Locale, formatKey: IntlFormatKey, date: Date, timeZo
     return formatter.format(date).replaceAll(CONST.DATE.INTL_NBSP_PATTERN, ' ');
 }
 
-/** `en` resolves to en-US and therefore Sunday, which would move the calendar for every existing English user. */
-const WEEK_STARTS_ON_OVERRIDES: Partial<Record<Locale, WeekDay>> = {
-    [CONST.LOCALES.EN]: 1,
-};
-
-/** CLDR week starts, for engines without `Intl.Locale.getWeekInfo`. */
+/**
+ * CLDR week starts for the shipped locales, read from here rather than `Intl.Locale.getWeekInfo` so engines without it agree
+ * with those that have it. `en` is the exception: CLDR resolves it to en-US's Sunday, which would move the calendar for every
+ * existing English user.
+ */
 const WEEK_STARTS_ON_BY_LOCALE: Readonly<Record<Locale, WeekDay>> = {
-    [CONST.LOCALES.EN]: 0,
+    [CONST.LOCALES.EN]: 1,
     [CONST.LOCALES.FR]: 1,
     [CONST.LOCALES.DE]: 1,
     [CONST.LOCALES.IT]: 1,
@@ -178,29 +173,10 @@ const WEEK_STARTS_ON_BY_LOCALE: Readonly<Record<Locale, WeekDay>> = {
     [CONST.LOCALES.PT_BR]: 0,
 };
 
-/** Memoized for the callers React Compiler does not cover, where each miss constructs an `Intl.Locale`. */
-const getWeekStartsOn = memoize(
-    (locale: Locale): WeekDay => {
-        const override = WEEK_STARTS_ON_OVERRIDES[locale];
-        if (override !== undefined) {
-            return override;
-        }
-        try {
-            const intlLocale = new Intl.Locale(locale);
-            const weekInfo = typeof intlLocale.getWeekInfo === 'function' ? intlLocale.getWeekInfo() : intlLocale.weekInfo;
-            if (weekInfo) {
-                // Intl counts Mon=1 to Sun=7, date-fns counts Sun=0 to Sat=6.
-                const dateFnsDay = weekInfo.firstDay === 7 ? 0 : weekInfo.firstDay;
-                if (isWeekDay(dateFnsDay)) {
-                    return dateFnsDay;
-                }
-            }
-        } catch {}
-        // The tag reaches here from an Onyx NVP, so a malformed persisted value would index the map to undefined.
-        return WEEK_STARTS_ON_BY_LOCALE[locale] ?? CONST.WEEK_STARTS_ON;
-    },
-    {maxSize: 16, equality: 'shallow'},
-);
+function getWeekStartsOn(locale: Locale): WeekDay {
+    // The tag reaches here from an Onyx NVP, so a malformed persisted value would index the map to undefined.
+    return WEEK_STARTS_ON_BY_LOCALE[locale] ?? CONST.WEEK_STARTS_ON;
+}
 
 function getWeekEndsOn(locale: Locale): WeekDay {
     return WEEK_DAYS[(getWeekStartsOn(locale) + 6) % 7];
@@ -208,13 +184,13 @@ function getWeekEndsOn(locale: Locale): WeekDay {
 
 /**
  * Returns a zoned Date for the given datetime. Unzoned `string` values are the DB wire format and read as UTC.
- * A `Date` or `number` passes through. `undefined` reads `Date.now()`, which is only safe outside render.
+ * A `Date` or `number` passes through. An absent value reads `Date.now()`, which is only safe outside render.
  * `locale` is unused, kept on the signature for compat with LocaleContextProvider's wrapper.
  */
-function getLocalDateFromDatetime(locale: Locale, currentSelectedTimezone: string, datetime?: string | Date | number): Date {
-    // `''` counts as absent, as it did before the signature widened: callers pass `?? ''` for a missing field. A `0`
-    // timestamp is a real instant, which is why this is not a plain falsy check.
-    if (datetime === undefined || datetime === '') {
+function getLocalDateFromDatetime(locale: Locale, currentSelectedTimezone: string, datetime?: string | Date | number | null): Date {
+    // Absent is `undefined`, `null` (an Onyx field the backend sent empty) or `''` (callers pass `?? ''`). Not a plain falsy
+    // check, because a `0` timestamp is a real instant.
+    if (datetime === undefined || datetime === null || datetime === '') {
         return toZonedSafe(new Date(), currentSelectedTimezone);
     }
     if (datetime instanceof Date || typeof datetime === 'number') {
@@ -351,7 +327,7 @@ function datetimeToCalendarTime(locale: Locale, datetime: string, currentSelecte
  *
  * e.g.
  *
- * < 1 minute ago       within the past minute
+ * now                  within a minute either way
  * 12 minutes ago       within the past hour
  * 1 hour ago           within the past day
  * 3 days ago           within the past month
@@ -373,41 +349,44 @@ const RELATIVE_TIME_UNITS: ReadonlyArray<[divisor: number, unit: Intl.RelativeTi
 ];
 
 /**
- * `numeric: 'always'` to match the "1 day ago" wording date-fns shipped, rather than `'auto'`'s "yesterday".
- * Unbounded because the key space is the eleven shipped locales, but clearable for when polyfill data arrives late.
+ * `numeric: 'always'` matches the "1 day ago" wording date-fns shipped, rather than `'auto'`'s "yesterday", and `'auto'` is
+ * only asked for the sub-minute "now". Unbounded because the key space is the shipped locales in those two styles, but
+ * clearable for when polyfill data arrives late.
  */
-function getRelativeTimeFormat(locale: Locale): Intl.RelativeTimeFormat | null {
-    if (relativeTimeFormatCache.has(locale)) {
-        return relativeTimeFormatCache.get(locale) ?? null;
+function getRelativeTimeFormat(locale: Locale, numeric: Intl.RelativeTimeFormatNumeric): Intl.RelativeTimeFormat | null {
+    const cacheKey = `${locale}|${numeric}`;
+    const cached = relativeTimeFormatCache.get(cacheKey);
+    if (cached !== undefined) {
+        return cached;
     }
     let formatter: Intl.RelativeTimeFormat | null;
     try {
-        formatter = new Intl.RelativeTimeFormat(locale, {numeric: 'always'});
+        formatter = new Intl.RelativeTimeFormat(locale, {numeric});
     } catch (error) {
         // Engines that ship Intl but not RelativeTimeFormat (older Hermes builds, ICU-stripped runtimes) end up here.
-        Log.warn('[DateUtils] Intl.RelativeTimeFormat unavailable', {locale, error});
+        Log.warn('[DateUtils] Intl.RelativeTimeFormat unavailable', {locale, numeric, error});
         formatter = null;
     }
-    relativeTimeFormatCache.set(locale, formatter);
+    relativeTimeFormatCache.set(cacheKey, formatter);
     return formatter;
 }
 
 function formatRelative(locale: Locale, date: Date, now: Date): string {
-    const rtf = getRelativeTimeFormat(locale);
-    if (!rtf) {
-        return '';
-    }
     const diffSecs = (date.getTime() - now.getTime()) / 1000;
     // Invalid Date on either side yields NaN, which `RelativeTimeFormat.format` silently coerces to 0 and renders as "0 years ago".
     if (!Number.isFinite(diffSecs)) {
         return '';
     }
     const abs = Math.abs(diffSecs);
-    const sign = diffSecs > 0 ? 1 : -1;
-    // Intl has no "less than a minute ago" phrasing, so sub-minute rounds up to keep date-fns's single bucket.
+    // CLDR's "now" on either side, so a timestamp slightly ahead of this device's clock does not read "in 1 minute".
     if (abs < 60) {
-        return rtf.format(sign, 'minute');
+        return getRelativeTimeFormat(locale, 'auto')?.format(0, 'second') ?? '';
     }
+    const rtf = getRelativeTimeFormat(locale, 'always');
+    if (!rtf) {
+        return '';
+    }
+    const sign = diffSecs > 0 ? 1 : -1;
     // Round the magnitude before reapplying the sign, because `Math.round(-1.5)` is -1. The rounded value picks the bucket.
     for (const [divisor, unit, maxCount] of RELATIVE_TIME_UNITS) {
         const rounded = Math.round(abs / divisor);
@@ -507,9 +486,6 @@ function getCurrentTimezone(timezone: Timezone): Required<Timezone> {
     return {selected: timezone.selected ?? (CONST.DEFAULT_TIME_ZONE.selected as SelectedTimezone), automatic: timezone.automatic ?? false};
 }
 
-/** Last-resort labels for an engine with no working Intl. The translation files carry no month names. */
-const FALLBACK_MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'] as const;
-
 function monthNamesIn(locale: Locale): string[] {
     // Mid-month in UTC, so no timezone can shift a month-edge date into the neighboring month.
     const monthsArray = Array.from({length: 12}, (_, monthIndex) => new Date(Date.UTC(2000, monthIndex, 15)));
@@ -526,9 +502,10 @@ const getMonthNames = memoize(
         if (names.every(Boolean)) {
             return Object.freeze(names);
         }
-        // The realistic failure is one rejected locale tag, so try the default locale before the English literal.
+        // The realistic failure is one rejected locale tag, so try the default locale before the English names, which are
+        // hardcoded because the translation files carry no month names.
         const defaultNames = locale === CONST.LOCALES.DEFAULT ? names : monthNamesIn(CONST.LOCALES.DEFAULT);
-        return Object.freeze(defaultNames.every(Boolean) ? defaultNames : [...FALLBACK_MONTH_NAMES]);
+        return Object.freeze(defaultNames.every(Boolean) ? defaultNames : [...CONST.DATE.ENGLISH_MONTH_NAMES]);
     },
     {maxSize: 16, equality: 'shallow'},
 );
@@ -555,7 +532,7 @@ function getDaysOfWeekNarrow(locale: Locale): string[] {
     return eachDayOfInterval({start: startOfWeek(reference, {weekStartsOn}), end: endOfWeek(reference, {weekStartsOn})}).map((date) => formatIntl(locale, 'NARROW_WEEKDAY', date));
 }
 
-/** CLDR field order and separator per locale, for engines without Intl. */
+/** CLDR field order and separator per locale, for engines whose Intl cannot report them. */
 const FALLBACK_DATE_PLACEHOLDER_BY_LOCALE: Readonly<Record<Locale, string>> = {
     [CONST.LOCALES.EN]: 'MM/DD/YYYY',
     [CONST.LOCALES.ES]: 'DD/MM/YYYY',
@@ -570,25 +547,38 @@ const FALLBACK_DATE_PLACEHOLDER_BY_LOCALE: Readonly<Record<Locale, string>> = {
     [CONST.LOCALES.ZH_HANS]: 'YYYY/MM/DD',
 };
 
+/** The default locale's entry stands in for a malformed tag read from an Onyx NVP. */
+function getFallbackDatePlaceholder(locale: Locale): string {
+    return FALLBACK_DATE_PLACEHOLDER_BY_LOCALE[locale] ?? FALLBACK_DATE_PLACEHOLDER_BY_LOCALE[CONST.LOCALES.DEFAULT];
+}
+
+/**
+ * The parts of one formatted sample date, or null when this engine cannot report where each field sits: some lack
+ * `formatToParts`, others return a single literal. Callers render with no error boundary, so this never throws.
+ */
+function getDateFieldParts(locale: Locale, formatKey: IntlFormatKey, fields: readonly Intl.DateTimeFormatPartTypes[]): Intl.DateTimeFormatPart[] | null {
+    const formatter = getIntlDateTimeFormat(locale, formatKey);
+    if (!formatter) {
+        return null;
+    }
+    try {
+        const parts = formatter.formatToParts(LOCALE_PROBE_DATE);
+        return fields.every((field) => parts.filter((part) => part.type === field).length === 1) ? parts : null;
+    } catch (error) {
+        Log.warn('[DateUtils] Intl.DateTimeFormat.formatToParts unavailable', {locale, formatKey, error});
+        return null;
+    }
+}
+
 /**
  * The year is widened to `YYYY` even where Intl renders it 2-digit, so en-US reads "MM/DD/YYYY" not "MM/DD/YY".
  * Memoized because DatePicker does not compile under React Compiler, so this runs on every render there.
  */
 const getLocalizedDatePlaceholder = memoize(
     (locale: Locale): string => {
-        const formatter = getIntlDateTimeFormat(locale, 'SHORT_DATE');
-        const fallback = FALLBACK_DATE_PLACEHOLDER_BY_LOCALE[locale] ?? 'MM/DD/YYYY';
-        if (!formatter) {
-            return fallback;
-        }
-        let parts: Intl.DateTimeFormatPart[];
-        const sample = new Date(2024, 11, 31);
-        try {
-            // `formatToParts` is absent on some ICU-stripped engines, and this runs inside DatePicker's render with no error boundary.
-            parts = formatter.formatToParts(sample);
-        } catch (error) {
-            Log.warn('[DateUtils] Intl.DateTimeFormat.formatToParts unavailable', {locale, error});
-            return fallback;
+        const parts = getDateFieldParts(locale, 'SHORT_DATE', ['year', 'month', 'day']);
+        if (!parts) {
+            return getFallbackDatePlaceholder(locale);
         }
         return parts
             .map((part) => {
@@ -1046,21 +1036,12 @@ function getLastBusinessDayOfMonth(inputDate: Date): number {
  */
 const isDayBeforeMonth = memoize(
     (locale: Locale): boolean => {
-        const formatter = getIntlDateTimeFormat(locale, 'MONTH_DAY');
-        if (!formatter) {
-            return false;
+        const parts = getDateFieldParts(locale, 'MONTH_DAY', ['month', 'day']);
+        if (!parts) {
+            const placeholder = getFallbackDatePlaceholder(locale);
+            return placeholder.indexOf('DD') < placeholder.indexOf('MM');
         }
-        let parts: Intl.DateTimeFormatPart[];
-        try {
-            // `formatToParts` is absent on some ICU-stripped engines, and this runs on the trip-preview render path.
-            parts = formatter.formatToParts(LOCALE_PROBE_DATE);
-        } catch (error) {
-            Log.warn('[DateUtils] Intl.DateTimeFormat.formatToParts unavailable', {locale, error});
-            return false;
-        }
-        const dayIndex = parts.findIndex((part) => part.type === 'day');
-        const monthIndex = parts.findIndex((part) => part.type === 'month');
-        return dayIndex > -1 && monthIndex > -1 && dayIndex < monthIndex;
+        return parts.findIndex((part) => part.type === 'day') < parts.findIndex((part) => part.type === 'month');
     },
     {maxSize: 16, equality: 'shallow'},
 );
@@ -1390,31 +1371,27 @@ function formatToLocalDateTime(dateTime: Date | string, locale: Locale): string 
     return formatIntl(locale, 'MEDIUM_DATE_TIME', toLocalDate(dateTime));
 }
 
-/**
- * UTC-anchored medium date. Use for date-only / UTC-stored values that must render the same calendar
- * day for every viewer regardless of their local timezone.
- */
-function formatInUTCToMedium(date: Date | string, locale: Locale): string {
+/** For date-only / UTC-stored values that must render the same calendar day for every viewer regardless of their local timezone. */
+function formatIntlInUTC(date: Date | string, formatKey: IntlFormatKey, locale: Locale): string {
     if (!date) {
         return '';
     }
-    return formatIntl(locale, 'MEDIUM_DATE', toUTCDate(date), 'UTC');
+    return formatIntl(locale, formatKey, toUTCDate(date), 'UTC');
+}
+
+/** UTC-anchored Jul 9, 2023 (en) / 9 jul 2023 (es). */
+function formatInUTCToMedium(date: Date | string, locale: Locale): string {
+    return formatIntlInUTC(date, 'MEDIUM_DATE', locale);
 }
 
 /** UTC-anchored Jul 9 (en) / 9 jul (es), no year. */
 function formatInUTCToShort(date: Date | string, locale: Locale): string {
-    if (!date) {
-        return '';
-    }
-    return formatIntl(locale, 'MONTH_DAY', toUTCDate(date), 'UTC');
+    return formatIntlInUTC(date, 'MONTH_DAY', locale);
 }
 
 /** UTC-anchored July 9, 2023 (en) / 9 de julio de 2023 (es). */
 function formatInUTCToLong(date: Date | string, locale: Locale): string {
-    if (!date) {
-        return '';
-    }
-    return formatIntl(locale, 'LONG_DATE', toUTCDate(date), 'UTC');
+    return formatIntlInUTC(date, 'LONG_DATE', locale);
 }
 
 /** Transaction-list convention: MEDIUM ("Jul 9, 2023") for past years, SHORT ("Jul 9") for current. UTC-anchored, so use it for calendar dates like transaction date and posted, where the day must not shift by viewer timezone. */
@@ -1430,52 +1407,36 @@ function formatToShortMonthDay(date: Date | string, locale: Locale): string {
     return formatIntl(locale, 'MONTH_DAY', toLocalDate(date));
 }
 
-/** Full ISO timestamp only. A date-only `'yyyy-MM-dd'` would silently day-shift on timezone application, so use `formatToReadableString` or `formatInUTCToLong` for those. */
+/**
+ * Full ISO timestamp only. An unzoned string would parse as the runtime's wall clock and a date-only one would shift its day,
+ * so both render '' rather than a wrong value: use `formatToReadableString` or the `formatInUTCTo*` helpers for those.
+ */
+function formatIntlInTimeZone(date: Date | string, timeZone: SelectedTimezone, formatKey: IntlFormatKey, locale: Locale): string {
+    if (!date) {
+        return '';
+    }
+    if (isUnzonedString(date)) {
+        Log.warn('[DateUtils] an unzoned string reached a timezone formatter; pass a zoned Date or a full ISO timestamp with an offset', {date, formatKey});
+        return '';
+    }
+    return formatIntl(locale, formatKey, toLocalDate(date), timeZone);
+}
+
 function formatInTimeZoneToLong(date: Date | string, timeZone: SelectedTimezone, locale: Locale): string {
-    if (!date) {
-        return '';
-    }
-    if (isUnzonedString(date)) {
-        Log.warn('[DateUtils] formatInTimeZoneToLong: unzoned string would parse as runtime-local wall-clock; use formatToReadableString or formatInUTCToLong', {date});
-        return '';
-    }
-    return formatIntl(locale, 'LONG_DATE', toLocalDate(date), timeZone);
+    return formatIntlInTimeZone(date, timeZone, 'LONG_DATE', locale);
 }
 
-/** Full ISO timestamp only. @returns Jul 9, 2025 (en) / 9 jul 2025 (es) */
+/** @returns Jul 9, 2025 (en) / 9 jul 2025 (es) */
 function formatInTimeZoneToMediumDate(date: Date | string, timeZone: SelectedTimezone, locale: Locale): string {
-    if (!date) {
-        return '';
-    }
-    if (isUnzonedString(date)) {
-        Log.warn('[DateUtils] formatInTimeZoneToMediumDate: unzoned string would parse as runtime-local wall-clock; use formatToMediumDate', {date});
-        return '';
-    }
-    return formatIntl(locale, 'MEDIUM_DATE', toLocalDate(date), timeZone);
+    return formatIntlInTimeZone(date, timeZone, 'MEDIUM_DATE', locale);
 }
 
-/** Full ISO timestamp only. */
 function formatInTimeZoneToShortTime(date: Date | string, timeZone: SelectedTimezone, locale: Locale): string {
-    if (!date) {
-        return '';
-    }
-    if (isUnzonedString(date)) {
-        Log.warn('[DateUtils] formatInTimeZoneToShortTime: unzoned string would parse as runtime-local wall-clock; pass a zoned Date or full ISO with offset', {date});
-        return '';
-    }
-    return formatIntl(locale, 'SHORT_TIME', toLocalDate(date), timeZone);
+    return formatIntlInTimeZone(date, timeZone, 'SHORT_TIME', locale);
 }
 
-/** Full ISO timestamp only. */
 function formatInTimeZoneToWeekday(date: Date | string, timeZone: SelectedTimezone, locale: Locale): string {
-    if (!date) {
-        return '';
-    }
-    if (isUnzonedString(date)) {
-        Log.warn('[DateUtils] formatInTimeZoneToWeekday: unzoned string would parse as runtime-local wall-clock; use formatToReadableString', {date});
-        return '';
-    }
-    return formatIntl(locale, 'LONG_WEEKDAY', toLocalDate(date), timeZone);
+    return formatIntlInTimeZone(date, timeZone, 'LONG_WEEKDAY', locale);
 }
 
 /**
@@ -1744,7 +1705,6 @@ function getNextNthOfMonth(nth: number) {
 
 // These hold values computed *through* Intl, so they go stale for the same reason the formatter caches do.
 registerDerivedIntlCache(() => {
-    getWeekStartsOn.cache.clear();
     getMonthNames.cache.clear();
     getLocalizedDatePlaceholder.cache.clear();
     isDayBeforeMonth.cache.clear();

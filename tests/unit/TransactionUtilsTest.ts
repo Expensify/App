@@ -2104,6 +2104,20 @@ describe('TransactionUtils', () => {
             const merchant = `Berlin, Germany, ${PER_DIEM_RANGE}`;
             expect(TransactionUtils.getDisplayMerchant(buildPerDiemTransaction(), merchant, CONST.LOCALES.ES)).toBe('Berlin, Germany, 19 ago 2025 - 20 ago 2025');
         });
+
+        it('should keep a merchant that does not end in the generated range', () => {
+            const merchant = 'Hotel Rio, Room 5, Floor 2, Tower A';
+            expect(TransactionUtils.getDisplayMerchant(buildPerDiemTransaction(), merchant, CONST.LOCALES.ES)).toBe(merchant);
+        });
+
+        it('should keep a merchant whose range was written for other dates', () => {
+            const merchant = 'Berlin, Aug 1, 2025 - Aug 2, 2025';
+            expect(TransactionUtils.getDisplayMerchant(buildPerDiemTransaction(), merchant, CONST.LOCALES.ES)).toBe(merchant);
+        });
+
+        it('should rebuild a range an earlier client wrote in its own language', () => {
+            expect(TransactionUtils.getDisplayMerchant(buildPerDiemTransaction(), 'Berlin, ago 19, 2025 - ago 20, 2025', CONST.LOCALES.ES)).toBe('Berlin, 19 ago 2025 - 20 ago 2025');
+        });
     });
 
     describe('getTransactionPendingAction', () => {
