@@ -13,8 +13,9 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
 
-import {getCompanyCardCustomName, getCompanyCardFeed, getCompanyCardNameError, getCompanyCardNameErrorMessage, getCompanyFeeds, getDomainOrWorkspaceAccountID} from '@libs/CardUtils';
+import {getCardNameError, getCardNameErrorMessage, getCompanyCardCustomName, getCompanyCardFeed, getCompanyFeeds, getDomainOrWorkspaceAccountID} from '@libs/CardUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import StringUtils from '@libs/StringUtils';
 
 import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
@@ -56,16 +57,16 @@ function WorkspaceCompanyCardEditCardNamePage({route, navigation}: WorkspaceComp
     const defaultValue = getCompanyCardCustomName(cardID, sharedCardCustomNames, customCardNames);
 
     const submit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.EDIT_WORKSPACE_COMPANY_CARD_NAME_FORM>) => {
-        updateCompanyCardName(domainOrWorkspaceAccountID, cardID, values[INPUT_IDS.NAME], getCompanyCardFeed(feed), defaultValue);
+        updateCompanyCardName(domainOrWorkspaceAccountID, cardID, StringUtils.sanitizeName(values[INPUT_IDS.NAME]), getCompanyCardFeed(feed), defaultValue);
         goBackToCardDetails();
     };
 
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.EDIT_WORKSPACE_COMPANY_CARD_NAME_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.EDIT_WORKSPACE_COMPANY_CARD_NAME_FORM> => {
         const errors: FormInputErrors<typeof ONYXKEYS.FORMS.EDIT_WORKSPACE_COMPANY_CARD_NAME_FORM> = {};
-        const error = getCompanyCardNameError(values.name);
+        const error = getCardNameError(values.name);
 
         if (error) {
-            errors[INPUT_IDS.NAME] = getCompanyCardNameErrorMessage(translate, error, values.name);
+            errors[INPUT_IDS.NAME] = getCardNameErrorMessage(translate, error, values.name);
         }
 
         return errors;

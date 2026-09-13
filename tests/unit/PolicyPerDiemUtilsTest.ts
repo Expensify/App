@@ -7,6 +7,7 @@ describe('PolicyPerDiemUtils', () => {
         it('should return required when the name is empty or only whitespace', () => {
             expect(getPerDiemNameError('')).toBe('required');
             expect(getPerDiemNameError('   ')).toBe('required');
+            expect(getPerDiemNameError('\u200B')).toBe('required');
         });
 
         it('should return tooLong when the name exceeds the character limit', () => {

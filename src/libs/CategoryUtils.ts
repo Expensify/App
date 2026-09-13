@@ -176,7 +176,7 @@ type CategoryNameError = 'required' | 'existing' | 'invalid' | 'tooLong';
 function getCategoryNameError(policyCategories: PolicyCategories | undefined, newName: string, currentName?: string): CategoryNameError | undefined {
     const sanitized = StringUtils.sanitizeName(newName);
 
-    if (!sanitized) {
+    if (StringUtils.isEmptyString(sanitized)) {
         return 'required';
     }
 

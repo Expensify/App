@@ -39,7 +39,7 @@ type DistanceRateValueError = 'invalid' | 'tooLow';
 function getDistanceRateNameError(existingRateNames: readonly string[], newName: string, currentName?: string): DistanceRateNameError | undefined {
     const sanitized = StringUtils.sanitizeName(newName);
 
-    if (!sanitized) {
+    if (StringUtils.isEmptyString(sanitized)) {
         return 'required';
     }
 

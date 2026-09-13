@@ -47,7 +47,7 @@ type TagNameError = 'required' | 'existing' | 'invalid' | 'tooLong';
 function getTagNameError(tags: PolicyTags | undefined, newName: string, currentName?: string): TagNameError | undefined {
     const sanitized = StringUtils.sanitizeName(newName);
 
-    if (!sanitized) {
+    if (StringUtils.isEmptyString(sanitized)) {
         return 'required';
     }
 

@@ -22,7 +22,7 @@ type PerDiemAmountError = 'required';
 function getPerDiemNameError(newName: string): PerDiemNameError | undefined {
     const sanitized = StringUtils.sanitizeName(newName);
 
-    if (!sanitized) {
+    if (StringUtils.isEmptyString(sanitized)) {
         return 'required';
     }
 

@@ -28,6 +28,7 @@ import {
     getCardFeedIcon,
     getCardFeedWithDomainID,
     getCardHintText,
+    getCardNameError,
     getCardsByCardholderName,
     getCardSettings,
     getCommercialFeedCardDescription,
@@ -2314,6 +2315,21 @@ describe('CardUtils', () => {
             expect(getExpensifyCardLimitChangeWarningKey(CONST.EXPENSIFY_CARD.LIMIT_TYPES.MONTHLY)).toBe('workspace.expensifyCard.monthlyLimitWarning');
             expect(getExpensifyCardLimitChangeWarningKey(CONST.EXPENSIFY_CARD.LIMIT_TYPES.FIXED)).toBe('workspace.expensifyCard.fixedLimitWarning');
             expect(getExpensifyCardLimitChangeWarningKey(undefined)).toBe('workspace.expensifyCard.fixedLimitWarning');
+        });
+    });
+
+    describe('getCardNameError', () => {
+        it('rejects empty, whitespace-only, and invisible-only names', () => {
+            expect(getCardNameError('')).toBe('required');
+            expect(getCardNameError('   ')).toBe('required');
+            expect(getCardNameError('\u200B')).toBe('required');
+        });
+
+        it('measures length after sanitizing so padding does not count', () => {
+            const paddedName = `${'a'.repeat(CONST.STANDARD_LENGTH_LIMIT)}   `;
+
+            expect(getCardNameError(paddedName)).toBeUndefined();
+            expect(getCardNameError('a'.repeat(CONST.STANDARD_LENGTH_LIMIT + 1))).toBe('tooLong');
         });
     });
 

@@ -1,6 +1,6 @@
 import type PolicyData from '@hooks/usePolicyData/types';
 
-import {renameCategoryInline, updateExpensifyCardLimitInline, updateExpensifyCardLimitTypeInline, updateMemberRoleInline} from '@libs/actions/Policy/InlineEdit';
+import {renameCategoryInline, renameExpensifyCardInline, updateExpensifyCardLimitInline, updateExpensifyCardLimitTypeInline, updateMemberRoleInline} from '@libs/actions/Policy/InlineEdit';
 import {write} from '@libs/API';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import {isRecord} from '@libs/ObjectUtils';
@@ -122,6 +122,27 @@ describe('PolicyInlineEdit', () => {
             updateMemberRoleInline(policy, 'user@expensify.com', 1, CONST.POLICY.ROLE.USER, CONST.POLICY.ROLE.ADMIN);
 
             expect(mockUpdateWorkspaceMembersRole).toHaveBeenCalledWith(policy, ['user@expensify.com'], [1], CONST.POLICY.ROLE.ADMIN);
+        });
+    });
+
+    describe('renameExpensifyCardInline', () => {
+        it('does not persist an invalid name', () => {
+            renameExpensifyCardInline(1, 10, '   ', 'Travel');
+
+            expect(mockWrite).not.toHaveBeenCalled();
+        });
+
+        it('persists the sanitized name', () => {
+            renameExpensifyCardInline(1, 10, '  Travel card  ', 'Travel');
+
+            expect(mockWrite).toHaveBeenCalledWith(
+                WRITE_COMMANDS.UPDATE_EXPENSIFY_CARD_TITLE,
+                expect.objectContaining({
+                    cardID: 10,
+                    cardTitle: 'Travel card',
+                }),
+                expect.anything(),
+            );
         });
     });
 

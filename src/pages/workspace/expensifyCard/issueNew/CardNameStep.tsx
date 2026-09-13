@@ -12,8 +12,9 @@ import useOnyx from '@hooks/useOnyx';
 import usePersonalDetailByLogin from '@hooks/usePersonalDetailByLogin';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {getDefaultCardName, getExpensifyCardNameError, getExpensifyCardNameErrorMessage} from '@libs/CardUtils';
+import {getCardNameError, getCardNameErrorMessage, getDefaultCardName} from '@libs/CardUtils';
 import {isPolicyFeatureEnabled} from '@libs/PolicyUtils';
+import StringUtils from '@libs/StringUtils';
 
 import {setIssueNewCardStepAndData} from '@userActions/Card';
 
@@ -53,10 +54,10 @@ function CardNameStep({policyID, stepNames, startStepIndex}: CardNameStepProps) 
 
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ISSUE_NEW_EXPENSIFY_CARD_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.ISSUE_NEW_EXPENSIFY_CARD_FORM> => {
         const errors: FormInputErrors<typeof ONYXKEYS.FORMS.ISSUE_NEW_EXPENSIFY_CARD_FORM> = {};
-        const error = getExpensifyCardNameError(values.cardTitle);
+        const error = getCardNameError(values.cardTitle);
 
         if (error) {
-            errors[INPUT_IDS.CARD_TITLE] = getExpensifyCardNameErrorMessage(translate, error, values.cardTitle);
+            errors[INPUT_IDS.CARD_TITLE] = getCardNameErrorMessage(translate, error, values.cardTitle);
         }
 
         return errors;
@@ -68,7 +69,7 @@ function CardNameStep({policyID, stepNames, startStepIndex}: CardNameStepProps) 
                 setIssueNewCardStepAndData({
                     step: CONST.EXPENSIFY_CARD.STEP.CONFIRMATION,
                     data: {
-                        cardTitle: values.cardTitle,
+                        cardTitle: StringUtils.sanitizeName(values.cardTitle),
                     },
                     isEditing: false,
                     policyID,

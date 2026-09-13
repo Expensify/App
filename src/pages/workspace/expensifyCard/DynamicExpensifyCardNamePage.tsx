@@ -13,8 +13,9 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {updateExpensifyCardTitle} from '@libs/actions/Card';
-import {filterInactiveCardsForWorkspace, getExpensifyCardNameError, getExpensifyCardNameErrorMessage} from '@libs/CardUtils';
+import {filterInactiveCardsForWorkspace, getCardNameError, getCardNameErrorMessage} from '@libs/CardUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import StringUtils from '@libs/StringUtils';
 
 import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
@@ -48,16 +49,16 @@ function DynamicExpensifyCardNamePage({route}: DynamicExpensifyCardNamePageProps
     }, [backPath]);
 
     const submit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.EDIT_EXPENSIFY_CARD_NAME_FORM>) => {
-        updateExpensifyCardTitle(defaultFundID, Number(cardID), values[INPUT_IDS.NAME], card?.nameValuePairs?.cardTitle);
+        updateExpensifyCardTitle(defaultFundID, Number(cardID), StringUtils.sanitizeName(values[INPUT_IDS.NAME]), card?.nameValuePairs?.cardTitle);
         goBack();
     };
 
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.EDIT_EXPENSIFY_CARD_NAME_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.EDIT_EXPENSIFY_CARD_NAME_FORM> => {
         const errors: FormInputErrors<typeof ONYXKEYS.FORMS.EDIT_EXPENSIFY_CARD_NAME_FORM> = {};
-        const error = getExpensifyCardNameError(values.name);
+        const error = getCardNameError(values.name);
 
         if (error) {
-            errors[INPUT_IDS.NAME] = getExpensifyCardNameErrorMessage(translate, error, values.name);
+            errors[INPUT_IDS.NAME] = getCardNameErrorMessage(translate, error, values.name);
         }
 
         return errors;

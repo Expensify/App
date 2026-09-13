@@ -5,7 +5,7 @@
  */
 import type PolicyData from '@hooks/usePolicyData/types';
 
-import {getCompanyCardNameError, getExpensifyCardLimitError, getExpensifyCardNameError, getExpensifyCardNewAvailableSpend, shouldShowExpensifyCardFixedLimitType} from '@libs/CardUtils';
+import {getCardNameError, getExpensifyCardLimitError, getExpensifyCardNewAvailableSpend, shouldShowExpensifyCardFixedLimitType} from '@libs/CardUtils';
 import {getCategoryNameError} from '@libs/CategoryUtils';
 import {convertToBackendAmount} from '@libs/CurrencyUtils';
 import {getDistanceRateNameError, getDistanceRateValueError} from '@libs/PolicyDistanceRatesUtils';
@@ -57,7 +57,7 @@ function renameTagInline(policyData: PolicyData, oldName: string, newName: strin
 function renameCompanyCardInline(domainOrWorkspaceAccountID: number, cardID: string, newName: string, bankName: CompanyCardFeedWithNumber, currentName: string): void {
     const sanitized = StringUtils.sanitizeName(newName);
 
-    if (sanitized === currentName || getCompanyCardNameError(newName)) {
+    if (sanitized === currentName || getCardNameError(newName)) {
         return;
     }
 
@@ -65,11 +65,13 @@ function renameCompanyCardInline(domainOrWorkspaceAccountID: number, cardID: str
 }
 
 function renameExpensifyCardInline(workspaceAccountID: number, cardID: number, newName: string, currentName: string): void {
-    if (newName === currentName || getExpensifyCardNameError(newName)) {
+    const sanitized = StringUtils.sanitizeName(newName);
+
+    if (sanitized === currentName || getCardNameError(newName)) {
         return;
     }
 
-    updateExpensifyCardTitle(workspaceAccountID, cardID, newName, currentName);
+    updateExpensifyCardTitle(workspaceAccountID, cardID, sanitized, currentName);
 }
 
 function renameDistanceRateInline(policyID: string, customUnit: CustomUnit, rate: Rate, newName: string): void {

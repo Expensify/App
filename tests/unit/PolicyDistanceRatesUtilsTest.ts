@@ -230,6 +230,7 @@ describe('PolicyDistanceRatesUtils', () => {
         it('should return required when the name is empty or only whitespace', () => {
             expect(getDistanceRateNameError(existingRateNames, '')).toBe('required');
             expect(getDistanceRateNameError(existingRateNames, '   ')).toBe('required');
+            expect(getDistanceRateNameError(existingRateNames, '\u200B')).toBe('required');
         });
 
         it('should return existing when the name matches another rate', () => {

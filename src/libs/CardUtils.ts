@@ -1302,18 +1302,17 @@ function getDefaultCardName(cardholder?: string) {
     return `${cardholder}'s card`;
 }
 
-/** The reason a proposed company card name is invalid. Callers translate it via `getCompanyCardNameErrorMessage`. */
-type CompanyCardNameError = 'required' | 'tooLong';
+/** The reason a proposed card name is invalid. Callers translate it via `getCardNameErrorMessage`. */
+type CardNameError = 'required' | 'tooLong';
 
 /**
- * Validates a company card name against every rule (required, length). This is the single source of
- * truth shared by the RHP edit form, the assign-card name step, and inline table editing. Returns an
- * error code, or undefined when the name is valid.
+ * Validates a card name. Sanitize first so RHP forms, assign/issue steps, and inline
+ * table edits reject and persist the same value.
  */
-function getCompanyCardNameError(newName: string): CompanyCardNameError | undefined {
+function getCardNameError(newName: string): CardNameError | undefined {
     const sanitized = StringUtils.sanitizeName(newName);
 
-    if (!sanitized) {
+    if (StringUtils.isEmptyString(sanitized)) {
         return 'required';
     }
 
@@ -1324,46 +1323,14 @@ function getCompanyCardNameError(newName: string): CompanyCardNameError | undefi
     return undefined;
 }
 
-/** Translates a {@link CompanyCardNameError} into a user-facing message for the given name. */
-function getCompanyCardNameErrorMessage(translate: LocaleContextProps['translate'], error: CompanyCardNameError, name: string): string {
+/** Translates a {@link CardNameError} into a user-facing message for the given name. */
+function getCardNameErrorMessage(translate: LocaleContextProps['translate'], error: CardNameError, name: string): string {
     switch (error) {
         case 'required':
             return translate('common.error.fieldRequired');
         case 'tooLong':
         default:
             return translate('common.error.characterLimitExceedCounter', StringUtils.getUTF8ByteLength(StringUtils.sanitizeName(name)), CONST.STANDARD_LENGTH_LIMIT);
-    }
-}
-
-/** The reason a proposed Expensify card name is invalid. Callers translate it via `getExpensifyCardNameErrorMessage`. */
-type ExpensifyCardNameError = 'required' | 'tooLong';
-
-/**
- * Validates an Expensify card name against the same rules the RHP edit form and issue-new name
- * step used before inline editing: required if the value is empty after stripping invisible
- * characters, then UTF-8 length of the raw (unsanitized) value. Returns an error code, or
- * undefined when the name is valid.
- */
-function getExpensifyCardNameError(newName: string): ExpensifyCardNameError | undefined {
-    if (!newName || StringUtils.isEmptyString(newName)) {
-        return 'required';
-    }
-
-    if (StringUtils.getUTF8ByteLength(newName) > CONST.STANDARD_LENGTH_LIMIT) {
-        return 'tooLong';
-    }
-
-    return undefined;
-}
-
-/** Translates an {@link ExpensifyCardNameError} into a user-facing message for the given name. */
-function getExpensifyCardNameErrorMessage(translate: LocaleContextProps['translate'], error: ExpensifyCardNameError, name: string): string {
-    switch (error) {
-        case 'required':
-            return translate('common.error.fieldRequired');
-        case 'tooLong':
-        default:
-            return translate('common.error.characterLimitExceedCounter', StringUtils.getUTF8ByteLength(name), CONST.STANDARD_LENGTH_LIMIT);
     }
 }
 
@@ -2412,10 +2379,8 @@ export {
     hasOnlyOneCardToAssign,
     checkIfNewFeedConnected,
     getDefaultCardName,
-    getCompanyCardNameError,
-    getCompanyCardNameErrorMessage,
-    getExpensifyCardNameError,
-    getExpensifyCardNameErrorMessage,
+    getCardNameError,
+    getCardNameErrorMessage,
     getExpensifyCardLimitError,
     getExpensifyCardLimitErrorMessage,
     getCompanyCardCustomName,
@@ -2500,4 +2465,4 @@ export {
     resolveTransactionCardFields,
 };
 
-export type {CompanyCardFeedIcons, CompanyCardBankIcons, CardProgramKey, CompanyCardNameError, ExpensifyCardNameError};
+export type {CompanyCardFeedIcons, CompanyCardBankIcons, CardProgramKey, CardNameError};
