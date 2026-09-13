@@ -342,8 +342,10 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
     const transactionIDs = transactions?.map((tx) => tx.transactionID);
     const [storedTransactions] = useTransactionsByID(transactionIDs);
 
+    // Only a workspace destination can enforce a workspace's distance rules. `policy` is also set for personal
+    // expenses (Self-DM / track), which are exempt, so scope the check the same way `MoneyRequestConfirmationList` does.
     const blockDistanceRequestIfNeeded = useBlockDistanceRequest({
-        policyID: policy?.id,
+        policyID: isPolicyExpenseChat ? policy?.id : undefined,
         isDistanceRequest,
         isManualDistanceRequest,
         isOdometerDistanceRequest,
