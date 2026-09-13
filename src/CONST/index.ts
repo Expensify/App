@@ -692,9 +692,11 @@ const CONST = {
     DATE: {
         FNS_FORMAT_STRING: 'yyyy-MM-dd',
         FNS_DATE_TIME_FORMAT_STRING: 'yyyy-MM-dd HH:mm:ss',
-        LOCAL_TIME_FORMAT: 'h:mm a',
-        LOCAL_TIME_FORMAT_WITHOUT_PERIOD: 'h:mm',
-        TIME_FORMAT_WITHOUT_PERIOD: 'hh:mm',
+        // `p` is date-fns' localized time: it resolves each locale's own clock convention rather than fixing the
+        // US 12-hour one. Ten of the eleven shipped locales use a 24-hour clock, so `h:mm a` was wrong for them
+        // and the translated AM/PM marker only made a wrong convention read as deliberate. Greek keeps its
+        // 12-hour clock and its own `μ.μ.` marker. `p` is a date-fns extension, and still needs `{locale}`.
+        LOCAL_TIME_FORMAT: 'p',
         YEAR_MONTH_FORMAT: 'yyyyMM',
         MONTH_FORMAT: 'MMMM',
         WEEKDAY_TIME_FORMAT: 'eeee',

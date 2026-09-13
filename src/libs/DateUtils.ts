@@ -42,7 +42,7 @@ import {
     subMinutes,
 } from 'date-fns';
 import {formatInTimeZone, fromZonedTime, toDate, toZonedTime, format as tzFormat} from 'date-fns-tz';
-import {enGB} from 'date-fns/locale/en-GB';
+import {enUS} from 'date-fns/locale/en-US';
 import throttle from 'lodash/throttle';
 
 import {setCurrentDate} from './actions/CurrentDate';
@@ -185,7 +185,6 @@ function datetimeToCalendarTime(locale: Locale | undefined, datetime: string, cu
     let tomorrowAt = translateLocalize(locale, 'common.tomorrowAt');
     let yesterdayAt = translateLocalize(locale, 'common.yesterdayAt');
     const at = translateLocalize(locale, 'common.conjunctionAt');
-    const translate: LocalizedTranslate = (path, ...params) => translateLocalize(locale, path, ...params);
     const weekStartsOn = getWeekStartsOn();
 
     const startOfCurrentWeek = startOfWeek(new Date(), {weekStartsOn});
@@ -198,18 +197,18 @@ function datetimeToCalendarTime(locale: Locale | undefined, datetime: string, cu
     }
 
     if (isToday(date, currentSelectedTimezone)) {
-        return `${todayAt} ${formatTimeWithPeriod(translate, date)}${tz}`;
+        return `${todayAt} ${format(date, CONST.DATE.LOCAL_TIME_FORMAT, {locale: dateFnsLocale})}${tz}`;
     }
     if (isTomorrow(date, currentSelectedTimezone)) {
-        return `${tomorrowAt} ${formatTimeWithPeriod(translate, date)}${tz}`;
+        return `${tomorrowAt} ${format(date, CONST.DATE.LOCAL_TIME_FORMAT, {locale: dateFnsLocale})}${tz}`;
     }
     if (isYesterday(date, currentSelectedTimezone)) {
-        return `${yesterdayAt} ${formatTimeWithPeriod(translate, date)}${tz}`;
+        return `${yesterdayAt} ${format(date, CONST.DATE.LOCAL_TIME_FORMAT, {locale: dateFnsLocale})}${tz}`;
     }
     if (date >= startOfCurrentWeek && date <= endOfCurrentWeek) {
-        return `${format(date, CONST.DATE.MONTH_DAY_ABBR_FORMAT, {locale: dateFnsLocale})} ${at} ${formatTimeWithPeriod(translate, date)}${tz}`;
+        return `${format(date, CONST.DATE.MONTH_DAY_ABBR_FORMAT, {locale: dateFnsLocale})} ${at} ${format(date, CONST.DATE.LOCAL_TIME_FORMAT, {locale: dateFnsLocale})}${tz}`;
     }
-    return `${format(date, CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT, {locale: dateFnsLocale})} ${at} ${formatTimeWithPeriod(translate, date)}${tz}`;
+    return `${format(date, CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT, {locale: dateFnsLocale})} ${at} ${format(date, CONST.DATE.LOCAL_TIME_FORMAT, {locale: dateFnsLocale})}${tz}`;
 }
 
 /**
@@ -299,8 +298,8 @@ function formatToDayOfWeek(datetime: Date, dateFnsLocale: DateFnsLocale | undefi
  *
  * @returns 2:30 PM
  */
-function formatToLocalTime(translate: LocalizedTranslate, datetime: string | Date): string {
-    return formatTimeWithPeriod(translate, new Date(datetime));
+function formatToLocalTime(datetime: string | Date, dateFnsLocale: DateFnsLocale | undefined): string {
+    return format(new Date(datetime), CONST.DATE.LOCAL_TIME_FORMAT, {locale: dateFnsLocale});
 }
 
 const THREE_HOURS = 1000 * 60 * 60 * 3;
@@ -492,49 +491,24 @@ function extractTime12Hour(dateTimeString: string, isFullFormat = false): string
         return '';
     }
     const date = new Date(dateTimeString);
-    // get12HourTimeObjectFromDate parses this back with the same default locale, so the format and the parse stay
-    // in step in every language.
-    // eslint-disable-next-line rulesdir/require-locale-for-localized-date-format -- see above
-    return format(date, isFullFormat ? 'hh:mm:ss.SSS a' : 'hh:mm a');
-}
-
-/**
- * param {number} hours - 0-23, in the timezone the time is shown in
- * returns {string} example: PM
- */
-function getTimePeriodLabel(translate: LocalizedTranslate, hours: number): string {
-    return translate(hours >= 12 ? 'common.pm' : 'common.am');
-}
-
-/**
- * param {string} timeFormat - a date-fns pattern with no meridiem token
- * returns {string} example: 11:10 PM
- */
-function formatTimeWithPeriod(translate: LocalizedTranslate, date: Date, timeFormat: string = CONST.DATE.LOCAL_TIME_FORMAT_WITHOUT_PERIOD): string {
-    return `${format(date, timeFormat)} ${getTimePeriodLabel(translate, date.getHours())}`;
-}
-
-/**
- * param {string} dateTimeString
- * returns {string} example: 11:10 PM
- */
-function getTime12HourWithTranslatedPeriod(translate: LocalizedTranslate, dateTimeString: string): string {
-    if (!dateTimeString || dateTimeString === 'never') {
-        return '';
-    }
-    return formatTimeWithPeriod(translate, new Date(dateTimeString), CONST.DATE.TIME_FORMAT_WITHOUT_PERIOD);
+    // Pinned to English, not the active language. This value is the TimePicker's wire format: it is parsed back by
+    // `get12HourTimeObjectFromDate`, and the period it yields is compared against the English `CONST.TIME_PERIOD` that
+    // the AM/PM buttons write and `combineDateAndTime` parses. Both ends of that round trip have to agree on one
+    // language, and English is the one the rest of the protocol already uses. Relying on the active locale instead
+    // worked only because the parse omitted a locale too, so the pair silently depended on a mutable global.
+    return format(date, isFullFormat ? 'hh:mm:ss.SSS a' : 'hh:mm a', {locale: enUS});
 }
 
 /**
  * param {string} dateTimeString
  * returns {string} example: 2023-05-16 11:10 PM
  */
-function formatDateTimeTo12Hour(translate: LocalizedTranslate, dateTimeString: string): string {
+function formatDateTimeTo12Hour(dateTimeString: string, dateFnsLocale: DateFnsLocale | undefined): string {
     if (!dateTimeString) {
         return '';
     }
     const date = new Date(dateTimeString);
-    return `${format(date, CONST.DATE.FNS_FORMAT_STRING)} ${formatTimeWithPeriod(translate, date, CONST.DATE.TIME_FORMAT_WITHOUT_PERIOD)}`;
+    return format(date, `${CONST.DATE.FNS_FORMAT_STRING} ${CONST.DATE.LOCAL_TIME_FORMAT}`, {locale: dateFnsLocale});
 }
 
 /**
@@ -570,7 +544,7 @@ function getLocalizedTimePeriodDescription(translate: LocalizedTranslate, dateFn
         case '':
             return translate('statusPage.timePeriods.never');
         default:
-            return formatDateTimeTo12Hour(translate, data);
+            return formatDateTimeTo12Hour(data, dateFnsLocale);
     }
 }
 
@@ -604,16 +578,16 @@ function getStatusUntilDate(
 
     // If it's a time on the same date
     if (isSameDay(input, now)) {
-        return translate('statusPage.untilTime', formatTimeWithPeriod(translate, input));
+        return translate('statusPage.untilTime', format(input, CONST.DATE.LOCAL_TIME_FORMAT, {locale: dateFnsLocale}));
     }
 
     // If it's further in the future than tomorrow but within the same year
     if (isAfter(input, now) && isSameYear(input, now)) {
-        return translate('statusPage.untilTime', `${format(input, CONST.DATE.SHORT_DATE_FORMAT)} ${formatTimeWithPeriod(translate, input)}`);
+        return translate('statusPage.untilTime', format(input, `${CONST.DATE.SHORT_DATE_FORMAT} ${CONST.DATE.LOCAL_TIME_FORMAT}`, {locale: dateFnsLocale}));
     }
 
     // If it's in another year
-    return translate('statusPage.untilTime', `${format(input, CONST.DATE.FNS_FORMAT_STRING)} ${formatTimeWithPeriod(translate, input)}`);
+    return translate('statusPage.untilTime', format(input, `${CONST.DATE.FNS_FORMAT_STRING} ${CONST.DATE.LOCAL_TIME_FORMAT}`, {locale: dateFnsLocale}));
 }
 
 /**
@@ -638,7 +612,7 @@ const combineDateAndTime = (updatedTime: string, inputDateTime: string): string 
     } else if (updatedTime.includes(':')) {
         // it's in "hh:mm a" format
         // The picker always submits English AM/PM markers, which the app's active date-fns locale may not parse.
-        const tempTime = parse(updatedTime, 'hh:mm a', new Date(), {locale: enGB});
+        const tempTime = parse(updatedTime, 'hh:mm a', new Date(), {locale: enUS});
         if (isValid(tempTime)) {
             parsedTime = tempTime;
         }
@@ -690,7 +664,10 @@ function get12HourTimeObjectFromDate(dateTime: string, isFullFormat = false): {h
             period: 'PM',
         };
     }
-    const parsedTime = parse(dateTime, isFullFormat ? 'hh:mm:ss.SSS a' : 'hh:mm a', new Date());
+    // The counterpart to `extractTime12Hour`'s format: same pattern, same pinned locale. Passing a locale to only one
+    // of the two would make this parse return an invalid date, and `getHours()` would then be NaN — so `period` would
+    // quietly come back as AM for every time of day.
+    const parsedTime = parse(dateTime, isFullFormat ? 'hh:mm:ss.SSS a' : 'hh:mm a', new Date(), {locale: enUS});
     return {
         hour: format(parsedTime, 'hh'),
         minute: format(parsedTime, 'mm'),
@@ -915,11 +892,10 @@ function getFormattedReservationRangeDate(translate: LocalizedTranslate, dateFns
  * 2. When the date refers not to the current year: Departs on Wednesday, Mar 17, 2023 at 8:00.
  */
 function getFormattedTransportDate(translate: LocalizedTranslate, dateFnsLocale: DateFnsLocale | undefined, date: Date): string {
-    const time = formatTimeWithPeriod(translate, date, CONST.DATE.TIME_FORMAT_WITHOUT_PERIOD);
     if (isThisYear(date)) {
-        return `${translate('travel.departs')} ${format(date, 'EEEE, MMM d', {locale: dateFnsLocale})} ${translate('common.conjunctionAt')} ${time}`;
+        return `${translate('travel.departs')} ${format(date, 'EEEE, MMM d', {locale: dateFnsLocale})} ${translate('common.conjunctionAt')} ${format(date, CONST.DATE.LOCAL_TIME_FORMAT, {locale: dateFnsLocale})}`;
     }
-    return `${translate('travel.departs')} ${format(date, 'EEEE, MMM d, yyyy', {locale: dateFnsLocale})} ${translate('common.conjunctionAt')} ${time}`;
+    return `${translate('travel.departs')} ${format(date, 'EEEE, MMM d, yyyy', {locale: dateFnsLocale})} ${translate('common.conjunctionAt')} ${format(date, CONST.DATE.LOCAL_TIME_FORMAT, {locale: dateFnsLocale})}`;
 }
 
 /**
@@ -928,17 +904,16 @@ function getFormattedTransportDate(translate: LocalizedTranslate, dateFnsLocale:
  * 1. When the date refers to the current year: Wednesday, Mar 17 8:00 AM
  * 2. When the date refers not to the current year: Wednesday, Mar 17, 2023 8:00 AM
  */
-function getFormattedTransportDateAndHour(translate: LocalizedTranslate, dateFnsLocale: DateFnsLocale | undefined, date: Date): {date: string; hour: string} {
-    const hour = formatTimeWithPeriod(translate, date);
+function getFormattedTransportDateAndHour(date: Date, dateFnsLocale: DateFnsLocale | undefined): {date: string; hour: string} {
     if (isThisYear(date)) {
         return {
             date: format(date, 'EEEE, MMM d', {locale: dateFnsLocale}),
-            hour,
+            hour: format(date, CONST.DATE.LOCAL_TIME_FORMAT, {locale: dateFnsLocale}),
         };
     }
     return {
         date: format(date, 'EEEE, MMM d, yyyy', {locale: dateFnsLocale}),
-        hour,
+        hour: format(date, CONST.DATE.LOCAL_TIME_FORMAT, {locale: dateFnsLocale}),
     };
 }
 
@@ -965,19 +940,17 @@ function getCancellationDateTimezoneLabel(venueTimezone: string): string {
  * 1. When the date refers to the current year: Wednesday, Mar 17 8:00 AM, GMT+7
  * 2. When the date refers not to the current year: Wednesday, Mar 17, 2023 8:00 AM, GMT+7
  */
-function getFormattedCancellationDate(translate: LocalizedTranslate, dateFnsLocale: DateFnsLocale | undefined, isoDateString: string): string {
+function getFormattedCancellationDate(isoDateString: string, dateFnsLocale: DateFnsLocale | undefined): string {
     if (!isoDateString) {
         return '';
     }
     const offsetMatch = isoDateString.match(/([+-]\d{2}:\d{2})$/);
     const venueTimezone = offsetMatch ? offsetMatch[1] : 'UTC';
     const date = new Date(isoDateString);
-    const datePattern = isThisYear(date) ? 'EEEE, MMM d' : 'EEEE, MMM d, yyyy';
-    // The marker follows the venue's own hour, not the reader's.
-    const time = `${formatInTimeZone(date, venueTimezone, CONST.DATE.LOCAL_TIME_FORMAT_WITHOUT_PERIOD)} ${getTimePeriodLabel(translate, Number(formatInTimeZone(date, venueTimezone, 'H')))}`;
+    const pattern = isThisYear(date) ? `EEEE, MMM d ${CONST.DATE.LOCAL_TIME_FORMAT}` : `EEEE, MMM d, yyyy ${CONST.DATE.LOCAL_TIME_FORMAT}`;
     // `formatInTimeZone`'s `zzz` token relies on `Intl.DateTimeFormat`, which rejects raw offset strings like
     // `+07:00`, so the timezone label is derived from the offset and appended manually.
-    return `${formatInTimeZone(date, venueTimezone, datePattern, {locale: dateFnsLocale})} ${time}, ${getCancellationDateTimezoneLabel(venueTimezone)}`;
+    return `${formatInTimeZone(date, venueTimezone, pattern, {locale: dateFnsLocale})}, ${getCancellationDateTimezoneLabel(venueTimezone)}`;
 }
 
 /**
@@ -1086,20 +1059,6 @@ const formatInTimeZoneWithFallback: typeof formatInTimeZone = (date, timeZone, f
         return formatInTimeZone(date, timezoneNewToBackwardMap[timeZone as SelectedTimezone], formatStr, options);
     }
 };
-
-/**
- * param {SelectedTimezone} timeZone - also decides the marker
- * returns {string} example: 11:10 PM
- */
-function formatTimeInTimeZoneWithPeriod(
-    translate: LocalizedTranslate,
-    date: string | Date,
-    timeZone: SelectedTimezone,
-    timeFormat: string = CONST.DATE.LOCAL_TIME_FORMAT_WITHOUT_PERIOD,
-): string {
-    const hours = Number(formatInTimeZoneWithFallback(date, timeZone, 'H'));
-    return `${formatInTimeZoneWithFallback(date, timeZone, timeFormat)} ${getTimePeriodLabel(translate, hours)}`;
-}
 
 /**
  * Converts a UTC datetime string to a date string (yyyy-MM-dd) in the target timezone.
@@ -1324,10 +1283,6 @@ const DateUtils = {
     extractDate,
     getStatusUntilDate,
     extractTime12Hour,
-    getTime12HourWithTranslatedPeriod,
-    getTimePeriodLabel,
-    formatTimeWithPeriod,
-    formatTimeInTimeZoneWithPeriod,
     formatDateTimeTo12Hour,
     get12HourTimeObjectFromDate,
     getLocalizedTimePeriodDescription,

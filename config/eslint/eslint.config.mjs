@@ -119,7 +119,7 @@ const restrictedImportPaths = [
     },
     {
         name: 'date-fns/locale',
-        message: "Do not import 'date-fns/locale' directly. Please use the submodule import instead, like 'date-fns/locale/en-GB'.",
+        message: "Do not import 'date-fns/locale' directly. Please use the submodule import instead, like 'date-fns/locale/en-US'.",
     },
     {
         name: 'expensify-common',
