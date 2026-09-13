@@ -39,6 +39,7 @@ import type {
     HasFilterValues,
     IsFilterValue,
     IsFilterValues,
+    MerchantMatchType,
     ReceiptTypeValue,
     SearchAdvancedFiltersKey,
     SearchNegatableFilterKeys,
@@ -99,6 +100,13 @@ const operatorToCharMap = {
     [CONST.SEARCH.SYNTAX_OPERATORS.AND]: ',' as const,
     [CONST.SEARCH.SYNTAX_OPERATORS.OR]: ' ' as const,
 };
+const EXPLICIT_EQUAL_TO_OPERATOR = '=' as const;
+
+const DEFAULT_MERCHANT_OPERATOR = CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS;
+
+function getMerchantOperator(operator: MerchantMatchType | undefined): MerchantMatchType {
+    return operator ?? DEFAULT_MERCHANT_OPERATOR;
+}
 
 // Pre-computed validation Sets for buildFilterFormValuesFromQuery (avoids recreating per filter iteration)
 const VALID_EXPENSE_TYPES = new Set(Object.values(CONST.SEARCH.TRANSACTION_TYPE));
@@ -177,7 +185,7 @@ function sanitizeSearchValue(str: string) {
     return escaped;
 }
 
-const syntaxRegex = new RegExp(`^-?(${Object.values(CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS).join('|')}|report-?field(-.+)+)[:><=].+$`);
+const syntaxRegex = new RegExp(`^-?(${Object.values(CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS).join('|')}|report-?field(-.+)+)(?:\\*:|[:><=]).+$`);
 /**
  * Escapes each keyword that would otherwise be re-interpreted as query syntax by wrapping it in quotes.
  * A keyword that looks like a filter (e.g. `type:expense`) becomes `"type:expense"` so it is matched as a
@@ -357,13 +365,16 @@ function buildAmountFilterQuery(filterKey: SearchAmountFilterKeys, filterValues:
 function buildFilterValuesString(filterName: string, queryFilters: QueryFilter[]) {
     const delimiter = filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD ? ' ' : ',';
     const allowedOps = new Set<string>([CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO]);
+    if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT) {
+        allowedOps.add(CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS);
+    }
 
     let filterValueString = '';
     for (const [index, queryFilter] of queryFilters.entries()) {
         const previousValueHasSameOp = allowedOps.has(queryFilter.operator) && queryFilters?.at(index - 1)?.operator === queryFilter.operator;
         const nextValueHasSameOp = allowedOps.has(queryFilter.operator) && queryFilters?.at(index + 1)?.operator === queryFilter.operator;
 
-        // If the previous queryFilter has the same operator (this rule applies only to eq and neq operators) then append the current value
+        // If the previous queryFilter has the same operator and that operator supports comma-delimited values, append the current value
         if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD) {
             filterValueString += `${delimiter}${escapeKeyword(sanitizeSearchValue(queryFilter.value.toString()))}`;
         } else if (index !== 0 && (previousValueHasSameOp || nextValueHasSameOp)) {
@@ -379,7 +390,10 @@ function buildFilterValuesString(filterName: string, queryFilters: QueryFilter[]
                 filterValueString += ` ${filterName}${operatorToCharMap[CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN_OR_EQUAL_TO]}${sanitizeSearchValue(rangeBoundaries.to)}`;
             }
         } else {
-            const operatorChar = operatorToCharMap[queryFilter.operator];
+            const operatorChar =
+                filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT && queryFilter.operator === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO
+                    ? EXPLICIT_EQUAL_TO_OPERATOR
+                    : operatorToCharMap[queryFilter.operator];
             if (!operatorChar) {
                 continue;
             }
@@ -929,6 +943,8 @@ type BuildQueryStringOptions = {
     sortBy?: string;
     sortOrder?: string;
     limit?: number;
+    /** Original query filters, including predicates that cannot fit in a single form field. */
+    flatFilters?: QueryFilters;
 };
 
 /**
@@ -966,7 +982,17 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
     }
 
     // We separate type and status filters from other filters to maintain hashes consistency for saved searches
-    const {type, groupBy, view, columns, limit, ...otherFilters} = supportedFilterValues;
+    const {type, groupBy, view, columns, limit, [FILTER_KEYS.MERCHANT_OPERATOR]: merchantOperator, ...otherFilters} = supportedFilterValues;
+    const merchantFilters =
+        options?.flatFilters?.filter((filter) => filter.key === FILTER_KEYS.MERCHANT && !filter.filters.some((item) => item.operator === CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO)) ?? [];
+    const lastMerchantFilter = merchantFilters.at(-1);
+    const isMerchantValueUnchanged = supportedFilterValues.merchant === lastMerchantFilter?.filters.map((item) => item.value.toString()).join(',');
+    // The form displays the last positive Merchant clause. Preserve all original clauses until that field changes.
+    const shouldPreserveMerchantFilters =
+        merchantFilters.length > 0 &&
+        isMerchantValueUnchanged &&
+        getMerchantOperator(merchantOperator) ===
+            (lastMerchantFilter?.filters.some((item) => item.operator === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO) ? CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO : DEFAULT_MERCHANT_OPERATOR);
     const filtersString: string[] = [];
 
     if (options?.sortBy) {
@@ -1025,7 +1051,25 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
             ) {
                 const keyInCorrectForm = (Object.keys(CONST.SEARCH.SYNTAX_FILTER_KEYS) as FilterKeys[]).find((key) => CONST.SEARCH.SYNTAX_FILTER_KEYS[key] === filterKey);
                 if (keyInCorrectForm) {
-                    return `${prefix}${CONST.SEARCH.SYNTAX_FILTER_KEYS[keyInCorrectForm]}:${sanitizeSearchValue(filterValue as string)}`;
+                    let operator: ValueOf<typeof operatorToCharMap> | typeof EXPLICIT_EQUAL_TO_OPERATOR = operatorToCharMap[CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO];
+                    if (filterKey === FILTER_KEYS.MERCHANT && !isNegated) {
+                        if (shouldPreserveMerchantFilters) {
+                            return merchantFilters.map((filter) => buildFilterValuesString(FILTER_KEYS.MERCHANT, filter.filters).trim()).join(' ');
+                        }
+
+                        if (lastMerchantFilter && isMerchantValueUnchanged) {
+                            // The form string cannot distinguish a list from a Merchant name containing a comma.
+                            const updatedOperator = getMerchantOperator(merchantOperator);
+                            const updatedFilters = lastMerchantFilter.filters.map((filter) => ({...filter, operator: updatedOperator}));
+                            return buildFilterValuesString(FILTER_KEYS.MERCHANT, updatedFilters).trim();
+                        }
+
+                        operator =
+                            getMerchantOperator(merchantOperator) === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO
+                                ? EXPLICIT_EQUAL_TO_OPERATOR
+                                : operatorToCharMap[CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS];
+                    }
+                    return `${prefix}${CONST.SEARCH.SYNTAX_FILTER_KEYS[keyInCorrectForm]}${operator}${sanitizeSearchValue(filterValue as string)}`;
                 }
             }
             if ((filterKey === FILTER_KEYS.REPORT_ID || filterKey === FILTER_KEYS.WITHDRAWAL_ID) && filterValue) {
@@ -1418,6 +1462,11 @@ function buildFilterFormValuesFromQuery(
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT || filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION || filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.TITLE) {
             filtersForm[addNegation(filterKey, isNegated)] = filterValues.join(',');
+            if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT && !isNegated) {
+                filtersForm[FILTER_KEYS.MERCHANT_OPERATOR] = filterList.some((item) => item.operator === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO)
+                    ? CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO
+                    : DEFAULT_MERCHANT_OPERATOR;
+            }
         }
         if (
             filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTER_USER_ID ||
@@ -2477,7 +2526,7 @@ function shouldResetSortForViewChange({newView, oldView, groupBy}: {newView: str
 function buildFilterQueryWithSortDefaults(
     filterValues: Partial<SearchAdvancedFiltersForm>,
     previousState: {view?: string; groupBy?: string},
-    currentQueryOptions: {sortBy?: string; sortOrder?: string},
+    currentQueryOptions: BuildQueryStringOptions,
     policies?: OnyxCollection<OnyxTypes.Policy>,
 ): string | undefined {
     const resetSort = shouldResetSort({
@@ -2496,6 +2545,7 @@ function buildFilterQueryWithSortDefaults(
     const queryString = buildQueryStringFromFilterFormValues(filterValues, {
         sortBy: resetSort || resetSortForViewChange ? undefined : currentQueryOptions.sortBy,
         sortOrder: resetSort || resetSortForViewChange ? undefined : currentQueryOptions.sortOrder,
+        flatFilters: currentQueryOptions.flatFilters,
     });
 
     if (!resetSort && !resetSortForViewChange) {
@@ -2568,18 +2618,17 @@ function getEmptyDateValues(): SearchDateValues {
 }
 
 /**
- * Set of filter keys that represent free-text fields where the default `:` (eq) operator
- * should be treated as a substring/partial match (`contains`) when querying the backend.
- * This allows searches like `merchant:coffee` to match "Coffee shop".
+ * Fields where `eq` should still be sent to the backend as `contains`.
+ * Merchant is excluded because the parser preserves legacy `merchant:` as contains and uses `merchant=` for exact matches.
  */
 function isTextSearchField(key: string): key is SearchFilterKey {
-    return key === CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT || key === CONST.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION;
+    return key === CONST.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION;
 }
 
 /**
  * Recursively traverses a search AST and replaces the `eq` operator with `contains`
- * for free-text filter fields (merchant, description). This enables partial/substring
- * matching on the backend for text searches while preserving the user-facing `:` syntax.
+ * for fields that still use partial matching on the backend (description).
+ * Merchant is excluded because its parser output already distinguishes legacy contains from explicit exact matches.
  * Keys in `exactMatchFilterKeys` keep their original `eq` operator.
  */
 function applyContainsOperatorToTextFields(node: ASTNode, exactMatchFilterKeys?: ReadonlySet<SearchFilterKey>): ASTNode {
@@ -2611,8 +2660,8 @@ function getDateModifierTitle(modifier: ValueOf<typeof CONST.SEARCH.DATE_MODIFIE
 
 /**
  * Serializes a query object to a JSON string for backend commands (Search, export, CSV).
- * Applies text-field operator normalization (`eq` → `contains`) for `merchant` and `description`
- * so all backend commands use consistent partial-match semantics — matching what the search view shows.
+ * Applies text-field operator normalization (`eq` → `contains`) for `description` so all backend
+ * commands use consistent partial-match semantics, while preserving parsed merchant operators.
  * Keys in `exactMatchFilterKeys` keep exact-match semantics for generated filters.
  * Do NOT use for saving/persisting query definitions (e.g. saveSearch), where the original operators must be preserved.
  */
