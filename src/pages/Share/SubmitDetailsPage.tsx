@@ -229,7 +229,7 @@ function SubmitDetailsPage({
         const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${participant.reportID}`];
         return participant?.accountID
             ? getParticipantsOption(participant, personalDetails, translate)
-            : getReportOption(
+            : getReportOption({
                   participant,
                   privateIsArchived,
                   policy,
@@ -237,14 +237,10 @@ function SubmitDetailsPage({
                   conciergeReportID,
                   reportAttributesDerived,
                   reportDraft,
-                  currentUserPersonalDetails.accountID,
-                  {
-                      translate,
-                      dateFnsLocale,
-                      convertToDisplayString,
-                  },
+                  currentUserAccountID: currentUserPersonalDetails.accountID,
+                  localize: {translate, dateFnsLocale, convertToDisplayString},
                   rules,
-              );
+              });
     });
 
     const isPolicyExpenseChat = participants?.some((participant) => participant.isPolicyExpenseChat);
