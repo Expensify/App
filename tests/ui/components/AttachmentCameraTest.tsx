@@ -1,9 +1,8 @@
 import {act, fireEvent, render, screen} from '@testing-library/react-native';
 
+import AttachmentCamera from '@components/AttachmentPicker/AttachmentCamera';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
-
-import AttachmentCamera from '@components/AttachmentPicker/AttachmentCamera';
 
 import type {CameraDevice} from 'react-native-vision-camera';
 
@@ -26,7 +25,12 @@ jest.mock('@pages/iou/request/step/IOURequestStepScan/CameraPermission', () => (
 // Render the modal body inline so the assertions target the camera UI rather than modal plumbing.
 // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment -- ignore for testing
 const {View: MockView} = jest.requireActual('react-native');
-jest.mock('@components/Modal', () => ({isVisible, children}: {isVisible: boolean; children: React.ReactNode}) => (isVisible ? <MockView>{children}</MockView> : null));
+jest.mock(
+    '@components/Modal',
+    () =>
+        ({isVisible, children}: {isVisible: boolean; children: React.ReactNode}) =>
+            isVisible ? <MockView>{children}</MockView> : null,
+);
 
 jest.mock('react-native-vision-camera', () => {
     const actualReact = jest.requireActual<typeof React>('react');

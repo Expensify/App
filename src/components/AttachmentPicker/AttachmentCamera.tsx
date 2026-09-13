@@ -5,6 +5,7 @@ import ActivityIndicator from '@components/ActivityIndicator';
 import Button from '@components/Button';
 import Icon from '@components/Icon';
 import ImageSVG from '@components/ImageSVG';
+import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import Modal from '@components/Modal';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Text from '@components/Text';
@@ -30,8 +31,6 @@ import getCameraAspectRatio from '@pages/iou/request/step/IOURequestStepScan/get
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
-
-import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 
 import type {Camera, CameraRuntimeError, PhotoFile} from 'react-native-vision-camera';
 
