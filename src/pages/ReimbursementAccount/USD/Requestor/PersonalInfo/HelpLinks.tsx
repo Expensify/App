@@ -15,7 +15,6 @@ import React from 'react';
 import {View} from 'react-native';
 
 type HelpLinkProps = {
-    /** Style for wrapping View */
     containerStyles?: StyleProp<ViewStyle>;
 };
 

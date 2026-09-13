@@ -1,7 +1,7 @@
 import AttachmentPicker from '@components/AttachmentPicker';
 import WorkspaceAvatar from '@components/Avatar/WorkspaceAvatar';
 import AvatarWithImagePicker from '@components/AvatarWithImagePicker';
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import MentionReportContext from '@components/HTMLEngineProvider/HTMLRenderers/MentionReportRenderer/MentionReportContext';
@@ -317,7 +317,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
 
         if (isReimburser) {
             showConfirmModal({
-                title: translate('common.leaveWorkspace'),
+                title: policyName ? translate('common.leaveWorkspaceTitle', policyName) : translate('common.leaveWorkspace'),
                 prompt,
                 confirmText: translate('common.buttonConfirm'),
                 shouldShowCancelButton: false,
@@ -327,7 +327,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
         }
 
         showConfirmModal({
-            title: translate('common.leaveWorkspace'),
+            title: policyName ? translate('common.leaveWorkspaceTitle', policyName) : translate('common.leaveWorkspace'),
             prompt,
             confirmText: translate('common.leave'),
             cancelText: translate('common.cancel'),

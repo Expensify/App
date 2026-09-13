@@ -25,7 +25,6 @@ describe('BaseListItem', () => {
         render(
             <BaseListItem
                 item={{keyForList: '1'}}
-                keyForList="1"
                 onSelectRow={() => {}}
                 showTooltip={false}
                 isFocused={false}
@@ -43,7 +42,6 @@ describe('BaseListItem', () => {
         render(
             <BaseListItem
                 item={{keyForList: '1', text: 'Item text'}}
-                keyForList="1"
                 accessibilityLabel="Custom row name"
                 onSelectRow={() => {}}
                 showTooltip={false}
@@ -59,7 +57,6 @@ describe('BaseListItem', () => {
         render(
             <BaseListItem
                 item={{keyForList: '1', text: 'Item text'}}
-                keyForList="1"
                 onSelectRow={() => {}}
                 showTooltip={false}
                 isFocused={false}
@@ -73,7 +70,6 @@ describe('BaseListItem', () => {
         render(
             <BaseListItem
                 item={{keyForList: '1', text: 'Item text'}}
-                keyForList="1"
                 shouldUseOptionRole={false}
                 onSelectRow={() => {}}
                 showTooltip={false}
@@ -88,7 +84,6 @@ describe('BaseListItem', () => {
         render(
             <BaseListItem
                 item={{keyForList: '1', text: 'Item text'}}
-                keyForList="1"
                 onSelectRow={() => {}}
                 showTooltip={false}
                 isFocused={false}
@@ -102,7 +97,6 @@ describe('BaseListItem', () => {
         render(
             <BaseListItem
                 item={{keyForList: '1', text: 'Item text'}}
-                keyForList="1"
                 accessible={false}
                 onSelectRow={() => {}}
                 showTooltip={false}
@@ -117,7 +111,6 @@ describe('BaseListItem', () => {
         render(
             <BaseListItem
                 item={{keyForList: '1', text: 'Item text'}}
-                keyForList="1"
                 isSelected
                 onSelectRow={() => {}}
                 showTooltip={false}
@@ -132,7 +125,6 @@ describe('BaseListItem', () => {
         render(
             <BaseListItem
                 item={{keyForList: '1', text: 'Item text', isSelected: true}}
-                keyForList="1"
                 onSelectRow={() => {}}
                 showTooltip={false}
                 isFocused={false}

@@ -189,6 +189,7 @@ function makeSelectedTransaction(overrides: Partial<SelectedTransactions[string]
         reportID: '1',
         policyID: 'policy1',
         amount: 100,
+        displayAmount: 100,
         currency: 'USD',
         isFromOneTransactionReport: false,
         transaction: makeTransaction('tx', '1'),
@@ -316,7 +317,6 @@ describe('useSearchBulkActions - Download receipts', () => {
 
             expect(exportReceiptsToZip).toHaveBeenCalledTimes(1);
             expect(exportReceiptsToZip).toHaveBeenCalledWith({reportIDs: expect.arrayContaining(['1', '2'])});
-            expect(result.current.exportDownloadStatusModal).not.toBeNull();
         });
 
         it('shows the offline modal and does not export when offline', async () => {

@@ -1,4 +1,4 @@
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
@@ -41,13 +41,8 @@ import React, {useMemo} from 'react';
 import {View} from 'react-native';
 
 type WorkspaceCardsListLabelProps = {
-    /** Label type */
     type: ValueOf<typeof CONST.WORKSPACE_CARDS_LIST_LABEL_TYPE>;
-
-    /** Label value */
     value: number;
-
-    /** Additional style props */
     style?: StyleProp<ViewStyle>;
 };
 

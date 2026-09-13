@@ -45,8 +45,9 @@ const baseParams: Params = {
     routeError: undefined,
     isTypeSplit: false,
     shouldShowReadOnlySplits: false,
-    isNewManualExpenseFlowEnabled: false,
     isDistanceRequest: false,
+    shouldShowDate: false,
+    isReadOnly: false,
 };
 
 // A manual draft the user never typed a merchant into: `initMoneyRequest` seeds it with the "Expense" placeholder.
@@ -129,38 +130,80 @@ describe('useFormErrorManagement', () => {
         expect(result.current.errorMessage).toBeUndefined();
     });
 
-    it('errorMessage suppresses required/invalid amount errors in the new manual expense flow (surfaced inline)', () => {
-        const {result: required} = renderHook(() => useFormErrorManagement({...baseParams, isNewManualExpenseFlowEnabled: true}), {wrapper: Wrapper});
+    it('errorMessage suppresses required/invalid amount errors (surfaced inline)', () => {
+        const {result: required} = renderHook(() => useFormErrorManagement(baseParams), {wrapper: Wrapper});
         act(() => required.current.setFormError('common.error.fieldRequired'));
         expect(required.current.errorMessage).toBeUndefined();
 
-        const {result: invalid} = renderHook(() => useFormErrorManagement({...baseParams, isNewManualExpenseFlowEnabled: true}), {wrapper: Wrapper});
+        const {result: invalid} = renderHook(() => useFormErrorManagement(baseParams), {wrapper: Wrapper});
         act(() => invalid.current.setFormError('common.error.invalidAmount'));
         expect(invalid.current.errorMessage).toBeUndefined();
     });
 
-    it('errorMessage still shows required/invalid amount errors when the new manual expense flow is disabled', () => {
-        const {result} = renderHook(() => useFormErrorManagement({...baseParams, isNewManualExpenseFlowEnabled: false}), {wrapper: Wrapper});
+    it('errorMessage still shows the invalid amount error for a distance request (no inline surface)', () => {
+        const {result} = renderHook(() => useFormErrorManagement({...baseParams, isDistanceRequest: true}), {wrapper: Wrapper});
         act(() => result.current.setFormError('common.error.invalidAmount'));
         expect(result.current.errorMessage).toBeDefined();
     });
 
-    it('errorMessage still shows the invalid amount error for a distance request in the new manual expense flow (no inline surface)', () => {
-        const {result} = renderHook(() => useFormErrorManagement({...baseParams, isNewManualExpenseFlowEnabled: true, isDistanceRequest: true}), {wrapper: Wrapper});
-        act(() => result.current.setFormError('common.error.invalidAmount'));
-        expect(result.current.errorMessage).toBeDefined();
+    const splitParams: Params = {...baseParams, isTypeSplit: true, shouldShowReadOnlySplits: false};
+
+    it('suppresses the duplicate footer invalid amount error on an editable split (#96565)', () => {
+        jest.useFakeTimers();
+        try {
+            const {result} = renderHook(() => useFormErrorManagement(splitParams), {wrapper: Wrapper});
+            act(() => result.current.setFormError('common.error.invalidAmount'));
+            act(() => jest.advanceTimersByTime(CONST.TIMING.USE_DEBOUNCED_STATE_DELAY + 1));
+
+            // The debounce has settled, so an undefined message is real suppression rather than lag.
+            expect(result.current.debouncedFormError).toBe('common.error.invalidAmount');
+            expect(result.current.errorMessage).toBeUndefined();
+        } finally {
+            jest.useRealTimers();
+        }
     });
 
-    it('errorMessage suppresses the invalid merchant error in the new manual expense flow (surfaced inline)', () => {
-        const {result} = renderHook(() => useFormErrorManagement({...baseParams, isNewManualExpenseFlowEnabled: true}), {wrapper: Wrapper});
+    it('keeps a corrected split error hidden while the debounce is still holding the old value (#96565)', () => {
+        jest.useFakeTimers();
+        try {
+            const {result} = renderHook(() => useFormErrorManagement(splitParams), {wrapper: Wrapper});
+
+            // Given an editable split that failed confirmation with an invalid amount
+            act(() => result.current.setFormError('common.error.invalidAmount'));
+            act(() => jest.advanceTimersByTime(CONST.TIMING.USE_DEBOUNCED_STATE_DELAY + 1));
+            expect(result.current.errorMessage).toBeUndefined();
+
+            // When the user types a valid amount, clearing the live error while the debounced one still lags
+            act(() => result.current.setFormError(''));
+            expect(result.current.formError).toBe('');
+            expect(result.current.debouncedFormError).toBe('common.error.invalidAmount');
+
+            // Then the footer error must not pop back in for the length of the debounce
+            expect(result.current.errorMessage).toBeUndefined();
+            act(() => jest.advanceTimersByTime(CONST.TIMING.USE_DEBOUNCED_STATE_DELAY + 1));
+            expect(result.current.errorMessage).toBeUndefined();
+        } finally {
+            jest.useRealTimers();
+        }
+    });
+
+    it('still shows footer errors that have no inline surface on an editable split', () => {
+        jest.useFakeTimers();
+        try {
+            const {result} = renderHook(() => useFormErrorManagement(splitParams), {wrapper: Wrapper});
+            act(() => result.current.setFormError('iou.error.noParticipantSelected'));
+            act(() => jest.advanceTimersByTime(CONST.TIMING.USE_DEBOUNCED_STATE_DELAY + 1));
+
+            expect(result.current.errorMessage).toBeDefined();
+        } finally {
+            jest.useRealTimers();
+        }
+    });
+
+    it('errorMessage suppresses the invalid merchant error (surfaced inline)', () => {
+        const {result} = renderHook(() => useFormErrorManagement(baseParams), {wrapper: Wrapper});
         act(() => result.current.setFormError('iou.error.invalidMerchant'));
         expect(result.current.errorMessage).toBeUndefined();
-    });
-
-    it('errorMessage still shows the invalid merchant error when the new manual expense flow is disabled', () => {
-        const {result} = renderHook(() => useFormErrorManagement({...baseParams, isNewManualExpenseFlowEnabled: false}), {wrapper: Wrapper});
-        act(() => result.current.setFormError('iou.error.invalidMerchant'));
-        expect(result.current.errorMessage).toBeDefined();
     });
 
     it('treats the placeholder merchant of an untouched draft as empty, so it is only invalid while a merchant is required', () => {
@@ -189,8 +232,7 @@ describe('useFormErrorManagement', () => {
     it('clears the invalid merchant error once the recipient changes from a workspace chat to a user (#96593)', () => {
         // Given an untouched manual draft (still carrying the placeholder merchant) headed for a workspace chat
         const {result, rerender} = renderHook(
-            ({isPolicyExpenseChat}: {isPolicyExpenseChat: boolean}) =>
-                useFormErrorManagement({...baseParams, ...placeholderMerchantParams, isNewManualExpenseFlowEnabled: true, isPolicyExpenseChat}),
+            ({isPolicyExpenseChat}: {isPolicyExpenseChat: boolean}) => useFormErrorManagement({...baseParams, ...placeholderMerchantParams, isPolicyExpenseChat}),
             {wrapper: Wrapper, initialProps: {isPolicyExpenseChat: true}},
         );
 
@@ -200,6 +242,71 @@ describe('useFormErrorManagement', () => {
 
         // Then switching the recipient to a user drops the merchant requirement and clears the error
         rerender({isPolicyExpenseChat: false});
+        expect(result.current.formError).toBe('');
+    });
+
+    const manualRequiredParams = ({
+        isAmountSet,
+        created,
+        shouldShowDate = true,
+        isReadOnly = false,
+    }: {
+        isAmountSet: boolean;
+        created: string;
+        shouldShowDate?: boolean;
+        isReadOnly?: boolean;
+    }): Params => ({
+        ...baseParams,
+        shouldShowDate,
+        isReadOnly,
+        transaction: createMock<OnyxTypes.Transaction>({
+            transactionID: 'txn1',
+            iouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL,
+            isAmountSet,
+            created,
+            comment: {},
+        }),
+    });
+
+    it('clears the required error once the amount is set when the date field is hidden, so a hidden date cannot strand it', () => {
+        // Given a confirmation that doesn't render the date field (a scan flow before its fields show), with no date yet
+        const {result, rerender} = renderHook((props: Params) => useFormErrorManagement(props), {
+            wrapper: Wrapper,
+            initialProps: manualRequiredParams({isAmountSet: false, created: '', shouldShowDate: false}),
+        });
+        act(() => result.current.setFormError('common.error.fieldRequired'));
+
+        // When the amount is filled, the empty date must not keep the error alive since it has no inline surface
+        rerender(manualRequiredParams({isAmountSet: true, created: '', shouldShowDate: false}));
+        expect(result.current.formError).toBe('');
+    });
+
+    it('clears the required error once the amount is set on a read-only confirmation, where the date is populated server-side', () => {
+        const {result, rerender} = renderHook((props: Params) => useFormErrorManagement(props), {
+            wrapper: Wrapper,
+            initialProps: manualRequiredParams({isAmountSet: false, created: '', isReadOnly: true}),
+        });
+        act(() => result.current.setFormError('common.error.fieldRequired'));
+
+        rerender(manualRequiredParams({isAmountSet: true, created: '', isReadOnly: true}));
+        expect(result.current.formError).toBe('');
+    });
+
+    it('keeps the shared required error until both the amount and the date are filled (#96568)', () => {
+        // Given a manual expense confirmed with both the amount and the date empty
+        const {result, rerender} = renderHook((props: Params) => useFormErrorManagement(props), {
+            wrapper: Wrapper,
+            initialProps: manualRequiredParams({isAmountSet: false, created: ''}),
+        });
+        act(() => result.current.setFormError('common.error.fieldRequired'));
+        expect(result.current.formError).toBe('common.error.fieldRequired');
+
+        // When only the amount is filled, the shared error must survive so the date keeps showing it inline
+        rerender(manualRequiredParams({isAmountSet: true, created: ''}));
+        expect(result.current.formError).toBe('common.error.fieldRequired');
+
+        // Then filling the date too clears it, so confirmation is no longer blocked
+        rerender(manualRequiredParams({isAmountSet: true, created: '2026-07-29'}));
         expect(result.current.formError).toBe('');
     });
 });

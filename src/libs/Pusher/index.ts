@@ -86,7 +86,6 @@ function init(args: Args): Promise<void> {
 
         const options: Options = {
             cluster: args.cluster,
-            authEndpoint: args.authEndpoint,
         };
 
         if (customAuthorizer) {
@@ -280,12 +279,13 @@ function subscribe<EventName extends PusherEventName>(channelName: string, event
                                 return;
                             }
 
-                            // In production, report to Sentry without crashing the app.
-                            // This can happen when disconnect() is called (e.g. during the "Upgrade Required"
-                            // teardown) before this deferred TransitionTracker callback runs.
-                            Sentry.captureException(error, {
-                                tags: {source: 'Pusher.subscribe'},
-                                extra: {channelName, eventName},
+                            // In production this is an expected teardown race, not a crash: disconnect() (e.g. during
+                            // the "Upgrade Required" teardown) can run before this deferred TransitionTracker callback
+                            // does. It goes to Sentry logs rather than the error stream, and the app carries on.
+                            Sentry.logger.warn('[Pusher] Socket disconnected before subscribe could complete', {
+                                source: 'Pusher.subscribe',
+                                channelName,
+                                eventName,
                             });
                             Log.info('[Pusher] Socket disconnected before subscribe could complete, skipping subscription', false, {channelName, eventName});
                             resolve();

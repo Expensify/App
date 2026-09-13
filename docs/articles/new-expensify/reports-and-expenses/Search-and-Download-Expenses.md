@@ -127,6 +127,10 @@ Ensure your workspace is connected to a supported accounting platform. [Click he
 
 A status window appears while your file is prepared, and the file downloads automatically when it’s ready (if it doesn’t, use the **Download file** button). If you’d rather not wait, click/tap **Send me the file when it’s ready** and **Concierge** will send it to you in a chat message.
 
+## What happens if I refresh the page while my file is preparing?
+
+Your file keeps preparing, and the status window comes back on its own. Expensify tracks each download that is still preparing or ready to save, so when you refresh the page or close and reopen Expensify, the status window reappears with the current status. Click **Download file** once it shows **Your file is ready!**. This does not apply when you choose **Send me the file when it’s ready** — **Concierge** sends that file to you in a chat message instead.
+
 ## Can I export expenses or reports in bulk?
 
 - **CSV export**: Yes, select multiple or all items.
