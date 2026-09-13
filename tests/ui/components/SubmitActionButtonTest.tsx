@@ -361,6 +361,6 @@ describe('SubmitActionButton', () => {
 
         // Then the predicate received the same report and policy the header's gate reads (the policy is not hydrated
         // in this environment, so it is undefined)
-        expect(mockedShouldBlockSubmitDueToPreventSelfApproval).toHaveBeenCalledWith(iouReport, undefined);
+        expect(mockedShouldBlockSubmitDueToPreventSelfApproval).toHaveBeenCalledWith(iouReport, undefined, undefined);
     });
 });
