@@ -71,8 +71,8 @@ function ReportField({selectedParticipants, iouType, reportID, reportActionID, a
 
     const ownerAccountID = selectedParticipants?.at(0)?.ownerAccountID;
 
-    const availableOutstandingReports = getOutstandingReportsForUser(policyID, ownerAccountID, rules, reportNameValuePairs, outstandingReportsForPolicy ?? {}, false).sort((report1, report2) =>
-        sortOutstandingReportsBySelected(report1, report2, undefined, localeCompare),
+    const availableOutstandingReports = getOutstandingReportsForUser(policyID, ownerAccountID, rules, reportNameValuePairs, outstandingReportsForPolicy ?? {}, false).sort(
+        (report1, report2) => sortOutstandingReportsBySelected(report1, report2, undefined, localeCompare),
     );
 
     const outstandingReportID = isPolicyExpenseChat ? (iouReportIDFromMain ?? availableOutstandingReports.at(0)?.reportID) : reportID;
