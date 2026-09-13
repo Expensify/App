@@ -4,7 +4,6 @@ import {useSearchRowSelectionActions, useSearchSelectionContext} from '@componen
 import type {SearchListItem} from '@components/Search/SearchList/ListItem/types';
 import {useEditingCellState} from '@components/TransactionItemRow/EditableCell';
 
-import useContentHeaderHeight from '@hooks/useContentHeaderHeight';
 import useKeyboardState from '@hooks/useKeyboardState';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -15,6 +14,8 @@ import useUndeleteTransactions from '@hooks/useUndeleteTransactions';
 
 import type {TransactionPreviewData} from '@libs/actions/Search';
 import type {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
+
+import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -62,7 +63,7 @@ function useSearchListViewState({data, listData = data, isMobileSelectionModeEna
     // See https://github.com/Expensify/App/issues/48675 for more details
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth, isLargeScreenWidth} = useResponsiveLayout();
-    const {contentHeaderHeight} = useContentHeaderHeight();
+    const contentHeaderHeight = isSmallScreenWidth ? variables.contentHeaderNarrowHeight : variables.contentHeaderHeight;
     const {isEditingCell, wasRecentlyEditingCell} = useEditingCellState();
 
     const listRef = useRef<FlashListRef<SearchListItem>>(null);
