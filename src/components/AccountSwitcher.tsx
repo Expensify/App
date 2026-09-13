@@ -54,7 +54,7 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
     const styles = useThemeStyles();
     const {localeCompare, translate, formatPhoneNumber} = useLocalize();
     const {isOffline} = useNetwork();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {shouldUseNarrowLayout, isInLandscapeMode} = useResponsiveLayout();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
     const [isDebugModeEnabled] = useOnyx(ONYXKEYS.IS_DEBUG_MODE_ENABLED);
@@ -65,6 +65,8 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
     const [stashedSession] = useOnyx(ONYXKEYS.STASHED_SESSION);
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [gpsDraftDetails] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS);
+    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
+    const [hasLoadedApp] = useOnyx(ONYXKEYS.HAS_LOADED_APP);
 
     const delegate = account?.delegatedAccess?.delegate;
     const delegators = account?.delegatedAccess?.delegators ?? [];
@@ -80,6 +82,13 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
 
     const isActingAsDelegate = !!delegate;
     const canSwitchAccounts = delegators.length > 0 || isActingAsDelegate;
+
+    const isAccountSwitchInFlight = !!isLoadingApp && !!hasLoadedApp;
+    const [wasAbleToSwitchAccounts, setWasAbleToSwitchAccounts] = useState(canSwitchAccounts);
+    if (!isAccountSwitchInFlight && wasAbleToSwitchAccounts !== canSwitchAccounts) {
+        setWasAbleToSwitchAccounts(canSwitchAccounts);
+    }
+
     const displayName = currentUserPersonalDetails.displayName ?? '';
     const doesDisplayNameContainEmojis = new RegExp(CONST.REGEX.EMOJIS, CONST.REGEX.EMOJIS.flags.concat('g')).test(displayName);
 
@@ -260,41 +269,65 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
         clearDelegatorErrors({delegatedAccess: account?.delegatedAccess});
     };
 
+    // A landscape phone is still a narrow layout, but the tall stacked header would eat most of the screen height there.
+    const shouldStackHeader = shouldUseNarrowLayout && !isInLandscapeMode;
+    const displayNameStyle = shouldStackHeader ? [styles.textHeadlineH1, styles.textAlignCenter] : [styles.textBold, styles.textLarge, styles.flexShrink1, styles.lineHeightXLarge];
+    const avatarSize = shouldStackHeader ? CONST.AVATAR_SIZE.XXXX_LARGE : CONST.AVATAR_SIZE.DEFAULT;
+    const shouldReserveSwitchButtonRow = shouldStackHeader && wasAbleToSwitchAccounts && !canSwitchAccounts && isAccountSwitchInFlight;
+
     return (
         <>
-            <View style={[styles.flexRow, styles.gap3, styles.alignItemsCenter, styles.flexGrow1, styles.flex1, styles.mnw0]}>
-                <View style={[styles.flexRow, styles.gap3, styles.alignItemsCenter, styles.flex1, styles.flexShrink1, styles.mnw0, styles.justifyContentCenter]}>
+            <View
+                style={
+                    shouldStackHeader
+                        ? [styles.alignItemsCenter, styles.gap4, styles.w100]
+                        : [styles.flexRow, styles.gap3, styles.alignItemsCenter, styles.flexGrow1, styles.flex1, styles.mnw0]
+                }
+            >
+                <View
+                    style={
+                        shouldStackHeader
+                            ? [styles.alignItemsCenter, styles.gap3, styles.w100]
+                            : [styles.flexRow, styles.gap3, styles.alignItemsCenter, styles.flex1, styles.flexShrink1, styles.mnw0, styles.justifyContentCenter]
+                    }
+                >
                     <UserAvatar
-                        size={CONST.AVATAR_SIZE.DEFAULT}
+                        size={avatarSize}
                         accountID={currentUserPersonalDetails.accountID}
                         source={currentUserPersonalDetails.avatar}
                         fallbackIcon={currentUserPersonalDetails.fallbackIcon}
                     />
-                    <View style={[styles.flex1, styles.flexShrink1, styles.flexBasis0, styles.justifyContentCenter, styles.gap1]}>
+                    <View
+                        style={
+                            shouldStackHeader
+                                ? [styles.alignItemsCenter, styles.gap1, styles.w100]
+                                : [styles.flex1, styles.flexShrink1, styles.flexBasis0, styles.justifyContentCenter, styles.gap1]
+                        }
+                    >
                         {doesDisplayNameContainEmojis ? (
                             <Text numberOfLines={1}>
                                 <TextWithEmojiFragment
                                     message={displayName}
-                                    style={[styles.textBold, styles.textLarge, styles.flexShrink1, styles.lineHeightXLarge]}
+                                    style={displayNameStyle}
                                 />
                             </Text>
                         ) : (
                             <Text
                                 numberOfLines={1}
-                                style={[styles.textBold, styles.textLarge, styles.flexShrink1, styles.lineHeightXLarge]}
+                                style={displayNameStyle}
                             >
                                 {formatPhoneNumber(displayName)}
                             </Text>
                         )}
                         <Text
                             numberOfLines={1}
-                            style={[styles.colorMuted, styles.fontSizeLabel]}
+                            style={[styles.colorMuted, styles.fontSizeLabel, shouldStackHeader && styles.textAlignCenter]}
                         >
                             {Str.removeSMSDomain(currentUserPersonalDetails.login ?? '')}
                         </Text>
                         {!!isDebugModeEnabled && (
                             <Text
-                                style={[styles.textLabelSupporting, styles.mt1, styles.w100]}
+                                style={[styles.textLabelSupporting, styles.mt1, styles.w100, shouldStackHeader && styles.textAlignCenter]}
                                 numberOfLines={1}
                             >
                                 AccountID: {accountID}
@@ -317,6 +350,12 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
                             </Button>
                         </View>
                     </TooltipToRender>
+                )}
+                {!!shouldReserveSwitchButtonRow && (
+                    <View
+                        testID={CONST.ACCOUNT_SWITCHER_BUTTON_PLACEHOLDER_TEST_ID}
+                        style={styles.minHeightComponentSizeSmall}
+                    />
                 )}
             </View>
 
