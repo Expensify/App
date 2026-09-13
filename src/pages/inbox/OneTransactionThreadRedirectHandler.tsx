@@ -1,8 +1,8 @@
 import useIsOneTransactionThread from '@hooks/useIsOneTransactionThread';
 import useOnyx from '@hooks/useOnyx';
 
-import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import getStateFromPath from '@libs/Navigation/helpers/getStateFromPath';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -18,6 +18,7 @@ import SCREENS from '@src/SCREENS';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
+import {findFocusedRoute} from '@react-navigation/core';
 import {useIsFocused, useRoute} from '@react-navigation/native';
 import {useEffect} from 'react';
 
@@ -37,9 +38,15 @@ type ExpenseReportRouteParams = {
     backTo: string | undefined;
 };
 
-/** A route reduced to its path, so one built by `ROUTES` can be compared with a `backTo`, which carries a leading slash and usually nests a `backTo` of its own. */
-function getRoutePath(route: string): string {
-    return route.replace(/^\//, '').replace(/\?.*$/, '');
+/**
+ * The report a `backTo` points at, whatever route shape it uses. The same report is reachable as `r/`, `e/`,
+ * `search/view/` and `search/r/`, so the path alone cannot be compared - resolving it the way the navigator itself
+ * would avoids hard-coding that list.
+ */
+function getBackToReportID(backTo: Route): string | undefined {
+    const focusedRoute = findFocusedRoute(getStateFromPath(backTo));
+    const params = focusedRoute?.params;
+    return params && 'reportID' in params && typeof params.reportID === 'string' ? params.reportID : undefined;
 }
 
 /** The route for the report that owns the expense, matching how the app opens an expense report from where we are. */
@@ -54,11 +61,10 @@ function getExpenseReportRoute({routeName, reportID, referrer, backTo}: ExpenseR
         return ROUTES.SEARCH_REPORT.getRoute({reportID, backTo});
     }
 
-    // Outside Search an expense report belongs in the wide RHP, and only a genuinely narrow layout falls back to the
-    // full report view - the same split `navigateToChildReport` makes. `useResponsiveLayout` cannot answer this: its
-    // `shouldUseNarrowLayout` counts the RHP this handler runs inside as narrow, so every screen size would end up in
-    // the central pane.
-    return getIsNarrowLayout() ? ROUTES.REPORT_WITH_ID.getRoute(reportID, undefined, referrer, backTo) : ROUTES.EXPENSE_REPORT_RHP.getRoute({reportID, backTo});
+    // Outside Search an expense report belongs in the RHP, which is full screen on a narrow layout anyway. Swapping
+    // one RHP route for another keeps the redirect inside the navigator it started in - replacing it with the central
+    // pane `r/` route instead leaves the back stack straddling two navigators.
+    return ROUTES.EXPENSE_REPORT_RHP.getRoute({reportID, backTo});
 }
 
 /**
@@ -102,10 +108,11 @@ function OneTransactionThreadRedirectHandler() {
             return;
         }
 
-        // A thread opened from its own report carries that report as `backTo`, which would leave the report pointing
-        // at itself and make `linkTo` refuse to navigate at all. Inherit the report's own nested `backTo` instead -
-        // where it would have returned to had the user opened it directly.
-        const isBackToParentReport = !!backTo && getRoutePath(getExpenseReportRoute({routeName: route.name, reportID: parentReportID, referrer, backTo})) === getRoutePath(backTo);
+        // A thread opened from its own report carries that report as `backTo`. Handing it back to the report would
+        // point the report at itself, which `linkTo` refuses to navigate to at all on a wide layout, and which sends
+        // Back round in circles between the report's two route shapes on a narrow one. Inherit the report's own
+        // nested `backTo` instead - where it would have returned to had the user opened it directly.
+        const isBackToParentReport = !!backTo && getBackToReportID(backTo) === parentReportID;
         const resolvedBackTo = isBackToParentReport ? (getSearchParamFromPath(backTo ?? '', 'backTo') ?? undefined) : backTo;
 
         // Replacing rather than pushing keeps the thread we are leaving out of the history, so going back doesn't
@@ -115,7 +122,5 @@ function OneTransactionThreadRedirectHandler() {
 
     return null;
 }
-
-OneTransactionThreadRedirectHandler.displayName = 'OneTransactionThreadRedirectHandler';
 
 export default OneTransactionThreadRedirectHandler;
