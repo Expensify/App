@@ -141,6 +141,7 @@ function TabSelectorBase<K extends string = string>({
                         pendingAction={tab.pendingAction}
                         isDisabled={tab.isDisabled}
                         disabledAction={tab.disabledAction}
+                        badgeEducationalTooltipProps={tab.badgeEducationalTooltipProps}
                     />
                 );
             })}
