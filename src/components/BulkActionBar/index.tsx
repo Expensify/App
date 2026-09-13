@@ -40,7 +40,10 @@ import {defaultPopoverAnchorPosition, MORE_MENU_ANCHOR_ALIGNMENT} from './popove
  * specially. Split out from `BulkActionBar` because these styles have to resolve from the inverted theme, while the
  * positioning layer around it belongs to the page's own.
  */
-type BulkActionBarContentProps<TValueType> = Omit<BulkActionBarProps<TValueType>, 'style'> & {
+type BulkActionBarContentProps<TValueType> = Omit<BulkActionBarProps<TValueType>, 'style' | 'selectedCount' | 'customText'> & {
+    /** What the bar says the selection is. Built by `BulkActionBar`, which also measures the bar against it. */
+    countLabel: string;
+
     /** How many actions to give a button of their own. The rest go behind "More". Decided by the fitting pass. */
     inlineActionCount: number;
 
@@ -52,12 +55,10 @@ type BulkActionBarContentProps<TValueType> = Omit<BulkActionBarProps<TValueType>
 };
 
 function BulkActionBarContent<TValueType>({
-    selectedCount,
-    customText,
+    countLabel,
     isSelectedCountLoading,
     options,
     noticeText,
-    menuHeaderText,
     onClearSelection,
     onSubItemSelected,
     barRef,
@@ -117,16 +118,9 @@ function BulkActionBarContent<TValueType>({
             {/* Sized for a three-digit count so the bar keeps still as the selection grows, and so swapping the
                 spinner for the count does not resize it either. */}
             <View style={styles.bulkActionBarCount}>
-                {isSelectedCountLoading ? (
-                    <ActivityIndicator color={theme.spinner} />
-                ) : (
-                    <Text style={[styles.textLabel, styles.textStrong, styles.textAlignCenter]}>{customText ?? translate('workspace.common.selected', {count: selectedCount})}</Text>
-                )}
+                {isSelectedCountLoading ? <ActivityIndicator color={theme.spinner} /> : <Text style={[styles.textLabel, styles.textStrong, styles.textAlignCenter]}>{countLabel}</Text>}
             </View>
             {!!noticeText && <Text style={[styles.textLabel, styles.colorMuted]}>{noticeText}</Text>}
-            {/* The "More" menu carries this heading itself. Without one, these buttons are the hoisted options it
-                would otherwise label, so the heading has to stand alone here instead. */}
-            {!hasMoreMenu && !!menuHeaderText && <Text style={[styles.textLabel, styles.colorMuted]}>{menuHeaderText}</Text>}
             {inlineOptions.map((option) => (
                 <BulkActionBarButton
                     key={option.text}
@@ -153,7 +147,6 @@ function BulkActionBarContent<TValueType>({
                                 anchorRef={moreAnchorRef}
                                 anchorPosition={moreMenuAnchorPosition}
                                 anchorAlignment={MORE_MENU_ANCHOR_ALIGNMENT}
-                                headerText={menuHeaderText}
                                 onClose={() => setIsMoreMenuVisible(false)}
                                 onItemSelected={(selectedItem, index, event) => {
                                     onSubItemSelected?.(selectedItem, index, event);
@@ -203,13 +196,13 @@ function BulkActionBar<TValueType>({
     customText,
     isSelectedCountLoading,
     options: allOptions,
-    menuHeaderText,
     onClearSelection,
     onSubItemSelected,
     barRef,
     style,
 }: BulkActionBarProps<TValueType>) {
     const styles = useThemeStyles();
+    const {translate} = useLocalize();
     const invertedTheme = useInvertedThemePreference();
     const isReducedMotionEnabled = Accessibility.useReducedMotion();
 
@@ -230,19 +223,28 @@ function BulkActionBar<TValueType>({
     // This layer spans the container, so laying it out measures the width the bar has to fit into.
     const [availableWidth, setAvailableWidth] = useState<number>();
 
+    // A "More" menu holding a single action is that action wearing a worse label, so give it its own button instead.
+    // The button it replaces is about as wide, so hoisting cannot push the bar past the width the count was fitted to.
+    const getInlineCount = (actionCount: number) => (options.length === actionCount + 1 ? options.length : actionCount);
+
     // The width the bar took at each layout, keyed by what was actually on screen: the container's width is excluded
     // (it moves every resize frame) and so are labels behind "More" (they don't affect this width, so keying on them
     // left `onLayout` with nothing to fire and the bar stuck hidden).
     const [measuredWidths, setMeasuredWidths] = useState<Record<string, number>>({});
 
+    // The count label is as much of the bar's width as the buttons are, and it changes without the options changing
+    // ("All matching items selected" against "3 selected", or the spinner against either). Leaving it out let a width
+    // measured under a long label go on gating a count the bar had since re-rendered short enough to fit.
+    const countLabel = isSelectedCountLoading ? '' : (customText ?? translate('workspace.common.selected', {count: selectedCount}));
+
     const getMeasurementKey = (actionCount: number) => {
-        const hasMoreMenuAtCount = options.length > actionCount;
+        const inlineCount = getInlineCount(actionCount);
+        const hasMoreMenuAtCount = options.length > inlineCount;
         const inlineLabels = options
-            .slice(0, actionCount)
+            .slice(0, inlineCount)
             .map((option) => option.text)
             .join('|');
-        const standingText = hasMoreMenuAtCount ? '' : (menuHeaderText ?? '');
-        return `${inlineLabels}|${hasMoreMenuAtCount}|${noticeText ?? ''}|${standingText}`;
+        return `${inlineLabels}|${hasMoreMenuAtCount}|${noticeText ?? ''}|${countLabel}|${isSelectedCountLoading ?? false}`;
     };
 
     // The width the bar has to stay within, keeping it clear of the container's edges rather than flush against them.
@@ -298,16 +300,14 @@ function BulkActionBar<TValueType>({
             <ThemeProvider theme={invertedTheme}>
                 <ThemeStylesProvider>
                     <BulkActionBarContent
-                        selectedCount={selectedCount}
-                        customText={customText}
+                        countLabel={countLabel}
                         isSelectedCountLoading={isSelectedCountLoading}
                         options={options}
                         noticeText={noticeText}
-                        menuHeaderText={menuHeaderText}
                         onClearSelection={onClearSelection}
                         onSubItemSelected={onSubItemSelected}
                         barRef={barRef}
-                        inlineActionCount={inlineActionCount}
+                        inlineActionCount={getInlineCount(inlineActionCount)}
                         onBarLayout={(width) =>
                             setMeasuredWidths((widths) => {
                                 const measurementKey = getMeasurementKey(inlineActionCount);

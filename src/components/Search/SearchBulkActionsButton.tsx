@@ -72,6 +72,7 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {
         headerButtonsOptions,
+        dropdownButtonsOptions,
         bulkActionsMenuHeaderText,
         selectedPolicyIDs,
         selectedTransactionReportIDs,
@@ -122,7 +123,7 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
     const isExpenseType = queryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE;
     const isExpenseReportType = queryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
 
-    const popoverUseScrollView = shouldPopoverUseScrollView(headerButtonsOptions);
+    const popoverUseScrollView = shouldPopoverUseScrollView(dropdownButtonsOptions);
     const {selectedItemsCount, excludedItemsCount} = useMemo(() => {
         const getItemsCount = (transactionsToCount: typeof selectedTransactions) => {
             if (isExpenseReportType) {
@@ -240,12 +241,12 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
                         <View style={[styles.pb3]}>
                             <ButtonWithDropdownMenu
                                 buttonRef={buttonRef}
-                                options={headerButtonsOptions}
+                                options={dropdownButtonsOptions}
                                 menuHeaderText={bulkActionsMenuHeaderText}
                                 customText={selectionButtonText}
                                 isLoading={isAllMatchingItemsCountLoading}
                                 shouldAlwaysShowDropdownMenu
-                                isDisabled={headerButtonsOptions.length === 0}
+                                isDisabled={dropdownButtonsOptions.length === 0}
                                 onPress={() => null}
                                 shouldPopoverUseScrollView={popoverUseScrollView}
                                 onSubItemSelected={(subItem) => payBulkSelectedItem(subItem, triggerKYCFlow)}
@@ -266,7 +267,6 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
                             customText={shouldShowAllMatchingItemsSelected ? selectionButtonText : undefined}
                             isSelectedCountLoading={isAllMatchingItemsCountLoading}
                             options={headerButtonsOptions}
-                            menuHeaderText={bulkActionsMenuHeaderText}
                             // No argument: the boolean flag only clears the report view's `selectedTransactionIDs`.
                             onClearSelection={() => clearSelectedTransactions()}
                             onSubItemSelected={(subItem) => payBulkSelectedItem(subItem, triggerKYCFlow)}
