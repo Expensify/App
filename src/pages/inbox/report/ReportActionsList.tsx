@@ -60,6 +60,7 @@ import type * as OnyxTypes from '@src/types/onyx';
 
 import type {ListRenderItemInfo} from '@shopify/flash-list';
 import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
+import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {useRoute} from '@react-navigation/native';
@@ -67,6 +68,7 @@ import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import React, {useEffect, useRef, useState} from 'react';
 
 import ConciergeChatHistoryToggle from './ConciergeChatHistoryToggle';
+import ConciergeWelcome from './ConciergeWelcome';
 import FloatingMessageCounter from './FloatingMessageCounter';
 import ReportActionIndexContext from './ReportActionIndexContext';
 import {useReportActionsListActions, useReportActionsListState} from './ReportActionsListContext';
@@ -460,6 +462,20 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
         return <ReportActionsSkeletonView />;
     }
 
+    if (shouldShowConciergeWelcome) {
+        return (
+            <View>
+                <ConciergeWelcome />
+                <ConciergeChatHistoryToggle
+                    reportID={reportID}
+                    hasPreviousMessages={!!hasPreviousMessages}
+                    shouldShowFullHistory={!showHiddenHistory}
+                    onShowPreviousMessages={onShowPreviousMessages}
+                />
+            </View>
+        );
+    }
+
     return (
         <>
             {/* Pinned over the top of the list rather than laid out inside it, so scrolling the expense detail view
@@ -493,7 +509,7 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
                     keyExtractor={keyExtractor}
                     drawDistance={1500}
                     renderScrollComponent={renderActionSheetAwareScrollView}
-                    contentContainerStyle={[styles.chatContentScrollView, shouldShowConciergeWelcome && styles.chatContentScrollViewCentered]}
+                    contentContainerStyle={styles.chatContentScrollView}
                     onEndReached={loadOlderChatsOnEndReached}
                     onEndReachedThreshold={0.75}
                     onStartReached={loadNewerChatsAfterTransitions}

@@ -3,7 +3,6 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import ReportWelcomeText from '@components/ReportWelcomeText';
 
-import useConciergeAskState from '@hooks/useConciergeAskState';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useIsInSidePanel from '@hooks/useIsInSidePanel';
 import useLocalize from '@hooks/useLocalize';
@@ -26,7 +25,6 @@ import React, {memo} from 'react';
 import {View} from 'react-native';
 
 import AnimatedEmptyStateBackground from './AnimatedEmptyStateBackground';
-import ConciergeWelcome from './ConciergeWelcome';
 
 type ReportActionItemCreatedProps = {
     reportID: string | undefined;
@@ -58,14 +56,9 @@ function ReportActionItemCreated({reportID, policyID}: ReportActionItemCreatedPr
             .map(Number)
             .find((id) => id !== currentUserAccountID) ?? CONST.DEFAULT_NUMBER_ID;
     const [isParticipantOptimistic = true] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: isOptimisticPersonalDetailSelector(otherParticipantAccountID)});
-    const {shouldShowWelcome} = useConciergeAskState(reportID);
 
     if (!isChatReport(report)) {
         return null;
-    }
-
-    if (shouldShowWelcome) {
-        return <ConciergeWelcome />;
     }
 
     const shouldDisableDetailPage = shouldDisableDetailPageReportUtils(report, isParticipantOptimistic);
