@@ -81,6 +81,9 @@ export type {default as UpdateDualEntryTravelInvoicingSettlementsAccountParams} 
 export type {default as UpdateDualEntryTravelInvoicingPayableAccountParams} from './UpdateDualEntryTravelInvoicingPayableAccountParams';
 export type {default as SyncPolicyToCampfireParams} from './SyncPolicyToCampfireParams';
 export type {default as UpdateCampfireSubsidiaryParams} from './UpdateCampfireSubsidiaryParams';
+export type {default as UpdateCampfireFieldMappingParams} from './UpdateCampfireFieldMappingParams';
+export type {default as UpdateCampfireEnableNewCategoriesParams} from './UpdateCampfireEnableNewCategoriesParams';
+export type {default as UpdateCampfireSyncTaxRatesParams} from './UpdateCampfireSyncTaxRatesParams';
 export type {default as SyncPolicyToBusinessCentralParams} from './SyncPolicyToBusinessCentralParams';
 export type {default as UpdateBusinessCentralCompanyParams} from './UpdateBusinessCentralCompanyParams';
 export type {default as UpdateBusinessCentralEnableNewCategoriesParams} from './UpdateBusinessCentralEnableNewCategoriesParams';

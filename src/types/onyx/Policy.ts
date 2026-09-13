@@ -3552,4 +3552,5 @@ export type {
     DualEntrySync,
     CampfireConnectionsConfig,
     CampfireSubsidiary,
+    CampfireCoding,
 };
