@@ -882,6 +882,8 @@ function getOptionData({
         personalDetails,
         policy,
         invoiceReceiverPolicy,
+        reportMetadata,
+        participantPersonalDetailListExcludeCurrentUser,
         policyTags,
         isReportArchived,
         privateIsArchived: !!reportNameValuePairs?.private_isArchived,
