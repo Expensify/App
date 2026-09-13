@@ -122,6 +122,7 @@ function BaseOnboardingWorkEmailValidation({shouldUseNativeStyles}: BaseOnboardi
                     <OnboardingMergingAccountBlockedView
                         workEmail={workEmail}
                         isVsb={isVsb}
+                        onConfirm={isConciergeTaskFlow ? returnToOriginReport : undefined}
                     />
                 </View>
             ) : (

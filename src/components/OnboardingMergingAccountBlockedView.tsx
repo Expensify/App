@@ -24,9 +24,12 @@ type OnboardingMergingAccountBlockedViewProps = {
 
     // Whether the user is a VSB
     isVsb: boolean | undefined;
+
+    /** Called when this blocking view was opened from a Concierge onboarding task. */
+    onConfirm?: () => void;
 };
 
-function OnboardingMergingAccountBlockedView({workEmail, isVsb}: OnboardingMergingAccountBlockedViewProps) {
+function OnboardingMergingAccountBlockedView({workEmail, isVsb, onConfirm}: OnboardingMergingAccountBlockedViewProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const illustrations = useMemoizedLazyIllustrations(['ToddBehindCloud']);
@@ -59,6 +62,10 @@ function OnboardingMergingAccountBlockedView({workEmail, isVsb}: OnboardingMergi
                 style={[styles.mb5]}
                 onPress={() => {
                     setOnboardingErrorMessage(null);
+                    if (onConfirm) {
+                        onConfirm();
+                        return;
+                    }
                     if (isVsb) {
                         Navigation.navigate(ROUTES.ONBOARDING_EMPLOYEES.getRoute(), {forceReplace: true});
                         return;

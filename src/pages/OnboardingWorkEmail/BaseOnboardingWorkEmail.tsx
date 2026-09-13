@@ -340,6 +340,7 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
                     <OnboardingMergingAccountBlockedView
                         workEmail={workEmail}
                         isVsb={isVsb}
+                        onConfirm={isConciergeTaskFlow ? returnToOriginReport : undefined}
                     />
                 </View>
             ) : (
