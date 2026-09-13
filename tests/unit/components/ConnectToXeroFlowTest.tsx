@@ -4,6 +4,7 @@ import ConnectToXeroFlow from '@components/ConnectToXeroFlow/index.native';
 
 import useTwoFactorAuthRoute from '@hooks/useTwoFactorAuthRoute';
 
+import {markPolicyConnectionsAsStale} from '@libs/actions/PolicyConnections';
 import Navigation from '@libs/Navigation/Navigation';
 
 import ROUTES from '@src/ROUTES';
@@ -35,12 +36,16 @@ jest.mock('@hooks/useTwoFactorAuthRoute');
 jest.mock('@libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
 }));
+jest.mock('@libs/actions/PolicyConnections', () => ({
+    markPolicyConnectionsAsStale: jest.fn(),
+}));
 jest.mock('@components/RequireTwoFactorAuthenticationModal', () => ({isVisible, onSubmit, onCancel}: Require2FAProps) => {
     mockRequire2FAProps.current = {isVisible, onSubmit, onCancel};
     return isVisible ? <MockView testID="require-2fa-modal" /> : null;
 });
 
 const mockedUseTwoFactorAuthRoute = jest.mocked(useTwoFactorAuthRoute);
+const mockedMarkPolicyConnectionsAsStale = jest.mocked(markPolicyConnectionsAsStale);
 const mockedNavigate = jest.mocked(Navigation.navigate);
 const mockedGetTwoFactorAuthRoute = jest.fn(() => TWO_FACTOR_AUTH_ROUTE);
 
@@ -65,6 +70,14 @@ describe('ConnectToXeroFlow (native)', () => {
             expect(mockedNavigate).toHaveBeenCalledWith(ROUTES.POLICY_ACCOUNTING_XERO_SETUP.getRoute(POLICY_ID));
             expect(screen.queryByTestId('require-2fa-modal')).toBeNull();
         });
+
+        // Setup runs in an in-app WebView here, so the app never backgrounds and app focus never fires. Marking the
+        // connections stale is what lets the screen regaining focus drive the re-read instead.
+        it('marks the policy connections as stale before handing off', () => {
+            render(<ConnectToXeroFlow policyID={POLICY_ID} />);
+
+            expect(mockedMarkPolicyConnectionsAsStale).toHaveBeenCalledWith(POLICY_ID);
+        });
     });
 
     describe('when 2FA is not enabled', () => {
@@ -80,6 +93,7 @@ describe('ConnectToXeroFlow (native)', () => {
 
             expect(screen.getByTestId('require-2fa-modal')).toBeOnTheScreen();
             expect(mockedNavigate).not.toHaveBeenCalledWith(ROUTES.POLICY_ACCOUNTING_XERO_SETUP.getRoute(POLICY_ID));
+            expect(mockedMarkPolicyConnectionsAsStale).not.toHaveBeenCalled();
         });
 
         it('navigates to the 2FA route when the modal is submitted', () => {

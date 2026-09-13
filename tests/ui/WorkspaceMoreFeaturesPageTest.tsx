@@ -472,5 +472,17 @@ describe('WorkspaceMoreFeaturesPage', () => {
             await renderWithVendorMatching({[CONST.POLICY.CONNECTIONS.NAME.XERO]: {config: {}}}, false);
             expect(vendorsSwitchQuery()).toBeNull();
         });
+
+        it('shows the Vendors row locked ON once the Xero connection reports isConfigured', async () => {
+            await renderWithVendorMatching({[CONST.POLICY.CONNECTIONS.NAME.XERO]: {config: {isConfigured: true}}});
+            await expect(findLockedSwitch('workspace.moreFeatures.vendors.subtitle')).resolves.toBeChecked();
+        });
+
+        // A Xero connection that is not configured means the initial sync hasn't landed (or a tenant switch is in flight, which
+        // clears the flag while stale contacts linger). OFF is the correct render for that window, not a bug to paper over.
+        it('shows the Vendors row locked OFF while the Xero connection is not configured', async () => {
+            await renderWithVendorMatching({[CONST.POLICY.CONNECTIONS.NAME.XERO]: {config: {isConfigured: false}}});
+            await expect(findLockedSwitch('workspace.moreFeatures.vendors.subtitle')).resolves.not.toBeChecked();
+        });
     });
 });
