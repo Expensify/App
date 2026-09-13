@@ -292,7 +292,9 @@ describe('WorkspaceWorkflowsApprovalsEditPage', () => {
             renderEditPage(bobsWorkflowRoute);
             await waitForBatchedUpdatesWithAct();
 
-            fireEvent.press(screen.getByText(translateLocal('common.delete')));
+            // MenuItem's onPressAction only forwards to onPress when it is handed a truthy event, so fireEvent.press
+            // has to supply one rather than being called bare the way the Save button above can be.
+            fireEvent.press(screen.getByText(translateLocal('common.delete')), {nativeEvent: {}});
             await waitForBatchedUpdatesWithAct();
 
             expect(Navigation.goBack).toHaveBeenCalled();

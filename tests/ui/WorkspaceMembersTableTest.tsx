@@ -22,6 +22,13 @@ import Onyx from 'react-native-onyx';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
+// Per-column sort header buttons only render in the wide layout, since TableHeader renders just the table title on
+// narrow, so the layout hook is pinned to wide rather than left at whatever the test environment reports.
+jest.mock('@hooks/useResponsiveLayout', () => ({
+    __esModule: true,
+    default: jest.fn(() => ({shouldUseNarrowLayout: false, isSmallScreenWidth: false, isMediumScreenWidth: false})),
+}));
+
 const SCREEN_WRAPPER_STATUS = {didScreenTransitionEnd: true, isSafeAreaTopPaddingApplied: true, isSafeAreaBottomPaddingApplied: true};
 
 function buildMember(overrides: Partial<WorkspaceMemberRowData> & Pick<WorkspaceMemberRowData, 'keyForList' | 'login' | 'name' | 'email' | 'accountID'>): WorkspaceMemberRowData {
