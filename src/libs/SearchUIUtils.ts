@@ -2890,6 +2890,7 @@ function getTaskSections(
                     undefined,
                     isParentReportArchived,
                     parentReportPendingDeleteMemberAccountIDs,
+                    conciergeReportID,
                 );
                 const parentReportIcon = icons?.at(0);
 
