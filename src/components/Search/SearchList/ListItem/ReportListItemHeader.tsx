@@ -55,19 +55,13 @@ import TotalCell from './TotalCell';
 import UserInfoAndActionButtonRow from './UserInfoAndActionButtonRow';
 
 type ReportListItemHeaderProps<TItem extends ListItem> = SearchListActionProps & {
-    /** The report currently being looked at */
     report: TransactionReportGroupListItemType;
-
-    /** Callback to fire when the item is pressed */
     onSelectRow: (item: TItem, event?: ModifiedMouseEvent) => void;
-
-    /** Callback to fire when a checkbox is pressed */
     onCheckboxPress?: (item: TItem) => void;
 
     /** Whether this section items disabled for selection */
     isDisabled?: boolean | null;
 
-    /** Whether the item is focused */
     isFocused?: boolean;
 
     /** Whether selecting multiple transactions at once is allowed */
@@ -79,21 +73,16 @@ type ReportListItemHeaderProps<TItem extends ListItem> = SearchListActionProps &
     /** Whether only some transactions are selected */
     isIndeterminate?: boolean;
 
-    /** Callback for when the down arrow is clicked */
     onDownArrowClick?: () => void;
 
     /** Whether the down arrow is expanded */
     isExpanded?: boolean;
 
-    /** Whether the item is hovered */
     isHovered?: boolean;
 };
 
 type FirstRowReportHeaderProps<TItem extends ListItem> = {
-    /** The report currently being looked at */
     report: TransactionReportGroupListItemType;
-
-    /** Callback to fire when a checkbox is pressed */
     onCheckboxPress?: (item: TItem) => void;
 
     /** Whether this section items disabled for selection */
@@ -114,7 +103,6 @@ type FirstRowReportHeaderProps<TItem extends ListItem> = {
     /** Whether only some transactions are selected */
     isIndeterminate?: boolean;
 
-    /** Callback for when the down arrow is clicked */
     onDownArrowClick?: () => void;
 
     /** Whether the down arrow is expanded */
@@ -289,10 +277,12 @@ function ReportListItemHeaderInner<TItem extends ListItem>({
         `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(chatReport?.reportID ?? snapshotReport?.chatReportID ?? snapshotReport.parentReportID)}`,
     );
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const shouldShowMarkAsDoneCopy = shouldShowMarkAsDone({
         policy: parentPolicy,
         report: parentReport,
         isTrackIntentUser,
+        rules,
     });
 
     const reportTransactionIDs = (reportItem.transactions ?? []).map((transaction) => transaction.transactionID);
@@ -351,6 +341,7 @@ function ReportListItemHeaderInner<TItem extends ListItem>({
             delegateAccountID,
             isTrackIntentUser,
             allViolations,
+            rules,
             conciergeChat,
         });
     };

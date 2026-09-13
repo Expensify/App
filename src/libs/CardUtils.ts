@@ -1694,6 +1694,22 @@ function isCardPendingActivate(card?: Card) {
     return card?.state === CONST.EXPENSIFY_CARD.STATE.NOT_ACTIVATED;
 }
 
+/** True when this card has a wallet addition waiting for the cardholder to confirm or deny. */
+function isCardPendingDigitalWalletApproval(card?: Card) {
+    return !!card?.nameValuePairs?.pendingDigitalWalletApproval;
+}
+
+/** Maps the card provider's wallet name. Google Wallet comes back as ANDROID_PAY. */
+function getWalletProviderNameKey(walletProvider?: ValueOf<typeof CONST.EXPENSIFY_CARD.WALLET_PROVIDER>): 'appleWallet' | 'googleWallet' | 'digitalWallet' {
+    if (walletProvider === CONST.EXPENSIFY_CARD.WALLET_PROVIDER.APPLE_PAY) {
+        return 'appleWallet';
+    }
+    if (walletProvider === CONST.EXPENSIFY_CARD.WALLET_PROVIDER.ANDROID_PAY) {
+        return 'googleWallet';
+    }
+    return 'digitalWallet';
+}
+
 function isCardWithCustomZeroLimit(card: Card): boolean {
     return !!card.nameValuePairs?.hasCustomUnapprovedExpenseLimit && card.nameValuePairs?.unapprovedExpenseLimit === 0;
 }
@@ -2249,6 +2265,8 @@ export {
     getPersonalBankCardDetailsImage,
     isCardPendingIssue,
     isCardPendingActivate,
+    isCardPendingDigitalWalletApproval,
+    getWalletProviderNameKey,
     isCardPendingReplace,
     isCardWithCustomZeroLimit,
     hasPendingExpensifyCardAction,

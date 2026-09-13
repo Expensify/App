@@ -18,6 +18,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {
     getChangedApproverActionMessage,
+    getCompanyCardConnectionBroken30DaysMessage,
     getCommuterExclusionMessage,
     getCompanyCardConnectionBrokenMessage,
     getDelegateSubmitMessage,
@@ -87,7 +88,6 @@ import ReportMentionWhisperContent from './ReportMentionWhisperContent';
 import SimpleMessageContent, {isSimpleMessageAction} from './SimpleMessageContent';
 
 type ActionContentRouterProps = {
-    /** All the data of the action item */
     action: OnyxTypes.ReportAction;
 
     /** Report for this action */
@@ -102,16 +102,12 @@ type ActionContentRouterProps = {
     /** The IOU/Expense report we are paying */
     iouReport?: OnyxTypes.Report;
 
-    /** Report ID for the current report */
     reportID: string | undefined;
 
     /** Should the comment have the appearance of being grouped with the previous comment? */
     displayAsGroup: boolean;
 
-    /** ReportAction draft message */
     draftMessage: string | undefined;
-
-    /** Whether the report action is a whisper */
     isWhisper: boolean;
 
     /** Whether the report action is hovered (or context menu / emoji picker active) */
@@ -123,7 +119,6 @@ type ActionContentRouterProps = {
     /** Toggle the hidden state of the message */
     updateHiddenState: (isHiddenValue: boolean) => void;
 
-    /** Whether the provided report is a closed expense report with no expenses */
     isClosedExpenseReportWithNoExpenses?: boolean;
 
     /** Whether the report action is the "Created" action of a harvest-created expense report */
@@ -135,10 +130,7 @@ type ActionContentRouterProps = {
     /** Whether the search-page UI is active */
     isOnSearch: boolean;
 
-    /** Toggle whether the payment method popover is active */
     setIsPaymentMethodPopoverActive: (value: boolean) => void;
-
-    /** Whether the user is a track intent user */
     isTrackIntentUser?: boolean;
 };
 
@@ -482,6 +474,13 @@ function ActionContentRouter({
         return (
             <ReportActionItemBasicMessage message="">
                 <RenderHTML html={`<comment><muted-text>${getCompanyCardConnectionBrokenMessage(translate, action)}</muted-text></comment>`} />
+            </ReportActionItemBasicMessage>
+        );
+    }
+    if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.COMPANY_CARD_CONNECTION_BROKEN_30_DAYS)) {
+        return (
+            <ReportActionItemBasicMessage message="">
+                <RenderHTML html={`<comment><muted-text>${getCompanyCardConnectionBroken30DaysMessage(translate, action)}</muted-text></comment>`} />
             </ReportActionItemBasicMessage>
         );
     }

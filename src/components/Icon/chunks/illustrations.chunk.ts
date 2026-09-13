@@ -107,6 +107,7 @@ import Puzzle from '@assets/images/simple-illustrations/emptystate__puzzlepieces
 import Abacus from '@assets/images/simple-illustrations/simple-illustration__abacus.svg';
 // Simple Illustrations - Original core ones
 import Accounting from '@assets/images/simple-illustrations/simple-illustration__accounting.svg';
+import AiAutomation from '@assets/images/simple-illustrations/simple-illustration__ai-automation.svg';
 import AiBot from '@assets/images/simple-illustrations/simple-illustration__ai-bot.svg';
 import Alert from '@assets/images/simple-illustrations/simple-illustration__alert.svg';
 import Members from '@assets/images/simple-illustrations/simple-illustration__approval-members.svg';
@@ -124,6 +125,8 @@ import CalculatorMoney from '@assets/images/simple-illustrations/simple-illustra
 import CalendarMonthly from '@assets/images/simple-illustrations/simple-illustration__calendar-monthly.svg';
 import CarIce from '@assets/images/simple-illustrations/simple-illustration__car-ice.svg';
 import Car from '@assets/images/simple-illustrations/simple-illustration__car.svg';
+import CardDenied from '@assets/images/simple-illustrations/simple-illustration__carddenied.svg';
+import CardIntoWallet from '@assets/images/simple-illustrations/simple-illustration__cardintowallet.svg';
 import CardReaderAlt from '@assets/images/simple-illustrations/simple-illustration__cardreader-alt.svg';
 import Chair from '@assets/images/simple-illustrations/simple-illustration__chair.svg';
 import Chalkboard from '@assets/images/simple-illustrations/simple-illustration__chalkboard.svg';
@@ -338,11 +341,14 @@ const Illustrations = {
 
     // Simple Illustrations
     Accounting,
+    AiAutomation,
     AiBot,
     Building,
     BuildingCross,
     BankCoin,
     Coins,
+    CardDenied,
+    CardIntoWallet,
     CreditCardsNew,
     FolderOpen,
     HandCard,

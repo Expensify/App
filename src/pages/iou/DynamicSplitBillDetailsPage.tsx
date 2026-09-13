@@ -53,7 +53,7 @@ type SplitBillDetailsPageProps = WithReportAndReportActionOrNotFoundProps & Plat
 function DynamicSplitBillDetailsPage({report, reportAction}: SplitBillDetailsPageProps) {
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber, dateFnsLocale} = useLocalize();
-    const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
+    const {getCurrencyDecimals, getCurrencySymbol, convertToDisplayString} = useCurrencyListActions();
     const theme = useTheme();
     const {isBetaEnabled} = usePermissions();
     const icons = useMemoizedLazyExpensifyIcons(['ReceiptScan']);
@@ -74,6 +74,7 @@ function DynamicSplitBillDetailsPage({report, reportAction}: SplitBillDetailsPag
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`);
     const privateIsArchived = useReportIsArchived(reportID);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
     // In case this is workspace split expense, we manually add the workspace as the second participant of the split expense
     // because we don't save any accountID in the report action's originalMessage other than the payee's accountID
@@ -87,8 +88,9 @@ function DynamicSplitBillDetailsPage({report, reportAction}: SplitBillDetailsPag
                 personalDetails,
                 report,
                 policy,
-                {translate, dateFnsLocale},
+                {translate, dateFnsLocale, convertToDisplayString},
                 session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+                rules,
                 reportAttributesDerived,
             ),
         ];
@@ -127,6 +129,7 @@ function DynamicSplitBillDetailsPage({report, reportAction}: SplitBillDetailsPag
             isTrackIntentUser,
             sessionEmail: session?.email,
             formatPhoneNumber,
+            rules,
         });
         cleanupAfterExpenseCreate({draftTransactionIDs: [CONST.IOU.OPTIMISTIC_TRANSACTION_ID], shouldWaitForUpcomingTransition: true});
         dismissModalAndOpenReportInInboxTab(reportID, undefined, chatReportTransactions.length > 0);
@@ -146,6 +149,7 @@ function DynamicSplitBillDetailsPage({report, reportAction}: SplitBillDetailsPag
         isTrackIntentUser,
         formatPhoneNumber,
         getCurrencyDecimals,
+        rules,
     ]);
 
     return (
@@ -178,6 +182,8 @@ function DynamicSplitBillDetailsPage({report, reportAction}: SplitBillDetailsPag
                                 payeePersonalDetails={payeePersonalDetails}
                                 selectedParticipants={participantsExcludingPayee}
                                 shouldDisplayReceipt
+                                // Split bill details never render an editable participant row (the transaction is not from global create), so there is nothing to open.
+                                onOpenParticipantPicker={() => {}}
                                 iouType={CONST.IOU.TYPE.SPLIT}
                                 isReadOnly={!isEditingSplitBill}
                                 shouldShowSmartScanFields

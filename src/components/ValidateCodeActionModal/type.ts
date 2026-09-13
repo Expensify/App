@@ -1,15 +1,11 @@
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 
 import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
+import type {ValidateCodeReason} from '@src/types/onyx/VerifyValidateCodeAction';
 
 type ValidateCodeActionContentProps = {
-    /** Title of the modal */
     title: string;
-
-    /** Primary description of the modal */
     descriptionPrimary: string;
-
-    /** Secondary description of the modal */
     descriptionSecondary?: string | null;
 
     /** Function to call when the user closes the modal */
@@ -24,7 +20,6 @@ type ValidateCodeActionContentProps = {
     /** The errorField name of validateCodeAction.errorFields, e.g. "addLogin" to store the validateCode error when adding a new contact method */
     validateCodeActionErrorField: string;
 
-    /** Function is called when submitting form  */
     handleSubmitForm: (validateCode: string) => void;
 
     /** Function to clear error of the form */
@@ -33,10 +28,12 @@ type ValidateCodeActionContentProps = {
     /** Function is called when validate code modal is mounted and on validateCode resend */
     sendValidateCode: () => void;
 
+    /** When set, a recent request only suppresses the mount-time send if it was for this same reason */
+    validateCodeReasonCode?: ValidateCodeReason;
+
     /** Whether the form is loading or not */
     isLoading?: boolean;
 
-    /** List of menu items for more(three dots) menu */
     threeDotsMenuItems?: PopoverMenuItem[];
 
     /** Method to trigger when pressing more options button of the header */

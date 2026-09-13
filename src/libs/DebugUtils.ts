@@ -388,6 +388,22 @@ function validateObject<T extends Record<string, unknown>>(value: string, type: 
 }
 
 /**
+ * Validates that a value is a flat object mapping string keys to string values (e.g. Record<string, string>).
+ */
+function validateStringRecord(value: string) {
+    if (isEmptyValue(value)) {
+        return;
+    }
+
+    const object = parseJSON(value);
+    if (typeof object !== 'object' || object === null || Array.isArray(object) || Object.values(object).some((val) => typeof val !== 'string')) {
+        throw new SyntaxError('debug.invalidValue', {
+            cause: {expectedValues: 'Record<string, string> | undefined'},
+        });
+    }
+}
+
+/**
  * Validates if a string is a valid representation of a string.
  */
 function validateString(value: string) {
@@ -575,7 +591,7 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
                 requiredDepositCurrency: 'string',
             });
         case 'tripData':
-            return validateObject<ObjectElement<Report, 'tripData'>>(value, {
+            return validateObject<ObjectElement<ReportNameValuePairs, 'tripData'>>(value, {
                 startDate: 'string',
                 endDate: 'string',
                 tripID: 'string',
@@ -840,6 +856,8 @@ function validateReportActionDraftProperty(key: keyof ReportAction, value: strin
                 isTestDriveReceipt: 'boolean',
                 thumbnail: 'string',
                 receiptTraceId: 'string',
+                hotelReservationStartDate: 'string',
+                hotelReservationEndDate: 'string',
                 pageCount: 'number',
             });
         case 'childRecentReceiptTransactionIDs':
@@ -1045,6 +1063,8 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
             return validateConstantEnum(value, CONST.IOU.REQUEST_TYPE);
         case 'selectedTransactionIDs':
             return validateArray(value, 'string');
+        case 'bulkEditTagChanges':
+            return validateStringRecord(value);
         case 'participants':
             return validateArray<ArrayElement<Transaction, 'participants'>>(value, {
                 accountID: 'number',
@@ -1149,6 +1169,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                     routeDistanceMeters: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     transactionID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     selectedTransactionIDs: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    bulkEditTagChanges: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     tag: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     transactionType: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     isFromGlobalCreate: CONST.RED_BRICK_ROAD_PENDING_ACTION,
@@ -1210,6 +1231,8 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                 isTestDriveReceipt: 'boolean',
                 thumbnail: 'string',
                 receiptTraceId: 'string',
+                hotelReservationStartDate: 'string',
+                hotelReservationEndDate: 'string',
                 pageCount: 'number',
             });
         case 'taxRate':
@@ -1408,6 +1431,7 @@ function validateTransactionViolationDraftProperty(key: keyof TransactionViolati
                 isSupplierViolation: 'boolean',
                 startDate: 'string',
                 endDate: 'string',
+                nights: 'number',
             });
         case 'showInReview':
             return validateBoolean(value);
@@ -1625,6 +1649,7 @@ const DebugUtils = {
     validateDate,
     validateConstantEnum,
     validateArray,
+    validateStringRecord,
     validateObject,
     validateString,
     validateReportDraftProperty,

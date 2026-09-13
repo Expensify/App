@@ -42,6 +42,7 @@ function SearchRejectReasonPage({route}: SearchRejectReasonPageProps) {
     const {getCurrencyDecimals} = useCurrencyListActions();
 
     const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const {accountID: currentUserAccountID, login: currentUserLogin} = useCurrentUserPersonalDetails();
     const delegateAccountID = useDelegateAccountID();
     // When coming from the report view, selectedTransactions is empty, build it from selectedTransactionIDs
@@ -76,6 +77,7 @@ function SearchRejectReasonPage({route}: SearchRejectReasonPageProps) {
                 delegateAccountID,
                 getCurrencyDecimals,
                 allReportsTransactionsAndViolations,
+                rules,
             });
             if (route.name === SCREENS.SEARCH.MONEY_REQUEST_REPORT_REJECT_TRANSACTIONS) {
                 clearSelectedTransactions(true);
@@ -99,6 +101,7 @@ function SearchRejectReasonPage({route}: SearchRejectReasonPageProps) {
             delegateAccountID,
             getCurrencyDecimals,
             allReportsTransactionsAndViolations,
+            rules,
             route.name,
             showDelegateNoAccessModal,
             clearSelectedTransactions,

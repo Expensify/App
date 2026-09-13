@@ -128,7 +128,7 @@ describe('canEditMultipleTransactions', () => {
 
     it('returns false when fewer than two transactions are selected', () => {
         const {transaction1, reports, policies, reportActions} = buildTestData();
-        const result = canEditMultipleTransactions([transaction1], reportActions, reports, policies);
+        const result = canEditMultipleTransactions([transaction1], reportActions, reports, policies, undefined);
 
         expect(result).toBe(false);
     });
@@ -136,7 +136,7 @@ describe('canEditMultipleTransactions', () => {
     it('returns false when any selected transaction has no editable fields', () => {
         const {transaction1, transaction2, reports, policies, reportActions} = buildTestData({disableSecondAction: true});
 
-        const result = canEditMultipleTransactions([transaction1, transaction2], reportActions, reports, policies);
+        const result = canEditMultipleTransactions([transaction1, transaction2], reportActions, reports, policies, undefined);
 
         expect(result).toBe(false);
     });
@@ -152,7 +152,7 @@ describe('canEditMultipleTransactions', () => {
 
         reportAction2.originalMessage = {...reportAction2.originalMessage, type: actionType};
 
-        const result = canEditMultipleTransactions([transaction1, transaction2], reportActions, reports, policies);
+        const result = canEditMultipleTransactions([transaction1, transaction2], reportActions, reports, policies, undefined);
 
         expect(result).toBe(false);
     });
@@ -166,7 +166,7 @@ describe('canEditMultipleTransactions', () => {
             IOUDetails: undefined,
         };
 
-        const result = canEditMultipleTransactions([transaction1, transaction2], reportActions, reports, policies);
+        const result = canEditMultipleTransactions([transaction1, transaction2], reportActions, reports, policies, undefined);
 
         expect(result).toBe(false);
     });
@@ -179,7 +179,7 @@ describe('canEditMultipleTransactions', () => {
             deleted: '2024-01-01',
         };
 
-        const result = canEditMultipleTransactions([transaction1, transaction2], reportActions, reports, policies);
+        const result = canEditMultipleTransactions([transaction1, transaction2], reportActions, reports, policies, undefined);
 
         expect(result).toBe(false);
     });
@@ -189,7 +189,7 @@ describe('canEditMultipleTransactions', () => {
 
         report2.statusNum = CONST.REPORT.STATUS_NUM.REIMBURSED;
 
-        const result = canEditMultipleTransactions([transaction1, transaction2], reportActions, reports, policies);
+        const result = canEditMultipleTransactions([transaction1, transaction2], reportActions, reports, policies, undefined);
 
         expect(result).toBe(false);
     });
@@ -197,7 +197,7 @@ describe('canEditMultipleTransactions', () => {
     it('returns false when selected entities are reports', () => {
         const {transaction1, transaction2, reports, policies, reportActions} = buildTestData();
 
-        const result = canEditMultipleTransactions([transaction1, transaction2], reportActions, reports, policies, true);
+        const result = canEditMultipleTransactions([transaction1, transaction2], reportActions, reports, policies, undefined, true);
 
         expect(result).toBe(false);
     });
@@ -205,7 +205,7 @@ describe('canEditMultipleTransactions', () => {
     it('returns true when all selected transactions have an editable field', () => {
         const {transaction1, transaction2, reports, policies, reportActions} = buildTestData();
 
-        const result = canEditMultipleTransactions([transaction1, transaction2], reportActions, reports, policies);
+        const result = canEditMultipleTransactions([transaction1, transaction2], reportActions, reports, policies, undefined);
 
         expect(result).toBe(true);
     });
@@ -216,7 +216,7 @@ describe('canEditMultipleTransactions', () => {
         const unreportedTransaction1: Transaction = {...transaction1, reportID: CONST.REPORT.UNREPORTED_REPORT_ID};
         const unreportedTransaction2: Transaction = {...transaction2, reportID: CONST.REPORT.UNREPORTED_REPORT_ID};
 
-        const result = canEditMultipleTransactions([unreportedTransaction1, unreportedTransaction2], reportActions, reports, policies);
+        const result = canEditMultipleTransactions([unreportedTransaction1, unreportedTransaction2], reportActions, reports, policies, undefined);
 
         expect(result).toBe(true);
     });
@@ -226,7 +226,7 @@ describe('canEditMultipleTransactions', () => {
 
         const unreportedTransaction2: Transaction = {...transaction2, reportID: CONST.REPORT.UNREPORTED_REPORT_ID};
 
-        const result = canEditMultipleTransactions([transaction1, unreportedTransaction2], reportActions, reports, policies);
+        const result = canEditMultipleTransactions([transaction1, unreportedTransaction2], reportActions, reports, policies, undefined);
 
         expect(result).toBe(true);
     });
@@ -236,7 +236,7 @@ describe('canEditMultipleTransactions', () => {
 
         const splitTransaction: Transaction = {...transaction2, comment: {source: CONST.IOU.TYPE.SPLIT}};
 
-        const result = canEditMultipleTransactions([transaction1, splitTransaction], reportActions, reports, policies);
+        const result = canEditMultipleTransactions([transaction1, splitTransaction], reportActions, reports, policies, undefined);
         expect(result).toBe(true);
     });
 
@@ -247,11 +247,11 @@ describe('canEditMultipleTransactions', () => {
         const splitTransaction: Transaction = {...transaction2, comment: {source: CONST.IOU.TYPE.SPLIT}};
 
         // Unreported first, split second
-        const result = canEditMultipleTransactions([unreportedTransaction, splitTransaction], reportActions, reports, policies);
+        const result = canEditMultipleTransactions([unreportedTransaction, splitTransaction], reportActions, reports, policies, undefined);
         expect(result).toBe(true);
 
         // Split first, unreported second
-        const resultReversed = canEditMultipleTransactions([splitTransaction, unreportedTransaction], reportActions, reports, policies);
+        const resultReversed = canEditMultipleTransactions([splitTransaction, unreportedTransaction], reportActions, reports, policies, undefined);
         expect(resultReversed).toBe(true);
     });
 
@@ -262,7 +262,7 @@ describe('canEditMultipleTransactions', () => {
         report2.stateNum = CONST.REPORT.STATE_NUM.APPROVED;
         report2.statusNum = CONST.REPORT.STATUS_NUM.APPROVED;
 
-        const result = canEditMultipleTransactions([unreportedTransaction, transaction2], reportActions, reports, policies);
+        const result = canEditMultipleTransactions([unreportedTransaction, transaction2], reportActions, reports, policies, undefined);
         expect(result).toBe(false);
     });
 });
