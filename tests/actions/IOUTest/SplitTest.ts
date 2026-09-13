@@ -3006,6 +3006,318 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         expect(snapshotDataAfter[originalTransactionSnapshotKey]).toBeTruthy();
     });
 
+    it('does not revert the remaining split when its report is Approved but only present in the search snapshot, not in Onyx', async () => {
+        // Given an expense report that is Approved, but - as can happen when this flow is opened from
+        // Search/Spend - the report record itself never made it into the Onyx REPORT collection, only into
+        // the loaded search snapshot.
+        const approvedReport: Report = {
+            ...createRandomReport(1, undefined),
+            type: CONST.REPORT.TYPE.EXPENSE,
+            stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+            statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+        };
+        const originalTransactionID = 'search-only-report-original';
+        const approvedChildTransactionID = 'search-only-report-approved-child';
+
+        const originalTransaction: Transaction = {
+            transactionID: originalTransactionID,
+            amount: -5000,
+            currency: 'USD',
+            merchant: 'Test Merchant',
+            comment: {comment: 'Original expense'},
+            created: DateUtils.getDBTime(),
+            // Hidden while split into children, same as `updateSplitTransactions` leaves it after creation
+            reportID: CONST.REPORT.SPLIT_REPORT_ID,
+        };
+        const approvedChildTransaction: Transaction = {
+            transactionID: approvedChildTransactionID,
+            amount: -5000,
+            currency: 'USD',
+            merchant: 'Test Merchant',
+            comment: {originalTransactionID, source: CONST.IOU.TYPE.SPLIT},
+            created: DateUtils.getDBTime(),
+            reportID: approvedReport.reportID,
+        };
+
+        // Note: `approvedReport` is intentionally never merged into ONYXKEYS.COLLECTION.REPORT.
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`, originalTransaction);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${approvedChildTransactionID}`, approvedChildTransaction);
+
+        // And a search snapshot that has already loaded the Approved report.
+        const reportSnapshotKey = `${ONYXKEYS.COLLECTION.REPORT}${approvedReport.reportID}` as const;
+        const snapshotKey = `${ONYXKEYS.COLLECTION.SNAPSHOT}${unapprovedCashHash}` as const;
+        const snapshotData: SearchResults['data'] = {};
+        snapshotData[reportSnapshotKey] = approvedReport;
+        await Onyx.merge(snapshotKey, {
+            data: snapshotData,
+            search: {type: CONST.SEARCH.DATA_TYPES.EXPENSE, isLoading: false},
+        });
+        await waitForBatchedUpdates();
+
+        let allTransactions: OnyxCollection<Transaction>;
+        let allReports: OnyxCollection<Report>;
+        let allReportNameValuePairs: OnyxCollection<ReportNameValuePairs>;
+        let allReportActions: OnyxCollection<ReportActions>;
+        let allSnapshots: OnyxCollection<SearchResults>;
+        await getOnyxData({key: ONYXKEYS.COLLECTION.TRANSACTION, callback: (value) => (allTransactions = value)});
+        await getOnyxData({key: ONYXKEYS.COLLECTION.REPORT, callback: (value) => (allReports = value)});
+        await getOnyxData({key: ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, callback: (value) => (allReportNameValuePairs = value)});
+        await getOnyxData({key: ONYXKEYS.COLLECTION.REPORT_ACTIONS, callback: (value) => (allReportActions = value)});
+        await getOnyxData({key: ONYXKEYS.COLLECTION.SNAPSHOT, callback: (value) => (allSnapshots = value)});
+
+        // When saving with a single split left (the Approved one) - which would normally look like a
+        // reverse-split (1 split + existing children) - but the Approved status should be picked up from
+        // the search snapshot and block treating it as a reverse split.
+        updateSplitTransactionsFromSplitExpensesFlow({
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
+            getCurrencySymbol: getCurrencySymbolLocal,
+            allTransactionsList: allTransactions,
+            allReportsList: allReports,
+            allReportActionsList: allReportActions,
+            allReportNameValuePairsList: allReportNameValuePairs,
+            allSnapshots,
+            transactionData: {
+                reportID: approvedReport.reportID,
+                originalTransactionID,
+                splitExpenses: [{transactionID: approvedChildTransactionID, amount: 5000, created: DateUtils.getDBTime(), reportID: approvedReport.reportID}],
+                splitExpensesTotal: 5000,
+            },
+            searchContext: {currentSearchHash: unapprovedCashHash},
+            policyCategories: undefined,
+            policy: undefined,
+            policyRecentlyUsedCategories: [],
+            iouReport: approvedReport,
+            firstIOU: undefined,
+            isASAPSubmitBetaEnabled: false,
+            currentUserPersonalDetails,
+            transactionViolations: {},
+            policyRecentlyUsedCurrencies: [],
+            quickAction: undefined,
+            betas: [CONST.BETAS.ALL],
+            allPolicyTags: {},
+            personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
+            transactionReport: approvedReport,
+            expenseReport: approvedReport,
+            isOffline: false,
+            delegateAccountID: undefined,
+            isTrackIntentUser: false,
+            formatPhoneNumber,
+        });
+        await waitForBatchedUpdates();
+
+        // Then the Approved split is not reverted/deleted, and the original transaction is not revived -
+        // both of which would happen if this were wrongly treated as a reverse-split operation.
+        const approvedChildAfter = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${approvedChildTransactionID}`);
+        expect(approvedChildAfter).toBeTruthy();
+        const originalTransactionAfter = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`);
+        expect(originalTransactionAfter?.reportID).toBe(CONST.REPORT.SPLIT_REPORT_ID);
+    });
+
+    it('does not revert the remaining split when its draft reportID is stale but the live transaction moved to an Approved report', async () => {
+        // Given an expense report that is Approved and present in Onyx.
+        const approvedReport: Report = {
+            ...createRandomReport(1, undefined),
+            type: CONST.REPORT.TYPE.EXPENSE,
+            stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+            statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+        };
+        const originalTransactionID = 'stale-draft-report-original';
+        const approvedChildTransactionID = 'stale-draft-report-approved-child';
+        const staleOpenReportID = 'stale-draft-report-open-report-id';
+
+        const originalTransaction: Transaction = {
+            transactionID: originalTransactionID,
+            amount: -5000,
+            currency: 'USD',
+            merchant: 'Test Merchant',
+            comment: {comment: 'Original expense'},
+            created: DateUtils.getDBTime(),
+            // Hidden while split into children, same as `updateSplitTransactions` leaves it after creation
+            reportID: CONST.REPORT.SPLIT_REPORT_ID,
+        };
+        // The transaction has since moved to the Approved report - this is the live source of truth.
+        const approvedChildTransaction: Transaction = {
+            transactionID: approvedChildTransactionID,
+            amount: -5000,
+            currency: 'USD',
+            merchant: 'Test Merchant',
+            comment: {originalTransactionID, source: CONST.IOU.TYPE.SPLIT},
+            created: DateUtils.getDBTime(),
+            reportID: approvedReport.reportID,
+        };
+
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${approvedReport.reportID}`, approvedReport);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`, originalTransaction);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${approvedChildTransactionID}`, approvedChildTransaction);
+        await waitForBatchedUpdates();
+
+        let allTransactions: OnyxCollection<Transaction>;
+        let allReports: OnyxCollection<Report>;
+        let allReportNameValuePairs: OnyxCollection<ReportNameValuePairs>;
+        let allReportActions: OnyxCollection<ReportActions>;
+        await getOnyxData({key: ONYXKEYS.COLLECTION.TRANSACTION, callback: (value) => (allTransactions = value)});
+        await getOnyxData({key: ONYXKEYS.COLLECTION.REPORT, callback: (value) => (allReports = value)});
+        await getOnyxData({key: ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, callback: (value) => (allReportNameValuePairs = value)});
+        await getOnyxData({key: ONYXKEYS.COLLECTION.REPORT_ACTIONS, callback: (value) => (allReportActions = value)});
+
+        // When saving with a single split left (the Approved one) - which would normally look like a
+        // reverse-split (1 split + existing children) - while the draft's own cached `reportID` still points
+        // at a stale, never-submitted report (e.g. because the split moved reports while the editor was open).
+        // The live transaction's Approved report must be used instead of that stale cached field.
+        updateSplitTransactionsFromSplitExpensesFlow({
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
+            getCurrencySymbol: getCurrencySymbolLocal,
+            allTransactionsList: allTransactions,
+            allReportsList: allReports,
+            allReportActionsList: allReportActions,
+            allReportNameValuePairsList: allReportNameValuePairs,
+            allSnapshots: undefined,
+            transactionData: {
+                reportID: approvedReport.reportID,
+                originalTransactionID,
+                splitExpenses: [{transactionID: approvedChildTransactionID, amount: 5000, created: DateUtils.getDBTime(), reportID: staleOpenReportID}],
+                splitExpensesTotal: 5000,
+            },
+            searchContext: {currentSearchHash: unapprovedCashHash},
+            policyCategories: undefined,
+            policy: undefined,
+            policyRecentlyUsedCategories: [],
+            iouReport: approvedReport,
+            firstIOU: undefined,
+            isASAPSubmitBetaEnabled: false,
+            currentUserPersonalDetails,
+            transactionViolations: {},
+            policyRecentlyUsedCurrencies: [],
+            quickAction: undefined,
+            betas: [CONST.BETAS.ALL],
+            allPolicyTags: {},
+            personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
+            transactionReport: approvedReport,
+            expenseReport: approvedReport,
+            isOffline: false,
+            delegateAccountID: undefined,
+            isTrackIntentUser: false,
+            formatPhoneNumber,
+        });
+        await waitForBatchedUpdates();
+
+        // Then the Approved split is not reverted/deleted, and the original transaction is not revived -
+        // both of which would happen if the stale cached `reportID` were used to decide reversal.
+        const approvedChildAfter = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${approvedChildTransactionID}`);
+        expect(approvedChildAfter).toBeTruthy();
+        const originalTransactionAfter = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`);
+        expect(originalTransactionAfter?.reportID).toBe(CONST.REPORT.SPLIT_REPORT_ID);
+    });
+
+    it('does not revert the remaining split when its child transaction is only present in the search snapshot, not in Onyx', async () => {
+        // Given an expense report that is Approved and present in Onyx.
+        const approvedReport: Report = {
+            ...createRandomReport(1, undefined),
+            type: CONST.REPORT.TYPE.EXPENSE,
+            stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+            statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+        };
+        const originalTransactionID = 'snapshot-only-transaction-original';
+        const approvedChildTransactionID = 'snapshot-only-transaction-approved-child';
+        const staleOpenReportID = 'snapshot-only-transaction-open-report-id';
+
+        const originalTransaction: Transaction = {
+            transactionID: originalTransactionID,
+            amount: -5000,
+            currency: 'USD',
+            merchant: 'Test Merchant',
+            comment: {comment: 'Original expense'},
+            created: DateUtils.getDBTime(),
+            // Hidden while split into children, same as `updateSplitTransactions` leaves it after creation
+            reportID: CONST.REPORT.SPLIT_REPORT_ID,
+        };
+        // Note: the child transaction is intentionally never merged into Onyx - only into the search snapshot,
+        // as can happen when this flow is opened from Search/Spend before the transaction has synced locally.
+        const approvedChildTransaction: Transaction = {
+            transactionID: approvedChildTransactionID,
+            amount: -5000,
+            currency: 'USD',
+            merchant: 'Test Merchant',
+            comment: {originalTransactionID, source: CONST.IOU.TYPE.SPLIT},
+            created: DateUtils.getDBTime(),
+            reportID: approvedReport.reportID,
+        };
+
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${approvedReport.reportID}`, approvedReport);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`, originalTransaction);
+
+        // And a search snapshot that has already loaded the Approved child transaction.
+        const transactionSnapshotKey = `${ONYXKEYS.COLLECTION.TRANSACTION}${approvedChildTransactionID}` as const;
+        const snapshotKey = `${ONYXKEYS.COLLECTION.SNAPSHOT}${unapprovedCashHash}` as const;
+        const snapshotData: SearchResults['data'] = {};
+        snapshotData[transactionSnapshotKey] = approvedChildTransaction;
+        await Onyx.merge(snapshotKey, {
+            data: snapshotData,
+            search: {type: CONST.SEARCH.DATA_TYPES.EXPENSE, isLoading: false},
+        });
+        await waitForBatchedUpdates();
+
+        let allTransactions: OnyxCollection<Transaction>;
+        let allReports: OnyxCollection<Report>;
+        let allReportNameValuePairs: OnyxCollection<ReportNameValuePairs>;
+        let allReportActions: OnyxCollection<ReportActions>;
+        let allSnapshots: OnyxCollection<SearchResults>;
+        await getOnyxData({key: ONYXKEYS.COLLECTION.TRANSACTION, callback: (value) => (allTransactions = value)});
+        await getOnyxData({key: ONYXKEYS.COLLECTION.REPORT, callback: (value) => (allReports = value)});
+        await getOnyxData({key: ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, callback: (value) => (allReportNameValuePairs = value)});
+        await getOnyxData({key: ONYXKEYS.COLLECTION.REPORT_ACTIONS, callback: (value) => (allReportActions = value)});
+        await getOnyxData({key: ONYXKEYS.COLLECTION.SNAPSHOT, callback: (value) => (allSnapshots = value)});
+
+        // When saving with a single split left (the Approved one) - which would normally look like a
+        // reverse-split (1 split + existing children) - while the draft's own cached `reportID` still points
+        // at a stale, never-submitted report, and the child transaction itself is only known via the search
+        // snapshot (not yet in Onyx). The snapshot transaction's live reportID must still be used.
+        updateSplitTransactionsFromSplitExpensesFlow({
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
+            getCurrencySymbol: getCurrencySymbolLocal,
+            allTransactionsList: allTransactions,
+            allReportsList: allReports,
+            allReportActionsList: allReportActions,
+            allReportNameValuePairsList: allReportNameValuePairs,
+            allSnapshots,
+            transactionData: {
+                reportID: approvedReport.reportID,
+                originalTransactionID,
+                splitExpenses: [{transactionID: approvedChildTransactionID, amount: 5000, created: DateUtils.getDBTime(), reportID: staleOpenReportID}],
+                splitExpensesTotal: 5000,
+            },
+            searchContext: {currentSearchHash: unapprovedCashHash},
+            policyCategories: undefined,
+            policy: undefined,
+            policyRecentlyUsedCategories: [],
+            iouReport: approvedReport,
+            firstIOU: undefined,
+            isASAPSubmitBetaEnabled: false,
+            currentUserPersonalDetails,
+            transactionViolations: {},
+            policyRecentlyUsedCurrencies: [],
+            quickAction: undefined,
+            betas: [CONST.BETAS.ALL],
+            allPolicyTags: {},
+            personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
+            transactionReport: approvedReport,
+            expenseReport: approvedReport,
+            isOffline: false,
+            delegateAccountID: undefined,
+            isTrackIntentUser: false,
+            formatPhoneNumber,
+        });
+        await waitForBatchedUpdates();
+
+        // Then the Approved split is not reverted/deleted, and the original transaction is not revived -
+        // both of which would happen if the stale cached `reportID` were used because the snapshot-only
+        // transaction was skipped.
+        const approvedChildAfter = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${approvedChildTransactionID}`);
+        expect(approvedChildAfter).toBeTruthy();
+        const originalTransactionAfter = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`);
+        expect(originalTransactionAfter?.reportID).toBe(CONST.REPORT.SPLIT_REPORT_ID);
+    });
+
     it('should show the reverted transaction in search snapshots (not stale children) when reverting a pure selfDM split', async () => {
         // Given a selfDM report with an unreported expense that was split into two selfDM children
         const selfDMReport = createSelfDM(2, RORY_ACCOUNT_ID);
@@ -8385,6 +8697,177 @@ describe('updateSplitExpenseAmountField', () => {
         expect(splitExpenses?.[0].amount).toBe(20);
     });
 
+    it('does not apply a direct amount edit to a split that is frozen', async () => {
+        const originalTransactionID = '123-frozen';
+        const currentTransactionID = '789-frozen';
+        const draftTransaction: Transaction = {
+            transactionID: '234-frozen',
+            amount: 100,
+            currency: 'USD',
+            merchant: 'Test Merchant',
+            comment: {
+                comment: 'Test comment',
+                originalTransactionID,
+                splitExpenses: [
+                    {
+                        transactionID: currentTransactionID,
+                        amount: 50,
+                        description: 'Test comment',
+                        category: 'Food',
+                        tags: ['lunch'],
+                        created: DateUtils.getDBTime(),
+                    },
+                ],
+                attendees: [],
+                type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+            },
+            category: 'Food',
+            tag: 'lunch',
+            created: DateUtils.getDBTime(),
+            reportID: '456',
+        };
+
+        updateSplitExpenseAmountField(draftTransaction, currentTransactionID, 20, undefined, false, undefined, getCurrencySymbolLocal, getCurrencyDecimalsLocal, undefined, {
+            frozenSplitTransactionIDs: new Set([currentTransactionID]),
+        });
+        await waitForBatchedUpdates();
+
+        // Then no draft is written at all - the edit to the frozen split is rejected outright.
+        const updatedDraftTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${originalTransactionID}`);
+        expect(updatedDraftTransaction).toBeFalsy();
+    });
+
+    it('restores a frozen split from its live modifiedAmount, not its stale amount, when a sibling split is edited', async () => {
+        const originalTransactionID = '123-frozen-modified';
+        const frozenTransactionID = '789-frozen-modified';
+        const editedTransactionID = '999-frozen-modified';
+
+        // The frozen split's own transaction was edited elsewhere (e.g. from the report view) after it froze -
+        // `modifiedAmount` is the live, authoritative amount; `amount` is stale.
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${frozenTransactionID}`, {
+            transactionID: frozenTransactionID,
+            amount: 5000,
+            modifiedAmount: 6000,
+            currency: 'USD',
+            reportID: '456',
+        });
+        await waitForBatchedUpdates();
+
+        const draftTransaction: Transaction = {
+            transactionID: '234-frozen-modified',
+            amount: 100,
+            currency: 'USD',
+            merchant: 'Test Merchant',
+            comment: {
+                comment: 'Test comment',
+                originalTransactionID,
+                splitExpenses: [
+                    {
+                        transactionID: frozenTransactionID,
+                        amount: 5000,
+                        description: 'Test comment',
+                        category: 'Food',
+                        tags: ['lunch'],
+                        created: DateUtils.getDBTime(),
+                    },
+                    {
+                        transactionID: editedTransactionID,
+                        amount: 3000,
+                        description: 'Test comment 2',
+                        category: 'Food',
+                        tags: ['dinner'],
+                        created: DateUtils.getDBTime(),
+                    },
+                ],
+                attendees: [],
+                type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+            },
+            category: 'Food',
+            tag: 'lunch',
+            created: DateUtils.getDBTime(),
+            reportID: '456',
+        };
+
+        // When the sibling (non-frozen) split's amount is edited, triggering redistribution.
+        updateSplitExpenseAmountField(draftTransaction, editedTransactionID, 4000, undefined, false, undefined, getCurrencySymbolLocal, getCurrencyDecimalsLocal, undefined, {
+            frozenSplitTransactionIDs: new Set([frozenTransactionID]),
+        });
+        await waitForBatchedUpdates();
+
+        // Then the frozen split is restored to its live `modifiedAmount`, not the stale `amount`.
+        const updatedDraftTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${originalTransactionID}`);
+        const frozenSplitAfter = updatedDraftTransaction?.comment?.splitExpenses?.find((item) => item.transactionID === frozenTransactionID);
+        expect(frozenSplitAfter?.amount).toBe(6000);
+    });
+
+    it('restores a frozen split on an expense report with the correct (positive) sign, not the report-internal negative one', async () => {
+        const originalTransactionID = '123-frozen-signed';
+        const frozenTransactionID = '789-frozen-signed';
+        const editedTransactionID = '999-frozen-signed';
+
+        const expenseReport: Report = {
+            ...createRandomReport(1, undefined),
+            type: CONST.REPORT.TYPE.EXPENSE,
+        };
+
+        // Expense reports store the transaction amount with the opposite sign of what SplitExpense uses.
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${frozenTransactionID}`, {
+            transactionID: frozenTransactionID,
+            amount: -6000,
+            currency: 'USD',
+            reportID: expenseReport.reportID,
+        });
+        await waitForBatchedUpdates();
+
+        const draftTransaction: Transaction = {
+            transactionID: '234-frozen-signed',
+            amount: 100,
+            currency: 'USD',
+            merchant: 'Test Merchant',
+            comment: {
+                comment: 'Test comment',
+                originalTransactionID,
+                splitExpenses: [
+                    {
+                        transactionID: frozenTransactionID,
+                        amount: 5000,
+                        description: 'Test comment',
+                        category: 'Food',
+                        tags: ['lunch'],
+                        created: DateUtils.getDBTime(),
+                    },
+                    {
+                        transactionID: editedTransactionID,
+                        amount: 3000,
+                        description: 'Test comment 2',
+                        category: 'Food',
+                        tags: ['dinner'],
+                        created: DateUtils.getDBTime(),
+                    },
+                ],
+                attendees: [],
+                type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+            },
+            category: 'Food',
+            tag: 'lunch',
+            created: DateUtils.getDBTime(),
+            reportID: expenseReport.reportID,
+        };
+
+        // When the sibling (non-frozen) split's amount is edited, triggering redistribution.
+        updateSplitExpenseAmountField(draftTransaction, editedTransactionID, 4000, undefined, false, undefined, getCurrencySymbolLocal, getCurrencyDecimalsLocal, undefined, {
+            frozenSplitTransactionIDs: new Set([frozenTransactionID]),
+        });
+        await waitForBatchedUpdates();
+
+        // Then the frozen split is restored to the positive SplitExpense convention (6000), not the
+        // expense-report-internal negative one (-6000) that would sneak a wrong-signed value into Save.
+        const updatedDraftTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${originalTransactionID}`);
+        const frozenSplitAfter = updatedDraftTransaction?.comment?.splitExpenses?.find((item) => item.transactionID === frozenTransactionID);
+        expect(frozenSplitAfter?.amount).toBe(6000);
+    });
+
     it('should update distance and merchant for distance transactions when amount changes', async () => {
         const customUnitRateID = 'rate-update';
         const customUnitID = 'distance-unit';
@@ -9319,6 +9802,97 @@ describe('updateSplitExpenseField', () => {
         });
         expect(updatedSplit?.odometerStart).toBe(1000);
         expect(updatedSplit?.odometerEnd).toBe(1100);
+    });
+
+    it('does not apply a field edit to a split that is frozen', async () => {
+        const originalTransactionID = 'orig-update-frozen';
+        const splitExpenseTransactionID = 'split-update-frozen';
+
+        const originalTransaction: Transaction = {
+            transactionID: originalTransactionID,
+            amount: -20000,
+            currency: 'USD',
+            merchant: 'Original Merchant',
+            comment: {
+                comment: 'Original comment',
+                type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+            },
+            category: 'Food',
+            created: DateUtils.getDBTime(),
+            reportID: '456',
+        };
+
+        await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`, originalTransaction);
+        await waitForBatchedUpdates();
+
+        const originalTransactionDraft: Transaction = {
+            transactionID: 'draft-orig-frozen',
+            amount: 20000,
+            currency: 'USD',
+            merchant: 'Draft Merchant',
+            comment: {
+                comment: 'Draft comment',
+                originalTransactionID,
+                splitExpenses: [
+                    {
+                        transactionID: splitExpenseTransactionID,
+                        amount: 10000,
+                        description: 'Original description',
+                        category: 'Food',
+                        tags: ['tag1'],
+                        created: '2024-01-01',
+                    },
+                ],
+                attendees: [],
+                type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+            },
+            created: DateUtils.getDBTime(),
+            reportID: '456',
+        };
+
+        await Onyx.set(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${originalTransactionID}`, originalTransactionDraft);
+        await waitForBatchedUpdates();
+
+        const splitExpenseDraftTransaction: Transaction = {
+            transactionID: 'draft-split-frozen',
+            amount: 15000,
+            currency: 'USD',
+            merchant: 'Updated Merchant',
+            comment: {
+                comment: 'Updated description',
+                type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+                originalTransactionID,
+            },
+            category: 'Car',
+            tag: 'tag2',
+            created: DateUtils.getDBTime(),
+            reportID: '456',
+        };
+
+        // When saving the per-split edit page for a split that has since become frozen.
+        updateSplitExpenseField(
+            splitExpenseDraftTransaction,
+            originalTransactionDraft,
+            splitExpenseTransactionID,
+            originalTransaction,
+            undefined,
+            false,
+            undefined,
+            getCurrencySymbolLocal,
+            undefined,
+            {
+                frozenSplitTransactionIDs: new Set([splitExpenseTransactionID]),
+            },
+        );
+        await waitForBatchedUpdates();
+
+        // Then the split is left exactly as it was - the dirty edit never lands in the shared draft.
+        const updatedDraft = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${originalTransactionID}`);
+        const updatedSplit = updatedDraft?.comment?.splitExpenses?.find((s) => s.transactionID === splitExpenseTransactionID);
+        expect(updatedSplit?.amount).toBe(10000);
+        expect(updatedSplit?.description).toBe('Original description');
+        expect(updatedSplit?.category).toBe('Food');
+        expect(updatedSplit?.tags).toEqual(['tag1']);
     });
 
     it('should recalculate amount for distance transactions when distance changes', async () => {
