@@ -1,138 +1,65 @@
 {
-    "_comment": "Canonical source of truth for SSL certificate pins (Iteration 1 - NewDot). Regenerate with scripts/generateCertificatePins.sh. Cloudflare-fronted expensify.com hosts (Groups A & B: www/secure/staging/staging-secure/new/staging.new) pin the SPKI of the ROOT of every CA Cloudflare may use for them - Let's Encrypt (ISRG Root X1/X2), Google Trust Services (GTS Root R1-R4) and SSL.com (TLS ECC/RSA Root CA 2022) - plus each CA's live issuing intermediate, so the app survives leaf rotation, intermediate rotation, and a switch between those CAs without an emergency release. Other hosts pin the leaf SPKI (primary) and its issuing intermediate CA SPKI (durable backup). Hashes are base64-encoded SHA-256 of the Subject Public Key Info. Native code (Android network_security_config_enforce.xml, Android CertificatePinning.kt, Android NitroFetch Cronet via patches/react-native-nitro-fetch+1.5.4.patch, iOS CertificatePinning.swift) and the Mobile-Expensify HybridApp files MUST be kept in sync with this file.",
-    "_lastGenerated": "2026-08-03",
+    "_comment": "Canonical source of truth for SSL certificate pins. Each domain pins ONLY the ROOT CA SPKI hashes of every CA that can issue its certificate. Roots are the only durable pin target: leaves are re-keyed on every renewal and every CA in play issues from a rotating pool of intermediates - both have already broken leaf/intermediate pins in production (2026-07-07 Let's Encrypt -> GTS edge rotation, 2026-07 Amazon M01 -> M04 intermediate rotation). Hashes are base64-encoded SHA-256 of the Subject Public Key Info, derived from the root certificates that scripts/generateCertificatePins.sh downloads and verifies against the SHA-256 fingerprints committed in its ROOT_MANIFEST (a TLS server never sends its root, so pins cannot be read off a live handshake). Regenerate with scripts/generateCertificatePins.sh; use --verify to confirm live chains anchor at a pinned root. Cloudflare-fronted hosts pin the roots of every CA Cloudflare can issue from - Let's Encrypt, Google Trust Services, SSL.com, and Sectigo (its backup-certificate CA, deployed automatically on a revocation or key compromise); GTS Root R2 is not pinned because Mozilla removed it from its root store in 2026. Native code (Android network_security_config_enforce.xml, CertificatePinning.kt, react-native-nitro-fetch Cronet patch, iOS CertificatePinning.swift, and the Mobile-Expensify HybridApp equivalents) MUST be kept in sync with this file; tests/unit/generateCertificatePinsTest.ts checks that the script output, this file and the native files agree.",
+    "_lastGenerated": "2026-09-11",
     "enforcePinning": false,
-    "_cloudflareExpensifyNote": "Groups A & B share this pin set. Let's Encrypt is the live CA for www/secure/staging (reverted from Google Trust Services after the unannounced 2026-07-07 rotation). Google Trust Services and SSL.com are pinned as backups so a future Cloudflare CA change does not require an emergency release. Root pins survive intermediate rotation (an intermediate rotation is what broke us on 2026-07-07).",
-    "_cloudflareExpensifyHashes": [
-        "C5+lpZ7tcVwmwQIMcRtPbsQtWLABXhQzejna0wHFr8M=",
-        "diGVwiVYbubAI3RW4hB9xU8e/CH2GnkuvVFZE8zmgzI=",
-        "brzvtCELCIZUo4sD/qPX0ccRtPsd3DY6RfmxpOU9oB4=",
-        "hxqRlPTu1bMS/0DITB1SSu0vd4u/8l8TjPgfaAp63Gc=",
-        "Vfd95BwDeSQo+NUYxVEEIlvkOlWY2SalKK1lPhzOx78=",
-        "QXnt2YHvdHR3tJYmQIr0Paosp6t/nggsEGD4QJZ3Q0g=",
-        "mEflZT5enoR1FuXLgYYGqnVEoZvmf9c2bVBpiOjYQ0c=",
-        "kIdp6NNEd8wsugYyyIYFsi1ylMCED3hZbSR8ZFsa/A4=",
-        "G/ANXI8TwJTdF+AFBM8IiIUPEv0Gf6H5LA/b9guG4yE=",
-        "K89VOmb1cJAN3TK6bf4ezAbJGC1mLcG2Dh97dnwr3VQ="
-    ],
-    "_cloudflareExpensifyHashNotes": {
-        "C5+lpZ7tcVwmwQIMcRtPbsQtWLABXhQzejna0wHFr8M=": "ISRG Root X1 (Let's Encrypt root, RSA 4096)",
-        "diGVwiVYbubAI3RW4hB9xU8e/CH2GnkuvVFZE8zmgzI=": "ISRG Root X2 (Let's Encrypt root, ECDSA P-384)",
-        "brzvtCELCIZUo4sD/qPX0ccRtPsd3DY6RfmxpOU9oB4=": "Let's Encrypt YE1 (live ECDSA issuing intermediate)",
-        "hxqRlPTu1bMS/0DITB1SSu0vd4u/8l8TjPgfaAp63Gc=": "GTS Root R1 (Google Trust Services root, RSA 4096)",
-        "Vfd95BwDeSQo+NUYxVEEIlvkOlWY2SalKK1lPhzOx78=": "GTS Root R2 (Google Trust Services root, RSA 4096)",
-        "QXnt2YHvdHR3tJYmQIr0Paosp6t/nggsEGD4QJZ3Q0g=": "GTS Root R3 (Google Trust Services root, ECDSA P-384)",
-        "mEflZT5enoR1FuXLgYYGqnVEoZvmf9c2bVBpiOjYQ0c=": "GTS Root R4 (Google Trust Services root, ECDSA P-384)",
-        "kIdp6NNEd8wsugYyyIYFsi1ylMCED3hZbSR8ZFsa/A4=": "Google Trust Services WE1 (live ECDSA issuing intermediate)",
-        "G/ANXI8TwJTdF+AFBM8IiIUPEv0Gf6H5LA/b9guG4yE=": "SSL.com TLS ECC Root CA 2022 (ECDSA P-384)",
-        "K89VOmb1cJAN3TK6bf4ezAbJGC1mLcG2Dh97dnwr3VQ=": "SSL.com TLS RSA Root CA 2022 (RSA 4096)"
+    "_roots": {
+        "C5+lpZ7tcVwmwQIMcRtPbsQtWLABXhQzejna0wHFr8M=": "ISRG Root X1 (Let's Encrypt)",
+        "diGVwiVYbubAI3RW4hB9xU8e/CH2GnkuvVFZE8zmgzI=": "ISRG Root X2 (Let's Encrypt)",
+        "hxqRlPTu1bMS/0DITB1SSu0vd4u/8l8TjPgfaAp63Gc=": "GTS Root R1 (Google Trust Services)",
+        "QXnt2YHvdHR3tJYmQIr0Paosp6t/nggsEGD4QJZ3Q0g=": "GTS Root R3 (Google Trust Services)",
+        "mEflZT5enoR1FuXLgYYGqnVEoZvmf9c2bVBpiOjYQ0c=": "GTS Root R4 (Google Trust Services)",
+        "G/ANXI8TwJTdF+AFBM8IiIUPEv0Gf6H5LA/b9guG4yE=": "SSL.com TLS ECC Root CA 2022",
+        "K89VOmb1cJAN3TK6bf4ezAbJGC1mLcG2Dh97dnwr3VQ=": "SSL.com TLS RSA Root CA 2022",
+        "x4QzPSC810K5/cMjb05Qm4k3Bw5zBn4lTdO/nEW/Td4=": "USERTrust RSA Certification Authority (Sectigo)",
+        "ICGRfpgmOUXIWcQ/HXPLQTkFPEFPoDyjvH7ohhQpjzs=": "USERTrust ECC Certification Authority (Sectigo)",
+        "Douxi77vs4G+Ib/BogbTFymEYq0QSFXwSgVCaZcI09Q=": "Sectigo Public Server Authentication Root R46",
+        "sLVjNUaFYfW7n6EtgBeEpjOlcnBdNPMrZDRF36iwBdE=": "Sectigo Public Server Authentication Root E46",
+        "++MBgDH5WGvL9Bcn5Be30cRcL0f5O+NyoXuWtQdX1aI=": "Amazon Root CA 1",
+        "f0KW/FtqTjs108NpYj42SrGvOB2PpxIVM8nWxjPqJGE=": "Amazon Root CA 2",
+        "NqvDJlas/GRcYbcWE8S/IceH9cq77kg0jVhZeAPXq8k=": "Amazon Root CA 3",
+        "9+ze1cZgR9KO1kZrVDxA4HQ6voHRCSVNz4RdTCx4U8U=": "Amazon Root CA 4",
+        "KwccWaCgrnaw6tsrrSO61FgLacNgG2MMLq8GE6+oP5I=": "Starfield Services Root Certificate Authority - G2"
     },
     "domains": {
         "www.expensify.com": {
-            "hashes": [
-                "C5+lpZ7tcVwmwQIMcRtPbsQtWLABXhQzejna0wHFr8M=",
-                "diGVwiVYbubAI3RW4hB9xU8e/CH2GnkuvVFZE8zmgzI=",
-                "brzvtCELCIZUo4sD/qPX0ccRtPsd3DY6RfmxpOU9oB4=",
-                "hxqRlPTu1bMS/0DITB1SSu0vd4u/8l8TjPgfaAp63Gc=",
-                "Vfd95BwDeSQo+NUYxVEEIlvkOlWY2SalKK1lPhzOx78=",
-                "QXnt2YHvdHR3tJYmQIr0Paosp6t/nggsEGD4QJZ3Q0g=",
-                "mEflZT5enoR1FuXLgYYGqnVEoZvmf9c2bVBpiOjYQ0c=",
-                "kIdp6NNEd8wsugYyyIYFsi1ylMCED3hZbSR8ZFsa/A4=",
-                "G/ANXI8TwJTdF+AFBM8IiIUPEv0Gf6H5LA/b9guG4yE=",
-                "K89VOmb1cJAN3TK6bf4ezAbJGC1mLcG2Dh97dnwr3VQ="
-            ],
-            "notes": "Cloudflare-fronted (Group A). Live CA: Let's Encrypt. Multi-CA root+intermediate pinning - see _cloudflareExpensifyNote."
+            "hashes": ["C5+lpZ7tcVwmwQIMcRtPbsQtWLABXhQzejna0wHFr8M=", "diGVwiVYbubAI3RW4hB9xU8e/CH2GnkuvVFZE8zmgzI=", "hxqRlPTu1bMS/0DITB1SSu0vd4u/8l8TjPgfaAp63Gc=", "QXnt2YHvdHR3tJYmQIr0Paosp6t/nggsEGD4QJZ3Q0g=", "mEflZT5enoR1FuXLgYYGqnVEoZvmf9c2bVBpiOjYQ0c=", "G/ANXI8TwJTdF+AFBM8IiIUPEv0Gf6H5LA/b9guG4yE=", "K89VOmb1cJAN3TK6bf4ezAbJGC1mLcG2Dh97dnwr3VQ=", "x4QzPSC810K5/cMjb05Qm4k3Bw5zBn4lTdO/nEW/Td4=", "ICGRfpgmOUXIWcQ/HXPLQTkFPEFPoDyjvH7ohhQpjzs=", "Douxi77vs4G+Ib/BogbTFymEYq0QSFXwSgVCaZcI09Q=", "sLVjNUaFYfW7n6EtgBeEpjOlcnBdNPMrZDRF36iwBdE="],
+            "notes": "Cloudflare edge - roots of Let's Encrypt, Google Trust Services, SSL.com and Sectigo (Cloudflare backup certificates)"
         },
         "secure.expensify.com": {
-            "hashes": [
-                "C5+lpZ7tcVwmwQIMcRtPbsQtWLABXhQzejna0wHFr8M=",
-                "diGVwiVYbubAI3RW4hB9xU8e/CH2GnkuvVFZE8zmgzI=",
-                "brzvtCELCIZUo4sD/qPX0ccRtPsd3DY6RfmxpOU9oB4=",
-                "hxqRlPTu1bMS/0DITB1SSu0vd4u/8l8TjPgfaAp63Gc=",
-                "Vfd95BwDeSQo+NUYxVEEIlvkOlWY2SalKK1lPhzOx78=",
-                "QXnt2YHvdHR3tJYmQIr0Paosp6t/nggsEGD4QJZ3Q0g=",
-                "mEflZT5enoR1FuXLgYYGqnVEoZvmf9c2bVBpiOjYQ0c=",
-                "kIdp6NNEd8wsugYyyIYFsi1ylMCED3hZbSR8ZFsa/A4=",
-                "G/ANXI8TwJTdF+AFBM8IiIUPEv0Gf6H5LA/b9guG4yE=",
-                "K89VOmb1cJAN3TK6bf4ezAbJGC1mLcG2Dh97dnwr3VQ="
-            ],
-            "notes": "Cloudflare-fronted (Group A). Live CA: Let's Encrypt. Multi-CA root+intermediate pinning - see _cloudflareExpensifyNote."
-        },
-        "new.expensify.com": {
-            "hashes": [
-                "C5+lpZ7tcVwmwQIMcRtPbsQtWLABXhQzejna0wHFr8M=",
-                "diGVwiVYbubAI3RW4hB9xU8e/CH2GnkuvVFZE8zmgzI=",
-                "brzvtCELCIZUo4sD/qPX0ccRtPsd3DY6RfmxpOU9oB4=",
-                "hxqRlPTu1bMS/0DITB1SSu0vd4u/8l8TjPgfaAp63Gc=",
-                "Vfd95BwDeSQo+NUYxVEEIlvkOlWY2SalKK1lPhzOx78=",
-                "QXnt2YHvdHR3tJYmQIr0Paosp6t/nggsEGD4QJZ3Q0g=",
-                "mEflZT5enoR1FuXLgYYGqnVEoZvmf9c2bVBpiOjYQ0c=",
-                "kIdp6NNEd8wsugYyyIYFsi1ylMCED3hZbSR8ZFsa/A4=",
-                "G/ANXI8TwJTdF+AFBM8IiIUPEv0Gf6H5LA/b9guG4yE=",
-                "K89VOmb1cJAN3TK6bf4ezAbJGC1mLcG2Dh97dnwr3VQ="
-            ],
-            "notes": "Cloudflare-fronted (Group B). Live CA: Google Trust Services. Multi-CA root+intermediate pinning - see _cloudflareExpensifyNote."
-        },
-        "integrations.expensify.com": {
-            "hashes": ["7D0dEgdEKEMYRTgVwvnhJv19B4apk0QM/GPnRAKRGUs=", "AlSQhgtJirc8ahLyekmtX+Iw+v46yPYRLJt9Cq1GlB0="],
-            "notes": "leaf CN=integrations.expensify.com + Let's Encrypt R13 intermediate"
-        },
-        "travel.expensify.com": {
-            "hashes": ["Qb3qmTdRt/xHEN5PVtn+YhKoGqF/lhRX88cSFuSCJqM=", "kIdp6NNEd8wsugYyyIYFsi1ylMCED3hZbSR8ZFsa/A4="],
-            "notes": "leaf + Google Trust Services WE1 intermediate"
-        },
-        "d2k5nsl2zxldvw.cloudfront.net": {
-            "hashes": ["P9HBoLji8YncXSnb0AnAm72fJO/vpmxZrsl4fvUBkxc=", "DxH4tt40L+eduF6szpY6TONlxhZhBd+pJ9wbHlQ2fuw="],
-            "notes": "leaf *.cloudfront.net + Amazon RSA 2048 M01 intermediate"
+            "hashes": ["C5+lpZ7tcVwmwQIMcRtPbsQtWLABXhQzejna0wHFr8M=", "diGVwiVYbubAI3RW4hB9xU8e/CH2GnkuvVFZE8zmgzI=", "hxqRlPTu1bMS/0DITB1SSu0vd4u/8l8TjPgfaAp63Gc=", "QXnt2YHvdHR3tJYmQIr0Paosp6t/nggsEGD4QJZ3Q0g=", "mEflZT5enoR1FuXLgYYGqnVEoZvmf9c2bVBpiOjYQ0c=", "G/ANXI8TwJTdF+AFBM8IiIUPEv0Gf6H5LA/b9guG4yE=", "K89VOmb1cJAN3TK6bf4ezAbJGC1mLcG2Dh97dnwr3VQ=", "x4QzPSC810K5/cMjb05Qm4k3Bw5zBn4lTdO/nEW/Td4=", "ICGRfpgmOUXIWcQ/HXPLQTkFPEFPoDyjvH7ohhQpjzs=", "Douxi77vs4G+Ib/BogbTFymEYq0QSFXwSgVCaZcI09Q=", "sLVjNUaFYfW7n6EtgBeEpjOlcnBdNPMrZDRF36iwBdE="],
+            "notes": "Cloudflare edge - roots of Let's Encrypt, Google Trust Services, SSL.com and Sectigo (Cloudflare backup certificates)"
         },
         "staging.expensify.com": {
-            "hashes": [
-                "C5+lpZ7tcVwmwQIMcRtPbsQtWLABXhQzejna0wHFr8M=",
-                "diGVwiVYbubAI3RW4hB9xU8e/CH2GnkuvVFZE8zmgzI=",
-                "brzvtCELCIZUo4sD/qPX0ccRtPsd3DY6RfmxpOU9oB4=",
-                "hxqRlPTu1bMS/0DITB1SSu0vd4u/8l8TjPgfaAp63Gc=",
-                "Vfd95BwDeSQo+NUYxVEEIlvkOlWY2SalKK1lPhzOx78=",
-                "QXnt2YHvdHR3tJYmQIr0Paosp6t/nggsEGD4QJZ3Q0g=",
-                "mEflZT5enoR1FuXLgYYGqnVEoZvmf9c2bVBpiOjYQ0c=",
-                "kIdp6NNEd8wsugYyyIYFsi1ylMCED3hZbSR8ZFsa/A4=",
-                "G/ANXI8TwJTdF+AFBM8IiIUPEv0Gf6H5LA/b9guG4yE=",
-                "K89VOmb1cJAN3TK6bf4ezAbJGC1mLcG2Dh97dnwr3VQ="
-            ],
-            "notes": "Cloudflare-fronted (Group A). Live CA: Let's Encrypt. Multi-CA root+intermediate pinning - see _cloudflareExpensifyNote."
+            "hashes": ["C5+lpZ7tcVwmwQIMcRtPbsQtWLABXhQzejna0wHFr8M=", "diGVwiVYbubAI3RW4hB9xU8e/CH2GnkuvVFZE8zmgzI=", "hxqRlPTu1bMS/0DITB1SSu0vd4u/8l8TjPgfaAp63Gc=", "QXnt2YHvdHR3tJYmQIr0Paosp6t/nggsEGD4QJZ3Q0g=", "mEflZT5enoR1FuXLgYYGqnVEoZvmf9c2bVBpiOjYQ0c=", "G/ANXI8TwJTdF+AFBM8IiIUPEv0Gf6H5LA/b9guG4yE=", "K89VOmb1cJAN3TK6bf4ezAbJGC1mLcG2Dh97dnwr3VQ=", "x4QzPSC810K5/cMjb05Qm4k3Bw5zBn4lTdO/nEW/Td4=", "ICGRfpgmOUXIWcQ/HXPLQTkFPEFPoDyjvH7ohhQpjzs=", "Douxi77vs4G+Ib/BogbTFymEYq0QSFXwSgVCaZcI09Q=", "sLVjNUaFYfW7n6EtgBeEpjOlcnBdNPMrZDRF36iwBdE="],
+            "notes": "Cloudflare edge - roots of Let's Encrypt, Google Trust Services, SSL.com and Sectigo (Cloudflare backup certificates)"
         },
         "staging-secure.expensify.com": {
-            "hashes": [
-                "C5+lpZ7tcVwmwQIMcRtPbsQtWLABXhQzejna0wHFr8M=",
-                "diGVwiVYbubAI3RW4hB9xU8e/CH2GnkuvVFZE8zmgzI=",
-                "brzvtCELCIZUo4sD/qPX0ccRtPsd3DY6RfmxpOU9oB4=",
-                "hxqRlPTu1bMS/0DITB1SSu0vd4u/8l8TjPgfaAp63Gc=",
-                "Vfd95BwDeSQo+NUYxVEEIlvkOlWY2SalKK1lPhzOx78=",
-                "QXnt2YHvdHR3tJYmQIr0Paosp6t/nggsEGD4QJZ3Q0g=",
-                "mEflZT5enoR1FuXLgYYGqnVEoZvmf9c2bVBpiOjYQ0c=",
-                "kIdp6NNEd8wsugYyyIYFsi1ylMCED3hZbSR8ZFsa/A4=",
-                "G/ANXI8TwJTdF+AFBM8IiIUPEv0Gf6H5LA/b9guG4yE=",
-                "K89VOmb1cJAN3TK6bf4ezAbJGC1mLcG2Dh97dnwr3VQ="
-            ],
-            "notes": "Cloudflare-fronted (Group A). Live CA: Let's Encrypt. Multi-CA root+intermediate pinning - see _cloudflareExpensifyNote."
+            "hashes": ["C5+lpZ7tcVwmwQIMcRtPbsQtWLABXhQzejna0wHFr8M=", "diGVwiVYbubAI3RW4hB9xU8e/CH2GnkuvVFZE8zmgzI=", "hxqRlPTu1bMS/0DITB1SSu0vd4u/8l8TjPgfaAp63Gc=", "QXnt2YHvdHR3tJYmQIr0Paosp6t/nggsEGD4QJZ3Q0g=", "mEflZT5enoR1FuXLgYYGqnVEoZvmf9c2bVBpiOjYQ0c=", "G/ANXI8TwJTdF+AFBM8IiIUPEv0Gf6H5LA/b9guG4yE=", "K89VOmb1cJAN3TK6bf4ezAbJGC1mLcG2Dh97dnwr3VQ=", "x4QzPSC810K5/cMjb05Qm4k3Bw5zBn4lTdO/nEW/Td4=", "ICGRfpgmOUXIWcQ/HXPLQTkFPEFPoDyjvH7ohhQpjzs=", "Douxi77vs4G+Ib/BogbTFymEYq0QSFXwSgVCaZcI09Q=", "sLVjNUaFYfW7n6EtgBeEpjOlcnBdNPMrZDRF36iwBdE="],
+            "notes": "Cloudflare edge - roots of Let's Encrypt, Google Trust Services, SSL.com and Sectigo (Cloudflare backup certificates)"
+        },
+        "new.expensify.com": {
+            "hashes": ["C5+lpZ7tcVwmwQIMcRtPbsQtWLABXhQzejna0wHFr8M=", "diGVwiVYbubAI3RW4hB9xU8e/CH2GnkuvVFZE8zmgzI=", "hxqRlPTu1bMS/0DITB1SSu0vd4u/8l8TjPgfaAp63Gc=", "QXnt2YHvdHR3tJYmQIr0Paosp6t/nggsEGD4QJZ3Q0g=", "mEflZT5enoR1FuXLgYYGqnVEoZvmf9c2bVBpiOjYQ0c=", "G/ANXI8TwJTdF+AFBM8IiIUPEv0Gf6H5LA/b9guG4yE=", "K89VOmb1cJAN3TK6bf4ezAbJGC1mLcG2Dh97dnwr3VQ=", "x4QzPSC810K5/cMjb05Qm4k3Bw5zBn4lTdO/nEW/Td4=", "ICGRfpgmOUXIWcQ/HXPLQTkFPEFPoDyjvH7ohhQpjzs=", "Douxi77vs4G+Ib/BogbTFymEYq0QSFXwSgVCaZcI09Q=", "sLVjNUaFYfW7n6EtgBeEpjOlcnBdNPMrZDRF36iwBdE="],
+            "notes": "Cloudflare edge - roots of Let's Encrypt, Google Trust Services, SSL.com and Sectigo (Cloudflare backup certificates)"
         },
         "staging.new.expensify.com": {
-            "hashes": [
-                "C5+lpZ7tcVwmwQIMcRtPbsQtWLABXhQzejna0wHFr8M=",
-                "diGVwiVYbubAI3RW4hB9xU8e/CH2GnkuvVFZE8zmgzI=",
-                "brzvtCELCIZUo4sD/qPX0ccRtPsd3DY6RfmxpOU9oB4=",
-                "hxqRlPTu1bMS/0DITB1SSu0vd4u/8l8TjPgfaAp63Gc=",
-                "Vfd95BwDeSQo+NUYxVEEIlvkOlWY2SalKK1lPhzOx78=",
-                "QXnt2YHvdHR3tJYmQIr0Paosp6t/nggsEGD4QJZ3Q0g=",
-                "mEflZT5enoR1FuXLgYYGqnVEoZvmf9c2bVBpiOjYQ0c=",
-                "kIdp6NNEd8wsugYyyIYFsi1ylMCED3hZbSR8ZFsa/A4=",
-                "G/ANXI8TwJTdF+AFBM8IiIUPEv0Gf6H5LA/b9guG4yE=",
-                "K89VOmb1cJAN3TK6bf4ezAbJGC1mLcG2Dh97dnwr3VQ="
-            ],
-            "notes": "Cloudflare-fronted (Group B). Live CA: Google Trust Services. Multi-CA root+intermediate pinning - see _cloudflareExpensifyNote."
+            "hashes": ["C5+lpZ7tcVwmwQIMcRtPbsQtWLABXhQzejna0wHFr8M=", "diGVwiVYbubAI3RW4hB9xU8e/CH2GnkuvVFZE8zmgzI=", "hxqRlPTu1bMS/0DITB1SSu0vd4u/8l8TjPgfaAp63Gc=", "QXnt2YHvdHR3tJYmQIr0Paosp6t/nggsEGD4QJZ3Q0g=", "mEflZT5enoR1FuXLgYYGqnVEoZvmf9c2bVBpiOjYQ0c=", "G/ANXI8TwJTdF+AFBM8IiIUPEv0Gf6H5LA/b9guG4yE=", "K89VOmb1cJAN3TK6bf4ezAbJGC1mLcG2Dh97dnwr3VQ=", "x4QzPSC810K5/cMjb05Qm4k3Bw5zBn4lTdO/nEW/Td4=", "ICGRfpgmOUXIWcQ/HXPLQTkFPEFPoDyjvH7ohhQpjzs=", "Douxi77vs4G+Ib/BogbTFymEYq0QSFXwSgVCaZcI09Q=", "sLVjNUaFYfW7n6EtgBeEpjOlcnBdNPMrZDRF36iwBdE="],
+            "notes": "Cloudflare edge - roots of Let's Encrypt, Google Trust Services, SSL.com and Sectigo (Cloudflare backup certificates)"
+        },
+        "integrations.expensify.com": {
+            "hashes": ["C5+lpZ7tcVwmwQIMcRtPbsQtWLABXhQzejna0wHFr8M=", "diGVwiVYbubAI3RW4hB9xU8e/CH2GnkuvVFZE8zmgzI=", "hxqRlPTu1bMS/0DITB1SSu0vd4u/8l8TjPgfaAp63Gc=", "QXnt2YHvdHR3tJYmQIr0Paosp6t/nggsEGD4QJZ3Q0g=", "mEflZT5enoR1FuXLgYYGqnVEoZvmf9c2bVBpiOjYQ0c=", "G/ANXI8TwJTdF+AFBM8IiIUPEv0Gf6H5LA/b9guG4yE=", "K89VOmb1cJAN3TK6bf4ezAbJGC1mLcG2Dh97dnwr3VQ=", "x4QzPSC810K5/cMjb05Qm4k3Bw5zBn4lTdO/nEW/Td4=", "ICGRfpgmOUXIWcQ/HXPLQTkFPEFPoDyjvH7ohhQpjzs=", "Douxi77vs4G+Ib/BogbTFymEYq0QSFXwSgVCaZcI09Q=", "sLVjNUaFYfW7n6EtgBeEpjOlcnBdNPMrZDRF36iwBdE="],
+            "notes": "Cloudflare edge - roots of Let's Encrypt, Google Trust Services, SSL.com and Sectigo (Cloudflare backup certificates)"
+        },
+        "travel.expensify.com": {
+            "hashes": ["C5+lpZ7tcVwmwQIMcRtPbsQtWLABXhQzejna0wHFr8M=", "diGVwiVYbubAI3RW4hB9xU8e/CH2GnkuvVFZE8zmgzI=", "hxqRlPTu1bMS/0DITB1SSu0vd4u/8l8TjPgfaAp63Gc=", "QXnt2YHvdHR3tJYmQIr0Paosp6t/nggsEGD4QJZ3Q0g=", "mEflZT5enoR1FuXLgYYGqnVEoZvmf9c2bVBpiOjYQ0c=", "G/ANXI8TwJTdF+AFBM8IiIUPEv0Gf6H5LA/b9guG4yE=", "K89VOmb1cJAN3TK6bf4ezAbJGC1mLcG2Dh97dnwr3VQ=", "x4QzPSC810K5/cMjb05Qm4k3Bw5zBn4lTdO/nEW/Td4=", "ICGRfpgmOUXIWcQ/HXPLQTkFPEFPoDyjvH7ohhQpjzs=", "Douxi77vs4G+Ib/BogbTFymEYq0QSFXwSgVCaZcI09Q=", "sLVjNUaFYfW7n6EtgBeEpjOlcnBdNPMrZDRF36iwBdE="],
+            "notes": "Cloudflare edge - roots of Let's Encrypt, Google Trust Services, SSL.com and Sectigo (Cloudflare backup certificates)"
         },
         "staging.travel.expensify.com": {
-            "hashes": ["Qb3qmTdRt/xHEN5PVtn+YhKoGqF/lhRX88cSFuSCJqM=", "kIdp6NNEd8wsugYyyIYFsi1ylMCED3hZbSR8ZFsa/A4="],
-            "notes": "leaf CN=staging.travel.expensify.com + Google Trust Services WE1 intermediate"
+            "hashes": ["C5+lpZ7tcVwmwQIMcRtPbsQtWLABXhQzejna0wHFr8M=", "diGVwiVYbubAI3RW4hB9xU8e/CH2GnkuvVFZE8zmgzI=", "hxqRlPTu1bMS/0DITB1SSu0vd4u/8l8TjPgfaAp63Gc=", "QXnt2YHvdHR3tJYmQIr0Paosp6t/nggsEGD4QJZ3Q0g=", "mEflZT5enoR1FuXLgYYGqnVEoZvmf9c2bVBpiOjYQ0c=", "G/ANXI8TwJTdF+AFBM8IiIUPEv0Gf6H5LA/b9guG4yE=", "K89VOmb1cJAN3TK6bf4ezAbJGC1mLcG2Dh97dnwr3VQ=", "x4QzPSC810K5/cMjb05Qm4k3Bw5zBn4lTdO/nEW/Td4=", "ICGRfpgmOUXIWcQ/HXPLQTkFPEFPoDyjvH7ohhQpjzs=", "Douxi77vs4G+Ib/BogbTFymEYq0QSFXwSgVCaZcI09Q=", "sLVjNUaFYfW7n6EtgBeEpjOlcnBdNPMrZDRF36iwBdE="],
+            "notes": "Cloudflare edge - roots of Let's Encrypt, Google Trust Services, SSL.com and Sectigo (Cloudflare backup certificates)"
+        },
+        "d2k5nsl2zxldvw.cloudfront.net": {
+            "hashes": ["++MBgDH5WGvL9Bcn5Be30cRcL0f5O+NyoXuWtQdX1aI=", "f0KW/FtqTjs108NpYj42SrGvOB2PpxIVM8nWxjPqJGE=", "NqvDJlas/GRcYbcWE8S/IceH9cq77kg0jVhZeAPXq8k=", "9+ze1cZgR9KO1kZrVDxA4HQ6voHRCSVNz4RdTCx4U8U=", "KwccWaCgrnaw6tsrrSO61FgLacNgG2MMLq8GE6+oP5I="],
+            "notes": "CloudFront - all five Amazon Trust Services roots (the only stable pin targets per AWS docs)"
         }
     }
 }

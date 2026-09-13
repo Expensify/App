@@ -10,20 +10,22 @@
     platform TLS stacks that honor network security config: HttpURLConnection, WebView, and Glide.
     OkHttp traffic (fetch(), react-native-blob-util, etc.) is pinned separately in CertificatePinning.kt.
 
+    Each domain pins ONLY the ROOT CA SPKI hashes of every CA that can issue its certificate. Roots
+    are the only durable pin target: leaves are re-keyed on every renewal and every CA in play issues
+    from a rotating pool of intermediates, both of which have already broken leaf/intermediate pins in
+    production. Do NOT add an `expiration` attribute - an expired pin-set silently disables pinning;
+    rotation is managed through app updates instead.
+
     Keep the hashes here in sync with config/certificatePinning/pins.json and CertificatePinning.kt /
     CertificatePinning.swift (regenerate via scripts/generateCertificatePins.sh).
-
-    Each domain pins the leaf SPKI hash (primary) plus its issuing intermediate CA SPKI hash
-    (durable backup that survives leaf rotation). Do NOT add an `expiration` attribute - an expired
-    pin-set silently disables pinning; rotation is managed through app updates instead.
 -->
 <network-security-config>
-    <!-- Groups A & B: Cloudflare-fronted expensify.com hosts. Cloudflare can rotate the edge cert
+    <!-- Groups A-D: Cloudflare-fronted expensify.com hosts. Cloudflare can rotate the edge cert
          between Let's Encrypt, Google Trust Services and SSL.com without notice (the 2026-07-07
-         Let's Encrypt -> GTS rotation broke us; www has since reverted to Let's Encrypt). To survive
-         leaf rotation, intermediate rotation AND a CA switch without an emergency release, we pin the
-         SPKI of the ROOT of all three CAs plus the live issuing intermediate of each. Regenerate via
-         scripts/generateCertificatePins.sh. -->
+         Let's Encrypt -> GTS rotation broke us), its backup certificates (deployed automatically on
+         a revocation or key compromise) can also come from Sectigo, and each CA issues from a
+         rotating pool of intermediates, so we pin ONLY the ROOT SPKIs of all four CAs. This survives
+         leaf rotation, intermediate rotation AND a CA switch without an emergency release. -->
     <domain-config>
         <domain includeSubdomains="false">www.expensify.com</domain>
         <domain includeSubdomains="false">secure.expensify.com</domain>
@@ -31,48 +33,40 @@
         <domain includeSubdomains="false">staging-secure.expensify.com</domain>
         <domain includeSubdomains="false">new.expensify.com</domain>
         <domain includeSubdomains="false">staging.new.expensify.com</domain>
-        <pin-set>
-            <!-- Let's Encrypt (live CA for these hosts) -->
-            <pin digest="SHA-256">C5+lpZ7tcVwmwQIMcRtPbsQtWLABXhQzejna0wHFr8M=</pin> <!-- ISRG Root X1 -->
-            <pin digest="SHA-256">diGVwiVYbubAI3RW4hB9xU8e/CH2GnkuvVFZE8zmgzI=</pin> <!-- ISRG Root X2 -->
-            <pin digest="SHA-256">brzvtCELCIZUo4sD/qPX0ccRtPsd3DY6RfmxpOU9oB4=</pin> <!-- Let's Encrypt YE1 intermediate -->
-            <!-- Google Trust Services (backup) -->
-            <pin digest="SHA-256">hxqRlPTu1bMS/0DITB1SSu0vd4u/8l8TjPgfaAp63Gc=</pin> <!-- GTS Root R1 -->
-            <pin digest="SHA-256">Vfd95BwDeSQo+NUYxVEEIlvkOlWY2SalKK1lPhzOx78=</pin> <!-- GTS Root R2 -->
-            <pin digest="SHA-256">QXnt2YHvdHR3tJYmQIr0Paosp6t/nggsEGD4QJZ3Q0g=</pin> <!-- GTS Root R3 -->
-            <pin digest="SHA-256">mEflZT5enoR1FuXLgYYGqnVEoZvmf9c2bVBpiOjYQ0c=</pin> <!-- GTS Root R4 -->
-            <pin digest="SHA-256">kIdp6NNEd8wsugYyyIYFsi1ylMCED3hZbSR8ZFsa/A4=</pin> <!-- Google Trust Services WE1 intermediate -->
-            <!-- SSL.com (backup) -->
-            <pin digest="SHA-256">G/ANXI8TwJTdF+AFBM8IiIUPEv0Gf6H5LA/b9guG4yE=</pin> <!-- SSL.com TLS ECC Root CA 2022 -->
-            <pin digest="SHA-256">K89VOmb1cJAN3TK6bf4ezAbJGC1mLcG2Dh97dnwr3VQ=</pin> <!-- SSL.com TLS RSA Root CA 2022 -->
-        </pin-set>
-    </domain-config>
-
-    <!-- Group C: integrations leaf + Let's Encrypt R13 intermediate -->
-    <domain-config>
         <domain includeSubdomains="false">integrations.expensify.com</domain>
-        <pin-set>
-            <pin digest="SHA-256">7D0dEgdEKEMYRTgVwvnhJv19B4apk0QM/GPnRAKRGUs=</pin>
-            <pin digest="SHA-256">AlSQhgtJirc8ahLyekmtX+Iw+v46yPYRLJt9Cq1GlB0=</pin>
-        </pin-set>
-    </domain-config>
-
-    <!-- Group D: travel leaf + Google Trust Services WE1 intermediate -->
-    <domain-config>
         <domain includeSubdomains="false">travel.expensify.com</domain>
         <domain includeSubdomains="false">staging.travel.expensify.com</domain>
         <pin-set>
-            <pin digest="SHA-256">Qb3qmTdRt/xHEN5PVtn+YhKoGqF/lhRX88cSFuSCJqM=</pin>
-            <pin digest="SHA-256">kIdp6NNEd8wsugYyyIYFsi1ylMCED3hZbSR8ZFsa/A4=</pin>
+            <!-- Let's Encrypt -->
+            <pin digest="SHA-256">C5+lpZ7tcVwmwQIMcRtPbsQtWLABXhQzejna0wHFr8M=</pin> <!-- ISRG Root X1 -->
+            <pin digest="SHA-256">diGVwiVYbubAI3RW4hB9xU8e/CH2GnkuvVFZE8zmgzI=</pin> <!-- ISRG Root X2 -->
+            <!-- Google Trust Services (GTS Root R2 is not pinned: Mozilla removed it from its root store in 2026) -->
+            <pin digest="SHA-256">hxqRlPTu1bMS/0DITB1SSu0vd4u/8l8TjPgfaAp63Gc=</pin> <!-- GTS Root R1 -->
+            <pin digest="SHA-256">QXnt2YHvdHR3tJYmQIr0Paosp6t/nggsEGD4QJZ3Q0g=</pin> <!-- GTS Root R3 -->
+            <pin digest="SHA-256">mEflZT5enoR1FuXLgYYGqnVEoZvmf9c2bVBpiOjYQ0c=</pin> <!-- GTS Root R4 -->
+            <!-- SSL.com -->
+            <pin digest="SHA-256">G/ANXI8TwJTdF+AFBM8IiIUPEv0Gf6H5LA/b9guG4yE=</pin> <!-- SSL.com TLS ECC Root CA 2022 -->
+            <pin digest="SHA-256">K89VOmb1cJAN3TK6bf4ezAbJGC1mLcG2Dh97dnwr3VQ=</pin> <!-- SSL.com TLS RSA Root CA 2022 -->
+            <!-- Sectigo (Cloudflare backup certificates) - both of its public TLS hierarchies -->
+            <pin digest="SHA-256">x4QzPSC810K5/cMjb05Qm4k3Bw5zBn4lTdO/nEW/Td4=</pin> <!-- USERTrust RSA Certification Authority -->
+            <pin digest="SHA-256">ICGRfpgmOUXIWcQ/HXPLQTkFPEFPoDyjvH7ohhQpjzs=</pin> <!-- USERTrust ECC Certification Authority -->
+            <pin digest="SHA-256">Douxi77vs4G+Ib/BogbTFymEYq0QSFXwSgVCaZcI09Q=</pin> <!-- Sectigo Public Server Authentication Root R46 -->
+            <pin digest="SHA-256">sLVjNUaFYfW7n6EtgBeEpjOlcnBdNPMrZDRF36iwBdE=</pin> <!-- Sectigo Public Server Authentication Root E46 -->
         </pin-set>
     </domain-config>
 
-    <!-- Group E: CloudFront CDN leaf + Amazon RSA 2048 M01 intermediate -->
+    <!-- Group E: CloudFront CDN. ACM re-keys the leaf on renewal and Amazon issues from a rotating
+         pool of intermediates (RSA 2048 M01-M04, ECDSA M01-M04) - the 2026-07 M01 -> M04 rotation
+         broke the previous leaf + M01 pins. AWS documents the Amazon Trust Services ROOTs as the
+         only stable pin targets, so we pin all five root SPKIs. -->
     <domain-config>
         <domain includeSubdomains="false">d2k5nsl2zxldvw.cloudfront.net</domain>
         <pin-set>
-            <pin digest="SHA-256">P9HBoLji8YncXSnb0AnAm72fJO/vpmxZrsl4fvUBkxc=</pin>
-            <pin digest="SHA-256">DxH4tt40L+eduF6szpY6TONlxhZhBd+pJ9wbHlQ2fuw=</pin>
+            <pin digest="SHA-256">++MBgDH5WGvL9Bcn5Be30cRcL0f5O+NyoXuWtQdX1aI=</pin> <!-- Amazon Root CA 1 -->
+            <pin digest="SHA-256">f0KW/FtqTjs108NpYj42SrGvOB2PpxIVM8nWxjPqJGE=</pin> <!-- Amazon Root CA 2 -->
+            <pin digest="SHA-256">NqvDJlas/GRcYbcWE8S/IceH9cq77kg0jVhZeAPXq8k=</pin> <!-- Amazon Root CA 3 -->
+            <pin digest="SHA-256">9+ze1cZgR9KO1kZrVDxA4HQ6voHRCSVNz4RdTCx4U8U=</pin> <!-- Amazon Root CA 4 -->
+            <pin digest="SHA-256">KwccWaCgrnaw6tsrrSO61FgLacNgG2MMLq8GE6+oP5I=</pin> <!-- Starfield Services Root CA G2 -->
         </pin-set>
     </domain-config>
 </network-security-config>
