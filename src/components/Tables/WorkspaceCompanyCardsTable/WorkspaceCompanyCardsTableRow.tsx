@@ -1,5 +1,5 @@
 import AccountAvatarWithCardFeed from '@components/Avatar/connected/AccountAvatarWithCardFeed';
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import {InlineTextEditCell} from '@components/EditableCell';
 import Icon from '@components/Icon';
 import type {TableData} from '@components/Table';

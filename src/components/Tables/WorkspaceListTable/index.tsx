@@ -127,7 +127,7 @@ export default function WorkspaceListTable({ref, workspaces, headerComponent, on
     const searchBarComponent = (
         <Table.FilterBar
             label={translate('workspace.common.findWorkspace')}
-            shouldShowClearFiltersButton={canSeeFilter}
+            shouldShowResetFiltersButton={canSeeFilter}
         />
     );
     const tableHeaderComponent = composeTableListHeader(headerComponent, searchBarComponent);

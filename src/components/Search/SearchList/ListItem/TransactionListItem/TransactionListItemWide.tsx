@@ -1,11 +1,10 @@
-import {getButtonRole} from '@components/Button/utils';
+import {useEditingCellState} from '@components/EditableCell';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import type {TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
 import {useRowSelection} from '@components/Search/SearchSelectionProvider';
 import type {ListItem} from '@components/SelectionList/types';
 import TransactionItemRow from '@components/TransactionItemRow';
-import {useEditingCellState} from '@components/EditableCell';
 
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -160,7 +159,7 @@ function TransactionListItemWide<TItem extends ListItem>({
                 onPress={handleOnPress}
                 disabled={isDisabled && !isSelected}
                 accessibilityLabel={item.text ?? ''}
-                role={!isDeletedTransaction ? getButtonRole(true) : 'none'}
+                role={!isDeletedTransaction ? CONST.ROLE.BUTTON : 'none'}
                 isNested
                 onMouseDown={handleOnMouseDown}
                 onHoverIn={handleOnHoverIn}

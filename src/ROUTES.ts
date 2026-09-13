@@ -1080,6 +1080,57 @@ const DYNAMIC_ROUTES = {
         path: 'rules/require-fields',
         entryScreens: [SCREENS.WORKSPACE.DYNAMIC_CATEGORY_SETTINGS, SCREENS.SETTINGS_CATEGORIES.DYNAMIC_SETTINGS_CATEGORY_SETTINGS],
     },
+    RULES_MERCHANT_NEW_FROM_EXPENSE: {
+        path: 'merchant-rule/new',
+        entryScreens: [SCREENS.REPORT, SCREENS.RIGHT_MODAL.SEARCH_REPORT, SCREENS.RIGHT_MODAL.EXPENSE_REPORT, SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT],
+        getRoute: (policyID: string) => getUrlWithParams('merchant-rule/new', {policyID}),
+        queryParams: ['policyID'],
+    },
+    RULES_MERCHANT_MERCHANT_TO_MATCH_FROM_EXPENSE: {
+        path: 'rule-merchant-to-match',
+        entryScreens: [SCREENS.WORKSPACE.DYNAMIC_RULES_MERCHANT_NEW],
+    },
+    RULES_MERCHANT_MATCH_TYPE_FROM_EXPENSE: {
+        path: 'rule-match-type',
+        entryScreens: [SCREENS.WORKSPACE.DYNAMIC_RULES_MERCHANT_MERCHANT_TO_MATCH],
+    },
+    RULES_MERCHANT_MERCHANT_FROM_EXPENSE: {
+        path: 'rule-merchant',
+        entryScreens: [SCREENS.WORKSPACE.DYNAMIC_RULES_MERCHANT_NEW],
+    },
+    RULES_MERCHANT_CATEGORY_FROM_EXPENSE: {
+        path: 'rule-category',
+        entryScreens: [SCREENS.WORKSPACE.DYNAMIC_RULES_MERCHANT_NEW],
+    },
+    RULES_MERCHANT_TAG_FROM_EXPENSE: {
+        path: 'rule-tag/:orderWeight',
+        entryScreens: [SCREENS.WORKSPACE.DYNAMIC_RULES_MERCHANT_NEW],
+        getRoute: (orderWeight: number) => `rule-tag/${orderWeight}` as const,
+    },
+    RULES_MERCHANT_TAX_FROM_EXPENSE: {
+        path: 'rule-tax',
+        entryScreens: [SCREENS.WORKSPACE.DYNAMIC_RULES_MERCHANT_NEW],
+    },
+    RULES_MERCHANT_VENDOR_FROM_EXPENSE: {
+        path: 'rule-vendor',
+        entryScreens: [SCREENS.WORKSPACE.DYNAMIC_RULES_MERCHANT_NEW],
+    },
+    RULES_MERCHANT_DESCRIPTION_FROM_EXPENSE: {
+        path: 'rule-description',
+        entryScreens: [SCREENS.WORKSPACE.DYNAMIC_RULES_MERCHANT_NEW],
+    },
+    RULES_MERCHANT_REIMBURSABLE_FROM_EXPENSE: {
+        path: 'rule-reimbursable',
+        entryScreens: [SCREENS.WORKSPACE.DYNAMIC_RULES_MERCHANT_NEW],
+    },
+    RULES_MERCHANT_BILLABLE_FROM_EXPENSE: {
+        path: 'rule-billable',
+        entryScreens: [SCREENS.WORKSPACE.DYNAMIC_RULES_MERCHANT_NEW],
+    },
+    RULES_MERCHANT_PREVIEW_MATCHES_FROM_EXPENSE: {
+        path: 'rule-matches',
+        entryScreens: [SCREENS.WORKSPACE.DYNAMIC_RULES_MERCHANT_NEW],
+    },
     NOTIFICATION_PREFERENCES: {
         // `reportID` is intentionally carried as a distinct path param (`notificationReportID`) rather than
         // `reportID`, so it never collides with a `reportID` inherited from the surrounding report chain's
@@ -2008,8 +2059,8 @@ const ROUTES = {
     },
     SEARCH_SAVE: 'search/save',
     SEARCH_SAVED_SEARCH_RENAME: {
-        route: 'search/saved-search/rename',
-        getRoute: ({name, jsonQuery}: {name: string; jsonQuery: SearchQueryString}) => `search/saved-search/rename?name=${name}&q=${encodeURIComponent(jsonQuery)}` as const,
+        route: 'search/saved-search/rename/:id',
+        getRoute: (id: string) => `search/saved-search/rename/${id}` as const,
     },
     SEARCH_COLUMNS: 'search/columns',
     SEARCH_ADVANCED_FILTERS: 'search/filters',
@@ -2028,6 +2079,11 @@ const ROUTES = {
 
             return getUrlWithBackToParam(baseRoute, backTo);
         },
+    },
+
+    INSIGHTS: {
+        route: 'insights/:dashboardID',
+        getRoute: (dashboardID: ValueOf<typeof CONST.INSIGHTS.DASHBOARD>) => `insights/${dashboardID}` as const,
     },
 
     EXPENSE_REPORT_RHP: {
@@ -2450,6 +2506,10 @@ const ROUTES = {
     SETTINGS_WALLET_CARD_CHANGE_PIN_ATM: {
         route: 'settings/wallet/card/:cardID/change-pin-atm',
         getRoute: (cardID: string) => `settings/wallet/card/${cardID}/change-pin-atm` as const,
+    },
+    SETTINGS_WALLET_CARD_ADD_TO_DIGITAL_WALLET: {
+        route: 'settings/wallet/card/:cardID/add-to-digital-wallet',
+        getRoute: (cardID: string) => `settings/wallet/card/${cardID}/add-to-digital-wallet` as const,
     },
     SETTINGS_WALLET_CARD_ACTIVATE: {
         route: 'settings/wallet/card/:cardID/activate',
@@ -3843,6 +3903,15 @@ const ROUTES = {
     POLICY_COPY_SETTINGS_CONFIRM: {
         route: 'policy/:policyID/copy-settings/confirm',
         getRoute: (policyID: string) => `policy/${policyID}/copy-settings/confirm` as const,
+    },
+    WORKSPACE_MCP: {
+        route: 'workspaces/:policyID/mcp',
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the WORKSPACE_MCP route');
+            }
+            return `workspaces/${policyID}/mcp` as const;
+        },
     },
     WORKSPACE_RECEIPT_PARTNERS: {
         route: 'workspaces/:policyID/receipt-partners',

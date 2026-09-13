@@ -391,6 +391,7 @@ describe('SidebarUtils', () => {
 
                 reportAttributesDerived: undefined,
                 formatPhoneNumber,
+                rules: undefined,
             });
             const optionDataUnpinned = SidebarUtils.getOptionData({
                 dateFnsLocale: undefined,
@@ -417,6 +418,7 @@ describe('SidebarUtils', () => {
 
                 reportAttributesDerived: undefined,
                 formatPhoneNumber,
+                rules: undefined,
             });
 
             expect(optionDataPinned?.isPinned).toBe(true);
@@ -1543,6 +1545,7 @@ describe('SidebarUtils', () => {
                 currentUserLogin: CURRENT_USER_LOGIN,
                 reportAttributesDerived: undefined,
                 formatPhoneNumber,
+                rules: undefined,
             });
 
             // Then the alternate text should be equal to the message of the last action prepended with the last actor display name.
@@ -1613,6 +1616,7 @@ describe('SidebarUtils', () => {
                 currentUserLogin: CURRENT_USER_LOGIN,
                 reportAttributesDerived: undefined,
                 formatPhoneNumber,
+                rules: undefined,
             });
 
             // Then the alternate text should be equal to the message of the last action prepended with the last actor display name.
@@ -1658,6 +1662,7 @@ describe('SidebarUtils', () => {
                 currentUserLogin: CURRENT_USER_LOGIN,
                 reportAttributesDerived: undefined,
                 formatPhoneNumber,
+                rules: undefined,
             });
 
             expect(result?.alternateText).toBe('changed the custom tax name to "VAT" (previously "Sales Tax")');
@@ -1702,6 +1707,7 @@ describe('SidebarUtils', () => {
                 currentUserLogin: CURRENT_USER_LOGIN,
                 reportAttributesDerived: undefined,
                 formatPhoneNumber,
+                rules: undefined,
             });
 
             expect(result?.alternateText).toBe('changed the workspace currency default tax rate to "Reduced Rate" (previously "Standard Rate")');
@@ -1746,6 +1752,7 @@ describe('SidebarUtils', () => {
                 currentUserLogin: CURRENT_USER_LOGIN,
                 reportAttributesDerived: undefined,
                 formatPhoneNumber,
+                rules: undefined,
             });
 
             expect(result?.alternateText).toBe('changed the foreign currency default tax rate to "Foreign Tax (10%)" (previously "Foreign Tax (15%)")');
@@ -1796,6 +1803,7 @@ describe('SidebarUtils', () => {
                 currentUserLogin: CURRENT_USER_LOGIN,
                 reportAttributesDerived: undefined,
                 formatPhoneNumber,
+                rules: undefined,
             });
 
             expect(result?.alternateText).toBe('changed the "Office Supplies" category default tax rate to "Tax Rate 1 (5%)" (previously "Tax Exempt (0%)")');
@@ -1840,6 +1848,7 @@ describe('SidebarUtils', () => {
                 currentUserLogin: CURRENT_USER_LOGIN,
                 reportAttributesDerived: undefined,
                 formatPhoneNumber,
+                rules: undefined,
             });
 
             expect(enabledResult?.alternateText).toBe('enabled the company card purchases requirement');
@@ -1877,6 +1886,7 @@ describe('SidebarUtils', () => {
                 currentUserLogin: CURRENT_USER_LOGIN,
                 reportAttributesDerived: undefined,
                 formatPhoneNumber,
+                rules: undefined,
             });
 
             expect(disabledResult?.alternateText).toBe('disabled the company card purchases requirement');
@@ -1921,6 +1931,7 @@ describe('SidebarUtils', () => {
                 currentUserLogin: CURRENT_USER_LOGIN,
                 reportAttributesDerived: undefined,
                 formatPhoneNumber,
+                rules: undefined,
             });
 
             expect(enabledResult?.alternateText).toBe('enabled the expense categorization requirement');
@@ -1958,6 +1969,7 @@ describe('SidebarUtils', () => {
                 currentUserLogin: CURRENT_USER_LOGIN,
                 reportAttributesDerived: undefined,
                 formatPhoneNumber,
+                rules: undefined,
             });
 
             expect(disabledResult?.alternateText).toBe('disabled the expense categorization requirement');
@@ -2008,6 +2020,7 @@ describe('SidebarUtils', () => {
                 currentUserLogin: CURRENT_USER_LOGIN,
                 reportAttributesDerived: undefined,
                 formatPhoneNumber,
+                rules: undefined,
             });
 
             expect(result?.alternateText).toBe('changed the tax reclaimable portion on the distance rate "Default Rate" to "70%" (previously "50%")');
@@ -2052,6 +2065,7 @@ describe('SidebarUtils', () => {
                 currentUserLogin: CURRENT_USER_LOGIN,
                 reportAttributesDerived: undefined,
                 formatPhoneNumber,
+                rules: undefined,
             });
 
             expect(enabledResult?.alternateText).toBe('enabled the expense tagging requirement');
@@ -2089,6 +2103,7 @@ describe('SidebarUtils', () => {
                 currentUserLogin: CURRENT_USER_LOGIN,
                 reportAttributesDerived: undefined,
                 formatPhoneNumber,
+                rules: undefined,
             });
 
             expect(disabledResult?.alternateText).toBe('disabled the expense tagging requirement');
@@ -2132,6 +2147,7 @@ describe('SidebarUtils', () => {
                 currentUserLogin: CURRENT_USER_LOGIN,
                 reportAttributesDerived: undefined,
                 formatPhoneNumber,
+                rules: undefined,
             });
 
             expect(companyPaysResult?.alternateText).toBe('updated the currency conversion fee setting to "Company pays"');
@@ -2168,6 +2184,7 @@ describe('SidebarUtils', () => {
                 currentUserLogin: CURRENT_USER_LOGIN,
                 reportAttributesDerived: undefined,
                 formatPhoneNumber,
+                rules: undefined,
             });
 
             expect(employeePaysResult?.alternateText).toBe('updated the currency conversion fee setting to "Employee pays"');
@@ -2212,6 +2229,7 @@ describe('SidebarUtils', () => {
                 currentUserAccountID: 0,
                 currentUserLogin: CURRENT_USER_LOGIN,
                 reportAttributesDerived: undefined,
+                rules: undefined,
             });
 
             expect(enabledResult?.alternateText).toBe('enabled submissions');
@@ -2249,6 +2267,7 @@ describe('SidebarUtils', () => {
                 currentUserAccountID: 0,
                 currentUserLogin: CURRENT_USER_LOGIN,
                 reportAttributesDerived: undefined,
+                rules: undefined,
             });
 
             expect(disabledResult?.alternateText).toBe('disabled submissions');
@@ -2293,6 +2312,7 @@ describe('SidebarUtils', () => {
                 currentUserLogin: CURRENT_USER_LOGIN,
                 reportAttributesDerived: undefined,
                 formatPhoneNumber,
+                rules: undefined,
             });
 
             expect(result?.alternateText).toBe('added card feed "Visa Commercial"');
@@ -2337,6 +2357,7 @@ describe('SidebarUtils', () => {
                 currentUserLogin: CURRENT_USER_LOGIN,
                 reportAttributesDerived: undefined,
                 formatPhoneNumber,
+                rules: undefined,
             });
 
             expect(result?.alternateText).toBe('removed card feed "Amex Corporate"');
@@ -2381,6 +2402,7 @@ describe('SidebarUtils', () => {
                 currentUserLogin: CURRENT_USER_LOGIN,
                 reportAttributesDerived: undefined,
                 formatPhoneNumber,
+                rules: undefined,
             });
 
             expect(result?.alternateText).toBe('renamed card feed to "New Feed" (previously "Old Feed")');
@@ -2425,6 +2447,7 @@ describe('SidebarUtils', () => {
                 currentUserLogin: CURRENT_USER_LOGIN,
                 reportAttributesDerived: undefined,
                 formatPhoneNumber,
+                rules: undefined,
             });
 
             expect(result?.alternateText).toBe('assigned user@example.com "US Bank" company card ending in 1234');
@@ -2469,6 +2492,7 @@ describe('SidebarUtils', () => {
                 currentUserLogin: CURRENT_USER_LOGIN,
                 reportAttributesDerived: undefined,
                 formatPhoneNumber,
+                rules: undefined,
             });
 
             expect(result?.alternateText).toBe('unassigned user@example.com "US Bank" company card ending in 5678');
@@ -2513,6 +2537,7 @@ describe('SidebarUtils', () => {
                 currentUserLogin: CURRENT_USER_LOGIN,
                 reportAttributesDerived: undefined,
                 formatPhoneNumber,
+                rules: undefined,
             });
 
             expect(result?.alternateText).toBe('enabled cardholders to delete card transactions for card feed "Visa Commercial"');
@@ -2557,6 +2582,7 @@ describe('SidebarUtils', () => {
                 currentUserLogin: CURRENT_USER_LOGIN,
                 reportAttributesDerived: undefined,
                 formatPhoneNumber,
+                rules: undefined,
             });
 
             expect(result?.alternateText).toBe('changed card feed "Visa Commercial" statement period end day to "15" (previously "20")');
@@ -2629,6 +2655,7 @@ describe('SidebarUtils', () => {
                 currentUserLogin: CURRENT_USER_LOGIN,
                 reportAttributesDerived: undefined,
                 formatPhoneNumber,
+                rules: undefined,
             });
 
             // Then the alternate text should show @Hidden.
@@ -2686,6 +2713,7 @@ describe('SidebarUtils', () => {
                     currentUserAccountID: 0,
                     currentUserLogin: CURRENT_USER_LOGIN,
                     formatPhoneNumber,
+                    rules: undefined,
                 });
 
                 expect(optionData?.alternateText).toBe(`test message`);
@@ -2736,6 +2764,7 @@ describe('SidebarUtils', () => {
 
                     reportAttributesDerived: undefined,
                     formatPhoneNumber,
+                    rules: undefined,
                 });
 
                 expect(optionData?.alternateText).toBe(`test message`);
@@ -2781,6 +2810,7 @@ describe('SidebarUtils', () => {
                     currentUserAccountID: 0,
                     currentUserLogin: CURRENT_USER_LOGIN,
                     formatPhoneNumber,
+                    rules: undefined,
                 });
 
                 expect(optionData?.alternateText).toBe(`test message`);
@@ -2928,6 +2958,7 @@ describe('SidebarUtils', () => {
                     formatPhoneNumber,
 
                     reportAttributesDerived: mockReportAttributesDerived,
+                    rules: undefined,
                 });
 
                 expect(optionData?.alternateText).toBe(formatReportLastMessageText(iouReport.reportName));
@@ -2978,6 +3009,7 @@ describe('SidebarUtils', () => {
                     currentUserAccountID: 0,
                     currentUserLogin: CURRENT_USER_LOGIN,
                     formatPhoneNumber,
+                    rules: undefined,
                 });
 
                 expect(optionData?.alternateText).toBe(`${policy.name} ${CONST.DOT_SEPARATOR} test message`);
@@ -3057,6 +3089,7 @@ describe('SidebarUtils', () => {
                     currentUserAccountID: session.accountID,
                     currentUserLogin: CURRENT_USER_LOGIN,
                     formatPhoneNumber,
+                    rules: undefined,
                 });
 
                 // Then the alternate text should be equal to the message of the last action prepended with the last actor display name.
@@ -3125,6 +3158,7 @@ describe('SidebarUtils', () => {
                     currentUserAccountID: session.accountID,
                     currentUserLogin: CURRENT_USER_LOGIN,
                     formatPhoneNumber,
+                    rules: undefined,
                 });
 
                 expect(result?.alternateText).toBe(`You: moved this report to the Three's Workspace workspace`);
@@ -3184,6 +3218,7 @@ describe('SidebarUtils', () => {
                     currentUserAccountID: session.accountID,
                     currentUserLogin: CURRENT_USER_LOGIN,
                     formatPhoneNumber,
+                    rules: undefined,
                 });
 
                 expect(result?.alternateText).toBe('You: someMessage');
@@ -3285,6 +3320,7 @@ describe('SidebarUtils', () => {
                         },
                     },
                     formatPhoneNumber,
+                    rules: undefined,
                 });
 
                 expect(result?.alternateText).toBe(`You: ${getReportActionMessageText(lastAction)}`);
@@ -3412,6 +3448,7 @@ describe('SidebarUtils', () => {
                     currentUserAccountID: 0,
                     currentUserLogin: CURRENT_USER_LOGIN,
                     formatPhoneNumber,
+                    rules: undefined,
                 });
 
                 expect(result?.alternateText).toContain(`${getReportActionMessageText(lastAction)}`);
@@ -3505,6 +3542,7 @@ describe('SidebarUtils', () => {
                     currentUserAccountID: 0,
                     currentUserLogin: CURRENT_USER_LOGIN,
                     formatPhoneNumber,
+                    rules: undefined,
                 });
 
                 expect(result?.alternateText).toBe(`One: submitted`);
@@ -3610,6 +3648,7 @@ describe('SidebarUtils', () => {
                     currentUserAccountID: managerID,
                     currentUserLogin: CURRENT_USER_LOGIN,
                     formatPhoneNumber,
+                    rules: undefined,
                 });
 
                 const reportPreviewMessage = getReportPreviewReportActionMessage(
@@ -3727,6 +3766,7 @@ describe('SidebarUtils', () => {
                     currentUserAccountID: managerID,
                     currentUserLogin: CURRENT_USER_LOGIN,
                     formatPhoneNumber,
+                    rules: undefined,
                 });
 
                 const reportPreviewMessage = getReportPreviewReportActionMessage(
@@ -3776,6 +3816,7 @@ describe('SidebarUtils', () => {
                     currentUserAccountID: 0,
                     currentUserLogin: CURRENT_USER_LOGIN,
                     formatPhoneNumber,
+                    rules: undefined,
                 });
 
                 // Then isConciergeChat should be true
@@ -3812,6 +3853,7 @@ describe('SidebarUtils', () => {
                     currentUserAccountID: 0,
                     currentUserLogin: CURRENT_USER_LOGIN,
                     formatPhoneNumber,
+                    rules: undefined,
                 });
 
                 // Then isConciergeChat should be false
@@ -3847,6 +3889,7 @@ describe('SidebarUtils', () => {
                     currentUserAccountID: 0,
                     currentUserLogin: CURRENT_USER_LOGIN,
                     formatPhoneNumber,
+                    rules: undefined,
                 });
 
                 // Then isConciergeChat should be false
@@ -3900,6 +3943,7 @@ describe('SidebarUtils', () => {
                 currentUserLogin: CURRENT_USER_LOGIN,
                 reportAttributesDerived: undefined,
                 formatPhoneNumber,
+                rules: undefined,
             });
 
             expect(result?.alternateText).toBe('changed the default spend category for "Airlines" to "Travel" (previously "Insurance")');
@@ -4702,6 +4746,7 @@ describe('SidebarUtils', () => {
                 currentUserLogin: '',
                 reportAttributesDerived: undefined,
                 formatPhoneNumber,
+                rules: undefined,
             });
         }
 
