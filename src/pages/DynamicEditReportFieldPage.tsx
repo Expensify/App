@@ -74,7 +74,8 @@ function DynamicEditReportFieldPage({route}: DynamicEditReportFieldPageProps) {
     }
 
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
-    const isDisabled = isReportFieldDisabledForUser(report, reportField, policy, currentUserAccountID) && reportField?.type !== CONST.REPORT_FIELD_TYPES.FORMULA;
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
+    const isDisabled = isReportFieldDisabledForUser(report, reportField, policy, currentUserAccountID, rules) && reportField?.type !== CONST.REPORT_FIELD_TYPES.FORMULA;
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const session = useSession();
@@ -88,7 +89,7 @@ function DynamicEditReportFieldPage({route}: DynamicEditReportFieldPageProps) {
     const isReportFieldsFeatureEnabled = report?.type === CONST.REPORT.TYPE.INVOICE ? policy?.areInvoiceFieldsEnabled : policy?.areReportFieldsEnabled;
     const reportFieldsEnabled = ((isGroupPolicyExpenseReport(report, policy?.type) || isInvoiceReport(report)) && !!isReportFieldsFeatureEnabled) || isReportFieldTitle;
     const hasOtherViolations =
-        report?.fieldList && Object.entries(report.fieldList).some(([key, field]) => key !== fieldKey && field.value === '' && !isReportFieldDisabled(report, reportField, policy));
+        report?.fieldList && Object.entries(report.fieldList).some(([key, field]) => key !== fieldKey && field.value === '' && !isReportFieldDisabled(report, reportField, policy, rules));
 
     if (!reportFieldsEnabled || !reportField || !policyField || !report || !isReportFieldTargetMatchingReport(report, reportField) || isDisabled) {
         return (
@@ -156,6 +157,7 @@ function DynamicEditReportFieldPage({route}: DynamicEditReportFieldPageProps) {
                     recentlyUsedReportFields,
                     shouldFixViolations: hasOtherViolations ?? false,
                     isTrackIntentUser,
+                    rules,
                 });
             }
             goBack();

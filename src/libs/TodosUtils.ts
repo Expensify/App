@@ -1,6 +1,6 @@
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {BankAccountList, PersonalDetailsList, Policy, Report, ReportActions, ReportMetadata, ReportNameValuePairs, Transaction} from '@src/types/onyx';
+import type {BankAccountList, PersonalDetailsList, Policy, Report, ReportActions, ReportMetadata, ReportNameValuePairs, Rule, Transaction} from '@src/types/onyx';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
@@ -44,6 +44,9 @@ type CreateTodosReportsAndTransactionsParams = {
 
     /** Whether the transaction collection has hydrated - an empty `reportTransactions` doesn't mean zero expenses until this is true */
     areTransactionsLoaded: boolean;
+
+    /** Every approval workflow rule, keyed by rule Onyx key - the submit predicate uses them to resolve rule-based approvers */
+    rules: OnyxCollection<Rule>;
 };
 
 /**
@@ -99,6 +102,9 @@ type TodoBucketContext = {
 
     /** Whether the transaction collection has hydrated - an empty `reportTransactions` doesn't mean zero expenses until this is true */
     areTransactionsLoaded: boolean;
+
+    /** Every approval workflow rule, keyed by rule Onyx key - the submit predicate uses them to resolve rule-based approvers */
+    rules: OnyxCollection<Rule>;
 };
 
 /**
@@ -122,6 +128,7 @@ function reportMatchesTodoBucket(
         currentUserAccountID,
         login,
         areTransactionsLoaded,
+        rules,
     }: TodoBucketContext,
 ): boolean {
     switch (searchKey) {
@@ -137,7 +144,7 @@ function reportMatchesTodoBucket(
             }
 
             // isSubmitAction also allows workflow approvers to submit on the owner's behalf; the to-do only nudges the owner.
-            return isSubmitAction(report, reportTransactions, reportMetadata, ownerLogin, policy, undefined, login, currentUserAccountID) && !allExpensesHeld;
+            return isSubmitAction(report, reportTransactions, reportMetadata, ownerLogin, rules, policy, undefined, login, currentUserAccountID) && !allExpensesHeld;
         case CONST.SEARCH.SEARCH_KEYS.APPROVE:
             return isApproveAction(report, reportTransactions, currentUserAccountID, reportMetadata, policy) && (!allExpensesHeld || currentUserPlacedHold);
         case CONST.SEARCH.SEARCH_KEYS.PAY:
@@ -179,6 +186,7 @@ function createTodosReportsAndTransactions({
     currentUserAccountID,
     login,
     areTransactionsLoaded,
+    rules,
 }: CreateTodosReportsAndTransactionsParams) {
     const reportsToSubmit: Report[] = [];
     const reportsToApprove: Report[] = [];
@@ -214,6 +222,7 @@ function createTodosReportsAndTransactions({
             currentUserAccountID,
             login,
             areTransactionsLoaded,
+            rules,
         };
         if (reportMatchesTodoBucket(CONST.SEARCH.SEARCH_KEYS.SUBMIT, report, context)) {
             reportsToSubmit.push(report);
@@ -250,6 +259,7 @@ function getTodoReportsForSearchKey(
         currentUserAccountID,
         login,
         areTransactionsLoaded,
+        rules,
     }: CreateTodosReportsAndTransactionsParams,
 ) {
     const reports: Report[] = [];
@@ -276,6 +286,7 @@ function getTodoReportsForSearchKey(
             currentUserAccountID,
             login,
             areTransactionsLoaded,
+            rules,
         };
 
         if (reportMatchesTodoBucket(searchKey, report, context)) {
