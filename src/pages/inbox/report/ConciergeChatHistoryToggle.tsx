@@ -5,7 +5,7 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {useConciergeSessionActions} from '@pages/inbox/ConciergeSessionContext';
+import {useConciergeSessionActions, useConciergeSessionState} from '@pages/inbox/ConciergeSessionContext';
 
 import CONST from '@src/CONST';
 
@@ -21,9 +21,6 @@ type ConciergeChatHistoryToggleProps = {
     /** Whether there are messages hidden before the session start */
     hasPreviousMessages: boolean;
 
-    /** Whether the earlier conversation is currently shown */
-    shouldShowFullHistory: boolean;
-
     /** Callback to reveal the earlier conversation */
     onShowPreviousMessages: () => void;
 
@@ -35,22 +32,15 @@ type ConciergeChatHistoryToggleProps = {
  * Expands and collapses the earlier Concierge conversation in the main Concierge DM. It sits directly
  * above the composer, either in the welcome column or in the inverted list's header.
  */
-function ConciergeChatHistoryToggle({reportID, hasPreviousMessages, shouldShowFullHistory, onShowPreviousMessages, containerStyles}: ConciergeChatHistoryToggleProps) {
+function ConciergeChatHistoryToggle({reportID, hasPreviousMessages, onShowPreviousMessages, containerStyles}: ConciergeChatHistoryToggleProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['UpArrow', 'DownArrow']);
-    const {shouldShowWelcome, shouldLabelComposerAsNewQuestion} = useConciergeAskState(reportID);
+    const {isAskConciergeChat} = useConciergeAskState(reportID);
+    const {showFullHistory} = useConciergeSessionState();
     const {setShowFullHistory} = useConciergeSessionActions();
 
-    const hideChatHistory = () => setShowFullHistory(false);
-
-    // Both flags are false once the user asks something, which is when this control would otherwise
-    // land between the latest message and the composer.
-    if (!shouldShowWelcome && !shouldLabelComposerAsNewQuestion) {
-        return null;
-    }
-
-    if (!hasPreviousMessages) {
+    if (!isAskConciergeChat || !hasPreviousMessages) {
         return null;
     }
 
@@ -59,10 +49,10 @@ function ConciergeChatHistoryToggle({reportID, hasPreviousMessages, shouldShowFu
             <View style={[styles.threadDividerLine, styles.ml0, styles.mr0, styles.flexGrow1]} />
             <Button
                 size={CONST.BUTTON_SIZE.SMALL}
-                onPress={shouldShowFullHistory ? hideChatHistory : onShowPreviousMessages}
+                onPress={showFullHistory ? () => setShowFullHistory(false) : onShowPreviousMessages}
             >
-                <Button.Text>{translate(shouldShowFullHistory ? 'common.concierge.hideChatHistory' : 'common.concierge.viewChatHistory')}</Button.Text>
-                <Button.Icon src={shouldShowFullHistory ? expensifyIcons.DownArrow : expensifyIcons.UpArrow} />
+                <Button.Text>{translate(showFullHistory ? 'common.concierge.hideChatHistory' : 'common.concierge.viewChatHistory')}</Button.Text>
+                <Button.Icon src={showFullHistory ? expensifyIcons.DownArrow : expensifyIcons.UpArrow} />
             </Button>
             <View style={[styles.threadDividerLine, styles.ml0, styles.mr0, styles.flexGrow1]} />
         </View>

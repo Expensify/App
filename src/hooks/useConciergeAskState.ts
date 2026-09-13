@@ -14,6 +14,9 @@ import useOnyx from './useOnyx';
 import usePermissions from './usePermissions';
 
 type ConciergeAskState = {
+    /** Whether this is the main Concierge DM with the Ask Concierge design enabled */
+    isAskConciergeChat: boolean;
+
     /** Whether to show the welcome empty state */
     shouldShowWelcome: boolean;
 
@@ -49,6 +52,7 @@ function useConciergeAskState(reportID: string | undefined): ConciergeAskState {
     const isAskConciergeChat = !!reportID && reportID === conciergeReportID && !isInSidePanel && !!sessionStartTime && isBetaEnabled(CONST.BETAS.CONCIERGE_RESPOND_IN_THREAD);
 
     return {
+        isAskConciergeChat,
         shouldShowWelcome: isAskConciergeChat && !showFullHistory && !hasSessionActivity,
         shouldLabelComposerAsNewQuestion: isAskConciergeChat && showFullHistory && !hasSessionActivity,
     };
