@@ -4844,6 +4844,7 @@ describe('getCardConnectionStatusDisplay', () => {
         isCardBroken: false,
         shouldShowRBR: false,
         isCardInactive: false,
+        isExpensifyCard: false,
         isPersonalCard: false,
         isAdminForCardPolicy: false,
         policyID: undefined,
@@ -4899,6 +4900,16 @@ describe('getCardConnectionStatusDisplay', () => {
             shouldUseCompanyCardsLink: false,
             shouldUseReauthMessage: false,
         });
+    });
+
+    it('returns undefined for an inactive Expensify Card so no connection message is shown', () => {
+        expect(getCardConnectionStatusDisplay({...defaultParams, isCardInactive: true, isExpensifyCard: true, isAdminForCardPolicy: true, policyID: 'ABC123'})).toBeUndefined();
+    });
+
+    // A feed or workspace error still shows its own dot on the row, but the card has no bank feed, so a connection
+    // message is never the right copy for it.
+    it('returns undefined for an inactive Expensify Card whose feed reports an error', () => {
+        expect(getCardConnectionStatusDisplay({...defaultParams, isCardInactive: true, isExpensifyCard: true, shouldShowRBR: true, policyID: 'ABC123'})).toBeUndefined();
     });
 
     it('does not show a company-cards link without a policy ID', () => {

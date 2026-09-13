@@ -266,6 +266,7 @@ function PaymentMethodList({
             const hasMissingPersonalDetails = areAddressAndPersonalDetailsMissing(privatePersonalDetails);
             for (const card of assignedCardsSorted) {
                 const isDisabled = card.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+                const isUserExpensifyCard = isExpensifyCard(card);
                 const isUserPersonalCard = isPersonalCard(card);
                 const isCSVCard = card.bank === CONST.COMPANY_CARD.FEED_BANK_NAME.UPLOAD || card.bank.includes(CONST.COMPANY_CARD.FEED_BANK_NAME.CSV);
                 const assignedCardsGrouped = isUserPersonalCard ? personalCardsGrouped : companyCardsGrouped;
@@ -296,7 +297,7 @@ function PaymentMethodList({
                         brickRoadIndicator = CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
                     } else if (card.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.DOMAIN || card.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.INDIVIDUAL) {
                         brickRoadIndicator = CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
-                    } else if (isExpensifyCard(card) && isExpensifyCardPendingAction(card, privatePersonalDetails)) {
+                    } else if (isUserExpensifyCard && isExpensifyCardPendingAction(card, privatePersonalDetails)) {
                         brickRoadIndicator = CONST.BRICK_ROAD_INDICATOR_STATUS.INFO;
                     }
                 }
@@ -313,6 +314,7 @@ function PaymentMethodList({
                     isCardBroken,
                     shouldShowRBR,
                     isCardInactive: isCardInactiveState,
+                    isExpensifyCard: isUserExpensifyCard,
                     isPersonalCard: isUserPersonalCard,
                     isAdminForCardPolicy,
                     doesCardNeedReauthentication: doesCardConnectionNeedReauthentication(card),
@@ -320,7 +322,7 @@ function PaymentMethodList({
                 });
                 const shouldShowCardConnectionMessage = !!cardConnectionStatusDisplay?.messageKey;
                 const shouldShowCardErrorMessages = !shouldShowCardConnectionMessage || !!card.pendingAction;
-                const shouldShowCardLastSync = shouldShowConnectionStatus && !isExpensifyCard(card) && !isCSVCard;
+                const shouldShowCardLastSync = shouldShowConnectionStatus && !isUserExpensifyCard && !isCSVCard;
                 let cardLastSyncText: string | undefined;
                 if (shouldShowCardLastSync) {
                     if (card.lastScrape) {
@@ -365,7 +367,7 @@ function PaymentMethodList({
                     };
                 }
 
-                if (!isExpensifyCard(card)) {
+                if (!isUserExpensifyCard) {
                     const lastFourPAN = lastFourNumbersFromCardName(card.cardName);
                     const plaidUrl = getPlaidInstitutionIconUrl(card.bank);
                     const isCSVImportCard = card.bank === CONST.COMPANY_CARD.FEED_BANK_NAME.UPLOAD;

@@ -136,6 +136,7 @@ type CardConnectionStatusDisplayParams = {
     isCardBroken: boolean;
     shouldShowRBR: boolean;
     isCardInactive: boolean;
+    isExpensifyCard: boolean;
     isPersonalCard: boolean;
     isAdminForCardPolicy: boolean;
     doesCardNeedReauthentication?: boolean;
@@ -1438,12 +1439,20 @@ function getCardConnectionStatusDisplay({
     isCardBroken,
     shouldShowRBR,
     isCardInactive: isCardInactiveStatus,
+    isExpensifyCard: isExpensifyCardStatus,
     isPersonalCard: isPersonalCardStatus,
     isAdminForCardPolicy,
     doesCardNeedReauthentication,
     policyID,
 }: CardConnectionStatusDisplayParams): CardConnectionStatusDisplay | undefined {
     if (!shouldShowConnectionStatus) {
+        return undefined;
+    }
+
+    // An inactive Expensify Card has no connection to fix. It is suspended by the back end rather than disconnected
+    // from a bank feed, and it has no bank feed to break, so no feed or workspace error makes a connection message
+    // right for it. Returning undefined lets the neutral Inactive badge render, and a feed error still shows its dot.
+    if (isExpensifyCardStatus && isCardInactiveStatus) {
         return undefined;
     }
 
