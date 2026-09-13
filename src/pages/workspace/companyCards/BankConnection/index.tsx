@@ -7,6 +7,7 @@ import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 
 import useCardFeeds from '@hooks/useCardFeeds';
+import useCompanyCardConnectionError from '@hooks/useCompanyCardConnectionError';
 import useDuplicateFeedDetection from '@hooks/useDuplicateFeedDetection';
 import useImportPlaidAccounts from '@hooks/useImportPlaidAccounts';
 import useIsBlockedToAddFeed from '@hooks/useIsBlockedToAddFeed';
@@ -25,7 +26,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import WorkspaceCompanyCardsErrorConfirmation from '@pages/workspace/companyCards/WorkspaceCompanyCardsErrorConfirmation';
 
 import {updateSelectedFeed} from '@userActions/Card';
-import {setAddNewCompanyCardStepAndData} from '@userActions/CompanyCards';
+import {clearAddNewCompanyCardErrors, setAddNewCompanyCardStepAndData} from '@userActions/CompanyCards';
 import {getCompanyCardBankConnection} from '@userActions/getCompanyCardBankConnection';
 
 import CONST from '@src/CONST';
@@ -73,7 +74,7 @@ function BankConnection({policyID, feed, title}: BankConnectionProps) {
     const isFeedExpired = feed ? isSelectedFeedExpired(cardFeeds?.[feed]) : false;
     const headerTitleAddCards = translate('workspace.companyCards.addCards');
     const headerTitle = feed ? translate('workspace.companyCards.assignCard') : headerTitleAddCards;
-    const isNewFeedHasError = !!(newFeed && cardFeeds?.[newFeed]?.errors);
+    const {errorMessage, hasError: isNewFeedHasError, hasAddNewCardError, hasNewFeedError} = useCompanyCardConnectionError({policyID, newFeed, isAddingNewCard: !feed});
     const onImportPlaidAccounts = useImportPlaidAccounts(policyID);
     const {isBlockedToAddNewFeeds, isAllFeedsResultLoading} = useIsBlockedToAddFeed(policyID);
     const {checkForDuplicateFeed} = useDuplicateFeedDetection({policyID, isPlaid});
@@ -103,6 +104,7 @@ function BankConnection({policyID, feed, title}: BankConnectionProps) {
             return;
         }
 
+        clearAddNewCompanyCardErrors();
         setAddNewCompanyCardStepAndData({step: CONST.COMPANY_CARDS.STEP.SELECT_BANK});
     };
 
@@ -114,7 +116,7 @@ function BankConnection({policyID, feed, title}: BankConnectionProps) {
     );
 
     useEffect(() => {
-        if ((!url && !isPlaid) || isOffline || isNewFeedHasError || isAllFeedsResultLoading || (isBlockedToAddNewFeeds && !feed)) {
+        if ((!url && !isPlaid) || isOffline || hasNewFeedError || (hasAddNewCardError && !isNewFeedConnected) || isAllFeedsResultLoading || (isBlockedToAddNewFeeds && !feed)) {
             return;
         }
 
@@ -189,7 +191,8 @@ function BankConnection({policyID, feed, title}: BankConnectionProps) {
         onImportPlaidAccounts,
         isFeedConnectionBroken,
         updateBrokenConnection,
-        isNewFeedHasError,
+        hasAddNewCardError,
+        hasNewFeedError,
         checkForDuplicateFeed,
     ]);
 
@@ -199,6 +202,7 @@ function BankConnection({policyID, feed, title}: BankConnectionProps) {
                 <WorkspaceCompanyCardsErrorConfirmation
                     policyID={policyID}
                     newFeed={newFeed}
+                    errorMessage={errorMessage}
                 />
             );
         }

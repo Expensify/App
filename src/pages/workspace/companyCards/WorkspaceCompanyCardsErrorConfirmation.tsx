@@ -13,7 +13,7 @@ import {getCompanyCardFeed, getCompanyFeeds, getDomainOrWorkspaceAccountID} from
 
 import Navigation from '@navigation/Navigation';
 
-import {deleteWorkspaceCompanyCardFeed, setAddNewCompanyCardStepAndData} from '@userActions/CompanyCards';
+import {clearAddNewCompanyCardErrors, deleteWorkspaceCompanyCardFeed, setAddNewCompanyCardStepAndData} from '@userActions/CompanyCards';
 import {enableExpensifyCard} from '@userActions/Policy/Policy';
 
 import CONST from '@src/CONST';
@@ -25,9 +25,10 @@ import React from 'react';
 type WorkspaceCompanyCardsErrorConfirmationProps = {
     policyID?: string;
     newFeed?: CompanyCardFeedWithDomainID;
+    errorMessage?: string;
 };
 
-function WorkspaceCompanyCardsErrorConfirmation({policyID, newFeed}: WorkspaceCompanyCardsErrorConfirmationProps) {
+function WorkspaceCompanyCardsErrorConfirmation({policyID, newFeed, errorMessage}: WorkspaceCompanyCardsErrorConfirmationProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const illustrations = useMemoizedLazyIllustrations(['BrokenCompanyCardBankConnection']);
@@ -53,6 +54,7 @@ function WorkspaceCompanyCardsErrorConfirmation({policyID, newFeed}: WorkspaceCo
     };
 
     const onButtonPress = () => {
+        clearAddNewCompanyCardErrors();
         deleteCompanyCardFeed();
         Navigation.closeRHPFlow();
     };
@@ -61,6 +63,7 @@ function WorkspaceCompanyCardsErrorConfirmation({policyID, newFeed}: WorkspaceCo
         if (!policyID) {
             return;
         }
+        clearAddNewCompanyCardErrors();
         setAddNewCompanyCardStepAndData({
             step: CONST.COMPANY_CARDS.STEP.PLAID_CONNECTION,
             data: {
@@ -89,6 +92,7 @@ function WorkspaceCompanyCardsErrorConfirmation({policyID, newFeed}: WorkspaceCo
             heading={translate('workspace.moreFeatures.companyCards.bankConnectionError')}
             description={
                 <Text style={[styles.textSupporting, styles.textAlignCenter]}>
+                    {!!errorMessage && `${errorMessage} `}
                     {translate('workspace.moreFeatures.companyCards.bankConnectionDescription')}{' '}
                     <TextLink
                         style={[styles.link]}
