@@ -54,6 +54,7 @@ type MockFlashListProps<T> = {
     ListFooterComponent?: React.ComponentType | React.ReactElement | null;
     ListFooterComponentStyle?: React.ComponentProps<typeof View>['style'];
     contentContainerStyle?: React.ComponentProps<typeof View>['style'];
+    childContainerProps?: React.ComponentProps<typeof View>;
     onEndReached?: () => void;
     onChangeStickyIndex?: (current: number, previous: number) => void;
     onLoad?: (info: {elapsedTimeInMs: number}) => void;
@@ -223,39 +224,45 @@ jest.mock('@shopify/flash-list', () => {
             return (
                 <RNView testID="flash-list">
                     {renderComponent(props.ListHeaderComponent)}
-                    {data.length === 0
-                        ? renderedEmptyComponent
-                        : data.map((item, index) => {
-                              const key = props.keyExtractor?.(item, index) ?? String(index);
-                              return (
-                                  <RNView key={key}>
-                                      {props.renderItem?.({
-                                          item,
-                                          index,
-                                          target: 'Cell',
-                                      } as ListRenderItemInfo<unknown>)}
-                                  </RNView>
-                              );
-                          })}
-                    {mockFlashListMeasurementTargetIndexes.map((index) => {
-                        const item = data.at(index);
-                        if (item === undefined) {
-                            return null;
-                        }
+                    {/* Mirrors FlashList's internal item container: a sibling of the ListHeaderComponent/ListFooterComponent
+                    wrappers that holds only the rendered rows, and the node `childContainerProps` is spread onto. */}
+                    <RNView
+                        testID="flash-list-child-container"
+                        {...props.childContainerProps}
+                    >
+                        {data.map((item, index) => {
+                            const key = props.keyExtractor?.(item, index) ?? String(index);
+                            return (
+                                <RNView key={key}>
+                                    {props.renderItem?.({
+                                        item,
+                                        index,
+                                        target: 'Cell',
+                                    } as ListRenderItemInfo<unknown>)}
+                                </RNView>
+                            );
+                        })}
+                        {mockFlashListMeasurementTargetIndexes.map((index) => {
+                            const item = data.at(index);
+                            if (item === undefined) {
+                                return null;
+                            }
 
-                        return (
-                            <RNView
-                                key={`measurement-${index}`}
-                                testID={`flash-list-measurement-${index}`}
-                            >
-                                {props.renderItem?.({
-                                    item,
-                                    index,
-                                    target: 'Measurement',
-                                } as ListRenderItemInfo<unknown>)}
-                            </RNView>
-                        );
-                    })}
+                            return (
+                                <RNView
+                                    key={`measurement-${index}`}
+                                    testID={`flash-list-measurement-${index}`}
+                                >
+                                    {props.renderItem?.({
+                                        item,
+                                        index,
+                                        target: 'Measurement',
+                                    } as ListRenderItemInfo<unknown>)}
+                                </RNView>
+                            );
+                        })}
+                    </RNView>
+                    {data.length === 0 && renderedEmptyComponent}
                     {stickyHeaderItem !== undefined && stickyHeaderIndex !== undefined && (
                         <RNView testID="flash-list-sticky-header">
                             {props.renderItem?.({
@@ -591,6 +598,24 @@ function getHostTableRowsWithin(container: TestInstance): TestInstance[] {
         .filter((row) => typeof row.type === 'string');
 }
 
+/** Every `role="table"` element a screen reader can reach, i.e. excluding FlashList's hidden measurement copies. */
+function getAccessibleHostTables(): TestInstance[] {
+    return screen
+        .UNSAFE_queryAllByProps({role: CONST.ROLE.TABLE})
+        .filter((table) => typeof table.type === 'string' && table.props['aria-hidden'] !== true);
+}
+
+/** The 1-based `aria-colindex` of each cell in a row, in document order. */
+function getHostCellColumnIndexes(row: TestInstance): Array<number | undefined> {
+    return within(row)
+        .UNSAFE_queryAllByProps({role: CONST.ROLE.CELL})
+        .filter((cell) => typeof cell.type === 'string')
+        .map((cell) => {
+            const columnIndex: unknown = cell.props['aria-colindex'];
+            return typeof columnIndex === 'number' ? columnIndex : undefined;
+        });
+}
+
 describe('Table', () => {
     beforeEach(() => {
         jest.clearAllMocks();
@@ -859,7 +884,7 @@ describe('Table', () => {
             });
         });
 
-        it('should keep page-header rows in a persistent physical table ancestor', () => {
+        it('should keep the page header outside a page-header table while the rows stay inside it', () => {
             const props = createDefaultProps();
             const renderItem = ({item, index}: ListRenderItemInfo<TestItem>) => (
                 <Table.Row
@@ -897,13 +922,52 @@ describe('Table', () => {
 
             const table = screen.getByLabelText('Members');
             const rows = getHostTableRows().filter((row) => row.props['aria-hidden'] !== true);
-            const pageControls = screen.getByTestId('table-header-component');
 
-            expect(within(table).getByTestId('table-header-component')).toBe(pageControls);
-            expect(within(table).queryByRole(CONST.ROLE.ROWGROUP)).toBeNull();
+            // The page header renders as FlashList's list header, i.e. a sibling of the item container that carries
+            // role="table". A table whose subtree also held the page title, its buttons and its search input would not
+            // be a valid table in the accessibility tree, and VoiceOver would refuse to enter table mode.
+            expect(screen.getByTestId('table-header-component')).toBeTruthy();
+            expect(within(table).queryByTestId('table-header-component')).toBeNull();
+
+            expect(getAccessibleHostTables()).toEqual([table]);
             expect(getHostTableRowsWithin(table).filter((row) => row.props['aria-hidden'] !== true)).toHaveLength(rows.length);
             expect(table.props['aria-rowcount']).toBe(props.data.length + 1);
             expect(table.props['aria-colcount']).toBe(props.columns.length);
+
+            // The column header occupies row 1, so the data rows that follow it start at row 2.
+            const firstDataRow = rows.at(1);
+            expect(rows.at(0)?.props['aria-rowindex']).toBe(1);
+            expect(firstDataRow?.props['aria-rowindex']).toBe(2);
+            expect(firstDataRow ? getHostCellColumnIndexes(firstDataRow) : []).toEqual([1, 2, 3]);
+        });
+
+        it('should count the selection column in a page-header table', () => {
+            const props = createDefaultProps();
+
+            render(
+                <Table<TestItem, TestColumnKey>
+                    data={props.data}
+                    columns={props.columns}
+                    renderItem={props.renderItem}
+                    keyExtractor={props.keyExtractor}
+                    title="Members"
+                    selectionEnabled
+                    selectedKeys={[]}
+                    onRowSelectionChange={jest.fn()}
+                >
+                    <Table.ListHeader>
+                        <Text testID="table-header-component">Page controls</Text>
+                    </Table.ListHeader>
+                    <Table.Header />
+                    <Table.Body />
+                </Table>,
+            );
+
+            const table = screen.getByLabelText('Members');
+
+            expect(within(table).queryByTestId('table-header-component')).toBeNull();
+            expect(table.props['aria-rowcount']).toBe(props.data.length + 1);
+            expect(table.props['aria-colcount']).toBe(props.columns.length + 1);
         });
 
         it('should expose only data rows when a page-header table has no active column header', () => {
@@ -944,8 +1008,9 @@ describe('Table', () => {
             const table = screen.getByLabelText('Members');
             const rows = getHostTableRows().filter((row) => row.props['aria-hidden'] !== true);
 
-            expect(within(table).getByTestId('table-header-component')).toBeTruthy();
-            expect(within(table).queryByRole(CONST.ROLE.ROWGROUP)).toBeNull();
+            expect(screen.getByTestId('table-header-component')).toBeTruthy();
+            expect(within(table).queryByTestId('table-header-component')).toBeNull();
+            expect(getHostTableRowsWithin(table).filter((row) => row.props['aria-hidden'] !== true)).toHaveLength(rows.length);
             expect(table.props['aria-rowcount']).toBe(props.data.length);
             expect(rows.at(0)?.props['aria-rowindex']).toBe(1);
         });
@@ -1014,6 +1079,122 @@ describe('Table', () => {
             expect(screen.getByTestId('flash-list-sticky-header')).toBeTruthy();
         });
 
+        it('should expose a single accessible table once the sticky header activates', () => {
+            const props = createDefaultProps();
+
+            render(
+                <Table<TestItem, TestColumnKey>
+                    data={props.data}
+                    columns={props.columns}
+                    renderItem={props.renderItem}
+                    keyExtractor={props.keyExtractor}
+                    title="Members"
+                >
+                    <Table.ListHeader>
+                        <Text testID="table-header-component">Page controls</Text>
+                    </Table.ListHeader>
+                    <Table.Header />
+                    <Table.Body />
+                </Table>,
+            );
+
+            expect(getAccessibleHostTables()).toHaveLength(1);
+
+            activateStickyHeadersAfterListLoad();
+            act(() => {
+                mockFlashListProps.at(-1)?.onChangeStickyIndex?.(0, -1);
+            });
+
+            // The sticky clone renders outside the item container, so it must not introduce a second table and the
+            // page header must stay outside the one that remains.
+            const tables = getAccessibleHostTables();
+            expect(tables).toHaveLength(1);
+            expect(screen.getByLabelText('Members')).toBe(tables.at(0));
+            expect(within(screen.getByLabelText('Members')).queryByTestId('table-header-component')).toBeNull();
+        });
+
+        it('should keep the page-header search input outside the table', () => {
+            const props = createDefaultProps();
+
+            render(
+                <Table<TestItem, TestColumnKey>
+                    data={props.data}
+                    columns={props.columns}
+                    renderItem={props.renderItem}
+                    keyExtractor={props.keyExtractor}
+                    isItemInSearch={props.isItemInSearch}
+                    title="Members"
+                >
+                    <Table.ListHeader>
+                        <Table.FilterBar label="Search" />
+                    </Table.ListHeader>
+                    <Table.Header />
+                    <Table.Body />
+                </Table>,
+            );
+
+            const table = screen.getByLabelText('Members');
+
+            expect(screen.getByTestId('search-input')).toBeTruthy();
+            expect(within(table).queryByTestId('search-input')).toBeNull();
+        });
+
+        it('should not expose a table when a page-header search has no results', () => {
+            const props = createDefaultProps();
+
+            render(
+                <Table<TestItem, TestColumnKey>
+                    data={props.data}
+                    columns={props.columns}
+                    renderItem={props.renderItem}
+                    keyExtractor={props.keyExtractor}
+                    isItemInSearch={props.isItemInSearch}
+                    title="Members"
+                >
+                    <Table.ListHeader>
+                        <Table.FilterBar label="Search" />
+                    </Table.ListHeader>
+                    <Table.Header />
+                    <Table.Body />
+                </Table>,
+            );
+
+            expect(getAccessibleHostTables()).toHaveLength(1);
+
+            fireEvent.changeText(screen.getByTestId('search-input'), 'zzzzz');
+
+            // With no rows left there is nothing tabular to announce, so the table role is dropped rather than left
+            // on an empty container that a screen reader would enter and find nothing in.
+            expect(screen.UNSAFE_queryAllByProps({role: CONST.ROLE.ROW}).filter((row) => typeof row.type === 'string' && row.props['aria-hidden'] !== true)).toHaveLength(0);
+            expect(getAccessibleHostTables()).toHaveLength(0);
+        });
+
+        it('should not apply table semantics in the narrow layout', () => {
+            const props = createDefaultProps();
+            mockShouldUseNarrowLayout = true;
+
+            render(
+                <Table<TestItem, TestColumnKey>
+                    data={props.data}
+                    columns={props.columns}
+                    renderItem={props.renderItem}
+                    keyExtractor={props.keyExtractor}
+                    title="Members"
+                >
+                    <Table.ListHeader>
+                        <Text testID="table-header-component">Page controls</Text>
+                    </Table.ListHeader>
+                    <Table.Header />
+                    <Table.Body />
+                </Table>,
+            );
+
+            // The narrow layout renders a single-column card list, which screen readers already announce correctly.
+            expect(screen.UNSAFE_queryAllByProps({role: CONST.ROLE.TABLE})).toHaveLength(0);
+            expect(screen.UNSAFE_queryAllByProps({role: CONST.ROLE.ROWGROUP})).toHaveLength(0);
+            expect(screen.UNSAFE_queryAllByProps({role: CONST.ROLE.ROW})).toHaveLength(0);
+        });
+
         it('should keep FlashList measurement copies inert without remounting the focused search input', () => {
             const props = createDefaultProps();
             const renderItem = ({item, index}: ListRenderItemInfo<TestItem>) => (
@@ -1061,7 +1242,8 @@ describe('Table', () => {
 
             const table = screen.getByLabelText('Members');
             const visibleRows = getHostTableRows().filter((row) => row.props['aria-hidden'] !== true);
-            expect(within(table).getByTestId('table-header-component')).toBeTruthy();
+            expect(screen.getByTestId('table-header-component')).toBeTruthy();
+            expect(within(table).queryByTestId('table-header-component')).toBeNull();
             expect(getHostTableRowsWithin(table).filter((row) => row.props['aria-hidden'] !== true)).toHaveLength(visibleRows.length);
             expect(mockFlashListProps.at(-1)?.ListHeaderComponent).toBeDefined();
             expect(mockFlashListProps.at(-1)?.data).toHaveLength(props.data.length + 1);
