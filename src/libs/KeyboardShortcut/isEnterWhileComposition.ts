@@ -3,7 +3,6 @@ import * as Browser from '@libs/Browser';
 import CONST from '@src/CONST';
 
 import type React from 'react';
-import type {NativeSyntheticEvent} from 'react-native';
 
 /**
  * Check if the Enter key was pressed during IME confirmation (i.e. while the text is being composed).
@@ -29,7 +28,7 @@ const isEnterWhileComposition = (event: KeyboardEvent | React.KeyboardEvent): bo
     if (event instanceof KeyboardEvent) {
         isComposing = event.isComposing;
     } else {
-        const nativeEvent = (event as unknown as NativeSyntheticEvent<KeyboardEvent>)?.nativeEvent;
+        const nativeEvent = event?.nativeEvent;
         isComposing = nativeEvent?.isComposing;
     }
 
