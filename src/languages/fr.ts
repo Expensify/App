@@ -11074,6 +11074,7 @@ Voici un *reçu test* pour vous montrer comment ça fonctionne :`,
         readyPartialBody: ({count, total}: {count: number; total: number}) =>
             `${count} of ${total} reports exported. If it didn't automatically download, use the button below. See which reports failed in <concierge-link>Concierge</concierge-link>.`,
         close: 'Close',
+        truncatedBody: 'Attention ! Cet export était trop volumineux et a été limité aux 50 000 premières notes de frais correspondant à votre recherche.',
     },
     domain: {
         notVerified: 'Non vérifié',

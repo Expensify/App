@@ -10588,6 +10588,7 @@ ${reportName}`,
         readyPartialBody: ({count, total}: {count: number; total: number}) =>
             `${count} of ${total} reports exported. If it didn't automatically download, use the button below. See which reports failed in <concierge-link>Concierge</concierge-link>.`,
         close: 'Close',
+        truncatedBody: '提醒：此次导出文件过大，仅包含与您的搜索匹配的前 50,000 份报表。',
     },
     domain: {
         notVerified: '未验证',

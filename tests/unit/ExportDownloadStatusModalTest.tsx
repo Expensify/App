@@ -284,6 +284,33 @@ describe('ExportDownloadStatusModal', () => {
         expect(screen.getByText('exportDownload.readyBody')).toBeTruthy();
     });
 
+    it('shows a truncation warning when the export was limited', async () => {
+        await Onyx.set(`${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}${EXPORT_ID}`, {
+            state: 'ready',
+            fileName: CSV_FILE_NAME,
+            truncated: true,
+        });
+
+        renderModal();
+        await waitForBatchedUpdatesWithAct();
+
+        expect(screen.getByText('exportDownload.truncatedBody')).toBeTruthy();
+        expect(screen.getByText('exportDownload.readyBody')).toBeTruthy();
+    });
+
+    it('does not show a truncation warning for a complete export', async () => {
+        await Onyx.set(`${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}${EXPORT_ID}`, {
+            state: 'ready',
+            fileName: CSV_FILE_NAME,
+            truncated: false,
+        });
+
+        renderModal();
+        await waitForBatchedUpdatesWithAct();
+
+        expect(screen.queryByText('exportDownload.truncatedBody')).toBeNull();
+    });
+
     it('Download file button downloads and closes the modal, delegating the clear to the parent', async () => {
         const onClose = jest.fn();
         await Onyx.set(`${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}${EXPORT_ID}`, {state: 'ready', fileName: CSV_FILE_NAME});

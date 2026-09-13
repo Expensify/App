@@ -11256,6 +11256,7 @@ ${reportName}`,
         readyPartialBody: ({count, total}: {count: number; total: number}) =>
             `${count} of ${total} reports exported. If it didn't automatically download, use the button below. See which reports failed in <concierge-link>Concierge</concierge-link>.`,
         close: 'Cerrar',
+        truncatedBody: '¡Atención! Esta exportación era demasiado grande y se ha limitado a los primeros 50.000 informes que coincidían con tu búsqueda.',
     },
     openAppFailureModal: {
         title: 'Algo salió mal...',
