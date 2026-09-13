@@ -4,9 +4,12 @@ import type {ListItem} from '@components/SelectionList/types';
 
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import FS from '@libs/Fullstory';
+
+import variables from '@styles/variables';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportAttributesDerivedValue} from '@src/types/onyx';
@@ -17,7 +20,6 @@ import React from 'react';
 
 import type {TaskListItemProps, TaskListItemType} from './types';
 
-import useSearchTableItemHighlight from './hooks/useSearchTableItemHighlight';
 import TaskListItemRow from './TaskListItemRow';
 
 /**
@@ -46,15 +48,21 @@ function TaskListItem<TItem extends ListItem>({
     const liveTaskItem: TaskListItemType =
         liveParentReportAttributeName && liveParentReportAttributeName !== taskItem.parentReportName ? {...taskItem, parentReportName: liveParentReportAttributeName} : taskItem;
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
 
     const {isLargeScreenWidth} = useResponsiveLayout();
     const {isSelected} = useRowSelection(item.keyForList);
 
-    const {pressableStyle, pressableWrapperStyle} = useSearchTableItemHighlight({
-        shouldHighlight: item?.shouldAnimateInHighlight ?? false,
-        isSelected,
-        isLastItem: !!isLastItem,
-    });
+    const listItemPressableStyle = [
+        styles.selectionListPressableItemWrapper,
+        styles.pv3,
+        styles.ph3,
+        // Background is applied on the parent wrapper, so keep this transparent
+        styles.bgTransparent,
+        isSelected && styles.activeComponentBG,
+        styles.mh0,
+        isLargeScreenWidth && StyleUtils.getSearchTableRowPressableStyle(!!isLastItem, isSelected, {vertical: variables.tableRowPaddingVertical}),
+    ];
 
     const listItemWrapperStyle = [
         styles.flex1,
@@ -67,7 +75,7 @@ function TaskListItem<TItem extends ListItem>({
     return (
         <BaseListItem
             item={item}
-            pressableStyle={pressableStyle}
+            pressableStyle={listItemPressableStyle}
             wrapperStyle={listItemWrapperStyle}
             containerStyle={!isLargeScreenWidth && [styles.mb2]}
             isFocused={isFocused}
@@ -79,7 +87,12 @@ function TaskListItem<TItem extends ListItem>({
             onLongPressRow={onLongPressRow}
             shouldSyncFocus={shouldSyncFocus}
             hoverStyle={isSelected && styles.activeComponentBG}
-            pressableWrapperStyle={pressableWrapperStyle}
+            pressableWrapperStyle={[
+                styles.mh5,
+                StyleUtils.getSearchRowBackgroundStyle(isSelected),
+                !isLargeScreenWidth && styles.br2,
+                isLargeScreenWidth && isLastItem && [styles.tableBottomRadius, styles.overflowHidden],
+            ]}
             forwardedFSClass={fsClass}
         >
             <TaskListItemRow

@@ -36,4 +36,3 @@ const ListItem = Object.assign(ListItemPressable, {
 });
 
 export default ListItem;
-export {default as useListItemHighlight} from './hooks/useListItemHighlight';
