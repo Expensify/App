@@ -19,6 +19,7 @@ import type {FileObject} from '@src/types/utils/Attachment';
 
 import type {TupleToUnion} from 'type-fest';
 
+import {format, isValid} from 'date-fns';
 import React, {useRef, useState} from 'react';
 import {PanResponder, PixelRatio, Platform, View} from 'react-native';
 import RNFetchBlob from 'react-native-blob-util';
@@ -118,11 +119,13 @@ function ImportSpreadsheet({backTo, goTo, shouldForceReplaceNavigation = false, 
                             })
                             .then((text) => XLSX.read(text, {type: 'string', raw: true}));
                     }
+                    // cellDates is only set on the binary read: it turns date-formatted cells into Date objects instead of Excel serial
+                    // numbers. The text read above keeps raw: true so CSV values are passed through untouched.
                     return fetch(fileURI)
                         .then((data) => {
                             return data.arrayBuffer();
                         })
-                        .then((arrayBuffer) => XLSX.read(new Uint8Array(arrayBuffer), {type: 'buffer', raw: true}));
+                        .then((arrayBuffer) => XLSX.read(new Uint8Array(arrayBuffer), {type: 'buffer', raw: true, cellDates: true}));
                 };
                 readWorkbook()
                     .then((workbook) => {
@@ -133,6 +136,10 @@ function ImportSpreadsheet({backTo, goTo, shouldForceReplaceNavigation = false, 
                             row.map((cell) => {
                                 if (cell == null) {
                                     return '';
+                                }
+                                // xlsx builds cellDates values at midnight in the local time zone, so format them locally too
+                                if (cell instanceof Date) {
+                                    return isValid(cell) ? format(cell, CONST.DATE.FNS_FORMAT_STRING) : '';
                                 }
                                 // Handle primitives (string, number, boolean) directly
                                 if (typeof cell === 'string' || typeof cell === 'number' || typeof cell === 'boolean') {
