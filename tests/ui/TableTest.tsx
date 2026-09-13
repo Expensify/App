@@ -600,9 +600,7 @@ function getHostTableRowsWithin(container: TestInstance): TestInstance[] {
 
 /** Every `role="table"` element a screen reader can reach, i.e. excluding FlashList's hidden measurement copies. */
 function getAccessibleHostTables(): TestInstance[] {
-    return screen
-        .UNSAFE_queryAllByProps({role: CONST.ROLE.TABLE})
-        .filter((table) => typeof table.type === 'string' && table.props['aria-hidden'] !== true);
+    return screen.UNSAFE_queryAllByProps({role: CONST.ROLE.TABLE}).filter((table) => typeof table.type === 'string' && table.props['aria-hidden'] !== true);
 }
 
 /** The 1-based `aria-colindex` of each cell in a row, in document order. */
