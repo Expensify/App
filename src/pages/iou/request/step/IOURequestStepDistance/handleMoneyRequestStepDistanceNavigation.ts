@@ -47,6 +47,7 @@ import type {
     QuickAction,
     RecentWaypoint,
     Report,
+    Rule,
     Transaction,
     TransactionViolation,
 } from '@src/types/onyx';
@@ -116,6 +117,7 @@ type MoneyRequestStepDistanceNavigationParams = {
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     participants: Array<Participant | OptionData>;
     participantsPolicyTags: ParticipantsPolicyTags;
+    rules: OnyxCollection<Rule>;
 };
 
 /** Amount + merchant for a manual-distance submit; pending placeholders otherwise (waypoint/GPS distance is computed server-side). */
@@ -221,6 +223,7 @@ function handleMoneyRequestStepDistanceNavigation({
     participants,
     participantsPolicyTags,
     isOffline = false,
+    rules,
 }: MoneyRequestStepDistanceNavigationParams): void {
     const isManualDistance = manualDistance !== undefined;
     const isOdometerDistance = odometerDistance !== undefined;
@@ -354,6 +357,7 @@ function handleMoneyRequestStepDistanceNavigation({
                             delegateAccountID,
                             reportActionsList: undefined,
                             getCurrencyDecimals,
+                            rules,
                         });
                         cleanupAfterSkipConfirmSubmit(overrides.shouldHandleNavigation, {
                             report,
@@ -440,6 +444,7 @@ function handleMoneyRequestStepDistanceNavigation({
                         formatPhoneNumber,
                         getCurrencyDecimals,
                         participantsPolicyTags,
+                        rules,
                     });
                     cleanupAfterSkipConfirmSubmit(overrides.shouldHandleNavigation, {
                         report,

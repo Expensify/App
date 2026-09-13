@@ -39,6 +39,7 @@ function useAutoCreateSubmitWorkspace() {
         formatPhoneNumber,
         isRestrictedPolicyCreation,
         hasActiveAdminPolicies,
+        hasOwnedPaidPolicy,
         onboardingMessages,
         lastWorkspaceNumber,
         shouldUseNarrowLayout,
@@ -86,6 +87,7 @@ function useAutoCreateSubmitWorkspace() {
                       betas,
                       isSelfTourViewed,
                       hasActiveAdminPolicies,
+                      hasOwnedPaidPolicy,
                   })
                 : {adminsChatReportID: onboardingAdminsChatReportID, policyID: onboardingPolicyID};
 
@@ -146,6 +148,7 @@ function useAutoCreateSubmitWorkspace() {
             onboardingMessages,
             betas,
             hasActiveAdminPolicies,
+            hasOwnedPaidPolicy,
             shouldUseNarrowLayout,
             conciergeChat,
         ],
