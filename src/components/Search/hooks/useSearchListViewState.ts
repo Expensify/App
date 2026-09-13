@@ -62,8 +62,6 @@ function useSearchListViewState({data, listData = data, isMobileSelectionModeEna
     // See https://github.com/Expensify/App/issues/48675 for more details
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth, isLargeScreenWidth} = useResponsiveLayout();
-    // This reads shouldUseNarrowLayout internally, which the comment above warns about. It is safe here because the height is only
-    // consumed inside the scroll callback below and never renders anything, so it cannot feed the re-render loop from that issue.
     const {contentHeaderHeight} = useContentHeaderHeight();
     const {isEditingCell, wasRecentlyEditingCell} = useEditingCellState();
 
