@@ -345,7 +345,7 @@ describe('useSearchBulkActions - Pay option', () => {
         // Mark as paid is the only option offered in this mode
         mockBulkPayButtonOptions = [{text: 'Mark as paid', key: CONST.IOU.PAYMENT_TYPE.ELSEWHERE}];
 
-        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}));
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}), {wrapper: OnyxListItemProvider});
 
         await waitFor(() => {
             expect(getPayOptionFromResult(result.current.headerButtonsOptions)).toBeDefined();
@@ -375,7 +375,7 @@ describe('useSearchBulkActions - Pay option', () => {
         mockSelectedReports = [makeSelectedReport({canPay: true}), makeSelectedReport({reportID: '2', canPay: false})];
 
         // When the bulk actions hook computes the header dropdown options
-        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}));
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}), {wrapper: OnyxListItemProvider});
 
         // Then Pay is still offered, because eligibility for a select-all is decided server-side from the query
         await waitFor(() => {
@@ -392,7 +392,7 @@ describe('useSearchBulkActions - Pay option', () => {
         mockSelectedReports = [makeSelectedReport({canPay: true})];
 
         // When the bulk actions hook computes the header dropdown options
-        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}));
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}), {wrapper: OnyxListItemProvider});
 
         // Then Pay is still offered
         await waitFor(() => {
@@ -408,7 +408,7 @@ describe('useSearchBulkActions - Pay option', () => {
         mockSelectedReports = [makeSelectedReport({canPay: false}), makeSelectedReport({reportID: '2', canPay: false})];
 
         // When the bulk actions hook computes the header dropdown options
-        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}));
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}), {wrapper: OnyxListItemProvider});
 
         await waitFor(() => {
             expect(result.current.headerButtonsOptions).toBeDefined();
@@ -443,7 +443,7 @@ describe('useSearchBulkActions - Pay option', () => {
         };
 
         // When the bulk actions hook computes the header dropdown options
-        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}));
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}), {wrapper: OnyxListItemProvider});
 
         // Then Pay is still offered, because the hold is scoped to the reports that will actually be paid
         await waitFor(() => {
@@ -457,7 +457,7 @@ describe('useSearchBulkActions - Pay option', () => {
         mockSelectedTransactions = {tx1: makeSelectedTransaction({reportID: '1', isHeld: true})};
 
         // When the bulk actions hook computes the header dropdown options
-        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}));
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}), {wrapper: OnyxListItemProvider});
 
         await waitFor(() => {
             expect(result.current.headerButtonsOptions).toBeDefined();
