@@ -7,12 +7,22 @@ import {
     getStringifiedGPSCoordinates,
     getTrimmedGpsTrip,
     gpsPointsToMapboxCoordinates,
+    stopGpsTrip,
 } from '@libs/GPSDraftDetailsUtils';
 
+import ONYXKEYS from '@src/ONYXKEYS';
 import type GpsDraftDetails from '@src/types/onyx/GpsDraftDetails';
 import type {GPSPoint, TrimmedGPSPoint} from '@src/types/onyx/GpsDraftDetails';
 import type {Unit} from '@src/types/onyx/Policy';
 import geodesicDistance from '@src/utils/geodesicDistance';
+
+import type {LocationGeocodedAddress} from 'expo-location';
+
+import {hasStartedLocationUpdatesAsync, reverseGeocodeAsync} from 'expo-location';
+import Onyx from 'react-native-onyx';
+
+import getOnyxValue from '../utils/getOnyxValue';
+import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const point = (lat: number, long: number, address?: GPSPoint['address']): GPSPoint => ({lat, long, ...(address ? {address} : {})});
 
@@ -296,6 +306,173 @@ describe('GPSDraftDetailsUtils', () => {
                     [0.5, 0],
                 ],
             ]);
+        });
+    });
+
+    describe('stopGpsTrip', () => {
+        const startedAddress = {value: 'Amphitheatre Pkwy', type: 'address'} as const;
+
+        beforeAll(() => {
+            Onyx.init({keys: ONYXKEYS});
+        });
+
+        beforeEach(async () => {
+            jest.mocked(reverseGeocodeAsync).mockClear();
+            await Onyx.clear();
+        });
+
+        /** Seeds a trip that is being recorded and returns the points the screen would hand to stopGpsTrip */
+        const trackTrip = async (gpsPoints: GPSPoint[][]): Promise<GPSPoint[][]> => {
+            await Onyx.set(ONYXKEYS.GPS_DRAFT_DETAILS, makeDraft({gpsPoints, isTracking: true, distanceInMeters: 0}));
+            return gpsPoints;
+        };
+
+        const getStoppedDraft = async (): Promise<GpsDraftDetails | undefined> => {
+            await waitForBatchedUpdates();
+            return getOnyxValue(ONYXKEYS.GPS_DRAFT_DETAILS);
+        };
+
+        it('stops tracking the trip', async () => {
+            const gpsPoints = await trackTrip([[point(0, 0, startedAddress)]]);
+
+            await stopGpsTrip(false, gpsPoints);
+
+            expect((await getStoppedDraft())?.isTracking).toBe(false);
+        });
+
+        it('keeps the recorded point when the trip is a single segment holding one point', async () => {
+            const gpsPoints = await trackTrip([[point(0, 0, startedAddress)]]);
+
+            await stopGpsTrip(false, gpsPoints);
+
+            expect((await getStoppedDraft())?.gpsPoints).toEqual([[point(0, 0, startedAddress)]]);
+        });
+
+        it('leaves that point its start address instead of overwriting it with coordinates', async () => {
+            const gpsPoints = await trackTrip([[point(0, 0, startedAddress)]]);
+
+            await stopGpsTrip(false, gpsPoints, true);
+
+            expect((await getStoppedDraft())?.gpsPoints).toEqual([[point(0, 0, startedAddress)]]);
+        });
+
+        it('gives that point an address when the start lookup never landed', async () => {
+            const gpsPoints = await trackTrip([[point(0, 0)]]);
+
+            await stopGpsTrip(false, gpsPoints);
+
+            expect((await getStoppedDraft())?.gpsPoints).toEqual([[point(0, 0, {value: '0,0', type: 'coordinates'})]]);
+        });
+
+        it('writes coordinates for that point when the caller skips the address lookup', async () => {
+            const gpsPoints = await trackTrip([[point(0, 0)]]);
+
+            await stopGpsTrip(false, gpsPoints, true);
+
+            expect(reverseGeocodeAsync).not.toHaveBeenCalled();
+            expect((await getStoppedDraft())?.gpsPoints).toEqual([[point(0, 0, {value: '0,0', type: 'coordinates'})]]);
+        });
+
+        it('writes coordinates for that point while offline, without looking the address up', async () => {
+            const gpsPoints = await trackTrip([[point(0, 0)]]);
+
+            await stopGpsTrip(true, gpsPoints);
+
+            expect(reverseGeocodeAsync).not.toHaveBeenCalled();
+            expect((await getStoppedDraft())?.gpsPoints).toEqual([[point(0, 0, {value: '0,0', type: 'coordinates'})]]);
+        });
+
+        it('replaces a blank address on that point instead of treating it as resolved', async () => {
+            const gpsPoints = await trackTrip([[point(0, 0, {value: '', type: 'address'})]]);
+
+            await stopGpsTrip(false, gpsPoints);
+
+            expect((await getStoppedDraft())?.gpsPoints).toEqual([[point(0, 0, {value: '0,0', type: 'coordinates'})]]);
+        });
+
+        it('falls back to coordinates when the geocoder returns no usable address fields', async () => {
+            const emptyGeocodedAddress: LocationGeocodedAddress = {
+                city: null,
+                district: null,
+                streetNumber: null,
+                street: null,
+                region: null,
+                subregion: null,
+                country: null,
+                postalCode: null,
+                name: null,
+                isoCountryCode: null,
+                timezone: null,
+                formattedAddress: null,
+            };
+            jest.mocked(reverseGeocodeAsync).mockResolvedValueOnce([emptyGeocodedAddress]);
+            const gpsPoints = await trackTrip([[point(0, 0), point(0, 1)]]);
+
+            await stopGpsTrip(false, gpsPoints);
+
+            expect((await getStoppedDraft())?.gpsPoints).toEqual([[point(0, 0), point(0, 1, {value: '0,1', type: 'coordinates'})]]);
+        });
+
+        it('marks a trip that recorded nothing as stopped without clearing it', async () => {
+            const gpsPoints = await trackTrip([[]]);
+
+            await stopGpsTrip(false, gpsPoints);
+
+            const draft = await getStoppedDraft();
+            expect(draft?.gpsPoints).toEqual([[]]);
+            expect(draft?.isTracking).toBe(false);
+        });
+
+        it('keeps a point that lands while the trip is being stopped', async () => {
+            let releaseLocationCheck: ((isRunning: boolean) => void) | undefined;
+            jest.mocked(hasStartedLocationUpdatesAsync).mockImplementationOnce(
+                () =>
+                    new Promise<boolean>((resolve) => {
+                        releaseLocationCheck = resolve;
+                    }),
+            );
+            const gpsPoints = await trackTrip([[]]);
+
+            const stopping = stopGpsTrip(false, gpsPoints);
+            await Onyx.merge(ONYXKEYS.GPS_DRAFT_DETAILS, {gpsPoints: [[point(0, 0)]]});
+            releaseLocationCheck?.(false);
+            await stopping;
+
+            const draft = await getStoppedDraft();
+            expect(draft?.gpsPoints).toEqual([[point(0, 0)]]);
+            expect(draft?.isTracking).toBe(false);
+        });
+
+        it('drops a resumed segment that holds a single point', async () => {
+            const gpsPoints = await trackTrip([[point(0, 0), point(0, 1)], [point(1, 0)]]);
+
+            await stopGpsTrip(false, gpsPoints);
+
+            expect((await getStoppedDraft())?.gpsPoints).toEqual([[point(0, 0), point(0, 1)]]);
+        });
+
+        it('leaves a one point trip intact when a resumed segment is dropped', async () => {
+            const gpsPoints = await trackTrip([[point(0, 0, startedAddress)], [point(1, 0)]]);
+
+            await stopGpsTrip(false, gpsPoints);
+
+            expect((await getStoppedDraft())?.gpsPoints).toEqual([[point(0, 0, startedAddress)]]);
+        });
+
+        it('drops a resumed segment that is empty', async () => {
+            const gpsPoints = await trackTrip([[point(0, 0), point(0, 1)], []]);
+
+            await stopGpsTrip(false, gpsPoints);
+
+            expect((await getStoppedDraft())?.gpsPoints).toEqual([[point(0, 0), point(0, 1)]]);
+        });
+
+        it('records the end address when the last segment holds more than one point', async () => {
+            const gpsPoints = await trackTrip([[point(0, 0), point(0, 1)]]);
+
+            await stopGpsTrip(false, gpsPoints);
+
+            expect((await getStoppedDraft())?.gpsPoints).toEqual([[point(0, 0), point(0, 1, {value: '0,1', type: 'coordinates'})]]);
         });
     });
 });

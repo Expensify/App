@@ -1,4 +1,4 @@
-import {addressFromGpsPoint, calculateTrimmedEndPoint, coordinatesToString} from '@libs/GPSPointUtils';
+import {addressFromGpsPoint, calculateTrimmedEndPoint, coordinatesToString, getGpsPoints} from '@libs/GPSPointUtils';
 
 import {GPS_DISTANCE_INTERVAL_METERS} from '@pages/iou/request/step/IOURequestStepDistanceGPS/const';
 import {updateGpsTripNotificationDistance} from '@pages/iou/request/step/IOURequestStepDistanceGPS/GPSNotifications';
@@ -17,10 +17,6 @@ import {setUserLocation} from './UserLocation';
 
 function resetGPSDraftDetails() {
     Onyx.merge(ONYXKEYS.GPS_DRAFT_DETAILS, null);
-}
-
-function getGpsPoints(gpsDraftDetails: GpsDraftDetails | undefined): GPSPoint[][] {
-    return gpsDraftDetails?.gpsPoints ?? [[]];
 }
 
 function setStartWaypointAddress(startAddress: GPSPointAddress, tripSegmentIndex: number, gpsPoints: GPSPoint[][]) {
@@ -64,14 +60,6 @@ function updateGpsPoints(gpsPoints: GPSPoint[][]) {
 }
 
 function removeLastSegment(gpsPoints: GPSPoint[][]) {
-    // Clear the last segment instead of removing it if there is only one segment
-    if (gpsPoints.length === 1) {
-        Onyx.merge(ONYXKEYS.GPS_DRAFT_DETAILS, {
-            gpsPoints: [[]],
-        });
-        return;
-    }
-
     const newGpsPoints = [...gpsPoints];
     newGpsPoints.pop();
 
@@ -88,6 +76,8 @@ function initGpsDraft(reportID: string, unit: Unit, accountID?: number) {
         reportID,
         unit,
         accountID,
+        modifiedDistance: null,
+        trimmedEndPoint: null,
     });
 }
 

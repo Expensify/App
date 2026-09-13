@@ -2,7 +2,7 @@ import type {WayPoint} from '@components/MapView/MapViewTypes';
 
 import type {MapMarkerType} from '@hooks/useMapMarkers/types';
 
-import {getGPSWaypoints, isTripStopped as isTripStoppedUtil} from '@libs/GPSDraftDetailsUtils';
+import {getGPSWaypoints, getTrimmedGpsTrip, isTripStopped as isTripStoppedUtil} from '@libs/GPSDraftDetailsUtils';
 
 import type {GpsDraftDetails} from '@src/types/onyx';
 import type {TrimmedGPSPoint} from '@src/types/onyx/GpsDraftDetails';
@@ -20,11 +20,12 @@ function useGPSWaypointMarkers({gpsDraftDetails, trimmedEndPoint: trimmedEndPoin
     const gpsWaypoints = getGPSWaypoints(gpsDraftDetails, trimmedEndPoint);
     const waypointEntries = Object.entries(gpsWaypoints);
     const lastIndex = waypointEntries.length - 1;
+    const isLastWaypointSegmentStart = getTrimmedGpsTrip(gpsDraftDetails, trimmedEndPoint).findLast((segment) => segment.length > 0)?.length === 1;
 
     return waypointEntries.flatMap(([key, waypoint], index): WayPoint[] => {
         const isStart = index === 0;
-        // End waypoint can only have odd index, as even indexes are start waypoints of trip segments
-        const isEnd = index === lastIndex && index % 2 === 1;
+        // A segment with one point contributes one waypoint, not a start and end pair
+        const isEnd = index === lastIndex && index !== 0 && !isLastWaypointSegmentStart;
 
         if (isEnd && !isTripStopped) {
             return [];

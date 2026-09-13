@@ -12,7 +12,7 @@ import type {SetRequired} from 'type-fest';
 import {hasStartedLocationUpdatesAsync, stopLocationUpdatesAsync} from 'expo-location';
 
 import {removeLastSegment, setEndWaypointAddress, setIsTracking} from './actions/GPSDraftDetails';
-import {addressFromGpsPoint, calculateTrimmedEndPoint, coordinatesToString} from './GPSPointUtils';
+import {addressFromGpsPoint, calculateTrimmedEndPoint, coordinatesToString, getGpsPoints} from './GPSPointUtils';
 import {roundToTwoDecimalPlaces} from './NumberUtils';
 
 type GPSWaypointCollection = Record<string, SetRequired<Waypoint, 'keyForList' | 'lat' | 'lng' | 'address'>>;
@@ -135,13 +135,22 @@ async function stopGpsTrip(isOffline: boolean, gpsPoints: GPSPoint[][], skipLast
 
     const lastSegment = gpsPoints.at(-1);
 
-    if (!lastSegment) {
+    // Never clear an empty trip here: gpsPoints predates the awaits above, so a fix may have landed that clearing would wipe
+    if (!lastSegment || gpsPoints.flat().length === 0) {
         return;
     }
 
     if (isLastSegmentEmptyOrHasOnlyOnePoint(lastSegment)) {
-        removeLastSegment(gpsPoints);
-        return;
+        // Dropping the sole segment would leave no points, which reads as a trip that never started
+        if (gpsPoints.length > 1) {
+            removeLastSegment(gpsPoints);
+            return;
+        }
+
+        // The sole point is both the start and the stop, so its start address is already the end address
+        if (lastSegment.at(0)?.address?.value) {
+            return;
+        }
     }
 
     if (skipLastPointAddressFetching) {
@@ -185,10 +194,6 @@ function getTotalGpsTripPointsInLastSegment(gpsPoints: GPSPoint[][]): number {
 
 function isTripStopped(gpsDraftDetails: GpsDraftDetails | undefined): boolean {
     return !gpsDraftDetails?.isTracking && getTotalGpsTripPoints(gpsDraftDetails) > 0;
-}
-
-function getGpsPoints(gpsDraftDetails: GpsDraftDetails | undefined): GPSPoint[][] {
-    return gpsDraftDetails?.gpsPoints ?? [[]];
 }
 
 function getFirstGpsPoint(gpsDraftDetails: GpsDraftDetails | undefined): GPSPoint | undefined {
