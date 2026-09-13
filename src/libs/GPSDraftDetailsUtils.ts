@@ -1,6 +1,6 @@
 import type {Coordinate} from '@components/MapView/MapViewTypes';
 
-import {BACKGROUND_LOCATION_TRACKING_TASK_NAME} from '@pages/iou/request/step/IOURequestStepDistanceGPS/const';
+import {BACKGROUND_LOCATION_TRACKING_TASK_NAME, GPS_DISTANCE_INTERVAL_METERS} from '@pages/iou/request/step/IOURequestStepDistanceGPS/const';
 import {stopGpsTripNotification} from '@pages/iou/request/step/IOURequestStepDistanceGPS/GPSNotifications';
 
 import type {GpsDraftDetails} from '@src/types/onyx';
@@ -190,6 +190,11 @@ function isTripStopped(gpsDraftDetails: GpsDraftDetails | undefined): boolean {
     return !gpsDraftDetails?.isTracking && getTotalGpsTripPoints(gpsDraftDetails) > 0;
 }
 
+function canGpsTripBeTrimmed(gpsDraftDetails: GpsDraftDetails | undefined): boolean {
+    // Trimming cannot shorten a trip below one location interval, so a trip no longer than that has nothing to trim
+    return isTripStopped(gpsDraftDetails) && (gpsDraftDetails?.distanceInMeters ?? 0) > GPS_DISTANCE_INTERVAL_METERS;
+}
+
 function getGpsPoints(gpsDraftDetails: GpsDraftDetails | undefined): GPSPoint[][] {
     return gpsDraftDetails?.gpsPoints ?? [[]];
 }
@@ -230,6 +235,7 @@ export {
     getGPSRoutes,
     getGPSWaypoints,
     stopGpsTrip,
+    canGpsTripBeTrimmed,
     getStringifiedGPSCoordinates,
     addressFromGpsPoint,
     coordinatesToString,
