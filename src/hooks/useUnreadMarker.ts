@@ -36,6 +36,9 @@ type UseUnreadMarkerParams = {
     /** Whether report actions have loaded at least once; once true, the pagination anchor is ignored in favor of the scan */
     hasOnceLoadedReportActions: boolean;
 
+    /** Whether the report has unread activity for the current user */
+    isReportUnread?: boolean;
+
     /** Concierge hidden-history boundary: actions created before this were revealed/loaded from history,
      * not received live, so they are never treated as read-on-arrival */
     newMessageBoundaryTime?: string | null;
@@ -58,6 +61,7 @@ function useUnreadMarker({
     oldestUnreadReportActionID,
     isScrolledOverThreshold,
     hasOnceLoadedReportActions,
+    isReportUnread = true,
     newMessageBoundaryTime,
 }: UseUnreadMarkerParams): UseUnreadMarkerResult {
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
@@ -71,6 +75,7 @@ function useUnreadMarker({
     const reportLastReadTime = reportLastReadTimeValue ?? '';
 
     const [unreadMarkerTime, setUnreadMarkerTime] = useState(reportLastReadTime);
+    const [initialIsReportUnread] = useState(isReportUnread);
 
     useEffect(() => {
         if (isAnonymousUser) {
@@ -126,6 +131,7 @@ function useUnreadMarker({
         isOffline,
         isReversed: false,
         isAnonymousUser,
+        isReportUnread: initialIsReportUnread,
         prevUnreadMarkerReportActionID,
         hasWindowFocus: Visibility.hasFocus(),
         newMessageBoundaryTime,
@@ -133,7 +139,7 @@ function useUnreadMarker({
     // Pagination is anchored to the oldest unread on first open; that anchor does not change when the user
     // marks read or unread, or when messages are deleted. Prefer the scan when it does not match that stale id.
     const [unreadMarkerReportActionID, unreadMarkerReportActionIndex]: [string | null, number] =
-        oldestUnreadReportActionMarker && (scanned[0] === null || scanned[0] === oldestUnreadReportActionMarker[0]) ? oldestUnreadReportActionMarker : scanned;
+        initialIsReportUnread && oldestUnreadReportActionMarker && (scanned[0] === null || scanned[0] === oldestUnreadReportActionMarker[0]) ? oldestUnreadReportActionMarker : scanned;
 
     if (prevUnreadMarkerReportActionID !== unreadMarkerReportActionID) {
         setPrevUnreadMarkerReportActionID(unreadMarkerReportActionID);

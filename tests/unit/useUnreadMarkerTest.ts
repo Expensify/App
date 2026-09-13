@@ -81,6 +81,13 @@ describe('useUnreadMarker', () => {
         expect(result.current.unreadMarkerReportActionIndex).toBe(-1);
     });
 
+    it('returns no marker when the report is read', () => {
+        const {result} = renderUnreadMarker({isReportUnread: false});
+
+        expect(result.current.unreadMarkerReportActionID).toBeNull();
+        expect(result.current.unreadMarkerReportActionIndex).toBe(-1);
+    });
+
     it('places the marker on an unread message from another user', () => {
         const {result} = renderUnreadMarker({sortedVisibleReportActions: [makeAction('m1')]});
 

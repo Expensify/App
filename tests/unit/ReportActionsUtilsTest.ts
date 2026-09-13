@@ -6351,7 +6351,19 @@ describe('ReportActionsUtils', () => {
             isScrolledOverThreshold: true,
             isOffline: false,
             isReversed: false,
+            isReportUnread: true,
         };
+
+        it('returns no marker when the report is read', () => {
+            const message = makeAction({reportActionID: 'non-actionable-system-message'});
+            expect(
+                getUnreadMarkerReportAction({
+                    ...baseScanParams,
+                    visibleReportActions: [message],
+                    isReportUnread: false,
+                }),
+            ).toEqual([null, -1]);
+        });
 
         it('short-circuits to [null, -1] for an anonymous user', () => {
             const visibleReportActions = [makeAction({reportActionID: 'a'})];

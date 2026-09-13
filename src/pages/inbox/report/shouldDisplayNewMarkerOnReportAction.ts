@@ -132,6 +132,9 @@ type GetUnreadMarkerReportActionParams = {
     /** Whether the current user is anonymous — skips the scan entirely */
     isAnonymousUser?: boolean;
 
+    /** Whether the report has unread activity for the current user */
+    isReportUnread: boolean;
+
     /** The reportActionID of the current unread marker, if one exists */
     prevUnreadMarkerReportActionID?: string | null;
     /** Whether the app window is focused */
@@ -156,11 +159,12 @@ const getUnreadMarkerReportAction = ({
     isOffline,
     isReversed,
     isAnonymousUser = false,
+    isReportUnread,
     prevUnreadMarkerReportActionID,
     hasWindowFocus = true,
     newMessageBoundaryTime,
 }: GetUnreadMarkerReportActionParams): [string | null, number] => {
-    if (isAnonymousUser) {
+    if (isAnonymousUser || !isReportUnread) {
         return [null, -1];
     }
 
