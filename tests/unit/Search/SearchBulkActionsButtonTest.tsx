@@ -71,6 +71,7 @@ jest.mock('@hooks/useSearchBulkActions', () => ({
     __esModule: true,
     default: () => ({
         headerButtonsOptions: [],
+        dropdownButtonsOptions: [],
         selectedPolicyIDs: [],
         selectedTransactionReportIDs: [],
         selectedReportIDs: [],
