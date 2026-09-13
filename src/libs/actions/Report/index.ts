@@ -57,6 +57,7 @@ import type UpdateRoomVisibilityParams from '@libs/API/parameters/UpdateRoomVisi
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as ApiUtils from '@libs/ApiUtils';
 import * as Browser from '@libs/Browser';
+import trackConciergeResponse from '@libs/ConciergeResponseIndicator';
 import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
 import {getCurrencyDecimals as getCurrencyDecimalsUtil} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
@@ -1042,6 +1043,19 @@ function addActions({
 
     if (isInSidePanel && isConciergeChat && sidePanelContext && commandName === WRITE_COMMANDS.ADD_COMMENT) {
         parameters.sidePanelContext = JSON.stringify(sidePanelContext);
+    }
+
+    // Reserve a reply identity for questions the user explicitly sends to Concierge. The
+    // server reuses it for both draft events and the final action, excluding unsolicited replies.
+    const isConciergeConversation = isConciergeChat || (!!conciergeReportID && reportForAction.parentReportID === conciergeReportID) || isAdminRoom(reportForAction);
+    if (isConciergeConversation && !pregeneratedResponseParams && resolvedReportActionID) {
+        parameters.optimisticConciergeReportActionID = rand64();
+        trackConciergeResponse({
+            accountID: currentUserAccountID,
+            reportID,
+            questionReportActionID: resolvedReportActionID,
+            responseReportActionID: parameters.optimisticConciergeReportActionID,
+        });
     }
 
     // Add pregenerated params
