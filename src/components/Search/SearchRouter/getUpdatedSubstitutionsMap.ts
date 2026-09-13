@@ -1,5 +1,3 @@
-import type {SearchAutocompleteQueryRange} from '@components/Search/types';
-
 import {parse} from '@libs/SearchParser/autocompleteParser';
 
 import type {SubstitutionMap} from './getQueryWithSubstitutions';
@@ -20,7 +18,7 @@ import {getSubstitutionMapKeyWithIndex} from './getQueryWithSubstitutions';
  * return: {}
  */
 function getUpdatedSubstitutionsMap(query: string, substitutions: SubstitutionMap): SubstitutionMap {
-    const parsedQuery = parse(query) as {ranges: SearchAutocompleteQueryRange[]};
+    const parsedQuery = parse(query);
 
     const searchAutocompleteQueryRanges = parsedQuery.ranges;
 

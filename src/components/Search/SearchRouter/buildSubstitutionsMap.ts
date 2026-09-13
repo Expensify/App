@@ -1,5 +1,4 @@
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
-import type {SearchAutocompleteQueryRange} from '@components/Search/types';
 
 import {parse} from '@libs/SearchParser/autocompleteParser';
 import {getFilterDisplayValue} from '@libs/SearchQueryUtils';
@@ -45,7 +44,7 @@ function buildSubstitutionsMap(
     reportAttributes: ReportAttributesDerivedValue['reports'] | undefined,
     bankAccountList?: BankAccountList,
 ): SubstitutionMap {
-    const parsedQuery = parse(query) as {ranges: SearchAutocompleteQueryRange[]};
+    const parsedQuery = parse(query);
 
     const searchAutocompleteQueryRanges = parsedQuery.ranges;
     if (searchAutocompleteQueryRanges.length === 0) {
@@ -54,7 +53,7 @@ function buildSubstitutionsMap(
 
     const substitutionKeyOccurrences = new Map<string, number>();
 
-    const substitutionsMap = searchAutocompleteQueryRanges.reduce((map, range) => {
+    const substitutionsMap = searchAutocompleteQueryRanges.reduce<SubstitutionMap>((map, range) => {
         const {key: filterKey, value: filterValue} = range;
 
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE) {
@@ -116,7 +115,7 @@ function buildSubstitutionsMap(
         }
 
         return map;
-    }, {} as SubstitutionMap);
+    }, {});
     return substitutionsMap;
 }
 

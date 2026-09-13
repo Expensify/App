@@ -418,6 +418,18 @@ type SearchAutocompleteQueryRange = {
     value: string;
 };
 
+/** Parser keys retain input spelling and can include dynamic report field suffixes. */
+type SearchAutocompleteParserRange = Omit<SearchAutocompleteQueryRange, 'key'> & {
+    key: string;
+    negated: boolean;
+};
+
+type SearchAutocompleteParserResult = {
+    /** Whitespace trimmed from an identifier can leave only its key and negation. */
+    autocomplete: SearchAutocompleteParserRange | Pick<SearchAutocompleteParserRange, 'key' | 'negated'> | null;
+    ranges: SearchAutocompleteParserRange[];
+};
+
 type SearchParams = {
     queryJSON: Readonly<SearchQueryJSON>;
     searchKey: SearchKey | undefined;
@@ -485,6 +497,8 @@ type SearchFilterCommonProps<T> = {
 };
 
 export type {
+    SearchAutocompleteParserRange,
+    SearchAutocompleteParserResult,
     SelectedTransactionInfo,
     SelectedTransactions,
     SearchColumnType,
