@@ -43,6 +43,9 @@ type ConfirmationFieldsContextValue = {
 
     /** Reports whether the inline tax amount field is currently empty, so submission can be blocked when it is left empty (new manual expense flow). */
     onTaxAmountEmptyChange?: (isEmpty: boolean) => void;
+
+    /** Reports whether the inline amount sign differs from its initial value (new manual expense flow). */
+    onSignDirtyChange?: (isSignDirty: boolean) => void;
 };
 
 const ConfirmationFieldsContext = createContext<ConfirmationFieldsContextValue | null>(null);

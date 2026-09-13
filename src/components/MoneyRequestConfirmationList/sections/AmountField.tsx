@@ -9,7 +9,14 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {clearMoneyRequestAmount, getMoneyRequestParticipantsFromReport, setMoneyRequestAmount, setMoneyRequestTaxAmount, setMoneyRequestTaxRate} from '@libs/actions/IOU/MoneyRequest';
+import {
+    clearMoneyRequestAmount,
+    getMoneyRequestParticipantsFromReport,
+    setMoneyRequestAmount,
+    setMoneyRequestCurrency,
+    setMoneyRequestTaxAmount,
+    setMoneyRequestTaxRate,
+} from '@libs/actions/IOU/MoneyRequest';
 import {convertToBackendAmount, convertToFrontendAmountAsString, getLocalizedCurrencySymbol} from '@libs/CurrencyUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {calculateAmount, isMovingTransactionFromTrackExpense, isParticipantP2P} from '@libs/IOUUtils';
@@ -65,8 +72,8 @@ function AmountField({
     setFormError,
     isParticipantPickerVisible = false,
 }: AmountFieldProps) {
+    const {isEditingSplitBill, isReadOnly, didConfirm, transactionID, action, iouType, reportID, reportActionID, onSignDirtyChange} = useConfirmationFields();
     const shouldAutoFocusOnMount = !canUseTouchScreen();
-    const {isEditingSplitBill, isReadOnly, didConfirm, transactionID, action, iouType, reportID, reportActionID} = useConfirmationFields();
     const styles = useThemeStyles();
     const {translate, preferredLocale} = useLocalize();
     const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
@@ -75,6 +82,7 @@ function AmountField({
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const amountInputRef = useRef<BaseTextInputRef | null>(null);
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+    const baselineIsNegativeRef = useRef(amount < 0);
 
     const transactionSlice = useTransactionSelector(transactionID, amountSliceSelector);
 
@@ -234,7 +242,11 @@ function AmountField({
         const updatedAmount = parsedAmount ?? amount;
 
         buildAndSaveSplitShares(updatedAmount, value);
-        persistMainDraftTotal(updatedAmount, value);
+        if (parsedAmount === null && !isEditingSplitBill) {
+            setMoneyRequestCurrency(transactionID, value);
+        } else {
+            persistMainDraftTotal(updatedAmount, value);
+        }
 
         if (isMovingTransactionFromTrackExpense(action)) {
             const taxCode = value !== policy?.outputCurrency ? policy?.taxRates?.foreignTaxDefault : policy?.taxRates?.defaultExternalID;
@@ -248,11 +260,19 @@ function AmountField({
     };
 
     const handleAmountChange = (newAmount: string) => {
+        const isNegative = newAmount.startsWith('-');
+        const isInputEmpty = newAmount.trim() === '';
+        const parsedAmount = getBackendAmountFromInput(newAmount);
+        const shouldResetSignDirty = isInputEmpty || (parsedAmount === null && transactionSlice?.isAmountSet === true);
+
+        // A standalone minus sign is dirty, but deleting a previously entered negative amount back to
+        // that sign clears the field and must reset the discard-confirmation state.
+        onSignDirtyChange?.(!shouldResetSignDirty && isNegative !== baselineIsNegativeRef.current);
+
         if (!transactionID) {
             return;
         }
 
-        const parsedAmount = getBackendAmountFromInput(newAmount);
         if (parsedAmount === null) {
             // User cleared the field — mark amount as unset so the field stays empty
             // and submission is blocked until a value is re-entered.
