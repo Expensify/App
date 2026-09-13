@@ -9,6 +9,9 @@ import {CurrentReportIDContextProvider} from '@hooks/useCurrentReportID';
 import * as useResponsiveLayoutModule from '@hooks/useResponsiveLayout';
 import type ResponsiveLayoutResult from '@hooks/useResponsiveLayout/types';
 
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
+import getStateFromPath from '@libs/Navigation/helpers/getStateFromPath';
+import Navigation from '@libs/Navigation/Navigation';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 
 import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
@@ -17,10 +20,11 @@ import WorkspaceCategoriesPage from '@pages/workspace/categories/WorkspaceCatego
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 
 import {PortalProvider} from '@gorhom/portal';
-import {NavigationContainer} from '@react-navigation/native';
+import {createNavigationContainerRef, NavigationContainer} from '@react-navigation/native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 
@@ -51,6 +55,37 @@ const renderPage = (initialRouteName: typeof SCREENS.WORKSPACE.CATEGORIES, initi
                             <Stack.Screen
                                 name={SCREENS.WORKSPACE.CATEGORIES}
                                 component={WorkspaceCategoriesPage}
+                                initialParams={initialParams}
+                            />
+                        </Stack.Navigator>
+                    </NavigationContainer>
+                </ModalProvider>
+            </PortalProvider>
+        </ComposeProviders>,
+    );
+};
+
+const navigationRef = createNavigationContainerRef<WorkspaceSplitNavigatorParamList>();
+
+function StackedScreen() {
+    return null;
+}
+
+const renderPageUnderStackedScreen = (initialParams: WorkspaceSplitNavigatorParamList[typeof SCREENS.WORKSPACE.CATEGORIES]) => {
+    return render(
+        <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrentReportIDContextProvider]}>
+            <PortalProvider>
+                <ModalProvider>
+                    <NavigationContainer ref={navigationRef}>
+                        <Stack.Navigator initialRouteName={SCREENS.WORKSPACE.CATEGORIES}>
+                            <Stack.Screen
+                                name={SCREENS.WORKSPACE.CATEGORIES}
+                                component={WorkspaceCategoriesPage}
+                                initialParams={initialParams}
+                            />
+                            <Stack.Screen
+                                name={SCREENS.WORKSPACE.TAGS}
+                                component={StackedScreen}
                                 initialParams={initialParams}
                             />
                         </Stack.Navigator>
@@ -276,6 +311,60 @@ describe('WorkspaceCategories', () => {
             const blockingPrompt = TestHelper.translateLocal('workspace.categories.cannotDeleteOrDisableAllCategories.title');
             expect(screen.getByText(blockingPrompt)).toBeOnTheScreen();
         });
+
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
+    it('should build the same category route when the row is pressed again while the category page is stacked over the list', async () => {
+        await TestHelper.signInWithTestUser();
+
+        const policy = {
+            ...LHNTestUtils.getFakePolicy(),
+            role: CONST.POLICY.ROLE.ADMIN,
+            areCategoriesEnabled: true,
+        };
+
+        const categories = {
+            [FIRST_CATEGORY]: {
+                name: FIRST_CATEGORY,
+                enabled: true,
+            },
+        };
+
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policy.id}`, categories);
+        });
+
+        const getActiveRoute = jest.spyOn(Navigation, 'getActiveRoute').mockReturnValue(ROUTES.WORKSPACE_CATEGORIES.getRoute(policy.id));
+        const navigate = jest.spyOn(Navigation, 'navigate').mockImplementation(() => {});
+
+        const {unmount} = renderPageUnderStackedScreen({policyID: policy.id});
+
+        await waitForBatchedUpdatesWithAct();
+
+        await waitFor(() => {
+            expect(screen.getByText(FIRST_CATEGORY)).toBeOnTheScreen();
+        });
+
+        const categoryRoute = createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_SETTINGS.getRoute(FIRST_CATEGORY), ROUTES.WORKSPACE_CATEGORIES.getRoute(policy.id));
+
+        fireEvent.press(screen.getByText(FIRST_CATEGORY));
+        await waitForBatchedUpdatesWithAct();
+
+        expect(navigate.mock.calls.at(0)?.at(0)).toBe(categoryRoute);
+
+        // A sibling stack screen stands in for the RHP category page that covers the list in the app, with the active route pointed at that page.
+        getActiveRoute.mockReturnValue(categoryRoute);
+        act(() => navigationRef.navigate(SCREENS.WORKSPACE.TAGS, {policyID: policy.id}));
+        await waitForBatchedUpdatesWithAct();
+
+        fireEvent.press(screen.getByText(FIRST_CATEGORY, {includeHiddenElements: true}));
+        await waitForBatchedUpdatesWithAct();
+
+        expect(navigate.mock.calls.at(1)?.at(0)).toBe(categoryRoute);
+        expect(JSON.stringify(getStateFromPath(categoryRoute))).not.toContain(SCREENS.NOT_FOUND);
 
         unmount();
         await waitForBatchedUpdatesWithAct();

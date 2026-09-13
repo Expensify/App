@@ -1,30 +1,50 @@
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
+import navigationRef from '@libs/Navigation/navigationRef';
 
 import type {Route} from '@src/ROUTES';
+
+import type {NavigationState, PartialState} from '@react-navigation/native';
 
 import {NavigationRouteContext, useFocusEffect} from '@react-navigation/native';
 import {useContext, useState} from 'react';
 
+function isRouteInState(state: NavigationState | PartialState<NavigationState> | undefined, key: string): boolean {
+    return !!state?.routes.some((route) => route.key === key || isRouteInState(route.state, key));
+}
+
 /**
- * Builds dynamic routes with `basePath` bound to the mounted route of the component using `useFocusEffect`,
- * so a link created during render remains tied to that screen's route even after another screen is stacked over it.
- *
- * A screen that mounts with another one already stacked over it never focuses, so the path the screen was matched
- * from seeds the base until focus can supply it. Read off the context rather than `useRoute`, which throws when the
- * component renders outside a screen.
+ * Builds dynamic routes against the screen that owns the component, seeding the base from the matched path until focus
+ * supplies the active route, so a link built during render survives another screen being stacked over it. The route
+ * is read off `NavigationRouteContext` because `useRoute` throws outside a screen.
  */
 function useScreenBoundDynamicRoute(): (dynamicRouteSuffixWithParams: string) => Route {
     const route = useContext(NavigationRouteContext);
     const [focusedBasePath, setFocusedBasePath] = useState<string | undefined>();
     useFocusEffect(() => {
-        // On a cold start the focus effect can run before the navigation container is ready, when getActiveRoute
-        // still returns an empty string. Latching it would shadow the route path seed until the next blur and focus.
-        const activeRoute = Navigation.getActiveRoute();
-        if (!activeRoute) {
+        const latch = () => {
+            const activeRoute = Navigation.getActiveRoute();
+            if (!activeRoute || activeRoute === '/') {
+                return;
+            }
+            setFocusedBasePath(activeRoute);
+        };
+        // getActiveRoute returns an empty string before the container is ready, and until the root state carries a
+        // freshly mounted navigator it renders the screen as the bare root or its dynamic suffix alone. Latch only once
+        // this route is in the root state; isReady keeps getRootState quiet on an unattached ref.
+        const key = route?.key;
+        if (!key || !navigationRef.isReady() || isRouteInState(navigationRef.getRootState(), key)) {
+            latch();
             return;
         }
-        setFocusedBasePath(activeRoute);
+        const unsubscribe = navigationRef.addListener('state', () => {
+            if (!isRouteInState(navigationRef.getRootState(), key)) {
+                return;
+            }
+            unsubscribe();
+            latch();
+        });
+        return unsubscribe;
     });
 
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
