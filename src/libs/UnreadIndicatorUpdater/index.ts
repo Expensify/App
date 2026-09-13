@@ -8,7 +8,7 @@ import Navigation, {navigationRef} from '@navigation/Navigation';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Report, ReportActions, ReportNameValuePairs, Session} from '@src/types/onyx';
+import type {Report, ReportActions, ReportAttributesDerivedValue, ReportNameValuePairs, Session} from '@src/types/onyx';
 
 import type {OnyxCollection} from 'react-native-onyx';
 
@@ -65,6 +65,15 @@ Onyx.connectWithoutView({
     },
 });
 
+let reportAttributesDerived: ReportAttributesDerivedValue['reports'] | undefined;
+// This subscription is used to update the unread indicators count which is not linked to UI and it does not update any UI state.
+Onyx.connectWithoutView({
+    key: ONYXKEYS.DERIVED.REPORT_ATTRIBUTES,
+    callback: (value) => {
+        reportAttributesDerived = value?.reports;
+    },
+});
+
 function getUnreadReportsForUnreadIndicator(reports: OnyxCollection<Report>, currentReportID: string | undefined, draftComment: string | undefined) {
     // Read the in-memory offline state directly since this is an imperative one-shot computation (reactivity is not needed here).
     const isOffline = getIsOffline();
@@ -91,7 +100,9 @@ function getUnreadReportsForUnreadIndicator(reports: OnyxCollection<Report>, cur
         const oneTransactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.reportID}`], isOffline);
         const oneTransactionThreadReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${oneTransactionThreadReportID}`];
 
-        if (!ReportUtils.isUnread(report, oneTransactionThreadReport, isReportArchived)) {
+        const derivedIsEmptyReport = report?.reportID ? reportAttributesDerived?.[report.reportID]?.isEmpty : undefined;
+
+        if (!ReportUtils.isUnread(report, oneTransactionThreadReport, isReportArchived, derivedIsEmptyReport)) {
             return false;
         }
 
@@ -111,6 +122,7 @@ function getUnreadReportsForUnreadIndicator(reports: OnyxCollection<Report>, cur
             // TODO: Pass guideAccountIDs once callers are fully migrated — PR 33 (https://github.com/Expensify/App/issues/66413); hasExpensifyGuidesEmails falls back to allPersonalDetails
             hasGuidesEmails: ReportUtils.isDefaultRoom(report) ? ReportUtils.hasExpensifyGuidesEmails(Object.keys(report?.participants ?? {}).map(Number), undefined) : false,
             conciergeReportID,
+            derivedIsEmptyReport,
         });
     });
 }

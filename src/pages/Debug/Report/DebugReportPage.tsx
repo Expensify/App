@@ -8,6 +8,7 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import {useDerivedIsEmptyReport} from '@hooks/useReportAttributes';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -90,6 +91,7 @@ function DebugReportPage({
     const isReportArchived = useReportIsArchived(reportID);
     const [guideAccountIDs] = useOnyx(ONYXKEYS.DERIVED.GUIDE_ACCOUNT_IDS);
     const hasGuidesEmails = hasExpensifyGuidesEmails(Object.keys(report?.participants ?? {}).map(Number), guideAccountIDs);
+    const derivedIsEmptyReport = useDerivedIsEmptyReport(reportID);
 
     const metadata = useMemo<Metadata[]>(() => {
         if (!report) {
@@ -128,6 +130,7 @@ function DebugReportPage({
             currentUserAccountID,
             conciergeReportID,
             hasGuidesEmails,
+            derivedIsEmptyReport,
         });
 
         return [
@@ -190,6 +193,7 @@ function DebugReportPage({
         translate,
         conciergeReportID,
         hasGuidesEmails,
+        derivedIsEmptyReport,
     ]);
 
     const icons = useMemoizedLazyExpensifyIcons(['Eye']);
