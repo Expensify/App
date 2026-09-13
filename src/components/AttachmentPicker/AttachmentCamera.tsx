@@ -22,6 +22,7 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 
 import {showCameraPermissionsAlert} from '@libs/fileDownload/FileUtils';
 import getPhotoSource from '@libs/fileDownload/getPhotoSource';
+import getVideoResolutionFormatFilter from '@libs/getVideoResolutionFormatFilter';
 import isInLandscapeMode from '@libs/isInLandscapeMode';
 import Log from '@libs/Log';
 
@@ -35,7 +36,7 @@ import CONST from '@src/CONST';
 import type {Camera, CameraRuntimeError, PhotoFile} from 'react-native-vision-camera';
 
 import React, {useEffect, useRef, useState} from 'react';
-import {Alert, AppState, Platform, View} from 'react-native';
+import {Alert, AppState, View} from 'react-native';
 import {GestureDetector} from 'react-native-gesture-handler';
 import {RESULTS} from 'react-native-permissions';
 import Animated from 'react-native-reanimated';
@@ -106,16 +107,10 @@ function AttachmentCamera({isVisible, onCapture, onClose, onModalHide}: Attachme
     const cameraDevices = useCameraDevices();
     const canFlipCamera = cameraDevices.some((d) => d.position === 'front') && cameraDevices.some((d) => d.position === 'back');
 
-    // The viewfinder renders from the video pipeline, so videoResolution controls preview quality
-    // (capture always uses the photo resolution). iOS matches the photo target, otherwise the selector
-    // pairs it with a low video resolution and the preview looks grainy. Android uses screen dimensions
-    // to avoid an oversized preview surface.
     const format = useCameraFormat(device, [
         {photoAspectRatio: CONST.RECEIPT_CAMERA.PHOTO_ASPECT_RATIO},
         {photoResolution: {width: CONST.RECEIPT_CAMERA.PHOTO_WIDTH, height: CONST.RECEIPT_CAMERA.PHOTO_HEIGHT}},
-        Platform.OS === 'ios'
-            ? {videoResolution: {width: CONST.RECEIPT_CAMERA.PHOTO_WIDTH, height: CONST.RECEIPT_CAMERA.PHOTO_HEIGHT}}
-            : {videoResolution: {width: windowHeight, height: windowWidth}},
+        getVideoResolutionFormatFilter(windowWidth, windowHeight),
     ]);
     const hasFlash = !!device?.hasFlash;
     const cameraAspectRatio = getCameraAspectRatio(format, isLandscape);
