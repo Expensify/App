@@ -1,5 +1,6 @@
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
 
 import HomeSectionEmptyState from '@pages/home/HomeSectionEmptyState';
 
@@ -12,6 +13,7 @@ const ILLUSTRATION_NAMES = ['ConciergeBot'] as const;
  */
 function ConciergeWelcome() {
     const {translate} = useLocalize();
+    const styles = useThemeStyles();
     const illustrations = useMemoizedLazyIllustrations(ILLUSTRATION_NAMES);
 
     return (
@@ -20,6 +22,7 @@ function ConciergeWelcome() {
             title={translate('reportActionsView.askMeAnything')}
             description={translate('common.concierge.welcomeDescription')}
             testID="ConciergeWelcome"
+            containerStyles={styles.mt0}
         />
     );
 }
