@@ -1043,6 +1043,16 @@ function updateNetSuiteApprovalAccount(policyID: string, value: string, oldValue
     API.write(WRITE_COMMANDS.UPDATE_NETSUITE_APPROVAL_ACCOUNT, parameters, onyxData);
 }
 
+function updateNetSuiteFxExpenseAccount(policyID: string, value: string, oldValue?: string) {
+    const onyxData = updateNetSuiteOnyxData(policyID, CONST.NETSUITE_CONFIG.FX_EXPENSE_ACCOUNT, value, oldValue);
+
+    const parameters = {
+        policyID,
+        value,
+    };
+    API.write(WRITE_COMMANDS.UPDATE_NETSUITE_FX_EXPENSE_ACCOUNT, parameters, onyxData);
+}
+
 function updateNetSuiteCustomFormIDOptions(
     policyID: string,
     value: string,
@@ -1129,6 +1139,7 @@ export {
     updateNetSuiteExportVendorBillsTo,
     updateNetSuiteExportJournalsTo,
     updateNetSuiteApprovalAccount,
+    updateNetSuiteFxExpenseAccount,
     updateNetSuiteCustomFormIDOptions,
     updateNetSuiteCustomersJobsMapping,
     updateNetSuiteAccountingMethod,

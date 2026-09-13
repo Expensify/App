@@ -2333,6 +2333,17 @@ function getNetSuiteReceivableAccountOptions(policy: Policy | undefined, selecte
     }));
 }
 
+function getNetSuiteExpenseAccountOptions(policy: Policy | undefined, selectedExpenseAccountId: string | undefined): SelectorType[] {
+    const expenseAccounts = policy?.connections?.netsuite?.options.data.expenseAccounts;
+
+    return (expenseAccounts ?? []).map(({id, name}) => ({
+        value: id,
+        text: name,
+        keyForList: id,
+        isSelected: id === selectedExpenseAccountId,
+    }));
+}
+
 function getNetSuiteInvoiceItemOptions(policy: Policy | undefined, selectedItemId: string | undefined): SelectorType[] {
     const invoiceItems = policy?.connections?.netsuite?.options.data.items;
 
@@ -3525,6 +3536,7 @@ export {
     getNetSuiteApprovalAccountOptions,
     getNetSuitePayableAccountOptions,
     getNetSuiteReceivableAccountOptions,
+    getNetSuiteExpenseAccountOptions,
     getNetSuiteInvoiceItemOptions,
     getNetSuiteTaxAccountOptions,
     getSageIntacctVendors,

@@ -302,6 +302,7 @@ function getAccountingIntegrationData(
                     ...(!shouldHideExportVendorBillsTo(netsuiteConfig) ? [CONST.NETSUITE_CONFIG.SYNC_OPTIONS.EXPORT_VENDOR_BILLS_TO] : []),
                     ...(!shouldHideExportJournalsTo(netsuiteConfig) ? [CONST.NETSUITE_CONFIG.SYNC_OPTIONS.EXPORT_JOURNALS_TO] : []),
                     CONST.NETSUITE_CONFIG.APPROVAL_ACCOUNT,
+                    CONST.NETSUITE_CONFIG.FX_EXPENSE_ACCOUNT,
                     CONST.NETSUITE_CONFIG.CUSTOM_FORM_ID_ENABLED,
                     ...(!shouldHideCustomFormIDOptions(netsuiteConfig)
                         ? [CONST.NETSUITE_CONFIG.CUSTOM_FORM_ID_TYPE.REIMBURSABLE, CONST.NETSUITE_CONFIG.CUSTOM_FORM_ID_TYPE.NON_REIMBURSABLE]
