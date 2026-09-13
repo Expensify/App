@@ -7,6 +7,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
+import usePrimaryContactMethod from '@hooks/usePrimaryContactMethod';
 import useScreenBoundDynamicRoute from '@hooks/useScreenBoundDynamicRoute';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -28,7 +29,6 @@ import type WithSentryLabel from '@src/types/utils/SentryLabel';
 
 import type {ReactElement} from 'react';
 
-import {emailSelector} from '@selectors/Session';
 import {Str} from 'expensify-common';
 import React, {useEffect, useState} from 'react';
 
@@ -67,15 +67,11 @@ function BookTravelButton({
     const illustrations = useMemoizedLazyIllustrations(['RocketDude']);
     const {translate} = useLocalize();
     const {environmentURL} = useEnvironment();
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
-    const primaryLogin = account?.primaryLogin ?? '';
-
     const policy = usePolicy(activePolicyID);
     const blockIfDefaultWorkspaceLacksTravel = useDefaultWorkspaceTravelGuard();
     const [errorMessage, setErrorMessage] = useState<string | ReactElement>('');
     const [travelSettings] = useOnyx(ONYXKEYS.NVP_TRAVEL_SETTINGS);
-    const [sessionEmail] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector});
-    const primaryContactMethod = primaryLogin ?? sessionEmail ?? '';
+    const primaryContactMethod = usePrimaryContactMethod();
     const {isBetaEnabled} = usePermissions();
     const {showConfirmModal} = useConfirmModal();
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
