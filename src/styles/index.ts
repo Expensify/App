@@ -2384,8 +2384,26 @@ const staticStyles = (theme: ThemeColors) =>
             alignSelf: 'center',
         },
 
+        conciergeWelcomeContainer: {
+            alignItems: 'center',
+            gap: 12,
+            marginBottom: 52,
+        },
+
         conciergeWelcomeTitle: {
+            ...FontUtils.fontFamily.platform.EXP_NEW_KANSAS_MEDIUM,
+            fontSize: variables.fontSizeXLarge,
             lineHeight: variables.lineHeightSizeH1,
+            textAlign: 'center',
+            color: theme.text,
+        },
+
+        conciergeWelcomeDescription: {
+            ...FontUtils.fontFamily.platform.EXP_NEUE,
+            fontSize: variables.fontSizeNormal,
+            lineHeight: variables.fontSizeNormalHeight,
+            textAlign: 'center',
+            color: theme.textSupporting,
         },
 
         chatItemDraft: {

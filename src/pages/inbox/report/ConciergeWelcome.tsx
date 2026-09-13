@@ -1,12 +1,15 @@
+import ImageSVG from '@components/ImageSVG';
+import Text from '@components/Text';
+
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import HomeSectionEmptyState from '@pages/home/HomeSectionEmptyState';
-
 import React from 'react';
+import {View} from 'react-native';
 
 const ILLUSTRATION_NAMES = ['ConciergeBot'] as const;
+const ILLUSTRATION_SIZE = 68;
 
 /**
  * Empty state shown in the main Concierge DM before the user asks anything.
@@ -17,14 +20,18 @@ function ConciergeWelcome() {
     const illustrations = useMemoizedLazyIllustrations(ILLUSTRATION_NAMES);
 
     return (
-        <HomeSectionEmptyState
-            illustration={illustrations.ConciergeBot}
-            title={translate('reportActionsView.askMeAnything')}
-            description={translate('common.concierge.welcomeDescription')}
+        <View
             testID="ConciergeWelcome"
-            containerStyles={styles.mt0}
-            titleStyles={styles.conciergeWelcomeTitle}
-        />
+            style={styles.conciergeWelcomeContainer}
+        >
+            <ImageSVG
+                src={illustrations.ConciergeBot}
+                width={ILLUSTRATION_SIZE}
+                height={ILLUSTRATION_SIZE}
+            />
+            <Text style={styles.conciergeWelcomeTitle}>{translate('reportActionsView.askMeAnything')}</Text>
+            <Text style={styles.conciergeWelcomeDescription}>{translate('common.concierge.welcomeDescription')}</Text>
+        </View>
     );
 }
 

@@ -5,8 +5,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import type IconAsset from '@src/types/utils/IconAsset';
 
-import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
-
 import React from 'react';
 import {View} from 'react-native';
 
@@ -24,21 +22,15 @@ type HomeSectionEmptyStateProps = {
 
     /** Optional test identifier for the container. */
     testID?: string;
-
-    /** Styles applied to the container. */
-    containerStyles?: StyleProp<ViewStyle>;
-
-    /** Styles applied to the title. */
-    titleStyles?: StyleProp<TextStyle>;
 };
 
-function HomeSectionEmptyState({illustration, title, description, testID, containerStyles, titleStyles}: HomeSectionEmptyStateProps) {
+function HomeSectionEmptyState({illustration, title, description, testID}: HomeSectionEmptyStateProps) {
     const styles = useThemeStyles();
 
     return (
         <View
             testID={testID}
-            style={[styles.forYouEmptyStateContainer, containerStyles]}
+            style={styles.forYouEmptyStateContainer}
         >
             <ImageSVG
                 src={illustration}
@@ -46,7 +38,7 @@ function HomeSectionEmptyState({illustration, title, description, testID, contai
                 height={ILLUSTRATION_SIZE}
             />
             <View style={styles.forYouEmptyStateTextContainer}>
-                <Text style={[styles.forYouEmptyStateTitle, titleStyles]}>{title}</Text>
+                <Text style={styles.forYouEmptyStateTitle}>{title}</Text>
                 <Text style={styles.forYouEmptyStateDescription}>{description}</Text>
             </View>
         </View>
