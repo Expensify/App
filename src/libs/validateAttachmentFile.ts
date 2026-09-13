@@ -23,6 +23,11 @@ async function validateAttachmentFile(file: FileObject, item?: DataTransferItem,
         return {isValid: false, error: CONST.FILE_VALIDATION_ERRORS.FILE_INVALID};
     }
 
+    // Detect folders before receipt-specific extension and size checks so they retain the folder error.
+    if (isDataTransferItemDirectory(item)) {
+        return {isValid: false, error: CONST.FILE_VALIDATION_ERRORS.FOLDER_NOT_ALLOWED};
+    }
+
     if (isValidatingReceipts && !isValidReceiptExtension(file)) {
         return {isValid: false, error: CONST.FILE_VALIDATION_ERRORS.WRONG_FILE_TYPE};
     }
@@ -48,10 +53,6 @@ async function validateAttachmentFile(file: FileObject, item?: DataTransferItem,
 
     if (!fileObject) {
         return {isValid: false, error: CONST.FILE_VALIDATION_ERRORS.FILE_INVALID};
-    }
-
-    if (isDataTransferItemDirectory(item)) {
-        return {isValid: false, error: CONST.FILE_VALIDATION_ERRORS.FOLDER_NOT_ALLOWED};
     }
 
     const normalizedFile = await normalizeFileObject(fileObject);

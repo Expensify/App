@@ -60,7 +60,7 @@ function UnlinkLoginForm() {
             <View style={[styles.mb4, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter]}>
                 <PressableWithFeedback
                     accessibilityLabel={translate('common.back')}
-                    onPress={() => redirectToSignIn()}
+                    onPress={() => redirectToSignIn(CONST.SIGN_OUT_REASON.UNLINK_LOGIN)}
                     sentryLabel={CONST.SENTRY_LABEL.SIGN_IN.GO_BACK}
                 >
                     <Text style={[styles.link]}>{translate('common.back')}</Text>

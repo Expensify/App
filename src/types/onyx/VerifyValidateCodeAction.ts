@@ -1,10 +1,12 @@
+import type CONST_APP from '@src/CONST';
+
 import type {CONST} from 'expensify-common';
 import type {ValueOf} from 'type-fest';
 
 import type * as OnyxCommon from './OnyxCommon';
 
 /** The flow a validateCode was requested for */
-type ValidateCodeReason = ValueOf<typeof CONST.VALIDATE_CODE_REASONS>;
+type ValidateCodeReason = ValueOf<typeof CONST.VALIDATE_CODE_REASONS> | typeof CONST_APP.EXPENSIFY_CARD.APPROVE_DIGITAL_WALLET_VALIDATE_CODE_REASON;
 
 /** Model of action to receive validateCode */
 type VerifyValidateCodeAction = OnyxCommon.OnyxValueWithOfflineFeedback<

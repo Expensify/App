@@ -2,7 +2,6 @@ import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import Log from '@libs/Log';
 import getParamsFromRoute from '@libs/Navigation/helpers/getParamsFromRoute';
 import navigationRef from '@libs/Navigation/navigationRef';
-import type {NavigationPartialRoute} from '@libs/Navigation/types';
 
 import CONST from '@src/CONST';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -18,12 +17,41 @@ import {getPreservedNavigatorState} from './usePreserveNavigatorState';
 
 type StackState = StackNavigationState<ParamListBase> | PartialState<StackNavigationState<ParamListBase>>;
 
-const isAtLeastOneInState = (state: StackState, screenName: string): boolean => state.routes.some((route) => route.name === screenName);
-
 type AdaptStateIfNecessaryArgs = {
     state: StackState;
     options: SplitNavigatorRouterOptions;
 };
+
+function hasSkipInitialSidebarParam(state: StackState): boolean {
+    const params = state.routes.at(-1)?.params;
+    return !!params && typeof params === 'object' && 'shouldSkipInitialSidebar' in params && params.shouldSkipInitialSidebar === true;
+}
+
+function stripSkipInitialSidebarParam(state: StackState): StackState {
+    const lastRoute = state.routes.at(-1);
+    if (!lastRoute || !hasSkipInitialSidebarParam(state)) {
+        return state;
+    }
+
+    const params = Object.fromEntries(Object.entries(lastRoute.params ?? {}).filter(([key]) => key !== 'shouldSkipInitialSidebar'));
+    if (state.stale === false) {
+        const routes = [...state.routes];
+        const lastStateRoute = routes.at(-1);
+        if (!lastStateRoute) {
+            return state;
+        }
+        routes[routes.length - 1] = {...lastStateRoute, params: isEmptyObject(params) ? undefined : params};
+        return {...state, routes};
+    }
+
+    const routes = [...state.routes];
+    const lastStateRoute = routes.at(-1);
+    if (!lastStateRoute) {
+        return state;
+    }
+    routes[routes.length - 1] = {...lastStateRoute, params: isEmptyObject(params) ? undefined : params};
+    return {...state, routes};
+}
 
 /**
  * Adapts the navigation state of a SplitNavigator to ensure proper screen layout and navigation flow.
@@ -45,21 +73,22 @@ function adaptStateIfNecessary({state, options: {sidebarScreen, defaultCentralSc
 
     const isNarrowLayout = getIsNarrowLayout();
     const rootState = navigationRef.isReady() ? navigationRef.getRootState() : undefined;
-    const lastRoute = state.routes.at(-1) as NavigationPartialRoute;
+    const shouldSkipInitialSidebar = hasSkipInitialSidebarParam(state);
+    const stateWithoutMarker = stripSkipInitialSidebarParam(state);
+    const routes = [...stateWithoutMarker.routes];
+    let modified = stateWithoutMarker !== state;
 
-    const routes = [...state.routes];
-    let modified = false;
-
-    // When initializing the app on a small screen with the center screen as the initial screen, the sidebar must also be split to allow users to swipe back.
+    // Despite the name, this is true for any navigation while TAB_NAVIGATOR is the only root route, not only during app startup.
+    // `shouldSkipInitialSidebar` lets a direct narrow-layout navigation opt out while wide layouts continue to keep the sidebar.
     const isInitialRoute = !rootState || rootState.routes.length === 1;
-    const shouldSplitHaveSidebar = isInitialRoute || !isNarrowLayout;
+    const shouldSplitHaveSidebar = (isInitialRoute && !shouldSkipInitialSidebar) || !isNarrowLayout;
 
     // If the screen is wide, there should be at least two screens inside:
     // - sidebarScreen to cover left pane.
     // - defaultCentralScreen to cover central pane.
-    if (!isAtLeastOneInState(state, sidebarScreen) && shouldSplitHaveSidebar) {
+    if (!routes.some((route) => route.name === sidebarScreen) && shouldSplitHaveSidebar) {
         const paramsFromRoute = getParamsFromRoute(sidebarScreen, !isNarrowLayout);
-        const copiedParams = pick(lastRoute?.params, paramsFromRoute);
+        const copiedParams = pick(routes.at(-1)?.params, paramsFromRoute);
 
         // We don't want to get an empty object as params because it breaks some navigation logic when comparing if routes are the same.
         const params = isEmptyObject(copiedParams) ? undefined : copiedParams;
@@ -86,7 +115,7 @@ function adaptStateIfNecessary({state, options: {sidebarScreen, defaultCentralSc
 
             routes.push({
                 name: previousSelectedCentralScreen ?? defaultCentralScreen,
-                params: state.routes.at(0)?.params,
+                params: routes.at(0)?.params,
             });
             modified = true;
         }
@@ -147,7 +176,8 @@ function SplitRouter(options: SplitNavigatorRouterOptions) {
                 const stateAfterPop = stackRouter.getStateForAction(state, StackActions.pop(), configOptions) as StackNavigationState<ParamListBase>;
                 return stackRouter.getStateForAction(stateAfterPop, StackActions.pop(), configOptions);
             }
-            return stackRouter.getStateForAction(state, action, configOptions);
+            const result = stackRouter.getStateForAction(state, action, configOptions);
+            return result ? stripSkipInitialSidebarParam(result) : result;
         },
 
         getInitialState({routeNames, routeParamList, routeGetIdList}: RouterConfigOptions) {

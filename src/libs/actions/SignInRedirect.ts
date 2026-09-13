@@ -2,8 +2,10 @@ import {getMicroSecondOnyxErrorWithMessage} from '@libs/ErrorUtils';
 import {clearSessionStorage} from '@libs/Navigation/helpers/lastVisitedTabPathUtils';
 import {getIsOffline} from '@libs/NetworkState';
 import clearPrefetchOnAppStart from '@libs/Prefetch/clearPrefetchOnAppStart';
+import {logReceiptQueueSnapshot} from '@libs/telemetry/ReceiptObservability';
 
 import CONFIG from '@src/CONFIG';
+import type {SignOutReason} from '@src/CONST';
 import type {OnyxKey} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
 
@@ -64,7 +66,9 @@ const KEYS_TO_PRESERVE_ON_SIGN_OUT: OnyxKey[] = [
     ONYXKEYS.COLLECTION.DEVICE_BIOMETRICS,
 ];
 
-function clearStorageAndRedirect(errorMessage?: string, isSAMLReauthentication?: boolean): Promise<void> {
+function clearStorageAndRedirect(signOutReason: SignOutReason, errorMessage?: string, isSAMLReauthentication?: boolean): Promise<void> {
+    logReceiptQueueSnapshot('signOut', signOutReason);
+
     const keysToPreserve: OnyxKey[] = [...KEYS_TO_PRESERVE_ON_SIGN_OUT];
 
     // After signing out, set ourselves as offline if we were offline before logging out and we are not forcing it.
@@ -132,11 +136,12 @@ function clearStorageAndRedirect(errorMessage?: string, isSAMLReauthentication?:
  *
  * Normally this method would live in Session.js, but that would cause a circular dependency with Network.js.
  *
+ * @param signOutReason Which path tore down the session. Telemetry only, it must not drive behavior.
  * @param errorMessage Error message to be displayed on the sign in page
  * @param isSAMLReauthentication Whether the redirection was triggered by reauthentication for SAML required account
  */
-function redirectToSignIn(errorMessage?: string, isSAMLReauthentication?: boolean): Promise<void> {
-    return clearStorageAndRedirect(errorMessage, isSAMLReauthentication).then(() => {
+function redirectToSignIn(signOutReason: SignOutReason, errorMessage?: string, isSAMLReauthentication?: boolean): Promise<void> {
+    return clearStorageAndRedirect(signOutReason, errorMessage, isSAMLReauthentication).then(() => {
         clearSessionStorage();
     });
 }
