@@ -1,8 +1,9 @@
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
-import Navigation from '@libs/Navigation/Navigation';
+import getActiveRoute from '@libs/Navigation/helpers/getActiveRoute';
 
-jest.mock('@libs/Navigation/Navigation', () => ({
-    getActiveRoute: jest.fn(),
+jest.mock('@libs/Navigation/helpers/getActiveRoute', () => ({
+    __esModule: true,
+    default: jest.fn(),
 }));
 
 jest.mock('@libs/Log', () => ({
@@ -24,7 +25,7 @@ jest.mock('@src/ROUTES', () => ({
 }));
 
 describe('createDynamicRoute', () => {
-    const mockGetActiveRoute = jest.mocked(Navigation.getActiveRoute);
+    const mockGetActiveRoute = jest.mocked(getActiveRoute);
 
     beforeEach(() => {
         jest.clearAllMocks();
