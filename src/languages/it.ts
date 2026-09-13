@@ -501,12 +501,6 @@ const translations: TranslationDeepObject<typeof en> = {
             hideChatHistory: 'Nascondi cronologia chat',
             askNewQuestion: 'Fai una nuova domanda',
             newChat: 'Nuova chat',
-            composerPlaceholders: {
-                analyzeSpend: 'Quanto ho speso il mese scorso?',
-                createExpense: 'Crea una spesa',
-                configureWorkspace: 'Aiutami a configurare la mia area di lavoro',
-                getSupport: 'Ho bisogno di aiuto con una cosa',
-            },
         },
         duplicateReport: 'Report duplicato',
         approver: 'Approvante',

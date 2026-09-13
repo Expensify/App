@@ -496,12 +496,6 @@ const translations: TranslationDeepObject<typeof en> = {
             hideChatHistory: '隐藏聊天记录',
             askNewQuestion: '提出新问题',
             newChat: '新聊天',
-            composerPlaceholders: {
-                analyzeSpend: '我上个月花了多少钱？',
-                createExpense: '创建一笔支出',
-                configureWorkspace: '帮我配置工作区',
-                getSupport: '我需要一些帮助',
-            },
         },
         duplicateReport: '重复报销单',
         approver: '审批人',

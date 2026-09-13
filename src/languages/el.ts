@@ -504,12 +504,6 @@ const translations: TranslationDeepObject<typeof en> = {
             hideChatHistory: 'Απόκρυψη ιστορικού συνομιλιών',
             askNewQuestion: 'Κάντε μια νέα ερώτηση',
             newChat: 'Νέα συνομιλία',
-            composerPlaceholders: {
-                analyzeSpend: 'Πόσα ξόδεψα τον προηγούμενο μήνα;',
-                createExpense: 'Δημιούργησε μια δαπάνη',
-                configureWorkspace: 'Βοήθησέ με να ρυθμίσω τον χώρο εργασίας μου',
-                getSupport: 'Χρειάζομαι βοήθεια με κάτι',
-            },
         },
         vacationDelegate: 'Εκπρόσωπος διακοπών',
         expensifyLogo: 'Λογότυπο Expensify',

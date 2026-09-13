@@ -493,12 +493,6 @@ const translations: TranslationDeepObject<typeof en> = {
             hideChatHistory: 'Ocultar historial del chat',
             askNewQuestion: 'Haz una nueva pregunta',
             newChat: 'Nuevo chat',
-            composerPlaceholders: {
-                analyzeSpend: '¿Cuánto gasté el mes pasado?',
-                createExpense: 'Crea un gasto',
-                configureWorkspace: 'Ayúdame a configurar mi espacio de trabajo',
-                getSupport: 'Necesito ayuda con algo',
-            },
         },
         vacationDelegate: 'Delegado de vacaciones',
         expensifyLogo: 'Logo de Expensify',

@@ -500,12 +500,6 @@ const translations: TranslationDeepObject<typeof en> = {
             hideChatHistory: 'チャット履歴を非表示',
             askNewQuestion: '新しい質問をする',
             newChat: '新しいチャット',
-            composerPlaceholders: {
-                analyzeSpend: '先月はいくら使いましたか？',
-                createExpense: '経費を作成して',
-                configureWorkspace: 'ワークスペースの設定を手伝って',
-                getSupport: '困っていることがあります',
-            },
         },
         duplicateReport: 'レポートを複製',
         approver: '承認者',
