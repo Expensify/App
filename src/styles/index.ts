@@ -2384,6 +2384,10 @@ const staticStyles = (theme: ThemeColors) =>
             alignSelf: 'center',
         },
 
+        conciergeWelcomeTitle: {
+            lineHeight: variables.lineHeightSizeH1,
+        },
+
         chatItemDraft: {
             display: 'flex',
             flexDirection: 'row',

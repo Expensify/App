@@ -23,6 +23,7 @@ function ConciergeWelcome() {
             description={translate('common.concierge.welcomeDescription')}
             testID="ConciergeWelcome"
             containerStyles={styles.mt0}
+            titleStyles={styles.conciergeWelcomeTitle}
         />
     );
 }

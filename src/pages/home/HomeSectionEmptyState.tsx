@@ -5,7 +5,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import type IconAsset from '@src/types/utils/IconAsset';
 
-import type {StyleProp, ViewStyle} from 'react-native';
+import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 
 import React from 'react';
 import {View} from 'react-native';
@@ -27,9 +27,12 @@ type HomeSectionEmptyStateProps = {
 
     /** Styles applied to the container. */
     containerStyles?: StyleProp<ViewStyle>;
+
+    /** Styles applied to the title. */
+    titleStyles?: StyleProp<TextStyle>;
 };
 
-function HomeSectionEmptyState({illustration, title, description, testID, containerStyles}: HomeSectionEmptyStateProps) {
+function HomeSectionEmptyState({illustration, title, description, testID, containerStyles, titleStyles}: HomeSectionEmptyStateProps) {
     const styles = useThemeStyles();
 
     return (
@@ -43,7 +46,7 @@ function HomeSectionEmptyState({illustration, title, description, testID, contai
                 height={ILLUSTRATION_SIZE}
             />
             <View style={styles.forYouEmptyStateTextContainer}>
-                <Text style={styles.forYouEmptyStateTitle}>{title}</Text>
+                <Text style={[styles.forYouEmptyStateTitle, titleStyles]}>{title}</Text>
                 <Text style={styles.forYouEmptyStateDescription}>{description}</Text>
             </View>
         </View>
