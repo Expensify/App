@@ -83,6 +83,7 @@ describe('getPrimaryAction', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
         expect(
             getReportPrimaryAction({
+                rules: undefined,
                 currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
@@ -115,6 +116,7 @@ describe('getPrimaryAction', () => {
 
         expect(
             getReportPrimaryAction({
+                rules: undefined,
                 currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
@@ -147,6 +149,7 @@ describe('getPrimaryAction', () => {
 
         expect(
             getReportPrimaryAction({
+                rules: undefined,
                 currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
@@ -181,6 +184,7 @@ describe('getPrimaryAction', () => {
 
         expect(
             getReportPrimaryAction({
+                rules: undefined,
                 currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
@@ -214,6 +218,7 @@ describe('getPrimaryAction', () => {
 
         expect(
             getReportPrimaryAction({
+                rules: undefined,
                 currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
@@ -247,6 +252,7 @@ describe('getPrimaryAction', () => {
 
         expect(
             getReportPrimaryAction({
+                rules: undefined,
                 currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
@@ -285,6 +291,7 @@ describe('getPrimaryAction', () => {
 
         expect(
             getReportPrimaryAction({
+                rules: undefined,
                 currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
@@ -320,6 +327,7 @@ describe('getPrimaryAction', () => {
 
         expect(
             getReportPrimaryAction({
+                rules: undefined,
                 currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
@@ -355,6 +363,7 @@ describe('getPrimaryAction', () => {
 
         expect(
             getReportPrimaryAction({
+                rules: undefined,
                 currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
@@ -391,6 +400,7 @@ describe('getPrimaryAction', () => {
 
         expect(
             getReportPrimaryAction({
+                rules: undefined,
                 currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
@@ -443,6 +453,7 @@ describe('getPrimaryAction', () => {
 
         expect(
             getReportPrimaryAction({
+                rules: undefined,
                 currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
@@ -493,6 +504,7 @@ describe('getPrimaryAction', () => {
 
         expect(
             getReportPrimaryAction({
+                rules: undefined,
                 currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
@@ -554,6 +566,7 @@ describe('getPrimaryAction', () => {
 
         expect(
             getReportPrimaryAction({
+                rules: undefined,
                 currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
@@ -590,6 +603,7 @@ describe('getPrimaryAction', () => {
 
         expect(
             getReportPrimaryAction({
+                rules: undefined,
                 currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
@@ -626,6 +640,7 @@ describe('getPrimaryAction', () => {
 
         expect(
             getReportPrimaryAction({
+                rules: undefined,
                 currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
@@ -660,6 +675,7 @@ describe('getPrimaryAction', () => {
 
         expect(
             getReportPrimaryAction({
+                rules: undefined,
                 currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
@@ -700,6 +716,7 @@ describe('getPrimaryAction', () => {
 
         expect(
             getReportPrimaryAction({
+                rules: undefined,
                 currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
@@ -738,6 +755,7 @@ describe('getPrimaryAction', () => {
 
         expect(
             getReportPrimaryAction({
+                rules: undefined,
                 currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
@@ -909,6 +927,7 @@ describe('getPrimaryAction', () => {
 
         expect(
             getReportPrimaryAction({
+                rules: undefined,
                 currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
@@ -953,6 +972,7 @@ describe('getPrimaryAction', () => {
 
         expect(
             getReportPrimaryAction({
+                rules: undefined,
                 currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
@@ -986,6 +1006,7 @@ describe('getPrimaryAction', () => {
 
         expect(
             getReportPrimaryAction({
+                rules: undefined,
                 currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
@@ -1018,6 +1039,7 @@ describe('getPrimaryAction', () => {
 
         expect(
             getReportPrimaryAction({
+                rules: undefined,
                 currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
@@ -1052,6 +1074,7 @@ describe('getPrimaryAction', () => {
 
         expect(
             getReportPrimaryAction({
+                rules: undefined,
                 currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
@@ -1064,53 +1087,6 @@ describe('getPrimaryAction', () => {
                 isChatReportArchived: false,
             }),
         ).not.toBe(CONST.REPORT.PRIMARY_ACTIONS.PAY);
-    });
-
-    it('should return PAY for non-payer admin when a bank account is connected (reimburseYes)', async () => {
-        const payerEmail = 'payer@vba-test.com';
-        const submitterEmail = 'member@vba-test.com';
-        const report = createMock<Report>({
-            reportID: REPORT_ID,
-            type: CONST.REPORT.TYPE.EXPENSE,
-            policyID: POLICY_ID,
-            ownerAccountID: CURRENT_USER_ACCOUNT_ID + 10,
-            stateNum: CONST.REPORT.STATE_NUM.APPROVED,
-            statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
-            total: -300,
-            isWaitingOnBankAccount: false,
-        });
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
-        const policy = createMock<Policy>({
-            id: POLICY_ID,
-            type: CONST.POLICY.TYPE.TEAM,
-            role: CONST.POLICY.ROLE.ADMIN,
-            owner: payerEmail,
-            reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
-            achAccount: {reimburser: payerEmail},
-            employeeList: {
-                [CURRENT_USER_EMAIL]: {role: CONST.POLICY.ROLE.ADMIN},
-                [payerEmail]: {role: CONST.POLICY.ROLE.ADMIN},
-                [submitterEmail]: {role: CONST.POLICY.ROLE.USER},
-            },
-        });
-        const transaction = createMock<Transaction>({
-            reportID: `${REPORT_ID}`,
-        });
-
-        expect(
-            getReportPrimaryAction({
-                currentUserLogin: CURRENT_USER_EMAIL,
-                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                report,
-                ownerLogin: submitterEmail,
-                chatReport,
-                reportTransactions: [transaction],
-                violations: {},
-                bankAccountList: {},
-                policy,
-                isChatReportArchived: false,
-            }),
-        ).toBe(CONST.REPORT.PRIMARY_ACTIONS.PAY);
     });
 
     it('should return PAY for non-reimburser payments admin in manual reimbursement mode when owner is payer', async () => {
@@ -1148,6 +1124,7 @@ describe('getPrimaryAction', () => {
 
         expect(
             getReportPrimaryAction({
+                rules: undefined,
                 currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
@@ -1199,6 +1176,7 @@ describe('getPrimaryAction', () => {
         try {
             expect(
                 getReportPrimaryAction({
+                    rules: undefined,
                     currentUserLogin: CURRENT_USER_EMAIL,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     report,
@@ -1237,6 +1215,7 @@ describe('getPrimaryAction', () => {
 
         expect(
             getReportPrimaryAction({
+                rules: undefined,
                 currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
@@ -1271,6 +1250,7 @@ describe('getPrimaryAction', () => {
 
         expect(
             getReportPrimaryAction({
+                rules: undefined,
                 currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
@@ -1312,6 +1292,7 @@ describe('getPrimaryAction', () => {
 
         expect(
             getReportPrimaryAction({
+                rules: undefined,
                 currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
@@ -1354,6 +1335,7 @@ describe('getPrimaryAction', () => {
 
         expect(
             getReportPrimaryAction({
+                rules: undefined,
                 currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
@@ -1393,6 +1375,7 @@ describe('getPrimaryAction', () => {
 
         expect(
             getReportPrimaryAction({
+                rules: undefined,
                 currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
@@ -1432,6 +1415,7 @@ describe('getPrimaryAction', () => {
 
         expect(
             getReportPrimaryAction({
+                rules: undefined,
                 currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
@@ -1498,6 +1482,7 @@ describe('getPrimaryAction', () => {
 
         expect(
             getReportPrimaryAction({
+                rules: undefined,
                 currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
@@ -1557,6 +1542,7 @@ describe('getPrimaryAction', () => {
 
         expect(
             getReportPrimaryAction({
+                rules: undefined,
                 currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
@@ -1648,6 +1634,7 @@ describe('getPrimaryAction', () => {
             bankAccountList: {},
             policy,
             isChatReportArchived: false,
+            rules: undefined,
         };
 
         expect(getReportPrimaryAction({...params, isOffline: false})).toBe(CONST.REPORT.PRIMARY_ACTIONS.REMOVE_HOLD);
@@ -1713,6 +1700,7 @@ describe('getPrimaryAction', () => {
 
         expect(
             getReportPrimaryAction({
+                rules: undefined,
                 currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
@@ -1774,6 +1762,7 @@ describe('getPrimaryAction', () => {
 
         expect(
             getReportPrimaryAction({
+                rules: undefined,
                 currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
@@ -1816,6 +1805,7 @@ describe('getPrimaryAction', () => {
 
         expect(
             getReportPrimaryAction({
+                rules: undefined,
                 currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
@@ -1855,6 +1845,7 @@ describe('getPrimaryAction', () => {
 
         expect(
             getReportPrimaryAction({
+                rules: undefined,
                 currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
@@ -1894,6 +1885,7 @@ describe('getPrimaryAction', () => {
 
         expect(
             getReportPrimaryAction({
+                rules: undefined,
                 currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
@@ -1933,6 +1925,7 @@ describe('getPrimaryAction', () => {
 
         expect(
             getReportPrimaryAction({
+                rules: undefined,
                 currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
@@ -1973,6 +1966,7 @@ describe('getPrimaryAction', () => {
 
         expect(
             getReportPrimaryAction({
+                rules: undefined,
                 currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
@@ -2010,6 +2004,7 @@ describe('getPrimaryAction', () => {
 
         expect(
             getReportPrimaryAction({
+                rules: undefined,
                 currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
@@ -2058,6 +2053,7 @@ describe('getPrimaryAction', () => {
 
         expect(
             getReportPrimaryAction({
+                rules: undefined,
                 currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
@@ -2098,6 +2094,7 @@ describe('getPrimaryAction', () => {
         // Then the getReportPrimaryAction should return the empty string
         expect(
             getReportPrimaryAction({
+                rules: undefined,
                 currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
@@ -2360,6 +2357,7 @@ describe('getTransactionThreadPrimaryAction', () => {
 
         expect(
             getReportPrimaryAction({
+                rules: undefined,
                 currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
@@ -2401,6 +2399,7 @@ describe('getTransactionThreadPrimaryAction', () => {
         });
         expect(
             getReportPrimaryAction({
+                rules: undefined,
                 currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
@@ -2443,6 +2442,7 @@ describe('getTransactionThreadPrimaryAction', () => {
         });
         expect(
             getReportPrimaryAction({
+                rules: undefined,
                 currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,

@@ -1,5 +1,5 @@
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
 import FormHelpMessage from '@components/FormHelpMessage';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
@@ -29,7 +29,7 @@ import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigat
 import type {TransactionDuplicateNavigatorParamList} from '@libs/Navigation/types';
 import {resolveCurrentTaxCode} from '@libs/PolicyUtils';
 
-import variables from '@styles/variables';
+import {fontScale} from '@styles/typography';
 
 import CONST from '@src/CONST';
 import * as ReportActionsUtils from '@src/libs/ReportActionsUtils';
@@ -180,7 +180,7 @@ function DynamicConfirmationPage() {
                         <View style={[styles.ph5, styles.pb8]}>
                             <Text
                                 family="EXP_NEW_KANSAS_MEDIUM"
-                                fontSize={variables.fontSizeLarge}
+                                fontSize={fontScale.pageHeader}
                                 style={styles.pb5}
                             >
                                 {translate('violations.confirmDetails')}

@@ -23,10 +23,7 @@ import React from 'react';
 import {View} from 'react-native';
 
 type ReportActionItemThreadProps = {
-    /** The current report */
     report: OnyxEntry<Report>;
-
-    /** All the data of the action item */
     reportAction: ReportAction;
 
     /** Whether the thread item / message is being hovered */

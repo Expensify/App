@@ -13,9 +13,7 @@ import {View} from 'react-native';
 import useShouldShowComposerForActiveEditDraft from './useShouldShowComposerForActiveEditDraft';
 
 type ReportActionsListPaddingViewProps = ChildrenProps & {
-    /** The report currently being looked at */
     report: OnyxTypes.Report;
-    /** Whether the report is archived */
     isReportArchived: boolean;
 };
 
