@@ -1,3 +1,5 @@
+import type {SelectedReports} from '@components/Search/types';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, SearchResults, Transaction} from '@src/types/onyx';
 
@@ -12,8 +14,8 @@ function useHydrateReportsFromSnapshot(
     allReports: OnyxCollection<Report> | undefined,
     /** When this parameter is provided, transactions will be hydrated as well. */
     allTransactions?: OnyxCollection<Transaction>,
-    /** Only merge reports or transactions included in `selectedReportIds` when this parameter is provided. */
-    selectedReportIds?: string[],
+    /** Only merge reports or transactions included in `selectedReports` when this parameter is provided. */
+    selectedReports?: SelectedReports[],
 ) {
     const hasHydratedFromAllReports = useRef(false);
     const hasHydratedFromAllTransactions = useRef(false);
@@ -38,7 +40,7 @@ function useHydrateReportsFromSnapshot(
               }
         > = [];
 
-        const selectedReportIDSet = new Set(selectedReportIds ?? []);
+        const selectedReportIDSet = new Set(selectedReports?.map(({reportID}) => reportID).filter((id) => id) ?? []);
         const isReportKey = (key: string): key is `${typeof ONYXKEYS.COLLECTION.REPORT}${string}` =>
             key.startsWith(ONYXKEYS.COLLECTION.REPORT) && !key.startsWith(ONYXKEYS.COLLECTION.REPORT_ACTIONS) && !key.startsWith(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
         const isTransactionKey = (key: string): key is `${typeof ONYXKEYS.COLLECTION.TRANSACTION}${string}` => key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION);
@@ -52,7 +54,7 @@ function useHydrateReportsFromSnapshot(
             }
 
             const value = snapshotData[key];
-            if (value && (!selectedReportIds || (value.reportID && selectedReportIDSet.has(value.reportID)))) {
+            if (value && (!selectedReports || selectedReportIDSet.has(value.reportID))) {
                 onyxUpdates.push({
                     onyxMethod: Onyx.METHOD.MERGE,
                     key,

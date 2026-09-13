@@ -890,8 +890,6 @@ const ONYXKEYS = {
     /** The preferred policy ID to be used when creating a group */
     DOMAIN_GROUP_CREATE_PREFERRED_POLICY_ID: 'domainGroupCreatePreferredPolicyID',
 
-    MERGE_REPORT_IDS: 'mergeReportIDs',
-
     /** Collection Keys */
     COLLECTION: {
         ATTACHMENT: 'attachment_',
@@ -1893,7 +1891,6 @@ type OnyxValuesMapping = {
     [ONYXKEYS.TRANSACTION_IDS_HIGHLIGHT_ON_SEARCH_ROUTE]: Record<string, Record<string, boolean>>;
     [ONYXKEYS.ROOM_ID_HIGHLIGHT_ON_ROOMS_PAGE]: string | null;
     [ONYXKEYS.DOMAIN_GROUP_CREATE_PREFERRED_POLICY_ID]: string | undefined;
-    [ONYXKEYS.MERGE_REPORT_IDS]: string[] | undefined;
 };
 
 type OnyxDerivedValuesMapping = {

@@ -2,7 +2,7 @@ import EmptyStateComponent from '@components/EmptyStateComponent';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import {usePersonalDetails, useSession} from '@components/OnyxListItemProvider';
 import RenderHTML from '@components/RenderHTML';
-import {useSearchQueryContext, useSearchResultsContext, useSearchSelectionActions} from '@components/Search/SearchContext';
+import {useSearchQueryContext, useSearchResultsContext, useSearchSelectionActions, useSearchSelectionContext} from '@components/Search/SearchContext';
 import SearchMergeReportsListItem from '@components/Search/SearchList/ListItem/SearchMergeReportsListItem';
 import SelectionList from '@components/SelectionList';
 import type {ListItem} from '@components/SelectionList/types';
@@ -19,7 +19,7 @@ import usePermissions from '@hooks/usePermissions';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {clearMergeReportIDs, mergeReports} from '@libs/actions/Report';
+import {mergeReports} from '@libs/actions/Report';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
 import {canMergeReports, getMoneyRequestSpendBreakdown, getPersonalDetailsForAccountID} from '@libs/ReportUtils';
@@ -36,10 +36,10 @@ import React, {useMemo, useState} from 'react';
 import {View} from 'react-native';
 
 function SearchMergeReports() {
-    const [selectedReportIds] = useOnyx(ONYXKEYS.MERGE_REPORT_IDS);
+    const {selectedReports} = useSearchSelectionContext();
     const {clearSelectedTransactions} = useSearchSelectionActions();
     const {currentSearchResults} = useSearchResultsContext();
-    const {currentSearchHash} = useSearchQueryContext();
+    const {currentSearchHash, currentSearchQueryJSON} = useSearchQueryContext();
 
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [allReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
@@ -69,10 +69,10 @@ function SearchMergeReports() {
 
     const [destinationReportID, setDestinationReportID] = useState<string | undefined>();
 
-    useHydrateReportsFromSnapshot(currentSearchResults, allReports, allTransactions, selectedReportIds);
+    useHydrateReportsFromSnapshot(currentSearchResults, allReports, allTransactions, selectedReports);
 
     const allReportsTransactions: Record<string, Transaction[]> = useMemo(() => {
-        const selectedReportIDSet = new Set(selectedReportIds ?? []);
+        const selectedReportIDSet = new Set(selectedReports.map((report) => report.reportID));
         const addedTransactionIDSet = new Set<string>();
 
         const isTransaction = (key: string, value: unknown): value is Transaction =>
@@ -108,14 +108,14 @@ function SearchMergeReports() {
             result[transaction.reportID].push(transaction);
         }
         return result;
-    }, [currentSearchResults?.data, allTransactions, selectedReportIds]);
+    }, [currentSearchResults?.data, selectedReports, allTransactions]);
 
     const reportItems = useMemo(() => {
-        if (!selectedReportIds) {
+        if (!selectedReports || currentSearchQueryJSON?.type !== CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT) {
             return [];
         }
-        return selectedReportIds
-            .map((reportID) => {
+        return selectedReports
+            .map(({reportID}) => {
                 const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
                 if (!reportID || !report?.reportID || report?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
                     return undefined;
@@ -138,7 +138,7 @@ function SearchMergeReports() {
                 };
             })
             .filter((item) => !!item);
-    }, [selectedReportIds, allReports, destinationReportID, personalDetails]);
+    }, [selectedReports, allReports, destinationReportID, personalDetails, currentSearchQueryJSON?.type]);
 
     const destinationReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${destinationReportID}`];
     const sourceReportIDs = destinationReport
@@ -194,7 +194,6 @@ function SearchMergeReports() {
         Navigation.dismissModal({
             afterTransition: () => {
                 clearSelectedTransactions(undefined, true);
-                clearMergeReportIDs();
                 // Wrap navigation in a microtask to avoid a visual glitch on Android.
                 // If we navigate before selection mode has fully exited and the UI has finished rendering,
                 // the report header may briefly display incorrectly.
