@@ -24247,7 +24247,11 @@ var require_CONST = __commonJS({
         SHIP_CARD: "ship_card",
         REPORT_CARD_FRAUD: "report_card_fraud",
         ISSUE_CARD: "issue_card",
-        UPDATE_CARD: "update_card"
+        UPDATE_CARD: "update_card",
+        UPDATE_PERSONAL_DETAILS: "update_personal_details",
+        ADD_DELEGATE: "add_delegate",
+        UPDATE_DELEGATE: "update_delegate",
+        CHANGE_PRIMARY_LOGIN: "change_primary_login"
       },
       EXPENSIFY_CARD: {
         FEED_NAME: "Expensify Card",
