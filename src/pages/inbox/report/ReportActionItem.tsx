@@ -140,6 +140,10 @@ type ReportActionItemProps = {
 
     shouldUseThreadDividerLine?: boolean;
     shouldDisplayContextMenu?: boolean;
+
+    /** Whether this is the newest Concierge comment eligible for the inline feedback prompt */
+    isLatestConciergeFeedbackAction?: boolean;
+
     linkedTransactionRouteError?: Errors;
 
     /** Whether to show border for MoneyRequestReportPreviewContent */
@@ -167,6 +171,7 @@ function ReportActionItem({
     isThreadReportParentAction = false,
     shouldUseThreadDividerLine = false,
     shouldDisplayContextMenu = true,
+    isLatestConciergeFeedbackAction = false,
     parentReportActionForTransactionThread,
     linkedTransactionRouteError: linkedTransactionRouteErrorProp,
     shouldShowBorder,
@@ -633,6 +638,7 @@ function ReportActionItem({
                                                                 shouldShowBorder={shouldShowBorder}
                                                                 isOnSearch={isOnSearch}
                                                                 setIsPaymentMethodPopoverActive={setIsPaymentMethodPopoverActive}
+                                                                isLatestConciergeFeedbackAction={isLatestConciergeFeedbackAction}
                                                             />
                                                             {Permissions.canUseLinkPreviews() && !isHidden && (action.linkMetadata?.length ?? 0) > 0 && (
                                                                 <View style={hasDraft ? styles.chatItemReactionsDraftRight : {}}>

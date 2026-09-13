@@ -47,6 +47,10 @@ function getReportParentReportID(report: OnyxEntry<Report>) {
     return report?.parentReportID;
 }
 
+function getReportParentReportActionID(report: OnyxEntry<Report>) {
+    return report?.parentReportActionID;
+}
+
 /** Which report-type avatar wrapper the `ReportAvatar` dispatcher should render for this report. */
 function reportAvatarKindSelector(report: OnyxEntry<Report>): ValueOf<typeof CONST.REPORT_AVATAR_KIND> | undefined {
     if (!report) {
@@ -331,6 +335,7 @@ export {
     groupChatAvatarReportSelector,
     getReportOwnerAccountID,
     getReportParentReportID,
+    getReportParentReportActionID,
     getReportPolicyID,
     policyIDsWithEmptyReportsSelector,
     canShowReportRecipientLocalTimeSelector,

@@ -528,6 +528,12 @@ const translations: TranslationDeepObject<typeof en> = {
         collapseReasoning: 'Redenering inklappen',
         expandReasoning: 'Redenering uitklappen',
         enableNotifications: {prompt: 'Wil je een melding krijgen wanneer Concierge reageert?', cta: 'Melden'},
+        feedback: {
+            prompt: 'Was dat antwoord nuttig?',
+            useful: 'Nuttig antwoord',
+            notUseful: 'Niet nuttig antwoord',
+            thanks: 'Bedankt voor je feedback!',
+        },
     },
     supportalNoAccess: {
         title: 'Niet zo snel',

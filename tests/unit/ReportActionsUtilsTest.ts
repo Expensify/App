@@ -6910,4 +6910,79 @@ describe('ReportActionsUtils', () => {
             expect(actual).toBe('changed the "Advertising" category description to not required (previously required)');
         });
     });
+
+    describe('getLatestConciergeFeedbackActionID', () => {
+        function conciergeComment(reportActionID: string, created: string, overrides: Partial<ReportAction> = {}): ReportAction {
+            return {
+                reportActionID,
+                reportID: '1',
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                actorAccountID: CONST.ACCOUNT_ID.CONCIERGE,
+                created,
+                message: [{type: 'COMMENT', html: 'hi', text: 'hi'}],
+                originalMessage: {html: 'hi', whisperedTo: []},
+                shouldShow: true,
+                ...overrides,
+            } as ReportAction;
+        }
+
+        /** The set of IDs Onyx actually holds, which is what `allReportActionIDs` gives the list. */
+        function persisted(actions: ReportAction[]): ReadonlySet<string> {
+            return new Set(actions.map((action) => action.reportActionID));
+        }
+
+        it('returns the newest persisted Concierge comment', () => {
+            // Descending, the order `sortedVisibleReportActions` is in.
+            const older = conciergeComment('100', '2026-09-01 00:00:00.000');
+            const newer = conciergeComment('200', '2026-09-02 00:00:00.000');
+            expect(ReportActionsUtils.getLatestConciergeFeedbackActionID([newer, older], persisted([newer, older]))).toBe('200');
+        });
+
+        it('shows nothing when the newest Concierge comment is the client-built greeting', () => {
+            // useConciergeSidePanelReportActions splices this in; it never reaches Onyx.
+            const greeting = conciergeComment(String(CONST.CONCIERGE_GREETING_ACTION_ID), '2026-09-03 00:00:00.000');
+            const real = conciergeComment('200', '2026-09-02 00:00:00.000');
+            expect(ReportActionsUtils.getLatestConciergeFeedbackActionID([greeting, real], persisted([real]))).toBeUndefined();
+        });
+
+        it('uses the real comment when the greeting sits below it, as the session list orders them', () => {
+            const real = conciergeComment('200', '2026-09-04 00:00:00.000');
+            const greeting = conciergeComment(String(CONST.CONCIERGE_GREETING_ACTION_ID), '2026-09-03 00:00:00.000');
+            expect(ReportActionsUtils.getLatestConciergeFeedbackActionID([real, greeting], persisted([real]))).toBe('200');
+        });
+
+        it('returns undefined when the greeting is the only Concierge comment', () => {
+            const greeting = conciergeComment(String(CONST.CONCIERGE_GREETING_ACTION_ID), '2026-09-03 00:00:00.000');
+            expect(ReportActionsUtils.getLatestConciergeFeedbackActionID([greeting], persisted([]))).toBeUndefined();
+        });
+
+        it('shows nothing while a Concierge draft streams, then moves to it once it lands in Onyx', () => {
+            // buildConciergeDraftReportAction makes an ADD_COMMENT authored by Concierge that is not persisted yet.
+            const draft = conciergeComment('300', '2026-09-04 00:00:00.000');
+            const previous = conciergeComment('200', '2026-09-02 00:00:00.000');
+            // Must not fall back to `previous`: that would ask the user to rate the older answer mid-stream.
+            expect(ReportActionsUtils.getLatestConciergeFeedbackActionID([draft, previous], persisted([previous]))).toBeUndefined();
+            expect(ReportActionsUtils.getLatestConciergeFeedbackActionID([draft, previous], persisted([draft, previous]))).toBe('300');
+        });
+
+        it('skips Concierge whispers and deleted Concierge comments', () => {
+            const whisper = conciergeComment('400', '2026-09-05 00:00:00.000', {originalMessage: {html: 'w', whisperedTo: [1]}} as Partial<ReportAction>);
+            const deleted = conciergeComment('350', '2026-09-04 00:00:00.000', {message: [{type: 'COMMENT', html: '', text: ''}]} as Partial<ReportAction>);
+            const real = conciergeComment('200', '2026-09-02 00:00:00.000');
+            const sorted = [whisper, deleted, real];
+            expect(ReportActionsUtils.getLatestConciergeFeedbackActionID(sorted, persisted(sorted))).toBe('200');
+        });
+
+        it('ignores non-Concierge authors and non-comment actions', () => {
+            const userComment = conciergeComment('500', '2026-09-06 00:00:00.000', {actorAccountID: 12345});
+            const created = conciergeComment('450', '2026-09-05 00:00:00.000', {actionName: CONST.REPORT.ACTIONS.TYPE.CREATED});
+            const real = conciergeComment('200', '2026-09-02 00:00:00.000');
+            const sorted = [userComment, created, real];
+            expect(ReportActionsUtils.getLatestConciergeFeedbackActionID(sorted, persisted(sorted))).toBe('200');
+        });
+
+        it('returns undefined for an empty report', () => {
+            expect(ReportActionsUtils.getLatestConciergeFeedbackActionID([], persisted([]))).toBeUndefined();
+        });
+    });
 });

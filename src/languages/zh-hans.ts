@@ -526,6 +526,12 @@ const translations: TranslationDeepObject<typeof en> = {
             prompt: '希望在Concierge回复时收到通知吗？',
             cta: '通知',
         },
+        feedback: {
+            prompt: '这个回答有帮助吗？',
+            useful: '有用的回答',
+            notUseful: '没用的回答',
+            thanks: '感谢您的反馈！',
+        },
     },
     supportalNoAccess: {
         title: '先别急',

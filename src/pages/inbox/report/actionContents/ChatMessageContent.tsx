@@ -30,6 +30,7 @@ import React from 'react';
 import {View} from 'react-native';
 
 import ChatActionableButtons from './ChatActionableButtons';
+import ConciergeFeedbackPrompt from './ConciergeFeedbackPrompt';
 
 type ChatMessageContentProps = {
     action: OnyxTypes.ReportAction;
@@ -41,9 +42,21 @@ type ChatMessageContentProps = {
     isHidden: boolean;
     updateHiddenState: (isHiddenValue: boolean) => void;
     isOnSearch: boolean;
+    isLatestConciergeFeedbackAction: boolean;
 };
 
-function ChatMessageContent({action, policyID, reportID, originalReportID, displayAsGroup, draftMessage, isHidden, updateHiddenState, isOnSearch}: ChatMessageContentProps) {
+function ChatMessageContent({
+    action,
+    policyID,
+    reportID,
+    originalReportID,
+    displayAsGroup,
+    draftMessage,
+    isHidden,
+    updateHiddenState,
+    isOnSearch,
+    isLatestConciergeFeedbackAction,
+}: ChatMessageContentProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
@@ -109,6 +122,12 @@ function ChatMessageContent({action, policyID, reportID, originalReportID, displ
                                 originalReportID={originalReportID}
                                 reportID={reportID}
                                 hasPendingFollowupListSkeleton={hasPendingFollowupListSkeleton}
+                            />
+                        )}
+                        {isLatestConciergeFeedbackAction && !isOnSearch && (
+                            <ConciergeFeedbackPrompt
+                                action={action}
+                                reportID={reportID}
                             />
                         )}
                     </View>

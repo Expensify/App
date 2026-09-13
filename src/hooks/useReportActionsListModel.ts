@@ -158,6 +158,9 @@ function useReportActionsListModel(reportID: string, isReportLoadPending: boolea
         isConciergeHiddenHistory,
         showFullHistory,
         hasPreviousMessages,
+        // Derived straight from Onyx, before the Concierge greeting and the paced draft are spliced into
+        // the visible list, so it is the set of actions that actually exist server-side.
+        allReportActionIDs,
     };
 
     // The command handles on `ReportActionsListActionsContext`. Referentially stable, so actions-only
