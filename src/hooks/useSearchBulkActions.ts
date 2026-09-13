@@ -48,6 +48,7 @@ import Log from '@libs/Log';
 import {getTransactionsAndReportsFromSearch} from '@libs/MergeTransactionUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
+import Parser from '@libs/Parser';
 import {getLoginByAccountID} from '@libs/PersonalDetailsUtils';
 import {getConnectedIntegration, isAdminOfCardEnabledPolicy, isSubmitPolicy} from '@libs/PolicyUtils';
 import {getReportAccountingExportActions, isMergeActionForSelectedTransactions} from '@libs/ReportSecondaryActionUtils';
@@ -92,6 +93,7 @@ import {
 } from '@libs/SearchUIUtils';
 import showConfirmModalAfterMoreMenuDismiss from '@libs/showConfirmModalAfterMoreMenuDismiss';
 import playSound, {SOUNDS} from '@libs/Sound';
+import StringUtils from '@libs/StringUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {
     getDeleteConfirmationPrompt,
@@ -107,8 +109,6 @@ import {
     isPending,
     isPerDiemRequest,
     isScanning,
-    showHeldExpensesBlockModal,
-    showPendingCardTransactionsBlockModal,
 } from '@libs/TransactionUtils';
 
 import variables from '@styles/variables';
@@ -2014,7 +2014,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                                 connectionNameFriendly,
                                 reportName: '',
                             }).trim(),
-                            prompt: exportedReportNames.join('\n'),
+                            prompt: exportedReportNames.map((reportName) => `${CONST.DOT_SEPARATOR} ${reportName}`).join('\n'),
                             confirmText: translate('workspace.exportAgainModal.confirmText'),
                             cancelText: translate('workspace.exportAgainModal.cancelText'),
                             shouldEnablePromptScroll: true,
@@ -2047,7 +2047,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                             integrationReportIDs.length < integrationGroupSize,
                             connectionNameFriendly,
                         ),
-                        prompt: exportableReportNames.join('\n'),
+                        prompt: exportableReportNames.map((reportName) => `${CONST.DOT_SEPARATOR} ${reportName}`).join('\n'),
                         confirmText: translate('workspace.exportPartialModal.confirmText', {count: integrationReportIDs.length}),
                         cancelText: translate('workspace.exportPartialModal.cancelText'),
                         shouldEnablePromptScroll: true,
@@ -2398,22 +2398,35 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                               .map((id) => selectedTransactions[id]?.transaction ?? allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`])
                               .filter((t): t is NonNullable<typeof t> => !!t);
 
-                    if (hasOnlyPendingCardTransactions(allSelectedTransactionsList)) {
-                        showPendingCardTransactionsBlockModal(showConfirmModal, translate, allReportsShouldMarkAsDone);
-                        return;
+                    // The blocked-report checks are per report, so group the selected transactions by report.
+                    const transactionsByReportID = new Map<string, Transaction[]>();
+                    for (const transaction of allSelectedTransactionsList) {
+                        if (!transaction.reportID) {
+                            continue;
+                        }
+                        const reportTransactions = transactionsByReportID.get(transaction.reportID);
+                        if (reportTransactions) {
+                            reportTransactions.push(transaction);
+                        } else {
+                            transactionsByReportID.set(transaction.reportID, [transaction]);
+                        }
                     }
 
-                    if (hasOnlyHeldExpenses(allSelectedTransactionsList)) {
-                        showHeldExpensesBlockModal(showConfirmModal, translate, allReportsShouldMarkAsDone);
-                        return;
+                    const blockedReportIDs = new Set<string>();
+                    for (const [reportID, reportTransactions] of transactionsByReportID) {
+                        if (hasOnlyPendingCardTransactions(reportTransactions) || hasOnlyHeldExpenses(reportTransactions)) {
+                            blockedReportIDs.add(reportID);
+                        }
                     }
+                    const areAllSelectedReportsBlocked = blockedReportIDs.size > 0 && blockedReportIDs.size === transactionsByReportID.size;
 
                     const selectedReportForSubmit = selectedReports.at(0);
                     const reportIDForSubmit = selectedReportForSubmit?.reportID ?? selectedTransactionsKeys.map((id) => selectedTransactions[id]?.reportID).find((id): id is string => !!id);
                     const policyIDForSubmit = selectedReportForSubmit?.policyID ?? selectedTransactionsKeys.map((id) => selectedTransactions[id]?.policyID).find((id): id is string => !!id);
                     const policyForSubmit = policyIDForSubmit ? policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyIDForSubmit}`] : undefined;
 
-                    if (policyForSubmit && isSubmitPolicy(policyForSubmit) && reportIDForSubmit && hash) {
+                    // A blocked report skips the submit-to popover and falls through to the modal below.
+                    if (!areAllSelectedReportsBlocked && policyForSubmit && isSubmitPolicy(policyForSubmit) && reportIDForSubmit && hash) {
                         const snapshotReport = getReportOrDraftReport(
                             reportIDForSubmit,
                             undefined,
@@ -2449,6 +2462,9 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     }
 
                     for (const item of itemList) {
+                        if (item.reportID && blockedReportIDs.has(item.reportID)) {
+                            continue;
+                        }
                         const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`];
                         if (policy) {
                             submitMoneyRequestOnSearch(hash, [item as Report], [policy], getLoginByAccountID(item.ownerAccountID, personalDetails), getCurrencyDecimals, rules);
@@ -2456,6 +2472,30 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                             Log.info('[BulkSubmit] Skipping report: policy not found in Onyx', false, {reportID: item?.reportID, policyID: item?.policyID});
                         }
                     }
+
+                    // List the skipped reports by the name the Search rows display.
+                    if (blockedReportIDs.size > 0) {
+                        const blockedReportNames: string[] = [];
+                        for (const reportID of blockedReportIDs) {
+                            const reportName = searchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]?.reportName;
+                            if (reportName) {
+                                blockedReportNames.push(StringUtils.lineBreaksToSpaces(Parser.htmlToText(reportName)));
+                            }
+                        }
+                        showConfirmModalAfterMoreMenuDismiss(showConfirmModal, {
+                            title: translate(allReportsShouldMarkAsDone ? 'iou.error.reportsNotMarkedAsDoneTitle' : 'iou.error.reportsNotSubmittedTitle'),
+                            subtitle: translate(allReportsShouldMarkAsDone ? 'iou.error.reportsNotMarkedAsDoneDescription' : 'iou.error.reportsNotSubmittedDescription'),
+                            prompt: blockedReportNames.map((reportName) => `${CONST.DOT_SEPARATOR} ${reportName}`).join('\n'),
+                            confirmText: translate('common.buttonConfirm'),
+                            shouldShowCancelButton: false,
+                            shouldEnablePromptScroll: true,
+                        });
+
+                        if (areAllSelectedReportsBlocked) {
+                            return;
+                        }
+                    }
+
                     // Submitting only changes the report, so the rows keep serving the snapshot's pre-submit report
                     // context (which still offers Submit) until the snapshot is refetched, the same way approving and
                     // paying from Search already do.

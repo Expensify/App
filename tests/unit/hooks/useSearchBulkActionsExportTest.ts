@@ -860,7 +860,7 @@ describe('useSearchBulkActions - export options', () => {
             expect.objectContaining({
                 title: 'workspace.exportPartialModal.title',
                 subtitle: 'workspace.exportPartialModal.description',
-                prompt: 'Approved report',
+                prompt: `${CONST.DOT_SEPARATOR} Approved report`,
                 shouldEnablePromptScroll: true,
             }),
         );
@@ -905,7 +905,7 @@ describe('useSearchBulkActions - export options', () => {
             expect.objectContaining({
                 title: 'workspace.exportPartialModal.title',
                 subtitle: 'workspace.exportPartialModal.description',
-                prompt: 'Approved report',
+                prompt: `${CONST.DOT_SEPARATOR} Approved report`,
                 shouldEnablePromptScroll: true,
             }),
         );
@@ -990,7 +990,7 @@ describe('useSearchBulkActions - export options', () => {
             expect.objectContaining({
                 title: 'workspace.exportAgainModal.title',
                 subtitle: 'workspace.exportAgainModal.description',
-                prompt: 'Approved report',
+                prompt: `${CONST.DOT_SEPARATOR} Approved report`,
                 shouldEnablePromptScroll: true,
             }),
         );
@@ -1029,7 +1029,7 @@ describe('useSearchBulkActions - export options', () => {
             expect.objectContaining({
                 title: 'workspace.exportAgainModal.title',
                 subtitle: 'workspace.exportAgainModal.description',
-                prompt: 'Approved report',
+                prompt: `${CONST.DOT_SEPARATOR} Approved report`,
                 shouldEnablePromptScroll: true,
             }),
         );
