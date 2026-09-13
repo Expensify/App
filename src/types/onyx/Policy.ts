@@ -1239,6 +1239,11 @@ type SageIntacctConnectionData = {
     creditCards: SageIntacctDataElement[];
     entities: SageIntacctDataElementWithValue[];
     bankAccounts: SageIntacctDataElement[];
+
+    /** Expense accounts, the only ones a currency conversion cost can be charged to. */
+    expenseAccounts?: SageIntacctDataElement[];
+
+    /** Collection of vendors */
     vendors: SageIntacctDataElementWithValue[];
     journals: SageIntacctDataElementWithValue[];
     items: SageIntacctDataElement[];
@@ -1370,6 +1375,9 @@ type SageIntacctConnectionsConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** Sage Intacct entity */
         entity?: string;
+
+        /** ID of the account cross-border currency conversion costs are charged to. Unset means the cost is not exported. */
+        fxExpenseAccount?: string;
 
         /** Collection of Sage Intacct config errors */
         errors?: OnyxCommon.Errors;

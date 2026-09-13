@@ -353,6 +353,7 @@ function getAccountingIntegrationData(
                     CONST.SAGE_INTACCT_CONFIG.APPROVAL_MODE,
                     CONST.SAGE_INTACCT_CONFIG.SYNC_REIMBURSED_REPORTS,
                     CONST.SAGE_INTACCT_CONFIG.REIMBURSEMENT_ACCOUNT_ID,
+                    CONST.SAGE_INTACCT_CONFIG.FX_EXPENSE_ACCOUNT,
                 ],
                 workspaceUpgradeNavigationDetails: {
                     integrationAlias: CONST.UPGRADE_FEATURE_INTRO_MAPPING.intacct.alias,
