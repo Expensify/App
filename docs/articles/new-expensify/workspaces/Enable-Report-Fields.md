@@ -55,8 +55,13 @@ The new field appears in the list on the **Reports** page and on every report in
 
 ## How to edit or delete a report field
 
+A field's **Name** and **Type** are set when you create it and can't be changed afterward. Both are shown as read-only when you open the field. To use a different name or type, delete the field and create a new one.
+
 1. On the **Reports** page, click the field you want to change.
-2. Update the **Name**, **Type**, **Initial value**, or **List values**.
+2. Update what that field type allows:
+   - **Text** and **Formula** fields: **Initial value**.
+   - **List** fields: **List values** and **Initial value**.
+   - **Date** fields: nothing. The initial value is read-only, so delete the field if you need to change it.
 3. To remove the field, click **Delete**.
 
 Fields imported from an active accounting connection have no **Delete** option. See how imported fields behave below.
@@ -71,7 +76,7 @@ While that connection is active, imported fields and the fields you create behav
 
 - **Imported fields** can't be deleted, and you can't add or delete their **List values** in Expensify. Add or remove values in your accounting system, then sync the connection.
 - You can still turn an imported field's individual **List values** on or off in Expensify to control which ones members can pick.
-- **Fields you create in Expensify** can be edited and deleted as usual, even while the connection is active.
+- **Fields you create in Expensify** stay under your control. You can change their **Initial value** and **List values** and delete them, even while the connection is active.
 - You can enable **Report fields** and click **Add field** while a connection is active.
 - Once at least one imported field exists, the **Report fields** toggle can't be turned off. Clicking it shows a message that report fields imported from your accounting connection can't be disabled.
 
@@ -101,7 +106,11 @@ The field was imported from your active accounting connection, so it's managed i
 
 ## Can I add my own report fields while an accounting integration is connected?
 
-Yes. Click **Add field** on the **Reports** page. Fields you create are separate from imported fields, and you can edit or delete them at any time.
+Yes. Click **Add field** on the **Reports** page. Fields you create are separate from imported fields, and you can change or delete them at any time.
+
+## Why can't I change a report field's name or type?
+
+The **Name** and **Type** are set when the field is created and are read-only afterward, for imported fields and for fields you create. To use a different name or type, delete the field and create a new one.
 
 ## What happens when I turn off report fields?
 
