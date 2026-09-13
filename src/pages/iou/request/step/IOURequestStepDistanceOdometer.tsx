@@ -4,6 +4,7 @@ import KeyboardAvoidingView from '@components/KeyboardAvoidingView';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import ReceiptImage from '@components/ReceiptImage';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
+import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
@@ -644,9 +645,10 @@ function IOURequestStepDistanceOdometer({
                 shouldOffsetBottomSafeAreaPadding
                 onLayout={measureOwnLayout}
             >
-                <View
+                <ScrollView
                     testID="odometerContentContainer"
-                    style={[styles.flex1, styles.flexColumn, styles.justifyContentBetween, styles.ph5, styles.pt5, styles.mb5]}
+                    keyboardShouldPersistTaps="handled"
+                    contentContainerStyle={[styles.flexGrow1, styles.justifyContentBetween, styles.ph5, styles.pt5, styles.mb5]}
                 >
                     <View>
                         {/* Start Reading */}
@@ -782,7 +784,7 @@ function IOURequestStepDistanceOdometer({
                             <Button.Text>{buttonText}</Button.Text>
                         </Button>
                     </View>
-                </View>
+                </ScrollView>
             </KeyboardAvoidingView>
         </StepScreenWrapper>
     );
