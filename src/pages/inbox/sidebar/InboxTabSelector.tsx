@@ -10,6 +10,7 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePopoverPosition from '@hooks/usePopoverPosition';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import {useSidebarOrderedReportsActions, useSidebarOrderedReportsState} from '@hooks/useSidebarOrderedReports';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -37,7 +38,8 @@ function InboxTabSelector() {
     const {activeTab, inboxTabCounts} = useSidebarOrderedReportsState();
     const {setActiveTab, getReportIDsForTab} = useSidebarOrderedReportsActions();
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {selector: reportNameValuePairsArchivedSelector});
-    const icons = useMemoizedLazyExpensifyIcons(['Checkmark']);
+    const icons = useMemoizedLazyExpensifyIcons(['Checkmark', 'Feed', 'ChatBubbleUnread', 'Task']);
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {showConfirmModal} = useConfirmModal();
 
     // Anchor the popover to the tab it was opened from (not the whole tab row) so it opens at that tab's left edge.
@@ -102,6 +104,8 @@ function InboxTabSelector() {
         {
             key: CONST.INBOX_TAB.ALL,
             title: translate('inboxTabs.all'),
+            // Tabs only carry icons on narrow screens, matching the other pages' narrow tab rows.
+            icon: shouldUseNarrowLayout ? icons.Feed : undefined,
             tabRef: allTabRef,
             // Every tab opens the "Mark all as read" menu on long-press / right-click, so they all wire the secondary
             // interaction (which suppresses the native browser context menu on web).
@@ -110,6 +114,7 @@ function InboxTabSelector() {
         {
             key: CONST.INBOX_TAB.UNREAD,
             title: translate('inboxTabs.unread'),
+            icon: shouldUseNarrowLayout ? icons.ChatBubbleUnread : undefined,
             badgeText: getBadgeText(inboxTabCounts[CONST.INBOX_TAB.UNREAD]),
             isBadgeCondensed: true,
             badgeStyles: styles.tabSelectorBadge,
@@ -119,6 +124,7 @@ function InboxTabSelector() {
         {
             key: CONST.INBOX_TAB.TODO,
             title: translate('inboxTabs.todo'),
+            icon: shouldUseNarrowLayout ? icons.Task : undefined,
             badgeText: getBadgeText(inboxTabCounts[CONST.INBOX_TAB.TODO]),
             isBadgeCondensed: true,
             badgeStyles: styles.tabSelectorBadge,
@@ -128,7 +134,7 @@ function InboxTabSelector() {
     ];
 
     return (
-        <View>
+        <View style={styles.pt1}>
             <TabSelectorContextProvider activeTabKey={activeTab}>
                 <TabSelectorBase
                     tabs={tabs}
