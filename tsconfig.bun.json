@@ -1,9 +1,13 @@
 {
+    "$schema": "https://json.schemastore.org/tsconfig",
     "extends": "./tsconfig.base.json",
     "compilerOptions": {
+        "tsBuildInfoFile": "./tsconfig.bun.ts7.tsbuildinfo",
         "types": ["bun"],
         "lib": ["ESNext"]
     },
-    "include": ["scripts", "tests/tooling", "server/libs", "server/plugins", "server/stubs", "evals"],
+    // `prompts` and `.github/libs` are not Bun directories, but `scripts`, `evals` and
+    // `tests/tooling` import them, so this program has to list them.
+    "include": ["scripts", "tests/tooling", "server/libs", "server/plugins", "server/stubs", "evals", "prompts", ".github/libs"],
     "exclude": ["**/node_modules/*", "**/dist/*", "server/victory-chart-renderer/**"]
 }

@@ -12,13 +12,8 @@ type ReportFieldsInitialListValuePickerProps = {
     /** Options to select from if field is of type list */
     listValues: string[];
 
-    /** Collection of flags that state whether list field options are disabled */
     disabledOptions: boolean[];
-
-    /** Selected value */
     value: string;
-
-    /** Function to call when the user selects a value */
     onValueChange: (value: string) => void;
 };
 
