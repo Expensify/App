@@ -95,14 +95,14 @@ type MoneyRequestReportUnifiedListProps = {
     accessibilityLabel: string;
 
     /** Called when the list lays out. */
-    onLayout: () => void;
+    onLayout: (event: LayoutChangeEvent) => void;
 
     onScroll: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
 
     /** Called when the user starts dragging the list. */
     onScrollBeginDrag: () => void;
 
-    onContentSizeChange: () => void;
+    onContentSizeChange: (width: number, height: number) => void;
     onViewableItemsChanged: (info: {viewableItems: ViewToken[]; changed: ViewToken[]}) => void;
 
     /** Called when the end of the list is reached (older actions). */
@@ -214,7 +214,7 @@ function MoneyRequestReportUnifiedList({
 
     const handleLayout = (event: LayoutChangeEvent) => {
         setViewportHeight(event.nativeEvent.layout.height);
-        onLayout();
+        onLayout(event);
     };
 
     // The hook compares unreadMarkerReportActionIndex (0-based within visibleReportActions) against
