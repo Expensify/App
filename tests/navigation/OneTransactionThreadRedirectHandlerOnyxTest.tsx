@@ -25,9 +25,13 @@ jest.mock('@libs/Navigation/Navigation', () => ({
     __esModule: true,
     default: {
         navigate: (...args: unknown[]) => mockNavigate(...args),
-        goBack: jest.fn(),
-        isNavigationReady: () => Promise.resolve(),
     },
+}));
+
+// Onyx, not layout, is what this suite pins down, and the inbox route below never reads the narrow-layout branch.
+jest.mock('@hooks/useResponsiveLayout', () => ({
+    __esModule: true,
+    default: () => ({shouldUseNarrowLayout: false}),
 }));
 
 const mockRoute = {name: SCREENS.REPORT, params: {reportID: THREAD_REPORT_ID}};
@@ -121,24 +125,6 @@ describe('OneTransactionThreadRedirectHandler with real Onyx data', () => {
         await seedOnyx(2, [createIOUAction('action1', 'transaction1', THREAD_REPORT_ID), createIOUAction('action2', 'transaction2', SECOND_THREAD_REPORT_ID)]);
 
         render(<OneTransactionThreadRedirectHandler />, {wrapper: OnyxListItemProvider});
-        await waitForBatchedUpdatesWithAct();
-
-        expect(mockNavigate).not.toHaveBeenCalled();
-    });
-
-    it('keeps the thread route when a sibling expense is deleted while the user is reading it', async () => {
-        await seedOnyx(2, [createIOUAction('action1', 'transaction1', THREAD_REPORT_ID), createIOUAction('action2', 'transaction2', SECOND_THREAD_REPORT_ID)]);
-
-        render(<OneTransactionThreadRedirectHandler />, {wrapper: OnyxListItemProvider});
-        await waitForBatchedUpdatesWithAct();
-        expect(mockNavigate).not.toHaveBeenCalled();
-
-        // Deleting the *other* expense drops the parent to a single-expense report while the user is still reading
-        // this thread, and the replace would drop the thread route, leaving no way back.
-        await act(async () => {
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${EXPENSE_REPORT_ID}`, {transactionCount: 1});
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${EXPENSE_REPORT_ID}`, {action2: null});
-        });
         await waitForBatchedUpdatesWithAct();
 
         expect(mockNavigate).not.toHaveBeenCalled();

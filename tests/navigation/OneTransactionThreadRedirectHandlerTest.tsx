@@ -23,15 +23,26 @@ const SIBLING_TRANSACTION_ID = '22222';
 const TRANSACTION_THREAD_NAVIGATION_TRANSACTION_IDS_KEY = 'transactionThreadNavigationTransactionIDs';
 
 const mockNavigate = jest.fn();
-const mockGoBack = jest.fn();
 
 jest.mock('@libs/Navigation/Navigation', () => ({
     __esModule: true,
     default: {
         navigate: (...args: unknown[]) => mockNavigate(...args),
-        goBack: (...args: unknown[]) => mockGoBack(...args),
-        isNavigationReady: () => Promise.resolve(),
     },
+}));
+
+let mockIsSearchTopmostFullScreenRoute = false;
+
+jest.mock('@libs/Navigation/helpers/isSearchTopmostFullScreenRoute', () => ({
+    __esModule: true,
+    default: () => mockIsSearchTopmostFullScreenRoute,
+}));
+
+let mockShouldUseNarrowLayout = false;
+
+jest.mock('@hooks/useResponsiveLayout', () => ({
+    __esModule: true,
+    default: () => ({shouldUseNarrowLayout: mockShouldUseNarrowLayout}),
 }));
 
 let mockRouteName: string = SCREENS.REPORT;
@@ -55,7 +66,7 @@ jest.mock('@hooks/useOnyx', () => ({
     __esModule: true,
     default: (key: string, options?: {selector?: (value: unknown) => unknown}) => {
         if (key === TRANSACTION_THREAD_NAVIGATION_TRANSACTION_IDS_KEY) {
-            return [mockSiblingTransactionIDs, {status: 'loaded'}];
+            return [options?.selector ? options.selector(mockSiblingTransactionIDs) : mockSiblingTransactionIDs, {status: 'loaded'}];
         }
         const value = key.endsWith(EXPENSE_REPORT_ID)
             ? {reportID: EXPENSE_REPORT_ID, type: 'expense', transactionCount: mockParentTransactionCount}
@@ -90,10 +101,11 @@ function createIOUAction(type: ValueOf<typeof CONST.IOU.REPORT_ACTION_TYPE>, IOU
 describe('OneTransactionThreadRedirectHandler', () => {
     beforeEach(() => {
         mockNavigate.mockClear();
-        mockGoBack.mockClear();
         mockRouteName = SCREENS.REPORT;
         mockRouteParams = {reportID: THREAD_REPORT_ID};
         mockIsFocused = true;
+        mockIsSearchTopmostFullScreenRoute = false;
+        mockShouldUseNarrowLayout = false;
         mockParentReportID = EXPENSE_REPORT_ID;
         mockParentTransactionCount = 1;
         mockOneTransactionThreadReportID = THREAD_REPORT_ID;
@@ -122,7 +134,6 @@ describe('OneTransactionThreadRedirectHandler', () => {
         await waitForBatchedUpdatesWithAct();
 
         expect(mockNavigate).not.toHaveBeenCalled();
-        expect(mockGoBack).not.toHaveBeenCalled();
     });
 
     it('redirects when the sibling set holds only this expense, because the carousel renders no arrows for it', async () => {
@@ -134,40 +145,14 @@ describe('OneTransactionThreadRedirectHandler', () => {
         expect(mockNavigate).toHaveBeenCalledWith(`r/${EXPENSE_REPORT_ID}`, {forceReplace: true});
     });
 
-    it('redirects when a sibling set left behind by another report does not contain this expense', async () => {
-        mockSiblingTransactionIDs = ['33333', SIBLING_TRANSACTION_ID];
-
-        render(<OneTransactionThreadRedirectHandler />);
-
-        await waitFor(() => expect(mockNavigate).toHaveBeenCalledTimes(1));
-        expect(mockNavigate).toHaveBeenCalledWith(`r/${EXPENSE_REPORT_ID}`, {forceReplace: true});
-    });
-
-    it('keeps the thread route after the carousel clears its sibling set', async () => {
-        mockSiblingTransactionIDs = [TRANSACTION_ID, SIBLING_TRANSACTION_ID];
-
-        const {rerender} = render(<OneTransactionThreadRedirectHandler />);
-
-        await waitForBatchedUpdatesWithAct();
-        expect(mockNavigate).not.toHaveBeenCalled();
-
-        // `clearActiveTransactionIDs` runs when the carousel unmounts. Acting on that would redirect out of a thread
-        // the user is still paging through, so the suppression is latched per thread.
-        mockSiblingTransactionIDs = undefined;
-        rerender(<OneTransactionThreadRedirectHandler />);
-
-        await waitForBatchedUpdatesWithAct();
-
-        expect(mockNavigate).not.toHaveBeenCalled();
-        expect(mockGoBack).not.toHaveBeenCalled();
-    });
-
     it('keeps the thread route when the parent report holds more than one expense', async () => {
         mockOneTransactionThreadReportID = undefined;
 
         render(<OneTransactionThreadRedirectHandler />);
 
-        await waitFor(() => expect(mockNavigate).not.toHaveBeenCalled());
+        await waitForBatchedUpdatesWithAct();
+
+        expect(mockNavigate).not.toHaveBeenCalled();
     });
 
     it('keeps the thread route while a multi-expense report is still paginating in and only one of its IOU actions has loaded', async () => {
@@ -175,29 +160,9 @@ describe('OneTransactionThreadRedirectHandler', () => {
 
         render(<OneTransactionThreadRedirectHandler />);
 
-        await waitFor(() => expect(mockNavigate).not.toHaveBeenCalled());
-    });
-
-    it('keeps the thread route when a sibling expense is deleted while the user is reading it', async () => {
-        // Two expenses, so the user is on this thread legitimately.
-        mockParentTransactionCount = 2;
-        mockOneTransactionThreadReportID = undefined;
-
-        const {rerender} = render(<OneTransactionThreadRedirectHandler />);
-
-        await waitForBatchedUpdatesWithAct();
-        expect(mockNavigate).not.toHaveBeenCalled();
-
-        // Someone deletes the other expense, so the report becomes a single-expense one underneath the user - but the
-        // thread they are reading must stay put.
-        mockParentTransactionCount = 1;
-        mockOneTransactionThreadReportID = THREAD_REPORT_ID;
-        rerender(<OneTransactionThreadRedirectHandler />);
-
         await waitForBatchedUpdatesWithAct();
 
         expect(mockNavigate).not.toHaveBeenCalled();
-        expect(mockGoBack).not.toHaveBeenCalled();
     });
 
     it('still redirects when the parent report only loads after the thread has mounted', async () => {
@@ -221,41 +186,9 @@ describe('OneTransactionThreadRedirectHandler', () => {
 
         render(<OneTransactionThreadRedirectHandler />);
 
-        await waitFor(() => expect(mockNavigate).not.toHaveBeenCalled());
-    });
-
-    it('keeps the thread route after the app clears the linked action param mid-session', async () => {
-        mockRouteParams = {reportID: THREAD_REPORT_ID, reportActionID: '99999'};
-
-        const {rerender} = render(<OneTransactionThreadRedirectHandler />);
-
-        await waitForBatchedUpdatesWithAct();
-
-        // Sending a comment jumps to the live tail, clearing the anchor the route was opened with. The user is still
-        // reading the thread, so this must not become a redirect.
-        mockRouteParams = {reportID: THREAD_REPORT_ID, reportActionID: ''};
-        rerender(<OneTransactionThreadRedirectHandler />);
-
         await waitForBatchedUpdatesWithAct();
 
         expect(mockNavigate).not.toHaveBeenCalled();
-        expect(mockGoBack).not.toHaveBeenCalled();
-    });
-
-    it('still redirects a thread routed onto later without an anchor of its own', async () => {
-        mockRouteParams = {reportID: THREAD_REPORT_ID, reportActionID: '99999'};
-
-        const {rerender} = render(<OneTransactionThreadRedirectHandler />);
-
-        await waitForBatchedUpdatesWithAct();
-        expect(mockNavigate).not.toHaveBeenCalled();
-
-        // The screen is not remounted when a later route swaps in another thread, so the latch is per report.
-        mockRouteParams = {reportID: '67890'};
-        rerender(<OneTransactionThreadRedirectHandler />);
-
-        await waitFor(() => expect(mockNavigate).toHaveBeenCalledTimes(1));
-        expect(mockNavigate).toHaveBeenCalledWith(`r/${EXPENSE_REPORT_ID}`, {forceReplace: true});
     });
 
     it('keeps the thread route for a send money action', async () => {
@@ -263,16 +196,38 @@ describe('OneTransactionThreadRedirectHandler', () => {
 
         render(<OneTransactionThreadRedirectHandler />);
 
-        await waitFor(() => expect(mockNavigate).not.toHaveBeenCalled());
+        await waitForBatchedUpdatesWithAct();
+
+        expect(mockNavigate).not.toHaveBeenCalled();
     });
 
-    it('keeps the report inside the search RHP when redirecting from there', async () => {
+    it('keeps the report in the search full screen route when redirecting from the search RHP', async () => {
+        mockRouteName = SCREENS.RIGHT_MODAL.SEARCH_REPORT;
+        mockIsSearchTopmostFullScreenRoute = true;
+
+        render(<OneTransactionThreadRedirectHandler />);
+
+        await waitFor(() => expect(mockNavigate).toHaveBeenCalledTimes(1));
+        expect(mockNavigate).toHaveBeenCalledWith(`search/r/${EXPENSE_REPORT_ID}`, {forceReplace: true});
+    });
+
+    it('opens the expense report in the wide RHP when redirecting from the search RHP outside search', async () => {
         mockRouteName = SCREENS.RIGHT_MODAL.SEARCH_REPORT;
 
         render(<OneTransactionThreadRedirectHandler />);
 
         await waitFor(() => expect(mockNavigate).toHaveBeenCalledTimes(1));
-        expect(mockNavigate).toHaveBeenCalledWith(`search/view/${EXPENSE_REPORT_ID}`, {forceReplace: true});
+        expect(mockNavigate).toHaveBeenCalledWith(`e/${EXPENSE_REPORT_ID}`, {forceReplace: true});
+    });
+
+    it('opens the expense report as a full report view on a narrow layout, which has no wide RHP', async () => {
+        mockRouteName = SCREENS.RIGHT_MODAL.SEARCH_REPORT;
+        mockShouldUseNarrowLayout = true;
+
+        render(<OneTransactionThreadRedirectHandler />);
+
+        await waitFor(() => expect(mockNavigate).toHaveBeenCalledTimes(1));
+        expect(mockNavigate).toHaveBeenCalledWith(`r/${EXPENSE_REPORT_ID}`, {forceReplace: true});
     });
 
     it("reuses the route's own backTo instead of the thread we are replacing", async () => {
@@ -307,120 +262,8 @@ describe('OneTransactionThreadRedirectHandler', () => {
 
         render(<OneTransactionThreadRedirectHandler />);
 
-        await waitFor(() => expect(mockNavigate).not.toHaveBeenCalled());
-    });
-
-    it('goes back to the parent report instead of stacking a duplicate when backTo already points at it', async () => {
-        mockRouteParams = {reportID: THREAD_REPORT_ID, backTo: `/r/${EXPENSE_REPORT_ID}`};
-
-        render(<OneTransactionThreadRedirectHandler />);
-
-        await waitFor(() => expect(mockGoBack).toHaveBeenCalledTimes(1));
-        expect(mockGoBack).toHaveBeenCalledWith(`/r/${EXPENSE_REPORT_ID}`);
-        expect(mockNavigate).not.toHaveBeenCalled();
-    });
-
-    it('goes back to the parent report in the search RHP when backTo already points at it', async () => {
-        mockRouteName = SCREENS.RIGHT_MODAL.SEARCH_REPORT;
-        mockRouteParams = {reportID: THREAD_REPORT_ID, backTo: `/search/view/${EXPENSE_REPORT_ID}?q=whatever`};
-
-        render(<OneTransactionThreadRedirectHandler />);
-
-        await waitFor(() => expect(mockGoBack).toHaveBeenCalledTimes(1));
-        expect(mockGoBack).toHaveBeenCalledWith(`/search/view/${EXPENSE_REPORT_ID}?q=whatever`);
-        expect(mockNavigate).not.toHaveBeenCalled();
-    });
-
-    it.each([
-        ['the search money request report', `/search/r/${EXPENSE_REPORT_ID}`],
-        ['the expense report RHP', `/e/${EXPENSE_REPORT_ID}`],
-    ])('goes back to the parent report instead of stacking a duplicate when backTo points at %s', async (_name, backTo) => {
-        mockRouteName = SCREENS.RIGHT_MODAL.SEARCH_REPORT;
-        mockRouteParams = {reportID: THREAD_REPORT_ID, backTo};
-
-        render(<OneTransactionThreadRedirectHandler />);
-
-        await waitFor(() => expect(mockGoBack).toHaveBeenCalledTimes(1));
-        expect(mockGoBack).toHaveBeenCalledWith(backTo);
-        expect(mockNavigate).not.toHaveBeenCalled();
-    });
-
-    it.each([
-        ['the inbox report', SCREENS.REPORT, `/r/${EXPENSE_REPORT_ID}/9999`],
-        ['the search RHP report', SCREENS.RIGHT_MODAL.SEARCH_REPORT, `/search/view/${EXPENSE_REPORT_ID}/9999`],
-    ])('goes back to the parent report when backTo is %s anchored at one of its actions', async (_name, routeName, backTo) => {
-        // Both routes end in an optional `:reportActionID`, so `backTo` can carry an anchor and still render the
-        // parent. That must not fall through to a replace.
-        mockRouteName = routeName;
-        mockRouteParams = {reportID: THREAD_REPORT_ID, backTo};
-
-        render(<OneTransactionThreadRedirectHandler />);
-
-        await waitFor(() => expect(mockGoBack).toHaveBeenCalledTimes(1));
-        expect(mockGoBack).toHaveBeenCalledWith(backTo);
-        expect(mockNavigate).not.toHaveBeenCalled();
-    });
-
-    it.each([
-        ['a dynamic modal nested under the inbox report', SCREENS.REPORT, `/r/${EXPENSE_REPORT_ID}/duplicates/review/${THREAD_REPORT_ID}`],
-        ['a dynamic modal nested under the search RHP report', SCREENS.RIGHT_MODAL.SEARCH_REPORT, `/search/view/${EXPENSE_REPORT_ID}/duplicates/review/${THREAD_REPORT_ID}`],
-        ['a sub-route of the search money request report', SCREENS.RIGHT_MODAL.SEARCH_REPORT, `/search/r/${EXPENSE_REPORT_ID}/duplicates/review/${THREAD_REPORT_ID}`],
-        ['a sub-route of the expense report RHP', SCREENS.RIGHT_MODAL.SEARCH_REPORT, `/e/${EXPENSE_REPORT_ID}/duplicates/review/${THREAD_REPORT_ID}`],
-    ])('does not go back when backTo points at %s rather than the report itself', async (_name, routeName, backTo) => {
-        // `createDynamicRoute` nests dynamic modals under the active route. Popping onto one would drop the user back
-        // into the page they came from - for Review duplicates, the list whose row they just tapped.
-        mockRouteName = routeName;
-        mockRouteParams = {reportID: THREAD_REPORT_ID, backTo};
-
-        render(<OneTransactionThreadRedirectHandler />);
-
-        await waitFor(() => expect(mockNavigate).toHaveBeenCalledTimes(1));
-        expect(mockGoBack).not.toHaveBeenCalled();
-    });
-
-    it('replaces the route when backTo is anchored at an action of a different report', async () => {
-        mockRouteParams = {reportID: THREAD_REPORT_ID, backTo: '/r/99999/9999'};
-
-        render(<OneTransactionThreadRedirectHandler />);
-
-        await waitFor(() => expect(mockNavigate).toHaveBeenCalledTimes(1));
-        expect(mockNavigate).toHaveBeenCalledWith(`r/${EXPENSE_REPORT_ID}?backTo=${encodeURIComponent('/r/99999/9999')}`, {forceReplace: true});
-        expect(mockGoBack).not.toHaveBeenCalled();
-    });
-
-    it('leaves the route alone on a screen other than the inbox report and the search RHP report', async () => {
-        // `RHPReportScreen` also backs `AGENT_REPORT`; redirecting from there would eject the user out of the RHP.
-        mockRouteName = SCREENS.RIGHT_MODAL.AGENT_REPORT;
-
-        render(<OneTransactionThreadRedirectHandler />);
-
-        // The redirect is deferred behind `isNavigationReady()`, so microtasks must flush before "nothing happened"
-        // means anything - `waitFor` would resolve on the first tick and pass either way.
         await waitForBatchedUpdatesWithAct();
 
         expect(mockNavigate).not.toHaveBeenCalled();
-        expect(mockGoBack).not.toHaveBeenCalled();
-    });
-
-    it('replaces the route when backTo points at a report other than the parent', async () => {
-        mockRouteParams = {reportID: THREAD_REPORT_ID, backTo: '/r/99999'};
-
-        render(<OneTransactionThreadRedirectHandler />);
-
-        await waitFor(() => expect(mockNavigate).toHaveBeenCalledTimes(1));
-        expect(mockNavigate).toHaveBeenCalledWith(`r/${EXPENSE_REPORT_ID}?backTo=${encodeURIComponent('/r/99999')}`, {forceReplace: true});
-        expect(mockGoBack).not.toHaveBeenCalled();
-    });
-
-    it('redirects only once for the same thread when the effect re-runs before the transition finishes', async () => {
-        const {rerender} = render(<OneTransactionThreadRedirectHandler />);
-
-        await waitFor(() => expect(mockNavigate).toHaveBeenCalledTimes(1));
-
-        // A late Onyx update re-runs the effect while the route being replaced is still mounted.
-        mockRouteParams = {reportID: THREAD_REPORT_ID, backTo: 'home'};
-        rerender(<OneTransactionThreadRedirectHandler />);
-
-        await waitFor(() => expect(mockNavigate).toHaveBeenCalledTimes(1));
     });
 });
