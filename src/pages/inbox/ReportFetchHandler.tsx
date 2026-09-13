@@ -8,6 +8,7 @@ import useIsReportActionsLoaded from '@hooks/useIsReportActionsLoaded';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
+import useParentReportAction from '@hooks/useParentReportAction';
 import usePrevious from '@hooks/usePrevious';
 import useReportTransactionsCollection from '@hooks/useReportTransactionsCollection';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -61,6 +62,8 @@ import type {Transaction} from '@src/types/onyx';
 import {useIsFocused, useNavigation, useRoute} from '@react-navigation/native';
 import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
 import {useEffect, useEffectEvent, useRef} from 'react';
+
+import shouldRedirectLinkedActionToParentReport from './shouldRedirectLinkedActionToParentReport';
 
 type ReportScreenRoute =
     | PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>
@@ -149,6 +152,10 @@ function ReportFetchHandler() {
     const prevTransactionThreadReportID = usePrevious(transactionThreadReportID);
 
     const isTransactionThreadView = isReportTransactionThread(report);
+
+    const parentReportAction = useParentReportAction(report);
+    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
+    const shouldRedirectToParentReport = shouldRedirectLinkedActionToParentReport({report, parentReport, parentReportAction, reportActionIDFromRoute, isOffline});
 
     // Track whether the current route is an own workspace chat. See issue #84248.
     const isCurrentRouteOwnWorkspaceChatRef = useIsOwnWorkspaceChatRef(report, reportIDFromRoute);
@@ -475,6 +482,20 @@ function ReportFetchHandler() {
 
         Navigation.navigate(ROUTES.EXPENSE_REPORT_RHP.getRoute({reportID: reportIDFromRoute, backTo: route.params?.backTo}), {forceReplace: true});
     }, [isFocused, report, reportIDFromRoute, route.params?.backTo, shouldReplaceWithExpenseReportRHP]);
+
+    // Open a linked action on a one-transaction thread in the parent expense report instead, so the combined view shows the
+    // parent's "Submitted" message. `forceReplace` keeps the thread route out of history. Bail while blurred, as above.
+    useEffect(() => {
+        if (!shouldRedirectToParentReport || !isFocused || !report?.parentReportID) {
+            return;
+        }
+        // Stay in the Search RHP when the link was opened from there, so the search context isn't lost.
+        const parentRoute =
+            route.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT
+                ? ROUTES.SEARCH_REPORT.getRoute({reportID: report.parentReportID, reportActionID: reportActionIDFromRoute, backTo: route.params?.backTo})
+                : ROUTES.REPORT_WITH_ID.getRoute(report.parentReportID, reportActionIDFromRoute, undefined, route.params?.backTo);
+        Navigation.navigate(parentRoute, {forceReplace: true});
+    }, [shouldRedirectToParentReport, isFocused, report?.parentReportID, reportActionIDFromRoute, route.name, route.params?.backTo]);
 
     useEffect(() => {
         // This function is triggered when a user clicks on a link to navigate to a report.
