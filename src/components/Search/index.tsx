@@ -12,6 +12,7 @@ import type {ActionHandledType} from '@hooks/useHoldMenuSubmit';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -150,6 +151,7 @@ function Search({
     const styles = useThemeStyles();
     const navigation = useNavigation<PlatformStackNavigationProp<SearchFullscreenNavigatorParamList>>();
     const isFocused = useIsFocused();
+    const {isBetaEnabled} = usePermissions();
 
     const {markReportRHPWidth, unmarkReportRHPWidth} = useWideRHPActions();
     const {currentSearchHash, currentSearchKey, shouldResetSearchQuery, suggestedSearches} = useSearchQueryContext();
@@ -1171,6 +1173,7 @@ function Search({
     const tableHeaderVisible = canSelectMultiple || shouldShowTableHeader;
 
     const shouldShowChartView = (view === CONST.SEARCH.VIEW.BAR || view === CONST.SEARCH.VIEW.LINE || view === CONST.SEARCH.VIEW.PIE) && !!validGroupBy;
+    const shouldShowInlineTable = isBetaEnabled(CONST.BETAS.INSIGHTS_PAGE);
 
     if (shouldShowChartView && isGroupedItemArray(sortedData)) {
         if (getPendingSubmitFollowUpAction()?.followUpAction === CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.NAVIGATE_TO_SEARCH) {
@@ -1209,15 +1212,19 @@ function Search({
                                 groupBy={validGroupBy}
                                 data={sortedData}
                                 isLoading={shouldShowLoadingState}
-                                renderDetails={(rows) => (
-                                    <InsightsDataTable
-                                        rows={rows}
-                                        view={view}
-                                        groupBy={validGroupBy}
-                                        isLoading={shouldShowLoadingState}
-                                        total={searchResults?.search?.total}
-                                    />
-                                )}
+                                renderDetails={
+                                    shouldShowInlineTable
+                                        ? (rows) => (
+                                              <InsightsDataTable
+                                                  rows={rows}
+                                                  view={view}
+                                                  groupBy={validGroupBy}
+                                                  isLoading={shouldShowLoadingState}
+                                                  total={searchResults?.search?.total}
+                                              />
+                                          )
+                                        : undefined
+                                }
                             />
                         </SearchChartWrapper>
                     </View>

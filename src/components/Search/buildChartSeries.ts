@@ -89,4 +89,4 @@ function formatPercentOfTotal(percent: number, locale: Locale | undefined): stri
     return format(locale, percent / 100, options);
 }
 
-export {buildChartSeries, formatPercentOfTotal, getPercentOfTotal};
+export {buildChartSeries, formatPercentOfTotal, getPercentOfTotal, getSliceColorsByDataIndex};
