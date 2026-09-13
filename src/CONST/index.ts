@@ -2813,6 +2813,8 @@ const CONST = {
     PUSHER: {
         PRIVATE_USER_CHANNEL_PREFIX: 'private-encrypted-user-accountID-',
         PRIVATE_REPORT_CHANNEL_PREFIX: 'private-report-reportID-',
+        ACTIVITY_TIMEOUT_MS: 30000,
+        PONG_TIMEOUT_MS: 20000,
         STATE: {
             CONNECTED: 'CONNECTED',
             DISCONNECTED: 'DISCONNECTED',
