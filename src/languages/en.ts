@@ -9828,7 +9828,7 @@ const translations = {
             description: 'Select the report to keep. All expenses will be moved into it and the other reports will be deleted.',
             listPage: {
                 noEligibleReportsFound: 'No eligible reports found',
-                noEligibleReportsFoundSubtitle: `<muted-text><centered-text>You don't have any reports that can be merged.</centered-text></muted-text>`,
+                noEligibleReportsFoundSubtitle: "You don't have any reports that can be merged.",
             },
         },
     },

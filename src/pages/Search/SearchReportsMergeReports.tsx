@@ -1,7 +1,7 @@
 import EmptyStateComponent from '@components/EmptyStateComponent';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import {usePersonalDetails, useSession} from '@components/OnyxListItemProvider';
-import RenderHTML from '@components/RenderHTML';
+import ScrollView from '@components/ScrollView';
 import {useSearchQueryContext, useSearchResultsContext, useSearchSelectionActions, useSearchSelectionContext} from '@components/Search/SearchContext';
 import SearchMergeReportsListItem from '@components/Search/SearchList/ListItem/SearchMergeReportsListItem';
 import SelectionList from '@components/SelectionList';
@@ -31,9 +31,9 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {isTrackIntentUserSelector} from '@src/selectors/Onboarding';
 import type {Transaction} from '@src/types/onyx';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import React, {useMemo, useState} from 'react';
-import {View} from 'react-native';
 
 function SearchMergeReports() {
     const {selectedReports} = useSearchSelectionContext();
@@ -41,7 +41,8 @@ function SearchMergeReports() {
     const {currentSearchResults} = useSearchResultsContext();
     const {currentSearchHash, currentSearchQueryJSON} = useSearchQueryContext();
 
-    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
+    const [allReports, allReportsMeta] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
+    const isLoadingAllReports = isLoadingOnyxValue(allReportsMeta);
     const [allReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [allPolicyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
@@ -220,9 +221,9 @@ function SearchMergeReports() {
             testID="SearchMergeReports"
             includeSafeAreaPaddingBottom
         >
-            {reportItems.length > 0 ? (
+            {reportItems.length > 0 || isLoadingAllReports ? (
                 <>
-                    <Text style={[styles.ph5, styles.pb5, styles.textLabelSupporting]}>{translate('search.mergeReports.description')}</Text>
+                    {!isLoadingAllReports && <Text style={[styles.ph5, styles.pb5, styles.textLabelSupporting]}>{translate('search.mergeReports.description')}</Text>}
                     <SelectionList
                         data={reportItems}
                         onSelectRow={onSelection}
@@ -230,6 +231,7 @@ function SearchMergeReports() {
                         isRowMultilineSupported
                         shouldSingleExecuteRowSelect
                         canSelectMultiple={false}
+                        shouldShowLoadingPlaceholder={isLoadingAllReports}
                         footerContent={
                             <FormAlertWithSubmitButton
                                 buttonText={translate('common.confirm')}
@@ -241,19 +243,24 @@ function SearchMergeReports() {
                     />
                 </>
             ) : (
-                <EmptyStateComponent
-                    cardStyles={[styles.appBG]}
-                    cardContentStyles={[styles.p0]}
-                    headerMedia={illustrations.EmptyShelves}
-                    title={translate('search.mergeReports.listPage.noEligibleReportsFound')}
-                    subtitleText={
-                        <View style={[styles.renderHTML, styles.textNormal]}>
-                            <RenderHTML html={translate('search.mergeReports.listPage.noEligibleReportsFoundSubtitle')} />
-                        </View>
-                    }
-                    headerStyles={[styles.emptyStateCardIllustrationContainer, styles.mb5]}
-                    headerContentStyles={styles.emptyStateTransactionMergeIllustration}
-                />
+                <ScrollView>
+                    <EmptyStateComponent
+                        cardStyles={[styles.appBG]}
+                        cardContentStyles={[styles.p0]}
+                        headerMedia={illustrations.EmptyShelves}
+                        title={translate('search.mergeReports.listPage.noEligibleReportsFound')}
+                        subtitleText={
+                            <Text
+                                style={[styles.textNormal, styles.colorMuted]}
+                                textAlign={'center'}
+                            >
+                                {translate('search.mergeReports.listPage.noEligibleReportsFoundSubtitle')}
+                            </Text>
+                        }
+                        headerStyles={[styles.emptyStateCardIllustrationContainer, styles.mb5]}
+                        headerContentStyles={styles.emptyStateTransactionMergeIllustration}
+                    />
+                </ScrollView>
             )}
         </StepScreenWrapper>
     );
