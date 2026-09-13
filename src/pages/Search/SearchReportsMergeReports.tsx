@@ -196,7 +196,7 @@ function SearchMergeReports() {
                 // If we navigate before selection mode has fully exited and the UI has finished rendering,
                 // the report header may briefly display incorrectly.
                 Navigation.setNavigationActionToMicrotaskQueue(() => {
-                    Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: destinationReportID}));
+                    Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: destinationReportID, backTo: Navigation.getActiveRoute()}));
                 });
             },
         });
