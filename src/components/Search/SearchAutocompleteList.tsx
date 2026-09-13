@@ -183,7 +183,7 @@ function SearchAutocompleteList({
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const contentContainerStyle = useBottomSafeSafeAreaPaddingStyle({
         addOfflineIndicatorBottomSafeAreaPadding: true,
-        style: styles.pb2,
+        style: [styles.pb2, styles.ph2],
     });
 
     const [betas] = useOnyx(ONYXKEYS.BETAS);
@@ -792,7 +792,7 @@ function SearchAutocompleteList({
             ListItem={SearchRouterItem}
             style={{
                 containerStyle: [styles.mh100],
-                listStyle: [styles.ph2, styles.overscrollBehaviorContain],
+                listStyle: styles.overscrollBehaviorContain,
                 contentContainerStyle,
                 listItemWrapperStyle: [styles.pr0, styles.pl0],
                 sectionTitleStyles: styles.mhn2,

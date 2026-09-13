@@ -18,8 +18,6 @@ import scheduleOnLiveMarkdownRuntime from '@libs/scheduleOnLiveMarkdownRuntime';
 import {getAutocompleteCategories, getAutocompleteTags, parseForLiveMarkdown} from '@libs/SearchAutocompleteUtils';
 import {expensifyLoginsSelector} from '@libs/UserUtils';
 
-import variables from '@styles/variables';
-
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
@@ -41,7 +39,6 @@ type SearchAutocompleteInputProps = {
     /** Callback invoked when the user submits the input */
     onSubmit?: () => void;
 
-    isFullWidth: boolean;
     disabled?: boolean;
     shouldShowOfflineMessage?: boolean;
 
@@ -77,7 +74,6 @@ function SearchAutocompleteInput({
     value,
     onSearchQueryChange,
     onSubmit = () => {},
-    isFullWidth,
     disabled = false,
     shouldDelayFocus = false,
     autoFocus = true,
@@ -193,8 +189,6 @@ function SearchAutocompleteInput({
         setSearchContext(false);
     };
 
-    const inputWidth = isFullWidth ? styles.w100 : {width: variables.popoverWidth};
-
     return (
         <View style={[outerWrapperStyle]}>
             <Animated.View style={[wrapperStyle ?? styles.searchRouterTextInputContainer, wrapperAnimatedStyle, wrapperBorderColorAnimatedStyle]}>
@@ -216,7 +210,7 @@ function SearchAutocompleteInput({
                     onSubmitEditing={onSubmit}
                     shouldUseDisabledStyles={false}
                     textInputContainerStyles={[styles.borderNone, styles.pb0, styles.ph3, inputContainerStyle]}
-                    inputStyle={[inputWidth, styles.lineHeightUndefined, inputStyle]}
+                    inputStyle={[styles.w100, styles.lineHeightUndefined, inputStyle]}
                     touchableInputWrapperStyle={touchableInputWrapperStyle}
                     clearButtonStyle={clearButtonStyle}
                     placeholderTextColor={theme.textSupporting}

@@ -1,12 +1,17 @@
 import FocusTrapForModal from '@components/FocusTrap/FocusTrapForModal';
 import Modal from '@components/Modal';
 import ScreenWrapperContainer from '@components/ScreenWrapper/ScreenWrapperContainer';
+import getSearchRouterPopoverLayout from '@components/Search/SearchRouter/getSearchRouterPopoverLayout';
 import SearchRouter from '@components/Search/SearchRouter/SearchRouter';
 import {useSearchRouterActions, useSearchRouterState} from '@components/Search/SearchRouter/SearchRouterContext';
 
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSidePanelDisplayStatus from '@hooks/useSidePanelDisplayStatus';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 
 import {isMobileIOS} from '@libs/Browser';
+
+import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 
@@ -16,7 +21,9 @@ import {Dimensions} from 'react-native';
 const isMobileWebIOS = isMobileIOS();
 
 function SearchRouterModal() {
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {shouldUseNarrowLayout, isExtraLargeScreenWidth} = useResponsiveLayout();
+    const {shouldHideSidePanel} = useSidePanelDisplayStatus();
+    const {windowHeight} = useWindowDimensions();
     const {isSearchRouterDisplayed} = useSearchRouterState();
     const {closeSearchRouter} = useSearchRouterActions();
     const actionAfterModalHideRef = useRef<() => void>(undefined);
@@ -37,6 +44,11 @@ function SearchRouterModal() {
     }, [isSearchRouterDisplayed, closeSearchRouter, shouldUseNarrowLayout]);
 
     const modalType = shouldUseNarrowLayout ? CONST.MODAL.MODAL_TYPE.CENTERED_SWIPEABLE_TO_RIGHT : CONST.MODAL.MODAL_TYPE.POPOVER;
+
+    // The popover is centered by spanning the anchor box across the window, so the box has to stop where the app does.
+    // On an extra large screen the Side Panel docks beside the app instead of covering it, so the box ends at its edge.
+    const sidePanelInset = isExtraLargeScreenWidth && !shouldHideSidePanel ? variables.sidePanelWidth : 0;
+
     const closeSearchRouterAfterModalHide = (afterClose?: () => void) => {
         if (!isSearchRouterDisplayed) {
             afterClose?.();
@@ -57,13 +69,13 @@ function SearchRouterModal() {
         <Modal
             type={modalType}
             isVisible={isSearchRouterDisplayed}
-            popoverAnchorPosition={{right: 6, top: 6}}
+            popoverAnchorPosition={shouldUseNarrowLayout ? {right: 6, top: 6} : {left: 0, right: sidePanelInset, top: getSearchRouterPopoverLayout(windowHeight).topOffset}}
             fullscreen
             swipeDirection={shouldUseNarrowLayout ? CONST.SWIPE_DIRECTION.RIGHT : undefined}
             onClose={closeSearchRouter}
             onModalHide={handleModalHide}
             onModalShow={() => setShouldHideInputCaret(false)}
-            shouldApplySidePanelOffset={!shouldUseNarrowLayout}
+            shouldShowBackdrop={!shouldUseNarrowLayout}
             enableEdgeToEdgeBottomSafeAreaPadding
         >
             <ScreenWrapperContainer
