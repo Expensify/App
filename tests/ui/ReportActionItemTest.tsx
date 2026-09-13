@@ -64,6 +64,7 @@ jest.mock('@libs/actions/Link', () => {
             const attrPath = Url.getPathFromURL(href);
             return (Url.hasSameExpensifyOrigin(href, CONSTreal.NEW_EXPENSIFY_URL) ||
                 Url.hasSameExpensifyOrigin(href, CONSTreal.STAGING_NEW_EXPENSIFY_URL) ||
+                Url.hasSameExpensifyOrigin(href, CONSTreal.QA_NEW_EXPENSIFY_URL) ||
                 href.startsWith(CONSTreal.DEV_NEW_EXPENSIFY_URL)) &&
                 !CONSTreal.PATHS_TO_TREAT_AS_EXTERNAL.find((p) => attrPath.startsWith(p))
                 ? attrPath
@@ -1681,6 +1682,17 @@ describe('ReportActionItem', () => {
             expect(screen.getByText(/Chase Visa/)).toBeOnTheScreen();
         });
 
+        it('COMPANY_CARD_CONNECTION_BROKEN_30_DAYS action', async () => {
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.COMPANY_CARD_CONNECTION_BROKEN_30_DAYS, {
+                feedName: 'Chase Visa',
+                policyID: 'pol123',
+            });
+            renderItemWithAction(action);
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByText(/Chase Visa connection has been broken for 30 days/)).toBeOnTheScreen();
+        });
+
         it('PLAID_BALANCE_FAILURE action', async () => {
             const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.PLAID_BALANCE_FAILURE, {
                 maskedAccountNumber: '***1234',
@@ -2762,6 +2774,12 @@ describe('ReportActionItem', () => {
                 assertion: /My Card/,
             },
             {
+                testTitle: 'isCardBrokenConnectionAction 30 days',
+                actionName: CONST.REPORT.ACTIONS.TYPE.PERSONAL_CARD_CONNECTION_BROKEN_30_DAYS,
+                originalMessage: {cardID: 100, cardName: 'My Card'},
+                assertion: /My Card connection has been broken for 30 days/,
+            },
+            {
                 testTitle: 'INDIVIDUAL_BUDGET_NOTIFICATION',
                 actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.INDIVIDUAL_BUDGET_NOTIFICATION,
                 originalMessage: {
@@ -2835,6 +2853,30 @@ describe('ReportActionItem', () => {
             const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.PERSONAL_CARD_CONNECTION_BROKEN, {cardID: 100, cardName: 'Broken Card'});
             renderItemWithAction(action);
             await waitForBatchedUpdatesWithAct();
+
+            const bankLoginLink = screen.getByText('Log into your bank');
+            fireEvent.press(bankLoginLink);
+
+            expect(openLink).toHaveBeenCalledTimes(1);
+            expect(openLink).toHaveBeenCalledWith(expect.stringContaining('settings/wallet/personal-card/100'), expect.anything(), expect.anything());
+        });
+
+        it('isCardBrokenConnectionAction renders tappable bank login link for personal broken connection 30 days', async () => {
+            const CARD_ID_KEY = '100';
+
+            jest.mocked(openLink).mockClear();
+            await act(async () => {
+                await Onyx.merge(ONYXKEYS.CARD_LIST, {
+                    [CARD_ID_KEY]: {cardID: 100, cardName: 'Broken Card', lastScrapeResult: 401},
+                });
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.PERSONAL_CARD_CONNECTION_BROKEN_30_DAYS, {cardID: 100, cardName: 'Broken Card'});
+            renderItemWithAction(action);
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByText(/Broken Card connection has been broken for 30 days/)).toBeOnTheScreen();
 
             const bankLoginLink = screen.getByText('Log into your bank');
             fireEvent.press(bankLoginLink);
@@ -3035,6 +3077,30 @@ describe('ReportActionItem', () => {
             await waitForBatchedUpdatesWithAct();
 
             expect(screen.getByText('Paris Trip 2026')).toBeOnTheScreen();
+        });
+
+        it('isTripPreview renders trip dates from report name-value-pair tripData', async () => {
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}tripReportDates`, {
+                    reportID: 'tripReportDates',
+                    reportName: 'Paris Trip',
+                    currency: 'USD',
+                });
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}tripReportDates`, {
+                    tripData: {
+                        tripID: 'trip-1',
+                        startDate: '2026-01-01T12:00:00Z',
+                        endDate: '2026-01-03T12:00:00Z',
+                    },
+                });
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.TRIP_PREVIEW, {linkedReportID: 'tripReportDates'});
+            renderItemWithAction(action);
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByText(/Jan 1-3/)).toBeOnTheScreen();
         });
 
         it('isCreatedTaskReportAction renders TaskPreview', async () => {

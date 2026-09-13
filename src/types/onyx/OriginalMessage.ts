@@ -27,7 +27,6 @@ type IOUDetails = {
     /** How much was sent */
     amount: number;
 
-    /** Optional comment */
     comment: string;
 
     /** Currency of the money sent */
@@ -36,7 +35,6 @@ type IOUDetails = {
 
 /** Model of `IOU` report action */
 type OriginalMessageIOU = {
-    /** The ID of the `IOU` transaction */
     IOUTransactionID?: string;
 
     /**
@@ -46,13 +44,11 @@ type OriginalMessageIOU = {
      */
     IOUReportID?: string;
 
-    /** ID of the expense report */
     expenseReportID?: string;
 
     /** Was the action created automatically, not by a human */
     automaticAction?: boolean;
 
-    /** Optional comment */
     comment?: string;
 
     /** When was the `IOU` last modified */
@@ -61,7 +57,6 @@ type OriginalMessageIOU = {
     /** Who participated in the transaction, by accountID */
     participantAccountIDs?: number[];
 
-    /** Type of `IOU` report action */
     type: ValueOf<typeof CONST.IOU.REPORT_ACTION_TYPE>;
 
     /** If the action was cancelled, this is the reason for the cancellation */
@@ -79,7 +74,6 @@ type OriginalMessageIOU = {
     /** Where the invoice is paid with business account or not */
     payAsBusiness?: boolean;
 
-    /** The bank account id */
     bankAccountID?: number;
 
     /** Masked number (e.g., 'XXXXXX1234') of the bank account used to fund the payment */
@@ -120,7 +114,6 @@ type DecisionName = ValueOf<
 
 /** Model of moderator decision */
 type Decision = {
-    /** Name of the decision */
     decision: DecisionName;
 
     /** When was the decision made */
@@ -129,7 +122,6 @@ type Decision = {
 
 /** Model of `smart scan failed` report action */
 type OriginalMessageSmartScanFailed = {
-    /** Fields that are missing */
     missingFields: string[];
 
     /** LLM-friendly explanation of the scan failure that activates the Explain button */
@@ -147,7 +139,6 @@ type OriginalMessageAddComment = {
     /** When was the comment last modified */
     lastModified?: string;
 
-    /** ID of the task report */
     taskReportID?: string;
 
     /** Collection of accountIDs of users mentioned in message */
@@ -188,16 +179,12 @@ type OriginalMessageActionableMentionWhisper = {
 
 /** Model of `actionable card fraud alert` report action */
 type OriginalMessageCardFraudAlert = {
-    /** Card ID */
     cardID: number;
-
-    /** Masked card number */
     maskedCardNumber: string;
 
     /** Transaction amount in cents */
     triggerAmount: number;
 
-    /** Merchant name */
     triggerMerchant: string;
 
     /** Currency of the transaction */
@@ -250,10 +237,16 @@ type OriginalMessagePolicyExpenseChatWelcomeWhisper = {
     type?: string;
 };
 
-/** Model of a violation captured on a submitted report action */
-type SubmittedTransactionViolation = {
-    /** Violation identifier/name captured at submit time */
+/** Model of a violation captured on a report action snapshot */
+type SnapshotTransactionViolation = {
+    /** Violation identifier/name captured at snapshot time */
     name: string;
+};
+
+/** Model of the transaction violations snapshot captured on a report action */
+type ViolationsSnapshot = {
+    /** Violations keyed by transaction ID */
+    transactions: Record<string, SnapshotTransactionViolation[]>;
 };
 
 /** Model of `submitted` report action */
@@ -270,7 +263,6 @@ type OriginalMessageSubmitted = {
     /** Currency of the approved expense amount */
     currency: string;
 
-    /** Report ID of the expense */
     expenseReportID?: string;
 
     /** Was the report submitted via harvesting (delayed submit) */
@@ -292,10 +284,13 @@ type OriginalMessageSubmitted = {
     workflow?: ValueOf<typeof CONST.POLICY.APPROVAL_MODE>;
 
     /** Snapshot of transaction violations present when the report was submitted */
-    violations?: {
-        /** Violations keyed by transaction ID */
-        transactions: Record<string, SubmittedTransactionViolation[]>;
-    };
+    violations?: ViolationsSnapshot;
+};
+
+/** Model of the add-expense-on-submitted report action, which only carries the violations snapshot of the added expense */
+type OriginalMessageAddExpenseOnSubmitted = {
+    /** Snapshot of the transaction violations present when the expense was added to the submitted report */
+    violations?: ViolationsSnapshot;
 };
 
 /** Model of `created` report action */
@@ -312,13 +307,11 @@ type OriginalMessageCreatedReportForUnapprovedTransactions = {
 
 /** Model of `closed` report action */
 type OriginalMessageClosed = {
-    /** Name of the policy */
     policyName: string;
 
     /** What was the reason to close the report */
     reason: ValueOf<typeof CONST.REPORT.ARCHIVE_REASON>;
 
-    /** When was the message last modified */
     lastModified?: string;
 
     /** If the report was closed because accounts got merged, then this is the new account ID */
@@ -372,10 +365,7 @@ type ChronosOOOEvent = {
     /** Description of the OOO state */
     summary: string;
 
-    /** When will the OOO state start */
     start: ChronosOOOTimestamp;
-
-    /** When will the OOO state end */
     end: ChronosOOOTimestamp;
 };
 
@@ -399,7 +389,6 @@ type PolicyBudgetFrequencyValues = 'yearly' | 'monthly';
 
 /** Model of policy budget frequency action data */
 type PolicyBudgetFrequency = {
-    /** Values of policy budget frequency */
     frequency: PolicyBudgetFrequencyValues;
 
     /** Shared value of the entity budget */
@@ -408,7 +397,6 @@ type PolicyBudgetFrequency = {
     /** Individual value of the entity budget */
     individual?: number;
 
-    /** Notification threshold */
     notificationThreshold: number;
 };
 
@@ -423,7 +411,6 @@ type OriginalMessageChangeLog = {
     /** Description of the chat room */
     description?: string;
 
-    /** ID of the report */
     reportID?: number;
 
     /** Old name of the workspace */
@@ -432,13 +419,8 @@ type OriginalMessageChangeLog = {
     /** New name of the workspace */
     newName?: string;
 
-    /** Email of user */
     email?: string;
-
-    /** Role of user */
     role?: string;
-
-    /** When was it last modified */
     lastModified?: string;
 
     /** New role of user or new value of the category/tag field
@@ -453,10 +435,7 @@ type OriginalMessageChangeLog = {
      */
     oldValue?: boolean | string;
 
-    /** Name of connection */
     connectionName?: AllConnectionName;
-
-    /** Name of the added category */
     categoryName?: string;
 
     /** Avatar URL of workspace room */
@@ -474,7 +453,6 @@ type OriginalMessagePolicyChangeLog = {
     /** Description of the chat room */
     description?: string;
 
-    /** ID of the report */
     reportID?: number;
 
     /** Old name of the workspace/tag */
@@ -483,13 +461,8 @@ type OriginalMessagePolicyChangeLog = {
     /** New name of the workspace/tag */
     newName?: string;
 
-    /** Email of user */
     email?: string;
-
-    /** Role of user */
     role?: string;
-
-    /** When was it last modified */
     lastModified?: string;
 
     /** Old currency of the workspace */
@@ -504,28 +477,13 @@ type OriginalMessagePolicyChangeLog = {
     /** New frequency of the workspace */
     newFrequency?: ValueOf<typeof CONST.POLICY.AUTO_REPORTING_FREQUENCIES>;
 
-    /** Name of connection */
     connectionName?: AllConnectionName;
-
-    /** Name of the added category */
     categoryName?: string;
-
-    /** Name of the added tax */
     taxName?: string;
-
-    /** Name of the updated field */
     updatedField?: string;
-
-    /** Old value for max expense amount with no receipt */
     oldMaxExpenseAmountNoReceipt?: number;
-
-    /** New value for max expense amount with no receipt */
     newMaxExpenseAmountNoReceipt?: number;
-
-    /** Old value for max expense amount with no itemized receipt */
     oldMaxExpenseAmountNoItemizedReceipt?: number;
-
-    /** New value for max expense amount with no itemized receipt */
     newMaxExpenseAmountNoItemizedReceipt?: number;
 
     /** Currency of the policy */
@@ -543,16 +501,9 @@ type OriginalMessagePolicyChangeLog = {
     /** New value for max expense age (days) */
     newMaxExpenseAge?: number;
 
-    /** Old default billable value */
     oldDefaultBillable?: string;
-
-    /** New default billable value */
     newDefaultBillable?: string;
-
-    /** Old default reimbursable value */
     oldDefaultReimbursable?: string;
-
-    /** New default reimbursable value */
     newDefaultReimbursable?: string;
 
     /** MCC group name whose default spend category changed (e.g. "Airlines") */
@@ -573,41 +524,27 @@ type OriginalMessagePolicyChangeLog = {
     /** value -- returned when updating "Auto-approve compliant reports" */
     value?: boolean;
 
-    /** New description */
     newDescription?: string;
-
-    /** Old description */
     oldDescription?: string;
 
     /** Report field type */
     fieldType?: string;
 
-    /** Custom field type  */
     field?: string;
 
     /** Array of field changes for consolidated employee updates */
     fields?: Array<{
-        /** The name of the field being updated */
         field: string;
-        /** The previous value of the field */
         oldValue: string;
-        /** The new value of the field */
         newValue: string;
     }>;
 
     /** Report field name */
     fieldName?: string;
 
-    /** Custom unit name */
     customUnitName?: string;
-
-    /** Rate name of the custom unit */
     customUnitRateName?: string;
-
-    /** Name of the custom unit sub rate */
     customUnitSubRateName?: string;
-
-    /** Name of the removed sub rate */
     removedSubRateName?: string;
 
     /** Custom unit name */
@@ -652,19 +589,13 @@ type OriginalMessagePolicyChangeLog = {
     /** Name of the old tax rate (without percentage) for category default tax rate */
     oldTaxName?: string;
 
-    /** Added/Updated tag name */
     tagName?: string;
-
-    /** Updated tag list name */
     tagListName?: string;
-
-    /** Updated tag lists name */
     tagListsName?: string;
 
     /** Is tag list is required */
     isRequired?: boolean;
 
-    /** Count of elements updated */
     count?: string | number;
 
     /** Updated tag enabled/disabled value */
@@ -706,25 +637,12 @@ type OriginalMessagePolicyChangeLog = {
     /** Name for the field of which approver has been updated */
     name?: string;
 
-    /** Account ID of the approver */
     approverAccountID?: string;
-
-    /** Email of the new approver */
     newApproverEmail?: string;
-
-    /** Name of the new approver */
     newApproverName?: string;
-
-    /** Email of the old approver */
     oldApproverEmail?: string;
-
-    /** Name of the old approver */
     oldApproverName?: string;
-
-    /** Email of the approver */
     approverEmail?: string;
-
-    /** Name of the approver */
     approverName?: string;
 
     /** Option name of a list report field */
@@ -742,7 +660,6 @@ type OriginalMessagePolicyChangeLog = {
     /** The amount of the transaction */
     amount?: number;
 
-    /** The ID of the transaction thread report */
     transactionThreadReportID?: string;
 
     /** Old rate of the time enabled */
@@ -751,63 +668,25 @@ type OriginalMessagePolicyChangeLog = {
     /** New rate of the time enabled */
     newRate?: number;
 
-    /** Old prohibited expenses */
     oldProhibitedExpenses?: Record<ValueOf<typeof CONST.POLICY.PROHIBITED_EXPENSES>, boolean>;
-
-    /** New prohibited expenses */
     newProhibitedExpenses?: Record<ValueOf<typeof CONST.POLICY.PROHIBITED_EXPENSES>, boolean>;
-
-    /** Old reimbursement choice */
     oldChoice?: ValueOf<typeof CONST.POLICY.REIMBURSEMENT_CHOICES>;
-
-    /** New reimbursement choice */
     newChoice?: ValueOf<typeof CONST.POLICY.REIMBURSEMENT_CHOICES>;
-
-    /** Old owner email */
     oldOwnerEmail?: string;
-
-    /** Old owner name */
     oldOwnerName?: string;
-
-    /** Budget amount */
     budgetAmount?: string;
-
-    /** Budget frequency */
     budgetFrequency?: string;
-
-    /** Budget name */
     budgetName?: string;
-
-    /** Budget type for notification message */
     budgetTypeForNotificationMessage?: string;
-
-    /** Is new DOT */
     isNewDot?: boolean;
-
-    /** Summary link message */
     summaryLinkMessage?: string;
-
-    /** Threshold percentage */
     thresholdPercentage?: number;
-
-    /** Total spend */
     totalSpend?: number;
-
-    /** Unsubmitted spend */
     unsubmittedSpend?: number;
-
-    /** User email */
     userEmail?: string;
-
-    /** Approved reimbursed closed spend */
     approvedReimbursedClosedSpend?: number;
-
-    /** Awaiting approval spend */
     awaitingApprovalSpend?: number;
-    /** The name of the enabled/disabled feature */
     featureName?: string;
-
-    /** The new reimburser details */
     reimburser?: {
         /** The email of the new reimburser */
         email: string;
@@ -817,7 +696,6 @@ type OriginalMessagePolicyChangeLog = {
         accountID: number;
     };
 
-    /** The previous reimburser details */
     previousReimburser?: {
         /** The email of the previous reimburser */
         email: string;
@@ -913,7 +791,6 @@ type OriginalMessageSpendRuleChangeLog = {
 
     /** Cards a spend rule is scoped to */
     cards?: Array<{
-        /** Card identifier */
         cardID: CardID;
 
         /** Display name shown when the rule covers a single card */
@@ -922,7 +799,6 @@ type OriginalMessageSpendRuleChangeLog = {
 
     /** Previous list of cards when a spend rule's card scope was updated */
     oldCards?: Array<{
-        /** Card identifier */
         cardID: CardID;
 
         /** Display name shown when the rule covers a single card */
@@ -974,7 +850,6 @@ type OriginalMessageJoinPolicy = {
 
 /** Model of `modified expense` report action */
 type OriginalMessageModifiedExpense = {
-    /** Old content of the comment */
     oldComment?: string;
 
     /** Edited content of the comment */
@@ -989,7 +864,6 @@ type OriginalMessageModifiedExpense = {
     /** Edited creation date timestamp */
     created?: string;
 
-    /** Old merchant name */
     oldMerchant?: string;
 
     /** Old expense amount */
@@ -1019,7 +893,6 @@ type OriginalMessageModifiedExpense = {
     /** Edited billable */
     billable?: string;
 
-    /** Old billable */
     oldBillable?: string;
 
     /** Old expense tag amount */
@@ -1049,16 +922,12 @@ type OriginalMessageModifiedExpense = {
     /** Collection of accountIDs of users mentioned in expense report */
     whisperedTo?: number[];
 
-    /** The ID of moved report */
     movedToReportID?: string;
 
     /** The ID of the report the expense moved from */
     movedFromReport?: string;
 
-    /** The old list of attendees */
     oldAttendees?: Attendee[];
-
-    /** The list of attendees */
     newAttendees?: Attendee[];
 
     /** Source of category change (agentZero, mccMapping, or manual) */
@@ -1070,10 +939,7 @@ type OriginalMessageModifiedExpense = {
     /** The policy ID that the expense was modified in */
     policyID?: string;
 
-    /** The fields that were modified by policy rules */
     policyRulesModifiedFields?: PolicyRulesModifiedFields;
-
-    /** The fields that were modified by personal rules */
     personalRulesModifiedFields?: PersonalRulesModifiedFields;
 
     /** The Concierge reasoning for the action */
@@ -1089,15 +955,10 @@ type OriginalMessageConciergeAutoMatchVendor = {
     reasoning?: string;
 };
 
-/** Policy rules modified fields */
+/** Policy rules modified fields. Each member holds the new value the rule wrote, not the current one */
 type PolicyRulesModifiedFields = {
-    /** The value that the merchant was changed to */
     merchant?: string;
-
-    /** The value that the amount was changed to */
     category?: string;
-
-    /** The value that the tag was changed to */
     tag?: string;
 
     /** The value that the description was changed to (backend uses "comment" key) */
@@ -1106,13 +967,8 @@ type PolicyRulesModifiedFields = {
     /** The value that the description was changed to (display key, mapped from "comment") */
     description?: string;
 
-    /** The value that the billable status was changed to */
     billable?: boolean;
-
-    /** The value that the reimbursable status was changed to */
     reimbursable?: boolean;
-
-    /** The value that the tax was changed to */
     tax?: {
         /** The tax rate being used  */
         // eslint-disable-next-line @typescript-eslint/naming-convention
@@ -1120,15 +976,10 @@ type PolicyRulesModifiedFields = {
     };
 };
 
-/** Personal rules modified fields */
+/** Personal rules modified fields. Each member holds the new value the rule wrote, not the current one */
 type PersonalRulesModifiedFields = {
-    /** The value that the merchant was changed to */
     merchant?: string;
-
-    /** The value that the amount was changed to */
     category?: string;
-
-    /** The value that the tag was changed to */
     tag?: string;
 
     /** The value that the description was changed to (backend uses "comment" key) */
@@ -1137,20 +988,14 @@ type PersonalRulesModifiedFields = {
     /** The value that the description was changed to (display key, mapped from "comment") */
     description?: string;
 
-    /** The value that the billable status was changed to */
     billable?: boolean;
-
-    /** The value that the reimbursable status was changed to */
     reimbursable?: boolean;
-
-    /** The value that the tax was changed to */
     tax?: {
         /** The tax rate being used  */
         // eslint-disable-next-line @typescript-eslint/naming-convention
         field_id_TAX: PolicyRuleTaxRate;
     };
 
-    /** The value that the report name was set to */
     reportName?: string;
 };
 
@@ -1159,7 +1004,6 @@ type OriginalMessageTravelUpdate = Reservation & UpdateOperationType;
 
 /** Travel update operation type */
 type UpdateOperationType = {
-    /** Type of operation */
     operation: ValueOf<typeof CONST.TRAVEL.UPDATE_OPERATION_TYPE>;
 };
 
@@ -1180,7 +1024,6 @@ type OriginalMessageConciergeBaseOptions = {
     /** The options we present to the user when confidence in the prediction is low */
     options: string[];
 
-    /** The confidence levels for each option */
     confidenceLevels?: number[];
 
     /** The transaction ID associated with this action */
@@ -1219,7 +1062,6 @@ type OriginalMessageReimbursementQueued = {
 
 /** Model of `actionable tracked expense whisper` report action */
 type OriginalMessageActionableTrackedExpenseWhisper = {
-    /** ID of the transaction */
     transactionID: string;
 
     /** When was the tracked expense whisper last modified */
@@ -1234,7 +1076,6 @@ type OriginalMessageReimbursementDequeued = {
     /** Why the reimbursement was cancelled */
     cancellationReason: ValueOf<typeof CONST.REPORT.CANCEL_PAYMENT_REASONS>;
 
-    /** ID of the `expense` report */
     expenseReportID?: string;
 
     /** Amount that wasn't reimbursed */
@@ -1249,7 +1090,6 @@ type OriginalMessageChangePolicy = {
     /** ID of the old policy */
     fromPolicy: string | undefined;
 
-    /** ID of the new policy */
     toPolicy: string;
 };
 
@@ -1265,7 +1105,6 @@ type OriginalMessageUnreportedTransaction = {
 type OriginalMessageMovedTransaction = {
     /** @Deprecated ID of the new report for backwards compatibility */
     toReportID?: string;
-    /** ID of the original report */
     fromReportID: string;
     /** Reasoning for the automated move, used by Concierge Explain feature */
     reasoning?: string;
@@ -1276,13 +1115,8 @@ type OriginalMessageMoved = {
     /** ID of the old policy */
     fromPolicyID: string | undefined;
 
-    /** ID of the new policy */
     toPolicyID: string;
-
-    /** ID of the new parent report */
     newParentReportID: string;
-
-    /** ID of the moved report */
     movedReportID: string;
 };
 
@@ -1291,7 +1125,6 @@ type OriginalMessageDismissedViolation = {
     /** Why the violation was dismissed */
     reason: string;
 
-    /** Name of the violation */
     violationName: string;
 };
 
@@ -1345,7 +1178,6 @@ type OriginalMessageReimbursed = {
     /** Whether this is an invoice or bill payment */
     isInvoiceOrBill?: boolean;
 
-    /** Whether the submitter is adding a bank account */
     isSubmitterAddingBankAccount?: boolean;
 
     /** For StripeConnect payments, indicates payment type ('card' or 'bank account') */
@@ -1381,7 +1213,6 @@ type OriginalMessageApproved = {
     /** Currency of the approved expense amount */
     currency: string;
 
-    /** Report ID of the expense */
     expenseReportID: string;
 
     /** The login of approver who is on vacation */
@@ -1389,6 +1220,9 @@ type OriginalMessageApproved = {
 
     /** The Concierge reasoning for the action */
     reasoning?: string;
+
+    /** Snapshot of transaction violations present when the report was approved */
+    violations?: ViolationsSnapshot;
 };
 
 /** Model of `forwarded` report action */
@@ -1402,7 +1236,6 @@ type OriginalMessageForwarded = {
     /** Currency of the forwarded expense amount */
     currency: string;
 
-    /** Report ID of the expense */
     expenseReportID: string;
 
     /** The login the approver who is acting on behalf of the vacationer */
@@ -1413,6 +1246,9 @@ type OriginalMessageForwarded = {
 
     /** Optional message explaining why the report was forwarded that way */
     message?: string;
+
+    /** Snapshot of transaction violations present when the report was forwarded */
+    violations?: ViolationsSnapshot;
 };
 
 /**
@@ -1474,7 +1310,6 @@ type OriginalMessageUnapproved = {
     /** Currency of the unapproved expense amount */
     currency: string;
 
-    /** Report ID of the expense */
     expenseReportID: string;
 };
 
@@ -1489,7 +1324,6 @@ type OriginalMessageRemovedFromApprovalChain = {
 
 /** Model of `Demoted From Workspace` report action */
 type OriginalMessageDemotedFromWorkspace = {
-    /** The policy name */
     policyName: string;
 
     /** The old role of the employee that is being demoted */
@@ -1566,7 +1400,6 @@ type OriginalMessageDEWFailed = {
     /** The error message */
     message: string;
 
-    /** Whether the action was automatic */
     automaticAction?: boolean;
 
     /** Was the report submitted via harvesting (delayed submit) */
@@ -1580,7 +1413,6 @@ type OriginalMessageCard = {
     /** The id of the user the card was assigned to */
     assigneeAccountID: number;
 
-    /** The id of the card */
     cardID: number;
 
     /** Whether the card was issued without a shipping address */
@@ -1616,16 +1448,13 @@ type OriginalMessageCardDeactivated = {
 };
 
 /**
- * Model of PERSONAL_CARD_CONNECTION_BROKEN action
+ * Model of PERSONAL_CARD_CONNECTION_BROKEN and PERSONAL_CARD_CONNECTION_BROKEN_30_DAYS actions
  */
 type OriginalPersonalCard = {
     /** The id of the user the card was assigned to */
     assigneeAccountID: number;
 
-    /** The id of the card */
     cardID: number;
-
-    /** The name of the card */
     cardName?: string;
 };
 
@@ -1633,7 +1462,6 @@ type OriginalPersonalCard = {
  * Model of INTEGRATIONS_MESSAGE report action
  */
 type OriginalMessageIntegrationMessage = {
-    /** Object with detailed result */
     result: {
         /** Wether action was successful */
         success: boolean;
@@ -1726,10 +1554,7 @@ type OriginalMessageReimbursementDirectorInformationRequired = {
     /** Currency of policy */
     currency: string;
 
-    /** ID of policy */
     policyID: string;
-
-    /** ID of bank account */
     bankAccountID: string;
 
     /** Whether user added signer information */
@@ -1811,6 +1636,7 @@ type OriginalMessageMap = {
     [CONST.REPORT.ACTIONS.TYPE.STRIPE_PAID]: never;
     [CONST.REPORT.ACTIONS.TYPE.SUBMITTED]: OriginalMessageSubmitted;
     [CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED]: OriginalMessageSubmitted;
+    [CONST.REPORT.ACTIONS.TYPE.ADD_EXPENSE_ON_SUBMITTED]: OriginalMessageAddExpenseOnSubmitted;
     [CONST.REPORT.ACTIONS.TYPE.TASK_CANCELLED]: never;
     [CONST.REPORT.ACTIONS.TYPE.TASK_COMPLETED]: never;
     [CONST.REPORT.ACTIONS.TYPE.TASK_EDITED]: never;
@@ -1839,6 +1665,7 @@ type OriginalMessageMap = {
     [CONST.REPORT.ACTIONS.TYPE.CARD_UNFROZEN]: OriginalMessageCardFrozen;
     [CONST.REPORT.ACTIONS.TYPE.CARD_DEACTIVATED]: OriginalMessageCardDeactivated;
     [CONST.REPORT.ACTIONS.TYPE.PERSONAL_CARD_CONNECTION_BROKEN]: OriginalPersonalCard;
+    [CONST.REPORT.ACTIONS.TYPE.PERSONAL_CARD_CONNECTION_BROKEN_30_DAYS]: OriginalPersonalCard;
     [CONST.REPORT.ACTIONS.TYPE.INTEGRATION_SYNC_FAILED]: OriginalMessageIntegrationSyncFailed;
     [CONST.REPORT.ACTIONS.TYPE.DELETED_TRANSACTION]: OriginalMessageDeletedTransaction;
     [CONST.REPORT.ACTIONS.TYPE.DEW_SUBMIT_FAILED]: OriginalMessageDEWFailed;
@@ -1847,6 +1674,7 @@ type OriginalMessageMap = {
     [CONST.REPORT.ACTIONS.TYPE.CONCIERGE_DESCRIPTION_OPTIONS]: OriginalMessageConciergeDescriptionOptions;
     [CONST.REPORT.ACTIONS.TYPE.CONCIERGE_AUTO_MAP_MCC_GROUPS]: OriginalMessageConciergeAutoMapMccGroups;
     [CONST.REPORT.ACTIONS.TYPE.COMPANY_CARD_CONNECTION_BROKEN]: OriginalMessageCompanyCardConnectionBroken;
+    [CONST.REPORT.ACTIONS.TYPE.COMPANY_CARD_CONNECTION_BROKEN_30_DAYS]: OriginalMessageCompanyCardConnectionBroken;
     [CONST.REPORT.ACTIONS.TYPE.COMMUTER_EXCLUSION]: OriginalMessageCommuterExclusion;
     [CONST.REPORT.ACTIONS.TYPE.PLAID_BALANCE_FAILURE]: OriginalMessagePlaidBalanceFailure;
     [CONST.REPORT.ACTIONS.TYPE.RETRACTED]: never;
@@ -1893,4 +1721,5 @@ export type {
     OriginalMessageMarkedReimbursed,
     OriginalMessageReimbursed,
     OriginalMessageSettlementAccountLocked,
+    ViolationsSnapshot,
 };

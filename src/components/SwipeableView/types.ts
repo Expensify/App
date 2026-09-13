@@ -8,7 +8,6 @@ type SwipeableViewProps = {
     /** Callback to fire when the user swipes down on the child content */
     onSwipeDown: () => void;
 
-    /** Additional styles applied to the wrapping view */
     style?: StyleProp<ViewStyle>;
 };
 
