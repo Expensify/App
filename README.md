@@ -100,7 +100,7 @@ to help run our Unit tests.
 ## Performance tests
 We use Reassure for monitoring performance regression. More detailed information can be found [here](tests/perf-test/README.md):
 
-## CodeCov
+## CodeCov test
 
 [CodeCov](https://about.codecov.io/) is the service we use to measure and track code coverage. You can find out more about it [here](contributingGuides/CodeCov.md)
 
