@@ -188,6 +188,20 @@ describe('PolicyInlineEdit', () => {
             expect(mockWrite).not.toHaveBeenCalled();
         });
 
+        it('does not persist Fixed when the fallback limit type is fully spent', () => {
+            const card = buildCard({
+                totalSpend: -10000,
+                nameValuePairs: {
+                    limitType: undefined,
+                    unapprovedExpenseLimit: 10000,
+                },
+            });
+
+            updateExpensifyCardLimitTypeInline(1, card, CONST.EXPENSIFY_CARD.LIMIT_TYPES.FIXED, CONST.EXPENSIFY_CARD.LIMIT_TYPES.MONTHLY);
+
+            expect(mockWrite).not.toHaveBeenCalled();
+        });
+
         it('changes only the limit type and leaves validity dates untouched', () => {
             const card = buildCard();
 

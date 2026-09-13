@@ -2252,6 +2252,18 @@ describe('CardUtils', () => {
 
             expect(shouldShowExpensifyCardFixedLimitType(card)).toBe(true);
         });
+
+        it('uses the fallback limit type when the card has no limitType', () => {
+            const card = createMock<Card>({
+                totalSpend: -5000,
+                nameValuePairs: {
+                    unapprovedExpenseLimit: 4000,
+                },
+            });
+
+            expect(shouldShowExpensifyCardFixedLimitType(card)).toBe(true);
+            expect(shouldShowExpensifyCardFixedLimitType(card, CONST.EXPENSIFY_CARD.LIMIT_TYPES.MONTHLY)).toBe(false);
+        });
     });
 
     describe('shouldConfirmExpensifyCardLimitTypeChange', () => {
@@ -2281,6 +2293,18 @@ describe('CardUtils', () => {
             });
 
             expect(shouldConfirmExpensifyCardLimitTypeChange(card, CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART)).toBe(false);
+        });
+
+        it('uses the fallback limit type when the card has no limitType', () => {
+            const card = createMock<Card>({
+                unapprovedSpend: -5000,
+                nameValuePairs: {
+                    unapprovedExpenseLimit: 4000,
+                },
+            });
+
+            expect(shouldConfirmExpensifyCardLimitTypeChange(card, CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART)).toBe(false);
+            expect(shouldConfirmExpensifyCardLimitTypeChange(card, CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART, CONST.EXPENSIFY_CARD.LIMIT_TYPES.MONTHLY)).toBe(true);
         });
     });
 

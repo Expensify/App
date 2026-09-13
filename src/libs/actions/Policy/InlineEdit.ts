@@ -107,7 +107,7 @@ function updateMemberRoleInline(policy: OnyxEntry<Policy>, memberLogin: string, 
     updateWorkspaceMembersRole(policy, [memberLogin], [accountID], newRole);
 }
 
-function updateExpensifyCardLimitTypeInline(workspaceAccountID: number, card: Card, newLimitType: CardLimitType): void {
+function updateExpensifyCardLimitTypeInline(workspaceAccountID: number, card: Card, newLimitType: CardLimitType, fallbackLimitType?: CardLimitType): void {
     const currentLimitType = card.nameValuePairs?.limitType;
     if (newLimitType === currentLimitType) {
         return;
@@ -117,7 +117,7 @@ function updateExpensifyCardLimitTypeInline(workspaceAccountID: number, card: Ca
         return;
     }
 
-    if (newLimitType === CONST.EXPENSIFY_CARD.LIMIT_TYPES.FIXED && !shouldShowExpensifyCardFixedLimitType(card)) {
+    if (newLimitType === CONST.EXPENSIFY_CARD.LIMIT_TYPES.FIXED && !shouldShowExpensifyCardFixedLimitType(card, fallbackLimitType)) {
         return;
     }
 

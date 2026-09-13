@@ -123,7 +123,7 @@ function DynamicExpensifyCardLimitTypePage({route}: WorkspaceEditCardLimitTypePa
     };
 
     const submit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.EDIT_EXPENSIFY_CARD_LIMIT_TYPE_FORM>) => {
-        if (shouldConfirmExpensifyCardLimitTypeChange(card, typeSelected)) {
+        if (shouldConfirmExpensifyCardLimitTypeChange(card, typeSelected, defaultLimitType)) {
             showConfirmModal({
                 title: translate('workspace.expensifyCard.changeCardLimitType'),
                 prompt: translate(getExpensifyCardLimitTypeChangeWarningKey(initialLimitType), convertToDisplayString(card?.nameValuePairs?.unapprovedExpenseLimit, currency)),
@@ -143,7 +143,7 @@ function DynamicExpensifyCardLimitTypePage({route}: WorkspaceEditCardLimitTypePa
         updateCardLimitType(values);
     };
 
-    const shouldShowFixedOption = shouldShowExpensifyCardFixedLimitType(card);
+    const shouldShowFixedOption = shouldShowExpensifyCardFixedLimitType(card, defaultLimitType);
 
     // Only link to the Workflows page when the current user can actually read it. Card admins without Workflows
     // access would otherwise be dropped onto the Not Found page. When they lack access, render plain (non-linked) text.

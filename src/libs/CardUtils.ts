@@ -521,13 +521,14 @@ const EXPENSIFY_CARD_LIMIT_TYPE_CHANGE_CONFIRMATION_COMBINATIONS: Array<[CardLim
 /**
  * Whether Fixed should be offered when editing an Expensify card's limit type.
  * Hidden when a monthly or Smart card has already spent its full unapproved limit.
+ * `fallbackLimitType` is the policy default, used when the card has no `limitType` yet.
  */
-function shouldShowExpensifyCardFixedLimitType(card?: Card): boolean {
+function shouldShowExpensifyCardFixedLimitType(card?: Card, fallbackLimitType?: CardLimitType): boolean {
     if (!card?.totalSpend || !card.nameValuePairs?.unapprovedExpenseLimit) {
         return true;
     }
 
-    const currentLimitType = card.nameValuePairs.limitType;
+    const currentLimitType = card.nameValuePairs.limitType ?? fallbackLimitType;
     if (currentLimitType !== CONST.EXPENSIFY_CARD.LIMIT_TYPES.MONTHLY && currentLimitType !== CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART) {
         return true;
     }
@@ -537,8 +538,9 @@ function shouldShowExpensifyCardFixedLimitType(card?: Card): boolean {
 
 /**
  * Whether changing to `newLimitType` can decline new transactions because unapproved spend is already at the limit.
+ * `fallbackLimitType` is the policy default, used when the card has no `limitType` yet.
  */
-function shouldConfirmExpensifyCardLimitTypeChange(card: Card | undefined, newLimitType: CardLimitType): boolean {
+function shouldConfirmExpensifyCardLimitTypeChange(card: Card | undefined, newLimitType: CardLimitType, fallbackLimitType?: CardLimitType): boolean {
     if (!card?.unapprovedSpend || !card.nameValuePairs?.unapprovedExpenseLimit) {
         return false;
     }
@@ -548,7 +550,7 @@ function shouldConfirmExpensifyCardLimitTypeChange(card: Card | undefined, newLi
         return false;
     }
 
-    const currentLimitType = card.nameValuePairs.limitType;
+    const currentLimitType = card.nameValuePairs.limitType ?? fallbackLimitType;
     return EXPENSIFY_CARD_LIMIT_TYPE_CHANGE_CONFIRMATION_COMBINATIONS.some(([fromLimitType, toLimitType]) => currentLimitType === fromLimitType && newLimitType === toLimitType);
 }
 

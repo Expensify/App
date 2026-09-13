@@ -11,7 +11,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 
-import {shouldShowExpensifyCardFixedLimitType} from '@libs/CardUtils';
+import {getDefaultExpensifyCardLimitType, shouldShowExpensifyCardFixedLimitType} from '@libs/CardUtils';
 import {canMemberRead, getApprovalWorkflow} from '@libs/PolicyUtils';
 
 import variables from '@styles/variables';
@@ -85,7 +85,7 @@ function WorkspaceExpensifyCardLimitTypePickerModal({
     const areApprovalsConfigured = getApprovalWorkflow(policy) !== CONST.POLICY.APPROVAL_MODE.OPTIONAL;
     const canReadWorkflows = canMemberRead(policy, currentUserLogin ?? '', CONST.POLICY.POLICY_FEATURE.WORKFLOWS);
     const workspaceWorkflowsPageURL = canReadWorkflows ? `${environmentURL}/${ROUTES.WORKSPACE_WORKFLOWS.getRoute(policy?.id)}` : undefined;
-    const shouldShowFixedOption = shouldShowExpensifyCardFixedLimitType(card);
+    const shouldShowFixedOption = shouldShowExpensifyCardFixedLimitType(card, getDefaultExpensifyCardLimitType(policy));
 
     const availableLimitTypeItems: LimitTypeListItem[] = [
         {

@@ -38,6 +38,7 @@ import {renameExpensifyCardInline, updateExpensifyCardLimitInline, updateExpensi
 import {
     getCardsByCardholderName,
     getCardSettings,
+    getDefaultExpensifyCardLimitType,
     getExpensifyCardLimitChangeWarningKey,
     getExpensifyCardLimitError,
     getExpensifyCardLimitTypeChangeWarningKey,
@@ -123,6 +124,7 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
     );
 
     const settlementCurrency = useCurrencyForExpensifyCard({policyID, fundID});
+    const defaultLimitType = getDefaultExpensifyCardLimitType(policy);
     const shouldShowEuUkDisclaimer = isCurrencySupportedForECards(settlementCurrency);
     const allCards = useMemo(() => {
         const policyMembersAccountIDs = Object.values(getMemberAccountIDsForWorkspace(policy?.employeeList));
@@ -183,9 +185,9 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
                             return;
                         }
 
-                        const persistLimitType = () => updateExpensifyCardLimitTypeInline(fundID, card, newLimitType);
+                        const persistLimitType = () => updateExpensifyCardLimitTypeInline(fundID, card, newLimitType, defaultLimitType);
 
-                        if (!shouldConfirmExpensifyCardLimitTypeChange(card, newLimitType)) {
+                        if (!shouldConfirmExpensifyCardLimitTypeChange(card, newLimitType, defaultLimitType)) {
                             persistLimitType();
                             return;
                         }
@@ -193,7 +195,7 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
                         showConfirmModal({
                             title: translate('workspace.expensifyCard.changeCardLimitType'),
                             prompt: translate(
-                                getExpensifyCardLimitTypeChangeWarningKey(card.nameValuePairs?.limitType),
+                                getExpensifyCardLimitTypeChangeWarningKey(card.nameValuePairs?.limitType ?? defaultLimitType),
                                 convertToDisplayString(card.nameValuePairs?.unapprovedExpenseLimit, settlementCurrency),
                             ),
                             confirmText: translate('workspace.expensifyCard.changeLimitType'),
@@ -246,6 +248,7 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
             canWriteExpensifyCard,
             convertToDisplayString,
             defaultFundID,
+            defaultLimitType,
             fundID,
             isSelectionModeActive,
             personalDetails,
