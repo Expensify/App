@@ -1,5 +1,6 @@
 import ConnectionLayout from '@components/ConnectionLayout';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItem from '@components/MenuItem';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
@@ -19,7 +20,7 @@ import {getIsTravelBillingEnabled, getTravelBillingCardSettingsKey} from '@libs/
 
 import goBackFromExportConnection from '@navigation/helpers/goBackFromExportConnection';
 
-import type {DividerLineItem, MenuItem, ToggleItem} from '@pages/workspace/accounting/netsuite/types';
+import type {DividerLineItem, MenuItem as MenuItemProps, ToggleItem} from '@pages/workspace/accounting/netsuite/types';
 import {
     shouldHideExportForeignCurrencyAmount,
     shouldHideJournalPostingPreference,
@@ -42,7 +43,7 @@ import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import React from 'react';
 import {View} from 'react-native';
 
-type MenuItemWithSubscribedSettings = Pick<MenuItem, 'type' | 'description' | 'title' | 'onPress' | 'shouldHide'> & {subscribedSettings?: string[]};
+type MenuItemWithSubscribedSettings = Pick<MenuItemProps, 'type' | 'description' | 'title' | 'onPress' | 'shouldHide'> & {subscribedSettings?: string[]};
 
 function NetSuiteExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
@@ -251,13 +252,15 @@ function NetSuiteExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
                                     key={item.description}
                                     pendingAction={settingsPendingAction(item.subscribedSettings, config?.pendingFields)}
                                 >
-                                    <MenuItemWithTopDescription
-                                        title={item.title}
-                                        description={item.description}
-                                        shouldShowRightIcon
+                                    <MenuItemField
+                                        name={item.description ?? ''}
                                         onPress={item?.onPress}
-                                        brickRoadIndicator={areSettingsInErrorFields(item.subscribedSettings, config?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                                    />
+                                        value={item.title}
+                                    >
+                                        {areSettingsInErrorFields(item.subscribedSettings, config?.errorFields) && (
+                                            <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />
+                                        )}
+                                    </MenuItemField>
                                 </OfflineWithFeedback>
                             );
                     }
