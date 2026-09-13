@@ -10,7 +10,6 @@ import useExpensifyCardRules from '@hooks/useExpensifyCardRulesList';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
 import usePersonalDetailByLogin from '@hooks/usePersonalDetailByLogin';
 import useScreenBoundDynamicRoute from '@hooks/useScreenBoundDynamicRoute';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -50,7 +49,6 @@ function ConfirmationStep({policyID, stepNames, startStepIndex}: ConfirmationSte
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
     const defaultFundID = useDefaultFundID(policyID);
-    const {isBetaEnabled} = usePermissions();
     const {cardRules} = useExpensifyCardRules(policyID);
 
     const data = issueNewCard?.data;
@@ -108,12 +106,12 @@ function ConfirmationStep({policyID, stepNames, startStepIndex}: ConfirmationSte
         if (AccountUtils.hasValidateCodeExtendedAccess(account)) {
             // Attempt to issue directly without validateCode when user has extended access
             // If this fails, the effect above will redirect to the validateCode page
-            issueExpensifyCard(defaultFundID, policyID, isBetaEnabled(CONST.BETAS.EXPENSIFY_CARD_EU_UK) ? '' : CONST.COUNTRY.US, '', assigneeTimeZone, data);
+            issueExpensifyCard(defaultFundID, policyID, '', '', assigneeTimeZone, data);
         } else {
             // Navigate to validateCode page
             Navigation.navigate(buildDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_CONFIRM_VALIDATE_CODE.path));
         }
-    }, [policyID, data, account, defaultFundID, isBetaEnabled, assigneeTimeZone, buildDynamicRoute]);
+    }, [policyID, data, account, defaultFundID, assigneeTimeZone, buildDynamicRoute]);
 
     const errorMessage = getLatestErrorMessage(issueNewCard) || (shouldDisableSubmitButton ? translate('workspace.card.issueNewCard.disabledApprovalForSmartLimitError') : '');
 
