@@ -224,6 +224,7 @@ function CopilotPage() {
             const addDelegateErrors = errorFields?.addDelegate?.[email];
             const error = getLatestError(addDelegateErrors);
             const isOwnerRow = isAgentAccount === true && !!actingDelegateEmail && email.toLowerCase() === actingDelegateEmail;
+            const isPendingDelete = pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 
             const onPress = (e: GestureResponderEvent | KeyboardEvent) => {
                 if (isEmptyObject(pendingAction)) {
@@ -250,12 +251,13 @@ function CopilotPage() {
                 icon: personalDetail?.avatar ?? (personalDetail ? getDefaultAvatarURL({accountID: personalDetail.accountID, accountEmail: email}) : undefined),
                 iconType: CONST.ICON_TYPE_AVATAR,
                 wrapperStyle: [styles.sectionMenuItemTopDescription],
-                iconRight: isOwnerRow ? undefined : icons.ThreeDots,
-                shouldShowRightIcon: !isOwnerRow,
+                iconRight: isOwnerRow || isPendingDelete ? undefined : icons.ThreeDots,
+                shouldShowRightIcon: !isOwnerRow && !isPendingDelete,
                 pendingAction,
                 shouldForceOpacity: !!pendingAction,
                 onPendingActionDismiss: () => clearDelegateErrorsByField({email, fieldName: 'addDelegate', delegatedAccess: account?.delegatedAccess}),
                 error,
+                disabled: isPendingDelete,
                 onPress: isOwnerRow ? undefined : onPress,
                 interactive: !isOwnerRow,
                 success: selectedEmail === email,
