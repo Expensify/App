@@ -1157,6 +1157,9 @@ const translations: TranslationDeepObject<typeof en> = {
         dragAndDropMultiLevelTag: `<muted-link>スプレッドシートをここにドラッグ＆ドロップするか、下からファイルを選択してください。サポートされているファイル形式の詳しい説明は、<a href="${CONST.IMPORT_SPREADSHEET.MULTI_LEVEL_TAGS_ARTICLE_LINK}">こちら</a>をご覧ください。</muted-link>`,
         chooseSpreadsheet: '<muted-link>インポートするスプレッドシートファイルを選択してください。対応形式：.csv、.txt、.xls、.xlsx。</muted-link>',
         chooseSpreadsheetMultiLevelTag: `<muted-link>インポートするスプレッドシートファイルを選択してください。サポートされているファイル形式の詳細は、<a href="${CONST.IMPORT_SPREADSHEET.MULTI_LEVEL_TAGS_ARTICLE_LINK}">こちら</a>をご覧ください。</muted-link>`,
+        dragAndDropTransactions:
+            '<muted-link>スプレッドシートまたは取引明細をここにドラッグ＆ドロップするか、下からファイルを選択してください。対応形式：.csv、.txt、.xls、.xlsx、.ofx、.qfx</muted-link>',
+        chooseSpreadsheetTransactions: '<muted-link>インポートするスプレッドシートまたは取引明細ファイルを選択してください。対応形式：.csv、.txt、.xls、.xlsx、.ofx、.qfx。</muted-link>',
         fileContainsHeader: 'ファイルに列見出しが含まれています',
         column: (name: string) => `列${name}`,
         fieldNotMapped: (fieldName: string) => `おっと！必須フィールド（「${fieldName}」）がマッピングされていません。確認してもう一度お試しください。`,
@@ -1215,6 +1218,7 @@ const translations: TranslationDeepObject<typeof en> = {
             one: `${count} 件の取引がインポートされました。`,
             other: `${count} 件の取引がインポートされました。`,
         }),
+        importStatementSuccessfulDescription: '銀行明細書がアップロードされました。',
         importFailedTitle: 'インポートに失敗しました',
         importFailedDescription: 'すべての項目が正しく入力されていることを確認して、もう一度お試しください。問題が解決しない場合は、Concierge までご連絡ください。',
         importDescription: '下のインポートされた各列の横にあるドロップダウンをクリックして、スプレッドシートのどのフィールドを対応付けるか選択してください。',

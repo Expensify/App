@@ -639,6 +639,7 @@ export type {default as ResendValidateCodeParams} from './ResendValidateCodePara
 export type {default as SendExportFileFromConciergeParams} from './SendExportFileFromConciergeParams';
 export type {default as ClearExportDownloadParams} from './ClearExportDownloadParams';
 export type {default as UpgradeSubmitParams} from './UpgradeSubmitParams';
+export type {default as UploadOFXParams} from './UploadOFXParams';
 export type {default as UploadUserKYBDocsParams} from './UploadUserKYBDocsParams';
 export type {default as JoinReportViaSecureLinkParams} from './JoinReportViaSecureLinkParams';
 export type {default as DismissMarketingWindowParams} from './DismissMarketingWindow';
