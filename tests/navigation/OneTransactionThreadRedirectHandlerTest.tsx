@@ -38,11 +38,14 @@ jest.mock('@libs/Navigation/helpers/isSearchTopmostFullScreenRoute', () => ({
     default: () => mockIsSearchTopmostFullScreenRoute,
 }));
 
-let mockShouldUseNarrowLayout = false;
+// Not `useResponsiveLayout`: its `shouldUseNarrowLayout` counts the RHP this handler runs inside as narrow, so the
+// handler reads the raw layout instead. Jest resolves the `.native.ts` variant, which is hardcoded to `true`, so the
+// wide branch is only reachable in tests through this mock.
+let mockIsNarrowLayout = false;
 
-jest.mock('@hooks/useResponsiveLayout', () => ({
+jest.mock('@libs/getIsNarrowLayout', () => ({
     __esModule: true,
-    default: () => ({shouldUseNarrowLayout: mockShouldUseNarrowLayout}),
+    default: () => mockIsNarrowLayout,
 }));
 
 let mockRouteName: string = SCREENS.REPORT;
@@ -105,7 +108,7 @@ describe('OneTransactionThreadRedirectHandler', () => {
         mockRouteParams = {reportID: THREAD_REPORT_ID};
         mockIsFocused = true;
         mockIsSearchTopmostFullScreenRoute = false;
-        mockShouldUseNarrowLayout = false;
+        mockIsNarrowLayout = false;
         mockParentReportID = EXPENSE_REPORT_ID;
         mockParentTransactionCount = 1;
         mockOneTransactionThreadReportID = THREAD_REPORT_ID;
@@ -201,14 +204,14 @@ describe('OneTransactionThreadRedirectHandler', () => {
         expect(mockNavigate).not.toHaveBeenCalled();
     });
 
-    it('keeps the report in the search full screen route when redirecting from the search RHP', async () => {
+    it('stays on the search RHP route when redirecting from inside Search', async () => {
         mockRouteName = SCREENS.RIGHT_MODAL.SEARCH_REPORT;
         mockIsSearchTopmostFullScreenRoute = true;
 
         render(<OneTransactionThreadRedirectHandler />);
 
         await waitFor(() => expect(mockNavigate).toHaveBeenCalledTimes(1));
-        expect(mockNavigate).toHaveBeenCalledWith(`search/r/${EXPENSE_REPORT_ID}`, {forceReplace: true});
+        expect(mockNavigate).toHaveBeenCalledWith(`search/view/${EXPENSE_REPORT_ID}`, {forceReplace: true});
     });
 
     it('opens the expense report in the wide RHP when redirecting from the search RHP outside search', async () => {
@@ -222,7 +225,7 @@ describe('OneTransactionThreadRedirectHandler', () => {
 
     it('opens the expense report as a full report view on a narrow layout, which has no wide RHP', async () => {
         mockRouteName = SCREENS.RIGHT_MODAL.SEARCH_REPORT;
-        mockShouldUseNarrowLayout = true;
+        mockIsNarrowLayout = true;
 
         render(<OneTransactionThreadRedirectHandler />);
 
@@ -237,6 +240,46 @@ describe('OneTransactionThreadRedirectHandler', () => {
 
         await waitFor(() => expect(mockNavigate).toHaveBeenCalledTimes(1));
         expect(mockNavigate).toHaveBeenCalledWith(`r/${EXPENSE_REPORT_ID}?backTo=home`, {forceReplace: true});
+    });
+
+    it('inherits the nested backTo when the route came from the parent report itself', async () => {
+        // A thread opened from its own report carries that report as `backTo`. Keeping it would leave the report
+        // pointing at itself, which makes `linkTo` refuse to navigate at all.
+        mockRouteParams = {reportID: THREAD_REPORT_ID, backTo: `/r/${EXPENSE_REPORT_ID}?backTo=%2Fsearch`};
+
+        render(<OneTransactionThreadRedirectHandler />);
+
+        await waitFor(() => expect(mockNavigate).toHaveBeenCalledTimes(1));
+        expect(mockNavigate).toHaveBeenCalledWith(`r/${EXPENSE_REPORT_ID}?backTo=${encodeURIComponent('/search')}`, {forceReplace: true});
+    });
+
+    it('drops a self-referencing backTo that has nothing nested inside it', async () => {
+        mockRouteParams = {reportID: THREAD_REPORT_ID, backTo: `/r/${EXPENSE_REPORT_ID}`};
+
+        render(<OneTransactionThreadRedirectHandler />);
+
+        await waitFor(() => expect(mockNavigate).toHaveBeenCalledTimes(1));
+        expect(mockNavigate).toHaveBeenCalledWith(`r/${EXPENSE_REPORT_ID}`, {forceReplace: true});
+    });
+
+    it('keeps a backTo that points at a report other than the parent', async () => {
+        mockRouteParams = {reportID: THREAD_REPORT_ID, backTo: '/r/99999'};
+
+        render(<OneTransactionThreadRedirectHandler />);
+
+        await waitFor(() => expect(mockNavigate).toHaveBeenCalledTimes(1));
+        expect(mockNavigate).toHaveBeenCalledWith(`r/${EXPENSE_REPORT_ID}?backTo=${encodeURIComponent('/r/99999')}`, {forceReplace: true});
+    });
+
+    it('does not recognise an anchored parent backTo, so the report is left pointing at itself', async () => {
+        // `getRoutePath` only strips the query string, so `/r/<parent>/<actionID>` does not match the built
+        // `r/<parent>`. Documents current behavior - see the regression note on the PR.
+        mockRouteParams = {reportID: THREAD_REPORT_ID, backTo: `/r/${EXPENSE_REPORT_ID}/9999`};
+
+        render(<OneTransactionThreadRedirectHandler />);
+
+        await waitFor(() => expect(mockNavigate).toHaveBeenCalledTimes(1));
+        expect(mockNavigate).toHaveBeenCalledWith(`r/${EXPENSE_REPORT_ID}?backTo=${encodeURIComponent(`/r/${EXPENSE_REPORT_ID}/9999`)}`, {forceReplace: true});
     });
 
     it('forwards the notification referrer so the report it redirects to still marks itself read', async () => {

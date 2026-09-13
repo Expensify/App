@@ -1,12 +1,13 @@
 import useIsOneTransactionThread from '@hooks/useIsOneTransactionThread';
 import useOnyx from '@hooks/useOnyx';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 
+import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import {isOneTransactionReport} from '@libs/ReportUtils';
+import {getSearchParamFromPath} from '@libs/Url';
 
 import type {ReportsSplitNavigatorParamList, RightModalNavigatorParamList} from '@navigation/types';
 
@@ -33,25 +34,31 @@ type ExpenseReportRouteParams = {
     routeName: string;
     reportID: string;
     referrer: string | undefined;
-    backTo: Route | undefined;
-    shouldUseNarrowLayout: boolean;
+    backTo: string | undefined;
 };
 
-/**
- * The route for the report that owns the expense, matching how the rest of the app opens an expense report: in the
- * wide RHP when we are already in one, and as a full report view otherwise. See `navigateToChildReport` and `Link.ts`.
- */
-function getExpenseReportRoute({routeName, reportID, referrer, backTo, shouldUseNarrowLayout}: ExpenseReportRouteParams): Route {
+/** A route reduced to its path, so one built by `ROUTES` can be compared with a `backTo`, which carries a leading slash and usually nests a `backTo` of its own. */
+function getRoutePath(route: string): string {
+    return route.replace(/^\//, '').replace(/\?.*$/, '');
+}
+
+/** The route for the report that owns the expense, matching how the app opens an expense report from where we are. */
+function getExpenseReportRoute({routeName, reportID, referrer, backTo}: ExpenseReportRouteParams): Route {
     if (routeName !== SCREENS.RIGHT_MODAL.SEARCH_REPORT) {
         return ROUTES.REPORT_WITH_ID.getRoute(reportID, undefined, referrer, backTo);
     }
 
+    // Clicking the expense of a single-expense report in Search opens the report on this same RHP route rather than a
+    // money request report one, so staying here and swapping the report is what the user would have got by clicking it.
     if (isSearchTopmostFullScreenRoute()) {
-        return ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID, backTo});
+        return ROUTES.SEARCH_REPORT.getRoute({reportID, backTo});
     }
 
-    // Narrow layouts have no wide RHP, so the expense report opens as a full report view there instead.
-    return shouldUseNarrowLayout ? ROUTES.REPORT_WITH_ID.getRoute(reportID, undefined, referrer, backTo) : ROUTES.EXPENSE_REPORT_RHP.getRoute({reportID, backTo});
+    // Outside Search an expense report belongs in the wide RHP, and only a genuinely narrow layout falls back to the
+    // full report view - the same split `navigateToChildReport` makes. `useResponsiveLayout` cannot answer this: its
+    // `shouldUseNarrowLayout` counts the RHP this handler runs inside as narrow, so every screen size would end up in
+    // the central pane.
+    return getIsNarrowLayout() ? ROUTES.REPORT_WITH_ID.getRoute(reportID, undefined, referrer, backTo) : ROUTES.EXPENSE_REPORT_RHP.getRoute({reportID, backTo});
 }
 
 /**
@@ -63,7 +70,6 @@ function OneTransactionThreadRedirectHandler() {
     const route = useRoute<ReportScreenRoute>();
     const reportIDFromRoute = getNonEmptyStringOnyxID(route.params?.reportID);
     const isFocused = useIsFocused();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDFromRoute}`);
     const parentReportID = getNonEmptyStringOnyxID(report?.parentReportID);
@@ -96,12 +102,16 @@ function OneTransactionThreadRedirectHandler() {
             return;
         }
 
-        // Replacing rather than pushing, and reusing this route's own `backTo`, keeps the thread we are leaving out of
-        // the history so going back doesn't land on it again. When `backTo` already points at the report we are
-        // replacing with, `linkTo` treats the navigation as a no-op and the user stays on the thread, which is what we
-        // want: that only happens for a thread opened from the report itself, which the user navigated into on purpose.
-        Navigation.navigate(getExpenseReportRoute({routeName: route.name, reportID: parentReportID, referrer, backTo, shouldUseNarrowLayout}), {forceReplace: true});
-    }, [backTo, isFocused, parentReportID, referrer, route.name, shouldRedirectToParentReport, shouldUseNarrowLayout]);
+        // A thread opened from its own report carries that report as `backTo`, which would leave the report pointing
+        // at itself and make `linkTo` refuse to navigate at all. Inherit the report's own nested `backTo` instead -
+        // where it would have returned to had the user opened it directly.
+        const isBackToParentReport = !!backTo && getRoutePath(getExpenseReportRoute({routeName: route.name, reportID: parentReportID, referrer, backTo})) === getRoutePath(backTo);
+        const resolvedBackTo = isBackToParentReport ? (getSearchParamFromPath(backTo ?? '', 'backTo') ?? undefined) : backTo;
+
+        // Replacing rather than pushing keeps the thread we are leaving out of the history, so going back doesn't
+        // land on it again.
+        Navigation.navigate(getExpenseReportRoute({routeName: route.name, reportID: parentReportID, referrer, backTo: resolvedBackTo}), {forceReplace: true});
+    }, [backTo, isFocused, parentReportID, referrer, route.name, shouldRedirectToParentReport]);
 
     return null;
 }

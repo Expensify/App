@@ -29,9 +29,9 @@ jest.mock('@libs/Navigation/Navigation', () => ({
 }));
 
 // Onyx, not layout, is what this suite pins down, and the inbox route below never reads the narrow-layout branch.
-jest.mock('@hooks/useResponsiveLayout', () => ({
+jest.mock('@libs/getIsNarrowLayout', () => ({
     __esModule: true,
-    default: () => ({shouldUseNarrowLayout: false}),
+    default: () => false,
 }));
 
 const mockRoute = {name: SCREENS.REPORT, params: {reportID: THREAD_REPORT_ID}};
