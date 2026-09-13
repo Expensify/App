@@ -43,7 +43,7 @@ jobs:
 
           echo "TRUSTED=${TRUSTED}" >> "$GITHUB_OUTPUT"
 
-      - uses: useblacksmith/checkout@f50565632710173b0e366f2cd39b928d31362815 # v1.6.0
+      - uses: useblacksmith/checkout@0647fdbab2614a5eb86d2971070e325060d91056 # v1.7.0
 
       # Classifies new comments that don't follow the proposal template, detects duplicate proposals,
       # and grades edits to existing proposals. Action type logic can be found in the script files.

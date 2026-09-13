@@ -1,18 +1,13 @@
-import Button from '@components/ButtonComposed';
 import CollapsibleHeaderOnKeyboard from '@components/CollapsibleHeaderOnKeyboard';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues, FormRef} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import {ModalActions} from '@components/Modal/Global/ModalContext';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 
-import useConfirmModal from '@hooks/useConfirmModal';
-import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import useLocalize from '@hooks/useLocalize';
-import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -22,6 +17,7 @@ import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+import useRuleDeleteHeaderProps from '@pages/workspace/rules/useRuleDeleteHeaderProps';
 
 import {deletePolicyAgentRule, updatePolicyAgentRule} from '@userActions/Policy/Rules';
 
@@ -48,16 +44,11 @@ function EditAgentRulePage({
 }: EditAgentRulePageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const isInLandscapeMode = useIsInLandscapeMode();
-    const {showConfirmModal} = useConfirmModal();
-    const {isBetaEnabled} = usePermissions();
-    const isCustomAgentEnabled = isBetaEnabled(CONST.BETAS.CUSTOM_AGENT);
-    const isRulesRevampEnabled = isBetaEnabled(CONST.BETAS.RULES_REVAMP);
     const shouldUseExpandedRevampFormLayout = useShouldUseExpandedRevampFormLayout();
     const policy = usePolicy(policyID);
     const agentRule = policy?.rules?.agentRules?.[ruleID];
     const formRef = useRef<FormRef>(null);
-    const describeRuleLabel = isRulesRevampEnabled ? translate('workspace.rules.agentRules.describeRuleForConcierge') : translate('workspace.rules.agentRules.describeRuleTitle');
+    const describeRuleLabel = translate('workspace.rules.agentRules.describeRuleForConcierge');
 
     const submitFormOnModEnter = (event: TextInputKeyPressEvent | KeyboardEvent) => {
         if (!('key' in event)) {
@@ -87,28 +78,21 @@ function EditAgentRulePage({
         Navigation.goBack();
     };
 
-    const handleDelete = () => {
-        if (!policy || !agentRule) {
-            return;
-        }
-
-        showConfirmModal({
-            title: translate('workspace.rules.agentRules.deleteRule'),
-            prompt: translate('workspace.rules.agentRules.deleteRuleConfirmation'),
-            confirmText: translate('common.delete'),
-            cancelText: translate('common.cancel'),
-            buttonVariant: CONST.BUTTON_VARIANT.DANGER,
-        }).then((result) => {
-            if (result.action !== ModalActions.CONFIRM) {
-                return;
-            }
-
-            deletePolicyAgentRule(policy, ruleID);
-            Navigation.goBack();
-        });
-    };
-
     const inputWrapperStyles = useAgentPromptInputStyles();
+
+    const {deleteHeaderProps} = useRuleDeleteHeaderProps({
+        canDelete: !!policy && !!agentRule && agentRule.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+        onDelete: () => {
+            if (!policy) {
+                return false;
+            }
+            deletePolicyAgentRule(policy, ruleID);
+            return true;
+        },
+        sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.RULES.AGENT_RULE_DELETE,
+        titleKey: 'workspace.rules.agentRules.deleteRule',
+        promptKey: 'workspace.rules.agentRules.deleteRuleConfirmation',
+    });
 
     if (!agentRule) {
         return <NotFoundPage />;
@@ -117,7 +101,6 @@ function EditAgentRulePage({
     return (
         <AccessOrNotFoundWrapper
             policyID={policyID}
-            shouldBeBlocked={!isCustomAgentEnabled}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
         >
@@ -128,7 +111,10 @@ function EditAgentRulePage({
                 shouldEnableMaxHeight={shouldUseExpandedRevampFormLayout}
             >
                 <CollapsibleHeaderOnKeyboard>
-                    <HeaderWithBackButton title={translate('workspace.rules.agentRules.editRuleTitle')} />
+                    <HeaderWithBackButton
+                        title={translate('workspace.rules.agentRules.editRuleTitle')}
+                        {...deleteHeaderProps}
+                    />
                 </CollapsibleHeaderOnKeyboard>
                 <FormProvider
                     ref={formRef}
@@ -144,19 +130,6 @@ function EditAgentRulePage({
                     shouldValidateOnChange
                     shouldValidateOnBlur
                     keyboardSubmitBehavior={CONST.KEYBOARD_SUBMIT_BEHAVIOR.SUBMIT_ONLY}
-                    shouldRenderFooterAboveSubmit
-                    submitButtonAndFooterContainerStyles={isInLandscapeMode ? [styles.flexRow, styles.gap3] : undefined}
-                    submitButtonInnerStyles={isInLandscapeMode ? styles.flex1 : undefined}
-                    footerContent={
-                        <Button
-                            onPress={handleDelete}
-                            style={[isInLandscapeMode ? styles.flex1 : styles.mb4]}
-                            size={CONST.BUTTON_SIZE.LARGE}
-                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.AGENT_RULE_DELETE}
-                        >
-                            <Button.Text>{translate('workspace.rules.agentRules.deleteRule')}</Button.Text>
-                        </Button>
-                    }
                 >
                     <View style={styles.flexGrow1}>
                         <View style={inputWrapperStyles}>

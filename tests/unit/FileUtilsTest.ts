@@ -526,6 +526,23 @@ describe('FileUtils', () => {
             expect(result.reason).toBe('attachmentPicker.imageDimensionsTooLarge');
         });
 
+        it('should return the folder-specific error text for a single folder', () => {
+            const result = getFileValidationErrorText(mockTranslate, {error: CONST.FILE_VALIDATION_ERRORS.FOLDER_NOT_ALLOWED});
+
+            expect(result.title).toBe('attachmentPicker.attachmentError');
+            expect(result.reason).toBe('attachmentPicker.folderNotAllowedMessage');
+        });
+
+        it('should return the folder-specific error text when multiple items are selected', () => {
+            const result = getFileValidationErrorText(mockTranslate, {
+                error: CONST.FILE_VALIDATION_ERRORS.FOLDER_NOT_ALLOWED,
+                isValidatingMultipleFiles: true,
+            });
+
+            expect(result.title).toBe('attachmentPicker.someFilesCantBeUploaded');
+            expect(result.reason).toBe('attachmentPicker.folderNotAllowedMessage');
+        });
+
         it('should return empty strings for null validation error', () => {
             const result = getFileValidationErrorText(mockTranslate, null);
 
