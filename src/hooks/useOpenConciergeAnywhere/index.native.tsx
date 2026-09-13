@@ -5,7 +5,7 @@ import {navigateToConciergeChat} from '@userActions/Report';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 
-import {hasSeenTourSelector} from '@selectors/Onboarding';
+import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
 
 /**
  * Returns a callback that navigates to the Concierge chat on native (opens the side panel on web instead),
@@ -15,12 +15,14 @@ function useOpenConciergeAnywhere() {
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
-    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
+    const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
+    const isSelfTourViewed = guidedSetupAndTourStatus?.isSelfTourViewed;
+    const hasCompletedGuidedSetupFlow = guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow;
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const openConciergeAnywhere = (_options?: {forceConcierge?: boolean}) => {
-        navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas);
+        navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, hasCompletedGuidedSetupFlow, betas);
     };
 
     return {openConciergeAnywhere, isInSidePanel: false};

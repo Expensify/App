@@ -61,7 +61,7 @@ import {getEmptyObject} from '@src/types/utils/EmptyObject';
 import type {ForwardedRef, RefObject} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 
-import {hasSeenTourSelector} from '@selectors/Onboarding';
+import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
 import debounce from 'lodash/debounce';
 import isEmpty from 'lodash/isEmpty';
 import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
@@ -96,7 +96,9 @@ function WalletPage() {
     const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
+    const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
+    const isSelfTourViewed = guidedSetupAndTourStatus?.isSelfTourViewed;
+    const hasCompletedGuidedSetupFlow = guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow;
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const delegateAccountID = useDelegateAccountID();
     const isUserValidated = userAccount?.validated ?? false;
@@ -156,7 +158,7 @@ function WalletPage() {
 
         if (accountData?.state === CONST.BANK_ACCOUNT.STATE.LOCKED && accountData?.bankAccountID) {
             pressLockedBankAccount(accountData?.bankAccountID, translate, conciergeReportID ?? undefined, delegateAccountID);
-            navigateToConciergeChat(conciergeReportID ?? undefined, introSelected, currentUserAccountID, isSelfTourViewed, betas);
+            navigateToConciergeChat(conciergeReportID ?? undefined, introSelected, currentUserAccountID, isSelfTourViewed, hasCompletedGuidedSetupFlow, betas);
             return;
         }
 

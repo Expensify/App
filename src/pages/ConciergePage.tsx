@@ -13,7 +13,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
 import {useFocusEffect} from '@react-navigation/native';
-import {hasSeenTourSelector} from '@selectors/Onboarding';
+import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
 import React, {useCallback, useEffect, useRef} from 'react';
 import {View} from 'react-native';
 
@@ -30,7 +30,9 @@ function ConciergePage() {
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
-    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
+    const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
+    const isSelfTourViewed = guidedSetupAndTourStatus?.isSelfTourViewed;
+    const hasCompletedGuidedSetupFlow = guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow;
 
     useFocusEffect(
         useCallback(() => {
@@ -40,12 +42,21 @@ function ConciergePage() {
                         return;
                     }
 
-                    navigateToConciergeChat(conciergeReportID, introSelected, session.accountID ?? CONST.DEFAULT_NUMBER_ID, isSelfTourViewed, betas, true, () => !isUnmounted.current);
+                    navigateToConciergeChat(
+                        conciergeReportID,
+                        introSelected,
+                        session.accountID ?? CONST.DEFAULT_NUMBER_ID,
+                        isSelfTourViewed,
+                        hasCompletedGuidedSetupFlow,
+                        betas,
+                        true,
+                        () => !isUnmounted.current,
+                    );
                 });
             } else {
                 Navigation.navigate(ROUTES.INBOX);
             }
-        }, [session, isLoadingReportData, conciergeReportID, introSelected, isSelfTourViewed, betas]),
+        }, [session, isLoadingReportData, conciergeReportID, introSelected, isSelfTourViewed, hasCompletedGuidedSetupFlow, betas]),
     );
 
     useEffect(() => {

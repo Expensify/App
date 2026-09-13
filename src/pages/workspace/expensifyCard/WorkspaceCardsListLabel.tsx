@@ -136,7 +136,7 @@ function WorkspaceCardsListLabel({type, value, style}: WorkspaceCardsListLabelPr
         if (isGuidedSetupPending && !conciergeReportID) {
             // No Concierge chat exists yet: navigateToConciergeChat creates it and enqueues the onboarding OpenReport on
             // its create path. Wait for that promise so the limit-increase write lands after it in the queue.
-            navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas, false).then(() => {
+            navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, hasCompletedGuidedSetupFlow, betas, false).then(() => {
                 requestExpensifyCardLimitIncrease(settings?.paymentBankAccountID, defaultFundID);
             });
             return;
@@ -160,7 +160,7 @@ function WorkspaceCardsListLabel({type, value, style}: WorkspaceCardsListLabelPr
             });
         }
         requestExpensifyCardLimitIncrease(settings?.paymentBankAccountID, defaultFundID);
-        navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas, false);
+        navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, hasCompletedGuidedSetupFlow, betas, false);
     };
 
     const isCurrentBalanceType = type === CONST.WORKSPACE_CARDS_LIST_LABEL_TYPE.CURRENT_BALANCE;
