@@ -29,7 +29,7 @@ import {
 } from '@libs/PolicyUtils';
 import {getIOUReportIDFromReportActionPreview, getOneTransactionThreadReportID, isActionOfType} from '@libs/ReportActionsUtils';
 import {deprecatedCachedOneTransactionThreadReportIDs, getLastMessageTextForReport} from '@libs/ReportAlternateTextUtils';
-import {deprecatedGetReportName} from '@libs/ReportNameUtils';
+import {getReportName} from '@libs/ReportNameUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {
     canUserPerformWriteAction,
@@ -544,7 +544,7 @@ function createOption({
                   );
 
         const computedReportName =
-            deprecatedGetReportName(report, reportAttributesDerived) ||
+            getReportName(report, report?.reportID ? reportAttributesDerived?.[report.reportID]?.reportName : undefined) ||
             (result.isSelfDM
                 ? getDisplayNameForParticipant({
                       accountID: report.ownerAccountID,
@@ -638,7 +638,7 @@ function getReportOption(
     if (option.isSelfDM) {
         option.alternateText = translate('reportActionsView.yourSpace');
     } else if (option.isInvoiceRoom) {
-        option.text = deprecatedGetReportName(report, reportAttributesDerived);
+        option.text = getReportName(report, report?.reportID ? reportAttributesDerived?.[report.reportID]?.reportName : undefined);
         option.alternateText = translate('workspace.common.invoices');
     } else {
         option.text = getPolicyName({report, policy, unavailableTranslation: translate('workspace.common.unavailable')});
@@ -723,7 +723,7 @@ function getReportDisplayOption({
     if (option.isSelfDM) {
         option.alternateText = translate('reportActionsView.yourSpace');
     } else if (option.isInvoiceRoom) {
-        option.text = deprecatedGetReportName(report, reportAttributesDerived);
+        option.text = getReportName(report, report?.reportID ? reportAttributesDerived?.[report.reportID]?.reportName : undefined);
         option.alternateText = translate('workspace.common.invoices');
     } else if (unknownUserDetails) {
         option.text = unknownUserDetails.text ?? unknownUserDetails.login;

@@ -73,6 +73,7 @@ test('[ModifiedExpenseMessage] getForReportAction on 1k reports and policies', a
             convertToDisplayString,
             translate: translateLocal,
             reportAction,
+            movedFromReportName: undefined,
             policy: undefined,
             policyTags: mockedPolicyTags,
             currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
