@@ -45,8 +45,8 @@ Gusto syncs all employees to **one** Expensify workspace. If your company uses m
 
 After the initial sync completes:
 
-- A sync results panel displays employees added, removed, and skipped.
-- If you leave the **HR** or **Members** tab before the sync finishes, the sync results are emailed to the workspace's technical contact instead of displaying in the app.
+- The **Gusto sync complete** screen opens with the **Added**, **Removed**, and **Skipped** employee counts. Click **Skipped** to see each skipped employee and the reason they were skipped, then click **Got it** to close the screen.
+- If you leave the **HR** or **Members** tab before the sync finishes, the **Gusto sync complete** screen doesn't open, and the sync results are emailed to the workspace's technical contact instead.
 - The **Members** tab displays employees synced from Gusto.
 - Full-time active employees in Gusto are added to the Expensify workspace automatically.
 - Employees receive a welcome email with instructions to finish setting up their Expensify account.
@@ -91,9 +91,14 @@ To refresh the sync manually:
 1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Workspaces**.
 2. Click the name of the workspace connected to Gusto.
 3. In the left menu, click **HR**.
-4. In the left menu, click **Members**.
-5. Click the **Re-sync** button in the Gusto section.
-6. Wait for the sync to complete. The sync results will display a summary of any changes.
+4. Next to **Gusto**, select the three dots **(⋮)**, then click **Sync now**.
+5. Stay on the page and wait for the sync to complete. The **Gusto sync complete** screen then opens with the **Added**, **Removed**, and **Skipped** employee counts.
+
+You can also start a manual sync from the **Members** page:
+
+1. In the left menu, click **Members**.
+2. Click **More**, then click **Sync with Gusto**.
+3. Stay on the page and wait for the sync to complete. The **Gusto sync complete** screen then opens with the **Added**, **Removed**, and **Skipped** employee counts.
 
 ---
 
@@ -118,7 +123,7 @@ No. Gusto syncs all employees to a single Expensify workspace. You must choose o
 
 ## Why were some employees skipped during sync?
 
-Employees may be skipped if they do not have a work email address in Gusto, or if they are not classified as full-time active employees. The sync results panel will provide specific reasons for each skipped employee.
+Employees may be skipped if they do not have a work email address in Gusto, or if they are not classified as full-time active employees. On the **Gusto sync complete** screen, click **Skipped** to see each skipped employee and the reason they were skipped.
 
 ## Will my employees receive a notification when synced?
 
