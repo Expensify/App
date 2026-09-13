@@ -1,4 +1,4 @@
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
 import ScrollView from '@components/ScrollView';
 import type {BaseTwoFactorAuthFormRef} from '@components/TwoFactorAuthForm/types';

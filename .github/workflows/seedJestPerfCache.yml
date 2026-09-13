@@ -1,0 +1,83 @@
+name: Seed Jest perf cache
+
+# Writes the Jest transform cache that reassurePerformanceTests.yml restores.
+#
+# It has to be written from main. An entry is scoped to the ref that wrote it, so one written by
+# the pull_request-only perf workflow would be visible to that PR alone, and writing from main is
+# what keeps the shared entry out of reach of fork PRs.
+#
+# Called by seedCache.yml on every push to main, with no paths filter and no schedule: a run that
+# finds the entry present skips the populate, so probing every push is what rebuilds an evicted
+# entry. No concurrency block, because a called workflow runs inside the caller's run and
+# seedCache.yml's group already gates this job with cancel-in-progress false.
+
+on:
+  workflow_call:
+  workflow_dispatch:
+
+jobs:
+  seedJestPerfCache:
+    name: Seed the Jest transform cache
+    # Must match the runner class of the perf measure jobs.
+    runs-on: blacksmith-4vcpu-ubuntu-2404
+    steps:
+      - name: Checkout
+        uses: useblacksmith/checkout@0647fdbab2614a5eb86d2971070e325060d91056 # v1.7.0
+
+      # Writes normalized-package-lock.json, which the cache key hashes.
+      - name: Setup NodeJS
+        uses: ./.github/actions/composite/setupNode
+
+      # Covers what invalidates every entry at once: the lockfile and patches/** for the toolchain,
+      # babel.config.js and config/babel/** for the Babel options, jest.config.js for the config
+      # babel-jest hashes, and .nvmrc for process.version. It hashes normalized-package-lock.json,
+      # the app-version-stripped lockfile setupNode writes, so deploy version bumps do not rotate
+      # the key for no change in transform output.
+      #
+      # Not covered: `.env`, DEBUG_BABEL_TRACE and CAPTURE_METRICS, which babel.config.js reads at
+      # require time to add plugins that babel-jest does not hash into an entry's name. No job here
+      # creates a `.env`, so all of them inline the same EXPO_PUBLIC_* defaults; a step that gave
+      # one job its own would make restored output wrong rather than stale and would have to be
+      # hashed in here.
+      #
+      # No restore-keys, here or in the perf workflow: a prefix fallback would carry over output
+      # built by the previous toolchain, which is what the lockfile hash exists to prevent.
+      - name: Look up the Jest transform cache
+        id: lookup
+        # v5.0.1
+        uses: actions/cache/restore@9255dc7a253b0ccc959486e2bca901246202afeb
+        with:
+          path: .jest-cache
+          key: ${{ format('{0}-{1}-jest-perf-{2}', runner.os, runner.arch, hashFiles('normalized-package-lock.json', 'patches/**', 'babel.config.js', 'config/babel/**', 'jest.config.js', '.nvmrc')) }}
+          lookup-only: true
+
+      # Must be the invocation the perf jobs run: Jest hashes the serialized project config into
+      # every entry's key, so a different testMatch or testRegex populates a key space the perf jobs
+      # never read. --baseline vs --branch never reaches Jest (reassure-cli commands/measure.js).
+      # The measurements are discarded; only the transform output is wanted.
+      #
+      # Deliberately allowed to fail the job, since only a genuine Jest failure on main can fail it.
+      # The save below is skipped on a failure because a plain `if:` implies success(), so no
+      # partial entry is written. Do not add continue-on-error without emitting a ::warning:: too -
+      # that would turn this job green with no symptom at all.
+      - name: Populate the Jest transform cache
+        if: steps.lookup.outputs.cache-hit != 'true'
+        shell: bash
+        run: NODE_OPTIONS=--experimental-vm-modules npx reassure --baseline
+
+      - name: Save the Jest transform cache
+        if: steps.lookup.outputs.cache-hit != 'true'
+        # v5.0.1
+        uses: actions/cache/save@9255dc7a253b0ccc959486e2bca901246202afeb
+        with:
+          path: .jest-cache
+          key: ${{ format('{0}-{1}-jest-perf-{2}', runner.os, runner.arch, hashFiles('normalized-package-lock.json', 'patches/**', 'babel.config.js', 'config/babel/**', 'jest.config.js', '.nvmrc')) }}
+
+      - name: Report Jest cache size
+        if: always()
+        run: |
+          if [[ -d .jest-cache ]]; then
+            echo "::notice::Jest perf cache: $(du -sm .jest-cache | cut -f1)MB, $(find .jest-cache -type f | wc -l) files (cache-hit=${{ steps.lookup.outputs.cache-hit || 'false' }})"
+          else
+            echo "::notice::Jest perf cache: not populated this run (cache-hit=${{ steps.lookup.outputs.cache-hit || 'false' }})"
+          fi

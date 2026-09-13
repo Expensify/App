@@ -12,7 +12,6 @@ type SelectedTimezone = TupleToUnion<typeof TIMEZONES>;
 
 /** Model of timezone */
 type Timezone = {
-    /** Value of selected timezone */
     selected?: SelectedTimezone;
 
     /** Whether timezone is automatically set */
@@ -21,7 +20,6 @@ type Timezone = {
 
 /** Model of user status */
 type Status = {
-    /** The emoji code of the status */
     emojiCode: string;
 
     /** The text of the draft status */
@@ -45,7 +43,6 @@ type PersonalDetails = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Display name of the current user from their personal details */
     displayName?: string;
 
-    /** Is current user validated */
     validated?: boolean;
 
     /**
@@ -73,7 +70,6 @@ type PersonalDetails = OnyxCommon.OnyxValueWithOfflineFeedback<{
         color: LetterAvatarSchemeKey;
     };
 
-    /** Flag to set when Avatar uploading */
     avatarUploading?: boolean;
 
     /** Login of the current user from their personal details */
@@ -82,13 +78,11 @@ type PersonalDetails = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Pronouns of the current user from their personal details */
     pronouns?: string;
 
-    /** Local currency for the user */
     localCurrencyCode?: string;
 
     /** Timezone of the current user from their personal details */
     timezone?: Timezone;
 
-    /** Flag for checking if data is from optimistic data */
     isOptimisticPersonalDetail?: boolean;
 
     /**

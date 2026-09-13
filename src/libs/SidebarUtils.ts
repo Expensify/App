@@ -25,6 +25,7 @@ import type Policy from '@src/types/onyx/Policy';
 import type PriorityMode from '@src/types/onyx/PriorityMode';
 import type Report from '@src/types/onyx/Report';
 import type ReportAction from '@src/types/onyx/ReportAction';
+import type Rule from '@src/types/onyx/Rule';
 
 import type {Locale as DateFnsLocale} from 'date-fns';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
@@ -713,6 +714,7 @@ function getOptionData({
     currentUserLogin,
     isTrackIntentUser,
     formatPhoneNumber,
+    rules,
 }: {
     report: OnyxEntry<Report>;
     oneTransactionThreadReport: OnyxEntry<Report>;
@@ -742,6 +744,7 @@ function getOptionData({
     currentUserLogin: string;
     isTrackIntentUser?: boolean;
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
+    rules: OnyxCollection<Rule>;
 }): OptionData | undefined {
     // When a user signs out, Onyx is cleared. Due to the lazy rendering with a virtual list, it's possible for
     // this method to be called after the Onyx data has been cleared out. In that case, it's fine to do
@@ -845,7 +848,7 @@ function getOptionData({
 
     const isExpense = isExpenseReport(report);
     const hasMultipleParticipants = participantPersonalDetailList.length > 1 || result.isChatRoom || result.isPolicyExpenseChat || isExpense;
-    const subtitle = getChatRoomSubtitle(report, policy, conciergeReportID, translate, false, isReportArchived);
+    const subtitle = getChatRoomSubtitle(report, policy, conciergeReportID, translate, rules, false, isReportArchived);
 
     const status = personalDetail?.status ?? '';
 
@@ -895,6 +898,7 @@ function getOptionData({
         dateFnsLocale,
         convertToDisplayString,
         convertToDisplayStringWithoutCurrency,
+        rules,
     });
 
     result.isIOUReportOwner = isIOUOwnedByCurrentUser(result as Report);

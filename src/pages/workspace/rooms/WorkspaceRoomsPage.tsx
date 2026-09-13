@@ -1,4 +1,4 @@
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -96,6 +96,7 @@ function WorkspaceRoomsPage({route}: WorkspaceRoomsPageProps) {
                     introSelected,
                     conciergeChat,
                     betas,
+                    personalDetails,
                     shouldMarkAsRead: false,
                     hasReportActions: !!hasReportActions?.[report.reportID],
                     currentUserAccountID,

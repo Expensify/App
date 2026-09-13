@@ -26,8 +26,8 @@ import React, {useCallback, useEffect, useRef, useState} from 'react';
 import handleSAMLLoginError from './handleSAMLLoginError';
 
 function SAMLSignInPage() {
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [credentials] = useOnyx(ONYXKEYS.CREDENTIALS);
+    const [lastVisitedPath] = useOnyx(ONYXKEYS.LAST_VISITED_PATH);
     const [showNavigation, shouldShowNavigation] = useState(true);
     const [SAMLUrl, setSAMLUrl] = useState('');
     const {translate} = useLocalize();
@@ -70,9 +70,10 @@ function SAMLSignInPage() {
                 Log.hmmm('SAMLSignInPage - No JSON parameter found in callback URL');
             }
 
-            if (!account?.isLoading && credentials?.login && shortLivedAuthToken) {
+            // A forced re-auth leaves account.isLoading true until sign-in, so the token alone decides here.
+            if (credentials?.login && shortLivedAuthToken) {
                 Log.info('SAMLSignInPage - Successfully received shortLivedAuthToken. Signing in...');
-                signInWithShortLivedAuthToken(shortLivedAuthToken, true);
+                signInWithShortLivedAuthToken(shortLivedAuthToken, true, lastVisitedPath);
                 return;
             }
 
@@ -89,7 +90,7 @@ function SAMLSignInPage() {
                 Navigation.navigate(ROUTES.HOME);
             });
         },
-        [credentials?.login, account?.isLoading, translate],
+        [credentials?.login, lastVisitedPath, translate],
     );
 
     useEffect(() => {

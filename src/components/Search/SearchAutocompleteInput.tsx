@@ -36,19 +36,13 @@ type SearchAutocompleteInputProps = {
     /** Value of TextInput */
     value: string;
 
-    /** Callback to update search in SearchRouter */
     onSearchQueryChange: (searchTerm: string) => void;
 
     /** Callback invoked when the user submits the input */
     onSubmit?: () => void;
 
-    /** Whether the input is full width */
     isFullWidth: boolean;
-
-    /** Whether the input is disabled */
     disabled?: boolean;
-
-    /** Whether the offline message should be shown */
     shouldShowOfflineMessage?: boolean;
 
     /** Callback to call when the input gets focus */
@@ -57,7 +51,6 @@ type SearchAutocompleteInputProps = {
     /** Callback to call when the input gets blur */
     onBlur?: () => void;
 
-    /** Any additional styles to apply */
     wrapperStyle?: ViewStyle;
 
     /** Any additional styles to apply when input is focused */
@@ -76,10 +69,7 @@ type SearchAutocompleteInputProps = {
     /** Map of autocomplete suggestions. Required for highlighting to work properly */
     substitutionMap: SubstitutionMap;
 
-    /** Whether the focus should be delayed */
     shouldDelayFocus?: boolean;
-
-    /** Reference to the outer element */
     ref?: ForwardedRef<BaseTextInputRef>;
 } & Pick<TextInputProps, 'caretHidden' | 'autoFocus' | 'selection' | 'onKeyPress'>;
 

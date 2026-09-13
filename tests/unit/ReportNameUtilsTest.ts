@@ -63,6 +63,7 @@ describe('ReportNameUtils', () => {
             reportTransactions: buildTransactionsByReportID(transactions),
             translate: translateLocal,
             isTrackIntentUser: false,
+            rules: undefined,
         });
     const participantsPersonalDetails: PersonalDetailsList = [
         {
@@ -323,6 +324,7 @@ describe('ReportNameUtils', () => {
                 translate: translateWithYouMarker,
                 isTrackIntentUser: false,
                 reportTransactions: {},
+                rules: undefined,
             });
             // temporaryGetDisplayNameOrDefault lowercases the "you" postfix sourced from translate('common.you').
             expect(name).toBe('Lagertha Lothbrok (you marker)');
@@ -768,6 +770,7 @@ describe('ReportNameUtils', () => {
                 allPolicyTags: policyTagsCollection,
                 reportTransactions: {},
                 isTrackIntentUser: false,
+                rules: undefined,
             });
 
             expect(name).toContain('Cost Center');
@@ -2377,6 +2380,7 @@ describe('ReportNameUtils', () => {
                 translate: translateLocal,
                 reportTransactions: {},
                 isTrackIntentUser: false,
+                rules: undefined,
             });
             expect(nameWithMatchingID).toBe(CONST.CONCIERGE_DISPLAY_NAME);
 
@@ -2394,6 +2398,7 @@ describe('ReportNameUtils', () => {
                 translate: translateLocal,
                 reportTransactions: {},
                 isTrackIntentUser: false,
+                rules: undefined,
             });
             expect(nameWithDifferentID).not.toBe(CONST.CONCIERGE_DISPLAY_NAME);
         });
