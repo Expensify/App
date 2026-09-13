@@ -160,8 +160,15 @@ if (process.env.CAPTURE_METRICS === 'true') {
     ]);
 }
 
+const repack = {
+    ...metro,
+    plugins: metro.plugins
+        .filter((plugin) => !(Array.isArray(plugin) && plugin[0] === 'module-resolver' && plugin[2] !== 'extra-alias'))
+        .map((plugin) => (Array.isArray(plugin) && plugin[0] === 'react-native-worklets/plugin' ? 'react-native-worklets/plugin' : plugin)),
+};
+
 module.exports = (api) => {
-    if (!process.env.KNIP) {
+    if (process.env.DEBUG_BABEL_CONFIG === 'true') {
         console.debug('babel.config.js');
         console.debug('  - api.version:', api.version);
         console.debug('  - api.env:', api.env());
@@ -170,11 +177,16 @@ module.exports = (api) => {
     }
 
     // For `react-native` (iOS/Android) caller will be "metro"
+    // For `@callstack/repack` (Re.Pack native bundler) caller will be "@callstack/repack"
     // For jest, it will be babel-jest
     // The web build and Storybook (Rsbuild) don't call into this file at all
     const runningIn = api.caller((args = {}) => args.name);
-    if (!process.env.KNIP) {
+    if (process.env.DEBUG_BABEL_CONFIG === 'true') {
         console.debug('  - running in: ', runningIn);
+    }
+
+    if (runningIn === '@callstack/repack') {
+        return repack;
     }
 
     return ['metro', 'babel-jest'].includes(runningIn) ? metro : {};
