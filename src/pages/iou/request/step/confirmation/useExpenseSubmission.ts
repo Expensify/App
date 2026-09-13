@@ -57,6 +57,7 @@ import {
     isDistanceRequest as isDistanceRequestTransactionUtils,
     isGPSDistanceRequest as isGPSDistanceRequestTransactionUtils,
     isManualDistanceRequest as isManualDistanceRequestTransactionUtils,
+    isScanRequest as isScanRequestTransactionUtils,
 } from '@libs/TransactionUtils';
 
 import {resolveChatTargetForSubmitCleanup} from '@pages/iou/request/step/resolveChatTarget';
@@ -222,6 +223,12 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
     // UI state
     const [isConfirmed, setIsConfirmed] = useState(false);
     const formHasBeenSubmitted = useRef(false);
+
+    // formHasBeenSubmitted is never reset on its own, so a submit that returns without writing has to hand the page back or every later tap is swallowed.
+    const releaseSubmitLock = () => {
+        formHasBeenSubmitted.current = false;
+        setIsConfirmed(false);
+    };
 
     // Ref so callbacks always read the latest transactionViolations.
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
@@ -1007,20 +1014,38 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
 
         const currentTransactionReceiptFile = transaction?.transactionID ? receiptFiles[transaction.transactionID] : undefined;
         const shouldDeferSplitForSearch = iouType === CONST.IOU.TYPE.SPLIT && isDeferredSearchSubmit;
+        // receiptFiles can hold an entry for a transaction no longer being submitted, so the files are matched against what is actually being submitted.
+        const scannedItems = transactions.filter((item) => !!receiptFiles[item.transactionID]);
+
+        // The manual split below sends transaction.amount, which stays 0 until SmartScan returns, so a scan with no matching receipt has nothing to write yet rather than a $0 split.
+        if (iouType === CONST.IOU.TYPE.SPLIT && isScanRequestTransactionUtils(transaction) && scannedItems.length === 0) {
+            // The tap is a silent no-op from the user's side, so leave a trace for whoever has to explain it later.
+            Log.warn('[useExpenseSubmission] Scan split submitted with no receipt file for any transaction being submitted', {
+                transactionCount: transactions.length,
+                receiptFileCount: Object.keys(receiptFiles).length,
+            });
+            releaseSubmitLock();
+            markSubmitExpenseEnd();
+            return;
+        }
 
         // Split flows usually navigate to the destination report internally, but dismiss-first
         // handlers can pass shouldHandleNavigation=false after revealing/dismissing first.
-        if (iouType === CONST.IOU.TYPE.SPLIT && Object.values(receiptFiles).filter((receipt) => !!receipt).length) {
+        if (iouType === CONST.IOU.TYPE.SPLIT && scannedItems.length > 0) {
             const currentUserLogin = currentUserPersonalDetails.login;
             if (currentUserLogin) {
-                for (const [index, item] of transactions.entries()) {
+                // Re-resolving inside the loop would mint a different chat per scan, so resolve once up front.
+                const {optimisticSplitChatReportID, chatReportID} = resolveOptimisticSplitChatReportID(report?.reportID, selectedParticipants, currentUserPersonalDetails.accountID);
+
+                // The action hardcodes shouldDeferForSearch:false, so reserve here when a scan will actually write and land back on Search.
+                if (shouldDeferSplitForSearch) {
+                    reserveDeferredWriteChannel(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH);
+                }
+
+                for (const [index, item] of scannedItems.entries()) {
                     const transactionReceiptFile = receiptFiles[item.transactionID];
-                    if (!transactionReceiptFile) {
-                        continue;
-                    }
                     const itemTrimmedComment = item?.comment?.comment?.trim() ?? '';
 
-                    // If we have a receipt let's start the split expense by creating only the action, the transaction, and the group DM if needed
                     startSplitBill({
                         getCurrencyDecimals,
                         participants: selectedParticipants,
@@ -1037,18 +1062,23 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                         taxCode: transactionTaxCode,
                         taxAmount: transactionTaxAmount,
                         taxValue: transactionTaxValue,
-                        shouldPlaySound: index === transactions.length - 1,
+                        shouldPlaySound: index === scannedItems.length - 1,
+                        optimisticSplitChatReportID,
+                        isFirstSplitInBatch: index === 0,
                         policyRecentlyUsedCategories,
                         policyRecentlyUsedTags,
                         quickAction,
                         policyRecentlyUsedCurrencies,
                         participantsPolicyTags,
-                        shouldHandleNavigation,
-                        shouldDeferForSearch: shouldDeferSplitForSearch,
                         delegateAccountID,
                         formatPhoneNumber,
                     });
                 }
+                if (shouldHandleNavigation) {
+                    dismissModalAndOpenReportInInboxTab(chatReportID, undefined, false);
+                }
+            } else {
+                releaseSubmitLock();
             }
             markSubmitExpenseEnd();
             return;
