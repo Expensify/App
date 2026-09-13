@@ -1585,6 +1585,7 @@ function addBillingCardAndRequestPolicyOwnerChange(
         addressZip: string;
         currency: string;
     },
+    source?: string,
 ) {
     if (!policyID) {
         return;
@@ -1642,7 +1643,7 @@ function addBillingCardAndRequestPolicyOwnerChange(
             currency: currency as ValueOf<typeof CONST.PAYMENT_CARD_CURRENCY>,
             isP2PDebitCard: false,
         };
-        PaymentMethods.addPaymentCardSCA(params);
+        PaymentMethods.addPaymentCardSCA(params, undefined, source);
     } else {
         const params: AddBillingCardAndRequestWorkspaceOwnerChangeParams = {
             policyID,
@@ -1663,7 +1664,8 @@ function addBillingCardAndRequestPolicyOwnerChange(
  * Properly updates the nvp_privateStripeCustomerID onyx data for 3DS payment
  *
  */
-function verifySetupIntentAndRequestPolicyOwnerChange(policyID: string, currentUserAccountID: number, currentUserEmail: string) {
+function verifySetupIntentAndRequestPolicyOwnerChange(policyID: string, currentUserAccountID: number, currentUserEmail: string, source?: string) {
+    PaymentMethods.prepareCardAuthentication(source);
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -1677,7 +1679,7 @@ function verifySetupIntentAndRequestPolicyOwnerChange(policyID: string, currentU
         },
     ];
 
-    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.VERIFY_3DS_SUBSCRIPTION_SOURCE>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
@@ -1689,6 +1691,7 @@ function verifySetupIntentAndRequestPolicyOwnerChange(policyID: string, currentU
                 ownerAccountID: currentUserAccountID,
             },
         },
+        ...PaymentMethods.getVerify3dsSubscriptionSourceData(source),
     ];
 
     const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
