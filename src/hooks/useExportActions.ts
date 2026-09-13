@@ -102,6 +102,7 @@ function useExportActions({reportID, policy, onPDFModalOpen}: UseExportActionsPa
         'CertiniaSquare',
         'RilletSquare',
         'DualEntrySquare',
+        'CampfireSquare',
         'GustoSquare',
         'ArrowRight',
     ]);

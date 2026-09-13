@@ -11,7 +11,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import React from 'react';
 import {View} from 'react-native';
 
-import Button from './ButtonComposed';
+import Button from './Button';
 import FixedFooter from './FixedFooter';
 import Text from './Text';
 
