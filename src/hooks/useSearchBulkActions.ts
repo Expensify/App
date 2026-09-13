@@ -14,7 +14,7 @@ import {unholdRequest} from '@libs/actions/IOU/Hold';
 import {payInvoice, payMoneyRequest} from '@libs/actions/IOU/PayMoneyRequest';
 import {approveMoneyRequest} from '@libs/actions/IOU/ReportWorkflow';
 import {setupMergeTransactionDataAndNavigate} from '@libs/actions/MergeTransaction';
-import {deleteAppReport, exportReportToPDF, markAsManuallyExported, moveIOUReportToPolicy, moveIOUReportToPolicyAndInviteSubmitter} from '@libs/actions/Report';
+import {deleteAppReport, exportReportToPDF, markAsManuallyExported, moveIOUReportToPolicy, moveIOUReportToPolicyAndInviteSubmitter, setMergeReportIDs} from '@libs/actions/Report';
 import {
     exportSearchItemsToCSV,
     exportToIntegrationOnSearch,
@@ -2490,7 +2490,11 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 text: translate('search.mergeReports.title'),
                 value: CONST.SEARCH.BULK_ACTION_TYPES.MERGE_REPORTS,
                 shouldCloseModalOnSelect: true,
-                onSelected: () => Navigation.navigate(ROUTES.MERGE_REPORTS_SEARCH_RHP.getRoute()),
+                onSelected: () => {
+                    setMergeReportIDs(selectedMergeReports.map((report) => report?.reportID ?? CONST.REPORT.UNREPORTED_REPORT_ID)).then(() =>
+                        Navigation.navigate(ROUTES.MERGE_REPORTS_SEARCH_RHP.getRoute(Navigation.getActiveRoute())),
+                    );
+                },
             });
         }
 

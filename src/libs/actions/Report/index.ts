@@ -8618,6 +8618,14 @@ function setViewingPublicRoomReportID(reportID: string) {
     Onyx.set(ONYXKEYS.VIEWING_PUBLIC_ROOM_REPORT_ID, reportID);
 }
 
+function setMergeReportIDs(reportIDs: string[]) {
+    return Onyx.set(ONYXKEYS.MERGE_REPORT_IDS, reportIDs);
+}
+
+function clearMergeReportIDs() {
+    return Onyx.set(ONYXKEYS.MERGE_REPORT_IDS, null);
+}
+
 function mergeReports({
     destinationReportID,
     sourceReportIDs,
@@ -8945,6 +8953,8 @@ export {
     updateWriteCapability,
     deleteAppReport,
     mergeReports,
+    setMergeReportIDs,
+    clearMergeReportIDs,
     getOptimisticChatReport,
     saveReportDraft,
     moveIOUReportToPolicy,
