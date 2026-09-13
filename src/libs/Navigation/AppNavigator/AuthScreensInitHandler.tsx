@@ -18,12 +18,15 @@ import {init, isClientTheLeader} from '@libs/ActiveClientManager';
 import {isQAServerActive} from '@libs/ApiUtils';
 import Log from '@libs/Log';
 import getCurrentUrl from '@libs/Navigation/currentUrl';
+import {getReportsTabPreloadTarget, getTabNavigatorState} from '@libs/Navigation/helpers/tabNavigatorUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import navigationRef from '@libs/Navigation/navigationRef';
 import Pusher from '@libs/Pusher';
 import PusherConnectionManager from '@libs/PusherConnectionManager';
 import {getReportIDFromLink} from '@libs/ReportUtils';
 import {registerPusherReinitializeHandler} from '@libs/requestPusherReinitialize';
 import type {PusherReinitializeHandlerParams} from '@libs/requestPusherReinitialize';
+import {Scheduler} from '@libs/Scheduler';
 import * as SessionUtils from '@libs/SessionUtils';
 import {endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
 import {getSearchParamFromUrl} from '@libs/Url';
@@ -37,10 +40,12 @@ import * as User from '@userActions/User';
 
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
+import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {ReportAttributesDerivedValue} from '@src/types/onyx';
 
+import {CommonActions} from '@react-navigation/native';
 import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
 import {accountIDSelector, displayNameSelector} from '@selectors/PersonalDetails';
 import {useEffect, useRef} from 'react';
@@ -96,6 +101,7 @@ function AuthScreensInitHandler() {
     const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
+    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const lastWorkspaceNumber = useLastWorkspaceNumber(ownerEmail ?? undefined);
     const policyOwnerLogin = ownerEmail ?? session?.email;
     const policyOwnerAccountID = usePersonalDetailByLogin(policyOwnerLogin, accountIDSelector);
@@ -112,6 +118,8 @@ function AuthScreensInitHandler() {
     useAIFeaturesPromoModal(session);
 
     const topmostReportID = useRootNavigationState(Navigation.getFocusedReportId);
+    // Not `Navigation.isNavigationReady()`: that resolves on the container's first render, before this navigator exists.
+    const tabNavigatorStateKey = useRootNavigationState((rootState) => getTabNavigatorState(rootState)?.key);
     const topmostOneTransactionThreadReportID = useOneTransactionThreadReportID(topmostReportID);
     // We use a ref so the Pusher callback (registered once on mount) always reads the latest value without re-subscribing.
     const topmostOneTransactionThreadReportIDRef = useRef(topmostOneTransactionThreadReportID);
@@ -233,6 +241,24 @@ function AuthScreensInitHandler() {
         // Rule disabled because this effect is only for component did mount & will component unmount lifecycle event
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
+
+    useEffect(() => {
+        // A reload runs ReconnectApp, which never raises the flag, so without the key gate this no-ops on every reload.
+        if (isLoadingApp !== false || !tabNavigatorStateKey) {
+            return;
+        }
+
+        const task = Scheduler.scheduleWhenIdle(() => {
+            const target = getReportsTabPreloadTarget(navigationRef.getRootState());
+            if (!target) {
+                return;
+            }
+
+            navigationRef.dispatch({...CommonActions.preload(NAVIGATORS.REPORTS_SPLIT_NAVIGATOR), target});
+        });
+
+        return () => task.cancel();
+    }, [isLoadingApp, tabNavigatorStateKey]);
 
     return null;
 }
