@@ -75,6 +75,8 @@ function WorkspaceExpensifyCardFeedSelectorPage({route}: WorkspaceExpensifyCardF
     const primaryContactMethod = usePrimaryContactMethod();
     const defaultFundID = useDefaultFundID(policyID);
     const lastSelectedExpensifyCardFeedID = lastSelectedExpensifyCardFeed ?? defaultFundID;
+    const [draftFundID, setDraftFundID] = useState<number>();
+    const currentSelectedFundID = draftFundID ?? lastSelectedExpensifyCardFeedID;
     const [feedWithError, setFeedWithError] = useState<{fundID?: number; error?: Errors} | undefined>(undefined);
     const {login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
 
@@ -103,6 +105,10 @@ function WorkspaceExpensifyCardFeedSelectorPage({route}: WorkspaceExpensifyCardF
 
     const issueCardFundID = getIssueCardFundID();
     const hasIssueCardFundID = issueCardFundID !== undefined;
+
+    // `issueCardFundID` is derived from the saved feed, so issuing a card while a different feed is staged would
+    // issue it against the saved feed and write that one back to Onyx. Block issuance until the draft is saved.
+    const hasUnsavedFeedSelection = draftFundID !== undefined && draftFundID !== lastSelectedExpensifyCardFeedID;
 
     const handleAddCardPress = () => {
         if (issueCardFundID === undefined) {
@@ -142,7 +148,7 @@ function WorkspaceExpensifyCardFeedSelectorPage({route}: WorkspaceExpensifyCardF
             value: entry.fundID,
             text: getExpensifyCardFeedDescription(entry.settings, policies, domains, entry.fundID, cardList),
             keyForList: entry.fundID.toString(),
-            isSelected: entry.fundID === lastSelectedExpensifyCardFeedID,
+            isSelected: entry.fundID === currentSelectedFundID,
             isDisabled: isFeedPendingDelete || (isOtherWorkspaceSection && isOffline),
             pendingAction: entry.settings.pendingAction,
             errors: feedWithError?.fundID === entry.fundID ? feedWithError.error : undefined,
@@ -197,9 +203,23 @@ function WorkspaceExpensifyCardFeedSelectorPage({route}: WorkspaceExpensifyCardF
     };
 
     const selectFeed = (feed: ExpensifyFeedListItem) => {
+        setDraftFundID(feed.value);
+    };
+
+    const saveFeed = () => {
+        if (!currentSelectedFundID) {
+            return;
+        }
         resetCardFlowState();
-        updateSelectedExpensifyCardFeed(feed.value, policyID);
+        updateSelectedExpensifyCardFeed(currentSelectedFundID, policyID);
         goBack();
+    };
+
+    const confirmButtonOptions = {
+        showButton: true,
+        text: translate('common.save'),
+        onConfirm: saveFeed,
+        isDisabled: !currentSelectedFundID || currentSelectedFundID === lastSelectedExpensifyCardFeedID,
     };
 
     const primaryListData = primaryFeeds.map((entry) => toListItem(entry, false));
@@ -215,6 +235,7 @@ function WorkspaceExpensifyCardFeedSelectorPage({route}: WorkspaceExpensifyCardF
                     title={translate(hasIssueCardFundID ? 'workspace.expensifyCard.issueCard' : 'workspace.expensifyCard.issueNewCard')}
                     icon={expensifyIcons.Plus}
                     onPress={hasIssueCardFundID ? handleAddCardPress : handleSetUpNewProgramPress}
+                    isDisabled={hasIssueCardFundID && hasUnsavedFeedSelection}
                     sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.EXPENSIFY_CARD.ISSUE_CARD_BUTTON}
                 />
             )}
@@ -267,6 +288,7 @@ function WorkspaceExpensifyCardFeedSelectorPage({route}: WorkspaceExpensifyCardF
                         data={primaryListData}
                         alternateNumberOfSupportedLines={2}
                         initiallyFocusedItemKey={lastSelectedExpensifyCardFeedID.toString()}
+                        confirmButtonOptions={confirmButtonOptions}
                         addBottomSafeAreaPadding
                         listFooterContent={issueNewCardAndOtherFeedsFooter}
                         onDismissError={onDismissError}
