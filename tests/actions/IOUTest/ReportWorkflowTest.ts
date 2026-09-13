@@ -4354,11 +4354,11 @@ describe('actions/IOU/ReportWorkflow', () => {
             expect(report?.nextStep).toBeDefined();
 
             // Since the report is fully approved when admin takes control and approves,
-            // the next step should be about payment,
+            // the next step should be about payment, naming the policy owner as the fallback reimburser
             expect(report?.nextStep).toEqual({
                 messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_PAY,
                 icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
-                actorAccountID: -1,
+                actorAccountID: adminAccountID,
             });
         });
     });
