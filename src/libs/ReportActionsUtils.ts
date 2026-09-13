@@ -3522,6 +3522,10 @@ function getWorkspaceUpdateFieldMessage(translate: LocalizedTranslate, action: R
         return translate('workspaceActions.preventSelfApproval', oldValue, newValue);
     }
 
+    if (updatedField && updatedField === CONST.POLICY.EXPENSE_REPORT_RULES.PREVENT_PAYOUT_NON_REIMBURSABLE_REPORTS && typeof oldValue === 'string' && typeof newValue === 'string') {
+        return translate('workspaceActions.preventPayoutNonReimbursableReports', oldValue, newValue);
+    }
+
     if (
         updatedField &&
         updatedField === CONST.POLICY.EXPENSE_REPORT_RULES.MAX_EXPENSE_AGE &&

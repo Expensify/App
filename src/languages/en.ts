@@ -8337,6 +8337,8 @@ const translations = {
                 subtitle: 'Automate expense report compliance, approvals, and payment.',
                 preventSelfApprovalsTitle: 'Prevent self-approvals',
                 preventSelfApprovalsSubtitle: 'Prevent workspace members from approving their own expense reports.',
+                preventPayoutNonReimbursableReportsTitle: 'Prevent marking non-reimbursable reports as paid',
+                preventPayoutNonReimbursableReportsSubtitle: "Don't allow admins to mark non-reimbursable reports as paid.",
                 autoApproveCompliantReportsTitle: 'Auto-approve compliant reports',
                 autoApproveCompliantReportsSubtitle: 'Configure which expense reports are eligible for auto-approval.',
                 autoApproveReportsUnderTitle: 'Auto-approve reports with all expenses under',
@@ -9096,6 +9098,8 @@ const translations = {
         },
         preventSelfApproval: (oldValue: string, newValue: string) =>
             `updated "Prevent self-approval" to "${newValue === 'true' ? 'Enabled' : 'Disabled'}" (previously "${oldValue === 'true' ? 'Enabled' : 'Disabled'}")`,
+        preventPayoutNonReimbursableReports: (oldValue: string, newValue: string) =>
+            `updated "Prevent marking non-reimbursable reports as paid" to "${newValue === 'true' ? 'Enabled' : 'Disabled'}" (previously "${oldValue === 'true' ? 'Enabled' : 'Disabled'}")`,
         updateMonthlyOffset: (oldValue: string, newValue: string) => {
             if (!oldValue) {
                 return `set the monthly report submission date to "${newValue}"`;

@@ -5927,6 +5927,54 @@ describe('actions/Policy', () => {
         });
     });
 
+    describe('setPolicyPreventPayoutNonReimbursableReports', () => {
+        it('should update preventPayoutNonReimbursableReports optimistically and succeed', async () => {
+            // Given a workspace with preventPayoutNonReimbursableReports disabled
+            const policy = {
+                ...createRandomPolicy(0),
+                preventPayoutNonReimbursableReports: null,
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+            mockFetch.pause();
+
+            // When enabling preventPayoutNonReimbursableReports
+            Policy.setPolicyPreventPayoutNonReimbursableReports(policy.id, true, policy.preventPayoutNonReimbursableReports);
+
+            // Then optimistic data should be set in Onyx
+            await waitForBatchedUpdates();
+            let updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`);
+            expect(updatedPolicy?.preventPayoutNonReimbursableReports).toBe(true);
+            expect(updatedPolicy?.pendingFields?.preventPayoutNonReimbursableReports).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+
+            // When the fetch resumes and succeeds
+            await mockFetch.resume();
+
+            // Then pendingFields should be cleared
+            updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`);
+            expect(updatedPolicy?.pendingFields?.preventPayoutNonReimbursableReports).toBeUndefined();
+        });
+
+        it('should revert preventPayoutNonReimbursableReports when fail', async () => {
+            // Given a workspace with preventPayoutNonReimbursableReports disabled
+            const policy = {
+                ...createRandomPolicy(0),
+                preventPayoutNonReimbursableReports: undefined,
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+
+            // When enabling preventPayoutNonReimbursableReports but fail
+            mockFetch.fail();
+            Policy.setPolicyPreventPayoutNonReimbursableReports(policy.id, true, policy.preventPayoutNonReimbursableReports);
+            await waitForBatchedUpdates();
+
+            // Then it should be reverted
+            const updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`);
+            expect(updatedPolicy?.preventPayoutNonReimbursableReports).toBeUndefined();
+            expect(updatedPolicy?.pendingFields?.preventPayoutNonReimbursableReports).toBeUndefined();
+            expect(updatedPolicy?.errorFields?.preventPayoutNonReimbursableReports).toBeTruthy();
+        });
+    });
+
     describe('setPolicyAutomaticApprovalLimit', () => {
         it('should update automatic approval limit optimistically and succeed', async () => {
             // Given a workspace with auto approval limit 100
