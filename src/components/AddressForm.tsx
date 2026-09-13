@@ -240,6 +240,7 @@ function AddressForm({
                 role={CONST.ROLE.PRESENTATION}
                 defaultValue={street2}
                 spellCheck={false}
+                clearInputKeysOnChange={['lat', 'lng']}
                 shouldSaveDraft={shouldSaveDraft}
                 autoComplete="address-line2"
             />
@@ -252,6 +253,7 @@ function AddressForm({
                             inputID={INPUT_IDS.COUNTRY}
                             value={country}
                             onValueChange={onAddressChanged}
+                            clearInputKeysOnChange={['lat', 'lng']}
                             shouldSaveDraft={shouldSaveDraft}
                         />
                     </View>
@@ -265,6 +267,7 @@ function AddressForm({
                         inputID={INPUT_IDS.STATE}
                         value={state as State}
                         onValueChange={onAddressChanged}
+                        clearInputKeysOnChange={['lat', 'lng']}
                         shouldSaveDraft={shouldSaveDraft}
                     />
                 </View>
@@ -278,6 +281,7 @@ function AddressForm({
                     value={state}
                     spellCheck={false}
                     onValueChange={onAddressChanged}
+                    clearInputKeysOnChange={['lat', 'lng']}
                     shouldSaveDraft={shouldSaveDraft}
                 />
             )}
@@ -291,6 +295,7 @@ function AddressForm({
                 defaultValue={city}
                 spellCheck={false}
                 onValueChange={onAddressChanged}
+                clearInputKeysOnChange={['lat', 'lng']}
                 shouldSaveDraft={shouldSaveDraft}
             />
             <View style={styles.formSpaceVertical} />
@@ -304,6 +309,7 @@ function AddressForm({
                 defaultValue={zip}
                 hint={zipFormat}
                 onValueChange={onAddressChanged}
+                clearInputKeysOnChange={['lat', 'lng']}
                 shouldSaveDraft={shouldSaveDraft}
                 autoComplete="postal-code"
             />

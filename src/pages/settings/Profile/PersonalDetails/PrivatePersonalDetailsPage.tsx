@@ -343,6 +343,7 @@ function PrivatePersonalDetailsPage() {
                             aria-label={translate('common.addressLine', 2)}
                             role={CONST.ROLE.PRESENTATION}
                             defaultValue={initialStreet2}
+                            clearInputKeysOnChange={['lat', 'lng']}
                             shouldSaveDraft
                             spellCheck={false}
                             autoComplete="address-line2"
@@ -356,6 +357,7 @@ function PrivatePersonalDetailsPage() {
                             aria-label={translate('common.city')}
                             role={CONST.ROLE.PRESENTATION}
                             defaultValue={city}
+                            clearInputKeysOnChange={['lat', 'lng']}
                             shouldSaveDraft
                             spellCheck={false}
                             autoComplete="street-address"
@@ -368,6 +370,7 @@ function PrivatePersonalDetailsPage() {
                                 inputID={INPUT_IDS.STATE}
                                 value={selectedState as State}
                                 onValueChange={(value: unknown) => setSelectedState((value ?? '') as string)}
+                                clearInputKeysOnChange={['lat', 'lng']}
                                 shouldSaveDraft
                             />
                         </View>
@@ -381,6 +384,7 @@ function PrivatePersonalDetailsPage() {
                                 role={CONST.ROLE.PRESENTATION}
                                 value={selectedState}
                                 onValueChange={(value: unknown) => setSelectedState((value ?? '') as string)}
+                                clearInputKeysOnChange={['lat', 'lng']}
                                 shouldSaveDraft
                                 spellCheck={false}
                             />
@@ -394,6 +398,7 @@ function PrivatePersonalDetailsPage() {
                             aria-label={translate('common.zipPostCode')}
                             role={CONST.ROLE.PRESENTATION}
                             defaultValue={zip}
+                            clearInputKeysOnChange={['lat', 'lng']}
                             shouldSaveDraft
                             spellCheck={false}
                             autoComplete="postal-code"
@@ -421,6 +426,7 @@ function PrivatePersonalDetailsPage() {
                                 setSelectedState('');
                                 setDraftValues(ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM, {[INPUT_IDS.STATE]: ''});
                             }}
+                            clearInputKeysOnChange={['lat', 'lng']}
                             shouldSaveDraft
                         />
                     </View>

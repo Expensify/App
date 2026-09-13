@@ -106,6 +106,8 @@ type InputComponentValueProps<TValue extends ValueTypeKey = ValueTypeKey> = {
     onValueChange?: (value: ValueTypeMap[TValue], key: string) => void;
     shouldSaveDraft?: boolean;
     shouldUseDefaultValue?: boolean;
+    /** Form fields to clear whenever this input changes. */
+    clearInputKeysOnChange?: string[];
 };
 
 type MeasureLayoutOnSuccessCallback = (left: number, top: number, width: number, height: number) => void;

@@ -34,7 +34,7 @@ import {deepEqual} from 'fast-equals';
 import React, {createRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 
 import type {RegisterInput} from './FormContext';
-import type {FormInputErrors, FormOnyxValues, FormProps, FormRef, FormWrapperRef, InputComponentBaseProps, InputRefs, ValueTypeKey} from './types';
+import type {FormInputErrors, FormOnyxValues, FormProps, FormRef, FormValue, FormWrapperRef, InputComponentBaseProps, InputRefs, ValueTypeKey} from './types';
 
 import FormContext from './FormContext';
 import FormWrapper from './FormWrapper';
@@ -422,6 +422,7 @@ function FormProvider({
 
     const registerInput = useCallback<RegisterInput>(
         (inputID, shouldSubmitForm, inputProps) => {
+            const {clearInputKeysOnChange = [], ...inputPropsWithoutClearKeys} = inputProps;
             const newRef: RefObject<InputComponentBaseProps> = inputRefs.current[inputID] ?? inputProps.ref ?? createRef();
             if (inputRefs.current[inputID] !== newRef) {
                 inputRefs.current[inputID] = newRef;
@@ -450,7 +451,7 @@ function FormProvider({
             const hasNumericKeyboard = isNumericKeyboard(inputProps);
 
             return {
-                ...inputProps,
+                ...inputPropsWithoutClearKeys,
                 ...(shouldSubmitForm && {
                     onSubmitEditing: (event: TextInputSubmitEditingEvent) => {
                         submit();
@@ -543,9 +544,16 @@ function FormProvider({
                 },
                 onInputChange: (value, key) => {
                     const inputKey = key ?? inputID;
+                    const clearedInputValues: Record<string, FormValue> = {};
+                    for (const keyToClear of clearInputKeysOnChange) {
+                        if (keyToClear !== inputKey) {
+                            clearedInputValues[keyToClear] = '';
+                        }
+                    }
                     setInputValues((prevState) => {
                         const newState = {
                             ...prevState,
+                            ...clearedInputValues,
                             [inputKey]: value,
                         };
 
@@ -556,7 +564,7 @@ function FormProvider({
                     });
 
                     if (inputProps.shouldSaveDraft && !formID.includes('Draft')) {
-                        setDraftValues(formID, {[inputKey]: value});
+                        setDraftValues(formID, {[inputKey]: value, ...clearedInputValues});
                     }
                     inputProps.onValueChange?.(value, inputKey);
                 },

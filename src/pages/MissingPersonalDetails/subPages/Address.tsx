@@ -189,6 +189,7 @@ function AddressStep({isEditing, onNext, personalDetailsValues}: CustomSubPagePr
                     aria-label={translate('common.addressLine', 2)}
                     role={CONST.ROLE.PRESENTATION}
                     defaultValue={personalDetailsValues[INPUT_IDS.ADDRESS_LINE_2]}
+                    clearInputKeysOnChange={['lat', 'lng']}
                     spellCheck={false}
                     containerStyles={styles.mt5}
                     autoComplete="address-line2"
@@ -199,6 +200,7 @@ function AddressStep({isEditing, onNext, personalDetailsValues}: CustomSubPagePr
                         inputID={INPUT_IDS.COUNTRY}
                         value={currentCountry}
                         onValueChange={handleAddressChange}
+                        clearInputKeysOnChange={['lat', 'lng']}
                     />
                 </View>
                 {isUSAForm ? (
@@ -208,6 +210,7 @@ function AddressStep({isEditing, onNext, personalDetailsValues}: CustomSubPagePr
                             inputID={INPUT_IDS.STATE}
                             value={state as State}
                             onValueChange={handleAddressChange}
+                            clearInputKeysOnChange={['lat', 'lng']}
                         />
                     </View>
                 ) : (
@@ -220,6 +223,7 @@ function AddressStep({isEditing, onNext, personalDetailsValues}: CustomSubPagePr
                         value={state}
                         spellCheck={false}
                         onValueChange={handleAddressChange}
+                        clearInputKeysOnChange={['lat', 'lng']}
                         containerStyles={styles.mt2}
                     />
                 )}
@@ -232,6 +236,7 @@ function AddressStep({isEditing, onNext, personalDetailsValues}: CustomSubPagePr
                     defaultValue={city}
                     spellCheck={false}
                     onValueChange={handleAddressChange}
+                    clearInputKeysOnChange={['lat', 'lng']}
                     containerStyles={isUSAForm ? styles.mt2 : styles.mt5}
                 />
                 <InputWrapper
@@ -244,6 +249,7 @@ function AddressStep({isEditing, onNext, personalDetailsValues}: CustomSubPagePr
                     defaultValue={zipcode}
                     hint={zipFormat}
                     onValueChange={handleAddressChange}
+                    clearInputKeysOnChange={['lat', 'lng']}
                     containerStyles={styles.mt5}
                     autoComplete="postal-code"
                 />
