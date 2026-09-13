@@ -469,7 +469,7 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
                 <ConciergeChatHistoryToggle
                     reportID={reportID}
                     hasPreviousMessages={!!hasPreviousMessages}
-                    shouldShowFullHistory={!showHiddenHistory}
+                    shouldShowFullHistory={false}
                     onShowPreviousMessages={onShowPreviousMessages}
                     containerStyles={styles.pb5}
                 />
