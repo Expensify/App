@@ -27,15 +27,7 @@ type BuildChartSeriesParams = {
     getCurrencyDecimals: (currency: string) => number;
 };
 
-/**
- * Palette color of every data point, keyed by its position in `data`.
- *
- * Colors follow slice ranking rather than array order: the largest absolute value takes the first
- * palette color, the second largest the next one, and so on. The donut canvas ranks its slices the
- * same way, so a legend or an inline table can look a group's color up here and match what is
- * drawn. Kept on this side rather than in the chart's own utils so nothing about how the canvas
- * paints itself has to change to serve the table.
- */
+/** Pie colors follow the slice ranking rather than the array order */
 function getSliceColorsByDataIndex(data: ChartDataPoint[]): string[] {
     const colors: string[] = Array.from({length: data.length});
 
@@ -48,13 +40,7 @@ function getSliceColorsByDataIndex(data: ChartDataPoint[]): string[] {
     return colors;
 }
 
-/**
- * Builds the series a chart plots: one row per group, each pairing the plotted point with the
- * grouped search result it came from.
- *
- * This is the single place group totals are turned into plotted values, so the chart and anything
- * rendered next to it (the inline details table) read the same numbers in the same order.
- */
+/** This is the single place group totals are turned into plotted values. */
 function buildChartSeries({data, view, getLabel, getShortLabel, getCurrencyDecimals}: BuildChartSeriesParams): SearchChartDataRow[] {
     const rows = data.map((item) => {
         const decimals = getCurrencyDecimals(item.currency ?? CONST.CURRENCY.USD);
@@ -67,8 +53,6 @@ function buildChartSeries({data, view, getLabel, getShortLabel, getCurrencyDecim
         return {point, item};
     });
 
-    // Pie colors follow the slice ranking rather than the array order, so they are ranked the same
-    // way the canvas ranks its slices. Bars are colored by position, and a line is single-colored.
     const pieColors = view === CONST.SEARCH.VIEW.PIE ? getSliceColorsByDataIndex(rows.map((row) => row.point)) : undefined;
 
     return rows.map((row, index) => {
@@ -83,13 +67,6 @@ function buildChartSeries({data, view, getLabel, getShortLabel, getCurrencyDecim
     });
 }
 
-/**
- * The share `value` makes up of `total`, as a percentage.
- *
- * Both sides are taken as absolute values because a group's total can be negative. Returns undefined
- * when there is no total to measure against, which is the caller's signal to omit the share entirely
- * rather than show a misleading 0%.
- */
 function getPercentOfTotal(value: number | undefined, total: number | undefined): number | undefined {
     const denominator = Math.abs(total ?? 0);
     if (denominator === 0) {
@@ -99,16 +76,9 @@ function getPercentOfTotal(value: number | undefined, total: number | undefined)
     return (Math.abs(value ?? 0) / denominator) * 100;
 }
 
-/** The smallest share we spell out. Anything below it is reported as "less than this". */
 const SMALLEST_REPORTED_PERCENT = 0.1;
 
-/**
- * Formats a share for display, to at most one decimal place.
- *
- * Intl does the rounding, drops a trailing zero (so a round 30 reads "30%", not "30.0%") and places
- * the locale's own decimal separator, which is why the string is never assembled by hand. A share
- * too small to survive that rounding is reported as "<0.1%" rather than a misleading "0%".
- */
+/** Formats a share for display, to at most one decimal place. */
 function formatPercentOfTotal(percent: number, locale: Locale | undefined): string {
     const options: Intl.NumberFormatOptions = {style: 'percent', maximumFractionDigits: 1};
 
@@ -119,4 +89,4 @@ function formatPercentOfTotal(percent: number, locale: Locale | undefined): stri
     return format(locale, percent / 100, options);
 }
 
-export {buildChartSeries, formatPercentOfTotal, getPercentOfTotal, getSliceColorsByDataIndex};
+export {buildChartSeries, formatPercentOfTotal, getPercentOfTotal};

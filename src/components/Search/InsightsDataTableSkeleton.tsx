@@ -4,44 +4,64 @@ import ItemListSkeletonView from '@components/Skeletons/ItemListSkeletonView';
 import useContainerWidth from '@hooks/useContainerWidth';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import React from 'react';
+import variables from '@styles/variables';
+
 import {View} from 'react-native';
 
-/** Mirrors the real row: `pv3` on both sides around a 40px avatar. */
-const ROW_HEIGHT = 64;
-const BAR_HEIGHT = 7;
-const AVATAR_SIZE = 40;
-const AVATAR_OFFSET_Y = (ROW_HEIGHT - AVATAR_SIZE) / 2;
+const AVATAR_SIZE = variables.avatarSizeMedium;
+
+// 12 is the gap between the avatar and the text column, matching the row's gap3
 const AVATAR_GAP = 12;
-/** Where each of the row's two text lines sits, so the bars land on the lines they stand in for. */
+
+// 12 is the padding above and below the row's content, matching its pv3
+const ROW_PADDING_Y = 12;
+
+// The row's full height: the avatar with padding on both sides
+const ROW_HEIGHT = AVATAR_SIZE + ROW_PADDING_Y * 2;
+
+// 7 is the height of a bar standing in for a line of text
+const BAR_HEIGHT = 7;
+
+// Centers the avatar placeholder in the row
+const AVATAR_OFFSET_Y = (ROW_HEIGHT - AVATAR_SIZE) / 2;
+
+// 20 is where the row's first line of text sits
 const TOP_LINE_OFFSET_Y = 20;
+
+// 40 is where the row's second line of text sits
 const BOTTOM_LINE_OFFSET_Y = 40;
+
+// 120 is the width of the bar standing in for the group label
 const LABEL_WIDTH = 120;
+
+// 70 is the width of the bar standing in for the expense count
 const COUNT_WIDTH = 70;
+
+// 64 is the width of the bar standing in for the amount
 const AMOUNT_WIDTH = 64;
+
+// 84 is the width of the bar standing in for the share of spend
 const SHARE_WIDTH = 84;
 
 type InsightsDataTableSkeletonProps = {
-    /** How many rows to draw. Without it the skeleton measures its own height, which is zero here. */
+    /** How many rows to draw. */
     fixedNumItems: number;
 
-    /** Whether the rows being loaded carry an avatar, so the placeholder matches what arrives. */
+    /** Whether the rows being loaded carry an avatar. */
     shouldShowAvatar: boolean;
 };
 
-/** Placeholder rows shown in place of `InsightsDataTable` while the chart's data loads. */
 function InsightsDataTableSkeleton({fixedNumItems, shouldShowAvatar}: InsightsDataTableSkeletonProps) {
     const styles = useThemeStyles();
     const {onLayout, containerWidth} = useContainerWidth();
 
     const textStartX = shouldShowAvatar ? AVATAR_SIZE + AVATAR_GAP : 0;
-    // Right-aligned bars, the way the row's amount and share are.
     const amountX = Math.max(containerWidth - AMOUNT_WIDTH, textStartX + LABEL_WIDTH + AVATAR_GAP);
     const shareX = Math.max(containerWidth - SHARE_WIDTH, textStartX + LABEL_WIDTH + AVATAR_GAP);
 
     return (
         <View
-            style={styles.chartDataTable}
+            style={styles.chartInlineTable}
             onLayout={onLayout}
         >
             <ItemListSkeletonView

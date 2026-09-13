@@ -16,7 +16,7 @@ import type {ChartView, GroupedItem, SearchChartDataRow, SearchGroupBy} from './
 import {formatPercentOfTotal, getPercentOfTotal} from './buildChartSeries';
 import InsightsDataTableSkeleton from './InsightsDataTableSkeleton';
 
-/** Placeholder rows while loading. Matches the row count the ranking charts typically come back with. */
+/** Placeholder rows while loading */
 const SKELETON_ROW_COUNT = 5;
 
 type InsightsDataTableProps = {
@@ -31,11 +31,7 @@ type InsightsDataTableProps = {
 
     isLoading?: boolean;
 
-    /**
-     * Total spend of the whole search window, used as the denominator of each row's share.
-     * Falling back to the listed rows would make the shares add up to 100% even when the search
-     * returned more groups than the chart plots, so we only do that when the window total is missing.
-     */
+    /** Total spend of the whole search window */
     total?: number;
 };
 
@@ -44,20 +40,11 @@ function isMemberGroup(item: GroupedItem): item is TransactionMemberGroupListIte
     return item.groupedBy === CONST.SEARCH.GROUP_BY.FROM || item.groupedBy === CONST.SEARCH.GROUP_BY.CARD;
 }
 
-/**
- * Lists the groups plotted on a chart, one row each, with the numbers the chart's shape doesn't
- * already make obvious: the expense count, the amount, and the group's share of total spend.
- *
- * A row reads as two columns of two lines: the group and its expense count on the left, the amount
- * and its share on the right. It renders from the same prepared rows the chart plots, so the two
- * always agree on the values and their order. Hand it to `SearchChartView` through `renderDetails`.
- */
 function InsightsDataTable({rows, view, groupBy, isLoading, total}: InsightsDataTableProps) {
     const styles = useThemeStyles();
     const {translate, preferredLocale} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
 
-    // Only people get an avatar, so the skeleton has to know before any row exists.
     const shouldShowAvatar = groupBy === CONST.SEARCH.GROUP_BY.FROM || groupBy === CONST.SEARCH.GROUP_BY.CARD;
 
     if (isLoading) {
@@ -77,7 +64,7 @@ function InsightsDataTable({rows, view, groupBy, isLoading, total}: InsightsData
     const shouldShowColorDot = view === CONST.SEARCH.VIEW.PIE;
 
     return (
-        <View style={styles.chartDataTable}>
+        <View style={styles.chartInlineTable}>
             {rows.map((row, index) => {
                 const {item, point, color} = row;
                 const percent = getPercentOfTotal(item.total, windowTotal);

@@ -6653,7 +6653,7 @@ const staticStyles = (theme: ThemeColors) =>
             width: 12,
             height: 12,
         },
-        chartDataTable: {
+        chartInlineTable: {
             marginTop: 20,
         },
         discoverSectionImage: {

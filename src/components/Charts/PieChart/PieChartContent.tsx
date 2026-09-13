@@ -29,7 +29,7 @@ type PieChartProps = ChartProps & {
     /** Position of the unit symbol relative to the value. Defaults to 'left'. */
     valueUnitPosition?: UnitPosition;
 
-    /** Whether to draw the slice legend below the donut. Turn it off when the groups are already listed elsewhere. */
+    /** Whether to draw the slice legend below the donut */
     shouldShowLegend?: boolean;
 };
 

@@ -441,12 +441,6 @@ type GroupedItem =
     | TransactionYearGroupListItemType
     | TransactionQuarterGroupListItemType;
 
-/**
- * One plotted group: the point handed to the chart, plus the source row its details are rendered from.
- *
- * `SearchChartView` prepares these once and shares them between the chart and whatever renders
- * alongside it, so the two can never disagree about the values or their order.
- */
 type SearchChartDataRow = {
     /** The point plotted on the chart */
     point: ChartDataPoint;
@@ -454,7 +448,7 @@ type SearchChartDataRow = {
     /** The grouped search result the point was built from */
     item: GroupedItem;
 
-    /** Palette color the chart assigns this group, for views that color groups individually */
+    /** Palette color the chart assigns this group */
     color?: string;
 };
 
@@ -473,7 +467,7 @@ type SearchChartProps = {
     /** Position of currency symbol relative to value */
     unitPosition?: UnitPosition;
 
-    /** Whether the chart draws its own legend. Off when the details table already lists the groups. */
+    /** Whether the chart draws its own legend. */
     shouldShowLegend?: boolean;
 };
 

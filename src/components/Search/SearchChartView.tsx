@@ -61,7 +61,6 @@ function SearchChartView({queryJSON, view, groupBy, data, isLoading, renderDetai
     const {getLabel, getShortLabel, getFilterQuery} = CHART_GROUP_BY_CONFIG[groupBy];
     const ChartComponent = CHART_VIEW_TO_COMPONENT[view];
 
-    // Prepared once here so the chart and the details below it plot and list the very same rows.
     const rows = buildChartSeries({data, view, getLabel, getShortLabel, getCurrencyDecimals});
 
     const handleItemPress = (index: number) => {
