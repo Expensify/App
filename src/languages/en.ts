@@ -6147,6 +6147,58 @@ const translations = {
             subsidiarySelectDescription: "Choose the subsidiary in Campfire that you'd like to import data from.",
             noSubsidiariesFound: 'No subsidiaries found',
             noSubsidiariesFoundDescription: 'Please add an entity in Campfire and sync the connection again',
+            importDescription: 'Choose which coding configurations to import from Campfire.',
+            accountTypesDescription: 'Your Campfire accounts will import as categories.',
+            enableNewAccountsTitle: 'Enable newly imported accounts',
+            enableNewAccountsDescription: 'New Campfire accounts will be available as categories.',
+            dimensionsImport: 'All Campfire dimensions import as tags',
+            exportDescription: 'Configure how Expensify data exports to Campfire.',
+            exportReimbursable: {
+                label: 'Export reimbursable expenses as',
+                values: {
+                    [CONST.CAMPFIRE_EXPORT_REIMBURSABLE.VENDOR_BILL]: {
+                        label: 'Vendor bills',
+                    },
+                },
+            },
+            exportDate: {
+                label: 'Vendor bill date',
+                description: 'Use this date when exporting reports to Campfire.',
+                values: {
+                    [CONST.CAMPFIRE_EXPORT_DATE.LAST_EXPENSE]: {
+                        label: 'Date of last expense',
+                        description: 'Date of the most recent expense on the report.',
+                    },
+                    [CONST.CAMPFIRE_EXPORT_DATE.REPORT_EXPORTED]: {
+                        label: 'Export date',
+                        description: 'Date the report was exported to Campfire.',
+                    },
+                    [CONST.CAMPFIRE_EXPORT_DATE.REPORT_SUBMITTED]: {
+                        label: 'Submitted date',
+                        description: 'Date the report was submitted for approval.',
+                    },
+                },
+            },
+            exportNonReimbursable: {
+                label: 'Export company card expenses as',
+                values: {
+                    [CONST.CAMPFIRE_EXPORT_NON_REIMBURSABLE.JOURNAL_ENTRY]: {
+                        label: 'Journal entries',
+                    },
+                },
+            },
+            defaultCompanyCardVendor: {
+                label: 'Default vendor for all company cards',
+                description: "Choose a default Campfire vendor for expenses that don't match automatically.",
+            },
+            companyCardAccount: {
+                label: 'Company card account',
+                description: 'Choose where to export company card transactions.',
+            },
+            noVendorsFound: 'No vendors found',
+            noVendorsFoundDescription: 'Please add vendors in Campfire and sync the connection again',
+            noAccountsFound: 'No accounts found',
+            noAccountsFoundDescription: 'Please add accounts in Campfire and sync the connection again',
         },
         type: {
             free: 'Free',
