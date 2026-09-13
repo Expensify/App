@@ -20,10 +20,17 @@ async function clearWorkboxRecoveryCaches(): Promise<void> {
         return;
     }
 
+    // TODO: TEMPORARY INSTRUMENTATION - revert before merging.
+    const timings: Record<string, unknown> = {};
+
     if (typeof caches !== 'undefined') {
         try {
             const cacheNames = await caches.keys();
+            timings.cacheNames = cacheNames;
+
+            const start = performance.now();
             await Promise.all(cacheNames.map((name) => caches.delete(name)));
+            timings.deleteCachesMs = Math.round(performance.now() - start);
         } catch (error) {
             Log.warn('[SW] Failed to clear Cache Storage during app reset', {error});
         }
@@ -35,10 +42,18 @@ async function clearWorkboxRecoveryCaches(): Promise<void> {
 
     try {
         const registrations = await navigator.serviceWorker.getRegistrations();
+        timings.registrationCount = registrations.length;
+
+        const start = performance.now();
         await Promise.all(registrations.map((registration) => registration.unregister()));
+        timings.unregisterMs = Math.round(performance.now() - start);
     } catch (error) {
         Log.warn('[SW] Failed to unregister service workers during app reset', {error});
     }
+
+    // console.debug renders at Chrome's Verbose level, which is hidden by default and would hide the numbers we are collecting.
+    // eslint-disable-next-line no-console
+    console.log('[SW] clear timings', timings);
 }
 
 export default clearWorkboxRecoveryCaches;
