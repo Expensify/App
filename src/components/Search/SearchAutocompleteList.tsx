@@ -203,6 +203,7 @@ function SearchAutocompleteList({
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const allCards = personalAndWorkspaceCards ?? CONST.EMPTY_OBJECT;
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [searchResultReportIDs] = useOnyx(ONYXKEYS.RAM_ONLY_SEARCH_RESULT_REPORT_IDS);
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const effectiveInputQueryValue = inputQueryValue ?? autocompleteQueryValue;
     const hasEffectiveInputQuery = effectiveInputQueryValue.trim() !== '';
@@ -300,6 +301,66 @@ function SearchAutocompleteList({
         translate,
         dateFnsLocale,
         convertToDisplayString,
+        rules,
+    ]);
+
+    const serverReportsOptions = useMemo(() => {
+        if (!hasActiveSearchResults || listOptions === null || !searchResultReportIDs?.length) {
+            return CONST.EMPTY_ARRAY;
+        }
+
+        const orderedReportIDs = [...new Set(searchResultReportIDs)].slice(0, CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_SUGGESTIONS);
+        const reportIDs = new Set(orderedReportIDs);
+        const options = getSearchOptions({
+            dateFnsLocale,
+            convertToDisplayString,
+            options: {reports: listOptions.reports.filter((option) => reportIDs.has(option.reportID)), personalDetails: []},
+            draftComments,
+            betas: betas ?? [],
+            isUsedInChatFinder: true,
+            includeReadOnly: true,
+            searchQuery: autocompleteQueryValue,
+            maxResults: orderedReportIDs.length,
+            includeUserToInvite: false,
+            includeRecentReports: true,
+            includeCurrentUser: false,
+            countryCode,
+            shouldShowGBR: false,
+            shouldUnreadBeBold: true,
+            loginList,
+            visibleReportActionsData,
+            currentUserAccountID,
+            currentUserEmail,
+            policyCollection: policies,
+            personalDetails,
+            sortedActions,
+            conciergeReportID,
+            isTrackIntentUser,
+            translate,
+            rules,
+        }).options;
+        const optionsByReportID = new Map(options.recentReports.map((option) => [option.reportID, option]));
+        return orderedReportIDs.map((reportID) => optionsByReportID.get(reportID)).filter((option): option is OptionData => !!option);
+    }, [
+        hasActiveSearchResults,
+        listOptions,
+        searchResultReportIDs,
+        dateFnsLocale,
+        convertToDisplayString,
+        draftComments,
+        betas,
+        autocompleteQueryValue,
+        countryCode,
+        loginList,
+        visibleReportActionsData,
+        currentUserAccountID,
+        currentUserEmail,
+        policies,
+        personalDetails,
+        sortedActions,
+        conciergeReportID,
+        isTrackIntentUser,
+        translate,
         rules,
     ]);
 
@@ -416,7 +477,7 @@ function SearchAutocompleteList({
 
     const recentReportsOptions = useMemo(() => {
         if (!hasActiveSearchResults) {
-            return searchOptions.recentReports;
+            return searchOptions.recentReports.slice(0, CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_SUGGESTIONS);
         }
 
         // searchOptions/autocompleteQueryValue are debounced. For a query -> query change this still returns the
@@ -433,14 +494,29 @@ function SearchAutocompleteList({
             reportOptions.push(searchOptions.userToInvite);
         }
 
-        return reportOptions.slice(0, 20);
-    }, [autocompleteQueryValue, hasActiveSearchResults, searchOptions]);
+        if (searchResultReportIDs && searchResultReportIDs.length > 0) {
+            const matchedReportIDs = new Set(reportOptions.map((option) => option.reportID).filter(Boolean));
+            reportOptions.push(...serverReportsOptions.filter((option) => !matchedReportIDs.has(option.reportID)));
+
+            const rankByReportID = new Map(searchResultReportIDs.map((reportID, index) => [reportID, index]));
+            const rankOf = (option: OptionData) => {
+                if (option.isSelfDM) {
+                    return -1;
+                }
+                return option.reportID === undefined ? Number.MAX_SAFE_INTEGER : (rankByReportID.get(option.reportID) ?? Number.MAX_SAFE_INTEGER);
+            };
+            reportOptions.sort((a, b) => rankOf(a) - rankOf(b));
+        }
+
+        return searchResultReportIDs && searchResultReportIDs.length > 0 && hasActiveSearchResults ? reportOptions : reportOptions.slice(0, 20);
+    }, [autocompleteQueryValue, hasActiveSearchResults, searchOptions, searchResultReportIDs, serverReportsOptions]);
 
     // Locked rank map (stable key -> originalIndex) capturing the order of locally-known
     // results at the moment the query changes. Recomputed only when the query changes, so server
     // reports merged into Onyx later do not shift the rows already visible in the top section.
     const [frozenLocalRank, setFrozenLocalRank] = useState<ReadonlyMap<string, number>>(EMPTY_RANK_MAP);
     const [prevAutocompleteQuery, setPrevAutocompleteQuery] = useState(autocompleteQueryValue);
+    const [prevSearchResultReportIDs, setPrevSearchResultReportIDs] = useState(searchResultReportIDs);
 
     const buildRankMap = (options: OptionData[]): Map<string, number> => {
         const rank = new Map<string, number>();
@@ -455,12 +531,19 @@ function SearchAutocompleteList({
 
     if (prevAutocompleteQuery !== autocompleteQueryValue) {
         setPrevAutocompleteQuery(autocompleteQueryValue);
-        if (autocompleteQueryValue.trim() === '') {
+        if (!hasActiveSearchResults) {
             setFrozenLocalRank(EMPTY_RANK_MAP);
         } else {
             setFrozenLocalRank(buildRankMap(recentReportsOptions));
         }
-    } else if (autocompleteQueryValue.trim() !== '' && frozenLocalRank.size === 0 && recentReportsOptions.length > 0) {
+    }
+
+    if (prevSearchResultReportIDs !== searchResultReportIDs) {
+        setPrevSearchResultReportIDs(searchResultReportIDs);
+        if (hasActiveSearchResults && !searchResultReportIDs?.length) {
+            setFrozenLocalRank(buildRankMap(recentReportsOptions));
+        }
+    } else if (hasActiveSearchResults && !searchResultReportIDs?.length && frozenLocalRank.size === 0 && recentReportsOptions.length > 0) {
         // Options hydrated after the rank was snapshotted as empty — recompute.
         setFrozenLocalRank(buildRankMap(recentReportsOptions));
     }
@@ -484,7 +567,12 @@ function SearchAutocompleteList({
     );
 
     useEffect(() => {
-        if (!handleSearch || !autocompleteQueryWithoutFilters) {
+        if (!handleSearch) {
+            return;
+        }
+
+        if (!autocompleteQueryWithoutFilters) {
+            handleSearch('');
             return;
         }
 
@@ -560,14 +648,15 @@ function SearchAutocompleteList({
                 });
             }
         } else {
-            // Active search: split rows into local (frozen order) and server sections.
+            // Active search: keep locally available rows fixed while server-only rows arrive separately.
             const localRows: AutocompleteListItem[] = [];
             const serverRows: AutocompleteListItem[] = [];
+            const serverResultReportIDs = new Set(searchResultReportIDs ?? []);
             for (const item of nextStyledRecentReports) {
                 const stableKey = getStableRankKey(item);
                 if (stableKey && frozenLocalRank.has(stableKey)) {
                     localRows.push(item);
-                } else {
+                } else if (searchResultReportIDs == null || !item.reportID || serverResultReportIDs.has(item.reportID)) {
                     serverRows.push(item);
                 }
             }
@@ -634,6 +723,7 @@ function SearchAutocompleteList({
         recentSearchesData,
         searchOptions,
         searchQueryItems,
+        searchResultReportIDs,
         styles,
         translate,
         isLoadingOptions,

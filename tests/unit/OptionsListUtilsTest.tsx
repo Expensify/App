@@ -18,6 +18,7 @@ import {
     createFilteredOptionList,
     createOption,
     createOptionFromReport,
+    doesReportMatchSearchTerms,
     filterAndOrderOptions,
     filterReports,
     filterSelfDMChat,
@@ -6364,6 +6365,45 @@ describe('OptionsListUtils', () => {
             const filteredReports = filterReports([report], [getSearchValueForPhoneOrEmail('+1 (234) 567-8901', COUNTRY_CODE)]);
 
             expect(filteredReports).toEqual([report]);
+        });
+    });
+
+    describe('doesReportMatchSearchTerms()', () => {
+        const report: SearchOption<Report> = {
+            reportID: 'email',
+            keyForList: 'email',
+            text: '123123',
+            login: 'person@gmail.com',
+            item: createRandomReport(1, undefined),
+        };
+
+        it('does not match a plain-text query against an email address', () => {
+            // Given a report whose display name does not contain the query
+            // When the query is a plain text search
+            const doesMatch = doesReportMatchSearchTerms(report, ['a'], false);
+
+            // Then its email domain does not make it a match
+            expect(doesMatch).toBe(false);
+        });
+
+        it('matches an email query against an email address', () => {
+            // Given a report with a matching email address
+            // When the query is an email search
+            const doesMatch = doesReportMatchSearchTerms(report, ['person@'], true);
+
+            // Then the report matches
+            expect(doesMatch).toBe(true);
+        });
+
+        it('matches an uppercase accented query against a group participant', () => {
+            // cspell:ignore José JOSÉ
+            const groupReport: SearchOption<Report> = {
+                ...report,
+                item: {...createRandomReport(1, undefined), chatType: CONST.REPORT.CHAT_TYPE.GROUP},
+                participantsList: [{accountID: 2, displayName: 'José', login: 'jose@example.com'}],
+            };
+
+            expect(doesReportMatchSearchTerms(groupReport, ['JOSÉ'], true)).toBe(true);
         });
     });
 
