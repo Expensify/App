@@ -1,8 +1,7 @@
 import getUserSecurityGroup from '@libs/getUserSecurityGroup';
-import Log from '@libs/Log';
+import createScheduleOnce from '@libs/Navigation/helpers/createScheduleOnce';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
-import findFocusedRouteWithOnyxTabGuard from '@libs/Navigation/helpers/findFocusedRouteWithOnyxTabGuard';
-import getStateFromPath from '@libs/Navigation/helpers/getStateFromPath';
+import getValidDynamicRouteBasePath from '@libs/Navigation/helpers/getValidDynamicRouteBasePath';
 import Navigation from '@libs/Navigation/Navigation';
 import {getGroupPoliciesWhereReportCanBeCreated} from '@libs/PolicyUtils';
 
@@ -37,7 +36,6 @@ let isSubmitMigrationModalShownLoaded = false;
 let hasLoadedApp = false;
 
 let hasRedirectedToSubmitPlanModal = false;
-let isEvaluationScheduled = false;
 
 // An `intent=submit` deeplink delivers the same outcome as this modal without asking, so the modal must not open on
 // top of it. Recorded outside Onyx because the deeplink can only mark the modal shown from a React effect, which runs
@@ -54,37 +52,15 @@ function releaseWelcomeModalForSubmitDeeplink() {
     hasPendingSubmitDeeplink = false;
 }
 
-const SUBMIT_PLAN_WELCOME_ENTRY_SCREENS = new Set<string>(DYNAMIC_ROUTES.SUBMIT_PLAN_WELCOME.entryScreens);
-
-/**
- * The submit-plan-welcome modal is a dynamic route that can only attach to the screens listed in
- * DYNAMIC_ROUTES.SUBMIT_PLAN_WELCOME.entryScreens. When we proactively open the modal on app boot,
- * the active route can be any screen (e.g. `/settings/troubleshoot` after "Clear cache and restart"),
- * and stacking the suffix onto a non-entry screen resolves to NotFound. Fall back to HOME (a valid
- * entry screen) whenever the active route isn't an allowed base.
- */
-function getValidModalBasePath(): string {
-    const activeRoute = Navigation.getActiveRoute();
-    if (!activeRoute) {
-        return ROUTES.HOME;
-    }
-    try {
-        // getActiveRoute returns a plain string, while getStateFromPath expects a Route. Any string returned by
-        // getActiveRoute is a valid route path, and getStateFromPath safely handles paths it cannot parse.
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
-        const focusedRouteName = findFocusedRouteWithOnyxTabGuard(getStateFromPath(activeRoute as Route) ?? {})?.name;
-        if (focusedRouteName && SUBMIT_PLAN_WELCOME_ENTRY_SCREENS.has(focusedRouteName)) {
-            return activeRoute;
-        }
-    } catch (error) {
-        // getStateFromPath can throw for paths it cannot parse; fall back to HOME below.
-        Log.warn('[SubmitPlanWelcomeModalGuard] Failed to resolve modal base path, falling back to HOME', {activeRoute, error});
-    }
-    return ROUTES.HOME;
-}
-
 function getSubmitPlanWelcomeModalRoute(basePath?: string): Route {
-    return createDynamicRoute(DYNAMIC_ROUTES.SUBMIT_PLAN_WELCOME.path, basePath ?? getValidModalBasePath());
+    return createDynamicRoute(
+        DYNAMIC_ROUTES.SUBMIT_PLAN_WELCOME.path,
+        basePath ??
+            getValidDynamicRouteBasePath({
+                entryScreens: DYNAMIC_ROUTES.SUBMIT_PLAN_WELCOME.entryScreens,
+                fallbackPath: ROUTES.HOME,
+            }),
+    );
 }
 
 function resetSessionFlag() {
@@ -150,16 +126,7 @@ function navigateToSubmitPlanWelcomeModalIfReady() {
  * pre-sign-in-stale IS_LOADING_APP) only flips true once this session's account data — including the shown-flag —
  * has loaded, covering the sign-in race where eligibility NVPs arrive before the shown-flag.
  */
-function scheduleSubmitPlanWelcomeModalEvaluation() {
-    if (isEvaluationScheduled) {
-        return;
-    }
-    isEvaluationScheduled = true;
-    Promise.resolve().then(() => {
-        isEvaluationScheduled = false;
-        navigateToSubmitPlanWelcomeModalIfReady();
-    });
-}
+const scheduleSubmitPlanWelcomeModalEvaluation = createScheduleOnce(navigateToSubmitPlanWelcomeModalIfReady);
 
 // Session/app-load state drive the one-shot proactive redirect: they are the boot-time signal by which point
 // every eligibility value below has already landed in the same OpenApp batch, so re-evaluating here is safe.
