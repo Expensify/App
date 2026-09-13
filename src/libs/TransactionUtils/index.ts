@@ -522,12 +522,10 @@ function buildOptimisticTransaction(params: BuildOptimisticTransactionParams): T
             lodashSet(commentJSON, 'customUnit', customUnit);
         } else {
             const routeDistanceMeters = routes?.route0?.distance ?? existingTransaction?.routes?.route0?.distance;
-            // Copy the existing customUnit instead of aliasing it, so the writes below don't mutate the draft transaction's own object
             lodashSet(commentJSON, 'customUnit', {...existingTransaction?.comment?.customUnit});
             // Set the distance unit, which comes from the policy distance unit or the P2P rate data
             lodashSet(commentJSON, 'customUnit.distanceUnit', DistanceRequestUtils.getUpdatedDistanceUnit({transaction: existingTransaction, policy}));
             lodashSet(commentJSON, 'customUnit.quantity', distance);
-            // Only overwrite the rate ID when a caller actually passed one, otherwise the draft's rate would be wiped
             if (customUnitRateID) {
                 lodashSet(commentJSON, 'customUnit.customUnitRateID', customUnitRateID);
             }
