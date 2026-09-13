@@ -469,7 +469,7 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
                     reportID={reportID}
                     hasPreviousMessages={!!hasPreviousMessages}
                     onShowPreviousMessages={onShowPreviousMessages}
-                    containerStyles={styles.pb5}
+                    containerStyles={styles.pv5}
                 />
             </View>
         );

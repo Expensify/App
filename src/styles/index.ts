@@ -2387,7 +2387,6 @@ const staticStyles = (theme: ThemeColors) =>
         conciergeWelcomeContainer: {
             alignItems: 'center',
             gap: 12,
-            marginBottom: 52,
         },
 
         conciergeWelcomeTitle: {
