@@ -561,7 +561,13 @@ function buildOptimisticTransaction(params: BuildOptimisticTransactionParams): T
         created: created || DateUtils.getDBTime(),
         pendingAction,
         receipt: receipt?.source
-            ? {source: receipt.source, filename: receipt?.name ?? filename, state: receipt.state ?? CONST.IOU.RECEIPT_STATE.SCAN_READY, isTestDriveReceipt: receipt.isTestDriveReceipt}
+            ? {
+                  source: receipt.source,
+                  filename: receipt?.name ?? filename,
+                  state: receipt.state ?? CONST.IOU.RECEIPT_STATE.SCAN_READY,
+                  isTestDriveReceipt: receipt.isTestDriveReceipt,
+                  pageCount: receipt.pageCount,
+              }
             : undefined,
         hasEReceipt: existingTransaction?.hasEReceipt,
         category,
