@@ -50,6 +50,8 @@ type PersonalDetailsFormValues = {
     addressState?: string;
     state: string;
     dob: string;
+    lat?: string;
+    lng?: string;
 };
 
 function buildSetPersonalDetailsAndShipExpensifyCardsParams(values: PersonalDetailsFormValues, countryCode: number): Omit<SetPersonalDetailsAndShipExpensifyCardsParams, 'validateCode'> {
@@ -66,6 +68,8 @@ function buildSetPersonalDetailsAndShipExpensifyCardsParams(values: PersonalDeta
         addressState: values.country === CONST.COUNTRY.US ? stateValue : '',
         addressProvince: values.country !== CONST.COUNTRY.US ? stateValue : '',
         dob: values.dob,
+        addressLat: values.lat,
+        addressLng: values.lng,
     };
 }
 
@@ -211,7 +215,7 @@ function updateLegalName(
     }
 }
 
-function updateAddress(addresses: Address[], street: string, street2: string, city: string, state: string, zip: string, country: Country | '') {
+function updateAddress(addresses: Address[], street: string, street2: string, city: string, state: string, zip: string, country: Country | '', lat?: string, lng?: string) {
     const parameters: UpdateHomeAddressParams = {
         homeAddressStreet: street,
         addressStreet2: street2,
@@ -219,6 +223,8 @@ function updateAddress(addresses: Address[], street: string, street2: string, ci
         addressState: state,
         addressZipCode: zip,
         addressCountry: country,
+        homeAddressLat: lat,
+        homeAddressLng: lng,
     };
 
     // State names for the United States are in the form of two-letter ISO codes
@@ -245,6 +251,8 @@ function updateAddress(addresses: Address[], street: string, street2: string, ci
                             zip,
                             country,
                             current: true,
+                            lat,
+                            lng,
                         },
                     ],
                 },
@@ -601,6 +609,8 @@ function updatePrivatePersonalDetails(values: FormOnyxValues<typeof ONYXKEYS.FOR
         addressProvince: values.country !== CONST.COUNTRY.US ? stateValue : '',
         dob: values.dob ?? '',
         validateCode,
+        addressLat: values.lat,
+        addressLng: values.lng,
     };
 
     API.write(WRITE_COMMANDS.UPDATE_PRIVATE_PERSONAL_DETAILS, parameters, {

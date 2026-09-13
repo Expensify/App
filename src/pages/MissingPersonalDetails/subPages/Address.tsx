@@ -2,7 +2,7 @@ import AddressSearch from '@components/AddressSearch';
 import CountryPicker from '@components/CountryPicker';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
-import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
+import type {FormInputErrors, FormOnyxKeys, FormOnyxValues} from '@components/Form/types';
 import StatePicker from '@components/StatePicker';
 import type {State} from '@components/StateSelector';
 import Text from '@components/Text';
@@ -26,7 +26,16 @@ import {CONST as COMMON_CONST} from 'expensify-common';
 import React, {useCallback, useRef, useState} from 'react';
 import {View} from 'react-native';
 
-const STEP_FIELDS = [INPUT_IDS.ADDRESS_LINE_1, INPUT_IDS.ADDRESS_LINE_2, INPUT_IDS.CITY, INPUT_IDS.STATE, INPUT_IDS.ZIP_POST_CODE, INPUT_IDS.COUNTRY];
+const STEP_FIELDS: Array<FormOnyxKeys<typeof ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM>> = [
+    INPUT_IDS.ADDRESS_LINE_1,
+    INPUT_IDS.ADDRESS_LINE_2,
+    INPUT_IDS.CITY,
+    INPUT_IDS.STATE,
+    INPUT_IDS.ZIP_POST_CODE,
+    INPUT_IDS.COUNTRY,
+    'lat',
+    'lng',
+];
 
 function AddressStep({isEditing, onNext, personalDetailsValues}: CustomSubPageProps) {
     const {translate} = useLocalize();
@@ -166,6 +175,8 @@ function AddressStep({isEditing, onNext, personalDetailsValues}: CustomSubPagePr
                             state: INPUT_IDS.STATE,
                             zipCode: INPUT_IDS.ZIP_POST_CODE,
                             country: INPUT_IDS.COUNTRY as Country,
+                            lat: 'lat',
+                            lng: 'lng',
                         }}
                         maxInputLength={CONST.FORM_CHARACTER_LIMIT}
                         autoComplete="address-line1"

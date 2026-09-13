@@ -448,6 +448,8 @@ function getPrivatePersonalDetailsFormValues(privatePersonalDetails: OnyxEntry<P
         [INPUT_IDS.STATE]: draftValues?.[INPUT_IDS.STATE] ?? address?.state ?? '',
         [INPUT_IDS.ZIP_POST_CODE]: draftValues?.[INPUT_IDS.ZIP_POST_CODE] ?? address?.zip ?? '',
         [INPUT_IDS.COUNTRY]: draftValues?.[INPUT_IDS.COUNTRY] ?? address?.country ?? '',
+        lat: draftValues?.lat ?? address?.lat,
+        lng: draftValues?.lng ?? address?.lng,
     };
 }
 

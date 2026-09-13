@@ -290,7 +290,8 @@ function AddressSearch({
                 if (!inputKey) {
                     continue;
                 }
-                onInputChange?.(inputValue, inputKey);
+                // Form values are strings, while the coordinates exposed through onPress remain numbers for map use.
+                onInputChange?.(key === 'lat' || key === 'lng' ? String(inputValue) : inputValue, inputKey);
             }
         } else {
             onInputChange?.(values);
@@ -477,6 +478,9 @@ function AddressSearch({
                                 setIsTyping(true);
                                 setShouldHidePredefinedPlaces(!isOffline);
                                 if (inputID) {
+                                    // A manually edited address no longer has the coordinates from the previously selected place.
+                                    onInputChange?.('', renamedInputKeys?.lat ?? 'addressLat');
+                                    onInputChange?.('', renamedInputKeys?.lng ?? 'addressLng');
                                     onInputChange?.(text);
                                 } else {
                                     onInputChange?.({street: text});

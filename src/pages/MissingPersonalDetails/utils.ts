@@ -24,6 +24,8 @@ function getSubPageValues(privatePersonalDetails: OnyxEntry<PrivatePersonalDetai
         [INPUT_IDS.STATE]: personalDetailsDraft?.[INPUT_IDS.STATE] ?? address?.state ?? '',
         [INPUT_IDS.ZIP_POST_CODE]: personalDetailsDraft?.[INPUT_IDS.ZIP_POST_CODE] ?? address?.zip ?? '',
         [INPUT_IDS.COUNTRY]: personalDetailsDraft?.[INPUT_IDS.COUNTRY] ?? address?.country ?? '',
+        lat: personalDetailsDraft?.lat ?? address?.lat,
+        lng: personalDetailsDraft?.lng ?? address?.lng,
     };
 }
 

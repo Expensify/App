@@ -6,6 +6,8 @@ type UpdateHomeAddressParams = {
     addressZipCode: string;
     addressCountry: string;
     addressStateLong?: string;
+    homeAddressLat?: string;
+    homeAddressLng?: string;
 };
 
 export default UpdateHomeAddressParams;

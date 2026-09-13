@@ -224,6 +224,8 @@ function AddressForm({
                         state: INPUT_IDS.STATE,
                         zipCode: INPUT_IDS.ZIP_POST_CODE,
                         country: INPUT_IDS.COUNTRY as Country,
+                        lat: 'lat',
+                        lng: 'lng',
                     }}
                     shouldSaveDraft={shouldSaveDraft}
                     autoComplete="address-line1"

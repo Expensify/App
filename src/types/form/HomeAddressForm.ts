@@ -24,6 +24,9 @@ type HomeAddressForm = Form<
         [INPUT_IDS.STATE]: string;
         [INPUT_IDS.CITY]: string;
         [INPUT_IDS.ZIP_POST_CODE]: string;
+        /** Coordinates returned by the address provider for the selected address. */
+        lat?: string;
+        lng?: string;
     }
 >;
 

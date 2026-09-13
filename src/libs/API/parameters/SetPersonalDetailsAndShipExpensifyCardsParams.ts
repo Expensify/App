@@ -11,6 +11,8 @@ type SetPersonalDetailsAndShipExpensifyCardsParams = {
     validateCode: string;
     addressState: string;
     addressProvince: string;
+    addressLat?: string;
+    addressLng?: string;
 };
 
 export default SetPersonalDetailsAndShipExpensifyCardsParams;

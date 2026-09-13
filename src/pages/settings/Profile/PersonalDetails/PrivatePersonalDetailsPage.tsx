@@ -323,6 +323,8 @@ function PrivatePersonalDetailsPage() {
                                 state: INPUT_IDS.STATE,
                                 zipCode: INPUT_IDS.ZIP_POST_CODE,
                                 country: INPUT_IDS.COUNTRY,
+                                lat: 'lat',
+                                lng: 'lng',
                             }}
                             onValueChange={(value: unknown, key: unknown) => {
                                 if (key === INPUT_IDS.COUNTRY) {

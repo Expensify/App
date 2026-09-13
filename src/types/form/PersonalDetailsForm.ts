@@ -32,6 +32,9 @@ type PersonalDetailsForm = Form<
         [INPUT_IDS.CITY]: string;
         [INPUT_IDS.ZIP_POST_CODE]: string;
         [INPUT_IDS.PHONE_NUMBER]: string;
+        /** Coordinates returned by the address provider for the selected address. */
+        lat?: string;
+        lng?: string;
     }
 >;
 
