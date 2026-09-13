@@ -18,12 +18,15 @@ import Text from '@components/Text';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import PopoverReportActionContextMenu from '@pages/inbox/report/ContextMenu/PopoverReportActionContextMenu';
+import {contextMenuRef, showContextMenu} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 import type {Meta} from 'storybook-react-rsbuild';
 
-import React from 'react';
+import React, {useRef} from 'react';
 import {View} from 'react-native';
 import Onyx from 'react-native-onyx';
 
@@ -134,14 +137,125 @@ function SectionHeading({title, children}: {title: string; children?: string}) {
 
 function Comparison() {
     const styles = useThemeStyles();
-    const icons = useMemoizedLazyExpensifyIcons(['Gear', 'FallbackAvatar']);
+    const icons = useMemoizedLazyExpensifyIcons(['Gear', 'FallbackAvatar', 'NewWindow']);
 
-    if (!icons.Gear || !icons.FallbackAvatar) {
+    // The legacy external-link row anchors its context menu to the row itself, which the composable API does for the call site
+    const popoverAnchor = useRef<View>(null);
+
+    if (!icons.Gear || !icons.FallbackAvatar || !icons.NewWindow) {
         return null;
     }
 
     return (
         <View style={[styles.p4, styles.flexRow, styles.flexWrap, styles.gap4]}>
+            <SectionHeading title="Trailing interactions — copy and external link">
+                Leaves that own a row-wide behaviour instead of a prop: MenuItem.Copy takes over the row&apos;s long press (and shows a copy button on a hovered read-only row),
+                MenuItem.ExternalLink marks the row as leaving the app and offers the URL through the context menu. Both make the row block text selection on their own.
+            </SectionHeading>
+
+            <Card
+                title="copyable, copyValue, description, interactive, title"
+                legacy={
+                    <MenuItemWithTopDescription
+                        description="Email"
+                        title="john@example.com"
+                        copyValue="john@example.com"
+                        interactive={false}
+                        copyable
+                    />
+                }
+                composable={
+                    <MenuItem.Root>
+                        <MenuItem.Row>
+                            <MenuItem.Content>
+                                <MenuItem.FieldName>Email</MenuItem.FieldName>
+                                <MenuItem.FieldValue>john@example.com</MenuItem.FieldValue>
+                            </MenuItem.Content>
+                            <MenuItem.Trailing>
+                                <MenuItem.Copy value="john@example.com" />
+                            </MenuItem.Trailing>
+                        </MenuItem.Row>
+                    </MenuItem.Root>
+                }
+                preset={
+                    <MenuItemField
+                        name="Email"
+                        value="john@example.com"
+                    >
+                        <MenuItem.Copy value="john@example.com" />
+                    </MenuItemField>
+                }
+            />
+
+            <Card
+                title="copyable, description, icon, interactive, title"
+                legacy={
+                    <MenuItem
+                        title="CONF-12345"
+                        description="Confirmation"
+                        icon={icons.Gear}
+                        interactive={false}
+                        copyable
+                    />
+                }
+                composable={
+                    <MenuItem.Root>
+                        <MenuItem.Row>
+                            <MenuItem.Leading>
+                                <MenuItem.Icon src={icons.Gear} />
+                            </MenuItem.Leading>
+                            <MenuItem.Content>
+                                <MenuItem.Title>CONF-12345</MenuItem.Title>
+                                <MenuItem.Description>Confirmation</MenuItem.Description>
+                            </MenuItem.Content>
+                            <MenuItem.Trailing>
+                                <MenuItem.Copy value="CONF-12345" />
+                            </MenuItem.Trailing>
+                        </MenuItem.Row>
+                    </MenuItem.Root>
+                }
+            />
+
+            <Card
+                title="icon, iconRight, onPress, onSecondaryInteraction, role, shouldBlockSelection, shouldShowContextMenuHint, shouldShowRightIcon, title"
+                legacy={
+                    <MenuItem
+                        ref={popoverAnchor}
+                        title="Android"
+                        icon={icons.Gear}
+                        iconRight={icons.NewWindow}
+                        onPress={noop}
+                        onSecondaryInteraction={(event) =>
+                            showContextMenu({
+                                type: CONST.CONTEXT_MENU_TYPES.LINK,
+                                event,
+                                selection: CONST.APP_DOWNLOAD_LINKS.ANDROID,
+                                contextMenuAnchor: popoverAnchor.current,
+                            })
+                        }
+                        role={CONST.ROLE.LINK}
+                        shouldBlockSelection
+                        shouldShowContextMenuHint
+                        shouldShowRightIcon
+                    />
+                }
+                composable={
+                    <MenuItem.Root onPress={noop}>
+                        <MenuItem.Row>
+                            <MenuItem.Leading>
+                                <MenuItem.Icon src={icons.Gear} />
+                            </MenuItem.Leading>
+                            <MenuItem.Content>
+                                <MenuItem.Title>Android</MenuItem.Title>
+                            </MenuItem.Content>
+                            <MenuItem.Trailing>
+                                <MenuItem.ExternalLink link={CONST.APP_DOWNLOAD_LINKS.ANDROID} />
+                            </MenuItem.Trailing>
+                        </MenuItem.Row>
+                    </MenuItem.Root>
+                }
+            />
+
             <SectionHeading title="Phase 3 — MenuItemWithTopDescription">One card per prop shape, in frequency order. Every shape is the MenuItemField preset.</SectionHeading>
 
             <Card
@@ -1395,6 +1509,9 @@ function Comparison() {
                     }
                 />
             </CompactMenuContext.Provider>
+
+            {/* The app mounts the context menu the Copy and ExternalLink leaves open in GlobalModals, so the story mounts its own */}
+            <PopoverReportActionContextMenu ref={contextMenuRef} />
         </View>
     );
 }
