@@ -107,9 +107,10 @@ function toggleEmojiReaction(
     paramSkinTone: number,
     currentUserAccountID: number,
     reportActions: OnyxEntry<ReportActions>,
+    isOffline: boolean,
     ignoreSkinToneOnCompare = false,
 ) {
-    const originalReportID = getOriginalReportID(reportID, reportAction, reportActions);
+    const originalReportID = getOriginalReportID(reportID, reportAction, reportActions, isOffline);
 
     if (!originalReportID) {
         return;
