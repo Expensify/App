@@ -785,7 +785,31 @@ describe('ReportActionsList (body)', () => {
             },
         ];
 
-        const setupMainDMConciergeMocks = (sessionStartTime: string | null = SESSION_START, showFullHistory = false, hasOnceLoadedReportActions = true) => {
+        // The session filter keys off the child* fields the backend stamps on a task's parent action.
+        const buildTaskAction = (
+            reportActionID: string,
+            created: string,
+            stateNum: OnyxTypes.ReportAction['childStateNum'],
+            statusNum: OnyxTypes.ReportAction['childStatusNum'],
+        ): OnyxTypes.ReportAction => ({
+            reportActionID,
+            actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+            created,
+            actorAccountID: 456,
+            message: [{type: 'COMMENT', html: 'Take a test drive', text: 'Take a test drive'}],
+            originalMessage: {},
+            childType: CONST.REPORT.TYPE.TASK,
+            childReportID: `task-${reportActionID}`,
+            childManagerAccountID: CURRENT_USER_ACCOUNT_ID,
+            childStateNum: stateNum,
+            childStatusNum: statusNum,
+            shouldShow: true,
+            person: [{type: 'TEXT', style: 'strong', text: 'Concierge'}],
+            pendingAction: null,
+            errors: {},
+        });
+
+        const setupMainDMConciergeMocks = (sessionStartTime: string | null = SESSION_START, showFullHistory = false, hasOnceLoadedReportActions = true, hasOutstandingChildTask = false) => {
             jest.spyOn(ReportActionsUtils, 'shouldReportActionBeVisible').mockReturnValue(true);
             mockUseNetwork.mockReturnValue({isOffline: false});
             mockUseIsInSidePanel.mockReturnValue(false);
@@ -810,7 +834,7 @@ describe('ReportActionsList (body)', () => {
                     return [[], {status: 'loaded'}];
                 }
                 if (key === `${ONYXKEYS.COLLECTION.REPORT}${CONCIERGE_REPORT_ID}`) {
-                    return [{...mockReport, reportID: CONCIERGE_REPORT_ID}, {status: 'loaded'}];
+                    return [{...mockReport, reportID: CONCIERGE_REPORT_ID, hasOutstandingChildTask}, {status: 'loaded'}];
                 }
                 if (key.includes('report')) {
                     return [undefined, {status: 'loaded'}];
@@ -833,6 +857,85 @@ describe('ReportActionsList (body)', () => {
             expect(mockInvertedFlashList).toHaveBeenCalled();
             const passedActions = getCapturedVisibleActions();
             expect(passedActions?.some((a) => a.reportActionID === CONST.CONCIERGE_GREETING_ACTION_ID)).toBe(true);
+            expect(passedActions?.some((a) => a.reportActionID === 'old-user-msg')).toBe(false);
+            expect(passedActions?.some((a) => a.reportActionID === 'old-concierge-msg')).toBe(false);
+        });
+
+        it('should keep read history hidden when the Concierge DM still has an outstanding child task', () => {
+            // Regression guard: an incomplete onboarding task used to force `showFullHistory` on permanently,
+            // which both un-hid the history and suppressed the "Show history" button.
+            setupMainDMConciergeMocks(SESSION_START, false, true, true);
+
+            mockUsePaginatedReportActions.mockReturnValue({
+                ...defaultPaginatedReportActionsResult,
+                reportActions: oldReportActions,
+                hasOlderActions: false,
+            });
+
+            renderReportActionsList({reportID: CONCIERGE_REPORT_ID});
+
+            expect(mockInvertedFlashList).toHaveBeenCalled();
+            const passedActions = getCapturedVisibleActions();
+            expect(passedActions?.some((a) => a.reportActionID === CONST.CONCIERGE_GREETING_ACTION_ID)).toBe(true);
+            expect(passedActions?.some((a) => a.reportActionID === 'old-user-msg')).toBe(false);
+            expect(passedActions?.some((a) => a.reportActionID === 'old-concierge-msg')).toBe(false);
+        });
+
+        it('should keep a still-open child task visible while the rest of the read history stays hidden', () => {
+            setupMainDMConciergeMocks(SESSION_START, false, true, true);
+
+            // An in-session message keeps the list out of welcome mode, so the session filter actually runs.
+            const newUserMessage: OnyxTypes.ReportAction = {
+                reportActionID: 'new-user-msg',
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                created: '2024-06-01 12:05:00.000',
+                actorAccountID: CURRENT_USER_ACCOUNT_ID,
+                message: [{type: 'COMMENT', html: 'Hello', text: 'Hello'}],
+                originalMessage: {},
+                shouldShow: true,
+                person: [{type: 'TEXT', style: 'strong', text: 'Test User'}],
+                pendingAction: null,
+                errors: {},
+            };
+
+            mockUsePaginatedReportActions.mockReturnValue({
+                ...defaultPaginatedReportActionsResult,
+                reportActions: [
+                    ...oldReportActions,
+                    buildTaskAction('open-task', '2023-06-15 10:02:00.000', CONST.REPORT.STATE_NUM.OPEN, CONST.REPORT.STATUS_NUM.OPEN),
+                    buildTaskAction('completed-task', '2023-06-15 10:03:00.000', CONST.REPORT.STATE_NUM.APPROVED, CONST.REPORT.STATUS_NUM.APPROVED),
+                    newUserMessage,
+                ],
+                hasOlderActions: false,
+            });
+
+            renderReportActionsList({reportID: CONCIERGE_REPORT_ID});
+
+            expect(mockInvertedFlashList).toHaveBeenCalled();
+            const passedActions = getCapturedVisibleActions();
+            expect(passedActions?.some((a) => a.reportActionID === 'new-user-msg')).toBe(true);
+            expect(passedActions?.some((a) => a.reportActionID === 'open-task')).toBe(true);
+            expect(passedActions?.some((a) => a.reportActionID === 'completed-task')).toBe(false);
+            expect(passedActions?.some((a) => a.reportActionID === 'old-user-msg')).toBe(false);
+            expect(passedActions?.some((a) => a.reportActionID === 'old-concierge-msg')).toBe(false);
+        });
+
+        it('should keep a still-open child task visible in the fresh-session welcome view', () => {
+            // Opening the DM without sending anything puts the list in welcome mode, which returns early before the
+            // session filter runs. An open task must still survive that path, or it stays hidden until "Show history".
+            setupMainDMConciergeMocks(SESSION_START, false, true, true);
+
+            mockUsePaginatedReportActions.mockReturnValue({
+                ...defaultPaginatedReportActionsResult,
+                reportActions: [...oldReportActions, buildTaskAction('open-task', '2023-06-15 10:02:00.000', CONST.REPORT.STATE_NUM.OPEN, CONST.REPORT.STATUS_NUM.OPEN)],
+                hasOlderActions: false,
+            });
+
+            renderReportActionsList({reportID: CONCIERGE_REPORT_ID});
+
+            expect(mockInvertedFlashList).toHaveBeenCalled();
+            const passedActions = getCapturedVisibleActions();
+            expect(passedActions?.some((a) => a.reportActionID === 'open-task')).toBe(true);
             expect(passedActions?.some((a) => a.reportActionID === 'old-user-msg')).toBe(false);
             expect(passedActions?.some((a) => a.reportActionID === 'old-concierge-msg')).toBe(false);
         });
