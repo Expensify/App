@@ -12,6 +12,7 @@ import {isSubmitPolicy} from '@libs/PolicyUtils';
 import {hasHeldExpensesFromTransactions as hasHeldExpensesReportUtils, hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
 
 import {approveMoneyRequest} from '@userActions/IOU/ReportWorkflow';
+import type AdditionalPayOnyxData from '@userActions/IOU/types/AdditionalPayOnyxData';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -20,7 +21,13 @@ import {delegateEmailSelector} from '@selectors/Account';
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import {personalDetailsLoginSelector} from '@selectors/PersonalDetails';
 
-function useConfirmApproval(reportID: string | undefined, startApprovedAnimation: () => void) {
+/**
+ * Shared approve handler for the report header, report preview and Search rows.
+ *
+ * `getAdditionalOnyxData` is resolved at approve time (not on every render) so Search rows can attach the
+ * optimistic data that removes the row from the current results.
+ */
+function useConfirmApproval(reportID: string | undefined, startApprovedAnimation: () => void, getAdditionalOnyxData?: () => AdditionalPayOnyxData) {
     const {accountID, email} = useCurrentUserPersonalDetails();
     const {getCurrencyDecimals} = useCurrencyListActions();
     const {isBetaEnabled} = usePermissions();
@@ -74,6 +81,7 @@ function useConfirmApproval(reportID: string | undefined, startApprovedAnimation
             delegateEmail,
             delegateAccountID,
             isTrackIntentUser,
+            additionalOnyxData: getAdditionalOnyxData?.(),
         });
     };
 

@@ -45,7 +45,7 @@ function HoldMenuModalWrapper({
     requestType,
     paymentType,
     methodID,
-    nonHeldAmount = '0',
+    nonHeldAmount,
     fullAmount,
     hasNonHeldExpenses,
     transactionCount,
@@ -88,7 +88,10 @@ function HoldMenuModalWrapper({
             onClose={() => setIsVisible(false)}
             isVisible={isVisible}
             prompt={approvalPrompt}
-            firstOptionText={hasNonHeldExpenses ? `${translate(isApprove ? 'iou.approveOnly' : 'iou.payOnly')} ${nonHeldAmount}` : undefined}
+            // Callers pass `undefined` when the non-held amount isn't meaningfully different from the full amount, so
+            // gate on the amount itself rather than on `hasNonHeldExpenses` — otherwise a report whose unheld expenses
+            // net out to nothing offers a partial option for a zero amount.
+            firstOptionText={nonHeldAmount !== undefined ? `${translate(isApprove ? 'iou.approveOnly' : 'iou.payOnly')} ${nonHeldAmount}` : undefined}
             secondOptionText={`${translate(isApprove ? 'iou.approve' : 'iou.pay')} ${fullAmount}`}
             onFirstOptionSubmit={() => onSubmit(false)}
             onSecondOptionSubmit={() => onSubmit(true)}
