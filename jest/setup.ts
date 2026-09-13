@@ -1,21 +1,25 @@
 import type {RenderInfo} from '@components/FlatList/RenderTaskQueue';
 
 import '@shopify/flash-list/jestSetup';
+import type * as LegendListModule from '@legendapp/list/react-native';
+import type * as FlashListModule from '@shopify/flash-list';
+import type React from 'react';
 import type {ReactNode} from 'react';
 import type React from 'react';
 import type * as RNAppLogs from 'react-native-app-logs';
 import type {ReadDirItem} from 'react-native-fs';
-import type * as RNKeyboardController from 'react-native-keyboard-controller';
 
 import 'react-native-gesture-handler/jestSetup';
+import type * as RNKeyboardController from 'react-native-keyboard-controller';
 import type Animated from 'react-native-reanimated';
 
-import {useMemo} from 'react';
 import 'setimmediate';
+import {useMemo} from 'react';
 import mockStorage from 'react-native-onyx/dist/storage/__mocks__';
-import {TextDecoder, TextEncoder} from 'util';
 import '@src/polyfills/PromiseWithResolvers';
 import '@src/polyfills/requestIdleCallback';
+
+import {TextDecoder, TextEncoder} from 'util';
 
 import mockFSLibrary from './setupMockFullstoryLib';
 import setupMockImages from './setupMockImages';
@@ -30,6 +34,95 @@ if (!('GITHUB_REPOSITORY' in process.env)) {
 setupMockImages();
 mockFSLibrary();
 setupMockLegendList();
+
+// LegendList relies on native layout measurements that Jest does not produce. FlashList's Jest setup supplies
+// deterministic layouts while keeping performance tests virtualized in the same way as the previous list.
+jest.mock('@legendapp/list/react-native', () => {
+    const ReactActual = jest.requireActual<typeof React>('react');
+    const FlashListActual = jest.requireActual<typeof FlashListModule>('@shopify/flash-list').FlashList;
+    const LegendListModuleActual = jest.requireActual<typeof LegendListModule>('@legendapp/list/react-native');
+
+    type MockLegendListProps = Omit<FlashListModule.FlashListProps<unknown>, 'data' | 'initialScrollIndex' | 'initialScrollIndexParams' | 'maintainVisibleContentPosition'> & {
+        alignItemsAtEnd?: boolean;
+        data?: readonly unknown[];
+        initialScrollAtEnd?: boolean;
+        initialScrollIndex?: number | {index: number; viewOffset?: number; viewPosition?: number};
+        maintainScrollAtEnd?: unknown;
+        maintainScrollAtEndThreshold?: number;
+        maintainVisibleContentPosition?: unknown;
+        recycleItems?: boolean;
+    };
+    type MockLegendListState = {
+        contentLength: number;
+        scroll: number;
+        scrollLength: number;
+    };
+    type MockLegendListRef = FlashListModule.FlashListRef<unknown> & {
+        getState: () => MockLegendListState | undefined;
+    };
+
+    return {
+        ...LegendListModuleActual,
+        LegendList: ReactActual.forwardRef<MockLegendListRef, MockLegendListProps>(
+            (
+                {
+                    alignItemsAtEnd,
+                    data = [],
+                    initialScrollAtEnd,
+                    initialScrollIndex,
+                    maintainScrollAtEnd,
+                    maintainScrollAtEndThreshold,
+                    maintainVisibleContentPosition,
+                    onEndReached,
+                    onEndReachedThreshold = 0,
+                    onScroll,
+                    recycleItems,
+                    ...props
+                },
+                ref,
+            ) => {
+                const listStateRef = ReactActual.useRef<MockLegendListState | undefined>(undefined);
+                const initialScrollConfig = typeof initialScrollIndex === 'number' ? {index: initialScrollIndex} : initialScrollIndex;
+                const flashListInitialScrollIndex = initialScrollAtEnd && data.length > 0 ? data.length - 1 : initialScrollConfig?.index;
+                const flashListInitialScrollIndexParams = initialScrollAtEnd
+                    ? {viewPosition: 1}
+                    : initialScrollConfig && {viewOffset: initialScrollConfig.viewOffset, viewPosition: initialScrollConfig.viewPosition};
+                const handleScroll: NonNullable<FlashListModule.FlashListProps<unknown>['onScroll']> = (event) => {
+                    const {contentOffset, contentSize, layoutMeasurement} = event.nativeEvent;
+                    listStateRef.current = {
+                        contentLength: contentSize.height,
+                        scroll: contentOffset.y,
+                        scrollLength: layoutMeasurement.height,
+                    };
+                    onScroll?.(event);
+                    const distanceFromEnd = contentSize.height - layoutMeasurement.height - contentOffset.y;
+                    if (distanceFromEnd <= layoutMeasurement.height * (onEndReachedThreshold ?? 0)) {
+                        onEndReached?.();
+                    }
+                };
+                const setRef = (instance: FlashListModule.FlashListRef<unknown> | null) => {
+                    const mockInstance = instance && Object.assign(instance, {getState: () => listStateRef.current});
+                    if (typeof ref === 'function') {
+                        ref(mockInstance);
+                        return;
+                    }
+                    if (ref) {
+                        Object.assign(ref, {current: mockInstance});
+                    }
+                };
+
+                return ReactActual.createElement(FlashListActual<unknown>, {
+                    ...props,
+                    data,
+                    initialScrollIndex: flashListInitialScrollIndex,
+                    initialScrollIndexParams: flashListInitialScrollIndexParams,
+                    onScroll: handleScroll,
+                    ref: setRef,
+                });
+            },
+        ),
+    };
+});
 
 // Polyfill necessary for Onyx.init in jest/setupAfterEnv.ts
 Object.assign(global, {TextDecoder, TextEncoder});

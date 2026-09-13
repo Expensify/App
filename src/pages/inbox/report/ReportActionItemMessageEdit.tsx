@@ -77,7 +77,7 @@ const DEFAULT_MODAL_VALUE = {
 };
 
 function ReportActionItemMessageEdit({action, reportID, originalReportID, policyID, ref}: ReportActionItemMessageEditProps) {
-    const index = useContext(ReportActionIndexContext);
+    const {index, isNewest} = useContext(ReportActionIndexContext);
     const [preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE] = useOnyx(ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE);
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportID)}`);
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(reportID)}`);
@@ -249,7 +249,7 @@ function ReportActionItemMessageEdit({action, reportID, originalReportID, policy
         reportID,
         originalReportID,
         reportAction: action,
-        shouldScrollToLastMessage: index === 0,
+        shouldScrollToLastMessage: isNewest,
         debouncedCommentMaxLengthValidation,
         composerRef,
     });
