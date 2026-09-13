@@ -48,6 +48,8 @@ function DatePicker({
     forwardedFSClass,
     shouldDeferShowUntilPositioned = false,
     shouldDismissKeyboardBeforeShow = false,
+    wrapperStyle,
+    onBlur,
 }: DateInputWithPickerProps) {
     const icons = useMemoizedLazyExpensifyIcons(['Calendar']);
     const styles = useThemeStyles();
@@ -216,13 +218,14 @@ function DatePicker({
         <>
             <View
                 ref={anchorRef}
-                style={styles.mv2}
+                style={[styles.mv2, wrapperStyle]}
             >
                 <TextInput
                     ref={combinedTextInputRef}
                     inputID={inputID}
                     forceActiveLabel
-                    icon={selectedDate ? null : icons.Calendar}
+                    // The icon and the clear button share the right-hand slot, so the icon only gives way to a clear button that will actually render.
+                    icon={selectedDate && !shouldHideClearButton ? null : icons.Calendar}
                     iconContainerStyle={styles.pr0}
                     label={label}
                     accessibilityLabel={label}
@@ -235,6 +238,7 @@ function DatePicker({
                     disabled={disabled}
                     hideFocusedState={shouldDismissKeyboardBeforeShow}
                     onPress={shouldDismissKeyboardBeforeShow ? handlePress : () => showDatePickerModal()}
+                    onBlur={onBlur}
                     onSubmitEditing={() => showDatePickerModal()}
                     onKeyPress={handleInputKeyPress}
                     textInputContainerStyles={isModalVisible ? styles.borderColorFocus : {}}

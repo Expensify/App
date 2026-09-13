@@ -4051,7 +4051,7 @@ function updateReportField({
     report: Report;
     reportField: PolicyReportField;
     previousReportField: PolicyReportField;
-    policy: Policy;
+    policy: OnyxEntry<Policy>;
     isASAPSubmitBetaEnabled: boolean;
     accountID: number;
     email: string;
