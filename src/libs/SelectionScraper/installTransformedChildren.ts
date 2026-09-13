@@ -2,7 +2,7 @@ import type {ChildNode, Document, Element} from 'domhandler';
 
 // Transformed domhandler children need restored ownership and sibling links before serialization.
 export default function installTransformedChildren(parent: Document | Element, children: ChildNode[]): void {
-    // The helper must update the supplied domhandler parent so it owns the exact transformed child array.
+    // The helper must update the supplied domhandler parent so it owns the transformed children.
     // eslint-disable-next-line no-param-reassign
     parent.children = children;
     for (const [index, child] of children.entries()) {

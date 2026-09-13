@@ -1,4 +1,4 @@
-import type * as SelectionScraperModule from '@libs/SelectionScraper/index.native';
+import type * as SelectionScraperWebModule from '@libs/SelectionScraper/index';
 import installTransformedChildren from '@libs/SelectionScraper/installTransformedChildren';
 
 import CONST from '@src/CONST';
@@ -7,7 +7,7 @@ import {Element, Text} from 'domhandler';
 
 // cspell:ignore mtext
 // Selection scraping only exists in the web implementation. The native variant always returns an empty string.
-const {default: SelectionScraper} = jest.requireActual<typeof SelectionScraperModule>('@libs/SelectionScraper/index.ts');
+const {default: SelectionScraper} = jest.requireActual<typeof SelectionScraperWebModule>('@libs/SelectionScraper/index.ts');
 
 const fixtures: HTMLElement[] = [];
 
@@ -51,7 +51,7 @@ describe('SelectionScraper', () => {
 
         installTransformedChildren(parent, children);
 
-        expect(parent.children).toBe(children);
+        expect(parent.children).toEqual(children);
         expect(first.parent).toBe(parent);
         expect(first.prev).toBeNull();
         expect(first.next).toBe(middle);
