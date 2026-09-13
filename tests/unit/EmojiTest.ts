@@ -5,6 +5,7 @@ import * as Browser from '@libs/Browser';
 import emojiTrieForLocale, {buildEmojisTrie} from '@libs/EmojiTrie';
 import * as EmojiUtils from '@libs/EmojiUtils';
 
+import CONST from '@src/CONST';
 import type FrequentlyUsedEmoji from '@src/types/onyx/FrequentlyUsedEmoji';
 import type {ReportActionReaction} from '@src/types/onyx/ReportActionReactions';
 
@@ -176,6 +177,12 @@ describe('EmojiTest', () => {
             expect(EmojiUtils.replaceEmojis(text).text).toBe('`:smile:`');
         });
 
+        it('should revert emoji unicode inside a code block at the maximum markup length', () => {
+            const code = '`😄`';
+            const prefix = 'a'.repeat(CONST.MAX_MARKUP_LENGTH - code.length);
+            expect(EmojiUtils.replaceEmojis(`${prefix}${code}`).text).toBe(`${prefix}\`:smile:\``);
+        });
+
         it('should revert multiple emojis inside code block', () => {
             const text = '`😄👋`';
             expect(EmojiUtils.replaceEmojis(text).text).toBe('`:smile::wave:`');
@@ -189,6 +196,12 @@ describe('EmojiTest', () => {
         it('should handle mixed scenario with emoji inside and outside code blocks', () => {
             const text = ':wave: hello `😄` world';
             expect(EmojiUtils.replaceEmojis(text).text).toBe('👋 hello `:smile:` world');
+        });
+
+        it('should replace a shortcode outside code but preserve one inside code at the maximum markup length', () => {
+            const markdown = '\n:smile: and `:wave:`';
+            const prefix = 'a'.repeat(CONST.MAX_MARKUP_LENGTH - markdown.length);
+            expect(EmojiUtils.replaceEmojis(`${prefix}${markdown}`).text).toBe(`${prefix}\n😄 and \`:wave:\``);
         });
 
         it('should handle same shortcode both inside and outside code block', () => {
@@ -282,6 +295,13 @@ describe('EmojiTest', () => {
             const text = '`:joy:`';
             // Position 1 is the colon after the backtick
             expect(EmojiUtils.isPositionInsideCodeBlock(text, 1)).toBe(true);
+        });
+
+        it('should return true for a position inside inline code at the maximum markup length', () => {
+            const code = '`:smi`';
+            const prefix = 'a'.repeat(CONST.MAX_MARKUP_LENGTH - code.length);
+            const text = `${prefix}${code}`;
+            expect(EmojiUtils.isPositionInsideCodeBlock(text, prefix.length + 1)).toBe(true);
         });
 
         it('should return false for position outside code block', () => {
