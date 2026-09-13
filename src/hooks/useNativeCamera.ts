@@ -1,14 +1,9 @@
 import {useFullScreenLoaderActions, useFullScreenLoaderState} from '@components/FullScreenLoaderContext';
 
 import {showCameraPermissionsAlert} from '@libs/fileDownload/FileUtils';
-import getPlatform from '@libs/getPlatform';
-import type Platform from '@libs/getPlatform/types';
 import Log from '@libs/Log';
 
 import CameraPermission from '@pages/iou/request/step/IOURequestStepScan/CameraPermission';
-
-import ONYXKEYS from '@src/ONYXKEYS';
-import {getEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type React from 'react';
 import type {Camera, Point} from 'react-native-vision-camera';
@@ -22,8 +17,8 @@ import {useAnimatedStyle, useSharedValue, withDelay, withSequence, withSpring, w
 import {useCameraDevice} from 'react-native-vision-camera';
 import {scheduleOnRN} from 'react-native-worklets';
 
+import useIsPlatformMuted from './useIsPlatformMuted';
 import useLocalize from './useLocalize';
-import useOnyx from './useOnyx';
 
 type UseNativeCameraOptions = {
     /** Additional logic to run when the screen gains focus */
@@ -42,9 +37,7 @@ function useNativeCamera({onFocusStart, onFocusCleanup}: UseNativeCameraOptions)
         physicalDevices: ['wide-angle-camera', 'ultra-wide-angle-camera'],
     });
 
-    const platform = getPlatform(true);
-    const [mutedPlatforms = getEmptyObject<Partial<Record<Platform, true>>>()] = useOnyx(ONYXKEYS.NVP_MUTED_PLATFORMS);
-    const isPlatformMuted = mutedPlatforms[platform];
+    const isPlatformMuted = useIsPlatformMuted();
 
     const [cameraPermissionStatus, setCameraPermissionStatus] = useState<string | null>(null);
     const hasFlash = !!device?.hasFlash;

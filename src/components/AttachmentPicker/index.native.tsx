@@ -158,7 +158,10 @@ function AttachmentPicker({
     const icons = useMemoizedLazyExpensifyIcons(['Camera', 'Gallery', 'Paperclip']);
     const styles = useThemeStyles();
     const [isVisible, setIsVisible] = useState(false);
-    const [showAttachmentCamera, setShowAttachmentCamera] = useState(false);
+    // Mount and visibility are tracked separately so the camera stays mounted through its hide
+    // animation. Unmounting on close cuts the animation off midway and the modal vanishes abruptly.
+    const [isAttachmentCameraMounted, setIsAttachmentCameraMounted] = useState(false);
+    const [isAttachmentCameraVisible, setIsAttachmentCameraVisible] = useState(false);
     const StyleUtils = useStyleUtils();
     const theme = useTheme();
 
@@ -193,7 +196,8 @@ function AttachmentPicker({
     );
 
     const launchInAppCamera = useCallback(() => {
-        setShowAttachmentCamera(true);
+        setIsAttachmentCameraMounted(true);
+        setIsAttachmentCameraVisible(true);
     }, []);
 
     /**
@@ -433,7 +437,7 @@ function AttachmentPicker({
 
     const handleCameraCapture = useCallback(
         (photos: CapturedPhoto[]) => {
-            setShowAttachmentCamera(false);
+            setIsAttachmentCameraVisible(false);
             if (modalDismissTimeoutRef.current) {
                 clearTimeout(modalDismissTimeoutRef.current);
                 modalDismissTimeoutRef.current = null;
@@ -454,7 +458,7 @@ function AttachmentPicker({
     );
 
     const handleCameraClose = useCallback(() => {
-        setShowAttachmentCamera(false);
+        setIsAttachmentCameraVisible(false);
         if (modalDismissTimeoutRef.current) {
             clearTimeout(modalDismissTimeoutRef.current);
             modalDismissTimeoutRef.current = null;
@@ -479,7 +483,6 @@ function AttachmentPicker({
                     if (JSON.stringify(error).includes('OPERATION_CANCELED')) {
                         return;
                     }
-
                     showGeneralAlert(error.message);
                     throw error;
                 })
@@ -602,11 +605,12 @@ function AttachmentPicker({
                     ))}
                 </View>
             </Popover>
-            {showAttachmentCamera && (
+            {isAttachmentCameraMounted && (
                 <AttachmentCamera
-                    isVisible={showAttachmentCamera}
+                    isVisible={isAttachmentCameraVisible}
                     onCapture={handleCameraCapture}
                     onClose={handleCameraClose}
+                    onModalHide={() => setIsAttachmentCameraMounted(false)}
                 />
             )}
             {renderChildren()}

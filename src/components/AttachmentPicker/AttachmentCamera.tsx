@@ -1,15 +1,18 @@
+/**
+ * In-app VisionCamera modal used by the native AttachmentPicker.
+ */
 import ActivityIndicator from '@components/ActivityIndicator';
 import Button from '@components/Button';
 import Icon from '@components/Icon';
 import ImageSVG from '@components/ImageSVG';
+import Modal from '@components/Modal';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Text from '@components/Text';
 
-import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
+import useIsPlatformMuted from '@hooks/useIsPlatformMuted';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import {useTapToFocusGesture} from '@hooks/useNativeCamera';
-import useOnyx from '@hooks/useOnyx';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -18,8 +21,7 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 
 import {showCameraPermissionsAlert} from '@libs/fileDownload/FileUtils';
 import getPhotoSource from '@libs/fileDownload/getPhotoSource';
-import getPlatform from '@libs/getPlatform';
-import type PlatformType from '@libs/getPlatform/types';
+import isInLandscapeMode from '@libs/isInLandscapeMode';
 import Log from '@libs/Log';
 
 import CameraPermission from '@pages/iou/request/step/IOURequestStepScan/CameraPermission';
@@ -28,13 +30,13 @@ import getCameraAspectRatio from '@pages/iou/request/step/IOURequestStepScan/get
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
-import {getEmptyObject} from '@src/types/utils/EmptyObject';
+
+import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 
 import type {Camera, CameraRuntimeError, PhotoFile} from 'react-native-vision-camera';
 
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {Alert, AppState, Modal, Platform, View} from 'react-native';
+import React, {useEffect, useRef, useState} from 'react';
+import {Alert, AppState, Platform, View} from 'react-native';
 import {GestureDetector} from 'react-native-gesture-handler';
 import {RESULTS} from 'react-native-permissions';
 import Animated from 'react-native-reanimated';
@@ -48,6 +50,23 @@ type CapturedPhoto = {
     height: number;
 };
 
+/**
+ * Module-level so the permission effect below can depend on `translate` alone rather than on a
+ * per-render closure, which would re-subscribe the AppState listener on every render.
+ */
+function requestCameraPermission(translate: LocalizedTranslate, setStatus: (status: string) => void) {
+    CameraPermission.requestCameraPermission?.()
+        .then((status: string) => {
+            setStatus(status);
+            if (status === RESULTS.BLOCKED) {
+                showCameraPermissionsAlert(translate);
+            }
+        })
+        .catch(() => {
+            setStatus(RESULTS.UNAVAILABLE);
+        });
+}
+
 type AttachmentCameraProps = {
     /** Whether the camera modal is visible */
     isVisible: boolean;
@@ -57,22 +76,22 @@ type AttachmentCameraProps = {
 
     /** Callback when the camera is closed */
     onClose: () => void;
+
+    /** Callback fired once the modal has finished its hide animation */
+    onModalHide: () => void;
 };
 
-function AttachmentCamera({isVisible, onCapture, onClose}: AttachmentCameraProps) {
+function AttachmentCamera({isVisible, onCapture, onClose, onModalHide}: AttachmentCameraProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const insets = useSafeAreaInsets();
     const StyleUtils = useStyleUtils();
     const {windowWidth, windowHeight} = useWindowDimensions();
-    const isInLandscapeMode = useIsInLandscapeMode();
+    const isLandscape = isInLandscapeMode(windowWidth, windowHeight);
     const lazyIcons = useMemoizedLazyExpensifyIcons(['Bolt', 'boltSlash', 'CameraFlip', 'Close']);
     const lazyIllustrations = useMemoizedLazyIllustrations(['Shutter', 'Hand']);
-
-    const platform = getPlatform(true);
-    const [mutedPlatforms = getEmptyObject<Partial<Record<PlatformType, true>>>()] = useOnyx(ONYXKEYS.NVP_MUTED_PLATFORMS);
-    const isPlatformMuted = !!mutedPlatforms[platform];
+    const isPlatformMuted = useIsPlatformMuted();
 
     const [cameraPosition, setCameraPosition] = useState<'back' | 'front'>('back');
     const [flash, setFlash] = useState(false);
@@ -85,10 +104,8 @@ function AttachmentCamera({isVisible, onCapture, onClose}: AttachmentCameraProps
         physicalDevices: ['wide-angle-camera', 'ultra-wide-angle-camera'],
     });
 
-    // Some devices (and Android emulators) only have a camera in one position. Flipping to the missing
-    // one leaves useCameraDevice undefined, stranding the user on an infinite loading spinner.
     const cameraDevices = useCameraDevices();
-    const canFlipCamera = useMemo(() => cameraDevices.some((d) => d.position === 'front') && cameraDevices.some((d) => d.position === 'back'), [cameraDevices]);
+    const canFlipCamera = cameraDevices.some((d) => d.position === 'front') && cameraDevices.some((d) => d.position === 'back');
 
     // The viewfinder renders from the video pipeline, so videoResolution controls preview quality
     // (capture always uses the photo resolution). iOS matches the photo target, otherwise the selector
@@ -102,24 +119,12 @@ function AttachmentCamera({isVisible, onCapture, onClose}: AttachmentCameraProps
             : {videoResolution: {width: windowHeight, height: windowWidth}},
     ]);
     const hasFlash = !!device?.hasFlash;
-    const cameraAspectRatio = getCameraAspectRatio(format, isInLandscapeMode);
+    const cameraAspectRatio = getCameraAspectRatio(format, isLandscape);
 
     const {tapGesture, cameraFocusIndicatorAnimatedStyle} = useTapToFocusGesture(cameraRef, device?.supportsFocus ?? false);
 
-    const askForPermissions = useCallback(() => {
-        CameraPermission.requestCameraPermission?.()
-            .then((status: string) => {
-                setCameraPermissionStatus(status);
-                if (status === RESULTS.BLOCKED) {
-                    showCameraPermissionsAlert(translate);
-                }
-            })
-            .catch(() => {
-                setCameraPermissionStatus(RESULTS.UNAVAILABLE);
-            });
-    }, [translate]);
+    const askForPermissions = () => requestCameraPermission(translate, setCameraPermissionStatus);
 
-    // Track visibility in a ref so async takePhoto callbacks can detect stale sessions
     useEffect(() => {
         isActiveRef.current = isVisible;
     }, [isVisible]);
@@ -139,7 +144,7 @@ function AttachmentCamera({isVisible, onCapture, onClose}: AttachmentCameraProps
                     }
                     setCameraPermissionStatus(status);
                     if (autoRequest && status === RESULTS.DENIED) {
-                        askForPermissions();
+                        requestCameraPermission(translate, setCameraPermissionStatus);
                     }
                 })
                 .catch(() => {
@@ -163,9 +168,9 @@ function AttachmentCamera({isVisible, onCapture, onClose}: AttachmentCameraProps
             ignore = true;
             subscription.remove();
         };
-    }, [isVisible, askForPermissions]);
+    }, [isVisible, translate]);
 
-    const capturePhoto = useCallback(() => {
+    const capturePhoto = () => {
         if (cameraPermissionStatus !== RESULTS.GRANTED) {
             askForPermissions();
             return;
@@ -207,33 +212,30 @@ function AttachmentCamera({isVisible, onCapture, onClose}: AttachmentCameraProps
             .finally(() => {
                 isCapturing.current = false;
             });
-    }, [askForPermissions, cameraPermissionStatus, flash, hasFlash, isPlatformMuted, onCapture, translate]);
+    };
 
-    const handleCameraError = useCallback(
-        (error: CameraRuntimeError) => {
-            Alert.alert(translate('receipt.cameraErrorTitle'), translate('receipt.cameraErrorMessage'));
-            Log.warn('AttachmentCamera runtime error', {code: error.code, message: error.message});
-        },
-        [translate],
-    );
+    const handleCameraError = (error: CameraRuntimeError) => {
+        Alert.alert(translate('receipt.cameraErrorTitle'), translate('receipt.cameraErrorMessage'));
+        Log.warn('AttachmentCamera runtime error', {code: error.code, message: error.message});
+    };
 
-    const handleClose = useCallback(() => {
+    const handleClose = () => {
         isCapturing.current = false;
         setFlash(false);
         setCameraPosition('back');
         onClose();
-    }, [onClose]);
+    };
 
     return (
         <Modal
-            visible={isVisible}
-            animationType="slide"
-            transparent={false}
-            onRequestClose={handleClose}
-            supportedOrientations={['portrait']}
-            statusBarTranslucent
+            isVisible={isVisible}
+            onClose={handleClose}
+            onModalHide={onModalHide}
+            type={CONST.MODAL.MODAL_TYPE.FULLSCREEN}
+            style={styles.appBG}
+            innerContainerStyle={styles.flex1}
         >
-            <View style={[styles.flex1, {backgroundColor: theme.appBG}, StyleUtils.getPlatformSafeAreaPadding(insets)]}>
+            <View style={[styles.flex1, styles.appBG, StyleUtils.getPlatformSafeAreaPadding(insets)]}>
                 <View style={[styles.flexRow, styles.justifyContentEnd, styles.ph3, styles.pv2]}>
                     <PressableWithFeedback
                         role={CONST.ROLE.BUTTON}
@@ -284,7 +286,7 @@ function AttachmentCamera({isVisible, onCapture, onClose}: AttachmentCameraProps
                     {cameraPermissionStatus === RESULTS.GRANTED && device != null && (
                         <View style={[styles.cameraView, styles.alignItemsCenter]}>
                             <GestureDetector gesture={tapGesture}>
-                                <View style={StyleUtils.getCameraViewfinderStyle(cameraAspectRatio, isInLandscapeMode)}>
+                                <View style={StyleUtils.getCameraViewfinderStyle(cameraAspectRatio, isLandscape)}>
                                     <VisionCamera
                                         ref={cameraRef}
                                         device={device}
