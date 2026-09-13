@@ -47,7 +47,8 @@ function CardInstructionsStep({policyID}: CardInstructionsStepProps) {
     const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD);
 
     const data = addNewCard?.data;
-    const feedProvider = data?.feedType ?? CONST.COMPANY_CARD.FEED_BANK_NAME.VISA;
+    const feedProvider =
+        data?.mockFeedType ?? (data?.feedType === CONST.COMPANY_CARD.FEED_BANK_NAME.MOCK_COMMERCIAL_FEED ? undefined : data?.feedType) ?? CONST.COMPANY_CARD.FEED_BANK_NAME.VISA;
     const bank = data?.selectedBank;
     const isStripeFeedProvider = feedProvider === CONST.COMPANY_CARD.FEED_BANK_NAME.STRIPE;
     const isOtherBankSelected = bank === CONST.COMPANY_CARDS.BANKS.OTHER;

@@ -565,6 +565,12 @@ describe('CardUtils', () => {
             expect(isCustomFeed).toBe(true);
         });
 
+        it('Should return true for the mock commercial feed', () => {
+            const customFeed = `${CONST.COMPANY_CARD.FEED_BANK_NAME.MOCK_COMMERCIAL_FEED}1` as const;
+            const isCustomFeed = isCustomFeedCardUtils(customFeed);
+            expect(isCustomFeed).toBe(true);
+        });
+
         it('Should return true for the custom mastercard feed with no number', () => {
             const customFeed = CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD;
             const isCustomFeed = isCustomFeedCardUtils(customFeed);
@@ -2004,6 +2010,11 @@ describe('CardUtils', () => {
         it('should return the feed name with with the first smallest available number', () => {
             const feedType = getFeedType('vcf', companyCardsCustomVisaFeedSettingsWithNumbers);
             expect(feedType).toBe('vcf2');
+        });
+
+        it('should number mock commercial feeds independently from Visa feeds', () => {
+            const feedType = getFeedType(CONST.COMPANY_CARD.FEED_BANK_NAME.MOCK_COMMERCIAL_FEED, companyCardsCustomVisaFeedSettingsWithNumbers);
+            expect(feedType).toBe('vcfmock1');
         });
     });
 

@@ -10,17 +10,20 @@ import Text from '@components/Text';
 import {useCompanyCardBankIcons} from '@hooks/useCompanyCardIcons';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {isUsingStagingApi} from '@libs/ApiUtils';
 import {isPlaidSupportedCountry} from '@libs/CardUtils';
 
 import variables from '@styles/variables';
 
 import {setAddNewCompanyCardStepAndData} from '@userActions/CompanyCards';
 
+import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {CardFeedProvider} from '@src/types/onyx/CardFeeds';
+import type {AddNewCardFeedData, CardFeedProvider} from '@src/types/onyx/CardFeeds';
 
 import type {StyleProp, ViewStyle} from 'react-native';
 
@@ -89,16 +92,40 @@ function CardTypeStep() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const companyCardBankIcons = useCompanyCardBankIcons();
+    const illustrations = useThemeIllustrations();
     const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD);
-    const [localTypeSelected, setLocalTypeSelected] = useState<CardFeedProvider>();
-    const typeSelected = localTypeSelected ?? addNewCard?.data?.feedType;
+    const [shouldUseStagingServer = isUsingStagingApi()] = useOnyx(ONYXKEYS.SHOULD_USE_STAGING_SERVER);
+    const [localTypeSelected, setLocalTypeSelected] = useState<AddNewCardFeedData['feedType']>();
+    const isMockFeedSetup = addNewCard?.data?.feedType === CONST.COMPANY_CARD.FEED_BANK_NAME.MOCK_COMMERCIAL_FEED;
+    const typeSelected = localTypeSelected ?? (isMockFeedSetup ? addNewCard?.data?.mockFeedType : addNewCard?.data?.feedType);
     const [isError, setIsError] = useState(false);
-    const data = getAvailableCompanyCardTypes({
+    const baseData = getAvailableCompanyCardTypes({
         translate,
-        typeSelected,
+        typeSelected: typeSelected === CONST.COMPANY_CARD.FEED_BANK_NAME.MOCK_COMMERCIAL_FEED ? undefined : typeSelected,
         styles: styles.mr3,
         companyCardBankIcons,
     });
+    const isMockCommercialFeedVisible = CONFIG.ENVIRONMENT !== CONST.ENVIRONMENT.PRODUCTION || shouldUseStagingServer;
+    const data =
+        !isMockFeedSetup && isMockCommercialFeedVisible
+            ? [
+                  ...baseData,
+                  {
+                      value: CONST.COMPANY_CARD.FEED_BANK_NAME.MOCK_COMMERCIAL_FEED,
+                      text: 'Mock Commercial Feed (Testing)',
+                      keyForList: CONST.COMPANY_CARD.FEED_BANK_NAME.MOCK_COMMERCIAL_FEED,
+                      isSelected: typeSelected === CONST.COMPANY_CARD.FEED_BANK_NAME.MOCK_COMMERCIAL_FEED,
+                      leftElement: (
+                          <Icon
+                              src={illustrations.GenericCompanyCard}
+                              height={variables.iconSizeExtraLarge}
+                              width={variables.iconSizeExtraLarge}
+                              additionalStyles={styles.mr3}
+                          />
+                      ),
+                  },
+              ]
+            : baseData;
     const {bankName, selectedBank, feedType} = addNewCard?.data ?? {};
     const isOtherBankSelected = selectedBank === CONST.COMPANY_CARDS.BANKS.OTHER;
     const isNewCardTypeSelected = typeSelected !== feedType;
@@ -107,6 +134,26 @@ function CardTypeStep() {
     const submit = useCallback(() => {
         if (!typeSelected) {
             setIsError(true);
+        } else if (typeSelected === CONST.COMPANY_CARD.FEED_BANK_NAME.MOCK_COMMERCIAL_FEED) {
+            setAddNewCompanyCardStepAndData({
+                step: CONST.COMPANY_CARDS.STEP.CARD_TYPE,
+                data: {
+                    feedType: typeSelected,
+                    feedDetails: null,
+                    mockFeedType: undefined,
+                },
+                isEditing: false,
+            });
+        } else if (isMockFeedSetup) {
+            setAddNewCompanyCardStepAndData({
+                step: CONST.COMPANY_CARDS.STEP.CARD_INSTRUCTIONS,
+                data: {
+                    feedType: CONST.COMPANY_CARD.FEED_BANK_NAME.MOCK_COMMERCIAL_FEED,
+                    feedDetails: null,
+                    mockFeedType: typeSelected,
+                },
+                isEditing: false,
+            });
         } else {
             setAddNewCompanyCardStepAndData({
                 step: CONST.COMPANY_CARDS.STEP.CARD_INSTRUCTIONS,
@@ -117,9 +164,16 @@ function CardTypeStep() {
                 isEditing: false,
             });
         }
-    }, [bankName, isNewCardTypeSelected, isOtherBankSelected, typeSelected]);
+    }, [bankName, isMockFeedSetup, isNewCardTypeSelected, isOtherBankSelected, typeSelected]);
 
     const handleBackButtonPress = () => {
+        if (isMockFeedSetup) {
+            setAddNewCompanyCardStepAndData({
+                step: CONST.COMPANY_CARDS.STEP.CARD_TYPE,
+                data: {feedType: null, mockFeedType: undefined},
+            });
+            return;
+        }
         if (isOtherBankSelected) {
             setAddNewCompanyCardStepAndData({step: CONST.COMPANY_CARDS.STEP.SELECT_BANK});
             return;
@@ -157,12 +211,12 @@ function CardTypeStep() {
                 data={data}
                 ListItem={SingleSelectListItem}
                 onSelectRow={({value}) => {
-                    setLocalTypeSelected(value);
+                    setLocalTypeSelected(value as AddNewCardFeedData['feedType']);
                     setIsError(false);
                 }}
                 confirmButtonOptions={confirmButtonOptions}
                 shouldSingleExecuteRowSelect
-                initiallyFocusedItemKey={addNewCard?.data?.feedType}
+                initiallyFocusedItemKey={typeSelected}
                 shouldUpdateFocusedIndex
                 addBottomSafeAreaPadding
             >

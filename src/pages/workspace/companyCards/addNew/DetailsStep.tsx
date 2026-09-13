@@ -53,7 +53,8 @@ function DetailsStep({policyID, cardFeeds, workspaceAccountID}: DetailsStepProps
     const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD);
     const [lastSelectedFeed] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyID}`);
 
-    const feedProvider = addNewCard?.data?.feedType;
+    const selectedFeedType = addNewCard?.data?.mockFeedType ?? addNewCard?.data?.feedType;
+    const feedProvider = selectedFeedType === CONST.COMPANY_CARD.FEED_BANK_NAME.MOCK_COMMERCIAL_FEED ? undefined : selectedFeedType;
     const isStripeFeedProvider = feedProvider === CONST.COMPANY_CARD.FEED_BANK_NAME.STRIPE;
     const bank = addNewCard?.data?.selectedBank;
     const isOtherBankSelected = bank === CONST.COMPANY_CARDS.BANKS.OTHER;

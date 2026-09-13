@@ -251,9 +251,12 @@ type CardFeeds = {
 
 /** Data required to be sent to add a new card */
 type AddNewCardFeedData = {
-    feedType: CardFeedProvider;
-    feedDetails?: CardFeedDetails;
+    feedType: CardFeedProvider | typeof CONST.COMPANY_CARD.FEED_BANK_NAME.MOCK_COMMERCIAL_FEED;
+    feedDetails?: CardFeedDetails | null;
     cardTitle: string;
+
+    /** Provider whose commercial feed setup flow is simulated by the mock feed */
+    mockFeedType?: CardFeedProvider;
     selectedBank: ValueOf<typeof CONST.COMPANY_CARDS.BANKS> | null;
     selectedFeedType: ValueOf<typeof CONST.COMPANY_CARDS.FEED_TYPE>;
 
