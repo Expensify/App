@@ -2649,10 +2649,68 @@ describe('Table', () => {
             expect(tableRef.current?.getProcessedData().map((item) => item.name)).toEqual(['Apple', 'Banana', 'Carrot', 'Date', 'Eggplant']);
         });
 
-        it('should allow pressing different column headers', () => {
+        it('should cycle asc, then desc, then back to asc when the same header is pressed repeatedly', () => {
             const props = createDefaultProps();
+            const tableRef = React.createRef<TableHandle<TestItem, TestColumnKey>>();
             render(
                 <Table<TestItem, TestColumnKey>
+                    ref={tableRef}
+                    data={props.data}
+                    columns={props.columns}
+                    renderItem={props.renderItem}
+                    keyExtractor={props.keyExtractor}
+                    compareItems={props.compareItems}
+                >
+                    <Table.Header />
+                    <Table.Body />
+                </Table>,
+            );
+
+            const nameHeader = screen.getByLabelText('Name');
+
+            fireEvent.press(nameHeader);
+            expect(tableRef.current?.getActiveSorting()).toEqual({columnKey: 'name', order: 'asc'});
+
+            fireEvent.press(nameHeader);
+            expect(tableRef.current?.getActiveSorting()).toEqual({columnKey: 'name', order: 'desc'});
+
+            fireEvent.press(nameHeader);
+            expect(tableRef.current?.getActiveSorting()).toEqual({columnKey: 'name', order: 'asc'});
+        });
+
+        it('should restart at ascending when a different header is pressed', () => {
+            const props = createDefaultProps();
+            const tableRef = React.createRef<TableHandle<TestItem, TestColumnKey>>();
+            render(
+                <Table<TestItem, TestColumnKey>
+                    ref={tableRef}
+                    data={props.data}
+                    columns={props.columns}
+                    renderItem={props.renderItem}
+                    keyExtractor={props.keyExtractor}
+                    compareItems={props.compareItems}
+                >
+                    <Table.Header />
+                    <Table.Body />
+                </Table>,
+            );
+
+            // Leave Name on desc, then switch to Category. The bug this pins: the switch used to inherit desc from
+            // Name instead of restarting the newly-pressed column's own cycle at asc.
+            fireEvent.press(screen.getByLabelText('Name'));
+            fireEvent.press(screen.getByLabelText('Name'));
+            expect(tableRef.current?.getActiveSorting()).toEqual({columnKey: 'name', order: 'desc'});
+
+            fireEvent.press(screen.getByLabelText('Category'));
+            expect(tableRef.current?.getActiveSorting()).toEqual({columnKey: 'category', order: 'asc'});
+        });
+
+        it('should allow pressing different column headers', () => {
+            const props = createDefaultProps();
+            const tableRef = React.createRef<TableHandle<TestItem, TestColumnKey>>();
+            render(
+                <Table<TestItem, TestColumnKey>
+                    ref={tableRef}
                     data={props.data}
                     columns={props.columns}
                     renderItem={props.renderItem}
@@ -2666,12 +2724,15 @@ describe('Table', () => {
 
             // Press Name column
             fireEvent.press(screen.getByLabelText('Name'));
+            expect(tableRef.current?.getActiveSorting()).toEqual({columnKey: 'name', order: 'asc'});
 
             // Then press Category column
             fireEvent.press(screen.getByLabelText('Category'));
+            expect(tableRef.current?.getActiveSorting()).toEqual({columnKey: 'category', order: 'asc'});
 
             // Then press Value column
             fireEvent.press(screen.getByLabelText('Value'));
+            expect(tableRef.current?.getActiveSorting()).toEqual({columnKey: 'value', order: 'asc'});
 
             // All columns should still be pressable
             expect(screen.getByLabelText('Name')).toBeTruthy();

@@ -403,7 +403,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
             const memberName = temporaryGetDisplayNameOrDefault({passedPersonalDetails: details, translate, formatPhoneNumber});
             const approver = shouldShowApproverColumn ? firstApproverByMemberEmail[login] : undefined;
             const approverAccountID = approver ? resolveMemberAccountID(approver.email, policyMemberEmailsToAccountIDs) : undefined;
-            const approverDisplayName = approver ? (Str.isSMSLogin(approver.displayName) ? formatPhoneNumber(approver.displayName) : approver.displayName) : '';
+            const approverDisplayName = approver && Str.isSMSLogin(approver.displayName) ? formatPhoneNumber(approver.displayName) : (approver?.displayName ?? '');
 
             return {
                 approverAccountID,
