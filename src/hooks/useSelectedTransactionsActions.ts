@@ -14,7 +14,7 @@ import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import {getIOUActionForTransactionID, getReportAction, isDeletedAction} from '@libs/ReportActionsUtils';
 import {isMergeActionForSelectedTransactions, isSplitAction} from '@libs/ReportSecondaryActionUtils';
 import {
-    canDeleteCardTransactionByLiabilityType,
+    canDeleteCardTransaction,
     canDeleteTransaction,
     canEditFieldOfMoneyRequest,
     canEditMultipleTransactions,
@@ -577,7 +577,7 @@ function useSelectedTransactionsActions({
         }
 
         const canAllSelectedTransactionsBeRemoved = selectedTransactionsList.every((transaction) => {
-            const canRemoveTransaction = canDeleteCardTransactionByLiabilityType(transaction);
+            const canRemoveTransaction = canDeleteCardTransaction(transaction, policy);
             const action = getIOUActionForTransactionID(reportActions, transaction.transactionID);
             const isActionDeleted = isDeletedAction(action);
             const isIOUActionOwner = typeof action?.actorAccountID === 'number' && typeof session?.accountID === 'number' && action.actorAccountID === session?.accountID;

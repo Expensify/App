@@ -6570,8 +6570,7 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                 corporate: 'Restreindre la suppression des transactions',
                 personal: 'Autoriser la suppression des transactions',
                 setFeedNameDescription: 'Donnez au flux de cartes un nom unique afin de pouvoir le distinguer des autres',
-                setTransactionLiabilityDescription:
-                    'Lorsque cette option est activée, les titulaires de carte peuvent supprimer les transactions de carte. Les nouvelles transactions suivront cette règle.',
+                setTransactionLiabilityDescription: 'Les titulaires de carte peuvent supprimer des transactions. S’applique uniquement aux nouvelles transactions.',
                 emptyAddedFeedTitle: 'Aucune carte dans ce flux',
                 emptyAddedFeedDescription: 'Assurez-vous qu’il y a des cartes dans le flux de cartes de votre banque.',
                 pendingFeedTitle: `Nous examinons votre demande...`,
