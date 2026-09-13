@@ -1,8 +1,13 @@
+// Shared renderer for web stacks and native root/RHP layers. Native split panes use NativeStackView separately.
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useThemeStyles from '@hooks/useThemeStyles';
 
-import convertToNativeNavigationOptions from '@libs/Navigation/PlatformStackNavigation/navigationOptions/convertToNativeNavigationOptions';
-import screenLayout from '@libs/Navigation/PlatformStackNavigation/ScreenLayout';
+import type {ParamListBase, StackActionHelpers} from '@react-navigation/native';
+import type {StackNavigationEventMap, StackNavigationOptions} from '@react-navigation/stack';
+
+import {StackRouter, useNavigationBuilder} from '@react-navigation/native';
+import {StackView} from '@react-navigation/stack';
+import React from 'react';
+
 import type {
     CreatePlatformStackNavigatorComponentOptions,
     CustomCodeProps,
@@ -10,18 +15,12 @@ import type {
     PlatformStackNavigationState,
     PlatformStackNavigatorProps,
     PlatformStackRouterOptions,
-} from '@libs/Navigation/PlatformStackNavigation/types';
+} from './types';
 
-import type {ParamListBase, StackActionHelpers} from '@react-navigation/native';
-import type {NativeStackNavigationEventMap, NativeStackNavigationOptions} from '@react-navigation/native-stack';
-
-import {StackRouter, useNavigationBuilder} from '@react-navigation/native';
-import {NativeStackView} from '@react-navigation/native-stack';
-import React from 'react';
-import {View} from 'react-native';
-
-import getNativeSplitRenderState from './getNativeSplitRenderState';
-import wrapDescriptorsWithNonTopScreensBehavior from './wrapDescriptorsWithNonTopScreensBehavior';
+import wrapDescriptorsWithNonTopScreensBehavior from './createPlatformStackNavigatorComponent/wrapDescriptorsWithNonTopScreensBehavior';
+import convertToJSStackNavigationOptions from './navigationOptions/convertToJSStackNavigationOptions';
+import screenLayout from './ScreenLayout';
+import StackScreenAccessibility from './StackScreenAccessibility';
 
 type PlatformNavigatorImplProps<RouterOptions extends PlatformStackRouterOptions = PlatformStackRouterOptions> = PlatformStackNavigatorProps<ParamListBase, RouterOptions> & {
     createRouter: NonNullable<CreatePlatformStackNavigatorComponentOptions<RouterOptions>['createRouter']>;
@@ -53,7 +52,6 @@ function PlatformNavigatorImpl<RouterOptions extends PlatformStackRouterOptions 
     ...props
 }: PlatformNavigatorImplProps<RouterOptions>) {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const styles = useThemeStyles();
     const {
         navigation,
         state: originalState,
@@ -64,8 +62,8 @@ function PlatformNavigatorImpl<RouterOptions extends PlatformStackRouterOptions 
         PlatformStackNavigationState<ParamListBase>,
         RouterOptions,
         StackActionHelpers<ParamListBase>,
-        NativeStackNavigationOptions,
-        NativeStackNavigationEventMap,
+        StackNavigationOptions,
+        StackNavigationEventMap,
         PlatformStackNavigationOptions
     >(
         createRouter,
@@ -75,15 +73,16 @@ function PlatformNavigatorImpl<RouterOptions extends PlatformStackRouterOptions 
             screenOptions: {...defaultScreenOptions, ...screenOptions},
             screenListeners,
             initialRouteName,
-            sidebarScreen,
             defaultCentralScreen,
+            sidebarScreen,
             parentRoute,
+            persistentScreens,
             screenLayout,
         },
-        convertToNativeNavigationOptions,
+        convertToJSStackNavigationOptions,
     );
 
-    const customCodeProps: CustomCodeProps<NativeStackNavigationOptions, NativeStackNavigationEventMap, ParamListBase, StackActionHelpers<ParamListBase>> = {
+    const customCodeProps: CustomCodeProps<StackNavigationOptions, StackNavigationEventMap, ParamListBase, StackActionHelpers<ParamListBase>> = {
         state: originalState,
         navigation,
         descriptors,
@@ -91,37 +90,44 @@ function PlatformNavigatorImpl<RouterOptions extends PlatformStackRouterOptions 
         parentRoute,
     };
 
-    // The sidebar is a sibling of the native stack, so keep the router's full central history.
-    const isSplit = !shouldUseNarrowLayout && !!sidebarScreen;
-    const state = isSplit ? originalState : (getCustomState?.({...customCodeProps, shouldUseNarrowLayout}) ?? originalState);
-    const customCodePropsWithCustomState: CustomCodeProps<NativeStackNavigationOptions, NativeStackNavigationEventMap, ParamListBase, StackActionHelpers<ParamListBase>> = {
+    const state = getCustomState?.({...customCodeProps, shouldUseNarrowLayout}) ?? originalState;
+    const customCodePropsWithCustomState: CustomCodeProps<StackNavigationOptions, StackNavigationEventMap, ParamListBase, StackActionHelpers<ParamListBase>> = {
         ...customCodeProps,
         state,
     };
 
-    const wrappedDescriptors = wrapDescriptorsWithNonTopScreensBehavior(descriptors, state, isSplit ? persistentScreens : undefined);
-    const split = isSplit ? getNativeSplitRenderState(state, sidebarScreen) : undefined;
+    const mappedState = {
+        ...state,
+        routes: state.routes.map((route) => {
+            // eslint-disable-next-line rulesdir/no-negated-variables
+            const dontDetachScreen = persistentScreens?.includes(route.name) ? {dontDetachScreen: true} : {};
+            return {...route, ...dontDetachScreen};
+        }),
+    };
 
-    const stack = (
-        <NativeStackView
-            {...props}
-            state={split?.centralState ?? state}
-            descriptors={wrappedDescriptors}
-            navigation={navigation}
-            describe={describe}
-        />
+    const wrappedDescriptors = wrapDescriptorsWithNonTopScreensBehavior(descriptors, state, persistentScreens);
+    const focusedKey = state.routes[state.index]?.key;
+    const accessibleDescriptors = Object.fromEntries(
+        Object.entries(wrappedDescriptors).map(([key, descriptor]) => [
+            key,
+            {
+                ...descriptor,
+                render: () => <StackScreenAccessibility isFocused={key === focusedKey}>{descriptor.render()}</StackScreenAccessibility>,
+            },
+        ]),
     );
 
     const content = (
         <NavigationContent>
-            {split ? (
-                <View style={[styles.flex1, styles.flexRow]}>
-                    <View style={[styles.nativeSplitSidebar, styles.borderRight, styles.overflowHidden]}>{wrappedDescriptors[split.sidebarRoute.key]?.render()}</View>
-                    <View style={[styles.flex1, styles.mnw0, styles.overflowHidden]}>{stack}</View>
-                </View>
-            ) : (
-                stack
-            )}
+            <StackView
+                {...props}
+                direction="ltr"
+                state={mappedState}
+                descriptors={accessibleDescriptors}
+                navigation={navigation}
+                describe={describe}
+            />
+
             {!!ExtraContent && <ExtraContent {...customCodePropsWithCustomState} />}
         </NavigationContent>
     );
@@ -134,7 +140,7 @@ function PlatformNavigatorImpl<RouterOptions extends PlatformStackRouterOptions 
     );
 }
 
-function createPlatformStackNavigatorComponent<RouterOptions extends PlatformStackRouterOptions = PlatformStackRouterOptions>(
+function createJSStackNavigatorComponent<RouterOptions extends PlatformStackRouterOptions = PlatformStackRouterOptions>(
     displayName: string,
     options?: CreatePlatformStackNavigatorComponentOptions<RouterOptions>,
 ) {
@@ -158,4 +164,4 @@ function createPlatformStackNavigatorComponent<RouterOptions extends PlatformSta
     return PlatformNavigator;
 }
 
-export default createPlatformStackNavigatorComponent;
+export default createJSStackNavigatorComponent;

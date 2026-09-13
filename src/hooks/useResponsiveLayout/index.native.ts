@@ -34,12 +34,12 @@ export default function useResponsiveLayout(): ResponsiveLayoutResult {
     const isInLandscapeMode = isInLandscapeModeUtil(windowWidth, windowHeight);
 
     const isExtraSmallScreenHeight = windowHeight <= variables.extraSmallMobileResponsiveHeightBreakpoint;
-    const isSmallScreenWidth = true;
-    const isMediumScreenWidth = false;
-    const isLargeScreenWidth = false;
-    const isExtraLargeScreenWidth = false;
+    const isSmallScreenWidth = windowWidth <= variables.mobileResponsiveWidthBreakpoint;
+    const isMediumScreenWidth = windowWidth > variables.mobileResponsiveWidthBreakpoint && windowWidth <= variables.tabletResponsiveWidthBreakpoint;
+    const isLargeScreenWidth = windowWidth > variables.tabletResponsiveWidthBreakpoint;
+    const isExtraLargeScreenWidth = windowWidth > variables.sidePanelResponsiveWidthBreakpoint;
     const isExtraSmallScreenWidth = windowWidth <= variables.extraSmallMobileResponsiveWidthBreakpoint;
-    const isSmallScreen = true;
+    const isSmallScreen = Math.min(windowWidth, windowHeight) <= variables.mobileResponsiveWidthBreakpoint;
 
     // we need to always take screen width into consideration, no matter the platform (with exception of landscape mode).
     const onboardingIsMediumOrLargerScreenWidth = !isInLandscapeMode && windowWidth > variables.mobileResponsiveWidthBreakpoint;

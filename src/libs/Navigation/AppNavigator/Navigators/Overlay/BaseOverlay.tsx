@@ -25,6 +25,9 @@ type BaseOverlayProps = {
 
     /** Overlay position from the right edge of the container */
     positionRightValue?: number | Animated.Value | Animated.AnimatedAddition<number>;
+
+    /** Native pointer dismissal stops at this panel width, independently of the visual scrim. */
+    dismissalPositionRight?: number;
 };
 
 // The default value of positionLeftValue is equal to -2 * variables.sideBarWidth, because we need to stretch the overlay to cover the sidebar and the translate animation distance.

@@ -719,9 +719,15 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         tabNavigatorBarContainer: {
-            width: variables.navigationTabBarSize + variables.sideBarWithLHBWidth,
-            marginRight: -variables.sideBarWithLHBWidth,
+            ...Platform.select({
+                web: {width: variables.navigationTabBarSize + variables.sideBarWithLHBWidth, marginRight: -variables.sideBarWithLHBWidth},
+                default: {width: variables.navigationTabBarSize},
+            }),
             overflow: 'visible',
+        },
+
+        nativeSplitSidebar: {
+            width: variables.sideBarWithLHBWidth,
         },
 
         navigationTabBarContainer: {
@@ -766,6 +772,7 @@ const staticStyles = (theme: ThemeColors) =>
 
         leftNavigationTabBarItem: {
             height: variables.navigationTabBarSize,
+            width: '100%',
             display: 'flex',
             justifyContent: 'center',
             alignItems: 'center',
@@ -6756,7 +6763,7 @@ const dynamicStyles = (theme: ThemeColors) =>
         // The width is shrunk by the Side Panel offset at the call site (passed in), so the super wide
         // sheet's left edge stays put instead of being pushed off-screen while the Side Panel is open.
         // See https://github.com/Expensify/App/issues/99035
-        getSuperWideRHPExtendedCardInterpolatorStyles: (width: Animated.AnimatedSubtraction<number>) =>
+        getSuperWideRHPExtendedCardInterpolatorStyles: (width: number | Animated.AnimatedSubtraction<number>) =>
             ({
                 position: 'absolute',
                 height: '100%',
@@ -6922,7 +6929,15 @@ const dynamicStyles = (theme: ThemeColors) =>
             } satisfies ViewStyle;
         },
 
-        rootNavigatorContainerStyles: (isSmallScreenWidth: boolean) => ({marginLeft: isSmallScreenWidth ? 0 : variables.sideBarWithLHBWidth, flex: 1}) satisfies ViewStyle,
+        // Web positions sidebar cards with a negative margin; native reserves the sidebar as a sibling.
+        rootNavigatorContainerStyles: (isSmallScreenWidth: boolean) =>
+            ({marginLeft: Platform.OS === 'web' && !isSmallScreenWidth ? variables.sideBarWithLHBWidth : 0, flex: 1}) satisfies ViewStyle,
+
+        navigationTabBarSafeAreaInsets: (paddingTop: number, paddingBottom: number) => ({paddingTop, paddingBottom}) satisfies ViewStyle,
+
+        leftNavigationTabBarFABPosition: (bottom: number) => ({position: 'absolute', bottom, left: 0, width: variables.navigationTabBarSize}) satisfies ViewStyle,
+
+        nativeRHPContent: (width: number) => ({width, maxWidth: '100%', alignSelf: 'flex-end'}) satisfies ViewStyle,
 
         RHPNavigatorContainerNavigatorContainerStyles: (isSmallScreenWidth: boolean) => ({marginLeft: isSmallScreenWidth ? 0 : variables.sideBarWidth, flex: 1}) satisfies ViewStyle,
 

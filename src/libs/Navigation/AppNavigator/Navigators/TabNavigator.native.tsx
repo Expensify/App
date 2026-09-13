@@ -43,7 +43,6 @@ const TAB_SCREEN_OPTIONS_BASE = {
     lazy: true,
     animation: 'none' as const,
     freezeOnBlur: true,
-    tabBarPosition: 'bottom' as const,
 } as const;
 
 function TabNavigator() {
@@ -59,11 +58,11 @@ function TabNavigator() {
     const tabState = useNavigationState((parentState) => parentState.routes.find((r) => r.key === route.key)?.state as NavigationState | undefined);
 
     useEffect(() => {
-        if (!shouldUseNarrowLayout || !parentNavigation) {
+        if (!parentNavigation) {
             return;
         }
         const isRootScreen = TAB_ROOT_SCREENS_WITHOUT_GESTURE.has(focusedRouteName ?? '');
-        parentNavigation.setOptions({gestureEnabled: !isRootScreen});
+        parentNavigation.setOptions({gestureEnabled: shouldUseNarrowLayout && !isRootScreen});
     }, [focusedRouteName, shouldUseNarrowLayout, parentNavigation]);
 
     useEffect(() => {
@@ -89,6 +88,7 @@ function TabNavigator() {
 
     const screenOptions = {
         ...TAB_SCREEN_OPTIONS_BASE,
+        tabBarPosition: shouldUseNarrowLayout ? ('bottom' as const) : ('left' as const),
         sceneStyle: {flex: 1, backgroundColor: theme.appBG},
     };
 
