@@ -51,6 +51,7 @@ jest.mock('@src/libs/Navigation/Navigation', () => ({
     getActiveRoute: jest.fn(),
     navigationRef: {
         getRootState: jest.fn(),
+        getCurrentRoute: jest.fn(),
     },
 }));
 
@@ -811,6 +812,134 @@ describe('PerDiem', () => {
             expect(result.transaction.hasEReceipt).toBe(true);
             expect(result.billable).toBe(true);
             expect(result.reimbursable).toBe(true);
+        });
+
+        describe('destination report when the chat has no iouReportID', () => {
+            const PER_DIEM_POLICY_ID = 'per-diem-policy-1';
+            const PER_DIEM_CHAT_REPORT_ID = 'per-diem-chat-1';
+            const PAYER_ACCOUNT_ID = 777;
+            const OLDER_REPORT_ID = 'per-diem-outstanding-older';
+            const NEWER_REPORT_ID = 'per-diem-outstanding-newer';
+            const OTHER_OWNER_REPORT_ID = 'per-diem-outstanding-other-owner';
+            const PENDING_REPORT_ID = 'per-diem-report-not-in-onyx-yet';
+
+            // The chat deliberately has no `iouReportID`, which is the state left behind when the report it pointed at is deleted.
+            const perDiemChatReport: Report = {
+                reportID: PER_DIEM_CHAT_REPORT_ID,
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                policyID: PER_DIEM_POLICY_ID,
+                isOwnPolicyExpenseChat: true,
+                type: CONST.REPORT.TYPE.CHAT,
+            };
+
+            function buildOutstandingExpenseReport(reportID: string, created: string, ownerAccountID = RORY_ACCOUNT_ID): Report {
+                return {
+                    reportID,
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                    policyID: PER_DIEM_POLICY_ID,
+                    chatReportID: PER_DIEM_CHAT_REPORT_ID,
+                    ownerAccountID,
+                    managerID: ownerAccountID,
+                    stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                    statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                    currency: 'USD',
+                    total: 0,
+                    created,
+                };
+            }
+
+            function getPerDiemInformation(parentChatReport: Report) {
+                return getPerDiemExpenseInformation({
+                    dateFnsLocale: undefined,
+                    parentChatReport,
+                    getCurrencyDecimals: getCurrencyDecimalsLocal,
+                    transactionParams: createMock<PerDiemExpenseTransactionParams>({
+                        comment: 'Per diem',
+                        currency: 'USD',
+                        created: '2024-01-25',
+                        customUnit: {
+                            customUnitID: 'per_diem_unit',
+                            customUnitRateID: 'per_diem_rate',
+                            name: CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL,
+                            attributes: {dates: {start: '2024-01-25', end: '2024-01-25'}},
+                            subRates: [{id: 'lodging_1', name: 'Lodging', rate: 150, quantity: 1}],
+                            quantity: 1,
+                        },
+                        attendees: [],
+                    }),
+                    participantParams: createMock<RequestMoneyParticipantParams>({
+                        payeeAccountID: RORY_ACCOUNT_ID,
+                        payeeEmail: RORY_EMAIL,
+                        participant: {
+                            accountID: PAYER_ACCOUNT_ID,
+                            login: 'payer@example.com',
+                            isPolicyExpenseChat: true,
+                            reportID: PER_DIEM_CHAT_REPORT_ID,
+                        },
+                    }),
+                    policyParams: {},
+                    recentlyUsedParams: {},
+                    policyTags: {},
+                    isASAPSubmitBetaEnabled: false,
+                    currentUserAccountIDParam: RORY_ACCOUNT_ID,
+                    currentUserEmailParam: RORY_EMAIL,
+                    hasViolations: false,
+                    policyRecentlyUsedCurrencies: [],
+                    quickAction: undefined,
+                    betas: [CONST.BETAS.ALL],
+                    personalDetails: {},
+                    formatPhoneNumber,
+                    delegateAccountID: undefined,
+                    isTrackIntentUser: false,
+                    rules: undefined,
+                });
+            }
+
+            beforeEach(async () => {
+                // `canAddTransaction` requires the submitter to own the report and the policy to be a group policy.
+                await Onyx.merge(ONYXKEYS.SESSION, {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL});
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${PER_DIEM_POLICY_ID}`, {id: PER_DIEM_POLICY_ID, type: CONST.POLICY.TYPE.TEAM, role: CONST.POLICY.ROLE.USER});
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${PER_DIEM_CHAT_REPORT_ID}`, perDiemChatReport);
+                await waitForBatchedUpdates();
+            });
+
+            it('adds the per diem expense to the submitter outstanding report instead of creating a new one', async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${OLDER_REPORT_ID}`, buildOutstandingExpenseReport(OLDER_REPORT_ID, '2024-01-02'));
+                await waitForBatchedUpdates();
+
+                expect(getPerDiemInformation(perDiemChatReport).iouReport.reportID).toBe(OLDER_REPORT_ID);
+            });
+
+            it('picks the newest outstanding report when the submitter has more than one', async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${OLDER_REPORT_ID}`, buildOutstandingExpenseReport(OLDER_REPORT_ID, '2024-01-02'));
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${NEWER_REPORT_ID}`, buildOutstandingExpenseReport(NEWER_REPORT_ID, '2024-03-04'));
+                await waitForBatchedUpdates();
+
+                expect(getPerDiemInformation(perDiemChatReport).iouReport.reportID).toBe(NEWER_REPORT_ID);
+            });
+
+            it('creates a new report when the only outstanding report belongs to someone else', async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${OTHER_OWNER_REPORT_ID}`, buildOutstandingExpenseReport(OTHER_OWNER_REPORT_ID, '2024-01-02', PAYER_ACCOUNT_ID));
+                await waitForBatchedUpdates();
+
+                expect(getPerDiemInformation(perDiemChatReport).iouReport.reportID).not.toBe(OTHER_OWNER_REPORT_ID);
+            });
+
+            it('creates a new report when the submitter has no outstanding report', () => {
+                const iouReportID = getPerDiemInformation(perDiemChatReport).iouReport.reportID;
+
+                expect(iouReportID).toBeTruthy();
+                expect(iouReportID).not.toBe(OLDER_REPORT_ID);
+            });
+
+            it('does not divert to an outstanding report when the chat points at a report that has not loaded yet', async () => {
+                // The chat still points at PENDING_REPORT_ID, but that report has not reached this client yet — an
+                // offline race, not a cleared pointer. Reusing OLDER_REPORT_ID here would put the expense on the wrong report.
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${OLDER_REPORT_ID}`, buildOutstandingExpenseReport(OLDER_REPORT_ID, '2024-01-02'));
+                await waitForBatchedUpdates();
+
+                expect(getPerDiemInformation({...perDiemChatReport, iouReportID: PENDING_REPORT_ID}).iouReport.reportID).not.toBe(OLDER_REPORT_ID);
+            });
         });
     });
 
