@@ -3235,13 +3235,21 @@ function canDeleteCardTransactionByLiabilityType(transaction: OnyxEntry<Transact
     return transaction?.comment?.liabilityType === CONST.TRANSACTION.LIABILITY_TYPE.ALLOW;
 }
 
+/**
+ * Both the report-level and the transaction-level delete flows pass the money request report here, so they are
+ * indistinguishable from the arguments alone. `isReportLevelDelete` tells them apart, and defaults to the
+ * restrictive case so a caller that omits it never widens who can delete.
+ */
 function canDeleteMoneyRequestReport(
     report: OnyxEntry<Report>,
     reportTransactions: Transaction[],
     reportActions: ReportAction[],
     currentUserAccountID: number,
     rules: OnyxCollection<Rule>,
+    policy?: Policy,
+    isReportLevelDelete = false,
 ): boolean {
+    const isReportPolicyAdmin = isPolicyAdmin(policy);
     const transaction = reportTransactions.at(0);
     const transactionID = transaction?.transactionID;
     const isOwner = transactionID ? getIOUActionForTransactionID(reportActions, transactionID)?.actorAccountID === currentUserAccountID : false;
@@ -3256,6 +3264,13 @@ function canDeleteMoneyRequestReport(
     const canCardTransactionBeDeleted = canDeleteCardTransactionByLiabilityType(transaction);
     if (isUnreported) {
         return isOwner && canCardTransactionBeDeleted;
+    }
+
+    // Admins can delete a draft report even when they are not its submitter, but not its individual expenses.
+    // Card liability does not apply here: deleting a draft report leaves its expenses unreported rather than deleting them.
+    const isDraft = report?.statusNum === CONST.REPORT.STATUS_NUM.OPEN && report?.stateNum === CONST.REPORT.STATE_NUM.OPEN;
+    if (isDraft && isReportPolicyAdmin && isReportLevelDelete) {
+        return reportTransactions.every((t) => canDeleteCardTransactionByLiabilityType(t));
     }
 
     if (isInvoiceReport(report)) {
@@ -3321,13 +3336,17 @@ function canDeleteReportAction(
         }
     }
 
-    if (report && isReportPreviewAction(reportAction)) {
+    if (isReportPreviewAction(reportAction)) {
+        // Deleting a preview deletes the money request report it previews, which is also what `transactions` and
+        // `childReportActions` describe.
         return canDeleteMoneyRequestReport(
-            report,
+            getReportOrDraftReport(reportAction.childReportID),
             Object.values(transactions ?? {}).filter((t): t is Transaction => !!t),
             Object.values(childReportActions ?? {}).filter((action): action is ReportAction => !!action),
             currentUserAccountID,
             rules,
+            policy ?? undefined,
+            true,
         );
     }
 
