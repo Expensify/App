@@ -549,7 +549,12 @@ const translations = {
             hideChatHistory: 'Hide chat history',
             askNewQuestion: 'Ask a new question',
             newChat: 'New chat',
-            composerPlaceholder: 'How much did I spend last month?',
+            composerPlaceholders: {
+                analyzeSpend: 'How much did I spend last month?',
+                createExpense: 'Create an expense',
+                configureWorkspace: 'Help me configure my workspace',
+                getSupport: 'I need help with something',
+            },
         },
         vacationDelegate: 'Vacation delegate',
         expensifyLogo: 'Expensify logo',

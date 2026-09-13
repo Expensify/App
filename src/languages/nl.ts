@@ -501,7 +501,12 @@ const translations: TranslationDeepObject<typeof en> = {
             hideChatHistory: 'Chatgeschiedenis verbergen',
             askNewQuestion: 'Stel een nieuwe vraag',
             newChat: 'Nieuwe chat',
-            composerPlaceholder: 'Hoeveel heb ik vorige maand uitgegeven?',
+            composerPlaceholders: {
+                analyzeSpend: 'Hoeveel heb ik vorige maand uitgegeven?',
+                createExpense: 'Maak een uitgave',
+                configureWorkspace: 'Help me mijn werkruimte in te stellen',
+                getSupport: 'Ik heb ergens hulp bij nodig',
+            },
         },
         duplicateReport: 'Dubbel rapport',
         approver: 'Fiatteur',
