@@ -1,0 +1,62 @@
+{
+  "plugins": [
+    "import"
+  ],
+  "categories": {
+    "correctness": "off"
+  },
+  "rules": {
+    "import/no-cycle": "error"
+  },
+  "ignorePatterns": [
+    "!**/.storybook",
+    "!**/.github",
+    ".github/actions/**/index.js",
+    "**/*.config.js",
+    "**/*.config.mjs",
+    "**/node_modules/**/*",
+    "**/dist/**/*",
+    "server/**/dist/**",
+    "server/victory-chart-renderer/.dev/**",
+    ".eslint-reports/**/*",
+    "android/**/build/**/*",
+    "docs/vendor/**/*",
+    "docs/assets/**/*",
+    "web/gtm.js",
+    "**/.expo/**/*",
+    "**/.rock/**/*",
+    "**/.yalc/**/*",
+    "src/libs/SearchParser/searchParser.js",
+    "src/libs/SearchParser/autocompleteParser.js",
+    "help/_scripts/**/*",
+    "modules/ExpensifyNitroUtils/nitrogen/**/*",
+    "Mobile-Expensify/**/*",
+    "**/vendor",
+    "modules/group-ib-fp/**/*",
+    "web/snippets/gib.js",
+    "src/languages/de.ts",
+    "src/languages/el.ts",
+    "src/languages/es.ts",
+    "src/languages/fr.ts",
+    "src/languages/it.ts",
+    "src/languages/ja.ts",
+    "src/languages/nl.ts",
+    "src/languages/pl.ts",
+    "src/languages/pt-BR.ts",
+    "src/languages/zh-hans.ts",
+    "oxlint-migration/**"
+  ],
+  "settings": {
+    "react": {
+      "version": "19.2.3"
+    },
+    "propWrapperFunctions": [
+      "forbidExtraProps",
+      "exact",
+      "Object.freeze"
+    ],
+    "progress": {
+      "hide": false
+    }
+  }
+}

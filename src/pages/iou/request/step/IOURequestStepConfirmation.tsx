@@ -811,6 +811,11 @@ function IOURequestStepConfirmationContent({
         [currentUserPersonalDetails.accountID, destinationReportID, isConfirmed, optimisticP2PDestinationReportID, setIsConfirmed, participants, report, sendMoney, transaction?.receipt],
     );
 
+    const transactionIsFromGlobalCreate = transaction?.isFromGlobalCreate;
+    const transactionReceiptIsTestReceipt = transaction?.receipt?.isTestReceipt;
+    const transactionParticipantsAutoAssigned = transaction?.participantsAutoAssigned;
+    const transactionReportID = transaction?.reportID;
+
     const navigateBack = useCallback(() => {
         // User is explicitly abandoning the flow - cancel any active telemetry span.
         // The orchestrator never calls navigateBack (it uses dismissModal), so this
@@ -848,13 +853,13 @@ function IOURequestStepConfirmationContent({
             return;
         }
 
-        if (transaction?.isFromGlobalCreate && !transaction.receipt?.isTestReceipt) {
+        if (transactionIsFromGlobalCreate && !transactionReceiptIsTestReceipt) {
             // If the participants weren't automatically added to the transaction, then we should go back to the participants step.
-            if (!transaction?.participantsAutoAssigned && participantsAutoAssignedFromRoute !== 'true') {
+            if (!transactionParticipantsAutoAssigned && participantsAutoAssignedFromRoute !== 'true') {
                 Navigation.goBack(
                     createDynamicRoute(
                         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                        DYNAMIC_ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute({action, iouType, transactionID: initialTransactionID, reportID: transaction?.reportID || reportID}),
+                        DYNAMIC_ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute({action, iouType, transactionID: initialTransactionID, reportID: transactionReportID || reportID}),
                         ROUTES.MONEY_REQUEST_CREATE.getRoute(action, iouType, initialTransactionID, reportID, backToReport),
                     ),
                     {compareParams: false},
@@ -874,10 +879,10 @@ function IOURequestStepConfirmationContent({
         action,
         isPerDiemRequest,
         isCreatingTrackExpense,
-        transaction?.isFromGlobalCreate,
-        transaction?.receipt?.isTestReceipt,
-        transaction?.participantsAutoAssigned,
-        transaction?.reportID,
+        transactionIsFromGlobalCreate,
+        transactionReceiptIsTestReceipt,
+        transactionParticipantsAutoAssigned,
+        transactionReportID,
         requestType,
         iouType,
         initialTransactionID,

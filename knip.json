@@ -17,6 +17,7 @@
                 "metro.config.js",
                 "config/babel/oxcJestTransformer.js",
                 "eslint.changed.config.mjs",
+                "oxlint-migration/rule-tester/buildTree.mjs",
                 "react-native.config.js",
                 "rock.config.mjs",
                 "src/components/HeaderWithBackButtonComposed/index.tsx"
@@ -79,6 +80,7 @@
         "@fullstory/babel-plugin-react-native",
         "@fullstory/babel-plugin-annotate-react",
         "eslint-config-airbnb-typescript",
+        "eslint-plugin-react-hooks",
         "eslint-config-prettier",
         "eslint-plugin-storybook",
         "@dword-design/eslint-plugin-import-alias",
@@ -88,5 +90,5 @@
         "diff-so-fancy",
         "@babel/plugin-proposal-class-properties"
     ],
-    "ignoreBinaries": ["metro-symbolicate", "mkcert", "openssl"]
+    "ignoreBinaries": ["metro-symbolicate", "mkcert", "openssl", "python3"]
 }

@@ -1,0 +1,21 @@
+{
+    "$schema": "../node_modules/oxlint/configuration_schema.json",
+    // Only the 12 rc/* rules, so a probe run over one fixture shows their findings and nothing else.
+    // The production plugin is loaded directly: a probe failure means the shipped plugin regressed.
+    "jsPlugins": [{"name": "rc", "specifier": "../config/oxlint/plugins/rc-rules.mjs"}],
+    "categories": {},
+    "rules": {
+        "rc/refs": "error",
+        "rc/set-state-in-effect": "error",
+        "rc/set-state-in-render": "error",
+        "rc/preserve-manual-memoization": "error",
+        "rc/immutability": "error",
+        "rc/static-components": "error",
+        "rc/use-memo": "error",
+        "rc/globals": "error",
+        "rc/error-boundaries": "error",
+        "rc/purity": "error",
+        "rc/incompatible-library": "error",
+        "rc/unsupported-syntax": "error"
+    }
+}
