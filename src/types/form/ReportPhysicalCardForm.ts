@@ -1,7 +1,6 @@
 import type Form from './Form';
 
 type ReportPhysicalCardForm = Form & {
-    /** Whether the card was terminated without replacement */
     cardTerminatedWithoutReplacement?: boolean;
 };
 

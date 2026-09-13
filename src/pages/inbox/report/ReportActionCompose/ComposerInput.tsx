@@ -1,6 +1,5 @@
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 
-import useIsScrollLikelyLayoutTriggered from '@hooks/useIsScrollLikelyLayoutTriggered';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
@@ -67,8 +66,6 @@ function ComposerInput() {
         containerRef.current?.measureInWindow(callback);
     };
 
-    const {isScrollLayoutTriggered, raiseIsScrollLayoutTriggered} = useIsScrollLikelyLayoutTriggered();
-
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const isReportArchived = useReportIsArchived(report?.reportID);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
@@ -96,8 +93,6 @@ function ComposerInput() {
                 ref={setComposerRef}
                 suggestionsRef={suggestionsRef}
                 isNextModalWillOpenRef={isNextModalWillOpenRef}
-                isScrollLikelyLayoutTriggered={isScrollLayoutTriggered}
-                raiseIsScrollLikelyLayoutTriggered={raiseIsScrollLayoutTriggered}
                 reportID={reportID}
                 policyID={report?.policyID}
                 includeChronos={chatIncludesChronos(report)}

@@ -14,7 +14,6 @@ import React from 'react';
 import {View} from 'react-native';
 
 type ExpensifyCardPreferredWorkspaceToggleProps = {
-    /** The account ID of the domain */
     domainAccountID: number;
 
     /** The ID of the security group */
