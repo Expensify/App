@@ -27,6 +27,7 @@ import {isMobileChrome} from '@libs/Browser';
 import DateUtils from '@libs/DateUtils';
 import focusAfterModalClose from '@libs/focusAfterModalClose';
 import focusComposerWithDelay from '@libs/focusComposerWithDelay';
+import getVacationDelegateErrors from '@libs/getVacationDelegateErrors';
 import Navigation from '@libs/Navigation/Navigation';
 
 import {clearCustomStatus, clearDraftCustomStatus, updateCustomStatus, updateDraftCustomStatus} from '@userActions/User';
@@ -255,7 +256,7 @@ function StatusPage() {
                             <Text style={[styles.mh5, styles.mb1]}>{translate('statusPage.setVacationDelegate')}</Text>
                             <VacationDelegateMenuItem
                                 vacationDelegate={vacationDelegate}
-                                errors={vacationDelegate?.errors}
+                                errors={getVacationDelegateErrors(vacationDelegate)}
                                 pendingAction={vacationDelegate?.pendingAction}
                                 onCloseError={() => clearVacationDelegateError(vacationDelegate?.previousDelegate)}
                                 onPress={() => Navigation.navigate(ROUTES.SETTINGS_VACATION_DELEGATE)}

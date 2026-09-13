@@ -209,6 +209,7 @@ import type UserLocation from './UserLocation';
 import type UserMetadata from './UserMetadata';
 import type UserWallet from './UserWallet';
 import type VacationDelegate from './VacationDelegate';
+import type {VacationDelegatePolicyDiff} from './VacationDelegate';
 import type ValidateDomainTwoFactorCode from './ValidateDomainTwoFactorCode';
 import type ValidateUserAndGetAccessiblePolicies from './ValidateUserAndGetAccessiblePolicies';
 import type VerifyValidateCodeAction from './VerifyValidateCodeAction';
@@ -444,6 +445,7 @@ export type {
     ScheduleCallDraft,
     ValidateUserAndGetAccessiblePolicies,
     VacationDelegate,
+    VacationDelegatePolicyDiff,
     BillingReceiptDetails,
     ExportTemplate,
     HybridApp,
