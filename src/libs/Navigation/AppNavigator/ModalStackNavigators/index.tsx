@@ -791,6 +791,8 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
         require<ReactComponentModule>('../../../../pages/workspace/accounting/xero/export/DynamicXeroPreferredExporterSelectPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.XERO_BILL_PAYMENT_ACCOUNT_SELECTOR]: () =>
         require<ReactComponentModule>('../../../../pages/workspace/accounting/xero/advanced/XeroBillPaymentAccountSelectorPage').default,
+    [SCREENS.WORKSPACE.ACCOUNTING.XERO_FX_EXPENSE_ACCOUNT_SELECTOR]: () =>
+        require<ReactComponentModule>('../../../../pages/workspace/accounting/xero/advanced/XeroFxExpenseAccountSelectorPage').default,
 
     [SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_SUBSIDIARY_SELECTOR]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/netsuite/NetSuiteSubsidiarySelector').default,
     [SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_REUSE_EXISTING_CONNECTIONS]: () =>
@@ -903,6 +905,8 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.WORKSPACE.ACCOUNTING.CERTINIA_EXPORT_STATUS]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/certinia/export/CertiniaExportStatusPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.CERTINIA_EXPORT_DATE]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/certinia/export/CertiniaExportDatePage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.CERTINIA_DEFAULT_VENDOR]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/certinia/export/CertiniaDefaultVendorPage').default,
+    [SCREENS.WORKSPACE.ACCOUNTING.CERTINIA_FX_EXPENSE_ACCOUNT]: () =>
+        require<ReactComponentModule>('../../../../pages/workspace/accounting/certinia/advanced/CertiniaFxExpenseAccountSelectPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.CERTINIA_ADVANCED]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/certinia/advanced/CertiniaAdvancedPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.CERTINIA_REPORT_EXPORT_STATUS]: () =>
         require<ReactComponentModule>('../../../../pages/workspace/accounting/certinia/export/CertiniaReportExportStatusPage').default,

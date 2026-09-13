@@ -5152,6 +5152,9 @@ ${amount} voor ${merchant} - ${date}`,
                 xeroInvoiceCollectionAccount: 'Xero-incasso rekening voor facturen',
                 xeroBillPaymentAccountDescription: 'Kies vanwaar je rekeningen wilt betalen en wij maken de betaling aan in Xero.',
                 invoiceAccountSelectorDescription: 'Kies waar je factuurbetalingen wilt ontvangen en wij maken de betaling aan in Xero.',
+                xeroFxExpenseAccount: 'Xero-account voor valutaconversiekosten',
+                fxExpenseAccountDescription:
+                    'Wanneer je bedrijf de kosten voor valutaconversie dekt voor een betaling in het buitenland, boeken we die kosten op deze rekening in Xero als een ‘spend money’-transactie.',
             },
             exportDate: {
                 label: 'Aankoopfactuurdatum',
@@ -5364,6 +5367,11 @@ ${amount} voor ${merchant} - ${date}`,
                     [CONST.CERTINIA_PARENT_TAG_MAPPING.PARENT_TAG_ASSIGNMENTS]: 'Taken',
                 },
             },
+            fxExpenseAccount: 'Rekening voor valutaconversiekosten',
+            fxExpenseAccountDescription:
+                'Wanneer je bedrijf de kosten voor valutaomrekening dekt bij een betaling in het buitenland, voegen we die kosten toe aan de Te Betalen Factuur als een regel die aan deze rekening is toegewezen.',
+            noExpenseAccountsFound: 'Geen accounts gevonden',
+            noExpenseAccountsFoundDescription: 'Synchroniseer de koppeling opnieuw nadat grootboekrekeningen zijn toegevoegd in Certinia.',
         },
         netsuite: {
             subsidiary: 'Dochteronderneming',

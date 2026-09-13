@@ -5111,6 +5111,8 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
                 xeroInvoiceCollectionAccount: 'Xero請求書回収勘定',
                 xeroBillPaymentAccountDescription: '請求書の支払元を選択すると、Xero 内に支払処理を作成します。',
                 invoiceAccountSelectorDescription: '請求書の入金先を選択すると、Xero に支払いが作成されます。',
+                xeroFxExpenseAccount: 'Xero 通貨換算手数料勘定',
+                fxExpenseAccountDescription: '海外で行われた支払いに対する通貨換算コストを御社が負担する場合、そのコストは「支出入金取引」として Xero のこの勘定科目に計上します。',
             },
             exportDate: {
                 label: '仕入請求書の日付',
@@ -5316,6 +5318,10 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
                     [CONST.CERTINIA_PARENT_TAG_MAPPING.PARENT_TAG_ASSIGNMENTS]: 'アサインメント',
                 },
             },
+            fxExpenseAccount: '通貨換算手数料勘定',
+            fxExpenseAccountDescription: '海外で行われた支払いについて御社が為替換算コストを負担する場合、そのコストをこの勘定科目にコードされた明細行として買掛請求書に追加します。',
+            noExpenseAccountsFound: 'アカウントが見つかりません',
+            noExpenseAccountsFoundDescription: 'Certinia に総勘定元帳勘定を追加した後に、もう一度接続の同期を行ってください。',
         },
         netsuite: {
             subsidiary: '子会社',

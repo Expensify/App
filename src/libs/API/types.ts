@@ -495,6 +495,7 @@ const WRITE_COMMANDS = {
     UPDATE_FINANCIAL_FORCE_SYNC_REIMBURSED_REPORTS: 'UpdateFinancialForceSyncReimbursedReports',
     UPDATE_FINANCIAL_FORCE_TAX_NON_BILLABLE: 'UpdateFinancialForceTaxNonBillable',
     UPDATE_FINANCIAL_FORCE_EXPORT_FOREIGN_CURRENCY: 'UpdateFinancialForceExportForeignCurrency',
+    UPDATE_FINANCIAL_FORCE_FX_EXPENSE_ACCOUNT: 'UpdateFinancialForceFxExpenseAccount',
     COPY_EXISTING_POLICY_CONNECTION: 'CopyExistingPolicyConnection',
     UPDATE_SAGE_INTACCT_AUTO_SYNC: 'UpdateSageIntacctAutoSync',
     UPDATE_SAGE_INTACCT_ACCOUNTING_METHOD: 'UpdateSageIntacctAccountingMethod',
@@ -624,6 +625,7 @@ const WRITE_COMMANDS = {
     UPDATE_XERO_SYNC_INVOICE_COLLECTIONS_ACCOUNT_ID: 'UpdateXeroSyncInvoiceCollectionsAccountID',
     UPDATE_XERO_SYNC_SYNC_REIMBURSED_REPORTS: 'UpdateXeroSyncSyncReimbursedReports',
     UPDATE_XERO_SYNC_REIMBURSEMENT_ACCOUNT_ID: 'UpdateXeroSyncReimbursementAccountID',
+    UPDATE_XERO_FX_EXPENSE_ACCOUNT: 'UpdateXeroFxExpenseAccount',
     REQUEST_FEED_SETUP: 'RequestFeedSetup',
     SET_COMPANY_CARD_FEED_NAME: 'SetFeedName',
     DELETE_COMPANY_CARD_FEED: 'RemoveFeed',
@@ -1200,6 +1202,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.UPDATE_FINANCIAL_FORCE_SYNC_REIMBURSED_REPORTS]: Parameters.UpdateFinancialForceGenericTypeParams<'enabled', boolean>;
     [WRITE_COMMANDS.UPDATE_FINANCIAL_FORCE_TAX_NON_BILLABLE]: Parameters.UpdateFinancialForceGenericTypeParams<'enabled', boolean>;
     [WRITE_COMMANDS.UPDATE_FINANCIAL_FORCE_EXPORT_FOREIGN_CURRENCY]: Parameters.UpdateFinancialForceGenericTypeParams<'enabled', boolean>;
+    [WRITE_COMMANDS.UPDATE_FINANCIAL_FORCE_FX_EXPENSE_ACCOUNT]: Parameters.UpdateFinancialForceGenericTypeParams<'settingValue', string>;
 
     [WRITE_COMMANDS.CONNECT_POLICY_TO_RILLET]: Parameters.ConnectPolicyToRilletParams;
     [WRITE_COMMANDS.SELECT_INTUIT_ENTERPRISE_SUITE_ENTITY]: Parameters.SelectIntuitEnterpriseSuiteEntityParams;
@@ -1380,6 +1383,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.UPDATE_XERO_SYNC_INVOICE_COLLECTIONS_ACCOUNT_ID]: Parameters.UpdateXeroGenericTypeParams;
     [WRITE_COMMANDS.UPDATE_XERO_SYNC_SYNC_REIMBURSED_REPORTS]: Parameters.UpdateXeroGenericTypeParams;
     [WRITE_COMMANDS.UPDATE_XERO_SYNC_REIMBURSEMENT_ACCOUNT_ID]: Parameters.UpdateXeroGenericTypeParams;
+    [WRITE_COMMANDS.UPDATE_XERO_FX_EXPENSE_ACCOUNT]: Parameters.UpdateXeroGenericTypeParams;
 
     // Invoice API
     [WRITE_COMMANDS.SET_INVOICING_TRANSFER_BANK_ACCOUNT]: Parameters.SetInvoicingTransferBankAccountParams;

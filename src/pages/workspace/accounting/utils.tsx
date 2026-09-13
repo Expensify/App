@@ -188,6 +188,7 @@ function getAccountingIntegrationData(
                     CONST.QUICKBOOKS_CONFIG.AUTO_SYNC,
                     CONST.QUICKBOOKS_CONFIG.SYNC_PEOPLE,
                     CONST.QUICKBOOKS_CONFIG.AUTO_CREATE_VENDOR,
+                    CONST.QUICKBOOKS_CONFIG.FX_EXPENSE_ACCOUNT,
                     ...(qboConfig?.collectionAccountID ? [CONST.QUICKBOOKS_CONFIG.REIMBURSEMENT_ACCOUNT_ID, CONST.QUICKBOOKS_CONFIG.COLLECTION_ACCOUNT_ID] : []),
                 ],
                 pendingFields: {...qboConfig?.pendingFields, ...policy?.connections?.quickbooksOnline?.config?.pendingFields},
@@ -241,6 +242,7 @@ function getAccountingIntegrationData(
                     CONST.XERO_CONFIG.SYNC_REIMBURSED_REPORTS,
                     CONST.XERO_CONFIG.REIMBURSEMENT_ACCOUNT_ID,
                     CONST.XERO_CONFIG.INVOICE_COLLECTIONS_ACCOUNT_ID,
+                    CONST.XERO_CONFIG.FX_EXPENSE_ACCOUNT,
                 ],
                 pendingFields: policy?.connections?.xero?.config?.pendingFields,
                 errorFields: policy?.connections?.xero?.config?.errorFields,
@@ -422,7 +424,7 @@ function getAccountingIntegrationData(
                   ];
             const certiniaSubscribedAdvancedSettings = certiniaConfig?.hasPSA
                 ? [CONST.CERTINIA_CONFIG.AUTO_SYNC_ENABLED, CONST.CERTINIA_CONFIG.TAX_NON_BILLABLE, CONST.CERTINIA_CONFIG.EXPORT_FOREIGN_CURRENCY]
-                : [CONST.CERTINIA_CONFIG.AUTO_SYNC_ENABLED, CONST.CERTINIA_CONFIG.SYNC_REIMBURSED_REPORTS];
+                : [CONST.CERTINIA_CONFIG.AUTO_SYNC_ENABLED, CONST.CERTINIA_CONFIG.SYNC_REIMBURSED_REPORTS, CONST.CERTINIA_CONFIG.FX_EXPENSE_ACCOUNT];
             let certiniaTitle = translate('workspace.certinia.title');
             if (certiniaConnection && certiniaConfig?.hasPSA) {
                 certiniaTitle = translate('workspace.certinia.titlePSA');

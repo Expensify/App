@@ -55,6 +55,7 @@ import {
     getTagListByOrderWeight,
     getUberConnectionErrorDirectlyFromPolicy,
     getUnitRateValue,
+    getXeroExpenseAccounts,
     getXeroSupplierByID,
     getXeroSuppliers,
     hasConfiguredRules,
@@ -4621,6 +4622,36 @@ describe('PolicyUtils', () => {
 
             it('returns undefined when Xero contacts have not synced yet', () => {
                 expect(getXeroSupplierByID(buildXeroPolicy(XERO_CONTACTS_UNSYNCED), 'xc1')).toBeUndefined();
+            });
+        });
+
+        describe('getXeroExpenseAccounts', () => {
+            const XERO_EXPENSE_ACCOUNTS = [
+                {id: 'acc1', name: 'Travel Expenses', currency: 'USD'},
+                {id: 'acc2', name: 'Bank Fees', currency: 'USD'},
+            ];
+
+            it('maps the expense accounts to selector options', () => {
+                expect(getXeroExpenseAccounts(XERO_EXPENSE_ACCOUNTS, undefined)).toEqual([
+                    {value: 'acc1', text: 'Travel Expenses', keyForList: 'acc1', isSelected: false},
+                    {value: 'acc2', text: 'Bank Fees', keyForList: 'acc2', isSelected: false},
+                ]);
+            });
+
+            it('marks only the selected account as selected', () => {
+                const options = getXeroExpenseAccounts(XERO_EXPENSE_ACCOUNTS, 'acc2');
+                expect(options.map(({keyForList, isSelected}) => ({keyForList, isSelected}))).toEqual([
+                    {keyForList: 'acc1', isSelected: false},
+                    {keyForList: 'acc2', isSelected: true},
+                ]);
+            });
+
+            it('selects nothing when the stored account is no longer in the synced list', () => {
+                expect(getXeroExpenseAccounts(XERO_EXPENSE_ACCOUNTS, 'acc-archived').every(({isSelected}) => !isSelected)).toBe(true);
+            });
+
+            it('returns an empty array when Xero expense accounts have not synced yet', () => {
+                expect(getXeroExpenseAccounts(undefined, 'acc1')).toEqual([]);
             });
         });
 

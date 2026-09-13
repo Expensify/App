@@ -3170,6 +3170,7 @@ const CONST = {
         ENABLED: 'enabled',
         REIMBURSEMENT_ACCOUNT_ID: 'reimbursementAccountID',
         INVOICE_COLLECTIONS_ACCOUNT_ID: 'invoiceCollectionsAccountID',
+        FX_EXPENSE_ACCOUNT: 'fxExpenseAccount',
         SYNC_REIMBURSED_REPORTS: 'syncReimbursedReports',
         ENABLE_NEW_CATEGORIES: 'enableNewCategories',
         EXPORTER: 'exporter',
@@ -3246,6 +3247,7 @@ const CONST = {
         TAX_NON_BILLABLE: 'taxNonBillable',
         EXPORT_FOREIGN_CURRENCY: 'exportForeignCurrency',
         COMPANY: 'company',
+        FX_EXPENSE_ACCOUNT: 'fxExpenseAccount',
     },
 
     // These are the native values stored in the connection's export.exportStatus config, shared with

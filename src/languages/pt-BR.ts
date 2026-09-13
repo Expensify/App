@@ -5148,6 +5148,9 @@ ${amount} para ${merchant} - ${date}`,
                 xeroInvoiceCollectionAccount: 'Conta de recebimentos de faturas do Xero',
                 xeroBillPaymentAccountDescription: 'Escolha de onde pagar as contas e nós criaremos o pagamento no Xero.',
                 invoiceAccountSelectorDescription: 'Escolha onde receber os pagamentos de faturas e nós criaremos o pagamento no Xero.',
+                xeroFxExpenseAccount: 'Conta de taxa de conversão de moeda do Xero',
+                fxExpenseAccountDescription:
+                    'Quando sua empresa cobrir o custo de conversão de moeda em um pagamento feito no exterior, nós lançaremos esse custo nesta conta no Xero como uma transação de saída de dinheiro.',
             },
             exportDate: {
                 label: 'Data da fatura de compra',
@@ -5359,6 +5362,11 @@ ${amount} para ${merchant} - ${date}`,
                     [CONST.CERTINIA_PARENT_TAG_MAPPING.PARENT_TAG_ASSIGNMENTS]: 'Atribuições',
                 },
             },
+            fxExpenseAccount: 'Conta de taxa de conversão de moeda',
+            fxExpenseAccountDescription:
+                'Quando sua empresa cobre o custo de conversão de moeda em um pagamento feito no exterior, nós adicionaremos esse custo à Fatura a Pagar como uma linha lançada nesta conta.',
+            noExpenseAccountsFound: 'Nenhuma conta encontrada',
+            noExpenseAccountsFoundDescription: 'Sincronize a conexão novamente depois que as Contas do Razão Geral forem adicionadas no Certinia.',
         },
         netsuite: {
             subsidiary: 'Subsidiária',
