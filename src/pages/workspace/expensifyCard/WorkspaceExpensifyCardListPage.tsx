@@ -62,7 +62,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {WorkspaceCardsList} from '@src/types/onyx';
+import type {Card, WorkspaceCardsList} from '@src/types/onyx';
 import type {CardLimitType} from '@src/types/onyx/Card';
 
 import type {OnyxEntry} from 'react-native-onyx';
@@ -144,6 +144,74 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
 
     useCleanupSelectedOptions(clearTableSelection);
 
+    const changeCardLimitType = useCallback(
+        (card: Card, newLimitType: CardLimitType) => {
+            if (newLimitType === card.nameValuePairs?.limitType) {
+                return;
+            }
+
+            const persistLimitType = () => updateExpensifyCardLimitTypeInline(fundID, card, newLimitType, defaultLimitType);
+
+            if (!shouldConfirmExpensifyCardLimitTypeChange(card, newLimitType, defaultLimitType)) {
+                persistLimitType();
+                return;
+            }
+
+            showConfirmModal({
+                title: translate('workspace.expensifyCard.changeCardLimitType'),
+                prompt: translate(
+                    getExpensifyCardLimitTypeChangeWarningKey(card.nameValuePairs?.limitType ?? defaultLimitType),
+                    convertToDisplayString(card.nameValuePairs?.unapprovedExpenseLimit, settlementCurrency),
+                ),
+                confirmText: translate('workspace.expensifyCard.changeLimitType'),
+                cancelText: translate('common.cancel'),
+                buttonVariant: CONST.BUTTON_VARIANT.DANGER,
+                shouldEnableNewFocusManagement: true,
+            }).then(({action}) => {
+                if (action !== ModalActions.CONFIRM) {
+                    return;
+                }
+                persistLimitType();
+            });
+        },
+        [convertToDisplayString, defaultLimitType, fundID, settlementCurrency, showConfirmModal, translate],
+    );
+
+    const changeCardLimit = useCallback(
+        (card: Card, newLimit: string) => {
+            if (getExpensifyCardLimitError(newLimit)) {
+                return;
+            }
+
+            const nextLimit = convertToBackendAmount(Number(newLimit));
+            if (nextLimit === (card.nameValuePairs?.unapprovedExpenseLimit ?? 0)) {
+                return;
+            }
+
+            const persistLimit = () => updateExpensifyCardLimitInline(fundID, card, newLimit);
+
+            if (getExpensifyCardNewAvailableSpend(card, nextLimit) > 0) {
+                persistLimit();
+                return;
+            }
+
+            showConfirmModal({
+                title: translate('workspace.expensifyCard.changeCardLimit'),
+                prompt: translate(getExpensifyCardLimitChangeWarningKey(card.nameValuePairs?.limitType), convertToDisplayString(nextLimit, settlementCurrency)),
+                confirmText: translate('workspace.expensifyCard.changeLimit'),
+                cancelText: translate('common.cancel'),
+                buttonVariant: CONST.BUTTON_VARIANT.DANGER,
+                shouldEnableNewFocusManagement: true,
+            }).then(({action}) => {
+                if (action !== ModalActions.CONFIRM) {
+                    return;
+                }
+                persistLimit();
+            });
+        },
+        [convertToDisplayString, fundID, settlementCurrency, showConfirmModal, translate],
+    );
+
     const cardRows = useMemo<WorkspaceExpensifyCardTableRowData[]>(
         () =>
             allCards.map((card) => {
@@ -180,80 +248,21 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
                     canEditLimit: canEditCard,
                     action: () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_EXPENSIFY_CARD_DETAILS.getRoute(card.cardID.toString()))),
                     onRenameName: (newName: string) => renameExpensifyCardInline(fundID, card.cardID, newName, card.nameValuePairs?.cardTitle ?? ''),
-                    onChangeLimitType: (newLimitType: CardLimitType) => {
-                        if (newLimitType === card.nameValuePairs?.limitType) {
-                            return;
-                        }
-
-                        const persistLimitType = () => updateExpensifyCardLimitTypeInline(fundID, card, newLimitType, defaultLimitType);
-
-                        if (!shouldConfirmExpensifyCardLimitTypeChange(card, newLimitType, defaultLimitType)) {
-                            persistLimitType();
-                            return;
-                        }
-
-                        showConfirmModal({
-                            title: translate('workspace.expensifyCard.changeCardLimitType'),
-                            prompt: translate(
-                                getExpensifyCardLimitTypeChangeWarningKey(card.nameValuePairs?.limitType ?? defaultLimitType),
-                                convertToDisplayString(card.nameValuePairs?.unapprovedExpenseLimit, settlementCurrency),
-                            ),
-                            confirmText: translate('workspace.expensifyCard.changeLimitType'),
-                            cancelText: translate('common.cancel'),
-                            buttonVariant: CONST.BUTTON_VARIANT.DANGER,
-                            shouldEnableNewFocusManagement: true,
-                        }).then(({action}) => {
-                            if (action !== ModalActions.CONFIRM) {
-                                return;
-                            }
-                            persistLimitType();
-                        });
-                    },
-                    onChangeLimit: (newLimit: string) => {
-                        if (getExpensifyCardLimitError(newLimit)) {
-                            return;
-                        }
-
-                        const nextLimit = convertToBackendAmount(Number(newLimit));
-                        if (nextLimit === (card.nameValuePairs?.unapprovedExpenseLimit ?? 0)) {
-                            return;
-                        }
-
-                        const persistLimit = () => updateExpensifyCardLimitInline(fundID, card, newLimit);
-
-                        if (getExpensifyCardNewAvailableSpend(card, nextLimit) > 0) {
-                            persistLimit();
-                            return;
-                        }
-
-                        showConfirmModal({
-                            title: translate('workspace.expensifyCard.changeCardLimit'),
-                            prompt: translate(getExpensifyCardLimitChangeWarningKey(card.nameValuePairs?.limitType), convertToDisplayString(nextLimit, settlementCurrency)),
-                            confirmText: translate('workspace.expensifyCard.changeLimit'),
-                            cancelText: translate('common.cancel'),
-                            buttonVariant: CONST.BUTTON_VARIANT.DANGER,
-                            shouldEnableNewFocusManagement: true,
-                        }).then(({action}) => {
-                            if (action !== ModalActions.CONFIRM) {
-                                return;
-                            }
-                            persistLimit();
-                        });
-                    },
+                    onChangeLimitType: (newLimitType: CardLimitType) => changeCardLimitType(card, newLimitType),
+                    onChangeLimit: (newLimit: string) => changeCardLimit(card, newLimit),
                     onClose: () => clearDeletePaymentMethodError(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${defaultFundID}_${CONST.EXPENSIFY_CARD.BANK}`, card.cardID),
                 };
             }),
         [
             allCards,
             canWriteExpensifyCard,
-            convertToDisplayString,
+            changeCardLimit,
+            changeCardLimitType,
             defaultFundID,
-            defaultLimitType,
             fundID,
             isSelectionModeActive,
             personalDetails,
             settlementCurrency,
-            showConfirmModal,
             translate,
             formatPhoneNumber,
         ],
