@@ -41,6 +41,7 @@ import type {
     NonConnectableBankName,
 } from '@src/types/onyx/CardFeeds';
 import type {CardFeedErrors} from '@src/types/onyx/DerivedValues';
+import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type {SelectedTimezone} from '@src/types/onyx/PersonalDetails';
 import type {Connections} from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -50,7 +51,7 @@ import type {Locale as DateFnsLocale} from 'date-fns';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {TupleToUnion, ValueOf} from 'type-fest';
 
-import {format, fromUnixTime, isBefore, parse} from 'date-fns';
+import {format, fromUnixTime, isBefore} from 'date-fns';
 import groupBy from 'lodash/groupBy';
 import lodashSortBy from 'lodash/sortBy';
 
@@ -1424,6 +1425,26 @@ function isCardConnectionBroken(card: Card): boolean {
 }
 
 /**
+ * Whether a card's connection has a problem worth reflecting in its status. This is broader than
+ * `isCardConnectionBroken`, which ignores some scrape statuses so we do not prompt about them. One of those, 434,
+ * still needs the user to act because the bank changed the account number, so a card reporting it would otherwise
+ * read as Active. This keys off the scrape result rather than the card's errors, which the user can dismiss and
+ * which would then leave a still-broken card reading as Active.
+ *
+ * @param card the card to check
+ * @returns true if the card's connection has a problem to show, false otherwise
+ */
+function hasCardConnectionIssue(card: Card): boolean {
+    if (card.pendingFields?.lastScrape) {
+        return false;
+    }
+    if (isCardConnectionBroken(card)) {
+        return true;
+    }
+    return !!card.lastScrapeResult && CONST.COMPANY_CARDS.ACTIONABLE_IGNORED_SCRAPE_STATUSES.includes(card.lastScrapeResult);
+}
+
+/**
  * Check if the card connection is broken specifically because the user needs to re-authenticate with their bank
  *
  * @param card the card to check
@@ -1477,6 +1498,55 @@ function getCardConnectionStatusDisplay({
 }
 
 /**
+ * Parses a card's last sync. `card.lastScrape` is usually the Expensify DB datetime format ("2024-11-27 11:00:53"),
+ * which carries no offset but is UTC, so it is turned into ISO 8601 with a `Z` rather than read as device local time.
+ * That matches how the App reads a DB datetime elsewhere, see `DateUtils.getLocalDateFromDatetime`. A personal card's
+ * value can already be ISO 8601, which the fallback handles.
+ *
+ * @param card the card to read
+ * @returns the parsed date, or undefined when there is no usable value
+ */
+function parseCardLastScrape(card: Card): Date | undefined {
+    if (!card.lastScrape) {
+        return undefined;
+    }
+    let lastScrapeDate = new Date(`${card.lastScrape.replace(' ', 'T')}Z`);
+    if (Number.isNaN(lastScrapeDate.getTime())) {
+        lastScrapeDate = new Date(card.lastScrape);
+    }
+    return Number.isNaN(lastScrapeDate.getTime()) ? undefined : lastScrapeDate;
+}
+
+/**
+ * The card's errors recorded after its last sync. Something the user just did has to stay visible even when a
+ * connection message already covers the connection itself, and the two are told apart by how they are keyed: the
+ * server names its connection error `connectionError`, while a user action records its error under a microsecond
+ * timestamp. A named key is not a number, so it never reads as newer and the comparison only ever sees the second
+ * kind. That matters because `lastScrape` is the last successful sync, which a broken card never advances.
+ *
+ * @param card the card to read
+ * @returns the errors newer than the last sync
+ */
+function getCardErrorsNewerThanLastScrape(card: Card): Errors {
+    const lastScrapeDate = parseCardLastScrape(card);
+    if (!lastScrapeDate) {
+        // A card that has never synced has nothing to compare against, so its errors are left to the connection message.
+        return {};
+    }
+    // Error keys are microseconds, `lastScrape` is milliseconds.
+    const lastScrapeMicroseconds = lastScrapeDate.getTime() * 1000;
+    return Object.fromEntries(Object.entries(card.errors ?? {}).filter(([errorKey]) => Number(errorKey) > lastScrapeMicroseconds));
+}
+
+/**
+ * @param card the card to check
+ * @returns true if an error is newer than the last sync, false otherwise
+ */
+function hasErrorNewerThanLastScrape(card: Card): boolean {
+    return !isEmptyObject(getCardErrorsNewerThanLastScrape(card));
+}
+
+/**
  * Check whether a card's last successful sync is at least the dismiss threshold (90 days) old.
  *
  * `lastScrape` is the last successful update timestamp (a separate `lastImportAttempt` tracks
@@ -1489,18 +1559,8 @@ function getCardConnectionStatusDisplay({
  * @returns true if the last successful sync is at least the grace period old
  */
 function isLastScrapePastDismissThreshold(card: Card): boolean {
-    if (!card.lastScrape) {
-        return false;
-    }
-    // `card.lastScrape` is usually the Expensify DB datetime format ("2024-11-27 11:00:53"), but a personal card's value can
-    // arrive as ISO 8601 ("2024-11-27T11:00:53Z"). Try the DB format explicitly first (its `new Date()` handling isn't
-    // portable across JS engines), then fall back to `new Date()`, which parses ISO 8601 reliably. Without the fallback an
-    // ISO value fails the DB parse, the difference is NaN, and the connection is never dismissed (the RBR stays forever).
-    let lastScrapeDate = parse(card.lastScrape, 'yyyy-MM-dd HH:mm:ss', new Date());
-    if (Number.isNaN(lastScrapeDate.getTime())) {
-        lastScrapeDate = new Date(card.lastScrape);
-    }
-    if (Number.isNaN(lastScrapeDate.getTime())) {
+    const lastScrapeDate = parseCardLastScrape(card);
+    if (!lastScrapeDate) {
         return false;
     }
     return DateUtils.getDifferenceInDaysFromNow(lastScrapeDate) >= CONST.COMPANY_CARDS.BROKEN_CONNECTION_DISMISS_AFTER_DAYS;
@@ -1728,15 +1788,6 @@ function isCardPendingReplace(card?: Card) {
         !!card?.nameValuePairs?.terminationReason &&
         card?.nameValuePairs?.statusChanges?.at(-1)?.status === CONST.EXPENSIFY_CARD.STATE.STATE_DEACTIVATED
     );
-}
-
-/**
- * Check if card has a broken connection
- *
- * @param card personal card to check
- */
-function isPersonalCardBrokenConnection(card?: Card) {
-    return card?.lastScrapeResult && !CONST.COMPANY_CARDS.BROKEN_CONNECTION_IGNORED_STATUSES.includes(card?.lastScrapeResult);
 }
 
 function isExpensifyCardPendingAction(card?: Card, privatePersonalDetails?: PrivatePersonalDetails): boolean {
@@ -2210,7 +2261,6 @@ export {
     isTravelCardTransaction,
     getCompanyFeeds,
     hasCompanyCardFeeds,
-    isPersonalCardBrokenConnection,
     isCustomFeed,
     isCSVUploadFeed,
     isCSVFeedOrExpensifyCard,
@@ -2238,7 +2288,10 @@ export {
     isCardHiddenFromSearch,
     getCSVFeedType,
     getFeedType,
+    getCardErrorsNewerThanLastScrape,
+    hasErrorNewerThanLastScrape,
     isCardConnectionBroken,
+    hasCardConnectionIssue,
     doesCardConnectionNeedReauthentication,
     getCardConnectionStatusDisplay,
     isBrokenConnectionPastDismissThreshold,

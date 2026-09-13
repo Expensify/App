@@ -120,6 +120,10 @@ const brokenConnectionScrapeStatuses: number[] = [200, 434, 531, 530, 500, 666];
 
 const reauthScrapeStatuses: number[] = [438];
 
+// Statuses we do not prompt about, but which still mean the user has to do something. 434 is the bank changing the
+// account number, so the card's status has to show it even though the broken-connection check ignores it.
+const actionableIgnoredScrapeStatuses: number[] = [434];
+
 // Hide not issued or not activated cards (states 2, 4) from card filter options in search, as no transactions can be made on cards in these states
 const cardHiddenFromSearchStates: number[] = [2, 4];
 
@@ -5208,6 +5212,9 @@ const CONST = {
     },
     COMPANY_CARDS: {
         BROKEN_CONNECTION_IGNORED_STATUSES: brokenConnectionScrapeStatuses,
+
+        // Ignored scrape result codes that still need the user to act, so they belong in the card's status
+        ACTIONABLE_IGNORED_SCRAPE_STATUSES: actionableIgnoredScrapeStatuses,
 
         // Scrape result codes where the connection is broken because the user needs to re-authenticate with their bank
         REAUTH_SCRAPE_STATUSES: reauthScrapeStatuses,

@@ -59,10 +59,14 @@ import {
     getWalletProviderNameKey,
     getYearFromExpirationDateString,
     hasAssignedCardMatching,
+    getCardErrorsNewerThanLastScrape,
+    hasCardConnectionIssue,
+    hasErrorNewerThanLastScrape,
     hasIssuedExpensifyCard,
     hasOnlyOneCardToAssign,
     isBrokenConnectionPastDismissThreshold,
     isCardAlreadyAssigned,
+    isCardConnectionBroken,
     isCardFrozen,
     isLastScrapePastDismissThreshold,
     isCSVFeedOrExpensifyCard,
@@ -4434,6 +4438,105 @@ describe('CardUtils', () => {
         it('returns false for an ignored scrape status even when the last sync is long past the threshold', () => {
             const card: Card = {...createRandomCard(1), lastScrapeResult: 434, lastScrape: '2020-01-01 00:00:00'};
             expect(isBrokenConnectionPastDismissThreshold(card)).toBe(false);
+        });
+    });
+
+    describe('hasCardConnectionIssue', () => {
+        it('returns true for a scrape status that is not ignored', () => {
+            const card: Card = {...createRandomCard(1), lastScrapeResult: 403, errors: undefined};
+            expect(hasCardConnectionIssue(card)).toBe(true);
+        });
+
+        // 434 is an ignored status, so isCardConnectionBroken is false for it even though the bank changed the account
+        // number and the user has to act.
+        it('returns true for an actionable ignored scrape status', () => {
+            const card: Card = {...createRandomCard(1), lastScrapeResult: 434, errors: {connectionError: 'The account number appears to have changed at the bank.'}};
+            expect(isCardConnectionBroken(card)).toBe(false);
+            expect(hasCardConnectionIssue(card)).toBe(true);
+        });
+
+        // Dismissing the row error clears card.errors, so keying off it would flip a still-broken card to Active.
+        it('stays true for an actionable ignored scrape status after its errors are dismissed', () => {
+            const card: Card = {...createRandomCard(1), lastScrapeResult: 434, errors: undefined};
+            expect(hasCardConnectionIssue(card)).toBe(true);
+        });
+
+        it('returns false for an ignored scrape status that needs no action', () => {
+            const card: Card = {...createRandomCard(1), lastScrapeResult: 530, errors: {someError: 'Transient server error'}};
+            expect(hasCardConnectionIssue(card)).toBe(false);
+        });
+
+        it('returns false for a successful scrape', () => {
+            const card: Card = {...createRandomCard(1), lastScrapeResult: 200, errors: undefined};
+            expect(hasCardConnectionIssue(card)).toBe(false);
+        });
+
+        it('returns false while a scrape is pending', () => {
+            const card: Card = {...createRandomCard(1), lastScrapeResult: 403, pendingFields: {lastScrape: 'update'}, errors: {connectionError: 'Broken'}};
+            expect(hasCardConnectionIssue(card)).toBe(false);
+        });
+    });
+
+    describe('hasErrorNewerThanLastScrape', () => {
+        it('returns false when the card has no errors', () => {
+            const card: Card = {...createRandomCard(1), lastScrape: '2025-10-05 11:00:00', errors: undefined};
+            expect(hasErrorNewerThanLastScrape(card)).toBe(false);
+        });
+
+        // The server names its connection error rather than keying it by time, so it stays out of this filter however
+        // long the card has gone without a successful sync, which is the whole grace period for a broken card.
+        it('returns false for the server connection error on a card that stopped syncing long ago', () => {
+            const card: Card = {...createRandomCard(1), lastScrape: '2024-01-05 11:00:00', errors: {connectionError: 'Your card connection is broken.'}};
+            expect(hasErrorNewerThanLastScrape(card)).toBe(false);
+        });
+
+        // A user action on that same stale card is keyed by timestamp, so it still has to come through.
+        it('returns true for a user action error on a card that stopped syncing long ago', () => {
+            const card: Card = {
+                ...createRandomCard(1),
+                lastScrape: '2024-01-05 11:00:00',
+                errors: {connectionError: 'Your card connection is broken.', [Date.now() * 1000]: 'Failed to unassign this card'},
+            };
+            expect(hasErrorNewerThanLastScrape(card)).toBe(true);
+        });
+
+        // The server records the connection error at scrape time, so an error with the same timestamp is that one.
+        // `lastScrape` has no offset but is UTC, so the expected key is built from the UTC instant rather than a local one.
+        it('returns false for an error recorded at the last sync', () => {
+            const lastScrapeMicroseconds = Date.parse('2025-10-05T11:00:00Z') * 1000;
+            const card: Card = {...createRandomCard(1), lastScrape: '2025-10-05 11:00:00', errors: {[lastScrapeMicroseconds]: 'Connection broken'}};
+            expect(hasErrorNewerThanLastScrape(card)).toBe(false);
+        });
+
+        it('returns true for an error recorded one second after the last sync', () => {
+            const oneSecondAfterLastScrape = (Date.parse('2025-10-05T11:00:00Z') + 1000) * 1000;
+            const card: Card = {...createRandomCard(1), lastScrape: '2025-10-05 11:00:00', errors: {[oneSecondAfterLastScrape]: 'Failed to unassign this card'}};
+            expect(hasErrorNewerThanLastScrape(card)).toBe(true);
+        });
+
+        // A failed unassignment is recorded now, long after the last sync, and has to stay visible.
+        it('returns true for an error recorded after the last sync', () => {
+            const card: Card = {...createRandomCard(1), lastScrape: '2025-10-05 11:00:00', errors: {[Date.now() * 1000]: 'Failed to unassign this card'}};
+            expect(hasErrorNewerThanLastScrape(card)).toBe(true);
+        });
+
+        // Only the newer error is kept, so a stale connection error is not shown next to the connection message.
+        it('keeps only the errors recorded after the last sync', () => {
+            const staleKey = Date.parse('2025-10-05T11:00:00Z') * 1000;
+            const freshKey = Date.now() * 1000;
+            const card: Card = {...createRandomCard(1), lastScrape: '2025-10-05 11:00:00', errors: {[staleKey]: 'Connection broken', [freshKey]: 'Failed to unassign this card'}};
+            expect(getCardErrorsNewerThanLastScrape(card)).toEqual({[freshKey]: 'Failed to unassign this card'});
+        });
+
+        // A card that has never synced cannot be compared against, so its error stays with the connection message.
+        it('returns false when there is an error but no last sync to compare against', () => {
+            const card: Card = {...createRandomCard(1), lastScrape: undefined, errors: {1700000000000000: 'Failed to unassign this card'}};
+            expect(hasErrorNewerThanLastScrape(card)).toBe(false);
+        });
+
+        it('parses an ISO 8601 last sync', () => {
+            const card: Card = {...createRandomCard(1), lastScrape: '2025-10-05T11:00:00Z', errors: {[Date.now() * 1000]: 'Failed to unassign this card'}};
+            expect(hasErrorNewerThanLastScrape(card)).toBe(true);
         });
     });
 

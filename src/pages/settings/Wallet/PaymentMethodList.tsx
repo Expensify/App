@@ -20,10 +20,11 @@ import {
     getCardConnectionStatusDisplay,
     getCardFeedIcon,
     getCardFeedWithDomainID,
+    getCardErrorsNewerThanLastScrape,
     getCompanyCardFeedWithDomainIDForCard,
     getPlaidInstitutionIconUrl,
+    hasCardConnectionIssue,
     isActionableVirtualExpensifyCard,
-    isBrokenConnectionPastDismissThreshold,
     isCardConnectionBroken,
     doesCardConnectionNeedReauthentication,
     isCardFrozen,
@@ -306,7 +307,9 @@ function PaymentMethodList({
                 }
 
                 const companyCardFeedForCard = getCompanyCardFeedWithDomainIDForCard(card);
-                const isCardBroken = isCardConnectionBroken(card) && !isBrokenConnectionPastDismissThreshold(card);
+                // The grace period and the ignored scrape statuses only stop us from prompting the user. The status itself
+                // stays truthful, so a card reporting a connection error still reads as Inactive with a way to fix it.
+                const isCardBroken = hasCardConnectionIssue(card);
                 const isCardInactiveState = isCardInactive(card);
                 const cardConnectionStatusDisplay = getCardConnectionStatusDisplay({
                     shouldShowConnectionStatus,
@@ -319,7 +322,10 @@ function PaymentMethodList({
                     policyID: policyIDForCard,
                 });
                 const shouldShowCardConnectionMessage = !!cardConnectionStatusDisplay?.messageKey;
-                const shouldShowCardErrorMessages = !shouldShowCardConnectionMessage || !!card.pendingAction;
+                // The connection message replaces the server's own connection error, so only errors recorded after the
+                // last sync are kept alongside it.
+                const cardErrors = shouldShowCardConnectionMessage && !card.pendingAction ? getCardErrorsNewerThanLastScrape(card) : card.errors;
+                const shouldShowCardErrorMessages = !isEmptyObject(cardErrors);
                 const shouldShowCardLastSync = shouldShowConnectionStatus && !isExpensifyCard(card) && !isCSVCard;
                 let cardLastSyncText: string | undefined;
                 if (shouldShowCardLastSync) {
@@ -415,7 +421,7 @@ function PaymentMethodList({
                         disabled: isDisabled,
                         shouldShowRightIcon,
                         shouldShowThreeDotsMenu: !isUserPersonalCard,
-                        errors: isUserPersonalCard ? undefined : card.errors,
+                        errors: isUserPersonalCard ? undefined : cardErrors,
                         shouldShowErrorMessages: !isUserPersonalCard && shouldShowCardErrorMessages,
                         canDismissError: false,
                         pendingAction: card.pendingAction,
@@ -493,7 +499,7 @@ function PaymentMethodList({
                     shouldShowRightIcon: true,
                     interactive: !isDisabled,
                     disabled: isDisabled,
-                    errors: card.errors,
+                    errors: cardErrors,
                     shouldShowErrorMessages: shouldShowCardErrorMessages,
                     canDismissError: true,
                     pendingAction: card.pendingAction,
