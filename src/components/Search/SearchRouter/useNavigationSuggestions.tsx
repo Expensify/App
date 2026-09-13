@@ -88,6 +88,7 @@ const SEARCH_ROUTER_ICON_NAMES = [
     'InvoiceGeneric',
     'Bolt',
     'Bot',
+    'UserPlus',
 ] as const;
 
 // Saved searches are user-defined searches, not canned destinations, so they are excluded from go-to navigation suggestions.
@@ -134,6 +135,9 @@ type BuildWorkspaceNavigationItemsParams = {
     isOffline: boolean;
 
     isVendorMatchingBetaEnabled: boolean;
+
+    /** Whether the Merge ATS beta gating the Recruiting feature is enabled. */
+    isRecruitingBetaEnabled: boolean;
 
     /** Whether navigation should use the narrow-layout Workspace flow. */
     shouldUseNarrowLayout: boolean;
@@ -271,6 +275,7 @@ function buildWorkspaceNavigationItems({
     icons,
     isOffline,
     isVendorMatchingBetaEnabled,
+    isRecruitingBetaEnabled,
     shouldUseNarrowLayout,
     convertToDisplayString,
     getItemText,
@@ -289,6 +294,7 @@ function buildWorkspaceNavigationItems({
                 icons,
                 policyCategories: policyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policy.id}`],
                 isVendorMatchingBetaEnabled,
+                isRecruitingBetaEnabled,
                 convertToDisplayString,
             });
 
@@ -419,6 +425,7 @@ function useNavigationSuggestions(query: string, shouldWatchForApprovals = true)
         icons,
         isOffline: !!isOffline,
         isVendorMatchingBetaEnabled: isBetaEnabled(CONST.BETAS.VENDOR_MATCHING),
+        isRecruitingBetaEnabled: isBetaEnabled(CONST.BETAS.MERGE_ATS),
         shouldUseNarrowLayout,
         convertToDisplayString,
         getItemText: (item) => translate(item.translationKey),
