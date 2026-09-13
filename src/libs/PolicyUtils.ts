@@ -43,7 +43,7 @@ import type Rule from '@src/types/onyx/Rule';
 import type {WorkspaceTravelSettings} from '@src/types/onyx/TravelSettings';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {NullishDeep, OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {TupleToUnion, ValueOf} from 'type-fest';
 
 import {Str} from 'expensify-common';
@@ -706,6 +706,21 @@ function getReimburserEmail(policy: OnyxEntry<Policy>): string | undefined {
     }
 
     return policy.reimburser ?? policy.achAccount?.reimburser ?? (isManualReimbursement ? policy.owner : undefined);
+}
+
+/**
+ * Payer fields to merge into the successData of an ownership transfer. The backend keeps the former payer when the
+ * workspace has a bank account, so only reassign when there is none and the outgoing owner is the resolved payer.
+ */
+function getOwnerChangePayerSuccessData(policy: OnyxEntry<Policy>, newOwnerLogin: string): NullishDeep<Policy> {
+    if (!policy || policy.achAccount?.bankAccountID || getReimburserEmail(policy) !== policy.owner) {
+        return {};
+    }
+
+    return {
+        ...(policy.reimburser ? {reimburser: newOwnerLogin} : {}),
+        ...(policy.achAccount?.reimburser ? {achAccount: {reimburser: newOwnerLogin}} : {}),
+    };
 }
 
 /**
@@ -3494,6 +3509,7 @@ export {
     isPolicyMember,
     isPolicyPayer,
     getReimburserEmail,
+    getOwnerChangePayerSuccessData,
     PAYER_ROLES,
     canRolePay,
     arePaymentsEnabled,
