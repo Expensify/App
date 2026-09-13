@@ -132,6 +132,9 @@ function SearchMergeReports() {
                     totalDisplaySpend,
                     nonReimbursableSpend,
                     reimbursableSpend,
+                    errors: undefined,
+                    pendingAction: undefined,
+                    pendingFields: undefined,
                 };
             })
             .filter((item) => !!item);
