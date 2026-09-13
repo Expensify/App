@@ -1,5 +1,4 @@
 import AccountAvatar from '@components/Avatar/connected/AccountAvatar';
-import UserAvatar from '@components/Avatar/UserAvatar';
 import Icon from '@components/Icon';
 import Table from '@components/Table';
 import {getCellAccessibilityProps, shouldUseTableSemantics} from '@components/Table/tableAccessibility';
@@ -111,9 +110,9 @@ export default function WorkspaceMembersTableRow({
                         >
                             {!!item.approverDisplayName && !!item.approverAccountID && (
                                 <>
-                                    <UserAvatar
-                                        source={item.approverAvatar}
+                                    <AccountAvatar
                                         accountID={item.approverAccountID}
+                                        fallbackDisplayName={item.approverDisplayName}
                                         size={CONST.AVATAR_SIZE.XXX_SMALL}
                                     />
                                     <TextWithTooltip

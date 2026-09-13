@@ -330,6 +330,11 @@ function hasMultiLevelApprovalWorkflow(approvalWorkflows: ApprovalWorkflow[]): b
     return approvalWorkflows.some((workflow) => workflow.approvers.length > 1);
 }
 
+/** Label for a member's first approver: "1st approver" when their workflow has more than one level, "Approver" otherwise. */
+function getFirstApproverLabel(hasMultipleApprovers: boolean, translate: LocaleContextProps['translate'], toLocaleOrdinalWithWords: LocaleContextProps['toLocaleOrdinalWithWords']): string {
+    return hasMultipleApprovers ? `${toLocaleOrdinalWithWords(1)} ${translate('workflowsPage.approver').toLowerCase()}` : translate('workflowsPage.approver');
+}
+
 type ConvertApprovalWorkflowToPolicyEmployeesParams = {
     /**
      * Approval workflow to convert
@@ -1767,6 +1772,7 @@ export {
     getRulesSubmitterToWorkflowKey,
     getWorkflowMemberEmails,
     hasMultiLevelApprovalWorkflow,
+    getFirstApproverLabel,
     hasRuleBasedDefaultWorkflow,
     getEligibleExistingBusinessBankAccounts,
     getOpenConnectedToPolicyBusinessBankAccounts,

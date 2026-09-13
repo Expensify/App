@@ -41,20 +41,20 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import {getPhoneNumber, temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
 import {
+    areApprovalsEnabled,
     canMemberAssignRole,
     canMemberManageMemberWithRole,
     canMemberWrite,
     getReimburserEmail,
     isControlPolicy,
     isPolicyApprover,
-    isSubmitAndClose,
     PAYER_ROLES,
     tryNavigateToSubmitWorkspaceUpgrade,
 } from '@libs/PolicyUtils';
 import shouldRenderTransferOwnerButton from '@libs/shouldRenderTransferOwnerButton';
 import {getDefaultAvatarURL} from '@libs/UserAvatarUtils';
 import {generateAccountID} from '@libs/UserUtils';
-import {INITIAL_APPROVAL_WORKFLOW, updateWorkflowDataOnApproverRemoval} from '@libs/WorkflowUtils';
+import {getFirstApproverLabel, INITIAL_APPROVAL_WORKFLOW, updateWorkflowDataOnApproverRemoval} from '@libs/WorkflowUtils';
 
 import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
@@ -161,21 +161,18 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const {isAccountLocked} = useLockedAccountState();
     const {showLockedAccountModal} = useLockedAccountActions();
 
-    const {approvalWorkflows, availableMembers, usedApproverEmails} = useApprovalWorkflows({policy, currentUserLogin});
+    const {approvalWorkflows, availableMembers, usedApproverEmails} = useApprovalWorkflows({policy, personalDetails, currentUserLogin});
 
     // The label follows this member's own workflow depth, not the workspace's.
     const memberApprovalWorkflow = approvalWorkflows.find((workflow) => workflow.members.some((workflowMember) => workflowMember.email === memberLogin));
     const memberFirstApprover = memberApprovalWorkflow?.approvers.at(0);
-    const hasApprovalsEnabled = !isSubmitAndClose(policy);
+    const isApprovalsEnabled = areApprovalsEnabled(policy);
     // An HR integration in a read-only approval mode owns the workflows, so the editor rejects manual edits.
     // Keep the row visible for reference but inert, the same way the Workflows tab disables its own actions.
-    const canEditApprover = canWriteMembers && !isAnyHRReadOnlyWorkflowMode(policy);
+    const shouldAllowApproverEdit = canWriteMembers && !isAnyHRReadOnlyWorkflowMode(policy);
     // A member at the top of their own chain has no approver, the workspace owner being the common case.
     const approverToDisplay = memberFirstApprover && memberFirstApprover.email !== memberLogin ? memberFirstApprover : undefined;
-    const approverLabel =
-        approverToDisplay && (memberApprovalWorkflow?.approvers.length ?? 0) > 1
-            ? `${toLocaleOrdinalWithWords(1)} ${translate('common.approver').toLowerCase()}`
-            : translate('common.approver');
+    const approverLabel = getFirstApproverLabel(!!approverToDisplay && (memberApprovalWorkflow?.approvers.length ?? 0) > 1, translate, toLocaleOrdinalWithWords);
 
     const openMemberApprovalWorkflow = () => {
         // Discard stale onyx edits or the Edit page's resume check would surface a prior abandoned session.
@@ -451,7 +448,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                     Navigation.navigate(ROUTES.WORKSPACE_MEMBER_DETAILS_ROLE.getRoute(policyID, accountID));
                                 }}
                             />
-                            {hasApprovalsEnabled && (
+                            {isApprovalsEnabled && (
                                 <OfflineWithFeedback pendingAction={member?.pendingFields?.submitsTo}>
                                     <MenuItemWithTopDescription
                                         description={approverLabel}
@@ -467,8 +464,8 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                                 </View>
                                             ) : undefined
                                         }
-                                        shouldShowRightIcon={canEditApprover}
-                                        interactive={canEditApprover}
+                                        shouldShowRightIcon={shouldAllowApproverEdit}
+                                        interactive={shouldAllowApproverEdit}
                                         onPress={openMemberApprovalWorkflow}
                                         pressableTestID="member-approver-menu-item"
                                     />

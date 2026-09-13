@@ -1632,6 +1632,14 @@ function isSubmitAndClose(policy: OnyxInputOrEntry<Policy>): boolean {
     return policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.OPTIONAL;
 }
 
+/**
+ * Whether the policy has approvals turned on. False while the policy hasn't loaded yet (no `approvalMode`),
+ * unlike `!isSubmitAndClose(policy)`, which reads an unresolved policy as approvals-enabled.
+ */
+function areApprovalsEnabled(policy: OnyxInputOrEntry<Policy>): boolean {
+    return !!policy?.approvalMode && !isSubmitAndClose(policy);
+}
+
 function arePaymentsEnabled(policy: OnyxInputOrEntry<Policy>): boolean {
     return policy?.reimbursementChoice !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO;
 }
@@ -3499,6 +3507,7 @@ export {
     arePaymentsEnabled,
     isSubmitterAndApprover,
     isSubmitAndClose,
+    areApprovalsEnabled,
     isTaxTrackingEnabled,
     shouldShowPolicy,
     getActiveAdminWorkspaces,

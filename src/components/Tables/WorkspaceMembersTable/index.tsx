@@ -6,7 +6,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 
 import {getPolicyApproverLogins, isControlPolicy, isSubmitPolicy} from '@libs/PolicyUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
-import type {AvatarSource} from '@libs/UserAvatarUtils';
+import {getFirstApproverLabel} from '@libs/WorkflowUtils';
 
 import {fontScale} from '@styles/typography';
 import variables from '@styles/variables';
@@ -30,7 +30,6 @@ type WorkspaceMemberRowData = TableData & {
     role?: string;
     employeeUserID?: string;
     employeePayrollID?: string;
-    approverAvatar?: AvatarSource;
     approverAccountID?: number;
     approverDisplayName?: string;
     name: string;
@@ -54,7 +53,7 @@ type WorkspaceMembersTableProps = {
     shouldShowCustomField1Column: boolean;
     shouldShowCustomField2Column: boolean;
     shouldShowApproverColumn: boolean;
-    hasMultiLevelWorkflow: boolean;
+    shouldUseOrdinalApproverLabel: boolean;
     onRowSelectionChange: (selectedRowKeys: string[]) => void;
     headerComponent?: React.ReactElement;
 };
@@ -84,7 +83,7 @@ export default function WorkspaceMembersTable({
     shouldShowCustomField1Column,
     shouldShowCustomField2Column,
     shouldShowApproverColumn,
-    hasMultiLevelWorkflow,
+    shouldUseOrdinalApproverLabel,
     members,
     onRowSelectionChange,
     headerComponent,
@@ -115,9 +114,9 @@ export default function WorkspaceMembersTable({
                       sortable: true,
                       key: 'approver' as const,
                       // One header for the whole table, so it follows the deepest workflow in the workspace.
-                      label: hasMultiLevelWorkflow ? `${toLocaleOrdinalWithWords(1)} ${translate('common.approver').toLowerCase()}` : translate('common.approver'),
+                      label: getFirstApproverLabel(shouldUseOrdinalApproverLabel, translate, toLocaleOrdinalWithWords),
                       dynamicSizing: {
-                          getContentToMeasure: (item: WorkspaceMemberRowData) => (item.approverDisplayName ? [{text: item.approverDisplayName, fontSize: fontScale.text}] : []),
+                          getContentToMeasure: (item: WorkspaceMemberRowData) => (item.approverDisplayName ? [{text: item.approverDisplayName}] : []),
                           extraWidth: APPROVER_CELL_AVATAR_WIDTH,
                       },
                   },
