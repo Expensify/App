@@ -72,10 +72,15 @@ jest.mock('@libs/CardUtils', () => {
     const actual: typeof CardUtils = jest.requireActual('@libs/CardUtils');
     return {
         ...actual,
-        getDisplayableExpensifyCards: jest.fn(() => [
-            {cardID: 1, lastFourPAN: '1234', nameValuePairs: {}},
-            {cardID: 2, lastFourPAN: '5678', nameValuePairs: {}},
-        ]),
+        getDisplayableExpensifyCards: jest.fn(() => {
+            const cards = [
+                {cardID: 1, lastFourPAN: '1234', nameValuePairs: {}},
+                {cardID: 2, lastFourPAN: '5678', nameValuePairs: {}},
+            ];
+
+            // Neither stub card is half of a combo duo, so each one stands only for itself.
+            return {cards, cardIDsByShownCardID: Object.fromEntries(cards.map(({cardID}) => [cardID, [cardID]]))};
+        }),
         getDisplayableThirdPartyCards: jest.fn(() => []),
         getCardDescription: jest.fn(() => 'Card description'),
     };
