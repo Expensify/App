@@ -69,7 +69,8 @@ When a workspace is connected to an accounting integration such as QuickBooks On
 
 While that connection is active, imported fields and the fields you create behave differently:
 
-- **Imported fields** can't be deleted, and you can't add, edit, enable, or disable their **List values** in Expensify. Change them in your accounting system, then sync the connection.
+- **Imported fields** can't be deleted, and you can't add or delete their **List values** in Expensify. Add or remove values in your accounting system, then sync the connection.
+- You can still turn an imported field's individual **List values** on or off in Expensify to control which ones members can pick.
 - **Fields you create in Expensify** can be edited and deleted as usual, even while the connection is active.
 - You can enable **Report fields** and click **Add field** while a connection is active.
 - Once at least one imported field exists, the **Report fields** toggle can't be turned off. Clicking it shows a message that report fields imported from your accounting connection can't be disabled.
@@ -84,7 +85,7 @@ The fields an integration imported stay on the workspace after you disconnect it
 
 - You can turn off **Report fields**.
 - Each leftover field shows a **Delete** action.
-- You can add, edit, enable, and disable **List values** on those fields.
+- You can add, delete, enable, and disable **List values** on those fields.
 
 ---
 
