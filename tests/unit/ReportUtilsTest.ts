@@ -6105,6 +6105,63 @@ describe('ReportUtils', () => {
             expect(canEditRequest).toEqual(false);
         });
 
+        it('should not let someone else edit an unreported expense just because they are an admin of their own workspace', async () => {
+            const otherUserAccountID = 99;
+            const selfDMReport: Report = {
+                reportID: '98099',
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: CONST.REPORT.CHAT_TYPE.SELF_DM,
+                ownerAccountID: otherUserAccountID,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            };
+            // The workspace the viewer would move the expense to, which is their own - not the workspace the expense belongs to
+            const viewerOwnPolicy: Policy = {
+                ...createRandomPolicy(98099, CONST.POLICY.TYPE.TEAM),
+                role: CONST.POLICY.ROLE.ADMIN,
+            };
+            const transaction = {
+                ...createRandomTransaction(98099),
+                reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+                // A managed card transaction is allowed through earlier on, so keep this a plain tracked expense
+                managedCard: false,
+            };
+            const trackExpenseAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> = {
+                ...createRandomReportAction(98099),
+                reportID: selfDMReport.reportID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                actorAccountID: otherUserAccountID,
+                message: [{type: CONST.REPORT.MESSAGE.TYPE.TEXT, text: ''}],
+                previousMessage: undefined,
+                originalMessage: {
+                    IOUTransactionID: transaction.transactionID,
+                    amount: 530,
+                    currency: CONST.CURRENCY.USD,
+                    type: CONST.IOU.REPORT_ACTION_TYPE.TRACK,
+                },
+            };
+
+            const reportCollectionDataSet: ReportCollectionDataSet = {
+                [`${ONYXKEYS.COLLECTION.REPORT}${selfDMReport.reportID}`]: selfDMReport,
+            };
+            const transactionCollectionDataSet: TransactionCollectionDataSet = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: transaction,
+            };
+
+            await Onyx.multiSet({
+                [ONYXKEYS.PERSONAL_DETAILS_LIST]: participantsPersonalDetails,
+                [ONYXKEYS.SESSION]: {email: currentUserEmail, accountID: currentUserAccountID},
+                ...reportCollectionDataSet,
+                ...transactionCollectionDataSet,
+            });
+            await waitForBatchedUpdates();
+
+            expect(canEditMoneyRequest(trackExpenseAction, transaction, undefined, false, selfDMReport, viewerOwnPolicy)).toBe(false);
+
+            // The person who tracked the expense keeps their own edit rights
+            expect(canEditMoneyRequest({...trackExpenseAction, actorAccountID: currentUserAccountID}, transaction, undefined, false, selfDMReport, viewerOwnPolicy)).toBe(true);
+        });
+
         it('should use the passed reportActions to determine whether the report was forwarded since the last submit', async () => {
             const reportID = '89015';
             const transactionID = '89015-transaction';
