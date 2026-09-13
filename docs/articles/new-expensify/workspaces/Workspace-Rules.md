@@ -1,7 +1,7 @@
 ---
 title: Workspace Rules
 description: Configure and manage rules for your workspace to enforce expense policies and automate compliance.
-keywords: [New Expensify, workspace rules, expense rules, receipt requirements, category rules, self-approvals, prohibited expenses, disable Smartscan, automate expenses, subscription expense, non-reimbursable, cash expense default, always reimbursable, always non-reimbursable, default expense handling, control expenses, expense categorization, rule-based expenses, compliance, itemized receipt, itemized receipts required over, merchant rules, workspace merchant rules, auto-categorize by merchant, spend rules, Expensify Card spend rules, block transactions, approve transactions, public receipt visibility, share receipt link, receipt URL]
+keywords: [New Expensify, workspace rules, expense rules, receipt requirements, category rules, self-approvals, prohibited expenses, disable Smartscan, automate expenses, subscription expense, non-reimbursable, cash expense default, always reimbursable, always non-reimbursable, default expense handling, control expenses, expense categorization, rule-based expenses, compliance, itemized receipt, itemized receipts required over, merchant rules, workspace merchant rules, auto-categorize by merchant, spend rules, Expensify Card spend rules, block transactions, approve transactions, public receipt visibility, share receipt link, receipt URL, flag amounts over, max expense amount, category limit, individual expense, category total, nightly rate, per-night average, multi-day reservation]
 internalScope: Audience is Workspace Admins on the Control plan. Covers enabling and managing workspace-level rules such as expense rules, merchant rules, prohibited expenses, category rules, tag rules, report rules, and Expensify Card spend rules. Does not cover personal expense rules, Workspace Merchant Rules setup details, or troubleshooting specific rule outcomes.
 ---
 
@@ -32,7 +32,7 @@ Once enabled, go to the **Rules** tab in the left menu to manage expense-level s
 
 - **Receipt required amount** – Set the minimum amount that requires a receipt (supports decimals).
 - **Itemized receipt required over** – Require itemized receipts for expenses over a specific amount.
-- **Max expense amount** – Set a per-expense spending cap (supports decimals).
+- **Max expense amount** – Set a per-expense spending cap (supports decimals). This cap is always compared against the full expense total, including a multi-day hotel expense. A Category Rule can override it for a specific category.
 - **Max expense age (Days)** – Define how old an expense can be (whole numbers only).
 - **Cash expense default** - Choose how cash expenses are created. A cash expense is any expense that isn't an imported company card transaction, including manually created expenses, receipts, per diem, distance, and time expenses. Select **Reimbursable** or **Non-reimbursable** to set a starting value that members can change on each expense, or select **Always reimbursable** or **Always non-reimbursable** to fix the value for every cash expense. When you select an **Always** option, the **Reimbursable** toggle is hidden on the expense and on every split created from it. Note: [Workspace Merchant Rules](/articles/new-expensify/workspaces/Workspace-Merchant-Rules) can also set reimbursable status on a per-merchant basis.
 - **Billable default** – Choose whether expenses are billable by default. Note: [Workspace Merchant Rules](/articles/new-expensify/workspaces/Workspace-Merchant-Rules) can also set billable status on a per-merchant basis.
@@ -145,7 +145,9 @@ Available options:
 
 - **Approver** – Assign a specific approver for expenses in this category.
 - **Default tax rate** – Set a default tax percentage ([Taxes](/articles/new-expensify/workspaces/Track-Taxes) must be enabled on the workspace).
-- **Flag amounts over** - Set a spending cap for this category.
+- **Flag amounts over** - Set a spending cap for this category. Enter the cap in the **Amount** field, then use the **Type** row to choose how the cap is measured:
+   - **Individual expense** - Flags a single expense that goes over the cap. This overrides the **Max expense amount** rule for expenses in this category. Multi-day reservations are evaluated using the per-night average. [Learn how Flag amounts over is applied to a multi-day hotel expense](/articles/new-expensify/workspaces/Create-expense-categories).
+   - **Category total** - Flags the total daily spend for this category on an expense report.
 - **Require receipts over** – Set a threshold for when receipts are required.
 - **Require itemized receipts over** – Require itemized receipts for expenses over a specific amount.
 - **Require fields** - Require specific fields be completed for this category. The options are:

@@ -1,8 +1,8 @@
 ---
 title: Create Expense Categories
 description: Add categories to use for coding expenses.
-keywords: [New Expensify, expense categories, GL codes, payroll codes, chart of accounts, import categories, expense coding, add category from expense, create category inline, receipt requirements, require receipts over, require itemized receipts over, CSV import categories]
-internalScope: Audience is Workspace Admins. Covers creating, importing, enabling, and managing expense categories, including GL and payroll codes, receipt requirement columns in CSV import, and inline category creation from the expense flow. Does not cover personal expense rules or accounting integration setup.
+keywords: [New Expensify, expense categories, GL codes, payroll codes, chart of accounts, import categories, expense coding, add category from expense, create category inline, receipt requirements, require receipts over, require itemized receipts over, CSV import categories, flag amounts over, category limit, individual expense, category total, nightly rate, hotel nightly rate, per-night average, multi-day reservation, nightly rate over category limit]
+internalScope: Audience is Workspace Admins. Covers creating, importing, enabling, and managing expense categories, including GL and payroll codes, receipt requirement columns in CSV import, inline category creation from the expense flow, and how the Flag amounts over category cap is measured, including the per-night average used for multi-day hotel reservations. Does not cover personal expense rules or accounting integration setup.
 ---
 
 # Create Expense Categories
@@ -131,7 +131,9 @@ Available Category Rule options include:
 
 - **Approver** – Assign a specific approver for expenses in this category.
 - **Default tax rate** – Set a default tax percentage ([Taxes](https://help.expensify.com/articles/new-expensify/workspaces/Track-Taxes) must be enabled on the workspace).
-- **Flag amounts over** - Set a spending cap for this category.
+- **Flag amounts over** - Set a spending cap for this category. On the **Flag amounts over** page, enter the cap in the **Amount** field, then use the **Type** row to choose how the cap is measured:
+   - **Individual expense** - Flags a single expense that goes over the cap. This overrides the **Max expense amount** workspace rule for expenses in this category. Multi-day reservations are evaluated using the per-night average.
+   - **Category total** - Flags the total daily spend for this category on an expense report.
 - **Require receipts over** – Set a threshold for when receipts are required.
 - **Require itemized receipts over** – Require itemized receipts for expenses over a specific amount.
 - **Require fields** - Require specific fields be completed for this category. The options are:
@@ -197,6 +199,21 @@ If categories are disabled on the workspace while an expense still has a categor
 To resolve the violation, select the **Category** field on the expense. A **Category disabled** alert appears with options for managing the disabled category.
 
 Alternatively, you can enable tags on the workspace to edit the category directly.
+
+## How is Flag amounts over applied to a multi-day hotel expense?
+
+When the **Type** is **Individual expense** and the expense has a SmartScanned hotel receipt with check-in and check-out dates, Expensify compares the cap against the average nightly rate instead of the full total. The average nightly rate is the expense total divided by the number of nights.
+
+For example, with a $300 cap and a $900 receipt for a 4-night stay, the average nightly rate is $225, so the expense isn't flagged. If the same $900 receipt covers a 2-night stay, the average nightly rate is $450, so the expense is flagged with a **Nightly rate over $300/person category limit** violation. When the cap is compared against the full total instead, the violation reads **Amount over $300/person category limit**.
+
+These rules always use the full expense total, even for a multi-day hotel receipt:
+
+- The **Max expense amount** workspace rule
+- **Require receipts over**
+- **Require itemized receipts over**
+- **Flag amounts over** when the **Type** is **Category total**
+
+An expense with no check-in and check-out dates on its receipt is always compared against the full total.
 
 ## How can members see GL codes?
 
