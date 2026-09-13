@@ -60,6 +60,7 @@ import type {FeedKeysWithAssignedCards} from '@hooks/useFeedKeysWithAssignedCard
 
 import type {ThemeColors} from '@styles/theme/types';
 import type {ButtonVariant} from '@styles/utils/types';
+import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -1369,6 +1370,13 @@ function isTransactionGroupListItemType(item: ListItem): item is TransactionGrou
  */
 function isTransactionReportGroupListItemType(item: ListItem): item is TransactionReportGroupListItemType {
     return isTransactionGroupListItemType(item) && 'groupedBy' in item && item.groupedBy === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
+}
+
+/**
+ * Type guard that checks if something is a TransactionWithdrawalIDGroupListItemType
+ */
+function isTransactionWithdrawalIDGroupListItemType(item: ListItem): item is TransactionWithdrawalIDGroupListItemType {
+    return isTransactionGroupListItemType(item) && 'groupedBy' in item && item.groupedBy === CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID;
 }
 
 /**
@@ -7251,12 +7259,50 @@ function getTransactionFromTransactionListItem(item: TransactionListItemType): O
     return transaction as OnyxTypes.Transaction;
 }
 
-function getTableMinWidth(columns: SearchColumnType[], type?: SearchDataTypes, isActionColumnWide?: boolean) {
-    // Starts at 24px to account for the checkbox width
-    let minWidth = 24;
+/**
+ * Width of the arrow ending each row. The arrow is a row child rather than a column, so it is counted separately: leave
+ * it out and it gets pushed past the edge instead of the table scrolling to reach it.
+ */
+const SEARCH_TABLE_ROW_ARROW_WIDTH = variables.iconSizeNormal;
+
+/**
+ * Everything a row spends on something that is not a column: its margin and padding, the leading checkbox, the trailing
+ * arrow, and a gap between every adjacent pair of children.
+ *
+ * The column sizing and the horizontal scroller both subtract this from the table, so they share one expression rather
+ * than each keeping a copy: the two disagreeing is what makes a table scroll while it still has room, or reserve a band
+ * of width at the end of the row that no column ever fills.
+ */
+function getSearchTableRowInsetWidth(columnCount: number): number {
+    return variables.searchTableRowCheckboxWidth + (columnCount + 1) * variables.searchTableColumnGap + SEARCH_TABLE_ROW_ARROW_WIDTH + variables.searchTableRowChromeWidth;
+}
+
+function getTableMinWidth(
+    columns: SearchColumnType[],
+    type?: SearchDataTypes,
+    isActionColumnWide?: boolean,
+    columnMinWidths?: Partial<Record<SearchColumnType, number>>,
+    shouldIncludeRowChrome = false,
+) {
+    // The row lays out the checkbox, then every column, then the trailing arrow, as flex children of one gapped row, so
+    // it spends a gap between each adjacent pair: one more than there are columns. Those gaps, the arrow, the checkbox,
+    // and the row's own margin and padding are all width the table needs on top of the columns themselves.
+    //
+    // Off unless a caller asks for it, because it is worth well over 200px on a wide table and so decides whether the
+    // table scrolls at all. Only a caller that also passes real column widths has the rest of the arithmetic right;
+    // adding it on top of the estimates below, which already run several columns over, makes a table reserve room twice
+    // and scroll while it still has space.
+    let minWidth = shouldIncludeRowChrome ? getSearchTableRowInsetWidth(columns.length) : variables.searchTableRowCheckboxWidth;
 
     for (const column of columns) {
-        if (column === CONST.SEARCH.TABLE_COLUMNS.COMMENTS) {
+        // A caller that knows a column's real minimum passes it in, so use that over the estimate below. The estimates
+        // are a second copy of widths that live in the column styles, and several of them are off by 70px or more, so
+        // the table scrolls well before it has actually run out of room.
+        const knownMinWidth = columnMinWidths?.[column];
+
+        if (knownMinWidth !== undefined) {
+            minWidth += knownMinWidth;
+        } else if (column === CONST.SEARCH.TABLE_COLUMNS.COMMENTS) {
             minWidth += 36;
         } else if (column === CONST.SEARCH.TABLE_COLUMNS.RECEIPT) {
             minWidth += 28;
@@ -7493,6 +7539,7 @@ export {
     isTransactionMatchWithGroupItem,
     isTransactionGroupListItemType,
     isTransactionReportGroupListItemType,
+    isTransactionWithdrawalIDGroupListItemType,
     isTransactionCategoryGroupListItemType,
     isTransactionMerchantGroupListItemType,
     isTransactionTagGroupListItemType,
@@ -7551,6 +7598,7 @@ export {
     getSettlementStatus,
     getSettlementStatusBadgeProps,
     getSearchColumnTranslationKey,
+    getSearchTableRowInsetWidth,
     getTableMinWidth,
     getCustomColumns,
     getCustomColumnDefault,
