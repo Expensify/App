@@ -70,5 +70,13 @@ function agentZeroProcessingAgentIDsSelector(reportNameValuePairs: OnyxEntry<Rep
         .sort((a, b) => a - b);
 }
 
-export {getAgentZeroProcessingLabel, agentZeroProcessingAgentIDsSelector, reportNameValuePairsArchivedSelector};
+/**
+ * The backend sets this on a thread it opened to collect feedback on a Concierge answer, naming the action
+ * being rated. Its presence is what identifies the report as a feedback thread.
+ */
+function getConciergeFeedbackForReportActionID(reportNameValuePairs: OnyxEntry<ReportNameValuePairs>): string | undefined {
+    return reportNameValuePairs?.conciergeFeedbackForReportActionID;
+}
+
+export {getAgentZeroProcessingLabel, agentZeroProcessingAgentIDsSelector, getConciergeFeedbackForReportActionID, reportNameValuePairsArchivedSelector};
 export type {ReportNameValuePairsArchivedState};

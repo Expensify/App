@@ -11,7 +11,6 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {findEmojiByName, hasAccountIDEmojiReacted} from '@libs/EmojiUtils';
-import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 
 import {toggleEmojiReaction} from '@userActions/EmojiReactions';
 import {callFunctionIfActionIsAllowed} from '@userActions/Session';
@@ -22,7 +21,7 @@ import type {ReportAction, ReportActionReactions} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
-import {getReportParentReportActionID} from '@selectors/Report';
+import {getConciergeFeedbackForReportActionID} from '@selectors/ReportNameValuePairs';
 import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 
@@ -93,8 +92,7 @@ function ConciergeFeedbackPrompt({action, reportID}: ConciergeFeedbackPromptProp
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
     const [reactions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${action.reportActionID}`);
-    const [parentReportActionID] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {selector: getReportParentReportActionID});
-    const [parentReactions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${getNonEmptyStringOnyxID(parentReportActionID)}`);
+    const [conciergeFeedbackForReportActionID] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`, {selector: getConciergeFeedbackForReportActionID});
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`);
     const [preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE] = useOnyx(ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE);
 
@@ -139,12 +137,12 @@ function ConciergeFeedbackPrompt({action, reportID}: ConciergeFeedbackPromptProp
         return null;
     }
 
-    // A thumbs down makes the backend open a thread on the rated message and post its own request for
-    // detail into it. That request is a Concierge comment like any other, so without this the newest
-    // comment in the feedback thread is the request itself and the user is asked to rate being asked.
-    const isFeedbackThread = hasReactedWithEmoji(thumbsUp, parentReactions, currentUserAccountID) || hasReactedWithEmoji(thumbsDown, parentReactions, currentUserAccountID);
-
-    if (isFeedbackThread) {
+    // A thumbs down makes the backend open a thread on the rated message and post its own request for detail
+    // into it, then marks that thread with the action it collects feedback on. Inside such a thread Concierge
+    // is working through the complaint, so nothing there is an answer to rate -- and rating a reply would open
+    // a feedback thread hanging off a feedback thread. Reading the thread's own marker rather than the
+    // reaction on its parent also keeps the prompt away for everyone in the room, not just whoever rated.
+    if (conciergeFeedbackForReportActionID) {
         return null;
     }
 
