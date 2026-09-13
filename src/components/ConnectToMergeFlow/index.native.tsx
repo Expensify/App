@@ -3,7 +3,6 @@ import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOffli
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Modal from '@components/Modal';
 
-import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -19,10 +18,9 @@ import React, {useEffect, useRef, useState} from 'react';
 import {StyleSheet, View} from 'react-native';
 import {WebView} from 'react-native-webview';
 
-import type ConnectToHRFlowProps from './types';
+import type ConnectToMergeFlowProps from './types';
 
-function ConnectToHRFlow({setupLink, onDone}: ConnectToHRFlowProps) {
-    const {translate} = useLocalize();
+function ConnectToMergeFlow({setupLink, title, onDone}: ConnectToMergeFlowProps) {
     const styles = useThemeStyles();
     const [isWebViewOpen, setIsWebViewOpen] = useState(true);
     const [popupUrl, setPopupUrl] = useState<string | null>(null);
@@ -103,7 +101,7 @@ function ConnectToHRFlow({setupLink, onDone}: ConnectToHRFlowProps) {
             type={CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE}
         >
             <HeaderWithBackButton
-                title={translate('workspace.common.hr')}
+                title={title}
                 onBackButtonPress={handleBackPress}
             />
             <FullPageOfflineBlockingView>
@@ -152,4 +150,4 @@ function ConnectToHRFlow({setupLink, onDone}: ConnectToHRFlowProps) {
     );
 }
 
-export default ConnectToHRFlow;
+export default ConnectToMergeFlow;
