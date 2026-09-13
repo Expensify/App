@@ -69,6 +69,7 @@ import ChatMessageContent from './ChatMessageContent';
 import ChatTransactionPreview from './ChatTransactionPreview';
 import ConciergeAutoMatchVendorContent from './ConciergeAutoMatchVendorContent';
 import ConfirmWhisperContent from './ConfirmWhisperContent';
+import ExportFailedContent from './ExportFailedContent';
 import FraudAlertContent from './FraudAlertContent';
 import HomeAddressRequiredContent from './HomeAddressRequiredContent';
 import IntegrationMessage from './IntegrationMessage';
@@ -464,6 +465,15 @@ function ActionContentRouter({
                 action={action}
                 policyID={policyID}
                 originalReport={originalReport}
+            />
+        );
+    }
+    if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.EXPORT_FAILED)) {
+        return (
+            <ExportFailedContent
+                action={action}
+                policyID={policyID}
+                reportID={reportID}
             />
         );
     }

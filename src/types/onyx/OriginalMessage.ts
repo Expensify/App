@@ -1356,6 +1356,20 @@ type OriginalMessageIntegrationSyncFailed = {
 };
 
 /**
+ * Original message for EXPORT_FAILED actions.
+ */
+type OriginalMessageExportFailed = {
+    /** The workspace whose reports are failing to export */
+    policyID: string;
+
+    /** How many of the workspace's reports are currently failing to export */
+    failedReportCount: number;
+
+    /** The reports to re-export, capped server-side, so the batch does not depend on what the client has loaded */
+    failedReportIDs?: number[];
+};
+
+/**
  * Original message for broken Concierge company card connection
  */
 type OriginalMessageCompanyCardConnectionBroken = {
@@ -1667,6 +1681,7 @@ type OriginalMessageMap = {
     [CONST.REPORT.ACTIONS.TYPE.PERSONAL_CARD_CONNECTION_BROKEN]: OriginalPersonalCard;
     [CONST.REPORT.ACTIONS.TYPE.PERSONAL_CARD_CONNECTION_BROKEN_30_DAYS]: OriginalPersonalCard;
     [CONST.REPORT.ACTIONS.TYPE.INTEGRATION_SYNC_FAILED]: OriginalMessageIntegrationSyncFailed;
+    [CONST.REPORT.ACTIONS.TYPE.EXPORT_FAILED]: OriginalMessageExportFailed;
     [CONST.REPORT.ACTIONS.TYPE.DELETED_TRANSACTION]: OriginalMessageDeletedTransaction;
     [CONST.REPORT.ACTIONS.TYPE.DEW_SUBMIT_FAILED]: OriginalMessageDEWFailed;
     [CONST.REPORT.ACTIONS.TYPE.DEW_APPROVE_FAILED]: OriginalMessageDEWFailed;
