@@ -957,6 +957,93 @@ describe('ModifiedExpenseMessage', () => {
             });
         });
 
+        describe('when the distance rate is changed and the new rate is in another unit', () => {
+            const reportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
+                originalMessage: {
+                    oldMerchant: '10.00 mi @ $0.50 / mi',
+                    merchant: '16.09 km @ $0.67 / km',
+                    oldAmount: 500,
+                    amount: 1078,
+                    oldCurrency: CONST.CURRENCY.USD,
+                    currency: CONST.CURRENCY.USD,
+                },
+            };
+
+            it('then the message still says the rate is changed, because the journey was re-expressed rather than re-measured', () => {
+                const expectedResult = `changed the rate to ${reportAction.originalMessage.merchant} (previously ${reportAction.originalMessage.oldMerchant}), which updated the amount to $10.78 (previously $5.00)`;
+                const result = getForReportAction({
+                    convertToDisplayString,
+                    translate: translateLocal,
+                    reportAction,
+                    policy: undefined,
+                    policyTags: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    currentUserLogin: CURRENT_USER_LOGIN,
+                });
+                expect(result).toEqual(expectedResult);
+            });
+        });
+
+        describe('when the distance rate is changed and the rate is formatted with a decimal comma', () => {
+            const reportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
+                originalMessage: {
+                    oldMerchant: '56.36 mi @ $0,70 / mi',
+                    merchant: '56.36 mi @ $0,99 / mi',
+                    oldAmount: 3945,
+                    amount: 5580,
+                    oldCurrency: CONST.CURRENCY.USD,
+                    currency: CONST.CURRENCY.USD,
+                },
+            };
+
+            it('then the message says the rate is changed, because the comparison does not assume a decimal point', () => {
+                const expectedResult = `changed the rate to ${reportAction.originalMessage.merchant} (previously ${reportAction.originalMessage.oldMerchant}), which updated the amount to $55.80 (previously $39.45)`;
+                const result = getForReportAction({
+                    convertToDisplayString,
+                    translate: translateLocal,
+                    reportAction,
+                    policy: undefined,
+                    policyTags: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    currentUserLogin: CURRENT_USER_LOGIN,
+                });
+                expect(result).toEqual(expectedResult);
+            });
+        });
+
+        describe('when the old merchant is not a distance merchant', () => {
+            const reportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
+                originalMessage: {
+                    oldMerchant: 'Pending...',
+                    merchant: '56.36 mi @ $0.99 / mi',
+                    oldAmount: 3945,
+                    amount: 5580,
+                    oldCurrency: CONST.CURRENCY.USD,
+                    currency: CONST.CURRENCY.USD,
+                },
+            };
+
+            it('then the message falls back to describing a distance change, because neither half is comparable', () => {
+                const expectedResult = `changed the distance to ${reportAction.originalMessage.merchant} (previously ${reportAction.originalMessage.oldMerchant}), which updated the amount to $55.80 (previously $39.45)`;
+                const result = getForReportAction({
+                    convertToDisplayString,
+                    translate: translateLocal,
+                    reportAction,
+                    policy: undefined,
+                    policyTags: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    currentUserLogin: CURRENT_USER_LOGIN,
+                });
+                expect(result).toEqual(expectedResult);
+            });
+        });
+
         describe('when moving an expense', () => {
             it('returns the movedFromOrToReportMessage message when provided', () => {
                 const reportAction = {

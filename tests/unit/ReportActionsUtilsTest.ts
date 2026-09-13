@@ -88,6 +88,8 @@ import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatch
 type TakeControlAction = ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL>;
 type TakeControlOriginalMessageFixture = NonNullable<TakeControlAction['originalMessage']>;
 
+type ConciergeAutoSelectDistanceRateAction = ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.CONCIERGE_AUTO_SELECT_DISTANCE_RATE>;
+
 type LegacyReportActionFields = {
     message?: string;
     originalMessage?: string;
@@ -1579,6 +1581,75 @@ describe('ReportActionsUtils', () => {
             };
 
             expect(ReportActionsUtils.getReportActionMessageFragments(translateLocal, action)).toEqual(action.message);
+        });
+    });
+
+    describe('getConciergeAutoSelectDistanceRateMessage', () => {
+        function buildConciergeAutoSelectDistanceRateAction(
+            originalMessage: ConciergeAutoSelectDistanceRateAction['originalMessage'],
+            backendText = 'rate updated by the backend',
+        ): ConciergeAutoSelectDistanceRateAction {
+            return {
+                actionName: CONST.REPORT.ACTIONS.TYPE.CONCIERGE_AUTO_SELECT_DISTANCE_RATE,
+                reportActionID: 'concierge-auto-select-distance-rate-1',
+                created: '2026-09-10 12:00:00.000',
+                message: [{type: CONST.REPORT.MESSAGE.TYPE.COMMENT, text: backendText, html: backendText}],
+                originalMessage,
+            };
+        }
+
+        it('should name the workspace the report moved to', () => {
+            // Given an action for a report whose workspace changed
+            const action = buildConciergeAutoSelectDistanceRateAction({policyName: "Hal's Burgers"});
+
+            // When building the message
+            const message = ReportActionsUtils.getConciergeAutoSelectDistanceRateMessage(translateLocal, action);
+
+            // Then it should name the new workspace, and no individual rate, because each expense on the report can land on a different one
+            expect(message).toBe("distance rates updated for the new workspace - Hal's Burgers");
+        });
+
+        it('should not escape a workspace name that contains markup', () => {
+            // Given a workspace name that looks like markup
+            const action = buildConciergeAutoSelectDistanceRateAction({policyName: '<strong>Ops</strong>'});
+
+            // When building the message
+            const message = ReportActionsUtils.getConciergeAutoSelectDistanceRateMessage(translateLocal, action);
+
+            // Then the name should be interpolated as-is, because this helper returns plain text
+            expect(message).toBe('distance rates updated for the new workspace - <strong>Ops</strong>');
+        });
+
+        it('should fall back to the text of the action when the workspace name is missing', () => {
+            // Given an action without a workspace name
+            const backendText = 'rate updated by the backend';
+            const action = buildConciergeAutoSelectDistanceRateAction({}, backendText);
+
+            // When building the message
+            const message = ReportActionsUtils.getConciergeAutoSelectDistanceRateMessage(translateLocal, action);
+
+            // Then it should fall back to the text the backend provided
+            expect(message).toBe(backendText);
+        });
+
+        it('should be used for the message fragments of the action', () => {
+            // Given a CONCIERGE_AUTO_SELECT_DISTANCE_RATE action
+            const action = buildConciergeAutoSelectDistanceRateAction({policyName: "Hal's Burgers"});
+
+            // When getting the message fragments of the action
+            const fragments = ReportActionsUtils.getReportActionMessageFragments(translateLocal, action);
+
+            // Then they should be built from the same message
+            const message = ReportActionsUtils.getConciergeAutoSelectDistanceRateMessage(translateLocal, action);
+            expect(fragments).toEqual([{text: message, html: `<muted-text>${message}</muted-text>`, type: 'COMMENT'}]);
+        });
+
+        it('should be visible in the report', () => {
+            // Given a CONCIERGE_AUTO_SELECT_DISTANCE_RATE action
+            const action = buildConciergeAutoSelectDistanceRateAction({policyName: "Hal's Burgers"});
+
+            // Then the action should not be filtered out as an unsupported action type
+            expect(ReportActionsUtils.shouldReportActionBeVisible(action, action.reportActionID, true)).toBe(true);
         });
     });
 

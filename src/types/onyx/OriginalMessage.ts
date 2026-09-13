@@ -955,6 +955,16 @@ type OriginalMessageConciergeAutoMatchVendor = {
     reasoning?: string;
 };
 
+/**
+ * Model of `concierge auto select distance rate` report action — posted on an expense report when the report's workspace changes and the distance rates of its expenses are
+ * re-selected automatically. The individual rate changes are described by a `MODIFIED_EXPENSE` action on each expense's transaction thread, so this action names no rate itself:
+ * one report can hold many distance expenses, and each can end up on a different rate.
+ */
+type OriginalMessageConciergeAutoSelectDistanceRate = {
+    /** Name of the workspace the report was moved to, whose rates were applied */
+    policyName?: string;
+};
+
 /** Policy rules modified fields. Each member holds the new value the rule wrote, not the current one */
 type PolicyRulesModifiedFields = {
     merchant?: string;
@@ -1615,6 +1625,7 @@ type OriginalMessageMap = {
     [CONST.REPORT.ACTIONS.TYPE.MERGED_WITH_CASH_TRANSACTION]: never;
     [CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE]: OriginalMessageModifiedExpense;
     [CONST.REPORT.ACTIONS.TYPE.CONCIERGE_AUTO_MATCH_VENDOR]: OriginalMessageConciergeAutoMatchVendor;
+    [CONST.REPORT.ACTIONS.TYPE.CONCIERGE_AUTO_SELECT_DISTANCE_RATE]: OriginalMessageConciergeAutoSelectDistanceRate;
     [CONST.REPORT.ACTIONS.TYPE.MOVED]: OriginalMessageMoved;
     [CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION]: OriginalMessageMovedTransaction;
     [CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION]: OriginalMessageUnreportedTransaction;

@@ -1900,6 +1900,7 @@ const translations: TranslationDeepObject<typeof en> = {
             prompt: 'Włącz tagi w przestrzeni roboczej, aby edytować szczegóły wydatku lub usunąć ten tag z tego wydatku.',
             confirmText: 'Usuń znacznik',
         },
+        conciergeAutoSelectedDistanceRates: ({policyName}: {policyName: string}) => `stawki za odległość zaktualizowane dla nowego workspace’u – ${policyName}`,
     },
     transactionMerge: {
         listPage: {
