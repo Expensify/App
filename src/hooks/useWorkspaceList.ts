@@ -25,7 +25,6 @@ type UseWorkspaceListParams = {
     localeCompare: LocaleContextProps['localeCompare'];
     additionalFilter?: (policy: OnyxEntry<Policy>) => boolean;
     shouldSortSelectedToTop?: boolean;
-    policyIDsToSortToTop?: string[];
     includeArchivedPolicy?: boolean;
 };
 
@@ -38,7 +37,6 @@ function useWorkspaceList({
     localeCompare,
     additionalFilter,
     shouldSortSelectedToTop = true,
-    policyIDsToSortToTop,
     includeArchivedPolicy = false,
 }: UseWorkspaceListParams) {
     const icons = useMemoizedLazyExpensifyIcons(['FallbackWorkspaceAvatar']);
@@ -83,16 +81,11 @@ function useWorkspaceList({
         () =>
             tokenizedSearch(usersWorkspaces, searchTerm, (policy) => [policy.text]).sort((policy1, policy2) => {
                 if (shouldSortSelectedToTop) {
-                    return sortWorkspacesBySelected(
-                        {policyID: policy1.policyID, name: policy1.text},
-                        {policyID: policy2.policyID, name: policy2.text},
-                        policyIDsToSortToTop ?? selectedPolicyIDs,
-                        localeCompare,
-                    );
+                    return sortWorkspacesBySelected({policyID: policy1.policyID, name: policy1.text}, {policyID: policy2.policyID, name: policy2.text}, selectedPolicyIDs, localeCompare);
                 }
                 return localeCompare(policy1.text, policy2.text);
             }),
-        [searchTerm, usersWorkspaces, selectedPolicyIDs, policyIDsToSortToTop, localeCompare, shouldSortSelectedToTop],
+        [searchTerm, usersWorkspaces, selectedPolicyIDs, localeCompare, shouldSortSelectedToTop],
     );
 
     const sections = useMemo(() => {
