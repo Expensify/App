@@ -12687,9 +12687,9 @@ function prepareOnboardingOnyxData({
         corporateCardLink: `${environmentURL}/${ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(onboardingPolicyID)}`,
         companyDomain: companyDomain ?? '',
         workEmail: workEmail ?? '',
-        // HOME is one of VERIFY_ACCOUNT's registered entryScreens, so this resolves. Basing the suffix on a screen that
-        // is not listed there (for example the onboarding workspace list) produces a route the linker cannot match.
-        validateEmailLink: `${environmentURL}/${createDynamicRoute(DYNAMIC_ROUTES.VERIFY_ACCOUNT.getRoute(true), ROUTES.HOME)}`,
+        // The Concierge report is a VERIFY_ACCOUNT entry screen, which keeps the task conversation behind the
+        // validation RHP instead of replacing it with Home.
+        validateEmailLink: `${environmentURL}/${createDynamicRoute(DYNAMIC_ROUTES.VERIFY_ACCOUNT.getRoute(true), ROUTES.REPORT_WITH_ID.getRoute(targetChatReportID))}`,
         workEmailLink: `${environmentURL}/${ROUTES.ONBOARDING_WORK_EMAIL.getRoute()}`,
         joinWorkspaceLink: `${environmentURL}/${ROUTES.ONBOARDING_WORKSPACES.getRoute()}`,
     };
