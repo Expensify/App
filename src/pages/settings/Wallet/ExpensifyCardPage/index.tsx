@@ -1,6 +1,7 @@
 import cardScarf from '@assets/images/card-scarf.svg';
 
 import ActivityIndicator from '@components/ActivityIndicator';
+import AddToWalletStatusText from '@components/AddToWalletButton/AddToWalletStatusText';
 import AddToWalletButton from '@components/AddToWalletButton/index';
 import Button from '@components/Button';
 import ButtonDisabledWhenOffline from '@components/Button/composed/ButtonDisabledWhenOffline';
@@ -382,7 +383,7 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                 {!hasDetectedDomainFraud && (
                     <>
                         {(!isCardFrozen(currentCard) || !canManageCardFreeze) && (
-                            <CardDetailsActionButtons style={styles.mb0}>
+                            <CardDetailsActionButtons>
                                 {canManageCardFreeze && currentCard?.state === CONST.EXPENSIFY_CARD.STATE.OPEN && !isCardFrozen(currentCard) && (
                                     <CardDetailsActionButton
                                         onPress={handleFreezePress}
@@ -401,6 +402,14 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                                     <CardDetailsActionButton.Text>{translate('workspace.common.viewTransactions')}</CardDetailsActionButton.Text>
                                 </CardDetailsActionButton>
                             </CardDetailsActionButtons>
+                        )}
+                        {cardToAdd !== undefined && (
+                            <AddToWalletButton
+                                card={cardToAdd}
+                                cardHolderName={displayName ?? ''}
+                                cardDescription={expensifyCardTitle}
+                                style={[styles.alignSelfCenter, styles.mb6]}
+                            />
                         )}
                         {shouldShowChangePINRow && isCardPINBlocked && (
                             <View style={[styles.flexRow, styles.alignItemsCenter, styles.ph5, styles.mb5]}>
@@ -592,6 +601,12 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                                     )}
                                 </React.Fragment>
                             ))}
+                        {cardToAdd !== undefined && (
+                            <AddToWalletStatusText
+                                card={cardToAdd}
+                                style={styles.mb2}
+                            />
+                        )}
                         {(shouldShowChangePINRow || shouldShowActionRows) && (
                             <View style={styles.mt4}>
                                 {shouldShowChangePINRow && (
@@ -673,14 +688,6 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                             </View>
                         )}
                     </>
-                )}
-                {cardToAdd !== undefined && (
-                    <AddToWalletButton
-                        card={cardToAdd}
-                        style={styles.alignSelfCenter}
-                        cardHolderName={displayName ?? ''}
-                        cardDescription={expensifyCardTitle}
-                    />
                 )}
             </ScrollView>
             {currentPhysicalCard?.state === CONST.EXPENSIFY_CARD.STATE.NOT_ACTIVATED && (
