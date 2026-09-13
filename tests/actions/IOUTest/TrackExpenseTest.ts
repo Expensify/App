@@ -71,6 +71,7 @@ jest.mock('@src/libs/Navigation/Navigation', () => ({
     getActiveRoute: jest.fn(),
     navigationRef: {
         getRootState: jest.fn(),
+        getCurrentRoute: jest.fn(),
     },
 }));
 
@@ -2323,6 +2324,129 @@ describe('actions/IOU/TrackExpense', () => {
             expect(result.createdWorkspaceParams).toBeUndefined();
             expect(result.chatReport).toBeDefined();
             expect(result.transaction).toBeDefined();
+        });
+
+        describe('destination report when the chat has no iouReportID', () => {
+            const TRACK_POLICY_ID = 'track-policy-1';
+            const TRACK_CHAT_REPORT_ID = 'track-chat-1';
+            const OTHER_OWNER_ACCOUNT_ID = 778;
+            const OLDER_REPORT_ID = 'track-outstanding-older';
+            const NEWER_REPORT_ID = 'track-outstanding-newer';
+            const OTHER_OWNER_REPORT_ID = 'track-outstanding-other-owner';
+            const PENDING_REPORT_ID = 'track-report-not-in-onyx-yet';
+
+            // The chat deliberately has no `iouReportID`, which is the state left behind when the report it pointed at is deleted.
+            const trackChatReport: Report = {
+                reportID: TRACK_CHAT_REPORT_ID,
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                policyID: TRACK_POLICY_ID,
+                isOwnPolicyExpenseChat: true,
+                type: CONST.REPORT.TYPE.CHAT,
+            };
+
+            function buildOutstandingExpenseReport(reportID: string, created: string, ownerAccountID = RORY_ACCOUNT_ID): Report {
+                return {
+                    reportID,
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                    policyID: TRACK_POLICY_ID,
+                    chatReportID: TRACK_CHAT_REPORT_ID,
+                    ownerAccountID,
+                    managerID: ownerAccountID,
+                    stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                    statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                    currency: 'USD',
+                    total: 0,
+                    created,
+                };
+            }
+
+            function getTrackInformation(parentChatReport: Report) {
+                return getTrackExpenseInformation({
+                    getCurrencyDecimals: getCurrencyDecimalsLocal,
+                    conciergeChat: undefined,
+                    parentChatReport,
+                    participantParams: {
+                        payeeEmail: RORY_EMAIL,
+                        payeeAccountID: RORY_ACCOUNT_ID,
+                        participant: {
+                            accountID: RORY_ACCOUNT_ID,
+                            login: RORY_EMAIL,
+                            isPolicyExpenseChat: true,
+                            reportID: TRACK_CHAT_REPORT_ID,
+                        },
+                    },
+                    policyParams: {
+                        policy: undefined,
+                        policyCategories: undefined,
+                        policyTagList: undefined,
+                    },
+                    transactionParams: {
+                        amount: 5000,
+                        currency: 'USD',
+                        created: '2024-01-25',
+                        merchant: 'Track Destination Merchant',
+                        comment: 'Tracked',
+                        receipt: undefined,
+                    },
+                    isASAPSubmitBetaEnabled: false,
+                    currentUserAccountIDParam: RORY_ACCOUNT_ID,
+                    currentUserEmailParam: RORY_EMAIL,
+                    introSelected: undefined,
+                    quickAction: undefined,
+                    betas: [CONST.BETAS.ALL],
+                    isSelfTourViewed: false,
+                    currentUserLocalCurrency: 'USD',
+                    delegateAccountID: undefined,
+                    isDraftChatReport: false,
+                    rules: undefined,
+                });
+            }
+
+            beforeEach(async () => {
+                // `canAddTransaction` requires the submitter to own the report and the policy to be a group policy.
+                await Onyx.merge(ONYXKEYS.SESSION, {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL});
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${TRACK_POLICY_ID}`, {id: TRACK_POLICY_ID, type: CONST.POLICY.TYPE.TEAM, role: CONST.POLICY.ROLE.USER});
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${TRACK_CHAT_REPORT_ID}`, trackChatReport);
+                await waitForBatchedUpdates();
+            });
+
+            it('adds the tracked expense to the submitter outstanding report instead of creating a new one', async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${OLDER_REPORT_ID}`, buildOutstandingExpenseReport(OLDER_REPORT_ID, '2024-01-02'));
+                await waitForBatchedUpdates();
+
+                expect(getTrackInformation(trackChatReport).iouReport?.reportID).toBe(OLDER_REPORT_ID);
+            });
+
+            it('picks the newest outstanding report when the submitter has more than one', async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${OLDER_REPORT_ID}`, buildOutstandingExpenseReport(OLDER_REPORT_ID, '2024-01-02'));
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${NEWER_REPORT_ID}`, buildOutstandingExpenseReport(NEWER_REPORT_ID, '2024-03-04'));
+                await waitForBatchedUpdates();
+
+                expect(getTrackInformation(trackChatReport).iouReport?.reportID).toBe(NEWER_REPORT_ID);
+            });
+
+            it('creates a new report when the only outstanding report belongs to someone else', async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${OTHER_OWNER_REPORT_ID}`, buildOutstandingExpenseReport(OTHER_OWNER_REPORT_ID, '2024-01-02', OTHER_OWNER_ACCOUNT_ID));
+                await waitForBatchedUpdates();
+
+                expect(getTrackInformation(trackChatReport).iouReport?.reportID).not.toBe(OTHER_OWNER_REPORT_ID);
+            });
+
+            it('creates a new report when the submitter has no outstanding report', () => {
+                const iouReportID = getTrackInformation(trackChatReport).iouReport?.reportID;
+
+                expect(iouReportID).toBeTruthy();
+                expect(iouReportID).not.toBe(OLDER_REPORT_ID);
+            });
+
+            it('does not divert to an outstanding report when the chat points at a report that has not loaded yet', async () => {
+                // The chat still points at PENDING_REPORT_ID, but that report has not reached this client yet — an
+                // offline race, not a cleared pointer. Reusing OLDER_REPORT_ID here would put the expense on the wrong report.
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${OLDER_REPORT_ID}`, buildOutstandingExpenseReport(OLDER_REPORT_ID, '2024-01-02'));
+                await waitForBatchedUpdates();
+
+                expect(getTrackInformation({...trackChatReport, iouReportID: PENDING_REPORT_ID}).iouReport?.reportID).not.toBe(OLDER_REPORT_ID);
+            });
         });
     });
 

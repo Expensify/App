@@ -27,6 +27,7 @@ import {
     buildOptimisticSelfDMReport,
     generateReportID,
     getChatByParticipants,
+    getOutstandingReportsForUser,
     getReimbursableTotal,
     getReportOrDraftReport,
     getUnheldReimbursableTotal,
@@ -60,7 +61,7 @@ import type BasePolicyParams from './types/BasePolicyParams';
 import type BaseTransactionParams from './types/BaseTransactionParams';
 import type RequestMoneyParticipantParams from './types/RequestMoneyParticipantParams';
 
-import {getAllPersonalDetails, getAllReports} from '.';
+import {getAllPersonalDetails, getAllReportNameValuePairs, getAllReports} from '.';
 import {
     buildMinimalTransactionForFormula,
     buildOnyxDataForMoneyRequest,
@@ -464,6 +465,19 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
         iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${moneyRequestReportID}`] ?? null;
     } else {
         iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${chatReport.iouReportID}`] ?? null;
+
+        // Only fall back when the chat has no pointer at all. If `iouReportID` is set but the report is missing from
+        // `allReports`, it simply has not loaded yet, and reusing a different outstanding report would silently divert
+        // the expense away from the report the chat actually points at.
+        if (!iouReport && !chatReport.iouReportID && isPolicyExpenseChat) {
+            const outstandingReports = getOutstandingReportsForUser(chatReport.policyID, payeeAccountID, rules, getAllReportNameValuePairs(), allReports, false);
+
+            // `created` is a fixed-width UTC datetime string, so ordinary string ordering is already chronological.
+            iouReport = outstandingReports.reduce<OnyxInputValue<OnyxTypes.Report>>(
+                (newest, report) => ((report?.created ?? '') > (newest?.created ?? '') ? (report ?? null) : newest),
+                outstandingReports.at(0) ?? null,
+            );
+        }
     }
 
     const shouldCreateNewMoneyRequestReport = shouldCreateNewMoneyRequestReportReportUtils(iouReport, chatReport, false, betas, rules);
