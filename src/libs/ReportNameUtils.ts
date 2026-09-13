@@ -975,6 +975,7 @@ function computeChatThreadReportName({
     isArchived,
     report,
     reports,
+    parentReport,
     currentUserAccountID,
     currentUserLogin,
     transactions,
@@ -989,6 +990,7 @@ function computeChatThreadReportName({
     isArchived: boolean;
     report: Report;
     reports: OnyxCollection<Report>;
+    parentReport: OnyxEntry<Report>;
     currentUserAccountID: number | undefined;
     currentUserLogin: string;
     transactions: OnyxCollection<Transaction>;
@@ -1030,26 +1032,22 @@ function computeChatThreadReportName({
         return translate('parentReportAction.deletedMessage');
     }
 
+    // Concierge titles each of its threads with a summary of the question, so prefer that over the question itself.
+    if (report.reportName && report.reportName !== CONST.REPORT.DEFAULT_REPORT_NAME && isConciergeChatReport(parentReport, conciergeReportID)) {
+        return report.reportName;
+    }
+
     const isAttachment = isReportActionAttachment(!isEmptyObject(parentReportAction) ? parentReportAction : undefined);
     const reportActionMessage = getReportActionText(parentReportAction).replaceAll(/(\n+|\r\n|\n|\r)/gm, ' ');
+    if (isAttachment && reportActionMessage) {
+        return `[${translate('common.attachment')}]`;
+    }
     if (
         parentReportActionMessage?.moderationDecision?.decision === CONST.MODERATION.MODERATOR_DECISION_PENDING_HIDE ||
         parentReportActionMessage?.moderationDecision?.decision === CONST.MODERATION.MODERATOR_DECISION_HIDDEN ||
         parentReportActionMessage?.moderationDecision?.decision === CONST.MODERATION.MODERATOR_DECISION_PENDING_REMOVE
     ) {
         return translate('parentReportAction.hiddenMessage');
-    }
-
-    // Concierge titles each of its threads with a summary of the question, so prefer that over the question itself.
-    if (
-        report.reportName &&
-        report.reportName !== CONST.REPORT.DEFAULT_REPORT_NAME &&
-        isConciergeChatReport(reports?.[`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`], conciergeReportID)
-    ) {
-        return report.reportName;
-    }
-    if (isAttachment && reportActionMessage) {
-        return `[${translate('common.attachment')}]`;
     }
     if (isAdminRoom(report) || isUserCreatedPolicyRoom(report)) {
         return reportActionMessage;
@@ -1184,6 +1182,7 @@ function computeReportName({
         isArchived: privateIsArchivedValue,
         report,
         reports: reports ?? {},
+        parentReport,
         currentUserAccountID,
         currentUserLogin: currentUserLogin ?? '',
         transactions,

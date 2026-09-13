@@ -1335,6 +1335,8 @@ function addAttachmentWithComment({
         isInSidePanel,
         delegateAccountID,
         conciergeReportID,
+
+        // Several attachments post one message each, so they stay in the DM instead of opening a thread.
         conciergeThreadReportID: attachments.length === 1 ? conciergeThreadReportID : undefined,
     });
 

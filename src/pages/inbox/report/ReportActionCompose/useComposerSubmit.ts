@@ -82,7 +82,6 @@ function useComposerSubmit(reportID: string) {
         const shouldRespondInThread = reportID === conciergeReportID && !isInSidePanel && isBetaEnabled(CONST.BETAS.CONCIERGE_RESPOND_IN_THREAD);
 
         if (attachmentFileRef.current) {
-            const attachmentCount = Array.isArray(attachmentFileRef.current) ? attachmentFileRef.current.length : 1;
             addAttachmentWithComment({
                 report: targetReport,
                 notifyReportID: reportID,
@@ -96,9 +95,7 @@ function useComposerSubmit(reportID: string) {
                 delegateAccountID,
                 sidePanelContext,
                 conciergeReportID,
-
-                // A send with several attachments posts one message per attachment, so it stays in the DM.
-                conciergeThreadReportID: shouldRespondInThread && attachmentCount === 1 ? generateReportID() : undefined,
+                conciergeThreadReportID: shouldRespondInThread ? generateReportID() : undefined,
             });
             attachmentFileRef.current = null;
             return;
