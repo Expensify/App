@@ -6207,6 +6207,8 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
             csvColumnType: 'タイプ',
             csvColumnLimitType: '限度タイプ',
             csvColumnLimit: '限度額',
+            noCardFeedsAvailable: '利用できるカードフィードがありません',
+            noCardFeedsAvailableDescription: 'このワークスペースで利用できるカードフィードはありません。',
         },
         categories: {
             deleteCategories: 'カテゴリを削除',

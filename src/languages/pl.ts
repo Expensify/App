@@ -6290,6 +6290,8 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
             csvColumnType: 'Typ',
             csvColumnLimitType: 'Typ limitu',
             csvColumnLimit: 'Limit',
+            noCardFeedsAvailable: 'Brak dostępnych kanałów kart',
+            noCardFeedsAvailableDescription: 'Dla tego obszaru roboczego nie ma dostępnych żadnych kanałów kart.',
         },
         categories: {
             deleteCategories: 'Usuń kategorie',

@@ -6318,6 +6318,8 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             csvColumnType: 'Typ',
             csvColumnLimitType: 'Limittyp',
             csvColumnLimit: 'Limit',
+            noCardFeedsAvailable: 'Keine Kartenfeeds verfügbar',
+            noCardFeedsAvailableDescription: 'Für diesen Workspace sind keine Kartenfeeds verfügbar.',
         },
         categories: {
             deleteCategories: 'Kategorien löschen',

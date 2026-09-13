@@ -21,7 +21,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 
 import {clearIssueNewCardFormData} from '@libs/actions/Card';
-import {getEligibleBankAccountsForCard, getEligibleBankAccountsForUkEuCard} from '@libs/CardUtils';
+import {getExpensifyCardEnrollmentRoute} from '@libs/CardUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
@@ -86,34 +86,30 @@ function WorkspaceExpensifyCardPageEmptyState({route, policy}: WorkspaceExpensif
     const setupCtaTranslationKey = isSetupUnfinished ? 'workspace.expensifyCard.finishSetup' : 'workspace.expensifyCard.issueNewCard';
     const ctaTextTranslationKey = hasAccessibleFeeds ? 'workspace.moreFeatures.expensifyCard.feed.viewCards' : setupCtaTranslationKey;
 
-    const eligibleBankAccounts = isUkEuCurrencySupported
-        ? getEligibleBankAccountsForUkEuCard(bankAccountList, supportedCountriesByCurrency, policy?.outputCurrency)
-        : getEligibleBankAccountsForCard(bankAccountList);
-    const shouldStartBankAccountSetup = !eligibleBankAccounts.length || isSetupUnfinished;
     const canEditSettings = canEditWorkspaceSettings(policy, currentUserLogin);
     // Without an existing feed the only path forward is enrolling a new card program, and both the
     // bank account setup page and the currency page are admin only
     const shouldDisableCTA = !canWriteExpensifyCard || (!hasAccessibleFeeds && !canEditSettings);
 
     const startFlow = () => {
-        if (hasAccessibleFeeds && policy?.id) {
+        if (!policy?.id) {
+            return;
+        }
+        if (hasAccessibleFeeds) {
             clearIssueNewCardFormData();
             Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_EXPENSIFY_CARD_SELECT_FEED.path, ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(policy.id)));
             return;
         }
-        if (shouldStartBankAccountSetup) {
-            Navigation.navigate(
-                ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute({
-                    policyID: policy?.id,
-                    backTo: ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(policy?.id),
-                }),
-            );
-            return;
-        }
-        if (policy?.id) {
-            clearIssueNewCardFormData();
-            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_EXPENSIFY_CARD_SELECT_FEED.path, ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(policy.id)));
-        }
+        Navigation.navigate(
+            getExpensifyCardEnrollmentRoute({
+                policyID: policy.id,
+                currencyCode: policy.outputCurrency,
+                isUkEuCurrencySupported,
+                bankAccountsList: bankAccountList,
+                supportedCountriesByCurrency,
+                achData: reimbursementAccount?.achData,
+            }),
+        );
     };
 
     const expensifyCardFeatures: FeatureListItem[] = [
@@ -147,7 +143,7 @@ function WorkspaceExpensifyCardPageEmptyState({route, policy}: WorkspaceExpensif
         if (shouldBlockCurrencyChange || result.action !== ModalActions.CONFIRM || !policy) {
             return;
         }
-        Navigation.navigate(ROUTES.WORKSPACE_OVERVIEW_CURRENCY.getRoute(policy.id));
+        Navigation.navigate(ROUTES.WORKSPACE_OVERVIEW_CURRENCY.getRoute(policy.id, {shouldStartExpensifyCardEnrollment: true}));
     };
 
     return (

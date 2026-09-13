@@ -6267,6 +6267,8 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
             csvColumnType: 'Type',
             csvColumnLimitType: 'Limiettype',
             csvColumnLimit: 'Limiet',
+            noCardFeedsAvailable: 'Geen kaartfeeds beschikbaar',
+            noCardFeedsAvailableDescription: 'Er zijn geen kaartfeeds beschikbaar voor deze workspace.',
         },
         categories: {
             deleteCategories: 'Categorieën verwijderen',

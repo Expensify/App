@@ -6325,6 +6325,8 @@ const translations = {
         expensifyCard: {
             issueAndManageCards: 'Issue and manage your Expensify Cards',
             getStartedIssuing: 'Get started by issuing your first virtual or physical card.',
+            noCardFeedsAvailable: 'No card feeds available',
+            noCardFeedsAvailableDescription: 'There are no card feeds available for this workspace.',
             verificationInProgress: 'Verification in progress...',
             verifyingTheDetails: "We're verifying a few details. Concierge will let you know when Expensify Cards are ready to issue.",
             disclaimer:

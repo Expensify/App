@@ -6189,6 +6189,8 @@ ${amount} para ${merchant} - ${date}`,
             oneMoreStepDescription: 'Parece que tenemos que verificar manualmente tu cuenta bancaria. Dirígete a Concierge, donde te esperan las instrucciones.',
             gotIt: 'Entendido',
             goToConcierge: 'Ir a Concierge',
+            noCardFeedsAvailable: 'No hay feeds de tarjetas disponibles',
+            noCardFeedsAvailableDescription: 'No hay feeds de tarjetas disponibles para este espacio de trabajo.',
         },
         categories: {
             deleteCategories: 'Eliminar categorías',
