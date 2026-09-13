@@ -32,7 +32,6 @@ type ColumnMappingNames = {
 
 /** Account details for a saved CSV layout */
 type AccountDetails = {
-    /** Bank type */
     bank: string;
 
     /** Currency code */
@@ -56,13 +55,11 @@ type ColumnMapping = {
 
 /** Column layout data for a saved CSV layout (structure matches oldDot) */
 type SavedCSVColumnLayoutData = {
-    /** Layout name */
     name: string;
 
     /** Whether to use type column for debit/credit */
     useTypeColumn: boolean;
 
-    /** Whether to flip the amount sign */
     flipAmountSign: boolean;
 
     /** Whether transactions are reimbursable */
@@ -74,7 +71,6 @@ type SavedCSVColumnLayoutData = {
     /** Date format string (null for auto-detect) */
     dateFormat?: string | null;
 
-    /** Account details */
     accountDetails: AccountDetails;
 
     /** Column mapping configuration */

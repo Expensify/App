@@ -8,6 +8,7 @@ import ScrollView from '@components/ScrollView';
 
 import useDocumentTitle from '@hooks/useDocumentTitle';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -16,6 +17,7 @@ import variables from '@styles/variables';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 
+import {PortalHost} from '@gorhom/portal';
 import React, {useRef, useState} from 'react';
 import {View} from 'react-native';
 
@@ -33,9 +35,11 @@ function HomePage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     useDocumentTitle(translate('common.home'));
+    const {isOffline} = useNetwork();
     const [isLoadingApp = true] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const [isLoadingReportData = false] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA);
-    const isForYouLoading = !!(isLoadingApp || isLoadingReportData);
+    // Offline the underlying commands never send, so the loading flags can stay true forever. Match useLoadingBarVisibility and hide the bar when offline.
+    const isForYouLoading = !isOffline && !!(isLoadingApp || isLoadingReportData);
     const receiptDropTargetRef = useRef<View>(null);
 
     // Owned here (above the narrow/wide layout branch) so the Concierge "+" menu survives the ForYouSection remount that
@@ -114,6 +118,7 @@ function HomePage() {
                             )}
                         </View>
                     </ScrollView>
+                    <PortalHost name="suggestions" />
                 </ScreenWrapper>
             </View>
             <ReceiptScanDropZone

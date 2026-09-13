@@ -1,4 +1,4 @@
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 
 import useLocalize from '@hooks/useLocalize';
