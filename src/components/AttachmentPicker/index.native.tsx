@@ -38,11 +38,7 @@ import type AttachmentPickerProps from './types';
 
 import AttachmentCamera from './AttachmentCamera';
 
-/**
- * Delay before running the deferred picker/camera launch inside onModalHide. Gives the popover a
- * frame to finish dismissing on iOS; launching immediately closes the gallery/camera along with the
- * popover.
- */
+/** Gives the popover a frame to finish dismissing on iOS; launching immediately closes the gallery/camera along with it. */
 const MODAL_DISMISS_DELAY_MS = 200;
 
 const EXTENSION_TO_NATIVE_TYPE: Record<string, string> = {
@@ -196,11 +192,6 @@ function AttachmentPicker({
         [translate],
     );
 
-    /**
-     * Launch the in-app VisionCamera instead of the external system camera.
-     * Opens the camera modal directly and bypasses the promise-based selectItem flow.
-     * handleCameraCapture / handleCameraClose handle completion.
-     */
     const launchInAppCamera = useCallback(() => {
         setShowAttachmentCamera(true);
     }, []);
@@ -514,11 +505,9 @@ function AttachmentPicker({
                 modalDismissTimeoutRef.current = null;
             }
 
-            /* Items with onPress (e.g. the in-app camera) handle their own flow and don't go
-             * through the promise-based pickAttachment chain. Defer the launch to onModalHide so
-             * the camera modal only presents after the popover has fully dismissed. Presenting a
-             * second modal while the first is still dismissing fails silently on iOS, which is what
-             * caused the "camera doesn't open"/"app loads infinitely" regressions. */
+            /* Presenting a second modal while the first is still dismissing fails silently on iOS, so
+             * defer the camera launch to onModalHide. onPress items report completion themselves and
+             * skip the promise-based pickAttachment chain below. */
             if ('onPress' in item) {
                 onModalHide.current = () => {
                     modalDismissTimeoutRef.current = setTimeout(() => {

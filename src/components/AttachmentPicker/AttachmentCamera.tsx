@@ -1,6 +1,3 @@
-/**
- * In-app VisionCamera modal used by the native AttachmentPicker.
- */
 import ActivityIndicator from '@components/ActivityIndicator';
 import Button from '@components/Button';
 import Icon from '@components/Icon';
@@ -88,19 +85,15 @@ function AttachmentCamera({isVisible, onCapture, onClose}: AttachmentCameraProps
         physicalDevices: ['wide-angle-camera', 'ultra-wide-angle-camera'],
     });
 
-    // Only offer the flip control when both a front and a back camera are actually available. Some
-    // devices (and Android emulators) enumerate a camera for only one position, so flipping to the
-    // missing position would leave useCameraDevice returning undefined and strand the user on an
-    // infinite loading spinner. Guarding the flip keeps behavior unchanged on phones with both cameras.
+    // Some devices (and Android emulators) only have a camera in one position. Flipping to the missing
+    // one leaves useCameraDevice undefined, stranding the user on an infinite loading spinner.
     const cameraDevices = useCameraDevices();
     const canFlipCamera = useMemo(() => cameraDevices.some((d) => d.position === 'front') && cameraDevices.some((d) => d.position === 'back'), [cameraDevices]);
 
-    // Prioritize photoResolution so the format selector picks the configured PHOTO_WIDTH/PHOTO_HEIGHT
-    // format. The live viewfinder renders from the video pipeline, so videoResolution controls preview
-    // quality (capture uses takePhoto and always renders at the photo resolution):
-    //  - iOS: match the photo target so the selector doesn't pair the photo size with a low video
-    //    resolution, which would otherwise make the preview blurry/grainy.
-    //  - Android: keep screen dimensions to avoid burning GPU on a higher-than-needed preview surface.
+    // The viewfinder renders from the video pipeline, so videoResolution controls preview quality
+    // (capture always uses the photo resolution). iOS matches the photo target, otherwise the selector
+    // pairs it with a low video resolution and the preview looks grainy. Android uses screen dimensions
+    // to avoid an oversized preview surface.
     const format = useCameraFormat(device, [
         {photoAspectRatio: CONST.RECEIPT_CAMERA.PHOTO_ASPECT_RATIO},
         {photoResolution: {width: CONST.RECEIPT_CAMERA.PHOTO_WIDTH, height: CONST.RECEIPT_CAMERA.PHOTO_HEIGHT}},
@@ -113,7 +106,6 @@ function AttachmentCamera({isVisible, onCapture, onClose}: AttachmentCameraProps
 
     const {tapGesture, cameraFocusIndicatorAnimatedStyle} = useTapToFocusGesture(cameraRef, device?.supportsFocus ?? false);
 
-    // Permission management
     const askForPermissions = useCallback(() => {
         CameraPermission.requestCameraPermission?.()
             .then((status: string) => {
@@ -242,7 +234,6 @@ function AttachmentCamera({isVisible, onCapture, onClose}: AttachmentCameraProps
             statusBarTranslucent
         >
             <View style={[styles.flex1, {backgroundColor: theme.appBG}, StyleUtils.getPlatformSafeAreaPadding(insets)]}>
-                {/* Close button */}
                 <View style={[styles.flexRow, styles.justifyContentEnd, styles.ph3, styles.pv2]}>
                     <PressableWithFeedback
                         role={CONST.ROLE.BUTTON}
@@ -259,7 +250,6 @@ function AttachmentCamera({isVisible, onCapture, onClose}: AttachmentCameraProps
                     </PressableWithFeedback>
                 </View>
 
-                {/* Camera area */}
                 <View style={[styles.flex1]}>
                     {cameraPermissionStatus !== RESULTS.GRANTED && (
                         <View style={[styles.cameraView, styles.permissionView, styles.userSelectNone]}>
@@ -313,9 +303,7 @@ function AttachmentCamera({isVisible, onCapture, onClose}: AttachmentCameraProps
                     )}
                 </View>
 
-                {/* Bottom controls */}
                 <View style={[styles.flexRow, styles.justifyContentAround, styles.alignItemsCenter, styles.pv3]}>
-                    {/* Flash toggle */}
                     <PressableWithFeedback
                         role={CONST.ROLE.BUTTON}
                         accessibilityLabel={translate('receipt.flash')}
@@ -332,7 +320,6 @@ function AttachmentCamera({isVisible, onCapture, onClose}: AttachmentCameraProps
                         />
                     </PressableWithFeedback>
 
-                    {/* Shutter button */}
                     <PressableWithFeedback
                         role={CONST.ROLE.BUTTON}
                         accessibilityLabel={translate('receipt.shutter')}
@@ -348,7 +335,6 @@ function AttachmentCamera({isVisible, onCapture, onClose}: AttachmentCameraProps
                         />
                     </PressableWithFeedback>
 
-                    {/* Camera flip */}
                     <PressableWithFeedback
                         role={CONST.ROLE.BUTTON}
                         accessibilityLabel={translate('receipt.flipCamera')}

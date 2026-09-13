@@ -123,10 +123,8 @@ function useNativeCamera({onFocusStart, onFocusCleanup}: UseNativeCameraOptions)
 }
 
 /**
- * Focuses the camera at the given point. Kept as a module-level helper (outside any hook/component)
- * so React Compiler does not analyze the `cameraRef.current` access -- reading a ref's `.current`
- * inside a hook body trips the "no ref access during render" rule, which makes OXC bail on the whole
- * file and diverge from Babel. The hook only ever passes the ref object through, never dereferences it.
+ * Module-level so React Compiler never sees the `cameraRef.current` read. Doing it inside a hook body
+ * trips the "no ref access during render" rule, making OXC bail on the file and diverge from Babel.
  */
 function focusCameraAtPoint(cameraRef: React.RefObject<Camera | null>, point: Point) {
     if (!cameraRef.current) {
@@ -141,9 +139,6 @@ function focusCameraAtPoint(cameraRef: React.RefObject<Camera | null>, point: Po
     });
 }
 
-/**
- * Encapsulates tap-to-focus gesture handling for VisionCamera.
- */
 function useTapToFocusGesture(cameraRef: React.RefObject<Camera | null>, supportsFocus: boolean) {
     const focusIndicatorOpacity = useSharedValue(0);
     const focusIndicatorScale = useSharedValue(2);
@@ -154,7 +149,7 @@ function useTapToFocusGesture(cameraRef: React.RefObject<Camera | null>, support
         transform: [{translateX: focusIndicatorPosition.get().x}, {translateY: focusIndicatorPosition.get().y}, {scale: focusIndicatorScale.get()}],
     }));
 
-    // React Compiler auto-memoizes this closure based on cameraRef, so no manual useCallback is needed.
+    // React Compiler memoizes this closure, so no manual useCallback.
     const focusCamera = (point: Point) => focusCameraAtPoint(cameraRef, point);
 
     const tapGesture = Gesture.Tap()
