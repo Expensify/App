@@ -143,7 +143,7 @@ function ReportNavigateAwayHandler() {
         }
 
         Navigation.isNavigationReady().then(() => {
-            navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas, false);
+            navigateToConciergeChat({conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas, shouldDismissModal: false});
         });
     });
 
@@ -234,7 +234,7 @@ function ReportNavigateAwayHandler() {
             }
 
             // Fallback to Concierge
-            navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas);
+            navigateToConciergeChat({conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas});
         });
     }, [reportWasDeleted, previousReportWasDeleted, isFocused, deletedReportParentID, conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas, reportIDFromRoute]);
 

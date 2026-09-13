@@ -64,17 +64,15 @@ function KYBDocuments({onBackButtonPress, onSubmit}: KYBDocumentsProps) {
     const isLoading = reimbursementAccount?.isLoading;
 
     const handleNavigateToConciergeChat = () =>
-        navigateToConciergeChat(
+        navigateToConciergeChat({
             conciergeReportID,
             introSelected,
             currentUserAccountID,
             isSelfTourViewed,
             betas,
-            true,
-            undefined,
-            undefined,
-            reimbursementAccount?.achData?.ACHRequestReportActionID,
-        );
+            shouldDismissModal: true,
+            reportActionID: reimbursementAccount?.achData?.ACHRequestReportActionID,
+        });
 
     const defaultValues = {
         [INPUT_IDS.KYB_DOCUMENTS.COMPANY_TAX_ID]: reimbursementAccountDraft?.[INPUT_IDS.KYB_DOCUMENTS.COMPANY_TAX_ID] ?? [],
