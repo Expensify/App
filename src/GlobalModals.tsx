@@ -62,9 +62,12 @@ function GlobalModals() {
             <EmojiPicker ref={EmojiPickerAction.emojiPickerRef} />
             {shouldRenderDeferredModals && (
                 <>
-                    {/* Order matters: BaseModal hardcodes zIndex: 1 on every modal, so DOM source order
-                        determines stacking when modals coincide. UpdateAppModal is last so the forced-update
-                        prompt sits on top if it ever overlaps with the others. */}
+                    {/* Order matters. ProactiveAppReviewModalManager and TrialPaymentReminderModalManager still render
+                        their own modals, and BaseModal hardcodes zIndex: 1 on every one of them, so DOM source order
+                        decides which is painted on top when they coincide. ScreenShareRequestModal and UpdateAppModal
+                        now show theirs on the global modal stack instead, where only the top entry renders, so for
+                        those two it is the order their effects run in — which follows this source order — that puts
+                        the forced-update prompt above the screen-share one. Either way UpdateAppModal stays last. */}
                     <LazyModalSlot>
                         {/* Proactive app review modal shown when user has completed a trigger action */}
                         <LazyProactiveAppReviewModalManager />

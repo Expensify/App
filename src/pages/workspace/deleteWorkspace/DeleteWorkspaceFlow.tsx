@@ -126,7 +126,7 @@ function DeleteWorkspaceFlow({policyID, onDismiss, onDeleteComplete}: DeleteWork
     const prevIsPendingDelete = usePrevious(isPendingDelete);
 
     const shouldCalculateBillNewDot = !!canDowngrade && ownedPaidPoliciesCounts?.total === 1;
-    const {shouldBlockDeletion, outstandingBalanceModal} = useOutstandingBalanceGuard(ownedPaidPoliciesCounts?.active ?? 0, onDismiss);
+    const {shouldBlockDeletion} = useOutstandingBalanceGuard(ownedPaidPoliciesCounts?.active ?? 0, onDismiss);
 
     const hideDeleteWorkspaceErrorModal = useCallback(() => {
         dismissWorkspaceError(policyID, policy?.pendingAction);
@@ -315,7 +315,8 @@ function DeleteWorkspaceFlow({policyID, onDismiss, onDeleteComplete}: DeleteWork
         showGenericDeleteWorkspaceErrorModal,
     ]);
 
-    return outstandingBalanceModal;
+    // Every modal this flow shows is owned by the global modal stack, so the flow itself renders nothing.
+    return null;
 }
 
 export default DeleteWorkspaceFlow;
