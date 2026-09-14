@@ -1,7 +1,7 @@
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 
 import CONST from '@src/CONST';
-import type {LoginToAccountIDMapDerivedValue, PersonalDetailsList, PolicyCategories, PolicyCategory} from '@src/types/onyx';
+import type {LoginToAccountIDMapDerivedValue, PersonalDetailsList, PolicyCategories} from '@src/types/onyx';
 import type {Attendee} from '@src/types/onyx/IOU';
 import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 
@@ -32,29 +32,6 @@ function normalizeAttendee(attendee: Attendee): Attendee {
 
 function normalizeAttendees(attendees: Attendee[] | undefined): Attendee[] {
     return (attendees ?? []).map(normalizeAttendee);
-}
-
-/** Formats the title for requiredFields menu item based on which fields are enabled in the policy category */
-function formatRequiredFieldsTitle(translate: LocaleContextProps['translate'], policyCategory: PolicyCategory, isAttendeeTrackingEnabled = false): string {
-    const enabledFields: string[] = [];
-
-    // Attendees field should show first when both are selected and attendee tracking is enabled
-    if (isAttendeeTrackingEnabled && policyCategory.areAttendeesRequired) {
-        enabledFields.push(translate('iou.attendees'));
-    }
-
-    if (policyCategory.areCommentsRequired) {
-        enabledFields.push(translate('common.description'));
-    }
-
-    if (enabledFields.length === 0) {
-        return '';
-    }
-
-    const [first, ...rest] = enabledFields;
-    const capitalizedFirst = first.charAt(0).toUpperCase() + first.slice(1);
-    const lowercasedRest = rest.map((field) => field.charAt(0).toLowerCase() + field.slice(1));
-    return [capitalizedFirst, ...lowercasedRest].join(', ');
 }
 
 /**
@@ -183,4 +160,4 @@ function enrichAndSortAttendees(
     );
 }
 
-export {enrichAndSortAttendees, formatRequiredFieldsTitle, getIsMissingAttendeesViolation, normalizeAttendee, normalizeAttendees, syncMissingAttendeesViolation, convertAttendeesToArray};
+export {enrichAndSortAttendees, getIsMissingAttendeesViolation, normalizeAttendee, normalizeAttendees, syncMissingAttendeesViolation, convertAttendeesToArray};

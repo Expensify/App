@@ -12,7 +12,6 @@ import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -49,8 +48,6 @@ function FlagForReviewRuleAmountPageBase({policyID, categoryName, isCategoryLock
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
     const {canWrite: canWriteRules} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.RULES);
-    const {isBetaEnabled} = usePermissions();
-    const isRulesRevampEnabled = isBetaEnabled(CONST.BETAS.RULES_REVAMP);
     const policyCurrency = policy?.outputCurrency ?? CONST.CURRENCY.USD;
     const categoryScopedBackPath = useDynamicBackPath(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_RULES_FLAG_FOR_REVIEW_AMOUNT.path);
 
@@ -112,7 +109,7 @@ function FlagForReviewRuleAmountPageBase({policyID, categoryName, isCategoryLock
             featureName={CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
             policyFeature={CONST.POLICY.POLICY_FEATURE.RULES}
-            shouldBeBlocked={!isRulesRevampEnabled || !canWriteRules}
+            shouldBeBlocked={!canWriteRules}
         >
             <ScreenWrapper
                 shouldEnableMaxHeight
