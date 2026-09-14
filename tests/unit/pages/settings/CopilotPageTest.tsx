@@ -7,8 +7,10 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import React from 'react';
 
 const SESSION_EMAIL = 'me@example.com';
-const AGENT_SESSION_EMAIL = 'agent_42@expensify.ai';
 const OWNER_EMAIL = 'owner@example.com';
+let mockIsAgentAccount = false;
+
+jest.mock('@hooks/useIsAgentAccount', () => () => mockIsAgentAccount);
 
 const mockUseOnyx = jest.fn<unknown[], [string]>();
 
@@ -136,6 +138,7 @@ jest.mock('@components/SectionSubtitleHTML', () => {
 describe('CopilotPage', () => {
     beforeEach(() => {
         jest.clearAllMocks();
+        mockIsAgentAccount = false;
     });
 
     function setOnyxAccount(account: Record<string, unknown> | undefined, overrides: {sessionEmail?: string} = {}) {
@@ -212,7 +215,8 @@ describe('CopilotPage', () => {
         expect(nonAgentCount % 2).toBe(0);
         const occurrencesPerRow = nonAgentCount / 2;
 
-        setOnyxAccount({validated: true, delegatedAccess: {delegators: [], delegates: twoDelegates, delegate: OWNER_EMAIL}}, {sessionEmail: AGENT_SESSION_EMAIL});
+        mockIsAgentAccount = true;
+        setOnyxAccount({validated: true, delegatedAccess: {delegators: [], delegates: twoDelegates, delegate: OWNER_EMAIL}});
         const agentOutput = JSON.stringify(render(<CopilotPage />).toJSON());
         const agentCount = agentOutput.split('icon-three-dots').length - 1;
 

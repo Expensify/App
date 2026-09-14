@@ -37,7 +37,6 @@ type TimePickerProps = {
     /** Whether the time value should be validated */
     shouldValidate?: boolean;
 
-    /** Whether the time value should be validated for future time only */
     shouldValidateFutureTime?: boolean;
 
     /** Whether the picker shows hours, minutes, seconds and milliseconds */
@@ -741,29 +740,31 @@ function TimePicker({defaultValue = '', onSubmit, onInputChange = () => {}, shou
         () => (
             <View style={styles.timePickerSwitcherContainer}>
                 <Button
-                    shouldEnableHapticFeedback
+                    enableHapticFeedback
                     innerStyles={styleForAM}
-                    small
-                    text={translate('common.am')}
+                    size={CONST.BUTTON_SIZE.SMALL}
                     onLongPress={() => {}}
                     onPress={() => {
                         setAmPmValue(CONST.TIME_PERIOD.AM);
                     }}
                     onPressOut={() => {}}
                     onMouseDown={(e) => e.preventDefault()}
-                />
+                >
+                    <Button.Text>{translate('common.am')}</Button.Text>
+                </Button>
                 <Button
-                    shouldEnableHapticFeedback
+                    enableHapticFeedback
                     innerStyles={[styleForPM, styles.ml1]}
-                    small
-                    text={translate('common.pm')}
+                    size={CONST.BUTTON_SIZE.SMALL}
                     onLongPress={() => {}}
                     onPress={() => {
                         setAmPmValue(CONST.TIME_PERIOD.PM);
                     }}
                     onPressOut={() => {}}
                     onMouseDown={(e) => e.preventDefault()}
-                />
+                >
+                    <Button.Text>{translate('common.pm')}</Button.Text>
+                </Button>
             </View>
         ),
         [styles, styleForAM, styleForPM, translate, setAmPmValue],
@@ -888,14 +889,14 @@ function TimePicker({defaultValue = '', onSubmit, onInputChange = () => {}, shou
                 {numberPad()}
             </View>
             <Button
-                success
-                medium={isExtraSmallScreenHeight}
-                large={!isExtraSmallScreenHeight}
+                variant={CONST.BUTTON_VARIANT.SUCCESS}
+                size={isExtraSmallScreenHeight ? CONST.BUTTON_SIZE.MEDIUM : CONST.BUTTON_SIZE.LARGE}
                 style={[styles.mb5, styles.mh5]}
                 onPress={handleSubmit}
-                pressOnEnter
-                text={translate('common.save')}
-            />
+            >
+                <Button.KeyboardShortcut />
+                <Button.Text>{translate('common.save')}</Button.Text>
+            </Button>
         </View>
     );
 }

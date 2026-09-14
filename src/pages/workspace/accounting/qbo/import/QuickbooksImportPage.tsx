@@ -11,6 +11,7 @@ import * as PolicyUtils from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 
 import {shouldSwitchLocationsToReportFields} from '@pages/workspace/accounting/qbo/utils';
+import {getQuickbooksOnlineIntegrationName} from '@pages/workspace/accounting/utils';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 
@@ -28,6 +29,7 @@ type QBOSectionType = {
 
 function QuickbooksImportPage({policy}: WithPolicyProps) {
     const {translate} = useLocalize();
+    const integrationName = getQuickbooksOnlineIntegrationName(policy, translate);
     const styles = useThemeStyles();
     const policyID = policy?.id ?? '-1';
     const qboConfig = policy?.connections?.quickbooksOnline?.config;
@@ -88,6 +90,7 @@ function QuickbooksImportPage({policy}: WithPolicyProps) {
             displayName="QuickbooksImportPage"
             headerTitle="workspace.accounting.import"
             title="workspace.qbo.importDescription"
+            titleAlreadyTranslated={translate('workspace.qbo.importDescription', integrationName)}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}

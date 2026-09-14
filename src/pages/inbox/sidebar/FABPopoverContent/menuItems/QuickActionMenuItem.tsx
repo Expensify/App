@@ -5,6 +5,7 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePreferredPolicy from '@hooks/usePreferredPolicy';
+import {useDerivedReportNamesByReportIDs} from '@hooks/useReportAttributes';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -14,8 +15,10 @@ import {navigateToQuickAction} from '@libs/actions/QuickActionNavigation';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import Navigation from '@libs/Navigation/Navigation';
+import {isGroupPolicy} from '@libs/PolicyUtils';
 import {getQuickActionIcon, getQuickActionTitle, isQuickActionAllowed} from '@libs/QuickActionUtils';
-import {deprecatedGetReportName} from '@libs/ReportNameUtils';
+import {getReportNameFromNames} from '@libs/ReportAttributesUtils';
+import {getReportName} from '@libs/ReportNameUtils';
 import {getDisplayNameForParticipant, getIcons, getWorkspaceChats, isPolicyExpenseChat} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 
@@ -24,13 +27,13 @@ import FABFocusableMenuItem from '@pages/inbox/sidebar/FABPopoverContent/FABFocu
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import {pendingDeleteMemberAccountIDsSelector} from '@src/selectors/ReportMetaData';
 import {validTransactionDraftIDsSelector} from '@src/selectors/TransactionDraft';
 import type * as OnyxTypes from '@src/types/onyx';
-import type {QuickActionName} from '@src/types/onyx/QuickAction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
 
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection} from 'react-native-onyx';
 
 import React from 'react';
 
@@ -56,22 +59,24 @@ function QuickActionMenuItem({reportID}: QuickActionMenuItemProps) {
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [lastDistanceExpenseType] = useOnyx(ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE);
     const [allBetas] = useOnyx(ONYXKEYS.BETAS);
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
     const isReportArchived = useReportIsArchived(quickActionReport?.reportID);
     const {isRestrictedToPreferredPolicy} = usePreferredPolicy();
     const quickActionPolicyID = quickAction?.action === CONST.QUICK_ACTIONS.TRACK_PER_DIEM && quickAction?.perDiemPolicyID ? quickAction?.perDiemPolicyID : quickActionReport?.policyID;
     const [quickActionPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${quickActionPolicyID}`);
-    const reportAttributesSelector = (attributes: OnyxEntry<OnyxTypes.ReportAttributesDerivedValue>) => attributes?.reports;
-    const [reportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {selector: reportAttributesSelector});
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
 
     const isValidReport = !(isEmptyObject(quickActionReport) || isReportArchived);
 
-    const policyChatForActivePolicy: OnyxTypes.Report =
-        !isEmptyObject(activePolicy) && activePolicy?.isPolicyExpenseChatEnabled && policyChats.length > 0 ? (policyChats.at(0) ?? ({} as OnyxTypes.Report)) : ({} as OnyxTypes.Report);
+    const policyChatForActivePolicy = !isEmptyObject(activePolicy) && isGroupPolicy(activePolicy) && policyChats.length > 0 ? policyChats.at(0) : undefined;
+
+    const derivedNames = useDerivedReportNamesByReportIDs([quickActionReport?.reportID, policyChatForActivePolicy?.reportID]);
+    const derivedQuickActionReportName = getReportNameFromNames(derivedNames, quickActionReport?.reportID);
+    const derivedPolicyChatReportName = getReportNameFromNames(derivedNames, policyChatForActivePolicy?.reportID);
 
     const quickActionReportPolicyID = getNonEmptyStringOnyxID(quickActionReport?.policyID);
     const policyChatForActivePolicyPolicyID = getNonEmptyStringOnyxID(policyChatForActivePolicy?.policyID);
@@ -79,28 +84,44 @@ function QuickActionMenuItem({reportID}: QuickActionMenuItemProps) {
     const [quickActionReportPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${quickActionReportPolicyID ?? CONST.POLICY.ID_FAKE}`);
     const [policyChatForActivePolicyPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyChatForActivePolicyPolicyID ?? CONST.POLICY.ID_FAKE}`);
 
+    const [quickActionReportPendingDeleteMemberAccountIDs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${getNonEmptyStringOnyxID(quickActionReport?.reportID)}`, {
+        selector: pendingDeleteMemberAccountIDsSelector,
+    });
+
     const isVisible =
         (quickAction?.action && quickActionReport
-            ? isQuickActionAllowed(quickAction, quickActionReport, quickActionPolicy, isReportArchived, allBetas, isRestrictedToPreferredPolicy)
+            ? isQuickActionAllowed(quickAction, quickActionReport, quickActionPolicy, isReportArchived, allBetas, rules, isRestrictedToPreferredPolicy)
             : false) ||
         (!quickAction?.action && !isEmptyObject(policyChatForActivePolicy));
 
     let quickActionAvatars: ReturnType<typeof getIcons> = [];
     if (isValidReport) {
-        const avatars = getIcons(quickActionReport, formatPhoneNumber, translate, personalDetails, null, undefined, undefined, undefined, undefined, isReportArchived);
+        const avatars = getIcons(
+            quickActionReport,
+            formatPhoneNumber,
+            translate,
+            personalDetails,
+            null,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            isReportArchived,
+            quickActionReportPendingDeleteMemberAccountIDs,
+        );
         quickActionAvatars = avatars.length <= 1 || isPolicyExpenseChat(quickActionReport) ? avatars : avatars.filter((avatar) => avatar.id !== currentUserPersonalDetails.accountID);
     } else if (!isEmptyObject(policyChatForActivePolicy)) {
         quickActionAvatars = getIcons(policyChatForActivePolicy, formatPhoneNumber, translate, personalDetails, null, undefined, undefined, undefined, undefined, isReportArchived);
     }
 
     let quickActionTitle = '';
-    if (!isEmptyObject(quickActionReport)) {
+    if (!isEmptyObject(quickActionReport) && quickAction?.action) {
         if (quickAction?.action === CONST.QUICK_ACTIONS.SEND_MONEY && quickActionAvatars.length > 0) {
             const accountID = quickActionAvatars.at(0)?.id ?? CONST.DEFAULT_NUMBER_ID;
             const name = getDisplayNameForParticipant({accountID: Number(accountID), shouldUseShortForm: true, formatPhoneNumber, translate}) ?? '';
             quickActionTitle = translate('quickAction.paySomeone', name);
         } else {
-            const titleKey = getQuickActionTitle(quickAction?.action ?? ('' as QuickActionName));
+            const titleKey = getQuickActionTitle(quickAction.action);
             quickActionTitle = titleKey ? translate(titleKey) : '';
         }
     }
@@ -115,7 +136,7 @@ function QuickActionMenuItem({reportID}: QuickActionMenuItemProps) {
         }
     }
 
-    const quickActionSubtitle = !hideQABSubtitle ? deprecatedGetReportName(quickActionReport, reportAttributes) || translate('quickAction.updateDestination') : '';
+    const quickActionSubtitle = !hideQABSubtitle ? getReportName(quickActionReport, derivedQuickActionReportName) || translate('quickAction.updateDestination') : '';
 
     const selectOption = (onSelected: () => void, shouldRestrictAction: boolean) => {
         if (
@@ -194,7 +215,7 @@ function QuickActionMenuItem({reportID}: QuickActionMenuItemProps) {
             shouldTeleportPortalToModalLayer
             icon={icons.ReceiptScan}
             title={translate('quickAction.scanReceipt')}
-            description={deprecatedGetReportName(policyChatForActivePolicy, reportAttributes)}
+            description={getReportName(policyChatForActivePolicy, derivedPolicyChatReportName)}
             rightIconReportID={policyChatForActivePolicy?.reportID}
             onPress={() =>
                 interceptAnonymousUser(() => {
@@ -213,7 +234,7 @@ function QuickActionMenuItem({reportID}: QuickActionMenuItemProps) {
                         return;
                     }
 
-                    const quickActionReportID = policyChatForActivePolicy?.reportID || reportID;
+                    const quickActionReportID = getNonEmptyStringOnyxID(policyChatForActivePolicy?.reportID) ?? reportID;
                     startMoneyRequest(CONST.IOU.TYPE.SUBMIT, quickActionReportID, draftTransactionIDs, CONST.IOU.REQUEST_TYPE.SCAN, true, undefined, true);
                 })
             }

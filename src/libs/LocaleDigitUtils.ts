@@ -1,7 +1,6 @@
-import type {TranslationPaths} from '@src/languages/types';
+import localeOrdinalMap from '@src/languages/localeOrdinalMap';
 import type Locale from '@src/types/onyx/Locale';
 
-import {translate} from './Localize';
 import memoize from './memoize';
 import {format, formatToParts} from './NumberFormatUtils';
 
@@ -69,37 +68,33 @@ function fromLocaleDigit(locale: Locale | undefined, localeDigit: string): strin
     return STANDARD_DIGITS.at(index) ?? '';
 }
 
+// Constructing Intl.PluralRules is expensive, and this runs once per row in lists,
+// so the instance is cached per locale.
+const createOrdinalPluralRules = (locale: Locale): Intl.PluralRules => new Intl.PluralRules(locale, {type: 'ordinal'});
+const memoizedCreateOrdinalPluralRules = memoize(createOrdinalPluralRules);
+
 /**
- * Formats a number into its localized ordinal representation i.e 1st, 2nd etc
- * @param locale - The locale to use for formatting
+ * Formats a number into its localized ordinal representation, e.g. `1st` in English, `1.` in German
+ * or `第1` in Japanese.
+ *
+ * @param locale - The locale to use for formatting. Returns an empty string when absent, matching the
+ * placeholder on the locale context.
  * @param number - The number to format
- * @param writtenOrdinals - If true, returns the written ordinal (e.g. "first", "second") for numbers 1-10
  */
-function toLocaleOrdinal(locale: Locale | undefined, number: number, writtenOrdinals = false): string {
-    // Defaults to "other" suffix or "th" in English
-    let suffixKey: TranslationPaths = 'workflowsPage.frequencies.ordinals.other';
-
-    // Calculate last digit of the number to determine basic ordinality
-    const lastDigit = number % 10;
-
-    // Calculate last two digits to handle exceptions in the 11-13 range
-    const lastTwoDigits = number % 100;
-
-    if (writtenOrdinals && number >= 1 && number <= 10) {
-        return translate(locale, `workflowsPage.frequencies.ordinals.${number}` as TranslationPaths);
+function toLocaleOrdinal(locale: Locale | undefined, number: number): string {
+    if (!locale) {
+        return '';
     }
 
-    if (lastDigit === 1 && lastTwoDigits !== 11) {
-        suffixKey = 'workflowsPage.frequencies.ordinals.one';
-    } else if (lastDigit === 2 && lastTwoDigits !== 12) {
-        suffixKey = 'workflowsPage.frequencies.ordinals.two';
-    } else if (lastDigit === 3 && lastTwoDigits !== 13) {
-        suffixKey = 'workflowsPage.frequencies.ordinals.few';
-    }
+    // Ordinal rules vary far more than they appear to: English selects four categories, Italian two,
+    // and most locales only ever select `other`. Asking Intl avoids reimplementing English's rule and
+    // applying it everywhere.
+    const pluralRule = memoizedCreateOrdinalPluralRules(locale).select(number);
+    const localeOrdinalRules = localeOrdinalMap[locale];
 
-    const suffix = translate(locale, suffixKey);
-
-    return `${number}${suffix}`;
+    // Each locale declares only the categories it needs, so the selected one may be missing.
+    const rule = localeOrdinalRules[pluralRule] ?? localeOrdinalRules.other;
+    return rule(number);
 }
 
 export {toLocaleDigit, toLocaleOrdinal, fromLocaleDigit};

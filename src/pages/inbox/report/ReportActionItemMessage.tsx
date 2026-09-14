@@ -21,7 +21,6 @@ import ReportActionMessageContent from './actionContents/ReportActionMessageCont
 import TextCommentFragment from './comment/TextCommentFragment';
 
 type ReportActionItemMessageProps = {
-    /** The report action */
     action: ReportAction;
 
     /** Should the comment have the appearance of being grouped with the previous comment? */
@@ -33,7 +32,6 @@ type ReportActionItemMessageProps = {
     /** Whether or not the message is hidden by moderation */
     isHidden?: boolean;
 
-    /** The ID of the report */
     reportID: string | undefined;
 };
 
@@ -84,12 +82,13 @@ function ReportActionItemMessage({action, displayAsGroup, reportID, style, isHid
                 <Text>{translate('signerInfoStep.isConnecting', bankAccountLastFour, currency)}</Text>
                 <Button
                     style={[styles.mt2, styles.alignSelfStart]}
-                    success
+                    variant={CONST.BUTTON_VARIANT.SUCCESS}
                     isDisabled={completed}
-                    text={translate(completed ? 'signerInfoStep.thisStep' : 'signerInfoStep.enterSignerInfo')}
                     onPress={() => handleEnterSignerInfoPress(policyID, bankAccountID, !!completed)}
                     sentryLabel={CONST.SENTRY_LABEL.REPORT.REPORT_ACTION_ITEM_MESSAGE_ENTER_SIGNER_INFO}
-                />
+                >
+                    <Button.Text>{translate(completed ? 'signerInfoStep.thisStep' : 'signerInfoStep.enterSignerInfo')}</Button.Text>
+                </Button>
             </View>
         );
     }

@@ -16,7 +16,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {isClientTheLeader as isClientTheLeaderActiveClientManager} from '@libs/ActiveClientManager';
 import Log from '@libs/Log';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import Visibility from '@libs/Visibility';
 
 import {clearSignInData, isSupportalSession as isSupportalSessionUtils} from '@userActions/Session';
@@ -58,7 +58,7 @@ type SignInPageProps = {
 };
 
 type SignInPageRef = {
-    navigateBack: () => void;
+    navigateBack: () => boolean;
 };
 
 type RenderOption = {
@@ -327,8 +327,12 @@ function SignInPage({ref, shouldResetTabTitle = true}: SignInPageProps) {
             return true;
         }
 
+        // Report the press as handled whenever we actually navigate, otherwise react-navigation's own
+        // BackHandler listener pops a second time (https://github.com/Expensify/App/issues/69391).
+        // At the public sign-in root there is nothing to pop, so return false and let Android background the app.
+        const didNavigate = !!navigationRef.current?.canGoBack();
         Navigation.goBack();
-        return false;
+        return didNavigate;
     };
     useImperativeHandle(ref, () => ({
         navigateBack,

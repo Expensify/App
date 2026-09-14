@@ -24,11 +24,15 @@ function MoneyRequestReportPreviewContent({
     invoiceReceiverPolicy,
     iouReport,
     transactions,
-    allReportTransactions,
+    transactionsWithReceipts,
+    hasNonReimbursableTransactions,
+    areAllRequestsBeingSmartScanned,
     policy,
     invoiceReceiverPersonalDetail,
     lastTransactionViolations,
     renderTransactionItem,
+    onOrderedTransactionsChange,
+    onCancelPendingPress,
     onCarouselLayout,
     onWrapperLayout,
     currentWidth,
@@ -45,7 +49,9 @@ function MoneyRequestReportPreviewContent({
             iouReport={iouReport}
             chatReport={chatReport}
             transactions={transactions}
-            allReportTransactions={allReportTransactions}
+            transactionsWithReceipts={transactionsWithReceipts}
+            hasNonReimbursableTransactions={hasNonReimbursableTransactions}
+            areAllRequestsBeingSmartScanned={areAllRequestsBeingSmartScanned}
             policy={policy}
             invoiceReceiverPolicy={invoiceReceiverPolicy}
             invoiceReceiverPersonalDetail={invoiceReceiverPersonalDetail}
@@ -53,6 +59,8 @@ function MoneyRequestReportPreviewContent({
             onPaymentOptionsShow={onPaymentOptionsShow}
             onPaymentOptionsHide={onPaymentOptionsHide}
             renderTransactionItem={renderTransactionItem}
+            onOrderedTransactionsChange={onOrderedTransactionsChange}
+            onCancelPendingPress={onCancelPendingPress}
             currentWidth={currentWidth}
             reportPreviewStyles={reportPreviewStyles}
             newTransactionIDs={newTransactionIDs}

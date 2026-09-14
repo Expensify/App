@@ -1,9 +1,9 @@
 import useDefaultAvatars from '@hooks/useDefaultAvatars';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import useReportAttributes from '@hooks/useReportAttributes';
+import {useDerivedReportNameByReportID} from '@hooks/useReportAttributes';
 
-import {deprecatedGetReportName} from '@libs/ReportNameUtils';
+import {getReportName} from '@libs/ReportNameUtils';
 import {getDefaultGroupAvatar, getPolicyName, getWorkspaceIcon, isGroupChat, isThread, isUserCreatedPolicyRoom} from '@libs/ReportUtils';
 import {getFullSizeAvatar} from '@libs/UserAvatarUtils';
 
@@ -25,20 +25,20 @@ function ReportAvatarModalContent({navigation, route}: AttachmentModalScreenProp
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const [isLoadingApp = true] = useOnyx(ONYXKEYS.IS_LOADING_APP);
-    const reportAttributes = useReportAttributes();
+    const derivedReportName = useDerivedReportNameByReportID(reportID);
 
     const attachment: AttachmentModalBaseContentProps = useMemo(() => {
         if (isGroupChat(report) && !isThread(report)) {
             return {
                 source: report?.avatarUrl ? getFullSizeAvatar({avatarSource: report.avatarUrl, defaultAvatars}) : getDefaultGroupAvatar(report?.reportID),
-                headerTitle: deprecatedGetReportName(report, reportAttributes),
+                headerTitle: getReportName(report, derivedReportName),
                 isWorkspaceAvatar: false,
             };
         }
         if (isUserCreatedPolicyRoom(report) && report?.avatarUrl) {
             return {
                 source: getFullSizeAvatar({avatarSource: report.avatarUrl, defaultAvatars}),
-                headerTitle: deprecatedGetReportName(report, reportAttributes),
+                headerTitle: getReportName(report, derivedReportName),
                 isWorkspaceAvatar: false,
             };
         }
@@ -50,7 +50,7 @@ function ReportAvatarModalContent({navigation, route}: AttachmentModalScreenProp
             originalFileName: policy?.originalFileName ?? policy?.id ?? report?.policyID,
             isWorkspaceAvatar: true,
         };
-    }, [policy, report, defaultAvatars, reportAttributes, translate]);
+    }, [policy, report, defaultAvatars, derivedReportName, translate]);
 
     const onDownloadAttachment = useDownloadAttachment();
 

@@ -1,4 +1,4 @@
-import Button from '@components/Button';
+import LinkButton from '@components/Button/composed/LinkButton';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import Checkbox from '@components/Checkbox';
 import type FlatListRefType from '@components/FlashList/types';
@@ -11,6 +11,7 @@ import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelec
 import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
 import Text from '@components/Text';
 
+import useBlockDistanceRequest from '@hooks/useBlockDistanceRequest';
 import useCopySelectionHelper from '@hooks/useCopySelectionHelper';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -32,15 +33,15 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import {getReportLayoutGroupBy, getReportLayoutSelection, setReportLayout} from '@libs/actions/ReportLayout';
 import {clearActiveTransactionIDs, getActiveTransactionIDs, setActiveTransactionIDs} from '@libs/actions/TransactionThreadNavigation';
 import {resolveTransactionCardFields} from '@libs/CardUtils';
-import {hasNonReimbursableTransactions, isBillableEnabledOnPolicy} from '@libs/MoneyRequestReportUtils';
+import {isBillableEnabledOnPolicy} from '@libs/MoneyRequestReportUtils';
 import {navigationRef} from '@libs/Navigation/Navigation';
+import {getDistanceExpenseTypeForPolicy} from '@libs/PolicyDistanceRatesUtils';
 import {isPolicyTaxEnabled} from '@libs/PolicyUtils';
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {groupTransactionsByCategory, groupTransactionsByTag} from '@libs/ReportLayoutUtils';
 import {
     canAddTransaction,
     getActionErrorsByTransaction,
-    getAddExpenseDropdownOptions,
     getBillableAndTaxTotal,
     getMoneyRequestSpendBreakdown,
     getReportOfflinePendingActionAndErrors,
@@ -53,9 +54,8 @@ import {
 import type {SortableColumnName} from '@libs/ReportUtils';
 import {compareValues, getColumnsToShow, getTableMinWidth, hasFlexColumn, isTransactionAmountTooLong, isTransactionTaxAmountTooLong} from '@libs/SearchUIUtils';
 import {getPendingSubmitFollowUpAction} from '@libs/telemetry/submitFollowUpAction';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {transactionHasRBR} from '@libs/TransactionPreviewUtils';
-import {getTransactionPendingAction, getVisibleTransactionViolations, isTransactionPendingDelete, shouldShowExpenseBreakdown} from '@libs/TransactionUtils';
+import {getTransactionPendingAction, getVisibleTransactionViolations, hasNonReimbursableTransactions, isTransactionPendingDelete} from '@libs/TransactionUtils';
 import shouldShowTransactionPostedYear from '@libs/TransactionUtils/shouldShowTransactionPostedYear';
 import shouldShowTransactionYear from '@libs/TransactionUtils/shouldShowTransactionYear';
 
@@ -63,6 +63,8 @@ import isReportOpenInSuperWideRHP from '@navigation/helpers/isReportOpenInSuperW
 import Navigation from '@navigation/Navigation';
 
 import variables from '@styles/variables';
+
+import {getAddExpenseDropdownOptions} from '@userActions/IOU/StartExpenseFlows';
 
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -92,8 +94,6 @@ import MoneyRequestReportTransactionItem from './MoneyRequestReportTransactionIt
 import MoneyRequestReportTransactionLongPressModal from './MoneyRequestReportTransactionLongPressModal';
 import MoneyRequestReportUnifiedList from './MoneyRequestReportUnifiedList';
 import SearchMoneyRequestReportEmptyState from './SearchMoneyRequestReportEmptyState';
-
-const PENDING_EXPENSE_REASON_ATTRIBUTES = {context: 'MoneyRequestReportTransactionList.PendingExpensePlaceholder'} as const;
 
 type TransactionWithOptionalHighlight = OnyxTypes.Transaction & {
     /** Whether the transaction should be highlighted, when it is added to the report */
@@ -189,7 +189,6 @@ type MoneyRequestReportTransactionListProps = {
     /** Whether the report actions are being loaded, used to show 'Comments' during loading state */
     isLoadingInitialReportActions?: boolean;
 
-    /** Callback executed on layout */
     onLayout?: (event: LayoutChangeEvent) => void;
 
     /** Reversed list of report actions to render below the transactions section in the unified list. */
@@ -240,9 +239,6 @@ type MoneyRequestReportTransactionListProps = {
     /** Whether the initial report actions are still loading. */
     isLoadingInitialActions: boolean;
 
-    /** Reason attributes forwarded to the loading skeleton span. */
-    skeletonReasonAttributes: SkeletonSpanReasonAttributes;
-
     /** Rendered at the very bottom of the list, below all report actions (e.g. the Concierge thinking tail indicator). */
     listFooterComponent?: React.ReactElement;
 };
@@ -279,7 +275,6 @@ function MoneyRequestReportTransactionList({
     onStartReached,
     contentContainerStyle,
     isLoadingInitialActions,
-    skeletonReasonAttributes,
     listFooterComponent,
 }: MoneyRequestReportTransactionListProps) {
     useCopySelectionHelper();
@@ -304,17 +299,19 @@ function MoneyRequestReportTransactionList({
     const formattedCompanySpendAmount = convertToDisplayString(nonReimbursableSpend, report?.currency);
     const formattedBillableAmount = convertToDisplayString(billableTotal, report?.currency);
     const formattedTaxAmount = convertToDisplayString(taxTotal, report?.currency);
-    const shouldShowExpenseReportBreakDown = shouldShowExpenseBreakdown(transactions);
+    const shouldShowExpenseReportBreakDown = hasNonReimbursableTransactions(transactions);
     const shouldShowBreakdown = shouldShowExpenseReportBreakDown || !!billableTotal || (!!taxTotal && isTaxEnabled);
     const transactionsWithoutPendingDelete = useMemo(() => transactions.filter((t) => !isTransactionPendingDelete(t)), [transactions]);
     const currentUserDetails = useCurrentUserPersonalDetails();
     const ownerLoginSelector = useMemo(() => personalDetailsLoginSelector(report?.ownerAccountID), [report?.ownerAccountID]);
     const [ownerLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: ownerLoginSelector});
     const isReportArchived = useReportIsArchived(report?.reportID);
-    const shouldShowAddExpenseButton = canAddTransaction(report, isReportArchived) && isCurrentUserSubmitter(report);
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
+    const shouldShowAddExpenseButton = canAddTransaction(report, rules, isReportArchived) && isCurrentUserSubmitter(report);
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const [lastDistanceExpenseType] = useOnyx(ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE);
+    const distanceExpenseType = getDistanceExpenseTypeForPolicy(policy, lastDistanceExpenseType);
     const [reportLayoutGroupBy] = useOnyx(ONYXKEYS.NVP_REPORT_LAYOUT_GROUP_BY);
     const [reportLayoutOption] = useOnyx(ONYXKEYS.NVP_REPORT_LAYOUT_OPTION);
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
@@ -325,6 +322,10 @@ function MoneyRequestReportTransactionList({
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report?.policyID}`);
     const [policyTagLists] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${report?.policyID}`);
+    const blockDistanceRequestIfNeeded = useBlockDistanceRequest({
+        policyID: policy?.id,
+        isDistanceRequest: true,
+    });
 
     const shouldShowGroupedTransactions = isExpenseReport(report) && !isIOUReport(report);
 
@@ -339,8 +340,9 @@ function MoneyRequestReportTransactionList({
                 draftTransactionIDs,
                 amountOwed,
                 ownerBillingGracePeriodEnd,
-                lastDistanceExpenseType,
+                lastDistanceExpenseType: distanceExpenseType,
                 currentUserAccountID: currentUserDetails?.accountID,
+                blockDistanceRequestIfNeeded,
             }),
         [
             translate,
@@ -349,10 +351,11 @@ function MoneyRequestReportTransactionList({
             policy,
             userBillingGracePeriodEnds,
             amountOwed,
-            lastDistanceExpenseType,
+            distanceExpenseType,
             ownerBillingGracePeriodEnd,
             draftTransactionIDs,
             currentUserDetails?.accountID,
+            blockDistanceRequestIfNeeded,
         ],
     );
 
@@ -525,11 +528,21 @@ function MoneyRequestReportTransactionList({
             isExpenseReportViewFromIOUReport,
             shouldShowBillableColumn,
             shouldShowCommentsColumn,
-            shouldShowReimbursableColumn: hasNonReimbursableTransactions(transactions),
+            shouldShowReimbursableColumn: shouldShowExpenseReportBreakDown,
             reportCurrency: report?.currency,
             isPolicyTaxEnabled: isTaxEnabled,
         });
-    }, [transactions, currentUserDetails?.accountID, isExpenseReportViewFromIOUReport, shouldShowBillableColumn, shouldShowCommentsColumn, reportDetailsColumns, report, isTaxEnabled]);
+    }, [
+        transactions,
+        currentUserDetails?.accountID,
+        isExpenseReportViewFromIOUReport,
+        shouldShowBillableColumn,
+        shouldShowCommentsColumn,
+        reportDetailsColumns,
+        report,
+        isTaxEnabled,
+        shouldShowExpenseReportBreakDown,
+    ]);
 
     const {windowWidth, windowHeight} = useWindowDimensions();
     const minTableWidth = getTableMinWidth(columnsToShow);
@@ -590,8 +603,17 @@ function MoneyRequestReportTransactionList({
         // "Recently added" flow) that belongs to the transaction thread sitting underneath this report.
         // Overwriting and then clearing it would drop that carousel when the user navigates back. Row presses
         // still seed the correct siblings lazily via useNavigateToTransactionThread.
-        if (getActiveTransactionIDs().descriptors) {
+        const {ids: activeIDs, descriptors: activeDescriptors} = getActiveTransactionIDs();
+        if (activeDescriptors) {
             return;
+        }
+        // A report preview press seeds these arrows in the carousel's order, which can differ from this list's order.
+        // Keep that seed while it still covers exactly these rows, and re-seed only when the rows themselves change.
+        if (activeIDs && activeIDs.length === visualOrderTransactionIDs.length) {
+            const activeIDSet = new Set(activeIDs);
+            if (visualOrderTransactionIDs.every((transactionID) => activeIDSet.has(transactionID))) {
+                return;
+            }
         }
         setActiveTransactionIDs(visualOrderTransactionIDs);
         return () => {
@@ -964,17 +986,17 @@ function MoneyRequestReportTransactionList({
                     />
                 )}
                 {!shouldUseNarrowLayout && !isExpenseReportViewFromIOUReport && (
-                    <Button
-                        link
-                        small
-                        shouldUseDefaultHover={false}
-                        text={translate('search.columns')}
-                        iconFill={theme.link}
-                        iconHoverFill={theme.linkHover}
-                        icon={expensifyIcons.Columns}
-                        textStyles={[styles.textMicroBold]}
+                    <LinkButton
+                        size={CONST.BUTTON_SIZE.SMALL}
                         onPress={openColumnsPage}
-                    />
+                    >
+                        <LinkButton.Icon
+                            src={expensifyIcons.Columns}
+                            fill={theme.link}
+                            hoverFill={theme.linkHover}
+                        />
+                        <LinkButton.Text style={[styles.textMicroBold]}>{translate('search.columns')}</LinkButton.Text>
+                    </LinkButton>
                 )}
             </View>
         </View>
@@ -995,7 +1017,6 @@ function MoneyRequestReportTransactionList({
                         isLoadMore
                         containerStyle={styles.mhn5}
                         shouldUseNarrowLayout={false}
-                        reasonAttributes={PENDING_EXPENSE_REASON_ATTRIBUTES}
                     />
                 </View>
             )}
@@ -1121,7 +1142,6 @@ function MoneyRequestReportTransactionList({
                 contentContainerStyle={contentContainerStyle}
                 isOffline={isOffline}
                 isLoadingInitialActions={isLoadingInitialActions}
-                skeletonReasonAttributes={skeletonReasonAttributes}
                 listFooterComponent={listFooterComponent}
             />
             <MoneyRequestReportTransactionLongPressModal

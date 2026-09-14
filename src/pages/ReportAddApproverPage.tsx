@@ -53,8 +53,8 @@ function ReportAddApproverPage({report, isLoadingReportData, policy}: ReportAddA
     const {isLoading, startWithLoading} = usePressLoading();
     const currentUserDetails = useCurrentUserPersonalDetails();
     const hasViolations = hasViolationsReportUtils(report?.reportID, transactionViolations, currentUserDetails.accountID, currentUserDetails.login ?? '');
-    const [reportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${report?.reportID}`);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
     const employeeList = policy?.employeeList;
     const allApprovers = (() => {
@@ -101,18 +101,19 @@ function ReportAddApproverPage({report, isLoadingReportData, policy}: ReportAddA
             return;
         }
         startWithLoading(() => {
-            addReportApprover(
+            addReportApprover({
                 report,
-                selectedApproverEmail,
-                Number(employeeAccountID),
-                currentUserDetails.accountID,
-                currentUserDetails.email ?? '',
+                newApproverEmail: selectedApproverEmail,
+                newApproverAccountID: Number(employeeAccountID),
+                accountID: currentUserDetails.accountID,
+                email: currentUserDetails.email ?? '',
                 policy,
+                rules,
                 hasViolations,
                 isASAPSubmitBetaEnabled,
-                reportNextStep,
                 isTrackIntentUser,
-            );
+                formatPhoneNumber,
+            });
             Navigation.dismissToPreviousRHP();
         });
     };
@@ -126,7 +127,7 @@ function ReportAddApproverPage({report, isLoadingReportData, policy}: ReportAddA
             onSubmit={addApprover}
             containerStyles={[styles.flexReset, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto]}
             enabledWhenOffline
-            shouldBlendOpacity
+            blendButtonOpacity
         />
     );
 

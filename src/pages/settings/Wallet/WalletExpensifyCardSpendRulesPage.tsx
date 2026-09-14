@@ -18,8 +18,10 @@ function WalletExpensifyCardSpendRulesPage({route}: WalletExpensifyCardSpendRule
         <SpendRulePageBase
             policyID={policyID}
             ruleID={isNewRule ? undefined : ruleID}
-            titleKey={isNewRule ? 'workspace.rules.merchantRules.addRuleTitle' : 'workspace.rules.spendRules.editRuleTitle'}
             testID="WalletExpensifyCardSpendRulesPage"
+            // Come back here after upgrading rather than dropping the user on the workspace Rules page,
+            // since this flow starts from the Wallet.
+            upgradeBackTo={ROUTES.SETTINGS_WALLET_EXPENSIFY_CARD_SPEND_RULES.getRoute(policyID, isNewRule ? undefined : ruleID)}
         />
     );
 }

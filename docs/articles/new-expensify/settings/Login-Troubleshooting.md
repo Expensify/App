@@ -30,10 +30,10 @@ Your email provider is blocking or filtering messages from Expensify.
 - Logging in with a phone number or backup email. The security code is always sent to the primary login set on the account - not any secondary contact methods. 
 
 **Who to contact**
-- **Using a work email?** Ask your IT team to [allowlist Expensify emails](https://help.expensify.com/articles/expensify-classic/email/How-to-Allowlist-Expensify).
+- **Using a work email?** Ask your IT team to add expensify.com to the allowlist.
 - **Using a personal email?** If you’ve already tried the steps above, contact Concierge.
 
-[See the full guide to fixing email delivery →](https://help.expensify.com/articles/expensify-classic/email/Troubleshoot-Email-Delivery-Issues)
+[See the full guide to fixing email delivery →](https://help.expensify.com/articles/expensify-classic/settings/Email-Notifications)
 
 ---
 
@@ -76,7 +76,7 @@ Your company's SAML SSO configuration may have an issue affecting your account o
 **Who to contact**
 - **Reach out to your IT team** to confirm SSO settings and ask them to follow the relevant steps to [Troubleshoot SAML SSO Login](https://help.expensify.com/articles/new-expensify/domains/Troubleshoot-SAML-SSO-Login)
 
-[More about SSO logins →](https://help.expensify.com/articles/new-expensify/domains/Managing-Single-Sign-On-(SSO)-in-Expensify)
+[More about SSO logins →](https://help.expensify.com/articles/new-expensify/domains/Set-Up-SAML-SSO)
 
 ---
 

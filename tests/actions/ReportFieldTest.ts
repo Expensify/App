@@ -50,8 +50,8 @@ describe('actions/ReportField', () => {
 
     let mockFetch: MockFetch;
     beforeEach(() => {
-        global.fetch = TestHelper.getGlobalFetchMock();
-        mockFetch = fetch as MockFetch;
+        mockFetch = TestHelper.getGlobalFetchMock();
+        global.fetch = mockFetch;
 
         // Ensure clean queues and no pending requests between tests
         SequentialQueue.resetQueue();
@@ -96,7 +96,7 @@ describe('actions/ReportField', () => {
                 initialValue: 'Default Value',
                 listValues: [],
                 disabledListValues: [],
-                policyExpenseReportIDs: [],
+                policyReportIDs: [],
             };
 
             ReportField.createReportField(createReportFieldArguments);
@@ -151,7 +151,7 @@ describe('actions/ReportField', () => {
                 initialValue: defaultDate,
                 listValues: [],
                 disabledListValues: [],
-                policyExpenseReportIDs: [],
+                policyReportIDs: [],
             };
 
             ReportField.createReportField(createReportFieldArguments);
@@ -208,7 +208,7 @@ describe('actions/ReportField', () => {
                 initialValue: '',
                 listValues: ['Value 1', 'Value 2'],
                 disabledListValues: [false, true],
-                policyExpenseReportIDs: [],
+                policyReportIDs: [],
             };
 
             ReportField.createReportField(createReportFieldArguments);
@@ -264,7 +264,7 @@ describe('actions/ReportField', () => {
             initialValue: formulaInitialValue,
             listValues: [],
             disabledListValues: [],
-            policyExpenseReportIDs: [],
+            policyReportIDs: [],
         };
 
         ReportField.createReportField(createReportFieldArguments);
@@ -501,7 +501,7 @@ describe('actions/ReportField', () => {
                 initialValue: '{report:id}',
                 listValues: [],
                 disabledListValues: [],
-                policyExpenseReportIDs: [],
+                policyReportIDs: [],
             });
             await waitForBatchedUpdates();
 

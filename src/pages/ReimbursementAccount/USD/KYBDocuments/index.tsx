@@ -169,12 +169,13 @@ function KYBDocuments({onBackButtonPress, onSubmit}: KYBDocumentsProps) {
 
     const footer = (
         <Button
-            large
+            size={CONST.BUTTON_SIZE.LARGE}
             style={[styles.mv3]}
-            text={translate('documentsStep.finishViaChat')}
             onPress={handleNavigateToConciergeChat}
             isDisabled={isLoading}
-        />
+        >
+            <Button.Text>{translate('documentsStep.finishViaChat')}</Button.Text>
+        </Button>
     );
 
     return (

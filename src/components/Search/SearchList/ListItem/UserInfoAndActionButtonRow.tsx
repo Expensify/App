@@ -5,6 +5,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getReportStatusColorStyle, getReportStatusTooltipTranslation, getReportStatusTranslation, getStatusBadgeBackgroundColor} from '@libs/ReportUtils';
+import {isDeletedTransaction} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
 
@@ -39,10 +40,11 @@ function UserInfoAndActionButtonRow({
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
-    const statusText = getReportStatusTranslation({stateNum, statusNum, translate});
-    const reportStatusColorStyle = getReportStatusColorStyle(theme, stateNum, statusNum);
-    const badgeBackgroundColor = getStatusBadgeBackgroundColor(theme, stateNum, statusNum, undefined, isSelected);
-    const tooltipText = getReportStatusTooltipTranslation({stateNum, statusNum, translate});
+    const isDeleted = isDeletedTransaction(item);
+    const statusText = getReportStatusTranslation({stateNum, statusNum, translate, isDeleted});
+    const reportStatusColorStyle = getReportStatusColorStyle(theme, stateNum, statusNum, isDeleted);
+    const badgeBackgroundColor = getStatusBadgeBackgroundColor(theme, stateNum, statusNum, isDeleted, isSelected);
+    const tooltipText = getReportStatusTooltipTranslation({stateNum, statusNum, translate, isDeleted});
     const participantFromDisplayName = item.formattedFrom ?? item?.from?.displayName ?? '';
     return (
         <View style={[styles.pt0, styles.flexRow, styles.alignItemsCenter, shouldShowUserInfo ? styles.justifyContentBetween : styles.justifyContentEnd, styles.gap2, containerStyles]}>

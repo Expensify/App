@@ -36,7 +36,7 @@ jest.mock('@libs/actions/Report', () => ({searchInServer: jest.fn()}));
 jest.mock('@libs/DeviceCapabilities', () => ({canUseTouchScreen: () => false}));
 jest.mock('@libs/OptionsListUtils', () => ({
     // Build a minimal option object from the report id the component passes in.
-    createOptionFromReport: (report: {reportID: string}) => ({reportID: report.reportID, keyForList: report.reportID, text: `Report ${report.reportID}`}),
+    createOptionFromReport: ({report}: {report: {reportID: string}}) => ({reportID: report.reportID, keyForList: report.reportID, text: `Report ${report.reportID}`}),
     getSearchOptions: () => ({options: {recentReports: mockDefaultReports, personalDetails: []}}),
     filterAndOrderOptions: () => ({recentReports: mockRecentReports, personalDetails: []}),
     getAlternateText: () => '',

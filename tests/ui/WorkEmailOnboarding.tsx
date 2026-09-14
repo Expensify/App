@@ -33,6 +33,7 @@ import {NavigationContainer} from '@react-navigation/native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 
+import createMock from '../utils/createMock';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
@@ -274,6 +275,21 @@ function AddWorkEmailWithSingleSignOnError() {
     return waitForBatchedUpdates().then(() => (HttpUtils.xhr = originalXhr));
 }
 
+function AddWorkEmailWithDomainControlledError() {
+    const originalXhr = HttpUtils.xhr;
+    HttpUtils.xhr = jest.fn().mockImplementation(() => {
+        const mockedResponse: OnyxResponse<typeof ONYXKEYS.NVP_ONBOARDING> = {
+            jsonCode: CONST.JSON_CODE.EXP_ERROR,
+            message: CONST.WORK_DOMAIN_CONTROLLED_ERROR,
+            title: CONST.WORK_DOMAIN_CONTROLLED_ERROR,
+        };
+
+        return Promise.resolve(mockedResponse);
+    });
+    AddWorkEmail(workEmail);
+    return waitForBatchedUpdates().then(() => (HttpUtils.xhr = originalXhr));
+}
+
 describe('OnboardingWorkEmail Page', () => {
     beforeAll(() => {
         Onyx.init({
@@ -282,10 +298,12 @@ describe('OnboardingWorkEmail Page', () => {
     });
 
     beforeEach(() => {
-        jest.spyOn(useResponsiveLayoutModule, 'default').mockReturnValue({
-            isSmallScreenWidth: false,
-            shouldUseNarrowLayout: false,
-        } as ResponsiveLayoutResult);
+        jest.spyOn(useResponsiveLayoutModule, 'default').mockReturnValue(
+            createMock<ResponsiveLayoutResult>({
+                isSmallScreenWidth: false,
+                shouldUseNarrowLayout: false,
+            }),
+        );
     });
 
     afterEach(async () => {
@@ -555,12 +573,12 @@ describe('OnboardingWorkEmail Page', () => {
         await waitForBatchedUpdatesWithAct();
     });
 
-    it('should skip Onboarding private domain for a validated public-domain user', async () => {
+    it('should skip Onboarding private domain for a validated public-domain user after guided setup is complete', async () => {
         await TestHelper.signInWithTestUser();
 
         await act(async () => {
             await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {
-                hasCompletedGuidedSetupFlow: false,
+                hasCompletedGuidedSetupFlow: true,
             });
             // Validated public-domain user (original bug case): PRIVATE_DOMAIN would say "people on gmail.com" — skip to PURPOSE.
             await Onyx.merge(ONYXKEYS.ACCOUNT, {validated: true, isFromPublicDomain: true});
@@ -573,6 +591,26 @@ describe('OnboardingWorkEmail Page', () => {
         await waitFor(() => {
             expect(navigate).toHaveBeenCalledWith(ROUTES.ONBOARDING_PURPOSE.getRoute(), {forceReplace: true});
         });
+
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
+    it('should stay on work-email for a validated public-domain user during incomplete guided setup', async () => {
+        await TestHelper.signInWithTestUser();
+
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {
+                hasCompletedGuidedSetupFlow: false,
+            });
+            await Onyx.merge(ONYXKEYS.ACCOUNT, {validated: true, isFromPublicDomain: true});
+        });
+
+        const {unmount} = renderOnboardingWorkEmailPage(SCREENS.ONBOARDING.WORK_EMAIL, undefined);
+
+        await waitForBatchedUpdatesWithAct();
+
+        expect(navigate).not.toHaveBeenCalled();
 
         unmount();
         await waitForBatchedUpdatesWithAct();
@@ -629,6 +667,32 @@ describe('OnboardingWorkEmail Page', () => {
         unmount();
         await waitForBatchedUpdatesWithAct();
     });
+
+    it('should display correct error message when a domain-controlled work email is submitted', async () => {
+        await TestHelper.signInWithTestUser();
+
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {
+                hasCompletedGuidedSetupFlow: false,
+            });
+            await Onyx.merge(ONYXKEYS.ACCOUNT, {validated: false});
+        });
+
+        const {unmount} = renderOnboardingWorkEmailPage(SCREENS.ONBOARDING.WORK_EMAIL, undefined);
+
+        await waitForBatchedUpdatesWithAct();
+
+        AddWorkEmailWithDomainControlledError();
+
+        await waitForBatchedUpdatesWithAct();
+
+        await waitFor(() => {
+            expect(screen.getByText(TestHelper.translateLocal('onboarding.mergeBlockScreen.domainControlledSubtitle', workEmail))).toBeOnTheScreen();
+        });
+
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
 });
 
 describe('OnboardingWorkEmailValidation Page', () => {
@@ -639,10 +703,12 @@ describe('OnboardingWorkEmailValidation Page', () => {
     });
 
     beforeEach(() => {
-        jest.spyOn(useResponsiveLayoutModule, 'default').mockReturnValue({
-            isSmallScreenWidth: false,
-            shouldUseNarrowLayout: false,
-        } as ResponsiveLayoutResult);
+        jest.spyOn(useResponsiveLayoutModule, 'default').mockReturnValue(
+            createMock<ResponsiveLayoutResult>({
+                isSmallScreenWidth: false,
+                shouldUseNarrowLayout: false,
+            }),
+        );
     });
 
     afterEach(async () => {
@@ -984,10 +1050,12 @@ describe('OnboardingPrivateDomain Page', () => {
     });
 
     beforeEach(() => {
-        jest.spyOn(useResponsiveLayoutModule, 'default').mockReturnValue({
-            isSmallScreenWidth: false,
-            shouldUseNarrowLayout: false,
-        } as ResponsiveLayoutResult);
+        jest.spyOn(useResponsiveLayoutModule, 'default').mockReturnValue(
+            createMock<ResponsiveLayoutResult>({
+                isSmallScreenWidth: false,
+                shouldUseNarrowLayout: false,
+            }),
+        );
     });
 
     afterEach(async () => {

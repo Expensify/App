@@ -43,7 +43,6 @@ type SignerDetailsFormPagesProps = {
     /** Array of step names for the progress indicator */
     stepNames?: readonly string[];
 
-    /** ID of current policy */
     policyID?: string;
 
     /** Callback triggered after the last form page is completed */
@@ -95,7 +94,7 @@ function SignerDetailsFormPages({onBackToIsDirector, stepNames, policyID, onFini
     }, [buildRoute, isEditing, onBackToIsDirector, pageIndex, prevPage, skipPages]);
 
     if (isRedirecting) {
-        return <FullScreenLoadingIndicator reasonAttributes={{context: 'SignerDetailsFormPages', isRedirecting}} />;
+        return <FullScreenLoadingIndicator />;
     }
 
     return (

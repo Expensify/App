@@ -1,7 +1,6 @@
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 
 import useLocalize from '@hooks/useLocalize';
-import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
@@ -18,10 +17,7 @@ type CustomUnitDefaultCategorySelectorProps = {
     /** Currently selected category */
     defaultValue?: string;
 
-    /** Label to display on field */
     label: string;
-
-    /** Any additional styles to apply */
     wrapperStyle: StyleProp<ViewStyle>;
 
     /** Whether item is focused or active */
@@ -35,12 +31,10 @@ type CustomUnitDefaultCategorySelectorProps = {
 };
 
 function CustomUnitDefaultCategorySelector({defaultValue = '', wrapperStyle, label, focused, customUnitID, interactive = true}: CustomUnitDefaultCategorySelectorProps) {
-    const styles = useThemeStyles();
     const {translate} = useLocalize();
 
     const decodedCategoryName = getDecodedCategoryName(defaultValue);
     const title = decodedCategoryName || translate('common.none');
-    const descStyle = decodedCategoryName.length === 0 ? styles.textNormal : null;
 
     const onPress = () => {
         Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.DEFAULT_CATEGORY_SELECTOR.getRoute(customUnitID)));
@@ -51,7 +45,6 @@ function CustomUnitDefaultCategorySelector({defaultValue = '', wrapperStyle, lab
             shouldShowRightIcon={interactive}
             title={title}
             description={label}
-            descriptionTextStyle={descStyle}
             onPress={onPress}
             interactive={interactive}
             wrapperStyle={wrapperStyle}

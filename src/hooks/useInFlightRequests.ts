@@ -170,7 +170,7 @@ function useAppLoadSkeletonState({isLoadingReportData = false}: {isLoadingReport
  * `undefined` returns false, so callers can pass an optional reportID without a fallback value.
  *
  * Do not use this hook in list rows. Each call creates three Onyx subscriptions.
- * Call it at screen level and pass the result down.
+ * Use it in report-level components or guards.
  */
 function useIsReportLoadPending(reportID: string | undefined): boolean {
     const hasPendingRequest = useIsPendingInternal('reportLoad', reportID);

@@ -2,7 +2,7 @@ import {act, renderHook} from '@testing-library/react-native';
 
 import type {UpdatePersonalDetailsForWalletParams} from '@libs/API/parameters';
 
-import useWalletPhoneMagicCode from '@pages/EnablePayments/shared/useWalletPhoneMagicCode';
+import useWalletPhoneValidateCode from '@pages/EnablePayments/shared/useWalletPhoneValidateCode';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -45,8 +45,8 @@ const buildParams = (overrides: Partial<UpdatePersonalDetailsForWalletParams> = 
     ...overrides,
 });
 
-const renderWalletPhoneMagicCode = async () => {
-    const hook = renderHook(() => useWalletPhoneMagicCode());
+const renderWalletPhoneValidateCode = async () => {
+    const hook = renderHook(() => useWalletPhoneValidateCode());
     await act(async () => {
         await waitForBatchedUpdates();
     });
@@ -55,7 +55,7 @@ const renderWalletPhoneMagicCode = async () => {
 
 const setStoredPhoneNumber = (phoneNumber: string) => Onyx.merge(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, {phoneNumber});
 
-describe('useWalletPhoneMagicCode', () => {
+describe('useWalletPhoneValidateCode', () => {
     beforeAll(() => {
         Onyx.init({keys: ONYXKEYS});
     });
@@ -67,12 +67,12 @@ describe('useWalletPhoneMagicCode', () => {
         mockNavigate.mockClear();
     });
 
-    it('submits directly without routing to the magic-code screen when the phone number is unchanged (country code normalized)', async () => {
+    it('submits directly without routing to the validateCode screen when the phone number is unchanged (country code normalized)', async () => {
         await act(async () => {
             await setStoredPhoneNumber(STORED_PHONE_NUMBER_WITH_COUNTRY_CODE);
             await waitForBatchedUpdates();
         });
-        const {result} = await renderWalletPhoneMagicCode();
+        const {result} = await renderWalletPhoneValidateCode();
 
         const params = buildParams();
         act(() => {
@@ -83,34 +83,34 @@ describe('useWalletPhoneMagicCode', () => {
         expect(mockNavigate).not.toHaveBeenCalled();
     });
 
-    it('routes to the magic-code screen when a phone number is set for the first time (none saved yet)', async () => {
-        const {result} = await renderWalletPhoneMagicCode();
+    it('routes to the validateCode screen when a phone number is set for the first time (none saved yet)', async () => {
+        const {result} = await renderWalletPhoneValidateCode();
 
         act(() => {
             result.current.submitPersonalDetails(buildParams());
         });
 
         expect(mockUpdatePersonalDetails).not.toHaveBeenCalled();
-        expect(mockNavigate).toHaveBeenCalledWith(ROUTES.SETTINGS_ENABLE_PAYMENTS_CONFIRM_MAGIC_CODE.getRoute());
+        expect(mockNavigate).toHaveBeenCalledWith(ROUTES.SETTINGS_ENABLE_PAYMENTS_CONFIRM_VALIDATE_CODE.getRoute());
     });
 
-    it('routes to the magic-code screen and holds the submission when an existing phone number is changed', async () => {
+    it('routes to the validateCode screen and holds the submission when an existing phone number is changed', async () => {
         await act(async () => {
             await setStoredPhoneNumber(STORED_PHONE_NUMBER_WITH_COUNTRY_CODE);
             await waitForBatchedUpdates();
         });
-        const {result} = await renderWalletPhoneMagicCode();
+        const {result} = await renderWalletPhoneValidateCode();
 
         act(() => {
             result.current.submitPersonalDetails(buildParams({phoneNumber: CHANGED_PHONE_NUMBER}));
         });
 
         expect(mockUpdatePersonalDetails).not.toHaveBeenCalled();
-        expect(mockNavigate).toHaveBeenCalledWith(ROUTES.SETTINGS_ENABLE_PAYMENTS_CONFIRM_MAGIC_CODE.getRoute());
+        expect(mockNavigate).toHaveBeenCalledWith(ROUTES.SETTINGS_ENABLE_PAYMENTS_CONFIRM_VALIDATE_CODE.getRoute());
     });
 
-    it('submits directly without routing to the magic-code screen when no phone number is provided', async () => {
-        const {result} = await renderWalletPhoneMagicCode();
+    it('submits directly without routing to the validateCode screen when no phone number is provided', async () => {
+        const {result} = await renderWalletPhoneValidateCode();
 
         const params = buildParams({phoneNumber: ''});
         act(() => {

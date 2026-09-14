@@ -24,7 +24,7 @@ function run() {
     return previousVersion;
 }
 
-if (require.main === module) {
+if (import.meta.main) {
     run();
 }
 

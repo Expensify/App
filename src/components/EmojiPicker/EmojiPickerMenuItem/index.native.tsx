@@ -47,7 +47,7 @@ function EmojiPickerMenuItem({
             onBlur={onBlur}
             ref={ref}
             style={({pressed}) => [
-                StyleUtils.getButtonBackgroundColorStyle(getButtonState(false, pressed)),
+                StyleUtils.getButtonBackgroundColorStyle(getButtonState({isPressed: pressed})),
                 isHighlighted && isUsingKeyboardMovement && themeStyles.emojiItemKeyboardHighlighted,
                 isHighlighted && !isUsingKeyboardMovement && themeStyles.emojiItemHighlighted,
                 themeStyles.emojiItem,

@@ -1,5 +1,5 @@
 import AccountSwitcherSkeletonView from '@components/AccountSwitcherSkeletonView';
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import FeedSelector from '@components/FeedSelector';
 import Icon from '@components/Icon';
 import RenderHTML from '@components/RenderHTML';
@@ -17,7 +17,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getLinkedPolicyName} from '@libs/CardFeedUtils';
 import {getCompanyFeeds, getCustomOrFormattedFeedName, getPlaidCountry, getPlaidInstitutionId, isCustomFeed} from '@libs/CardUtils';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 
 import Navigation from '@navigation/Navigation';
 
@@ -37,10 +36,7 @@ import getShouldShowBrokenConnectionError from './getShouldShowBrokenConnectionE
 const FEED_SELECTOR_SKELETON_WIDTH = 289;
 
 type WorkspaceCompanyCardsTableHeaderButtonsProps = {
-    /** Current policy id */
     policyID: string;
-
-    /** Currently selected feed */
     feedName: CompanyCardFeedWithDomainID;
 
     /** Whether the feed is loading */
@@ -49,7 +45,6 @@ type WorkspaceCompanyCardsTableHeaderButtonsProps = {
     /** Whether the current member can edit company cards */
     canWriteCompanyCards: boolean;
 
-    /** Card feed icon */
     CardFeedIcon: React.ReactNode;
 };
 
@@ -113,11 +108,6 @@ function WorkspaceCompanyCardsTableHeaderButtons({policyID, feedName, isLoading,
 
     const shouldShowNarrowLayout = shouldUseNarrowLayout || isMediumScreenWidth;
 
-    const skeletonReasonAttributes: SkeletonSpanReasonAttributes = {
-        context: 'WorkspaceCompanyCardsTableHeaderButtons',
-        isLoading,
-    };
-
     return (
         <View>
             <View
@@ -134,7 +124,6 @@ function WorkspaceCompanyCardsTableHeaderButtons({policyID, feedName, isLoading,
                         avatarSize={CONST.AVATAR_SIZE.DEFAULT}
                         width={FEED_SELECTOR_SKELETON_WIDTH}
                         style={[shouldShowNarrowLayout ? [styles.mb2, styles.mt2] : [styles.mb11, styles.mt2], styles.mw100]}
-                        reasonAttributes={skeletonReasonAttributes}
                     />
                 ) : (
                     <FeedSelector

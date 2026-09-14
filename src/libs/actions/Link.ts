@@ -12,6 +12,7 @@ import normalizePath from '@libs/Navigation/helpers/normalizePath';
 import shouldOpenOnAdminRoom from '@libs/Navigation/helpers/shouldOpenOnAdminRoom';
 import swapBackgroundTabForRHPTarget from '@libs/Navigation/helpers/swapBackgroundTabForRHPTarget';
 import willRouteNavigateToRHP from '@libs/Navigation/helpers/willRouteNavigateToRHP';
+import isNativeOAuthCallbackURL from '@libs/Navigation/linkingConfig/isNativeOAuthCallbackURL';
 import Navigation from '@libs/Navigation/Navigation';
 import navigationRef from '@libs/Navigation/navigationRef';
 import REPORT_LINK_ROUTE_PARAMS from '@libs/Navigation/reportLinkRouteParams';
@@ -42,7 +43,7 @@ import {canAnonymousUserAccessRoute, isAnonymousUser, signOutAndRedirectToSignIn
 import {setOnboardingErrorMessage} from './Welcome';
 
 let currentUserEmail = '';
-let currentUserAccountID = -1;
+let currentUserAccountID: number = CONST.DEFAULT_NUMBER_ID;
 // Use connectWithoutView since this is to open an external link and doesn't affect any UI
 Onyx.connectWithoutView({
     key: ONYXKEYS.SESSION,
@@ -151,15 +152,19 @@ function openTravelDotLink(policyID: OnyxEntry<string>, postLoginPath?: string) 
     });
 }
 
+const NEW_EXPENSIFY_ORIGINS = [CONST.NEW_EXPENSIFY_URL, CONST.STAGING_NEW_EXPENSIFY_URL, CONST.QA_NEW_EXPENSIFY_URL];
+
 function getInternalNewExpensifyPath(href: string) {
     if (!href) {
         return '';
     }
+
     const attrPath = Url.getPathFromURL(href);
-    return (Url.hasSameExpensifyOrigin(href, CONST.NEW_EXPENSIFY_URL) || Url.hasSameExpensifyOrigin(href, CONST.STAGING_NEW_EXPENSIFY_URL) || href.startsWith(CONST.DEV_NEW_EXPENSIFY_URL)) &&
-        !CONST.PATHS_TO_TREAT_AS_EXTERNAL.find((path) => attrPath.startsWith(path))
-        ? attrPath
-        : '';
+    // The dev server's port varies, so dev is matched by prefix instead of by origin.
+    const hasNewExpensifyOrigin = NEW_EXPENSIFY_ORIGINS.some((origin) => Url.hasSameExpensifyOrigin(href, origin)) || href.startsWith(CONST.DEV_NEW_EXPENSIFY_URL);
+    const isExternalPath = CONST.PATHS_TO_TREAT_AS_EXTERNAL.some((path) => attrPath.startsWith(path));
+
+    return hasNewExpensifyOrigin && !isExternalPath ? attrPath : '';
 }
 
 function getInternalExpensifyPath(href: string) {
@@ -459,6 +464,7 @@ function openReportFromDeepLink(
     introSelected: OnyxEntry<IntroSelected>,
     isSelfTourViewed: boolean | undefined,
     betas: OnyxEntry<Beta[]>,
+    callerAccountID: number,
 ) {
     const reportID = getReportIDFromLink(url);
 
@@ -470,8 +476,19 @@ function openReportFromDeepLink(
             parentSpan: getSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.PUBLIC_ROOM_CHECK),
         });
 
-        // Call the OpenReport command to check in the server if it's a public room. If so, we'll open it as an anonymous user
-        openReport({reportID, introSelected, parentReportActionID: '0', isFromDeepLink: true, betas, hasReportActions: false});
+        openReport({
+            reportID,
+            introSelected,
+            // Unauthenticated public-room path: there is no signed-in user, so no Concierge chat exists to thread.
+            conciergeChat: undefined,
+            // The public room already exists on the server, so no optimistic report is created and the personal details are never read.
+            personalDetails: undefined,
+            parentReportActionID: '0',
+            isFromDeepLink: true,
+            betas,
+            hasReportActions: false,
+            currentUserAccountID: callerAccountID,
+        });
 
         // Show the sign-in page if the app is offline
         if (getIsOffline()) {
@@ -511,8 +528,38 @@ function openReportFromDeepLink(
         return;
     }
 
+    // The native OAuth callback is consumed by the auth session that opened it. linkingConfig.filter already drops
+    // it for signed-in users, but this post-sign-in navigate runs outside react-navigation's linking.
+    if (isNativeOAuthCallbackURL(url)) {
+        return;
+    }
+
     // Navigate to the report after sign-in/sign-up.
     waitForUserSignIn().then(() => {
+        // A Submit-via-PDF secure access link must reach the report regardless of onboarding status: the report screen
+        // is where JoinReportViaSecureLink runs, and onboarding is suppressed for secure-link visitors. The generic
+        // handling below intentionally drops deep links for users who still need to onboard, so branch out first.
+        if (Url.hasSecureLinkKey(route)) {
+            Navigation.waitForProtectedRoutes().then(() => {
+                // Secure links grant workspace + report access to a real account via JoinReportViaSecureLink, so an
+                // anonymous session can never fulfill them even though report routes are otherwise anonymous-accessible
+                // (canAnonymousUserAccessRoute would allow it). Force a real sign-in first; the deep link is re-processed
+                // after sign-in. Without this the user lands on /r/:id?secureKey with no join, stuck loading/404.
+                if (isAnonymousUser()) {
+                    signOutAndRedirectToSignIn(true);
+                    return;
+                }
+                // On cold launch the report is already the initial route; navigating again would stack a duplicate
+                // that renders "not found" until the join grants access. Only navigate when we're not already there.
+                if (Navigation.getTopmostReportId() === reportID) {
+                    return;
+                }
+                const secureKey = new URLSearchParams(route.split('?').at(1) ?? '').get('secureKey') ?? undefined;
+                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID, undefined, undefined, undefined, secureKey), {waitForTransition: true});
+            });
+            return;
+        }
+
         // `false` when the user still had to onboard as this deep link was captured (fresh sign-up, or a
         // stale react-native-web URL); honoring it after onboarding flashes the "Not here" page (#91437).
         let initialHasCompletedGuidedSetupFlow: boolean | undefined;
@@ -579,7 +626,8 @@ function openReportFromDeepLink(
                             const report = reportParam ?? reports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
                             // If the report does not exist, navigate to the last accessed report or Concierge chat
                             if (reportID && (!report?.reportID || report.errorFields?.notFound)) {
-                                const lastAccessedReportID = findLastAccessedReport(false, shouldOpenOnAdminRoom(), reportID)?.reportID;
+                                // TODO: Pass guideAccountIDs once callers are fully migrated — PR 33 (https://github.com/Expensify/App/issues/66413); findLastAccessedReport falls back to hasExpensifyGuidesEmails → allPersonalDetails
+                                const lastAccessedReportID = findLastAccessedReport(false, undefined, shouldOpenOnAdminRoom(), reportID)?.reportID;
                                 if (lastAccessedReportID) {
                                     const lastAccessedReportRoute = ROUTES.REPORT_WITH_ID.getRoute(lastAccessedReportID);
                                     Navigation.navigate(lastAccessedReportRoute, {forceReplace: Navigation.getTopmostReportId() === reportID, waitForTransition: true});

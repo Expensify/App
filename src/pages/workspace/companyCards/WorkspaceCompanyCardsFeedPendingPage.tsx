@@ -38,7 +38,11 @@ function WorkspaceCompanyCardsFeedPendingPage() {
             >
                 <Text style={[styles.textAlignCenter, styles.textSupporting, styles.textNormal]}>
                     {translate('workspace.moreFeatures.companyCards.pendingFeedDescription')}
-                    <TextLink onPress={() => navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas, false)}>
+                    <TextLink
+                        onPress={() => {
+                            navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas, false);
+                        }}
+                    >
                         {' '}
                         {CONST.CONCIERGE_CHAT_NAME}
                     </TextLink>

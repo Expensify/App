@@ -18,6 +18,7 @@ import {NavigationContainer} from '@react-navigation/native';
 import Onyx from 'react-native-onyx';
 
 import getOnyxValue from '../utils/getOnyxValue';
+import {getCurrencyDecimalsLocal} from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 jest.mock('@libs/GoogleTagManager');
@@ -178,6 +179,7 @@ describe('GoogleTagManagerTest', () => {
             isSelfTourViewed: false,
             betas: undefined,
             hasActiveAdminPolicies: false,
+            hasOwnedPaidPolicy: false,
         });
         await waitForBatchedUpdatesWithAct();
         createWorkspace({
@@ -191,6 +193,7 @@ describe('GoogleTagManagerTest', () => {
             isSelfTourViewed: false,
             betas: undefined,
             hasActiveAdminPolicies: true,
+            hasOwnedPaidPolicy: false,
         });
         await waitForBatchedUpdatesWithAct();
         createWorkspace({
@@ -204,6 +207,7 @@ describe('GoogleTagManagerTest', () => {
             isSelfTourViewed: false,
             betas: undefined,
             hasActiveAdminPolicies: true,
+            hasOwnedPaidPolicy: false,
         });
         await waitForBatchedUpdatesWithAct();
 
@@ -225,6 +229,7 @@ describe('GoogleTagManagerTest', () => {
             isSelfTourViewed: false,
             betas: undefined,
             hasActiveAdminPolicies: false,
+            hasOwnedPaidPolicy: false,
             engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
             companySize: CONST.ONBOARDING_COMPANY_SIZE.MICRO_MEDIUM,
         });
@@ -248,6 +253,7 @@ describe('GoogleTagManagerTest', () => {
             isSelfTourViewed: false,
             betas: undefined,
             hasActiveAdminPolicies: false,
+            hasOwnedPaidPolicy: false,
             engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
             companySize: CONST.ONBOARDING_COMPANY_SIZE.MICRO_MEDIUM,
         });
@@ -266,7 +272,9 @@ describe('GoogleTagManagerTest', () => {
         const recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
 
         trackExpense({
+            isDraftChatReport: false,
             conciergeChat: undefined,
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
             report: {reportID: '123'},
             isDraftPolicy: true,
             action: CONST.IOU.ACTION.CATEGORIZE,
@@ -298,6 +306,7 @@ describe('GoogleTagManagerTest', () => {
             currentUserLocalCurrency: undefined,
             delegateAccountID: undefined,
             reportActionsList: undefined,
+            rules: undefined,
         });
 
         await waitForBatchedUpdatesWithAct();

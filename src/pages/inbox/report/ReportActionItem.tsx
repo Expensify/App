@@ -13,6 +13,7 @@ import {ShowContextMenuActionsContext, ShowContextMenuStateContext} from '@compo
 import UnreadActionIndicator from '@components/UnreadActionIndicator';
 
 import useConfirmModal from '@hooks/useConfirmModal';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useOriginalReportID from '@hooks/useOriginalReportID';
@@ -111,13 +112,8 @@ type ReportActionItemProps = {
     /** The chat report associated with the report for this action (report.chatReportID) */
     chatReport: OnyxEntry<OnyxTypes.Report>;
 
-    /** Report action belonging to the report's parent */
     parentReportAction: OnyxEntry<OnyxTypes.ReportAction>;
-
-    /** The transaction thread report's parentReportAction */
     parentReportActionForTransactionThread?: OnyxEntry<OnyxTypes.ReportAction>;
-
-    /** All the data of the action item */
     action: OnyxTypes.ReportAction;
 
     /** Should the comment have the appearance of being grouped with the previous comment? */
@@ -126,7 +122,6 @@ type ReportActionItemProps = {
     /** Should we display the new marker on top of the comment? */
     shouldDisplayNewMarker: boolean;
 
-    /** Flag to show, hide the thread divider line */
     shouldHideThreadDividerLine?: boolean;
 
     /** Report action ID that was referenced in the deeplink to report  */
@@ -135,7 +130,6 @@ type ReportActionItemProps = {
     /** Callback to be called on onPress */
     onPress?: () => void;
 
-    /** If this is the first visible report action */
     isFirstVisibleReportAction: boolean;
 
     /**
@@ -144,13 +138,8 @@ type ReportActionItemProps = {
      */
     isThreadReportParentAction?: boolean;
 
-    /** IF the thread divider line will be used */
     shouldUseThreadDividerLine?: boolean;
-
-    /** Whether context menu should be displayed */
     shouldDisplayContextMenu?: boolean;
-
-    /** Linked transaction route error */
     linkedTransactionRouteError?: Errors;
 
     /** Whether to show border for MoneyRequestReportPreviewContent */
@@ -204,8 +193,11 @@ function ReportActionItem({
     const isConciergeGreeting = action.reportActionID === CONST.CONCIERGE_GREETING_ACTION_ID;
     const shouldDisplayContextMenuValue = shouldDisplayContextMenu && !isConciergeGreeting;
     const {transitionActionSheetState} = ActionSheetAwareScrollView.useActionSheetAwareScrollViewActions();
-    const {translate, datetimeToCalendarTime} = useLocalize();
-    const [actorDisplayName] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsDisplayNameSelector(action.actorAccountID ?? CONST.DEFAULT_NUMBER_ID, translate)});
+    const {translate, datetimeToCalendarTime, formatPhoneNumber} = useLocalize();
+    const {getCurrencyDecimals} = useCurrencyListActions();
+    const [actorDisplayName] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+        selector: personalDetailsDisplayNameSelector(action.actorAccountID ?? CONST.DEFAULT_NUMBER_ID, translate, formatPhoneNumber),
+    });
     const {showConfirmModal} = useConfirmModal();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const theme = useTheme();
@@ -253,7 +245,19 @@ function ReportActionItem({
     const dismissError = () => {
         const transactionIDToDismiss = isMoneyRequestAction(action) ? getOriginalMessage(action)?.IOUTransactionID : undefined;
         if (isSendingMoney && transactionIDToDismiss && reportID) {
-            cleanUpMoneyRequest(transactionIDToDismiss, action, reportID, transactionThreadReport, report, chatReport, undefined, originalReportID, true, iouPolicy);
+            cleanUpMoneyRequest({
+                transactionID: transactionIDToDismiss,
+                reportAction: action,
+                reportID,
+                transactionThreadReport,
+                iouReport: report,
+                chatReport,
+                isChatIOUReportArchived: undefined,
+                originalReportID,
+                getCurrencyDecimals,
+                isSingleTransactionView: true,
+                policy: iouPolicy,
+            });
             return;
         }
         if (action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD && isReportActionLinked) {
@@ -272,7 +276,7 @@ function ReportActionItem({
             confirmText: translate('common.dismiss'),
             cancelText: translate('common.cancel'),
             shouldShowCancelButton: true,
-            danger: true,
+            buttonVariant: CONST.BUTTON_VARIANT.DANGER,
         });
         if (result.action === ModalActions.CONFIRM) {
             dismissError();

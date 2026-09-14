@@ -37,7 +37,7 @@ function setSpreadsheetData(
     const numColumns = firstRow.length;
 
     // Transpose data from row-major to column-major format
-    const transposedData: string[][] = firstRow.map((_, colIndex) => data.map((row) => String(row.at(colIndex) ?? '')));
+    const transposedData: string[][] = Array.from({length: numColumns}, (_, colIndex) => data.map((row) => String(row.at(colIndex) ?? '')));
 
     const columnNames: Record<number, string> = {};
     for (let colIndex = 0; colIndex < numColumns; colIndex++) {
@@ -220,6 +220,14 @@ function applyCompanyCardSavedColumnMappings(spreadsheetData: string[][], savedC
 
     for (const [role, indexValue] of Object.entries(savedColumnMappings)) {
         if (role === CONST.CSV_IMPORT_COLUMNS.IGNORE || !validRoles.has(role)) {
+            continue;
+        }
+
+        // A saved externalID index is ambiguous: the company cards import appends a synthetic externalID column
+        // when the user maps no Unique ID, and that index is indistinguishable from a Unique ID the user mapped to
+        // the last column. Restoring it could point Unique ID at an unrelated column of the new file, whose repeated
+        // values would make the backend dedupe valid transactions, so leave it for the user to map.
+        if (role === CONST.CSV_IMPORT_COLUMNS.EXTERNAL_ID) {
             continue;
         }
         const index = Number(indexValue);

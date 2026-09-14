@@ -26,16 +26,12 @@ type DocusignFullStepProps<TFormID extends keyof OnyxFormValuesMapping> = {
     /** Default value for file upload input */
     defaultValue: FileObject[];
 
-    /** The ID of the form */
     formID: TFormID;
-
-    /** ID of the input in the form */
     inputID: FormOnyxKeys<TFormID>;
 
     /** Indicates that action is being processed */
     isLoading: boolean;
 
-    /** Handles back button press */
     onBackButtonPress: () => void;
 
     /** Handles submit button press */
@@ -44,7 +40,6 @@ type DocusignFullStepProps<TFormID extends keyof OnyxFormValuesMapping> = {
     /** Currency of related account */
     currency: string;
 
-    /** Array of step names */
     stepNames?: readonly string[];
 
     /** Index of currently active step in header */
@@ -131,14 +126,15 @@ function DocusignFullStepImpl({defaultValue, formID, inputID, isLoading, onBackB
                     </>
                 )}
                 <Button
-                    success
-                    large
+                    variant={CONST.BUTTON_VARIANT.SUCCESS}
+                    size={CONST.BUTTON_SIZE.LARGE}
                     style={[styles.w100, styles.mb15]}
                     onPress={() => {
                         openLink(CONST.DOCUSIGN_POWERFORM_LINK[country as 'CA' | 'AU' | 'US'], environmentURL);
                     }}
-                    text={translate('docusignStep.takeMeTo')}
-                />
+                >
+                    <Button.Text>{translate('docusignStep.takeMeTo')}</Button.Text>
+                </Button>
                 {(country === CONST.COUNTRY.CA || country === CONST.COUNTRY.US) && (
                     <Text style={[styles.textHeadlineLineHeightXXL, styles.mb5]}>{translate('docusignStep.uploadAdditional')}</Text>
                 )}

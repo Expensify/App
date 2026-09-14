@@ -3,6 +3,7 @@ import type {PopoverMenuItem} from '@components/PopoverMenu';
 
 import type {Action} from '@hooks/useSingleExecution';
 
+import type CONST from '@src/CONST';
 import type {StepCounterParams} from '@src/languages/params';
 import type {TranslationPaths} from '@src/languages/types';
 import type {Report} from '@src/types/onyx';
@@ -11,9 +12,9 @@ import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import type IconAsset from '@src/types/utils/IconAsset';
 
-import type {ReactNode} from 'react';
-import type {StyleProp, ViewStyle} from 'react-native';
+import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 
 type ThreeDotsMenuItem = {
     /** An icon element displayed on the left side */
@@ -22,18 +23,12 @@ type ThreeDotsMenuItem = {
     /** Translation key for the label */
     translationKey: TranslationPaths;
 
-    /** A callback triggered when the item is selected */
     onSelected: () => void;
 };
 
 type HeaderWithBackButtonProps = Partial<ChildrenProps> & {
-    /** Title of the Header */
     title?: string;
-
-    /** Subtitle of the header */
-    subtitle?: ReactNode;
-
-    /** Title color */
+    subtitle?: string;
     titleColor?: string;
 
     /**
@@ -43,10 +38,7 @@ type HeaderWithBackButtonProps = Partial<ChildrenProps> & {
      * */
     icon?: IconAsset;
 
-    /** Icon Width */
     iconWidth?: number;
-
-    /** Icon Height */
     iconHeight?: number;
 
     /** Any additional styles to pass to the icon container. */
@@ -67,37 +59,28 @@ type HeaderWithBackButtonProps = Partial<ChildrenProps> & {
     /** Method to trigger when pressing more options button of the header */
     onThreeDotsButtonPress?: () => void;
 
-    /** Whether we should show a border on the bottom of the Header */
     shouldShowBorderBottom?: boolean;
 
     /** Whether we should display the status of the report */
     shouldDisplayStatus?: boolean;
 
-    /** Whether we should show a download button */
     shouldShowDownloadButton?: boolean;
 
     /** Whether we should show a loading indicator replacing the download button */
     isDownloading?: boolean;
 
-    /** Whether we should show a rotate button */
     shouldShowRotateButton?: boolean;
 
     /** Whether we should show a loading indicator replacing the rotate button */
     isRotating?: boolean;
 
-    /** Whether we should show a pin button */
     shouldShowPinButton?: boolean;
-
-    /** Whether we should show a more options (three dots) button */
     shouldShowThreeDotsButton?: boolean;
-
-    /** Whether we should disable three dots button */
     shouldDisableThreeDotsButton?: boolean;
 
     /** Whether we should set modal visibility when three dot menu opens */
     shouldSetModalVisibility?: boolean;
 
-    /** List of menu items for more(three dots) menu */
     threeDotsMenuItems?: PopoverMenuItem[];
 
     /** The anchor alignment of the menu */
@@ -109,16 +92,12 @@ type HeaderWithBackButtonProps = Partial<ChildrenProps> & {
     /** The fill color to pass into the icon. */
     threeDotsMenuIconFill?: string;
 
-    /** Whether we should show a close button */
     shouldShowCloseButton?: boolean;
-
-    /** Whether we should show a back button */
     shouldShowBackButton?: boolean;
 
     /** Data to display a step counter in the header */
     stepCounter?: StepCounterParams;
 
-    /** Whether we should show a report avatar */
     shouldShowReportAvatarWithDisplay?: boolean;
 
     /** Parent report, if provided it will override props.report for AvatarWithDisplay */
@@ -133,7 +112,6 @@ type HeaderWithBackButtonProps = Partial<ChildrenProps> & {
     /** Whether we should navigate to report page when the route have a topMostReport  */
     shouldNavigateToTopMostReport?: boolean;
 
-    /** Whether the header should use the headline header style */
     shouldUseHeadlineHeader?: boolean;
 
     /** The fill color for the icon. Can be hex, rgb, rgba, or valid react-native named color such as 'red' or 'blue'. */
@@ -142,10 +120,7 @@ type HeaderWithBackButtonProps = Partial<ChildrenProps> & {
     /** Whether the popover menu should overlay the current view */
     shouldOverlay?: boolean;
 
-    /** Whether we should enable detail page navigation */
     shouldEnableDetailPageNavigation?: boolean;
-
-    /** Number of lines to display for the title */
     numberOfTitleLines?: number;
 
     /** Whether we should overlay the 3 dots menu */
@@ -157,13 +132,13 @@ type HeaderWithBackButtonProps = Partial<ChildrenProps> & {
     /** Whether we should display the button that opens new SearchRouter */
     shouldDisplaySearchRouter?: boolean;
 
-    /** 0 - 100 number indicating current progress of the progress bar */
-    progressBarPercentage?: number;
-
     /** Policy avatar to display in the header */
     policyAvatar?: Icon;
 
-    /** Additional styles to add to the component */
+    /** Size of the policy avatar. Defaults to CONST.AVATAR_SIZE.DEFAULT */
+    policyAvatarSize?: ValueOf<typeof CONST.AVATAR_SIZE>;
+
+    titleStyles?: StyleProp<TextStyle>;
     style?: StyleProp<ViewStyle>;
 
     /** The URL link associated with the attachment's subtitle, if available */

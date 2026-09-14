@@ -1,6 +1,7 @@
-import MenuItem from '@components/MenuItem';
+import MenuItemAction from '@components/MenuItem/presets/MenuItemAction';
 import Modal from '@components/Modal';
 
+import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 
@@ -11,6 +12,7 @@ import CONST from '@src/CONST';
 import type {Ref} from 'react';
 
 import React, {useImperativeHandle, useState} from 'react';
+import {View} from 'react-native';
 
 type MoneyRequestReportTransactionLongPressModalHandle = {
     /** Opens the modal for the given transaction */
@@ -18,7 +20,6 @@ type MoneyRequestReportTransactionLongPressModalHandle = {
 };
 
 type MoneyRequestReportTransactionLongPressModalProps = {
-    /** Whether the mobile selection mode is currently enabled */
     isMobileSelectionModeEnabled: boolean;
 
     /** Callback to toggle the selection state of a transaction */
@@ -33,6 +34,7 @@ function MoneyRequestReportTransactionLongPressModal({isMobileSelectionModeEnabl
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['CheckSquare']);
     const [isVisible, setIsVisible] = useState(false);
     const [selectedTransactionID, setSelectedTransactionID] = useState('');
+    const bottomSafeAreaPaddingStyle = useBottomSafeSafeAreaPaddingStyle({addBottomSafeAreaPadding: true, addOfflineIndicatorBottomSafeAreaPadding: false});
 
     useImperativeHandle(ref, () => ({
         show: (transactionID: string) => {
@@ -47,18 +49,21 @@ function MoneyRequestReportTransactionLongPressModal({isMobileSelectionModeEnabl
             type={CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED}
             onClose={() => setIsVisible(false)}
             shouldPreventScrollOnFocus
+            enableEdgeToEdgeBottomSafeAreaPadding
         >
-            <MenuItem
-                title={translate('common.select')}
-                icon={expensifyIcons.CheckSquare}
-                onPress={() => {
-                    if (!isMobileSelectionModeEnabled) {
-                        turnOnMobileSelectionMode();
-                    }
-                    toggleTransaction(selectedTransactionID);
-                    setIsVisible(false);
-                }}
-            />
+            <View style={bottomSafeAreaPaddingStyle}>
+                <MenuItemAction
+                    title={translate('common.select')}
+                    icon={expensifyIcons.CheckSquare}
+                    onPress={() => {
+                        if (!isMobileSelectionModeEnabled) {
+                            turnOnMobileSelectionMode();
+                        }
+                        toggleTransaction(selectedTransactionID);
+                        setIsVisible(false);
+                    }}
+                />
+            </View>
         </Modal>
     );
 }

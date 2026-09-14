@@ -21,7 +21,16 @@ import {getCleanedTagName, getTagLists, hasDependentTags as hasDependentTagsPoli
 import {canEditFieldOfMoneyRequest, isInvoiceReport, isIOUReport} from '@libs/ReportUtils';
 import {getSearchBulkEditPolicyID} from '@libs/SearchUIUtils';
 import {hasEnabledTags, shouldShowDependentTagList} from '@libs/TagsOptionsListUtils';
-import {getTagArrayFromName, getTaxName, hasSplitExpenseInSelection, isDistanceRequest, isManagedCardTransaction, isPerDiemRequest, isTimeRequest} from '@libs/TransactionUtils';
+import {
+    getAttendeesListDisplayString,
+    getTagArrayFromName,
+    getTaxName,
+    hasSplitExpenseInSelection,
+    isDistanceRequest,
+    isManagedCardTransaction,
+    isPerDiemRequest,
+    isTimeRequest,
+} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -39,6 +48,7 @@ import {
     areAllTransactionsExpenseCompatible,
     getTransactionEditContext,
     hasCustomUnitMerchantInSelection,
+    isBulkEditAttendeeTrackingEnabled,
     isBulkEditTaxTrackingEnabled,
     withSnapshotReportActions,
     withSnapshotReports,
@@ -46,8 +56,8 @@ import {
 } from './SearchEditMultipleUtils';
 
 function SearchEditMultiplePage() {
-    const {translate} = useLocalize();
-    const {convertToDisplayStringWithoutCurrency} = useCurrencyListActions();
+    const {translate, localeCompare} = useLocalize();
+    const {convertToDisplayStringWithoutCurrency, getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
     const styles = useThemeStyles();
     const {currentSearchHash} = useSearchQueryContext();
     const {currentSearchResults} = useSearchResultsContext();
@@ -75,6 +85,7 @@ function SearchEditMultiplePage() {
     });
 
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
     const snapshotData = currentSearchResults?.data;
     const mergedTransactions = withSnapshotTransactions(allTransactions, snapshotData);
@@ -98,7 +109,7 @@ function SearchEditMultiplePage() {
             if (!transaction.reportID || transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
                 return false;
             }
-            return !canEditFieldOfMoneyRequest({reportAction, fieldToEdit: field, transaction, report, policy: transactionPolicy, reportNameValuePairs});
+            return !canEditFieldOfMoneyRequest({reportAction, fieldToEdit: field, transaction, report, policy: transactionPolicy, reportNameValuePairs, rules});
         });
 
     const hasPartiallyEditableTransaction = isFieldDisabledForAnyTransaction(CONST.EDIT_REQUEST_FIELD.AMOUNT);
@@ -135,8 +146,10 @@ function SearchEditMultiplePage() {
 
     const isTaxTrackingEnabled = isBulkEditTaxTrackingEnabled(selectedTransactionContexts, policy, hasPerDiemOrTimeTransaction);
     const areSelectedTransactionsExpenses = areAllTransactionsExpenseCompatible(selectedTransactionContexts);
+    const isAttendeeTrackingEnabledForSelection = isBulkEditAttendeeTrackingEnabled(selectedTransactionContexts, policy);
     const areCategoriesEnabled = areSelectedTransactionsExpenses && !!policy?.areCategoriesEnabled && hasEnabledOptions(policyCategories ?? {});
     const areTagsEnabled = areSelectedTransactionsExpenses && !!policy?.areTagsEnabled && hasEnabledTags(policyTagLists);
+    const areAttendeesEnabled = areSelectedTransactionsExpenses && isAttendeeTrackingEnabledForSelection;
 
     useEffect(() => {
         return () => {
@@ -179,6 +192,9 @@ function SearchEditMultiplePage() {
         if (typeof draftTransaction.reimbursable === 'boolean') {
             changes.reimbursable = draftTransaction.reimbursable;
         }
+        if (draftTransaction.comment?.attendees) {
+            changes.attendees = draftTransaction.comment.attendees;
+        }
 
         if (Object.keys(changes).length === 0) {
             Navigation.dismissToPreviousRHP();
@@ -193,6 +209,7 @@ function SearchEditMultiplePage() {
             updateMultipleMoneyRequests({
                 transactionIDs: selectedTransactionIDs,
                 changes,
+                bulkEditTagChanges: draftTransaction.bulkEditTagChanges,
                 policy,
                 reports: mergedReports,
                 transactions: mergedTransactions,
@@ -207,6 +224,9 @@ function SearchEditMultiplePage() {
                 delegateAccountID,
                 personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
                 personalDetailsList,
+                getCurrencyDecimals,
+                getCurrencySymbol,
+                rules,
             });
             // Bulk edit can start from report (ID-based selection) or search (map-based selection),
             // so clear both stores to keep deselection behavior consistent.
@@ -318,6 +338,16 @@ function SearchEditMultiplePage() {
                   },
               ]
             : []),
+        ...(areAttendeesEnabled
+            ? [
+                  {
+                      description: translate('iou.attendees'),
+                      title: draftTransaction?.comment?.attendees?.length ? getAttendeesListDisplayString(draftTransaction.comment.attendees, localeCompare) : '',
+                      route: ROUTES.SEARCH_EDIT_MULTIPLE_ATTENDEES_RHP,
+                      disabled: isFieldDisabledForAnyTransaction(CONST.EDIT_REQUEST_FIELD.ATTENDEES),
+                  },
+              ]
+            : []),
     ];
 
     return (
@@ -346,14 +376,15 @@ function SearchEditMultiplePage() {
                     ))}
                 </ScrollView>
                 <Button
-                    success
-                    large
-                    text={translate('common.save')}
+                    variant={CONST.BUTTON_VARIANT.SUCCESS}
+                    size={CONST.BUTTON_SIZE.LARGE}
                     onPress={save}
                     isLoading={isSaving}
                     isDisabled={isSaving}
                     style={[styles.m5]}
-                />
+                >
+                    <Button.Text>{translate('common.save')}</Button.Text>
+                </Button>
             </View>
         </ScreenWrapper>
     );

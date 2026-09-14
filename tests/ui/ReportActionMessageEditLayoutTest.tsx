@@ -23,6 +23,7 @@ import type {PropsWithChildren} from 'react';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 
+import createMock from '../utils/createMock';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
@@ -37,7 +38,7 @@ jest.mock('@hooks/useResponsiveLayout', () => ({
     default: jest.fn(),
 }));
 
-const narrowLayout: ReturnType<typeof useResponsiveLayout> = {
+const narrowLayout = createMock<ReturnType<typeof useResponsiveLayout>>({
     shouldUseNarrowLayout: true,
     isSmallScreenWidth: true,
     isInNarrowPaneModal: false,
@@ -47,9 +48,9 @@ const narrowLayout: ReturnType<typeof useResponsiveLayout> = {
     onboardingIsMediumOrLargerScreenWidth: false,
     isLargeScreenWidth: false,
     isSmallScreen: true,
-} as ReturnType<typeof useResponsiveLayout>;
+});
 
-const wideLayout: ReturnType<typeof useResponsiveLayout> = {
+const wideLayout = createMock<ReturnType<typeof useResponsiveLayout>>({
     shouldUseNarrowLayout: false,
     isSmallScreenWidth: false,
     isInNarrowPaneModal: false,
@@ -59,7 +60,7 @@ const wideLayout: ReturnType<typeof useResponsiveLayout> = {
     onboardingIsMediumOrLargerScreenWidth: true,
     isLargeScreenWidth: true,
     isSmallScreen: false,
-} as ReturnType<typeof useResponsiveLayout>;
+});
 
 jest.mock('@libs/getPlatform', () => ({
     __esModule: true,
@@ -143,8 +144,32 @@ const commentAction: ReportActionItemMessageEditProps['action'] = {
 
 const testIds = CONST.COMPOSER.TEST_ID;
 
+const rootChatReport = LHNTestUtils.getFakeReport();
+const threadReport = LHNTestUtils.getFakeReport();
+const nestedThreadReport = LHNTestUtils.getFakeReport();
+
+const rootChatMessageAction: ReportActionItemMessageEditProps['action'] = {
+    ...LHNTestUtils.getFakeReportAction(),
+    actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+    childReportID: threadReport.reportID,
+};
+
+const threadMessageAction: ReportActionItemMessageEditProps['action'] = {
+    ...LHNTestUtils.getFakeReportAction(),
+    actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+    childReportID: nestedThreadReport.reportID,
+};
+
 function ReportActionEditMessageContextProviderForReport({children}: PropsWithChildren) {
     return <ReportActionEditMessageContextProvider reportID={defaultReport.reportID}>{children}</ReportActionEditMessageContextProvider>;
+}
+
+function ReportActionEditMessageContextProviderForNestedThread({children}: PropsWithChildren) {
+    return <ReportActionEditMessageContextProvider reportID={nestedThreadReport.reportID}>{children}</ReportActionEditMessageContextProvider>;
+}
+
+function ReportActionEditMessageContextProviderForThread({children}: PropsWithChildren) {
+    return <ReportActionEditMessageContextProvider reportID={threadReport.reportID}>{children}</ReportActionEditMessageContextProvider>;
 }
 
 function ReportScreenProviders({children}: PropsWithChildren) {
@@ -206,6 +231,64 @@ function renderNarrowMessageCompose() {
     );
 }
 
+async function seedNestedThreadHierarchyWithAncestorEditDraft(draftMessage: string) {
+    await act(async () => {
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${rootChatReport.reportID}`, rootChatReport);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${threadReport.reportID}`, {
+            ...threadReport,
+            parentReportID: rootChatReport.reportID,
+            parentReportActionID: rootChatMessageAction.reportActionID,
+        });
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${nestedThreadReport.reportID}`, {
+            ...nestedThreadReport,
+            parentReportID: threadReport.reportID,
+            parentReportActionID: threadMessageAction.reportActionID,
+        });
+
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${rootChatReport.reportID}`, {
+            [rootChatMessageAction.reportActionID]: rootChatMessageAction,
+        });
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${threadReport.reportID}`, {
+            [threadMessageAction.reportActionID]: threadMessageAction,
+        });
+
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${rootChatReport.reportID}`, {
+            [rootChatMessageAction.reportActionID]: {message: draftMessage},
+        });
+    });
+}
+
+async function getReportActionDraftMessage(reportID: string, reportActionID: string) {
+    let draftMessage: string | undefined;
+    await TestHelper.getOnyxData({
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${reportID}`,
+        callback: (drafts) => {
+            draftMessage = drafts?.[reportActionID]?.message;
+        },
+    });
+    return draftMessage;
+}
+
+function renderNestedThreadNarrowMessageCompose() {
+    mockUseResponsiveLayout.mockReturnValue(narrowLayout);
+    mockRouteReportID.current = nestedThreadReport.reportID;
+    return render(
+        <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, KeyboardStateProvider, ReportActionEditMessageContextProviderForNestedThread]}>
+            <ReportActionCompose reportID={nestedThreadReport.reportID} />
+        </ComposeProviders>,
+    );
+}
+
+function renderThreadNarrowMessageCompose() {
+    mockUseResponsiveLayout.mockReturnValue(narrowLayout);
+    mockRouteReportID.current = threadReport.reportID;
+    return render(
+        <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, KeyboardStateProvider, ReportActionEditMessageContextProviderForThread]}>
+            <ReportActionCompose reportID={threadReport.reportID} />
+        </ComposeProviders>,
+    );
+}
+
 describe('ReportActionMessageEdit layout and draft (narrow vs wide)', () => {
     beforeAll(() => {
         Onyx.init({
@@ -216,6 +299,7 @@ describe('ReportActionMessageEdit layout and draft (narrow vs wide)', () => {
 
     beforeEach(() => {
         mockUseResponsiveLayout.mockReturnValue(narrowLayout);
+        mockRouteReportID.current = defaultReport.reportID;
         jest.useFakeTimers();
     });
 
@@ -378,6 +462,53 @@ describe('ReportActionMessageEdit layout and draft (narrow vs wide)', () => {
         await waitFor(() => {
             expect(within(mainRoot).getByTestId(CONST.COMPOSER.NATIVE_ID).props.value).toBe('Start, edited');
         });
+    });
+
+    it('keeps a nested-thread ancestor edit draft on the report that owns the action when typing in the narrow main composer', async () => {
+        await seedNestedThreadHierarchyWithAncestorEditDraft('Parent body');
+        await waitForBatchedUpdatesWithAct();
+
+        renderNestedThreadNarrowMessageCompose();
+        await waitForBatchedUpdatesWithAct();
+
+        const mainRoot = screen.getByTestId(testIds.REPORT_ACTION_COMPOSE);
+        const composer = within(mainRoot).getByTestId(CONST.COMPOSER.NATIVE_ID);
+        expect(screen.getByTestId(testIds.EDITING_MESSAGE_ACTION_ROW)).toBeOnTheScreen();
+        expect(composer.props.value).toBe('Parent body');
+
+        fireEvent.changeText(composer, 'Parent body, edited');
+        await act(async () => {
+            jest.advanceTimersByTime(CONST.TIMING.DRAFT_SAVE_DEBOUNCE_TIME + 1);
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        expect(await getReportActionDraftMessage(rootChatReport.reportID, rootChatMessageAction.reportActionID)).toBe('Parent body, edited');
+        expect(await getReportActionDraftMessage(nestedThreadReport.reportID, rootChatMessageAction.reportActionID)).toBeUndefined();
+    });
+
+    it('keeps a direct-parent edit draft on the parent report when editing from inside its own thread', async () => {
+        await seedNestedThreadHierarchyWithAncestorEditDraft('Parent body');
+        await waitForBatchedUpdatesWithAct();
+
+        renderThreadNarrowMessageCompose();
+        await waitForBatchedUpdatesWithAct();
+
+        const mainRoot = screen.getByTestId(testIds.REPORT_ACTION_COMPOSE);
+        const composer = within(mainRoot).getByTestId(CONST.COMPOSER.NATIVE_ID);
+        expect(screen.getByTestId(testIds.EDITING_MESSAGE_ACTION_ROW)).toBeOnTheScreen();
+        expect(composer.props.value).toBe('Parent body');
+
+        fireEvent.changeText(composer, 'Parent body, edited');
+        await act(async () => {
+            jest.advanceTimersByTime(CONST.TIMING.DRAFT_SAVE_DEBOUNCE_TIME + 1);
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        // The edited action's childReportID is the thread being viewed, so this is the shape that makes
+        // getOriginalReportID's isThreadReportParentAction branch evaluable. The draft must still resolve
+        // to the parent's own report, not to that report's parentReportID.
+        expect(await getReportActionDraftMessage(rootChatReport.reportID, rootChatMessageAction.reportActionID)).toBe('Parent body, edited');
+        expect(await getReportActionDraftMessage(threadReport.reportID, rootChatMessageAction.reportActionID)).toBeUndefined();
     });
 
     it('cancel in narrow main composer returns to normal draft action row', async () => {

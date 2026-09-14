@@ -34,16 +34,15 @@ import ScreenWrapper from './ScreenWrapper';
 import Text from './Text';
 
 type ImportSpreadsheetProps = {
-    // The route to navigate to when the back button is pressed.
+    /** The route to navigate to when the back button is pressed */
     backTo?: Routes;
 
-    // The route to navigate to after the file import is completed.
+    /** The route to navigate to after the file import is completed */
     goTo: Routes;
 
-    // If true, replace the current route after import instead of pushing on top.
+    /** If true, replace the current route after import instead of pushing on top */
     shouldForceReplaceNavigation?: boolean;
 
-    /** Whether the spreadsheet is importing multi-level tags */
     isImportingMultiLevelTags?: boolean;
 };
 
@@ -206,8 +205,7 @@ function ImportSpreadsheet({backTo, goTo, shouldForceReplaceNavigation = false, 
             <FilePicker acceptableFileTypes={acceptableFileTypes}>
                 {({openPicker}) => (
                     <Button
-                        success
-                        text={translate('common.chooseFile')}
+                        variant={CONST.BUTTON_VARIANT.SUCCESS}
                         accessibilityLabel={translate('common.chooseFile')}
                         style={[styles.pt9]}
                         isLoading={isReadingFile}
@@ -218,7 +216,9 @@ function ImportSpreadsheet({backTo, goTo, shouldForceReplaceNavigation = false, 
                                 },
                             });
                         }}
-                    />
+                    >
+                        <Button.Text>{translate('common.chooseFile')}</Button.Text>
+                    </Button>
                 )}
             </FilePicker>
         </>
