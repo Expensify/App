@@ -1,4 +1,4 @@
-import NumericCurrencyButton from '@components/NumericButtons/NumericCurrencyButton';
+import {NumericCurrencyButton} from '@components/NumericButtons';
 
 import NumericFieldComponent from './NumericField';
 import NumericFlipButton from './primitives/NumericFlipButton';

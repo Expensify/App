@@ -1,5 +1,5 @@
-import NumericFlipButtonComponent from '@components/NumericButtons/NumericFlipButton';
-import type {NumericFlipButtonProps} from '@components/NumericButtons/NumericFlipButton';
+import {NumericFlipButton as NumericFlipButtonComponent} from '@components/NumericButtons';
+import type {NumericFlipButtonProps} from '@components/NumericButtons';
 import {useNumericInputActions, useNumericInputState} from '@components/NumericInput/context';
 
 /** Toggles the sign of the canonical value. Rendered only when the root allows negative values. */

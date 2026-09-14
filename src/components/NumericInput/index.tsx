@@ -1,4 +1,4 @@
-import NumericCurrencyButton from '@components/NumericButtons/NumericCurrencyButton';
+import {NumericCurrencyButton} from '@components/NumericButtons';
 
 import NumericInputComponent from './NumericInput';
 import NumericError from './primitives/NumericError';
