@@ -5,13 +5,14 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import Navigation from '@libs/Navigation/Navigation';
 import navigationRef from '@libs/Navigation/navigationRef';
+import type {RootNavigatorParamList} from '@libs/Navigation/types';
 
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 
-import type {InitialState} from '@react-navigation/native';
+import type {InitialState, NavigationContainerRef} from '@react-navigation/native';
 
 import React, {createContext, useContext} from 'react';
 
@@ -539,7 +540,7 @@ describe('Go back on the narrow layout', () => {
             });
 
             const tabState = navigationRef.current?.getRootState().routes.at(0)?.state;
-            const workspaceState = tabState?.routes.at(4)?.state;
+            const workspaceState = tabState?.routes.find((route) => route.name === NAVIGATORS.WORKSPACE_NAVIGATOR)?.state;
             const activeSplit = workspaceState?.routes.at(workspaceState.index ?? 0);
             expect(workspaceState?.routes).toHaveLength(1);
             expect(activeSplit?.state?.routes.at(0)?.params).toMatchObject({policyID: policyA});
@@ -556,7 +557,7 @@ describe('Go back on the narrow layout', () => {
             };
             render(<TestNavigationContainer initialState={buildWorkspaceNavigationState(sidebarOnlySplit, buildWorkspaceSplitRoute(policyB))} />);
 
-            const workspaceStateBeforeGoBack = navigationRef.current?.getRootState().routes.at(0)?.state?.routes.at(4)?.state;
+            const workspaceStateBeforeGoBack = navigationRef.current?.getRootState().routes.at(0)?.state?.routes.find((route) => route.name === NAVIGATORS.WORKSPACE_NAVIGATOR)?.state;
             const matchingSplitBeforeGoBack = workspaceStateBeforeGoBack?.routes.at(0);
             const sidebarBeforeGoBack = matchingSplitBeforeGoBack?.state?.routes.at(0);
             expect(matchingSplitBeforeGoBack?.state?.routes).toHaveLength(1);
@@ -566,7 +567,7 @@ describe('Go back on the narrow layout', () => {
                 Navigation.goBack(ROUTES.WORKSPACE_OVERVIEW.getRoute(policyA, ROUTES.HOME), {compareParams});
             });
 
-            const workspaceState = navigationRef.current?.getRootState().routes.at(0)?.state?.routes.at(4)?.state;
+            const workspaceState = navigationRef.current?.getRootState().routes.at(0)?.state?.routes.find((route) => route.name === NAVIGATORS.WORKSPACE_NAVIGATOR)?.state;
             const activeSplit = workspaceState?.routes.at(workspaceState.index ?? 0);
             expect(workspaceState?.routes).toHaveLength(1);
             expect(activeSplit?.key).toBe(matchingSplitBeforeGoBack?.key);
@@ -582,7 +583,7 @@ describe('Go back on the narrow layout', () => {
                 Navigation.goBack();
             });
 
-            const workspaceStateAfterSecondBack = navigationRef.current?.getRootState().routes.at(0)?.state?.routes.at(4)?.state;
+            const workspaceStateAfterSecondBack = navigationRef.current?.getRootState().routes.at(0)?.state?.routes.find((route) => route.name === NAVIGATORS.WORKSPACE_NAVIGATOR)?.state;
             const splitAfterSecondBack = workspaceStateAfterSecondBack?.routes.at(0);
             expect(workspaceStateAfterSecondBack?.routes).toHaveLength(1);
             expect(splitAfterSecondBack?.key).toBe(matchingSplitBeforeGoBack?.key);
@@ -604,7 +605,7 @@ describe('Go back on the narrow layout', () => {
                 Navigation.goBack(ROUTES.WORKSPACE_INITIAL.getRoute(policyA, ROUTES.HOME), {compareParams});
             });
 
-            const workspaceState = navigationRef.current?.getRootState().routes.at(0)?.state?.routes.at(4)?.state;
+            const workspaceState = navigationRef.current?.getRootState().routes.at(0)?.state?.routes.find((route) => route.name === NAVIGATORS.WORKSPACE_NAVIGATOR)?.state;
             const activeSplit = workspaceState?.routes.at(workspaceState.index ?? 0);
             expect(workspaceState?.routes).toHaveLength(1);
             expect(activeSplit?.state?.index).toBe(0);
@@ -623,7 +624,7 @@ describe('Go back on the narrow layout', () => {
             );
 
             const tabStateBeforeGoBack = navigationRef.current?.getRootState().routes.at(0)?.state;
-            const workspaceStateBeforeGoBack = tabStateBeforeGoBack?.routes.at(4)?.state;
+            const workspaceStateBeforeGoBack = tabStateBeforeGoBack?.routes.find((route) => route.name === NAVIGATORS.WORKSPACE_NAVIGATOR)?.state;
             expect(workspaceStateBeforeGoBack?.routes.at(0)?.state?.routes.at(-1)?.name).toBe(SCREENS.WORKSPACE.MORE_FEATURES);
 
             act(() => {
@@ -631,7 +632,7 @@ describe('Go back on the narrow layout', () => {
             });
 
             const tabState = navigationRef.current?.getRootState().routes.at(0)?.state;
-            const workspaceState = tabState?.routes.at(4)?.state;
+            const workspaceState = tabState?.routes.find((route) => route.name === NAVIGATORS.WORKSPACE_NAVIGATOR)?.state;
             const activeSplit = workspaceState?.routes.at(workspaceState.index ?? 0);
             expect(workspaceState?.routes).toHaveLength(1);
             expect(activeSplit?.state?.routes).toHaveLength(2);
@@ -653,7 +654,7 @@ describe('Go back on the narrow layout', () => {
             );
 
             const tabStateBeforeGoBack = navigationRef.current?.getRootState().routes.at(0)?.state;
-            const workspaceStateBeforeGoBack = tabStateBeforeGoBack?.routes.at(4)?.state;
+            const workspaceStateBeforeGoBack = tabStateBeforeGoBack?.routes.find((route) => route.name === NAVIGATORS.WORKSPACE_NAVIGATOR)?.state;
             const matchingSplitBeforeGoBack = workspaceStateBeforeGoBack?.routes.at(0);
             const requestedLeafKey = matchingSplitBeforeGoBack?.state?.routes.at(1)?.key;
             expect(matchingSplitBeforeGoBack?.state?.routes.map((route) => route.name)).toEqual([SCREENS.WORKSPACE.INITIAL, SCREENS.WORKSPACE.PROFILE, SCREENS.WORKSPACE.MORE_FEATURES]);
@@ -663,7 +664,7 @@ describe('Go back on the narrow layout', () => {
             });
 
             const tabState = navigationRef.current?.getRootState().routes.at(0)?.state;
-            const workspaceState = tabState?.routes.at(4)?.state;
+            const workspaceState = tabState?.routes.find((route) => route.name === NAVIGATORS.WORKSPACE_NAVIGATOR)?.state;
             const activeSplit = workspaceState?.routes.at(workspaceState.index ?? 0);
             expect(workspaceState?.routes).toHaveLength(1);
             expect(activeSplit?.state?.routes).toHaveLength(2);
@@ -682,11 +683,99 @@ describe('Go back on the narrow layout', () => {
             });
 
             const tabState = navigationRef.current?.getRootState().routes.at(0)?.state;
-            const workspaceState = tabState?.routes.at(4)?.state;
+            const workspaceState = tabState?.routes.find((route) => route.name === NAVIGATORS.WORKSPACE_NAVIGATOR)?.state;
             const activeSplit = workspaceState?.routes.at(workspaceState.index ?? 0);
             expect(workspaceState?.routes).toHaveLength(1);
             expect(activeSplit?.state?.routes.at(0)?.params).toMatchObject({policyID: policyA});
             expect(activeSplit?.state?.routes.at(-1)?.params).toMatchObject({policyID: policyA});
+        });
+
+        it('Should not push any screen when going back to another workspace', () => {
+            render(<TestNavigationContainer initialState={buildWorkspaceNavigationState(buildWorkspaceSplitRoute(policyA), buildWorkspaceSplitRoute(policyB))} />);
+            const dispatchSpy = jest.spyOn(navigationRef.current as NavigationContainerRef<RootNavigatorParamList>, 'dispatch');
+
+            act(() => {
+                Navigation.goBack(ROUTES.WORKSPACE_OVERVIEW.getRoute(policyA));
+            });
+
+            // Going back must never add a screen, and on web must never add a browser history entry with it.
+            expect(dispatchSpy).toHaveBeenCalled();
+            expect(dispatchSpy).not.toHaveBeenCalledWith(expect.objectContaining({type: CONST.NAVIGATION.ACTION_TYPE.PUSH}));
+        });
+
+        it('Should switch tabs without dispatching a pop the tab navigator would drop', () => {
+            // The workspace tab is focused and the settings tab sits before it, so reaching the settings tab means
+            // going backwards within the tab navigator.
+            render(<TestNavigationContainer initialState={buildWorkspaceNavigationState(buildWorkspaceSplitRoute(policyA), buildWorkspaceSplitRoute(policyB))} />);
+            const tabStateKey = navigationRef.current?.getRootState().routes.at(0)?.state?.key;
+            const dispatchSpy = jest.spyOn(navigationRef.current as NavigationContainerRef<RootNavigatorParamList>, 'dispatch');
+
+            act(() => {
+                Navigation.goBack(ROUTES.SETTINGS);
+            });
+
+            // TabRouter has no POP case, so a pop targeted at the tab navigator would be dropped as an unhandled
+            // action. Switching tabs is the jumpTo case goBack owns.
+            expect(dispatchSpy).not.toHaveBeenCalledWith(expect.objectContaining({type: CONST.NAVIGATION.ACTION_TYPE.POP, target: tabStateKey}));
+            const tabState = navigationRef.current?.getRootState().routes.at(0)?.state;
+            expect(tabState?.routes.at(tabState.index ?? 0)?.name).toBe(NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR);
+        });
+
+        it('Should replace rather than pop past more than one root route', () => {
+            const initialState: InitialState = {
+                index: 2,
+                routes: [
+                    ...buildWorkspaceNavigationState(buildWorkspaceSplitRoute(policyA), buildWorkspaceSplitRoute(policyB)).routes,
+                    {name: NAVIGATORS.RIGHT_MODAL_NAVIGATOR, state: {index: 0, routes: [{name: SCREENS.RIGHT_MODAL.SETTINGS}]}},
+                    {name: NAVIGATORS.RIGHT_MODAL_NAVIGATOR, state: {index: 0, routes: [{name: SCREENS.RIGHT_MODAL.MONEY_REQUEST}]}},
+                ],
+            };
+            render(<TestNavigationContainer initialState={initialState} />);
+            const workspaceStateBeforeGoBack = navigationRef.current?.getRootState().routes.at(0)?.state?.routes.find((route) => route.name === NAVIGATORS.WORKSPACE_NAVIGATOR)?.state;
+            expect(workspaceStateBeforeGoBack?.routes).toHaveLength(2);
+
+            act(() => {
+                Navigation.goBack(ROUTES.WORKSPACE_OVERVIEW.getRoute(policyA));
+            });
+
+            // Reaching the matching split would mean popping two routes off the root, which would lose the visited
+            // pages, so the focused route is replaced instead and nothing underneath is touched.
+            const rootState = navigationRef.current?.getRootState();
+            expect(rootState?.routes).toHaveLength(3);
+            expect(rootState?.routes.at(-1)?.name).toBe(NAVIGATORS.TAB_NAVIGATOR);
+            const workspaceState = rootState?.routes.at(0)?.state?.routes.find((route) => route.name === NAVIGATORS.WORKSPACE_NAVIGATOR)?.state;
+            expect(workspaceState?.routes).toHaveLength(2);
+            expect(workspaceState?.index).toBe(1);
+        });
+
+        it('Should pop every split above the matching workspace in one go back', () => {
+            const policyC = 'policy-c';
+            render(
+                <TestNavigationContainer
+                    initialState={buildWorkspaceNavigationState(
+                        buildWorkspaceSplitRoute(policyA, SCREENS.WORKSPACE.MORE_FEATURES),
+                        buildWorkspaceSplitRoute(policyC),
+                        buildWorkspaceSplitRoute(policyB),
+                    )}
+                />,
+            );
+
+            const workspaceStateBeforeGoBack = navigationRef.current?.getRootState().routes.at(0)?.state?.routes.find((route) => route.name === NAVIGATORS.WORKSPACE_NAVIGATOR)?.state;
+            const matchingSplitBeforeGoBack = workspaceStateBeforeGoBack?.routes.at(0);
+            expect(workspaceStateBeforeGoBack?.routes).toHaveLength(3);
+
+            act(() => {
+                Navigation.goBack(ROUTES.WORKSPACE_OVERVIEW.getRoute(policyA));
+            });
+
+            const workspaceState = navigationRef.current?.getRootState().routes.at(0)?.state?.routes.find((route) => route.name === NAVIGATORS.WORKSPACE_NAVIGATOR)?.state;
+            const activeSplit = workspaceState?.routes.at(workspaceState.index ?? 0);
+            expect(workspaceState?.routes).toHaveLength(1);
+            expect(activeSplit?.key).toBe(matchingSplitBeforeGoBack?.key);
+            expect(activeSplit?.state?.routes.at(-1)).toMatchObject({
+                name: SCREENS.WORKSPACE.PROFILE,
+                params: {policyID: policyA},
+            });
         });
 
         it('Should pop to the matching workspace split without comparing leaf params', () => {
@@ -702,7 +791,7 @@ describe('Go back on the narrow layout', () => {
             );
 
             const tabStateBeforeGoBack = navigationRef.current?.getRootState().routes.at(0)?.state;
-            const workspaceStateBeforeGoBack = tabStateBeforeGoBack?.routes.at(4)?.state;
+            const workspaceStateBeforeGoBack = tabStateBeforeGoBack?.routes.find((route) => route.name === NAVIGATORS.WORKSPACE_NAVIGATOR)?.state;
             expect(workspaceStateBeforeGoBack?.routes.at(0)?.state?.routes.at(-1)).toMatchObject({
                 name: SCREENS.WORKSPACE.PROFILE,
                 params: {policyID: policyA, backTo: oldBackTo},
@@ -713,13 +802,74 @@ describe('Go back on the narrow layout', () => {
             });
 
             const tabState = navigationRef.current?.getRootState().routes.at(0)?.state;
-            const workspaceState = tabState?.routes.at(4)?.state;
+            const workspaceState = tabState?.routes.find((route) => route.name === NAVIGATORS.WORKSPACE_NAVIGATOR)?.state;
             const activeSplit = workspaceState?.routes.at(workspaceState.index ?? 0);
             expect(workspaceState?.routes).toHaveLength(1);
             expect(activeSplit?.state?.routes.at(0)?.params).toMatchObject({policyID: policyA});
             expect(activeSplit?.state?.routes.at(-1)).toMatchObject({
                 name: SCREENS.WORKSPACE.PROFILE,
                 params: {policyID: policyA, backTo: requestedBackTo},
+            });
+        });
+    });
+
+    describe('called from an open modal with a workspace fallback route', () => {
+        const policyA = 'policy-a';
+        const policyB = 'policy-b';
+
+        function buildStateWithModalOverWorkspaces(...workspaceSplits: WorkspaceScopeRoute[]): InitialState {
+            return {
+                index: 1,
+                routes: [
+                    ...buildWorkspaceNavigationState(...workspaceSplits).routes,
+                    {name: NAVIGATORS.RIGHT_MODAL_NAVIGATOR, state: {index: 0, routes: [{name: SCREENS.RIGHT_MODAL.SETTINGS}]}},
+                ],
+            };
+        }
+
+        it('Should close the modal and reach the matching workspace split', () => {
+            render(<TestNavigationContainer initialState={buildStateWithModalOverWorkspaces(buildWorkspaceSplitRoute(policyA), buildWorkspaceSplitRoute(policyB))} />);
+            const dispatchSpy = jest.spyOn(navigationRef.current as NavigationContainerRef<RootNavigatorParamList>, 'dispatch');
+
+            act(() => {
+                Navigation.goBack(ROUTES.WORKSPACE_OVERVIEW.getRoute(policyA));
+            });
+
+            // The modal is above the tab navigator, so the descent used to stop at the root and apply the requested
+            // screen to whichever split happened to be focused - workspace B's - which is issue #99034 on the back path.
+            const rootState = navigationRef.current?.getRootState();
+            expect(rootState?.routes.map((route) => route.name)).toEqual([NAVIGATORS.TAB_NAVIGATOR]);
+
+            const workspaceState = rootState?.routes.at(0)?.state?.routes.find((route) => route.name === NAVIGATORS.WORKSPACE_NAVIGATOR)?.state;
+            const activeSplit = workspaceState?.routes.at(workspaceState.index ?? 0);
+            expect(workspaceState?.routes).toHaveLength(1);
+            expect(activeSplit?.state?.routes.at(0)?.params).toMatchObject({policyID: policyA});
+            expect(activeSplit?.state?.routes.at(-1)).toMatchObject({
+                name: SCREENS.WORKSPACE.PROFILE,
+                params: {policyID: policyA},
+            });
+            // Going back must never add a screen, and on web must never add a browser history entry with it.
+            expect(dispatchSpy).not.toHaveBeenCalledWith(expect.objectContaining({type: CONST.NAVIGATION.ACTION_TYPE.PUSH}));
+        });
+
+        it('Should leave the other workspace splits alone when the fallback route belongs to the focused one', () => {
+            render(<TestNavigationContainer initialState={buildStateWithModalOverWorkspaces(buildWorkspaceSplitRoute(policyA), buildWorkspaceSplitRoute(policyB))} />);
+
+            act(() => {
+                Navigation.goBack(ROUTES.WORKSPACE_OVERVIEW.getRoute(policyB));
+            });
+
+            const rootState = navigationRef.current?.getRootState();
+            expect(rootState?.routes.map((route) => route.name)).toEqual([NAVIGATORS.TAB_NAVIGATOR]);
+
+            const workspaceState = rootState?.routes.at(0)?.state?.routes.find((route) => route.name === NAVIGATORS.WORKSPACE_NAVIGATOR)?.state;
+            expect(workspaceState?.routes).toHaveLength(2);
+            expect(workspaceState?.index).toBe(1);
+            const activeSplit = workspaceState?.routes.at(1);
+            expect(activeSplit?.state?.routes.at(0)?.params).toMatchObject({policyID: policyB});
+            expect(activeSplit?.state?.routes.at(-1)).toMatchObject({
+                name: SCREENS.WORKSPACE.PROFILE,
+                params: {policyID: policyB},
             });
         });
     });
@@ -738,7 +888,7 @@ describe('Go back on the narrow layout', () => {
             };
             render(<TestNavigationContainer initialState={buildWorkspaceNavigationState(sidebarOnlySplit, buildDomainSplitRoute(domainB))} />);
 
-            const workspaceStateBeforeGoBack = navigationRef.current?.getRootState().routes.at(0)?.state?.routes.at(4)?.state;
+            const workspaceStateBeforeGoBack = navigationRef.current?.getRootState().routes.at(0)?.state?.routes.find((route) => route.name === NAVIGATORS.WORKSPACE_NAVIGATOR)?.state;
             const matchingSplitBeforeGoBack = workspaceStateBeforeGoBack?.routes.at(0);
             const sidebarBeforeGoBack = matchingSplitBeforeGoBack?.state?.routes.at(0);
             expect(matchingSplitBeforeGoBack?.state?.routes).toHaveLength(1);
@@ -748,7 +898,7 @@ describe('Go back on the narrow layout', () => {
                 Navigation.goBack(ROUTES.DOMAIN_MEMBERS.getRoute(domainA), {compareParams});
             });
 
-            const workspaceState = navigationRef.current?.getRootState().routes.at(0)?.state?.routes.at(4)?.state;
+            const workspaceState = navigationRef.current?.getRootState().routes.at(0)?.state?.routes.find((route) => route.name === NAVIGATORS.WORKSPACE_NAVIGATOR)?.state;
             const activeSplit = workspaceState?.routes.at(workspaceState.index ?? 0);
             expect(workspaceState?.routes).toHaveLength(1);
             expect(activeSplit?.key).toBe(matchingSplitBeforeGoBack?.key);
@@ -764,7 +914,7 @@ describe('Go back on the narrow layout', () => {
                 Navigation.goBack();
             });
 
-            const workspaceStateAfterSecondBack = navigationRef.current?.getRootState().routes.at(0)?.state?.routes.at(4)?.state;
+            const workspaceStateAfterSecondBack = navigationRef.current?.getRootState().routes.at(0)?.state?.routes.find((route) => route.name === NAVIGATORS.WORKSPACE_NAVIGATOR)?.state;
             const splitAfterSecondBack = workspaceStateAfterSecondBack?.routes.at(0);
             expect(workspaceStateAfterSecondBack?.routes).toHaveLength(1);
             expect(splitAfterSecondBack?.key).toBe(matchingSplitBeforeGoBack?.key);
@@ -776,7 +926,7 @@ describe('Go back on the narrow layout', () => {
             render(<TestNavigationContainer initialState={buildWorkspaceNavigationState(buildDomainSplitRoute(domainA, SCREENS.DOMAIN.SAML), buildDomainSplitRoute(domainB))} />);
 
             const tabStateBeforeGoBack = navigationRef.current?.getRootState().routes.at(0)?.state;
-            const workspaceStateBeforeGoBack = tabStateBeforeGoBack?.routes.at(4)?.state;
+            const workspaceStateBeforeGoBack = tabStateBeforeGoBack?.routes.find((route) => route.name === NAVIGATORS.WORKSPACE_NAVIGATOR)?.state;
             expect(workspaceStateBeforeGoBack?.routes.at(0)?.state?.routes.at(-1)?.name).toBe(SCREENS.DOMAIN.SAML);
 
             act(() => {
@@ -784,7 +934,7 @@ describe('Go back on the narrow layout', () => {
             });
 
             const tabState = navigationRef.current?.getRootState().routes.at(0)?.state;
-            const workspaceState = tabState?.routes.at(4)?.state;
+            const workspaceState = tabState?.routes.find((route) => route.name === NAVIGATORS.WORKSPACE_NAVIGATOR)?.state;
             const activeSplit = workspaceState?.routes.at(workspaceState.index ?? 0);
             expect(workspaceState?.routes).toHaveLength(1);
             expect(activeSplit?.state?.routes).toHaveLength(2);
@@ -804,7 +954,7 @@ describe('Go back on the narrow layout', () => {
             });
 
             const tabState = navigationRef.current?.getRootState().routes.at(0)?.state;
-            const workspaceState = tabState?.routes.at(4)?.state;
+            const workspaceState = tabState?.routes.find((route) => route.name === NAVIGATORS.WORKSPACE_NAVIGATOR)?.state;
             const activeSplit = workspaceState?.routes.at(workspaceState.index ?? 0);
             expect(workspaceState?.routes).toHaveLength(1);
             expect(activeSplit?.state?.routes.at(0)?.params).toMatchObject({domainAccountID: String(domainA)});

@@ -1,11 +1,7 @@
-import getParamsFromRoute from '@libs/Navigation/helpers/getParamsFromRoute';
-import {isSplitNavigatorName} from '@libs/Navigation/helpers/isNavigatorName';
-import {SPLIT_TO_SIDEBAR} from '@libs/Navigation/linkingConfig/RELATIONS';
+import hasDifferentSplitScope from '@libs/Navigation/helpers/hasDifferentSplitScope';
 import {isRecord} from '@libs/ObjectUtils';
 
 import type {NavigationRoute, State} from '@navigation/types';
-
-import CONST from '@src/CONST';
 
 import type {NavigationAction, NavigationState} from '@react-navigation/native';
 import type {Writable} from 'type-fest';
@@ -14,74 +10,35 @@ import type {ActionPayload} from './types';
 
 type MinimalAction = {
     action: Writable<NavigationAction>;
-    targetState: State | undefined;
-    /** Present only when scope minimization produces a PUSH; goUp uses it to restore matching split history. */
-    scopedSplitPayload?: ActionPayload & {name: string};
+    /** The state of the navigator the minimal action is addressed at, which is the root state when the descent stops on it */
+    targetState: State;
+    /**
+     * True when the descent stopped on a split navigator that has the requested name but holds another scope
+     * (another workspace or domain). Callers decide what that means: forward navigation pushes a sibling split
+     * instead of reusing this one, backward navigation looks for the matching split among its siblings.
+     */
+    isFocusedRouteInDifferentScope: boolean;
 };
 
 function isNamedActionPayload(payload: unknown): payload is ActionPayload & {name: string} {
     return isRecord(payload) && typeof payload.name === 'string';
 }
 
-// Workspace and domain screens carry their split's scope params (policyID or domainAccountID),
-// so the focused screen can identify the scope when the sidebar is absent.
-function getSplitScopeComparisonValues(currentRoute: NavigationRoute, payload: unknown) {
-    if (!isNamedActionPayload(payload)) {
-        return;
-    }
-
-    if (!isSplitNavigatorName(currentRoute.name) || currentRoute.name !== payload.name || !currentRoute.state) {
-        return;
-    }
-
-    const sidebarScreen = SPLIT_TO_SIDEBAR[currentRoute.name];
-    const scopeParams = getParamsFromRoute(sidebarScreen);
-    const sidebarRoute = currentRoute.state.routes.find((route) => route.name === sidebarScreen);
-    // Narrow layouts can contain only central screens. Keep an existing sidebar authoritative.
-    const scopeRoute = sidebarRoute ?? currentRoute.state.routes.at(currentRoute.state.index ?? -1);
-    const currentParams: unknown = scopeRoute?.params;
-    const targetParams = payload.params?.params;
-    if (!scopeParams.length || !isRecord(currentParams) || !isRecord(targetParams)) {
-        return;
-    }
-
-    return {scopeParams, currentParams, targetParams};
-}
-
-function getComparableScopeValue(value: unknown): string | undefined {
-    if (typeof value !== 'string' && typeof value !== 'number') {
-        return;
-    }
-
-    return String(value);
-}
-
-function hasDifferentSplitScope(currentRoute: NavigationRoute, payload: ActionPayload): boolean {
-    const scopeComparisonValues = getSplitScopeComparisonValues(currentRoute, payload);
-    if (!scopeComparisonValues) {
-        return false;
-    }
-
-    const {scopeParams, currentParams, targetParams} = scopeComparisonValues;
-    return scopeParams.some((param) => {
-        const currentValue = getComparableScopeValue(currentParams[param]);
-        const targetValue = getComparableScopeValue(targetParams[param]);
-        return currentValue !== undefined && targetValue !== undefined && currentValue !== targetValue;
-    });
-}
-
-function hasMatchingSplitScope(currentRoute: NavigationRoute, payload: unknown): boolean {
-    const scopeComparisonValues = getSplitScopeComparisonValues(currentRoute, payload);
-    if (!scopeComparisonValues) {
-        return false;
-    }
-
-    const {scopeParams, currentParams, targetParams} = scopeComparisonValues;
-    return scopeParams.every((param) => {
-        const currentValue = getComparableScopeValue(currentParams[param]);
-        const targetValue = getComparableScopeValue(targetParams[param]);
-        return currentValue !== undefined && currentValue === targetValue;
-    });
+/**
+ * One step of the descent: the same action addressed at `nestedState`, the state of the route the given action names.
+ * Its payload has no name when the action addresses nothing below that route, which is where a descent stops.
+ */
+function getNestedAction(action: NavigationAction, nestedState: State): Writable<NavigationAction> {
+    const params = isNamedActionPayload(action.payload) ? action.payload.params : undefined;
+    return {
+        type: action.type,
+        payload: {
+            name: params?.screen,
+            params: params?.params,
+            path: params?.path,
+        },
+        target: nestedState.key,
+    };
 }
 
 /**
@@ -92,44 +49,27 @@ function hasMatchingSplitScope(currentRoute: NavigationRoute, payload: unknown):
  * @returns minimalAction minimal action is the action that we should dispatch
  */
 function getMinimalAction(action: NavigationAction, state: NavigationState): MinimalAction {
-    let currentAction: NavigationAction = action;
-    let currentState: State | undefined = state;
-    let currentTargetKey: string | undefined;
-    let scopedSplitPayload: MinimalAction['scopedSplitPayload'];
+    let currentAction: Writable<NavigationAction> = action;
+    let currentState: State = state;
+    let isFocusedRouteInDifferentScope = false;
 
-    while (isNamedActionPayload(currentAction.payload) && currentState) {
+    while (isNamedActionPayload(currentAction.payload)) {
         const currentRoute: NavigationRoute | undefined = currentState.routes.at(currentState.index ?? -1);
         if (!currentRoute || currentRoute.name !== currentAction.payload.name) {
             break;
         }
 
-        const payload = currentAction.payload;
-        const isDifferentSplitScope = hasDifferentSplitScope(currentRoute, payload);
-        if (!currentRoute.state || isDifferentSplitScope) {
-            // Keep different workspace/domain scopes in separate splits so the existing sidebar is not reused.
-            if (isDifferentSplitScope && currentAction.type !== CONST.NAVIGATION.ACTION_TYPE.REPLACE) {
-                currentAction = {...currentAction, type: CONST.NAVIGATION.ACTION_TYPE.PUSH};
-                scopedSplitPayload = payload;
-            }
+        // Descending into a split of another scope would reuse its sidebar for a different workspace or domain.
+        isFocusedRouteInDifferentScope = hasDifferentSplitScope(currentRoute, currentAction.payload);
+        if (!currentRoute.state || isFocusedRouteInDifferentScope) {
             break;
         }
 
+        currentAction = getNestedAction(currentAction, currentRoute.state);
         currentState = currentRoute.state;
-        currentTargetKey = currentState?.key;
-
-        // Creating new smaller action
-        currentAction = {
-            type: currentAction.type,
-            payload: {
-                name: payload?.params?.screen,
-                params: payload?.params?.params,
-                path: payload?.params?.path,
-            },
-            target: currentTargetKey,
-        };
     }
-    return {action: currentAction, targetState: currentState, scopedSplitPayload};
+    return {action: currentAction, targetState: currentState, isFocusedRouteInDifferentScope};
 }
 
-export {hasMatchingSplitScope};
 export default getMinimalAction;
+export {getNestedAction};

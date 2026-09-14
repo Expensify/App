@@ -1,4 +1,4 @@
-import getMinimalAction, {hasMatchingSplitScope} from '@libs/Navigation/helpers/linkTo/getMinimalAction';
+import getMinimalAction from '@libs/Navigation/helpers/linkTo/getMinimalAction';
 
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
@@ -150,12 +150,15 @@ describe('getMinimalAction', () => {
         });
     });
 
-    it('pushes a new split navigator when the workspace changes', () => {
+    it('stops at the focused split and reports its scope when the workspace changes', () => {
         const {rootState} = buildWorkspaceStates(POLICY_B);
         const result = getMinimalAction(buildWorkspaceAction(POLICY_A), rootState);
 
+        expect(result.isFocusedRouteInDifferentScope).toBe(true);
+        // The action type is left alone. Forward navigation turns this into a PUSH in `linkTo`, going back pops
+        // the siblings of the matching split in `goUp`.
         expect(result.action).toMatchObject({
-            type: 'PUSH',
+            type: 'NAVIGATE',
             target: 'workspace-state',
             payload: {
                 name: NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR,
@@ -171,6 +174,7 @@ describe('getMinimalAction', () => {
         const {rootState} = buildWorkspaceStates(POLICY_B);
         const action: NavigationAction = {...buildWorkspaceAction(POLICY_A), type: 'REPLACE'};
 
+        expect(getMinimalAction(action, rootState).isFocusedRouteInDifferentScope).toBe(true);
         expect(getMinimalAction(action, rootState).action).toMatchObject({
             type: 'REPLACE',
             target: 'workspace-state',
@@ -186,7 +190,9 @@ describe('getMinimalAction', () => {
 
     it('preserves the previous workspace split so one Back action restores coherent parameters', () => {
         const {rootState, workspaceState} = buildWorkspaceStates(POLICY_B);
-        const {action} = getMinimalAction(buildWorkspaceAction(POLICY_A), rootState);
+        const {action: minimalAction, isFocusedRouteInDifferentScope} = getMinimalAction(buildWorkspaceAction(POLICY_A), rootState);
+        // This is the flip `linkTo` applies for forward navigation.
+        const action: NavigationAction = isFocusedRouteInDifferentScope ? {...minimalAction, type: 'PUSH'} : minimalAction;
 
         if (!isStackPushAction(action)) {
             throw new Error('Expected a valid cross-workspace PUSH action');
@@ -223,11 +229,12 @@ describe('getMinimalAction', () => {
         });
     });
 
-    it('pushes a new domain split navigator when the domain changes', () => {
+    it('stops at the focused domain split and reports its scope when the domain changes', () => {
         const result = getMinimalAction(buildDomainAction(DOMAIN_A), buildDomainState(DOMAIN_B));
 
+        expect(result.isFocusedRouteInDifferentScope).toBe(true);
         expect(result.action).toMatchObject({
-            type: 'PUSH',
+            type: 'NAVIGATE',
             target: 'workspace-state',
             payload: {
                 name: NAVIGATORS.DOMAIN_SPLIT_NAVIGATOR,
@@ -247,21 +254,6 @@ describe('getMinimalAction', () => {
             target: 'domain-split-state',
             payload: {name: SCREENS.DOMAIN.MEMBERS, params: {domainAccountID: String(DOMAIN_A)}},
         });
-    });
-
-    it('matches domain split history by domain account ID', () => {
-        const domainState = buildDomainState(DOMAIN_A);
-        const workspaceState = domainState.routes.at(0)?.state?.routes.at(0)?.state;
-        const domainSplitRoute = workspaceState?.routes.at(0);
-        const minimalAction = getMinimalAction(buildDomainAction(DOMAIN_B), domainState).action;
-        if (!domainSplitRoute) {
-            throw new Error('Expected a domain split route');
-        }
-
-        expect(hasMatchingSplitScope(domainSplitRoute, minimalAction.payload)).toBe(false);
-
-        const matchingAction = getMinimalAction(buildDomainAction(DOMAIN_A), buildDomainState(DOMAIN_B)).action;
-        expect(hasMatchingSplitScope(domainSplitRoute, matchingAction.payload)).toBe(true);
     });
 });
 
@@ -293,34 +285,26 @@ describe.each([
         const state = buildState();
         const result = getMinimalAction(matchingAction(), state);
         expect(result.action).toMatchObject({type: 'NAVIGATE', target: getSplitRoute(state).state?.key});
-        expect(result.scopedSplitPayload).toBeUndefined();
+        expect(result.isFocusedRouteInDifferentScope).toBe(false);
     });
 
-    it('pushes a separate split for a different scope and matches central-only history', () => {
-        const state = buildState();
-        const result = getMinimalAction(differentAction(), state);
-        expect(result.action).toMatchObject({type: 'PUSH', target: 'workspace-state'});
-        expect(result.scopedSplitPayload).toBe(result.action.payload);
-        expect(hasMatchingSplitScope(getSplitRoute(state), result.action.payload)).toBe(false);
-        const split = getSplitRoute(state);
-        const action = matchingAction();
-        // The original nested action is minimized through the wrapper navigators below, up to the unmounted split.
-        const unmountedState = buildState();
-        getSplitRoute(unmountedState).state = undefined;
-        const matchingPayload = getMinimalAction(action, unmountedState).action.payload;
-        expect(hasMatchingSplitScope(split, matchingPayload)).toBe(true);
+    it('reports a different scope for a split holding central screens only', () => {
+        const result = getMinimalAction(differentAction(), buildState());
+        expect(result.action).toMatchObject({type: 'NAVIGATE', target: 'workspace-state'});
+        expect(result.isFocusedRouteInDifferentScope).toBe(true);
     });
 
     it('preserves explicit replacement across scopes', () => {
         const result = getMinimalAction({...differentAction(), type: 'REPLACE'}, buildState());
         expect(result.action).toMatchObject({type: 'REPLACE', target: 'workspace-state'});
-        expect(result.scopedSplitPayload).toBeUndefined();
+        // The boundary is reported for every action type; only `linkTo` cares, and it leaves a replace alone.
+        expect(result.isFocusedRouteInDifferentScope).toBe(true);
     });
 
     it('does not classify an existing same-scope PUSH as a scope change', () => {
         const result = getMinimalAction({...matchingAction(), type: 'PUSH'}, buildState());
         expect(result.action.type).toBe('PUSH');
-        expect(result.scopedSplitPayload).toBeUndefined();
+        expect(result.isFocusedRouteInDifferentScope).toBe(false);
     });
 
     it('uses the focused central route rather than a stale historical route', () => {
@@ -335,42 +319,5 @@ describe.each([
             {...focused, key: 'focused-central'},
         ]);
         expect(getMinimalAction(matchingAction(), state).action).toMatchObject({type: 'NAVIGATE', target: 'central-history'});
-    });
-
-    it('does not guess the scope from historical routes when focused parameters are absent', () => {
-        const state = buildState();
-        const split = getSplitRoute(state);
-        const focused = split.state?.routes.at(0);
-        if (!focused) {
-            throw new Error('Expected focused central screen');
-        }
-        split.state = buildNavigationState('unknown-scope', 1, [
-            {...focused, key: 'focused-central'},
-            {...focused, key: 'unknown-central', params: undefined},
-        ]);
-        expect(getMinimalAction(differentAction(), state).action.type).toBe('NAVIGATE');
-        const unmountedState = buildState();
-        getSplitRoute(unmountedState).state = undefined;
-        expect(hasMatchingSplitScope(split, getMinimalAction(matchingAction(), unmountedState).action.payload)).toBe(false);
-    });
-
-    it('does not replace an existing sidebar scope with the central scope', () => {
-        const state = buildState();
-        const split = getSplitRoute(state);
-        const focused = split.state?.routes.at(0);
-        if (!focused) {
-            throw new Error('Expected focused central screen');
-        }
-        const sidebarName = scopeKey === 'policyID' ? SCREENS.WORKSPACE.INITIAL : SCREENS.DOMAIN.INITIAL;
-        split.state = buildNavigationState('sidebar-authority', 1, [
-            {key: 'sidebar', name: sidebarName, params: {[scopeKey]: 'other-scope'}},
-            {...focused, key: 'focused-central'},
-        ]);
-        expect(getMinimalAction(matchingAction(), state).action).toMatchObject({type: 'PUSH', target: 'workspace-state'});
-        split.state = buildNavigationState('sidebar-unknown', 1, [
-            {key: 'sidebar', name: sidebarName},
-            {...focused, key: 'focused-central'},
-        ]);
-        expect(getMinimalAction(differentAction(), state).action.type).toBe('NAVIGATE');
     });
 });
