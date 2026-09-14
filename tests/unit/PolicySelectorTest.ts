@@ -448,7 +448,7 @@ describe('createFilteredPoliciesInfoSelector', () => {
         expect(createFilteredPoliciesInfoSelector(userLogin)(policies)).toEqual({filteredPoliciesCount: 0, firstPolicy: undefined});
     });
 
-    it('projects the single showable policy down to the billing-gate fields', () => {
+    it('projects the one policy it shows down to the billing-gate fields', () => {
         const policies = {
             [`${P}p1`]: makePolicy({id: 'p1', ownerAccountID: 42, employeeList: {[userLogin]: {email: userLogin}}}),
         };
@@ -466,7 +466,7 @@ describe('createFilteredPoliciesInfoSelector', () => {
         expect(createFilteredPoliciesInfoSelector(userLogin)(policies)).toEqual({filteredPoliciesCount: 0, firstPolicy: undefined});
     });
 
-    it('short-circuits at 2 and keeps the first match when several workspaces are showable', () => {
+    it('short-circuits at 2 and keeps the first match when several workspaces pass the filter', () => {
         const policies = {
             [`${P}p1`]: makePolicy({id: 'p1', ownerAccountID: 1}),
             [`${P}p2`]: makePolicy({id: 'p2', ownerAccountID: 2}),
