@@ -9,8 +9,11 @@ import {
 } from '@components/WideRHPContextProvider';
 
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useTheme from '@hooks/useTheme';
 
 import Overlay from '@libs/Navigation/AppNavigator/Navigators/Overlay';
+
+import variables from '@styles/variables';
 
 import {useRoute} from '@react-navigation/native';
 import React from 'react';
@@ -18,6 +21,7 @@ import React from 'react';
 function SecondaryOverlay() {
     const {shouldRenderSecondaryOverlayForRHPOnSuperWideRHP, shouldRenderSecondaryOverlayForRHPOnWideRHP, shouldRenderSecondaryOverlayForWideRHP, superWideRHPRouteKeys, wideRHPRouteKeys} =
         useWideRHPState();
+    const theme = useTheme();
 
     const route = useRoute();
 
@@ -46,6 +50,10 @@ function SecondaryOverlay() {
                 progress={secondOverlayRHPOnWideRHPProgress}
                 // If RHP is displayed on Wide RHP which is displayed above the Super Wide RHP, the secondary overlay's position left should be calculated from the left edge of the super wide RHP.
                 positionLeftValue={animatedReceiptPaneRHPWidth}
+                positionTopValue={variables.rhpFloatingCardMargin}
+                positionBottomValue={variables.rhpFloatingCardMargin}
+                overlayColor={theme.rhpOverlay}
+                maxOpacity={variables.rhpOverlayOpacity}
             />
         );
     }
@@ -55,6 +63,10 @@ function SecondaryOverlay() {
             <Overlay
                 progress={secondOverlayWideRHPProgress}
                 positionLeftValue={modalStackOverlayWideRHPPositionLeft}
+                positionTopValue={variables.rhpFloatingCardMargin}
+                positionBottomValue={variables.rhpFloatingCardMargin}
+                overlayColor={theme.rhpOverlay}
+                maxOpacity={variables.rhpOverlayOpacity}
             />
         );
     }
@@ -64,6 +76,10 @@ function SecondaryOverlay() {
             <Overlay
                 progress={secondOverlayRHPOnSuperWideRHPProgress}
                 positionLeftValue={modalStackOverlaySuperWideRHPPositionLeft}
+                positionTopValue={variables.rhpFloatingCardMargin}
+                positionBottomValue={variables.rhpFloatingCardMargin}
+                overlayColor={theme.rhpOverlay}
+                maxOpacity={variables.rhpOverlayOpacity}
             />
         );
     }

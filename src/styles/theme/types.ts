@@ -57,6 +57,8 @@ type ThemeColors = {
 
     // Additional keys
     overlay: Color;
+    // Lighter scrim behind the floating RHP card (web wide layout only).
+    rhpOverlay: Color;
     inverse: Color;
     shadow: Color;
     componentBG: Color;

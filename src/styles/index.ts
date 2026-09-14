@@ -3323,6 +3323,18 @@ const staticStyles = (theme: ThemeColors) =>
             height: '100%',
         },
 
+        // Floating RHP card (web wide layout only): inset from the viewport edges, rounded, 1px border, shadow.
+        // Anchoring replaces the card's `r0`/`h100`; width stays driven by the animated RHP width at the call site.
+        RHPFloatingCard: {
+            top: variables.rhpFloatingCardMargin,
+            right: variables.rhpFloatingCardMargin,
+            bottom: variables.rhpFloatingCardMargin,
+            borderRadius: variables.componentBorderRadiusLarge,
+            borderWidth: 1,
+            borderColor: theme.border,
+            boxShadow: theme.shadow,
+        },
+
         invisible: {
             position: 'absolute',
             opacity: 0,
@@ -6845,18 +6857,26 @@ const dynamicStyles = (theme: ThemeColors) =>
             progress,
             positionLeftValue,
             positionRightValue,
+            positionTopValue = 0,
+            positionBottomValue = 0,
+            maxOpacity = variables.overlayOpacity,
         }: {
             progress: OverlayStylesParams;
             positionLeftValue: number | Animated.Value | Animated.AnimatedAddition<number>;
             positionRightValue: number | Animated.Value | Animated.AnimatedAddition<number>;
+            positionTopValue?: number;
+            positionBottomValue?: number;
+            maxOpacity?: number;
         }) =>
             ({
                 // We need to stretch the overlay to cover the sidebar and the translate animation distance.
                 left: positionLeftValue,
                 right: positionRightValue,
+                top: positionTopValue,
+                bottom: positionBottomValue,
                 opacity: progress.interpolate({
                     inputRange: [0, 0.5],
-                    outputRange: [0, variables.overlayOpacity],
+                    outputRange: [0, maxOpacity],
                     extrapolate: 'clamp',
                 }),
             }) satisfies ViewStyle,

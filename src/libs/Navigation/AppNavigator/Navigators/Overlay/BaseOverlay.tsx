@@ -4,6 +4,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import type {OverlayStylesParams} from '@styles/index';
+import type {Color} from '@styles/theme/types';
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
@@ -25,10 +26,31 @@ type BaseOverlayProps = {
 
     /** Overlay position from the right edge of the container */
     positionRightValue?: number | Animated.Value | Animated.AnimatedAddition<number>;
+
+    /** Scrim background color override. Defaults to `theme.overlay`; the floating RHP passes the lighter `theme.rhpOverlay`. */
+    overlayColor?: Color;
+
+    /** Max opacity the scrim ramps up to. Defaults to `variables.overlayOpacity`; the floating RHP passes the lighter `rhpOverlayOpacity`. */
+    maxOpacity?: number;
+
+    /** Overlay position from the top edge of the container. The floating RHP overlays pass the card's inset so the scrim doesn't bleed past it. */
+    positionTopValue?: number;
+
+    /** Overlay position from the bottom edge of the container. The floating RHP overlays pass the card's inset so the scrim doesn't bleed past it. */
+    positionBottomValue?: number;
 };
 
 // The default value of positionLeftValue is equal to -2 * variables.sideBarWidth, because we need to stretch the overlay to cover the sidebar and the translate animation distance.
-function BaseOverlay({onPress, progress, positionLeftValue = -2 * variables.sideBarWidth, positionRightValue = 0}: BaseOverlayProps) {
+function BaseOverlay({
+    onPress,
+    progress,
+    positionLeftValue = -2 * variables.sideBarWidth,
+    positionRightValue = 0,
+    overlayColor,
+    maxOpacity,
+    positionTopValue,
+    positionBottomValue,
+}: BaseOverlayProps) {
     const styles = useThemeStyles();
     const {current} = useCardAnimation();
     const {translate} = useLocalize();
@@ -37,7 +59,11 @@ function BaseOverlay({onPress, progress, positionLeftValue = -2 * variables.side
         <Animated.View
             id="BaseOverlay"
             aria-hidden
-            style={[styles.pFixed, styles.t0, styles.b0, styles.overlayBackground, styles.overlayStyles({progress: progress ?? current.progress, positionLeftValue, positionRightValue})]}
+            style={[
+                styles.pFixed,
+                overlayColor ? {backgroundColor: overlayColor} : styles.overlayBackground,
+                styles.overlayStyles({progress: progress ?? current.progress, positionLeftValue, positionRightValue, positionTopValue, positionBottomValue, maxOpacity}),
+            ]}
         >
             <View style={[styles.flex1, styles.flexColumn]}>
                 {/* In the latest Electron version buttons can't be both clickable and draggable.

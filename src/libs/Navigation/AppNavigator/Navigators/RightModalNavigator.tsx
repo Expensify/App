@@ -13,6 +13,7 @@ import {
 
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSidePanelState from '@hooks/useSidePanelState';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 
@@ -49,7 +50,7 @@ import type {View} from 'react-native';
 import {useFocusEffect} from '@react-navigation/native';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 // eslint-disable-next-line no-restricted-imports
-import {Animated, DeviceEventEmitter} from 'react-native';
+import {Animated, DeviceEventEmitter, Platform} from 'react-native';
 
 import {NarrowPaneContextProvider} from './NarrowPaneContext';
 import Overlay from './Overlay';
@@ -80,12 +81,17 @@ function SearchAdvancedFiltersWithContext(props: Record<string, unknown>) {
 function SecondaryOverlay() {
     const {shouldRenderSecondaryOverlayForWideRHP, shouldRenderSecondaryOverlayForRHPOnWideRHP, shouldRenderSecondaryOverlayForRHPOnSuperWideRHP} = useWideRHPState();
     const {sidePanelOffset} = useSidePanelState();
+    const theme = useTheme();
 
     if (shouldRenderSecondaryOverlayForWideRHP) {
         return (
             <Overlay
                 progress={secondOverlayWideRHPProgress}
-                positionRightValue={Animated.add(sidePanelOffset.current, animatedWideRHPWidth)}
+                positionRightValue={Animated.add(Animated.add(sidePanelOffset.current, animatedWideRHPWidth), variables.rhpFloatingCardMargin)}
+                positionTopValue={variables.rhpFloatingCardMargin}
+                positionBottomValue={variables.rhpFloatingCardMargin}
+                overlayColor={theme.rhpOverlay}
+                maxOpacity={variables.rhpOverlayOpacity}
                 onPress={() => Navigation.closeRHPFlow()}
             />
         );
@@ -95,7 +101,11 @@ function SecondaryOverlay() {
         return (
             <Overlay
                 progress={secondOverlayRHPOnWideRHPProgress}
-                positionRightValue={Animated.add(sidePanelOffset.current, variables.sideBarWidth)}
+                positionRightValue={Animated.add(sidePanelOffset.current, variables.sideBarWidth + variables.rhpFloatingCardMargin)}
+                positionTopValue={variables.rhpFloatingCardMargin}
+                positionBottomValue={variables.rhpFloatingCardMargin}
+                overlayColor={theme.rhpOverlay}
+                maxOpacity={variables.rhpOverlayOpacity}
                 onPress={Navigation.dismissToPreviousRHP}
             />
         );
@@ -105,7 +115,11 @@ function SecondaryOverlay() {
         return (
             <Overlay
                 progress={secondOverlayRHPOnSuperWideRHPProgress}
-                positionRightValue={Animated.add(sidePanelOffset.current, variables.sideBarWidth)}
+                positionRightValue={Animated.add(sidePanelOffset.current, variables.sideBarWidth + variables.rhpFloatingCardMargin)}
+                positionTopValue={variables.rhpFloatingCardMargin}
+                positionBottomValue={variables.rhpFloatingCardMargin}
+                overlayColor={theme.rhpOverlay}
+                maxOpacity={variables.rhpOverlayOpacity}
                 onPress={Navigation.dismissToSuperWideRHP}
             />
         );
@@ -174,6 +188,7 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
     const {windowWidth} = useWindowDimensions();
     const modalStackScreenOptions = useModalStackScreenOptions();
     const styles = useThemeStyles();
+    const theme = useTheme();
     const {sidePanelOffset} = useSidePanelState();
 
     // When a fullscreen route is pre-inserted under the RHP, disable the slide-out animation
@@ -219,6 +234,14 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
     }, [animatedWidth, shouldUseNarrowLayout]);
 
     const overlayPositionLeft = useMemo(() => -1 * calculateSuperWideRHPWidth(windowWidth), [windowWidth]);
+
+    // Floating RHP (web wide layout only): inset the card from the viewport edges and give it rounded corners, a 1px
+    // border, and a shadow. This replaces the full-bleed `r0`/`h100` anchoring; width stays driven by the animated
+    // RHP width. Narrow layout and native keep the full-bleed frame.
+    const isFloatingRHP = Platform.OS === 'web' && !shouldUseNarrowLayout;
+    const frameStyle = isFloatingRHP
+        ? [styles.pAbsolute, styles.overflowHidden, styles.RHPFloatingCard, animatedWidthStyle]
+        : [styles.pAbsolute, styles.r0, styles.h100, styles.overflowHidden, animatedWidthStyle];
 
     const screenListeners = useMemo(
         () => ({
@@ -284,6 +307,8 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                 {!shouldUseNarrowLayout && (
                     <Overlay
                         positionLeftValue={overlayPositionLeft}
+                        overlayColor={theme.rhpOverlay}
+                        maxOpacity={variables.rhpOverlayOpacity}
                         onPress={handleOverlayPress}
                     />
                 )}
@@ -296,7 +321,7 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                     <RightModalDialogFrame
                         hasDialogSemantics={!isSmallScreenWidth}
                         onContainerRef={setContainerNodeFromRef}
-                        style={[styles.pAbsolute, styles.r0, styles.h100, styles.overflowHidden, animatedWidthStyle]}
+                        style={frameStyle}
                     >
                         <Stack.Navigator
                             parentRoute={route}
@@ -557,7 +582,11 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                 {!shouldUseNarrowLayout && shouldRenderTertiaryOverlay && (
                     <Overlay
                         progress={thirdOverlayProgress}
-                        positionRightValue={Animated.add(sidePanelOffset.current, variables.sideBarWidth)}
+                        positionRightValue={Animated.add(sidePanelOffset.current, variables.sideBarWidth + variables.rhpFloatingCardMargin)}
+                        positionTopValue={variables.rhpFloatingCardMargin}
+                        positionBottomValue={variables.rhpFloatingCardMargin}
+                        overlayColor={theme.rhpOverlay}
+                        maxOpacity={variables.rhpOverlayOpacity}
                         onPress={Navigation.dismissToPreviousRHP}
                     />
                 )}
