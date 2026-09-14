@@ -111,8 +111,13 @@ function ChangeReceiptBillingAccountPage({route}: ChangeReceiptBillingAccountPag
             return;
         }
         setSelectedOption(option.login);
+    };
 
-        changePolicyUberBillingAccount(policyID, option.login, centralBillingAccountEmail);
+    const saveBillingAccount = () => {
+        if (!centralBillingAccountEmail || !selectedOption) {
+            return;
+        }
+        changePolicyUberBillingAccount(policyID, selectedOption, centralBillingAccountEmail);
         Navigation.goBack();
     };
 
@@ -126,13 +131,23 @@ function ChangeReceiptBillingAccountPage({route}: ChangeReceiptBillingAccountPag
         headerMessage,
     };
 
+    const confirmButtonOptions = {
+        showButton: true,
+        text: translate('common.save'),
+        onConfirm: saveBillingAccount,
+        isDisabled: !centralBillingAccountEmail || selectedOption === centralBillingAccountEmail,
+    };
+
     return (
         <AccessOrNotFoundWrapper
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_RECEIPT_PARTNERS_ENABLED}
         >
-            <ScreenWrapper testID="ChangeReceiptBillingAccountPage">
+            <ScreenWrapper
+                testID="ChangeReceiptBillingAccountPage"
+                enableEdgeToEdgeBottomSafeAreaPadding
+            >
                 <HeaderWithBackButton title={translate('workspace.receiptPartners.uber.centralBillingAccount')} />
                 <Text style={[styles.ph5, styles.pb3]}>{translate('workspace.receiptPartners.uber.centralBillingDescription')}</Text>
                 <SelectionList
@@ -140,6 +155,7 @@ function ChangeReceiptBillingAccountPage({route}: ChangeReceiptBillingAccountPag
                     onSelectRow={toggleOption}
                     ListItem={InviteMemberListItem}
                     textInputOptions={textInputOptions}
+                    confirmButtonOptions={confirmButtonOptions}
                     shouldShowTextInput={shouldShowTextInput}
                     initiallyFocusedItemKey={initialBillingAccountEmail}
                     shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}

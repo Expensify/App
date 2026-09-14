@@ -20,7 +20,6 @@ import {View} from 'react-native';
 import VictoryChartContent from './VictoryChartContent';
 
 type VictoryChartExpandModalProps = {
-    /** Whether the modal is visible */
     isVisible: boolean;
 
     /** Called when the modal should close */

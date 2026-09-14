@@ -30,7 +30,6 @@ import ROUTES from '@src/ROUTES';
 import {pendingDeleteMemberAccountIDsSelector} from '@src/selectors/ReportMetaData';
 import {validTransactionDraftIDsSelector} from '@src/selectors/TransactionDraft';
 import type * as OnyxTypes from '@src/types/onyx';
-import type {QuickActionName} from '@src/types/onyx/QuickAction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
 
@@ -60,6 +59,7 @@ function QuickActionMenuItem({reportID}: QuickActionMenuItemProps) {
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [lastDistanceExpenseType] = useOnyx(ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE);
     const [allBetas] = useOnyx(ONYXKEYS.BETAS);
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
     const isReportArchived = useReportIsArchived(quickActionReport?.reportID);
@@ -72,8 +72,7 @@ function QuickActionMenuItem({reportID}: QuickActionMenuItemProps) {
 
     const isValidReport = !(isEmptyObject(quickActionReport) || isReportArchived);
 
-    const policyChatForActivePolicy: OnyxTypes.Report =
-        !isEmptyObject(activePolicy) && isGroupPolicy(activePolicy) && policyChats.length > 0 ? (policyChats.at(0) ?? ({} as OnyxTypes.Report)) : ({} as OnyxTypes.Report);
+    const policyChatForActivePolicy = !isEmptyObject(activePolicy) && isGroupPolicy(activePolicy) && policyChats.length > 0 ? policyChats.at(0) : undefined;
 
     const derivedNames = useDerivedReportNamesByReportIDs([quickActionReport?.reportID, policyChatForActivePolicy?.reportID]);
     const derivedQuickActionReportName = getReportNameFromNames(derivedNames, quickActionReport?.reportID);
@@ -91,7 +90,7 @@ function QuickActionMenuItem({reportID}: QuickActionMenuItemProps) {
 
     const isVisible =
         (quickAction?.action && quickActionReport
-            ? isQuickActionAllowed(quickAction, quickActionReport, quickActionPolicy, isReportArchived, allBetas, isRestrictedToPreferredPolicy)
+            ? isQuickActionAllowed(quickAction, quickActionReport, quickActionPolicy, isReportArchived, allBetas, rules, isRestrictedToPreferredPolicy)
             : false) ||
         (!quickAction?.action && !isEmptyObject(policyChatForActivePolicy));
 
@@ -116,13 +115,13 @@ function QuickActionMenuItem({reportID}: QuickActionMenuItemProps) {
     }
 
     let quickActionTitle = '';
-    if (!isEmptyObject(quickActionReport)) {
+    if (!isEmptyObject(quickActionReport) && quickAction?.action) {
         if (quickAction?.action === CONST.QUICK_ACTIONS.SEND_MONEY && quickActionAvatars.length > 0) {
             const accountID = quickActionAvatars.at(0)?.id ?? CONST.DEFAULT_NUMBER_ID;
             const name = getDisplayNameForParticipant({accountID: Number(accountID), shouldUseShortForm: true, formatPhoneNumber, translate}) ?? '';
             quickActionTitle = translate('quickAction.paySomeone', name);
         } else {
-            const titleKey = getQuickActionTitle(quickAction?.action ?? ('' as QuickActionName));
+            const titleKey = getQuickActionTitle(quickAction.action);
             quickActionTitle = titleKey ? translate(titleKey) : '';
         }
     }
@@ -235,7 +234,7 @@ function QuickActionMenuItem({reportID}: QuickActionMenuItemProps) {
                         return;
                     }
 
-                    const quickActionReportID = policyChatForActivePolicy?.reportID || reportID;
+                    const quickActionReportID = getNonEmptyStringOnyxID(policyChatForActivePolicy?.reportID) ?? reportID;
                     startMoneyRequest(CONST.IOU.TYPE.SUBMIT, quickActionReportID, draftTransactionIDs, CONST.IOU.REQUEST_TYPE.SCAN, true, undefined, true);
                 })
             }
