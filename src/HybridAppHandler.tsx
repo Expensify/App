@@ -1,4 +1,4 @@
-import {useEffect} from 'react';
+import {useEffect, useRef} from 'react';
 
 import type HybridAppSettings from './libs/actions/HybridApp/types';
 
@@ -17,6 +17,7 @@ import isLoadingOnyxValue from './types/utils/isLoadingOnyxValue';
 
 function HybridAppHandler() {
     const {setSplashScreenState} = useSplashScreenActions();
+    const hasRequestedHybridAppSettingsRef = useRef(false);
     const [tryNewDot, tryNewDotMetadata] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT);
     const [credentials, credentialsMetadata] = useOnyx(ONYXKEYS.CREDENTIALS);
     const isLoadingTryNewDot = isLoadingOnyxValue(tryNewDotMetadata);
@@ -38,15 +39,16 @@ function HybridAppHandler() {
     };
 
     useEffect(() => {
-        if (!CONFIG.IS_HYBRID_APP || isLoadingTryNewDot || isLoadingCredentials) {
+        if (!CONFIG.IS_HYBRID_APP || isLoadingTryNewDot || isLoadingCredentials || hasRequestedHybridAppSettingsRef.current) {
             return;
         }
 
+        // Native settings can be consumed only once. Prevent dependency changes from requesting them again in the same JavaScript runtime.
+        hasRequestedHybridAppSettingsRef.current = true;
         addBootsplashBreadcrumb('HybridAppHandler: Requesting settings');
         getHybridAppSettings().then((hybridAppSettings: HybridAppSettings | null) => {
             if (!hybridAppSettings) {
-                // Native settings are consumed once per NewDot lifecycle. After a JavaScript reload, restore the
-                // hidden state because native will not replay the splash transition for the new runtime.
+                // A new JavaScript runtime receives null because native does not replay settings after a reload.
                 Log.info('[HybridApp] `getHybridAppSettings` returned null after a JavaScript reload. Restoring the hidden splash state.');
                 addBootsplashBreadcrumb('HybridAppHandler: null settings, restoring hidden state');
                 setSplashScreenState(CONST.BOOT_SPLASH_STATE.HIDDEN);
