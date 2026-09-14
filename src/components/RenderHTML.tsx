@@ -35,6 +35,30 @@ type RenderHTMLProps = {
     isSelectable?: boolean;
 };
 
+type SelectableHTMLConfigProviderProps = {
+    children: React.ReactNode;
+    isSelectable: boolean;
+};
+
+function SelectableHTMLConfigProvider({children, isSelectable}: SelectableHTMLConfigProviderProps) {
+    const styles = useThemeStyles();
+    const sharedProps = useSharedProps();
+
+    return (
+        <RenderHTMLConfigProvider
+            {...sharedProps}
+            defaultTextProps={{
+                ...sharedProps.defaultTextProps,
+                selectable: isSelectable,
+                style: [sharedProps.defaultTextProps.style, styles.overflowVisible],
+            }}
+            renderers={htmlRenderers}
+        >
+            {children}
+        </RenderHTMLConfigProvider>
+    );
+}
+
 // We are using the explicit composite architecture for performance gains.
 // Configuration for RenderHTML is handled in a top-level component providing
 // context to RenderHTMLSource components. See https://git.io/JRcZb
@@ -47,7 +71,6 @@ function RenderHTML({html: htmlParam, onLinkPress, onConciergeLinkPress, isSelec
 
     const styles = useThemeStyles();
     const {windowWidth} = useWindowDimensions();
-    const sharedProps = useSharedProps();
     const html = useMemo(() => {
         return (
             Parser.replace(htmlParam, {shouldEscapeText: false, filterRules: ['emoji']})
@@ -105,19 +128,7 @@ function RenderHTML({html: htmlParam, onLinkPress, onConciergeLinkPress, isSelec
         return htmlSource;
     }
 
-    return (
-        <RenderHTMLConfigProvider
-            {...sharedProps}
-            defaultTextProps={{
-                ...sharedProps.defaultTextProps,
-                selectable: isSelectable,
-                style: [sharedProps.defaultTextProps.style, styles.overflowVisible],
-            }}
-            renderers={htmlRenderers}
-        >
-            {htmlSource}
-        </RenderHTMLConfigProvider>
-    );
+    return <SelectableHTMLConfigProvider isSelectable={isSelectable}>{htmlSource}</SelectableHTMLConfigProvider>;
 }
 
 export default RenderHTML;

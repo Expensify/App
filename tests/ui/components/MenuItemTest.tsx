@@ -18,7 +18,7 @@ const mockNewWindowIcon: React.FC<SvgProps> = () => null;
 const mockLinkIcon: React.FC<SvgProps> = () => null;
 const mockDownloadIcon: React.FC<SvgProps> = () => null;
 const mockCheckmarkIcon: React.FC<SvgProps> = () => null;
-const mockRenderHTML = jest.fn((_props: {html: string; isSelectable?: boolean}) => null);
+const mockRenderHTML = jest.fn<null, [{html: string; isSelectable?: boolean}]>(() => null);
 
 jest.mock('@components/RenderHTML', () => ({
     __esModule: true,

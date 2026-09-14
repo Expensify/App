@@ -79,9 +79,10 @@ describe('RenderHTML', () => {
                 defaultTextProps: expect.objectContaining({selectable: true, textBreakStrategy: 'simple'}),
                 defaultViewProps: mockInheritedDefaultViewProps,
                 enableExperimentalBRCollapsing: true,
-                renderers: expect.objectContaining({'mention-user': expect.anything(), emoji: expect.anything()}),
             }),
         );
+        expect(mockConfigProps?.renderers).toHaveProperty('mention-user');
+        expect(mockConfigProps?.renderers).toHaveProperty('emoji');
     });
 
     it('preserves the existing renderer path when handling link presses', () => {
