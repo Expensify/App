@@ -144,9 +144,7 @@ function NetSuiteImportCustomFieldPage({
                                 shouldShowRightIcon
                                 title={'listName' in record ? record.listName : record.segmentName}
                                 onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOM_FIELD_VIEW.getRoute(policyID, importCustomField, index))}
-                                brickRoadIndicator={
-                                    areSettingsInErrorFields([`${importCustomField}_${index}`], config?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined
-                                }
+                                brickRoadIndicator={areSettingsInErrorFields([`${importCustomField}_${index}`], config?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                             />
                         </OfflineWithFeedback>
                     ))}
