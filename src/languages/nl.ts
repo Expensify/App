@@ -1854,7 +1854,7 @@ const translations: TranslationDeepObject<typeof en> = {
             prompt: 'Schakel tags in op de werkruimte om de onkostendetails te bewerken of de tag uit deze onkosten te verwijderen.',
             confirmText: 'Label verwijderen',
         },
-        conciergeAutoSelectedDistanceRates: ({policyName}: {policyName: string}) => `afstandstarieven bijgewerkt voor de nieuwe workspace - ${policyName}`,
+        conciergeAutoSelectedDistanceRates: ({policyName}: {policyName: string}) => `kilometervergoedingen bijgewerkt voor de nieuwe workspace - ${policyName}`,
     },
     transactionMerge: {
         listPage: {
