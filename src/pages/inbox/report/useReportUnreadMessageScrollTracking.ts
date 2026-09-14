@@ -89,7 +89,7 @@ export default function useReportUnreadMessageScrollTracking({
 
         // display floating button if we're scrolled more than the offset
         if (
-            currentVerticalScrollingOffsetRef.current > CONST.REPORT.ACTIONS.LATEST_MESSAGES_PILL_SCROLL_OFFSET_THRESHOLD &&
+            currentVerticalScrollingOffsetRef.current > CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD &&
             !isFloatingMessageCounterVisible &&
             !hasUnreadMarkerReportAction &&
             !shouldBeAlignedToTop
@@ -99,7 +99,7 @@ export default function useReportUnreadMessageScrollTracking({
 
         // hide floating button if we're scrolled closer than the offset
         if (
-            currentVerticalScrollingOffsetRef.current < CONST.REPORT.ACTIONS.LATEST_MESSAGES_PILL_SCROLL_OFFSET_THRESHOLD &&
+            currentVerticalScrollingOffsetRef.current < CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD &&
             isFloatingMessageCounterVisible &&
             !hasUnreadMarkerReportAction &&
             !hasNewerActions
