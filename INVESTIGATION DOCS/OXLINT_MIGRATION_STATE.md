@@ -13,9 +13,14 @@ The pipeline is done. `scripts/lint/index.ts` runs either linter behind the same
 against its baseline over the whole repo in 43 seconds against ESLint's 394. Config parity is
 closed: every rule ESLint enables is either enabled in Oxlint or has a written reason not to be.
 
-What is left is evidence. 294 native Rust rules have no repo-local proof they match ESLint's
-behaviour on this codebase, the CI shadow job has never executed on `main`, and three rules disagree
-on findings for reasons nobody has written down.
+Rule evidence is now largely closed too. The fixture campaign took `compareFixtures.py` from 56
+entries to 306, all green and each batch red-green verified (section 4). The 128 core rules still
+without a fixture are a deliberate stop with the reasoning written down (section 4.1), not a queue.
+
+What is left: the CI shadow job has never executed on `main`, three rules disagree on findings for
+reasons nobody has written down (sections 5.1 to 5.3), and the campaign surfaced eight port findings
+that need an owner before the cutover (section 5.5) -- one of them, a real detection hole in
+`typescript/no-duplicate-type-constituents`, and one dead config, `react/jsx-filename-extension`.
 
 ---
 
@@ -26,15 +31,49 @@ on findings for reasons nobody has written down.
 | Oxlint, whole repo, through the pipeline | `npm run lint -- --linter=oxlint` | exit 0, nothing above baseline, **35 to 52 s** |
 | Types | `npm run typecheck` | **passed** |
 | Tooling tests | `npm run test:bun` | **587 pass / 0 fail**, 46 files |
-| Per-rule parity, ported rules | `OXPROBE_TAG=_x compareFixtures.py --filter=sb` | **12 rules, all parity** |
+| Per-rule parity, all batches | `npm run oxlint-rule-fixtures` | **306 entries: 302 identical, 1 pinned divergence, 3 blocked upstream** |
 | Whole-repo parity | `bash oxlint-migration/compareFullRepo.sh --fresh` | section 3 |
 | Per-rule parity | `python3 oxlint-migration/port-probe/compareFixtures.py` | section 4 |
-| Sidecar rule evidence | `python3 oxlint-migration/checkSidecarCoverage.py` | **192 / 192 covered** |
+| Sidecar rule evidence | `npm run oxlint-sidecar-coverage` | **192 / 192 covered** |
+| Rule inventory | `npm run oxlint-rule-inventory` | **494 rules, fixture coverage 306 / 494** |
 | Config drift | `npm run oxlint-config-drift` | 30 rules differ, **11 open**, nothing outside the LEDGER |
 
 CI: `.github/workflows/oxlint.yml`, wired into `preDeploy.yml` and deliberately absent from
 `confirmPassingBuild`'s `needs`. The lint step carries `continue-on-error: true`. On a push to
 `main` it auto-commits its own tightened baseline, as `lint.yml` does for ESLint.
+
+### 2.1 Every oxlint script, rerun 2026-09-14
+
+All thirteen `package.json` scripts that touch oxlint, run one at a time. Exit codes are the actual
+process exits, not a reading of the output.
+
+| script | exit | result |
+| --- | --- | --- |
+| `lint -- --linter=oxlint` | **0** | the required gate: nothing above baseline |
+| `lint-oxlint` | **1** | raw `oxlint .`, no pipeline and no seatbelt, so it prints the whole baseline (~4300 lines). Exit 1 is the designed behaviour of this script, not a regression |
+| `compare-oxlint` (`--fresh`) | **0** | 9234 tracked lintable files. Config coverage eslint=482, oxlint=487, shared=475. No unexplained ESLint-only rules. One rule with equal totals hiding a real disagreement (`react-hooks/refs`, section 5.3) |
+| `compare-oxlint-warm` | **0** | timing benchmark, not a correctness gate. Warm ESLint 543s vs oxlint 86s, **6.31x** (section 3.1) |
+| `oxlint-config-drift` | **0** | 45 files, 30 rules differ, 11 open. No unlisted drift |
+| `oxlint-jsx-uses-port` | **0** | `jsx-uses-react` and `jsx-uses-vars` produce the same observable outcome on both tools |
+| `oxlint-locale-compare-port` | **0** | the type-free port matches the type-aware original on every shape in `src/` |
+| `oxlint-react-compiler-gate` | **0** | the gate matches the ESLint side: silent where both compilers memoize, live where they do not |
+| `oxlint-react-compiler-rust` | **0** | all assertions hold |
+| `oxlint-rule-availability` | **0** | wrote `oxlint-migration/rule-availability.json` |
+| `oxlint-rule-fixtures` | **0** | 306 entries: 302 identical, 1 pinned divergence, 3 blocked upstream |
+| `oxlint-rule-inventory` | **0** | 494 rules, fixture coverage 306/494, 0 unproven. Wrote `rule-inventory.json` |
+| `oxlint-rule-tester` | **0** | all 34 custom rules identical across 445 harvested cases |
+| `oxlint-sidecar-coverage` | **0** | 192 / 192 covered |
+
+Two things to know before rerunning these:
+
+- **Do not run them concurrently.** `compareFullRepo.sh` truncates and rewrites `/tmp/oxlint-full.json`
+  and `/tmp/eslint-full.json`, and `listAllRules.py` reads both. Running the two at once makes the
+  inventory die on an opaque `JSONDecodeError` from a half-written file. Its `load_findings` guards
+  with `os.path.exists` but not with "is this valid JSON", so a killed comparison leaves the same
+  landmine behind. Observed here, then cleared by rerunning serially.
+- **`compare-oxlint` reuses the `/tmp` reports unless you pass `--fresh`**, and says so on the first
+  line. A run that looks instant is reading a cached report, possibly from a different commit.
+
 
 ---
 
@@ -55,6 +94,21 @@ several `oxlint --threads=1` processes and merges the reports. Findings are iden
 
 The ESLint leg needs `NODE_OPTIONS=--max_old_space_size=16384` and capped concurrency or its workers
 die with `ERR_WORKER_OUT_OF_MEMORY` even on a 48 GB machine. Oxlint needs neither.
+
+**Warm cache, the shape CI actually sees** (`compareWarmCache.sh`, 10 dirty files vs `origin/main`,
+reusing an already-primed cache snapshot, logs in `/tmp/oxlint-warm-compare`):
+
+| leg | seconds |
+| --- | ---: |
+| ESLint cold prime | 432 |
+| ESLint warm run | 543 |
+| Oxlint, `--type-aware --quiet`, no cache | 86 |
+
+Warm ESLint / Oxlint = **6.31x**, cold = **5.02x**. Both legs here ran on a machine that was busy
+with other work, so the absolute numbers are higher than the single-run figures in the table above
+and only the ratio is worth quoting. Note the warm run came out *slower* than the cold prime: at
+this repo size ESLint's cache is not buying what CI assumes it buys, which is worth a look before
+anyone cites cache warmth as a reason the ESLint leg is affordable.
 
 ### 3.2 Config coverage
 
@@ -201,19 +255,70 @@ rulesdir/          36/36 covered
 hand-hosted        86/86 covered
 ```
 
-**Native Rust rules, 294, covered only by Oxlint's own upstream test suite.** `listAllRules.py`
-gives the split:
+**Native Rust rules, 294.** `listAllRules.py` gives the split:
 
 ```
 Totals: 494 rules -- eslint-only=7, oxlint-only=12, shared=475
 Oxlint side: js:@dword-design/import-alias=1, js:core=10, js:hosted=40, js:lodash=1, js:rc=12,
              js:react-native-a11y=13, js:report-name-utils=1, js:rulesdir=36, js:testing-library=8,
              js:you-dont-need-lodash-underscore=71, native=294
+Fixture coverage: 306/494 rules have an example file
 ```
 
-There is no repo-local evidence that any given native rule behaves the way ESLint's equivalent does
-on this codebase. This is the only item with a deadline: expected counts can only be pinned while
-ESLint still exists to produce them.
+The fixture campaign closed most of this. `compareFixtures.py` now carries 306 entries:
+
+```
+302 rules behave identically on both tools.
+1 pinned intentional divergence: react/no-did-update-set-state
+3 blocked upstream, oxlint silent by known cause
+```
+
+Batches, each red-green verified by emptying its fixtures and confirming every row flips to FAIL:
+`ydnlBatch` 70, `tsBatch` 54 (type-aware), `reactNativeRulesBatch` 32, `jsx11yBatch` 31, `oxonly` 12,
+`a11yNpmBatch` 12, `importNativeBatch` 12, `storybookBatch` 12, `tlBatch` 8, `unicornNativeBatch` 6,
+`typedSample` 1, plus the 56-rule base manifest.
+
+What remains uncovered is **Tier B: 128 core rules that fire nowhere in this repo**. That is a
+deliberate stop, not a gap left by running out of time -- see section 4.1.
+
+### 4.1 Tier B is deliberately not covered
+
+128 enabled core rules (unprefixed, no plugin) produce zero findings across the whole repo and have
+no fixture. Writing one fixture each was planned and then dropped. The reasoning, so nobody spends a
+session re-deriving it:
+
+**The failure mode fixtures exist to catch no longer applies to these rules.** The harness was built
+because "oxlint silently accepts unknown rules inside `overrides`". Measured against 1.83.0 with a
+bogus rule name, at root and inside an override:
+
+```
+$ npx oxlint -c unk.probe.json --no-ignore /tmp/probe.ts
+Failed to parse oxlint configuration file.
+  x Rule 'no-such-rule-at-all' not found in plugin 'eslint'
+```
+
+It fails loud both ways. A typo'd, renamed or dropped core rule cannot hide. The sibling trap -- a
+native rule accepted but silent because its plugin is not in `plugins` -- does not apply either:
+core rules have no plugin to enable, and 116 of the 128 are declared only at the config root.
+
+**Option and severity drift is a different gate.** `checkConfigDrift.py` compares rule *settings*
+across 45 probed files and already covers these rules; `prefer-const` and `prefer-promise-reject-errors`
+are both Tier B rules and both appear in its output (section 3.5).
+
+**What a fixture would still add is narrow.** Only implementation divergence between two ports of
+the same rule, on code shapes that appear nowhere in this repo -- zero repo-wide findings is the
+definition of Tier B. Of the 128, 53 are in `eslint:recommended` and 75 are style. Oxlint ports core
+rules from ESLint's own test suite, and these are the simplest rules in either linter.
+
+**If this is ever revisited, do not do all 128.** The rules where a silent divergence would actually
+cost something are the option-heavy and regex/scope-sensitive ones: `no-unused-vars` above all, then
+`no-undef`, `no-fallthrough`, `no-constant-condition`, `no-useless-escape`, `no-self-assign`,
+`no-prototype-builtins`, and the four regex rules. One shard, roughly twelve rules.
+
+Note for anyone regenerating the list: the script in the original gap plan reports **132**. It
+filters on "has repo violations" but not "already has a fixture", so it double-counts
+`arrow-body-style`, `no-unexpected-multiline`, `one-var` and `prefer-regex-literals`. The real
+number is 128.
 
 ---
 
@@ -297,11 +402,59 @@ replaced.
 
 **Not currently reproducible: 13 consecutive clean runs since the merge.**
 
-### 5.5 `listAllRules.py` undercounts fixtures
+### 5.5 Port findings surfaced by the fixture campaign
 
-It reports `Fixture coverage: 56/494` because it reads `fixtures.manifest.json` only.
-`checkSidecarCoverage.py` merges `fragments/*.manifest.json` too and reports 192/192. Cosmetic, but
-the two numbers look contradictory in a report. One-line fix.
+Each was measured while building a batch. None is a harness artifact; all are pinned in the
+manifests so they trip if either side changes.
+
+**`typescript/no-duplicate-type-constituents` misses structural duplicates.** Oxlint reports
+`string & string` and `string | string` and honours `ignoreUnions`, but stays silent on
+`{a: string} & {a: string}`. ESLint asks the type checker and catches it. Production enables the
+rule, so this is a live hole, not a fixture artifact. The row is pinned with `oxlintLines` and flips
+the day oxlint compares structurally.
+
+**`react/jsx-filename-extension` can never fire.** Production allows `.js/.jsx/.tsx` and turns the
+rule off for `.js/.jsx/.mjs/.cjs`, leaving `.ts/.mts/.cts` as the only live scopes -- and JSX does
+not parse in any of them. Both tools return a parse error rather than a finding on a `.mts` or `.ts`
+holding JSX. Dead config. It has no fixture row because no violation can exist; fix the config
+instead.
+
+**`react/no-did-update-set-state` is oxlint-only, and ESLint is the one that is off.**
+`makeNoMethodSetStateRule`'s `shouldBeNoop` disables the rule for `componentDidUpdate` once the
+detected React version is at or above 16.3
+(`node_modules/eslint-plugin-react/lib/util/makeNoMethodSetStateRule.js:41`), and this repo is on
+React 19. Oxlint's port has no version gate. Pinned as `oxlintOnly`, with the sibling
+`no-will-update-set-state` -- no noop entry, fires on both -- as the control.
+
+**Oxlint configures `react/rules-of-hooks` but reports `react-hooks/rules-of-hooks`.** Config id and
+diagnostic id differ for the same rule. This is the rule-rename class that has already caused one
+incident, and it is why a golden snapshot of `ruleNames.mjs` is worth having.
+
+**An unknown plugin name in an override's `plugins` array fails partially and silently.** With
+`plugins: ["react", "react-hooks"]` -- `react-hooks` is not an oxlint plugin -- thirteen `react/*`
+rules behaved normally while `react/rules-of-hooks` reported nothing. Nastier than the documented
+`plugins` trap because the shard looks healthy.
+
+**Four anchor-convention differences.** Same violation, same count, different reported line:
+`typescript/adjacent-overload-signatures` (ESLint on the out-of-order signature, oxlint on the first
+of the group), `typescript/no-duplicate-enum-values` (duplicate member vs first member with that
+value), `typescript/no-unsafe-declaration-merging` (ESLint reports interface *and* class, oxlint only
+the interface), `react/no-redundant-should-component-update`. These matter beyond cosmetics: a
+`disable-next-line` placed for one tool's anchor does not suppress the other's. Worth auditing
+existing suppressions before the cutover.
+
+**typescript-eslint v8 defaults are far more permissive than the fixtures assumed.**
+`restrict-template-expressions` and `restrict-plus-operands` now allow nullish, boolean, any and
+number by default, so only an object (or `never`) still reports. `no-unsafe-unary-minus` does not
+fire on `any` at all, since `any` is assignable to `number`; a string enum member is the only shape
+that negates a non-number without tsc catching it first. Both tools agree on all of this -- the
+point is that these rules are much weaker than their names suggest.
+
+**React 19 deleted the APIs four react rules police.** `isMounted`, `findDOMNode`, `ReactDOM.render`
+and `React.createClass` are gone from the types, so `no-is-mounted`, `no-find-dom-node`,
+`no-render-return-value` and `prefer-es6-class` cannot have type-checking fixtures. They live in
+`fixtures/reactNativeRulesC.jsx`, which `fixtures/tsconfig.json` excludes.
+
 
 ---
 
@@ -315,8 +468,9 @@ Ordered by what blocks what.
    non-fast-forward and swallowed by `continue-on-error`, so one tightening is delayed by one merge
    rather than lost), which is the documented behaviour of the existing ESLint job. Unproven in
    practice.
-2. **Evidence for the 294 native rules.** Deadline-bound. Write fixtures highest-finding-count
-   first.
+2. ~~**Evidence for the 294 native rules.**~~ Done to the point of diminishing returns.
+   `compareFixtures.py` carries 306 entries, all green. The 128 remaining core rules are a
+   deliberate stop with the reasoning written down (section 4.1), not outstanding work.
 3. **Drive the 11 open config differences to zero** (section 3.5). Each either gets ported or gets a
    LEDGER entry naming who decided to drop it and why. Cheapest first: comment or delete the
    `scripts/**` / `.github/**` override, then align the 3 lenient option sets.
@@ -325,11 +479,22 @@ Ordered by what blocks what.
 5. **Explain `no-deprecated` 231 vs 399** (section 5.1). Sample 10 Oxlint-only findings, confirm each
    is a genuine deprecated usage, record the cause in `PORT_PLAN`.
 6. **`rulesdir/boolean-conditional-rendering`** has no replacement and no tracking issue.
-7. **Every merge from `main` needs a manual `SEATBELT_INCREASE=all` pass.** The seatbelt auto-tightens
+7. **Fix `react/jsx-filename-extension`** (section 5.5). As configured it can never produce a
+   finding on any file in this repo. Either widen the disabled-extension override or drop the rule;
+   leaving it is a rule everyone believes is running.
+8. **Own the `typescript/no-duplicate-type-constituents` structural gap** (section 5.5). Oxlint
+   misses duplicate object-literal constituents that ESLint catches, and the rule is enabled in
+   production. Either accept it in the LEDGER or file it upstream.
+9. **Audit existing suppressions against the four anchor differences** (section 5.5). A
+   `disable-next-line` written for ESLint's anchor line does not suppress oxlint's, and vice versa.
+   Cheap to check, and it fails closed only in one direction.
+10. **Golden snapshot for `config/oxlint/ruleNames.mjs`** -- highest-value of the untested pipeline
+    seams. The rule-rename class has bitten twice now: once before, and again with
+    `react/rules-of-hooks` reporting as `react-hooks/rules-of-hooks` (section 5.5).
+11. **Every merge from `main` needs a manual `SEATBELT_INCREASE=all` pass.** The seatbelt auto-tightens
    but never auto-increases.
-8. **Retry a dead oxlint shard once** (section 5.4). Today a transient OOM fails the whole lint run.
+12. **Retry a dead oxlint shard once** (section 5.4). Today a transient OOM fails the whole lint run.
    Low priority while the job is non-blocking, worth having before it becomes required.
-9. **`listAllRules.py` fixture count** (section 5.5).
 
 ---
 
@@ -393,6 +558,20 @@ python3 oxlint-migration/checkSidecarCoverage.py                 # section 4
 python3 oxlint-migration/listAllRules.py                         # section 4
 npm run oxlint-config-drift                                      # section 3.5
 ```
+
+Or every oxlint script at once, serially, which is how section 2.1 was produced:
+
+```bash
+for s in lint-oxlint compare-oxlint oxlint-config-drift oxlint-jsx-uses-port \
+         oxlint-locale-compare-port oxlint-react-compiler-gate oxlint-react-compiler-rust \
+         oxlint-rule-availability oxlint-rule-fixtures oxlint-rule-inventory \
+         oxlint-rule-tester oxlint-sidecar-coverage; do
+    npm run "$s" >"/tmp/$s.log" 2>&1
+    printf '%-32s exit=%s\n' "$s" "$?"
+done
+```
+
+Serially matters: see the `/tmp` race in section 2.1.
 
 `compareFullRepo.sh` caches both reports in `/tmp`; omit `--fresh` to re-read them without the
 seven-minute ESLint leg.
