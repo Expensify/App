@@ -235,7 +235,11 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
             // so just close instead of completing onboarding again.
             if (isConciergeTaskFlow) {
                 const companyDomain = session?.email ? getEmailDomain(session.email) : '';
-                createJoinWorkspaceOnboardingContent('joinWorkspace', companyDomain, session?.email ?? '', conciergeChat);
+                const joinWorkspaceTaskReportID = createJoinWorkspaceOnboardingContent('joinWorkspace', companyDomain, session?.email ?? '', conciergeChat);
+                if (joinWorkspaceTaskReportID) {
+                    Navigation.dismissModalWithReport({reportID: joinWorkspaceTaskReportID});
+                    return;
+                }
                 returnToOriginReport();
                 return;
             }

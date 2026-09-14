@@ -134,6 +134,11 @@ function createJoinWorkspaceOnboardingContent(contentType: JoinWorkspaceOnboardi
         return;
     }
 
+    const task = onboardingData.guidedSetupData.find(
+        (item) => item.type === 'task' && item.task === (contentType === 'joinWorkspace' ? CONST.ONBOARDING_TASK_TYPE.JOIN_WORKSPACE : CONST.ONBOARDING_TASK_TYPE.VALIDATE_EMAIL),
+    );
+    const taskReportID = task && 'taskReportID' in task ? task.taskReportID : undefined;
+
     API.write(
         WRITE_COMMANDS.CREATE_JOIN_WORKSPACE_ONBOARDING_CONTENT,
         {
@@ -147,6 +152,8 @@ function createJoinWorkspaceOnboardingContent(contentType: JoinWorkspaceOnboardi
             failureData: onboardingData.failureData,
         },
     );
+
+    return taskReportID;
 }
 
 function completeHybridAppOnboarding() {
