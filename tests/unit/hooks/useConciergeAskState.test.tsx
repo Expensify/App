@@ -25,6 +25,13 @@ jest.mock('@pages/inbox/ConciergeSessionContext', () => ({
     useConciergeSessionState: () => ({sessionStartTime: SESSION_START, showFullHistory: false, hadMessagesAtSessionStart: false}),
 }));
 
+let mockRouteParams: {reportActionID?: string} = {};
+
+jest.mock('@react-navigation/native', () => ({
+    ...jest.requireActual('@react-navigation/native'),
+    useRoute: () => ({key: 'Report-test', name: 'Report', params: mockRouteParams}),
+}));
+
 describe('useConciergeAskState', () => {
     beforeAll(async () => {
         Onyx.init({keys: ONYXKEYS});
@@ -33,12 +40,25 @@ describe('useConciergeAskState', () => {
         await waitForBatchedUpdates();
     });
 
+    beforeEach(() => {
+        mockRouteParams = {};
+    });
+
     it('shows the empty state when the session has no activity', () => {
         const {result} = renderHook(() => useConciergeAskState(CONCIERGE_REPORT_ID), {wrapper});
 
         expect(result.current.isAskConciergeChat).toBe(true);
         expect(result.current.isHistoryExpanded).toBe(false);
         expect(result.current.shouldShowWelcome).toBe(true);
+    });
+
+    it('shows the earlier conversation when the report opens at a linked action', () => {
+        mockRouteParams = {reportActionID: '2'};
+
+        const {result} = renderHook(() => useConciergeAskState(CONCIERGE_REPORT_ID), {wrapper});
+
+        expect(result.current.isHistoryExpanded).toBe(true);
+        expect(result.current.shouldShowWelcome).toBe(false);
     });
 
     it('stays off outside the Concierge report', () => {

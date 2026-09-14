@@ -5,6 +5,8 @@ import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
 import {IsInSidePanelContext} from '@hooks/useIsInSidePanel';
 
+import Navigation from '@libs/Navigation/Navigation';
+
 import ConciergeChatHistoryToggle from '@pages/inbox/report/ConciergeChatHistoryToggle';
 
 import CONST from '@src/CONST';
@@ -25,6 +27,12 @@ const mockResetSession = jest.fn();
 jest.mock('@pages/inbox/ConciergeSessionContext', () => ({
     useConciergeSessionState: () => ({sessionStartTime: '2024-06-01 12:00:00.000', showFullHistory: false, hadMessagesAtSessionStart: false}),
     useConciergeSessionActions: () => ({resetSession: mockResetSession}),
+}));
+
+jest.mock('@react-navigation/native', () => ({
+    ...jest.requireActual('@react-navigation/native'),
+    useRoute: () => ({key: 'Report-test', name: 'Report', params: {}}),
+    useNavigation: () => ({getState: () => ({key: 'ReportsSplitNavigator-test'})}),
 }));
 
 const CONCIERGE_REPORT_ID = '1';
@@ -50,6 +58,7 @@ const renderToggle = (overrides: {hasPreviousMessages?: boolean; shouldShowFullH
 
 describe('ConciergeChatHistoryToggle', () => {
     beforeAll(async () => {
+        jest.spyOn(Navigation, 'setParams').mockImplementation(() => {});
         await IntlStore.load(CONST.LOCALES.EN);
         await Onyx.set(ONYXKEYS.CONCIERGE_REPORT_ID, CONCIERGE_REPORT_ID);
         await Onyx.set(ONYXKEYS.BETAS, [CONST.BETAS.CONCIERGE_RESPOND_IN_THREAD]);
@@ -74,6 +83,7 @@ describe('ConciergeChatHistoryToggle', () => {
         expect(screen.getByText('Hide chat history')).toBeTruthy();
         fireEvent.press(screen.getByRole('button'));
         expect(mockResetSession).toHaveBeenCalledTimes(1);
+        expect(Navigation.setParams).toHaveBeenCalledWith({reportActionID: undefined}, 'Report-test', 'ReportsSplitNavigator-test');
         expect(onShowPreviousMessages).not.toHaveBeenCalled();
     });
 
