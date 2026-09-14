@@ -15,9 +15,8 @@ import subprocess
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-# One file per distinct ESLint config scope. Plain JS belongs here too: typescript-eslint switches a
-# batch of core rules off for TS and leaves them on for JS, so a TypeScript-only list understates the
-# union by 24 rules.
+# Seed probes for checkConfigDrift.py, which pairs them with globs pulled out of both configs.
+# eslint_enabled_rules no longer samples: it sweeps the whole repo.
 REPRESENTATIVE_FILES = [
     'src/App.tsx',
     'src/libs/actions/Report/index.ts',
@@ -261,8 +260,42 @@ def oxlint_disabled_rules(config_path=None):
     return disabled
 
 
+ESLINT_ENABLED_RULES_SCRIPT = os.path.join(ROOT, 'oxlint-migration', 'eslintEnabledRules.mjs')
+
+LINTABLE_GLOBS = ('*.ts', '*.tsx', '*.js', '*.jsx', '*.mjs', '*.cjs')
+
+_eslint_rules_cache = {}
+
+
+def tracked_lintable_files():
+    """Every tracked file ESLint could lint, repo-relative."""
+    out = subprocess.run(['git', 'ls-files', *LINTABLE_GLOBS], capture_output=True, text=True, cwd=ROOT).stdout
+    return [line for line in out.splitlines() if line]
+
+
+def _eslint_rules_for(files):
+    """Raw enabled rule ids for a file list, cached because callers ask more than once."""
+    key = tuple(files)
+    if key in _eslint_rules_cache:
+        return _eslint_rules_cache[key]
+    result = subprocess.run(
+        ['node', ESLINT_ENABLED_RULES_SCRIPT], input='\n'.join(files), capture_output=True, text=True, cwd=ROOT
+    )
+    try:
+        rules = set(json.loads(result.stdout)['rules'])
+    except (json.JSONDecodeError, KeyError):
+        raise SystemExit(f'could not resolve the ESLint config: {result.stderr.strip() or "no output"}')
+    _eslint_rules_cache[key] = rules
+    return rules
+
+
 def eslint_enabled_rules(files=None, fold_extension_rules=True):
-    """Rule names enabled by the real ESLint config, the union over the representative files.
+    """Rule names enabled by the real ESLint config, the union over every tracked lintable file.
+
+    Sampling a handful of representative files used to be the only affordable option, and it
+    silently missed every scope no sample landed in: the eleven eslint-plugin-storybook rules over
+    story files, jsdoc/require-jsdoc over src/types/onyx, and report-name-utils. The whole repo
+    resolves in about five seconds through one process, so there is no reason to sample.
 
     With `fold_extension_rules` (the default) a typescript-eslint extension rule is reported
     under its base name, because that is the rule oxlint runs (its base rules are TS-aware).
@@ -270,24 +303,11 @@ def eslint_enabled_rules(files=None, fold_extension_rules=True):
     extension rule and the base rule as separate rows and must not count one rule twice.
     """
     enabled = set()
-    for rel in files or REPRESENTATIVE_FILES:
-        path = os.path.join(ROOT, rel)
-        if not os.path.exists(path):
-            continue
-        out = subprocess.run(['npx', 'eslint', '--print-config', path], capture_output=True, text=True, cwd=ROOT).stdout
-        try:
-            config = json.loads(out)
-        except json.JSONDecodeError:
-            print(f'  (could not read ESLint config for {rel} -- skipped)')
-            continue
-        for rid, val in (config.get('rules') or {}).items():
-            sev = val[0] if isinstance(val, list) else val
-            if sev in ('off', 0):
-                continue
-            rid = norm_es(rid)
-            if fold_extension_rules and rid.startswith('@typescript-eslint/') and rid.split('/', 1)[1] in TS_EXTENSION_RULES:
-                rid = rid.split('/', 1)[1]
-            enabled.add(rid)
+    for rid in _eslint_rules_for(files or tracked_lintable_files()):
+        rid = norm_es(rid)
+        if fold_extension_rules and rid.startswith('@typescript-eslint/') and rid.split('/', 1)[1] in TS_EXTENSION_RULES:
+            rid = rid.split('/', 1)[1]
+        enabled.add(rid)
     return enabled
 
 

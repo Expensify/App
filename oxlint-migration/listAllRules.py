@@ -39,13 +39,14 @@ FIXTURE_MANIFEST = os.path.join(ROOT, 'oxlint-migration/port-probe/fixtures.mani
 def load_findings():
     """Per-rule finding counts from the cached full-repo reports (empty when absent)."""
     counts = {}
-    ox_path, es_path = '/tmp/oxlint-full.json', '/tmp/eslint-full.json'
-    if os.path.exists(ox_path):
-        ox = json.load(open(ox_path))
-        counts['oxlint'] = collections.Counter(ruleMap.norm_ox(d.get('code', '')) for d in ox['diagnostics'])
-    if os.path.exists(es_path):
-        es = json.load(open(es_path))
-        counts['eslint'] = collections.Counter(ruleMap.norm_es(m.get('ruleId')) for r in es for m in r['messages'])
+    # Both legs are written by `scripts/lint --format json`, so each report is one flat LintMessage
+    # list keyed by `ruleID`. OxlintLinter already renames every oxlint code to its ESLint identity,
+    # so the oxlint side is read with norm_es too, not norm_ox.
+    for linter, path in (('oxlint', '/tmp/oxlint-full.json'), ('eslint', '/tmp/eslint-full.json')):
+        if not os.path.exists(path):
+            continue
+        report = json.load(open(path))
+        counts[linter] = collections.Counter(ruleMap.norm_es(m.get('ruleID')) for m in report['messages'])
     return counts
 
 

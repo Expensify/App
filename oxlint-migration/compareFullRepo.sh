@@ -12,9 +12,13 @@ if [[ -s "$OXLINT_JSON" ]]; then
     echo "Reusing $OXLINT_JSON (pass --fresh to regenerate)"
 else
     echo "Running oxlint (full repo, type-aware)..."
-    # oxlint exits non-zero when it finds errors, and the report is still complete
+    # Through the pipeline, not `npx oxlint`: both legs have to pass the same processors or the
+    # react-hooks rows compare a filtered report against an unfiltered one.
+    # Seatbelt off: its grandfathered debt is what this comparison measures.
     SECONDS=0
-    npx oxlint --type-aware --format json >"$OXLINT_JSON" 2>/dev/null || true
+    SEATBELT_DISABLE=1 \\
+        bun "$(dirname "$0")/../scripts/lint/index.ts" --linter=oxlint --format=json . \\
+        >"$OXLINT_JSON" || true
     echo "$SECONDS" >"$OXLINT_JSON.time"
 fi
 

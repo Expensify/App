@@ -3,14 +3,20 @@
 Usage (see OXLINT_MIGRATION_INVESTIGATION.md appendix for the generation commands):
     python3 oxlint-migration/compareFullRepo.py [/tmp/oxlint-full.json] [/tmp/eslint-full.json]
 
-Normalizes both tools' rule names to ESLint's naming, then checks parity three ways:
+Both reports come from `scripts/lint/index.ts --format json`, one per linter, so both have
+passed the same processors. Running one leg raw would compare a React-Compiler-filtered
+report against an unfiltered one and every react-hooks row would be meaningless.
+
+Checks parity three ways:
 
   counts     per-rule totals, the table
   locations  the (file, line) set per rule -- equal counts are not equal findings,
              and a rule whose port anchors reports one line off would otherwise pass
-  errors     Oxlint diagnostics with no rule code, which is how a crashing JS-plugin
-             rule shows up. These have to be loud: they are silent coverage loss
-             (the rule ran on nothing) that no count comparison can catch.
+  ruleless   messages carrying no rule id. Under the pipeline a crashing JS-plugin rule
+             never reaches here at all: OxlintLinter promotes a codeless diagnostic to a
+             fatal exit 2 and writes no report, so the run dies instead of silently
+             reporting a rule that checked nothing. What is left is ESLint's own
+             ruleId-less output, such as an unused disable directive.
 
 Then a config-level coverage check, which catches gaps the findings table cannot see:
 a rule enabled in ESLint but missing from the Oxlint config looks like parity until
@@ -27,7 +33,10 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 import ruleMap
-from ruleMap import PORT_PLAN, ROOT, norm_es, norm_ox
+from ruleMap import PORT_PLAN, ROOT, norm_es
+
+# What norm_es returns for a message with no ruleId.
+RULELESS = '<fatal/unused-directive>'
 
 
 def read_time(report_path):
@@ -42,27 +51,19 @@ def relative(path):
     return os.path.relpath(path, ROOT) if os.path.isabs(path) else path
 
 
-def oxlint_locations(diagnostics):
-    """rule -> {(file, line)}, plus the diagnostics that carry no rule at all."""
-    per_rule = collections.defaultdict(set)
-    errors = []
-    for diagnostic in diagnostics:
-        code = diagnostic.get('code')
-        if not code:
-            errors.append(diagnostic)
-            continue
-        labels = diagnostic.get('labels') or []
-        line = labels[0]['span']['line'] if labels else 0
-        per_rule[norm_ox(code)].add((relative(diagnostic['filename']), line))
-    return per_rule, errors
-
-
-def eslint_messages(report):
+def read_messages(report_path, linter):
     """The flat LintMessage list `scripts/lint --format json` writes."""
-    return report['messages']
+    try:
+        return json.load(open(report_path))['messages']
+    except (json.JSONDecodeError, KeyError):
+        sys.exit(
+            f'{report_path} is not a lint report. The {linter} leg exited fatally and wrote nothing '
+            f'usable; rerun it on its own to see the error.'
+        )
 
 
-def eslint_locations(messages):
+def locations(messages):
+    """rule -> {(file, line)}. Both legs are already normalized to ESLint rule ids."""
     per_rule = collections.defaultdict(set)
     for message in messages:
         per_rule[norm_es(message.get('ruleID'))].add((relative(message['filePath']), message['line']))
@@ -70,12 +71,10 @@ def eslint_locations(messages):
 
 
 def findings_table(ox_file, es_file):
-    ox = json.load(open(ox_file))
-    es = eslint_messages(json.load(open(es_file)))
-    diagnostics = ox['diagnostics']
-    ox_at, ox_errors = oxlint_locations(diagnostics)
-    es_at = eslint_locations(es)
-    cox = collections.Counter(norm_ox(x['code']) for x in diagnostics if x.get('code'))
+    ox = read_messages(ox_file, 'oxlint')
+    es = read_messages(es_file, 'eslint')
+    ox_at, es_at = locations(ox), locations(es)
+    cox = collections.Counter(norm_es(m.get('ruleID')) for m in ox)
     ces = collections.Counter(norm_es(m.get('ruleID')) for m in es)
 
     print(f'{"rule":62} {"eslint":>7} {"oxlint":>7}')
@@ -99,16 +98,14 @@ def findings_table(ox_file, es_file):
             print(f'  {name:7} {seconds:8.1f} s')
 
     print()
-    if ox_errors:
-        print(f'OXLINT RULE ERRORS ({len(ox_errors)}) -- a rule threw, so it checked nothing in these files:')
-        by_message = collections.Counter()
-        for diagnostic in ox_errors:
-            message = diagnostic.get('message', '')
-            first = next((line for line in message.split('\n') if line.startswith('Error') or line.startswith('TypeError')), message[:80])
-            by_message[first.strip()] += 1
-        for message, count in by_message.most_common():
-            print(f'  {count:5} {message[:150]}')
-        print('  (a JS-plugin rule that throws produces no findings and no diff -- fix it or take it out of the config)')
+    ruleless = {'oxlint': ox_at.get(RULELESS, set()), 'eslint': es_at.get(RULELESS, set())}
+    if any(ruleless.values()):
+        print('MESSAGES WITH NO RULE ID -- not a rule finding, so no count comparison covers them:')
+        for linter, where in ruleless.items():
+            for path, line in sorted(where)[:5]:
+                print(f'  {linter:7} {path}:{line}')
+            if len(where) > 5:
+                print(f'  {linter:7} ... and {len(where) - 5} more')
         print()
 
     if not diffs and not misplaced:
@@ -136,7 +133,7 @@ def config_coverage_check():
     extras = sorted(ox_rules - es_rules)
     print()
     print(f'Config coverage (enabled rules, union across scopes): eslint={len(es_rules)}, oxlint={len(ox_rules)}, shared={len(es_rules & ox_rules)}')
-    print(f'  (union taken over {len(ruleMap.REPRESENTATIVE_FILES)} representative files, one per config scope: {", ".join(ruleMap.REPRESENTATIVE_FILES)})')
+    print(f'  (union taken over every tracked lintable file, {len(ruleMap.tracked_lintable_files())} of them)')
     planned = [r for r in gaps if r in PORT_PLAN]
     unexplained = [r for r in gaps if r not in PORT_PLAN]
     if planned:
