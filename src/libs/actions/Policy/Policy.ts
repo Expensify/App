@@ -1149,6 +1149,7 @@ function setWorkspaceApprovalMode(
                 // This property should now be set to false for all Collect policies
                 isAutoApprovalEnabled: false,
             }),
+            completedTaskReportActionID: reviewWorkspaceSettingsTaskData.completedTaskReportActionID,
         };
         // eslint-disable-next-line rulesdir/no-multiple-api-calls
         API.write(WRITE_COMMANDS.SET_WORKSPACE_APPROVAL_MODE, params, withReviewWorkspaceSettingsTaskData({optimisticData, failureData, successData}, reviewWorkspaceSettingsTaskData));
