@@ -52,6 +52,7 @@ import type {
     QuickAction,
     RecentWaypoint,
     Report,
+    Rule,
     Transaction,
     TransactionViolation,
 } from '@src/types/onyx';
@@ -106,6 +107,7 @@ type CreateTransactionParams = {
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     conciergeChat: OnyxEntry<Report>;
+    rules: OnyxCollection<Rule>;
 };
 
 type SetMoneyRequestCommuterExclusionFieldsParams = {
@@ -156,6 +158,7 @@ function createTransaction({
     formatPhoneNumber,
     getCurrencyDecimals,
     conciergeChat,
+    rules,
 }: CreateTransactionParams) {
     const draftTransactionIDs = Object.keys(allTransactionDrafts ?? {});
 
@@ -219,6 +222,7 @@ function createTransaction({
                 delegateAccountID,
                 reportActionsList: undefined,
                 getCurrencyDecimals,
+                rules,
             });
         } else {
             const existingTransactionID = getExistingTransactionID(transaction?.linkedTrackedExpenseReportAction);
@@ -266,6 +270,7 @@ function createTransaction({
                 delegateAccountID,
                 formatPhoneNumber,
                 getCurrencyDecimals,
+                rules,
             });
         }
     }
@@ -278,6 +283,7 @@ type GetMoneyRequestParticipantOptionsParams = {
     personalDetails: OnyxEntry<PersonalDetailsList>;
     conciergeReportID: string | undefined;
     privateIsArchived: boolean | undefined;
+    rules: OnyxCollection<Rule>;
     reportAttributesDerived: ReportAttributesDerivedValue['reports'] | undefined;
     reportDraft: OnyxEntry<Report> | undefined;
     translate: LocalizedTranslate;
@@ -292,6 +298,7 @@ function getMoneyRequestParticipantOptions({
     personalDetails,
     conciergeReportID,
     privateIsArchived,
+    rules,
     reportAttributesDerived,
     reportDraft,
     translate,
@@ -303,11 +310,22 @@ function getMoneyRequestParticipantOptions({
         const participantAccountID = participant?.accountID ?? CONST.DEFAULT_NUMBER_ID;
         return participantAccountID
             ? getParticipantsOption(participant, personalDetails, translate)
-            : getReportOption(participant, privateIsArchived, policy, personalDetails, conciergeReportID, reportAttributesDerived, reportDraft, currentUserAccountID, {
-                  translate,
-                  dateFnsLocale,
-                  convertToDisplayString,
-              });
+            : getReportOption(
+                  participant,
+                  privateIsArchived,
+                  policy,
+                  personalDetails,
+                  conciergeReportID,
+                  reportAttributesDerived,
+                  reportDraft,
+                  currentUserAccountID,
+                  {
+                      translate,
+                      dateFnsLocale,
+                      convertToDisplayString,
+                  },
+                  rules,
+              );
     });
 }
 

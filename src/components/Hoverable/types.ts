@@ -8,7 +8,6 @@ type HoverableChild = ReactElement<HoverableChildProps>;
 type HoverableChildren = ((isHovered: boolean) => HoverableChild) | HoverableChild;
 
 type HoverableProps = {
-    /** Children to wrap with Hoverable. */
     children: HoverableChildren;
 
     /** Whether to disable the hover action */
@@ -38,7 +37,6 @@ type HoverableProps = {
      */
     shouldUseNativeHoverEvents?: boolean;
 
-    /** Reference to the outer element */
     ref?: Ref<HTMLElement>;
 };
 

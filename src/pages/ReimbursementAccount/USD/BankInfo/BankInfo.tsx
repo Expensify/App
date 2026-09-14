@@ -32,7 +32,6 @@ type BankInfoProps = {
     /** Handles submit button press (URL-based navigation) */
     onSubmit?: () => void;
 
-    /** Current Policy ID */
     policyID?: string;
 };
 

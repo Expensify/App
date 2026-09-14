@@ -6,13 +6,11 @@ import type {Participant} from '@src/types/onyx/IOU';
 import type {OnyxEntry} from 'react-native-onyx';
 
 type ParticipantPickerProps = {
-    /** Selected participants */
     participants?: Participant[] | typeof CONST.EMPTY_ARRAY;
 
     /** The type of IOU report */
     iouType: IOUType;
 
-    /** The IOU action */
     action: IOUAction;
 
     /** Whether this is a per diem expense request */

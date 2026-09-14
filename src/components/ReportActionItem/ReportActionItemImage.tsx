@@ -57,10 +57,9 @@ type ReportActionItemImageProps = {
     /** URI for the image or local numeric reference for the image  */
     image?: string | number;
 
-    /** whether to enable the image preview modal */
     enablePreviewModal?: boolean;
 
-    /* The transaction associated with this image, if any. Passed for handling eReceipts. */
+    /** The transaction associated with this image, if any. Passed for handling eReceipts */
     transaction?: OnyxEntry<Transaction>;
 
     /** whether thumbnail is refer the local file or not */
