@@ -19,18 +19,27 @@ import {openMultifactorAuthenticationRevokePage} from '@userActions/User';
 
 import CONST from '@src/CONST';
 
+import type {ValueOf} from 'type-fest';
+
 import React, {useCallback, useEffect, useState} from 'react';
 import {View} from 'react-native';
 
 import RevokeRow from './RevokeRow';
 
-type ConfirmMode = 'thisDevice' | 'single' | 'multiple' | 'all';
+const CONFIRM_MODE = {
+    THIS_DEVICE: 'thisDevice',
+    SINGLE: 'single',
+    MULTIPLE: 'multiple',
+    ALL: 'all',
+} as const;
+
+type ConfirmMode = ValueOf<typeof CONFIRM_MODE>;
 
 const confirmPromptKeys = {
-    thisDevice: 'multifactorAuthentication.revoke.confirmationPromptThisDevice',
-    single: 'multifactorAuthentication.revoke.confirmationPrompt',
-    multiple: 'multifactorAuthentication.revoke.confirmationPromptMultiple',
-    all: 'multifactorAuthentication.revoke.confirmationPromptAll',
+    [CONFIRM_MODE.THIS_DEVICE]: 'multifactorAuthentication.revoke.confirmationPromptThisDevice',
+    [CONFIRM_MODE.SINGLE]: 'multifactorAuthentication.revoke.confirmationPrompt',
+    [CONFIRM_MODE.MULTIPLE]: 'multifactorAuthentication.revoke.confirmationPromptMultiple',
+    [CONFIRM_MODE.ALL]: 'multifactorAuthentication.revoke.confirmationPromptAll',
 } as const;
 
 /**
@@ -116,35 +125,34 @@ function MultifactorAuthenticationRevokePage() {
         await executeRevoke({}, setLoading);
     }, [executeRevoke]);
 
-    // The modal is passed isConfirmLoading, so the global modal system keeps it open in a loading state after the promise resolves.
-    // Every path below has to call closeModal() to actually dismiss it.
+    // isConfirmLoading keeps the modal open in a loading state after the promise resolves, so every path has to call closeModal() to dismiss it.
     const handleRevokeConfirm = async (mode: ConfirmMode) => {
-        if (mode === 'thisDevice') {
+        if (mode === CONFIRM_MODE.THIS_DEVICE) {
             if (!localCredentialID) {
                 closeModal();
                 return;
             }
             await revokeThisDevice(localCredentialID);
-        } else if (mode === 'multiple') {
+        } else if (mode === CONFIRM_MODE.MULTIPLE) {
             if (!localCredentialID) {
                 closeModal();
                 return;
             }
             await revokeOtherDevices(localCredentialID);
-        } else if (mode === 'single') {
+        } else if (mode === CONFIRM_MODE.SINGLE) {
             if (!localCredentialID) {
                 await revokeAll();
             } else {
                 await revokeOtherDevices(localCredentialID);
             }
-        } else if (mode === 'all') {
+        } else if (mode === CONFIRM_MODE.ALL) {
             await revokeAll();
         }
         closeModal();
     };
 
     const promptRevoke = (mode: ConfirmMode) => {
-        const ctaKey = mode === 'all' ? 'multifactorAuthentication.revoke.ctaAll' : 'multifactorAuthentication.revoke.cta';
+        const ctaKey = mode === CONFIRM_MODE.ALL ? 'multifactorAuthentication.revoke.ctaAll' : 'multifactorAuthentication.revoke.cta';
 
         showConfirmModal({
             buttonVariant: CONST.BUTTON_VARIANT.DANGER,
@@ -153,7 +161,7 @@ function MultifactorAuthenticationRevokePage() {
             confirmText: translate(ctaKey),
             cancelText: translate('common.cancel'),
             shouldShowCancelButton: true,
-            // Defined (not just truthy) so the wrapper takes its async branch and shows the loading state while the revoke request is in flight.
+            // Has to be defined, not just truthy, for the modal to take its async branch and show a loading state while the revoke request is in flight.
             isConfirmLoading: false,
         }).then((result) => {
             if (result.action !== ModalActions.CONFIRM) {
@@ -165,22 +173,22 @@ function MultifactorAuthenticationRevokePage() {
 
     const otherDevicesConfirmMode = (): ConfirmMode => {
         if (otherDeviceCount === 1) {
-            return 'single';
+            return CONFIRM_MODE.SINGLE;
         }
 
         // Revoking multiple "other devices" when the current device is not registered
         // is equivalent to revoking all devices, so the modal should say "Revoke all".
         if (!isCurrentDeviceRegistered) {
-            return 'all';
+            return CONFIRM_MODE.ALL;
         }
-        return 'multiple';
+        return CONFIRM_MODE.MULTIPLE;
     };
 
     const revokeAllConfirmMode = (): ConfirmMode => {
         if (!hasMultipleKeys) {
-            return isCurrentDeviceRegistered ? 'thisDevice' : 'single';
+            return isCurrentDeviceRegistered ? CONFIRM_MODE.THIS_DEVICE : CONFIRM_MODE.SINGLE;
         }
-        return 'all';
+        return CONFIRM_MODE.ALL;
     };
 
     return (
@@ -207,7 +215,7 @@ function MultifactorAuthenticationRevokePage() {
                                         if (!localCredentialID) {
                                             return;
                                         }
-                                        promptRevoke('thisDevice');
+                                        promptRevoke(CONFIRM_MODE.THIS_DEVICE);
                                     }}
                                 />
                             )}

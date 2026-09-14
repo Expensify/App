@@ -216,6 +216,31 @@ describe('UnshareBankAccount', () => {
         await waitFor(() => expect(mockUnshareBankAccount).toHaveBeenCalledWith(Number(BANK_ACCOUNT_ID), OTHER_ADMIN_EMAIL));
     });
 
+    it('rechecks the settlement-account flag when the confirmation modal resolves', async () => {
+        // The flag is read when the modal resolves, not when the row rendered, so a value that hydrates while the modal
+        // is open still blocks the unshare instead of being sent with the stale render-time value.
+        await setBankAccount();
+
+        renderPage();
+        await waitForBatchedUpdatesWithAct();
+
+        const unshareButtons = await screen.findAllByText('Unshare');
+        await waitForBatchedUpdatesWithAct();
+        fireEvent.press(unshareButtons.at(0)!);
+        await waitForBatchedUpdatesWithAct();
+        await waitFor(() => expect(mockShowConfirmModal).toHaveBeenCalledTimes(1));
+
+        // When the account becomes an Expensify Card settlement account while the confirmation modal is still open
+        await Onyx.merge(ONYXKEYS.BANK_ACCOUNT_LIST, {[BANK_ACCOUNT_ID]: {isExpensifyCardSettlementAccount: true}});
+        await waitForBatchedUpdatesWithAct();
+
+        await settlePendingModal('CONFIRM');
+
+        // Then the unshare is blocked and the error modal is shown instead
+        expect(mockUnshareBankAccount).not.toHaveBeenCalled();
+        await waitFor(() => expect(mockShowConfirmModal).toHaveBeenCalledTimes(2));
+    });
+
     it('does not unshare when the confirmation modal is dismissed', async () => {
         await setBankAccount();
 

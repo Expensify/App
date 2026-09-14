@@ -50,8 +50,7 @@ function UnshareBankAccount({route}: ShareBankAccountProps) {
     const {showConfirmModal} = useConfirmModal();
     const isFocused = useIsFocused();
 
-    // The error modal is now owned by the global modal stack, so it no longer unmounts with this page and it is shown from two
-    // different call sites. This ref keeps a second copy from being pushed on top of the one that is already open.
+    // The error modal is shown from two call sites, so this keeps a second copy off the stack while one is already open.
     const isErrorModalShownRef = useRef(false);
     const admins = bankAccountList?.[bankAccountID]?.accountData?.sharees;
     const totalAdmins = bankAccountList?.[bankAccountID]?.accountData?.sharees?.length;
@@ -85,6 +84,11 @@ function UnshareBankAccount({route}: ShareBankAccountProps) {
     const isLoading = unsharedBankAccountData?.isLoading ?? false;
     const shouldShowSuccess = unsharedBankAccountData?.shouldShowSuccess ?? false;
 
+    const isExpensifyCardSettlementAccountRef = useRef(isExpensifyCardSettlementAccount);
+    useEffect(() => {
+        isExpensifyCardSettlementAccountRef.current = isExpensifyCardSettlementAccount;
+    }, [isExpensifyCardSettlementAccount]);
+
     useEffect(() => {
         if (!shouldShowSuccess) {
             return;
@@ -99,10 +103,8 @@ function UnshareBankAccount({route}: ShareBankAccountProps) {
             return;
         }
 
-        // The global modal outlives this page, so don't push it while the page is in the background. Still clear the error, otherwise
-        // isExpensifyCardError stays true and the effect below can never fire again.
+        // Leave the error set while the page is in the background so the effect below retries once it regains focus.
         if (!isFocused) {
-            clearUnshareBankAccountErrors(Number(bankAccountID));
             return;
         }
 
@@ -117,8 +119,7 @@ function UnshareBankAccount({route}: ShareBankAccountProps) {
             ),
             confirmText: translate('common.buttonConfirm'),
             shouldShowCancelButton: false,
-            // Clear the errors on CONFIRM *and* CLOSE. The global modal always wires a cancel handler, so backdrop/ESC are now real exits —
-            // leaving the Onyx error set would freeze isExpensifyCardError at true and the modal could never be shown again.
+            // Clearing on CLOSE as well as CONFIRM is what lets the modal be shown again after a backdrop/ESC dismissal.
         }).then(() => {
             isErrorModalShownRef.current = false;
             clearUnshareBankAccountErrors(Number(bankAccountID));
@@ -138,7 +139,8 @@ function UnshareBankAccount({route}: ShareBankAccountProps) {
         }
 
         // Unsharing a bank account isn’t possible if the selected user’s copy of the bank account is set as an Expensify Card settlement account.
-        if (isExpensifyCardSettlementAccount) {
+        // Read through the ref because the flag can change while the confirmation modal is open.
+        if (isExpensifyCardSettlementAccountRef.current) {
             showUnshareErrorModal();
             return;
         }
@@ -158,7 +160,7 @@ function UnshareBankAccount({route}: ShareBankAccountProps) {
                     return;
                 }
 
-                // Chained from the awaited continuation so this modal is off the stack before the error modal can be pushed on top of it.
+                // Chained here so this modal is off the stack before the error modal can be pushed on top of it.
                 handleUnshare({login: item?.login, text: item?.text});
             });
         };
