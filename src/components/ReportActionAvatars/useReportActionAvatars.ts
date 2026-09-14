@@ -150,6 +150,8 @@ function useReportActionAvatars({
         });
     });
 
+    const shouldUseConciergeAvatar = !passedAction && !!conciergeReportID && isChatThread(chatReport) && chatReport?.parentReportID === conciergeReportID;
+
     const fallbackWorkspaceAvatar: IconType = {
         id: policyID,
         type: CONST.ICON_TYPE_WORKSPACE,
@@ -170,6 +172,7 @@ function useReportActionAvatars({
                 ...(personalDetails?.[policyAccountID ?? CONST.DEFAULT_NUMBER_ID] ?? {}),
                 shouldDisplayAllActors: false,
                 isWorkspaceActor: false,
+                shouldUseConciergeAvatar,
 
                 actorHint: String(policyID).replaceAll(CONST.REGEX.MERGED_ACCOUNT_PREFIX, ''),
                 accountID: policyAccountID,
@@ -196,7 +199,6 @@ function useReportActionAvatars({
     const shouldUseAccountIDs = accountIDs.length > 0;
     const shouldShowAllActors = displayAllActors && !reportPreviewSenderID;
     const isChatThreadOutsideTripRoom = isChatThread(chatReport) && !isATripRoom;
-    const isConciergeThread = !!conciergeReportID && isChatThread(chatReport) && chatReport?.parentReportID === conciergeReportID;
     const shouldShowSubscriptAvatar = shouldReportShowSubscript(iouReport ?? chatReport, isReportArchived);
     const shouldShowConvertedSubscriptAvatar = (shouldStackHorizontally || shouldUseAccountIDs) && shouldShowSubscriptAvatar && !reportPreviewSenderID;
     const isExpense = isMoneyRequestAction(action) && getOriginalMessage(action)?.type === CONST.IOU.ACTION.CREATE;
@@ -296,7 +298,7 @@ function useReportActionAvatars({
 
     if (useNearestReportAvatars) {
         primaryAvatar = getIconsWithDefaults(iouReport ?? chatReport).at(0);
-    } else if ((isConciergeThread && !passedAction) || isWorkspaceActor || usePersonalDetailsAvatars) {
+    } else if (shouldUseConciergeAvatar || isWorkspaceActor || usePersonalDetailsAvatars) {
         primaryAvatar = reportIcons.at(0);
     } else if (delegateAvatar) {
         primaryAvatar = delegateAvatar;
@@ -387,6 +389,7 @@ function useReportActionAvatars({
             ...(personalDetails?.[accountID] ?? {}),
             shouldDisplayAllActors: displayAllActors,
             isWorkspaceActor,
+            shouldUseConciergeAvatar,
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             actorHint: String(shouldUsePrimaryAvatarID ? primaryAvatar.id : login || defaultDisplayName || fallbackDisplayName).replaceAll(CONST.REGEX.MERGED_ACCOUNT_PREFIX, ''),
             accountID,

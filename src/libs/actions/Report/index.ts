@@ -1158,8 +1158,6 @@ function addActions({
 
         const optimisticThread = buildOptimisticChatReport({
             participantList: [currentUserAccountID, CONST.ACCOUNT_ID.CONCIERGE],
-            // Plain text, because the stored name is what Search sorts on and what the LHN falls back to.
-            reportName: ReportActionsUtils.getReportActionMessage(file ? attachmentAction : reportCommentAction)?.text,
             parentReportActionID: resolvedReportActionID,
             parentReportID: reportID,
             optimisticReportID: conciergeThreadReportID,
@@ -1225,19 +1223,17 @@ function addActions({
         );
         failureData.push(
             {
-                onyxMethod: Onyx.METHOD.SET,
+                onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT}${conciergeThreadReportID}`,
-                value: null,
+                value: {
+                    pendingFields: {createChat: null},
+                    errorFields: {createChatThread: getMicroSecondOnyxErrorWithTranslationKey('report.genericCreateReportFailureMessage')},
+                },
             },
             {
-                onyxMethod: Onyx.METHOD.SET,
+                onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${conciergeThreadReportID}`,
-                value: null,
-            },
-            {
-                onyxMethod: Onyx.METHOD.SET,
-                key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${conciergeThreadReportID}`,
-                value: null,
+                value: {[optimisticThreadCreatedAction.reportActionID]: {pendingAction: null}},
             },
             {
                 onyxMethod: Onyx.METHOD.MERGE,
