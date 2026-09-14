@@ -1069,10 +1069,10 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
         } else {
             iouReport = getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${chatReport.iouReportID}`] ?? null;
 
-            // Only fall back when the chat has no pointer at all. If `iouReportID` is set but the report is missing from
-            // `allReports`, it simply has not loaded yet, and reusing a different outstanding report would silently divert
-            // the expense away from the report the chat actually points at.
-            if (!iouReport && !chatReport.iouReportID) {
+            // Fall back whenever the pointer resolves to nothing, whether it is absent or names a report we cannot see.
+            // Onyx cannot distinguish "the report was deleted or moved away" from "the report has not hydrated yet", and
+            // reusing the submitter's own newest open report is safer than silently creating a duplicate report.
+            if (!iouReport) {
                 const outstandingReports = getOutstandingReportsForUser(chatReport.policyID, payeeAccountID, rules, getAllReportNameValuePairs(), getAllReports(), false);
 
                 // `created` is a fixed-width UTC datetime string, so ordinary string ordering is already chronological.

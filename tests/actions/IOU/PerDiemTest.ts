@@ -932,13 +932,13 @@ describe('PerDiem', () => {
                 expect(iouReportID).not.toBe(OLDER_REPORT_ID);
             });
 
-            it('does not divert to an outstanding report when the chat points at a report that has not loaded yet', async () => {
-                // The chat still points at PENDING_REPORT_ID, but that report has not reached this client yet — an
-                // offline race, not a cleared pointer. Reusing OLDER_REPORT_ID here would put the expense on the wrong report.
+            it('reuses an outstanding report when the chat points at a report that cannot be resolved', async () => {
+                // A missing report key means either "deleted or moved away" or "not hydrated yet", and Onyx cannot tell
+                // the two apart. Reusing the submitter's own open report beats creating a duplicate.
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${OLDER_REPORT_ID}`, buildOutstandingExpenseReport(OLDER_REPORT_ID, '2024-01-02'));
                 await waitForBatchedUpdates();
 
-                expect(getPerDiemInformation({...perDiemChatReport, iouReportID: PENDING_REPORT_ID}).iouReport.reportID).not.toBe(OLDER_REPORT_ID);
+                expect(getPerDiemInformation({...perDiemChatReport, iouReportID: PENDING_REPORT_ID}).iouReport.reportID).toBe(OLDER_REPORT_ID);
             });
         });
     });
