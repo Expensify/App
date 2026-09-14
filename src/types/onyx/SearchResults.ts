@@ -142,6 +142,9 @@ type SearchMemberGroup = {
 
     /** Currency of total value */
     currency: string;
+
+    /** The group's share of `search.total` in percentage points */
+    percentOfTotal?: number;
 };
 
 /** Model of card grouped search result */
@@ -157,6 +160,9 @@ type SearchCardGroup = {
 
     /** Currency of total value */
     currency: string;
+
+    /** The group's share of `search.total` in percentage points */
+    percentOfTotal?: number;
 
     bank: string;
     cardName: string;
@@ -182,6 +188,9 @@ type SearchWithdrawalIDGroup = {
 
     /** Currency of total value */
     currency: string;
+
+    /** The group's share of `search.total` in percentage points */
+    percentOfTotal?: number;
 
     /** Masked account number */
     accountNumber: string;
@@ -231,6 +240,9 @@ type SearchCategoryGroup = {
 
     /** Currency of total value */
     currency: string;
+
+    /** The group's share of `search.total` in percentage points */
+    percentOfTotal?: number;
 };
 
 /** Model of merchant grouped search result */
@@ -245,6 +257,9 @@ type SearchMerchantGroup = {
 
     /** Currency of total value */
     currency: string;
+
+    /** The group's share of `search.total` in percentage points */
+    percentOfTotal?: number;
 };
 
 /** Model of tag grouped search result */
@@ -259,6 +274,9 @@ type SearchTagGroup = {
 
     /** Currency of total value */
     currency: string;
+
+    /** The group's share of `search.total` in percentage points */
+    percentOfTotal?: number;
 };
 
 /** Model of month grouped search result */
@@ -276,6 +294,9 @@ type SearchMonthGroup = {
 
     /** Currency of total value */
     currency: string;
+
+    /** The group's share of `search.total` in percentage points */
+    percentOfTotal?: number;
 };
 
 /** Model of week grouped search result */
@@ -291,6 +312,9 @@ type SearchWeekGroup = {
 
     /** Currency of total value */
     currency: string;
+
+    /** The group's share of `search.total` in percentage points */
+    percentOfTotal?: number;
 };
 
 /** Model of year grouped search result */
@@ -305,6 +329,9 @@ type SearchYearGroup = {
 
     /** Currency of total value */
     currency: string;
+
+    /** The group's share of `search.total` in percentage points */
+    percentOfTotal?: number;
 };
 
 /** Model of quarter grouped search result */
@@ -322,6 +349,9 @@ type SearchQuarterGroup = {
 
     /** Currency of total value */
     currency: string;
+
+    /** The group's share of `search.total` in percentage points */
+    percentOfTotal?: number;
 };
 
 /** SearchResultDataType */

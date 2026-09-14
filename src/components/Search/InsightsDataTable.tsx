@@ -13,7 +13,7 @@ import {View} from 'react-native';
 import type {TransactionCardGroupListItemType, TransactionMemberGroupListItemType} from './SearchList/ListItem/types';
 import type {ChartView, GroupedItem, SearchChartDataRow, SearchGroupBy} from './types';
 
-import {formatPercentOfTotal, getPercentOfTotal} from './buildChartSeries';
+import {formatPercentOfTotal} from './buildChartSeries';
 import InsightsDataTableSkeleton from './InsightsDataTableSkeleton';
 
 /** Placeholder rows while loading */
@@ -30,9 +30,6 @@ type InsightsDataTableProps = {
     groupBy: SearchGroupBy;
 
     isLoading?: boolean;
-
-    /** Total spend of the whole search window */
-    total?: number;
 };
 
 /** Narrows a group to the member-based variants, the ones carrying the person's avatar and account ID. */
@@ -40,7 +37,7 @@ function isMemberGroup(item: GroupedItem): item is TransactionMemberGroupListIte
     return item.groupedBy === CONST.SEARCH.GROUP_BY.FROM || item.groupedBy === CONST.SEARCH.GROUP_BY.CARD;
 }
 
-function InsightsDataTable({rows, view, groupBy, isLoading, total}: InsightsDataTableProps) {
+function InsightsDataTable({rows, view, groupBy, isLoading}: InsightsDataTableProps) {
     const styles = useThemeStyles();
     const {translate, preferredLocale} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
@@ -60,14 +57,12 @@ function InsightsDataTable({rows, view, groupBy, isLoading, total}: InsightsData
         return null;
     }
 
-    const windowTotal = total ?? rows.reduce((sum, row) => sum + Math.abs(row.item.total ?? 0), 0);
     const shouldShowColorDot = view === CONST.SEARCH.VIEW.PIE;
 
     return (
         <View style={styles.chartInlineTable}>
             {rows.map((row, index) => {
                 const {item, point, color} = row;
-                const percent = getPercentOfTotal(item.total, windowTotal);
                 const isLastRow = index === rows.length - 1;
 
                 return (
@@ -100,8 +95,10 @@ function InsightsDataTable({rows, view, groupBy, isLoading, total}: InsightsData
                                 >
                                     {translate('iou.expenseCount', {count: item.count})}
                                 </Text>
-                                {percent !== undefined && (
-                                    <Text style={styles.mutedNormalTextLabel}>{translate('search.percentOfSpend', {percent: formatPercentOfTotal(percent, preferredLocale)})}</Text>
+                                {item.percentOfTotal !== undefined && (
+                                    <Text style={styles.mutedNormalTextLabel}>
+                                        {translate('search.percentOfSpend', {percent: formatPercentOfTotal(item.percentOfTotal, item.total ?? 0, preferredLocale)})}
+                                    </Text>
                                 )}
                             </View>
                         </View>

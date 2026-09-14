@@ -1220,7 +1220,6 @@ function Search({
                                                   view={view}
                                                   groupBy={validGroupBy}
                                                   isLoading={shouldShowLoadingState}
-                                                  total={searchResults?.search?.total}
                                               />
                                           )
                                         : undefined

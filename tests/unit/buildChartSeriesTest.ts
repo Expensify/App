@@ -1,7 +1,7 @@
 import type {ChartDataPoint} from '@components/Charts/types';
 import {processDataIntoSlices} from '@components/Charts/utils';
 import VictoryTheme from '@components/Charts/VictoryTheme';
-import {buildChartSeries, formatPercentOfTotal, getPercentOfTotal, getSliceColorsByDataIndex} from '@components/Search/buildChartSeries';
+import {buildChartSeries, formatPercentOfTotal, getSliceColorsByDataIndex} from '@components/Search/buildChartSeries';
 import type {TransactionMerchantGroupListItemType} from '@components/Search/SearchList/ListItem/types';
 import type {GroupedItem} from '@components/Search/types';
 
@@ -98,51 +98,36 @@ describe('buildChartSeries', () => {
     });
 });
 
-describe('getPercentOfTotal', () => {
-    it('returns the share the value makes up of the total', () => {
-        expect(getPercentOfTotal(2500, 10000)).toBe(25);
-    });
-
-    it('measures magnitude, so a negative group still reports a positive share', () => {
-        expect(getPercentOfTotal(-2500, 10000)).toBe(25);
-        expect(getPercentOfTotal(2500, -10000)).toBe(25);
-    });
-
-    it('can exceed 100% when the value is bigger than the total', () => {
-        expect(getPercentOfTotal(15000, 10000)).toBe(150);
-    });
-
-    it('returns undefined when there is no total to measure against', () => {
-        expect(getPercentOfTotal(2500, 0)).toBeUndefined();
-        expect(getPercentOfTotal(2500, undefined)).toBeUndefined();
-    });
-
-    it('treats a missing value as no share of the total', () => {
-        expect(getPercentOfTotal(undefined, 10000)).toBe(0);
-    });
-});
-
 describe('formatPercentOfTotal', () => {
     it('keeps one decimal place when the share has one', () => {
-        expect(formatPercentOfTotal(40.14, CONST.LOCALES.EN)).toBe('40.1%');
-        expect(formatPercentOfTotal(3.5, CONST.LOCALES.EN)).toBe('3.5%');
+        expect(formatPercentOfTotal(40.14, 10000, CONST.LOCALES.EN)).toBe('40.1%');
+        expect(formatPercentOfTotal(3.5, 10000, CONST.LOCALES.EN)).toBe('3.5%');
     });
 
     it('drops the decimal when the share is round, so it does not read as false precision', () => {
-        expect(formatPercentOfTotal(30, CONST.LOCALES.EN)).toBe('30%');
-        expect(formatPercentOfTotal(100, CONST.LOCALES.EN)).toBe('100%');
+        expect(formatPercentOfTotal(30, 10000, CONST.LOCALES.EN)).toBe('30%');
+        expect(formatPercentOfTotal(100, 10000, CONST.LOCALES.EN)).toBe('100%');
     });
 
     it('reports a share too small to round as "less than", not as zero', () => {
-        expect(formatPercentOfTotal(0.03, CONST.LOCALES.EN)).toBe('<0.1%');
+        expect(formatPercentOfTotal(0.03, 10000, CONST.LOCALES.EN)).toBe('<0.1%');
     });
 
-    it('shows a genuinely zero share as zero', () => {
-        expect(formatPercentOfTotal(0, CONST.LOCALES.EN)).toBe('0%');
+    it('reports a group the search rounded down to zero as "less than", since it still spent something', () => {
+        expect(formatPercentOfTotal(0, 47392, CONST.LOCALES.EN)).toBe('<0.1%');
+    });
+
+    it('shows a group that spent nothing as a genuine zero', () => {
+        expect(formatPercentOfTotal(0, 0, CONST.LOCALES.EN)).toBe('0%');
+    });
+
+    it('carries the float precision the search reports without reading as false precision', () => {
+        expect(formatPercentOfTotal(98.77999877929688, 5970688778, CONST.LOCALES.EN)).toBe('98.8%');
+        expect(formatPercentOfTotal(0.6299999952316284, 38285552, CONST.LOCALES.EN)).toBe('0.6%');
     });
 
     it('uses the locale decimal separator rather than a hand-built string', () => {
-        expect(formatPercentOfTotal(40.14, CONST.LOCALES.PL)).toBe('40,1%');
+        expect(formatPercentOfTotal(40.14, 10000, CONST.LOCALES.PL)).toBe('40,1%');
     });
 });
 
