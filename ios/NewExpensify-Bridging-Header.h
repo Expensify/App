@@ -6,8 +6,7 @@
 //
 
 // RCTAppDelegate as headers, not as the Swift module `React_RCTAppDelegate`, which does not exist
-// with a prebuilt React Core. Mirrors expo's RCTAppDelegateUmbrella.h; both umbrella spellings cover
-// a source and a prebuilt build.
+// with a prebuilt React Core. Both umbrella spellings cover a source and a prebuilt build.
 #if __has_include(<React_RCTAppDelegate/React-RCTAppDelegate-umbrella.h>)
 #import <React_RCTAppDelegate/React-RCTAppDelegate-umbrella.h>
 #elif __has_include(<React_RCTAppDelegate/React_RCTAppDelegate-umbrella.h>)
