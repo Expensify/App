@@ -11,6 +11,7 @@
 #include <algorithm>
 #include <cstdio>
 #include <string>
+#include <functional>
 #include <optional>
 #include <utility>
 #include <vector>
@@ -155,107 +156,194 @@ static void checkOrder(const std::string& name, Lookup lookup, bool expectInComm
 
 
 // ---------------------------------------------------------------------------
-// Re-entrancy harness.
+// Drain harness.
 //
-// schedulerShouldRenderTransactions justifies its swap-then-mount drain with:
-//   "This is safe because we're already combining all the transactions for the
-//    same surface ID in a single transaction in the pending transactions list,
-//    so operations won't run out of order."
-// Patch +015 made that premise false: a refused merge leaves several pending
-// transactions for one surface. This models a synchronous commit raised from
-// inside executeMount, which the same comment says does happen.
+// Models FabricUIManagerBinding::schedulerShouldRenderTransactions together
+// with the Java side it hands batches to. MountItemDispatcher appends every
+// batch to a FIFO and does not re-enter while it is dispatching ("If we're
+// already dispatching, don't reenter"), so native view operations are applied
+// in the order executeMount schedules batches. Two hazards are modelled, both
+// reachable only once patch +015 lets a surface hold several pending
+// transactions:
+//  - re-entrancy: a state update committed synchronously while the dispatcher
+//    is part-way through applying a batch;
+//  - concurrency: a drain on another thread (JS vs UI) that runs after this
+//    drain has taken a transaction off the queue but before it mounts it.
 // ---------------------------------------------------------------------------
-enum class Drain { SwapWholeQueue, PopFront };
+enum class Drain { SwapWholeQueue, PopFront, SingleDrainer };
+
+struct Op {
+  int commit;
+  ShadowViewMutation::Type type;
+  Tag tag;
+};
+
+static std::vector<Op> gOps;
+
+static ShadowViewMutation track(int commit, ShadowViewMutation mutation) {
+  Tag tag = mutation.newChildShadowView.tag != -1 ? mutation.newChildShadowView.tag
+                                                  : mutation.oldChildShadowView.tag;
+  gOps.push_back({commit, mutation.type, tag});
+  return mutation;
+}
+
+static int commitOf(const ShadowViewMutation& mutation) {
+  Tag tag = mutation.newChildShadowView.tag != -1 ? mutation.newChildShadowView.tag
+                                                  : mutation.oldChildShadowView.tag;
+  for (const auto& op : gOps) {
+    if (op.type == mutation.type && op.tag == tag) {
+      return op.commit;
+    }
+  }
+  return -1;
+}
 
 struct Binding {
   Drain drain;
-  Lookup lookup;
   std::vector<MountingTransaction> pendingTransactions_;
-  std::vector<Tag> mounted;
-  bool reentrantCommitPending = false;
+  bool isDrainingPendingTransactions_ = false;
 
-  void schedulerDidFinishTransaction(MountingTransaction&& incoming) {
-    if (lookup == Lookup::Forward) {
-      auto it = std::find_if(
-          pendingTransactions_.begin(), pendingTransactions_.end(),
-          [&](const auto& t) { return t.getSurfaceId() == incoming.getSurfaceId(); });
-      if (it != pendingTransactions_.end() && it->canMergeWith(incoming)) {
-        it->mergeWith(std::move(incoming));
-        return;
-      }
-    } else {
-      auto it = std::find_if(
-          pendingTransactions_.rbegin(), pendingTransactions_.rend(),
-          [&](const auto& t) { return t.getSurfaceId() == incoming.getSurfaceId(); });
-      if (it != pendingTransactions_.rend() && it->canMergeWith(incoming)) {
-        it->mergeWith(std::move(incoming));
-        return;
-      }
+  // Java MountItemDispatcher.
+  std::vector<std::vector<int>> javaQueue;
+  bool inDispatch = false;
+
+  // Commit number of every native view operation, in the order applied.
+  std::vector<int> applied;
+
+  // One-shot hooks.
+  std::function<void()> afterFirstNativeOperation;
+  std::function<void()> afterTakingTransaction;
+
+  static void fire(std::function<void()>& hook) {
+    if (hook) {
+      auto run = std::move(hook);
+      hook = nullptr;
+      run();
     }
-    pendingTransactions_.push_back(std::move(incoming));
   }
 
+  void schedulerDidFinishTransaction(MountingTransaction&& incoming) {
+    auto pending = std::find_if(
+        pendingTransactions_.rbegin(), pendingTransactions_.rend(),
+        [&](const auto& t) { return t.getSurfaceId() == incoming.getSurfaceId(); });
+    if (pending != pendingTransactions_.rend() && pending->canMergeWith(incoming)) {
+      pending->mergeWith(std::move(incoming));
+    } else {
+      pendingTransactions_.push_back(std::move(incoming));
+    }
+  }
+
+  // FabricMountingManager::executeMount -> FabricUIManager.scheduleMountItem on
+  // the UI thread: append the batch, then try to dispatch.
   void executeMount(const MountingTransaction& transaction) {
+    std::vector<int> batch;
     for (const auto& mutation : transaction.getMutations()) {
-      Tag tag = mutation.newChildShadowView.tag != -1 ? mutation.newChildShadowView.tag
-                                                      : mutation.oldChildShadowView.tag;
-      mounted.push_back(tag);
+      batch.push_back(commitOf(mutation));
     }
-    // A state update committed synchronously from the UI thread while mounting.
-    if (reentrantCommitPending) {
-      reentrantCommitPending = false;
-      schedulerDidFinishTransaction(tx(3, {ShadowViewMutation::InsertMutation(1, view(300), 1)}));
-      schedulerShouldRenderTransactions();
+    javaQueue.push_back(std::move(batch));
+    tryDispatchMountItems();
+  }
+
+  void tryDispatchMountItems() {
+    if (inDispatch) {
+      return;
     }
+    inDispatch = true;
+    while (!javaQueue.empty()) {
+      auto batch = std::move(javaQueue.front());
+      javaQueue.erase(javaQueue.begin());
+      for (int commit : batch) {
+        applied.push_back(commit);
+        fire(afterFirstNativeOperation);
+      }
+    }
+    inDispatch = false;
   }
 
   void schedulerShouldRenderTransactions() {
-    if (drain == Drain::SwapWholeQueue) {
-      std::vector<MountingTransaction> pendingTransactions;
-      {
+    switch (drain) {
+      case Drain::SwapWholeQueue: {
+        std::vector<MountingTransaction> pendingTransactions;
         pendingTransactions_.swap(pendingTransactions);
+        for (auto& transaction : pendingTransactions) {
+          fire(afterTakingTransaction);
+          executeMount(transaction);
+        }
+        return;
       }
-      for (auto& transaction : pendingTransactions) {
-        executeMount(transaction);
+      case Drain::PopFront: {
+        while (!pendingTransactions_.empty()) {
+          MountingTransaction transaction = std::move(pendingTransactions_.front());
+          pendingTransactions_.erase(pendingTransactions_.begin());
+          fire(afterTakingTransaction);
+          executeMount(transaction);
+        }
+        return;
       }
-    } else {
-      while (true) {
-        std::optional<MountingTransaction> transaction;
-        {
+      case Drain::SingleDrainer: {
+        if (isDrainingPendingTransactions_) {
+          return;
+        }
+        isDrainingPendingTransactions_ = true;
+        while (true) {
+          std::optional<MountingTransaction> transaction;
           if (pendingTransactions_.empty()) {
+            isDrainingPendingTransactions_ = false;
             break;
           }
           transaction = std::move(pendingTransactions_.front());
           pendingTransactions_.erase(pendingTransactions_.begin());
+          fire(afterTakingTransaction);
+          executeMount(*transaction);
         }
-        executeMount(*transaction);
+        return;
       }
     }
   }
 };
 
-static void checkReentrancy(const std::string& name, Drain drain, Lookup lookup, bool expectInOrder) {
-  Binding binding{drain, lookup, {}, {}, false};
-  // T1 deletes tag 100; T2 re-creates it, so +015 refuses the merge and the
-  // surface is left holding TWO pending transactions.
-  binding.schedulerDidFinishTransaction(tx(1, {ShadowViewMutation::DeleteMutation(view(100))}));
-  binding.schedulerDidFinishTransaction(tx(2, {ShadowViewMutation::CreateMutation(view(100)),
-                                               ShadowViewMutation::InsertMutation(1, view(100), 0)}));
+enum class Hazard { ReentrantMidBatch, ConcurrentDrain };
+
+static void checkDrain(const std::string& name, Drain drain, Hazard hazard, bool expectInOrder) {
+  gOps.clear();
+  Binding binding{drain};
+
+  // T1 deletes tag 100 and mounts tag 110; T2 re-creates tag 100, so +015
+  // refuses the merge and the surface holds TWO pending transactions.
+  binding.schedulerDidFinishTransaction(tx(1, {track(1, ShadowViewMutation::DeleteMutation(view(100))),
+                                               track(1, ShadowViewMutation::CreateMutation(view(110))),
+                                               track(1, ShadowViewMutation::InsertMutation(1, view(110), 0))}));
+  binding.schedulerDidFinishTransaction(tx(2, {track(2, ShadowViewMutation::CreateMutation(view(100))),
+                                               track(2, ShadowViewMutation::InsertMutation(1, view(100), 1))}));
   if (binding.pendingTransactions_.size() != 2) {
     failures++;
     std::printf("FAIL  %-44s setup: expected 2 pending, got %zu\n", name.c_str(),
                 binding.pendingTransactions_.size());
     return;
   }
-  binding.reentrantCommitPending = true;
+
+  if (hazard == Hazard::ReentrantMidBatch) {
+    // A state update committed synchronously while T1's batch is half applied.
+    binding.afterFirstNativeOperation = [&binding] {
+      binding.schedulerDidFinishTransaction(
+          tx(3, {track(3, ShadowViewMutation::InsertMutation(1, view(300), 2))}));
+      binding.schedulerShouldRenderTransactions();
+    };
+  } else {
+    // Another thread's drain wins the race to mount.
+    binding.afterTakingTransaction = [&binding] { binding.schedulerShouldRenderTransactions(); };
+  }
+
   binding.schedulerShouldRenderTransactions();
 
   std::string rendered;
-  for (size_t i = 0; i < binding.mounted.size(); i++) {
-    rendered += (i ? " -> " : "") + std::to_string(binding.mounted[i]);
+  bool inOrder = !binding.applied.empty();
+  for (size_t i = 0; i < binding.applied.size(); i++) {
+    rendered += (i ? " " : "") + std::string("T") + std::to_string(binding.applied[i]);
+    if (i > 0 && binding.applied[i] < binding.applied[i - 1]) {
+      inOrder = false;
+    }
   }
-  // Commit 3 is the newest commit, so its Insert(300) must mount last.
-  const bool inOrder = !binding.mounted.empty() && binding.mounted.back() == 300;
   const bool ok = inOrder == expectInOrder;
   if (!ok) failures++;
   std::printf("%s  %-44s %s\n", ok ? "PASS" : "FAIL", name.c_str(), rendered.c_str());
@@ -317,10 +405,15 @@ int main() {
   checkOrder("first match  [shipped: OUT of commit order]", Lookup::Forward, false);
   checkOrder("newest match [fixed:   IN commit order]", Lookup::Reverse, true);
 
-  std::printf("\n=== re-entrant commit raised from inside executeMount ===\n");
-  checkReentrancy("swap + first match  [shipped]", Drain::SwapWholeQueue, Lookup::Forward, false);
-  checkReentrancy("swap + newest match [#99608 only]", Drain::SwapWholeQueue, Lookup::Reverse, false);
-  checkReentrancy("pop front + newest  [fixed]", Drain::PopFront, Lookup::Reverse, true);
+  std::printf("\n=== re-entrant commit while a batch is half applied ===\n");
+  checkDrain("swap queue      [main: T3 jumps T2]", Drain::SwapWholeQueue, Hazard::ReentrantMidBatch, false);
+  checkDrain("pop front       [in commit order]", Drain::PopFront, Hazard::ReentrantMidBatch, true);
+  checkDrain("single drainer  [in commit order]", Drain::SingleDrainer, Hazard::ReentrantMidBatch, true);
+
+  std::printf("\n=== second drain between taking and mounting a transaction ===\n");
+  checkDrain("swap queue      [in commit order]", Drain::SwapWholeQueue, Hazard::ConcurrentDrain, true);
+  checkDrain("pop front       [T2 jumps T1]", Drain::PopFront, Hazard::ConcurrentDrain, false);
+  checkDrain("single drainer  [in commit order]", Drain::SingleDrainer, Hazard::ConcurrentDrain, true);
 
   std::printf("\n%d assertion(s) failing\n\n", failures);
   return failures == 0 ? 0 : 1;

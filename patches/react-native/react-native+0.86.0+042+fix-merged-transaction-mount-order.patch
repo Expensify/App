@@ -1,28 +1,137 @@
-diff --git a/node_modules/react-native/ReactCommon/react/renderer/mounting/MountingTransaction.h b/node_modules/react-native/ReactCommon/react/renderer/mounting/MountingTransaction.h
-index 4e91679..d7b37c4 100644
---- a/node_modules/react-native/ReactCommon/react/renderer/mounting/MountingTransaction.h
-+++ b/node_modules/react-native/ReactCommon/react/renderer/mounting/MountingTransaction.h
-@@ -91,11 +91,20 @@
-    */
-   bool canMergeWith(MountingTransaction &transaction);
+diff --git a/node_modules/react-native/ReactAndroid/src/main/jni/react/fabric/FabricMountingManager.cpp b/node_modules/react-native/ReactAndroid/src/main/jni/react/fabric/FabricMountingManager.cpp
+index 66436ac..bca8b6e 100644
+--- a/node_modules/react-native/ReactAndroid/src/main/jni/react/fabric/FabricMountingManager.cpp
++++ b/node_modules/react-native/ReactAndroid/src/main/jni/react/fabric/FabricMountingManager.cpp
+@@ -581,8 +581,13 @@
+   auto surfaceId = transaction.getSurfaceId();
+   auto& mutations = transaction.getMutations();
  
-+  /*
-+   * Returns true when this transaction is the result of merging two or more
-+   * differ-produced transactions. Android's mount-item reordering (writing
-+   * deletes last) is only sound within a single transaction, so a merged
-+   * transaction must be mounted in mutation order instead.
-+   */
-+  bool wasMerged() const;
++  // Writing deletes last is only sound within a single differ-produced
++  // transaction ("FIXME: this optimization is incorrect when multiple
++  // transactions are merged together" below). Keep mutation order whenever this
++  // transaction is a merge of several commits.
+   bool maintainMutationOrder =
+-      ReactNativeFeatureFlags::disableMountItemReorderingAndroid();
++      ReactNativeFeatureFlags::disableMountItemReorderingAndroid() ||
++      transaction.wasMerged();
+ 
+   auto revisionNumber = telemetry.getRevisionNumber();
+ 
+diff --git a/node_modules/react-native/ReactAndroid/src/main/jni/react/fabric/FabricUIManagerBinding.cpp b/node_modules/react-native/ReactAndroid/src/main/jni/react/fabric/FabricUIManagerBinding.cpp
+index 73dfb70..ce87112 100644
+--- a/node_modules/react-native/ReactAndroid/src/main/jni/react/fabric/FabricUIManagerBinding.cpp
++++ b/node_modules/react-native/ReactAndroid/src/main/jni/react/fabric/FabricUIManagerBinding.cpp
+@@ -635,15 +635,19 @@
+     }
+ 
+     std::unique_lock<std::mutex> lock(pendingTransactionsMutex_);
++    // Search from the back: once `canMergeWith` can refuse a merge, a surface
++    // can hold more than one pending transaction, and merging into anything but
++    // the newest one would execute this transaction ahead of an older pending
++    // entry it was diffed on top of.
+     auto pendingTransaction = std::find_if(
+-        pendingTransactions_.begin(),
+-        pendingTransactions_.end(),
++        pendingTransactions_.rbegin(),
++        pendingTransactions_.rend(),
+         [&](const auto& transaction) {
+           return transaction.getSurfaceId() ==
+               mountingTransaction->getSurfaceId();
+         });
+ 
+-    if (pendingTransaction != pendingTransactions_.end() && pendingTransaction->canMergeWith(*mountingTransaction)) {
++    if (pendingTransaction != pendingTransactions_.rend() && pendingTransaction->canMergeWith(*mountingTransaction)) {
+       pendingTransaction->mergeWith(std::move(*mountingTransaction));
+     } else {
+       pendingTransactions_.push_back(std::move(*mountingTransaction));
+@@ -679,24 +683,53 @@
+       mountingManager->executeMount(transaction);
+     }
+   } else {
+-    std::vector<MountingTransaction> pendingTransactions;
+-
+-    {
+-      // Retain the lock to access the pending transactions but not to execute
+-      // the mount operations because that method can call into this method
+-      // again.
+-      //
+-      // This can be re-entrant when mounting manager triggers state updates
+-      // synchronously (this can happen when committing from the UI thread).
+-      // This is safe because we're already combining all the transactions for
+-      // the same surface ID in a single transaction in the pending transactions
+-      // list, so operations won't run out of order.
++    // Only one call drains the queue at a time, and it mounts every queued
++    // transaction in commit order.
++    //
++    // Upstream swaps the whole queue out and relies on "combining all the
++    // transactions for the same surface ID in a single transaction" to stay in
++    // order. `canMergeWith` can refuse a merge, so a surface can hold several
++    // pending transactions and that no longer holds:
++    // - This method is re-entered when the mounting manager triggers state
++    //   updates synchronously from the UI thread. A nested drain would mount
++    //   the new transaction ahead of the entries still waiting in the outer
++    //   call.
++    // - It is also called from the JS thread (scheduled rendering updates) and
++    //   from the UI thread (synchronous mounts). Two concurrent drains could
++    //   each take an entry and mount them in the opposite order.
++    // A call that finds a drain in progress leaves its transaction queued; the
++    // draining call mounts it after everything queued before it. The lock is
++    // still released while mounting, because executeMount can re-enter here.
++    {
+       std::unique_lock<std::mutex> lock(pendingTransactionsMutex_);
+-      pendingTransactions_.swap(pendingTransactions);
++      if (isDrainingPendingTransactions_) {
++        return;
++      }
++      isDrainingPendingTransactions_ = true;
+     }
+ 
+-    for (auto& transaction : pendingTransactions) {
+-      mountingManager->executeMount(transaction);
++    while (true) {
++      std::optional<MountingTransaction> transaction;
 +
-  private:
-   SurfaceId surfaceId_;
-   Number number_;
-   ShadowViewMutationList mutations_;
-   mutable TransactionTelemetry telemetry_;
-+  bool merged_{false};
- };
++      {
++        std::unique_lock<std::mutex> lock(pendingTransactionsMutex_);
++        if (pendingTransactions_.empty()) {
++          isDrainingPendingTransactions_ = false;
++          break;
++        }
++        transaction = std::move(pendingTransactions_.front());
++        pendingTransactions_.erase(pendingTransactions_.begin());
++      }
++
++      try {
++        mountingManager->executeMount(*transaction);
++      } catch (...) {
++        // Never leave the queue without a drainer, or no later transaction
++        // would ever be mounted.
++        std::unique_lock<std::mutex> lock(pendingTransactionsMutex_);
++        isDrainingPendingTransactions_ = false;
++        throw;
++      }
+     }
+   }
+ }
+diff --git a/node_modules/react-native/ReactAndroid/src/main/jni/react/fabric/FabricUIManagerBinding.h b/node_modules/react-native/ReactAndroid/src/main/jni/react/fabric/FabricUIManagerBinding.h
+index e2f957e..2eb2bee 100644
+--- a/node_modules/react-native/ReactAndroid/src/main/jni/react/fabric/FabricUIManagerBinding.h
++++ b/node_modules/react-native/ReactAndroid/src/main/jni/react/fabric/FabricUIManagerBinding.h
+@@ -163,9 +163,13 @@
+       surfaceHandlerRegistry_{};
+   std::shared_mutex surfaceHandlerRegistryMutex_; // Protects `surfaceHandlerRegistry_`.
  
- } // namespace facebook::react
+-  // Track pending transactions, one per surfaceId
++  // Track pending transactions. A surface normally has one, but can have
++  // several when `MountingTransaction::canMergeWith` refuses a merge.
+   std::mutex pendingTransactionsMutex_;
+   std::vector<MountingTransaction> pendingTransactions_;
++  // Guarded by pendingTransactionsMutex_. True while a call to
++  // schedulerShouldRenderTransactions is mounting the pending transactions.
++  bool isDrainingPendingTransactions_{false};
+ 
+   float pointScaleFactor_ = 1;
+ 
 diff --git a/node_modules/react-native/ReactCommon/react/renderer/mounting/MountingTransaction.cpp b/node_modules/react-native/ReactCommon/react/renderer/mounting/MountingTransaction.cpp
 index d95d779..87d5619 100644
 --- a/node_modules/react-native/ReactCommon/react/renderer/mounting/MountingTransaction.cpp
@@ -66,97 +175,28 @@ index d95d779..87d5619 100644
 +}
 +
  } // namespace facebook::react
-diff --git a/node_modules/react-native/ReactAndroid/src/main/jni/react/fabric/FabricUIManagerBinding.cpp b/node_modules/react-native/ReactAndroid/src/main/jni/react/fabric/FabricUIManagerBinding.cpp
-index 73dfb70..44eb79c 100644
---- a/node_modules/react-native/ReactAndroid/src/main/jni/react/fabric/FabricUIManagerBinding.cpp
-+++ b/node_modules/react-native/ReactAndroid/src/main/jni/react/fabric/FabricUIManagerBinding.cpp
-@@ -635,15 +635,19 @@
-     }
+diff --git a/node_modules/react-native/ReactCommon/react/renderer/mounting/MountingTransaction.h b/node_modules/react-native/ReactCommon/react/renderer/mounting/MountingTransaction.h
+index 4e91679..d7b37c4 100644
+--- a/node_modules/react-native/ReactCommon/react/renderer/mounting/MountingTransaction.h
++++ b/node_modules/react-native/ReactCommon/react/renderer/mounting/MountingTransaction.h
+@@ -91,11 +91,20 @@
+    */
+   bool canMergeWith(MountingTransaction &transaction);
  
-     std::unique_lock<std::mutex> lock(pendingTransactionsMutex_);
-+    // Search from the back: once `canMergeWith` can refuse a merge, a surface
-+    // can hold more than one pending transaction, and merging into anything but
-+    // the newest one would execute this transaction ahead of an older pending
-+    // entry it was diffed on top of.
-     auto pendingTransaction = std::find_if(
--        pendingTransactions_.begin(),
--        pendingTransactions_.end(),
-+        pendingTransactions_.rbegin(),
-+        pendingTransactions_.rend(),
-         [&](const auto& transaction) {
-           return transaction.getSurfaceId() ==
-               mountingTransaction->getSurfaceId();
-         });
- 
--    if (pendingTransaction != pendingTransactions_.end() && pendingTransaction->canMergeWith(*mountingTransaction)) {
-+    if (pendingTransaction != pendingTransactions_.rend() && pendingTransaction->canMergeWith(*mountingTransaction)) {
-       pendingTransaction->mergeWith(std::move(*mountingTransaction));
-     } else {
-       pendingTransactions_.push_back(std::move(*mountingTransaction));
-@@ -679,24 +683,30 @@
-       mountingManager->executeMount(transaction);
-     }
-   } else {
--    std::vector<MountingTransaction> pendingTransactions;
--
--    {
--      // Retain the lock to access the pending transactions but not to execute
--      // the mount operations because that method can call into this method
--      // again.
--      //
--      // This can be re-entrant when mounting manager triggers state updates
--      // synchronously (this can happen when committing from the UI thread).
--      // This is safe because we're already combining all the transactions for
--      // the same surface ID in a single transaction in the pending transactions
--      // list, so operations won't run out of order.
--      std::unique_lock<std::mutex> lock(pendingTransactionsMutex_);
--      pendingTransactions_.swap(pendingTransactions);
--    }
-+    // Drain the shared queue one entry at a time instead of swapping it out.
-+    //
-+    // This can be re-entrant when the mounting manager triggers state updates
-+    // synchronously (this can happen when committing from the UI thread).
-+    // Upstream relies on there being a single pending transaction per surface
-+    // for that to be safe, but `canMergeWith` can refuse a merge, so a surface
-+    // can hold several. Swapping the queue out would let a re-entrant call
-+    // execute a transaction queued during the mount ahead of the entries still
-+    // waiting in the local copy. Popping from the shared queue keeps every
-+    // transaction in commit order, re-entrant or not. The lock is released
-+    // before mounting, as before.
-+    while (true) {
-+      std::optional<MountingTransaction> transaction;
- 
--    for (auto& transaction : pendingTransactions) {
--      mountingManager->executeMount(transaction);
-+      {
-+        std::unique_lock<std::mutex> lock(pendingTransactionsMutex_);
-+        if (pendingTransactions_.empty()) {
-+          break;
-+        }
-+        transaction = std::move(pendingTransactions_.front());
-+        pendingTransactions_.erase(pendingTransactions_.begin());
-+      }
++  /*
++   * Returns true when this transaction is the result of merging two or more
++   * differ-produced transactions. Android's mount-item reordering (writing
++   * deletes last) is only sound within a single transaction, so a merged
++   * transaction must be mounted in mutation order instead.
++   */
++  bool wasMerged() const;
 +
-+      mountingManager->executeMount(*transaction);
-     }
-   }
- }
-diff --git a/node_modules/react-native/ReactAndroid/src/main/jni/react/fabric/FabricMountingManager.cpp b/node_modules/react-native/ReactAndroid/src/main/jni/react/fabric/FabricMountingManager.cpp
-index 66436ac..bca8b6e 100644
---- a/node_modules/react-native/ReactAndroid/src/main/jni/react/fabric/FabricMountingManager.cpp
-+++ b/node_modules/react-native/ReactAndroid/src/main/jni/react/fabric/FabricMountingManager.cpp
-@@ -581,8 +581,13 @@
-   auto surfaceId = transaction.getSurfaceId();
-   auto& mutations = transaction.getMutations();
+  private:
+   SurfaceId surfaceId_;
+   Number number_;
+   ShadowViewMutationList mutations_;
+   mutable TransactionTelemetry telemetry_;
++  bool merged_{false};
+ };
  
-+  // Writing deletes last is only sound within a single differ-produced
-+  // transaction ("FIXME: this optimization is incorrect when multiple
-+  // transactions are merged together" below). Keep mutation order whenever this
-+  // transaction is a merge of several commits.
-   bool maintainMutationOrder =
--      ReactNativeFeatureFlags::disableMountItemReorderingAndroid();
-+      ReactNativeFeatureFlags::disableMountItemReorderingAndroid() ||
-+      transaction.wasMerged();
- 
-   auto revisionNumber = telemetry.getRevisionNumber();
- 
+ } // namespace facebook::react
