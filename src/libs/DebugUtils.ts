@@ -856,6 +856,7 @@ function validateReportActionDraftProperty(key: keyof ReportAction, value: strin
                 isTestDriveReceipt: 'boolean',
                 thumbnail: 'string',
                 receiptTraceId: 'string',
+                receiptEnqueuedAt: 'number',
                 hotelReservationStartDate: 'string',
                 hotelReservationEndDate: 'string',
                 pageCount: 'number',
@@ -1213,6 +1214,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                     splitsEndDate: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     withdrawalID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     isAmountSet: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    isCreatedSet: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     selectedRouteKey: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 },
                 'string',
@@ -1231,6 +1233,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                 isTestDriveReceipt: 'boolean',
                 thumbnail: 'string',
                 receiptTraceId: 'string',
+                receiptEnqueuedAt: 'number',
                 hotelReservationStartDate: 'string',
                 hotelReservationEndDate: 'string',
                 pageCount: 'number',
@@ -1380,6 +1383,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
             });
         case 'isAmountSet':
         case 'isMerchantSet':
+        case 'isCreatedSet':
             return validateBoolean(value);
     }
 }
