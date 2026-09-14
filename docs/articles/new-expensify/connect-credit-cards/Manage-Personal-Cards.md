@@ -1,7 +1,7 @@
 ---
 title: Manage Personal Cards
 description: Learn how to view, manage, and fix broken connections for personal credit cards in New Expensify.
-keywords: [New Expensify, personal cards, Wallet, reimbursable, credit card import, Expensify Classic, cards, card details, broken connection, fix card]
+keywords: [New Expensify, personal cards, Wallet, reimbursable, credit card import, Expensify Classic, cards, card details, broken connection, fix card, card connection broken for 30 days, remove card]
 internalScope: Audience is members with personal credit cards already connected to their account. Covers viewing and managing existing personal cards in the Wallet, including reimbursable settings and fixing broken card connections. Does not cover connecting new personal cards or company card programs.
 ---
 
@@ -84,6 +84,8 @@ When a personal card connection breaks, you'll see:
 - A red dot indicator on **Wallet** in the navigation tabs. 
 - A red dot indicator on the card in **Wallet** leading to the error.
 
+Concierge also sends you a message in your Concierge chat when the connection breaks.
+
 These reminders appear while the connection has recently broken. If a personal card has gone 90 days or more without a successful sync, the **Time Sensitive** notification on **Home** and the red dot on **Wallet** in the navigation tabs stop showing. The card still appears in **Wallet** with its red dot, and you can select it and choose **Fix card** to restore the connection at any time.
 
 <!-- SCREENSHOT:
@@ -91,6 +93,21 @@ Suggestion: Show broken personal card connection with indicators on Wallet and o
 Design request: https://github.com/Expensify/Expensify/issues/620248
 -->
 
+
+---
+
+## What the 30-day broken personal card connection reminder means
+
+If a personal card connection is still broken 30 days after it first stopped working, Concierge sends you a follow-up message in your Concierge chat. The message names the card and gives you two choices:
+
+- Log into your bank to restore the connection.
+- Remove the card if you no longer use it.
+
+The message links to the **Card details** page for that card, where you can choose **Fix card** to reconnect it or **Remove card** to delete it from your account. Submitted expenses stay in Expensify if you remove the card.
+
+You only receive this reminder once per broken card, and only if the connection is still broken on day 30.
+
+---
 
 ## How to fix a broken personal card connection 
 
@@ -139,6 +156,14 @@ The broken connection error is automatically removed when any of the following o
 - Logging into your bank successfully re-authenticates the connection.
 - Tapping Update card successfully refreshes the card.
 - Expensify's daily automatic card refresh succeeds.
+
+## Why did Concierge message me again about my card after 30 days?
+
+Concierge sends a second message when a personal card connection has been broken for 30 days. It's a reminder that transactions still aren't importing, and it lets you either log into your bank to fix the card or remove it if you no longer use it.
+
+## Will I lose expenses if I remove a broken personal card?
+
+No. Expenses that have already been submitted stay in Expensify. Removing the card permanently deletes any unreported expenses or expenses on draft reports from that card.
 
 ## Why did the broken connection reminders disappear while the card still shows an error?
 
