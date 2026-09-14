@@ -14,22 +14,18 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {getTabState} from '@libs/Navigation/helpers/tabNavigatorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 
-import {isAnonymousUser as isAnonymousUserUtil} from '@userActions/Session';
+import {isAnonymousUser} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import SCREENS from '@src/SCREENS';
 import type {Session} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {useIsFocused} from '@react-navigation/native';
 import React from 'react';
-
-import NAVIGATION_TABS from './NavigationTabBar/NAVIGATION_TABS';
-import ROUTE_TO_NAVIGATION_TAB from './NavigationTabBar/ROUTE_TO_NAVIGATION_TAB';
 
 const authTokenTypeSelector = (session: OnyxEntry<Session>) => session && {authTokenType: session.authTokenType};
 
@@ -40,7 +36,7 @@ function AccountAvatarButton() {
     const {isBetaEnabled} = usePermissions();
     const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
 
-    if (!isBetaEnabled(CONST.BETAS.INSIGHTS_PAGE) || isAnonymousUserUtil(session)) {
+    if (!isBetaEnabled(CONST.BETAS.INSIGHTS_PAGE) || isAnonymousUser(session)) {
         return null;
     }
 
@@ -53,12 +49,10 @@ function AccountAvatarButtonContent() {
     const {status} = useAccountTabIndicatorStatus();
     const isFocused = useIsFocused();
 
-    const selectedTab = useRootNavigationState((rootState) => {
+    const isSelected = useRootNavigationState((rootState) => {
         const tabState = getTabState(rootState?.routes.findLast((route) => route.name === NAVIGATORS.TAB_NAVIGATOR));
-        const activeTabRouteName = tabState?.routes.at(tabState.index ?? 0)?.name;
-        return ROUTE_TO_NAVIGATION_TAB[activeTabRouteName ?? SCREENS.HOME] ?? NAVIGATION_TABS.HOME;
+        return tabState?.routes.at(tabState.index ?? 0)?.name === NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR;
     });
-    const isSelected = selectedTab === NAVIGATION_TABS.SETTINGS;
 
     const {shouldShowProductTrainingTooltip, renderProductTrainingTooltip, hideProductTrainingTooltip} = useProductTrainingContext(
         CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.ACCOUNT_MOVED_TO_TOP_BAR,
