@@ -1,3 +1,4 @@
+import useEnvironment from '@hooks/useEnvironment';
 import useIsAgentAccount from '@hooks/useIsAgentAccount';
 import useIsAuthenticated from '@hooks/useIsAuthenticated';
 import useLocalize from '@hooks/useLocalize';
@@ -5,21 +6,23 @@ import useOnyx from '@hooks/useOnyx';
 import {useSidebarOrderedReportsActions} from '@hooks/useSidebarOrderedReports';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {isUsingStagingApi} from '@libs/ApiUtils';
+import {getActiveServer} from '@libs/ApiUtils';
+import Navigation from '@libs/Navigation/Navigation';
 
 import {setShouldFailAllRequests, setShouldForceOffline, setShouldSimulatePoorConnection} from '@userActions/Network';
 import {expireSessionWithDelay, invalidateAuthToken, invalidateCredentials} from '@userActions/Session';
-import {setIsDebugModeEnabled, setShouldShowBranchNameInTitle, setShouldUseStagingServer} from '@userActions/User';
+import {setActiveServer, setIsDebugModeEnabled, setShouldShowBranchNameInTitle} from '@userActions/User';
 
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 
 import React from 'react';
 import {Platform} from 'react-native';
 
 import BiometricsTestToolRow from './BiometricsTestToolRow';
-import Button from './ButtonComposed';
+import Button from './Button';
 import QAAuthTestToolRows from './QAAuthTestToolRows';
 import SoftKillTestToolRow from './SoftKillTestToolRow';
 import Switch from './Switch';
@@ -30,12 +33,13 @@ import Text from './Text';
 function TestToolMenu() {
     const [network] = useOnyx(ONYXKEYS.NETWORK);
     const [isUsingImportedState] = useOnyx(ONYXKEYS.IS_USING_IMPORTED_STATE);
-    const [shouldUseStagingServer = isUsingStagingApi()] = useOnyx(ONYXKEYS.SHOULD_USE_STAGING_SERVER);
+    const [activeServer = getActiveServer()] = useOnyx(ONYXKEYS.ACTIVE_SERVER);
     const [isDebugModeEnabled = false] = useOnyx(ONYXKEYS.IS_DEBUG_MODE_ENABLED);
     const [shouldShowBranchNameInTitle = false] = useOnyx(ONYXKEYS.SHOULD_SHOW_BRANCH_NAME_IN_TITLE);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {clearLHNCache} = useSidebarOrderedReportsActions();
+    const {isProduction} = useEnvironment();
 
     // Check if the user is authenticated to show options that require authentication
     const isAuthenticated = useIsAuthenticated();
@@ -116,6 +120,23 @@ function TestToolMenu() {
                         </Button>
                     </TestToolRow>
 
+                    {/* Allows locally overriding beta feature flags for testing. Not rendered in production because this is not something regular users should reach, and forcing a beta on can leave the app half broken. */}
+                    {!isProduction && (
+                        <TestToolRow title={translate('initialSettingsPage.troubleshoot.betaOverrides')}>
+                            <Button
+                                size={CONST.BUTTON_SIZE.SMALL}
+                                onPress={() => {
+                                    if (Navigation.getActiveRoute().includes(ROUTES.TEST_TOOLS_MODAL.route)) {
+                                        Navigation.dismissModal();
+                                    }
+                                    Navigation.navigate(ROUTES.SETTINGS_TROUBLESHOOT_BETA_OVERRIDES);
+                                }}
+                            >
+                                <Button.Text>{translate('common.view')}</Button.Text>
+                            </Button>
+                        </TestToolRow>
+                    )}
+
                     {/* Allows testing and revoking biometric multifactor authentication */}
                     {isAgentAccount === false && <BiometricsTestToolRow />}
                 </>
@@ -131,8 +152,8 @@ function TestToolMenu() {
                 >
                     <Switch
                         accessibilityLabel="Use Staging Server"
-                        isOn={shouldUseStagingServer}
-                        onToggle={() => setShouldUseStagingServer(!shouldUseStagingServer)}
+                        isOn={activeServer === CONST.SERVER.STAGING}
+                        onToggle={(isOn) => setActiveServer(isOn ? CONST.SERVER.STAGING : CONST.SERVER.PRODUCTION)}
                     />
                 </TestToolRow>
             )}

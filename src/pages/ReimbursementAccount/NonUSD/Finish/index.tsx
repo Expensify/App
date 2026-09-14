@@ -1,5 +1,6 @@
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItem from '@components/MenuItem';
+import MenuItemNavigation from '@components/MenuItem/presets/MenuItemNavigation';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
@@ -9,13 +10,13 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTwoFactorAuthRoute from '@hooks/useTwoFactorAuthRoute';
 
 import Navigation from '@navigation/Navigation';
 
 import {navigateToConciergeChat} from '@userActions/Report';
+import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 
@@ -26,9 +27,9 @@ import {View} from 'react-native';
 function Finish() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const icons = useMemoizedLazyExpensifyIcons(['NewWindow', 'Shield', 'ChatBubble']);
+    const icons = useMemoizedLazyExpensifyIcons(['Shield', 'ChatBubble']);
     const illustrations = useMemoizedLazyIllustrations(['ConciergeBubble', 'ShieldYellow']);
+
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
@@ -61,34 +62,41 @@ function Finish() {
                     titleStyles={[styles.mb3, styles.textHeadline]}
                 >
                     <Text style={[styles.mb6, styles.mt3, styles.textLabelSupportingEmptyValue]}>{translate('finishStep.thanksFor')}</Text>
-                    <MenuItem
-                        icon={icons.ChatBubble}
-                        title={translate('finishStep.iHaveA')}
-                        onPress={handleNavigateToConciergeChat}
-                        outerWrapperStyle={shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8}
-                        shouldShowRightIcon
-                    />
+                    <View style={styles.mhn5}>
+                        <MenuItemNavigation
+                            icon={icons.ChatBubble}
+                            title={translate('finishStep.iHaveA')}
+                            onPress={handleNavigateToConciergeChat}
+                        />
+                    </View>
                 </Section>
                 <Section
                     title={translate('finishStep.enable2FA')}
                     icon={illustrations.ShieldYellow}
                     titleStyles={[styles.mb4, styles.textHeadline]}
                     containerStyles={[styles.mh5]}
-                    menuItems={[
-                        {
-                            title: translate('finishStep.secure'),
-                            onPress: () => {
-                                Navigation.navigate(getTwoFactorAuthRoute());
-                            },
-                            icon: icons.Shield,
-                            shouldShowRightIcon: true,
-                            iconRight: icons.NewWindow,
-                            outerWrapperStyle: shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8,
-                        },
-                    ]}
                 >
                     <View style={styles.mb6}>
                         <Text style={[styles.mt3, styles.textLabelSupportingEmptyValue]}>{translate('finishStep.weTake')}</Text>
+                    </View>
+                    <View style={styles.mhn5}>
+                        <MenuItem.Root
+                            onPress={callFunctionIfActionIsAllowed(() => {
+                                Navigation.navigate(getTwoFactorAuthRoute());
+                            })}
+                        >
+                            <MenuItem.Row>
+                                <MenuItem.Leading>
+                                    <MenuItem.Icon src={icons.Shield} />
+                                </MenuItem.Leading>
+                                <MenuItem.Content>
+                                    <MenuItem.Title>{translate('finishStep.secure')}</MenuItem.Title>
+                                </MenuItem.Content>
+                                <MenuItem.Trailing>
+                                    <MenuItem.NewWindowIcon />
+                                </MenuItem.Trailing>
+                            </MenuItem.Row>
+                        </MenuItem.Root>
                     </View>
                 </Section>
             </ScrollView>

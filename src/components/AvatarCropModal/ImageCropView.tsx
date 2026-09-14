@@ -23,10 +23,7 @@ type ImageCropViewProps = {
     /** Size of the image container that will be rendered */
     containerSize?: number;
 
-    /** The height of the selected image */
     originalImageHeight: SharedValue<number>;
-
-    /** The width of the selected image */
     originalImageWidth: SharedValue<number>;
 
     /** The rotation value of the selected image */

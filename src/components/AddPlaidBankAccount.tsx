@@ -30,7 +30,6 @@ import RadioButtons from './RadioButtons';
 import Text from './Text';
 
 type AddPlaidBankAccountProps = {
-    /** Contains plaid data */
     plaidData: OnyxEntry<PlaidData>;
 
     /** Selected account ID from the Picker associated with the end of the Plaid flow */
@@ -39,10 +38,7 @@ type AddPlaidBankAccountProps = {
     /** Fired when the user exits the Plaid flow */
     onExitPlaid?: () => void;
 
-    /** Fired when the user selects an account */
     onSelect?: (plaidAccountID: string) => void;
-
-    /** Additional text to display */
     text?: string;
 
     /** The OAuth URI + stateID needed to re-initialize the PlaidLink after the user logs into their bank */
@@ -57,7 +53,6 @@ type AddPlaidBankAccountProps = {
     /** Are we adding a withdrawal account? */
     allowDebit?: boolean;
 
-    /** Is displayed in new enable wallet flow */
     isDisplayedInWalletFlow?: boolean;
 
     /** Text to display on error message */
