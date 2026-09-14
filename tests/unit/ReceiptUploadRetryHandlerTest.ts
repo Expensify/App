@@ -49,6 +49,7 @@ function buildContext(transaction: Transaction): ReceiptRetryContext {
         transactionThreadReportID: THREAD_REPORT_ID,
         policyParams: {},
         betas: [],
+        rules: {},
         conciergeReportID: undefined,
         isSelfTourViewed: true,
         isASAPSubmitBetaEnabled: false,

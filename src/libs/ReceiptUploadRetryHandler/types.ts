@@ -4,11 +4,11 @@ import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 
 import type BasePolicyParams from '@userActions/IOU/types/BasePolicyParams';
 
-import type {Beta, Report, Transaction} from '@src/types/onyx';
+import type {Beta, Report, Rule, Transaction} from '@src/types/onyx';
 import type {ReceiptError} from '@src/types/onyx/Transaction';
 import type {FileObject} from '@src/types/utils/Attachment';
 
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 /** Rebuilds the receipt file behind a failed upload. Resolves undefined when the file is no longer on the device. */
 type ResolveReceiptFile = (source: string, filename: string) => Promise<FileObject | undefined>;
@@ -28,6 +28,9 @@ type ReceiptRetryContext = {
     policyParams: BasePolicyParams;
 
     betas: OnyxEntry<Beta[]>;
+
+    /** Feeds `shouldCreateNewMoneyRequestReport`, so an empty collection here can push the retry into creating a second report. */
+    rules: OnyxCollection<Rule>;
 
     conciergeReportID: string | undefined;
 

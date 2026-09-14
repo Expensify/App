@@ -430,6 +430,7 @@ function MoneyRequestReceiptView({
               transactionThreadReportID: report?.reportID,
               policyParams: {policy, policyCategories, policyTagList},
               betas,
+              rules,
               conciergeReportID,
               isSelfTourViewed: !!isSelfTourViewed,
               isASAPSubmitBetaEnabled: isBetaEnabled(CONST.BETAS.ASAP_SUBMIT),
