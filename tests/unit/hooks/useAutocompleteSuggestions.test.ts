@@ -23,6 +23,11 @@ jest.mock('@hooks/useOnyx', () => ({
 }));
 
 jest.mock('@hooks/useNetwork', () => jest.fn(() => ({isOffline: false})));
+
+jest.mock('@components/OnyxListItemProvider', () => ({
+    useCardList: () => ({}),
+    useWorkspaceCardList: () => ({}),
+}));
 jest.mock('@libs/actions/Search', () => ({openSearchCategoryFiltersPage: jest.fn()}));
 
 const mockConvertToDisplayString = jest.fn(() => '$0.00');

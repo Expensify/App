@@ -255,13 +255,13 @@ describe('getOptionData alternateText parity snapshots', () => {
     });
 
     describe('special-action chain branches (policy room)', () => {
-        it.each(SIMPLE_CHAIN_ACTIONS)('%s', (actionName) => {
+        it.each(SIMPLE_CHAIN_ACTIONS)('should match snapshot for %s', (actionName) => {
             expect(getAlternateText({lastAction: makeAction(actionName)})).toMatchSnapshot();
         });
     });
 
     describe('branches with bespoke payloads', () => {
-        it('RENAMED with old/new name', () => {
+        it('should match snapshot for RENAMED with old/new name', () => {
             expect(
                 getAlternateText({
                     lastAction: makeAction(CONST.REPORT.ACTIONS.TYPE.RENAMED, {originalMessage: {oldName: 'Old room name', newName: 'New room name'}}),
@@ -269,7 +269,7 @@ describe('getOptionData alternateText parity snapshots', () => {
             ).toMatchSnapshot();
         });
 
-        it('ROOM invite with targetAccountIDs and room name from originalMessage', () => {
+        it('should match snapshot for ROOM invite with targetAccountIDs and room name from originalMessage', () => {
             expect(
                 getAlternateText({
                     lastAction: makeAction(CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.INVITE_TO_ROOM, {originalMessage: {targetAccountIDs: [2, 3], roomName: 'general'}}),
@@ -277,7 +277,7 @@ describe('getOptionData alternateText parity snapshots', () => {
             ).toMatchSnapshot();
         });
 
-        it('POLICY remove with single target', () => {
+        it('should match snapshot for POLICY remove with single target', () => {
             expect(
                 getAlternateText({
                     lastAction: makeAction(CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.REMOVE_FROM_ROOM, {originalMessage: {targetAccountIDs: [2]}}),
@@ -285,7 +285,7 @@ describe('getOptionData alternateText parity snapshots', () => {
             ).toMatchSnapshot();
         });
 
-        it('ROOM invite without targetAccountIDs falls back to mention-user count in lastMessageHtml', () => {
+        it('should match snapshot when ROOM invite without targetAccountIDs falls back to mention-user count in lastMessageHtml', () => {
             expect(
                 getAlternateText({
                     report: makeReport({lastMessageHtml: '<mention-user></mention-user><mention-user></mention-user>'}),
@@ -294,7 +294,7 @@ describe('getOptionData alternateText parity snapshots', () => {
             ).toMatchSnapshot();
         });
 
-        it('invite with room name resolved from lastActionReport', () => {
+        it('should match snapshot for invite with room name resolved from lastActionReport', () => {
             expect(
                 getAlternateText({
                     lastAction: makeAction(CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.INVITE_TO_ROOM, {originalMessage: {targetAccountIDs: [2]}}),
@@ -303,7 +303,7 @@ describe('getOptionData alternateText parity snapshots', () => {
             ).toMatchSnapshot();
         });
 
-        it('ACTIONABLE_CARD_FRAUD_ALERT with resolution', () => {
+        it('should match snapshot for ACTIONABLE_CARD_FRAUD_ALERT with resolution', () => {
             expect(
                 getAlternateText({
                     lastAction: makeAction(CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_CARD_FRAUD_ALERT, {
@@ -313,7 +313,7 @@ describe('getOptionData alternateText parity snapshots', () => {
             ).toMatchSnapshot();
         });
 
-        it('CARD_ISSUED with card', () => {
+        it('should match snapshot for CARD_ISSUED with card', () => {
             expect(
                 getAlternateText({
                     lastAction: makeAction(CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED, {originalMessage: {assigneeAccountID: 2, cardID: 11}}),
@@ -330,7 +330,7 @@ describe('getOptionData alternateText parity snapshots', () => {
             ).toMatchSnapshot();
         });
 
-        it('CARD_ISSUED without card', () => {
+        it('should match snapshot for CARD_ISSUED without card', () => {
             expect(
                 getAlternateText({
                     lastAction: makeAction(CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED, {originalMessage: {assigneeAccountID: 2, cardID: 11}}),
@@ -338,7 +338,7 @@ describe('getOptionData alternateText parity snapshots', () => {
             ).toMatchSnapshot();
         });
 
-        it('OldDot action SELECTED_FOR_RANDOM_AUDIT (markdown leak preserved)', () => {
+        it('should match snapshot for OldDot action SELECTED_FOR_RANDOM_AUDIT (markdown leak preserved)', () => {
             expect(
                 getAlternateText({
                     lastAction: makeAction(CONST.REPORT.ACTIONS.TYPE.SELECTED_FOR_RANDOM_AUDIT),
@@ -346,7 +346,7 @@ describe('getOptionData alternateText parity snapshots', () => {
             ).toMatchSnapshot();
         });
 
-        it('ADD_INTEGRATION with connection name', () => {
+        it('should match snapshot for ADD_INTEGRATION with connection name', () => {
             expect(
                 getAlternateText({
                     lastAction: makeAction(CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_INTEGRATION, {originalMessage: {connectionName: CONST.POLICY.CONNECTIONS.NAME.QBO}}),
@@ -354,7 +354,7 @@ describe('getOptionData alternateText parity snapshots', () => {
             ).toMatchSnapshot();
         });
 
-        it('DELETE_INTEGRATION with connection name', () => {
+        it('should match snapshot for DELETE_INTEGRATION with connection name', () => {
             expect(
                 getAlternateText({
                     lastAction: makeAction(CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_INTEGRATION, {originalMessage: {connectionName: CONST.POLICY.CONNECTIONS.NAME.XERO}}),
@@ -362,7 +362,7 @@ describe('getOptionData alternateText parity snapshots', () => {
             ).toMatchSnapshot();
         });
 
-        it('UPDATE_EMPLOYEE with role change', () => {
+        it('should match snapshot for UPDATE_EMPLOYEE with role change', () => {
             expect(
                 getAlternateText({
                     lastAction: makeAction(CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EMPLOYEE, {
@@ -372,7 +372,7 @@ describe('getOptionData alternateText parity snapshots', () => {
             ).toMatchSnapshot();
         });
 
-        it('REASSIGN_APPROVER with new approver', () => {
+        it('should match snapshot for REASSIGN_APPROVER with new approver', () => {
             expect(
                 getAlternateText({
                     lastAction: makeAction(CONST.REPORT.ACTIONS.TYPE.REASSIGN_APPROVER, {originalMessage: {newApproverID: 2}}),
@@ -380,7 +380,7 @@ describe('getOptionData alternateText parity snapshots', () => {
             ).toMatchSnapshot();
         });
 
-        it('TRAVEL_UPDATE booking ticketed', () => {
+        it('should match snapshot for TRAVEL_UPDATE booking ticketed', () => {
             expect(
                 getAlternateText({
                     lastAction: makeAction(CONST.REPORT.ACTIONS.TYPE.TRAVEL_UPDATE, {
@@ -397,7 +397,7 @@ describe('getOptionData alternateText parity snapshots', () => {
             ).toMatchSnapshot();
         });
 
-        it('MOVED_TRANSACTION with derived report name', () => {
+        it('should match snapshot for MOVED_TRANSACTION with derived report name', () => {
             expect(
                 getAlternateText({
                     lastAction: makeAction(CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION, {originalMessage: {toReportID: '300', fromReportID: '100'}}),
@@ -408,7 +408,7 @@ describe('getOptionData alternateText parity snapshots', () => {
             ).toMatchSnapshot();
         });
 
-        it('generic ADD_COMMENT in room gets actor prefix', () => {
+        it('should match snapshot when generic ADD_COMMENT in room gets actor prefix', () => {
             expect(
                 getAlternateText({
                     lastAction: makeAction(CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT),
@@ -416,7 +416,7 @@ describe('getOptionData alternateText parity snapshots', () => {
             ).toMatchSnapshot();
         });
 
-        it('generic ADD_COMMENT from current user in room', () => {
+        it('should match snapshot for generic ADD_COMMENT from current user in room', () => {
             expect(
                 getAlternateText({
                     lastAction: makeAction(CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, {actorAccountID: CURRENT_USER_ACCOUNT_ID, person: [{type: 'TEXT', style: 'strong', text: 'Current User'}]}),
@@ -424,7 +424,7 @@ describe('getOptionData alternateText parity snapshots', () => {
             ).toMatchSnapshot();
         });
 
-        it('generic branch resolves actor from person[0].text when personalDetails miss the actor', () => {
+        it('should match snapshot when generic branch resolves actor from person[0].text when personalDetails miss the actor', () => {
             expect(
                 getAlternateText({
                     lastAction: makeAction(CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, {actorAccountID: 42, person: [{type: 'TEXT', style: 'strong', text: 'Mystery Person'}]}),
@@ -432,7 +432,7 @@ describe('getOptionData alternateText parity snapshots', () => {
             ).toMatchSnapshot();
         });
 
-        it('REPORT_PREVIEW skips actor prefix and falls to else branch', () => {
+        it('should match snapshot when REPORT_PREVIEW skips actor prefix and falls to else branch', () => {
             expect(
                 getAlternateText({
                     report: makeReport({chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT, reportName: 'Workspace chat'}),
@@ -444,11 +444,11 @@ describe('getOptionData alternateText parity snapshots', () => {
     });
 
     describe('report-type and fallback variants', () => {
-        it('empty room falls back to welcome message', () => {
+        it('should match snapshot when empty room falls back to welcome message', () => {
             expect(getAlternateText({lastMessageTextFromReport: ''})).toMatchSnapshot();
         });
 
-        it('empty policy expense chat falls back to welcome message', () => {
+        it('should match snapshot when empty policy expense chat falls back to welcome message', () => {
             expect(
                 getAlternateText({
                     report: makeReport({chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT, reportName: 'Workspace chat', ownerAccountID: CURRENT_USER_ACCOUNT_ID}),
@@ -457,7 +457,7 @@ describe('getOptionData alternateText parity snapshots', () => {
             ).toMatchSnapshot();
         });
 
-        it('empty DM falls back to welcome message (non-chat else branch)', () => {
+        it('should match snapshot when empty DM falls back to welcome message (non-chat else branch)', () => {
             expect(
                 getAlternateText({
                     report: makeReport({chatType: undefined, reportName: ''}),
@@ -466,7 +466,7 @@ describe('getOptionData alternateText parity snapshots', () => {
             ).toMatchSnapshot();
         });
 
-        it('empty self-DM with isTrackIntentUser true', () => {
+        it('should match snapshot for empty self-DM with isTrackIntentUser true', () => {
             expect(
                 getAlternateText({
                     report: makeReport({
@@ -480,7 +480,7 @@ describe('getOptionData alternateText parity snapshots', () => {
             ).toMatchSnapshot();
         });
 
-        it('empty self-DM with isTrackIntentUser false', () => {
+        it('should match snapshot for empty self-DM with isTrackIntentUser false', () => {
             expect(
                 getAlternateText({
                     report: makeReport({
@@ -493,7 +493,7 @@ describe('getOptionData alternateText parity snapshots', () => {
             ).toMatchSnapshot();
         });
 
-        it('DM with last message shows actor prefix via shouldShowLastActorDisplayName', () => {
+        it('should match snapshot when DM with last message shows actor prefix via shouldShowLastActorDisplayName', () => {
             expect(
                 getAlternateText({
                     report: makeReport({chatType: undefined, reportName: '', lastActorAccountID: 1}),
@@ -502,7 +502,7 @@ describe('getOptionData alternateText parity snapshots', () => {
             ).toMatchSnapshot();
         });
 
-        it('DM last message from current user has no actor prefix', () => {
+        it('should match snapshot when DM last message from current user has no actor prefix', () => {
             expect(
                 getAlternateText({
                     report: makeReport({chatType: undefined, reportName: '', lastActorAccountID: CURRENT_USER_ACCOUNT_ID}),
@@ -511,7 +511,7 @@ describe('getOptionData alternateText parity snapshots', () => {
             ).toMatchSnapshot();
         });
 
-        it('group chat with last comment', () => {
+        it('should match snapshot for group chat with last comment', () => {
             expect(
                 getAlternateText({
                     report: makeReport({
@@ -529,7 +529,7 @@ describe('getOptionData alternateText parity snapshots', () => {
             ).toMatchSnapshot();
         });
 
-        it('archived room skips the special-action chain', () => {
+        it('should match snapshot when archived room skips the special-action chain', () => {
             expect(
                 getAlternateText({
                     lastAction: makeAction(CONST.REPORT.ACTIONS.TYPE.RENAMED, {originalMessage: {oldName: 'Old', newName: 'New'}}),
@@ -538,7 +538,7 @@ describe('getOptionData alternateText parity snapshots', () => {
             ).toMatchSnapshot();
         });
 
-        it('multiline last message collapses line breaks', () => {
+        it('should match snapshot when multiline last message collapses line breaks', () => {
             expect(
                 getAlternateText({
                     lastAction: makeAction(CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT),
@@ -547,7 +547,7 @@ describe('getOptionData alternateText parity snapshots', () => {
             ).toMatchSnapshot();
         });
 
-        it('SMS domain is stripped from last message', () => {
+        it('should match snapshot when SMS domain is stripped from last message', () => {
             expect(
                 getAlternateText({
                     lastAction: makeAction(CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT),
