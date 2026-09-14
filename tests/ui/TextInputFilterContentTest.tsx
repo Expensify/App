@@ -2,6 +2,9 @@ import {act, render} from '@testing-library/react-native';
 
 import TextInputFilterContent, {TextInputFilterContentFillHeight} from '@components/Search/FilterComponents/AdvancedFilters/TextInputFilterContent';
 
+import {parse} from '@libs/SearchParser/searchParser';
+import {sanitizeSearchValue} from '@libs/SearchQueryUtils';
+
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
@@ -10,6 +13,7 @@ import React from 'react';
 import {View} from 'react-native';
 
 type ButtonMockProps = {
+    onPress?: () => void;
     children?: React.ReactNode;
 };
 
@@ -21,6 +25,7 @@ type NegatableFilterMockProps = {
 };
 
 type TextInputMockProps = {
+    value?: string;
     accessibilityLabel?: string;
     autoGrowHeight?: boolean;
     errorText?: string;
@@ -73,7 +78,13 @@ jest.mock('@components/Search/FilterComponents/NegatableFilter', () => {
         },
     };
 });
-jest.mock('@components/Search/hooks/useTextFilterValidation', () => () => mockValidationError);
+jest.mock('@components/Search/hooks/useTextFilterValidation', () => {
+    const {default: useActualValidation} = jest.requireActual<typeof import('@components/Search/hooks/useTextFilterValidation')>('@components/Search/hooks/useTextFilterValidation');
+    return (filterKey: Parameters<typeof useActualValidation>[0], value: string | undefined) => {
+        const error = useActualValidation(filterKey, value);
+        return mockValidationError || error;
+    };
+});
 jest.mock('@components/TextInput', () => ({
     __esModule: true,
     default: (props: TextInputMockProps) => {
@@ -229,5 +240,69 @@ describe('TextInputFilterContent', () => {
             }),
         );
         expect(mockKeyboardShortcut).toHaveBeenCalledTimes(1);
+    });
+
+    describe.each([
+        ['RHP', TextInputFilterContentFillHeight],
+        ['popup', TextInputFilterContent],
+    ] as const)('%s submission', (_name, FilterContent) => {
+        it.each(['\n', '\r\n', '\r', '\u2028'])('keeps a pasted %j line break inside one merchant filter', (lineBreak) => {
+            const onChange = jest.fn<void, [string | undefined, boolean]>();
+            const inputValue = `Acme${lineBreak}Office`;
+            render(
+                <FilterContent
+                    baseFilterKey={CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT}
+                    value=""
+                    isNegated
+                    onChange={onChange}
+                />,
+            );
+
+            act(() => mockTextInput.mock.calls.at(-1)?.[0].onChangeText?.(inputValue));
+            expect(mockTextInput.mock.calls.at(-1)?.[0].value).toBe(inputValue);
+            mockButton.mock.calls.at(-1)?.[0].onPress?.();
+
+            expect(onChange).toHaveBeenCalledWith('Acme Office', true);
+            const savedValue = onChange.mock.calls.at(-1)?.[0] ?? '';
+            expect(parse(`merchant:${sanitizeSearchValue(savedValue)}`).rawFilterList).toEqual([expect.objectContaining({key: 'merchant', value: 'Acme Office'})]);
+        });
+
+        it.each([undefined, '', 'Coffee'])('preserves %j when no normalization is needed', (value) => {
+            const onChange = jest.fn<void, [string | undefined, boolean]>();
+            render(
+                <FilterContent
+                    baseFilterKey={CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT}
+                    value={value}
+                    isNegated={false}
+                    onChange={onChange}
+                />,
+            );
+            mockButton.mock.calls.at(-1)?.[0].onPress?.();
+            expect(onChange).toHaveBeenCalledWith(value, false);
+        });
+    });
+
+    it('validates and submits the normalized value at the merchant byte limit using Enter', () => {
+        const onChange = jest.fn<void, [string | undefined, boolean]>();
+        const prefix = 'a'.repeat(CONST.MERCHANT_NAME_MAX_BYTES - 2);
+        render(
+            <TextInputFilterContentFillHeight
+                baseFilterKey={CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT}
+                value=""
+                isNegated={false}
+                onChange={onChange}
+            />,
+        );
+
+        act(() => mockTextInput.mock.calls.at(-1)?.[0].onChangeText?.(`${prefix}\r\nb`));
+        expect(mockTextInput.mock.calls.at(-1)?.[0].hasError).toBe(false);
+        mockTextInput.mock.calls.at(-1)?.[0].onSubmitEditing?.();
+        expect(onChange).toHaveBeenCalledWith(`${prefix} b`, false);
+
+        onChange.mockClear();
+        act(() => mockTextInput.mock.calls.at(-1)?.[0].onChangeText?.(`${prefix}\r\nbc`));
+        expect(mockTextInput.mock.calls.at(-1)?.[0].hasError).toBe(true);
+        mockTextInput.mock.calls.at(-1)?.[0].onSubmitEditing?.();
+        expect(onChange).not.toHaveBeenCalled();
     });
 });

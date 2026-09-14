@@ -11,6 +11,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {FILTER_VIEW_MAP} from '@libs/SearchUIUtils';
+import StringUtils from '@libs/StringUtils';
 
 import variables from '@styles/variables';
 
@@ -54,13 +55,15 @@ function useTextInputFilterState({baseFilterKey, value: initialValue, isNegated:
 
     const label = translate(FILTER_VIEW_MAP[baseFilterKey].labelKey);
     const {inputCallbackRef} = useAutoFocusInput();
-    const error = useTextFilterValidation(baseFilterKey, value);
+    // Search values wrap visually, but line breaks must not become query separators.
+    const normalizedValue = value === undefined ? undefined : StringUtils.lineBreaksToSpaces(value);
+    const error = useTextFilterValidation(baseFilterKey, normalizedValue);
 
     const submit = () => {
         if (error) {
             return;
         }
-        onChange(value, isNegated);
+        onChange(normalizedValue, isNegated);
     };
 
     const renderTextInput = ({autoGrowHeight, maxAutoGrowHeight, onSubmitEditing, submitBehavior, textInputContainerStyles}: TextInputFilterInputOptions = {}) => (
