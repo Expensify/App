@@ -302,6 +302,10 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             path: ROUTES.SETTINGS_WALLET_CARD_ACTIVATE.route,
                             exact: true,
                         },
+                        [SCREENS.SETTINGS.WALLET.CARD_ADD_TO_DIGITAL_WALLET]: {
+                            path: ROUTES.SETTINGS_WALLET_CARD_ADD_TO_DIGITAL_WALLET.route,
+                            exact: true,
+                        },
                         [SCREENS.SETTINGS.WALLET.CARD_CHANGE_PIN]: {
                             path: ROUTES.SETTINGS_WALLET_CARD_CHANGE_PIN.route,
                             exact: true,
@@ -2280,6 +2284,10 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         },
                     },
                 },
+                [SCREENS.INSIGHTS]: {
+                    path: ROUTES.INSIGHTS.route,
+                    exact: true,
+                },
                 [NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR]: {
                     screens: {
                         [SCREENS.SETTINGS.ROOT]: ROUTES.SETTINGS,
@@ -2350,6 +2358,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                                 },
                                 [SCREENS.WORKSPACE.PER_DIEM]: {
                                     path: ROUTES.WORKSPACE_PER_DIEM.route,
+                                },
+                                [SCREENS.WORKSPACE.MCP]: {
+                                    path: ROUTES.WORKSPACE_MCP.route,
                                 },
                                 [SCREENS.WORKSPACE.RECEIPT_PARTNERS]: {
                                     path: ROUTES.WORKSPACE_RECEIPT_PARTNERS.route,

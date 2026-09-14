@@ -216,6 +216,7 @@ const workspaceIcons = {
     InvoiceGeneric: mockIcon,
     Gear: mockIcon,
     Bolt: mockIcon,
+    Bot: mockIcon,
 };
 
 function createWorkspacePolicy(id: string, name: string, overrides: Partial<Policy> = {}): Policy {
@@ -655,7 +656,6 @@ describe('Workspace Search Router navigation source', () => {
             currentUserLogin: workspaceCurrentUserLogin,
             icons: workspaceIcons,
             isOffline,
-            isRulesRevampBetaEnabled: false,
             isVendorMatchingBetaEnabled: false,
             shouldUseNarrowLayout: false,
             convertToDisplayString: () => '$0.00',
@@ -775,11 +775,9 @@ describe('Workspace Search Router navigation source', () => {
         expect(getWorkspaceMenuItems).toHaveBeenCalledWith(
             expect.objectContaining({
                 policy: activePolicy,
-                isRulesRevampBetaEnabled: true,
                 isVendorMatchingBetaEnabled: true,
             }),
         );
-        expect(mockIsBetaEnabled).toHaveBeenCalledWith(CONST.BETAS.RULES_REVAMP);
         expect(mockIsBetaEnabled).toHaveBeenCalledWith(CONST.BETAS.VENDOR_MATCHING);
     });
 });
