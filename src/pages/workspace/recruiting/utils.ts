@@ -26,16 +26,19 @@ type GetRecruitingCardsParams = {
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
 };
 
-function getApproverFieldLabel(policy: OnyxEntry<Policy>, translate: LocaleContextProps['translate']): string {
-    const approverField = getMergeATSApproverField(policy);
+function getApproverFieldName(approverField: string | undefined, translate: LocaleContextProps['translate']): string | undefined {
     switch (approverField) {
         case CONST.MERGE.ATS_APPROVER_FIELD.RECRUITER:
             return translate('workspace.recruiting.approverFields.recruiter');
         case CONST.MERGE.ATS_APPROVER_FIELD.RECRUITING_COORDINATOR:
             return translate('workspace.recruiting.approverFields.recruitingCoordinator');
         default:
-            return approverField ?? translate('workspace.merge.notSet');
+            return approverField;
     }
+}
+
+function getApproverFieldLabel(policy: OnyxEntry<Policy>, translate: LocaleContextProps['translate']): string {
+    return getApproverFieldName(getMergeATSApproverField(policy), translate) ?? translate('workspace.merge.notSet');
 }
 
 function getDefaultApproverLabel(
@@ -140,5 +143,4 @@ function getRecruitingCards({policy, policyEmployeePersonalDetails, policyID, ic
     });
 }
 
-// eslint-disable-next-line import/prefer-default-export
-export {getRecruitingCards};
+export {getApproverFieldName, getRecruitingCards};

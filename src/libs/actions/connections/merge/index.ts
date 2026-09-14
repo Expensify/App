@@ -82,16 +82,53 @@ function syncMerge(policy: OnyxEntry<Policy>, connectionName: MergeConnectionNam
     write(WRITE_COMMANDS.SYNC_POLICY_TO_MERGE, {policyID, connectionName}, {optimisticData, failureData});
 }
 
+type MergeApprovalConfigUpdate = {
+    approvalMode?: ValueOf<typeof CONST.MERGE.APPROVAL_MODE> | null;
+    approverField?: string | null;
+    finalApprover?: string | null;
+};
+
+type UpdateMergeApprovalModeOptions = {
+    policyID: string;
+    connectionName: MergeConnectionName;
+    approvalMode: ValueOf<typeof CONST.MERGE.APPROVAL_MODE>;
+    currentApprovalMode: ValueOf<typeof CONST.MERGE.APPROVAL_MODE> | undefined;
+
+    /**
+     * Merge ATS only
+     */
+    approverField?: string;
+    currentApproverField?: string;
+    finalApprover?: string;
+    currentFinalApprover?: string;
+};
+
 /**
  * Updates the approval mode for the given Merge connection (Merge HR or Merge ATS).
+ * Merge ATS saves its whole approval setup in one request, so `approverField` and `finalApprover` can ride along.
  */
-function updateMergeApprovalMode(
-    policyID: string,
-    connectionName: MergeConnectionName,
-    approvalMode: ValueOf<typeof CONST.MERGE.APPROVAL_MODE>,
-    currentApprovalMode?: ValueOf<typeof CONST.MERGE.APPROVAL_MODE> | null,
-) {
-    const previousApprovalMode = currentApprovalMode ?? null;
+function updateMergeApprovalMode({
+    policyID,
+    connectionName,
+    approvalMode,
+    currentApprovalMode,
+    approverField,
+    currentApproverField,
+    finalApprover,
+    currentFinalApprover,
+}: UpdateMergeApprovalModeOptions) {
+    const updatedConfig: MergeApprovalConfigUpdate = {approvalMode};
+    const rolledBackConfig: MergeApprovalConfigUpdate = {approvalMode: currentApprovalMode ?? null};
+
+    if (approverField !== undefined) {
+        updatedConfig.approverField = approverField;
+        rolledBackConfig.approverField = currentApproverField ?? null;
+    }
+
+    if (finalApprover !== undefined) {
+        updatedConfig.finalApprover = finalApprover;
+        rolledBackConfig.finalApprover = currentFinalApprover ?? null;
+    }
 
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
@@ -101,7 +138,7 @@ function updateMergeApprovalMode(
                 connections: {
                     [connectionName]: {
                         config: {
-                            approvalMode,
+                            ...updatedConfig,
                             pendingFields: {approvalMode: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
                             errorFields: {approvalMode: null},
                         },
@@ -136,7 +173,7 @@ function updateMergeApprovalMode(
                 connections: {
                     [connectionName]: {
                         config: {
-                            approvalMode: previousApprovalMode,
+                            ...rolledBackConfig,
                             pendingFields: {approvalMode: null},
                             errorFields: {approvalMode: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},
                         },
@@ -152,6 +189,8 @@ function updateMergeApprovalMode(
             policyID,
             connectionName,
             approvalMode,
+            ...(approverField !== undefined && {approverField}),
+            ...(finalApprover !== undefined && {finalApprover}),
         },
         {optimisticData, successData, failureData},
     );

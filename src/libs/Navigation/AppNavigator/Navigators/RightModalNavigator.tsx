@@ -35,6 +35,7 @@ import type {AuthScreensParamList, RightModalNavigatorParamList} from '@navigati
 
 import {PINContextProvider} from '@pages/MissingPersonalDetails/PINContext';
 import SearchAdvancedFiltersProvider from '@pages/Search/SearchAdvancedFiltersProvider';
+import {MergeATSApprovalDraftProvider} from '@pages/workspace/recruiting/MergeATSApprovalDraftContext';
 
 import variables from '@styles/variables';
 
@@ -74,6 +75,14 @@ function SearchAdvancedFiltersWithContext(props: Record<string, unknown>) {
         <SearchAdvancedFiltersProvider>
             <ModalStackNavigators.SearchAdvancedFiltersModalStackNavigator {...props} />
         </SearchAdvancedFiltersProvider>
+    );
+}
+
+function MergeATSApprovalWithDraftContext(props: Record<string, unknown>) {
+    return (
+        <MergeATSApprovalDraftProvider>
+            <ModalStackNavigators.MergeATSApprovalModalStackNavigator {...props} />
+        </MergeATSApprovalDraftProvider>
     );
 }
 
@@ -482,6 +491,10 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                             <Stack.Screen
                                 name={SCREENS.RIGHT_MODAL.BETA_OVERRIDES}
                                 getComponent={loadBetaOverridesPage}
+                            />
+                            <Stack.Screen
+                                name={SCREENS.RIGHT_MODAL.RECRUITING_MERGE_APPROVAL}
+                                component={MergeATSApprovalWithDraftContext}
                             />
                             <Stack.Screen
                                 name={SCREENS.RIGHT_MODAL.SEARCH_ADVANCED_FILTERS}

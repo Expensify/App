@@ -5,9 +5,11 @@ import {isGustoConnected} from '@libs/merge/HRUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 
-import HRFinalApproverPageBase from '@pages/workspace/hr/HRFinalApproverPageBase';
-import type {HRFinalApproverProviderConfig} from '@pages/workspace/hr/HRFinalApproverPageBase';
+import MergeFinalApproverPageBase from '@pages/workspace/hr/MergeFinalApproverPageBase';
+import type {MergeFinalApproverProviderConfig} from '@pages/workspace/hr/MergeFinalApproverPageBase';
 
+import CONST from '@src/CONST';
+import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
 import React from 'react';
@@ -21,9 +23,11 @@ function GustoFinalApproverPage({
 }: GustoFinalApproverPageProps) {
     const {translate} = useLocalize();
 
-    const config: HRFinalApproverProviderConfig = {
+    const config: MergeFinalApproverProviderConfig = {
         testID: 'GustoFinalApproverPage',
         isConnected: isGustoConnected,
+        featureName: CONST.POLICY.MORE_FEATURES.IS_HR_ENABLED,
+        backRoute: ROUTES.WORKSPACE_HR.getRoute(policyID),
         getCurrentFinalApprover: (policy) => policy?.connections?.gusto?.config?.finalApprover ?? null,
         getProviderName: () => translate('workspace.hr.gusto.title'),
         getHeaderTitle: () => translate('workspace.merge.finalApprover'),
@@ -31,7 +35,7 @@ function GustoFinalApproverPage({
     };
 
     return (
-        <HRFinalApproverPageBase
+        <MergeFinalApproverPageBase
             policyID={policyID}
             config={config}
         />

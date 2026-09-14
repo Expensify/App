@@ -36,10 +36,10 @@ type HRApprovalModeProviderConfig<T extends ApprovalModeValue = ApprovalModeValu
     testID: string;
     isConnected: (policy: OnyxEntry<Policy>) => boolean;
     approvalModes: {BASIC: T; MANAGER: T; CUSTOM: T};
-    getCurrentApprovalMode: (policy: OnyxEntry<Policy>) => T | null;
+    getCurrentApprovalMode: (policy: OnyxEntry<Policy>) => T | undefined;
     getProviderName: (policy: OnyxEntry<Policy>) => string;
     getHeaderTitle: (providerName: string) => string;
-    handleSave: (params: {policyID: string; draftApprovalMode: T; currentApprovalMode: T | null; connectionSyncProgress?: OnyxEntry<PolicyConnectionSyncProgress>}) => void;
+    handleSave: (params: {policyID: string; draftApprovalMode: T; currentApprovalMode: T | undefined; connectionSyncProgress?: OnyxEntry<PolicyConnectionSyncProgress>}) => void;
 };
 
 type ApprovalModeListItem<T extends ApprovalModeValue = ApprovalModeValue> = ListItem & {

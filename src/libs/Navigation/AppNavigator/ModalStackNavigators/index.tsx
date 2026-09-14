@@ -15,6 +15,7 @@ import type {
     EditRequestNavigatorParamList,
     EnablePaymentsNavigatorParamList,
     FlagCommentNavigatorParamList,
+    MergeATSApprovalNavigatorParamList,
     MergeTransactionNavigatorParamList,
     MissingPersonalDetailsParamList,
     MoneyRequestNavigatorParamList,
@@ -1317,6 +1318,12 @@ const SearchReportActionsModalStackNavigator = createModalStackNavigator<SearchR
     [SCREENS.SEARCH.EDIT_MULTIPLE_ATTENDEES_RHP]: () => require<ReactComponentModule>('../../../../pages/Search/SearchEditMultiple/SearchEditMultipleAttendeesPage').default,
 });
 
+const MergeATSApprovalModalStackNavigator = createModalStackNavigator<MergeATSApprovalNavigatorParamList>({
+    [SCREENS.WORKSPACE.RECRUITING_MERGE_APPROVAL_MODE]: () => require<ReactComponentModule>('../../../../pages/workspace/recruiting/MergeATSApprovalModePage').default,
+    [SCREENS.WORKSPACE.RECRUITING_MERGE_APPROVER_FIELD]: () => require<ReactComponentModule>('../../../../pages/workspace/recruiting/MergeATSApproverFieldPage').default,
+    [SCREENS.WORKSPACE.RECRUITING_MERGE_FINAL_APPROVER]: () => require<ReactComponentModule>('../../../../pages/workspace/recruiting/MergeATSFinalApproverPage').default,
+});
+
 const SearchAdvancedFiltersModalStackNavigator = createModalStackNavigator({
     [SCREENS.SEARCH.ADVANCED_FILTERS_RHP]: () => require<ReactComponentModule>('../../../../pages/Search/SearchAdvancedFiltersPage').default,
     [SCREENS.SEARCH.ADVANCED_FILTERS_CONTENT_RHP]: () => require<ReactComponentModule>('../../../../pages/Search/SearchAdvancedFiltersContentPage').default,
@@ -1397,6 +1404,7 @@ export {
     EnablePaymentsStackNavigator,
     ExpensifyCardModalStackNavigator,
     FlagCommentStackNavigator,
+    MergeATSApprovalModalStackNavigator,
     MergeTransactionStackNavigator,
     MissingPersonalDetailsModalStackNavigator,
     MoneyRequestModalStackNavigator,

@@ -306,10 +306,10 @@ describe('RecruitingUtils', () => {
     });
 
     describe('getMergeATSApprovalMode', () => {
-        it('returns null when there is no connection or no approval mode', () => {
-            expect(getMergeATSApprovalMode(undefined)).toBeNull();
-            expect(getMergeATSApprovalMode(makePolicy())).toBeNull();
-            expect(getMergeATSApprovalMode(makeMergeATSPolicy())).toBeNull();
+        it('returns undefined when there is no connection or no approval mode', () => {
+            expect(getMergeATSApprovalMode(undefined)).toBeUndefined();
+            expect(getMergeATSApprovalMode(makePolicy())).toBeUndefined();
+            expect(getMergeATSApprovalMode(makeMergeATSPolicy())).toBeUndefined();
         });
 
         it('returns the configured approval mode', () => {
@@ -321,10 +321,10 @@ describe('RecruitingUtils', () => {
     });
 
     describe('getMergeATSApproverField', () => {
-        it('returns null when there is no connection or no approver field', () => {
-            expect(getMergeATSApproverField(undefined)).toBeNull();
-            expect(getMergeATSApproverField(makePolicy())).toBeNull();
-            expect(getMergeATSApproverField(makeMergeATSPolicy())).toBeNull();
+        it('returns undefined when there is no connection or no approver field', () => {
+            expect(getMergeATSApproverField(undefined)).toBeUndefined();
+            expect(getMergeATSApproverField(makePolicy())).toBeUndefined();
+            expect(getMergeATSApproverField(makeMergeATSPolicy())).toBeUndefined();
         });
 
         it('returns the configured approver field', () => {
