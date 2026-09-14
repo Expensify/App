@@ -20,7 +20,7 @@ import {
     getCardConnectionStatusDisplay,
     getCardFeedIcon,
     getCardFeedWithDomainID,
-    getCardErrorsNewerThanLastScrape,
+    getCardActionErrors,
     getCompanyCardFeedWithDomainIDForCard,
     getPlaidInstitutionIconUrl,
     hasCardConnectionIssue,
@@ -321,11 +321,14 @@ function PaymentMethodList({
                     doesCardNeedReauthentication: doesCardConnectionNeedReauthentication(card),
                     policyID: policyIDForCard,
                 });
-                const shouldShowCardConnectionMessage = !!cardConnectionStatusDisplay?.messageKey;
-                // The connection message replaces the server's own connection error, so only errors recorded after the
-                // last sync are kept alongside it.
-                const cardErrors = shouldShowCardConnectionMessage && !card.pendingAction ? getCardErrorsNewerThanLastScrape(card) : card.errors;
+                // An action the user just took that failed is what the row has to say, so its error replaces our
+                // connection copy rather than stacking with it. The server's own connection error is left out either
+                // way: the connection message says the same thing in copy we control, with a way to fix it.
+                const cardErrors = card.pendingAction ? card.errors : getCardActionErrors(card);
                 const shouldShowCardErrorMessages = !isEmptyObject(cardErrors);
+                // A personal card row renders no card error of its own, so letting one replace the connection message
+                // there would leave the row with a status and nothing to explain it.
+                const doesCardErrorReplaceConnectionMessage = !isUserPersonalCard && shouldShowCardErrorMessages;
                 const shouldShowCardLastSync = shouldShowConnectionStatus && !isExpensifyCard(card) && !isCSVCard;
                 let cardLastSyncText: string | undefined;
                 if (shouldShowCardLastSync) {
@@ -339,7 +342,11 @@ function PaymentMethodList({
                 if (cardConnectionStatusDisplay) {
                     const companyCardsRoute = policyIDForCard ? ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyIDForCard) : undefined;
                     let cardConnectionMessage: string | undefined;
-                    if (cardConnectionStatusDisplay.shouldUseCompanyCardsLink && companyCardsRoute) {
+                    // The row carries one message at a time, and a failed action wins it, since that is what the user
+                    // just did. The badge still reads Inactive, so the connection is not misreported meanwhile.
+                    if (doesCardErrorReplaceConnectionMessage) {
+                        cardConnectionMessage = undefined;
+                    } else if (cardConnectionStatusDisplay.shouldUseCompanyCardsLink && companyCardsRoute) {
                         cardConnectionMessage = translate('walletPage.cardStatus.fixConnectionIn', `${environmentURL}/${companyCardsRoute}`);
                     } else if (cardConnectionStatusDisplay.shouldUseReauthMessage) {
                         cardConnectionMessage = translate('walletPage.cardStatus.reconnectBank');
@@ -353,10 +360,11 @@ function PaymentMethodList({
                         statusText: translate(cardConnectionStatusDisplay.statusKey),
                         statusTone: cardConnectionStatusDisplay.statusTone,
                         message: cardConnectionMessage,
-                        actionText: cardConnectionStatusDisplay.actionKey ? translate(cardConnectionStatusDisplay.actionKey) : undefined,
-                        onActionPress: cardConnectionStatusDisplay.shouldUsePersonalCardFix
-                            ? () => Navigation.navigate(ROUTES.SETTINGS_WALLET_PERSONAL_CARD_FIX_CONNECTION.getRoute(String(card.cardID)))
-                            : undefined,
+                        actionText: cardConnectionMessage && cardConnectionStatusDisplay.actionKey ? translate(cardConnectionStatusDisplay.actionKey) : undefined,
+                        onActionPress:
+                            cardConnectionMessage && cardConnectionStatusDisplay.shouldUsePersonalCardFix
+                                ? () => Navigation.navigate(ROUTES.SETTINGS_WALLET_PERSONAL_CARD_FIX_CONNECTION.getRoute(String(card.cardID)))
+                                : undefined,
                         onLinkPress:
                             cardConnectionStatusDisplay.shouldUseCompanyCardsLink && companyCardsRoute
                                 ? () => {

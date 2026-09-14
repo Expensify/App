@@ -439,9 +439,9 @@ function hasPaymentMethodError(
         // A card's connection error is surfaced as a card error too, so once the card has gone without a successful
         // sync past the grace period we stop leading the user to it and it must no longer light the RBR. The threshold
         // is keyed on the last successful sync rather than `isCardConnectionBroken` because the server sets the
-        // connection error even for scrape statuses that check treats as ignored (e.g. 434). An error recorded after
-        // the last sync came from something the user just did, so it still has to light the RBR.
-        const isStaleConnectionErrorOnly = CardUtils.isLastScrapePastDismissThreshold(card) && !CardUtils.hasErrorNewerThanLastScrape(card);
+        // connection error even for scrape statuses that check treats as ignored (e.g. 434). An error left behind by
+        // something the user did is a separate problem from the connection, so it still has to light the RBR.
+        const isStaleConnectionErrorOnly = CardUtils.isLastScrapePastDismissThreshold(card) && !CardUtils.hasCardActionErrors(card);
         if (isStaleConnectionErrorOnly) {
             return false;
         }

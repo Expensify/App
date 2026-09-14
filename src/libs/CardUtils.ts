@@ -1518,32 +1518,24 @@ function parseCardLastScrape(card: Card): Date | undefined {
 }
 
 /**
- * The card's errors recorded after its last sync. Something the user just did has to stay visible even when a
- * connection message already covers the connection itself, and the two are told apart by how they are keyed: the
- * server names its connection error `connectionError`, while a user action records its error under a microsecond
- * timestamp. A named key is not a number, so it never reads as newer and the comparison only ever sees the second
- * kind. That matters because `lastScrape` is the last successful sync, which a broken card never advances.
+ * The card's errors that came from an action the user took, rather than from the connection itself. The two are told
+ * apart by how they are keyed: the server names its connection error `connectionError`, while a user action records
+ * its error under a microsecond timestamp. Keying on the shape rather than on the age matters because `lastScrape` is
+ * the last successful sync, which a broken card never advances, so every error on such a card looks recent.
  *
  * @param card the card to read
- * @returns the errors newer than the last sync
+ * @returns the errors a user action recorded
  */
-function getCardErrorsNewerThanLastScrape(card: Card): Errors {
-    const lastScrapeDate = parseCardLastScrape(card);
-    if (!lastScrapeDate) {
-        // A card that has never synced has nothing to compare against, so its errors are left to the connection message.
-        return {};
-    }
-    // Error keys are microseconds, `lastScrape` is milliseconds.
-    const lastScrapeMicroseconds = lastScrapeDate.getTime() * 1000;
-    return Object.fromEntries(Object.entries(card.errors ?? {}).filter(([errorKey]) => Number(errorKey) > lastScrapeMicroseconds));
+function getCardActionErrors(card: Card): Errors {
+    return Object.fromEntries(Object.entries(card.errors ?? {}).filter(([errorKey]) => !Number.isNaN(Number(errorKey))));
 }
 
 /**
  * @param card the card to check
- * @returns true if an error is newer than the last sync, false otherwise
+ * @returns true if an action the user took left an error on the card, false otherwise
  */
-function hasErrorNewerThanLastScrape(card: Card): boolean {
-    return !isEmptyObject(getCardErrorsNewerThanLastScrape(card));
+function hasCardActionErrors(card: Card): boolean {
+    return !isEmptyObject(getCardActionErrors(card));
 }
 
 /**
@@ -2288,8 +2280,8 @@ export {
     isCardHiddenFromSearch,
     getCSVFeedType,
     getFeedType,
-    getCardErrorsNewerThanLastScrape,
-    hasErrorNewerThanLastScrape,
+    getCardActionErrors,
+    hasCardActionErrors,
     isCardConnectionBroken,
     hasCardConnectionIssue,
     doesCardConnectionNeedReauthentication,

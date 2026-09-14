@@ -59,9 +59,9 @@ import {
     getWalletProviderNameKey,
     getYearFromExpirationDateString,
     hasAssignedCardMatching,
-    getCardErrorsNewerThanLastScrape,
+    getCardActionErrors,
     hasCardConnectionIssue,
-    hasErrorNewerThanLastScrape,
+    hasCardActionErrors,
     hasIssuedExpensifyCard,
     hasOnlyOneCardToAssign,
     isBrokenConnectionPastDismissThreshold,
@@ -4477,66 +4477,39 @@ describe('CardUtils', () => {
         });
     });
 
-    describe('hasErrorNewerThanLastScrape', () => {
-        it('returns false when the card has no errors', () => {
-            const card: Card = {...createRandomCard(1), lastScrape: '2025-10-05 11:00:00', errors: undefined};
-            expect(hasErrorNewerThanLastScrape(card)).toBe(false);
+    describe('getCardActionErrors', () => {
+        it('returns nothing when the card has no errors', () => {
+            const card: Card = {...createRandomCard(1), errors: undefined};
+            expect(hasCardActionErrors(card)).toBe(false);
         });
 
-        // The server names its connection error rather than keying it by time, so it stays out of this filter however
-        // long the card has gone without a successful sync, which is the whole grace period for a broken card.
-        it('returns false for the server connection error on a card that stopped syncing long ago', () => {
-            const card: Card = {...createRandomCard(1), lastScrape: '2024-01-05 11:00:00', errors: {connectionError: 'Your card connection is broken.'}};
-            expect(hasErrorNewerThanLastScrape(card)).toBe(false);
+        // The server names its connection error, so the row shows our own connection copy for it instead.
+        it('leaves out the server connection error', () => {
+            const card: Card = {...createRandomCard(1), errors: {connectionError: 'Your card connection is broken.'}};
+            expect(getCardActionErrors(card)).toEqual({});
         });
 
-        // A user action on that same stale card is keyed by timestamp, so it still has to come through.
-        it('returns true for a user action error on a card that stopped syncing long ago', () => {
-            const card: Card = {
-                ...createRandomCard(1),
-                lastScrape: '2024-01-05 11:00:00',
-                errors: {connectionError: 'Your card connection is broken.', [Date.now() * 1000]: 'Failed to unassign this card'},
-            };
-            expect(hasErrorNewerThanLastScrape(card)).toBe(true);
+        // A user action records its error under a microsecond timestamp, and that is the message the row has to carry.
+        it('keeps an error a user action recorded', () => {
+            const recordedAt = Date.now() * 1000;
+            const card: Card = {...createRandomCard(1), errors: {[recordedAt]: 'Failed to unassign this card'}};
+            expect(getCardActionErrors(card)).toEqual({[recordedAt]: 'Failed to unassign this card'});
         });
 
-        // The server records the connection error at scrape time, so an error with the same timestamp is that one.
-        // `lastScrape` has no offset but is UTC, so the expected key is built from the UTC instant rather than a local one.
-        it('returns false for an error recorded at the last sync', () => {
-            const lastScrapeMicroseconds = Date.parse('2025-10-05T11:00:00Z') * 1000;
-            const card: Card = {...createRandomCard(1), lastScrape: '2025-10-05 11:00:00', errors: {[lastScrapeMicroseconds]: 'Connection broken'}};
-            expect(hasErrorNewerThanLastScrape(card)).toBe(false);
+        // Both at once: the action error is kept and the connection error is left to the connection message.
+        it('keeps only the user action error when the card carries both', () => {
+            const recordedAt = Date.now() * 1000;
+            const card: Card = {...createRandomCard(1), errors: {connectionError: 'Your card connection is broken.', [recordedAt]: 'Failed to unassign this card'}};
+            expect(getCardActionErrors(card)).toEqual({[recordedAt]: 'Failed to unassign this card'});
         });
 
-        it('returns true for an error recorded one second after the last sync', () => {
-            const oneSecondAfterLastScrape = (Date.parse('2025-10-05T11:00:00Z') + 1000) * 1000;
-            const card: Card = {...createRandomCard(1), lastScrape: '2025-10-05 11:00:00', errors: {[oneSecondAfterLastScrape]: 'Failed to unassign this card'}};
-            expect(hasErrorNewerThanLastScrape(card)).toBe(true);
-        });
-
-        // A failed unassignment is recorded now, long after the last sync, and has to stay visible.
-        it('returns true for an error recorded after the last sync', () => {
-            const card: Card = {...createRandomCard(1), lastScrape: '2025-10-05 11:00:00', errors: {[Date.now() * 1000]: 'Failed to unassign this card'}};
-            expect(hasErrorNewerThanLastScrape(card)).toBe(true);
-        });
-
-        // Only the newer error is kept, so a stale connection error is not shown next to the connection message.
-        it('keeps only the errors recorded after the last sync', () => {
-            const staleKey = Date.parse('2025-10-05T11:00:00Z') * 1000;
-            const freshKey = Date.now() * 1000;
-            const card: Card = {...createRandomCard(1), lastScrape: '2025-10-05 11:00:00', errors: {[staleKey]: 'Connection broken', [freshKey]: 'Failed to unassign this card'}};
-            expect(getCardErrorsNewerThanLastScrape(card)).toEqual({[freshKey]: 'Failed to unassign this card'});
-        });
-
-        // A card that has never synced cannot be compared against, so its error stays with the connection message.
-        it('returns false when there is an error but no last sync to compare against', () => {
-            const card: Card = {...createRandomCard(1), lastScrape: undefined, errors: {1700000000000000: 'Failed to unassign this card'}};
-            expect(hasErrorNewerThanLastScrape(card)).toBe(false);
-        });
-
-        it('parses an ISO 8601 last sync', () => {
-            const card: Card = {...createRandomCard(1), lastScrape: '2025-10-05T11:00:00Z', errors: {[Date.now() * 1000]: 'Failed to unassign this card'}};
-            expect(hasErrorNewerThanLastScrape(card)).toBe(true);
+        // A broken card never advances `lastScrape`, so the age of an error says nothing about which kind it is.
+        it('keeps a user action error however old it is and whether or not the card ever synced', () => {
+            const longAgo = Date.parse('2024-01-05T11:00:00Z') * 1000;
+            const neverSynced: Card = {...createRandomCard(1), lastScrape: undefined, errors: {[longAgo]: 'Failed to remove this card'}};
+            const syncedSince: Card = {...createRandomCard(2), lastScrape: '2025-10-05 11:00:00', errors: {[longAgo]: 'Failed to remove this card'}};
+            expect(hasCardActionErrors(neverSynced)).toBe(true);
+            expect(hasCardActionErrors(syncedSince)).toBe(true);
         });
     });
 
