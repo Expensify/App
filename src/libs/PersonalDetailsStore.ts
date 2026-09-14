@@ -22,7 +22,7 @@ function buildLoginIndex(personalDetailsList: PersonalDetailsList): Record<strin
     return index;
 }
 
-// connectWithoutView: consumers are actions, middleware and pure libraries with no component to hang a hook off
+// Only sanctioned connectWithoutView for personal details, don't add another: React uses @hooks/usePersonalDetails, everything else uses this store
 Onyx.connectWithoutView({
     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
     callback: (value) => {
