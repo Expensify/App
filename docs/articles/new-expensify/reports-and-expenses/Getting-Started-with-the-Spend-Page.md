@@ -156,6 +156,8 @@ For more advanced filtering, you can enter search operators directly into the se
    - The list updates in real time  
    - The **Select all** option applies *only* to the filtered results—not everything
 
+On the **Expenses** page, the selection button reads **All matching items selected** after you choose **Select all**, which confirms that every expense matching your filters is included. If you clear the checkbox on any expense, the button switches to the exact number selected.
+
 You can also combine filters with a keyword search for even more precision. For example, searching **"Uber in March"** will show only Uber rides from March.
 
 **Note**: If no filters are applied, the page defaults to showing all your unreported expenses.

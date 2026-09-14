@@ -1,7 +1,7 @@
 ---
 title: How to Export Expenses
 description: Learn how to export expenses from the Expenses page to CSV using default or custom export templates, and how to download their receipts, in New Expensify.
-keywords: [New Expensify, export expenses, CSV export, download expenses, download receipts, expense receipts, receipt zip, expense export template, bulk export expenses, expense data]
+keywords: [New Expensify, export expenses, CSV export, download expenses, download receipts, expense receipts, receipt zip, expense export template, bulk export expenses, expense data, select all matching expenses, all matching items selected]
 internalScope: Audience is all members. Covers exporting expenses from the Expenses page to CSV using export templates (both individually and in bulk) and downloading the receipts on selected expenses. Does not cover exporting reports to CSV or PDF (see Export-Reports.md), exporting to an accounting integration, or company card reconciliation.
 ---
 
@@ -27,8 +27,8 @@ You'll receive the exported CSV file in a message from Concierge.
 ## How to export multiple expenses
 
 1. In the navigation tabs (on the left on web, on the bottom on mobile), go to **Spend** > **Expenses**.
-2. Select the checkbox next to each expense you want to export, or use the top checkbox to select all.
-3. Select **Selected** at the top.
+2. Select the checkbox next to each expense you want to export, or use the top checkbox to select all. If there is more than one page of expenses, the top checkbox opens a menu where you can choose **Select all on this page** or **Select all**.
+3. Select the selection button at the top (for example, **3 selected**, or **All matching items selected** if you chose **Select all**).
 4. Select **Export**.
 5. Choose an export template from the menu that appears. 
 
@@ -39,8 +39,8 @@ You'll receive the exported CSV file in a message from Concierge.
 You can download the receipts attached to your selected expenses in a single ZIP file.
 
 1. In the navigation tabs (on the left on web, on the bottom on mobile), go to **Spend** > **Expenses**.
-2. Select the checkbox next to each expense whose receipt you want to download, or use the top checkbox to select all.
-3. Select **Selected** at the top.
+2. Select the checkbox next to each expense whose receipt you want to download, or use the top checkbox to select all. If there is more than one page of expenses, the top checkbox opens a menu where you can choose **Select all on this page** or **Select all**.
+3. Select the selection button at the top (for example, **3 selected**, or **All matching items selected** if you chose **Select all**).
 4. Select **Download receipts**.
 5. Wait for the files to finish preparing. The zip file downloads automatically when it's ready. If it doesn't, select **Download file** to save it to your device.
 
@@ -52,8 +52,8 @@ Use **Export current view** to download a CSV that matches the columns currently
 
 1. In the navigation tabs (on the left on web, on the bottom on mobile), go to **Spend** > **Expenses**.
 2. Select **Display**, then select **Edit columns** to choose which columns appear on the page.
-3. Select the checkbox next to each expense you want to export, or use the top checkbox to select all.
-4. Select **Selected** at the top.
+3. Select the checkbox next to each expense you want to export, or use the top checkbox to select all. If there is more than one page of expenses, the top checkbox opens a menu where you can choose **Select all on this page** or **Select all**.
+4. Select the selection button at the top (for example, **3 selected**, or **All matching items selected** if you chose **Select all**).
 5. Select **Export**.
 6. Select **Export current view**.
 
@@ -62,6 +62,12 @@ The CSV includes one row per expense using the same columns displayed on the pag
 ---
 
 # FAQ
+
+## Why does the selection button say All matching items selected?
+
+On the **Expenses** page, the selection button reads **All matching items selected** when you choose **Select all**, because the selection covers every expense that matches your current filters, not only the expenses loaded on the page. If you then clear the checkbox on any expense, the button switches to the exact number selected (for example, **48 selected**). Selecting that expense again returns the button to **All matching items selected**.
+
+If you choose **Select all on this page**, the button always shows a number, because the selection is limited to the expenses on the current page.
 
 ## What export templates can I choose from? 
 
