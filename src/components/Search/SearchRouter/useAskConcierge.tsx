@@ -46,9 +46,12 @@ function useAskConcierge({forceConcierge = false}: {forceConcierge?: boolean} = 
         if (!trimmedQuery || !shouldShowAskConcierge) {
             return;
         }
-        openConciergeAnywhere({forceConcierge});
-
-        if (createTaskFromMarkdown({text: trimmedQuery, parentReport: targetReport, currentUserPersonalDetails, quickAction, delegateAccountID})) {
+        // addComment navigates to the thread it creates, so opening Concierge here would only fight it.
+        const isTask = createTaskFromMarkdown({text: trimmedQuery, parentReport: targetReport, currentUserPersonalDetails, quickAction, delegateAccountID});
+        if (isTask || !shouldRespondInThread) {
+            openConciergeAnywhere({forceConcierge});
+        }
+        if (isTask) {
             return;
         }
         addComment({
@@ -70,7 +73,12 @@ function useAskConcierge({forceConcierge = false}: {forceConcierge?: boolean} = 
         if (!shouldShowAskConcierge) {
             return;
         }
-        openConciergeAnywhere({forceConcierge});
+
+        // Several attachments post one message each and stay in the DM, so only a single one lands in a thread.
+        const willOpenThread = shouldRespondInThread && (!Array.isArray(attachments) || attachments.length === 1);
+        if (!willOpenThread) {
+            openConciergeAnywhere({forceConcierge});
+        }
         addAttachmentWithComment({
             report: targetReport,
             notifyReportID: targetReportID,
