@@ -26,6 +26,7 @@ oxlint-migration/port-probe (see compareFixtures.py).
 """
 
 import collections
+import glob
 import json
 import os
 import sys
@@ -51,9 +52,17 @@ def load_findings():
 
 
 def load_fixtures():
+    """fixtures.manifest.json plus every fragments/*.manifest.json, the same merge compareFixtures does.
+
+    Reading only the base manifest under-reports coverage by the whole sharded campaign: the batches
+    land as fragments, so a rule proven by one of them looked uncovered here.
+    """
     if not os.path.exists(FIXTURE_MANIFEST):
         return {}
-    return json.load(open(FIXTURE_MANIFEST))
+    manifest = json.load(open(FIXTURE_MANIFEST))
+    for path in sorted(glob.glob(os.path.join(os.path.dirname(FIXTURE_MANIFEST), 'fragments', '*.manifest.json'))):
+        manifest.update(json.load(open(path)))
+    return manifest
 
 
 def dump_json(inventory, default_name='rule-inventory.json'):
