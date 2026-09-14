@@ -45,9 +45,11 @@ function HybridAppHandler() {
         addBootsplashBreadcrumb('HybridAppHandler: Requesting settings');
         getHybridAppSettings().then((hybridAppSettings: HybridAppSettings | null) => {
             if (!hybridAppSettings) {
-                // Native method can send non-null value only once per NewDot lifecycle. It prevents issues with multiple initializations during reloads on debug builds.
-                Log.info('[HybridApp] `getHybridAppSettings` called more than once during single NewDot lifecycle. Skipping initialization.');
-                addBootsplashBreadcrumb('HybridAppHandler: null settings, skipping');
+                // Native settings are consumed once per NewDot lifecycle. After a JavaScript reload, restore the
+                // hidden state because native will not replay the splash transition for the new runtime.
+                Log.info('[HybridApp] `getHybridAppSettings` returned null after a JavaScript reload. Restoring the hidden splash state.');
+                addBootsplashBreadcrumb('HybridAppHandler: null settings, restoring hidden state');
+                setSplashScreenState(CONST.BOOT_SPLASH_STATE.HIDDEN);
                 return;
             }
 
