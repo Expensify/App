@@ -64,8 +64,8 @@ function hasStaleMergeHRGroups(policy?: OnyxEntry<Policy>): boolean {
 }
 
 /**
- * The admin's group selection, minus any group the cached list no longer has. Those have no row to untick and the API
- * rejects them, so keeping them would leave the selector unsaveable. An empty cache has not loaded yet, so nothing is dropped.
+ * The admin's group selection, minus any group the cached list no longer has. Those have no row to uncheck and the API
+ * rejects them, so keeping them would leave the selector unable to save. An empty cache has not loaded yet, so nothing is dropped.
  */
 function getSelectableMergeHRGroupIDs(policy?: OnyxEntry<Policy>): string[] {
     const mergeHR = policy?.connections?.merge_hris;
