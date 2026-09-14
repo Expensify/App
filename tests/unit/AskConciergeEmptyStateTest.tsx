@@ -4,13 +4,23 @@ import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
 import AskConciergeEmptyState from '@pages/inbox/report/AskConciergeEmptyState';
 
+import CONST from '@src/CONST';
+import IntlStore from '@src/languages/IntlStore';
+
 import React from 'react';
+
+import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 jest.mock('@hooks/useLazyAsset', () => ({
     useMemoizedLazyIllustrations: () => ({ConciergeBot: 'ConciergeBot'}),
 }));
 
 describe('AskConciergeEmptyState', () => {
+    beforeAll(async () => {
+        IntlStore.load(CONST.LOCALES.EN);
+        await waitForBatchedUpdates();
+    });
+
     it('renders the Ask Concierge prompt', () => {
         render(
             <OnyxListItemProvider>

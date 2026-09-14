@@ -7,6 +7,7 @@ import {IsInSidePanelContext} from '@hooks/useIsInSidePanel';
 import ConciergeChatHistoryToggle from '@pages/inbox/report/ConciergeChatHistoryToggle';
 
 import CONST from '@src/CONST';
+import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 import React from 'react';
@@ -46,6 +47,7 @@ const renderToggle = (overrides: {hasPreviousMessages?: boolean; shouldShowFullH
 
 describe('ConciergeChatHistoryToggle', () => {
     beforeAll(async () => {
+        IntlStore.load(CONST.LOCALES.EN);
         await Onyx.set(ONYXKEYS.CONCIERGE_REPORT_ID, CONCIERGE_REPORT_ID);
         await Onyx.set(ONYXKEYS.BETAS, [CONST.BETAS.CONCIERGE_RESPOND_IN_THREAD]);
         await waitForBatchedUpdates();
