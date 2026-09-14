@@ -1,7 +1,7 @@
 import {useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import ExpenseHeaderApprovalButton from '@components/ExpenseHeaderApprovalButton';
 import useConfirmApproval from '@components/MoneyReportHeaderPrimaryAction/useConfirmApproval';
-import {useSearchQueryContext} from '@components/Search/SearchContext';
+import {useSearchQueryContext, useSearchResultsContext} from '@components/Search/SearchContext';
 import {SearchScopeProvider} from '@components/Search/SearchScopeProvider';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -12,13 +12,12 @@ import useReportWithTransactionsAndViolations from '@hooks/useReportWithTransact
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getSearchApproveOnyxData} from '@libs/actions/Search';
-import {hasHeldExpensesFromTransactions as hasHeldExpensesReportUtils} from '@libs/ReportUtils';
 
 import {canIOUBePaid as canIOUBePaidAction} from '@userActions/IOU/ReportWorkflow';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Report} from '@src/types/onyx';
+import type {Policy, Report, Transaction} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
@@ -27,24 +26,27 @@ import React from 'react';
 type ApproveActionCellProps = {
     isLoading: boolean;
     reportID: string;
+    policyID: string;
     hash?: number;
     shouldDisablePointerEvents?: boolean;
     chatReport: OnyxEntry<Report>;
+    snapshotTransactions?: Transaction[];
 };
 
-/**
- * Approve action for a Search row. Mirrors PayActionCell in owning the action end to end, so the row can render the
- * same ExpenseHeaderApprovalButton the report header uses and surface the partial/full approval choice up front when
- * the report has held expenses, rather than routing through the (pay-only) hold menu.
- */
-function ApproveActionCell({isLoading, reportID, hash, shouldDisablePointerEvents, chatReport}: ApproveActionCellProps) {
+function ApproveActionCell({isLoading, reportID, policyID, hash, shouldDisablePointerEvents, chatReport, snapshotTransactions}: ApproveActionCellProps) {
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const currentUserDetails = useCurrentUserPersonalDetails();
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {currentSearchKey} = useSearchQueryContext();
+    const {currentSearchResults} = useSearchResultsContext();
 
-    const [iouReport, transactions] = useReportWithTransactionsAndViolations(reportID);
+    const [liveReport, liveTransactions] = useReportWithTransactionsAndViolations(reportID);
+    const snapshotReport = currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`] as OnyxEntry<Report>;
+    const snapshotPolicy = currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`] as OnyxEntry<Policy>;
+    const iouReport = liveReport ?? snapshotReport;
+    const transactions = liveTransactions.length > 0 || !snapshotTransactions ? liveTransactions : snapshotTransactions;
+
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const activePolicy = usePolicy(activePolicyID);
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
@@ -52,9 +54,6 @@ function ApproveActionCell({isLoading, reportID, hash, shouldDisablePointerEvent
     const invoiceReceiverPolicyID = iouReport?.invoiceReceiver && 'policyID' in iouReport.invoiceReceiver ? iouReport.invoiceReceiver.policyID : undefined;
     const invoiceReceiverPolicy = usePolicy(invoiceReceiverPolicyID);
 
-    const isAnyTransactionOnHold = hasHeldExpensesReportUtils(transactions);
-
-    // Same derivation as ApprovePrimaryAction: the non-held amount only excludes non-reimbursables when a Pay button would show.
     const canIOUBePaid = canIOUBePaidAction(
         iouReport,
         chatReport,
@@ -62,8 +61,7 @@ function ApproveActionCell({isLoading, reportID, hash, shouldDisablePointerEvent
         bankAccountList,
         currentUserDetails.login ?? '',
         currentUserDetails.accountID,
-        // `undefined` (not the row's transactions) matches ApprovePrimaryAction, so Spend and the report header
-        // derive shouldShowPayButton — and therefore the displayed approval amounts — identically.
+        // Matches ApprovePrimaryAction so Spend and the report header show the same approval amounts.
         undefined,
         false,
         undefined,
@@ -84,8 +82,12 @@ function ApproveActionCell({isLoading, reportID, hash, shouldDisablePointerEvent
             invoiceReceiverPolicy,
         );
 
-    // Search rows have no approval animation, but they do need the optimistic data that drops the row from the results.
-    const {onApprove} = useConfirmApproval(reportID, () => {}, hash === undefined ? undefined : () => getSearchApproveOnyxData(hash, reportID, currentSearchKey));
+    const {onApprove, isAnyTransactionOnHold} = useConfirmApproval(reportID, () => {}, {
+        getAdditionalOnyxData: hash === undefined ? undefined : () => getSearchApproveOnyxData(hash, reportID, currentSearchKey),
+        fallbackReport: snapshotReport,
+        fallbackPolicy: snapshotPolicy,
+        fallbackTransactions: snapshotTransactions,
+    });
 
     return (
         <SearchScopeProvider isOnSearch={false}>

@@ -81,9 +81,7 @@ function ProcessMoneyReportHoldMenu({
             onClose={onClose}
             isVisible={isVisible}
             prompt={promptText}
-            // Callers pass `undefined` when the non-held amount isn't meaningfully different from the full amount, so
-            // gate on the amount itself rather than on `hasNonHeldExpenses` — otherwise a report whose unheld expenses
-            // net out to nothing offers a partial option for a zero amount.
+            // Callers pass undefined when there is no meaningful partial amount to offer.
             firstOptionText={nonHeldAmount !== undefined ? `${translate('iou.payOnly')} ${nonHeldAmount}` : undefined}
             secondOptionText={`${translate('iou.pay')} ${fullAmount}`}
             onFirstOptionSubmit={() => onSubmit(false)}

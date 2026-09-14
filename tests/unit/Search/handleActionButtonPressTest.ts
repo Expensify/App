@@ -364,8 +364,6 @@ describe('handleActionButtonPress', () => {
         expect(goToItem).not.toHaveBeenCalled();
     });
 
-    // The partial/full choice is now surfaced up front by ApproveActionCell's dropdown, so reaching this path means the
-    // full report was chosen. It must approve directly rather than opening the hold menu, which is pay-only.
     test('Should approve the full report when the report has one transaction on hold and action is approve', () => {
         const approveMoneyRequestMock = jest.spyOn(ReportWorkflow, 'approveMoneyRequest').mockImplementation(jest.fn());
         handleActionButtonPress({

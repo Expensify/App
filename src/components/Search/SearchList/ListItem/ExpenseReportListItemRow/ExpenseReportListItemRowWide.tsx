@@ -291,6 +291,7 @@ function ExpenseReportListItemRowWide({
                         chatReport={chatReport}
                         shouldShowMarkAsDoneCopy={shouldShowMarkAsDoneCopy}
                         shouldDisablePointerEvents={isPendingDelete || shouldDisableActionPointerEvents}
+                        snapshotTransactions={item.transactions}
                     />
                 </ReportSubmitToPopoverMeasurableAnchor>
             </View>

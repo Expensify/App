@@ -329,7 +329,7 @@ function handleActionButtonPress({
         hasHeldExpense &&
         item.action !== CONST.SEARCH.ACTION_TYPES.SUBMIT &&
         item.action !== CONST.SEARCH.ACTION_TYPES.UNDELETE &&
-        // Approve is excluded: ApproveActionCell renders its own dropdown for held expenses and never routes here.
+        // ApproveActionCell handles held expenses itself.
         item.action !== CONST.SEARCH.ACTION_TYPES.APPROVE
     ) {
         goToItem();

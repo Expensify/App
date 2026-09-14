@@ -88,9 +88,7 @@ function HoldMenuModalWrapper({
             onClose={() => setIsVisible(false)}
             isVisible={isVisible}
             prompt={approvalPrompt}
-            // Callers pass `undefined` when the non-held amount isn't meaningfully different from the full amount, so
-            // gate on the amount itself rather than on `hasNonHeldExpenses` — otherwise a report whose unheld expenses
-            // net out to nothing offers a partial option for a zero amount.
+            // Callers pass undefined when there is no meaningful partial amount to offer.
             firstOptionText={nonHeldAmount !== undefined ? `${translate(isApprove ? 'iou.approveOnly' : 'iou.payOnly')} ${nonHeldAmount}` : undefined}
             secondOptionText={`${translate(isApprove ? 'iou.approve' : 'iou.pay')} ${fullAmount}`}
             onFirstOptionSubmit={() => onSubmit(false)}

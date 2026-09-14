@@ -51,9 +51,7 @@ describe('HoldMenuModalWrapper', () => {
     });
 
     it('omits the partial option when the non-held amount is not meaningful, even though non-held expenses exist', () => {
-        // Regression for https://github.com/Expensify/App/issues/100639: the report still has an unheld expense, but
-        // its amount nets out against the held one, so the caller sends `undefined` rather than an amount. The modal
-        // must not fall back to rendering a zero amount.
+        // Regression for https://github.com/Expensify/App/issues/100639
         renderWrapper({nonHeldAmount: undefined, hasNonHeldExpenses: true});
 
         expect(mockDecisionModalProps?.firstOptionText).toBeUndefined();
