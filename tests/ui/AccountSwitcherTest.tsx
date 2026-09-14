@@ -164,7 +164,7 @@ describe('AccountSwitcher', () => {
     });
 
     it('reserves the Switch button row while an account switch reloads the account data', async () => {
-        await addDelegator();
+        await addDelegators();
 
         renderAccountSwitcher();
         await waitForBatchedUpdatesWithAct();
@@ -195,7 +195,7 @@ describe('AccountSwitcher', () => {
     });
 
     it('releases the reserved Switch button row when a delegator revokes access', async () => {
-        await addDelegator();
+        await addDelegators();
 
         renderAccountSwitcher();
         await waitForBatchedUpdatesWithAct();
