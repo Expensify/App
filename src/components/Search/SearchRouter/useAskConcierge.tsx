@@ -1,5 +1,6 @@
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
+import useIsInSidePanel from '@hooks/useIsInSidePanel';
 import useOnyx from '@hooks/useOnyx';
 import useOpenConciergeAnywhere from '@hooks/useOpenConciergeAnywhere';
 import usePermissions from '@hooks/usePermissions';
@@ -33,11 +34,12 @@ function useAskConcierge({forceConcierge = false}: {forceConcierge?: boolean} = 
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
     const delegateAccountID = useDelegateAccountID();
     const {isBetaEnabled} = usePermissions();
+    const isAskedFromSidePanel = useIsInSidePanel();
     const shouldShowAskConcierge = !!targetReportID && !!targetReport;
 
     // Concierge answers each question in its own thread. The side panel renders its own pinned report,
-    // so it stays in the DM rather than being sent to a thread it cannot show.
-    const shouldRespondInThread = targetReportID === conciergeReportID && !isInSidePanel && isBetaEnabled(CONST.BETAS.CONCIERGE_RESPOND_IN_THREAD);
+    // so a question asked from inside it stays in the DM rather than being sent to a thread it cannot show.
+    const shouldRespondInThread = targetReportID === conciergeReportID && !isAskedFromSidePanel && isBetaEnabled(CONST.BETAS.CONCIERGE_RESPOND_IN_THREAD);
 
     const askConcierge = (searchQuery: string) => {
         const trimmedQuery = searchQuery.trim();
