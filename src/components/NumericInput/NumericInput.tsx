@@ -1,9 +1,13 @@
 import {useNumericEditingController} from '@components/NumericEditingController';
 import type {NumericEditingRef} from '@components/NumericEditingController';
+import ScrollView from '@components/ScrollView';
 import isTextInputFocused from '@components/TextInput/BaseTextInput/isTextInputFocused';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 
+import useThemeStyles from '@hooks/useThemeStyles';
+
 import type {ForwardedRef, ReactNode} from 'react';
+import type {StyleProp, ViewStyle} from 'react-native';
 
 import {useImperativeHandle, useRef} from 'react';
 
@@ -42,11 +46,18 @@ type NumericInputProps = {
     /** Ref exposing the number editing imperative API. */
     ref?: ForwardedRef<NumericEditingRef>;
 
+    /** Style applied to the form scroll view. */
+    style?: StyleProp<ViewStyle>;
+
+    /** Additional styles applied to the form scroll view content container. */
+    scrollViewStyle?: StyleProp<ViewStyle>;
+
     /** Composed primitives that consume NumericInput state and actions through context. */
     children: ReactNode;
 };
 
-function NumericInput({value = '', onInputChange, allowNegative = false, decimals = 0, maxLength, errorText, ref, children}: NumericInputProps) {
+function NumericInput({value = '', onInputChange, allowNegative = false, decimals = 0, maxLength, errorText, ref, style, scrollViewStyle, children}: NumericInputProps) {
+    const styles = useThemeStyles();
     const inputRef = useRef<BaseTextInputRef | null>(null);
     const controller = useNumericEditingController({
         value,
@@ -113,7 +124,14 @@ function NumericInput({value = '', onInputChange, allowNegative = false, decimal
 
     return (
         <NumericInputStateContext.Provider value={stateContextValue}>
-            <NumericInputActionsContext.Provider value={actionsContextValue}>{children}</NumericInputActionsContext.Provider>
+            <NumericInputActionsContext.Provider value={actionsContextValue}>
+                <ScrollView
+                    contentContainerStyle={[styles.flexGrow1, scrollViewStyle]}
+                    style={style}
+                >
+                    {children}
+                </ScrollView>
+            </NumericInputActionsContext.Provider>
         </NumericInputStateContext.Provider>
     );
 }
