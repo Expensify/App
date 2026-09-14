@@ -110,8 +110,11 @@ For example, RuleBot might:
 
 1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Workspaces > [Workspace name]**
 2. Click **Rules**.
-3. In the **Agent Rules** section, select the AI rule you want to remove.
-4. Click **Delete**.
+3. In the **Agent rules** section, select the AI rule you want to remove.
+4. Click the trashcan icon in the top-right corner of the rule.
+5. In the **Delete rule** confirmation, click **Delete**.
+
+The trashcan icon only appears on a rule that has already been saved. A rule you are still creating has nothing to delete, so no trashcan icon is shown.
 
 Deleting an Agent rule stops RuleBot from enforcing that rule on future report activity.
 
