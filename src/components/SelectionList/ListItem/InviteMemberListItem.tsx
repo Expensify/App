@@ -42,6 +42,7 @@ function InviteMemberListItem<TItem extends ListItem>({
     const accountID = !item.reportID ? item.accountID || firstItemIconID : undefined;
 
     const shouldShowSelectionButton = !item.shouldHideSelectionButton && !(item.isDisabled && !item.isSelected);
+    const shouldDisplayRBR = !(canSelectMultiple && !item.isDisabled) && shouldShowRBRIndicator(item);
 
     return (
         <ListItemComposed
@@ -94,7 +95,7 @@ function InviteMemberListItem<TItem extends ListItem>({
                     </View>
                     {item.rightElement}
                 </View>
-                {!(canSelectMultiple && !item.isDisabled) && shouldShowRBRIndicator(item) && <ListItemComposed.RBRIndicator item={item} />}
+                {shouldDisplayRBR && <ListItemComposed.RBRIndicator item={item} />}
                 {shouldShowSelectionButton && (
                     <ListItemComposed.SelectionButton
                         item={item}
