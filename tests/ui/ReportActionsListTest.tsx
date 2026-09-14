@@ -1,5 +1,7 @@
 import {act, fireEvent, render, screen} from '@testing-library/react-native';
 
+import allowLegendListItemOverflow from '@components/LegendList/allowLegendListItemOverflow';
+
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useIsReportLoadPending} from '@hooks/useInFlightRequests';
 /* eslint-disable @typescript-eslint/no-unsafe-type-assertion */
@@ -27,6 +29,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import {reportActionsListLoadingStateSelector} from '@src/selectors/ReportMetaData';
 import type * as OnyxTypes from '@src/types/onyx';
 
+import type {OnViewableItemsChangedInfo} from '@legendapp/list/react-native';
 import type * as ReactNavigation from '@react-navigation/native';
 
 import React from 'react';
@@ -62,6 +65,7 @@ jest.mock('@hooks/useParentReportAction', () => jest.fn());
 jest.mock('@hooks/useIsInSidePanel', () => jest.fn());
 jest.mock('@hooks/useSidePanelState', () => jest.fn());
 jest.mock('@hooks/useReportTransactionsCollection', () => jest.fn());
+jest.mock('@components/LegendList/allowLegendListItemOverflow', () => jest.fn());
 jest.mock('@pages/inbox/ConciergeSessionContext', () => ({
     useConciergeSessionState: jest.fn(),
     useConciergeSessionActions: jest.fn(),
@@ -85,6 +89,7 @@ const mockUseConciergeDraft = useConciergeDraft as jest.MockedFunction<typeof us
 const mockUseConciergeDraftActions = useConciergeDraftActions as jest.MockedFunction<typeof useConciergeDraftActions>;
 const mockUseConciergeSessionState = useConciergeSessionState as jest.MockedFunction<typeof useConciergeSessionState>;
 const mockUseConciergeSessionActions = useConciergeSessionActions as jest.MockedFunction<typeof useConciergeSessionActions>;
+const mockAllowLegendListItemOverflow = allowLegendListItemOverflow as jest.MockedFunction<typeof allowLegendListItemOverflow>;
 
 function getMockReportLoadingState(
     selector: unknown,
@@ -219,6 +224,7 @@ type MockLegendListProps = {
     ListFooterComponentStyle?: unknown;
     onLoad?: () => void;
     onContentSizeChange?: (width: number, height: number) => void;
+    onViewableItemsChanged?: (info: OnViewableItemsChangedInfo<OnyxTypes.ReportAction>) => void;
     recycleItems?: boolean;
     renderItem?: (info: {item: OnyxTypes.ReportAction; index: number}) => React.ReactElement | null;
     onStartReached?: () => void;
@@ -619,6 +625,33 @@ describe('ReportActionsList (body)', () => {
 
         expect(listProps?.drawDistance).toBe(1500);
         expect(listProps?.recycleItems).toBe(true);
+    });
+
+    it('allows visible report action menus to overflow their LegendList item containers', () => {
+        mockUseNetwork.mockReturnValue({isOffline: false});
+        renderReportActionsList();
+        const hiddenAction = mockReportActions.at(0);
+        const visibleAction = mockReportActions.at(1);
+        if (!hiddenAction || !visibleAction) {
+            throw new Error('Expected report action fixtures');
+        }
+
+        act(() => {
+            getCapturedListProps()?.onViewableItemsChanged?.({
+                changed: [
+                    {containerId: 1, index: 1, isViewable: true, item: visibleAction, key: '1'},
+                    {containerId: 0, index: 0, isViewable: false, item: hiddenAction, key: '0'},
+                ],
+                end: 1,
+                endBuffered: 1,
+                start: 0,
+                startBuffered: 0,
+                viewableItems: [],
+            });
+        });
+
+        expect(mockAllowLegendListItemOverflow).toHaveBeenCalledTimes(1);
+        expect(mockAllowLegendListItemOverflow).toHaveBeenCalledWith(null, 1);
     });
 
     it('groups comments by layout characteristics for measurement estimates', () => {

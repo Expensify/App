@@ -1,5 +1,6 @@
 import {renderScrollComponent as renderActionSheetAwareScrollView} from '@components/ActionSheetAwareScrollView';
 import type {ActionListRef} from '@components/FlashList/types';
+import allowLegendListItemOverflow from '@components/LegendList/allowLegendListItemOverflow';
 import MerchantRuleSuggestionBanner from '@components/MerchantRuleSuggestionBanner';
 import {ReportActionsAnimatedSkeletonCover} from '@components/ReportActionsSkeletonCover';
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
@@ -57,7 +58,7 @@ import type SCREENS from '@src/SCREENS';
 import {getStableReportSelector} from '@src/selectors/Report';
 import type * as OnyxTypes from '@src/types/onyx';
 
-import type {LegendListRef, LegendListRenderItemProps} from '@legendapp/list/react-native';
+import type {LegendListRef, LegendListRenderItemProps, OnViewableItemsChangedInfo} from '@legendapp/list/react-native';
 import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 
@@ -421,6 +422,16 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
 
     const shouldShowInitialViewportSkeleton = !isOffline && (isInitialReportLoadPending || loadedInitialViewportListID !== listID);
 
+    const handleViewableItemsChanged = (info: OnViewableItemsChangedInfo<OnyxTypes.ReportAction>) => {
+        onViewableItemsChanged(info);
+        for (const item of info.changed) {
+            if (!item.isViewable) {
+                continue;
+            }
+            allowLegendListItemOverflow(legendListRef.current, item.index);
+        }
+    };
+
     const handleListLoad = () => {
         onLoad();
         setLoadedInitialViewportListID(listID);
@@ -635,7 +646,7 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
                             keyboardShouldPersistTaps="handled"
                             onLayout={recordTimeToMeasureItemLayout}
                             onScroll={trackScrollPositionAndThreshold}
-                            onViewableItemsChanged={onViewableItemsChanged}
+                            onViewableItemsChanged={handleViewableItemsChanged}
                             extraData={extraData}
                             key={listID}
                             getItemType={getItemType}
