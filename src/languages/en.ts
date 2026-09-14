@@ -563,6 +563,7 @@ const translations = {
                 createExpense: 'Create an expense for a $30 lunch',
                 combineExpenses: 'Combine all my open expenses into one report',
                 exportPdf: 'Export my last report to PDF',
+                exportCsv: 'Give me a CSV of my expenses over $50',
             },
         },
         vacationDelegate: 'Vacation delegate',

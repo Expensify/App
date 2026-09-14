@@ -510,6 +510,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 createExpense: '创建一笔 30 美元的午餐支出',
                 combineExpenses: '把我所有未处理的支出合并到一个报告中',
                 exportPdf: '将我最近的报告导出为 PDF',
+                exportCsv: '给我一份超过 50 美元的支出 CSV',
             },
         },
         duplicateReport: '重复报销单',
