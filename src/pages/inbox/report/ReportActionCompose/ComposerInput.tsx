@@ -32,6 +32,24 @@ import useComposerSubmit from './useComposerSubmit';
 
 const AI_PLACEHOLDER_KEYS = ['reportActionCompose.askConciergeToUpdate', 'reportActionCompose.askConciergeToCorrect', 'reportActionCompose.askConciergeForHelp'] as const;
 
+const ASK_CONCIERGE_PLACEHOLDER_KEYS = [
+    'common.concierge.composerPlaceholders.spendLastMonth',
+    'common.concierge.composerPlaceholders.topExpenses',
+    'common.concierge.composerPlaceholders.spendDrivers',
+    'common.concierge.composerPlaceholders.travelSpendChange',
+    'common.concierge.composerPlaceholders.topSpender',
+    'common.concierge.composerPlaceholders.missingCategory',
+    'common.concierge.composerPlaceholders.awaitingApproval',
+    'common.concierge.composerPlaceholders.notReimbursed',
+    'common.concierge.composerPlaceholders.unsubmitted',
+    'common.concierge.composerPlaceholders.leftToPay',
+    'common.concierge.composerPlaceholders.createExpense',
+    'common.concierge.composerPlaceholders.combineExpenses',
+    'common.concierge.composerPlaceholders.exportPdf',
+    'common.concierge.composerPlaceholders.exportCsv',
+    'reportActionCompose.askConciergeForHelp',
+] as const;
+
 function getRandomPlaceholder(translate: LocalizedTranslate): string {
     const randomIndex = Math.floor(Math.random() * AI_PLACEHOLDER_KEYS.length);
     return translate(AI_PLACEHOLDER_KEYS[randomIndex]);
@@ -70,7 +88,7 @@ function ComposerInput() {
     const isReportArchived = useReportIsArchived(report?.reportID);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const isAskConciergeChat = !!reportID && reportID === conciergeReportID && isBetaEnabled(CONST.BETAS.CONCIERGE_RESPOND_IN_THREAD);
-    const askConciergePlaceholderKey = useRef(AI_PLACEHOLDER_KEYS[Math.floor(Math.random() * AI_PLACEHOLDER_KEYS.length)]).current;
+    const askConciergePlaceholderKey = useRef(ASK_CONCIERGE_PLACEHOLDER_KEYS[Math.floor(Math.random() * ASK_CONCIERGE_PLACEHOLDER_KEYS.length)]).current;
 
     const includesConcierge = chatIncludesConcierge({participants: report?.participants});
     const isGroupPolicyReport = !!report?.policyID && report.policyID !== CONST.POLICY.ID_FAKE;
