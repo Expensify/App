@@ -662,15 +662,7 @@ function getRateMatchingCurrentRate(mileageRates: Record<string, MileageRate>, c
  * Let's ensure this logic is consistent with the logic in the backend (Auth), which is authoritative here. The app computes the
  * same answer only to build optimistic data.
  */
-function getRateForPolicyChange({
-    transaction,
-    policy,
-    currentRate,
-}: {
-    transaction: OnyxEntry<Transaction>;
-    policy: OnyxEntry<Policy>;
-    currentRate?: MileageRate;
-}): MileageRate | undefined {
+function getRateForPolicyChange({transaction, policy, currentRate}: {transaction: OnyxEntry<Transaction>; policy: OnyxEntry<Policy>; currentRate?: MileageRate}): MileageRate | undefined {
     const expenseDate = getFormattedCreated(transaction);
     const mileageRates = getMileageRates(policy);
     const rateToMatch = currentRate ?? (isCustomUnitRateIDForP2P(transaction) ? getRateForP2P(getCurrency(transaction), transaction) : undefined);
