@@ -22,29 +22,21 @@ function useScreenBoundDynamicRoute(): (dynamicRouteSuffixWithParams: string) =>
     const route = useContext(NavigationRouteContext);
     const [focusedBasePath, setFocusedBasePath] = useState<string | undefined>();
     useFocusEffect(() => {
-        const latch = () => {
+        // Until the root state carries this route, getActiveRoute renders the screen as the bare root or its dynamic
+        // suffix alone, and setParams changes the route in place, so keep syncing on every state event while focused.
+        const key = route?.key;
+        const sync = () => {
+            if (key && !(navigationRef.isReady() && isRouteInState(navigationRef.getRootState(), key))) {
+                return;
+            }
             const activeRoute = Navigation.getActiveRoute();
-            if (!activeRoute || activeRoute === '/') {
+            if (!activeRoute) {
                 return;
             }
             setFocusedBasePath(activeRoute);
         };
-        // getActiveRoute returns an empty string before the container is ready, and until the root state carries a
-        // freshly mounted navigator it renders the screen as the bare root or its dynamic suffix alone. Latch only once
-        // this route is in the root state; isReady keeps getRootState quiet on an unattached ref.
-        const key = route?.key;
-        if (!key || !navigationRef.isReady() || isRouteInState(navigationRef.getRootState(), key)) {
-            latch();
-            return;
-        }
-        const unsubscribe = navigationRef.addListener('state', () => {
-            if (!isRouteInState(navigationRef.getRootState(), key)) {
-                return;
-            }
-            unsubscribe();
-            latch();
-        });
-        return unsubscribe;
+        sync();
+        return navigationRef.addListener('state', sync);
     });
 
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing

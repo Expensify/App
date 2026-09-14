@@ -12,6 +12,7 @@ import type ResponsiveLayoutResult from '@hooks/useResponsiveLayout/types';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import getStateFromPath from '@libs/Navigation/helpers/getStateFromPath';
 import Navigation from '@libs/Navigation/Navigation';
+import appNavigationRef from '@libs/Navigation/navigationRef';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 
 import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
@@ -123,7 +124,7 @@ describe('WorkspaceCategories', () => {
         await act(async () => {
             await Onyx.clear();
         });
-        jest.clearAllMocks();
+        jest.restoreAllMocks();
     });
 
     it('should delete categories through UI interactions', async () => {
@@ -339,6 +340,9 @@ describe('WorkspaceCategories', () => {
 
         const getActiveRoute = jest.spyOn(Navigation, 'getActiveRoute').mockReturnValue(ROUTES.WORKSPACE_CATEGORIES.getRoute(policy.id));
         const navigate = jest.spyOn(Navigation, 'navigate').mockImplementation(() => {});
+        jest.spyOn(appNavigationRef, 'isReady').mockReturnValue(true);
+        jest.spyOn(appNavigationRef, 'getRootState').mockImplementation(() => navigationRef.getRootState());
+        jest.spyOn(appNavigationRef, 'addListener').mockImplementation((event, callback) => navigationRef.addListener(event, callback));
 
         const {unmount} = renderPageUnderStackedScreen({policyID: policy.id});
 
