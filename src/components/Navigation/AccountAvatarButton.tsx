@@ -5,38 +5,30 @@ import Tooltip from '@components/Tooltip';
 import EducationalTooltip from '@components/Tooltip/EducationalTooltip';
 
 import useAccountTabIndicatorStatus from '@hooks/useAccountTabIndicatorStatus';
+import useIsAnonymousUser from '@hooks/useIsAnonymousUser';
 import useLocalize from '@hooks/useLocalize';
-import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import useRootNavigationState from '@hooks/useRootNavigationState';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import {getTabState} from '@libs/Navigation/helpers/tabNavigatorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 
-import {isAnonymousUser} from '@userActions/Session';
-
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
-import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Session} from '@src/types/onyx';
-
-import type {OnyxEntry} from 'react-native-onyx';
 
 import {useIsFocused} from '@react-navigation/native';
 import React from 'react';
-
-const authTokenTypeSelector = (session: OnyxEntry<Session>) => session && {authTokenType: session.authTokenType};
 
 /**
  * Avatar of the signed-in user that navigates to the Account tab.
  */
 function AccountAvatarButton() {
     const {isBetaEnabled} = usePermissions();
-    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
 
-    if (!isBetaEnabled(CONST.BETAS.INSIGHTS_PAGE) || isAnonymousUser(session)) {
+    if (!isBetaEnabled(CONST.BETAS.INSIGHTS_PAGE)) {
         return null;
     }
 
@@ -47,6 +39,7 @@ function AccountAvatarButtonContent() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {status} = useAccountTabIndicatorStatus();
+    const isAnonymousUser = useIsAnonymousUser();
     const isFocused = useIsFocused();
 
     const isSelected = useRootNavigationState((rootState) => {
@@ -56,7 +49,7 @@ function AccountAvatarButtonContent() {
 
     const {shouldShowProductTrainingTooltip, renderProductTrainingTooltip, hideProductTrainingTooltip} = useProductTrainingContext(
         CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.ACCOUNT_MOVED_TO_TOP_BAR,
-        isFocused,
+        isFocused && !isAnonymousUser,
     );
 
     const navigateToAccount = () => {
@@ -64,7 +57,9 @@ function AccountAvatarButtonContent() {
         if (isSelected) {
             return;
         }
-        Navigation.navigate(ROUTES.SETTINGS);
+        interceptAnonymousUser(() => {
+            Navigation.navigate(ROUTES.SETTINGS);
+        });
     };
 
     const TooltipToRender = shouldShowProductTrainingTooltip ? EducationalTooltip : Tooltip;
