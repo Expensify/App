@@ -14,8 +14,9 @@ type ConnectToBusinessCentralFlowProps = {
 };
 
 function ConnectToBusinessCentralFlow({policyID}: ConnectToBusinessCentralFlowProps) {
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
-    const hasAuthenticationError = isAuthenticationError(policy, CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL);
+    const [hasAuthenticationError] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+        selector: (policy) => isAuthenticationError(policy, CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL),
+    });
 
     useEffect(() => {
         // An admin re-entering credentials after an authentication failure has already met the prerequisites
