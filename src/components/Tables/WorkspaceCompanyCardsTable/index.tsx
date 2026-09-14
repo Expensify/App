@@ -234,8 +234,12 @@ function WorkspaceCompanyCardsTable({
                       errors: isFeedConnectionBroken || assignedCard?.pendingFields?.lastScrape ? undefined : assignedCard?.errors,
                       pendingAction: assignedCard?.pendingAction,
                       canEditName,
-                      onRenameName: (newName: string) =>
-                          renameCompanyCardInline(domainOrWorkspaceAccountID, String(cardID), newName, bankName as NonNullable<typeof bankName>, customCardName),
+                      onRenameName: (newName: string) => {
+                          if (!bankName || cardID === undefined) {
+                              return;
+                          }
+                          renameCompanyCardInline(domainOrWorkspaceAccountID, String(cardID), newName, bankName, customCardName);
+                      },
                       onDismissError: () => resetFailedWorkspaceCompanyCardUnassignment(domainOrWorkspaceAccountID, bankName, assignedCard?.cardID),
                   };
               })
