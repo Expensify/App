@@ -1116,13 +1116,7 @@ function MenuItem({
                                                     </View>
                                                 </View>
                                             </View>
-                                            <View
-                                                style={[
-                                                    styles.flexRow,
-                                                    StyleUtils.getMenuItemTextContainerStyle(isCompact),
-                                                    !hasPressableRightComponent && !isTitleSelectable && styles.pointerEventsNone,
-                                                ]}
-                                            >
+                                            <View style={[styles.flexRow, StyleUtils.getMenuItemTextContainerStyle(isCompact), !hasPressableRightComponent && styles.pointerEventsNone]}>
                                                 {!!badgeText && !shouldShowBadgeInSeparateRow && !shouldShowBadgeBelow && (
                                                     <Badge
                                                         text={badgeText}
