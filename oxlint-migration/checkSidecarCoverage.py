@@ -19,6 +19,7 @@ rule that is not an enabled sidecar rule, since a stale entry proves nothing.
 """
 
 import argparse
+import glob
 import json
 import os
 import shutil
@@ -82,8 +83,10 @@ def enabled_sidecar_rules():
 
 
 def fixture_evidence():
-    """oxlint rule id -> the fixture that violates it."""
+    """oxlint rule id -> the fixture that violates it, including the fragments/ shards."""
     manifest = json.load(open(MANIFEST))
+    for path in sorted(glob.glob(os.path.join(os.path.dirname(MANIFEST), 'fragments', '*.manifest.json'))):
+        manifest.update(json.load(open(path)))
     return {entry['oxlintRule']: entry['fixture'] for entry in manifest.values()}
 
 

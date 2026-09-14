@@ -193,3 +193,4 @@ oxlint-migration/dep-only-api.json
 
 # Python caches from the oxlint-migration comparison scripts
 __pycache__/
+oxlint-migration/port-probe/oxlint.fixtures.merged*.json

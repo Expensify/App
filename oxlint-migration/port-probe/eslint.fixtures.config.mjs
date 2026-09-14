@@ -1,12 +1,33 @@
 import js from '@eslint/js';
+import fs from 'node:fs';
 import {createRequire} from 'node:module';
 import path from 'node:path';
-import {fileURLToPath} from 'node:url';
+import {fileURLToPath, pathToFileURL} from 'node:url';
 import tseslint from 'typescript-eslint';
 
 const require = createRequire(import.meta.url);
 const here = path.dirname(fileURLToPath(import.meta.url));
 const fromRepo = (relative) => require(path.resolve(here, '../..', relative));
+
+// Batches land as shards under fragments/: every <batch>.eslint.mjs exports an array of flat-config
+// objects appended after the shared ones below, so no two batches ever edit this file. A shard must
+// scope its entries to its own fixture files, exactly as the scoped blocks here do.
+async function fragmentConfigs() {
+    const dir = path.join(here, 'fragments');
+    if (!fs.existsSync(dir)) {
+        return [];
+    }
+    const shards = fs
+        .readdirSync(dir)
+        .filter((name) => name.endsWith('.eslint.mjs'))
+        .sort();
+    const configs = [];
+    for (const name of shards) {
+        const mod = await import(pathToFileURL(path.join(dir, name)).href);
+        configs.push(...(Array.isArray(mod.default) ? mod.default : [mod.default]));
+    }
+    return configs;
+}
 
 // Loaded through require() so CJS/ESM interop differences between these plugins do not matter.
 const react = fromRepo('node_modules/eslint-plugin-react');
@@ -25,7 +46,7 @@ const reactHooks = fromRepo('node_modules/eslint-config-expensify/node_modules/e
 
 const plugin = (mod) => ({rules: (mod?.rules ?? mod?.default?.rules) || {}});
 
-export default [
+const shared = [
     js.configs.recommended,
     {
         files: ['**/*.ts', '**/*.tsx'],
@@ -229,3 +250,5 @@ export default [
         },
     },
 ];
+
+export default [...shared, ...(await fragmentConfigs())];
