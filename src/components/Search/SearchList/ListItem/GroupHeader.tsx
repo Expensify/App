@@ -19,6 +19,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import type {TransactionPreviewData} from '@libs/actions/Search';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import type {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
+import {queryHasViolationFilter} from '@libs/SearchQueryUtils';
 import {getColumnsToShow} from '@libs/SearchUIUtils';
 import {isDeletedTransaction, isTransactionPendingDelete} from '@libs/TransactionUtils';
 
@@ -138,8 +139,9 @@ function GroupHeader({
             data: snapshotData,
             visibleColumns,
             type: snapshotSearchType,
+            shouldShowViolationsColumn: queryHasViolationFilter(groupItem.transactionsQueryJSON),
         });
-    }, [isExpenseReportType, columns, snapshotData, snapshotSearchType, currentUserDetails.accountID, visibleColumns]);
+    }, [isExpenseReportType, columns, snapshotData, snapshotSearchType, currentUserDetails.accountID, visibleColumns, groupItem.transactionsQueryJSON]);
 
     const {isSubHeaderAmountColumnWide, isSubHeaderTaxAmountColumnWide, shouldSubHeaderShowYear, isSubHeaderActionColumnWide} = useMemo(() => {
         let amountWide = false;

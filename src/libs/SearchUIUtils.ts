@@ -6696,6 +6696,7 @@ function getColumnsToShow({
     isPolicyTaxEnabled = false,
     fallbackPolicyID,
     sortBy,
+    shouldShowViolationsColumn = false,
 }: {
     currentAccountID: number | undefined;
     data: OnyxTypes.SearchResults['data'] | OnyxTypes.Transaction[];
@@ -6713,6 +6714,7 @@ function getColumnsToShow({
     isPolicyTaxEnabled?: boolean;
     fallbackPolicyID?: string;
     sortBy?: SearchSortBy;
+    shouldShowViolationsColumn?: boolean;
 }): SearchColumnType[] {
     const reportCustomColumns = new Set<SearchColumnType>([
         CONST.SEARCH.TABLE_COLUMNS.SUBMITTER_USER_ID,
@@ -7017,7 +7019,8 @@ function getColumnsToShow({
             columns[CONST.SEARCH.TABLE_COLUMNS.TAG] = !isExpenseReportViewFromIOUReport;
         }
 
-        if (!isExpenseReportView && !Array.isArray(data)) {
+        // Only show violations column when the query explicitly filters for those violations.
+        if (shouldShowViolationsColumn && !isExpenseReportView && !Array.isArray(data)) {
             const reportActions = Object.values(data[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transaction.reportID}`] ?? {});
             if (getSubmittedViolationsForTransaction(reportActions, transaction.transactionID) || getApprovedViolationsForTransaction(reportActions, transaction.transactionID)) {
                 columns[CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS] = true;
@@ -7139,6 +7142,9 @@ function getColumnsToShow({
     }
 
     if (customResult) {
+        if (!shouldShowViolationsColumn) {
+            return customResult.filter((column) => column !== CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS);
+        }
         if (columns[CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS]) {
             insertColumnBeforeTotalAmount(customResult, CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS);
         }

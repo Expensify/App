@@ -20,14 +20,15 @@ function SearchColumnsPage() {
     const groupBy = searchAdvancedFiltersForm?.groupBy;
     const queryType = searchAdvancedFiltersForm?.type ?? CONST.SEARCH.DATA_TYPES.EXPENSE;
 
-    const allTypeCustomColumns = getCustomColumns(queryType);
-    const allGroupCustomColumns = getCustomColumns(groupBy);
-    const defaultGroupCustomColumns = getCustomColumnDefault(groupBy);
-    const defaultTypeCustomColumns = [...getCustomColumnDefault(queryType)];
+    // Violations data is only returned when these filters are set, so hide the column otherwise (#100877).
     const shouldRequireViolationsColumn =
         !!searchAdvancedFiltersForm?.has?.includes(CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION) || !!searchAdvancedFiltersForm?.has?.includes(CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION);
 
-    const currentColumns = [...(searchAdvancedFiltersForm?.columns ?? [])];
+    const allTypeCustomColumns = getCustomColumns(queryType).filter((column) => shouldRequireViolationsColumn || column !== CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS);
+    const allGroupCustomColumns = getCustomColumns(groupBy);
+    const defaultGroupCustomColumns = getCustomColumnDefault(groupBy);
+    const defaultTypeCustomColumns = [...getCustomColumnDefault(queryType)];
+    const currentColumns = [...(searchAdvancedFiltersForm?.columns ?? [])].filter((column) => shouldRequireViolationsColumn || column !== CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS);
 
     // We need at least one element with flex1 in the table to ensure the table looks good in the UI, so we don't allow removing the total columns
     // since it makes sense for them to show up in an expense management App and it fixes the layout issues.
