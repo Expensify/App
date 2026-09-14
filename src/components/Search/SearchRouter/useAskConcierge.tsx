@@ -38,7 +38,7 @@ function useAskConcierge({forceConcierge = false}: {forceConcierge?: boolean} = 
     const shouldShowAskConcierge = !!targetReportID && !!targetReport;
 
     // Concierge answers each question in its own thread. The side panel renders its own pinned report,
-    // so a question asked from inside it stays in the DM rather than being sent to a thread it cannot show.
+    // so it stays in the DM rather than being sent to a thread it cannot show.
     const shouldRespondInThread = targetReportID === conciergeReportID && !isAskedFromSidePanel && isBetaEnabled(CONST.BETAS.CONCIERGE_RESPOND_IN_THREAD);
 
     const askConcierge = (searchQuery: string) => {
@@ -46,7 +46,6 @@ function useAskConcierge({forceConcierge = false}: {forceConcierge?: boolean} = 
         if (!trimmedQuery || !shouldShowAskConcierge) {
             return;
         }
-        // addComment navigates to the thread it creates, so opening Concierge here would only fight it.
         const isTask = createTaskFromMarkdown({text: trimmedQuery, parentReport: targetReport, currentUserPersonalDetails, quickAction, delegateAccountID});
         if (isTask || !shouldRespondInThread) {
             openConciergeAnywhere({forceConcierge});
@@ -74,7 +73,6 @@ function useAskConcierge({forceConcierge = false}: {forceConcierge?: boolean} = 
             return;
         }
 
-        // Several attachments post one message each and stay in the DM, so only a single one lands in a thread.
         const willOpenThread = shouldRespondInThread && (!Array.isArray(attachments) || attachments.length === 1);
         if (!willOpenThread) {
             openConciergeAnywhere({forceConcierge});
