@@ -33,7 +33,7 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 import ruleMap
-from ruleMap import PORT_PLAN, ROOT, norm_es
+from ruleMap import PORT_PLAN, ROOT, norm_es_folded
 
 # What norm_es returns for a message with no ruleId.
 RULELESS = '<fatal/unused-directive>'
@@ -66,7 +66,7 @@ def locations(messages):
     """rule -> {(file, line)}. Both legs are already normalized to ESLint rule ids."""
     per_rule = collections.defaultdict(set)
     for message in messages:
-        per_rule[norm_es(message.get('ruleID'))].add((relative(message['filePath']), message['line']))
+        per_rule[norm_es_folded(message.get('ruleID'))].add((relative(message['filePath']), message['line']))
     return per_rule
 
 
@@ -74,8 +74,8 @@ def findings_table(ox_file, es_file):
     ox = read_messages(ox_file, 'oxlint')
     es = read_messages(es_file, 'eslint')
     ox_at, es_at = locations(ox), locations(es)
-    cox = collections.Counter(norm_es(m.get('ruleID')) for m in ox)
-    ces = collections.Counter(norm_es(m.get('ruleID')) for m in es)
+    cox = collections.Counter(norm_es_folded(m.get('ruleID')) for m in ox)
+    ces = collections.Counter(norm_es_folded(m.get('ruleID')) for m in es)
 
     print(f'{"rule":62} {"eslint":>7} {"oxlint":>7}')
     diffs, misplaced = [], []

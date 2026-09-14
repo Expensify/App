@@ -33,8 +33,8 @@ REPRESENTATIVE_FILES = [
 TS_EXTENSION_RULES = {
     'default-param-last', 'max-params', 'no-array-constructor', 'no-dupe-class-members',
     'no-empty-function', 'no-loop-func', 'no-loss-of-precision', 'no-redeclare',
-    'no-shadow', 'no-unused-expressions', 'no-unused-vars', 'no-use-before-define',
-    'no-useless-constructor',
+    'no-restricted-imports', 'no-shadow', 'no-unused-expressions', 'no-unused-vars',
+    'no-use-before-define', 'no-useless-constructor',
 }
 
 PORT_PLAN = {
@@ -180,6 +180,19 @@ def norm_es(rid):
         return '<fatal/unused-directive>'
     if rid.startswith('@typescript-eslint/no-deprecated/'):
         return '@typescript-eslint/no-deprecated'
+    return rid
+
+
+def norm_es_folded(rid):
+    """norm_es, plus folding a typescript-eslint extension rule onto the base rule oxlint runs.
+
+    Findings have to be counted this way or one rule lands in two rows: ESLint reports the OnyxUtils
+    ban under @typescript-eslint/no-restricted-imports and oxlint reports the identical finding under
+    plain no-restricted-imports, which reads as a 13-vs-0 gap next to a 84-vs-97 one.
+    """
+    rid = norm_es(rid)
+    if rid.startswith('@typescript-eslint/') and rid.split('/', 1)[1] in TS_EXTENSION_RULES:
+        return rid.split('/', 1)[1]
     return rid
 
 

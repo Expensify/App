@@ -867,7 +867,7 @@
 "../../src/libs/Navigation/AppNavigator/createRootStackNavigator/GetStateForActionHandlers.ts"	"@typescript-eslint/no-unsafe-type-assertion"	13
 "../../src/libs/Navigation/AppNavigator/createRootStackNavigator/GetStateForActionHandlers.ts"	"import/no-cycle"	1
 "../../src/libs/Navigation/AppNavigator/createRootStackNavigator/useCustomRootStackNavigatorState/restoreTabNavigatorRoutes.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/libs/Navigation/AppNavigator/createSplitNavigator/SplitRouter.ts"	"@typescript-eslint/no-unsafe-type-assertion"	4
+"../../src/libs/Navigation/AppNavigator/createSplitNavigator/SplitRouter.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../src/libs/Navigation/AppNavigator/createSplitNavigator/usePreserveNavigatorState.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	1
 "../../src/libs/Navigation/AppNavigator/createSplitNavigator/usePreserveNavigatorState.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/Navigation/AppNavigator/createWorkspaceNavigator/WorkspaceRouter.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
@@ -929,7 +929,7 @@
 "../../src/libs/Navigation/helpers/lastVisitedTabPathUtils/index.ts"	"import/no-cycle"	1
 "../../src/libs/Navigation/helpers/linkTo/getMinimalAction.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/Navigation/helpers/linkTo/index.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	2
-"../../src/libs/Navigation/helpers/linkTo/index.ts"	"@typescript-eslint/no-unsafe-type-assertion"	16
+"../../src/libs/Navigation/helpers/linkTo/index.ts"	"@typescript-eslint/no-unsafe-type-assertion"	15
 "../../src/libs/Navigation/helpers/linkTo/index.ts"	"import/no-cycle"	3
 "../../src/libs/Navigation/helpers/navigateToWorkspacesPage.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	1
 "../../src/libs/Navigation/helpers/navigateToWorkspacesPage.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
@@ -1357,7 +1357,6 @@
 "../../src/pages/workspace/accounting/netsuite/export/DynamicNetSuiteDateSelectPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/workspace/accounting/netsuite/export/DynamicNetSuiteExportExpensesDestinationSelectPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/workspace/accounting/netsuite/export/DynamicNetSuiteExportExpensesJournalPostingPreferenceSelectPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/pages/workspace/accounting/netsuite/export/DynamicNetSuiteInvoiceItemPreferenceSelectPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/workspace/accounting/netsuite/export/NetSuiteTravelBillingJournalPostingPreferenceSelectPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/workspace/accounting/netsuite/import/NetSuiteImportCustomersOrProjectSelectPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/workspace/accounting/netsuite/import/NetSuiteImportCustomersOrProjectsPage.tsx"	"@typescript-eslint/no-unnecessary-type-assertion"	1
@@ -1520,7 +1519,7 @@
 "../../src/stories/Form.stories.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	10
 "../../src/stories/ReportActionItemImages.stories.tsx"	"no-restricted-syntax"	1
 "../../src/styles/index.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/styles/index.ts"	"rulesdir/no-raw-typography"	28
+"../../src/styles/index.ts"	"rulesdir/no-raw-typography"	27
 "../../src/styles/theme/utils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/styles/utils/autoCompleteSuggestion/index.web.ts"	"no-restricted-syntax"	1
 "../../src/styles/utils/cursor/index.ts"	"@typescript-eslint/no-unsafe-type-assertion"	13
@@ -1616,12 +1615,15 @@
 "../../tests/actions/IOUTest/UpdateMoneyRequestVendorTest.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	1
 "../../tests/actions/MergeTransactionTest.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	3
 "../../tests/actions/OdometerTransactionUtilsTest.ts"	"no-restricted-imports"	1
+"../../tests/actions/OnyxUpdateManagerTest.ts"	"no-restricted-imports"	1
+"../../tests/actions/PolicyCategoryTest.ts"	"no-restricted-imports"	1
 "../../tests/actions/PolicyProfileTest.ts"	"no-restricted-imports"	1
+"../../tests/actions/PolicyTagTest.ts"	"no-restricted-imports"	1
 "../../tests/actions/PolicyTaxTest.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	8
 "../../tests/actions/PolicyTest.ts"	"no-restricted-imports"	1
 "../../tests/actions/ReportFieldTest.ts"	"no-restricted-imports"	1
 "../../tests/actions/ReportPreviewActionUtilsTest.ts"	"no-restricted-imports"	2
-"../../tests/actions/ReportTest.ts"	"no-restricted-imports"	1
+"../../tests/actions/ReportTest.ts"	"no-restricted-imports"	2
 "../../tests/actions/TaskTest.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	1
 "../../tests/actions/TaskTest.ts"	"no-restricted-imports"	1
 "../../tests/actions/TransactionTest.ts"	"no-restricted-imports"	1
@@ -1641,6 +1643,7 @@
 "../../tests/ui/ChronosTimerHeaderButton.test.tsx"	"@typescript-eslint/no-unnecessary-type-assertion"	1
 "../../tests/ui/components/HeaderViewTest.tsx"	"@typescript-eslint/no-deprecated/originalMessage"	1
 "../../tests/ui/components/HeaderViewTest.tsx"	"@typescript-eslint/no-unnecessary-type-assertion"	1
+"../../tests/ui/components/IOURequestStepConfirmationPageTest.tsx"	"no-restricted-imports"	1
 "../../tests/ui/components/SettlementButtonTest.tsx"	"@typescript-eslint/no-unnecessary-type-assertion"	7
 "../../tests/ui/ComposerTest.tsx"	"rulesdir/no-raw-typography"	1
 "../../tests/ui/DomainNameOrNotFoundWrapperTest.tsx"	"@typescript-eslint/no-unsafe-member-access"	1
@@ -1669,6 +1672,7 @@
 "../../tests/ui/SubmitDetailsPageTest.tsx"	"@typescript-eslint/no-unnecessary-type-assertion"	1
 "../../tests/ui/TableTest.tsx"	"@typescript-eslint/no-unnecessary-type-assertion"	3
 "../../tests/ui/TransactionPreviewContentTest.tsx"	"@typescript-eslint/no-deprecated/originalMessage"	1
+"../../tests/ui/UnreadIndicatorsTest.tsx"	"no-restricted-imports"	1
 "../../tests/ui/WorkspaceInvoiceVBASectionTest.tsx"	"@typescript-eslint/no-unnecessary-type-assertion"	1
 "../../tests/ui/WorkspaceMoreFeaturesPageTest.tsx"	"no-restricted-imports"	1
 "../../tests/ui/WorkspacePageWithSectionsTest.tsx"	"@typescript-eslint/no-unsafe-member-access"	1
@@ -1682,6 +1686,7 @@
 "../../tests/unit/APIWriteWhenReadyTest.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	3
 "../../tests/unit/BankAccountUtilsTest.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	13
 "../../tests/unit/canEditFieldOfMoneyRequestTest.ts"	"@typescript-eslint/no-deprecated/randomReportAction.originalMessage"	3
+"../../tests/unit/canEditFieldOfMoneyRequestTest.ts"	"no-restricted-imports"	1
 "../../tests/unit/CategoryUtilsTest.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	5
 "../../tests/unit/ChronosTimerActionTest.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	1
 "../../tests/unit/cleanupPreMountedDraftReportsTest.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	1
@@ -1765,7 +1770,9 @@
 "../../tests/unit/OnboardingFlowTest.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	1
 "../../tests/unit/OnyxDerived/computeForReportTest.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	4
 "../../tests/unit/onyxDerivedComputeSpanTest.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	1
+"../../tests/unit/OnyxDerivedSelfHealTest.ts"	"no-restricted-imports"	1
 "../../tests/unit/OnyxDerivedTest.tsx"	"@typescript-eslint/no-unnecessary-type-assertion"	1
+"../../tests/unit/OnyxDerivedTest.tsx"	"no-restricted-imports"	1
 "../../tests/unit/OptionsListUtilsTest.tsx"	"@typescript-eslint/no-unnecessary-type-assertion"	13
 "../../tests/unit/pages/inbox/ConciergeDraftContext.test.tsx"	"@typescript-eslint/no-unnecessary-type-assertion"	1
 "../../tests/unit/pages/inbox/report/HomeAddressRequiredContent.test.tsx"	"@typescript-eslint/no-deprecated/originalMessage"	2
@@ -1775,6 +1782,7 @@
 "../../tests/unit/pages/settings/Profile/CustomStatus/VacationDelegatePageTest.tsx"	"@typescript-eslint/no-unnecessary-type-assertion"	1
 "../../tests/unit/pages/workspace/accounting/netsuite/NetSuiteTokenInputFormTest.tsx"	"@typescript-eslint/no-unnecessary-type-assertion"	1
 "../../tests/unit/PaymentUtilsTest.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	1
+"../../tests/unit/PersistedRequests.ts"	"no-restricted-imports"	1
 "../../tests/unit/PolicyUtilsTest.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	3
 "../../tests/unit/preMountDraftReportTest.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	2
 "../../tests/unit/ProductMarketingWindowTest.tsx"	"@typescript-eslint/no-unnecessary-type-assertion"	1
@@ -1801,6 +1809,7 @@
 "../../tests/unit/SearchActionsTest.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	5
 "../../tests/unit/SearchAutocompleteListTest.tsx"	"@typescript-eslint/no-deprecated/originalMessage"	3
 "../../tests/unit/SearchAutocompleteListTest.tsx"	"import/no-duplicates"	1
+"../../tests/unit/SearchAutocompleteListTest.tsx"	"no-restricted-imports"	1
 "../../tests/unit/SequentialQueueTest.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	2
 "../../tests/unit/showReportActionNotificationTest.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	3
 "../../tests/unit/SidebarLinksTest.tsx"	"@typescript-eslint/no-unnecessary-type-assertion"	1
@@ -1815,6 +1824,7 @@
 "../../tests/unit/TodosUtilsTest.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	1
 "../../tests/unit/TransactionNavigationUtilsTest.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	1
 "../../tests/unit/TransactionPreviewUtils.test.ts"	"@typescript-eslint/no-deprecated/originalMessage"	2
+"../../tests/unit/TransactionTest.ts"	"no-restricted-imports"	1
 "../../tests/unit/useAccountIDToNameMapTest.tsx"	"@typescript-eslint/no-unnecessary-type-assertion"	1
 "../../tests/unit/useMarkAsReadTest.ts"	"no-restricted-imports"	1
 "../../tests/unit/usePersonalDetailSearchSelectorTest.tsx"	"@typescript-eslint/no-unnecessary-type-assertion"	2
@@ -1830,6 +1840,7 @@
 "../../tests/unit/useTransactionViolationOfWorkspaceTest.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	1
 "../../tests/unit/useTwoFactorAuthRouteTests.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	3
 "../../tests/unit/WhisperContentMentionContextTest.tsx"	"@typescript-eslint/no-unnecessary-type-assertion"	2
+"../../tests/unit/WorkspacesSettingsUtilsTest.ts"	"no-restricted-imports"	1
 "../../tests/utils/collections/card.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	1
 "../../tests/utils/createMock.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../tests/utils/LHNTestUtils.tsx"	"@typescript-eslint/no-unnecessary-type-assertion"	1

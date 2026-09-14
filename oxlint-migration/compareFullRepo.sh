@@ -16,8 +16,8 @@ else
     # react-hooks rows compare a filtered report against an unfiltered one.
     # Seatbelt off: its grandfathered debt is what this comparison measures.
     SECONDS=0
-    SEATBELT_DISABLE=1 \\
-        bun "$(dirname "$0")/../scripts/lint/index.ts" --linter=oxlint --format=json . \\
+    SEATBELT_DISABLE=1 \
+        bun "$(dirname "$0")/../scripts/lint/index.ts" --linter=oxlint --format=json . \
         >"$OXLINT_JSON" || true
     echo "$SECONDS" >"$OXLINT_JSON.time"
 fi

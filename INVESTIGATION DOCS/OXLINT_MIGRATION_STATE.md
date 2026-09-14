@@ -1,6 +1,7 @@
 # Oxlint Migration: Current State
 
-Branch `feat/oxlint`. Every number here was produced by the command quoted beside it, on 2026-09-14.
+Branch `feat/oxlint`, with `origin/main` merged at `36c747c7f83` (228 commits, no conflicts).
+Every number here was produced by the command quoted beside it, on 2026-09-14.
 This file is current state and remaining work only. Resolved problems are not kept.
 
 ---
@@ -22,13 +23,14 @@ on findings for reasons nobody has written down.
 
 | check | command | result |
 | --- | --- | --- |
-| Oxlint, whole repo, through the pipeline | `npm run lint -- --linter=oxlint` | exit 0, nothing above baseline, **43.4 s** |
+| Oxlint, whole repo, through the pipeline | `npm run lint -- --linter=oxlint` | exit 0, nothing above baseline, **35 to 52 s** |
 | Types | `npm run typecheck` | **passed** |
 | Tooling tests | `npm run test:bun` | **587 pass / 0 fail**, 46 files |
+| Per-rule parity, ported rules | `OXPROBE_TAG=_x compareFixtures.py --filter=sb` | **12 rules, all parity** |
 | Whole-repo parity | `bash oxlint-migration/compareFullRepo.sh --fresh` | section 3 |
 | Per-rule parity | `python3 oxlint-migration/port-probe/compareFixtures.py` | section 4 |
 | Sidecar rule evidence | `python3 oxlint-migration/checkSidecarCoverage.py` | **192 / 192 covered** |
-| Config drift | `npm run oxlint-config-drift` | 29 rules differ, **11 open** |
+| Config drift | `npm run oxlint-config-drift` | 30 rules differ, **11 open**, nothing outside the LEDGER |
 
 CI: `.github/workflows/oxlint.yml`, wired into `preDeploy.yml` and deliberately absent from
 `confirmPassingBuild`'s `needs`. The lint step carries `continue-on-error: true`. On a push to
@@ -44,8 +46,8 @@ Single cold run each, one developer machine, whole repo. Not a benchmark.
 
 | leg | seconds |
 | --- | --- |
-| ESLint, type-aware, `ESLINT_CONCURRENCY=2`, 16 GB heap, no cache | **394.0** |
-| Oxlint through the pipeline, sharded | **41 to 45** |
+| ESLint, type-aware, `ESLINT_CONCURRENCY=2`, 16 GB heap, no cache | **396.0** |
+| Oxlint through the pipeline, sharded | **35 to 52** |
 
 Roughly **9x**. Oxlint runs every JS plugin on one thread, so `--threads` does nothing for the 192
 sidecar rules this repo enables (upstream oxc#26621); `OxlintLinter` fans the file list across
@@ -64,6 +66,8 @@ ESLint-only with a port plan: 7
 ESLint-only unexplained:      0
 Oxlint-only extras:           12
 ```
+
+Union taken over all 9201 tracked lintable files, both sides.
 
 The 7 ESLint-only rules all report zero findings today and none has a seatbelt row, so dropping them
 costs no current signal. Plans live in `oxlint-migration/ruleMap.py` `PORT_PLAN`.
@@ -89,20 +93,21 @@ The 12 Oxlint-only extras are upside, not risk: `@typescript-eslint/no-floating-
 
 ### 3.3 Findings per rule, whole repo
 
-ESLint 3073, Oxlint 4286. Both legs run through `scripts/lint/index.ts --format=json` with
-`SEATBELT_DISABLE=1`, so both pass the same processors.
+ESLint 3083, Oxlint 4295. Both legs run through `scripts/lint/index.ts --format=json` with
+`SEATBELT_DISABLE=1`, so both pass the same processors. A typescript-eslint extension rule is
+counted under the base rule oxlint runs, or one rule lands in two rows.
 
 | rule | eslint | oxlint | delta | reading |
 | --- | ---: | ---: | ---: | --- |
-| `@typescript-eslint/no-unsafe-type-assertion` | 1970 | 1972 | +2 | noise |
+| `@typescript-eslint/no-unsafe-type-assertion` | 1967 | 1969 | +2 | noise |
 | `@typescript-eslint/no-unnecessary-type-assertion` | 0 | 754 | +754 | both enable it; TS 6.0.2 vs tsgo TS7 inference diverge |
 | `no-restricted-syntax` | 327 | 327 | 0 | parity |
 | `@typescript-eslint/no-deprecated` | 231 | 399 | **+168** | **unexplained**, section 5.1 |
 | `react-hooks/refs` | 215 | 215 | 0 | equal totals, 3 locations differ each way, section 5.3 |
 | `import/no-cycle` | 0 | 268 | +268 | both enable it; ESLint's copy is silently inert |
 | `react-hooks/set-state-in-effect` | 127 | 47 | **-80** | **unexplained**, section 5.2 |
-| `no-restricted-imports` | 84 | 84 | 0 | parity |
-| `rulesdir/no-raw-typography` | 45 | 45 | 0 | parity |
+| `no-restricted-imports` | 97 | 97 | 0 | parity, includes the ported OnyxUtils ban |
+| `rulesdir/no-raw-typography` | 44 | 44 | 0 | parity |
 | `rulesdir/no-onyx-connect` | 42 | 42 | 0 | parity |
 | `react-hooks/preserve-manual-memoization` | 2 | 65 | +63 | `eslintSuppressionRules`, section 5.2 |
 | `rulesdir/no-default-id-values` | 21 | 21 | 0 | parity |
@@ -123,9 +128,10 @@ ESLint 3073, Oxlint 4286. Both legs run through `scripts/lint/index.ts --format=
 | `import/export` | 0 | 1 | +1 | Oxlint-only finding |
 | `react/jsx-key` | 0 | 1 | +1 | Oxlint-only finding |
 | `@typescript-eslint/no-unsafe-assignment` | 0 | 1 | +1 | Oxlint-only finding |
-| **totals** | **3073** | **4286** | **+1213** | |
+| `rulesdir/prefer-at` | 1 | 0 | -1 | superseded, see the port plan above |
+| **totals** | **3083** | **4295** | **+1212** | |
 
-Every rule not listed reports 0 on both tools. The +1213 decomposes exactly: **+1022** from
+Every rule not listed reports 0 on both tools. The +1212 decomposes exactly: **+1022** from
 `no-unnecessary-type-assertion` and `import/no-cycle`, two rules ESLint enables but cannot report
 on; **+168** `no-deprecated`; **-16 net** across `react-hooks/*`; **+39** scattered singles, each an
 Oxlint finding ESLint's copy of the same rule missed.
@@ -137,8 +143,8 @@ the two tools' counts on every CI run.
 
 | baseline | rows | grandfathered errors |
 | --- | ---: | ---: |
-| `config/eslint/eslint.seatbelt.tsv` | 1386 | 3083 |
-| `config/oxlint/oxlint.seatbelt.tsv` | 1838 | 4286 |
+| `config/eslint/eslint.seatbelt.tsv` | 1398 | 3092 |
+| `config/oxlint/oxlint.seatbelt.tsv` | 1849 | 4295 |
 
 The Oxlint baseline matches its live finding count exactly.
 
@@ -149,9 +155,9 @@ what the enabled-rule union cannot: the same rule on both sides with different o
 scope and off in another.
 
 ```
-45 files, 29 rules differ
+45 files, 30 rules differ
   5 spelled differently, same behavior
- 13 accepted differences
+ 14 accepted differences
  11 open differences, nobody chose these
 ```
 
@@ -248,7 +254,27 @@ oxlint only: src/components/EmojiPicker/EmojiPickerMenu/index.native.tsx:130
 oxlint only: src/components/EmojiPicker/EmojiPickerMenu/index.tsx:176
 ```
 
-### 5.4 `listAllRules.py` undercounts fixtures
+### 5.4 The oxlint shard merge turns one empty shard into a whole-run failure
+
+Intermittent and reproduced: `npm run lint -- --linter=oxlint` failed three times in a row with
+
+```
+ESLint output (JSON parse failed: EOF while parsing a value at line 1 column 0)
+```
+
+then passed seven times in a row later the same day with no code change. The string is serde_json's
+empty-input error, compiled into oxlint's own binary, so one of oxlint's child processes died and
+wrote nothing. `OxlintLinter.ts:172` treats stdout with no `{` as fatal, and `mergeShardResults`
+(`OxlintLinter.ts:82-86`) then returns that fatal shard and discards every healthy shard's findings.
+A SIGKILLed child writes no stderr, so nothing explains it.
+
+Shard count is re-derived per invocation from `os.freemem()` (`OxlintLinter.ts:56-59`), and measured
+peak demand is about 9.7 GB across 18 processes at 6 shards against a `SHARD_MEM_BUDGET_GB = 2`
+assumption, so memory pressure from a concurrent ESLint run is the likely trigger. `--shards=1`
+never hit it. Owned by whoever owns `scripts/lint/oxlint/OxlintLinter.ts`, not diagnosed further
+here.
+
+### 5.5 `listAllRules.py` undercounts fixtures
 
 It reports `Fixture coverage: 56/494` because it reads `fixtures.manifest.json` only.
 `checkSidecarCoverage.py` merges `fragments/*.manifest.json` too and reports 192/192. Cosmetic, but
@@ -278,7 +304,9 @@ Ordered by what blocks what.
 6. **`rulesdir/boolean-conditional-rendering`** has no replacement and no tracking issue.
 7. **Every merge from `main` needs a manual `SEATBELT_INCREASE=all` pass.** The seatbelt auto-tightens
    but never auto-increases.
-8. **`listAllRules.py` fixture count** (section 5.4).
+8. **The shard fatal-on-empty-stdout path** (section 5.4). Intermittent today, a blocker the day
+   the job becomes required.
+9. **`listAllRules.py` fixture count** (section 5.5).
 
 ---
 
@@ -298,7 +326,7 @@ baseline.
 
 ### Phase 2: close the evidence gap (the long pole, runs alongside Phase 1)
 
-TODO items 2 through 5, plus 8.
+TODO items 2 through 5, plus 8 and 9.
 
 - Exit criteria: every rule with a nonzero finding count has repo-local evidence,
   `npm run oxlint-config-drift` reports 0 open differences, and `compareFullRepo.sh` prints no

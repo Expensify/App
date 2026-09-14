@@ -1461,6 +1461,15 @@
                                 "message": "Please use 'PressableWithFeedback' and/or 'PressableWithoutFeedback' from '@components/Pressable' instead."
                             },
                             {
+                                // ESLint carries this under @typescript-eslint/no-restricted-imports, which oxlint does
+                                // not implement; its core rule accepts allowTypeImports, so the path lands in every
+                                // block that re-sets no-restricted-imports, because an oxlint override replaces the
+                                // option object rather than merging into it.
+                                "name": "react-native-onyx/dist/OnyxUtils",
+                                "message": "OnyxUtils is not a sanctioned way to read Onyx data. Use useOnyx() from @hooks/useOnyx in render paths, or a short-lived Onyx.connectWithoutView() for non-render logic. Type-only imports are still allowed.",
+                                "allowTypeImports": true
+                            },
+                            {
                                 "name": "awesome-phonenumber",
                                 "importNames": ["parsePhoneNumber"],
                                 "message": "Please use '@libs/PhoneNumber' instead."
@@ -1738,6 +1747,15 @@
                                 "message": "Please use 'PressableWithFeedback' and/or 'PressableWithoutFeedback' from '@components/Pressable' instead."
                             },
                             {
+                                // ESLint carries this under @typescript-eslint/no-restricted-imports, which oxlint does
+                                // not implement; its core rule accepts allowTypeImports, so the path lands in every
+                                // block that re-sets no-restricted-imports, because an oxlint override replaces the
+                                // option object rather than merging into it.
+                                "name": "react-native-onyx/dist/OnyxUtils",
+                                "message": "OnyxUtils is not a sanctioned way to read Onyx data. Use useOnyx() from @hooks/useOnyx in render paths, or a short-lived Onyx.connectWithoutView() for non-render logic. Type-only imports are still allowed.",
+                                "allowTypeImports": true
+                            },
+                            {
                                 "name": "awesome-phonenumber",
                                 "importNames": ["parsePhoneNumber"],
                                 "message": "Please use '@libs/PhoneNumber' instead."
@@ -1902,6 +1920,15 @@
                                 "name": "react-native-gesture-handler",
                                 "importNames": ["TouchableOpacity", "TouchableWithoutFeedback", "TouchableNativeFeedback", "TouchableHighlight"],
                                 "message": "Please use 'PressableWithFeedback' and/or 'PressableWithoutFeedback' from '@components/Pressable' instead."
+                            },
+                            {
+                                // ESLint carries this under @typescript-eslint/no-restricted-imports, which oxlint does
+                                // not implement; its core rule accepts allowTypeImports, so the path lands in every
+                                // block that re-sets no-restricted-imports, because an oxlint override replaces the
+                                // option object rather than merging into it.
+                                "name": "react-native-onyx/dist/OnyxUtils",
+                                "message": "OnyxUtils is not a sanctioned way to read Onyx data. Use useOnyx() from @hooks/useOnyx in render paths, or a short-lived Onyx.connectWithoutView() for non-render logic. Type-only imports are still allowed.",
+                                "allowTypeImports": true
                             },
                             {
                                 "name": "awesome-phonenumber",
@@ -2071,6 +2098,15 @@
                                 "name": "react-native-gesture-handler",
                                 "importNames": ["TouchableOpacity", "TouchableWithoutFeedback", "TouchableNativeFeedback", "TouchableHighlight"],
                                 "message": "Please use 'PressableWithFeedback' and/or 'PressableWithoutFeedback' from '@components/Pressable' instead."
+                            },
+                            {
+                                // ESLint carries this under @typescript-eslint/no-restricted-imports, which oxlint does
+                                // not implement; its core rule accepts allowTypeImports, so the path lands in every
+                                // block that re-sets no-restricted-imports, because an oxlint override replaces the
+                                // option object rather than merging into it.
+                                "name": "react-native-onyx/dist/OnyxUtils",
+                                "message": "OnyxUtils is not a sanctioned way to read Onyx data. Use useOnyx() from @hooks/useOnyx in render paths, or a short-lived Onyx.connectWithoutView() for non-render logic. Type-only imports are still allowed.",
+                                "allowTypeImports": true
                             },
                             {
                                 "name": "awesome-phonenumber",
