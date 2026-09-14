@@ -160,6 +160,30 @@ You can also combine filters with a keyword search for even more precision. For 
 
 **Note**: If no filters are applied, the page defaults to showing all your unreported expenses.
 
+## How filters are saved for each Spend view
+
+Every view in the **Spend** sidebar keeps its own filters. This includes the suggested searches, such as **Expenses** and **Reports**, and every saved search.
+
+- When you apply a filter, switch to another view, and come back, the filters you left in place are still applied.
+- Some views start with default filters that define what the view shows. Default filters appear first in the filters bar and have no **x** button, so you can't remove them.
+- Filters you add appear after the default filters, and each one has an **x** button to remove it.
+
+## How to reset filters on a Spend view
+
+The **Reset** button appears in the filters bar as soon as a view's filters differ from its default filters.
+
+1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Spend**.
+2. Select the view you want to reset.
+3. In the filters bar, click **Reset**.
+
+The view returns to its default filters, and **Reset** disappears until you change the filters again.
+
+<!-- SCREENSHOT:
+Suggestion: The Spend page filters bar on web with a default filter pill shown first without an x button, a user-added filter pill with an x button after it, and the Reset button visible at the end of the bar.
+Location: Immediately after the steps in "How to reset filters on a Spend view"
+Purpose: Members can't tell from text alone which pills are removable, and the Reset button only appears once filters differ from the defaults, so a capture confirms both what a default pill looks like and where Reset sits.
+-->
+
 ## How to export from the Spend page
 
 The **Current view** option within the **Export** menu lets you download a CSV of exactly what you're currently seeing on the Spend page—your active filters, column configuration, and ordering are all preserved. The exported file is named `Expensify_<current_view>_<unique id>.csv`. Once you initiate the export, you can choose to wait for the download to finish or have **Concierge** send it to you once it's ready.
@@ -194,6 +218,12 @@ If you create a draft report and have unreported expenses in your SelfDM, a prom
 
 ## Can I export reports from the Spend page?
 Yes! Choose the **Current view** option within the **Export** menu to download a CSV of exactly what you're seeing—your active filters, columns, and ordering are all preserved. You can also use a template-based export for a standard set of columns. Learn more about [exporting from the Spend page](https://help.expensify.com/articles/new-expensify/reports-and-expenses/Search-and-Download-Expenses).
+
+## Why are my filters still applied when I return to a view?
+Each view on the **Spend** page remembers the filters you last used, so you can pick up where you left off. Click **Reset** in the filters bar to return that view to its default filters.
+
+## Why can't I remove some filters?
+Filters that are part of a view's default filters define what that view shows, so they have no **x** button. Click **Reset** to return the view to its default filters.
 
 ## Do smart suggestions work on mobile?
 Yes, smart suggestions also appear in the mobile Inbox and draft reports.

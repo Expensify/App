@@ -1,7 +1,7 @@
 ---
 title: Use Search Shortcuts
 description: Quickly find and take action on expense reports using role-based search shortcuts on the Spend page.
-keywords: [New Expensify, search, shortcut, Spend page, expense reports filters, submit, approve, pay, in bulk, multiple reports]
+keywords: [New Expensify, search, shortcut, Spend page, expense reports filters, submit, approve, pay, in bulk, multiple reports, reset filters, filters saved per view]
 internalScope: Audience is all members. Covers using search shortcuts on the Spend page. Does not cover advanced search operators or saved searches. 
 ---
 
@@ -43,8 +43,11 @@ Workspace Admins and Auditors will see additional search shortcuts for reconcili
  - The selected shortcut opens a filtered list of reports
  - You can take action directly (submit, approve, or pay)
  - Results update automatically as reports are processed
+ - Each shortcut keeps the filters you last applied to it, so they are still there when you come back
 
 These shortcuts help you process reports in bulk without manually creating filters.
+
+To return a shortcut to the filters it started with, click **Reset** in the filters bar. [Learn how filters are saved for each Spend view](/articles/new-expensify/reports-and-expenses/Getting-Started-with-the-Spend-Page).
 
 ---
 
@@ -60,4 +63,4 @@ Yes. Search shortcuts update in real time as reports are submitted, approved, pa
 
 ## Can I customize the search shortcuts?
 
-No. Search shortcuts are automatically generated. To create custom searches, [learn how to use search operators](/articles/new-expensify/reports-and-expenses/Using-search-operators). 
+Which shortcuts you see is automatic and can't be changed. You can add filters to a shortcut, and that shortcut keeps them until you click **Reset**. To create custom searches, [learn how to use search operators](/articles/new-expensify/reports-and-expenses/Using-search-operators). 
