@@ -24,8 +24,7 @@ type AddExistingExpenseTableRowProps = {
 
 function AddExistingExpenseTableRow({item, rowIndex, shouldUseNarrowTableLayout}: AddExistingExpenseTableRowProps) {
     const styles = useThemeStyles();
-    // Table.Row re-reads the row by index off processedData internally to get its `selected` and `disabled` state,
-    // since the `item` FlashList hands to renderItem is typed as the plain row data, not the table's selection wrapper.
+    // The item FlashList passes to renderItem is the plain row data, so selection state comes from processedData.
     const {tableMethods, processedData} = useTableContext<UnreportedExpenseTableRowData>();
     const rowData = processedData.at(rowIndex);
     const isSelected = !!rowData?.selected;
@@ -46,9 +45,7 @@ function AddExistingExpenseTableRow({item, rowIndex, shouldUseNarrowTableLayout}
             accessibilityLabel={accessibilityLabel}
             sentryLabel={CONST.SENTRY_LABEL.SEARCH.UNREPORTED_EXPENSE_LIST_ITEM}
             offlineWithFeedback={{pendingAction: item.pendingAction}}
-            // This list has no per-row navigation, so unlike other tables (where onPress opens details and the
-            // checkbox is the only way to select) the whole row is the selection target, matching the old
-            // SelectionList behavior this page replaced.
+            // This list has no per-row navigation, so the whole row is the selection target.
             onPress={() => {
                 if (item.isSelectionDisabled) {
                     return;
@@ -69,8 +66,7 @@ function AddExistingExpenseTableRow({item, rowIndex, shouldUseNarrowTableLayout}
                     taxAmountColumnSize={CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
                     isDisabled={isRowDisabled}
                     shouldShowCheckbox={false}
-                    // The row clips its content to its own 8px radius, which shaves the corner off the receipt cell
-                    // sitting flush against it. Table.Row already draws the row's background and corners, so cancel it.
+                    // Without this the row's own radius clips the receipt cell's corner. Table.Row draws the corners.
                     style={styles.noBorderRadius}
                 />
             </View>

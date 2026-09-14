@@ -119,7 +119,7 @@ function AddExistingExpenseTable({data, selectedKeys, onRowSelectionChange, onEn
             columns={columns}
             selectionEnabled
             shouldEnableSelectionInNarrowPaneModal
-            // Expenses are confirmed in one batch, so narrowing the list to find the next one must not drop what is already picked.
+            // Expenses are confirmed in one batch, so searching must not drop what is already picked.
             shouldPreserveSelectionOnSearch
             selectedKeys={selectedKeys}
             onRowSelectionChange={onRowSelectionChange}

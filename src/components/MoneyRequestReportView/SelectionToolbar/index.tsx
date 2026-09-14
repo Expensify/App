@@ -78,7 +78,8 @@ function SelectionToolbar({reportID, transactions, reportActions}: SelectionTool
 
     useFilterSelectedTransactions(transactions, reportID);
 
-    const isMobileSelectionModeEnabled = useMobileSelectionMode();
+    // The gate mounts this component because the flag is on, and useMobileSelectionMode would clear it on mount.
+    const [isMobileSelectionModeEnabled = false] = useOnyx(ONYXKEYS.RAM_ONLY_MOBILE_SELECTION_MODE);
     const {showConfirmModal} = useConfirmModal();
 
     const [offlineModalVisible, setOfflineModalVisible] = useState(false);
