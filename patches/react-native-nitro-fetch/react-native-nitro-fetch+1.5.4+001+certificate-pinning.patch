@@ -15,7 +15,7 @@ new file mode 100644
 index 0000000..a432432
 --- /dev/null
 +++ b/node_modules/react-native-nitro-fetch/android/src/main/java/com/margelo/nitro/nitrofetch/ExpensifyCertificatePins.kt
-@@ -0,0 +1,212 @@
+@@ -0,0 +1,213 @@
 +package com.margelo.nitro.nitrofetch
 +
 +import android.content.Context
