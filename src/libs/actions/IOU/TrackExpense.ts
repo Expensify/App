@@ -48,7 +48,6 @@ import {
     findSelfDMReportID,
     generateReportID,
     getDefaultNotificationPreferenceForReport,
-    getNewestOutstandingReportForUser,
     getParsedComment,
     getReportOrDraftReport,
     getReportRecipientAccountIDs,
@@ -123,7 +122,7 @@ import type {
 } from './types/TrackedExpenseParams';
 
 import {deleteMoneyRequest, getCleanUpTransactionThreadReportOnyxData, getNavigationUrlOnMoneyRequestDelete} from './DeleteMoneyRequest';
-import {getAllReportNameValuePairs, getAllReports, getAllTransactionDrafts, getAllTransactions, getAllTransactionViolations} from './index';
+import {getAllReports, getAllTransactionDrafts, getAllTransactions, getAllTransactionViolations} from './index';
 import {
     buildMinimalTransactionForFormula,
     getMoneyRequestInformation,
@@ -1068,10 +1067,6 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
             iouReport = getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${moneyRequestReportID}`] ?? null;
         } else {
             iouReport = getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${chatReport.iouReportID}`] ?? null;
-
-            if (!iouReport) {
-                iouReport = getNewestOutstandingReportForUser(chatReport.policyID, payeeAccountID, rules, getAllReportNameValuePairs(), getAllReports());
-            }
         }
         const isScanRequest = isScanRequestTransactionUtils(existingTransaction);
         shouldCreateNewMoneyRequestReport = shouldCreateNewMoneyRequestReportReportUtils(iouReport, chatReport, isScanRequest, betas, rules);
