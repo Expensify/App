@@ -1,11 +1,9 @@
 import {getUprightRotation} from '@pages/iou/request/step/IOURequestStepScan/utils/rotatePhotoToUpright';
 
 describe('getUprightRotation', () => {
-    it('only re-encodes a photo whose metadata already describes it upright, because the decoder applied that rotation', () => {
-        // Measured on a Galaxy S20 FE. 1920x1440 on disk with metadata asking for 90, so it decodes as
-        // 1440x1920 and turning it again would put it back on its side.
-        expect(getUprightRotation({width: 1920, height: 1440, rotation: 90})).toBe(0);
-        expect(getUprightRotation({width: 1920, height: 1440, rotation: 270})).toBe(0);
+    it('leaves a photo whose metadata already describes it upright as captured, rather than re-encoding it', () => {
+        expect(getUprightRotation({width: 1920, height: 1440, rotation: 90})).toBeUndefined();
+        expect(getUprightRotation({width: 1920, height: 1440, rotation: 270})).toBeUndefined();
     });
 
     it('turns a landscape sensor buffer that carries no rotation of its own', () => {
@@ -37,8 +35,12 @@ describe('getUprightRotation', () => {
         expect(getUprightRotation({width: 1440, height: 1920, rotation: 0})).toBeUndefined();
     });
 
-    it('re-encodes an upright photo that still carries metadata, so consumers that ignore it see it upright too', () => {
-        expect(getUprightRotation({width: 1440, height: 1920, rotation: 180})).toBe(0);
+    it('leaves an upright photo as captured even when it still carries metadata', () => {
+        expect(getUprightRotation({width: 1440, height: 1920, rotation: 180})).toBeUndefined();
+    });
+
+    it('still turns a frame that decodes landscape, whatever its metadata says', () => {
+        // 1440x1920 asking for 90 decodes as 1920x1440, genuinely on its side.
         expect(getUprightRotation({width: 1440, height: 1920, rotation: 90})).toBe(90);
     });
 

@@ -1,5 +1,6 @@
 import {JPEG_QUALITY} from '@libs/fileDownload/FileUtils';
 import getPhotoSource from '@libs/fileDownload/getPhotoSource';
+import Log from '@libs/Log';
 
 import type {Orientation} from 'react-native-vision-camera';
 
@@ -27,9 +28,6 @@ type PhotoSize = {
  * Measure the frame the way the image loader hands it over, since the loader applies the file's rotation
  * metadata while decoding: a 1920x1440 photo whose metadata asks for 90 decodes as 1440x1920, and turning
  * that again puts it back on its side.
- *
- * A returned `0` is not a no-op. Re-encoding bakes the rotation into the pixels and drops the tag, which
- * the confirmation preview and the receipt on the server both ignore.
  */
 function getUprightRotation({width, height, rotation = 0}: PhotoSize, orientation?: Orientation): number | undefined {
     const isSideways = rotation === 90 || rotation === 270;
@@ -45,8 +43,7 @@ function getUprightRotation({width, height, rotation = 0}: PhotoSize, orientatio
     const quarterTurn = orientation === 'landscape-right' ? 270 : 90;
     const angle = decodedWidth > decodedHeight ? quarterTurn : 0;
 
-    if (!angle && !rotation) {
-        // Upright already, with nothing in metadata to bake in, so re-encoding would only lose quality.
+    if (!angle) {
         return undefined;
     }
 
@@ -62,6 +59,7 @@ function getUprightRotation({width, height, rotation = 0}: PhotoSize, orientatio
  */
 function rotatePhotoToUpright(stillPath: string, orientation?: Orientation): Promise<string | undefined> {
     const sourceUri = getPhotoSource(stillPath);
+    const startedAt = Date.now();
 
     return ImageSize.getSize(sourceUri).then((imageSize) => {
         const angle = getUprightRotation(imageSize, orientation);
@@ -77,7 +75,17 @@ function rotatePhotoToUpright(stillPath: string, orientation?: Orientation): Pro
         return context
             .renderAsync()
             .then((image) => image.saveAsync({compress: JPEG_QUALITY, format: SaveFormat.JPEG}))
-            .then((result) => result.uri);
+            .then((result) => {
+                // Reached only by a photo that genuinely decoded on its side, so `durationMs` is what
+                // `ROTATE_TIMEOUT_MS` has to cover.
+                Log.info('[PhotoUpgrade] rotated the full-resolution photo', false, {
+                    durationMs: Date.now() - startedAt,
+                    angle,
+                    exifRotation: imageSize.rotation,
+                    source: `${imageSize.width}x${imageSize.height}`,
+                });
+                return result.uri;
+            });
     });
 }
 
