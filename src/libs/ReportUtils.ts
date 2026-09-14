@@ -921,6 +921,7 @@ type OptionData = Report &
         amountInputProps?: MoneyRequestAmountInputProps;
         tabIndex?: 0 | -1;
         isConciergeChat?: boolean;
+        isConciergeThread?: boolean;
         isBold?: boolean;
         lastIOUCreationDate?: string;
         isChatRoom?: boolean;
