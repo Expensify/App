@@ -51,6 +51,7 @@ import type {ReportsSplitNavigatorParamList} from '@navigation/types';
 
 import {useActionListContext, useActionListRef} from '@pages/inbox/ActionListContext';
 import {useConciergeDraft, useConciergeDraftActions} from '@pages/inbox/ConciergeDraftContext';
+import {useConciergeSessionState} from '@pages/inbox/ConciergeSessionContext';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -188,6 +189,8 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
     const {clearDraft, revealDraftFromReportAction} = useConciergeDraftActions();
 
     const showHiddenHistory = isConciergeHiddenHistory && !showFullHistory;
+    const {showFullHistory: isHistoryExpandedByUser} = useConciergeSessionState();
+    const isHistoryLockedOpen = !showHiddenHistory && !isHistoryExpandedByUser;
     const onShowPreviousMessages = handleShowPreviousMessages;
 
     const [hasScrolledOverThreshold, setHasScrolledOverThreshold] = useState(() => getScrollOffset() >= CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD);
@@ -419,7 +422,7 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
         <>
             <ConciergeChatHistoryToggle
                 reportID={reportID}
-                hasPreviousMessages={!!hasPreviousMessages}
+                hasPreviousMessages={!!hasPreviousMessages && !isHistoryLockedOpen}
                 shouldShowFullHistory={!showHiddenHistory}
                 onShowPreviousMessages={onShowPreviousMessages}
             />
@@ -468,7 +471,7 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
                 <AskConciergeEmptyState />
                 <ConciergeChatHistoryToggle
                     reportID={reportID}
-                    hasPreviousMessages={!!hasPreviousMessages}
+                    hasPreviousMessages={!!hasPreviousMessages && !isHistoryLockedOpen}
                     shouldShowFullHistory={!showHiddenHistory}
                     onShowPreviousMessages={onShowPreviousMessages}
                     containerStyles={styles.pv5}
