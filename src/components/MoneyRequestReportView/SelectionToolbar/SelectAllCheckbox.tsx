@@ -12,7 +12,6 @@ import React from 'react';
 import {View} from 'react-native';
 
 type SelectAllCheckboxProps = {
-    /** Whether the checkbox is checked/selected */
     isSelectAllChecked: boolean;
 
     /** Whether the button is in the indeterminate ("mixed") state */
