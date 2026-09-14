@@ -953,7 +953,12 @@ const translations: TranslationDeepObject<typeof en> = {
             },
             addVirtualCardPersonalDetails: {title: '添加你的详细信息以查看并开始使用 Expensify 卡。', subtitle: 'Expensify 卡', cta: '添加'},
             enterSignerInfo: {title: '需要签署人信息', subtitle: ({bankAccountLastFour}: {bankAccountLastFour: string}) => `银行账户 ${bankAccountLastFour}`},
-            payOverdueInvoice: {title: ({date}: {date: string}) => `请在 ${date} 前支付发票以避免服务中断`, cta: '审核'},
+            payOverdueInvoice: {
+                title: ({date}: {date: string}) => `请在 ${date} 前支付发票以避免服务中断`,
+                cta: '审核',
+                dueSoonTitle: ({date}: {date: string}) => `请在 ${date} 前支付您的发票，以避免服务中断`,
+                overdueTitle: '您的付款已逾期，请支付您的发票',
+            },
         },
         discoverSection: {
             title: '发现',

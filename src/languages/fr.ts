@@ -993,7 +993,12 @@ const translations: TranslationDeepObject<typeof en> = {
             },
             addVirtualCardPersonalDetails: {title: 'Ajoutez vos informations pour voir et commencer à utiliser votre Carte Expensify.', subtitle: 'Carte Expensify', cta: 'Ajouter'},
             enterSignerInfo: {title: 'Informations du signataire requises', subtitle: ({bankAccountLastFour}: {bankAccountLastFour: string}) => `Compte bancaire ${bankAccountLastFour}`},
-            payOverdueInvoice: {title: ({date}: {date: string}) => `Payez votre facture avant le ${date} pour éviter une interruption de service`, cta: 'Examiner'},
+            payOverdueInvoice: {
+                title: ({date}: {date: string}) => `Payez votre facture avant le ${date} pour éviter une interruption de service`,
+                cta: 'Examiner',
+                dueSoonTitle: ({date}: {date: string}) => `Payez votre facture avant le ${date} pour éviter une interruption de service`,
+                overdueTitle: 'Votre paiement est en retard, veuillez régler votre facture',
+            },
         },
         discoverSection: {
             title: 'Découvrir',
