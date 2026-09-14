@@ -1,5 +1,5 @@
 diff --git a/node_modules/@shopify/react-native-skia/lib/commonjs/views/SkiaPictureView.web.js b/node_modules/@shopify/react-native-skia/lib/commonjs/views/SkiaPictureView.web.js
-index 407ab37..6ae3f75 100644
+index c5c64be..5c8b1fc 100644
 --- a/node_modules/@shopify/react-native-skia/lib/commonjs/views/SkiaPictureView.web.js
 +++ b/node_modules/@shopify/react-native-skia/lib/commonjs/views/SkiaPictureView.web.js
 @@ -30,19 +30,32 @@ class WebGLRenderer {
@@ -88,7 +88,7 @@ index 407ab37..6ae3f75 100644
      this.surface = new _JsiSkSurface.JsiSkSurface(CanvasKit, surface);
    }
 diff --git a/node_modules/@shopify/react-native-skia/lib/module/views/SkiaPictureView.web.js b/node_modules/@shopify/react-native-skia/lib/module/views/SkiaPictureView.web.js
-index 7a9ea19..1a6ebbc 100644
+index 671ea7b..d614950 100644
 --- a/node_modules/@shopify/react-native-skia/lib/module/views/SkiaPictureView.web.js
 +++ b/node_modules/@shopify/react-native-skia/lib/module/views/SkiaPictureView.web.js
 @@ -24,19 +24,32 @@ class WebGLRenderer {

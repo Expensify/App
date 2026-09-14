@@ -1,6 +1,6 @@
 # `@shopify/react-native-skia` patches
 
-### [@shopify+react-native-skia+2.11.0+001+fix-runtime-aware-cache-uaf.patch](@shopify+react-native-skia+2.11.0+001+fix-runtime-aware-cache-uaf.patch)
+### [@shopify+react-native-skia+2.11.2+001+fix-runtime-aware-cache-uaf.patch](@shopify+react-native-skia+2.11.2+001+fix-runtime-aware-cache-uaf.patch)
 
 - Reason:
 
@@ -24,7 +24,7 @@
 - E/App issue: https://github.com/Expensify/App/issues/90135
 - PR introducing patch: https://github.com/Expensify/App/pull/93295
 
-### [@shopify+react-native-skia+2.11.0+002+fallback-to-software-surface.patch](@shopify+react-native-skia+2.11.0+002+fallback-to-software-surface.patch)
+### [@shopify+react-native-skia+2.11.2+002+fallback-to-software-surface.patch](@shopify+react-native-skia+2.11.2+002+fallback-to-software-surface.patch)
 
 - Reason:
 
@@ -73,7 +73,7 @@
 - Upstream PR/issue: https://github.com/Shopify/react-native-skia/pull/3996
 - E/App issue: https://github.com/Expensify/App/issues/97104
 - PR introducing patch: https://github.com/Expensify/App/pull/97219
-### [@shopify+react-native-skia+2.11.0+003+defer-webgl-context-loss-to-unmount.patch](@shopify+react-native-skia+2.11.0+003+defer-webgl-context-loss-to-unmount.patch)
+### [@shopify+react-native-skia+2.11.2+003+defer-webgl-context-loss-to-unmount.patch](@shopify+react-native-skia+2.11.2+003+defer-webgl-context-loss-to-unmount.patch)
 
 - Reason:
 
@@ -92,7 +92,7 @@
 
     dispose() now only loses the context when the canvas has left the
     document, and defers that check by a microtask. The deferral is needed
-    because in 2.11.0 the renderer is created and disposed from a
+    because in 2.11.2 the renderer is created and disposed from a
     useLayoutEffect, whose cleanup React flushes *before* it detaches the host
     node - isConnected is still true at cleanup time even on a real unmount,
     so an immediate check would never release anything. A microtask runs once
@@ -105,7 +105,7 @@
     already does. The kept frame matters because ScreenActivityWrapper keeps
     the hidden screen painted as a static backdrop (AlwaysPaintedView).
 
-    Only the WEBGL_lose_context call is guarded. Everything 2.11.0's dispose()
+    Only the WEBGL_lose_context call is guarded. Everything 2.11.2's dispose()
     frees around it - the surface, the GrDirectContext and the CanvasKit
     context handle - still goes at every cleanup, so a hidden screen holds
     nothing but the context and its drawing buffer. The handle is deleted

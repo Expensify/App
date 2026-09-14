@@ -1,8 +1,8 @@
 diff --git a/node_modules/@shopify/react-native-skia/cpp/jsi/RuntimeAwareCache.h b/node_modules/@shopify/react-native-skia/cpp/jsi/RuntimeAwareCache.h
-index 18d68d3..e7d9bde 100644
+index ac3127f..9e8900c 100644
 --- a/node_modules/@shopify/react-native-skia/cpp/jsi/RuntimeAwareCache.h
 +++ b/node_modules/@shopify/react-native-skia/cpp/jsi/RuntimeAwareCache.h
-@@ -60,7 +60,18 @@ class RuntimeAwareCache : public BaseRuntimeAwareCache,
+@@ -89,7 +89,18 @@ class RuntimeAwareCache : public BaseRuntimeAwareCache,
  
  public:
    void onRuntimeDestroyed(jsi::Runtime *rt) override {
@@ -22,7 +22,7 @@ index 18d68d3..e7d9bde 100644
        // We are removing a secondary runtime. This is invoked by
        // RuntimeLifecycleMonitor on the destroyed runtime's thread, which may
        // run concurrently with get() on another runtime's thread.
-@@ -70,6 +81,17 @@ public:
+@@ -99,6 +110,17 @@ public:
    }
  
    ~RuntimeAwareCache() {
@@ -40,7 +40,7 @@ index 18d68d3..e7d9bde 100644
      for (auto &cache : _secondaryRuntimeCaches) {
        RuntimeLifecycleMonitor::removeListener(
            *static_cast<jsi::Runtime *>(cache.first), this);
-@@ -81,6 +103,13 @@ public:
+@@ -110,6 +132,13 @@ public:
      // to avoid us having to lookup by runtime for caches that only has a single
      // runtime
      if (getMainJsRuntime() == &rt) {
@@ -54,7 +54,7 @@ index 18d68d3..e7d9bde 100644
        return _primaryCache;
      } else {
        // Guard the secondary map: it can be mutated concurrently by get()
-@@ -110,6 +139,10 @@ public:
+@@ -139,6 +168,10 @@ public:
  
  private:
    std::mutex _secondaryCachesMutex;
