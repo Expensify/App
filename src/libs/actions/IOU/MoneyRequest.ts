@@ -310,7 +310,7 @@ function getMoneyRequestParticipantOptions({
         const participantAccountID = participant?.accountID ?? CONST.DEFAULT_NUMBER_ID;
         return participantAccountID
             ? getParticipantsOption(participant, personalDetails, translate)
-            : getReportOption(
+            : getReportOption({
                   participant,
                   privateIsArchived,
                   policy,
@@ -319,13 +319,13 @@ function getMoneyRequestParticipantOptions({
                   reportAttributesDerived,
                   reportDraft,
                   currentUserAccountID,
-                  {
+                  localize: {
                       translate,
                       dateFnsLocale,
                       convertToDisplayString,
                   },
                   rules,
-              );
+              });
     });
 }
 
