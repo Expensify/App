@@ -12,7 +12,6 @@ import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import type IconAsset from '@src/types/utils/IconAsset';
 
-import type {ReactNode} from 'react';
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -29,7 +28,7 @@ type ThreeDotsMenuItem = {
 
 type HeaderWithBackButtonProps = Partial<ChildrenProps> & {
     title?: string;
-    subtitle?: ReactNode;
+    subtitle?: string;
     titleColor?: string;
 
     /**
