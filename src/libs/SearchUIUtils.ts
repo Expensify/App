@@ -60,6 +60,7 @@ import type {FeedKeysWithAssignedCards} from '@hooks/useFeedKeysWithAssignedCard
 
 import type {ThemeColors} from '@styles/theme/types';
 import type {ButtonVariant} from '@styles/utils/types';
+import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -132,6 +133,7 @@ import {
     getSubmitToAccountID,
     getTagGLCode,
     isArchivedOrPendingDeletePolicy,
+    isControlPolicy,
     isGroupPolicy,
     isPaidGroupPolicy,
     isPolicyAdmin,
@@ -1234,7 +1236,7 @@ function getSuggestedSearchesVisibility(
         const isEligibleForTopCategoriesSuggestion = isGroupPolicyEligible && policy.areCategoriesEnabled === true;
         const isEligibleForTopMerchantsSuggestion = isGroupPolicyEligible;
         const isEligibleForViolationsBySubmitterSuggestion =
-            isGroupPolicyEligible &&
+            isControlPolicy(policy) &&
             (isAdmin || isAuditor) &&
             arePolicyRulesEnabled(policy, policy.id ? policyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policy.id}`] : undefined) &&
             memberCount >= 2;
@@ -1368,6 +1370,13 @@ function isTransactionGroupListItemType(item: ListItem): item is TransactionGrou
  */
 function isTransactionReportGroupListItemType(item: ListItem): item is TransactionReportGroupListItemType {
     return isTransactionGroupListItemType(item) && 'groupedBy' in item && item.groupedBy === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
+}
+
+/**
+ * Type guard that checks if something is a TransactionWithdrawalIDGroupListItemType
+ */
+function isTransactionWithdrawalIDGroupListItemType(item: ListItem): item is TransactionWithdrawalIDGroupListItemType {
+    return isTransactionGroupListItemType(item) && 'groupedBy' in item && item.groupedBy === CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID;
 }
 
 /**
@@ -5398,17 +5407,82 @@ function getStatusOptions(translate: LocalizedTranslate, type: SearchDataTypes) 
     }
 }
 
-function getHasOptions(translate: LocalizedTranslate, type: SearchDataTypes) {
+type HasOptionAvailability = {
+    shouldShowTag: boolean;
+    shouldShowCategory: boolean;
+    shouldShowSubmittedViolation: boolean;
+    shouldShowApprovedViolation: boolean;
+};
+
+type GetHasOptionsConfig = {
+    policies?: OnyxCollection<OnyxTypes.Policy>;
+    policyCategories?: OnyxCollection<OnyxTypes.PolicyCategories>;
+    /** Skip workspace feature filtering so already-selected values still resolve to labels. */
+    shouldShowAllOptions?: boolean;
+    /**
+     * Keep these values in the picker even when their workspace feature is off.
+     * Needed so a saved/query selection like has:tag is not cleared when toggling another option.
+     */
+    selectedValues?: readonly string[];
+};
+
+/**
+ * Which expense `has:` options can apply for the current user, based on accessible workspaces.
+ * Pass an empty collection when the user has no workspaces so Tag/Category/Submitted/Approved violation stay hidden.
+ */
+function getHasOptionAvailability(policies: OnyxCollection<OnyxTypes.Policy> | undefined, policyCategories?: OnyxCollection<OnyxTypes.PolicyCategories>): HasOptionAvailability {
+    let shouldShowTag = false;
+    let shouldShowCategory = false;
+    let shouldShowSubmittedViolation = false;
+    let shouldShowApprovedViolation = false;
+
+    for (const policy of Object.values(policies ?? {})) {
+        if (!policy || policy.isJoinRequestPending || !isGroupPolicy(policy)) {
+            continue;
+        }
+
+        shouldShowTag ||= policy.areTagsEnabled === true;
+        shouldShowCategory ||= policy.areCategoriesEnabled === true;
+        // Migrated Control workspaces leave areRulesEnabled undefined. Fall back to Classic category rules in that case.
+        const shouldShowRulesBasedViolation = arePolicyRulesEnabled(policy, policy.id ? policyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policy.id}`] : undefined);
+        shouldShowSubmittedViolation ||= shouldShowRulesBasedViolation;
+        shouldShowApprovedViolation ||= shouldShowRulesBasedViolation;
+
+        if (shouldShowTag && shouldShowCategory && shouldShowSubmittedViolation && shouldShowApprovedViolation) {
+            break;
+        }
+    }
+
+    return {shouldShowTag, shouldShowCategory, shouldShowSubmittedViolation, shouldShowApprovedViolation};
+}
+
+/**
+ * Options for the `has:` filter / autocomplete. Tag, Category, Submitted violation, and Approved violation are omitted when
+ * no accessible workspace has the matching feature enabled. Pass `policies` from the picker and autocomplete.
+ * Pass `shouldShowAllOptions` for display/validation so already-selected values still resolve to labels.
+ * Pass `selectedValues` in the picker so query/saved selections stay selectable until the user clears them.
+ */
+function getHasOptions(translate: LocalizedTranslate, type: SearchDataTypes, config: GetHasOptionsConfig = {}) {
+    const {policies, policyCategories, shouldShowAllOptions = false, selectedValues} = config;
+
     switch (type) {
-        case CONST.SEARCH.DATA_TYPES.EXPENSE:
+        case CONST.SEARCH.DATA_TYPES.EXPENSE: {
+            const availability = shouldShowAllOptions
+                ? {shouldShowTag: true, shouldShowCategory: true, shouldShowSubmittedViolation: true, shouldShowApprovedViolation: true}
+                : getHasOptionAvailability(policies, policyCategories);
+            const shouldShowTag = availability.shouldShowTag || !!selectedValues?.includes(CONST.SEARCH.HAS_VALUES.TAG);
+            const shouldShowCategory = availability.shouldShowCategory || !!selectedValues?.includes(CONST.SEARCH.HAS_VALUES.CATEGORY);
+            const shouldShowSubmittedViolation = availability.shouldShowSubmittedViolation || !!selectedValues?.includes(CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION);
+            const shouldShowApprovedViolation = availability.shouldShowApprovedViolation || !!selectedValues?.includes(CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION);
             return [
                 {text: translate('common.receipt'), value: CONST.SEARCH.HAS_VALUES.RECEIPT},
                 {text: translate('common.attachment'), value: CONST.SEARCH.HAS_VALUES.ATTACHMENT},
-                {text: translate('common.tag'), value: CONST.SEARCH.HAS_VALUES.TAG},
-                {text: translate('common.category'), value: CONST.SEARCH.HAS_VALUES.CATEGORY},
-                {text: translate('search.filters.has.submittedViolation'), value: CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION},
-                {text: translate('search.filters.has.approvedViolation'), value: CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION},
+                ...(shouldShowTag ? [{text: translate('common.tag'), value: CONST.SEARCH.HAS_VALUES.TAG}] : []),
+                ...(shouldShowCategory ? [{text: translate('common.category'), value: CONST.SEARCH.HAS_VALUES.CATEGORY}] : []),
+                ...(shouldShowSubmittedViolation ? [{text: translate('search.filters.has.submittedViolation'), value: CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION}] : []),
+                ...(shouldShowApprovedViolation ? [{text: translate('search.filters.has.approvedViolation'), value: CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION}] : []),
             ];
+        }
         case CONST.SEARCH.DATA_TYPES.CHAT:
             return [
                 {text: translate('common.link'), value: CONST.SEARCH.HAS_VALUES.LINK},
@@ -6208,7 +6282,7 @@ function getDisplayValue(
         if (!hasValues?.length) {
             return;
         }
-        const hasOptions = getHasOptions(translate, type);
+        const hasOptions = getHasOptions(translate, type, {shouldShowAllOptions: true});
         return hasOptions
             .filter((option) => hasValues.includes(option.value))
             .map((option) => option.text)
@@ -6456,9 +6530,15 @@ function getSingleSelectFilterOptions(filterKey: SearchAdvancedFiltersKey, trans
     return [];
 }
 
-function getMultiSelectFilterOptions(filterKey: SearchAdvancedFiltersKey, type: SearchDataTypes, translate: LocalizedTranslate) {
+function getMultiSelectFilterOptions(
+    filterKey: SearchAdvancedFiltersKey,
+    type: SearchDataTypes,
+    translate: LocalizedTranslate,
+    policies?: OnyxCollection<OnyxTypes.Policy>,
+    policyCategories?: OnyxCollection<OnyxTypes.PolicyCategories>,
+) {
     if (filterKey === FILTER_KEYS.HAS) {
-        return getHasOptions(translate, type);
+        return getHasOptions(translate, type, {policies, policyCategories});
     }
 
     if (filterKey === FILTER_KEYS.IS) {
@@ -7179,12 +7259,50 @@ function getTransactionFromTransactionListItem(item: TransactionListItemType): O
     return transaction as OnyxTypes.Transaction;
 }
 
-function getTableMinWidth(columns: SearchColumnType[], type?: SearchDataTypes, isActionColumnWide?: boolean) {
-    // Starts at 24px to account for the checkbox width
-    let minWidth = 24;
+/**
+ * Width of the arrow ending each row. The arrow is a row child rather than a column, so it is counted separately: leave
+ * it out and it gets pushed past the edge instead of the table scrolling to reach it.
+ */
+const SEARCH_TABLE_ROW_ARROW_WIDTH = variables.iconSizeNormal;
+
+/**
+ * Everything a row spends on something that is not a column: its margin and padding, the leading checkbox, the trailing
+ * arrow, and a gap between every adjacent pair of children.
+ *
+ * The column sizing and the horizontal scroller both subtract this from the table, so they share one expression rather
+ * than each keeping a copy: the two disagreeing is what makes a table scroll while it still has room, or reserve a band
+ * of width at the end of the row that no column ever fills.
+ */
+function getSearchTableRowInsetWidth(columnCount: number): number {
+    return variables.searchTableRowCheckboxWidth + (columnCount + 1) * variables.searchTableColumnGap + SEARCH_TABLE_ROW_ARROW_WIDTH + variables.searchTableRowChromeWidth;
+}
+
+function getTableMinWidth(
+    columns: SearchColumnType[],
+    type?: SearchDataTypes,
+    isActionColumnWide?: boolean,
+    columnMinWidths?: Partial<Record<SearchColumnType, number>>,
+    shouldIncludeRowChrome = false,
+) {
+    // The row lays out the checkbox, then every column, then the trailing arrow, as flex children of one gapped row, so
+    // it spends a gap between each adjacent pair: one more than there are columns. Those gaps, the arrow, the checkbox,
+    // and the row's own margin and padding are all width the table needs on top of the columns themselves.
+    //
+    // Off unless a caller asks for it, because it is worth well over 200px on a wide table and so decides whether the
+    // table scrolls at all. Only a caller that also passes real column widths has the rest of the arithmetic right;
+    // adding it on top of the estimates below, which already run several columns over, makes a table reserve room twice
+    // and scroll while it still has space.
+    let minWidth = shouldIncludeRowChrome ? getSearchTableRowInsetWidth(columns.length) : variables.searchTableRowCheckboxWidth;
 
     for (const column of columns) {
-        if (column === CONST.SEARCH.TABLE_COLUMNS.COMMENTS) {
+        // A caller that knows a column's real minimum passes it in, so use that over the estimate below. The estimates
+        // are a second copy of widths that live in the column styles, and several of them are off by 70px or more, so
+        // the table scrolls well before it has actually run out of room.
+        const knownMinWidth = columnMinWidths?.[column];
+
+        if (knownMinWidth !== undefined) {
+            minWidth += knownMinWidth;
+        } else if (column === CONST.SEARCH.TABLE_COLUMNS.COMMENTS) {
             minWidth += 36;
         } else if (column === CONST.SEARCH.TABLE_COLUMNS.RECEIPT) {
             minWidth += 28;
@@ -7261,7 +7379,7 @@ function filterValidHasValues(hasValues: HasFilterValues | undefined, type: Sear
         return undefined;
     }
 
-    const validHasOptions = getHasOptions(translate, type);
+    const validHasOptions = getHasOptions(translate, type, {shouldShowAllOptions: true});
     const validHasValues = new Set(validHasOptions.map((option) => option.value));
     const filteredHasValues = hasValues.filter((hasValue) => validHasValues.has(hasValue));
 
@@ -7421,6 +7539,7 @@ export {
     isTransactionMatchWithGroupItem,
     isTransactionGroupListItemType,
     isTransactionReportGroupListItemType,
+    isTransactionWithdrawalIDGroupListItemType,
     isTransactionCategoryGroupListItemType,
     isTransactionMerchantGroupListItemType,
     isTransactionTagGroupListItemType,
@@ -7479,6 +7598,7 @@ export {
     getSettlementStatus,
     getSettlementStatusBadgeProps,
     getSearchColumnTranslationKey,
+    getSearchTableRowInsetWidth,
     getTableMinWidth,
     getCustomColumns,
     getCustomColumnDefault,
