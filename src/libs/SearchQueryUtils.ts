@@ -459,7 +459,7 @@ function getFilterFromQuery(queryJSON: SearchQueryJSON | undefined, filterKey: S
 
 /**
  * Whether the query includes a positive `has:submitted-violation` or `has:approved-violation` filter.
- * Used so the Violations column / CSV export only appear when those filters are active — normal
+ * Used so the Violations column and CSV export only appear when those filters are active. Normal
  * search snapshots can still include FORWARDED actions with violation data (#100877).
  */
 function queryHasViolationFilter(queryJSON: SearchQueryJSON | undefined): boolean {
