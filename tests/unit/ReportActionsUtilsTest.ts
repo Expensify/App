@@ -6351,18 +6351,48 @@ describe('ReportActionsUtils', () => {
             isScrolledOverThreshold: true,
             isOffline: false,
             isReversed: false,
-            isReportUnread: true,
         };
 
-        it('returns no marker when the report is read', () => {
-            const message = makeAction({reportActionID: 'non-actionable-system-message'});
+        it('skips a reimbursement that is not actionable for the current user', () => {
+            const reimbursement = makeAction({
+                actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSED,
+                reportActionID: 'reimbursement',
+                originalMessage: {actionableForAccountIDs: [2]},
+            });
             expect(
                 getUnreadMarkerReportAction({
                     ...baseScanParams,
-                    visibleReportActions: [message],
-                    isReportUnread: false,
+                    visibleReportActions: [reimbursement],
                 }),
             ).toEqual([null, -1]);
+        });
+
+        it('shows a marker for a reimbursement that is actionable for the current user', () => {
+            const reimbursement = makeAction({
+                actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSED,
+                reportActionID: 'reimbursement',
+                originalMessage: {actionableForAccountIDs: [currentUserAccountID]},
+            });
+            expect(getUnreadMarkerReportAction({...baseScanParams, visibleReportActions: [reimbursement]})).toEqual(['reimbursement', 0]);
+        });
+
+        it('skips a NetSuite export when finding the oldest eligible unread action', () => {
+            const comment = makeAction({reportActionID: 'comment', created: '2023-01-01 12:00:00.000'});
+            const netSuiteExport = makeAction({
+                actionName: CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION,
+                reportActionID: 'netsuite-export',
+                originalMessage: {label: CONST.EXPORT_LABELS.NETSUITE, lastModified: '2023-01-01 11:00:00.000'},
+            });
+            expect(getUnreadMarkerReportAction({...baseScanParams, visibleReportActions: [comment, netSuiteExport]})).toEqual(['comment', 0]);
+        });
+
+        it('keeps exports to other integrations eligible for a marker', () => {
+            const exportAction = makeAction({
+                actionName: CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION,
+                reportActionID: 'qbo-export',
+                originalMessage: {label: CONST.EXPORT_LABELS.QBO, lastModified: '2023-01-01 11:00:00.000'},
+            });
+            expect(getUnreadMarkerReportAction({...baseScanParams, visibleReportActions: [exportAction]})).toEqual(['qbo-export', 0]);
         });
 
         it('short-circuits to [null, -1] for an anonymous user', () => {
