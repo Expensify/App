@@ -11041,6 +11041,7 @@ describe('ReportUtils', () => {
 
     describe('isApproverOfOutstandingPolicyReports', () => {
         const approverAccountID = 123;
+        const noArchivedReports: Record<string, boolean> = {};
         const buildOutstandingReport = (reportID: number, report: Partial<Report>): OnyxCollection<Report> => ({
             [`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]: {
                 ...createRandomReport(reportID, undefined),
@@ -11059,7 +11060,7 @@ describe('ReportUtils', () => {
             });
 
             // Then the member is recognized as an approver
-            expect(isApproverOfOutstandingPolicyReports(approverAccountID, outstandingReports)).toBe(true);
+            expect(isApproverOfOutstandingPolicyReports(approverAccountID, outstandingReports, noArchivedReports)).toBe(true);
         });
 
         it('should return false when the member is the approver of an open report', () => {
@@ -11071,7 +11072,19 @@ describe('ReportUtils', () => {
             });
 
             // Then the member is not recognized as an approver
-            expect(isApproverOfOutstandingPolicyReports(approverAccountID, outstandingReports)).toBe(false);
+            expect(isApproverOfOutstandingPolicyReports(approverAccountID, outstandingReports, noArchivedReports)).toBe(false);
+        });
+
+        it('should return false when the report awaiting approval is archived', () => {
+            // Given a submitted report whose approver is the member, which stays submitted once it is archived
+            const outstandingReports = buildOutstandingReport(1, {
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                managerID: approverAccountID,
+            });
+
+            // Then the member is not recognized as an approver
+            expect(isApproverOfOutstandingPolicyReports(approverAccountID, outstandingReports, {[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}1`]: true})).toBe(false);
         });
 
         it('should return false when the member only submitted the report', () => {
@@ -11084,7 +11097,7 @@ describe('ReportUtils', () => {
             });
 
             // Then the member is not recognized as an approver
-            expect(isApproverOfOutstandingPolicyReports(approverAccountID, outstandingReports)).toBe(false);
+            expect(isApproverOfOutstandingPolicyReports(approverAccountID, outstandingReports, noArchivedReports)).toBe(false);
         });
 
         it('should return false when there are no reports or no account ID', () => {
@@ -11094,9 +11107,9 @@ describe('ReportUtils', () => {
                 managerID: approverAccountID,
             });
 
-            expect(isApproverOfOutstandingPolicyReports(approverAccountID, undefined)).toBe(false);
-            expect(isApproverOfOutstandingPolicyReports(approverAccountID, {})).toBe(false);
-            expect(isApproverOfOutstandingPolicyReports(undefined, outstandingReports)).toBe(false);
+            expect(isApproverOfOutstandingPolicyReports(approverAccountID, undefined, noArchivedReports)).toBe(false);
+            expect(isApproverOfOutstandingPolicyReports(approverAccountID, {}, noArchivedReports)).toBe(false);
+            expect(isApproverOfOutstandingPolicyReports(undefined, outstandingReports, noArchivedReports)).toBe(false);
         });
     });
 

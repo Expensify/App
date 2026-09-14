@@ -12176,12 +12176,22 @@ function getOutstandingReportsForUser(
  * An approver assigned through "Change approver" is only stored in the report's `managerID`, so they are not covered by `isPolicyApprover`.
  * @param accountID - The accountID of the member to check
  * @param outstandingReportsForPolicy - The policy's outstanding reports, from the OUTSTANDING_REPORTS_BY_POLICY_ID derived value
+ * @param privateIsArchivedMap - The archived state of every report, from usePrivateIsArchivedMap
  */
-function isApproverOfOutstandingPolicyReports(accountID: number | undefined, outstandingReportsForPolicy: OnyxCollection<Report>): boolean {
+function isApproverOfOutstandingPolicyReports(
+    accountID: number | undefined,
+    outstandingReportsForPolicy: OnyxCollection<Report>,
+    privateIsArchivedMap: Readonly<Record<string, boolean>>,
+): boolean {
     if (!accountID) {
         return false;
     }
-    return Object.values(outstandingReportsForPolicy ?? {}).some((report) => report?.managerID === accountID && isProcessingReport(report));
+    return Object.values(outstandingReportsForPolicy ?? {}).some((report) => {
+        if (report?.managerID !== accountID || !isProcessingReport(report)) {
+            return false;
+        }
+        return !privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`];
+    });
 }
 
 /**
