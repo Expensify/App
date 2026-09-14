@@ -8029,7 +8029,7 @@ const CONST = {
             VIOLATIONS_BY_SUBMITTER: 'violationsBySubmitter',
         },
         INSIGHTS_SEARCH_KEYS: {
-            spend: 'insightsSpend',
+            SPEND: 'insightsSpend',
         },
         SAVED_SEARCH_PREFIX: 'savedSearch_',
         GROUP_PREFIX: 'group_',

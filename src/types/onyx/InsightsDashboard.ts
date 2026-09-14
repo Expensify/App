@@ -18,10 +18,15 @@ type InsightsGraph = {
 
 /** Backend response and request state for a dashboard */
 type InsightsDashboard = {
+    /** Where each chart finds its data, keyed by the graph slot its spec declares */
     graphs?: Partial<Record<InsightsGraphKey, InsightsGraph>>;
-    /** Query resolved by the backend */
+
+    /** Query the stored graphs were returned for, so a chart can tell whether they answer the query on screen */
     inputQuery?: string;
+
+    /** Query the last request asked for, set before the response arrives so the page can show it is loading */
     requestedQuery?: string;
+
     errors?: Errors;
 };
 

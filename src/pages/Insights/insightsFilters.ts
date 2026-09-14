@@ -4,8 +4,14 @@ import CONST from '@src/CONST';
 
 type InsightsFilters = {
     datePreset: SearchDatePreset;
+
+    /** Workspaces to report on, or every workspace the user can see when empty. */
     policyIDs: string[];
+
+    /** Time bucket the headline chart aggregates into. */
     groupBy: typeof CONST.SEARCH.GROUP_BY.WEEK | typeof CONST.SEARCH.GROUP_BY.MONTH | typeof CONST.SEARCH.GROUP_BY.QUARTER | typeof CONST.SEARCH.GROUP_BY.YEAR;
+
+    /** Currency every amount is converted to, so graphs can sum across workspaces. */
     groupCurrency: string;
 };
 

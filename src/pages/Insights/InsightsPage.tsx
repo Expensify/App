@@ -16,6 +16,7 @@ import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 
 import CONST from '@src/CONST';
 import type SCREENS from '@src/SCREENS';
+import type {InsightsDashboardID} from '@src/types/onyx';
 
 import type {BottomTabScreenProps} from '@react-navigation/bottom-tabs';
 
@@ -27,19 +28,17 @@ import useInsightsFilters from './useInsightsFilters';
 
 type InsightsPageProps = BottomTabScreenProps<TabNavigatorParamList, typeof SCREENS.INSIGHTS>;
 
-function InsightsPage({route}: InsightsPageProps) {
+type InsightsDashboardProps = {
+    dashboardID: InsightsDashboardID;
+};
+
+function InsightsDashboard({dashboardID}: InsightsDashboardProps) {
     const {translate} = useLocalize();
-    const {isBetaEnabled} = usePermissions();
-    useDocumentTitle(translate('common.insights'));
-
-    const dashboardID = Object.values(CONST.INSIGHTS.DASHBOARD).find((id) => id === route.params.dashboardID) ?? CONST.INSIGHTS.DASHBOARD.SPEND;
-    const isKnownDashboard = dashboardID === route.params.dashboardID;
-
     const {isOffline} = useNetwork();
     const isFocused = useIsFocused();
     const {filters, isResolved} = useInsightsFilters();
 
-    const query = isResolved && isKnownDashboard ? buildInsightsJsonQuery(dashboardID, filters) : undefined;
+    const query = isResolved ? buildInsightsJsonQuery(dashboardID, filters) : undefined;
     const jsonQuery = query?.jsonQuery;
     const queryString = query?.queryString;
 
@@ -51,10 +50,6 @@ function InsightsPage({route}: InsightsPageProps) {
         }
         getInsights(dashboardID, {jsonQuery, queryString});
     }, [dashboardID, jsonQuery, queryString, isFocused, isOffline]);
-
-    if (!isBetaEnabled(CONST.BETAS.INSIGHTS_PAGE) || !isKnownDashboard) {
-        return <NotFoundPage />;
-    }
 
     return (
         <ScreenWrapper
@@ -70,6 +65,20 @@ function InsightsPage({route}: InsightsPageProps) {
             <ScrollView addBottomSafeAreaPadding />
         </ScreenWrapper>
     );
+}
+
+function InsightsPage({route}: InsightsPageProps) {
+    const {translate} = useLocalize();
+    const {isBetaEnabled} = usePermissions();
+    useDocumentTitle(translate('common.insights'));
+
+    const dashboardID = Object.values(CONST.INSIGHTS.DASHBOARD).find((id) => id === route.params.dashboardID);
+
+    if (!isBetaEnabled(CONST.BETAS.INSIGHTS_PAGE) || !dashboardID) {
+        return <NotFoundPage />;
+    }
+
+    return <InsightsDashboard dashboardID={dashboardID} />;
 }
 
 export default InsightsPage;
