@@ -31,6 +31,7 @@ import {
 
 import type {IOUAction, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
@@ -129,6 +130,15 @@ type MoneyRequestConfirmationListProps = {
     /** Whether we should show the amount, date, and merchant fields. */
     shouldShowSmartScanFields?: boolean;
 
+    /** Whether this surface offers manual entry of the amount / merchant / date. False for splits, test receipts and moved tracked expenses. */
+    canEnterScanFieldsManually?: boolean;
+
+    /** ID of a partially filled Scan among the transactions being confirmed. Can be a receipt other than the one on screen. */
+    partiallyManuallyFilledScanID?: string;
+
+    /** Brings another of the confirmed transactions on screen, so its inline errors are the ones the user sees */
+    onSwitchToTransaction?: (transactionID: string) => void;
+
     /** A flag for verifying that the current report is a sub-report of a expense chat */
     isPolicyExpenseChat?: boolean;
 
@@ -156,6 +166,12 @@ type MoneyRequestConfirmationListProps = {
 
 type MoneyRequestConfirmationListItem = (Participant & {keyForList: string}) | OptionData;
 
+/**
+ * The errors the amount / merchant / date fields render inline rather than in the footer. Raising one of these is
+ * only visible if those fields are on screen, so the confirmation has to reveal them when it does.
+ */
+const INLINE_FIELD_ERROR_KEYS = new Set<TranslationPaths | ''>(['common.error.fieldRequired', 'common.error.invalidAmount', 'iou.error.invalidMerchant']);
+
 function MoneyRequestConfirmationList({
     transaction,
     onSendMoney,
@@ -169,6 +185,9 @@ function MoneyRequestConfirmationList({
     isPerDiemRequest = false,
     isPolicyExpenseChat = false,
     shouldShowSmartScanFields = true,
+    canEnterScanFieldsManually = false,
+    partiallyManuallyFilledScanID,
+    onSwitchToTransaction,
     isEditingSplitBill,
     isReceiptEditable,
     selectedParticipants: selectedParticipantsProp,
@@ -340,6 +359,8 @@ function MoneyRequestConfirmationList({
         isEditingSplitBill,
         isPolicyExpenseChat,
         isScanRequest,
+        canEnterScanFieldsManually,
+        partiallyManuallyFilledScanID,
         shouldShowMerchant,
         hasSmartScanFailed,
         didConfirmSplit,
@@ -464,10 +485,21 @@ function MoneyRequestConfirmationList({
         isMovingTransactionFromTrackExpense,
         isTimeRequest,
         routeError,
+        canEnterScanFieldsManually,
+        partiallyManuallyFilledScanID,
         isReadOnly,
         shouldShowDate,
         isTaxAmountEmpty,
     });
+
+    // The partially filled receipt may not be the one on screen, so bring it into view to show its inline errors.
+    const validateAndRevealFields: typeof validate = (paymentType) => {
+        const result = validate(paymentType);
+        if (result?.errorKey && INLINE_FIELD_ERROR_KEYS.has(result.errorKey) && partiallyManuallyFilledScanID && partiallyManuallyFilledScanID !== transactionID) {
+            onSwitchToTransaction?.(partiallyManuallyFilledScanID);
+        }
+        return result;
+    };
 
     const confirm = buildConfirmAction({
         iouType,
@@ -476,7 +508,7 @@ function MoneyRequestConfirmationList({
         routeError,
         formError,
         isDelegateAccessRestricted,
-        validate,
+        validate: validateAndRevealFields,
         setFormError,
         setDidConfirmSplit,
         showDelegateNoAccessModal,
@@ -488,6 +520,12 @@ function MoneyRequestConfirmationList({
         },
         onSendMoney,
     });
+
+    // These errors render inline on fields that compact mode keeps behind "Show more", so open the section or pressing
+    // Create looks like it did nothing. Done during render so it survives the remount a multi-scan switch causes.
+    if (INLINE_FIELD_ERROR_KEYS.has(formError) && !showMoreFields) {
+        setShowMoreFields(true);
+    }
 
     const isCompactMode = !showMoreFields && isScanRequest && !isInLandscapeMode;
     const selectionListStyle = {
@@ -528,6 +566,7 @@ function MoneyRequestConfirmationList({
             isReadOnly={isReadOnly}
             didConfirm={!!didConfirm}
             isEditingSplitBill={isEditingSplitBill}
+            canEnterScanFieldsManually={canEnterScanFieldsManually}
             isPolicyExpenseChat={isPolicyExpenseChat}
             isScanRequest={isScanRequest}
             isDistanceRequest={isDistanceRequest}
