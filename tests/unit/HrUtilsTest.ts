@@ -346,7 +346,7 @@ describe('HRUtils', () => {
         it('returns false when the cached group list has not been populated yet', () => {
             const policy = makePolicy({
                 connections: {
-                    [MERGE_HR]: makeMergeHRConnection({config: {groups: ['g1']}, data: {groups: []}}),
+                    [MERGE_HR]: makeMergeHRConnection({config: {groups: ['g1']}, data: {allGroupIDs: []}}),
                 },
             });
             expect(hasStaleMergeHRGroups(policy)).toBe(false);
@@ -357,12 +357,7 @@ describe('HRUtils', () => {
                 connections: {
                     [MERGE_HR]: makeMergeHRConnection({
                         config: {groups: ['g1', 'g2']},
-                        data: {
-                            groups: [
-                                {id: 'g1', name: 'Eng', type: 'Department'},
-                                {id: 'g2', name: 'Sales', type: 'Department'},
-                            ],
-                        },
+                        data: {allGroupIDs: ['g1', 'g2']},
                     }),
                 },
             });
@@ -374,11 +369,23 @@ describe('HRUtils', () => {
                 connections: {
                     [MERGE_HR]: makeMergeHRConnection({
                         config: {groups: ['g1', 'g-deleted']},
-                        data: {groups: [{id: 'g1', name: 'Eng', type: 'Department'}]},
+                        data: {allGroupIDs: ['g1']},
                     }),
                 },
             });
             expect(hasStaleMergeHRGroups(policy)).toBe(true);
+        });
+
+        it('returns false when a selected group still exists but lost its display name/type', () => {
+            const policy = makePolicy({
+                connections: {
+                    [MERGE_HR]: makeMergeHRConnection({
+                        config: {groups: ['g1']},
+                        data: {groups: [], allGroupIDs: ['g1']},
+                    }),
+                },
+            });
+            expect(hasStaleMergeHRGroups(policy)).toBe(false);
         });
     });
 
@@ -802,7 +809,7 @@ describe('getHRCards', () => {
             connections: {
                 [MERGE_HR]: makeMergeHRConnection({
                     config: {integration: 'bamboohr', groups: ['g1', 'g-deleted']},
-                    data: {groups: [{id: 'g1', name: 'Eng', type: 'Department'}]},
+                    data: {groups: [{id: 'g1', name: 'Eng', type: 'Department'}], allGroupIDs: ['g1']},
                     lastSync: {syncStatus: CONST.MERGE.SYNC_STATUS.DONE},
                 }),
             },

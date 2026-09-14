@@ -2503,6 +2503,9 @@ type MergeHRGroup = {
 type MergeHRConnectionData = {
     /** Groups available to import employees from. Distinct from `config.groups`, which is the admin's selection. */
     groups?: MergeHRGroup[];
+
+    /** IDs of every group the HR system has, including ones missing a name/type and so absent from `groups`. Used to tell a deleted group apart from one that just can't render. */
+    allGroupIDs?: string[];
 };
 
 /** Merge HR connection config */

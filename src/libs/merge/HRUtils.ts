@@ -54,11 +54,13 @@ function isMergeHRCompleteSetupNeeded(policy?: OnyxEntry<Policy>): boolean {
 function hasStaleMergeHRGroups(policy?: OnyxEntry<Policy>): boolean {
     const mergeHR = policy?.connections?.merge_hris;
     const selectedGroupIDs = mergeHR?.config?.groups;
-    const availableGroups = mergeHR?.data?.groups;
-    if (!selectedGroupIDs?.length || !availableGroups?.length) {
+    // allGroupIDs (not the display-filtered groups) is what the backend prunes against, so a group
+    // missing a name/type isn't wrongly flagged as deleted here.
+    const availableGroupIDs = mergeHR?.data?.allGroupIDs;
+    if (!selectedGroupIDs?.length || !availableGroupIDs?.length) {
         return false;
     }
-    return selectedGroupIDs.some((groupID) => !availableGroups.some((group) => group.id === groupID));
+    return selectedGroupIDs.some((groupID) => !availableGroupIDs.includes(groupID));
 }
 
 /** Returns display info for the HR provider currently connected to the policy (Gusto, Zenefits, or Merge HR), or null if none are connected. */
