@@ -150,6 +150,10 @@ function saveWaypoint({transactionID, index, waypoint, isDraft = false, recentWa
 
         // Clear all existing routes so that we don't show stale routes (backend may return multiple alternatives)
         routes: null,
+
+        // Decided for the trip the cleared routes described, so it cannot speak for the edited one. The route
+        // response that replaces the routes carries the matching decision with it.
+        commuterExclusionPreview: null,
     });
 
     // If current location is used, we would want to avoid saving it as a recent waypoint. This prevents the 'Your Location'
@@ -461,6 +465,10 @@ function updateWaypoints(transactionID: string, waypoints: WaypointCollection, t
 
         // Clear all existing routes so that we don't show stale routes (backend may return multiple alternatives)
         routes: null,
+
+        // Decided for the trip the cleared routes described, so it cannot speak for the edited one. The route
+        // response that replaces the routes carries the matching decision with it.
+        commuterExclusionPreview: null,
     });
 }
 
