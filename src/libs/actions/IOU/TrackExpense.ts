@@ -48,7 +48,7 @@ import {
     findSelfDMReportID,
     generateReportID,
     getDefaultNotificationPreferenceForReport,
-    getOutstandingReportsForUser,
+    getNewestOutstandingReportForUser,
     getParsedComment,
     getReportOrDraftReport,
     getReportRecipientAccountIDs,
@@ -1070,13 +1070,7 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
             iouReport = getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${chatReport.iouReportID}`] ?? null;
 
             if (!iouReport) {
-                const outstandingReports = getOutstandingReportsForUser(chatReport.policyID, payeeAccountID, rules, getAllReportNameValuePairs(), getAllReports(), false);
-
-                // `created` is a fixed-width UTC datetime string, so ordinary string ordering is already chronological.
-                iouReport = outstandingReports.reduce<OnyxInputValue<OnyxTypes.Report>>(
-                    (newest, report) => ((report?.created ?? '') > (newest?.created ?? '') ? (report ?? null) : newest),
-                    outstandingReports.at(0) ?? null,
-                );
+                iouReport = getNewestOutstandingReportForUser(chatReport.policyID, payeeAccountID, rules, getAllReportNameValuePairs(), getAllReports());
             }
         }
         const isScanRequest = isScanRequestTransactionUtils(existingTransaction);

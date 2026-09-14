@@ -27,7 +27,7 @@ import {
     buildOptimisticSelfDMReport,
     generateReportID,
     getChatByParticipants,
-    getOutstandingReportsForUser,
+    getNewestOutstandingReportForUser,
     getReimbursableTotal,
     getReportOrDraftReport,
     getUnheldReimbursableTotal,
@@ -467,13 +467,7 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
         iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${chatReport.iouReportID}`] ?? null;
 
         if (!iouReport && isPolicyExpenseChat) {
-            const outstandingReports = getOutstandingReportsForUser(chatReport.policyID, payeeAccountID, rules, getAllReportNameValuePairs(), allReports, false);
-
-            // `created` is a fixed-width UTC datetime string, so ordinary string ordering is already chronological.
-            iouReport = outstandingReports.reduce<OnyxInputValue<OnyxTypes.Report>>(
-                (newest, report) => ((report?.created ?? '') > (newest?.created ?? '') ? (report ?? null) : newest),
-                outstandingReports.at(0) ?? null,
-            );
+            iouReport = getNewestOutstandingReportForUser(chatReport.policyID, payeeAccountID, rules, getAllReportNameValuePairs(), allReports);
         }
     }
 
