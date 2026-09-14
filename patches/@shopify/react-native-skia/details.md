@@ -1,6 +1,6 @@
 # `@shopify/react-native-skia` patches
 
-### [@shopify+react-native-skia+2.11.0+001+fix-runtime-aware-cache-uaf.patch](@shopify+react-native-skia+2.11.0+001+fix-runtime-aware-cache-uaf.patch)
+### [@shopify+react-native-skia+2.11.2+001+fix-runtime-aware-cache-uaf.patch](@shopify+react-native-skia+2.11.2+001+fix-runtime-aware-cache-uaf.patch)
 
 - Reason:
 
@@ -24,7 +24,7 @@
 - E/App issue: https://github.com/Expensify/App/issues/90135
 - PR introducing patch: https://github.com/Expensify/App/pull/93295
 
-### [@shopify+react-native-skia+2.11.0+002+fallback-to-software-surface.patch](@shopify+react-native-skia+2.11.0+002+fallback-to-software-surface.patch)
+### [@shopify+react-native-skia+2.11.2+002+fallback-to-software-surface.patch](@shopify+react-native-skia+2.11.2+002+fallback-to-software-surface.patch)
 
 - Reason:
 
