@@ -1,6 +1,5 @@
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 
-import {convertToDisplayString} from '@libs/CurrencyUtils';
 import {translate} from '@libs/Localize';
 import {
     buildReportNameFromParticipantNames,
@@ -30,7 +29,7 @@ import {createAdminRoom, createExpenseReport, createPolicyExpenseChat, createReg
 import createRandomTransaction from '../utils/collections/transaction';
 import createMock from '../utils/createMock';
 import {fakePersonalDetails} from '../utils/LHNTestUtils';
-import {formatPhoneNumber, translateLocal} from '../utils/TestHelper';
+import {convertToDisplayString, convertToDisplayStringWithoutCurrency, formatPhoneNumber, getCurrencySymbolLocal, translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const currentUserLogin = 'lagertha2@vikings.net';
@@ -48,6 +47,9 @@ describe('ReportNameUtils', () => {
     ) =>
         computeReportNameOriginal({
             dateFnsLocale: undefined,
+            convertToDisplayString,
+            convertToDisplayStringWithoutCurrency,
+            getCurrencySymbol: getCurrencySymbolLocal,
             conciergeReportID: undefined,
             report,
             reports,
@@ -61,6 +63,7 @@ describe('ReportNameUtils', () => {
             reportTransactions: buildTransactionsByReportID(transactions),
             translate: translateLocal,
             isTrackIntentUser: false,
+            rules: undefined,
         });
     const participantsPersonalDetails: PersonalDetailsList = [
         {
@@ -306,6 +309,9 @@ describe('ReportNameUtils', () => {
             const translateWithYouMarker: LocalizedTranslate = (path, ...parameters) => (path === 'common.you' ? 'You Marker' : translateLocal(path, ...parameters));
             const name = computeReportNameOriginal({
                 dateFnsLocale: undefined,
+                convertToDisplayString,
+                convertToDisplayStringWithoutCurrency,
+                getCurrencySymbol: getCurrencySymbolLocal,
                 conciergeReportID: undefined,
                 report,
                 reports: emptyCollections.reports,
@@ -318,6 +324,7 @@ describe('ReportNameUtils', () => {
                 translate: translateWithYouMarker,
                 isTrackIntentUser: false,
                 reportTransactions: {},
+                rules: undefined,
             });
             // temporaryGetDisplayNameOrDefault lowercases the "you" postfix sourced from translate('common.you').
             expect(name).toBe('Lagertha Lothbrok (you marker)');
@@ -694,6 +701,9 @@ describe('ReportNameUtils', () => {
 
             const name = computeReportNameOriginal({
                 dateFnsLocale: undefined,
+                convertToDisplayString,
+                convertToDisplayStringWithoutCurrency,
+                getCurrencySymbol: getCurrencySymbolLocal,
                 conciergeReportID: undefined,
                 report: thread,
                 reports: emptyCollections.reports,
@@ -707,6 +717,7 @@ describe('ReportNameUtils', () => {
                 allPolicyTags: policyTagsCollection,
                 reportTransactions: {},
                 isTrackIntentUser: false,
+                rules: undefined,
             });
 
             expect(name).toContain('Cost Center');
@@ -1930,6 +1941,7 @@ describe('ReportNameUtils', () => {
             const reportName = getMoneyRequestReportName({
                 report: iouReport,
                 translate: translateWithHiddenMarker,
+                convertToDisplayString,
                 personalDetailsList: undefined,
                 linkedTransactions: [],
             });
@@ -1955,7 +1967,13 @@ describe('ReportNameUtils', () => {
                 currency: 'USD',
             };
 
-            const reportName = getMoneyRequestReportName({report: invoiceReport, personalDetailsList: participantsPersonalDetails, linkedTransactions: [], translate: translateLocal});
+            const reportName = getMoneyRequestReportName({
+                report: invoiceReport,
+                personalDetailsList: participantsPersonalDetails,
+                linkedTransactions: [],
+                translate: translateLocal,
+                convertToDisplayString,
+            });
             expect(reportName?.replaceAll(/\s+/g, ' ')).toContain('Ragnar Lothbrok');
         });
 
@@ -1985,6 +2003,7 @@ describe('ReportNameUtils', () => {
                 personalDetailsList: undefined,
                 linkedTransactions: [],
                 translate: translateLocal,
+                convertToDisplayString,
             });
 
             // Then it should return "New Report"
@@ -2033,6 +2052,7 @@ describe('ReportNameUtils', () => {
                 personalDetailsList: undefined,
                 linkedTransactions: [],
                 translate: translateLocal,
+                convertToDisplayString,
             });
 
             // Then it should NOT return empty string — it should fall through to dynamic name computation
@@ -2095,6 +2115,7 @@ describe('ReportNameUtils', () => {
                 personalDetailsList: undefined,
                 linkedTransactions: [nonReimbursableTransaction],
                 translate: translateLocal,
+                convertToDisplayString,
             });
 
             // Then it should use the "spent" wording with the owner's display name
@@ -2151,6 +2172,7 @@ describe('ReportNameUtils', () => {
                 personalDetailsList: undefined,
                 linkedTransactions: [],
                 translate: translateWithUnavailableMarker,
+                convertToDisplayString,
             });
 
             expect(reportName).toContain('UnavailableWorkspaceMarker');
@@ -2294,6 +2316,9 @@ describe('ReportNameUtils', () => {
             // When the threaded conciergeReportID matches the report
             const nameWithMatchingID = computeReportNameOriginal({
                 dateFnsLocale: undefined,
+                convertToDisplayString,
+                convertToDisplayStringWithoutCurrency,
+                getCurrencySymbol: getCurrencySymbolLocal,
                 conciergeReportID: 'concierge-name-1',
                 report,
                 transactions: undefined,
@@ -2302,12 +2327,16 @@ describe('ReportNameUtils', () => {
                 translate: translateLocal,
                 reportTransactions: {},
                 isTrackIntentUser: false,
+                rules: undefined,
             });
             expect(nameWithMatchingID).toBe(CONST.CONCIERGE_DISPLAY_NAME);
 
             // And an identical report with a non-matching conciergeReportID keeps its regular name
             const nameWithDifferentID = computeReportNameOriginal({
                 dateFnsLocale: undefined,
+                convertToDisplayString,
+                convertToDisplayStringWithoutCurrency,
+                getCurrencySymbol: getCurrencySymbolLocal,
                 conciergeReportID: 'a-different-report-id',
                 report,
                 transactions: undefined,
@@ -2316,6 +2345,7 @@ describe('ReportNameUtils', () => {
                 translate: translateLocal,
                 reportTransactions: {},
                 isTrackIntentUser: false,
+                rules: undefined,
             });
             expect(nameWithDifferentID).not.toBe(CONST.CONCIERGE_DISPLAY_NAME);
         });

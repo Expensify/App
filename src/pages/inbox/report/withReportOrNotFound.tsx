@@ -35,13 +35,8 @@ import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
 import React, {useEffect} from 'react';
 
 type WithReportOrNotFoundOnyxProps = {
-    /** The report currently being looked at */
     report: OnyxTypes.Report;
-
-    /** Metadata of the report currently being looked at */
     reportMetadata: OnyxEntry<OnyxTypes.ReportMetadata>;
-
-    /** Loading state of the report currently being looked at */
     reportLoadingState: OnyxEntry<OnyxTypes.ReportLoadingState>;
 
     /** The policy linked to the report */
@@ -50,7 +45,6 @@ type WithReportOrNotFoundOnyxProps = {
     /** Beta features list */
     betas: OnyxEntry<OnyxTypes.Beta[]>;
 
-    /** Indicated whether the report data is loading */
     isLoadingReportData: OnyxEntry<boolean>;
 };
 

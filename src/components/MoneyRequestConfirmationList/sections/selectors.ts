@@ -227,7 +227,7 @@ const tagSliceSelector = (t: OnyxEntry<Transaction>): OnyxEntry<TagSlice> => {
     return slice;
 };
 
-// --- InvoiceSenderSection ---
+// --- InvoiceSenderField ---
 
 type InvoiceSenderSlice = Pick<Transaction, 'isFromGlobalCreate' | 'transactionID'>;
 

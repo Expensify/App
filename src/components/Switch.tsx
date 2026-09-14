@@ -21,10 +21,7 @@ type SwitchProps = {
     /** Callback to fire when the switch is toggled */
     onToggle: (isOn: boolean) => void;
 
-    /** Accessibility label for the switch */
     accessibilityLabel: string;
-
-    /** Whether the switch is disabled */
     disabled?: boolean;
 
     /** Whether the switch is mid-flight (an optimistic update is pending). Shows a spinner and blocks interaction. */

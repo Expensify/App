@@ -17,7 +17,6 @@ type SubmitDraftButtonProps = PressableWithFeedbackProps & {
     /** The icon to display on the button */
     icon: IconAsset;
 
-    /** Whether the button is disabled */
     isDisabled: boolean;
 
     /** Handle clicking on send button */
