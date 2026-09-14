@@ -3950,6 +3950,31 @@ describe('SearchQueryUtils', () => {
             expect(getFilterFromQuery(resubmittedQueryJSON, CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM).value).toBeUndefined();
         });
 
+        it.each([
+            ['foo"bar baz"', ['foo"bar baz"']],
+            ['foo"bar baz"tail', ['foo"bar baz"tail']],
+            ['foo:"bar baz" x', ['foo:"bar baz"', 'x']],
+            ['foo"bar from:me baz"', ['foo"bar from:me baz"']],
+            ['foo:"bar type:expense"', ['foo:"bar type:expense"']],
+            ['foo"bar baz', ['foo"bar', 'baz']],
+        ])('should preserve quoted keyword text with an embedded opening quote in %s', (keyword, expectedKeywords) => {
+            const currentQueryJSON = buildSearchQueryJSON('type:expense');
+            if (!currentQueryJSON) {
+                throw new Error('Expected currentQueryJSON to be defined');
+            }
+
+            const result = getQueryWithUpdatedValues(getKeywordQueryWithCurrentSearchContext(keyword, currentQueryJSON));
+            const resultQueryJSON = buildSearchQueryJSON(result ?? '');
+            const keywordFilter = resultQueryJSON?.flatFilters.find((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD);
+
+            expect(keywordFilter?.filters.map((filter) => filter.value)).toEqual(expectedKeywords);
+
+            const displayedKeyword = getKeywordQueryForSearchInput(keywordFilter?.filters.map((filter) => filter.value.toString()) ?? []);
+            const resubmittedResult = resultQueryJSON ? getQueryWithUpdatedValues(getKeywordQueryWithCurrentSearchContext(displayedKeyword, resultQueryJSON)) : undefined;
+            const resubmittedKeywordFilter = buildSearchQueryJSON(resubmittedResult ?? '')?.flatFilters.find((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD);
+            expect(resubmittedKeywordFilter?.filters).toEqual(keywordFilter?.filters);
+        });
+
         it('should preserve malformed quote and backslash keyword text', () => {
             const currentQueryJSON = buildSearchQueryJSON('type:expense');
 

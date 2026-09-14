@@ -233,6 +233,7 @@ const syntaxKeyPattern = `-?(?:${Object.values(CONST.SEARCH.SEARCH_USER_FRIENDLY
 const syntaxOperatorPattern = '\\*?:|[<>]=?|=';
 const syntaxValuePattern = '"(?:\\\\.|[^"\\\\])*"|[^\\s]+';
 const syntaxSpanRegex = new RegExp(`(^|\\s)(${syntaxKeyPattern})\\s*(${syntaxOperatorPattern})\\s*(${syntaxValuePattern})`, 'gi');
+const syntaxWithoutValueRegex = new RegExp(`^${syntaxKeyPattern}\\s*(?:${syntaxOperatorPattern})$`, 'i');
 
 function quoteSyntaxSpans(segment: string) {
     return segment.replace(syntaxSpanRegex, (match: string, prefix: string) => {
@@ -289,6 +290,7 @@ function tokenizeKeywordSegments(keywords: string) {
 
         const start = index;
         const startsWithQuote = keywords.at(index) === '"' && hasClosingQuote(keywords, index);
+        let insideQuote = startsWithQuote;
         if (startsWithQuote) {
             index++;
         }
@@ -296,7 +298,7 @@ function tokenizeKeywordSegments(keywords: string) {
         while (index < keywords.length) {
             const char = keywords.at(index);
 
-            if (!startsWithQuote && /\s/.test(char ?? '')) {
+            if (!insideQuote && /\s/.test(char ?? '')) {
                 break;
             }
 
@@ -306,9 +308,19 @@ function tokenizeKeywordSegments(keywords: string) {
                 continue;
             }
 
-            if (char === '"' && startsWithQuote) {
-                index++;
-                break;
+            if (char === '"') {
+                if (insideQuote) {
+                    index++;
+                    if (startsWithQuote) {
+                        break;
+                    }
+                    insideQuote = false;
+                    continue;
+                }
+
+                if (hasClosingQuote(keywords, index) && !syntaxWithoutValueRegex.test(keywords.slice(start, index))) {
+                    insideQuote = true;
+                }
             }
 
             index++;
@@ -320,7 +332,6 @@ function tokenizeKeywordSegments(keywords: string) {
     return segments;
 }
 
-const syntaxWithoutValueRegex = new RegExp(`^${syntaxKeyPattern}\\s*(?:${syntaxOperatorPattern})$`, 'i');
 const groupByWithoutValueRegex = new RegExp(`^${CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.GROUP_BY}\\s*(?:${syntaxOperatorPattern})$`, 'i');
 
 function shouldCombineKeywordSegments(segment: string, nextSegment: string | undefined) {
@@ -359,6 +370,11 @@ function escapeKeyword(keywords: string) {
 
             if (q.startsWith('"')) {
                 return isCompleteQuotedValue(q) ? q : sanitizeIncompleteQuotedValue(q);
+            }
+
+            // A quoted span embedded in an ordinary token is one keyword; syntax inside it is literal text.
+            if (/\s/.test(segment) && hasUnescapedQuote(segment)) {
+                return sanitizeSearchValuePreservingEscapes(q);
             }
 
             const quotedSyntax = quoteSyntaxSpans(q).trim();
