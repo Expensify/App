@@ -3224,9 +3224,6 @@ function shouldCurrentUserSubmitReport(iouReport: OnyxEntry<Report>, chatReport:
     return isOwnReportAndRetracted || isWaitingForSubmissionFromCurrentUser(chatReport, policy);
 }
 
-/**
- * Checks whether the card transaction support deleting based on liability type
- */
 function canDeleteCardTransaction(transaction: OnyxEntry<Transaction>, policy: OnyxEntry<Policy>): boolean {
     const isCardTransaction = isCardTransactionTransactionUtils(transaction);
     if (!isCardTransaction) {
