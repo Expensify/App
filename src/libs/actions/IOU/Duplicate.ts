@@ -27,6 +27,9 @@ import {
 } from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 import {
+    getAmount,
+    getConvertedAmount,
+    getCurrency,
     getReimbursable,
     getRequestType,
     getTransactionType,
@@ -693,6 +696,7 @@ function createExpenseByType({
     dateFnsLocale,
     participantsPolicyTags,
     policyTags,
+    rules,
 }: {
     transactionType: string;
     params: RequestMoneyInformation;
@@ -710,6 +714,7 @@ function createExpenseByType({
     dateFnsLocale: DateFnsLocale | undefined;
     participantsPolicyTags: OnyxTypes.ParticipantsPolicyTags;
     policyTags: OnyxTypes.PolicyTagLists;
+    rules: OnyxCollection<OnyxTypes.Rule>;
 }) {
     switch (transactionType) {
         case CONST.SEARCH.TRANSACTION_TYPE.DISTANCE: {
@@ -749,6 +754,7 @@ function createExpenseByType({
                 recentWaypoints,
                 formatPhoneNumber,
                 participantsPolicyTags,
+                rules,
             };
             return createDistanceRequest(distanceParams);
         }
@@ -766,6 +772,7 @@ function createExpenseByType({
                 isTrackIntentUser,
                 formatPhoneNumber,
                 policyTags,
+                rules,
             };
             return submitPerDiemExpense(perDiemParams);
         }
@@ -808,6 +815,7 @@ type DuplicateExpenseTransactionParams = {
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     participantsPolicyTags: OnyxTypes.ParticipantsPolicyTags;
     conciergeChat: OnyxEntry<OnyxTypes.Report>;
+    rules: OnyxCollection<OnyxTypes.Rule>;
 };
 
 function duplicateExpenseTransaction({
@@ -842,6 +850,7 @@ function duplicateExpenseTransaction({
     participantsPolicyTags,
     conciergeChat,
     targetPolicyTags,
+    rules,
 }: DuplicateExpenseTransactionParams) {
     if (!transaction) {
         return;
@@ -880,6 +889,7 @@ function duplicateExpenseTransaction({
         policyRecentlyUsedCurrencies,
         quickAction,
         existingTransactionDraft,
+        rules,
         existingTransaction: {
             iouRequestType: duplicateRequestType,
             amount: 0,
@@ -930,6 +940,7 @@ function duplicateExpenseTransaction({
             },
             report: undefined,
             isDraftPolicy: false,
+            isDraftChatReport: false,
             currentUser: {accountID: currentUserAccountID, email: currentUserLogin},
             introSelected,
             conciergeChat,
@@ -940,6 +951,7 @@ function duplicateExpenseTransaction({
             currentUserLocalCurrency,
             delegateAccountID,
             reportActionsList: undefined,
+            rules,
         };
         return trackExpense(trackExpenseParams);
     }
@@ -967,6 +979,7 @@ function duplicateExpenseTransaction({
         formatPhoneNumber,
         participantsPolicyTags,
         policyTags: targetPolicyTags ?? {},
+        rules,
     });
 }
 
@@ -998,7 +1011,64 @@ type DuplicateReportParams = {
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     participantsPolicyTags: OnyxTypes.ParticipantsPolicyTags;
     conciergeChat: OnyxEntry<OnyxTypes.Report>;
+    rules: OnyxCollection<OnyxTypes.Rule>;
 };
+
+/**
+ * The optimistic report totals a duplicated report should carry. These are exactly the fields
+ * `buildOptimisticEmptyReport` pins to `0`, all expressed in the copy's currency using the negative sign expense
+ * report totals are stored with.
+ */
+type DuplicateReportTotals = {
+    total: number;
+    reimbursableTotal: number;
+    nonReimbursableTotal: number;
+    unheldReimbursableTotal: number;
+};
+
+/**
+ * Returns each eligible transaction's amount expressed in the duplicated report's currency, or `undefined` when that
+ * can't be derived on the client.
+ *
+ * The copy is created as an empty report in the target policy's output currency, so every expense whose own currency
+ * differs from it is skipped by the currency-equality guard in `getMoneyRequestInformation` and never reaches the
+ * report total. Each source transaction already stores `convertedAmount`, its amount in the *source report's*
+ * currency, so as long as the copy lands in that same currency we can express every expense in the copy's currency
+ * without an FX table. This is the rule `calculateGroupTotal` already applies when totalling a mixed-currency group.
+ *
+ * `undefined` means "don't guess". That covers three cases: the copy's currency differs from the source report's (a
+ * cross-workspace duplicate into another output currency, where the stored conversion is for the wrong currency), an
+ * expense needs a conversion it doesn't carry, or an expense has an unsynced amount or currency edit. Only the server
+ * recomputes `convertedAmount`, so while such an edit is still pending the stored conversion describes the old amount.
+ * The caller then leaves the totals as the server will send them rather than writing a fabricated number.
+ */
+function buildDuplicateReportCurrencyAmounts(eligibleTransactions: OnyxTypes.Transaction[], sourceReport: OnyxEntry<OnyxTypes.Report>, targetPolicy: OnyxTypes.Policy): number[] | undefined {
+    const reportCurrency = sourceReport?.currency;
+    if (!reportCurrency || reportCurrency !== targetPolicy.outputCurrency) {
+        return undefined;
+    }
+
+    const amounts: number[] = [];
+    for (const transaction of eligibleTransactions) {
+        // getCurrency/getAmount read the modified values first, so an expense whose currency was edited after it was
+        // created is measured by what it is now, not by what it was created as.
+        if (getCurrency(transaction) === reportCurrency) {
+            amounts.push(getAmount(transaction, true));
+            continue;
+        }
+
+        // An amount or currency edit that hasn't reached the server yet leaves `convertedAmount` describing the value
+        // before the edit, so it can't stand in for the expense here.
+        const hasUnsyncedAmountEdit = !!transaction.pendingFields?.amount || !!transaction.pendingFields?.currency;
+        if (transaction.convertedAmount === undefined || hasUnsyncedAmountEdit) {
+            return undefined;
+        }
+
+        amounts.push(getConvertedAmount(transaction, true));
+    }
+
+    return amounts;
+}
 
 function duplicateReport({
     dateFnsLocale,
@@ -1028,6 +1098,7 @@ function duplicateReport({
     getCurrencyDecimals,
     participantsPolicyTags,
     conciergeChat,
+    rules,
 }: DuplicateReportParams) {
     if (!targetPolicy || !parentChatReport) {
         return;
@@ -1042,6 +1113,7 @@ function duplicateReport({
         betas,
         isTrackIntentUser,
         getCurrencyDecimals,
+        rules,
         false,
         undefined,
         {
@@ -1083,6 +1155,11 @@ function duplicateReport({
 
     let currentIOUReport = newReport as OnyxEntry<OnyxTypes.Report>;
 
+    // The copy starts out as an empty report with every total pinned to 0. Accumulate them ourselves in the copy's
+    // currency so the running total survives expenses the money-request builder's currency-equality guard skips.
+    const reportCurrencyAmounts = buildDuplicateReportCurrencyAmounts(eligibleTransactions, sourceReport, targetPolicy);
+    const runningTotals: DuplicateReportTotals = {total: 0, reimbursableTotal: 0, nonReimbursableTotal: 0, unheldReimbursableTotal: 0};
+
     for (let i = 0; i < eligibleTransactions.length; i++) {
         const transaction = eligibleTransactions.at(i);
         if (!transaction) {
@@ -1091,6 +1168,19 @@ function duplicateReport({
         const transactionDetails = getTransactionDetails(transaction);
         if (!transactionDetails) {
             continue;
+        }
+
+        // Accumulated here rather than up front so an expense skipped above is left out of the running total too.
+        const reportCurrencyAmount = reportCurrencyAmounts?.at(i);
+        if (reportCurrencyAmount !== undefined) {
+            runningTotals.total -= reportCurrencyAmount;
+            if (getReimbursable(transaction)) {
+                runningTotals.reimbursableTotal -= reportCurrencyAmount;
+                // A copy is never on hold, so its unheld reimbursable total always tracks its reimbursable total.
+                runningTotals.unheldReimbursableTotal -= reportCurrencyAmount;
+            } else {
+                runningTotals.nonReimbursableTotal -= reportCurrencyAmount;
+            }
         }
 
         const isLastExpense = i === eligibleTransactions.length - 1;
@@ -1109,6 +1199,14 @@ function duplicateReport({
             gpsPoint: undefined,
             action: CONST.IOU.ACTION.CREATE,
             transactionParams,
+            ...(reportCurrencyAmount !== undefined
+                ? {
+                      newReportTotal: runningTotals.total,
+                      newReimbursableTotal: runningTotals.reimbursableTotal,
+                      newNonReimbursableTotal: runningTotals.nonReimbursableTotal,
+                      newUnheldReimbursableTotal: runningTotals.unheldReimbursableTotal,
+                  }
+                : {}),
             shouldPlaySound: false,
             shouldGenerateTransactionThreadReport: true,
             isASAPSubmitBetaEnabled,
@@ -1118,6 +1216,7 @@ function duplicateReport({
             quickAction,
             policyRecentlyUsedCurrencies,
             existingTransactionDraft: undefined,
+            rules,
             existingTransaction: {
                 iouRequestType: getDuplicateRequestType(transaction),
                 amount: 0,
@@ -1155,6 +1254,7 @@ function duplicateReport({
             formatPhoneNumber,
             participantsPolicyTags,
             policyTags: targetPolicyTags ?? {},
+            rules,
         });
 
         if (result?.iouReport) {
@@ -1194,6 +1294,7 @@ type BulkDuplicateExpensesParams = {
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     participantsPolicyTags: OnyxTypes.ParticipantsPolicyTags;
     conciergeChat: OnyxEntry<OnyxTypes.Report>;
+    rules: OnyxCollection<OnyxTypes.Rule>;
 };
 
 function bulkDuplicateExpenses({
@@ -1223,6 +1324,7 @@ function bulkDuplicateExpenses({
     getCurrencyDecimals,
     participantsPolicyTags,
     conciergeChat,
+    rules,
 }: BulkDuplicateExpensesParams) {
     const transactionsToDuplicate = transactionIDs.map((id) => allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`]).filter((t): t is OnyxTypes.Transaction => !!t);
 
@@ -1279,7 +1381,7 @@ function bulkDuplicateExpenses({
         // reads transactions from Onyx, which hasn't been updated yet for
         // optimistic reports (callbacks are deferred).
         let reportWasSplit = false;
-        if (optimisticIOUReport && (policyWillSplitReport || !canAddTransaction(optimisticIOUReport))) {
+        if (optimisticIOUReport && (policyWillSplitReport || !canAddTransaction(optimisticIOUReport, rules))) {
             optimisticIOUReport = undefined;
             currentOptimisticIOUReportID = generateReportID();
             currentReportPreviewActionID = NumberUtils.rand64();
@@ -1328,6 +1430,7 @@ function bulkDuplicateExpenses({
             getCurrencyDecimals,
             participantsPolicyTags,
             conciergeChat,
+            rules,
         });
 
         if (result?.iouReport) {
@@ -1369,6 +1472,7 @@ type BulkDuplicateReportsParams = {
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     conciergeChat: OnyxEntry<OnyxTypes.Report>;
+    rules: OnyxCollection<OnyxTypes.Rule>;
 };
 
 async function bulkDuplicateReports({
@@ -1398,6 +1502,7 @@ async function bulkDuplicateReports({
     formatPhoneNumber,
     getCurrencyDecimals,
     conciergeChat,
+    rules,
 }: BulkDuplicateReportsParams) {
     const allTransactionsMap = getAllTransactions();
     const transactionsByReportID = new Map<string, OnyxTypes.Transaction[]>();
@@ -1500,6 +1605,7 @@ async function bulkDuplicateReports({
             getCurrencyDecimals,
             participantsPolicyTags,
             conciergeChat,
+            rules,
         });
 
         hasDuplicatedReport = true;

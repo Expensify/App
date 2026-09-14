@@ -70,7 +70,7 @@ import Log from './Log';
 import getReportURLForCurrentContext from './Navigation/helpers/getReportURLForCurrentContext';
 import {getIsOffline, subscribe as subscribeNetworkState} from './NetworkState';
 import Parser from './Parser';
-import {arePersonalDetailsMissing, getEffectiveDisplayName, getPersonalDetailByEmail} from './PersonalDetailsUtils';
+import {arePersonalDetailsMissing, getEffectiveDisplayName} from './PersonalDetailsUtils';
 import stripFollowupListFromHtml from './ReportActionFollowupUtils/stripFollowupListFromHtml';
 import StringUtils from './StringUtils';
 import {getReportFieldTypeTranslationKey} from './WorkspaceReportFieldUtils';
@@ -449,8 +449,13 @@ function isActionOfType<T extends ReportActionName>(action: OnyxInputOrEntry<Rep
     return action?.actionName === actionName;
 }
 
-function isCardBrokenConnectionAction(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.PERSONAL_CARD_CONNECTION_BROKEN> {
-    return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.PERSONAL_CARD_CONNECTION_BROKEN);
+function isCardBrokenConnectionAction(
+    reportAction: OnyxInputOrEntry<ReportAction>,
+): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.PERSONAL_CARD_CONNECTION_BROKEN | typeof CONST.REPORT.ACTIONS.TYPE.PERSONAL_CARD_CONNECTION_BROKEN_30_DAYS> {
+    return (
+        isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.PERSONAL_CARD_CONNECTION_BROKEN) ||
+        isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.PERSONAL_CARD_CONNECTION_BROKEN_30_DAYS)
+    );
 }
 
 function getOriginalMessage<T extends ReportActionName>(reportAction: OnyxInputOrEntry<ReportAction<T>>): OriginalMessage<T> | undefined {
@@ -466,9 +471,21 @@ function getOriginalMessage<T extends ReportActionName>(reportAction: OnyxInputO
     return candidate as OriginalMessage<T>;
 }
 
-function getCardConnectionBrokenMessage(card: Card | undefined, originalCardName: string | undefined, translate: LocaleContextProps['translate'], connectionLink?: string) {
-    const personalCardName = originalCardName ?? card?.cardName ?? getBankName(card?.bank as CompanyCardFeed);
-    return translate('personalCard.conciergeBrokenConnection', personalCardName, connectionLink);
+function getPersonalCardName(card: Card | undefined, originalCardName: string | undefined): string {
+    return originalCardName ?? card?.cardName ?? getBankName(card?.bank as CompanyCardFeed);
+}
+
+function getCardConnectionBrokenMessage(
+    card: Card | undefined,
+    originalCardName: string | undefined,
+    translate: LocaleContextProps['translate'],
+    is30DaysReminder: boolean,
+    connectionLink?: string,
+) {
+    const cardName = getPersonalCardName(card, originalCardName);
+    return is30DaysReminder
+        ? translate('personalCard.conciergeBrokenConnection30Days', cardName, connectionLink)
+        : translate('personalCard.conciergeBrokenConnection', cardName, connectionLink);
 }
 
 function getElsewherePaymentReportActionMessage(translate: LocalizedTranslate, originalMessage: OriginalMessageIOU | undefined, payer?: string): string {
@@ -2864,6 +2881,11 @@ function getExportIntegrationActionFragments(translate: LocalizedTranslate, repo
                 case CONST.EXPORT_LABELS.DUALENTRY:
                     url = nonReimbursableUrls.at(0)?.substring(0, nonReimbursableUrls.at(0)?.lastIndexOf('/')) ?? '';
                     break;
+                case CONST.EXPORT_LABELS.CAMPFIRE:
+                    // s77rt Test in R2
+                    // https://github.com/Expensify/App/issues/100181
+                    url = nonReimbursableUrls.at(0)?.substring(0, nonReimbursableUrls.at(0)?.lastIndexOf('/')) ?? '';
+                    break;
                 default:
                     url = QBO_EXPENSES_URL;
             }
@@ -4696,11 +4718,16 @@ function shouldShowActivateCard(actionName?: ReportActionName, card?: Card, priv
     return (actionName === CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED || actionName === CONST.REPORT.ACTIONS.TYPE.CARD_REPLACED) && isCardPendingActivate(card) && !missingDetails;
 }
 
-function getJoinRequestMessage(translate: LocalizedTranslate, policy: OnyxEntry<Policy>, reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_JOIN_REQUEST>) {
-    const userDetail = getPersonalDetailByEmail(getOriginalMessage(reportAction)?.email ?? '');
+function getJoinRequestMessage(
+    translate: LocalizedTranslate,
+    policyName: string,
+    reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_JOIN_REQUEST>,
+    userDetail: OnyxEntry<PersonalDetails>,
+) {
     const userName = userDetail?.firstName ? `${userDetail.displayName} (${userDetail.login})` : (userDetail?.login ?? getOriginalMessage(reportAction)?.email);
-    return translate('workspace.inviteMessage.joinRequest', {user: userName ?? '', workspaceName: policy?.name ?? ''});
+    return translate('workspace.inviteMessage.joinRequest', {user: userName ?? '', workspaceName: policyName});
 }
+
 function isCardActive(card?: Card): boolean {
     if (!card) {
         return false;
@@ -4894,6 +4921,18 @@ function getCompanyCardConnectionBrokenMessage(translate: LocalizedTranslate, ac
     return translate('report.actions.type.companyCardConnectionBroken', {
         feedName,
         workspaceCompanyCardRoute,
+    });
+}
+
+function getCompanyCardConnectionBroken30DaysMessage(translate: LocalizedTranslate, action: OnyxEntry<ReportAction>): string {
+    const originalMessage = isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.COMPANY_CARD_CONNECTION_BROKEN_30_DAYS) ? getOriginalMessage(action) : undefined;
+    const {feedName, policyID} = originalMessage ?? {feedName: '', policyID: ''};
+    const workspaceCompanyCardRoute = `${environmentURL}/${ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID)}`;
+    const workspaceCompanyCardSettingsRoute = `${environmentURL}/${ROUTES.WORKSPACE_COMPANY_CARDS_SETTINGS.getRoute(policyID)}`;
+    return translate('report.actions.type.companyCardConnectionBroken30Days', {
+        feedName,
+        workspaceCompanyCardRoute,
+        workspaceCompanyCardSettingsRoute,
     });
 }
 
@@ -5100,6 +5139,7 @@ export {
     isSubmittedAndClosedAction,
     isDynamicExternalWorkflowSubmitAction,
     isMarkAsClosedAction,
+    isApprovedAction,
     isForwardedAction,
     isDynamicExternalWorkflowForwardedAction,
     isUnapprovedAction,
@@ -5223,6 +5263,7 @@ export {
     getIntegrationSyncFailedMessage,
     getCommuterExclusionMessage,
     getCompanyCardConnectionBrokenMessage,
+    getCompanyCardConnectionBroken30DaysMessage,
     getPlaidBalanceFailureMessage,
     getPolicyChangeLogDefaultReimbursableMessage,
     getManagerOnVacation,

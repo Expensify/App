@@ -284,6 +284,7 @@ describe('reportAttributes compute — policy change code flow', () => {
             undefined, // introSelected
             undefined, // reportMetadata
             undefined, // currencyList
+            undefined, // rules
             undefined, // network
         ];
         return args;
