@@ -1,6 +1,5 @@
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
-import useIsInSidePanel from '@hooks/useIsInSidePanel';
 import useOnyx from '@hooks/useOnyx';
 import useOpenConciergeAnywhere from '@hooks/useOpenConciergeAnywhere';
 import usePermissions from '@hooks/usePermissions';
@@ -19,6 +18,7 @@ import type {FileObject} from '@src/types/utils/Attachment';
 /**
  * Returns a callback that opens the side panel (or Concierge chat on native)
  * and sends the provided search query as a message.
+ * When Concierge answers in a thread, the side panel shows that thread rather than the Concierge chat.
  * Also returns a flag indicating whether the Ask Concierge item is ready to be displayed.
  *
  * @param forceConcierge Always target the Concierge report, ignoring the report the side panel currently maps to.
@@ -34,12 +34,9 @@ function useAskConcierge({forceConcierge = false}: {forceConcierge?: boolean} = 
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
     const delegateAccountID = useDelegateAccountID();
     const {isBetaEnabled} = usePermissions();
-    const isAskedFromSidePanel = useIsInSidePanel();
     const shouldShowAskConcierge = !!targetReportID && !!targetReport;
 
-    // Concierge answers each question in its own thread. The side panel renders its own pinned report,
-    // so it stays in the DM rather than being sent to a thread it cannot show.
-    const shouldRespondInThread = targetReportID === conciergeReportID && !isAskedFromSidePanel && isBetaEnabled(CONST.BETAS.CONCIERGE_RESPOND_IN_THREAD);
+    const shouldRespondInThread = targetReportID === conciergeReportID && isBetaEnabled(CONST.BETAS.CONCIERGE_RESPOND_IN_THREAD);
 
     const askConcierge = (searchQuery: string) => {
         const trimmedQuery = searchQuery.trim();
@@ -47,12 +44,11 @@ function useAskConcierge({forceConcierge = false}: {forceConcierge?: boolean} = 
             return;
         }
         const isTask = createTaskFromMarkdown({text: trimmedQuery, parentReport: targetReport, currentUserPersonalDetails, quickAction, delegateAccountID});
-        if (isTask || !shouldRespondInThread) {
-            openConciergeAnywhere({forceConcierge});
-        }
         if (isTask) {
+            openConciergeAnywhere({forceConcierge});
             return;
         }
+        const conciergeThreadReportID = shouldRespondInThread ? generateReportID() : undefined;
         addComment({
             report: targetReport,
             notifyReportID: targetReportID,
@@ -64,8 +60,12 @@ function useAskConcierge({forceConcierge = false}: {forceConcierge?: boolean} = 
             isInSidePanel,
             delegateAccountID,
             conciergeReportID,
-            conciergeThreadReportID: shouldRespondInThread ? generateReportID() : undefined,
+            conciergeThreadReportID,
+            shouldNavigateToConciergeThread: !isInSidePanel,
         });
+        if (!conciergeThreadReportID || isInSidePanel) {
+            openConciergeAnywhere({forceConcierge, reportID: conciergeThreadReportID});
+        }
     };
 
     const askConciergeWithAttachment = (attachments: FileObject | FileObject[], searchQuery: string) => {
@@ -74,9 +74,7 @@ function useAskConcierge({forceConcierge = false}: {forceConcierge?: boolean} = 
         }
 
         const willOpenThread = shouldRespondInThread && (!Array.isArray(attachments) || attachments.length === 1);
-        if (!willOpenThread) {
-            openConciergeAnywhere({forceConcierge});
-        }
+        const conciergeThreadReportID = willOpenThread ? generateReportID() : undefined;
         addAttachmentWithComment({
             report: targetReport,
             notifyReportID: targetReportID,
@@ -89,8 +87,12 @@ function useAskConcierge({forceConcierge = false}: {forceConcierge?: boolean} = 
             isInSidePanel,
             delegateAccountID,
             conciergeReportID,
-            conciergeThreadReportID: shouldRespondInThread ? generateReportID() : undefined,
+            conciergeThreadReportID,
+            shouldNavigateToConciergeThread: !isInSidePanel,
         });
+        if (!conciergeThreadReportID || isInSidePanel) {
+            openConciergeAnywhere({forceConcierge, reportID: conciergeThreadReportID});
+        }
     };
 
     return {askConcierge, askConciergeWithAttachment, shouldShowAskConcierge, conciergeTargetReportID: targetReportID};

@@ -410,6 +410,7 @@ type AddCommentParams = {
     delegateAccountID: number | undefined;
     conciergeReportID: string | undefined;
     conciergeThreadReportID?: string;
+    shouldNavigateToConciergeThread?: boolean;
 };
 
 type AddActionsParams = {
@@ -427,6 +428,7 @@ type AddActionsParams = {
     delegateAccountID: number | undefined;
     conciergeReportID: string | undefined;
     conciergeThreadReportID?: string;
+    shouldNavigateToConciergeThread?: boolean;
 };
 
 type AddAttachmentWithCommentParams = {
@@ -443,6 +445,7 @@ type AddAttachmentWithCommentParams = {
     sidePanelContext?: SidePanelContext;
     conciergeReportID: string | undefined;
     conciergeThreadReportID?: string;
+    shouldNavigateToConciergeThread?: boolean;
 };
 
 type MergeReportsProps = {
@@ -883,6 +886,7 @@ function addActions({
     delegateAccountID,
     conciergeReportID,
     conciergeThreadReportID,
+    shouldNavigateToConciergeThread = true,
 }: AddActionsParams) {
     if (!report?.reportID) {
         return;
@@ -1265,7 +1269,12 @@ function addActions({
     startSendMessagePhase(reportActionID, CONST.TELEMETRY.SPAN_SEND_MESSAGE_PHASE.PROPAGATE);
 
     if (conciergeThreadReportID && resolvedReportActionID) {
-        Onyx.update(conciergeThreadOnyxData).then(() => Navigation.navigate(getReportRouteForCurrentContext({reportID: conciergeThreadReportID})));
+        Onyx.update(conciergeThreadOnyxData).then(() => {
+            if (!shouldNavigateToConciergeThread) {
+                return;
+            }
+            Navigation.navigate(getReportRouteForCurrentContext({reportID: conciergeThreadReportID}));
+        });
     }
     notifyNewAction(resolvedNotifyReportID, lastAction, lastAction?.actorAccountID === currentUserAccountID);
 }
@@ -1285,6 +1294,7 @@ function addAttachmentWithComment({
     sidePanelContext,
     conciergeReportID,
     conciergeThreadReportID,
+    shouldNavigateToConciergeThread,
 }: AddAttachmentWithCommentParams) {
     if (!report?.reportID) {
         return;
@@ -1312,6 +1322,7 @@ function addAttachmentWithComment({
             sidePanelContext,
             conciergeReportID,
             conciergeThreadReportID,
+            shouldNavigateToConciergeThread,
         });
         handlePlaySound();
         return;
@@ -1332,6 +1343,7 @@ function addAttachmentWithComment({
 
         // Several attachments post one message each, so they stay in the DM instead of opening a thread.
         conciergeThreadReportID: attachments.length === 1 ? conciergeThreadReportID : undefined,
+        shouldNavigateToConciergeThread,
     });
 
     // Remaining: attachment-only actions (no text duplication)
@@ -1371,6 +1383,7 @@ function addComment({
     delegateAccountID,
     conciergeReportID,
     conciergeThreadReportID,
+    shouldNavigateToConciergeThread,
 }: AddCommentParams) {
     if (shouldPlaySound) {
         playSound(SOUNDS.DONE);
@@ -1389,6 +1402,7 @@ function addComment({
         sidePanelContext,
         conciergeReportID,
         conciergeThreadReportID,
+        shouldNavigateToConciergeThread,
     });
 }
 
