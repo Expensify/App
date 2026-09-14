@@ -189,12 +189,18 @@ function Search({
 
     const [, cardFeedsResult] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER);
 
-    // one page of local rows per resolved snapshot offset. offset is written optimistically at request time,
-    // so hold the limit there until isLoading clears, otherwise the next rows show before the response lands
-    const liveRowLimit = Math.max(
+    // offset is written optimistically at request time, so hold the cap there until isLoading clears
+    const snapshotRowLimit = Math.max(
         CONST.SEARCH.RESULTS_PAGE_SIZE,
         searchResults?.search?.isLoading ? (searchResults?.search?.offset ?? 0) : (searchResults?.search?.offset ?? 0) + CONST.SEARCH.RESULTS_PAGE_SIZE,
     );
+
+    // never lower the cap: a refresh rewinds the cursor to 0 but those rows are still in Onyx. key={queryJSON.hash} remounts per query, so no reset needed
+    const [revealedRows, setRevealedRows] = useState<number>(CONST.SEARCH.RESULTS_PAGE_SIZE);
+    const liveRowLimit = Math.max(revealedRows, snapshotRowLimit);
+    if (revealedRows < snapshotRowLimit) {
+        setRevealedRows(snapshotRowLimit);
+    }
 
     const searchDataType = useMemo(() => (shouldUseLiveData ? CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT : searchResults?.search?.type), [shouldUseLiveData, searchResults?.search?.type]);
     const isExpenseAllMatchingSelection = type === CONST.SEARCH.DATA_TYPES.EXPENSE && areAllMatchingItemsSelected;
@@ -837,6 +843,14 @@ function Search({
     const wantedOffsetRef = useRef<number | undefined>(undefined);
 
     const fetchMoreResults = useCallback(() => {
+        // hasMoreResults is a server cursor, it says nothing about what's cached, so offline reveal local rows directly
+        if (shouldUseLiveData && isOffline) {
+            if (liveRowLimit < filteredDataLength) {
+                setRevealedRows(liveRowLimit + CONST.SEARCH.RESULTS_PAGE_SIZE);
+            }
+            return;
+        }
+
         if (!searchResults?.search?.hasMoreResults) {
             wantedOffsetRef.current = undefined;
             return;
@@ -870,6 +884,8 @@ function Search({
     }, [
         isFocused,
         isOffline,
+        shouldUseLiveData,
+        liveRowLimit,
         searchResults?.search?.hasMoreResults,
         searchResults?.search?.isLoading,
         searchResults?.search?.offset,

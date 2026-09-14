@@ -83,7 +83,7 @@ type UseSearchSnapshotParams = {
      *  full-collection reads. */
     transactions: OptimisticTrackingParams['transactions'];
     reportActions: OptimisticTrackingParams['reportActions'];
-    /** Row cap for `data`. Live searches page on this instead of a server cursor. `undefined` = no cap. */
+    /** Row cap for `data`. Live searches page on this instead of a server cursor. */
     visibleRowLimit?: number;
 };
 
