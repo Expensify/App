@@ -196,7 +196,6 @@ function GroupHeader({
         onCheckboxPress(withOriginalKey(item), isExpenseReportType ? undefined : groupItem.transactions);
     };
 
-
     const handleSelectRow = (rowItem: SearchListItem, event?: ModifiedMouseEvent) => {
         onSelectRow(withOriginalKey(rowItem), transactionPreviewData, event);
     };
