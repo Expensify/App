@@ -1,9 +1,9 @@
 import {act, render} from '@testing-library/react-native';
 
 import TextInputFilterContent, {TextInputFilterContentFillHeight} from '@components/Search/FilterComponents/AdvancedFilters/TextInputFilterContent';
+import type * as TextFilterValidationModule from '@components/Search/hooks/useTextFilterValidation';
 
-import {parse} from '@libs/SearchParser/searchParser';
-import {sanitizeSearchValue} from '@libs/SearchQueryUtils';
+import {buildSearchQueryJSON, sanitizeSearchValue} from '@libs/SearchQueryUtils';
 
 import variables from '@styles/variables';
 
@@ -79,7 +79,7 @@ jest.mock('@components/Search/FilterComponents/NegatableFilter', () => {
     };
 });
 jest.mock('@components/Search/hooks/useTextFilterValidation', () => {
-    const {default: useActualValidation} = jest.requireActual<typeof import('@components/Search/hooks/useTextFilterValidation')>('@components/Search/hooks/useTextFilterValidation');
+    const {default: useActualValidation} = jest.requireActual<typeof TextFilterValidationModule>('@components/Search/hooks/useTextFilterValidation');
     return (filterKey: Parameters<typeof useActualValidation>[0], value: string | undefined) => {
         const error = useActualValidation(filterKey, value);
         return mockValidationError || error;
@@ -264,7 +264,8 @@ describe('TextInputFilterContent', () => {
 
             expect(onChange).toHaveBeenCalledWith('Acme Office', true);
             const savedValue = onChange.mock.calls.at(-1)?.[0] ?? '';
-            expect(parse(`merchant:${sanitizeSearchValue(savedValue)}`).rawFilterList).toEqual([expect.objectContaining({key: 'merchant', value: 'Acme Office'})]);
+            const query = `merchant:${sanitizeSearchValue(savedValue)}`;
+            expect(buildSearchQueryJSON(query, query)?.rawFilterList).toEqual([expect.objectContaining({key: 'merchant', value: 'Acme Office'})]);
         });
 
         it.each([undefined, '', 'Coffee'])('preserves %j when no normalization is needed', (value) => {
