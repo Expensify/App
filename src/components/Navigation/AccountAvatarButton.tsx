@@ -79,7 +79,7 @@ function AccountAvatarButtonContent() {
                   vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
               },
           }
-        : {text: translate('initialSettingsPage.account')};
+        : {text: translate('initialSettingsPage.account'), isFocused};
 
     return (
         <TooltipToRender {...tooltipProps}>
