@@ -284,7 +284,8 @@ const getOnboardingMessages = (locale?: Locale) => {
         type: CONST.ONBOARDING_TASK_TYPE.JOIN_WORKSPACE,
         autoCompleted: false,
         title: translate(resolvedLocale, 'onboarding.tasks.joinWorkspaceTask.title'),
-        description: ({joinWorkspaceLink}) => translate(resolvedLocale, 'onboarding.tasks.joinWorkspaceTask.description', {joinWorkspaceLink}),
+        description: ({joinWorkspaceLink}) =>
+            translate(resolvedLocale, 'onboarding.tasks.joinWorkspaceTask.description', {joinWorkspaceLink: `${joinWorkspaceLink}?isJoinWorkspaceTask=true`}),
     };
     const testDriveAdminTask: OnboardingTask = {
         type: CONST.ONBOARDING_TASK_TYPE.VIEW_TOUR,

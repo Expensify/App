@@ -98,9 +98,8 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
     const isEmployerWithSubmit = onboardingIntent === CONST.ONBOARDING_CHOICES.EMPLOYER;
     const isJoiningCompanyWorkspace = onboardingIntent === CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE;
     const hasCompletedGuidedSetupFlow = hasCompletedGuidedSetupFlowSelector(onboardingValues);
-    // Validation reaches this screen before the completed-onboarding Pusher update can arrive. A report backTo route
-    // marks that this was opened from a Concierge task so Skip cannot send a second CompleteGuidedSetup request.
-    const isConciergeTaskFlow = isJoiningCompanyWorkspace && (hasCompletedGuidedSetupFlow || route.params?.backTo?.startsWith('r/'));
+    const isConciergeTaskFlow = isJoiningCompanyWorkspace && route.params?.isJoinWorkspaceTask === 'true';
+    const isPostOnboardingJoinWorkspaceFlow = isJoiningCompanyWorkspace && (hasCompletedGuidedSetupFlow || isConciergeTaskFlow);
     const createdEmptyWorkspaceContentDomains = useRef(new Set<string>());
     const createdJoinWorkspaceTask = useRef(false);
     const autoCreateSubmitWorkspace = useAutoCreateSubmitWorkspace();
@@ -262,7 +261,11 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
         if (isJoiningCompanyWorkspace) {
             // Opened from a Concierge task after onboarding finished: there is no onboarding step to continue into,
             // so just close instead of completing onboarding again.
-            if (isConciergeTaskFlow) {
+            if (isPostOnboardingJoinWorkspaceFlow) {
+                if (!isConciergeTaskFlow) {
+                    returnToOriginReport();
+                    return;
+                }
                 createAndOpenJoinWorkspaceTask();
                 return;
             }
@@ -301,9 +304,9 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
             shouldShowOfflineIndicator={isSmallScreenWidth}
         >
             <OnboardingHeader
-                shouldShowBackButton={!isConciergeTaskFlow && !shouldHideBackButton}
+                shouldShowBackButton={!isPostOnboardingJoinWorkspaceFlow && !shouldHideBackButton}
                 onBackButtonPress={() => Navigation.goBack()}
-                shouldShowCloseButton={isConciergeTaskFlow}
+                shouldShowCloseButton={isPostOnboardingJoinWorkspaceFlow}
                 onCloseButtonPress={closeJoinWorkspaceTask}
             />
             <SelectionList

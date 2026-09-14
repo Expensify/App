@@ -4058,7 +4058,8 @@ const ROUTES = {
     ONBOARDING_WORKSPACES: {
         route: 'onboarding/join-workspaces',
 
-        getRoute: (backTo?: string) => getUrlWithBackToParam(`onboarding/join-workspaces`, backTo),
+        getRoute: (backTo?: string, isJoinWorkspaceTask = false) =>
+            getUrlWithParams(getUrlWithBackToParam(`onboarding/join-workspaces`, backTo), {isJoinWorkspaceTask: isJoinWorkspaceTask ? 'true' : undefined}),
     },
     ONBOARDING_WORK_EMAIL: {
         route: 'onboarding/work-email',
