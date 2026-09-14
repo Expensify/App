@@ -133,6 +133,9 @@ type IOURequestStepConfirmationProps = WithWritableReportOrNotFoundProps<IOURequ
         /** Increments when the embedded discard confirmation is cancelled, so the amount input can restore focus */
         discardCancelSequence?: number;
 
+        /** Whether the embedded discard confirmation is visible, so inline inputs can release focus */
+        isDiscardModalVisible?: boolean;
+
         /** Suppresses the parent discard prompt when the embedded confirmation starts a successful submit */
         suppressDiscardPrompt?: () => void;
     };
@@ -147,6 +150,7 @@ function IOURequestStepConfirmationContent({
     navigation,
     onSignDirtyChange,
     discardCancelSequence,
+    isDiscardModalVisible,
     suppressDiscardPrompt,
 }: IOURequestStepConfirmationProps) {
     const {getCurrencyDecimals, convertToDisplayString} = useCurrencyListActions();
@@ -1175,6 +1179,7 @@ function IOURequestStepConfirmationContent({
                                     shouldHideToSection={shouldHideToSection}
                                     onSignDirtyChange={onSignDirtyChange}
                                     discardCancelSequence={discardCancelSequence}
+                                    isDiscardModalVisible={isDiscardModalVisible}
                                 />
                             )}
                         </SubmitExpenseOrchestrator>

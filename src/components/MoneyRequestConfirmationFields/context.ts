@@ -49,6 +49,9 @@ type ConfirmationFieldsContextValue = {
 
     /** Increments when the embedded discard confirmation is cancelled, so the amount input can restore focus. */
     discardCancelSequence?: number;
+
+    /** Whether the embedded discard confirmation is visible, so inline inputs can release focus. */
+    isDiscardModalVisible?: boolean;
 };
 
 const ConfirmationFieldsContext = createContext<ConfirmationFieldsContextValue | null>(null);

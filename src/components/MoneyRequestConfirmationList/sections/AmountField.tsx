@@ -72,7 +72,8 @@ function AmountField({
     setFormError,
     isParticipantPickerVisible = false,
 }: AmountFieldProps) {
-    const {isEditingSplitBill, isReadOnly, didConfirm, transactionID, action, iouType, reportID, reportActionID, onSignDirtyChange, discardCancelSequence} = useConfirmationFields();
+    const {isEditingSplitBill, isReadOnly, didConfirm, transactionID, action, iouType, reportID, reportActionID, onSignDirtyChange, discardCancelSequence, isDiscardModalVisible} =
+        useConfirmationFields();
     const shouldAutoFocusOnMount = !canUseTouchScreen();
     const styles = useThemeStyles();
     const {translate, preferredLocale} = useLocalize();
@@ -154,6 +155,14 @@ function AmountField({
             clearTimeout(focusTimeoutRef.current);
         };
     }, [discardCancelSequence, isAmountFieldDisabled]);
+
+    useEffect(() => {
+        if (!isDiscardModalVisible) {
+            return;
+        }
+
+        amountInputRef.current?.blur();
+    }, [isDiscardModalVisible]);
 
     const showCurrencyPicker = () => {
         setIsCurrencyPickerVisible(true);

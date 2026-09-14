@@ -79,6 +79,9 @@ type ProviderProps = {
     /** Increments when the embedded discard confirmation is cancelled, so the amount input can restore focus */
     discardCancelSequence?: number;
 
+    /** Whether the embedded discard confirmation is visible, so inline inputs can release focus */
+    isDiscardModalVisible?: boolean;
+
     /** Block components rendered inside the Provider */
     children: ReactNode;
 };
@@ -107,6 +110,7 @@ function Provider({
     onTaxAmountEmptyChange,
     onSignDirtyChange,
     discardCancelSequence,
+    isDiscardModalVisible,
     children,
 }: ProviderProps) {
     const value = {
@@ -133,6 +137,7 @@ function Provider({
         onTaxAmountEmptyChange,
         onSignDirtyChange,
         discardCancelSequence,
+        isDiscardModalVisible,
     };
     return <ConfirmationFieldsContext.Provider value={value}>{children}</ConfirmationFieldsContext.Provider>;
 }

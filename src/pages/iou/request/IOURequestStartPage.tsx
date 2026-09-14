@@ -217,6 +217,7 @@ function IOURequestStartPage({
 
     const [isSignDirty, setIsSignDirty] = useState(false);
     const [discardCancelSequence, setDiscardCancelSequence] = useState(0);
+    const [isDiscardModalVisible, setIsDiscardModalVisible] = useState(false);
     const [hasSubmitted, setHasSubmitted] = useState(false);
     const hasSubmittedRef = useRef(false);
 
@@ -227,6 +228,7 @@ function IOURequestStartPage({
     const {suppressDiscardPrompt} = useDiscardChangesConfirmation({
         getHasUnsavedChanges: getEmbeddedHasUnsavedChanges,
         onCancel: () => setDiscardCancelSequence((sequence) => sequence + 1),
+        onVisibilityChange: setIsDiscardModalVisible,
         onConfirm: cleanupPreInsertedDestination,
     });
 
@@ -301,6 +303,7 @@ function IOURequestStartPage({
                 shouldHideHeader
                 onSignDirtyChange={setIsSignDirty}
                 discardCancelSequence={discardCancelSequence}
+                isDiscardModalVisible={isDiscardModalVisible}
                 suppressDiscardPrompt={suppressEmbeddedDiscardPrompt}
             />
         );

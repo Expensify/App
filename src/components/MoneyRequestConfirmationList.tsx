@@ -96,6 +96,9 @@ type MoneyRequestConfirmationListProps = {
     /** Increments when the embedded discard confirmation is cancelled, so the amount input can restore focus. */
     discardCancelSequence?: number;
 
+    /** Whether the embedded discard confirmation is visible, so inline inputs can release focus. */
+    isDiscardModalVisible?: boolean;
+
     /** Should the list be read only, and not editable? */
     isReadOnly?: boolean;
 
@@ -200,6 +203,7 @@ function MoneyRequestConfirmationList({
     shouldHideToSection = false,
     onSignDirtyChange,
     discardCancelSequence,
+    isDiscardModalVisible,
 }: MoneyRequestConfirmationListProps) {
     const policyCategories = usePolicyCategoriesForConfirmation(policyID);
     const {policyTags, policyTagLists} = usePolicyTagsForConfirmation(policyID);
@@ -550,6 +554,7 @@ function MoneyRequestConfirmationList({
             onTaxAmountEmptyChange={setIsTaxAmountEmpty}
             onSignDirtyChange={onSignDirtyChange}
             discardCancelSequence={discardCancelSequence}
+            isDiscardModalVisible={isDiscardModalVisible}
         >
             <View style={isCompactMode ? styles.flex1 : undefined}>
                 <MoneyRequestConfirmationListFooter
