@@ -5,7 +5,7 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {useConciergeSessionActions, useConciergeSessionState} from '@pages/inbox/ConciergeSessionContext';
+import {useConciergeSessionActions} from '@pages/inbox/ConciergeSessionContext';
 
 import CONST from '@src/CONST';
 
@@ -21,6 +21,9 @@ type ConciergeChatHistoryToggleProps = {
     /** Whether there are messages hidden before the session start */
     hasPreviousMessages: boolean;
 
+    /** Whether the earlier conversation is currently shown */
+    shouldShowFullHistory: boolean;
+
     /** Callback to reveal the earlier conversation */
     onShowPreviousMessages: () => void;
 
@@ -28,12 +31,11 @@ type ConciergeChatHistoryToggleProps = {
     containerStyles?: StyleProp<ViewStyle>;
 };
 
-function ConciergeChatHistoryToggle({reportID, hasPreviousMessages, onShowPreviousMessages, containerStyles}: ConciergeChatHistoryToggleProps) {
+function ConciergeChatHistoryToggle({reportID, hasPreviousMessages, shouldShowFullHistory, onShowPreviousMessages, containerStyles}: ConciergeChatHistoryToggleProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['UpArrow', 'DownArrow']);
     const {isAskConciergeChat} = useConciergeAskState(reportID);
-    const {showFullHistory} = useConciergeSessionState();
     const {setShowFullHistory} = useConciergeSessionActions();
 
     if (!isAskConciergeChat || !hasPreviousMessages) {
@@ -45,10 +47,10 @@ function ConciergeChatHistoryToggle({reportID, hasPreviousMessages, onShowPrevio
             <View style={[styles.threadDividerLine, styles.ml0, styles.mr0, styles.flexGrow1]} />
             <Button
                 size={CONST.BUTTON_SIZE.SMALL}
-                onPress={showFullHistory ? () => setShowFullHistory(false) : onShowPreviousMessages}
+                onPress={shouldShowFullHistory ? () => setShowFullHistory(false) : onShowPreviousMessages}
             >
-                <Button.Text>{translate(showFullHistory ? 'common.concierge.hideChatHistory' : 'common.concierge.viewChatHistory')}</Button.Text>
-                <Button.Icon src={showFullHistory ? expensifyIcons.DownArrow : expensifyIcons.UpArrow} />
+                <Button.Text>{translate(shouldShowFullHistory ? 'common.concierge.hideChatHistory' : 'common.concierge.viewChatHistory')}</Button.Text>
+                <Button.Icon src={shouldShowFullHistory ? expensifyIcons.DownArrow : expensifyIcons.UpArrow} />
             </Button>
             <View style={[styles.threadDividerLine, styles.ml0, styles.mr0, styles.flexGrow1]} />
         </View>

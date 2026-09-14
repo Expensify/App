@@ -19,16 +19,15 @@ jest.mock('@hooks/useLazyAsset', () => ({
 }));
 
 const mockSetShowFullHistory = jest.fn();
-let mockShowFullHistory = false;
 
 jest.mock('@pages/inbox/ConciergeSessionContext', () => ({
-    useConciergeSessionState: () => ({sessionStartTime: '2024-06-01 12:00:00.000', showFullHistory: mockShowFullHistory, hadMessagesAtSessionStart: false}),
+    useConciergeSessionState: () => ({sessionStartTime: '2024-06-01 12:00:00.000', showFullHistory: false, hadMessagesAtSessionStart: false}),
     useConciergeSessionActions: () => ({setShowFullHistory: mockSetShowFullHistory}),
 }));
 
 const CONCIERGE_REPORT_ID = '1';
 
-const renderToggle = (overrides: {hasPreviousMessages?: boolean} = {}) => {
+const renderToggle = (overrides: {hasPreviousMessages?: boolean; shouldShowFullHistory?: boolean} = {}) => {
     const onShowPreviousMessages = jest.fn();
     render(
         <OnyxListItemProvider>
@@ -36,6 +35,7 @@ const renderToggle = (overrides: {hasPreviousMessages?: boolean} = {}) => {
                 <ConciergeChatHistoryToggle
                     reportID={CONCIERGE_REPORT_ID}
                     hasPreviousMessages={overrides.hasPreviousMessages ?? true}
+                    shouldShowFullHistory={overrides.shouldShowFullHistory ?? false}
                     onShowPreviousMessages={onShowPreviousMessages}
                 />
             </IsInSidePanelContext.Provider>
@@ -53,7 +53,6 @@ describe('ConciergeChatHistoryToggle', () => {
 
     beforeEach(() => {
         jest.clearAllMocks();
-        mockShowFullHistory = false;
     });
 
     it('reveals the earlier conversation when history is hidden', () => {
@@ -65,8 +64,7 @@ describe('ConciergeChatHistoryToggle', () => {
     });
 
     it('collapses the earlier conversation when history is shown', () => {
-        mockShowFullHistory = true;
-        const {onShowPreviousMessages} = renderToggle();
+        const {onShowPreviousMessages} = renderToggle({shouldShowFullHistory: true});
 
         expect(screen.getByText('Hide chat history')).toBeTruthy();
         fireEvent.press(screen.getByRole('button'));
