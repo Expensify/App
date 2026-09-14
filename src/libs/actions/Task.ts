@@ -37,7 +37,7 @@ import type {OnyxData} from '@src/types/onyx/Request';
 import type {SearchResultDataType} from '@src/types/onyx/SearchResults';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-import type {NullishDeep, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 
 import {Str} from 'expensify-common';
 import Onyx from 'react-native-onyx';
@@ -1278,6 +1278,7 @@ function getShareDestination(
     policy: OnyxEntry<OnyxTypes.Policy>,
     conciergeReportID: string | undefined,
     translate: LocalizedTranslate,
+    rules: OnyxCollection<OnyxTypes.Rule>,
     reportAttributes?: OnyxTypes.ReportAttributesDerivedValue['reports'],
     pendingDeleteMemberAccountIDs?: string[],
 ): ShareDestination {
@@ -1302,7 +1303,7 @@ function getShareDestination(
         const login = personalDetails?.[participantAccountID]?.login ?? '';
         subtitle = formatPhoneNumber(login || displayName);
     } else {
-        subtitle = ReportUtils.getChatRoomSubtitle(report, policy, conciergeReportID, translate) ?? '';
+        subtitle = ReportUtils.getChatRoomSubtitle(report, policy, conciergeReportID, translate, rules) ?? '';
     }
     return {
         icons: ReportUtils.getIcons(

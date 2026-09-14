@@ -140,6 +140,7 @@ function useTodoSearchResults(searchKey: SearchKey | undefined): {data: TodoSear
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [personalDetailsList] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
     if (!searchKey) {
         return undefined;
@@ -160,6 +161,7 @@ function useTodoSearchResults(searchKey: SearchKey | undefined): {data: TodoSear
         currentUserAccountID: userAccountID,
         login,
         areTransactionsLoaded: transactionsMetadata.status === 'loaded',
+        rules,
     });
 
     const metadata = computeMetadata(reports, transactionsByReportID);
