@@ -13,7 +13,7 @@ import ROUTES from '@src/ROUTES';
 import type {CompanyCardFeed} from '@src/types/onyx';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
-import {useEffect} from 'react';
+import {useEffect, useRef} from 'react';
 
 function useFixPersonalCardConnection(cardID: string) {
     const {isOffline} = useNetwork();
@@ -27,18 +27,21 @@ function useFixPersonalCardConnection(cardID: string) {
     // Matches the wallet row and the card details page, so a card they offer a fix for takes the reconnect flow here
     // rather than the auto-sync path meant for cards with nothing to fix.
     const isCardBroken = card ? hasCardConnectionIssue(card) : false;
+    // The sync optimistically reports the card as synced, which changes `card` and re-runs the effect before it can
+    // navigate away. A second run would send the optimistic result as the card's real one, so it only ever runs once.
+    const hasSyncedRef = useRef(false);
 
     useEffect(() => {
         if (isLoadingOnyxValue(cardListMetadata)) {
             return;
         }
-        // The Plaid flow drives its own SyncCard from onSuccess, so skip the auto-sync here
-        // to avoid a duplicate call when our optimistic update flips isCardBroken before unmount.
+        // The Plaid flow drives its own SyncCard from onSuccess, so skip the auto-sync here.
         // A broken card is only kept on this page when there is a bank connection to send it to. Without one the page
         // has nothing to offer, so it falls through to the sync below rather than stranding the user here.
-        if (!card || isPlaid || (isCardBroken && !!url)) {
+        if (!card || isPlaid || (isCardBroken && !!url) || hasSyncedRef.current) {
             return;
         }
+        hasSyncedRef.current = true;
         updatePersonalCardConnection(card.cardID.toString(), card.lastScrapeResult);
         Navigation.goBack(ROUTES.SETTINGS_WALLET_PERSONAL_CARD_DETAILS.getRoute(cardID));
     }, [isCardBroken, card, cardID, cardListMetadata, isPlaid, url]);
