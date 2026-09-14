@@ -21,6 +21,8 @@ const CARD_ID = 'card1';
 // "user09" sorts to the middle by display name, so seeing it first proves pinning (not the sort) put it there.
 const INITIAL_ASSIGNEE = 'user09@example.com';
 
+const EXPENSIFY_TEAM_MEMBER = 'guide@team.expensify.com';
+
 // The current assignee comes from Onyx; a mutable holder lets each test set it (and clear it) before render.
 let mockAssigneeEmail: string | undefined;
 let mockPolicy: Policy | undefined;
@@ -34,6 +36,12 @@ function buildPolicy(count: number): Policy {
     }
     // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- test-only minimal Policy stub
     return {id: POLICY_ID, owner: 'owner@example.com', employeeList} as unknown as Policy;
+}
+
+/** Add an Expensify-team member (a guide) to the policy's employeeList. */
+function withExpensifyTeamMember(policy: Policy): Policy {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- test-only minimal Policy stub
+    return {...policy, employeeList: {...policy.employeeList, [EXPENSIFY_TEAM_MEMBER]: {email: EXPENSIFY_TEAM_MEMBER, role: CONST.POLICY.ROLE.USER}}} as unknown as Policy;
 }
 
 jest.mock('@react-navigation/native', () => {
@@ -98,13 +106,20 @@ jest.mock('@libs/PersonalDetailsUtils', () => ({
         return {displayName: `User ${email.replace('user', '').replace('@example.com', '')}`, accountID: index, login: email, avatar: ''};
     }),
 }));
-jest.mock('@libs/PolicyUtils', () => ({
-    canMemberWrite: jest.fn(() => false),
-    filterGuideAndAccountManager: jest.fn((items: unknown[]) => items),
-    getGuideAndAccountManagerInfo: jest.fn(() => ({assignedGuideEmail: undefined, accountManagerLogin: undefined, exclusions: {}})),
-    getIneligibleInvitees: jest.fn(() => []),
-    isDeletedPolicyEmployee: jest.fn(() => false),
-}));
+jest.mock('@libs/PolicyUtils', () => {
+    const isExpensifyTeam = (email?: string) => email?.endsWith('@expensify.com') === true || email?.endsWith('@team.expensify.com') === true;
+    return {
+        canMemberWrite: jest.fn(() => false),
+        filterGuideAndAccountManager: jest.fn((items: unknown[]) => items),
+        getGuideAndAccountManagerInfo: jest.fn(() => ({assignedGuideEmail: undefined, accountManagerLogin: undefined, exclusions: {}})),
+        getIneligibleInvitees: jest.fn(() => []),
+        isDeletedPolicyEmployee: jest.fn(() => false),
+        isExpensifyTeam: jest.fn(isExpensifyTeam),
+        shouldFilterExpensifyTeam: jest.fn(
+            (policyOwner?: string, currentUserLogin?: string) => !!policyOwner && !!currentUserLogin && !isExpensifyTeam(policyOwner) && !isExpensifyTeam(currentUserLogin),
+        ),
+    };
+});
 jest.mock('@libs/OptionsListUtils', () => ({
     sortAlphabetically: (items: Array<Record<string, string>>, key: string, cmp: (a: string, b: string) => number) => [...items].sort((a, b) => cmp(a[key] ?? '', b[key] ?? '')),
     getSearchValueForPhoneOrEmail: (value: string) => value,
@@ -182,5 +197,35 @@ describe('AssignCard AssigneeStep', () => {
 
         const props = getSelectionListProps();
         expect(props?.data.at(0)?.value).toBe(INITIAL_ASSIGNEE);
+    });
+
+    it('hides Expensify team members, matching the Workspace Members page', () => {
+        mockPolicy = withExpensifyTeamMember(buildPolicy(CONST.STANDARD_LIST_ITEM_LIMIT + 2));
+
+        renderStep();
+
+        const props = getSelectionListProps();
+        expect(props?.data.some((item) => item.value === EXPENSIFY_TEAM_MEMBER)).toBe(false);
+    });
+
+    it('still shows the already-assigned Expensify team member so editing an assignment does not blank out', () => {
+        mockPolicy = withExpensifyTeamMember(buildPolicy(CONST.STANDARD_LIST_ITEM_LIMIT + 2));
+        mockAssigneeEmail = EXPENSIFY_TEAM_MEMBER;
+
+        renderStep();
+
+        const props = getSelectionListProps();
+        expect(props?.data.some((item) => item.value === EXPENSIFY_TEAM_MEMBER)).toBe(true);
+    });
+
+    it('shows Expensify team members when the policy is owned by Expensify', () => {
+        const policy = withExpensifyTeamMember(buildPolicy(CONST.STANDARD_LIST_ITEM_LIMIT + 2));
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- test-only minimal Policy stub
+        mockPolicy = {...policy, owner: 'owner@expensify.com'} as unknown as Policy;
+
+        renderStep();
+
+        const props = getSelectionListProps();
+        expect(props?.data.some((item) => item.value === EXPENSIFY_TEAM_MEMBER)).toBe(true);
     });
 });

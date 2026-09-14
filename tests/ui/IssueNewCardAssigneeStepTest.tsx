@@ -17,6 +17,7 @@ import React from 'react';
 const mockUseState = React.useState;
 
 const POLICY_ID = 'policy1';
+const EXPENSIFY_TEAM_MEMBER = 'guide@team.expensify.com';
 
 let mockIssueNewCard: {data?: Partial<IssueNewCardData>; isEditing?: boolean} | undefined;
 let mockPolicy: Policy | undefined;
@@ -39,7 +40,13 @@ function buildPolicy(count: number): Policy {
         employeeList[email] = {email, role: CONST.POLICY.ROLE.USER};
     }
     // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- test-only minimal Policy stub
-    return {id: POLICY_ID, employeeList} as unknown as Policy;
+    return {id: POLICY_ID, owner: 'owner@example.com', employeeList} as unknown as Policy;
+}
+
+/** Add an Expensify-team member (a guide) to the policy's employeeList. */
+function withExpensifyTeamMember(policy: Policy): Policy {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- test-only minimal Policy stub
+    return {...policy, employeeList: {...policy.employeeList, [EXPENSIFY_TEAM_MEMBER]: {email: EXPENSIFY_TEAM_MEMBER, role: CONST.POLICY.ROLE.USER}}} as unknown as Policy;
 }
 
 jest.mock('@react-navigation/native', () => {
@@ -76,6 +83,9 @@ jest.mock('@hooks/useOnyx', () => {
         if (typeof key === 'string' && key.startsWith(onyxKeys.COLLECTION.RAM_ONLY_ISSUE_NEW_EXPENSIFY_CARD)) {
             return [mockIssueNewCard];
         }
+        if (key === onyxKeys.SESSION) {
+            return [{email: 'current@example.com'}];
+        }
         return [undefined];
     });
 });
@@ -92,13 +102,20 @@ jest.mock('@hooks/usePersonalDetailSearchSelector', () =>
     }),
 );
 
-jest.mock('@libs/PolicyUtils', () => ({
-    canMemberWrite: jest.fn(() => true),
-    filterGuideAndAccountManager: (list: unknown) => list,
-    getGuideAndAccountManagerInfo: jest.fn(() => ({assignedGuideEmail: undefined, accountManagerLogin: undefined, exclusions: {}})),
-    getIneligibleInvitees: jest.fn(() => []),
-    isDeletedPolicyEmployee: jest.fn(() => false),
-}));
+jest.mock('@libs/PolicyUtils', () => {
+    const isExpensifyTeam = (email?: string) => email?.endsWith('@expensify.com') === true || email?.endsWith('@team.expensify.com') === true;
+    return {
+        canMemberWrite: jest.fn(() => true),
+        filterGuideAndAccountManager: (list: unknown) => list,
+        getGuideAndAccountManagerInfo: jest.fn(() => ({assignedGuideEmail: undefined, accountManagerLogin: undefined, exclusions: {}})),
+        getIneligibleInvitees: jest.fn(() => []),
+        isDeletedPolicyEmployee: jest.fn(() => false),
+        isExpensifyTeam: jest.fn(isExpensifyTeam),
+        shouldFilterExpensifyTeam: jest.fn(
+            (policyOwner?: string, currentUserLogin?: string) => !!policyOwner && !!currentUserLogin && !isExpensifyTeam(policyOwner) && !isExpensifyTeam(currentUserLogin),
+        ),
+    };
+});
 jest.mock('@libs/OptionsListUtils', () => ({
     getSearchValueForPhoneOrEmail: (value: string) => value,
     sortAlphabetically: (items: Array<Record<string, string>>, key: string, cmp: (a: string, b: string) => number) => {
@@ -182,5 +199,32 @@ describe('IssueNewCard AssigneeStep', () => {
         const props = getSelectionListProps();
         // Below the threshold moveInitialSelectionToTop is a no-op, so the natural alphabetical order is preserved.
         expect(props?.data.at(0)?.value).toBe('user00@example.com');
+    });
+
+    it('hides Expensify team members, matching the Workspace Members page', () => {
+        mockPolicy = withExpensifyTeamMember(buildPolicy(CONST.STANDARD_LIST_ITEM_LIMIT + 2));
+
+        renderStep();
+
+        expect(getSelectionListProps()?.data.some((item) => item.value === EXPENSIFY_TEAM_MEMBER)).toBe(false);
+    });
+
+    it('still shows the already-assigned Expensify team member so editing an assignment does not blank out', () => {
+        mockPolicy = withExpensifyTeamMember(buildPolicy(CONST.STANDARD_LIST_ITEM_LIMIT + 2));
+        mockIssueNewCard = {data: {assigneeEmail: EXPENSIFY_TEAM_MEMBER}, isEditing: true};
+
+        renderStep();
+
+        expect(getSelectionListProps()?.data.some((item) => item.value === EXPENSIFY_TEAM_MEMBER)).toBe(true);
+    });
+
+    it('shows Expensify team members when the policy is owned by Expensify', () => {
+        const policy = withExpensifyTeamMember(buildPolicy(CONST.STANDARD_LIST_ITEM_LIMIT + 2));
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- test-only minimal Policy stub
+        mockPolicy = {...policy, owner: 'owner@expensify.com'} as unknown as Policy;
+
+        renderStep();
+
+        expect(getSelectionListProps()?.data.some((item) => item.value === EXPENSIFY_TEAM_MEMBER)).toBe(true);
     });
 });
