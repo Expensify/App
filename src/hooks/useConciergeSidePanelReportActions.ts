@@ -201,7 +201,6 @@ function useConciergeSidePanelReportActions({
     const filteredVisibleActions = useMemo(() => filterActions(visibleReportActions), [filterActions, visibleReportActions]);
     const filteredReportActions = useMemo(() => filterActions(reportActions), [filterActions, reportActions]);
 
-    // Asks the session filter what it would hide, so the control is only offered when pressing it changes the list.
     const hasPreviousMessages = useMemo(() => {
         if (!isConciergeHiddenHistory || !sessionStartTime) {
             return false;
