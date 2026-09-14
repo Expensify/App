@@ -1,16 +1,22 @@
 import useBackfillWhenNoVisibleActions from '@hooks/useBackfillWhenNoVisibleActions';
+import useConciergeAskState from '@hooks/useConciergeAskState';
 import useCopySelectionHelper from '@hooks/useCopySelectionHelper';
 import {useIsReportLoadPending} from '@hooks/useInFlightRequests';
 import usePendingConciergeResponse from '@hooks/usePendingConciergeResponse';
 import useReportActionsListModel from '@hooks/useReportActionsListModel';
 import useStartConciergeSession from '@hooks/useStartConciergeSession';
+import useThemeStyles from '@hooks/useThemeStyles';
+
+import {useConciergeSessionState} from '@pages/inbox/ConciergeSessionContext';
 
 import CONST from '@src/CONST';
 
 import type {ReactNode} from 'react';
 
 import React from 'react';
+import {View} from 'react-native';
 
+import ConciergeWelcome from './ConciergeWelcome';
 import {computeReportActionsSkeletonState, ReportActionsListActionsContext, ReportActionsListStateContext} from './ReportActionsListContext';
 import ReportActionsLoadingSkeleton from './ReportActionsLoadingSkeleton';
 
@@ -31,7 +37,10 @@ type ReportActionsSkeletonGuardProps = {
  *
  */
 function ReportActionsSkeletonGuard({reportID, children}: ReportActionsSkeletonGuardProps) {
+    const styles = useThemeStyles();
     const isReportLoadPending = useIsReportLoadPending(reportID);
+    const {isAskConciergeChat} = useConciergeAskState(reportID);
+    const {showFullHistory} = useConciergeSessionState();
     const {readinessSignals, state, actions} = useReportActionsListModel(reportID, isReportLoadPending);
     const {shouldShowLoadingSkeleton, shouldShowDerivedTimingSkeleton} = computeReportActionsSkeletonState(readinessSignals);
 
@@ -74,21 +83,20 @@ function ReportActionsSkeletonGuard({reportID, children}: ReportActionsSkeletonG
         loadOlderChats: actions.loadOlderChats,
     });
 
-    if (shouldShowLoadingSkeleton) {
-        return (
-            <ReportActionsLoadingSkeleton
-                reportID={reportID}
-                skeletonName={CONST.TELEMETRY.CANCELED_BY_SKELETON.SKELETON_GUARD_LOADING}
-            />
-        );
-    }
+    if (shouldShowLoadingSkeleton || shouldShowDerivedTimingSkeleton) {
+        if (isAskConciergeChat && !showFullHistory) {
+            return (
+                <View style={[styles.flex1, styles.justifyContentCenter, styles.conciergeAskColumn]}>
+                    <ConciergeWelcome />
+                </View>
+            );
+        }
 
-    if (shouldShowDerivedTimingSkeleton) {
         return (
             <ReportActionsLoadingSkeleton
                 reportID={reportID}
-                skeletonName={CONST.TELEMETRY.CANCELED_BY_SKELETON.SKELETON_GUARD_DERIVED_TIMING}
-                shouldAnimate={false}
+                skeletonName={shouldShowLoadingSkeleton ? CONST.TELEMETRY.CANCELED_BY_SKELETON.SKELETON_GUARD_LOADING : CONST.TELEMETRY.CANCELED_BY_SKELETON.SKELETON_GUARD_DERIVED_TIMING}
+                shouldAnimate={shouldShowLoadingSkeleton}
             />
         );
     }

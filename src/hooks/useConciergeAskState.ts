@@ -48,13 +48,15 @@ function useConciergeAskState(reportID: string | undefined): ConciergeAskState {
         selector: hasSessionActivitySelector,
     });
 
+    const isAskConciergeChat = !!reportID && reportID === conciergeReportID && !isInSidePanel && isBetaEnabled(CONST.BETAS.CONCIERGE_RESPOND_IN_THREAD);
+
     // Waiting for the session boundary keeps an existing conversation from flashing the welcome screen on open.
-    const isAskConciergeChat = !!reportID && reportID === conciergeReportID && !isInSidePanel && !!sessionStartTime && isBetaEnabled(CONST.BETAS.CONCIERGE_RESPOND_IN_THREAD);
+    const hasSessionBoundary = isAskConciergeChat && !!sessionStartTime;
 
     return {
         isAskConciergeChat,
-        shouldShowWelcome: isAskConciergeChat && !showFullHistory && !hasSessionActivity,
-        shouldLabelComposerAsNewQuestion: isAskConciergeChat && showFullHistory && !hasSessionActivity,
+        shouldShowWelcome: hasSessionBoundary && !showFullHistory && !hasSessionActivity,
+        shouldLabelComposerAsNewQuestion: hasSessionBoundary && showFullHistory && !hasSessionActivity,
     };
 }
 
