@@ -47,7 +47,7 @@ function UnshareBankAccount({route}: ShareBankAccountProps) {
     const [unsharedBankAccountData] = useOnyx(ONYXKEYS.UNSHARE_BANK_ACCOUNT);
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const {translate} = useLocalize();
-    const {showConfirmModal} = useConfirmModal();
+    const {showConfirmModal, closeModal} = useConfirmModal();
     const isFocused = useIsFocused();
 
     // The error modal is shown from two call sites, so this keeps a second copy off the stack while one is already open.
@@ -114,7 +114,11 @@ function UnshareBankAccount({route}: ShareBankAccountProps) {
             buttonVariant: CONST.BUTTON_VARIANT.SUCCESS,
             prompt: (
                 <View style={[styles.renderHTML, styles.flexRow]}>
-                    <RenderHTML html={translate('walletPage.reachOutForHelp')} />
+                    {/* Concierge navigates away, so the modal has to be closed explicitly or it would stay on the stack over the chat. */}
+                    <RenderHTML
+                        html={translate('walletPage.reachOutForHelp')}
+                        onConciergeLinkPress={closeModal}
+                    />
                 </View>
             ),
             confirmText: translate('common.buttonConfirm'),
@@ -124,7 +128,7 @@ function UnshareBankAccount({route}: ShareBankAccountProps) {
             isErrorModalShownRef.current = false;
             clearUnshareBankAccountErrors(Number(bankAccountID));
         });
-    }, [bankAccountID, isFocused, showConfirmModal, styles.flexRow, styles.renderHTML, translate]);
+    }, [bankAccountID, isFocused, showConfirmModal, closeModal, styles.flexRow, styles.renderHTML, translate]);
 
     useEffect(() => {
         if (!isExpensifyCardError) {
