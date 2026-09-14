@@ -772,6 +772,34 @@ const nameFieldContinuationTests: Array<{query: string; expected: ExpectedAutoco
         },
         description: 'Negates multiple from and has values',
     },
+    {
+        query: 'any-approval:last-month',
+        expected: {
+            autocomplete: {
+                key: 'any-approval',
+                value: 'last-month',
+                negated: false,
+                start: 13,
+                length: 10,
+            },
+            ranges: [{key: 'any-approval', value: 'last-month', negated: false, start: 13, length: 10}],
+        },
+        description: 'any-approval date filter provides autocomplete',
+    },
+    {
+        query: 'any-approval:',
+        expected: {
+            autocomplete: {
+                key: 'any-approval',
+                value: '',
+                negated: false,
+                start: 13,
+                length: 0,
+            },
+            ranges: [],
+        },
+        description: 'any-approval with an empty value still identifies the filter key',
+    },
 ];
 
 describe('autocomplete parser', () => {
