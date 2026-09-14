@@ -921,6 +921,7 @@ type OptionData = Report &
         amountInputProps?: MoneyRequestAmountInputProps;
         tabIndex?: 0 | -1;
         isConciergeChat?: boolean;
+        isConciergeThread?: boolean;
         isBold?: boolean;
         lastIOUCreationDate?: string;
         isChatRoom?: boolean;
@@ -1455,8 +1456,7 @@ function isChatReport(report: OnyxEntry<Report>): boolean {
     return report?.type === CONST.REPORT.TYPE.CHAT;
 }
 
-function isInvoiceReport(reportOrID: OnyxInputOrEntry<Report> | string): boolean {
-    const report = typeof reportOrID === 'string' ? (getReport(reportOrID, deprecatedAllReports) ?? null) : reportOrID;
+function isInvoiceReport(report: OnyxInputOrEntry<Report>): boolean {
     return report?.type === CONST.REPORT.TYPE.INVOICE;
 }
 
@@ -3854,10 +3854,17 @@ function getIconsForChatThread(
     policy: OnyxInputOrEntry<Policy>,
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
     translate: LocalizedTranslate,
+    conciergeReportID: string | undefined,
 ): Icon[] {
     if (!report?.parentReportID || !report?.parentReportActionID) {
         return [];
     }
+
+    // A Concierge thread is a conversation with Concierge, so it shows Concierge rather than whoever asked.
+    if (conciergeReportID && report.parentReportID === conciergeReportID) {
+        return getIconsForParticipants([CONST.ACCOUNT_ID.CONCIERGE], personalDetails);
+    }
+
     const parentReportAction = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`]?.[report.parentReportActionID];
     const actorAccountID = getReportActionActorAccountID(parentReportAction, report as OnyxEntry<Report>, report as OnyxEntry<Report>);
     const actorDetails = actorAccountID ? personalDetails?.[actorAccountID] : undefined;
@@ -4092,6 +4099,7 @@ function getIcons(
     invoiceReceiverPolicy?: OnyxInputOrEntry<Policy>,
     isReportArchived = false,
     pendingDeleteMemberAccountIDs?: string[],
+    conciergeReportID?: string,
 ): Icon[] {
     if (isEmptyObject(report)) {
         return [
@@ -4116,7 +4124,7 @@ function getIcons(
         return getIconsForInvoiceReport(report, personalDetails, policy, invoiceReceiverPolicy, translate);
     }
     if (isChatThread(report)) {
-        return getIconsForChatThread(report, personalDetails, policy, formatPhoneNumber, translate);
+        return getIconsForChatThread(report, personalDetails, policy, formatPhoneNumber, translate, conciergeReportID);
     }
     if (isTaskReport(report)) {
         return getIconsForTaskReport(report, personalDetails, policy, formatPhoneNumber, translate);
@@ -11945,10 +11953,6 @@ function shouldCreateNewMoneyRequestReport(
     );
 }
 
-function getTripIDFromTransactionParentReportID(transactionParentReportID: string | undefined): string | undefined {
-    return getReportOrDraftReport(transactionParentReportID)?.tripData?.tripID;
-}
-
 /** Precomputed report-action error state used to make per-transaction RBR checks O(1). */
 type ActionErrorsByTransaction = {
     /** A non-money-request action (or money-request action without an IOUTransactionID) has errors, flagging every transaction. */
@@ -14463,7 +14467,6 @@ export {
     updateOptimisticParentReportAction,
     updateReportPreview,
     temporary_getMoneyRequestOptions,
-    getTripIDFromTransactionParentReportID,
     buildOptimisticInvoiceReport,
     isCurrentUserInvoiceReceiver,
     changeMoneyRequestHoldStatus,

@@ -183,6 +183,7 @@ import {
     isDeprecatedGroupDM,
     isGroupPolicyExpenseReport,
     isHarvestCreatedExpenseReport,
+    isInvoiceReport,
     isJoinRequestInAdminRoom,
     isMoneyRequestReportEligibleForMerge,
     isOneOnOneChat,
@@ -3313,6 +3314,35 @@ describe('ReportUtils', () => {
 
                     // Note: computeReportName returns the text version, not HTML
                     expect(reportName).toBe('The Regions Bank cards connection is broken. To restore card imports, log into your bank.');
+                });
+
+                test('should handle concierge company card connection broken for 30 days action', () => {
+                    const companyCardConnectionBroken30DaysAction: ReportAction = {
+                        ...baseParentReportAction,
+                        actionName: CONST.REPORT.ACTIONS.TYPE.COMPANY_CARD_CONNECTION_BROKEN_30_DAYS,
+                        originalMessage: {
+                            feedName: 'Regions Bank cards',
+                            policyID: '1',
+                        },
+                    };
+
+                    const threadReport: Report = {
+                        ...baseExpenseReport,
+                        parentReportID: baseChatReport.reportID,
+                        parentReportActionID: companyCardConnectionBroken30DaysAction.reportActionID,
+                    };
+
+                    const reportActions = {
+                        [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${threadReport.parentReportID}`]: {
+                            [companyCardConnectionBroken30DaysAction.reportActionID]: companyCardConnectionBroken30DaysAction,
+                        },
+                    };
+                    const reportName = computeReportName(threadReport, undefined, undefined, undefined, undefined, participantsPersonalDetails, reportActions);
+
+                    // Note: computeReportName returns the text version, not HTML
+                    expect(reportName).toBe(
+                        "The Regions Bank cards connection has been broken for 30 days. Log into your bank to fix it or remove the connection if it's no longer in use. You won't lose any submitted expenses if you remove it.",
+                    );
                 });
 
                 test('should handle automatically paid with Expensify action', () => {
@@ -24556,6 +24586,34 @@ describe('hasNonReimbursableTransactions', () => {
 
     it('returns false for an empty transaction list', () => {
         expect(hasNonReimbursableTransactions(undefined, [])).toBe(false);
+    });
+});
+
+describe('isInvoiceReport', () => {
+    it('returns true for invoice reports passed as object', () => {
+        const invoiceReport = {
+            ...LHNTestUtils.getFakeReport(),
+            type: CONST.REPORT.TYPE.INVOICE,
+        };
+        expect(isInvoiceReport(invoiceReport)).toBe(true);
+    });
+
+    it('returns false for non-invoice reports passed as object', () => {
+        const expenseReport = {
+            ...LHNTestUtils.getFakeReport(),
+            type: CONST.REPORT.TYPE.EXPENSE,
+        };
+        expect(isInvoiceReport(expenseReport)).toBe(false);
+    });
+
+    it('returns false for null/undefined', () => {
+        expect(isInvoiceReport(null)).toBe(false);
+        expect(isInvoiceReport(undefined)).toBe(false);
+    });
+
+    it('returns false for a report with no type', () => {
+        const report = LHNTestUtils.getFakeReport();
+        expect(isInvoiceReport(report)).toBe(false);
     });
 });
 
