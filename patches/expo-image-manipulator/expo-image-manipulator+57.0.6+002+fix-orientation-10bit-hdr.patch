@@ -1,30 +1,32 @@
 diff --git a/node_modules/expo-image-manipulator/ios/Transformers/ImageFixOrientationTransformer.swift b/node_modules/expo-image-manipulator/ios/Transformers/ImageFixOrientationTransformer.swift
-index c3e3b66..a307e6a 100644
+index c3e3b66..c9cf2a1 100644
 --- a/node_modules/expo-image-manipulator/ios/Transformers/ImageFixOrientationTransformer.swift
 +++ b/node_modules/expo-image-manipulator/ios/Transformers/ImageFixOrientationTransformer.swift
-@@ -6,70 +6,18 @@
-  */
- internal struct ImageFixOrientationTransformer: ImageTransformer {
-   func transform(image: UIImage) async throws -> UIImage {
--    guard let cgImage = image.cgImage else {
-+    guard image.cgImage != nil else {
+@@ -9,67 +9,20 @@ internal struct ImageFixOrientationTransformer: ImageTransformer {
+     guard let cgImage = image.cgImage else {
        throw ImageNotFoundException()
      }
 -    guard var colorSpace = cgImage.colorSpace else {
 -      // That should never happen as `colorSpace` is empty only when the image is a mask.
 -      throw ImageColorSpaceNotFoundException()
-+    // The pixel data already matches the displayed orientation, so there is nothing to fix.
-+    guard image.imageOrientation != .up else {
++    // A PQ or HLG transfer function cannot be carried into the formats `saveAsync` writes: the profile survives
++    // into the file and decoders without ITU-R BT.2100 support render it black. Redrawing tone-maps the image down
++    // to the renderer's standard-range output, so it is worth doing even when the orientation needs no fixing.
++    let usesHDRTransferFunction = cgImage.colorSpace.map(CGColorSpaceUsesITUR_2100TF) ?? false
++    // The pixel data already matches the displayed orientation and its profile survives encoding, so there is
++    // nothing to fix.
++    if image.imageOrientation == .up && !usesHDRTransferFunction {
 +      return image
-     }
--    if !colorSpace.supportsOutput {
--      colorSpace = CGColorSpaceCreateDeviceRGB()
++    }
 +    // `UIImage.draw(in:)` applies the orientation on its own.
 +    // Unlike a raw bitmap context, the renderer accepts any source pixel format,
 +    // including the 10-bit HDR images that `CGBitmapContextCreate` rejects.
 +    return drawInNewContext(size: image.size) { _ in
 +      image.draw(in: CGRect(origin: .zero, size: image.size))
      }
+-    if !colorSpace.supportsOutput {
+-      colorSpace = CGColorSpaceCreateDeviceRGB()
+-    }
 -
 -    var transform = CGAffineTransform.identity
 -
