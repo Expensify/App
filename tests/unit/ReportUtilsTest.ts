@@ -6040,7 +6040,7 @@ describe('ReportUtils', () => {
             expect(canDeleteMoneyRequestReport(expenseReport, [], [], currentUserAccountID, undefined, undefined)).toBe(true);
         });
 
-        it('should allow deletion as the policy admin', async () => {
+        it('should allow card expense deletion as the policy admin', async () => {
             const adminPolicy = createMock<Policy>({
                 id: 'report-id-123',
                 role: CONST.POLICY.ROLE.ADMIN,
@@ -6067,6 +6067,11 @@ describe('ReportUtils', () => {
                 policyID: adminPolicy.id,
             };
 
+            const cardTransaction: Transaction = {
+                ...mockTransaction,
+                managedCard: true,
+            };
+
             // Wait for Onyx to load session data before calling canDeleteMoneyRequestReport, since it relies on the
             // session subscription for currentUserAccountID.
             await new Promise<void>((resolve) => {
@@ -6079,7 +6084,7 @@ describe('ReportUtils', () => {
                 });
             });
 
-            expect(canDeleteMoneyRequestReport(expenseReport, [], [], currentUserAccountID, adminPolicy, undefined)).toBe(true);
+            expect(canDeleteMoneyRequestReport(expenseReport, [cardTransaction], [], currentUserAccountID, adminPolicy, undefined)).toBe(true);
         });
     });
 
