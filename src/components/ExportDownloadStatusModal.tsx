@@ -71,7 +71,7 @@ function ExportDownloadStatusModal({exportID, isVisible, onClose, failedBody}: E
     const reportCount = displayedExport?.reportCount ?? 0;
     const receiptCount = displayedExport?.receiptCount;
     const failedReceiptCount = displayedExport?.failedReceiptCount ?? 0;
-    const isTruncated = displayedExport?.truncated === true;
+    const isTruncated = !!displayedExport?.truncated;
     const isPreparing = state === CONST.EXPORT_DOWNLOAD.STATE.PREPARING && !shouldSendFromConcierge;
     const isConcierge = !!shouldSendFromConcierge;
     const isReady = state === CONST.EXPORT_DOWNLOAD.STATE.READY;
