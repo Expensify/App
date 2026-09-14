@@ -325,9 +325,7 @@ describe('OnboardingWorkEmail Page', () => {
 
         await waitForBatchedUpdatesWithAct();
 
-        await waitFor(() => {
-            expect(screen.getByText(TestHelper.translateLocal('onboarding.workEmail.title'))).toBeOnTheScreen();
-        });
+        expect(screen.getByText(TestHelper.translateLocal('onboarding.workEmail.title'))).toBeOnTheScreen();
         await waitFor(() => {
             expect(screen.getByText(TestHelper.translateLocal('onboarding.workEmail.addWorkEmail'))).toBeOnTheScreen();
         });
@@ -757,6 +755,8 @@ describe('OnboardingWorkEmail Page', () => {
         await waitFor(() => {
             expect(navigate).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(taskReportID));
         });
+
+        expect(screen.getByText(TestHelper.translateLocal('onboarding.mergeBlockScreen.validatedPublicDomainSubtitle', workEmail))).toBeOnTheScreen();
 
         getTopmostReportId.mockRestore();
         unmount();
