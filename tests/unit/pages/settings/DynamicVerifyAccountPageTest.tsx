@@ -9,7 +9,9 @@ import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import DynamicVerifyAccountPage from '@pages/settings/DynamicVerifyAccountPage';
 
 import {getAccessiblePolicies} from '@userActions/Policy/Policy';
+import {completeTask} from '@userActions/Task';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
@@ -30,6 +32,7 @@ jest.mock('@pages/settings/VerifyAccountPageBase', () => ({
 jest.mock('@hooks/useDynamicBackPath', () => jest.fn(() => 'home'));
 jest.mock('@hooks/useDynamicForwardPath', () => jest.fn(() => undefined));
 jest.mock('@userActions/Policy/Policy', () => ({getAccessiblePolicies: jest.fn()}));
+jest.mock('@userActions/Task', () => ({completeTask: jest.fn()}));
 
 const Stack = createPlatformStackNavigator<SettingsNavigatorParamList>();
 
@@ -65,11 +68,17 @@ describe('DynamicVerifyAccountPage', () => {
 
         expect(mockVerifyAccountPageBase).toHaveBeenCalledWith(
             expect.objectContaining({
-                navigateForwardTo: ROUTES.ONBOARDING_WORKSPACES.getRoute(),
-                onValidationSuccess: getAccessiblePolicies,
+                navigateForwardTo: ROUTES.ONBOARDING_WORKSPACES.getRoute('home'),
+                onValidationSuccess: expect.any(Function),
                 shouldShowCloseButton: true,
             }),
         );
+
+        const props = mockVerifyAccountPageBase.mock.calls.at(-1)?.[0];
+        (props?.onValidationSuccess as () => void)();
+
+        expect(completeTask).toHaveBeenCalledWith(undefined, false, false, undefined, undefined, undefined, true, true, CONST.ACCOUNT_ID.CONCIERGE);
+        expect(getAccessiblePolicies).toHaveBeenCalled();
     });
 
     it('preserves generic verification behavior without the task route parameter', async () => {
