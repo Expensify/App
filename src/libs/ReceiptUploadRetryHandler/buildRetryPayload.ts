@@ -1,3 +1,8 @@
+/**
+ * Rebuilds the `RequestMoney` call behind a failed receipt upload from the records the failure left in Onyx, so
+ * a Retry action can re-dispatch the original request under the original transaction ID rather than creating a
+ * second expense.
+ */
 import {isLocalFile} from '@libs/fileDownload/FileUtils';
 import {getIsFromGlobalCreate, isDistanceRequest, isPerDiemRequest, isTimeRequest} from '@libs/TransactionUtils';
 
@@ -26,8 +31,8 @@ function isRetryableFlow(context: ReceiptRetryContext): boolean {
         return false;
     }
 
-    // These carry state the transaction does not store - GPS points, rates, units - so they are excluded rather
-    // than retried with those fields silently dropped.
+    // A distance, per diem, or time request carries state the transaction alone does not store, such as GPS
+    // points, rates, and units, so it is excluded rather than retried with those fields silently dropped.
     if (isDistanceRequest(transaction) || isPerDiemRequest(transaction) || isTimeRequest(transaction)) {
         return false;
     }
@@ -64,8 +69,18 @@ function getMerchantForRetry(merchant: string | undefined): string {
     return merchant;
 }
 
+/**
+ * Whether the Retry button should be shown.
+ *
+ * The action is checked here and not only in `retryReceiptUpload`, so the button is absent rather than present
+ * and inert. A `ReceiptError` can come from a track expense failure, or from the fallback error the receipt view
+ * synthesizes for a report-creation failure, which carries no action and whose source is still the local file.
+ */
 function canBuildRetryPayload(context: ReceiptRetryContext): boolean {
-    const {transaction, iouReport} = context;
+    const {transaction, iouReport, receiptError} = context;
+    if (receiptError.action !== CONST.IOU.ACTION_PARAMS.MONEY_REQUEST) {
+        return false;
+    }
     return isRetryableFlow(context) && !!iouReport?.reportID && !!transaction?.transactionID && !!resolveParticipant(iouReport);
 }
 
