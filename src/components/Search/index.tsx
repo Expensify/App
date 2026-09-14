@@ -70,6 +70,8 @@ import type {SearchFullscreenNavigatorParamList} from '@navigation/types';
 
 import EmptySearchView from '@pages/Search/EmptySearchView';
 
+import type {GetReportTableColumnStylesParams} from '@styles/utils';
+
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -276,6 +278,8 @@ function Search({
         hasPendingWriteOnMountRef,
         skipDeferralOnFocusRef,
         rearmTracking,
+        policyCategories,
+        policyTags,
     } = useSearchSnapshot({
         queryJSON,
         searchResults,
@@ -1260,6 +1264,20 @@ function Search({
             />
         ) : undefined;
 
+    // The same flags the column header above is built from, so a row and its heading can't disagree about how wide a
+    // column is. Read once here because they are decided across the whole search, not from the rows currently loaded.
+    const columnSizeOptions: GetReportTableColumnStylesParams = {
+        isActionColumnWide: isTask || hasDeletedTransaction,
+        isDateColumnWide: shouldShowYearCreated,
+        isSubmittedColumnWide: shouldShowYearSubmitted,
+        isApprovedColumnWide: shouldShowYearApproved,
+        isPostedColumnWide: shouldShowYearPosted,
+        isExportedColumnWide: shouldShowYearExported,
+        isWithdrawnColumnWide: shouldShowYearWithdrawn,
+        isAmountColumnWide: shouldShowAmountInWideColumn,
+        isTaxAmountColumnWide: shouldShowTaxAmountInWideColumn,
+    };
+
     const commonViewProps: CommonSearchViewProps = {
         ref: searchListRef,
         queryJSON,
@@ -1279,6 +1297,7 @@ function Search({
         newTransactions,
         hasLoadedAllTransactions,
         isActionColumnWide: isTask || hasDeletedTransaction,
+        columnSizeOptions,
     };
 
     let searchListContent: React.JSX.Element;
@@ -1288,6 +1307,8 @@ function Search({
                 {...commonViewProps}
                 isAttendeesEnabledForMovingPolicy={isAttendeesEnabledForMovingPolicy}
                 nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards}
+                policyCategories={policyCategories}
+                policyTags={policyTags}
             />
         );
     } else if (isTransactionListView) {
