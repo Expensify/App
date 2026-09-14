@@ -130,6 +130,13 @@ type BaseModalProps = Partial<ReanimatedModalProps> &
         shouldKeepRightDockedBackdropInNarrowPane?: boolean;
 
         /**
+         * Whether a modal type that hides its backdrop by default should show one anyway.
+         * POPOVER modals hide the backdrop so menus and tooltips do not dim the screen.
+         * Set this to true for a popover that reads as a dialog and should dim what sits behind it.
+         */
+        shouldShowBackdrop?: boolean;
+
+        /**
          * Whether the modal should wrap the children in a scroll view if it is a bottom docked modal in landscape mode.
          * Defaults to true.
          */
