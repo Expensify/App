@@ -17,7 +17,7 @@ type PayOverdueInvoiceProps = {
     /** Unix timestamp (seconds) of the billing grace period end, shown as the invoice due date */
     gracePeriodEndUnixSeconds: number;
 
-    /** Whether the grace period has expired, so the account is past due rather than within the grace window */
+    /** Whether the grace period has expired (past due) rather than still within the grace window */
     isOverdue?: boolean;
 };
 
@@ -25,7 +25,7 @@ function PayOverdueInvoice({gracePeriodEndUnixSeconds, isOverdue = false}: PayOv
     const {translate, dateFnsLocale} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['InvoiceGeneric']);
 
-    // formatWithUTCTimeZone parses ISO 8601, so an RFC 1123 string from toUTCString would silently format as empty
+    // formatWithUTCTimeZone needs ISO 8601. toUTCString (RFC 1123) would silently format as empty
     const dueDate = DateUtils.formatWithUTCTimeZone(fromUnixTime(gracePeriodEndUnixSeconds).toISOString(), CONST.DATE.MONTH_DAY_YEAR_FORMAT, dateFnsLocale);
 
     const title = isOverdue
