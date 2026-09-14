@@ -28,7 +28,7 @@ import {
     isTrackExpenseReport,
 } from '@libs/ReportUtils';
 import {getCurrentSearchQueryJSON} from '@libs/SearchQueryUtils';
-import {getChildTransactions, getOriginalTransactionWithSplitInfo, hasTransactionBeenRejected} from '@libs/TransactionUtils';
+import {getChildTransactions, getOriginalTransactionWithSplitInfo, hasTransactionBeenRejected, isManagedCardTransaction} from '@libs/TransactionUtils';
 
 import type {IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
@@ -577,12 +577,15 @@ function useSelectedTransactionsActions({
         }
 
         const canAllSelectedTransactionsBeRemoved = selectedTransactionsList.every((transaction) => {
-            const canRemoveTransaction = canDeleteCardTransaction(transaction, policy);
+            if (isManagedCardTransaction(transaction)) {
+                return canDeleteCardTransaction(transaction, policy);
+            }
+
             const action = getIOUActionForTransactionID(reportActions, transaction.transactionID);
             const isActionDeleted = isDeletedAction(action);
             const isIOUActionOwner = typeof action?.actorAccountID === 'number' && typeof session?.accountID === 'number' && action.actorAccountID === session?.accountID;
 
-            return canRemoveTransaction && isIOUActionOwner && !isActionDeleted;
+            return isIOUActionOwner && !isActionDeleted;
         });
 
         const canRemoveReportTransaction = canDeleteTransaction(report, rules, isReportArchived);
