@@ -46,7 +46,6 @@ const ASK_CONCIERGE_PLACEHOLDER_KEYS = [
     'common.concierge.composerPlaceholders.createExpense',
     'common.concierge.composerPlaceholders.combineExpenses',
     'common.concierge.composerPlaceholders.exportPdf',
-    'common.concierge.composerPlaceholders.exportCsv',
     'reportActionCompose.askConciergeForHelp',
 ] as const;
 

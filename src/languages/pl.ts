@@ -518,7 +518,6 @@ const translations: TranslationDeepObject<typeof en> = {
                 createExpense: 'Utwórz wydatek 30 $ na lunch',
                 combineExpenses: 'Połącz wszystkie moje otwarte wydatki w jeden raport',
                 exportPdf: 'Wyeksportuj mój ostatni raport do PDF',
-                exportCsv: 'Daj mi plik CSV z moimi wydatkami powyżej 50 $',
             },
         },
         duplicateReport: 'Zduplikowany raport',

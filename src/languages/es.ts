@@ -507,7 +507,6 @@ const translations: TranslationDeepObject<typeof en> = {
                 createExpense: 'Crea un gasto de $30 por un almuerzo',
                 combineExpenses: 'Combina todos mis gastos abiertos en un informe',
                 exportPdf: 'Exporta mi último informe a PDF',
-                exportCsv: 'Dame un CSV de mis gastos de más de $50',
             },
         },
         vacationDelegate: 'Delegado de vacaciones',

@@ -514,7 +514,6 @@ const translations: TranslationDeepObject<typeof en> = {
                 createExpense: 'ランチの30ドルの経費を作成して',
                 combineExpenses: '未処理の経費をすべて1つのレポートにまとめて',
                 exportPdf: '直近のレポートをPDFでエクスポートして',
-                exportCsv: '50ドル以上の経費のCSVをください',
             },
         },
         duplicateReport: 'レポートを複製',

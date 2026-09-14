@@ -518,7 +518,6 @@ const translations: TranslationDeepObject<typeof en> = {
                 createExpense: 'Δημιούργησε μια δαπάνη 30 $ για ένα γεύμα',
                 combineExpenses: 'Συνδύασε όλες τις ανοιχτές δαπάνες μου σε μία αναφορά',
                 exportPdf: 'Εξήγαγε την τελευταία μου αναφορά σε PDF',
-                exportCsv: 'Δώσε μου ένα CSV με τις δαπάνες μου άνω των 50 $',
             },
         },
         vacationDelegate: 'Εκπρόσωπος διακοπών',

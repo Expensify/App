@@ -516,7 +516,6 @@ const translations: TranslationDeepObject<typeof en> = {
                 createExpense: 'Crée une dépense de 30 $ pour un déjeuner',
                 combineExpenses: 'Regroupe toutes mes dépenses ouvertes dans un seul rapport',
                 exportPdf: 'Exporte mon dernier rapport en PDF',
-                exportCsv: 'Donne-moi un CSV de mes dépenses de plus de 50 $',
             },
         },
         duplicateReport: 'Note de frais en double',
