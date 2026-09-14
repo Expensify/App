@@ -53,12 +53,7 @@ async function requestBackgroundPermissions(onGrant: () => void, onError: () => 
     }
 }
 
-async function checkPermissions({
-    onGrant,
-    onDeny,
-    onAskForPermissions,
-    onError,
-}: BackgroundLocationPermissionsFlowCallbacks & {onAskForPermissions: () => void}) {
+async function checkPermissions({onGrant, onDeny, onAskForPermissions, onError}: BackgroundLocationPermissionsFlowCallbacks & {onAskForPermissions: () => void}) {
     try {
         const {granted, canAskAgain, android} = await getForegroundPermissionsAsync();
 
