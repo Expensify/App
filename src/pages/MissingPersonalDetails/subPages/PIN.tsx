@@ -1,4 +1,4 @@
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import FormProvider from '@components/Form/FormProvider';
 import Text from '@components/Text';
 import ValidateCodeInput from '@components/ValidateCodeInput';

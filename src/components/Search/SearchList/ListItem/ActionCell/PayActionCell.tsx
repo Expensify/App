@@ -52,6 +52,7 @@ function PayActionCell({isLoading, policyID, reportID, hash, amount, shouldDisab
     const [allReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
     const invoiceReceiverPolicyID = chatReport?.invoiceReceiver && 'policyID' in chatReport.invoiceReceiver ? chatReport.invoiceReceiver.policyID : undefined;
     const invoiceReceiverPolicy = usePolicy(invoiceReceiverPolicyID);
@@ -143,6 +144,7 @@ function PayActionCell({isLoading, policyID, reportID, hash, amount, shouldDisab
                 chatReportActions,
                 delegateAccountID,
                 isTrackIntentUser,
+                rules,
             });
             return;
         }
@@ -180,6 +182,7 @@ function PayActionCell({isLoading, policyID, reportID, hash, amount, shouldDisab
             delegateAccountID,
             isTrackIntentUser,
             conciergeChat,
+            rules,
         });
     };
 

@@ -152,6 +152,7 @@ function useTransactionInlineEdit({transactionID, hash, linkedReportAction}: Use
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const {isBetaEnabled} = usePermissions();
 
     // Scoped transaction/violation collections (the edited transaction plus any duplicates) are read here and
@@ -189,6 +190,7 @@ function useTransactionInlineEdit({transactionID, hash, linkedReportAction}: Use
         originalTransaction,
         disabled: hasSelectedTransactions,
         shouldSelectPolicyForUnreported: shouldSelectPolicy,
+        rules,
     });
 
     const wasEditingOnMouseDownRef = useRef(false);
@@ -225,6 +227,7 @@ function useTransactionInlineEdit({transactionID, hash, linkedReportAction}: Use
             introSelected,
             currentUserAccountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
             currentUserEmail: session?.email ?? '',
+            rules,
         };
     };
 

@@ -7,7 +7,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import LoadingIndicator from '@components/LoadingIndicator';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import MoneyRequestConfirmationList from '@components/MoneyRequestConfirmationList';
-import {usePersonalDetails, usePolicyCategories} from '@components/OnyxListItemProvider';
+import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import ParticipantPicker from '@components/ParticipantPicker';
 import PrevNextButtons from '@components/PrevNextButtons';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -146,7 +146,6 @@ function IOURequestStepConfirmationContent({
     const personalPolicy = usePersonalPolicy();
     const selfDMReport = useSelfDMReport();
     const personalDetails = usePersonalDetails();
-    const allPolicyCategories = usePolicyCategories();
 
     const [transactions] = useOptimisticDraftTransactions(initialTransaction);
     const [participantReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${initialTransaction?.participants?.at(0)?.reportID}`);
@@ -181,6 +180,7 @@ function IOURequestStepConfirmationContent({
     const [policyDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${draftPolicyID}`);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [reportNameValuePair] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${getNonEmptyStringOnyxID(transaction?.reportID)}`);
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['ReplaceReceipt', 'SmartScan']);
 
@@ -200,8 +200,9 @@ function IOURequestStepConfirmationContent({
                 transactionReport,
                 routeReport: reportWithDraftFallback,
                 reportNameValuePair,
+                rules,
             }),
-        [transaction, transactionReport, reportWithDraftFallback, reportNameValuePair],
+        [transaction, transactionReport, reportWithDraftFallback, reportNameValuePair, rules],
     );
     const [reportDrafts] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT);
 
@@ -220,6 +221,7 @@ function IOURequestStepConfirmationContent({
     const isDraftPolicy = policy === policyDraft;
 
     const [policyCategoriesDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES_DRAFT}${draftPolicyID}`);
+    const [policyCategoriesReal] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getNonEmptyStringOnyxID(policyID)}`);
 
     const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {
         selector: validTransactionDraftIDsSelector,
@@ -227,17 +229,7 @@ function IOURequestStepConfirmationContent({
 
     const reportAttributesDerived = useReportAttributes();
 
-    const policyCategories = useMemo(() => {
-        if (isDraftPolicy && draftPolicyID) {
-            return policyCategoriesDraft;
-        }
-
-        if (policyID) {
-            return allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`];
-        }
-
-        return undefined;
-    }, [isDraftPolicy, draftPolicyID, policyID, policyCategoriesDraft, allPolicyCategories]);
+    const policyCategories = isDraftPolicy && draftPolicyID ? policyCategoriesDraft : policyCategoriesReal;
 
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -321,6 +313,7 @@ function IOURequestStepConfirmationContent({
                           participantReportDraft,
                           currentUserPersonalDetails.accountID,
                           {translate, dateFnsLocale, convertToDisplayString},
+                          rules,
                       );
             }) ?? [],
         [
@@ -337,6 +330,7 @@ function IOURequestStepConfirmationContent({
             translate,
             convertToDisplayString,
             currentUserPersonalDetails.accountID,
+            rules,
         ],
     );
 
