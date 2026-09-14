@@ -53,4 +53,23 @@ describe('PayOverdueInvoice', () => {
         const expectedQuery = buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.INVOICE});
         expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SEARCH_ROOT.getRoute({query: expectedQuery}));
     });
+
+    it('shows the grace-period title while within the grace period', () => {
+        render(<PayOverdueInvoice gracePeriodEndUnixSeconds={1789481242} />);
+
+        expect(screen.getByText('homePage.timeSensitiveSection.payOverdueInvoice.dueSoonTitle')).toBeOnTheScreen();
+        expect(screen.queryByText('homePage.timeSensitiveSection.payOverdueInvoice.overdueTitle')).not.toBeOnTheScreen();
+    });
+
+    it('shows the past-due title once the grace period has expired', () => {
+        render(
+            <PayOverdueInvoice
+                gracePeriodEndUnixSeconds={1789481242}
+                isOverdue
+            />,
+        );
+
+        expect(screen.getByText('homePage.timeSensitiveSection.payOverdueInvoice.overdueTitle')).toBeOnTheScreen();
+        expect(screen.queryByText('homePage.timeSensitiveSection.payOverdueInvoice.dueSoonTitle')).not.toBeOnTheScreen();
+    });
 });

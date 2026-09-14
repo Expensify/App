@@ -16,14 +16,21 @@ import React from 'react';
 type PayOverdueInvoiceProps = {
     /** Unix timestamp (seconds) of the billing grace period end, shown as the invoice due date */
     gracePeriodEndUnixSeconds: number;
+
+    /** Whether the grace period has expired, so the account is past due rather than within the grace window */
+    isOverdue?: boolean;
 };
 
-function PayOverdueInvoice({gracePeriodEndUnixSeconds}: PayOverdueInvoiceProps) {
+function PayOverdueInvoice({gracePeriodEndUnixSeconds, isOverdue = false}: PayOverdueInvoiceProps) {
     const {translate, dateFnsLocale} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['InvoiceGeneric']);
 
     // formatWithUTCTimeZone parses ISO 8601, so an RFC 1123 string from toUTCString would silently format as empty
     const dueDate = DateUtils.formatWithUTCTimeZone(fromUnixTime(gracePeriodEndUnixSeconds).toISOString(), CONST.DATE.MONTH_DAY_YEAR_FORMAT, dateFnsLocale);
+
+    const title = isOverdue
+        ? translate('homePage.timeSensitiveSection.payOverdueInvoice.overdueTitle')
+        : translate('homePage.timeSensitiveSection.payOverdueInvoice.dueSoonTitle', {date: dueDate});
 
     const handleReviewPress = () => {
         const query = buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.INVOICE});
@@ -33,7 +40,7 @@ function PayOverdueInvoice({gracePeriodEndUnixSeconds}: PayOverdueInvoiceProps) 
     return (
         <BaseWidgetItem
             icon={icons.InvoiceGeneric}
-            title={translate('homePage.timeSensitiveSection.payOverdueInvoice.title', {date: dueDate})}
+            title={title}
             ctaText={translate('homePage.timeSensitiveSection.payOverdueInvoice.cta')}
             onCtaPress={handleReviewPress}
             buttonVariant={CONST.BUTTON_VARIANT.DANGER}

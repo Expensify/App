@@ -1,6 +1,6 @@
 import useOnyx from '@hooks/useOnyx';
 
-import {getSubscriptionStatus, PAYMENT_STATUS} from '@libs/SubscriptionUtils';
+import {getSubscriptionStatus, hasGracePeriodOverdue, PAYMENT_STATUS} from '@libs/SubscriptionUtils';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 
@@ -33,11 +33,13 @@ function useTimeSensitiveOverdueInvoice() {
         undefined,
     );
 
-    const shouldShowOverdueInvoice = subscriptionStatus?.status === PAYMENT_STATUS.OWNER_OF_POLICY_UNDER_INVOICING && !!ownerBillingGracePeriodEnd;
+    const isWithinGracePeriod = subscriptionStatus?.status === PAYMENT_STATUS.OWNER_OF_POLICY_UNDER_INVOICING;
+    const isOverdue = subscriptionStatus?.status === PAYMENT_STATUS.OWNER_OF_POLICY_UNDER_INVOICING_OVERDUE && hasGracePeriodOverdue(ownerBillingGracePeriodEnd);
 
     return {
-        shouldShowOverdueInvoice,
-        ownerBillingGracePeriodEnd,
+        shouldShowOverdueInvoiceReminder: (isWithinGracePeriod || isOverdue) && !!ownerBillingGracePeriodEnd,
+        isOverdue,
+        invoiceGracePeriodEndUnixSeconds: ownerBillingGracePeriodEnd ?? 0,
     };
 }
 

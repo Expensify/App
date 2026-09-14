@@ -65,7 +65,7 @@ function useTimeSensitiveItems(): React.ReactNode[] {
         virtualCardsNeedingPersonalDetails,
     } = useTimeSensitiveCards();
     const {shouldShowFixFailedBilling} = useTimeSensitiveBilling();
-    const {shouldShowOverdueInvoice, ownerBillingGracePeriodEnd} = useTimeSensitiveOverdueInvoice();
+    const {shouldShowOverdueInvoiceReminder, isOverdue: isInvoiceOverdue, invoiceGracePeriodEndUnixSeconds} = useTimeSensitiveOverdueInvoice();
     const {shouldShowAddHomeAddress} = useTimeSensitiveHomeAddress();
 
     const [connectionSyncProgress] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS);
@@ -123,11 +123,12 @@ function useTimeSensitiveItems(): React.ReactNode[] {
         items.push(<FixFailedBilling key="fix-failed-billing" />);
     }
     // Priority 2: Overdue subscription invoice for the billing owner
-    if (shouldShowOverdueInvoice && !!ownerBillingGracePeriodEnd) {
+    if (shouldShowOverdueInvoiceReminder) {
         items.push(
             <PayOverdueInvoice
                 key="pay-overdue-invoice"
-                gracePeriodEndUnixSeconds={ownerBillingGracePeriodEnd}
+                gracePeriodEndUnixSeconds={invoiceGracePeriodEndUnixSeconds}
+                isOverdue={isInvoiceOverdue}
             />,
         );
     }

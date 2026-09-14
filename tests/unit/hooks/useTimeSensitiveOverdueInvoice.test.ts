@@ -26,35 +26,25 @@ describe('useTimeSensitiveOverdueInvoice', () => {
     });
 
     describe('when the overdue invoice should NOT be shown', () => {
-        it('returns false when there is no grace period end', () => {
+        it('returns shouldShowOverdueInvoiceReminder false when there is no grace period end', () => {
             const {result} = renderHook(() => useTimeSensitiveOverdueInvoice());
 
-            expect(result.current.shouldShowOverdueInvoice).toBe(false);
+            expect(result.current.shouldShowOverdueInvoiceReminder).toBe(false);
         });
 
-        it('returns false once the grace period is past due (invoicing is overdue, not within grace)', async () => {
-            await Onyx.merge(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED, 0);
-            await Onyx.merge(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END, nowSeconds() - ONE_WEEK_SECONDS);
-            await waitForBatchedUpdates();
-
-            const {result} = renderHook(() => useTimeSensitiveOverdueInvoice());
-
-            expect(result.current.shouldShowOverdueInvoice).toBe(false);
-        });
-
-        it('returns false when an amount is owed (a different billing status applies)', async () => {
+        it('returns shouldShowOverdueInvoiceReminder false when an amount is owed (a different billing status applies)', async () => {
             await Onyx.merge(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED, 500);
             await Onyx.merge(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END, nowSeconds() + ONE_WEEK_SECONDS);
             await waitForBatchedUpdates();
 
             const {result} = renderHook(() => useTimeSensitiveOverdueInvoice());
 
-            expect(result.current.shouldShowOverdueInvoice).toBe(false);
+            expect(result.current.shouldShowOverdueInvoiceReminder).toBe(false);
         });
     });
 
     describe('when the overdue invoice SHOULD be shown', () => {
-        it('returns true for a billing owner within the grace period with nothing owed', async () => {
+        it('returns the grace period end and not overdue for a billing owner within the grace period with nothing owed', async () => {
             const gracePeriodEnd = nowSeconds() + ONE_WEEK_SECONDS;
             await Onyx.merge(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED, 0);
             await Onyx.merge(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END, gracePeriodEnd);
@@ -62,11 +52,21 @@ describe('useTimeSensitiveOverdueInvoice', () => {
 
             const {result} = renderHook(() => useTimeSensitiveOverdueInvoice());
 
-            expect(result.current.shouldShowOverdueInvoice).toBe(true);
-            expect(result.current.ownerBillingGracePeriodEnd).toBe(gracePeriodEnd);
+            expect(result.current).toEqual({shouldShowOverdueInvoiceReminder: true, invoiceGracePeriodEndUnixSeconds: gracePeriodEnd, isOverdue: false});
         });
 
-        it('returns true even when a travel invoice is also present (travel does not mask the subscription reminder)', async () => {
+        it('returns overdue once the grace period is past due', async () => {
+            const gracePeriodEnd = nowSeconds() - ONE_WEEK_SECONDS;
+            await Onyx.merge(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED, 0);
+            await Onyx.merge(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END, gracePeriodEnd);
+            await waitForBatchedUpdates();
+
+            const {result} = renderHook(() => useTimeSensitiveOverdueInvoice());
+
+            expect(result.current).toEqual({shouldShowOverdueInvoiceReminder: true, invoiceGracePeriodEndUnixSeconds: gracePeriodEnd, isOverdue: true});
+        });
+
+        it('is shown even when a travel invoice is also present (travel does not mask the subscription reminder)', async () => {
             await Onyx.merge(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED, 0);
             await Onyx.merge(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END, nowSeconds() + ONE_WEEK_SECONDS);
             await Onyx.merge(ONYXKEYS.NVP_PRIVATE_OWNER_TRAVEL_BILLING_GRACE_PERIOD_END, nowSeconds() + ONE_WEEK_SECONDS);
@@ -74,7 +74,7 @@ describe('useTimeSensitiveOverdueInvoice', () => {
 
             const {result} = renderHook(() => useTimeSensitiveOverdueInvoice());
 
-            expect(result.current.shouldShowOverdueInvoice).toBe(true);
+            expect(result.current.shouldShowOverdueInvoiceReminder).toBe(true);
         });
     });
 
@@ -84,13 +84,13 @@ describe('useTimeSensitiveOverdueInvoice', () => {
             await waitForBatchedUpdates();
 
             const {result, rerender} = renderHook(() => useTimeSensitiveOverdueInvoice());
-            expect(result.current.shouldShowOverdueInvoice).toBe(false);
+            expect(result.current.shouldShowOverdueInvoiceReminder).toBe(false);
 
             await Onyx.merge(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END, nowSeconds() + ONE_WEEK_SECONDS);
             await waitForBatchedUpdates();
             rerender({});
 
-            expect(result.current.shouldShowOverdueInvoice).toBe(true);
+            expect(result.current.shouldShowOverdueInvoiceReminder).toBe(true);
         });
     });
 });

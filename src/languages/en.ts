@@ -1071,7 +1071,8 @@ const translations = {
                 subtitle: 'Subscription',
             },
             payOverdueInvoice: {
-                title: ({date}: {date: string}) => `Pay your invoice by ${date} to avoid service interruption`,
+                dueSoonTitle: ({date}: {date: string}) => `Pay your invoice by ${date} to avoid service interruption`,
+                overdueTitle: 'Your payment is past due, please pay your invoice',
                 cta: 'Review',
             },
             unlockBankAccount: {
