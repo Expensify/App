@@ -193,6 +193,23 @@ function logReceiptAdoptFailed({error, captureSource}: {error: unknown; captureS
     });
 }
 
+/** The in-app camera failed to produce a photo, so the user tapped the shutter and got nothing back. */
+function logCameraCaptureFailed(error: unknown) {
+    Log.alert(`${RECEIPT_LOG_PREFIX} camera capture failed`, {
+        event: 'cameraCaptureFailed',
+        error: error instanceof Error ? error.message : String(error),
+    });
+}
+
+/** VisionCamera reported a runtime error, which usually means the preview never became usable. */
+function logCameraRuntimeError({code, message}: {code: string; message: string}) {
+    Log.alert(`${RECEIPT_LOG_PREFIX} camera runtime error`, {
+        event: 'cameraRuntimeError',
+        code,
+        error: message,
+    });
+}
+
 /**
  * Logs one line per receipt still pending in the write queue, tagged with what triggered the snapshot. Stays quiet
  * when nothing is pending, so the normal case makes no noise. Sent right away so it survives a hard app kill from the
@@ -255,6 +272,8 @@ export {
     logReceiptDropped,
     logReceiptStatFailed,
     logReceiptAdoptFailed,
+    logCameraCaptureFailed,
+    logCameraRuntimeError,
     logReceiptQueueSnapshot,
     getPickerCaptureSource,
     RECEIPT_BEARING_COMMANDS,

@@ -1,4 +1,5 @@
 import {useFullScreenLoaderActions, useFullScreenLoaderState} from '@components/FullScreenLoaderContext';
+import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 
 import {showCameraPermissionsAlert} from '@libs/fileDownload/FileUtils';
 import Log from '@libs/Log';
@@ -28,6 +29,26 @@ type UseNativeCameraOptions = {
     onFocusCleanup?: () => void;
 };
 
+/**
+ * Requests camera permission and reports the resulting status back to the caller. Shared by every native camera
+ * surface so they all handle the BLOCKED case the same way.
+ */
+function requestCameraPermission(translate: LocalizedTranslate, setStatus: (status: string) => void) {
+    // There's no way we can check for the BLOCKED status without requesting the permission first
+    // https://github.com/zoontek/react-native-permissions/blob/a836e114ce3a180b2b23916292c79841a267d828/README.md?plain=1#L670
+    CameraPermission.requestCameraPermission?.()
+        .then((status: string) => {
+            setStatus(status);
+
+            if (status === RESULTS.BLOCKED) {
+                showCameraPermissionsAlert(translate);
+            }
+        })
+        .catch(() => {
+            setStatus(RESULTS.UNAVAILABLE);
+        });
+}
+
 function useNativeCamera({onFocusStart, onFocusCleanup}: UseNativeCameraOptions) {
     const {translate} = useLocalize();
     const {isLoaderVisible} = useFullScreenLoaderState();
@@ -46,21 +67,7 @@ function useNativeCamera({onFocusStart, onFocusCleanup}: UseNativeCameraOptions)
     const [isAttachmentPickerActive, setIsAttachmentPickerActive] = useState(false);
     const camera = useRef<Camera>(null);
 
-    const askForPermissions = useCallback(() => {
-        // There's no way we can check for the BLOCKED status without requesting the permission first
-        // https://github.com/zoontek/react-native-permissions/blob/a836e114ce3a180b2b23916292c79841a267d828/README.md?plain=1#L670
-        CameraPermission.requestCameraPermission?.()
-            .then((status: string) => {
-                setCameraPermissionStatus(status);
-
-                if (status === RESULTS.BLOCKED) {
-                    showCameraPermissionsAlert(translate);
-                }
-            })
-            .catch(() => {
-                setCameraPermissionStatus(RESULTS.UNAVAILABLE);
-            });
-    }, [translate]);
+    const askForPermissions = useCallback(() => requestCameraPermission(translate, setCameraPermissionStatus), [translate]);
 
     const {tapGesture, cameraFocusIndicatorAnimatedStyle} = useTapToFocusGesture(camera, device?.supportsFocus ?? false);
 
@@ -162,4 +169,4 @@ function useTapToFocusGesture(cameraRef: React.RefObject<Camera | null>, support
 }
 
 export default useNativeCamera;
-export {useTapToFocusGesture};
+export {useTapToFocusGesture, requestCameraPermission};

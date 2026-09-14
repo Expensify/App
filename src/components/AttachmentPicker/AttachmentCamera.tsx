@@ -5,7 +5,6 @@ import ActivityIndicator from '@components/ActivityIndicator';
 import Button from '@components/Button';
 import Icon from '@components/Icon';
 import ImageSVG from '@components/ImageSVG';
-import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import Modal from '@components/Modal';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Text from '@components/Text';
@@ -13,18 +12,18 @@ import Text from '@components/Text';
 import useIsPlatformMuted from '@hooks/useIsPlatformMuted';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import {useTapToFocusGesture} from '@hooks/useNativeCamera';
+import {requestCameraPermission, useTapToFocusGesture} from '@hooks/useNativeCamera';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 
-import {showCameraPermissionsAlert} from '@libs/fileDownload/FileUtils';
+import {getFileName} from '@libs/fileDownload/FileUtils';
 import getPhotoSource from '@libs/fileDownload/getPhotoSource';
 import getVideoResolutionFormatFilter from '@libs/getVideoResolutionFormatFilter';
 import isInLandscapeMode from '@libs/isInLandscapeMode';
-import Log from '@libs/Log';
+import {logCameraCaptureFailed, logCameraRuntimeError} from '@libs/telemetry/ReceiptObservability';
 
 import CameraPermission from '@pages/iou/request/step/IOURequestStepScan/CameraPermission';
 import getCameraAspectRatio from '@pages/iou/request/step/IOURequestStepScan/getCameraAspectRatio';
@@ -49,23 +48,6 @@ type CapturedPhoto = {
     width: number;
     height: number;
 };
-
-/**
- * Module-level so the permission effect below can depend on `translate` alone rather than on a
- * per-render closure, which would re-subscribe the AppState listener on every render.
- */
-function requestCameraPermission(translate: LocalizedTranslate, setStatus: (status: string) => void) {
-    CameraPermission.requestCameraPermission?.()
-        .then((status: string) => {
-            setStatus(status);
-            if (status === RESULTS.BLOCKED) {
-                showCameraPermissionsAlert(translate);
-            }
-        })
-        .catch(() => {
-            setStatus(RESULTS.UNAVAILABLE);
-        });
-}
 
 type AttachmentCameraProps = {
     /** Whether the camera modal is visible */
@@ -187,7 +169,7 @@ function AttachmentCamera({isVisible, onCapture, onClose, onModalHide}: Attachme
                     return;
                 }
                 const uri = getPhotoSource(photo.path);
-                const fileName = photo.path.substring(photo.path.lastIndexOf('/') + 1) || `photo_${Date.now()}.jpg`;
+                const fileName = getFileName(photo.path) || `photo_${Date.now()}.jpg`;
 
                 onCapture([
                     {
@@ -201,7 +183,7 @@ function AttachmentCamera({isVisible, onCapture, onClose, onModalHide}: Attachme
             })
             .catch((error: Error) => {
                 Alert.alert(translate('receipt.cameraErrorTitle'), translate('receipt.cameraErrorMessage'));
-                Log.warn('Error capturing photo', {error: error.message});
+                logCameraCaptureFailed(error);
             })
             .finally(() => {
                 isCapturing.current = false;
@@ -210,7 +192,7 @@ function AttachmentCamera({isVisible, onCapture, onClose, onModalHide}: Attachme
 
     const handleCameraError = (error: CameraRuntimeError) => {
         Alert.alert(translate('receipt.cameraErrorTitle'), translate('receipt.cameraErrorMessage'));
-        Log.warn('AttachmentCamera runtime error', {code: error.code, message: error.message});
+        logCameraRuntimeError({code: error.code, message: error.message});
     };
 
     const handleClose = () => {

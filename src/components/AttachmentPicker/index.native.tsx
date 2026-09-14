@@ -38,7 +38,7 @@ import type AttachmentPickerProps from './types';
 
 import AttachmentCamera from './AttachmentCamera';
 
-/** Gives the popover a frame to finish dismissing on iOS; launching immediately closes the gallery/camera along with it. */
+/** Gives the popover a frame to finish dismissing on iOS. Launching immediately would close the gallery/camera along with it. */
 const MODAL_DISMISS_DELAY_MS = 200;
 
 const EXTENSION_TO_NATIVE_TYPE: Record<string, string> = {
