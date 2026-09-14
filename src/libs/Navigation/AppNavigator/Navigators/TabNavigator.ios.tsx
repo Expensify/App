@@ -16,6 +16,7 @@ import ROUTE_TO_NAVIGATION_TAB from '@components/Navigation/NavigationTabBar/ROU
 
 import useAccountTabIndicatorStatus from '@hooks/useAccountTabIndicatorStatus';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import {useSidebarOrderedReportsState} from '@hooks/useSidebarOrderedReports';
@@ -150,6 +151,7 @@ const renderNativeTabLayout = (props: NativeTabLayoutProps) => <NativeTabLayout 
 
 function TabNavigator() {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {translate} = useLocalize();
     const theme = useTheme();
     const {chatTabBrickRoad} = useSidebarOrderedReportsState();
     const {indicatorColor: workspacesIndicatorColor, status: workspacesIndicatorStatus} = useWorkspacesTabIndicatorStatus();
@@ -248,13 +250,13 @@ function TabNavigator() {
             <Tab.Screen
                 name={SCREENS.HOME}
                 component={HomePage}
-                options={{tabBarLabel: '', tabBarIcon: HOME_TAB_ICON}}
+                options={{tabBarLabel: translate('common.home'), tabBarIcon: HOME_TAB_ICON}}
             />
             <Tab.Screen
                 name={NAVIGATORS.REPORTS_SPLIT_NAVIGATOR}
                 component={ReportsSplitNavigator}
                 options={{
-                    tabBarLabel: '',
+                    tabBarLabel: translate('common.inbox'),
                     tabBarIcon: INBOX_TAB_ICON,
                     tabBarBadge: chatTabBrickRoad ? ' ' : undefined,
                     tabBarBadgeStyle: {backgroundColor: chatTabBrickRoad === CONST.BRICK_ROAD_INDICATOR_STATUS.INFO ? theme.iconSuccessFill : theme.danger},
@@ -267,13 +269,13 @@ function TabNavigator() {
                     screen: SCREENS.SEARCH.ROOT,
                     params: {q: buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.EXPENSE})},
                 }}
-                options={{tabBarLabel: '', tabBarIcon: SPEND_TAB_ICON}}
+                options={{tabBarLabel: translate('common.spend'), tabBarIcon: SPEND_TAB_ICON}}
             />
             <Tab.Screen
                 name={NAVIGATORS.WORKSPACE_NAVIGATOR}
                 component={WorkspaceNavigator}
                 options={{
-                    tabBarLabel: '',
+                    tabBarLabel: translate('common.workspacesTabTitle'),
                     tabBarIcon: WORKSPACES_TAB_ICON,
                     tabBarBadge: workspacesIndicatorStatus ? ' ' : undefined,
                     tabBarBadgeStyle: {backgroundColor: workspacesIndicatorColor},
@@ -283,7 +285,7 @@ function TabNavigator() {
                 name={NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR}
                 component={SettingsSplitNavigator}
                 options={{
-                    tabBarLabel: '',
+                    tabBarLabel: translate('initialSettingsPage.account'),
                     tabBarIcon: accountTabIcon,
                     tabBarBadge: accountIndicatorStatus ? ' ' : undefined,
                     tabBarBadgeStyle: {backgroundColor: accountIndicatorColor},
