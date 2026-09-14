@@ -5,6 +5,7 @@ import useReturnToOriginReport from '@hooks/useReturnToOriginReport';
 
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import {isCompletedTaskReport} from '@libs/ReportUtils';
 
 import {getAccessiblePolicies} from '@userActions/Policy/Policy';
 import {completeTask} from '@userActions/Task';
@@ -44,12 +45,13 @@ function DynamicVerifyAccountPage({route}: DynamicVerifyAccountPageProps) {
         );
         getAccessiblePolicies();
     }, [validateEmailTaskParentReport?.hasOutstandingChildTask, validateEmailTaskParentReportAction, validateEmailTaskReport]);
+    const isValidateEmailTaskCompleted = isCompletedTaskReport(validateEmailTaskReport);
 
     if (backPath === ROUTES.SETTINGS_WALLET) {
         forwardPath = ROUTES.SETTINGS_ENABLE_PAYMENTS.getRoute();
     }
 
-    if (isJoinWorkspaceTask) {
+    if (isJoinWorkspaceTask && !isValidateEmailTaskCompleted) {
         forwardPath = ROUTES.ONBOARDING_WORKSPACES.getRoute(backPath);
     }
 
@@ -58,7 +60,7 @@ function DynamicVerifyAccountPage({route}: DynamicVerifyAccountPageProps) {
             navigateBackTo={backPath}
             navigateForwardTo={forwardPath}
             handleClose={isJoinWorkspaceTask ? returnToOriginReport : undefined}
-            onValidationSuccess={isJoinWorkspaceTask ? handleJoinWorkspaceValidationSuccess : undefined}
+            onValidationSuccess={isJoinWorkspaceTask && !isValidateEmailTaskCompleted ? handleJoinWorkspaceValidationSuccess : undefined}
             shouldShowCloseButton={isJoinWorkspaceTask}
         />
     );

@@ -107,6 +107,24 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
     const returnToOriginReport = useReturnToOriginReport();
     const shouldHideBackButton = onboardingValues?.shouldValidate === false && route.params?.backTo === ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute();
 
+    const createAndOpenJoinWorkspaceTask = () => {
+        const companyDomain = session?.email ? getEmailDomain(session.email) : '';
+        const joinWorkspaceTaskReportID = createJoinWorkspaceOnboardingContent('joinWorkspace', companyDomain, session?.email ?? '', conciergeChat);
+        if (joinWorkspaceTaskReportID) {
+            Navigation.dismissModalWithReport({reportID: joinWorkspaceTaskReportID});
+            return;
+        }
+        returnToOriginReport();
+    };
+
+    const closeJoinWorkspaceTask = () => {
+        if (isConciergeTaskFlow) {
+            createAndOpenJoinWorkspaceTask();
+            return;
+        }
+        returnToOriginReport();
+    };
+
     const handleJoinWorkspace = (policy: JoinablePolicy) => {
         const isJoiningSubmitPolicy = policy.policyType === CONST.POLICY.TYPE.SUBMIT;
         const shouldUseSubmitFlow = policy.automaticJoiningEnabled && isJoiningSubmitPolicy;
@@ -234,13 +252,7 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
             // Opened from a Concierge task after onboarding finished: there is no onboarding step to continue into,
             // so just close instead of completing onboarding again.
             if (isConciergeTaskFlow) {
-                const companyDomain = session?.email ? getEmailDomain(session.email) : '';
-                const joinWorkspaceTaskReportID = createJoinWorkspaceOnboardingContent('joinWorkspace', companyDomain, session?.email ?? '', conciergeChat);
-                if (joinWorkspaceTaskReportID) {
-                    Navigation.dismissModalWithReport({reportID: joinWorkspaceTaskReportID});
-                    return;
-                }
-                returnToOriginReport();
+                createAndOpenJoinWorkspaceTask();
                 return;
             }
 
@@ -281,7 +293,7 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
                 shouldShowBackButton={!isConciergeTaskFlow && !shouldHideBackButton}
                 onBackButtonPress={() => Navigation.goBack()}
                 shouldShowCloseButton={isConciergeTaskFlow}
-                onCloseButtonPress={returnToOriginReport}
+                onCloseButtonPress={closeJoinWorkspaceTask}
             />
             <SelectionList
                 data={policyIDItems}
