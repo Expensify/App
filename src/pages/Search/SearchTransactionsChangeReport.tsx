@@ -124,10 +124,6 @@ function SearchTransactionsChangeReport() {
     // unreported expense the report lookup can never resolve one (its reportID is `0`), so a search snapshot missing
     // the money-request action would otherwise file one cardholder's bulk selection as mixed and strip its report list.
     const hasMultipleSubmitters = useMemo(() => {
-        if (!areAllTransactionsUnreported) {
-            return false;
-        }
-
         const ownerAccountIDs = new Set<number>();
 
         for (const transactionKey of selectedTransactionsKeys) {
@@ -142,7 +138,7 @@ function SearchTransactionsChangeReport() {
         }
 
         return ownerAccountIDs.size > 1;
-    }, [areAllTransactionsUnreported, selectedTransactions, selectedTransactionsKeys, allReports]);
+    }, [selectedTransactions, selectedTransactionsKeys, allReports]);
 
     useHydrateReportsFromSnapshot(currentSearchResults, allReports);
 
