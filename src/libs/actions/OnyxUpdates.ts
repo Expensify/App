@@ -209,7 +209,7 @@ function apply<TKey extends OnyxKey>({lastUpdateID, previousUpdateID, type, requ
         promise
             .then((result) => {
                 const doesResponseCoverFailedRange =
-                    (isCatchUpRequest && Number(request?.data?.updateIDFrom ?? 0) <= lastFailedUpdateID) ||
+                    (isCatchUpRequest && Number(request?.data?.updateIDFrom ?? 0) < lastFailedUpdateID) ||
                     isFullReconnectRequest ||
                     isOpenAppRequest ||
                     (!!previousUpdateID && Number(previousUpdateID) <= getPersistedLastUpdateID());

@@ -659,6 +659,67 @@ describe('OnyxUpdatesTest', () => {
             expect(await getOnyxValue(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT)).toBe(30);
         });
 
+        it('does not advance the watermark when a catch-up response starts at the failed update', async () => {
+            // Given the client is caught up to update 10
+            await Onyx.merge(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, 10);
+            await waitForBatchedUpdates();
+
+            PusherUtils.subscribeToMultiEvent('test.pusher.exclusive-bound-failed', () => Promise.reject(new Error('handler failed')));
+            PusherUtils.subscribeToMultiEvent('test.pusher.exclusive-bound-ok', () => Promise.resolve());
+
+            // And update 20 failed to apply
+            await OnyxUpdates.apply(pusherUpdate(20, 'test.pusher.exclusive-bound-failed')).catch(() => {});
+
+            // When a catch-up response arrives with updateIDFrom set to the failed update
+            const reportID = NumberUtils.rand64();
+            await OnyxUpdates.apply({
+                type: CONST.ONYX_UPDATE_TYPES.HTTPS,
+                previousUpdateID: 20,
+                lastUpdateID: 30,
+                request: {command: SIDE_EFFECT_REQUEST_COMMANDS.GET_MISSING_ONYX_MESSAGES, data: {updateIDFrom: 20}},
+                response: {jsonCode: 200, onyxData: [{onyxMethod: 'merge', key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`, value: {reportID}}]},
+            });
+            await waitForBatchedUpdates();
+
+            // Then the watermark stays behind the failed update
+            expect(await getOnyxValue(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT)).toBe(10);
+            expect(OnyxUpdates.doesClientNeedToBeUpdated({previousUpdateID: 30})).toBe(true);
+
+            await OnyxUpdates.apply(pusherUpdate(40, 'test.pusher.exclusive-bound-ok'));
+            await waitForBatchedUpdates();
+            expect(await getOnyxValue(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT)).toBe(10);
+        });
+
+        it('advances the watermark when a catch-up response starts below the failed update', async () => {
+            // Given the client is caught up to update 10
+            await Onyx.merge(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, 10);
+            await waitForBatchedUpdates();
+
+            PusherUtils.subscribeToMultiEvent('test.pusher.inclusive-bound-failed', () => Promise.reject(new Error('handler failed')));
+            PusherUtils.subscribeToMultiEvent('test.pusher.inclusive-bound-ok', () => Promise.resolve());
+
+            // And update 20 failed to apply
+            await OnyxUpdates.apply(pusherUpdate(20, 'test.pusher.inclusive-bound-failed')).catch(() => {});
+
+            // When a catch-up response fetches the range starting below the failed update
+            const reportID = NumberUtils.rand64();
+            await OnyxUpdates.apply({
+                type: CONST.ONYX_UPDATE_TYPES.HTTPS,
+                previousUpdateID: 19,
+                lastUpdateID: 30,
+                request: {command: SIDE_EFFECT_REQUEST_COMMANDS.GET_MISSING_ONYX_MESSAGES, data: {updateIDFrom: 19}},
+                response: {jsonCode: 200, onyxData: [{onyxMethod: 'merge', key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`, value: {reportID}}]},
+            });
+            await waitForBatchedUpdates();
+
+            // Then the watermark advances to it, and the next update is no longer held back
+            expect(await getOnyxValue(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT)).toBe(30);
+
+            await OnyxUpdates.apply(pusherUpdate(40, 'test.pusher.inclusive-bound-ok'));
+            await waitForBatchedUpdates();
+            expect(await getOnyxValue(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT)).toBe(40);
+        });
+
         it('advances the watermark again once a full reconnect covers the failed range', async () => {
             // Given the client is caught up to update 10
             await Onyx.merge(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, 10);
