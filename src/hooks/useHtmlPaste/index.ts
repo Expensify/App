@@ -7,6 +7,8 @@ import Parser from '@libs/Parser';
 
 import CONST from '@src/CONST';
 
+import {Str} from 'expensify-common';
+import {DomUtils, parseDocument} from 'htmlparser2';
 import {useCallback, useEffect, useRef} from 'react';
 
 import type UseHtmlPaste from './types';
@@ -265,6 +267,52 @@ const getEmojiReplacementText = (image: HTMLImageElement, shortcodeAtImagePositi
     return '';
 };
 
+/**
+ * Replaces recognized emoji image tags while preserving every other character from the original clipboard HTML.
+ *
+ * @param html Original clipboard HTML.
+ * @param images Images parsed from the clipboard HTML.
+ * @param replacements Replacement text keyed by its corresponding parsed image.
+ * @returns Clipboard HTML with only recognized emoji image tags replaced.
+ */
+const replaceEmojiImagesInHTML = (html: string, images: HTMLImageElement[], replacements: Map<HTMLImageElement, string>): string => {
+    if (replacements.size === 0) {
+        return html;
+    }
+
+    const sourceDocument = parseDocument(html, {withStartIndices: true, withEndIndices: true});
+    const sourceImages = DomUtils.getElementsByTagName('img', sourceDocument, true);
+    if (sourceImages.length !== images.length) {
+        return html;
+    }
+
+    const sourceReplacements: Array<{startIndex: number; endIndex: number; text: string}> = [];
+    for (const [index, image] of images.entries()) {
+        const replacement = replacements.get(image);
+        if (!replacement) {
+            continue;
+        }
+
+        const sourceImage = sourceImages.at(index);
+        if (sourceImage?.startIndex === null || sourceImage?.startIndex === undefined || sourceImage.endIndex === null) {
+            return html;
+        }
+
+        sourceReplacements.push({
+            startIndex: sourceImage.startIndex,
+            endIndex: sourceImage.endIndex,
+            text: Str.htmlEncode(replacement),
+        });
+    }
+
+    let htmlWithEmojiReplacements = html;
+    for (const replacement of sourceReplacements.toSorted((first, second) => second.startIndex - first.startIndex)) {
+        htmlWithEmojiReplacements = htmlWithEmojiReplacements.slice(0, replacement.startIndex) + replacement.text + htmlWithEmojiReplacements.slice(replacement.endIndex + 1);
+    }
+
+    return htmlWithEmojiReplacements;
+};
+
 const useHtmlPaste: UseHtmlPaste = (textInputRef, preHtmlPasteCallback, isActive = false, maxLength = CONST.MAX_COMMENT_LENGTH + 1) => {
     /**
      * Set pasted text to clipboard
@@ -378,8 +426,9 @@ const useHtmlPaste: UseHtmlPaste = (textInputRef, preHtmlPasteCallback, isActive
                 const htmlDocument = domparser.parseFromString(pastedHTML, TEXT_HTML);
                 const embeddedImages = Array.from(htmlDocument.images);
                 const iOSSafariEmojiShortcodes = getIOSSafariEmojiShortcodes(htmlDocument, event.clipboardData.getData('text/plain'));
+                const emojiImageReplacements = new Map<HTMLImageElement, string>();
 
-                // Replace emoji images before parsing HTML so they do not become inaccessible markdown image URLs.
+                // Collect emoji replacements before parsing HTML so they do not become inaccessible markdown image URLs.
                 for (const image of embeddedImages) {
                     const emojiText = getEmojiReplacementText(image, iOSSafariEmojiShortcodes.get(image));
 
@@ -387,7 +436,7 @@ const useHtmlPaste: UseHtmlPaste = (textInputRef, preHtmlPasteCallback, isActive
                         continue;
                     }
 
-                    image.replaceWith(htmlDocument.createTextNode(emojiText));
+                    emojiImageReplacements.set(image, emojiText);
                 }
 
                 // If HTML starts with <p dir="ltr">, it means that the text was copied from the markdown input from the native app
@@ -396,7 +445,7 @@ const useHtmlPaste: UseHtmlPaste = (textInputRef, preHtmlPasteCallback, isActive
                     handlePastePlainText(event);
                     return;
                 }
-                handlePastedHTML(htmlDocument.body.innerHTML);
+                handlePastedHTML(replaceEmojiImagesInHTML(pastedHTML, embeddedImages, emojiImageReplacements));
                 return;
             }
             handlePastePlainText(event);

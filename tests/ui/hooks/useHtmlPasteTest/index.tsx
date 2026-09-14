@@ -190,6 +190,50 @@ describe('useHtmlPaste - handlePastePlainText', () => {
         expect(textInputRef.current?.textContent).toBe('Normal Text. :tada: *Bold*');
     });
 
+    it('preserves the original Safari formatting HTML when there are no emoji images', async () => {
+        const html =
+            '<head><meta charset="UTF-8"></head><b style="font-weight: 700;">Bold text,<span class="Apple-converted-space">\u00A0</span></b><b style="font-weight: 700;"><i style="font-style: italic;">Bold and Italic text,<span class="Apple-converted-space">\u00A0</span></i></b><i style="font-style: italic;">Normal Italic text.</i>';
+        const event = createMockClipboardEvent('Bold text,\u00A0Bold and Italic text,\u00A0Normal Italic text.', html);
+        mockWindowSelection('');
+
+        // @ts-expect-error -- this web test intentionally passes a contenteditable DOM ref to the shared hybrid hook.
+        renderHook(() => useHtmlPaste(textInputRef, undefined, true));
+        await waitForBatchedUpdatesWithAct();
+
+        act(() => document.dispatchEvent(event));
+
+        expect(textInputRef.current?.textContent).toBe('*Bold text,**_Bold and Italic text,\u00A0_*_Normal Italic text._');
+    });
+
+    it('replaces a Slack emoji without changing surrounding Safari formatting HTML', async () => {
+        const html =
+            '<head><meta charset="UTF-8"></head><img data-stringify-emoji=":tada:" alt=":tada:" src="https://a.slack-edge.com/emoji.png"> <b style="font-weight: 700;">Bold text,<span class="Apple-converted-space">\u00A0</span></b><i style="font-style: italic;">Italic text.</i>';
+        const event = createMockClipboardEvent(':tada: Bold text,\u00A0Italic text.', html);
+        mockWindowSelection('');
+
+        // @ts-expect-error -- this web test intentionally passes a contenteditable DOM ref to the shared hybrid hook.
+        renderHook(() => useHtmlPaste(textInputRef, undefined, true));
+        await waitForBatchedUpdatesWithAct();
+
+        act(() => document.dispatchEvent(event));
+
+        expect(textInputRef.current?.textContent).toBe(':tada: *Bold text,*_Italic text._');
+    });
+
+    it('replaces only the recognized emoji when a normal image appears first', async () => {
+        const html = '<p><img src="https://example.com/photo.png" alt="Photo"> <img data-stringify-emoji=":tada:" alt=":tada:" src="https://a.slack-edge.com/emoji.png"></p>';
+        const event = createMockClipboardEvent('Photo :tada:', html);
+        mockWindowSelection('');
+
+        // @ts-expect-error -- this web test intentionally passes a contenteditable DOM ref to the shared hybrid hook.
+        renderHook(() => useHtmlPaste(textInputRef, undefined, true));
+        await waitForBatchedUpdatesWithAct();
+
+        act(() => document.dispatchEvent(event));
+
+        expect(textInputRef.current?.textContent).toBe('![Photo](https://example.com/photo.png) :tada:');
+    });
+
     it('falls back to image alt when only the emoji type metadata is available', async () => {
         const html = '<p>Normal Text. <img data-stringify-type="emoji" alt=":tada:" src="https://a.slack-edge.com/emoji.png"> <strong>Bold</strong></p>';
         const event = createMockClipboardEvent('Normal Text. :tada: Bold', html);
