@@ -271,7 +271,6 @@ import {
     hasReceipt as hasReceiptTransactionUtils,
     hasViolation,
     hasWarningTypeViolation,
-    isManagedCardTransaction as isCardTransactionTransactionUtils,
     isDeletedTransaction,
     isDemoTransaction,
     isDistanceRequest,
@@ -3225,7 +3224,7 @@ function shouldCurrentUserSubmitReport(iouReport: OnyxEntry<Report>, chatReport:
 }
 
 function canDeleteCardTransaction(transaction: OnyxEntry<Transaction>, policy: OnyxEntry<Policy>): boolean {
-    const isCardTransaction = isCardTransactionTransactionUtils(transaction);
+    const isCardTransaction = isManagedCardTransaction(transaction);
     if (!isCardTransaction) {
         return true;
     }
@@ -5412,7 +5411,7 @@ function canEditFieldOfMoneyRequest({
         return false;
     }
 
-    if ((fieldToEdit === CONST.EDIT_REQUEST_FIELD.AMOUNT || fieldToEdit === CONST.EDIT_REQUEST_FIELD.CURRENCY) && isCardTransactionTransactionUtils(transaction)) {
+    if ((fieldToEdit === CONST.EDIT_REQUEST_FIELD.AMOUNT || fieldToEdit === CONST.EDIT_REQUEST_FIELD.CURRENCY) && isManagedCardTransaction(transaction)) {
         return false;
     }
 
