@@ -951,6 +951,23 @@ describe('ReportActionsList (body)', () => {
             expect(passedActions?.some((a) => a.reportActionID === 'onboarding-msg')).toBe(true);
         });
 
+        it('should hide pre-session messages when nothing matches the session and there is no created action', () => {
+            setupMainDMConciergeMocks();
+
+            mockUsePaginatedReportActions.mockReturnValue({
+                ...defaultPaginatedReportActionsResult,
+                reportActions: oldReportActions.filter((action) => action.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED),
+                hasOlderActions: true,
+            });
+
+            renderReportActionsList({reportID: CONCIERGE_REPORT_ID});
+
+            expect(mockInvertedFlashList).toHaveBeenCalled();
+            const passedActions = getCapturedVisibleActions();
+            expect(passedActions?.some((a) => a.reportActionID === 'old-user-msg')).toBe(false);
+            expect(passedActions?.some((a) => a.reportActionID === 'old-concierge-msg')).toBe(false);
+        });
+
         it('should call startSession on mount for main DM concierge', () => {
             const mockStartSession = jest.fn();
             mockUseConciergeSessionActions.mockReturnValue({startSession: mockStartSession, resetSession: jest.fn(), setShowFullHistory: jest.fn(), setHadMessagesAtSessionStart: jest.fn()});
