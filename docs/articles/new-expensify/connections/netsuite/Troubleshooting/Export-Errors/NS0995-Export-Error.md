@@ -76,7 +76,7 @@ Once the employee is active and the connection has synced, the export should com
 
 ## Can I Deactivate the Employee Again After Exporting?
 
-Yes. Once the report has exported successfully, you can mark the employee inactive again in NetSuite.
+Yes, but export all of the employee’s outstanding reports first. Deactivating the record again while any report is still unexported will make those reports fail with NS0995.
 
 ## Do I Have to Sync After Reactivating the Employee?
 
