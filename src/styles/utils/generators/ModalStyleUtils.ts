@@ -10,6 +10,8 @@ import type ModalType from '@src/types/utils/ModalType';
 
 import type {ViewStyle} from 'react-native';
 
+import {Platform} from 'react-native';
+
 import type StyleUtilGenerator from './types';
 
 function getCenteredModalStyles(styles: ThemeStyles, windowWidth: number, isSmallScreenWidth: boolean, isFullScreenWhenSmall = false): ViewStyle {
@@ -280,7 +282,8 @@ const createModalStyleUtils: StyleUtilGenerator<GetModalStylesStyleUtil> = ({the
                     boxShadow: theme.shadow,
                 };
 
-                hideBackdrop = true;
+                // Native anchored popovers still block the app through a full-screen modal.
+                hideBackdrop = Platform.OS === 'web';
                 swipeDirection = undefined;
                 animationIn = 'fadeIn';
                 animationOut = 'fadeOut';

@@ -23,8 +23,8 @@ function Backdrop({
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const Entering = new Keyframe(getModalInAnimation('fadeIn')).duration(animationInTiming);
-    const Exiting = new Keyframe(getModalOutAnimation('fadeOut')).duration(animationOutTiming);
+    const Entering = new Keyframe(getModalInAnimation('fadeIn', backdropOpacity)).duration(animationInTiming);
+    const Exiting = new Keyframe(getModalOutAnimation('fadeOut', backdropOpacity)).duration(animationOutTiming);
 
     const BackdropOverlay = (
         <Animated.View
