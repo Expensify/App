@@ -18,8 +18,7 @@ const EXPENSE_REPORT_ID = '54321';
 const TRANSACTION_ID = '11111';
 const SIBLING_TRANSACTION_ID = '22222';
 
-// Inlined because a `jest.mock` factory may only close over locals initialized with a literal. A test below asserts
-// the two stay in sync.
+// Inlined because a `jest.mock` factory may only close over locals initialized with a literal.
 const TRANSACTION_THREAD_NAVIGATION_TRANSACTION_IDS_KEY = 'transactionThreadNavigationTransactionIDs';
 
 const mockNavigate = jest.fn();
@@ -117,8 +116,6 @@ describe('OneTransactionThreadRedirectHandler', () => {
     });
 
     it('keeps the thread route while the prev/next carousel is stepping through a sibling set', async () => {
-        // Home "Recently added", "Review N flagged expenses" and the duplicate review list open a thread precisely for
-        // the prev/next arrows, which only exist in the thread's header. Redirecting would dead-end them mid-review.
         mockSiblingTransactionIDs = [TRANSACTION_ID, SIBLING_TRANSACTION_ID];
 
         render(<OneTransactionThreadRedirectHandler />);
@@ -158,7 +155,6 @@ describe('OneTransactionThreadRedirectHandler', () => {
     });
 
     it('still redirects when the parent report only loads after the thread has mounted', async () => {
-        // A cold open: nothing about the parent is in Onyx yet.
         mockParentTransactionCount = undefined;
 
         const {rerender} = render(<OneTransactionThreadRedirectHandler />);
@@ -204,7 +200,6 @@ describe('OneTransactionThreadRedirectHandler', () => {
     });
 
     it('stays in the RHP when redirecting from the search RHP outside Search', async () => {
-        // Swapping one RHP route for another keeps the redirect inside the navigator it started in, on every layout.
         mockRouteName = SCREENS.RIGHT_MODAL.SEARCH_REPORT;
 
         render(<OneTransactionThreadRedirectHandler />);
@@ -223,8 +218,6 @@ describe('OneTransactionThreadRedirectHandler', () => {
     });
 
     it('inherits the nested backTo when the route came from the parent report itself', async () => {
-        // A thread opened from its own report carries that report as `backTo`. Keeping it would leave the report
-        // pointing at itself, which makes `linkTo` refuse to navigate at all.
         mockRouteParams = {reportID: THREAD_REPORT_ID, backTo: `/r/${EXPENSE_REPORT_ID}?backTo=${encodeURIComponent('/search')}`};
 
         render(<OneTransactionThreadRedirectHandler />);
@@ -252,7 +245,6 @@ describe('OneTransactionThreadRedirectHandler', () => {
     });
 
     it('drops a parent backTo anchored at one of the report actions', async () => {
-        // `/r/<parent>/<actionID>` still resolves to the parent, so it is a self-reference like the bare path is.
         mockRouteParams = {reportID: THREAD_REPORT_ID, backTo: `/r/${EXPENSE_REPORT_ID}/9999`};
 
         render(<OneTransactionThreadRedirectHandler />);
@@ -262,8 +254,6 @@ describe('OneTransactionThreadRedirectHandler', () => {
     });
 
     it('drops a parent backTo that reaches the report through another route shape', async () => {
-        // The same report is reachable as `r/`, `e/`, `search/view/` and `search/r/`, and all of them resolve to the
-        // same reportID, so none of them may be handed back to the report.
         mockRouteParams = {reportID: THREAD_REPORT_ID, backTo: `/e/${EXPENSE_REPORT_ID}`};
 
         render(<OneTransactionThreadRedirectHandler />);

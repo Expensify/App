@@ -28,7 +28,6 @@ jest.mock('@libs/Navigation/Navigation', () => ({
     },
 }));
 
-// Onyx, not layout, is what this suite pins down, and the inbox route below never reads the narrow-layout branch.
 jest.mock('@libs/getIsNarrowLayout', () => ({
     __esModule: true,
     default: () => false,
@@ -95,10 +94,7 @@ async function seedOnyx(transactionCount: number, actions: Array<ReportAction<ty
     });
 }
 
-/**
- * `OneTransactionThreadRedirectHandlerTest` mocks the hooks to pin down the decision table. This suite feeds the
- * handler real Onyx data, so it catches a wrong Onyx key or reportID that the mocked suite would pass.
- */
+/** Feeds the handler real Onyx data, catching a wrong Onyx key or reportID that the mocked suite would pass. */
 describe('OneTransactionThreadRedirectHandler with real Onyx data', () => {
     beforeAll(() => {
         Onyx.init({keys: ONYXKEYS});
@@ -131,7 +127,6 @@ describe('OneTransactionThreadRedirectHandler with real Onyx data', () => {
     });
 
     it('keeps the thread route while a multi-expense report is still paginating in', async () => {
-        // The server counter says three expenses, but only one IOU action has arrived so far.
         await seedOnyx(3, [createIOUAction('action1', 'transaction1', THREAD_REPORT_ID)]);
 
         render(<OneTransactionThreadRedirectHandler />, {wrapper: OnyxListItemProvider});
