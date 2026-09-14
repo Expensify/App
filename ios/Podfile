@@ -34,9 +34,7 @@ setup_permissions([
 ])
 
 # As per the official React Native Firebase documentation: https://rnfirebase.io/#altering-cocoapods-to-use-frameworks
-# Set via the env var too: Expo's autolinking detects use_frameworks! only from USE_FRAMEWORKS.
-ENV['USE_FRAMEWORKS'] = 'static'
-use_frameworks! :linkage => ENV['USE_FRAMEWORKS'].to_sym
+use_frameworks! :linkage => :static
 $RNFirebaseAsStaticFramework = true
 
 # Force pods to match minimum iOS version for React Native
