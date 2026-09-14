@@ -1,3 +1,4 @@
+import {checkFileExistsWithReason} from '@libs/fileDownload/checkFileExists';
 import {readFileAsync} from '@libs/fileDownload/FileUtils';
 import ReceiptStorage from '@libs/ReceiptStorage';
 import {logReceiptDropped} from '@libs/telemetry/ReceiptObservability';
@@ -41,8 +42,11 @@ const prepareRequestPayload: PrepareRequestPayload = (command, data, initiatedOf
                     return ReceiptStorage.locate(source).then((localUri) => {
                         if (!localUri) {
                             const transactionID = typeof data.transactionID === 'string' ? data.transactionID : undefined;
-                            logReceiptDropped({receiptTraceId, transactionID, command, source, fileName: name});
-                            return;
+                            // `locate` reports whether the receipt is readable, not why a stat failed, so the reason is
+                            // read back here. This only runs once the receipt is already lost, never on the upload path.
+                            return checkFileExistsWithReason(ReceiptStorage.resolve(source) ?? source).then(({error}) => {
+                                logReceiptDropped({receiptTraceId, transactionID, command, source, fileName: name, statError: error});
+                            });
                         }
                         const receiptFormData = {
                             uri: localUri,

@@ -1,9 +1,11 @@
 import type PrepareRequestPayload from '@libs/prepareRequestPayload/types';
 
-const mockCheckFileExists = jest.fn<Promise<boolean>, [string | undefined]>();
+type MockFileCheckResult = {exists: boolean; error?: {message: string; code?: string}};
+const mockCheckFileExists = jest.fn<Promise<MockFileCheckResult>, [string | undefined]>();
 jest.mock('@libs/fileDownload/checkFileExists', () => ({
     __esModule: true,
-    default: mockCheckFileExists,
+    default: (path: string | undefined) => mockCheckFileExists(path).then((result) => result.exists),
+    checkFileExistsWithReason: mockCheckFileExists,
 }));
 
 jest.mock('@libs/fileDownload/FileUtils', () => ({
@@ -24,14 +26,19 @@ jest.mock('@libs/telemetry/ReceiptObservability', () => ({
 const RECEIPTS_FOLDER = '/Containers/Data/Application/CURRENT/Documents/Receipts-Upload';
 const mockSettle = jest.fn<Promise<void>, [string]>(() => Promise.resolve());
 
+const mockResolveReceiptUri = (source?: string) => {
+    const name = source?.includes('/Receipts-Upload/') ? source.split('/').pop() : undefined;
+    return name ? `file://${RECEIPTS_FOLDER}/${name}` : source;
+};
+
 jest.mock('@libs/ReceiptStorage', () => ({
     __esModule: true,
     default: {
         locate: (source?: string) => {
-            const name = source?.includes('/Receipts-Upload/') ? source.split('/').pop() : undefined;
-            const uri = name ? `file://${RECEIPTS_FOLDER}/${name}` : source;
-            return mockCheckFileExists(uri).then((exists: boolean) => (exists ? uri : undefined));
+            const uri = mockResolveReceiptUri(source);
+            return mockCheckFileExists(uri).then(({exists}) => (exists ? uri : undefined));
         },
+        resolve: (source?: string) => mockResolveReceiptUri(source),
         settle: (durableName: string) => mockSettle(durableName),
     },
 }));
@@ -47,7 +54,7 @@ describe('prepareRequestPayload (native)', () => {
     });
 
     it('should include receipt in FormData when the file exists', async () => {
-        mockCheckFileExists.mockResolvedValue(true);
+        mockCheckFileExists.mockResolvedValue({exists: true});
 
         const receipt = {
             source: 'file:///var/mobile/Documents/Receipts-Upload/receipt.jpg',
@@ -63,7 +70,7 @@ describe('prepareRequestPayload (native)', () => {
     });
 
     it('should log a joinable [Receipt] dropped line and omit receipt from FormData when file does not exist', async () => {
-        mockCheckFileExists.mockResolvedValue(false);
+        mockCheckFileExists.mockResolvedValue({exists: false, error: {message: 'ENOENT: no such file', code: 'ENOENT'}});
 
         const receipt = {
             source: 'file:///var/mobile/Library/Caches/ImageManipulator/receipt.jpg',
@@ -84,11 +91,13 @@ describe('prepareRequestPayload (native)', () => {
             command: 'RequestMoney',
             source: 'file:///var/mobile/Library/Caches/ImageManipulator/receipt.jpg',
             fileName: 'receipt.jpg',
+            // The errno separates a deleted file from one that is there but unreadable
+            statError: {message: 'ENOENT: no such file', code: 'ENOENT'},
         });
     });
 
     it('should recover a queued receipt whose stored path names a stale container, by re-rooting the filename', async () => {
-        mockCheckFileExists.mockResolvedValue(true);
+        mockCheckFileExists.mockResolvedValue({exists: true});
 
         const receipt = {
             // Written before an app upgrade. The device no longer has this container.
@@ -107,7 +116,7 @@ describe('prepareRequestPayload (native)', () => {
     });
 
     it('should still report a genuinely missing file as dropped', async () => {
-        mockCheckFileExists.mockResolvedValue(false);
+        mockCheckFileExists.mockResolvedValue({exists: false, error: {message: 'ENOENT: no such file', code: 'ENOENT'}});
 
         const receipt = {
             source: 'file:///Containers/Data/Application/CURRENT/Documents/Receipts-Upload/gone.jpg',

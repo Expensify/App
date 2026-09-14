@@ -1,4 +1,4 @@
-import checkFileExists from '@libs/fileDownload/checkFileExists';
+import {checkFileExistsWithReason} from '@libs/fileDownload/checkFileExists';
 import {cleanFileName, isLocalFile} from '@libs/fileDownload/FileUtils';
 import fileURIToPath from '@libs/fileURIToPath';
 import getReceiptsUploadFolderPath from '@libs/getReceiptsUploadFolderPath';
@@ -9,6 +9,7 @@ import RNFS from 'react-native-fs';
 
 import type ReceiptStorage from './types';
 
+import {toDurableName} from './durableFolder';
 import {claimForRead} from './receiptUpgrades';
 
 // A durable name is the bare filename inside the receipts folder. Never store a full path: iOS moves
@@ -253,20 +254,6 @@ const overwrite: ReceiptStorage['overwrite'] = async (durableName, uriOrPath, sh
 
 const toLocalUri: ReceiptStorage['toLocalUri'] = (durableName) => `file://${getReceiptsUploadFolderPath()}/${durableName}`;
 
-/**
- * Matches on the folder name and ignores the container prefix. The app reads this directory through
- * two filesystem libraries whose absolute forms can differ (/private/var and /var), but the trailing
- * segments stay stable.
- */
-function toDurableName(storedPath: string): string | undefined {
-    const dirName = getReceiptsUploadFolderPath().split('/').pop();
-    const path = fileURIToPath(storedPath);
-    if (!dirName || !path.includes(`/${dirName}/`)) {
-        return undefined;
-    }
-    return path.split('/').pop();
-}
-
 const resolve: ReceiptStorage['resolve'] = (source) => {
     if (typeof source !== 'string') {
         return undefined;
@@ -316,7 +303,8 @@ const locate: ReceiptStorage['locate'] = async (source) => {
         await settle(target.split('/').pop() ?? '');
     }
 
-    if (await checkFileExists(uri)) {
+    // The reason-only helper, so a stat failure here is reported once, by the caller that drops the receipt.
+    if ((await checkFileExistsWithReason(uri)).exists) {
         return uri;
     }
 

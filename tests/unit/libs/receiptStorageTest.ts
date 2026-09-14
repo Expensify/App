@@ -22,6 +22,7 @@ const mockCheckFileExists = jest.fn<Promise<boolean>, [string | undefined]>();
 jest.mock('@libs/fileDownload/checkFileExists', () => ({
     __esModule: true,
     default: (path: string | undefined) => mockCheckFileExists(path),
+    checkFileExistsWithReason: (path: string | undefined) => mockCheckFileExists(path).then((exists) => ({exists})),
 }));
 
 const FOLDER = '/var/mobile/Containers/Data/Application/AAAA-1111/Documents/Receipts-Upload';
