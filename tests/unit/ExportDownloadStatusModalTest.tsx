@@ -137,6 +137,28 @@ describe('ExportDownloadStatusModal', () => {
         expect(screen.getByText('exportDownload.dismiss')).toBeTruthy();
     });
 
+    it('shows ready state with a Download button when the export is ready and the Concierge flag is set', async () => {
+        await Onyx.set(`${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}${EXPORT_ID}`, {state: 'ready', fileName: CSV_FILE_NAME, shouldSendFromConcierge: true});
+
+        renderModal();
+        await waitForBatchedUpdatesWithAct();
+
+        expect(screen.getByText('exportDownload.readyTitle')).toBeTruthy();
+        expect(screen.getByText('exportDownload.downloadFile')).toBeTruthy();
+        expect(screen.queryByText('exportDownload.conciergeTitle')).toBeNull();
+        expect(screen.queryByText('exportDownload.goToConcierge')).toBeNull();
+    });
+
+    it('shows Concierge state when the Concierge flag is set and no state is present', async () => {
+        await Onyx.set(`${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}${EXPORT_ID}`, {shouldSendFromConcierge: true});
+
+        renderModal();
+        await waitForBatchedUpdatesWithAct();
+
+        expect(screen.getByText('exportDownload.conciergeTitle')).toBeTruthy();
+        expect(screen.getByText('exportDownload.goToConcierge')).toBeTruthy();
+    });
+
     it('auto-downloads CSV on ready state transition with csvexport secureType', async () => {
         // Mount while preparing, then transition to ready so the modal auto-downloads only after it watched the transition.
         await Onyx.set(`${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}${EXPORT_ID}`, {state: 'preparing'});
