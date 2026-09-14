@@ -2222,6 +2222,7 @@ describe('SidebarUtils', () => {
                 card: undefined,
                 translate: translateLocal,
                 convertToDisplayString,
+                convertToDisplayStringWithoutCurrency,
                 localeCompare,
                 lastAction: setAction,
                 lastActionReport: undefined,
@@ -2230,6 +2231,7 @@ describe('SidebarUtils', () => {
                 currentUserLogin: CURRENT_USER_LOGIN,
                 reportAttributesDerived: undefined,
                 formatPhoneNumber,
+                rules: undefined,
             });
 
             expect(setResult?.alternateText).toBe('set the approval workflow for member@example.com to forward reports over $100.00 to approver@example.com');
@@ -2258,6 +2260,7 @@ describe('SidebarUtils', () => {
                 card: undefined,
                 translate: translateLocal,
                 convertToDisplayString,
+                convertToDisplayStringWithoutCurrency,
                 localeCompare,
                 lastAction: removedAction,
                 lastActionReport: undefined,
@@ -2266,6 +2269,7 @@ describe('SidebarUtils', () => {
                 currentUserLogin: CURRENT_USER_LOGIN,
                 reportAttributesDerived: undefined,
                 formatPhoneNumber,
+                rules: undefined,
             });
 
             expect(removedResult?.alternateText).toBe(
@@ -2308,6 +2312,7 @@ describe('SidebarUtils', () => {
                 card: undefined,
                 translate: translateLocal,
                 convertToDisplayString,
+                convertToDisplayStringWithoutCurrency,
                 localeCompare,
                 lastAction: action,
                 lastActionReport: undefined,
@@ -2316,6 +2321,7 @@ describe('SidebarUtils', () => {
                 currentUserLogin: CURRENT_USER_LOGIN,
                 reportAttributesDerived: undefined,
                 formatPhoneNumber,
+                rules: undefined,
             });
 
             expect(result?.alternateText).toBe('changed the approval workflow for member@example.com to forward reports over $200.00 (previously $100.00)');
