@@ -9635,7 +9635,11 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             topMerchants: 'Najważniejsi sprzedawcy',
             violationsBySubmitter: 'Naruszenia przez zgłaszającego',
         },
-        mergeReports: {title: 'Połącz raporty', description: 'Wybierz raport, który chcesz zachować. Wszystkie wydatki zostaną do niego przeniesione, a pozostałe raporty zostaną usunięte.'},
+        mergeReports: {
+            title: 'Połącz raporty',
+            description: 'Wybierz raport, który chcesz zachować. Wszystkie wydatki zostaną do niego przeniesione, a pozostałe raporty zostaną usunięte.',
+            listPage: {noEligibleReportsFound: 'Nie znaleziono kwalifikujących się raportów', noEligibleReportsFoundSubtitle: 'Nie masz żadnych raportów, które można połączyć.'},
+        },
     },
     genericErrorPage: {
         title: 'Ups, coś poszło nie tak!',
