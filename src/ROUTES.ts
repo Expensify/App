@@ -2064,8 +2064,8 @@ const ROUTES = {
     },
     SEARCH_SAVE: 'search/save',
     SEARCH_SAVED_SEARCH_RENAME: {
-        route: 'search/saved-search/rename',
-        getRoute: ({name, jsonQuery}: {name: string; jsonQuery: SearchQueryString}) => `search/saved-search/rename?name=${name}&q=${encodeURIComponent(jsonQuery)}` as const,
+        route: 'search/saved-search/rename/:id',
+        getRoute: (id: string) => `search/saved-search/rename/${id}` as const,
     },
     SEARCH_COLUMNS: 'search/columns',
     SEARCH_ADVANCED_FILTERS: 'search/filters',
@@ -2084,6 +2084,11 @@ const ROUTES = {
 
             return getUrlWithBackToParam(baseRoute, backTo);
         },
+    },
+
+    INSIGHTS: {
+        route: 'insights/:dashboardID',
+        getRoute: (dashboardID: ValueOf<typeof CONST.INSIGHTS.DASHBOARD>) => `insights/${dashboardID}` as const,
     },
 
     EXPENSE_REPORT_RHP: {
@@ -2506,6 +2511,10 @@ const ROUTES = {
     SETTINGS_WALLET_CARD_CHANGE_PIN_ATM: {
         route: 'settings/wallet/card/:cardID/change-pin-atm',
         getRoute: (cardID: string) => `settings/wallet/card/${cardID}/change-pin-atm` as const,
+    },
+    SETTINGS_WALLET_CARD_ADD_TO_DIGITAL_WALLET: {
+        route: 'settings/wallet/card/:cardID/add-to-digital-wallet',
+        getRoute: (cardID: string) => `settings/wallet/card/${cardID}/add-to-digital-wallet` as const,
     },
     SETTINGS_WALLET_CARD_ACTIVATE: {
         route: 'settings/wallet/card/:cardID/activate',
@@ -3898,6 +3907,15 @@ const ROUTES = {
     POLICY_COPY_SETTINGS_CONFIRM: {
         route: 'policy/:policyID/copy-settings/confirm',
         getRoute: (policyID: string) => `policy/${policyID}/copy-settings/confirm` as const,
+    },
+    WORKSPACE_MCP: {
+        route: 'workspaces/:policyID/mcp',
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the WORKSPACE_MCP route');
+            }
+            return `workspaces/${policyID}/mcp` as const;
+        },
     },
     WORKSPACE_RECEIPT_PARTNERS: {
         route: 'workspaces/:policyID/receipt-partners',
