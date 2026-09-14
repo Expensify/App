@@ -8,7 +8,7 @@ import getZenefitsSetupLink from '@libs/actions/connections/Zenefits';
 import {formatList} from '@libs/Localize';
 import {getConnectedHRProvider, getHRApprovalMode, hasStaleMergeHRGroups, isMergeHRCompleteSetupNeeded} from '@libs/merge/HRUtils';
 import type {HRConnectionName} from '@libs/merge/HRUtils';
-import {getMergeFinalApproverDisplayName} from '@libs/merge/MergeUtils';
+import {getMergeFinalApproverDisplayName, hasMergeSyncError} from '@libs/merge/MergeUtils';
 import {getIntegrationLastSuccessfulDate} from '@libs/PolicyUtils';
 
 import type {MergeProviderCardDescriptor, MergeProviderConfigRow} from '@pages/workspace/merge/types';
@@ -46,7 +46,7 @@ function getMergeHRSyncState(policy: OnyxEntry<Policy>) {
     return {
         isSyncInProgress,
         isInitialSyncInProgress: isSyncInProgress && lastSync?.syncType === CONST.MERGE.SYNC_TYPE.INITIAL,
-        hasError: lastSync?.syncStatus === CONST.MERGE.SYNC_STATUS.FAILED,
+        hasError: hasMergeSyncError(policy, CONST.POLICY.CONNECTIONS.NAME.MERGE_HR),
         syncStageInProgress: undefined,
         successfulDate: lastSync?.successfulDate,
     };
