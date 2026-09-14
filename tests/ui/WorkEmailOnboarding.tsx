@@ -724,6 +724,7 @@ describe('OnboardingWorkEmail Page', () => {
     it('should show merge guidance when a validated public-domain user submits the Concierge task', async () => {
         const taskReportID = '123';
         const getTopmostReportId = jest.spyOn(Navigation, 'getTopmostReportId').mockReturnValue(taskReportID);
+        const dismissModal = jest.spyOn(Navigation, 'dismissModal').mockImplementation((options) => options?.afterTransition?.());
         await TestHelper.signInWithTestUser();
 
         await act(async () => {
@@ -759,6 +760,7 @@ describe('OnboardingWorkEmail Page', () => {
         expect(screen.getByText(TestHelper.translateLocal('onboarding.mergeBlockScreen.validatedPublicDomainSubtitle', workEmail))).toBeOnTheScreen();
 
         getTopmostReportId.mockRestore();
+        dismissModal.mockRestore();
         unmount();
         await waitForBatchedUpdatesWithAct();
 
