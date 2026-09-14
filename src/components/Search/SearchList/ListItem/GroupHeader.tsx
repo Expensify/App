@@ -197,11 +197,6 @@ function GroupHeader({
     };
 
     const groupCount = getSearchGroupCount(groupItem);
-    const areAllLoadedChildrenPendingDelete = groupItem.transactions.length > 0 && groupItem.transactions.every((transaction) => isTransactionPendingDelete(transaction));
-    // A `limit:` smaller than the group count only deletes the loaded rows, so the header must not look
-    // like the whole group is pending-delete. Expense-report rows have no count and still use this fallback.
-    const areLoadedChildrenTheWholeGroup = groupCount === undefined || groupItem.transactions.length >= groupCount;
-    const pendingAction = item.pendingAction ?? (areAllLoadedChildrenPendingDelete && areLoadedChildrenTheWholeGroup ? CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE : undefined);
 
     const handleSelectRow = (rowItem: SearchListItem, event?: ModifiedMouseEvent) => {
         onSelectRow(withOriginalKey(rowItem), transactionPreviewData, event);
@@ -354,7 +349,7 @@ function GroupHeader({
     };
 
     return (
-        <OfflineWithFeedback pendingAction={pendingAction}>
+        <OfflineWithFeedback pendingAction={item.pendingAction}>
             <PressableWithFeedback
                 ref={pressableRef}
                 onPress={handlePress}
