@@ -40,7 +40,6 @@ import openBankConnection from './openBankConnection';
 let customWindow: Window | null = null;
 
 type BankConnectionProps = {
-    /** ID of the policy */
     policyID?: string;
 
     /** Selected feed for assign card flow */

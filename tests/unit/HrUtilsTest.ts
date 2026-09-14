@@ -11,7 +11,7 @@ import {
 } from '@libs/merge/HRUtils';
 
 import {getApprovalModeLabel, getHRCards, getHRCardState} from '@pages/workspace/hr/utils';
-import type {HRCardDescriptor} from '@pages/workspace/hr/utils';
+import type {MergeProviderCardDescriptor} from '@pages/workspace/merge/types';
 
 import CONST from '@src/CONST';
 import MERGE_HR_PROVIDERS from '@src/CONST/MERGE_HR_PROVIDERS';
@@ -122,7 +122,7 @@ function stubTranslate(path: TranslationPaths): string {
 }
 const stubFormatPhoneNumber: LocaleContextProps['formatPhoneNumber'] = (phoneNumber) => phoneNumber;
 
-function getRow(card: HRCardDescriptor | undefined, field: string) {
+function getRow(card: MergeProviderCardDescriptor | undefined, field: string) {
     return card?.configRows?.find((row) => row.field === field);
 }
 
@@ -649,35 +649,35 @@ describe('getHRCardState', () => {
 describe('getApprovalModeLabel', () => {
     it('returns notSet key when no approval mode is configured', () => {
         const policy = makePolicy();
-        expect(getApprovalModeLabel(policy, GUSTO, stubTranslate)).toBe('workspace.hr.notSet');
+        expect(getApprovalModeLabel(policy, GUSTO, stubTranslate)).toBe('workspace.merge.notSet');
     });
 
     it('returns basic label for Gusto basic approval mode', () => {
         const policy = makePolicy({
             connections: {[GUSTO]: makeGustoConnection({config: {approvalMode: CONST.GUSTO.APPROVAL_MODE.BASIC}})},
         });
-        expect(getApprovalModeLabel(policy, GUSTO, stubTranslate)).toBe('workspace.hr.approvalModes.basic.label');
+        expect(getApprovalModeLabel(policy, GUSTO, stubTranslate)).toBe('workspace.merge.approvalModes.basic');
     });
 
     it('returns manager label for Gusto manager approval mode', () => {
         const policy = makePolicy({
             connections: {[GUSTO]: makeGustoConnection({config: {approvalMode: CONST.GUSTO.APPROVAL_MODE.MANAGER}})},
         });
-        expect(getApprovalModeLabel(policy, GUSTO, stubTranslate)).toBe('workspace.hr.approvalModes.manager.label');
+        expect(getApprovalModeLabel(policy, GUSTO, stubTranslate)).toBe('workspace.merge.approvalModes.manager');
     });
 
     it('returns custom label for Gusto custom approval mode', () => {
         const policy = makePolicy({
             connections: {[GUSTO]: makeGustoConnection({config: {approvalMode: CONST.GUSTO.APPROVAL_MODE.CUSTOM}})},
         });
-        expect(getApprovalModeLabel(policy, GUSTO, stubTranslate)).toBe('workspace.hr.approvalModes.custom.label');
+        expect(getApprovalModeLabel(policy, GUSTO, stubTranslate)).toBe('workspace.merge.approvalModes.custom');
     });
 
     it('returns basic label for Merge HR basic approval mode', () => {
         const policy = makePolicy({
             connections: {[MERGE_HR]: makeMergeHRConnection({config: {approvalMode: CONST.MERGE.APPROVAL_MODE.BASIC}})},
         });
-        expect(getApprovalModeLabel(policy, MERGE_HR, stubTranslate)).toBe('workspace.hr.approvalModes.basic.label');
+        expect(getApprovalModeLabel(policy, MERGE_HR, stubTranslate)).toBe('workspace.merge.approvalModes.basic');
     });
 
     it('returns notSet for unknown approval mode', () => {
@@ -685,11 +685,11 @@ describe('getApprovalModeLabel', () => {
             // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- intentionally unexpected approval mode value
             connections: {[GUSTO]: makeGustoConnection({config: {approvalMode: 'UNKNOWN_MODE' as GustoConnectionConfig['approvalMode']}})},
         });
-        expect(getApprovalModeLabel(policy, GUSTO, stubTranslate)).toBe('workspace.hr.notSet');
+        expect(getApprovalModeLabel(policy, GUSTO, stubTranslate)).toBe('workspace.merge.notSet');
     });
 
     it('returns notSet when policy is null', () => {
-        expect(getApprovalModeLabel(undefined, GUSTO, stubTranslate)).toBe('workspace.hr.notSet');
+        expect(getApprovalModeLabel(undefined, GUSTO, stubTranslate)).toBe('workspace.merge.notSet');
     });
 });
 
@@ -750,7 +750,6 @@ describe('getHRCards', () => {
         const zenefits = cards.find((c) => c.key === 'zenefits');
 
         expect(zenefits?.isConnected).toBe(true);
-        expect(zenefits?.config).toBeDefined();
     });
 
     it('marks the connected Gusto card as connected with config', () => {
@@ -762,8 +761,7 @@ describe('getHRCards', () => {
         const cards = getHRCards(makeGetHRCardsParams({policy}));
 
         expect(cards?.at(0)?.isConnected).toBe(true);
-        expect(cards?.at(0)?.config).toBeDefined();
-        expect(getRow(cards?.at(0), 'approvalMode')?.title).toBe('workspace.hr.approvalModes.basic.label');
+        expect(getRow(cards?.at(0), 'approvalMode')?.title).toBe('workspace.merge.approvalModes.basic');
     });
 
     it('marks only the matching Merge slug as connected', () => {
@@ -779,14 +777,11 @@ describe('getHRCards', () => {
         const hibob = cards.find((c) => c.key === 'merge_hibob');
 
         expect(bamboo?.isConnected).toBe(true);
-        expect(bamboo?.config).toBeDefined();
-        expect(getRow(bamboo, 'approvalMode')?.title).toBe('workspace.hr.approvalModes.manager.label');
+        expect(getRow(bamboo, 'approvalMode')?.title).toBe('workspace.merge.approvalModes.manager');
 
         expect(workday?.isConnected).toBe(false);
-        expect(workday?.config).toBeUndefined();
 
         expect(hibob?.isConnected).toBe(false);
-        expect(hibob?.config).toBeUndefined();
     });
 
     it('connected Merge card gets lastSyncErrorMessage when sync has failed', () => {

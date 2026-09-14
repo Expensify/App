@@ -76,7 +76,7 @@ jest.mock('@components/DelegateNoAccessWrapper', () => {
     return MockDelegateNoAccessWrapper;
 });
 
-jest.mock('@components/ButtonComposed', () => {
+jest.mock('@components/Button', () => {
     function MockButton() {
         return null;
     }
