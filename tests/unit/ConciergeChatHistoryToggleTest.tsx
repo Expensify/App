@@ -19,10 +19,10 @@ jest.mock('@hooks/useLazyAsset', () => ({
 }));
 
 const mockSetShowFullHistory = jest.fn();
-let showFullHistory = false;
+let mockShowFullHistory = false;
 
 jest.mock('@pages/inbox/ConciergeSessionContext', () => ({
-    useConciergeSessionState: () => ({sessionStartTime: '2024-06-01 12:00:00.000', showFullHistory, hadMessagesAtSessionStart: false}),
+    useConciergeSessionState: () => ({sessionStartTime: '2024-06-01 12:00:00.000', showFullHistory: mockShowFullHistory, hadMessagesAtSessionStart: false}),
     useConciergeSessionActions: () => ({setShowFullHistory: mockSetShowFullHistory}),
 }));
 
@@ -53,7 +53,7 @@ describe('ConciergeChatHistoryToggle', () => {
 
     beforeEach(() => {
         jest.clearAllMocks();
-        showFullHistory = false;
+        mockShowFullHistory = false;
     });
 
     it('reveals the earlier conversation when history is hidden', () => {
@@ -65,7 +65,7 @@ describe('ConciergeChatHistoryToggle', () => {
     });
 
     it('collapses the earlier conversation when history is shown', () => {
-        showFullHistory = true;
+        mockShowFullHistory = true;
         const {onShowPreviousMessages} = renderToggle();
 
         expect(screen.getByText('Hide chat history')).toBeTruthy();
