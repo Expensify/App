@@ -1,18 +1,12 @@
 import {isCreatedAction, isCurrentUserPendingAddAction} from '@libs/ReportActionsUtils';
 
-import type {PlatformStackRouteProp} from '@navigation/PlatformStackNavigation/types';
-import type {ReportsSplitNavigatorParamList} from '@navigation/types';
-
 import {useConciergeSessionState} from '@pages/inbox/ConciergeSessionContext';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import SCREENS from '@src/SCREENS';
 import type {ReportActions} from '@src/types/onyx/ReportAction';
 
 import type {OnyxEntry} from 'react-native-onyx';
-
-import {useRoute} from '@react-navigation/native';
 
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useIsInSidePanel from './useIsInSidePanel';
@@ -37,7 +31,6 @@ function useConciergeAskState(reportID: string | undefined): ConciergeAskState {
     const {isBetaEnabled} = usePermissions();
     const isInSidePanel = useIsInSidePanel();
     const {sessionStartTime, showFullHistory} = useConciergeSessionState();
-    const route = useRoute<PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
 
@@ -54,12 +47,11 @@ function useConciergeAskState(reportID: string | undefined): ConciergeAskState {
     const isAskConciergeChat = !!reportID && reportID === conciergeReportID && !isInSidePanel && isBetaEnabled(CONST.BETAS.CONCIERGE_RESPOND_IN_THREAD);
 
     const hasSessionBoundary = isAskConciergeChat && !!sessionStartTime;
-    const hasLinkedReportAction = !!route?.params?.reportActionID;
 
     return {
         isAskConciergeChat,
         isHistoryExpanded: showFullHistory,
-        shouldShowWelcome: hasSessionBoundary && !showFullHistory && !hasSessionActivity && !hasLinkedReportAction,
+        shouldShowWelcome: hasSessionBoundary && !showFullHistory && !hasSessionActivity,
         shouldLabelComposerAsNewQuestion: hasSessionBoundary && showFullHistory && !hasSessionActivity,
     };
 }

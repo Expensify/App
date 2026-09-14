@@ -463,7 +463,7 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
         return <ReportActionsSkeletonView />;
     }
 
-    if (shouldShowConciergeWelcome) {
+    if (shouldShowConciergeWelcome && !reportActionIDFromRoute) {
         return (
             <ScrollView
                 style={styles.flex1}

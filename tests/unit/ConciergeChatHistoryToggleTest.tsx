@@ -1,5 +1,6 @@
 import {fireEvent, render, screen} from '@testing-library/react-native';
 
+import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
 import {IsInSidePanelContext} from '@hooks/useIsInSidePanel';
@@ -32,14 +33,16 @@ const renderToggle = (overrides: {hasPreviousMessages?: boolean; shouldShowFullH
     const onShowPreviousMessages = jest.fn();
     render(
         <OnyxListItemProvider>
-            <IsInSidePanelContext.Provider value={false}>
-                <ConciergeChatHistoryToggle
-                    reportID={CONCIERGE_REPORT_ID}
-                    hasPreviousMessages={overrides.hasPreviousMessages ?? true}
-                    shouldShowFullHistory={overrides.shouldShowFullHistory ?? false}
-                    onShowPreviousMessages={onShowPreviousMessages}
-                />
-            </IsInSidePanelContext.Provider>
+            <LocaleContextProvider>
+                <IsInSidePanelContext.Provider value={false}>
+                    <ConciergeChatHistoryToggle
+                        reportID={CONCIERGE_REPORT_ID}
+                        hasPreviousMessages={overrides.hasPreviousMessages ?? true}
+                        shouldShowFullHistory={overrides.shouldShowFullHistory ?? false}
+                        onShowPreviousMessages={onShowPreviousMessages}
+                    />
+                </IsInSidePanelContext.Provider>
+            </LocaleContextProvider>
         </OnyxListItemProvider>,
     );
     return {onShowPreviousMessages};

@@ -1,5 +1,6 @@
 import {render, screen} from '@testing-library/react-native';
 
+import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
 import AskConciergeEmptyState from '@pages/inbox/report/AskConciergeEmptyState';
@@ -24,7 +25,9 @@ describe('AskConciergeEmptyState', () => {
     it('renders the Ask Concierge prompt', () => {
         render(
             <OnyxListItemProvider>
-                <AskConciergeEmptyState />
+                <LocaleContextProvider>
+                    <AskConciergeEmptyState />
+                </LocaleContextProvider>
             </OnyxListItemProvider>,
         );
 
