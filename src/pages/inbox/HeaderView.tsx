@@ -35,6 +35,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import getReportRouteForCurrentContext from '@libs/Navigation/helpers/getReportRouteForCurrentContext';
 import Navigation from '@libs/Navigation/Navigation';
 import Parser from '@libs/Parser';
 import {getPersonalDetailByEmail, getPersonalDetailsForAccountIDs} from '@libs/PersonalDetailsUtils';
@@ -88,7 +89,6 @@ import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
@@ -304,7 +304,7 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
 
     const startNewConciergeChat = () => {
         resetConciergeSession();
-        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(conciergeReportID));
+        Navigation.navigate(getReportRouteForCurrentContext({reportID: conciergeReportID}));
     };
 
     const newConciergeChatButton = (

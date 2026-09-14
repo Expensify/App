@@ -62,6 +62,9 @@ function ConciergeSessionProvider({children}: PropsWithChildren) {
     // lastReadTime boundary doesn't cause premature expiration.
     const sessionCreatedAtRef = useRef<number | null>(null);
 
+    // A session the user started with New chat keeps the boundary it was given, so the unread anchor below can't pull it back.
+    const isSessionResetByUserRef = useRef(false);
+
     // Reset the session when the user switches accounts. The provider is
     // mounted at the app level and never remounts, so without this the
     // previous user's session state would leak into the new account.
@@ -86,7 +89,7 @@ function ConciergeSessionProvider({children}: PropsWithChildren) {
                 // when it arrives we pull sessionStartTime back so the notification message
                 // isn't hidden behind "Show full history". The session age (sessionCreatedAtRef)
                 // is unchanged — only the display boundary is refined.
-                if (unreadBoundary) {
+                if (unreadBoundary && !isSessionResetByUserRef.current) {
                     setSessionStartTime((prev) => (prev && unreadBoundary < prev ? unreadBoundary : prev));
                 }
                 return;
@@ -94,6 +97,7 @@ function ConciergeSessionProvider({children}: PropsWithChildren) {
 
             const now = getServerAnchoredDBTime();
             sessionCreatedAtRef.current = Date.now();
+            isSessionResetByUserRef.current = false;
             setSessionStartTime(unreadBoundary && unreadBoundary < now ? unreadBoundary : now);
             setShowFullHistory(false);
             setHadMessagesAtSessionStart(false);
@@ -103,6 +107,7 @@ function ConciergeSessionProvider({children}: PropsWithChildren) {
 
     const resetSession = useCallback(() => {
         sessionCreatedAtRef.current = Date.now();
+        isSessionResetByUserRef.current = true;
         setSessionStartTime(getServerAnchoredDBTime());
         setShowFullHistory(false);
         setHadMessagesAtSessionStart(false);

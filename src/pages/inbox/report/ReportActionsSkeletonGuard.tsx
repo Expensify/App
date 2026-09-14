@@ -1,5 +1,3 @@
-import ScrollView from '@components/ScrollView';
-
 import useBackfillWhenNoVisibleActions from '@hooks/useBackfillWhenNoVisibleActions';
 import useConciergeAskState from '@hooks/useConciergeAskState';
 import useCopySelectionHelper from '@hooks/useCopySelectionHelper';
@@ -7,17 +5,14 @@ import {useIsReportLoadPending} from '@hooks/useInFlightRequests';
 import usePendingConciergeResponse from '@hooks/usePendingConciergeResponse';
 import useReportActionsListModel from '@hooks/useReportActionsListModel';
 import useStartConciergeSession from '@hooks/useStartConciergeSession';
-import useThemeStyles from '@hooks/useThemeStyles';
 
 import CONST from '@src/CONST';
 
 import type {ReactNode} from 'react';
 
 import React from 'react';
-import {View} from 'react-native';
 
-import AskConciergeEmptyState from './AskConciergeEmptyState';
-import ConciergeChatHistoryToggle from './ConciergeChatHistoryToggle';
+import AskConciergeWelcome from './AskConciergeWelcome';
 import {computeReportActionsSkeletonState, ReportActionsListActionsContext, ReportActionsListStateContext} from './ReportActionsListContext';
 import ReportActionsLoadingSkeleton from './ReportActionsLoadingSkeleton';
 
@@ -38,7 +33,6 @@ type ReportActionsSkeletonGuardProps = {
  *
  */
 function ReportActionsSkeletonGuard({reportID, children}: ReportActionsSkeletonGuardProps) {
-    const styles = useThemeStyles();
     const isReportLoadPending = useIsReportLoadPending(reportID);
     const {shouldShowWelcome} = useConciergeAskState(reportID);
     const {readinessSignals, state, actions} = useReportActionsListModel(reportID, isReportLoadPending);
@@ -87,21 +81,11 @@ function ReportActionsSkeletonGuard({reportID, children}: ReportActionsSkeletonG
     if (shouldShowLoadingSkeleton || shouldShowDerivedTimingSkeleton) {
         if (shouldShowWelcome && !reportActionIDFromRoute) {
             return (
-                <ScrollView
-                    style={styles.flex1}
-                    contentContainerStyle={[styles.flexGrow1, styles.justifyContentCenter]}
-                >
-                    <View style={styles.conciergeAskColumn}>
-                        <AskConciergeEmptyState />
-                        <ConciergeChatHistoryToggle
-                            reportID={reportID}
-                            hasPreviousMessages={!!state.hasPreviousMessages}
-                            shouldShowFullHistory={false}
-                            onShowPreviousMessages={actions.handleShowPreviousMessages}
-                            containerStyles={styles.pv5}
-                        />
-                    </View>
-                </ScrollView>
+                <AskConciergeWelcome
+                    reportID={reportID}
+                    hasPreviousMessages={!!state.hasPreviousMessages}
+                    onShowPreviousMessages={actions.handleShowPreviousMessages}
+                />
             );
         }
 

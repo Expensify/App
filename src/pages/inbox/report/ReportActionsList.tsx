@@ -2,7 +2,6 @@ import {renderScrollComponent as renderActionSheetAwareScrollView} from '@compon
 import InvertedFlashList from '@components/FlashList/InvertedFlashList';
 import MerchantRuleSuggestionBanner from '@components/MerchantRuleSuggestionBanner';
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
-import ScrollView from '@components/ScrollView';
 
 import useConciergeAskState from '@hooks/useConciergeAskState';
 import useConciergeSessionStartTime from '@hooks/useConciergeSessionStartTime';
@@ -68,7 +67,7 @@ import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
-import AskConciergeEmptyState from './AskConciergeEmptyState';
+import AskConciergeWelcome from './AskConciergeWelcome';
 import ConciergeChatHistoryToggle from './ConciergeChatHistoryToggle';
 import FloatingMessageCounter from './FloatingMessageCounter';
 import ReportActionIndexContext from './ReportActionIndexContext';
@@ -465,21 +464,11 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
 
     if (shouldShowConciergeWelcome && !reportActionIDFromRoute) {
         return (
-            <ScrollView
-                style={styles.flex1}
-                contentContainerStyle={[styles.flexGrow1, styles.justifyContentCenter]}
-            >
-                <View style={styles.conciergeAskColumn}>
-                    <AskConciergeEmptyState />
-                    <ConciergeChatHistoryToggle
-                        reportID={reportID}
-                        hasPreviousMessages={!!hasPreviousMessages}
-                        shouldShowFullHistory={false}
-                        onShowPreviousMessages={onShowPreviousMessages}
-                        containerStyles={styles.pv5}
-                    />
-                </View>
-            </ScrollView>
+            <AskConciergeWelcome
+                reportID={reportID}
+                hasPreviousMessages={!!hasPreviousMessages}
+                onShowPreviousMessages={onShowPreviousMessages}
+            />
         );
     }
 

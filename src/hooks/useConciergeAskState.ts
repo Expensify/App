@@ -14,16 +14,16 @@ import useOnyx from './useOnyx';
 import usePermissions from './usePermissions';
 
 type ConciergeAskState = {
-    /** Whether this is the main Concierge DM with the Ask Concierge design enabled */
+    /** Whether this is the Concierge chat in the Inbox with the Ask Concierge design on */
     isAskConciergeChat: boolean;
 
-    /** Whether the conversation from before the session boundary is currently shown */
+    /** Whether `View chat history` is on, showing the messages from before this session */
     isHistoryExpanded: boolean;
 
-    /** Whether to show the welcome empty state */
+    /** Whether to show the `Ask me anything!` empty state in place of the message list */
     shouldShowWelcome: boolean;
 
-    /** Whether to label the composer as the start of a new question, which it is once earlier history is expanded */
+    /** Whether to show `Ask a new question` above the composer */
     shouldLabelComposerAsNewQuestion: boolean;
 };
 
