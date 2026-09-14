@@ -70,12 +70,13 @@ index 0000000..a432432
 +  // Groups A-D: Cloudflare-fronted expensify.com hosts. Cloudflare can rotate the edge cert
 +  // between Let's Encrypt, Google Trust Services and SSL.com without notice, and its backup
 +  // certificates (deployed automatically on a revocation or key compromise) can also come from
-+  // Sectigo, so the roots of all four CAs are pinned. GTS Root R2 is not pinned: Mozilla removed
-+  // it from its root store in 2026.
++  // Sectigo, so the roots of all four CAs are pinned. GTS Root R2 stays pinned: device trust
++  // stores can still anchor a GTS chain at it (see config/certificatePinning/pins.json).
 +  private val cloudflareExpensifyRoots = pins(
 +    "C5+lpZ7tcVwmwQIMcRtPbsQtWLABXhQzejna0wHFr8M=", // ISRG Root X1
 +    "diGVwiVYbubAI3RW4hB9xU8e/CH2GnkuvVFZE8zmgzI=", // ISRG Root X2
 +    "hxqRlPTu1bMS/0DITB1SSu0vd4u/8l8TjPgfaAp63Gc=", // GTS Root R1
++    "Vfd95BwDeSQo+NUYxVEEIlvkOlWY2SalKK1lPhzOx78=", // GTS Root R2
 +    "QXnt2YHvdHR3tJYmQIr0Paosp6t/nggsEGD4QJZ3Q0g=", // GTS Root R3
 +    "mEflZT5enoR1FuXLgYYGqnVEoZvmf9c2bVBpiOjYQ0c=", // GTS Root R4
 +    "G/ANXI8TwJTdF+AFBM8IiIUPEv0Gf6H5LA/b9guG4yE=", // SSL.com TLS ECC Root CA 2022

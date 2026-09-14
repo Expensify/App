@@ -110,7 +110,7 @@ M01 → M04 intermediate rotation on CloudFront). Root pins survive leaf rotatio
 rotation, AND a CA switch within the pinned set without an emergency release.
 
 - Cloudflare-fronted `*.expensify.com` hosts pin the roots of Let's Encrypt (ISRG X1/X2),
-  Google Trust Services (GTS R1/R3/R4), SSL.com (TLS ECC/RSA Root CA 2022), and Sectigo (USERTrust
+  Google Trust Services (GTS R1–R4), SSL.com (TLS ECC/RSA Root CA 2022), and Sectigo (USERTrust
   RSA/ECC and Sectigo Public Server Authentication Root R46/E46). The first three are the CAs
   Cloudflare rotates between without notice; Sectigo is the additional CA Cloudflare uses for
   [backup certificates](https://developers.cloudflare.com/ssl/edge-certificates/backup-certificates/),
@@ -118,8 +118,17 @@ rotation, AND a CA switch within the pinned set without an emergency release.
   [certificate authorities](https://developers.cloudflare.com/ssl/reference/certificate-authorities/)
   table). Cloudflare explicitly documents that you should **not** pin a single CA's chain
   ([SSL/TLS docs](https://developers.cloudflare.com/ssl/reference/certificate-pinning/)).
-  GTS Root R2 is deliberately not pinned: Mozilla removed it from its root store in 2026 (Debian's
-  `ca-certificates` 20260601 changelog records the removal), so no publicly trusted chain can anchor at it.
+  GTS Root R2 stays pinned even though Mozilla is reported to have removed it from its root store in
+  2026 (Debian's `ca-certificates` 20260601 changelog). A Mozilla delisting does not decide what a
+  phone anchors at: every enforcement path here (OkHttp `CertificatePinner`, the Android `<pin-set>`,
+  Cronet's `addPublicKeyPins`, TrustKit) matches pins against the chain the **device's own trust
+  store** validated, and Android ships CA updates on its own cadence — old OS versions keep roots for
+  years — while Apple removes roots on Apple's schedule. If Cloudflare serves a GTS chain that such a
+  device anchors at R2, TLS validation succeeds and a root-only pin set without R2 does not match:
+  monitor failures now, and every affected Expensify request blocked once enforce mode is on. Removing
+  it is also one-sided: a device that has already dropped R2 fails the TLS validation before pinning is
+  consulted, so keeping R2 in the set cannot widen what the device trusts. Unpin it only once the
+  supported platform stores no longer trust it (see step 4 below).
 - The CloudFront host pins all five Amazon Trust Services roots (Amazon Root CA 1–4 and Starfield
   Services Root CA G2) — the only stable pin targets AWS documents for ACM-issued certificates.
 
@@ -154,8 +163,11 @@ instead of downloading; fingerprint verification still applies. `ROOTS_DIR=/path
 cache location.
 
 If the script reports that a root in its `ROOT_MANIFEST` is missing from the bundle, Mozilla has
-dropped that root (as happened to GTS Root R2 in 2026): investigate, and normally remove the root from
-the manifest and from every pin list rather than sourcing it elsewhere.
+dropped that root: investigate. That is a distrust signal worth understanding, but it is **not** on its
+own a reason to unpin — Mozilla's bundle is not what the mobile clients anchor at (see the GTS Root R2
+note above). Keep the pin and source that one PEM from the CA's official repository into
+`config/certificatePinning/roots/` (the script still verifies it against the committed fingerprint)
+until the platform trust stores have dropped it too.
 
 `tests/unit/generateCertificatePinsTest.ts` runs the script against Node's bundled Mozilla root store
 and checks the clean-checkout path, `--refresh`, unreachable hosts under `--verify`, and that
@@ -174,5 +186,7 @@ CDN adds a new CA to its pool), or when a pinned root is distrusted/retired.
    `pins.json` and all native files, then ship an app release.
 3. Run `./scripts/generateCertificatePins.sh --verify` to confirm every live chain anchors at a
    pinned root.
-4. Only after old app versions have aged out, remove hashes of roots no longer in play.
+4. Only after old app versions have aged out **and** the root is gone from every supported platform
+   trust store (Android's, including the versions still in the field, and Apple's — not merely
+   Mozilla's), remove hashes of roots no longer in play.
 5. Never add an `expiration` to the Android `<pin-set>` — an expired pin-set silently disables pinning.

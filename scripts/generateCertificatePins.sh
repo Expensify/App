@@ -55,7 +55,9 @@
 # a "<Name>|<FINGERPRINT>" entry to ROOT_MANIFEST and the name to the relevant
 # group below, and re-run this script. The root must be in the Mozilla CA
 # program (all publicly trusted TLS roots are); if the bundle no longer
-# carries a pinned root, that is itself a distrust signal to investigate.
+# carries a pinned root, that is a distrust signal to investigate - but it is
+# NOT on its own a reason to unpin it, because the device trust stores that
+# actually select the anchor lag Mozilla (see the GTS Root R2 note below).
 #
 set -euo pipefail
 
@@ -69,14 +71,20 @@ MOZILLA_BUNDLE_URL="https://curl.se/ca/cacert.pem"
 # value (letsencrypt.org/certificates, pki.goog/repository, ssl.com/repository,
 # sectigo.com/knowledge-base, amazontrust.com/repository).
 #
-# GTS Root R2 is deliberately NOT listed: Mozilla removed it from its root store
-# in 2026 (Debian's ca-certificates 20260601 changelog records the removal), so
-# no publicly trusted chain can anchor at it any more and pinning it would only
-# break the clean-checkout path of this script.
+# GTS Root R2 is still listed even though Mozilla is reported to have dropped it
+# from its root store in 2026. Pins are evaluated against the trust anchor the
+# DEVICE selected, not against Mozilla's bundle: Android ships CA updates on its
+# own cadence (and old OS versions keep roots for years), and Apple removes roots
+# on Apple's schedule, so supported devices can still anchor a Cloudflare GTS
+# chain at R2. Such a connection validates at the TLS layer and would then MISS a
+# root-only pin set that omits R2 - monitor noise now, blocked requests once
+# enforce mode is on. Keep it until the platform stores no longer trust it (see
+# step 4 of the rotation runbook in config/certificatePinning/README.md).
 ROOT_MANIFEST=(
   "ISRG_Root_X1|96:BC:EC:06:26:49:76:F3:74:60:77:9A:CF:28:C5:A7:CF:E8:A3:C0:AA:E1:1A:8F:FC:EE:05:C0:BD:DF:08:C6"
   "ISRG_Root_X2|69:72:9B:8E:15:A8:6E:FC:17:7A:57:AF:B7:17:1D:FC:64:AD:D2:8C:2F:CA:8C:F1:50:7E:34:45:3C:CB:14:70"
   "GTS_Root_R1|D9:47:43:2A:BD:E7:B7:FA:90:FC:2E:6B:59:10:1B:12:80:E0:E1:C7:E4:E4:0F:A3:C6:88:7F:FF:57:A7:F4:CF"
+  "GTS_Root_R2|8D:25:CD:97:22:9D:BF:70:35:6B:DA:4E:B3:CC:73:40:31:E2:4C:F0:0F:AF:CF:D3:2D:C7:6E:B5:84:1C:7E:A8"
   "GTS_Root_R3|34:D8:A7:3E:E2:08:D9:BC:DB:0D:95:65:20:93:4B:4E:40:E6:94:82:59:6E:8B:6F:73:C8:42:6B:01:0A:6F:48"
   "GTS_Root_R4|34:9D:FA:40:58:C5:E2:63:12:3B:39:8A:E7:95:57:3C:4E:13:13:C8:3F:E6:8F:93:55:6C:D5:E8:03:1B:3C:7D"
   "SSL.com_TLS_ECC_Root_CA_2022|C3:2F:FD:9F:46:F9:36:D1:6C:36:73:99:09:59:43:4B:9A:D6:0A:AF:BB:9E:7C:F3:36:54:F1:44:CC:1B:A1:43"
@@ -104,6 +112,7 @@ CLOUDFLARE_ROOTS=(
   "ISRG_Root_X1"
   "ISRG_Root_X2"
   "GTS_Root_R1"
+  "GTS_Root_R2"
   "GTS_Root_R3"
   "GTS_Root_R4"
   "SSL.com_TLS_ECC_Root_CA_2022"
@@ -253,9 +262,11 @@ ensure_roots() {
       echo "Removed stale cached root ${ROOTS_DIR}/${name}.pem (not in the current CA bundle)." >&2
     fi
     echo "ERROR: root '${name}' was not found in the CA bundle. If Mozilla no longer" >&2
-    echo "ships this root, that is a distrust signal - investigate (and most likely" >&2
-    echo "drop it from ROOT_MANIFEST and every pin list) before pinning it. You can" >&2
-    echo "also download the PEM from the CA's official repository into" >&2
+    echo "ships this root, that is a distrust signal - investigate before pinning it." >&2
+    echo "Do NOT unpin it on that basis alone: pins are matched against the anchor the" >&2
+    echo "DEVICE trust store selected, and Android/Apple drop roots later than Mozilla," >&2
+    echo "so a still-trusted root that is missing from the pin set breaks live traffic." >&2
+    echo "You can download the PEM from the CA's official repository into" >&2
     echo "${ROOTS_DIR}/${name}.pem; this script still verifies it against the committed" >&2
     echo "fingerprint (a later --refresh discards it again)." >&2
     failed=1
