@@ -55,7 +55,7 @@ import './setup/fraudProtection';
 import './setup/hybridApp';
 import {SplashScreenStateContextProvider} from './SplashScreenStateContext';
 
-// This is needed to close pop-up window during logout for users logged in via SSO
+// This is needed
 maybeCompleteAuthSession();
 
 // On web, dotlottie-web fetches its WASM binary from a third-party CDN (jsdelivr/unpkg) at runtime,
