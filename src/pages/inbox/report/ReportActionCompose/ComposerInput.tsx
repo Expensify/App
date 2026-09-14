@@ -1,8 +1,8 @@
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 
+import useConciergeAskState from '@hooks/useConciergeAskState';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 
 import {setIsComposerFullSize} from '@libs/actions/Report';
@@ -63,7 +63,6 @@ function ComposerInput() {
     const {setIsFullComposerAvailable, onBlur, onFocus, setComposerRef} = useComposerActions();
     const {containerRef, suggestionsRef, isNextModalWillOpenRef} = useComposerMeta();
     const {isEditingInComposer, didResetComposerHeightWhileEditing} = useComposerEditState();
-    const {isBetaEnabled} = usePermissions();
     const isSubmittingEdit = isEditingInComposer || didResetComposerHeightWhileEditing;
 
     const {submitDraftAndClearComposer, validateAndSubmitDraft} = useComposerSubmit(reportID);
@@ -86,8 +85,7 @@ function ComposerInput() {
 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const isReportArchived = useReportIsArchived(report?.reportID);
-    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
-    const isAskConciergeChat = !!reportID && reportID === conciergeReportID && isBetaEnabled(CONST.BETAS.CONCIERGE_RESPOND_IN_THREAD);
+    const {isAskConciergeChat} = useConciergeAskState(reportID);
     const [askConciergePlaceholderKey] = useState(() => ASK_CONCIERGE_PLACEHOLDER_KEYS[Math.floor(Math.random() * ASK_CONCIERGE_PLACEHOLDER_KEYS.length)]);
 
     const includesConcierge = chatIncludesConcierge({participants: report?.participants});

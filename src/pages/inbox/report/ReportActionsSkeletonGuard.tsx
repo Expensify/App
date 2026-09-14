@@ -7,8 +7,6 @@ import useReportActionsListModel from '@hooks/useReportActionsListModel';
 import useStartConciergeSession from '@hooks/useStartConciergeSession';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {useConciergeSessionState} from '@pages/inbox/ConciergeSessionContext';
-
 import CONST from '@src/CONST';
 
 import type {ReactNode} from 'react';
@@ -39,8 +37,7 @@ type ReportActionsSkeletonGuardProps = {
 function ReportActionsSkeletonGuard({reportID, children}: ReportActionsSkeletonGuardProps) {
     const styles = useThemeStyles();
     const isReportLoadPending = useIsReportLoadPending(reportID);
-    const {isAskConciergeChat} = useConciergeAskState(reportID);
-    const {showFullHistory} = useConciergeSessionState();
+    const {shouldShowWelcome} = useConciergeAskState(reportID);
     const {readinessSignals, state, actions} = useReportActionsListModel(reportID, isReportLoadPending);
     const {shouldShowLoadingSkeleton, shouldShowDerivedTimingSkeleton} = computeReportActionsSkeletonState(readinessSignals);
 
@@ -84,7 +81,7 @@ function ReportActionsSkeletonGuard({reportID, children}: ReportActionsSkeletonG
     });
 
     if (shouldShowLoadingSkeleton || shouldShowDerivedTimingSkeleton) {
-        if (isAskConciergeChat && !showFullHistory) {
+        if (shouldShowWelcome) {
             return (
                 <View style={[styles.flex1, styles.justifyContentCenter, styles.conciergeAskColumn]}>
                     <AskConciergeEmptyState />
