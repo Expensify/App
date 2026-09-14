@@ -1158,6 +1158,8 @@ function addActions({
 
         const optimisticThread = buildOptimisticChatReport({
             participantList: [currentUserAccountID, CONST.ACCOUNT_ID.CONCIERGE],
+            // Plain text, because the stored name is what Search sorts on and what the LHN falls back to.
+            reportName: ReportActionsUtils.getReportActionMessage(file ? attachmentAction : reportCommentAction)?.text,
             parentReportActionID: resolvedReportActionID,
             parentReportID: reportID,
             optimisticReportID: conciergeThreadReportID,
@@ -1223,17 +1225,19 @@ function addActions({
         );
         failureData.push(
             {
-                onyxMethod: Onyx.METHOD.MERGE,
+                onyxMethod: Onyx.METHOD.SET,
                 key: `${ONYXKEYS.COLLECTION.REPORT}${conciergeThreadReportID}`,
-                value: {
-                    pendingFields: {createChat: null},
-                    errorFields: {createChatThread: getMicroSecondOnyxErrorWithTranslationKey('report.genericCreateReportFailureMessage')},
-                },
+                value: null,
             },
             {
-                onyxMethod: Onyx.METHOD.MERGE,
+                onyxMethod: Onyx.METHOD.SET,
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${conciergeThreadReportID}`,
-                value: {[optimisticThreadCreatedAction.reportActionID]: {pendingAction: null}},
+                value: null,
+            },
+            {
+                onyxMethod: Onyx.METHOD.SET,
+                key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${conciergeThreadReportID}`,
+                value: null,
             },
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -3738,7 +3742,7 @@ function editReportComment(
         });
     }
 
-    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.REPORT>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${originalReportID}`,
@@ -3750,6 +3754,22 @@ function editReportComment(
             },
         },
     ];
+
+    // A thread is named after a snapshot of its parent message, so the snapshot needs refreshing whenever that message changes.
+    const childReportID = originalReportAction.childReportID;
+    const childReport = childReportID ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${childReportID}`] : undefined;
+    if (childReportID && childReport && (childReport.reportName === originalCommentHTML || childReport.reportName === originalMessage?.text)) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${childReportID}`,
+            value: {reportName: reportComment},
+        });
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${childReportID}`,
+            value: {reportName: childReport.reportName},
+        });
+    }
 
     const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [
         {
