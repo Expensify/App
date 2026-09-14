@@ -102,6 +102,8 @@ import {
     isDeletedTransaction,
     isDistanceRequest,
     isManagedCardTransaction,
+    isManualDistanceRequest,
+    isOdometerDistanceRequest,
     isPending,
     isPerDiemRequest,
     isScanning,
@@ -2650,11 +2652,45 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             }
         }
 
+        const ownerAccountIDs = new Set<number>();
+        let hasUnknownOwner = false;
+        for (const id of selectedTransactionsKeys) {
+            const transactionEntry = selectedTransactions[id];
+            if (!transactionEntry) {
+                continue;
+            }
+            const ownerAccountID =
+                transactionEntry.ownerAccountID ??
+                getReportOrDraftReport(transactionEntry.reportID, undefined, undefined, undefined, allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionEntry.reportID}`])?.ownerAccountID;
+            if (typeof ownerAccountID === 'number') {
+                ownerAccountIDs.add(ownerAccountID);
+            } else {
+                hasUnknownOwner = true;
+            }
+        }
+        const hasMultipleOwners = ownerAccountIDs.size > 1 || (hasUnknownOwner && (ownerAccountIDs.size > 0 || selectedTransactionsKeys.length > 1));
+
         const canAllTransactionsBeMoved = selectedTransactionsKeys.every((id) => selectedTransactions[id].canChangeReport);
 
-        // Selections spanning submitters are allowed through: the destination screen swaps its per-report list for
-        // "Auto report", so gating on owners here would hide the only entry point into that flow.
-        if (canAllTransactionsBeMoved && !isExpenseReportType) {
+        // Across submitters the only destination the App can offer is "Auto report", and it fits just the reconciliation
+        // case it was built for. Every other mixed-owner selection stays hidden as before, so there is no entry into a
+        // screen that could only offer one submitter's reports to everybody else's expenses. Requirements:
+        //   - every expense unreported, since Auto report files them into their owners' drafts
+        //   - every owner resolved, or the count below cannot tell one cardholder's bulk selection from a mixed one
+        //   - nothing whose validity depends on the destination workspace, which the backend picks: per diem rates and
+        //     the map/GPS rules on manual and odometer distance can only be checked against a known workspace
+        const canAutoReportAcrossSubmitters =
+            ownerAccountIDs.size > 1 &&
+            !hasUnknownOwner &&
+            selectedTransactionsKeys.every((id) => {
+                if (selectedTransactions[id]?.reportID !== CONST.REPORT.UNREPORTED_REPORT_ID) {
+                    return false;
+                }
+                const transaction = selectedTransactions[id]?.transaction ?? allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`];
+                return !transaction || !(isPerDiemRequest(transaction) || isManualDistanceRequest(transaction) || isOdometerDistanceRequest(transaction));
+            });
+
+        if (canAllTransactionsBeMoved && !isExpenseReportType && (!hasMultipleOwners || canAutoReportAcrossSubmitters)) {
             options.push({
                 text: translate('iou.moveExpenses'),
                 icon: expensifyIcons.DocumentMerge,

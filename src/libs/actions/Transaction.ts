@@ -12,6 +12,7 @@ import type {
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import DateUtils from '@libs/DateUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
+import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import {toLocaleDigit} from '@libs/LocaleDigitUtils';
 import {translateLocal} from '@libs/Localize';
 import {buildOptimisticNextStep} from '@libs/NextStepUtils';
@@ -2042,13 +2043,26 @@ function autoReportTransactions(transactionIDs: string[]) {
         return;
     }
 
+    // There is no optimistic move to roll back, but a failure still has to reach the admin: the screen has closed and
+    // the selection is gone by then, so the error is surfaced on the expenses themselves via their red brick road.
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION>> = transactionIDs.map((transactionID) => ({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+        value: {errors: null},
+    }));
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION>> = transactionIDs.map((transactionID) => ({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+        value: {errors: getMicroSecondOnyxErrorWithTranslationKey('iou.error.genericEditFailureMessage')},
+    }));
+
     const parameters: ChangeTransactionsReportParams = {
         transactionList: transactionIDs.join(','),
         reportID: CONST.REPORT.AUTOMATIC_REPORT_ID,
         transactionIDToReportActionAndThreadData: '{}',
     };
 
-    API.write(WRITE_COMMANDS.CHANGE_TRANSACTIONS_REPORT, parameters);
+    API.write(WRITE_COMMANDS.CHANGE_TRANSACTIONS_REPORT, parameters, {successData, failureData});
 }
 
 function getDefaultP2PMileageRate() {

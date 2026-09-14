@@ -114,9 +114,15 @@ function SearchTransactionsChangeReport() {
     }, [selectedTransactions, selectedTransactionsKeys, allReports]);
     const targetOwnerPersonalDetails = useMemo(() => getPersonalDetailsForAccountID(targetOwnerAccountID, personalDetails) as PersonalDetails, [personalDetails, targetOwnerAccountID]);
     // Kept separate from `targetOwnerAccountID`, which stops at the first owner it finds. Counting needs them all.
+    // Only distinct resolved owners count. An owner we cannot resolve must not stand in for a second submitter: for an
+    // unreported expense the report lookup can never resolve one (its reportID is `0`), so a search snapshot missing
+    // the money-request action would otherwise file one cardholder's bulk selection as mixed and strip its report list.
     const hasMultipleSubmitters = useMemo(() => {
+        if (!areAllTransactionsUnreported) {
+            return false;
+        }
+
         const ownerAccountIDs = new Set<number>();
-        let hasUnknownOwner = false;
 
         for (const transactionKey of selectedTransactionsKeys) {
             const selection = selectedTransactions[transactionKey];
@@ -126,14 +132,11 @@ function SearchTransactionsChangeReport() {
 
             if (typeof ownerAccountID === 'number') {
                 ownerAccountIDs.add(ownerAccountID);
-            } else {
-                hasUnknownOwner = true;
             }
         }
 
-        // An unresolved owner only implies a mix when there is something to mix with, so a lone expense stays single.
-        return ownerAccountIDs.size > 1 || (hasUnknownOwner && (ownerAccountIDs.size > 0 || selectedTransactionsKeys.length > 1));
-    }, [selectedTransactions, selectedTransactionsKeys, allReports]);
+        return ownerAccountIDs.size > 1;
+    }, [areAllTransactionsUnreported, selectedTransactions, selectedTransactionsKeys, allReports]);
 
     useHydrateReportsFromSnapshot(currentSearchResults, allReports);
 

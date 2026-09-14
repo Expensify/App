@@ -361,6 +361,13 @@ function IOURequestEditReportCommon({
             return undefined;
         }
 
+        // These expenses are only valid on some workspaces, and the guards that decide which — per diem rates, the
+        // map/GPS rules on manual and odometer distance — need a destination the backend has not picked yet. Callers
+        // are expected to withhold the whole flow for such a selection; this keeps the row honest if one does not.
+        if (isPerDiemRequest || isManualDistanceRequest || isOdometerDistanceRequest) {
+            return undefined;
+        }
+
         return (
             <MenuItem
                 onPress={handleAutoReport}
@@ -369,7 +376,7 @@ function IOURequestEditReportCommon({
                 icon={icons.DocumentMagicWand}
             />
         );
-    }, [icons.DocumentMagicWand, autoReport, handleAutoReport, hasMultipleSubmitters, translate]);
+    }, [icons.DocumentMagicWand, autoReport, handleAutoReport, hasMultipleSubmitters, isManualDistanceRequest, isOdometerDistanceRequest, isPerDiemRequest, translate]);
 
     const listHeaderContent = createReportOption ?? autoReportOption;
 
