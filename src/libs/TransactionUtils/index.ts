@@ -875,11 +875,18 @@ function getUpdatedTransaction({
                       policy,
                       storedCustomUnit: transaction?.comment?.customUnit,
                       personalPolicyOutputCurrency,
+                      hasTripChanged: waypointsActuallyChanged,
                   })
                 : undefined;
 
             if (commuterExclusionTransactionData) {
                 lodashSet(updatedTransaction, 'comment.customUnit', commuterExclusionTransactionData.customUnit);
+            } else if (waypointsActuallyChanged) {
+                // The exclusion described the trip being replaced, so it goes with it rather than lingering on the
+                // edited one and showing a deduction that no longer applies.
+                lodashSet(updatedTransaction, 'comment.customUnit.commuterExclusion', null);
+                lodashSet(updatedTransaction, 'comment.customUnit.reimbursableDistance', null);
+                lodashSet(updatedTransaction, 'comment.customUnit.commuterExclusionMethod', null);
             }
 
             const amount = commuterExclusionTransactionData?.modifiedAmount ?? DistanceRequestUtils.getDistanceRequestAmount(distanceInMeters, unit, rate ?? 0);

@@ -384,6 +384,7 @@ function getTransactionCommuterExclusionData({
     toLocaleDigit,
     getCurrencySymbol,
     personalPolicyOutputCurrency,
+    hasTripChanged = false,
 }: {
     transaction: OnyxEntry<Transaction>;
     policy: OnyxEntry<Policy>;
@@ -393,6 +394,9 @@ function getTransactionCommuterExclusionData({
     toLocaleDigit?: LocaleContextProps['toLocaleDigit'];
     getCurrencySymbol?: CurrencyListActionsContextType['getCurrencySymbol'];
     personalPolicyOutputCurrency?: string;
+
+    /** Whether the trip's waypoints just changed, which retires an exclusion derived from the old ones */
+    hasTripChanged?: boolean;
 }): (Pick<Transaction, 'modifiedMerchant'> & {modifiedAmount: number; customUnit: TransactionCustomUnit}) | undefined {
     if (!isCommuterExclusionApplicableToRequestType(transaction?.iouRequestType)) {
         return;
@@ -422,12 +426,13 @@ function getTransactionCommuterExclusionData({
 
     // A stored exclusion is the one the expense was created with. A fixed distance is a per-claim constant, so it
     // stays frozen even if the workspace later changes it. A home and office exclusion was derived from where the
-    // trip started and ended
+    // trip started and ended, so a changed trip or a fresh decision for the current one retires it.
     const storedCommuterExclusion = storedCustomUnit?.commuterExclusion;
     const commuterExclusionPreview = transaction?.commuterExclusionPreview;
     const hasPreviewForThisPolicy = hasCommuterExclusionPreviewForPolicy(transaction, policy);
     const isStoredExclusionDerivedFromTheTrip = storedCustomUnit?.commuterExclusionMethod === CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE;
-    const shouldReuseStoredExclusion = typeof storedCommuterExclusion === 'number' && storedCommuterExclusion > 0 && !(isStoredExclusionDerivedFromTheTrip && hasPreviewForThisPolicy);
+    const shouldReuseStoredExclusion =
+        typeof storedCommuterExclusion === 'number' && storedCommuterExclusion > 0 && !(isStoredExclusionDerivedFromTheTrip && (hasPreviewForThisPolicy || hasTripChanged));
 
     let commuterExclusion: number;
     let commuterExclusionMethod: NonNullable<TransactionCustomUnit['commuterExclusionMethod']>;
