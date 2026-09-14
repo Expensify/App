@@ -115,7 +115,9 @@ jest.mock('@libs/PolicyUtils', () => {
         getIneligibleInvitees: jest.fn(() => []),
         isDeletedPolicyEmployee: jest.fn(() => false),
         isExpensifyTeam: jest.fn(isExpensifyTeam),
-        shouldFilterExpensifyTeam: jest.fn((policyOwner?: string, currentUserLogin?: string) => !!policyOwner && !!currentUserLogin && !isExpensifyTeam(policyOwner) && !isExpensifyTeam(currentUserLogin)),
+        shouldFilterExpensifyTeam: jest.fn(
+            (policyOwner?: string, currentUserLogin?: string) => !!policyOwner && !!currentUserLogin && !isExpensifyTeam(policyOwner) && !isExpensifyTeam(currentUserLogin),
+        ),
     };
 });
 jest.mock('@libs/OptionsListUtils', () => ({
