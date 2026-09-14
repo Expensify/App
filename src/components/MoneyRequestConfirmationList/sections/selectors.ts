@@ -23,7 +23,16 @@ type Transaction = OnyxTypes.Transaction;
 
 // --- DateField ---
 
-type DateState = {iouCreated: string; isMissing: boolean; hasReceipt: boolean};
+type DateState = {
+    iouCreated: string;
+    isMissing: boolean;
+    hasReceipt: boolean;
+    isCreatedSet: boolean;
+    // The Scan confirmation's amount / merchant / date are all-or-nothing, so the date field reads the other two.
+    iouRequestType: Transaction['iouRequestType'];
+    isAmountSet: boolean;
+    isMerchantSet: boolean;
+};
 
 const dateStateSelector = (t: OnyxEntry<Transaction>): DateState | undefined => {
     if (!t) {
@@ -33,6 +42,10 @@ const dateStateSelector = (t: OnyxEntry<Transaction>): DateState | undefined => 
         iouCreated: getCreated(t),
         isMissing: isCreatedMissing(t),
         hasReceipt: hasReceipt(t),
+        isCreatedSet: t.isCreatedSet ?? false,
+        iouRequestType: t.iouRequestType,
+        isAmountSet: t.isAmountSet ?? false,
+        isMerchantSet: t.isMerchantSet ?? false,
     };
 };
 
@@ -109,7 +122,16 @@ const categoryStateSelector = (t: OnyxEntry<Transaction>): CategoryState | undef
 
 // --- MerchantField ---
 
-type MerchantState = {merchant: string; isMerchantSet: boolean; isMissing: boolean; hasReceipt: boolean};
+type MerchantState = {
+    merchant: string;
+    isMerchantSet: boolean;
+    isMissing: boolean;
+    hasReceipt: boolean;
+    // The Scan confirmation's amount / merchant / date are all-or-nothing, so the merchant field reads the other two.
+    iouRequestType: Transaction['iouRequestType'];
+    isAmountSet: boolean;
+    isCreatedSet: boolean;
+};
 
 const merchantStateSelector = (t: OnyxEntry<Transaction>): MerchantState | undefined => {
     if (!t) {
@@ -120,6 +142,9 @@ const merchantStateSelector = (t: OnyxEntry<Transaction>): MerchantState | undef
         isMerchantSet: t.isMerchantSet ?? false,
         isMissing: isMerchantMissing(t),
         hasReceipt: hasReceipt(t),
+        iouRequestType: t.iouRequestType,
+        isAmountSet: t.isAmountSet ?? false,
+        isCreatedSet: t.isCreatedSet ?? false,
     };
 };
 
@@ -150,6 +175,9 @@ type AmountSlice = {
     isAmountMissing: boolean;
     isAmountSet: Transaction['isAmountSet'];
     taxCode: Transaction['taxCode'];
+    // The Scan confirmation's amount / merchant / date are all-or-nothing, so the amount field reads the other two.
+    isMerchantSet: boolean;
+    isCreatedSet: boolean;
 };
 
 const amountSliceSelector = (t: OnyxEntry<Transaction>): AmountSlice | undefined => {
@@ -167,6 +195,8 @@ const amountSliceSelector = (t: OnyxEntry<Transaction>): AmountSlice | undefined
         isAmountMissing: isAmountMissing(t),
         isAmountSet: t.isAmountSet,
         taxCode: t.taxCode,
+        isMerchantSet: t.isMerchantSet ?? false,
+        isCreatedSet: t.isCreatedSet ?? false,
     };
 };
 

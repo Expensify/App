@@ -1100,7 +1100,6 @@ const CONST = {
         DUALENTRY: 'dualEntry',
         CAMPFIRE: 'campfire',
         BUSINESS_CENTRAL: 'businessCentral',
-        RULES_REVAMP: 'rulesRevamp',
         COMMUTER_EXCLUSIONS: 'commuterExclusions',
         MULTIPLE_APPROVERS: 'multipleApprovers',
         GLOBAL_REIMBURSEMENTS: 'globalReimbursements',
@@ -1886,6 +1885,8 @@ const CONST = {
                     UPDATE_DEFAULT_APPROVER: 'POLICYCHANGELOG_UPDATE_DEFAULT_APPROVER',
                     UPDATE_SUBMITS_TO: 'POLICYCHANGELOG_UPDATE_SUBMITS_TO',
                     UPDATE_FORWARDS_TO: 'POLICYCHANGELOG_UPDATE_FORWARDS_TO',
+                    UPDATE_OVER_LIMIT_FORWARDS_TO: 'POLICYCHANGELOG_UPDATE_OVER_LIMIT_FORWARDS_TO',
+                    UPDATE_APPROVAL_LIMIT: 'POLICYCHANGELOG_UPDATE_APPROVAL_LIMIT',
                     UPDATE_CUSTOM_TAX_NAME: 'POLICYCHANGELOG_UPDATE_CUSTOM_TAX_NAME',
                     UPDATE_CURRENCY_DEFAULT_TAX: 'POLICYCHANGELOG_UPDATE_CURRENCY_DEFAULT_TAX',
                     UPDATE_FOREIGN_CURRENCY_DEFAULT_TAX: 'POLICYCHANGELOG_UPDATE_FOREIGN_CURRENCY_DEFAULT_TAX',
@@ -2730,6 +2731,21 @@ const CONST = {
         ALREADY_CREATED_TRANSACTION: 'Transaction already created.',
         ALREADY_PAID: 'The request has already been paid',
     },
+    SIGN_OUT_REASON: {
+        USER_SIGN_OUT: 'userSignOut',
+        REAUTH_FAILED: 'reauthFailed',
+        REAUTH_HTTP_ERROR: 'reauthHttpError',
+        SAML_REQUIRED: 'samlRequired',
+        NO_CREDENTIALS: 'noCredentials',
+        DEVICE_REVOKED: 'deviceRevoked',
+        UNLINK_LOGIN: 'unlinkLogin',
+        SUPPORTAL_LOGOUT: 'supportalLogout',
+        SUPPORTAL_RESTORE: 'supportalRestore',
+        STASHED_SESSION_RESTORE: 'stashedSessionRestore',
+        HYBRID_APP_TRANSITION: 'hybridAppTransition',
+        ACCOUNT_DELETED: 'accountDeleted',
+        LOGIN_AS_NEW_USER: 'loginAsNewUser',
+    },
     NETWORK: {
         METHOD: {
             POST: 'post',
@@ -2801,6 +2817,8 @@ const CONST = {
     PUSHER: {
         PRIVATE_USER_CHANNEL_PREFIX: 'private-encrypted-user-accountID-',
         PRIVATE_REPORT_CHANNEL_PREFIX: 'private-report-reportID-',
+        ACTIVITY_TIMEOUT_MS: 30000,
+        PONG_TIMEOUT_MS: 20000,
         STATE: {
             CONNECTED: 'CONNECTED',
             DISCONNECTED: 'DISCONNECTED',
@@ -5057,6 +5075,11 @@ const CONST = {
             INDIVIDUAL: 'individual',
             NONE: 'none',
         },
+        WALLET_PROVIDER: {
+            APPLE_PAY: 'APPLE_PAY',
+            ANDROID_PAY: 'ANDROID_PAY',
+        },
+        APPROVE_DIGITAL_WALLET_VALIDATE_CODE_REASON: 'approve_digital_wallet',
         VERIFICATION_STATE: {
             LOADING: 'loading',
             VERIFIED: 'verified',
@@ -6707,6 +6730,7 @@ const CONST = {
     DOT_INDICATOR_TEST_ID: 'DotIndicator',
     ANIMATED_COLLAPSIBLE_CONTENT_TEST_ID: 'animated-collapsible-content',
     SWITCH_LOCK_ICON_TEST_ID: 'SwitchLockIcon',
+    ACCOUNT_SWITCHER_BUTTON_PLACEHOLDER_TEST_ID: 'AccountSwitcherButtonPlaceholder',
 
     HORIZONTAL_SPACER: {
         DEFAULT_BORDER_BOTTOM_WIDTH: 1,
@@ -8732,9 +8756,14 @@ const CONST = {
         GPS_TOOLTIP: 'gpsTooltip',
         HAS_FILTER_NEGATION: 'hasFilterNegation',
         MILEAGE_RATE_AUTO_UPDATED: 'mileageRateAutoUpdated',
+        MARK_ALL_AS_READ: 'markAllAsRead',
         REQUIRE_FIELDS_RULE_RECEIPT_COUPLING_TOOLTIP: 'requireFieldsRuleReceiptCouplingTooltip',
         REQUIRE_FIELDS_RULE_ITEMIZED_RECEIPT_COUPLING_TOOLTIP: 'requireFieldsRuleItemizedReceiptCouplingTooltip',
     },
+    PRODUCT_TRAINING_TOOLTIP_REAPPEAR_WINDOW: {
+        SEVEN_DAYS: 7 * 24 * 60 * 60 * 1000,
+    },
+    INBOX_TAB_STALE_UNREAD_MONTHS: 3,
     CHANGE_POLICY_TRAINING_MODAL: 'changePolicyModal',
     AGENTS_RULES_BANNER: 'agentsRulesBanner',
     SMART_BANNER_HEIGHT: 152,
@@ -8892,8 +8921,11 @@ const CONST = {
             /** How many of the longest strings are measured per column, since character count only approximates rendered width. */
             MEASURED_CANDIDATES_PER_COLUMN: 5,
 
-            /** How narrow a free-text column may be squeezed before the table scrolls instead, matching the ~180px default text column width table libraries use. */
-            MIN_FREE_TEXT_COLUMN_WIDTH: 180,
+            /** How narrow a free-text column may be squeezed before the table scrolls instead. Around 17 characters, so a typical merchant name or full name still reads, and a column is never squeezed below its header regardless. */
+            MIN_FREE_TEXT_COLUMN_WIDTH: 120,
+
+            /** How wide a free-text column may be sized for its content once the table scrolls, so one unusually long value doesn't push every column after it out of view. A table that still fits its columns caps nothing: the spare room is there to be used. */
+            MAX_FREE_TEXT_COLUMN_WIDTH: 180,
         },
     },
 
@@ -9921,6 +9953,8 @@ const SUBMIT_FEATURE_IDS: ReadonlySet<string> = new Set([
     CONST.UPGRADE_FEATURE_INTRO_MAPPING.invoicing.id,
 ]);
 
+type SignOutReason = ValueOf<typeof CONST.SIGN_OUT_REASON>;
+
 const FRAUD_PROTECTION_EVENT = {
     START_SUPPORT_SESSION: 'StartSupportSession',
     STOP_SUPPORT_SESSION: 'StopSupportSession',
@@ -9972,6 +10006,7 @@ type EnablePaymentsSubPageType =
     | ValueOf<typeof CONST.ENABLE_PAYMENTS.FEES_AND_TERMS_STEP.SUB_PAGE_NAMES>;
 
 export type {
+    SignOutReason,
     Country,
     GovernmentRateCountry,
     IOUAction,

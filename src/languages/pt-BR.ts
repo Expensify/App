@@ -963,6 +963,14 @@ const translations: TranslationDeepObject<typeof en> = {
             addPaymentCard: {title: 'Adicione um cartão de pagamento para continuar usando o Expensify', subtitle: 'Conta > Assinatura', cta: 'Adicionar'},
             addBankAccount: {title: 'Adicione uma conta bancária para ser reembolsado'},
             activateCard: {title: 'Ative seu Cartão Expensify', subtitle: 'Valide seu cartão e comece a gastar.', cta: 'Ativar'},
+            confirmDigitalWalletAddition: {
+                title: ({walletName}: {walletName: string}) => `A adição do cartão ${walletName} precisa da sua aprovação`,
+                subtitle: 'Cartão Expensify',
+                cta: 'Revisar',
+                appleWallet: 'Apple Wallet',
+                googleWallet: 'Google Wallet',
+                digitalWallet: 'Carteira digital',
+            },
             reviewCardFraud: {
                 title: 'Analisar possível fraude no seu Cartão Expensify',
                 titleWithDetails: ({amount, merchant}: {amount: string; merchant: string}) => `Analisar ${amount} em possível fraude em ${merchant}`,
@@ -2710,6 +2718,24 @@ const translations: TranslationDeepObject<typeof en> = {
             accountRequiresAttention: 'Esta conta precisa de atenção',
             unlock: 'Desbloquear',
         },
+    },
+    addCardToDigitalWallet: {
+        title: ({walletName}: {walletName: string}) => `Adicionar cartão à ${walletName}`,
+        appleWallet: 'Apple Wallet',
+        googleWallet: 'Google Wallet',
+        digitalWallet: 'carteira digital',
+        confirmHeading: 'Confirme sua solicitação',
+        confirmDescription: ({walletName, lastFourDigits}: {walletName: string; lastFourDigits: string}) =>
+            `Você quer adicionar seu Cartão Expensify (com final ${lastFourDigits}) à sua ${walletName}?`,
+        deny: 'Negar',
+        confirm: 'Confirmar',
+        verifyTitle: 'Vamos verificar se é você',
+        enterSecurityCode: (contactMethod: string) =>
+            `Digite o código de segurança enviado para ${contactMethod} para confirmar esta solicitação. Ele deve chegar dentro de um ou dois minutos.`,
+        successHeading: 'Sucesso!',
+        successDescription: ({walletName}: {walletName: string}) => `Seu cartão agora está ativo para uso na sua ${walletName}.`,
+        deniedHeading: 'Solicitação negada',
+        deniedDescription: ({walletName}: {walletName: string}) => `Seu cartão não foi adicionado à sua ${walletName}.`,
     },
     cardPage: {
         expensifyCard: 'Cartão Expensify',
@@ -7938,7 +7964,6 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
                 alwaysReimbursableDescription: 'As despesas são sempre reembolsadas aos funcionários',
                 alwaysNonReimbursable: 'Sempre não reembolsável',
                 alwaysNonReimbursableDescription: 'Despesas nunca são reembolsadas aos funcionários',
-                billableDefault: 'Cobrável por padrão',
                 billableDefaultDescription: 'Escolha se as despesas em dinheiro e cartão de crédito devem ser faturáveis por padrão.',
                 billable: 'Faturável',
                 billableDescription: 'As despesas são mais frequentemente refaturadas aos clientes',
@@ -7965,10 +7990,12 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
                 publicReceiptVisibilityHintDisabled: 'Os recibos só podem ser vistos por membros da Expensify com acesso ao relatório que contém o recibo.',
                 enableTagsToUnlockTitle: 'Ativar tags?',
                 enableTagsToUnlockPrompt: 'Ative as Tags (em Mais recursos) para desbloquear.',
-                enableTagsAndRequirePrompt: 'Tem certeza de que quer ativar etiquetas e exigi-las para todas as despesas?',
                 enableCategoriesToUnlockTitle: 'Ativar categorias?',
                 enableCategoriesToUnlockPrompt: 'Ative Categorias (em Mais recursos) para desbloquear.',
                 enableCategoriesAndRequirePrompt: 'Tem certeza de que deseja ativar categorias e torná-las obrigatórias para todas as despesas?',
+                enableTagsPrompt: 'Tem certeza de que quer ativar tags? Você poderá exigi-las para todas as despesas assim que tiver pelo menos uma tag.',
+                noTagsToRequirePrompt: 'Você não tem nenhuma tag. Crie uma tag.',
+                noCategoriesToRequirePrompt: 'Você não tem nenhuma categoria. Crie uma categoria.',
             },
             expenseReportRules: {
                 title: 'Avançado',
@@ -9238,6 +9265,35 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             return `alterou os participantes da categoria "${categoryName}" para ${newValue ? 'obrigatório' : 'não obrigatório'} (antes ${newValue ? 'não obrigatório' : 'obrigatório'})`;
         },
         updatedAutoHarvesting: (enabled: boolean) => `${enabled ? 'ativado' : 'desativado'} envios`,
+        changedOverLimitForwardsTo: ({
+            member,
+            approver,
+            limit,
+            previousApprover,
+            previousLimit,
+        }: {
+            member: string;
+            approver: string;
+            limit: string;
+            previousApprover?: string;
+            previousLimit?: string;
+        }) => {
+            let text = previousApprover
+                ? `alterou o fluxo de aprovação de ${member} para encaminhar relatórios acima de ${limit} para ${approver}`
+                : `definir o fluxo de aprovação para ${member} para encaminhar relatórios acima de ${limit} para ${approver}`;
+            if (previousApprover && previousLimit) {
+                text += ` (anteriormente encaminhou relatórios acima de ${previousLimit} para ${previousApprover})`;
+            } else if (previousApprover) {
+                text += ` (anteriormente encaminhado para ${previousApprover})`;
+            }
+            return text;
+        },
+        removedOverLimitForwardsTo: ({member, previousApprover, previousLimit}: {member: string; previousApprover?: string; previousLimit: string}) =>
+            previousApprover
+                ? `alterou o fluxo de aprovação para ${member} para parar de encaminhar relatórios acima de ${previousLimit} (antes encaminhados para ${previousApprover})`
+                : `alterou o fluxo de aprovação de ${member} para parar de encaminhar relatórios acima de ${previousLimit}`,
+        changedApprovalLimit: ({member, limit, previousLimit}: {member: string; limit: string; previousLimit: string}) =>
+            `alterou o fluxo de aprovação de ${member} para encaminhar relatórios acima de ${limit} (antes ${previousLimit})`,
     },
     roomMembersPage: {
         memberNotFound: 'Membro não encontrado.',
@@ -10864,6 +10920,8 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
         gpsTooltip: '<tooltip>Rastreamento por GPS em andamento! Quando terminar, pare o rastreamento abaixo.</tooltip>',
         hasFilterNegation: '<tooltip>Pesquise despesas sem recibos usando <strong>-has:receipt</strong>.</tooltip>',
         mileageRateAutoUpdated: '<tooltip>Nós atualizamos a taxa com base na sua data de viagem.</tooltip>',
+        markAllAsRead: '<tooltip>Clique com o botão direito para <strong>marcar tudo como lido</strong>.</tooltip>',
+        markAllAsReadTouchScreen: '<tooltip>Mantenha pressionado para <strong>marcar tudo como lido</strong>.</tooltip>',
     },
     discardChangesConfirmation: {
         title: 'Descartar alterações?',
