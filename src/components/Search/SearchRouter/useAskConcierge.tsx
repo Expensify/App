@@ -35,6 +35,10 @@ function useAskConcierge({forceConcierge = false}: {forceConcierge?: boolean} = 
     const {isBetaEnabled} = usePermissions();
     const shouldShowAskConcierge = !!targetReportID && !!targetReport;
 
+    // Concierge answers each question in its own thread. The side panel renders its own pinned report,
+    // so it stays in the DM rather than being sent to a thread it cannot show.
+    const shouldRespondInThread = targetReportID === conciergeReportID && !isInSidePanel && isBetaEnabled(CONST.BETAS.CONCIERGE_RESPOND_IN_THREAD);
+
     const askConcierge = (searchQuery: string) => {
         const trimmedQuery = searchQuery.trim();
         if (!trimmedQuery || !shouldShowAskConcierge) {
@@ -56,10 +60,7 @@ function useAskConcierge({forceConcierge = false}: {forceConcierge?: boolean} = 
             isInSidePanel,
             delegateAccountID,
             conciergeReportID,
-
-            // Concierge answers each question in its own thread. The side panel renders its own pinned report,
-            // so it stays in the DM rather than being sent to a thread it cannot show.
-            conciergeThreadReportID: targetReportID === conciergeReportID && !isInSidePanel && isBetaEnabled(CONST.BETAS.CONCIERGE_RESPOND_IN_THREAD) ? generateReportID() : undefined,
+            conciergeThreadReportID: shouldRespondInThread ? generateReportID() : undefined,
         });
     };
 
@@ -80,6 +81,7 @@ function useAskConcierge({forceConcierge = false}: {forceConcierge?: boolean} = 
             isInSidePanel,
             delegateAccountID,
             conciergeReportID,
+            conciergeThreadReportID: shouldRespondInThread ? generateReportID() : undefined,
         });
     };
 
