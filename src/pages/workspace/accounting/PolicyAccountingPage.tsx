@@ -492,7 +492,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                 return !businessCentralCompanyList?.length
                     ? {}
                     : {
-                          description: translate('workspace.businessCentral.company'),
+                          description: translate('workspace.businessCentral.subsidiary'),
                           iconRight: icons.ArrowRight,
                           title: businessCentralCompanyList.find((company) => company.id === policy?.connections?.businessCentral?.config?.companyID)?.displayName ?? '',
                           wrapperStyle: [styles.sectionMenuItemTopDescription],

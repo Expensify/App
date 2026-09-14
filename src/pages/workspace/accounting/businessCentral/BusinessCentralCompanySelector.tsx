@@ -71,7 +71,7 @@ function BusinessCentralCompanySelector({policy}: WithPolicyConnectionsProps) {
 
     const listHeaderComponent = (
         <View style={[styles.pb2, styles.ph5]}>
-            <Text style={[styles.pb2, styles.textNormal]}>{translate('workspace.businessCentral.companySelectDescription')}</Text>
+            <Text style={[styles.pb2, styles.textNormal]}>{translate('workspace.businessCentral.subsidiarySelectDescription')}</Text>
         </View>
     );
 
@@ -88,7 +88,7 @@ function BusinessCentralCompanySelector({policy}: WithPolicyConnectionsProps) {
             initiallyFocusedOptionKey={businessCentralConfig?.companyID}
             headerContent={listHeaderComponent}
             onBackButtonPress={() => Navigation.goBack()}
-            title="workspace.businessCentral.company"
+            title="workspace.businessCentral.subsidiary"
             listEmptyContent={listEmptyContent}
             pendingAction={settingsPendingAction([CONST.BUSINESS_CENTRAL_CONFIG.COMPANY_ID], businessCentralConfig?.pendingFields)}
             errors={getLatestErrorField(businessCentralConfig ?? {}, CONST.BUSINESS_CENTRAL_CONFIG.COMPANY_ID)}
