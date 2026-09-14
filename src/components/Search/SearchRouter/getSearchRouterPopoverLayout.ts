@@ -1,3 +1,5 @@
+import {clamp} from '@libs/NumberUtils';
+
 import variables from '@styles/variables';
 
 type SearchRouterPopoverLayout = {
@@ -16,7 +18,7 @@ type SearchRouterPopoverLayout = {
  */
 function getSearchRouterPopoverLayout(windowHeight: number): SearchRouterPopoverLayout {
     const evenGap = (windowHeight - variables.searchRouterPopoverMaxHeight) / 2;
-    const topOffset = Math.min(variables.searchRouterPopoverTopOffset, Math.max(variables.searchRouterPopoverMinTopOffset, evenGap));
+    const topOffset = clamp(evenGap, variables.searchRouterPopoverMinTopOffset, variables.searchRouterPopoverTopOffset);
 
     return {
         topOffset,
