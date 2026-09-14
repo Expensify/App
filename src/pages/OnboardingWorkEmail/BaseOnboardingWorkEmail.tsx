@@ -103,8 +103,11 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
     const isConciergeTaskFlow = isJoiningCompanyWorkspace && hasCompletedGuidedSetupFlow;
 
     useEffect(() => {
+        if (isConciergeTaskFlow) {
+            return;
+        }
         setOnboardingErrorMessage(null);
-    }, []);
+    }, [isConciergeTaskFlow]);
 
     useEffect(() => {
         const navigateToNextStep = (shouldSkipPrivateDomain = false) => {
