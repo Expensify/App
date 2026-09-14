@@ -118,8 +118,8 @@ rotation, AND a CA switch within the pinned set without an emergency release.
   [certificate authorities](https://developers.cloudflare.com/ssl/reference/certificate-authorities/)
   table). Cloudflare explicitly documents that you should **not** pin a single CA's chain
   ([SSL/TLS docs](https://developers.cloudflare.com/ssl/reference/certificate-pinning/)).
-  GTS Root R2 stays pinned even though Mozilla is reported to have removed it from its root store in
-  2026 (Debian's `ca-certificates` 20260601 changelog). A Mozilla delisting does not decide what a
+  GTS Root R2 stays pinned — as a `RETAINED_PINS` entry, see below — even though Mozilla removed it
+  from its root store in 2026 (Debian's `ca-certificates` 20260601 changelog). A Mozilla delisting does not decide what a
   phone anchors at: every enforcement path here (OkHttp `CertificatePinner`, the Android `<pin-set>`,
   Cronet's `addPublicKeyPins`, TrustKit) matches pins against the chain the **device's own trust
   store** validated, and Android ships CA updates on its own cadence — old OS versions keep roots for
@@ -146,6 +146,23 @@ against the SHA-256 certificate fingerprints committed in the script's `ROOT_MAN
 fingerprints, not the downloaded bytes, are the source of trust. The pin hashes are derived from
 those verified PEMs, never from live handshakes.
 
+A root that has left the Mozilla bundle but that devices still anchor at moves from `ROOT_MANIFEST` to
+`RETAINED_PINS` in the same script. The bundle no longer carries its certificate, so its SPKI hash
+cannot be re-derived; the entry carries the hash this script generated while the root was still in the
+bundle, together with the certificate fingerprint it came from and the CA's URL for re-checking it by
+hand. `git log -S<hash> -- config/certificatePinning/pins.json` shows when the value was generated and
+from what. Retained entries keep their place in the group lists, so generated output, `pins.json` and
+the native lists stay in the same order. GTS Root R2 is the one entry today.
+
+Generation never downloads a certificate for a retained root — that is what keeps a clean checkout and
+the offline test suite working — so between runs the pin rests on its committed value and its history.
+`--verify` is where it is checked: it fetches the certificate from the entry's URL, confirms the
+SHA-256 fingerprint, re-derives the SPKI hash and compares it with the shipped pin, failing the run if
+any of that does not line up. The verified certificate is then used as a trust anchor for the live
+chain checks, so a host legitimately serving a chain that builds to a retained root verifies like any
+other. A retained pin that cannot be fetched is reported and fails the run rather than being skipped
+silently.
+
 Both production and staging hosts are pinned in every release build, because beta/TestFlight builds
 resolve their runtime environment to STAGING and hit `staging.*` APIs while still being non-debug.
 
@@ -162,16 +179,19 @@ Offline/CI use: set `ROOTS_BUNDLE=/path/to/bundle.pem` to read the roots from a 
 instead of downloading; fingerprint verification still applies. `ROOTS_DIR=/path` overrides the
 cache location.
 
-If the script reports that a root in its `ROOT_MANIFEST` is missing from the bundle, Mozilla has
+If the script reports that a root in its `ROOT_MANIFEST` was not found in the bundle, Mozilla has
 dropped that root: investigate. That is a distrust signal worth understanding, but it is **not** on its
 own a reason to unpin — Mozilla's bundle is not what the mobile clients anchor at (see the GTS Root R2
-note above). Keep the pin and source that one PEM from the CA's official repository into
-`config/certificatePinning/roots/` (the script still verifies it against the committed fingerprint)
-until the platform trust stores have dropped it too.
+note above). Keep shipping the pin by moving the entry from `ROOT_MANIFEST` to `RETAINED_PINS`, which
+carries its committed hash forward; `--refresh` then leaves it alone instead of dropping it. Remove the
+pin only once the platform trust stores have dropped the root too.
 
 `tests/unit/generateCertificatePinsTest.ts` runs the script against Node's bundled Mozilla root store
-and checks the clean-checkout path, `--refresh`, unreachable hosts under `--verify`, and that
-`pins.json` and the native files carry exactly the pins the script generates.
+and checks the clean-checkout path, `--refresh`, unreachable hosts under `--verify`, retained pins
+(shipped without a certificate, present in `pins.json` and every native list, untouched by `--refresh`),
+and that `pins.json` and the native files carry exactly the pins the script generates. The suite never
+touches the network and needs no certificate beyond what Node bundles, so it behaves the same whichever
+Node snapshot of Mozilla's store you run it on.
 
 ## Rotation runbook
 
@@ -185,7 +205,10 @@ CDN adds a new CA to its pool), or when a pinned root is distrusted/retired.
 2. Add the **new** root hash alongside the existing ones (do not remove old ones yet) in
    `pins.json` and all native files, then ship an app release.
 3. Run `./scripts/generateCertificatePins.sh --verify` to confirm every live chain anchors at a
-   pinned root.
+   pinned root, and that each retained pin still matches its CA's published certificate. `--verify`
+   considers only the pinned roots as anchors — it passes `-no-CAfile -no-CApath -no-CAstore` to
+   `openssl verify`, without which the machine's own trust store would be searched too and a chain
+   anchored at any locally trusted CA would be reported as anchoring at a pinned root.
 4. Only after old app versions have aged out **and** the root is gone from every supported platform
    trust store (Android's, including the versions still in the field, and Apple's — not merely
    Mozilla's), remove hashes of roots no longer in play.
