@@ -2,7 +2,6 @@ import Icon from '@components/Icon';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {PressableWithFeedback} from '@components/Pressable';
 import SearchTableHeader from '@components/Search/SearchTableHeader';
-import {getSearchGroupCount} from '@components/Search/selectionBuilders';
 import type {SearchColumnType, SearchCustomColumnIds, SearchGroupBy} from '@components/Search/types';
 import type {ExtendedTargetedEvent} from '@components/SelectionList/ListItem/types';
 
@@ -21,7 +20,7 @@ import type {TransactionPreviewData} from '@libs/actions/Search';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import type {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
 import {getColumnsToShow} from '@libs/SearchUIUtils';
-import {isDeletedTransaction, isTransactionPendingDelete} from '@libs/TransactionUtils';
+import {isDeletedTransaction} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
