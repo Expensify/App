@@ -13,6 +13,7 @@ import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useReportIDToNameMap from '@hooks/useReportIDToNameMap';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {addErrorMessage} from '@libs/ErrorUtils';
@@ -47,13 +48,14 @@ function DynamicNewTaskDetailsPage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const accountIDToName = useAccountIDToNameMap();
+    const reportIDToName = useReportIDToNameMap();
     const [localTitle, setLocalTitle] = useState<string>();
     const [localDescription, setLocalDescription] = useState<string>();
-    const taskTitle = localTitle ?? Parser.htmlToMarkdown(Parser.replace(task?.title ?? ''), {accountIDToName});
-    const taskDescription = localDescription ?? Parser.htmlToMarkdown(Parser.replace(task?.description ?? ''), {accountIDToName});
+    const taskTitle = localTitle ?? Parser.htmlToMarkdown(Parser.replace(task?.title ?? ''), {accountIDToName, reportIDToName});
+    const taskDescription = localDescription ?? Parser.htmlToMarkdown(Parser.replace(task?.description ?? ''), {accountIDToName, reportIDToName});
 
-    const titleDefaultValue = Parser.htmlToMarkdown(Parser.replace(taskTitle), {accountIDToName});
-    const descriptionDefaultValue = Parser.htmlToMarkdown(Parser.replace(taskDescription), {accountIDToName});
+    const titleDefaultValue = Parser.htmlToMarkdown(Parser.replace(taskTitle), {accountIDToName, reportIDToName});
+    const descriptionDefaultValue = Parser.htmlToMarkdown(Parser.replace(taskDescription), {accountIDToName, reportIDToName});
     const {inputCallbackRef} = useAutoFocusInput();
 
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.NEW_TASK_DETAILS.path);
