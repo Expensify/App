@@ -74,4 +74,3 @@ function getPerDiemAmountErrorMessage(translate: LocaleContextProps['translate']
 }
 
 export {getPerDiemNameError, getPerDiemNameErrorMessage, getPerDiemAmountError, getPerDiemAmountErrorMessage};
-export type {PerDiemNameError, PerDiemAmountError};

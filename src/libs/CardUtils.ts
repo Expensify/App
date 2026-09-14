@@ -2485,4 +2485,4 @@ export {
     resolveTransactionCardFields,
 };
 
-export type {CompanyCardFeedIcons, CompanyCardBankIcons, CardProgramKey, CardNameError};
+export type {CompanyCardFeedIcons, CompanyCardBankIcons, CardProgramKey};

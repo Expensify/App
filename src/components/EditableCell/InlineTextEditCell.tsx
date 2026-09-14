@@ -100,4 +100,3 @@ function InlineTextEditCell({value, accessibilityLabel, displayTextStyle, canEdi
 InlineTextEditCell.displayName = 'InlineTextEditCell';
 
 export default InlineTextEditCell;
-export type {InlineTextEditCellProps};

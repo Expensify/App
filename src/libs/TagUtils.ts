@@ -86,4 +86,3 @@ function getTagNameErrorMessage(translate: LocaleContextProps['translate'], erro
 }
 
 export {isTagMissing, trimTag, getDecodedTagName, getTagNameError, getTagNameErrorMessage};
-export type {TagNameError};

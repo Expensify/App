@@ -291,5 +291,3 @@ export {
     getCategoryNameError,
     getCategoryNameErrorMessage,
 };
-
-export type {CategoryNameError};
