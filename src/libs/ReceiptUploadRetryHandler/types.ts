@@ -21,6 +21,10 @@ type ReceiptRetryContext = {
 
     iouReport: OnyxEntry<Report>;
 
+    iouActionID: string | undefined;
+
+    transactionThreadReportID: string | undefined;
+
     policyParams: BasePolicyParams;
 
     betas: OnyxEntry<Beta[]>;

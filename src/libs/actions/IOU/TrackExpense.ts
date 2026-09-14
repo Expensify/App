@@ -1767,6 +1767,8 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
         moneyRequestReportID,
         existingTransactionID,
         optimisticTransactionID: requestMoneyInformation.optimisticTransactionID,
+        currentReportActionID: requestMoneyInformation.currentReportActionID,
+        existingTransactionThreadReportID: requestMoneyInformation.existingTransactionThreadReportID,
         existingTransaction,
         retryParams,
         testDriveCommentReportActionID,

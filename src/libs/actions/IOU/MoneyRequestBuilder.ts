@@ -181,6 +181,8 @@ type RequestMoneyInformation = {
     optimisticIOUReportID?: string;
     optimisticReportPreviewActionID?: string;
     optimisticTransactionID?: string;
+    currentReportActionID?: string;
+    existingTransactionThreadReportID?: string;
     shouldGenerateTransactionThreadReport: boolean;
     isASAPSubmitBetaEnabled: boolean;
     currentUserAccountIDParam: number;
@@ -225,6 +227,9 @@ type MoneyRequestInformationParams = {
     isReverseSplitOperation?: boolean;
     action?: IOUAction;
     currentReportActionID?: string;
+
+    /** Reuses an existing transaction thread instead of building a new one, so a retry lands on the records the first attempt already claimed. */
+    existingTransactionThreadReportID?: string;
     isASAPSubmitBetaEnabled: boolean;
     currentUserAccountIDParam: number;
     currentUserEmailParam: string;
@@ -1281,6 +1286,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         isReverseSplitOperation,
         action,
         currentReportActionID,
+        existingTransactionThreadReportID,
         isASAPSubmitBetaEnabled,
         currentUserAccountIDParam,
         currentUserEmailParam,
@@ -1622,7 +1628,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
             participants: [participant],
             transactionID: optimisticTransaction.transactionID,
             paymentType: transactionParams.receipt?.isTestDriveReceipt ? CONST.IOU.PAYMENT_TYPE.ELSEWHERE : undefined,
-            existingTransactionThreadReportID: linkedTrackedExpenseReportAction?.childReportID,
+            existingTransactionThreadReportID: existingTransactionThreadReportID ?? linkedTrackedExpenseReportAction?.childReportID,
             optimisticCreatedReportActionID,
             linkedTrackedExpenseReportAction,
             isPersonalTrackingExpense: isSelfDMSplit,

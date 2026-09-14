@@ -430,6 +430,8 @@ function MoneyRequestReceiptView({
               receiptError: retryableReceiptError,
               transaction,
               iouReport: moneyRequestReport,
+              iouActionID: parentReportAction?.reportActionID,
+              transactionThreadReportID: report?.reportID,
               policyParams: {policy, policyCategories, policyTagList},
               betas,
               conciergeReportID,

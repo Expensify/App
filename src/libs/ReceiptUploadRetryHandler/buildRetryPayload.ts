@@ -22,7 +22,7 @@ function isRetryableFlow(context: ReceiptRetryContext): boolean {
         return false;
     }
 
-    if (!isLocalFile(transaction.receipt?.source)) {
+    if (!isLocalFile(context.receiptError.source)) {
         return false;
     }
 
@@ -74,6 +74,8 @@ function buildRetryPayload(context: ReceiptRetryContext, receiptFile: FileObject
     const {
         transaction,
         iouReport,
+        iouActionID,
+        transactionThreadReportID,
         policyParams,
         betas,
         conciergeReportID,
@@ -122,6 +124,10 @@ function buildRetryPayload(context: ReceiptRetryContext, receiptFile: FileObject
         optimisticTransactionID: transaction.transactionID,
         optimisticIOUReportID: iouReport.reportID,
         optimisticChatReportID: iouReport.chatReportID,
+        // Without these two the server dedupes the transaction but the retry still mints a fresh IOU action and
+        // transaction thread, leaving two report actions on one transaction, which reads as two expenses.
+        currentReportActionID: iouActionID,
+        existingTransactionThreadReportID: transactionThreadReportID,
         existingTransaction: transaction,
         existingTransactionDraft: undefined,
         shouldGenerateTransactionThreadReport: true,
