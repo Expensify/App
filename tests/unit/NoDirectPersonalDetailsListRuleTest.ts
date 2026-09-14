@@ -50,6 +50,7 @@ describe('no-direct-personal-details-list', () => {
             'const [metadata] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_METADATA);',
             'const [list] = useOnyx(ONYXKEYS.COLLECTION.REPORT);',
             'const key = SOME_OTHER_KEYS.PERSONAL_DETAILS_LIST;',
+            // Only known at runtime, so there is nothing to resolve statically.
             'const key = ONYXKEYS[PERSONAL_DETAILS_LIST];',
         ],
         invalid: [
@@ -59,6 +60,14 @@ describe('no-direct-personal-details-list', () => {
             },
             {
                 code: 'const [login] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(accountID)});',
+                errors: [{messageId: 'directUsage'}],
+            },
+            {
+                code: "const [personalDetails] = useOnyx(ONYXKEYS['PERSONAL_DETAILS_LIST']);",
+                errors: [{messageId: 'directUsage'}],
+            },
+            {
+                code: 'const [personalDetails] = useOnyx(ONYXKEYS[`PERSONAL_DETAILS_LIST`]);',
                 errors: [{messageId: 'directUsage'}],
             },
             {
