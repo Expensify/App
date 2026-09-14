@@ -58,6 +58,7 @@ function DynamicIOURequestStepAttendees({
     const [iouReportOwnerLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(parentReport?.ownerAccountID)});
     const [reportPolicyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(parentReport?.policyID)}`);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const previousAttendees = usePrevious(attendees);
     const {translate} = useLocalize();
     const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
@@ -102,6 +103,7 @@ function DynamicIOURequestStepAttendees({
                     isTrackIntentUser,
                     getCurrencyDecimals,
                     getCurrencySymbol,
+                    rules,
                 });
             } else {
                 setMoneyRequestAttendees(transactionID, attendees, !isEditing);
@@ -130,6 +132,7 @@ function DynamicIOURequestStepAttendees({
         isTrackIntentUser,
         getCurrencyDecimals,
         getCurrencySymbol,
+        rules,
     ]);
 
     const navigateBack = () => {

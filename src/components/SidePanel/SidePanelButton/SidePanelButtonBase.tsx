@@ -21,7 +21,7 @@ function SidePanelButtonBase({style}: SidePanelButtonProps) {
     const {translate} = useLocalize();
     const {shouldHideHelpButton} = useSidePanelState();
     const {openSidePanel} = useSidePanelActions();
-    const {ConciergeAvatar} = useMemoizedLazyExpensifyIcons(['ConciergeAvatar']);
+    const {Concierge} = useMemoizedLazyExpensifyIcons(['Concierge']);
 
     if (shouldHideHelpButton) {
         return null;
@@ -36,10 +36,8 @@ function SidePanelButtonBase({style}: SidePanelButtonProps) {
                 onPress={openSidePanel}
             >
                 <Icon
-                    src={ConciergeAvatar}
+                    src={Concierge}
                     fill={theme.icon}
-                    width={28}
-                    height={28}
                 />
             </PressableWithoutFeedback>
         </Tooltip>

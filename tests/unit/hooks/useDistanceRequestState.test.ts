@@ -2,6 +2,8 @@ import {renderHook} from '@testing-library/react-native';
 
 import useDistanceRequestState from '@components/MoneyRequestConfirmationList/hooks/useDistanceRequestState';
 
+import DistanceRequestUtils from '@libs/DistanceRequestUtils';
+
 import type * as OnyxTypes from '@src/types/onyx';
 
 import createMock from '../../utils/createMock';
@@ -50,6 +52,22 @@ describe('useDistanceRequestState', () => {
         expect(result.current.shouldCalculateDistanceAmount).toBe(true);
         expect(result.current.distance).toBe(10);
         expect(result.current.distanceRequestAmount).toBe(500); // 10 * 0.5 * 100
+    });
+
+    it('does not back-calculate a rate from a quantity that is not written yet', () => {
+        const getRateSpy = jest.spyOn(DistanceRequestUtils, 'getRate').mockReturnValue({unit: 'mi', currency: 'USD'});
+        const {result} = renderHook(() =>
+            useDistanceRequestState({
+                ...baseParams,
+                isMovingTransactionFromTrackExpense: true,
+                iouAmount: 210917,
+                transaction: createMock<OnyxTypes.Transaction>({transactionID: 'txn1', comment: {customUnit: {quantity: 0, routeDistanceMeters: 10}}}),
+            }),
+        );
+
+        expect(result.current.rate).toBeUndefined();
+        expect(Number.isFinite(result.current.distanceRequestAmount)).toBe(true);
+        getRateSpy.mockRestore();
     });
 
     it('recalculates only when the reimbursable distance changes', () => {
