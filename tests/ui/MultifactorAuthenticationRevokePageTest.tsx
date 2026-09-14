@@ -365,6 +365,24 @@ describe('MultifactorAuthenticationRevokePage', () => {
             expect(mockRevokeCredentials).toHaveBeenCalledWith({});
         });
 
+        it('uses the credential ID that hydrated while the confirmation modal was open', async () => {
+            // Given the server reports one credential but this device's ID has not loaded yet, so "Other devices" opens in 'single' mode
+            setBiometricStatus({localCredentialID: undefined, isCurrentDeviceRegistered: false, totalDeviceCount: 1, otherDeviceCount: 1});
+
+            const {rerender} = render(<MultifactorAuthenticationRevokePage />);
+            const revokeButtons = screen.getAllByText('multifactorAuthentication.revoke.revoke');
+            fireEvent.press(revokeButtons.at(0)!);
+
+            // When the local credential ID hydrates while the modal is still open
+            setBiometricStatus({localCredentialID: 'key-this', isCurrentDeviceRegistered: true, totalDeviceCount: 1, otherDeviceCount: 0});
+            rerender(<MultifactorAuthenticationRevokePage />);
+
+            await settleConfirmModal('CONFIRM');
+
+            // Then confirming excludes this device instead of revoking every credential with empty params
+            expect(mockRevokeCredentials).toHaveBeenCalledWith({exceptKeyID: 'key-this'});
+        });
+
         it('passes empty params when revoking all devices via bottom button', async () => {
             // Given this device and 1 other device are registered
             setBiometricStatus({localCredentialID: 'key-this', isCurrentDeviceRegistered: true, totalDeviceCount: 2, otherDeviceCount: 1});

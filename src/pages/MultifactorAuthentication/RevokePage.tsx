@@ -21,7 +21,7 @@ import CONST from '@src/CONST';
 
 import type {ValueOf} from 'type-fest';
 
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 import RevokeRow from './RevokeRow';
@@ -76,6 +76,13 @@ function MultifactorAuthenticationRevokePage() {
     const hasDevices = totalDeviceCount > 0;
     const hasMultipleKeys = totalDeviceCount > 1;
 
+    // localCredentialID hydrates asynchronously, and the confirmation modal resolves after the render that opened it,
+    // so read it through a ref: a stale undefined would make the 'single' path revoke this device's credential too.
+    const localCredentialIDRef = useRef(localCredentialID);
+    useEffect(() => {
+        localCredentialIDRef.current = localCredentialID;
+    }, [localCredentialID]);
+
     useEffect(() => {
         openMultifactorAuthenticationRevokePage();
     }, []);
@@ -97,11 +104,9 @@ function MultifactorAuthenticationRevokePage() {
         [translate],
     );
 
-    // Since localCredentialID is loaded asynchronously, it can become undefined between the render that shows
-    // the button and the moment the user taps it. If these callbacks closed over localCredentialID directly, a
-    // stale undefined value could cause revokeThisDevice to silently no-op, or revokeOtherDevices to send
-    // empty params and accidentally revoke ALL credentials. The call sites pass localCredentialID at render time
-    // so the closure captures the value that was known-good when the button was displayed.
+    // Since localCredentialID is loaded asynchronously, a callback that closed over it directly could see a stale
+    // undefined and make revokeThisDevice silently no-op, or make revokeOtherDevices send empty params and
+    // accidentally revoke ALL credentials. These take the key as an argument so the caller supplies the latest value.
     const revokeThisDevice = useCallback(
         async (keyID: string) => {
             await executeRevoke({onlyKeyID: keyID}, setIsThisDeviceLoading);
@@ -127,23 +132,25 @@ function MultifactorAuthenticationRevokePage() {
 
     // isConfirmLoading keeps the modal open in a loading state after the promise resolves, so every path has to call closeModal() to dismiss it.
     const handleRevokeConfirm = async (mode: ConfirmMode) => {
+        const keyID = localCredentialIDRef.current;
+
         if (mode === CONFIRM_MODE.THIS_DEVICE) {
-            if (!localCredentialID) {
+            if (!keyID) {
                 closeModal();
                 return;
             }
-            await revokeThisDevice(localCredentialID);
+            await revokeThisDevice(keyID);
         } else if (mode === CONFIRM_MODE.MULTIPLE) {
-            if (!localCredentialID) {
+            if (!keyID) {
                 closeModal();
                 return;
             }
-            await revokeOtherDevices(localCredentialID);
+            await revokeOtherDevices(keyID);
         } else if (mode === CONFIRM_MODE.SINGLE) {
-            if (!localCredentialID) {
+            if (!keyID) {
                 await revokeAll();
             } else {
-                await revokeOtherDevices(localCredentialID);
+                await revokeOtherDevices(keyID);
             }
         } else if (mode === CONFIRM_MODE.ALL) {
             await revokeAll();
