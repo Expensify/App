@@ -23,7 +23,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 
 import type {MeasureInWindowOnSuccessCallback} from 'react-native';
 
-import React, {useRef} from 'react';
+import React, {useState} from 'react';
 
 import {useComposerActions, useComposerEditState, useComposerMeta, useComposerSendState, useComposerState} from './ComposerContext';
 import ComposerWithSuggestions from './ComposerWithSuggestions';
@@ -88,7 +88,8 @@ function ComposerInput() {
     const isReportArchived = useReportIsArchived(report?.reportID);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const isAskConciergeChat = !!reportID && reportID === conciergeReportID && isBetaEnabled(CONST.BETAS.CONCIERGE_RESPOND_IN_THREAD);
-    const askConciergePlaceholderKey = useRef(ASK_CONCIERGE_PLACEHOLDER_KEYS[Math.floor(Math.random() * ASK_CONCIERGE_PLACEHOLDER_KEYS.length)]).current;
+    // Capture once so render stays pure and the placeholder doesn't change under the user as they type.
+    const [askConciergePlaceholderKey] = useState(() => ASK_CONCIERGE_PLACEHOLDER_KEYS[Math.floor(Math.random() * ASK_CONCIERGE_PLACEHOLDER_KEYS.length)]);
 
     const includesConcierge = chatIncludesConcierge({participants: report?.participants});
     const isGroupPolicyReport = !!report?.policyID && report.policyID !== CONST.POLICY.ID_FAKE;

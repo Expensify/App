@@ -60,12 +60,12 @@ import type * as OnyxTypes from '@src/types/onyx';
 
 import type {ListRenderItemInfo} from '@shopify/flash-list';
 import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
-import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {useRoute} from '@react-navigation/native';
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import React, {useEffect, useRef, useState} from 'react';
+import {View} from 'react-native';
 
 import ConciergeChatHistoryToggle from './ConciergeChatHistoryToggle';
 import ConciergeWelcome from './ConciergeWelcome';

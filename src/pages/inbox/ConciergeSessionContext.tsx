@@ -70,34 +70,36 @@ function ConciergeSessionProvider({children}: PropsWithChildren) {
     if (prevAccountID !== accountID) {
         setPrevAccountID(accountID);
         if (sessionStartTime !== null) {
-            sessionCreatedAtRef.current = null;
             setSessionStartTime(null);
             setShowFullHistory(false);
             setHadMessagesAtSessionStart(false);
         }
     }
 
-    const startSession = useCallback((unreadBoundary?: string | null) => {
-        const sessionCreatedAt = sessionCreatedAtRef.current;
-        if (sessionCreatedAt !== null && Date.now() - sessionCreatedAt < CONST.CONCIERGE_SESSION_EXPIRATION_MS) {
-            // Within an active session, keep the existing boundary unless a better
-            // (earlier) unread boundary resolves after the session was created. On a
-            // cold open the session can lock to `now` before the unread anchor resolves;
-            // when it arrives we pull sessionStartTime back so the notification message
-            // isn't hidden behind "Show full history". The session age (sessionCreatedAtRef)
-            // is unchanged — only the display boundary is refined.
-            if (unreadBoundary) {
-                setSessionStartTime((prev) => (prev && unreadBoundary < prev ? unreadBoundary : prev));
+    const startSession = useCallback(
+        (unreadBoundary?: string | null) => {
+            const sessionCreatedAt = sessionCreatedAtRef.current;
+            if (sessionStartTime !== null && sessionCreatedAt !== null && Date.now() - sessionCreatedAt < CONST.CONCIERGE_SESSION_EXPIRATION_MS) {
+                // Within an active session, keep the existing boundary unless a better
+                // (earlier) unread boundary resolves after the session was created. On a
+                // cold open the session can lock to `now` before the unread anchor resolves;
+                // when it arrives we pull sessionStartTime back so the notification message
+                // isn't hidden behind "Show full history". The session age (sessionCreatedAtRef)
+                // is unchanged — only the display boundary is refined.
+                if (unreadBoundary) {
+                    setSessionStartTime((prev) => (prev && unreadBoundary < prev ? unreadBoundary : prev));
+                }
+                return;
             }
-            return;
-        }
 
-        const now = getServerAnchoredDBTime();
-        sessionCreatedAtRef.current = Date.now();
-        setSessionStartTime(unreadBoundary && unreadBoundary < now ? unreadBoundary : now);
-        setShowFullHistory(false);
-        setHadMessagesAtSessionStart(false);
-    }, []);
+            const now = getServerAnchoredDBTime();
+            sessionCreatedAtRef.current = Date.now();
+            setSessionStartTime(unreadBoundary && unreadBoundary < now ? unreadBoundary : now);
+            setShowFullHistory(false);
+            setHadMessagesAtSessionStart(false);
+        },
+        [sessionStartTime],
+    );
 
     const resetSession = useCallback(() => {
         sessionCreatedAtRef.current = Date.now();
