@@ -106,9 +106,6 @@ function PressableWithSecondaryInteraction({
             onLongPress={onSecondaryInteraction ? executeSecondaryInteraction : undefined}
             pressDimmingValue={activeOpacity}
             dimAnimationDuration={opacityAnimationDuration}
-            // Merged synchronously so consumers have the node at commit time, matching index.native.tsx and the
-            // pressables below. Forwarding it from the effect above instead left it null for any consumer
-            // reading the ref in a layout effect.
             ref={mergeRefs(pressableRef, ref) as PressableWithSecondaryInteractionProps['ref']}
             style={(state) => [StyleUtils.parseStyleFromFunction(style, state), inlineStyle]}
             needsOffscreenAlphaCompositing={needsOffscreenAlphaCompositing}
