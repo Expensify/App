@@ -64,7 +64,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import debounce from 'lodash/debounce';
 import isEmpty from 'lodash/isEmpty';
-import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useContext, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 
 import type {CardPressHandlerParams, PaymentMethodPressHandlerParams} from './types';
@@ -121,7 +121,6 @@ function WalletPage() {
     const {paymentMethod, setPaymentMethod, resetSelectedPaymentMethodData} = usePaymentMethodState();
     const {showConfirmModal} = useConfirmModal();
     const [shouldShowLoadingSpinner, setShouldShowLoadingSpinner] = useState(false);
-    const paymentMethodButtonRef = useRef<HTMLDivElement | null>(null);
     const [selectedCard, setSelectedCard] = useState<OnyxTypes.Card | undefined>(undefined);
     const [shouldShowShareButton, setShouldShowShareButton] = useState(false);
     const [shouldShowUnshareButton, setShouldShowUnshareButton] = useState(false);
@@ -151,9 +150,7 @@ function WalletPage() {
     /**
      * Display the delete/default menu, or the add payment method menu
      */
-    const paymentMethodPressed = ({event, accountData, accountType, methodID, isDefault, icon, description}: PaymentMethodPressHandlerParams) => {
-        paymentMethodButtonRef.current = event?.currentTarget as HTMLDivElement;
-
+    const paymentMethodPressed = ({accountData, accountType, methodID, isDefault, icon, description}: PaymentMethodPressHandlerParams) => {
         if (accountData?.state === CONST.BANK_ACCOUNT.STATE.LOCKED && accountData?.bankAccountID) {
             pressLockedBankAccount(accountData?.bankAccountID, translate, conciergeReportID ?? undefined, delegateAccountID);
             navigateToConciergeChat(conciergeReportID ?? undefined, introSelected, currentUserAccountID, isSelfTourViewed, betas);
@@ -240,8 +237,7 @@ function WalletPage() {
         navigateToBankAccountRoute({bankAccountID, backTo: ROUTES.SETTINGS_WALLET});
     };
 
-    const assignedCardPressed = ({event, cardData, icon, cardID}: CardPressHandlerParams) => {
-        paymentMethodButtonRef.current = event?.currentTarget as HTMLDivElement;
+    const assignedCardPressed = ({cardData, icon, cardID}: CardPressHandlerParams) => {
         setSelectedCard(cardData);
         const isCSVImportCard = cardData?.bank === CONST.COMPANY_CARD.FEED_BANK_NAME.UPLOAD;
         const cardTitle = isCSVImportCard ? (cardData?.nameValuePairs?.cardTitle ?? cardData?.cardName) : maskCardNumber(cardData?.cardName, cardData?.bank);

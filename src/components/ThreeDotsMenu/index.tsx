@@ -23,6 +23,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import KeyboardUtils from '@src/utils/keyboard';
 
+import debounce from 'lodash/debounce';
 import React, {useCallback, useEffect, useImperativeHandle, useLayoutEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
@@ -87,6 +88,13 @@ function ThreeDotsMenu({
 
     const getMenuPosition = shouldSelfPosition ? calculateAndSetThreeDotsMenuPosition : getAnchorPosition;
 
+    // Most callers pass an inline `anchorAlignment`/`getAnchorPosition`, so `getMenuPosition` gets a new identity on
+    // every render. It is held in a ref so the reposition effect below can depend on the viewport size alone.
+    const getMenuPositionRef = useRef(getMenuPosition);
+    useLayoutEffect(() => {
+        getMenuPositionRef.current = getMenuPosition;
+    });
+
     const onThreeDotsPress = () => {
         if (isPopupMenuVisible) {
             hidePopoverMenu();
@@ -135,14 +143,24 @@ function ThreeDotsMenu({
     }, [hidePopoverMenu, isBehindModal, isPopupMenuVisible, isContainerFocused]);
 
     useLayoutEffect(() => {
-        if (!getMenuPosition || !isPopupMenuVisible) {
+        if (!getMenuPositionRef.current || !isPopupMenuVisible) {
             return;
         }
 
-        getMenuPosition?.().then((value) => {
-            setPosition(value);
-        });
-    }, [windowWidth, windowHeight, shouldSelfPosition, getMenuPosition, isPopupMenuVisible]);
+        // The anchor is re-measured after a debounce so that surrounding layout which settles asynchronously after a
+        // viewport change (virtualized list cells, for instance) has finished moving the anchor. Measuring immediately
+        // can read pre-resize coordinates and pin the menu to a stale position.
+        const debouncedRepositionMenu = debounce(() => {
+            getMenuPositionRef.current?.().then((value) => {
+                // Keep the previous object when the measurement is unchanged, so an unchanged position doesn't cascade
+                // into a re-render of the open menu.
+                setPosition((previousPosition) => (previousPosition?.horizontal === value.horizontal && previousPosition?.vertical === value.vertical ? previousPosition : value));
+            });
+        }, CONST.TIMING.RESIZE_DEBOUNCE_TIME);
+        debouncedRepositionMenu();
+
+        return () => debouncedRepositionMenu.cancel();
+    }, [windowWidth, windowHeight, isPopupMenuVisible]);
 
     const getIconFill = () => {
         if (!shouldChangeFillOnOpen) {

@@ -1084,7 +1084,6 @@
 "../../src/pages/settings/Wallet/UnshareBankAccount/UnshareBankAccount.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	2
 "../../src/pages/settings/Wallet/UnshareBankAccount/UnshareBankAccount.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/pages/settings/Wallet/UpdatePersonalBankAccountPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/pages/settings/Wallet/WalletPage/index.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/pages/settings/Wallet/WalletPage/index.tsx"	"no-restricted-imports"	1
 "../../src/pages/settings/Wallet/WalletPage/index.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/pages/Share/ShareRootPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
