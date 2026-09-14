@@ -1,7 +1,7 @@
 ---
 title: Distance Expenses
 description: Learn how to create a Distance expense using GPS tracking, map-based routes, manual entry, or odometer readings, and how the reimbursement rate is determined in New Expensify.
-keywords: [New Expensify, distance expense, mileage, mileage reimbursement, create expense, distance rate, workspace rate, map route, reimbursement rate, manual mileage, manual distance, global create, track distance, GPS, GPS tracking, start GPS, track route, track mileage, mileage tracking, calculate mileage reimbursement, mileage rate, odometer, odometer reading, odometer image, odometer mileage, odometer distance, start reading, end reading, save for later, in-progress odometer, incomplete odometer, edit distance, edit waypoints, manual edit distance, edit stop, trim trip, edit GPS trip, shorten GPS route, GPS slider, total distance]
+keywords: [New Expensify, distance expense, mileage, mileage reimbursement, create expense, distance rate, workspace rate, map route, reimbursement rate, manual mileage, manual distance, global create, track distance, GPS, GPS tracking, start GPS, track route, track mileage, mileage tracking, calculate mileage reimbursement, mileage rate, odometer, odometer reading, odometer image, odometer mileage, odometer distance, start reading, end reading, save for later, in-progress odometer, incomplete odometer, edit distance, edit waypoints, manual edit distance, edit stop, trim trip, edit GPS trip, shorten GPS route, GPS slider, total distance, duplicate GPS distance expense, duplicate distance expense]
 internalScope: Audience is all members. Covers creating Distance expenses using GPS tracking, map-based routes, manual entry, and odometer readings, plus how reimbursement rates are applied. Does not cover configuring Workspace distance rates in detail or broader report submission workflows.
 ---
 
@@ -182,6 +182,12 @@ The GPS receipt shows a map of your actual route driven, along with the total di
 ## Can I edit a GPS trip after I stop tracking?
 
 Yes. After you tap **Stop**, tap the pencil **Edit** icon next to the distance counter to open the **Edit stop** screen. Drag the slider to move the end point back to an earlier stop along your recorded route — the map route and the **Total distance** value update live as you drag — then tap **Save**. The GPS screen then shows the trimmed distance and updated end address. To restore the full trip, open **Edit stop** again and drag the slider all the way to the right. Tapping **Resume** and **Stop** also resets any trim and shows the full trip again.
+
+## What happens when I duplicate a GPS Distance expense?
+
+If the GPS Distance expense is not on a report (Unreported), or you don't have a Workspace, the copy is created as a manual Distance expense. It keeps the total distance from the original, but the route map and the start and end addresses are not included, because the recorded GPS route is not stored on the saved expense. If the GPS Distance expense is already on a Workspace report, the copy stays a GPS Distance expense and the route is included.
+
+[Learn how to duplicate an expense](/articles/new-expensify/reports-and-expenses/How-to-Duplicate-an-Expense)
 
 ## Can I use GPS tracking on web or desktop?
 
