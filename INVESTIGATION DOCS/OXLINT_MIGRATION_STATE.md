@@ -254,25 +254,48 @@ oxlint only: src/components/EmojiPicker/EmojiPickerMenu/index.native.tsx:130
 oxlint only: src/components/EmojiPicker/EmojiPickerMenu/index.tsx:176
 ```
 
-### 5.4 The oxlint shard merge turns one empty shard into a whole-run failure
+### 5.4 A dead oxlint shard fails the whole run, with no retry
 
-Intermittent and reproduced: `npm run lint -- --linter=oxlint` failed three times in a row with
+Narrow robustness gap, not a correctness bug. An earlier draft of this section called it a bug and
+blamed an incident on it; both claims were wrong and are corrected below.
+
+**The behaviour, demonstrated by calling the exported functions directly:**
 
 ```
-ESLint output (JSON parse failed: EOF while parsing a value at line 1 column 0)
+dead shard            {"files":[],"exitCode":137,"stderr":"Failed to parse Oxlint JSON output."}
+merge(healthy, dead)  {"files":[],"exitCode":137,"stderr":"Failed to parse Oxlint JSON output."}
+cores 14, freemem 5.2 GB  ->  2 shards
 ```
 
-then passed seven times in a row later the same day with no code change. The string is serde_json's
-empty-input error, compiled into oxlint's own binary, so one of oxlint's child processes died and
-wrote nothing. `OxlintLinter.ts:172` treats stdout with no `{` as fatal, and `mergeShardResults`
-(`OxlintLinter.ts:82-86`) then returns that fatal shard and discards every healthy shard's findings.
-A SIGKILLed child writes no stderr, so nothing explains it.
+A shard whose process dies writes no stdout, `parseOxlintStdout` sees no `{` and returns fatal
+(`OxlintLinter.ts:153-159, 172-173`), and `mergeShardResults` (`OxlintLinter.ts:82-86`) returns that
+shard, dropping every other shard's findings.
 
-Shard count is re-derived per invocation from `os.freemem()` (`OxlintLinter.ts:56-59`), and measured
-peak demand is about 9.7 GB across 18 processes at 6 shards against a `SHARD_MEM_BUDGET_GB = 2`
-assumption, so memory pressure from a concurrent ESLint run is the likely trigger. `--shards=1`
-never hit it. Owned by whoever owns `scripts/lint/oxlint/OxlintLinter.ts`, not diagnosed further
-here.
+**That last part is deliberate and has a test**, `tests/tooling/lintPipeline.test.ts:348`, "a crashed
+JS plugin in one shard is fatal and dominates clean shards". It is also the right call: a shard that
+died tells you nothing about what it would have found, and reporting the survivors as a complete run
+would let the seatbelt auto-tighten against a partial result and freeze a false baseline. Failing
+loudly is the safe behaviour, not a defect.
+
+**It is not silent either.** `LintPipeline.ts:37` surfaces a fatal linter's stderr as the report, so
+`Failed to parse Oxlint JSON output.` does reach the caller.
+
+**What is actually left:** a shard killed by the OS under memory pressure is indistinguishable from a
+shard whose JS plugin threw, so a transient OOM fails the entire lint run and nothing retries. Shard
+count is re-derived per invocation from `os.freemem()` (`OxlintLinter.ts:56-59`) against
+`SHARD_MEM_BUDGET_GB = 2`, so it varies with whatever else is running: 6 shards in one measurement
+that day, 2 in another. A retry-once on a fatal shard would close it.
+
+**The incident that prompted this section was probably not this code path.** The observed message was
+`ESLint output (JSON parse failed: EOF while parsing a value at line 1 column 0)`. Oxlint's fatal
+path prints `Failed to parse Oxlint JSON output.` and ESLint's prints `Failed to parse ESLint JSON
+output.`; neither matches. That exact string is not in the working tree, not in `node_modules`, and
+not in any of the last 30 commits touching `scripts/lint/`. The likeliest explanation, and the one
+that also explains uncommitted files in this worktree being reverted twice the same day, is that
+another session had in-progress edits under `scripts/lint/` at that moment which have since been
+replaced.
+
+**Not currently reproducible: 13 consecutive clean runs since the merge.**
 
 ### 5.5 `listAllRules.py` undercounts fixtures
 
@@ -304,8 +327,8 @@ Ordered by what blocks what.
 6. **`rulesdir/boolean-conditional-rendering`** has no replacement and no tracking issue.
 7. **Every merge from `main` needs a manual `SEATBELT_INCREASE=all` pass.** The seatbelt auto-tightens
    but never auto-increases.
-8. **The shard fatal-on-empty-stdout path** (section 5.4). Intermittent today, a blocker the day
-   the job becomes required.
+8. **Retry a dead oxlint shard once** (section 5.4). Today a transient OOM fails the whole lint run.
+   Low priority while the job is non-blocking, worth having before it becomes required.
 9. **`listAllRules.py` fixture count** (section 5.5).
 
 ---
