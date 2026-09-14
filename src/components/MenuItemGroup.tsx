@@ -17,7 +17,6 @@ const MenuItemGroupStateContext = createContext<MenuItemGroupStateContextProps |
 const MenuItemGroupActionsContext = createContext<MenuItemGroupActionsContextProps | null>(null);
 
 type MenuItemGroupProps = {
-    /* Actual content wrapped by this component */
     children: React.ReactNode;
 
     /** Whether or not to use the single execution hook */

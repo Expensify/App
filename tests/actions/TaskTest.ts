@@ -1971,7 +1971,7 @@ describe('actions/Task', () => {
             const report = getFakeReport([CURRENT_USER_ACCOUNT_ID, OTHER_ACCOUNT_ID]);
 
             // When the share destination is built
-            const result = getShareDestination(report, personalDetails, localeCompare, formatPhoneNumber, undefined, undefined, translateLocal);
+            const result = getShareDestination(report, personalDetails, localeCompare, formatPhoneNumber, undefined, undefined, translateLocal, undefined);
 
             // Then the subtitle is the other participant's login and the display name matches getReportName
             expect(result.subtitle).toBe(OTHER_LOGIN);
@@ -1988,7 +1988,7 @@ describe('actions/Task', () => {
             };
 
             // When the share destination is built
-            const result = getShareDestination(report, personalDetails, localeCompare, formatPhoneNumber, policy, undefined, translateLocal);
+            const result = getShareDestination(report, personalDetails, localeCompare, formatPhoneNumber, policy, undefined, translateLocal, undefined);
 
             // Then the subtitle falls back to the workspace name resolved by getChatRoomSubtitle
             expect(result.subtitle).toBe(policy.name);
@@ -2000,7 +2000,7 @@ describe('actions/Task', () => {
             const report = getFakeReport([CURRENT_USER_ACCOUNT_ID, OTHER_ACCOUNT_ID]);
 
             // When the share destination is built
-            const result = getShareDestination(report, personalDetails, localeCompare, formatPhoneNumber, undefined, undefined, translateLocal);
+            const result = getShareDestination(report, personalDetails, localeCompare, formatPhoneNumber, undefined, undefined, translateLocal, undefined);
 
             // Then it includes the icons and tooltip metadata used to render the destination
             expect(Array.isArray(result.icons)).toBe(true);

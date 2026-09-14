@@ -32,16 +32,9 @@ type ToggleSettingOptionRowProps = {
     /** Icon to be shown for the option row */
     rowIcon?: IconAsset;
 
-    /** Title of the option */
     title?: string;
-
-    /** Custom title for the option */
     customTitle?: React.ReactNode;
-
-    /** Subtitle of the option */
     subtitle?: string | ReactNode;
-
-    /** Accessibility label for the switch */
     switchAccessibilityLabel: string;
 
     /** subtitle should show below switch and title */
@@ -56,7 +49,6 @@ type ToggleSettingOptionRowProps = {
      */
     shouldAnchorSwitchToTop?: boolean;
 
-    /** Whether or not the text should be escaped */
     shouldEscapeText?: boolean;
 
     /** Whether should render subtitle as HTML or as Text */
@@ -65,19 +57,13 @@ type ToggleSettingOptionRowProps = {
     /** Used to apply styles to the outermost container */
     wrapperStyle?: StyleProp<ViewStyle>;
 
-    /** Used to apply styles to the Title */
     titleStyle?: StyleProp<TextStyle>;
 
     /** Optional accessibility role for the title. Only set when the title is a section heading (e.g. CONST.ROLE.HEADER); omit for regular rows. */
     titleAccessibilityRole?: typeof CONST.ROLE.HEADER;
 
-    /** Used to apply styles to the Subtitle */
     subtitleStyle?: StyleProp<TextStyle>;
-
-    /** Used to apply styles to the Accordion */
     accordionStyle?: StyleProp<ViewStyle>;
-
-    /** Whether the option is enabled or not */
     isActive: boolean;
 
     /** Callback to be called when the switch is toggled */
@@ -95,7 +81,6 @@ type ToggleSettingOptionRowProps = {
     /** Callback to close the error messages */
     onCloseError?: () => void;
 
-    /** Whether the toggle should be disabled */
     disabled?: boolean;
 
     /** Whether to show the lock icon even if the switch is enabled */

@@ -13,7 +13,6 @@ import {useComposerSendState, useComposerState} from './ComposerContext';
 import ExpandCollapseButton from './ExpandCollapseButton';
 
 type ComposerExpandCollapseButtonProps = ViewProps & {
-    /** The report ID */
     reportID: string;
 };
 

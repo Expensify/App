@@ -7,16 +7,12 @@ import CONST from '@src/CONST';
 import React from 'react';
 
 type CountryProps = {
-    /** Handles back button press */
     onBackButtonPress: () => void;
 
     /** Handles submit button press (URL-based navigation) */
     onSubmit?: () => void;
 
-    /** Array of step names */
     stepNames: readonly string[];
-
-    /** ID of current policy */
     policyID: string | undefined;
 };
 
