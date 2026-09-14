@@ -36,7 +36,7 @@ function ConciergeChatHistoryToggle({reportID, hasPreviousMessages, shouldShowFu
     const {translate} = useLocalize();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['UpArrow', 'DownArrow']);
     const {isAskConciergeChat} = useConciergeAskState(reportID);
-    const {setShowFullHistory} = useConciergeSessionActions();
+    const {resetSession} = useConciergeSessionActions();
 
     if (!isAskConciergeChat || !hasPreviousMessages) {
         return null;
@@ -47,7 +47,7 @@ function ConciergeChatHistoryToggle({reportID, hasPreviousMessages, shouldShowFu
             <View style={[styles.threadDividerLine, styles.ml0, styles.mr0, styles.flexGrow1]} />
             <Button
                 size={CONST.BUTTON_SIZE.SMALL}
-                onPress={shouldShowFullHistory ? () => setShowFullHistory(false) : onShowPreviousMessages}
+                onPress={shouldShowFullHistory ? resetSession : onShowPreviousMessages}
             >
                 <Button.Text>{translate(shouldShowFullHistory ? 'common.concierge.hideChatHistory' : 'common.concierge.viewChatHistory')}</Button.Text>
                 <Button.Icon src={shouldShowFullHistory ? expensifyIcons.DownArrow : expensifyIcons.UpArrow} />
