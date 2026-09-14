@@ -1130,6 +1130,7 @@
 "../../src/pages/inbox/report/ReportActionCompose/SuggestionEmoji.tsx"	"react-hooks/refs"	1
 "../../src/pages/inbox/report/ReportActionCompose/SuggestionMention.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/inbox/report/ReportActionCompose/SuggestionMention.tsx"	"react-hooks/refs"	3
+"../../src/pages/inbox/report/ReportActionCompose/SuggestionMention.tsx"	"unicorn/prefer-at"	2
 "../../src/pages/inbox/report/ReportActionCompose/useAttachmentPicker.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/inbox/report/ReportActionCompose/useComposerFocus.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/inbox/report/ReportActionCompose/useReceiptDrop.ts"	"@typescript-eslint/no-unsafe-type-assertion"	5
