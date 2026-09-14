@@ -57,6 +57,8 @@ Supported setup guides:
  - [Connect Claude to Expensify using MCP](/articles/new-expensify/connections/connect-ai-assistants/Connect-Claude-to-Expensify-Using-MCP)
  - [Connect Cursor to Expensify using MCP](/articles/new-expensify/connections/connect-ai-assistants/Connect-Cursor-to-Expensify-Using-MCP)
 
+Workspace Admins can also open each connector's setup flow from the **MCP** page in a workspace. Learn how to [manage MCP connectors in a workspace](/articles/new-expensify/connections/connect-ai-assistants/Manage-MCP-Connectors-in-a-Workspace).
+
 ## What you can do with Expensify’s MCP server
 
 You can use natural language to query and analyze your Expensify data through your AI assistant.
