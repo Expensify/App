@@ -2068,7 +2068,9 @@ function getDisplayableExpensifyCards(cardList: CardList | undefined): Card[] {
 
 /**
  * Active, non-Expensify, non-cash cards (employer feed or personal Plaid) that are not flagged
- * as broken at the card- or feed-level, sorted by cardID ascending.
+ * as broken at the card- or feed-level, sorted by cardID ascending. The card-level check is
+ * `hasCardConnectionIssue` so that a card the wallet reports as Inactive is not counted as
+ * spendable here, which also covers the scrape statuses the broken check ignores (e.g. 434).
  *
  * No `domainName` dedupe: third-party cards don't share the Expensify "one domain ⇒ one
  * physical+virtual pair" invariant, so deduping would silently collapse distinct cards.
@@ -2088,7 +2090,7 @@ function getDisplayableThirdPartyCards(cardList: CardList | undefined, cardFeedE
             !isExpensifyCard(card) &&
             (!!card.domainName || isPersonalCard(card)) &&
             card.cardName !== CONST.COMPANY_CARDS.CARD_NAME.CASH &&
-            !isCardConnectionBroken(card) &&
+            !hasCardConnectionIssue(card) &&
             !cardsWithBrokenFeedConnection[card.cardID] &&
             !personalCardsWithBrokenConnection[card.cardID],
     );

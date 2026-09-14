@@ -3185,6 +3185,14 @@ describe('CardUtils', () => {
             expect(getDisplayableThirdPartyCards(cardList, emptyCardFeedErrors)).toEqual([]);
         });
 
+        // The wallet reports a 434 card as Inactive, so counting it as spendable here would contradict that.
+        it('excludes a card reporting an actionable scrape status the broken check ignores', () => {
+            const cardList = createMock<CardList>({
+                51: makeCompanyCard({cardID: 51, lastScrapeResult: 434}),
+            });
+            expect(getDisplayableThirdPartyCards(cardList, emptyCardFeedErrors)).toEqual([]);
+        });
+
         it('excludes a company card listed in cardFeedErrors.cardsWithBrokenFeedConnection', () => {
             const card = makeCompanyCard({cardID: 60});
             const cardList = createMock<CardList>({60: card});
