@@ -1,11 +1,10 @@
-import {act, render} from '@testing-library/react-native';
+import {act, renderHook} from '@testing-library/react-native';
 
-import ScreenShareRequestModal from '@components/ScreenShareRequestModal';
-import UpdateAppModal from '@components/UpdateAppModal';
+import useScreenShareRequestPrompt from '@hooks/useScreenShareRequestPrompt';
+import useUpdateAppPrompt from '@hooks/useUpdateAppPrompt';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 
-import React from 'react';
 import Onyx from 'react-native-onyx';
 
 import type * as MockUseConfirmModalUtil from '../utils/mockUseConfirmModal';
@@ -17,7 +16,7 @@ jest.mock('@hooks/useLocalize', () => () => ({
     translate: (key: string) => key,
 }));
 
-// Both controllers render null and push their prompt onto the global modal stack, so what they pushed -- and how many
+// Both hooks render nothing and push their prompt onto the global modal stack, so what they pushed -- and how many
 // times -- is the only observable behaviour there is to assert on.
 jest.mock('@hooks/useConfirmModal', () => {
     const {default: mockUseConfirmModal} = jest.requireActual<typeof MockUseConfirmModalUtil>('../utils/mockUseConfirmModal');
@@ -30,7 +29,7 @@ jest.mock('@components/Modal/Global/ModalContext', () => {
 });
 
 // Both actions are stubbed -- `joinScreenShare` opens an OldDot tab, and the clearing of SCREEN_SHARE_REQUEST that they
-// both do is driven from the tests instead, so it is explicit which request the controller is looking at.
+// both do is driven from the tests instead, so it is explicit which request the hook is looking at.
 const mockJoinScreenShare = jest.fn<void, [string, string]>();
 const mockClearScreenShareRequest = jest.fn();
 jest.mock('@userActions/User', () => ({
@@ -52,7 +51,7 @@ async function setScreenShareRequest(request: typeof SCREEN_SHARE_REQUEST | null
     await waitForBatchedUpdates();
 }
 
-describe('Onyx-driven global modal controllers', () => {
+describe('Onyx-driven global modal prompts', () => {
     beforeAll(() => {
         Onyx.init({keys: ONYXKEYS});
     });
@@ -68,16 +67,16 @@ describe('Onyx-driven global modal controllers', () => {
         await Onyx.clear();
     });
 
-    describe('UpdateAppModal', () => {
+    describe('useUpdateAppPrompt', () => {
         it('should not show the prompt while no update is available', async () => {
-            render(<UpdateAppModal />);
+            renderHook(() => useUpdateAppPrompt());
             await waitForBatchedUpdates();
 
             expect(mockShowConfirmModal).not.toHaveBeenCalled();
         });
 
         it('should show the prompt with the update copy once an update becomes available', async () => {
-            render(<UpdateAppModal />);
+            renderHook(() => useUpdateAppPrompt());
             await waitForBatchedUpdates();
 
             await act(async () => {
@@ -93,7 +92,7 @@ describe('Onyx-driven global modal controllers', () => {
         });
 
         it('should not show the prompt again after it has been dismissed', async () => {
-            const {rerender} = render(<UpdateAppModal />);
+            const {rerender} = renderHook(() => useUpdateAppPrompt());
             await waitForBatchedUpdates();
 
             await act(async () => {
@@ -101,27 +100,27 @@ describe('Onyx-driven global modal controllers', () => {
             });
             await waitForBatchedUpdates();
 
-            // The Onyx flag stays `true` forever, so nothing but the controller's own guard keeps this to one showing.
+            // The Onyx flag stays `true` forever, so nothing but the hook's own guard keeps this to one showing.
             resolveShowConfirmModal({action: MockModalActions.CLOSE});
             await waitForBatchedUpdates();
 
-            rerender(<UpdateAppModal />);
+            rerender({});
             await waitForBatchedUpdates();
 
             expect(mockShowConfirmModal).toHaveBeenCalledTimes(1);
         });
     });
 
-    describe('ScreenShareRequestModal', () => {
+    describe('useScreenShareRequestPrompt', () => {
         it('should not show the prompt while there is no request', async () => {
-            render(<ScreenShareRequestModal />);
+            renderHook(() => useScreenShareRequestPrompt());
             await waitForBatchedUpdates();
 
             expect(mockShowConfirmModal).not.toHaveBeenCalled();
         });
 
         it('should show the prompt with the screen-share copy when a request arrives', async () => {
-            render(<ScreenShareRequestModal />);
+            renderHook(() => useScreenShareRequestPrompt());
             await setScreenShareRequest(SCREEN_SHARE_REQUEST);
 
             expect(mockShowConfirmModal).toHaveBeenCalledTimes(1);
@@ -132,7 +131,7 @@ describe('Onyx-driven global modal controllers', () => {
         });
 
         it('should join the screen share with the request credentials on confirm', async () => {
-            render(<ScreenShareRequestModal />);
+            renderHook(() => useScreenShareRequestPrompt());
             await setScreenShareRequest(SCREEN_SHARE_REQUEST);
 
             resolveShowConfirmModal({action: MockModalActions.CONFIRM});
@@ -143,7 +142,7 @@ describe('Onyx-driven global modal controllers', () => {
         });
 
         it('should clear the request without joining on decline', async () => {
-            render(<ScreenShareRequestModal />);
+            renderHook(() => useScreenShareRequestPrompt());
             await setScreenShareRequest(SCREEN_SHARE_REQUEST);
 
             resolveShowConfirmModal({action: MockModalActions.CLOSE});
@@ -154,7 +153,7 @@ describe('Onyx-driven global modal controllers', () => {
         });
 
         it('should not stack a second prompt on top of one that is already open', async () => {
-            render(<ScreenShareRequestModal />);
+            renderHook(() => useScreenShareRequestPrompt());
             await setScreenShareRequest(SCREEN_SHARE_REQUEST);
             await setScreenShareRequest({accessToken: 'token-2', roomName: 'room-2'});
 
@@ -168,7 +167,7 @@ describe('Onyx-driven global modal controllers', () => {
         });
 
         it('should show a prompt again for a request that arrives after the previous one was answered', async () => {
-            render(<ScreenShareRequestModal />);
+            renderHook(() => useScreenShareRequestPrompt());
             await setScreenShareRequest(SCREEN_SHARE_REQUEST);
 
             resolveShowConfirmModal({action: MockModalActions.CLOSE});
@@ -178,6 +177,30 @@ describe('Onyx-driven global modal controllers', () => {
             await setScreenShareRequest({accessToken: 'token-2', roomName: 'room-2'});
 
             expect(mockShowConfirmModal).toHaveBeenCalledTimes(2);
+        });
+    });
+
+    describe('prompt ordering', () => {
+        it('should run the update prompt effect last so it sits above the screen-share prompt', async () => {
+            // DeferredGlobalModals calls the hooks in this order on purpose: only the top of the modal stack renders,
+            // so whichever effect runs last owns the prompt the user sees when both are pending at once.
+            renderHook(() => {
+                useScreenShareRequestPrompt();
+                useUpdateAppPrompt();
+            });
+            await waitForBatchedUpdates();
+
+            await act(async () => {
+                await Onyx.multiSet({
+                    [ONYXKEYS.SCREEN_SHARE_REQUEST]: SCREEN_SHARE_REQUEST,
+                    [ONYXKEYS.RAM_ONLY_UPDATE_AVAILABLE]: true,
+                });
+            });
+            await waitForBatchedUpdates();
+
+            expect(mockShowConfirmModal).toHaveBeenCalledTimes(2);
+            expect(mockShowConfirmModal.mock.calls.at(0)?.at(0)).toEqual(expect.objectContaining({title: 'guides.screenShare'}));
+            expect(mockShowConfirmModal.mock.calls.at(1)?.at(0)).toEqual(expect.objectContaining({title: 'baseUpdateAppModal.updateApp'}));
         });
     });
 });

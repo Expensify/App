@@ -1,19 +1,18 @@
-import useConfirmModal from '@hooks/useConfirmModal';
-import useLocalize from '@hooks/useLocalize';
-import useOnyx from '@hooks/useOnyx';
-
 import ONYXKEYS from '@src/ONYXKEYS';
 
 import {useEffect, useRef} from 'react';
 
+import useConfirmModal from './useConfirmModal';
+import useLocalize from './useLocalize';
+import useOnyx from './useOnyx';
+
 /**
- * Controller that owns the RAM_ONLY_UPDATE_AVAILABLE Onyx subscription and shows the update prompt on the global
- * modal stack. It renders nothing itself.
+ * Owns the RAM_ONLY_UPDATE_AVAILABLE Onyx subscription and shows the update prompt on the global modal stack.
  *
- * It is mounted last in `GlobalModals` on purpose: only the top of the modal stack is rendered, so the controller
- * whose effect runs last is the one whose modal ends up on top, and this prompt has to stay above the screen-share one.
+ * Call this from a component that is mounted only after startup: the subscription is what has to be kept out of the
+ * ManualAppStartup span, and `useOnyx` has no way to skip subscribing, so deferring the call site is the only lever.
  */
-function UpdateAppModal() {
+function useUpdateAppPrompt() {
     const {translate} = useLocalize();
     const {showConfirmModal} = useConfirmModal();
     const [updateAvailable] = useOnyx(ONYXKEYS.RAM_ONLY_UPDATE_AVAILABLE);
@@ -36,8 +35,6 @@ function UpdateAppModal() {
             cancelText: translate('common.cancel'),
         });
     }, [showConfirmModal, translate, updateAvailable]);
-
-    return null;
 }
 
-export default UpdateAppModal;
+export default useUpdateAppPrompt;

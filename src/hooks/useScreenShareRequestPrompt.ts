@@ -1,6 +1,4 @@
-import useConfirmModal from '@hooks/useConfirmModal';
-import useLocalize from '@hooks/useLocalize';
-import useOnyx from '@hooks/useOnyx';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 
 import {clearScreenShareRequest, joinScreenShare} from '@userActions/User';
 
@@ -8,13 +6,18 @@ import ONYXKEYS from '@src/ONYXKEYS';
 
 import {useEffect, useRef} from 'react';
 
-import {ModalActions} from './Modal/Global/ModalContext';
+import useConfirmModal from './useConfirmModal';
+import useLocalize from './useLocalize';
+import useOnyx from './useOnyx';
 
 /**
- * Controller that owns the SCREEN_SHARE_REQUEST Onyx subscription and shows the screen-share confirmation prompt on
- * the global modal stack when a GuidesPlus agent requests one. It renders nothing itself.
+ * Owns the SCREEN_SHARE_REQUEST Onyx subscription and shows the screen-share confirmation prompt on the global modal
+ * stack when a GuidesPlus agent requests one.
+ *
+ * Call this from a component that is mounted only after startup: the subscription is what has to be kept out of the
+ * ManualAppStartup span, and `useOnyx` has no way to skip subscribing, so deferring the call site is the only lever.
  */
-function ScreenShareRequestModal() {
+function useScreenShareRequestPrompt() {
     const {translate} = useLocalize();
     const {showConfirmModal} = useConfirmModal();
     const [screenShareRequest] = useOnyx(ONYXKEYS.SCREEN_SHARE_REQUEST);
@@ -57,8 +60,6 @@ function ScreenShareRequestModal() {
             joinScreenShare(request.accessToken, request.roomName);
         });
     }, [screenShareRequest, showConfirmModal, translate]);
-
-    return null;
 }
 
-export default ScreenShareRequestModal;
+export default useScreenShareRequestPrompt;
