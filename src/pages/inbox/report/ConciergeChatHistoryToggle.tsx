@@ -28,10 +28,6 @@ type ConciergeChatHistoryToggleProps = {
     containerStyles?: StyleProp<ViewStyle>;
 };
 
-/**
- * Expands and collapses the earlier Concierge conversation in the main Concierge DM. It sits directly
- * above the composer, either in the welcome column or in the inverted list's header.
- */
 function ConciergeChatHistoryToggle({reportID, hasPreviousMessages, onShowPreviousMessages, containerStyles}: ConciergeChatHistoryToggleProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();

@@ -11,9 +11,6 @@ import {View} from 'react-native';
 const ILLUSTRATION_NAMES = ['ConciergeBot'] as const;
 const ILLUSTRATION_SIZE = 68;
 
-/**
- * Empty state shown in the main Concierge DM before the user asks anything.
- */
 function AskConciergeEmptyState() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();

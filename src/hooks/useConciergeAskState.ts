@@ -24,11 +24,6 @@ type ConciergeAskState = {
     shouldLabelComposerAsNewQuestion: boolean;
 };
 
-/**
- * Drives the Ask Concierge screen in the main Concierge DM. The empty state lives in the report actions
- * list and the composer label lives in the report footer, and those are siblings, so both derive their
- * state here rather than one passing it to the other.
- */
 function useConciergeAskState(reportID: string | undefined): ConciergeAskState {
     const {isBetaEnabled} = usePermissions();
     const isInSidePanel = useIsInSidePanel();
@@ -36,8 +31,6 @@ function useConciergeAskState(reportID: string | undefined): ConciergeAskState {
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
 
-    // Derive the boolean inside the Onyx selector so the screen re-renders only when session activity
-    // flips, not on every report-action change in the Concierge chat.
     const hasSessionActivitySelector = (actions: OnyxEntry<ReportActions>) => {
         if (!actions || !sessionStartTime) {
             return false;
@@ -50,7 +43,6 @@ function useConciergeAskState(reportID: string | undefined): ConciergeAskState {
 
     const isAskConciergeChat = !!reportID && reportID === conciergeReportID && !isInSidePanel && isBetaEnabled(CONST.BETAS.CONCIERGE_RESPOND_IN_THREAD);
 
-    // Waiting for the session boundary keeps an existing conversation from flashing the welcome screen on open.
     const hasSessionBoundary = isAskConciergeChat && !!sessionStartTime;
 
     return {
