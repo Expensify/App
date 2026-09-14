@@ -5,14 +5,17 @@ import ThreeDotsMenu from '@components/ThreeDotsMenu';
 import CONST from '@src/CONST';
 
 import type {ReactNode} from 'react';
+
 import React from 'react';
 
 type MockPopoverMenuProps = {isVisible?: boolean; anchorPosition?: {horizontal: number; vertical: number}};
 
 const mockMeasuredAnchor = {horizontal: 0, vertical: 0, width: 40, height: 40};
 const mockWindowDimensions = {windowWidth: 1400, windowHeight: 900};
-const mockRenderedAnchorPosition: {current: {horizontal: number; vertical: number} | undefined} = {current: undefined};
 const mockMeasureCount = {current: 0};
+
+/** Records every `PopoverMenu` render so assertions can read the `anchorPosition` it was last given while open. */
+const mockPopoverRender = jest.fn<void, [MockPopoverMenuProps]>();
 
 jest.mock('@hooks/useWindowDimensions', () => () => mockWindowDimensions);
 
@@ -29,9 +32,7 @@ jest.mock('@components/PopoverMenu', () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment -- jest.requireActual returns an untyped module; standard RN-mock pattern in this repo.
     const {View: RNView} = jest.requireActual('react-native');
     function MockPopoverMenu({isVisible, anchorPosition}: MockPopoverMenuProps) {
-        if (isVisible) {
-            mockRenderedAnchorPosition.current = anchorPosition;
-        }
+        mockPopoverRender({isVisible, anchorPosition});
         return <RNView testID={isVisible ? 'popover-open' : 'popover-closed'} />;
     }
     return MockPopoverMenu;
@@ -73,6 +74,9 @@ const menuElement = (
     />
 );
 
+/** The `anchorPosition` from the most recent render in which the popover was open. */
+const lastOpenAnchorPosition = () => mockPopoverRender.mock.calls.map(([props]) => props).findLast((props) => props.isVisible)?.anchorPosition;
+
 /** Lets a pending `calculatePopoverPosition` promise settle without running the reposition debounce. */
 const flushPendingMeasurements = () =>
     act(async () => {
@@ -85,7 +89,7 @@ describe('ThreeDotsMenu repositioning', () => {
         setMeasuredAnchor(1000, 300);
         mockWindowDimensions.windowWidth = 1400;
         mockWindowDimensions.windowHeight = 900;
-        mockRenderedAnchorPosition.current = undefined;
+        mockPopoverRender.mockClear();
         mockMeasureCount.current = 0;
     });
 
@@ -100,7 +104,7 @@ describe('ThreeDotsMenu repositioning', () => {
         await flushPendingMeasurements();
 
         expect(screen.getByTestId('popover-open')).toBeOnTheScreen();
-        expect(mockRenderedAnchorPosition.current?.horizontal).toBe(1000);
+        expect(lastOpenAnchorPosition()?.horizontal).toBe(1000);
 
         // The viewport shrinks. Surrounding layout (a virtualized list, for instance) has not repositioned the
         // anchor yet, so measuring at this point would still report the pre-resize coordinates.
@@ -115,7 +119,7 @@ describe('ThreeDotsMenu repositioning', () => {
             jest.advanceTimersByTime(CONST.TIMING.RESIZE_DEBOUNCE_TIME);
         });
 
-        expect(mockRenderedAnchorPosition.current?.horizontal).toBe(700);
+        expect(lastOpenAnchorPosition()?.horizontal).toBe(700);
     });
 
     it('does not re-measure the anchor while the menu is closed', async () => {
