@@ -9284,6 +9284,35 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             return `zmienił uczestników kategorii „${categoryName}” na ${newValue ? 'wymagane' : 'niewymagane'} (wcześniej ${newValue ? 'niewymagane' : 'wymagane'})`;
         },
         updatedAutoHarvesting: (enabled: boolean) => `${enabled ? 'włączone' : 'wyłączone'} zgłoszenia`,
+        changedOverLimitForwardsTo: ({
+            member,
+            approver,
+            limit,
+            previousApprover,
+            previousLimit,
+        }: {
+            member: string;
+            approver: string;
+            limit: string;
+            previousApprover?: string;
+            previousLimit?: string;
+        }) => {
+            let text = previousApprover
+                ? `zmienił(a) proces zatwierdzania dla ${member}, aby przekazywać raporty powyżej ${limit} do ${approver}`
+                : `ustaw proces zatwierdzania dla ${member}, aby przekazywać raporty powyżej ${limit} do ${approver}`;
+            if (previousApprover && previousLimit) {
+                text += ` (wcześniej przekazywał raporty powyżej ${previousLimit} do ${previousApprover})`;
+            } else if (previousApprover) {
+                text += ` (wcześniej przekazane do ${previousApprover})`;
+            }
+            return text;
+        },
+        removedOverLimitForwardsTo: ({member, previousApprover, previousLimit}: {member: string; previousApprover?: string; previousLimit: string}) =>
+            previousApprover
+                ? `zmienił przepływ zatwierdzania dla ${member}, aby przestać przekazywać raporty powyżej ${previousLimit} (wcześniej przekazywane do ${previousApprover})`
+                : `zmienił(a) proces akceptacji dla ${member}, żeby przestać przekazywać raporty powyżej ${previousLimit}`,
+        changedApprovalLimit: ({member, limit, previousLimit}: {member: string; limit: string; previousLimit: string}) =>
+            `zmienił obieg akceptacji dla ${member}, aby przekazywać raporty powyżej ${limit} (wcześniej ${previousLimit})`,
     },
     roomMembersPage: {
         memberNotFound: 'Nie znaleziono członka.',
@@ -10917,6 +10946,8 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
         gpsTooltip: '<tooltip>Śledzenie GPS w toku! Gdy skończysz, zatrzymaj śledzenie poniżej.</tooltip>',
         hasFilterNegation: '<tooltip>Wyszukaj wydatki bez paragonów za pomocą <strong>-has:receipt</strong>.</tooltip>',
         mileageRateAutoUpdated: '<tooltip>Zaktualizowaliśmy stawkę na podstawie daty twojej podróży.</tooltip>',
+        markAllAsRead: '<tooltip>Kliknij prawym przyciskiem myszy, aby <strong>oznaczyć wszystko jako przeczytane</strong>.</tooltip>',
+        markAllAsReadTouchScreen: '<tooltip>Przytrzymaj, aby <strong>oznaczyć wszystko jako przeczytane</strong>.</tooltip>',
     },
     discardChangesConfirmation: {
         title: 'Odrzucić zmiany?',
