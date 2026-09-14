@@ -309,6 +309,7 @@ describe('OnboardingWorkspaces Page', () => {
     });
 
     it('should create a Join workspace task when validation opens the workspace list before the onboarding update arrives', async () => {
+        const dismissModalWithReport = jest.spyOn(Navigation, 'dismissModalWithReport').mockImplementation(() => {});
         await TestHelper.signInWithTestUser();
 
         await act(async () => {
@@ -324,13 +325,16 @@ describe('OnboardingWorkspaces Page', () => {
 
         await waitForBatchedUpdatesWithAct();
 
+        mockCreateJoinWorkspaceOnboardingContent.mockReturnValueOnce('456');
         fireEvent.press(screen.getByTestId('onboardingWorkSpaceSkipButton'));
 
         await waitFor(() => {
             expect(mockCreateJoinWorkspaceOnboardingContent).toHaveBeenCalledWith('joinWorkspace', expect.any(String), expect.any(String), undefined);
         });
+        expect(dismissModalWithReport).toHaveBeenCalledWith({reportID: '456'});
         expect(mockCompleteOnboarding).not.toHaveBeenCalled();
 
+        dismissModalWithReport.mockRestore();
         unmount();
         await waitForBatchedUpdatesWithAct();
     });
