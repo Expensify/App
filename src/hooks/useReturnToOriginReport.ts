@@ -19,8 +19,9 @@ function useReturnToOriginReport() {
     const [originReportID] = useState(() => Navigation.getTopmostReportId());
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     return useCallback(() => {
-        Navigation.dismissModal();
-        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(originReportID ?? conciergeReportID));
+        Navigation.dismissModal({
+            afterTransition: () => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(originReportID ?? conciergeReportID)),
+        });
     }, [originReportID, conciergeReportID]);
 }
 
