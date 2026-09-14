@@ -27,7 +27,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 
-import React, {useMemo, useState} from 'react';
+import React, {useMemo} from 'react';
 import {View} from 'react-native';
 
 type SetDefaultWorkspacePageProps = PlatformStackScreenProps<MoneyRequestNavigatorParamList, typeof SCREENS.SET_DEFAULT_WORKSPACE>;
@@ -45,8 +45,6 @@ function SetDefaultWorkspacePage({route}: SetDefaultWorkspacePageProps) {
 
     const shouldShowLoadingIndicator = isAppLoadPending && !isOffline;
     const session = useSession();
-
-    const [draftPolicyID, setDraftPolicyID] = useState<string>();
 
     const selectPolicy = (selectedPolicyID?: string) => {
         if (!selectedPolicyID) {
@@ -74,20 +72,11 @@ function SetDefaultWorkspacePage({route}: SetDefaultWorkspacePageProps) {
         policies,
         currentUserLogin: session?.email,
         shouldShowPendingDeletePolicy: false,
-        selectedPolicyIDs: draftPolicyID ? [draftPolicyID] : undefined,
-        // This page never pinned a workspace to the top, so don't start now that checking a row sets selectedPolicyIDs.
-        shouldSortSelectedToTop: false,
+        selectedPolicyIDs: undefined,
         searchTerm: debouncedSearchTerm,
         localeCompare,
         additionalFilter: (newPolicy) => isGroupPolicy(newPolicy),
     });
-
-    const confirmButtonOptions = {
-        showButton: true,
-        text: translate('common.save'),
-        onConfirm: () => selectPolicy(draftPolicyID),
-        isDisabled: !draftPolicyID,
-    };
 
     const textInputOptions = useMemo(
         () => ({
@@ -102,7 +91,7 @@ function SetDefaultWorkspacePage({route}: SetDefaultWorkspacePageProps) {
     return (
         <ScreenWrapper
             testID="SetDefaultWorkspacePage"
-            enableEdgeToEdgeBottomSafeAreaPadding
+            includeSafeAreaPaddingBottom
             shouldEnableMaxHeight
         >
             {({didScreenTransitionEnd}) => (
@@ -120,11 +109,9 @@ function SetDefaultWorkspacePage({route}: SetDefaultWorkspacePageProps) {
                             data={data}
                             ListItem={UserListItem}
                             textInputOptions={textInputOptions}
-                            onSelectRow={(option) => setDraftPolicyID(option.policyID)}
-                            confirmButtonOptions={confirmButtonOptions}
+                            onSelectRow={(option) => selectPolicy(option.policyID)}
                             shouldShowLoadingPlaceholder={fetchStatus.status === 'loading' || !didScreenTransitionEnd}
                             disableMaintainingScrollPosition
-                            addBottomSafeAreaPadding
                         />
                     )}
                 </>
