@@ -237,16 +237,16 @@ type OriginalMessagePolicyExpenseChatWelcomeWhisper = {
     type?: string;
 };
 
-/** Model of a violation captured on a submitted report action */
-type SubmittedTransactionViolation = {
-    /** Violation identifier/name captured at submit time */
+/** Model of a violation captured on a report action snapshot */
+type SnapshotTransactionViolation = {
+    /** Violation identifier/name captured at snapshot time */
     name: string;
 };
 
 /** Model of the transaction violations snapshot captured on a report action */
-type SubmittedViolationsSnapshot = {
+type ViolationsSnapshot = {
     /** Violations keyed by transaction ID */
-    transactions: Record<string, SubmittedTransactionViolation[]>;
+    transactions: Record<string, SnapshotTransactionViolation[]>;
 };
 
 /** Model of `submitted` report action */
@@ -284,13 +284,13 @@ type OriginalMessageSubmitted = {
     workflow?: ValueOf<typeof CONST.POLICY.APPROVAL_MODE>;
 
     /** Snapshot of transaction violations present when the report was submitted */
-    violations?: SubmittedViolationsSnapshot;
+    violations?: ViolationsSnapshot;
 };
 
 /** Model of the add-expense-on-submitted report action, which only carries the violations snapshot of the added expense */
 type OriginalMessageAddExpenseOnSubmitted = {
     /** Snapshot of the transaction violations present when the expense was added to the submitted report */
-    violations?: SubmittedViolationsSnapshot;
+    violations?: ViolationsSnapshot;
 };
 
 /** Model of `created` report action */
@@ -1230,6 +1230,9 @@ type OriginalMessageApproved = {
 
     /** The Concierge reasoning for the action */
     reasoning?: string;
+
+    /** Snapshot of transaction violations present when the report was approved */
+    violations?: ViolationsSnapshot;
 };
 
 /** Model of `forwarded` report action */
@@ -1253,6 +1256,9 @@ type OriginalMessageForwarded = {
 
     /** Optional message explaining why the report was forwarded that way */
     message?: string;
+
+    /** Snapshot of transaction violations present when the report was forwarded */
+    violations?: ViolationsSnapshot;
 };
 
 /**
@@ -1452,7 +1458,7 @@ type OriginalMessageCardDeactivated = {
 };
 
 /**
- * Model of PERSONAL_CARD_CONNECTION_BROKEN action
+ * Model of PERSONAL_CARD_CONNECTION_BROKEN and PERSONAL_CARD_CONNECTION_BROKEN_30_DAYS actions
  */
 type OriginalPersonalCard = {
     /** The id of the user the card was assigned to */
@@ -1670,6 +1676,7 @@ type OriginalMessageMap = {
     [CONST.REPORT.ACTIONS.TYPE.CARD_UNFROZEN]: OriginalMessageCardFrozen;
     [CONST.REPORT.ACTIONS.TYPE.CARD_DEACTIVATED]: OriginalMessageCardDeactivated;
     [CONST.REPORT.ACTIONS.TYPE.PERSONAL_CARD_CONNECTION_BROKEN]: OriginalPersonalCard;
+    [CONST.REPORT.ACTIONS.TYPE.PERSONAL_CARD_CONNECTION_BROKEN_30_DAYS]: OriginalPersonalCard;
     [CONST.REPORT.ACTIONS.TYPE.INTEGRATION_SYNC_FAILED]: OriginalMessageIntegrationSyncFailed;
     [CONST.REPORT.ACTIONS.TYPE.DELETED_TRANSACTION]: OriginalMessageDeletedTransaction;
     [CONST.REPORT.ACTIONS.TYPE.DEW_SUBMIT_FAILED]: OriginalMessageDEWFailed;
@@ -1678,6 +1685,7 @@ type OriginalMessageMap = {
     [CONST.REPORT.ACTIONS.TYPE.CONCIERGE_DESCRIPTION_OPTIONS]: OriginalMessageConciergeDescriptionOptions;
     [CONST.REPORT.ACTIONS.TYPE.CONCIERGE_AUTO_MAP_MCC_GROUPS]: OriginalMessageConciergeAutoMapMccGroups;
     [CONST.REPORT.ACTIONS.TYPE.COMPANY_CARD_CONNECTION_BROKEN]: OriginalMessageCompanyCardConnectionBroken;
+    [CONST.REPORT.ACTIONS.TYPE.COMPANY_CARD_CONNECTION_BROKEN_30_DAYS]: OriginalMessageCompanyCardConnectionBroken;
     [CONST.REPORT.ACTIONS.TYPE.COMMUTER_EXCLUSION]: OriginalMessageCommuterExclusion;
     [CONST.REPORT.ACTIONS.TYPE.PLAID_BALANCE_FAILURE]: OriginalMessagePlaidBalanceFailure;
     [CONST.REPORT.ACTIONS.TYPE.RETRACTED]: never;
@@ -1724,4 +1732,5 @@ export type {
     OriginalMessageMarkedReimbursed,
     OriginalMessageReimbursed,
     OriginalMessageSettlementAccountLocked,
+    ViolationsSnapshot,
 };

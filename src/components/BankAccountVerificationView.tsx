@@ -17,7 +17,7 @@ import type {ValueOf} from 'type-fest';
 import React from 'react';
 
 import BlockingView from './BlockingViews/BlockingView';
-import Button from './ButtonComposed';
+import Button from './Button';
 import LottieAnimations from './LottieAnimations';
 
 type BankAccountVerificationViewProps = {

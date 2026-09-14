@@ -223,6 +223,8 @@ function SuggestionEmoji({
             [calculateEmojiSuggestion],
         ),
         CONST.TIMING.SUGGESTION_DEBOUNCE_TIME,
+        // maxWait keeps the suggestions refreshing while a key is held down.
+        {maxWait: CONST.TIMING.SUGGESTION_DEBOUNCE_TIME},
     );
 
     useEffect(() => {
