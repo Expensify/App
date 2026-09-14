@@ -15,6 +15,8 @@ const TRANSACTION_ID = '7000000000000001';
 const IOU_REPORT_ID = '8000000000000001';
 const CHAT_REPORT_ID = '9000000000000001';
 const POLICY_ID = 'A0000000000000001';
+const IOU_ACTION_ID = '6000000000000001';
+const THREAD_REPORT_ID = '5000000000000001';
 
 const receiptFile: FileObject = {name: 'receipt.jpg', type: 'image/jpeg', uri: 'file:///receipts/receipt.jpg'};
 
@@ -43,6 +45,8 @@ function buildContext(transaction: Transaction): ReceiptRetryContext {
         },
         transaction,
         iouReport: {reportID: IOU_REPORT_ID, chatReportID: CHAT_REPORT_ID, policyID: POLICY_ID, type: CONST.REPORT.TYPE.EXPENSE} as Report,
+        iouActionID: IOU_ACTION_ID,
+        transactionThreadReportID: THREAD_REPORT_ID,
         policyParams: {},
         betas: [],
         conciergeReportID: undefined,
@@ -79,6 +83,12 @@ describe('buildRetryPayload', () => {
 
     it('offers a retry for a failed expense as the create path really leaves it, with no participants and a manual request type', () => {
         expect(canBuildRetryPayload(buildContext(buildFailedTransaction()))).toBe(true);
+    });
+
+    it('reuses the IOU report action and transaction thread, so the retry does not add a second expense to the report', () => {
+        const payload = buildRetryPayload(buildContext(buildFailedTransaction()), receiptFile);
+        expect(payload?.currentReportActionID).toBe(IOU_ACTION_ID);
+        expect(payload?.existingTransactionThreadReportID).toBe(THREAD_REPORT_ID);
     });
 
     it('offers no retry for a distance expense, whose waypoints the transaction alone cannot restore', () => {
