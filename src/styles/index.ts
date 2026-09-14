@@ -2784,6 +2784,22 @@ const staticStyles = (theme: ThemeColors) =>
             minHeight: variables.tableRowHeight,
         },
 
+        tableRowVerticalPadding: {
+            paddingVertical: variables.tableRowPaddingVertical,
+        },
+
+        tableRowVerticalPaddingCompact: {
+            paddingVertical: variables.tableRowPaddingVerticalCompact,
+        },
+
+        tableRowContentHeight: {
+            minHeight: variables.tableRowHeight - variables.tableRowPaddingVertical * 2 - variables.borderTopWidth,
+        },
+
+        tableRowContentHeightCompact: {
+            minHeight: variables.tableRowHeightCompact - variables.tableRowPaddingVerticalCompact * 2 - variables.borderTopWidth,
+        },
+
         tableHeaderContentHeight: {
             minHeight: variables.tableHeaderContentHeight,
         },
@@ -3807,6 +3823,25 @@ const staticStyles = (theme: ThemeColors) =>
             height: 180,
             width: 180,
             marginBottom: 20,
+        },
+
+        digitalWalletConfirmIllustration: {
+            width: variables.w102,
+            height: variables.w102,
+            marginBottom: 12,
+        },
+
+        digitalWalletConfirmError: {
+            position: 'absolute',
+            bottom: '100%',
+            left: 0,
+            right: 0,
+        },
+
+        digitalWalletResultIllustration: {
+            width: variables.iconSection,
+            height: variables.iconSection,
+            marginBottom: 12,
         },
 
         googleSearchSeparator: {
