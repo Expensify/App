@@ -65,6 +65,10 @@ export default function () {
             // Ensure the Supportal permission modal doesn't persist across reloads
             [ONYXKEYS.SUPPORTAL_PERMISSION_DENIED]: null,
             [ONYXKEYS.IS_OPEN_APP_FAILURE_MODAL_OPEN]: false,
+            // The copy settings progress modal is driven by a backend signal that may never arrive, so drop
+            // the in-flight step on startup rather than reopening a spinner that can no longer be resolved.
+            // The rest of the key (the source/target/parts selections) is preserved by the merge.
+            [ONYXKEYS.COPY_POLICY_SETTINGS]: {currentStep: null, startedAt: null},
             // Without a default this server-owned NVP has no row until it arrives, and its loading status holds the Search router behind a skeleton
             [ONYXKEYS.RECENT_SEARCHES]: {},
         },

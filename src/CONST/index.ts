@@ -4416,6 +4416,10 @@ const CONST = {
             COMPLETE: 'complete',
             FAILED: 'failed',
         },
+
+        // How long the copy settings progress modal waits for the backend to report a terminal state
+        // before falling back to the "Concierge will let you know" step instead of spinning forever.
+        COPY_SETTINGS_PROGRESS_TIMEOUT_MS: 60 * 1000,
         AUTO_REIMBURSEMENT_MAX_LIMIT_CENTS: 2000000,
 
         // Auto-reimbursement and auto-approval defaults are 0, but when enabled will use the suggested limit

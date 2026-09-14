@@ -15,7 +15,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {hasSeenTourSelector} from '@src/selectors/Onboarding';
 
-import React from 'react';
+import React, {useEffect} from 'react';
 import {View} from 'react-native';
 
 function useCopyPolicySettingsProgressModal() {
@@ -34,6 +34,27 @@ function useCopyPolicySettingsProgressModal() {
     const isCopySettingsComplete = bulkPolicyCopySettings?.state === CONST.POLICY.COPY_SETTINGS_NVP_STATE.COMPLETE;
     const isCopySettingsFailed = bulkPolicyCopySettings?.state === CONST.POLICY.COPY_SETTINGS_NVP_STATE.FAILED;
     const backendErrorMessage = bulkPolicyCopySettings?.error;
+    const startedAt = copyPolicySettings?.startedAt;
+
+    // The backend owns the completion signal, so if that NVP state never arrives the spinner would run
+    // forever. Time it out into the same state the "Let me know when it's done" button produces, which
+    // is dismissible and asks Concierge to report the outcome, instead of leaving the user stuck.
+    useEffect(() => {
+        if (!copyInProgressStep || isCopySettingsComplete || isCopySettingsFailed) {
+            return;
+        }
+
+        // The deadline is absolute rather than per-mount, so navigating away from the Workspaces list and
+        // back doesn't hand the copy another full timeout.
+        const elapsedTime = startedAt ? Date.now() - startedAt : 0;
+        const remainingTime = Math.max(CONST.POLICY.COPY_SETTINGS_PROGRESS_TIMEOUT_MS - elapsedTime, 0);
+        const timeoutID = setTimeout(() => {
+            requestCopyPolicySettingsNotification();
+            setCopyPolicySettingsData({currentStep: CONST.POLICY.COPY_SETTINGS_MODAL_STEP.COMPLETE});
+        }, remainingTime);
+
+        return () => clearTimeout(timeoutID);
+    }, [copyInProgressStep, isCopySettingsComplete, isCopySettingsFailed, startedAt]);
 
     // Modal is visible when in progress, when user requested notification, or when failed (while modal is still open)
     const isVisible = copyInProgressStep || requestNotificationStep;

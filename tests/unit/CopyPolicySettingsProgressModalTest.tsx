@@ -10,6 +10,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 
 import React, {isValidElement} from 'react';
 import Onyx from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
@@ -97,6 +98,21 @@ async function setOnyxState(setter: () => Promise<void>) {
 async function renderModal() {
     render(<CopyPolicySettingsProgressModal />);
     await waitForBatchedUpdatesWithAct();
+}
+
+/**
+ * Renders the modal while leaving pending timers alone. Under fake timers `waitForBatchedUpdatesWithAct`
+ * calls `jest.runOnlyPendingTimers()`, which would fire the progress timeout during setup and make the
+ * deadline untestable. Onyx notifies its subscribers on `process.nextTick`, which jest never fakes, so
+ * flushing that alone is enough for the first render to read the state set beforehand.
+ */
+async function renderModalWithoutRunningTimers() {
+    render(<CopyPolicySettingsProgressModal />);
+    await act(async () => {
+        await new Promise<void>((resolve) => {
+            process.nextTick(resolve);
+        });
+    });
 }
 
 describe('CopyPolicySettingsProgressModal', () => {
@@ -292,6 +308,81 @@ describe('CopyPolicySettingsProgressModal', () => {
             await renderModal();
 
             expect(lastModalProps?.shouldHandleNavigationBack).toBe(true);
+        });
+    });
+
+    describe('progress timeout', () => {
+        afterEach(() => {
+            jest.useRealTimers();
+        });
+
+        /**
+         * Seeds an in-flight copy that started `elapsedTime` ago and renders the modal. The clock is faked
+         * up front so `startedAt` and the modal's deadline are measured against the same frozen `Date.now()`,
+         * leaving `setImmediate`/`nextTick` real so the Onyx and render flushes still settle on their own.
+         */
+        async function startCopyStartedAgo(elapsedTime: number, nvpState?: ValueOf<typeof CONST.POLICY.COPY_SETTINGS_NVP_STATE>) {
+            jest.useFakeTimers({doNotFake: ['nextTick', 'setImmediate', 'clearImmediate']});
+            await setOnyxState(async () => {
+                await Onyx.merge(ONYXKEYS.COPY_POLICY_SETTINGS, {currentStep: CONST.POLICY.COPY_SETTINGS_MODAL_STEP.LOADING, startedAt: Date.now() - elapsedTime});
+                if (nvpState) {
+                    await Onyx.merge(ONYXKEYS.NVP_BULK_POLICY_COPY_SETTINGS, {state: nvpState});
+                }
+            });
+            await renderModalWithoutRunningTimers();
+        }
+
+        it('should keep spinning until the timeout elapses', async () => {
+            await startCopyStartedAgo(0);
+
+            act(() => {
+                jest.advanceTimersByTime(CONST.POLICY.COPY_SETTINGS_PROGRESS_TIMEOUT_MS - 1);
+            });
+
+            expect(mockRequestNotification).not.toHaveBeenCalled();
+            expect(lastModalProps?.title).toBe('workspace.copyPolicySettings.progress.copyInProgressTitle');
+        });
+
+        it('should fall back to the concierge notification step when the backend never reports a terminal state', async () => {
+            await startCopyStartedAgo(0);
+
+            act(() => {
+                jest.advanceTimersByTime(CONST.POLICY.COPY_SETTINGS_PROGRESS_TIMEOUT_MS);
+            });
+
+            expect(mockRequestNotification).toHaveBeenCalledTimes(1);
+            expect(mockSetCopyPolicySettingsData).toHaveBeenCalledWith({currentStep: CONST.POLICY.COPY_SETTINGS_MODAL_STEP.COMPLETE});
+        });
+
+        it('should count time already elapsed so remounting does not restart the deadline', async () => {
+            await startCopyStartedAgo(CONST.POLICY.COPY_SETTINGS_PROGRESS_TIMEOUT_MS - 5000);
+
+            act(() => {
+                jest.advanceTimersByTime(5000);
+            });
+
+            expect(mockRequestNotification).toHaveBeenCalledTimes(1);
+        });
+
+        it('should not time out once the backend reports the copy is complete', async () => {
+            await startCopyStartedAgo(0, CONST.POLICY.COPY_SETTINGS_NVP_STATE.COMPLETE);
+
+            act(() => {
+                jest.advanceTimersByTime(CONST.POLICY.COPY_SETTINGS_PROGRESS_TIMEOUT_MS * 2);
+            });
+
+            expect(mockRequestNotification).not.toHaveBeenCalled();
+            expect(mockSetCopyPolicySettingsData).not.toHaveBeenCalled();
+        });
+
+        it('should not time out once the backend reports the copy has failed', async () => {
+            await startCopyStartedAgo(0, CONST.POLICY.COPY_SETTINGS_NVP_STATE.FAILED);
+
+            act(() => {
+                jest.advanceTimersByTime(CONST.POLICY.COPY_SETTINGS_PROGRESS_TIMEOUT_MS * 2);
+            });
+
+            expect(mockRequestNotification).not.toHaveBeenCalled();
         });
     });
 
