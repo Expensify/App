@@ -175,7 +175,7 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
     const {getScrollOffset} = useActionListContext();
     const listRef = useActionListRef();
 
-    const {draftReportAction, isDraftPendingCompletion} = useConciergeDraft();
+    const {draftReportAction, isDraftPendingCompletion, isAgentZeroChat} = useConciergeDraft();
     const {clearDraft, revealDraftFromReportAction} = useConciergeDraftActions();
 
     const showHiddenHistory = isConciergeHiddenHistory && !showFullHistory;
@@ -332,8 +332,11 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
     // `hasNewerActions` covers the other direction: opening the report at a deep link or an old unread
     // anchor renders one pagination window, and the newest Concierge reply in that window is not the
     // newest in the report, so the prompt would ask the user to rate a stale answer.
+    //
+    // `isAgentZeroChat` goes first because the scan walks every action in the report, and outside the chats
+    // where Concierge answers there is nothing for it to find.
     const latestConciergeFeedbackActionID =
-        isSyntheticDraftVisible || hasNewerActions ? undefined : getLatestConciergeFeedbackActionID(renderedVisibleReportActions, new Set(allReportActionIDs));
+        !isAgentZeroChat || isSyntheticDraftVisible || hasNewerActions ? undefined : getLatestConciergeFeedbackActionID(renderedVisibleReportActions, new Set(allReportActionIDs));
 
     useFollowActionBadgeTarget({
         isProduction,

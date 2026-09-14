@@ -142,7 +142,7 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
 
     const {reportActions: unfilteredReportActions, hasNewerActions, hasOlderActions} = usePaginatedReportActions(reportID, route?.params?.reportActionID);
     const reportActions = useMemo(() => getFilteredReportActionsForReportView(unfilteredReportActions), [unfilteredReportActions]);
-    const {draftReportAction, isDraftPendingCompletion} = useConciergeDraft();
+    const {draftReportAction, isDraftPendingCompletion, isAgentZeroChat} = useConciergeDraft();
     const draftReportActionID = draftReportAction?.reportActionID;
 
     const allReportTransactions = useReportTransactionsCollection(reportIDFromRoute);
@@ -244,9 +244,13 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
 
     // `visibleReportActions` is oldest-first here, while the helper scans newest-first.
     // Suppressed while a Concierge answer is still streaming so the prompt never lands on a half-written reply.
+    // The scan walks every action in the report, so skip it outside the chats where Concierge answers.
     const latestConciergeFeedbackActionID = useMemo(
-        () => (isDraftPendingCompletion || hasNewerActions ? undefined : getLatestConciergeFeedbackActionID(visibleReportActions.slice().reverse(), new Set(reportActionIDs))),
-        [isDraftPendingCompletion, hasNewerActions, visibleReportActions, reportActionIDs],
+        () =>
+            !isAgentZeroChat || isDraftPendingCompletion || hasNewerActions
+                ? undefined
+                : getLatestConciergeFeedbackActionID(visibleReportActions.slice().reverse(), new Set(reportActionIDs)),
+        [isAgentZeroChat, isDraftPendingCompletion, hasNewerActions, visibleReportActions, reportActionIDs],
     );
 
     const {loadOlderChats, loadNewerChats} = useLoadReportActions({
