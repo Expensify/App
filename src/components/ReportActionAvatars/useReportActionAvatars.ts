@@ -196,6 +196,7 @@ function useReportActionAvatars({
     const shouldUseAccountIDs = accountIDs.length > 0;
     const shouldShowAllActors = displayAllActors && !reportPreviewSenderID;
     const isChatThreadOutsideTripRoom = isChatThread(chatReport) && !isATripRoom;
+    const isConciergeThread = !!conciergeReportID && isChatThread(chatReport) && chatReport?.parentReportID === conciergeReportID;
     const shouldShowSubscriptAvatar = shouldReportShowSubscript(iouReport ?? chatReport, isReportArchived);
     const shouldShowConvertedSubscriptAvatar = (shouldStackHorizontally || shouldUseAccountIDs) && shouldShowSubscriptAvatar && !reportPreviewSenderID;
     const isExpense = isMoneyRequestAction(action) && getOriginalMessage(action)?.type === CONST.IOU.ACTION.CREATE;
@@ -295,7 +296,7 @@ function useReportActionAvatars({
 
     if (useNearestReportAvatars) {
         primaryAvatar = getIconsWithDefaults(iouReport ?? chatReport).at(0);
-    } else if (isWorkspaceActor || usePersonalDetailsAvatars) {
+    } else if ((isConciergeThread && !passedAction) || isWorkspaceActor || usePersonalDetailsAvatars) {
         primaryAvatar = reportIcons.at(0);
     } else if (delegateAvatar) {
         primaryAvatar = delegateAvatar;
