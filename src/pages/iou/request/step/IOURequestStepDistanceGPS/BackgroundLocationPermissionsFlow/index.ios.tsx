@@ -1,11 +1,12 @@
-import ConfirmModal from '@components/ConfirmModal';
 import {loadIllustration} from '@components/Icon/IllustrationLoader';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 
+import useConfirmModal from '@hooks/useConfirmModal';
 import {useMemoizedLazyAsset} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 
 import {getBackgroundPermissionsAsync, getForegroundPermissionsAsync, PermissionStatus, requestBackgroundPermissionsAsync, requestForegroundPermissionsAsync} from 'expo-location';
-import React, {useEffect, useRef, useState} from 'react';
+import {useEffect, useRef} from 'react';
 import {Linking} from 'react-native';
 import {checkLocationAccuracy} from 'react-native-permissions';
 
@@ -15,7 +16,7 @@ async function requestPermissions({
     onGrant,
     onError,
     onPreciseLocationNotGranted,
-}: Pick<BackgroundLocationPermissionsFlowProps, 'onGrant'> & {onPreciseLocationNotGranted: () => void; onError: () => void}) {
+}: Pick<BackgroundLocationPermissionsFlowProps, 'onGrant'> & {onPreciseLocationNotGranted: () => Promise<void>; onError: () => void}) {
     try {
         const {status: fgStatus} = await requestForegroundPermissionsAsync();
 
@@ -36,7 +37,7 @@ async function requestPermissions({
             return;
         }
 
-        onPreciseLocationNotGranted();
+        await onPreciseLocationNotGranted();
     } catch (e) {
         console.error('[GPS distance request] Failed to request location permissions: ', e);
         onError();
@@ -85,78 +86,113 @@ async function checkPermissions({
 }
 
 function BackgroundLocationPermissionsFlow({startPermissionsFlow, setStartPermissionsFlow, onError, onGrant, onDeny}: BackgroundLocationPermissionsFlowProps) {
-    const [showFirstAskModal, setShowFirstAskModal] = useState(false);
-    const [showPreciseLocationModal, setShowPreciseLocationModal] = useState(false);
     const {asset: ReceiptLocationMarker} = useMemoizedLazyAsset(() => loadIllustration('ReceiptLocationMarker'));
     const {translate} = useLocalize();
+    const {showConfirmModal, closeModal} = useConfirmModal();
 
-    const onModalHide = useRef<(() => void) | null>(null);
+    const onGrantRef = useRef(onGrant);
+    const onDenyRef = useRef(onDeny);
+    const onErrorRef = useRef(onError);
+    const closeModalRef = useRef(closeModal);
+    const isModalActiveRef = useRef(false);
+
+    // The permissions flow outlives a single render, so it reads the parent's callbacks from refs instead of
+    // capturing the identities it was started with.
+    useEffect(() => {
+        onGrantRef.current = onGrant;
+        onDenyRef.current = onDeny;
+        onErrorRef.current = onError;
+        closeModalRef.current = closeModal;
+    }, [onGrant, onDeny, onError, closeModal]);
+
+    // The modals live in the global modal stack now, so they are not torn down with this component.
+    // Close whichever one is still open if we unmount mid-flow.
+    useEffect(
+        () => () => {
+            if (!isModalActiveRef.current) {
+                return;
+            }
+            isModalActiveRef.current = false;
+            closeModalRef.current();
+        },
+        [],
+    );
 
     useEffect(() => {
         if (!startPermissionsFlow) {
             return;
         }
 
-        checkPermissions({onGrant, onDeny, onError, onAskForPermissions: () => setShowFirstAskModal(true), onPreciseLocationNotGranted: () => setShowPreciseLocationModal(true)});
-        setStartPermissionsFlow(false);
-    }, [startPermissionsFlow, onDeny, onGrant, setStartPermissionsFlow, onError]);
+        const sharedModalOptions = {
+            cancelText: translate('common.dismiss'),
+            iconSource: ReceiptLocationMarker,
+            iconFill: false as const,
+            iconWidth: 140,
+            iconHeight: 120,
+            shouldCenterIcon: true,
+            shouldReverseStackedButtons: true,
+        };
 
-    const requestPermissionsFirstAsk = () => {
-        setShowFirstAskModal(false);
-        requestPermissions({
-            onGrant,
-            onError,
+        // showConfirmModal resolves after the modal finished hiding, so the Precise Location modal can be opened from
+        // the awaited result of the First Ask modal without the two hide/show animations clashing on iOS.
+        const showStepModal = async (options: Parameters<typeof showConfirmModal>[0]) => {
+            isModalActiveRef.current = true;
+            const {action} = await showConfirmModal(options);
+            isModalActiveRef.current = false;
+
+            return action === ModalActions.CONFIRM;
+        };
+
+        const showPreciseLocationModal = async () => {
+            const isConfirmed = await showStepModal({
+                ...sharedModalOptions,
+                title: translate('gps.preciseLocationRequiredModal.title'),
+                prompt: translate('gps.preciseLocationRequiredModal.prompt'),
+                confirmText: translate('common.settings'),
+            });
+
+            if (!isConfirmed) {
+                return;
+            }
+
+            Linking.openSettings();
+        };
+
+        const showFirstAskModal = async () => {
+            const isConfirmed = await showStepModal({
+                ...sharedModalOptions,
+                title: translate('gps.locationRequiredModal.title'),
+                prompt: translate('gps.locationRequiredModal.prompt'),
+                confirmText: translate('gps.locationRequiredModal.allow'),
+            });
+
+            if (!isConfirmed) {
+                return;
+            }
+
+            await requestPermissions({
+                onGrant: () => onGrantRef.current(),
+                onError: () => onErrorRef.current(),
+                onPreciseLocationNotGranted: showPreciseLocationModal,
+            });
+        };
+
+        checkPermissions({
+            onGrant: () => onGrantRef.current(),
+            onDeny: () => onDenyRef.current(),
+            onError: () => onErrorRef.current(),
+            onAskForPermissions: () => {
+                showFirstAskModal();
+            },
             onPreciseLocationNotGranted: () => {
-                // can't trigger Precise Location modal before First Ask modal hides
-                // as the animations clash and Precise Location modal doesn't show on iOS
-                onModalHide.current = () => setShowPreciseLocationModal(true);
+                showPreciseLocationModal();
             },
         });
-    };
+        setStartPermissionsFlow(false);
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- the flow must only start when startPermissionsFlow flips to true, every other value is read from a ref or is stable
+    }, [startPermissionsFlow]);
 
-    return (
-        <>
-            <ConfirmModal
-                title={translate('gps.locationRequiredModal.title')}
-                isVisible={showFirstAskModal}
-                onConfirm={requestPermissionsFirstAsk}
-                onCancel={() => {
-                    setShowFirstAskModal(false);
-                }}
-                confirmText={translate('gps.locationRequiredModal.allow')}
-                cancelText={translate('common.dismiss')}
-                prompt={translate('gps.locationRequiredModal.prompt')}
-                iconSource={ReceiptLocationMarker}
-                iconFill={false}
-                iconWidth={140}
-                iconHeight={120}
-                shouldCenterIcon
-                shouldReverseStackedButtons
-                onModalHide={() => {
-                    onModalHide.current?.();
-                    onModalHide.current = null;
-                }}
-            />
-            <ConfirmModal
-                title={translate('gps.preciseLocationRequiredModal.title')}
-                isVisible={showPreciseLocationModal}
-                onConfirm={() => {
-                    setShowPreciseLocationModal(false);
-                    Linking.openSettings();
-                }}
-                onCancel={() => setShowPreciseLocationModal(false)}
-                confirmText={translate('common.settings')}
-                cancelText={translate('common.dismiss')}
-                prompt={translate('gps.preciseLocationRequiredModal.prompt')}
-                iconSource={ReceiptLocationMarker}
-                iconFill={false}
-                iconWidth={140}
-                iconHeight={120}
-                shouldCenterIcon
-                shouldReverseStackedButtons
-            />
-        </>
-    );
+    return null;
 }
 
 export default BackgroundLocationPermissionsFlow;
