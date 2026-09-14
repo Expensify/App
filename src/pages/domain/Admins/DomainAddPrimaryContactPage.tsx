@@ -10,8 +10,8 @@ import useOnyx from '@hooks/useOnyx';
 
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getSearchValueForPhoneOrEmail} from '@libs/OptionsListUtils';
-import sortAlphabetically from '@libs/sortAlphabetically';
 import {temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
+import sortAlphabetically from '@libs/sortAlphabetically';
 import tokenizedSearch from '@libs/tokenizedSearch';
 
 import Navigation from '@navigation/Navigation';

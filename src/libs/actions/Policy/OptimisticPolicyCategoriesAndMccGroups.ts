@@ -1,9 +1,3 @@
-/**
- * Optimistic Onyx data builders for policy categories and their default MCC groups.
- *
- * They live outside `Category.ts` so that callers needing only the optimistic payload do not have to import that
- * module, which pulls in `ReportUtils`, `PolicyUtils` and the task action layer and closes an import cycle.
- */
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 
 import CONST from '@src/CONST';

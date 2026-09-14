@@ -19,10 +19,10 @@ import {searchUserInServer} from '@libs/actions/Report';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {getSearchValueForPhoneOrEmail} from '@libs/OptionsListUtils';
-import sortAlphabetically from '@libs/sortAlphabetically';
 import {getHeaderMessage} from '@libs/PersonalDetailOptionsListUtils';
 import {canMemberWrite, filterGuideAndAccountManager, getGuideAndAccountManagerInfo, getIneligibleInvitees, isDeletedPolicyEmployee} from '@libs/PolicyUtils';
 import moveInitialSelectionToTop from '@libs/SelectionListOrderUtils';
+import sortAlphabetically from '@libs/sortAlphabetically';
 import tokenizedSearch from '@libs/tokenizedSearch';
 
 import Navigation from '@navigation/Navigation';

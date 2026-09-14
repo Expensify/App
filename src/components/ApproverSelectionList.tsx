@@ -7,9 +7,9 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {getSearchValueForPhoneOrEmail} from '@libs/OptionsListUtils';
-import sortAlphabetically from '@libs/sortAlphabetically';
 import {goBackFromInvalidPolicy, isPendingDeletePolicy, isPolicyAdmin} from '@libs/PolicyUtils';
 import moveInitialSelectionToTop from '@libs/SelectionListOrderUtils';
+import sortAlphabetically from '@libs/sortAlphabetically';
 import tokenizedSearch from '@libs/tokenizedSearch';
 
 import variables from '@styles/variables';
