@@ -1,4 +1,4 @@
-import type {SearchGroupBy, SearchQueryJSON, SearchQueryString} from '@components/Search/types';
+import type {SearchGroupBy, SearchQueryString} from '@components/Search/types';
 
 import {buildQueryStringFromFilterFormValues, buildSearchQueryJSON, buildSearchQueryString} from '@libs/SearchQueryUtils';
 
@@ -29,18 +29,17 @@ function buildFilterFormValues(filters: InsightsFilters): Partial<SearchAdvanced
     };
 }
 
-/** Narrows a chart's declared query with the page's filters, optionally replacing the group-by it declared. */
-function applyInsightsFilters(queryJSON: Readonly<SearchQueryJSON>, filters: InsightsFilters, groupByOverride?: SearchGroupBy): SearchQueryString {
+/** The query a chart plots, narrowed by the page's filters, optionally replacing the group-by it declares. */
+function applyInsightsFilters(chart: InsightsChartSpec, filters: InsightsFilters, groupByOverride?: SearchGroupBy): SearchQueryString {
     return buildQueryStringFromFilterFormValues(
-        {...buildFilterFormValues(filters), groupBy: groupByOverride ?? queryJSON.groupBy, view: queryJSON.view},
-        {sortBy: queryJSON.sortBy, sortOrder: queryJSON.sortOrder, limit: queryJSON.limit},
+        {...buildFilterFormValues(filters), groupBy: groupByOverride ?? chart.groupBy, view: chart.view},
+        {sortBy: chart.sortBy, sortOrder: chart.sortOrder, limit: chart.limit},
     );
 }
 
-/** The graph slot and snapshot hash of one chart, or nothing when its query cannot be parsed. */
+/** The graph slot and snapshot hash of one chart, or nothing when its query cannot be hashed. */
 function buildSnapshotHashEntries(chart: InsightsChartSpec, filters: InsightsFilters, groupByOverride?: SearchGroupBy): Array<[InsightsGraphKey, {snapshotHash: number}]> {
-    const declaredQueryJSON = buildSearchQueryJSON(chart.query);
-    const snapshotHash = declaredQueryJSON ? buildSearchQueryJSON(applyInsightsFilters(declaredQueryJSON, filters, groupByOverride))?.hash : undefined;
+    const snapshotHash = buildSearchQueryJSON(applyInsightsFilters(chart, filters, groupByOverride))?.hash;
 
     return snapshotHash ? [[chart.graphKey, {snapshotHash}]] : [];
 }
@@ -49,7 +48,12 @@ function buildSnapshotHashEntries(chart: InsightsChartSpec, filters: InsightsFil
 function buildInsightsJsonQuery(dashboard: InsightsDashboardID, filters: InsightsFilters): InsightsQuery | undefined {
     const filtersQuery = buildQueryStringFromFilterFormValues({...buildFilterFormValues(filters), groupBy: filters.groupBy});
 
-    const queryString = buildSearchQueryString(buildSearchQueryJSON(filtersQuery));
+    const filtersQueryJSON = buildSearchQueryJSON(filtersQuery);
+    if (!filtersQueryJSON) {
+        return undefined;
+    }
+
+    const queryString = buildSearchQueryString(filtersQueryJSON);
     const queryJSON = buildSearchQueryJSON(queryString);
 
     if (!queryJSON) {

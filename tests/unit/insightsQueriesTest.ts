@@ -15,15 +15,14 @@ const FILTERS: InsightsFilters = {
 
 const SPEND_SPEC = INSIGHTS_DASHBOARD_SPECS[CONST.INSIGHTS.DASHBOARD.SPEND];
 
-/** The snapshot hash expected of every chart on the spend dashboard, taken from its declared query. */
+/** The snapshot hash expected of every chart on the spend dashboard, taken from what the chart declares. */
 function buildExpectedHashes(filters: InsightsFilters) {
     return Object.fromEntries(
         [SPEND_SPEC.headlineChart, ...SPEND_SPEC.supportingCharts].map((chart) => {
-            const declaredQueryJSON = buildSearchQueryJSON(chart.query);
             const isHeadline = chart.graphKey === SPEND_SPEC.headlineChart.graphKey;
-            const chartQuery = declaredQueryJSON ? applyInsightsFilters(declaredQueryJSON, filters, isHeadline ? filters.groupBy : undefined) : undefined;
+            const chartQuery = applyInsightsFilters(chart, filters, isHeadline ? filters.groupBy : undefined);
 
-            return [chart.graphKey, {snapshotHash: chartQuery ? buildSearchQueryJSON(chartQuery)?.hash : undefined}];
+            return [chart.graphKey, {snapshotHash: buildSearchQueryJSON(chartQuery)?.hash}];
         }),
     );
 }
@@ -64,34 +63,33 @@ describe('insightsQueries', () => {
     });
 
     describe('applyInsightsFilters', () => {
-        it('keeps what the chart declared and adds the page filters', () => {
+        it('plots what the chart declares, narrowed by the page filters', () => {
             // Given a supporting chart, which declares its own view, grouping, sorting and limit
             const [supportingChart] = SPEND_SPEC.supportingCharts;
-            const declaredQueryJSON = buildSearchQueryJSON(supportingChart.query);
 
             // When the page filters are applied to it
-            const filteredQuery = declaredQueryJSON ? applyInsightsFilters(declaredQueryJSON, FILTERS) : undefined;
+            const chartQuery = applyInsightsFilters(supportingChart, FILTERS);
 
-            // Then the chart keeps everything it declared and gains the filters
-            const filteredQueryJSON = filteredQuery ? buildSearchQueryJSON(filteredQuery) : undefined;
-            expect(filteredQueryJSON?.view).toBe(declaredQueryJSON?.view);
-            expect(filteredQueryJSON?.groupBy).toBe(declaredQueryJSON?.groupBy);
-            expect(filteredQueryJSON?.sortBy).toBe(declaredQueryJSON?.sortBy);
-            expect(filteredQueryJSON?.limit).toBe(declaredQueryJSON?.limit);
-            expect(filteredQuery).toContain(`${CONST.SEARCH.SYNTAX_FILTER_KEYS.GROUP_CURRENCY}:${FILTERS.groupCurrency}`);
-            expect(filteredQuery).toContain(FILTERS.datePreset);
+            // Then the chart plots what it declared, over the filtered expenses
+            const chartQueryJSON = buildSearchQueryJSON(chartQuery);
+            expect(chartQueryJSON?.view).toBe(supportingChart.view);
+            expect(chartQueryJSON?.groupBy).toBe(supportingChart.groupBy);
+            expect(chartQueryJSON?.sortBy).toBe(supportingChart.sortBy);
+            expect(chartQueryJSON?.limit).toBe(supportingChart.limit);
+            expect(chartQuery).toContain(`${CONST.SEARCH.SYNTAX_FILTER_KEYS.GROUP_CURRENCY}:${FILTERS.groupCurrency}`);
+            expect(chartQuery).toContain(FILTERS.datePreset);
         });
 
         it('replaces the declared group-by when one is passed', () => {
             // Given the headline chart, which declares a group-by of its own
-            const declaredQueryJSON = buildSearchQueryJSON(SPEND_SPEC.headlineChart.query);
-            expect(declaredQueryJSON?.groupBy).not.toBe(CONST.SEARCH.GROUP_BY.QUARTER);
+            const {headlineChart} = SPEND_SPEC;
+            expect(headlineChart.groupBy).not.toBe(CONST.SEARCH.GROUP_BY.QUARTER);
 
             // When the filters group by quarter instead
-            const filteredQuery = declaredQueryJSON ? applyInsightsFilters(declaredQueryJSON, FILTERS, CONST.SEARCH.GROUP_BY.QUARTER) : undefined;
+            const chartQuery = applyInsightsFilters(headlineChart, FILTERS, CONST.SEARCH.GROUP_BY.QUARTER);
 
             // Then the chart is grouped by quarter
-            expect(filteredQuery ? buildSearchQueryJSON(filteredQuery)?.groupBy : undefined).toBe(CONST.SEARCH.GROUP_BY.QUARTER);
+            expect(buildSearchQueryJSON(chartQuery)?.groupBy).toBe(CONST.SEARCH.GROUP_BY.QUARTER);
         });
     });
 });
