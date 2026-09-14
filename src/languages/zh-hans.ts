@@ -929,6 +929,14 @@ const translations: TranslationDeepObject<typeof en> = {
             addPaymentCard: {title: '添加支付卡以继续使用 Expensify', subtitle: '账户 ＞ 订阅', cta: '添加'},
             addBankAccount: {title: '添加银行账户以接收报销'},
             activateCard: {title: '激活你的 Expensify 卡', subtitle: '验证您的银行卡并开始消费。', cta: '启用'},
+            confirmDigitalWalletAddition: {
+                title: ({walletName}: {walletName: string}) => `${walletName} 卡添加需要您的批准`,
+                subtitle: 'Expensify 卡',
+                cta: '审核',
+                appleWallet: 'Apple 钱包',
+                googleWallet: 'Google 钱包',
+                digitalWallet: '数字钱包',
+            },
             reviewCardFraud: {
                 title: '审查您 Expensify 卡上的潜在欺诈交易',
                 titleWithDetails: ({amount, merchant}: {amount: string; merchant: string}) => `查看 ${merchant} 可能存在的 ${amount} 欺诈交易`,
@@ -2622,6 +2630,22 @@ const translations: TranslationDeepObject<typeof en> = {
             accountRequiresAttention: '此账户需要处理',
             unlock: '解锁',
         },
+    },
+    addCardToDigitalWallet: {
+        title: ({walletName}: {walletName: string}) => `将卡添加到 ${walletName}`,
+        appleWallet: 'Apple 钱包',
+        googleWallet: 'Google 钱包',
+        digitalWallet: '数字钱包',
+        confirmHeading: '确认你的请求',
+        confirmDescription: ({walletName, lastFourDigits}: {walletName: string; lastFourDigits: string}) => `是否要将尾号为 ${lastFourDigits} 的 Expensify 卡添加到您的 ${walletName}？`,
+        deny: '拒绝',
+        confirm: '确认',
+        verifyTitle: '让我们确认是你本人',
+        enterSecurityCode: (contactMethod: string) => `请输入发送至 ${contactMethod} 的安全码以确认此请求。验证码应会在一两分钟内送达。`,
+        successHeading: '成功！',
+        successDescription: ({walletName}: {walletName: string}) => `您的卡片现已在您的 ${walletName} 中启用并可使用。`,
+        deniedHeading: '请求被拒绝',
+        deniedDescription: ({walletName}: {walletName: string}) => `您的卡尚未添加到您的 ${walletName}。`,
     },
     cardPage: {
         expensifyCard: 'Expensify 卡',
@@ -8912,6 +8936,35 @@ ${reportName}`,
             return `将“${categoryName}”类别的出席者更改为 ${newValue ? '必填' : '非必填'}（之前为 ${newValue ? '非必填' : '必填'}）`;
         },
         updatedAutoHarvesting: (enabled: boolean) => `${enabled ? '已启用' : '已禁用'} 次提交`,
+        changedOverLimitForwardsTo: ({
+            member,
+            approver,
+            limit,
+            previousApprover,
+            previousLimit,
+        }: {
+            member: string;
+            approver: string;
+            limit: string;
+            previousApprover?: string;
+            previousLimit?: string;
+        }) => {
+            let text = previousApprover
+                ? `已将 ${member} 的审批流程更改为：把超过 ${limit} 的报销单转交给 ${approver}`
+                : `将 ${member} 的审批流程设置为：将超过 ${limit} 的报表转交给 ${approver}`;
+            if (previousApprover && previousLimit) {
+                text += `（之前已将报销单超过 ${previousLimit} 的部分转交给 ${previousApprover}）`;
+            } else if (previousApprover) {
+                text += `（之前已转发给 ${previousApprover}）`;
+            }
+            return text;
+        },
+        removedOverLimitForwardsTo: ({member, previousApprover, previousLimit}: {member: string; previousApprover?: string; previousLimit: string}) =>
+            previousApprover
+                ? `将 ${member} 的审批流程更改为在超过 ${previousLimit} 时停止转交报销单（之前会转交给 ${previousApprover}）`
+                : `已更改 ${member} 的审批流程，停止转发超过 ${previousLimit} 的报销报告`,
+        changedApprovalLimit: ({member, limit, previousLimit}: {member: string; limit: string; previousLimit: string}) =>
+            `已将 ${member} 的审批流程更改为：转交超过 ${limit} 的报销单（之前为 ${previousLimit}）`,
     },
     roomMembersPage: {
         memberNotFound: '未找到成员。',
@@ -10488,6 +10541,8 @@ ${reportName}`,
         gpsTooltip: '<tooltip>正在进行 GPS 跟踪！完成后，请在下方停止跟踪。</tooltip>',
         hasFilterNegation: '<tooltip>使用 <strong>-has:receipt</strong> 搜索没有收据的报销。</tooltip>',
         mileageRateAutoUpdated: '<tooltip>我们已根据您的出行日期更新了汇率。</tooltip>',
+        markAllAsRead: '<tooltip>右键点击即可<strong>将所有内容标记为已读</strong>。</tooltip>',
+        markAllAsReadTouchScreen: '<tooltip>长按即可<strong>将所有内容标记为已读</strong>。</tooltip>',
     },
     discardChangesConfirmation: {
         title: '放弃更改？',

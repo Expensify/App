@@ -964,6 +964,14 @@ const translations: TranslationDeepObject<typeof en> = {
             addPaymentCard: {title: 'Aggiungi una carta di pagamento per continuare a usare Expensify', subtitle: 'Account > Abbonamento', cta: 'Aggiungi'},
             addBankAccount: {title: 'Aggiungi un conto bancario per ricevere il rimborso'},
             activateCard: {title: 'Attiva la tua Carta Expensify', subtitle: 'Convalida la tua carta e inizia a spendere.', cta: 'Attiva'},
+            confirmDigitalWalletAddition: {
+                title: ({walletName}: {walletName: string}) => `L’aggiunta della carta ${walletName} richiede la tua approvazione`,
+                subtitle: 'Carta Expensify',
+                cta: 'Rivedi',
+                appleWallet: 'Apple Wallet',
+                googleWallet: 'Google Wallet',
+                digitalWallet: 'Portafoglio digitale',
+            },
             reviewCardFraud: {
                 title: 'Esamina una possibile frode sulla tua Carta Expensify',
                 titleWithDetails: ({amount, merchant}: {amount: string; merchant: string}) => `Verifica ${amount} di potenziale frode presso ${merchant}`,
@@ -2715,6 +2723,24 @@ const translations: TranslationDeepObject<typeof en> = {
             accountRequiresAttention: 'Questo conto richiede attenzione',
             unlock: 'Sblocca',
         },
+    },
+    addCardToDigitalWallet: {
+        title: ({walletName}: {walletName: string}) => `Aggiungi carta a ${walletName}`,
+        appleWallet: 'Apple Wallet',
+        googleWallet: 'Google Wallet',
+        digitalWallet: 'portafoglio digitale',
+        confirmHeading: 'Conferma la tua richiesta',
+        confirmDescription: ({walletName, lastFourDigits}: {walletName: string; lastFourDigits: string}) =>
+            `Vuoi aggiungere la tua Carta Expensify (che termina con ${lastFourDigits}) al tuo ${walletName}?`,
+        deny: 'Rifiuta',
+        confirm: 'Conferma',
+        verifyTitle: 'Verifichiamo che sia tu',
+        enterSecurityCode: (contactMethod: string) =>
+            `Inserisci il codice di sicurezza inviato a ${contactMethod} per confermare questa richiesta. Dovrebbe arrivare entro uno o due minuti.`,
+        successHeading: 'Operazione riuscita!',
+        successDescription: ({walletName}: {walletName: string}) => `La tua carta è ora attiva per l’uso nel tuo ${walletName}.`,
+        deniedHeading: 'Richiesta rifiutata',
+        deniedDescription: ({walletName}: {walletName: string}) => `La tua carta non è stata aggiunta al tuo ${walletName}.`,
     },
     cardPage: {
         expensifyCard: 'Carta Expensify',
@@ -9271,6 +9297,35 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
             return `ha modificato i partecipanti della categoria "${categoryName}" in ${newValue ? 'obbligatorio' : 'non obbligatorio'} (in precedenza ${newValue ? 'non obbligatorio' : 'obbligatorio'})`;
         },
         updatedAutoHarvesting: (enabled: boolean) => `invii ${enabled ? 'abilitato' : 'disattivato'}`,
+        changedOverLimitForwardsTo: ({
+            member,
+            approver,
+            limit,
+            previousApprover,
+            previousLimit,
+        }: {
+            member: string;
+            approver: string;
+            limit: string;
+            previousApprover?: string;
+            previousLimit?: string;
+        }) => {
+            let text = previousApprover
+                ? `ha modificato il flusso di approvazione per ${member} per inoltrare i report superiori a ${limit} a ${approver}`
+                : `imposta il flusso di approvazione per ${member} in modo da inoltrare i report oltre ${limit} a ${approver}`;
+            if (previousApprover && previousLimit) {
+                text += ` (in precedenza inoltrava i report superiori a ${previousLimit} a ${previousApprover})`;
+            } else if (previousApprover) {
+                text += ` (precedentemente inoltrata a ${previousApprover})`;
+            }
+            return text;
+        },
+        removedOverLimitForwardsTo: ({member, previousApprover, previousLimit}: {member: string; previousApprover?: string; previousLimit: string}) =>
+            previousApprover
+                ? `ha modificato il flusso di approvazione per ${member} per interrompere l’inoltro dei report oltre ${previousLimit} (in precedenza inoltrati a ${previousApprover})`
+                : `ha modificato il workflow di approvazione per ${member} per smettere di inoltrare i report oltre ${previousLimit}`,
+        changedApprovalLimit: ({member, limit, previousLimit}: {member: string; limit: string; previousLimit: string}) =>
+            `ha modificato il flusso di approvazione per ${member} per inoltrare i report superiori a ${limit} (in precedenza ${previousLimit})`,
     },
     roomMembersPage: {
         memberNotFound: 'Membro non trovato.',
@@ -10904,6 +10959,8 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
         gpsTooltip: '<tooltip>Tracciamento GPS in corso! Quando hai finito, interrompi il tracciamento qui sotto.</tooltip>',
         hasFilterNegation: '<tooltip>Cerca le spese senza ricevute usando <strong>-has:receipt</strong>.</tooltip>',
         mileageRateAutoUpdated: '<tooltip>Abbiamo aggiornato il tasso in base alla tua data di viaggio.</tooltip>',
+        markAllAsRead: '<tooltip>Fai clic destro per <strong>segnare tutto come letto</strong>.</tooltip>',
+        markAllAsReadTouchScreen: '<tooltip>Tieni premuto per <strong>segnare tutto come letto</strong>.</tooltip>',
     },
     discardChangesConfirmation: {
         title: 'Scartare le modifiche?',

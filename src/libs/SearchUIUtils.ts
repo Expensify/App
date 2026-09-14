@@ -288,6 +288,7 @@ type GetReportSectionsParams = {
     isOffline: boolean | undefined;
     bankAccountList: OnyxEntry<OnyxTypes.BankAccountList>;
     rules: OnyxCollection<OnyxTypes.Rule>;
+    conciergeReportID: string | undefined;
     reportActions?: Record<string, OnyxTypes.ReportAction[]>;
     queryJSON?: SearchQueryJSON;
     onyxPersonalDetailsList?: OnyxTypes.PersonalDetailsList;
@@ -2555,8 +2556,9 @@ function getSearchReportAvatarProps(
     personalDetailsList: OnyxTypes.PersonalDetailsList,
     policy?: OnyxTypes.Policy,
     isReportArchived = false,
+    conciergeReportID?: string,
 ) {
-    const avatarIcons = getIcons(report, formatPhoneNumber, translate, personalDetailsList, null, '', -1, policy, undefined, isReportArchived);
+    const avatarIcons = getIcons(report, formatPhoneNumber, translate, personalDetailsList, null, '', -1, policy, undefined, isReportArchived, undefined, conciergeReportID);
     const hasSecondAvatar = avatarIcons.length > 1 && !!avatarIcons.at(1)?.name;
 
     let avatarType: ValueOf<typeof CONST.REPORT_ACTION_AVATARS.TYPE>;
@@ -2890,6 +2892,7 @@ function getTaskSections(
                     undefined,
                     isParentReportArchived,
                     parentReportPendingDeleteMemberAccountIDs,
+                    conciergeReportID,
                 );
                 const parentReportIcon = icons?.at(0);
 
@@ -3221,6 +3224,7 @@ function getReportSections({
     isActionLoadingSet,
     bankAccountList,
     rules,
+    conciergeReportID,
     reportActions = {},
     queryJSON,
     onyxPersonalDetailsList,
@@ -3334,7 +3338,7 @@ function getReportSections({
 
                 const {totalDisplaySpend, nonReimbursableSpend, reimbursableSpend} = getMoneyRequestSpendBreakdown(reportItem);
                 const reportIsArchived = isArchivedReport(getReportNameValuePairsFromKey(data, reportItem));
-                const avatarProps = getSearchReportAvatarProps(reportItem, formatPhoneNumber, translate, mergedPersonalDetails, policy, reportIsArchived);
+                const avatarProps = getSearchReportAvatarProps(reportItem, formatPhoneNumber, translate, mergedPersonalDetails, policy, reportIsArchived, conciergeReportID);
 
                 const isRejectedReport = reportItem.stateNum === CONST.REPORT.STATE_NUM.OPEN && reportItem.nextStep?.messageKey === CONST.NEXT_STEP.MESSAGE_KEY.REJECTED_REPORT;
                 const shouldHidePayAsPrimaryAction = hasOnlyNonReimbursableTransactions(reportItem.reportID, allReportTransactions);
@@ -4123,6 +4127,7 @@ function getSections({
             isActionLoadingSet,
             bankAccountList,
             rules,
+            conciergeReportID,
             reportActions,
             queryJSON,
             onyxPersonalDetailsList,

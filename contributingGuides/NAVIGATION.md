@@ -290,7 +290,7 @@ See `IOURequestStepConfirmation.tsx` for a reference implementation.
 > When the destination resolves to one of the app's root tabs (Home, Inbox, Search, Settings, or Workspaces), pre-insert switches to that tab instead of pushing (`[Tab(A), RHP] -> [Tab(B), RHP]`), with the original tab saved for restore-on-cancel. For any other destination, it pushes a new route between the origin and the RHP instead (`[origin, RHP] -> [origin, destination, RHP]`). Which one happens is determined by the destination route, not by anything the caller configures.
 
 > [!NOTE]
-> See [PERF-18](../.claude/skills/coding-standards/rules/perf-18-use-pre-mount-destination.md) for the AI-review checklist covering this hook.
+> See [PERF-18](../.claude/skills/app-coding-standards/rules/perf-18-use-pre-mount-destination.md) for the AI-review checklist covering this hook.
 
 #### What pre-inserting actually costs
 

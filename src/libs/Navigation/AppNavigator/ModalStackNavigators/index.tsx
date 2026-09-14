@@ -453,6 +453,7 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
         require<ReactComponentModule>('../../../../pages/settings/Wallet/ReportVirtualCardFraudVerifyAccountPage').default,
     [SCREENS.SETTINGS.WALLET.REPORT_VIRTUAL_CARD_FRAUD_CONFIRMATION]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/ReportVirtualCardFraudConfirmationPage').default,
     [SCREENS.SETTINGS.WALLET.CARD_ACTIVATE]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/ActivatePhysicalCardPage').default,
+    [SCREENS.SETTINGS.WALLET.CARD_ADD_TO_DIGITAL_WALLET]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/AddCardToDigitalWalletPage').default,
     [SCREENS.SETTINGS.WALLET.CARD_CHANGE_PIN]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/ExpensifyCardPage/ChangePINPage').default,
     [SCREENS.SETTINGS.WALLET.CARD_CHANGE_PIN_ATM]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/ExpensifyCardPage/ChangePINAtATMPage').default,
     [SCREENS.SETTINGS.WALLET.TRANSFER_BALANCE]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/TransferBalancePage').default,
@@ -730,6 +731,7 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.SETTINGS.REPORT_CARD_LOST_OR_DAMAGED_CONFIRM_VALIDATE_CODE]: () =>
         require<ReactComponentModule>('../../../../pages/settings/Wallet/ReportCardLostConfirmValidateCodePage').default,
     [SCREENS.SETTINGS.DYNAMIC_KEYBOARD_SHORTCUTS]: () => require<ReactComponentModule>('../../../../pages/settings/DynamicKeyboardShortcutsPage').default,
+    [SCREENS.SETTINGS.DYNAMIC_BETA_OVERRIDES]: () => require<ReactComponentModule>('../../../../pages/settings/Troubleshoot/DynamicBetaOverridesPage').default,
     [SCREENS.SETTINGS.DYNAMIC_EXIT_SURVEY_REASON]: () => require<ReactComponentModule>('../../../../pages/settings/ExitSurvey/DynamicExitSurveyReasonPage').default,
     [SCREENS.SETTINGS.DYNAMIC_EXIT_SURVEY_CONFIRM]: () => require<ReactComponentModule>('../../../../pages/settings/ExitSurvey/DynamicExitSurveyConfirmPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_SETUP]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/qbo/QuickbooksOnlineSetupPage').default,
