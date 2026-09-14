@@ -54,7 +54,7 @@ function QuickbooksNonReimbursableVendorSelectPage({policy, configKey, updateVen
     const currentVendor = qboConfig?.[configKey];
 
     const policyID = policy?.id ?? CONST.DEFAULT_NUMBER_ID.toString();
-    const data: CardListItem[] =
+    const vendorOptions: CardListItem[] =
         vendors?.map((vendor) => ({
             value: vendor.id,
             text: vendor.name,
@@ -62,17 +62,24 @@ function QuickbooksNonReimbursableVendorSelectPage({policy, configKey, updateVen
             isSelected: vendor.id === currentVendor,
         })) ?? [];
 
-    // Only the CC/DC export path treats a blank vendor as a valid state (falls back to "Credit Card Misc"), so we only allow clearing on that configKey.
-    const canClearByReSelecting = configKey === CONST.QUICKBOOKS_CONFIG.NON_REIMBURSABLE_CREDIT_CARD_DEFAULT_VENDOR;
+    // Only the CC/DC export path treats a blank vendor as a valid state (falls back to "Credit Card Misc"), so we only offer a "None" row on that configKey.
+    const canClear = configKey === CONST.QUICKBOOKS_CONFIG.NON_REIMBURSABLE_CREDIT_CARD_DEFAULT_VENDOR;
+    const clearOption: CardListItem = {
+        value: CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE,
+        text: translate('common.none'),
+        keyForList: CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE,
+        isSelected: !currentVendor || currentVendor === CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE,
+    };
+    const shouldShowClearOption = canClear && (!!currentVendor || vendorOptions.length > 0);
+    const data: CardListItem[] = shouldShowClearOption ? [clearOption, ...vendorOptions] : vendorOptions;
 
     const selectVendor = (row: CardListItem) => {
-        if (row.value === currentVendor) {
-            if (canClearByReSelecting) {
-                updateVendor(policyID, CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE, currentVendor);
-            }
-        } else {
-            updateVendor(policyID, row.value, currentVendor);
+        const isCurrentVendorNone = !currentVendor || currentVendor === CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE;
+        const isAlreadySelected = row.value === currentVendor || (row.value === CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE && isCurrentVendorNone);
+        if (isAlreadySelected) {
+            return;
         }
+        updateVendor(policyID, row.value, currentVendor);
         Navigation.goBack();
     };
 
@@ -104,7 +111,7 @@ function QuickbooksNonReimbursableVendorSelectPage({policy, configKey, updateVen
             data={data}
             onSelectRow={selectVendor}
             shouldSingleExecuteRowSelect
-            initiallyFocusedOptionKey={data.find((mode) => mode.isSelected)?.keyForList}
+            initiallyFocusedOptionKey={shouldShowClearOption ? clearOption.keyForList : data.find((mode) => mode.isSelected)?.keyForList}
             listEmptyContent={listEmptyContent}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.QBO}
             onBackButtonPress={() => Navigation.goBack()}

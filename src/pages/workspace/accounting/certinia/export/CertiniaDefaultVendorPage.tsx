@@ -36,12 +36,20 @@ function CertiniaDefaultVendorPage({policy}: WithPolicyConnectionsProps) {
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.POLICY_ACCOUNTING_CERTINIA_DEFAULT_VENDOR.path);
     const illustrations = useMemoizedLazyIllustrations(['Telescope']);
 
-    const dataOptions: VendorListItem[] = vendors.map((vendor) => ({
+    const vendorOptions: VendorListItem[] = vendors.map((vendor) => ({
         value: vendor.id,
         text: vendor.name,
         keyForList: vendor.id,
         isSelected: exportConfig?.vendorAccount === vendor.id,
     }));
+    const clearOption: VendorListItem = {
+        value: '',
+        text: translate('common.none'),
+        keyForList: '',
+        isSelected: !exportConfig?.vendorAccount,
+    };
+    const shouldShowClearOption = !!exportConfig?.vendorAccount || vendorOptions.length > 0;
+    const dataOptions: VendorListItem[] = shouldShowClearOption ? [clearOption, ...vendorOptions] : vendorOptions;
     const listEmptyContent = (
         <BlockingView
             icon={illustrations.Telescope}
@@ -54,7 +62,11 @@ function CertiniaDefaultVendorPage({policy}: WithPolicyConnectionsProps) {
     );
 
     const selectVendor = (row: VendorListItem) => {
-        if (row.value !== exportConfig?.vendorAccount && policyID) {
+        const isAlreadySelected = row.value === exportConfig?.vendorAccount || (!row.value && !exportConfig?.vendorAccount);
+        if (isAlreadySelected) {
+            return;
+        }
+        if (policyID) {
             updateFinancialForceDefaultVendor(policyID, row.value, exportConfig?.vendorAccount ?? null);
         }
         Navigation.goBack(backPath);
@@ -69,7 +81,7 @@ function CertiniaDefaultVendorPage({policy}: WithPolicyConnectionsProps) {
             data={dataOptions}
             onSelectRow={selectVendor}
             shouldSingleExecuteRowSelect
-            initiallyFocusedOptionKey={exportConfig?.vendorAccount}
+            initiallyFocusedOptionKey={shouldShowClearOption ? clearOption.keyForList : exportConfig?.vendorAccount}
             onBackButtonPress={() => Navigation.goBack(backPath)}
             title="workspace.accounting.defaultVendor"
             listEmptyContent={listEmptyContent}

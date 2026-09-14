@@ -67,7 +67,24 @@ function DynamicSageIntacctDefaultVendorPage() {
         settingName = CONST.SAGE_INTACCT_CONFIG.REIMBURSABLE_VENDOR;
     }
 
-    const vendorSelectorOptions = useMemo<SelectorType[]>(() => getSageIntacctVendors(policy, defaultVendor), [defaultVendor, policy]);
+    // Only the non-reimbursable credit-card-charge path treats a blank vendor as a valid state (falls back to "Credit Card Misc"), so we only offer a "None" row on that setting.
+    const canClear = settingName === CONST.SAGE_INTACCT_CONFIG.NON_REIMBURSABLE_CREDIT_CARD_VENDOR;
+
+    const vendorOptions = useMemo<SelectorType[]>(() => getSageIntacctVendors(policy, defaultVendor), [defaultVendor, policy]);
+    const clearOption: SelectorType = useMemo(
+        () => ({
+            value: CLEAR_DEFAULT_VENDOR,
+            text: translate('common.none'),
+            keyForList: CLEAR_DEFAULT_VENDOR,
+            isSelected: !defaultVendor,
+        }),
+        [translate, defaultVendor],
+    );
+    const shouldShowClearOption = canClear && (!!defaultVendor || vendorOptions.length > 0);
+    const vendorSelectorOptions = useMemo<SelectorType[]>(
+        () => (shouldShowClearOption ? [clearOption, ...vendorOptions] : vendorOptions),
+        [shouldShowClearOption, clearOption, vendorOptions],
+    );
 
     const listHeaderComponent = useMemo(
         () => (
@@ -80,21 +97,16 @@ function DynamicSageIntacctDefaultVendorPage() {
         [translate, styles.pb2, styles.ph5, styles.pb5, styles.textNormal, isReimbursable],
     );
 
-    // Only the non-reimbursable credit-card-charge path treats a blank vendor as a valid state (falls back to "Credit Card Misc"), so we only allow clearing when that setting is active.
-    const canClearByReSelecting = settingName === CONST.SAGE_INTACCT_CONFIG.NON_REIMBURSABLE_CREDIT_CARD_VENDOR;
-
     const updateDefaultVendor = useCallback(
         ({value}: SelectorType) => {
-            if (value === defaultVendor) {
-                if (canClearByReSelecting) {
-                    updateSageIntacctDefaultVendor(policyID, settingName, CLEAR_DEFAULT_VENDOR, defaultVendor);
-                }
-            } else {
-                updateSageIntacctDefaultVendor(policyID, settingName, value, defaultVendor);
+            const isAlreadySelected = value === defaultVendor || (!value && !defaultVendor);
+            if (isAlreadySelected) {
+                return;
             }
+            updateSageIntacctDefaultVendor(policyID, settingName, value, defaultVendor);
             goBack();
         },
-        [defaultVendor, policyID, settingName, goBack, canClearByReSelecting],
+        [defaultVendor, policyID, settingName, goBack],
     );
 
     const listEmptyContent = useMemo(
@@ -118,7 +130,7 @@ function DynamicSageIntacctDefaultVendorPage() {
             displayName="SageIntacctDefaultVendorPage"
             data={vendorSelectorOptions ?? []}
             onSelectRow={updateDefaultVendor}
-            initiallyFocusedOptionKey={vendorSelectorOptions.find((mode) => mode.isSelected)?.keyForList}
+            initiallyFocusedOptionKey={shouldShowClearOption ? clearOption.keyForList : vendorSelectorOptions.find((mode) => mode.isSelected)?.keyForList}
             headerContent={listHeaderComponent}
             onBackButtonPress={goBack}
             title="workspace.sageIntacct.defaultVendor"

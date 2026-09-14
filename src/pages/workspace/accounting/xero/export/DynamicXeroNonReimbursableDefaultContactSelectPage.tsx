@@ -113,7 +113,10 @@ function DynamicXeroNonReimbursableDefaultContactSelectPage({policy}: WithPolicy
             // Treat the clear row and an already-empty default as the same state so picking
             // "None" on a workspace that never had a default doesn't fire a no-op write.
             const isAlreadySelected = value === currentContactID || (!value && !currentContactID);
-            if (!isAlreadySelected && policyID) {
+            if (isAlreadySelected) {
+                return;
+            }
+            if (policyID) {
                 updateManyPolicyConnectionConfigs(
                     policyID,
                     CONST.POLICY.CONNECTIONS.NAME.XERO,
@@ -167,7 +170,7 @@ function DynamicXeroNonReimbursableDefaultContactSelectPage({policy}: WithPolicy
                 value: searchText,
                 onChangeText: setSearchText,
             }}
-            initiallyFocusedOptionKey={data.find((item) => item.isSelected)?.keyForList}
+            initiallyFocusedOptionKey={shouldShowClearOption ? clearOption.keyForList : data.find((item) => item.isSelected)?.keyForList}
             listEmptyContent={listEmptyContent}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.XERO}
             onBackButtonPress={goBack}

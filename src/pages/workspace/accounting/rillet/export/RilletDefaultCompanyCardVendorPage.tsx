@@ -39,14 +39,22 @@ function RilletDefaultCompanyCardVendorPage({policy}: WithPolicyConnectionsProps
     const defaultCompanyCardVendorID = rilletConfig?.export?.defaultVendorID;
     const backPath = policyID ? ROUTES.POLICY_ACCOUNTING_RILLET_EXPORT.getRoute(policyID) : undefined;
 
-    const data: VendorListItem[] =
+    const vendorOptions: VendorListItem[] =
         rilletData?.vendors?.map((vendorItem) => ({
             value: vendorItem.id,
             text: vendorItem.name,
             keyForList: vendorItem.id,
             isSelected: defaultCompanyCardVendorID === vendorItem.id,
         })) ?? [];
-    const {filteredData, textInputOptions} = useSelectionListSearch(data);
+    const clearOption: VendorListItem = {
+        value: '',
+        text: translate('common.none'),
+        keyForList: '',
+        isSelected: !defaultCompanyCardVendorID,
+    };
+    const shouldShowClearOption = !!defaultCompanyCardVendorID || vendorOptions.length > 0;
+    const {filteredData: filteredVendorOptions, textInputOptions} = useSelectionListSearch(vendorOptions);
+    const data: VendorListItem[] = shouldShowClearOption ? [clearOption, ...filteredVendorOptions] : filteredVendorOptions;
 
     const headerContent = (
         <View>
@@ -66,7 +74,11 @@ function RilletDefaultCompanyCardVendorPage({policy}: WithPolicyConnectionsProps
     );
 
     const selectDefaultVendor = (item: VendorListItem) => {
-        if (item.value !== defaultCompanyCardVendorID && policyID) {
+        const isAlreadySelected = item.value === defaultCompanyCardVendorID || (!item.value && !defaultCompanyCardVendorID);
+        if (isAlreadySelected) {
+            return;
+        }
+        if (policyID) {
             updateRilletDefaultVendor(policyID, item.value, defaultCompanyCardVendorID);
         }
         Navigation.goBack(backPath);
@@ -79,13 +91,13 @@ function RilletDefaultCompanyCardVendorPage({policy}: WithPolicyConnectionsProps
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             displayName="RilletDefaultCompanyCardVendorPage"
             title="workspace.rillet.defaultCompanyCardVendor.label"
-            data={filteredData}
+            data={data}
             textInputOptions={textInputOptions}
             headerContent={headerContent}
             listEmptyContent={listEmptyContent}
             onSelectRow={selectDefaultVendor}
             shouldSingleExecuteRowSelect
-            initiallyFocusedOptionKey={defaultCompanyCardVendorID}
+            initiallyFocusedOptionKey={shouldShowClearOption ? clearOption.keyForList : defaultCompanyCardVendorID}
             onBackButtonPress={() => Navigation.goBack(backPath)}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.RILLET}
             pendingAction={settingsPendingAction([CONST.RILLET_CONFIG.DEFAULT_VENDORID], rilletConfig?.pendingFields)}
