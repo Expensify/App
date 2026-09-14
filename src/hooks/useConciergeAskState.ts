@@ -1,12 +1,18 @@
 import {isCreatedAction, isCurrentUserPendingAddAction} from '@libs/ReportActionsUtils';
 
+import type {PlatformStackRouteProp} from '@navigation/PlatformStackNavigation/types';
+import type {ReportsSplitNavigatorParamList} from '@navigation/types';
+
 import {useConciergeSessionState} from '@pages/inbox/ConciergeSessionContext';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import SCREENS from '@src/SCREENS';
 import type {ReportActions} from '@src/types/onyx/ReportAction';
 
 import type {OnyxEntry} from 'react-native-onyx';
+
+import {useRoute} from '@react-navigation/native';
 
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useIsInSidePanel from './useIsInSidePanel';
@@ -16,6 +22,9 @@ import usePermissions from './usePermissions';
 type ConciergeAskState = {
     /** Whether this is the main Concierge DM with the Ask Concierge design enabled */
     isAskConciergeChat: boolean;
+
+    /** Whether the conversation from before the session boundary is currently shown */
+    isHistoryExpanded: boolean;
 
     /** Whether to show the welcome empty state */
     shouldShowWelcome: boolean;
@@ -28,6 +37,7 @@ function useConciergeAskState(reportID: string | undefined): ConciergeAskState {
     const {isBetaEnabled} = usePermissions();
     const isInSidePanel = useIsInSidePanel();
     const {sessionStartTime, showFullHistory} = useConciergeSessionState();
+    const route = useRoute<PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
 
@@ -45,10 +55,13 @@ function useConciergeAskState(reportID: string | undefined): ConciergeAskState {
 
     const hasSessionBoundary = isAskConciergeChat && !!sessionStartTime;
 
+    const isHistoryExpanded = showFullHistory || !!route?.params?.reportActionID;
+
     return {
         isAskConciergeChat,
-        shouldShowWelcome: hasSessionBoundary && !showFullHistory && !hasSessionActivity,
-        shouldLabelComposerAsNewQuestion: hasSessionBoundary && showFullHistory && !hasSessionActivity,
+        isHistoryExpanded,
+        shouldShowWelcome: hasSessionBoundary && !isHistoryExpanded && !hasSessionActivity,
+        shouldLabelComposerAsNewQuestion: hasSessionBoundary && isHistoryExpanded && !hasSessionActivity,
     };
 }
 

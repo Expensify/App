@@ -138,7 +138,7 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
     const route = useRoute<PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
     const reportActionIDFromRoute = route?.params?.reportActionID;
     const sessionStartTime = useConciergeSessionStartTime();
-    const {shouldShowWelcome: shouldShowConciergeWelcome} = useConciergeAskState(reportID);
+    const {shouldShowWelcome: shouldShowConciergeWelcome, isHistoryExpanded} = useConciergeAskState(reportID);
 
     const didLayout = useRef(false);
 
@@ -420,7 +420,7 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
             <ConciergeChatHistoryToggle
                 reportID={reportID}
                 hasPreviousMessages={!!hasPreviousMessages}
-                shouldShowFullHistory={!showHiddenHistory}
+                shouldShowFullHistory={isHistoryExpanded}
                 onShowPreviousMessages={onShowPreviousMessages}
             />
             <ReportActionsListHeader

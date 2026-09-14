@@ -61,7 +61,7 @@ function useReportActionsListModel(reportID: string, isReportLoadPending: boolea
     const hasLoadingOlderReportActionsError = reportLoadingState?.hasLoadingOlderReportActionsError;
 
     const {sessionStartTime, showFullHistory: conciergeShowFullHistory, hadMessagesAtSessionStart: conciergeHadMessagesAtSessionStart} = useConciergeSessionState();
-    const {isAskConciergeChat} = useConciergeAskState(reportID);
+    const {isAskConciergeChat, isHistoryExpanded} = useConciergeAskState(reportID);
     const {setShowFullHistory: setConciergeShowFullHistory, setHadMessagesAtSessionStart: setConciergeHadMessagesAtSessionStart} = useConciergeSessionActions();
     const isReportTransactionThread = isReportTransactionThreadUtil(report);
     const shouldBeAlignedToTop = shouldReportAlignToTop(report, parentReportAction);
@@ -100,7 +100,7 @@ function useReportActionsListModel(reportID: string, isReportLoadPending: boolea
         hasOlderActions,
         loadOlderChats,
         mainDMSessionStartTime: sessionStartTime,
-        conciergeShowFullHistory: conciergeShowFullHistory || !!reportActionIDFromRoute || (!isAskConciergeChat && !!report?.hasOutstandingChildTask),
+        conciergeShowFullHistory: isHistoryExpanded || (!isAskConciergeChat && !!report?.hasOutstandingChildTask),
         setConciergeShowFullHistory,
         conciergeHadMessagesAtSessionStart,
         setConciergeHadMessagesAtSessionStart,
