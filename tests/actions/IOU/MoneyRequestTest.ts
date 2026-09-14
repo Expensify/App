@@ -160,6 +160,7 @@ describe('MoneyRequest', () => {
             isTrackIntentUser: false,
             isDraftChatReport: false,
             formatPhoneNumber,
+            rules: undefined,
         };
 
         beforeEach(async () => {
@@ -805,6 +806,7 @@ describe('MoneyRequest', () => {
                 personalDetails: {},
                 conciergeReportID: undefined,
                 privateIsArchived: false,
+                rules: undefined,
                 reportAttributesDerived: {},
                 reportDraft: undefined,
                 translate: translateLocal,
@@ -812,6 +814,7 @@ describe('MoneyRequest', () => {
                 dateFnsLocale: undefined,
             }),
             participantsPolicyTags: {},
+            rules: undefined,
         };
         const splitShares: SplitShares = {
             [firstSplitParticipantID]: {
@@ -1735,6 +1738,7 @@ describe('MoneyRequest', () => {
                 privateIsArchived: undefined,
                 reportAttributesDerived: undefined,
                 reportDraft: undefined,
+                rules: undefined,
                 translate: translateLocal,
                 convertToDisplayString,
                 dateFnsLocale: undefined,
@@ -1752,6 +1756,7 @@ describe('MoneyRequest', () => {
                 privateIsArchived: undefined,
                 reportAttributesDerived: undefined,
                 reportDraft: undefined,
+                rules: undefined,
                 translate: translateLocal,
                 convertToDisplayString,
                 dateFnsLocale: undefined,
@@ -1769,6 +1774,7 @@ describe('MoneyRequest', () => {
                 privateIsArchived: undefined,
                 reportAttributesDerived: undefined,
                 reportDraft: undefined,
+                rules: undefined,
                 translate: translateLocal,
                 convertToDisplayString,
                 dateFnsLocale: undefined,
@@ -1789,6 +1795,7 @@ describe('MoneyRequest', () => {
                 privateIsArchived: true,
                 reportAttributesDerived: undefined,
                 reportDraft: undefined,
+                rules: undefined,
                 translate: translateLocal,
                 convertToDisplayString,
                 dateFnsLocale: undefined,
@@ -1810,6 +1817,7 @@ describe('MoneyRequest', () => {
                 privateIsArchived: undefined,
                 reportAttributesDerived: undefined,
                 reportDraft: undefined,
+                rules: undefined,
                 translate: translateLocal,
                 convertToDisplayString,
                 dateFnsLocale: undefined,
@@ -1827,6 +1835,7 @@ describe('MoneyRequest', () => {
                 privateIsArchived: undefined,
                 reportAttributesDerived: undefined,
                 reportDraft: fakeReport,
+                rules: undefined,
                 translate: translateLocal,
                 convertToDisplayString,
                 dateFnsLocale: undefined,
@@ -1846,6 +1855,7 @@ describe('MoneyRequest', () => {
                 privateIsArchived: undefined,
                 reportAttributesDerived: undefined,
                 reportDraft: undefined,
+                rules: undefined,
                 translate: translateLocal,
                 convertToDisplayString,
                 dateFnsLocale: undefined,
@@ -1865,6 +1875,7 @@ describe('MoneyRequest', () => {
                 privateIsArchived: undefined,
                 reportAttributesDerived: undefined,
                 reportDraft: undefined,
+                rules: undefined,
                 translate: translateLocal,
                 convertToDisplayString,
                 dateFnsLocale: undefined,

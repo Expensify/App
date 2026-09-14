@@ -33,6 +33,7 @@ const icons = {
     InvoiceGeneric: mockIcon,
     Gear: mockIcon,
     Bolt: mockIcon,
+    Bot: mockIcon,
 };
 
 function buildPolicy(role: Policy['role']): Policy {
@@ -342,20 +343,6 @@ describe('getWorkspaceMenuItems', () => {
         expect(items.find((item) => item.translationKey === 'workspace.common.hr')?.brickRoadIndicator).toBe(CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR);
     });
 
-    it('uses the existing Rules icon when the Rules revamp beta is disabled', () => {
-        const policy = createMock<Policy>({...buildPolicy(CONST.POLICY.ROLE.ADMIN), areRulesEnabled: true});
-
-        const items = getWorkspaceMenuItems({
-            policy,
-            policyID: policy.id,
-            currentUserLogin,
-            icons,
-            convertToDisplayString: () => '',
-        });
-
-        expect(items.find((item) => item.translationKey === 'workspace.common.rules')?.icon).toBe(icons.Feed);
-    });
-
     it('preserves the complete enabled Workspace menu order and presentation data', () => {
         const policy = createMock<Policy>({
             ...buildPolicy(CONST.POLICY.ROLE.ADMIN),
@@ -389,7 +376,6 @@ describe('getWorkspaceMenuItems', () => {
             policyID: policy.id,
             currentUserLogin,
             icons,
-            isRulesRevampBetaEnabled: true,
             isVendorMatchingBetaEnabled: true,
             convertToDisplayString,
         });
@@ -402,6 +388,7 @@ describe('getWorkspaceMenuItems', () => {
             'workspace.common.accounting',
             'workspace.common.hr',
             'workspace.common.receiptPartners',
+            'workspace.common.mcp',
             'workspace.common.categories',
             'workspace.common.vendors',
             'workspace.common.tags',
@@ -425,6 +412,7 @@ describe('getWorkspaceMenuItems', () => {
             ROUTES.POLICY_ACCOUNTING.getRoute(policy.id),
             ROUTES.WORKSPACE_HR.getRoute(policy.id),
             ROUTES.WORKSPACE_RECEIPT_PARTNERS.getRoute(policy.id),
+            ROUTES.WORKSPACE_MCP.getRoute(policy.id),
             ROUTES.WORKSPACE_CATEGORIES.getRoute(policy.id),
             ROUTES.WORKSPACE_VENDORS.getRoute(policy.id),
             ROUTES.WORKSPACE_TAGS.getRoute(policy.id),
@@ -448,6 +436,7 @@ describe('getWorkspaceMenuItems', () => {
             SCREENS.WORKSPACE.ACCOUNTING.ROOT,
             SCREENS.WORKSPACE.HR,
             SCREENS.WORKSPACE.RECEIPT_PARTNERS,
+            SCREENS.WORKSPACE.MCP,
             SCREENS.WORKSPACE.CATEGORIES,
             SCREENS.WORKSPACE.VENDORS,
             SCREENS.WORKSPACE.TAGS,

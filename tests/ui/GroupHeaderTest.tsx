@@ -64,6 +64,8 @@ const baseState = {
     currentSearchTransactionsByReportID: new Map(),
     currentSearchViolations: {},
     currentSelectedTransactionReportID: undefined,
+    currentDefaultSearchQueryJSON: undefined,
+    currentDefaultSearchQueryFilterKeys: new Set(),
     selectedReports: [],
     selectedTransactionIDs: [],
     selectedTransactions: {},
@@ -92,14 +94,14 @@ const baseActions = {
     selectAllMatchingItems: jest.fn(),
     setShouldResetSearchQuery: jest.fn(),
     setSortedReportIDs: jest.fn(),
+    setCurrentSearchKey: jest.fn(),
+    resetSearchKey: jest.fn(),
 } satisfies SearchActionsContextValue;
 
 function renderGroupHeader(rows: TransactionListItemType[], selection: SelectedTransactions, onCheckboxPress = jest.fn()) {
     render(
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrencyListContextProvider]}>
-            <ScreenWrapperStatusContext
-                value={{didScreenTransitionEnd: true, shouldUseNarrowLayoutOnWideRHP: false, isSafeAreaTopPaddingApplied: false, isSafeAreaBottomPaddingApplied: false}}
-            >
+            <ScreenWrapperStatusContext value={{didScreenTransitionEnd: true, isSafeAreaTopPaddingApplied: false, isSafeAreaBottomPaddingApplied: false}}>
                 <MockSearchContextProvider
                     state={{...baseState, selectedTransactions: selection}}
                     actions={baseActions}

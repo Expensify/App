@@ -1,7 +1,5 @@
 import {getMerchantRulesTableData} from '@libs/MerchantTypeRulesUtils';
 
-import {getRuleDescription} from '@pages/workspace/rules/MerchantRulesSection';
-
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -50,21 +48,13 @@ const buildTaxRule = (savedTaxRate?: {name: string; value: string}): Rule => {
     };
 };
 
-const buildLabels = () => ({
-    category: translateLocal('common.category').toLowerCase(),
-    tag: translateLocal('common.tag').toLowerCase(),
-    description: translateLocal('common.description').toLowerCase(),
-    tax: translateLocal('common.tax').toLowerCase(),
-    vendor: translateLocal('common.vendor').toLowerCase(),
-});
-
 describe('Merchant rule tax summary', () => {
     beforeEach(() => {
         IntlStore.load(CONST.LOCALES.EN);
         return waitForBatchedUpdates();
     });
 
-    const describeInTable = (policy: Policy, rule: Rule) =>
+    const describeRule = (policy: Policy, rule: Rule) =>
         getMerchantRulesTableData({
             policy,
             policyID: policy.id,
@@ -74,12 +64,7 @@ describe('Merchant rule tax summary', () => {
             onNavigate: () => {},
         }).at(0)?.ruleDescription;
 
-    const describeInSection = (policy: Policy, rule: Rule) => getRuleDescription(rule, translateLocal, buildLabels(), policy, undefined);
-
-    describe.each([
-        ['Expense defaults table', describeInTable],
-        ['legacy Merchant rules section', describeInSection],
-    ])('%s', (_name, describeRule) => {
+    describe('Expense defaults table', () => {
         it('prefers the live rate over the one captured when the rule was saved', () => {
             const policy = buildPolicy({[TAX_KEY]: {name: 'GST', value: '15%'}});
 
