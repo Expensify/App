@@ -9,39 +9,23 @@ import variables from '@styles/variables';
 import {View} from 'react-native';
 
 const AVATAR_SIZE = variables.avatarSizeMedium;
+const GAP_X = 12;
+const ROW_PADDING_Y = 16;
+const ROW_PADDING_X = 16;
 
-// 12 is the gap between the avatar and the text column, matching the row's gap3
-const AVATAR_GAP = 12;
-
-// 12 is the padding above and below the row's content, matching its pv3
-const ROW_PADDING_Y = 12;
-
-// The row's full height: the avatar with padding on both sides
 const ROW_HEIGHT = AVATAR_SIZE + ROW_PADDING_Y * 2;
+const BAR_HEIGHT = 8;
+const TOP_LINE_HEIGHT = 20;
+const BOTTOM_LINE_HEIGHT = 16;
+const LINE_GAP = 4;
 
-// 7 is the height of a bar standing in for a line of text
-const BAR_HEIGHT = 7;
+const TOP_LINE_OFFSET_Y = ROW_PADDING_Y + (TOP_LINE_HEIGHT - BAR_HEIGHT) / 2;
+const BOTTOM_LINE_OFFSET_Y = ROW_PADDING_Y + TOP_LINE_HEIGHT + LINE_GAP + (BOTTOM_LINE_HEIGHT - BAR_HEIGHT) / 2;
 
-// Centers the avatar placeholder in the row
-const AVATAR_OFFSET_Y = (ROW_HEIGHT - AVATAR_SIZE) / 2;
-
-// 20 is where the row's first line of text sits
-const TOP_LINE_OFFSET_Y = 20;
-
-// 40 is where the row's second line of text sits
-const BOTTOM_LINE_OFFSET_Y = 40;
-
-// 120 is the width of the bar standing in for the group label
-const LABEL_WIDTH = 120;
-
-// 70 is the width of the bar standing in for the expense count
-const COUNT_WIDTH = 70;
-
-// 64 is the width of the bar standing in for the amount
-const AMOUNT_WIDTH = 64;
-
-// 84 is the width of the bar standing in for the share of spend
-const SHARE_WIDTH = 84;
+const LABEL_WIDTH = 124;
+const COUNT_WIDTH = 60;
+const AMOUNT_WIDTH = 80;
+const SHARE_WIDTH = 40;
 
 type InsightsDataTableSkeletonProps = {
     /** How many rows to draw. */
@@ -55,9 +39,10 @@ function InsightsDataTableSkeleton({fixedNumItems, shouldShowAvatar}: InsightsDa
     const styles = useThemeStyles();
     const {onLayout, containerWidth} = useContainerWidth();
 
-    const textStartX = shouldShowAvatar ? AVATAR_SIZE + AVATAR_GAP : 0;
-    const amountX = Math.max(containerWidth - AMOUNT_WIDTH, textStartX + LABEL_WIDTH + AVATAR_GAP);
-    const shareX = Math.max(containerWidth - SHARE_WIDTH, textStartX + LABEL_WIDTH + AVATAR_GAP);
+    const textStartX = ROW_PADDING_X + (shouldShowAvatar ? AVATAR_SIZE + GAP_X : 0);
+    const contentEndX = containerWidth - ROW_PADDING_X;
+    const amountX = Math.max(contentEndX - AMOUNT_WIDTH, textStartX + LABEL_WIDTH + GAP_X);
+    const shareX = Math.max(contentEndX - SHARE_WIDTH, textStartX + LABEL_WIDTH + GAP_X);
 
     return (
         <View
@@ -74,7 +59,7 @@ function InsightsDataTableSkeleton({fixedNumItems, shouldShowAvatar}: InsightsDa
                     <>
                         {shouldShowAvatar && (
                             <SkeletonRect
-                                transform={[{translateY: AVATAR_OFFSET_Y}]}
+                                transform={[{translateX: ROW_PADDING_X}, {translateY: ROW_PADDING_Y}]}
                                 width={AVATAR_SIZE}
                                 height={AVATAR_SIZE}
                                 borderRadius={AVATAR_SIZE / 2}
