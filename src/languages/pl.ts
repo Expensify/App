@@ -419,7 +419,12 @@ const translations: TranslationDeepObject<typeof en> = {
         subrate: 'Stawka dodatkowa',
         perDiem: 'Dieta',
         validate: 'Zatwierdź',
-        downloadAsPDF: 'Pobierz jako PDF',
+        downloadReport: () => ({
+            one: 'Pobierz raport',
+            few: 'Pobierz raporty',
+            many: 'Pobierz raporty',
+            other: 'Pobierz raporty',
+        }),
         downloadReceipts: 'Pobierz paragony',
         downloadAsCSV: 'Pobierz jako CSV',
         submitViaPDF: 'Prześlij przez PDF',

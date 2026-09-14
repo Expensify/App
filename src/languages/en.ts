@@ -462,7 +462,11 @@ const translations = {
         subrate: 'Subrate',
         perDiem: 'Per diem',
         validate: 'Validate',
-        downloadAsPDF: 'Download as PDF',
+        // @context Button label for downloading one or more expense reports as PDF. The count is the number of reports.
+        downloadReport: () => ({
+            one: 'Download report',
+            other: 'Download reports',
+        }),
         downloadReceipts: 'Download receipts',
         downloadAsCSV: 'Download as CSV',
         submitViaPDF: 'Submit via PDF',

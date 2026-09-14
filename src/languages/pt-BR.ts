@@ -415,7 +415,10 @@ const translations: TranslationDeepObject<typeof en> = {
         subrate: 'Subtaxa',
         perDiem: 'Diária',
         validate: 'Validar',
-        downloadAsPDF: 'Baixar como PDF',
+        downloadReport: () => ({
+            one: 'Baixar relatório',
+            other: 'Baixar relatórios',
+        }),
         downloadReceipts: 'Baixar recibos',
         downloadAsCSV: 'Baixar como CSV',
         submitViaPDF: 'Enviar via PDF',

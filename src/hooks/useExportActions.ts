@@ -272,7 +272,7 @@ function useExportActions({reportID, policy, onPDFModalOpen}: UseExportActionsPa
         },
         [CONST.REPORT.SECONDARY_ACTIONS.DOWNLOAD_PDF]: {
             value: CONST.REPORT.SECONDARY_ACTIONS.DOWNLOAD_PDF,
-            text: translate('common.downloadAsPDF'),
+            text: translate('common.downloadReport', {count: 1}),
             icon: expensifyIcons.Download,
             sentryLabel: CONST.SENTRY_LABEL.MORE_MENU.DOWNLOAD_PDF,
             onSelected: () => {

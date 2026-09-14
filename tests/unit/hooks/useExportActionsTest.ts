@@ -6,6 +6,8 @@ import useExportActions from '@hooks/useExportActions';
 
 import {queueExportSearchWithTemplate} from '@libs/actions/Search';
 
+import CONST from '@src/CONST';
+
 const mockQueueExportSearchWithTemplate = jest.mocked(queueExportSearchWithTemplate);
 const mockClearSelectedTransactions = jest.fn();
 
@@ -53,7 +55,8 @@ jest.mock('@hooks/useExportAgainModal', () => ({
 
 jest.mock('@hooks/useLocalize', () => ({
     __esModule: true,
-    default: () => ({translate: (key: string) => key}),
+    // Echo the plural count so tests can assert which form a label asks for.
+    default: () => ({translate: (key: string, params?: {count?: number}) => (params?.count === undefined ? key : `${key}:${params.count}`)}),
 }));
 
 jest.mock('@hooks/useThemeStyles', () => ({
@@ -129,5 +132,18 @@ describe('useExportActions - template export status modal', () => {
 
         expect(mockQueueExportSearchWithTemplate).not.toHaveBeenCalled();
         expect(mockShowDecisionModal).toHaveBeenCalled();
+    });
+});
+
+describe('useExportActions - download PDF label', () => {
+    beforeEach(() => {
+        jest.clearAllMocks();
+        mockIsOffline = false;
+    });
+
+    it('labels the PDF download with the singular "Download report" since the page acts on one report', () => {
+        const {result} = renderHook(() => useExportActions({reportID: REPORT_ID}));
+
+        expect(result.current.exportActionEntries[CONST.REPORT.SECONDARY_ACTIONS.DOWNLOAD_PDF].text).toBe('common.downloadReport:1');
     });
 });

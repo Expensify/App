@@ -419,7 +419,10 @@ const translations: TranslationDeepObject<typeof en> = {
         subrate: 'Δευτερεύουσα χρέωση',
         perDiem: 'Ημερήσια αποζημίωση',
         validate: 'Επικυρώστε',
-        downloadAsPDF: 'Λήψη ως PDF',
+        downloadReport: () => ({
+            one: 'Λήψη αναφοράς',
+            other: 'Λήψη αναφορών',
+        }),
         downloadAsCSV: 'Λήψη ως CSV',
         print: 'Εκτύπωση',
         help: 'Βοήθεια',

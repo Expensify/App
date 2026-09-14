@@ -2499,7 +2499,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         if (isExpenseReportSearch && selectedReportIDs.length > 0) {
             options.push({
                 icon: expensifyIcons.Download,
-                text: translate('common.downloadAsPDF'),
+                text: translate('common.downloadReport', {count: selectedReportIDs.length}),
                 value: CONST.SEARCH.BULK_ACTION_TYPES.DOWNLOAD_PDF,
                 shouldCloseModalOnSelect: true,
                 onSelected: async () => {
