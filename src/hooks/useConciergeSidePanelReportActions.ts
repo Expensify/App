@@ -167,7 +167,7 @@ function useConciergeSidePanelReportActions({
             if (!sessionStartTime) {
                 return actions.filter(isCreatedAction);
             }
-            if (!isConciergeMainDM && !hadUserMessageAtSessionStart) {
+            if (!hadUserMessageAtSessionStart) {
                 return actions;
             }
             const filtered = actions.filter(isCurrentSessionAction);
@@ -202,11 +202,11 @@ function useConciergeSidePanelReportActions({
     const filteredReportActions = useMemo(() => filterActions(reportActions), [filterActions, reportActions]);
 
     const hasPreviousMessages = useMemo(() => {
-        if (!isConciergeHiddenHistory || !sessionStartTime) {
+        if (!isConciergeHiddenHistory || !hadUserMessageAtSessionStart || !sessionStartTime) {
             return false;
         }
         return visibleReportActions.some((action) => !isCurrentSessionAction(action)) || hasOlderActions;
-    }, [isConciergeHiddenHistory, sessionStartTime, visibleReportActions, isCurrentSessionAction, hasOlderActions]);
+    }, [isConciergeHiddenHistory, hadUserMessageAtSessionStart, sessionStartTime, visibleReportActions, isCurrentSessionAction, hasOlderActions]);
 
     const handleShowPreviousMessages = useCallback(() => {
         setShowFullHistory(true);
