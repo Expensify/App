@@ -3,11 +3,7 @@ import type {Ref} from 'react';
 import type {ScrollView as RNScrollView, ScrollViewProps, View as RNView} from 'react-native';
 
 type SyncedHorizontalScroll = {
-    /**
-     * Ref to attach to the horizontal ScrollView that drives the sync. A callback ref, not an object one, because it
-     * has to bind to the ScrollView's real mount/unmount: a group renders collapsed first, so the scroller enters the
-     * tree long after the hook does, and an effect keyed on render values would not re-run to pick it up.
-     */
+    /** Ref for the horizontal ScrollView that drives the sync. */
     scrollViewRef: Ref<RNScrollView>;
 
     /**
@@ -18,31 +14,22 @@ type SyncedHorizontalScroll = {
 };
 
 /**
- * Publishes a group's horizontal table offset, for the one scroller the user actually drags.
+ * Publishes a group's horizontal table offset, for the scroller the user drags.
  *
- * A group's sticky column sub-header and its transaction rows are separate FlashList rows, so they cannot share one
- * scroll container. The rows are the scroller. The sub-header follows it through `useHorizontalScrollFollower`, which
- * is what keeps the column labels lined up with the values below them once the table is wider than the viewport.
+ * A group's sticky column sub-header and its rows are separate FlashList rows with separate scroll containers, so
+ * `useHorizontalScrollFollower` keeps the sub-header's offset in sync with this one. The sync is one-way: a sub-header
+ * that could also publish would yank the rows back to 0 whenever FlashList mounts a second copy of it for sticking.
  *
- * The sync is deliberately one-way. Making the sub-header a scroller too meant it published as well, and a sub-header
- * publishes wrongly at exactly the wrong moment: when a header sticks, FlashList mounts a *second* copy of it, and
- * that copy starts at offset 0 and reports 0 back to the group, yanking the rows to the start of the table.
- *
- * Pass `undefined` as the key to opt out. Layouts that don't split a group render both halves in one scroller and
- * need no syncing. `isEnabled` additionally gates it on the table actually overflowing, and must stay reactive: the
- * ScrollView only exists while it is true, so the hook has nothing to attach to before then.
+ * Pass `undefined` as the key to opt out (a layout that doesn't split a group needs no syncing).
  */
 type UseSyncedHorizontalScroll = (key: string | undefined, isEnabled: boolean) => SyncedHorizontalScroll;
 
 /**
- * Follows the offset published for `key`, without being something the user can scroll.
+ * Follows the offset published for `key`, without being scrollable by the user.
  *
- * Returns a callback ref for a clipped (`overflow: hidden`) View wrapping content wider than itself. That clip still
- * accepts a `scrollLeft`, so the hook can move it in step with the rows, but it renders no scrollbar and cannot be
- * dragged. Most importantly it never publishes. It only ever receives an offset, so it cannot argue with the scroller
- * it is following.
- *
- * Same key and `isEnabled` contract as `useSyncedHorizontalScroll`.
+ * Returns a callback ref for a clipped (`overflow: hidden`) View wrapping content wider than itself. Moving it via
+ * `scrollLeft` keeps it in step with the rows without a visible scrollbar and without ever publishing an offset of
+ * its own. Same key and `isEnabled` contract as `useSyncedHorizontalScroll`.
  */
 type UseHorizontalScrollFollower = (key: string | undefined, isEnabled: boolean) => Ref<RNView>;
 

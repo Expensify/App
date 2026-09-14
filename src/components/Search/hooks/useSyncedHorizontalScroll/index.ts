@@ -35,11 +35,9 @@ function getScrollableElement(scrollView: RNScrollView | null): HTMLElement | un
 const useSyncedHorizontalScroll: UseSyncedHorizontalScroll = (key, isEnabled) => {
     const releaseRef = useRef<(() => void) | undefined>(undefined);
 
-    // Binding in the ref callback rather than an effect is what makes this track the scroller itself. A group renders
-    // collapsed, so its rows scroller mounts on expand, well after this hook's first render, and the group header
-    // stays mounted across expand and collapse, so an effect keyed on render values never re-runs to catch it.
-    // React invokes this on mount, on unmount (with null), and whenever `key`/`isEnabled` change its identity, which
-    // React Compiler is what keeps stable across renders here.
+    // A ref callback, not an effect, because a group renders collapsed and its rows scroller only mounts on expand,
+    // after this hook's first render. The group header stays mounted across expand and collapse, so an effect keyed
+    // on render values would never re-run to catch it.
     const scrollViewRef = (scrollView: RNScrollView | null) => {
         releaseRef.current?.();
         releaseRef.current = undefined;

@@ -156,8 +156,7 @@ function GroupHeader({
         isActionColumnWide: isSubHeaderActionColumnWide,
     } = getGroupColumnWidthFlags(groupItem.transactions);
 
-    // Shared with TransactionGroupListExpanded, the rows this header labels, so the two cannot disagree about the
-    // table's width the way GroupHeader's own getColumnsToShow call once silently did.
+    // Shared with TransactionGroupListExpanded so the two always agree on the table's width.
     const {minTableWidth: subHeaderMinTableWidth, shouldScrollHorizontally: shouldSubHeaderScrollHorizontally} = getGroupTableScrollLayout(
         subHeaderColumns,
         CONST.SEARCH.DATA_TYPES.EXPENSE,
@@ -447,10 +446,7 @@ function GroupHeader({
                                     >
                                         {shouldSubHeaderScrollHorizontally ? (
                                             // A clip the follower scrolls, not a ScrollView: the rows below own the scroll
-                                            // and these labels only mirror their offset. `overflow: hidden` still takes a
-                                            // `scrollLeft`, so this moves with the rows while showing no scrollbar of its
-                                            // own and refusing to be dragged. A second real scroller here is what used to
-                                            // let the two drift apart.
+                                            // and these labels only mirror their offset.
                                             <View
                                                 style={styles.overflowHidden}
                                                 ref={subHeaderFollowerRef}

@@ -172,14 +172,10 @@ function TransactionGroupListExpandedImpl({
     const taxAmountColumnSize = isTaxAmountColumnWide ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL;
     const dateColumnSize = shouldShowYearForSomeTransaction ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL;
 
-    // Shared with GroupHeader, the sticky column labels for these rows, so the two cannot disagree about the table's
-    // width the way this component's fallbackPolicyID and GroupHeader's once silently did.
+    // Shared with GroupHeader so the two always agree on the table's width.
     const {minTableWidth, shouldScrollHorizontally} = getGroupTableScrollLayout(currentColumns, CONST.SEARCH.DATA_TYPES.EXPENSE, isActionColumnWide, windowWidth, isLargeScreenWidth);
 
-    // When the group's column header is rendered outside these rows (split groups on wide web), this scroller is the
-    // one the user drags and the header follows the offset it publishes. Without a sync key this is inert and
-    // `syncProps` is empty, so the ScrollView below keeps exactly the props it had before. That covers every other
-    // layout, where the header sits inside this same scroller.
+    // syncScrollKey is only set when the header is split out (wide web); otherwise this is a no-op.
     const {scrollViewRef: horizontalScrollViewRef, syncProps: horizontalSyncProps} = useSyncedHorizontalScroll(syncScrollKey, shouldScrollHorizontally);
 
     const {markReportRHPWidth} = useWideRHPActions();
