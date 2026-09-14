@@ -459,7 +459,6 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
         isScrolledOverThreshold: scrollingVerticalBottomOffset.current >= CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD,
         isOffline,
         isReversed: true,
-        isReportUnread: isUnread(report, transactionThreadReport, isReportArchived),
         hasWindowFocus: Visibility.hasFocus(),
     });
 

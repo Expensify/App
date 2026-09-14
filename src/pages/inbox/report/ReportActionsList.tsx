@@ -39,7 +39,6 @@ import {
     isHarvestCreatedExpenseReport,
     isInvoiceReport,
     isIOUReport,
-    isUnread,
     isTaskReport,
     shouldShowMarkAsDone,
 } from '@libs/ReportUtils';
@@ -147,7 +146,6 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
 
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`);
     const isReportArchived = !!isArchivedReport(reportNameValuePairs);
-    const isReportUnread = isUnread(report, transactionThreadReport, isReportArchived);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(report?.policyID)}`);
 
@@ -190,7 +188,6 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
         oldestUnreadReportActionID: oldestUnreadReportAction?.reportActionID,
         isScrolledOverThreshold: hasScrolledOverThreshold,
         hasOnceLoadedReportActions: !!hasOnceLoadedReportActions,
-        isReportUnread,
         newMessageBoundaryTime: isConciergeHiddenHistory ? sessionStartTime : undefined,
     });
 
