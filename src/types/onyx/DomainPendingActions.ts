@@ -31,9 +31,6 @@ type DomainMemberPendingActions = {
      */
     lockAccount?: OnyxCommon.PendingAction;
 
-    /**
-     * Pending actions for changing domain security group.
-     */
     changeDomainSecurityGroup?: OnyxCommon.PendingAction;
 } & GeneralDomainMemberPendingAction;
 
@@ -61,9 +58,6 @@ type DomainSecurityGroupPendingActions = {
      */
     enableStrictPolicyRules?: OnyxCommon.PendingAction;
 
-    /**
-     * Pending action for the default security group ID
-     */
     defaultSecurityGroupID?: OnyxCommon.PendingAction;
 
     /**
@@ -102,8 +96,10 @@ type DomainPendingAction = {
     admin?: Record<number, GeneralDomainMemberPendingAction>;
 
     /**
-     * Pending action for the technical contact email
+     * Pending actions for approving/denying a pending domain adminship request, keyed by the requester's accountID
      */
+    adminshipRequester?: Record<number, GeneralDomainMemberPendingAction>;
+
     technicalContactEmail?: OnyxCommon.PendingAction;
 
     /**
