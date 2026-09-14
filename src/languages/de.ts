@@ -54,6 +54,8 @@ const translations: TranslationDeepObject<typeof en> = {
         unshare: 'Freigabe aufheben',
         yes: 'Ja',
         no: 'Nein',
+        approve: 'Genehmigen',
+        deny: 'Ablehnen',
         dontChange: 'Nicht ändern',
         ok: 'OK',
         notNow: 'Nicht jetzt',
@@ -962,6 +964,14 @@ const translations: TranslationDeepObject<typeof en> = {
             addPaymentCard: {title: 'Fügen Sie eine Zahlungskarte hinzu, um Expensify weiter zu nutzen', subtitle: 'Konto > Abonnement', cta: 'Hinzufügen'},
             addBankAccount: {title: 'Fügen Sie ein Bankkonto hinzu, um eine Erstattung zu erhalten'},
             activateCard: {title: 'Aktivieren Sie Ihre Expensify Karte', subtitle: 'Validieren Sie Ihre Karte und beginnen Sie mit dem Ausgeben.', cta: 'Aktivieren'},
+            confirmDigitalWalletAddition: {
+                title: ({walletName}: {walletName: string}) => `${walletName}-Kartenergänzung erfordert Ihre Zustimmung`,
+                subtitle: 'Expensify Karte',
+                cta: 'Überprüfen',
+                appleWallet: 'Apple Wallet',
+                googleWallet: 'Google Wallet',
+                digitalWallet: 'Digitale Brieftasche',
+            },
             reviewCardFraud: {
                 title: 'Möglichen Betrug mit Ihrer Expensify Karte überprüfen',
                 titleWithDetails: ({amount, merchant}: {amount: string; merchant: string}) => `Überprüfe mögliche betrügerische ${amount} bei ${merchant}`,
@@ -2618,6 +2628,10 @@ const translations: TranslationDeepObject<typeof en> = {
             connectionLink
                 ? `Die Verbindung Ihrer ${cardName}-Karte ist unterbrochen. <a href="${connectionLink}">Melden Sie sich bei Ihrer Bank an</a>, um die Karte zu reparieren.`
                 : `Die Verbindung Ihrer ${cardName}-Karte ist unterbrochen. Melden Sie sich bei Ihrer Bank an, um die Karte zu reparieren.`,
+        conciergeBrokenConnection30Days: (cardName: string, connectionLink?: string) =>
+            connectionLink
+                ? `Ihre ${cardName}-Verbindung ist seit 30 Tagen unterbrochen. <a href="${connectionLink}">Melden Sie sich bei Ihrer Bank an</a>, um sie zu reparieren, oder <a href="${connectionLink}">entfernen Sie die Karte</a>, wenn sie nicht mehr verwendet wird. Bereits eingereichte Ausgaben gehen beim Entfernen nicht verloren.`
+                : `Ihre ${cardName}-Verbindung ist seit 30 Tagen unterbrochen. Melden Sie sich bei Ihrer Bank an, um sie zu beheben, oder entfernen Sie die Karte, wenn sie nicht mehr verwendet wird. Sie verlieren keine eingereichten Ausgaben, wenn Sie sie entfernen.`,
         fixCard: 'Karte reparieren',
         addAdditionalCards: 'Weitere Karten hinzufügen',
         upgradeDescription: 'Müssen Sie weitere Karten hinzufügen? Erstellen Sie einen Workspace, um weitere persönliche Karten hinzuzufügen oder Firmenkarten dem gesamten Team zuzuweisen.',
@@ -2717,6 +2731,24 @@ const translations: TranslationDeepObject<typeof en> = {
             accountRequiresAttention: 'Dieses Konto erfordert Ihre Aufmerksamkeit',
             unlock: 'Entsperren',
         },
+    },
+    addCardToDigitalWallet: {
+        title: ({walletName}: {walletName: string}) => `Karte zu ${walletName} hinzufügen`,
+        appleWallet: 'Apple Wallet',
+        googleWallet: 'Google Wallet',
+        digitalWallet: 'digitale Brieftasche',
+        confirmHeading: 'Bestätigen Sie Ihre Anfrage',
+        confirmDescription: ({walletName, lastFourDigits}: {walletName: string; lastFourDigits: string}) =>
+            `Möchten Sie Ihre Expensify Karte (endet auf ${lastFourDigits}) zu Ihrem ${walletName} hinzufügen?`,
+        deny: 'Ablehnen',
+        confirm: 'Bestätigen',
+        verifyTitle: 'Lassen Sie uns bestätigen, dass Sie es sind',
+        enterSecurityCode: (contactMethod: string) =>
+            `Bitte geben Sie den Sicherheitscode ein, der an ${contactMethod} gesendet wurde, um diese Anfrage zu bestätigen. Er sollte innerhalb von ein bis zwei Minuten eintreffen.`,
+        successHeading: 'Erfolg!',
+        successDescription: ({walletName}: {walletName: string}) => `Ihre Karte ist jetzt zur Verwendung in Ihrem ${walletName} aktiv.`,
+        deniedHeading: 'Anfrage abgelehnt',
+        deniedDescription: ({walletName}: {walletName: string}) => `Ihre Karte wurde nicht zu Ihrem ${walletName} hinzugefügt.`,
     },
     cardPage: {
         expensifyCard: 'Expensify Karte',
@@ -7989,7 +8021,6 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
                 alwaysReimbursableDescription: 'Spesen werden immer an Mitarbeitende zurückgezahlt',
                 alwaysNonReimbursable: 'Immer nicht erstattungsfähig',
                 alwaysNonReimbursableDescription: 'Auslagen werden Mitarbeitenden nie erstattet',
-                billableDefault: 'Standardmäßig verrechenbar',
                 billableDefaultDescription: 'Wähle, ob Bar- und Kreditkartenausgaben standardmäßig verrechenbar sein sollen.',
                 billable: 'Abrechenbar',
                 billableDescription: 'Spesen werden meist an Kund:innen weiterberechnet',
@@ -8016,10 +8047,12 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
                 publicReceiptVisibilityHintDisabled: 'Belege können nur von Expensify-Mitgliedern eingesehen werden, die Zugriff auf den Bericht haben, der den Beleg enthält.',
                 enableTagsToUnlockTitle: 'Tags aktivieren?',
                 enableTagsToUnlockPrompt: 'Aktivieren Sie Tags (unter Weitere Funktionen), um dies freizuschalten.',
-                enableTagsAndRequirePrompt: 'Sind Sie sicher, dass Sie Tags aktivieren und für alle Ausgaben verpflichtend machen möchten?',
                 enableCategoriesToUnlockTitle: 'Kategorien aktivieren?',
                 enableCategoriesToUnlockPrompt: 'Aktivieren Sie Kategorien (unter Weitere Funktionen), um dies freizuschalten.',
                 enableCategoriesAndRequirePrompt: 'Sind Sie sicher, dass Sie Kategorien aktivieren und für alle Ausgaben verpflichtend machen möchten?',
+                enableTagsPrompt: 'Möchten Sie Tags wirklich aktivieren? Sie können sie für alle Ausgaben erforderlich machen, sobald Sie mindestens einen Tag haben.',
+                noTagsToRequirePrompt: 'Sie haben keine Tags. Bitte erstellen Sie einen Tag.',
+                noCategoriesToRequirePrompt: 'Sie haben keine Kategorien. Bitte erstellen Sie eine Kategorie.',
             },
             expenseReportRules: {
                 title: 'Erweitert',
@@ -8127,7 +8160,8 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
                 flagAmountsOverSubtitle: 'Dadurch wird der Höchstbetrag für alle Ausgaben überschrieben.',
                 expenseLimitTypes: {
                     expense: 'Einzelne Ausgabe',
-                    expenseSubtitle: 'Betrag von Ausgaben nach Kategorie kennzeichnen. Diese Regel überschreibt die allgemeine Arbeitsbereichsregel für den maximalen Ausgabenbetrag.',
+                    expenseSubtitle:
+                        'Beträge von Ausgaben nach Kategorie kennzeichnen. Diese Regel überschreibt die allgemeine Arbeitsbereichsregel für den maximalen Ausgabenbetrag. Mehrtägige Reservierungen werden anhand des Durchschnitts pro Nacht bewertet.',
                     daily: 'Kategoriesumme',
                     dailySubtitle: 'Markiere die gesamte tägliche Kategorienaussage pro Spesenbericht.',
                 },
@@ -9776,6 +9810,16 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 integrationSyncFailedRecurrence: ({count}: {count: number}) => `(${count} Mal wiederholt.)`,
                 companyCardConnectionBroken: ({feedName, workspaceCompanyCardRoute}: {feedName: string; workspaceCompanyCardRoute: string}) =>
                     `Die Verbindung für ${feedName} ist unterbrochen. Um Kartenimporte wiederherzustellen, <a href='${workspaceCompanyCardRoute}'>melden Sie sich bei Ihrer Bank an</a>.`,
+                companyCardConnectionBroken30Days: ({
+                    feedName,
+                    workspaceCompanyCardRoute,
+                    workspaceCompanyCardSettingsRoute,
+                }: {
+                    feedName: string;
+                    workspaceCompanyCardRoute: string;
+                    workspaceCompanyCardSettingsRoute: string;
+                }) =>
+                    `Die ${feedName}-Verbindung besteht seit 30 Tagen nicht mehr. <a href='${workspaceCompanyCardRoute}'>Melden Sie sich bei Ihrer Bank an</a>, um sie zu beheben, oder <a href='${workspaceCompanyCardSettingsRoute}'>entfernen Sie die Verbindung</a>, wenn sie nicht mehr verwendet wird. Bereits eingereichte Ausgaben gehen beim Entfernen nicht verloren.`,
                 plaidBalanceFailure: ({maskedAccountNumber, walletRoute}: {maskedAccountNumber: string; walletRoute: string}) =>
                     `Die Plaid-Verbindung zu Ihrem Geschäftskonto ist unterbrochen. Bitte <a href='${walletRoute}'>verbinden Sie Ihr Bankkonto ${maskedAccountNumber} erneut</a>, damit Sie Ihre Expensify Karten weiterhin verwenden können.`,
                 addEmployee: (email: string, role: string, didJoinPolicy?: boolean) => {
@@ -10367,6 +10411,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         customUnitRateOutOfDateRangeStartOnly: ({startDate}: {startDate: string}) => `Der Satz gilt erst ab dem ${startDate}`,
         customUnitRateOutOfDateRangeEndOnly: ({endDate}: {endDate: string}) => `Satz gilt nur bis ${endDate}`,
         cannotMergeDuplicates: 'Sie können Ausgaben nur in Entwürfen oder offenen Berichten zusammenführen. Ziehen Sie den Bericht zurück und versuchen Sie es erneut.',
+        overCategoryLimitPerNight: (formattedLimit: string) => `Nächtlicher Satz über dem Kategorienlimit von ${formattedLimit}/Person`,
         shortName: {
             allTagLevelsRequired: 'Alle Tags erforderlich',
             autoReportedRejectedExpense: 'Ausgabe abgelehnt',
@@ -11118,6 +11163,9 @@ Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
             consolidatedDomainBillingError: 'Die konsolidierte Domain-Abrechnung konnte nicht geändert werden. Bitte versuchen Sie es später noch einmal.',
             addAdmin: 'Admin hinzufügen',
             addAdminError: 'Dieses Mitglied kann nicht als Admin hinzugefügt werden. Bitte versuche es erneut.',
+            requests: 'Anfragen',
+            approveRequestError: 'Diese Anfrage kann nicht genehmigt werden. Bitte versuche es erneut.',
+            declineRequestError: 'Diese Anfrage kann nicht abgelehnt werden. Bitte versuche es erneut.',
             revokeAdminAccess: 'Adminzugriff widerrufen',
             cantRevokeAdminAccess: 'Adminzugriff kann beim technischen Kontakt nicht widerrufen werden',
             error: {

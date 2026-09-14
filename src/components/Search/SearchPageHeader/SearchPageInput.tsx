@@ -78,7 +78,6 @@ function SearchPageInput({queryJSON, onFocus}: SearchPageInputProps) {
                 submitSearch(textInputValue);
             }}
             containerStyles={[shouldUseNarrowLayout ? styles.flex1 : undefined]}
-            // On narrow screens this input matches the search input above the Workspaces table (TableSearchBar).
             textInputContainerStyles={shouldUseNarrowLayout ? [styles.border, styles.borderRadiusComponentNormal, styles.appBG, styles.p2] : [styles.pb0, styles.ph2]}
             inputStyle={shouldUseNarrowLayout ? [styles.w100, styles.textLabel] : [styles.w100, styles.lineHeightUndefined, styles.fontSizeLabel]}
             touchableInputWrapperStyle={shouldUseNarrowLayout ? styles.h11 : styles.searchPageInputWideTouchableWrapper}

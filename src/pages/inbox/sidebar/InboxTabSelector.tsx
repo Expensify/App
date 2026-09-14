@@ -104,7 +104,6 @@ function InboxTabSelector() {
         {
             key: CONST.INBOX_TAB.ALL,
             title: translate('inboxTabs.all'),
-            // Tabs only carry icons on narrow screens, matching the other pages' narrow tab rows.
             icon: shouldUseNarrowLayout ? icons.Feed : undefined,
             tabRef: allTabRef,
             // Every tab opens the "Mark all as read" menu on long-press / right-click, so they all wire the secondary
