@@ -59,10 +59,14 @@ import {
     getWalletProviderNameKey,
     getYearFromExpirationDateString,
     hasAssignedCardMatching,
+    getCardActionErrors,
+    hasCardConnectionIssue,
+    hasCardActionErrors,
     hasIssuedExpensifyCard,
     hasOnlyOneCardToAssign,
     isBrokenConnectionPastDismissThreshold,
     isCardAlreadyAssigned,
+    isCardConnectionBroken,
     isCardFrozen,
     isLastScrapePastDismissThreshold,
     isCSVFeedOrExpensifyCard,
@@ -3181,6 +3185,14 @@ describe('CardUtils', () => {
             expect(getDisplayableThirdPartyCards(cardList, emptyCardFeedErrors)).toEqual([]);
         });
 
+        // The wallet reports a 434 card as Inactive, so counting it as spendable here would contradict that.
+        it('excludes a card reporting an actionable scrape status the broken check ignores', () => {
+            const cardList = createMock<CardList>({
+                51: makeCompanyCard({cardID: 51, lastScrapeResult: 434}),
+            });
+            expect(getDisplayableThirdPartyCards(cardList, emptyCardFeedErrors)).toEqual([]);
+        });
+
         it('excludes a company card listed in cardFeedErrors.cardsWithBrokenFeedConnection', () => {
             const card = makeCompanyCard({cardID: 60});
             const cardList = createMock<CardList>({60: card});
@@ -4434,6 +4446,78 @@ describe('CardUtils', () => {
         it('returns false for an ignored scrape status even when the last sync is long past the threshold', () => {
             const card: Card = {...createRandomCard(1), lastScrapeResult: 434, lastScrape: '2020-01-01 00:00:00'};
             expect(isBrokenConnectionPastDismissThreshold(card)).toBe(false);
+        });
+    });
+
+    describe('hasCardConnectionIssue', () => {
+        it('returns true for a scrape status that is not ignored', () => {
+            const card: Card = {...createRandomCard(1), lastScrapeResult: 403, errors: undefined};
+            expect(hasCardConnectionIssue(card)).toBe(true);
+        });
+
+        // 434 is an ignored status, so isCardConnectionBroken is false for it even though the bank changed the account
+        // number and the user has to act.
+        it('returns true for an actionable ignored scrape status', () => {
+            const card: Card = {...createRandomCard(1), lastScrapeResult: 434, errors: {connectionError: 'The account number appears to have changed at the bank.'}};
+            expect(isCardConnectionBroken(card)).toBe(false);
+            expect(hasCardConnectionIssue(card)).toBe(true);
+        });
+
+        // Dismissing the row error clears card.errors, so keying off it would flip a still-broken card to Active.
+        it('stays true for an actionable ignored scrape status after its errors are dismissed', () => {
+            const card: Card = {...createRandomCard(1), lastScrapeResult: 434, errors: undefined};
+            expect(hasCardConnectionIssue(card)).toBe(true);
+        });
+
+        it('returns false for an ignored scrape status that needs no action', () => {
+            const card: Card = {...createRandomCard(1), lastScrapeResult: 530, errors: {someError: 'Transient server error'}};
+            expect(hasCardConnectionIssue(card)).toBe(false);
+        });
+
+        it('returns false for a successful scrape', () => {
+            const card: Card = {...createRandomCard(1), lastScrapeResult: 200, errors: undefined};
+            expect(hasCardConnectionIssue(card)).toBe(false);
+        });
+
+        it('returns false while a scrape is pending', () => {
+            const card: Card = {...createRandomCard(1), lastScrapeResult: 403, pendingFields: {lastScrape: 'update'}, errors: {connectionError: 'Broken'}};
+            expect(hasCardConnectionIssue(card)).toBe(false);
+        });
+    });
+
+    describe('getCardActionErrors', () => {
+        it('returns nothing when the card has no errors', () => {
+            const card: Card = {...createRandomCard(1), errors: undefined};
+            expect(hasCardActionErrors(card)).toBe(false);
+        });
+
+        // The server names its connection error, so the row shows our own connection copy for it instead.
+        it('leaves out the server connection error', () => {
+            const card: Card = {...createRandomCard(1), errors: {connectionError: 'Your card connection is broken.'}};
+            expect(getCardActionErrors(card)).toEqual({});
+        });
+
+        // A user action records its error under a microsecond timestamp, and that is the message the row has to carry.
+        it('keeps an error a user action recorded', () => {
+            const recordedAt = Date.now() * 1000;
+            const card: Card = {...createRandomCard(1), errors: {[recordedAt]: 'Failed to unassign this card'}};
+            expect(getCardActionErrors(card)).toEqual({[recordedAt]: 'Failed to unassign this card'});
+        });
+
+        // Both at once: the action error is kept and the connection error is left to the connection message.
+        it('keeps only the user action error when the card carries both', () => {
+            const recordedAt = Date.now() * 1000;
+            const card: Card = {...createRandomCard(1), errors: {connectionError: 'Your card connection is broken.', [recordedAt]: 'Failed to unassign this card'}};
+            expect(getCardActionErrors(card)).toEqual({[recordedAt]: 'Failed to unassign this card'});
+        });
+
+        // A broken card never advances `lastScrape`, so the age of an error says nothing about which kind it is.
+        it('keeps a user action error however old it is and whether or not the card ever synced', () => {
+            const longAgo = Date.parse('2024-01-05T11:00:00Z') * 1000;
+            const neverSynced: Card = {...createRandomCard(1), lastScrape: undefined, errors: {[longAgo]: 'Failed to remove this card'}};
+            const syncedSince: Card = {...createRandomCard(2), lastScrape: '2025-10-05 11:00:00', errors: {[longAgo]: 'Failed to remove this card'}};
+            expect(hasCardActionErrors(neverSynced)).toBe(true);
+            expect(hasCardActionErrors(syncedSince)).toBe(true);
         });
     });
 
