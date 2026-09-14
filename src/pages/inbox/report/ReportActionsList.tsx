@@ -2,6 +2,7 @@ import {renderScrollComponent as renderActionSheetAwareScrollView} from '@compon
 import InvertedFlashList from '@components/FlashList/InvertedFlashList';
 import MerchantRuleSuggestionBanner from '@components/MerchantRuleSuggestionBanner';
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
+import ScrollView from '@components/ScrollView';
 
 import useConciergeAskState from '@hooks/useConciergeAskState';
 import useConciergeSessionStartTime from '@hooks/useConciergeSessionStartTime';
@@ -464,16 +465,21 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
 
     if (shouldShowConciergeWelcome) {
         return (
-            <View style={styles.conciergeAskColumn}>
-                <AskConciergeEmptyState />
-                <ConciergeChatHistoryToggle
-                    reportID={reportID}
-                    hasPreviousMessages={!!hasPreviousMessages}
-                    shouldShowFullHistory={false}
-                    onShowPreviousMessages={onShowPreviousMessages}
-                    containerStyles={styles.pv5}
-                />
-            </View>
+            <ScrollView
+                style={styles.flex1}
+                contentContainerStyle={[styles.flexGrow1, styles.justifyContentCenter]}
+            >
+                <View style={styles.conciergeAskColumn}>
+                    <AskConciergeEmptyState />
+                    <ConciergeChatHistoryToggle
+                        reportID={reportID}
+                        hasPreviousMessages={!!hasPreviousMessages}
+                        shouldShowFullHistory={false}
+                        onShowPreviousMessages={onShowPreviousMessages}
+                        containerStyles={styles.pv5}
+                    />
+                </View>
+            </ScrollView>
         );
     }
 

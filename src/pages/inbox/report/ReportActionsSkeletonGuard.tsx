@@ -1,3 +1,5 @@
+import ScrollView from '@components/ScrollView';
+
 import useBackfillWhenNoVisibleActions from '@hooks/useBackfillWhenNoVisibleActions';
 import useConciergeAskState from '@hooks/useConciergeAskState';
 import useCopySelectionHelper from '@hooks/useCopySelectionHelper';
@@ -15,6 +17,7 @@ import React from 'react';
 import {View} from 'react-native';
 
 import AskConciergeEmptyState from './AskConciergeEmptyState';
+import ConciergeChatHistoryToggle from './ConciergeChatHistoryToggle';
 import {computeReportActionsSkeletonState, ReportActionsListActionsContext, ReportActionsListStateContext} from './ReportActionsListContext';
 import ReportActionsLoadingSkeleton from './ReportActionsLoadingSkeleton';
 
@@ -83,9 +86,21 @@ function ReportActionsSkeletonGuard({reportID, children}: ReportActionsSkeletonG
     if (shouldShowLoadingSkeleton || shouldShowDerivedTimingSkeleton) {
         if (shouldShowWelcome) {
             return (
-                <View style={[styles.flex1, styles.justifyContentCenter, styles.conciergeAskColumn]}>
-                    <AskConciergeEmptyState />
-                </View>
+                <ScrollView
+                    style={styles.flex1}
+                    contentContainerStyle={[styles.flexGrow1, styles.justifyContentCenter]}
+                >
+                    <View style={styles.conciergeAskColumn}>
+                        <AskConciergeEmptyState />
+                        <ConciergeChatHistoryToggle
+                            reportID={reportID}
+                            hasPreviousMessages={!!state.hasPreviousMessages}
+                            shouldShowFullHistory={false}
+                            onShowPreviousMessages={actions.handleShowPreviousMessages}
+                            containerStyles={styles.pv5}
+                        />
+                    </View>
+                </ScrollView>
             );
         }
 

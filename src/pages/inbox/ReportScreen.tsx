@@ -3,7 +3,6 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import WideRHPOverlayWrapper from '@components/WideRHPOverlayWrapper';
 
-import useConciergeAskState from '@hooks/useConciergeAskState';
 import {useCurrentReportIDState} from '@hooks/useCurrentReportID';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -84,7 +83,6 @@ function ReportScreen({route, navigation, shouldDeferReportActions = false}: Rep
     const screenWrapperStyle: ViewStyle[] = [styles.appContent, styles.flex1, {marginTop: viewportOffsetTop}];
 
     const shouldDeferNonEssentials = useDeferNonEssentials(reportIDFromRoute);
-    const {shouldShowWelcome: shouldShowConciergeWelcome} = useConciergeAskState(reportIDFromRoute);
 
     useSubmitToDestinationVisible(
         [CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_AND_OPEN_REPORT, CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_ONLY],
@@ -151,7 +149,7 @@ function ReportScreen({route, navigation, shouldDeferReportActions = false}: Rep
                                                 <AgentZeroStatusProvider reportID={reportIDFromRoute}>
                                                     <ConciergeDraftProvider reportID={reportIDFromRoute}>
                                                         <View
-                                                            style={[styles.flex1, shouldShowConciergeWelcome ? styles.justifyContentCenter : styles.justifyContentEnd, styles.overflowHidden]}
+                                                            style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}
                                                             testID="report-actions-view-wrapper"
                                                         >
                                                             <ReportActionsWithInboxTabDeferredMount
