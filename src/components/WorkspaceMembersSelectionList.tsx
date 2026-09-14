@@ -9,9 +9,9 @@ import useScreenWrapperTransitionStatus from '@hooks/useScreenWrapperTransitionS
 
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {getSearchValueForPhoneOrEmail} from '@libs/OptionsListUtils';
-import sortAlphabetically from '@libs/sortAlphabetically';
 import {getMemberAccountIDsForWorkspace, isExpensifyTeam, shouldFilterExpensifyTeam} from '@libs/PolicyUtils';
 import moveInitialSelectionToTop from '@libs/SelectionListOrderUtils';
+import sortAlphabetically from '@libs/sortAlphabetically';
 import tokenizedSearch from '@libs/tokenizedSearch';
 
 import MemberRightIcon from '@pages/workspace/MemberRightIcon';

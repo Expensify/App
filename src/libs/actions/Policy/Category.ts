@@ -51,7 +51,7 @@ import type {PartialDeep} from 'type-fest';
 import lodashCloneDeep from 'lodash/cloneDeep';
 import Onyx from 'react-native-onyx';
 
-import {buildOptimisticMccGroup, buildOptimisticPolicyCategories, buildOptimisticPolicyWithExistingCategories, DEFAULT_MCC_GROUP} from './PolicyCategoriesOnyxData';
+import {buildOptimisticMccGroup, buildOptimisticPolicyCategories, buildOptimisticPolicyWithExistingCategories, DEFAULT_MCC_GROUP} from './OptimisticPolicyCategoriesAndMccGroups';
 
 type CreatePolicyCategoryParams = {
     policyID: string;

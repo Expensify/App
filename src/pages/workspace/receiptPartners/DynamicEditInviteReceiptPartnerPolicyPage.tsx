@@ -24,9 +24,9 @@ import Navigation from '@libs/Navigation/Navigation';
 import OnyxTabNavigator, {TabScreenWithFocusTrapWrapper, TopTab} from '@libs/Navigation/OnyxTabNavigator';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {formatMemberForList, getHeaderMessage} from '@libs/OptionsListUtils';
-import sortAlphabetically from '@libs/sortAlphabetically';
 import type {MemberForList} from '@libs/OptionsListUtils';
 import {isDeletedPolicyEmployee} from '@libs/PolicyUtils';
+import sortAlphabetically from '@libs/sortAlphabetically';
 import tokenizedSearch from '@libs/tokenizedSearch';
 
 import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';

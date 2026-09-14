@@ -42,11 +42,11 @@ import {
     orderWorkspaceOptions,
     recentReportComparator,
 } from '@libs/OptionsListUtils';
-import sortAlphabetically from '@libs/sortAlphabetically';
 import {getCurrentUserSearchTerms, getPersonalDetailSearchTerms} from '@libs/OptionsListUtils/searchMatchUtils';
 import {canCreateTaskInReport, canUserPerformWriteAction, isCanceledTaskReport, isExpensifyOnlyParticipantInReport} from '@libs/ReportUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import SidebarUtils from '@libs/SidebarUtils';
+import sortAlphabetically from '@libs/sortAlphabetically';
 
 import initOnyxDerivedValues from '@userActions/OnyxDerived';
 
