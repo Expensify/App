@@ -9,9 +9,11 @@ import type {Unit} from '@src/types/onyx/Policy';
 import type Policy from '@src/types/onyx/Policy';
 import type {TransactionCustomUnit} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import type {ReadonlyOnyxEntry} from '@src/types/utils/ReadonlyOnyx';
 
 import type {Locale as DateFnsLocale} from 'date-fns';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {ReadonlyDeep} from 'type-fest';
 
 import {format, parseISO} from 'date-fns';
 
@@ -289,7 +291,7 @@ function getDistanceMerchant(
  * @param currency
  * @returns The rate and unit in MileageRate object.
  */
-function getRateForP2P(currency: string, transaction: OnyxEntry<Transaction>): MileageRate {
+function getRateForP2P(currency: string, transaction: ReadonlyOnyxEntry<Transaction>): MileageRate {
     const defaultRate = getStoredDefaultP2PMileageRate();
     const p2pRate: DefaultP2PMileageRate = defaultRate ?? {rate: DEFAULT_P2P_RATE_CENTS_PER_MILE, unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES};
     const rate = transaction && getCurrency(transaction) === currency ? (transaction.comment?.customUnit?.defaultP2PRate ?? p2pRate.rate) : p2pRate.rate;
@@ -379,7 +381,7 @@ function getTransactionCommuterExclusionData({
     transaction: OnyxEntry<Transaction>;
     policy: OnyxEntry<Policy>;
     customUnit?: TransactionCustomUnit;
-    storedCustomUnit?: TransactionCustomUnit;
+    storedCustomUnit?: ReadonlyDeep<TransactionCustomUnit>;
     translate?: LocaleContextProps['translate'];
     toLocaleDigit?: LocaleContextProps['toLocaleDigit'];
     getCurrencySymbol?: CurrencyListActionsContextType['getCurrencySymbol'];
@@ -706,7 +708,7 @@ function getTaxableAmount(policy: OnyxEntry<Policy>, customUnitRateID: string, d
     return amount * taxClaimablePercentage;
 }
 
-function getDistanceUnit(transaction: OnyxEntry<Transaction>, mileageRate: OnyxEntry<MileageRate>): Unit {
+function getDistanceUnit(transaction: ReadonlyOnyxEntry<Transaction>, mileageRate: OnyxEntry<MileageRate>): Unit {
     return transaction?.comment?.customUnit?.distanceUnit ?? mileageRate?.unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES;
 }
 
@@ -726,7 +728,7 @@ function getRate({
     isMovingTransactionFromTrackExpense,
     personalPolicyOutputCurrency,
 }: {
-    transaction: OnyxEntry<Transaction>;
+    transaction: ReadonlyOnyxEntry<Transaction>;
     policy: OnyxEntry<Policy>;
     policyDraft?: OnyxEntry<Policy>;
     policyForMovingExpenses?: OnyxEntry<Policy>;
@@ -763,7 +765,7 @@ function getRate({
  * For example, if an expense is '10 mi @ $1.00 / mi' and the rate is updated to '$1.00 / km',
  * then the updated distance unit should be 'km' from the updated rate, not 'mi' from the currently stored transaction distance unit.
  */
-function getUpdatedDistanceUnit({transaction, policy, policyDraft}: {transaction: OnyxEntry<Transaction>; policy: OnyxEntry<Policy>; policyDraft?: OnyxEntry<Policy>}) {
+function getUpdatedDistanceUnit({transaction, policy, policyDraft}: {transaction: ReadonlyOnyxEntry<Transaction>; policy: OnyxEntry<Policy>; policyDraft?: OnyxEntry<Policy>}) {
     // The distance unit doesn't depend on the currency (the rate is selected by ID/P2P, not currency), so
     // personalPolicyOutputCurrency isn't accepted here and is passed as undefined to getRate.
     return getRate({transaction, policy, policyDraft, useTransactionDistanceUnit: false, personalPolicyOutputCurrency: undefined}).unit;

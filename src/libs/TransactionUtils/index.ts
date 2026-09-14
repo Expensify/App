@@ -92,10 +92,11 @@ import type {
     WaypointCollection,
 } from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import type {ReadonlyOnyxEntry, ReadonlyOnyxInputOrEntry} from '@src/types/utils/ReadonlyOnyx';
 
 import type {Locale as DateFnsLocale} from 'date-fns';
 import type {NullishDeep, OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
+import type {ReadonlyDeep, ValueOf} from 'type-fest';
 
 import {differenceInCalendarDays, format, isValid, parse, parseISO} from 'date-fns';
 import {SafeString, Str} from 'expensify-common';
@@ -152,7 +153,7 @@ type TransactionParams = {
 type BuildOptimisticTransactionParams = {
     originalTransactionID?: string;
     existingTransactionID?: string;
-    existingTransaction?: OnyxEntry<Transaction>;
+    existingTransaction?: ReadonlyOnyxEntry<Transaction>;
     policy?: OnyxEntry<Policy>;
     transactionParams: TransactionParams;
     isDemoTransactionParam?: boolean;
@@ -162,7 +163,7 @@ function isDeletedTransaction(transaction: {reportID?: string}): boolean {
     return transaction.reportID === CONST.REPORT.TRASH_REPORT_ID;
 }
 
-function isDistanceRequest(transaction: OnyxEntry<Transaction>): boolean {
+function isDistanceRequest(transaction: ReadonlyOnyxEntry<Transaction>): boolean {
     const requestType = transaction?.iouRequestType;
     return requestType === CONST.IOU.REQUEST_TYPE.DISTANCE || isDistanceExpenseType(requestType);
 }
@@ -186,19 +187,19 @@ function isMapDistanceRequest(transaction: OnyxEntry<Transaction>): boolean {
     return transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_MAP;
 }
 
-function isGPSDistanceRequest(transaction: OnyxEntry<Transaction>): boolean {
+function isGPSDistanceRequest(transaction: ReadonlyOnyxEntry<Transaction>): boolean {
     return transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_GPS;
 }
 
-function isManualDistanceRequest(transaction: OnyxEntry<Transaction>): boolean {
+function isManualDistanceRequest(transaction: ReadonlyOnyxEntry<Transaction>): boolean {
     return transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL;
 }
 
-function isOdometerDistanceRequest(transaction: OnyxEntry<Transaction>): boolean {
+function isOdometerDistanceRequest(transaction: ReadonlyOnyxEntry<Transaction>): boolean {
     return transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER;
 }
 
-function hasAppliedCommuterExclusion(transaction: OnyxEntry<Transaction>): boolean {
+function hasAppliedCommuterExclusion(transaction: ReadonlyOnyxEntry<Transaction>): boolean {
     return isDistanceRequest(transaction) && (transaction?.comment?.customUnit?.commuterExclusion ?? 0) > 0;
 }
 
@@ -279,7 +280,7 @@ function isMapBasedDistanceRequest(transaction: OnyxEntry<Transaction>): boolean
     return isMapDistanceRequest(transaction) || isGPSDistanceRequest(transaction) || hasWaypoints;
 }
 
-function isScanRequest(transaction: OnyxEntry<Pick<Transaction, 'iouRequestType'>>): boolean {
+function isScanRequest(transaction: ReadonlyOnyxEntry<Pick<Transaction, 'iouRequestType'>>): boolean {
     return transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.SCAN;
 }
 
@@ -404,7 +405,7 @@ function getReceiptTypeTranslationKey(receiptType: ValueOf<typeof CONST.SEARCH.R
     }
 }
 
-function isPartialTransaction(transaction: OnyxEntry<Transaction>): boolean {
+function isPartialTransaction(transaction: ReadonlyOnyxEntry<Transaction>): boolean {
     const merchant = getMerchant(transaction);
 
     if (!merchant || isPartialMerchant(merchant)) {
@@ -586,18 +587,18 @@ function buildOptimisticTransaction(params: BuildOptimisticTransactionParams): T
 /**
  * Check if the transaction has an Ereceipt
  */
-function hasEReceipt(transaction: Transaction | undefined | null): boolean {
+function hasEReceipt(transaction: ReadonlyDeep<Transaction> | undefined | null): boolean {
     return !!transaction?.hasEReceipt;
 }
 
-function hasReceipt(transaction: OnyxInputOrEntry<Transaction> | undefined): boolean {
+function hasReceipt(transaction: ReadonlyOnyxInputOrEntry<Transaction> | undefined): boolean {
     return !!transaction?.receipt?.state || hasEReceipt(transaction);
 }
 
 /**
  * Whether the transaction already has its receipt stored server-side.
  */
-function hasUploadedReceipt(transaction: OnyxInputOrEntry<Transaction> | undefined): boolean {
+function hasUploadedReceipt(transaction: ReadonlyOnyxInputOrEntry<Transaction> | undefined): boolean {
     return !!transaction?.receipt?.receiptID;
 }
 
@@ -650,14 +651,14 @@ function isPartialMerchant(merchant: string): boolean {
     return merchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
 }
 
-function isAmountMissing(transaction: OnyxEntry<Transaction>, isFromExpenseReport = true) {
+function isAmountMissing(transaction: ReadonlyOnyxEntry<Transaction>, isFromExpenseReport = true) {
     if (isFromExpenseReport) {
         return transaction?.amount === undefined && (transaction?.modifiedAmount === undefined || transaction?.modifiedAmount === '');
     }
     return (transaction?.amount === 0 || transaction?.amount === undefined) && (!transaction?.modifiedAmount || transaction?.modifiedAmount === 0 || transaction?.modifiedAmount === '');
 }
 
-function hasValidModifiedAmount(transaction: OnyxEntry<Transaction> | null): boolean {
+function hasValidModifiedAmount(transaction: ReadonlyOnyxEntry<Transaction> | null): boolean {
     if (!transaction) {
         return false;
     }
@@ -726,7 +727,7 @@ function getDistanceMerchantForTransaction({
     getCurrencySymbol,
     commuterExclusionData,
 }: {
-    transaction: OnyxEntry<Transaction>;
+    transaction: ReadonlyOnyxEntry<Transaction>;
     distanceInMeters: number;
     unit: Unit | undefined;
     rate: number | undefined;
@@ -754,7 +755,7 @@ function getDistanceMerchantForTransaction({
  * imperative locale accessors the optimistic update paths below have to rely on.
  */
 function getRecalculatedDistanceMerchant(
-    transaction: OnyxEntry<Transaction>,
+    transaction: ReadonlyOnyxEntry<Transaction>,
     distanceInMeters: number,
     unit: Unit | undefined,
     rate: number | undefined,
@@ -789,7 +790,7 @@ function getUpdatedTransaction({
     getCurrencyDecimals,
     getCurrencySymbol,
 }: {
-    transaction: Transaction;
+    transaction: ReadonlyDeep<Transaction>;
     transactionChanges: TransactionChanges;
     isFromExpenseReport: boolean;
     shouldUpdateReceiptState?: boolean;
@@ -803,7 +804,7 @@ function getUpdatedTransaction({
     const isUnReportedExpense = transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
 
     // Only changing the first level fields so no need for deep clone now
-    const updatedTransaction = lodashDeepClone(transaction);
+    const updatedTransaction = lodashDeepClone(transaction) as Transaction;
     let shouldStopSmartscan = false;
 
     // The comment property does not have its modifiedComment counterpart
@@ -1250,7 +1251,13 @@ function getDescription(transaction: OnyxInputOrEntry<Transaction>): string {
 /**
  * Return the amount field from the transaction, return the modifiedAmount if present.
  */
-function getAmount(transaction: OnyxInputOrEntry<Transaction>, isFromExpenseReport = false, isFromTrackedExpense = false, allowNegative = false, disableOppositeConversion = false): number {
+function getAmount(
+    transaction: ReadonlyOnyxInputOrEntry<Transaction>,
+    isFromExpenseReport = false,
+    isFromTrackedExpense = false,
+    allowNegative = false,
+    disableOppositeConversion = false,
+): number {
     // IOU requests cannot have negative values, but they can be stored as negative values, let's return absolute value
     if (!isFromExpenseReport && !isFromTrackedExpense && !allowNegative) {
         const amount = Number(transaction?.modifiedAmount) ?? 0;
@@ -1417,7 +1424,7 @@ function getOriginalCurrencyForDisplay(transaction: Pick<Transaction, 'originalC
 /**
  * Verify if the transaction is expecting the distance to be calculated on the server
  */
-function isFetchingWaypointsFromServer(transaction: OnyxInputOrEntry<Transaction>): boolean {
+function isFetchingWaypointsFromServer(transaction: ReadonlyOnyxInputOrEntry<Transaction>): boolean {
     return !!transaction?.pendingFields?.waypoints;
 }
 
@@ -1428,7 +1435,7 @@ function isFetchingWaypointsFromServer(transaction: OnyxInputOrEntry<Transaction
  * A waypoint edit whose route is still being computed by the server zeroes the amount but leaves the
  * quantity/routes of the pre-edit route in place, so a zero amount means the stored distance is stale.
  */
-function hasLocallyKnownDistance(transaction: OnyxInputOrEntry<Transaction>): boolean {
+function hasLocallyKnownDistance(transaction: ReadonlyOnyxInputOrEntry<Transaction>): boolean {
     const hasDistanceSource = !!transaction?.comment?.customUnit?.quantity || !!transaction?.routes?.route0?.distance;
     return hasDistanceSource && !!getAmount(transaction);
 }
@@ -1454,7 +1461,7 @@ function hasPendingDistanceReceiptRegeneration(transaction: OnyxInputOrEntry<Tra
 /**
  * Return the merchant field from the transaction, return the modifiedMerchant if present.
  */
-function getMerchant(transaction: OnyxInputOrEntry<Transaction>): string {
+function getMerchant(transaction: ReadonlyOnyxInputOrEntry<Transaction>): string {
     return transaction?.modifiedMerchant ? transaction.modifiedMerchant : (transaction?.merchant ?? '');
 }
 
@@ -1918,7 +1925,7 @@ function showHeldExpensesBlockModal(
  * The transaction is considered scanning if it is a partial transaction, has a receipt, and the receipt is being scanned.
  * Note that this does not include receipts that are being scanned in the background for auditing / smart scan everything, because there should be no indication to the user that the receipt is being scanned.
  */
-function isScanning(transaction: OnyxEntry<Transaction>): boolean {
+function isScanning(transaction: ReadonlyOnyxEntry<Transaction>): boolean {
     // Performance optimization: Check the receipt state first (cheapest check) before doing more expensive checks
     if (!isReceiptBeingScanned(transaction)) {
         return false;
@@ -1932,7 +1939,7 @@ function isScanning(transaction: OnyxEntry<Transaction>): boolean {
     return isPartialTransaction(transaction) && hasReceipt(transaction);
 }
 
-function isReceiptBeingScanned(transaction: OnyxInputOrEntry<Transaction>): boolean {
+function isReceiptBeingScanned(transaction: ReadonlyOnyxInputOrEntry<Transaction>): boolean {
     return transaction?.receipt?.state === CONST.IOU.RECEIPT_STATE.SCAN_READY || transaction?.receipt?.state === CONST.IOU.RECEIPT_STATE.SCANNING;
 }
 
@@ -2463,7 +2470,7 @@ function isDuplicate(
 /**
  * Check if transaction is on hold
  */
-function isOnHold(transaction: OnyxEntry<Transaction>): boolean {
+function isOnHold(transaction: ReadonlyOnyxEntry<Transaction>): boolean {
     if (!transaction) {
         return false;
     }
@@ -2661,7 +2668,7 @@ function getEnabledTaxRateCount(options: TaxRates) {
 /**
  * Check if the customUnitRateID has a value default for P2P distance requests
  */
-function isCustomUnitRateIDForP2P(transaction: OnyxInputOrEntry<Transaction>): boolean {
+function isCustomUnitRateIDForP2P(transaction: ReadonlyOnyxInputOrEntry<Transaction>): boolean {
     return transaction?.comment?.customUnit?.customUnitRateID === CONST.CUSTOM_UNITS.FAKE_P2P_ID;
 }
 
@@ -2702,7 +2709,7 @@ function isPayAtEndExpense(transaction: Transaction | undefined | null): boolean
 /**
  * Get custom unit rate (distance rate) ID from the transaction object
  */
-function getRateID(transaction: OnyxInputOrEntry<Transaction>): string {
+function getRateID(transaction: ReadonlyOnyxInputOrEntry<Transaction>): string {
     return transaction?.comment?.customUnit?.customUnitRateID ?? CONST.CUSTOM_UNITS.FAKE_P2P_ID;
 }
 
@@ -2711,7 +2718,7 @@ function getRateID(transaction: OnyxInputOrEntry<Transaction>): string {
  * If it is distance request, then returns the tax code corresponding to the custom unit rate
  * Else returns policy default tax rate if transaction is in policy default currency, otherwise foreign default tax rate
  */
-function getDefaultTaxCode(policy: OnyxEntry<Policy>, transaction: OnyxEntry<Transaction>, currency?: string | undefined, newCustomUnitRateID?: string): string | undefined {
+function getDefaultTaxCode(policy: OnyxEntry<Policy>, transaction: ReadonlyOnyxEntry<Transaction>, currency?: string | undefined, newCustomUnitRateID?: string): string | undefined {
     if (isDistanceRequest(transaction)) {
         // When editing a distance rate, the draft transaction's customUnitRateID
         // does not reflect the newly selected rate until setMoneyRequestDistanceRate is called, and the draft transaction's is updated.
@@ -2736,7 +2743,7 @@ function getDefaultTaxCode(policy: OnyxEntry<Policy>, transaction: OnyxEntry<Tra
  * @param  policy - The policy which the user has access to and which the report is tied to.
  * @returns The transformed tax rates object.g
  */
-function transformedTaxRates(policy: OnyxEntry<Policy> | undefined, transaction?: OnyxEntry<Transaction>): Record<string, TaxRate> {
+function transformedTaxRates(policy: OnyxEntry<Policy> | undefined, transaction?: ReadonlyOnyxEntry<Transaction>): Record<string, TaxRate> {
     const taxRates = policy?.taxRates;
     const defaultExternalID = taxRates?.defaultExternalID;
 
@@ -2755,7 +2762,7 @@ function transformedTaxRates(policy: OnyxEntry<Policy> | undefined, transaction?
 /**
  * Gets the tax value of a selected tax
  */
-function getTaxValue(policy: OnyxEntry<Policy>, transaction: OnyxEntry<Transaction>, taxCode: string) {
+function getTaxValue(policy: OnyxEntry<Policy>, transaction: ReadonlyOnyxEntry<Transaction>, taxCode: string) {
     const resolvedTaxCode = resolveCurrentTaxCode(policy, taxCode);
     return Object.values(transformedTaxRates(policy, transaction)).find((taxRate) => taxRate.code === resolvedTaxCode)?.value;
 }
@@ -3309,7 +3316,12 @@ function buildMergeDuplicatesParams(
     };
 }
 
-function getCategoryTaxDetails(category: string, transaction: OnyxEntry<Transaction>, policy: OnyxEntry<Policy>, getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals']) {
+function getCategoryTaxDetails(
+    category: string,
+    transaction: ReadonlyOnyxEntry<Transaction>,
+    policy: OnyxEntry<Policy>,
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'],
+) {
     const taxRules = policy?.rules?.expenseRules?.filter((rule) => rule.tax);
     if (!taxRules || taxRules?.length === 0 || isDistanceRequest(transaction)) {
         return {categoryTaxCode: undefined, categoryTaxAmount: undefined, categoryTaxValue: undefined};
@@ -3374,7 +3386,7 @@ function isSplitChildTransaction(transaction: OnyxEntry<Transaction> | Transacti
  * hidden and has no dismiss UI of its own. Used to decide whether a split failure error on the original
  * should be cleared alongside the visible child's error.
  */
-function isSplitContainerTransaction(transaction: OnyxEntry<Transaction> | Transaction): boolean {
+function isSplitContainerTransaction(transaction: ReadonlyOnyxEntry<Transaction> | Transaction): boolean {
     return transaction?.reportID === CONST.REPORT.SPLIT_REPORT_ID;
 }
 
@@ -3563,7 +3575,7 @@ function willFieldBeAutomaticallyFilled(transaction: OnyxEntry<Transaction>, fie
     return autoFillableFields.includes(fieldType);
 }
 
-function isExpenseUnreported(transaction?: Transaction): transaction is UnreportedTransaction {
+function isExpenseUnreported(transaction?: ReadonlyDeep<Transaction>): transaction is ReadonlyDeep<UnreportedTransaction> {
     return transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
 }
 
@@ -3753,7 +3765,7 @@ function getSelectedRouteDistance(transaction: OnyxEntry<Transaction>): number |
  * picking an alternate route, that route's distance — so the comparison has to be against the *selected* route and not
  * the primary one, or every alternate route selection would look like an override.
  */
-function hasManualDistanceOverride(transaction: OnyxInputOrEntry<Transaction>): boolean {
+function hasManualDistanceOverride(transaction: ReadonlyOnyxInputOrEntry<Transaction>): boolean {
     const quantity = transaction?.comment?.customUnit?.quantity;
     const selectedRouteDistanceInMeters = transaction?.routes?.[getSelectedRouteKey(transaction)]?.distance;
     if (quantity == null || !selectedRouteDistanceInMeters) {
