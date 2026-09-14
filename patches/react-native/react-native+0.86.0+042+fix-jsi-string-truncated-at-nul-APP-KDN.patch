@@ -1,0 +1,14 @@
+diff --git a/node_modules/react-native/ReactCommon/react/nativemodule/core/platform/ios/ReactCommon/RCTTurboModule.mm b/node_modules/react-native/ReactCommon/react/nativemodule/core/platform/ios/ReactCommon/RCTTurboModule.mm
+--- a/node_modules/react-native/ReactCommon/react/nativemodule/core/platform/ios/ReactCommon/RCTTurboModule.mm
++++ b/node_modules/react-native/ReactCommon/react/nativemodule/core/platform/ios/ReactCommon/RCTTurboModule.mm
+@@ -111,4 +111,9 @@
+ static NSString *convertJSIStringToNSString(jsi::Runtime &runtime, const jsi::String &value)
+ {
+-  return [NSString stringWithUTF8String:value.utf8(runtime).c_str()];
++  // The jsi::String already knows its own byte length. Passing `.c_str()` to `stringWithUTF8String:`
++  // throws that length away and makes it re-derive one with `strlen`, which stops at the first NUL
++  // byte and silently drops the remainder of the string. Build the NSString from the bytes and the
++  // known length instead, so embedded NULs survive the JS -> native boundary (and skip the strlen).
++  std::string utf8 = value.utf8(runtime);
++  return [[NSString alloc] initWithBytes:utf8.data() length:utf8.size() encoding:NSUTF8StringEncoding];
+ }
