@@ -51,6 +51,7 @@ function SearchQueryListItem({item, isFocused, showTooltip, onSelectRow, onFocus
     const theme = useTheme();
     const subtitle = item.alternateText;
     const shouldShowBrickRoadIndicator = !item.isSelected || !!item.canShowSeveralIndicators;
+    const titleStyle = [styles.justifyContentCenter, !!subtitle && styles.mb1];
 
     return (
         <ListItemComposed
@@ -58,7 +59,6 @@ function SearchQueryListItem({item, isFocused, showTooltip, onSelectRow, onFocus
             pressableStyle={[styles.searchQueryListItemStyle, item.isSelected && styles.activeComponentBG, item.cursorStyle]}
             isFocused={isFocused}
             onSelectRow={onSelectRow}
-            keyForList={item.keyForList}
             onFocus={onFocus}
             hoverStyle={item.isSelected && styles.activeComponentBG}
             shouldSyncFocus={shouldSyncFocus}
@@ -78,7 +78,7 @@ function SearchQueryListItem({item, isFocused, showTooltip, onSelectRow, onFocus
                 <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsStretch]}>
                     <ListItemComposed.Title
                         text={item.text ?? ''}
-                        style={[styles.justifyContentCenter, !!subtitle && styles.mb1]}
+                        style={titleStyle}
                     />
                     {!!subtitle && <ListItemComposed.Subtitle text={subtitle} />}
                 </View>

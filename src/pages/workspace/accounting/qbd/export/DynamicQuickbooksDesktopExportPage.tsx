@@ -54,7 +54,7 @@ function DynamicQuickbooksDesktopExportPage({policy}: WithPolicyConnectionsProps
     );
 
     const goBack = useCallback(() => {
-        return goBackFromExportConnection(shouldGoBackToSpecificRoute, undefined, dynamicBackPath);
+        return goBackFromExportConnection(shouldGoBackToSpecificRoute, dynamicBackPath);
     }, [dynamicBackPath, shouldGoBackToSpecificRoute]);
 
     const menuItems = [

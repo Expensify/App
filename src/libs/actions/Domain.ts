@@ -6,10 +6,12 @@ import type {
     AddMemberToDomainParams,
     ChangeDomainSecurityGroupParams,
     CreateDomainSecurityGroupParams,
+    DeclineDomainAdminshipRequestParams,
     DeleteDomainMemberParams,
     DeleteDomainParams,
     DeleteDomainSecurityGroupParams,
     RemoveDomainAdminParams,
+    RequestDomainAdminshipParams,
     ResetDomainMemberTwoFactorAuthParams,
     SetDefaultDomainSecurityGroupParams,
     SetTechnicalContactEmailParams,
@@ -30,11 +32,12 @@ import {generateAccountID} from '@libs/UserUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {DomainSecurityGroup, UserSecurityGroupData} from '@src/types/onyx';
+import type {Domain, DomainSecurityGroup, UserSecurityGroupData} from '@src/types/onyx';
 import type {SecurityGroupKey} from '@src/types/onyx/Domain';
 import type {DomainSecurityGroupErrors} from '@src/types/onyx/DomainErrors';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {BaseVacationDelegate} from '@src/types/onyx/VacationDelegate';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type PrefixedRecord from '@src/types/utils/PrefixedRecord';
 
 import type {NullishDeep, OnyxUpdate} from 'react-native-onyx';
@@ -354,13 +357,18 @@ async function getScimToken(domainName: string): Promise<ScimTokenWithState> {
     }
 }
 
-/** Sends request for claiming a domain */
-function createDomain(domainName: string) {
+/**
+ * Sends request for claiming a domain.
+ *
+ * When the domain is already taken the request fails with a generic error and the BE attaches `domainAccountID` of the existing
+ * domain plus a minimal `domain_<accountID>` entry, which is what the add domain page keys the "domain already exists" flow off.
+ */
+function createDomain(domainName: string, domainKeysBeforeCreation?: ReadonlySet<string>) {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.FORMS.CREATE_DOMAIN_FORM>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.FORMS.CREATE_DOMAIN_FORM,
-            value: {hasCreationSucceeded: null, isLoading: true},
+            value: {hasCreationSucceeded: null, isLoading: true, errors: null, domainAccountID: null},
         },
     ];
     const successData: Array<OnyxUpdate<typeof ONYXKEYS.FORMS.CREATE_DOMAIN_FORM>> = [
@@ -370,11 +378,11 @@ function createDomain(domainName: string) {
             value: {hasCreationSucceeded: true, isLoading: null},
         },
     ];
-    const failureData = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.FORMS.CREATE_DOMAIN_FORM>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.FORMS.CREATE_DOMAIN_FORM,
-            value: {isLoading: null},
+            value: {isLoading: null, domainKeysBeforeCreation: domainKeysBeforeCreation ? [...domainKeysBeforeCreation] : null},
         },
     ];
 
@@ -387,6 +395,39 @@ function createDomain(domainName: string) {
  */
 function resetCreateDomainForm() {
     Onyx.merge(ONYXKEYS.FORMS.CREATE_DOMAIN_FORM, null);
+}
+
+/**
+ * Surfaces an inline error on the create-domain form when the domain already exists AND the current user already has access to it.
+ * Clearing the accountID also stops the navigation effect on the add domain page from re-firing. No server call is performed.
+ */
+function setCreateDomainAlreadyHaveAccessError() {
+    Onyx.merge(ONYXKEYS.FORMS.CREATE_DOMAIN_FORM, {
+        domainAccountID: null,
+        errors: getMicroSecondOnyxErrorWithTranslationKey('domain.addDomain.alreadyHaveAccessError'),
+    });
+}
+
+/** Clears the domain account ID so the hidden backend error can be displayed. No server call is performed. */
+function clearCreateDomainAccountID() {
+    Onyx.merge(ONYXKEYS.FORMS.CREATE_DOMAIN_FORM, {domainAccountID: null});
+}
+
+/**
+ * Drops the domain entry that came with the failure, keeping a domain the user has no access to out of the domains list.
+ * An adminship request the user already sent for that domain is the one piece of state that outlives the failure, so it is kept on
+ * its own - the entry then carries no accountID or email and stays invisible in the list. No server call is performed.
+ */
+function clearDomainFromFailedCreation(domainAccountID: number, adminRequesters?: Domain['domain_adminRequesters']) {
+    // eslint-disable-next-line @typescript-eslint/naming-convention
+    return Onyx.set(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, isEmptyObject(adminRequesters) ? null : {domain_adminRequesters: adminRequesters});
+}
+
+/** Clears a response-only domain after the add-domain page has already unmounted, then removes its persisted failure context. */
+function clearStaleDomainFromFailedCreation(domainAccountID: number, adminRequesters?: Domain['domain_adminRequesters']) {
+    clearDomainFromFailedCreation(domainAccountID, adminRequesters).then(() => {
+        Onyx.merge(ONYXKEYS.FORMS.CREATE_DOMAIN_FORM, {domainAccountID: null, domainKeysBeforeCreation: null});
+    });
 }
 
 function setPrimaryContact(domainAccountID: number, newTechnicalContactEmail: string, currentTechnicalContactEmail?: string) {
@@ -472,6 +513,84 @@ function setPrimaryContact(domainAccountID: number, newTechnicalContactEmail: st
 function clearSetPrimaryContactError(domainAccountID: number) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`, {
         technicalContactEmailErrors: null,
+    });
+}
+
+/**
+ * Requests adminship of a domain that's already claimed by someone else.
+ *
+ * @param isTransientDomainEntry whether the domain entry only exists to carry this flow (the user has no access to it), so a failed
+ * request must drop the whole entry instead of just the requester, otherwise an empty entry lingers in the domains collection.
+ */
+function requestDomainAdminship(domainAccountID: number, currentUserAccountID: number, isTransientDomainEntry: boolean) {
+    const domainKey = `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}` as const;
+    const domainPendingActionsKey = `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}` as const;
+    const domainErrorsKey = `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}` as const;
+
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.DOMAIN | typeof ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS | typeof ONYXKEYS.COLLECTION.DOMAIN_ERRORS>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: domainKey,
+            value: {
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                domain_adminRequesters: {[currentUserAccountID]: 'read'},
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: domainPendingActionsKey,
+            value: {requestAdminship: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD},
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: domainErrorsKey,
+            value: {requestAdminshipError: null},
+        },
+    ];
+
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: domainPendingActionsKey,
+            value: {requestAdminship: null},
+        },
+    ];
+
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.DOMAIN | typeof ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS | typeof ONYXKEYS.COLLECTION.DOMAIN_ERRORS>> = [
+        isTransientDomainEntry
+            ? {onyxMethod: Onyx.METHOD.SET, key: domainKey, value: null}
+            : {
+                  onyxMethod: Onyx.METHOD.MERGE,
+                  key: domainKey,
+                  value: {
+                      // eslint-disable-next-line @typescript-eslint/naming-convention
+                      domain_adminRequesters: {[currentUserAccountID]: null},
+                  },
+              },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: domainPendingActionsKey,
+            value: {requestAdminship: null},
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: domainErrorsKey,
+            value: {requestAdminshipError: getMicroSecondOnyxErrorWithTranslationKey('domain.requestAccessError')},
+        },
+    ];
+
+    const params: RequestDomainAdminshipParams = {domainAccountID};
+
+    API.write(WRITE_COMMANDS.REQUEST_DOMAIN_ADMINSHIP, params, {optimisticData, successData, failureData});
+}
+
+/**
+ * Clears a failed adminship request's error so a future visit to this flow doesn't show a stale error from a previous attempt.
+ * Resets it only on the client's side, no server call is performed
+ */
+function clearRequestAdminshipError(domainAccountID: number) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`, {
+        requestAdminshipError: null,
     });
 }
 
@@ -562,6 +681,21 @@ function clearToggleConsolidatedDomainBillingErrors(domainAccountID: number) {
     });
 }
 
+/**
+ * Drops the optimistic adminship grant, which is keyed by accountID while the backend keys its own entry by index.
+ * It has to go once the request settles: left behind, it outlives a later revoke - which only removes the backend's
+ * key - and keeps reporting the member as an admin.
+ */
+function clearOptimisticAdminPermission(domainAccountID: number, accountID: number): OnyxUpdate<typeof ONYXKEYS.COLLECTION.DOMAIN> {
+    return {
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`,
+        value: {
+            [`${CONST.DOMAIN.EXPENSIFY_ADMIN_ACCESS_PREFIX}${accountID}`]: null,
+        },
+    };
+}
+
 function addAdminToDomain(domainAccountID: number, accountID: number, targetEmail: string, domainName: string, isOptimisticAccount: boolean) {
     const PERMISSION_KEY = `${CONST.DOMAIN.EXPENSIFY_ADMIN_ACCESS_PREFIX}${accountID}`;
 
@@ -630,13 +764,6 @@ function addAdminToDomain(domainAccountID: number, accountID: number, targetEmai
     > = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`,
-            value: {
-                [PERMISSION_KEY]: null,
-            },
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
             value: {
                 adminErrors: {
@@ -655,16 +782,10 @@ function addAdminToDomain(domainAccountID: number, accountID: number, targetEmai
                 },
             },
         },
+        clearOptimisticAdminPermission(domainAccountID, accountID),
     ];
 
-    const failureData: Array<
-        OnyxUpdate<
-            | typeof ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS
-            | typeof ONYXKEYS.COLLECTION.DOMAIN_ERRORS
-            | typeof ONYXKEYS.PERSONAL_DETAILS_LIST
-            | typeof ONYXKEYS.COLLECTION.DOMAIN_HIGHLIGHT_ITEMS
-        >
-    > = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS | typeof ONYXKEYS.COLLECTION.DOMAIN_ERRORS | typeof ONYXKEYS.COLLECTION.DOMAIN_HIGHLIGHT_ITEMS>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
@@ -693,15 +814,13 @@ function addAdminToDomain(domainAccountID: number, accountID: number, targetEmai
     ];
 
     if (isOptimisticAccount) {
-        const clearOptimisticPersonalDetails: OnyxUpdate<typeof ONYXKEYS.PERSONAL_DETAILS_LIST> = {
+        successData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.PERSONAL_DETAILS_LIST}`,
             value: {
                 [accountID]: null,
             },
-        };
-        successData.push(clearOptimisticPersonalDetails);
-        failureData.push(clearOptimisticPersonalDetails);
+        });
     }
 
     const params: AddAdminToDomainParams = {
@@ -713,14 +832,161 @@ function addAdminToDomain(domainAccountID: number, accountID: number, targetEmai
 }
 
 /**
+ * Approves a pending domain adminship request, granting the requester admin access.
+ */
+function approveDomainAdminshipRequest(domainAccountID: number, accountID: number, targetEmail: string, domainName: string) {
+    const PERMISSION_KEY = `${CONST.DOMAIN.EXPENSIFY_ADMIN_ACCESS_PREFIX}${accountID}`;
+
+    const optimisticData: Array<
+        OnyxUpdate<
+            | typeof ONYXKEYS.COLLECTION.DOMAIN
+            | typeof ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS
+            | typeof ONYXKEYS.COLLECTION.DOMAIN_ERRORS
+            | typeof ONYXKEYS.COLLECTION.DOMAIN_HIGHLIGHT_ITEMS
+        >
+    > = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`,
+            value: {
+                [PERMISSION_KEY]: accountID,
+            } as PrefixedRecord<typeof CONST.DOMAIN.EXPENSIFY_ADMIN_ACCESS_PREFIX, number>,
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`,
+            value: {
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                domain_adminRequesters: {[accountID]: null},
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
+            value: {
+                admin: {
+                    [accountID]: {
+                        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                    },
+                },
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
+            value: {
+                adminErrors: {
+                    [accountID]: {
+                        errors: null,
+                    },
+                },
+                adminshipRequesterErrors: {
+                    [accountID]: {
+                        errors: null,
+                    },
+                },
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN_HIGHLIGHT_ITEMS}${domainAccountID}`,
+            value: {type: 'admins', id: String(accountID)},
+        },
+    ];
+
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.DOMAIN | typeof ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS | typeof ONYXKEYS.COLLECTION.DOMAIN_ERRORS>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
+            value: {
+                adminErrors: {
+                    [accountID]: {
+                        errors: null,
+                    },
+                },
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
+            value: {
+                admin: {
+                    [accountID]: null,
+                },
+            },
+        },
+        clearOptimisticAdminPermission(domainAccountID, accountID),
+    ];
+
+    const failureData: Array<
+        OnyxUpdate<
+            | typeof ONYXKEYS.COLLECTION.DOMAIN
+            | typeof ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS
+            | typeof ONYXKEYS.COLLECTION.DOMAIN_ERRORS
+            | typeof ONYXKEYS.COLLECTION.DOMAIN_HIGHLIGHT_ITEMS
+        >
+    > = [
+        clearOptimisticAdminPermission(domainAccountID, accountID),
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`,
+            value: {
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                domain_adminRequesters: {[accountID]: 'read'},
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
+            value: {
+                admin: {
+                    [accountID]: null,
+                },
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
+            value: {
+                adminshipRequesterErrors: {
+                    [accountID]: {
+                        errors: getMicroSecondOnyxErrorWithTranslationKey('domain.admins.approveRequestError'),
+                    },
+                },
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN_HIGHLIGHT_ITEMS}${domainAccountID}`,
+            value: {type: null, id: null},
+        },
+    ];
+
+    const params: AddAdminToDomainParams = {
+        domainName,
+        targetEmail,
+        domainAccountID,
+    };
+
+    API.write(WRITE_COMMANDS.ADD_DOMAIN_ADMIN, params, {optimisticData, successData, failureData});
+}
+
+/**
  * Removes an error and pending actions after trying to add admin
  */
-function clearAdminError(domainAccountID: number, accountID: number) {
+function clearAdminError(domainAccountID: number, accountID: number, isOptimisticAccount = false) {
     const PERMISSION_KEY = `${CONST.DOMAIN.EXPENSIFY_ADMIN_ACCESS_PREFIX}${accountID}`;
 
     Onyx.merge(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {
         [PERMISSION_KEY]: null,
     });
+
+    // The account only ever existed to carry the failed add, so dismissing it takes the placeholder details with it.
+    if (isOptimisticAccount) {
+        Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+            [accountID]: null,
+        });
+    }
 
     Onyx.merge(`${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`, {
         adminErrors: {
@@ -793,6 +1059,122 @@ function revokeDomainAdminAccess(domainAccountID: number, accountID: number) {
     };
 
     API.write(WRITE_COMMANDS.REMOVE_DOMAIN_ADMIN, parameters, {optimisticData, successData, failureData});
+}
+
+/**
+ * Denies a pending domain adminship request.
+ */
+function declineDomainAdminshipRequest(domainAccountID: number, accountID: number) {
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS | typeof ONYXKEYS.COLLECTION.DOMAIN_ERRORS>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
+            value: {
+                adminshipRequester: {
+                    [accountID]: {
+                        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                    },
+                },
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
+            value: {
+                adminshipRequesterErrors: {
+                    [accountID]: {
+                        errors: null,
+                    },
+                },
+            },
+        },
+    ];
+    // The requester is dropped only once the decline lands, not optimistically: while offline the entry has to survive so
+    // the row keeps rendering with its `DELETE` pending action, and on failure it has to survive so the row can show the error.
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.DOMAIN | typeof ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`,
+            value: {
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                domain_adminRequesters: {[accountID]: null},
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
+            value: {
+                adminshipRequester: {
+                    [accountID]: null,
+                },
+            },
+        },
+    ];
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS | typeof ONYXKEYS.COLLECTION.DOMAIN_ERRORS>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
+            value: {
+                adminshipRequester: {
+                    [accountID]: {
+                        pendingAction: null,
+                    },
+                },
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
+            value: {
+                adminshipRequesterErrors: {
+                    [accountID]: {
+                        errors: getMicroSecondOnyxErrorWithTranslationKey('domain.admins.declineRequestError'),
+                    },
+                },
+            },
+        },
+    ];
+
+    const parameters: DeclineDomainAdminshipRequestParams = {
+        domainAccountID,
+        targetAccountID: accountID,
+    };
+
+    API.write(WRITE_COMMANDS.DECLINE_DOMAIN_ADMINSHIP_REQUEST, parameters, {optimisticData, successData, failureData});
+}
+
+/**
+ * Clears errors and pending actions after trying to approve or deny a domain adminship request
+ */
+function clearAdminshipRequesterError(domainAccountID: number, accountID: number) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`, {
+        adminshipRequesterErrors: {
+            [accountID]: null,
+        },
+    });
+
+    Onyx.merge(`${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`, {
+        adminshipRequester: {
+            [accountID]: null,
+        },
+    });
+}
+
+/**
+ * Drops adminship request errors whose request is gone, so they cannot land on a row belonging to a later request from the same account.
+ */
+function clearStaleAdminshipRequesterErrors(domainAccountID: number, accountIDs: number[]) {
+    if (accountIDs.length === 0) {
+        return;
+    }
+
+    Onyx.merge(`${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`, {
+        adminshipRequesterErrors: accountIDs.reduce<Record<number, null>>((acc, accountID) => {
+            acc[accountID] = null;
+
+            return acc;
+        }, {}),
+    });
 }
 
 /**
@@ -1032,18 +1414,25 @@ function addMemberToDomain(domainAccountID: number, email: string, defaultSecuri
 
 /**
  * Removes an error and pending actions after trying to add member. It clears errors for both email and accountID
+ * @param securityGroupID ID of the group the member sits in, needed to drop an optimistic membership
  */
-function clearDomainMemberError(domainAccountID: number, accountID: number, email: string, defaultSecurityGroupID: string, pendingAction?: PendingAction) {
-    const DOMAIN_SECURITY_GROUP = `${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}${defaultSecurityGroupID}`;
-
-    if (pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
-        Onyx.merge(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {
-            [DOMAIN_SECURITY_GROUP]: {
-                shared: {
-                    [accountID]: null,
+function clearDomainMemberError(domainAccountID: number, accountID: number, email: string, securityGroupID?: string, isOptimisticAccount = false) {
+    // The account only ever existed to carry the failed add, so dismissing it takes the group membership and the placeholder
+    // details with it. Its pending action cannot gate this: failureData clears that before the error is ever shown.
+    if (isOptimisticAccount) {
+        if (securityGroupID) {
+            Onyx.merge(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {
+                [`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}${securityGroupID}`]: {
+                    shared: {
+                        [accountID]: null,
+                    },
                 },
-            },
-        } as PrefixedRecord<typeof CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX, Partial<DomainSecurityGroup>>);
+            } as PrefixedRecord<typeof CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX, Partial<DomainSecurityGroup>>);
+        }
+
+        Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+            [accountID]: null,
+        });
     }
 
     Onyx.merge(`${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`, {
@@ -2378,13 +2767,23 @@ export {
     getScimToken,
     createDomain,
     resetCreateDomainForm,
+    setCreateDomainAlreadyHaveAccessError,
+    clearCreateDomainAccountID,
+    clearDomainFromFailedCreation,
+    clearStaleDomainFromFailedCreation,
     setPrimaryContact,
     clearSetPrimaryContactError,
+    requestDomainAdminship,
+    clearRequestAdminshipError,
     toggleConsolidatedDomainBilling,
     clearToggleConsolidatedDomainBillingErrors,
     addAdminToDomain,
+    approveDomainAdminshipRequest,
     clearAdminError,
     revokeDomainAdminAccess,
+    declineDomainAdminshipRequest,
+    clearAdminshipRequesterError,
+    clearStaleAdminshipRequesterErrors,
     resetDomain,
     clearDomainErrors,
     addMemberToDomain,

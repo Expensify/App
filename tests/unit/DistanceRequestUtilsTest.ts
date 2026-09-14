@@ -34,7 +34,6 @@ const FAKE_POLICY: Policy = {
     type: 'corporate',
     owner: 'work.sa1206+travel@gmail.com',
     outputCurrency: 'USD',
-    isPolicyExpenseChatEnabled: true,
     customUnits: {
         C9031B6F4725D: {
             ...distanceCustomUnitBase,
@@ -648,6 +647,27 @@ describe('DistanceRequestUtils', () => {
             expect(result.currency).toBe(CONST.CURRENCY.USD);
             expect(result.unit).toBe(CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES);
             expect(result.rate).toBe(67);
+        });
+    });
+
+    describe('getRateByCustomUnitRateIDAcrossPolicies', () => {
+        const customUnitRateID = '222AAF6B93BCB';
+
+        it('returns the rate from the supplied policy', () => {
+            const rate = DistanceRequestUtils.getRateByCustomUnitRateIDAcrossPolicies({customUnitRateID, policy: FAKE_POLICY});
+
+            expect(rate?.customUnitRateID).toBe(customUnitRateID);
+            expect(rate?.rate).toBe(67);
+        });
+
+        it('falls back to the policy that owns the enabled rate', () => {
+            const rate = DistanceRequestUtils.getRateByCustomUnitRateIDAcrossPolicies({
+                customUnitRateID,
+                policies: {[FAKE_POLICY.id]: FAKE_POLICY},
+            });
+
+            expect(rate?.customUnitRateID).toBe(customUnitRateID);
+            expect(rate?.rate).toBe(67);
         });
     });
 

@@ -162,6 +162,7 @@ function useDistanceNavigation({
     const reportIDToCheck = isMoneyRequestReportReportUtils(report) ? report?.chatReportID : report?.reportID;
     const [reportDraft] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${reportIDToCheck}`);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
     const delegateAccountID = useDelegateAccountID();
     const {formatPhoneNumber, dateFnsLocale} = useLocalize();
@@ -190,6 +191,7 @@ function useDistanceNavigation({
             iouType,
             action,
             report,
+            isDraftChatReport: !!reportDraft,
             policy,
             transaction,
             reportID,
@@ -236,6 +238,7 @@ function useDistanceNavigation({
             getCurrencySymbol,
             participants,
             participantsPolicyTags,
+            rules,
         });
     };
 }

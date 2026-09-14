@@ -47,7 +47,9 @@ function SearchPageInput({queryJSON, onFocus}: SearchPageInputProps) {
 
     function submitSearch(query: string) {
         const queryWithContext = getKeywordQueryWithCurrentSearchContext(query, queryJSON);
-        const updatedQuery = getQueryWithUpdatedValues(queryWithContext, false, policies);
+        // queryWithContext is derived from queryJSON whose amount filters are already in backend cents,
+        // so skip the amount conversion to avoid multiplying the value by 100 again on every keyword change.
+        const updatedQuery = getQueryWithUpdatedValues(queryWithContext, true, policies);
 
         if (!updatedQuery) {
             return;

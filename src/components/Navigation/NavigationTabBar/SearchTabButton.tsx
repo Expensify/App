@@ -15,6 +15,7 @@ import navigationRef from '@navigation/navigationRef';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {lastExpensesSearchQuerySelector} from '@src/selectors/SearchFilters';
 
 import type {ValueOf} from 'type-fest';
 
@@ -34,6 +35,7 @@ function SearchTabButton({selectedTab, isWideLayout}: SearchTabButtonProps) {
     const {translate} = useLocalize();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['ReceiptMultiple']);
     const [lastSearchParams] = useOnyx(ONYXKEYS.REPORT_NAVIGATION_LAST_SEARCH_QUERY);
+    const [lastExpensesSearchQuery] = useOnyx(ONYXKEYS.SEARCH_FILTERS, {selector: lastExpensesSearchQuerySelector});
     const searchAccessibilityState = {selected: selectedTab === NAVIGATION_TABS.SEARCH};
 
     const navigateToSearch = () => {
@@ -49,7 +51,7 @@ function SearchTabButton({selectedTab, isWideLayout}: SearchTabButtonProps) {
             });
             startNavigateToReportsSpans();
 
-            Navigation.navigate(getSearchTabRoute(navigationRef.getRootState(), lastSearchParams));
+            Navigation.navigate(getSearchTabRoute(navigationRef.getRootState(), lastSearchParams, lastExpensesSearchQuery));
         });
     };
 

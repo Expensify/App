@@ -41,10 +41,7 @@ type SearchWriteActionsProviderProps = {
     /** The live TRANSACTION collection, subscribed by `<Search>` and passed down. */
     transactions: OnyxCollection<Transaction>;
 
-    /** Whether mobile selection mode is on. */
     isMobileSelectionModeEnabled: boolean;
-
-    /** The search data type. */
     type: SearchDataTypes;
 
     /** Grouped meaning either a group-by view or the expense-report view. */
@@ -85,7 +82,6 @@ type ReconcileSelectionParams = {
     /** Login (email or phone) of the current user */
     currentUserLogin: string;
 
-    /** Account ID of the current user */
     currentUserAccountID: number;
 
     /** The current user's self-DM report, used as the parent for unreported (track) expenses */
@@ -125,6 +121,7 @@ function useReconcileSelectionWithData({
 }: ReconcileSelectionParams) {
     const {selectedTransactions, excludedTransactions = getEmptyObject<SelectedTransactions>(), areAllMatchingItemsSelected} = useSearchSelectionContext();
     const {applySelection} = useSearchSelectionActions();
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
     useEffect(() => {
         if (!isFocused) {
@@ -204,12 +201,13 @@ function useReconcileSelectionWithData({
                         selfDMReport,
                         allowNegativeAmount: true,
                         parentReport: itemParentReport,
+                        rules,
                     });
 
                     const liveSelectionEntry: SelectedTransactionInfo = {
                         ...baseEntry,
                         isSelected: !isExcluded && (areAllMatchingItemsSelected || !!previousSelection?.isSelected || propagateSelectionToAllRows),
-                        canReject: transactionItem.report ? canRejectReportAction(transactionItem.report, currentUserAccountID) : false,
+                        canReject: transactionItem.report ? canRejectReportAction(transactionItem.report, currentUserAccountID, transactionItem.policy) : false,
                         policyID: transactionItem.report?.policyID,
                         groupKey: previousSelection?.groupKey ?? (propagateSelectionToAllRows && !isExpenseReportType ? reportKey : undefined),
                         isSelectedViaGroup: previousSelection?.isSelectedViaGroup,
@@ -248,12 +246,13 @@ function useReconcileSelectionWithData({
                     selfDMReport,
                     allowNegativeAmount: true,
                     parentReport: itemParentReport,
+                    rules,
                 });
 
                 const liveSelectionEntry: SelectedTransactionInfo = {
                     ...baseEntry,
                     isSelected: areAllMatchingItemsSelected || !!flatPreviousSelection?.isSelected,
-                    canReject: transactionItem.report ? canRejectReportAction(transactionItem.report, currentUserAccountID) : false,
+                    canReject: transactionItem.report ? canRejectReportAction(transactionItem.report, currentUserAccountID, transactionItem.policy) : false,
                     policyID: transactionItem.report?.policyID,
                 };
                 liveSelectionEntries.set(listKey, liveSelectionEntry);
@@ -394,6 +393,7 @@ function SearchWriteActionsProvider({
     const selfDMReport = useSelfDMReport();
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
     const [outstandingReportsByPolicyID] = useOnyx(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID);
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const {applySelection} = useSearchSelectionActions();
 
     const searchResultsData = searchResults?.data;
@@ -425,6 +425,7 @@ function SearchWriteActionsProvider({
                         outstandingReportsByPolicyID,
                         selfDMReport,
                         parentReport: itemParentReport,
+                        rules,
                     });
 
                     if (areItemsGrouped && isGroupedItemArray(filteredData)) {
@@ -515,6 +516,7 @@ function SearchWriteActionsProvider({
                                     selfDMReport,
                                     allowNegativeAmount: true,
                                     parentReport: itemParentReport,
+                                    rules,
                                 });
                                 return [key, {...entry, groupKey: item.keyForList, isSelectedViaGroup: !!item.keyForList}];
                             }),
@@ -563,6 +565,7 @@ function SearchWriteActionsProvider({
                                 selfDMReport,
                                 allowNegativeAmount: true,
                                 parentReport: itemParentReport,
+                                rules,
                             });
                             entries.push([key, {...entry, groupKey: item.keyForList, isSelectedViaGroup: !!item.keyForList}]);
                         }
@@ -595,6 +598,7 @@ function SearchWriteActionsProvider({
                             selfDMReport,
                             allowNegativeAmount: true,
                             parentReport: itemParentReport,
+                            rules,
                         }),
                     );
                 }

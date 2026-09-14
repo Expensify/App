@@ -1,7 +1,9 @@
 import {renderScrollComponent as renderActionSheetAwareScrollView} from '@components/ActionSheetAwareScrollView';
 import InvertedFlashList from '@components/FlashList/InvertedFlashList';
+import MerchantRuleSuggestionBanner from '@components/MerchantRuleSuggestionBanner';
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
 
+import useConciergeSessionStartTime from '@hooks/useConciergeSessionStartTime';
 import useEnvironment from '@hooks/useEnvironment';
 import useLinkedMessageOfflineLoading from '@hooks/useLinkedMessageOfflineLoading';
 import useLocalize from '@hooks/useLocalize';
@@ -10,6 +12,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useReportActionsScroll from '@hooks/useReportActionsScroll';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useRetireMerchantRuleSuggestionOnLeave from '@hooks/useRetireMerchantRuleSuggestionOnLeave';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useUnreadMarker from '@hooks/useUnreadMarker';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -47,7 +50,6 @@ import type {ReportsSplitNavigatorParamList} from '@navigation/types';
 
 import {useActionListContext, useActionListRef} from '@pages/inbox/ActionListContext';
 import {useConciergeDraft, useConciergeDraftActions} from '@pages/inbox/ConciergeDraftContext';
-import {useConciergeSessionState} from '@pages/inbox/ConciergeSessionContext';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -77,7 +79,7 @@ type ReportActionsListContentProps = {
     /** The ID of the report to display actions for */
     reportID: string;
 
-    /** Callback executed on list layout */
+    conciergeChat: OnyxEntry<OnyxTypes.Report>;
     onLayout?: (event: LayoutChangeEvent) => void;
 };
 
@@ -102,7 +104,7 @@ function keyExtractor(item: OnyxTypes.ReportAction): string {
  * UI-close hooks (`useUnreadMarker` / `useMarkAsRead` / `useReportActionsScroll`). `ReportActionsSkeletonGuard`
  * mounts it only once content is ready, so those hooks never run while a skeleton shows.
  */
-function ReportActionsListContent({reportID, onLayout}: ReportActionsListContentProps) {
+function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportActionsListContentProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {windowHeight} = useWindowDimensions();
@@ -131,7 +133,7 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListContent
     const {isOffline} = useNetwork();
     const route = useRoute<PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
     const reportActionIDFromRoute = route?.params?.reportActionID;
-    const {sessionStartTime} = useConciergeSessionState();
+    const sessionStartTime = useConciergeSessionStartTime();
 
     const didLayout = useRef(false);
 
@@ -141,6 +143,9 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListContent
 
     useLinkedMessageOfflineLoading({reportID: report?.reportID ?? reportID, reportActionIDFromRoute});
 
+    // Owned here rather than by the callout, which unmounts as the layout and composer change size.
+    useRetireMerchantRuleSuggestionOnLeave(reportID);
+
     // Remount the list when the deep-linked message or unread anchor changes (scroll positioning), or when the report changes.
     const listID = [reportID, reportActionIDFromRoute, hasOnceLoadedReportActions ? undefined : oldestUnreadReportAction?.reportActionID].join(':');
 
@@ -148,6 +153,7 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListContent
     const isReportArchived = !!isArchivedReport(reportNameValuePairs);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(report?.policyID)}`);
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
     const reportAttributesSelector = (value: OnyxEntry<OnyxTypes.ReportAttributesDerivedValue>) => {
         const attrs = value?.reports?.[reportID];
@@ -188,6 +194,7 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListContent
         oldestUnreadReportActionID: oldestUnreadReportAction?.reportActionID,
         isScrolledOverThreshold: hasScrolledOverThreshold,
         hasOnceLoadedReportActions: !!hasOnceLoadedReportActions,
+        newMessageBoundaryTime: isConciergeHiddenHistory ? sessionStartTime : undefined,
     });
 
     const {markNewestActionAsRead, completeSkippedMarkAsRead} = useMarkAsRead({
@@ -275,6 +282,7 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListContent
         onLoad,
     } = useReportActionsScroll({
         reportID,
+        conciergeChat,
         report,
         transactionThreadReport,
         parentReportAction,
@@ -417,6 +425,7 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListContent
         policy,
         report,
         isTrackIntentUser,
+        rules,
     });
 
     /**
@@ -442,6 +451,14 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListContent
 
     return (
         <>
+            {/* Pinned over the top of the list rather than laid out inside it, so scrolling the expense detail view
+                does not carry it out of sight. Renders nothing on the layouts the composer mount serves. */}
+            <MerchantRuleSuggestionBanner
+                reportID={reportID}
+                policyID={report?.policyID}
+                containerStyles={[styles.mh4, styles.mt2]}
+                overlayStyles={styles.merchantRuleCalloutOverlay}
+            />
             <FloatingMessageCounter
                 hasNewMessages={!!unreadMarkerReportActionID}
                 isActive={isFloatingMessageCounterVisible}
@@ -504,11 +521,12 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListContent
  * Public report-actions list. Thin composition that wraps the content in `ReportActionsSkeletonGuard`,
  * which owns the data pipeline + skeleton decision and only mounts the content once it is ready.
  */
-function ReportActionsList({reportID, onLayout}: ReportActionsListProps) {
+function ReportActionsList({reportID, conciergeChat, onLayout}: ReportActionsListProps) {
     return (
         <ReportActionsSkeletonGuard reportID={reportID}>
             <ReportActionsListContent
                 reportID={reportID}
+                conciergeChat={conciergeChat}
                 onLayout={onLayout}
             />
         </ReportActionsSkeletonGuard>

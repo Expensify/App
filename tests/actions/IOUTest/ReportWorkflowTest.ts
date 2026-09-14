@@ -177,7 +177,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                     const policyID = generatePolicyID();
                     createWorkspace({
                         conciergeChat: undefined,
-                        policyOwnerEmail: CARLOS_EMAIL,
+                        policyOwner: {email: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID},
                         makeMeAdmin: true,
                         policyName: "Carlos's Workspace",
                         policyID,
@@ -188,12 +188,13 @@ describe('actions/IOU/ReportWorkflow', () => {
                         isSelfTourViewed: false,
                         betas: undefined,
                         hasActiveAdminPolicies: false,
+                        hasOwnedPaidPolicy: false,
                         activePolicy: undefined,
                     });
 
                     const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
                     // Change the approval mode for the policy since default is Submit and Close
-                    setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, RORY_ACCOUNT_ID, RORY_EMAIL, false);
+                    setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, RORY_ACCOUNT_ID, RORY_EMAIL, false, undefined);
                     return waitForBatchedUpdates();
                 })
                 .then(
@@ -243,6 +244,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                             delegateAccountID: undefined,
                             isTrackIntentUser: false,
                             formatPhoneNumber,
+                            rules: undefined,
                         });
                     }
                     return waitForBatchedUpdates();
@@ -284,6 +286,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 .then(async () => {
                     if (expenseReport) {
                         submitReport({
+                            rules: undefined,
                             getCurrencyDecimals: getCurrencyDecimalsLocal,
                             submitterLogin: undefined,
                             expenseReport,
@@ -329,7 +332,6 @@ describe('actions/IOU/ReportWorkflow', () => {
                 role: CONST.POLICY.ROLE.ADMIN,
                 owner: CARLOS_EMAIL,
                 outputCurrency: CONST.CURRENCY.USD,
-                isPolicyExpenseChatEnabled: true,
                 approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
             };
 
@@ -392,13 +394,17 @@ describe('actions/IOU/ReportWorkflow', () => {
             await waitForBatchedUpdates();
 
             // Hold one of the two expenses
-            putOnHold(heldTransaction.transactionID, 'hold reason', expenseReport.reportID, false, CARLOS_EMAIL, CARLOS_ACCOUNT_ID, undefined, false, undefined, []);
+            putOnHold(heldTransaction.transactionID, 'hold reason', expenseReport.reportID, false, CARLOS_EMAIL, CARLOS_ACCOUNT_ID, undefined, false, undefined, {
+                rules: undefined,
+                ancestors: [],
+            });
             await waitForBatchedUpdates();
 
             // When submitting the report while offline (callers pass the live report, refreshed by the hold)
             mockFetch?.pause?.();
             const freshExpenseReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`);
             submitReport({
+                rules: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 submitterLogin: CARLOS_EMAIL,
                 expenseReport: freshExpenseReport,
@@ -452,7 +458,6 @@ describe('actions/IOU/ReportWorkflow', () => {
                 role: CONST.POLICY.ROLE.ADMIN,
                 owner: CARLOS_EMAIL,
                 outputCurrency: CONST.CURRENCY.USD,
-                isPolicyExpenseChatEnabled: true,
                 approvalMode: CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL,
             };
 
@@ -515,13 +520,17 @@ describe('actions/IOU/ReportWorkflow', () => {
             await waitForBatchedUpdates();
 
             // Hold one of the two expenses
-            putOnHold(heldTransaction.transactionID, 'hold reason', expenseReport.reportID, false, CARLOS_EMAIL, CARLOS_ACCOUNT_ID, undefined, false, undefined, []);
+            putOnHold(heldTransaction.transactionID, 'hold reason', expenseReport.reportID, false, CARLOS_EMAIL, CARLOS_ACCOUNT_ID, undefined, false, undefined, {
+                rules: undefined,
+                ancestors: [],
+            });
             await waitForBatchedUpdates();
 
             // When submitting the report while offline
             mockFetch?.pause?.();
             const freshExpenseReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`);
             submitReport({
+                rules: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 submitterLogin: CARLOS_EMAIL,
                 expenseReport: freshExpenseReport,
@@ -567,7 +576,6 @@ describe('actions/IOU/ReportWorkflow', () => {
                 role: CONST.POLICY.ROLE.ADMIN,
                 owner: CARLOS_EMAIL,
                 outputCurrency: CONST.CURRENCY.USD,
-                isPolicyExpenseChatEnabled: true,
                 approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
             };
 
@@ -623,13 +631,17 @@ describe('actions/IOU/ReportWorkflow', () => {
             await waitForBatchedUpdates();
 
             // Hold the only expense on the report
-            putOnHold(heldTransaction.transactionID, 'hold reason', expenseReport.reportID, false, CARLOS_EMAIL, CARLOS_ACCOUNT_ID, undefined, false, undefined, []);
+            putOnHold(heldTransaction.transactionID, 'hold reason', expenseReport.reportID, false, CARLOS_EMAIL, CARLOS_ACCOUNT_ID, undefined, false, undefined, {
+                rules: undefined,
+                ancestors: [],
+            });
             await waitForBatchedUpdates();
 
             // When submitting the report while offline (callers pass the live report, refreshed by the hold)
             mockFetch?.pause?.();
             const freshExpenseReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`);
             submitReport({
+                rules: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 submitterLogin: CARLOS_EMAIL,
                 expenseReport: freshExpenseReport,
@@ -669,7 +681,6 @@ describe('actions/IOU/ReportWorkflow', () => {
                 role: CONST.POLICY.ROLE.ADMIN,
                 owner: CARLOS_EMAIL,
                 outputCurrency: CONST.CURRENCY.USD,
-                isPolicyExpenseChatEnabled: true,
                 approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
             };
 
@@ -732,13 +743,17 @@ describe('actions/IOU/ReportWorkflow', () => {
             await waitForBatchedUpdates();
 
             // Hold one of the two expenses
-            putOnHold(heldTransaction.transactionID, 'hold reason', expenseReport.reportID, false, CARLOS_EMAIL, CARLOS_ACCOUNT_ID, undefined, false, undefined, []);
+            putOnHold(heldTransaction.transactionID, 'hold reason', expenseReport.reportID, false, CARLOS_EMAIL, CARLOS_ACCOUNT_ID, undefined, false, undefined, {
+                rules: undefined,
+                ancestors: [],
+            });
             await waitForBatchedUpdates();
 
             // When submitting the report while offline (callers pass the live report, refreshed by the hold)
             mockFetch?.pause?.();
             const freshExpenseReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`);
             submitReport({
+                rules: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 submitterLogin: CARLOS_EMAIL,
                 expenseReport: freshExpenseReport,
@@ -794,7 +809,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                     const policyID = generatePolicyID();
                     createWorkspace({
                         conciergeChat: undefined,
-                        policyOwnerEmail: CARLOS_EMAIL,
+                        policyOwner: {email: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID},
                         makeMeAdmin: true,
                         policyName: "Carlos's Workspace",
                         policyID,
@@ -805,11 +820,12 @@ describe('actions/IOU/ReportWorkflow', () => {
                         isSelfTourViewed: false,
                         betas: undefined,
                         hasActiveAdminPolicies: false,
+                        hasOwnedPaidPolicy: false,
                         activePolicy: undefined,
                     });
 
                     const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
-                    setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, RORY_ACCOUNT_ID, RORY_EMAIL, false, {});
+                    setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, RORY_ACCOUNT_ID, RORY_EMAIL, false, undefined, {});
                     return waitForBatchedUpdates();
                 })
                 .then(
@@ -859,6 +875,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                             delegateAccountID: undefined,
                             isTrackIntentUser: false,
                             formatPhoneNumber,
+                            rules: undefined,
                         });
                     }
                     return waitForBatchedUpdates();
@@ -881,7 +898,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                     .then(() => {
                         createWorkspace({
                             conciergeChat: undefined,
-                            policyOwnerEmail: CARLOS_EMAIL,
+                            policyOwner: {email: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID},
                             makeMeAdmin: true,
                             policyName: "Carlos's Workspace",
                             policyID: undefined,
@@ -893,6 +910,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                             isSelfTourViewed: false,
                             betas: undefined,
                             hasActiveAdminPolicies: false,
+                            hasOwnedPaidPolicy: false,
                             activePolicy: undefined,
                         });
                         return waitForBatchedUpdates();
@@ -944,6 +962,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                                 delegateAccountID: undefined,
                                 isTrackIntentUser: false,
                                 formatPhoneNumber,
+                                rules: undefined,
                             });
                         }
                         return waitForBatchedUpdates();
@@ -995,6 +1014,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                                 delegateAccountID: undefined,
                                 isTrackIntentUser: false,
                                 formatPhoneNumber,
+                                rules: undefined,
                             });
                         }
                         return waitForBatchedUpdates();
@@ -1061,6 +1081,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                     .then(async () => {
                         if (expenseReport) {
                             submitReport({
+                                rules: undefined,
                                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                                 submitterLogin: undefined,
                                 expenseReport,
@@ -1131,6 +1152,24 @@ describe('actions/IOU/ReportWorkflow', () => {
                         }
                         return waitForBatchedUpdates();
                     })
+                    .then(() => {
+                        // Delete workspace action will be replaced with archive workspace.
+                        // Simulate archive workspace response with merging archivedDate to the policy.
+                        return Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy?.id}`, {archivedDate: DateUtils.getDBTime()});
+                    })
+                    .then(
+                        () =>
+                            new Promise<void>((resolve) => {
+                                const connection = Onyx.connect({
+                                    key: ONYXKEYS.COLLECTION.POLICY,
+                                    callback: (allPolicies) => {
+                                        Onyx.disconnect(connection);
+                                        policy = Object.values(allPolicies ?? {}).find((p): p is OnyxEntry<Policy> => p?.id === policy?.id);
+                                        resolve();
+                                    },
+                                });
+                            }),
+                    )
                     .then(
                         () =>
                             new Promise<void>((resolve) => {
@@ -1162,7 +1201,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                     .then(() => {
                         createWorkspace({
                             conciergeChat: undefined,
-                            policyOwnerEmail: CARLOS_EMAIL,
+                            policyOwner: {email: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID},
                             makeMeAdmin: true,
                             policyName: "Carlos's Workspace",
                             policyID: undefined,
@@ -1174,6 +1213,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                             isSelfTourViewed: false,
                             betas: undefined,
                             hasActiveAdminPolicies: false,
+                            hasOwnedPaidPolicy: false,
                             activePolicy: undefined,
                         });
                         return waitForBatchedUpdates();
@@ -1225,6 +1265,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                                 delegateAccountID: undefined,
                                 isTrackIntentUser: false,
                                 formatPhoneNumber,
+                                rules: undefined,
                             });
                         }
                         return waitForBatchedUpdates();
@@ -1276,6 +1317,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                                 delegateAccountID: undefined,
                                 isTrackIntentUser: false,
                                 formatPhoneNumber,
+                                rules: undefined,
                             });
                         }
                         return waitForBatchedUpdates();
@@ -1340,6 +1382,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                         mockFetch?.fail?.();
                         if (expenseReport) {
                             submitReport({
+                                rules: undefined,
                                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                                 submitterLogin: undefined,
                                 expenseReport,
@@ -1392,7 +1435,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             const policyID = generatePolicyID();
             createWorkspace({
                 conciergeChat: undefined,
-                policyOwnerEmail: CARLOS_EMAIL,
+                policyOwner: {email: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID},
                 makeMeAdmin: true,
                 policyName: 'Test Workspace with Dynamic External Workflow',
                 policyID,
@@ -1403,12 +1446,13 @@ describe('actions/IOU/ReportWorkflow', () => {
                 isSelfTourViewed: false,
                 betas: undefined,
                 hasActiveAdminPolicies: false,
+                hasOwnedPaidPolicy: false,
                 activePolicy: undefined,
             });
             return waitForBatchedUpdates()
                 .then(async () => {
                     policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
-                    setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL, RORY_ACCOUNT_ID, RORY_EMAIL, false, {});
+                    setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL, RORY_ACCOUNT_ID, RORY_EMAIL, false, undefined, {});
                     return waitForBatchedUpdates();
                 })
                 .then(
@@ -1475,6 +1519,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                             delegateAccountID: undefined,
                             isTrackIntentUser: false,
                             formatPhoneNumber,
+                            rules: undefined,
                         });
                     }
                     return waitForBatchedUpdates();
@@ -1516,6 +1561,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 .then(() => {
                     if (expenseReport) {
                         submitReport({
+                            rules: undefined,
                             getCurrencyDecimals: getCurrencyDecimalsLocal,
                             submitterLogin: undefined,
                             expenseReport,
@@ -1591,6 +1637,7 @@ describe('actions/IOU/ReportWorkflow', () => {
 
             // Submit with amountOwed > 0 should trigger restriction
             submitReport({
+                rules: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 submitterLogin: undefined,
                 expenseReport,
@@ -1633,7 +1680,7 @@ describe('actions/IOU/ReportWorkflow', () => {
 
             createWorkspace({
                 conciergeChat: undefined,
-                policyOwnerEmail: CARLOS_EMAIL,
+                policyOwner: {email: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID},
                 makeMeAdmin: true,
                 policyName: "Carlos's Workspace",
                 policyID,
@@ -1644,10 +1691,11 @@ describe('actions/IOU/ReportWorkflow', () => {
                 isSelfTourViewed: false,
                 betas: undefined,
                 hasActiveAdminPolicies: false,
+                hasOwnedPaidPolicy: false,
                 activePolicy: undefined,
             });
 
-            setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, RORY_ACCOUNT_ID, RORY_EMAIL, false, {});
+            setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, RORY_ACCOUNT_ID, RORY_EMAIL, false, undefined, {});
             await waitForBatchedUpdates();
 
             let chatReport: OnyxEntry<Report>;
@@ -1690,6 +1738,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                     delegateAccountID: undefined,
                     isTrackIntentUser: false,
                     formatPhoneNumber,
+                    rules: undefined,
                 });
             }
             await waitForBatchedUpdates();
@@ -1710,6 +1759,7 @@ describe('actions/IOU/ReportWorkflow', () => {
 
                 const ownerBillingGracePeriodEnd = Math.floor(Date.now() / 1000) - 86400 * 30;
                 submitReport({
+                    rules: undefined,
                     getCurrencyDecimals: getCurrencyDecimalsLocal,
                     submitterLogin: undefined,
                     expenseReport,
@@ -1734,7 +1784,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             }
         });
 
-        it('preserves the existing report manager when policy employee data is missing', async () => {
+        it('omits the API managerAccountID but keeps the existing report manager optimistically when policy employee data is missing', async () => {
             const apiWriteSpy = jest.spyOn(API, 'write').mockImplementation(() => Promise.resolve());
             const policyID = '1';
             const submitterAccountID = 100;
@@ -1774,8 +1824,9 @@ describe('actions/IOU/ReportWorkflow', () => {
             };
 
             submitReport({
+                rules: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
-                submitterLogin: undefined,
+                submitterLogin: submitterEmail,
                 expenseReport,
                 policy,
                 currentUserAccountIDParam: submitterAccountID,
@@ -1792,14 +1843,101 @@ describe('actions/IOU/ReportWorkflow', () => {
             });
 
             const [, parameters, onyxData] = getRequiredWriteCall(apiWriteSpy.mock.calls);
-            expect(parameters.managerAccountID).toBe(correctManagerAccountID);
+            // The client route isn't reliable here, so we let the server route the report by the live workflow.
+            expect(parameters).not.toHaveProperty('managerAccountID');
 
             const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`;
             const optimisticReportUpdate = getRequiredOnyxUpdate(onyxData, 'optimisticData', reportKey, Onyx.METHOD.MERGE, true);
             expect(optimisticReportUpdate.value.managerID).toBe(correctManagerAccountID);
+            // The omission is about what we let the server route by, not about what we show meanwhile: offline the report keeps
+            // the manager it already had, so the next step stays consistent with it until the server answers.
+            expect(optimisticReportUpdate.value.nextStep).toEqual({
+                actorAccountID: correctManagerAccountID,
+                icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
+                messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_APPROVE,
+            });
         });
 
-        it('preserves the existing report manager for a retracted report when policy employee data is missing', async () => {
+        it('routes to the default approver when the submitter is a policy member but their submitsTo was removed from the workspace', async () => {
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls -- Inspecting API.write calls to verify submit payload and optimistic data.
+            const apiWriteSpy = jest.spyOn(API, 'write').mockImplementation(() => Promise.resolve());
+            const policyID = '1';
+            const submitterAccountID = 100;
+            const removedApproverAccountID = 101;
+            const defaultApproverAccountID = 102;
+            const submitterEmail = 'submitter@example.com';
+            const removedApproverEmail = 'removed-approver@example.com';
+            const defaultApproverEmail = 'default-approver@example.com';
+
+            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                [submitterAccountID]: {accountID: submitterAccountID, login: submitterEmail},
+                [removedApproverAccountID]: {accountID: removedApproverAccountID, login: removedApproverEmail},
+                [defaultApproverAccountID]: {accountID: defaultApproverAccountID, login: defaultApproverEmail},
+            });
+            await waitForBatchedUpdates();
+
+            const policy: Policy = {
+                ...createRandomPolicy(Number(policyID)),
+                id: policyID,
+                type: CONST.POLICY.TYPE.CORPORATE,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+                approver: defaultApproverEmail,
+                owner: defaultApproverEmail,
+                employeeList: {
+                    [defaultApproverEmail]: {email: defaultApproverEmail, role: CONST.POLICY.ROLE.ADMIN, submitsTo: ''},
+                    // The submitter is still a member, but the approver they point at was removed from the workspace.
+                    [submitterEmail]: {email: submitterEmail, role: CONST.POLICY.ROLE.USER, submitsTo: removedApproverEmail},
+                },
+            };
+            const expenseReport: Report = {
+                ...createRandomReport(Number(policyID), undefined),
+                reportID: '1',
+                policyID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                ownerAccountID: submitterAccountID,
+                // The Classic-era manager stamped on the migrated report.
+                managerID: removedApproverAccountID,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                total: 1000,
+                currency: CONST.CURRENCY.USD,
+            };
+
+            submitReport({
+                rules: undefined,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                submitterLogin: submitterEmail,
+                expenseReport,
+                policy,
+                currentUserAccountIDParam: submitterAccountID,
+                currentUserEmailParam: submitterEmail,
+                hasViolations: false,
+                isASAPSubmitBetaEnabled: false,
+                betas: [],
+                userBillingGracePeriodEnds: undefined,
+                amountOwed: 0,
+                ownerBillingGracePeriodEnd: undefined,
+                delegateEmail: undefined,
+                delegateAccountID: undefined,
+                isTrackIntentUser: false,
+            });
+
+            const [, parameters, onyxData] = getRequiredWriteCall(apiWriteSpy.mock.calls);
+            // The submitter's route is known, so the orphaned submitsTo falls back to the default approver instead of the removed member.
+            expect(parameters.managerAccountID).toBe(defaultApproverAccountID);
+
+            const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`;
+            const optimisticReportUpdate = getRequiredOnyxUpdate(onyxData, 'optimisticData', reportKey, Onyx.METHOD.MERGE, true);
+            const optimisticReportValue = optimisticReportUpdate.value;
+            expect(optimisticReportValue.managerID).toBe(defaultApproverAccountID);
+            expect(optimisticReportValue.nextStep).toEqual({
+                actorAccountID: defaultApproverAccountID,
+                icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
+                messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_APPROVE,
+            });
+        });
+
+        it('omits the API managerAccountID but keeps the existing report manager optimistically for a retracted report when policy employee data is missing', async () => {
             // eslint-disable-next-line rulesdir/no-multiple-api-calls -- Inspecting API.write calls to verify submit payload and optimistic data.
             const apiWriteSpy = jest.spyOn(API, 'write').mockImplementation(() => Promise.resolve());
             const policyID = '1';
@@ -1841,8 +1979,9 @@ describe('actions/IOU/ReportWorkflow', () => {
             };
 
             submitReport({
+                rules: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
-                submitterLogin: undefined,
+                submitterLogin: submitterEmail,
                 expenseReport,
                 policy,
                 currentUserAccountIDParam: submitterAccountID,
@@ -1859,7 +1998,8 @@ describe('actions/IOU/ReportWorkflow', () => {
             });
 
             const [, parameters, onyxData] = getRequiredWriteCall(apiWriteSpy.mock.calls);
-            expect(parameters.managerAccountID).toBe(correctManagerAccountID);
+            // The client route isn't reliable here, so we let the server route the report by the live workflow.
+            expect(parameters).not.toHaveProperty('managerAccountID');
 
             const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`;
             const optimisticReportUpdate = getRequiredOnyxUpdate(onyxData, 'optimisticData', reportKey, Onyx.METHOD.MERGE, true);
@@ -1893,6 +2033,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             };
 
             submitReport({
+                rules: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 expenseReport,
                 policy,
@@ -1949,6 +2090,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             };
 
             submitReport({
+                rules: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 expenseReport,
                 policy,
@@ -2021,6 +2163,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             };
 
             submitReport({
+                rules: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 submitterLogin: submitterEmail,
                 expenseReport,
@@ -2114,6 +2257,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             await waitForBatchedUpdates();
 
             submitReport({
+                rules: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 expenseReport,
                 policy,
@@ -2207,6 +2351,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             };
 
             submitReport({
+                rules: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 submitterLogin: submitterEmail,
                 expenseReport,
@@ -2283,6 +2428,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             // Go offline so only the optimistic update is applied
             mockFetch?.pause?.();
             submitReport({
+                rules: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 submitterLogin: submitterEmail,
                 expenseReport,
@@ -2355,6 +2501,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             };
 
             submitReport({
+                rules: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 submitterLogin: submitterEmail,
                 expenseReport,
@@ -2426,6 +2573,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             expect(canSubmitReport(report, submitterEmail, policy, [transaction], undefined, false, submitterEmail, submitterAccountID)).toBe(true);
 
             submitReport({
+                rules: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 submitterLogin: undefined,
                 expenseReport: report,
@@ -2491,6 +2639,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             expect(canSubmitReport(report, submitterEmail, policy, [transaction], undefined, false, submitterEmail, submitterAccountID)).toBe(true);
 
             submitReport({
+                rules: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 submitterLogin: undefined,
                 expenseReport: report,
@@ -2531,6 +2680,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             };
 
             submitReport({
+                rules: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 submitterLogin: undefined,
                 expenseReport,
@@ -2561,7 +2711,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             expect(failureReportUpdate.value.managerID).toBe(managerAccountID);
         });
 
-        it('uses the same submit approver selection from search submit', async () => {
+        it('omits the API managerAccountID from search submit when policy employee data is missing', async () => {
             // eslint-disable-next-line rulesdir/no-multiple-api-calls -- Inspecting API.write calls to verify search submit payload.
             const apiWriteSpy = jest.spyOn(API, 'write').mockImplementation(() => Promise.resolve());
             const policyID = '1';
@@ -2601,15 +2751,11 @@ describe('actions/IOU/ReportWorkflow', () => {
                 currency: CONST.CURRENCY.USD,
             };
 
-            submitMoneyRequestOnSearch(1, [report], [policy], submitterEmail, getCurrencyDecimalsLocal);
+            submitMoneyRequestOnSearch(1, [report], [policy], submitterEmail, getCurrencyDecimalsLocal, undefined);
 
-            expect(apiWriteSpy).toHaveBeenCalledWith(
-                'SubmitReport',
-                expect.objectContaining({
-                    managerAccountID: correctManagerAccountID,
-                }),
-                expect.anything(),
-            );
+            // The client route isn't reliable here, so we let the server route the report by the live workflow.
+            const [, parameters] = getRequiredWriteCall(apiWriteSpy.mock.calls);
+            expect(parameters).not.toHaveProperty('managerAccountID');
         });
 
         it('uses the popover-selected manager email for search submit managerAccountID', async () => {
@@ -2652,7 +2798,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 currency: CONST.CURRENCY.USD,
             };
 
-            submitMoneyRequestOnSearch(1, [report], [policy], undefined, getCurrencyDecimalsLocal, undefined, chosenManagerEmail);
+            submitMoneyRequestOnSearch(1, [report], [policy], undefined, getCurrencyDecimalsLocal, undefined, undefined, chosenManagerEmail);
 
             expect(apiWriteSpy).toHaveBeenCalledWith(
                 'SubmitReport',
@@ -2669,6 +2815,57 @@ describe('actions/IOU/ReportWorkflow', () => {
                 }),
                 expect.anything(),
             );
+        });
+
+        it('sends the manager email alone from search submit when the chosen manager email has no accountID', async () => {
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls -- Inspecting API.write calls to verify search submit payload.
+            const apiWriteSpy = jest.spyOn(API, 'write').mockImplementation(() => Promise.resolve());
+            const policyID = '1';
+            const submitterAccountID = 100;
+            const defaultManagerAccountID = 101;
+            const submitterEmail = 'submitter@example.com';
+            const defaultManagerEmail = 'default-manager@example.com';
+            // The chosen manager is neither in personal details nor in the employee list, so it can't be resolved to an accountID.
+            const chosenManagerEmail = 'chosen-manager@example.com';
+
+            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                [submitterAccountID]: {accountID: submitterAccountID, login: submitterEmail},
+                [defaultManagerAccountID]: {accountID: defaultManagerAccountID, login: defaultManagerEmail},
+            });
+            await waitForBatchedUpdates();
+
+            const policy: Policy = {
+                ...createRandomPolicy(Number(policyID)),
+                id: policyID,
+                type: CONST.POLICY.TYPE.CORPORATE,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+                approver: defaultManagerEmail,
+                owner: defaultManagerEmail,
+                employeeList: {
+                    [defaultManagerEmail]: {email: defaultManagerEmail, role: CONST.POLICY.ROLE.ADMIN, submitsTo: ''},
+                    [submitterEmail]: {email: submitterEmail, role: CONST.POLICY.ROLE.USER, submitsTo: defaultManagerEmail},
+                },
+            };
+            const report: Report = {
+                ...createRandomReport(Number(policyID), undefined),
+                reportID: '1',
+                policyID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                ownerAccountID: submitterAccountID,
+                managerID: defaultManagerAccountID,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                total: 1000,
+                currency: CONST.CURRENCY.USD,
+            };
+
+            submitMoneyRequestOnSearch(1, [report], [policy], submitterEmail, getCurrencyDecimalsLocal, undefined, undefined, chosenManagerEmail);
+
+            const [, parameters] = getRequiredWriteCall(apiWriteSpy.mock.calls);
+            expect(parameters.managerEmail).toBe(chosenManagerEmail);
+            // The approval chain points at the default approver, so sending its accountID would route the report to someone
+            // other than the chosen manager. Sending the email alone lets the server resolve the chosen approver instead.
+            expect(parameters).not.toHaveProperty('managerAccountID');
         });
 
         it('resolves search submit managerAccountID from employeeList when personal details are missing', async () => {
@@ -2715,7 +2912,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 currency: CONST.CURRENCY.USD,
             };
 
-            submitMoneyRequestOnSearch(1, [report], [policy], undefined, getCurrencyDecimalsLocal, undefined, chosenManagerEmail);
+            submitMoneyRequestOnSearch(1, [report], [policy], undefined, getCurrencyDecimalsLocal, undefined, undefined, chosenManagerEmail);
 
             expect(apiWriteSpy).toHaveBeenCalledWith(
                 'SubmitReport',
@@ -2746,7 +2943,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 },
             };
 
-            submitMoneyRequestOnSearch(1, [report], [createRandomPolicy(1)], undefined, getCurrencyDecimalsLocal);
+            submitMoneyRequestOnSearch(1, [report], [createRandomPolicy(1)], undefined, getCurrencyDecimalsLocal, undefined);
 
             expect(apiWriteSpy).toHaveBeenCalledTimes(1);
         });
@@ -2763,7 +2960,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 },
             };
 
-            submitMoneyRequestOnSearch(1, [report], [createRandomPolicy(1)], undefined, getCurrencyDecimalsLocal);
+            submitMoneyRequestOnSearch(1, [report], [createRandomPolicy(1)], undefined, getCurrencyDecimalsLocal, undefined);
 
             expect(apiWriteSpy).toHaveBeenCalledTimes(1);
         });
@@ -2785,7 +2982,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
             };
 
-            submitMoneyRequestOnSearch(1, [report], [policy], undefined, getCurrencyDecimalsLocal);
+            submitMoneyRequestOnSearch(1, [report], [policy], undefined, getCurrencyDecimalsLocal, undefined);
 
             const [, parameters, onyxData] = getRequiredWriteCall(apiWriteSpy.mock.calls);
             expect(typeof parameters.reportActionID).toBe('string');
@@ -2843,6 +3040,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             };
 
             submitReport({
+                rules: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 submitterLogin: undefined,
                 expenseReport,
@@ -2882,6 +3080,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             };
 
             submitReport({
+                rules: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 submitterLogin: undefined,
                 expenseReport,
@@ -2919,7 +3118,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
             };
 
-            unapproveExpenseReport(expenseReport, undefined, CARLOS_ACCOUNT_ID, CARLOS_EMAIL, false, false, DELEGATE_EMAIL, false, getCurrencyDecimalsLocal);
+            unapproveExpenseReport(expenseReport, undefined, CARLOS_ACCOUNT_ID, CARLOS_EMAIL, false, false, DELEGATE_EMAIL, false, getCurrencyDecimalsLocal, undefined);
 
             // eslint-disable-next-line rulesdir/no-multiple-api-calls -- Inspecting mock call args to verify optimistic data structure
             const calls = jest.mocked(API.write).mock.calls;
@@ -2945,7 +3144,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
             };
 
-            retractReport(expenseReport, chatReport, undefined, CARLOS_ACCOUNT_ID, CARLOS_EMAIL, false, false, DELEGATE_EMAIL, false);
+            retractReport(expenseReport, chatReport, undefined, CARLOS_ACCOUNT_ID, CARLOS_EMAIL, false, false, DELEGATE_EMAIL, false, undefined);
 
             // eslint-disable-next-line rulesdir/no-multiple-api-calls -- Inspecting mock call args to verify optimistic data structure
             const calls = jest.mocked(API.write).mock.calls;
@@ -2973,6 +3172,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             };
 
             approveMoneyRequest({
+                rules: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 expenseReport,
                 expenseReportPolicy,
@@ -3016,6 +3216,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             };
 
             approveMoneyRequest({
+                rules: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 expenseReport,
                 expenseReportPolicy,
@@ -3070,6 +3271,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}` as const;
 
             approveMoneyRequest({
+                rules: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 expenseReport,
                 expenseReportPolicy,
@@ -3698,7 +3900,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 type: CONST.REPORT.TYPE.EXPENSE,
             };
 
-            retractReport(expenseReport, undefined, policy, 1, 'test@example.com', false, false, undefined, false);
+            retractReport(expenseReport, undefined, policy, 1, 'test@example.com', false, false, undefined, false, undefined);
 
             const [, , onyxData] = getRequiredWriteCall(apiWriteSpy.mock.calls);
             const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`;
@@ -3738,7 +3940,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             };
 
             // When retracting the submitted expense report
-            retractReport(expenseReport, chatReport, policy, 1, 'test@example.com', false, false, undefined, false);
+            retractReport(expenseReport, chatReport, policy, 1, 'test@example.com', false, false, undefined, false, undefined);
 
             // Then the chat report iouReportID should be set back to the retracted expense report
             const iouReportID = await new Promise<string | undefined>((resolve) => {
@@ -3781,6 +3983,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             await waitForBatchedUpdates();
 
             addReportApprover({
+                rules: undefined,
                 report,
                 newApproverEmail: approverLogin,
                 newApproverAccountID: approverAccountID,
@@ -3830,6 +4033,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             expenseReport,
             expenseReportPolicy,
+            rules: undefined,
             currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
             currentUserEmailParam: CARLOS_EMAIL,
             hasViolations: false,
@@ -3952,7 +4156,6 @@ describe('actions/IOU/ReportWorkflow', () => {
                 owner: adminEmail,
                 ownerAccountID: adminAccountID,
                 outputCurrency: CONST.CURRENCY.USD,
-                isPolicyExpenseChatEnabled: true,
                 type: CONST.POLICY.TYPE.CORPORATE,
                 approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
                 reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
@@ -4016,6 +4219,7 @@ describe('actions/IOU/ReportWorkflow', () => {
 
             // Admin approves the report
             approveMoneyRequest({
+                rules: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 expenseReport,
                 expenseReportPolicy: policy,
@@ -4070,6 +4274,7 @@ describe('actions/IOU/ReportWorkflow', () => {
 
             // Manager approves the report
             approveMoneyRequest({
+                rules: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 expenseReport,
                 expenseReportPolicy: policy,
@@ -4123,6 +4328,7 @@ describe('actions/IOU/ReportWorkflow', () => {
 
             // Admin approves the report
             approveMoneyRequest({
+                rules: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 expenseReport,
                 expenseReportPolicy: policy,
@@ -4197,7 +4403,6 @@ describe('actions/IOU/ReportWorkflow', () => {
                 role: CONST.POLICY.ROLE.ADMIN,
                 owner: adminEmail,
                 outputCurrency: CONST.CURRENCY.USD,
-                isPolicyExpenseChatEnabled: true,
                 type: CONST.POLICY.TYPE.CORPORATE,
                 approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
                 employeeList: {
@@ -4251,6 +4456,7 @@ describe('actions/IOU/ReportWorkflow', () => {
 
             // Manager approves the report (no take control actions)
             approveMoneyRequest({
+                rules: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 expenseReport,
                 expenseReportPolicy: policy,
@@ -4284,6 +4490,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             });
 
             approveMoneyRequest({
+                rules: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 expenseReport,
                 expenseReportPolicy: policy,
@@ -4315,6 +4522,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             });
 
             approveMoneyRequest({
+                rules: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 expenseReport: updatedReport,
                 expenseReportPolicy: policy,
@@ -4376,6 +4584,7 @@ describe('actions/IOU/ReportWorkflow', () => {
 
             // Manager approves the report
             approveMoneyRequest({
+                rules: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 expenseReport: singleApproverReport,
                 expenseReportPolicy: singleApproverPolicy,
@@ -4437,6 +4646,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             })
                 .then(() => {
                     approveMoneyRequest({
+                        rules: undefined,
                         getCurrencyDecimals: getCurrencyDecimalsLocal,
                         expenseReport: normalReport,
                         expenseReportPolicy: policy,
@@ -4471,6 +4681,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                         bankAccountList: {},
                         reportMetadata: undefined,
                         ownerLogin: employeeEmail,
+                        rules: undefined,
                     });
                     expect(previewAction).not.toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.APPROVE);
                 });
@@ -4510,7 +4721,6 @@ describe('actions/IOU/ReportWorkflow', () => {
                 role: CONST.POLICY.ROLE.ADMIN,
                 owner: adminEmail,
                 outputCurrency: CONST.CURRENCY.USD,
-                isPolicyExpenseChatEnabled: true,
                 type: CONST.POLICY.TYPE.CORPORATE,
                 approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
                 employeeList: {
@@ -4569,6 +4779,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             });
 
             const newExpenseReportID = approveMoneyRequest({
+                rules: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 expenseReport,
                 expenseReportPolicy: policy,

@@ -155,6 +155,9 @@ const Logging: Middleware = (response, request) => {
             } else if (error.message === CONST.ERROR.DUPLICATE_RECORD) {
                 // Duplicate records can happen when a large upload is interrupted and we need to retry to see if the original request completed
                 Log.info('[Network] API request error: A record already exists with this ID', false, logParams);
+            } else if (error.message === CONST.ERROR.ALREADY_CREATED) {
+                // The record already exists server side, e.g. a retry after a lost success response. It is treated as a success upstream.
+                Log.info('[Network] API request error: The resource was already created', false, logParams);
             } else {
                 // If we get any error that is not known log an alert so we can learn more about it and document it here.
                 Log.alert(`${CONST.ERROR.ENSURE_BUG_BOT} unknown API request error caught while processing request`, logParams, false);

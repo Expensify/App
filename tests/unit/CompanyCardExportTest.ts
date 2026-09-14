@@ -55,7 +55,6 @@ function createQBDPolicy(overrides?: Partial<Policy>, nonReimbursableAccount = '
         role: CONST.POLICY.ROLE.ADMIN,
         owner: 'test@qbdcc.com',
         ownerAccountID: 1,
-        isPolicyExpenseChatEnabled: false,
         outputCurrency: 'USD',
         connections: {
             quickbooksDesktop: {

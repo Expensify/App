@@ -30,7 +30,6 @@ import React, {useCallback, useState} from 'react';
 import {View} from 'react-native';
 
 type WorkspacePolicyOnyxProps = {
-    /** Personal details of all users */
     personalDetails: OnyxEntry<PersonalDetailsList>;
 };
 type WorkspaceMemberCustomFieldPageProps = Omit<WithPolicyAndFullscreenLoadingProps, 'route'> &

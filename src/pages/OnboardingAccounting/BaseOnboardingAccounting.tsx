@@ -1,4 +1,5 @@
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
+import ButtonDisabledWhenOffline from '@components/Button/composed/ButtonDisabledWhenOffline';
 import CollapsibleHeaderOnKeyboard from '@components/CollapsibleHeaderOnKeyboard';
 import FixedFooter from '@components/FixedFooter';
 import FormHelpMessage from '@components/FormHelpMessage';
@@ -16,7 +17,6 @@ import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import useCompleteOnboarding from '@hooks/useCompleteOnboarding';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -146,7 +146,6 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
     const isOtherSelected = selectedIntegration === 'other';
 
     const groupPolicy = Object.values(allPolicies ?? {}).find((policy) => isGroupPolicy(policy) && isPolicyAdmin(policy, session?.email));
-    const {isOffline} = useNetwork();
     const {completeOnboardingFlow, isLoading: isCompletingOnboarding} = useCompleteOnboarding();
 
     // Set onboardingPolicyID and onboardingAdminsChatReportID if a workspace is created by the backend for OD signup
@@ -168,7 +167,7 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
                     src={icon}
                     width={variables.iconSizeExtraLarge}
                     height={variables.iconSizeExtraLarge}
-                    additionalStyles={[StyleUtils.getAvatarBorderStyle(CONST.AVATAR_SIZE.DEFAULT, CONST.ICON_TYPE_AVATAR), styles.mr3]}
+                    additionalStyles={[StyleUtils.getAvatarBorderStyle(CONST.AVATAR_SIZE.DEFAULT, CONST.AVATAR_SHAPE.CIRCLE), styles.mr3]}
                 />
             ),
             isSelected: selectedIntegration === integration.key,
@@ -184,7 +183,7 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
                 width={variables.iconSizeNormal}
                 height={variables.iconSizeNormal}
                 fill={theme.icon}
-                additionalStyles={[StyleUtils.getAvatarBorderStyle(CONST.AVATAR_SIZE.DEFAULT, CONST.ICON_TYPE_AVATAR), styles.mr3, styles.onboardingSmallIcon]}
+                additionalStyles={[StyleUtils.getAvatarBorderStyle(CONST.AVATAR_SIZE.DEFAULT, CONST.AVATAR_SHAPE.CIRCLE), styles.mr3, styles.onboardingSmallIcon]}
             />
         ),
         isSelected: isOtherSelected,
@@ -273,17 +272,16 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
                 />
             )}
 
-            <Button
+            <ButtonDisabledWhenOffline
                 variant={CONST.BUTTON_VARIANT.SUCCESS}
                 size={CONST.BUTTON_SIZE.LARGE}
                 onPress={submitAccounting}
-                isDisabled={isOffline}
                 isLoading={isCompletingOnboarding}
                 sentryLabel={CONST.SENTRY_LABEL.ONBOARDING.CONTINUE}
             >
                 <Button.KeyboardShortcut />
                 <Button.Text>{translate('common.continue')}</Button.Text>
-            </Button>
+            </ButtonDisabledWhenOffline>
         </>
     );
 

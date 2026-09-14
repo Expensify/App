@@ -18,7 +18,6 @@ type FallbackUserDetails = {
 };
 
 type UserDetailsTooltipProps = ChildrenProps & {
-    /** User's Account ID */
     accountID: number;
 
     /** Fallback User Details object used if no accountID */
