@@ -1,12 +1,12 @@
 import {act, render, waitFor} from '@testing-library/react-native';
 
-import AndroidBackgroundLocationPermissionsFlow from '@pages/iou/request/step/IOURequestStepDistanceGPS/BackgroundLocationPermissionsFlow/index.android';
-import IOSBackgroundLocationPermissionsFlow from '@pages/iou/request/step/IOURequestStepDistanceGPS/BackgroundLocationPermissionsFlow/index.ios';
+import useAndroidBackgroundLocationPermissionsFlow from '@pages/iou/request/step/IOURequestStepDistanceGPS/useBackgroundLocationPermissionsFlow/index.android';
+import useIOSBackgroundLocationPermissionsFlow from '@pages/iou/request/step/IOURequestStepDistanceGPS/useBackgroundLocationPermissionsFlow/index.ios';
 
 import type {LocationPermissionResponse} from 'expo-location';
 
 import {getBackgroundPermissionsAsync, getForegroundPermissionsAsync, PermissionStatus, requestBackgroundPermissionsAsync, requestForegroundPermissionsAsync} from 'expo-location';
-import React from 'react';
+import React, {useEffect} from 'react';
 import {Linking} from 'react-native';
 import {checkLocationAccuracy} from 'react-native-permissions';
 
@@ -67,21 +67,27 @@ function createDefaultProps() {
         onDeny: jest.fn(),
         onError: jest.fn(),
         onGrant: jest.fn(),
-        setStartPermissionsFlow: jest.fn(),
-        startPermissionsFlow: true,
     };
 }
 
-function renderFlow(Flow: typeof AndroidBackgroundLocationPermissionsFlow, props: ReturnType<typeof createDefaultProps>) {
-    render(
-        <Flow
-            onDeny={props.onDeny}
-            onError={props.onError}
-            onGrant={props.onGrant}
-            setStartPermissionsFlow={props.setStartPermissionsFlow}
-            startPermissionsFlow={props.startPermissionsFlow}
-        />,
-    );
+/** Hosts the hook and starts the flow on mount, standing in for the button press that starts it in the app. */
+function renderFlow(useFlow: typeof useAndroidBackgroundLocationPermissionsFlow, props: ReturnType<typeof createDefaultProps>) {
+    function FlowHost() {
+        const startPermissionsFlow = useFlow({
+            onDeny: props.onDeny,
+            onError: props.onError,
+            onGrant: props.onGrant,
+        });
+
+        useEffect(() => {
+            startPermissionsFlow();
+            // eslint-disable-next-line react-hooks/exhaustive-deps -- the flow must only be started once, like a single button press
+        }, []);
+
+        return null;
+    }
+
+    render(<FlowHost />);
 }
 
 describe('BackgroundLocationPermissionsFlow', () => {
@@ -102,7 +108,7 @@ describe('BackgroundLocationPermissionsFlow', () => {
             mockGetForegroundPermissions.mockResolvedValue(buildPermissionResponse({granted: true, accuracy: 'fine'}));
             mockGetBackgroundPermissions.mockResolvedValue(buildPermissionResponse({granted: true}));
 
-            renderFlow(AndroidBackgroundLocationPermissionsFlow, props);
+            renderFlow(useAndroidBackgroundLocationPermissionsFlow, props);
 
             await waitFor(() => expect(props.onGrant).toHaveBeenCalledTimes(1));
             expect(mockShowConfirmModal).not.toHaveBeenCalled();
@@ -113,7 +119,7 @@ describe('BackgroundLocationPermissionsFlow', () => {
             mockGetForegroundPermissions.mockResolvedValue(buildPermissionResponse({granted: false, canAskAgain: false}));
             mockGetBackgroundPermissions.mockResolvedValue(buildPermissionResponse({granted: false}));
 
-            renderFlow(AndroidBackgroundLocationPermissionsFlow, props);
+            renderFlow(useAndroidBackgroundLocationPermissionsFlow, props);
 
             await waitFor(() => expect(props.onDeny).toHaveBeenCalledTimes(1));
             expect(mockShowConfirmModal).not.toHaveBeenCalled();
@@ -126,7 +132,7 @@ describe('BackgroundLocationPermissionsFlow', () => {
             mockRequestForegroundPermissions.mockResolvedValue(buildPermissionResponse({granted: true, accuracy: 'fine'}));
             mockRequestBackgroundPermissions.mockResolvedValue(buildPermissionResponse({granted: true}));
 
-            renderFlow(AndroidBackgroundLocationPermissionsFlow, props);
+            renderFlow(useAndroidBackgroundLocationPermissionsFlow, props);
 
             await waitFor(() => expect(mockShowConfirmModal).toHaveBeenCalledTimes(1));
             expect(getShowConfirmModalOption('title')).toBe('gps.locationRequiredModal.title');
@@ -155,7 +161,7 @@ describe('BackgroundLocationPermissionsFlow', () => {
             mockGetBackgroundPermissions.mockResolvedValue(buildPermissionResponse({granted: false}));
             mockRequestForegroundPermissions.mockResolvedValue(buildPermissionResponse({granted: true, accuracy: 'coarse'}));
 
-            renderFlow(AndroidBackgroundLocationPermissionsFlow, props);
+            renderFlow(useAndroidBackgroundLocationPermissionsFlow, props);
 
             await waitFor(() => expect(mockShowConfirmModal).toHaveBeenCalledTimes(1));
 
@@ -180,7 +186,7 @@ describe('BackgroundLocationPermissionsFlow', () => {
             mockGetForegroundPermissions.mockResolvedValue(buildPermissionResponse({granted: false, accuracy: 'none'}));
             mockGetBackgroundPermissions.mockResolvedValue(buildPermissionResponse({granted: false}));
 
-            renderFlow(AndroidBackgroundLocationPermissionsFlow, props);
+            renderFlow(useAndroidBackgroundLocationPermissionsFlow, props);
 
             await waitFor(() => expect(mockShowConfirmModal).toHaveBeenCalledTimes(1));
 
@@ -202,7 +208,7 @@ describe('BackgroundLocationPermissionsFlow', () => {
             mockGetBackgroundPermissions.mockResolvedValue(buildPermissionResponse({granted: true}));
             mockCheckLocationAccuracy.mockResolvedValue('full');
 
-            renderFlow(IOSBackgroundLocationPermissionsFlow, props);
+            renderFlow(useIOSBackgroundLocationPermissionsFlow, props);
 
             await waitFor(() => expect(props.onGrant).toHaveBeenCalledTimes(1));
             expect(mockShowConfirmModal).not.toHaveBeenCalled();
@@ -213,7 +219,7 @@ describe('BackgroundLocationPermissionsFlow', () => {
             mockGetForegroundPermissions.mockResolvedValue(buildPermissionResponse({granted: true}));
             mockGetBackgroundPermissions.mockResolvedValue(buildPermissionResponse({granted: false, canAskAgain: false}));
 
-            renderFlow(IOSBackgroundLocationPermissionsFlow, props);
+            renderFlow(useIOSBackgroundLocationPermissionsFlow, props);
 
             await waitFor(() => expect(props.onDeny).toHaveBeenCalledTimes(1));
             expect(mockShowConfirmModal).not.toHaveBeenCalled();
@@ -225,7 +231,7 @@ describe('BackgroundLocationPermissionsFlow', () => {
             mockGetBackgroundPermissions.mockResolvedValue(buildPermissionResponse({granted: true}));
             mockCheckLocationAccuracy.mockResolvedValue('reduced');
 
-            renderFlow(IOSBackgroundLocationPermissionsFlow, props);
+            renderFlow(useIOSBackgroundLocationPermissionsFlow, props);
 
             await waitFor(() => expect(mockShowConfirmModal).toHaveBeenCalledTimes(1));
             expect(getShowConfirmModalOption('title')).toBe('gps.preciseLocationRequiredModal.title');
@@ -245,7 +251,7 @@ describe('BackgroundLocationPermissionsFlow', () => {
             mockRequestBackgroundPermissions.mockResolvedValue(buildPermissionResponse({granted: true}));
             mockCheckLocationAccuracy.mockResolvedValue('full');
 
-            renderFlow(IOSBackgroundLocationPermissionsFlow, props);
+            renderFlow(useIOSBackgroundLocationPermissionsFlow, props);
 
             await waitFor(() => expect(mockShowConfirmModal).toHaveBeenCalledTimes(1));
             expect(getShowConfirmModalOption('title')).toBe('gps.locationRequiredModal.title');
@@ -270,7 +276,7 @@ describe('BackgroundLocationPermissionsFlow', () => {
             mockRequestBackgroundPermissions.mockResolvedValue(buildPermissionResponse({granted: true}));
             mockCheckLocationAccuracy.mockResolvedValue('reduced');
 
-            renderFlow(IOSBackgroundLocationPermissionsFlow, props);
+            renderFlow(useIOSBackgroundLocationPermissionsFlow, props);
 
             await waitFor(() => expect(mockShowConfirmModal).toHaveBeenCalledTimes(1));
 
@@ -294,7 +300,7 @@ describe('BackgroundLocationPermissionsFlow', () => {
             mockGetForegroundPermissions.mockResolvedValue(buildPermissionResponse({granted: false}));
             mockGetBackgroundPermissions.mockResolvedValue(buildPermissionResponse({granted: false}));
 
-            renderFlow(IOSBackgroundLocationPermissionsFlow, props);
+            renderFlow(useIOSBackgroundLocationPermissionsFlow, props);
 
             await waitFor(() => expect(mockShowConfirmModal).toHaveBeenCalledTimes(1));
 

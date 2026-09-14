@@ -1,3 +1,7 @@
+/**
+ * Drives the Android location permission chain GPS distance tracking needs: the first ask modal, then the background
+ * permission modal, then the precise location modal. Returns the function that starts the chain.
+ */
 import {loadIllustration} from '@components/Icon/IllustrationLoader';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 
@@ -9,7 +13,7 @@ import {getBackgroundPermissionsAsync, getForegroundPermissionsAsync, Permission
 import {useEffect, useRef} from 'react';
 import {Linking} from 'react-native';
 
-import type BackgroundLocationPermissionsFlowProps from './types';
+import type BackgroundLocationPermissionsFlowCallbacks from './types';
 
 async function requestForegroundPermissions({
     onSuccess,
@@ -54,7 +58,7 @@ async function checkPermissions({
     onDeny,
     onAskForPermissions,
     onError,
-}: Pick<BackgroundLocationPermissionsFlowProps, 'onDeny' | 'onGrant'> & {onAskForPermissions: () => void; onError: () => void}) {
+}: BackgroundLocationPermissionsFlowCallbacks & {onAskForPermissions: () => void}) {
     try {
         const {granted, canAskAgain, android} = await getForegroundPermissionsAsync();
 
@@ -82,7 +86,7 @@ async function checkPermissions({
     }
 }
 
-function BackgroundLocationPermissionsFlow({startPermissionsFlow, setStartPermissionsFlow, onGrant, onDeny, onError}: BackgroundLocationPermissionsFlowProps) {
+function useBackgroundLocationPermissionsFlow({onGrant, onDeny, onError}: BackgroundLocationPermissionsFlowCallbacks) {
     const {asset: ReceiptLocationMarker} = useMemoizedLazyAsset(() => loadIllustration('ReceiptLocationMarker'));
     const {translate} = useLocalize();
     const {showConfirmModal, closeModal} = useConfirmModal();
@@ -93,8 +97,8 @@ function BackgroundLocationPermissionsFlow({startPermissionsFlow, setStartPermis
     const closeModalRef = useRef(closeModal);
     const isModalActiveRef = useRef(false);
 
-    // The permissions flow outlives a single render, so it reads the parent's callbacks from refs instead of
-    // capturing the identities it was started with.
+    // The flow outlives the render that started it, so it reads the caller's callbacks from refs instead of the
+    // identities it was started with.
     useEffect(() => {
         onGrantRef.current = onGrant;
         onDenyRef.current = onDeny;
@@ -102,8 +106,8 @@ function BackgroundLocationPermissionsFlow({startPermissionsFlow, setStartPermis
         closeModalRef.current = closeModal;
     }, [onGrant, onDeny, onError, closeModal]);
 
-    // The modals live in the global modal stack now, so they are not torn down with this component.
-    // Close whichever one is still open if we unmount mid-flow.
+    // The modals live in the global modal stack, so they are not torn down with the screen that started the flow.
+    // Close whichever one is still open if that screen unmounts mid-flow.
     useEffect(
         () => () => {
             if (!isModalActiveRef.current) {
@@ -115,11 +119,7 @@ function BackgroundLocationPermissionsFlow({startPermissionsFlow, setStartPermis
         [],
     );
 
-    useEffect(() => {
-        if (!startPermissionsFlow) {
-            return;
-        }
-
+    return () => {
         const sharedModalOptions = {
             cancelText: translate('common.dismiss'),
             iconSource: ReceiptLocationMarker,
@@ -213,11 +213,7 @@ function BackgroundLocationPermissionsFlow({startPermissionsFlow, setStartPermis
                 showFirstAskModal();
             },
         });
-        setStartPermissionsFlow(false);
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- the flow must only start when startPermissionsFlow flips to true, every other value is read from a ref or is stable
-    }, [startPermissionsFlow]);
-
-    return null;
+    };
 }
 
-export default BackgroundLocationPermissionsFlow;
+export default useBackgroundLocationPermissionsFlow;
