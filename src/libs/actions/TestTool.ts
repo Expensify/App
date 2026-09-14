@@ -11,15 +11,11 @@ import throttle from 'lodash/throttle';
 
 import {close} from './Modal';
 
-/**
- * Get the backTo parameter from the current test tools modal route
- */
+/** The focused route carries no backTo once a child screen such as the server selector is on top. */
 function getBackToParam(): Route | undefined {
-    const route = navigationRef.current?.getCurrentRoute();
-    if (route?.name === SCREENS.TEST_TOOLS_MODAL.ROOT && route.params) {
-        return (route.params as {backTo?: Route}).backTo;
-    }
-    return undefined;
+    const modalRoute = navigationRef.current?.getRootState()?.routes.find((route) => route.name === NAVIGATORS.TEST_TOOLS_MODAL_NAVIGATOR);
+    const rootScreen = modalRoute?.state?.routes?.find((route) => route.name === SCREENS.TEST_TOOLS_MODAL.ROOT);
+    return (rootScreen?.params as {backTo?: Route} | undefined)?.backTo;
 }
 
 /**
@@ -34,8 +30,12 @@ const throttledToggle = throttle(
         if (currentRoute.includes(ROUTES.TEST_TOOLS_MODAL.route)) {
             if (backTo) {
                 Navigation.goBack(backTo);
-            } else {
-                Navigation.goBack();
+                return;
+            }
+            // dismissModal() would not close this modal: the public root is a plain platform stack that never handles DISMISS_MODAL.
+            const rootKey = navigationRef.current?.getRootState()?.key;
+            if (rootKey) {
+                Navigation.pop(rootKey);
             }
             return;
         }
@@ -44,9 +44,7 @@ const throttledToggle = throttle(
         const openTestToolsModal = () => {
             setTimeout(() => Navigation.navigate(ROUTES.TEST_TOOLS_MODAL.getRoute(backToRoute)), CONST.MODAL.ANIMATION_TIMING.DEFAULT_IN);
         };
-        // Dismiss any current modal before showing test tools modal
-        // We need to handle test drive modal differently using Navigation.goBack() to properly clean up its navigation state
-        // Without this, the URL would revert to onboarding/test-drive or onboarding/test-drive/demo while the modal is already dismissed, leading to an unresponsive state
+        // The test drive modal needs goBack() to clean up its navigation state. Calling close() alone leaves the URL on onboarding/test-drive with the modal gone and the app unresponsive.
         if (currentRoute.includes('test-drive')) {
             Navigation.goBack();
             openTestToolsModal();

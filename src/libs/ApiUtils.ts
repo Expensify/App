@@ -11,10 +11,25 @@ import Onyx from 'react-native-onyx';
 import proxyConfig from '../../config/proxyConfig';
 import getEnvironment from './Environment/getEnvironment';
 
+type Server = ValueOf<typeof CONST.SERVER>;
+
+type ActiveServerState = {
+    activeServer: Server;
+
+    /** When true, a stored ACTIVE_SERVER is inert. */
+    isPinnedByEnvironment: boolean;
+
+    /** When true, a stored staging resolves to another server, so nothing reaches the staging hosts. */
+    isStagingIgnored: boolean;
+
+    /** When true, a stored QA is honored. The selector reads it so it cannot offer a server this refuses. */
+    isQASelectable: boolean;
+};
+
 // To avoid rebuilding native apps, native apps use production config for both staging and prod
 // We use the async environment check because it works on all platforms
 let envName: ValueOf<typeof CONST.ENVIRONMENT> = CONST.ENVIRONMENT.PRODUCTION;
-let storedServer: ValueOf<typeof CONST.SERVER> | undefined;
+let storedServer: Server | undefined;
 let hasReadStoredServer = false;
 
 // Stored verbatim, so the preference and the environment can arrive in either order. Onyx calls back even for
@@ -33,39 +48,42 @@ getEnvironment().then((value) => {
 });
 
 /**
- * Which server requests are sent to.
- *
- * Derived on demand rather than cached, so that a preference stored before the environment resolved is still
- * applied once it does.
+ * The server a stored value and an environment resolve to. Pure, so `useActiveServer` can call it during
+ * render with the values its own Onyx and environment subscriptions hand back.
  */
-function resolveActiveServer(): ValueOf<typeof CONST.SERVER> {
+function resolveActiveServer(value: Server | undefined, environment: ValueOf<typeof CONST.ENVIRONMENT>): ActiveServerState {
     // Selecting QA with no QA root leaves getApiRoot returning an empty string, and getCommandURL turns
     // that into a relative `api/Command?` the browser resolves against the app's own origin
     const isQAConfigured = !!CONFIG.EXPENSIFY.QA_API_ROOT;
 
     // The environment is baked into the bundle, and there is no meaningful way
     // to point qa.new.exops.io at production
-    if (envName === CONST.ENVIRONMENT.QA && isQAConfigured) {
-        return CONST.SERVER.QA;
+    if (environment === CONST.ENVIRONMENT.QA && isQAConfigured) {
+        return {activeServer: CONST.SERVER.QA, isPinnedByEnvironment: true, isStagingIgnored: false, isQASelectable: true};
     }
 
     // A stored 'qa' outlives the config that produced it: clearing QA_EXPENSIFY_URL hides the switch and
     // turns the QA gate off, but leaves the old Onyx value behind. A production bundle is the same case,
     // since it has no QA host to reach whatever is stored
-    const isQASelectable = isQAConfigured && envName !== CONST.ENVIRONMENT.PRODUCTION;
-    const server = storedServer === CONST.SERVER.QA && !isQASelectable ? undefined : storedServer;
+    const isQASelectable = isQAConfigured && environment !== CONST.ENVIRONMENT.PRODUCTION;
+    const server = value === CONST.SERVER.QA && !isQASelectable ? undefined : value;
 
     if (CONFIG.IS_USING_LOCAL_WEB && server !== CONST.SERVER.QA) {
-        return CONST.SERVER.PRODUCTION;
+        return {activeServer: CONST.SERVER.PRODUCTION, isPinnedByEnvironment: false, isStagingIgnored: true, isQASelectable};
     }
 
-    // An unread preference looks the same as an unset one, and defaulting to staging would ignore an opt-out
-    if (!hasReadStoredServer) {
-        return CONST.SERVER.PRODUCTION;
-    }
+    const defaultServer = environment === CONST.ENVIRONMENT.STAGING || environment === CONST.ENVIRONMENT.ADHOC ? CONST.SERVER.STAGING : CONST.SERVER.PRODUCTION;
+    return {activeServer: server ?? defaultServer, isPinnedByEnvironment: false, isStagingIgnored: false, isQASelectable};
+}
 
-    const defaultServer = envName === CONST.ENVIRONMENT.STAGING || envName === CONST.ENVIRONMENT.ADHOC ? CONST.SERVER.STAGING : CONST.SERVER.PRODUCTION;
-    return server ?? defaultServer;
+/**
+ * The state the app itself runs on. Derived on demand rather than cached, so that a preference stored before
+ * the environment resolved is still applied once it does.
+ */
+function currentActiveServerState(): ActiveServerState {
+    // An unread preference looks the same as an unset one, and defaulting to staging would ignore an opt-out,
+    // so until it is read it stands in as an explicit production
+    return resolveActiveServer(hasReadStoredServer ? storedServer : CONST.SERVER.PRODUCTION, envName);
 }
 
 /**
@@ -74,7 +92,7 @@ function resolveActiveServer(): ValueOf<typeof CONST.SERVER> {
  */
 function getApiRoot<TKey extends OnyxKey = never>(request?: Partial<Pick<Request<TKey>, 'shouldUseSecure' | 'shouldSkipWebProxy' | 'command'>>, forceProduction = false): string {
     const shouldUseSecure = request?.shouldUseSecure ?? false;
-    const server = forceProduction ? CONST.SERVER.PRODUCTION : resolveActiveServer();
+    const server = forceProduction ? CONST.SERVER.PRODUCTION : currentActiveServerState().activeServer;
 
     if (server === CONST.SERVER.QA) {
         // No web-proxy branch: Cloudflare Access answers the preflight and matches the bearer against the
@@ -111,11 +129,12 @@ function getCommandURL<TKey extends OnyxKey>(request: Request<TKey>): string {
 }
 
 function isQAServerActive(): boolean {
-    return resolveActiveServer() === CONST.SERVER.QA;
+    return currentActiveServerState().activeServer === CONST.SERVER.QA;
 }
 
-function getActiveServer(): ValueOf<typeof CONST.SERVER> {
-    return resolveActiveServer();
+function getActiveServer(): Server {
+    return currentActiveServerState().activeServer;
 }
 
-export {getActiveServer, getApiRoot, getCommandURL, isQAServerActive};
+export type {ActiveServerState, Server};
+export {getActiveServer, getApiRoot, getCommandURL, isQAServerActive, resolveActiveServer};
