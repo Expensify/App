@@ -88,7 +88,6 @@ function ComposerInput() {
     const isReportArchived = useReportIsArchived(report?.reportID);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const isAskConciergeChat = !!reportID && reportID === conciergeReportID && isBetaEnabled(CONST.BETAS.CONCIERGE_RESPOND_IN_THREAD);
-    // Capture once so render stays pure and the placeholder doesn't change under the user as they type.
     const [askConciergePlaceholderKey] = useState(() => ASK_CONCIERGE_PLACEHOLDER_KEYS[Math.floor(Math.random() * ASK_CONCIERGE_PLACEHOLDER_KEYS.length)]);
 
     const includesConcierge = chatIncludesConcierge({participants: report?.participants});
