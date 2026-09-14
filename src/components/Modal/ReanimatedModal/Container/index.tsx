@@ -60,6 +60,7 @@ function Container({
                 onSwipeComplete={onSwipeComplete}
             >
                 <Animated.View
+                    pointerEvents="box-none"
                     style={[styles.modalAnimatedContainer, type !== CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED && styles.flex1]}
                     entering={Entering}
                     exiting={Exiting}

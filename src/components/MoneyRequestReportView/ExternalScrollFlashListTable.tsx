@@ -240,7 +240,8 @@ function ExternalScrollFlashListTable<T>({
                 overrideWindowSize={{width: contentWidth, height: viewportHeight}}
                 // Grow to content height and don't clip — the parent page owns vertical scroll, so the list's own
                 // clipping viewport must be neutralized.
-                style={{width: contentWidth, flexGrow: 0, flexShrink: 0, flexBasis: 'auto', overflow: 'visible'}}
+                // Clear FlashList's default flex: 1 too, or Android gives this container zero width and hides its children from accessibility.
+                style={{width: contentWidth, flex: 0, flexGrow: 0, flexShrink: 0, flexBasis: 'auto', overflow: 'visible'}}
                 scrollEnabled={false}
             />
         </ScrollView>
