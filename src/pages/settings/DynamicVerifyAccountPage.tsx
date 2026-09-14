@@ -27,7 +27,7 @@ function DynamicVerifyAccountPage({route}: DynamicVerifyAccountPageProps) {
     }
 
     if (isJoinWorkspaceTask) {
-        forwardPath = ROUTES.ONBOARDING_WORKSPACES.getRoute();
+        forwardPath = ROUTES.ONBOARDING_WORKSPACES.getRoute(backPath);
     }
 
     return (

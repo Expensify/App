@@ -98,7 +98,9 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
     const isEmployerWithSubmit = onboardingIntent === CONST.ONBOARDING_CHOICES.EMPLOYER;
     const isJoiningCompanyWorkspace = onboardingIntent === CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE;
     const hasCompletedGuidedSetupFlow = hasCompletedGuidedSetupFlowSelector(onboardingValues);
-    const isConciergeTaskFlow = isJoiningCompanyWorkspace && hasCompletedGuidedSetupFlow;
+    // Validation reaches this screen before the completed-onboarding Pusher update can arrive. A report backTo route
+    // marks that this was opened from a Concierge task so Skip cannot send a second CompleteGuidedSetup request.
+    const isConciergeTaskFlow = isJoiningCompanyWorkspace && (hasCompletedGuidedSetupFlow || route.params?.backTo?.startsWith('r/'));
     const createdEmptyWorkspaceContentDomains = useRef(new Set<string>());
     const autoCreateSubmitWorkspace = useAutoCreateSubmitWorkspace();
 
@@ -231,7 +233,7 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
         if (isJoiningCompanyWorkspace) {
             // Opened from a Concierge task after onboarding finished: there is no onboarding step to continue into,
             // so just close instead of completing onboarding again.
-            if (hasCompletedGuidedSetupFlow) {
+            if (isConciergeTaskFlow) {
                 const companyDomain = session?.email ? getEmailDomain(session.email) : '';
                 createJoinWorkspaceOnboardingContent('joinWorkspace', companyDomain, session?.email ?? '', conciergeChat);
                 returnToOriginReport();
