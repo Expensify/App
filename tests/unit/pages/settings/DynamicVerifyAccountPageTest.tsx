@@ -93,4 +93,25 @@ describe('DynamicVerifyAccountPage', () => {
             }),
         );
     });
+
+    it('does not forward a completed validation task to the workspace list', async () => {
+        await Onyx.set(ONYXKEYS.NVP_INTRO_SELECTED, {validateEmail: '123'});
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}123`, {
+            reportID: '123',
+            type: CONST.REPORT.TYPE.TASK,
+            stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+            statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+        });
+        await waitForBatchedUpdates();
+
+        renderPage({isJoinWorkspaceTask: 'true'});
+        await waitForBatchedUpdates();
+
+        expect(mockVerifyAccountPageBase).toHaveBeenCalledWith(
+            expect.objectContaining({
+                navigateForwardTo: undefined,
+                onValidationSuccess: undefined,
+            }),
+        );
+    });
 });

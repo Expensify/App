@@ -339,6 +339,36 @@ describe('OnboardingWorkspaces Page', () => {
         await waitForBatchedUpdatesWithAct();
     });
 
+    it('should create a Join workspace task when closing the workspace list from a validation task', async () => {
+        const dismissModalWithReport = jest.spyOn(Navigation, 'dismissModalWithReport').mockImplementation(() => {});
+        await TestHelper.signInWithTestUser();
+
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {
+                hasCompletedGuidedSetupFlow: true,
+            });
+            await Onyx.set(ONYXKEYS.NVP_INTRO_SELECTED, {choice: CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE});
+            await Onyx.set(ONYXKEYS.JOINABLE_POLICIES, {});
+            await Onyx.set(ONYXKEYS.CONCIERGE_REPORT_ID, '123');
+        });
+
+        const {unmount} = renderOnboardingWorkspacesPage(SCREENS.ONBOARDING.WORKSPACES, {backTo: ROUTES.REPORT_WITH_ID.getRoute('123')});
+
+        await waitForBatchedUpdatesWithAct();
+
+        mockCreateJoinWorkspaceOnboardingContent.mockReturnValueOnce('456');
+        fireEvent.press(screen.getByLabelText(TestHelper.translateLocal('common.close')));
+
+        await waitFor(() => {
+            expect(mockCreateJoinWorkspaceOnboardingContent).toHaveBeenCalledWith('joinWorkspace', expect.any(String), expect.any(String), undefined);
+        });
+        expect(dismissModalWithReport).toHaveBeenCalledWith({reportID: '456'});
+
+        dismissModalWithReport.mockRestore();
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
     it('should return to the completed task thread', async () => {
         const taskReportID = '456';
         const conciergeReportID = '123';
