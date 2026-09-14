@@ -30,6 +30,10 @@ jobs:
       - name: Lint JavaScript and TypeScript with Oxlint
         id: oxlint
         continue-on-error: true
+        # oxlint runs JS plugins on one thread, so --threads does nothing for them. Two single-threaded
+        # processes fan them across ubuntu-latest's 4 cores; findings match a single process.
+        env:
+          OXLINT_SHARDS: 2
         run: npm run lint -- --linter=oxlint
 
       - name: Report the Oxlint result without failing the job

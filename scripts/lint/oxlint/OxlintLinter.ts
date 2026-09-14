@@ -1,4 +1,5 @@
 import {$} from 'bun';
+import os from 'node:os';
 import path from 'node:path';
 
 import type {LintFileResult, LintMessage, LintSeverity, LinterResult} from '../types';
@@ -40,10 +41,58 @@ type OxlintLinterOptions = {
     projectRoot: string;
     fix: boolean;
     threads?: string;
+    shards?: string;
 };
 
 const FATAL_EXIT_CODE = 2;
 const OXLINT_WARNING_SEVERITIES = new Set(['warning', 'advice']);
+
+// Workaround for oxlint running every JS plugin on a single thread (upstream oxc#26621 open), which
+// leaves `--threads` doing nothing for the 180 sidecar rules this repo enables. Sharding into several
+// `oxlint --threads=1` processes over disjoint file buckets is the only way to parallelize them today.
+// Sized by cores and free memory below.
+const SHARD_MEM_BUDGET_GB = 2;
+
+function defaultShardCount(): number {
+    const byCpu = Math.floor(os.cpus().length / 2);
+    const byMem = Math.floor(os.freemem() / 1073741824 / SHARD_MEM_BUDGET_GB);
+    return Math.max(1, Math.min(byCpu, byMem));
+}
+
+function resolveShardCount(override: string | undefined): number {
+    if (override === undefined || override.trim() === '') {
+        return defaultShardCount();
+    }
+    const parsed = Number.parseInt(override, 10);
+    return Number.isFinite(parsed) && parsed >= 1 ? parsed : 1;
+}
+
+function shardFiles(files: readonly string[], count: number): string[][] {
+    if (count <= 1) {
+        return [files.slice()];
+    }
+    const size = Math.ceil(files.length / count);
+    const shards: string[][] = [];
+    for (let start = 0; start < files.length; start += size) {
+        shards.push(files.slice(start, start + size));
+    }
+    return shards;
+}
+
+function mergeShardResults(results: LinterResult[]): LinterResult {
+    const fatalShard = results.find((result) => result.exitCode >= FATAL_EXIT_CODE);
+    if (fatalShard) {
+        return fatalShard;
+    }
+    return {
+        files: results.flatMap((result) => result.files),
+        exitCode: results.reduce((worst, result) => Math.max(worst, result.exitCode), 0),
+        stderr: results
+            .map((result) => result.stderr)
+            .filter(Boolean)
+            .join('\n'),
+    };
+}
 
 function normalizeSeverity(severity: string | undefined): LintSeverity {
     return OXLINT_WARNING_SEVERITIES.has(severity ?? '') ? LINT_SEVERITY.WARNING : LINT_SEVERITY.ERROR;
@@ -175,30 +224,41 @@ class OxlintLinter extends Linter {
             return fatal(`Oxlint matched no files for: ${targets.join(' ')}`, '', '', FATAL_EXIT_CODE);
         }
 
-        const oxlintArgs: string[] = ['--format', 'json'];
-        if (this.options.fix) {
-            oxlintArgs.push('--fix');
-        }
-        const threads = this.options.threads ?? process.env.OXLINT_THREADS;
-        if (threads) {
-            oxlintArgs.push(`--threads=${threads}`);
-        }
-        oxlintArgs.push(...targets);
+        const shardCount = resolveShardCount(this.options.shards ?? process.env.OXLINT_SHARDS);
+        const buckets = shardFiles(lintedFiles, shardCount);
+        const sharded = buckets.length > 1;
 
-        const result = await $`npx oxlint ${oxlintArgs}`
-            .cwd(this.options.projectRoot)
-            .env({...process.env, LINT_PIPELINE: '1'})
-            .nothrow()
-            .quiet();
+        const baseArgs: string[] = ['--format', 'json'];
+        if (this.options.fix) {
+            baseArgs.push('--fix');
+        }
+        if (!sharded) {
+            const threads = this.options.threads ?? process.env.OXLINT_THREADS;
+            if (threads) {
+                baseArgs.push(`--threads=${threads}`);
+            }
+        }
+
+        const jobs = buckets.map((bucket) => {
+            const args = sharded ? ['--threads=1', ...baseArgs, ...bucket] : [...baseArgs, ...bucket];
+            return $`npx oxlint ${args}`
+                .cwd(this.options.projectRoot)
+                .env({...process.env, LINT_PIPELINE: '1'})
+                .nothrow()
+                .quiet();
+        });
+
+        const outputs = await Promise.all(jobs);
+        const parsed = outputs.map((output, index) => parseOxlintStdout(output.stdout.toString(), output.stderr.toString(), output.exitCode, this.options.projectRoot, buckets[index]));
 
         try {
-            return parseOxlintStdout(result.stdout.toString(), result.stderr.toString(), result.exitCode, this.options.projectRoot, lintedFiles);
+            return mergeShardResults(parsed);
         } catch (error) {
-            return fatal(error instanceof Error ? error.message : String(error), '', result.stderr.toString(), FATAL_EXIT_CODE);
+            return fatal(error instanceof Error ? error.message : String(error), '', '', FATAL_EXIT_CODE);
         }
     }
 }
 
 export default OxlintLinter;
-export {extractJSONObject, joinDiagnosticText, normalizeOxlintDiagnostics, parseOxlintStdout};
+export {defaultShardCount, extractJSONObject, joinDiagnosticText, mergeShardResults, normalizeOxlintDiagnostics, parseOxlintStdout, resolveShardCount, shardFiles};
 export type {OxlintDiagnostic, OxlintLinterOptions};

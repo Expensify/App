@@ -9,7 +9,7 @@ import JSONFormatter from '../../scripts/lint/formatters/JSONFormatter';
 import StylishFormatter from '../../scripts/lint/formatters/StylishFormatter';
 import Linter from '../../scripts/lint/Linter';
 import Pipeline from '../../scripts/lint/LintPipeline';
-import {normalizeOxlintDiagnostics, parseOxlintStdout} from '../../scripts/lint/oxlint/OxlintLinter';
+import {mergeShardResults, normalizeOxlintDiagnostics, parseOxlintStdout, resolveShardCount, shardFiles} from '../../scripts/lint/oxlint/OxlintLinter';
 import {filterReactCompilerMessages, shouldPersistCompilerCache} from '../../scripts/lint/processors/ReactCompilerFilter';
 import Seatbelt, {SEATBELT_TSV_BY_LINTER, resolveSeatbeltOptions} from '../../scripts/lint/processors/Seatbelt';
 import {stratifyMessages} from '../../scripts/lint/processors/StratifyNoDeprecated';
@@ -310,6 +310,47 @@ describe('parseOxlintStdout', () => {
         const result = await pipeline.run(['.']);
         expect(result.exitCode).toBe(2);
         expect(result.reportText).toContain('Failed to parse Oxlint JSON output');
+    });
+});
+
+describe('oxlint sharding', () => {
+    function shardResult(filePath: string, exitCode: number, messages: LintMessage[] = []): LinterResult {
+        return {files: [{filePath, messages}], exitCode, stderr: ''};
+    }
+
+    it('shards contiguously: every file in exactly one bucket, order preserved', () => {
+        const files = Array.from({length: 10}, (_, i) => `src/f${i}.ts`);
+        const shards = shardFiles(files, 3);
+        expect(shards.map((shard) => shard.length)).toEqual([4, 4, 2]);
+        expect(shards.flat()).toEqual(files);
+    });
+
+    it('a shard count of 1 or more than the file count never drops or duplicates a file', () => {
+        const files = ['a.ts', 'b.ts', 'c.ts'];
+        expect(shardFiles(files, 1)).toEqual([files]);
+        expect(shardFiles(files, 99).flat()).toEqual(files);
+    });
+
+    it('auto-shards by machine size and honours explicit overrides', () => {
+        expect(resolveShardCount(undefined)).toBeGreaterThanOrEqual(1);
+        expect(resolveShardCount('')).toBeGreaterThanOrEqual(1);
+        expect(resolveShardCount('6')).toBe(6);
+        expect(resolveShardCount('0')).toBe(1);
+        expect(resolveShardCount('not-a-number')).toBe(1);
+    });
+
+    it('merges shards by concatenating files and taking the worst exit code', () => {
+        const merged = mergeShardResults([shardResult('/repo/a.ts', 0, [makeMessage()]), shardResult('/repo/b.ts', 1, [makeMessage()]), shardResult('/repo/c.ts', 0)]);
+        expect(merged.exitCode).toBe(1);
+        expect(merged.files.map((file) => file.filePath)).toEqual(['/repo/a.ts', '/repo/b.ts', '/repo/c.ts']);
+    });
+
+    it('a crashed JS plugin in one shard is fatal and dominates clean shards', () => {
+        const clean = parseOxlintStdout(oxlintStdout([oxlintDiagnostic()], 1), '', 1, '/repo', ['src/a.ts']);
+        const crash = parseOxlintStdout(oxlintStdout([oxlintDiagnostic({code: undefined, message: 'plugin blew up'})]), '', 1, '/repo', ['src/b.ts']);
+        const merged = mergeShardResults([clean, crash]);
+        expect(merged.exitCode).toBe(2);
+        expect(merged.stderr).toContain('plugin blew up');
     });
 });
 
