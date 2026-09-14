@@ -466,9 +466,6 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
     } else {
         iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${chatReport.iouReportID}`] ?? null;
 
-        // Fall back whenever the pointer resolves to nothing, whether it is absent or names a report we cannot see.
-        // Onyx cannot distinguish "the report was deleted or moved away" from "the report has not hydrated yet", and
-        // reusing the submitter's own newest open report is safer than silently creating a duplicate report.
         if (!iouReport && isPolicyExpenseChat) {
             const outstandingReports = getOutstandingReportsForUser(chatReport.policyID, payeeAccountID, rules, getAllReportNameValuePairs(), allReports, false);
 

@@ -1406,11 +1406,6 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
     } else if (!allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${chatReport.iouReportID}`]?.errorFields?.createChat) {
         iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${chatReport.iouReportID}`] ?? null;
 
-        // Fall back whenever the pointer resolves to nothing, whether it is absent or names a report we cannot see.
-        // Onyx represents "the report was deleted or moved away" and "the report has not hydrated yet" identically —
-        // the key is simply missing — so the two cannot be told apart here. Landing the expense on the submitter's own
-        // newest open report is the safer of the two errors: the alternative silently creates a duplicate report, which
-        // is the bug this fallback exists to prevent, and it persists rather than resolving once the pointer hydrates.
         if (!iouReport && isPolicyExpenseChat) {
             const outstandingReports = getOutstandingReportsForUser(chatReport.policyID, payeeAccountID, rules, getAllReportNameValuePairs(), allReports, false);
 
