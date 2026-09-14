@@ -46,13 +46,12 @@ describe('useConciergeAskState', () => {
         expect(result.current.shouldShowWelcome).toBe(true);
     });
 
-    it('treats a linked report action as expanded history', () => {
+    it('still shows the empty state while a linked report action is in the route', () => {
         mockReportActionIDFromRoute = 'linked-action';
         const {result} = renderHook(() => useConciergeAskState(CONCIERGE_REPORT_ID));
 
-        expect(result.current.isHistoryExpanded).toBe(true);
-        expect(result.current.shouldShowWelcome).toBe(false);
-        expect(result.current.shouldLabelComposerAsNewQuestion).toBe(true);
+        expect(result.current.isHistoryExpanded).toBe(false);
+        expect(result.current.shouldShowWelcome).toBe(true);
     });
 
     it('stays off outside the Concierge report', () => {

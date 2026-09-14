@@ -100,7 +100,7 @@ function useReportActionsListModel(reportID: string, isReportLoadPending: boolea
         hasOlderActions,
         loadOlderChats,
         mainDMSessionStartTime: sessionStartTime,
-        conciergeShowFullHistory: isHistoryExpanded || (!isAskConciergeChat && !!report?.hasOutstandingChildTask),
+        conciergeShowFullHistory: isHistoryExpanded || !!reportActionIDFromRoute || (!isAskConciergeChat && !!report?.hasOutstandingChildTask),
         setConciergeShowFullHistory,
         conciergeHadMessagesAtSessionStart,
         setConciergeHadMessagesAtSessionStart,
