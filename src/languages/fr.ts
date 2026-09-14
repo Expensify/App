@@ -9179,7 +9179,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         removedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `a supprimé « ${prohibitedExpense} » des dépenses interdites`,
         commuterExclusions: {
             changedToFixedDistance: ({previousMethod}: {previousMethod: string}) =>
-                `a modifié l’exclusion des trajets domicile-travail en une distance fixe par demande (auparavant ${previousMethod})`,
+                `modification de l’exclusion des trajets domicile-travail en une distance fixe par demande (auparavant ${previousMethod})`,
             changedToHomeAndOffice: ({previousMethod}: {previousMethod: string}) =>
                 `a modifié l’exclusion des trajets domicile-travail pour calculer à partir du domicile et du bureau (auparavant ${previousMethod})`,
             previousMethod: {disabled: 'ne pas exclure les trajets domicile-travail', fixedDistance: 'distance fixe par demande', homeAndOffice: 'domicile et bureau'},

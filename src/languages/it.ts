@@ -9115,9 +9115,9 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
         removedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `ha rimosso "${prohibitedExpense}" dalle spese vietate`,
         commuterExclusions: {
             changedToFixedDistance: ({previousMethod}: {previousMethod: string}) =>
-                `ha modificato “escludi tragitti casa-lavoro” in una distanza fissa per richiesta (in precedenza ${previousMethod})`,
+                `ha modificato l’esclusione tragitti casa-lavoro a una distanza fissa per richiesta (in precedenza ${previousMethod})`,
             changedToHomeAndOffice: ({previousMethod}: {previousMethod: string}) =>
-                `ha cambiato "escludi spostamenti casa-lavoro" per calcolare da casa e ufficio (in precedenza ${previousMethod})`,
+                `ha cambiato “escludi tragitti casa-lavoro” per calcolare in base a casa e ufficio (in precedenza ${previousMethod})`,
             previousMethod: {disabled: 'non escludere i tragitti casa-lavoro', fixedDistance: 'distanza fissa per richiesta', homeAndOffice: 'casa e ufficio'},
             setFixedDistance: ({formattedDistance}: {formattedDistance: string}) => `imposta un'esclusione fissa di distanza di ${formattedDistance} per richiesta`,
             changedFixedDistance: ({formattedOldDistance, formattedNewDistance}: {formattedOldDistance: string; formattedNewDistance: string}) =>
