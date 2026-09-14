@@ -304,6 +304,7 @@ const config = defineConfig([
             'rulesdir/require-a11y-disable-justification': 'error',
             'rulesdir/no-direct-pre-insert-fullscreen-under-rhp': 'error',
             'rulesdir/no-raw-typography': 'error',
+            'rulesdir/no-direct-personal-details-list': 'error',
             'rulesdir/require-locale-for-localized-date-format': 'error',
             'rulesdir/prefer-narrow-hook-dependencies': [
                 'error',
@@ -650,6 +651,25 @@ const config = defineConfig([
         files: ['src/libs/ReportNameUtils.ts'],
         plugins: {'report-name-utils': reportNameUtilsPlugin},
         rules: {'report-name-utils/no-function-call-in-get-report-name': 'error'},
+    },
+
+    // The key definition, the wrappers, and setup that seeds Onyx directly, so they migrate with the reshape
+    {
+        files: [
+            'src/ONYXKEYS.ts',
+            'src/hooks/usePersonalDetails.ts',
+            'src/libs/PersonalDetailsStore.ts',
+            'src/libs/PersonalDetailsUtils.ts',
+            'src/components/OnyxListItemProvider.tsx',
+            'src/libs/ExportOnyxState/common.ts',
+            'tests/**/*.{ts,tsx}',
+            'jest/**/*.{ts,tsx}',
+            '__mocks__/**/*.{ts,tsx}',
+            'src/**/__mocks__/**/*.{ts,tsx}',
+        ],
+        rules: {
+            'rulesdir/no-direct-personal-details-list': 'off',
+        },
     },
 
     // The typography token files are where raw font sizes and line heights are defined.
