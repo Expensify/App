@@ -34,10 +34,7 @@ type SearchChartViewProps = {
 
     isLoading?: boolean;
 
-    /**
-     * Renders the details of the plotted groups below the chart, from the same prepared rows the
-     * chart itself plots. Left out, the chart renders on its own as it always has.
-     */
+    /** Renders the details of the plotted groups below the chart */
     renderDetails?: (rows: SearchChartDataRow[]) => React.ReactNode;
 };
 
