@@ -41,8 +41,9 @@ async function setVacationDelegate({creator, delegate, currentDelegate, shouldOv
                 delegate,
                 errors: null,
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-                previousDelegate: currentDelegate,
+                previousDelegate: currentDelegate ?? null,
                 policyDiff: null,
+                pendingDelegate: null,
             },
         },
     ];
@@ -56,6 +57,7 @@ async function setVacationDelegate({creator, delegate, currentDelegate, shouldOv
                 pendingAction: null,
                 previousDelegate: null,
                 policyDiff: null,
+                pendingDelegate: null,
             },
         },
     ];
@@ -98,9 +100,13 @@ async function setVacationDelegate({creator, delegate, currentDelegate, shouldOv
     const response = await API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.SET_VACATION_DELEGATE, parameters, {optimisticData, successData});
 
     if (response?.jsonCode === CONST.JSON_CODE.POLICY_DIFF_WARNING && response.data?.policyDiff) {
-        // Keep the optimistic delegate so the flow can continue into the missing workspaces step.
+        // The backend has not saved the pick, so put the saved delegate back and park the pick next to the policy diff for the
+        // missing workspaces step. This NVP is persisted, so a pick left in `delegate` would read as saved if that step were
+        // abandoned by killing the app, and the next attempt to remove it would fail because the backend never stored it.
         Onyx.merge(ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE, {
             errors: null,
+            delegate: currentDelegate ?? null,
+            pendingDelegate: delegate,
             policyDiff: response.data.policyDiff,
             pendingAction: null,
         });
@@ -127,6 +133,8 @@ function deleteVacationDelegate(vacationDelegate?: VacationDelegate) {
                 errors: null,
                 previousDelegate: vacationDelegate?.delegate,
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                policyDiff: null,
+                pendingDelegate: null,
             },
         },
     ];
@@ -138,6 +146,7 @@ function deleteVacationDelegate(vacationDelegate?: VacationDelegate) {
             value: {
                 errors: null,
                 pendingAction: null,
+                previousDelegate: null,
             },
         },
     ];
@@ -159,12 +168,13 @@ function deleteVacationDelegate(vacationDelegate?: VacationDelegate) {
 }
 
 function clearVacationDelegateError(previousDelegate?: string) {
-    return Onyx.merge(ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE, {
+    Onyx.merge(ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE, {
         errors: null,
         pendingAction: null,
         delegate: previousDelegate ?? null,
         previousDelegate: null,
         policyDiff: null,
+        pendingDelegate: null,
     });
 }
 

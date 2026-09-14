@@ -1,4 +1,4 @@
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
 
 import useLocalize from '@hooks/useLocalize';
@@ -17,7 +17,7 @@ type MissingWorkspacesFooterProps = {
 
     onInvite: () => void;
 
-    /** Sets the delegate without sending any invite, backing both Skip and Confirm */
+    /** Sets the delegate without inviting them into the workspaces the user administers, backing both Skip and Confirm */
     onSkip: () => void;
 };
 

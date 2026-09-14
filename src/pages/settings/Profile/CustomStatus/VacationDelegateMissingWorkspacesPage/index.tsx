@@ -48,7 +48,7 @@ function VacationDelegateMissingWorkspacesPage() {
     const [submittedInput, setSubmittedInput] = useState<ScreenInput>();
 
     const creator = currentUserPersonalDetails.login ?? '';
-    const delegate = submittedInput?.delegate ?? vacationDelegate?.delegate ?? '';
+    const delegate = submittedInput?.delegate ?? vacationDelegate?.pendingDelegate ?? '';
     const previousDelegate = vacationDelegate?.previousDelegate;
     const policyDiff = submittedInput?.policyDiff ?? vacationDelegate?.policyDiff;
     const adminPolicies = policyDiff?.adminPolicies ?? [];
@@ -80,42 +80,31 @@ function VacationDelegateMissingWorkspacesPage() {
         return <NotFoundPage />;
     }
 
-    const submit = () => {
-        setSubmittedInput({delegate, policyDiff});
-        setVacationDelegate({creator, delegate, currentDelegate: previousDelegate, shouldOverridePolicyDiffWarning: true});
-        Navigation.goBack(ROUTES.SETTINGS_STATUS);
-    };
-
-    const submitOnce = () => {
+    const submit = (policiesToInvite?: Policy[]) => {
         if (isSubmittingRef.current) {
             return;
         }
 
         isSubmittingRef.current = true;
-        submit();
-    };
 
-    const invite = () => {
-        if (isSubmittingRef.current || hasUnresolvedAdminPolicy) {
-            return;
+        if (policiesToInvite?.length) {
+            inviteVacationDelegateToWorkspaces({
+                delegate,
+                policies: policiesToInvite,
+                inviter: {
+                    accountID: currentUserPersonalDetails.accountID,
+                    displayName: currentUserPersonalDetails.displayName,
+                    email: currentUserPersonalDetails.email,
+                    avatar: currentUserPersonalDetails.avatar,
+                },
+                translate,
+                formatPhoneNumber,
+            });
         }
 
-        isSubmittingRef.current = true;
-
-        inviteVacationDelegateToWorkspaces({
-            delegate,
-            policies: adminWorkspaces,
-            inviter: {
-                accountID: currentUserPersonalDetails.accountID,
-                displayName: currentUserPersonalDetails.displayName,
-                email: currentUserPersonalDetails.email,
-                avatar: currentUserPersonalDetails.avatar,
-            },
-            translate,
-            formatPhoneNumber,
-        });
-
-        submit();
+        setSubmittedInput({delegate, policyDiff});
+        setVacationDelegate({creator, delegate, currentDelegate: previousDelegate, shouldOverridePolicyDiffWarning: true});
+        Navigation.goBack(ROUTES.SETTINGS_STATUS);
     };
 
     return (
@@ -151,8 +140,8 @@ function VacationDelegateMissingWorkspacesPage() {
             <MissingWorkspacesFooter
                 canInvite={canInvite}
                 isInviteDisabled={hasUnresolvedAdminPolicy}
-                onInvite={invite}
-                onSkip={submitOnce}
+                onInvite={() => submit(adminWorkspaces)}
+                onSkip={() => submit()}
             />
         </ScreenWrapper>
     );

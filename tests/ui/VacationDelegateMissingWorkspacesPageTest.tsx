@@ -164,11 +164,13 @@ function renderPage(shouldIncludeBackRoute = false) {
 
 async function seedVacationDelegate(policyDiff?: VacationDelegatePolicyDiff, delegate: string = DELEGATE_EMAIL) {
     // The real 305 policy-diff-warning response never writes NVP errors (see VacationDelegate.ts), so this
-    // page is only ever reached with errors already null.
+    // page is only ever reached with errors already null. It also puts the saved delegate back and parks the pick
+    // in pendingDelegate, so seed that shape.
     await act(async () => {
         await Onyx.merge(ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE, {
             creator: CREATOR_EMAIL,
-            delegate,
+            delegate: PREVIOUS_DELEGATE_EMAIL,
+            pendingDelegate: delegate,
             previousDelegate: PREVIOUS_DELEGATE_EMAIL,
             policyDiff,
         });
@@ -435,7 +437,7 @@ describe('VacationDelegateMissingWorkspacesPage', () => {
         await waitForBatchedUpdatesWithAct();
 
         const nextVacationDelegate = await getOnyxValue(ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE);
-        expect(nextVacationDelegate?.delegate).toBe('next@example.com');
+        expect(nextVacationDelegate?.pendingDelegate).toBe('next@example.com');
         expect(nextVacationDelegate?.policyDiff).toEqual(nextPolicyDiff);
     });
 
@@ -474,7 +476,7 @@ describe('VacationDelegateMissingWorkspacesPage', () => {
 
         // The rollback runs from the route-removal handler, not from the back press, so nothing can flash while Navigation is still waiting on the transition.
         const vacationDelegate = await getOnyxValue(ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE);
-        expect(vacationDelegate?.delegate).toBe(DELEGATE_EMAIL);
+        expect(vacationDelegate?.pendingDelegate).toBe(DELEGATE_EMAIL);
         expect(vacationDelegate?.policyDiff).not.toBeFalsy();
         expect(screen.queryByText(TestHelper.translateLocal('notFound.notHere'))).not.toBeOnTheScreen();
         expect(screen.getByText(DELEGATE_EMAIL)).toBeOnTheScreen();

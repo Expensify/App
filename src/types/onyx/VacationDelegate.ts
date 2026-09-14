@@ -25,6 +25,12 @@ type BaseVacationDelegate = {
 
     /** Workspaces the delegate is missing from, captured from the 305 response. Client-only. */
     policyDiff?: VacationDelegatePolicyDiff;
+
+    /**
+     * Delegate picked but not yet saved, because the 305 response left them waiting on the missing workspaces step.
+     * Kept apart from `delegate` so an abandoned step never makes an unsaved pick read as saved. Client-only.
+     */
+    pendingDelegate?: string;
 };
 
 /** Information about vacation delegate with offline feedback */

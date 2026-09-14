@@ -1,4 +1,4 @@
-import {clearVacationDelegateError, setVacationDelegate} from '@libs/actions/VacationDelegate';
+import {clearVacationDelegateError, deleteVacationDelegate, setVacationDelegate} from '@libs/actions/VacationDelegate';
 import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import getVacationDelegateErrors from '@libs/getVacationDelegateErrors';
 
@@ -104,7 +104,8 @@ describe('actions/VacationDelegate', () => {
             await waitForBatchedUpdates();
 
             const vacationDelegate = await getOnyxValue(ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE);
-            expect(vacationDelegate?.delegate).toBe('second@test.com');
+            expect(vacationDelegate?.delegate).toBe('first@test.com');
+            expect(vacationDelegate?.pendingDelegate).toBe('second@test.com');
             expect(vacationDelegate?.policyDiff).toEqual(policyDiff);
         });
 
@@ -135,7 +136,8 @@ describe('actions/VacationDelegate', () => {
             const vacationDelegate = await getOnyxValue(ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE);
             expect(vacationDelegate?.policyDiff).toEqual(policyDiff);
             expect(vacationDelegate?.pendingAction).toBeFalsy();
-            expect(vacationDelegate?.delegate).toBe('delegate@test.com');
+            expect(vacationDelegate?.pendingDelegate).toBe('delegate@test.com');
+            expect(vacationDelegate?.delegate).toBe('old@test.com');
             expect(vacationDelegate?.previousDelegate).toBe('old@test.com');
 
             // An error at any point would flash a red brick road on the profile page, so it must never be written at all.
@@ -173,7 +175,28 @@ describe('actions/VacationDelegate', () => {
             const vacationDelegate = await getOnyxValue(ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE);
             expect(getVacationDelegateErrors(vacationDelegate)).toBeUndefined();
             expect(vacationDelegate?.policyDiff).toEqual(policyDiff);
-            expect(vacationDelegate?.delegate).toBe('delegate@test.com');
+            expect(vacationDelegate?.pendingDelegate).toBe('delegate@test.com');
+
+            jest.restoreAllMocks();
+        });
+
+        it('clears the delegate on a 305 when there was no delegate saved before the pick', async () => {
+            jest.spyOn(require('@libs/API'), 'makeRequestWithSideEffects').mockImplementation(async () => {
+                await Onyx.merge(ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE, {
+                    creator: 'admin@test.com',
+                    delegate: 'delegate@test.com',
+                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    errors: null,
+                });
+                return {jsonCode: CONST.JSON_CODE.POLICY_DIFF_WARNING, data: {policyDiff: {adminPolicies: ['1'], nonAdminPolicies: []}}};
+            });
+
+            await setVacationDelegate({creator: 'admin@test.com', delegate: 'delegate@test.com'});
+            await waitForBatchedUpdates();
+
+            const vacationDelegate = await getOnyxValue(ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE);
+            expect(vacationDelegate?.delegate).toBeFalsy();
+            expect(vacationDelegate?.pendingDelegate).toBe('delegate@test.com');
 
             jest.restoreAllMocks();
         });
@@ -249,6 +272,38 @@ describe('actions/VacationDelegate', () => {
         });
     });
 
+    describe('deleteVacationDelegate', () => {
+        it('does not leave the deleted delegate as the rollback target of the next pick', async () => {
+            const mockFetch = createGlobalFetchMock();
+            global.fetch = mockFetch;
+            await Onyx.set(ONYXKEYS.SESSION, {email: 'admin@test.com', accountID: 1, authToken: 'testAuthToken'});
+            await Onyx.set(ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE, {creator: 'admin@test.com', delegate: 'a@test.com'});
+            await waitForBatchedUpdates();
+
+            deleteVacationDelegate({creator: 'admin@test.com', delegate: 'a@test.com'});
+            await waitForBatchedUpdates();
+
+            const afterDelete = await getOnyxValue(ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE);
+            expect(afterDelete?.delegate).toBeFalsy();
+            expect(afterDelete?.previousDelegate).toBeFalsy();
+
+            // Picking B now has nothing to roll back to, so a 305 followed by dismissing the step must not bring A back.
+            jest.spyOn(require('@libs/API'), 'makeRequestWithSideEffects').mockImplementation(async () => {
+                await Onyx.merge(ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE, {delegate: 'b@test.com', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE});
+                return {jsonCode: CONST.JSON_CODE.POLICY_DIFF_WARNING, data: {policyDiff: {adminPolicies: ['1'], nonAdminPolicies: []}}};
+            });
+            await setVacationDelegate({creator: 'admin@test.com', delegate: 'b@test.com', currentDelegate: afterDelete?.delegate});
+            await waitForBatchedUpdates();
+
+            const afterPick = await getOnyxValue(ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE);
+            clearVacationDelegateError(afterPick?.previousDelegate);
+            await waitForBatchedUpdates();
+
+            expect((await getOnyxValue(ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE))?.delegate).toBeFalsy();
+            jest.restoreAllMocks();
+        });
+    });
+
     describe('clearVacationDelegateError', () => {
         it('clears errors, pendingAction, and policyDiff, and restores the previous delegate', async () => {
             const timestamp = 123;
@@ -259,6 +314,7 @@ describe('actions/VacationDelegate', () => {
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                 errors: {[timestamp]: 'Some error'},
                 policyDiff: {adminPolicies: ['1'], nonAdminPolicies: []},
+                pendingDelegate: 'delegate@test.com',
             });
 
             clearVacationDelegateError('old@test.com');
@@ -270,6 +326,7 @@ describe('actions/VacationDelegate', () => {
             expect(vacationDelegate?.errors).toBeFalsy();
             expect(vacationDelegate?.pendingAction).toBeFalsy();
             expect(vacationDelegate?.policyDiff).toBeFalsy();
+            expect(vacationDelegate?.pendingDelegate).toBeFalsy();
         });
     });
 });
