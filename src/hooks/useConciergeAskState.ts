@@ -14,13 +14,13 @@ import useOnyx from './useOnyx';
 import usePermissions from './usePermissions';
 
 type ConciergeAskState = {
-    /** Whether this is the Concierge chat in the Inbox with the Ask Concierge design on */
+    /** Whether this is the Concierge chat in the Inbox and the beta is on */
     isAskConciergeChat: boolean;
 
-    /** Whether `View chat history` is on, showing the messages from before this session */
+    /** Whether the messages from before this session are shown */
     isHistoryExpanded: boolean;
 
-    /** Whether to show the `Ask me anything!` empty state in place of the message list */
+    /** Whether to show the `Ask me anything!` welcome screen */
     shouldShowWelcome: boolean;
 
     /** Whether to show `Ask a new question` above the composer */

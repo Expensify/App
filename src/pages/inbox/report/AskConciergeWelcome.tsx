@@ -12,10 +12,10 @@ type AskConciergeWelcomeProps = {
     /** The ID of the report being displayed */
     reportID: string;
 
-    /** Whether there are messages hidden before the session start */
+    /** Whether there are messages from before this session */
     hasPreviousMessages: boolean;
 
-    /** Callback to reveal the earlier conversation */
+    /** Called when the user presses `View chat history` */
     onShowPreviousMessages: () => void;
 };
 

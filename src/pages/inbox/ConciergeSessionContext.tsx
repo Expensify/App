@@ -62,7 +62,7 @@ function ConciergeSessionProvider({children}: PropsWithChildren) {
     // lastReadTime boundary doesn't cause premature expiration.
     const sessionCreatedAtRef = useRef<number | null>(null);
 
-    // A session the user started with New chat keeps the boundary it was given, so the unread anchor below can't pull it back.
+    // True once the user presses New chat, until the next session begins.
     const isSessionResetByUserRef = useRef(false);
 
     // Reset the session when the user switches accounts. The provider is
