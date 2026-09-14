@@ -228,6 +228,35 @@ describe('TransactionPreviewUtils', () => {
             expect(result.displayAmountText.translationPath).toEqual('iou.receiptStatusTitle');
         });
 
+        it('blanks the displayed amount for a failed-scan amount placeholder', () => {
+            const functionArgs = {
+                ...basicProps,
+                transaction: {
+                    ...basicProps.transaction,
+                    amount: 0,
+                    iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
+                    receipt: {state: CONST.IOU.RECEIPT_STATE.SCAN_FAILED},
+                },
+                originalTransaction: undefined,
+            };
+            const result = getTransactionPreviewTextAndTranslationPaths(functionArgs);
+            expect(result.displayAmountText.text).toEqual('');
+        });
+
+        it('does not blank a legitimate manual $0.00 amount', () => {
+            const functionArgs = {
+                ...basicProps,
+                transaction: {
+                    ...basicProps.transaction,
+                    amount: 0,
+                    iouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL,
+                },
+                originalTransaction: undefined,
+            };
+            const result = getTransactionPreviewTextAndTranslationPaths(functionArgs);
+            expect(result.displayAmountText.text).toEqual('$0.00');
+        });
+
         it('handles currency and amount display correctly for scan split bill manually completed', () => {
             const modifiedAmount = 300;
             const currency = 'EUR';

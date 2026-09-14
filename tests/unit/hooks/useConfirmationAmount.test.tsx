@@ -100,4 +100,43 @@ describe('useConfirmationAmount', () => {
         // 100 / 4 = 25
         expect(result.current.formattedAmountPerAttendee).toContain('25.00');
     });
+
+    it('formattedAmount is empty string for a failed-scan amount placeholder', () => {
+        const {result} = renderHook(
+            () =>
+                useConfirmationAmount({
+                    ...baseParams,
+                    iouAmount: 0,
+                    transaction: createMock<OnyxTypes.Transaction>({
+                        transactionID: 'txn1',
+                        amount: 0,
+                        iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
+                        receipt: {state: CONST.IOU.RECEIPT_STATE.SCAN_FAILED},
+                        comment: {},
+                    }),
+                }),
+            {wrapper: Wrapper},
+        );
+        expect(result.current.formattedAmount).toBe('');
+    });
+
+    it('formattedAmount is not blanked once the failed-scan amount is confirmed', () => {
+        const {result} = renderHook(
+            () =>
+                useConfirmationAmount({
+                    ...baseParams,
+                    iouAmount: 0,
+                    transaction: createMock<OnyxTypes.Transaction>({
+                        transactionID: 'txn1',
+                        amount: 0,
+                        modifiedAmount: 0,
+                        iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
+                        receipt: {state: CONST.IOU.RECEIPT_STATE.SCAN_FAILED},
+                        comment: {},
+                    }),
+                }),
+            {wrapper: Wrapper},
+        );
+        expect(result.current.formattedAmount).toContain('0.00');
+    });
 });
