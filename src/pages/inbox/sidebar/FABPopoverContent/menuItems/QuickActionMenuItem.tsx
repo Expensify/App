@@ -113,7 +113,20 @@ function QuickActionMenuItem({reportID}: QuickActionMenuItemProps) {
         );
         quickActionAvatars = avatars.length <= 1 || isPolicyExpenseChat(quickActionReport) ? avatars : avatars.filter((avatar) => avatar.id !== currentUserPersonalDetails.accountID);
     } else if (!isEmptyObject(policyChatForActivePolicy)) {
-        quickActionAvatars = getIcons(policyChatForActivePolicy, formatPhoneNumber, translate, personalDetails, null, undefined, undefined, undefined, undefined, isReportArchived, undefined, conciergeReportID);
+        quickActionAvatars = getIcons(
+            policyChatForActivePolicy,
+            formatPhoneNumber,
+            translate,
+            personalDetails,
+            null,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            isReportArchived,
+            undefined,
+            conciergeReportID,
+        );
     }
 
     let quickActionTitle = '';
