@@ -1311,6 +1311,7 @@ describe('ReportAlternateTextUtils', () => {
 
             // When getting the last message text of the report
             const lastMessage = getLastMessageTextForReport({
+                rules: undefined,
                 dateFnsLocale: undefined,
                 convertToDisplayString,
                 conciergeReportID: undefined,

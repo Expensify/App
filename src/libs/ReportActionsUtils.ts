@@ -3440,7 +3440,7 @@ function getWorkspaceCustomUnitRateUpdatedMessage(translate: LocalizedTranslate,
  * Builds the Concierge system message explaining that the distance rates of a report's expenses were re-selected automatically.
  */
 function getConciergeAutoSelectDistanceRateMessage(translate: LocalizedTranslate, action: ReportAction): string {
-    const {policyName} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.CONCIERGE_AUTO_SELECT_DISTANCE_RATE>) ?? {};
+    const policyName = isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.CONCIERGE_AUTO_SELECT_DISTANCE_RATE) ? getOriginalMessage(action)?.policyName : undefined;
 
     if (!policyName) {
         return getReportActionText(action);
