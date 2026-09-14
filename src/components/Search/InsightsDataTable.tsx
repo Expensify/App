@@ -68,7 +68,7 @@ function InsightsDataTable({rows, view, groupBy, isLoading}: InsightsDataTablePr
                 return (
                     <View
                         key={item.keyForList}
-                        style={[styles.flexRow, styles.alignItemsCenter, styles.gap3, styles.pv3, !isLastRow && styles.borderBottom]}
+                        style={[styles.flexRow, styles.alignItemsCenter, styles.gap3, styles.pv4, styles.ph4, !isLastRow && styles.borderBottom]}
                     >
                         {shouldShowColorDot && !!color && <View style={[styles.pieChartLegendDot, {backgroundColor: color}]} />}
                         {shouldShowAvatar && isMemberGroup(item) && (
@@ -78,29 +78,22 @@ function InsightsDataTable({rows, view, groupBy, isLoading}: InsightsDataTablePr
                                 accountID={item.accountID}
                             />
                         )}
-                        <View style={[styles.flex1, styles.flexColumn, styles.gap1]}>
-                            <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.gap2]}>
-                                <Text
-                                    numberOfLines={1}
-                                    style={styles.flexShrink1}
-                                >
-                                    {point.label}
+                        <View style={[styles.flex1, styles.flexColumn, styles.gap1, styles.alignSelfStretch]}>
+                            <Text numberOfLines={1}>{point.label}</Text>
+                            <Text
+                                numberOfLines={1}
+                                style={styles.mutedNormalTextLabel}
+                            >
+                                {translate('iou.expenseCount', {count: item.count})}
+                            </Text>
+                        </View>
+                        <View style={[styles.flexColumn, styles.alignItemsEnd, styles.gap1, styles.alignSelfStretch]}>
+                            <Text>{convertToDisplayString(item.total ?? 0, item.currency)}</Text>
+                            {item.percentOfTotal !== undefined && (
+                                <Text style={styles.mutedNormalTextLabel}>
+                                    {translate('search.percentOfSpend', {percent: formatPercentOfTotal(item.percentOfTotal, item.total ?? 0, preferredLocale)})}
                                 </Text>
-                                <Text>{convertToDisplayString(item.total ?? 0, item.currency)}</Text>
-                            </View>
-                            <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.gap2]}>
-                                <Text
-                                    numberOfLines={1}
-                                    style={styles.mutedNormalTextLabel}
-                                >
-                                    {translate('iou.expenseCount', {count: item.count})}
-                                </Text>
-                                {item.percentOfTotal !== undefined && (
-                                    <Text style={styles.mutedNormalTextLabel}>
-                                        {translate('search.percentOfSpend', {percent: formatPercentOfTotal(item.percentOfTotal, item.total ?? 0, preferredLocale)})}
-                                    </Text>
-                                )}
-                            </View>
+                            )}
                         </View>
                     </View>
                 );
