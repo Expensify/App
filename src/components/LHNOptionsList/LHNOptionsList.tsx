@@ -8,6 +8,7 @@ import useScrollEventEmitter from '@hooks/useScrollEventEmitter';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import getPlatform from '@libs/getPlatform';
+import withRenderTiming, {noteRender} from '@libs/telemetry/renderTimings';
 
 import variables from '@styles/variables';
 
@@ -34,6 +35,8 @@ const platform = getPlatform();
 const isWeb = platform === CONST.PLATFORM.WEB;
 
 function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optionMode, shouldDisableFocusOptions = false, onFirstItemRendered = () => {}}: LHNOptionsListProps) {
+    noteRender('LHNOptionsList');
+
     const {saveScrollOffset, getScrollOffset, saveScrollIndex, getScrollIndex} = useContext(ScrollOffsetContext);
     const {isOffline} = useNetwork();
     const flashListRef = useRef<FlashListRef<Report>>(null);
@@ -183,4 +186,4 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
     );
 }
 
-export default memo(LHNOptionsList);
+export default withRenderTiming('LHNOptionsList', memo(LHNOptionsList));
