@@ -834,7 +834,6 @@
 "../../src/libs/ReportNameUtils.ts"	"@typescript-eslint/no-deprecated/deprecatedGetReportName"	1
 "../../src/libs/ReportNameUtils.ts"	"@typescript-eslint/no-deprecated/translateLocal"	1
 "../../src/libs/ReportNameUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
-"../../src/libs/ReportPreviewActionUtils.ts"	"@typescript-eslint/no-deprecated/getReportTransactions"	1
 "../../src/libs/ReportPrimaryActionUtils.ts"	"no-restricted-imports"	1
 "../../src/libs/ReportTitleUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/ReportUtils.ts"	"@typescript-eslint/no-deprecated/deprecatedGetReportName"	3
@@ -862,7 +861,7 @@
 "../../src/libs/StringUtils/index.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/libs/telemetry/forwardLogsToSentry.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/TransactionPreviewUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/libs/TransactionUtils/index.ts"	"@typescript-eslint/no-deprecated/getReportTransactions"	2
+"../../src/libs/TransactionUtils/index.ts"	"@typescript-eslint/no-deprecated/getReportTransactions"	1
 "../../src/libs/TransactionUtils/index.ts"	"@typescript-eslint/no-deprecated/translateLocal"	3
 "../../src/libs/TransactionUtils/index.ts"	"@typescript-eslint/no-unsafe-type-assertion"	7
 "../../src/libs/UnreadIndicatorUpdater/index.ts"	"no-restricted-imports"	1
