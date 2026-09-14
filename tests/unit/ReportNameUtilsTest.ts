@@ -18,6 +18,7 @@ import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsList, Policy, PolicyTagLists, Report, ReportAction, ReportActions, ReportAttributesDerivedValue, ReportNameValuePairs, Transaction} from '@src/types/onyx';
+import type {Message} from '@src/types/onyx/ReportAction';
 
 import type {OnyxCollection} from 'react-native-onyx';
 
@@ -416,7 +417,7 @@ describe('ReportNameUtils', () => {
         const parentReportActionID = '888';
         const question = 'How do I set up QuickBooks?';
 
-        const computeConciergeThreadName = (threadReportName: string) => {
+        const computeConciergeThreadName = (threadReportName: string, parentMessage: Message = {type: 'COMMENT', html: question, text: question}) => {
             const conciergeDM = {...createRegularChat(90, [currentUserAccountID, CONST.ACCOUNT_ID.CONCIERGE]), reportID: conciergeReportID};
             const thread: Report = {
                 ...createRegularChat(91, [currentUserAccountID, CONST.ACCOUNT_ID.CONCIERGE]),
@@ -427,7 +428,7 @@ describe('ReportNameUtils', () => {
             const parentAction = createMock<ReportAction>({
                 actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
                 reportActionID: parentReportActionID,
-                message: [{type: 'COMMENT', html: question, text: question}],
+                message: [parentMessage],
                 created: '',
                 lastModified: '',
                 actorAccountID: currentUserAccountID,
@@ -462,6 +463,23 @@ describe('ReportNameUtils', () => {
 
         test('falls back to the question while the thread still has the default name', () => {
             expect(computeConciergeThreadName(CONST.REPORT.DEFAULT_REPORT_NAME)).toBe(question);
+        });
+
+        test('localizes an attachment thread named after its parent message', async () => {
+            // A thread opened by hand is named after the parent message, so an attachment stores the literal "[Attachment]".
+            const attachmentMessage: Message = {
+                type: 'COMMENT',
+                html: `<img src="https://example.com/receipt.png" ${CONST.ATTACHMENT_SOURCE_ATTRIBUTE}="https://example.com/receipt.png" />`,
+                text: CONST.ATTACHMENT_MESSAGE_TEXT,
+                translationKey: CONST.TRANSLATION_KEYS.ATTACHMENT,
+            };
+
+            await IntlStore.load(CONST.LOCALES.ES);
+            const threadName = computeConciergeThreadName(CONST.ATTACHMENT_MESSAGE_TEXT, attachmentMessage);
+            expect(threadName).not.toBe(CONST.ATTACHMENT_MESSAGE_TEXT);
+            expect(threadName).toBe(`[${translateLocal('common.attachment')}]`);
+
+            await IntlStore.load(CONST.LOCALES.EN);
         });
     });
 
