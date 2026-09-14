@@ -233,12 +233,14 @@ function SearchMergeReports() {
                         canSelectMultiple={false}
                         shouldShowLoadingPlaceholder={isLoadingAllReports}
                         footerContent={
-                            <FormAlertWithSubmitButton
-                                buttonText={translate('common.confirm')}
-                                onSubmit={mergeSelectedReports}
-                                isDisabled={!isValidForMerge}
-                                enabledWhenOffline
-                            />
+                            !isLoadingAllReports && (
+                                <FormAlertWithSubmitButton
+                                    buttonText={translate('common.confirm')}
+                                    onSubmit={mergeSelectedReports}
+                                    isDisabled={!isValidForMerge}
+                                    enabledWhenOffline
+                                />
+                            )
                         }
                     />
                 </>
