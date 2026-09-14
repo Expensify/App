@@ -9289,6 +9289,35 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             return `alterou os participantes da categoria "${categoryName}" para ${newValue ? 'obrigatório' : 'não obrigatório'} (antes ${newValue ? 'não obrigatório' : 'obrigatório'})`;
         },
         updatedAutoHarvesting: (enabled: boolean) => `${enabled ? 'ativado' : 'desativado'} envios`,
+        changedOverLimitForwardsTo: ({
+            member,
+            approver,
+            limit,
+            previousApprover,
+            previousLimit,
+        }: {
+            member: string;
+            approver: string;
+            limit: string;
+            previousApprover?: string;
+            previousLimit?: string;
+        }) => {
+            let text = previousApprover
+                ? `alterou o fluxo de aprovação de ${member} para encaminhar relatórios acima de ${limit} para ${approver}`
+                : `definir o fluxo de aprovação para ${member} para encaminhar relatórios acima de ${limit} para ${approver}`;
+            if (previousApprover && previousLimit) {
+                text += ` (anteriormente encaminhou relatórios acima de ${previousLimit} para ${previousApprover})`;
+            } else if (previousApprover) {
+                text += ` (anteriormente encaminhado para ${previousApprover})`;
+            }
+            return text;
+        },
+        removedOverLimitForwardsTo: ({member, previousApprover, previousLimit}: {member: string; previousApprover?: string; previousLimit: string}) =>
+            previousApprover
+                ? `alterou o fluxo de aprovação para ${member} para parar de encaminhar relatórios acima de ${previousLimit} (antes encaminhados para ${previousApprover})`
+                : `alterou o fluxo de aprovação de ${member} para parar de encaminhar relatórios acima de ${previousLimit}`,
+        changedApprovalLimit: ({member, limit, previousLimit}: {member: string; limit: string; previousLimit: string}) =>
+            `alterou o fluxo de aprovação de ${member} para encaminhar relatórios acima de ${limit} (antes ${previousLimit})`,
     },
     roomMembersPage: {
         memberNotFound: 'Membro não encontrado.',
@@ -10915,6 +10944,8 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
         gpsTooltip: '<tooltip>Rastreamento por GPS em andamento! Quando terminar, pare o rastreamento abaixo.</tooltip>',
         hasFilterNegation: '<tooltip>Pesquise despesas sem recibos usando <strong>-has:receipt</strong>.</tooltip>',
         mileageRateAutoUpdated: '<tooltip>Nós atualizamos a taxa com base na sua data de viagem.</tooltip>',
+        markAllAsRead: '<tooltip>Clique com o botão direito para <strong>marcar tudo como lido</strong>.</tooltip>',
+        markAllAsReadTouchScreen: '<tooltip>Mantenha pressionado para <strong>marcar tudo como lido</strong>.</tooltip>',
     },
     discardChangesConfirmation: {
         title: 'Descartar alterações?',

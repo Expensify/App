@@ -9200,6 +9200,35 @@ ${reportName}`,
             return `cambió los asistentes de la categoría «${categoryName}» a ${newValue ? 'obligatorio' : 'no es obligatorio'} (previamente ${newValue ? 'no es obligatorio' : 'obligatorio'})`;
         },
         updatedAutoHarvesting: (enabled: boolean) => `${enabled ? 'habilitado' : 'desactivado'} envíos`,
+        changedOverLimitForwardsTo: ({
+            member,
+            approver,
+            limit,
+            previousApprover,
+            previousLimit,
+        }: {
+            member: string;
+            approver: string;
+            limit: string;
+            previousApprover?: string;
+            previousLimit?: string;
+        }) => {
+            let text = previousApprover
+                ? `cambió el flujo de aprobación para ${member} para reenviar los informes superiores a ${limit} a ${approver}`
+                : `establecer el flujo de aprobación para ${member} para reenviar los informes superiores a ${limit} a ${approver}`;
+            if (previousApprover && previousLimit) {
+                text += ` (previamente envió informes superiores a ${previousLimit} a ${previousApprover})`;
+            } else if (previousApprover) {
+                text += ` (previamente reenviado a ${previousApprover})`;
+            }
+            return text;
+        },
+        removedOverLimitForwardsTo: ({member, previousApprover, previousLimit}: {member: string; previousApprover?: string; previousLimit: string}) =>
+            previousApprover
+                ? `cambió el flujo de aprobación para ${member} para dejar de reenviar informes superiores a ${previousLimit} (anteriormente se reenviaban a ${previousApprover})`
+                : `cambió el flujo de aprobación para ${member} para dejar de reenviar informes por encima de ${previousLimit}`,
+        changedApprovalLimit: ({member, limit, previousLimit}: {member: string; limit: string; previousLimit: string}) =>
+            `cambió el flujo de aprobación para ${member} para reenviar los informes superiores a ${limit} (previamente ${previousLimit})`,
     },
     roomMembersPage: {
         memberNotFound: 'Miembro no encontrado.',
@@ -11202,6 +11231,8 @@ ${reportName}`,
         gpsTooltip: '<tooltip>¡Seguimiento por GPS en curso! Cuando termines, detén el seguimiento a continuación.</tooltip>',
         hasFilterNegation: '<tooltip>Busca gastos sin recibos usando <strong>-has:receipt</strong>.</tooltip>',
         mileageRateAutoUpdated: '<tooltip>Hemos actualizado la tasa según tu fecha de viaje.</tooltip>',
+        markAllAsRead: '<tooltip>Haz clic derecho para <strong>marcar todo como leído</strong>.</tooltip>',
+        markAllAsReadTouchScreen: '<tooltip>Mantén pulsado para <strong>marcar todo como leído</strong>.</tooltip>',
     },
     discardChangesConfirmation: {
         title: '¿Descartar cambios?',

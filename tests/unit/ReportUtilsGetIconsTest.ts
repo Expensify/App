@@ -186,6 +186,18 @@ describe('getIcons', () => {
         expect(icons.at(0)?.name).toBe('Email Two');
     });
 
+    it('should return the Concierge icon for a thread under the Concierge DM', () => {
+        const report: Report = {
+            ...LHNTestUtils.getFakeReport([1], 0, true),
+            parentReportID: '1',
+            parentReportActionID: '1',
+        };
+
+        const icons = getIcons(report, formatPhoneNumber, translateLocal, FAKE_PERSONAL_DETAILS, null, '', -1, undefined, undefined, false, undefined, '1');
+        expect(icons).toHaveLength(1);
+        expect(icons.at(0)?.id).toBe(CONST.ACCOUNT_ID.CONCIERGE);
+    });
+
     it('should return the correct icons for a task report', () => {
         const report: Report = {
             ...LHNTestUtils.getFakeReport([1], 0, true),

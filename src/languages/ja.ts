@@ -9198,6 +9198,35 @@ ${reportName}`,
             return `「${categoryName}」カテゴリの出席者を${newValue ? '必須' : '必須ではありません'}に変更しました（以前は${newValue ? '必須ではありません' : '必須'}）`;
         },
         updatedAutoHarvesting: (enabled: boolean) => `${enabled ? '有効' : '無効'} 件の提出`,
+        changedOverLimitForwardsTo: ({
+            member,
+            approver,
+            limit,
+            previousApprover,
+            previousLimit,
+        }: {
+            member: string;
+            approver: string;
+            limit: string;
+            previousApprover?: string;
+            previousLimit?: string;
+        }) => {
+            let text = previousApprover
+                ? `${member} の承認ワークフローを変更し、${limit} を超えるレポートを ${approver} に回付するようにしました`
+                : `${member} に対する承認ワークフローを設定し、${limit} を超えるレポートを ${approver} に回覧します`;
+            if (previousApprover && previousLimit) {
+                text += `（以前は ${previousLimit} を超えるレポートを ${previousApprover} に転送していました）`;
+            } else if (previousApprover) {
+                text += `（以前に ${previousApprover} に転送済み）`;
+            }
+            return text;
+        },
+        removedOverLimitForwardsTo: ({member, previousApprover, previousLimit}: {member: string; previousApprover?: string; previousLimit: string}) =>
+            previousApprover
+                ? `${member} さんの承認ワークフローを変更し、${previousLimit} を超えるレポートを転送しないようにしました（以前は ${previousApprover} さんに転送していました）`
+                : `${member} さんの承認ワークフローを変更し、${previousLimit} を超えるレポートを転送しないようにしました`,
+        changedApprovalLimit: ({member, limit, previousLimit}: {member: string; limit: string; previousLimit: string}) =>
+            `${member} さんの承認ワークフローを、${limit} を超えるレポートを転送するように変更しました（以前は ${previousLimit}）。`,
     },
     roomMembersPage: {
         memberNotFound: 'メンバーが見つかりません。',
@@ -10805,6 +10834,8 @@ ${reportName}`,
         gpsTooltip: '<tooltip>GPS追跡を実行中です！完了したら、下で追跡を停止してください。</tooltip>',
         hasFilterNegation: '<tooltip><strong>-has:receipt</strong> を使って、レシートのない経費を検索します。</tooltip>',
         mileageRateAutoUpdated: '<tooltip>出張日にもとづいてレートを更新しました。</tooltip>',
+        markAllAsRead: '<tooltip>右クリックで<strong>すべて既読にする</strong>ことができます。</tooltip>',
+        markAllAsReadTouchScreen: '<tooltip>長押しで<strong>すべて既読にする</strong>ことができます。</tooltip>',
     },
     discardChangesConfirmation: {
         title: '変更を破棄しますか？',
