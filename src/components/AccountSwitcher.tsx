@@ -35,7 +35,7 @@ import {View} from 'react-native';
 import type {PopoverMenuItem} from './PopoverMenu';
 
 import UserAvatar from './Avatar/UserAvatar';
-import Button from './ButtonComposed';
+import Button from './Button';
 import {ModalActions} from './Modal/Global/ModalContext';
 import PopoverMenu from './PopoverMenu';
 import {useProductTrainingContext} from './ProductTrainingContext';

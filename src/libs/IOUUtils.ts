@@ -3,11 +3,11 @@ import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 import type {IOUAction, IOURequestType, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
-import type {OnyxInputOrEntry, Policy, Report, ReportAction, ReportNameValuePairs, Transaction} from '@src/types/onyx';
+import type {OnyxInputOrEntry, Policy, Report, ReportAction, ReportNameValuePairs, Rule, Transaction} from '@src/types/onyx';
 import type {Attendee, Participant} from '@src/types/onyx/IOU';
 import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
 import {SafeString} from 'expensify-common';
@@ -580,16 +580,18 @@ function resolveReportForMoneyRequest({
     transactionReport,
     routeReport,
     reportNameValuePair,
+    rules,
 }: {
     transaction: OnyxEntry<Transaction>;
     transactionReport: OnyxEntry<Report>;
     routeReport: OnyxEntry<Report>;
     reportNameValuePair: OnyxInputOrEntry<ReportNameValuePairs>;
+    rules: OnyxCollection<Rule>;
 }): OnyxEntry<Report> {
     if (transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
         return undefined;
     }
-    const canUseTransactionReport = canAddTransaction(transactionReport, isArchivedReport(reportNameValuePair), false);
+    const canUseTransactionReport = canAddTransaction(transactionReport, rules, isArchivedReport(reportNameValuePair), false);
     const shouldUseTransactionReport = !!transactionReport && (canUseTransactionReport || !routeReport);
     if (shouldUseTransactionReport) {
         return transactionReport;
