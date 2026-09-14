@@ -221,7 +221,7 @@ function SearchMergeReports() {
             testID="SearchMergeReports"
             includeSafeAreaPaddingBottom
         >
-            {(false && reportItems.length > 0) || isLoadingAllReports ? (
+            {reportItems.length > 0 || isLoadingAllReports ? (
                 <>
                     {!isLoadingAllReports && <Text style={[styles.ph5, styles.pb5, styles.textLabelSupporting]}>{translate('search.mergeReports.description')}</Text>}
                     <SelectionList
