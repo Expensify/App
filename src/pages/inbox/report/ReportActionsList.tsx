@@ -67,8 +67,8 @@ import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
+import AskConciergeEmptyState from './AskConciergeEmptyState';
 import ConciergeChatHistoryToggle from './ConciergeChatHistoryToggle';
-import ConciergeWelcome from './ConciergeWelcome';
 import FloatingMessageCounter from './FloatingMessageCounter';
 import ReportActionIndexContext from './ReportActionIndexContext';
 import {useReportActionsListActions, useReportActionsListState} from './ReportActionsListContext';
@@ -464,7 +464,7 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
     if (shouldShowConciergeWelcome) {
         return (
             <View style={styles.conciergeAskColumn}>
-                <ConciergeWelcome />
+                <AskConciergeEmptyState />
                 <ConciergeChatHistoryToggle
                     reportID={reportID}
                     hasPreviousMessages={!!hasPreviousMessages}

@@ -16,7 +16,7 @@ import type {ReactNode} from 'react';
 import React from 'react';
 import {View} from 'react-native';
 
-import ConciergeWelcome from './ConciergeWelcome';
+import AskConciergeEmptyState from './AskConciergeEmptyState';
 import {computeReportActionsSkeletonState, ReportActionsListActionsContext, ReportActionsListStateContext} from './ReportActionsListContext';
 import ReportActionsLoadingSkeleton from './ReportActionsLoadingSkeleton';
 
@@ -87,7 +87,7 @@ function ReportActionsSkeletonGuard({reportID, children}: ReportActionsSkeletonG
         if (isAskConciergeChat && !showFullHistory) {
             return (
                 <View style={[styles.flex1, styles.justifyContentCenter, styles.conciergeAskColumn]}>
-                    <ConciergeWelcome />
+                    <AskConciergeEmptyState />
                 </View>
             );
         }

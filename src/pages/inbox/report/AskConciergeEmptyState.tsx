@@ -14,25 +14,25 @@ const ILLUSTRATION_SIZE = 68;
 /**
  * Empty state shown in the main Concierge DM before the user asks anything.
  */
-function ConciergeWelcome() {
+function AskConciergeEmptyState() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const illustrations = useMemoizedLazyIllustrations(ILLUSTRATION_NAMES);
 
     return (
         <View
-            testID="ConciergeWelcome"
-            style={styles.conciergeWelcomeContainer}
+            testID="AskConciergeEmptyState"
+            style={styles.askConciergeEmptyStateContainer}
         >
             <ImageSVG
                 src={illustrations.ConciergeBot}
                 width={ILLUSTRATION_SIZE}
                 height={ILLUSTRATION_SIZE}
             />
-            <Text style={styles.conciergeWelcomeTitle}>{translate('reportActionsView.askMeAnything')}</Text>
-            <Text style={styles.conciergeWelcomeDescription}>{translate('common.concierge.welcomeDescription')}</Text>
+            <Text style={styles.askConciergeEmptyStateTitle}>{translate('reportActionsView.askMeAnything')}</Text>
+            <Text style={styles.askConciergeEmptyStateDescription}>{translate('common.concierge.welcomeDescription')}</Text>
         </View>
     );
 }
 
-export default ConciergeWelcome;
+export default AskConciergeEmptyState;

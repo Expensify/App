@@ -2384,12 +2384,12 @@ const staticStyles = (theme: ThemeColors) =>
             alignSelf: 'center',
         },
 
-        conciergeWelcomeContainer: {
+        askConciergeEmptyStateContainer: {
             alignItems: 'center',
             gap: 12,
         },
 
-        conciergeWelcomeTitle: {
+        askConciergeEmptyStateTitle: {
             ...FontUtils.fontFamily.platform.EXP_NEW_KANSAS_MEDIUM,
             fontSize: variables.fontSizeXLarge,
             lineHeight: variables.lineHeightSizeH1,
@@ -2397,7 +2397,7 @@ const staticStyles = (theme: ThemeColors) =>
             color: theme.text,
         },
 
-        conciergeWelcomeDescription: {
+        askConciergeEmptyStateDescription: {
             ...FontUtils.fontFamily.platform.EXP_NEUE,
             fontSize: variables.fontSizeNormal,
             lineHeight: variables.fontSizeNormalHeight,
