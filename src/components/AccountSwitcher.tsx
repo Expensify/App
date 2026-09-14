@@ -27,6 +27,7 @@ import {isTrackingSelector} from '@src/selectors/GPSDraftDetails';
 import type {PersonalDetails} from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 
+import {canSwitchAccountsSelector} from '@selectors/Account';
 import {accountIDSelector} from '@selectors/Session';
 import {Str} from 'expensify-common';
 import React, {useCallback, useLayoutEffect, useRef, useState} from 'react';
@@ -81,7 +82,7 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
     const [popoverPosition, setPopoverPosition] = useState<AnchorPosition>();
 
     const isActingAsDelegate = !!delegate;
-    const canSwitchAccounts = delegators.length > 0 || isActingAsDelegate;
+    const canSwitchAccounts = canSwitchAccountsSelector(account);
 
     const isAccountSwitchInFlight = !!isLoadingApp && !!hasLoadedApp;
     const [wasAbleToSwitchAccounts, setWasAbleToSwitchAccounts] = useState(canSwitchAccounts);
