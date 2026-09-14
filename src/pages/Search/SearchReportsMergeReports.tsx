@@ -221,7 +221,7 @@ function SearchMergeReports() {
             testID="SearchMergeReports"
             includeSafeAreaPaddingBottom
         >
-            {reportItems.length > 0 || isLoadingAllReports ? (
+            {(false && reportItems.length > 0) || isLoadingAllReports ? (
                 <>
                     {!isLoadingAllReports && <Text style={[styles.ph5, styles.pb5, styles.textLabelSupporting]}>{translate('search.mergeReports.description')}</Text>}
                     <SelectionList
@@ -245,7 +245,7 @@ function SearchMergeReports() {
                     />
                 </>
             ) : (
-                <ScrollView>
+                <ScrollView contentContainerStyle={[styles.flexGrow1, styles.flexShrink0]}>
                     <EmptyStateComponent
                         cardStyles={[styles.appBG]}
                         cardContentStyles={[styles.p0]}
