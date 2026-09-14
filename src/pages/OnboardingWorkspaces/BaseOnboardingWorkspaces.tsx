@@ -102,6 +102,7 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
     // marks that this was opened from a Concierge task so Skip cannot send a second CompleteGuidedSetup request.
     const isConciergeTaskFlow = isJoiningCompanyWorkspace && (hasCompletedGuidedSetupFlow || route.params?.backTo?.startsWith('r/'));
     const createdEmptyWorkspaceContentDomains = useRef(new Set<string>());
+    const createdJoinWorkspaceTask = useRef(false);
     const autoCreateSubmitWorkspace = useAutoCreateSubmitWorkspace();
 
     const returnToOriginReport = useReturnToOriginReport();
@@ -109,7 +110,7 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
 
     const createAndOpenJoinWorkspaceTask = () => {
         const companyDomain = session?.email ? getEmailDomain(session.email) : '';
-        const joinWorkspaceTaskReportID = createJoinWorkspaceOnboardingContent('joinWorkspace', companyDomain, session?.email ?? '', conciergeChat);
+        const joinWorkspaceTaskReportID = joinWorkspaceTaskReport?.reportID ?? createJoinWorkspaceOnboardingContent('joinWorkspace', companyDomain, session?.email ?? '', conciergeChat);
         if (joinWorkspaceTaskReportID) {
             Navigation.dismissModalWithReport({reportID: joinWorkspaceTaskReportID});
             return;
@@ -241,6 +242,16 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
         }
         returnToOriginReport();
     }, [conciergeChat, isConciergeTaskFlow, joinablePoliciesLength, joinablePoliciesLoading, returnToOriginReport, session?.email]);
+
+    useEffect(() => {
+        if (!isConciergeTaskFlow || joinablePoliciesLength === 0 || joinWorkspaceTaskReport || createdJoinWorkspaceTask.current) {
+            return;
+        }
+
+        createdJoinWorkspaceTask.current = true;
+        const companyDomain = session?.email ? getEmailDomain(session.email) : '';
+        createJoinWorkspaceOnboardingContent('joinWorkspace', companyDomain, session?.email ?? '', conciergeChat);
+    }, [conciergeChat, isConciergeTaskFlow, joinWorkspaceTaskReport, joinablePoliciesLength, session?.email]);
 
     const skipJoiningWorkspaces = () => {
         if (isEmployerWithSubmit) {

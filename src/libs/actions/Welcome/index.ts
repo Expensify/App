@@ -120,6 +120,9 @@ function createJoinWorkspaceOnboardingContent(contentType: JoinWorkspaceOnboardi
     } else if (contentType === 'empty') {
         onboardingMessage = joinWorkspaceMessages.empty;
     }
+    if (contentType !== 'empty') {
+        onboardingMessage = {...onboardingMessage, message: ''};
+    }
     const onboardingData = prepareOnboardingOnyxData({
         introSelected: {choice: CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE},
         engagementChoice: CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE,
