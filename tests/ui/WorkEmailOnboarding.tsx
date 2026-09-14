@@ -761,6 +761,15 @@ describe('OnboardingWorkEmail Page', () => {
         getTopmostReportId.mockRestore();
         unmount();
         await waitForBatchedUpdatesWithAct();
+
+        const {unmount: unmountReopenedTask} = renderOnboardingWorkEmailPage(SCREENS.ONBOARDING.WORK_EMAIL, undefined);
+
+        await waitFor(() => {
+            expect(screen.getByText(TestHelper.translateLocal('onboarding.mergeBlockScreen.validatedPublicDomainSubtitle', workEmail))).toBeOnTheScreen();
+        });
+
+        unmountReopenedTask();
+        await waitForBatchedUpdatesWithAct();
     });
 
     it('should display correct error message when an existing work email is submitted with 2FA enabled', async () => {
