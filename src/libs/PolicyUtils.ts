@@ -19,7 +19,7 @@ import type {
     Transaction,
     TravelSettings,
 } from '@src/types/onyx';
-import type {ApprovalWorkflowFilter, ApprovalWorkflowFilterComparison, ApprovalWorkflowRule} from '@src/types/onyx/ApprovalWorkflowRules';
+import type {ApprovalWorkflowRule} from '@src/types/onyx/ApprovalWorkflowRules';
 import type {ErrorFields, PendingAction, PendingFields} from '@src/types/onyx/OnyxCommon';
 import type {
     ApprovalRule,
@@ -40,6 +40,7 @@ import type {
 } from '@src/types/onyx/Policy';
 import type PolicyEmployee from '@src/types/onyx/PolicyEmployee';
 import type Rule from '@src/types/onyx/Rule';
+import type {RuleFilterComparison, RuleFilterNode} from '@src/types/onyx/RuleFilters';
 import type {WorkspaceTravelSettings} from '@src/types/onyx/TravelSettings';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
@@ -1945,17 +1946,17 @@ function getFirstRuleApprover(approvalRules: ApprovalRule[], expenseReport: Onyx
 /**
  * True when this node is a single comparison instead of a combination of two children.
  */
-function isApprovalWorkflowComparison(node: ApprovalWorkflowFilter | ApprovalWorkflowFilterComparison): node is ApprovalWorkflowFilterComparison {
+function isApprovalWorkflowComparison(node: RuleFilterNode): node is RuleFilterComparison {
     return typeof node.left === 'string';
 }
 
-function matchesApprovalWorkflowEmailComparison(node: ApprovalWorkflowFilterComparison, email: string | undefined): boolean {
+function matchesApprovalWorkflowEmailComparison(node: RuleFilterComparison, email: string | undefined): boolean {
     const expectedEmails = (Array.isArray(node.right) ? node.right : [node.right]).map((value) => String(value).toLowerCase());
     const isMatch = !!email && expectedEmails.includes(email.toLowerCase());
     return node.operator === CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO ? !isMatch : isMatch;
 }
 
-function matchesApprovalWorkflowAmountComparison(node: ApprovalWorkflowFilterComparison, amount: number): boolean {
+function matchesApprovalWorkflowAmountComparison(node: RuleFilterComparison, amount: number): boolean {
     const expectedAmount = typeof node.right === 'number' ? node.right : Number(node.right);
     if (Number.isNaN(expectedAmount)) {
         return false;
@@ -1979,7 +1980,7 @@ function matchesApprovalWorkflowAmountComparison(node: ApprovalWorkflowFilterCom
     }
 }
 
-function evaluateApprovalWorkflowFilter(node: ApprovalWorkflowFilter | ApprovalWorkflowFilterComparison, context: ApprovalWorkflowContext): boolean {
+function evaluateApprovalWorkflowFilter(node: RuleFilterNode, context: ApprovalWorkflowContext): boolean {
     if (!isApprovalWorkflowComparison(node)) {
         const left = evaluateApprovalWorkflowFilter(node.left, context);
         const right = evaluateApprovalWorkflowFilter(node.right, context);
@@ -2010,6 +2011,17 @@ function evaluateApprovalWorkflowRule(rule: ApprovalWorkflowRule, context: Appro
 }
 
 /**
+ * The `rules_` collection holds both approval workflow rules and expense default (merchant) rules under one
+ * shape, distinguished only by which triggers they carry. Narrows to the approval-workflow variant so its
+ * `filters`/`actions` can be read with the right shape instead of the expense-default one.
+ */
+function isApprovalWorkflowRule(rule: Rule): rule is Rule & ApprovalWorkflowRule {
+    const approvalWorkflowTriggers: string[] = Object.values(CONST.RULES.APPROVAL_WORKFLOW.TRIGGER);
+    const triggers = Object.values(rule.triggers ?? {});
+    return triggers.length > 0 && triggers.every((trigger) => approvalWorkflowTriggers.includes(trigger));
+}
+
+/**
  * Check the policy's approval workflow rules to determine where the report goes next.
  */
 function getForwardsToFromRules(policy: OnyxEntry<Policy>, context: ApprovalWorkflowContext, rules: OnyxCollection<Rule>): ApprovalWorkflowRuleMatch | undefined {
@@ -2026,7 +2038,7 @@ function getForwardsToFromRules(policy: OnyxEntry<Policy>, context: ApprovalWork
         if (!rule || rule.scope !== CONST.RULES.SCOPE.POLICY || rule.scopeID !== policy.id || rule.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
             continue;
         }
-        if (!Object.values(rule.triggers ?? {}).includes(trigger)) {
+        if (!isApprovalWorkflowRule(rule) || !Object.values(rule.triggers ?? {}).includes(trigger)) {
             continue;
         }
         if (!evaluateApprovalWorkflowRule(rule, context)) {

@@ -458,7 +458,7 @@ function canEditMerchantRule(rule: Rule | undefined, policyID: string | undefine
     return isPolicyScopedRule(rule, policyID) && isEditableMerchantRule(rule);
 }
 
-export type {MerchantRuleFormValues, RuleWithID};
+export type {MerchantRuleFormValues};
 export {
     buildCopiedExpenseDefaultRules,
     canEditMerchantRule,

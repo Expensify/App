@@ -3484,7 +3484,7 @@ describe('actions/Policy', () => {
                 },
             };
 
-            Policy.setWorkspaceApprovalMode(fakePolicy, ESH_EMAIL, CONST.POLICY.APPROVAL_MODE.OPTIONAL, ESH_ACCOUNT_ID, ESH_EMAIL, false, undefined, rules);
+            Policy.setWorkspaceApprovalMode(fakePolicy, ESH_EMAIL, CONST.POLICY.APPROVAL_MODE.OPTIONAL, ESH_ACCOUNT_ID, ESH_EMAIL, false, rules);
             await waitForBatchedUpdates();
 
             // The approval rule is removed with the workflow, the merchant rule on the same policy is left alone.
