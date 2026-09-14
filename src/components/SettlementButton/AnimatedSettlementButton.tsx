@@ -1,4 +1,4 @@
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -31,10 +31,9 @@ type AnimatedSettlementButtonProps = SettlementButtonProps & {
     shouldAddTopMargin?: boolean;
     canIOUBePaid: boolean;
 
-    // Whether this is a DEW approval that needs backend validation before showing "Approved"
+    /** Whether this is a DEW approval that needs backend validation before showing "Approved" */
     isDEWApproval?: boolean;
 
-    // The report id for which the button is displayed
     reportID?: string;
 };
 

@@ -936,6 +936,34 @@ const tests = [
         },
     },
     {
+        query: 'type:expense has:approved-violation',
+        expected: {
+            type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+            sortBy: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
+            sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
+            view: 'table',
+            filters: {
+                operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
+                left: CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS,
+                right: CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION,
+            },
+        },
+    },
+    {
+        query: 'type:expense -has:approved-violation',
+        expected: {
+            type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+            sortBy: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
+            sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
+            view: 'table',
+            filters: {
+                operator: CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO,
+                left: CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS,
+                right: CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION,
+            },
+        },
+    },
+    {
         query: 'type:chat is:READ',
         expected: {
             type: CONST.SEARCH.DATA_TYPES.CHAT,

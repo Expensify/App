@@ -218,7 +218,7 @@ describe('PayActionButton', () => {
             });
         });
 
-        expect(onHoldMenuOpen).toHaveBeenCalledWith(CONST.IOU.REPORT_ACTION_TYPE.PAY, CONST.IOU.PAYMENT_TYPE.VBBA, expect.anything(), SELECTED_BANK_ACCOUNT_ID);
+        expect(onHoldMenuOpen).toHaveBeenCalledWith(CONST.IOU.PAYMENT_TYPE.VBBA, expect.anything(), SELECTED_BANK_ACCOUNT_ID);
         expect(mockedPayMoneyRequest).not.toHaveBeenCalled();
     });
 });

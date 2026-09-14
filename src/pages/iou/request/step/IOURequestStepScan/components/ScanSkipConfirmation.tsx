@@ -100,6 +100,7 @@ function ScanSkipConfirmation({report, action, iouType, reportID, transactionID,
     const [recentWaypoints] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const reportIDToCheck = isMoneyRequestReportReportUtils(report) ? report?.chatReportID : report?.reportID;
     const [reportDraft] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${reportIDToCheck}`);
     const [allTransactionDrafts] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftsSelector});
@@ -129,6 +130,7 @@ function ScanSkipConfirmation({report, action, iouType, reportID, transactionID,
         personalDetails,
         conciergeReportID,
         privateIsArchived: isArchived,
+        rules,
         reportAttributesDerived,
         reportDraft,
         translate,
@@ -322,10 +324,12 @@ function ScanSkipConfirmation({report, action, iouType, reportID, transactionID,
             optimisticTransactionIDs,
             optimisticChatReportID,
             currentUserLocalCurrency: currentUserPersonalDetails.localCurrencyCode ?? CONST.CURRENCY.USD,
+            isDraftChatReport: !!reportDraft,
             isTrackIntentUser,
             delegateAccountID,
             conciergeChat,
             formatPhoneNumber,
+            rules,
         };
 
         const scanDestinationReportID = iouType === CONST.IOU.TYPE.TRACK ? (report?.reportID ?? selfDMReport?.reportID) : report?.reportID;
