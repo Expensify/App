@@ -15,6 +15,7 @@ const SESSION_START = '2024-06-01 12:00:00.000';
 let mockReportActionIDFromRoute: string | undefined;
 
 jest.mock('@react-navigation/native', () => ({
+    ...jest.requireActual<typeof import('@react-navigation/native')>('@react-navigation/native'),
     useRoute: () => ({params: {reportActionID: mockReportActionIDFromRoute}}),
 }));
 
@@ -46,12 +47,12 @@ describe('useConciergeAskState', () => {
         expect(result.current.shouldShowWelcome).toBe(true);
     });
 
-    it('still shows the empty state while a linked report action is in the route', () => {
+    it('hides the empty state while a linked report action is in the route', () => {
         mockReportActionIDFromRoute = 'linked-action';
         const {result} = renderHook(() => useConciergeAskState(CONCIERGE_REPORT_ID));
 
         expect(result.current.isHistoryExpanded).toBe(false);
-        expect(result.current.shouldShowWelcome).toBe(true);
+        expect(result.current.shouldShowWelcome).toBe(false);
     });
 
     it('stays off outside the Concierge report', () => {

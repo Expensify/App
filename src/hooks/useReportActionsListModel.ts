@@ -60,7 +60,7 @@ function useReportActionsListModel(reportID: string, isReportLoadPending: boolea
     const isLoadingOlderReportActions = reportLoadingState?.isLoadingOlderReportActions;
     const hasLoadingOlderReportActionsError = reportLoadingState?.hasLoadingOlderReportActionsError;
 
-    const {sessionStartTime, showFullHistory: conciergeShowFullHistory, hadMessagesAtSessionStart: conciergeHadMessagesAtSessionStart} = useConciergeSessionState();
+    const {sessionStartTime, hadMessagesAtSessionStart: conciergeHadMessagesAtSessionStart} = useConciergeSessionState();
     const {isAskConciergeChat, isHistoryExpanded} = useConciergeAskState(reportID);
     const {setShowFullHistory: setConciergeShowFullHistory, setHadMessagesAtSessionStart: setConciergeHadMessagesAtSessionStart} = useConciergeSessionActions();
     const isReportTransactionThread = isReportTransactionThreadUtil(report);

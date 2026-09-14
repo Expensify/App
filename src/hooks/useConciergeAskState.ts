@@ -37,6 +37,7 @@ function useConciergeAskState(reportID: string | undefined): ConciergeAskState {
     const {isBetaEnabled} = usePermissions();
     const isInSidePanel = useIsInSidePanel();
     const {sessionStartTime, showFullHistory} = useConciergeSessionState();
+    const route = useRoute<PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
 
@@ -53,11 +54,12 @@ function useConciergeAskState(reportID: string | undefined): ConciergeAskState {
     const isAskConciergeChat = !!reportID && reportID === conciergeReportID && !isInSidePanel && isBetaEnabled(CONST.BETAS.CONCIERGE_RESPOND_IN_THREAD);
 
     const hasSessionBoundary = isAskConciergeChat && !!sessionStartTime;
+    const hasLinkedReportAction = !!route?.params?.reportActionID;
 
     return {
         isAskConciergeChat,
         isHistoryExpanded: showFullHistory,
-        shouldShowWelcome: hasSessionBoundary && !showFullHistory && !hasSessionActivity,
+        shouldShowWelcome: hasSessionBoundary && !showFullHistory && !hasSessionActivity && !hasLinkedReportAction,
         shouldLabelComposerAsNewQuestion: hasSessionBoundary && showFullHistory && !hasSessionActivity,
     };
 }

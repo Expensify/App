@@ -17,7 +17,7 @@ jest.mock('@hooks/useLazyAsset', () => ({
 
 describe('AskConciergeEmptyState', () => {
     beforeAll(async () => {
-        IntlStore.load(CONST.LOCALES.EN);
+        await IntlStore.load(CONST.LOCALES.EN);
         await waitForBatchedUpdates();
     });
 
