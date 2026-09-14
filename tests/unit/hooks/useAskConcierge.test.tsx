@@ -293,7 +293,8 @@ describe('useAskConcierge', () => {
             result.current.askConcierge('Where is my expense?');
 
             // Then the thread is created and navigated to, and no side panel is opened
-            expect(mockAddComment).toHaveBeenCalledWith(expect.objectContaining({conciergeThreadReportID: expect.any(String), shouldNavigateToConciergeThread: true}));
+            expect(mockAddComment.mock.calls.at(0)?.at(0)?.conciergeThreadReportID).toEqual(expect.any(String));
+            expect(mockAddComment).toHaveBeenCalledWith(expect.objectContaining({shouldNavigateToConciergeThread: true}));
             expect(mockOpenConciergeAnywhere).not.toHaveBeenCalled();
         });
 
