@@ -2069,7 +2069,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
     - Yoga
-  - react-native-keyboard-controller (1.22.2):
+  - react-native-keyboard-controller (1.22.4):
     - hermes-engine
     - RCTRequired
     - RCTTypeSafety
@@ -2081,7 +2081,7 @@ PODS:
     - React-graphics
     - React-ImageManager
     - React-jsi
-    - react-native-keyboard-controller/common (= 1.22.2)
+    - react-native-keyboard-controller/common (= 1.22.4)
     - React-NativeModulesApple
     - React-RCTFabric
     - React-renderercss
@@ -2092,7 +2092,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
     - Yoga
-  - react-native-keyboard-controller/common (1.22.2):
+  - react-native-keyboard-controller/common (1.22.4):
     - hermes-engine
     - RCTRequired
     - RCTTypeSafety
@@ -3216,7 +3216,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
     - Yoga
-  - RNSentry (8.7.0):
+  - RNSentry (8.25.0):
     - hermes-engine
     - RCTRequired
     - RCTTypeSafety
@@ -3238,7 +3238,6 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
-    - Sentry (= 9.8.0)
     - Yoga
   - RNShare (11.0.2):
     - hermes-engine
@@ -3389,9 +3388,6 @@ PODS:
   - SDWebImageWebPCoder (0.14.6):
     - libwebp (~> 1.0)
     - SDWebImage/Core (~> 5.17)
-  - Sentry (9.8.0):
-    - Sentry/Core (= 9.8.0)
-  - Sentry/Core (9.8.0)
   - SwiftUIIntrospect (1.3.0)
   - TrustKit (3.0.7)
   - Turf (4.0.0)
@@ -3597,7 +3593,6 @@ SPEC REPOS:
     - SDWebImageAVIFCoder
     - SDWebImageSVGCoder
     - SDWebImageWebPCoder
-    - Sentry
     - SwiftUIIntrospect
     - TrustKit
     - Turf
@@ -4016,7 +4011,7 @@ SPEC CHECKSUMS:
   react-native-document-picker: ee9a7692303f36eef1798dcf43f38f51b1382ad1
   react-native-image-picker: 08847883972f3fe37e31896ac2f864286737b4d4
   react-native-key-command: 9a1d8369da3fc9668b6f5389c9d7412189591217
-  react-native-keyboard-controller: 8305b19b7841bab139be15cde9f424a502abaa6e
+  react-native-keyboard-controller: d07e8ba4e72859601941cc6c508fdd37a635ba04
   react-native-netinfo: 2201a3619279a5e2327244048bf024638c8d4399
   react-native-pager-view: 182f9a09d73bff3559ec582869c2958fe5333ea4
   react-native-pdf: f5336904e04a95103a90fcdf349bbd8e278350b9
@@ -4081,7 +4076,7 @@ SPEC CHECKSUMS:
   RNReactNativeHapticFeedback: 6c8677db48f62a635e6a2065f5d2bd02498d7a73
   RNReanimated: f093c30aa11e45a8044dcc19417f44cffa1c4e1d
   RNScreens: 85c533985720c563272c6f6dd19e1278dfd0f5d4
-  RNSentry: 0ed0f85214b504e6f0834e64aa9b926896557ca4
+  RNSentry: c878a3c462c1097f63a81615c784d44641ae92e4
   RNShare: eb378c57de30a83b0253eed74762ee99249f47d7
   RNSVG: 394cfd0518613b144c65ffe69045f827b78a7a7c
   RNWorklets: f0734080219ea54d479c179da498c9b24611faed
@@ -4089,7 +4084,6 @@ SPEC CHECKSUMS:
   SDWebImageAVIFCoder: afe194a084e851f70228e4be35ef651df0fc5c57
   SDWebImageSVGCoder: 15a300a97ec1c8ac958f009c02220ac0402e936c
   SDWebImageWebPCoder: e38c0a70396191361d60c092933e22c20d5b1380
-  Sentry: 88746bf877eff714bc45315a39ad1d1efea2cdda
   SwiftUIIntrospect: fee9aa07293ee280373a591e1824e8ddc869ba5d
   TrustKit: 1050f3ce0595f8ed775f1237b7f590e3a4f93e91
   Turf: c9eb11a65d96af58cac523460fd40fec5061b081

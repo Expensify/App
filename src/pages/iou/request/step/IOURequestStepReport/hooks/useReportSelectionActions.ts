@@ -5,7 +5,6 @@ import useChangeTransactionsReportReports from '@hooks/useChangeTransactionsRepo
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
 
 import {setCustomUnitID, setCustomUnitRateID} from '@libs/actions/IOU/MoneyRequest';
 import {clearSubrates} from '@libs/actions/IOU/PerDiem';
@@ -115,10 +114,9 @@ function useReportSelectionActions({
     const [selfDMReportID] = useOnyx(ONYXKEYS.SELF_DM_REPORT_ID);
     const [selfDMReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(selfDMReportID)}`);
     const {removeTransaction} = useSearchSelectionActions();
-    const {isBetaEnabled} = usePermissions();
-    const isNewManualExpenseFlowEnabled = isBetaEnabled(CONST.BETAS.NEW_MANUAL_EXPENSE_FLOW);
     const reports = useChangeTransactionsReportReports(transaction ? [transaction] : [], undefined);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const delegateAccountID = useDelegateAccountID();
     const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
 
@@ -177,14 +175,7 @@ function useReportSelectionActions({
             return;
         }
 
-        if (isNewManualExpenseFlowEnabled) {
-            Navigation.goBack(backPath);
-            return;
-        }
-
-        const iouConfirmationPageRoute = ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(action, iouType, transactionID, reportOrDraftReportFromValue?.chatReportID);
-        // `goBack` replaces the current route when the confirmation screen isn't on the stack.
-        Navigation.goBack(iouConfirmationPageRoute, {compareParams: false});
+        Navigation.goBack(backPath);
     };
 
     const handleRegularReportSelection = (item: TransactionGroupListItem, report: OnyxEntry<Report>) => {
@@ -222,6 +213,7 @@ function useReportSelectionActions({
                         transactions: targetTransactions,
                         allTransactionViolation: transactionViolations,
                         reports: reportsForCall,
+                        rules,
                         isTrackIntentUser,
                         personalPolicyOutputCurrency: allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${personalPolicyID}`]?.outputCurrency,
                         selfDMReportActions,
@@ -252,6 +244,7 @@ function useReportSelectionActions({
                     transactions: targetTransactions,
                     allTransactionViolation: transactionViolations,
                     reports,
+                    rules,
                     isTrackIntentUser,
                     personalPolicyOutputCurrency: allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${personalPolicyID}`]?.outputCurrency,
                     selfDMReportActions,

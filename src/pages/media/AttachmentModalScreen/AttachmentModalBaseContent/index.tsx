@@ -6,7 +6,7 @@ import AttachmentView, {checkIsFileImage} from '@components/Attachments/Attachme
 import useAttachmentErrors from '@components/Attachments/AttachmentView/useAttachmentErrors';
 import type {Attachment} from '@components/Attachments/types';
 import BlockingView from '@components/BlockingViews/BlockingView';
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';

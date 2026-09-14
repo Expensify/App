@@ -806,6 +806,58 @@ describe('TransactionUtils', () => {
             },
         );
 
+        it('does not apply a newly enabled commuter exclusion when a historical manual distance is changed', () => {
+            const fakePolicy: Policy = {
+                ...createRandomPolicy(0),
+                commuterExclusions: {
+                    method: CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE,
+                    fixedDistance: 3,
+                    fixedDistanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                },
+                customUnits: {
+                    distance: {
+                        name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                        customUnitID: 'distance',
+                        rates: {
+                            default: {
+                                customUnitRateID: '1',
+                                currency: CONST.CURRENCY.USD,
+                                rate: 1,
+                            },
+                        },
+                        attributes: {
+                            unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                        },
+                    },
+                },
+            };
+            const transaction = generateTransaction({
+                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL,
+                comment: {
+                    customUnit: {
+                        distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                        quantity: 10,
+                    },
+                },
+                currency: CONST.CURRENCY.USD,
+            });
+
+            const updatedTransaction = TransactionUtils.getUpdatedTransaction({
+                transaction,
+                isFromExpenseReport: false,
+                policy: fakePolicy,
+                transactionChanges: {distance: 20},
+                personalPolicyOutputCurrency: undefined,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                getCurrencySymbol: getCurrencySymbolLocal,
+            });
+
+            expect(updatedTransaction.comment?.customUnit?.quantity).toBe(20);
+            expect(updatedTransaction.comment?.customUnit?.commuterExclusion).toBeUndefined();
+            expect(updatedTransaction.comment?.customUnit?.reimbursableDistance).toBeUndefined();
+            expect(updatedTransaction.modifiedAmount).toBe(20);
+        });
+
         it('recalculates commuter exclusion data when an alternate route is selected', () => {
             const fakePolicy: Policy = {
                 ...createRandomPolicy(0),
@@ -886,6 +938,116 @@ describe('TransactionUtils', () => {
             expect(updatedTransaction.modifiedAmount).toBe(17);
             expect(updatedTransaction.modifiedMerchant).toContain('17');
             expect(updatedTransaction.modifiedMerchant).not.toContain('20');
+        });
+
+        it('converts commuter exclusion data when the distance rate unit is changed', () => {
+            // Given a policy with a 3 mile fixed distance commuter exclusion and a kilometer rate
+            const fakePolicy: Policy = {
+                ...createRandomPolicy(0),
+                commuterExclusions: {
+                    method: CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE,
+                    fixedDistance: 3,
+                    fixedDistanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                },
+                customUnits: {
+                    distance: {
+                        name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                        customUnitID: 'distance',
+                        rates: {
+                            // getMileageRates keys its result by the rates map key, so it must match customUnitRateID
+                            ID1: {
+                                customUnitRateID: '1',
+                                currency: CONST.CURRENCY.EUR,
+                                rate: 10,
+                            },
+                            ID2: {
+                                customUnitRateID: '2',
+                                currency: CONST.CURRENCY.EUR,
+                                rate: 30,
+                            },
+                        },
+                        attributes: {
+                            unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS,
+                        },
+                    },
+                },
+            };
+
+            // And a 10 km route stored as a rounded mile quantity
+            const transaction = generateTransaction({
+                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP,
+                comment: {
+                    customUnit: {
+                        customUnitRateID: 'ID1',
+                        distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                        quantity: 6.21,
+                        routeDistanceMeters: 10000,
+                        commuterExclusion: 3,
+                        reimbursableDistance: 3.21,
+                        commuterExclusionMethod: CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE,
+                    },
+                },
+                currency: CONST.CURRENCY.USD,
+            });
+
+            const updateRate = (transactionToUpdate: Transaction, policy: Policy | undefined, policies?: OnyxCollection<Policy>) =>
+                TransactionUtils.getUpdatedTransaction({
+                    transaction: transactionToUpdate,
+                    isFromExpenseReport: false,
+                    policy,
+                    policies,
+                    transactionChanges: {customUnitRateID: 'ID2'},
+                    personalPolicyOutputCurrency: undefined,
+                    getCurrencyDecimals: getCurrencyDecimalsLocal,
+                    getCurrencySymbol: getCurrencySymbolLocal,
+                });
+
+            // When the rate is changed
+            const updatedTransaction = updateRate(transaction, fakePolicy);
+
+            // Then the original distance and commuter exclusion are converted to kilometers
+            expect(updatedTransaction.comment?.customUnit?.distanceUnit).toBe(CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS);
+            expect(updatedTransaction.comment?.customUnit?.quantity).toBe(10);
+            expect(updatedTransaction.comment?.customUnit?.commuterExclusion).toBeCloseTo(4.83);
+            expect(updatedTransaction.comment?.customUnit?.reimbursableDistance).toBeCloseTo(5.17);
+
+            // And the amount and merchant use the converted reimbursable distance at the kilometer rate
+            expect(updatedTransaction.modifiedAmount).toBe(155);
+            expect(updatedTransaction.modifiedMerchant).toBe('5.17 km @ €0.30 / km');
+
+            const manuallyOverriddenTransaction = {
+                ...transaction,
+                comment: {customUnit: {...transaction.comment?.customUnit, quantity: 8}},
+            };
+            const updatedManuallyOverriddenTransaction = updateRate(manuallyOverriddenTransaction, fakePolicy);
+
+            expect(updatedManuallyOverriddenTransaction.comment?.customUnit?.quantity).toBe(12.87);
+            expect(updatedManuallyOverriddenTransaction.comment?.customUnit?.reimbursableDistance).toBeCloseTo(8.04);
+            expect(updatedManuallyOverriddenTransaction.modifiedAmount).toBe(241);
+            expect(updatedManuallyOverriddenTransaction.modifiedMerchant).toBe('8.04 km @ €0.30 / km');
+
+            const transactionWithoutAppliedCommuterExclusion = {
+                ...transaction,
+                comment: {
+                    customUnit: {
+                        ...transaction.comment?.customUnit,
+                        commuterExclusion: undefined,
+                        reimbursableDistance: undefined,
+                        commuterExclusionMethod: undefined,
+                    },
+                },
+            };
+            expect(updateRate(transactionWithoutAppliedCommuterExclusion, fakePolicy).comment?.customUnit?.quantity).toBe(9.99);
+
+            const policies = {[`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`]: fakePolicy};
+            expect(updateRate(transaction, undefined, policies).comment?.customUnit?.quantity).toBe(10);
+            expect(updateRate(manuallyOverriddenTransaction, undefined, policies).comment?.customUnit?.quantity).toBe(12.87);
+
+            const legacyTransaction = {
+                ...transaction,
+                comment: {customUnit: {...transaction.comment?.customUnit, routeDistanceMeters: undefined, quantity: 10}},
+            };
+            expect(updateRate(legacyTransaction, fakePolicy).comment?.customUnit?.quantity).toBe(16.09);
         });
 
         it('threads personalPolicyOutputCurrency into the recalculated rate for a P2P distance expense with no policy', async () => {
@@ -2431,6 +2593,44 @@ describe('TransactionUtils', () => {
                 TransactionUtils.hasNoticeTypeViolation(transaction, visibleNoticeViolations, CURRENT_USER_EMAIL, CURRENT_USER_ID, processingReport, CURRENT_USER_EMAIL, policy, true),
             ).toBe(true);
         });
+
+        it('should not hide missing category violation for invoice report even when category is being analyzed', () => {
+            const invoiceReport: Report = {
+                ...createRandomReport(1, undefined),
+                type: CONST.REPORT.TYPE.INVOICE,
+            };
+
+            const policy: Policy = createRandomPolicy(1, CONST.POLICY.TYPE.TEAM);
+
+            const transaction = generateTransaction({
+                category: '',
+                merchant: 'Some Merchant',
+                amount: 100,
+                reportID: invoiceReport.reportID,
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+            });
+
+            expect(TransactionUtils.shouldShowViolation(invoiceReport, policy, CONST.VIOLATIONS.MISSING_CATEGORY, 'test@example.com', CURRENT_USER_ID, true, transaction)).toBe(true);
+        });
+
+        it('should hide missing category violation for expense report when category is being analyzed', () => {
+            const expenseReport: Report = {
+                ...createRandomReport(1, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+            };
+
+            const policy: Policy = createRandomPolicy(1, CONST.POLICY.TYPE.TEAM);
+
+            const transaction = generateTransaction({
+                category: '',
+                merchant: 'Some Merchant',
+                amount: 100,
+                reportID: expenseReport.reportID,
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+            });
+
+            expect(TransactionUtils.shouldShowViolation(expenseReport, policy, CONST.VIOLATIONS.MISSING_CATEGORY, 'test@example.com', CURRENT_USER_ID, true, transaction)).toBe(false);
+        });
     });
 
     describe('getReportOwnerAsAttendee', () => {
@@ -2820,7 +3020,7 @@ describe('TransactionUtils', () => {
 
     describe('isCategoryBeingAnalyzed', () => {
         it('should return false for undefined transaction', () => {
-            expect(TransactionUtils.isCategoryBeingAnalyzed(undefined)).toBe(false);
+            expect(TransactionUtils.isCategoryBeingAnalyzed(undefined, undefined)).toBe(false);
         });
 
         it('should return false when category is not missing', () => {
@@ -2828,7 +3028,7 @@ describe('TransactionUtils', () => {
                 category: 'Food',
             });
 
-            expect(TransactionUtils.isCategoryBeingAnalyzed(transaction)).toBe(false);
+            expect(TransactionUtils.isCategoryBeingAnalyzed(transaction, undefined)).toBe(false);
         });
 
         it('should return false for partial transactions (empty merchant and zero amount)', () => {
@@ -2839,7 +3039,7 @@ describe('TransactionUtils', () => {
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
             });
 
-            expect(TransactionUtils.isCategoryBeingAnalyzed(transaction)).toBe(false);
+            expect(TransactionUtils.isCategoryBeingAnalyzed(transaction, undefined)).toBe(false);
         });
 
         it('should return true when pendingAction is ADD and category is missing', () => {
@@ -2850,7 +3050,7 @@ describe('TransactionUtils', () => {
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
             });
 
-            expect(TransactionUtils.isCategoryBeingAnalyzed(transaction)).toBe(true);
+            expect(TransactionUtils.isCategoryBeingAnalyzed(transaction, undefined)).toBe(true);
         });
 
         it('should return true when within auto-categorization grace period', () => {
@@ -2867,7 +3067,7 @@ describe('TransactionUtils', () => {
                 },
             });
 
-            expect(TransactionUtils.isCategoryBeingAnalyzed(transaction)).toBe(true);
+            expect(TransactionUtils.isCategoryBeingAnalyzed(transaction, undefined)).toBe(true);
         });
 
         it('should return false when auto-categorization grace period has passed', () => {
@@ -2885,7 +3085,7 @@ describe('TransactionUtils', () => {
                 },
             });
 
-            expect(TransactionUtils.isCategoryBeingAnalyzed(transaction)).toBe(false);
+            expect(TransactionUtils.isCategoryBeingAnalyzed(transaction, undefined)).toBe(false);
         });
 
         it('should return false when pendingAutoCategorizationTime is invalid', () => {
@@ -2899,7 +3099,7 @@ describe('TransactionUtils', () => {
                 },
             });
 
-            expect(TransactionUtils.isCategoryBeingAnalyzed(transaction)).toBe(false);
+            expect(TransactionUtils.isCategoryBeingAnalyzed(transaction, undefined)).toBe(false);
         });
 
         it('should return false when category is Uncategorized but no pending action or auto-categorization', () => {
@@ -2910,7 +3110,7 @@ describe('TransactionUtils', () => {
                 pendingAction: undefined,
             });
 
-            expect(TransactionUtils.isCategoryBeingAnalyzed(transaction)).toBe(false);
+            expect(TransactionUtils.isCategoryBeingAnalyzed(transaction, undefined)).toBe(false);
         });
 
         it('should return false for unreported expenses', () => {
@@ -2922,25 +3122,41 @@ describe('TransactionUtils', () => {
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
             });
 
-            expect(TransactionUtils.isCategoryBeingAnalyzed(transaction)).toBe(false);
+            expect(TransactionUtils.isCategoryBeingAnalyzed(transaction, undefined)).toBe(false);
         });
 
-        it('should return false for invoice expenses', async () => {
-            const invoiceReportID = 'invoice123';
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${invoiceReportID}`, {
-                reportID: invoiceReportID,
-                type: CONST.REPORT.TYPE.INVOICE,
-            });
+        it('should return true for expense report with pendingAction ADD', () => {
+            const expenseReport = {
+                reportID: 'expense123',
+                type: CONST.REPORT.TYPE.EXPENSE,
+            };
 
             const transaction = generateTransaction({
                 category: '',
                 merchant: 'Some Merchant',
                 amount: 100,
-                reportID: invoiceReportID,
+                reportID: expenseReport.reportID,
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
             });
 
-            expect(TransactionUtils.isCategoryBeingAnalyzed(transaction)).toBe(false);
+            expect(TransactionUtils.isCategoryBeingAnalyzed(transaction, expenseReport)).toBe(true);
+        });
+
+        it('should return false for invoice expenses', () => {
+            const invoiceReport = {
+                reportID: 'invoice123',
+                type: CONST.REPORT.TYPE.INVOICE,
+            };
+
+            const transaction = generateTransaction({
+                category: '',
+                merchant: 'Some Merchant',
+                amount: 100,
+                reportID: invoiceReport.reportID,
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+            });
+
+            expect(TransactionUtils.isCategoryBeingAnalyzed(transaction, invoiceReport)).toBe(false);
         });
     });
 
@@ -5501,5 +5717,49 @@ describe('getDistanceInMeters', () => {
     it('falls back to route0 when the selected route is no longer available', () => {
         const transaction = generateTransaction({comment: {selectedRouteKey: 'route1'}, routes: {route0: routes.route0}});
         expect(TransactionUtils.getDistanceInMeters(transaction, CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES)).toBe(1000);
+    });
+
+    it('falls back to routeDistanceMeters when the routes are gone and the quantity is not written yet', () => {
+        const transaction = generateTransaction({
+            comment: {customUnit: {quantity: 0, distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, routeDistanceMeters: 4680656}},
+            routes: undefined,
+        });
+        expect(TransactionUtils.getDistanceInMeters(transaction, CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES)).toBe(4680656);
+    });
+
+    it('prefers the quantity over routeDistanceMeters once the quantity is written', () => {
+        const transaction = generateTransaction({
+            comment: {customUnit: {quantity: 10, distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, routeDistanceMeters: 4680656}},
+            routes: undefined,
+        });
+        expect(TransactionUtils.getDistanceInMeters(transaction, CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES)).not.toBe(4680656);
+    });
+});
+
+describe('getReservationNights', () => {
+    const originalTimezone = process.env.TZ;
+
+    afterEach(() => {
+        process.env.TZ = originalTimezone;
+    });
+
+    it('returns 0 when the receipt has no reservation dates', () => {
+        expect(TransactionUtils.getReservationNights(generateTransaction({receipt: {}}))).toBe(0);
+        expect(TransactionUtils.getReservationNights(generateTransaction({receipt: {hotelReservationStartDate: '2026-03-01'}}))).toBe(0);
+    });
+
+    it('returns 0 when the reservation ends on or before it starts', () => {
+        expect(TransactionUtils.getReservationNights(generateTransaction({receipt: {hotelReservationStartDate: '2026-03-06', hotelReservationEndDate: '2026-03-06'}}))).toBe(0);
+        expect(TransactionUtils.getReservationNights(generateTransaction({receipt: {hotelReservationStartDate: '2026-03-06', hotelReservationEndDate: '2026-03-01'}}))).toBe(0);
+    });
+
+    it('counts the calendar days between check-in and check-out', () => {
+        expect(TransactionUtils.getReservationNights(generateTransaction({receipt: {hotelReservationStartDate: '2026-03-01', hotelReservationEndDate: '2026-03-06'}}))).toBe(5);
+    });
+
+    it('counts a one-night stay that crosses a DST change west of UTC', () => {
+        // Los Angeles falls back on 2026-11-01, so anchoring these dates to UTC would put check-out an hour before check-in
+        process.env.TZ = 'America/Los_Angeles';
+        expect(TransactionUtils.getReservationNights(generateTransaction({receipt: {hotelReservationStartDate: '2026-11-01', hotelReservationEndDate: '2026-11-02'}}))).toBe(1);
     });
 });
