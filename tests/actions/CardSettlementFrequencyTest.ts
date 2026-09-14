@@ -3,12 +3,10 @@ import {updateSettlementFrequency} from '@src/libs/actions/Card';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
 import {WRITE_COMMANDS} from '@src/libs/API/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ExpensifyCardSettings} from '@src/types/onyx';
-
-import type {OnyxEntry} from 'react-native-onyx';
 
 import Onyx from 'react-native-onyx';
 
+import getOnyxValue from '../utils/getOnyxValue';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
@@ -19,20 +17,8 @@ const settingsKey = `${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${wor
 // The day the workspace already settles on, standing in for what the backend previously sent.
 const existingSettlementDay = 10;
 
-function getCardSettings() {
-    return new Promise<OnyxEntry<ExpensifyCardSettings>>((resolve) => {
-        const connection = Onyx.connect({
-            key: settingsKey,
-            callback: (value) => {
-                Onyx.disconnect(connection);
-                resolve(value);
-            },
-        });
-    });
-}
-
 function getMonthlySettlementDate() {
-    return getCardSettings().then((settings) => settings?.[programKey]?.monthlySettlementDate);
+    return getOnyxValue(settingsKey).then((settings) => settings?.[programKey]?.monthlySettlementDate);
 }
 
 /**
@@ -126,7 +112,7 @@ describe('actions/Card', () => {
         });
 
         // This documents a pre-existing rollback gap rather than intended behavior, and it predates this PR. A
-        // workspace that settles daily has no previous day, so `currentFrequency` is undefined and the failure data
+        // workspace that settles daily has no previous day, so `currentMonthlySettlementDate` is undefined and the failure data
         // merges `{monthlySettlementDate: undefined}` — Onyx drops undefined keys instead of clearing them, so the
         // optimistic day survives a failed request and the page stays on "Monthly". Clearing it would need `null`.
         // If that is fixed, this expectation should flip to `toBeUndefined()`.

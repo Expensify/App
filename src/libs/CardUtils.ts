@@ -1509,10 +1509,6 @@ function isLastScrapePastDismissThreshold(card: Card): boolean {
 /**
  * Turn the Expensify Card monthly settlement day of the month into a date, so it can be formatted for display.
  *
- * The value is a day of the month and must never be handed to `new Date()` directly: `new Date(10)` is 10
- * *milliseconds* after the Unix epoch, which is the 31st of December 1969 anywhere west of UTC, so every workspace
- * would show the same wrong day.
- *
  * @param dayOfMonth the day of the month the workspace settles on
  * @returns a date on that day of the month, or undefined when the value is not a day of the month
  */
@@ -1521,9 +1517,6 @@ function toMonthlySettlementDate(dayOfMonth: ExpensifyCardSettingsBase['monthlyS
         return undefined;
     }
 
-    // A day of the month carries no month or year, so anchor it to January of the current year: every day from the 1st
-    // to the 31st exists there, and only the day is ever displayed. Anything outside that range is not a day of the
-    // month, so it resolves to nothing rather than rolling over into the next month and showing a wrong day.
     if (!Number.isInteger(dayOfMonth) || dayOfMonth < 1 || dayOfMonth > 31) {
         return undefined;
     }
