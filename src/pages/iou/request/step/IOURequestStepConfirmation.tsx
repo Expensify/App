@@ -130,6 +130,9 @@ type IOURequestStepConfirmationProps = WithWritableReportOrNotFoundProps<IOURequ
         /** Reports whether the inline amount sign differs from its initial value (new manual expense flow) */
         onSignDirtyChange?: (isSignDirty: boolean) => void;
 
+        /** Increments when the embedded discard confirmation is cancelled, so the amount input can restore focus */
+        discardCancelSequence?: number;
+
         /** Suppresses the parent discard prompt when the embedded confirmation starts a successful submit */
         suppressDiscardPrompt?: () => void;
     };
@@ -143,6 +146,7 @@ function IOURequestStepConfirmationContent({
     shouldHideHeader = false,
     navigation,
     onSignDirtyChange,
+    discardCancelSequence,
     suppressDiscardPrompt,
 }: IOURequestStepConfirmationProps) {
     const {getCurrencyDecimals, convertToDisplayString} = useCurrencyListActions();
@@ -1170,6 +1174,7 @@ function IOURequestStepConfirmationContent({
                                     isTimeRequest={isTimeRequest}
                                     shouldHideToSection={shouldHideToSection}
                                     onSignDirtyChange={onSignDirtyChange}
+                                    discardCancelSequence={discardCancelSequence}
                                 />
                             )}
                         </SubmitExpenseOrchestrator>

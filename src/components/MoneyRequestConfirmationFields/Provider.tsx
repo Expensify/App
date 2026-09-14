@@ -76,6 +76,9 @@ type ProviderProps = {
     /** Reports whether the inline amount sign differs from its initial value (new manual expense flow) */
     onSignDirtyChange?: (isSignDirty: boolean) => void;
 
+    /** Increments when the embedded discard confirmation is cancelled, so the amount input can restore focus */
+    discardCancelSequence?: number;
+
     /** Block components rendered inside the Provider */
     children: ReactNode;
 };
@@ -103,6 +106,7 @@ function Provider({
     onSubmitForm,
     onTaxAmountEmptyChange,
     onSignDirtyChange,
+    discardCancelSequence,
     children,
 }: ProviderProps) {
     const value = {
@@ -128,6 +132,7 @@ function Provider({
         onSubmitForm,
         onTaxAmountEmptyChange,
         onSignDirtyChange,
+        discardCancelSequence,
     };
     return <ConfirmationFieldsContext.Provider value={value}>{children}</ConfirmationFieldsContext.Provider>;
 }

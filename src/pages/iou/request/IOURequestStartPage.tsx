@@ -216,6 +216,7 @@ function IOURequestStartPage({
     const shouldEmbedConfirmation = shouldUseTab || iouType === CONST.IOU.TYPE.PAY;
 
     const [isSignDirty, setIsSignDirty] = useState(false);
+    const [discardCancelSequence, setDiscardCancelSequence] = useState(0);
     const [hasSubmitted, setHasSubmitted] = useState(false);
     const hasSubmittedRef = useRef(false);
 
@@ -225,6 +226,7 @@ function IOURequestStartPage({
 
     const {suppressDiscardPrompt} = useDiscardChangesConfirmation({
         getHasUnsavedChanges: getEmbeddedHasUnsavedChanges,
+        onCancel: () => setDiscardCancelSequence((sequence) => sequence + 1),
         onConfirm: cleanupPreInsertedDestination,
     });
 
@@ -298,6 +300,7 @@ function IOURequestStartPage({
                 navigation={navigation}
                 shouldHideHeader
                 onSignDirtyChange={setIsSignDirty}
+                discardCancelSequence={discardCancelSequence}
                 suppressDiscardPrompt={suppressEmbeddedDiscardPrompt}
             />
         );

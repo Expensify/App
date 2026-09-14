@@ -46,6 +46,9 @@ type ConfirmationFieldsContextValue = {
 
     /** Reports whether the inline amount sign differs from its initial value (new manual expense flow). */
     onSignDirtyChange?: (isSignDirty: boolean) => void;
+
+    /** Increments when the embedded discard confirmation is cancelled, so the amount input can restore focus. */
+    discardCancelSequence?: number;
 };
 
 const ConfirmationFieldsContext = createContext<ConfirmationFieldsContextValue | null>(null);
