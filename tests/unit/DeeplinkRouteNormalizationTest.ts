@@ -4,7 +4,6 @@ import getStateFromPath from '@libs/Navigation/helpers/getStateFromPath';
 import normalizePath from '@libs/Navigation/helpers/normalizePath';
 import {getRouteFromLink} from '@libs/ReportUtils';
 
-import type {Route} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 
 jest.mock('@libs/Navigation/helpers/getStateFromPath', () => jest.fn());
@@ -19,9 +18,10 @@ jest.mock('@libs/Navigation/helpers/getMatchingNewRoute', () => jest.fn());
  * path mapping. The authenticated config maps SCREENS.HOME to lowercase 'home', so the
  * case-sensitive mismatch falls through to NOT_FOUND.
  *
- * `getAdaptedStateFromPath` normalizes `/Home` to `/` so every caller (cold-start state
- * derivation, last-visited-path restoration, deeplink handling, etc.) treats it as the root.
- * These tests verify both that contract and the helpers it relies on.
+ * `/Home` is resolved to the Home screen by an `alias` on SCREENS.HOME in the linking config, so the
+ * path reaches react-navigation untouched instead of being rewritten by a caller. These tests cover the
+ * helpers involved and pin the pass-through contract of `getAdaptedStateFromPath`; the resolution itself
+ * is covered by `tests/navigation/rootPathLandsOnHomeTests.ts`.
  */
 describe('Deeplink route normalization', () => {
     describe('getRouteFromLink with root URLs', () => {
@@ -55,40 +55,40 @@ describe('Deeplink route normalization', () => {
         });
     });
 
-    describe('getAdaptedStateFromPath /Home normalization', () => {
-        const mockGetStateFromPath = getStateFromPath as jest.Mock;
-        const mockGetMatchingNewRoute = getMatchingNewRoute as jest.Mock;
+    describe('getAdaptedStateFromPath path pass-through', () => {
+        const mockGetStateFromPath = jest.mocked(getStateFromPath);
+        const mockGetMatchingNewRoute = jest.mocked(getMatchingNewRoute);
 
         beforeEach(() => {
             jest.clearAllMocks();
-            // Pass through unchanged so we can isolate the /Home check.
-            mockGetMatchingNewRoute.mockReturnValue(null);
+            // Pass through unchanged so we can isolate what getAdaptedStateFromPath itself does to the path.
+            mockGetMatchingNewRoute.mockReturnValue(undefined);
             // Return a minimal state with a full-screen route so getAdaptedState early-returns.
             mockGetStateFromPath.mockReturnValue({routes: [{name: SCREENS.HOME}], index: 0});
         });
 
-        it('Should rewrite `/Home` to `/` before delegating to the inner getStateFromPath', () => {
-            getAdaptedStateFromPath('/Home' as Route, undefined, false);
-            expect(mockGetStateFromPath).toHaveBeenCalledWith('/');
+        it('Should pass `/Home` through untouched, so the linking config alias can resolve it', () => {
+            getAdaptedStateFromPath('/Home', undefined, false);
+            expect(mockGetStateFromPath).toHaveBeenCalledWith('/Home');
         });
 
-        it('Should rewrite bare `Home` (no leading slash) to `/`', () => {
-            getAdaptedStateFromPath('Home' as Route, undefined, false);
-            expect(mockGetStateFromPath).toHaveBeenCalledWith('/');
+        it('Should only add the leading slash to bare `Home` (no leading slash)', () => {
+            getAdaptedStateFromPath('Home', undefined, false);
+            expect(mockGetStateFromPath).toHaveBeenCalledWith('/Home');
         });
 
         it('Should NOT rewrite the lowercase `/home` route', () => {
-            getAdaptedStateFromPath('/home' as Route, undefined, false);
+            getAdaptedStateFromPath('/home', undefined, false);
             expect(mockGetStateFromPath).toHaveBeenCalledWith('/home');
         });
 
         it('Should NOT rewrite other paths that merely contain `Home`', () => {
-            getAdaptedStateFromPath('/Home/extra' as Route, undefined, false);
+            getAdaptedStateFromPath('/Home/extra', undefined, false);
             expect(mockGetStateFromPath).toHaveBeenCalledWith('/Home/extra');
         });
 
         it('Should leave unrelated paths untouched', () => {
-            getAdaptedStateFromPath('/r/123456789' as Route, undefined, false);
+            getAdaptedStateFromPath('/r/123456789', undefined, false);
             expect(mockGetStateFromPath).toHaveBeenCalledWith('/r/123456789');
         });
     });

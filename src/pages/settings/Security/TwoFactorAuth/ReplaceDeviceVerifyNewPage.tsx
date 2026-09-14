@@ -98,9 +98,8 @@ function ReplaceDeviceVerifyNewPage() {
             </ScrollView>
             <FixedFooter style={[styles.mt2, styles.pt2]}>
                 <Button
-                    success
-                    large
-                    text={translate('common.continue')}
+                    variant={CONST.BUTTON_VARIANT.SUCCESS}
+                    size={CONST.BUTTON_SIZE.LARGE}
                     isLoading={account?.isLoading}
                     onPress={() => {
                         if (!formRef.current) {
@@ -108,7 +107,9 @@ function ReplaceDeviceVerifyNewPage() {
                         }
                         formRef.current.validateAndSubmitForm();
                     }}
-                />
+                >
+                    <Button.Text>{translate('common.continue')}</Button.Text>
+                </Button>
             </FixedFooter>
         </TwoFactorAuthWrapper>
     );

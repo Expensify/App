@@ -16,6 +16,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {setMoneyRequestDistanceRate} from '@libs/actions/IOU/MoneyRequest';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {validateCreateDistanceRateForm} from '@libs/PolicyDistanceRatesUtils';
 import {getDistanceRateCustomUnit} from '@libs/PolicyUtils';
@@ -30,7 +31,7 @@ import {generateCustomUnitID} from '@userActions/Policy/Policy';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/PolicyCreateDistanceRateForm';
 import type {Rate} from '@src/types/onyx/Policy';
@@ -87,7 +88,10 @@ function CreateDistanceRatePage({
             Navigation.goBack(
                 !isEdit
                     ? ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(action ?? CONST.IOU.ACTION.CREATE, iouType ?? CONST.IOU.TYPE.SUBMIT, transactionID, reportID)
-                    : ROUTES.MONEY_REQUEST_STEP_DISTANCE_RATE.getRoute(CONST.IOU.ACTION.EDIT, iouType ?? CONST.IOU.TYPE.SUBMIT, transactionID, reportID),
+                    : createDynamicRoute(
+                          DYNAMIC_ROUTES.MONEY_REQUEST_STEP_DISTANCE_RATE.getRoute(CONST.IOU.ACTION.EDIT, iouType ?? CONST.IOU.TYPE.SUBMIT, transactionID, reportID),
+                          ROUTES.REPORT_WITH_ID.getRoute(reportID),
+                      ),
                 {compareParams: false},
             );
             return;

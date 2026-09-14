@@ -113,7 +113,7 @@ function DynamicExpensifyCardLimitPage({route}: DynamicExpensifyCardLimitPagePro
                 prompt: translate(getPromptTextKey, convertToDisplayString(newLimit, currency)),
                 confirmText: translate('workspace.expensifyCard.changeLimit'),
                 cancelText: translate('common.cancel'),
-                danger: true,
+                buttonVariant: CONST.BUTTON_VARIANT.DANGER,
                 shouldEnableNewFocusManagement: true,
             }).then(({action}) => {
                 if (action !== ModalActions.CONFIRM) {
@@ -172,6 +172,9 @@ function DynamicExpensifyCardLimitPage({route}: DynamicExpensifyCardLimitPagePro
                     submitFlexEnabled={false}
                     enabledWhenOffline
                     validate={validate}
+                    // The submit handler can early-return into a cancelable confirmation modal without setting any
+                    // loading state or navigating away, so an immediate press spinner would never reset
+                    shouldShowLoadingImmediatelyOnPress={false}
                 >
                     <InputWrapper
                         InputComponent={AmountForm}

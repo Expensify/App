@@ -5,6 +5,8 @@ import useTransactionViolations from '@hooks/useTransactionViolations';
 
 import {markAsCash as markAsCashAction} from '@userActions/Transaction';
 
+import CONST from '@src/CONST';
+
 import React from 'react';
 
 import type {SimpleActionProps} from './types';
@@ -18,15 +20,16 @@ function MarkAsCashPrimaryAction({reportID, chatReportID}: SimpleActionProps) {
 
     return (
         <Button
-            success
-            text={translate('iou.markAsCash')}
+            variant={CONST.BUTTON_VARIANT.SUCCESS}
             onPress={() => {
                 if (!requestParentReportAction || !iouTransactionID || !transactionThreadReport?.reportID) {
                     return;
                 }
                 markAsCashAction(iouTransactionID, transactionThreadReport.reportID, transactionViolations);
             }}
-        />
+        >
+            <Button.Text>{translate('iou.markAsCash')}</Button.Text>
+        </Button>
     );
 }
 

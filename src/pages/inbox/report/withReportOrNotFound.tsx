@@ -1,13 +1,13 @@
 import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnyx from '@hooks/useOnyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 
 import {openReport} from '@libs/actions/Report';
 import getComponentDisplayName from '@libs/getComponentDisplayName';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import {canAccessReport} from '@libs/ReportUtils';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+import {canAccessReport, hasExpensifyGuidesEmails} from '@libs/ReportUtils';
 
 import type {
     ParticipantsNavigatorParamList,
@@ -31,16 +31,12 @@ import type {ComponentType} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {useIsFocused} from '@react-navigation/native';
+import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
 import React, {useEffect} from 'react';
 
 type WithReportOrNotFoundOnyxProps = {
-    /** The report currently being looked at */
     report: OnyxTypes.Report;
-
-    /** Metadata of the report currently being looked at */
     reportMetadata: OnyxEntry<OnyxTypes.ReportMetadata>;
-
-    /** Loading state of the report currently being looked at */
     reportLoadingState: OnyxEntry<OnyxTypes.ReportLoadingState>;
 
     /** The policy linked to the report */
@@ -49,7 +45,6 @@ type WithReportOrNotFoundOnyxProps = {
     /** Beta features list */
     betas: OnyxEntry<OnyxTypes.Beta[]>;
 
-    /** Indicated whether the report data is loading */
     isLoadingReportData: OnyxEntry<boolean>;
 };
 
@@ -85,12 +80,20 @@ export default function (shouldRequireReportID = true): <TProps extends WithRepo
             // with a `reportID` inherited from the surrounding report chain in the URL.
             const reportID = 'notificationReportID' in params ? params.notificationReportID : params.reportID;
             const [betas] = useOnyx(ONYXKEYS.BETAS);
+            const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+            const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
+            const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
             const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+            const [hasReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {selector: Boolean});
             const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`);
             const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`);
             const [reportLoadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${reportID}`);
             const [isLoadingReportData] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA);
             const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+            const [deleteTransactionNavigateBackUrl] = useOnyx(ONYXKEYS.NVP_DELETE_TRANSACTION_NAVIGATE_BACK_URL);
+            const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
+            const [guideAccountIDs] = useOnyx(ONYXKEYS.DERIVED.GUIDE_ACCOUNT_IDS);
+            const hasGuidesEmails = hasExpensifyGuidesEmails(Object.keys(report?.participants ?? {}).map(Number), guideAccountIDs);
             const isFocused = useIsFocused();
             const contentShown = React.useRef(false);
             const isReportIdInRoute = !!reportID?.length;
@@ -107,32 +110,33 @@ export default function (shouldRequireReportID = true): <TProps extends WithRepo
                     return;
                 }
 
-                openReport({reportID, introSelected, betas});
+                openReport({
+                    reportID,
+                    introSelected,
+                    conciergeChat,
+                    betas,
+                    hasReportActions,
+                    currentUserAccountID,
+                    isSelfTourViewed: guidedSetupAndTourStatus?.isSelfTourViewed,
+                    hasCompletedGuidedSetupFlow: guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
+                });
                 // eslint-disable-next-line react-hooks/exhaustive-deps
-            }, [shouldFetchReport, isReportLoaded, reportID]);
+            }, [shouldFetchReport, isReportLoaded, reportID, currentUserAccountID]);
 
             if (shouldRequireReportID || isReportIdInRoute) {
                 const shouldShowFullScreenLoadingIndicator = !isReportLoaded && (isLoadingReportData !== false || shouldFetchReport);
-                const shouldShowNotFoundPage = !isReportLoaded || !canAccessReport(report, betas, isReportArchived);
+                const shouldShowNotFoundPage = !isReportLoaded || !canAccessReport(report, betas, hasGuidesEmails, isReportArchived);
 
                 // If the content was shown, but it's not anymore, that means the report was deleted, and we are probably navigating out of this screen.
                 // Return null for this case to avoid rendering FullScreenLoadingIndicator or NotFoundPage when animating transition.
-                if (shouldShowNotFoundPage && contentShown.current && !isFocused) {
+                // We also suppress the NotFound page while a delete-transaction navigation is in flight (e.g. deleting an invoice
+                // navigates back to the invoice room without synchronously removing focus from this details RHP), mirroring ReportNotFoundGuard.
+                if (shouldShowNotFoundPage && contentShown.current && (!isFocused || !!deleteTransactionNavigateBackUrl)) {
                     return null;
                 }
 
                 if (shouldShowFullScreenLoadingIndicator) {
-                    const reasonAttributes: SkeletonSpanReasonAttributes = {
-                        context: 'withReportOrNotFound',
-                        isLoadingReportData: isLoadingReportData !== false,
-                        shouldFetchReport,
-                    };
-                    return (
-                        <FullscreenLoadingIndicator
-                            shouldUseGoBackButton
-                            reasonAttributes={reasonAttributes}
-                        />
-                    );
+                    return <FullscreenLoadingIndicator shouldUseGoBackButton />;
                 }
 
                 if (shouldShowNotFoundPage) {

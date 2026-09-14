@@ -1,10 +1,12 @@
 import useOnyx from '@hooks/useOnyx';
+import useRootNavigationState from '@hooks/useRootNavigationState';
 import useTrialPaymentReminder from '@hooks/useTrialPaymentReminder';
 
-import Navigation from '@libs/Navigation/Navigation';
+import {isModalNavigatorName} from '@libs/Navigation/helpers/isNavigatorName';
+
+import navigateToSubscriptionPayment from '@pages/home/common/navigateToSubscriptionPayment';
 
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 
 import React, {useCallback, useState} from 'react';
 
@@ -15,7 +17,9 @@ function TrialPaymentReminderModalManager() {
     const [modal] = useOnyx(ONYXKEYS.MODAL);
     const [isModalOpen, setIsModalOpen] = useState(false);
 
-    const isOtherModalActive = !!modal?.isVisible || !!modal?.willAlertModalBecomeVisible;
+    const isModalNavigatorActive = useRootNavigationState((state) => isModalNavigatorName(state?.routes?.at(-1)?.name));
+
+    const isOtherModalActive = !!modal?.isVisible || !!modal?.willAlertModalBecomeVisible || isModalNavigatorActive;
 
     if (isEligibleToShow && !isOtherModalActive && !isModalOpen) {
         setIsModalOpen(true);
@@ -32,7 +36,8 @@ function TrialPaymentReminderModalManager() {
     const handleAddPaymentCard = useCallback(() => {
         setIsModalOpen(false);
         dismiss();
-        Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION_ADD_PAYMENT_CARD);
+        // Adding a payment card is web-only; on native this routes to the subscription page instead.
+        navigateToSubscriptionPayment();
     }, [dismiss]);
 
     if (!currentVariation) {

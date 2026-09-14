@@ -36,6 +36,8 @@ function SageIntacctUserDimensionsPage({policy}: WithPolicyProps) {
     const config = policy?.connections?.intacct?.config;
     const userDimensions = policy?.connections?.intacct?.config?.mappings?.dimensions ?? [];
 
+    const addUserDefinedDimension = () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_ADD_USER_DIMENSION.getRoute(policyID));
+
     return (
         <ConnectionLayout
             displayName="SageIntacctUserDimensionsPage"
@@ -119,12 +121,13 @@ function SageIntacctUserDimensionsPage({policy}: WithPolicyProps) {
                 addBottomSafeAreaPadding
             >
                 <Button
-                    success
-                    text={translate('workspace.intacct.addUserDefinedDimension')}
-                    onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_ADD_USER_DIMENSION.getRoute(policyID))}
-                    pressOnEnter
-                    large
-                />
+                    variant={CONST.BUTTON_VARIANT.SUCCESS}
+                    onPress={addUserDefinedDimension}
+                    size={CONST.BUTTON_SIZE.LARGE}
+                >
+                    <Button.KeyboardShortcut />
+                    <Button.Text>{translate('workspace.intacct.addUserDefinedDimension')}</Button.Text>
+                </Button>
             </FixedFooter>
         </ConnectionLayout>
     );

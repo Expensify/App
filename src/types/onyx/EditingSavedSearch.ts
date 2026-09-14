@@ -1,7 +1,7 @@
 /** Model of the saved view that is currently being edited through the "Edit filters" flow */
 type EditingSavedSearch = {
-    /** Hash of the saved view being edited (its identity key in SAVED_SEARCHES) */
-    hash: number;
+    /** ID of the saved view being edited (its key in SAVED_SEARCHES) */
+    id: string;
 
     /** Display name of the saved view being edited */
     name: string;

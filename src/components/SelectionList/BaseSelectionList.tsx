@@ -38,7 +38,11 @@ const ANIMATED_HIGHLIGHT_DURATION =
     CONST.ANIMATED_HIGHLIGHT_END_DELAY +
     CONST.ANIMATED_HIGHLIGHT_END_DURATION;
 
-function BaseSelectionList<TItem extends ListItem>({
+/**
+ * Non-generic implementation so OXC's React Compiler can memoize the component.
+ * OXC bails on type params inside components ("Unsupported declaration type for hoisting").
+ */
+function BaseSelectionListImpl({
     data,
     ref,
     ListItem,
@@ -97,7 +101,7 @@ function BaseSelectionList<TItem extends ListItem>({
     shouldDisableHoverStyle = false,
     selectionButtonPosition,
     setShouldDisableHoverStyle = () => {},
-}: SelectionListProps<TItem>) {
+}: SelectionListProps<ListItem>) {
     const styles = useThemeStyles();
     const isFocused = useIsFocused();
     const scrollEnabled = useScrollEnabled();
@@ -108,7 +112,7 @@ function BaseSelectionList<TItem extends ListItem>({
     // Kept out of the destructuring default so the `!!` doesn't bail the component out of React Compiler.
     const shouldShowTextInput = shouldShowTextInputProp ?? !!textInputOptions?.label;
 
-    const listRef = useRef<FlashListRef<TItem> | null>(null);
+    const listRef = useRef<FlashListRef<ListItem> | null>(null);
     const {scrollToIndex, debouncedScrollToIndex} = useSelectionListScroll(listRef, data);
     const itemFocusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const keyboardListenerRef = useRef<ReturnType<typeof Keyboard.addListener> | null>(null);
@@ -117,7 +121,7 @@ function BaseSelectionList<TItem extends ListItem>({
     const [itemsToHighlight, setItemsToHighlight] = useState<Set<string> | null>(null);
 
     const isItemSelected = useCallback(
-        (item: TItem) => item.isSelected ?? ((isSelected?.(item) ?? selectedItems.includes(item.keyForList)) && canSelectMultiple),
+        (item: ListItem) => item.isSelected ?? ((isSelected?.(item) ?? selectedItems.includes(item.keyForList)) && canSelectMultiple),
         [isSelected, selectedItems, canSelectMultiple],
     );
 
@@ -125,9 +129,9 @@ function BaseSelectionList<TItem extends ListItem>({
 
     const hasFooter = !!footerContent || confirmButtonOptions?.showButton;
 
-    const dataDetails = useMemo<DataDetailsType<TItem>>(() => {
+    const dataDetails = useMemo<DataDetailsType<ListItem>>(() => {
         const {disabledIndexes, disabledArrowKeyIndexes, selectedOptions, disabledSelectedIndexes} = data.reduce(
-            (acc: {disabledIndexes: number[]; disabledArrowKeyIndexes: number[]; selectedOptions: TItem[]; disabledSelectedIndexes: number[]}, item: TItem, index: number) => {
+            (acc: {disabledIndexes: number[]; disabledArrowKeyIndexes: number[]; selectedOptions: ListItem[]; disabledSelectedIndexes: number[]}, item: ListItem, index: number) => {
                 const idx = item.index ?? index;
                 const itemIsSelected = isItemSelected(item);
                 const isItemDisabled = isDisabled || (!!item?.isDisabled && !itemIsSelected);
@@ -187,7 +191,7 @@ function BaseSelectionList<TItem extends ListItem>({
     const syncedSearchValue = searchValueForFocusSync ?? textInputOptions?.value;
 
     const selectRow = useCallback(
-        (item: TItem, indexToFocus?: number) => {
+        (item: ListItem, indexToFocus?: number) => {
             if (!isFocused) {
                 return;
             }
@@ -244,12 +248,26 @@ function BaseSelectionList<TItem extends ListItem>({
         selectRow(focusedOption);
     };
 
+    const hasSelectedItems = dataDetails.selectedOptions.length > 0;
+    const isFooterConfirmEnabled = confirmButtonOptions?.isFooterConfirmEnabled ?? hasSelectedItems;
+    const isCustomFooterConfirmEnabled = isFooterConfirmEnabled && confirmButtonOptions?.isDisabled !== true && confirmButtonOptions?.isFooterConfirmEnterKeyEnabled !== false;
+    // Whether Enter should trigger an enabled confirm button instead of the list.
+    // Footer renders footerContent in place of the built-in button, so the two paths are mutually
+    // exclusive; custom footers count only if they are Enter-capable and enabled. Owners can
+    // override the enabled state when selection persists outside the currently rendered rows.
+    const hasEnabledEnterConfirm =
+        (!footerContent && !!confirmButtonOptions?.showButton && !confirmButtonOptions?.isDisabled) || (!!footerContent && !!confirmButtonOptions?.onConfirm && isCustomFooterConfirmEnabled);
+    // Whether the focused row should handle plain Enter.
+    // Enter selects the row when keyboard navigation/search is active, propagation should stop,
+    // or there is no enabled Enter-capable confirm control that should handle the keypress instead.
+    const shouldSelectOnEnter = isKeyboardNavigating || !!syncedSearchValue?.trim() || !hasEnabledEnterConfirm || shouldStopPropagation;
+
     useSelectionListShortcuts({
         selectFocusedItem: selectFocusedOption,
         getFocusedOption: () => focusedOption,
         confirmButtonOptions,
         isActive: isFocused,
-        focusedIndex,
+        focusedIndex: shouldSelectOnEnter ? focusedIndex : -1,
         disableKeyboardShortcuts,
         shouldStopPropagation,
         shouldBubble: !focusedOption,
@@ -278,7 +296,7 @@ function BaseSelectionList<TItem extends ListItem>({
         );
     };
 
-    const renderItem: ListRenderItem<TItem> = ({item, index}: ListRenderItemInfo<TItem>) => {
+    const renderItem: ListRenderItem<ListItem> = ({item, index}: ListRenderItemInfo<ListItem>) => {
         const selected = isItemSelected(item);
         const isItemDisabled = isDisabled || (!!item.isDisabled && !selected);
         const isItemFocused = (!isDisabled || selected) && focusedIndex === index;
@@ -319,6 +337,7 @@ function BaseSelectionList<TItem extends ListItem>({
                 shouldSyncFocus={!isTextInputFocusedRef.current && isKeyboardNavigating}
                 shouldDisableHoverStyle={shouldDisableHoverStyle}
                 shouldShowRightCaret={shouldShowRightCaret}
+                isFirstItem={index === 0}
                 isLastItem={index === data.length - 1}
                 shouldPreventEnterKeySubmit={!disableKeyboardShortcuts}
                 selectionButtonPosition={selectionButtonPosition}
@@ -345,7 +364,7 @@ function BaseSelectionList<TItem extends ListItem>({
     // It ensures the entire list item is visible, not just the input field.
     // Added specifically for SplitExpensePage
     const scrollToFocusedInput = useCallback(
-        (item: TItem) => {
+        (item: ListItem) => {
             if (!listRef.current) {
                 return;
             }
@@ -493,7 +512,6 @@ function BaseSelectionList<TItem extends ListItem>({
                     shouldUseUserSkeletonView={shouldUseUserSkeletonView}
                     shouldShowListEmptyContent={shouldShowListEmptyContent}
                     listEmptyContent={listEmptyContent}
-                    context="BaseSelectionList"
                 />
             ) : (
                 <>
@@ -531,13 +549,17 @@ function BaseSelectionList<TItem extends ListItem>({
                 </>
             )}
 
-            <Footer<TItem>
+            <Footer<ListItem>
                 footerContent={footerContent}
                 confirmButtonOptions={confirmButtonOptions}
                 addBottomSafeAreaPadding={addBottomSafeAreaPadding}
             />
         </View>
     );
+}
+
+function BaseSelectionList<TItem extends ListItem>(props: SelectionListProps<TItem>) {
+    return <BaseSelectionListImpl {...(props as unknown as SelectionListProps<ListItem>)} />;
 }
 
 export default BaseSelectionList;

@@ -1,6 +1,8 @@
 import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
 import withViewportOffsetTop from '@components/withViewportOffsetTop';
 
+import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
+import useKeyboardState from '@hooks/useKeyboardState';
 import useOnyx from '@hooks/useOnyx';
 import usePopoverPosition from '@hooks/usePopoverPosition';
 import usePopstateListener from '@hooks/usePopstateListener';
@@ -14,6 +16,7 @@ import subscribeToRootNavigation from '@libs/Navigation/helpers/subscribeToRootN
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
+import KeyboardUtils from '@src/utils/keyboard';
 
 import type {ReactNode, RefObject} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
@@ -36,19 +39,11 @@ type ButtonComponentProps = {
 };
 
 type FilterPopupButtonProps = {
-    /** The viewport's offset */
     viewportOffsetTop: number;
-
-    /** Wrapper style for the outer view */
     wrapperStyle?: StyleProp<ViewStyle>;
-
     popoverWidth?: number;
     popoverAnchorAlignment?: AnchorAlignment;
-
-    /** The component to render in the popover */
     PopoverComponent: (props: PopoverComponentProps) => ReactNode;
-
-    /** The component to render as the button */
     renderButton: (props: ButtonComponentProps) => ReactNode;
 
     /** Exposes an imperative `open` (same code path as pressing the button), e.g. for the saved-view "Edit filters" flow */
@@ -90,11 +85,17 @@ function FilterPopupButton({
     const {isSmallScreenWidth} = useResponsiveLayout();
     const isFocused = useIsFocused();
     const styles = useThemeStyles();
+    const {isKeyboardActive} = useKeyboardState();
+    const bottomSafeAreaPaddingStyle = useBottomSafeSafeAreaPaddingStyle({addBottomSafeAreaPadding: isSmallScreenWidth && !isKeyboardActive});
     const StyleUtils = useStyleUtils();
     const {windowHeight} = useWindowDimensions();
     const triggerRef = useRef<View | null>(null);
     const anchorRef = useRef<View | null>(null);
     const [isOverlayVisible, setIsOverlayVisible] = useState(false);
+    // Defer mounting the (potentially heavy) popover content until the dropdown is first opened, then keep it
+    // mounted so the close animation and reopening stay instant. The content is otherwise mounted eagerly on
+    // screen focus even while hidden, which runs each filter selector's expensive option-building on page load.
+    const [hasEverExpanded, setHasEverExpanded] = useState(false);
     const [customPopoverWidth, setCustomPopoverWidth] = useState<number | undefined>(undefined);
     const {calculatePopoverPosition} = usePopoverPosition();
 
@@ -111,9 +112,17 @@ function FilterPopupButton({
         if (willAlertModalBecomeVisible && !shouldBypassAlertModalCheck) {
             return;
         }
-        calculatePopoverPosition(anchorRef, popoverAnchorAlignment).then((position) => {
-            setPopoverTriggerPosition({...position, vertical: position.vertical});
-            setIsOverlayVisible(true);
+        // Dismiss the keyboard before opening the popover. On Android, if a search input is still focused, the
+        // keyboard stays up. The bottom-docked popover's KeyboardAvoidingView then reserves keyboard-height
+        // padding, so the sheet renders mid-screen instead of at the bottom. dismissKeyboardAndExecute waits for
+        // keyboardDidHide on Android before running the callback; on other platforms it runs immediately.
+        KeyboardUtils.dismissKeyboardAndExecute(() => {
+            calculatePopoverPosition(anchorRef, popoverAnchorAlignment).then((position) => {
+                setPopoverTriggerPosition({...position, vertical: position.vertical});
+                // Latch in the same batch as the open so the deferred subtree mounts together with the popover becoming visible.
+                setHasEverExpanded(true);
+                setIsOverlayVisible(true);
+            });
         });
     };
 
@@ -193,9 +202,9 @@ function FilterPopupButton({
         >
             {/* Dropdown Trigger */}
             {renderButton({ref: triggerRef, onPress: toggleOverlay, isExpanded: isOverlayVisible})}
-
-            {/* Dropdown overlay */}
-            {isFocused && (
+            {/* Dropdown overlay. Gated on hasEverExpanded so the (potentially heavy) content subtree isn't mounted
+                until the dropdown is first opened — PopoverWithMeasuredContentBase mounts children even while hidden. */}
+            {isFocused && hasEverExpanded && (
                 <PopoverWithMeasuredContent
                     anchorRef={triggerRef}
                     avoidKeyboard
@@ -218,8 +227,9 @@ function FilterPopupButton({
                     shouldSkipRemeasurement
                     shouldDisplayBelowModals
                     shouldWrapModalChildrenInScrollViewIfBottomDockedInLandscapeMode={false}
+                    enableEdgeToEdgeBottomSafeAreaPadding
                 >
-                    {popoverContent}
+                    <View style={bottomSafeAreaPaddingStyle}>{popoverContent}</View>
                 </PopoverWithMeasuredContent>
             )}
         </View>

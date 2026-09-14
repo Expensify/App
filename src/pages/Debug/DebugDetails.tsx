@@ -16,7 +16,7 @@ import DebugUtils from '@libs/DebugUtils';
 
 import Debug from '@userActions/Debug';
 
-import type CONST from '@src/CONST';
+import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import TRANSACTION_FORM_INPUT_IDS from '@src/types/form/DebugTransactionForm';
@@ -39,10 +39,7 @@ type DebugDetailsProps = {
     /** The report or report action data to be displayed and edited. */
     data: OnyxEntry<Report> | OnyxEntry<ReportAction> | OnyxEntry<Transaction> | OnyxEntry<TransactionViolation>;
 
-    /** Whether the provided policy has enabled tags */
     policyHasEnabledTags?: boolean;
-
-    /** ID of the provided policy */
     policyID?: string;
 
     /** Metadata UI */
@@ -112,7 +109,12 @@ function DebugDetails({formType, data, policyHasEnabledTags, policyID, children,
                 try {
                     validate(key, DebugUtils.onyxDataToString(value));
                 } catch (e) {
-                    const {cause, message} = e as SyntaxError;
+                    if (!(e instanceof Error)) {
+                        newErrors[key] = String(e);
+                        continue;
+                    }
+
+                    const {message, cause} = e;
                     newErrors[key] = cause || message === 'debug.missingValue' ? translate(message as TranslationPaths, cause as never) : message;
                 }
             }
@@ -257,11 +259,12 @@ function DebugDetails({formType, data, policyHasEnabledTags, policyID, children,
                 <Text style={[styles.headerText, styles.textAlignCenter]}>{translate('debug.hint')}</Text>
                 <View style={[styles.ph5, styles.mb3, styles.mt5]}>
                     <Button
-                        danger
-                        large
-                        text={translate('common.delete')}
+                        variant={CONST.BUTTON_VARIANT.DANGER}
+                        size={CONST.BUTTON_SIZE.LARGE}
                         onPress={onDelete}
-                    />
+                    >
+                        <Button.Text>{translate('common.delete')}</Button.Text>
+                    </Button>
                 </View>
             </FormProvider>
         </ScrollView>

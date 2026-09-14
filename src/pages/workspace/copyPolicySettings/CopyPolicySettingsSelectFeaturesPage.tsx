@@ -23,7 +23,10 @@ import {
     FEATURE_ROWS,
     getReceiptPartnersCopySettingsDescription,
     getTimeTrackingCopySettingsDescription,
+    hasCurrencyConflictWithAnyTarget,
     isCopyPolicySettingsPartEnabledOnSource,
+    isCurrencyBlockedByTargetBA,
+    needsCurrencyForWorkflows,
     shouldShowCopyPolicySettingsUpgradeStep,
 } from '@libs/CopyPolicySettingsUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -101,7 +104,9 @@ function CopyPolicySettingsSelectFeaturesPage() {
           )
         : 0;
     const taxesCount = Object.values(sourcePolicy?.taxRates?.taxes ?? {}).filter((tax) => tax.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length;
-    const reportFieldsCount = Object.values(getReportFieldsByPolicyID(sourcePolicy) ?? {}).filter((field) => field.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length;
+    const policyFields = Object.values(getReportFieldsByPolicyID(sourcePolicy) ?? {}).filter((field) => field.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+    const reportFieldsCount = policyFields.filter((field) => field.target !== CONST.REPORT_FIELD_TARGETS.INVOICE).length;
+    const invoiceFieldsCount = policyFields.filter((field) => field.target === CONST.REPORT_FIELD_TARGETS.INVOICE).length;
     const codingRulesCount = Object.values(sourcePolicy?.rules?.codingRules ?? {}).filter((rule) => rule.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length;
     const connectedIntegration = getAllValidConnectedIntegration(sourcePolicy, CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES);
     const distanceRatesCount = Object.values(getDistanceRateCustomUnit(sourcePolicy)?.rates ?? {}).filter((rate) => rate.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length;
@@ -109,10 +114,16 @@ function CopyPolicySettingsSelectFeaturesPage() {
     const perDiemCount = Object.values(perDiemRates).filter((rate) => rate.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length;
     const formattedAddress = !isEmptyObject(sourcePolicy) && !isEmptyObject(sourcePolicy.address) ? formatAddressToString(sourcePolicy.address) : '';
     const workflows = getWorkflowRules(sourcePolicy, translate);
-    const rules = getWorkspaceRules(sourcePolicy, translate);
+    const rules = getWorkspaceRules(sourcePolicy, translate, policyCategories);
+    const shouldShowCurrency = hasCurrencyConflictWithAnyTarget(sourcePolicy, targetPolicies);
+    const currencyBlockedByBA = isCurrencyBlockedByTargetBA(sourcePolicy, targetPolicies);
+    const currencyNeededForWorkflows = needsCurrencyForWorkflows(sourcePolicy, targetPolicies);
+    const hasOverviewContent = !!formattedAddress || !!sourcePolicy?.description;
 
     const sourceFeatureContext = {
         policy: sourcePolicy,
+        hasOverviewContent,
+        shouldShowCurrency,
         memberCount,
         categoriesCount,
         totalTags,
@@ -124,7 +135,7 @@ function CopyPolicySettingsSelectFeaturesPage() {
         hasWorkflowRules: !!workflows?.length,
         hasWorkspaceRules: !!rules?.length,
         codingRulesCount,
-        hasInvoiceConfiguration: !!sourcePolicy?.areInvoicesEnabled && !!invoiceConfigurationText,
+        hasInvoiceConfiguration: !!sourcePolicy?.areInvoicesEnabled && (!!invoiceConfigurationText || invoiceFieldsCount > 0),
         isCollectPolicy: isCollectPolicy(sourcePolicy),
     };
 
@@ -147,6 +158,9 @@ function CopyPolicySettingsSelectFeaturesPage() {
         if (part === 'travel') {
             return hasTargetWithoutAddress && !sourceHasAddress;
         }
+        if (part === 'currency') {
+            return currencyBlockedByBA;
+        }
         return false;
     };
 
@@ -157,26 +171,33 @@ function CopyPolicySettingsSelectFeaturesPage() {
     const resolvedSelectedFeatures = selectedFeatures ?? copyPolicySettings?.parts ?? [];
     const selectedAvailableFeatures = resolvedSelectedFeatures.filter((part) => availablePartSet.has(part) && !isPartIncompatible(part));
     const isAccountingSelected = selectedAvailableFeatures.includes(CONST.POLICY.POLICY_FEATURE.ACCOUNTING);
+    const isWorkflowsSelected = selectedAvailableFeatures.includes(CONST.POLICY.POLICY_FEATURE.WORKFLOWS);
+    const isOverviewSelected = selectedAvailableFeatures.includes(CONST.POLICY.POLICY_FEATURE.OVERVIEW);
 
     const effectiveSelectedFeatures = isAccountingSelected
         ? Array.from(new Set<Part>([...selectedAvailableFeatures, ...CODING_PARTS_TIED_TO_CONNECTION.filter((part) => availablePartSet.has(part))]))
         : selectedAvailableFeatures;
 
-    const isOverviewSelected = selectedAvailableFeatures.includes(CONST.POLICY.POLICY_FEATURE.OVERVIEW);
+    const shouldIncludeCurrency = effectiveSelectedFeatures.length > 0 && !isPartIncompatible('currency') && isWorkflowsSelected && currencyNeededForWorkflows;
+    if (shouldIncludeCurrency && !effectiveSelectedFeatures.includes('currency')) {
+        effectiveSelectedFeatures.push('currency');
+    }
 
     // Travel needs every target to have a company address. The source address only reaches a target
     // when "overview" is copied, so when a target lacks one require overview (and a source address to
     // copy). isPartIncompatible already hard-disables the case where the source has no address.
     const isTravelAddressMismatch = (part: Part): boolean => part === 'travel' && hasTargetWithoutAddress && !(isOverviewSelected && sourceHasAddress);
 
-    const isFeatureDisabled = (part: Part): boolean => isPartIncompatible(part) || (isAccountingSelected && isCodingPart(part)) || isTravelAddressMismatch(part);
+    const shouldSelectCurrency = (part: Part): boolean => part === 'currency' && isWorkflowsSelected && currencyNeededForWorkflows && !currencyBlockedByBA;
+    const isFeatureDisabled = (part: Part): boolean =>
+        isPartIncompatible(part) || (isAccountingSelected && isCodingPart(part)) || isTravelAddressMismatch(part) || shouldSelectCurrency(part);
 
     const getSourceDescription = (part: Part): string | undefined => {
         switch (part) {
-            case CONST.POLICY.POLICY_FEATURE.OVERVIEW: {
-                const currencyText = sourcePolicy?.outputCurrency ? `${sourcePolicy.outputCurrency} ${translate('common.currency')}` : '';
-                return [currencyText, formattedAddress].filter(Boolean).join(', ') || undefined;
-            }
+            case 'currency':
+                return sourcePolicy?.outputCurrency ?? undefined;
+            case CONST.POLICY.POLICY_FEATURE.OVERVIEW:
+                return formattedAddress || undefined;
             case CONST.POLICY.POLICY_FEATURE.MEMBERS:
                 return memberCount > 1 ? `${memberCount} ${translate('workspace.common.members').toLowerCase()}` : undefined;
             case 'reports':
@@ -205,8 +226,12 @@ function CopyPolicySettingsSelectFeaturesPage() {
                 return getTimeTrackingCopySettingsDescription(sourcePolicy, translate);
             case 'receiptPartners':
                 return getReceiptPartnersCopySettingsDescription(sourcePolicy, translate);
-            case 'invoices':
-                return invoiceConfigurationText || undefined;
+            case 'invoices': {
+                const invoiceDetails = [invoiceConfigurationText, invoiceFieldsCount ? `${invoiceFieldsCount} ${translate('workspace.common.invoiceFields').toLowerCase()}` : '']
+                    .filter(Boolean)
+                    .join(', ');
+                return invoiceDetails || undefined;
+            }
             default:
                 return undefined;
         }
@@ -226,6 +251,9 @@ function CopyPolicySettingsSelectFeaturesPage() {
     const getAlternateText = (part: Part): string | undefined => {
         if (isTravelAddressMismatch(part)) {
             return translate('workspace.copyPolicySettings.selectSettings.travelAddressMismatch');
+        }
+        if (part === 'currency' && currencyBlockedByBA) {
+            return translate('workspace.copyPolicySettings.selectSettings.currencyBlockedByBankAccount');
         }
         if (isAccountingMismatch(part)) {
             return translate('workspace.copyPolicySettings.selectSettings.accountingMismatch', {
@@ -283,7 +311,7 @@ function CopyPolicySettingsSelectFeaturesPage() {
         setCopyPolicySettingsData({parts}).then(() => {
             // Copying Control-only settings onto a Collect (Team) target requires upgrading it first,
             // so insert the upgrade step before Confirm; otherwise skip straight to Confirm.
-            const nextRoute = shouldShowCopyPolicySettingsUpgradeStep(targetPolicies, parts)
+            const nextRoute = shouldShowCopyPolicySettingsUpgradeStep(targetPolicies, parts, sourcePolicy)
                 ? ROUTES.POLICY_COPY_SETTINGS_UPGRADE.getRoute(sourcePolicyID)
                 : ROUTES.POLICY_COPY_SETTINGS_CONFIRM.getRoute(sourcePolicyID);
             Navigation.navigate(nextRoute);
@@ -291,7 +319,6 @@ function CopyPolicySettingsSelectFeaturesPage() {
     };
 
     const onConfirm = () => {
-        const isWorkflowsSelected = effectiveSelectedFeatures.includes(CONST.POLICY.POLICY_FEATURE.WORKFLOWS);
         const isMembersSelected = effectiveSelectedFeatures.includes(CONST.POLICY.POLICY_FEATURE.MEMBERS);
         const isMembersPartAvailable = availablePartSet.has(CONST.POLICY.POLICY_FEATURE.MEMBERS);
 

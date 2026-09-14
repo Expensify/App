@@ -1,10 +1,12 @@
+import type {setAuthenticationData} from '@libs/FraudProtection/GroupIBSdkBridge';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 
 import Onyx from 'react-native-onyx';
 
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
-const mockSetAuthenticationData = jest.fn();
+const mockSetAuthenticationData = jest.fn<void, Parameters<typeof setAuthenticationData>>();
 const mockSetAttribute = jest.fn<void, unknown[]>();
 
 jest.mock('@libs/FraudProtection/GroupIBSdkBridge', () => ({
@@ -45,8 +47,11 @@ beforeEach(async () => {
 
 /** Returns the sessionID argument from the Nth call to setAuthenticationData. */
 function getSessionIDFromCall(callIndex: number): string {
-    const call = mockSetAuthenticationData.mock.calls.at(callIndex) as unknown[];
-    return call.at(1) as string;
+    const call = mockSetAuthenticationData.mock.calls.at(callIndex);
+    if (!call) {
+        throw new Error(`Expected setAuthenticationData call at index ${callIndex}`);
+    }
+    return call[1];
 }
 
 describe('FraudProtection', () => {
@@ -83,7 +88,7 @@ describe('FraudProtection', () => {
 
         expect(mockSetAuthenticationData).not.toHaveBeenCalled();
 
-        // Step 2: Magic code verified, session is created
+        // Step 2: Validate code verified, session is created
         await Onyx.merge(ONYXKEYS.SESSION, {authToken: 'token123', accountID: 12345});
         await waitForBatchedUpdates();
 

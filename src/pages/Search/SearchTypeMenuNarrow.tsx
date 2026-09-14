@@ -2,6 +2,7 @@ import type BaseModalProps from '@components/Modal/types';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import PopoverMenu from '@components/PopoverMenu';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
+import {useSearchQueryActions, useSearchQueryContext} from '@components/Search/SearchContext';
 import type {SearchQueryJSON} from '@components/Search/types';
 import TabSelectorBase from '@components/TabSelector/TabSelectorBase';
 import TabSelectorContextProvider from '@components/TabSelector/TabSelectorContext';
@@ -22,7 +23,17 @@ import useTodoCounts from '@hooks/useTodoCounts';
 import {enterSavedViewEditMode, setSearchContext} from '@libs/actions/Search';
 import {mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
 import {getAllTaxRates} from '@libs/PolicyUtils';
-import {getItemBadgeText, getOverflowMenu} from '@libs/SearchUIUtils';
+import {getValidLastQuery} from '@libs/SearchQueryUtils';
+import {
+    getItemBadgeText,
+    getLastSearchQuery,
+    getOverflowMenu,
+    savedSearchIDToSearchKey,
+    SAVED_SEARCH_FALLBACK_ICON_NAME,
+    SAVED_SEARCH_ICON_NAMES,
+    SEARCH_TYPE_MENU_ICON_NAMES,
+} from '@libs/SearchUIUtils';
+import type {SearchKey} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -35,21 +46,20 @@ import {useIsFocused, useNavigation} from '@react-navigation/native';
 import React, {useRef, useState} from 'react';
 import {View} from 'react-native';
 
+import useSavedSearchIcons from './hooks/useSavedSearchIcons';
 import useSavedSearchTitles from './hooks/useSavedSearchTitles';
 
 type SearchTypeMenuNarrowProps = {
-    /** Search query JSON */
     queryJSON?: SearchQueryJSON;
-    /** Function to call when a tab is pressed */
     onTabPress?: () => void;
 };
 
 type SearchTypeMenuNarrowContentProps = {
-    tabs: TabSelectorBaseItem[];
-    activeTabKey: string;
-    onActiveTabPress?: (key: string) => void;
-    onTabPress?: (key: string) => void;
-    onLongTabPress?: (key: string) => void;
+    tabs: Array<TabSelectorBaseItem<SearchKey>>;
+    activeTabKey: SearchKey | undefined;
+    onActiveTabPress?: (key: SearchKey) => void;
+    onTabPress?: (key: SearchKey) => void;
+    onLongTabPress?: (key: SearchKey) => void;
     containerRef?: React.RefObject<View | null>;
     children?: React.ReactNode;
 };
@@ -79,14 +89,10 @@ function SearchTypeMenuNarrowContent({tabs, activeTabKey, onActiveTabPress, onTa
 function SearchTypeMenuNarrow({queryJSON, onTabPress}: SearchTypeMenuNarrowProps) {
     const {isOffline} = useNetwork();
     const navigation = useNavigation();
-    const {translate, localeCompare} = useLocalize();
-    const {typeMenuSections, activeKey: activeTypeMenuKey} = useSearchTypeMenuSections({
-        hash: queryJSON?.hash,
-        similarSearchHash: queryJSON?.similarSearchHash,
-        sortBy: queryJSON?.sortBy,
-        sortOrder: queryJSON?.sortOrder,
-        type: queryJSON?.type,
-    });
+    const {translate, localeCompare, formatPhoneNumber} = useLocalize();
+    const styles = useThemeStyles();
+    const isFocused = useIsFocused();
+    const typeMenuSections = useSearchTypeMenuSections(isFocused);
     const personalDetails = usePersonalDetails();
     const feedKeysWithCards = useFeedKeysWithAssignedCards();
     const [restoreFocusType, setRestoreFocusType] = useState<BaseModalProps['restoreFocusType']>();
@@ -98,11 +104,12 @@ function SearchTypeMenuNarrow({queryJSON, onTabPress}: SearchTypeMenuNarrowProps
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [workspaceCardList] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST);
     const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES);
-    const [editingSavedView] = useOnyx(ONYXKEYS.RAM_ONLY_SEARCH_EDITING_SAVED_VIEW);
-    const isFocused = useIsFocused();
+    const [searchFilters] = useOnyx(ONYXKEYS.SEARCH_FILTERS);
     const {counts: reportCounts} = useTodoCounts(isFocused);
     const [currentUserAccountID = -1] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
     const reportAttributes = useReportAttributes();
+    const {currentSearchKey} = useSearchQueryContext();
+    const {setCurrentSearchKey} = useSearchQueryActions();
 
     const taxRates = getAllTaxRates(allPolicies);
     const cardsForSavedSearchDisplay = mergeCardListWithWorkspaceFeeds(workspaceCardList ?? CONST.EMPTY_OBJECT, cardList);
@@ -116,89 +123,70 @@ function SearchTypeMenuNarrow({queryJSON, onTabPress}: SearchTypeMenuNarrowProps
         policies: allPolicies,
         currentUserAccountID,
         translate,
+        formatPhoneNumber,
         feedKeysWithCards,
         reportAttributes,
         bankAccountList,
         enabled: !!queryJSON,
     });
 
-    const [savedSearchToModifyKey, setSavedSearchToModifyKey] = useState<string | null>(null);
+    const [savedSearchToModifyKey, setSavedSearchToModifyKey] = useState<SearchKey | null>(null);
     const menuAnchorRef = useRef<View>(null);
     const {showDeleteModal} = useDeleteSavedSearch();
 
-    const {copiedHash, handleShare} = useShareSavedSearch();
+    const {copiedID, handleShare} = useShareSavedSearch();
 
-    const expensifyIcons = useMemoizedLazyExpensifyIcons([
-        'Receipt',
-        'MoneyBag',
-        'CreditCard',
-        'MoneyHourglass',
-        'CreditCardHourglass',
-        'Bank',
-        'User',
-        'Folder',
-        'Basket',
-        'CalendarSolid',
-        'Bookmark',
-        'Pencil',
-        'Trashcan',
-        'LinkCopy',
-        'Checkmark',
-        'Filter',
-        'Document',
-        'ThumbsUp',
-        'CheckCircle',
-    ]);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons([...SEARCH_TYPE_MENU_ICON_NAMES, ...SAVED_SEARCH_ICON_NAMES, 'Trashcan', 'LinkCopy', 'Checkmark', 'Filter']);
 
-    const queryMap = new Map<string, {query: string; name?: string}>();
-    const tabItems: TabSelectorBaseItem[] = [];
-    const savedSearchesPopoverMenuItems: Record<string, PopoverMenuItem[]> = {};
-    let activeKey = '';
+    // Resolve each saved search's icon once per collection change (see useSavedSearchIcons for why).
+    const savedSearchIconNames = useSavedSearchIcons(savedSearches);
 
-    const savedSearchesTabItems: TabSelectorBaseItem[] = savedSearches
+    const queryMap = new Map<SearchKey, {query: string; name?: string}>();
+    const tabItems: Array<TabSelectorBaseItem<SearchKey>> = [];
+    const savedSearchesPopoverMenuItems: Partial<Record<SearchKey, PopoverMenuItem[]>> = {};
+
+    const savedSearchesTabItems: Array<TabSelectorBaseItem<SearchKey>> = savedSearches
         ? Object.entries(savedSearches)
-              .map(([key, item]): TabSelectorBaseItem | null => {
+              .map(([key, item]): TabSelectorBaseItem<SearchKey> | null => {
                   if (item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && !isOffline) {
                       return null;
                   }
 
                   const title = item.name === item.query ? (savedSearchTitles.get(item.query) ?? item.name) : item.name;
 
-                  queryMap.set(key, {query: item.query ?? '', name: item.name});
-                  const itemHash = Number(key);
-                  savedSearchesPopoverMenuItems[key] = getOverflowMenu(
+                  const savedSearchKey = savedSearchIDToSearchKey(key);
+                  queryMap.set(savedSearchKey, {query: item.query ?? '', name: item.name});
+                  savedSearchesPopoverMenuItems[savedSearchKey] = getOverflowMenu(
                       expensifyIcons,
-                      title,
-                      itemHash,
-                      item.query,
+                      key,
                       translate,
                       showDeleteModal,
                       true,
                       () => setSavedSearchToModifyKey(null),
                       {
                           onShare: () => {
-                              handleShare(itemHash, item.query);
+                              handleShare(key, item.query);
                               setTimeout(() => setSavedSearchToModifyKey(null), MENU_CLOSE_DELAY_MS);
                           },
-                          isCopied: copiedHash === itemHash,
+                          isCopied: copiedID === key,
                       },
                       () => {
                           setSavedSearchToModifyKey(null);
+                          // Move the LHN highlight to the edited view; the key won't reset on its own once the query lands on a saved view.
+                          setCurrentSearchKey(savedSearchKey, item.query);
                           // Use the raw stored name (not the derived display title) so saving edits doesn't rename auto-named views.
-                          enterSavedViewEditMode({hash: itemHash, name: item.name, query: item.query});
+                          enterSavedViewEditMode({id: key, name: item.name, query: item.query});
                       },
                   );
 
-                  if (Number(key) === queryJSON?.hash || Number(key) === editingSavedView?.hash) {
-                      activeKey = key;
-                  }
-
                   return {
-                      key,
-                      icon: expensifyIcons.Bookmark,
+                      key: savedSearchKey,
+                      icon: expensifyIcons[savedSearchIconNames.get(item.query) ?? SAVED_SEARCH_FALLBACK_ICON_NAME],
                       title,
                       isDisabled: item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                       pendingAction: item.pendingAction,
+                      // Saved-search tabs opt into the long-press / right-click menu (share / delete) via onLongTabPress.
+                      shouldEnableLongPress: true,
                   };
               })
               .filter((item) => item !== null)
@@ -218,43 +206,45 @@ function SearchTypeMenuNarrow({queryJSON, onTabPress}: SearchTypeMenuNarrowProps
                     icon: expensifyIcons[item.icon],
                     title,
                     badgeText,
+                    isBadgeCondensed: true,
+                    badgeStyles: styles.tabSelectorBadge,
                 });
                 queryMap.set(item.key, {query: item.searchQuery});
-                if (item.key === activeTypeMenuKey) {
-                    activeKey = item.key;
-                }
             }
         }
     }
 
-    const popoverMenuItems = savedSearchToModifyKey ? savedSearchesPopoverMenuItems?.[savedSearchToModifyKey] : [];
+    const popoverMenuItems = savedSearchToModifyKey ? (savedSearchesPopoverMenuItems?.[savedSearchToModifyKey] ?? []) : [];
     const shouldShowSavedSearchPopover = savedSearchToModifyKey && popoverMenuItems.length > 0;
 
-    const handleActiveTabPress = (tabKey: string) => {
+    const handleActiveTabPress = (tabKey: SearchKey) => {
         const searchData = queryMap.get(tabKey);
         if (!searchData) {
             return;
         }
         onTabPress?.();
+        setCurrentSearchKey(tabKey);
         setSearchContext(false);
     };
 
-    const handleTabPress = (tabKey: string) => {
+    const handleTabPress = (tabKey: SearchKey) => {
         const searchData = queryMap.get(tabKey);
         if (!searchData) {
             return;
         }
         onTabPress?.();
+        const query = getValidLastQuery(getLastSearchQuery(searchFilters, tabKey), searchData.query);
+        setCurrentSearchKey(tabKey, query);
         setSearchContext(false);
         navigation.dispatch({
             type: CONST.NAVIGATION.ACTION_TYPE.PUSH_PARAMS,
             payload: {
-                params: {q: searchData.query, name: searchData.name, rawQuery: undefined},
+                params: {q: query, name: searchData.name, rawQuery: undefined},
             },
         });
     };
 
-    const handleLongTabPress = (tabKey: string) => {
+    const handleLongTabPress = (tabKey: SearchKey) => {
         if (!savedSearchesPopoverMenuItems?.[tabKey]) {
             return;
         }
@@ -265,7 +255,7 @@ function SearchTypeMenuNarrow({queryJSON, onTabPress}: SearchTypeMenuNarrowProps
     return (
         <SearchTypeMenuNarrowContent
             tabs={tabItems}
-            activeTabKey={activeKey}
+            activeTabKey={currentSearchKey}
             onActiveTabPress={handleActiveTabPress}
             onTabPress={handleTabPress}
             onLongTabPress={handleLongTabPress}
@@ -293,6 +283,7 @@ function SearchTypeMenuNarrow({queryJSON, onTabPress}: SearchTypeMenuNarrowProps
                 shouldUseScrollView
                 shouldEnableNewFocusManagement
                 restoreFocusType={restoreFocusType}
+                enableEdgeToEdgeBottomSafeAreaPadding
             />
         </SearchTypeMenuNarrowContent>
     );

@@ -1,14 +1,10 @@
-import type {ActionHandledType} from '@components/ProcessMoneyReportHoldMenu';
-
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
-
 import type CONST from '@src/CONST';
-import type {PersonalDetails, Policy, Report, ReportAction, Transaction} from '@src/types/onyx';
+import type {PersonalDetails, Policy, Report, ReportAction, Transaction, TransactionViolations} from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type {ConnectionName} from '@src/types/onyx/Policy';
 
 import type {Context} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
 import {createContext, useContext} from 'react';
@@ -40,6 +36,11 @@ type ReportPreviewData = {
     invoiceReceiverPersonalDetail: OnyxEntry<PersonalDetails> | null;
 };
 
+type ReportPreviewTransactionViolations = {
+    /** Violations scoped to `ReportPreviewData.transactions`, computed once by the provider so branch buttons don't each re-select the whole collection. */
+    transactionViolations: OnyxCollection<TransactionViolations>;
+};
+
 type ReportPreviewUIState = {
     isTransitionPending: boolean;
     shouldShowPreviewLoading: boolean;
@@ -50,8 +51,6 @@ type ReportPreviewUIState = {
     shouldShowCarouselArrows: boolean;
     isScanning: boolean;
     previewCarouselMinWidth: number;
-    skeletonReasonAttributes: SkeletonSpanReasonAttributes;
-    carouselReasonAttributes: SkeletonSpanReasonAttributes;
     previewMessageStyle: ReturnType<typeof usePreviewMessageAnimation>['previewMessageStyle'];
     reportPreviewStyles: MoneyRequestReportPreviewStyleType;
     buttonMaxWidth: {maxWidth?: number};
@@ -72,7 +71,7 @@ type ReportPreviewActionState = {
 
 type ReportPreviewActions = {
     openReportFromPreview: () => void;
-    onHoldMenuOpen: (requestType: string, paymentType?: PaymentMethodType, canPay?: boolean, methodID?: number) => void;
+    onHoldMenuOpen: (paymentType?: PaymentMethodType, canPay?: boolean, methodID?: number) => void;
     onHoldMenuClose: () => void;
     onPaymentOptionsShow?: () => void;
     onPaymentOptionsHide?: () => void;
@@ -85,7 +84,6 @@ type ReportPreviewActions = {
 };
 
 type ReportPreviewHoldMenuState = {
-    requestType: ActionHandledType;
     paymentType: PaymentMethodType | undefined;
     canPay: boolean;
     methodID: number | undefined;
@@ -98,6 +96,7 @@ type ReportPreviewMeta = {
 const ReportPreviewCarouselStateContext = createContext<ReportPreviewCarouselState | undefined>(undefined);
 const ReportPreviewAnimationStateContext = createContext<ReportPreviewAnimationState | undefined>(undefined);
 const ReportPreviewDataContext = createContext<ReportPreviewData | undefined>(undefined);
+const ReportPreviewTransactionViolationsContext = createContext<ReportPreviewTransactionViolations | undefined>(undefined);
 const ReportPreviewUIStateContext = createContext<ReportPreviewUIState | undefined>(undefined);
 const ReportPreviewCarouselListContext = createContext<ReportPreviewCarouselList | undefined>(undefined);
 const ReportPreviewActionStateContext = createContext<ReportPreviewActionState | undefined>(undefined);
@@ -116,6 +115,7 @@ function useSliceContext<T>(context: Context<T | undefined>, name: string): T {
 const useReportPreviewCarouselState = () => useSliceContext(ReportPreviewCarouselStateContext, 'useReportPreviewCarouselState');
 const useReportPreviewAnimationState = () => useSliceContext(ReportPreviewAnimationStateContext, 'useReportPreviewAnimationState');
 const useReportPreviewData = () => useSliceContext(ReportPreviewDataContext, 'useReportPreviewData');
+const useReportPreviewTransactionViolations = () => useSliceContext(ReportPreviewTransactionViolationsContext, 'useReportPreviewTransactionViolations');
 const useReportPreviewUIState = () => useSliceContext(ReportPreviewUIStateContext, 'useReportPreviewUIState');
 const useReportPreviewCarouselList = () => useSliceContext(ReportPreviewCarouselListContext, 'useReportPreviewCarouselList');
 const useReportPreviewActionState = () => useSliceContext(ReportPreviewActionStateContext, 'useReportPreviewActionState');
@@ -133,6 +133,7 @@ export {
     ReportPreviewCarouselStateContext,
     ReportPreviewAnimationStateContext,
     ReportPreviewDataContext,
+    ReportPreviewTransactionViolationsContext,
     ReportPreviewUIStateContext,
     ReportPreviewCarouselListContext,
     ReportPreviewActionStateContext,
@@ -142,6 +143,7 @@ export {
     useReportPreviewCarouselState,
     useReportPreviewAnimationState,
     useReportPreviewData,
+    useReportPreviewTransactionViolations,
     useReportPreviewUIState,
     useReportPreviewCarouselList,
     useReportPreviewActionState,

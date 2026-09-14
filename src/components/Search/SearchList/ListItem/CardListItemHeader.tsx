@@ -1,5 +1,5 @@
+import AccountAvatarWithCardFeed from '@components/Avatar/connected/AccountAvatarWithCardFeed';
 import Checkbox from '@components/Checkbox';
-import ReportActionAvatars from '@components/ReportActionAvatars';
 import type {SearchColumnType} from '@components/Search/types';
 import type {ListItem} from '@components/SelectionList/types';
 import TextWithTooltip from '@components/TextWithTooltip';
@@ -26,16 +26,12 @@ import TextCell from './TextCell';
 import TotalCell from './TotalCell';
 
 type CardListItemHeaderProps<TItem extends ListItem> = {
-    /** The card currently being looked at */
     card: TransactionCardGroupListItemType;
-
-    /** Callback to fire when a checkbox is pressed */
     onCheckboxPress?: (item: TItem) => void;
 
     /** Whether this section items disabled for selection */
     isDisabled?: boolean | null;
 
-    /** Whether the item is focused */
     isFocused?: boolean;
 
     /** Whether selecting multiple transactions at once is allowed */
@@ -47,7 +43,6 @@ type CardListItemHeaderProps<TItem extends ListItem> = {
     /** Whether only some transactions are selected */
     isIndeterminate?: boolean;
 
-    /** Callback for when the down arrow is clicked */
     onDownArrowClick?: () => void;
 
     /** Whether the down arrow is expanded */
@@ -57,7 +52,11 @@ type CardListItemHeaderProps<TItem extends ListItem> = {
     columns?: SearchColumnType[];
 };
 
-function CardListItemHeader<TItem extends ListItem>({
+/**
+ * Non-generic implementation so OXC's React Compiler can memoize the component.
+ * OXC bails on type params inside components ("Unsupported declaration type for hoisting").
+ */
+function CardListItemHeaderImpl({
     card: cardItem,
     onCheckboxPress,
     isDisabled,
@@ -68,13 +67,13 @@ function CardListItemHeader<TItem extends ListItem>({
     onDownArrowClick,
     columns,
     isExpanded,
-}: CardListItemHeaderProps<TItem>) {
+}: CardListItemHeaderProps<ListItem>) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {isLargeScreenWidth} = useResponsiveLayout();
     const StyleUtils = useStyleUtils();
     const {translate, formatPhoneNumber} = useLocalize();
-    const formattedDisplayName = formatPhoneNumber(temporaryGetDisplayNameOrDefault({passedPersonalDetails: cardItem, translate}));
+    const formattedDisplayName = temporaryGetDisplayNameOrDefault({passedPersonalDetails: cardItem, translate, formatPhoneNumber});
     const backgroundColor =
         StyleUtils.getItemBackgroundColorStyle(!!cardItem.isSelected, !!isFocused, !!isDisabled, theme.activeComponentBG, theme.hoverComponentBG)?.backgroundColor ?? theme.highlightBG;
 
@@ -86,11 +85,11 @@ function CardListItemHeader<TItem extends ListItem>({
             >
                 <UserDetailsTooltip accountID={cardItem.accountID}>
                     <View>
-                        <ReportActionAvatars
-                            subscriptCardFeed={cardItem.bank as CompanyCardFeed}
-                            subscriptAvatarBorderColor={backgroundColor}
-                            noRightMarginOnSubscriptContainer
-                            accountIDs={[cardItem.accountID]}
+                        <AccountAvatarWithCardFeed
+                            accountID={cardItem.accountID}
+                            cardFeed={cardItem.bank as CompanyCardFeed}
+                            borderColor={backgroundColor}
+                            containerStyle={styles.mr0}
                             size={CONST.AVATAR_SIZE.SMALL}
                         />
                     </View>
@@ -150,7 +149,7 @@ function CardListItemHeader<TItem extends ListItem>({
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.mnh40, styles.flex1, styles.gap3]}>
                     {!!canSelectMultiple && (
                         <Checkbox
-                            onPress={() => onCheckboxPress?.(cardItem as unknown as TItem)}
+                            onPress={() => onCheckboxPress?.(cardItem as ListItem)}
                             isChecked={isSelectAllChecked}
                             isIndeterminate={isIndeterminate}
                             disabled={!!isDisabled || cardItem.isDisabledCheckbox}
@@ -160,11 +159,11 @@ function CardListItemHeader<TItem extends ListItem>({
                     )}
                     {!isLargeScreenWidth && (
                         <View style={[styles.flexRow, styles.flex1, styles.gap3]}>
-                            <ReportActionAvatars
-                                subscriptCardFeed={cardItem.bank as CompanyCardFeed}
-                                subscriptAvatarBorderColor={backgroundColor}
-                                noRightMarginOnSubscriptContainer
-                                accountIDs={[cardItem.accountID]}
+                            <AccountAvatarWithCardFeed
+                                accountID={cardItem.accountID}
+                                cardFeed={cardItem.bank as CompanyCardFeed}
+                                borderColor={backgroundColor}
+                                containerStyle={styles.mr0}
                             />
                             <View style={[styles.gap1, styles.flexShrink1]}>
                                 <TextWithTooltip
@@ -198,6 +197,10 @@ function CardListItemHeader<TItem extends ListItem>({
             </View>
         </View>
     );
+}
+
+function CardListItemHeader<TItem extends ListItem>(props: CardListItemHeaderProps<TItem>) {
+    return <CardListItemHeaderImpl {...(props as CardListItemHeaderProps<ListItem>)} />;
 }
 
 export default CardListItemHeader;

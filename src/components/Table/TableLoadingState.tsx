@@ -8,12 +8,7 @@ import CONST from '@src/CONST';
 import React from 'react';
 import {View} from 'react-native';
 
-type TableLoadingStateProps = {
-    /** Describes where the component is rendered using component hierarchy. Use dot notation to show parent-child relationships  */
-    context: string;
-};
-
-export default function TableLoadingState({context}: TableLoadingStateProps) {
+export default function TableLoadingState() {
     const theme = useTheme();
     const styles = useThemeStyles();
 
@@ -22,7 +17,6 @@ export default function TableLoadingState({context}: TableLoadingStateProps) {
             <ActivityIndicator
                 color={theme.spinner}
                 size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                reasonAttributes={{context, isLoading: true}}
             />
         </View>
     );

@@ -1,6 +1,25 @@
 import {useRef} from 'react';
 
 /**
+ * Non-generic implementation so OXC's React Compiler can memoize the hook.
+ * OXC bails on type params inside hooks ("Unsupported declaration type for hoisting").
+ */
+function useStableIndexedHandlerImpl(handler: (index: number, ...args: unknown[]) => void): (index: number) => (...args: unknown[]) => void {
+    const cacheRef = useRef<Map<number, (...args: unknown[]) => void>>(new Map());
+
+    return (index: number) => {
+        const cache = cacheRef.current;
+        const cached = cache.get(index);
+        if (cached) {
+            return cached;
+        }
+        const bound = (...args: unknown[]) => handler(index, ...args);
+        cache.set(index, bound);
+        return bound;
+    };
+}
+
+/**
  * Returns a factory that, given an index, returns a referentially-stable
  * handler bound to that index. Same index → same handler across renders.
  *
@@ -16,18 +35,7 @@ import {useRef} from 'react';
  * factory will be invalidated each render.
  */
 function useStableIndexedHandler<Args extends unknown[]>(handler: (index: number, ...args: Args) => void): (index: number) => (...args: Args) => void {
-    const cacheRef = useRef<Map<number, (...args: Args) => void>>(new Map());
-
-    return (index: number) => {
-        const cache = cacheRef.current;
-        const cached = cache.get(index);
-        if (cached) {
-            return cached;
-        }
-        const bound = (...args: Args) => handler(index, ...args);
-        cache.set(index, bound);
-        return bound;
-    };
+    return useStableIndexedHandlerImpl(handler as (index: number, ...args: unknown[]) => void) as (index: number) => (...args: Args) => void;
 }
 
 export default useStableIndexedHandler;

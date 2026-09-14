@@ -18,6 +18,7 @@ import type {MultifactorAuthenticationModalNavigatorParamList} from '@libs/Navig
 
 import variables from '@styles/variables';
 
+import CONST from '@src/CONST';
 import type SCREENS from '@src/SCREENS';
 
 import React from 'react';
@@ -36,7 +37,7 @@ function MultifactorAuthenticationPromptPage({route}: MultifactorAuthenticationP
     const {illustration, title, subtitle, shouldDisplayConfirmButton} = usePromptContent(route.params.promptType);
     const interceptFocusTrapEscape = useMFACancelOnEscape();
 
-    const onConfirm = () => {
+    const approveSoftPrompt = () => {
         markHasAcceptedSoftPrompt(accountID);
         dispatch({type: 'SET_SOFT_PROMPT_APPROVED', payload: true});
     };
@@ -67,11 +68,12 @@ function MultifactorAuthenticationPromptPage({route}: MultifactorAuthenticationP
                 <FixedFooter style={[styles.flexColumn, styles.gap3]}>
                     {shouldDisplayConfirmButton ? (
                         <Button
-                            success
-                            large
-                            onPress={onConfirm}
-                            text={translate('common.buttonConfirm')}
-                        />
+                            variant={CONST.BUTTON_VARIANT.SUCCESS}
+                            size={CONST.BUTTON_SIZE.LARGE}
+                            onPress={approveSoftPrompt}
+                        >
+                            <Button.Text>{translate('common.buttonConfirm')}</Button.Text>
+                        </Button>
                     ) : (
                         <View style={[styles.w100, styles.justifyContentCenter, {height: variables.componentSizeLarge}]}>
                             <LoadingIndicator iconSize={28} />

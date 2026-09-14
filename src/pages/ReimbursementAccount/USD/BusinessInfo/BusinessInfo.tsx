@@ -135,7 +135,7 @@ function BusinessInfo({onBackButtonPress, onSubmit, backTo}: BusinessInfoProps) 
     };
 
     if (isRedirecting) {
-        return <FullScreenLoadingIndicator reasonAttributes={{context: 'BusinessInfo', isRedirecting}} />;
+        return <FullScreenLoadingIndicator />;
     }
 
     return (

@@ -5,11 +5,11 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import React from 'react';
 
-function AmountFilterContentPopupWrapper({filterKey, value, onChange}: AmountFilterContentWrapperProps) {
+function AmountFilterContentPopupWrapper({baseFilterKey, value, onChange}: AmountFilterContentWrapperProps) {
     const styles = useThemeStyles();
     return (
         <AmountFilterContent
-            filterKey={filterKey}
+            baseFilterKey={baseFilterKey}
             value={value}
             style={[styles.pt2]}
             onChange={onChange}

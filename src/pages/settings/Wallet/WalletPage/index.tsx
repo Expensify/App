@@ -21,6 +21,7 @@ import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useDocumentTitle from '@hooks/useDocumentTitle';
+import {useIsAppLoadPending} from '@hooks/useInFlightRequests';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -37,9 +38,8 @@ import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/crea
 import Navigation from '@libs/Navigation/Navigation';
 import {formatPaymentMethods, getPaymentMethodDescription} from '@libs/PaymentUtils';
 import {getStreetLines} from '@libs/PersonalDetailsUtils';
-import {getActiveAdminWorkspaces, getDescriptionForPolicyDomainCard, hasActiveAdminWorkspaces, hasEligibleActiveAdminFromWorkspaces, isPaidGroupPolicy} from '@libs/PolicyUtils';
+import {getActiveAdminWorkspaces, getDescriptionForPolicyDomainCard, hasActiveAdminWorkspaces, hasEligibleBankAccountShareRecipient, isPaidGroupPolicy} from '@libs/PolicyUtils';
 import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 
 import PaymentMethodList from '@pages/settings/Wallet/PaymentMethodList';
 import {getFirstPageName} from '@pages/settings/Wallet/UpdatePersonalBankAccountPage';
@@ -70,6 +70,7 @@ import {View} from 'react-native';
 import type {CardPressHandlerParams, PaymentMethodPressHandlerParams} from './types';
 
 import useWalletSectionIllustration from './useWalletSectionIllustration';
+import shouldOpenBankAccountByPolicy from './utils';
 
 const fundListSelector = (allFunds: OnyxEntry<OnyxTypes.FundList>) =>
     Object.fromEntries(Object.entries(allFunds ?? {}).filter(([, item]) => item.accountData?.additionalData?.isP2PDebitCard === true));
@@ -89,7 +90,7 @@ function WalletPage() {
     const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET);
     const [countryByIp] = useOnyx(ONYXKEYS.COUNTRY);
     const [walletTerms = getEmptyObject<OnyxTypes.WalletTerms>()] = useOnyx(ONYXKEYS.WALLET_TERMS);
-    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
+    const isAppLoadPending = useIsAppLoadPending();
     const [userAccount] = useOnyx(ONYXKEYS.ACCOUNT);
     const [lastUsedPaymentMethods] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD);
     const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
@@ -110,7 +111,7 @@ function WalletPage() {
     const hasSinglePolicy = activeAdminPolicies.length === 1;
 
     const icons = useMemoizedLazyExpensifyIcons(['MoneySearch', 'Wallet', 'Transfer', 'Hourglass', 'Exclamation', 'Star', 'Trashcan', 'Globe', 'UserPlus', 'UserMinus', 'Table', 'Plus']);
-    const illustrations = useMemoizedLazyIllustrations(['MoneyIntoWallet', 'VerticalCreditCards']);
+    const illustrations = useMemoizedLazyIllustrations(['VerticalCreditCards']);
     const walletIllustration = useWalletSectionIllustration();
 
     const theme = useTheme();
@@ -134,9 +135,8 @@ function WalletPage() {
     const shouldShowGBDisclaimer = countryByIp === CONST.COUNTRY.GB;
     const isPendingOnfidoResult = userWallet?.isPendingOnfidoResult ?? false;
     const hasFailedOnfido = userWallet?.hasFailedOnfido ?? false;
-    const hasEligibleActiveAdmin = hasEligibleActiveAdminFromWorkspaces(allPolicies, currentUserLogin, paymentMethod?.selectedPaymentMethod?.bankAccountID?.toString());
+    const hasEligibleShareRecipient = hasEligibleBankAccountShareRecipient(allPolicies, currentUserLogin, paymentMethod?.selectedPaymentMethod?.bankAccountID?.toString());
     const paidGroupPolicy = Object.values(allPolicies ?? {}).find(isPaidGroupPolicy);
-    const walletLoadingReasonAttributes: SkeletonSpanReasonAttributes = {context: 'WalletPage', shouldShowLoadingSpinner};
 
     const updateShouldShowLoadingSpinner = useCallback(() => {
         // In order to prevent a loop, only update state of the spinner if there is a change
@@ -233,13 +233,8 @@ function WalletPage() {
             showLockedAccountModal();
             return;
         }
-        if (accountPolicyID) {
-            navigateToBankAccountRoute({
-                policyID: accountPolicyID,
-                backTo: ROUTES.SETTINGS_WALLET,
-                policyCurrency: allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${accountPolicyID}`]?.outputCurrency,
-                bankAccountState: accountData?.state,
-            });
+        if (accountPolicyID && shouldOpenBankAccountByPolicy(accountData, allPolicies, currentUserLogin)) {
+            navigateToBankAccountRoute({policyID: accountPolicyID, backTo: ROUTES.SETTINGS_WALLET});
             return;
         }
         navigateToBankAccountRoute({bankAccountID, backTo: ROUTES.SETTINGS_WALLET});
@@ -382,7 +377,7 @@ function WalletPage() {
             confirmText: translate('common.delete'),
             cancelText: translate('common.cancel'),
             shouldShowCancelButton: true,
-            danger: true,
+            buttonVariant: CONST.BUTTON_VARIANT.DANGER,
         });
 
         if (result.action === ModalActions.CONFIRM) {
@@ -432,7 +427,7 @@ function WalletPage() {
     const shouldShowEnableGlobalReimbursementsButton =
         paymentMethod.selectedPaymentMethod?.additionalData?.currency === CONST.CURRENCY.USD &&
         paymentMethod.selectedPaymentMethod.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS &&
-        !paymentMethod.selectedPaymentMethod?.additionalData?.corpay?.achAuthorizationForm &&
+        !paymentMethod.selectedPaymentMethod?.additionalData?.verifications?.corpay &&
         paymentMethod.selectedPaymentMethod?.state === CONST.BANK_ACCOUNT.STATE.OPEN;
 
     // Determines whether or not the modal popup is mounted from the bottom of the screen instead of the side mount on Web screen
@@ -441,7 +436,6 @@ function WalletPage() {
     const headerWithBackButton = (
         <HeaderWithBackButton
             title={translate('common.wallet')}
-            icon={illustrations.MoneyIntoWallet}
             shouldUseHeadlineHeader
             shouldShowBackButton={shouldUseNarrowLayout}
             shouldDisplaySearchRouter
@@ -471,7 +465,7 @@ function WalletPage() {
             confirmText: translate('common.delete'),
             cancelText: translate('common.cancel'),
             shouldShowCancelButton: true,
-            danger: true,
+            buttonVariant: CONST.BUTTON_VARIANT.DANGER,
         });
         resetSelectedPaymentMethodData();
         if (result.action !== ModalActions.CONFIRM) {
@@ -499,7 +493,7 @@ function WalletPage() {
                       },
                   ]
                 : []),
-            ...(shouldShowShareButton && hasEligibleActiveAdmin
+            ...(shouldShowShareButton && hasEligibleShareRecipient
                 ? [
                       {
                           text: translate('common.share'),
@@ -576,7 +570,7 @@ function WalletPage() {
             icons.Trashcan,
             icons.Globe,
             shouldShowShareButton,
-            hasEligibleActiveAdmin,
+            hasEligibleShareRecipient,
             shouldShowUnshareButton,
             shouldShowEnableGlobalReimbursementsButton,
             isAccountLocked,
@@ -666,8 +660,7 @@ function WalletPage() {
         ];
     }, [bottomMountItem, confirmDeleteCard, icons.MoneySearch, icons.Table, icons.Trashcan, paymentMethod.methodID, selectedCard?.bank, shouldUseNarrowLayout, translate]);
 
-    if (isLoadingApp) {
-        const reasonAttributes: SkeletonSpanReasonAttributes = {context: 'WalletPage', isLoadingApp: !!isLoadingApp};
+    if (isAppLoadPending) {
         return (
             <ScreenWrapper
                 testID="WalletPage"
@@ -675,10 +668,7 @@ function WalletPage() {
             >
                 {headerWithBackButton}
                 <View style={[styles.flex1, styles.fullScreenLoading]}>
-                    <ActivityIndicator
-                        size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                        reasonAttributes={reasonAttributes}
-                    />
+                    <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
                 </View>
             </ScreenWrapper>
         );
@@ -716,6 +706,7 @@ function WalletPage() {
                                 style={[styles.mt5, [shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8]]}
                                 listItemStyle={shouldUseNarrowLayout ? styles.ph5 : styles.ph8}
                                 shouldShowBankAccountSections
+                                shouldShowConnectionStatus
                                 threeDotsMenuItems={threeDotMenuItems}
                             />
                         </Section>
@@ -735,6 +726,7 @@ function WalletPage() {
                                     threeDotsMenuItems={cardThreeDotsMenuItems}
                                     style={[styles.mt5, [shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8]]}
                                     listItemStyle={shouldUseNarrowLayout ? styles.ph5 : styles.ph8}
+                                    shouldShowConnectionStatus
                                 />
                                 <View style={shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8}>
                                     <MenuItem
@@ -787,7 +779,6 @@ function WalletPage() {
                                         <ActivityIndicator
                                             size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
                                             style={[styles.mb5]}
-                                            reasonAttributes={walletLoadingReasonAttributes}
                                         />
                                     )}
                                     {!shouldShowLoadingSpinner && hasActivatedWallet && (

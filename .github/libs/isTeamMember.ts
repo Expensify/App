@@ -1,8 +1,12 @@
-import type {RestEndpointMethods} from '@octokit/plugin-rest-endpoint-methods/dist-types/generated/method-types';
+import type {Api} from '@octokit/plugin-rest-endpoint-methods';
 
 /* eslint-disable @typescript-eslint/naming-convention */
 import * as core from '@actions/core';
 import {RequestError} from '@octokit/request-error';
+
+// @octokit/plugin-rest-endpoint-methods no longer exports its `RestEndpointMethods` type directly, only `Api`
+// (which wraps it as `{rest: RestEndpointMethods}`), so it's derived here instead.
+type RestEndpointMethods = Api['rest'];
 
 /**
  * Whether a user is a member of the given org team.

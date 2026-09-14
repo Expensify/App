@@ -9,10 +9,7 @@ jest.mock('@libs/Parser', () => ({
     },
 }));
 
-const mockedParser = Parser as unknown as {
-    htmlToText: jest.Mock;
-    htmlToMarkdown: jest.Mock;
-};
+const mockedParser = jest.mocked(Parser);
 
 describe('getClipboardText', () => {
     const selection = '<a href="https://expensify.com">Expensify</a>';
@@ -31,7 +28,7 @@ describe('getClipboardText', () => {
         const result = getClipboardText(selection);
 
         expect(result).toBe('[Expensify](https://expensify.com)');
-        expect(mockedParser.htmlToMarkdown).toHaveBeenCalledWith(selection);
+        expect(mockedParser.htmlToMarkdown.mock.calls).toContainEqual([selection]);
     });
 
     it('returns the parser output without modification', () => {
@@ -41,6 +38,6 @@ describe('getClipboardText', () => {
         const result = getClipboardText('<b>test</b>');
 
         expect(result).toBe(expected);
-        expect(mockedParser.htmlToMarkdown).toHaveBeenCalledWith('<b>test</b>');
+        expect(mockedParser.htmlToMarkdown.mock.calls).toContainEqual(['<b>test</b>']);
     });
 });

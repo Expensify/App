@@ -162,14 +162,15 @@ function ImportMultiLevelTagsSettingsPage({route}: ImportMultiLevelTagsSettingsP
                         addBottomSafeAreaPadding
                     >
                         <Button
-                            text={spreadsheet?.isImportingIndependentMultiLevelTags ? translate('common.next') : translate('common.import')}
                             onPress={
                                 spreadsheet?.isImportingIndependentMultiLevelTags ? () => Navigation.navigate(ROUTES.WORKSPACE_TAGS_IMPORTED_MULTI_LEVEL.getRoute(policyID)) : importTags
                             }
                             isLoading={isImportingTags}
-                            success
-                            large
-                        />
+                            variant={CONST.BUTTON_VARIANT.SUCCESS}
+                            size={CONST.BUTTON_SIZE.LARGE}
+                        >
+                            <Button.Text>{spreadsheet?.isImportingIndependentMultiLevelTags ? translate('common.next') : translate('common.import')}</Button.Text>
+                        </Button>
                     </FixedFooter>
                 </FullPageOfflineBlockingView>
             </ScreenWrapper>

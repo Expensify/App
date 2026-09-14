@@ -1,4 +1,4 @@
-import {useEffect, useState} from 'react';
+import {useEffect, useRef, useState} from 'react';
 // We use Animated for all functionality related to wide RHP to make it easier
 // to interact with react-navigation components (e.g., CardContainer, interpolator), which also use Animated.
 // eslint-disable-next-line no-restricted-imports
@@ -9,7 +9,12 @@ const OVERLAY_TIMING_DURATION = 300;
 function useShouldRenderOverlay(condition: boolean, overlayProgress: Animated.Value) {
     const [shouldRenderOverlay, setShouldRenderOverlay] = useState(false);
 
+    // Holds the latest `condition` so the async hide callback can read it.
+    const conditionRef = useRef(condition);
+
     useEffect(() => {
+        conditionRef.current = condition;
+
         if (condition) {
             setShouldRenderOverlay(true);
             Animated.timing(overlayProgress, {
@@ -22,11 +27,8 @@ function useShouldRenderOverlay(condition: boolean, overlayProgress: Animated.Va
                 toValue: 0,
                 duration: OVERLAY_TIMING_DURATION,
                 useNativeDriver: false,
-            }).start(({finished}) => {
-                // When the hide animation is interrupted by a new show animation (the condition flipped back to true
-                // before the animation completed), this callback still fires with finished=false. Setting the state
-                // to false in that case would permanently hide the overlay that should be visible.
-                if (!finished) {
+            }).start(() => {
+                if (conditionRef.current) {
                     return;
                 }
                 setShouldRenderOverlay(false);

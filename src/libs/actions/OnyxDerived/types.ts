@@ -17,6 +17,10 @@ type DerivedSourceValues<Deps extends readonly OnyxKey[]> = Partial<{
 type DerivedValueContext<Key extends OnyxKey, Deps extends NonEmptyTuple<Exclude<OnyxKey, Key>>> = {
     currentValue?: OnyxValue<Key>;
     sourceValues?: DerivedSourceValues<Deps>;
+    // The dependency keys that fired since the last flush. Unlike `sourceValues` (which only holds
+    // non-empty deltas), this reflects every dependency that triggered — including a scalar cleared to
+    // `undefined` or a collection with no changed members — so trigger-detection can't miss a fire.
+    triggeredKeys?: Set<OnyxKey>;
 };
 
 /**
@@ -35,6 +39,13 @@ type OnyxDerivedValueConfig<Key extends ValueOf<typeof ONYXKEYS.DERIVED>, Deps e
         },
         context: DerivedValueContext<Key, Deps>,
     ) => OnyxDerivedValuesMapping[Key];
+
+    /**
+     * Optional hook to reset any module-level state the config keeps across computes (e.g. `previous*`
+     * baselines/maps). The engine calls it when Onyx is cleared, so the next
+     * compute starts from scratch instead of diffing rehydrated data against pre-clear state.
+     */
+    onReset?: () => void;
 };
 
 export type {OnyxDerivedValueConfig, DerivedValueContext};

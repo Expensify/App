@@ -40,7 +40,7 @@ Do NOT add arbitrary waits after actions. Instead, take a snapshot to check the 
 When signing in to dev environment:
 - **Email**: Generate random Gmail address (e.g., `user+throwaway<random>@gmail.com`)
     - **New Account**: Press join to create account
-    - **Existing Account**: Magic code: Always `000000`
+    - **Existing Account**: Security code: Always `000000`
 - **Onboarding**: The `SKIP_ONBOARDING` env flag is set to `false` by default in `.env`. When `false`, onboarding screens will appear after sign-in for new accounts. Unless you are specifically asked to test onboarding, update the flag to `true` before starting the dev server so that onboarding is bypassed entirely:
     ```bash
     sed -i '' 's/SKIP_ONBOARDING=false/SKIP_ONBOARDING=true/' .env

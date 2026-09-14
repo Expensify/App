@@ -5,6 +5,7 @@ import useSplitEffectivePolicy, {findSplitPolicyForCustomUnit, getSplitEffective
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report, SearchResults, Transaction} from '@src/types/onyx';
+import type {SearchResultDataType} from '@src/types/onyx/SearchResults';
 
 import type {OnyxCollection} from 'react-native-onyx';
 
@@ -12,6 +13,7 @@ import Onyx from 'react-native-onyx';
 
 import createRandomPolicy from '../../utils/collections/policies';
 import createRandomTransaction from '../../utils/collections/transaction';
+import createMock from '../../utils/createMock';
 
 let mockCurrentSearchResults: SearchResults | undefined;
 let mockPolicyForMovingExpenses: Policy | undefined;
@@ -106,11 +108,12 @@ describe('useSplitEffectivePolicy', () => {
 
         // eslint-disable-next-line @typescript-eslint/naming-convention -- email address is a valid employeeList key format
         const searchPolicy = {...emptyPolicy, employeeList: {'user@example.com': {email: 'user@example.com'}}};
-        mockCurrentSearchResults = {
-            data: {
-                [`${ONYXKEYS.COLLECTION.POLICY}${searchPolicy.id}`]: searchPolicy,
-            },
-        } as unknown as SearchResults;
+        const searchPolicyKey: `${typeof ONYXKEYS.COLLECTION.POLICY}${string}` = `${ONYXKEYS.COLLECTION.POLICY}${searchPolicy.id}`;
+        const searchData = createMock<SearchResultDataType>({});
+        searchData[searchPolicyKey] = searchPolicy;
+        mockCurrentSearchResults = createMock<SearchResults>({
+            data: searchData,
+        });
 
         const draftTransaction = buildTransaction();
         const {result} = renderHook(() => useSplitEffectivePolicy(buildReport(emptyPolicy.id), draftTransaction));

@@ -14,7 +14,7 @@ import {setPolicyTaxCode, validateTaxCode} from '@libs/actions/TaxRate';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import {getDistanceRateCustomUnit} from '@libs/PolicyUtils';
+import {getDistanceRateCustomUnit, isTaxCodeCustomized as isTaxCodeCustomizedUtil} from '@libs/PolicyUtils';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 
@@ -39,11 +39,12 @@ function WorkspaceTaxCodePage({route}: WorkspaceTaxCodePageProps) {
     const {inputCallbackRef} = useAutoFocusInput();
 
     const distanceRateCustomUnit = getDistanceRateCustomUnit(policy);
+    const isTaxCodeCustomized = isTaxCodeCustomizedUtil(currentTaxCode, policy);
 
     const setTaxCode = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_TAX_CODE_FORM>) => {
             const newTaxCode = values.taxCode.trim();
-            if (currentTaxCode === newTaxCode) {
+            if (currentTaxCode === newTaxCode && isTaxCodeCustomized) {
                 Navigation.goBack(ROUTES.WORKSPACE_TAX_EDIT.getRoute(policyID, currentTaxCode));
                 return;
             }
@@ -62,7 +63,7 @@ function WorkspaceTaxCodePage({route}: WorkspaceTaxCodePageProps) {
             );
             Navigation.goBack(ROUTES.WORKSPACE_TAX_EDIT.getRoute(policyID, currentTaxCode));
         },
-        [currentTaxCode, policyID, policy?.taxRates, distanceRateCustomUnit],
+        [currentTaxCode, policyID, policy?.taxRates, distanceRateCustomUnit, isTaxCodeCustomized],
     );
 
     const validate = useCallback(
@@ -113,7 +114,7 @@ function WorkspaceTaxCodePage({route}: WorkspaceTaxCodePageProps) {
                             inputID={INPUT_IDS.TAX_CODE}
                             label={translate('workspace.taxes.taxCode')}
                             accessibilityLabel={translate('workspace.taxes.taxCode')}
-                            defaultValue={currentTaxCode}
+                            defaultValue={isTaxCodeCustomized ? currentTaxCode : ''}
                             ref={inputCallbackRef}
                         />
                     </View>

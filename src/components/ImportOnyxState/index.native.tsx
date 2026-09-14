@@ -3,6 +3,7 @@ import useOnyx from '@hooks/useOnyx';
 import {setIsUsingImportedState, setPreservedAccount, setPreservedUserSession} from '@libs/actions/App';
 import {setShouldForceOffline} from '@libs/actions/Network';
 import {rollbackOngoingRequest} from '@libs/actions/PersistedRequests';
+import fileURIToPath from '@libs/fileURIToPath';
 import {cleanAndTransformState, importState} from '@libs/ImportOnyxStateUtils';
 import Navigation from '@libs/Navigation/Navigation';
 
@@ -19,7 +20,7 @@ import type ImportOnyxStateProps from './types';
 import BaseImportOnyxState from './BaseImportOnyxState';
 
 function readOnyxFile(fileUri: string) {
-    const filePath = decodeURIComponent(fileUri.replace('file://', ''));
+    const filePath = fileURIToPath(fileUri);
 
     return ReactNativeBlobUtil.fs.exists(filePath).then((exists) => {
         if (!exists) {

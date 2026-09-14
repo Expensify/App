@@ -5,10 +5,12 @@ import useAllTransactions from '@hooks/useAllTransactions';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {SearchResults} from '@src/types/onyx';
+import type Report from '@src/types/onyx/Report';
 
 import Onyx from 'react-native-onyx';
 
 import createRandomTransaction from '../../utils/collections/transaction';
+import createMock from '../../utils/createMock';
 
 let mockCurrentSearchResults: SearchResults | undefined;
 
@@ -57,7 +59,7 @@ describe('useAllTransactions', () => {
         transaction1.transactionID = 'txn1';
 
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}txn1`, transaction1);
-        mockCurrentSearchResults = {
+        mockCurrentSearchResults = createMock<SearchResults>({
             search: {
                 offset: 0,
                 type: CONST.SEARCH.DATA_TYPES.EXPENSE,
@@ -66,7 +68,7 @@ describe('useAllTransactions', () => {
                 isLoading: false,
             },
             data: undefined,
-        } as unknown as SearchResults;
+        });
 
         const {result} = renderHook(() => useAllTransactions());
 
@@ -85,7 +87,7 @@ describe('useAllTransactions', () => {
         searchTransaction.transactionID = 'searchTxn1';
         collectionTransaction.transactionID = 'collectionTxn1';
 
-        mockCurrentSearchResults = {
+        const mockSearchResults = createMock<SearchResults>({
             search: {
                 offset: 0,
                 type: CONST.SEARCH.DATA_TYPES.EXPENSE,
@@ -93,10 +95,10 @@ describe('useAllTransactions', () => {
                 hasResults: true,
                 isLoading: false,
             },
-            data: {
-                [`${ONYXKEYS.COLLECTION.TRANSACTION}searchTxn1`]: searchTransaction,
-            },
-        } as unknown as SearchResults;
+            data: {},
+        });
+        mockSearchResults.data[`${ONYXKEYS.COLLECTION.TRANSACTION}searchTxn1`] = searchTransaction;
+        mockCurrentSearchResults = mockSearchResults;
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}collectionTxn1`, collectionTransaction);
 
         const {result} = renderHook(() => useAllTransactions());
@@ -120,7 +122,7 @@ describe('useAllTransactions', () => {
         searchTransaction.amount = 1000;
         collectionTransaction.amount = 2000;
 
-        mockCurrentSearchResults = {
+        const mockSearchResults = createMock<SearchResults>({
             search: {
                 offset: 0,
                 type: CONST.SEARCH.DATA_TYPES.EXPENSE,
@@ -128,10 +130,10 @@ describe('useAllTransactions', () => {
                 hasResults: true,
                 isLoading: false,
             },
-            data: {
-                [`${ONYXKEYS.COLLECTION.TRANSACTION}txn1`]: searchTransaction,
-            },
-        } as unknown as SearchResults;
+            data: {},
+        });
+        mockSearchResults.data[`${ONYXKEYS.COLLECTION.TRANSACTION}txn1`] = searchTransaction;
+        mockCurrentSearchResults = mockSearchResults;
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}txn1`, collectionTransaction);
 
         const {result} = renderHook(() => useAllTransactions());
@@ -148,7 +150,7 @@ describe('useAllTransactions', () => {
         const transaction = createRandomTransaction(1);
         transaction.transactionID = 'txn1';
 
-        mockCurrentSearchResults = {
+        const mockSearchResults = createMock<SearchResults>({
             search: {
                 offset: 0,
                 type: CONST.SEARCH.DATA_TYPES.EXPENSE,
@@ -156,11 +158,11 @@ describe('useAllTransactions', () => {
                 hasResults: true,
                 isLoading: false,
             },
-            data: {
-                [`${ONYXKEYS.COLLECTION.TRANSACTION}txn1`]: transaction,
-                [`${ONYXKEYS.COLLECTION.REPORT}report1`]: {reportID: 'report1'},
-            },
-        } as unknown as SearchResults;
+            data: {},
+        });
+        mockSearchResults.data[`${ONYXKEYS.COLLECTION.TRANSACTION}txn1`] = transaction;
+        mockSearchResults.data[`${ONYXKEYS.COLLECTION.REPORT}report1`] = createMock<Report>({reportID: 'report1'});
+        mockCurrentSearchResults = mockSearchResults;
 
         const {result} = renderHook(() => useAllTransactions());
 
@@ -176,7 +178,7 @@ describe('useAllTransactions', () => {
     });
 
     it('should handle empty collection and empty search results', async () => {
-        mockCurrentSearchResults = {
+        mockCurrentSearchResults = createMock<SearchResults>({
             search: {
                 offset: 0,
                 type: CONST.SEARCH.DATA_TYPES.EXPENSE,
@@ -185,7 +187,7 @@ describe('useAllTransactions', () => {
                 isLoading: false,
             },
             data: {},
-        } as unknown as SearchResults;
+        });
 
         const {result} = renderHook(() => useAllTransactions());
 
@@ -200,7 +202,7 @@ describe('useAllTransactions', () => {
         const transaction = createRandomTransaction(1);
         transaction.transactionID = 'txn1';
 
-        mockCurrentSearchResults = {
+        const mockSearchResults = createMock<SearchResults>({
             search: {
                 offset: 0,
                 type: CONST.SEARCH.DATA_TYPES.EXPENSE,
@@ -208,12 +210,14 @@ describe('useAllTransactions', () => {
                 hasResults: true,
                 isLoading: false,
             },
-            data: {
-                [`${ONYXKEYS.COLLECTION.TRANSACTION}txn1`]: transaction,
-                [`${ONYXKEYS.COLLECTION.TRANSACTION}txn2`]: null,
-                [`${ONYXKEYS.COLLECTION.TRANSACTION}txn3`]: undefined,
-            },
-        } as unknown as SearchResults;
+            data: {},
+        });
+        mockSearchResults.data[`${ONYXKEYS.COLLECTION.TRANSACTION}txn1`] = transaction;
+        // @ts-expect-error Intentionally exercise the runtime guard with a null transaction entry.
+        mockSearchResults.data[`${ONYXKEYS.COLLECTION.TRANSACTION}txn2`] = null;
+        // @ts-expect-error Intentionally exercise the runtime guard with an undefined transaction entry.
+        mockSearchResults.data[`${ONYXKEYS.COLLECTION.TRANSACTION}txn3`] = undefined;
+        mockCurrentSearchResults = mockSearchResults;
 
         const {result} = renderHook(() => useAllTransactions());
 
@@ -264,7 +268,7 @@ describe('useAllTransactions', () => {
         transaction1.transactionID = 'txn1';
         transaction2.transactionID = 'txn2';
 
-        mockCurrentSearchResults = {
+        const mockSearchResults = createMock<SearchResults>({
             search: {
                 offset: 0,
                 type: CONST.SEARCH.DATA_TYPES.EXPENSE,
@@ -272,11 +276,11 @@ describe('useAllTransactions', () => {
                 hasResults: true,
                 isLoading: false,
             },
-            data: {
-                [`${ONYXKEYS.COLLECTION.TRANSACTION}txn1`]: transaction1,
-                [`${ONYXKEYS.COLLECTION.TRANSACTION}txn2`]: transaction2,
-            },
-        } as unknown as SearchResults;
+            data: {},
+        });
+        mockSearchResults.data[`${ONYXKEYS.COLLECTION.TRANSACTION}txn1`] = transaction1;
+        mockSearchResults.data[`${ONYXKEYS.COLLECTION.TRANSACTION}txn2`] = transaction2;
+        mockCurrentSearchResults = mockSearchResults;
 
         const {result} = renderHook(() => useAllTransactions());
 

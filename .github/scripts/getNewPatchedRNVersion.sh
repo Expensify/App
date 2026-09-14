@@ -5,6 +5,11 @@ if [ -z "$GITHUB_TOKEN" ]; then
     exit 1
 fi
 
+if [ -z "$ARTIFACT_ID" ]; then
+    echo "ARTIFACT_ID env variable is not set"
+    exit 1
+fi
+
 if [[ "$IS_HYBRID_BUILD" == "true" ]]; then
     readonly PACKAGE="react-hybrid"
 else
@@ -15,7 +20,7 @@ VERSION="$(jq -r '.dependencies["react-native"]' package.json)"
 readonly VERSION
 
 # List all versions of the package
-PACKAGE_VERSIONS="$(gh api "/orgs/Expensify/packages/maven/com.expensify.${PACKAGE}.react-android/versions" --paginate --jq '.[].name')"
+PACKAGE_VERSIONS="$(gh api "/orgs/Expensify/packages/maven/com.expensify.${PACKAGE}.${ARTIFACT_ID}/versions" --paginate --jq '.[].name')"
 
 # Filter only versions matching the base React Native version
 PACKAGE_VERSIONS="$(echo "$PACKAGE_VERSIONS" | grep "$VERSION")"

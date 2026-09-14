@@ -28,6 +28,7 @@ function ConfirmationUBO({onNext, onMove, isEditing, beneficialOwnerBeingModifie
 
     const summaryItems = [
         {
+            id: 'legal-name',
             description: translate('beneficialOwnerInfoStep.legalName'),
             title: `${values.firstName} ${values.lastName}`,
             shouldShowRightIcon: true,
@@ -36,6 +37,7 @@ function ConfirmationUBO({onNext, onMove, isEditing, beneficialOwnerBeingModifie
             },
         },
         {
+            id: 'date-of-birth',
             description: translate('common.dob'),
             title: values.dob,
             shouldShowRightIcon: true,
@@ -44,14 +46,16 @@ function ConfirmationUBO({onNext, onMove, isEditing, beneficialOwnerBeingModifie
             },
         },
         {
-            description: translate('beneficialOwnerInfoStep.last4SSN'),
-            title: values.ssnLast4,
+            id: 'ssn',
+            description: translate('common.ssnFull9'),
+            title: values.ssn,
             shouldShowRightIcon: true,
             onPress: () => {
                 onMove(UBO_STEP_INDEXES.SSN);
             },
         },
         {
+            id: 'address',
             description: translate('beneficialOwnerInfoStep.address'),
             title: `${values.street}, ${values.city}, ${values.state} ${values.zipCode}`,
             shouldShowRightIcon: true,
@@ -71,6 +75,7 @@ function ConfirmationUBO({onNext, onMove, isEditing, beneficialOwnerBeingModifie
             showOnfidoLinks
             onfidoLinksTitle={`${translate('beneficialOwnerInfoStep.byAddingThisBankAccount')} `}
             error={error}
+            forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
         />
     );
 }

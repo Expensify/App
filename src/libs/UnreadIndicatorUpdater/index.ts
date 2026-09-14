@@ -43,7 +43,6 @@ let allReportNameValuePairs: OnyxCollection<ReportNameValuePairs> = {};
 // This subscription is used to update the unread indicators count which is not linked to UI and it does not update any UI state.
 Onyx.connectWithoutView({
     key: ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS,
-    waitForCollectionCallback: true,
     callback: (value) => {
         allReportNameValuePairs = value;
     },
@@ -53,7 +52,6 @@ let allReportActions: OnyxCollection<ReportActions> = {};
 // This subscription is used to update the unread indicators count which is not linked to UI and it does not update any UI state.
 Onyx.connectWithoutView({
     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
-    waitForCollectionCallback: true,
     callback: (value) => {
         allReportActions = value;
     },
@@ -62,7 +60,6 @@ Onyx.connectWithoutView({
 let allDraftComments: OnyxCollection<string> = {};
 Onyx.connectWithoutView({
     key: ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT,
-    waitForCollectionCallback: true,
     callback: (value) => {
         allDraftComments = value;
     },
@@ -111,6 +108,8 @@ function getUnreadReportsForUnreadIndicator(reports: OnyxCollection<Report>, cur
             draftComment,
             currentUserLogin,
             currentUserAccountID,
+            // TODO: Pass guideAccountIDs once callers are fully migrated — PR 33 (https://github.com/Expensify/App/issues/66413); hasExpensifyGuidesEmails falls back to allPersonalDetails
+            hasGuidesEmails: ReportUtils.isDefaultRoom(report) ? ReportUtils.hasExpensifyGuidesEmails(Object.keys(report?.participants ?? {}).map(Number), undefined) : false,
             conciergeReportID,
         });
     });
@@ -135,7 +134,6 @@ const triggerUnreadUpdate = debounce(() => {
 // This subscription is used to update the unread indicators count which is not linked to UI and it does not update any UI state.
 Onyx.connectWithoutView({
     key: ONYXKEYS.COLLECTION.REPORT,
-    waitForCollectionCallback: true,
     callback: (value) => {
         allReports = value;
         triggerUnreadUpdate();

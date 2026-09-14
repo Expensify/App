@@ -23,10 +23,7 @@ import React, {useCallback, useEffect, useState} from 'react';
 import {View} from 'react-native';
 
 type WorkspaceOwnerChangeCheckProps = {
-    /** The policy */
     policy: OnyxEntry<OnyxTypes.Policy>;
-
-    /** The accountID */
     accountID: number;
 
     /** The error code */
@@ -83,11 +80,12 @@ function WorkspaceOwnerChangeCheck({policy, accountID, error}: WorkspaceOwnerCha
             <Text style={styles.flex1}>{displayTexts.text}</Text>
             <View style={styles.pb5}>
                 <Button
-                    success
-                    large
+                    variant={CONST.BUTTON_VARIANT.SUCCESS}
+                    size={CONST.BUTTON_SIZE.LARGE}
                     onPress={confirm}
-                    text={displayTexts.buttonText}
-                />
+                >
+                    <Button.Text>{displayTexts.buttonText}</Button.Text>
+                </Button>
             </View>
         </>
     );

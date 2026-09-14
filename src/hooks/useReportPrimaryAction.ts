@@ -14,6 +14,7 @@ import {personalDetailsLoginSelector} from '@src/selectors/PersonalDetails';
 import type {ValueOf} from 'type-fest';
 
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
+import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
 import useReportIsArchived from './useReportIsArchived';
 import useTransactionsAndViolationsForReport from './useTransactionsAndViolationsForReport';
@@ -21,6 +22,7 @@ import useTransactionsAndViolationsForReport from './useTransactionsAndViolation
 function useReportPrimaryAction(reportID: string | undefined): ValueOf<typeof CONST.REPORT.PRIMARY_ACTIONS> | '' {
     const {isPaidAnimationRunning, isApprovedAnimationRunning, isSubmittingAnimationRunning} = usePaymentAnimationsContext();
     const {login: currentUserLogin, accountID} = useCurrentUserPersonalDetails();
+    const {isOffline} = useNetwork();
 
     const [moneyRequestReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(moneyRequestReport?.chatReportID)}`);
@@ -28,10 +30,11 @@ function useReportPrimaryAction(reportID: string | undefined): ValueOf<typeof CO
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${getNonEmptyStringOnyxID(moneyRequestReport?.reportID)}`);
     const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${getNonEmptyStringOnyxID(moneyRequestReport?.reportID)}`);
-    const [ownerLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(moneyRequestReport?.ownerAccountID)}, [moneyRequestReport?.ownerAccountID]);
+    const [ownerLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(moneyRequestReport?.ownerAccountID)});
     const [invoiceReceiverPolicy] = useOnyx(
         `${ONYXKEYS.COLLECTION.POLICY}${chatReport?.invoiceReceiver && 'policyID' in chatReport.invoiceReceiver ? chatReport.invoiceReceiver.policyID : undefined}`,
     );
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
     const {reportActions} = useMoneyReportTransactionThread();
     const {transactions: reportTransactions, violations} = useTransactionsAndViolationsForReport(moneyRequestReport?.reportID);
@@ -49,7 +52,8 @@ function useReportPrimaryAction(reportID: string | undefined): ValueOf<typeof CO
         return CONST.REPORT.PRIMARY_ACTIONS.SUBMIT;
     }
 
-    const nonPendingDeleteTransactions = Object.values(reportTransactions).filter((t) => !isTransactionPendingDelete(t));
+    // While offline, keep pending-delete transactions so a queued-for-delete expense still counts as a real transaction until the delete syncs.
+    const nonPendingDeleteTransactions = Object.values(reportTransactions).filter((t) => isOffline || !isTransactionPendingDelete(t));
 
     return getReportPrimaryAction({
         currentUserLogin: currentUserLogin ?? '',
@@ -66,6 +70,8 @@ function useReportPrimaryAction(reportID: string | undefined): ValueOf<typeof CO
         isChatReportArchived,
         invoiceReceiverPolicy,
         ownerLogin,
+        rules,
+        isOffline,
     });
 }
 

@@ -6,7 +6,7 @@ import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 
 import useLocalize from '@hooks/useLocalize';
-import type {SubStepProps} from '@hooks/useSubStep/types';
+import type {SubPageProps} from '@hooks/useSubPage/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
@@ -20,12 +20,9 @@ import type {OnyxFormValuesMapping} from '@src/ONYXKEYS';
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
 
-type FullNameStepProps<TFormID extends keyof OnyxFormValuesMapping> = SubStepProps &
+type FullNameStepProps<TFormID extends keyof OnyxFormValuesMapping> = SubPageProps &
     ForwardedFSClassProps & {
-        /** The ID of the form */
         formID: TFormID;
-
-        /** The title of the form */
         formTitle: string;
 
         /** Subtitle text shown below the title */
@@ -34,25 +31,15 @@ type FullNameStepProps<TFormID extends keyof OnyxFormValuesMapping> = SubStepPro
         /** The validation function to call when the form is submitted */
         customValidate?: (values: FormOnyxValues<TFormID>) => FormInputErrors<TFormID>;
 
-        /** A function to call when the form is submitted */
         onSubmit: (values: FormOnyxValues<TFormID>) => void;
-
-        /** Fields list of the form */
         stepFields: Array<FormOnyxKeys<TFormID>>;
-
-        /** The ID of the first name input */
         firstNameInputID: string;
-
-        /** The ID of the last name input */
         lastNameInputID: string;
-
-        /** The default values for the form */
         defaultValues: {
             firstName: string;
             lastName: string;
         };
 
-        /** Should show the help link or not */
         shouldShowHelpLinks?: boolean;
 
         /** Custom label of the first name input  */
@@ -68,7 +55,13 @@ type FullNameStepProps<TFormID extends keyof OnyxFormValuesMapping> = SubStepPro
         enabledWhenOffline?: boolean;
     };
 
-function FullNameStep<TFormID extends keyof OnyxFormValuesMapping>({
+type FullNameStepPropsWidened = Omit<FullNameStepProps<keyof OnyxFormValuesMapping>, never>;
+
+/**
+ * Non-generic implementation so OXC's React Compiler can memoize the component.
+ * OXC bails on type params inside components ("Unsupported declaration type for hoisting").
+ */
+function FullNameStepImpl({
     formID,
     formTitle,
     formSubtitle,
@@ -85,15 +78,15 @@ function FullNameStep<TFormID extends keyof OnyxFormValuesMapping>({
     shouldShowPatriotActLink = false,
     forwardedFSClass,
     enabledWhenOffline: enabledWhenOfflineProp = true,
-}: FullNameStepProps<TFormID>) {
+}: FullNameStepPropsWidened) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
     const validate = useCallback(
-        (values: FormOnyxValues<TFormID>): FormInputErrors<TFormID> => {
+        (values: FormOnyxValues<keyof OnyxFormValuesMapping>): FormInputErrors<keyof OnyxFormValuesMapping> => {
             const errors = getFieldRequiredErrors(values, stepFields, translate);
 
-            const firstName = values[firstNameInputID as keyof FormOnyxValues<TFormID>] as string;
+            const firstName = (values as Record<string, unknown>)[firstNameInputID] as string;
             if (!isRequiredFulfilled(firstName)) {
                 // @ts-expect-error type mismatch to be fixed
                 errors[firstNameInputID] = translate('common.error.fieldRequired');
@@ -110,7 +103,7 @@ function FullNameStep<TFormID extends keyof OnyxFormValuesMapping>({
                 errors[firstNameInputID] = translate('personalDetails.error.containsReservedWord');
             }
 
-            const lastName = values[lastNameInputID as keyof FormOnyxValues<TFormID>] as string;
+            const lastName = (values as Record<string, unknown>)[lastNameInputID] as string;
             if (!isRequiredFulfilled(lastName)) {
                 // @ts-expect-error type mismatch to be fixed
                 errors[lastNameInputID] = translate('common.error.fieldRequired');
@@ -176,6 +169,10 @@ function FullNameStep<TFormID extends keyof OnyxFormValuesMapping>({
             </View>
         </FormProvider>
     );
+}
+
+function FullNameStep<TFormID extends keyof OnyxFormValuesMapping>(props: FullNameStepProps<TFormID>) {
+    return <FullNameStepImpl {...(props as unknown as FullNameStepPropsWidened)} />;
 }
 
 export default FullNameStep;

@@ -5,13 +5,14 @@ import useOnyx from '@hooks/useOnyx';
 
 import {clearSavedViewEditMode, saveSavedViewEdits, setSaveAsNewViewQuery, setSearchContext} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
-import {buildSearchQueryJSON, getAdvancedFiltersToReset} from '@libs/SearchQueryUtils';
-import {canSaveEditedView} from '@libs/SearchUIUtils';
+import {buildQueryStringWithResetFilters, buildSearchQueryJSON, hasFiltersChangedFromDefault} from '@libs/SearchQueryUtils';
+import {canSaveEditedView, shouldShowFilter, SKIPPED_SEARCH_FILTERS} from '@libs/SearchUIUtils';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import type {SearchAdvancedFiltersKey} from '@src/types/form/SearchAdvancedFiltersForm';
+import ObjectUtils from '@src/types/utils/ObjectUtils';
 
 import React, {useState} from 'react';
 
@@ -59,12 +60,10 @@ function SearchAdvancedFiltersProvider({children}: SearchAdvancedFiltersProvider
     const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
     const [editingSavedView] = useOnyx(ONYXKEYS.RAM_ONLY_SEARCH_EDITING_SAVED_VIEW);
     const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES);
-    const {currentSearchQueryJSON} = useSearchQueryContext();
+    const {currentDefaultSearchQueryJSON, currentSearchQueryJSON} = useSearchQueryContext();
     const {getUpdatedFilterFormValues, setFilterQueryParams, buildFilterQueryString} = useUpdateFilterQuery(currentSearchQueryJSON);
 
     const [values, setValues] = useState<Partial<SearchAdvancedFiltersForm>>(searchAdvancedFiltersForm ?? {});
-
-    const advancedFiltersToReset = searchAdvancedFiltersForm ? getAdvancedFiltersToReset(searchAdvancedFiltersForm) : undefined;
 
     const isEditingSavedView = !!editingSavedView;
     // The hash the edited draft would save under; used to decide which save buttons to disable.
@@ -76,12 +75,13 @@ function SearchAdvancedFiltersProvider({children}: SearchAdvancedFiltersProvider
     };
 
     const resetFilters = () => {
-        if (!advancedFiltersToReset) {
+        if (!currentSearchQueryJSON) {
             return;
         }
+
         Navigation.dismissModal({
             afterTransition: () => {
-                setFilterQueryParams(advancedFiltersToReset);
+                Navigation.setParams({q: buildQueryStringWithResetFilters(currentSearchQueryJSON, currentDefaultSearchQueryJSON), rawQuery: undefined});
                 setSearchContext(false);
             },
         });
@@ -132,7 +132,13 @@ function SearchAdvancedFiltersProvider({children}: SearchAdvancedFiltersProvider
 
     const searchAdvancedFiltersValue: SearchAdvancedFiltersValue = {
         currentDraftFilters: values,
-        shouldShowResetFilters: !isEmptyObject(advancedFiltersToReset),
+        shouldShowResetFilters:
+            currentDefaultSearchQueryJSON && currentSearchQueryJSON
+                ? hasFiltersChangedFromDefault(currentSearchQueryJSON, currentDefaultSearchQueryJSON)
+                : !!searchAdvancedFiltersForm &&
+                  ObjectUtils.typedKeys<SearchAdvancedFiltersKey, SearchAdvancedFiltersForm[SearchAdvancedFiltersKey]>(searchAdvancedFiltersForm).filter((key) =>
+                      shouldShowFilter(SKIPPED_SEARCH_FILTERS, key, searchAdvancedFiltersForm?.[key], searchAdvancedFiltersForm?.type),
+                  ).length > 0,
         isEditingSavedView,
         hasSaveableChange,
     };

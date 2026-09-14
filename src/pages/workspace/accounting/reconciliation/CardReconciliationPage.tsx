@@ -11,7 +11,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {getConnectionNameFromRouteParam} from '@libs/AccountingUtils';
+import {getAccountingIntegrationDisplayName, getConnectionNameFromRouteParam} from '@libs/AccountingUtils';
 import {openPolicyAccountingPage} from '@libs/actions/PolicyConnections';
 import {getCardSettings, getConnectionBankAccountsForReconciliation, isExpensifyCardFullySetUp} from '@libs/CardUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
@@ -174,7 +174,7 @@ function CardReconciliationPage({policy, route}: CardReconciliationPageProps) {
                                 html={translate(
                                     'workspace.accounting.enableContinuousReconciliation',
                                     accountingAdvancedSettingsLink,
-                                    CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName],
+                                    getAccountingIntegrationDisplayName(policy, connectionName, translate),
                                 )}
                             />
                         </View>

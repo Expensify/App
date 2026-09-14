@@ -37,6 +37,7 @@ const EMPTY_ACTIVE_STYLE: StyleProp<ViewStyle> = [];
 function TransactionItemRow({
     transactionItem,
     report,
+    chatReport,
     policy,
     policyCategories,
     policyTagLists,
@@ -79,6 +80,7 @@ function TransactionItemRow({
     isAttendeesEnabledForMovingPolicy,
     isActionColumnWide: isActionColumnWideProp,
     shouldRemoveTotalColumnFlex,
+    shouldUseFullHeightEditableCellHoverTarget = false,
     onEditDate,
     onEditMerchant,
     onEditDescription,
@@ -91,12 +93,16 @@ function TransactionItemRow({
     canEditCategory,
     canEditAmount,
     canEditTag,
+    shouldSkipDeferRBR = false,
 }: TransactionItemRowProps) {
+    const shouldDeferRBR = !shouldSkipDeferRBR;
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
-    const shouldUseMarkAsDoneCopy = shouldShowMarkAsDone({
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
+    const shouldShowMarkAsDoneCopy = shouldShowMarkAsDone({
         policy,
         report,
         isTrackIntentUser,
+        rules,
     });
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -175,6 +181,7 @@ function TransactionItemRow({
                 createdAt={createdAt}
                 transactionThreadReportID={transactionThreadReportID}
                 shouldRenderChatBubbleCell={shouldRenderChatBubbleCell}
+                shouldDeferRBR={shouldDeferRBR}
             />
         );
     }
@@ -182,6 +189,7 @@ function TransactionItemRow({
     const wideForwardedProps = {
         transactionItem,
         report,
+        chatReport,
         policy,
         policyCategories,
         policyTagLists,
@@ -219,6 +227,7 @@ function TransactionItemRow({
         nonPersonalAndWorkspaceCards,
         isActionColumnWide: isActionColumnWideProp,
         shouldRemoveTotalColumnFlex,
+        shouldUseFullHeightEditableCellHoverTarget,
         onEditDate,
         onEditMerchant,
         onEditDescription,
@@ -234,7 +243,7 @@ function TransactionItemRow({
     };
 
     const description = getDescription(transactionItem);
-    const exchangeRateMessage = getExchangeRate(transactionItem, report?.currency ?? policy?.outputCurrency);
+    const exchangeRateMessage = getExchangeRate(transactionItem, report?.currency ?? policy?.outputCurrency, true);
     const cardName = getCompanyCardDescription(translate, transactionItem?.cardName, transactionItem?.cardID, nonPersonalAndWorkspaceCards, transactionItem?.feedCountry);
     const isUnreported = transactionItem.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
     const shouldShowAttendees = (isUnreported ? !!isAttendeesEnabledForMovingPolicy : shouldShowAttendeesUtils(CONST.IOU.TYPE.SUBMIT, policy)) && transactionAttendees.length > 0;
@@ -256,7 +265,8 @@ function TransactionItemRow({
             totalPerAttendee={!attendeesCount || totalAmount === undefined ? undefined : totalAmount / attendeesCount}
             createdAt={createdAt}
             transactionThreadReportID={transactionThreadReportID}
-            isMarkAsDone={shouldUseMarkAsDoneCopy}
+            shouldDeferRBR={shouldDeferRBR}
+            shouldShowMarkAsDoneCopy={shouldShowMarkAsDoneCopy}
         />
     );
 }

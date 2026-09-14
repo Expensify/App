@@ -18,8 +18,7 @@ type UseMoneyRequestPolicyTagsParams = {
 const selectReportPolicyID = (report: OnyxEntry<Report>) => report?.policyID;
 
 /**
- * Resolves the `PolicyTagLists` for the money-request flow — a reactive replacement for the deprecated
- * `getMoneyRequestPolicyTags`, picking the policy from the IOU/money-request/chat/participant reports in order.
+ * Resolves the `PolicyTagLists` for the money-request flow, picking the policy from the IOU/money-request/chat/participant reports in order.
  *
  * Case-specific: it mirrors how these flows resolve their policy, not a general-purpose hook.
  */

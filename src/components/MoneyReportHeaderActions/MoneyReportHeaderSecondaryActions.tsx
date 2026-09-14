@@ -1,4 +1,4 @@
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import type {ButtonWithDropdownMenuRef} from '@components/ButtonWithDropdownMenu/types';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import {KYCWallContext} from '@components/KYCWall/KYCWallContext';
@@ -14,10 +14,11 @@ import type {PaymentActionParams} from '@components/SettlementButton/types';
 import useActiveAdminPolicies from '@hooks/useActiveAdminPolicies';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import useEnvironment from '@hooks/useEnvironment';
+import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useExpenseActions from '@hooks/useExpenseActions';
 import useExportActions from '@hooks/useExportActions';
 import useHoldRejectActions from '@hooks/useHoldRejectActions';
+import useIsInSidePanel from '@hooks/useIsInSidePanel';
 import useLastWorkspaceNumber from '@hooks/useLastWorkspaceNumber';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLifecycleActions from '@hooks/useLifecycleActions';
@@ -36,14 +37,13 @@ import useSearchShouldCalculateTotals from '@hooks/useSearchShouldCalculateTotal
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
+import useVerifyAccountAndResume from '@hooks/useVerifyAccountAndResume';
 
 import {generateDefaultWorkspaceName} from '@libs/actions/Policy/Policy';
 import {search} from '@libs/actions/Search';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import getPlatform from '@libs/getPlatform';
 import {getTotalAmountForIOUReportPreviewButton} from '@libs/MoneyRequestReportUtils';
-import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
-import Navigation from '@libs/Navigation/Navigation';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
 import type {KYCFlowEvent, TriggerKYCFlow, WorkspacePolicyPaymentOption} from '@libs/PaymentUtils';
@@ -68,13 +68,13 @@ import {canApproveIOU, canIOUBePaid as canIOUBePaidAction} from '@userActions/IO
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
-import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import {personalDetailsLoginSelector} from '@src/selectors/PersonalDetails';
+import {createMoveExpenseReportNVPSelector} from '@src/selectors/Report';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 
 import type {ValueOf} from 'type-fest';
 
-import {delegateEmailSelector, isUserValidatedSelector} from '@selectors/Account';
+import {delegateEmailSelector} from '@selectors/Account';
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import truncate from 'lodash/truncate';
 import React, {useContext, useEffect} from 'react';
@@ -98,23 +98,19 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
     const {openHoldMenu, openPDFDownload, openHoldEducational, openRejectModal} = useMoneyReportHeaderModals();
 
     const {translate, localeCompare} = useLocalize();
+    const isInSidePanel = useIsInSidePanel();
     const kycWallRef = useContext(KYCWallContext);
 
     const [moneyRequestReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(moneyRequestReport?.policyID)}`);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(moneyRequestReport?.chatReportID)}`);
-    const [submitterLogin] = useOnyx(
-        ONYXKEYS.PERSONAL_DETAILS_LIST,
-        {
-            selector: personalDetailsLoginSelector(moneyRequestReport?.ownerAccountID),
-        },
-        [moneyRequestReport?.ownerAccountID],
-    );
+    const [submitterLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(moneyRequestReport?.ownerAccountID)});
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
-    const [nextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${moneyRequestReport?.reportID}`);
-    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${moneyRequestReport?.reportID}`);
     const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${moneyRequestReport?.reportID}`);
     const [outstandingReportsByPolicyID] = useOnyx(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID);
+    const [moveExpenseReportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {
+        selector: createMoveExpenseReportNVPSelector(outstandingReportsByPolicyID, moneyRequestReport?.reportID),
+    });
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
@@ -124,14 +120,16 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
-    const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {
-        selector: isUserValidatedSelector,
-    });
     const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {
         selector: delegateEmailSelector,
     });
+    // Sends an unvalidated user to the verify-account (security code) screen and resumes the stored payment once they validate.
+    const {isUserValidated, verifyAccountAndResume} = useVerifyAccountAndResume((retry?: () => void) => retry?.());
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const [invoiceReceiverPolicy] = useOnyx(
         `${ONYXKEYS.COLLECTION.POLICY}${chatReport?.invoiceReceiver && 'policyID' in chatReport.invoiceReceiver ? chatReport.invoiceReceiver.policyID : undefined}`,
         {},
@@ -139,19 +137,21 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
 
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {login: currentUserLogin, accountID, email} = currentUserPersonalDetails;
+    const delegateAccountID = useDelegateAccountID();
 
     const {isOffline} = useNetwork();
     const activePolicy = usePolicy(activePolicyID);
     const chatReportPolicy = usePolicy(chatReport?.policyID);
     const lastWorkspaceNumber = useLastWorkspaceNumber();
 
-    const {convertToDisplayString} = useCurrencyListActions();
+    const {getCurrencyDecimals, convertToDisplayString} = useCurrencyListActions();
 
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
 
     const {transactions: reportTransactions, violations} = useTransactionsAndViolationsForReport(moneyRequestReport?.reportID);
-    const nonPendingDeleteTransactions = Object.values(reportTransactions).filter((t) => t.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+    // While offline, keep pending-delete transactions so a queued-for-delete expense still counts as a real transaction until the delete syncs.
+    const nonPendingDeleteTransactions = Object.values(reportTransactions).filter((t) => isOffline || t.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
     const allTransactions = Object.values(reportTransactions);
     const singleTransaction = nonPendingDeleteTransactions.length === 1 ? nonPendingDeleteTransactions.at(0) : undefined;
     const [originalTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(singleTransaction?.comment?.originalTransactionID)}`);
@@ -166,7 +166,7 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
     const {currentSearchQueryJSON, currentSearchKey} = useSearchQueryContext();
     const {currentSearchResults} = useSearchResultsContext();
-    const shouldCalculateTotals = useSearchShouldCalculateTotals(currentSearchKey, currentSearchQueryJSON?.hash, true);
+    const shouldCalculateTotals = useSearchShouldCalculateTotals(currentSearchKey, true);
 
     const isInvoiceReport = isInvoiceReportUtil(moneyRequestReport);
     const isAnyTransactionOnHold = hasHeldExpensesReportUtils(allTransactions);
@@ -200,10 +200,10 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
         } else if (isInvoiceReport) {
             startAnimation();
             payInvoice({
+                getCurrencyDecimals,
                 paymentMethodType: type,
                 chatReport,
                 invoiceReport: moneyRequestReport,
-                invoiceReportCurrentNextStepDeprecated: nextStep,
                 introSelected,
                 currentUserAccountIDParam: accountID,
                 currentUserEmailParam: email ?? '',
@@ -213,20 +213,23 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
                 methodID,
                 paymentMethod,
                 activePolicy,
+                conciergeChat,
                 betas,
                 isSelfTourViewed,
                 defaultWorkspaceName: generateDefaultWorkspaceName(email ?? '', lastWorkspaceNumber, translate),
                 chatReportActions: getChatReportActions(payAsBusiness),
+                delegateAccountID,
                 isTrackIntentUser,
+                rules,
             });
         } else {
             startAnimation();
             payMoneyRequest({
+                getCurrencyDecimals,
                 paymentType: type,
                 chatReport,
                 iouReport: moneyRequestReport,
                 introSelected,
-                iouReportCurrentNextStepDeprecated: nextStep,
                 currentUserAccountID: accountID,
                 currentUserLogin: currentUserLogin ?? '',
                 activePolicy,
@@ -242,7 +245,10 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
                     startAnimation();
                 },
                 chatReportActions: getChatReportActions(false),
+                delegateAccountID,
                 isTrackIntentUser,
+                conciergeChat,
+                rules,
             });
             if (currentSearchQueryJSON && !isOffline) {
                 search({
@@ -250,7 +256,6 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
                     shouldCalculateTotals,
                     offset: 0,
                     queryJSON: currentSearchQueryJSON,
-                    isOffline,
                     isLoading: !!currentSearchResults?.search?.isLoading,
                 });
             }
@@ -361,13 +366,11 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
         onRejectModalOpen: openRejectModal,
     });
 
-    const {exportActionEntries, exportDownloadStatusModal} = useExportActions({
+    const {exportActionEntries} = useExportActions({
         reportID,
         policy,
         onPDFModalOpen: openPDFDownload,
     });
-
-    const {isProduction} = useEnvironment();
 
     // Compute list of applicable secondary action keys
     const secondaryActions = moneyRequestReport
@@ -382,13 +385,14 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
               violations,
               bankAccountList,
               policy,
-              reportNameValuePairs,
+              moveExpenseReportNameValuePairs,
               reportActions,
               reportMetadata,
               policies,
               outstandingReportsByPolicyID,
               isChatReportArchived,
-              isProduction,
+              isOffline,
+              rules,
           })
         : [];
 
@@ -400,7 +404,7 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
             icon: expensifyIcons.Info,
             sentryLabel: CONST.SENTRY_LABEL.MORE_MENU.VIEW_DETAILS,
             onSelected: () => {
-                navigateToDetailsPage(moneyRequestReport);
+                navigateToDetailsPage(moneyRequestReport, isInSidePanel);
             },
         },
         ...exportActionEntries,
@@ -426,53 +430,58 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
     const hasViolations = hasViolationsReportUtils(moneyRequestReport?.reportID, allTransactionViolations, accountID, email ?? '');
 
     const onPaymentSelect = (event: KYCFlowEvent, iouPaymentType: PaymentMethodType, triggerKYCFlow: TriggerKYCFlow) => {
+        const runPaymentSelection = () =>
+            selectPaymentType({
+                getCurrencyDecimals,
+                event,
+                iouPaymentType,
+                triggerKYCFlow,
+                expenseReportPolicy: policy,
+                policy,
+                onPress: confirmPayment,
+                currentAccountID: accountID,
+                currentEmail: email ?? '',
+                hasViolations,
+                isASAPSubmitBetaEnabled,
+                confirmApproval: () => confirmApproval(),
+                iouReport: moneyRequestReport,
+                rules,
+                betas,
+                userBillingGracePeriodEnds,
+                amountOwed,
+                ownerBillingGracePeriodEnd,
+                delegateEmail,
+                isTrackIntentUser,
+                ownerLogin: submitterLogin,
+                delegateAccountID,
+            });
+
         if (!isUserValidated && iouPaymentType !== CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
-            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.VERIFY_ACCOUNT.path));
+            // Store the payment selection so it resumes after the user validates, instead of being dropped.
+            verifyAccountAndResume(runPaymentSelection);
             return;
         }
-        selectPaymentType({
-            event,
-            iouPaymentType,
-            triggerKYCFlow,
-            expenseReportPolicy: policy,
-            policy,
-            onPress: confirmPayment,
-            currentAccountID: accountID,
-            currentEmail: email ?? '',
-            hasViolations,
-            isASAPSubmitBetaEnabled,
-            confirmApproval: () => confirmApproval(),
-            iouReport: moneyRequestReport,
-            iouReportNextStep: nextStep,
-            betas,
-            userBillingGracePeriodEnds,
-            amountOwed,
-            ownerBillingGracePeriodEnd,
-            delegateEmail,
-            isTrackIntentUser,
-            ownerLogin: submitterLogin,
-        });
+
+        runPaymentSelection();
     };
 
     if (!applicableSecondaryActions.length) {
-        return exportDownloadStatusModal;
+        return null;
     }
 
     return (
-        <>
-            {exportDownloadStatusModal}
-            <MoneyReportHeaderKYCDropdown
-                chatReportID={chatReport?.reportID}
-                iouReport={moneyRequestReport}
-                onPaymentSelect={onPaymentSelect}
-                onSuccessfulKYC={(type) => confirmPayment({paymentType: type})}
-                primaryAction={primaryAction}
-                applicableSecondaryActions={applicableSecondaryActions}
-                dropdownMenuRef={dropdownMenuRef}
-                onOptionsMenuHide={handleOptionsMenuHide}
-                ref={kycWallRef}
-            />
-        </>
+        <MoneyReportHeaderKYCDropdown
+            chatReportID={chatReport?.reportID}
+            iouReport={moneyRequestReport}
+            onPaymentSelect={onPaymentSelect}
+            onSuccessfulKYC={(type) => confirmPayment({paymentType: type})}
+            primaryAction={primaryAction}
+            applicableSecondaryActions={applicableSecondaryActions}
+            dropdownMenuRef={dropdownMenuRef}
+            onOptionsMenuHide={handleOptionsMenuHide}
+            ref={kycWallRef}
+            shouldPutHeaderTextAfterBackButton
+        />
     );
 }
 

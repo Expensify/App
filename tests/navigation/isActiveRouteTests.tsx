@@ -2,20 +2,15 @@ import {afterEach, beforeEach, describe, expect, it, jest} from '@jest/globals';
 
 import getPathFromState from '@libs/Navigation/helpers/getPathFromState';
 import Navigation from '@libs/Navigation/Navigation';
-import navigationRef from '@libs/Navigation/navigationRef';
-
-import type {Route} from '@src/ROUTES';
 
 jest.mock('@libs/Navigation/navigationRef', () => {
-    const navigationRefMock = {
-        current: {getCurrentRoute: jest.fn()},
-        getRootState: jest.fn(),
-        isReady: jest.fn(),
-    };
-
     return {
         __esModule: true,
-        default: navigationRefMock,
+        default: {
+            current: {getCurrentRoute: jest.fn(() => ({name: 'test'}))},
+            getRootState: jest.fn(() => ({})),
+            isReady: jest.fn(() => true),
+        },
     };
 });
 
@@ -27,29 +22,26 @@ describe('Navigation', () => {
     });
 
     beforeEach(() => {
-        const navigationRefMock = navigationRef as typeof navigationRef & {
-            current: {getCurrentRoute: jest.Mock};
-            getRootState: jest.Mock;
-            isReady: jest.Mock;
-        };
-
-        (getPathFromState as jest.Mock).mockReturnValue('/settings/profile?backTo=settings');
-
-        navigationRefMock.current.getCurrentRoute.mockReturnValue({name: 'test'});
-        navigationRefMock.getRootState.mockReturnValue({});
-        navigationRefMock.isReady.mockReturnValue(true);
+        jest.mocked(getPathFromState).mockReturnValue('/settings/profile?backTo=settings');
     });
 
     it('Should correctly identify active routes', () => {
-        expect(Navigation.isActiveRoute('settings/profile' as Route)).toBe(true);
-        expect(Navigation.isActiveRoute('settings/profile/' as Route)).toBe(true);
-        expect(Navigation.isActiveRoute('settings/profile?param=1' as Route)).toBe(true);
-        expect(Navigation.isActiveRoute('settings/profile/display-name' as Route)).toBe(false);
-        expect(Navigation.isActiveRoute('settings/profile/display-name/' as Route)).toBe(false);
-        expect(Navigation.isActiveRoute('settings/preferences' as Route)).toBe(false);
-        expect(Navigation.isActiveRoute('settings/preferences/' as Route)).toBe(false);
-        expect(Navigation.isActiveRoute('report' as Route)).toBe(false);
-        expect(Navigation.isActiveRoute('report/123/' as Route)).toBe(false);
-        expect(Navigation.isActiveRoute('report/123' as Route)).toBe(false);
+        expect(Navigation.isActiveRoute('settings/profile')).toBe(true);
+        // @ts-expect-error -- deliberately tests a runtime route variant outside the Route union.
+        expect(Navigation.isActiveRoute('settings/profile/')).toBe(true);
+        // @ts-expect-error -- deliberately tests a runtime route query variant outside the Route union.
+        expect(Navigation.isActiveRoute('settings/profile?param=1')).toBe(true);
+        expect(Navigation.isActiveRoute('settings/profile/display-name')).toBe(false);
+        // @ts-expect-error -- deliberately tests a runtime route variant outside the Route union.
+        expect(Navigation.isActiveRoute('settings/profile/display-name/')).toBe(false);
+        expect(Navigation.isActiveRoute('settings/preferences')).toBe(false);
+        // @ts-expect-error -- deliberately tests a runtime route variant outside the Route union.
+        expect(Navigation.isActiveRoute('settings/preferences/')).toBe(false);
+        // @ts-expect-error -- deliberately tests a runtime route variant outside the Route union.
+        expect(Navigation.isActiveRoute('report')).toBe(false);
+        // @ts-expect-error -- deliberately tests a runtime route variant outside the Route union.
+        expect(Navigation.isActiveRoute('report/123/')).toBe(false);
+        // @ts-expect-error -- deliberately tests a runtime route variant outside the Route union.
+        expect(Navigation.isActiveRoute('report/123')).toBe(false);
     });
 });

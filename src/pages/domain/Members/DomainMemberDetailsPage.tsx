@@ -1,7 +1,8 @@
 import Button from '@components/Button';
 import DecisionModal from '@components/DecisionModal';
 import MenuItem from '@components/MenuItem';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItemAction from '@components/MenuItem/presets/MenuItemAction';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import VacationDelegateMenuItem from '@components/VacationDelegateMenuItem';
@@ -101,7 +102,7 @@ function DomainMemberDetailsPage({route}: DomainMemberDetailsPageProps) {
             prompt: translate('domain.members.closeAccountPrompt'),
             confirmText: translate('domain.members.closeAccount', {count: 1}),
             cancelText: translate('common.cancel'),
-            danger: true,
+            buttonVariant: CONST.BUTTON_VARIANT.DANGER,
             shouldShowCancelButton: true,
         });
 
@@ -127,11 +128,12 @@ function DomainMemberDetailsPage({route}: DomainMemberDetailsPageProps) {
 
     const avatarButton = (
         <Button
-            text={translate('domain.members.closeAccount', {count: 1})}
             onPress={() => setIsModalVisible(true)}
-            icon={icons.RemoveMembers}
             style={styles.mb5}
-        />
+        >
+            <Button.Icon src={icons.RemoveMembers} />
+            <Button.Text>{translate('domain.members.closeAccount', {count: 1})}</Button.Text>
+        </Button>
     );
 
     const showUnlockAccountModal = () => {
@@ -157,11 +159,10 @@ function DomainMemberDetailsPage({route}: DomainMemberDetailsPageProps) {
                     errors={getLatestError(domainErrors?.memberErrors?.[memberLogin]?.changeDomainSecurityGroupErrors)}
                     onClose={() => clearChangeDomainSecurityGroupError(domainAccountID, memberLogin)}
                 >
-                    <MenuItemWithTopDescription
-                        description={translate('domain.members.domainGroup')}
-                        title={userSecurityGroup?.securityGroup?.name ?? ''}
+                    <MenuItemField
+                        name={translate('domain.members.domainGroup')}
                         onPress={() => Navigation.navigate(ROUTES.DOMAIN_MEMBER_MOVE_TO_GROUP.getRoute(domainAccountID, accountID))}
-                        shouldShowRightIcon
+                        value={userSecurityGroup?.securityGroup?.name}
                     />
                 </OfflineWithFeedback>
                 <VacationDelegateMenuItem
@@ -196,7 +197,7 @@ function DomainMemberDetailsPage({route}: DomainMemberDetailsPageProps) {
                 )}
                 <View style={styles.mt6} />
                 {!!accountRequiresTwoFactorAuth && (
-                    <MenuItem
+                    <MenuItemAction
                         title={translate('domain.common.resetTwoFactorAuth')}
                         icon={icons.CircularArrowBackwards}
                         onPress={() => {
@@ -207,7 +208,7 @@ function DomainMemberDetailsPage({route}: DomainMemberDetailsPageProps) {
                 )}
 
                 {isAccountLocked ? (
-                    <MenuItem
+                    <MenuItemAction
                         key="UnlockAccount"
                         title={translate('lockAccountPage.unlockAccount')}
                         icon={icons.Unlock}

@@ -17,7 +17,6 @@ type ExpenseReportListItemRowNarrowProps = {
 
 type ExpenseReportListItemRowWideProps = ExpenseReportListItemRowNarrowProps & {
     reportActions?: ReportAction[];
-    showTooltip: boolean;
     isActionLoading?: boolean;
     onButtonPress?: () => void;
     chatReport?: OnyxEntry<Report>;
@@ -27,7 +26,7 @@ type ExpenseReportListItemRowWideProps = ExpenseReportListItemRowNarrowProps & {
     isPendingDelete?: boolean;
     shouldDisableActionPointerEvents?: boolean;
     columns?: SearchColumnType[];
-    isMarkAsDone: boolean;
+    shouldShowMarkAsDoneCopy: boolean;
 };
 
 type ExpenseReportListItemRowProps = ExpenseReportListItemRowWideProps;

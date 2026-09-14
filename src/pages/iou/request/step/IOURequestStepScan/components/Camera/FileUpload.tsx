@@ -91,13 +91,14 @@ function FileUpload({onPicked, shouldAcceptMultipleFiles = false, onLayout, isRe
                         <AttachmentPicker allowMultiple={shouldAcceptMultipleFiles}>
                             {({openPicker}) => (
                                 <Button
-                                    success
-                                    text={translate(shouldAcceptMultipleFiles ? 'common.chooseFiles' : 'common.chooseFile')}
+                                    variant={CONST.BUTTON_VARIANT.SUCCESS}
                                     accessibilityLabel={translate(shouldAcceptMultipleFiles ? 'common.chooseFiles' : 'common.chooseFile')}
                                     style={[styles.p5]}
                                     onPress={() => openPicker({onPicked})}
-                                    sentryLabel={CONST.SENTRY_LABEL.IOU_REQUEST_STEP.SCAN_SUBMIT_BUTTON}
-                                />
+                                    sentryLabel={CONST.SENTRY_LABEL.IOU_REQUEST_STEP.SCAN_FILE_UPLOAD_BUTTON}
+                                >
+                                    <Button.Text>{translate(shouldAcceptMultipleFiles ? 'common.chooseFiles' : 'common.chooseFile')}</Button.Text>
+                                </Button>
                             )}
                         </AttachmentPicker>
                     </View>

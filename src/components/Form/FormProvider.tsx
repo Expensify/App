@@ -17,12 +17,11 @@ import type {CancelHandle} from '@libs/Navigation/TransitionTracker';
 import {prepareValues} from '@libs/ValidationUtils';
 import Visibility from '@libs/Visibility';
 
-import {clearErrorFields, clearErrors, setDraftValues, setErrors as setFormErrors} from '@userActions/FormActions';
+import {clearErrorFields, clearErrors, setDraftValues} from '@userActions/FormActions';
 
 import CONST from '@src/CONST';
 import type {OnyxFormDraftKey, OnyxFormKey} from '@src/ONYXKEYS';
 import type {Form} from '@src/types/form';
-import type {Errors} from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import KeyboardUtils from '@src/utils/keyboard';
@@ -63,10 +62,7 @@ function getInitialValueByType(valueType?: ValueTypeKey): InitialDefaultValue {
 }
 
 type FormProviderProps<TFormID extends OnyxFormKey = OnyxFormKey> = FormProps<TFormID> & {
-    /** Children to render. */
     children: ((props: {inputValues: FormOnyxValues<TFormID>}) => ReactNode) | ReactNode;
-
-    /** Callback to validate the form */
     validate?: (values: FormOnyxValues<TFormID>, translate: LocalizedTranslate) => FormInputErrors<TFormID>;
 
     /** Should validate function be called when input loose focus */
@@ -78,7 +74,6 @@ type FormProviderProps<TFormID extends OnyxFormKey = OnyxFormKey> = FormProps<TF
     /** Whether to remove invisible characters from strings before validation and submission */
     shouldTrimValues?: boolean;
 
-    /** Styles that will be applied to the submit button only */
     submitButtonStyles?: StyleProp<ViewStyle>;
 
     /** Whether to apply flex to the submit button */
@@ -90,19 +85,19 @@ type FormProviderProps<TFormID extends OnyxFormKey = OnyxFormKey> = FormProps<TF
     /** Whether HTML is allowed in form inputs */
     allowHTML?: boolean;
 
+    /**
+     * When true, FormProvider will not replace an existing custom validate() error for a field
+     * with the generic HTML/invalid-character error. Required, length, and other custom rules
+     * keep showing their own messages. Fields without a custom error still get HTML validation.
+     */
+    shouldPreserveCustomValidationErrors?: boolean;
+
     /** Whether to render the submit button above the footer. */
     shouldRenderFooterAboveSubmit?: boolean;
 
-    /** Whether the form is loading */
     isLoading?: boolean;
-
-    /** Whether to add bottom safe area padding to the content. */
     addBottomSafeAreaPadding?: boolean;
-
-    /** Whether to add bottom safe area padding to the content. */
     addOfflineIndicatorBottomSafeAreaPadding?: boolean;
-
-    /** Whether the submit button should stick to the bottom of the screen. */
     shouldSubmitButtonStickToBottom?: boolean;
 
     /** Fires at most once per frame during scrolling. */
@@ -125,8 +120,14 @@ type FormProviderProps<TFormID extends OnyxFormKey = OnyxFormKey> = FormProps<TF
     /** Callback fired synchronously when the user presses submit, before validation runs */
     onBeforeSubmit?: () => void;
 
-    /** Reference to the outer element */
+    /** Whether the confirm button should show a spinner immediately on press */
+    shouldShowLoadingImmediatelyOnPress?: boolean;
+
     ref?: ForwardedRef<FormRef>;
+    submitButtonAndFooterContainerStyles?: StyleProp<ViewStyle>;
+
+    /** Styles for the submit button itself (`submitButtonStyles` targets the wrapping container) */
+    submitButtonInnerStyles?: StyleProp<ViewStyle>;
 };
 
 function FormProvider({
@@ -139,13 +140,16 @@ function FormProvider({
     onSubmit,
     shouldTrimValues = true,
     allowHTML = false,
+    shouldPreserveCustomValidationErrors = false,
     isLoading: isOnyxLoading = false,
     shouldRenderFooterAboveSubmit = false,
     shouldUseStrictHtmlTagValidation = false,
     shouldPreventDefaultFocusOnPressSubmit = false,
     shouldHideFixErrorsAlert = false,
+    shouldHideServerError = false,
     keyboardSubmitBehavior = CONST.KEYBOARD_SUBMIT_BEHAVIOR.DISMISS_THEN_SUBMIT,
     onBeforeSubmit,
+    shouldShowLoadingImmediatelyOnPress = true,
     ref,
     ...rest
 }: FormProviderProps) {
@@ -167,14 +171,15 @@ function FormProvider({
 
     const [errors, setErrors] = useState<GenericFormInputErrors>({});
     const [errorAnnouncementKey, setErrorAnnouncementKey] = useState(0);
-    const hasServerError = useMemo(() => !!formState && !isEmptyObject(formState?.errors), [formState]);
+    const hasServerError = !!formState && !isEmptyObject(formState?.errors);
+    const hasServerErrorFields = !!formState && !isEmptyObject(formState?.errorFields);
     const {setIsBlurred} = useInputBlurActions();
     const blurTransitionHandle = useRef<CancelHandle | null>(null);
 
     // Cancel any in-flight blur transition callback on unmount so it doesn't fire after the form is gone.
     useEffect(() => () => blurTransitionHandle.current?.cancel(), []);
 
-    const errorMessage = formState ? getLatestErrorMessage(formState) : undefined;
+    const errorMessage = formState && !shouldHideServerError ? getLatestErrorMessage(formState) : undefined;
     const isGeneralAlertVisible = ((!isEmptyObject(errors) || !isEmptyObject(formState?.errorFields)) && !shouldHideFixErrorsAlert) || !!errorMessage;
     const firstFieldErrorMessage = useMemo(() => {
         for (const errorMsg of Object.values(errors)) {
@@ -194,20 +199,28 @@ function FormProvider({
         (values: FormOnyxValues, shouldClearServerError = true) => {
             const trimmedStringValues = shouldTrimValues ? prepareValues(values) : values;
 
-            if (shouldClearServerError) {
+            if (shouldClearServerError && hasServerError) {
                 clearErrors(formID);
             }
-            clearErrorFields(formID);
+            if (hasServerErrorFields) {
+                clearErrorFields(formID);
+            }
 
             const validateErrors: GenericFormInputErrors = validate?.(trimmedStringValues, translate) ?? {};
 
             if (!allowHTML) {
-                // Validate the input for html tags. It should supersede any other error
+                // Validate the input for html tags. It should supersede any other error unless
+                // shouldPreserveCustomValidationErrors is set and the field already has a custom error.
                 for (const [inputID, inputValue] of Object.entries(trimmedStringValues)) {
                     // If the input value is empty OR is non-string, we don't need to validate it for HTML tags
                     if (!inputValue || typeof inputValue !== 'string') {
                         continue;
                     }
+
+                    if (shouldPreserveCustomValidationErrors && validateErrors[inputID]) {
+                        continue;
+                    }
+
                     const validateForHtmlTagRegex = shouldUseStrictHtmlTagValidation ? CONST.STRICT_VALIDATE_FOR_HTML_TAG_REGEX : CONST.VALIDATE_FOR_HTML_TAG_REGEX;
                     const foundHtmlTagIndex = inputValue.search(validateForHtmlTagRegex);
                     const leadingSpaceIndex = inputValue.search(CONST.VALIDATE_FOR_LEADING_SPACES_HTML_TAG_REGEX);
@@ -245,13 +258,16 @@ function FormProvider({
 
             const touchedInputErrors = Object.fromEntries(Object.entries(validateErrors).filter(([inputID]) => touchedInputs.current[inputID]));
 
-            if (!deepEqual(errors, touchedInputErrors)) {
-                setErrors(touchedInputErrors);
-            }
+            // Compare against the latest committed errors via a functional update rather than the `errors` captured in this
+            // closure. When a value is selected (e.g. an address suggestion) right after a blur, the delayed blur validation
+            // sets the error before this validation runs; reading `errors` from the closure would still see the pre-error
+            // (empty) snapshot, short-circuit the update, and leave the stale error showing (see
+            // https://github.com/Expensify/App/issues/94519).
+            setErrors((prevErrors) => (deepEqual(prevErrors, touchedInputErrors) ? prevErrors : touchedInputErrors));
 
             return touchedInputErrors;
         },
-        [shouldTrimValues, formID, validate, errors, translate, allowHTML, shouldUseStrictHtmlTagValidation],
+        [shouldTrimValues, formID, validate, translate, allowHTML, shouldPreserveCustomValidationErrors, shouldUseStrictHtmlTagValidation, hasServerError, hasServerErrorFields],
     );
 
     // When locales change from another session of the same account,
@@ -281,7 +297,9 @@ function FormProvider({
         [touchedInputs],
     );
 
-    const {isLoading, startWithLoading} = usePressLoading({isLoading: !!formState?.isLoading || isOnyxLoading});
+    const isExternalLoading = !!formState?.isLoading || isOnyxLoading;
+    const {isLoading: isPressLoading, startWithLoading} = usePressLoading({isLoading: isExternalLoading});
+    const isLoading = shouldShowLoadingImmediatelyOnPress ? isPressLoading : isExternalLoading;
 
     const submit = useDebounceNonReactive(
         useCallback(() => {
@@ -315,7 +333,7 @@ function FormProvider({
                 return;
             }
 
-            startWithLoading(() => {
+            const runSubmit = () => {
                 if (keyboardSubmitBehavior === CONST.KEYBOARD_SUBMIT_BEHAVIOR.DISMISS_THEN_SUBMIT) {
                     KeyboardUtils.dismiss().then(() => onSubmit(trimmedStringValues));
                 } else if (keyboardSubmitBehavior === CONST.KEYBOARD_SUBMIT_BEHAVIOR.SUBMIT_AND_DISMISS) {
@@ -323,8 +341,28 @@ function FormProvider({
                 } else {
                     onSubmit(trimmedStringValues);
                 }
-            });
-        }, [enabledWhenOffline, isLoading, inputValues, isOffline, onSubmit, onValidate, shouldTrimValues, hasServerError, keyboardSubmitBehavior, onBeforeSubmit, startWithLoading]),
+            };
+
+            if (!shouldShowLoadingImmediatelyOnPress) {
+                runSubmit();
+                return;
+            }
+
+            startWithLoading(runSubmit);
+        }, [
+            enabledWhenOffline,
+            isLoading,
+            inputValues,
+            isOffline,
+            onSubmit,
+            onValidate,
+            shouldTrimValues,
+            hasServerError,
+            keyboardSubmitBehavior,
+            onBeforeSubmit,
+            shouldShowLoadingImmediatelyOnPress,
+            startWithLoading,
+        ]),
         1000,
         {leading: true, trailing: false},
     );
@@ -360,14 +398,17 @@ function FormProvider({
         (inputID: keyof Form) => {
             const newErrors = {...errors};
             delete newErrors[inputID];
-            setFormErrors(formID, newErrors as Errors);
             setErrors(newErrors);
         },
-        [errors, formID],
+        [errors],
     );
 
     const scrollToEnd = useCallback(() => {
         formWrapperRef.current?.scrollToEnd();
+    }, []);
+
+    const scrollTo = useCallback((y: number) => {
+        formWrapperRef.current?.scrollTo(y);
     }, []);
 
     useImperativeHandle(ref, () => ({
@@ -376,6 +417,7 @@ function FormProvider({
         resetFormFieldError,
         submit,
         scrollToEnd,
+        scrollTo,
     }));
 
     const registerInput = useCallback<RegisterInput>(
@@ -477,7 +519,14 @@ function FormProvider({
                             setTouchedInput(inputID);
                             // Skip validation if the screen is not focused or keyboard focus is being restored (Android mWeb)
                             if (shouldValidateOnBlur && isFocusedRef.current && !getIsRestoringKeyboardFocus()) {
-                                onValidate(inputValues, !hasServerError);
+                                // Validate against the latest committed values rather than the `inputValues` captured in this
+                                // closure when the input blurred. Selecting a value (e.g. an address suggestion) updates the
+                                // field after this blur validation is scheduled, so validating the stale value would re-apply an
+                                // error that the selection just cleared (see https://github.com/Expensify/App/issues/94519).
+                                setInputValues((latestValues) => {
+                                    onValidate(latestValues, !hasServerError);
+                                    return latestValues;
+                                });
                             }
                         }, VALIDATE_DELAY);
                     }
@@ -549,9 +598,11 @@ function FormProvider({
                 onSubmit={submitAndAnnounce}
                 inputRefs={inputRefs}
                 errors={errors}
-                isLoading={isLoading}
+                isAlertVisible={isGeneralAlertVisible}
+                serverErrorFields={formState?.errorFields}
+                serverErrorMessage={errorMessage}
+                isLoading={!!formState?.isLoading || isLoading}
                 enabledWhenOffline={enabledWhenOffline}
-                shouldHideFixErrorsAlert={shouldHideFixErrorsAlert}
                 shouldRenderFooterAboveSubmit={shouldRenderFooterAboveSubmit}
                 shouldPreventDefaultFocusOnPressSubmit={shouldPreventDefaultFocusOnPressSubmit}
                 ref={formWrapperRef}

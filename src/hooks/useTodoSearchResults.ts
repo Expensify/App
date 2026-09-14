@@ -133,13 +133,14 @@ function useTodoSearchResults(searchKey: SearchKey | undefined): {data: TodoSear
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [allReportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
-    const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
+    const [allTransactions, transactionsMetadata] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
     const [allReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
     const [allReportMetadata] = useOnyx(ONYXKEYS.COLLECTION.REPORT_METADATA);
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [personalDetailsList] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
     if (!searchKey) {
         return undefined;
@@ -159,6 +160,8 @@ function useTodoSearchResults(searchKey: SearchKey | undefined): {data: TodoSear
         bankAccountList,
         currentUserAccountID: userAccountID,
         login,
+        areTransactionsLoaded: transactionsMetadata.status === 'loaded',
+        rules,
     });
 
     const metadata = computeMetadata(reports, transactionsByReportID);

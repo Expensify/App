@@ -1,24 +1,59 @@
 import EXPENSIFY_ICON_URL from '@assets/images/expensify-logo-round-clearspace.png';
 
+import type {CurrencyListActionsContextType} from '@components/CurrencyListContextProvider/types';
+
 import * as AppUpdate from '@libs/actions/AppUpdate';
+import {convertToFrontendAmountAsInteger, sanitizeCurrencyCode} from '@libs/CurrencyUtils';
 import {translateLocal} from '@libs/Localize';
+import Log from '@libs/Log';
 import {getForReportAction} from '@libs/ModifiedExpenseMessage';
 import NotificationPermission from '@libs/Notification/notificationPermission';
+import {format} from '@libs/NumberFormatUtils';
 import {getTextFromHtml} from '@libs/ReportActionsUtils';
-import {getReportName} from '@libs/ReportNameUtils';
+import {deprecatedGetReportName} from '@libs/ReportNameUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 
-import type {Report, ReportAction, ReportAttributesDerivedValue} from '@src/types/onyx';
+import CONST from '@src/CONST';
+import IntlStore from '@src/languages/IntlStore';
+import ONYXKEYS from '@src/ONYXKEYS';
+import type {CurrencyList, Report, ReportAction, ReportAttributesDerivedValue} from '@src/types/onyx';
 
 import type {ImageSourcePropType} from 'react-native';
 
 // Web implementation only. Do not import for direct use. Use LocalNotification.
 import {SafeString, Str} from 'expensify-common';
+import Onyx from 'react-native-onyx';
 
 import type {LocalNotificationClickHandler, LocalNotificationData, LocalNotificationModifiedExpensePushParams} from './types';
 
 const notificationCache: Record<string, Notification> = {};
+
+// The browser-notification pipeline is driven by Pusher events outside React, so there is no component to inject the
+// currency formatter from CurrencyListContextProvider. Subscribe to the currency list here and mirror the provider's
+// implementation instead of relying on CurrencyUtils' module-scope fallback.
+let currencyList: CurrencyList = {};
+Onyx.connectWithoutView({
+    key: ONYXKEYS.CURRENCY_LIST,
+    callback: (value) => {
+        currencyList = value ?? {};
+    },
+});
+const convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'] = (amountInCents, currencyCode) => {
+    const sanitizedCurrency = sanitizeCurrencyCode(currencyCode);
+    const decimals = currencyList?.[sanitizedCurrency]?.decimals ?? CONST.DEFAULT_CURRENCY_DECIMALS;
+    const convertedAmount = convertToFrontendAmountAsInteger(amountInCents ?? 0, decimals);
+    return format(IntlStore.getCurrentLocale(), convertedAmount, {
+        style: 'currency',
+        currency: sanitizedCurrency,
+
+        // We are forcing the number of decimals because we override the default number of decimals in the backend for some currencies
+        // See: https://github.com/Expensify/PHP-Libs/pull/834
+        minimumFractionDigits: decimals,
+        // For currencies that have decimal places > 2, floor to 2 instead as we don't support more than 2 decimal places.
+        maximumFractionDigits: 2,
+    });
+};
 
 /**
  * Checks if the user has granted permission to show browser notifications, prompting them
@@ -52,33 +87,50 @@ function push(
     silent = false,
     tag = '',
 ) {
-    canUseBrowserNotifications().then((canUseNotifications) => {
-        if (!canUseNotifications) {
-            return;
-        }
+    canUseBrowserNotifications()
+        .then((canUseNotifications) => {
+            if (!canUseNotifications) {
+                return;
+            }
 
-        // We cache these notifications so that we can clear them later
-        const notificationID = Str.guid();
-        notificationCache[notificationID] = new Notification(title, {
-            body,
-            icon: SafeString(icon),
-            data,
-            silent: true,
-            tag,
+            // Some browsers (e.g. Samsung Internet, Chrome on Android) forbid constructing a Notification in the page
+            // context and throw a "TypeError: Illegal constructor". Guard the construction so an unsupported browser
+            // degrades to "no local notification" instead of surfacing an unhandled promise rejection.
+            let notification: Notification;
+            try {
+                notification = new Notification(title, {
+                    body,
+                    icon: SafeString(icon),
+                    data,
+                    silent: true,
+                    tag,
+                });
+            } catch (error) {
+                Log.hmmm('[BrowserNotifications] Failed to construct a Notification', {error});
+                return;
+            }
+
+            // We cache these notifications so that we can clear them later
+            const notificationID = Str.guid();
+            notificationCache[notificationID] = notification;
+            if (!silent) {
+                playSound(SOUNDS.RECEIVE);
+            }
+            notification.onclick = () => {
+                onClick();
+                window.parent.focus();
+                window.focus();
+                notification.close();
+            };
+            notification.onclose = () => {
+                delete notificationCache[notificationID];
+            };
+        })
+        .catch((error) => {
+            // Swallow any unexpected errors from the permission check or notification setup so they don't surface as
+            // unhandled promise rejections (the root cause of the reported crash).
+            Log.hmmm('[BrowserNotifications] Failed to push a local notification', {error});
         });
-        if (!silent) {
-            playSound(SOUNDS.RECEIVE);
-        }
-        notificationCache[notificationID].onclick = () => {
-            onClick();
-            window.parent.focus();
-            window.focus();
-            notificationCache[notificationID].close();
-        };
-        notificationCache[notificationID].onclose = () => {
-            delete notificationCache[notificationID];
-        };
-    });
 }
 
 /**
@@ -116,7 +168,7 @@ export default {
         }
 
         if (isRoomOrGroupChat) {
-            const roomName = getReportName(report, reportAttributes);
+            const roomName = deprecatedGetReportName(report, reportAttributes);
             title = roomName;
             body = `${plainTextPerson}: ${plainTextMessage}`;
         } else {
@@ -140,17 +192,20 @@ export default {
         usesIcon = false,
         policyTags,
         policy,
+        currentUserAccountID,
         currentUserLogin,
         reportAttributes,
     }: LocalNotificationModifiedExpensePushParams) {
         const title = reportAction.person?.map((f) => f.text).join(', ') ?? '';
         const bodyWithHTML = getForReportAction({
             translate: translateLocal,
+            convertToDisplayString,
             reportAction,
             policy,
             movedFromReport,
             movedToReport,
             policyTags,
+            currentUserAccountID,
             currentUserLogin,
             reportAttributes,
         });

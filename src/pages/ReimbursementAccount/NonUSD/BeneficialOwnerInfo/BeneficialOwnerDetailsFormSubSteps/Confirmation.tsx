@@ -35,6 +35,7 @@ function Confirmation({onNext, onMove, isEditing, ownerBeingModifiedID}: Confirm
     const summaryItems = useMemo(
         () => [
             {
+                id: 'legal-name',
                 title: `${values.firstName} ${values.lastName}`,
                 description: translate('ownershipInfoStep.legalName'),
                 shouldShowRightIcon: true,
@@ -43,6 +44,7 @@ function Confirmation({onNext, onMove, isEditing, ownerBeingModifiedID}: Confirm
                 },
             },
             {
+                id: 'nationality',
                 title: CONST.ALL_COUNTRIES[values.nationality as keyof typeof CONST.ALL_COUNTRIES],
                 description: translate('ownershipInfoStep.countryOfCitizenship'),
                 shouldShowRightIcon: true,
@@ -51,6 +53,7 @@ function Confirmation({onNext, onMove, isEditing, ownerBeingModifiedID}: Confirm
                 },
             },
             {
+                id: 'ownership-percentage',
                 title: values.ownershipPercentage,
                 description: translate('ownershipInfoStep.ownershipPercentage'),
                 shouldShowRightIcon: true,
@@ -59,6 +62,7 @@ function Confirmation({onNext, onMove, isEditing, ownerBeingModifiedID}: Confirm
                 },
             },
             {
+                id: 'date-of-birth',
                 title: values.dob,
                 description: translate('common.dob'),
                 shouldShowRightIcon: true,
@@ -69,8 +73,9 @@ function Confirmation({onNext, onMove, isEditing, ownerBeingModifiedID}: Confirm
             ...(beneficialOwnerNationality === CONST.COUNTRY.US
                 ? [
                       {
-                          title: values.ssnLast4,
-                          description: translate('ownershipInfoStep.last4'),
+                          id: 'ssn',
+                          title: values.ssn,
+                          description: translate('common.ssnFull9'),
                           shouldShowRightIcon: true,
                           onPress: () => {
                               onMove(5);
@@ -79,6 +84,7 @@ function Confirmation({onNext, onMove, isEditing, ownerBeingModifiedID}: Confirm
                   ]
                 : []),
             {
+                id: 'address',
                 title: `${values.street}, ${values.city}, ${values.state} ${values.zipCode}`,
                 description: translate('ownershipInfoStep.address'),
                 shouldShowRightIcon: true,
@@ -89,6 +95,7 @@ function Confirmation({onNext, onMove, isEditing, ownerBeingModifiedID}: Confirm
             ...(isDocumentNeededStatus.isProofOfOwnershipNeeded
                 ? [
                       {
+                          id: 'proof-of-ownership',
                           title: values.proofOfOwnership.map((file) => file.name).join(', '),
                           description: translate('ownershipInfoStep.proofOfBeneficialOwner'),
                           shouldShowRightIcon: true,
@@ -101,6 +108,7 @@ function Confirmation({onNext, onMove, isEditing, ownerBeingModifiedID}: Confirm
             ...(isDocumentNeededStatus.isCopyOfIDNeeded
                 ? [
                       {
+                          id: 'copy-of-id',
                           title: values.copyOfID.map((file) => file.name).join(', '),
                           description: translate('ownershipInfoStep.copyOfID'),
                           shouldShowRightIcon: true,
@@ -113,6 +121,7 @@ function Confirmation({onNext, onMove, isEditing, ownerBeingModifiedID}: Confirm
             ...(isDocumentNeededStatus.isProofOfAddressNeeded
                 ? [
                       {
+                          id: 'address-proof',
                           title: values.addressProof.map((file) => file.name).join(', '),
                           description: translate('ownershipInfoStep.proofOfAddress'),
                           shouldShowRightIcon: true,
@@ -125,6 +134,7 @@ function Confirmation({onNext, onMove, isEditing, ownerBeingModifiedID}: Confirm
             ...(isDocumentNeededStatus.isCodiceFiscaleNeeded
                 ? [
                       {
+                          id: 'codice-fiscale',
                           title: values.codiceFiscale.map((file) => file.name).join(', '),
                           description: translate('ownershipInfoStep.codiceFiscale'),
                           shouldShowRightIcon: true,
@@ -153,7 +163,7 @@ function Confirmation({onNext, onMove, isEditing, ownerBeingModifiedID}: Confirm
             values.nationality,
             values.ownershipPercentage,
             values.proofOfOwnership,
-            values.ssnLast4,
+            values.ssn,
             values.state,
             values.street,
             values.zipCode,
@@ -168,6 +178,7 @@ function Confirmation({onNext, onMove, isEditing, ownerBeingModifiedID}: Confirm
             pageTitle={translate('ownershipInfoStep.letsDoubleCheck')}
             summaryItems={summaryItems}
             showOnfidoLinks={false}
+            forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
         />
     );
 }

@@ -14,13 +14,26 @@ type HOCProps = {
 
 type WithCurrentUserPersonalDetailsProps = HOCProps;
 
+type WithCurrentUserPersonalDetailsImplProps<TProps extends WithCurrentUserPersonalDetailsProps> = {
+    WrappedComponent: ComponentType<TProps>;
+} & Omit<TProps, keyof HOCProps>;
+
+function WithCurrentUserPersonalDetailsImpl<TProps extends WithCurrentUserPersonalDetailsProps>({WrappedComponent, ...props}: WithCurrentUserPersonalDetailsImplProps<TProps>) {
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    return (
+        <WrappedComponent
+            {...(props as unknown as TProps)}
+            currentUserPersonalDetails={currentUserPersonalDetails}
+        />
+    );
+}
+
 export default function <TProps extends WithCurrentUserPersonalDetailsProps>(WrappedComponent: ComponentType<TProps>): ComponentType<Omit<TProps, keyof HOCProps>> {
     function WithCurrentUserPersonalDetails(props: Omit<TProps, keyof HOCProps>) {
-        const currentUserPersonalDetails = useCurrentUserPersonalDetails();
         return (
-            <WrappedComponent
-                {...(props as TProps)}
-                currentUserPersonalDetails={currentUserPersonalDetails}
+            <WithCurrentUserPersonalDetailsImpl
+                WrappedComponent={WrappedComponent}
+                {...props}
             />
         );
     }

@@ -29,19 +29,13 @@ import {View} from 'react-native';
 import type {PersonalPolicyTypeExcludedProps} from './SubscriptionPlanCard';
 
 type SubscriptionPlanCardActionButtonProps = {
-    /** Subscription plan to display */
     subscriptionPlan: PersonalPolicyTypeExcludedProps | null;
 
     /** Whether the plan card was rendered inside the comparison modal */
     isFromComparisonModal: boolean;
 
-    /** Whether the plan is currently used */
     isSelected: boolean;
-
-    /** Closes comparison modal */
     closeComparisonModal?: () => void;
-
-    /** Additional style props */
     style?: StyleProp<ViewStyle>;
 };
 
@@ -82,7 +76,7 @@ function SubscriptionPlanCardActionButton({subscriptionPlan, isFromComparisonMod
         }
 
         if (planType === CONST.POLICY.TYPE.TEAM) {
-            Navigation.navigate(ROUTES.WORKSPACE_DOWNGRADE.getRoute(policy?.id, Navigation.getActiveRoute()));
+            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_DOWNGRADE.getRoute(policy?.id)));
             return;
         }
 
@@ -111,10 +105,11 @@ function SubscriptionPlanCardActionButton({subscriptionPlan, isFromComparisonMod
             }
             return (
                 <Button
-                    text={translate('subscription.yourPlan.downgrade')}
                     style={style}
                     onPress={() => handlePlanPress(CONST.POLICY.TYPE.TEAM)}
-                />
+                >
+                    <Button.Text>{translate('subscription.yourPlan.downgrade')}</Button.Text>
+                </Button>
             );
         }
     }
@@ -126,11 +121,12 @@ function SubscriptionPlanCardActionButton({subscriptionPlan, isFromComparisonMod
             }
             return (
                 <Button
-                    success
+                    variant={CONST.BUTTON_VARIANT.SUCCESS}
                     style={style}
-                    text={translate('subscription.yourPlan.upgrade')}
                     onPress={() => handlePlanPress(CONST.POLICY.TYPE.CORPORATE)}
-                />
+                >
+                    <Button.Text>{translate('subscription.yourPlan.upgrade')}</Button.Text>
+                </Button>
             );
         }
     }
@@ -156,10 +152,11 @@ function SubscriptionPlanCardActionButton({subscriptionPlan, isFromComparisonMod
             />
             <View style={[style, styles.mt2]}>
                 <Button
-                    text={translate('subscription.subscriptionSettings.editSubscription')}
                     onPress={() => Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION_SETTINGS_DETAILS)}
                     style={styles.alignSelfStart}
-                />
+                >
+                    <Button.Text>{translate('subscription.subscriptionSettings.editSubscription')}</Button.Text>
+                </Button>
             </View>
         </View>
     );

@@ -16,7 +16,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePersonalDetailSearchSelector from '@hooks/usePersonalDetailSearchSelector';
 import usePressLoading from '@hooks/usePressLoading';
-import useReportAttributes from '@hooks/useReportAttributes';
+import {useDerivedReportNameByReportID} from '@hooks/useReportAttributes';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -24,6 +24,7 @@ import {inviteToRoom, inviteToRoomAction, searchUserInServer} from '@libs/action
 import {clearUserSearchPhrase, updateUserSearchPhrase} from '@libs/actions/RoomMembersUserSearchPhrase';
 import {READ_COMMANDS} from '@libs/API/types';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
+import getPlatform from '@libs/getPlatform';
 import HttpUtils from '@libs/HttpUtils';
 import {appendCountryCode} from '@libs/LoginUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
@@ -32,7 +33,6 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {RoomMembersNavigatorParamList} from '@libs/Navigation/types';
 import type {OptionData} from '@libs/PersonalDetailOptionsListUtils';
 import {getHeaderMessage} from '@libs/PersonalDetailOptionsListUtils';
-import {getLoginsByAccountIDs} from '@libs/PersonalDetailsUtils';
 import {addSMSDomainIfPhoneNumber, parsePhoneNumber} from '@libs/PhoneNumber';
 import type {MemberEmailsToAccountIDs} from '@libs/PolicyUtils';
 import {isPolicyEmployee as isPolicyEmployeeUtil} from '@libs/PolicyUtils';
@@ -44,7 +44,9 @@ import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import {newAccountIDsAndLoginsSelector, personalDetailsLoginsSelector} from '@src/selectors/PersonalDetails';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import getEmptyArray from '@src/types/utils/getEmptyArray';
 
 import type {SectionListData} from 'react-native';
 
@@ -62,16 +64,18 @@ type DynamicRoomInvitePageProps = WithReportOrNotFoundProps &
 type MembersSection = SectionListData<OptionData, Section<OptionData>>;
 function DynamicRoomInvitePage({report, policy, didScreenTransitionEnd}: DynamicRoomInvitePageProps) {
     const styles = useThemeStyles();
-    const reportAttributes = useReportAttributes();
+    const derivedReportName = useDerivedReportNameByReportID(report?.reportID);
     const {translate, formatPhoneNumber} = useLocalize();
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.ROOM_INVITE.path);
     const [userSearchPhrase] = useOnyx(ONYXKEYS.ROOM_MEMBERS_USER_SEARCH_PHRASE);
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
     const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report?.reportID}`, {selector: pendingChatMembersSelector});
-    const [personalDetailsList] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const [participantLogins = getEmptyArray<string>()] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+        selector: personalDetailsLoginsSelector(getParticipantsAccountIDsForDisplay(report, false, true, undefined, reportMetadata)),
+    });
     const delegateAccountID = useDelegateAccountID();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const [isSearchingForReports] = useOnyx(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS);
+    const [isSearchingForUsers] = useOnyx(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_USERS);
     const isReportArchived = useReportIsArchived(report.reportID);
     const {isLoading, startWithLoading} = usePressLoading();
 
@@ -79,9 +83,7 @@ function DynamicRoomInvitePage({report, policy, didScreenTransitionEnd}: Dynamic
     const excludedUsers: Record<string, boolean> = {
         ...CONST.EXPENSIFY_EMAILS_OBJECT,
     };
-    const participantsAccountIDs = getParticipantsAccountIDsForDisplay(report, false, true, undefined, reportMetadata);
-    const loginsByAccountIDs = getLoginsByAccountIDs(participantsAccountIDs, personalDetailsList);
-    for (const login of loginsByAccountIDs) {
+    for (const login of participantLogins) {
         const smsDomain = addSMSDomainIfPhoneNumber(login);
         excludedUsers[smsDomain] = true;
     }
@@ -133,11 +135,18 @@ function DynamicRoomInvitePage({report, policy, didScreenTransitionEnd}: Dynamic
     const isPolicyEmployee = isPolicyEmployeeUtil(report?.policyID, policy);
     const reportDetailsRoute = reportID ? createDynamicRoute(DYNAMIC_ROUTES.REPORT_DETAILS.path, ROUTES.REPORT_WITH_ID.getRoute(reportID)) : undefined;
     const backRoute = reportID && (!isPolicyEmployee || isReportArchived) ? reportDetailsRoute : backPath;
-    const reportName = getReportName(report, reportAttributes);
+    const reportName = getReportName(report, derivedReportName);
 
     const ancestors = useAncestors(report);
 
     const validSelectedOptions = selectedOptions.filter((option) => !excludedUsers[option.login ?? '']);
+    const invitedEmailsToAccountIDs: MemberEmailsToAccountIDs = validSelectedOptions.reduce((acc, curr) => {
+        const login = curr.login ?? '';
+        const accountID = curr.accountID;
+        acc[login] = accountID;
+        return acc;
+    }, {} as MemberEmailsToAccountIDs);
+    const [newAccountIDsAndLogins] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: newAccountIDsAndLoginsSelector(invitedEmailsToAccountIDs)});
 
     const inviteUsers = () => {
         HttpUtils.cancelPendingRequests(READ_COMMANDS.SEARCH_FOR_USERS);
@@ -145,12 +154,7 @@ function DynamicRoomInvitePage({report, policy, didScreenTransitionEnd}: Dynamic
         if (validSelectedOptions.length === 0) {
             return;
         }
-        const invitedEmailsToAccountIDs: MemberEmailsToAccountIDs = {};
-        for (const option of validSelectedOptions) {
-            const login = option.login ?? '';
-            const accountID = option.accountID;
-            invitedEmailsToAccountIDs[login] = accountID;
-        }
+
         if (report?.reportID) {
             startWithLoading(() => {
                 clearUserSearchPhrase();
@@ -168,7 +172,7 @@ function DynamicRoomInvitePage({report, policy, didScreenTransitionEnd}: Dynamic
                             delegateAccountID,
                         );
                     } else {
-                        inviteToRoom(report, invitedEmailsToAccountIDs, personalDetailsList, formatPhoneNumber);
+                        inviteToRoom(report, invitedEmailsToAccountIDs, newAccountIDsAndLogins?.newAccountIDs ?? [], newAccountIDsAndLogins?.newLogins ?? [], formatPhoneNumber);
                     }
                 };
                 Navigation.goBack(backRoute, {afterTransition});
@@ -244,12 +248,14 @@ function DynamicRoomInvitePage({report, policy, didScreenTransitionEnd}: Dynamic
                     confirmButtonOptions={{
                         isDisabled: !validSelectedOptions.length,
                         onConfirm: inviteUsers,
+                        isFooterConfirmEnabled: validSelectedOptions.length > 0,
+                        isFooterConfirmEnterKeyEnabled: getPlatform() !== CONST.PLATFORM.ANDROID,
                     }}
                     shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
                     shouldUpdateFocusedIndex
                     shouldPreventAutoScrollOnSelect
                     shouldShowLoadingPlaceholder={!areOptionsInitialized}
-                    isLoadingNewOptions={!!isSearchingForReports}
+                    isLoadingNewOptions={!!isSearchingForUsers}
                     shouldShowTextInput
                     canSelectMultiple
                     footerContent={footerContent}

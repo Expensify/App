@@ -1,3 +1,4 @@
+import Log from '@libs/Log';
 import {config, normalizedConfigs, screensWithOnyxTabNavigator} from '@libs/Navigation/linkingConfig/config';
 import type {State} from '@libs/Navigation/types';
 
@@ -7,6 +8,7 @@ import {getPathFromState as RNGetPathFromState} from '@react-navigation/native';
 
 import getDynamicRouteQueryParams from './dynamicRoutesUtils/getDynamicRouteQueryParams';
 import isDynamicRouteScreen from './dynamicRoutesUtils/isDynamicRouteScreen';
+import joinPathSegments from './dynamicRoutesUtils/joinPathSegments';
 import splitPathAndQuery from './dynamicRoutesUtils/splitPathAndQuery';
 import findFocusedRouteWithOnyxTabGuard from './findFocusedRouteWithOnyxTabGuard';
 
@@ -163,18 +165,26 @@ function getPathFromStateWithDynamicRoute(state: State): string {
     }
     const queryString = mergedParams.toString();
 
-    return `${basePathWithoutQuery}/${suffixPath}${queryString ? `?${queryString}` : ''}`;
+    const combinedPath = joinPathSegments(`${basePathWithoutQuery}`, `${suffixPath}`);
+
+    // Safety net for this hand-built dynamic branch: guarantee exactly one leading slash and no internal `//`,
+    // so the browser never parses a segment as a host and `history.pushState` can't throw a SecurityError.
+    // React Navigation's own `getPathFromState` already normalizes slashes, so the standard-screen branch
+    // doesn't need this.
+    const normalizedPath = `/${combinedPath}`.replaceAll(/\/{2,}/g, '/');
+    if (normalizedPath !== combinedPath) {
+        // Log `screenName` only - the path can carry sensitive query params that shouldn't be shared.
+        Log.alert('[Navigation] getPathFromStateWithDynamicRoute produced a malformed path', {screenName});
+    }
+
+    return `${normalizedPath}${queryString ? `?${queryString}` : ''}`;
 }
 
 function getPathFromState(state: State): string {
     const focusedRoute = findFocusedRouteWithOnyxTabGuard(state);
     const screenName = focusedRoute?.name ?? '';
 
-    if (isDynamicRouteScreen(screenName as Screen)) {
-        return getPathFromStateWithDynamicRoute(state);
-    }
-
-    return RNGetPathFromState(state, config);
+    return isDynamicRouteScreen(screenName as Screen) ? getPathFromStateWithDynamicRoute(state) : RNGetPathFromState(state, config);
 }
 
 export default getPathFromState;

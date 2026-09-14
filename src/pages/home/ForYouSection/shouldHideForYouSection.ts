@@ -24,8 +24,9 @@ type ShouldHideForYouSectionParams = {
 /**
  * Decides whether the empty "For You" section should be hidden.
  *
- * New users (still onboarding, or free-trial start on/after the cutoff) stay hidden until they have an actionable
- * to-do; old users always keep the section. Once a to-do has ever appeared (`hasSeenTodo`), it stays visible.
+ * New users with a workspace (free-trial start on or after the cutoff) stay hidden until they have an actionable to-do.
+ * Users with no workspace yet (no free-trial date, e.g. the "Something else" intent) keep the empty section so the
+ * home page isn't bare beneath the Concierge box. Once a to-do has ever appeared (`hasSeenTodo`), it stays visible.
  */
 function shouldHideForYouSection({
     isInitialLoad,
@@ -51,6 +52,8 @@ function shouldHideForYouSection({
         return !isOnboardingStatusKnown;
     }
 
+    // No free-trial date means no workspace yet (e.g. the "Something else" intent). Keep the empty "For you" state so
+    // the home page isn't bare beneath the Concierge box. This applies to both NewDot-onboarded and old/migrated accounts.
     if (!firstDayFreeTrial) {
         return false;
     }

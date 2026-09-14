@@ -1,5 +1,6 @@
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
+import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -10,7 +11,7 @@ import useFilterReportValue from '@components/Search/hooks/useFilterReportValue'
 import useFilterTaxRateValue from '@components/Search/hooks/useFilterTaxRateValue';
 import useFilterUserValue from '@components/Search/hooks/useFilterUserValue';
 import useFilterWorkspaceValue from '@components/Search/hooks/useFilterWorkspaceValue';
-import {useSearchQueryContext} from '@components/Search/SearchContext';
+import {useSearchQueryActions, useSearchQueryContext} from '@components/Search/SearchContext';
 import type {SearchQueryJSON} from '@components/Search/types';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
@@ -24,9 +25,11 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {clearSaveAsNewViewQuery, saveSearch} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
+import {rand64} from '@libs/NumberUtils';
 import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
-import {getCustomColumnDefault, getSearchColumnTranslationKey, mapFiltersFormToLabelValueList} from '@libs/SearchUIUtils';
+import {getCustomColumnDefault, getSearchColumnTranslationKey, mapFiltersFormToLabelValueList, savedSearchIDToSearchKey} from '@libs/SearchUIUtils';
 import type {SearchFilter} from '@libs/SearchUIUtils';
+import {getFieldRequiredErrors} from '@libs/ValidationUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -35,11 +38,15 @@ import type {SearchAdvancedFiltersForm} from '@src/types/form';
 import INPUT_IDS from '@src/types/form/SearchSaveForm';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
 
-import React, {useEffect, useState} from 'react';
+import React, {useEffect} from 'react';
 import {View} from 'react-native';
 
 type FilterValueProps = {
     value: SearchFilter['value'];
+};
+
+type ArrayFilterValueProps = {
+    value: Extract<SearchFilter['value'], string[]>;
 };
 
 type FilterValueWithKeyProps = FilterValueProps & {
@@ -54,16 +61,16 @@ function FilterWorkspaceValue({value}: FilterValueProps) {
     return useFilterWorkspaceValue(value);
 }
 
-function FilterFeedValue({value}: FilterValueProps) {
-    return useFilterFeedValue(value as string[]);
+function FilterFeedValue({value}: ArrayFilterValueProps) {
+    return useFilterFeedValue(value);
 }
 
 function FilterCardValue({value}: FilterValueProps) {
-    return useFilterCardValue(value as string[]);
+    return useFilterCardValue(Array.isArray(value) ? value : value.split(', '));
 }
 
-function FilterTaxRateValue({value}: FilterValueProps) {
-    return useFilterTaxRateValue(value as string[]);
+function FilterTaxRateValue({value}: ArrayFilterValueProps) {
+    return useFilterTaxRateValue(value);
 }
 
 function FilterReportValue({value}: FilterValueProps) {
@@ -79,7 +86,8 @@ function FilterValue({filterKey, value}: FilterValueWithKeyProps) {
         filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM ||
         filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.TO ||
         filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.ATTENDEE ||
-        filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.ASSIGNEE
+        filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.ASSIGNEE ||
+        filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID_BY
     ) {
         return <FilterUserValue value={value} />;
     }
@@ -88,7 +96,7 @@ function FilterValue({filterKey, value}: FilterValueWithKeyProps) {
         return <FilterWorkspaceValue value={value} />;
     }
 
-    if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED) {
+    if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED && Array.isArray(value)) {
         return <FilterFeedValue value={value} />;
     }
 
@@ -96,7 +104,7 @@ function FilterValue({filterKey, value}: FilterValueWithKeyProps) {
         return <FilterCardValue value={value} />;
     }
 
-    if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE) {
+    if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE && Array.isArray(value)) {
         return <FilterTaxRateValue value={value} />;
     }
 
@@ -165,18 +173,21 @@ type SearchSaveFormProps = {
 
 function SearchSaveForm({queryJSONToSave, formToDisplay, saveAsNewViewQuery}: SearchSaveFormProps) {
     const styles = useThemeStyles();
-    const {translate, localeCompare} = useLocalize();
+    const {translate, localeCompare, dateFnsLocale} = useLocalize();
     const {convertToDisplayStringWithoutCurrency} = useCurrencyListActions();
-    const [name, setName] = useState('');
+    const {currentDefaultSearchQueryFilterKeys} = useSearchQueryContext();
+    const {setCurrentSearchKey} = useSearchQueryActions();
 
-    const onSaveSearch = () => {
+    const onSaveSearch = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.SEARCH_SAVE_FORM>) => {
         if (!queryJSONToSave) {
             Navigation.goBack();
             return;
         }
 
-        const newName = name.trim() || queryJSONToSave.inputQuery;
-        saveSearch({queryJSON: queryJSONToSave, newName});
+        const id = rand64();
+        // For "Save as new view" the saved query isn't the active search yet, so the key switches together with that navigation.
+        setCurrentSearchKey(savedSearchIDToSearchKey(id), saveAsNewViewQuery);
+        saveSearch({id, queryJSON: queryJSONToSave, newName: values[INPUT_IDS.NAME].trim()});
 
         // For "Save as new view" land on the newly-created view; for the regular save just return to the current search.
         if (saveAsNewViewQuery) {
@@ -188,7 +199,18 @@ function SearchSaveForm({queryJSONToSave, formToDisplay, saveAsNewViewQuery}: Se
         }
     };
 
-    const appliedFilters = mapFiltersFormToLabelValueList(formToDisplay, undefined, translate, localeCompare, convertToDisplayStringWithoutCurrency);
+    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.SEARCH_SAVE_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.SEARCH_SAVE_FORM> =>
+        getFieldRequiredErrors(values, [INPUT_IDS.NAME], translate);
+
+    const appliedFilters = mapFiltersFormToLabelValueList(
+        formToDisplay,
+        currentDefaultSearchQueryFilterKeys,
+        undefined,
+        translate,
+        dateFnsLocale,
+        localeCompare,
+        convertToDisplayStringWithoutCurrency,
+    );
     const appliedDisplays = getAppliedDisplays(formToDisplay, queryJSONToSave, translate);
 
     const {inputCallbackRef} = useAutoFocusInput();
@@ -203,6 +225,7 @@ function SearchSaveForm({queryJSONToSave, formToDisplay, saveAsNewViewQuery}: Se
                 formID={ONYXKEYS.FORMS.SEARCH_SAVE_FORM}
                 submitButtonText={translate('search.saveView')}
                 onSubmit={onSaveSearch}
+                validate={validate}
                 style={[styles.mh5, styles.flex1]}
                 enabledWhenOffline
                 shouldHideFixErrorsAlert
@@ -212,8 +235,6 @@ function SearchSaveForm({queryJSONToSave, formToDisplay, saveAsNewViewQuery}: Se
                     InputComponent={TextInput}
                     inputID={INPUT_IDS.NAME}
                     ref={inputCallbackRef}
-                    value={name}
-                    onChangeText={setName}
                     placeholder={translate('common.name')}
                     accessibilityLabel={translate('common.name')}
                     role={CONST.ROLE.PRESENTATION}

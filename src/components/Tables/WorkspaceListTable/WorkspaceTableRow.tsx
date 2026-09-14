@@ -1,7 +1,9 @@
-import Avatar from '@components/Avatar';
+import UserAvatar from '@components/Avatar/UserAvatar';
+import WorkspaceAvatar from '@components/Avatar/WorkspaceAvatar';
 import Badge from '@components/Badge';
 import Icon from '@components/Icon';
 import Table from '@components/Table';
+import {getCellAccessibilityProps, shouldUseTableSemantics} from '@components/Table/tableAccessibility';
 import Text from '@components/Text';
 import TextWithTooltip from '@components/TextWithTooltip';
 import Tooltip from '@components/Tooltip';
@@ -27,13 +29,8 @@ import WorkspaceRowBrickRoadIndicator from './WorkspaceRowBrickRoadIndicator';
 import WorkspaceRowThreeDotsMenu from './WorkspaceRowThreeDotsMenu';
 
 type WorkspaceRowProps = {
-    /** The workspace data */
     item: WorkspaceRowData;
-
-    /** The index of the row relative to all other rows */
     rowIndex: number;
-
-    /** Whether to use narrow table row layout */
     shouldUseNarrowTableLayout: boolean;
 
     /** Called when the user picks Delete in the row menu, so the page can mount the delete flow */
@@ -47,7 +44,9 @@ export default function WorkspaceRow({item, shouldUseNarrowTableLayout, rowIndex
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'Building', 'FallbackWorkspaceAvatar', 'Hourglass']);
+    const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'Building', 'Hourglass']);
+
+    const isTableSemanticsEnabled = shouldUseTableSemantics(shouldUseNarrowTableLayout);
 
     const formattedOwnerName = item.ownerName ?? '';
     const formattedWorkspaceType = getUserFriendlyWorkspaceType(item.type, translate);
@@ -123,14 +122,12 @@ export default function WorkspaceRow({item, shouldUseNarrowTableLayout, rowIndex
                 <>
                     {shouldUseNarrowTableLayout && (
                         <View style={[styles.flex1, styles.flexRow, styles.gap3, styles.alignItemsCenter]}>
-                            <Avatar
+                            <WorkspaceAvatar
                                 name={item.title}
                                 source={item.icon}
                                 avatarID={item.policyID}
-                                type={CONST.ICON_TYPE_WORKSPACE}
                                 size={CONST.AVATAR_SIZE.DEFAULT}
                                 imageStyles={styles.alignSelfCenter}
-                                fallbackIcon={icons.FallbackWorkspaceAvatar}
                             />
 
                             <View style={[styles.flex1, styles.gap1]}>
@@ -166,15 +163,16 @@ export default function WorkspaceRow({item, shouldUseNarrowTableLayout, rowIndex
 
                     {!shouldUseNarrowTableLayout && (
                         <>
-                            <View style={[styles.flexRow, styles.gap3, styles.alignItemsCenter]}>
-                                <Avatar
+                            <View
+                                style={[styles.flexRow, styles.gap3, styles.alignItemsCenter]}
+                                {...getCellAccessibilityProps(isTableSemanticsEnabled)}
+                            >
+                                <WorkspaceAvatar
                                     name={item.title}
                                     source={item.icon}
                                     avatarID={item.policyID}
-                                    type={CONST.ICON_TYPE_WORKSPACE}
                                     size={CONST.AVATAR_SIZE.SMALL}
                                     imageStyles={styles.alignSelfCenter}
-                                    fallbackIcon={icons.FallbackWorkspaceAvatar}
                                 />
                                 <View style={[styles.flexRow, styles.gap2, styles.alignItemsCenter, styles.flex1]}>
                                     <TextWithTooltip
@@ -187,12 +185,14 @@ export default function WorkspaceRow({item, shouldUseNarrowTableLayout, rowIndex
                                 </View>
                             </View>
 
-                            <View style={[styles.flex1, styles.flexRow, styles.gap2, styles.alignItemsCenter]}>
-                                <Avatar
+                            <View
+                                style={[styles.flex1, styles.flexRow, styles.gap2, styles.alignItemsCenter]}
+                                {...getCellAccessibilityProps(isTableSemanticsEnabled)}
+                            >
+                                <UserAvatar
                                     source={item.ownerAvatar}
-                                    avatarID={item.ownerAccountID}
-                                    type={CONST.ICON_TYPE_AVATAR}
-                                    size={CONST.AVATAR_SIZE.MID_SUBSCRIPT}
+                                    accountID={item.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID}
+                                    size={CONST.AVATAR_SIZE.XXX_SMALL}
                                 />
                                 <WorkspacesListRowDisplayName
                                     isDeleted={item.isDeleted}
@@ -200,7 +200,10 @@ export default function WorkspaceRow({item, shouldUseNarrowTableLayout, rowIndex
                                 />
                             </View>
 
-                            <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
+                            <View
+                                style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}
+                                {...getCellAccessibilityProps(isTableSemanticsEnabled)}
+                            >
                                 <Text
                                     numberOfLines={1}
                                     style={itemDeletedStyles}
@@ -209,7 +212,10 @@ export default function WorkspaceRow({item, shouldUseNarrowTableLayout, rowIndex
                                 </Text>
                             </View>
 
-                            <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentEnd, styles.gap3, styles.wAuto]}>
+                            <View
+                                style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentEnd, styles.gap3, styles.wAuto]}
+                                {...getCellAccessibilityProps(isTableSemanticsEnabled)}
+                            >
                                 {!item.isJoinRequestPending && ThreeDotsMenuWithBrickRoadIndicator}
 
                                 <Icon

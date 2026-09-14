@@ -1,27 +1,14 @@
 import type {Route} from '@src/ROUTES';
-import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
-import type {Policy} from '@src/types/onyx';
-
-import type {OnyxEntry} from 'react-native-onyx';
-
-import createDynamicRoute from './Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
-import {isNonUSDPolicy, isWorkspaceProvisionedForTravel} from './PolicyUtils';
+import ROUTES from '@src/ROUTES';
 
 /**
- * Resolves where the Travel enablement flow should send the user when accepting terms.
- *
- * A non-USD workspace that hasn't been provisioned yet must supply a legal entity tax ID so Solutions
- * can provision a DK number, so it is routed to the tax ID page first. Everything else goes straight
- * to the terms & conditions page.
+ * Resolves where the Travel enablement flow should send the user after verifying their account mid-flow.
+ * The old per-screen pages (tax ID, terms) this used to route between were replaced by the single dynamic
+ * stepper, which recomputes which step to land on from current policy/account state, so this always routes
+ * back into it rather than to a specific step.
  */
-function getTravelAcceptTermsRoute(domain: string, policyID: string | undefined, policy: OnyxEntry<Policy>): Route {
-    const needsTaxID = isNonUSDPolicy(policy) && !isWorkspaceProvisionedForTravel(policy?.travelSettings) && !policy?.travelSettings?.taxID;
-
-    if (needsTaxID) {
-        return ROUTES.TRAVEL_LEGAL_ENTITY_TAX_ID.getRoute(domain, policyID);
-    }
-
-    return createDynamicRoute(DYNAMIC_ROUTES.TRAVEL_TCS.getRoute(domain, policyID));
+function getTravelAcceptTermsRoute(policyID: string): Route {
+    return ROUTES.TRAVEL_ENABLE.getRoute(policyID);
 }
 
 export default getTravelAcceptTermsRoute;

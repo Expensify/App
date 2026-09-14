@@ -1,3 +1,5 @@
+import useChangeTransactionsReportReports from '@hooks/useChangeTransactionsReportReports';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -6,6 +8,7 @@ import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionsByID from '@hooks/useTransactionsByID';
 
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {isIOUReport} from '@libs/ReportUtils';
 
 import Navigation from '@navigation/Navigation';
@@ -15,7 +18,7 @@ import {changeTransactionsReport} from '@userActions/Transaction';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, PolicyCategories, Report, ReportNextStepDeprecated} from '@src/types/onyx';
+import type {Policy, PolicyCategories, Report} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
@@ -31,40 +34,38 @@ type AddExistingExpenseFooterProps = {
     selectedIds: Set<string>;
     /** The report to add expenses to */
     report: OnyxEntry<Report>;
-    /** The report to confirm */
     reportToConfirm: OnyxEntry<Report>;
-    /** The report next step */
-    reportNextStep: OnyxEntry<ReportNextStepDeprecated>;
-    /** The policy */
     policy: OnyxEntry<Policy>;
-    /** The policy categories */
     policyCategories: OnyxEntry<PolicyCategories>;
-    /** Error message displayed in this component */
     errorMessage: string;
     /** Function for setting new error message */
     setErrorMessage: React.Dispatch<React.SetStateAction<string>>;
 };
 
-function AddExistingExpenseFooter({selectedIds, report, reportToConfirm, reportNextStep, policy, policyCategories, errorMessage, setErrorMessage}: AddExistingExpenseFooterProps) {
-    const {translate} = useLocalize();
+function AddExistingExpenseFooter({selectedIds, report, reportToConfirm, policy, policyCategories, errorMessage, setErrorMessage}: AddExistingExpenseFooterProps) {
+    const {translate, formatPhoneNumber} = useLocalize();
     const styles = useThemeStyles();
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
+    const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
     const session = useSession();
     const personalDetails = usePersonalDetails();
     const delegateAccountID = useDelegateAccountID();
     const personalPolicy = usePersonalPolicy();
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
-    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [policyRecentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES);
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.chatReportID}`);
     const [policyTagList] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policy?.id}`);
     const [chatReportPolicyTagList] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${chatReport?.policyID}`);
+    const [selfDMReportID] = useOnyx(ONYXKEYS.SELF_DM_REPORT_ID);
+    const [selfDMReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(selfDMReportID)}`);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
     const [transactions] = useTransactionsByID([...selectedIds]);
+    const reports = useChangeTransactionsReportReports(transactions, reportToConfirm?.reportID);
 
     const handleConfirm = () => {
         if (selectedIds.size === 0) {
@@ -76,6 +77,7 @@ function AddExistingExpenseFooter({selectedIds, report, reportToConfirm, reportN
             afterTransition: () => {
                 if (report && isIOUReport(report)) {
                     convertBulkTrackedExpensesToIOU({
+                        getCurrencyDecimals,
                         transactions,
                         iouReport: report,
                         chatReport,
@@ -88,8 +90,11 @@ function AddExistingExpenseFooter({selectedIds, report, reportToConfirm, reportN
                         personalDetails,
                         betas,
                         policyTagList: report?.policyID ? policyTagList : chatReportPolicyTagList,
+                        selfDMReportActions,
                         delegateAccountID,
                         isTrackIntentUser,
+                        formatPhoneNumber,
+                        rules,
                     });
                 } else {
                     changeTransactionsReport({
@@ -99,14 +104,18 @@ function AddExistingExpenseFooter({selectedIds, report, reportToConfirm, reportN
                         email: session?.email ?? '',
                         newReport: reportToConfirm,
                         policy,
-                        reportNextStep,
                         policyCategories,
                         policyTagList,
                         transactions,
                         allTransactionViolation: transactionViolations,
-                        allReports,
+                        reports,
+                        rules,
                         isTrackIntentUser,
                         personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
+                        selfDMReportActions,
+                        delegateAccountID,
+                        getCurrencyDecimals,
+                        getCurrencySymbol,
                     });
                 }
             },
@@ -123,14 +132,14 @@ function AddExistingExpenseFooter({selectedIds, report, reportToConfirm, reportN
                 />
             )}
             <Button
-                success
-                large
+                variant={CONST.BUTTON_VARIANT.SUCCESS}
+                size={CONST.BUTTON_SIZE.LARGE}
                 style={[styles.w100, styles.justifyContentCenter]}
-                text={translate('iou.addExistingExpenseConfirm')}
                 onPress={handleConfirm}
-                pressOnEnter
-                enterKeyEventListenerPriority={1}
-            />
+            >
+                <Button.KeyboardShortcut enterKeyEventListenerPriority={1} />
+                <Button.Text>{translate('iou.addExistingExpenseConfirm')}</Button.Text>
+            </Button>
         </>
     );
 }

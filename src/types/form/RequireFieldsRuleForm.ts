@@ -1,29 +1,33 @@
+import type CONST from '@src/CONST';
+
 import type {ValueOf} from 'type-fest';
 
 import type Form from './Form';
 
 const INPUT_IDS = {
     CATEGORY: 'category',
-    REQUIRE_DESCRIPTION: 'requireDescription',
-    REQUIRE_RECEIPT: 'requireReceipt',
-    REQUIRE_ITEMIZED_RECEIPT: 'requireItemizedReceipt',
-    REQUIRE_ATTENDEES: 'requireAttendees',
+    DESCRIPTION_SETTING: 'descriptionSetting',
+    ATTENDEES_SETTING: 'attendeesSetting',
+    RECEIPT_SETTING: 'receiptSetting',
+    ITEMIZED_RECEIPT_SETTING: 'itemizedReceiptSetting',
 } as const;
 
 type InputID = ValueOf<typeof INPUT_IDS>;
+
+type FieldRequirementSetting = ValueOf<typeof CONST.FIELD_REQUIREMENTS_DIRECTION>;
 
 type RequireFieldsRuleForm = Form<
     InputID,
     {
         [INPUT_IDS.CATEGORY]: string;
-        [INPUT_IDS.REQUIRE_DESCRIPTION]: boolean;
-        [INPUT_IDS.REQUIRE_RECEIPT]: boolean;
-        [INPUT_IDS.REQUIRE_ITEMIZED_RECEIPT]: boolean;
-        [INPUT_IDS.REQUIRE_ATTENDEES]: boolean;
+        [INPUT_IDS.DESCRIPTION_SETTING]: FieldRequirementSetting;
+        [INPUT_IDS.ATTENDEES_SETTING]: FieldRequirementSetting;
+        [INPUT_IDS.RECEIPT_SETTING]: FieldRequirementSetting;
+        [INPUT_IDS.ITEMIZED_RECEIPT_SETTING]: FieldRequirementSetting;
     }
 >;
 
-type RequireFieldsRuleToggleFieldKey = Exclude<InputID, typeof INPUT_IDS.CATEGORY>;
+type RequireFieldsRuleSettingFieldKey = Exclude<InputID, typeof INPUT_IDS.CATEGORY>;
 
-export type {RequireFieldsRuleForm, RequireFieldsRuleToggleFieldKey};
+export type {RequireFieldsRuleForm, RequireFieldsRuleSettingFieldKey};
 export default INPUT_IDS;

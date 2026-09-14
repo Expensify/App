@@ -16,8 +16,6 @@ export default {
     CONCIERGE_DRAFT_FAILED: 'conciergeDraftFailed',
     CONCIERGE_DRAFT_CLEARED: 'conciergeDraftCleared',
 
-    // An event that the server sends back to the client in response to a "ping" API command
-    PONG: 'pong',
     MULTIPLE_EVENT_TYPE: {
         ONYX_API_UPDATE: 'onyxApiUpdate',
         RECONNECT_APP: 'reconnectApp',

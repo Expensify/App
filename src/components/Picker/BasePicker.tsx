@@ -27,7 +27,11 @@ import getAccessibilityLabelConfig from './getAccessibilityLabelConfig';
 
 type IconToRender = () => ReactElement;
 
-function BasePicker<TPickerValue>({
+/**
+ * Non-generic implementation so OXC's React Compiler can memoize the component.
+ * OXC bails on type params inside components ("Unsupported declaration type for hoisting").
+ */
+function BasePickerImpl({
     items,
     backgroundColor,
     inputID,
@@ -48,7 +52,7 @@ function BasePicker<TPickerValue>({
     onBlur = () => {},
     additionalPickerEvents = () => {},
     ref,
-}: BasePickerProps<TPickerValue>) {
+}: BasePickerProps<unknown>) {
     const icons = useMemoizedLazyExpensifyIcons(['DownArrow']);
     const {translate} = useLocalize();
     const theme = useTheme();
@@ -83,7 +87,7 @@ function BasePicker<TPickerValue>({
      * Forms use inputID to set values. But BasePicker passes an index as the second parameter to onValueChange
      * We are overriding this behavior to make BasePicker work with Form
      */
-    const onValueChange = (inputValue: TPickerValue, index: number) => {
+    const onValueChange = (inputValue: unknown, index: number) => {
         if (inputID) {
             onInputChange?.(inputValue);
             return;
@@ -260,6 +264,10 @@ function BasePicker<TPickerValue>({
             {!!hintText && <Text style={[styles.textLabel, styles.colorMuted, styles.mt2]}>{hintText}</Text>}
         </>
     );
+}
+
+function BasePicker<TPickerValue>(props: BasePickerProps<TPickerValue>) {
+    return <BasePickerImpl {...(props as BasePickerProps<unknown>)} />;
 }
 
 export default BasePicker;

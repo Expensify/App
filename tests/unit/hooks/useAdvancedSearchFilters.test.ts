@@ -7,7 +7,6 @@ import useAdvancedSearchFilters from '@hooks/useAdvancedSearchFilters';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, PolicyTagLists} from '@src/types/onyx';
-import type {PolicyCategory} from '@src/types/onyx/PolicyCategory';
 
 import type * as NativeNavigation from '@react-navigation/native';
 
@@ -102,7 +101,7 @@ describe('useAdvancedSearchFilters', () => {
     });
 
     describe('category filter visibility', () => {
-        it('hides category filter when no policies have categories enabled', async () => {
+        it('shows category filter when no categories are configured', async () => {
             const policy = buildPolicy(1, {areCategoriesEnabled: false});
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}1`, policy);
 
@@ -110,44 +109,7 @@ describe('useAdvancedSearchFilters', () => {
 
             await waitFor(() => {
                 const allKeys = result.current.flat();
-                expect(allKeys).not.toContain(CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY);
-            });
-        });
-
-        it('shows category filter when policy has categories enabled and categories exist', async () => {
-            const policy = buildPolicy(1, {areCategoriesEnabled: true});
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}1`, policy);
-
-            const categories: Record<string, PolicyCategory> = {
-                Food: {name: 'Food', enabled: true, unencodedName: 'Food', areCommentsRequired: false, externalID: '', origin: '', pendingAction: undefined},
-            };
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}1`, categories);
-
-            const {result} = renderHook(() => useAdvancedSearchFilters(undefined, undefined), {wrapper});
-
-            await waitFor(() => {
-                const allKeys = result.current.flat();
                 expect(allKeys).toContain(CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY);
-            });
-        });
-
-        it('hides category filter when categories exist only for personal policies', async () => {
-            const personalPolicy = buildPolicy(1, {
-                areCategoriesEnabled: true,
-                type: CONST.POLICY.TYPE.PERSONAL,
-            });
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}1`, personalPolicy);
-
-            const categories: Record<string, PolicyCategory> = {
-                Food: {name: 'Food', enabled: true, unencodedName: 'Food', areCommentsRequired: false, externalID: '', origin: '', pendingAction: undefined},
-            };
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}1`, categories);
-
-            const {result} = renderHook(() => useAdvancedSearchFilters(undefined, undefined), {wrapper});
-
-            await waitFor(() => {
-                const allKeys = result.current.flat();
-                expect(allKeys).not.toContain(CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY);
             });
         });
     });
@@ -534,7 +496,6 @@ describe('useAdvancedSearchFilters', () => {
         it('shows multiple filters when multiple features are enabled', async () => {
             const policy = buildPolicy(1, {
                 type: CONST.POLICY.TYPE.CORPORATE,
-                areCategoriesEnabled: true,
                 areTagsEnabled: true,
                 isAttendeeTrackingEnabled: true,
                 tax: {trackingEnabled: true},
@@ -549,11 +510,6 @@ describe('useAdvancedSearchFilters', () => {
                 },
             });
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}1`, policy);
-
-            const categories: Record<string, PolicyCategory> = {
-                Food: {name: 'Food', enabled: true, unencodedName: 'Food', areCommentsRequired: false, externalID: '', origin: '', pendingAction: undefined},
-            };
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}1`, categories);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_TAGS}1`, buildTagList('Engineering'));
 
             const {result} = renderHook(() => useAdvancedSearchFilters(undefined, undefined), {wrapper});

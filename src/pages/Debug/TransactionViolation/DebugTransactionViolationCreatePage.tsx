@@ -130,11 +130,12 @@ function DebugTransactionViolationCreatePage({
                         </View>
                         <Text style={[styles.headerText, styles.textAlignCenter]}>{translate('debug.hint')}</Text>
                         <Button
-                            success
-                            text={translate('common.save')}
+                            variant={CONST.BUTTON_VARIANT.SUCCESS}
                             isDisabled={!draftTransactionViolation || !!error}
                             onPress={createTransactionViolation}
-                        />
+                        >
+                            <Button.Text>{translate('common.save')}</Button.Text>
+                        </Button>
                     </ScrollView>
                 </View>
             )}

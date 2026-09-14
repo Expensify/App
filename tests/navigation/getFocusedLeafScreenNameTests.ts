@@ -15,7 +15,7 @@ describe('getFocusedLeafScreenName', () => {
     });
 
     it('returns undefined when state has no routes', () => {
-        const state = {routes: []} as unknown as PartialState<NavigationState>;
+        const state: PartialState<NavigationState> = {routes: []};
         expect(getFocusedLeafScreenName(state)).toBeUndefined();
     });
 

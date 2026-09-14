@@ -16,7 +16,6 @@ import React from 'react';
 import {View} from 'react-native';
 
 type TaskActionProps = {
-    /** Name of the reportAction action */
     action: OnyxEntry<ReportAction>;
 };
 

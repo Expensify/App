@@ -1,5 +1,7 @@
 import type {PaymentMethodType} from '@components/KYCWall/types';
 
+import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
+
 import * as API from '@libs/API';
 import type {SendMoneyParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
@@ -80,6 +82,7 @@ function getSendMoneyParams({
     optimisticChatReportID,
     currentUserAccountID,
     delegateAccountID,
+    getCurrencyDecimals,
 }: {
     report: OnyxEntry<OnyxTypes.Report>;
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
@@ -94,8 +97,8 @@ function getSendMoneyParams({
     receipt?: Receipt;
     optimisticChatReportID?: string;
     currentUserAccountID: number;
-    // TODO: delegateAccountID will be made required in PR 12 when all callers pass the value (https://github.com/Expensify/App/issues/66425)
-    delegateAccountID?: number | undefined;
+    delegateAccountID: number | undefined;
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
 }): SendMoneyParamsData {
     const recipientEmail = addSMSDomainIfPhoneNumber(recipient.login ?? '');
     const recipientAccountID = Number(recipient.accountID);
@@ -121,7 +124,7 @@ function getSendMoneyParams({
         });
         isNewChat = true;
     }
-    const optimisticIOUReport = buildOptimisticIOUReport(recipientAccountID, managerID, amount, chatReport.reportID, currency, true);
+    const optimisticIOUReport = buildOptimisticIOUReport(recipientAccountID, managerID, amount, chatReport.reportID, currency, getCurrencyDecimals, true);
 
     const optimisticTransaction = buildOptimisticTransaction({
         transactionParams: {
@@ -142,6 +145,7 @@ function getSendMoneyParams({
 
     const [optimisticCreatedActionForChat, optimisticCreatedActionForIOUReport, optimisticIOUReportAction, optimisticTransactionThread, optimisticCreatedActionForTransactionThread] =
         buildOptimisticMoneyRequestEntities({
+            getCurrencyDecimals,
             iouReport: optimisticIOUReport,
             type: CONST.IOU.REPORT_ACTION_TYPE.PAY,
             amount,
@@ -156,7 +160,7 @@ function getSendMoneyParams({
             delegateAccountIDParam: delegateAccountID,
         });
 
-    const reportPreviewAction = buildOptimisticReportPreview(chatReport, optimisticIOUReport, undefined, undefined, undefined, undefined, delegateAccountID);
+    const reportPreviewAction = buildOptimisticReportPreview(chatReport, optimisticIOUReport, getCurrencyDecimals, undefined, undefined, undefined, undefined, delegateAccountID);
 
     // Change the method to set for new reports because it doesn't exist yet, is faster,
     // and we need the data to be available when we navigate to the chat page
@@ -505,8 +509,8 @@ type SendMoneyActionParams = {
     optimisticChatReportID?: string;
     shouldStartTracking?: boolean;
     shouldDeferForSearch?: boolean;
-    // TODO: delegateAccountID will be made required in PR 12 when all callers pass the value (https://github.com/Expensify/App/issues/66425)
-    delegateAccountID?: number | undefined;
+    delegateAccountID: number | undefined;
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
 };
 
 function executeSendMoney(
@@ -514,7 +518,8 @@ function executeSendMoney(
     paymentMethodType: typeof CONST.IOU.PAYMENT_TYPE.ELSEWHERE | typeof CONST.IOU.PAYMENT_TYPE.EXPENSIFY,
     writeCommand: typeof WRITE_COMMANDS.SEND_MONEY_ELSEWHERE | typeof WRITE_COMMANDS.SEND_MONEY_WITH_WALLET,
 ) {
-    const {report, quickAction, amount, currency, comment, currentUserAccountID, recipient, created, merchant, receipt, optimisticChatReportID, delegateAccountID} = actionParams;
+    const {report, quickAction, amount, currency, comment, currentUserAccountID, recipient, created, merchant, receipt, optimisticChatReportID, delegateAccountID, getCurrencyDecimals} =
+        actionParams;
     const {shouldStartTracking = true, shouldDeferForSearch = false} = actionParams;
 
     const {params, optimisticData, successData, failureData} = getSendMoneyParams({
@@ -532,6 +537,7 @@ function executeSendMoney(
         optimisticChatReportID,
         currentUserAccountID,
         delegateAccountID,
+        getCurrencyDecimals,
     });
     if (shouldStartTracking) {
         startTracking(

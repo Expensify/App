@@ -87,7 +87,7 @@ function CopyPolicySettingsConfirmPage() {
         // Editing the workspace selection from this screen can introduce a Collect (Team) target that
         // requires an upgrade for the already-selected Control-only settings, bypassing the Upgrade step.
         // Re-gate at submit time and route to the Upgrade step instead of copying when one is still required.
-        if (shouldShowCopyPolicySettingsUpgradeStep(targetPolicies, parts)) {
+        if (shouldShowCopyPolicySettingsUpgradeStep(targetPolicies, parts, sourcePolicy)) {
             Navigation.navigate(ROUTES.POLICY_COPY_SETTINGS_UPGRADE.getRoute(sourcePolicyID));
             return;
         }
@@ -168,12 +168,13 @@ function CopyPolicySettingsConfirmPage() {
                         </>
                     )}
                     <Button
-                        success
-                        large
-                        text={translate('workspace.copyPolicySettings.title')}
+                        variant={CONST.BUTTON_VARIANT.SUCCESS}
+                        size={CONST.BUTTON_SIZE.LARGE}
                         onPress={handleCopyPolicySettings}
                         isDisabled={parts.length === 0 || targetPolicyIDs.length === 0 || (requiresTravelTermsConsent && !hasAcceptedTravelTerms)}
-                    />
+                    >
+                        <Button.Text>{translate('workspace.copyPolicySettings.title')}</Button.Text>
+                    </Button>
                 </FixedFooter>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>

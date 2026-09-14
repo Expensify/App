@@ -1,4 +1,4 @@
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import ListFilterWrapper from '@components/Search/FilterComponents/ListFilterViewWrapper';
 import type {SingleSelectItem} from '@components/Search/FilterComponents/SingleSelect';
 import {useSearchResultsContext, useSearchSelectionActions} from '@components/Search/SearchContext';
@@ -55,7 +55,7 @@ function SortByPopup({searchResults, queryJSON, groupBy, onSort, onSortOrderPres
     const searchDataType = shouldUseLiveData ? CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT : searchResults?.search?.type;
     const currentColumns = !searchResults?.data
         ? []
-        : getColumnsToShow({currentAccountID: accountID, data: searchResults.data, visibleColumns, type: searchDataType, groupBy: groupBy?.value});
+        : getColumnsToShow({currentAccountID: accountID, data: searchResults.data, visibleColumns, type: searchDataType, groupBy: groupBy?.value, sortBy: queryJSON.sortBy});
     const sortableColumns = getSortByOptions(currentColumns, translate);
     const sortOrder = queryJSON.sortOrder;
 
@@ -109,11 +109,10 @@ function SortByPopup({searchResults, queryJSON, groupBy, onSort, onSortOrderPres
                 hasHeader
                 extraHeight={variables.optionRowHeight + DIVIDER_HEIGHT}
             >
-                <MenuItemWithTopDescription
-                    shouldShowRightIcon
-                    description={translate('search.display.sortOrder')}
-                    title={sortOrder ? translate(`search.filters.sortOrder.${sortOrder}`) : undefined}
+                <MenuItemField
+                    name={translate('search.display.sortOrder')}
                     onPress={onSortOrderPress}
+                    value={sortOrder ? translate(`search.filters.sortOrder.${sortOrder}`) : undefined}
                 />
                 <View style={styles.dividerLine} />
                 <SelectionList

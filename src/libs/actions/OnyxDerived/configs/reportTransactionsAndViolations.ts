@@ -6,9 +6,9 @@ import type {TransactionViolation} from '@src/types/onyx';
 import type {OnyxCollection} from 'react-native-onyx';
 
 let previousViolations: OnyxCollection<TransactionViolation[]> = {};
-const transactionReportIDMapping: Record<string, string> = {};
+let transactionReportIDMapping: Record<string, string> = {};
 
-const transactionToReportIDMap: Record<string, string> = {};
+let transactionToReportIDMap: Record<string, string> = {};
 
 export default createOnyxDerivedValueConfig({
     key: ONYXKEYS.DERIVED.REPORT_TRANSACTIONS_AND_VIOLATIONS,
@@ -23,15 +23,28 @@ export default createOnyxDerivedValueConfig({
         const transactionsUpdates = sourceValues?.[ONYXKEYS.COLLECTION.TRANSACTION];
         const transactionViolationsUpdates = sourceValues?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS];
         let transactionsToProcess = Object.keys(transactions);
-        if (transactionsUpdates) {
-            transactionsToProcess = Object.keys(transactionsUpdates);
-        } else if (transactionViolationsUpdates) {
-            transactionsToProcess = Object.keys(transactionViolationsUpdates).map((transactionViolation) =>
-                transactionViolation.replace(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, ONYXKEYS.COLLECTION.TRANSACTION),
-            );
+        // When we have a delta, process the union of transactions that changed directly and transactions
+        // whose violations changed. Coalescing can put both in the same flush, so an `if/else` would drop
+        // the second trigger (e.g. a transaction change for A batched with a violations change for B).
+        if (transactionsUpdates || transactionViolationsUpdates) {
+            const transactionKeys = new Set<string>();
+            for (const transactionKey of Object.keys(transactionsUpdates ?? {})) {
+                transactionKeys.add(transactionKey);
+            }
+            for (const transactionViolationKey of Object.keys(transactionViolationsUpdates ?? {})) {
+                transactionKeys.add(transactionViolationKey.replace(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, ONYXKEYS.COLLECTION.TRANSACTION));
+            }
+            transactionsToProcess = Array.from(transactionKeys);
         }
 
-        const reportTransactionsAndViolations = currentValue ? {...currentValue} : {};
+        // A full compute visits every transaction, so rebuild from scratch instead of merging into the
+        // value restored from disk. After a reload transactionReportIDMapping is empty, so the removal
+        // below never runs and an expense stays listed under a report it has already left.
+        const isFullCompute = !transactionsUpdates && !transactionViolationsUpdates;
+        if (isFullCompute) {
+            transactionReportIDMapping = {};
+        }
+        const reportTransactionsAndViolations = !isFullCompute && currentValue ? {...currentValue} : {};
 
         // Track which reportID entries have been cloned so we only clone once per reportID.
         // This avoids mutating nested objects that are still referenced by the cached value.
@@ -105,5 +118,11 @@ export default createOnyxDerivedValueConfig({
         previousViolations = violations;
 
         return reportTransactionsAndViolations;
+    },
+    // On cache clear, drop the cross-compute state so the map is rebuilt from scratch (see the engine's resetForClear).
+    onReset: () => {
+        previousViolations = {};
+        transactionReportIDMapping = {};
+        transactionToReportIDMap = {};
     },
 });

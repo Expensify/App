@@ -1,16 +1,17 @@
 import Button from '@components/Button';
+import ButtonDisabledWhenOffline from '@components/Button/composed/ButtonDisabledWhenOffline';
 import HeaderPageLayout from '@components/HeaderPageLayout';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 
 import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
-import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import type {LockAccountOnyxKey} from '@userActions/User';
 import {lockAccount} from '@userActions/User';
 
+import CONST from '@src/CONST';
 import type Response from '@src/types/onyx/Response';
 
 import React, {useState} from 'react';
@@ -40,18 +41,17 @@ function LockAccountPageBase({
 }: BaseLockAccountComponentProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const {isOffline} = useNetwork();
     const [isLoading, setIsLoading] = useState(false);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
-    const {showConfirmModal} = useConfirmModal();
+    const {showConfirmModal, closeModal} = useConfirmModal();
 
     const handleReportSuspiciousActivity = async () => {
         if (!accountID && !currentUserPersonalDetails.accountID) {
             return;
         }
         const modalResult = await showConfirmModal({
-            danger: true,
+            buttonVariant: CONST.BUTTON_VARIANT.DANGER,
             title: translate('lockAccountPage.reportSuspiciousActivity'),
             prompt: confirmModalPrompt,
             confirmText: translate('lockAccountPage.lockAccount'),
@@ -69,20 +69,23 @@ function LockAccountPageBase({
         const response = await lockAccount(currentUserPersonalDetails.accountID, accountID, domainAccountID, domainName);
         setIsLoading(false);
 
+        // Passing isConfirmLoading keeps the modal open on confirm, so it has to be closed here.
+        closeModal();
+
         handleLockRequestFinish(response);
     };
 
     const lockAccountButton = (
-        <Button
-            danger
+        <ButtonDisabledWhenOffline
+            variant={CONST.BUTTON_VARIANT.DANGER}
             isLoading={isLoading}
-            isDisabled={isOffline}
-            large
-            text={lockButtonText ?? translate('lockAccountPage.reportSuspiciousActivity')}
+            size={CONST.BUTTON_SIZE.LARGE}
             style={styles.mt6}
-            pressOnEnter
             onPress={handleReportSuspiciousActivity}
-        />
+        >
+            <Button.KeyboardShortcut />
+            <Button.Text>{lockButtonText ?? translate('lockAccountPage.reportSuspiciousActivity')}</Button.Text>
+        </ButtonDisabledWhenOffline>
     );
 
     return (
