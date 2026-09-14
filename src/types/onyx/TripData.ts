@@ -91,6 +91,9 @@ type PnrData = {
         };
 
         user: {
+            /** Email address of the traveler. */
+            email?: string;
+
             addresses: unknown[];
 
             /** Identity documents of the user. */

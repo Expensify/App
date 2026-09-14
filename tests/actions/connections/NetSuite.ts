@@ -2,6 +2,7 @@ import {shouldUseUpdateNetSuiteTokens} from '@libs/actions/connections';
 import {
     connectPolicyToNetSuite,
     getNetSuiteSetupLink,
+    updateNetSuiteFxExpenseAccount,
     updateNetSuiteTokens,
     updateNetSuiteTravelBillingJournalPostingPreference,
     updateNetSuiteTravelBillingPayableAccount,
@@ -283,6 +284,60 @@ describe('actions/connections/NetSuite', () => {
                             options: expect.objectContaining({
                                 config: expect.objectContaining({
                                     [CONST.NETSUITE_CONFIG.TRAVEL_BILLING_JOURNAL_POSTING_PREFERENCE]: CONST.NETSUITE_JOURNAL_POSTING_PREFERENCE.JOURNALS_POSTING_TOTAL_LINE,
+                                }),
+                            }),
+                        }),
+                    }),
+                }),
+            );
+        });
+    });
+
+    describe('updateNetSuiteFxExpenseAccount', () => {
+        it('writes the UpdateNetSuiteFxExpenseAccount command with the selected account', () => {
+            updateNetSuiteFxExpenseAccount(MOCK_POLICY_ID, 'account-123', 'old-account');
+
+            const {command} = getFirstWriteCall();
+            expect(command).toBe(WRITE_COMMANDS.UPDATE_NETSUITE_FX_EXPENSE_ACCOUNT);
+
+            const call = writeSpy.mock.calls.at(0);
+            expect(call?.[1]).toEqual(expect.objectContaining({policyID: MOCK_POLICY_ID, value: 'account-123'}));
+        });
+
+        it('merges fxExpenseAccount optimistically onto the NetSuite options config', () => {
+            updateNetSuiteFxExpenseAccount(MOCK_POLICY_ID, 'account-123', 'old-account');
+
+            const {onyxData} = getFirstWriteCall();
+            const optimisticUpdate = onyxData?.optimisticData?.at(0);
+            expect(optimisticUpdate?.key).toBe(`${ONYXKEYS.COLLECTION.POLICY}${MOCK_POLICY_ID}`);
+
+            expect(optimisticUpdate?.value).toEqual(
+                expect.objectContaining({
+                    connections: expect.objectContaining({
+                        netsuite: expect.objectContaining({
+                            options: expect.objectContaining({
+                                config: expect.objectContaining({
+                                    [CONST.NETSUITE_CONFIG.FX_EXPENSE_ACCOUNT]: 'account-123',
+                                }),
+                            }),
+                        }),
+                    }),
+                }),
+            );
+        });
+
+        it('reverts fxExpenseAccount to the old value on failure', () => {
+            updateNetSuiteFxExpenseAccount(MOCK_POLICY_ID, 'account-123', 'old-account');
+
+            const {onyxData} = getFirstWriteCall();
+            const failureUpdate = onyxData?.failureData?.at(0);
+            expect(failureUpdate?.value).toEqual(
+                expect.objectContaining({
+                    connections: expect.objectContaining({
+                        netsuite: expect.objectContaining({
+                            options: expect.objectContaining({
+                                config: expect.objectContaining({
+                                    [CONST.NETSUITE_CONFIG.FX_EXPENSE_ACCOUNT]: 'old-account',
                                 }),
                             }),
                         }),
