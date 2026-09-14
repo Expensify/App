@@ -40,4 +40,4 @@
 
 - Upstream PR/issue: 🛑 TODO — no upstream issue existed when this patch was written. The bug is still unpatched on Expo `main`, `sdk-57` and `expo-location@57.0.15`, so upgrading does not fix it. An upstream issue/PR will be filed and linked here.
 - E/App issue: https://github.com/Expensify/App/issues/99183
-- PR introducing patch: TBD
+- PR introducing patch: https://github.com/Expensify/App/pull/101091
