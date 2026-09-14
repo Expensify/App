@@ -40,7 +40,6 @@ function ReportActionsSkeletonGuard({reportID, children}: ReportActionsSkeletonG
 
     const {
         isConciergeMainDM,
-        reportActionIDFromRoute,
         oldestUnreadReportAction,
         hasOnceLoadedReportActions,
         hasCachedReportActions,
@@ -79,7 +78,7 @@ function ReportActionsSkeletonGuard({reportID, children}: ReportActionsSkeletonG
     });
 
     if (shouldShowLoadingSkeleton || shouldShowDerivedTimingSkeleton) {
-        if (shouldShowWelcome && !reportActionIDFromRoute) {
+        if (shouldShowWelcome) {
             return (
                 <AskConciergeWelcome
                     reportID={reportID}

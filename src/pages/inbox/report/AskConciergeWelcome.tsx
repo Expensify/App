@@ -1,5 +1,3 @@
-import ScrollView from '@components/ScrollView';
-
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import React from 'react';
@@ -23,21 +21,16 @@ function AskConciergeWelcome({reportID, hasPreviousMessages, onShowPreviousMessa
     const styles = useThemeStyles();
 
     return (
-        <ScrollView
-            style={styles.flex1}
-            contentContainerStyle={[styles.flexGrow1, styles.justifyContentCenter]}
-        >
-            <View style={styles.conciergeAskColumn}>
-                <AskConciergeEmptyState />
-                <ConciergeChatHistoryToggle
-                    reportID={reportID}
-                    hasPreviousMessages={hasPreviousMessages}
-                    shouldShowFullHistory={false}
-                    onShowPreviousMessages={onShowPreviousMessages}
-                    containerStyles={styles.pv5}
-                />
-            </View>
-        </ScrollView>
+        <View style={styles.conciergeAskColumn}>
+            <AskConciergeEmptyState />
+            <ConciergeChatHistoryToggle
+                reportID={reportID}
+                hasPreviousMessages={hasPreviousMessages}
+                shouldShowFullHistory={false}
+                onShowPreviousMessages={onShowPreviousMessages}
+                containerStyles={styles.pv5}
+            />
+        </View>
     );
 }
 

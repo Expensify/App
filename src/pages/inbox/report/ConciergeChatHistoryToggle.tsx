@@ -5,12 +5,15 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import Navigation from '@libs/Navigation/Navigation';
+
 import {useConciergeSessionActions} from '@pages/inbox/ConciergeSessionContext';
 
 import CONST from '@src/CONST';
 
 import type {StyleProp, ViewStyle} from 'react-native';
 
+import {useNavigation, useRoute} from '@react-navigation/native';
 import React from 'react';
 import {View} from 'react-native';
 
@@ -37,6 +40,14 @@ function ConciergeChatHistoryToggle({reportID, hasPreviousMessages, shouldShowFu
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['UpArrow', 'DownArrow']);
     const {isAskConciergeChat} = useConciergeAskState(reportID);
     const {resetSession} = useConciergeSessionActions();
+    const route = useRoute();
+    const navigation = useNavigation();
+
+    const hideChatHistory = () => {
+        resetSession();
+        // Arriving from a thread opens the report at the parent message, which keeps the earlier conversation on screen.
+        Navigation.setParams({reportActionID: undefined}, route.key, navigation.getState()?.key);
+    };
 
     if (!isAskConciergeChat || !hasPreviousMessages) {
         return null;
@@ -47,7 +58,7 @@ function ConciergeChatHistoryToggle({reportID, hasPreviousMessages, shouldShowFu
             <View style={[styles.threadDividerLine, styles.ml0, styles.mr0, styles.flexGrow1]} />
             <Button
                 size={CONST.BUTTON_SIZE.SMALL}
-                onPress={shouldShowFullHistory ? resetSession : onShowPreviousMessages}
+                onPress={shouldShowFullHistory ? hideChatHistory : onShowPreviousMessages}
             >
                 <Button.Text>{translate(shouldShowFullHistory ? 'common.concierge.hideChatHistory' : 'common.concierge.viewChatHistory')}</Button.Text>
                 <Button.Icon src={shouldShowFullHistory ? expensifyIcons.DownArrow : expensifyIcons.UpArrow} />
