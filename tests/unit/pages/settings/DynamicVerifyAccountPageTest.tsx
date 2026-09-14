@@ -68,7 +68,7 @@ describe('DynamicVerifyAccountPage', () => {
 
         expect(mockVerifyAccountPageBase).toHaveBeenCalledWith(
             expect.objectContaining({
-                navigateForwardTo: ROUTES.ONBOARDING_WORKSPACES.getRoute('home'),
+                navigateForwardTo: ROUTES.ONBOARDING_WORKSPACES.getRoute('home', true),
                 onValidationSuccess: expect.any(Function),
                 shouldShowCloseButton: true,
             }),

@@ -256,7 +256,7 @@ describe('OnboardingWorkspaces Page', () => {
             await Onyx.set(ONYXKEYS.CONCIERGE_REPORT_ID, '123');
         });
 
-        const {unmount} = renderOnboardingWorkspacesPage(SCREENS.ONBOARDING.WORKSPACES, {backTo: ''});
+        const {unmount} = renderOnboardingWorkspacesPage(SCREENS.ONBOARDING.WORKSPACES, {backTo: '', isJoinWorkspaceTask: 'true'});
 
         await waitForBatchedUpdatesWithAct();
 
@@ -329,7 +329,10 @@ describe('OnboardingWorkspaces Page', () => {
             });
         });
 
-        const {unmount} = renderOnboardingWorkspacesPage(SCREENS.ONBOARDING.WORKSPACES, {backTo: ROUTES.REPORT_WITH_ID.getRoute('123')});
+        const {unmount} = renderOnboardingWorkspacesPage(SCREENS.ONBOARDING.WORKSPACES, {
+            backTo: ROUTES.REPORT_WITH_ID.getRoute('123'),
+            isJoinWorkspaceTask: 'true',
+        });
 
         await waitFor(() => {
             expect(mockCreateJoinWorkspaceOnboardingContent).toHaveBeenCalledWith('joinWorkspace', expect.any(String), expect.any(String), undefined);
@@ -352,7 +355,10 @@ describe('OnboardingWorkspaces Page', () => {
             await Onyx.set(ONYXKEYS.CONCIERGE_REPORT_ID, '123');
         });
 
-        const {unmount} = renderOnboardingWorkspacesPage(SCREENS.ONBOARDING.WORKSPACES, {backTo: ROUTES.REPORT_WITH_ID.getRoute('123')});
+        const {unmount} = renderOnboardingWorkspacesPage(SCREENS.ONBOARDING.WORKSPACES, {
+            backTo: ROUTES.REPORT_WITH_ID.getRoute('123'),
+            isJoinWorkspaceTask: 'true',
+        });
 
         await waitForBatchedUpdatesWithAct();
 
@@ -383,7 +389,10 @@ describe('OnboardingWorkspaces Page', () => {
             await Onyx.set(ONYXKEYS.CONCIERGE_REPORT_ID, '123');
         });
 
-        const {unmount} = renderOnboardingWorkspacesPage(SCREENS.ONBOARDING.WORKSPACES, {backTo: ROUTES.REPORT_WITH_ID.getRoute('123')});
+        const {unmount} = renderOnboardingWorkspacesPage(SCREENS.ONBOARDING.WORKSPACES, {
+            backTo: ROUTES.REPORT_WITH_ID.getRoute('123'),
+            isJoinWorkspaceTask: 'true',
+        });
 
         await waitForBatchedUpdatesWithAct();
 
@@ -422,7 +431,7 @@ describe('OnboardingWorkspaces Page', () => {
             });
         });
 
-        const {unmount} = renderOnboardingWorkspacesPage(SCREENS.ONBOARDING.WORKSPACES, {backTo: ''});
+        const {unmount} = renderOnboardingWorkspacesPage(SCREENS.ONBOARDING.WORKSPACES, {backTo: '', isJoinWorkspaceTask: 'true'});
 
         await waitForBatchedUpdatesWithAct();
 
