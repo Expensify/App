@@ -69,6 +69,7 @@ function WorkspaceMCPPage({route}: WorkspaceMCPPageProps) {
                     shouldShowBackButton={shouldUseNarrowLayout}
                     shouldUseHeadlineHeader
                     shouldDisplayHelpButton
+                    shouldDisplayAccountButton
                     onBackButtonPress={() => Navigation.goBack()}
                 />
                 <ScrollView
