@@ -66,5 +66,5 @@ const INSIGHTS_DASHBOARD_SPECS: Record<InsightsDashboardID, InsightsDashboardSpe
     },
 };
 
-export type {InsightsChartSpec, InsightsDashboardSpec};
+export type {InsightsChartSpec};
 export default INSIGHTS_DASHBOARD_SPECS;
