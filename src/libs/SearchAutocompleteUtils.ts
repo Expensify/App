@@ -1,7 +1,7 @@
 import type {SubstitutionMap} from '@components/Search/SearchRouter/getQueryWithSubstitutions';
 import type {SearchAutocompleteQueryRange, SearchAutocompleteResult, SearchColumnType, SearchFilterKey} from '@components/Search/types';
 
-import CONST, {CONTINUATION_DETECTION_SEARCH_FILTER_KEYS} from '@src/CONST';
+import CONST from '@src/CONST';
 import type {PolicyCategories, PolicyTagLists, RecentlyUsedCategories, RecentlyUsedTags} from '@src/types/onyx';
 
 import type {MarkdownRange} from '@expensify/react-native-live-markdown';
@@ -10,7 +10,17 @@ import type {SharedValue} from 'react-native-reanimated/lib/typescript/commonTyp
 
 import {getTagNamesFromTagsLists} from './PolicyUtils';
 import {parse} from './SearchParser/autocompleteParser';
-import {getUserFriendlyValue, sanitizeSearchValue, stripSearchValueQuotes} from './SearchQueryUtils';
+import {getUserFriendlyKey, getUserFriendlyValue} from './SearchQueryUtils';
+
+const CONTINUATION_DETECTION_SEARCH_FILTER_KEYS: SearchFilterKey[] = [
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.TO,
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM,
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.ASSIGNEE,
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.PAYER,
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID_BY,
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTER,
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.ATTENDEE,
+];
 
 /**
  * Parses given query using the autocomplete parser.
@@ -23,20 +33,6 @@ function parseForAutocomplete(text: string) {
     } catch (e) {
         console.error(`Error when parsing autocomplete query"`, e);
     }
-}
-
-/**
- * Returns a value that survives a round trip through the parser under the given filter key. Quotes are only dropped
- * when the value cannot be read back as one value, because `from` and the other name filters carry them fine while
- * `workspace` and `in` do not. Only safe for a value that is swapped for an ID before the query is sent.
- */
-function getParsableSearchValue(filterKey: string, value: string) {
-    const ranges = parseForAutocomplete(`${filterKey}:${sanitizeSearchValue(value, true)}`)?.ranges ?? [];
-    if (ranges.length === 1 && ranges.at(0)?.value === value) {
-        return value;
-    }
-
-    return stripSearchValueQuotes(value);
 }
 
 /**
@@ -207,6 +203,7 @@ function filterOutRangesWithCorrectValue(
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.ASSIGNEE:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.PAYER:
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID_BY:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTER:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.ATTENDEE:
             return substitutionMap[`${range.key}:${range.value}`] !== undefined || userLogins.get().includes(range.value) || range.value === CONST.SEARCH.ME;
@@ -326,11 +323,18 @@ function getTrimmedUserSearchQueryPreservingComma(textInputValue: string, fieldK
         return getQueryWithoutAutocompletedPart(textInputValue);
     }
 
-    const isNameField = CONTINUATION_DETECTION_SEARCH_FILTER_KEYS.includes(fieldKey as SearchFilterKey);
+    const nameFieldKey = CONTINUATION_DETECTION_SEARCH_FILTER_KEYS.find((key) => key === fieldKey);
 
-    if (isNameField) {
-        const fieldPattern = `${fieldKey}:`;
-        const keyIndex = textInputValue.toLowerCase().lastIndexOf(fieldPattern.toLowerCase());
+    if (nameFieldKey) {
+        // The typed key can be the syntax form or the user-friendly form (e.g. paidBy vs paid-by). Match whichever appears last.
+        let fieldPattern = `${fieldKey}:`;
+        let keyIndex = textInputValue.toLowerCase().lastIndexOf(fieldPattern.toLowerCase());
+        const userFriendlyPattern = `${getUserFriendlyKey(nameFieldKey)}:`;
+        const userFriendlyKeyIndex = textInputValue.toLowerCase().lastIndexOf(userFriendlyPattern.toLowerCase());
+        if (userFriendlyKeyIndex > keyIndex) {
+            keyIndex = userFriendlyKeyIndex;
+            fieldPattern = userFriendlyPattern;
+        }
 
         if (keyIndex !== -1) {
             const afterFieldKey = textInputValue.substring(keyIndex + fieldPattern.length);
@@ -350,8 +354,8 @@ function getTrimmedUserSearchQueryPreservingComma(textInputValue: string, fieldK
 }
 
 export {
+    CONTINUATION_DETECTION_SEARCH_FILTER_KEYS,
     getAutocompleteCategories,
-    getParsableSearchValue,
     getAutocompleteQueryWithComma,
     getAutocompleteRecentCategories,
     getAutocompleteRecentTags,

@@ -8,12 +8,13 @@ import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
+import {useIsAppLoadPending} from '@hooks/useInFlightRequests';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useVerifyAccountAndResume from '@hooks/useVerifyAccountAndResume';
 
-import {createDomain, resetCreateDomainForm} from '@libs/actions/Domain';
+import {clearCreateDomainAccountID, clearDomainFromFailedCreation, createDomain, resetCreateDomainForm, setCreateDomainAlreadyHaveAccessError} from '@libs/actions/Domain';
 import {clearDraftValues} from '@libs/actions/FormActions';
 import Navigation from '@libs/Navigation/Navigation';
 import {getFieldRequiredErrors, isPublicDomain} from '@libs/ValidationUtils';
@@ -21,6 +22,7 @@ import {getFieldRequiredErrors, isPublicDomain} from '@libs/ValidationUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/CreateDomainForm';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import {Str} from 'expensify-common';
 import React, {useCallback, useEffect, useRef} from 'react';
@@ -31,7 +33,8 @@ function AddDomainPage() {
     const {inputCallbackRef} = useAutoFocusInput();
 
     const [form] = useOnyx(ONYXKEYS.FORMS.CREATE_DOMAIN_FORM);
-    const [allDomains] = useOnyx(ONYXKEYS.COLLECTION.DOMAIN);
+    const [allDomains, allDomainsResult] = useOnyx(ONYXKEYS.COLLECTION.DOMAIN);
+    const isAppLoadPending = useIsAppLoadPending();
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.CREATE_DOMAIN_FORM>) => {
@@ -52,6 +55,11 @@ function AddDomainPage() {
 
     const submittedDomainName = useRef<string | undefined>(undefined);
 
+    // Domains we had before submitting. The BE returns the same generic failure whether or not we already have access to the
+    // existing domain, so this is what tells the two apart. Stays undefined until we submit with loaded domain data, so we never
+    // judge the response against an incomplete set.
+    const domainKeysBeforeCreation = useRef<Set<string> | undefined>(undefined);
+
     // The domain name only lives in form state, which the verify account page can't reach, so we resume the submit here instead of forwarding from that page.
     const {isUserValidated, verifyAccountAndResume} = useVerifyAccountAndResume((resumeCreateDomain?: () => void) => resumeCreateDomain?.());
 
@@ -71,8 +79,36 @@ function AddDomainPage() {
     }, [form?.hasCreationSucceeded, allDomains]);
 
     useEffect(() => {
+        const domainAccountID = form?.domainAccountID;
+        if (!domainAccountID) {
+            return;
+        }
+
+        if (!domainKeysBeforeCreation.current) {
+            const domainKey = `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`;
+            if (form.domainKeysBeforeCreation && !form.domainKeysBeforeCreation.includes(domainKey)) {
+                clearDomainFromFailedCreation(domainAccountID, allDomains?.[domainKey]?.domain_adminRequesters);
+            }
+            clearCreateDomainAccountID();
+            return;
+        }
+
+        if (domainKeysBeforeCreation.current.has(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`)) {
+            setCreateDomainAlreadyHaveAccessError();
+            return;
+        }
+
+        clearDomainFromFailedCreation(domainAccountID, allDomains?.[`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`]?.domain_adminRequesters);
+        Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.navigate(ROUTES.WORKSPACES_DOMAIN_ALREADY_EXISTS.getRoute(domainAccountID), {forceReplace: true}));
+    }, [form?.domainAccountID, form?.domainKeysBeforeCreation, allDomains]);
+
+    useEffect(() => {
         resetCreateDomainForm();
-        return () => clearDraftValues(ONYXKEYS.FORMS.CREATE_DOMAIN_FORM);
+
+        return () => {
+            clearDraftValues(ONYXKEYS.FORMS.CREATE_DOMAIN_FORM);
+            resetCreateDomainForm();
+        };
     }, []);
 
     return (
@@ -92,10 +128,14 @@ function AddDomainPage() {
                     validate={validate}
                     style={styles.flexGrow1}
                     submitButtonText={translate('common.continue')}
+                    shouldHideServerError={!!form?.domainAccountID}
                     onSubmit={({domainName}) => {
                         const submitDomain = () => {
                             submittedDomainName.current = domainName;
-                            createDomain(domainName);
+                            domainKeysBeforeCreation.current = isLoadingOnyxValue(allDomainsResult)
+                                ? undefined
+                                : new Set(Object.keys(allDomains ?? {}).filter((domainKey) => !!allDomains?.[domainKey]?.accountID));
+                            createDomain(domainName, domainKeysBeforeCreation.current);
                         };
 
                         if (!isUserValidated) {
@@ -103,7 +143,7 @@ function AddDomainPage() {
                         }
                         submitDomain();
                     }}
-                    isLoading={form?.isLoading}
+                    isLoading={!!form?.isLoading || isAppLoadPending}
                 >
                     <InputWrapper
                         InputComponent={TextInput}

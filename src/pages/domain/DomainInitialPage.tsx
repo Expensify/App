@@ -12,12 +12,14 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
 
-import {openDomainPage} from '@libs/actions/Domain';
+import {clearStaleAdminshipRequesterErrors, openDomainPage} from '@libs/actions/Domain';
+import {getStaleAdminshipRequesterErrorAccountIDs, hasPendingDomainAdminRequestsToReview} from '@libs/DomainUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 
@@ -26,7 +28,7 @@ import type {DomainSplitNavigatorParamList} from '@navigation/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import {isAdminSelector} from '@src/selectors/Domain';
+import {isAdminSelector, pendingAdminRequesterAccountIDsSelector} from '@src/selectors/Domain';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import {findFocusedRoute, useNavigationState} from '@react-navigation/native';
@@ -53,10 +55,20 @@ function DomainInitialPage({route}: DomainInitialPageProps) {
     useDocumentTitle(domainName ?? '');
     const isAdmin = isAdminSelector(currentUserAccountID)(domain);
     const [domainErrors] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`);
+    const [domainPendingActions] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`);
+    const requesterAccountIDs = pendingAdminRequesterAccountIDsSelector(domain);
+    const previousRequesterAccountIDs = usePrevious(requesterAccountIDs);
+    const hasPendingAdminRequests = hasPendingDomainAdminRequestsToReview(domain, currentUserAccountID, domainPendingActions);
+
+    useEffect(() => {
+        clearStaleAdminshipRequesterErrors(domainAccountID, getStaleAdminshipRequesterErrorAccountIDs(previousRequesterAccountIDs, requesterAccountIDs, domainErrors));
+    }, [domainAccountID, previousRequesterAccountIDs, requesterAccountIDs, domainErrors]);
 
     const domainMenuItems = getDomainMenuItems({
         domainAccountID,
         domainErrors,
+        hasPendingAdminRequests,
+        domain,
         icons,
     }).map((item) => ({
         ...item,

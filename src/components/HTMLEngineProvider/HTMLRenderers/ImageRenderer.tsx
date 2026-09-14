@@ -1,5 +1,4 @@
 import {AttachmentContext} from '@components/AttachmentContext';
-import {getButtonRole} from '@components/Button/utils';
 import {isDeletedNode} from '@components/HTMLEngineProvider/htmlEngineUtils';
 import PressableWithoutFocus from '@components/Pressable/PressableWithoutFocus';
 import {showContextMenuForReport, useShowContextMenuActions, useShowContextMenuState} from '@components/ShowContextMenuContext';
@@ -29,8 +28,8 @@ function ImageRenderer({tnode}: CustomRendererProps<TBlock>) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    // Re-render this component when account.shouldUseStagingServer changes
-    useOnyx(ONYXKEYS.SHOULD_USE_STAGING_SERVER);
+    // Re-render this component when the active server changes
+    useOnyx(ONYXKEYS.ACTIVE_SERVER);
 
     const htmlAttribs = tnode.attributes;
     const isDeleted = isDeletedNode(tnode);
@@ -133,7 +132,7 @@ function ImageRenderer({tnode}: CustomRendererProps<TBlock>) {
                     }}
                     isNested
                     shouldUseHapticsOnLongPress
-                    role={getButtonRole(true)}
+                    role={CONST.ROLE.BUTTON}
                     accessibilityLabel={translate('accessibilityHints.viewAttachment')}
                     sentryLabel={CONST.SENTRY_LABEL.HTML_RENDERER.IMAGE}
                 >

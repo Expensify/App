@@ -1,4 +1,4 @@
-import Avatar from '@components/Avatar';
+import UserAvatar from '@components/Avatar/UserAvatar';
 import Checkbox from '@components/Checkbox';
 import type {SearchColumnType} from '@components/Search/types';
 import type {ListItem} from '@components/SelectionList/types';
@@ -23,10 +23,7 @@ import TextCell from './TextCell';
 import TotalCell from './TotalCell';
 
 type MemberListItemHeaderProps<TItem extends ListItem> = {
-    /** The member currently being looked at */
     member: TransactionMemberGroupListItemType;
-
-    /** Callback to fire when a checkbox is pressed */
     onCheckboxPress?: (item: TItem) => void;
 
     /** Whether this section items disabled for selection */
@@ -41,7 +38,6 @@ type MemberListItemHeaderProps<TItem extends ListItem> = {
     /** Whether only some transactions are selected */
     isIndeterminate?: boolean;
 
-    /** Callback for when the down arrow is clicked */
     onDownArrowClick?: () => void;
 
     /** Whether the down arrow is expanded */
@@ -50,7 +46,6 @@ type MemberListItemHeaderProps<TItem extends ListItem> = {
     /** The visible columns for the header */
     columns?: SearchColumnType[];
 
-    /** Whether the screen is large */
     isLargeScreenWidth?: boolean;
 };
 
@@ -84,11 +79,9 @@ function MemberListItemHeaderImpl({
             >
                 <UserDetailsTooltip accountID={memberItem.accountID}>
                     <View>
-                        <Avatar
+                        <UserAvatar
                             source={memberItem.avatar}
-                            type={CONST.ICON_TYPE_AVATAR}
-                            name={formattedDisplayName}
-                            avatarID={memberItem.accountID}
+                            accountID={memberItem.accountID}
                             size={CONST.AVATAR_SIZE.SMALL}
                         />
                     </View>
@@ -151,11 +144,9 @@ function MemberListItemHeaderImpl({
                         <View style={[styles.flexRow, styles.flex1, styles.gap3]}>
                             <UserDetailsTooltip accountID={memberItem.accountID}>
                                 <View>
-                                    <Avatar
+                                    <UserAvatar
                                         source={memberItem.avatar}
-                                        type={CONST.ICON_TYPE_AVATAR}
-                                        name={formattedDisplayName}
-                                        avatarID={memberItem.accountID}
+                                        accountID={memberItem.accountID}
                                     />
                                 </View>
                             </UserDetailsTooltip>

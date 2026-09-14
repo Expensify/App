@@ -7,6 +7,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePolicyData from '@hooks/usePolicyData';
+import useReviewWorkspaceSettingsTaskCompletion from '@hooks/useReviewWorkspaceSettingsTaskCompletion';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {updateQuickbooksOnlineSyncClasses, updateQuickbooksOnlineSyncCustomers, updateQuickbooksOnlineSyncLocations} from '@libs/actions/connections/QuickbooksOnline';
@@ -41,6 +42,7 @@ import {
     enablePolicyAutoReimbursementLimit,
     enablePolicyConnections,
     enablePolicyHR,
+    enablePolicyInvoiceFields,
     enablePolicyInvoicing,
     enablePolicyReportFields,
     enablePolicyRules,
@@ -123,6 +125,7 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
     const isUpgraded = !!policy?.type && upgradingFromSubmit !== undefined && (isControlPolicy(policy) || !!(upgradingFromSubmit && isPaidGroupPolicy(policy)));
     const {translate} = useLocalize();
     const {accountID, email = ''} = useCurrentUserPersonalDetails();
+    const getReviewWorkspaceSettingsTaskCompletion = useReviewWorkspaceSettingsTaskCompletion();
     const [priorFirstDayFreeTrial] = useOnyx(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL);
     const [priorLastDayFreeTrial] = useOnyx(ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL);
 
@@ -134,6 +137,7 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
     const policyData = usePolicyData(policyID);
     const policyDataRef = useRef(policyData);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
     useEffect(() => {
         policyDataRef.current = policyData;
@@ -173,6 +177,8 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
                         return;
                     }
                 }
+            case CONST.UPGRADE_FEATURE_INTRO_MAPPING.invoiceFields.id:
+                return Navigation.goBack(ROUTES.WORKSPACE_INVOICES.getRoute(policyID));
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.companyCards.id:
                 return route.params.backTo ? Navigation.goBack(route.params.backTo) : Navigation.goBack();
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.rules.id:
@@ -222,7 +228,7 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
         }
         if (!feature) {
             if (featureNameAlias === CONST.UPGRADE_FEATURE_INTRO_MAPPING.policyPreventMemberChangingTitle.alias) {
-                setPolicyPreventMemberCreatedTitle(policyID, true, policy?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE]);
+                setPolicyPreventMemberCreatedTitle(policyID, true, policy?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE], getReviewWorkspaceSettingsTaskCompletion());
             }
             return;
         }
@@ -264,6 +270,9 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
                     }
                 }
                 break;
+            case CONST.UPGRADE_FEATURE_INTRO_MAPPING.invoiceFields.id:
+                enablePolicyInvoiceFields(policyID, true);
+                break;
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.rules.id:
                 // Re-enabling would re-run the sidebar's "just enabled" highlight on a row that already shows.
                 if (!policy?.areRulesEnabled) {
@@ -290,7 +299,7 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
                 break;
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.id:
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvalSubmit.id:
-                setWorkspaceApprovalMode(policy, defaultApprover, CONST.POLICY.APPROVAL_MODE.ADVANCED, accountID, email, isTrackIntentUser);
+                setWorkspaceApprovalMode(policy, defaultApprover, CONST.POLICY.APPROVAL_MODE.ADVANCED, accountID, email, isTrackIntentUser, rules);
                 break;
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvalSubmitReport.id:
                 break;
@@ -351,7 +360,9 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
         qboConfig?.syncCustomers,
         qboConfig?.syncLocations,
         categoryId,
+        getReviewWorkspaceSettingsTaskCompletion,
         isTrackIntentUser,
+        rules,
     ]);
 
     useWorkspaceUpgradeConfirmation({

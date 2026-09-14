@@ -1,6 +1,6 @@
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 
-import {REPORT_MORE_MENU_SECTIONS, sortAndSectionPopoverMenuItems} from '@libs/PopoverMenuSections';
+import {REPORT_MORE_MENU_SECTIONS, sortAndSectionPopoverMenuItems, TRANSACTION_MORE_MENU_SECTIONS} from '@libs/PopoverMenuSections';
 
 import CONST from '@src/CONST';
 
@@ -61,5 +61,27 @@ describe('sortAndSectionPopoverMenuItems', () => {
 
         expect(result.at(0)?.value).toBe(CONST.REPORT.SECONDARY_ACTIONS.RECEIVED_PAYMENT);
         expect(result.at(0)?.addSeparatorBefore).toBeUndefined();
+    });
+
+    it('renders SEND_TO_SOMEONE and SEND_TO_EMPLOYER first, together in the top section with a divider before the next section', () => {
+        expect(TRANSACTION_MORE_MENU_SECTIONS.at(0)).toEqual([CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.SEND_TO_SOMEONE, CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.SEND_TO_EMPLOYER]);
+
+        const items = [
+            makeItem(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.VIEW_DETAILS),
+            makeItem(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.SEND_TO_EMPLOYER),
+            makeItem(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.SEND_TO_SOMEONE),
+        ];
+        const result = sortAndSectionPopoverMenuItems(items, TRANSACTION_MORE_MENU_SECTIONS);
+
+        // Both convert-from-track rows sort to the top section, in their original order, with no divider between them.
+        expect(result.map((item) => item.value)).toEqual([
+            CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.SEND_TO_EMPLOYER,
+            CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.SEND_TO_SOMEONE,
+            CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.VIEW_DETAILS,
+        ]);
+        expect(result.at(0)?.addSeparatorBefore).toBeUndefined();
+        expect(result.at(1)?.addSeparatorBefore).toBeUndefined();
+        // VIEW_DETAILS is in a later section, so it gets the divider.
+        expect(result.at(2)?.addSeparatorBefore).toBe(true);
     });
 });

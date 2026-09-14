@@ -1,5 +1,5 @@
 import Badge from '@components/Badge';
-import {useListItemFocus} from '@components/SelectionList/ListItemFocusContext';
+import {useListItemContext} from '@components/SelectionList/ListItemContext';
 
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -20,7 +20,9 @@ type MemberRightIconProps = {
 export default function MemberRightIcon({role, owner, login, badgeStyles}: MemberRightIconProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const {isFocused} = useListItemFocus();
+    const {isFocused, isFocusVisible} = useListItemContext();
+    // New providers (ListItemPressable) set isFocusVisible; legacy providers still set only isFocused.
+    const isRowFocused = isFocusVisible ?? isFocused;
 
     let badgeText = '';
     if (owner && owner === login) {
@@ -40,7 +42,7 @@ export default function MemberRightIcon({role, owner, login, badgeStyles}: Membe
         return (
             <Badge
                 text={badgeText}
-                badgeStyles={[isFocused && styles.badgeDefaultActive, badgeStyles]}
+                badgeStyles={[isRowFocused && styles.badgeDefaultActive, badgeStyles]}
             />
         );
     }

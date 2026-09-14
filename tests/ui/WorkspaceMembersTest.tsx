@@ -1,5 +1,6 @@
 import {act, fireEvent, render, screen, waitFor, within} from '@testing-library/react-native';
 
+import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import ComposeProviders from '@components/ComposeProviders';
 import HTMLEngineProvider from '@components/HTMLEngineProvider';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
@@ -152,6 +153,8 @@ describe('WorkspaceMembers', () => {
 
             // Click the "1 selected" button to open the menu
             const dropdownButton = screen.getByTestId(dropdownMenuButtonTestID);
+            const bulkActionsDropdown = screen.UNSAFE_getAllByType(ButtonWithDropdownMenu).find(({props}) => props.testID === dropdownMenuButtonTestID);
+            expect(bulkActionsDropdown?.props.shouldPopoverUseScrollView).toBe(true);
             fireEvent.press(dropdownButton);
 
             await waitForBatchedUpdatesWithAct();
@@ -429,11 +432,10 @@ describe('WorkspaceMembers', () => {
             await waitForBatchedUpdatesWithAct();
         });
 
-        it('should hide role-change options when the selected member is the Authorized Payer resolved via policy.reimburser', async () => {
+        it('should hide demotions but offer Make payments admin when the selected member is the Authorized Payer resolved via policy.reimburser', async () => {
             // Given a workspace whose Authorized Payer is an admin configured through policy.reimburser
-            // (the canonical resolution) rather than achAccount.reimburser. On the buggy code the guard
-            // only read achAccount.reimburser, so it failed to recognize this payer and wrongly offered
-            // the role-change options.
+            // (the canonical resolution) rather than achAccount.reimburser. Demotions to roles that cannot
+            // pay must stay hidden, but changing to Payments Admin (the other valid payer role) must be offered.
             await act(async () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, {
                     reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
@@ -459,7 +461,7 @@ describe('WorkspaceMembers', () => {
                 expect(screen.getByTestId(`PopoverMenuItem-${removeText}`)).toBeOnTheScreen();
             });
 
-            // ...and none of the role-change options are offered for the payer
+            // ...the demotions that would strip the payer of pay capability are hidden
             const makeMemberText = TestHelper.translateLocal('workspace.people.makeMember', {count: 1});
             expect(screen.queryByTestId(`PopoverMenuItem-${makeMemberText}`)).not.toBeOnTheScreen();
 
@@ -469,16 +471,18 @@ describe('WorkspaceMembers', () => {
             const makeCardAdminText = TestHelper.translateLocal('workspace.people.makeCardAdmin', {count: 1});
             expect(screen.queryByTestId(`PopoverMenuItem-${makeCardAdminText}`)).not.toBeOnTheScreen();
 
+            // ...but Make payments admin IS offered — Payments Admin is a valid payer role
+            const makePaymentsAdminText = TestHelper.translateLocal('workspace.people.makePaymentsAdmin', {count: 1});
+            expect(screen.getByTestId(`PopoverMenuItem-${makePaymentsAdminText}`)).toBeOnTheScreen();
+
             unmount();
             await waitForBatchedUpdatesWithAct();
         });
 
-        it('should hide the Make workspace admin option when the selected member is a Payments Admin who is the Authorized Payer', async () => {
-            // Given a Payments Admin who is also the Authorized Payer. PAYMENTS_ADMIN is the only non-admin
-            // role with write access to WORKFLOWS_PAYMENTS, so it is the sole role that can hold the payer
-            // role without already being an admin — which makes it the only path that can reach the
-            // "Make workspace admin" option. Every other role-change option is already gated on the payer,
-            // but adminOption was not, so it was wrongly offered for this payer.
+        it('should offer Make workspace admin but hide demotions when the selected member is a Payments Admin who is the Authorized Payer', async () => {
+            // Given a Payments Admin who is also the Authorized Payer. Admin and Payments Admin are both valid
+            // payer roles, so promoting this payer to Admin keeps them a valid payer and must be offered.
+            // Every demotion to a role that cannot pay (Member, Auditor, Card Admin) stays gated on the payer.
             await act(async () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, {
                     reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
@@ -507,9 +511,16 @@ describe('WorkspaceMembers', () => {
                 expect(screen.getByTestId(`PopoverMenuItem-${removeText}`)).toBeOnTheScreen();
             });
 
-            // ...but "Make workspace admin" is hidden for the payer, even though their role is not admin
+            // ...and "Make workspace admin" IS offered — Admin is a valid payer role
             const makeAdminText = TestHelper.translateLocal('workspace.people.makeAdmin', {count: 1});
-            expect(screen.queryByTestId(`PopoverMenuItem-${makeAdminText}`)).not.toBeOnTheScreen();
+            expect(screen.getByTestId(`PopoverMenuItem-${makeAdminText}`)).toBeOnTheScreen();
+
+            // ...but the demotions that would strip the payer of pay capability stay hidden
+            const makeMemberText = TestHelper.translateLocal('workspace.people.makeMember', {count: 1});
+            expect(screen.queryByTestId(`PopoverMenuItem-${makeMemberText}`)).not.toBeOnTheScreen();
+
+            const makeAuditorText = TestHelper.translateLocal('workspace.people.makeAuditor', {count: 1});
+            expect(screen.queryByTestId(`PopoverMenuItem-${makeAuditorText}`)).not.toBeOnTheScreen();
 
             unmount();
             await waitForBatchedUpdatesWithAct();

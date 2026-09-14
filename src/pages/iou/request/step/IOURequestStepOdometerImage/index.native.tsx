@@ -1,6 +1,6 @@
 import ActivityIndicator from '@components/ActivityIndicator';
 import AttachmentPicker from '@components/AttachmentPicker';
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import {useFullScreenLoaderActions} from '@components/FullScreenLoaderContext';
 import Icon from '@components/Icon';
 import ImageSVG from '@components/ImageSVG';
@@ -183,7 +183,7 @@ function IOURequestStepOdometerImage({
             op: CONST.TELEMETRY.SPAN_ODOMETER_IMAGE_CAPTURE,
             attributes: {
                 [CONST.TELEMETRY.ATTRIBUTE_ODOMETER_IMAGE_TYPE]: imageType,
-                [CONST.TELEMETRY.ATTRIBUTE_PLATFORM]: 'native',
+                [CONST.TELEMETRY.ATTRIBUTE_PLATFORM]: CONST.TELEMETRY.SPAN_PLATFORM.NATIVE,
             },
         });
 

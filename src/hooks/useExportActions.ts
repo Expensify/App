@@ -1,6 +1,6 @@
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
-import {useExportDownloadStatus} from '@components/MoneyReportHeaderActions/ExportDownloadStatusProvider';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
+import {useSearchSelectionActions} from '@components/Search/SearchContext';
 
 import {getAccountingIntegrationDisplayName} from '@libs/AccountingUtils';
 import {exportReceiptsToZip} from '@libs/actions/Export';
@@ -85,7 +85,7 @@ function useExportActions({reportID, policy, onPDFModalOpen}: UseExportActionsPa
 
     const {showDecisionModal} = useDecisionModal();
     const {triggerExportOrConfirm} = useExportAgainModal(moneyRequestReport?.reportID, moneyRequestReport?.policyID);
-    const {trackExport} = useExportDownloadStatus();
+    const {clearSelectedTransactions} = useSearchSelectionActions();
 
     const expensifyIcons = useMemoizedLazyExpensifyIcons([
         'Table',
@@ -102,6 +102,7 @@ function useExportActions({reportID, policy, onPDFModalOpen}: UseExportActionsPa
         'CertiniaSquare',
         'RilletSquare',
         'DualEntrySquare',
+        'CampfireSquare',
         'GustoSquare',
         'ArrowRight',
     ]);
@@ -132,7 +133,7 @@ function useExportActions({reportID, policy, onPDFModalOpen}: UseExportActionsPa
             return;
         }
 
-        const exportID = queueExportSearchWithTemplate(
+        queueExportSearchWithTemplate(
             {
                 templateName,
                 templateType,
@@ -144,7 +145,9 @@ function useExportActions({reportID, policy, onPDFModalOpen}: UseExportActionsPa
             },
             true,
         );
-        trackExport(exportID);
+
+        // Clear the selection now that the export has started. The app-level ExportDownloadStatusManager shows the modal.
+        clearSelectedTransactions(true);
     };
 
     const exportSubmenuOptions: Record<string, DropdownOption<string>> = {
@@ -297,8 +300,8 @@ function useExportActions({reportID, policy, onPDFModalOpen}: UseExportActionsPa
                 if (!moneyRequestReport?.reportID) {
                     return;
                 }
-                const exportID = exportReceiptsToZip({reportIDs: [moneyRequestReport.reportID]});
-                trackExport(exportID);
+                exportReceiptsToZip({reportIDs: [moneyRequestReport.reportID]});
+                clearSelectedTransactions(true);
             },
         },
         [CONST.REPORT.SECONDARY_ACTIONS.PRINT]: {

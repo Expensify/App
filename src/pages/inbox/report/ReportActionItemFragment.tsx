@@ -23,19 +23,13 @@ import TextCommentFragment from './comment/TextCommentFragment';
 import ReportActionItemMessageHeaderSender from './ReportActionItemMessageHeaderSender';
 
 type ReportActionItemFragmentProps = {
-    /** Users accountID */
     accountID: number;
-
-    /** The report action's id */
     reportActionID?: string;
-
-    /** The message fragment needing to be displayed */
     fragment: Message | undefined;
 
     /** Message(text) of an IOU report action */
     iouMessage?: string;
 
-    /** The reportAction's source */
     source?: OriginalMessageSource;
 
     /** Should this fragment be contained in a single line? */
@@ -47,7 +41,6 @@ type ReportActionItemFragmentProps = {
     /** The accountID of the copilot who took this action on behalf of the user */
     delegateAccountID?: number;
 
-    /** icon */
     actorIcon?: OnyxCommon.Icon;
 
     /** Whether the comment is a thread parent message/the first message in a thread */
@@ -65,15 +58,9 @@ type ReportActionItemFragmentProps = {
     /** Used to format RTL display names in Old Dot system messages e.g. Arabic */
     isFragmentContainingDisplayName?: boolean;
 
-    /** The pending action for the report action */
     pendingAction?: OnyxCommon.PendingAction;
-
-    /** The report action name */
     actionName?: ReportActionName;
-
     moderationDecision?: DecisionName;
-
-    /** Whether the fragment should show a tooltip */
     shouldShowTooltip?: boolean;
 };
 

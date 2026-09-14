@@ -1,7 +1,7 @@
 ---
 title: View and Reconcile Expensify Card Expenses
 description: Learn how to view, verify, and export Expensify Card expenses by matching settlement withdrawals to grouped transactions in Expensify.
-keywords: [New Expensify, Expensify Card reconciliation, reconcile Expensify Card withdrawals, view Expensify Card expenses, verify Expensify Card totals, export Expensify Card expenses, withdrawal-based reconciliation, Workspace Admin]
+keywords: [New Expensify, Expensify Card reconciliation, reconcile Expensify Card withdrawals, view Expensify Card expenses, verify Expensify Card totals, export Expensify Card expenses, withdrawal-based reconciliation, Expensify Card current balance transactions, view transactions, Workspace Admin]
 internalScope: Audience is Workspace Admins reconciling Expensify Card activity. Covers the withdrawal-based reconciliation workflow under Reconciliation > Expensify Card. Does not cover company card statement matching, reimbursement reconciliation, or manual export-based reconciliation.
 ---
 
@@ -32,6 +32,16 @@ Workspace Admins can reconcile Expensify Card expenses when the Expensify Card i
 2. Click the arrow next to the withdrawal amount to expand the row.
 3. Review the individual expenses included in that withdrawal.
    
+---
+
+## How to View the Transactions That Make Up Your Expensify Card Current Balance
+
+The **Current balance** on the Expensify Card page reflects the card expenses that have not yet been withdrawn from your settlement account. You can open a filtered list of those transactions directly from the Expensify Card page.
+
+1. From the navigation tabs (on the left on web, on the bottom on mobile), select **Workspaces > [Workspace Name] > Expensify Card**.
+2. Under the **Current balance** amount, click **View transactions**.
+3. Review the filtered results, which show the card expenses counted toward the current balance.
+
 ---
 
 ## How to Verify Expensify Card Withdrawal Totals Against Your Bank Statement
@@ -67,7 +77,10 @@ Keep the following in mind:
 - All selected settlements must belong to the same Expensify Card feed. If you select settlements from more than one feed, you'll see the message **Please select settlements from one Expensify Card feed at a time.** and no statement is generated.
 - **Download statement** appears only when whole settlements are selected. It does not appear when you select only some of the transactions inside a settlement.
 - If you apply a filter that narrows the transactions (such as merchant, category, amount, or date), **Download statement** is hidden so the statement always matches the settlement in full.
+- Filtering by **Bank account** keeps **Download statement** available. Each settlement is withdrawn from a single bank account, so this filter keeps or removes whole settlements rather than narrowing the transactions inside one. This is useful for isolating an Expensify Card program that settles to its own bank account.
 - With no workspace filter applied, the statement covers the entire settlement across every workspace it spans. If you apply a single workspace filter, the statement is scoped to that workspace's transactions only.
+
+![The Expensify Card reconciliation list with the Withdrawn date-range filter open, several settlement withdrawal rows, and one row expanded to reveal its individual expenses]({{site.url}}/assets/images/Expensify_Card_Withdrawal_Transactions.png){:width="100%"}
 
 ---
 
@@ -88,6 +101,10 @@ If you don’t see any withdrawals, adjust the **Withdrawn** filter and select a
 ## Why don't I see Download statement when I select a settlement?
 
 **Download statement** appears only for Workspace Admins with export access to the settlement. It's also hidden if you selected only part of a settlement, if a transaction-narrowing filter (such as merchant, category, or amount) is active, or if you're using select-all-matching mode instead of selecting the settlement rows.
+
+## Can I download a statement for one Expensify Card program?
+
+Yes. If each program settles to its own bank account, apply the **Bank account** filter for that account to show only its settlements, then select the settlements and click **Download statement**. The **Bank account** filter keeps **Download statement** available because it selects whole settlements rather than narrowing the transactions inside them.
 
 ## Can I download a statement for a failed or pending settlement?
 

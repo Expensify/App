@@ -12,7 +12,7 @@ import type {ThemeStyles} from '@styles/index';
 
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import type {AccountData, Beta, BillingGraceEndPeriod, Policy, Report} from '@src/types/onyx';
+import type {AccountData, Beta, BillingGraceEndPeriod, Policy, Report, Rule} from '@src/types/onyx';
 import type BankAccount from '@src/types/onyx/BankAccount';
 import type Fund from '@src/types/onyx/Fund';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
@@ -49,6 +49,7 @@ type SelectPaymentTypeParams = {
     isASAPSubmitBetaEnabled: boolean;
     confirmApproval?: () => void;
     iouReport?: OnyxEntry<Report>;
+    rules: OnyxCollection<Rule>;
     betas: OnyxEntry<Beta[]>;
     userBillingGracePeriodEnds: OnyxCollection<BillingGraceEndPeriod>;
     amountOwed: OnyxEntry<number>;
@@ -225,6 +226,7 @@ const selectPaymentType = (params: SelectPaymentTypeParams) => {
         isASAPSubmitBetaEnabled,
         confirmApproval,
         iouReport,
+        rules,
         betas,
         userBillingGracePeriodEnds,
         amountOwed,
@@ -257,6 +259,7 @@ const selectPaymentType = (params: SelectPaymentTypeParams) => {
             approveMoneyRequest({
                 expenseReport: iouReport,
                 expenseReportPolicy,
+                rules,
                 currentUserAccountIDParam: currentAccountID,
                 currentUserEmailParam: currentEmail,
                 hasViolations,
@@ -340,8 +343,11 @@ function getActivePaymentType(
 
 /**
  * Get the last 4 digits of a bank account used for payment.
+ *
+ * `policyACHAccountNumber` is the account number of the policy's default reimbursement account
+ * (`policy.achAccount.accountNumber`), used as a fallback when the payment doesn't name an account.
  */
-function getBankAccountLastFourDigits(bankAccountID: number | undefined, bankAccountList: OnyxEntry<Record<string, BankAccount>>, policy: OnyxEntry<Policy>): string {
+function getBankAccountLastFourDigits(bankAccountID: number | undefined, bankAccountList: OnyxEntry<Record<string, BankAccount>>, policyACHAccountNumber: string | undefined): string {
     const bankAccount = bankAccountID ? bankAccountList?.[bankAccountID] : null;
 
     if (bankAccount?.accountData?.accountNumber) {
@@ -352,7 +358,7 @@ function getBankAccountLastFourDigits(bankAccountID: number | undefined, bankAcc
     if (bankAccountID != null) {
         return '';
     }
-    return policy?.achAccount?.accountNumber?.slice(-4) ?? '';
+    return policyACHAccountNumber?.slice(-4) ?? '';
 }
 
 export {

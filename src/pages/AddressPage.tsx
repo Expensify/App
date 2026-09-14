@@ -25,17 +25,21 @@ import {View} from 'react-native';
 type AddressPageProps = {
     /** User's private personal details */
     address?: Address;
-    /** Whether app is loading */
     isLoadingApp: OnyxEntry<boolean>;
     /** Function to call when address form is submitted */
     updateAddress: (values: FormOnyxValues<typeof ONYXKEYS.FORMS.HOME_ADDRESS_FORM>) => void;
-    /** Title of address page */
     title: string;
+
+    /**
+     * When true, the underlying AddressForm also requires the zip/postal code. Used by callers
+     * that need a complete address (e.g. workspace addresses backing homeAndOffice exclusions).
+     */
+    shouldRequireZip?: boolean;
 
     defaultCountry?: Country;
 } & BackToParams;
 
-function AddressPage({title, address, updateAddress, isLoadingApp = true, backTo, defaultCountry}: AddressPageProps) {
+function AddressPage({title, address, updateAddress, isLoadingApp = true, backTo, defaultCountry, shouldRequireZip}: AddressPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
@@ -118,6 +122,7 @@ function AddressPage({title, address, updateAddress, isLoadingApp = true, backTo
                         street1={street1}
                         street2={street2}
                         zip={zipcode}
+                        shouldRequireZip={shouldRequireZip}
                     />
                 )}
             </DelegateNoAccessWrapper>

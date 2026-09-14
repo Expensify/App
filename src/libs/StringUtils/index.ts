@@ -9,6 +9,7 @@ import deburr from 'lodash/deburr';
 
 import decodeUnicode from './decodeUnicode';
 import hash from './hash';
+import startsWithVowel from './startsWithVowel';
 
 /**
  * Removes diacritical marks and non-alphabetic and non-latin characters from a string.
@@ -90,12 +91,23 @@ function removeInvisibleCharacters(value: string): string {
     return result.trim();
 }
 
+// not /g, test() would advance lastIndex
+const NON_ASCII_REGEX = /[\u0080-\uffff]/;
+
+// safe to skip normalizing ASCII: NFD is identity below U+0080 and everything the normalizers strip is above it
+function isAscii(text: string) {
+    return !NON_ASCII_REGEX.test(text);
+}
+
 /**
  * Remove accents/diacritics
  * @param text - The input string
  * @returns The string with all accents/diacritics removed
  */
 function normalizeAccents(text: string) {
+    if (isAscii(text)) {
+        return text;
+    }
     return text.normalize('NFD').replaceAll(/[\u0300-\u036f]/g, '');
 }
 
@@ -108,6 +120,9 @@ function normalizeAccents(text: string) {
  * @returns The string with zero-width layout characters removed
  */
 function removeZeroWidthCharacters(text: string) {
+    if (isAscii(text)) {
+        return text;
+    }
     return text.replaceAll(/[\u200b\u2060\ufeff]/g, '');
 }
 
@@ -200,15 +215,6 @@ function getUTF8ByteLength(str: string) {
  */
 function countWhiteSpaces(str: string): number {
     return (str.match(/\s/g) ?? []).length;
-}
-
-/**
- * Check if the string starts with a vowel
- * @param str - The input string
- * @returns True if the string starts with a vowel, false otherwise
- */
-function startsWithVowel(str: string): boolean {
-    return /^[aeiouAEIOU]/.test(str);
 }
 
 function camelToHyphenCase(str: string) {

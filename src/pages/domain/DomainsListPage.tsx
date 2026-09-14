@@ -1,10 +1,9 @@
 import ActivityIndicator from '@components/ActivityIndicator';
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import type {DomainRowData} from '@components/Tables/DomainListTable';
 import DomainListTable from '@components/Tables/DomainListTable';
-import WorkspaceListLayout from '@components/WorkspaceListLayout';
+import WorkspaceListLayout, {WorkspaceListHeaderContent} from '@components/WorkspaceListLayout';
 
-import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDocumentTitle from '@hooks/useDocumentTitle';
 import {useIsAppLoadPending} from '@hooks/useInFlightRequests';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -13,7 +12,8 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {hasDomainErrors} from '@libs/DomainUtils';
+import {clearStaleDomainFromFailedCreation} from '@libs/actions/Domain';
+import {getDomainBrickRoadIndicator, hasDomainErrors, hasPendingDomainAdminRequestsToReview} from '@libs/DomainUtils';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import Navigation from '@libs/Navigation/Navigation';
 
@@ -21,10 +21,12 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {isAdminSelector} from '@src/selectors/Domain';
+import {accountIDSelector} from '@src/selectors/Session';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
+import {useIsFocused} from '@react-navigation/native';
 import {Str} from 'expensify-common';
-import React from 'react';
+import React, {useEffect} from 'react';
 import {View} from 'react-native';
 
 function DomainsListPage() {
@@ -32,13 +34,28 @@ function DomainsListPage() {
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Plus']);
-    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const isFocused = useIsFocused();
 
     useDocumentTitle(translate('common.domains'));
 
     const isAppLoadPending = useIsAppLoadPending();
+    const [currentUserAccountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
     const [allDomains] = useOnyx(ONYXKEYS.COLLECTION.DOMAIN);
     const [allDomainErrors] = useOnyx(ONYXKEYS.COLLECTION.DOMAIN_ERRORS);
+    const [allDomainPendingActions] = useOnyx(ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS);
+    const [createDomainForm] = useOnyx(ONYXKEYS.FORMS.CREATE_DOMAIN_FORM);
+
+    const failedDomainAccountID = createDomainForm?.domainAccountID;
+    const failedDomainKey = failedDomainAccountID ? `${ONYXKEYS.COLLECTION.DOMAIN}${failedDomainAccountID}` : undefined;
+    const shouldHideFailedDomain = !!failedDomainKey && !!createDomainForm?.domainKeysBeforeCreation && !createDomainForm.domainKeysBeforeCreation.includes(failedDomainKey);
+
+    useEffect(() => {
+        if (!isFocused || !shouldHideFailedDomain || !failedDomainAccountID) {
+            return;
+        }
+
+        clearStaleDomainFromFailedCreation(failedDomainAccountID, failedDomainKey ? allDomains?.[failedDomainKey]?.domain_adminRequesters : undefined);
+    }, [failedDomainAccountID, failedDomainKey, allDomains, isFocused, shouldHideFailedDomain]);
 
     const navigateToDomain = ({domainAccountID, isAdmin}: {domainAccountID: number; isAdmin: boolean}) => {
         if (!isAdmin) {
@@ -57,7 +74,12 @@ function DomainsListPage() {
                 continue;
             }
 
-            const isDomainAdmin = isAdminSelector(currentUserPersonalDetails?.accountID)(domain);
+            if (shouldHideFailedDomain && failedDomainAccountID === domain.accountID) {
+                continue;
+            }
+
+            const isDomainAdmin = isAdminSelector(currentUserAccountID)(domain);
+
             const domainErrors = allDomainErrors?.[`${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domain.accountID}`];
 
             domainRows.push({
@@ -69,7 +91,10 @@ function DomainsListPage() {
                 errors: domainErrors?.errors,
                 pendingAction: domain.pendingAction,
                 disabled: domain.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-                brickRoadIndicator: hasDomainErrors(domainErrors) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
+                brickRoadIndicator: getDomainBrickRoadIndicator(
+                    hasDomainErrors(domainErrors, domain),
+                    hasPendingDomainAdminRequestsToReview(domain, currentUserAccountID, allDomainPendingActions?.[`${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domain.accountID}`]),
+                ),
                 action: () => navigateToDomain({domainAccountID: domain.accountID, isAdmin: isDomainAdmin}),
             });
         }
@@ -86,20 +111,36 @@ function DomainsListPage() {
             <Button.Text>{translate('common.new')}</Button.Text>
         </Button>
     );
+    const headerComponent = (
+        <WorkspaceListHeaderContent
+            activeTabKey="domains"
+            headerButton={headerButton}
+        />
+    );
 
     return (
         <WorkspaceListLayout
             activeTabKey="domains"
             headerButton={headerButton}
+            headerComponent={headerComponent}
+            scrollHeaderWithTable
         >
             <View style={styles.flex1}>
                 {shouldShowLoadingIndicator && (
-                    <View style={[styles.flex1, styles.fullScreenLoading]}>
-                        <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
-                    </View>
+                    <>
+                        {headerComponent}
+                        <View style={[styles.flex1, styles.fullScreenLoading]}>
+                            <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
+                        </View>
+                    </>
                 )}
 
-                {!shouldShowLoadingIndicator && <DomainListTable domains={domainRows} />}
+                {!shouldShowLoadingIndicator && (
+                    <DomainListTable
+                        domains={domainRows}
+                        headerComponent={headerComponent}
+                    />
+                )}
             </View>
         </WorkspaceListLayout>
     );

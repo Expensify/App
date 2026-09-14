@@ -1,11 +1,12 @@
-import Avatar from '@components/Avatar';
-import Button from '@components/ButtonComposed';
-import ConfirmModal from '@components/ConfirmModal';
+import UserAvatar from '@components/Avatar/UserAvatar';
+import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemNavigation from '@components/MenuItem/presets/MenuItemNavigation';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 
+import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -50,8 +51,7 @@ function DynamicRoomMemberDetailsPage({report, route}: DynamicRoomMemberDetailsP
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const policy = usePolicy(report?.policyID);
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.ROOM_MEMBER_DETAILS.path);
-
-    const [isRemoveMemberConfirmModalVisible, setIsRemoveMemberConfirmModalVisible] = React.useState(false);
+    const {showConfirmModal} = useConfirmModal();
 
     const accountID = Number(route.params.accountID);
     const member = report?.participants?.[accountID];
@@ -61,10 +61,21 @@ function DynamicRoomMemberDetailsPage({report, route}: DynamicRoomMemberDetailsP
     const isSelectedMemberCurrentUser = accountID === currentUserPersonalDetails?.accountID;
     const isSelectedMemberOwner = accountID === report.ownerAccountID;
     const shouldDisableRemoveUser = (isPolicyExpenseChat(report) && isPolicyAdmin(policy, details.login)) || isSelectedMemberCurrentUser || isSelectedMemberOwner;
-    const removeUser = () => {
-        setIsRemoveMemberConfirmModalVisible(false);
-        removeFromRoom(report, [accountID]);
-        Navigation.goBack(backPath);
+    const askForConfirmationToRemove = () => {
+        showConfirmModal({
+            buttonVariant: CONST.BUTTON_VARIANT.DANGER,
+            title: translate('workspace.people.removeRoomMemberButtonTitle'),
+            prompt: translate('workspace.people.removeMemberPrompt', displayName),
+            confirmText: translate('common.remove'),
+            cancelText: translate('common.cancel'),
+        }).then(({action}) => {
+            if (action !== ModalActions.CONFIRM) {
+                return;
+            }
+
+            removeFromRoom(report, [accountID]);
+            Navigation.goBack(backPath);
+        });
     };
 
     const navigateToProfile = () => {
@@ -83,11 +94,10 @@ function DynamicRoomMemberDetailsPage({report, route}: DynamicRoomMemberDetailsP
             />
             <View style={[styles.containerWithSpaceBetween, styles.pointerEventsBoxNone, styles.justifyContentStart]}>
                 <View style={[styles.avatarSectionWrapper, styles.pb0]}>
-                    <Avatar
+                    <UserAvatar
                         containerStyles={[styles.mv5, styles.noOutline]}
                         source={details.avatar}
-                        avatarID={accountID}
-                        type={CONST.ICON_TYPE_AVATAR}
+                        accountID={accountID}
                         size={CONST.AVATAR_SIZE.XXXX_LARGE}
                         fallbackIcon={fallbackIcon}
                     />
@@ -99,29 +109,17 @@ function DynamicRoomMemberDetailsPage({report, route}: DynamicRoomMemberDetailsP
                             {displayName}
                         </Text>
                     )}
-                    <>
-                        <Button
-                            onPress={() => setIsRemoveMemberConfirmModalVisible(true)}
-                            isDisabled={shouldDisableRemoveUser}
-                            style={styles.mv5}
-                        >
-                            <Button.Icon
-                                src={icons.RemoveMembers}
-                                style={StyleUtils.getTransformScaleStyle(0.8)}
-                            />
-                            <Button.Text>{translate('workspace.people.removeRoomMemberButtonTitle')}</Button.Text>
-                        </Button>
-                        <ConfirmModal
-                            danger
-                            title={translate('workspace.people.removeRoomMemberButtonTitle')}
-                            isVisible={isRemoveMemberConfirmModalVisible}
-                            onConfirm={removeUser}
-                            onCancel={() => setIsRemoveMemberConfirmModalVisible(false)}
-                            prompt={translate('workspace.people.removeMemberPrompt', displayName)}
-                            confirmText={translate('common.remove')}
-                            cancelText={translate('common.cancel')}
+                    <Button
+                        onPress={askForConfirmationToRemove}
+                        isDisabled={shouldDisableRemoveUser}
+                        style={styles.mv5}
+                    >
+                        <Button.Icon
+                            src={icons.RemoveMembers}
+                            style={StyleUtils.getTransformScaleStyle(0.8)}
                         />
-                    </>
+                        <Button.Text>{translate('workspace.people.removeRoomMemberButtonTitle')}</Button.Text>
+                    </Button>
                 </View>
                 <View style={styles.w100}>
                     <MenuItemNavigation

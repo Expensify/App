@@ -1412,4 +1412,94 @@ describe('replaceOptimisticReportWithActualReport', () => {
         // And it should be updated to point to the preexisting report
         expect(parentActions?.[reportActionID]?.childReportID).toBe(preexistingReportID);
     });
+
+    const setUpParentReturnedAsPreexistingReport = async () => {
+        const parentReportID = '9999';
+        const optimisticReportID = '1234';
+        const reportActionID = 'action123';
+
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`, {
+            reportID: parentReportID,
+            type: CONST.REPORT.TYPE.CHAT,
+            chatType: CONST.REPORT.CHAT_TYPE.SELF_DM,
+            reportName: 'Self DM',
+        });
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`, {
+            [reportActionID]: {
+                reportActionID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                originalMessage: {type: CONST.IOU.REPORT_ACTION_TYPE.CREATE, IOUTransactionID: 'trans123'},
+                childReportID: optimisticReportID,
+            },
+        });
+
+        const optimisticReport = {
+            reportID: optimisticReportID,
+            type: CONST.REPORT.TYPE.CHAT,
+            parentReportID,
+            parentReportActionID: reportActionID,
+            preexistingReportID: parentReportID,
+        };
+
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${optimisticReportID}`, optimisticReport);
+        await waitForBatchedUpdates();
+
+        return {parentReportID, optimisticReportID, reportActionID, optimisticReport};
+    };
+
+    it('should not overwrite the parent report when the preexisting report is the parent report', async () => {
+        // Given the API returned the parent report itself as the preexisting report
+        const {parentReportID, optimisticReport} = await setUpParentReturnedAsPreexistingReport();
+
+        // When replaceOptimisticReportWithActualReport is called
+        replaceOptimisticReportWithActualReport(optimisticReport, undefined, 1);
+        await waitForBatchedUpdates();
+
+        // Then the parent report keeps its own data and is not left parented to itself
+        const parentReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`);
+        expect(parentReport?.parentReportID).toBeUndefined();
+        expect(parentReport?.chatType).toBe(CONST.REPORT.CHAT_TYPE.SELF_DM);
+        expect(parentReport?.reportName).toBe('Self DM');
+    });
+
+    it('should keep the optimistic report when the preexisting report is the parent report', async () => {
+        // Given the API returned the parent report itself as the preexisting report
+        const {parentReportID, optimisticReportID, reportActionID, optimisticReport} = await setUpParentReturnedAsPreexistingReport();
+
+        // When replaceOptimisticReportWithActualReport is called
+        replaceOptimisticReportWithActualReport(optimisticReport, undefined, 1);
+        await waitForBatchedUpdates();
+
+        // Then the optimistic report is not cleared, so the parent action's childReportID does not dangle
+        const keptReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${optimisticReportID}`);
+        expect(keptReport).toBeDefined();
+
+        const parentActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`);
+        expect(parentActions?.[reportActionID]?.childReportID).toBe(optimisticReportID);
+    });
+
+    it('should not navigate away when the preexisting report is the parent report and the user is viewing the optimistic report', async () => {
+        // Given the user is viewing the optimistic report
+        mockIsReady.mockReturnValue(true);
+        mockGetCurrentRoute.mockReturnValue({name: SCREENS.REPORT, params: {}});
+
+        // And the API returned the parent report itself as the preexisting report
+        const {optimisticReportID, optimisticReport} = await setUpParentReturnedAsPreexistingReport();
+        mockGetActiveRoute.mockReturnValue(`/r/${optimisticReportID}`);
+
+        let capturedEventData: SwitchReportEventData | undefined;
+        const subscription = DeviceEventEmitter.addListener(`switchToPreExistingReport_${optimisticReportID}`, (data: SwitchReportEventData) => {
+            capturedEventData = data;
+        });
+
+        // When replaceOptimisticReportWithActualReport is called
+        replaceOptimisticReportWithActualReport(optimisticReport, undefined, 1);
+        await waitForBatchedUpdates();
+
+        // Then the user is not switched to the parent report
+        expect(capturedEventData).toBeUndefined();
+        expect(mockSetParams).not.toHaveBeenCalled();
+
+        subscription.remove();
+    });
 });

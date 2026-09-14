@@ -9,6 +9,7 @@ import TextInput from '@components/TextInput';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 
+import useAccountIDToNameMap from '@hooks/useAccountIDToNameMap';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -45,6 +46,7 @@ function TaskTitlePage({report, currentUserPersonalDetails}: TaskTitlePageProps)
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
+    const accountIDToName = useAccountIDToNameMap();
 
     const validate = useCallback(
         ({title}: FormOnyxValues<typeof ONYXKEYS.FORMS.EDIT_TASK_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.EDIT_TASK_FORM> => {
@@ -65,7 +67,7 @@ function TaskTitlePage({report, currentUserPersonalDetails}: TaskTitlePageProps)
     );
 
     const submit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.EDIT_TASK_FORM>) => {
-        if (values.title !== Parser.htmlToMarkdown(report?.reportName ?? '') && !isEmptyObject(report)) {
+        if (values.title !== Parser.htmlToMarkdown(report?.reportName ?? '', {accountIDToName}) && !isEmptyObject(report)) {
             // Set the title of the report in the store and then call EditTask API
             // to update the title of the report on the server
             editTask(report, {title: values.title}, delegateEmail);
@@ -118,7 +120,7 @@ function TaskTitlePage({report, currentUserPersonalDetails}: TaskTitlePageProps)
                                 name={INPUT_IDS.TITLE}
                                 label={translate('task.title')}
                                 accessibilityLabel={translate('task.title')}
-                                defaultValue={Parser.htmlToMarkdown(report?.reportName ?? '', {})}
+                                defaultValue={Parser.htmlToMarkdown(report?.reportName ?? '', {accountIDToName})}
                                 ref={(element: AnimatedTextInputRef | null) => {
                                     if (!element) {
                                         return;
