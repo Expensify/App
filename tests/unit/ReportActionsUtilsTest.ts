@@ -4,6 +4,7 @@ import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import getReportURLForCurrentContext from '@libs/Navigation/helpers/getReportURLForCurrentContext';
 import {setHasRadio} from '@libs/NetworkState';
+import Parser from '@libs/Parser';
 import {isExpenseReport} from '@libs/ReportUtils';
 
 import IntlStore from '@src/languages/IntlStore';
@@ -12,6 +13,8 @@ import ROUTES from '@src/ROUTES';
 import type {ValueOf} from 'type-fest';
 
 import Onyx from 'react-native-onyx';
+
+import {Str} from 'expensify-common';
 
 import type {CompanyAddressOriginalMessage, UpdateACHAccountOriginalMessage} from '../../src/libs/ReportActionsUtils';
 import type {Card, DecisionName, PersonalDetails, PersonalDetailsList, Report, ReportAction, ReportActions} from '../../src/types/onyx';
@@ -1639,9 +1642,24 @@ describe('ReportActionsUtils', () => {
             // When getting the message fragments of the action
             const fragments = ReportActionsUtils.getReportActionMessageFragments(translateLocal, action);
 
-            // Then they should be built from the same message
+            // Then the text fragment should be the message as-is, and the html fragment should carry its encoded form
             const message = ReportActionsUtils.getConciergeAutoSelectDistanceRateMessage(translateLocal, action);
-            expect(fragments).toEqual([{text: message, html: `<muted-text>${message}</muted-text>`, type: 'COMMENT'}]);
+            expect(fragments).toEqual([{text: message, html: `<muted-text>${Str.htmlEncode(message)}</muted-text>`, type: 'COMMENT'}]);
+        });
+
+        it('should keep a workspace name containing an HTML entity literal on the html fragment', () => {
+            // Given a workspace name that contains an entity-shaped substring, which workspace name validation allows because it only rejects angle-bracket tags
+            const action = buildConciergeAutoSelectDistanceRateAction({policyName: 'R&D &copy;'});
+
+            // When getting the message fragments of the action
+            const fragments = ReportActionsUtils.getReportActionMessageFragments(translateLocal, action);
+
+            // Then the text fragment should stay plain
+            const message = 'distance rates updated for the new workspace - R&D &copy;';
+            expect(fragments.at(0)?.text).toBe(message);
+
+            // And decoding the html fragment should give that same string back, rather than parsing the entity into a copyright sign
+            expect(Parser.htmlToText(fragments.at(0)?.html ?? '')).toBe(message);
         });
 
         it('should be visible in the report', () => {

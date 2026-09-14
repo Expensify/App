@@ -2527,7 +2527,8 @@ function getReportActionMessageFragments(translate: LocalizedTranslate, action: 
 
     if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.CONCIERGE_AUTO_SELECT_DISTANCE_RATE)) {
         const message = getConciergeAutoSelectDistanceRateMessage(translate, action);
-        return [{text: message, html: `<muted-text>${message}</muted-text>`, type: 'COMMENT'}];
+        // The helper returns plain text, so only the html fragment is encoded — a workspace name containing an entity like `&copy;` would otherwise be parsed as markup.
+        return [{text: message, html: `<muted-text>${Str.htmlEncode(message)}</muted-text>`, type: 'COMMENT'}];
     }
 
     if (isDynamicExternalWorkflowSubmitFailedAction(action)) {
