@@ -2687,7 +2687,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                                 reports,
                                 false,
                                 true,
-                                undefined,
+                                transactionPolicies,
                                 accountID,
                                 personalDetails,
                             ),
