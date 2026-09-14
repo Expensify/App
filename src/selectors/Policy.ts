@@ -38,7 +38,8 @@ type ReusablePolicyConnectionName =
     | typeof CONST.POLICY.CONNECTIONS.NAME.QBD
     | typeof CONST.POLICY.CONNECTIONS.NAME.CERTINIA
     | typeof CONST.POLICY.CONNECTIONS.NAME.RILLET
-    | typeof CONST.POLICY.CONNECTIONS.NAME.DUALENTRY;
+    | typeof CONST.POLICY.CONNECTIONS.NAME.DUALENTRY
+    | typeof CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE;
 
 const ownerPoliciesSelector = (policies: OnyxCollection<Policy>, currentUserAccountID: number) => getOwnedPaidPolicies(policies, currentUserAccountID);
 
@@ -113,6 +114,14 @@ const createWorkspaceListPoliciesSelector =
 
             const isArchived = isArchivedPolicy(policy);
             const isJoinRequestPending = !!policy.isJoinRequestPending && !!policy.policyDetailsForNonMembers;
+
+            // A `policy_` record is merged field-by-field, so a freshly joined workspace can show up here before its
+            // `id` has landed. Such a row has no key, no avatar seed and nothing to navigate to, so skip it until the
+            // next update fills it in. Join requests are exempt because they carry their ID in `nonMemberDetails`.
+            if (!policy.id && !isJoinRequestPending) {
+                continue;
+            }
+
             let nonMemberDetails: WorkspaceListPolicy['nonMemberDetails'];
             if (isJoinRequestPending) {
                 const nonMemberEntry = Object.entries(policy.policyDetailsForNonMembers ?? {}).at(0);
@@ -405,6 +414,9 @@ const adminPoliciesConnectedToRilletSelector = (policies: OnyxCollection<Policy>
 const adminPoliciesConnectedToDualEntrySelector = (policies: OnyxCollection<Policy>) =>
     Object.values(policies ?? {}).filter<Policy>((policy): policy is Policy => isAdminPolicyConnectedTo(policy, CONST.POLICY.CONNECTIONS.NAME.DUALENTRY));
 
+const adminPoliciesConnectedToCampfireSelector = (policies: OnyxCollection<Policy>) =>
+    Object.values(policies ?? {}).filter<Policy>((policy): policy is Policy => isAdminPolicyConnectedTo(policy, CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE));
+
 const reusableConnectionAdminSelectors: Record<ReusablePolicyConnectionName, (policies: OnyxCollection<Policy>) => Policy[]> = {
     [CONST.POLICY.CONNECTIONS.NAME.NETSUITE]: adminPoliciesConnectedToNetSuiteSelector,
     [CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT]: adminPoliciesConnectedToSageIntacctSelector,
@@ -412,6 +424,7 @@ const reusableConnectionAdminSelectors: Record<ReusablePolicyConnectionName, (po
     [CONST.POLICY.CONNECTIONS.NAME.CERTINIA]: adminPoliciesConnectedToCertiniaSelector,
     [CONST.POLICY.CONNECTIONS.NAME.RILLET]: adminPoliciesConnectedToRilletSelector,
     [CONST.POLICY.CONNECTIONS.NAME.DUALENTRY]: adminPoliciesConnectedToDualEntrySelector,
+    [CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE]: adminPoliciesConnectedToCampfireSelector,
 };
 
 function isReusablePolicyConnection(policy: Policy, connectionName: ReusablePolicyConnectionName, currentPolicyID?: string) {
