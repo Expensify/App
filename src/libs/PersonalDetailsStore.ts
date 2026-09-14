@@ -1,3 +1,4 @@
+/** Personal details for non-React callers, and the one place the coming Onyx-collection reshape has to land */
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails, PersonalDetailsList} from '@src/types/onyx';
 

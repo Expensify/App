@@ -1,3 +1,4 @@
+/** Personal details reads for components, so nothing touches PERSONAL_DETAILS_LIST directly */
 import {getPersonalDetailsByID, getPersonalDetailsListByIDs} from '@libs/PersonalDetailsUtils';
 
 import ONYXKEYS from '@src/ONYXKEYS';
