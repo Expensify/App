@@ -61,11 +61,11 @@ function OnboardingMergingAccountBlockedView({workEmail, isVsb, onConfirm}: Onbo
                 size={CONST.BUTTON_SIZE.LARGE}
                 style={[styles.mb5]}
                 onPress={() => {
-                    setOnboardingErrorMessage(null);
                     if (onConfirm) {
                         onConfirm();
                         return;
                     }
+                    setOnboardingErrorMessage(null);
                     if (isVsb) {
                         Navigation.navigate(ROUTES.ONBOARDING_EMPLOYEES.getRoute(), {forceReplace: true});
                         return;
