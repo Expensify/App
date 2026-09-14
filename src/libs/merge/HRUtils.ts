@@ -48,10 +48,8 @@ function isMergeHRCompleteSetupNeeded(policy?: OnyxEntry<Policy>): boolean {
 }
 
 /**
- * True when the admin's saved Merge HR group selection points at groups the HR system no longer has.
- * The cached list is re-fetched on every sync, so a selected ID missing from it means the group is
- * gone and its employees have stopped syncing. An empty cache means there is nothing to compare
- * against rather than that every selection is stale.
+ * True when a selected group ID is missing from the cached group list, meaning it no longer exists upstream.
+ * Returns false if the cache itself is empty, since there's nothing to compare against.
  */
 function hasStaleMergeHRGroups(policy?: OnyxEntry<Policy>): boolean {
     const mergeHR = policy?.connections?.merge_hris;
