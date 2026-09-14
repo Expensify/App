@@ -27,6 +27,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useReviewWorkspaceSettingsTaskCompletion from '@hooks/useReviewWorkspaceSettingsTaskCompletion';
 import useShouldBlockCurrencyChange from '@hooks/useShouldBlockCurrencyChange';
 import useShouldDisplayButtonsInSeparateLine from '@hooks/useShouldDisplayButtonsInSeparateLine';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -87,6 +88,7 @@ const rulesDocumentMenuPositionStyle = {top: variables.spacing2, right: variable
 
 function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: WorkspaceOverviewPageProps) {
     const styles = useThemeStyles();
+    const getReviewWorkspaceSettingsTaskCompletion = useReviewWorkspaceSettingsTaskCompletion();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine();
@@ -524,7 +526,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                             if (!policyID) {
                                 return;
                             }
-                            updateWorkspaceAvatar(policyID, policy.avatarURL, file as File);
+                            updateWorkspaceAvatar(policyID, policy.avatarURL, file as File, getReviewWorkspaceSettingsTaskCompletion());
                         }}
                         onImageRemoved={() => {
                             if (!policyID || !policy.avatarURL) {

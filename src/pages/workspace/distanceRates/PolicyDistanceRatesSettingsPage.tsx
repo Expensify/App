@@ -15,6 +15,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
+import useReviewWorkspaceSettingsTaskCompletion from '@hooks/useReviewWorkspaceSettingsTaskCompletion';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getLatestErrorField} from '@libs/ErrorUtils';
@@ -106,6 +107,7 @@ function PolicyDistanceRatesSettingsPage({route}: PolicyDistanceRatesSettingsPag
     const isCommuterExclusionsEnabled = isBetaEnabled(CONST.BETAS.COMMUTER_EXCLUSIONS);
     const customUnit = getDistanceRateCustomUnit(policy);
     const {canWrite: canWriteDistanceRates, withReadOnlyFallback} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.DISTANCE_RATES);
+    const getReviewWorkspaceSettingsTaskCompletion = useReviewWorkspaceSettingsTaskCompletion();
     const isDistanceTrackTaxEnabled = !!customUnit?.attributes?.taxEnabled;
     const isPolicyTrackTaxEnabled = !!policy?.tax?.trackingEnabled;
 
@@ -266,7 +268,7 @@ function PolicyDistanceRatesSettingsPage({route}: PolicyDistanceRatesSettingsPag
                         shouldUseCompactSubtitleSpacing
                         wrapperStyle={[styles.mt2, styles.mh5]}
                         isActive={isRequired}
-                        onToggle={(isOn) => setPolicyRequireMapOrGPS(policyID, isOn, policy?.requireMapOrGPS)}
+                        onToggle={(isOn) => setPolicyRequireMapOrGPS(policyID, isOn, policy?.requireMapOrGPS, getReviewWorkspaceSettingsTaskCompletion())}
                         disabled={!canWriteDistanceRates || isRequirementLockedByCommuterExclusions}
                         disabledAction={withReadOnlyFallback(isRequirementLockedByCommuterExclusions ? showRequirementLockedModal : undefined)}
                         showLockIcon={!canWriteDistanceRates || isRequirementLockedByCommuterExclusions}

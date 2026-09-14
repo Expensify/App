@@ -14,6 +14,7 @@ import useConfirmModal from '@hooks/useConfirmModal';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import useReviewWorkspaceSettingsTaskCompletion from '@hooks/useReviewWorkspaceSettingsTaskCompletion';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getLatestErrorField} from '@libs/ErrorUtils';
@@ -54,6 +55,7 @@ type ExclusionOption = {
 function PolicyCommuterExclusionsPage({route}: PolicyCommuterExclusionsPageProps) {
     const policyID = route.params.policyID;
     const styles = useThemeStyles();
+    const getReviewWorkspaceSettingsTaskCompletion = useReviewWorkspaceSettingsTaskCompletion();
     const {translate} = useLocalize();
     const {isBetaEnabled} = usePermissions();
     const isCommuterExclusionsEnabled = isBetaEnabled(CONST.BETAS.COMMUTER_EXCLUSIONS);
@@ -134,7 +136,14 @@ function PolicyCommuterExclusionsPage({route}: PolicyCommuterExclusionsPageProps
                 goBackToSettings();
                 return;
             }
-            setPolicyCommuterExclusions(policyID, CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE, undefined, undefined, existingCommuterExclusions);
+            setPolicyCommuterExclusions(
+                policyID,
+                CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE,
+                undefined,
+                undefined,
+                existingCommuterExclusions,
+                getReviewWorkspaceSettingsTaskCompletion(),
+            );
             goBackToSettings();
             return;
         }
@@ -159,7 +168,14 @@ function PolicyCommuterExclusionsPage({route}: PolicyCommuterExclusionsPageProps
             return;
         }
 
-        setPolicyCommuterExclusions(policyID, CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE, numeric, workspaceUnit, existingCommuterExclusions);
+        setPolicyCommuterExclusions(
+            policyID,
+            CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE,
+            numeric,
+            workspaceUnit,
+            existingCommuterExclusions,
+            getReviewWorkspaceSettingsTaskCompletion(),
+        );
         goBackToSettings();
     };
 

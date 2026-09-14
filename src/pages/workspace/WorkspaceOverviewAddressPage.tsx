@@ -2,6 +2,7 @@ import type {FormOnyxValues} from '@components/Form/types';
 
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
+import useReviewWorkspaceSettingsTaskCompletion from '@hooks/useReviewWorkspaceSettingsTaskCompletion';
 
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -31,6 +32,7 @@ type WorkspaceOverviewAddressPageProps = PlatformStackScreenProps<SettingsNaviga
 
 function WorkspaceOverviewAddressPage({policy}: WorkspaceOverviewAddressPageProps) {
     const {translate} = useLocalize();
+    const getReviewWorkspaceSettingsTaskCompletion = useReviewWorkspaceSettingsTaskCompletion();
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.WORKSPACE_OVERVIEW_ADDRESS.path);
     const address: Address = useMemo(() => {
         const tempAddress = policy?.address;
@@ -50,14 +52,18 @@ function WorkspaceOverviewAddressPage({policy}: WorkspaceOverviewAddressPageProp
         if (!policy) {
             return;
         }
-        updateAddress(policy?.id, {
-            addressStreet: values.addressLine1?.trim() ?? '',
-            addressStreet2: values.addressLine2?.trim() ?? '',
-            city: values.city.trim(),
-            state: values.state.trim(),
-            zipCode: values?.zipPostCode?.trim().toUpperCase() ?? '',
-            country: values.country,
-        });
+        updateAddress(
+            policy?.id,
+            {
+                addressStreet: values.addressLine1?.trim() ?? '',
+                addressStreet2: values.addressLine2?.trim() ?? '',
+                city: values.city.trim(),
+                state: values.state.trim(),
+                zipCode: values?.zipPostCode?.trim().toUpperCase() ?? '',
+                country: values.country,
+            },
+            getReviewWorkspaceSettingsTaskCompletion(),
+        );
         Navigation.goBack(backPath);
     };
 

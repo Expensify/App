@@ -19,6 +19,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePersonalDetailByLogin from '@hooks/usePersonalDetailByLogin';
 import usePressLoading from '@hooks/usePressLoading';
+import useReviewWorkspaceSettingsTaskCompletion from '@hooks/useReviewWorkspaceSettingsTaskCompletion';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {isBankAccountPartiallySetup} from '@libs/BankAccountUtils';
@@ -94,6 +95,7 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
     const [selectedPayer, setSelectedPayer] = useState<string | undefined>(policy?.achAccount?.reimburser ?? policy?.owner);
     const shouldShowSuccess = sharedBankAccountData?.shouldShowSuccess ?? false;
     const styles = useThemeStyles();
+    const getReviewWorkspaceSettingsTaskCompletion = useReviewWorkspaceSettingsTaskCompletion();
     const {showConfirmModal, closeModal} = useConfirmModal();
     const {isLoading, startWithLoading} = usePressLoading({isLoading: sharedBankAccountData?.isLoading ?? false});
     const [isAlertVisible, setIsAlertVisible] = useState<boolean>(false);
@@ -207,7 +209,7 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
             Navigation.closeRHPFlow();
             return;
         }
-        setWorkspacePayer(policy.id, authorizedPayerEmail, policy.achAccount?.reimburser);
+        setWorkspacePayer(policy.id, authorizedPayerEmail, policy.achAccount?.reimburser, getReviewWorkspaceSettingsTaskCompletion());
         Navigation.closeRHPFlow();
     };
 

@@ -8,6 +8,7 @@ import Text from '@components/Text';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
+import useReviewWorkspaceSettingsTaskCompletion from '@hooks/useReviewWorkspaceSettingsTaskCompletion';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import Navigation from '@libs/Navigation/Navigation';
@@ -35,6 +36,7 @@ function RulesRandomReportAuditPage({route}: RulesRandomReportAuditPageProps) {
 
     const {inputCallbackRef} = useAutoFocusInput();
     const {translate} = useLocalize();
+    const getReviewWorkspaceSettingsTaskCompletion = useReviewWorkspaceSettingsTaskCompletion();
     const styles = useThemeStyles();
 
     const workflowApprovalsUnavailable = getWorkflowApprovalsUnavailable(policy);
@@ -61,7 +63,7 @@ function RulesRandomReportAuditPage({route}: RulesRandomReportAuditPageProps) {
                     style={[styles.flexGrow1, styles.mh5]}
                     formID={ONYXKEYS.FORMS.RULES_RANDOM_REPORT_AUDIT_MODAL_FORM}
                     onSubmit={({auditRatePercentage}) => {
-                        setPolicyAutomaticApprovalRate(policyID, auditRatePercentage, policy?.autoApproval?.auditRate);
+                        setPolicyAutomaticApprovalRate(policyID, auditRatePercentage, policy?.autoApproval?.auditRate, getReviewWorkspaceSettingsTaskCompletion());
                         Navigation.setNavigationActionToMicrotaskQueue(Navigation.goBack);
                     }}
                     submitButtonText={translate('common.save')}

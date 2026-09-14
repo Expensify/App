@@ -9,6 +9,7 @@ import Text from '@components/Text';
 
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
+import useReviewWorkspaceSettingsTaskCompletion from '@hooks/useReviewWorkspaceSettingsTaskCompletion';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import Navigation from '@libs/Navigation/Navigation';
@@ -62,6 +63,7 @@ function RulesProhibitedDefaultPage({
     const policy = usePolicy(policyID);
 
     const {translate} = useLocalize();
+    const getReviewWorkspaceSettingsTaskCompletion = useReviewWorkspaceSettingsTaskCompletion();
     const styles = useThemeStyles();
 
     const initialProhibitedExpenses = useMemo(() => getProhibitedExpensesState(policy?.prohibitedExpenses), [policy?.prohibitedExpenses]);
@@ -94,9 +96,9 @@ function RulesProhibitedDefaultPage({
 
         const prohibitedExpensesToSave = buildProhibitedExpensesToSave(draftProhibitedExpenses);
 
-        setPolicyProhibitedExpenses(policyID, prohibitedExpensesToSave, policy?.prohibitedExpenses);
+        setPolicyProhibitedExpenses(policyID, prohibitedExpensesToSave, policy?.prohibitedExpenses, getReviewWorkspaceSettingsTaskCompletion());
         Navigation.setNavigationActionToMicrotaskQueue(Navigation.goBack);
-    }, [draftProhibitedExpenses, hasChanges, policy?.prohibitedExpenses, policyID]);
+    }, [draftProhibitedExpenses, hasChanges, policy?.prohibitedExpenses, policyID, getReviewWorkspaceSettingsTaskCompletion]);
 
     const handleToggle = useCallback((prohibitedExpense: ProhibitedExpenseKey) => {
         setDraftProhibitedExpenses((previousProhibitedExpenses) => ({
