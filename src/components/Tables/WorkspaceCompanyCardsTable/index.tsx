@@ -192,8 +192,9 @@ function WorkspaceCompanyCardsTable({
     const shouldShowGBDisclaimer = isGB && (isNoFeed || hasNoAssignedCard);
     const shouldUseNarrowTableLayout = shouldUseNarrowLayout || isMediumScreenWidth;
 
-    // Drives the actions column's dynamic sizing below: once every card is assigned, no row shows the Assign button.
-    const canAnyCardBeAssigned = canWriteCompanyCards && !isAssigningCardDisabled && (companyCardEntries ?? []).some((entry) => !entry.isAssigned);
+    // Drives the actions column's dynamic sizing below. Mirrors the row's own Assign button condition rather than
+    // isAssigningCardDisabled, since a disabled Assign button still renders and needs the same space as an enabled one.
+    const canAnyCardBeAssigned = canWriteCompanyCards && (companyCardEntries ?? []).some((entry) => !entry.isAssigned);
 
     // Mirrors the Accounting section's own eligibility check on the card details page, so the column follows the same rules.
     const syncingAccountingIntegration = CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES.find((integration) => integration === connectionSyncProgress?.connectionName);
