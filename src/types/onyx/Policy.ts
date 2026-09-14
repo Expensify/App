@@ -859,7 +859,17 @@ type NetSuiteSubsidiary = {
 };
 
 /** NetSuite bank account type values imported by Expensify */
-type AccountTypeValues = '_accountsPayable' | '_otherCurrentLiability' | '_creditCard' | '_bank' | '_otherCurrentAsset' | '_longTermLiability' | '_accountsReceivable' | '_expense';
+type AccountTypeValues =
+    | '_accountsPayable'
+    | '_otherCurrentLiability'
+    | '_creditCard'
+    | '_bank'
+    | '_otherCurrentAsset'
+    | '_longTermLiability'
+    | '_accountsReceivable'
+    | '_expense'
+    | '_otherExpense'
+    | '_costOfGoodsSold';
 
 /** NetSuite Financial account (bank account, debit card, etc) */
 type NetSuiteAccount = {
@@ -932,6 +942,11 @@ type NetSuiteConnectionData = {
     vendors?: NetSuiteVendor[];
     items?: InvoiceItem[];
     payableList: NetSuiteAccount[];
+
+    /** Expense accounts, the only ones a currency conversion cost can be charged to. */
+    expenseAccounts?: NetSuiteAccount[];
+
+    /** Collection of tax accounts */
     taxAccountsList?: NetSuiteTaxAccount[];
 };
 
@@ -1155,6 +1170,9 @@ type NetSuiteConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** The account used for approvals in NetSuite */
         approvalAccount: string;
+
+        /** ID of the account cross-border currency conversion costs are charged to. Unset means the cost is not exported. */
+        fxExpenseAccount?: string;
 
         /** Credit account for Non-reimbursables (not applicable to expense report entry) */
         payableAcct: string;
