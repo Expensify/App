@@ -9637,6 +9637,9 @@ const translations = {
             }),
             undelete: 'Undelete',
             noOptionsAvailable: 'No options available for the selected group of expenses.',
+            markAsExportedAllMatchingTitle: 'Not all reports can be marked yet',
+            markAsExportedAllMatchingPrompt: ({total}: {total: number}) =>
+                `Only the reports loaded on this page can be marked as exported right now, not all ${total} matching reports. Narrow your filter or select reports individually to mark them all.`,
         },
         expensifyCardStatementPDF: {
             title: 'Download statement',

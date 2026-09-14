@@ -9417,6 +9417,9 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 other: 'Declaraties dupliceren',
             }),
             noOptionsAvailable: 'Geen opties beschikbaar voor de geselecteerde groep onkosten.',
+            markAsExportedAllMatchingTitle: 'Nog niet alle rapporten kunnen worden gemarkeerd',
+            markAsExportedAllMatchingPrompt: ({total}: {total: number}) =>
+                `Voorlopig kunnen alleen de rapporten die op deze pagina zijn geladen als geëxporteerd worden gemarkeerd, niet alle ${total} overeenkomende rapporten. Filter of selecteer rapporten afzonderlijk om ze allemaal te markeren.`,
             undelete: 'Terugzetten',
             duplicateReport: () => ({
                 one: 'Rapport dupliceren',

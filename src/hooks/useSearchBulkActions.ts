@@ -1916,6 +1916,10 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             // selection — the rest belong to other integrations (or to no integration) and are skipped.
             const totalSelectedReportsCount = selectedReportIDs.length;
 
+            // Server-side count of every report matching the query, which under "select all matching" is larger than the
+            // loaded page the client can act on. Used to warn before a Reports-tab mark/export silently covers only that page.
+            const allMatchingReportsCount = currentSearchResults?.search?.reportCount;
+
             // Shared confirmation flow used by BOTH "Export to <integration>" and "Mark as exported" so the
             // two actions behave identically. When applicable, the partial-export modal is shown first and,
             // only after it resolves, the existing "export again" modal — the two are never combined.
@@ -1931,6 +1935,20 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     connectionNameFriendly: string,
                 ) =>
                 (exportAction: () => void) => {
+                    // Interim safeguard: Mark as exported / Export to integration act on a client-built report ID list, so
+                    // under Reports-tab "select all matching" they would silently cover only the loaded page (~50) while the
+                    // header shows every match. Until a query-based backend command exists, warn instead of exporting a
+                    // page-sized subset without any indication. See https://github.com/Expensify/App/issues/101106.
+                    if (areAllMatchingItemsSelected && isExpenseReportType && typeof allMatchingReportsCount === 'number' && allMatchingReportsCount > integrationReportIDs.length) {
+                        showConfirmModal({
+                            title: translate('search.bulkActions.markAsExportedAllMatchingTitle'),
+                            prompt: translate('search.bulkActions.markAsExportedAllMatchingPrompt', {total: allMatchingReportsCount}),
+                            confirmText: translate('common.buttonConfirm'),
+                            shouldShowCancelButton: false,
+                        });
+                        return;
+                    }
+
                     const runExport = () => {
                         if (!hash) {
                             return;
@@ -2848,6 +2866,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         personalPolicyID,
         searchResults,
         currentSearchResults?.data,
+        currentSearchResults?.search?.reportCount,
         selectedTransactionReportIDs,
         selectedPolicyIDs,
         policies,
