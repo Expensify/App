@@ -243,7 +243,7 @@ describe('OnboardingWorkspaces Page', () => {
     });
 
     it('should close a completed join-workspace task when no workspaces are available', async () => {
-        const dismissModal = jest.spyOn(Navigation, 'dismissModal').mockImplementation(() => {});
+        const dismissModal = jest.spyOn(Navigation, 'dismissModal').mockImplementation((options) => options?.afterTransition?.());
 
         await TestHelper.signInWithTestUser();
 
@@ -339,7 +339,7 @@ describe('OnboardingWorkspaces Page', () => {
         const taskReportID = '456';
         const conciergeReportID = '123';
         const getTopmostReportId = jest.spyOn(Navigation, 'getTopmostReportId').mockReturnValue(taskReportID);
-        const dismissModal = jest.spyOn(Navigation, 'dismissModal').mockImplementation(() => {});
+        const dismissModal = jest.spyOn(Navigation, 'dismissModal').mockImplementation((options) => options?.afterTransition?.());
 
         await TestHelper.signInWithTestUser();
 
