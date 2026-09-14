@@ -2372,6 +2372,44 @@
             "rules": {
                 "typescript/await-thenable": "off"
             }
+        },
+        {
+            // Mirrors `plugin:storybook/recommended`, which config/eslint/eslint.config.mjs pulls in
+            // through FlatCompat. The plugin scopes these to story files itself; oxlint has no
+            // storybook plugin, so the scope has to be restated here. Severities are the upstream
+            // ones, warn included, so the two tools report the same thing.
+            "files": [
+                "**/*.stories.ts", "**/*.stories.tsx", "**/*.stories.js", "**/*.stories.jsx", "**/*.stories.mjs", "**/*.stories.cjs",
+                "**/*.story.ts", "**/*.story.tsx", "**/*.story.js", "**/*.story.jsx", "**/*.story.mjs", "**/*.story.cjs"
+            ],
+            "rules": {
+                "hosted/await-interactions": "error",
+                "hosted/context-in-play-function": "error",
+                "hosted/default-exports": "error",
+                "hosted/hierarchy-separator": "warn",
+                "hosted/no-redundant-story-name": "warn",
+                "hosted/no-renderer-packages": "error",
+                "hosted/prefer-pascal-case": "warn",
+                "hosted/story-exports": "error",
+                "hosted/use-storybook-expect": "error",
+                "hosted/use-storybook-testing-library": "error"
+            }
+        },
+        {
+            // The one storybook rule upstream scopes to the config file rather than to stories: it
+            // reads the addon list off disk and checks each one is installed.
+            "files": [".storybook/main.js", ".storybook/main.cjs", ".storybook/main.mjs", ".storybook/main.ts"],
+            "rules": {
+                "hosted/no-uninstalled-addons": "error"
+            }
+        },
+        {
+            // Mirrors config/eslint/eslint.config.mjs: every Onyx type carries a comment. Documented
+            // there as the one place jsdoc/require-jsdoc is worth enforcing.
+            "files": ["src/types/onyx/**/*.ts"],
+            "rules": {
+                "hosted/require-jsdoc": ["error", {"contexts": ["TSInterfaceDeclaration", "TSTypeAliasDeclaration"]}]
+            }
         }
     ]
 }

@@ -37,6 +37,18 @@ const HOSTED_RULE_ORIGIN = {
     'prefer-stateless-function': 'react',
     'sort-comp': 'react',
     'static-property-placement': 'react',
+    'require-jsdoc': 'jsdoc',
+    'await-interactions': 'storybook',
+    'context-in-play-function': 'storybook',
+    'default-exports': 'storybook',
+    'hierarchy-separator': 'storybook',
+    'no-redundant-story-name': 'storybook',
+    'no-renderer-packages': 'storybook',
+    'no-uninstalled-addons': 'storybook',
+    'prefer-pascal-case': 'storybook',
+    'story-exports': 'storybook',
+    'use-storybook-expect': 'storybook',
+    'use-storybook-testing-library': 'storybook',
 };
 
 const REACT_HOOKS_RULES_UNDER_REACT = new Set(['exhaustive-deps', 'rules-of-hooks']);

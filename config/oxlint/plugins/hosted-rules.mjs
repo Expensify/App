@@ -25,6 +25,7 @@ function rulesOf(packageName) {
 const react = rulesOf('eslint-plugin-react');
 const importPlugin = rulesOf('eslint-plugin-import');
 const jsdoc = rulesOf('eslint-plugin-jsdoc');
+const storybook = rulesOf('eslint-plugin-storybook');
 const typescriptEslint = rulesOf('@typescript-eslint/eslint-plugin');
 
 // eslint-plugin-react-hooks is not a root dependency: it arrives nested under eslint-config-expensify,
@@ -84,6 +85,7 @@ const plugin = {
         ...hostRules(react, 'react', plainlyHosted('react')),
         ...hostRules(importPlugin, 'import', plainlyHosted('import')),
         ...hostRules(jsdoc, 'jsdoc', plainlyHosted('jsdoc')),
+        ...hostRules(storybook, 'storybook', plainlyHosted('storybook')),
         ...hostRules({'naming-convention': withStubbedParserServices(typescriptEslint['naming-convention'])}, '@typescript-eslint', plainlyHosted('@typescript-eslint')),
         'jsx-no-constructed-context-values': withFullGating(withEslintDirectiveIds(react['jsx-no-constructed-context-values'], 'react/jsx-no-constructed-context-values')),
         'exhaustive-deps': withMessageGating(withEslintDirectiveIds(reactHooks['exhaustive-deps'], 'react-hooks/exhaustive-deps'), EXHAUSTIVE_DEPS_USECALLBACK_USEMEMO_PATTERN),
