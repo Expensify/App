@@ -12,6 +12,7 @@ import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {updateMergeHRGroups} from '@libs/actions/connections/merge/HR';
+import {getSelectableMergeHRGroupIDs} from '@libs/merge/HRUtils';
 import {isMergeConnected} from '@libs/merge/MergeUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -45,7 +46,7 @@ function MergeHRGroupsPage({
     const availableGroups = policy?.connections?.merge_hris?.data?.groups ?? [];
     const currentGroups = policy?.connections?.merge_hris?.config?.groups;
 
-    const [selectedIds, setSelectedIds] = useState<Set<string>>(() => new Set(currentGroups ?? []));
+    const [selectedIds, setSelectedIds] = useState<Set<string>>(() => new Set(getSelectableMergeHRGroupIDs(policy)));
     const [searchText, setSearchText] = useState('');
 
     const filteredGroups = tokenizedSearch(availableGroups, searchText, (group) => [group.name, group.type]);

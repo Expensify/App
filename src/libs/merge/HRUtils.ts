@@ -63,6 +63,20 @@ function hasStaleMergeHRGroups(policy?: OnyxEntry<Policy>): boolean {
     return selectedGroupIDs.some((groupID) => !availableGroupIDs.includes(groupID));
 }
 
+/**
+ * The admin's group selection, minus any group the cached list no longer has. Those have no row to untick and the API
+ * rejects them, so keeping them would leave the selector unsaveable. An empty cache has not loaded yet, so nothing is dropped.
+ */
+function getSelectableMergeHRGroupIDs(policy?: OnyxEntry<Policy>): string[] {
+    const mergeHR = policy?.connections?.merge_hris;
+    const selectedGroupIDs = mergeHR?.config?.groups ?? [];
+    const availableGroups = mergeHR?.data?.groups;
+    if (!availableGroups?.length) {
+        return [...selectedGroupIDs];
+    }
+    return selectedGroupIDs.filter((groupID) => availableGroups.some((group) => group.id === groupID));
+}
+
 /** Returns display info for the HR provider currently connected to the policy (Gusto, Zenefits, or Merge HR), or null if none are connected. */
 function getConnectedHRProvider(policy?: OnyxEntry<Policy>): HRProviderInfo | null {
     if (isGustoConnected(policy)) {
@@ -192,6 +206,7 @@ export {
     getHRApprovalMode,
     getHRAdvancedModeFinalApprover,
     getHRFinalApprover,
+    getSelectableMergeHRGroupIDs,
     hasStaleMergeHRGroups,
     isAnyHRConnected,
     isAnyHRReadOnlyWorkflowMode,
