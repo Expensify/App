@@ -28,7 +28,7 @@ Many core Expensify concepts stay the same in New Expensify, but the navigation 
 | In Expensify Classic | In New Expensify | What changed |
 |---|---|---|
 | **Reports** tab and **Expenses** tab | **Spend** tab | Expenses, reports, reimbursements, and card activity now appear together on the **Spend** tab. Use views and filters to switch between different workflows while keeping related activity in one place. |
-| Inbox task list | **For you** section on the **Home** tab | Items that need your attention are surfaced automatically on the **Home** tab. The **For you** section highlights reports that need your attention, including reports to submit, approve, or pay. |
+| Inbox task list | **To-dos** section on the **Home** tab | Items that need your attention are surfaced automatically on the **Home** tab. The **To-dos** section highlights reports that need your attention, including reports to submit, approve, or pay. |
 | System alerts and operational issues | **Time sensitive** section on the **Home** tab | Important issues like failed reimbursements and broken bank connections are highlighted directly in the **Time sensitive** section so they are easier to find and resolve quickly. |
 | Manual navigation and menu hunting | Concierge-assisted workflows | Instead of remembering where features live, you can ask Concierge questions, get guidance, or have Concierge help complete actions for you directly inside Expensify. |
 
@@ -91,7 +91,7 @@ For a full rundown of the most useful improvements available in New Expensify, s
 
 The Inbox shows a quick overview of what needs your attention. You’ll see 🟢 on actions to take, and 🔴 on errors to review.
 
-The **Home** tab also highlights important tasks and issues that need your attention through the **For you** and **Time sensitive** sections.
+The **Home** tab also highlights important tasks and issues that need your attention through the **Time sensitive** and **To-dos** sections.
 
 ## Can I use both New Expensify and Expensify Classic?
 

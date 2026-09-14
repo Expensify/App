@@ -32,7 +32,7 @@ On any expense submitted on a report, the approver can:
 
 ## How to review and approve a report
 
-When a report is submitted to you for approval it will appear in the **For you** section on **Home**, and under **Spend** in the **Expense reports** section, under **Needs approval**. 
+When a report is submitted to you for approval it will appear in the **To-dos** section on **Home**, and under **Spend** in the **Expense reports** section, under **Needs approval**. 
 
 To review and approve a report submitted to you for approval: 
 
