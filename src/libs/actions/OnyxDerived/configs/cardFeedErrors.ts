@@ -4,6 +4,7 @@ import {
     forEachAssignedCard,
     getCardFeedWithDomainID,
     isBrokenConnectionPastDismissThreshold,
+    hasCardConnectionIssue,
     isCardConnectionBroken,
     isLastScrapePastDismissThreshold,
     isPersonalCard,
@@ -26,6 +27,7 @@ const DEFAULT_CARD_FEED_ERROR_STATE: CardFeedErrorState = {
     hasWorkspaceErrors: false,
     isFeedConnectionBroken: false,
     shouldPromptBrokenConnection: false,
+    hasFeedConnectionIssue: false,
 };
 
 function getShouldShowRBR(state: Partial<CardFeedErrorState>): boolean {
@@ -97,6 +99,7 @@ export default createOnyxDerivedValueConfig({
                 shouldPromptBrokenConnection: isFeedConnectionBroken,
                 hasFeedErrors: !isEmptyObject(cardErrors),
                 hasWorkspaceErrors: false,
+                hasFeedConnectionIssue: hasCardConnectionIssue(card),
             };
             const shouldShowRBR = getShouldShowRBR(newFeedState);
 
@@ -155,6 +158,7 @@ export default createOnyxDerivedValueConfig({
                 shouldPromptBrokenConnection: shouldPromptBrokenConnection || previousFeedErrors.shouldPromptBrokenConnection,
                 hasFeedErrors: hasFeedErrors || previousFeedErrors.hasFeedErrors,
                 hasWorkspaceErrors: hasWorkspaceErrors || previousFeedErrors.hasWorkspaceErrors,
+                hasFeedConnectionIssue: hasCardConnectionIssue(card) || previousFeedErrors.hasFeedConnectionIssue,
             };
 
             const shouldShowRBR = getShouldShowRBR(newFeedState) || previousFeedErrors.shouldShowRBR;
@@ -181,11 +185,13 @@ export default createOnyxDerivedValueConfig({
             allFeedsState.shouldPromptBrokenConnection ||= newFeedState.shouldPromptBrokenConnection;
             allFeedsState.hasFeedErrors ||= newFeedState.hasFeedErrors;
             allFeedsState.hasWorkspaceErrors ||= newFeedState.hasWorkspaceErrors;
+            allFeedsState.hasFeedConnectionIssue ||= newFeedState.hasFeedConnectionIssue;
 
             cardTypeState.isFeedConnectionBroken ||= newFeedState.isFeedConnectionBroken;
             cardTypeState.shouldPromptBrokenConnection ||= newFeedState.shouldPromptBrokenConnection;
             cardTypeState.hasFeedErrors ||= newFeedState.hasFeedErrors;
             cardTypeState.hasWorkspaceErrors ||= newFeedState.hasWorkspaceErrors;
+            cardTypeState.hasFeedConnectionIssue ||= newFeedState.hasFeedConnectionIssue;
 
             shouldShowRbrForWorkspaceAccountID[workspaceAccountID] ||= shouldShowRBR;
             shouldShowRbrForFeedNameWithDomainID[feedNameWithDomainID] ||= shouldShowRBR;
