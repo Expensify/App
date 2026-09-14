@@ -802,9 +802,8 @@ describe('SearchAutocompleteList', () => {
             });
             await flushAllUpdates();
 
-            // Then local reports remain first and server reports follow Auth's order
+            // Then the final visible list is capped and follows Auth's order.
             await waitFor(() => {
-                expect(screen.getByText('Recent chats')).toBeTruthy();
                 expect(screen.getByText('Search results')).toBeTruthy();
             });
 
@@ -813,8 +812,7 @@ describe('SearchAutocompleteList', () => {
                 .map((el) => (typeof el.props.children === 'string' ? el.props.children : ''))
                 .filter((name) => [...fakeRecentReports.map(({text}) => text), ...serverReports.map(({text}) => text)].includes(name));
 
-            expect(names.slice(0, fakeRecentReports.length)).toEqual(fakeRecentReports.map(({text}) => text));
-            expect(names.slice(fakeRecentReports.length)).toEqual(serverReports.map(({text}) => text).reverse());
+            expect(names).toEqual(serverReports.map(({text}) => text).reverse());
         });
 
         it('keeps the local candidate pool capped once the server returns an order', async () => {

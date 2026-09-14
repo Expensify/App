@@ -2837,12 +2837,9 @@ function filterReports(reports: SearchOptionData[], searchTerms: string[], inclu
     return filteredReports;
 }
 
-function doesReportMatchSearchTerms(report: SearchOption<Report>, searchTerms: string[], includeLogin = true): boolean {
+function doesReportMatchSearchTerms(report: SearchOption<Report>, searchTerms: string[]): boolean {
     const normalizedSearchTerms = searchTerms.map((term) => StringUtils.normalizeForMatch(term).toLocaleLowerCase());
-    let searchText = report.text ?? '';
-    if (includeLogin) {
-        searchText += report.login ?? '';
-    }
+    let searchText = `${report.text ?? ''}${report.login ?? ''}`;
     if (report.isThread) {
         searchText += report.alternateText ?? '';
     } else if (report.isChatRoom) {
@@ -2850,13 +2847,12 @@ function doesReportMatchSearchTerms(report: SearchOption<Report>, searchTerms: s
     } else if (report.isPolicyExpenseChat) {
         searchText += `${report.subtitle ?? ''}${report.item.policyName ?? ''}`;
     } else if (report.item.chatType === CONST.REPORT.CHAT_TYPE.GROUP) {
-        const participantsSearchText =
-            report.participantsList?.map((participant) => [participant.displayName, includeLogin ? participant.login : undefined].filter(Boolean).join(' ')).join(' ') ?? '';
+        const participantsSearchText = report.participantsList?.map((participant) => [participant.displayName, participant.login].filter(Boolean).join(' ')).join(' ') ?? '';
         searchText += participantsSearchText;
     }
     searchText = deburr(searchText.toLocaleLowerCase());
 
-    return normalizedSearchTerms.every((term) => searchText.includes(term)) || filterReports([report], normalizedSearchTerms, includeLogin).length > 0;
+    return normalizedSearchTerms.every((term) => searchText.includes(term)) || filterReports([report], normalizedSearchTerms).length > 0;
 }
 
 function filterWorkspaceChats(reports: SearchOptionData[], searchTerms: string[]): SearchOptionData[] {

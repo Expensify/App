@@ -508,7 +508,7 @@ function SearchAutocompleteList({
             reportOptions.sort((a, b) => rankOf(a) - rankOf(b));
         }
 
-        return searchResultReportIDs && searchResultReportIDs.length > 0 && hasActiveSearchResults ? reportOptions : reportOptions.slice(0, 20);
+        return reportOptions.slice(0, CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_SUGGESTIONS);
     }, [autocompleteQueryValue, hasActiveSearchResults, searchOptions, searchResultReportIDs, serverReportsOptions]);
 
     // Locked rank map (stable key -> originalIndex) capturing the order of locally-known

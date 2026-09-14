@@ -6377,19 +6377,10 @@ describe('OptionsListUtils', () => {
             item: createRandomReport(1, undefined),
         };
 
-        it('does not match a plain-text query against an email address', () => {
-            // Given a report whose display name does not contain the query
-            // When the query is a plain text search
-            const doesMatch = doesReportMatchSearchTerms(report, ['a'], false);
-
-            // Then its email domain does not make it a match
-            expect(doesMatch).toBe(false);
-        });
-
         it('matches an email query against an email address', () => {
             // Given a report with a matching email address
             // When the query is an email search
-            const doesMatch = doesReportMatchSearchTerms(report, ['person@'], true);
+            const doesMatch = doesReportMatchSearchTerms(report, ['person@']);
 
             // Then the report matches
             expect(doesMatch).toBe(true);
@@ -6403,7 +6394,7 @@ describe('OptionsListUtils', () => {
                 participantsList: [{accountID: 2, displayName: 'José', login: 'jose@example.com'}],
             };
 
-            expect(doesReportMatchSearchTerms(groupReport, ['JOSÉ'], true)).toBe(true);
+            expect(doesReportMatchSearchTerms(groupReport, ['JOSÉ'])).toBe(true);
         });
     });
 
