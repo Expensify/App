@@ -130,6 +130,7 @@ function InboxTabSelector() {
             badgeEducationalTooltipProps: {
                 renderTooltipContent: renderProductTrainingTooltip,
                 shouldRender: shouldShowProductTrainingTooltip,
+                shouldHideOnNavigate: false,
                 shouldForceRenderingBelow: true,
                 anchorAlignment: {
                     horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.CENTER,
