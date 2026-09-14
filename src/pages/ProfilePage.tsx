@@ -298,18 +298,6 @@ function ProfilePage({route}: ProfilePageProps) {
                             ) : null}
                             {shouldShowLocalTime && <AutoUpdateTime timezone={timezone} />}
                         </View>
-                        {shouldShowNotificationPreference && (
-                            <View style={[styles.w100, styles.detailsPageSectionContainer]}>
-                                <MenuItemWithTopDescription
-                                    shouldShowRightIcon
-                                    title={notificationPreference}
-                                    description={translate('notificationPreferencesPage.label')}
-                                    onPress={() => {
-                                        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.NOTIFICATION_PREFERENCES.getRoute(report.reportID)));
-                                    }}
-                                />
-                            </View>
-                        )}
                         {isCurrentUser && (
                             <MenuItemNavigation
                                 title={translate('common.editYourProfile')}
@@ -358,6 +346,9 @@ function ProfilePage({route}: ProfilePageProps) {
                         {shouldShowNotificationPreference && (
                             <MenuItemField
                                 name={translate('notificationPreferencesPage.label')}
+                                onPress={() => {
+                                    Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.NOTIFICATION_PREFERENCES.getRoute(report.reportID)));
+                                }}
                                 value={notificationPreference}
                             />
                         )}

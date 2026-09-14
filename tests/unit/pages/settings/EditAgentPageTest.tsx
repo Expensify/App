@@ -244,7 +244,7 @@ describe('EditAgentPage', () => {
             />,
         );
 
-        fireEvent.press(screen.getByText('profilePage.viewAgentHistory'));
+        fireEvent.press(screen.getByText('editAgentPage.viewAgentHistory'));
 
         const expectedQuery = buildQueryStringFromFilterFormValues({
             type: CONST.SEARCH.DATA_TYPES.CHAT,

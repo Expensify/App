@@ -160,7 +160,7 @@ function EditAgentPage({route}: EditAgentPageProps) {
                     />
                 </OfflineWithFeedback>
                 <MenuItemAction
-                    title={translate('profilePage.viewAgentHistory')}
+                    title={translate('editAgentPage.viewAgentHistory')}
                     icon={icons.MagnifyingGlass}
                     onPress={handleViewHistoryPress}
                     isDisabled={areActionsDisabled}
