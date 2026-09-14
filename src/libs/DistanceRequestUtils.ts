@@ -20,7 +20,7 @@ import {getDistanceUnitLabel, getFormattedDistanceInUnits} from './DistanceDispl
 import getStoredDefaultP2PMileageRate from './getStoredDefaultP2PMileageRate';
 import {getDistanceRateCustomUnit, getDistanceRateCustomUnitRate, getUnitRateValue} from './PolicyUtils';
 import replaceAllDigits from './replaceAllDigits';
-import {getCurrency, getRateID, isCustomUnitRateIDForP2P, isExpenseUnreported} from './TransactionUtils';
+import {getCurrency, getFormattedCreated, getRateID, isCustomUnitRateIDForP2P, isExpenseUnreported} from './TransactionUtils';
 
 type MileageRate = {
     customUnitRateID?: string;
@@ -569,12 +569,41 @@ function getFullyBoundedDateRangeMs(rate: MileageRate): number | undefined {
 }
 
 /**
- * Finds the best eligible rate for a given expense date from a set of mileage rates.
+ * Ranks two rates that are both eligible for the same expense date.
  * Selection order per design doc:
  * 1. Most specific date range (fully bounded > partially bounded > unbounded)
  * 2. Narrower date range for two fully bounded ranges
  * 3. Latest start date
  * 4. Lowest index (creation order)
+ */
+function compareRatesByDateSpecificity(a: MileageRate, b: MileageRate): number {
+    const aScore = getBoundednessScore(a);
+    const bScore = getBoundednessScore(b);
+    if (aScore !== bScore) {
+        return bScore - aScore;
+    }
+
+    if (aScore === 2 && bScore === 2) {
+        const aRange = getFullyBoundedDateRangeMs(a);
+        const bRange = getFullyBoundedDateRangeMs(b);
+        if (aRange !== undefined && bRange !== undefined && aRange !== bRange) {
+            return aRange - bRange;
+        }
+    }
+
+    const aStart = a.startDate ?? '';
+    const bStart = b.startDate ?? '';
+    if (aStart !== bStart) {
+        return aStart < bStart ? 1 : -1;
+    }
+
+    const aIndex = a.index ?? CONST.DEFAULT_NUMBER_ID;
+    const bIndex = b.index ?? CONST.DEFAULT_NUMBER_ID;
+    return aIndex - bIndex;
+}
+
+/**
+ * Finds the best eligible rate for a given expense date from a set of mileage rates.
  */
 function getBestEligibleRate(mileageRates: Record<string, MileageRate>, expenseDate: string): MileageRate | undefined {
     const eligibleRates = Object.values(mileageRates).filter((rate) => rate.enabled !== false && isRateEligibleForDate(rate, expenseDate));
@@ -583,31 +612,7 @@ function getBestEligibleRate(mileageRates: Record<string, MileageRate>, expenseD
         return undefined;
     }
 
-    eligibleRates.sort((a, b) => {
-        const aScore = getBoundednessScore(a);
-        const bScore = getBoundednessScore(b);
-        if (aScore !== bScore) {
-            return bScore - aScore;
-        }
-
-        if (aScore === 2 && bScore === 2) {
-            const aRange = getFullyBoundedDateRangeMs(a);
-            const bRange = getFullyBoundedDateRangeMs(b);
-            if (aRange !== undefined && bRange !== undefined && aRange !== bRange) {
-                return aRange - bRange;
-            }
-        }
-
-        const aStart = a.startDate ?? '';
-        const bStart = b.startDate ?? '';
-        if (aStart !== bStart) {
-            return aStart < bStart ? 1 : -1;
-        }
-
-        const aIndex = a.index ?? CONST.DEFAULT_NUMBER_ID;
-        const bIndex = b.index ?? CONST.DEFAULT_NUMBER_ID;
-        return aIndex - bIndex;
-    });
+    eligibleRates.sort(compareRatesByDateSpecificity);
 
     return eligibleRates.at(0);
 }
@@ -619,6 +624,61 @@ function getBestEligibleRateOrPolicyDefault(mileageRates: Record<string, Mileage
     }
 
     return getDefaultMileageRate(policy);
+}
+
+/**
+ * Finds the rate that is equivalent to the expense's current rate: same value, same currency and same distance unit, and valid for the expense date.
+ * The unit is taken from the policy's distance custom unit, so a unit mismatch disqualifies every rate on that policy.
+ */
+function getRateMatchingCurrentRate(mileageRates: Record<string, MileageRate>, currentRate: MileageRate | undefined, expenseDate: string): MileageRate | undefined {
+    if (currentRate?.rate === undefined || !currentRate.currency) {
+        return undefined;
+    }
+
+    return Object.values(mileageRates)
+        .filter(
+            (rate) =>
+                rate.enabled !== false &&
+                rate.rate === currentRate.rate &&
+                rate.currency === currentRate.currency &&
+                rate.unit === currentRate.unit &&
+                isRateEligibleForDate(rate, expenseDate),
+        )
+        .sort(compareRatesByDateSpecificity)
+        .at(0);
+}
+
+/**
+ * Selects the distance rate to use for an expense that is moving to a different workspace.
+ *
+ * Selection order:
+ * 1. A rate on the destination policy that is equivalent to the expense's current rate.
+ * 2. The destination policy's best rate for the expense date, falling back to its default rate.
+ * 3. Nothing, when the destination policy has no usable rate. Callers keep the `customUnitOutOfPolicy` violation in that case.
+ *
+ * `currentRate` resolves against the source policy, which this module cannot look up, so callers that have it pass it in. It is
+ * optional only because a P2P expense carries its rate value on the transaction itself.
+ *
+ * Let's ensure this logic is consistent with the logic in the backend (Auth), which is authoritative here. The app computes the
+ * same answer only to build optimistic data.
+ */
+function getRateForPolicyChange({
+    transaction,
+    policy,
+    currentRate,
+}: {
+    transaction: OnyxEntry<Transaction>;
+    policy: OnyxEntry<Policy>;
+    currentRate?: MileageRate;
+}): MileageRate | undefined {
+    const expenseDate = getFormattedCreated(transaction);
+    const mileageRates = getMileageRates(policy);
+    const rateToMatch = currentRate ?? (isCustomUnitRateIDForP2P(transaction) ? getRateForP2P(getCurrency(transaction), transaction) : undefined);
+
+    const selectedRate = getRateMatchingCurrentRate(mileageRates, rateToMatch, expenseDate) ?? getBestEligibleRateOrPolicyDefault(mileageRates, expenseDate, policy);
+
+    // getDefaultMileageRate returns a fully shaped rate with an undefined customUnitRateID when the policy has no enabled rates, so normalize that case to undefined.
+    return selectedRate?.customUnitRateID ? selectedRate : undefined;
 }
 
 /**
@@ -933,6 +993,7 @@ export default {
     isRateEligibleForDate,
     isUnsetDistanceCustomUnitRateID,
     getBestEligibleRate,
+    getRateForPolicyChange,
     getRateDateLabel,
 };
 
