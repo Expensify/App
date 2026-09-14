@@ -623,13 +623,54 @@ describe('actions/IOU', () => {
                     currentUserEmail: RORY_EMAIL,
                     currentUserLocalCurrency: '',
                     filteredPoliciesCount: 1,
-                    firstPolicy: restrictedPolicy,
+                    // Left unset so only the preferred-policy gate can drive the assertions below: the default
+                    // `submitDestination` is FRIEND, so the EMPLOYER branch that reads `firstPolicy` never runs.
+                    firstPolicy: undefined,
                 });
                 await waitForBatchedUpdates();
 
                 // Then the user lands on the restricted action screen instead of the confirmation page
                 expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.RESTRICTED_ACTION.getRoute(POLICY_ID));
                 expect(Navigation.navigate).not.toHaveBeenCalledWith(expect.stringContaining('confirmation'));
+            });
+
+            it('should submit straight to the preferred workspace when it is not billing-restricted', async () => {
+                // Given a tracked self DM expense and a preferred workspace with nothing owed
+                const {selfDMReport, policyExpenseChat, trackedExpense} = await setUpSelfDMTrackedExpense();
+
+                // When the expense is submitted, taking the preferred-workspace fast path past the gate
+                createDraftTransactionAndNavigateToParticipantSelector({
+                    reportID: selfDMReport.reportID,
+                    reportActions: undefined,
+                    actionName: CONST.IOU.ACTION.SUBMIT,
+                    reportActionID: '1',
+                    introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
+                    draftTransactionIDs: [],
+                    activePolicy: undefined,
+                    userBillingGracePeriodEnds: undefined,
+                    amountOwed: 0,
+                    restrictedPreferredPolicy: ACCESSIBLE_POLICY,
+                    transaction: trackedExpense,
+                    currentUserAccountID: RORY_ACCOUNT_ID,
+                    currentUserEmail: RORY_EMAIL,
+                    currentUserLocalCurrency: '',
+                    filteredPoliciesCount: 1,
+                    firstPolicy: undefined,
+                });
+                await waitForBatchedUpdates();
+
+                // Then the gate lets the flow through
+                expect(Navigation.navigate).not.toHaveBeenCalledWith(ROUTES.RESTRICTED_ACTION.getRoute(POLICY_ID));
+
+                // And the draft is rebound to the preferred workspace's chat, so the confirmation page resolves it
+                const draftTransaction = await getDraftTransaction(trackedExpense.transactionID);
+                expect(draftTransaction?.reportID).toBe(policyExpenseChat.reportID);
+                expect(draftTransaction?.participants?.at(0)?.reportID).toBe(policyExpenseChat.reportID);
+
+                // And the user lands on the confirmation page for that workspace
+                expect(Navigation.navigate).toHaveBeenCalledWith(
+                    ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.SUBMIT, CONST.IOU.TYPE.SUBMIT, trackedExpense.transactionID, policyExpenseChat.reportID),
+                );
             });
 
             it('should send the user back to the report they are viewing when a draft workspace is created', async () => {

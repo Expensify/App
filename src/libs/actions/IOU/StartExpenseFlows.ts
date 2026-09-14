@@ -208,12 +208,9 @@ type CreateDraftTransactionParams = {
     amountOwed: OnyxEntry<number>;
     ownerBillingGracePeriodEnd?: OnyxEntry<number>;
     /**
-     * The preferred workspace, set only when the user is restricted to submitting there. One non-nullable value
-     * instead of an `isRestrictedToPreferredPolicy`/`preferredPolicyID`/`preferredPolicy` trio: the fast path it
-     * unlocks skips the participant picker, which is where the billing restriction is otherwise enforced, so
-     * "submit straight to the preferred workspace" and "here is the policy to gate on" have to be the same fact.
-     * As three parallel optionals a caller could supply the flag and the ID but not the policy — the flag and the
-     * ID come from the security group, the policy from Onyx — and silently disable the gate.
+     * The preferred workspace, set only when the user is restricted to submitting there. Kept as one value
+     * (not a separate flag + ID) so the fast path that skips the participant picker — where the billing gate
+     * normally runs — can't be taken with the gate accidentally left off.
      */
     restrictedPreferredPolicy?: BillingRestrictionPolicy;
     transaction: OnyxEntry<Transaction>;

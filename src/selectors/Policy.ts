@@ -356,13 +356,12 @@ type FilteredPoliciesInfo = {
     /** Number of policies that should be shown to the user (short-circuited at 2) */
     filteredPoliciesCount: number;
 
-    /**
-     * The first policy that should be shown to the user, so callers can gate on it without re-reading a
-     * separately-timed policy cache. Projected to only the fields the billing gate needs, so this output stays
-     * fixed-size (see `policyMapper` above) and no `employeeList`/`customUnits` is deep-compared on a POLICY write.
-     */
+    /** The first policy to show the user, projected to the billing-gate fields — see `BillingRestrictionPolicy`. */
     firstPolicy: BillingRestrictionPolicy | undefined;
 };
+
+/** Projects a policy down to just the fields the billing gate reads — see `BillingRestrictionPolicy`. */
+const billingRestrictionPolicySelector = (policy: OnyxEntry<Policy>): BillingRestrictionPolicy | undefined => (policy ? {id: policy.id, ownerAccountID: policy.ownerAccountID} : undefined);
 
 // Fixed-size output: same shape on 5 workspaces or 5000, so no employeeList/customUnits deepEqual
 const createFilteredPoliciesInfoSelector =
@@ -375,7 +374,7 @@ const createFilteredPoliciesInfoSelector =
                 continue;
             }
             if (filteredPoliciesCount === 0) {
-                firstPolicy = {id: policy.id, ownerAccountID: policy.ownerAccountID};
+                firstPolicy = billingRestrictionPolicySelector(policy);
             }
             filteredPoliciesCount++;
             if (filteredPoliciesCount > 1) {
@@ -384,9 +383,6 @@ const createFilteredPoliciesInfoSelector =
         }
         return {filteredPoliciesCount, firstPolicy};
     };
-
-/** The preferred workspace, projected to only what the billing gate reads, for the same reason as `firstPolicy` above. */
-const billingRestrictionPolicySelector = (policy: OnyxEntry<Policy>): BillingRestrictionPolicy | undefined => (policy ? {id: policy.id, ownerAccountID: policy.ownerAccountID} : undefined);
 
 const hasOnlyPersonalPoliciesSelector = (policies: OnyxCollection<Policy>): boolean => {
     return !Object.values(policies ?? {}).some((policy) => policy && policy.type !== CONST.POLICY.TYPE.PERSONAL && policy.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
