@@ -87,6 +87,6 @@ describe('IssueNewCardConfirmValidateCodePage', () => {
         });
 
         // Then the request carries no feed country so the backend picks the domain's provisioned program
-        expect(issueExpensifyCard).toHaveBeenCalledWith(DEFAULT_FUND_ID, POLICY_ID, '', VALIDATE_CODE, undefined, data);
+        expect(issueExpensifyCard).toHaveBeenCalledWith(DEFAULT_FUND_ID, POLICY_ID, VALIDATE_CODE, undefined, data);
     });
 });
