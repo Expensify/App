@@ -7,21 +7,21 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import CONST from '@src/CONST';
 
-type NumericCurrencyButtonProps = Pick<ButtonProps, 'isDisabled' | 'onPress' | 'style' | 'testID'> & {
+type NumericCurrencyButtonProps = Pick<ButtonProps, 'accessibilityLabel' | 'isDisabled' | 'onPress' | 'style' | 'testID'> & {
     /** Currency code displayed by the button. */
     currency: string;
 };
 
 /** Presentational currency selector button shared by NumericInput and NumericField. */
-function NumericCurrencyButton({currency, isDisabled = false, onPress, style, testID}: NumericCurrencyButtonProps) {
+function NumericCurrencyButton({currency, accessibilityLabel, isDisabled = false, onPress, style, testID}: NumericCurrencyButtonProps) {
     const icons = useMemoizedLazyExpensifyIcons(['CoinsButton']);
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const accessibilityLabel = `${translate('common.selectCurrency')}, ${currency}`;
+    const buttonAccessibilityLabel = accessibilityLabel ?? `${translate('common.selectCurrency')}, ${currency}`;
 
     return (
         <Button
-            accessibilityLabel={accessibilityLabel}
+            accessibilityLabel={buttonAccessibilityLabel}
             contentContainerStyle={styles.justifyContentCenter}
             isDisabled={isDisabled}
             onPress={onPress}

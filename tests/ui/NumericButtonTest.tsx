@@ -61,6 +61,21 @@ describe('Numeric buttons', () => {
             expect(onPress).toHaveBeenCalledTimes(1);
         });
 
+        it('uses a custom accessibility label when provided', async () => {
+            renderWithProviders(
+                <NumericInput value="12">
+                    <NumericInput.CurrencyButton
+                        currency="USD"
+                        accessibilityLabel="Select a duration unit, hours"
+                        testID={CURRENCY_TEST_ID}
+                    />
+                </NumericInput>,
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByTestId(CURRENCY_TEST_ID)).toHaveAccessibleName('Select a duration unit, hours');
+        });
+
         it('does not call onPress when disabled', async () => {
             const onPress = jest.fn();
 
