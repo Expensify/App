@@ -531,7 +531,8 @@ function getHeaderMessage(translate: LocaleContextProps['translate'], searchValu
  * `recentAttendees`, which rebuilds the full options (matching personal details or creating optimistic ones).
  */
 function getFilteredRecentAttendees(attendees: Attendee[], recentAttendees: Attendee[], currentUserEmail: string): string[] {
-    const allRecentAttendees = [...recentAttendees];
+    // `recentAttendees` is written by the server and can arrive as an object instead of an array, so check the shape instead of relying on `??`.
+    const allRecentAttendees = Array.isArray(recentAttendees) ? [...recentAttendees] : [];
     if (currentUserEmail && !allRecentAttendees.some((attendee) => attendee.email === currentUserEmail)) {
         allRecentAttendees.push({email: currentUserEmail, displayName: currentUserEmail, avatarUrl: ''});
     }
