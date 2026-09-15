@@ -26,7 +26,7 @@ type BaseOverlayProps = {
     /** Overlay position from the right edge of the container */
     positionRightValue?: number | Animated.Value | Animated.AnimatedAddition<number>;
 
-    /** Max opacity the scrim ramps up to. Defaults to `variables.overlayOpacity`; the floating RHP passes the lighter `rhpOverlayOpacity`. */
+    /** Max opacity the scrim ramps up to. Defaults to `variables.overlayOpacity`. The floating RHP passes the lighter `rhpOverlayOpacity`. */
     maxOpacity?: number;
 
     /** Overlay position from the top edge of the container. The floating RHP overlays pass the card's inset so the scrim doesn't bleed past it. */
@@ -42,9 +42,9 @@ function BaseOverlay({
     progress,
     positionLeftValue = -2 * variables.sideBarWidth,
     positionRightValue = 0,
-    maxOpacity,
-    positionTopValue,
-    positionBottomValue,
+    positionTopValue = 0,
+    positionBottomValue = 0,
+    maxOpacity = variables.overlayOpacity,
 }: BaseOverlayProps) {
     const styles = useThemeStyles();
     const {current} = useCardAnimation();

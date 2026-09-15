@@ -82,6 +82,15 @@ type SelectionListPopover = {
     extraHeight?: number;
 };
 
+// Chrome shared by every RHP card that is stacked on top of a wider one. The left border separates it from the card
+// underneath, so it has to match the floating frame's border.
+const getRHPExtendedCardFrame = (theme: ThemeColors): ViewStyle => ({
+    borderRadius: variables.componentBorderRadiusLarge,
+    borderLeftWidth: variables.rhpFloatingCardBorderWidth,
+    borderLeftColor: theme.border,
+    overflow: 'hidden',
+});
+
 const getReceiptDropZoneViewStyle = (theme: ThemeColors, margin: number, paddingVertical: number): ViewStyle => ({
     borderRadius: variables.componentBorderRadiusLarge,
     borderColor: theme.borderFocus,
@@ -3321,8 +3330,8 @@ const staticStyles = (theme: ThemeColors) =>
             height: '100%',
         },
 
-        // Floating RHP card (web wide layout only): inset from the viewport edges, rounded, 1px border, shadow.
-        // Anchoring replaces the card's `r0`/`h100`; width stays driven by the animated RHP width at the call site.
+        // Anchoring for the floating RHP card on web wide layout. It replaces the card's `r0` and `h100`.
+        // Width stays driven by the animated RHP width at the call site.
         RHPFloatingCard: {
             top: variables.rhpFloatingCardMargin,
             right: variables.rhpFloatingCardMargin,
@@ -6425,10 +6434,7 @@ const staticStyles = (theme: ThemeColors) =>
             height: '100%',
             right: 0,
             width: animatedWideRHPWidth,
-            borderRadius: variables.componentBorderRadiusLarge,
-            borderLeftWidth: 1,
-            borderLeftColor: theme.border,
-            overflow: 'hidden',
+            ...getRHPExtendedCardFrame(theme),
         },
 
         singleRHPExtendedCardInterpolatorStyles: {
@@ -6436,10 +6442,7 @@ const staticStyles = (theme: ThemeColors) =>
             height: '100%',
             right: 0,
             width: variables.sideBarWidth,
-            borderRadius: variables.componentBorderRadiusLarge,
-            borderLeftWidth: 1,
-            borderLeftColor: theme.border,
-            overflow: 'hidden',
+            ...getRHPExtendedCardFrame(theme),
         },
 
         flexibleHeight: {
@@ -6779,10 +6782,7 @@ const dynamicStyles = (theme: ThemeColors) =>
                 height: '100%',
                 right: 0,
                 width,
-                borderRadius: variables.componentBorderRadiusLarge,
-                borderLeftWidth: 1,
-                borderLeftColor: theme.border,
-                overflow: 'hidden',
+                ...getRHPExtendedCardFrame(theme),
             }) satisfies ViewStyle,
 
         uploadFileViewBorderWidth: (isSmallScreenWidth: boolean) =>
@@ -6866,16 +6866,16 @@ const dynamicStyles = (theme: ThemeColors) =>
             progress,
             positionLeftValue,
             positionRightValue,
-            positionTopValue = 0,
-            positionBottomValue = 0,
-            maxOpacity = variables.overlayOpacity,
+            positionTopValue,
+            positionBottomValue,
+            maxOpacity,
         }: {
             progress: OverlayStylesParams;
             positionLeftValue: number | Animated.Value | Animated.AnimatedAddition<number>;
             positionRightValue: number | Animated.Value | Animated.AnimatedAddition<number>;
-            positionTopValue?: number;
-            positionBottomValue?: number;
-            maxOpacity?: number;
+            positionTopValue: number;
+            positionBottomValue: number;
+            maxOpacity: number;
         }) =>
             ({
                 // We need to stretch the overlay to cover the sidebar and the translate animation distance.

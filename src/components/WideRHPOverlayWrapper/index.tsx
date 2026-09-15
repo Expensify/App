@@ -10,9 +10,7 @@ import {
 
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 
-import Overlay from '@libs/Navigation/AppNavigator/Navigators/Overlay';
-
-import variables from '@styles/variables';
+import RHPOverlay from '@libs/Navigation/AppNavigator/Navigators/Overlay/RHPOverlay';
 
 import {useRoute} from '@react-navigation/native';
 import React from 'react';
@@ -44,31 +42,28 @@ function SecondaryOverlay() {
      *  */
     if (isRHPDisplayedOnWideRHP) {
         return (
-            <Overlay
+            <RHPOverlay
                 progress={secondOverlayRHPOnWideRHPProgress}
                 // If RHP is displayed on Wide RHP which is displayed above the Super Wide RHP, the secondary overlay's position left should be calculated from the left edge of the super wide RHP.
                 positionLeftValue={animatedReceiptPaneRHPWidth}
-                maxOpacity={variables.rhpOverlayOpacity}
             />
         );
     }
 
     if (isWideRHPDisplayedOnSuperWideRHP) {
         return (
-            <Overlay
+            <RHPOverlay
                 progress={secondOverlayWideRHPProgress}
                 positionLeftValue={modalStackOverlayWideRHPPositionLeft}
-                maxOpacity={variables.rhpOverlayOpacity}
             />
         );
     }
 
     if (isRHPDisplayedOnSuperWideRHP) {
         return (
-            <Overlay
+            <RHPOverlay
                 progress={secondOverlayRHPOnSuperWideRHPProgress}
                 positionLeftValue={modalStackOverlaySuperWideRHPPositionLeft}
-                maxOpacity={variables.rhpOverlayOpacity}
             />
         );
     }

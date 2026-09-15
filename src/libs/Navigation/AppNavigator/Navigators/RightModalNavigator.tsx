@@ -49,10 +49,11 @@ import type {View} from 'react-native';
 import {useFocusEffect} from '@react-navigation/native';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 // eslint-disable-next-line no-restricted-imports
-import {Animated, DeviceEventEmitter, Platform} from 'react-native';
+import {Animated, DeviceEventEmitter} from 'react-native';
 
+import getRHPFrameStyle from './getRHPFrameStyle';
 import {NarrowPaneContextProvider} from './NarrowPaneContext';
-import Overlay from './Overlay';
+import RHPOverlay from './Overlay/RHPOverlay';
 
 type RightModalNavigatorProps = PlatformStackScreenProps<AuthScreensParamList, typeof NAVIGATORS.RIGHT_MODAL_NAVIGATOR>;
 
@@ -61,11 +62,8 @@ const Stack = createRightModalNavigator<RightModalNavigatorParamList, typeof NAV
 const singleRHPWidth = variables.sideBarWidth;
 const getWideRHPWidth = (windowWidth: number) => variables.sideBarWidth + calculateReceiptPaneRHPWidth(windowWidth);
 
-// These overlays paint above the floating RHP frame, so on the top and bottom edges they have to stop inside its 1px
-// border. Insetting them by the card margin alone would dim the border itself, leaving a visible seam where the overlay
-// ends. The right edge deliberately uses the bare card margin instead: it makes the overlay reach 1px past the left edge
-// of the card above and cover that card's `borderLeftWidth`, which would otherwise read as a dark line down the seam
-// between the two stacked cards.
+// Top and bottom stop inside the frame's 1px border, otherwise the overlay dims the border and leaves a seam.
+// The right edge keeps the bare margin so the overlay covers the stacked card's left border, which would read as a dark line.
 const overlayInset = variables.rhpFloatingCardMargin + variables.rhpFloatingCardBorderWidth;
 
 function MissingPersonalDetailsWithPINContext(props: Record<string, unknown>) {
@@ -90,12 +88,11 @@ function SecondaryOverlay() {
 
     if (shouldRenderSecondaryOverlayForWideRHP) {
         return (
-            <Overlay
+            <RHPOverlay
                 progress={secondOverlayWideRHPProgress}
                 positionRightValue={Animated.add(Animated.add(sidePanelOffset.current, animatedWideRHPWidth), variables.rhpFloatingCardMargin)}
                 positionTopValue={overlayInset}
                 positionBottomValue={overlayInset}
-                maxOpacity={variables.rhpOverlayOpacity}
                 onPress={() => Navigation.closeRHPFlow()}
             />
         );
@@ -103,12 +100,11 @@ function SecondaryOverlay() {
 
     if (shouldRenderSecondaryOverlayForRHPOnWideRHP) {
         return (
-            <Overlay
+            <RHPOverlay
                 progress={secondOverlayRHPOnWideRHPProgress}
                 positionRightValue={Animated.add(sidePanelOffset.current, variables.sideBarWidth + variables.rhpFloatingCardMargin)}
                 positionTopValue={overlayInset}
                 positionBottomValue={overlayInset}
-                maxOpacity={variables.rhpOverlayOpacity}
                 onPress={Navigation.dismissToPreviousRHP}
             />
         );
@@ -116,12 +112,11 @@ function SecondaryOverlay() {
 
     if (shouldRenderSecondaryOverlayForRHPOnSuperWideRHP) {
         return (
-            <Overlay
+            <RHPOverlay
                 progress={secondOverlayRHPOnSuperWideRHPProgress}
                 positionRightValue={Animated.add(sidePanelOffset.current, variables.sideBarWidth + variables.rhpFloatingCardMargin)}
                 positionTopValue={overlayInset}
                 positionBottomValue={overlayInset}
-                maxOpacity={variables.rhpOverlayOpacity}
                 onPress={Navigation.dismissToSuperWideRHP}
             />
         );
@@ -227,26 +222,9 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
         superWideRHPSidePanelOffset,
     );
 
-    // Floating RHP (web wide layout only): inset the card from the viewport edges and give it rounded corners, a 1px
-    // border, and a shadow. This replaces the full-bleed `r0`/`h100` anchoring; width stays driven by the animated
-    // RHP width. Narrow layout and native keep the full-bleed frame.
-    const isFloatingRHP = Platform.OS === 'web' && !shouldUseNarrowLayout;
-
-    const animatedWidthStyle = useMemo(() => {
-        if (shouldUseNarrowLayout) {
-            return {width: '100%'} as const;
-        }
-        // The floating frame is border-box, so its border would eat into the content box and clip the fixed-width
-        // panes inside the wide RHP. Grow the frame by the border on both sides to keep the content box equal to
-        // the animated RHP width.
-        return {width: isFloatingRHP ? Animated.add(animatedWidth, 2 * variables.rhpFloatingCardBorderWidth) : animatedWidth} as const;
-    }, [animatedWidth, isFloatingRHP, shouldUseNarrowLayout]);
-
     const overlayPositionLeft = useMemo(() => -1 * calculateSuperWideRHPWidth(windowWidth), [windowWidth]);
 
-    const frameStyle = isFloatingRHP
-        ? [styles.pAbsolute, styles.overflowHidden, styles.RHPFloatingCard, animatedWidthStyle]
-        : [styles.pAbsolute, styles.r0, styles.h100, styles.overflowHidden, animatedWidthStyle];
+    const frameStyle = getRHPFrameStyle({styles, animatedWidth, shouldUseNarrowLayout});
 
     const screenListeners = useMemo(
         () => ({
@@ -310,9 +288,8 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
         <NarrowPaneContextProvider>
             <NoDropZone>
                 {!shouldUseNarrowLayout && (
-                    <Overlay
+                    <RHPOverlay
                         positionLeftValue={overlayPositionLeft}
-                                maxOpacity={variables.rhpOverlayOpacity}
                         onPress={handleOverlayPress}
                     />
                 )}
@@ -580,12 +557,11 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                 {/* The width of these overlays is equal to the width of the screen minus the width of the currently focused RHP screen (positionRightValue) */}
                 {!shouldUseNarrowLayout && <SecondaryOverlay />}
                 {!shouldUseNarrowLayout && shouldRenderTertiaryOverlay && (
-                    <Overlay
+                    <RHPOverlay
                         progress={thirdOverlayProgress}
                         positionRightValue={Animated.add(sidePanelOffset.current, variables.sideBarWidth + variables.rhpFloatingCardMargin)}
                         positionTopValue={overlayInset}
                         positionBottomValue={overlayInset}
-                                maxOpacity={variables.rhpOverlayOpacity}
                         onPress={Navigation.dismissToPreviousRHP}
                     />
                 )}
