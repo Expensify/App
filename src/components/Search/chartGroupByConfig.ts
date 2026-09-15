@@ -2,18 +2,6 @@ import DateUtils from '@libs/DateUtils';
 
 import CONST from '@src/CONST';
 
-import type {
-    TransactionCardGroupListItemType,
-    TransactionCategoryGroupListItemType,
-    TransactionMemberGroupListItemType,
-    TransactionMerchantGroupListItemType,
-    TransactionMonthGroupListItemType,
-    TransactionQuarterGroupListItemType,
-    TransactionTagGroupListItemType,
-    TransactionWeekGroupListItemType,
-    TransactionWithdrawalIDGroupListItemType,
-    TransactionYearGroupListItemType,
-} from './SearchList/ListItem/types';
 import type {GroupedItem, SearchGroupBy} from './types';
 
 type ChartGroupByConfig = {
@@ -37,71 +25,79 @@ type ChartGroupByConfig = {
 const CHART_GROUP_BY_CONFIG: Record<SearchGroupBy, ChartGroupByConfig> = {
     [CONST.SEARCH.GROUP_BY.FROM]: {
         titleIconName: 'Users',
-        getLabel: (item: GroupedItem) => (item as TransactionMemberGroupListItemType).formattedFrom ?? '',
-        getFilterQuery: (item: GroupedItem) => `from:${(item as TransactionMemberGroupListItemType).accountID}`,
+        getLabel: (item: GroupedItem) => (item.groupedBy === CONST.SEARCH.GROUP_BY.FROM ? (item.formattedFrom ?? '') : ''),
+        getFilterQuery: (item: GroupedItem) => (item.groupedBy === CONST.SEARCH.GROUP_BY.FROM ? `from:${item.accountID}` : ''),
     },
     [CONST.SEARCH.GROUP_BY.CARD]: {
         titleIconName: 'CreditCard',
-        getLabel: (item: GroupedItem) => (item as TransactionCardGroupListItemType).formattedCardName ?? '',
-        getFilterQuery: (item: GroupedItem) => `cardID:${(item as TransactionCardGroupListItemType).cardID}`,
+        getLabel: (item: GroupedItem) => (item.groupedBy === CONST.SEARCH.GROUP_BY.CARD ? (item.formattedCardName ?? '') : ''),
+        getFilterQuery: (item: GroupedItem) => (item.groupedBy === CONST.SEARCH.GROUP_BY.CARD ? `cardID:${item.cardID}` : ''),
     },
     [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: {
         titleIconName: 'Send',
         // eslint-disable-next-line rulesdir/no-default-id-values -- formattedWithdrawalID is a display label, not an Onyx ID
-        getLabel: (item: GroupedItem) => (item as TransactionWithdrawalIDGroupListItemType).formattedWithdrawalID ?? '',
-        getFilterQuery: (item: GroupedItem) => `withdrawalID:${(item as TransactionWithdrawalIDGroupListItemType).entryID}`,
+        getLabel: (item: GroupedItem) => (item.groupedBy === CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID ? (item.formattedWithdrawalID ?? '') : ''),
+        getFilterQuery: (item: GroupedItem) => (item.groupedBy === CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID ? `withdrawalID:${item.entryID}` : ''),
     },
     [CONST.SEARCH.GROUP_BY.CATEGORY]: {
         titleIconName: 'Folder',
-        getLabel: (item: GroupedItem) => (item as TransactionCategoryGroupListItemType).formattedCategory ?? '',
-        getFilterQuery: (item: GroupedItem) => `category:"${(item as TransactionCategoryGroupListItemType).category}"`,
+        getLabel: (item: GroupedItem) => (item.groupedBy === CONST.SEARCH.GROUP_BY.CATEGORY ? (item.formattedCategory ?? '') : ''),
+        getFilterQuery: (item: GroupedItem) => (item.groupedBy === CONST.SEARCH.GROUP_BY.CATEGORY ? `category:"${item.category}"` : ''),
     },
     [CONST.SEARCH.GROUP_BY.MERCHANT]: {
         titleIconName: 'Basket',
-        getLabel: (item: GroupedItem) => (item as TransactionMerchantGroupListItemType).formattedMerchant ?? '',
-        getFilterQuery: (item: GroupedItem) => `merchant:"${(item as TransactionMerchantGroupListItemType).merchant}"`,
+        getLabel: (item: GroupedItem) => (item.groupedBy === CONST.SEARCH.GROUP_BY.MERCHANT ? (item.formattedMerchant ?? '') : ''),
+        getFilterQuery: (item: GroupedItem) => (item.groupedBy === CONST.SEARCH.GROUP_BY.MERCHANT ? `merchant:"${item.merchant}"` : ''),
     },
     [CONST.SEARCH.GROUP_BY.TAG]: {
         titleIconName: 'Tag',
-        getLabel: (item: GroupedItem) => (item as TransactionTagGroupListItemType).formattedTag ?? '',
-        getFilterQuery: (item: GroupedItem) => `tag:"${(item as TransactionTagGroupListItemType).tag}"`,
+        getLabel: (item: GroupedItem) => (item.groupedBy === CONST.SEARCH.GROUP_BY.TAG ? (item.formattedTag ?? '') : ''),
+        getFilterQuery: (item: GroupedItem) => (item.groupedBy === CONST.SEARCH.GROUP_BY.TAG ? `tag:"${item.tag}"` : ''),
     },
     [CONST.SEARCH.GROUP_BY.MONTH]: {
         titleIconName: 'Calendar',
-        getLabel: (item: GroupedItem) => (item as TransactionMonthGroupListItemType).formattedMonth ?? '',
+        getLabel: (item: GroupedItem) => (item.groupedBy === CONST.SEARCH.GROUP_BY.MONTH ? (item.formattedMonth ?? '') : ''),
         getShortLabel: (item: GroupedItem) => (item.groupedBy === CONST.SEARCH.GROUP_BY.MONTH ? item.shortFormattedMonth : undefined),
         getFilterQuery: (item: GroupedItem) => {
-            const monthItem = item as TransactionMonthGroupListItemType;
-            const {start, end} = DateUtils.getMonthDateRange(monthItem.year, monthItem.month);
+            if (item.groupedBy !== CONST.SEARCH.GROUP_BY.MONTH) {
+                return '';
+            }
+            const {start, end} = DateUtils.getMonthDateRange(item.year, item.month);
             return `date>=${start} date<=${end}`;
         },
     },
     [CONST.SEARCH.GROUP_BY.WEEK]: {
         titleIconName: 'Calendar',
-        getLabel: (item: GroupedItem) => (item as TransactionWeekGroupListItemType).formattedWeek ?? '',
+        getLabel: (item: GroupedItem) => (item.groupedBy === CONST.SEARCH.GROUP_BY.WEEK ? (item.formattedWeek ?? '') : ''),
         getShortLabel: (item: GroupedItem) => (item.groupedBy === CONST.SEARCH.GROUP_BY.WEEK ? item.shortFormattedWeek : undefined),
         getFilterQuery: (item: GroupedItem) => {
-            const weekItem = item as TransactionWeekGroupListItemType;
-            const {start, end} = DateUtils.getWeekDateRange(weekItem.week);
+            if (item.groupedBy !== CONST.SEARCH.GROUP_BY.WEEK) {
+                return '';
+            }
+            const {start, end} = DateUtils.getWeekDateRange(item.week);
             return `date>=${start} date<=${end}`;
         },
     },
     [CONST.SEARCH.GROUP_BY.YEAR]: {
         titleIconName: 'Calendar',
-        getLabel: (item: GroupedItem) => (item as TransactionYearGroupListItemType).formattedYear ?? '',
+        getLabel: (item: GroupedItem) => (item.groupedBy === CONST.SEARCH.GROUP_BY.YEAR ? (item.formattedYear ?? '') : ''),
         getFilterQuery: (item: GroupedItem) => {
-            const yearItem = item as TransactionYearGroupListItemType;
-            const {start, end} = DateUtils.getYearDateRange(yearItem.year);
+            if (item.groupedBy !== CONST.SEARCH.GROUP_BY.YEAR) {
+                return '';
+            }
+            const {start, end} = DateUtils.getYearDateRange(item.year);
             return `date>=${start} date<=${end}`;
         },
     },
     [CONST.SEARCH.GROUP_BY.QUARTER]: {
         titleIconName: 'Calendar',
-        getLabel: (item: GroupedItem) => (item as TransactionQuarterGroupListItemType).formattedQuarter ?? '',
+        getLabel: (item: GroupedItem) => (item.groupedBy === CONST.SEARCH.GROUP_BY.QUARTER ? (item.formattedQuarter ?? '') : ''),
         getShortLabel: (item: GroupedItem) => (item.groupedBy === CONST.SEARCH.GROUP_BY.QUARTER ? item.shortFormattedQuarter : undefined),
         getFilterQuery: (item: GroupedItem) => {
-            const quarterItem = item as TransactionQuarterGroupListItemType;
-            const {start, end} = DateUtils.getQuarterDateRange(quarterItem.year, quarterItem.quarter);
+            if (item.groupedBy !== CONST.SEARCH.GROUP_BY.QUARTER) {
+                return '';
+            }
+            const {start, end} = DateUtils.getQuarterDateRange(item.year, item.quarter);
             return `date>=${start} date<=${end}`;
         },
     },
