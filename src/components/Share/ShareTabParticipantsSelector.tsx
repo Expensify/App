@@ -1,9 +1,7 @@
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
 import useOnyx from '@hooks/useOnyx';
-import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import usePreferredPolicy from '@hooks/usePreferredPolicy';
-import useSelfDMReport from '@hooks/useSelfDMReport';
 import useUserSecurityGroup from '@hooks/useUserSecurityGroup';
 
 import {clearMoneyRequest} from '@libs/actions/IOU/MoneyRequest';
@@ -39,8 +37,6 @@ function ShareTabParticipantsSelectorComponent({detailsPageRouteObject}: ShareTa
     const {isRestrictedToPreferredPolicy, preferredPolicyID} = usePreferredPolicy();
     const {isLoadingSecurityGroup} = useUserSecurityGroup();
     const defaultExpensePolicy = useDefaultExpensePolicy();
-    const personalPolicy = usePersonalPolicy();
-    const selfDMReport = useSelfDMReport();
     const [, activePolicyIDMetadata] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [, policiesMetadata] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: () => null});
     const [, reportsMetadata] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: () => null});
@@ -65,12 +61,9 @@ function ShareTabParticipantsSelectorComponent({detailsPageRouteObject}: ShareTa
     // to the picker if the locked policy's expense chat isn't in Onyx yet, so we never navigate to an empty report.
     const lockedExpenseChatReportID =
         isSubmitFlow && isRestrictedToPreferredPolicy && preferredPolicyID ? getPolicyExpenseChat(currentUserAccountID, preferredPolicyID)?.reportID : undefined;
-    const shouldAutoReport = !!defaultExpensePolicy?.autoReporting || !!personalPolicy?.autoReporting;
-    let defaultReportID: string | undefined;
-    if (canUseDefaultPolicy) {
-        defaultReportID = shouldAutoReport ? getPolicyExpenseChat(currentUserAccountID, defaultExpensePolicy?.id)?.reportID : selfDMReport.reportID;
-    }
-    const autoNavigateReportID = lockedExpenseChatReportID ?? defaultReportID;
+    const defaultExpenseChatReportID =
+        canUseDefaultPolicy && defaultExpensePolicy?.autoReporting ? getPolicyExpenseChat(currentUserAccountID, defaultExpensePolicy?.id)?.reportID : undefined;
+    const autoNavigateReportID = lockedExpenseChatReportID ?? defaultExpenseChatReportID;
     const shouldWaitForDestination = isSubmitFlow && (isLoadingSecurityGroup || !isDestinationReady);
 
     // Synchronous one-shot guard for the auto-navigation effect. A ref (rather than the render state below) is used so
