@@ -2980,15 +2980,7 @@ describe('Table', () => {
             </Table.Row>
         );
 
-        function ControlledSelectableTable({
-            data = mockData,
-            initialSelected = [],
-            showSearch = false,
-        }: {
-            data?: TestItem[];
-            initialSelected?: string[];
-            showSearch?: boolean;
-        }) {
+        function ControlledSelectableTable({data = mockData, initialSelected = [], showSearch = false}: {data?: TestItem[]; initialSelected?: string[]; showSearch?: boolean}) {
             const [selectedKeys, setSelectedKeys] = React.useState<string[]>(initialSelected);
             const props = createDefaultProps();
             return (
