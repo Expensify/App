@@ -50,6 +50,7 @@ function buildSelected(...keys: string[]): SelectedTransactions {
             reportID: 'report_a',
             policyID: 'policy_1',
             amount: 100,
+            displayAmount: 100,
             currency: 'USD',
         };
         return acc;
