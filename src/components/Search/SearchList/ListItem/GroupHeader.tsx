@@ -21,6 +21,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import type {TransactionPreviewData} from '@libs/actions/Search';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import type {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
+import {queryHasViolationFilter} from '@libs/SearchQueryUtils';
 import {getColumnsToShow, getGroupColumnWidthFlags, getGroupTableScrollLayout} from '@libs/SearchUIUtils';
 import {isTransactionPendingDelete} from '@libs/TransactionUtils';
 
@@ -133,21 +134,19 @@ function GroupHeader({
     const snapshotData = transactionsSnapshot?.data;
     const snapshotSearchType = transactionsSnapshot?.search.type;
 
-    const subHeaderColumns = useMemo(() => {
-        if (isExpenseReportType) {
-            return columns ?? [];
-        }
-        if (!snapshotData) {
-            return [];
-        }
-        return getColumnsToShow({
+    let subHeaderColumns: SearchColumnType[] = [];
+    if (isExpenseReportType) {
+        subHeaderColumns = columns ?? [];
+    } else if (snapshotData) {
+        subHeaderColumns = getColumnsToShow({
             currentAccountID: currentUserDetails.accountID,
             data: snapshotData,
             visibleColumns,
             type: snapshotSearchType,
+            shouldShowViolationsColumn: queryHasViolationFilter(groupItem.transactionsQueryJSON),
             fallbackPolicyID: policyForMovingExpensesID,
         });
-    }, [isExpenseReportType, columns, snapshotData, snapshotSearchType, currentUserDetails.accountID, visibleColumns, policyForMovingExpensesID]);
+    }
 
     const {
         isAmountColumnWide: isSubHeaderAmountColumnWide,
