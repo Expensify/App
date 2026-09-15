@@ -5121,6 +5121,9 @@ ${amount} para ${merchant} - ${date}`,
                 xeroInvoiceCollectionAccount: 'Cuenta de cobro de las facturas Xero',
                 xeroBillPaymentAccountDescription: 'Elige desde dónde pagar las facturas y crearemos el pago en Xero.',
                 invoiceAccountSelectorDescription: 'Elige dónde recibir los pagos de facturas y crearemos el pago en Xero.',
+                xeroFxExpenseAccount: 'Cuenta de comisión por conversión de divisa de Xero',
+                fxExpenseAccountDescription:
+                    'Cuando tu empresa cubra el coste de conversión de moneda en un pago realizado en el extranjero, registraremos ese coste en esta cuenta en Xero como una transacción de gasto de dinero.',
             },
             exportDate: {
                 label: 'Fecha de la factura de compra',
@@ -5488,6 +5491,9 @@ ${amount} para ${merchant} - ${date}`,
                 error: {
                     customFormID: 'Introduzca un ID numérico válido para el formulario personalizado',
                 },
+                fxExpenseAccount: 'Cuenta de comisión por conversión de moneda',
+                fxExpenseAccountDescription:
+                    'Cuando tu empresa cubra el coste de conversión de divisa en un reembolso pagado en el extranjero, registraremos ese coste en la cuenta de NetSuite de abajo como un asiento contable.',
             },
             noAccountsFound: 'No se han encontrado cuentas',
             noAccountsFoundDescription: 'Añade la cuenta en NetSuite y sincroniza la conexión de nuevo',

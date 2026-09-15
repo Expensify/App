@@ -5111,6 +5111,8 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
                 xeroInvoiceCollectionAccount: 'Xero請求書回収勘定',
                 xeroBillPaymentAccountDescription: '請求書の支払元を選択すると、Xero 内に支払処理を作成します。',
                 invoiceAccountSelectorDescription: '請求書の入金先を選択すると、Xero に支払いが作成されます。',
+                xeroFxExpenseAccount: 'Xero 通貨換算手数料勘定',
+                fxExpenseAccountDescription: '海外で行われた支払いに対する通貨換算コストを御社が負担する場合、そのコストは「支出入金取引」として Xero のこの勘定科目に計上します。',
             },
             exportDate: {
                 label: '仕入請求書の日付',
@@ -5468,6 +5470,8 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
                 error: {
                     customFormID: '有効な数値のカスタムフォームIDを入力してください',
                 },
+                fxExpenseAccount: '通貨換算手数料勘定',
+                fxExpenseAccountDescription: '海外で支払われる精算について、会社が為替換算コストを負担する場合、そのコストは仕訳として以下の NetSuite アカウントに計上します。',
             },
             noAccountsFound: 'アカウントが見つかりません',
             noAccountsFoundDescription: 'NetSuite にアカウントを追加して、接続をもう一度同期してください',
