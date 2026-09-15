@@ -2049,7 +2049,7 @@ describe('TransactionUtils', () => {
         });
 
         it('should leave an already localized formattedMerchant alone rather than localizing it twice', () => {
-            // Search localizes before this runs, and a second pass would take "California, USA" for date parts and drop them.
+            // Search renders `formattedMerchant` for this reader, so it wins over the stored merchant.
             const formattedMerchant = 'San Francisco, California, USA, 19 ago 2025 - 20 ago 2025';
             const transaction = {...buildPerDiemTransaction(), formattedMerchant};
             expect(TransactionUtils.getMerchantName(transaction, translate, CONST.LOCALES.ES)).toBe(formattedMerchant);
@@ -2061,62 +2061,9 @@ describe('TransactionUtils', () => {
             expect(TransactionUtils.getMerchantOrDescription(buildPerDiemTransaction())).toBe(PER_DIEM_MERCHANT);
         });
 
-        it('rebuilds the per diem merchant in the readers locale only for the display variant', () => {
-            expect(TransactionUtils.getDisplayMerchantOrDescription(buildPerDiemTransaction(), CONST.LOCALES.ES)).toBe('Berlin, 19 ago 2025 - 20 ago 2025');
-        });
-
-        it('falls back to the description when the merchant is missing, in both variants', () => {
+        it('falls back to the description when the merchant is missing', () => {
             const transaction = generateTransaction({merchant: '', comment: {comment: 'Team lunch'}});
             expect(TransactionUtils.getMerchantOrDescription(transaction)).toBe('Team lunch');
-            expect(TransactionUtils.getDisplayMerchantOrDescription(transaction, CONST.LOCALES.ES)).toBe('Team lunch');
-        });
-    });
-
-    describe('getDisplayMerchant', () => {
-        it('should leave a non per diem merchant exactly as stored', () => {
-            const transaction = generateTransaction({merchant: 'Starbucks'});
-            expect(TransactionUtils.getDisplayMerchant(transaction, 'Starbucks', CONST.LOCALES.ES)).toBe('Starbucks');
-        });
-
-        it('should render the stored enUS range unchanged for an English reader', () => {
-            expect(TransactionUtils.getDisplayMerchant(buildPerDiemTransaction(), PER_DIEM_MERCHANT, CONST.LOCALES.EN)).toBe(PER_DIEM_MERCHANT);
-        });
-
-        it.each([
-            [CONST.LOCALES.ES, 'Berlin, 19 ago 2025 - 20 ago 2025'],
-            [CONST.LOCALES.DE, 'Berlin, 19.08.2025 - 20.08.2025'],
-            [CONST.LOCALES.JA, 'Berlin, 2025/08/19 - 2025/08/20'],
-        ])('should rebuild the range from the structured dates for %s', (locale, expected) => {
-            expect(TransactionUtils.getDisplayMerchant(buildPerDiemTransaction(), PER_DIEM_MERCHANT, locale)).toBe(expected);
-        });
-
-        it('should keep the stored merchant when the structured dates are missing', () => {
-            const transaction = buildPerDiemTransaction({start: '', end: ''});
-            expect(TransactionUtils.getDisplayMerchant(transaction, PER_DIEM_MERCHANT, CONST.LOCALES.ES)).toBe(PER_DIEM_MERCHANT);
-        });
-
-        it('should keep the stored merchant when the structured dates are unparsable', () => {
-            const transaction = buildPerDiemTransaction({start: 'not-a-date', end: 'not-a-date'});
-            expect(TransactionUtils.getDisplayMerchant(transaction, PER_DIEM_MERCHANT, CONST.LOCALES.ES)).toBe(PER_DIEM_MERCHANT);
-        });
-
-        it('should keep a location that itself contains commas', () => {
-            const merchant = `Berlin, Germany, ${PER_DIEM_RANGE}`;
-            expect(TransactionUtils.getDisplayMerchant(buildPerDiemTransaction(), merchant, CONST.LOCALES.ES)).toBe('Berlin, Germany, 19 ago 2025 - 20 ago 2025');
-        });
-
-        it('should keep a merchant that does not end in the generated range', () => {
-            const merchant = 'Hotel Rio, Room 5, Floor 2, Tower A';
-            expect(TransactionUtils.getDisplayMerchant(buildPerDiemTransaction(), merchant, CONST.LOCALES.ES)).toBe(merchant);
-        });
-
-        it('should keep a merchant whose range was written for other dates', () => {
-            const merchant = 'Berlin, Aug 1, 2025 - Aug 2, 2025';
-            expect(TransactionUtils.getDisplayMerchant(buildPerDiemTransaction(), merchant, CONST.LOCALES.ES)).toBe(merchant);
-        });
-
-        it('should rebuild a range an earlier client wrote in its own language', () => {
-            expect(TransactionUtils.getDisplayMerchant(buildPerDiemTransaction(), 'Berlin, ago 19, 2025 - ago 20, 2025', CONST.LOCALES.ES)).toBe('Berlin, 19 ago 2025 - 20 ago 2025');
         });
     });
 

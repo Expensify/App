@@ -123,6 +123,7 @@ import isSearchTopmostFullScreenRoute from './Navigation/helpers/isSearchTopmost
 import Navigation from './Navigation/Navigation';
 import {hasKey} from './ObjectUtils';
 import Parser from './Parser';
+import {getDisplayMerchant} from './PerDiemMerchantUtils';
 import {getLoginByAccountID, temporaryGetDisplayNameOrDefault} from './PersonalDetailsUtils';
 import {
     arePaymentsEnabled,
@@ -230,7 +231,6 @@ import {
     getTaxAmount,
     getTaxName,
     getCreated as getTransactionCreatedDate,
-    getDisplayMerchant,
     getMerchant as getTransactionMerchant,
     getTransactionViolations,
     hasDisplayableMCC,

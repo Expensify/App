@@ -61,6 +61,7 @@ import {isBillableEnabledOnPolicy, isSingleTransactionReport} from '@libs/MoneyR
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
+import {getDisplayMerchant} from '@libs/PerDiemMerchantUtils';
 import {
     canSubmitPerDiemExpenseFromWorkspace,
     findVendorByID,
@@ -103,7 +104,6 @@ import {
     getCurrency,
     getDescription,
     getDetailedExpenseTypeTranslationKey,
-    getDisplayMerchant,
     getDisplayTransactionWithoutInvalidCommuterExclusion,
     getDistanceInMeters,
     getFormattedCreated,

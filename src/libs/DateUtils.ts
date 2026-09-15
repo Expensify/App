@@ -489,10 +489,11 @@ function getCurrentTimezone(timezone: Timezone): Required<Timezone> {
 function monthNamesIn(locale: Locale): string[] {
     // Mid-month in UTC, so no timezone can shift a month-edge date into the neighboring month.
     const monthsArray = Array.from({length: 12}, (_, monthIndex) => new Date(Date.UTC(2000, monthIndex, 15)));
-    return monthsArray.map((monthDate) => Str.UCFirst(formatIntl(locale, 'LONG_MONTH', monthDate)));
+    return monthsArray.map((monthDate) => formatIntl(locale, 'LONG_MONTH', monthDate));
 }
 
 /**
+ * As a language writes a month inside a sentence (es `enero`), so only a label that stands alone capitalizes it.
  * Never add day or year to `LONG_MONTH`: that flips Intl into format context and inflects the label (ru "января").
  * Memoized for MonthPickerModal, which React Compiler does not cover. Frozen because every caller shares the instance.
  */
@@ -515,7 +516,7 @@ const getMonthNames = memoize(
  */
 function getFilteredMonthItems(monthNames: readonly string[], currentMonth: number) {
     return monthNames.map((month, index) => ({
-        text: month,
+        text: Str.UCFirst(month),
         value: index,
         keyForList: index.toString(),
         isSelected: index === currentMonth,
@@ -1260,12 +1261,6 @@ function getDifferenceInDaysFromNow(date: Date) {
     return differenceInDays(new Date(), date);
 }
 
-/** Persists to backend as `merchant`, so it is pinned to enUS to keep the wire string byte-stable across engines. */
-function getStablePerDiemMerchantDateRange(date1: Date, date2: Date): string {
-    // eslint-disable-next-line rulesdir/require-locale-for-localized-date-format -- wire format, not a user-visible render.
-    return `${format(date1, 'MMM d, yyyy', {locale: enUS})} - ${format(date2, 'MMM d, yyyy', {locale: enUS})}`;
-}
-
 /** @returns Jan 10, 2024 to Jan 15, 2024 (6 days) (en) / 10 ene 2024 al 15 ene 2024 (6 días) (es) */
 function getFormattedSplitDateRange(startDate: string | undefined, endDate: string | undefined, locale: Locale): string {
     if (!startDate || !endDate) {
@@ -1786,7 +1781,6 @@ const DateUtils = {
     getFormattedDuration,
     formatCountdownTimer,
     isFutureDay,
-    getStablePerDiemMerchantDateRange,
     isDate,
     isTransactionDateFuture,
     getFormattedSplitDateRange,

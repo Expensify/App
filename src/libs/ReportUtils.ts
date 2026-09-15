@@ -135,6 +135,7 @@ import {rand64} from './NumberUtils';
 import Parser from './Parser';
 import {getParsedMessageWithShortMentions} from './ParsingUtils';
 import {getBankAccountLastFourDigits} from './PaymentUtils';
+import {getDisplayMerchant} from './PerDiemMerchantUtils';
 import Permissions from './Permissions';
 import {getAccountIDsByLogins, getDisplayNameOrDefault, getLoginByAccountID, getPersonalDetailByEmail, temporaryGetDisplayNameOrDefault} from './PersonalDetailsUtils';
 import {
@@ -250,7 +251,6 @@ import {
     getMCCForDisplay,
     getMCCGroup,
     getMerchant,
-    getDisplayMerchantOrDescription,
     getMerchantOrDescription,
     getOriginalAmount,
     getOriginalAmountForDisplay,
@@ -5860,7 +5860,7 @@ function getTransactionReportName({
 
     const amount = getTransactionAmount(displayTransaction, isFromExpenseReport, displayTransaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID) ?? 0;
     const formattedAmount = convertToDisplayString(amount, getCurrency(displayTransaction)) ?? '';
-    const comment = getDisplayMerchantOrDescription(displayTransaction, preferredLocale);
+    const comment = getDisplayMerchant(displayTransaction, getMerchantOrDescription(displayTransaction), preferredLocale);
     return translate('iou.threadExpenseReportName', formattedAmount, Parser.htmlToText(comment));
 }
 
@@ -5945,7 +5945,7 @@ function getReportPreviewMessage(
 
             const amount = getTransactionAmount(linkedTransaction, !isEmptyObject(report) && isExpenseReport(report), linkedTransaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID) ?? 0;
             const formattedAmount = convertToDisplayString(amount, getCurrency(linkedTransaction)) ?? '';
-            return translate('iou.didSplitAmount', formattedAmount, getDisplayMerchantOrDescription(linkedTransaction, preferredLocale));
+            return translate('iou.didSplitAmount', formattedAmount, getDisplayMerchant(linkedTransaction, getMerchantOrDescription(linkedTransaction), preferredLocale));
         }
     }
 
@@ -5978,7 +5978,7 @@ function getReportPreviewMessage(
             const amount = getTransactionAmount(linkedTransaction, !isEmptyObject(report) && isExpenseReport(report), linkedTransaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID) ?? 0;
             const formattedAmount = convertToDisplayString(amount, getCurrency(linkedTransaction)) ?? '';
 
-            const merchantOrComment = getDisplayMerchantOrDescription(linkedTransaction, preferredLocale);
+            const merchantOrComment = getDisplayMerchant(linkedTransaction, getMerchantOrDescription(linkedTransaction), preferredLocale);
 
             return translate('iou.trackedAmount', formattedAmount, merchantOrComment);
         }
@@ -6088,7 +6088,7 @@ function getReportPreviewMessage(
         linkedTransaction = getLinkedTransaction(iouReportAction);
     }
 
-    let comment = !isEmptyObject(linkedTransaction) ? getDisplayMerchantOrDescription(linkedTransaction, preferredLocale) : undefined;
+    let comment = !isEmptyObject(linkedTransaction) ? getDisplayMerchant(linkedTransaction, getMerchantOrDescription(linkedTransaction), preferredLocale) : undefined;
     if (!isEmptyObject(originalReportAction) && isReportPreviewAction(originalReportAction) && getNumberOfMoneyRequests(originalReportAction) !== 1) {
         comment = undefined;
     }
@@ -11454,7 +11454,7 @@ function getIOUReportActionDisplayMessage(
     } else {
         translationKey = 'iou.expenseAmount';
     }
-    return translate(translationKey, formattedAmount, getDisplayMerchantOrDescription(transaction, preferredLocale));
+    return translate(translationKey, formattedAmount, getDisplayMerchant(transaction, getMerchantOrDescription(transaction), preferredLocale));
 }
 
 /**

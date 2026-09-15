@@ -13,6 +13,7 @@ import CONST from '@src/CONST';
 import type {StyleProp, ViewStyle} from 'react-native';
 
 import {addMonths, addYears, format, isSameDay, parseISO, setDate, setMonth, setYear, startOfDay, subMonths, subYears} from 'date-fns';
+import {Str} from 'expensify-common';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import Animated, {useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
@@ -216,7 +217,7 @@ function CalendarPicker({
         });
     };
 
-    const monthNames = DateUtils.getMonthNames(preferredLocale);
+    const monthNames = DateUtils.getMonthNames(preferredLocale).map((month) => Str.UCFirst(month));
     // Narrow labels fit the 7-column grid, keyed by weekday number since narrow labels can repeat.
     const weekStartsOn = DateUtils.getWeekStartsOn(preferredLocale);
     const daysOfWeek = DateUtils.getDaysOfWeekNarrow(preferredLocale).map((label, offset) => ({label, weekdayNumber: (weekStartsOn + offset) % 7}));

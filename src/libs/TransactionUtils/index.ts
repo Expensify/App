@@ -19,6 +19,7 @@ import {toLocaleDigit} from '@libs/LocaleDigitUtils';
 import {translateLocal} from '@libs/Localize';
 import Log from '@libs/Log';
 import {rand64, roundToTwoDecimalPlaces} from '@libs/NumberUtils';
+import {getDisplayMerchant} from '@libs/PerDiemMerchantUtils';
 import {
     canSubmitPerDiemExpenseFromWorkspace,
     getCommaSeparatedTagNameWithSanitizedColons,
@@ -1496,45 +1497,6 @@ function getMerchant(transaction: OnyxInputOrEntry<Transaction>): string {
 
 function getMerchantOrDescription(transaction: OnyxEntry<Transaction>) {
     return !isMerchantMissing(transaction) ? getMerchant(transaction) : getDescription(transaction);
-}
-
-/** The reader's copy. Never for a message that gets stored: a persisted one has to read the same for everyone, which is what {@link getMerchantOrDescription} returns. */
-function getDisplayMerchantOrDescription(transaction: OnyxEntry<Transaction>, locale: Locale): string {
-    return !isMerchantMissing(transaction) ? getDisplayMerchant(transaction, getMerchant(transaction), locale) : getDescription(transaction);
-}
-
-function getPerDiemDateRange(transaction: OnyxEntry<Transaction>): {start: Date; end: Date} | undefined {
-    const {start, end} = transaction?.comment?.customUnit?.attributes?.dates ?? {start: '', end: ''};
-    return start && end ? {start: DateUtils.toLocalDate(start), end: DateUtils.toLocalDate(end)} : undefined;
-}
-
-/**
- * The destination, or '' when the merchant does not end in the range generated for the transaction's dates. Every writer has
- * used `<destination>, <MMM d, yyyy> - <MMM d, yyyy>`, in enUS now and in its own language before, so only the day and year
- * numbers are compared, and a merchant edited since or written for other dates is left alone rather than cut at a guessed comma.
- */
-function getPerDiemDestination(transaction: OnyxEntry<Transaction>, merchant: string): string {
-    const range = getPerDiemDateRange(transaction);
-    const generatedRange = range && new RegExp(`^(.+), [^,]+ ${range.start.getDate()}, ${range.start.getFullYear()} - [^,]+ ${range.end.getDate()}, ${range.end.getFullYear()}$`, 'u');
-    return generatedRange?.exec(merchant)?.[1] ?? '';
-}
-
-/** The reader's copy of the range, or the stored merchant when the transaction carries no valid dates to rebuild it from. */
-function getPerDiemDates(transaction: OnyxEntry<Transaction>, merchant: string, locale: Locale): string {
-    const range = getPerDiemDateRange(transaction);
-    const startLabel = range ? DateUtils.formatToMediumDate(range.start, locale) : '';
-    const endLabel = range ? DateUtils.formatToMediumDate(range.end, locale) : '';
-    return startLabel && endLabel ? `${startLabel} - ${endLabel}` : merchant;
-}
-
-/** The merchant a reader sees. Per diem persists an enUS wire string so every viewer stores the same value, so the reader's copy is rebuilt from the structured dates. */
-function getDisplayMerchant(transaction: OnyxEntry<Transaction>, merchant: string, locale: Locale): string {
-    if (!isPerDiemRequest(transaction)) {
-        return merchant;
-    }
-    const destination = getPerDiemDestination(transaction, merchant);
-    // No destination also covers missing or invalid dates, whose range could not match.
-    return destination ? `${destination}, ${getPerDiemDates(transaction, merchant, locale)}` : merchant;
 }
 
 /**
@@ -3878,10 +3840,6 @@ export {
     getFormattedAttendees,
     getMerchant,
     getMerchantName,
-    getPerDiemDestination,
-    getPerDiemDates,
-    getDisplayMerchant,
-    getDisplayMerchantOrDescription,
     hasAnyTransactionWithoutRTERViolation,
     getMerchantOrDescription,
     getMCCGroup,

@@ -14,6 +14,7 @@ import Log from '@libs/Log';
 import {validateAmount} from '@libs/MoneyRequestUtils';
 import {buildOptimisticNextStep} from '@libs/NextStepUtils';
 import * as NumberUtils from '@libs/NumberUtils';
+import {getPerDiemMerchant} from '@libs/PerDiemMerchantUtils';
 import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
 import {getPerDiemCustomUnit, getPerDiemRateCustomUnitRate} from '@libs/PolicyUtils';
 import {getReportActionHtml, getReportActionText} from '@libs/ReportActionsUtils';
@@ -177,10 +178,7 @@ function computePerDiemExpenseAmount(customUnit: TransactionCustomUnit) {
     return subRates.reduce((total, subRate) => total + subRate.quantity * subRate.rate, 0);
 }
 
-/**
- * Persisted wire value that consumers parse positionally on `', '`. The range stays enUS-pinned because `'MMM d, yyyy'`
- * is the only shape guaranteeing that comma count in every language. Localized rendering reads `attributes.dates`.
- */
+/** Persisted in English so it reads the same for every viewer. */
 function computePerDiemExpenseMerchant(customUnit: TransactionCustomUnit, policy: OnyxEntry<OnyxTypes.Policy>) {
     if (!customUnit.customUnitRateID) {
         return '';
@@ -193,14 +191,14 @@ function computePerDiemExpenseMerchant(customUnit: TransactionCustomUnit, policy
     if (!startDate || !endDate) {
         return locationName;
     }
-    // Hermes reads the space-separated wire timestamps in `attributes.dates` as Invalid Date, which date-fns throws on, so the location alone beats losing the submit.
+    // Hermes reads the space-separated wire timestamps in `attributes.dates` as Invalid Date, which no range can be written from, so the location alone beats losing the submit.
     const start = DateUtils.toLocalDate(startDate);
     const end = DateUtils.toLocalDate(endDate);
     if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) {
         Log.warn('[PerDiem] unparsable expense dates; the merchant will carry the location only', {startDate, endDate});
         return locationName;
     }
-    return `${locationName}, ${DateUtils.getStablePerDiemMerchantDateRange(start, end)}`;
+    return getPerDiemMerchant(locationName, start, end);
 }
 
 function isValidPerDiemExpenseAmount(customUnit: TransactionCustomUnit, decimals: number) {

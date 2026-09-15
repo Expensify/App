@@ -594,6 +594,14 @@ describe('DateUtils', () => {
         );
     });
 
+    describe('getMonthNames / getFilteredMonthItems', () => {
+        it('keeps a month as written inside a sentence and capitalizes it only as a picker label', () => {
+            const spanishMonths = DateUtils.getMonthNames(CONST.LOCALES.ES);
+            expect(spanishMonths.at(0)).toBe('enero');
+            expect(DateUtils.getFilteredMonthItems(spanishMonths, 0).at(0)?.text).toBe('Enero');
+        });
+    });
+
     describe('getWeekStartsOn / getWeekEndsOn', () => {
         it.each([
             ['en', 1, 0],
@@ -618,9 +626,7 @@ describe('DateUtils', () => {
         describe('CLDR parity', () => {
             it('the week-start table reproduces Intl.Locale.getWeekInfo for every supported locale', () => {
                 const probe = new Intl.Locale(CONST.LOCALES.EN);
-                if (typeof probe.getWeekInfo !== 'function') {
-                    return;
-                }
+                expect(typeof probe.getWeekInfo).toBe('function');
                 for (const locale of Object.values(CONST.LOCALES)) {
                     // `en` carries a product override, asserted on its own below.
                     if (locale === CONST.LOCALES.DEFAULT) {
@@ -634,9 +640,7 @@ describe('DateUtils', () => {
 
             it('pins en to Monday, deliberately against CLDR', () => {
                 const probe = new Intl.Locale(CONST.LOCALES.EN);
-                if (typeof probe.getWeekInfo !== 'function') {
-                    return;
-                }
+                expect(typeof probe.getWeekInfo).toBe('function');
                 const weekInfo = probe.getWeekInfo();
                 expect(weekInfo.firstDay === 7 ? 0 : weekInfo.firstDay).toBe(0);
                 expect(DateUtils.getWeekStartsOn(CONST.LOCALES.EN)).toBe(1);
@@ -1065,17 +1069,6 @@ describe('DateUtils', () => {
         it('passes a Date through untouched', () => {
             const date = new Date(2025, 6, 9);
             expect(DateUtils.toLocalDate(date)).toBe(date);
-        });
-    });
-
-    describe('getStablePerDiemMerchantDateRange is a wire contract, not a display format', () => {
-        it('stays enUS-pinned under a non-English locale so the comma count consumers rely on never moves', async () => {
-            await IntlStore.load(CONST.LOCALES.ES);
-            const range = DateUtils.getStablePerDiemMerchantDateRange(new Date(2026, 0, 5), new Date(2026, 0, 8));
-            expect(range).toBe('Jan 5, 2026 - Jan 8, 2026');
-            // PerDiemEReceipt splits the merchant on ', ' and takes the last three parts as the range.
-            expect(`Berlin, ${range}`.split(', ').length).toBe(4);
-            await IntlStore.load(LOCALE);
         });
     });
 

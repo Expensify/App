@@ -7,8 +7,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {convertAmountToDisplayString} from '@libs/CurrencyUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import {getPerDiemDisplayParts} from '@libs/PerDiemMerchantUtils';
 import {getTransactionDetails} from '@libs/ReportUtils';
-import {getPerDiemDates, getPerDiemDestination} from '@libs/TransactionUtils';
 
 import variables from '@styles/variables';
 
@@ -50,8 +50,9 @@ function PerDiemEReceipt({transactionID}: PerDiemEReceiptProps) {
 
     const {amount: transactionAmount, currency: transactionCurrency, merchant: transactionMerchant} = getTransactionDetails(transaction) ?? {};
     const ratesDescription = computeDefaultPerDiemExpenseRates(transaction?.comment?.customUnit ?? {}, transactionCurrency ?? '');
-    const datesDescription = getPerDiemDates(transaction, transactionMerchant ?? '', preferredLocale);
-    const destination = getPerDiemDestination(transaction, transactionMerchant ?? '');
+    const perDiemParts = getPerDiemDisplayParts(transaction, transactionMerchant ?? '', preferredLocale);
+    const datesDescription = perDiemParts?.dates ?? transactionMerchant ?? '';
+    const destination = perDiemParts?.destination ?? '';
     const formattedAmount = convertToDisplayStringWithoutCurrency(transactionAmount ?? 0, transactionCurrency);
     const currency = getCurrencySymbol(transactionCurrency ?? '');
 
