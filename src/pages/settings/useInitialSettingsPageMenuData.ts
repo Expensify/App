@@ -1,8 +1,6 @@
 /**
  * Builds the Account and General menu section data shown on the Initial Settings page.
  */
-import {ModalActions} from '@components/Modal/Global/ModalContext';
-
 import useCardFeedErrors from '@hooks/useCardFeedErrors';
 import useConfirmModal from '@hooks/useConfirmModal';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
@@ -15,24 +13,20 @@ import usePrivateSubscription from '@hooks/usePrivateSubscription';
 
 import {resetExitSurveyForm} from '@libs/actions/ExitSurvey';
 import {closeReactNativeApp} from '@libs/actions/HybridApp';
+import {signOutImmediately, signOutInteractively} from '@libs/actions/InteractiveSignOut';
 import {hasPartiallySetupBankAccount, hasPersonalBankAccountMissingInfo} from '@libs/BankAccountUtils';
 import {hasPendingExpensifyCardAction, hasVirtualExpensifyCardMissingPersonalDetails} from '@libs/CardUtils';
-import {showPermissionErrorAlert} from '@libs/fileDownload/FileUtils';
-import Log from '@libs/Log';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
-import {getSaveablePendingReceiptRequests, saveReceiptsToGallery} from '@libs/savePendingReceiptsToGallery';
 import {getFreeTrialText, hasSubscriptionRedDotError} from '@libs/SubscriptionUtils';
 import {shouldHideOldAppRedirect} from '@libs/TryNewDotUtils';
 import {expensifyLoginsSelector, getProfilePageBrickRoadIndicator, hasDeviceManagementError} from '@libs/UserUtils';
 
 import useTimeSensitiveHomeAddress from '@pages/home/TimeSensitiveSection/hooks/useTimeSensitiveHomeAddress';
-import {BACKGROUND_LOCATION_TRACKING_TASK_NAME} from '@pages/iou/request/step/IOURequestStepDistanceGPS/const';
-import {stopGpsTripNotification} from '@pages/iou/request/step/IOURequestStepDistanceGPS/GPSNotifications';
 
 import {openExternalLink, openOldDotLink} from '@userActions/Link';
 import {hasPaymentMethodError} from '@userActions/PaymentMethods';
-import {hasStashedSession, isSupportAuthToken, signOutAndRedirectToSignIn} from '@userActions/Session';
+import {hasStashedSession, isSupportAuthToken} from '@userActions/Session';
 
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
@@ -48,7 +42,6 @@ import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import type {ValueOf} from 'type-fest';
 
 import {differenceInDays} from 'date-fns';
-import {stopLocationUpdatesAsync} from 'expo-location';
 
 import type {MenuData, MenuSection} from './useSettingsNavigationMenuData';
 
@@ -127,105 +120,18 @@ function useInitialSettingsPageMenuData(currentUserPersonalDetails: CurrentUserP
     }
 
     const {showConfirmModal} = useConfirmModal();
-    const confirmModalTitle = isTrackingGPS ? translate('gps.signOutWarningTripInProgress.title') : translate('common.areYouSure');
-    const confirmModalPrompt = isTrackingGPS ? translate('gps.signOutWarningTripInProgress.prompt') : translate('initialSettingsPage.signOutConfirmationText');
-    const confirmModalConfirmText = isTrackingGPS ? translate('gps.signOutWarningTripInProgress.confirm') : translate('initialSettingsPage.signOut');
-
-    const showSignOutModal = () => {
-        return showConfirmModal({
-            title: confirmModalTitle,
-            prompt: confirmModalPrompt,
-            confirmText: confirmModalConfirmText,
-            cancelText: translate('common.cancel'),
-            shouldShowCancelButton: true,
-            buttonVariant: CONST.BUTTON_VARIANT.DANGER,
-        });
-    };
-
-    const showSaveReceiptsModal = (pendingReceiptCount: number) => {
-        return showConfirmModal({
-            title: translate('initialSettingsPage.saveReceiptsConfirmation.title'),
-            prompt: translate('initialSettingsPage.saveReceiptsConfirmation.prompt', {
-                count: pendingReceiptCount,
-            }),
-            confirmText: translate('initialSettingsPage.saveReceiptsConfirmation.confirm'),
-            cancelText: translate('common.cancel'),
-            shouldShowCancelButton: true,
-        });
-    };
-
-    // Combined modal for the offline case: warns about losing offline changes and offers to save the pending receipts, so the user is not shown two back-to-back prompts.
-    const showSaveReceiptsAndSignOutModal = (pendingReceiptCount: number) => {
-        return showConfirmModal({
-            title: translate('initialSettingsPage.saveReceiptsAndSignOutConfirmation.title'),
-            prompt: translate('initialSettingsPage.saveReceiptsAndSignOutConfirmation.prompt', {
-                count: pendingReceiptCount,
-            }),
-            confirmText: translate('initialSettingsPage.saveReceiptsAndSignOutConfirmation.confirm'),
-            cancelText: translate('common.cancel'),
-            shouldShowCancelButton: true,
-            buttonVariant: CONST.BUTTON_VARIANT.DANGER,
-        });
-    };
-
-    // Save must complete before the forced-signout branch dispatches `Onyx.clear`, which wipes the persisted queue that holds these local file paths.
-    const saveReceipts = async (saveableReceipts: ReturnType<typeof getSaveablePendingReceiptRequests>) => {
-        try {
-            const {savedCount, failedCount, permissionDenied} = await saveReceiptsToGallery(saveableReceipts);
-            Log.info('[Receipt] Saved pending receipts to gallery before sign-out', false, {savedCount, failedCount, permissionDenied});
-            // When the OS denied gallery access the receipts could not be saved. Point the user to Settings with the same alert the manual download flow uses, then let sign-out proceed.
-            if (permissionDenied) {
-                showPermissionErrorAlert(translate);
-            }
-        } catch (error) {
-            Log.alert('[Receipt] Unexpected rejection from saveReceiptsToGallery; sign-out continued', {error});
-        }
-    };
 
     const signOut = async (shouldForceSignout = false) => {
-        // Forced sign-out (expired session, SAML re-auth) must be non-interactive: it must not touch the gallery flow, which can trigger OS permission prompts and delay the redirect.
         if (shouldForceSignout) {
-            return signOutAndRedirectToSignIn();
+            return signOutImmediately();
         }
 
-        // `getSaveablePendingReceiptRequests` is platform-split (web returns `[]`) and image-filtered so we do not promise a save the native gallery API can not deliver.
-        const saveableReceipts = getSaveablePendingReceiptRequests();
-        const shouldWarnBeforeSignOut = network.isOffline || isTrackingGPS;
-        // Offline + receipts is the common case; merge the offline warning and the save-receipts prompt into a single modal. GPS keeps its own warning, so it falls through to the two-step path below.
-        const isOfflineReceiptsCase = network.isOffline && !isTrackingGPS && saveableReceipts.length > 0;
-
-        if (!shouldWarnBeforeSignOut && saveableReceipts.length === 0) {
-            return signOutAndRedirectToSignIn();
-        }
-
-        if (isOfflineReceiptsCase) {
-            const result = await showSaveReceiptsAndSignOutModal(saveableReceipts.length);
-            if (result.action !== ModalActions.CONFIRM) {
-                return;
-            }
-            await saveReceipts(saveableReceipts);
-        } else {
-            if (shouldWarnBeforeSignOut) {
-                const result = await showSignOutModal();
-                if (result.action !== ModalActions.CONFIRM) {
-                    return;
-                }
-            }
-
-            if (saveableReceipts.length > 0) {
-                const result = await showSaveReceiptsModal(saveableReceipts.length);
-                if (result.action !== ModalActions.CONFIRM) {
-                    return;
-                }
-                await saveReceipts(saveableReceipts);
-            }
-        }
-
-        if (isTrackingGPS) {
-            stopGpsTripNotification();
-            stopLocationUpdatesAsync(BACKGROUND_LOCATION_TRACKING_TASK_NAME).catch((error) => console.error('[GPS distance request] Failed to stop location tracking', error));
-        }
-        signOut(true);
+        return signOutInteractively({
+            translate,
+            isOffline: network.isOffline,
+            isTrackingGPS,
+            showConfirmModal,
+        });
     };
 
     const surveyThresholdInDays = 30;
