@@ -461,4 +461,29 @@ describe('useSearchSnapshot', () => {
         // a fresh array here re-renders the list on every pass
         expect(result.current.data).toBe(result.current.chartData);
     });
+
+    it('caps filteredData to the rendered rows so bulk actions cannot reach unrendered ones', () => {
+        const searchResults = makeSearchResults();
+        mockUseOptimisticSearchTracking.mockReturnValue(trackingReturn(searchResults.data));
+        const rows = Array.from({length: 5}, (_value, index) => ({transactionID: `${index}`, keyForList: `${index}`}));
+        mockGetSections.mockReturnValue([rows, rows.length, false]);
+        // sorted order reverses the section order, so slicing `filteredData` on its own would select the wrong rows
+        mockGetSortedSections.mockReturnValue([...rows].reverse());
+
+        const {result} = renderHook(() =>
+            useSearchSnapshot({
+                queryJSON: makeQueryJSON(),
+                searchResults,
+                newSearchResultKeys: undefined,
+                transactions: undefined,
+                reportActions: undefined,
+                visibleRowLimit: 2,
+            }),
+        );
+
+        expect(result.current.data.map((item) => item.keyForList)).toEqual(['4', '3']);
+        expect(result.current.filteredData).toBe(result.current.data);
+        // uncapped, or the offline reveal would never know there are more cached rows
+        expect(result.current.filteredDataLength).toBe(5);
+    });
 });
