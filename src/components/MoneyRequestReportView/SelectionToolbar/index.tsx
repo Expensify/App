@@ -45,7 +45,7 @@ import {View} from 'react-native';
 import SelectAllCheckbox from './SelectAllCheckbox';
 import SelectionDropdown from './SelectionDropdown';
 
-type SelectionToolbarProps = {
+type SelectionToolbarGateProps = {
     reportID: string;
 
     /** Filtered transactions for this report */
@@ -55,7 +55,12 @@ type SelectionToolbarProps = {
     reportActions: OnyxTypes.ReportAction[];
 };
 
-function SelectionToolbar({reportID, transactions, reportActions}: SelectionToolbarProps) {
+type SelectionToolbarProps = SelectionToolbarGateProps & {
+    /** Whether mobile selection mode is enabled, read once by the gate that mounts this component */
+    isMobileSelectionModeActive: boolean;
+};
+
+function SelectionToolbar({reportID, transactions, reportActions, isMobileSelectionModeActive}: SelectionToolbarProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isOffline} = useNetworkWithOfflineStatus();
@@ -78,7 +83,6 @@ function SelectionToolbar({reportID, transactions, reportActions}: SelectionTool
 
     useFilterSelectedTransactions(transactions, reportID);
 
-    const isMobileSelectionModeEnabled = useMobileSelectionMode();
     const {showConfirmModal} = useConfirmModal();
 
     const [offlineModalVisible, setOfflineModalVisible] = useState(false);
@@ -247,7 +251,7 @@ function SelectionToolbar({reportID, transactions, reportActions}: SelectionTool
                     onAfterDuplicate={() => clearSelectedTransactions(true)}
                 />
             )}
-            {shouldUseNarrowLayout && isMobileSelectionModeEnabled && (
+            {shouldUseNarrowLayout && isMobileSelectionModeActive && (
                 <OfflineWithFeedback pendingAction={reportPendingAction}>
                     <View
                         style={[isInLandscapeMode ? [styles.flexRowReverse, styles.justifyContentBetween, styles.alignItemsCenter, styles.gap6, styles.pb3, styles.ph5] : styles.flexColumn]}
@@ -321,10 +325,10 @@ function SelectionToolbar({reportID, transactions, reportActions}: SelectionTool
     );
 }
 
-function SelectionToolbarGate({reportID, transactions, reportActions}: SelectionToolbarProps) {
+function SelectionToolbarGate({reportID, transactions, reportActions}: SelectionToolbarGateProps) {
     const {selectedTransactionIDs, currentSelectedTransactionReportID} = useSearchSelectionContext();
     const {clearSelectedTransactions, setCurrentSelectedTransactionReportID} = useSearchSelectionActions();
-    const isMobileSelectionModeEnabled = useMobileSelectionMode();
+    const isMobileSelectionModeActive = useMobileSelectionMode();
 
     useFocusEffect(() => {
         if (reportID && currentSelectedTransactionReportID !== reportID && selectedTransactionIDs.length > 0) {
@@ -334,7 +338,7 @@ function SelectionToolbarGate({reportID, transactions, reportActions}: Selection
         setCurrentSelectedTransactionReportID(reportID);
     });
 
-    if (selectedTransactionIDs.length === 0 && !isMobileSelectionModeEnabled) {
+    if (selectedTransactionIDs.length === 0 && !isMobileSelectionModeActive) {
         return null;
     }
 
@@ -343,6 +347,7 @@ function SelectionToolbarGate({reportID, transactions, reportActions}: Selection
             reportID={reportID}
             transactions={transactions}
             reportActions={reportActions}
+            isMobileSelectionModeActive={isMobileSelectionModeActive}
         />
     );
 }

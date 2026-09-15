@@ -6,7 +6,7 @@ import type {FilterConfig, FilteringMethods, IsItemInFilterCallback} from './mid
 import type {HighlightingMethods} from './middlewares/highlight';
 import type {IsItemInSearchCallback, SearchingMethods} from './middlewares/searching';
 import type {SelectionMethods} from './middlewares/selection';
-import type {CompareItemsCallback, SortingMethods} from './middlewares/sorting';
+import type {CompareItemsCallback, SortingMethods, SortOrder} from './middlewares/sorting';
 
 /**
  * Defines the required minimum shape for each row of data in the table
@@ -221,6 +221,9 @@ type TableProps<DataType extends TableData, ColumnKey extends string = string, F
 
         /** Optional initial column to sort by on mount. */
         initialSortColumn?: ColumnKey;
+
+        /** Optional initial sort order to apply to `initialSortColumn` on mount. Defaults to ascending. */
+        initialSortOrder?: SortOrder;
 
         /** Optional column to force-sort by when the table switches to narrow layout. The wide-layout sorting is restored when leaving narrow layout. */
         narrowLayoutSortColumn?: ColumnKey;

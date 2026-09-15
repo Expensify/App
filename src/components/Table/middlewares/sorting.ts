@@ -61,6 +61,7 @@ type SortingMethods<ColumnKey extends string = string> = {
 type UseSortingProps<T, ColumnKey extends string = string> = {
     compareItems?: CompareItemsCallback<T, ColumnKey>;
     initialSortColumn?: ColumnKey;
+    initialSortOrder?: SortOrder;
     narrowLayoutSortColumn?: ColumnKey;
     shouldUseNarrowTableLayout?: boolean;
 };
@@ -112,12 +113,13 @@ function resolveActiveSorting<ColumnKey extends string = string>(
 function useSorting<T, ColumnKey extends string = string>({
     compareItems,
     initialSortColumn,
+    initialSortOrder = 'asc',
     narrowLayoutSortColumn,
     shouldUseNarrowTableLayout,
 }: UseSortingProps<T, ColumnKey>): UseSortingResult<T, ColumnKey> {
     const [userSorting, setUserSorting] = useState<ActiveSorting<ColumnKey>>({
         columnKey: initialSortColumn,
-        order: 'asc',
+        order: initialSortOrder,
     });
 
     const activeSorting = resolveActiveSorting(shouldUseNarrowTableLayout, narrowLayoutSortColumn, userSorting);
