@@ -29,7 +29,7 @@ jest.mock('@components/withCurrentUserPersonalDetails', () => {
     const ReactActual: typeof React = jest.requireActual('react');
     return {
         __esModule: true,
-        default: (Component: React.ComponentType<{currentUserPersonalDetails: typeof mockPersonalDetails}>) => (props: object) =>
+        default: (Component: React.ComponentType<{currentUserPersonalDetails: typeof mockPersonalDetails}>) => (props: Record<string, unknown>) =>
             ReactActual.createElement(Component, {...props, currentUserPersonalDetails: mockPersonalDetails}),
     };
 });
