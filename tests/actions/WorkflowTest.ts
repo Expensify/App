@@ -6,13 +6,16 @@ import {generatePolicyID} from '@src/libs/actions/Policy/Policy';
 import * as Task from '@src/libs/actions/Task';
 import {
     clearApprovalWorkflowApprover,
+    clearApprovalWorkflowFastEdit,
     createApprovalWorkflow,
     createApprovalWorkflowRules,
     removeApprovalWorkflow,
     removeApprovalWorkflowRules,
+    selectApprovalWorkflowForEdit,
     setApprovalWorkflowApprover,
     updateApprovalWorkflow,
     updateApprovalWorkflowRules,
+    validateFastEditApprovalWorkflow,
 } from '@src/libs/actions/Workflow';
 import {calculateApprovers, convertApprovalWorkflowRulesToWorkflows, extractSubmitterEmails, getApprovalWorkflowRulesForPolicy} from '@src/libs/WorkflowUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -169,6 +172,136 @@ describe('actions/Workflow', () => {
 
             await mockFetch.resume();
             await waitForBatchedUpdates();
+        });
+    });
+
+    describe('selectApprovalWorkflowForEdit', () => {
+        it('should store the original members so a fast edit can work out who was removed', async () => {
+            const members = [
+                {email: employee1Email, displayName: 'Employee 1'},
+                {email: employee2Email, displayName: 'Employee 2'},
+            ];
+
+            selectApprovalWorkflowForEdit({
+                workflow: {members, approvers: [{email: ownerEmail, displayName: 'Owner'}], isDefault: false},
+                defaultWorkflowMembers: [],
+                usedApproverEmails: [],
+                isFastEdit: true,
+            });
+            await waitForBatchedUpdates();
+
+            const approvalWorkflow = await getApprovalWorkflowState();
+            expect(approvalWorkflow?.originalMembers).toEqual(members);
+            expect(approvalWorkflow?.isFastEdit).toBe(true);
+            expect(approvalWorkflow?.action).toBe(CONST.APPROVAL_WORKFLOW.ACTION.EDIT);
+        });
+
+        it('should not mark an edit-page session as a fast edit', async () => {
+            selectApprovalWorkflowForEdit({
+                workflow: {members: [{email: employee1Email, displayName: 'Employee 1'}], approvers: [{email: ownerEmail, displayName: 'Owner'}], isDefault: false},
+                defaultWorkflowMembers: [],
+                usedApproverEmails: [],
+            });
+            await waitForBatchedUpdates();
+
+            const approvalWorkflow = await getApprovalWorkflowState();
+            expect(approvalWorkflow?.isFastEdit).toBeUndefined();
+        });
+    });
+
+    describe('clearApprovalWorkflowFastEdit', () => {
+        it('should hand a fast-edit draft back to the edit page without disturbing the rest of it', async () => {
+            const members = [{email: employee1Email, displayName: 'Employee 1'}];
+
+            selectApprovalWorkflowForEdit({
+                workflow: {members, approvers: [{email: ownerEmail, displayName: 'Owner'}], isDefault: false},
+                defaultWorkflowMembers: [],
+                usedApproverEmails: [],
+                isFastEdit: true,
+            });
+            await waitForBatchedUpdates();
+
+            clearApprovalWorkflowFastEdit();
+            await waitForBatchedUpdates();
+
+            const approvalWorkflow = await getApprovalWorkflowState();
+            expect(approvalWorkflow?.isFastEdit).toBe(false);
+            // The draft itself must survive — the edit page owns it from here and still needs the baseline.
+            expect(approvalWorkflow?.members).toEqual(members);
+            expect(approvalWorkflow?.originalMembers).toEqual(members);
+            expect(approvalWorkflow?.action).toBe(CONST.APPROVAL_WORKFLOW.ACTION.EDIT);
+        });
+    });
+
+    describe('validateFastEditApprovalWorkflow', () => {
+        it('should ignore approver-level state the expenses-from page cannot fix', async () => {
+            const currentApprovalWorkflow: ApprovalWorkflowOnyx = {
+                ...INITIAL_APPROVAL_WORKFLOW,
+                members: [{email: employee1Email, displayName: 'Employee 1'}],
+                // Both of these fail the whole-workflow validateApprovalWorkflow, and neither has a field on the
+                // expenses-from page, so blocking a fast edit on them would be a dead end for the admin.
+                approvers: [{email: ownerEmail, displayName: 'Owner', isCircularReference: true, approvalLimit: 100}],
+            };
+            Onyx.merge(ONYXKEYS.APPROVAL_WORKFLOW, currentApprovalWorkflow);
+            await waitForBatchedUpdates();
+
+            expect(validateFastEditApprovalWorkflow(currentApprovalWorkflow)).toBe(true);
+            await waitForBatchedUpdates();
+
+            const approvalWorkflow = await getApprovalWorkflowState();
+            expect(approvalWorkflow?.errors).toBeUndefined();
+        });
+
+        it('should reject an empty member list on a non-default workflow and record a translatable error', async () => {
+            const currentApprovalWorkflow: ApprovalWorkflowOnyx = {
+                ...INITIAL_APPROVAL_WORKFLOW,
+                members: [],
+                approvers: [{email: ownerEmail, displayName: 'Owner'}],
+                isDefault: false,
+            };
+            Onyx.merge(ONYXKEYS.APPROVAL_WORKFLOW, currentApprovalWorkflow);
+            await waitForBatchedUpdates();
+
+            expect(validateFastEditApprovalWorkflow(currentApprovalWorkflow)).toBe(false);
+            await waitForBatchedUpdates();
+
+            const approvalWorkflow = await getApprovalWorkflowState();
+            expect(approvalWorkflow?.errors).toEqual({members: 'common.error.fieldRequired'});
+        });
+
+        it('should still reject a missing approver slot, which the save would write back truncated', async () => {
+            const currentApprovalWorkflow: ApprovalWorkflowOnyx = {
+                ...INITIAL_APPROVAL_WORKFLOW,
+                members: [{email: employee1Email, displayName: 'Employee 1'}],
+                approvers: [{email: ownerEmail, displayName: 'Owner'}, undefined],
+            };
+            Onyx.merge(ONYXKEYS.APPROVAL_WORKFLOW, currentApprovalWorkflow);
+            await waitForBatchedUpdates();
+
+            expect(validateFastEditApprovalWorkflow(currentApprovalWorkflow)).toBe(false);
+            await waitForBatchedUpdates();
+
+            // Asserted key by key rather than with an object literal, whose `approver-1` property name would
+            // trip @typescript-eslint/naming-convention.
+            const approvalWorkflow = await getApprovalWorkflowState();
+            expect(Object.keys(approvalWorkflow?.errors ?? {})).toEqual(['approver-1']);
+            expect(approvalWorkflow?.errors?.['approver-1']).toBe('common.error.fieldRequired');
+        });
+
+        it('should clear a previous run of errors once the workflow validates', async () => {
+            const currentApprovalWorkflow: ApprovalWorkflowOnyx = {
+                ...INITIAL_APPROVAL_WORKFLOW,
+                members: [{email: employee1Email, displayName: 'Employee 1'}],
+                approvers: [{email: ownerEmail, displayName: 'Owner'}],
+            };
+            Onyx.merge(ONYXKEYS.APPROVAL_WORKFLOW, {...currentApprovalWorkflow, errors: {members: 'common.error.fieldRequired'}});
+            await waitForBatchedUpdates();
+
+            expect(validateFastEditApprovalWorkflow(currentApprovalWorkflow)).toBe(true);
+            await waitForBatchedUpdates();
+
+            const approvalWorkflow = await getApprovalWorkflowState();
+            expect(approvalWorkflow?.errors).toBeUndefined();
         });
     });
 
@@ -775,6 +908,56 @@ describe('actions/Workflow', () => {
             // Then approvalMode should be BASIC because no forwardsTo chain remains
             const updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`);
             expect(updatedPolicy?.approvalMode).toBe(CONST.POLICY.APPROVAL_MODE.BASIC);
+
+            await mockFetch.resume();
+            await waitForBatchedUpdates();
+        });
+
+        it('should leave the draft alone when the caller opts out of clearing it', async () => {
+            mockFetch.pause();
+
+            // A deferred fast-edit save opts out once a newer session has seeded a draft, so the optimistic data
+            // must not null APPROVAL_WORKFLOW out from under the screen that is editing it. The default (clearing)
+            // is covered by the surrounding tests.
+            const policy = createMock<Policy>({
+                id: '123456789',
+                name: 'Test Workspace',
+                role: 'admin',
+                type: 'corporate',
+                owner: ownerEmail,
+                approver: ownerEmail,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+                employeeList: {
+                    [ownerEmail]: {email: ownerEmail, role: 'admin', submitsTo: ownerEmail},
+                    [employee1Email]: {email: employee1Email, role: 'user', submitsTo: ownerEmail},
+                    [employee2Email]: {email: employee2Email, role: 'user', submitsTo: ownerEmail},
+                },
+            });
+
+            const members = [{email: employee1Email, displayName: employee1Email}];
+            const approvers = [{email: employee2Email, displayName: employee2Email}];
+            const approvalWorkflow = {
+                members,
+                approvers,
+                availableMembers: [],
+                usedApproverEmails: [],
+                isDefault: false,
+                action: 'update',
+                originalApprovers: approvers,
+            };
+            // Stands in for the draft a newer edit session has already seeded.
+            const seededDraft: ApprovalWorkflowOnyx = {...INITIAL_APPROVAL_WORKFLOW, members, approvers};
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+            await Onyx.merge(ONYXKEYS.SESSION, {authToken: '123456789'});
+            await Onyx.set(ONYXKEYS.APPROVAL_WORKFLOW, seededDraft);
+            await waitForBatchedUpdates();
+
+            updateApprovalWorkflow(approvalWorkflow, [], [], policy, false);
+            await waitForBatchedUpdates();
+
+            const draft = await getApprovalWorkflowState();
+            expect(draft?.members).toEqual(members);
 
             await mockFetch.resume();
             await waitForBatchedUpdates();
