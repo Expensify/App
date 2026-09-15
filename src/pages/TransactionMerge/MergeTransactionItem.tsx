@@ -1,4 +1,3 @@
-import {getButtonRole} from '@components/Button/utils';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {PressableWithFeedback} from '@components/Pressable';
 import type {TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
@@ -48,7 +47,7 @@ function MergeTransactionItem<TItem extends ListItem>({item, isFocused, showTool
                 }}
                 disabled={isDisabled && !item.isSelected}
                 accessibilityLabel={item.text ?? ''}
-                role={getButtonRole(true)}
+                role={CONST.ROLE.BUTTON}
                 isNested
                 onMouseDown={(e) => e.preventDefault()}
                 hoverStyle={[!item.isDisabled && styles.hoveredComponentBG]}

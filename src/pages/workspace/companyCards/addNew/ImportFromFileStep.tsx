@@ -1,4 +1,5 @@
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
+import ButtonDisabledWhenOffline from '@components/Button/composed/ButtonDisabledWhenOffline';
 import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItem from '@components/MenuItem';
@@ -11,7 +12,6 @@ import Text from '@components/Text';
 import useEnvironment from '@hooks/useEnvironment';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -55,7 +55,6 @@ function ImportFromFileStep() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {environmentURL} = useEnvironment();
-    const {isOffline} = useNetwork();
     const icons = useMemoizedLazyExpensifyIcons(['Download']);
     const route = useRoute<PlatformStackRouteProp<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_COMPANY_CARDS_ADD_NEW>>();
     const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD);
@@ -154,15 +153,14 @@ function ImportFromFileStep() {
                         <Button.Icon src={icons.Download} />
                         <Button.Text>{translate('workspace.companyCards.addNewCard.downloadTemplate')}</Button.Text>
                     </Button>
-                    <Button
-                        isDisabled={isOffline}
+                    <ButtonDisabledWhenOffline
                         variant={CONST.BUTTON_VARIANT.SUCCESS}
                         size={CONST.BUTTON_SIZE.LARGE}
                         style={[styles.w100]}
                         onPress={navigateToImport}
                     >
                         <Button.Text>{translate('common.next')}</Button.Text>
-                    </Button>
+                    </ButtonDisabledWhenOffline>
                 </View>
             </ScrollView>
         </ScreenWrapper>

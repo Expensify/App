@@ -28,7 +28,7 @@ function MenuItemBrickRoadIndicator({status}: MenuItemBrickRoadIndicatorProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    // The dot means the row needs attention — tell the row so screen readers announce it after the label
+    // The dot means the row needs attention. Tell the row so screen readers announce it after the label
     useMenuItemAccessibilityAnnouncement(MENU_ITEM_ACCESSIBILITY_ANNOUNCEMENT.REVIEW_REQUIRED, translate('common.yourReviewIsRequired'));
 
     return (

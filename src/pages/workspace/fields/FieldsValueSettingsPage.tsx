@@ -72,7 +72,7 @@ function FieldsValueSettingsPage({policy, policyID, valueIndex, reportFieldID, i
     }, [formDraft?.disabledListValues, formDraft?.listValues, policy?.fieldList, reportFieldID, valueIndex]);
 
     const reportField = reportFieldID ? policy?.fieldList?.[getReportFieldKey(reportFieldID)] : undefined;
-    const isImportedReportField = isReportFieldImportedFromIntegration(reportField);
+    const isImportedReportField = isReportFieldImportedFromIntegration(reportField, policy);
     const oldValueName = usePrevious(currentValueName);
     const expectedTarget = isInvoicePage ? CONST.REPORT_FIELD_TARGETS.INVOICE : CONST.REPORT_FIELD_TARGETS.EXPENSE;
     const isReportFieldInvalid = !!reportFieldID && (!reportField || !isReportFieldTargetValid(reportField, expectedTarget));

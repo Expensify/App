@@ -116,6 +116,7 @@ function useReportSelectionActions({
     const {removeTransaction} = useSearchSelectionActions();
     const reports = useChangeTransactionsReportReports(transaction ? [transaction] : [], undefined);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const delegateAccountID = useDelegateAccountID();
     const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
 
@@ -212,6 +213,7 @@ function useReportSelectionActions({
                         transactions: targetTransactions,
                         allTransactionViolation: transactionViolations,
                         reports: reportsForCall,
+                        rules,
                         isTrackIntentUser,
                         personalPolicyOutputCurrency: allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${personalPolicyID}`]?.outputCurrency,
                         selfDMReportActions,
@@ -242,6 +244,7 @@ function useReportSelectionActions({
                     transactions: targetTransactions,
                     allTransactionViolation: transactionViolations,
                     reports,
+                    rules,
                     isTrackIntentUser,
                     personalPolicyOutputCurrency: allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${personalPolicyID}`]?.outputCurrency,
                     selfDMReportActions,
