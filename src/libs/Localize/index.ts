@@ -1,3 +1,4 @@
+import {registerDerivedIntlCache} from '@libs/IntlFormatterCaches';
 import Log from '@libs/Log';
 import memoize from '@libs/memoize';
 import type {MessageElementBase, MessageTextElement} from '@libs/MessageElement';
@@ -15,6 +16,9 @@ import Onyx from 'react-native-onyx';
 // Current user mail is needed for handling missing translations
 let userEmail = '';
 
+// One warning per locale pair, not per key: the fallback branch runs for every string in the app while a locale loads.
+const warnedFallbackLocalePairs = new Set<string>();
+
 // TODO: Remove this Onyx.connectWithoutView after deprecating translateLocal (#64943) and completing Onyx.connect deprecation - see https://github.com/Expensify/App/issues/66329
 Onyx.connectWithoutView({
     key: ONYXKEYS.SESSION,
@@ -31,11 +35,27 @@ Onyx.connectWithoutView({
 // instance resolves its locale at construction, so one built before that locale's polyfill data has loaded is stuck
 // formatting in English for the lifetime of the app. Going through IntlStore.getCurrentLocale() avoids that, because
 // IntlStore only sets the current locale once every loader for it (translations, date-fns, Intl data) has resolved.
-const createConjunctionListFormat = (locale: Locale): Intl.ListFormat => new Intl.ListFormat(locale, {style: 'long', type: 'conjunction'});
+// Web installs no `ListFormat` polyfill, and it shipped later than every other Intl constructor this app relies on
+// (Firefox 78, Safari 14.1), so it is the one that can be genuinely absent rather than merely short of locale data.
+const createConjunctionListFormat = (locale: Locale): Intl.ListFormat | null => {
+    try {
+        return new Intl.ListFormat(locale, {style: 'long', type: 'conjunction'});
+    } catch (error) {
+        Log.warn('[Localize] Intl.ListFormat unavailable; falling back to a comma-separated list', {locale, error});
+        return null;
+    }
+};
 const memoizedCreateConjunctionListFormat = memoize(createConjunctionListFormat);
 
 const createPluralRules = (locale: Locale): Intl.PluralRules => new Intl.PluralRules(locale);
 const memoizedCreatePluralRules = memoize(createPluralRules);
+
+// Both hold Intl instances that resolve their locale at construction, so one built before that locale's polyfill data
+// landed is stuck on English until the data arrives and drops it.
+registerDerivedIntlCache(() => {
+    memoizedCreateConjunctionListFormat.cache.clear();
+    memoizedCreatePluralRules.cache.clear();
+});
 
 /**
  * Helper function to get the translated string for given
@@ -108,12 +128,21 @@ const memoizedGetTranslatedPhrase = memoize(getTranslatedPhrase, {
 /**
  * Return translated string for given locale and phrase
  *
- * @param [locale] eg 'en', 'es'
+ * @param locale eg 'en', 'es'. Always defined, since LocaleContextProvider and IntlStore.getCurrentLocale guarantee it.
  * @param [parameters] Parameters to supply if the phrase is a template literal.
  */
-function translate<TPath extends TranslationPaths>(locale: Locale | undefined, path: TPath, ...parameters: TranslationParameters<TPath>): string {
-    if (!locale) {
-        // If no language is provided, return the path as is
+function translate<TPath extends TranslationPaths>(locale: Locale, path: TPath, ...parameters: TranslationParameters<TPath>): string {
+    if (!IntlStore.hasLocale(locale)) {
+        // Beats a raw dotted path, but it is the wrong language, so warn: a caller that persists it cannot correct it later.
+        const currentLocale = IntlStore.getCurrentLocale();
+        if (currentLocale !== locale && IntlStore.hasLocale(currentLocale)) {
+            const pair = `${locale}>${currentLocale}`;
+            if (!warnedFallbackLocalePairs.has(pair)) {
+                warnedFallbackLocalePairs.add(pair);
+                Log.warn('[Localize] Translating in a fallback locale because the requested one is not loaded', {requested: locale, used: currentLocale, path});
+            }
+            return translate(currentLocale, path, ...parameters);
+        }
         return Array.isArray(path) ? path.join('.') : path;
     }
 
@@ -122,8 +151,7 @@ function translate<TPath extends TranslationPaths>(locale: Locale | undefined, p
         return translatedPhrase;
     }
 
-    // Phrase is not found in default language, on production and staging log an alert to server
-    // on development throw an error
+    // Locale is loaded but the key genuinely doesn't exist, so alert in prod and staging, throw in dev.
     if (Config.IS_IN_PRODUCTION || Config.IS_IN_STAGING) {
         const phraseString = Array.isArray(path) ? path.join('.') : path;
         Log.alert(`${phraseString} was not found in the ${locale} locale`);
@@ -145,8 +173,11 @@ function translateLocal<TPath extends TranslationPaths>(phrase: TPath, ...parame
     return translate(currentLocale, phrase, ...parameters);
 }
 
-function getPreferredListFormat(): Intl.ListFormat {
-    return memoizedCreateConjunctionListFormat(IntlStore.getCurrentLocale() ?? CONST.LOCALES.DEFAULT);
+/** The separator for runtimes with no `Intl.ListFormat`. Dropping the conjunction is cosmetic, dropping the items is not. */
+const LIST_FALLBACK_SEPARATOR = ', ';
+
+function getPreferredListFormat(): Intl.ListFormat | null {
+    return memoizedCreateConjunctionListFormat(IntlStore.getCurrentLocale());
 }
 
 /**
@@ -154,11 +185,17 @@ function getPreferredListFormat(): Intl.ListFormat {
  */
 function formatList(components: string[]) {
     const listFormat = getPreferredListFormat();
+    if (!listFormat) {
+        return components.join(LIST_FALLBACK_SEPARATOR);
+    }
     return listFormat.format(components);
 }
 
 function formatMessageElementList<E extends MessageElementBase>(elements: readonly E[]): ReadonlyArray<E | MessageTextElement> {
     const listFormat = getPreferredListFormat();
+    if (!listFormat) {
+        return elements.flatMap<E | MessageTextElement>((element, index) => (index === 0 ? [element] : [{kind: 'text', content: LIST_FALLBACK_SEPARATOR}, element]));
+    }
     const parts = listFormat.formatToParts(elements.map((e) => e.content));
     const resultElements: Array<E | MessageTextElement> = [];
 

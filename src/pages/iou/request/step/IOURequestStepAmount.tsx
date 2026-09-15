@@ -73,7 +73,7 @@ function IOURequestStepAmount({
     transaction,
     shouldKeepUserInput = false,
 }: IOURequestStepAmountProps) {
-    const {translate, dateFnsLocale, formatPhoneNumber} = useLocalize();
+    const {translate, preferredLocale, formatPhoneNumber} = useLocalize();
     const {isOffline} = useNetwork();
     const {getCurrencyDecimals, getCurrencySymbol, convertToDisplayString} = useCurrencyListActions();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
@@ -238,7 +238,7 @@ function IOURequestStepAmount({
                   reportAttributesDerived,
                   reportDraft,
                   currentUserAccountID: currentUserPersonalDetails.accountID,
-                  localize: {translate, dateFnsLocale, convertToDisplayString},
+                  localize: {translate, preferredLocale, convertToDisplayString},
                   rules,
               });
     });
@@ -263,7 +263,7 @@ function IOURequestStepAmount({
             getCurrencySymbol,
             convertToDisplayString,
             translate,
-            dateFnsLocale,
+            preferredLocale,
             report,
             transaction,
             splitDraftTransaction,

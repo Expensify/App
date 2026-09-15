@@ -2,6 +2,7 @@ import type IntlPolyfill from './types';
 
 import polyfillListFormat from './polyfillListFormat';
 import polyfillNumberFormat from './polyfillNumberFormat';
+import polyfillRelativeTimeFormat from './polyfillRelativeTimeFormat';
 
 /**
  * Polyfill the Intl API, always performed for native devices.
@@ -22,6 +23,8 @@ const intlPolyfill: IntlPolyfill = () => {
     polyfillNumberFormat();
 
     polyfillListFormat();
+
+    polyfillRelativeTimeFormat();
 };
 
 export default intlPolyfill;

@@ -1,3 +1,4 @@
+import {registerDerivedIntlCache} from '@libs/IntlFormatterCaches';
 import intlPolyfill from '@libs/IntlPolyfill';
 import Log from '@libs/Log';
 import memoize from '@libs/memoize';
@@ -9,6 +10,10 @@ import type Locale from '@src/types/onyx/Locale';
 intlPolyfill();
 
 const MemoizedNumberFormat = memoize(Intl.NumberFormat, {maxSize: 10, monitoringName: 'NumberFormatUtils'});
+
+// An `Intl.NumberFormat` resolves its locale at construction, so one built before that locale's polyfill data landed
+// keeps English grouping and decimal separators until the data arrives and drops it.
+registerDerivedIntlCache(() => MemoizedNumberFormat.cache.clear());
 
 // Tracks malformed currency codes that have already produced a warning in this module, so the
 // safety-net log doesn't fire on every render for the same bad value.

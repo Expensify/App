@@ -31,9 +31,9 @@ type TimeModalPickerProps = {
 
 function TimeModalPicker({value, errorText, label, onInputChange = () => {}, ref}: TimeModalPickerProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {preferredLocale} = useLocalize();
     const [isPickerVisible, setIsPickerVisible] = useState(false);
-    const currentTime = value ? DateUtils.getTime12HourWithTranslatedPeriod(translate, value) : undefined;
+    const currentTime = value ? DateUtils.formatToLocalTime(value, preferredLocale) : undefined;
 
     const hidePickerModal = () => {
         setIsPickerVisible(false);

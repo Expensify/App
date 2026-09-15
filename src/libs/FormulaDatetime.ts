@@ -1,4 +1,4 @@
-import {format as dateFnsFormat} from 'date-fns';
+import CONST from '@src/CONST';
 
 /**
  * Get ordinal suffix for a day (st, nd, rd, th)
@@ -51,20 +51,22 @@ function calculateDayOfYear(date: Date): number {
     return Math.floor((date.getTime() - yearStart.getTime()) / (1000 * 60 * 60 * 24));
 }
 
+/** Every English month and weekday abbreviates to its first three letters, which is why the short forms are sliced. */
+const ABBREVIATION_LENGTH = 3;
+
 /**
- * Get localized month and day names using date-fns
+ * A formula resolves to a name stored on the report and read by everyone who opens it, and RFC 2822 fixes its
+ * abbreviations in English, so neither may follow the language of whoever triggered the computation.
  */
-function getLocalizedNames(date: Date) {
-    // Report title formulas resolve to a name stored on the report and seen by everyone who opens it, so it must not vary
-    // with the language of whoever happened to trigger the computation.
-    /* eslint-disable rulesdir/require-locale-for-localized-date-format */
+function getEnglishNames(date: Date) {
+    const fullMonthName = CONST.DATE.ENGLISH_MONTH_NAMES[date.getMonth()];
+    const fullDayName = CONST.DATE.ENGLISH_DAY_NAMES[date.getDay()];
     return {
-        fullMonthName: dateFnsFormat(date, 'MMMM'),
-        shortMonthName: dateFnsFormat(date, 'MMM'),
-        fullDayName: dateFnsFormat(date, 'EEEE'),
-        shortDayName: dateFnsFormat(date, 'EEE'),
+        fullMonthName,
+        shortMonthName: fullMonthName.slice(0, ABBREVIATION_LENGTH),
+        fullDayName,
+        shortDayName: fullDayName.slice(0, ABBREVIATION_LENGTH),
     };
-    /* eslint-enable rulesdir/require-locale-for-localized-date-format */
 }
 
 /**
@@ -101,7 +103,7 @@ function getUTCTimeComponents(date: Date) {
  * Example: "Thu, 08 Jan 2025 15:30:45 +0000"
  */
 function formatRFC2822(date: Date): string {
-    const {shortDayName, shortMonthName} = getLocalizedNames(date);
+    const {shortDayName, shortMonthName} = getEnglishNames(date);
     const day = date.getDate().toString().padStart(2, '0');
     const year = date.getFullYear();
 
@@ -134,8 +136,7 @@ function createDateTokens(date: Date): Array<{token: string; value: string}> {
     const daysInMonth = new Date(year, month, 0).getDate();
     const weekNumber = calculateISOWeekNumber(date);
 
-    // Get localized names
-    const {fullMonthName, shortMonthName, fullDayName, shortDayName} = getLocalizedNames(date);
+    const {fullMonthName, shortMonthName, fullDayName, shortDayName} = getEnglishNames(date);
 
     // Get time components in UTC timezone (to match Classic/OldDot behavior)
     const {hours, minutes, seconds, hours12, meridiem, meridiemUpperCase} = getUTCTimeComponents(date);

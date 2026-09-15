@@ -159,7 +159,7 @@ function getAppliedDisplays(searchAdvancedFiltersForm: Partial<SearchAdvancedFil
 
 function SearchSavePage() {
     const styles = useThemeStyles();
-    const {translate, localeCompare, dateFnsLocale} = useLocalize();
+    const {translate, localeCompare, preferredLocale} = useLocalize();
     const {convertToDisplayStringWithoutCurrency} = useCurrencyListActions();
     const [searchAdvancedFiltersForm = getEmptyObject<Partial<SearchAdvancedFiltersForm>>()] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
 
@@ -186,7 +186,7 @@ function SearchSavePage() {
         currentDefaultSearchQueryFilterKeys,
         undefined,
         translate,
-        dateFnsLocale,
+        preferredLocale,
         localeCompare,
         convertToDisplayStringWithoutCurrency,
     );

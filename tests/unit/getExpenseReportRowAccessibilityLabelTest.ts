@@ -5,7 +5,7 @@ import IntlStore from '@src/languages/IntlStore';
 
 import {convertToDisplayString, translateLocal} from '../utils/TestHelper';
 
-const deps = {dateFnsLocale: undefined, translate: translateLocal, convertToDisplayString};
+const deps = {translate: translateLocal, convertToDisplayString, preferredLocale: CONST.LOCALES.EN};
 
 describe('getExpenseReportRowAccessibilityLabel', () => {
     beforeAll(() => {

@@ -52,6 +52,7 @@ import initSplitExpense from '@libs/actions/SplitExpenses';
 import {enrichAndSortAttendees, getIsMissingAttendeesViolation} from '@libs/AttendeeUtils';
 import {getBrokenConnectionUrlToFixPersonalCard, getCommercialFeedCardDescription, getCompanyCardDescription} from '@libs/CardUtils';
 import {getDecodedLeafCategoryName, isCategoryMissing} from '@libs/CategoryUtils';
+import DateUtils from '@libs/DateUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {insertTagIntoTransactionTagsString} from '@libs/IOUUtils';
@@ -60,6 +61,7 @@ import {isBillableEnabledOnPolicy, isSingleTransactionReport} from '@libs/MoneyR
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
+import {getDisplayMerchant} from '@libs/PerDiemMerchantUtils';
 import {
     canSubmitPerDiemExpenseFromWorkspace,
     findVendorByID,
@@ -213,7 +215,7 @@ function MoneyRequestView({
     const StyleUtils = useStyleUtils();
     const {isOffline} = useNetwork();
     const {environmentURL} = useEnvironment();
-    const {translate, toLocaleDigit, localeCompare, dateFnsLocale} = useLocalize();
+    const {translate, toLocaleDigit, localeCompare, preferredLocale} = useLocalize();
     const {convertToDisplayString, getCurrencySymbol, getCurrencyDecimals} = useCurrencyListActions();
     const {getReportRHPActiveRoute} = useActiveRoute();
     const {showConfirmModal} = useConfirmModal();
@@ -322,7 +324,7 @@ function MoneyRequestView({
     });
 
     const {
-        created: transactionDate,
+        created: transactionCreated,
         amount: transactionAmount,
         taxAmount: transactionTaxAmount,
         currency: transactionCurrency,
@@ -383,7 +385,9 @@ function MoneyRequestView({
     const selectedPolicyTaxValue = resolvedTaxCode ? policy?.taxRates?.taxes?.[resolvedTaxCode]?.value : undefined;
     const hasTaxValueChanged = taxCode && taxValue !== undefined ? selectedPolicyTaxValue !== taxValue : false;
 
-    const actualTransactionDate = isFromMergeTransaction && updatedTransaction ? getFormattedCreated(updatedTransaction) : transactionDate;
+    const actualTransactionCreated = isFromMergeTransaction && updatedTransaction ? getFormattedCreated(updatedTransaction) : transactionCreated;
+    // An expense date is date-only, so it renders UTC-anchored: a local-time formatter is how the day-shift regressions happened.
+    const actualTransactionDate = DateUtils.formatInUTCToMedium(actualTransactionCreated ?? '', preferredLocale);
     const fallbackTaxRateTitle = transaction?.taxValue;
 
     const isSettled = isSettledReportUtils(moneyRequestReport);
@@ -639,7 +643,7 @@ function MoneyRequestView({
     const distanceToDisplay = DistanceRequestUtils.getDistanceForDisplay(hasRoute, distance, unit, translate, false, isManualDistanceRequest, commuterExclusionData);
     const {distanceToDisplayDescription, distanceToDisplayHintText} = DistanceRequestUtils.getDistanceDisplayDetailsWithCommuter(commuterExclusionData, distanceUnitValue, translate);
 
-    let merchantTitle = isEmptyMerchant ? '' : transactionMerchant;
+    let merchantTitle = isEmptyMerchant ? '' : getDisplayMerchant(transaction, transactionMerchant ?? '', preferredLocale);
     let amountTitle = formattedTransactionAmount?.toString() || '';
     if (isTransactionScanning) {
         merchantTitle = translate('iou.receiptStatusTitle');
@@ -751,7 +755,7 @@ function MoneyRequestView({
     let amountHintText: string | undefined;
     if (isFromCardImport) {
         if (transactionPostedDate) {
-            dateDescription += ` ${CONST.DOT_SEPARATOR} ${translate('iou.posted')} ${transactionPostedDate}`;
+            dateDescription += ` ${CONST.DOT_SEPARATOR} ${translate('iou.posted')} ${DateUtils.formatInUTCToMedium(transactionPostedDate, preferredLocale)}`;
         }
         if (formattedOriginalAmount) {
             amountHintText = `${translate('iou.purchase')} ${formattedOriginalAmount}`;
@@ -804,7 +808,7 @@ function MoneyRequestView({
                 translationPath: canEditMerchant ? 'common.error.enterMerchant' : 'common.error.missingMerchantName',
             },
             date: {
-                isError: transactionDate === '',
+                isError: transactionCreated === '',
                 translationPath: canEditDate ? 'common.error.enterDate' : 'common.error.missingDate',
             },
         };
@@ -832,7 +836,7 @@ function MoneyRequestView({
                     const cardID = violation.data?.cardID;
                     const card = cardID ? cardList?.[cardID] : undefined;
                     return ViolationsUtils.getViolationTranslation({
-                        dateFnsLocale,
+                        preferredLocale,
                         violation,
                         translate,
                         convertToDisplayString,
@@ -982,7 +986,7 @@ function MoneyRequestView({
     const descriptionHTML = updatedTransactionDescription ?? transactionDescription;
     const descriptionCopyValue = !canEdit && descriptionHTML ? Parser.htmlToText(descriptionHTML) : undefined;
     const merchantCopyValue = !canEditMerchant ? updatedMerchantTitle : undefined;
-    const dateCopyValue = !canEditDate ? transactionDate : undefined;
+    const dateCopyValue = !canEditDate ? actualTransactionDate : undefined;
     const categoryValue = updatedTransaction?.category ?? categoryForDisplay;
     const decodedCategoryName = getDecodedLeafCategoryName(categoryValue);
     const categoryCopyValue = !canEdit ? decodedCategoryName : undefined;

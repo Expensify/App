@@ -306,6 +306,6 @@ describe('ReportUtils', () => {
         };
 
         await waitForBatchedUpdates();
-        await measureFunction(() => getIOUReportActionDisplayMessage(translateLocal, reportAction, convertToDisplayString, undefined));
+        await measureFunction(() => getIOUReportActionDisplayMessage(translateLocal, CONST.LOCALES.EN, reportAction, convertToDisplayString, undefined));
     });
 });

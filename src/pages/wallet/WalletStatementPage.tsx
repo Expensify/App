@@ -13,6 +13,7 @@ import useThemePreference from '@hooks/useThemePreference';
 
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
 import {isMobileSafari} from '@libs/Browser';
+import DateUtils from '@libs/DateUtils';
 import {getOldDotURLFromEnvironment} from '@libs/Environment/Environment';
 import fileDownload from '@libs/fileDownload';
 import Navigation from '@libs/Navigation/Navigation';
@@ -38,7 +39,7 @@ type WalletStatementPageProps = PlatformStackScreenProps<WalletStatementNavigato
 function WalletStatementPage({route}: WalletStatementPageProps) {
     const [walletStatement] = useOnyx(ONYXKEYS.WALLET_STATEMENT);
     const {login: currentUserLogin} = useCurrentUserPersonalDetails();
-    const {translate, dateFnsLocale} = useLocalize();
+    const {translate, preferredLocale} = useLocalize();
     const {environment} = useEnvironment();
     const {isOffline} = useNetwork();
     const themePreference = useThemePreference();
@@ -48,8 +49,9 @@ function WalletStatementPage({route}: WalletStatementPageProps) {
 
     const yearMonth = route.params.yearMonth ?? null;
     const year = yearMonth?.substring(0, 4) || getYear(new Date());
-    const month = yearMonth?.substring(4) || getMonth(new Date());
-    const monthName = format(new Date(Number(year), Number(month) - 1), CONST.DATE.MONTH_FORMAT, {locale: dateFnsLocale});
+    // `getMonth` is 0-indexed but the `yearMonth` param is 1-indexed, and both feed the same `- 1` below.
+    const month = yearMonth?.substring(4) || getMonth(new Date()) + 1;
+    const monthName = DateUtils.formatToLongMonth(new Date(Number(year), Number(month) - 1), preferredLocale);
     const encryptedAuthToken = session?.encryptedAuthToken ?? '';
     const baseURL = addTrailingForwardSlash(getOldDotURLFromEnvironment(environment));
     const cachedFileName = yearMonth ? walletStatement?.[yearMonth] : undefined;

@@ -78,7 +78,6 @@ function IncorporationDateBusiness({onNext, isEditing}: SubPageProps) {
                 InputComponent={DatePicker}
                 inputID={COMPANY_INCORPORATION_DATE_KEY}
                 label={translate('businessInfoStep.incorporationDate')}
-                placeholder={translate('businessInfoStep.incorporationDatePlaceholder')}
                 defaultValue={defaultCompanyIncorporationDate}
                 shouldSaveDraft={!isEditing}
                 maxDate={new Date()}

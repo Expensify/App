@@ -19,6 +19,7 @@ import {toLocaleDigit} from '@libs/LocaleDigitUtils';
 import {translateLocal} from '@libs/Localize';
 import Log from '@libs/Log';
 import {rand64, roundToTwoDecimalPlaces} from '@libs/NumberUtils';
+import {getDisplayMerchant} from '@libs/PerDiemMerchantUtils';
 import {
     canSubmitPerDiemExpenseFromWorkspace,
     getCommaSeparatedTagNameWithSanitizedColons,
@@ -77,6 +78,7 @@ import type {
     ViolationName,
 } from '@src/types/onyx';
 import type {Attendee, DistanceExpenseType, Participant, SplitExpense} from '@src/types/onyx/IOU';
+import type Locale from '@src/types/onyx/Locale';
 import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {Unit} from '@src/types/onyx/Policy';
 import type {OnyxData} from '@src/types/onyx/Request';
@@ -93,7 +95,6 @@ import type {
 } from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-import type {Locale as DateFnsLocale} from 'date-fns';
 import type {NullishDeep, OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
@@ -1503,10 +1504,11 @@ function getMerchantOrDescription(transaction: OnyxEntry<Transaction>) {
  * scanning, and normalizes the `DEFAULT_MERCHANT` ("Expense") and `PARTIAL_TRANSACTION_MERCHANT` ("(none)") placeholder
  * values to an empty string so they never leak into the UI.
  */
-function getMerchantName(transaction: TransactionWithOptionalSearchFields, translate: (key: TranslationPaths) => string): string {
+function getMerchantName(transaction: TransactionWithOptionalSearchFields, translate: (key: TranslationPaths) => string, locale: Locale): string {
     const shouldShowMerchant = transaction.shouldShowMerchant ?? true;
 
-    let merchant = transaction?.formattedMerchant ?? getMerchant(transaction);
+    // Search already rendered `formattedMerchant` for this reader.
+    let merchant = transaction?.formattedMerchant ?? getDisplayMerchant(transaction, getMerchant(transaction), locale);
 
     if (isScanning(transaction) && shouldShowMerchant) {
         merchant = translate('iou.receiptStatusTitle');
@@ -1763,9 +1765,9 @@ function getCreated(transaction: OnyxInputOrEntry<Transaction>): string {
 /**
  * Return the created field from the transaction, return the modifiedCreated if present.
  */
-function getFormattedCreated(transaction: OnyxInputOrEntry<Transaction>, dateFormat: string = CONST.DATE.FNS_FORMAT_STRING, dateFnsLocale?: DateFnsLocale): string {
+function getFormattedCreated(transaction: OnyxInputOrEntry<Transaction>, dateFormat: MachineDateFormat = CONST.DATE.FNS_FORMAT_STRING): string {
     const created = getCreated(transaction);
-    return DateUtils.formatWithUTCTimeZone(created, dateFormat, dateFnsLocale);
+    return DateUtils.formatMachineDateWithUTCTimeZone(created, dateFormat);
 }
 
 /**

@@ -20,6 +20,7 @@ import type {
 } from '@src/types/onyx';
 import type Beta from '@src/types/onyx/Beta';
 import type {ReportAttributes} from '@src/types/onyx/DerivedValues';
+import type Locale from '@src/types/onyx/Locale';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type Policy from '@src/types/onyx/Policy';
 import type PriorityMode from '@src/types/onyx/PriorityMode';
@@ -27,7 +28,6 @@ import type Report from '@src/types/onyx/Report';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import type Rule from '@src/types/onyx/Rule';
 
-import type {Locale as DateFnsLocale} from 'date-fns';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
@@ -701,7 +701,7 @@ function getOptionData({
     card,
     lastAction,
     translate,
-    dateFnsLocale,
+    preferredLocale,
     convertToDisplayString,
     convertToDisplayStringWithoutCurrency,
     localeCompare,
@@ -731,7 +731,7 @@ function getOptionData({
     card: Card | undefined;
     lastAction: ReportAction | undefined;
     translate: LocalizedTranslate;
-    dateFnsLocale: DateFnsLocale | undefined;
+    preferredLocale: Locale;
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
     convertToDisplayStringWithoutCurrency: CurrencyListActionsContextType['convertToDisplayStringWithoutCurrency'];
     localeCompare: LocaleContextProps['localeCompare'];
@@ -898,7 +898,7 @@ function getOptionData({
         translate,
         localeCompare,
         formatPhoneNumber,
-        dateFnsLocale,
+        preferredLocale,
         convertToDisplayString,
         convertToDisplayStringWithoutCurrency,
         rules,

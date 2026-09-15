@@ -26,6 +26,7 @@ import type {
 import type {FeedKeysWithAssignedCards} from '@hooks/useFeedKeysWithAssignedCards';
 
 import CONST from '@src/CONST';
+import type {Locale} from '@src/CONST/LOCALES';
 import NAVIGATORS from '@src/NAVIGATORS';
 import type {OnyxCollectionKey, OnyxCollectionValuesMapping} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -46,7 +47,6 @@ import type {
 import type * as OnyxTypes from '@src/types/onyx';
 import type {SearchDataTypes, SearchResultDataType} from '@src/types/onyx/SearchResults';
 
-import type {Locale as DateFnsLocale} from 'date-fns';
 import type {NullishDeep, OnyxCollection, OnyxUpdate} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
@@ -242,13 +242,7 @@ function getRangeBoundariesFromFormValue(rangeValue?: string, fallbackAfter?: st
     };
 }
 
-function getDateRangeDisplayValueFromFormValue(
-    dateFnsLocale: DateFnsLocale | undefined,
-    rangeValue?: string,
-    fallbackAfter?: string,
-    fallbackBefore?: string,
-    shouldOmitCurrentYear = false,
-) {
+function getDateRangeDisplayValueFromFormValue(rangeValue: string | undefined, locale: Locale, fallbackAfter?: string, fallbackBefore?: string, shouldOmitCurrentYear = false) {
     if (!rangeValue) {
         return '';
     }
@@ -256,11 +250,11 @@ function getDateRangeDisplayValueFromFormValue(
     const rangeBoundaries = getRangeBoundariesFromFormValue(rangeValue, fallbackAfter, fallbackBefore);
     if (rangeBoundaries.from && rangeBoundaries.to) {
         const shouldShowFullYear = !shouldOmitCurrentYear || DateUtils.doesDateBelongToAPastYear(rangeBoundaries.from) || DateUtils.doesDateBelongToAPastYear(rangeBoundaries.to);
-        return DateUtils.getFormattedDateRangeForSearch(rangeBoundaries.from, rangeBoundaries.to, dateFnsLocale, shouldShowFullYear, shouldOmitCurrentYear);
+        return DateUtils.getFormattedDateRangeForSearch(rangeBoundaries.from, rangeBoundaries.to, shouldShowFullYear, shouldOmitCurrentYear, locale);
     }
 
     const singleBoundary = rangeBoundaries.from ?? rangeBoundaries.to;
-    return singleBoundary ? DateUtils.formatToReadableString(singleBoundary, dateFnsLocale) : '';
+    return singleBoundary ? DateUtils.formatToReadableString(singleBoundary, locale) : '';
 }
 
 function parseRangeQueryValue(rangeValue?: string) {

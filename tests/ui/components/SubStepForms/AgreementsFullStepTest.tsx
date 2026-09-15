@@ -103,17 +103,17 @@ async function submitAgreementsAndExpectErrors(errors: Partial<Readonly<Record<A
 
 describe('AgreementsFullStep validation', () => {
     it.each([
-        [GLOBAL_AGREEMENT_INPUTS.authorizedToBindClientToAgreement, TestHelper.translateLocal('agreementsStep.error.authorized')],
-        [GLOBAL_AGREEMENT_INPUTS.provideTruthfulInformation, TestHelper.translateLocal('agreementsStep.error.certify')],
-        [GLOBAL_AGREEMENT_INPUTS.agreeToTermsAndConditions, TestHelper.translateLocal('common.error.acceptTerms')],
-        [GLOBAL_AGREEMENT_INPUTS.consentToPrivacyNotice, TestHelper.translateLocal('agreementsStep.error.consent')],
-    ])('returns the specific required message for %s', async (rejectedInput, message) => {
+        [GLOBAL_AGREEMENT_INPUTS.authorizedToBindClientToAgreement, 'agreementsStep.error.authorized'],
+        [GLOBAL_AGREEMENT_INPUTS.provideTruthfulInformation, 'agreementsStep.error.certify'],
+        [GLOBAL_AGREEMENT_INPUTS.agreeToTermsAndConditions, 'common.error.acceptTerms'],
+        [GLOBAL_AGREEMENT_INPUTS.consentToPrivacyNotice, 'agreementsStep.error.consent'],
+    ] as const)('returns the specific required message for %s', async (rejectedInput, messageKey) => {
         renderAgreements({
             formID: GLOBAL_FORM_ID,
             inputIDs: GLOBAL_AGREEMENT_INPUTS,
             defaultValues: {...ALL_GLOBAL_AGREEMENTS, [rejectedInput]: false},
         });
-        await submitAgreementsAndExpectErrors({[rejectedInput]: message});
+        await submitAgreementsAndExpectErrors({[rejectedInput]: TestHelper.translateLocal(messageKey)});
     });
 
     it('submits when every global-reimbursements agreement is fulfilled', async () => {

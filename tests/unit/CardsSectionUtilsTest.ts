@@ -5,6 +5,7 @@ import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hook
 import type * as SubscriptionUtils from '@libs/SubscriptionUtils';
 import {PAYMENT_STATUS} from '@libs/SubscriptionUtils';
 
+import CONST from '@src/CONST';
 import type {TranslationParameters, TranslationPaths} from '@src/languages/types';
 import CardSectionUtils from '@src/pages/settings/Subscription/CardSection/utils';
 import type {Purchase} from '@src/types/onyx/PurchaseList';
@@ -51,17 +52,17 @@ describe('getNextBillingDate', () => {
     it('should return the next billing date when initial date is valid', () => {
         const expectedNextBillingDate = 'August 1, 2024';
 
-        expect(CardSectionUtils.getNextBillingDate(undefined)).toEqual(expectedNextBillingDate);
+        expect(CardSectionUtils.getNextBillingDate(CONST.LOCALES.EN)).toEqual(expectedNextBillingDate);
     });
 
     it('should handle end-of-month edge cases correctly', () => {
-        const nextBillingDate = CardSectionUtils.getNextBillingDate(undefined);
+        const nextBillingDate = CardSectionUtils.getNextBillingDate(CONST.LOCALES.EN);
         const expectedNextBillingDate = 'August 1, 2024';
         expect(nextBillingDate).toBe(expectedNextBillingDate);
     });
 
     it('should handle date when it at the current month', () => {
-        const nextBillingDate = CardSectionUtils.getNextBillingDate(undefined);
+        const nextBillingDate = CardSectionUtils.getNextBillingDate(CONST.LOCALES.EN);
         const expectedNextBillingDate = 'August 1, 2024';
         expect(nextBillingDate).toBe(expectedNextBillingDate);
     });
@@ -69,7 +70,7 @@ describe('getNextBillingDate', () => {
     it('should return the next billing date when initial date is invalid', () => {
         const expectedNextBillingDate = 'August 1, 2024';
 
-        expect(CardSectionUtils.getNextBillingDate(undefined)).toEqual(expectedNextBillingDate);
+        expect(CardSectionUtils.getNextBillingDate(CONST.LOCALES.EN)).toEqual(expectedNextBillingDate);
     });
 });
 
@@ -103,8 +104,8 @@ describe('CardSectionUtils', () => {
     it('should return undefined by default', () => {
         expect(
             CardSectionUtils.getBillingStatus({
-                dateFnsLocale: undefined,
                 translate: translateMock,
+                preferredLocale: CONST.LOCALES.EN,
                 stripeCustomerId,
                 accountData: ACCOUNT_DATA,
                 retryBillingSuccessful: false,
@@ -126,8 +127,8 @@ describe('CardSectionUtils', () => {
         });
         expect(
             CardSectionUtils.getBillingStatus({
-                dateFnsLocale: undefined,
                 translate: translateMock,
+                preferredLocale: CONST.LOCALES.EN,
                 stripeCustomerId,
                 accountData: ACCOUNT_DATA,
                 retryBillingSuccessful: false,
@@ -166,8 +167,8 @@ describe('CardSectionUtils', () => {
 
         expect(
             CardSectionUtils.getBillingStatus({
-                dateFnsLocale: undefined,
                 translate: translateMock,
+                preferredLocale: CONST.LOCALES.EN,
                 stripeCustomerId,
                 accountData: ACCOUNT_DATA,
                 purchase: mockPurchase,
@@ -196,8 +197,8 @@ describe('CardSectionUtils', () => {
 
         expect(
             CardSectionUtils.getBillingStatus({
-                dateFnsLocale: undefined,
                 translate: translateMock,
+                preferredLocale: CONST.LOCALES.EN,
                 stripeCustomerId,
                 accountData: undefined,
                 retryBillingSuccessful: false,
@@ -225,8 +226,8 @@ describe('CardSectionUtils', () => {
 
         expect(
             CardSectionUtils.getBillingStatus({
-                dateFnsLocale: undefined,
                 translate: translateMock,
+                preferredLocale: CONST.LOCALES.EN,
                 stripeCustomerId,
                 accountData: ACCOUNT_DATA,
                 retryBillingSuccessful: false,
@@ -254,8 +255,8 @@ describe('CardSectionUtils', () => {
 
         expect(
             CardSectionUtils.getBillingStatus({
-                dateFnsLocale: undefined,
                 translate: translateMock,
+                preferredLocale: CONST.LOCALES.EN,
                 stripeCustomerId,
                 accountData: ACCOUNT_DATA,
                 retryBillingSuccessful: false,
@@ -283,7 +284,7 @@ describe('CardSectionUtils', () => {
 
         expect(
             CardSectionUtils.getBillingStatus({
-                dateFnsLocale: undefined,
+                preferredLocale: CONST.LOCALES.EN,
                 translate: translateMock,
                 stripeCustomerId,
                 accountData: ACCOUNT_DATA,
@@ -312,7 +313,7 @@ describe('CardSectionUtils', () => {
 
         expect(
             CardSectionUtils.getBillingStatus({
-                dateFnsLocale: undefined,
+                preferredLocale: CONST.LOCALES.EN,
                 translate: translateMock,
                 stripeCustomerId,
                 accountData: ACCOUNT_DATA,
@@ -340,7 +341,7 @@ describe('CardSectionUtils', () => {
         });
 
         const billingStatus = CardSectionUtils.getBillingStatus({
-            dateFnsLocale: undefined,
+            preferredLocale: CONST.LOCALES.EN,
             translate: <TPath extends TranslationPaths>(path: TPath, ...parameters: TranslationParameters<TPath>) => {
                 const interpolatedDate = parameters.at(0);
                 return typeof interpolatedDate === 'string' ? `${path}|${interpolatedDate}` : path;
@@ -368,8 +369,8 @@ describe('CardSectionUtils', () => {
 
         expect(
             CardSectionUtils.getBillingStatus({
-                dateFnsLocale: undefined,
                 translate: translateMock,
+                preferredLocale: CONST.LOCALES.EN,
                 stripeCustomerId,
                 accountData: ACCOUNT_DATA,
                 retryBillingSuccessful: false,
@@ -397,8 +398,8 @@ describe('CardSectionUtils', () => {
 
         expect(
             CardSectionUtils.getBillingStatus({
-                dateFnsLocale: undefined,
                 translate: translateMock,
+                preferredLocale: CONST.LOCALES.EN,
                 stripeCustomerId,
                 accountData: ACCOUNT_DATA,
                 retryBillingSuccessful: false,
@@ -426,8 +427,8 @@ describe('CardSectionUtils', () => {
 
         expect(
             CardSectionUtils.getBillingStatus({
-                dateFnsLocale: undefined,
                 translate: translateMock,
+                preferredLocale: CONST.LOCALES.EN,
                 stripeCustomerId,
                 accountData: ACCOUNT_DATA,
                 retryBillingSuccessful: false,
@@ -455,8 +456,8 @@ describe('CardSectionUtils', () => {
 
         expect(
             CardSectionUtils.getBillingStatus({
-                dateFnsLocale: undefined,
                 translate: translateMock,
+                preferredLocale: CONST.LOCALES.EN,
                 stripeCustomerId,
                 accountData: {...ACCOUNT_DATA, cardYear: 2023},
                 retryBillingSuccessful: false,
@@ -478,8 +479,8 @@ describe('CardSectionUtils', () => {
 
         expect(
             CardSectionUtils.getBillingStatus({
-                dateFnsLocale: undefined,
                 translate: translateMock,
+                preferredLocale: CONST.LOCALES.EN,
                 stripeCustomerId,
                 accountData: ACCOUNT_DATA,
                 retryBillingSuccessful: false,
@@ -507,8 +508,8 @@ describe('CardSectionUtils', () => {
 
         expect(
             CardSectionUtils.getBillingStatus({
-                dateFnsLocale: undefined,
                 translate: translateMock,
+                preferredLocale: CONST.LOCALES.EN,
                 stripeCustomerId,
                 accountData: ACCOUNT_DATA,
                 retryBillingSuccessful: false,
@@ -536,8 +537,8 @@ describe('CardSectionUtils', () => {
 
         expect(
             CardSectionUtils.getBillingStatus({
-                dateFnsLocale: undefined,
                 translate: translateMock,
+                preferredLocale: CONST.LOCALES.EN,
                 stripeCustomerId,
                 accountData: ACCOUNT_DATA,
                 retryBillingSuccessful: false,
@@ -566,8 +567,8 @@ describe('CardSectionUtils', () => {
 
         expect(
             CardSectionUtils.getBillingStatus({
-                dateFnsLocale: undefined,
                 translate: translateMock,
+                preferredLocale: CONST.LOCALES.EN,
                 stripeCustomerId,
                 accountData: ACCOUNT_DATA,
                 retryBillingSuccessful: false,

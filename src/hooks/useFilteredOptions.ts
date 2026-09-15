@@ -91,7 +91,7 @@ function useFilteredOptions(config: UseFilteredOptionsConfig): UseFilteredOption
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
 
     // Option building is locale-dependent, so a consumer that stays mounted through a language switch recomputes.
-    const {preferredLocale, dateFnsLocale} = useLocalize();
+    const {preferredLocale, isCurrentLocaleLoaded} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
 
     // Sorted report actions from the RAM_ONLY_SORTED_REPORT_ACTIONS derived value; a new reference on
@@ -106,7 +106,8 @@ function useFilteredOptions(config: UseFilteredOptionsConfig): UseFilteredOption
     // React Compiler can't prove referential stability for the destructured `config` param with default values, so explicit useMemo is required here.
     const options: OptionList | null = useMemo(
         () =>
-            enabled && allReports && allPersonalDetails
+            // Gated on the translations rather than keyed on them: a list built during the load window holds raw keys for every translated field.
+            enabled && isCurrentLocaleLoaded && allReports && allPersonalDetails
                 ? createFilteredOptionList(
                       allPersonalDetails,
                       allReports,
@@ -115,14 +116,13 @@ function useFilteredOptions(config: UseFilteredOptionsConfig): UseFilteredOption
                       allPolicies,
                       {
                           currentUserAccountID,
-                          dateFnsLocale,
+                          preferredLocale,
                           convertToDisplayString,
                           conciergeReportID,
                           maxRecentReports: reportsLimit,
                           includeP2P,
                           isSearching,
                           deferContactsUntilSearch,
-                          locale: preferredLocale,
                       },
                       rules,
                       undefined,
@@ -145,10 +145,10 @@ function useFilteredOptions(config: UseFilteredOptionsConfig): UseFilteredOption
             isSearching,
             deferContactsUntilSearch,
             preferredLocale,
+            isCurrentLocaleLoaded,
             isTrackIntentUser,
             sortedActions,
             currentUserAccountID,
-            dateFnsLocale,
             convertToDisplayString,
         ],
     );
