@@ -72,7 +72,7 @@ function ExportDownloadStatusModal({exportID, isVisible, onClose, failedBody}: E
     const receiptCount = displayedExport?.receiptCount;
     const failedReceiptCount = displayedExport?.failedReceiptCount ?? 0;
     const isPreparing = state === CONST.EXPORT_DOWNLOAD.STATE.PREPARING && !shouldSendFromConcierge;
-    const isConcierge = !!shouldSendFromConcierge;
+    const isConcierge = !!shouldSendFromConcierge && state !== CONST.EXPORT_DOWNLOAD.STATE.READY;
     const isReady = state === CONST.EXPORT_DOWNLOAD.STATE.READY;
     const isFailed = state === CONST.EXPORT_DOWNLOAD.STATE.FAILED;
     const isEmptyReceipts = isReady && exportType === CONST.EXPORT_DOWNLOAD.TYPE.RECEIPTS && receiptCount === 0;
