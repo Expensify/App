@@ -1,5 +1,6 @@
 import React, {startTransition, useEffect, useState} from 'react';
 
+import DeferredGlobalModals from './components/DeferredGlobalModals';
 import DelegateNoAccessModalProvider from './components/DelegateNoAccessModalProvider';
 import EmojiPicker from './components/EmojiPicker/EmojiPicker';
 import GrowlNotification from './components/GrowlNotification';
@@ -9,10 +10,6 @@ import {growlRef} from './libs/Growl';
 import * as ReportActionContextMenu from './pages/inbox/report/ContextMenu/ReportActionContextMenu';
 
 const LazyPopoverReportActionContextMenu = React.lazy(() => import('./pages/inbox/report/ContextMenu/PopoverReportActionContextMenu'));
-const LazyUpdateAppModal = React.lazy(() => import('./components/UpdateAppModal'));
-const LazyScreenShareRequestModal = React.lazy(() => import('./components/ScreenShareRequestModal'));
-const LazyProactiveAppReviewModalManager = React.lazy(() => import('./components/ProactiveAppReviewModalManager'));
-const LazyTrialPaymentReminderModalManager = React.lazy(() => import('./components/TrialPaymentReminderModalManager'));
 
 // Maximum time (ms) the context menu mount can stay deferred before requestIdleCallback forces it to run,
 // guaranteeing mount even if the main thread never becomes idle.
@@ -60,26 +57,7 @@ function GlobalModals() {
             </DelegateNoAccessModalProvider>
             {/* eslint-disable-next-line react-hooks/refs -- module-level createRef, safe to pass as ref prop */}
             <EmojiPicker ref={EmojiPickerAction.emojiPickerRef} />
-            {shouldRenderDeferredModals && (
-                <>
-                    {/* Order matters: BaseModal hardcodes zIndex: 1 on every modal, so DOM source order
-                        determines stacking when modals coincide. UpdateAppModal is last so the forced-update
-                        prompt sits on top if it ever overlaps with the others. */}
-                    <LazyModalSlot>
-                        {/* Proactive app review modal shown when user has completed a trigger action */}
-                        <LazyProactiveAppReviewModalManager />
-                    </LazyModalSlot>
-                    <LazyModalSlot>
-                        <LazyTrialPaymentReminderModalManager />
-                    </LazyModalSlot>
-                    <LazyModalSlot>
-                        <LazyScreenShareRequestModal />
-                    </LazyModalSlot>
-                    <LazyModalSlot>
-                        <LazyUpdateAppModal />
-                    </LazyModalSlot>
-                </>
-            )}
+            {shouldRenderDeferredModals && <DeferredGlobalModals />}
         </>
     );
 }
