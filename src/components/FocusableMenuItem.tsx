@@ -8,11 +8,16 @@ import type {MenuItemProps} from './MenuItem';
 
 import MenuItem from './MenuItem';
 
-function FocusableMenuItem(props: MenuItemProps) {
+type FocusableMenuItemProps = MenuItemProps & {
+    /** Whether keyboard focus should follow the visual focused state */
+    shouldSyncFocus?: boolean;
+};
+
+function FocusableMenuItem({shouldSyncFocus = true, ...props}: FocusableMenuItemProps) {
     const ref = useRef<View>(null);
 
     // Sync focus on an item
-    useSyncFocus(ref, !!props.focused);
+    useSyncFocus(ref, !!props.focused, shouldSyncFocus);
 
     return (
         <MenuItem
