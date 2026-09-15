@@ -23,13 +23,8 @@ type ReportAvatarProps = {
     /** Report whose avatars to render */
     reportID?: string;
 
-    /** Set the size of avatars */
     size?: ValueOf<typeof CONST.AVATAR_SIZE>;
-
-    /** Single avatar container styles */
     singleAvatarContainerStyle?: StyleProp<ViewStyle>;
-
-    /** Style for the second avatar */
     secondaryAvatarContainerStyle?: StyleProp<ViewStyle>;
 
     /** Subscript avatar container styles */

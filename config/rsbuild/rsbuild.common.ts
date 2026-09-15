@@ -175,6 +175,9 @@ const getSharedConfiguration = ({file = '.env', isDevServer = false}: Environmen
                 // @sentry/react-native references the optional expo-updates module. We do not install it,
                 // so web/Storybook bundles should treat it as unavailable instead of failing resolution.
                 'expo-updates': false,
+                // @sentry/react-native references Expo Router internally. We do not install it, so web/Storybook
+                // bundles should treat it as unavailable instead of failing resolution.
+                'expo-router/build/global-state/router-store': false,
                 // Use legacy build of pdfjs-dist to support older browsers
                 'pdfjs-dist$': path.resolve(dirname, '../../node_modules/pdfjs-dist/legacy/build/pdf.mjs'),
                 '@assets': path.resolve(dirname, '../../assets'),

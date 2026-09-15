@@ -46,12 +46,10 @@ import {Keyboard} from 'react-native';
 
 type PrivateNotesEditPageProps = WithReportAndPrivateNotesOrNotFoundProps &
     PlatformStackScreenProps<PrivateNotesNavigatorParamList, typeof SCREENS.DYNAMIC_PRIVATE_NOTES_EDIT> & {
-        /** The report currently being looked at */
         report: Report;
     };
 
 type PrivateNotesEditPageInternalProps = PrivateNotesEditPageProps & {
-    /** Draft private note */
     privateNoteDraft: string;
 };
 

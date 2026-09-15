@@ -115,9 +115,10 @@ function DynamicReportChangeWorkspacePage({report}: DynamicReportChangeWorkspace
         isOdometerDistanceRequest: hasOdometerDistanceRequest,
     });
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const {currentSearchQueryJSON, currentSearchKey} = useSearchQueryContext();
     const {currentSearchResults} = useSearchResultsContext();
-    const shouldCalculateTotals = useSearchShouldCalculateTotals(currentSearchKey, currentSearchQueryJSON?.hash, true);
+    const shouldCalculateTotals = useSearchShouldCalculateTotals(currentSearchKey, true);
 
     // The snapshot keeps the report row after a workspace change, and only the server can tell whether it still matches the query.
     const refreshSearch = () => {
@@ -154,10 +155,11 @@ function DynamicReportChangeWorkspacePage({report}: DynamicReportChangeWorkspace
                 submitterLogin,
                 doesSubmitterPersonalDetailExist ?? false,
                 getCurrencyDecimals,
+                rules,
                 reportTransactions,
             );
             if (!invite?.policyExpenseChatReportID) {
-                moveIOUReportToPolicy(report, policy, reportPreviewAction, getCurrencyDecimals, false, reportTransactions);
+                moveIOUReportToPolicy(report, policy, reportPreviewAction, getCurrencyDecimals, rules, false, reportTransactions);
             }
             refreshSearch();
             return;
@@ -188,6 +190,7 @@ function DynamicReportChangeWorkspacePage({report}: DynamicReportChangeWorkspace
                 reportPreviewAction,
                 isTrackIntentUser,
                 reportTransactions,
+                rules,
             });
             refreshSearch();
             return;
@@ -209,6 +212,7 @@ function DynamicReportChangeWorkspacePage({report}: DynamicReportChangeWorkspace
             reportPreviewAction,
             isTrackIntentUser,
             reportTransactions,
+            rules,
         });
         refreshSearch();
     };
