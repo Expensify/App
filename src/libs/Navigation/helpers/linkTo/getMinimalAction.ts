@@ -13,9 +13,8 @@ type MinimalAction = {
     /** The state of the navigator the minimal action is addressed at, which is the root state when the descent stops on it */
     targetState: State;
     /**
-     * True when the descent stopped on a split navigator that has the requested name but holds another scope
-     * (another workspace or domain). Callers decide what that means: forward navigation pushes a sibling split
-     * instead of reusing this one, backward navigation looks for the matching split among its siblings.
+     * True when the descent stopped on a split navigator with the requested name but another scope (workspace or
+     * domain). Callers decide: forward navigation pushes a sibling split, backward navigation looks for the match.
      */
     isFocusedRouteInDifferentScope: boolean;
 };
@@ -25,8 +24,8 @@ function isNamedActionPayload(payload: unknown): payload is ActionPayload & {nam
 }
 
 /**
- * One step of the descent: the same action addressed at `nestedState`, the state of the route the given action names.
- * Its payload has no name when the action addresses nothing below that route, which is where a descent stops.
+ * One step of the descent: the same action addressed at `nestedState`. Its payload has no name when the action
+ * addresses nothing below that route, which is where a descent stops.
  */
 function getNestedAction(action: NavigationAction, nestedState: State): Writable<NavigationAction> {
     const params = isNamedActionPayload(action.payload) ? action.payload.params : undefined;

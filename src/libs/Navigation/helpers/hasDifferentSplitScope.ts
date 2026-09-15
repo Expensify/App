@@ -8,14 +8,11 @@ import {isRecord} from '@libs/ObjectUtils';
 import type {NavigationRoute} from '@navigation/types';
 
 /**
- * Every workspace and every domain has its own split navigator instance, and they all share one route name.
- * The scope params of their screens (policyID, domainAccountID) are the only thing telling those instances
- * apart, so anything matching a route against an action payload has to compare them - otherwise workspace B's
- * split answers to a request for workspace A's.
+ * Every workspace and every domain has its own split navigator instance, and they all share one route name. Only the
+ * scope params of their screens (policyID, domainAccountID) tell the instances apart, so matching a route against an
+ * action payload has to compare them - otherwise workspace B's split answers a request for workspace A's.
  */
 
-// Workspace and domain screens carry their split's scope params, so the focused screen can identify the scope
-// when the sidebar is absent (narrow layouts can contain only central screens).
 function getSplitScopeComparisonValues(route: NavigationRoute, payload: ActionPayload & {name?: unknown}) {
     if (!isSplitNavigatorName(route.name) || route.name !== payload.name) {
         return;
@@ -23,13 +20,12 @@ function getSplitScopeComparisonValues(route: NavigationRoute, payload: ActionPa
 
     const sidebarScreen = SPLIT_TO_SIDEBAR[route.name];
     const scopeParams = getParamsFromRoute(sidebarScreen);
-    // A split that is not mounted has no nested state on its route, but the state it had is preserved under its key,
-    // which is how SplitRouter recovers the same information.
+    // An unmounted split has no nested state on its route, but its last state is preserved under its key.
     const routeKey = 'key' in route ? route.key : undefined;
     const splitState = route.state ?? (routeKey ? getPreservedNavigatorState(routeKey) : undefined);
     const sidebarRoute = splitState?.routes.find((nestedRoute) => nestedRoute.name === sidebarScreen);
-    // Keep an existing sidebar authoritative. Without one, the focused screen carries the scope, and with no state at
-    // all the split's own params are the last thing to go on - they hold the params it was created with.
+    // Sidebar wins. Without one the focused screen carries the scope (narrow splits can hold central screens only),
+    // and with no state at all the split's own creation params are the last resort.
     const scopeRoute = sidebarRoute ?? splitState?.routes.at(splitState.index ?? -1);
     const currentParams: unknown = scopeRoute?.params ?? (isRecord(route.params) ? route.params.params : undefined);
     const targetParams = payload.params?.params;
@@ -49,9 +45,8 @@ function getComparableScopeValue(value: unknown): string | undefined {
 }
 
 /**
- * Whether the route is a split navigator of the same name as the payload, but holds another scope
- * (another workspace or another domain). False whenever there is nothing to compare - a split without
- * scope params, a non-split route or a payload for a different navigator.
+ * Whether the route is a split navigator with the payload's name but another scope (workspace or domain). False when
+ * there is nothing to compare: a split without scope params, a non-split route or a payload for another navigator.
  */
 function hasDifferentSplitScope(route: NavigationRoute, payload: ActionPayload & {name?: unknown}): boolean {
     const scopeComparisonValues = getSplitScopeComparisonValues(route, payload);
