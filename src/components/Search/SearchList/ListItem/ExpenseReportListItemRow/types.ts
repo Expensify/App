@@ -9,7 +9,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 type ExpenseReportListItemRowNarrowProps = {
     item: ExpenseReportListItemType;
     canSelectMultiple?: boolean;
-    onCheckboxPress?: () => void;
+    onCheckboxPress?: (shiftKey?: boolean) => void;
     isSelectAllChecked?: boolean;
     isIndeterminate?: boolean;
     isDisabledCheckbox?: boolean;
