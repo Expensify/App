@@ -1,46 +1,32 @@
 import ActivityIndicator from '@components/ActivityIndicator';
-import Text from '@components/Text';
 
-import useAppFocusEvent from '@hooks/useAppFocusEvent';
-import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getPaymentMethods} from '@libs/actions/PaymentMethods';
 import getPlatform from '@libs/getPlatform';
 import Log from '@libs/Log';
-import {checkIfWalletIsAvailable, handleAddCardToWallet, isCardInWallet} from '@libs/Wallet/index';
+import Navigation from '@libs/Navigation/Navigation';
+import {handleAddCardToWallet} from '@libs/Wallet/index';
 
 import CONST from '@src/CONST';
+import ROUTES from '@src/ROUTES';
 
 import type {TokenizationStatus} from '@expensify/react-native-wallet';
 
 import {AddToWalletButton as RNAddToWalletButton} from '@expensify/react-native-wallet';
-import React, {useCallback, useEffect, useState} from 'react';
-import {Alert, View} from 'react-native';
+import React, {useCallback, useState} from 'react';
+import {Alert} from 'react-native';
 
 import type AddToWalletButtonProps from './types';
 
-function AddToWalletButton({card, cardHolderName, cardDescription, style}: AddToWalletButtonProps) {
-    const [isWalletAvailable, setIsWalletAvailable] = React.useState<boolean>(false);
-    const [isInWallet, setIsInWallet] = React.useState<boolean | null>(null);
-    const {translate} = useLocalize();
-    const isCardAvailable = card.state === CONST.EXPENSIFY_CARD.STATE.OPEN;
-    const [isLoading, setIsLoading] = useState(false);
-    const platform = getPlatform() === CONST.PLATFORM.IOS ? 'Apple' : 'Google';
-    const styles = useThemeStyles();
+import useIsCardInWallet from './useIsCardInWallet';
 
-    const checkIfCardIsInWallet = useCallback(() => {
-        isCardInWallet(card)
-            .then((result) => {
-                setIsInWallet(result);
-            })
-            .catch(() => {
-                setIsInWallet(false);
-            })
-            .finally(() => {
-                setIsLoading(false);
-            });
-    }, [card]);
+const isIOS = getPlatform() === CONST.PLATFORM.IOS;
+
+function AddToWalletButton({card, cardHolderName, cardDescription, style}: AddToWalletButtonProps) {
+    const [isLoading, setIsLoading] = useState(false);
+    const styles = useThemeStyles();
+    const {isInWallet, isLoading: isCardLoading, isCardAvailable, isWalletAvailable} = useIsCardInWallet(card);
 
     const handleOnPress = useCallback(() => {
         setIsLoading(true);
@@ -49,6 +35,9 @@ function AddToWalletButton({card, cardHolderName, cardDescription, style}: AddTo
                 if (status === 'success') {
                     Log.info('Card added to wallet');
                     getPaymentMethods();
+                    if (isIOS) {
+                        Navigation.navigate(ROUTES.SETTINGS_WALLET_CARD_ADDED_TO_WALLET.getRoute(String(card.cardID)));
+                    }
                 } else {
                     setIsLoading(false);
                 }
@@ -60,51 +49,17 @@ function AddToWalletButton({card, cardHolderName, cardDescription, style}: AddTo
             });
     }, [card, cardDescription, cardHolderName]);
 
-    useEffect(() => {
-        if (!isCardAvailable) {
-            return;
-        }
-
-        checkIfCardIsInWallet();
-    }, [checkIfCardIsInWallet, isCardAvailable, card]);
-
-    // Recheck card status when app regains focus in case user manually adds card to wallet outside the app
-    useAppFocusEvent(
-        useCallback(() => {
-            if (!isCardAvailable) {
-                return;
-            }
-            checkIfCardIsInWallet();
-        }, [checkIfCardIsInWallet, isCardAvailable]),
-    );
-
-    useEffect(() => {
-        if (!isCardAvailable) {
-            return;
-        }
-
-        checkIfWalletIsAvailable()
-            .then((result) => {
-                setIsWalletAvailable(result);
-            })
-            .catch(() => {
-                setIsWalletAvailable(false);
-            });
-    }, [isCardAvailable]);
-
-    if (!isWalletAvailable || isInWallet == null || !isCardAvailable) {
+    if (!isWalletAvailable || isInWallet == null || isInWallet || !isCardAvailable) {
         return null;
     }
 
-    if (isLoading) {
-        return <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />;
-    }
-
-    if (isInWallet) {
+    if (isLoading || isCardLoading) {
+        // The spinner takes the place of the button, so it needs the same outer spacing to avoid the surrounding rows shifting
         return (
-            <View style={style}>
-                <Text style={[styles.textLabelSupporting, styles.mt6]}>{translate('cardPage.cardAddedToWallet', {platform})}</Text>
-            </View>
+            <ActivityIndicator
+                size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+                style={style}
+            />
         );
     }
 
