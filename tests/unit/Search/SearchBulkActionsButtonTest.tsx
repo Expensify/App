@@ -16,6 +16,8 @@ type MockButtonProps = {
 
 const mockButtonWithDropdownMenu = jest.fn<null, [MockButtonProps]>(() => null);
 let mockExcludedTransactions: SelectedTransactions = {};
+let mockSelectedTransactions: SelectedTransactions = {};
+let mockSearchData: Record<string, unknown> = {};
 let mockSearchCount: number | undefined;
 let mockSearchReportCount: number | undefined;
 let mockSearchIsLoading = false;
@@ -69,12 +71,12 @@ jest.mock('@hooks/useSearchBulkActions', () => ({
         isDuplicateReportOptionVisible: false,
         allTransactions: {},
         allReports: {},
-        searchData: {},
+        searchData: mockSearchData,
     }),
 }));
 jest.mock('@components/Search/SearchContext', () => ({
     useSearchSelectionContext: () => ({
-        selectedTransactions: {tx1: {isSelected: true, reportID: 'report1'}},
+        selectedTransactions: mockSelectedTransactions,
         excludedTransactions: mockExcludedTransactions,
         selectedReports: [],
         areAllMatchingItemsSelected: mockAreAllMatchingItemsSelected,
@@ -130,6 +132,8 @@ describe('SearchBulkActionsButton all-matching label', () => {
     beforeEach(() => {
         jest.clearAllMocks();
         mockExcludedTransactions = {};
+        mockSelectedTransactions = {tx1: makeTransaction()};
+        mockSearchData = {};
         mockSearchCount = undefined;
         mockSearchReportCount = undefined;
         mockSearchIsLoading = false;
@@ -213,5 +217,52 @@ describe('SearchBulkActionsButton all-matching label', () => {
         render(<SearchBulkActionsButton queryJSON={reportQueryJSON} />);
 
         expect(getButtonProps()).toEqual({customText: 'workspace.common.selected:1', isLoading: false});
+    });
+});
+
+describe('SearchBulkActionsButton group selection label', () => {
+    beforeEach(() => {
+        jest.clearAllMocks();
+        mockExcludedTransactions = {};
+        mockSelectedTransactions = {};
+        mockSearchData = {};
+        mockSearchCount = undefined;
+        mockSearchIsLoading = false;
+        mockIsOffline = false;
+        mockAreAllMatchingItemsSelected = false;
+    });
+
+    const selectGroups = (...keys: string[]) => {
+        mockSelectedTransactions = Object.fromEntries(keys.map((key) => [key, makeTransaction()]));
+    };
+
+    it('counts the expenses a selected settlement group holds', () => {
+        mockSearchData = {[`${CONST.SEARCH.GROUP_PREFIX}cleared`]: {count: 12}};
+        selectGroups(`${CONST.SEARCH.GROUP_PREFIX}cleared`);
+
+        render(<SearchBulkActionsButton queryJSON={queryJSON} />);
+
+        expect(getButtonProps().customText).toBe('workspace.common.selected:12');
+    });
+
+    it('counts a selected cash back group as one item even though it holds no expenses', () => {
+        mockSearchData = {[`${CONST.SEARCH.GROUP_PREFIX}cashBack`]: {count: 0, isCashBack: true}};
+        selectGroups(`${CONST.SEARCH.GROUP_PREFIX}cashBack`);
+
+        render(<SearchBulkActionsButton queryJSON={queryJSON} />);
+
+        expect(getButtonProps().customText).toBe('workspace.common.selected:1');
+    });
+
+    it('adds the cash back row to the expenses of the settlements selected alongside it', () => {
+        mockSearchData = {
+            [`${CONST.SEARCH.GROUP_PREFIX}cashBack`]: {count: 0, isCashBack: true},
+            [`${CONST.SEARCH.GROUP_PREFIX}cleared`]: {count: 12},
+        };
+        selectGroups(`${CONST.SEARCH.GROUP_PREFIX}cashBack`, `${CONST.SEARCH.GROUP_PREFIX}cleared`);
+
+        render(<SearchBulkActionsButton queryJSON={queryJSON} />);
+
+        expect(getButtonProps().customText).toBe('workspace.common.selected:13');
     });
 });
