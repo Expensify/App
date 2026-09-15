@@ -54,8 +54,9 @@ type ReceiptStorage = {
     resolve: (source: ReceiptSource | null | undefined) => string | undefined;
 
     /**
-     * Restores receipts a dead swap left under a backup name and clears stale temporary copies. Startup
-     * schedules this too, so recovery does not depend on a later upload reading the folder.
+     * Restores receipts an interrupted swap left under a backup name and clears stale temporary copies.
+     * Startup schedules this too, so recovery does not depend on a later upload reading the folder. Never
+     * rejects, since nothing awaits it.
      */
     sweepLeftovers: () => Promise<void>;
 };

@@ -321,15 +321,19 @@ const locate: ReceiptStorage['locate'] = async (source) => {
 };
 
 const sweepLeftovers: ReceiptStorage['sweepLeftovers'] = async () => {
-    const dir = getReceiptsUploadFolderPath();
-    if (!dir) {
-        return;
-    }
+    try {
+        const dir = getReceiptsUploadFolderPath();
+        if (!dir) {
+            return;
+        }
 
-    await new Promise<void>((onIdle) => {
-        requestIdleCallback(() => onIdle(), {timeout: SWEEP_IDLE_TIMEOUT_MS});
-    });
-    await whenLeftoversSwept(dir);
+        await new Promise<void>((onIdle) => {
+            requestIdleCallback(() => onIdle(), {timeout: SWEEP_IDLE_TIMEOUT_MS});
+        });
+        await whenLeftoversSwept(dir);
+    } catch (error) {
+        Log.warn('[ReceiptStorage] could not sweep leftover receipt copies at startup', {error: error instanceof Error ? error.message : String(error)});
+    }
 };
 
 const receiptStorage: ReceiptStorage = {adopt, overwrite, discard, locate, settle, toLocalUri, resolve, sweepLeftovers};
