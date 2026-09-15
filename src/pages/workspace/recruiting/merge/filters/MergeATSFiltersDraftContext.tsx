@@ -35,9 +35,9 @@ function MergeATSFiltersDraftProvider({children}: ChildrenProps) {
     const policy = usePolicy(route.params?.params?.policyID);
     const savedFilters = policy?.connections?.merge_ats?.config?.filters;
 
-    const [tags, setTags] = useState(savedFilters?.tags);
-    const [stages, setStages] = useState(savedFilters?.stages);
-    const [offices, setOffices] = useState(savedFilters?.offices);
+    const [tags, setTags] = useState<string[]>();
+    const [stages, setStages] = useState<string[]>();
+    const [offices, setOffices] = useState<string[]>();
 
     const setFilter = (filterType: MergeATSFilterType, values: string[]) => {
         switch (filterType) {
@@ -53,7 +53,7 @@ function MergeATSFiltersDraftProvider({children}: ChildrenProps) {
     };
 
     return (
-        <MergeATSFiltersDraftStateContext.Provider value={{tags, stages, offices}}>
+        <MergeATSFiltersDraftStateContext.Provider value={{tags: tags ?? savedFilters?.tags, stages: stages ?? savedFilters?.stages, offices: offices ?? savedFilters?.offices}}>
             <MergeATSFiltersDraftActionsContext.Provider value={{setFilter}}>{children}</MergeATSFiltersDraftActionsContext.Provider>
         </MergeATSFiltersDraftStateContext.Provider>
     );
