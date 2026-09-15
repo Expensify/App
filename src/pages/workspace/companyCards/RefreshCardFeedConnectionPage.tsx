@@ -44,7 +44,7 @@ function RefreshCardFeedConnectionPage({route, policy}: RefreshCardFeedConnectio
 
     const [cardFeeds] = useCardFeeds(policyID);
     const feedExpiration = feed ? cardFeeds?.[feed]?.expiration : undefined;
-    const prevFeedExpiration = usePrevious(feedExpiration);
+    const prevFeed = usePrevious(feed ? cardFeeds?.[feed] : undefined);
 
     useEffect(() => {
         return () => {
@@ -64,11 +64,11 @@ function RefreshCardFeedConnectionPage({route, policy}: RefreshCardFeedConnectio
     // OAuth feeds: expiration updates after bank re-authentication completes. A feed whose OAuth details were never
     // cached has no expiration yet, so the first populated value counts as completion too.
     useEffect(() => {
-        if (prevFeedExpiration === feedExpiration || !isRefreshing) {
+        if (!prevFeed || prevFeed.expiration === feedExpiration || !isRefreshing) {
             return;
         }
         Navigation.closeRHPFlow();
-    }, [prevFeedExpiration, feedExpiration, isRefreshing]);
+    }, [prevFeed, feedExpiration, isRefreshing]);
 
     if (!isDirectFeed(feed) || !cardFeeds?.[feed] || !currentStep) {
         return <NotFoundPage />;
