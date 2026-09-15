@@ -22,6 +22,7 @@ import type {
 import type {ApprovalWorkflowFilter, ApprovalWorkflowFilterComparison, ApprovalWorkflowRule} from '@src/types/onyx/ApprovalWorkflowRules';
 import type {ErrorFields, PendingAction, PendingFields} from '@src/types/onyx/OnyxCommon';
 import type {
+    Account,
     ApprovalRule,
     ConnectionLastSync,
     ConnectionName,
@@ -1527,14 +1528,14 @@ function isAttendeeTrackingEnabled(policy: OnyxEntry<Policy>): boolean {
 /**
  * Whether the policy can access a feature based on plan level.
  * Corporate-only features are restricted to control (Corporate) policies.
- * Rules are available on Control always, and on Collect only when the rulesRevamp beta is enabled.
+ * Rules are available on both Control and Collect.
  */
-function canPolicyAccessFeature(policy: OnyxEntry<Policy>, featureName: PolicyFeatureName, isRulesRevampEnabled = false): boolean {
+function canPolicyAccessFeature(policy: OnyxEntry<Policy>, featureName: PolicyFeatureName): boolean {
     if (!isPaidGroupPolicy(policy)) {
         return false;
     }
     if (featureName === CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED) {
-        return isControlPolicy(policy) || (isCollectPolicy(policy) && isRulesRevampEnabled);
+        return isControlPolicy(policy) || isCollectPolicy(policy);
     }
     const corporateOnlyFeatures = new Set<PolicyFeatureName>([
         CONST.POLICY.MORE_FEATURES.ARE_INVOICE_FIELDS_ENABLED,
@@ -1760,15 +1761,8 @@ function canDisableOrDeleteTaxRate(policy: Policy, taxID: string): boolean {
     return policy.taxRates?.defaultExternalID !== taxID && policy.taxRates?.foreignTaxDefault !== taxID;
 }
 
-/**
- * @param isRulesRevampEnabled - Prefer `isBetaEnabled(CONST.BETAS.RULES_REVAMP)` from `usePermissions()`, not raw betas from Onyx.
- * Collect workspaces can only access Rules when this beta is enabled.
- */
-function arePolicyRulesEnabled(policy: OnyxEntry<Policy>, policyCategories?: PolicyCategories | null, isRulesRevampEnabled = false): boolean {
+function arePolicyRulesEnabled(policy: OnyxEntry<Policy>, policyCategories?: PolicyCategories | null): boolean {
     if (!isPaidGroupPolicy(policy)) {
-        return false;
-    }
-    if (isCollectPolicy(policy) && !isRulesRevampEnabled) {
         return false;
     }
     if (policy?.areRulesEnabled === true) {
@@ -1784,9 +1778,9 @@ function arePolicyRulesEnabled(policy: OnyxEntry<Policy>, policyCategories?: Pol
     return hasAnyCategoryRules(policyCategories ?? undefined);
 }
 
-function isPolicyFeatureEnabled(policy: OnyxEntry<Policy>, featureName: PolicyFeatureName, policyCategories?: PolicyCategories | null, isRulesRevampEnabled = false): boolean {
+function isPolicyFeatureEnabled(policy: OnyxEntry<Policy>, featureName: PolicyFeatureName, policyCategories?: PolicyCategories | null): boolean {
     if (featureName === CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED) {
-        return arePolicyRulesEnabled(policy, policyCategories, isRulesRevampEnabled);
+        return arePolicyRulesEnabled(policy, policyCategories);
     }
     if (featureName === CONST.POLICY.MORE_FEATURES.ARE_TAXES_ENABLED) {
         return !!policy?.tax?.trackingEnabled;
@@ -2286,6 +2280,16 @@ function getXeroBankAccounts(policy: Policy | undefined, selectedBankAccountId: 
     }));
 }
 
+/** Only profit and loss accounts can take a currency conversion cost, so these are kept apart from the bank accounts. */
+function getXeroExpenseAccounts(expenseAccounts: Account[] | undefined, selectedExpenseAccountID: string | undefined): SelectorType[] {
+    return (expenseAccounts ?? []).map(({id, name}) => ({
+        value: id,
+        text: name,
+        keyForList: id,
+        isSelected: selectedExpenseAccountID === id,
+    }));
+}
+
 function areSettingsInErrorFields(settings?: string[], errorFields?: ErrorFields) {
     if (settings === undefined || errorFields === undefined) {
         return false;
@@ -2337,6 +2341,17 @@ function getNetSuiteReceivableAccountOptions(policy: Policy | undefined, selecte
         text: name,
         keyForList: id,
         isSelected: id === selectedBankAccountId,
+    }));
+}
+
+function getNetSuiteExpenseAccountOptions(policy: Policy | undefined, selectedExpenseAccountId: string | undefined): SelectorType[] {
+    const expenseAccounts = policy?.connections?.netsuite?.options.data.expenseAccounts;
+
+    return (expenseAccounts ?? []).map(({id, name}) => ({
+        value: id,
+        text: name,
+        keyForList: id,
+        isSelected: id === selectedExpenseAccountId,
     }));
 }
 
@@ -2666,10 +2681,14 @@ function isRilletVendorMatchingActive(policy: OnyxEntry<Policy>): boolean {
     return !!policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.RILLET]?.config?.isConfigured;
 }
 
+function isDualEntryVendorMatchingActive(policy: OnyxEntry<Policy>): boolean {
+    return !!policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.DUALENTRY]?.config?.isConfigured;
+}
+
 /**
  * True when Xero is the *active* vendor-matching source for the workspace — i.e. Xero is
  * connected AND neither QBO nor Intacct is in a vendor-matching export mode. Mirrors the precedence
- * in `getActiveVendorMatchingIntegration` (QBO → Intacct → Xero → Rillet) so the UI labels, copy, and
+ * in `getActiveVendorMatchingIntegration` (QBO → Intacct → Xero → Rillet → DualEntry) so the UI labels, copy, and
  * inactive-vendor guardrail stay bound to whichever integration's vendor list is actually being consulted.
  * Without this scoping, a workspace with active QBO matching + a lingering Xero connection would render
  * QBO vendors under the "Supplier" label.
@@ -2685,11 +2704,12 @@ function isXeroActiveMatchingSource(policy: OnyxEntry<Policy>): boolean {
  * the field.
  *
  * The `vendorMatching` beta only gates the integrations that haven't reached GA yet, so
- * `isVendorMatchingBetaEnabled` is consulted on the Intacct, Xero, and Rillet branches but not on QBO:
+ * `isVendorMatchingBetaEnabled` is consulted on the Intacct, Xero, Rillet, and DualEntry branches but not on QBO:
  *   - QBO (R1) with non-reimbursable export = Credit Card or Debit Card. GA, so no beta required
  *   - Sage Intacct (R2) with non-reimbursable export = Credit Card Charge. Beta required
  *   - Xero (R3) has no export destination enum, so a configured connection is enough. Beta required
  *   - Rillet (R4) configured connection. Beta required
+ *   - DualEntry configured connection. Beta required
  */
 function hasVendorFeature(policy: OnyxEntry<Policy>, isVendorMatchingBetaEnabled: boolean): boolean {
     if (!policy) {
@@ -2698,12 +2718,15 @@ function hasVendorFeature(policy: OnyxEntry<Policy>, isVendorMatchingBetaEnabled
     if (isQBOVendorMatchingActive(policy)) {
         return true;
     }
-    return isVendorMatchingBetaEnabled && (isIntacctVendorMatchingActive(policy) || isXeroVendorMatchingActive(policy) || isRilletVendorMatchingActive(policy));
+    return (
+        isVendorMatchingBetaEnabled &&
+        (isIntacctVendorMatchingActive(policy) || isXeroVendorMatchingActive(policy) || isRilletVendorMatchingActive(policy) || isDualEntryVendorMatchingActive(policy))
+    );
 }
 
 /**
  * Single source of truth for which connected integration scopes the vendor field for this workspace
- * (QBO, Sage Intacct, Xero, or Rillet) and what its vendor list looks like. Returns `undefined` when no
+ * (QBO, Sage Intacct, Xero, Rillet, or DualEntry) and what its vendor list looks like. Returns `undefined` when no
  * vendor-matching integration is active OR when the active integration's list hasn't synced yet —
  * distinct from `[]` (loaded-empty). Lets callers tell "no vendors" from "not loaded".
  *
@@ -2740,6 +2763,9 @@ function getActiveVendorMatchingIntegration(policy: OnyxEntry<Policy>): Connecti
     }
     if (isRilletVendorMatchingActive(policy)) {
         return CONST.POLICY.CONNECTIONS.NAME.RILLET;
+    }
+    if (isDualEntryVendorMatchingActive(policy)) {
+        return CONST.POLICY.CONNECTIONS.NAME.DUALENTRY;
     }
     return undefined;
 }
@@ -2782,12 +2808,15 @@ function getActiveVendorMatchingVendors(policy: OnyxEntry<Policy>): Vendor[] | u
             email: vendor.email ?? '',
         }));
     }
+    if (isDualEntryVendorMatchingActive(policy)) {
+        return policy.connections?.[CONST.POLICY.CONNECTIONS.NAME.DUALENTRY]?.data?.vendors === undefined ? undefined : getDualEntryVendors(policy);
+    }
     return undefined;
 }
 
 /**
  * Returns the vendor list imported into the workspace from whichever connected integration scopes
- * the vendor field for this workspace (QBO, Sage Intacct, or Xero). Empty array when no integration
+ * the vendor field for this workspace (QBO, Sage Intacct, Xero, Rillet, or DualEntry). Empty array when no integration
  * is connected or the sync hasn't populated vendors yet. Source of truth for the vendor selector
  * RHP and inactive-vendor lookups.
  */
@@ -2862,7 +2891,7 @@ function findVendorByID(policy: OnyxEntry<Policy>, vendorID: string | undefined)
             email: rilletVendor.email ?? '',
         };
     }
-    return undefined;
+    return getDualEntryVendors(policy).find((vendor) => vendor.id === vendorID);
 }
 
 /**
@@ -2907,6 +2936,11 @@ function getVendorEmptyState(policy: OnyxEntry<Policy>, translate: LocaleContext
                 title: translate('workspace.rillet.noVendorsFound'),
                 subtitle: translate('workspace.rillet.noVendorsFoundDescription'),
             };
+        case CONST.POLICY.CONNECTIONS.NAME.DUALENTRY:
+            return {
+                title: translate('workspace.dualEntry.noVendorsFound'),
+                subtitle: translate('workspace.dualEntry.noVendorsFoundDescription'),
+            };
         case CONST.POLICY.CONNECTIONS.NAME.QBO:
         default: {
             const integrationName = getQuickbooksOnlineIntegrationName(policy, translate);
@@ -2931,6 +2965,15 @@ function getXeroSuppliers(policy: OnyxEntry<Policy>): Vendor[] {
         return [];
     }
     return Object.values(contacts).map((contact) => ({id: contact.id, name: contact.name, currency: '', email: contact.email}));
+}
+
+/** DualEntry export settings and expense matching must use vendors available to the selected company */
+function getDualEntryVendors(policy: OnyxEntry<Policy>): Vendor[] {
+    const connection = policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.DUALENTRY];
+    const companyID = connection?.config?.subsidiaryID;
+    return (connection?.data?.vendors ?? [])
+        .filter((vendor) => !!vendor.id && vendor.isActive === true && (!vendor.companyID || vendor.companyID === companyID))
+        .map((vendor) => ({id: vendor.id, name: vendor.name, currency: '', email: vendor.email ?? ''}));
 }
 
 /**
@@ -3423,7 +3466,9 @@ export {
     getVendorRuleDisplayValue,
     getXeroSupplierByID,
     getXeroSuppliers,
+    getDualEntryVendors,
     isRilletVendorMatchingActive,
+    isDualEntryVendorMatchingActive,
     isXeroActiveMatchingSource,
     isXeroVendorMatchingActive,
     hasVendorFeature,
@@ -3519,6 +3564,7 @@ export {
     findCurrentXeroOrganization,
     getCurrentXeroOrganizationName,
     getXeroBankAccounts,
+    getXeroExpenseAccounts,
     hasPolicyWithXeroConnection,
     getNetSuiteVendorOptions,
     canUseTaxNetSuite,
@@ -3532,6 +3578,7 @@ export {
     getNetSuiteApprovalAccountOptions,
     getNetSuitePayableAccountOptions,
     getNetSuiteReceivableAccountOptions,
+    getNetSuiteExpenseAccountOptions,
     getNetSuiteInvoiceItemOptions,
     getNetSuiteTaxAccountOptions,
     getSageIntacctVendors,
