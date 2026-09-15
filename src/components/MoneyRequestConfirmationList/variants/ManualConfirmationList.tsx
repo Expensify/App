@@ -21,22 +21,7 @@ import {View} from 'react-native';
  * distance controller.
  */
 function ManualConfirmationList(props: ManualConfirmationListProps) {
-    const {
-        selectedParticipants,
-        isEditingSplitBill,
-        isPerDiemRequest,
-        isTimeRequest,
-        isParticipantPickerVisible = false,
-        onToggleBillable,
-        onToggleReimbursable,
-        receiptFilename = '',
-        receiptPath = '',
-        isLoadingReceipt = false,
-        isReceiptEditable,
-        shouldDisplayReceipt = false,
-        onPDFLoadError,
-        onPDFPassword,
-    } = props;
+    const {selectedParticipants, isEditingSplitBill, isPerDiemRequest, isTimeRequest, isParticipantPickerVisible = false, onToggleBillable, onToggleReimbursable, receiptOptions} = props;
 
     const data = useConfirmationListData(props);
 
@@ -58,7 +43,7 @@ function ManualConfirmationList(props: ManualConfirmationListProps) {
                     visibilityFlags={{...data.visibilityFlags, isParticipantPickerVisible}}
                     errorState={data.errorState}
                     toggleHandlers={{onToggleReimbursable, onToggleBillable}}
-                    receiptOptions={{receiptFilename, receiptPath, isLoadingReceipt, isReceiptEditable, shouldDisplayReceipt, onPDFLoadError, onPDFPassword}}
+                    receiptOptions={receiptOptions}
                 />
             </View>
         </ConfirmationFieldsProvider>

@@ -74,12 +74,14 @@ type CompactControls = {
 };
 
 /** Receipt-related inputs threaded into the receipt section */
+/** Everything the receipt section renders from. Each field falls back to its empty state, so a surface that shows
+ * no receipt — or a page that has none to show yet — can omit the whole bundle. */
 type ReceiptOptions = {
-    receiptFilename: string;
-    receiptPath: string | number;
+    receiptFilename?: string;
+    receiptPath?: string | number;
     isLoadingReceipt?: boolean;
     isReceiptEditable?: boolean;
-    shouldDisplayReceipt: boolean;
+    shouldDisplayReceipt?: boolean;
     onPDFLoadError?: () => void;
     onPDFPassword?: () => void;
 };

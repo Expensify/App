@@ -57,13 +57,7 @@ function DistanceConfirmationList(props: DistanceConfirmationListProps) {
         onConfirm,
         onToggleBillable,
         onToggleReimbursable,
-        receiptFilename = '',
-        receiptPath = '',
-        isLoadingReceipt = false,
-        isReceiptEditable,
-        shouldDisplayReceipt = false,
-        onPDFLoadError,
-        onPDFPassword,
+        receiptOptions,
     } = props;
 
     const isManualDistanceRequest = isManualDistanceRequestUtil(transaction);
@@ -140,7 +134,7 @@ function DistanceConfirmationList(props: DistanceConfirmationListProps) {
         visibilityFlags: {...data.visibilityFlags, isParticipantPickerVisible},
         errorState: data.errorState,
         toggleHandlers: {onToggleReimbursable, onToggleBillable},
-        receiptOptions: {receiptFilename, receiptPath, isLoadingReceipt, isReceiptEditable, shouldDisplayReceipt, onPDFLoadError, onPDFPassword},
+        receiptOptions,
     };
 
     // Ordered as the footer dispatcher ordered them. A transaction carries a single request type, so at most one

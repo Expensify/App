@@ -31,20 +31,7 @@ const INLINE_FIELD_ERROR_KEYS = new Set<TranslationPaths | ''>(['common.error.fi
  * transaction amount here.
  */
 function ScanConfirmationList(props: ScanConfirmationListProps) {
-    const {
-        selectedParticipants,
-        isEditingSplitBill,
-        isParticipantPickerVisible = false,
-        onToggleBillable,
-        onToggleReimbursable,
-        receiptFilename = '',
-        receiptPath = '',
-        isLoadingReceipt = false,
-        isReceiptEditable,
-        shouldDisplayReceipt = false,
-        onPDFLoadError,
-        onPDFPassword,
-    } = props;
+    const {selectedParticipants, isEditingSplitBill, isParticipantPickerVisible = false, onToggleBillable, onToggleReimbursable, receiptOptions} = props;
 
     const styles = useThemeStyles();
     const isInLandscapeMode = useIsInLandscapeMode();
@@ -85,7 +72,7 @@ function ScanConfirmationList(props: ScanConfirmationListProps) {
                     visibilityFlags={{...data.visibilityFlags, isParticipantPickerVisible}}
                     errorState={data.errorState}
                     toggleHandlers={{onToggleReimbursable, onToggleBillable}}
-                    receiptOptions={{receiptFilename, receiptPath, isLoadingReceipt, isReceiptEditable, shouldDisplayReceipt, onPDFLoadError, onPDFPassword}}
+                    receiptOptions={receiptOptions}
                     compactControls={{showMoreFields, setShowMoreFields}}
                 />
             </View>

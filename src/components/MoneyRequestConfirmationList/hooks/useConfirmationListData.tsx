@@ -1,6 +1,7 @@
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import buildConfirmAction from '@components/MoneyRequestConfirmationList/confirmAction';
 import ConfirmationFooterContent from '@components/MoneyRequestConfirmationList/ConfirmationFooterContent';
+import type {ReceiptOptions} from '@components/MoneyRequestConfirmationListFooter/fieldGroupTypes';
 import type {MeasurableInput, SelectionListWithSectionsHandle} from '@components/SelectionList/SelectionListWithSections/types';
 
 import useAttendees from '@hooks/useAttendees';
@@ -79,8 +80,12 @@ type UseConfirmationListDataParams = {
     isEditingSplitBill?: boolean;
     expensesNumber?: number;
 
-    /** Only reaches the CTA label, and only for a request that is not per diem and has no pending route. */
-    receiptPath?: string | number;
+    /**
+     * Everything the receipt section renders from. This hook reads only `receiptPath` (the CTA label, and only
+     * for a request that is not per diem and has no pending route) and `isLoadingReceipt` (the confirm button
+     * waits on an odometer receipt still being stitched); the rest is the footer's.
+     */
+    receiptOptions?: ReceiptOptions;
 
     isConfirmed?: boolean;
     isConfirming?: boolean;
@@ -94,9 +99,6 @@ type UseConfirmationListDataParams = {
     hasSmartScanFailed?: boolean;
 
     shouldHideToSection?: boolean;
-
-    /** Whether the odometer receipt is currently being stitched. Reaches the confirm button, which waits on it. */
-    isLoadingReceipt?: boolean;
 
     onConfirm?: () => void;
 
@@ -146,7 +148,7 @@ function useConfirmationListData({
     isPolicyExpenseChat = false,
     isEditingSplitBill,
     expensesNumber = 0,
-    receiptPath = '',
+    receiptOptions,
     isConfirmed,
     isConfirming,
     shouldShowSmartScanFields = true,
@@ -154,7 +156,6 @@ function useConfirmationListData({
     partiallyManuallyFilledScanID,
     hasSmartScanFailed,
     shouldHideToSection = false,
-    isLoadingReceipt = false,
     onConfirm,
     onSendMoney,
     onOpenParticipantPicker,
@@ -175,6 +176,8 @@ function useConfirmationListData({
         distance = 0,
         unit: distanceUnit,
     }: Partial<ConfirmationDistanceState> = distanceState ?? {};
+
+    const {receiptPath = '', isLoadingReceipt = false} = receiptOptions ?? {};
 
     const policyCategories = usePolicyCategoriesForConfirmation(policyID);
     const {policyTags, policyTagLists} = usePolicyTagsForConfirmation(policyID);

@@ -20,19 +20,7 @@ import {View} from 'react-native';
  * controller. `InvoiceFooter` adds the sender row above the shared fields.
  */
 function InvoiceConfirmationList(props: InvoiceConfirmationListProps) {
-    const {
-        selectedParticipants,
-        isParticipantPickerVisible = false,
-        onToggleBillable,
-        onToggleReimbursable,
-        receiptFilename = '',
-        receiptPath = '',
-        isLoadingReceipt = false,
-        isReceiptEditable,
-        shouldDisplayReceipt = false,
-        onPDFLoadError,
-        onPDFPassword,
-    } = props;
+    const {selectedParticipants, isParticipantPickerVisible = false, onToggleBillable, onToggleReimbursable, receiptOptions} = props;
 
     const data = useConfirmationListData({...props, iouType: CONST.IOU.TYPE.INVOICE});
 
@@ -52,7 +40,7 @@ function InvoiceConfirmationList(props: InvoiceConfirmationListProps) {
                     visibilityFlags={{...data.visibilityFlags, isParticipantPickerVisible}}
                     errorState={data.errorState}
                     toggleHandlers={{onToggleReimbursable, onToggleBillable}}
-                    receiptOptions={{receiptFilename, receiptPath, isLoadingReceipt, isReceiptEditable, shouldDisplayReceipt, onPDFLoadError, onPDFPassword}}
+                    receiptOptions={receiptOptions}
                 />
             </View>
         </ConfirmationFieldsProvider>

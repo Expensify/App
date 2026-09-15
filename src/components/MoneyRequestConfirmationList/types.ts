@@ -1,3 +1,5 @@
+import type {ReceiptOptions} from '@components/MoneyRequestConfirmationListFooter/fieldGroupTypes';
+
 import type {OptionData} from '@libs/ReportUtils';
 
 import type {IOUAction, IOUType} from '@src/CONST';
@@ -41,19 +43,17 @@ type MoneyRequestConfirmationListProps = {
     policyID?: string;
     reportID?: string;
 
-    /** File path of the receipt */
-    receiptPath?: string | number;
-
-    receiptFilename?: string;
+    /**
+     * Everything the receipt section renders from. Handed to the footer as-is; per diem is the one type that
+     * shows no receipt and so ignores it.
+     */
+    receiptOptions?: ReceiptOptions;
 
     /** Transaction that represents the expense */
     transaction?: OnyxEntry<OnyxTypes.Transaction>;
 
     /** Whether the expense is an odometer distance expense */
     isOdometerDistanceRequest?: boolean;
-
-    /** Whether the odometer receipt is currently being stitched */
-    isLoadingReceipt?: boolean;
 
     /** Error message from the odometer receipt stitcher, rendered below the receipt */
     receiptStitchError?: string | null;
@@ -66,9 +66,6 @@ type MoneyRequestConfirmationListProps = {
 
     /** Whether we're editing a split expense */
     isEditingSplitBill?: boolean;
-
-    /** Whether we can navigate to receipt page */
-    shouldDisplayReceipt?: boolean;
 
     /** Whether we should show the amount, date, and merchant fields. */
     shouldShowSmartScanFields?: boolean;
@@ -95,11 +92,6 @@ type MoneyRequestConfirmationListProps = {
     /** Whether the expense is in the process of being confirmed */
     isConfirming?: boolean;
 
-    /** Whether the receipt can be replaced */
-    isReceiptEditable?: boolean;
-
-    onPDFLoadError?: () => void;
-    onPDFPassword?: () => void;
     onToggleReimbursable?: (isOn: boolean) => void;
     showRemoveExpenseConfirmModal?: () => void;
 
@@ -159,13 +151,7 @@ type TimeConfirmationListProps = Pick<
     | 'shouldShowSmartScanFields'
     | 'canEnterScanFieldsManually'
     | 'shouldHideToSection'
-    | 'receiptPath'
-    | 'receiptFilename'
-    | 'isReceiptEditable'
-    | 'shouldDisplayReceipt'
-    | 'isLoadingReceipt'
-    | 'onPDFLoadError'
-    | 'onPDFPassword'
+    | 'receiptOptions'
     | 'onConfirm'
     | 'onToggleBillable'
     | 'onToggleReimbursable'

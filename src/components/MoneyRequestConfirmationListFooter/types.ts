@@ -30,7 +30,7 @@ type ConfirmationFooterBaseProps = {
 
 /** Adds the receipt section. Per diem is the one type that shows no receipt on the confirmation page. */
 type WithReceipt = {
-    receiptOptions: ReceiptOptions;
+    receiptOptions?: ReceiptOptions;
 };
 
 /** Adds the distance-rate metadata the Distance and Rate fields read. */
