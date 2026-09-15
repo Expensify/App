@@ -334,12 +334,17 @@ function tokenizeKeywordSegments(keywords: string) {
 
 const groupByWithoutValueRegex = new RegExp(`^${CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.GROUP_BY}\\s*(?:${syntaxOperatorPattern})$`, 'i');
 
+function getGroupByValueForValidation(segment: string) {
+    const valueWithoutTrailingCommas = segment.replace(/,+$/g, '');
+    return isCompleteQuotedValue(valueWithoutTrailingCommas) ? valueWithoutTrailingCommas.slice(1, -1) : valueWithoutTrailingCommas;
+}
+
 function shouldCombineKeywordSegments(segment: string, nextSegment: string | undefined) {
     if (!nextSegment || !syntaxWithoutValueRegex.test(segment)) {
         return false;
     }
 
-    const nextSegmentValue = isCompleteQuotedValue(nextSegment) ? nextSegment.slice(1, -1) : nextSegment;
+    const nextSegmentValue = getGroupByValueForValidation(nextSegment);
     return syntaxWithoutValueRegex.test(nextSegment) || (groupByWithoutValueRegex.test(segment) && !VALID_GROUP_BYS.has(nextSegmentValue.toLowerCase()));
 }
 
