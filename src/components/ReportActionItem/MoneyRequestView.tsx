@@ -1729,11 +1729,14 @@ function MoneyRequestView({
                 )}
 
                 {hasRequiredCompanyCardViolation && (
-                    <DotIndicatorMessage
-                        type="error"
-                        style={[styles.mv3, styles.mh4, styles.userSelectNone]}
-                        messages={{error: translate('violations.companyCardRequired')}}
-                    />
+                    <View dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}>
+                        <DotIndicatorMessage
+                            type="error"
+                            style={[styles.mv3, styles.mh4, styles.userSelectNone]}
+                            messages={{error: translate('violations.companyCardRequired')}}
+                            isSelectable={false}
+                        />
+                    </View>
                 )}
             </>
         </View>
