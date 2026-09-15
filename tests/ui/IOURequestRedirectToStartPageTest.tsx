@@ -218,7 +218,7 @@ describe('IOURequestRedirectToStartPage', () => {
         expect(Navigation.navigate).toHaveBeenCalledTimes(1);
 
         // the reportID is generated on the fly, so read it back off the route and rebuild the expected one
-        const navigatedRoute = jest.mocked(Navigation.navigate).mock.calls.at(0)?.at(0) ?? '';
+        const navigatedRoute: string = jest.mocked(Navigation.navigate).mock.calls.at(0)?.[0] ?? '';
         const optimisticReportID = /\/(\d+)\/manual$/.exec(navigatedRoute)?.at(1) ?? '';
         expect(optimisticReportID).not.toBe('');
         expect(navigatedRoute).toBe(ROUTES.MONEY_REQUEST_CREATE_TAB_MANUAL.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.SUBMIT, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, optimisticReportID));
