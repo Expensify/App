@@ -3894,6 +3894,19 @@ describe('SearchQueryUtils', () => {
             expect(result).not.toContain('"group-by: \\"from\\""');
         });
 
+        it('should preserve a valid smart-quoted group-by value as syntax', () => {
+            const currentQueryJSON = buildSearchQueryJSON('type:expense');
+            if (!currentQueryJSON) {
+                throw new Error('Expected currentQueryJSON to be defined');
+            }
+
+            const result = getQueryWithUpdatedValues(getKeywordQueryWithCurrentSearchContext('group-by: “from”', currentQueryJSON));
+            const resultQueryJSON = buildSearchQueryJSON(result ?? '');
+
+            expect(resultQueryJSON?.groupBy).toBe(CONST.SEARCH.GROUP_BY.FROM);
+            expect(result).not.toContain('"group-by: \\“from\\”"');
+        });
+
         it('should preserve valid filter syntax with whitespace between the operator and value', () => {
             const currentQueryJSON = buildSearchQueryJSON('type:expense');
 

@@ -252,7 +252,7 @@ function isEscaped(str: string, index: number) {
 }
 
 function isCompleteQuotedValue(str: string) {
-    return str.startsWith('"') && str.length > 1 && str.endsWith('"') && !isEscaped(str, str.length - 1);
+    return /^[“”"]/.test(str) && str.length > 1 && /[“”"]$/.test(str) && !isEscaped(str, str.length - 1);
 }
 
 function hasUnescapedQuote(str: string) {
