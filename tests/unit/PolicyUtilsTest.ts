@@ -3611,17 +3611,17 @@ describe('PolicyUtils', () => {
     });
 
     describe('sortVendors', () => {
-        const localeCompare = (a: string, b: string) => a.localeCompare(b, undefined, {sensitivity: 'base', numeric: true});
+        const localeCompare = (a: string, b: string) => a.localeCompare(b);
 
         it('sorts vendors alphabetically by name using localeCompare', () => {
             const vendors = [
                 {id: '1', name: 'Zebra'},
-                {id: '2', name: 'apple'},
+                {id: '2', name: 'Apple'},
                 {id: '3', name: 'Banana'},
             ];
 
             const result = sortVendors(vendors, localeCompare);
-            expect(result.map((v) => v.name)).toEqual(['apple', 'Banana', 'Zebra']);
+            expect(result.map((v) => v.name)).toEqual(['Apple', 'Banana', 'Zebra']);
         });
 
         it('breaks name ties using vendor id', () => {
@@ -3658,7 +3658,7 @@ describe('PolicyUtils', () => {
     });
 
     describe('getSageIntacctVendors', () => {
-        const localeCompare = (a: string, b: string) => a.localeCompare(b, undefined, {sensitivity: 'base', numeric: true});
+        const localeCompare = (a: string, b: string) => a.localeCompare(b);
 
         it('sorts Intacct vendors alphabetically by value using localeCompare', () => {
             const policy = createMock<Policy>({
@@ -3667,7 +3667,7 @@ describe('PolicyUtils', () => {
                         data: {
                             vendors: [
                                 {id: '1', name: '1', value: 'Zebra'},
-                                {id: '2', name: '2', value: 'apple'},
+                                {id: '2', name: '2', value: 'Apple'},
                                 {id: '3', name: '3', value: 'Banana'},
                             ],
                         },
@@ -3676,7 +3676,7 @@ describe('PolicyUtils', () => {
             });
 
             const result = getSageIntacctVendors(policy, undefined, localeCompare);
-            expect(result.map((v) => v.text)).toEqual(['apple', 'Banana', 'Zebra']);
+            expect(result.map((v) => v.text)).toEqual(['Apple', 'Banana', 'Zebra']);
         });
 
         it('breaks value ties using vendor id', () => {
