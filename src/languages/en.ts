@@ -7618,6 +7618,24 @@ const translations = {
                 recruiter: 'Recruiter',
                 recruitingCoordinator: 'Recruiting coordinator',
             },
+            filters: {
+                description: (providerName: string) => `Select which members get imported from ${providerName}. You can choose from job stages, tags, and offices.`,
+                skipImport: "Don't import",
+                chooseAtLeastOneItem: 'Choose at least one item to import',
+                stages: {
+                    title: 'Job stage',
+                    description: 'Choose the job stage of candidates you would like to sync with this workspace',
+                },
+                tags: {
+                    title: 'Tag',
+                    description: 'Choose the tags of candidates you would like to sync with this workspace',
+                },
+                offices: {
+                    title: 'Office',
+                    optionalTitle: 'Office (optional)',
+                    description: 'Choose the offices of candidates you would like to sync with this workspace',
+                },
+            },
         },
         merge: {
             connections: 'Connections',

@@ -35,6 +35,7 @@ import type {AuthScreensParamList, RightModalNavigatorParamList} from '@navigati
 
 import {PINContextProvider} from '@pages/MissingPersonalDetails/PINContext';
 import SearchAdvancedFiltersProvider from '@pages/Search/SearchAdvancedFiltersProvider';
+import MergeATSFiltersDraftProvider from '@pages/workspace/recruiting/merge/MergeATSFiltersDraftContext';
 
 import variables from '@styles/variables';
 
@@ -74,6 +75,14 @@ function SearchAdvancedFiltersWithContext(props: Record<string, unknown>) {
         <SearchAdvancedFiltersProvider>
             <ModalStackNavigators.SearchAdvancedFiltersModalStackNavigator {...props} />
         </SearchAdvancedFiltersProvider>
+    );
+}
+
+function MergeATSImportSettingsWithContext(props: Record<string, unknown>) {
+    return (
+        <MergeATSFiltersDraftProvider>
+            <ModalStackNavigators.MergeATSImportSettingsModalStackNavigator {...props} />
+        </MergeATSFiltersDraftProvider>
     );
 }
 
@@ -403,6 +412,10 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                             <Stack.Screen
                                 name={SCREENS.RIGHT_MODAL.POLICY_COPY_SETTINGS}
                                 component={ModalStackNavigators.PolicyCopySettingsModalStackNavigator}
+                            />
+                            <Stack.Screen
+                                name={SCREENS.RIGHT_MODAL.MERGE_ATS_IMPORT_SETTINGS}
+                                component={MergeATSImportSettingsWithContext}
                             />
                             <Stack.Screen
                                 name={SCREENS.RIGHT_MODAL.NEW_TASK}
