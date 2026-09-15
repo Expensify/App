@@ -1,3 +1,4 @@
+import CollapsibleHeaderOnKeyboard from '@components/CollapsibleHeaderOnKeyboard';
 import type {FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {BotAvatarBlue} from '@components/Icon/DefaultBotAvatars';
@@ -13,7 +14,6 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -65,9 +65,6 @@ function AddAgentRulePage({
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
-    const {isBetaEnabled} = usePermissions();
-    const isCustomAgentEnabled = isBetaEnabled(CONST.BETAS.CUSTOM_AGENT);
-    const isRulesRevampEnabled = isBetaEnabled(CONST.BETAS.RULES_REVAMP);
     const policy = usePolicy(policyID);
     const linkPressedRef = useRef(false);
     const {showConfirmModal, closeModal} = useConfirmModal();
@@ -138,13 +135,8 @@ function AddAgentRulePage({
     };
 
     const navigateBackToAgentsTab = () => {
-        if (isRulesRevampEnabled) {
-            Tab.setSelectedTab(CONST.TAB.RULES_TAB_TYPE, CONST.TAB.RULES.AGENTS);
-            Navigation.goBack(ROUTES.WORKSPACE_RULES.getRoute(policyID));
-            return;
-        }
-
-        Navigation.goBack();
+        Tab.setSelectedTab(CONST.TAB.RULES_TAB_TYPE, CONST.TAB.RULES.AGENTS);
+        Navigation.goBack(ROUTES.WORKSPACE_RULES.getRoute(policyID));
     };
 
     const saveRule = (values: FormOnyxValues<AddAgentRuleFormID>): void => {
@@ -164,9 +156,7 @@ function AddAgentRulePage({
             closeModal();
         };
 
-        if (isRulesRevampEnabled) {
-            Tab.setSelectedTab(CONST.TAB.RULES_TAB_TYPE, CONST.TAB.RULES.AGENTS);
-        }
+        Tab.setSelectedTab(CONST.TAB.RULES_TAB_TYPE, CONST.TAB.RULES.AGENTS);
 
         Navigation.dismissModal({
             afterTransition: () => {
@@ -181,7 +171,7 @@ function AddAgentRulePage({
                             />
                         </View>
                     ),
-                    confirmText: isRulesRevampEnabled ? translate('workspace.rules.agentRules.gotIt') : translate('common.buttonConfirm'),
+                    confirmText: translate('workspace.rules.agentRules.gotIt'),
                     shouldShowCancelButton: false,
                     shouldUseSuccessStyleForConfirm: true,
                     iconSource: BotAvatarBlue,
@@ -207,7 +197,6 @@ function AddAgentRulePage({
     return (
         <AccessOrNotFoundWrapper
             policyID={policyID}
-            shouldBeBlocked={!isCustomAgentEnabled}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
         >
@@ -217,21 +206,24 @@ function AddAgentRulePage({
                 includeSafeAreaPaddingBottom
                 shouldEnableMaxHeight
             >
-                <HeaderWithBackButton
-                    title={isRulesRevampEnabled ? translate('workspace.rules.agentRules.newRuleTitle') : translate('workspace.rules.agentRules.addRuleTitle')}
-                    shouldDisplayHelpButton
-                    onBackButtonPress={handleBackButtonPress}
-                />
-                <View style={[styles.flexShrink0, styles.w100]}>
-                    <TabSelectorContextProvider activeTabKey={activeTab}>
-                        <TabSelectorBase
-                            tabs={tabs}
-                            activeTabKey={activeTab}
-                            onTabPress={selectTab}
-                            equalWidth
-                        />
-                    </TabSelectorContextProvider>
-                </View>
+                <CollapsibleHeaderOnKeyboard alwaysCollapseHeaderOnKeyboard>
+                    <HeaderWithBackButton
+                        title={translate('workspace.rules.agentRules.newRuleTitle')}
+                        shouldDisplayHelpButton
+                        onBackButtonPress={handleBackButtonPress}
+                    />
+                    <View style={[styles.flexShrink0, styles.w100]}>
+                        <TabSelectorContextProvider activeTabKey={activeTab}>
+                            <TabSelectorBase
+                                tabs={tabs}
+                                activeTabKey={activeTab}
+                                onTabPress={selectTab}
+                                equalWidth
+                            />
+                        </TabSelectorContextProvider>
+                    </View>
+                </CollapsibleHeaderOnKeyboard>
+
                 <View style={styles.flex1}>
                     <View style={[styles.flex1, activeTab !== CONST.TAB.AGENT_RULE.SUGGESTIONS && styles.dNone]}>
                         <AddAgentRuleSuggestionsTab

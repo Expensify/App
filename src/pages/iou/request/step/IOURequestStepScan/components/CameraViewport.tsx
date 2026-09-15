@@ -69,13 +69,11 @@ type CameraViewportProps = {
     /** Current camera permission status; used to disable the flash button until granted */
     cameraPermissionStatus: PermissionStatus | null;
 
-    /** Whether the camera flash is currently on */
     flash: boolean;
 
     /** Whether the camera device supports flash */
     hasFlash: boolean;
 
-    /** Updater function to toggle flash state */
     setFlash: (updater: (prev: boolean) => boolean) => void;
 };
 

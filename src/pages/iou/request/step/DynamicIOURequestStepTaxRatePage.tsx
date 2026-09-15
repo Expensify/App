@@ -1,5 +1,6 @@
 import TaxPicker from '@components/TaxPicker';
 
+import useAllTransactionViolations from '@hooks/useAllTransactionViolations';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
@@ -65,6 +66,7 @@ function DynamicIOURequestStepTaxRatePage({
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_TAX_RATE.path);
 
     const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
+    const allTransactionViolations = useAllTransactionViolations(transaction?.transactionID);
 
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const isEditingSplitBill = isEditing && iouType === CONST.IOU.TYPE.SPLIT;
@@ -83,6 +85,7 @@ function DynamicIOURequestStepTaxRatePage({
 
     useRestartOnReceiptFailure(transaction, reportIDFromRoute, iouType, action);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
     const currentTransaction = isEditingSplitBill && !isEmptyObject(splitDraftTransaction) ? splitDraftTransaction : transaction;
     const taxRates = policy?.taxRates;
@@ -115,6 +118,7 @@ function DynamicIOURequestStepTaxRatePage({
             taxCode: '',
             taxValue: '',
             taxAmount: 0,
+            transaction: currentTransaction,
             policy,
             policyTagList: policyTags,
             policyCategories,
@@ -124,8 +128,10 @@ function DynamicIOURequestStepTaxRatePage({
             delegateAccountID,
             reportPolicyTags,
             isTrackIntentUser,
+            violations: allTransactionViolations,
             getCurrencyDecimals,
             getCurrencySymbol,
+            rules,
         };
 
         // Clearing the tax on a split must update the split draft, not the optimistic transaction, otherwise the

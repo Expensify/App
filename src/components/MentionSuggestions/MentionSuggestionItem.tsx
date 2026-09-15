@@ -16,7 +16,6 @@ import {View} from 'react-native';
 import type Mention from './types';
 
 type MentionSuggestionItemProps = {
-    /** The mention to render */
     item: Mention;
 
     /** Mention prefix that follows the @ sign, highlighted within the rendered text */

@@ -41,8 +41,12 @@ jest.mock('@libs/SearchUIUtils', () => ({
     isCorrectSearchUserName: jest.fn(() => true),
     getTableMinWidth: jest.fn(() => 0),
     getSuggestedSearches: jest.fn(() => ({})),
-    getSuggestedSearchesVisibility: jest.fn(() => ({topSpendersPolicyIDs: []})),
+    getSuggestedSearchesVisibility: jest.fn(() => ({shouldShowExpensifyCard: false})),
+    isTodoSearch: jest.fn(() => false),
     getSubmittedViolationsForTransaction: jest.fn(() => ''),
+    getGroupColumnWidthFlags: jest.fn(() => ({isAmountColumnWide: false, isTaxAmountColumnWide: false, shouldShowYear: false, isActionColumnWide: false})),
+    getGroupTableScrollLayout: jest.fn(() => ({dataColumns: [], minTableWidth: 0, shouldScrollHorizontally: false})),
+    getViolationsForTransaction: jest.fn(() => ''),
 }));
 
 jest.mock('@react-navigation/native', () => ({

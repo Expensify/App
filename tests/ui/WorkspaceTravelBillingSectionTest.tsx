@@ -6,7 +6,7 @@ import {CurrencyListContextProvider} from '@components/CurrencyListContextProvid
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
-import {payTravelBillingSpend} from '@libs/actions/TravelBilling';
+import {deactivateTravelBilling, payTravelBillingSpend} from '@libs/actions/TravelBilling';
 import {getTravelBillingCardSettingsKey} from '@libs/TravelBillingUtils';
 
 import WorkspaceTravelBillingSection from '@pages/workspace/travel/WorkspaceTravelBillingSection';
@@ -78,6 +78,7 @@ jest.mock('@libs/actions/TravelBilling', () => {
     return {
         ...actual,
         payTravelBillingSpend: jest.fn().mockResolvedValue(undefined),
+        deactivateTravelBilling: jest.fn(),
     };
 });
 
@@ -437,23 +438,42 @@ describe('WorkspaceTravelBillingSection', () => {
             fireEvent.press(payButton);
             await waitForBatchedUpdatesWithAct();
 
-            expect(payTravelBillingSpend).not.toHaveBeenCalled();
+            // The confirmation modal is requested with the pay balance copy. Title uses the amount: "Pay balance of $50.00?"
+            expect(mockShowConfirmModal).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    title: 'Pay balance of $50.00?',
+                    confirmText: 'Pay balance',
+                }),
+            );
 
-            // The confirmation modal should be visible with the pay balance title
-            // Title uses the amount: "Pay balance of $50.00?"
-            expect(screen.getByText('Pay balance of $50.00?')).toBeTruthy();
+            // The mocked modal resolves with CONFIRM, so the payment is triggered
+            expect(payTravelBillingSpend).toHaveBeenCalledWith(POLICY_ID, WORKSPACE_ACCOUNT_ID, 5000);
+        });
 
-            // Confirm the modal — the confirm button reuses 'Pay balance' CTA text
-            // There are now two 'Pay balance' texts (the original button behind the modal and the modal's confirm button)
-            const payBalanceButtons = screen.getAllByText('Pay balance');
-            const confirmButton = payBalanceButtons.at(-1);
-            // Press the last one which is the modal's confirm button
-            if (confirmButton) {
-                fireEvent.press(confirmButton);
-            }
+        it('should not call payTravelBillingSpend when the confirmation modal is dismissed', async () => {
+            mockShowConfirmModal.mockResolvedValueOnce({action: 'CLOSE'});
+
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, mockPolicy);
+                await Onyx.merge(cardSettingsKey, {
+                    TRAVEL_US: {
+                        isEnabled: true,
+                        paymentBankAccountID: 12345,
+                        currentBalance: 5000,
+                        monthlySettlementDate: new Date(),
+                    },
+                });
+                await waitForBatchedUpdatesWithAct();
+            });
+
+            renderWorkspaceTravelBillingSection();
             await waitForBatchedUpdatesWithAct();
 
-            expect(payTravelBillingSpend).toHaveBeenCalledWith(POLICY_ID, WORKSPACE_ACCOUNT_ID, 5000);
+            fireEvent.press(screen.getByText('Pay balance'));
+            await waitForBatchedUpdatesWithAct();
+
+            expect(mockShowConfirmModal).toHaveBeenCalled();
+            expect(payTravelBillingSpend).not.toHaveBeenCalled();
         });
 
         it('should hide Pay Balance button and show queued message when settlement is pending', async () => {
@@ -578,6 +598,99 @@ describe('WorkspaceTravelBillingSection', () => {
 
             // openPolicyTravelPage pulses isLoading on every page focus. That pulse must not flash the lock icon.
             expect(screen.queryByTestId(CONST.SWITCH_LOCK_ICON_TEST_ID, {includeHiddenElements: true})).toBeNull();
+        });
+    });
+
+    describe('Turning Travel Invoicing off', () => {
+        const cardSettingsKey = getTravelBillingCardSettingsKey(WORKSPACE_ACCOUNT_ID);
+
+        it('should confirm before deactivating when there is no outstanding balance', async () => {
+            // Given an enabled workspace with nothing left to pay
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, mockPolicy);
+                await Onyx.merge(cardSettingsKey, {
+                    TRAVEL_US: {
+                        isEnabled: true,
+                        paymentBankAccountID: 12345,
+                        currentBalance: 0,
+                        pendingSettlementAmount: 0,
+                    },
+                });
+                await waitForBatchedUpdatesWithAct();
+            });
+
+            renderWorkspaceTravelBillingSection();
+            await waitForBatchedUpdatesWithAct();
+
+            fireEvent.press(screen.getByRole('switch'));
+            await waitForBatchedUpdatesWithAct();
+
+            expect(mockShowConfirmModal).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    title: 'Turn off Consolidated Travel Billing?',
+                    confirmText: 'Turn off',
+                }),
+            );
+
+            // The mocked modal resolves with CONFIRM, so the feature is deactivated
+            expect(deactivateTravelBilling).toHaveBeenCalledWith(POLICY_ID, WORKSPACE_ACCOUNT_ID);
+        });
+
+        it('should not deactivate when the confirmation modal is dismissed', async () => {
+            mockShowConfirmModal.mockResolvedValueOnce({action: 'CLOSE'});
+
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, mockPolicy);
+                await Onyx.merge(cardSettingsKey, {
+                    TRAVEL_US: {
+                        isEnabled: true,
+                        paymentBankAccountID: 12345,
+                        currentBalance: 0,
+                        pendingSettlementAmount: 0,
+                    },
+                });
+                await waitForBatchedUpdatesWithAct();
+            });
+
+            renderWorkspaceTravelBillingSection();
+            await waitForBatchedUpdatesWithAct();
+
+            fireEvent.press(screen.getByRole('switch'));
+            await waitForBatchedUpdatesWithAct();
+
+            expect(mockShowConfirmModal).toHaveBeenCalled();
+            expect(deactivateTravelBilling).not.toHaveBeenCalled();
+        });
+
+        it('should show the blocker modal instead of deactivating when a balance is outstanding', async () => {
+            // Given an enabled workspace that still owes a travel balance
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, mockPolicy);
+                await Onyx.merge(cardSettingsKey, {
+                    TRAVEL_US: {
+                        isEnabled: true,
+                        paymentBankAccountID: 12345,
+                        currentBalance: 5000,
+                    },
+                });
+                await waitForBatchedUpdatesWithAct();
+            });
+
+            renderWorkspaceTravelBillingSection();
+            await waitForBatchedUpdatesWithAct();
+
+            fireEvent.press(screen.getByRole('switch'));
+            await waitForBatchedUpdatesWithAct();
+
+            // The blocker is acknowledgement-only, so it has no cancel button and never deactivates
+            expect(mockShowConfirmModal).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    title: "Can't turn off Consolidated Travel Billing",
+                    confirmText: 'Got it',
+                    shouldShowCancelButton: false,
+                }),
+            );
+            expect(deactivateTravelBilling).not.toHaveBeenCalled();
         });
     });
 

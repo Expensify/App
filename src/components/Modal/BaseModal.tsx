@@ -84,6 +84,7 @@ function BaseModal({
     ref,
     shouldDisplayBelowModals = false,
     shouldKeepRightDockedBackdropInNarrowPane = false,
+    shouldShowBackdrop = false,
     shouldWrapModalChildrenInScrollViewIfBottomDockedInLandscapeMode = true,
 }: BaseModalProps) {
     const theme = useTheme();
@@ -302,7 +303,7 @@ function BaseModal({
     const isFullWidthNarrowSheet =
         (type === CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED || type === CONST.MODAL.MODAL_TYPE.CENTERED_SWIPEABLE_TO_RIGHT) && isSmallScreenWidth && !shouldKeepRightDockedBackdropInNarrowPane;
     const backdropOpacityAdjusted =
-        hideBackdrop || shouldSuppressRightDockedBackdrop || isFullWidthNarrowSheet // full-width narrow sheets (RHP-like) shouldn't dim a backdrop behind them
+        !shouldShowBackdrop && (hideBackdrop || shouldSuppressRightDockedBackdrop || isFullWidthNarrowSheet) // full-width narrow sheets (RHP-like) shouldn't dim a backdrop behind them
             ? 0
             : backdropOpacity;
 

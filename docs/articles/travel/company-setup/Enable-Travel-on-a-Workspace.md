@@ -30,7 +30,7 @@ Once Expensify Travel is enabled:
 - Admins can book on behalf of others if needed
 - All travel activity is visible in one place
 
-Expensify Travel is available globally and included with every Expensify plan.
+Expensify Travel is available globally on the Collect and Control plans.
 
 ## Learn more about setting up your travel policy
 

@@ -50,7 +50,7 @@ function WorkspaceVendorsPage({policy, route}: WorkspaceVendorsPageProps) {
         [vendors],
     );
 
-    const headerContent = !!currentConnectionName && (
+    const headerContent = currentConnectionName ? (
         <View style={[styles.ph5, styles.pb5, styles.pt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
             <ImportedFromAccountingSoftware
                 policyID={policyID}
@@ -59,7 +59,7 @@ function WorkspaceVendorsPage({policy, route}: WorkspaceVendorsPageProps) {
                 translatedText={translate('workspace.vendors.managedInAccountingSoftware')}
             />
         </View>
-    );
+    ) : undefined;
 
     return (
         <AccessOrNotFoundWrapper
@@ -83,8 +83,10 @@ function WorkspaceVendorsPage({policy, route}: WorkspaceVendorsPageProps) {
                     title={translate('workspace.common.vendors')}
                     onBackButtonPress={() => Navigation.goBack()}
                 />
-                {headerContent}
-                <WorkspaceVendorsTable vendors={vendorRows} />
+                <WorkspaceVendorsTable
+                    vendors={vendorRows}
+                    headerComponent={headerContent}
+                />
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
     );
