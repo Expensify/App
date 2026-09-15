@@ -15,10 +15,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {updateMoneyRequestVendor} from '@libs/actions/IOU/UpdateMoneyRequest';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
-import {getMatchingVendors, hasVendorFeature, isXeroActiveMatchingSource} from '@libs/PolicyUtils';
+import {getMatchingVendors, getVendorEmptyState, hasVendorFeature, isXeroActiveMatchingSource} from '@libs/PolicyUtils';
 import {isPerDiemRequest} from '@libs/TransactionUtils';
-
-import {getQuickbooksOnlineIntegrationName} from '@pages/workspace/accounting/utils';
 
 import variables from '@styles/variables';
 
@@ -67,7 +65,7 @@ function IOURequestStepVendor({
 
     const isFeatureAvailable = hasVendorFeature(policy, isBetaEnabled(CONST.BETAS.VENDOR_MATCHING));
     const isOnXero = isXeroActiveMatchingSource(policy);
-    const integrationName = getQuickbooksOnlineIntegrationName(policy, translate);
+    const emptyState = getVendorEmptyState(policy, translate);
 
     // Vendor is scoped to non-reimbursable expenses on a policy expense chat; block deep-link / stale-open access if the transaction is reimbursable or is an invoice (invoices are non-reimbursable but don't route through the vendor-matching flow).
     const isReimbursable = !!transaction?.reimbursable;
@@ -135,8 +133,8 @@ function IOURequestStepVendor({
                 icon={illustrations.Telescope}
                 iconWidth={variables.emptyListIconWidth}
                 iconHeight={variables.emptyListIconHeight}
-                title={isOnXero ? translate('workspace.xero.noSuppliersFound') : translate('workspace.qbo.noAccountsFound')}
-                subtitle={isOnXero ? translate('workspace.xero.noSuppliersFoundDescription') : translate('workspace.qbo.noAccountsFoundDescription', integrationName)}
+                title={emptyState.title}
+                subtitle={emptyState.subtitle}
                 containerStyle={styles.pb10}
             />
         ) : null;

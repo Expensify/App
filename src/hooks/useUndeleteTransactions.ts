@@ -27,6 +27,7 @@ function useUndeleteTransactions() {
     const [selfDMReportID] = useOnyx(ONYXKEYS.SELF_DM_REPORT_ID);
     const [selfDMReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(selfDMReportID)}`);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
     return (transactions: Transaction[]) => {
         const transactionIDs = transactions.map((transaction) => transaction.transactionID);
@@ -41,6 +42,7 @@ function useUndeleteTransactions() {
             transactions,
             allTransactionViolation: transactionViolations,
             reports,
+            rules,
             selfDMReportActions,
             isTrackIntentUser,
             personalPolicyOutputCurrency: policy?.outputCurrency,

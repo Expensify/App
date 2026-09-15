@@ -2,7 +2,7 @@ import {render} from '@testing-library/react-native';
 
 import AddExpenseActionButton from '@components/ReportActionItem/MoneyRequestReportPreview/AddExpenseActionButton';
 
-import {getAddExpenseDropdownOptions} from '@libs/ReportUtils';
+import {getAddExpenseDropdownOptions} from '@userActions/IOU/StartExpenseFlows';
 
 import type {Report} from '@src/types/onyx';
 
@@ -31,9 +31,9 @@ jest.mock('@hooks/useLazyAsset', () => ({__esModule: true, useMemoizedLazyExpens
 jest.mock('@hooks/useLocalize', () => ({__esModule: true, default: () => ({translate: (key: string) => key})}));
 jest.mock('@hooks/useOnyx', () => ({__esModule: true, default: jest.fn(() => [undefined])}));
 
-jest.mock('@libs/ReportUtils', () => {
+jest.mock('@userActions/IOU/StartExpenseFlows', () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment -- partial mock of the real module
-    const actual = jest.requireActual('@libs/ReportUtils');
+    const actual = jest.requireActual('@userActions/IOU/StartExpenseFlows');
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return -- spread the real module and override one export
     return {...actual, __esModule: true, getAddExpenseDropdownOptions: jest.fn(() => [])};
 });
