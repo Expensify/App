@@ -31,6 +31,7 @@ type WorkspaceCompanyCardTableRowData = TableData &
         isCardDeleted: boolean;
         isAssigned: boolean;
         assignedCard?: Card;
+        exportAccountTitle?: string;
         onDismissError?: () => void;
     };
 
@@ -44,6 +45,9 @@ type WorkspaceCompanyCardTableRowProps = {
 
     /** Whether the current member can edit company cards */
     canWriteCompanyCards: boolean;
+
+    /** Whether the Export account column is shown, so the row must keep its cell in step with the column */
+    shouldShowExportAccountColumn: boolean;
 
     shouldUseNarrowTableLayout: boolean;
     rowIndex: number;
@@ -61,6 +65,7 @@ function WorkspaceCompanyCardTableRow({
     feedName,
     CardFeedIcon,
     shouldUseNarrowTableLayout,
+    shouldShowExportAccountColumn,
     rowIndex,
     isAssigningCardDisabled,
     canWriteCompanyCards,
@@ -111,7 +116,7 @@ function WorkspaceCompanyCardTableRow({
         return Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_COMPANY_CARD_DETAILS.getRoute(feedName, cardID.toString())));
     };
 
-    const accessibilityLabel = [memberColumnTitle, formattedCardDetails, formattedCustomCardName].filter(Boolean).join(', ');
+    const accessibilityLabel = [memberColumnTitle, formattedCardDetails, formattedCustomCardName, item.exportAccountTitle].filter(Boolean).join(', ');
 
     return (
         <Table.Row
@@ -181,6 +186,20 @@ function WorkspaceCompanyCardTableRow({
                                 shouldShowTooltip
                                 numberOfLines={1}
                                 text={customCardName ?? ''}
+                                style={[styles.lh16, styles.optionDisplayName, styles.pre]}
+                            />
+                        </View>
+                    )}
+
+                    {!shouldUseNarrowTableLayout && shouldShowExportAccountColumn && (
+                        <View
+                            style={[styles.flex1, styles.justifyContentCenter]}
+                            {...getCellAccessibilityProps(isTableSemanticsEnabled)}
+                        >
+                            <TextWithTooltip
+                                shouldShowTooltip
+                                numberOfLines={1}
+                                text={item.exportAccountTitle ?? ''}
                                 style={[styles.lh16, styles.optionDisplayName, styles.pre]}
                             />
                         </View>
