@@ -1,14 +1,16 @@
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {CardFeeds, Domain, DomainErrors, DomainPendingActions, DomainSecurityGroup, DomainSettings} from '@src/types/onyx';
 import type {BaseVacationDelegate} from '@src/types/onyx/VacationDelegate';
 
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 import {
     accountLockSelector,
     adminAccountIDsSelector,
     adminPendingActionSelector,
     adminshipRequesterPendingActionSelector,
+    createPendingDomainAdminRequestsSelector,
     defaultSecurityGroupIDSelector,
     domainEmailSelector,
     domainSecurityGroupSettingErrorsSelector,
@@ -912,6 +914,64 @@ describe('domainSelectors', () => {
         it('Should return an empty array when domain_adminRequesters is empty', () => {
             const domain = createDomainFixture({boundaryEntries: {domain_adminRequesters: {}}});
             expect(pendingAdminRequesterAccountIDsSelector(domain)).toEqual([]);
+        });
+    });
+
+    describe('createPendingDomainAdminRequestsSelector', () => {
+        it('Should return an empty result if the domains collection is undefined', () => {
+            expect(createPendingDomainAdminRequestsSelector(userID1)(undefined)).toEqual({count: 0, domainAccountIDs: []});
+        });
+
+        it('Should return an empty result if the current user accountID is undefined', () => {
+            const domains: OnyxCollection<Domain> = {
+                [`${ONYXKEYS.COLLECTION.DOMAIN}1`]: createDomainFixture({
+                    admins: [['1', userID1]],
+                    boundaryEntries: {accountID: 1, domain_adminRequesters: {[userID2]: 'read'}},
+                }),
+            };
+            expect(createPendingDomainAdminRequestsSelector(undefined)(domains)).toEqual({count: 0, domainAccountIDs: []});
+        });
+
+        it('Should count pending requesters only on domains the current user administers', () => {
+            const domains: OnyxCollection<Domain> = {
+                [`${ONYXKEYS.COLLECTION.DOMAIN}1`]: createDomainFixture({
+                    admins: [['1', userID1]],
+                    boundaryEntries: {accountID: 1, domain_adminRequesters: {[userID2]: 'read'}},
+                }),
+                [`${ONYXKEYS.COLLECTION.DOMAIN}2`]: createDomainFixture({
+                    // The current user is a requester, not an admin, on this domain (the "Request sent" state).
+                    boundaryEntries: {accountID: 2, domain_adminRequesters: {[userID1]: 'read'}},
+                }),
+            };
+
+            expect(createPendingDomainAdminRequestsSelector(userID1)(domains)).toEqual({count: 1, domainAccountIDs: [1]});
+        });
+
+        it('Should ignore null tombstones and exclude the current user from their own requester count', () => {
+            const domains: OnyxCollection<Domain> = {
+                [`${ONYXKEYS.COLLECTION.DOMAIN}1`]: createDomainFixture({
+                    admins: [['1', userID1]],
+                    boundaryEntries: {accountID: 1, domain_adminRequesters: {[userID1]: 'read', [userID2]: null}},
+                }),
+            };
+
+            expect(createPendingDomainAdminRequestsSelector(userID1)(domains)).toEqual({count: 0, domainAccountIDs: []});
+        });
+
+        it('Should sum counts and collect accountIDs across multiple admin domains', () => {
+            const userID3 = 789;
+            const domains: OnyxCollection<Domain> = {
+                [`${ONYXKEYS.COLLECTION.DOMAIN}1`]: createDomainFixture({
+                    admins: [['1', userID1]],
+                    boundaryEntries: {accountID: 1, domain_adminRequesters: {[userID2]: 'read'}},
+                }),
+                [`${ONYXKEYS.COLLECTION.DOMAIN}2`]: createDomainFixture({
+                    admins: [['1', userID1]],
+                    boundaryEntries: {accountID: 2, domain_adminRequesters: {[userID2]: 'read', [userID3]: 'read'}},
+                }),
+            };
+
+            expect(createPendingDomainAdminRequestsSelector(userID1)(domains)).toEqual({count: 3, domainAccountIDs: [1, 2]});
         });
     });
 

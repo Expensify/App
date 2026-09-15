@@ -1,12 +1,17 @@
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useShouldDisplayButtonsInSeparateLine from '@hooks/useShouldDisplayButtonsInSeparateLine';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {getDomainsWithErrorsCount} from '@libs/DomainUtils';
 import Navigation from '@libs/Navigation/Navigation';
 
+import useReviewDomainAdminRequests from '@pages/home/ForYouSection/useReviewDomainAdminRequests';
+
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 
@@ -41,6 +46,23 @@ function WorkspaceListHeaderContent({activeTabKey, headerButton, shouldShowHeade
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Globe', 'Building']);
+    const {count: pendingDomainAdminRequestsCount} = useReviewDomainAdminRequests();
+    const [allDomainErrors] = useOnyx(ONYXKEYS.COLLECTION.DOMAIN_ERRORS);
+    const [allDomains] = useOnyx(ONYXKEYS.COLLECTION.DOMAIN);
+    const domainErrorsCount = getDomainsWithErrorsCount(allDomainErrors, allDomains);
+
+    // Domains tab badge: domain errors (red) take priority over pending admin requests (green).
+    const hasDomainErrors = domainErrorsCount > 0;
+    const getDomainsBadgeText = () => {
+        if (hasDomainErrors) {
+            return domainErrorsCount.toString();
+        }
+        if (pendingDomainAdminRequestsCount > 0) {
+            return pendingDomainAdminRequestsCount.toString();
+        }
+        return undefined;
+    };
+    const domainsBadgeText = getDomainsBadgeText();
     const navigationOptions = [
         {
             key: 'workspaces',
@@ -55,6 +77,8 @@ function WorkspaceListHeaderContent({activeTabKey, headerButton, shouldShowHeade
             icon: icons.Globe,
             route: ROUTES.DOMAINS_LIST.getRoute(),
             screenName: SCREENS.DOMAINS_LIST,
+            badgeText: domainsBadgeText,
+            isBadgeError: hasDomainErrors,
         },
     ];
 
