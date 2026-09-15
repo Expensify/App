@@ -9,7 +9,6 @@ import {useBlockedFromConcierge} from '@components/OnyxListItemProvider';
 import useKeyboardState from '@hooks/useKeyboardState';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useReportScrollManager from '@hooks/useReportScrollManager';
@@ -19,7 +18,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {clearActive, isActive as isEmojiPickerActive} from '@libs/actions/EmojiPickerAction';
 import {composerFocusKeepFocusOn} from '@libs/actions/InputFocus';
-import {clearAllReportActionDrafts, saveReportActionDraft} from '@libs/actions/Report';
+import {clearAllReportActionDrafts} from '@libs/actions/Report';
 import {isMobileChrome} from '@libs/Browser';
 import {canSkipTriggerHotkeys, insertText} from '@libs/ComposerUtils';
 import DomUtils from '@libs/DomUtils';
@@ -52,7 +51,7 @@ import useEditMessage from './ReportActionCompose/useEditMessage';
 import {useReportActionActiveEdit, useReportActionActiveEditActions} from './ReportActionEditMessageContext';
 import ReportActionIndexContext from './ReportActionIndexContext';
 import shouldUseEmojiPickerSelection from './shouldUseEmojiPickerSelection';
-import useDebouncedSaveDraft from './useDebouncedSaveDraft';
+import useDebouncedSaveReportActionDraft from './useDebouncedSaveReportActionDraft';
 import useDraftMessageVideoAttributeCache from './useDraftMessageVideoAttributeCache';
 
 type ReportActionItemMessageEditProps = {
@@ -93,7 +92,6 @@ function ReportActionItemMessageEdit({action, reportID, originalReportID, policy
     const containerRef = useRef<View>(null);
     const reportScrollManager = useReportScrollManager();
     const {translate, preferredLocale} = useLocalize();
-    const {isOffline} = useNetwork();
     const {isKeyboardShown} = useKeyboardState();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const emojisPresentBefore = useRef<Emoji[]>([]);
@@ -146,7 +144,7 @@ function ReportActionItemMessageEdit({action, reportID, originalReportID, policy
 
     // Save the draft of the comment. This debounced so that we're not ceaselessly saving your edit. Saving the draft
     // allows one to navigate somewhere else and come back to the comment and still have it in edit mode.
-    const {saveDraft, isSavePending: isDraftSavePending} = useDebouncedSaveDraft(saveReportActionDraft);
+    const {saveDraft, isSavePending: isDraftSavePending} = useDebouncedSaveReportActionDraft();
 
     useDraftMessageVideoAttributeCache({
         draftMessage: editingMessage ?? '',
@@ -237,9 +235,9 @@ function ReportActionItemMessageEdit({action, reportID, originalReportID, policy
             setEditingMessage(newDraft);
 
             // We want to escape the draft message to differentiate the HTML from the report action and the HTML the user drafted.
-            saveDraft(reportID, action, reportActions, newDraft, isOffline);
+            saveDraft(reportID, action, reportActions, newDraft);
         },
-        [action, preferredLocale, preferredSkinTone, raiseIsScrollLayoutTriggered, reportID, reportActions, selection.end, setEditingMessage, setSelection, saveDraft, isOffline],
+        [action, preferredLocale, preferredSkinTone, raiseIsScrollLayoutTriggered, reportID, reportActions, selection.end, setEditingMessage, setSelection, saveDraft],
     );
 
     useEffect(() => {
