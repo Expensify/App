@@ -5202,6 +5202,9 @@ ${amount} pour ${merchant} - ${date}`,
                 xeroInvoiceCollectionAccount: 'Compte d’encaissement des factures Xero',
                 xeroBillPaymentAccountDescription: 'Choisissez d’où payer les factures et nous créerons le paiement dans Xero.',
                 invoiceAccountSelectorDescription: 'Choisissez où recevoir les paiements de factures et nous créerons le paiement dans Xero.',
+                xeroFxExpenseAccount: 'Compte de frais de conversion de devise Xero',
+                fxExpenseAccountDescription:
+                    'Lorsque votre entreprise prend en charge le coût de conversion de devise sur un paiement effectué à l’étranger, nous comptabiliserons ce coût sur ce compte dans Xero en tant qu’opération de décaissement.',
             },
             exportDate: {
                 label: 'Date de facture d’achat',
@@ -5570,6 +5573,9 @@ ${amount} pour ${merchant} - ${date}`,
                 error: {
                     customFormID: 'Veuillez saisir un ID de formulaire personnalisé numérique valide',
                 },
+                fxExpenseAccount: 'Compte de frais de conversion de devise',
+                fxExpenseAccountDescription:
+                    'Lorsque votre entreprise prend en charge les frais de conversion de devise pour un remboursement payé à l’étranger, nous comptabiliserons ces frais dans le compte NetSuite ci‑dessous sous forme d’écriture de journal.',
             },
             noAccountsFound: 'Aucun compte trouvé',
             noAccountsFoundDescription: 'Veuillez ajouter le compte dans NetSuite et synchroniser à nouveau la connexion',
@@ -9366,6 +9372,35 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             return `a modifié les participants de la catégorie « ${categoryName} » en ${newValue ? 'obligatoire' : 'non obligatoire'} (précédemment ${newValue ? 'non obligatoire' : 'obligatoire'})`;
         },
         updatedAutoHarvesting: (enabled: boolean) => `${enabled ? 'activé' : 'Désactivé'} envois`,
+        changedOverLimitForwardsTo: ({
+            member,
+            approver,
+            limit,
+            previousApprover,
+            previousLimit,
+        }: {
+            member: string;
+            approver: string;
+            limit: string;
+            previousApprover?: string;
+            previousLimit?: string;
+        }) => {
+            let text = previousApprover
+                ? `a modifié le processus d'approbation pour ${member} afin de transférer les notes de frais supérieures à ${limit} à ${approver}`
+                : `définir le workflow d’approbation de ${member} pour transférer les notes de frais supérieures à ${limit} à ${approver}`;
+            if (previousApprover && previousLimit) {
+                text += ` (anciennement notes de frais transmises de plus de ${previousLimit} à ${previousApprover})`;
+            } else if (previousApprover) {
+                text += ` (précédemment transmis à ${previousApprover})`;
+            }
+            return text;
+        },
+        removedOverLimitForwardsTo: ({member, previousApprover, previousLimit}: {member: string; previousApprover?: string; previousLimit: string}) =>
+            previousApprover
+                ? `a modifié le flux d’approbation pour ${member} afin d’arrêter de transférer les notes de frais au-delà de ${previousLimit} (auparavant transférées à ${previousApprover})`
+                : `a modifié le flux d'approbation pour ${member} afin d'arrêter de transférer les notes de frais au-delà de ${previousLimit}`,
+        changedApprovalLimit: ({member, limit, previousLimit}: {member: string; limit: string; previousLimit: string}) =>
+            `a modifié le circuit d’approbation pour ${member} afin de transférer les notes de frais supérieures à ${limit} (auparavant ${previousLimit})`,
     },
     roomMembersPage: {
         memberNotFound: 'Membre introuvable.',
@@ -11004,6 +11039,8 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         gpsTooltip: '<tooltip>Suivi GPS en cours ! Lorsque vous avez terminé, arrêtez le suivi ci-dessous.</tooltip>',
         hasFilterNegation: '<tooltip>Recherchez les dépenses sans reçus à l’aide de <strong>-has:receipt</strong>.</tooltip>',
         mileageRateAutoUpdated: '<tooltip>Nous avons mis à jour le taux en fonction de votre date de voyage.</tooltip>',
+        markAllAsRead: '<tooltip>Faites un clic droit pour <strong>tout marquer comme lu</strong>.</tooltip>',
+        markAllAsReadTouchScreen: '<tooltip>Faites un appui long pour <strong>tout marquer comme lu</strong>.</tooltip>',
     },
     discardChangesConfirmation: {
         title: 'Ignorer les modifications ?',

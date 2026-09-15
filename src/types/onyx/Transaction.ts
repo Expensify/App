@@ -249,6 +249,9 @@ type Receipt = {
     /** Local file URI preserved on the creating device so the remote source from the server does not cause a reload */
     localSource?: string | null;
 
+    /** When the receipt upload reached the write queue */
+    receiptEnqueuedAt?: number;
+
     /** Name of receipt file */
     filename?: string;
 
@@ -546,6 +549,9 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** Whether the merchant has been explicitly set by the user */
         isMerchantSet?: boolean;
+
+        /** Whether the date has been explicitly picked by the user */
+        isCreatedSet?: boolean;
 
         /** The original merchant name */
         merchant: string;
