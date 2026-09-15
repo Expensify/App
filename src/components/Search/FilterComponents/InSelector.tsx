@@ -98,6 +98,7 @@ function InSelector({value = [], selectionListTextInputStyle, selectionListStyle
                     conciergeReportID,
                     reportAttributesDerived,
                     isTrackIntentUser,
+                    currentUserAccountID,
                 }),
             ),
             isSelected,
@@ -118,6 +119,7 @@ function InSelector({value = [], selectionListTextInputStyle, selectionListStyle
                 policyTags: reportPolicyTags,
                 conciergeReportID,
                 isTrackIntentUser,
+                currentUserAccountID,
                 rules,
             },
         );
