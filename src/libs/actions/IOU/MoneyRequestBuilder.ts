@@ -25,6 +25,7 @@ import {
     computeOptimisticReportNameWithMetadata,
     generateReportID,
     getChatByParticipants,
+    getNewestOutstandingReportForUser,
     getOutstandingChildRequest,
     getReimbursableTotal,
     getReportTransactions,
@@ -1410,6 +1411,10 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${moneyRequestReportID}`] ?? null;
     } else if (!allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${chatReport.iouReportID}`]?.errorFields?.createChat) {
         iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${chatReport.iouReportID}`] ?? null;
+
+        if (!iouReport && isPolicyExpenseChat) {
+            iouReport = getNewestOutstandingReportForUser(chatReport.policyID, payeeAccountID, rules, getAllReportNameValuePairs(), allReports);
+        }
     }
 
     const isScanRequest = isScanRequestTransactionUtils(existingTransaction);

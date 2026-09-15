@@ -79,7 +79,7 @@ import type IconAsset from '@src/types/utils/IconAsset';
 
 import type {Locale as DateFnsLocale} from 'date-fns';
 import type {ColorValue} from 'react-native';
-import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxInputValue, OnyxUpdate} from 'react-native-onyx';
 import type {SvgProps} from 'react-native-svg';
 import type {SetRequired, TupleToUnion, ValueOf} from 'type-fest';
 
@@ -12181,6 +12181,33 @@ function getOutstandingReportsForUser(
 }
 
 /**
+ * Get the submitter's most recently created open report for a policy, or null when they have none.
+ *
+ * This is the fallback used when creating an expense on a workspace chat whose `iouReportID` can't be resolved,
+ * so the expense joins the submitter's existing open report instead of starting a new one.
+ *
+ * Only reports that are still open qualify. `allowSubmitted = false` is not enough on its own: `isReportOutstanding`
+ * also returns submitted reports when `canAddTransaction` is true, which it is for a report awaiting first-level
+ * approval. Submitting a report clears the chat's `iouReportID`, which is precisely when this fallback runs, so
+ * without the open-only filter the next expense would land on the report the submitter just sent for approval.
+ *
+ * @param policyID - The policy ID to filter reports by
+ * @param reportOwnerAccountID - The accountID of the report owner
+ * @param reports - Collection of reports to filter
+ */
+function getNewestOutstandingReportForUser(
+    policyID: string | undefined,
+    reportOwnerAccountID: number | undefined,
+    rules: OnyxCollection<Rule>,
+    reportNameValuePairs?: OnyxCollection<ReportNameValuePairs>,
+    reports: OnyxCollection<Report> = deprecatedAllReports,
+): OnyxInputValue<Report> {
+    const openReports = getOutstandingReportsForUser(policyID, reportOwnerAccountID, rules, reportNameValuePairs, reports, false).filter(isOpenExpenseReport);
+
+    return openReports.reduce<OnyxInputValue<Report>>((newest, report) => ((report?.created ?? '') > (newest?.created ?? '') ? (report ?? null) : newest), openReports.at(0) ?? null);
+}
+
+/**
  * Sort outstanding reports by their name, while keeping the selected one at the beginning.
  * @param report1 Details of the first report to be compared.
  * @param report2 Details of the second report to be compared.
@@ -14526,6 +14553,7 @@ export {
     getChatListItemReportName,
     buildOptimisticMovedTransactionAction,
     getOutstandingReportsForUser,
+    getNewestOutstandingReportForUser,
     isReportOutstanding,
     isReportTotalPending,
     generateReportAttributes,
