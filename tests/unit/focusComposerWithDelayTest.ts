@@ -6,7 +6,7 @@ function createInput() {
         focus: jest.fn(),
         isFocused: jest.fn(() => false),
     };
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- test double only implements the InputType methods the focus logic calls
     return {input: input as unknown as InputType, focus: input.focus};
 }
 
