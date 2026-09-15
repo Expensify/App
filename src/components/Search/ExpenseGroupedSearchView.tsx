@@ -3,6 +3,7 @@ import type {ExtendedTargetedEvent} from '@components/SelectionList/ListItem/typ
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 
 import getPlatform from '@libs/getPlatform';
 import {isTransactionGroupListItemType, isTransactionMatchWithGroupItem, splitGroupsIntoPairs} from '@libs/SearchUIUtils';
@@ -123,6 +124,10 @@ function ExpenseGroupedSearchView({
     // Deleting every expense in a group flags the group's own snapshot entry, so drop the row from the list and let
     // its exit animation play. Offline the row stays put with its pending-delete styling, as elsewhere.
     const data = isOffline ? sourceData : sourceData.filter((item) => !isRowDeleted(item));
+
+    // Read once for the whole list and handed to each GroupHeader, rather than each of them subscribing on its own:
+    // a group header is a recycled row, and it already pays for a useWindowDimensions inside useResponsiveLayout.
+    const {windowWidth} = useWindowDimensions();
 
     // Wide web layouts split each group into a sticky header row plus an expandable children-container row.
     // Computed here (not from the shared hook) because the split list feeds back into the hook as `listData`.
@@ -269,6 +274,7 @@ function ExpenseGroupedSearchView({
                     userBillingGracePeriodEnds={userBillingGracePeriodEnds}
                     ownerBillingGracePeriodEnd={ownerBillingGracePeriodEnd}
                     visibleColumns={visibleColumns}
+                    windowWidth={windowWidth}
                 />
             );
         }
