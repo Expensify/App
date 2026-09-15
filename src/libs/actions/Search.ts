@@ -1851,6 +1851,7 @@ function rejectMoneyRequestsOnSearch(
                         query: searchParams.q,
                         ...(searchParams?.rawQuery && {rawQuery: searchParams.rawQuery}),
                         ...(searchParams?.name && {name: searchParams.name}),
+                        ...(searchParams?.searchKey && {searchKey: searchParams.searchKey}),
                     });
                 } else {
                     urlToNavigateBack = undefined;

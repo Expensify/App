@@ -5062,6 +5062,14 @@ function searchKeyToSavedSearchID(key: SearchKey | undefined) {
     return key?.startsWith(CONST.SEARCH.SAVED_SEARCH_PREFIX) ? key.replace(CONST.SEARCH.SAVED_SEARCH_PREFIX, '') : undefined;
 }
 
+function isSearchKey(value: string | undefined): value is SearchKey {
+    if (!value) {
+        return false;
+    }
+
+    return value.startsWith(CONST.SEARCH.SAVED_SEARCH_PREFIX) || Object.values<string>(CONST.SEARCH.SEARCH_KEYS).includes(value);
+}
+
 /**
  * Checks if the passed username is a correct standard username, and not a placeholder
  */
@@ -7624,6 +7632,7 @@ export {
     shouldShowYear,
     getOverflowMenu,
     getLastSearchQuery,
+    isSearchKey,
     savedSearchIDToSearchKey,
     searchKeyToSavedSearchID,
     isCorrectSearchUserName,

@@ -115,7 +115,8 @@ function dismissRHPToReport(reportID: string, runAfterDismiss: () => void) {
 // modal slides away, so the user never sees the wrong tab underneath.
 function dismissWideToNewSearchType(searchType: SearchDataTypes, runAfterDismiss: () => void) {
     const queryString = buildCannedSearchQuery({type: searchType});
-    Navigation.revealRouteBeforeDismissingModal(ROUTES.SEARCH_ROOT.getRoute({query: queryString}), {
+    const searchKey = searchType === CONST.SEARCH.DATA_TYPES.INVOICE ? undefined : CONST.SEARCH.SEARCH_KEYS.EXPENSES;
+    Navigation.revealRouteBeforeDismissingModal(ROUTES.SEARCH_ROOT.getRoute({query: queryString, searchKey}), {
         afterTransition: runAfterDismiss,
     });
 }
