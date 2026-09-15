@@ -797,7 +797,7 @@ const tests = [
         query: 'type:expense group-by:day',
         expected: {
             type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-            sortBy: 'groupday',
+            sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_DAY,
             sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
             view: 'table',
             groupBy: 'day',
@@ -1265,7 +1265,7 @@ const keywordTests = [
                 CONST.SEARCH.TABLE_COLUMNS.GROUP_CATEGORY,
                 CONST.SEARCH.TABLE_COLUMNS.GROUP_TAG,
                 CONST.SEARCH.TABLE_COLUMNS.GROUP_MERCHANT,
-                'groupday',
+                CONST.SEARCH.TABLE_COLUMNS.GROUP_DAY,
                 CONST.SEARCH.TABLE_COLUMNS.GROUP_MONTH,
                 CONST.SEARCH.TABLE_COLUMNS.GROUP_WEEK,
                 CONST.SEARCH.TABLE_COLUMNS.GROUP_YEAR,
@@ -1432,7 +1432,7 @@ const viewAndGroupByTests = [
         query: 'type:expense view:bar groupBy:day',
         expected: {
             type: 'expense',
-            sortBy: 'groupday',
+            sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_DAY,
             sortOrder: 'asc',
             view: 'bar',
             groupBy: 'day',
