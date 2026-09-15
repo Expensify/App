@@ -9,18 +9,16 @@ import useIsAnonymousUser from '@hooks/useIsAnonymousUser';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useRootNavigationState from '@hooks/useRootNavigationState';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
-import {getTabState} from '@libs/Navigation/helpers/tabNavigatorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 
 import CONST from '@src/CONST';
-import NAVIGATORS from '@src/NAVIGATORS';
 import ROUTES from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
 
-import {useIsFocused} from '@react-navigation/native';
+import {useIsFocused, useRoute} from '@react-navigation/native';
 import React from 'react';
 
 /**
@@ -44,11 +42,7 @@ function AccountAvatarButtonContent() {
     const {status} = useAccountTabIndicatorStatus();
     const isAnonymousUser = useIsAnonymousUser();
     const isFocused = useIsFocused();
-
-    const isSelected = useRootNavigationState((rootState) => {
-        const tabState = getTabState(rootState?.routes.findLast((route) => route.name === NAVIGATORS.TAB_NAVIGATOR));
-        return tabState?.routes.at(tabState.index ?? 0)?.name === NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR;
-    });
+    const isSelected = useRoute().name === SCREENS.SETTINGS.ROOT;
 
     const {shouldShowProductTrainingTooltip, renderProductTrainingTooltip, hideProductTrainingTooltip} = useProductTrainingContext(
         CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.ACCOUNT_MOVED_TO_TOP_BAR,
