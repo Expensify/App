@@ -124,8 +124,7 @@ function ChatMessageContent({
                                 hasPendingFollowupListSkeleton={hasPendingFollowupListSkeleton}
                             />
                         )}
-                        {/* A message hidden by moderation shows only a notice in place of its content, so there is
-                            nothing to rate until the user reveals it. */}
+                        {/* A message hidden by moderation has nothing to rate until the user reveals it */}
                         {isLatestConciergeFeedbackAction && !isOnSearch && !isHidden && (
                             <ConciergeFeedbackPrompt
                                 action={action}

@@ -132,7 +132,7 @@ function MoneyRequestReportActionsListContent({reportIDFromRoute, onLayout}: Mon
 
     const {reportActions: unfilteredReportActions, hasNewerActions, hasOlderActions} = usePaginatedReportActions(reportID, linkedReportActionID);
     const reportActions = useMemo(() => getFilteredReportActionsForReportView(unfilteredReportActions), [unfilteredReportActions]);
-    const {draftReportAction, isDraftPendingCompletion, isAgentZeroChat} = useConciergeDraft();
+    const {draftReportAction, isDraftPendingCompletion} = useConciergeDraft();
     const draftReportActionID = draftReportAction?.reportActionID;
 
     const allReportTransactions = useReportTransactionsCollection(reportIDFromRoute);
@@ -203,15 +203,10 @@ function MoneyRequestReportActionsListContent({reportIDFromRoute, onLayout}: Mon
         return reportActions?.map((action) => action.reportActionID) ?? [];
     }, [reportActions]);
 
-    // `visibleReportActions` is oldest-first here, while the helper scans newest-first.
-    // Suppressed while a Concierge answer is still streaming so the prompt never lands on a half-written reply.
-    // The scan walks every action in the report, so skip it outside the chats where Concierge answers.
+    // Skip while a Concierge answer is still streaming, and while newer actions are not loaded because the newest reply may not be in the list yet
     const latestConciergeFeedbackActionID = useMemo(
-        () =>
-            !isAgentZeroChat || isDraftPendingCompletion || hasNewerActions
-                ? undefined
-                : getLatestConciergeFeedbackActionID(visibleReportActions.slice().reverse(), new Set(reportActionIDs)),
-        [isAgentZeroChat, isDraftPendingCompletion, hasNewerActions, visibleReportActions, reportActionIDs],
+        () => (isDraftPendingCompletion || hasNewerActions ? undefined : getLatestConciergeFeedbackActionID(visibleReportActionsNewestFirst, reportActionIDs)),
+        [isDraftPendingCompletion, hasNewerActions, visibleReportActionsNewestFirst, reportActionIDs],
     );
 
     const {loadOlderChats, loadNewerChats} = useLoadReportActions({

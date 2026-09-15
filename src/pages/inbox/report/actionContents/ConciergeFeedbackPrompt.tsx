@@ -25,22 +25,17 @@ import {getConciergeFeedbackForReportActionID} from '@selectors/ReportNameValueP
 import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 
-/** How long the thanks acknowledgement stays up after a thumbs up before the row goes quiet. */
 const THANKS_VISIBLE_DURATION_MS = 4000;
 
 type ConciergeFeedbackPromptProps = {
     /** The Concierge comment being rated */
     action: ReportAction;
 
-    /** The report the comment belongs to */
+    /** The ID of the report being viewed */
     reportID: string | undefined;
 };
 
-/**
- * A reaction added through the normal picker is stored under the emoji's legacy name key, while a server-confirmed
- * one comes back under its hexcode. Both formats can be in Onyx at once, so reading only one of them would show the
- * prompt again after a reload for a message the user has already rated.
- */
+/** A reaction can be stored under the emoji name or under its hexcode, so both keys are checked to keep a rated comment from showing the prompt again */
 function hasReactedWithEmoji(emoji: Emoji, reactions: OnyxEntry<ReportActionReactions>, accountID: number): boolean {
     return [reactions?.[emoji.name], emoji.hexcode ? reactions?.[emoji.hexcode] : undefined].some((entry) => !!entry && hasAccountIDEmojiReacted(accountID, entry.users));
 }
@@ -56,7 +51,6 @@ type ConciergeFeedbackThumbProps = {
     onPress: () => void;
 };
 
-/** One thumb in the feedback prompt: a ghost button carrying the emoji it will react with. */
 function ConciergeFeedbackThumb({emoji, label, onPress}: ConciergeFeedbackThumbProps) {
     const styles = useThemeStyles();
 
@@ -69,7 +63,6 @@ function ConciergeFeedbackThumb({emoji, label, onPress}: ConciergeFeedbackThumbP
                 onPress={onPress}
                 accessibilityLabel={label}
                 role={CONST.ROLE.BUTTON}
-                // The thumb already fills on press, so the default dimming would double up on that feedback.
                 pressDimmingValue={1}
                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
                 sentryLabel={CONST.SENTRY_LABEL.CONCIERGE_FEEDBACK.THUMB}
@@ -80,12 +73,6 @@ function ConciergeFeedbackThumb({emoji, label, onPress}: ConciergeFeedbackThumbP
     );
 }
 
-/**
- * Invites a thumbs up or down on the newest Concierge answer. Both thumbs write a real emoji reaction and nothing
- * else: the backend reads the reaction and, for a thumbs down, opens the feedback thread itself. Because the prompt
- * is gated on that same reaction, it resolves itself optimistically, stays resolved across reloads, and becomes
- * eligible again if the user later retracts the reaction from the pill row.
- */
 function ConciergeFeedbackPrompt({action, reportID}: ConciergeFeedbackPromptProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -96,40 +83,35 @@ function ConciergeFeedbackPrompt({action, reportID}: ConciergeFeedbackPromptProp
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`);
     const [preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE] = useOnyx(ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE);
 
-    const [hasThanked, setHasThanked] = useState(false);
+    const [isDisplayedThankMessage, setIsDisplayedThankMessage] = useState(false);
 
     useEffect(() => {
-        if (!hasThanked) {
+        if (!isDisplayedThankMessage) {
             return;
         }
 
-        const thanksTimeoutID = setTimeout(() => setHasThanked(false), THANKS_VISIBLE_DURATION_MS);
+        const thanksTimeoutID = setTimeout(() => setIsDisplayedThankMessage(false), THANKS_VISIBLE_DURATION_MS);
         return () => clearTimeout(thanksTimeoutID);
-    }, [hasThanked]);
+    }, [isDisplayedThankMessage]);
 
     const thumbsUp = findEmojiByName('+1');
     const thumbsDown = findEmojiByName('-1');
 
-    const rate = (emoji: Emoji, shouldThank: boolean) => {
-        // Both thumbs have skin tone variants, so without ignoring the tone on compare a user whose preferred tone
-        // differs from the stored one adds a second reaction instead of toggling the one they already left.
+    const rate = (emoji: Emoji, shouldDisplayThankMessage: boolean) => {
+        // Skin tone is ignored on compare so a user whose preferred tone changed toggles their existing reaction instead of adding a second one
         toggleEmojiReaction(reportID, action, emoji, reactions, preferredSkinTone, currentUserAccountID, reportActions, true);
 
-        if (!shouldThank) {
+        if (!shouldDisplayThankMessage) {
             return;
         }
 
-        // Records the intent only. Whether the acknowledgement is shown is decided by the reaction landing.
-        setHasThanked(true);
+        setIsDisplayedThankMessage(true);
     };
 
     const hasRated = hasReactedWithEmoji(thumbsUp, reactions, currentUserAccountID) || hasReactedWithEmoji(thumbsDown, reactions, currentUserAccountID);
 
-    // The acknowledgement belongs to a reaction that actually landed, not to the press. Requiring both means
-    // a reaction retracted from the pill row brings the prompt straight back instead of leaving the thanks up
-    // until the timer fires, and a press that `toggleEmojiReaction` silently declined never thanks the user
-    // for something it did not write.
-    if (hasThanked && hasRated) {
+    // The thanks message also requires the reaction, so removing the reaction from the reaction row brings the prompt back right away
+    if (isDisplayedThankMessage && hasRated) {
         return <Text style={[styles.textLabelSupporting, styles.mt2]}>{translate('concierge.feedback.thanks')}</Text>;
     }
 
@@ -137,11 +119,7 @@ function ConciergeFeedbackPrompt({action, reportID}: ConciergeFeedbackPromptProp
         return null;
     }
 
-    // A thumbs down makes the backend open a thread on the rated message and post its own request for detail
-    // into it, then marks that thread with the action it collects feedback on. Inside such a thread Concierge
-    // is working through the complaint, so nothing there is an answer to rate -- and rating a reply would open
-    // a feedback thread hanging off a feedback thread. Reading the thread's own marker rather than the
-    // reaction on its parent also keeps the prompt away for everyone in the room, not just whoever rated.
+    // Replies inside the thread the backend opens after a thumbs down are not answers to rate
     if (conciergeFeedbackForReportActionID) {
         return null;
     }
@@ -152,9 +130,7 @@ function ConciergeFeedbackPrompt({action, reportID}: ConciergeFeedbackPromptProp
             style={styles.alignItemsCenter}
         >
             <Text style={styles.textLabelSupporting}>{translate('concierge.feedback.prompt')}</Text>
-            {/* The thumbs sit flush against each other, as they do in the mock. The row's own gap would
-                otherwise push them ~10px further apart than the design, on top of the padding each 28px
-                target already carries. */}
+            {/* The thumbs share one child so the container gap does not separate them */}
             <View style={styles.flexRow}>
                 <ConciergeFeedbackThumb
                     emoji={thumbsUp}

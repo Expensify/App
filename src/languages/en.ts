@@ -568,13 +568,9 @@ const translations = {
             cta: 'Notify',
         },
         feedback: {
-            // @context Short, casual question shown beneath a reply from Concierge, the AI support assistant in chat, next to thumbs up and thumbs down buttons. "Response" means the assistant's reply, not a form submission or a technical response.
             prompt: 'Was that response useful?',
-            // @context Tooltip and screen reader label for the thumbs up button that rates Concierge's reply as useful. A short label, not a sentence.
             useful: 'Useful response',
-            // @context Tooltip and screen reader label for the thumbs down button that rates Concierge's reply as not useful. A short label, not a sentence.
             notUseful: 'Not useful response',
-            // @context Brief, friendly acknowledgement shown for a few seconds after the user rates Concierge's reply with a thumbs up.
             thanks: 'Thanks for the feedback!',
         },
     },

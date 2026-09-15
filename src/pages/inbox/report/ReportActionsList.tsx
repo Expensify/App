@@ -181,7 +181,7 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
     const {getScrollOffset} = useActionListContext();
     const listRef = useActionListRef();
 
-    const {draftReportAction, isDraftPendingCompletion, isAgentZeroChat} = useConciergeDraft();
+    const {draftReportAction, isDraftPendingCompletion} = useConciergeDraft();
     const {clearDraft, revealDraftFromReportAction} = useConciergeDraftActions();
 
     const showHiddenHistory = isConciergeHiddenHistory && !showFullHistory;
@@ -331,19 +331,8 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
 
     const firstVisibleReportActionID = getFirstVisibleReportActionID(sortedReportActions, isOffline);
 
-    // Nothing to rate while a Concierge answer is still being revealed: the rendered list holds a synthetic
-    // draft, so the prompt would sit under a half-written sentence and walk down the screen with every
-    // chunk. This covers the whole reveal, not just the pacing window, because the draft keeps being
-    // substituted into the list until its HTML matches the persisted action's.
-    //
-    // `hasNewerActions` covers the other direction: opening the report at a deep link or an old unread
-    // anchor renders one pagination window, and the newest Concierge reply in that window is not the
-    // newest in the report, so the prompt would ask the user to rate a stale answer.
-    //
-    // `isAgentZeroChat` goes first because the scan walks every action in the report, and outside the chats
-    // where Concierge answers there is nothing for it to find.
-    const latestConciergeFeedbackActionID =
-        !isAgentZeroChat || isSyntheticDraftVisible || hasNewerActions ? undefined : getLatestConciergeFeedbackActionID(renderedVisibleReportActions, new Set(allReportActionIDs));
+    // Skip while a Concierge answer is still streaming, and while newer actions are not loaded because the newest reply may not be in the list yet
+    const latestConciergeFeedbackActionID = isDraftPendingCompletion || hasNewerActions ? undefined : getLatestConciergeFeedbackActionID(renderedVisibleReportActions, allReportActionIDs);
 
     useFollowActionBadgeTarget({
         isProduction,

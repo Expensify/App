@@ -1753,38 +1753,28 @@ function isOlderReportAction(a: ReportAction, b: ReportAction): boolean {
 }
 
 /**
- * Returns the `reportActionID` of the newest Concierge-authored comment that may show the inline feedback
- * prompt, or `undefined` when the report has none.
+ * Returns the ID of the newest Concierge comment that can show the feedback prompt.
+ * The comment has to be in Onyx because the Concierge greeting and the streaming draft are built on the client and cannot hold a reaction.
  *
- * `sortedVisibleReportActions` is ordered newest first, so the first match is the newest one.
- *
- * The newest one must be in `persistedReportActionIDs`, otherwise this returns `undefined`. Two
- * client-built actions are shaped exactly like a finished Concierge answer -- an `ADD_COMMENT` authored by
- * `CONST.ACCOUNT_ID.CONCIERGE` -- but never reach Onyx: the greeting from
- * `buildConciergeGreetingReportAction` and the paced reply from `buildConciergeDraftReportAction`.
- * `toggleEmojiReaction` looks the action up in Onyx and returns without writing when it is missing, so a
- * prompt on either one would render buttons that do nothing.
+ * @param sortedVisibleReportActions - visible report actions sorted newest first
+ * @param persistedReportActionIDs - IDs of the report actions stored in Onyx
  */
-function getLatestConciergeFeedbackActionID(sortedVisibleReportActions: ReportAction[], persistedReportActionIDs: ReadonlySet<string>): string | undefined {
+function getLatestConciergeFeedbackActionID(sortedVisibleReportActions: ReportAction[], persistedReportActionIDs: string[]): string | undefined {
     const latestConciergeComment = sortedVisibleReportActions.find(
         (action) =>
             isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT) &&
             action.actorAccountID === CONST.ACCOUNT_ID.CONCIERGE &&
             !isDeletedAction(action) &&
             !isWhisperAction(action) &&
-            // An optimistic Concierge comment whose write failed keeps its place in the report carrying
-            // errors. The reaction row and the context menu both refuse to act on those, and so must this:
-            // the server has no such action to attach a reaction to.
+            // A failed comment does not exist on the server, so a reaction on it cannot be saved
             isEmptyObject(action.errors),
     );
 
-    if (!latestConciergeComment) {
+    if (!latestConciergeComment || !persistedReportActionIDs.includes(latestConciergeComment.reportActionID)) {
         return undefined;
     }
 
-    // Deliberately no fallback to an older answer. Moving the prompt backwards onto the previous reply
-    // while a newer one is still being revealed asks the user to rate the wrong message.
-    return persistedReportActionIDs.has(latestConciergeComment.reportActionID) ? latestConciergeComment.reportActionID : undefined;
+    return latestConciergeComment.reportActionID;
 }
 
 /**

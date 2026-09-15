@@ -19,9 +19,6 @@ type ConciergeDraftState = {
     draftReportAction: ReportAction | null;
     hasActiveDraft: boolean;
     isDraftPendingCompletion: boolean;
-
-    /** Whether Concierge or a custom agent answers in this report, which is the only place its replies can appear */
-    isAgentZeroChat: boolean;
 };
 
 type ConciergeDraftActions = {
@@ -39,7 +36,6 @@ const defaultState: ConciergeDraftState = {
     draftReportAction: null,
     hasActiveDraft: false,
     isDraftPendingCompletion: false,
-    isAgentZeroChat: false,
 };
 
 const defaultActions: ConciergeDraftActions = {
@@ -91,8 +87,6 @@ function ConciergeDraftGate({reportID, children}: React.PropsWithChildren<{repor
         draftReportAction: draft?.reportAction ?? null,
         hasActiveDraft: !!draft?.reportAction,
         isDraftPendingCompletion: !!draft?.reportAction && (draft.status !== CONCIERGE_DRAFT_STATUS.COMPLETED || !!draft.pusherPendingCompletionEvent),
-        // The provider only mounts this gate for agent chats, so reaching it is the answer.
-        isAgentZeroChat: true,
     };
     const actionsValue: ConciergeDraftActions = {
         clearDraft,

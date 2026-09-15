@@ -296,7 +296,6 @@ describe('ReportActionsList (body)', () => {
             draftReportAction: null,
             hasActiveDraft: false,
             isDraftPendingCompletion: false,
-            isAgentZeroChat: false,
         });
         mockUseConciergeDraftActions.mockReturnValue({
             clearDraft: jest.fn(),
@@ -345,7 +344,6 @@ describe('ReportActionsList (body)', () => {
                 draftReportAction: null,
                 hasActiveDraft: false,
                 isDraftPendingCompletion: false,
-                isAgentZeroChat: true,
             });
         });
 
@@ -374,13 +372,11 @@ describe('ReportActionsList (body)', () => {
             expect(getRenderedReportActionsListItemProps(conciergeReply).isLatestConciergeFeedbackAction).toBe(true);
         });
 
-        it('marks nothing outside the chats where Concierge answers', () => {
-            // The scan walks every action in the report, so it is skipped where Concierge never replies.
+        it('marks nothing while a Concierge answer is still streaming', () => {
             mockUseConciergeDraft.mockReturnValue({
-                draftReportAction: null,
-                hasActiveDraft: false,
-                isDraftPendingCompletion: false,
-                isAgentZeroChat: false,
+                draftReportAction: {...conciergeReply, message: [{type: 'COMMENT', html: 'Here', text: 'Here'}]},
+                hasActiveDraft: true,
+                isDraftPendingCompletion: true,
             });
             mockUsePaginatedReportActions.mockReturnValue({
                 ...defaultPaginatedReportActionsResult,
@@ -392,9 +388,27 @@ describe('ReportActionsList (body)', () => {
             expect(getRenderedReportActionsListItemProps(conciergeReply).isLatestConciergeFeedbackAction).toBe(false);
         });
 
+        it('marks the reply once streaming finishes even when the draft HTML differs from the saved comment', () => {
+            // The draft keeps HTML entities that the saved comment does not have, so the draft can stay in the list after it completes
+            const completedDraft: OnyxTypes.ReportAction = {...conciergeReply, message: [{type: 'COMMENT', html: 'Here&apos;s it', text: "Here's it"}]};
+            mockUseConciergeDraft.mockReturnValue({
+                draftReportAction: completedDraft,
+                hasActiveDraft: true,
+                isDraftPendingCompletion: false,
+            });
+            mockUsePaginatedReportActions.mockReturnValue({
+                ...defaultPaginatedReportActionsResult,
+                reportActions: [...mockReportActions, {...conciergeReply, message: [{type: 'COMMENT', html: "Here's it", text: "Here's it"}]}],
+            });
+
+            renderReportActionsList();
+
+            expect(getCapturedVisibleActions()).toContain(completedDraft);
+            expect(getRenderedReportActionsListItemProps(completedDraft).isLatestConciergeFeedbackAction).toBe(true);
+        });
+
         it('marks nothing while newer pages are still unloaded', () => {
-            // Opened at a deep link or an old unread anchor: the newest reply in this window is not the
-            // newest in the report, so rating it would rate a stale answer.
+            // A deep link can open an older page where the newest loaded reply is not the newest in the report
             mockUsePaginatedReportActions.mockReturnValue({
                 ...defaultPaginatedReportActionsResult,
                 reportActions: [...mockReportActions, conciergeReply],
@@ -408,7 +422,7 @@ describe('ReportActionsList (body)', () => {
     });
 
     describe('Concierge Draft Context Menu', () => {
-        /** Position of `isDraftPendingCompletion` in the list's `extraData`, which is ordered, not keyed. */
+        // extraData is an array, so isDraftPendingCompletion is read by its position
         const DRAFT_PENDING_EXTRA_DATA_INDEX = 4;
 
         const conciergeDraftReportAction: OnyxTypes.ReportAction = {
@@ -434,7 +448,6 @@ describe('ReportActionsList (body)', () => {
                 draftReportAction: conciergeDraftReportAction,
                 hasActiveDraft: true,
                 isDraftPendingCompletion: true,
-                isAgentZeroChat: true,
             });
 
             renderReportActionsList();
@@ -449,7 +462,6 @@ describe('ReportActionsList (body)', () => {
                 draftReportAction: conciergeDraftReportAction,
                 hasActiveDraft: true,
                 isDraftPendingCompletion: false,
-                isAgentZeroChat: true,
             });
 
             renderReportActionsList();

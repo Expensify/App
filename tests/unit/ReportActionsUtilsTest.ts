@@ -7037,20 +7037,17 @@ describe('ReportActionsUtils', () => {
             } as ReportAction;
         }
 
-        /** The set of IDs Onyx actually holds, which is what `allReportActionIDs` gives the list. */
-        function persisted(actions: ReportAction[]): ReadonlySet<string> {
-            return new Set(actions.map((action) => action.reportActionID));
+        function persisted(actions: ReportAction[]): string[] {
+            return actions.map((action) => action.reportActionID);
         }
 
         it('returns the newest persisted Concierge comment', () => {
-            // Descending, the order `sortedVisibleReportActions` is in.
             const older = conciergeComment('100', '2026-09-01 00:00:00.000');
             const newer = conciergeComment('200', '2026-09-02 00:00:00.000');
             expect(ReportActionsUtils.getLatestConciergeFeedbackActionID([newer, older], persisted([newer, older]))).toBe('200');
         });
 
         it('shows nothing when the newest Concierge comment is the client-built greeting', () => {
-            // useConciergeSidePanelReportActions splices this in; it never reaches Onyx.
             const greeting = conciergeComment(String(CONST.CONCIERGE_GREETING_ACTION_ID), '2026-09-03 00:00:00.000');
             const real = conciergeComment('200', '2026-09-02 00:00:00.000');
             expect(ReportActionsUtils.getLatestConciergeFeedbackActionID([greeting, real], persisted([real]))).toBeUndefined();
@@ -7068,10 +7065,9 @@ describe('ReportActionsUtils', () => {
         });
 
         it('shows nothing while a Concierge draft streams, then moves to it once it lands in Onyx', () => {
-            // buildConciergeDraftReportAction makes an ADD_COMMENT authored by Concierge that is not persisted yet.
             const draft = conciergeComment('300', '2026-09-04 00:00:00.000');
             const previous = conciergeComment('200', '2026-09-02 00:00:00.000');
-            // Must not fall back to `previous`: that would ask the user to rate the older answer mid-stream.
+            // Falling back to the previous answer would ask the user to rate an older reply
             expect(ReportActionsUtils.getLatestConciergeFeedbackActionID([draft, previous], persisted([previous]))).toBeUndefined();
             expect(ReportActionsUtils.getLatestConciergeFeedbackActionID([draft, previous], persisted([draft, previous]))).toBe('300');
         });
@@ -7089,6 +7085,13 @@ describe('ReportActionsUtils', () => {
             const created = conciergeComment('450', '2026-09-05 00:00:00.000', {actionName: CONST.REPORT.ACTIONS.TYPE.CREATED});
             const real = conciergeComment('200', '2026-09-02 00:00:00.000');
             const sorted = [userComment, created, real];
+            expect(ReportActionsUtils.getLatestConciergeFeedbackActionID(sorted, persisted(sorted))).toBe('200');
+        });
+
+        it('skips a Concierge comment that failed to save', () => {
+            const failed = conciergeComment('600', '2026-09-07 00:00:00.000', {errors: {someError: 'error'}});
+            const real = conciergeComment('200', '2026-09-02 00:00:00.000');
+            const sorted = [failed, real];
             expect(ReportActionsUtils.getLatestConciergeFeedbackActionID(sorted, persisted(sorted))).toBe('200');
         });
 
