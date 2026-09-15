@@ -1,8 +1,8 @@
 import type {SearchQueryJSON} from '@components/Search/types';
 
 import {isExpenseReport, isOptimisticPersonalDetail} from '@libs/ReportUtils';
+import {getOptimisticSuggestedSearchHashes, isEligibleForStatus} from '@libs/SearchOptimisticUpdateUtils';
 import {buildCannedSearchQuery, buildSearchQueryJSON, buildSearchQueryString, getCurrentSearchQueryJSON, getFilterFromQuery} from '@libs/SearchQueryUtils';
-import {getSuggestedSearches, isEligibleForStatus} from '@libs/SearchUIUtils';
 import {isInvalidMerchantValue} from '@libs/ValidationUtils';
 
 import CONST from '@src/CONST';
@@ -79,10 +79,7 @@ function shouldOptimisticallyUpdateSearch(
         return false;
     }
 
-    const suggestedSearches = getSuggestedSearches(currentUserAccountID);
-    const submitQueryJSON = suggestedSearches[CONST.SEARCH.SEARCH_KEYS.SUBMIT].searchQueryJSON;
-    const approveQueryJSON = suggestedSearches[CONST.SEARCH.SEARCH_KEYS.APPROVE].searchQueryJSON;
-    const unapprovedCashSimilarSearchHash = suggestedSearches[CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CASH].similarSearchHash;
+    const {submitQueryJSON, approveQueryJSON, unapprovedCashSimilarSearchHash} = getOptimisticSuggestedSearchHashes(currentUserAccountID);
 
     const validSearchTypes =
         (!isInvoice && currentSearchQueryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE) ||
