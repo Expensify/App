@@ -6,7 +6,7 @@ import FormHelpMessage from '@components/FormHelpMessage';
 import Icon from '@components/Icon';
 import OnboardingHeader from '@components/OnboardingHeader';
 import {PressableWithoutFeedback} from '@components/Pressable';
-import RadioButtonWithLabel from '@components/RadioButtonWithLabel';
+import RadioButton from '@components/RadioButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import type {ListItem} from '@components/SelectionList/types';
@@ -15,12 +15,11 @@ import TextInput from '@components/TextInput';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 
 import useCompleteOnboarding from '@hooks/useCompleteOnboarding';
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {setOnboardingAccountingEnabled, setOnboardingAdminsChatReportID, setOnboardingPolicyID, setOnboardingUserReportedIntegration} from '@libs/actions/Welcome';
@@ -47,18 +46,36 @@ import {View} from 'react-native';
 import type {BaseOnboardingAccountingProps} from './types';
 
 type Integration = {
-    key: keyof typeof CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY;
-    iconName: 'QBOCircle' | 'QBDSquare' | 'XeroCircle' | 'NetSuiteSquare' | 'IntacctSquare' | 'SapSquare' | 'OracleSquare' | 'MicrosoftDynamicsSquare';
+    key: keyof typeof CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY | typeof CONST.POLICY.CONNECTIONS.ACCOUNTING_INTEGRATION_ALIASES.INTUIT_ENTERPRISE_SUITE;
+    iconName:
+        | 'QBOCircle'
+        | 'IntuitSquare'
+        | 'QBDSquare'
+        | 'XeroCircle'
+        | 'NetSuiteSquare'
+        | 'IntacctSquare'
+        | 'CertiniaSquare'
+        | 'RilletSquare'
+        | 'SapSquare'
+        | 'OracleSquare'
+        | 'MicrosoftDynamicsSquare';
     translationKey: TranslationPaths;
 };
 
 type AccountingOptionKey = Integration['key'] | 'other';
 
+// Ordered to match the design mocks, which lay the tiles out row by row in three columns on wide layouts and two on
+// narrow ones. DualEntry and Campfire are connections we support but deliberately do not offer here yet.
 const integrations: Integration[] = [
     {
         key: 'quickbooksOnline',
         iconName: 'QBOCircle',
         translationKey: 'workspace.accounting.qbo',
+    },
+    {
+        key: CONST.POLICY.CONNECTIONS.ACCOUNTING_INTEGRATION_ALIASES.INTUIT_ENTERPRISE_SUITE,
+        iconName: 'IntuitSquare',
+        translationKey: 'workspace.accounting.intuitEnterpriseSuite',
     },
     {
         key: 'quickbooksDesktop',
@@ -79,6 +96,17 @@ const integrations: Integration[] = [
         key: 'intacct',
         iconName: 'IntacctSquare',
         translationKey: 'workspace.accounting.intacct',
+    },
+    {
+        key: 'financialforce',
+        iconName: 'CertiniaSquare',
+        // Certinia has no `workspace.accounting` entry, but its connection page already translates the brand name.
+        translationKey: 'workspace.certinia.title',
+    },
+    {
+        key: 'rillet',
+        iconName: 'RilletSquare',
+        translationKey: 'workspace.accounting.rillet',
     },
     {
         key: 'sap',
@@ -107,20 +135,22 @@ type OnboardingListItem = ListItem & {
 
 function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccountingProps) {
     const styles = useThemeStyles();
-    const theme = useTheme();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const expensifyIcons = useMemoizedLazyExpensifyIcons([
-        'Connect',
         'QBOCircle',
+        'IntuitSquare',
         'QBDSquare',
         'XeroCircle',
         'NetSuiteSquare',
         'IntacctSquare',
+        'CertiniaSquare',
+        'RilletSquare',
         'SapSquare',
         'OracleSquare',
         'MicrosoftDynamicsSquare',
     ]);
+    const illustrations = useMemoizedLazyIllustrations(['Pencil']);
     // We need to use isSmallScreenWidth, see navigateAfterOnboarding function comment
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {onboardingIsMediumOrLargerScreenWidth, isSmallScreenWidth, isInLandscapeMode} = useResponsiveLayout();
@@ -167,7 +197,7 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
                     src={icon}
                     width={variables.iconSizeExtraLarge}
                     height={variables.iconSizeExtraLarge}
-                    additionalStyles={[StyleUtils.getAvatarBorderStyle(CONST.AVATAR_SIZE.DEFAULT, CONST.AVATAR_SHAPE.CIRCLE), styles.mr3]}
+                    additionalStyles={[StyleUtils.getAvatarBorderStyle(CONST.AVATAR_SIZE.DEFAULT, CONST.AVATAR_SHAPE.CIRCLE)]}
                 />
             ),
             isSelected: selectedIntegration === integration.key,
@@ -179,11 +209,9 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
         text: translate('workspace.accounting.other'),
         leftElement: (
             <Icon
-                src={expensifyIcons.Connect}
-                width={variables.iconSizeNormal}
-                height={variables.iconSizeNormal}
-                fill={theme.icon}
-                additionalStyles={[StyleUtils.getAvatarBorderStyle(CONST.AVATAR_SIZE.DEFAULT, CONST.AVATAR_SHAPE.CIRCLE), styles.mr3, styles.onboardingSmallIcon]}
+                src={illustrations.Pencil}
+                width={variables.iconSizeExtraLarge}
+                height={variables.iconSizeExtraLarge}
             />
         ),
         isSelected: isOtherSelected,
@@ -242,22 +270,24 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
                 sentryLabel={CONST.SENTRY_LABEL.ONBOARDING.ACCOUNTING_SELECT_INTEGRATION}
                 accessible={false}
                 hoverStyle={styles.hoveredComponentBG}
-                style={[styles.onboardingAccountingItem, isSmallScreenWidth && styles.flexBasis100]}
+                style={[
+                    styles.onboardingAccountingItem,
+                    isSmallScreenWidth ? styles.onboardingAccountingItemNarrow : styles.onboardingAccountingItemWide,
+                    !!item.isSelected && styles.onboardingAccountingItemSelected,
+                ]}
             >
-                <RadioButtonWithLabel
+                {/* Square like a checkbox to match the mocks, but announced as a radio because only one option can be picked. */}
+                <RadioButton
                     isChecked={!!item.isSelected}
                     onPress={() => handleIntegrationSelect(item.keyForList)}
-                    accessibilityLabel={item.text}
-                    style={[styles.flexRowReverse]}
-                    wrapperStyle={[styles.ml0]}
-                    labelElement={
-                        <View style={[styles.alignItemsCenter, styles.flexRow]}>
-                            {item.leftElement}
-                            <Text style={styles.textStrong}>{item.text}</Text>
-                        </View>
-                    }
-                    shouldBlendOpacity
+                    accessibilityLabel={item.text ?? ''}
+                    containerBorderRadius={variables.componentBorderRadiusSmall}
+                    style={styles.onboardingAccountingItemRadioButton}
                 />
+                <View style={[styles.alignItemsCenter, styles.justifyContentCenter, styles.flex1]}>
+                    {item.leftElement}
+                    <Text style={[styles.textStrong, styles.textAlignCenter, styles.mt2]}>{item.text}</Text>
+                </View>
             </PressableWithoutFeedback>
         );
     }
@@ -310,16 +340,7 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
                 onContentSizeChange={handleContentSizeChange}
                 keyboardShouldPersistTaps="handled"
             >
-                <View style={[styles.flexRow, styles.flexWrap, styles.gap3, styles.mb3]}>
-                    {accountingOptions.map(renderOption)}
-                    {/* Keep Other from expanding across the empty second column on wide layouts. */}
-                    {!isSmallScreenWidth && (
-                        <View
-                            testID="onboarding-accounting-wide-layout-spacer"
-                            style={[styles.onboardingAccountingItem, styles.bgTransparent, styles.p0]}
-                        />
-                    )}
-                </View>
+                <View style={[styles.flexRow, styles.flexWrap, styles.gap3, styles.mb3]}>{accountingOptions.map(renderOption)}</View>
                 {isOtherSelected && (
                     <TextInput
                         ref={otherAccountingSoftwareInputRef}

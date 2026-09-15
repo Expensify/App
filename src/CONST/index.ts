@@ -103,9 +103,12 @@ const chatTypes = {
 
 const ONBOARDING_ACCOUNTING_MAPPING = {
     quickbooksOnline: 'QuickBooks Online',
+    intuitEnterpriseSuite: 'Intuit Enterprise Suite',
     xero: 'Xero',
     netsuite: 'NetSuite',
     intacct: 'Sage Intacct',
+    financialforce: 'Certinia',
+    rillet: 'Rillet',
     quickbooksDesktop: 'QuickBooks Desktop',
     sap: 'SAP',
     oracle: 'Oracle',

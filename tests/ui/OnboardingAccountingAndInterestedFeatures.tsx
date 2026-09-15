@@ -17,6 +17,7 @@ import BaseOnboardingAccounting from '@pages/OnboardingAccounting/BaseOnboarding
 import BaseOnboardingInterestedFeatures from '@pages/OnboardingInterestedFeatures/BaseOnboardingInterestedFeatures';
 
 import CONST from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
 import type {OnboardingModalNavigatorParamList} from '@src/libs/Navigation/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -153,14 +154,50 @@ describe('Onboarding interested features and accounting pages', () => {
         expect(navigate).not.toHaveBeenCalledWith(ROUTES.ONBOARDING_ACCOUNTING.getRoute());
     });
 
-    it('keeps Other half-width, auto-focuses its input, and completes with a trimmed integration name', async () => {
+    it('renders every accounting tile from the mocks', async () => {
+        renderAccountingPage();
+
+        await waitForBatchedUpdatesWithAct();
+        const expectedTiles: TranslationPaths[] = [
+            'workspace.accounting.qbo',
+            'workspace.accounting.intuitEnterpriseSuite',
+            'workspace.accounting.qbd',
+            'workspace.accounting.xero',
+            'workspace.accounting.netsuite',
+            'workspace.accounting.intacct',
+            'workspace.certinia.title',
+            'workspace.accounting.rillet',
+            'workspace.accounting.sap',
+            'workspace.accounting.oracle',
+            'workspace.accounting.microsoftDynamics',
+            'workspace.accounting.other',
+        ];
+        for (const translationKey of expectedTiles) {
+            expect(screen.getByText(TestHelper.translateLocal(translationKey))).toBeOnTheScreen();
+        }
+    });
+
+    it('completes onboarding with an integration that was previously missing from this screen', async () => {
+        renderAccountingPage();
+
+        await waitForBatchedUpdatesWithAct();
+        fireEvent.press(screen.getByText(TestHelper.translateLocal('workspace.certinia.title')));
+        fireEvent.press(screen.getByText(TestHelper.translateLocal('common.continue')));
+
+        await waitFor(() => {
+            expect(mockCompleteOnboardingFlow).toHaveBeenCalledWith({
+                featuresMap: expect.arrayContaining([{id: CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED, enabled: true, enabledByDefault: true}]),
+                userReportedIntegration: CONST.POLICY.CONNECTIONS.NAME.CERTINIA,
+                userReportedIntegrationName: undefined,
+            });
+        });
+    });
+
+    it('auto-focuses the Other input and completes with a trimmed integration name', async () => {
         const scrollToEndSpy = jest.spyOn(ScrollView.prototype, 'scrollToEnd');
         const renderResult = renderAccountingPage();
 
         await waitForBatchedUpdatesWithAct();
-        expect(screen.queryByText(TestHelper.translateLocal('onboarding.accounting.none'))).not.toBeOnTheScreen();
-        expect(screen.getByTestId('onboarding-accounting-wide-layout-spacer')).toHaveStyle({backgroundColor: 'transparent', flexBasis: '35%', flexGrow: 1});
-
         fireEvent.press(screen.getByText(TestHelper.translateLocal('workspace.accounting.other')));
         const otherAccountingSoftwareLabel = TestHelper.translateLocal('onboarding.accounting.otherAccountingSoftware');
         const otherAccountingSoftwareInput = screen.getByLabelText(otherAccountingSoftwareLabel);

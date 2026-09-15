@@ -5138,10 +5138,6 @@ const staticStyles = (theme: ThemeColors) =>
             backgroundColor: theme.highlightBG,
         },
 
-        onboardingSmallIcon: {
-            padding: 10,
-        },
-
         sidebarStatusAvatarContainer: {
             height: variables.avatarSizeMedium,
             width: variables.avatarSizeMedium,
@@ -5681,8 +5677,28 @@ const staticStyles = (theme: ThemeColors) =>
             paddingVertical: 20,
             flexGrow: 1,
             flexShrink: 1,
+            minHeight: 144,
+        },
 
-            flexBasis: '35%',
+        // The basis and maxWidth handle the gap between columns and keep items aligned when the scrollbar appears
+        onboardingAccountingItemWide: {
+            flexBasis: '32%',
+            maxWidth: '32%',
+        },
+
+        onboardingAccountingItemNarrow: {
+            flexBasis: '48.5%',
+            maxWidth: '48.5%',
+        },
+
+        onboardingAccountingItemSelected: {
+            backgroundColor: theme.reactionActiveBackground,
+        },
+
+        onboardingAccountingItemRadioButton: {
+            position: 'absolute',
+            top: 16,
+            left: 16,
         },
 
         onboardingInterestedFeaturesItem: {
