@@ -12,6 +12,9 @@ type RHPFrameStyleParams = {
 
     /** Whether the RHP covers the whole screen instead of sitting next to it. */
     shouldUseNarrowLayout: boolean;
+
+    /** Whether a report or expense is stacked in the RHP, in which case every card draws its own modal. */
+    shouldUseCenteredFrame: boolean;
 };
 
 type GetRHPFrameStyle = (params: RHPFrameStyleParams) => Animated.WithAnimatedValue<StyleProp<ViewStyle>>;

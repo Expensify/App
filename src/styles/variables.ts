@@ -125,7 +125,12 @@ export default {
     uploadViewMargin: 20,
     chooseFilesViewMargin: 8,
     sideBarWithLHBWidth: 320,
-    superWideRHPLeftMargin: 147,
+    superWideRHPLeftMargin: 360,
+    // RHP panel width. Decoupled from sideBarWidth (the LHN) so the RHP can be sized independently.
+    rhpWidth: 440,
+    // Right (detail) pane width of the wide and super wide expense views. Decoupled from rhpWidth so the expense
+    // report view's right pane can differ from the standalone skinny RHP.
+    wideRHPRightPaneWidth: 460,
     searchSidebarExpandedWidth: 320,
     searchSidebarCollapsedWidth: 76,
     navigationTabBarSize: 72,

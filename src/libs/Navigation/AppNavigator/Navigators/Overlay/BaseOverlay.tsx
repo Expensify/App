@@ -3,7 +3,7 @@ import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeed
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import type {OverlayStylesParams} from '@styles/index';
+import type {OverlayPositionValue, OverlayStylesParams} from '@styles/index';
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
@@ -21,10 +21,10 @@ type BaseOverlayProps = {
     progress?: OverlayStylesParams;
 
     /** Overlay position from the left edge of the container */
-    positionLeftValue?: number | Animated.Value | Animated.AnimatedAddition<number>;
+    positionLeftValue?: OverlayPositionValue;
 
     /** Overlay position from the right edge of the container */
-    positionRightValue?: number | Animated.Value | Animated.AnimatedAddition<number>;
+    positionRightValue?: OverlayPositionValue;
 
     /** Max opacity the scrim ramps up to. Defaults to `variables.overlayOpacity`. The floating RHP passes the lighter `rhpOverlayOpacity`. */
     maxOpacity?: number;
@@ -34,6 +34,9 @@ type BaseOverlayProps = {
 
     /** Overlay position from the bottom edge of the container. The floating RHP overlays pass the card's inset so the scrim doesn't bleed past it. */
     positionBottomValue?: number;
+
+    /** Render without the dimming background. The overlay stays positioned and pressable, it just paints nothing. */
+    transparent?: boolean;
 };
 
 // The default value of positionLeftValue is equal to -2 * variables.sideBarWidth, because we need to stretch the overlay to cover the sidebar and the translate animation distance.
@@ -45,6 +48,7 @@ function BaseOverlay({
     positionTopValue = 0,
     positionBottomValue = 0,
     maxOpacity = variables.overlayOpacity,
+    transparent = false,
 }: BaseOverlayProps) {
     const styles = useThemeStyles();
     const {current} = useCardAnimation();
@@ -56,7 +60,7 @@ function BaseOverlay({
             aria-hidden
             style={[
                 styles.pFixed,
-                styles.overlayBackground,
+                !transparent && styles.overlayBackground,
                 styles.overlayStyles({progress: progress ?? current.progress, positionLeftValue, positionRightValue, positionTopValue, positionBottomValue, maxOpacity}),
             ]}
         >

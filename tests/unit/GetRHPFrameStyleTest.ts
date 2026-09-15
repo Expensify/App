@@ -21,7 +21,8 @@ const styles = createMock<ThemeStyles>({
     r0: {right: 0},
     h100: {height: '100%'},
     overflowHidden: {overflow: 'hidden'},
-    RHPFloatingCard: {top: variables.rhpFloatingCardMargin},
+    RHPFloatingCard: {borderWidth: variables.rhpFloatingCardBorderWidth},
+    RHPCenteredFrame: {right: variables.rhpFloatingCardMargin},
 });
 
 function buildAnimatedWidth() {
@@ -41,37 +42,50 @@ function readAnimatedValue(width: unknown) {
 }
 
 describe('getRHPFrameStyle', () => {
-    it('gives the web wide layout a floating card whose width absorbs the border', () => {
-        const animatedWidth = buildAnimatedWidth();
-
-        const style = getRHPFrameStyleWeb({styles, animatedWidth, shouldUseNarrowLayout: false});
+    it('gives a standalone web RHP a floating card whose width absorbs the border', () => {
+        const style = getRHPFrameStyleWeb({styles, animatedWidth: buildAnimatedWidth(), shouldUseNarrowLayout: false, shouldUseCenteredFrame: false});
 
         expect(style).toContain(styles.RHPFloatingCard);
+        expect(style).not.toContain(styles.RHPCenteredFrame);
         expect(style).not.toContain(styles.r0);
-        expect(style).not.toContain(styles.h100);
 
         // The card is border-box, so the frame has to be wider than the RHP by its border on both sides. Without this
         // the fixed-width panes inside the wide RHP are clipped.
         expect(readAnimatedValue(getWidth(style))).toBe(RHP_WIDTH + 2 * variables.rhpFloatingCardBorderWidth);
     });
 
+    it('gives the stacked report flow an invisible frame that neither clips nor compensates for a border', () => {
+        const animatedWidth = buildAnimatedWidth();
+
+        const style = getRHPFrameStyleWeb({styles, animatedWidth, shouldUseNarrowLayout: false, shouldUseCenteredFrame: true});
+
+        expect(style).toContain(styles.RHPCenteredFrame);
+        expect(style).not.toContain(styles.RHPFloatingCard);
+        // The cards inside draw their own border and shadow, so clipping here would cut them off at the frame edges.
+        expect(style).not.toContain(styles.overflowHidden);
+        // The frame has no border of its own, so the width is the RHP width untouched.
+        expect(getWidth(style)).toBe(animatedWidth);
+    });
+
     it('keeps the web narrow layout full-bleed', () => {
-        const style = getRHPFrameStyleWeb({styles, animatedWidth: buildAnimatedWidth(), shouldUseNarrowLayout: true});
+        const style = getRHPFrameStyleWeb({styles, animatedWidth: buildAnimatedWidth(), shouldUseNarrowLayout: true, shouldUseCenteredFrame: true});
 
         expect(style).toContain(styles.r0);
         expect(style).toContain(styles.h100);
         expect(style).not.toContain(styles.RHPFloatingCard);
+        expect(style).not.toContain(styles.RHPCenteredFrame);
         expect(getWidth(style)).toBe('100%');
     });
 
     it('keeps native full-bleed and leaves the width untouched', () => {
         const animatedWidth = buildAnimatedWidth();
 
-        const style = getRHPFrameStyleNative({styles, animatedWidth, shouldUseNarrowLayout: false});
+        const style = getRHPFrameStyleNative({styles, animatedWidth, shouldUseNarrowLayout: false, shouldUseCenteredFrame: true});
 
         expect(style).toContain(styles.r0);
         expect(style).toContain(styles.h100);
         expect(style).not.toContain(styles.RHPFloatingCard);
+        expect(style).not.toContain(styles.RHPCenteredFrame);
         // Native gets no border, so the width must be the animated RHP width itself and not a compensated copy of it.
         expect(getWidth(style)).toBe(animatedWidth);
     });

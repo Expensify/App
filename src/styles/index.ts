@@ -82,13 +82,19 @@ type SelectionListPopover = {
     extraHeight?: number;
 };
 
-// Chrome shared by every RHP card that is stacked on top of a wider one. The left border separates it from the card
-// underneath, so it has to match the floating frame's border.
+// Chrome shared by every RHP card in the stacked report flow. There the frame itself is invisible, so each card draws
+// its own inset, bordered modal and the scrim behind it dims the card underneath. Only the width differs per card.
 const getRHPExtendedCardFrame = (theme: ThemeColors): ViewStyle => ({
+    position: 'absolute',
+    top: variables.rhpFloatingCardMargin,
+    bottom: variables.rhpFloatingCardMargin,
+    right: 0,
+    height: 'auto',
     borderRadius: variables.componentBorderRadiusLarge,
-    borderLeftWidth: variables.rhpFloatingCardBorderWidth,
-    borderLeftColor: theme.border,
+    borderWidth: variables.rhpFloatingCardBorderWidth,
+    borderColor: theme.border,
     overflow: 'hidden',
+    boxShadow: theme.shadow,
 });
 
 const getReceiptDropZoneViewStyle = (theme: ThemeColors, margin: number, paddingVertical: number): ViewStyle => ({
@@ -113,6 +119,9 @@ type WebViewStyle = {
 type CustomPickerStyle = PickerStyle & {icon?: ViewStyle};
 
 type OverlayStylesParams = Animated.AnimatedInterpolation<string | number> | Animated.Value;
+
+/** Horizontal anchor of an overlay, either a fixed pixel value or an animated one derived from the RHP width. */
+type OverlayPositionValue = number | Animated.Value | Animated.AnimatedAddition<number> | Animated.AnimatedSubtraction<string | number>;
 
 type TwoFactorAuthCodesBoxParams = {isExtraSmallScreenWidth: boolean; isSmallScreenWidth: boolean};
 type WorkspaceUpgradeIntroBoxParams = {isExtraSmallScreenWidth: boolean};
@@ -194,7 +203,7 @@ const headlineItalicFont = {
 const modalNavigatorContainer = (isSmallScreenWidth: boolean) =>
     ({
         position: 'absolute',
-        width: isSmallScreenWidth ? '100%' : variables.sideBarWidth,
+        width: isSmallScreenWidth ? '100%' : variables.rhpWidth,
         height: '100%',
     }) satisfies ViewStyle;
 
@@ -3330,6 +3339,14 @@ const staticStyles = (theme: ThemeColors) =>
             height: '100%',
         },
 
+        // Invisible frame docked at the viewport margin and sized to the widest RHP card. It draws nothing, because in the
+        // stacked report flow each card inside is its own bordered modal, and it must not clip or those borders and
+        // shadows get cut off at its edges.
+        RHPCenteredFrame: {
+            right: variables.rhpFloatingCardMargin,
+            height: '100%',
+        },
+
         // Anchoring for the floating RHP card on web wide layout. It replaces the card's `r0` and `h100`.
         // Width stays driven by the animated RHP width at the call site.
         RHPFloatingCard: {
@@ -6430,19 +6447,13 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         wideRHPExtendedCardInterpolatorStyles: {
-            position: 'absolute',
-            height: '100%',
-            right: 0,
-            width: animatedWideRHPWidth,
             ...getRHPExtendedCardFrame(theme),
+            width: animatedWideRHPWidth,
         },
 
         singleRHPExtendedCardInterpolatorStyles: {
-            position: 'absolute',
-            height: '100%',
-            right: 0,
-            width: variables.sideBarWidth,
             ...getRHPExtendedCardFrame(theme),
+            width: variables.rhpWidth,
         },
 
         flexibleHeight: {
@@ -6778,11 +6789,8 @@ const dynamicStyles = (theme: ThemeColors) =>
         // See https://github.com/Expensify/App/issues/99035
         getSuperWideRHPExtendedCardInterpolatorStyles: (width: Animated.AnimatedSubtraction<number>) =>
             ({
-                position: 'absolute',
-                height: '100%',
-                right: 0,
-                width,
                 ...getRHPExtendedCardFrame(theme),
+                width,
             }) satisfies ViewStyle,
 
         uploadFileViewBorderWidth: (isSmallScreenWidth: boolean) =>
@@ -6836,7 +6844,7 @@ const dynamicStyles = (theme: ThemeColors) =>
 
         modalStackNavigatorContainerWidth: (isSmallScreenWidth: boolean) =>
             ({
-                width: isSmallScreenWidth ? '100%' : variables.sideBarWidth,
+                width: isSmallScreenWidth ? '100%' : variables.rhpWidth,
             }) satisfies ViewStyle,
 
         OnboardingNavigatorInnerView: (shouldUseNarrowLayout: boolean) =>
@@ -6871,8 +6879,8 @@ const dynamicStyles = (theme: ThemeColors) =>
             maxOpacity,
         }: {
             progress: OverlayStylesParams;
-            positionLeftValue: number | Animated.Value | Animated.AnimatedAddition<number>;
-            positionRightValue: number | Animated.Value | Animated.AnimatedAddition<number>;
+            positionLeftValue: OverlayPositionValue;
+            positionRightValue: OverlayPositionValue;
             positionTopValue: number;
             positionBottomValue: number;
             maxOpacity: number;
@@ -7434,4 +7442,4 @@ const styles = (theme: ThemeColors) =>
 type ThemeStyles = ReturnType<typeof styles>;
 
 export default styles;
-export type {ThemeStyles, StatusBarStyle, ColorScheme, AnchorPosition, AnchorDimensions, OverlayStylesParams};
+export type {ThemeStyles, StatusBarStyle, ColorScheme, AnchorPosition, AnchorDimensions, OverlayStylesParams, OverlayPositionValue};

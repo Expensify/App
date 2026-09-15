@@ -6,12 +6,17 @@ import {Animated} from 'react-native';
 import type GetRHPFrameStyle from './types';
 
 /**
- * On wide layout the RHP is a card inset from the viewport edges, with rounded corners, a border and a shadow,
- * instead of the full-bleed `r0` and `h100` anchoring. Narrow layout keeps the full-bleed frame.
+ * The frame has three shapes on web. Narrow layout keeps the full-bleed `r0` and `h100` anchoring. The stacked report
+ * flow uses an invisible frame, because there each card draws its own bordered modal and the frame must not clip them.
+ * Everything else is a single floating card, where the frame itself carries the border, the radius and the shadow.
  */
-const getRHPFrameStyle: GetRHPFrameStyle = ({styles, animatedWidth, shouldUseNarrowLayout}) => {
+const getRHPFrameStyle: GetRHPFrameStyle = ({styles, animatedWidth, shouldUseNarrowLayout, shouldUseCenteredFrame}) => {
     if (shouldUseNarrowLayout) {
         return [styles.pAbsolute, styles.r0, styles.h100, styles.overflowHidden, {width: '100%'}];
+    }
+
+    if (shouldUseCenteredFrame) {
+        return [styles.pAbsolute, styles.RHPCenteredFrame, {width: animatedWidth}];
     }
 
     // The card is border-box, so its border has to be added back on top of the animated width. Without it the content
