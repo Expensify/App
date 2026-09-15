@@ -43,6 +43,7 @@ function GenericPressable({
     accessible = true,
     fullDisabled = false,
     interactive = true,
+    shouldAllowTextSelection = false,
     isNested = false,
     ref,
     dataSet,
@@ -215,7 +216,7 @@ function GenericPressable({
                 (state.hovered || isHovered) && StyleUtils.parseStyleFromFunction(hoverStyle, state),
                 state.pressed && StyleUtils.parseStyleFromFunction(pressStyle, state),
                 isDisabled && [StyleUtils.parseStyleFromFunction(disabledStyle, state), styles.noSelect],
-                isRoleButton && styles.userSelectNone,
+                shouldAllowTextSelection ? styles.userSelectAuto : isRoleButton && styles.userSelectNone,
             ]}
             // accessibility props
             accessibilityState={{

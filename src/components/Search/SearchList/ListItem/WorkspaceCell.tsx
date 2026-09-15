@@ -44,6 +44,7 @@ function WorkspaceCell({policyID, report}: WorkspaceCellProps) {
                 text={name ?? ''}
                 shouldShowTooltip
                 style={[styles.flex1, styles.flexGrow1]}
+                isCopyable
             />
         </View>
     );

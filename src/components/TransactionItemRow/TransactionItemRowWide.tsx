@@ -29,6 +29,7 @@ import {isTaxCodeCustomized, getTagGLCode} from '@libs/PolicyUtils';
 import {getReportName} from '@libs/ReportNameUtils';
 import {getReimbursableTotal, isExpenseReport} from '@libs/ReportUtils';
 import {getViolationsForTransaction} from '@libs/SearchUIUtils';
+import {COPYABLE_TEXT_DATA_SET} from '@libs/SelectionScraper';
 import {getShiftKeyFromEvent} from '@libs/shiftRangeSelection';
 import {
     getAmount,
@@ -101,6 +102,7 @@ function TransactionItemRowWide({
     columns,
     onButtonPress = () => {},
     style,
+    dataSet,
     isReportItemChild = false,
     isActionLoading,
     isInSingleTransactionReport = false,
@@ -340,7 +342,12 @@ function TransactionItemRowWide({
                         key={column}
                         style={[getSearchColumnStyles(CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE)]}
                     >
-                        <Text>{getReimbursable(transactionItem) ? translate('common.yes') : translate('common.no')}</Text>
+                        <Text
+                            selectable
+                            dataSet={COPYABLE_TEXT_DATA_SET}
+                        >
+                            {getReimbursable(transactionItem) ? translate('common.yes') : translate('common.no')}
+                        </Text>
                     </View>
                 );
             case CONST.SEARCH.TABLE_COLUMNS.BILLABLE:
@@ -349,7 +356,12 @@ function TransactionItemRowWide({
                         key={column}
                         style={[getSearchColumnStyles(CONST.SEARCH.TABLE_COLUMNS.BILLABLE)]}
                     >
-                        <Text>{transactionItem.billable ? translate('common.yes') : translate('common.no')}</Text>
+                        <Text
+                            selectable
+                            dataSet={COPYABLE_TEXT_DATA_SET}
+                        >
+                            {transactionItem.billable ? translate('common.yes') : translate('common.no')}
+                        </Text>
                     </View>
                 );
             case CONST.SEARCH.TABLE_COLUMNS.ACTION:
@@ -615,7 +627,9 @@ function TransactionItemRowWide({
                 return (
                     <View
                         key={column}
-                        style={[getSearchColumnStyles(CONST.SEARCH.TABLE_COLUMNS.STATUS)]}
+                        style={[getSearchColumnStyles(CONST.SEARCH.TABLE_COLUMNS.STATUS), styles.userSelectText]}
+                        // Treat the visible status as a row value while keeping the badge presentation unchanged.
+                        dataSet={COPYABLE_TEXT_DATA_SET}
                     >
                         <StatusCell
                             stateNum={transactionItem.report?.stateNum}
@@ -708,6 +722,7 @@ function TransactionItemRowWide({
                     styles.mw100,
                     style,
                 ]}
+                dataSet={dataSet}
                 testID="transaction-item-row"
             >
                 <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap3, fullHeightMainRowStyle]}>

@@ -21,6 +21,7 @@ function TaxCell({transactionItem, shouldShowTooltip}: TransactionDataCellProps)
             shouldShowTooltip={shouldShowTooltip}
             text={convertToDisplayString(taxAmount, currency)}
             style={[styles.optionDisplayName, styles.lineHeightLarge, styles.pre, styles.justifyContentCenter, styles.textAlignRight]}
+            isCopyable
         />
     );
 }
