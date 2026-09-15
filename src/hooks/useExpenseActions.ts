@@ -533,7 +533,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
                 const transactionCount = Object.keys(transactions).length;
 
                 // A report holding a single expense is deleted by deleting that expense, which DeleteMoneyRequest
-                // only authorises for whoever submitted it. An admin deleting a member's draft report is authorised
+                // only authorizes for whoever submitted it. An admin deleting a member's draft report is authorized
                 // at report level instead, so they must take the report delete path regardless of the expense count.
                 const isDeletingOwnExpense = requestParentReportAction?.actorAccountID === accountID;
 

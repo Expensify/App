@@ -6062,16 +6062,38 @@ describe('ReportUtils', () => {
                 expect(canDeleteMoneyRequestReport(draftReport, [transaction], [iouAction], currentUserAccountID, undefined, memberPolicy)).toBe(false);
             });
 
-            it('should allow an admin to delete a draft report holding a card transaction with restricted liability, since the expenses become unreported rather than deleted', () => {
-                const transaction = {
-                    ...createRandomTransaction(904),
+            it('should allow an admin to delete a draft report holding cash and third-party card expenses regardless of liability', () => {
+                const cashTransaction = {...createRandomTransaction(904), reportID: draftReport.reportID, managedCard: false};
+                const cardTransaction = {
+                    ...createRandomTransaction(905),
                     reportID: draftReport.reportID,
                     managedCard: true,
+                    bank: 'third-party-bank',
                     comment: {liabilityType: CONST.TRANSACTION.LIABILITY_TYPE.RESTRICT},
                 };
-                const iouAction = buildIOUActionForTransaction(draftReport.reportID, transaction.transactionID, currentUserAccountID);
+                const cashIOUAction = buildIOUActionForTransaction(draftReport.reportID, cashTransaction.transactionID, 777);
+                const cardIOUAction = buildIOUActionForTransaction(draftReport.reportID, cardTransaction.transactionID, 777);
 
-                expect(canDeleteMoneyRequestReport(draftReport, [transaction], [iouAction], currentUserAccountID, undefined, adminPolicy, true)).toBe(true);
+                expect(canDeleteMoneyRequestReport(draftReport, [cashTransaction, cardTransaction], [cashIOUAction, cardIOUAction], currentUserAccountID, undefined, adminPolicy, true)).toBe(
+                    true,
+                );
+            });
+
+            it('should not allow an admin to delete a draft report containing an Expensify Card transaction', () => {
+                const cashTransaction = {...createRandomTransaction(906), reportID: draftReport.reportID, managedCard: false};
+                const expensifyCardTransaction = {
+                    ...createRandomTransaction(907),
+                    reportID: draftReport.reportID,
+                    managedCard: true,
+                    bank: CONST.EXPENSIFY_CARD.BANK,
+                    comment: {liabilityType: CONST.TRANSACTION.LIABILITY_TYPE.RESTRICT},
+                };
+                const cashIOUAction = buildIOUActionForTransaction(draftReport.reportID, cashTransaction.transactionID, 777);
+                const cardIOUAction = buildIOUActionForTransaction(draftReport.reportID, expensifyCardTransaction.transactionID, 777);
+
+                expect(
+                    canDeleteMoneyRequestReport(draftReport, [cashTransaction, expensifyCardTransaction], [cashIOUAction, cardIOUAction], currentUserAccountID, undefined, adminPolicy, true),
+                ).toBe(false);
             });
         });
 
