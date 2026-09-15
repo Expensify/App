@@ -1,24 +1,27 @@
+import getContextMenuAccessibilityProps from '@components/utils/getContextMenuAccessibilityProps';
+
 import type {TupleToUnion, ValueOf} from 'type-fest';
 
 import {createContext, useContext, useEffect, useState} from 'react';
 
 /**
  * Label slots a `MenuItem` row can contribute, in the order they are announced. Keyed by line rather
- * than role, so the announced order matches the visual one for both field and navigation rows.
+ * than by role, so the announced order matches the visual one on both field and navigation rows.
  */
 const MENU_ITEM_LABEL_SLOTS = ['top', 'bottom'] as const;
 
 type MenuItemLabelSlot = TupleToUnion<typeof MENU_ITEM_LABEL_SLOTS>;
 
-/** Accessibility facts a sub-component can contribute about its row, announced after the label as their own sentences */
+/** Facts a sub-component can contribute about its row, announced after the label as their own sentences */
 const MENU_ITEM_ACCESSIBILITY_ANNOUNCEMENT = {
     OPENS_IN_NEW_TAB: 'opensInNewTab',
+    CONTEXT_MENU_AVAILABLE: 'contextMenuAvailable',
 } as const;
 
 type MenuItemAccessibilityAnnouncement = ValueOf<typeof MENU_ITEM_ACCESSIBILITY_ANNOUNCEMENT>;
 
-/** The announcement slots in the order they are announced */
-const MENU_ITEM_ANNOUNCEMENT_SLOTS = Object.values(MENU_ITEM_ACCESSIBILITY_ANNOUNCEMENT);
+const MENU_ITEM_LABEL_ANNOUNCEMENT_SLOTS = [MENU_ITEM_ACCESSIBILITY_ANNOUNCEMENT.OPENS_IN_NEW_TAB];
+const MENU_ITEM_HINT_ANNOUNCEMENT_SLOTS = [MENU_ITEM_ACCESSIBILITY_ANNOUNCEMENT.CONTEXT_MENU_AVAILABLE];
 
 type MenuItemAccessibilityActions = {
     /** Registers a label (the title or description text) under a fixed slot key */
@@ -27,7 +30,7 @@ type MenuItemAccessibilityActions = {
     /** Removes the label registered under the given slot */
     unregisterLabel: (slot: MenuItemLabelSlot) => void;
 
-    /** Announces a fact about the row under a fixed slot key. Announcing the same fact twice announces it once */
+    /** Announces a fact about the row under a fixed key. Announcing the same fact twice announces it once */
     registerAnnouncement: (announcement: MenuItemAccessibilityAnnouncement, text: string) => void;
 
     /** Stops announcing the given fact */
@@ -37,9 +40,8 @@ type MenuItemAccessibilityActions = {
 const MenuItemAccessibilityContext = createContext<MenuItemAccessibilityActions | undefined>(undefined);
 
 /**
- * Contributes text to the label `MenuItem.Root` derives. Registered under a fixed slot key so the
- * announced order is deterministic (`top`, then `bottom`) regardless of mount/render timing.
- * No-op when `text` is empty or when rendered outside a `MenuItem.Root`.
+ * Contributes text to the label `MenuItem.Root` derives. The fixed slot key keeps the announced order
+ * deterministic (`top`, then `bottom`). No-op when `text` is empty or outside a `MenuItem.Root`.
  */
 function useMenuItemAccessibilityLabel(slot: MenuItemLabelSlot, text: string | undefined) {
     const actions = useContext(MenuItemAccessibilityContext);
@@ -70,8 +72,9 @@ function useMenuItemAccessibilityAnnouncement(announcement: MenuItemAccessibilit
     }, [announcement, text, registerAnnouncement, unregisterAnnouncement]);
 }
 
-/** Small `key -> value` registry backed by an immutable `Map`.
- * Writes are no-ops when the value is unchanged, so unrelated re-renders don't churn the map identity
+/**
+ * Small `key -> value` registry backed by an immutable `Map`. Writing back an unchanged value is a
+ * no-op, so unrelated re-renders don't churn the map identity.
  */
 function useKeyedRegistry<TKey, TValue>() {
     const [entries, setEntries] = useState<Map<TKey, TValue>>(() => new Map());
@@ -101,7 +104,10 @@ function useKeyedRegistry<TKey, TValue>() {
     return {entries, register, unregister};
 }
 
-/** Assembles the row's accessibility label from what its sub-components registered, plus the value for `MenuItemAccessibilityContext.Provider` */
+/**
+ * Builds the row's accessibility label and hint out of what its sub-components registered, plus the
+ * value for `MenuItemAccessibilityContext.Provider`
+ */
 function useMenuItemAccessibility() {
     // Text contributed by the text leaves, keyed by the line each one occupies
     const {entries: labels, register: registerLabel, unregister: unregisterLabel} = useKeyedRegistry<MenuItemLabelSlot, string>();
@@ -115,10 +121,16 @@ function useMenuItemAccessibility() {
         .filter(Boolean)
         .join(', ');
 
-    const announcementTexts = MENU_ITEM_ANNOUNCEMENT_SLOTS.map((announcement) => announcements.get(announcement)).filter(Boolean);
-    const accessibilityLabel = [derivedLabel, ...announcementTexts].filter(Boolean).join('. ');
+    const labelAnnouncements = MENU_ITEM_LABEL_ANNOUNCEMENT_SLOTS.map((announcement) => announcements.get(announcement)).filter(Boolean);
+    const hintAnnouncements = MENU_ITEM_HINT_ANNOUNCEMENT_SLOTS.map((announcement) => announcements.get(announcement)).filter(Boolean);
 
-    return {accessibilityLabel, accessibilityActions};
+    // Keeps the hints out of the name on native, and folds them into it on the web
+    const {accessibilityLabel, accessibilityHint} = getContextMenuAccessibilityProps({
+        accessibilityLabel: [derivedLabel, ...labelAnnouncements].filter(Boolean).join('. '),
+        contextMenuHint: hintAnnouncements.join('. ') || undefined,
+    });
+
+    return {accessibilityLabel, accessibilityHint, accessibilityActions};
 }
 
 export default MenuItemAccessibilityContext;
