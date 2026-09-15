@@ -28,13 +28,25 @@ type UsePaginatedReportActionsOptions = {
      * anchor from ever resolving. Scoped to Concierge so regular inbox chat pagination keeps the first-render ref behavior.
      */
     shouldSnapshotInitialLastReadTime?: boolean;
+
+    /**
+     * When true, the linked `reportActionID` is known to live in the transaction thread merged into this report, so the
+     * anchor is dropped and the newest window is rendered instead. Must not be set merely because the action is absent
+     * from this report's cache — an action that is still loading needs the anchor to scroll to. See issue #86919.
+     */
+    isLinkedActionInMergedTransactionThread?: boolean;
 };
 
 /**
  * Get the longest continuous chunk of reportActions including the linked reportAction. If not linking to a specific action, returns the continuous chunk of newest reportActions.
  */
 function usePaginatedReportActions(reportID: string | undefined, reportActionID?: string, options?: UsePaginatedReportActionsOptions) {
-    const {shouldLinkToOldestUnreadReportAction = false, treatAsNoPaginationAnchor = false, shouldSnapshotInitialLastReadTime = false} = options ?? {};
+    const {
+        shouldLinkToOldestUnreadReportAction = false,
+        treatAsNoPaginationAnchor = false,
+        shouldSnapshotInitialLastReadTime = false,
+        isLinkedActionInMergedTransactionThread = false,
+    } = options ?? {};
 
     const nonEmptyStringReportID = getNonEmptyStringOnyxID(reportID);
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${nonEmptyStringReportID}`);
@@ -67,7 +79,10 @@ function usePaginatedReportActions(reportID: string | undefined, reportActionID?
         }
 
         if (reportActionID) {
-            return reportActionID;
+            // Anchoring to an action that isn't in this report returns an empty page, hiding the parent's "Submitted"
+            // message. Rendering the newest window instead lets the merged view show it, and initialScrollKey still
+            // anchors to the linked message.
+            return isLinkedActionInMergedTransactionThread ? undefined : reportActionID;
         }
 
         if (!shouldLinkToOldestUnreadReportAction) {
@@ -81,7 +96,15 @@ function usePaginatedReportActions(reportID: string | undefined, reportActionID?
 
         return sortedAllReportActions.findLast((reportAction) => reportAction.created > initialLastReadTime)?.reportActionID;
         /* eslint-enable react-hooks/refs */
-    }, [treatAsNoPaginationAnchor, reportActionID, shouldLinkToOldestUnreadReportAction, sortedAllReportActions, shouldSnapshotInitialLastReadTime, firstDefinedLastReadTime]);
+    }, [
+        treatAsNoPaginationAnchor,
+        reportActionID,
+        isLinkedActionInMergedTransactionThread,
+        shouldLinkToOldestUnreadReportAction,
+        sortedAllReportActions,
+        shouldSnapshotInitialLastReadTime,
+        firstDefinedLastReadTime,
+    ]);
 
     const {
         data: reportActions,
