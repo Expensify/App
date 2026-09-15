@@ -1852,6 +1852,7 @@ const translations: TranslationDeepObject<typeof en> = {
             confirmText: 'Excluir categoria',
         },
         tagDisabledAlert: {title: 'Tag desativada', prompt: 'Ative as tags no workspace para editar os detalhes da despesa ou excluir a tag desta despesa.', confirmText: 'Excluir tag'},
+        undeletedExpense: 'restaurou esta despesa',
     },
     transactionMerge: {
         listPage: {

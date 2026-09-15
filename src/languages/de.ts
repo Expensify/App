@@ -1865,6 +1865,7 @@ const translations: TranslationDeepObject<typeof en> = {
             prompt: 'Aktivieren Sie Tags im Workspace, um die Ausgabendetails zu bearbeiten oder den Tag aus dieser Ausgabe zu löschen.',
             confirmText: 'Tag löschen',
         },
+        undeletedExpense: 'Löschvorgang für diese Ausgabe rückgängig gemacht',
     },
     transactionMerge: {
         listPage: {
