@@ -41,6 +41,7 @@ import {useOnyx as useOnyxWithoutSnapshots} from 'react-native-onyx';
 import type {
     TransactionCardGroupListItemType,
     TransactionCategoryGroupListItemType,
+    TransactionDayGroupListItemType,
     TransactionGroupListItemProps,
     TransactionGroupListItemType,
     TransactionListItemType,
@@ -57,6 +58,7 @@ import type {
 
 import CardListItemHeader from './CardListItemHeader';
 import CategoryListItemHeader from './CategoryListItemHeader';
+import DayListItemHeader from './DayListItemHeader';
 import MemberListItemHeader from './MemberListItemHeader';
 import MerchantListItemHeader from './MerchantListItemHeader';
 import MonthListItemHeader from './MonthListItemHeader';
@@ -366,6 +368,19 @@ function TransactionGroupListItemImpl({
             [CONST.SEARCH.GROUP_BY.TAG]: (
                 <TagListItemHeader
                     tag={groupItem as TransactionTagGroupListItemType}
+                    onCheckboxPress={handleSelectionButtonPress}
+                    isDisabled={isDisabledOrEmpty}
+                    columns={columns}
+                    canSelectMultiple={canSelectMultiple}
+                    isSelectAllChecked={isSelectAllChecked}
+                    isIndeterminate={isIndeterminate}
+                    onDownArrowClick={onExpandIconPress}
+                    isExpanded={isExpanded}
+                />
+            ),
+            [CONST.SEARCH.GROUP_BY.DAY]: (
+                <DayListItemHeader
+                    day={groupItem as TransactionDayGroupListItemType}
                     onCheckboxPress={handleSelectionButtonPress}
                     isDisabled={isDisabledOrEmpty}
                     columns={columns}

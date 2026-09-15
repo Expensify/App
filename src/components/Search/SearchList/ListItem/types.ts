@@ -417,7 +417,7 @@ type TransactionMemberGroupListItemType = TransactionGroupListItemType & {groupe
         formattedFrom?: string;
     };
 
-type TransactionDayGroupListItemType = TransactionGroupListItemType & {groupedBy: 'day'} & SearchDayGroup & {
+type TransactionDayGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.DAY} & SearchDayGroup & {
         formattedDay: string;
 
         /** Compact "day" value used where space is tight, e.g. chart axis labels */
@@ -538,6 +538,7 @@ type GroupHeaderItemType =
     | (TransactionCategoryGroupListItemType & GroupHeaderListItemType)
     | (TransactionMerchantGroupListItemType & GroupHeaderListItemType)
     | (TransactionTagGroupListItemType & GroupHeaderListItemType)
+    | (TransactionDayGroupListItemType & GroupHeaderListItemType)
     | (TransactionMonthGroupListItemType & GroupHeaderListItemType)
     | (TransactionWeekGroupListItemType & GroupHeaderListItemType)
     | (TransactionYearGroupListItemType & GroupHeaderListItemType)

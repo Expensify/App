@@ -5,6 +5,7 @@ import CONST from '@src/CONST';
 import type {
     TransactionCardGroupListItemType,
     TransactionCategoryGroupListItemType,
+    TransactionDayGroupListItemType,
     TransactionMemberGroupListItemType,
     TransactionMerchantGroupListItemType,
     TransactionMonthGroupListItemType,
@@ -65,6 +66,15 @@ const CHART_GROUP_BY_CONFIG: Record<SearchGroupBy, ChartGroupByConfig> = {
         titleIconName: 'Tag',
         getLabel: (item: GroupedItem) => (item as TransactionTagGroupListItemType).formattedTag ?? '',
         getFilterQuery: (item: GroupedItem) => `tag:"${(item as TransactionTagGroupListItemType).tag}"`,
+    },
+    [CONST.SEARCH.GROUP_BY.DAY]: {
+        titleIconName: 'Calendar',
+        getLabel: (item: GroupedItem) => (item as TransactionDayGroupListItemType).formattedDay,
+        getShortLabel: (item: GroupedItem) => (item.groupedBy === CONST.SEARCH.GROUP_BY.DAY ? item.shortFormattedDay : undefined),
+        getFilterQuery: (item: GroupedItem) => {
+            const day = (item as TransactionDayGroupListItemType).day;
+            return `date>=${day} date<=${day}`;
+        },
     },
     [CONST.SEARCH.GROUP_BY.MONTH]: {
         titleIconName: 'Calendar',

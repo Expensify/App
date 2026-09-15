@@ -2174,7 +2174,7 @@ const searchResultsGroupByDay: OnyxTypes.SearchResults = {
         hasResults: true,
         offset: 0,
         hash: 0,
-        sortBy: 'date',
+        sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_DAY,
         sortOrder: 'desc',
         total: 250,
         isLoading: false,
@@ -3733,7 +3733,22 @@ describe('SearchUIUtils', () => {
                 throw new Error('Failed to parse day-grouped search query');
             }
 
-            const [sections] = SearchUIUtils.getDaySections(searchResultsGroupByDay.data, {...parsedQuery}, undefined);
+            const [sections] = SearchUIUtils.getSections({
+                dateFnsLocale: undefined,
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                data: searchResultsGroupByDay.data,
+                currentAccountID: 2074551,
+                currentUserEmail: '',
+                translate: translateLocal,
+                formatPhoneNumber,
+                bankAccountList: {},
+                rules: undefined,
+                groupBy: CONST.SEARCH.GROUP_BY.DAY,
+                conciergeReportID: undefined,
+                convertToDisplayString,
+                reportAttributesDerivedValue: {},
+                queryJSON: {...parsedQuery},
+            });
             expect(sections).toHaveLength(1);
             expect(sections.at(0)).toEqual(
                 expect.objectContaining({
@@ -3741,15 +3756,20 @@ describe('SearchUIUtils', () => {
                     count: 5,
                     currency: 'USD',
                     total: 250,
-                    groupedBy: 'day',
+                    groupedBy: CONST.SEARCH.GROUP_BY.DAY,
                     formattedDay: 'September 15, 2026',
                     shortFormattedDay: 'Sep 15, ’26',
                     transactions: [],
                     keyForList: 'group_2026-09-15',
                 }),
             );
-            expect(sections.at(0)?.transactionsQueryJSON?.groupBy).toBeUndefined();
-            expect(sections.at(0)?.transactionsQueryJSON?.flatFilters).toEqual(
+            const daySection = sections.at(0);
+            expect(SearchUIUtils.isTransactionDayGroupListItemType(daySection)).toBe(true);
+            if (!SearchUIUtils.isTransactionDayGroupListItemType(daySection)) {
+                throw new Error('Expected a day group section');
+            }
+            expect(daySection.transactionsQueryJSON?.groupBy).toBeUndefined();
+            expect(daySection.transactionsQueryJSON?.flatFilters).toEqual(
                 expect.arrayContaining([
                     {
                         key: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
