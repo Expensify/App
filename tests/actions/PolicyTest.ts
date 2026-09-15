@@ -2,7 +2,6 @@ import type {GuidedSetupTask} from '@libs/actions/Report';
 import * as APIModule from '@libs/API';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import GoogleTagManager from '@libs/GoogleTagManager';
-import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import {isPolicyPayer} from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 
@@ -46,9 +45,7 @@ const WORKSPACE_NAME = "Esh's Workspace";
 const EMPLOYEE_EMAIL = 'employee@example.com';
 const TEST_EMAIL = 'esh@gmail.com';
 const TEST_EMAIL_2 = 'eshofficial@gmail.com';
-const TEST_ACCOUNT_ID = 1;
 const TEST_DISPLAY_NAME = 'Esh Gupta';
-const TEST_PHONE_NUMBER = '1234567890';
 const TEST_NON_PUBLIC_DOMAIN_EMAIL = 'esh@example.com';
 const TEST_SMS_DOMAIN_EMAIL = 'esh@expensify.sms';
 

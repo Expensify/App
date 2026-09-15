@@ -318,7 +318,7 @@ function DynamicIOURequestStepUpgrade({
         const upgradeCurrency = (isSplitExpense ? personalPolicy?.outputCurrency : undefined) ?? currentUserPersonalDetails?.localCurrencyCode ?? '';
         const policyData = Policy.createWorkspace({
             policyOwner: undefined,
-            policyName: Policy.generateDefaultWorkspaceName(email, lastWorkspaceNumber, translate, currentUserPersonalDetails?.displayName),
+            policyName: Policy.generateDefaultWorkspaceName(email, currentUserPersonalDetails?.displayName, lastWorkspaceNumber, translate),
             policyID: undefined,
             engagementChoice: CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE,
             currency: upgradeCurrency,

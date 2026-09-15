@@ -76,6 +76,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsList, PolicyCategories, RecentlyUsedCategories, Report} from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
+import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 import type Policy from '@src/types/onyx/Policy';
 import type {Receipt} from '@src/types/onyx/Transaction';
 import type Transaction from '@src/types/onyx/Transaction';
@@ -132,7 +133,7 @@ type UseExpenseSubmissionParams = {
     isDraftPolicy: boolean;
 
     // User data
-    currentUserPersonalDetails: {accountID: number; login?: string; email?: string; localCurrencyCode?: string};
+    currentUserPersonalDetails: CurrentUserPersonalDetails;
     personalDetails: OnyxEntry<PersonalDetailsList>;
     participants: Participant[];
 
