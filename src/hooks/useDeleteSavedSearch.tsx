@@ -3,8 +3,8 @@ import {useSearchQueryActions, useSearchQueryContext} from '@components/Search/S
 
 import {deleteSavedSearch} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
-import {buildCannedSearchQuery, buildSearchQueryJSON, getValidLastQuery} from '@libs/SearchQueryUtils';
-import {GENERIC_SEARCH_KEYS, searchKeyToSavedSearchID} from '@libs/SearchUIUtils';
+import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
+import {searchKeyToSavedSearchID} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -19,7 +19,7 @@ import useOnyx from './useOnyx';
 
 export default function useDeleteSavedSearch() {
     const {translate} = useLocalize();
-    const {currentSearchKey, suggestedSearches} = useSearchQueryContext();
+    const {currentSearchKey} = useSearchQueryContext();
     const {setCurrentSearchKey} = useSearchQueryActions();
     const {showConfirmModal} = useConfirmModal();
     const [lastExpensesSearchQuery] = useOnyx(ONYXKEYS.SEARCH_FILTERS, {selector: lastExpensesSearchQuerySelector});
@@ -39,23 +39,13 @@ export default function useDeleteSavedSearch() {
                 deleteSavedSearch(savedSearchID);
 
                 if (savedSearchID === searchKeyToSavedSearchID(currentSearchKey)) {
-                    const defaultQuery = buildCannedSearchQuery();
-                    // `getValidLastQuery` only requires the default's filter keys and type, and the expenses default
-                    // has no filters, so every expense query satisfies it. That includes a query belonging to another
-                    // suggested search, which an older build could store under the expenses key. Fall back to the
-                    // default for those, otherwise we would select the Expenses tab while showing another search.
-                    const lastQuery = getValidLastQuery(lastExpensesSearchQuery, defaultQuery);
-                    const lastQuerySimilarSearchHash = buildSearchQueryJSON(lastQuery)?.similarSearchHash;
-                    const isSpecificSuggestedSearchQuery = Object.values(suggestedSearches).some(
-                        (search) => !GENERIC_SEARCH_KEYS.has(search.key) && search.similarSearchHash === lastQuerySimilarSearchHash,
-                    );
-                    const query = isSpecificSuggestedSearchQuery ? defaultQuery : lastQuery;
+                    const query = lastExpensesSearchQuery ?? buildCannedSearchQuery();
                     setCurrentSearchKey(CONST.SEARCH.SEARCH_KEYS.EXPENSES, query);
                     Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query}));
                 }
             });
         },
-        [showConfirmModal, translate, currentSearchKey, lastExpensesSearchQuery, suggestedSearches, setCurrentSearchKey],
+        [showConfirmModal, translate, currentSearchKey, lastExpensesSearchQuery, setCurrentSearchKey],
     );
 
     return {showDeleteModal: handleDeleteSavedSearch};
