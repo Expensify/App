@@ -7,6 +7,8 @@ import useConciergeAskState from '@hooks/useConciergeAskState';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
+import type * as NativeNavigation from '@react-navigation/native';
+
 import Onyx from 'react-native-onyx';
 
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
@@ -28,7 +30,7 @@ jest.mock('@pages/inbox/ConciergeSessionContext', () => ({
 let mockRouteParams: {reportActionID?: string} = {};
 
 jest.mock('@react-navigation/native', () => ({
-    ...jest.requireActual('@react-navigation/native'),
+    ...jest.requireActual<typeof NativeNavigation>('@react-navigation/native'),
     useRoute: () => ({key: 'Report-test', name: 'Report', params: mockRouteParams}),
 }));
 

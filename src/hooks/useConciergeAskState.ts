@@ -6,7 +6,7 @@ import {useConciergeSessionState} from '@pages/inbox/ConciergeSessionContext';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import SCREENS from '@src/SCREENS';
+import type SCREENS from '@src/SCREENS';
 import type {ReportActions} from '@src/types/onyx/ReportAction';
 
 import type {OnyxEntry} from 'react-native-onyx';

@@ -13,6 +13,8 @@ import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 
+import type * as NativeNavigation from '@react-navigation/native';
+
 import React from 'react';
 import Onyx from 'react-native-onyx';
 
@@ -30,7 +32,7 @@ jest.mock('@pages/inbox/ConciergeSessionContext', () => ({
 }));
 
 jest.mock('@react-navigation/native', () => ({
-    ...jest.requireActual('@react-navigation/native'),
+    ...jest.requireActual<typeof NativeNavigation>('@react-navigation/native'),
     useRoute: () => ({key: 'Report-test', name: 'Report', params: {}}),
     useNavigation: () => ({getState: () => ({key: 'ReportsSplitNavigator-test'})}),
 }));

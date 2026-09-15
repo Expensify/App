@@ -65,7 +65,6 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {useRoute} from '@react-navigation/native';
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import React, {useEffect, useRef, useState} from 'react';
-import {View} from 'react-native';
 
 import AskConciergeWelcome from './AskConciergeWelcome';
 import ConciergeChatHistoryToggle from './ConciergeChatHistoryToggle';
