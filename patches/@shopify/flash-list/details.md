@@ -201,3 +201,11 @@
 - E/App issue: https://github.com/Expensify/App/issues/97472
 - Sentry: https://expensify.sentry.io/issues/APP-8PG
 - PR introducing patch: https://github.com/Expensify/App/pull/98015
+
+### [@shopify+flash-list+2.3.0+017+child-container-props.patch](@shopify+flash-list+2.3.0+017+child-container-props.patch)
+
+- Reason: Adds an optional `childContainerProps` prop that is spread onto the internal container `ViewHolderCollection` renders around the list items. That container is a sibling of the `ListHeaderComponent`/`ListFooterComponent` wrappers, so it is the only node in FlashList's tree that encloses the rendered items and nothing else. Our workspace tables need `role="table"` on exactly that node: the column-header row and the data rows are FlashList items, while the page header (title, buttons, search input) is the `ListHeaderComponent`. Before this prop the closest node we could reach was the outer container around the whole FlashList, which also encloses the page header — a `role="table"` whose subtree contains a heading, buttons and a text input is not a valid table in the browser accessibility tree, so VoiceOver refuses to enter table mode. There is no existing escape hatch that reaches this container: `overrideProps` targets the internal ScrollView (which also wraps the header), React Native Web exposes no props for the ScrollView content container, and the `FlashListRef` surface returns only the outer scroll node. The prop is optional and spread after `style`, so a list that does not pass it renders byte-identically.
+- Files changed: `src/FlashListProps.ts`, `src/recyclerview/RecyclerView.tsx`, `src/recyclerview/ViewHolderCollection.tsx`, and their `dist` counterparts (`dist/FlashListProps.d.ts`, `dist/recyclerview/RecyclerView.js`, `dist/recyclerview/ViewHolderCollection.js`, `dist/recyclerview/ViewHolderCollection.d.ts`).
+- Upstream PR/issue: TBD
+- E/App issue: https://github.com/Expensify/App/issues/101043
+- PR introducing patch: TBD

@@ -161,9 +161,17 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
     const shouldApplyBodyRowGroup = isTableSemanticsEnabled && !tableListMetadata.hasPageHeader;
     const semanticTableHasHeader = !tableListMetadata.hasPageHeader || tableListMetadata.shouldRenderStickyHeader;
     const semanticColumnCount = columns.length + (selectionEnabled ? 1 : 0);
-    const tableBodyAccessibilityProps = tableListMetadata.hasPageHeader
-        ? getTableContainerAccessibilityProps(shouldApplyPageHeaderTable, title, filteredAndSortedData.length, semanticColumnCount, semanticTableHasHeader)
-        : getRowGroupAccessibilityProps(shouldApplyBodyRowGroup);
+    // A page-header table hands the page header to FlashList as its `ListHeaderComponent` and renders the column-header
+    // and data rows as list items, so the outer wrapper below encloses the header's heading, buttons and search input as
+    // well as the rows — it cannot carry `role="table"`. `childContainerProps` targets FlashList's internal container
+    // around only the items, which is a sibling of the header wrapper, so the table contains nothing but rows.
+    const tableRowContainerAccessibilityProps = getTableContainerAccessibilityProps(
+        shouldApplyPageHeaderTable,
+        title,
+        filteredAndSortedData.length,
+        semanticColumnCount,
+        semanticTableHasHeader,
+    );
     const currentListState = {shouldRenderFlashList, shouldRenderStickyHeader};
     const [previousListState, setPreviousListState] = useState(currentListState);
     const shouldResetListLoad = previousListState.shouldRenderFlashList !== shouldRenderFlashList;
@@ -305,7 +313,7 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
 
     // Keep the page header in the same FlashList across rows -> no results -> rows transitions.
     // FlashList renders ListHeaderComponent outside its virtualized item collection, so controls such
-    // as the search input keep their identity. The full-layout wrapper below is the semantic table ancestor;
+    // as the search input keep their identity. That item collection's own container is the semantic table ancestor;
     // keeping rows in their physical accessibility tree avoids focus/scroll jumps caused by detached aria-owns rows.
     // A truly empty table still uses the standalone centered layout above.
     const listData = buildTableListData<TableData>(filteredAndSortedData, tableListMetadata);
@@ -378,12 +386,13 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
             ref={listContainerRef}
             style={[styles.flex1, styles.mnh0, style]}
             onLayout={onLayout}
-            {...tableBodyAccessibilityProps}
+            {...getRowGroupAccessibilityProps(shouldApplyBodyRowGroup)}
             {...props}
         >
             <FlashList<TableData>
                 ref={listRef}
                 data={listData}
+                childContainerProps={tableRowContainerAccessibilityProps}
                 style={[styles.flex1, styles.mnh0]}
                 showsVerticalScrollIndicator={false}
                 maintainVisibleContentPosition={{disabled: true}}

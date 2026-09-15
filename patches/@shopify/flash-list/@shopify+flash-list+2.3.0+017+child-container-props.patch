@@ -1,0 +1,160 @@
+diff --git a/node_modules/@shopify/flash-list/dist/FlashListProps.d.ts b/node_modules/@shopify/flash-list/dist/FlashListProps.d.ts
+index 01bb221..58cf4c3 100644
+--- a/node_modules/@shopify/flash-list/dist/FlashListProps.d.ts
++++ b/node_modules/@shopify/flash-list/dist/FlashListProps.d.ts
+@@ -1,5 +1,5 @@
+ import type React from "react";
+-import { StyleProp, ScrollViewProps, ViewabilityConfig, ViewStyle } from "react-native";
++import { StyleProp, ScrollViewProps, ViewabilityConfig, ViewProps, ViewStyle } from "react-native";
+ import ViewToken from "./recyclerview/viewability/ViewToken";
+ export interface ListRenderItemInfo<TItem> {
+     item: TItem;
+@@ -229,6 +229,12 @@ export interface FlashListProps<TItem> extends Omit<ScrollViewProps, "maintainVi
+      * FlashList's layout and recycling behavior.
+      */
+     overrideProps?: OverrideProps;
++    /**
++     * Props spread onto the internal container that wraps *only* the rendered items,
++     * i.e. the sibling of the `ListHeaderComponent`/`ListFooterComponent` wrappers.
++     * Intended for accessibility roles that must not enclose the header or footer.
++     */
++    childContainerProps?: ViewProps;
+     /**
+      * Set this when offset is needed for the loading indicator to show correctly.
+      * @platform android
+diff --git a/node_modules/@shopify/flash-list/dist/recyclerview/RecyclerView.js b/node_modules/@shopify/flash-list/dist/recyclerview/RecyclerView.js
+index c719f11..c7292cc 100644
+--- a/node_modules/@shopify/flash-list/dist/recyclerview/RecyclerView.js
++++ b/node_modules/@shopify/flash-list/dist/recyclerview/RecyclerView.js
+@@ -28,7 +28,7 @@ import { RenderTimeTracker } from "./helpers/RenderTimeTracker";
+ const RecyclerViewComponent = (props, ref) => {
+     var _a, _b, _c, _d;
+     // Destructure props and initialize refs
+-    const { horizontal, renderItem, data, extraData, onLoad, CellRendererComponent, overrideProps, refreshing, onRefresh, progressViewOffset, ListEmptyComponent, ListHeaderComponent, ListHeaderComponentStyle, ListFooterComponent, ListFooterComponentStyle, ItemSeparatorComponent, renderScrollComponent, style, stickyHeaderIndices, maintainVisibleContentPosition, onCommitLayoutEffect, onChangeStickyIndex, stickyHeaderConfig, inverted, overrideWindowSize, ...rest } = props;
++    const { horizontal, renderItem, data, extraData, onLoad, CellRendererComponent, overrideProps, refreshing, onRefresh, progressViewOffset, ListEmptyComponent, ListHeaderComponent, ListHeaderComponentStyle, ListFooterComponent, ListFooterComponentStyle, ItemSeparatorComponent, renderScrollComponent, style, stickyHeaderIndices, maintainVisibleContentPosition, onCommitLayoutEffect, onChangeStickyIndex, stickyHeaderConfig, inverted, overrideWindowSize, childContainerProps, ...rest } = props;
+     const [renderTimeTracker] = useState(() => new RenderTimeTracker());
+     renderTimeTracker.startTracking();
+     // Sticky header config
+@@ -467,7 +467,7 @@ const RecyclerViewComponent = (props, ref) => {
+                 isHorizontalRTL && viewToMeasureBoundedSize,
+                 renderHeader,
+                 !isHorizontalRTL && viewToMeasureBoundedSize,
+-                React.createElement(ViewHolderCollection, { viewHolderCollectionRef: viewHolderCollectionRef, data: data, horizontal: horizontal, renderStack: recyclerViewManager.getRenderStack(), getLayout: (index) => recyclerViewManager.tryGetLayout(index), getAdjustmentMargin: () => {
++                React.createElement(ViewHolderCollection, { childContainerProps: childContainerProps, viewHolderCollectionRef: viewHolderCollectionRef, data: data, horizontal: horizontal, renderStack: recyclerViewManager.getRenderStack(), getLayout: (index) => recyclerViewManager.tryGetLayout(index), getAdjustmentMargin: () => {
+                         if (!shouldRenderFromBottom || !recyclerViewManager.hasLayout()) {
+                             return 0;
+                         }
+diff --git a/node_modules/@shopify/flash-list/dist/recyclerview/ViewHolderCollection.d.ts b/node_modules/@shopify/flash-list/dist/recyclerview/ViewHolderCollection.d.ts
+index f617bd6..c1dfdae 100644
+--- a/node_modules/@shopify/flash-list/dist/recyclerview/ViewHolderCollection.d.ts
++++ b/node_modules/@shopify/flash-list/dist/recyclerview/ViewHolderCollection.d.ts
+@@ -54,6 +54,8 @@ export interface ViewHolderCollectionProps<TItem> {
+     isInLastRow: (index: number) => boolean;
+     /** Whether the list is inverted */
+     inverted: FlashListProps<TItem>["inverted"];
++    /** Props spread onto the container that wraps only the rendered items */
++    childContainerProps?: FlashListProps<TItem>["childContainerProps"];
+     /** True while a programmatic scroll is queued or in flight. */
+     isScrollingProgrammatically: () => boolean;
+     /** True while any scroll is in flight. */
+diff --git a/node_modules/@shopify/flash-list/dist/recyclerview/ViewHolderCollection.js b/node_modules/@shopify/flash-list/dist/recyclerview/ViewHolderCollection.js
+index 3d3e4b0..7fed8ca 100644
+--- a/node_modules/@shopify/flash-list/dist/recyclerview/ViewHolderCollection.js
++++ b/node_modules/@shopify/flash-list/dist/recyclerview/ViewHolderCollection.js
+@@ -77,7 +77,7 @@ function findFocusedIndexFromMarker(target, root) {
+  * @template TItem - The type of items in the data array
+  */
+ export const ViewHolderCollection = (props) => {
+-    const { data, renderStack, getLayout, refHolder, onSizeChanged, renderItem, extraData, viewHolderCollectionRef, getChildContainerLayout, onCommitLayoutEffect, CellRendererComponent, ItemSeparatorComponent, onCommitEffect, horizontal, getAdjustmentMargin, currentStickyIndex, hideStickyHeaderRelatedCell, isInLastRow, inverted, isScrollingProgrammatically, isScrolling, runAfterProgrammaticScroll, getLastScrollTime, } = props;
++    const { data, renderStack, getLayout, refHolder, onSizeChanged, renderItem, extraData, viewHolderCollectionRef, getChildContainerLayout, onCommitLayoutEffect, CellRendererComponent, ItemSeparatorComponent, onCommitEffect, horizontal, getAdjustmentMargin, currentStickyIndex, hideStickyHeaderRelatedCell, isInLastRow, inverted, isScrollingProgrammatically, isScrolling, runAfterProgrammaticScroll, getLastScrollTime, childContainerProps, } = props;
+     const [renderId, setRenderId] = React.useState(0);
+     const containerLayout = getChildContainerLayout();
+     const fixedContainerSize = horizontal
+@@ -287,7 +287,7 @@ export const ViewHolderCollection = (props) => {
+             document.removeEventListener("pointerdown", onDocPointerDown, true);
+         };
+     }, []);
+-    return (React.createElement(CompatView, { ref: containerRef, style: hasData && containerStyle }, containerLayout &&
++    return (React.createElement(CompatView, Object.assign({ ref: containerRef, style: hasData && containerStyle }, childContainerProps), containerLayout &&
+         hasData &&
+         renderEntriesRef.current.map(([reactKey, { index }]) => {
+             const layout = getLayout(index);
+diff --git a/node_modules/@shopify/flash-list/src/FlashListProps.ts b/node_modules/@shopify/flash-list/src/FlashListProps.ts
+index 5a5c0f5..fe84168 100644
+--- a/node_modules/@shopify/flash-list/src/FlashListProps.ts
++++ b/node_modules/@shopify/flash-list/src/FlashListProps.ts
+@@ -3,6 +3,7 @@ import {
+   StyleProp,
+   ScrollViewProps,
+   ViewabilityConfig,
++  ViewProps,
+   ViewStyle,
+ } from "react-native";
+ 
+@@ -312,6 +313,13 @@ export interface FlashListProps<TItem>
+    */
+   overrideProps?: OverrideProps;
+ 
++  /**
++   * Props spread onto the internal container that wraps *only* the rendered items,
++   * i.e. the sibling of the `ListHeaderComponent`/`ListFooterComponent` wrappers.
++   * Intended for accessibility roles that must not enclose the header or footer.
++   */
++  childContainerProps?: ViewProps;
++
+   /**
+    * Set this when offset is needed for the loading indicator to show correctly.
+    * @platform android
+diff --git a/node_modules/@shopify/flash-list/src/recyclerview/RecyclerView.tsx b/node_modules/@shopify/flash-list/src/recyclerview/RecyclerView.tsx
+index 09607b4..5b470ea 100644
+--- a/node_modules/@shopify/flash-list/src/recyclerview/RecyclerView.tsx
++++ b/node_modules/@shopify/flash-list/src/recyclerview/RecyclerView.tsx
+@@ -92,6 +92,7 @@ const RecyclerViewComponent = <T,>(
+     stickyHeaderConfig,
+     inverted,
+     overrideWindowSize,
++    childContainerProps,
+     ...rest
+   } = props;
+ 
+@@ -701,6 +702,7 @@ const RecyclerViewComponent = <T,>(
+           {!isHorizontalRTL && viewToMeasureBoundedSize}
+           {/* Main list content */}
+           <ViewHolderCollection
++            childContainerProps={childContainerProps}
+             viewHolderCollectionRef={viewHolderCollectionRef}
+             data={data}
+             horizontal={horizontal}
+diff --git a/node_modules/@shopify/flash-list/src/recyclerview/ViewHolderCollection.tsx b/node_modules/@shopify/flash-list/src/recyclerview/ViewHolderCollection.tsx
+index 5af6016..4fdd1af 100644
+--- a/node_modules/@shopify/flash-list/src/recyclerview/ViewHolderCollection.tsx
++++ b/node_modules/@shopify/flash-list/src/recyclerview/ViewHolderCollection.tsx
+@@ -58,6 +58,8 @@ export interface ViewHolderCollectionProps<TItem> {
+   isInLastRow: (index: number) => boolean;
+   /** Whether the list is inverted */
+   inverted: FlashListProps<TItem>["inverted"];
++  /** Props spread onto the container that wraps only the rendered items */
++  childContainerProps?: FlashListProps<TItem>["childContainerProps"];
+ }
+ 
+ /**
+@@ -96,6 +98,7 @@ export const ViewHolderCollection = <TItem,>(
+     hideStickyHeaderRelatedCell,
+     isInLastRow,
+     inverted,
++    childContainerProps,
+   } = props;
+ 
+   const [renderId, setRenderId] = React.useState(0);
+@@ -172,7 +175,10 @@ export const ViewHolderCollection = <TItem,>(
+   // );
+ 
+   return (
+-    <CompatView style={hasData && containerStyle}>
++    <CompatView
++      style={hasData && containerStyle}
++      {...childContainerProps}
++    >
+       {containerLayout &&
+         hasData &&
+         Array.from(renderStack.entries(), ([reactKey, { index }]) => {

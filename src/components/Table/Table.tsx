@@ -494,7 +494,8 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
     const semanticColumnCount = columns.length + (selectionEnabled ? 1 : 0);
 
     // In the normal inline semantic layout, an empty body with a list slot still needs its enclosing table wrapper.
-    // Page-header tables use TableBody's persistent full-layout wrapper as their semantic table ancestor.
+    // Page-header tables put their header and data rows inside FlashList instead, so `TableBody` marks up FlashList's
+    // item container as the table — wrapping here would also enclose the page header, which is not valid table content.
     const rendersBodyWhenEmpty = doesBodyRenderWhenEmpty(listProps, listHeaderElement);
 
     return (
