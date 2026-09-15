@@ -159,7 +159,7 @@ function SearchQueryProvider({children}: SearchQueryProviderProps) {
         // The query can satisfy the current key's default filters and still be a different search entirely,
         // because a generic key's default constrains nothing: every expense-report query "matches" Reports.
         // So when the new query *is* another search's default (or a saved search), switch to that more
-        // specific key. Only those exact signals may switch the key here — a last-query match is too coarse
+        // specific key. Only those exact signals may switch the key here. A last-query match is too coarse
         // to distinguish a genuine tab change from the user editing a filter on the current tab.
         else {
             const exactSearchKey = getExactSearchKeyForQuery(currentSearchQueryJSON);
