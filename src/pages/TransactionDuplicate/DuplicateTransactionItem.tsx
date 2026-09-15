@@ -1,4 +1,3 @@
-import {getButtonRole} from '@components/Button/utils';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import {PressableWithFeedback} from '@components/Pressable';
@@ -103,7 +102,7 @@ function DuplicateTransactionItem({transaction, isLastItem, isSelected, shouldSh
                 sentryLabel={CONST.SENTRY_LABEL.SEARCH.TRANSACTION_LIST_ITEM}
                 onPress={handlePreviewPress}
                 accessibilityLabel={transaction.comment?.comment ?? ''}
-                role={getButtonRole(true)}
+                role={CONST.ROLE.BUTTON}
                 isNested
                 hoverStyle={styles.hoveredComponentBG}
                 style={[!isLastItem && styles.borderBottom, styles.pt4, styles.pb4, styles.pl4, shouldShowSelection ? styles.pr0 : styles.pr4]}

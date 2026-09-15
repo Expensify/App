@@ -685,3 +685,82 @@ describe('useSearchSelector phone contact de-duplication', () => {
         expect(getPersonalDetailsPassedToGetValidOptions().map((option) => option.login)).toEqual(['alice@expensify.com', 'carol@gmail.com']);
     });
 });
+
+describe('useSearchSelector search term trimming', () => {
+    beforeAll(() => {
+        Onyx.init({keys: ONYXKEYS});
+    });
+
+    beforeEach(async () => {
+        jest.clearAllMocks();
+        mockFilteredPersonalDetails.current = [];
+        mockGetValidOptions.mockReturnValue({options: EMPTY_OPTIONS, hasMore: false});
+        mockGetSearchOptions.mockReturnValue({options: EMPTY_OPTIONS, hasMore: false});
+        await act(async () => {
+            await Onyx.clear();
+            await Onyx.multiSet(
+                createMock<OnyxMultiSetInput>({
+                    [ONYXKEYS.SESSION]: {accountID: MOCK_ACCOUNT_ID, email: MOCK_EMAIL},
+                    [ONYXKEYS.BETAS]: [],
+                    [ONYXKEYS.COUNTRY_CODE]: CONST.DEFAULT_COUNTRY_CODE,
+                }),
+            );
+        });
+        await waitForBatchedUpdatesWithAct();
+    });
+
+    afterAll(async () => {
+        await act(async () => {
+            await Onyx.clear();
+        });
+    });
+
+    /** Renders the hook for the given search context and types searchTerm into it, flushing the debounce. */
+    async function renderWithSearchTerm(searchContext: typeof CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_GENERAL | typeof CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_SEARCH, searchTerm: string) {
+        jest.useFakeTimers();
+        const {result} = renderHook(() =>
+            useSearchSelectorBase({
+                selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_SINGLE,
+                searchContext,
+                includeUserToInvite: true,
+            }),
+        );
+        await waitForBatchedUpdatesWithAct();
+
+        act(() => {
+            result.current.setSearchTerm(searchTerm);
+        });
+        // Advance past the debounce delay (300ms)
+        await act(async () => {
+            jest.advanceTimersByTime(400);
+        });
+        await waitForBatchedUpdatesWithAct();
+        jest.useRealTimers();
+    }
+
+    it('trims a leading space out of the email search string passed to getValidOptions', async () => {
+        await renderWithSearchTerm(CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_GENERAL, ' user@example.com');
+
+        const config = mockGetValidOptions.mock.calls.at(-1)?.[7];
+        expect(config?.searchString).toBe('user@example.com');
+        expect(config?.searchInputValue).toBe('user@example.com');
+    });
+
+    it('trims a trailing space out of the email search string passed to getValidOptions', async () => {
+        await renderWithSearchTerm(CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_GENERAL, 'user@example.com ');
+
+        expect(mockGetValidOptions.mock.calls.at(-1)?.[7]?.searchString).toBe('user@example.com');
+    });
+
+    it('trims the search query passed to getSearchOptions', async () => {
+        await renderWithSearchTerm(CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_SEARCH, ' user@example.com ');
+
+        expect(mockGetSearchOptions.mock.calls.at(-1)?.[0]?.searchQuery).toBe('user@example.com');
+    });
+
+    it('still resolves a padded phone number to its e164 form', async () => {
+        await renderWithSearchTerm(CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_GENERAL, ' +1 (234) 567-8901 ');
+
+        expect(mockGetValidOptions.mock.calls.at(-1)?.[7]?.searchString).toBe('+12345678901');
+    });
+});

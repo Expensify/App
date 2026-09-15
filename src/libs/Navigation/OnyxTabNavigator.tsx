@@ -40,12 +40,8 @@ type OnyxTabNavigatorProps<TTabName extends string = SelectedTabRequest> = Child
     /** ID of the tab component to be saved in onyx */
     id: string;
 
-    /** Name of the selected tab */
     defaultSelectedTab?: TTabName;
-
-    /** A function triggered when a tab has been selected */
     onTabSelected?: (newTabName: TTabName) => void;
-
     tabBar: (props: TabSelectorProps) => React.ReactNode;
 
     screenListeners?: ScreenListeners<NavigationState, MaterialTopTabNavigationEventMap>;
@@ -63,7 +59,6 @@ type OnyxTabNavigatorProps<TTabName extends string = SelectedTabRequest> = Child
      */
     onTabBarFocusTrapContainerElementChanged?: (containerElement: HTMLElement | null) => void;
 
-    /** Whether to show the label when the tab is inactive */
     shouldShowLabelWhenInactive?: boolean;
 
     /** Whether to lazy load the tab screens */
