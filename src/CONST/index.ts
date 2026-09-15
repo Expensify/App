@@ -2676,6 +2676,7 @@ const CONST = {
         UPDATE_REQUIRED: 426,
         INCORRECT_VALIDATE_CODE: 451,
         ADMIN_REQUIRED: 460,
+        SERVICE_UNAVAILABLE: 503,
         POLICY_DIFF_WARNING: 305,
     },
     HTTP_STATUS: {
@@ -2713,6 +2714,7 @@ const CONST = {
         EXPENSIFY_SERVICE_INTERRUPTED: 'Expensify service interrupted',
         DUPLICATE_RECORD: 'A record already exists with this ID',
         ALREADY_CREATED: 'AlreadyCreated',
+        SERVICE_UNAVAILABLE: 'serviceUnavailable',
 
         // The "Upgrade" is intentional as the 426 HTTP code means "Upgrade Required" and sent by the API. We use the "Update" language everywhere else in the front end when this gets returned.
         UPDATE_REQUIRED: 'Upgrade Required',
@@ -2728,6 +2730,7 @@ const CONST = {
         DUPLICATE_RECORD: '400 Unique Constraints Violation',
         ALREADY_CREATED_TRANSACTION: 'Transaction already created.',
         ALREADY_PAID: 'The request has already been paid',
+        SERVICE_UNAVAILABLE: 'Service unavailable',
     },
     SIGN_OUT_REASON: {
         USER_SIGN_OUT: 'userSignOut',
@@ -3174,6 +3177,7 @@ const CONST = {
         ENABLED: 'enabled',
         REIMBURSEMENT_ACCOUNT_ID: 'reimbursementAccountID',
         INVOICE_COLLECTIONS_ACCOUNT_ID: 'invoiceCollectionsAccountID',
+        FX_EXPENSE_ACCOUNT: 'fxExpenseAccount',
         SYNC_REIMBURSED_REPORTS: 'syncReimbursedReports',
         ENABLE_NEW_CATEGORIES: 'enableNewCategories',
         EXPORTER: 'exporter',
@@ -3445,6 +3449,7 @@ const CONST = {
         COLLECTION_ACCOUNT: 'collectionAccount',
         AUTO_CREATE_ENTITIES: 'autoCreateEntities',
         APPROVAL_ACCOUNT: 'approvalAccount',
+        FX_EXPENSE_ACCOUNT: 'fxExpenseAccount',
         CUSTOM_FORM_ID_OPTIONS: 'customFormIDOptions',
         TOKEN_INPUT: {
             STEP_INDEX_LIST: ['1', '2', '3', '4'],
