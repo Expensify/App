@@ -454,12 +454,14 @@ type GoBackOptions = {
 
 /**
  * @private
- * Whether going to the located route has to replace the focused one instead of popping to it: it is not in the state at
- * all, or popping to it would remove more than one route from the root state and lose the visited pages.
+ * Whether the located route can be popped to within `targetState`. Callers that cannot replace instead, which is what
+ * keeps the visited pages that removing several root routes would throw away.
  */
-function shouldReplaceInsteadOfPop(targetState: State, rootState: State, {indexOfBackToRoute, distanceToPop}: RouteToPopTo): boolean {
+function canPopToRoute(targetState: State, rootState: State, {indexOfBackToRoute, distanceToPop}: RouteToPopTo): boolean {
+    const isRouteInState = indexOfBackToRoute !== -1;
     const isRootState = targetState.key === rootState.key;
-    return indexOfBackToRoute === -1 || (isRootState && distanceToPop > 1);
+    const wouldLoseVisitedPages = isRootState && distanceToPop > 1;
+    return isRouteInState && !wouldLoseVisitedPages;
 }
 
 /**
@@ -476,17 +478,32 @@ function shouldReplaceInsteadOfPop(targetState: State, rootState: State, {indexO
 function getPopToNavigatorWithBackToRoute(rootState: State, action: NavigationAction, compareParams: boolean): NavigationAction | undefined {
     let state: State | undefined = rootState;
     let currentAction: Writable<NavigationAction> = action;
+
     // Running out of levels means the match is focused all the way down, so there is nothing to pop.
     while (state) {
         const routeToPopTo = findRouteToPopTo(state, currentAction, compareParams);
-        if (shouldReplaceInsteadOfPop(state, rootState, routeToPopTo) || !state.key) {
+
+        // `goUp` replaces at a level it cannot pop to, and a pop here would discard the very history that replace
+        // preserves.
+        if (!canPopToRoute(state, rootState, routeToPopTo)) {
+            return undefined;
+        }
+
+        // An unmounted navigator leaves a stale state with no key to target the dispatch at.
+        if (!state.key) {
             return undefined;
         }
 
         if (routeToPopTo.distanceToPop > 0) {
-            return state.type === 'stack' ? {...StackActions.pop(routeToPopTo.distanceToPop), target: state.key} : undefined;
+            // Only `StackRouter` handles POP. Switching tabs is the `jumpTo` case `goUp` owns.
+            if (state.type !== 'stack') {
+                return undefined;
+            }
+
+            return {...StackActions.pop(routeToPopTo.distanceToPop), target: state.key};
         }
 
+        // The match is already focused here, so look for the next obstacle one level down.
         const nestedState: State | undefined = state.routes.at(routeToPopTo.indexOfBackToRoute)?.state;
         currentAction = nestedState ? getNestedAction(currentAction, nestedState) : currentAction;
         state = nestedState;
@@ -586,7 +603,7 @@ function goUp(backToRoute: Route, options?: GoBackOptions): boolean {
     const routeToPopTo = findRouteToPopTo(targetState, minimalAction, compareParams);
     const {distanceToPop} = routeToPopTo;
 
-    if (shouldReplaceInsteadOfPop(targetState, rootState, routeToPopTo)) {
+    if (!canPopToRoute(targetState, rootState, routeToPopTo)) {
         const replaceAction = {...minimalAction, type: CONST.NAVIGATION.ACTION_TYPE.REPLACE} as NavigationAction;
         dispatch(replaceAction);
         return true;
