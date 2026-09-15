@@ -145,9 +145,8 @@ function createJoinWorkspaceOnboardingContent(contentType: JoinWorkspaceOnboardi
     API.write(
         WRITE_COMMANDS.CREATE_JOIN_WORKSPACE_ONBOARDING_CONTENT,
         {
-            event: contentType === 'empty' ? 'noWorkspaces' : contentType,
+            event: contentType === 'empty' ? 'noJoinableWorkspacesMessage' : contentType,
             data: JSON.stringify(onboardingData.guidedSetupData),
-            domain: companyDomain,
         },
         {
             optimisticData: onboardingData.optimisticData,

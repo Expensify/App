@@ -713,7 +713,7 @@ const WRITE_COMMANDS = {
     UPGRADE_SUBMIT: 'UpgradeSubmit',
     UPLOAD_USER_KYB_DOCS: 'UploadUserKYBDocs',
     JOIN_REPORT_VIA_SECURE_LINK: 'JoinReportViaSecureLink',
-    CREATE_JOIN_WORKSPACE_ONBOARDING_CONTENT: 'CreateJoinWorkspaceOnboardingContent',
+    CREATE_JOIN_WORKSPACE_ONBOARDING_CONTENT: 'CreateJoinWorkspacePostOnboardingContent',
 } as const;
 
 /** `payMoneyRequest` sends the wallet command for Expensify Wallet payments and the plain one for everything else, both built from the same params. */

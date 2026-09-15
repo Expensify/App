@@ -1,7 +1,6 @@
 type CreateJoinWorkspaceOnboardingContentParams = {
-    event: 'validateEmail' | 'joinWorkspace' | 'noWorkspaces';
+    event: 'validateEmail' | 'joinWorkspace' | 'noJoinableWorkspacesMessage';
     data: string;
-    domain?: string;
 };
 
 export default CreateJoinWorkspaceOnboardingContentParams;
