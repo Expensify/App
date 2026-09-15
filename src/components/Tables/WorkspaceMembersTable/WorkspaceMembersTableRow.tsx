@@ -112,7 +112,6 @@ export default function WorkspaceMembersTableRow({
                         >
                             {!!item.approverDisplayName && !!item.approverAccountID && (
                                 <>
-                                    {/* The avatar's default container has no size of its own for XXX_SMALL, so it falls back to the medium one and pushes the name away from the avatar. */}
                                     <AccountAvatar
                                         accountID={item.approverAccountID}
                                         fallbackDisplayName={item.approverDisplayName}
