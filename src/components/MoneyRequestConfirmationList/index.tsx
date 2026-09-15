@@ -1,3 +1,10 @@
+import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
+import ConfirmationFieldsProvider from '@components/MoneyRequestConfirmationFields/Provider';
+import MoneyRequestConfirmationListFooter from '@components/MoneyRequestConfirmationListFooter';
+import BareUserListItem from '@components/SelectionList/ListItem/BareUserListItem';
+import SelectionListWithSections from '@components/SelectionList/SelectionListWithSections';
+import type {MeasurableInput, SelectionListWithSectionsHandle} from '@components/SelectionList/SelectionListWithSections/types';
+
 import useAttendees from '@hooks/useAttendees';
 import useBlockDistanceRequest from '@hooks/useBlockDistanceRequest';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -42,32 +49,25 @@ import {useIsFocused} from '@react-navigation/native';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 
-import type {MeasurableInput, SelectionListWithSectionsHandle} from './SelectionList/SelectionListWithSections/types';
-
-import {useDelegateNoAccessActions, useDelegateNoAccessState} from './DelegateNoAccessModalProvider';
-import ConfirmationFieldsProvider from './MoneyRequestConfirmationFields/Provider';
-import buildConfirmAction from './MoneyRequestConfirmationList/confirmAction';
-import ConfirmationFooterContent from './MoneyRequestConfirmationList/ConfirmationFooterContent';
-import ConfirmationTelemetry from './MoneyRequestConfirmationList/ConfirmationTelemetry';
-import DistanceRequestController from './MoneyRequestConfirmationList/DistanceRequestController';
-import FieldAutoSelector from './MoneyRequestConfirmationList/FieldAutoSelector';
-import useConfirmationAmount from './MoneyRequestConfirmationList/hooks/useConfirmationAmount';
-import useConfirmationCtaText from './MoneyRequestConfirmationList/hooks/useConfirmationCtaText';
-import useConfirmationSections from './MoneyRequestConfirmationList/hooks/useConfirmationSections';
-import useConfirmationValidation from './MoneyRequestConfirmationList/hooks/useConfirmationValidation';
-import useDistanceRequestState from './MoneyRequestConfirmationList/hooks/useDistanceRequestState';
-import useFormErrorManagement from './MoneyRequestConfirmationList/hooks/useFormErrorManagement';
-import usePolicyCategoriesForConfirmation from './MoneyRequestConfirmationList/hooks/usePolicyCategoriesForConfirmation';
-import usePolicyTagsForConfirmation from './MoneyRequestConfirmationList/hooks/usePolicyTagsForConfirmation';
-import useReceiptTraining from './MoneyRequestConfirmationList/hooks/useReceiptTraining';
-import useSplitParticipants from './MoneyRequestConfirmationList/hooks/useSplitParticipants';
-import useTaxAmount from './MoneyRequestConfirmationList/hooks/useTaxAmount';
-import useTransactionReportForConfirmation from './MoneyRequestConfirmationList/hooks/useTransactionReportForConfirmation';
-import SplitBillController from './MoneyRequestConfirmationList/SplitBillController';
-import TaxController from './MoneyRequestConfirmationList/TaxController';
-import MoneyRequestConfirmationListFooter from './MoneyRequestConfirmationListFooter';
-import BareUserListItem from './SelectionList/ListItem/BareUserListItem';
-import SelectionListWithSections from './SelectionList/SelectionListWithSections';
+import buildConfirmAction from './confirmAction';
+import ConfirmationFooterContent from './ConfirmationFooterContent';
+import ConfirmationTelemetry from './ConfirmationTelemetry';
+import DistanceRequestController from './DistanceRequestController';
+import FieldAutoSelector from './FieldAutoSelector';
+import useConfirmationAmount from './hooks/useConfirmationAmount';
+import useConfirmationCtaText from './hooks/useConfirmationCtaText';
+import useConfirmationSections from './hooks/useConfirmationSections';
+import useConfirmationValidation from './hooks/useConfirmationValidation';
+import useDistanceRequestState from './hooks/useDistanceRequestState';
+import useFormErrorManagement from './hooks/useFormErrorManagement';
+import usePolicyCategoriesForConfirmation from './hooks/usePolicyCategoriesForConfirmation';
+import usePolicyTagsForConfirmation from './hooks/usePolicyTagsForConfirmation';
+import useReceiptTraining from './hooks/useReceiptTraining';
+import useSplitParticipants from './hooks/useSplitParticipants';
+import useTaxAmount from './hooks/useTaxAmount';
+import useTransactionReportForConfirmation from './hooks/useTransactionReportForConfirmation';
+import SplitBillController from './SplitBillController';
+import TaxController from './TaxController';
 
 type MoneyRequestConfirmationListProps = {
     /** Callback to inform parent modal of success */
@@ -335,6 +335,7 @@ function MoneyRequestConfirmationList({
     const [isTaxAmountEmpty, setIsTaxAmountEmpty] = useState(false);
 
     useEffect(() => {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setShowMoreFields(false);
         setIsTaxAmountEmpty(false);
     }, [transactionID]);
@@ -382,6 +383,7 @@ function MoneyRequestConfirmationList({
     }
 
     useEffect(() => {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setDidConfirm(isConfirmed);
     }, [isConfirmed]);
 
