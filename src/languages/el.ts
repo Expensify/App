@@ -1219,6 +1219,10 @@ const translations: TranslationDeepObject<typeof en> = {
         dragAndDropMultiLevelTag: `<muted-link>Σύρετε και αποθέστε το υπολογιστικό φύλλο σας εδώ ή επιλέξτε ένα αρχείο παρακάτω. <a href="${CONST.IMPORT_SPREADSHEET.MULTI_LEVEL_TAGS_ARTICLE_LINK}">Μάθετε περισσότερα</a> σχετικά με τους υποστηριζόμενους τύπους αρχείων.</muted-link>`,
         chooseSpreadsheet: '<muted-link>Επιλέξτε ένα αρχείο υπολογιστικού φύλλου για εισαγωγή. Υποστηριζόμενες μορφές: .csv, .txt, .xls και .xlsx.</muted-link>',
         chooseSpreadsheetMultiLevelTag: `<muted-link>Επιλέξτε ένα αρχείο υπολογιστικού φύλλου για εισαγωγή. <a href="${CONST.IMPORT_SPREADSHEET.MULTI_LEVEL_TAGS_ARTICLE_LINK}">Μάθετε περισσότερα</a> σχετικά με τους υποστηριζόμενους τύπους αρχείων.</muted-link>`,
+        dragAndDropTransactions:
+            '<muted-link>Σύρετε και αποθέστε το υπολογιστικό φύλλο ή το τραπεζικό σας αντίγραφο εδώ ή επιλέξτε ένα αρχείο παρακάτω. Υποστηριζόμενες μορφές: .csv, .txt, .xls, .xlsx, .ofx και .qfx.</muted-link>',
+        chooseSpreadsheetTransactions:
+            '<muted-link>Επιλέξτε ένα αρχείο υπολογιστικού φύλλου ή τραπεζικού αντιγράφου για εισαγωγή. Υποστηριζόμενες μορφές: .csv, .txt, .xls, .xlsx, .ofx και .qfx.</muted-link>',
         fileContainsHeader: 'Το αρχείο περιέχει επικεφαλίδες στηλών',
         column: (name: string) => `Στήλη ${name}`,
         fieldNotMapped: (fieldName: string) => `Ουπς! Ένα υποχρεωτικό πεδίο («${fieldName}») δεν έχει αντιστοιχιστεί. Παρακαλούμε ελέγξτε και δοκιμάστε ξανά.`,
@@ -1265,6 +1269,7 @@ const translations: TranslationDeepObject<typeof en> = {
             one: 'Εισήχθη 1 συναλλαγή.',
             other: `Εισήχθησαν ${count} συναλλαγές.`,
         }),
+        importStatementSuccessfulDescription: 'Το τραπεζικό σου αντίγραφο κίνησης μεταφορτώθηκε.',
         importFailedTitle: 'Η εισαγωγή απέτυχε',
         importFailedDescription: 'Βεβαιωθείτε ότι όλα τα πεδία έχουν συμπληρωθεί σωστά και δοκιμάστε ξανά. Αν το πρόβλημα συνεχιστεί, επικοινωνήστε με το Concierge.',
         importDescription: 'Επιλέξτε ποια πεδία θα αντιστοιχίσετε από το υπολογιστικό σας φύλλο, κάνοντας κλικ στο αναπτυσσόμενο μενού δίπλα σε κάθε εισαγόμενη στήλη παρακάτω.',

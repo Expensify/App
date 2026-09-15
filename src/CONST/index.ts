@@ -423,6 +423,11 @@ const CONST = {
     // Allowed extensions for text files that are used as spreadsheets
     TEXT_SPREADSHEET_EXTENSIONS: ['txt', 'csv'],
 
+    // Bank statement extensions, parsed by the backend instead of the spreadsheet library
+    OFX_STATEMENT_EXTENSIONS: ['ofx', 'qfx'],
+
+    DEFAULT_IMPORTED_CARD_NAME: 'Imported Card',
+
     // This is limit set on servers, do not update without wider internal discussion
     API_TRANSACTION_CATEGORY_MAX_LENGTH: 255,
 
