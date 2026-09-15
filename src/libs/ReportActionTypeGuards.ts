@@ -1,9 +1,3 @@
-/**
- * Type guards that narrow a report action by its `actionName`.
- *
- * They live outside `ReportActionsUtils` because that module imports `ReportUtils` and the action layer, so callers
- * that only need to narrow an action would otherwise pull the whole graph in and close an import cycle.
- */
 import CONST from '@src/CONST';
 import type {OnyxInputOrEntry} from '@src/types/onyx';
 import type ReportAction from '@src/types/onyx/ReportAction';
