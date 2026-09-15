@@ -47,9 +47,9 @@ Other ways to SmartScan receipts include:
 **On mobile:**
 1. Tap the green camera button.
 2. Select **Manual**.
-3. Enter the amount and currency, then tap **Next**.
-4. Choose yourself as the recipient under Personal.
-5. Add optional fields like category, tags, or description.
+3. Confirm yourself as the recipient under Personal.
+4. Enter the amount and select the currency.
+5. Add the merchant, date, and optional fields like category, tags, or description.
    - Members with a default workspace will see expense fields that mirror their workspace's rules.
    - Members without a default workspace will see the expense fields: Amount, Description, Merchant, Category, Date, Report.
 6. Tap **Create expense**.
@@ -57,12 +57,14 @@ Other ways to SmartScan receipts include:
 **On desktop:**
 1. Click the green add receipt button.
 2. Select **Manual**.
-3. Enter the amount and currency, then click **Next**.
-4. Choose yourself as the recipient under Personal.
-5. Add optional fields like category, tags, or description.
+3. Confirm yourself as the recipient under Personal.
+4. Enter the amount and select the currency.
+5. Add the merchant, date, and optional fields like category, tags, or description.
    - Members with a default workspace will see expense fields that mirror their workspace's rules.
    - Members without a default workspace will see the expense fields: Amount, Description, Merchant, Category, Date, Report.
 6. Click **Create expense**.
+
+**Note:** Amount and date are required. If you leave either one blank, Expensify shows **This field is required** on that field and the expense is not created.
 
 ---
 
