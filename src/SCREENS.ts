@@ -16,6 +16,7 @@ const PROTECTED_SCREENS = {
 
 const SCREENS = {
     ...PROTECTED_SCREENS,
+    INSIGHTS: 'Insights',
     REPORT: 'Report',
     DYNAMIC_PROFILE_AVATAR: 'Dynamic_Profile_Avatar',
     WORKSPACE_AVATAR: 'WorkspaceAvatar',
@@ -96,6 +97,7 @@ const SCREENS = {
         DYNAMIC_EXIT_SURVEY_CONFIRM: 'Dynamic_ExitSurvey_Confirm',
         DYNAMIC_EXIT_SURVEY_REASON: 'Dynamic_ExitSurvey_Reason',
         DYNAMIC_KEYBOARD_SHORTCUTS: 'Dynamic_Keyboard_Shortcuts',
+        DYNAMIC_BETA_OVERRIDES: 'Dynamic_Beta_Overrides',
         DYNAMIC_SAGE_INTACCT_EXPORT: 'Dynamic_Sage_Intacct_Export',
 
         PROFILE: {
@@ -179,6 +181,7 @@ const SCREENS = {
             ENABLE_PAYMENTS: 'Settings_Wallet_EnablePayments',
             ENABLE_PAYMENTS_CONFIRM_VALIDATE_CODE: 'Settings_Wallet_EnablePayments_ConfirmValidateCode',
             CARD_ACTIVATE: 'Settings_Wallet_Card_Activate',
+            CARD_ADD_TO_DIGITAL_WALLET: 'Settings_Wallet_Card_Add_To_Digital_Wallet',
             CARD_CHANGE_PIN: 'Settings_Wallet_Card_Change_PIN',
             CARD_CHANGE_PIN_ATM: 'Settings_Wallet_Card_Change_PIN_ATM',
             REPORT_VIRTUAL_CARD_FRAUD: 'Settings_Wallet_ReportVirtualCardFraud',
@@ -307,7 +310,6 @@ const SCREENS = {
         REPORT_EXPORT: 'Report_Export',
         MISSING_PERSONAL_DETAILS: 'MissingPersonalDetails',
         DEBUG: 'Debug',
-        BETA_OVERRIDES: 'BetaOverrides',
         ADD_EXISTING_EXPENSE: 'AddExistingExpense',
         SCHEDULE_CALL: 'ScheduleCall',
         REPORT_CHANGE_APPROVER: 'Report_Change_Approver',
@@ -920,6 +922,7 @@ const SCREENS = {
         UPGRADE: 'Workspace_Upgrade',
         DYNAMIC_WORKSPACE_DOWNGRADE: 'Dynamic_Workspace_Downgrade',
         DYNAMIC_PAY_AND_DOWNGRADE: 'Dynamic_Workspace_Pay_And_Downgrade',
+        MCP: 'Workspace_MCP',
         RECEIPT_PARTNERS: 'Workspace_Receipt_Partners',
         DYNAMIC_RECEIPT_PARTNERS_INVITE: 'Dynamic_Workspace_Receipt_Partners_Invite',
         DYNAMIC_RECEIPT_PARTNERS_INVITE_EDIT: 'Dynamic_Workspace_Receipt_Partners_Invite_Edit',

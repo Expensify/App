@@ -4,6 +4,7 @@ export type {default as ImportMultiLevelTagsParams} from './ImportMultiLevelTags
 export type {default as ImportCSVCompanyCardsParams} from './ImportCSVCompanyCardsParams';
 export type {default as CleanPolicyTagsParams} from './CleanPolicyTagsParams';
 export type {default as ActivatePhysicalExpensifyCardParams} from './ActivatePhysicalExpensifyCardParams';
+export type {default as ApproveDigitalWalletCardAdditionParams} from './ApproveDigitalWalletCardAdditionParams';
 export type {default as AddNewContactMethodParams} from './AddNewContactMethodParams';
 export type {default as AddPaymentCardParams} from './AddPaymentCardParams';
 export type {default as VerifySetupIntentParams} from './VerifySetupIntentParams';
@@ -304,6 +305,7 @@ export type {default as TrackExpenseParams} from './TrackExpenseParams';
 export type {default as EnablePolicyCategoriesParams} from './EnablePolicyCategoriesParams';
 export type {default as EnablePolicyConnectionsParams} from './EnablePolicyConnectionsParams';
 export type {default as EnablePolicyHRParams} from './EnablePolicyHRParams';
+export type {default as EnablePolicyMCPParams} from './EnablePolicyMCPParams';
 export type {default as TogglePolicyReceiptPartnersParams} from './TogglePolicyReceiptPartnersParams';
 export type {default as EnablePolicyDistanceRatesParams} from './EnablePolicyDistanceRatesParams';
 export type {default as EnablePolicyTravelParams} from './EnablePolicyTravelParams';
@@ -599,6 +601,7 @@ export type {default as SetPolicyRequireCompanyCardsEnabledParams} from './SetPo
 export type {default as SetTechnicalContactEmailParams} from './SetTechnicalContactEmailParams';
 export type {default as ToggleConsolidatedDomainBillingParams} from './ToggleConsolidatedDomainBillingParams';
 export type {default as RemoveDomainAdminParams} from './RemoveDomainAdminParams';
+export type {default as DeclineDomainAdminshipRequestParams} from './DeclineDomainAdminshipRequestParams';
 export type {default as DeleteDomainMemberParams} from './DeleteDomainMemberParams';
 export type {default as ChangeDomainSecurityGroupParams} from './ChangeDomainSecurityGroupParams';
 export type {default as DeleteDomainParams} from './DeleteDomainParams';
