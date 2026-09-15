@@ -30,6 +30,8 @@ const avatarSizes = {
 
 export default {
     bottomTabHeight: 72,
+    // styles.p3 (12) on each side of the DebugTabView row plus the View button (componentSizeNormal).
+    debugTabViewHeight: 64,
     contentHeaderHeight: getValueUsingPixelRatio(72, 100),
     contentHeaderDesktopHeight: getValueUsingPixelRatio(80, 100),
     componentSizeSmall: getValueUsingPixelRatio(28, 32),
