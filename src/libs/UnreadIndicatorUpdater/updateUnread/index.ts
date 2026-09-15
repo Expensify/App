@@ -9,6 +9,11 @@ import Onyx from 'react-native-onyx';
 import type UpdateUnread from './types';
 
 let unreadTotalCount = 0;
+let unreadReportIDs = new Set<string>();
+let hasStreamingConciergeResponse = false;
+let completedConciergeReportIDs: string[] = [];
+let pendingConciergeReportIDs: string[] = [];
+let requestUnreadUpdate: (() => void) | undefined;
 let currentPageTitle = '';
 let shouldShowBranchNameInTitle = false;
 
@@ -31,6 +36,10 @@ function setPageTitle(title: string) {
     updateDocumentTitle();
 }
 
+function shouldShowConciergeFavicon() {
+    return hasStreamingConciergeResponse || pendingConciergeReportIDs.length > 0 || completedConciergeReportIDs.some((reportID) => unreadReportIDs.has(reportID));
+}
+
 /**
  * Synchronous on purpose. Deferring (setTimeout/queueMicrotask) loses a race with React Navigation's
  * createMemoryHistory popstate handler, which captures and re-asserts document.title — re-applying
@@ -50,21 +59,47 @@ function updateDocumentTitle() {
 
     const favicon = document.getElementById('favicon');
     if (favicon instanceof HTMLLinkElement) {
-        favicon.href = hasUnread ? CONFIG.FAVICON.UNREAD : CONFIG.FAVICON.DEFAULT;
+        const defaultIcon = hasUnread ? CONFIG.FAVICON.UNREAD : CONFIG.FAVICON.DEFAULT;
+        // Completed replies follow the same report eligibility and read state as the ordinary icon.
+        favicon.href = shouldShowConciergeFavicon() ? CONFIG.FAVICON.CONCIERGE_UNREAD : defaultIcon;
     }
 }
 
 /**
  * Set the page title on web
  */
-const updateUnread: UpdateUnread = (totalCount) => {
+const updateUnread: UpdateUnread = (totalCount, reportIDs = []) => {
     unreadTotalCount = totalCount;
+    unreadReportIDs = new Set(reportIDs);
+    pendingConciergeReportIDs = [];
     updateDocumentTitle();
 };
 
+function setUnreadUpdateCallback(callback: () => void) {
+    requestUnreadUpdate = callback;
+}
+
 window.addEventListener('popstate', () => {
-    updateUnread(unreadTotalCount);
+    updateDocumentTitle();
 });
 
+function setConciergeAttention(isStreaming: boolean, completedReportIDs: string[]) {
+    const hadAttention = shouldShowConciergeFavicon();
+    const wasStreaming = hasStreamingConciergeResponse;
+    hasStreamingConciergeResponse = isStreaming;
+    completedConciergeReportIDs = completedReportIDs;
+    pendingConciergeReportIDs = pendingConciergeReportIDs.filter((reportID) => completedReportIDs.includes(reportID));
+    if (wasStreaming && !isStreaming && completedReportIDs.length > 0) {
+        // Commit the completed state with a fresh ordinary unread snapshot, rather than
+        // briefly clearing the icon against IDs from before the debounced report update.
+        pendingConciergeReportIDs = completedReportIDs;
+        requestUnreadUpdate?.();
+    }
+    if (hadAttention === shouldShowConciergeFavicon()) {
+        return;
+    }
+    updateDocumentTitle();
+}
+
 export default updateUnread;
-export {setPageTitle};
+export {setPageTitle, setConciergeAttention, setUnreadUpdateCallback};
