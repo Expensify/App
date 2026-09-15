@@ -17,7 +17,7 @@ type ButtonProps = {
 const mockButtonSpy = jest.fn<void, [ButtonProps]>();
 const mockImageSVGSpy = jest.fn<void, [ImageSVGProps]>();
 
-jest.mock('@components/ButtonComposed', () => {
+jest.mock('@components/Button', () => {
     const ReactLib = jest.requireActual<typeof React>('react');
     const MockButton = (props: ButtonProps) => {
         mockButtonSpy(props);

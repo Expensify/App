@@ -1,5 +1,5 @@
 type DeleteSavedSearchParams = {
-    hash: number;
+    savedSearchID: string;
 };
 
 export default DeleteSavedSearchParams;
