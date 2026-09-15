@@ -123,7 +123,7 @@ const CUSTOM_FEED_PREFIXES = [CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD, CON
 
 type CardConnectionStatusDisplay = {
     statusKey: TranslationPaths;
-    statusTone: 'success' | 'danger';
+    statusTone: 'default' | 'success' | 'danger';
     messageKey?: TranslationPaths;
     actionKey?: TranslationPaths;
     shouldUsePersonalCardFix?: boolean;
@@ -136,6 +136,7 @@ type CardConnectionStatusDisplayParams = {
     isCardBroken: boolean;
     shouldShowRBR: boolean;
     isCardInactive: boolean;
+    isExpensifyCard: boolean;
     isPersonalCard: boolean;
     isAdminForCardPolicy: boolean;
     doesCardNeedReauthentication?: boolean;
@@ -1602,6 +1603,7 @@ function getCardConnectionStatusDisplay({
     isCardBroken,
     shouldShowRBR,
     isCardInactive: isCardInactiveStatus,
+    isExpensifyCard: isExpensifyCardStatus,
     isPersonalCard: isPersonalCardStatus,
     isAdminForCardPolicy,
     doesCardNeedReauthentication,
@@ -1609,6 +1611,17 @@ function getCardConnectionStatusDisplay({
 }: CardConnectionStatusDisplayParams): CardConnectionStatusDisplay | undefined {
     if (!shouldShowConnectionStatus) {
         return undefined;
+    }
+
+    // An Expensify Card is suspended by the back end rather than disconnected from a bank feed, and it has no bank
+    // feed to break, so a feed or workspace error is never something its cardholder can fix and no connection message
+    // is right for it in any state. It still reports its status so the row keeps the background, hover and press
+    // styling every other row in the list gets, which hangs off the status being present rather than the message.
+    if (isExpensifyCardStatus) {
+        return {
+            statusKey: isCardInactiveStatus ? 'walletPage.cardStatus.inactive' : 'walletPage.cardStatus.active',
+            statusTone: isCardInactiveStatus ? 'default' : 'success',
+        };
     }
 
     const shouldShowMessage = isCardBroken || shouldShowRBR || isCardInactiveStatus;

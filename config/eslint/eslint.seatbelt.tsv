@@ -211,9 +211,7 @@
 "../../src/components/MoneyRequestConfirmationListFooter/hooks/useReceiptThumbnailSource.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/MoneyRequestConfirmationListFooter/sections/DistanceMapSection.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/MoneyRequestConfirmationListFooter/sections/ReceiptSection.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/components/MoneyRequestReportView/MoneyRequestReportActionsList.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/components/MoneyRequestReportView/MoneyRequestReportActionsList.tsx"	"react-hooks/refs"	3
-"../../src/components/MoneyRequestReportView/MoneyRequestReportActionsList.tsx"	"react-hooks/set-state-in-effect"	3
+"../../src/components/MoneyRequestReportView/MoneyRequestReportActionsList.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/components/MoneyRequestReportView/MoneyRequestReportTransactionList.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/components/MoneyRequestReportView/MoneyRequestReportTransactionsNavigation.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/components/MoneyRequestReportView/MoneyRequestViewReportFields.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
@@ -678,7 +676,6 @@
 "../../src/libs/DebugUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	20
 "../../src/libs/DistanceRequestUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/DomUtils/index.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
-"../../src/libs/EmojiTrie.ts"	"@typescript-eslint/no-unsafe-type-assertion"	4
 "../../src/libs/EmojiUtils.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/Environment/getEnvironment/index.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/ErrorUtils.ts"	"@typescript-eslint/no-deprecated/translateLocal"	1
@@ -849,10 +846,8 @@
 "../../src/libs/SearchUIUtils.ts"	"@typescript-eslint/no-deprecated/deprecatedGetReportName"	2
 "../../src/libs/SearchUIUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	71
 "../../src/libs/SearchUIUtils.ts"	"no-restricted-imports"	1
-"../../src/libs/SelectionScraper/index.ts"	"@typescript-eslint/no-unsafe-type-assertion"	4
 "../../src/libs/SidebarUtils.ts"	"@typescript-eslint/no-deprecated/deprecatedGetReportName"	2
 "../../src/libs/SidebarUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/libs/Sound/index.native.ts"	"@typescript-eslint/no-unsafe-type-assertion"	4
 "../../src/libs/Sound/index.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../src/libs/SpendRulesUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../src/libs/StatusBar/index.android.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
