@@ -843,14 +843,6 @@ function Search({
     const wantedOffsetRef = useRef<number | undefined>(undefined);
 
     const fetchMoreResults = useCallback(() => {
-        // hasMoreResults is a server cursor, it says nothing about what's cached, so offline reveal local rows directly
-        if (shouldUseLiveData && isOffline) {
-            if (liveRowLimit < filteredDataLength) {
-                setRevealedRows(liveRowLimit + CONST.SEARCH.RESULTS_PAGE_SIZE);
-            }
-            return;
-        }
-
         if (!searchResults?.search?.hasMoreResults) {
             wantedOffsetRef.current = undefined;
             return;
