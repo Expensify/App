@@ -28,6 +28,7 @@ import {
     doesCardConnectionNeedReauthentication,
     isCardFrozen,
     isCardInactive,
+    isCardPendingDigitalWalletApproval,
     isExpensifyCard,
     isExpensifyCardPendingAction,
     isExpiredCard,
@@ -458,6 +459,12 @@ function PaymentMethodList({
                         ) {
                             assignedCardsGroupedItem.brickRoadIndicator = CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
                         }
+                        // The domain gets one row, so a pending approval on any of its cards has to surface there.
+                        // The CTA needs the pending card's own ID, which the group row doesn't carry.
+                        if (isCardPendingDigitalWalletApproval(card) && !assignedCardsGroupedItem.digitalWalletApprovalCardID) {
+                            assignedCardsGroupedItem.digitalWalletApprovalCardID = card.cardID;
+                            assignedCardsGroupedItem.digitalWalletProvider = card.nameValuePairs?.pendingDigitalWalletApproval?.walletProvider;
+                        }
                     }
                     continue;
                 }
@@ -510,6 +517,8 @@ function PaymentMethodList({
                     isInactive: isCardInactive(card),
                     isCardFrozen: isCardFrozen(card),
                     shouldShowMissingPersonalDetailsAction: !isActingAsDelegate && isActionableVirtualExpensifyCard(card) && hasMissingPersonalDetails,
+                    digitalWalletApprovalCardID: isCardPendingDigitalWalletApproval(card) ? card.cardID : undefined,
+                    digitalWalletProvider: card.nameValuePairs?.pendingDigitalWalletApproval?.walletProvider,
                 });
             }
 

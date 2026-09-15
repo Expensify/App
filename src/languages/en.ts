@@ -2803,6 +2803,13 @@ const translations = {
             subtitle: 'Please enter your personal details to start using your card',
             cta: 'Add details',
         },
+        confirmDigitalWalletAddition: {
+            title: ({walletName}: {walletName: string}) => `${walletName} card addition needs your approval`,
+            cta: 'Review',
+            appleWallet: 'Apple Wallet',
+            googleWallet: 'Google Wallet',
+            digitalWallet: 'Digital wallet',
+        },
         expensifyCard: 'Expensify Card',
         walletActivationPending: "We're reviewing your information. Please check back in a few minutes!",
         walletActivationFailed: "Unfortunately, your wallet can't be enabled at this time. Please chat with Concierge for further assistance.",

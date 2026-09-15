@@ -30,9 +30,11 @@ import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
+import {cardByIdSelector} from '@selectors/Card';
 import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 
@@ -45,7 +47,7 @@ type SubmittedWalletRequest = {
 
 function AddCardToDigitalWalletPage({
     route: {
-        params: {cardID},
+        params: {cardID, backTo},
     },
 }: AddCardToDigitalWalletPageProps) {
     const {translate} = useLocalize();
@@ -54,13 +56,16 @@ function AddCardToDigitalWalletPage({
     const illustrations = useMemoizedLazyIllustrations(['CardIntoWallet', 'ThumbsUpStars', 'CardDenied']);
     const primaryLogin = usePrimaryContactMethod();
 
-    const [card, cardMetadata] = useOnyx(ONYXKEYS.CARD_LIST, {selector: (cardList) => cardList?.[cardID]});
+    const [card, cardMetadata] = useOnyx(ONYXKEYS.CARD_LIST, {selector: cardByIdSelector(cardID)});
     const [isCheckingPendingApproval] = useOnyx(ONYXKEYS.RAM_ONLY_IS_CHECKING_PENDING_WALLET_APPROVAL);
     const currentCardID = card?.cardID;
     const latestError = getLatestErrorMessageField(card);
 
     const [isVerifying, setIsVerifying] = useState(false);
     const [submittedRequest, setSubmittedRequest] = useState<SubmittedWalletRequest>();
+
+    // A deep link and this card's own details page both send no `backTo`, so fall back to that card's details page.
+    const goBackToEntryPoint = () => Navigation.goBack(backTo ?? ROUTES.SETTINGS_WALLET_DOMAIN_CARD.getRoute(cardID), {compareParams: false});
 
     const pendingApproval = card?.nameValuePairs?.pendingDigitalWalletApproval;
 
@@ -143,7 +148,10 @@ function AddCardToDigitalWalletPage({
                 testID="AddCardToDigitalWalletPage"
                 shouldShowOfflineIndicatorInWideScreen
             >
-                <HeaderWithBackButton title={translate('addCardToDigitalWallet.title', {walletName})} />
+                <HeaderWithBackButton
+                    title={translate('addCardToDigitalWallet.title', {walletName})}
+                    onBackButtonPress={goBackToEntryPoint}
+                />
                 <ConfirmationPage
                     heading={translate(isSuccess ? 'addCardToDigitalWallet.successHeading' : 'addCardToDigitalWallet.deniedHeading')}
                     description={translate(isSuccess ? 'addCardToDigitalWallet.successDescription' : 'addCardToDigitalWallet.deniedDescription', {walletName})}
@@ -152,7 +160,7 @@ function AddCardToDigitalWalletPage({
                     descriptionStyle={styles.textSupporting}
                     shouldShowButton
                     buttonText={translate('common.buttonConfirm')}
-                    onButtonPress={() => Navigation.goBack()}
+                    onButtonPress={goBackToEntryPoint}
                 />
             </ScreenWrapper>
         );
@@ -164,7 +172,10 @@ function AddCardToDigitalWalletPage({
             testID="AddCardToDigitalWalletPage"
             shouldShowOfflineIndicatorInWideScreen
         >
-            <HeaderWithBackButton title={translate('addCardToDigitalWallet.title', {walletName})} />
+            <HeaderWithBackButton
+                title={translate('addCardToDigitalWallet.title', {walletName})}
+                onBackButtonPress={goBackToEntryPoint}
+            />
             <ScrollView
                 style={styles.flex1}
                 contentContainerStyle={styles.flexGrow1}

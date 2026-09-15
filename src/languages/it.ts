@@ -2670,6 +2670,13 @@ const translations: TranslationDeepObject<typeof en> = {
             subtitle: 'Inserisci i tuoi dati personali per iniziare a usare la tua carta',
             cta: 'Aggiungi dettagli',
         },
+        confirmDigitalWalletAddition: {
+            title: ({walletName}: {walletName: string}) => `L’aggiunta della carta ${walletName} richiede la tua approvazione`,
+            cta: 'Rivedi',
+            appleWallet: 'Apple Wallet',
+            googleWallet: 'Google Wallet',
+            digitalWallet: 'Portafoglio digitale',
+        },
         expensifyCard: 'Carta Expensify',
         walletActivationPending: 'Stiamo verificando le tue informazioni. Riprova tra qualche minuto!',
         walletActivationFailed: 'Sfortunatamente, il tuo portafoglio non può essere abilitato in questo momento. Chatta con Concierge per ulteriore assistenza.',

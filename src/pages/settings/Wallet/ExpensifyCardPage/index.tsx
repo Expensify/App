@@ -26,9 +26,10 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useNonPersonalCardList from '@hooks/useNonPersonalCardList';
 import useOnyx from '@hooks/useOnyx';
+import useRefreshPendingDigitalWalletApproval from '@hooks/useRefreshPendingDigitalWalletApproval';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {freezeCard, unfreezeCard} from '@libs/actions/Card';
+import {freezeCard, navigateToAddCardToDigitalWallet, unfreezeCard} from '@libs/actions/Card';
 import {buildSetPersonalDetailsAndShipExpensifyCardsParams} from '@libs/actions/PersonalDetails';
 import navigateToCardTransactions from '@libs/CardNavigationUtils';
 import {
@@ -37,7 +38,9 @@ import {
     getCardOrFeedCurrency,
     getDomainCards,
     getTranslationKeyForLimitType,
+    getWalletProviderNameKey,
     isCardFrozen,
+    isCardPendingDigitalWalletApproval,
     isOfflinePINMarket,
     isTravelCard,
     isUkEuExpensifyCard,
@@ -140,6 +143,10 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
         return [cardList?.[cardID]];
     }, [shouldDisplayCardDomain, cardList, cardID, domain]);
     const currentCard = useMemo(() => cardsToShow?.find((card) => String(card?.cardID) === cardID) ?? cardsToShow?.at(0), [cardsToShow, cardID]);
+
+    // Any of the domain's cards can be the one awaiting approval, and the CTA has to open that card's flow.
+    const cardPendingDigitalWalletApproval = useMemo(() => cardsToShow?.find((card) => isCardPendingDigitalWalletApproval(card)), [cardsToShow]);
+    useRefreshPendingDigitalWalletApproval();
 
     const virtualCards = useMemo(() => cardsToShow?.filter((card) => card?.nameValuePairs?.isVirtual && !isTravelCard(card)), [cardsToShow]);
     const travelCards = useMemo(() => cardsToShow?.filter((card) => card?.nameValuePairs?.isVirtual && isTravelCard(card)), [cardsToShow]);
@@ -401,6 +408,33 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                                     <CardDetailsActionButton.Text>{translate('workspace.common.viewTransactions')}</CardDetailsActionButton.Text>
                                 </CardDetailsActionButton>
                             </CardDetailsActionButtons>
+                        )}
+                        {!!cardPendingDigitalWalletApproval && (
+                            <View style={[styles.flexRow, styles.alignItemsCenter, styles.ph5, styles.mt6, styles.mb5]}>
+                                <DotIndicatorMessage
+                                    style={[styles.flex1, styles.mr3]}
+                                    textStyles={styles.textSuccess}
+                                    messages={{
+                                        pendingDigitalWalletApproval: translate('walletPage.confirmDigitalWalletAddition.title', {
+                                            walletName: translate(
+                                                `walletPage.confirmDigitalWalletAddition.${getWalletProviderNameKey(
+                                                    cardPendingDigitalWalletApproval.nameValuePairs?.pendingDigitalWalletApproval?.walletProvider,
+                                                )}`,
+                                            ),
+                                        }),
+                                    }}
+                                    type="success"
+                                />
+                                <Button
+                                    variant={CONST.BUTTON_VARIANT.SUCCESS}
+                                    size={CONST.BUTTON_SIZE.SMALL}
+                                    onPress={() => {
+                                        navigateToAddCardToDigitalWallet(cardPendingDigitalWalletApproval.cardID);
+                                    }}
+                                >
+                                    <Button.Text>{translate('walletPage.confirmDigitalWalletAddition.cta')}</Button.Text>
+                                </Button>
+                            </View>
                         )}
                         {shouldShowChangePINRow && isCardPINBlocked && (
                             <View style={[styles.flexRow, styles.alignItemsCenter, styles.ph5, styles.mb5]}>

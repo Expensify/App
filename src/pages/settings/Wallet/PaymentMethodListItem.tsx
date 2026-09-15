@@ -18,8 +18,10 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {navigateToAddCardToDigitalWallet} from '@libs/actions/Card';
 import {openExternalLink} from '@libs/actions/Link';
 import {getBankAccountState, hasBankAccountAllowDebit, isBankAccountPartiallySetup} from '@libs/BankAccountUtils';
+import {getWalletProviderNameKey} from '@libs/CardUtils';
 import Log from '@libs/Log';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
@@ -81,6 +83,12 @@ type PaymentMethodItem = PaymentMethod & {
     shouldShowErrorMessages?: boolean;
     /** Whether to show the "Add details" CTA row below a virtual Expensify Card when personal details are missing */
     shouldShowMissingPersonalDetailsAction?: boolean;
+
+    /** ID of the Expensify Card awaiting a wallet addition approval, which shows the "Review" CTA row */
+    digitalWalletApprovalCardID?: number;
+
+    /** Wallet the addition was requested from, used to name it in the "Review" CTA row */
+    digitalWalletProvider?: ValueOf<typeof CONST.EXPENSIFY_CARD.WALLET_PROVIDER>;
 } & BankIcon;
 
 type PaymentMethodListItemProps = {
@@ -146,6 +154,7 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
     const isInLockedState = isBusinessBankAccountLocked(item);
     const showThreeDotsMenu = item.shouldShowThreeDotsMenu !== false && !!threeDotsMenuItems && !isInLockedState;
     const isNeedingAction = isAccountNeedingAction(item);
+    const digitalWalletApprovalCardID = item.digitalWalletApprovalCardID;
     const connectionStatus = item.connectionStatus;
 
     // Check if this is a Chase personal bank account connected via Plaid
@@ -328,6 +337,29 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
                         onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MISSING_PERSONAL_DETAILS.getRoute(String(item.cardID))))}
                     >
                         <Button.Text>{translate('walletPage.addVirtualCardPersonalDetails.cta')}</Button.Text>
+                    </Button>
+                </View>
+            )}
+            {!!digitalWalletApprovalCardID && (
+                <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.pv3, shouldUseNarrowLayout ? styles.ph5 : styles.ph8]}>
+                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.flex1, styles.mr2]}>
+                        <Icon
+                            src={icons.DotIndicator}
+                            fill={theme.success}
+                            additionalStyles={[styles.mr2]}
+                        />
+                        <Text style={[styles.mutedNormalTextLabel, styles.label, styles.textSuccess, styles.flexShrink1]}>
+                            {translate('walletPage.confirmDigitalWalletAddition.title', {
+                                walletName: translate(`walletPage.confirmDigitalWalletAddition.${getWalletProviderNameKey(item.digitalWalletProvider)}`),
+                            })}
+                        </Text>
+                    </View>
+                    <Button
+                        size={CONST.BUTTON_SIZE.SMALL}
+                        variant={CONST.BUTTON_VARIANT.SUCCESS}
+                        onPress={() => navigateToAddCardToDigitalWallet(digitalWalletApprovalCardID)}
+                    >
+                        <Button.Text>{translate('walletPage.confirmDigitalWalletAddition.cta')}</Button.Text>
                     </Button>
                 </View>
             )}

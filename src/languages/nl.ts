@@ -2671,6 +2671,13 @@ const translations: TranslationDeepObject<typeof en> = {
             subtitle: 'Voer uw persoonlijke gegevens in om uw kaart te gebruiken',
             cta: 'Details toevoegen',
         },
+        confirmDigitalWalletAddition: {
+            title: ({walletName}: {walletName: string}) => `Toevoegen van ${walletName}-kaart vereist jouw goedkeuring`,
+            cta: 'Beoordelen',
+            appleWallet: 'Apple Wallet',
+            googleWallet: 'Google Wallet',
+            digitalWallet: 'Digitale portemonnee',
+        },
         expensifyCard: 'Expensify Kaart',
         walletActivationPending: 'We controleren je gegevens. Kom over een paar minuten terug!',
         walletActivationFailed: 'Helaas kan je wallet op dit moment niet worden ingeschakeld. Chat met Concierge voor verdere hulp.',
