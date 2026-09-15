@@ -78,7 +78,7 @@ function getMergeATSFilterOptions(filterType: MergeATSFilterType, data: MergeATS
 
 /**
  * Display label for one dimension of the given filters, or undefined when nothing selected for it resolves to a name.
- * Offices are stored as IDs, so they are resolved against the office catalog in `data.offices`; tags and stages are
+ * Offices are stored as IDs, so they are resolved against the office catalog in `data.offices`. Tags and stages are
  * stored as names and used as-is.
  */
 function getMergeATSFilterLabel(filterType: MergeATSFilterType, filters: MergeATSFilters | undefined | null, data: MergeATSConnectionData | undefined): string | undefined {
