@@ -11,6 +11,8 @@ import Text from '@components/Text';
 import type {PrivateIsArchivedMap} from '@hooks/usePrivateIsArchivedMap';
 
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
+import * as API from '@libs/API';
+import {READ_COMMANDS} from '@libs/API/types';
 import {setHasRadio} from '@libs/NetworkState';
 import type * as OptionsListUtilsModule from '@libs/OptionsListUtils';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
@@ -95,10 +97,15 @@ jest.mock('@src/libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
 }));
 
-const mockRootNavigationState = jest.fn((): {contextualReportID: string | undefined; isSearchRouterScreen: boolean} => ({
-    contextualReportID: undefined,
-    isSearchRouterScreen: false,
-}));
+const mockRootNavigationState = jest.fn(
+    (): {
+        contextualReportID: string | undefined;
+        isSearchRouterScreen: boolean;
+    } => ({
+        contextualReportID: undefined,
+        isSearchRouterScreen: false,
+    }),
+);
 jest.mock('@src/hooks/useRootNavigationState', () => ({
     __esModule: true,
     default: () => mockRootNavigationState(),
@@ -173,20 +180,34 @@ const mockedBetas = Object.values(CONST.BETAS);
 const mockedPersonalDetails = getMockedPersonalDetails(10);
 const EMPTY_PRIVATE_IS_ARCHIVED_MAP: PrivateIsArchivedMap = {};
 const CURRENT_USER_ACCOUNT_ID = 1;
-const mockedOptions = createFilteredOptionList(mockedPersonalDetails, mockedReports, undefined, EMPTY_PRIVATE_IS_ARCHIVED_MAP, undefined, {
-    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-    dateFnsLocale: undefined,
-    conciergeReportID: undefined,
-    isSearching: true,
-});
+const mockedOptions = createFilteredOptionList(
+    mockedPersonalDetails,
+    mockedReports,
+    undefined,
+    EMPTY_PRIVATE_IS_ARCHIVED_MAP,
+    undefined,
+    {
+        currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+        dateFnsLocale: undefined,
+        convertToDisplayString: TestHelper.convertToDisplayString,
+        conciergeReportID: undefined,
+        isSearching: true,
+    },
+    undefined,
+);
+
 // Mirrors useFilteredOptions: resolves a report from the same reports snapshot the options were built from.
 const createGetReportByID =
     (reports: Record<string, Report>) =>
     (reportID: string | undefined): Report | undefined =>
         reports[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
 
-const OFFLINE_INDICATOR_SAFE_AREA_CONTEXT_ENABLED = {addSafeAreaPadding: true};
-const OFFLINE_INDICATOR_SAFE_AREA_CONTEXT_DISABLED = {addSafeAreaPadding: false};
+const OFFLINE_INDICATOR_SAFE_AREA_CONTEXT_ENABLED = {
+    addSafeAreaPadding: true,
+};
+const OFFLINE_INDICATOR_SAFE_AREA_CONTEXT_DISABLED = {
+    addSafeAreaPadding: false,
+};
 
 const mockOnClose = jest.fn((afterClose?: () => void) => {
     afterClose?.();
@@ -195,9 +216,27 @@ const mockOnClose = jest.fn((afterClose?: () => void) => {
 // Fake report options that getSearchOptions returns as recentReports.
 // These simulate local results available before any server search completes.
 const fakeRecentReports = [
-    {reportID: '101', keyForList: '101', text: 'Alice Report', alternateText: 'alice alt', lastMessageText: 'hello'},
-    {reportID: '102', keyForList: '102', text: 'Bob Report', alternateText: 'bob alt', lastMessageText: 'hi'},
-    {reportID: '103', keyForList: '103', text: 'Charlie Report', alternateText: 'charlie alt', lastMessageText: 'hey'},
+    {
+        reportID: '101',
+        keyForList: '101',
+        text: 'Alice Report',
+        alternateText: 'alice alt',
+        lastMessageText: 'hello',
+    },
+    {
+        reportID: '102',
+        keyForList: '102',
+        text: 'Bob Report',
+        alternateText: 'bob alt',
+        lastMessageText: 'hi',
+    },
+    {
+        reportID: '103',
+        keyForList: '103',
+        text: 'Charlie Report',
+        alternateText: 'charlie alt',
+        lastMessageText: 'hey',
+    },
 ];
 
 function SearchRouterWrapper({isSearchRouterDisplayed, addOfflineIndicatorSafeAreaPadding}: {isSearchRouterDisplayed?: boolean; addOfflineIndicatorSafeAreaPadding?: boolean}) {
@@ -257,7 +296,10 @@ describe('SearchAutocompleteList', () => {
         });
         jest.clearAllMocks();
         mockUseNavigationSuggestions.mockReturnValue([]);
-        mockRootNavigationState.mockReturnValue({contextualReportID: undefined, isSearchRouterScreen: false});
+        mockRootNavigationState.mockReturnValue({
+            contextualReportID: undefined,
+            isSearchRouterScreen: false,
+        });
     });
 
     it.each([
@@ -274,7 +316,12 @@ describe('SearchAutocompleteList', () => {
 
         // createFilteredOptionList keys its cache on these values, so the empty-query list this screen asks for
         // has to be the one SearchRouterOptionsWarmer built, or the warm build is never reused.
-        expect(mockUseFilteredOptions).toHaveBeenCalledWith(expect.objectContaining({...SEARCH_ROUTER_OPTIONS_CONFIG, isSearching: false}));
+        expect(mockUseFilteredOptions).toHaveBeenCalledWith(
+            expect.objectContaining({
+                ...SEARCH_ROUTER_OPTIONS_CONFIG,
+                isSearching: false,
+            }),
+        );
     });
 
     it('should display and select navigation suggestion rows', async () => {
@@ -342,8 +389,14 @@ describe('SearchAutocompleteList', () => {
         const timestampOne = '2024-01-01T00:00:00';
         const timestampTwo = '2024-01-02T00:00:00';
         const recentSearches: Record<string, {query: string; timestamp: string}> = {};
-        recentSearches[timestampOne] = {query: 'type:expense status:approved', timestamp: timestampOne};
-        recentSearches[timestampTwo] = {query: 'type:chat', timestamp: timestampTwo};
+        recentSearches[timestampOne] = {
+            query: 'type:expense status:approved',
+            timestamp: timestampOne,
+        };
+        recentSearches[timestampTwo] = {
+            query: 'type:chat',
+            timestamp: timestampTwo,
+        };
 
         await waitForBatchedUpdates();
         await Onyx.multiSet({
@@ -377,9 +430,16 @@ describe('SearchAutocompleteList', () => {
         const contextualReport = {
             ...createRandomReport(99, undefined),
             reportID: contextualReportID,
-            participants: {[currentUserAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS}},
+            participants: {
+                [currentUserAccountID]: {
+                    notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+                },
+            },
         };
-        mockRootNavigationState.mockReturnValue({contextualReportID, isSearchRouterScreen: true});
+        mockRootNavigationState.mockReturnValue({
+            contextualReportID,
+            isSearchRouterScreen: true,
+        });
         const createOptionFromReportSpy = jest.spyOn(OptionsListUtils, 'createOptionFromReport');
 
         await waitForBatchedUpdates();
@@ -389,7 +449,10 @@ describe('SearchAutocompleteList', () => {
             [ONYXKEYS.PERSONAL_DETAILS_LIST]: mockedPersonalDetails,
         });
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${contextualReportID}`, contextualReport);
-        await Onyx.set(ONYXKEYS.SESSION, {accountID: currentUserAccountID, email: 'test@test.com'});
+        await Onyx.set(ONYXKEYS.SESSION, {
+            accountID: currentUserAccountID,
+            email: 'test@test.com',
+        });
         await Onyx.set(ONYXKEYS.CONCIERGE_REPORT_ID, 'concierge-router-1');
 
         render(<SearchRouterWrapper />);
@@ -411,7 +474,13 @@ describe('SearchAutocompleteList', () => {
             reportActionID: '4001',
             actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CATEGORY,
             created: '2026-01-01 00:00:00.000',
-            message: [{type: CONST.REPORT.MESSAGE.TYPE.COMMENT, html: rawServerMessage, text: rawServerMessage}],
+            message: [
+                {
+                    type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
+                    html: rawServerMessage,
+                    text: rawServerMessage,
+                },
+            ],
             originalMessage: {
                 categoryName: 'Advertising',
                 updatedField: 'areAttendeesRequired',
@@ -434,7 +503,11 @@ describe('SearchAutocompleteList', () => {
             policyID,
             parentReportID: adminsReportID,
             parentReportActionID: parentReportAction.reportActionID,
-            participants: {[CURRENT_USER_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS}},
+            participants: {
+                [CURRENT_USER_ACCOUNT_ID]: {
+                    notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+                },
+            },
             lastMessageText: 'Thanks for the update',
         };
 
@@ -450,7 +523,10 @@ describe('SearchAutocompleteList', () => {
         });
         await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${adminsReportID}`, adminsReport);
         await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${threadReportID}`, threadReport);
-        await Onyx.set(ONYXKEYS.SESSION, {accountID: CURRENT_USER_ACCOUNT_ID, email: 'test@test.com'});
+        await Onyx.set(ONYXKEYS.SESSION, {
+            accountID: CURRENT_USER_ACCOUNT_ID,
+            email: 'test@test.com',
+        });
         await flushAllUpdates();
 
         // The row label is the derived report name, so the options have to be built from the derived attributes
@@ -466,9 +542,11 @@ describe('SearchAutocompleteList', () => {
                 {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     dateFnsLocale: undefined,
+                    convertToDisplayString: TestHelper.convertToDisplayString,
                     conciergeReportID: undefined,
                     isSearching: true,
                 },
+                undefined,
             ),
             isLoading: false,
             loadMore: jest.fn(),
@@ -501,7 +579,13 @@ describe('SearchAutocompleteList', () => {
             reportActionID: '5001',
             actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.CORPORATE_UPGRADE,
             created: '2026-01-01 00:00:00.000',
-            message: [{type: CONST.REPORT.MESSAGE.TYPE.COMMENT, html: 'upgraded this workspace', text: 'upgraded this workspace'}],
+            message: [
+                {
+                    type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
+                    html: 'upgraded this workspace',
+                    text: 'upgraded this workspace',
+                },
+            ],
             originalMessage: {},
         };
 
@@ -509,7 +593,13 @@ describe('SearchAutocompleteList', () => {
             reportActionID: '5002',
             actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CATEGORY,
             created: '2026-01-02 00:00:00.000',
-            message: [{type: CONST.REPORT.MESSAGE.TYPE.COMMENT, html: rawServerMessage, text: rawServerMessage}],
+            message: [
+                {
+                    type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
+                    html: rawServerMessage,
+                    text: rawServerMessage,
+                },
+            ],
             originalMessage: {
                 categoryName: 'Advertising',
                 updatedField: 'areAttendeesRequired',
@@ -530,21 +620,32 @@ describe('SearchAutocompleteList', () => {
             policyID,
             parentReportID: adminsReportID,
             parentReportActionID: upgradeAction.reportActionID,
-            participants: {[CURRENT_USER_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS}},
+            participants: {
+                [CURRENT_USER_ACCOUNT_ID]: {
+                    notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+                },
+            },
             lastMessageText: rawServerMessage,
         };
 
         await IntlStore.load(CONST.LOCALES.EN);
         await waitForBatchedUpdates();
-        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${adminsReportID}`, {[upgradeAction.reportActionID]: upgradeAction});
-        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${threadReportID}`, {[categoryAction.reportActionID]: categoryAction});
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${adminsReportID}`, {
+            [upgradeAction.reportActionID]: upgradeAction,
+        });
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${threadReportID}`, {
+            [categoryAction.reportActionID]: categoryAction,
+        });
         await Onyx.multiSet({
             [ONYXKEYS.BETAS]: mockedBetas,
             [ONYXKEYS.PERSONAL_DETAILS_LIST]: mockedPersonalDetails,
         });
         await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${adminsReportID}`, adminsReport);
         await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${threadReportID}`, threadReport);
-        await Onyx.set(ONYXKEYS.SESSION, {accountID: CURRENT_USER_ACCOUNT_ID, email: 'test@test.com'});
+        await Onyx.set(ONYXKEYS.SESSION, {
+            accountID: CURRENT_USER_ACCOUNT_ID,
+            email: 'test@test.com',
+        });
         await flushAllUpdates();
 
         const reportAttributes = await OnyxUtils.get(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
@@ -559,9 +660,11 @@ describe('SearchAutocompleteList', () => {
                 {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     dateFnsLocale: undefined,
+                    convertToDisplayString: TestHelper.convertToDisplayString,
                     conciergeReportID: undefined,
                     isSearching: true,
                 },
+                undefined,
             ),
             isLoading: false,
             loadMore: jest.fn(),
@@ -604,9 +707,31 @@ describe('SearchAutocompleteList', () => {
             getSearchOptionsSpy.mockRestore();
         });
 
+        it('searches reports and users for an active query', async () => {
+            await waitForBatchedUpdates();
+            await Onyx.multiSet({
+                ...mockedReports,
+                [ONYXKEYS.PERSONAL_DETAILS_LIST]: mockedPersonalDetails,
+                [ONYXKEYS.BETAS]: mockedBetas,
+            });
+
+            render(<SearchRouterWrapper />);
+            await flushAllUpdates();
+
+            const textInput = screen.getByTestId('search-autocomplete-text-input');
+            fireEvent.changeText(textInput, 'Alice');
+            await flushAllUpdates();
+
+            const requestedCommands = jest.mocked(API.read).mock.calls.map(([command]) => command);
+            expect(requestedCommands).toEqual(expect.arrayContaining([READ_COMMANDS.SEARCH_FOR_REPORTS, READ_COMMANDS.SEARCH_FOR_USERS]));
+        });
+
         it('should display "Recent chats" section when query is empty', async () => {
             const recentSearches: Record<string, {query: string; timestamp: string}> = {};
-            recentSearches['2024-01-01T00:00:00'] = {query: 'type:expense', timestamp: '2024-01-01T00:00:00'};
+            recentSearches['2024-01-01T00:00:00'] = {
+                query: 'type:expense',
+                timestamp: '2024-01-01T00:00:00',
+            };
 
             await waitForBatchedUpdates();
             await Onyx.multiSet({
@@ -629,7 +754,10 @@ describe('SearchAutocompleteList', () => {
 
         it('should keep "Recent chats" header when an active search query is entered', async () => {
             const recentSearches: Record<string, {query: string; timestamp: string}> = {};
-            recentSearches['2024-01-01T00:00:00'] = {query: 'type:expense', timestamp: '2024-01-01T00:00:00'};
+            recentSearches['2024-01-01T00:00:00'] = {
+                query: 'type:expense',
+                timestamp: '2024-01-01T00:00:00',
+            };
 
             await waitForBatchedUpdates();
             await Onyx.multiSet({
@@ -661,7 +789,10 @@ describe('SearchAutocompleteList', () => {
 
         it('should return to "Recent chats" section when search query is cleared', async () => {
             const recentSearches: Record<string, {query: string; timestamp: string}> = {};
-            recentSearches['2024-01-01T00:00:00'] = {query: 'type:expense', timestamp: '2024-01-01T00:00:00'};
+            recentSearches['2024-01-01T00:00:00'] = {
+                query: 'type:expense',
+                timestamp: '2024-01-01T00:00:00',
+            };
 
             await waitForBatchedUpdates();
             await Onyx.multiSet({
@@ -699,7 +830,10 @@ describe('SearchAutocompleteList', () => {
 
         it('should preserve frozen local result order when server results arrive', async () => {
             const recentSearches: Record<string, {query: string; timestamp: string}> = {};
-            recentSearches['2024-01-01T00:00:00'] = {query: 'type:expense', timestamp: '2024-01-01T00:00:00'};
+            recentSearches['2024-01-01T00:00:00'] = {
+                query: 'type:expense',
+                timestamp: '2024-01-01T00:00:00',
+            };
 
             await waitForBatchedUpdates();
             await Onyx.multiSet({
@@ -727,17 +861,55 @@ describe('SearchAutocompleteList', () => {
                 expect(screen.getByText('Recent chats')).toBeTruthy();
             });
 
+            const uncachedUserOption = mockedOptions.personalDetails.at(0);
+            if (!uncachedUserOption) {
+                throw new Error('Expected a personal detail option fixture');
+            }
+
             // Now simulate server results arriving by updating the mock to return results
-            // in a DIFFERENT order, plus a new server-only result.
+            // in a DIFFERENT order, plus new server-only report and user results.
             getSearchOptionsSpy.mockReturnValue({
                 options: {
                     recentReports: [
-                        {reportID: '103', keyForList: '103', text: 'Charlie Report', alternateText: 'charlie alt', lastMessageText: 'hey'},
-                        {reportID: '101', keyForList: '101', text: 'Alice Report', alternateText: 'alice alt', lastMessageText: 'hello'},
-                        {reportID: '102', keyForList: '102', text: 'Bob Report', alternateText: 'bob alt', lastMessageText: 'hi'},
-                        {reportID: '201', keyForList: '201', text: 'NewServer Report', alternateText: 'server alt', lastMessageText: 'new'},
+                        {
+                            reportID: '103',
+                            keyForList: '103',
+                            text: 'Charlie Report',
+                            alternateText: 'charlie alt',
+                            lastMessageText: 'hey',
+                        },
+                        {
+                            reportID: '101',
+                            keyForList: '101',
+                            text: 'Alice Report',
+                            alternateText: 'alice alt',
+                            lastMessageText: 'hello',
+                        },
+                        {
+                            reportID: '102',
+                            keyForList: '102',
+                            text: 'Bob Report',
+                            alternateText: 'bob alt',
+                            lastMessageText: 'hi',
+                        },
+                        {
+                            reportID: '201',
+                            keyForList: '201',
+                            text: 'NewServer Report',
+                            alternateText: 'server alt',
+                            lastMessageText: 'new',
+                        },
                     ],
-                    personalDetails: [],
+                    personalDetails: [
+                        {
+                            ...uncachedUserOption,
+                            accountID: 999,
+                            keyForList: '999',
+                            login: 'uncached.test@example.com',
+                            text: 'Uncached Test User',
+                            alternateText: 'uncached.test@example.com',
+                        },
+                    ],
                     currentUserOption: null,
                     userToInvite: null,
                 },
@@ -765,6 +937,7 @@ describe('SearchAutocompleteList', () => {
 
             // Verify the new server-only result appears
             expect(screen.getByText('NewServer Report')).toBeTruthy();
+            expect(screen.getByText('Uncached Test User')).toBeTruthy();
 
             // Verify that local results maintain their FROZEN order (Alice < Bob < Charlie)
             // even though the mock now returns them as Charlie, Alice, Bob.
@@ -793,7 +966,10 @@ describe('SearchAutocompleteList', () => {
         // the first result.
         it('should focus the first matched chat so submitting opens it instead of running a search', async () => {
             const recentSearches: Record<string, {query: string; timestamp: string}> = {};
-            recentSearches['2024-01-01T00:00:00'] = {query: 'type:expense', timestamp: '2024-01-01T00:00:00'};
+            recentSearches['2024-01-01T00:00:00'] = {
+                query: 'type:expense',
+                timestamp: '2024-01-01T00:00:00',
+            };
 
             await waitForBatchedUpdates();
             await Onyx.multiSet({

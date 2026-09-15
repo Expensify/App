@@ -83,8 +83,10 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
     const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector});
     const policy = policyDraft?.id ? policyDraft : policyProp;
     const policyID = policy?.id;
+    const routePolicyID = route.params?.policyID;
+
     const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policyID}`);
-    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${route.params?.policyID}`);
+    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${routePolicyID}`);
     const workspaceAccountID = useWorkspaceAccountID(policyID);
     const {shouldShowEnterCredentialsError} = useGetReceiptPartnersIntegrationData(policyID);
     const {shouldShowRbrForWorkspaceAccountID} = useCardFeedErrors();
@@ -97,7 +99,6 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
         'Document',
         'ExpensifyAppIcon',
         'ExpensifyCard',
-        'Feed',
         'Folder',
         'Gear',
         'Hashtag',
@@ -111,6 +112,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
         'LuggageWithLines',
         'Clock',
         'Bolt',
+        'Bot',
     ]);
 
     const policyName = policy?.name ?? '';
@@ -141,10 +143,10 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
     const prevShouldShowNotFoundPage = usePrevious(computedShouldShowNotFoundPage);
     const shouldShowNotFoundPage = computedShouldShowNotFoundPage || !!prevShouldShowNotFoundPage;
     const fetchPolicyData = () => {
-        if (policyDraft?.id || !isFocused) {
+        if (policyDraft?.id || !isFocused || !routePolicyID) {
             return;
         }
-        openPolicyInitialPage(route.params.policyID);
+        openPolicyInitialPage(routePolicyID);
     };
     useNetwork({onReconnect: fetchPolicyData});
     useFocusEffect(
@@ -180,7 +182,6 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
         previousPendingFields: prevPendingFields,
         shouldShowEnterCredentialsError,
         shouldShowRBR,
-        isRulesRevampBetaEnabled: isBetaEnabled(CONST.BETAS.RULES_REVAMP),
         isVendorMatchingBetaEnabled: isBetaEnabled(CONST.BETAS.VENDOR_MATCHING),
         convertToDisplayString,
     }).map((item) => ({
@@ -289,3 +290,4 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
 }
 
 export default withPolicyAndFullscreenLoading(WorkspaceInitialPage);
+export {WorkspaceInitialPage};

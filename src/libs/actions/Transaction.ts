@@ -10,7 +10,6 @@ import type {
     TransactionThreadInfo,
 } from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
-import {getCurrencySymbol} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {toLocaleDigit} from '@libs/LocaleDigitUtils';
@@ -77,6 +76,7 @@ import type {
     ReportAction,
     ReportActions,
     ReviewDuplicates,
+    Rule,
     Transaction,
     TransactionViolation,
     TransactionViolations,
@@ -509,6 +509,7 @@ type DismissDuplicateTransactionViolationProps = {
     policy: OnyxEntry<Policy>;
     isASAPSubmitBetaEnabled: boolean;
     allTransactions: OnyxCollection<Transaction>;
+    rules: OnyxCollection<Rule>;
     currentTransactionViolations?: Array<{
         transactionID: string;
         violations: TransactionViolations;
@@ -527,6 +528,7 @@ function dismissDuplicateTransactionViolation({
     policy,
     isASAPSubmitBetaEnabled,
     allTransactions,
+    rules,
     currentTransactionViolations = [],
     isTrackIntentUser,
 }: DismissDuplicateTransactionViolationProps) {
@@ -558,6 +560,7 @@ function dismissDuplicateTransactionViolation({
             hasViolations: hasOtherViolationsBesideDuplicates,
             isASAPSubmitBetaEnabled,
             isTrackIntentUser,
+            rules,
         });
 
         optimisticData.push({
@@ -853,6 +856,7 @@ type ChangeTransactionsReportProps = {
     transactions: Transaction[];
     allTransactionViolation?: OnyxCollection<TransactionViolation[]>;
     reports: OnyxCollection<Report>;
+    rules: OnyxCollection<Rule>;
     /** Report IDs that should be skipped when generating Onyx updates (e.g. because they are being deleted) */
     skippedReportIDs?: string[];
     isTrackIntentUser: boolean | undefined;
@@ -860,6 +864,7 @@ type ChangeTransactionsReportProps = {
     selfDMReportActions: OnyxEntry<ReportActions>;
     delegateAccountID: number | undefined;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
+    getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol'];
 };
 
 function getChangeTransactionsReportOnyxData({
@@ -874,12 +879,14 @@ function getChangeTransactionsReportOnyxData({
     transactions,
     allTransactionViolation = {},
     reports,
+    rules,
     skippedReportIDs,
     isTrackIntentUser,
     personalPolicyOutputCurrency,
     selfDMReportActions,
     delegateAccountID,
     getCurrencyDecimals,
+    getCurrencySymbol,
 }: ChangeTransactionsReportProps) {
     const reportID = newReport?.reportID ?? CONST.REPORT.UNREPORTED_REPORT_ID;
 
@@ -1654,7 +1661,7 @@ function getChangeTransactionsReportOnyxData({
         let movedAction;
         if (reportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
             movedAction = buildOptimisticUnreportedTransactionAction(transactionThreadReportID, oldReportID);
-        } else if (!isOpenReport(oldReport)) {
+        } else if (!isOpenReport(newReport)) {
             movedAction = buildOptimisticMovedTransactionAction(transactionThreadReportID, oldReportID);
         }
 
@@ -1939,6 +1946,7 @@ function getChangeTransactionsReportOnyxData({
             predictedNextStatus,
             shouldFixViolations: shouldFixViolationsForReport,
             isTrackIntentUser,
+            rules,
         });
 
         const optimisticPendingFields = {

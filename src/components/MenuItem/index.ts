@@ -5,7 +5,8 @@
  * imports keep working), extended with the compound sub-components following the
  * composition-over-configuration pattern.
  *
- * The row's accessibility label is derived from the `Title`/`Description` text.
+ * The row's accessibility label is derived from the text leaves, announced top line first and followed by the
+ * hints trailing leaves register.
  *
  * @example Simple navigation row
  * ```tsx
@@ -13,7 +14,9 @@
  *
  * <MenuItem.Root onPress={onNavigate}>
  *     <MenuItem.Row>
- *         <MenuItem.Icon src={icons.Gear} />
+ *         <MenuItem.Leading>
+ *             <MenuItem.Icon src={icons.Gear} />
+ *         </MenuItem.Leading>
  *         <MenuItem.Content>
  *             <MenuItem.Title>{translate('common.settings')}</MenuItem.Title>
  *         </MenuItem.Content>
@@ -25,24 +28,38 @@
  * ```
  */
 import MenuItemContent from './layout/MenuItemContent';
+import MenuItemLeading from './layout/MenuItemLeading';
 import MenuItemRoot from './layout/MenuItemRoot';
 import MenuItemRow from './layout/MenuItemRow';
 import MenuItemTrailing from './layout/MenuItemTrailing';
+import MenuItemDescription from './leaves/content/MenuItemDescription';
+import MenuItemFieldName from './leaves/content/MenuItemFieldName';
+import MenuItemFieldNamePlaceholder from './leaves/content/MenuItemFieldNamePlaceholder';
+import MenuItemFieldValue from './leaves/content/MenuItemFieldValue';
+import MenuItemLabel from './leaves/content/MenuItemLabel';
+import MenuItemTitle from './leaves/content/MenuItemTitle';
 import MenuItemIcon from './leaves/leading/MenuItemIcon';
-import MenuItemDescription from './leaves/text/MenuItemDescription';
-import MenuItemTitle from './leaves/text/MenuItemTitle';
-import MenuItemChevron from './leaves/trailing/MenuItemChevron';
+import MenuItemChevron from './leaves/trailing/icons/MenuItemChevron';
+import MenuItemNewWindowIcon from './leaves/trailing/icons/MenuItemNewWindowIcon';
+import MenuItemRightLabel from './leaves/trailing/MenuItemRightLabel';
 import LegacyMenuItem from './MenuItem';
 
 const MenuItem = Object.assign(LegacyMenuItem, {
     Root: MenuItemRoot,
     Row: MenuItemRow,
+    Leading: MenuItemLeading,
     Content: MenuItemContent,
     Trailing: MenuItemTrailing,
     Icon: MenuItemIcon,
+    Label: MenuItemLabel,
     Title: MenuItemTitle,
     Description: MenuItemDescription,
+    FieldName: MenuItemFieldName,
+    FieldNamePlaceholder: MenuItemFieldNamePlaceholder,
+    FieldValue: MenuItemFieldValue,
     Chevron: MenuItemChevron,
+    NewWindowIcon: MenuItemNewWindowIcon,
+    RightLabel: MenuItemRightLabel,
 });
 
 export default MenuItem;

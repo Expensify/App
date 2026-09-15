@@ -1,6 +1,7 @@
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import type {Section as SelectionListSection} from '@components/SelectionList/SelectionListWithSections/types';
 
+import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 import type {PrivateIsArchivedMap} from '@hooks/usePrivateIsArchivedMap';
 
 import type {OptionData} from '@libs/ReportUtils';
@@ -118,6 +119,9 @@ type LazyHydrationContext = {
 
     /** Locale used when the option list was built. */
     translate: LocalizedTranslate;
+
+    /** Currency formatter used when the option list was built. */
+    convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
 };
 
 type SearchOption<T> = SearchOptionData & {
@@ -270,6 +274,7 @@ type IsValidReportsConfig = Pick<
 
 type GetOptionsConfig = {
     dateFnsLocale: DateFnsLocale | undefined;
+    convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
     excludeLogins?: Record<string, boolean>;
     excludeFromSuggestionsOnly?: Record<string, boolean>;
     includeCurrentUser?: boolean;
@@ -309,6 +314,7 @@ type GetUserToInviteConfig = {
     countryCode?: number;
     loginList: OnyxEntry<Login>;
     currentUserEmail: string;
+    convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
 } & Pick<GetOptionsConfig, 'selectedOptions' | 'showChatPreviewLine'>;
 
 type MemberForList = {
@@ -351,6 +357,7 @@ type PreviewConfig = {
 
 type FilterUserToInviteConfig = Pick<GetUserToInviteConfig, 'selectedOptions' | 'shouldAcceptName' | 'searchInputValue'> & {
     dateFnsLocale: DateFnsLocale | undefined;
+    convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
     canInviteUser?: boolean;
     excludeLogins?: Record<string, boolean>;
 };

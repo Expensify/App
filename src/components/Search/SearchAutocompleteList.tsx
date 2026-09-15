@@ -8,6 +8,7 @@ import type {Section, SelectionListWithSectionsHandle} from '@components/Selecti
 
 import useAutocompleteSuggestions from '@hooks/useAutocompleteSuggestions';
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebounce from '@hooks/useDebounce';
 import useDebouncedAccessibilityAnnouncement from '@hooks/useDebouncedAccessibilityAnnouncement';
@@ -76,7 +77,6 @@ type SearchAutocompleteListProps = {
     /** Any extra sections that should be displayed in the router list. */
     getAdditionalSections?: GetAdditionalSectionsCallback;
 
-    /** Callback to call when an item is clicked/selected */
     onListItemPress: (item: OptionData | SearchQueryItem) => void;
 
     /** Whether to subscribe to KeyboardShortcut arrow keys events */
@@ -91,7 +91,6 @@ type SearchAutocompleteListProps = {
 
     /** Map of display values to actual IDs for filters (e.g. workspace name -> policy ID). Used to exclude by ID when multiple options share the same name. */
     autocompleteSubstitutions?: SubstitutionMap;
-    /** Reference to the outer element */
     ref?: ForwardedRef<SelectionListWithSectionsHandle>;
 };
 
@@ -148,7 +147,6 @@ function SearchRouterItem(props: UserListItemProps<AutocompleteListItem> | Searc
     return (
         <BareUserListItem
             item={item}
-            keyForList={item.keyForList}
             isFocused={isFocused}
             showTooltip={showTooltip}
             isDisabled={isDisabled}
@@ -181,10 +179,11 @@ function SearchAutocompleteList({
 }: SearchAutocompleteListProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare, formatPhoneNumber, dateFnsLocale} = useLocalize();
+    const {convertToDisplayString} = useCurrencyListActions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const contentContainerStyle = useBottomSafeSafeAreaPaddingStyle({
         addOfflineIndicatorBottomSafeAreaPadding: true,
-        style: styles.pb2,
+        style: [styles.pb2, styles.ph2],
     });
 
     const [betas] = useOnyx(ONYXKEYS.BETAS);
@@ -193,7 +192,9 @@ function SearchAutocompleteList({
     const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT);
     const [recentSearches, recentSearchesMetadata] = useOnyx(ONYXKEYS.RECENT_SEARCHES);
     const [countryCode] = useOnyx(ONYXKEYS.COUNTRY_CODE);
-    const [loginList] = useOnyx(ONYXKEYS.LOGINS, {selector: expensifyLoginsSelector});
+    const [loginList] = useOnyx(ONYXKEYS.LOGINS, {
+        selector: expensifyLoginsSelector,
+    });
     const [policies = getEmptyObject<NonNullable<OnyxCollection<Policy>>>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [visibleReportActionsData] = useOnyx(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS);
     const sortedActions = useSortedActions();
@@ -204,6 +205,7 @@ function SearchAutocompleteList({
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const allCards = personalAndWorkspaceCards ?? CONST.EMPTY_OBJECT;
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const effectiveInputQueryValue = inputQueryValue ?? autocompleteQueryValue;
     const hasEffectiveInputQuery = effectiveInputQueryValue.trim() !== '';
     // hasEffectiveInputQuery reflects the immediate input (used to hide recent searches the moment the user types).
@@ -218,7 +220,9 @@ function SearchAutocompleteList({
     const currentUserAccountID = currentUserPersonalDetails.accountID;
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['History', 'MagnifyingGlass']);
     const taxRates = useMemo(() => getAllTaxRates(policies), [policies]);
-    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
+    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {
+        selector: isTrackIntentUserSelector,
+    });
 
     const {
         options: listOptions,
@@ -257,6 +261,7 @@ function SearchAutocompleteList({
         }
         return getSearchOptions({
             dateFnsLocale,
+            convertToDisplayString,
             options: listOptions,
             draftComments,
             betas: betas ?? [],
@@ -281,6 +286,7 @@ function SearchAutocompleteList({
             isTrackIntentUser,
             translate,
             getReportByID,
+            rules,
         }).options;
     }, [
         listOptions,
@@ -300,6 +306,8 @@ function SearchAutocompleteList({
         translate,
         getReportByID,
         dateFnsLocale,
+        convertToDisplayString,
+        rules,
     ]);
 
     const [isInitialRender, setIsInitialRender] = useState(true);
@@ -471,13 +479,17 @@ function SearchAutocompleteList({
     // debounce below so they don't fire a server request on every keystroke.
     const hasUpstreamDebounce = inputQueryValue !== undefined;
 
-    const debounceHandleSearch = useDebounce(() => {
-        if (!handleSearch || !autocompleteQueryWithoutFilters) {
-            return;
-        }
+    const debounceHandleSearch = useDebounce(
+        () => {
+            if (!handleSearch || !autocompleteQueryWithoutFilters) {
+                return;
+            }
 
-        handleSearch(autocompleteQueryWithoutFilters);
-    }, CONST.TIMING.SEARCH_OPTION_LIST_DEBOUNCE_TIME);
+            handleSearch(autocompleteQueryWithoutFilters);
+        },
+        CONST.TIMING.SEARCH_OPTION_LIST_DEBOUNCE_TIME,
+        {maxWait: CONST.TIMING.SEARCH_OPTION_LIST_DEBOUNCE_TIME},
+    );
 
     useEffect(() => {
         if (!handleSearch || !autocompleteQueryWithoutFilters) {
@@ -504,7 +516,10 @@ function SearchAutocompleteList({
         };
 
         if (searchQueryItems && searchQueryItems.length > 0) {
-            pushSection({data: searchQueryItems as AutocompleteListItem[], sectionIndex: sectionIndex++});
+            pushSection({
+                data: searchQueryItems as AutocompleteListItem[],
+                sectionIndex: sectionIndex++,
+            });
         }
 
         const additionalSections = getAdditionalSections?.(searchOptions, sectionIndex);
@@ -517,7 +532,11 @@ function SearchAutocompleteList({
         }
 
         if (!hasEffectiveInputQuery && recentSearchesData && recentSearchesData.length > 0) {
-            pushSection({title: translate('search.recentSearches'), data: recentSearchesData as AutocompleteListItem[], sectionIndex: sectionIndex++});
+            pushSection({
+                title: translate('search.recentSearches'),
+                data: recentSearchesData as AutocompleteListItem[],
+                sectionIndex: sectionIndex++,
+            });
         }
 
         const nextStyledRecentReports = recentReportsOptions.map((option) => {
@@ -546,7 +565,11 @@ function SearchAutocompleteList({
             // No active (debounced) query yet: single "Recent chats" section. This also covers the debounce window
             // right after the user starts typing, so we keep recent chats visible instead of flashing search rows.
             if (!isLoadingOptions) {
-                pushSection({title: translate('search.recentChats'), data: nextStyledRecentReports, sectionIndex: sectionIndex++});
+                pushSection({
+                    title: translate('search.recentChats'),
+                    data: nextStyledRecentReports,
+                    sectionIndex: sectionIndex++,
+                });
             } else {
                 pushSection({
                     title: translate('search.recentChats'),
@@ -572,7 +595,11 @@ function SearchAutocompleteList({
             localRows.sort((a, b) => (frozenLocalRank.get(getStableRankKey(a) ?? '') ?? 0) - (frozenLocalRank.get(getStableRankKey(b) ?? '') ?? 0));
 
             if (localRows.length > 0 || !isLoadingOptions) {
-                pushSection({title: translate('search.recentChats'), data: localRows, sectionIndex: sectionIndex++});
+                pushSection({
+                    title: translate('search.recentChats'),
+                    data: localRows,
+                    sectionIndex: sectionIndex++,
+                });
             } else {
                 // Options are still loading and no local results matched — show a skeleton so the
                 // user sees feedback instead of a bare section header.
@@ -615,10 +642,18 @@ function SearchAutocompleteList({
                 };
             });
 
-            pushSection({title: translate('search.suggestions'), data: autocompleteData, sectionIndex: sectionIndex++});
+            pushSection({
+                title: translate('search.suggestions'),
+                data: autocompleteData,
+                sectionIndex: sectionIndex++,
+            });
         }
 
-        return {sections: nextSections, styledRecentReports: nextStyledRecentReports, suggestionsCount: nextSuggestionsCount};
+        return {
+            sections: nextSections,
+            styledRecentReports: nextStyledRecentReports,
+            suggestionsCount: nextSuggestionsCount,
+        };
     }, [
         hasEffectiveInputQuery,
         hasActiveSearchResults,
@@ -788,14 +823,16 @@ function SearchAutocompleteList({
             ListItem={SearchRouterItem}
             style={{
                 containerStyle: [styles.mh100],
-                listStyle: [styles.ph2, styles.overscrollBehaviorContain],
+                listStyle: styles.overscrollBehaviorContain,
                 contentContainerStyle,
                 listItemWrapperStyle: [styles.pr0, styles.pl0],
                 sectionTitleStyles: styles.mhn2,
             }}
             shouldSingleExecuteRowSelect
             ref={setListRef}
-            initialScrollIndex={0}
+            // Index 0 pins the wide layout to the top, where `initiallyFocusedItemKey` resolves to a row below the
+            // "Recent searches" section. The narrow layout focuses no row, so it has no scroll target.
+            initialScrollIndex={shouldUseNarrowLayout ? undefined : 0}
             initiallyFocusedItemKey={!shouldUseNarrowLayout ? defaultFocusedKey : undefined}
             shouldHighlightInitiallyFocusedItem={!shouldUseNarrowLayout}
             shouldScrollToFocusedIndex={!isInitialRender}

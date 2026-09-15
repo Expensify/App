@@ -12,7 +12,6 @@ type PendingChatMember = {
     /** Action to be applied to the pending member of report */
     pendingAction: OnyxCommon.PendingAction;
 
-    /** Collection of errors to show to the user */
     errors?: OnyxCommon.Errors;
 };
 
@@ -20,10 +19,7 @@ type PendingChatMember = {
  *  are tracked in dedicated Onyx keys (RAM_ONLY_REPORT_LOADING_STATE, REPORT_PAGINATION_STATE,
  *  REPORT_LAST_VISIT_TIMES) and are NOT part of this type. */
 type ReportMetadata = {
-    /** Whether the current report is optimistic */
     isOptimisticReport?: boolean;
-
-    /** Pending members of the report */
     pendingChatMembers?: PendingChatMember[];
 
     /** Whether the report has violations or errors */
