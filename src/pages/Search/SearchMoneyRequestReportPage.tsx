@@ -29,7 +29,7 @@ import {getAllNonDeletedTransactions} from '@libs/MoneyRequestReportUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import type {RightModalNavigatorParamList} from '@libs/Navigation/types';
-import {getIOUActionForTransactionID, getReportAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
+import {getIOUActionForTransactionID, getReportAction} from '@libs/ReportActionsUtils';
 import {getReportName} from '@libs/ReportNameUtils';
 import {isMoneyRequestReportPendingDeletion, isValidReportIDFromPath} from '@libs/ReportUtils';
 import {cancelAllSendMessageSpans} from '@libs/telemetry/sendMessageSpans';
@@ -132,7 +132,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
     const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
     const {transactions: allReportTransactions, violations: allReportViolations} = useTransactionsAndViolationsForReport(reportIDFromRoute);
     const {transactionThreadReportID, effectiveTransactionThreadReportID, reportActions} = useTransactionThreadReportID(reportIDFromRoute);
-    const reportTransactions = useMemo(() => getAllNonDeletedTransactions(allReportTransactions, reportActions), [allReportTransactions, reportActions]);
+    const reportTransactions = useMemo(() => getAllNonDeletedTransactions(allReportTransactions, reportActions, isOffline, true), [allReportTransactions, reportActions, isOffline]);
     const visibleTransactions = useMemo(
         () => reportTransactions?.filter((transaction) => isOffline || transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE),
         [reportTransactions, isOffline],
@@ -165,16 +165,19 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
             return {snapshotTransaction: undefined, snapshotViolations: undefined};
         }
 
-        const transactionKey = Object.keys(snapshot.data).find((key) => key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION));
+        const snapshotData = snapshot.data as Record<string, unknown>;
+        const transactionKey = Object.keys(snapshotData).find((key) => {
+            if (!key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION)) {
+                return false;
+            }
+            const candidate = snapshotData[key];
+            return typeof candidate === 'object' && candidate !== null && 'reportID' in candidate && candidate.reportID === reportIDFromRoute;
+        });
         if (!transactionKey) {
             return {snapshotTransaction: undefined, snapshotViolations: undefined};
         }
 
-        const snapshotData = snapshot.data as Record<string, unknown>;
         const transaction = snapshotData[transactionKey] as Transaction;
-        if (transaction.reportID !== reportIDFromRoute) {
-            return {snapshotTransaction: undefined, snapshotViolations: undefined};
-        }
 
         const violationKey = `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`;
         const violations = snapshotData[violationKey] as TransactionViolations | undefined;
@@ -274,10 +277,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
         }
 
         // Check that reportActions belong to the current report to avoid using stale data from the previous report
-        const hasMatchingReportActions = reportActions.some((action) => {
-            const iouReportID = isMoneyRequestAction(action) ? action?.reportID : undefined;
-            return iouReportID?.toString() === reportIDFromRoute;
-        });
+        const hasMatchingReportActions = reportActions.some((action) => !!getReportAction(reportIDFromRoute, action.reportActionID));
 
         if (!hasMatchingReportActions && reportActions.length > 1) {
             return;
