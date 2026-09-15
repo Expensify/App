@@ -1,3 +1,4 @@
+import AutoGrowHeightInputContainer from '@components/AutoGrowHeightInputContainer';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
@@ -14,14 +15,11 @@ import {updateBulkEditDraftTransaction} from '@libs/actions/IOU/BulkEdit';
 import {addErrorMessage} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 
-import variables from '@styles/variables';
-
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/SearchEditMultipleDescriptionForm';
 
 import React from 'react';
-import {View} from 'react-native';
 
 function SearchEditMultipleDescriptionPage() {
     const {translate} = useLocalize();
@@ -60,6 +58,7 @@ function SearchEditMultipleDescriptionPage() {
                 onBackButtonPress={Navigation.goBack}
             />
             <FormProvider
+                submitFlexEnabled={false}
                 style={[styles.flexGrow1, styles.ph5]}
                 formID={ONYXKEYS.FORMS.SEARCH_EDIT_MULTIPLE_DESCRIPTION_FORM}
                 onSubmit={saveDescription}
@@ -67,23 +66,25 @@ function SearchEditMultipleDescriptionPage() {
                 submitButtonText={translate('common.save')}
                 enabledWhenOffline
             >
-                <View style={styles.mb4}>
-                    <InputWrapper
-                        valueType="string"
-                        InputComponent={TextInput}
-                        inputID={INPUT_IDS.DESCRIPTION}
-                        name={INPUT_IDS.DESCRIPTION}
-                        defaultValue={currentDescription}
-                        label={translate('common.description')}
-                        accessibilityLabel={translate('common.description')}
-                        role={CONST.ROLE.PRESENTATION}
-                        ref={inputCallbackRef}
-                        autoGrowHeight
-                        maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}
-                        shouldSubmitForm
-                        type="markdown"
-                    />
-                </View>
+                <AutoGrowHeightInputContainer style={styles.mb4}>
+                    {(maxAutoGrowHeight) => (
+                        <InputWrapper
+                            valueType="string"
+                            InputComponent={TextInput}
+                            inputID={INPUT_IDS.DESCRIPTION}
+                            name={INPUT_IDS.DESCRIPTION}
+                            defaultValue={currentDescription}
+                            label={translate('common.description')}
+                            accessibilityLabel={translate('common.description')}
+                            role={CONST.ROLE.PRESENTATION}
+                            ref={inputCallbackRef}
+                            autoGrowHeight
+                            maxAutoGrowHeight={maxAutoGrowHeight}
+                            shouldSubmitForm
+                            type="markdown"
+                        />
+                    )}
+                </AutoGrowHeightInputContainer>
             </FormProvider>
         </ScreenWrapper>
     );

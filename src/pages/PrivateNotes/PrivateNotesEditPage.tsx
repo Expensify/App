@@ -1,3 +1,4 @@
+import AutoGrowHeightInputContainer from '@components/AutoGrowHeightInputContainer';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -23,8 +24,6 @@ import updateMultilineInputRange from '@libs/updateMultilineInputRange';
 
 import type {WithReportAndPrivateNotesOrNotFoundProps} from '@pages/inbox/report/withReportAndPrivateNotesOrNotFound';
 import withReportAndPrivateNotesOrNotFound from '@pages/inbox/report/withReportAndPrivateNotesOrNotFound';
-
-import variables from '@styles/variables';
 
 import {clearPrivateNotesError, handleUserDeletedLinksInHtml, savePrivateNotesDraft, updatePrivateNotes} from '@userActions/Report';
 
@@ -140,6 +139,7 @@ function PrivateNotesEditPageInternal({route, report, accountID, privateNoteDraf
                 onCloseButtonPress={() => Navigation.dismissModal()}
             />
             <FormProvider
+                submitFlexEnabled={false}
                 formID={ONYXKEYS.FORMS.PRIVATE_NOTES_FORM}
                 onSubmit={savePrivateNote}
                 validate={validate}
@@ -155,41 +155,45 @@ function PrivateNotesEditPageInternal({route, report, accountID, privateNoteDraf
                             : 'privateNotes.personalNoteMessage',
                     )}
                 </Text>
-                <OfflineWithFeedback
-                    errors={{
-                        ...(report?.privateNotes?.[Number(route.params.accountID)]?.errors ?? ''),
-                    }}
-                    onClose={() => clearPrivateNotesError(report.reportID, Number(route.params.accountID))}
-                    style={[styles.mb3]}
-                >
-                    <InputWrapper
-                        InputComponent={TextInput}
-                        role={CONST.ROLE.PRESENTATION}
-                        inputID={INPUT_IDS.PRIVATE_NOTES}
-                        label={translate('privateNotes.composerLabel')}
-                        accessibilityLabel={translate('privateNotes.title')}
-                        autoCompleteType="off"
-                        autoCorrect={false}
-                        autoGrowHeight
-                        maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}
-                        defaultValue={privateNote}
-                        value={privateNote}
-                        onChangeText={(text: string) => {
-                            debouncedSavePrivateNote(text);
-                            setPrivateNote(text);
-                        }}
-                        ref={(el: AnimatedTextInputRef | null) => {
-                            if (!el) {
-                                return;
-                            }
-                            if (!privateNotesInput.current) {
-                                updateMultilineInputRange(el);
-                            }
-                            privateNotesInput.current = el;
-                        }}
-                        type="markdown"
-                    />
-                </OfflineWithFeedback>
+                <AutoGrowHeightInputContainer>
+                    {(maxAutoGrowHeight) => (
+                        <OfflineWithFeedback
+                            errors={{
+                                ...(report?.privateNotes?.[Number(route.params.accountID)]?.errors ?? ''),
+                            }}
+                            onClose={() => clearPrivateNotesError(report.reportID, Number(route.params.accountID))}
+                            style={[styles.mb3]}
+                        >
+                            <InputWrapper
+                                InputComponent={TextInput}
+                                role={CONST.ROLE.PRESENTATION}
+                                inputID={INPUT_IDS.PRIVATE_NOTES}
+                                label={translate('privateNotes.composerLabel')}
+                                accessibilityLabel={translate('privateNotes.title')}
+                                autoCompleteType="off"
+                                autoCorrect={false}
+                                autoGrowHeight
+                                maxAutoGrowHeight={maxAutoGrowHeight}
+                                defaultValue={privateNote}
+                                value={privateNote}
+                                onChangeText={(text: string) => {
+                                    debouncedSavePrivateNote(text);
+                                    setPrivateNote(text);
+                                }}
+                                ref={(el: AnimatedTextInputRef | null) => {
+                                    if (!el) {
+                                        return;
+                                    }
+                                    if (!privateNotesInput.current) {
+                                        updateMultilineInputRange(el);
+                                    }
+                                    privateNotesInput.current = el;
+                                }}
+                                type="markdown"
+                            />
+                        </OfflineWithFeedback>
+                    )}
+                </AutoGrowHeightInputContainer>
             </FormProvider>
         </ScreenWrapper>
     );

@@ -1,3 +1,4 @@
+import AutoGrowHeightInputContainer from '@components/AutoGrowHeightInputContainer';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
@@ -14,6 +15,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getPerDiemCustomUnit} from '@libs/PolicyUtils';
+import StringUtils from '@libs/StringUtils';
 
 import type {SettingsNavigatorParamList} from '@navigation/types';
 
@@ -45,7 +47,7 @@ function EditPerDiemDestinationPage({route}: EditPerDiemDestinationPageProps) {
 
     const selectedRate = customUnit?.rates?.[rateID];
 
-    const {inputCallbackRef} = useAutoFocusInput();
+    const {inputCallbackRef} = useAutoFocusInput(true);
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_PER_DIEM_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_PER_DIEM_FORM> => {
@@ -93,9 +95,10 @@ function EditPerDiemDestinationPage({route}: EditPerDiemDestinationPageProps) {
                     onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_PER_DIEM_DETAILS.getRoute(policyID, rateID, subRateID))}
                 />
                 <FormProvider
+                    submitFlexEnabled={false}
                     formID={ONYXKEYS.FORMS.WORKSPACE_PER_DIEM_FORM}
-                    validate={validate}
-                    onSubmit={editDestination}
+                    validate={(values) => validate({...values, [INPUT_IDS.DESTINATION]: StringUtils.lineBreaksToSpaces(values[INPUT_IDS.DESTINATION])})}
+                    onSubmit={(values) => editDestination({...values, [INPUT_IDS.DESTINATION]: StringUtils.lineBreaksToSpaces(values[INPUT_IDS.DESTINATION])})}
                     submitButtonText={translate('common.save')}
                     style={[styles.mh5, styles.flex1]}
                     enabledWhenOffline
@@ -105,15 +108,21 @@ function EditPerDiemDestinationPage({route}: EditPerDiemDestinationPageProps) {
                     <View style={styles.pb4}>
                         <Text style={[styles.sidebarLinkText, styles.optionAlternateText]}>{translate('workspace.perDiem.editDestinationSubtitle', selectedRate?.name ?? '')}</Text>
                     </View>
-                    <InputWrapper
-                        ref={inputCallbackRef}
-                        InputComponent={TextInput}
-                        defaultValue={selectedRate?.name}
-                        label={translate('common.destination')}
-                        accessibilityLabel={translate('common.destination')}
-                        inputID={INPUT_IDS.DESTINATION}
-                        role={CONST.ROLE.PRESENTATION}
-                    />
+                    <AutoGrowHeightInputContainer>
+                        {(maxAutoGrowHeight) => (
+                            <InputWrapper
+                                ref={inputCallbackRef}
+                                InputComponent={TextInput}
+                                defaultValue={selectedRate?.name}
+                                label={translate('common.destination')}
+                                accessibilityLabel={translate('common.destination')}
+                                inputID={INPUT_IDS.DESTINATION}
+                                role={CONST.ROLE.PRESENTATION}
+                                maxAutoGrowHeight={maxAutoGrowHeight}
+                                autoGrowSingleLine
+                            />
+                        )}
+                    </AutoGrowHeightInputContainer>
                 </FormProvider>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>

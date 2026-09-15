@@ -1,3 +1,4 @@
+import AutoGrowHeightInputContainer from '@components/AutoGrowHeightInputContainer';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
@@ -18,6 +19,7 @@ import {getCompanyCardFeed, getCompanyFeeds, getCustomOrFormattedFeedName, getDo
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import StringUtils from '@libs/StringUtils';
 import {isRequiredFulfilled} from '@libs/ValidationUtils';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
@@ -33,7 +35,6 @@ import INPUT_IDS from '@src/types/form/WorkspaceTaxCustomName';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import React, {useCallback} from 'react';
-import {View} from 'react-native';
 
 type WorkspaceCompanyCardsSettingsFeedNamePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS_SETTINGS_FEED_NAME>;
 
@@ -44,7 +45,7 @@ function WorkspaceCompanyCardsSettingsFeedNamePage({
 }: WorkspaceCompanyCardsSettingsFeedNamePageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {inputCallbackRef} = useAutoFocusInput();
+    const {inputCallbackRef} = useAutoFocusInput(true);
     const policy = usePolicy(policyID);
     const workspaceAccountID = policy?.policyAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const [lastSelectedFeed, lastSelectedFeedResult] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyID}`);
@@ -101,28 +102,32 @@ function WorkspaceCompanyCardsSettingsFeedNamePage({
                     <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.moreFeatures.companyCards.setFeedNameDescription')}</Text>
                 </Text>
                 <FormProvider
+                    submitFlexEnabled={false}
                     formID={ONYXKEYS.FORMS.WORKSPACE_COMPANY_CARD_FEED_NAME}
                     submitButtonText={translate('workspace.editor.save')}
                     style={[styles.flexGrow1, styles.ph5]}
                     scrollContextEnabled
                     enabledWhenOffline
-                    validate={validate}
-                    onSubmit={submit}
+                    validate={(values) => validate({...values, [INPUT_IDS.NAME]: StringUtils.lineBreaksToSpaces(values[INPUT_IDS.NAME])})}
+                    onSubmit={(values) => submit({...values, [INPUT_IDS.NAME]: StringUtils.lineBreaksToSpaces(values[INPUT_IDS.NAME])})}
                     shouldHideFixErrorsAlert
                     addBottomSafeAreaPadding
                 >
-                    <View style={styles.mb4}>
-                        <InputWrapper
-                            InputComponent={TextInput}
-                            role={CONST.ROLE.PRESENTATION}
-                            inputID={INPUT_IDS.NAME}
-                            label={translate('workspace.editor.nameInputLabel')}
-                            accessibilityLabel={translate('workspace.editor.nameInputLabel')}
-                            defaultValue={feedName}
-                            multiline={false}
-                            ref={inputCallbackRef}
-                        />
-                    </View>
+                    <AutoGrowHeightInputContainer style={styles.mb4}>
+                        {(maxAutoGrowHeight) => (
+                            <InputWrapper
+                                InputComponent={TextInput}
+                                role={CONST.ROLE.PRESENTATION}
+                                inputID={INPUT_IDS.NAME}
+                                label={translate('workspace.editor.nameInputLabel')}
+                                accessibilityLabel={translate('workspace.editor.nameInputLabel')}
+                                defaultValue={feedName}
+                                ref={inputCallbackRef}
+                                maxAutoGrowHeight={maxAutoGrowHeight}
+                                autoGrowSingleLine
+                            />
+                        )}
+                    </AutoGrowHeightInputContainer>
                 </FormProvider>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>

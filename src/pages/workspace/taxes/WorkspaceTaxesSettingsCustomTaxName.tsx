@@ -1,3 +1,4 @@
+import AutoGrowHeightInputContainer from '@components/AutoGrowHeightInputContainer';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
@@ -12,6 +13,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import StringUtils from '@libs/StringUtils';
 import {isRequiredFulfilled} from '@libs/ValidationUtils';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
@@ -28,7 +30,6 @@ import INPUT_IDS from '@src/types/form/WorkspaceTaxCustomName';
 import type {WorkspaceTaxCustomName} from '@src/types/form/WorkspaceTaxCustomName';
 
 import React, {useCallback} from 'react';
-import {View} from 'react-native';
 
 type WorkspaceTaxesSettingsCustomTaxNameProps = WithPolicyAndFullscreenLoadingProps &
     PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.TAXES_SETTINGS_CUSTOM_TAX_NAME>;
@@ -41,7 +42,7 @@ function WorkspaceTaxesSettingsCustomTaxName({
 }: WorkspaceTaxesSettingsCustomTaxNameProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {inputCallbackRef} = useAutoFocusInput();
+    const {inputCallbackRef} = useAutoFocusInput(true);
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_TAX_CUSTOM_NAME>) => {
@@ -79,28 +80,32 @@ function WorkspaceTaxesSettingsCustomTaxName({
                 <HeaderWithBackButton title={translate('workspace.taxes.customTaxName')} />
 
                 <FormProvider
+                    submitFlexEnabled={false}
                     formID={ONYXKEYS.FORMS.WORKSPACE_TAX_CUSTOM_NAME}
                     submitButtonText={translate('workspace.editor.save')}
                     style={[styles.flexGrow1, styles.ph5]}
                     scrollContextEnabled
                     enabledWhenOffline
-                    validate={validate}
-                    onSubmit={submit}
+                    validate={(values) => validate({...values, [INPUT_IDS.NAME]: StringUtils.lineBreaksToSpaces(values[INPUT_IDS.NAME])})}
+                    onSubmit={(values) => submit({...values, [INPUT_IDS.NAME]: StringUtils.lineBreaksToSpaces(values[INPUT_IDS.NAME])})}
                     shouldHideFixErrorsAlert
                     addBottomSafeAreaPadding
                 >
-                    <View style={styles.mb4}>
-                        <InputWrapper
-                            InputComponent={TextInput}
-                            role={CONST.ROLE.PRESENTATION}
-                            inputID={INPUT_IDS.NAME}
-                            label={translate('workspace.editor.nameInputLabel')}
-                            accessibilityLabel={translate('workspace.editor.nameInputLabel')}
-                            defaultValue={policy?.taxRates?.name}
-                            multiline={false}
-                            ref={inputCallbackRef}
-                        />
-                    </View>
+                    <AutoGrowHeightInputContainer style={styles.mb4}>
+                        {(maxAutoGrowHeight) => (
+                            <InputWrapper
+                                InputComponent={TextInput}
+                                role={CONST.ROLE.PRESENTATION}
+                                inputID={INPUT_IDS.NAME}
+                                label={translate('workspace.editor.nameInputLabel')}
+                                accessibilityLabel={translate('workspace.editor.nameInputLabel')}
+                                defaultValue={policy?.taxRates?.name}
+                                ref={inputCallbackRef}
+                                maxAutoGrowHeight={maxAutoGrowHeight}
+                                autoGrowSingleLine
+                            />
+                        )}
+                    </AutoGrowHeightInputContainer>
                 </FormProvider>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>

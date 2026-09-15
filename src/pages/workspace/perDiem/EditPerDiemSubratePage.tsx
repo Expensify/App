@@ -1,3 +1,4 @@
+import AutoGrowHeightInputContainer from '@components/AutoGrowHeightInputContainer';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
@@ -13,6 +14,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getPerDiemCustomUnit} from '@libs/PolicyUtils';
+import StringUtils from '@libs/StringUtils';
 
 import type {SettingsNavigatorParamList} from '@navigation/types';
 
@@ -44,7 +46,7 @@ function EditPerDiemSubratePage({route}: EditPerDiemSubratePageProps) {
     const selectedRate = customUnit?.rates?.[rateID];
     const selectedSubrate = selectedRate?.subRates?.find((subRate) => subRate.id === subRateID);
 
-    const {inputCallbackRef} = useAutoFocusInput();
+    const {inputCallbackRef} = useAutoFocusInput(true);
 
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_PER_DIEM_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_PER_DIEM_FORM> => {
         const errors: FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_PER_DIEM_FORM> = {};
@@ -86,24 +88,31 @@ function EditPerDiemSubratePage({route}: EditPerDiemSubratePageProps) {
                     onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_PER_DIEM_DETAILS.getRoute(policyID, rateID, subRateID))}
                 />
                 <FormProvider
+                    submitFlexEnabled={false}
                     formID={ONYXKEYS.FORMS.WORKSPACE_PER_DIEM_FORM}
-                    validate={validate}
-                    onSubmit={editSubrate}
+                    validate={(values) => validate({...values, [INPUT_IDS.SUBRATE]: StringUtils.lineBreaksToSpaces(values[INPUT_IDS.SUBRATE])})}
+                    onSubmit={(values) => editSubrate({...values, [INPUT_IDS.SUBRATE]: StringUtils.lineBreaksToSpaces(values[INPUT_IDS.SUBRATE])})}
                     submitButtonText={translate('common.save')}
                     style={[styles.mh5, styles.flex1]}
                     enabledWhenOffline
                     shouldHideFixErrorsAlert
                     addBottomSafeAreaPadding
                 >
-                    <InputWrapper
-                        ref={inputCallbackRef}
-                        InputComponent={TextInput}
-                        defaultValue={selectedSubrate?.name}
-                        label={translate('common.subrate')}
-                        accessibilityLabel={translate('common.subrate')}
-                        inputID={INPUT_IDS.SUBRATE}
-                        role={CONST.ROLE.PRESENTATION}
-                    />
+                    <AutoGrowHeightInputContainer>
+                        {(maxAutoGrowHeight) => (
+                            <InputWrapper
+                                ref={inputCallbackRef}
+                                InputComponent={TextInput}
+                                defaultValue={selectedSubrate?.name}
+                                label={translate('common.subrate')}
+                                accessibilityLabel={translate('common.subrate')}
+                                inputID={INPUT_IDS.SUBRATE}
+                                role={CONST.ROLE.PRESENTATION}
+                                maxAutoGrowHeight={maxAutoGrowHeight}
+                                autoGrowSingleLine
+                            />
+                        )}
+                    </AutoGrowHeightInputContainer>
                 </FormProvider>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>

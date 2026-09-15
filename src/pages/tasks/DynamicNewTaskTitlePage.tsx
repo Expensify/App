@@ -1,3 +1,4 @@
+import AutoGrowHeightInputContainer from '@components/AutoGrowHeightInputContainer';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapperWithRef from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
@@ -18,8 +19,6 @@ import Navigation from '@libs/Navigation/Navigation';
 import Parser from '@libs/Parser';
 import {getCommentLength} from '@libs/ReportUtils';
 
-import variables from '@styles/variables';
-
 import {setTitleValue} from '@userActions/Task';
 
 import CONST from '@src/CONST';
@@ -29,7 +28,6 @@ import INPUT_IDS from '@src/types/form/NewTaskForm';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import React from 'react';
-import {View} from 'react-native';
 
 function DynamicNewTaskTitlePage() {
     const styles = useThemeStyles();
@@ -78,6 +76,7 @@ function DynamicNewTaskTitlePage() {
                 onBackButtonPress={goBack}
             />
             <FormProvider
+                submitFlexEnabled={false}
                 formID={ONYXKEYS.FORMS.NEW_TASK_FORM}
                 submitButtonText={translate('common.next')}
                 style={[styles.mh5, styles.flexGrow1]}
@@ -86,20 +85,22 @@ function DynamicNewTaskTitlePage() {
                 enabledWhenOffline
                 shouldHideFixErrorsAlert
             >
-                <View style={styles.mb5}>
-                    <InputWrapperWithRef
-                        InputComponent={TextInput}
-                        role={CONST.ROLE.PRESENTATION}
-                        defaultValue={Parser.htmlToMarkdown(task?.title ?? '', {accountIDToName})}
-                        ref={inputCallbackRef}
-                        inputID={INPUT_IDS.TASK_TITLE}
-                        label={translate('task.title')}
-                        accessibilityLabel={translate('task.title')}
-                        autoGrowHeight
-                        type="markdown"
-                        maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}
-                    />
-                </View>
+                <AutoGrowHeightInputContainer style={styles.mb5}>
+                    {(maxAutoGrowHeight) => (
+                        <InputWrapperWithRef
+                            InputComponent={TextInput}
+                            role={CONST.ROLE.PRESENTATION}
+                            defaultValue={Parser.htmlToMarkdown(task?.title ?? '', {accountIDToName})}
+                            ref={inputCallbackRef}
+                            inputID={INPUT_IDS.TASK_TITLE}
+                            label={translate('task.title')}
+                            accessibilityLabel={translate('task.title')}
+                            autoGrowHeight
+                            type="markdown"
+                            maxAutoGrowHeight={maxAutoGrowHeight}
+                        />
+                    )}
+                </AutoGrowHeightInputContainer>
             </FormProvider>
         </ScreenWrapper>
     );

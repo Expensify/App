@@ -1,3 +1,4 @@
+import AutoGrowHeightInputContainer from '@components/AutoGrowHeightInputContainer';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -17,6 +18,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SearchSavedSearchParamList} from '@libs/Navigation/types';
 import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
+import StringUtils from '@libs/StringUtils';
 import {getFieldRequiredErrors} from '@libs/ValidationUtils';
 
 import CONST from '@src/CONST';
@@ -35,7 +37,7 @@ function SavedSearchRenamePage({route}: SavedSearchRenamePageProps) {
     const {id} = route.params;
     const [savedSearch] = useOnyx(ONYXKEYS.SAVED_SEARCHES, {selector: (savedSearches) => savedSearches?.[id]});
     const q = savedSearch?.query;
-    const {inputCallbackRef} = useAutoFocusInput();
+    const {inputCallbackRef} = useAutoFocusInput(true);
 
     const applyFiltersAndNavigate = (newName: string) => {
         if (!q) {
@@ -75,6 +77,7 @@ function SavedSearchRenamePage({route}: SavedSearchRenamePageProps) {
 
     return (
         <ScreenWrapper
+            shouldEnableMaxHeight
             testID="SavedSearchRenamePage"
             shouldShowOfflineIndicatorInWideScreen
             offlineIndicatorStyle={styles.mtAuto}
@@ -83,23 +86,30 @@ function SavedSearchRenamePage({route}: SavedSearchRenamePageProps) {
             <FullPageNotFoundView shouldShow={!savedSearch}>
                 <HeaderWithBackButton title={translate('common.rename')} />
                 <FormProvider
+                    submitFlexEnabled={false}
                     formID={ONYXKEYS.FORMS.SEARCH_SAVED_SEARCH_RENAME_FORM}
                     submitButtonText={translate('common.save')}
-                    onSubmit={onSaveSearch}
-                    validate={validate}
+                    onSubmit={(values) => onSaveSearch({...values, [INPUT_IDS.NAME]: StringUtils.lineBreaksToSpaces(values[INPUT_IDS.NAME])})}
+                    validate={(values) => validate({...values, [INPUT_IDS.NAME]: StringUtils.lineBreaksToSpaces(values[INPUT_IDS.NAME])})}
                     style={[styles.mh5, styles.flex1]}
                     enabledWhenOffline
                     shouldHideFixErrorsAlert
                 >
-                    <InputWrapper
-                        InputComponent={TextInput}
-                        inputID={INPUT_IDS.NAME}
-                        label={translate('search.searchName')}
-                        accessibilityLabel={translate('search.searchName')}
-                        role={CONST.ROLE.PRESENTATION}
-                        ref={inputCallbackRef}
-                        defaultValue={savedSearch?.name}
-                    />
+                    <AutoGrowHeightInputContainer>
+                        {(maxAutoGrowHeight) => (
+                            <InputWrapper
+                                InputComponent={TextInput}
+                                inputID={INPUT_IDS.NAME}
+                                label={translate('search.searchName')}
+                                accessibilityLabel={translate('search.searchName')}
+                                role={CONST.ROLE.PRESENTATION}
+                                ref={inputCallbackRef}
+                                defaultValue={savedSearch?.name}
+                                maxAutoGrowHeight={maxAutoGrowHeight}
+                                autoGrowSingleLine
+                            />
+                        )}
+                    </AutoGrowHeightInputContainer>
                 </FormProvider>
             </FullPageNotFoundView>
         </ScreenWrapper>
