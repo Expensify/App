@@ -45,7 +45,10 @@ import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 const topMostReportID = '23423423';
 
 function chatReportPolicyFromChat(chatReport: OnyxEntry<Report>): Policy {
-    return {...createRandomPolicy(0), id: chatReport?.policyID ?? CONST.POLICY.ID_FAKE};
+    return {
+        ...createRandomPolicy(0),
+        id: chatReport?.policyID ?? CONST.POLICY.ID_FAKE,
+    };
 }
 
 jest.mock('@src/libs/Navigation/Navigation', () => ({
@@ -111,7 +114,9 @@ describe('actions/IOU/PayMoneyRequest', () => {
             keys: ONYXKEYS,
             initialKeyStates: {
                 [ONYXKEYS.SESSION]: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
-                [ONYXKEYS.PERSONAL_DETAILS_LIST]: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
+                [ONYXKEYS.PERSONAL_DETAILS_LIST]: {
+                    [RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL},
+                },
             },
         });
         initOnyxDerivedValues();
@@ -173,6 +178,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                 isTrackIntentUser: false,
                 formatPhoneNumber,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
+                rules: undefined,
             });
             return waitForBatchedUpdates()
                 .then(
@@ -268,6 +274,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                         delegateAccountID: undefined,
                         isTrackIntentUser: false,
                         getCurrencyDecimals: getCurrencyDecimalsLocal,
+                        rules: undefined,
                     });
                     return waitForBatchedUpdates();
                 })
@@ -379,12 +386,15 @@ describe('actions/IOU/PayMoneyRequest', () => {
             let chatReport: OnyxEntry<Report>;
 
             mockFetch?.pause?.();
-            Onyx.set(ONYXKEYS.SESSION, {email: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID});
+            Onyx.set(ONYXKEYS.SESSION, {
+                email: CARLOS_EMAIL,
+                accountID: CARLOS_ACCOUNT_ID,
+            });
             return waitForBatchedUpdates()
                 .then(() => {
                     createWorkspace({
                         conciergeChat: undefined,
-                        policyOwnerEmail: CARLOS_EMAIL,
+                        policyOwner: {email: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID},
                         makeMeAdmin: true,
                         policyName: "Carlos's Workspace",
                         introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
@@ -394,6 +404,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                         isSelfTourViewed: false,
                         betas: undefined,
                         hasActiveAdminPolicies: false,
+                        hasOwnedPaidPolicy: false,
                         activePolicy: undefined,
                     });
                     return waitForBatchedUpdates();
@@ -420,7 +431,10 @@ describe('actions/IOU/PayMoneyRequest', () => {
                             participantParams: {
                                 payeeEmail: RORY_EMAIL,
                                 payeeAccountID: RORY_ACCOUNT_ID,
-                                participant: {login: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID},
+                                participant: {
+                                    login: CARLOS_EMAIL,
+                                    accountID: CARLOS_ACCOUNT_ID,
+                                },
                             },
                             transactionParams: {
                                 amount,
@@ -445,6 +459,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                             isTrackIntentUser: false,
                             formatPhoneNumber,
                             getCurrencyDecimals: getCurrencyDecimalsLocal,
+                            rules: undefined,
                         });
                     }
                     return waitForBatchedUpdates();
@@ -484,6 +499,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                         delegateAccountID: undefined,
                         isTrackIntentUser: false,
                         getCurrencyDecimals: getCurrencyDecimalsLocal,
+                        rules: undefined,
                     });
                     return waitForBatchedUpdates();
                 })
@@ -550,12 +566,15 @@ describe('actions/IOU/PayMoneyRequest', () => {
             let expenseReport: OnyxEntry<Report>;
             let chatReport: OnyxEntry<Report>;
 
-            Onyx.set(ONYXKEYS.SESSION, {email: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID});
+            Onyx.set(ONYXKEYS.SESSION, {
+                email: CARLOS_EMAIL,
+                accountID: CARLOS_ACCOUNT_ID,
+            });
             return waitForBatchedUpdates()
                 .then(() => {
                     createWorkspace({
                         conciergeChat: undefined,
-                        policyOwnerEmail: CARLOS_EMAIL,
+                        policyOwner: {email: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID},
                         makeMeAdmin: true,
                         policyName: "Carlos's Workspace",
                         introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
@@ -565,6 +584,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                         isSelfTourViewed: false,
                         betas: undefined,
                         hasActiveAdminPolicies: false,
+                        hasOwnedPaidPolicy: false,
                         activePolicy: undefined,
                     });
                     return waitForBatchedUpdates();
@@ -591,7 +611,10 @@ describe('actions/IOU/PayMoneyRequest', () => {
                             participantParams: {
                                 payeeEmail: RORY_EMAIL,
                                 payeeAccountID: RORY_ACCOUNT_ID,
-                                participant: {login: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID},
+                                participant: {
+                                    login: CARLOS_EMAIL,
+                                    accountID: CARLOS_ACCOUNT_ID,
+                                },
                             },
                             transactionParams: {
                                 amount,
@@ -616,6 +639,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                             isTrackIntentUser: false,
                             formatPhoneNumber,
                             getCurrencyDecimals: getCurrencyDecimalsLocal,
+                            rules: undefined,
                         });
                     }
                     return waitForBatchedUpdates();
@@ -656,6 +680,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                         delegateAccountID: undefined,
                         isTrackIntentUser: false,
                         getCurrencyDecimals: getCurrencyDecimalsLocal,
+                        rules: undefined,
                     });
                     return waitForBatchedUpdates();
                 })
@@ -713,6 +738,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
+                rules: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -800,6 +826,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                     delegateAccountID: DELEGATE_ACCOUNT_ID,
                     isTrackIntentUser: false,
                     getCurrencyDecimals: getCurrencyDecimalsLocal,
+                    rules: undefined,
                 });
 
                 await waitForBatchedUpdates();
@@ -859,17 +886,27 @@ describe('actions/IOU/PayMoneyRequest', () => {
             for (const iouAction of iouActions) {
                 actions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouAction.reportActionID}`] = iouAction;
             }
-            const actionCollectionDataSet: ReportActionsCollectionDataSet = {[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`]: actions};
+            const actionCollectionDataSet: ReportActionsCollectionDataSet = {
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`]: actions,
+            };
 
             return waitForBatchedUpdates()
-                .then(() => Onyx.multiSet({...transactionCollectionDataSet, ...actionCollectionDataSet}))
+                .then(() =>
+                    Onyx.multiSet({
+                        ...transactionCollectionDataSet,
+                        ...actionCollectionDataSet,
+                    }),
+                )
                 .then(() => {
-                    putOnHold(transaction1.transactionID, 'comment', iouReport.reportID, false, RORY_EMAIL, RORY_ACCOUNT_ID, undefined, false, undefined, []);
+                    putOnHold(transaction1.transactionID, 'comment', iouReport.reportID, false, RORY_EMAIL, RORY_ACCOUNT_ID, undefined, false, undefined, {rules: undefined, ancestors: []});
                     return waitForBatchedUpdates();
                 })
                 .then(() => {
                     // When partially paying  an iou report from the chat report via the report preview
-                    const partialPayChatReport = {reportID: topMostReportID, policyID: CONST.POLICY.ID_FAKE};
+                    const partialPayChatReport = {
+                        reportID: topMostReportID,
+                        policyID: CONST.POLICY.ID_FAKE,
+                    };
                     payMoneyRequest({
                         conciergeChat: undefined,
                         paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
@@ -888,6 +925,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                         delegateAccountID: undefined,
                         isTrackIntentUser: false,
                         getCurrencyDecimals: getCurrencyDecimalsLocal,
+                        rules: undefined,
                     });
                     return waitForBatchedUpdates();
                 })
@@ -988,6 +1026,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
+                rules: undefined,
             });
             await waitForBatchedUpdates();
             const newExpenseReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${newExpenseReportID}`);
@@ -1014,13 +1053,23 @@ describe('actions/IOU/PayMoneyRequest', () => {
             } as Report;
 
             const buildTransaction = (transactionID: string, amount: number, isScanFailed: boolean): Transaction => ({
-                ...buildOptimisticTransaction({transactionParams: {amount, currency: 'USD', reportID: '123', merchant: 'Valid merchant'}}),
+                ...buildOptimisticTransaction({
+                    transactionParams: {
+                        amount,
+                        currency: 'USD',
+                        reportID: '123',
+                        merchant: 'Valid merchant',
+                    },
+                }),
                 transactionID,
                 ...(isScanFailed
                     ? {
                           merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
                           iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
-                          receipt: {state: CONST.IOU.RECEIPT_STATE.SCAN_FAILED, source: 'receipt.jpg'},
+                          receipt: {
+                              state: CONST.IOU.RECEIPT_STATE.SCAN_FAILED,
+                              source: 'receipt.jpg',
+                          },
                       }
                     : {}),
             });
@@ -1086,6 +1135,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                     isTrackIntentUser: false,
                     conciergeChat: undefined,
                     getCurrencyDecimals: getCurrencyDecimalsLocal,
+                    rules: undefined,
                 });
 
             it('moves the scan-failed expense to a new report when another expense is being paid', async () => {
@@ -1171,6 +1221,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
+                rules: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -1225,6 +1276,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
+                rules: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -1312,7 +1364,10 @@ describe('actions/IOU/PayMoneyRequest', () => {
                 [reportPreview1.reportActionID]: reportPreview1,
                 [reportPreview2.reportActionID]: reportPreview2,
             };
-            await Onyx.merge(ONYXKEYS.SESSION, {accountID: currentUserAccountID, email: currentUserEmail});
+            await Onyx.merge(ONYXKEYS.SESSION, {
+                accountID: currentUserAccountID,
+                email: currentUserEmail,
+            });
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`, mockChatReportActions);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`, chatReport);
@@ -1322,7 +1377,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
 
             mockFetch?.pause?.();
 
-            markReportPaymentReceived(chatReport, reimbursedReport, currentUserAccountID, currentUserEmail, mockChatReportActions, false, undefined, getCurrencyDecimalsLocal);
+            markReportPaymentReceived(chatReport, reimbursedReport, currentUserAccountID, currentUserEmail, mockChatReportActions, false, undefined, getCurrencyDecimalsLocal, undefined);
             await waitForBatchedUpdates();
 
             const updatedChatReport = await new Promise<OnyxEntry<Report>>((resolve) => {
@@ -1344,7 +1399,10 @@ describe('actions/IOU/PayMoneyRequest', () => {
             const policyID = generatePolicyID();
             const ownerAccountID = CARLOS_ACCOUNT_ID;
 
-            await Onyx.set(ONYXKEYS.SESSION, {email: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID});
+            await Onyx.set(ONYXKEYS.SESSION, {
+                email: CARLOS_EMAIL,
+                accountID: CARLOS_ACCOUNT_ID,
+            });
             const policy = {
                 ...createRandomPolicy(Number(policyID)),
                 id: policyID,
@@ -1395,6 +1453,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
+                rules: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -1406,7 +1465,10 @@ describe('actions/IOU/PayMoneyRequest', () => {
             const workspacePolicyID = generatePolicyID();
             const expensePolicyID = generatePolicyID();
 
-            await Onyx.set(ONYXKEYS.SESSION, {email: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID});
+            await Onyx.set(ONYXKEYS.SESSION, {
+                email: CARLOS_EMAIL,
+                accountID: CARLOS_ACCOUNT_ID,
+            });
 
             const workspacePolicy = {
                 ...createRandomPolicy(9001),
@@ -1465,6 +1527,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
+                rules: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -1475,7 +1538,10 @@ describe('actions/IOU/PayMoneyRequest', () => {
         it('should not navigate to restricted when chatReportPolicy passes billing check with future owner grace period', async () => {
             const policyID = generatePolicyID();
 
-            await Onyx.set(ONYXKEYS.SESSION, {email: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID});
+            await Onyx.set(ONYXKEYS.SESSION, {
+                email: CARLOS_EMAIL,
+                accountID: CARLOS_ACCOUNT_ID,
+            });
             const workspacePolicy = {
                 ...createRandomPolicy(9003),
                 id: policyID,
@@ -1525,6 +1591,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
+                rules: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -1565,6 +1632,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
+                rules: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -1679,7 +1747,10 @@ describe('actions/IOU/PayMoneyRequest', () => {
                 [outstandingReportPreview.reportActionID]: outstandingReportPreview,
             };
 
-            await Onyx.merge(ONYXKEYS.SESSION, {accountID: CURRENT_USER_ACCOUNT_ID, email: CURRENT_USER_EMAIL});
+            await Onyx.merge(ONYXKEYS.SESSION, {
+                accountID: CURRENT_USER_ACCOUNT_ID,
+                email: CURRENT_USER_EMAIL,
+            });
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`, chatReportActions);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`, chatReport);
@@ -1688,7 +1759,13 @@ describe('actions/IOU/PayMoneyRequest', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${outstandingTransaction.transactionID}`, outstandingTransaction);
             await waitForBatchedUpdates();
 
-            return {chatReport, reimbursedReport, outstandingReport, outstandingTransaction, chatReportActions};
+            return {
+                chatReport,
+                reimbursedReport,
+                outstandingReport,
+                outstandingTransaction,
+                chatReportActions,
+            };
         }
 
         const getOptimisticChatReportValue = (chatReportID: string) =>
@@ -1697,20 +1774,24 @@ describe('actions/IOU/PayMoneyRequest', () => {
         it('does nothing when the chat report is missing', () => {
             markReportPaymentReceived(
                 undefined,
-                {...createRandomReport(1, undefined), type: CONST.REPORT.TYPE.EXPENSE},
+                {
+                    ...createRandomReport(1, undefined),
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                },
                 CURRENT_USER_ACCOUNT_ID,
                 CURRENT_USER_EMAIL,
                 undefined,
                 false,
                 {},
                 getCurrencyDecimalsLocal,
+                undefined,
             );
 
             expect(writeSpy).not.toHaveBeenCalled();
         });
 
         it('does nothing when the IOU report is missing', () => {
-            markReportPaymentReceived(createRandomReport(1, undefined), undefined, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, undefined, false, {}, getCurrencyDecimalsLocal);
+            markReportPaymentReceived(createRandomReport(1, undefined), undefined, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, undefined, false, {}, getCurrencyDecimalsLocal, undefined);
 
             expect(writeSpy).not.toHaveBeenCalled();
         });
@@ -1720,7 +1801,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
             const {chatReport, reimbursedReport, chatReportActions} = await setUpChatWithOutstandingSibling();
 
             // When the submitter marks the payment as received
-            markReportPaymentReceived(chatReport, reimbursedReport, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, chatReportActions, false, {}, getCurrencyDecimalsLocal);
+            markReportPaymentReceived(chatReport, reimbursedReport, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, chatReportActions, false, {}, getCurrencyDecimalsLocal, undefined);
 
             // Then the expense report optimistically moves to the reimbursed state and the chat drops its iouReportID
             const [command, parameters] = getRequiredWriteCall(writeSpy.mock.calls, 0);
@@ -1733,7 +1814,9 @@ describe('actions/IOU/PayMoneyRequest', () => {
                 stateNum: CONST.REPORT.STATE_NUM.APPROVED,
                 hasOutstandingChildRequest: false,
             });
-            expect(getOptimisticChatReportValue(chatReport.reportID)).toMatchObject({iouReportID: null});
+            expect(getOptimisticChatReportValue(chatReport.reportID)).toMatchObject({
+                iouReportID: null,
+            });
         });
 
         it('adds an optimistic PAY report action carrying the "received payment" copy', async () => {
@@ -1741,7 +1824,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
             const {chatReport, reimbursedReport, chatReportActions} = await setUpChatWithOutstandingSibling();
 
             // When the submitter marks the payment as received
-            markReportPaymentReceived(chatReport, reimbursedReport, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, chatReportActions, false, {}, getCurrencyDecimalsLocal);
+            markReportPaymentReceived(chatReport, reimbursedReport, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, chatReportActions, false, {}, getCurrencyDecimalsLocal, undefined);
 
             // Then a PAY action is added to the expense report, reported to the API and pending
             const [, parameters] = getRequiredWriteCall(writeSpy.mock.calls, 0);
@@ -1774,10 +1857,12 @@ describe('actions/IOU/PayMoneyRequest', () => {
             const {chatReport, reimbursedReport, chatReportActions} = await setUpChatWithOutstandingSibling();
 
             // When the payment is marked as received with no violations
-            markReportPaymentReceived(chatReport, reimbursedReport, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, chatReportActions, false, {}, getCurrencyDecimalsLocal);
+            markReportPaymentReceived(chatReport, reimbursedReport, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, chatReportActions, false, {}, getCurrencyDecimalsLocal, undefined);
 
             // Then the chat keeps its outstanding flag because the sibling report is still awaiting the user
-            expect(getOptimisticChatReportValue(chatReport.reportID)).toMatchObject({hasOutstandingChildRequest: true});
+            expect(getOptimisticChatReportValue(chatReport.reportID)).toMatchObject({
+                hasOutstandingChildRequest: true,
+            });
         });
 
         it('clears the chat outstanding flag when the passed violations auto-reject every sibling transaction', async () => {
@@ -1792,12 +1877,17 @@ describe('actions/IOU/PayMoneyRequest', () => {
                 CURRENT_USER_EMAIL,
                 chatReportActions,
                 false,
-                {[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${outstandingTransaction.transactionID}`]: [autoRejectedViolation]},
+                {
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${outstandingTransaction.transactionID}`]: [autoRejectedViolation],
+                },
                 getCurrencyDecimalsLocal,
+                undefined,
             );
 
             // Then nothing is left for the user to act on, so the chat's outstanding flag is cleared
-            expect(getOptimisticChatReportValue(chatReport.reportID)).toMatchObject({hasOutstandingChildRequest: false});
+            expect(getOptimisticChatReportValue(chatReport.reportID)).toMatchObject({
+                hasOutstandingChildRequest: false,
+            });
         });
 
         it('reads violations from the passed argument and not from the global Onyx collection', async () => {
@@ -1807,10 +1897,12 @@ describe('actions/IOU/PayMoneyRequest', () => {
             await waitForBatchedUpdates();
 
             // When the payment is marked as received while an empty violations collection is passed in
-            markReportPaymentReceived(chatReport, reimbursedReport, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, chatReportActions, false, {}, getCurrencyDecimalsLocal);
+            markReportPaymentReceived(chatReport, reimbursedReport, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, chatReportActions, false, {}, getCurrencyDecimalsLocal, undefined);
 
             // Then the outstanding flag still reflects the argument (no auto-rejection), proving the global collection is ignored
-            expect(getOptimisticChatReportValue(chatReport.reportID)).toMatchObject({hasOutstandingChildRequest: true});
+            expect(getOptimisticChatReportValue(chatReport.reportID)).toMatchObject({
+                hasOutstandingChildRequest: true,
+            });
         });
 
         it('treats an undefined violations argument as no violations', async () => {
@@ -1820,10 +1912,12 @@ describe('actions/IOU/PayMoneyRequest', () => {
             await waitForBatchedUpdates();
 
             // When the caller has no violations loaded yet and passes undefined
-            markReportPaymentReceived(chatReport, reimbursedReport, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, chatReportActions, false, undefined, getCurrencyDecimalsLocal);
+            markReportPaymentReceived(chatReport, reimbursedReport, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, chatReportActions, false, undefined, getCurrencyDecimalsLocal, undefined);
 
             // Then it behaves like an empty collection rather than falling back to Onyx
-            expect(getOptimisticChatReportValue(chatReport.reportID)).toMatchObject({hasOutstandingChildRequest: true});
+            expect(getOptimisticChatReportValue(chatReport.reportID)).toMatchObject({
+                hasOutstandingChildRequest: true,
+            });
         });
 
         it('clears the report pending fields in successData and restores the previous reports in failureData', async () => {
@@ -1831,18 +1925,30 @@ describe('actions/IOU/PayMoneyRequest', () => {
             const {chatReport, reimbursedReport, chatReportActions} = await setUpChatWithOutstandingSibling();
 
             // When the submitter marks the payment as received
-            markReportPaymentReceived(chatReport, reimbursedReport, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, chatReportActions, false, {}, getCurrencyDecimalsLocal);
+            markReportPaymentReceived(chatReport, reimbursedReport, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, chatReportActions, false, {}, getCurrencyDecimalsLocal, undefined);
 
             // Then a server confirmation clears the pending fields
             const successReport = getRequiredOnyxUpdate(getOnyxDataArg(), 'successData', `${ONYXKEYS.COLLECTION.REPORT}${reimbursedReport.reportID}`, Onyx.METHOD.MERGE, true).value;
-            expect(successReport).toMatchObject({pendingFields: {preview: null, reimbursed: null, partial: null, nextStep: null}});
+            expect(successReport).toMatchObject({
+                pendingFields: {
+                    preview: null,
+                    reimbursed: null,
+                    partial: null,
+                    nextStep: null,
+                },
+            });
 
             // And a server rejection rolls both reports back to what they were before the optimistic write
             const failureIOUReport = getRequiredOnyxUpdate(getOnyxDataArg(), 'failureData', `${ONYXKEYS.COLLECTION.REPORT}${reimbursedReport.reportID}`, Onyx.METHOD.MERGE, true).value;
-            expect(failureIOUReport).toMatchObject({statusNum: reimbursedReport.statusNum, stateNum: reimbursedReport.stateNum});
+            expect(failureIOUReport).toMatchObject({
+                statusNum: reimbursedReport.statusNum,
+                stateNum: reimbursedReport.stateNum,
+            });
 
             const failureChatReport = getRequiredOnyxUpdate(getOnyxDataArg(), 'failureData', `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`, Onyx.METHOD.MERGE, true).value;
-            expect(failureChatReport).toMatchObject({hasOutstandingChildRequest: true});
+            expect(failureChatReport).toMatchObject({
+                hasOutstandingChildRequest: true,
+            });
         });
     });
 
@@ -1860,13 +1966,16 @@ describe('actions/IOU/PayMoneyRequest', () => {
             let chatReport: OnyxEntry<Report>;
 
             // Given a signed in account, which owns a workspace, and has a policy expense chat
-            Onyx.set(ONYXKEYS.SESSION, {email: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID});
+            Onyx.set(ONYXKEYS.SESSION, {
+                email: CARLOS_EMAIL,
+                accountID: CARLOS_ACCOUNT_ID,
+            });
             return waitForBatchedUpdates()
                 .then(() => {
                     // Which owns a workspace
                     createWorkspace({
                         conciergeChat: undefined,
-                        policyOwnerEmail: CARLOS_EMAIL,
+                        policyOwner: {email: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID},
                         makeMeAdmin: true,
                         policyName: "Carlos's Workspace",
                         introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
@@ -1876,6 +1985,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                         isSelfTourViewed: false,
                         betas: undefined,
                         hasActiveAdminPolicies: false,
+                        hasOwnedPaidPolicy: false,
                         activePolicy: undefined,
                     });
                     return waitForBatchedUpdates();
@@ -1897,7 +2007,10 @@ describe('actions/IOU/PayMoneyRequest', () => {
                             participantParams: {
                                 payeeEmail: RORY_EMAIL,
                                 payeeAccountID: RORY_ACCOUNT_ID,
-                                participant: {login: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID},
+                                participant: {
+                                    login: CARLOS_EMAIL,
+                                    accountID: CARLOS_ACCOUNT_ID,
+                                },
                             },
                             transactionParams: {
                                 amount,
@@ -1922,6 +2035,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                             isTrackIntentUser: false,
                             formatPhoneNumber,
                             getCurrencyDecimals: getCurrencyDecimalsLocal,
+                            rules: undefined,
                         });
                     }
                     return waitForBatchedUpdates();
@@ -1957,13 +2071,14 @@ describe('actions/IOU/PayMoneyRequest', () => {
                         delegateAccountID: undefined,
                         isTrackIntentUser: false,
                         getCurrencyDecimals: getCurrencyDecimalsLocal,
+                        rules: undefined,
                     });
                     return waitForBatchedUpdates();
                 })
                 .then(() => {
                     if (chatReport && expenseReport) {
                         // And when the payment is cancelled
-                        cancelPayment(expenseReport, chatReport, createMock<Policy>({}), true, CARLOS_ACCOUNT_ID, CARLOS_EMAIL, true, false);
+                        cancelPayment(expenseReport, chatReport, createMock<Policy>({}), true, CARLOS_ACCOUNT_ID, CARLOS_EMAIL, true, false, undefined);
                     }
                     return waitForBatchedUpdates();
                 })
@@ -1994,12 +2109,15 @@ describe('actions/IOU/PayMoneyRequest', () => {
             let chatReport: OnyxEntry<Report>;
 
             // Given a signed in account, which owns a workspace, and has a policy expense chat
-            Onyx.set(ONYXKEYS.SESSION, {email: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID});
+            Onyx.set(ONYXKEYS.SESSION, {
+                email: CARLOS_EMAIL,
+                accountID: CARLOS_ACCOUNT_ID,
+            });
             // Which owns a workspace
             await waitForBatchedUpdates();
             createWorkspace({
                 conciergeChat: undefined,
-                policyOwnerEmail: CARLOS_EMAIL,
+                policyOwner: {email: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID},
                 makeMeAdmin: true,
                 policyName: "Carlos's Workspace",
                 introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
@@ -2009,6 +2127,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                 isSelfTourViewed: false,
                 betas: undefined,
                 hasActiveAdminPolicies: false,
+                hasOwnedPaidPolicy: false,
                 activePolicy: undefined,
             });
             await waitForBatchedUpdates();
@@ -2054,6 +2173,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                     isTrackIntentUser: false,
                     formatPhoneNumber,
                     getCurrencyDecimals: getCurrencyDecimalsLocal,
+                    rules: undefined,
                 });
             }
             await waitForBatchedUpdates();
@@ -2069,7 +2189,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
             if (chatReport && expenseReport) {
                 mockFetch?.pause?.();
                 // And when the payment is cancelled
-                cancelPayment(expenseReport, chatReport, createMock<Policy>({}), true, CARLOS_ACCOUNT_ID, CARLOS_EMAIL, true, false);
+                cancelPayment(expenseReport, chatReport, createMock<Policy>({}), true, CARLOS_ACCOUNT_ID, CARLOS_EMAIL, true, false, undefined);
             }
             await waitForBatchedUpdates();
 
@@ -2090,7 +2210,10 @@ describe('actions/IOU/PayMoneyRequest', () => {
             // Given a P2P "send money" IOU report that is waiting for the receiver to set up their wallet
             const chatReportID = '7777';
             const iouReportID = '8888';
-            const chatReport: Report = {...createRandomReport(7777, undefined), reportID: chatReportID};
+            const chatReport: Report = {
+                ...createRandomReport(7777, undefined),
+                reportID: chatReportID,
+            };
             const iouReport: Report = {
                 ...createRandomReport(8888, undefined),
                 reportID: iouReportID,
@@ -2109,7 +2232,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
             await waitForBatchedUpdates();
 
             // When the payer cancels the pending payment
-            cancelPayment(iouReport, chatReport, undefined, true, CARLOS_ACCOUNT_ID, CARLOS_EMAIL, true, false);
+            cancelPayment(iouReport, chatReport, undefined, true, CARLOS_ACCOUNT_ID, CARLOS_EMAIL, true, false, undefined);
             await waitForBatchedUpdates();
 
             // Then the IOU report is optimistically marked cancelled and no longer waiting on the bank account
@@ -2131,7 +2254,10 @@ describe('actions/IOU/PayMoneyRequest', () => {
             const employeeEmail = 'employee@expensifail.com';
             const employeeAccountID = 11;
 
-            await Onyx.set(ONYXKEYS.SESSION, {email: adminEmail, accountID: adminAccountID});
+            await Onyx.set(ONYXKEYS.SESSION, {
+                email: adminEmail,
+                accountID: adminAccountID,
+            });
             await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {
                 [adminAccountID]: {
                     accountID: adminAccountID,
@@ -2155,7 +2281,14 @@ describe('actions/IOU/PayMoneyRequest', () => {
                 type: CONST.POLICY.TYPE.CORPORATE,
                 approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
                 reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
-                achAccount: {bankAccountID: 1, accountNumber: '123456789', routingNumber: '011000015', addressName: 'Test User', bankName: 'Test Bank', reimburser: 'admin@expensifail.com'},
+                achAccount: {
+                    bankAccountID: 1,
+                    accountNumber: '123456789',
+                    routingNumber: '011000015',
+                    addressName: 'Test User',
+                    bankName: 'Test Bank',
+                    reimburser: 'admin@expensifail.com',
+                },
             };
 
             const expenseReport = {
@@ -2189,7 +2322,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
 
             mockFetch?.pause?.();
 
-            cancelPayment(expenseReport, chatReport, policy, true, adminAccountID, adminEmail, false, false);
+            cancelPayment(expenseReport, chatReport, policy, true, adminAccountID, adminEmail, false, false, undefined);
             await waitForBatchedUpdates();
 
             const updatedReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`);
@@ -2204,7 +2337,10 @@ describe('actions/IOU/PayMoneyRequest', () => {
             const employeeEmail = 'employee2@expensifail.com';
             const employeeAccountID = 21;
 
-            await Onyx.set(ONYXKEYS.SESSION, {email: adminEmail, accountID: adminAccountID});
+            await Onyx.set(ONYXKEYS.SESSION, {
+                email: adminEmail,
+                accountID: adminAccountID,
+            });
             await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {
                 [adminAccountID]: {
                     accountID: adminAccountID,
@@ -2261,7 +2397,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
 
             mockFetch?.pause?.();
 
-            cancelPayment(expenseReport, chatReport, policy, true, adminAccountID, adminEmail, false, false);
+            cancelPayment(expenseReport, chatReport, policy, true, adminAccountID, adminEmail, false, false, undefined);
             await waitForBatchedUpdates();
 
             const updatedReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`);
@@ -2285,12 +2421,15 @@ describe('actions/IOU/PayMoneyRequest', () => {
             let chatReport: OnyxEntry<Report>;
 
             // Given a signed in account, which owns a workspace, and has a policy expense chat
-            Onyx.set(ONYXKEYS.SESSION, {email: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID});
+            Onyx.set(ONYXKEYS.SESSION, {
+                email: CARLOS_EMAIL,
+                accountID: CARLOS_ACCOUNT_ID,
+            });
             // Which owns a workspace
             await waitForBatchedUpdates();
             createWorkspace({
                 conciergeChat: undefined,
-                policyOwnerEmail: CARLOS_EMAIL,
+                policyOwner: {email: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID},
                 makeMeAdmin: true,
                 policyName: "Carlos's Workspace",
                 introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
@@ -2301,6 +2440,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                 isSelfTourViewed: false,
                 betas: undefined,
                 hasActiveAdminPolicies: false,
+                hasOwnedPaidPolicy: false,
             });
             await waitForBatchedUpdates();
 
@@ -2345,6 +2485,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                     isTrackIntentUser: false,
                     formatPhoneNumber,
                     getCurrencyDecimals: getCurrencyDecimalsLocal,
+                    rules: undefined,
                 });
             }
             await waitForBatchedUpdates();
@@ -2377,6 +2518,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                     delegateAccountID: undefined,
                     isTrackIntentUser: false,
                     getCurrencyDecimals: getCurrencyDecimalsLocal,
+                    rules: undefined,
                 });
             }
             await waitForBatchedUpdates();
@@ -2403,7 +2545,10 @@ describe('actions/IOU/PayMoneyRequest', () => {
 
         beforeEach(async () => {
             completeOnboardingSpy = jest.spyOn(require('@libs/actions/Report'), 'completeOnboarding').mockImplementation(jest.fn());
-            await Onyx.set(ONYXKEYS.SESSION, {email: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID});
+            await Onyx.set(ONYXKEYS.SESSION, {
+                email: CARLOS_EMAIL,
+                accountID: CARLOS_ACCOUNT_ID,
+            });
             await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {
                 [CARLOS_ACCOUNT_ID]: {
                     accountID: CARLOS_ACCOUNT_ID,
