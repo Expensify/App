@@ -11,6 +11,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 
 import type {OnyxMultiSetInput} from 'react-native-onyx';
 import type {IndicatorTestCase} from 'tests/utils/IndicatorTestUtils';
+import type {ValueOf} from 'type-fest';
 
 import Onyx from 'react-native-onyx';
 
@@ -85,9 +86,25 @@ const TEST_CASES = {
         indicatorColor: defaultTheme.danger,
         status: CONST.INDICATOR_STATUS.HAS_LOCKED_BANK_ACCOUNT,
     },
+    hasValidationFailedBankAccount: {
+        name: 'has validation failed bank account',
+        indicatorColor: defaultTheme.danger,
+        status: CONST.INDICATOR_STATUS.HAS_VALIDATION_FAILED_BANK_ACCOUNT,
+    },
 } as const satisfies Record<string, IndicatorTestCase>;
 
 const policyKey = `${ONYXKEYS.COLLECTION.POLICY}1` as const;
+
+function getMockAccountDataForStatus(status: IndicatorTestCase['status']): {state: ValueOf<typeof CONST.BANK_ACCOUNT.STATE>} | undefined {
+    switch (status) {
+        case CONST.INDICATOR_STATUS.HAS_LOCKED_BANK_ACCOUNT:
+            return {state: CONST.BANK_ACCOUNT.STATE.LOCKED};
+        case CONST.INDICATOR_STATUS.HAS_VALIDATION_FAILED_BANK_ACCOUNT:
+            return {state: CONST.BANK_ACCOUNT.STATE.VALIDATION_FAILED};
+        default:
+            return undefined;
+    }
+}
 
 const getMockForTestCase = ({name, status}: IndicatorTestCase) =>
     ({
@@ -101,12 +118,7 @@ const getMockForTestCase = ({name, status}: IndicatorTestCase) =>
                               error: 'Something went wrong',
                           }
                         : undefined,
-                accountData:
-                    status === CONST.INDICATOR_STATUS.HAS_LOCKED_BANK_ACCOUNT
-                        ? {
-                              state: CONST.BANK_ACCOUNT.STATE.LOCKED,
-                          }
-                        : undefined,
+                accountData: getMockAccountDataForStatus(status),
             },
         },
         [ONYXKEYS.USER_WALLET]: {
