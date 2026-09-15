@@ -1722,6 +1722,7 @@ const translations = {
         unholdExpense: 'Unhold expense',
         heldExpense: 'held this expense',
         unheldExpense: 'unheld this expense',
+        undeletedExpense: 'undeleted this expense',
         moveUnreportedExpense: 'Move unreported expense',
         addExistingExpense: 'Add existing expense',
         selectExistingExpense: 'Select at least one expense to add to the report.',
