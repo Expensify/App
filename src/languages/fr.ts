@@ -6672,6 +6672,9 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                 disabledTitle: 'Pas si vite...',
                 disabledMessage: 'Pour activer ou désactiver cette fonctionnalité, vous devrez modifier vos paramètres d’importation comptable.',
             },
+            recruitingWarningModal: {
+                disconnectText: ({integration}: {integration: string}) => `Pour désactiver le recrutement, veuillez d’abord déconnecter ${integration} de cet espace de travail.`,
+            },
         },
         reports: {
             reportsCustomTitleExamples: 'Exemples :',
@@ -7966,6 +7969,13 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>La mise à jour automatique des taux gouvernementaux est uniquement disponible avec l'offre Control, à partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `par membre et par mois.` : `par membre actif et par mois.`}</muted-text>`,
             },
+            [CONST.UPGRADE_FEATURE_INTRO_MAPPING.recruiting.id]: {
+                title: 'Plusieurs niveaux d’approbation',
+                description:
+                    'Les niveaux d’approbation multiples sont un outil de workflow pour les entreprises qui exigent que plus d’une personne approuve une note de frais avant qu’elle puisse être remboursée.',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Les niveaux d’approbation multiples sont uniquement disponibles avec l’offre Control, à partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `par membre et par mois.` : `par membre actif et par mois.`}</muted-text>`,
+            },
         },
         downgrade: {
             commonFeatures: {
@@ -8666,6 +8676,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             importSettings: 'Paramètres d’importation',
             defaultApprover: 'Approbateur par défaut',
             approverFields: {recruiter: 'Recruteur', recruitingCoordinator: 'Coordinateur recrutement'},
+            subtitle: 'Connectez les outils de recrutement et synchronisez les validations de candidats.',
         },
         merge: {
             connections: 'Connexions',
@@ -11111,6 +11122,7 @@ Voici un *reçu test* pour vous montrer comment ça fonctionne :`,
         readyPartialBody: ({count, total}: {count: number; total: number}) =>
             `${count} of ${total} reports exported. If it didn't automatically download, use the button below. See which reports failed in <concierge-link>Concierge</concierge-link>.`,
         close: 'Close',
+        truncatedBody: 'Attention ! Cet export était trop volumineux et a été limité aux 50 000 premières notes de frais correspondant à votre recherche.',
     },
     domain: {
         notVerified: 'Non vérifié',
