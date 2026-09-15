@@ -426,6 +426,7 @@ type MergeTransactionRequestParams = {
     sourceIOUAction: OnyxEntry<ReportAction>;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol'];
+    sourceIOUActionThreadReport: OnyxEntry<Report>;
     rules: OnyxCollection<Rule>;
 };
 /**
@@ -461,6 +462,7 @@ function mergeTransactionRequest({
     sourceIOUAction,
     getCurrencyDecimals,
     getCurrencySymbol,
+    sourceIOUActionThreadReport,
     rules,
 }: MergeTransactionRequestParams) {
     // For both unreported expenses and expense reports, negate the display amount when storing
@@ -634,6 +636,7 @@ function mergeTransactionRequest({
                 shouldDeleteTransactionThread,
                 reportAction: sourceIOUAction,
                 currentUserAccountID: currentUserAccountIDParam,
+                transactionThread: sourceIOUActionThreadReport,
                 transactionThreadReportActionsParam: sourceTransactionThreadReportActions,
             });
             optimisticSourceReportActionData.push(...cleanUpSourceTransactionThreadReportOnyxData.optimisticData);
@@ -665,6 +668,7 @@ function mergeTransactionRequest({
                 actionableWhisperReportActionID,
                 resolution: CONST.REPORT.ACTIONABLE_TRACK_EXPENSE_WHISPER_RESOLUTION.NOTHING,
                 shouldRemoveIOUTransaction: false,
+                transactionThread: sourceIOUActionThreadReport,
             });
 
             sourceTransactionOptimisticData.push(...optimisticData);
