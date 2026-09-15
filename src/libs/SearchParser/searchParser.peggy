@@ -281,6 +281,7 @@ key "key"
       / exporter
       / expenseType
       / receiptType
+      / transactionStatus
       / withdrawalType
       / withdrawalStatus
       / paidStatus
