@@ -288,6 +288,7 @@ type GetReportSectionsParams = {
     isOffline: boolean | undefined;
     bankAccountList: OnyxEntry<OnyxTypes.BankAccountList>;
     rules: OnyxCollection<OnyxTypes.Rule>;
+    conciergeReportID: string | undefined;
     reportActions?: Record<string, OnyxTypes.ReportAction[]>;
     queryJSON?: SearchQueryJSON;
     onyxPersonalDetailsList?: OnyxTypes.PersonalDetailsList;
@@ -2555,8 +2556,9 @@ function getSearchReportAvatarProps(
     personalDetailsList: OnyxTypes.PersonalDetailsList,
     policy?: OnyxTypes.Policy,
     isReportArchived = false,
+    conciergeReportID?: string,
 ) {
-    const avatarIcons = getIcons(report, formatPhoneNumber, translate, personalDetailsList, null, '', -1, policy, undefined, isReportArchived);
+    const avatarIcons = getIcons(report, formatPhoneNumber, translate, personalDetailsList, null, '', -1, policy, undefined, isReportArchived, undefined, conciergeReportID);
     const hasSecondAvatar = avatarIcons.length > 1 && !!avatarIcons.at(1)?.name;
 
     let avatarType: ValueOf<typeof CONST.REPORT_ACTION_AVATARS.TYPE>;
@@ -2890,6 +2892,7 @@ function getTaskSections(
                     undefined,
                     isParentReportArchived,
                     parentReportPendingDeleteMemberAccountIDs,
+                    conciergeReportID,
                 );
                 const parentReportIcon = icons?.at(0);
 
@@ -3221,6 +3224,7 @@ function getReportSections({
     isActionLoadingSet,
     bankAccountList,
     rules,
+    conciergeReportID,
     reportActions = {},
     queryJSON,
     onyxPersonalDetailsList,
@@ -3334,7 +3338,7 @@ function getReportSections({
 
                 const {totalDisplaySpend, nonReimbursableSpend, reimbursableSpend} = getMoneyRequestSpendBreakdown(reportItem);
                 const reportIsArchived = isArchivedReport(getReportNameValuePairsFromKey(data, reportItem));
-                const avatarProps = getSearchReportAvatarProps(reportItem, formatPhoneNumber, translate, mergedPersonalDetails, policy, reportIsArchived);
+                const avatarProps = getSearchReportAvatarProps(reportItem, formatPhoneNumber, translate, mergedPersonalDetails, policy, reportIsArchived, conciergeReportID);
 
                 const isRejectedReport = reportItem.stateNum === CONST.REPORT.STATE_NUM.OPEN && reportItem.nextStep?.messageKey === CONST.NEXT_STEP.MESSAGE_KEY.REJECTED_REPORT;
                 const shouldHidePayAsPrimaryAction = hasOnlyNonReimbursableTransactions(reportItem.reportID, allReportTransactions);
@@ -4123,6 +4127,7 @@ function getSections({
             isActionLoadingSet,
             bankAccountList,
             rules,
+            conciergeReportID,
             reportActions,
             queryJSON,
             onyxPersonalDetailsList,
@@ -7340,6 +7345,70 @@ function getTableMinWidth(
     return minWidth;
 }
 
+type GroupColumnWidthFlags = {
+    isAmountColumnWide: boolean;
+    isTaxAmountColumnWide: boolean;
+    shouldShowYear: boolean;
+    isActionColumnWide: boolean;
+};
+
+/**
+ * Whether any transaction in a group needs the wide variant of the amount, tax, date, or action column.
+ *
+ * A group's sticky column sub-header and its transaction rows compute these from the same transactions but in two
+ * separate components. Sharing this function is what keeps them from silently drifting apart, the way GroupHeader's
+ * `getColumnsToShow` call once did by missing a `fallbackPolicyID` the rows passed.
+ */
+function getGroupColumnWidthFlags(transactions: TransactionListItemType[]): GroupColumnWidthFlags {
+    let isAmountColumnWide = false;
+    let isTaxAmountColumnWide = false;
+    let showYear = false;
+    let isActionColumnWide = false;
+    for (const transaction of transactions) {
+        if (transaction.isAmountColumnWide) {
+            isAmountColumnWide = true;
+        }
+        if (transaction.isTaxAmountColumnWide) {
+            isTaxAmountColumnWide = true;
+        }
+        if (transaction.shouldShowYear) {
+            showYear = true;
+        }
+        if (transaction.isActionColumnWide || isDeletedTransaction(transaction)) {
+            isActionColumnWide = true;
+        }
+        if (isAmountColumnWide && isTaxAmountColumnWide && showYear && isActionColumnWide) {
+            break;
+        }
+    }
+    return {isAmountColumnWide, isTaxAmountColumnWide, shouldShowYear: showYear, isActionColumnWide};
+}
+
+type GroupTableScrollLayout = {
+    dataColumns: SearchColumnType[];
+    minTableWidth: number;
+    shouldScrollHorizontally: boolean;
+};
+
+/**
+ * The scroll layout a group's table needs: its data columns (the group columns stripped out), its minimum width, and
+ * whether that makes it overflow the window.
+ *
+ * Shared by GroupHeader and TransactionGroupListExpanded for the same reason as `getGroupColumnWidthFlags`: they size
+ * what is meant to be the same scrollable table, so computing it in one place is what keeps them from disagreeing.
+ */
+function getGroupTableScrollLayout(
+    columns: SearchColumnType[],
+    type: SearchDataTypes,
+    isActionColumnWide: boolean,
+    windowWidth: number,
+    isLargeScreenWidth: boolean,
+): GroupTableScrollLayout {
+    const dataColumns = columns.filter((column) => !column.startsWith(CONST.SEARCH.GROUP_COLUMN_PREFIX));
+    const minTableWidth = getTableMinWidth(dataColumns, type, isActionColumnWide);
+    return {dataColumns, minTableWidth, shouldScrollHorizontally: isLargeScreenWidth && minTableWidth > windowWidth};
+}
+
 /**
  * Determine policyID based on selected transactions:
  * - If all selected transactions belong to the same policy, use that policy
@@ -7602,6 +7671,8 @@ export {
     getSearchColumnTranslationKey,
     getSearchTableRowInsetWidth,
     getTableMinWidth,
+    getGroupColumnWidthFlags,
+    getGroupTableScrollLayout,
     getCustomColumns,
     getCustomColumnDefault,
     filterValidHasValues,
