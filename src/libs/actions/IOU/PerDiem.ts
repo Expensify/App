@@ -10,7 +10,6 @@ import DateUtils from '@libs/DateUtils';
 import {deferOrExecuteWrite} from '@libs/deferredLayoutWrite';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import {updateIOUOwnerAndTotal} from '@libs/IOUUtils';
-import Log from '@libs/Log';
 import {validateAmount} from '@libs/MoneyRequestUtils';
 import {buildOptimisticNextStep} from '@libs/NextStepUtils';
 import * as NumberUtils from '@libs/NumberUtils';
@@ -185,20 +184,7 @@ function computePerDiemExpenseMerchant(customUnit: TransactionCustomUnit, policy
     }
     const policyCustomUnit = getPerDiemCustomUnit(policy);
     const rate = policyCustomUnit?.rates?.[customUnit.customUnitRateID];
-    const locationName = rate?.name ?? '';
-    const startDate = customUnit.attributes?.dates.start;
-    const endDate = customUnit.attributes?.dates.end;
-    if (!startDate || !endDate) {
-        return locationName;
-    }
-    // Hermes reads the space-separated wire timestamps in `attributes.dates` as Invalid Date, which no range can be written from, so the location alone beats losing the submit.
-    const start = DateUtils.toLocalDate(startDate);
-    const end = DateUtils.toLocalDate(endDate);
-    if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) {
-        Log.warn('[PerDiem] unparsable expense dates; the merchant will carry the location only', {startDate, endDate});
-        return locationName;
-    }
-    return getPerDiemMerchant(locationName, start, end);
+    return getPerDiemMerchant(rate?.name ?? '', customUnit.attributes?.dates);
 }
 
 function isValidPerDiemExpenseAmount(customUnit: TransactionCustomUnit, decimals: number) {

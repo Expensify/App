@@ -8,14 +8,24 @@ import type Locale from '@src/types/onyx/Locale';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import DateUtils from './DateUtils';
+import Log from './Log';
 
 /** Every English month abbreviates to its first three letters. */
 function formatStoredDate(date: Date): string {
     return `${CONST.DATE.ENGLISH_MONTH_NAMES[date.getMonth()].slice(0, 3)} ${date.getDate()}, ${date.getFullYear()}`;
 }
 
-/** Both dates must be valid. */
-function getPerDiemMerchant(locationName: string, start: Date, end: Date): string {
+/** Only the location when a date is missing or unparsable, so a bad date can neither lose the submit nor persist a malformed range. */
+function getPerDiemMerchant(locationName: string, dates: {start: string; end: string} | undefined): string {
+    if (!dates?.start || !dates.end) {
+        return locationName;
+    }
+    const start = DateUtils.toLocalDate(dates.start);
+    const end = DateUtils.toLocalDate(dates.end);
+    if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) {
+        Log.warn('[PerDiemMerchantUtils] unparsable expense dates; the merchant carries the location only', {dates});
+        return locationName;
+    }
     return `${locationName}, ${formatStoredDate(start)} - ${formatStoredDate(end)}`;
 }
 

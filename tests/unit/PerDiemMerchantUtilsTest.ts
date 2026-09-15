@@ -23,23 +23,28 @@ function buildPerDiemTransaction(dates: {start: string; end: string} = PER_DIEM_
 describe('PerDiemMerchantUtils', () => {
     describe('getPerDiemMerchant', () => {
         it('writes the range in English', () => {
-            expect(getPerDiemMerchant('Berlin', new Date(2025, 7, 19), new Date(2025, 7, 20))).toBe(PER_DIEM_MERCHANT);
+            expect(getPerDiemMerchant('Berlin', PER_DIEM_DATES)).toBe(PER_DIEM_MERCHANT);
         });
 
         it('abbreviates every month as the enUS `MMM` earlier clients stored, so old and new rows read alike', () => {
-            const abbreviations = CONST.DATE.ENGLISH_MONTH_NAMES.map((_, month) =>
-                getPerDiemMerchant('Berlin', new Date(2025, month, 1), new Date(2025, month, 1))
-                    .split(' ')
-                    .at(1),
-            );
+            const abbreviations = CONST.DATE.ENGLISH_MONTH_NAMES.map((_, month) => {
+                const firstOfMonth = `2025-${String(month + 1).padStart(2, '0')}-01`;
+                return getPerDiemMerchant('Berlin', {start: firstOfMonth, end: firstOfMonth}).split(' ').at(1);
+            });
             expect(abbreviations).toEqual(['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']);
         });
 
         it('is read back by the parser it is stored for, including a location with commas', () => {
             const location = 'San Francisco, California, USA';
-            const merchant = getPerDiemMerchant(location, new Date(2025, 8, 30), new Date(2025, 9, 2));
-            const transaction = buildPerDiemTransaction({start: '2025-09-30 00:00:00', end: '2025-10-02 23:59:59'}, merchant);
-            expect(getPerDiemDisplayParts(transaction, merchant, CONST.LOCALES.EN)).toEqual({destination: location, dates: 'Sep 30, 2025 - Oct 2, 2025'});
+            const dates = {start: '2025-09-30 00:00:00', end: '2025-10-02 23:59:59'};
+            const merchant = getPerDiemMerchant(location, dates);
+            expect(getPerDiemDisplayParts(buildPerDiemTransaction(dates, merchant), merchant, CONST.LOCALES.EN)).toEqual({destination: location, dates: 'Sep 30, 2025 - Oct 2, 2025'});
+        });
+
+        it('keeps only the location when the dates are missing or unparsable, rather than throwing or storing a malformed range', () => {
+            expect(getPerDiemMerchant('Berlin', undefined)).toBe('Berlin');
+            expect(getPerDiemMerchant('Berlin', {start: '', end: ''})).toBe('Berlin');
+            expect(getPerDiemMerchant('Berlin', {start: 'not-a-date', end: 'not-a-date'})).toBe('Berlin');
         });
     });
 
