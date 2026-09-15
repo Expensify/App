@@ -65,3 +65,4 @@ function toggleTestToolsModal() {
 }
 
 export default toggleTestToolsModal;
+export {getBackToParam};

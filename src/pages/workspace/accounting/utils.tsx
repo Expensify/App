@@ -188,6 +188,7 @@ function getAccountingIntegrationData(
                     CONST.QUICKBOOKS_CONFIG.AUTO_SYNC,
                     CONST.QUICKBOOKS_CONFIG.SYNC_PEOPLE,
                     CONST.QUICKBOOKS_CONFIG.AUTO_CREATE_VENDOR,
+                    CONST.QUICKBOOKS_CONFIG.FX_EXPENSE_ACCOUNT,
                     ...(qboConfig?.collectionAccountID ? [CONST.QUICKBOOKS_CONFIG.REIMBURSEMENT_ACCOUNT_ID, CONST.QUICKBOOKS_CONFIG.COLLECTION_ACCOUNT_ID] : []),
                 ],
                 pendingFields: {...qboConfig?.pendingFields, ...policy?.connections?.quickbooksOnline?.config?.pendingFields},
@@ -241,6 +242,7 @@ function getAccountingIntegrationData(
                     CONST.XERO_CONFIG.SYNC_REIMBURSED_REPORTS,
                     CONST.XERO_CONFIG.REIMBURSEMENT_ACCOUNT_ID,
                     CONST.XERO_CONFIG.INVOICE_COLLECTIONS_ACCOUNT_ID,
+                    CONST.XERO_CONFIG.FX_EXPENSE_ACCOUNT,
                 ],
                 pendingFields: policy?.connections?.xero?.config?.pendingFields,
                 errorFields: policy?.connections?.xero?.config?.errorFields,
@@ -302,6 +304,7 @@ function getAccountingIntegrationData(
                     ...(!shouldHideExportVendorBillsTo(netsuiteConfig) ? [CONST.NETSUITE_CONFIG.SYNC_OPTIONS.EXPORT_VENDOR_BILLS_TO] : []),
                     ...(!shouldHideExportJournalsTo(netsuiteConfig) ? [CONST.NETSUITE_CONFIG.SYNC_OPTIONS.EXPORT_JOURNALS_TO] : []),
                     CONST.NETSUITE_CONFIG.APPROVAL_ACCOUNT,
+                    CONST.NETSUITE_CONFIG.FX_EXPENSE_ACCOUNT,
                     CONST.NETSUITE_CONFIG.CUSTOM_FORM_ID_ENABLED,
                     ...(!shouldHideCustomFormIDOptions(netsuiteConfig)
                         ? [CONST.NETSUITE_CONFIG.CUSTOM_FORM_ID_TYPE.REIMBURSABLE, CONST.NETSUITE_CONFIG.CUSTOM_FORM_ID_TYPE.NON_REIMBURSABLE]

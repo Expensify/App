@@ -5,7 +5,7 @@ import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 
 import {startMoneyRequest} from '@libs/actions/IOU/MoneyRequest';
-import {getDisplayNameForParticipant} from '@libs/ReportUtils';
+import {getDisplayNameForParticipant, getIcons} from '@libs/ReportUtils';
 
 import FABFocusableMenuItem from '@pages/inbox/sidebar/FABPopoverContent/FABFocusableMenuItem';
 import QuickActionMenuItem from '@pages/inbox/sidebar/FABPopoverContent/menuItems/QuickActionMenuItem';
@@ -54,6 +54,7 @@ jest.mock('@libs/ReportUtils', () => {
 });
 
 const mockGetDisplayNameForParticipant = jest.mocked(getDisplayNameForParticipant);
+const mockGetIcons = jest.mocked(getIcons);
 const mockUseCurrentUserPersonalDetails = jest.mocked(useCurrentUserPersonalDetails);
 const mockStartMoneyRequest = jest.mocked(startMoneyRequest);
 const mockFABFocusableMenuItem = jest.mocked(FABFocusableMenuItem);
@@ -61,6 +62,7 @@ const mockFABFocusableMenuItem = jest.mocked(FABFocusableMenuItem);
 const QUICK_ACTION_REPORT_ID = '991001';
 const ACTIVE_POLICY_ID = '1234';
 const POLICY_CHAT_REPORT_ID = '1235';
+const CONCIERGE_REPORT_ID = '1236';
 
 describe('QuickActionMenuItem', () => {
     beforeAll(() => {
@@ -74,6 +76,7 @@ describe('QuickActionMenuItem', () => {
         mockTranslate.mockClear();
         mockFormatPhoneNumber.mockClear();
         mockGetDisplayNameForParticipant.mockClear();
+        mockGetIcons.mockClear();
         mockStartMoneyRequest.mockClear();
     });
 
@@ -180,5 +183,28 @@ describe('QuickActionMenuItem', () => {
         await waitForBatchedUpdates();
 
         expect(mockFABFocusableMenuItem.mock.calls.at(-1)?.[0]).toEqual(expect.objectContaining({title: 'quickAction.requestMoney'}));
+    });
+
+    it('passes the Concierge report ID to getIcons so a Concierge thread keeps the Concierge avatar', async () => {
+        const conciergeThread = {
+            ...createRegularChat(Number(QUICK_ACTION_REPORT_ID), [1, CONST.ACCOUNT_ID.CONCIERGE]),
+            reportID: QUICK_ACTION_REPORT_ID,
+            parentReportID: CONCIERGE_REPORT_ID,
+            parentReportActionID: '1',
+        };
+        await Onyx.merge(ONYXKEYS.CONCIERGE_REPORT_ID, CONCIERGE_REPORT_ID);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${QUICK_ACTION_REPORT_ID}`, conciergeThread);
+        await Onyx.merge(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE, {action: CONST.QUICK_ACTIONS.ASSIGN_TASK, chatReportID: QUICK_ACTION_REPORT_ID});
+        await waitForBatchedUpdates();
+
+        render(
+            <OnyxListItemProvider>
+                <QuickActionMenuItem reportID={QUICK_ACTION_REPORT_ID} />
+            </OnyxListItemProvider>,
+        );
+        await waitForBatchedUpdates();
+
+        // getIcons only returns the Concierge icon for a thread when it knows which report is the Concierge DM, so it has to arrive in the last slot.
+        expect(mockGetIcons.mock.calls.at(-1)?.at(11)).toBe(CONCIERGE_REPORT_ID);
     });
 });

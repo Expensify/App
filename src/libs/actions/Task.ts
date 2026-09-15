@@ -1318,6 +1318,7 @@ function getShareDestination(
             undefined,
             undefined,
             pendingDeleteMemberAccountIDs,
+            conciergeReportID,
         ),
         displayName: deprecatedGetReportName(report, reportAttributes),
         subtitle,

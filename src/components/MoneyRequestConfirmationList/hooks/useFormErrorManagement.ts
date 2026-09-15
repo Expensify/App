@@ -1,7 +1,7 @@
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 
-import {isConfirmationAmountMissing, isConfirmationDateMissing} from '@libs/MoneyRequestUtils';
+import {isConfirmationAmountMissing, isConfirmationDateMissing, isConfirmationMerchantMissing} from '@libs/MoneyRequestUtils';
 import {isAttendeeTrackingEnabled} from '@libs/PolicyUtils';
 import {areRequiredFieldsEmpty, getTag, hasMissingSmartscanFields, isMerchantMissing} from '@libs/TransactionUtils';
 import {isInvalidMerchantValue, isUntypedPlaceholderMerchant, isValidInputLength} from '@libs/ValidationUtils';
@@ -53,6 +53,12 @@ type UseFormErrorManagementParams = {
 
     /** Whether the IOU was started from a SmartScan flow */
     isScanRequest: boolean;
+
+    /** Whether this surface offers manual entry of the amount / merchant / date. False for splits, test receipts and moved tracked expenses. */
+    canEnterScanFieldsManually: boolean;
+
+    /** ID of a partially filled Scan among the transactions being confirmed. Can name a receipt other than this one. */
+    partiallyManuallyFilledScanID?: string;
 
     /** Whether the merchant field should be visible in the UI */
     shouldShowMerchant: boolean;
@@ -138,6 +144,8 @@ function useFormErrorManagement({
     isEditingSplitBill,
     isPolicyExpenseChat,
     isScanRequest,
+    canEnterScanFieldsManually,
+    partiallyManuallyFilledScanID,
     shouldShowMerchant,
     hasSmartScanFailed,
     didConfirmSplit,
@@ -215,14 +223,17 @@ function useFormErrorManagement({
 
     // These reuse the very predicates `useConfirmationValidation` raises `common.error.fieldRequired` from, so the
     // clear side can never drift from the validation side and strand a required error that can no longer be cleared (#96568).
-    const isAmountRequiredMissing = isConfirmationAmountMissing(transaction);
-    const isDateRequiredMissing = isConfirmationDateMissing(transaction, shouldShowDate, isReadOnly);
+    const isAmountRequiredMissing = isConfirmationAmountMissing(transaction, canEnterScanFieldsManually);
+    const isDateRequiredMissing = isConfirmationDateMissing(transaction, shouldShowDate, isReadOnly, canEnterScanFieldsManually);
+    const isMerchantRequiredMissing = isConfirmationMerchantMissing(transaction, canEnterScanFieldsManually);
     useEffect(() => {
-        if (formErrorRef.current !== 'common.error.fieldRequired' || isAmountRequiredMissing || isDateRequiredMissing) {
+        // The predicates above only see the transaction on screen, so the ID keeps the error alive while another
+        // receipt of a multi-scan is still partially filled.
+        if (formErrorRef.current !== 'common.error.fieldRequired' || isAmountRequiredMissing || isDateRequiredMissing || isMerchantRequiredMissing || !!partiallyManuallyFilledScanID) {
             return;
         }
         setFormError('');
-    }, [isAmountRequiredMissing, isDateRequiredMissing, setFormError]);
+    }, [isAmountRequiredMissing, isDateRequiredMissing, isMerchantRequiredMissing, partiallyManuallyFilledScanID, setFormError]);
 
     useEffect(() => {
         const currentFormError = formErrorRef.current;

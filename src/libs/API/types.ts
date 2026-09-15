@@ -471,6 +471,7 @@ const WRITE_COMMANDS = {
     UPDATE_NETSUITE_ACCOUNTING_METHOD: 'UpdateNetSuiteAccountingMethod',
     UPDATE_NETSUITE_JOURNALS_TO: 'UpdateNetSuiteExportJournalsTo',
     UPDATE_NETSUITE_APPROVAL_ACCOUNT: 'UpdateNetSuiteApprovalAccount',
+    UPDATE_NETSUITE_FX_EXPENSE_ACCOUNT: 'UpdateNetSuiteFxExpenseAccount',
     UPDATE_NETSUITE_TRAVEL_BILLING_PAYABLE_ACCOUNT: 'UpdateNetSuiteTravelBillingPayableAccount',
     UPDATE_NETSUITE_TRAVEL_BILLING_JOURNAL_POSTING_PREFERENCE: 'UpdateNetSuiteTravelBillingJournalPostingPreference',
     UPDATE_NETSUITE_CUSTOM_FORM_ID_OPTIONS_REIMBURSABLE: 'UpdateNetSuiteCustomFormIDOptionsReimbursable',
@@ -624,6 +625,7 @@ const WRITE_COMMANDS = {
     UPDATE_XERO_SYNC_INVOICE_COLLECTIONS_ACCOUNT_ID: 'UpdateXeroSyncInvoiceCollectionsAccountID',
     UPDATE_XERO_SYNC_SYNC_REIMBURSED_REPORTS: 'UpdateXeroSyncSyncReimbursedReports',
     UPDATE_XERO_SYNC_REIMBURSEMENT_ACCOUNT_ID: 'UpdateXeroSyncReimbursementAccountID',
+    UPDATE_XERO_FX_EXPENSE_ACCOUNT: 'UpdateXeroFxExpenseAccount',
     REQUEST_FEED_SETUP: 'RequestFeedSetup',
     SET_COMPANY_CARD_FEED_NAME: 'SetFeedName',
     DELETE_COMPANY_CARD_FEED: 'RemoveFeed',
@@ -1311,6 +1313,7 @@ type WriteCommandParameters = {
 
     [WRITE_COMMANDS.UPDATE_NETSUITE_JOURNALS_TO]: Parameters.UpdateNetSuiteGenericTypeParams<'value', ValueOf<typeof CONST.NETSUITE_JOURNALS_APPROVAL_LEVEL>>;
     [WRITE_COMMANDS.UPDATE_NETSUITE_APPROVAL_ACCOUNT]: Parameters.UpdateNetSuiteGenericTypeParams<'value', string>;
+    [WRITE_COMMANDS.UPDATE_NETSUITE_FX_EXPENSE_ACCOUNT]: Parameters.UpdateNetSuiteGenericTypeParams<'value', string>;
     [WRITE_COMMANDS.UPDATE_NETSUITE_TRAVEL_BILLING_PAYABLE_ACCOUNT]: Parameters.UpdateNetSuiteGenericTypeParams<'bankAccountID', string>;
     [WRITE_COMMANDS.UPDATE_NETSUITE_TRAVEL_BILLING_JOURNAL_POSTING_PREFERENCE]: Parameters.UpdateNetSuiteGenericTypeParams<
         'value',
@@ -1380,6 +1383,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.UPDATE_XERO_SYNC_INVOICE_COLLECTIONS_ACCOUNT_ID]: Parameters.UpdateXeroGenericTypeParams;
     [WRITE_COMMANDS.UPDATE_XERO_SYNC_SYNC_REIMBURSED_REPORTS]: Parameters.UpdateXeroGenericTypeParams;
     [WRITE_COMMANDS.UPDATE_XERO_SYNC_REIMBURSEMENT_ACCOUNT_ID]: Parameters.UpdateXeroGenericTypeParams;
+    [WRITE_COMMANDS.UPDATE_XERO_FX_EXPENSE_ACCOUNT]: Parameters.UpdateXeroGenericTypeParams;
 
     // Invoice API
     [WRITE_COMMANDS.SET_INVOICING_TRANSFER_BANK_ACCOUNT]: Parameters.SetInvoicingTransferBankAccountParams;

@@ -10,15 +10,14 @@ import type {OnyxKey} from 'react-native-onyx';
 
 import Onyx from 'react-native-onyx';
 
+import getOnyxValue from '../utils/getOnyxValue';
+import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
+
 const CLIENT_NOW = '2026-06-12 10:00:00.000';
 const DELIVERED_CUTOFF = '2026-06-12 10:05:00.000';
 
 function cutoffEntry(cutoff: string): AnyOnyxUpdate {
     return {onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.NVP_RECONNECT_APP_IF_FULL_RECONNECT_BEFORE, value: cutoff};
-}
-
-function recordedTimeEntry(time: string): AnyOnyxUpdate {
-    return {onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.LAST_FULL_RECONNECT_TIME, value: time};
 }
 
 function buildRequest(command: string, data: Record<string, unknown> = {}): Request<OnyxKey> {
@@ -30,7 +29,13 @@ function buildResponse(jsonCode: number): Response<OnyxKey> {
 }
 
 describe('RecordFullReconnectTime middleware', () => {
-    beforeEach(() => {
+    beforeAll(() => {
+        Onyx.init({keys: ONYXKEYS});
+    });
+
+    beforeEach(async () => {
+        await Onyx.clear();
+        await waitForBatchedUpdates();
         jest.spyOn(DateUtils, 'getDBTime').mockReturnValue(CLIENT_NOW);
     });
 
@@ -44,7 +49,8 @@ describe('RecordFullReconnectTime middleware', () => {
 
         await recordFullReconnectTime(Promise.resolve(response), request, false);
 
-        expect(response.onyxData).toEqual([recordedTimeEntry(DELIVERED_CUTOFF), cutoffEntry(DELIVERED_CUTOFF)]);
+        expect(response.onyxData).toEqual([cutoffEntry(DELIVERED_CUTOFF)]);
+        expect(await getOnyxValue(ONYXKEYS.LAST_FULL_RECONNECT_TIME)).toBe(DELIVERED_CUTOFF);
     });
 
     it('records nothing for a partial ReconnectApp, one that fetches from an update ID', async () => {
@@ -54,6 +60,7 @@ describe('RecordFullReconnectTime middleware', () => {
         await recordFullReconnectTime(Promise.resolve(response), request, false);
 
         expect(response.onyxData).toEqual([cutoffEntry(DELIVERED_CUTOFF)]);
+        expect(await getOnyxValue(ONYXKEYS.LAST_FULL_RECONNECT_TIME)).toBeUndefined();
     });
 
     it('records client-now when a successful response carries no onyxData at all', async () => {
@@ -62,7 +69,8 @@ describe('RecordFullReconnectTime middleware', () => {
 
         await recordFullReconnectTime(Promise.resolve(response), request, false);
 
-        expect(response.onyxData).toEqual([recordedTimeEntry(CLIENT_NOW)]);
+        expect(response.onyxData).toBeUndefined();
+        expect(await getOnyxValue(ONYXKEYS.LAST_FULL_RECONNECT_TIME)).toBe(CLIENT_NOW);
     });
 
     test.each(['OpenReport', 'GetMissingOnyxMessages'])('leaves a %s response untouched', async (command) => {
@@ -72,6 +80,7 @@ describe('RecordFullReconnectTime middleware', () => {
         await recordFullReconnectTime(Promise.resolve(response), request, false);
 
         expect(response.onyxData).toEqual([cutoffEntry(DELIVERED_CUTOFF)]);
+        expect(await getOnyxValue(ONYXKEYS.LAST_FULL_RECONNECT_TIME)).toBeUndefined();
     });
 
     it('leaves failed responses untouched', async () => {
@@ -81,6 +90,7 @@ describe('RecordFullReconnectTime middleware', () => {
         await recordFullReconnectTime(Promise.resolve(response), request, false);
 
         expect(response.onyxData).toEqual([cutoffEntry(DELIVERED_CUTOFF)]);
+        expect(await getOnyxValue(ONYXKEYS.LAST_FULL_RECONNECT_TIME)).toBeUndefined();
     });
 
     it('passes the response through unchanged as the middleware result', async () => {

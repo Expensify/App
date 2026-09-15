@@ -467,6 +467,31 @@ describe('WorkspaceMoreFeaturesPage', () => {
             await expect(findLockedSwitch('workspace.moreFeatures.vendors.subtitle')).resolves.toBeOnTheScreen();
         });
 
+        it.each([
+            {isBetaEnabled: false, qboDestination: CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.VENDOR_BILL, shouldShowVendors: false},
+            {isBetaEnabled: true, qboDestination: CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.VENDOR_BILL, shouldShowVendors: true},
+            {isBetaEnabled: false, qboDestination: CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD, shouldShowVendors: true},
+        ])(
+            'sets Vendors visibility to $shouldShowVendors for DualEntry with QBO exporting $qboDestination and beta=$isBetaEnabled',
+            async ({isBetaEnabled, qboDestination, shouldShowVendors}) => {
+                // Given a configured DualEntry connection and a retained QBO connection
+                const connections = {
+                    [CONST.POLICY.CONNECTIONS.NAME.QBO]: {config: {nonReimbursableExpensesExportDestination: qboDestination}},
+                    [CONST.POLICY.CONNECTIONS.NAME.DUALENTRY]: {config: {isConfigured: true}},
+                };
+
+                // When the More features page renders with the selected beta state
+                await renderWithVendorMatching(connections, isBetaEnabled);
+
+                // Then visibility follows the active vendor source's beta requirement
+                if (shouldShowVendors) {
+                    await expect(findLockedSwitch('workspace.moreFeatures.vendors.subtitle')).resolves.toBeOnTheScreen();
+                } else {
+                    expect(vendorsSwitchQuery()).toBeNull();
+                }
+            },
+        );
+
         // Sage Intacct (R2) and Xero (R3) are still beta-gated, so they stay hidden when the beta is off.
         it('hides the Vendors row for a beta-gated integration (Xero) when the beta is disabled', async () => {
             await renderWithVendorMatching({[CONST.POLICY.CONNECTIONS.NAME.XERO]: {config: {}}}, false);

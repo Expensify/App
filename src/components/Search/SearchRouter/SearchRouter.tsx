@@ -24,7 +24,9 @@ import useReportOrReportDraft from '@hooks/useReportOrReportDraft';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useRootNavigationState from '@hooks/useRootNavigationState';
 import useSortedActions from '@hooks/useSortedActions';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 
 import {scrollToRight} from '@libs/InputUtils';
 import backHistory from '@libs/Navigation/helpers/backHistory';
@@ -64,6 +66,7 @@ import type {SubstitutionMap} from './getQueryWithSubstitutions';
 
 import {buildSubstitutionsMap} from './buildSubstitutionsMap';
 import {getQueryWithSubstitutions} from './getQueryWithSubstitutions';
+import getSearchRouterPopoverLayout from './getSearchRouterPopoverLayout';
 import {getUpdatedSubstitutionsMap} from './getUpdatedSubstitutionsMap';
 import {clearPendingRouterState, peekPendingRouterState} from './SearchRouterContext';
 import {getContextualReportData, getContextualSearchAutocompleteKey, getContextualSearchQuery} from './SearchRouterUtils';
@@ -89,6 +92,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
     const {translate, formatPhoneNumber, dateFnsLocale} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const {setShouldResetSearchQuery, resetSearchKey} = useSearchQueryActions();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserAccountID = currentUserPersonalDetails.accountID;
@@ -105,6 +109,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
     const personalDetails = usePersonalDetails();
     const sortedActions = useSortedActions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {windowHeight} = useWindowDimensions();
     const listRef = useRef<SelectionListWithSectionsHandle>(null);
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['MagnifyingGlass', 'ConciergeAvatar']);
     const {askConcierge, shouldShowAskConcierge} = useAskConcierge();
@@ -519,10 +524,11 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
     });
 
     const modalWidth = shouldUseNarrowLayout ? styles.w100 : {width: variables.searchRouterPopoverWidth};
+    const {maxHeight: popoverMaxHeight} = getSearchRouterPopoverLayout(windowHeight);
 
     return (
         <View
-            style={[styles.flex1, modalWidth, styles.h100, !shouldUseNarrowLayout && styles.mh85vh]}
+            style={[styles.flex1, modalWidth, styles.h100, !shouldUseNarrowLayout && styles.overflowHidden, !shouldUseNarrowLayout && StyleUtils.getMaximumHeight(popoverMaxHeight)]}
             testID="SearchRouter"
             ref={ref}
         >
@@ -533,10 +539,9 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                     shouldDisplayHelpButton={false}
                 />
             )}
-            <View style={[shouldUseNarrowLayout ? styles.mv3 : styles.mv2, shouldUseNarrowLayout ? styles.mh5 : styles.mh2]}>
+            <View style={[shouldUseNarrowLayout ? styles.mv3 : styles.mv4, shouldUseNarrowLayout ? styles.mh5 : styles.mh4]}>
                 <SearchInputSelectionWrapper
                     value={textInputValue}
-                    isFullWidth={shouldUseNarrowLayout}
                     onSearchQueryChange={onSearchQueryChange}
                     onSubmit={() => {
                         const focusedOption = listRef.current?.getFocusedOption?.();

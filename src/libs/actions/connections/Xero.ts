@@ -547,6 +547,22 @@ function updateXeroSyncReimbursementAccountID(
     API.write(WRITE_COMMANDS.UPDATE_XERO_SYNC_REIMBURSEMENT_ACCOUNT_ID, parameters, {optimisticData, failureData, successData});
 }
 
+function updateXeroFxExpenseAccount(policyID: string | undefined, settingValue: string, oldSettingValue?: string) {
+    if (!policyID || settingValue === oldSettingValue) {
+        return;
+    }
+
+    const parameters: UpdateXeroGenericTypeParams = {
+        policyID,
+        settingValue: JSON.stringify(settingValue),
+        idempotencyKey: String(CONST.XERO_CONFIG.FX_EXPENSE_ACCOUNT),
+    };
+
+    const {optimisticData, failureData, successData} = prepareXeroOptimisticData(policyID, CONST.XERO_CONFIG.FX_EXPENSE_ACCOUNT, settingValue, oldSettingValue);
+
+    API.write(WRITE_COMMANDS.UPDATE_XERO_FX_EXPENSE_ACCOUNT, parameters, {optimisticData, failureData, successData});
+}
+
 function updateXeroSyncSyncReimbursedReports(
     policyID: string | undefined,
     syncReimbursedReports: Partial<Connections['xero']['config']['sync']['syncReimbursedReports']>,
@@ -605,4 +621,5 @@ export {
     updateXeroSyncInvoiceCollectionsAccountID,
     updateXeroSyncSyncReimbursedReports,
     updateXeroSyncReimbursementAccountID,
+    updateXeroFxExpenseAccount,
 };

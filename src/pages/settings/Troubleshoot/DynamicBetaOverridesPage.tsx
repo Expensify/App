@@ -7,12 +7,14 @@ import ScrollView from '@components/ScrollView';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
 
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import Navigation from '@libs/Navigation/Navigation';
 import Permissions from '@libs/Permissions';
 
 import {clearBetaOverride, clearBetaOverrides, setBetaOverride} from '@userActions/User';
@@ -20,6 +22,7 @@ import {clearBetaOverride, clearBetaOverrides, setBetaOverride} from '@userActio
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type Beta from '@src/types/onyx/Beta';
 
 import React from 'react';
@@ -30,9 +33,10 @@ const sortedBetas = Object.values(CONST.BETAS)
     .filter((beta) => beta !== CONST.BETAS.ALL)
     .sort();
 
-function BetaOverridesPage() {
+function DynamicBetaOverridesPage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.BETA_OVERRIDES.path);
     // The environment context starts on production and resolves later, so the build config must agree to avoid a flash
     // TestFlight is compiled as production, so it still shows the not found view until the native beta check resolves
     const {isProduction: isResolvedProduction} = useEnvironment();
@@ -61,11 +65,14 @@ function BetaOverridesPage() {
 
     return (
         <ScreenWrapper
-            testID={BetaOverridesPage.displayName}
+            testID={DynamicBetaOverridesPage.displayName}
             includeSafeAreaPaddingBottom
         >
             <FullPageNotFoundView shouldShow={isProduction}>
-                <HeaderWithBackButton title={translate('initialSettingsPage.troubleshoot.betaOverrides')} />
+                <HeaderWithBackButton
+                    title={translate('initialSettingsPage.troubleshoot.betaOverrides')}
+                    onBackButtonPress={() => Navigation.goBack(backPath)}
+                />
                 <ScrollView contentContainerStyle={[styles.ph5, styles.pb5]}>
                     <Text style={[styles.textLabelSupporting, styles.mb4]}>{translate('initialSettingsPage.troubleshoot.betaOverridesDescription')}</Text>
                     {sortedBetas.map((beta) => (
@@ -108,6 +115,6 @@ function BetaOverridesPage() {
     );
 }
 
-BetaOverridesPage.displayName = 'BetaOverridesPage';
+DynamicBetaOverridesPage.displayName = 'DynamicBetaOverridesPage';
 
-export default BetaOverridesPage;
+export default DynamicBetaOverridesPage;

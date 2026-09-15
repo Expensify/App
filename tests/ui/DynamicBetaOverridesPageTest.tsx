@@ -7,7 +7,7 @@ import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import {navigationRef} from '@libs/Navigation/Navigation';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 
-import BetaOverridesPage from '@pages/settings/Troubleshoot/BetaOverridesPage';
+import DynamicBetaOverridesPage from '@pages/settings/Troubleshoot/DynamicBetaOverridesPage';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -55,15 +55,15 @@ jest.mock('@userActions/User', () => ({
 
 const Stack = createPlatformStackNavigator<Record<string, undefined>>();
 
-function renderBetaOverridesPage() {
+function renderDynamicBetaOverridesPage() {
     return render(
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
             <PortalProvider>
                 <NavigationContainer ref={navigationRef}>
-                    <Stack.Navigator initialRouteName={SCREENS.RIGHT_MODAL.BETA_OVERRIDES}>
+                    <Stack.Navigator initialRouteName={SCREENS.SETTINGS.DYNAMIC_BETA_OVERRIDES}>
                         <Stack.Screen
-                            name={SCREENS.RIGHT_MODAL.BETA_OVERRIDES}
-                            component={BetaOverridesPage}
+                            name={SCREENS.SETTINGS.DYNAMIC_BETA_OVERRIDES}
+                            component={DynamicBetaOverridesPage}
                         />
                     </Stack.Navigator>
                 </NavigationContainer>
@@ -72,7 +72,7 @@ function renderBetaOverridesPage() {
     );
 }
 
-describe('BetaOverridesPage', () => {
+describe('DynamicBetaOverridesPage', () => {
     beforeAll(() => {
         Onyx.init({keys: ONYXKEYS});
     });
@@ -91,7 +91,7 @@ describe('BetaOverridesPage', () => {
 
     it('renders a switch for every beta except the "all" beta', async () => {
         // When The page is opened
-        renderBetaOverridesPage();
+        renderDynamicBetaOverridesPage();
         await waitForBatchedUpdatesWithAct();
 
         // Then Every beta is listed except 'all'
@@ -101,7 +101,7 @@ describe('BetaOverridesPage', () => {
 
     it('stores an override when a beta that is off is toggled on', async () => {
         // Given An account without the beta, so its switch starts off
-        renderBetaOverridesPage();
+        renderDynamicBetaOverridesPage();
         await waitForBatchedUpdatesWithAct();
 
         // When The switch is toggled
@@ -114,7 +114,7 @@ describe('BetaOverridesPage', () => {
     it('stores an override when a beta that is on is toggled off', async () => {
         // Given An account with the beta, so its switch starts on
         await Onyx.set(ONYXKEYS.BETAS, [CONST.BETAS.DEFAULT_ROOMS]);
-        renderBetaOverridesPage();
+        renderDynamicBetaOverridesPage();
         await waitForBatchedUpdatesWithAct();
 
         // When The switch is toggled
@@ -127,7 +127,7 @@ describe('BetaOverridesPage', () => {
     it('drops the override when a beta is toggled back to the value the account has', async () => {
         // Given An account without the beta and an override pinning it on
         await Onyx.set(ONYXKEYS.BETA_OVERRIDES, {[CONST.BETAS.DEFAULT_ROOMS]: true});
-        renderBetaOverridesPage();
+        renderDynamicBetaOverridesPage();
         await waitForBatchedUpdatesWithAct();
 
         // When The switch is toggled back
@@ -146,7 +146,7 @@ describe('BetaOverridesPage', () => {
         });
 
         // When The page is opened
-        renderBetaOverridesPage();
+        renderDynamicBetaOverridesPage();
         await waitForBatchedUpdatesWithAct();
 
         // Then Nothing is badged, since the stored value no longer differs from the account
@@ -158,7 +158,7 @@ describe('BetaOverridesPage', () => {
         await Onyx.set(ONYXKEYS.BETA_OVERRIDES, {[CONST.BETAS.DEFAULT_ROOMS]: false});
 
         // When The page is opened
-        renderBetaOverridesPage();
+        renderDynamicBetaOverridesPage();
         await waitForBatchedUpdatesWithAct();
 
         // Then It stays badged, since unknown account betas must not be read as every beta being off
@@ -173,7 +173,7 @@ describe('BetaOverridesPage', () => {
         });
 
         // When The page is opened
-        renderBetaOverridesPage();
+        renderDynamicBetaOverridesPage();
         await waitForBatchedUpdatesWithAct();
 
         // Then It is badged and off, since a false override is load-bearing when the account grants the beta
@@ -187,7 +187,7 @@ describe('BetaOverridesPage', () => {
             [ONYXKEYS.BETA_OVERRIDES]: {[CONST.BETAS.DEFAULT_ROOMS]: false},
             [ONYXKEYS.BETAS]: [CONST.BETAS.DEFAULT_ROOMS],
         });
-        renderBetaOverridesPage();
+        renderDynamicBetaOverridesPage();
         await waitForBatchedUpdatesWithAct();
 
         // When The switch is toggled back on
@@ -206,7 +206,7 @@ describe('BetaOverridesPage', () => {
         });
 
         // When The page is opened
-        renderBetaOverridesPage();
+        renderDynamicBetaOverridesPage();
         await waitForBatchedUpdatesWithAct();
 
         // Then Only the differing beta is badged, so the badge tracks the account rather than the stored key
@@ -218,7 +218,7 @@ describe('BetaOverridesPage', () => {
     it('clears every override when reset is pressed', async () => {
         // Given A stored override
         await Onyx.set(ONYXKEYS.BETA_OVERRIDES, {[CONST.BETAS.DEFAULT_ROOMS]: true});
-        renderBetaOverridesPage();
+        renderDynamicBetaOverridesPage();
         await waitForBatchedUpdatesWithAct();
 
         // When Reset is pressed
@@ -234,7 +234,7 @@ describe('BetaOverridesPage', () => {
         mockConfigEnvironment = CONST.ENVIRONMENT.PRODUCTION;
 
         // When The page is opened, which a deep link still allows even though the row is hidden
-        renderBetaOverridesPage();
+        renderDynamicBetaOverridesPage();
         await waitForBatchedUpdatesWithAct();
 
         // Then The not found page is shown, so nobody can pin values that would never apply
@@ -248,7 +248,7 @@ describe('BetaOverridesPage', () => {
         mockConfigEnvironment = CONST.ENVIRONMENT.STAGING;
 
         // When The page is opened
-        renderBetaOverridesPage();
+        renderDynamicBetaOverridesPage();
         await waitForBatchedUpdatesWithAct();
 
         // Then The betas are listed rather than the not found page, so the page does not flash on open

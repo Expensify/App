@@ -11,7 +11,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {clearDualEntryErrorField, updateDualEntryDefaultVendor} from '@libs/actions/connections/DualEntry';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {settingsPendingAction} from '@libs/PolicyUtils';
+import {getDualEntryVendors, settingsPendingAction} from '@libs/PolicyUtils';
 
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
@@ -35,19 +35,15 @@ function DualEntryDefaultCompanyCardVendorPage({policy}: WithPolicyConnectionsPr
     const illustrations = useMemoizedLazyIllustrations(['Telescope']);
     const policyID = policy?.id;
     const dualentryConfig = policy?.connections?.dualEntry?.config;
-    const dualentryData = policy?.connections?.dualEntry?.data;
     const defaultCompanyCardVendorID = dualentryConfig?.export?.defaultVendorID;
     const backPath = policyID ? ROUTES.POLICY_ACCOUNTING_DUALENTRY_EXPORT.getRoute(policyID) : undefined;
 
-    const data: VendorListItem[] =
-        dualentryData?.vendors
-            ?.filter((vendorItem) => vendorItem.isActive)
-            .map((vendorItem) => ({
-                value: vendorItem.id,
-                text: vendorItem.name,
-                keyForList: vendorItem.id,
-                isSelected: defaultCompanyCardVendorID === vendorItem.id,
-            })) ?? [];
+    const data: VendorListItem[] = getDualEntryVendors(policy).map((vendorItem) => ({
+        value: vendorItem.id,
+        text: vendorItem.name,
+        keyForList: vendorItem.id,
+        isSelected: defaultCompanyCardVendorID === vendorItem.id,
+    }));
     const {filteredData, textInputOptions} = useSelectionListSearch(data);
 
     const headerContent = (

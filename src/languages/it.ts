@@ -5155,6 +5155,9 @@ ${amount} per ${merchant} - ${date}`,
                 xeroInvoiceCollectionAccount: 'Conto incassi fatture Xero',
                 xeroBillPaymentAccountDescription: 'Scegli da dove pagare le fatture e creeremo il pagamento in Xero.',
                 invoiceAccountSelectorDescription: 'Scegli dove ricevere i pagamenti delle fatture e creeremo il pagamento in Xero.',
+                xeroFxExpenseAccount: 'Conto commissioni conversione valuta Xero',
+                fxExpenseAccountDescription:
+                    'Quando la tua azienda copre il costo di conversione valutaria su un pagamento effettuato all’estero, registreremo quel costo su questo conto in Xero come transazione di tipo “spesa di denaro”.',
             },
             exportDate: {
                 label: 'Data fattura di acquisto',
@@ -5523,6 +5526,9 @@ ${amount} per ${merchant} - ${date}`,
                 error: {
                     customFormID: 'Inserisci un ID del modulo personalizzato numerico valido',
                 },
+                fxExpenseAccount: 'Conto commissioni di conversione valutaria',
+                fxExpenseAccountDescription:
+                    'Quando la tua azienda copre il costo di conversione valutaria per un rimborso pagato all’estero, registreremo quel costo nel conto NetSuite qui sotto come registrazione contabile.',
             },
             noAccountsFound: 'Nessun account trovato',
             noAccountsFoundDescription: 'Aggiungi l’account in NetSuite e sincronizza nuovamente la connessione',
@@ -9297,6 +9303,35 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
             return `ha modificato i partecipanti della categoria "${categoryName}" in ${newValue ? 'obbligatorio' : 'non obbligatorio'} (in precedenza ${newValue ? 'non obbligatorio' : 'obbligatorio'})`;
         },
         updatedAutoHarvesting: (enabled: boolean) => `invii ${enabled ? 'abilitato' : 'disattivato'}`,
+        changedOverLimitForwardsTo: ({
+            member,
+            approver,
+            limit,
+            previousApprover,
+            previousLimit,
+        }: {
+            member: string;
+            approver: string;
+            limit: string;
+            previousApprover?: string;
+            previousLimit?: string;
+        }) => {
+            let text = previousApprover
+                ? `ha modificato il flusso di approvazione per ${member} per inoltrare i report superiori a ${limit} a ${approver}`
+                : `imposta il flusso di approvazione per ${member} in modo da inoltrare i report oltre ${limit} a ${approver}`;
+            if (previousApprover && previousLimit) {
+                text += ` (in precedenza inoltrava i report superiori a ${previousLimit} a ${previousApprover})`;
+            } else if (previousApprover) {
+                text += ` (precedentemente inoltrata a ${previousApprover})`;
+            }
+            return text;
+        },
+        removedOverLimitForwardsTo: ({member, previousApprover, previousLimit}: {member: string; previousApprover?: string; previousLimit: string}) =>
+            previousApprover
+                ? `ha modificato il flusso di approvazione per ${member} per interrompere l’inoltro dei report oltre ${previousLimit} (in precedenza inoltrati a ${previousApprover})`
+                : `ha modificato il workflow di approvazione per ${member} per smettere di inoltrare i report oltre ${previousLimit}`,
+        changedApprovalLimit: ({member, limit, previousLimit}: {member: string; limit: string; previousLimit: string}) =>
+            `ha modificato il flusso di approvazione per ${member} per inoltrare i report superiori a ${limit} (in precedenza ${previousLimit})`,
     },
     roomMembersPage: {
         memberNotFound: 'Membro non trovato.',
@@ -10930,6 +10965,8 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
         gpsTooltip: '<tooltip>Tracciamento GPS in corso! Quando hai finito, interrompi il tracciamento qui sotto.</tooltip>',
         hasFilterNegation: '<tooltip>Cerca le spese senza ricevute usando <strong>-has:receipt</strong>.</tooltip>',
         mileageRateAutoUpdated: '<tooltip>Abbiamo aggiornato il tasso in base alla tua data di viaggio.</tooltip>',
+        markAllAsRead: '<tooltip>Fai clic destro per <strong>segnare tutto come letto</strong>.</tooltip>',
+        markAllAsReadTouchScreen: '<tooltip>Tieni premuto per <strong>segnare tutto come letto</strong>.</tooltip>',
     },
     discardChangesConfirmation: {
         title: 'Scartare le modifiche?',

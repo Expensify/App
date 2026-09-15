@@ -28,6 +28,8 @@ import {
     getUpdatedCardFeedLiabilityMessage,
     getUpdatedCardFeedStatementPeriodMessage,
     getWorkspaceCustomUnitRateUpdatedMessage,
+    getApprovalLimitUpdateMessage,
+    getOverLimitForwardsToUpdateMessage,
 } from '@libs/ReportActionsUtils';
 import {
     getLastActorDisplayName,
@@ -2434,6 +2436,76 @@ describe('ReportAlternateTextUtils', () => {
                 });
 
                 expect(lastMessage).toBe('changed the default spend category for "Airlines" to "Travel" (previously "Insurance")');
+            });
+        });
+
+        describe('UPDATE_OVER_LIMIT_FORWARDS_TO action', () => {
+            it('should display the correct message for over limit forwards update', async () => {
+                const report: Report = createRandomReport(0, undefined);
+                const action: ReportAction = {
+                    ...createRandomReportAction(1),
+                    actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_OVER_LIMIT_FORWARDS_TO,
+                    message: [{type: 'COMMENT', text: ''}],
+                    originalMessage: {
+                        member: {email: 'member@example.com', name: 'Member', accountID: 100},
+                        overLimitForwardsTo: {email: 'approver@example.com', name: 'Approver', accountID: 200},
+                        limit: 10000,
+                        currency: 'USD',
+                    },
+                };
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {
+                    [action.reportActionID]: action,
+                });
+                const lastMessage = getLastMessageTextForReport({
+                    rules: undefined,
+                    dateFnsLocale: undefined,
+                    convertToDisplayString,
+                    conciergeReportID: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    personalDetails: undefined,
+                    translate: translateLocal,
+                    report,
+                    lastActorDetails: null,
+                    policy: undefined,
+                    isReportArchived: false,
+                    currentUserLogin: CURRENT_USER_LOGIN,
+                });
+                expect(lastMessage).toBe(getOverLimitForwardsToUpdateMessage(translateLocal, action, convertToDisplayString));
+            });
+        });
+
+        describe('UPDATE_APPROVAL_LIMIT action', () => {
+            it('should display the correct message for approval limit update', async () => {
+                const report: Report = createRandomReport(0, undefined);
+                const action: ReportAction = {
+                    ...createRandomReportAction(1),
+                    actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_APPROVAL_LIMIT,
+                    message: [{type: 'COMMENT', text: ''}],
+                    originalMessage: {
+                        member: {email: 'member@example.com', name: 'Member', accountID: 100},
+                        limit: 20000,
+                        previousLimit: 10000,
+                        currency: 'USD',
+                    },
+                };
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {
+                    [action.reportActionID]: action,
+                });
+                const lastMessage = getLastMessageTextForReport({
+                    rules: undefined,
+                    dateFnsLocale: undefined,
+                    convertToDisplayString,
+                    conciergeReportID: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    personalDetails: undefined,
+                    translate: translateLocal,
+                    report,
+                    lastActorDetails: null,
+                    policy: undefined,
+                    isReportArchived: false,
+                    currentUserLogin: CURRENT_USER_LOGIN,
+                });
+                expect(lastMessage).toBe(getApprovalLimitUpdateMessage(translateLocal, action, convertToDisplayString));
             });
         });
     });
