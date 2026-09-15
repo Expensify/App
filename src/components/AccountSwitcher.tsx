@@ -166,15 +166,12 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
               shouldRender: shouldShowProductTrainingTooltip,
               renderTooltipContent: renderProductTrainingTooltip,
               anchorAlignment: {
-                  // When the header is stacked the Switch button sits in the middle of the screen, so center the tooltip on it.
-                  // In the row layout the button is the trailing item, so right-align to open leftward into the sidebar
-                  // (matching the design mockup) instead of overflowing past the button into the central pane.
                   horizontal: shouldStackHeader ? CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.CENTER : CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
                   vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
               },
               shiftVertical: variables.accountSwitcherTooltipShiftVertical,
               shiftHorizontal: shouldStackHeader ? 0 : variables.accountSwitcherTooltipShiftHorizontal,
-              // Native skips the keep-it-on-screen clamp unless we opt in, which is how this tooltip went off-screen on iOS/Android.
+              // Native ignores the keep-on-screen clamp unless we opt in.
               computeHorizontalShiftForNative: true,
               wrapperStyle: styles.productTrainingTooltipWrapper,
               onTooltipPress: onPressSwitcher,
