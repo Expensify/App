@@ -26,11 +26,10 @@ type ReportAvatarProps = {
     size?: ValueOf<typeof CONST.AVATAR_SIZE>;
     singleAvatarContainerStyle?: StyleProp<ViewStyle>;
     secondaryAvatarContainerStyle?: StyleProp<ViewStyle>;
+    subscriptAvatarBorderColor?: ColorValue;
 
     /** Subscript avatar container styles */
     subscriptAvatarContainerStyle?: StyleProp<ViewStyle>;
-
-    subscriptAvatarBorderColor?: ColorValue;
 
     /** Whether (and how) to stack the avatars horizontally */
     horizontalStacking?: HorizontalStackingOptions | boolean;
