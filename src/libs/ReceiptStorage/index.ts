@@ -10,6 +10,7 @@ const receiptStorage: ReceiptStorage = {
     settle: () => Promise.resolve(),
     toLocalUri: (durableName) => durableName,
     resolve: (source) => (typeof source === 'string' ? source : undefined),
+    sweepLeftovers: () => Promise.resolve(),
 };
 
 export default receiptStorage;

@@ -52,6 +52,12 @@ type ReceiptStorage = {
 
     /** Re-roots a stored source onto the current folder. A remote source passes through unchanged. */
     resolve: (source: ReceiptSource | null | undefined) => string | undefined;
+
+    /**
+     * Restores receipts a dead swap left under a backup name and clears stale temporary copies. Startup
+     * schedules this too, so recovery does not depend on a later upload reading the folder.
+     */
+    sweepLeftovers: () => Promise<void>;
 };
 
 export default ReceiptStorage;

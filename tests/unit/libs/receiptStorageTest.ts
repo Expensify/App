@@ -324,6 +324,40 @@ describe('ReceiptStorage', () => {
             // Started all the same, so a launch that only ever reads still gets its folder tidied.
             expect(hasListed).toBe(true);
         });
+
+        it('restores a stranded receipt during the deferred startup sweep, without needing an upload', async () => {
+            const storage = loadFreshStorage();
+            const existing = new Set([`${FOLDER}/${RECEIPT}.backup`, `${FOLDER}/${RECEIPT}.staged`]);
+            mockReadDir.mockResolvedValue([{name: `${RECEIPT}.backup`}, {name: `${RECEIPT}.staged`}]);
+            mockExists.mockImplementation((path: string) => Promise.resolve(existing.has(path)));
+            mockMv.mockImplementation((from: string, to: string) => {
+                existing.delete(from);
+                existing.add(to);
+                return Promise.resolve();
+            });
+            mockUnlink.mockImplementation((path: string) => {
+                existing.delete(path);
+                return Promise.resolve();
+            });
+
+            const originalRequestIdleCallback = global.requestIdleCallback;
+            global.requestIdleCallback = ((callback: IdleRequestCallback) => {
+                callback({didTimeout: false, timeRemaining: () => 50});
+                return 0;
+            }) as typeof requestIdleCallback;
+
+            try {
+                await storage.sweepLeftovers();
+            } finally {
+                global.requestIdleCallback = originalRequestIdleCallback;
+            }
+
+            expect(mockMv).toHaveBeenCalledWith(`${FOLDER}/${RECEIPT}.backup`, `${FOLDER}/${RECEIPT}`);
+            expect(mockUnlink).toHaveBeenCalledWith(`${FOLDER}/${RECEIPT}.staged`);
+            expect(existing.has(`${FOLDER}/${RECEIPT}`)).toBe(true);
+            expect(existing.has(`${FOLDER}/${RECEIPT}.backup`)).toBe(false);
+            expect(existing.has(`${FOLDER}/${RECEIPT}.staged`)).toBe(false);
+        });
     });
 
     describe('locate', () => {

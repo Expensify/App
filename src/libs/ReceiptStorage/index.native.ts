@@ -16,6 +16,9 @@ import {claimForRead} from './receiptUpgrades';
 // the app data container on most upgrades, so an absolute path stored before the upgrade names a
 // directory the device no longer has, even though iOS carried the file itself across.
 
+/** Do not let a busy launch defer recovery forever. */
+const SWEEP_IDLE_TIMEOUT_MS = 10000;
+
 const STAGED_SUFFIX = '.staged';
 const BACKUP_SUFFIX = '.backup';
 
@@ -317,6 +320,18 @@ const locate: ReceiptStorage['locate'] = async (source) => {
     return uri;
 };
 
-const receiptStorage: ReceiptStorage = {adopt, overwrite, discard, locate, settle, toLocalUri, resolve};
+const sweepLeftovers: ReceiptStorage['sweepLeftovers'] = async () => {
+    const dir = getReceiptsUploadFolderPath();
+    if (!dir) {
+        return;
+    }
+
+    await new Promise<void>((onIdle) => {
+        requestIdleCallback(() => onIdle(), {timeout: SWEEP_IDLE_TIMEOUT_MS});
+    });
+    await whenLeftoversSwept(dir);
+};
+
+const receiptStorage: ReceiptStorage = {adopt, overwrite, discard, locate, settle, toLocalUri, resolve, sweepLeftovers};
 
 export default receiptStorage;
