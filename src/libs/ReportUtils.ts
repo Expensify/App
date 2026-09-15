@@ -10132,6 +10132,7 @@ function getAllReportErrors(
     reportActions: OnyxEntry<ReportActions>,
     allTransactions: OnyxCollection<Transaction>,
     currentUserAccountID: number,
+    policy: OnyxEntry<Policy>,
     isReportArchived = false,
     reports?: OnyxCollection<Report>,
 ): Errors {
@@ -10151,8 +10152,7 @@ function getAllReportErrors(
         ...reportActionErrors,
     };
 
-    const reportPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
-    if (reportErrorFields.export && !getConnectedIntegration(reportPolicy)) {
+    if (reportErrorFields.export && !getConnectedIntegration(policy)) {
         delete errorSources.export;
     }
 
@@ -10768,7 +10768,7 @@ function getMoneyRequestOptions(
     }
 
     if (isInvoiceRoom(report)) {
-        if (canSendInvoiceFromWorkspace(policy) && isPolicyAdmin(allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`])) {
+        if (canSendInvoiceFromWorkspace(policy) && isPolicyAdmin(policy)) {
             return [CONST.IOU.TYPE.INVOICE];
         }
         return [];
@@ -13446,7 +13446,15 @@ function generateReportAttributes({
     const parentReportActionsList = reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.parentReportID}`];
     const hasViolationsToDisplayInLHN = !!getViolatingReportIDForRBRInLHN(report, transactionViolations);
     const hasAnyTypeOfViolations = hasViolationsToDisplayInLHN;
-    const reportErrors = getAllReportErrors(report, reportActionsList, allTransactions, currentUserAccountID, isReportArchived, reports);
+    const reportErrors = getAllReportErrors(
+        report,
+        reportActionsList,
+        allTransactions,
+        currentUserAccountID,
+        policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`],
+        isReportArchived,
+        reports,
+    );
     const hasErrors = Object.entries(reportErrors ?? {}).length > 0;
     const oneTransactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, reportActionsList);
     const parentReportAction = report?.parentReportActionID ? parentReportActionsList?.[report.parentReportActionID] : undefined;
