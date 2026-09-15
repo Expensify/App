@@ -47,7 +47,7 @@ import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 
 import {useIsFocused} from '@react-navigation/native';
-import React, {useCallback, useEffect, useMemo} from 'react';
+import React, {useEffect} from 'react';
 import {View} from 'react-native';
 
 type CategorySettingsPageProps =
@@ -74,20 +74,16 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
     const decodedCategoryName = getDecodedCategoryName(policyCategory?.name ?? '');
     const categoryRulesEnabled = arePolicyRulesEnabled(policy, policyCategories);
 
-    const contextualRules = useMemo(() => {
-        if (!policyCategory) {
-            return [];
-        }
-
-        return getCategoryContextualRules({
-            policy,
-            category: policyCategory,
-            categoryName: policyCategory.name,
-            translate,
-            convertToDisplayString,
-            isOffline,
-        });
-    }, [convertToDisplayString, isOffline, policy, policyCategory, translate]);
+    const contextualRules = !policyCategory
+        ? []
+        : getCategoryContextualRules({
+              policy,
+              category: policyCategory,
+              categoryName: policyCategory.name,
+              translate,
+              convertToDisplayString,
+              isOffline,
+          });
 
     const shouldPreventDisableOrDelete = isDisablingOrDeletingLastEnabledCategory(policy, policyData.categories, [policyCategory]);
     const isQuickSettingsFlow = name === SCREENS.SETTINGS_CATEGORIES.DYNAMIC_SETTINGS_CATEGORY_SETTINGS;
@@ -129,47 +125,27 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
     const approverText = usePersonalDetailByLogin(categoryApprover, (personalDetails) => formatPhoneNumber(personalDetails?.displayName ?? categoryApprover));
 
     // eslint-disable-next-line rulesdir/no-negated-variables
-    const showCannotDeleteOrDisableLastCategoryModal = useCallback(() => {
+    const showCannotDeleteOrDisableLastCategoryModal = () => {
         showConfirmModal({
             title: translate('workspace.categories.cannotDeleteOrDisableAllCategories.title'),
             prompt: translate('workspace.categories.cannotDeleteOrDisableAllCategories.description'),
             confirmText: translate('common.buttonConfirm'),
             shouldShowCancelButton: false,
         });
-    }, [showConfirmModal, translate]);
+    };
 
-    const updateWorkspaceCategoryEnabled = useCallback(
-        (value: boolean) => {
-            if (shouldPreventDisableOrDelete) {
-                showCannotDeleteOrDisableLastCategoryModal();
-                return;
-            }
-            setWorkspaceCategoryEnabled({
-                policyData,
-                categoriesToUpdate: {[policyCategory.name]: {name: policyCategory.name, enabled: value}},
-                isSetupCategoriesTaskParentReportArchived: isSetupCategoryTaskParentReportArchived,
-                setupCategoryTaskReport,
-                setupCategoryTaskParentReport,
-                currentUserAccountID: currentUserPersonalDetails.accountID,
-                hasOutstandingChildTask,
-                parentReportAction,
-                setupCategoriesAndTagsTaskReport,
-                setupCategoriesAndTagsTaskParentReport,
-                isSetupCategoriesAndTagsTaskParentReportArchived,
-                setupCategoriesAndTagsHasOutstandingChildTask,
-                setupCategoriesAndTagsParentReportAction,
-                policyHasTags,
-            });
-        },
-        [
-            showCannotDeleteOrDisableLastCategoryModal,
-            shouldPreventDisableOrDelete,
+    const updateWorkspaceCategoryEnabled = (value: boolean) => {
+        if (shouldPreventDisableOrDelete) {
+            showCannotDeleteOrDisableLastCategoryModal();
+            return;
+        }
+        setWorkspaceCategoryEnabled({
             policyData,
-            policyCategory?.name,
-            isSetupCategoryTaskParentReportArchived,
+            categoriesToUpdate: {[policyCategory.name]: {name: policyCategory.name, enabled: value}},
+            isSetupCategoriesTaskParentReportArchived: isSetupCategoryTaskParentReportArchived,
             setupCategoryTaskReport,
             setupCategoryTaskParentReport,
-            currentUserPersonalDetails.accountID,
+            currentUserAccountID: currentUserPersonalDetails.accountID,
             hasOutstandingChildTask,
             parentReportAction,
             setupCategoriesAndTagsTaskReport,
@@ -178,8 +154,8 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
             setupCategoriesAndTagsHasOutstandingChildTask,
             setupCategoriesAndTagsParentReportAction,
             policyHasTags,
-        ],
-    );
+        });
+    };
 
     const navigateToEditCategory = () => {
         Navigation.navigate(isQuickSettingsFlow ? createDynamicRoute(DYNAMIC_ROUTES.SETTINGS_CATEGORY_EDIT.path) : createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_EDIT.path));
