@@ -647,5 +647,69 @@ describe('actions/IOU', () => {
             expect(update).toBeDefined();
             expect(update?.value).toHaveProperty(['data', transactionKey, 'modifiedMerchant'], 'Edited Merchant');
         });
+
+        it('writes the money-request action under the self-DM chat when there is no iouReport', () => {
+            const actualSearchQueryUtils = jest.requireActual<typeof SearchQueryUtils>('@src/libs/SearchQueryUtils');
+            jest.mocked(buildCannedSearchQuery).mockImplementation(actualSearchQueryUtils.buildCannedSearchQuery);
+
+            const selfDMReportID = 'self-dm-report';
+            const transaction = {...createRandomTransaction(1), reportID: CONST.REPORT.UNREPORTED_REPORT_ID};
+            const iouAction = {
+                reportActionID: 'action-1',
+                reportID: selfDMReportID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                actorAccountID: RORY_ACCOUNT_ID,
+                created: '2024-01-01 00:00:00',
+                originalMessage: {
+                    IOUTransactionID: transaction.transactionID,
+                    amount: transaction.amount,
+                    currency: transaction.currency,
+                    type: CONST.IOU.REPORT_ACTION_TYPE.TRACK,
+                },
+            };
+
+            const result = getSearchOnyxUpdate({
+                transaction,
+                participant: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL},
+                iouReport: undefined,
+                iouAction,
+                policy: undefined,
+                transactionThreadReportID: undefined,
+                isFromOneTransactionReport: false,
+                isInvoice: false,
+            });
+
+            const snapshotUpdate = result?.optimisticData?.find((update) => String(update.key).startsWith(ONYXKEYS.COLLECTION.SNAPSHOT));
+            expect(snapshotUpdate).toBeDefined();
+            expect(snapshotUpdate?.value).toHaveProperty(['data', `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReportID}`, iouAction.reportActionID, 'actorAccountID'], RORY_ACCOUNT_ID);
+            expect(snapshotUpdate?.value).toHaveProperty(['data', ONYXKEYS.PERSONAL_DETAILS_LIST, String(RORY_ACCOUNT_ID), 'displayName']);
+            expect(snapshotUpdate?.value).toHaveProperty(['data', `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, 'reportID'], CONST.REPORT.UNREPORTED_REPORT_ID);
+        });
+
+        it('clears the previous money-request action IOUTransactionID in the snapshot when moving', () => {
+            const actualSearchQueryUtils = jest.requireActual<typeof SearchQueryUtils>('@src/libs/SearchQueryUtils');
+            jest.mocked(buildCannedSearchQuery).mockImplementation(actualSearchQueryUtils.buildCannedSearchQuery);
+
+            const oldReportID = 'old-report';
+            const oldActionID = 'old-action';
+            const transaction = {...createRandomTransaction(1), reportID: CONST.REPORT.UNREPORTED_REPORT_ID};
+
+            const result = getSearchOnyxUpdate({
+                transaction,
+                participant: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL},
+                iouReport: undefined,
+                iouAction: undefined,
+                policy: undefined,
+                transactionThreadReportID: undefined,
+                previousMoneyRequestAction: {
+                    reportID: oldReportID,
+                    reportActionID: oldActionID,
+                },
+            });
+
+            const snapshotUpdate = result?.optimisticData?.find((update) => String(update.key).startsWith(ONYXKEYS.COLLECTION.SNAPSHOT));
+            expect(snapshotUpdate).toBeDefined();
+            expect(snapshotUpdate?.value).toHaveProperty(['data', `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${oldReportID}`, oldActionID, 'originalMessage', 'IOUTransactionID'], null);
+        });
     });
 });
