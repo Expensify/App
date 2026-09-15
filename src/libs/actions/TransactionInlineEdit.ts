@@ -35,6 +35,7 @@ import type {
     ReportAction,
     ReportActions,
     ReportNameValuePairs,
+    Rule,
     Transaction,
     TransactionViolations,
 } from '@src/types/onyx';
@@ -88,6 +89,8 @@ type TransactionEditPermissionsParams = {
 
     /** Actions of the parent (money request) report, used by canEditMoneyRequest to check whether the report was forwarded since the last submit */
     parentReportActions: OnyxEntry<ReportActions>;
+
+    rules: OnyxCollection<Rule>;
 
     policy?: OnyxEntry<Policy>;
 
@@ -155,6 +158,8 @@ type GetIouParamsInput = {
 
     /** The current user's email/login. */
     currentUserEmail: string;
+
+    rules: OnyxCollection<Rule>;
 };
 
 type TransactionInlineEditParams = GetIouParamsInput & {
@@ -196,8 +201,9 @@ function getIouParamsForTransaction({
     introSelected,
     currentUserAccountID,
     currentUserEmail,
+    rules,
 }: GetIouParamsInput) {
-    // transaction is passed in by the caller; only the scoped violations are derived here for the thread-report build.
+    // transaction is passed in by the caller; only the violations scoped to this transaction are derived here.
     const transactionViolationsForTransaction = transactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
 
     // parentReport (already resolved to the self DM for unreported expenses), parentReportAction, and
@@ -238,6 +244,8 @@ function getIouParamsForTransaction({
         getCurrencyDecimals,
         getCurrencySymbol,
         reportPolicyTags,
+        rules,
+        violations: transactionViolationsForTransaction,
         // Field-specific extras
         transaction,
         policyTagList: policyTags,
@@ -290,6 +298,7 @@ function editTransactionDescriptionInline(params: TransactionInlineEditParams, n
         ...iouParams,
         comment: newDescription,
         hash: params.hash,
+        isEditedFromExpenseList: true,
     });
 }
 
@@ -300,6 +309,7 @@ function editTransactionCategoryInline(params: TransactionInlineEditParams, newC
         ...iouParams,
         category: newCategory,
         hash: params.hash,
+        isEditedFromExpenseList: true,
     });
 }
 
@@ -349,6 +359,7 @@ function editTransactionTagInline(params: TransactionInlineEditParams, newTag: s
         policyRecentlyUsedTags: iouParams.policyRecentlyUsedTags,
         hash: params.hash,
         isOffline: params.isOffline,
+        isEditedFromExpenseList: true,
     });
 }
 
@@ -375,6 +386,7 @@ function getTransactionEditPermissions({
     originalTransaction,
     disabled,
     shouldSelectPolicyForUnreported,
+    rules,
 }: TransactionEditPermissionsParams): TransactionEditPermissions {
     if (disabled || !transaction) {
         return NO_EDIT;
@@ -399,7 +411,8 @@ function getTransactionEditPermissions({
     // For unreported expenses, parentReportAction may not be loaded; they are
     // always editable by the owner.
     const canEdit =
-        isUnreported || (isMoneyRequestAction(parentReportAction) && canEditMoneyRequest(parentReportAction, transaction, isChatReportArchived, parentReport, policy, parentReportActions));
+        isUnreported ||
+        (isMoneyRequestAction(parentReportAction) && canEditMoneyRequest(parentReportAction, transaction, rules, isChatReportArchived, parentReport, policy, parentReportActions));
     if (!canEdit) {
         return NO_EDIT;
     }
@@ -471,6 +484,7 @@ function getTransactionEditPermissions({
                 transaction,
                 report: parentReport,
                 policy,
+                rules,
             })
         );
     };

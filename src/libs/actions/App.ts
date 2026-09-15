@@ -37,6 +37,8 @@ import {Str} from 'expensify-common';
 import {AppState} from 'react-native';
 import Onyx from 'react-native-onyx';
 
+import type {PolicyOwner} from './Policy/Policy';
+
 import clearOnyxAndSeedFullReconnect from './clearOnyxAndSeedFullReconnect';
 import {setShouldForceOffline} from './Network';
 import {getAll, rollbackOngoingRequest, save} from './PersistedRequests';
@@ -48,9 +50,10 @@ type PolicyParamsForOpenOrReconnect = {
 
 // `currentSessionData` is only used in actions, not during render. So `Onyx.connectWithoutView` is appropriate.
 // If React components need this value in the future, use `useOnyx` instead.
-let currentSessionData: {accountID?: number; email: string} = {
+let currentSessionData: {accountID?: number; email: string; authToken?: string} = {
     accountID: undefined,
     email: '',
+    authToken: undefined,
 };
 Onyx.connectWithoutView({
     key: ONYXKEYS.SESSION,
@@ -58,6 +61,7 @@ Onyx.connectWithoutView({
         currentSessionData = {
             accountID: val?.accountID,
             email: val?.email ?? '',
+            authToken: val?.authToken,
         };
     },
 });
@@ -153,7 +157,7 @@ const KEYS_TO_PRESERVE: OnyxKey[] = [
     ONYXKEYS.PRESERVED_USER_SESSION,
     ONYXKEYS.PRESERVED_ACCOUNT,
     ONYXKEYS.HYBRID_APP,
-    ONYXKEYS.SHOULD_USE_STAGING_SERVER,
+    ONYXKEYS.ACTIVE_SERVER,
     ONYXKEYS.IS_DEBUG_MODE_ENABLED,
     ONYXKEYS.BETA_OVERRIDES,
     ONYXKEYS.COLLECTION.PASSKEY_CREDENTIALS,
@@ -232,16 +236,13 @@ function setSidebarLoaded() {
     Onyx.set(ONYXKEYS.RAM_ONLY_IS_SIDEBAR_LOADED, true);
 }
 
-function setAppLoading(isLoading: boolean) {
-    Onyx.set(ONYXKEYS.IS_LOADING_APP, isLoading);
-}
-
 /**
  * Saves the current navigation path to lastVisitedPath before app goes to background
  */
 function saveCurrentPathBeforeBackground() {
     try {
-        if (!navigationRef.isReady()) {
+        // Signed out there is only the sign-in page to save, and on Android the SAML browser backgrounds the app.
+        if (!navigationRef.isReady() || !currentSessionData.authToken) {
             return;
         }
 
@@ -595,7 +596,7 @@ type PolicyType = typeof CONST.POLICY.TYPE.TEAM | typeof CONST.POLICY.TYPE.CORPO
 type CreateWorkspaceWithPolicyDraftParams = {
     isSelfTourViewed: boolean | undefined;
     introSelected: OnyxEntry<OnyxTypes.IntroSelected>;
-    policyOwnerEmail?: string;
+    policyOwner?: PolicyOwner;
     policyName: string;
     transitionFromOldDot?: boolean;
     makeMeAdmin?: boolean;
@@ -613,6 +614,7 @@ type CreateWorkspaceWithPolicyDraftParams = {
     type?: PolicyType;
     betas: OnyxEntry<OnyxTypes.Beta[]>;
     hasActiveAdminPolicies: boolean;
+    hasOwnedPaidPolicy: boolean;
     isAnnualSubscription?: boolean;
 };
 
@@ -622,7 +624,7 @@ type CreateWorkspaceWithPolicyDraftParams = {
 function createWorkspaceWithPolicyDraftAndNavigateToIt(params: CreateWorkspaceWithPolicyDraftParams) {
     const {
         introSelected,
-        policyOwnerEmail = '',
+        policyOwner,
         policyName,
         transitionFromOldDot = false,
         makeMeAdmin = false,
@@ -641,6 +643,7 @@ function createWorkspaceWithPolicyDraftAndNavigateToIt(params: CreateWorkspaceWi
         isSelfTourViewed,
         betas,
         hasActiveAdminPolicies,
+        hasOwnedPaidPolicy,
         isAnnualSubscription = false,
     } = params;
 
@@ -665,7 +668,7 @@ function createWorkspaceWithPolicyDraftAndNavigateToIt(params: CreateWorkspaceWi
         savePolicyDraftByNewWorkspace({
             policyID: policyIDWithDefault,
             policyName,
-            policyOwnerEmail,
+            policyOwner,
             makeMeAdmin,
             currency,
             file,
@@ -681,6 +684,7 @@ function createWorkspaceWithPolicyDraftAndNavigateToIt(params: CreateWorkspaceWi
             isSelfTourViewed,
             betas,
             hasActiveAdminPolicies,
+            hasOwnedPaidPolicy,
             isAnnualSubscription,
         });
 
@@ -707,7 +711,6 @@ function createWorkspaceWithPolicyDraftAndNavigateToIt(params: CreateWorkspaceWi
 function createWorkspaceWithPolicyDraft(params: CreateWorkspaceWithPolicyDraftParams) {
     const {
         introSelected,
-        policyOwnerEmail = '',
         policyName,
         makeMeAdmin = false,
         policyID = '',
@@ -722,6 +725,7 @@ function createWorkspaceWithPolicyDraft(params: CreateWorkspaceWithPolicyDraftPa
         isSelfTourViewed,
         betas,
         hasActiveAdminPolicies,
+        hasOwnedPaidPolicy,
     } = params;
 
     createDraftInitialWorkspace({
@@ -737,7 +741,6 @@ function createWorkspaceWithPolicyDraft(params: CreateWorkspaceWithPolicyDraftPa
     savePolicyDraftByNewWorkspace({
         policyID,
         policyName,
-        policyOwnerEmail,
         makeMeAdmin,
         currency,
         file,
@@ -752,6 +755,7 @@ function createWorkspaceWithPolicyDraft(params: CreateWorkspaceWithPolicyDraftPa
         isSelfTourViewed,
         betas,
         hasActiveAdminPolicies,
+        hasOwnedPaidPolicy,
     });
 }
 
@@ -759,7 +763,7 @@ type SavePolicyDraftByNewWorkspaceParams = {
     isSelfTourViewed: boolean | undefined;
     policyID?: string;
     policyName: string;
-    policyOwnerEmail?: string;
+    policyOwner?: PolicyOwner;
     makeMeAdmin?: boolean;
     currency?: string;
     file?: File;
@@ -774,6 +778,7 @@ type SavePolicyDraftByNewWorkspaceParams = {
     type?: PolicyType;
     betas: OnyxEntry<OnyxTypes.Beta[]>;
     hasActiveAdminPolicies: boolean;
+    hasOwnedPaidPolicy: boolean;
     isAnnualSubscription?: boolean;
 };
 
@@ -783,7 +788,7 @@ type SavePolicyDraftByNewWorkspaceParams = {
 function savePolicyDraftByNewWorkspace({
     policyID,
     policyName,
-    policyOwnerEmail = '',
+    policyOwner,
     makeMeAdmin = false,
     currency = '',
     file,
@@ -799,10 +804,11 @@ function savePolicyDraftByNewWorkspace({
     isSelfTourViewed,
     betas,
     hasActiveAdminPolicies,
+    hasOwnedPaidPolicy,
     isAnnualSubscription = false,
 }: SavePolicyDraftByNewWorkspaceParams) {
     createWorkspace({
-        policyOwnerEmail,
+        policyOwner,
         makeMeAdmin,
         policyName,
         policyID,
@@ -821,6 +827,7 @@ function savePolicyDraftByNewWorkspace({
         isSelfTourViewed,
         betas,
         hasActiveAdminPolicies,
+        hasOwnedPaidPolicy,
         isAnnualSubscription,
     });
 }
@@ -840,18 +847,37 @@ function savePolicyDraftByNewWorkspace({
  * When the exitTo route is 'workspace/new', we create a new
  * workspace and navigate to it
  */
-function setUpPoliciesAndNavigate(
-    session: OnyxEntry<OnyxTypes.Session>,
-    introSelected: OnyxEntry<OnyxTypes.IntroSelected>,
-    currency: string,
-    activePolicy: OnyxEntry<OnyxTypes.Policy>,
-    isSelfTourViewed: boolean | undefined,
-    betas: OnyxEntry<OnyxTypes.Beta[]>,
-    hasActiveAdminPolicies: boolean,
-    lastWorkspaceNumber: number | undefined,
-    translate: LocalizedTranslate,
-    conciergeChat: OnyxEntry<OnyxTypes.Report>,
-) {
+type SetUpPoliciesAndNavigateParams = {
+    session: OnyxEntry<OnyxTypes.Session>;
+    introSelected: OnyxEntry<OnyxTypes.IntroSelected>;
+    currency: string;
+    activePolicy: OnyxEntry<OnyxTypes.Policy>;
+    isSelfTourViewed: boolean | undefined;
+    betas: OnyxEntry<OnyxTypes.Beta[]>;
+    hasActiveAdminPolicies: boolean;
+    lastWorkspaceNumber: number | undefined;
+    translate: LocalizedTranslate;
+    conciergeChat: OnyxEntry<OnyxTypes.Report>;
+    policyOwnerAccountID: number | undefined;
+    policyOwnerDisplayName: string | undefined;
+    hasOwnedPaidPolicy: boolean;
+};
+
+function setUpPoliciesAndNavigate({
+    session,
+    introSelected,
+    currency,
+    activePolicy,
+    isSelfTourViewed,
+    betas,
+    hasActiveAdminPolicies,
+    hasOwnedPaidPolicy,
+    lastWorkspaceNumber,
+    translate,
+    conciergeChat,
+    policyOwnerAccountID,
+    policyOwnerDisplayName,
+}: SetUpPoliciesAndNavigateParams) {
     const currentUrl = getCurrentUrl();
     if (!session || !currentUrl?.includes('exitTo')) {
         return;
@@ -875,8 +901,8 @@ function setUpPoliciesAndNavigate(
         createWorkspaceWithPolicyDraftAndNavigateToIt({
             introSelected,
             currency,
-            policyOwnerEmail,
-            policyName: policyName || generateDefaultWorkspaceName(policyOwnerEmail, lastWorkspaceNumber, translate),
+            policyOwner: {email: policyOwnerEmail, accountID: policyOwnerAccountID},
+            policyName: policyName || generateDefaultWorkspaceName(policyOwnerEmail, lastWorkspaceNumber, translate, policyOwnerDisplayName),
             transitionFromOldDot: true,
             makeMeAdmin,
             activePolicy,
@@ -886,6 +912,7 @@ function setUpPoliciesAndNavigate(
             isSelfTourViewed,
             betas,
             hasActiveAdminPolicies,
+            hasOwnedPaidPolicy,
         });
         return;
     }
@@ -994,12 +1021,19 @@ function showSupportalPermissionDenied(payload: OnyxTypes.SupportalPermissionDen
     Onyx.set(ONYXKEYS.SUPPORTAL_PERMISSION_DENIED, payload);
 }
 
+/**
+ * Clears the Corpay pay modal signal for the current session.
+ */
+function clearCorpayPayModal() {
+    Onyx.set(ONYXKEYS.RAM_ONLY_CORPAY_PAY_MODAL, null);
+}
+
 export {
     setLocale,
     setSidebarLoaded,
+    saveCurrentPathBeforeBackground,
     setUpPoliciesAndNavigate,
     openApp,
-    setAppLoading,
     reconnectApp,
     loadPostDataForOpenOrReconnect,
     triggerFullReconnect,
@@ -1015,6 +1049,7 @@ export {
     clearOnyxAndResetApp,
     clearSupportalPermissionDenied,
     showSupportalPermissionDenied,
+    clearCorpayPayModal,
     setPreservedUserSession,
     getNonOptimisticPolicyIDs,
     setPreservedAccount,

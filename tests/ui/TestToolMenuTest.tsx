@@ -8,7 +8,7 @@ import type * as MultifactorAuthenticationSharedValues from '@libs/MultifactorAu
 import MULTIFACTOR_AUTHENTICATION_VALUES from '@libs/MultifactorAuthentication/VALUES';
 
 import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 
 import React from 'react';
 
@@ -81,8 +81,10 @@ jest.mock('@libs/actions/MultifactorAuthentication', () => ({
         mockRevokeCredentials(...args),
 }));
 
+const mockProductionServer = CONST.SERVER.PRODUCTION;
 jest.mock('@libs/ApiUtils', () => ({
-    isUsingStagingApi: () => false,
+    isQAServerActive: () => false,
+    getActiveServer: () => mockProductionServer,
     getCommandURL: () => 'https://test-api.expensify.com/api/Ping?',
 }));
 
@@ -132,7 +134,7 @@ jest.mock('@userActions/Session', () => ({
 
 jest.mock('@userActions/User', () => ({
     setIsDebugModeEnabled: jest.fn(),
-    setShouldUseStagingServer: jest.fn(),
+    setActiveServer: jest.fn(),
 }));
 
 jest.mock('@src/CONFIG', () => ({
@@ -141,16 +143,6 @@ jest.mock('@src/CONFIG', () => ({
         DEFAULT_API_ROOT: 'https://www.expensify.com.dev/',
     },
 }));
-
-jest.mock('@components/Button', () => {
-    const RN = require('react-native');
-    const ReactModule = require('react');
-    function MockButton({text, onPress}: {text: string; onPress?: () => void}) {
-        return ReactModule.createElement(RN.TouchableOpacity, {onPress}, ReactModule.createElement(RN.Text, null, text));
-    }
-    MockButton.displayName = 'Button';
-    return MockButton;
-});
 
 jest.mock('@components/Switch', () => {
     function MockSwitch() {
@@ -371,9 +363,9 @@ describe('TestToolMenu beta overrides', () => {
         // When The row is pressed
         fireEvent.press(screen.getByText('common.view'));
 
-        // Then The modal is dismissed first, because it and the overrides page cannot both be open
+        // Then The modal is dismissed first, because it and the overrides page cannot both be open, and the page opens over the modal's backTo screen
         expect(mockDismissModal).toHaveBeenCalledTimes(1);
-        expect(mockNavigate).toHaveBeenCalledWith(ROUTES.SETTINGS_TROUBLESHOOT_BETA_OVERRIDES);
+        expect(mockNavigate).toHaveBeenCalledWith(`${ROUTES.HOME}/${DYNAMIC_ROUTES.BETA_OVERRIDES.path}`);
     });
 
     it('does not dismiss any modal when opened inline on the Troubleshoot page', () => {
@@ -384,8 +376,8 @@ describe('TestToolMenu beta overrides', () => {
         // When The row is pressed
         fireEvent.press(screen.getByText('common.view'));
 
-        // Then Nothing is dismissed, because there is no modal open in this context
+        // Then Nothing is dismissed, because there is no modal open in this context, and the page opens over Troubleshoot
         expect(mockDismissModal).not.toHaveBeenCalled();
-        expect(mockNavigate).toHaveBeenCalledWith(ROUTES.SETTINGS_TROUBLESHOOT_BETA_OVERRIDES);
+        expect(mockNavigate).toHaveBeenCalledWith(`${ROUTES.SETTINGS_TROUBLESHOOT}/${DYNAMIC_ROUTES.BETA_OVERRIDES.path}`);
     });
 });

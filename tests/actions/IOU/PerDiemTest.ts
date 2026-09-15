@@ -336,6 +336,7 @@ describe('PerDiem', () => {
                 existingIOUReport: undefined,
                 isASAPSubmitBetaEnabled: true,
                 currentUserAccountIDParam: 123,
+                rules: undefined,
             });
             const policyTags = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${earlyPolicyID}`] ?? {};
 
@@ -357,6 +358,7 @@ describe('PerDiem', () => {
                 formatPhoneNumber,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                rules: undefined,
             });
 
             expect(result.onyxData).toBeDefined();
@@ -440,6 +442,7 @@ describe('PerDiem', () => {
                 existingIOUReport: undefined,
                 isASAPSubmitBetaEnabled: true,
                 currentUserAccountIDParam: 123,
+                rules: undefined,
             });
             const policyTags = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${earlyPolicyID}`] ?? {};
 
@@ -463,6 +466,7 @@ describe('PerDiem', () => {
                 formatPhoneNumber,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                rules: undefined,
             });
 
             // Then: Verify the result structure and key values
@@ -544,6 +548,7 @@ describe('PerDiem', () => {
                 existingIOUReport: undefined,
                 isASAPSubmitBetaEnabled: true,
                 currentUserAccountIDParam: 123,
+                rules: undefined,
             });
             const policyTags = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${earlyPolicyID}`] ?? {};
 
@@ -565,6 +570,7 @@ describe('PerDiem', () => {
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
                 formatPhoneNumber,
+                rules: undefined,
             });
 
             // The builder must not produce a transaction thread — the backend creates it lazily when first needed.
@@ -661,6 +667,7 @@ describe('PerDiem', () => {
                 existingIOUReport: undefined,
                 isASAPSubmitBetaEnabled: true,
                 currentUserAccountIDParam: 123,
+                rules: undefined,
             });
             const policyTags = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${earlyPolicyID}`] ?? {};
 
@@ -682,6 +689,7 @@ describe('PerDiem', () => {
                 formatPhoneNumber,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                rules: undefined,
             });
 
             // Then: Verify the result uses existing chat report
@@ -765,6 +773,7 @@ describe('PerDiem', () => {
                 existingIOUReport: undefined,
                 isASAPSubmitBetaEnabled: true,
                 currentUserAccountIDParam: 123,
+                rules: undefined,
             });
             const policyTags = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${earlyPolicyID}`] ?? {};
 
@@ -787,6 +796,7 @@ describe('PerDiem', () => {
                 formatPhoneNumber,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                rules: undefined,
             });
 
             // Then: Verify policy expense chat handling
@@ -845,6 +855,7 @@ describe('PerDiem', () => {
                 existingIOUReport: undefined,
                 isASAPSubmitBetaEnabled: true,
                 currentUserAccountIDParam: currentUserPersonalDetails.accountID,
+                rules: undefined,
             });
             const policyTags = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${earlyPolicyID}`] ?? {};
 
@@ -880,6 +891,7 @@ describe('PerDiem', () => {
                 formatPhoneNumber,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                rules: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -932,6 +944,7 @@ describe('PerDiem', () => {
                 existingIOUReport: undefined,
                 isASAPSubmitBetaEnabled: true,
                 currentUserAccountIDParam: currentUserPersonalDetails.accountID,
+                rules: undefined,
             });
             const policyTags = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${earlyPolicyID}`] ?? {};
 
@@ -966,6 +979,7 @@ describe('PerDiem', () => {
                 formatPhoneNumber,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                rules: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -1034,6 +1048,7 @@ describe('PerDiem', () => {
                 existingIOUReport: undefined,
                 isASAPSubmitBetaEnabled: true,
                 currentUserAccountIDParam: RORY_ACCOUNT_ID,
+                rules: undefined,
             });
             const policyTags = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${earlyPolicyID}`] ?? {};
 
@@ -1055,6 +1070,7 @@ describe('PerDiem', () => {
                 formatPhoneNumber,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                rules: undefined,
             });
 
             // Then the result should be valid (personalDetails is correctly passed through the chain)
@@ -1103,6 +1119,7 @@ describe('PerDiem', () => {
                 existingIOUReport: undefined,
                 isASAPSubmitBetaEnabled: true,
                 currentUserAccountIDParam: currentUserPersonalDetails.accountID,
+                rules: undefined,
             });
             const policyTags = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${earlyPolicyID}`] ?? {};
 
@@ -1136,6 +1153,7 @@ describe('PerDiem', () => {
                 formatPhoneNumber,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                rules: undefined,
             });
 
             await waitForBatchedUpdates();

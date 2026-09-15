@@ -69,6 +69,7 @@ function PayPrimaryAction({reportID, chatReportID}: PayPrimaryActionProps) {
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
     const activePolicy = usePolicy(activePolicyID);
     const chatReportPolicy = usePolicy(chatReport?.policyID);
@@ -118,7 +119,7 @@ function PayPrimaryAction({reportID, chatReportID}: PayPrimaryActionProps) {
 
     const {currentSearchQueryJSON, currentSearchKey} = useSearchQueryContext();
     const {currentSearchResults} = useSearchResultsContext();
-    const shouldCalculateTotals = useSearchShouldCalculateTotals(currentSearchKey, currentSearchQueryJSON?.hash, true);
+    const shouldCalculateTotals = useSearchShouldCalculateTotals(currentSearchKey, true);
 
     const {openHoldMenu} = useMoneyReportHeaderModals();
 
@@ -159,6 +160,7 @@ function PayPrimaryAction({reportID, chatReportID}: PayPrimaryActionProps) {
                 chatReportActions: getChatReportActions(payAsBusiness),
                 delegateAccountID,
                 isTrackIntentUser,
+                rules,
             });
         } else {
             startAnimation();
@@ -185,6 +187,7 @@ function PayPrimaryAction({reportID, chatReportID}: PayPrimaryActionProps) {
                 delegateAccountID,
                 isTrackIntentUser,
                 conciergeChat,
+                rules,
             });
             if (currentSearchQueryJSON && !isOffline) {
                 search({

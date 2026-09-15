@@ -61,6 +61,7 @@ function PayActionButton() {
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
     const isTrackIntentUser = isTrackOnboardingChoice(introSelected?.choice);
 
@@ -80,7 +81,7 @@ function PayActionButton() {
         if (isDelegateAccessRestricted) {
             showDelegateNoAccessModal();
         } else if (hasHeldExpensesReportUtils(transactions)) {
-            onHoldMenuOpen(CONST.IOU.REPORT_ACTION_TYPE.PAY, type, shouldShowPayButton, methodID);
+            onHoldMenuOpen(type, shouldShowPayButton, methodID);
         } else if (chatReport && iouReport) {
             const currentChatReport = getReportOrDraftReport(chatReportID) ?? chatReport;
             if (isInvoiceReportUtils(iouReport)) {
@@ -107,6 +108,7 @@ function PayActionButton() {
                     chatReportActions: getChatReportActions(payAsBusiness),
                     delegateAccountID,
                     isTrackIntentUser,
+                    rules,
                 });
             } else {
                 payMoneyRequest({
@@ -132,6 +134,7 @@ function PayActionButton() {
                     delegateAccountID,
                     isTrackIntentUser,
                     conciergeChat,
+                    rules,
                 });
             }
         }

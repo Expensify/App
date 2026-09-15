@@ -11,8 +11,7 @@ import {
     buildSubstantiveEditMessage,
     buildTemplateReminderMessage,
     DUPLICATE_CHECK_WITHDRAW_MESSAGE,
-    SUBSTANTIVE_EDIT_MESSAGE_PREFIX,
-    SUBSTANTIVE_EDIT_MESSAGE_REGEX,
+    stripSubstantiveEditBanner,
 } from '@prompts/proposalPolice/messages';
 import {
     COMMENT_INTENT_RESPONSE_FORMAT,
@@ -151,6 +150,7 @@ async function run() {
     }
 
     const apiKey = getInput('PROPOSAL_POLICE_API_KEY', {required: true});
+    const isTrustedCommenter = getInput('IS_TRUSTED_COMMENTER') === 'true';
     const openAI = new OpenAIUtils(apiKey);
 
     const issueNumber = payload.issue?.number ?? -1;
@@ -168,7 +168,7 @@ async function run() {
             console.log('Comment does not follow the proposal template. Classifying what it is trying to do...');
             const intentResponse = await openAI.promptResponses({
                 instructions: buildCommentIntentInstructions(),
-                input: buildCommentIntentInput(newProposalBody),
+                input: buildCommentIntentInput(newProposalBody, isTrustedCommenter),
                 model: PROPOSAL_POLICE_MODEL,
                 promptCacheKey: 'proposal-police-comment-intent',
                 textFormat: COMMENT_INTENT_RESPONSE_FORMAT,
@@ -309,21 +309,27 @@ async function run() {
         return;
     }
 
-    // A comment we already bannered must never be bannered again, which is the only thing the edit check
-    // decides, so skip it. The proposal text can still have changed though, and without this the
-    // Conversation would keep serving every future duplicate check the copy stored before this edit.
-    // `startsWith` rather than `includes`, matching the ^-anchored regex used to strip it below: a comment
-    // that merely quotes the banner further down has not been flagged, and stripping would leave it in place.
-    if (isCommentEditedEvent(payload) && payload.comment.body.trim().startsWith(SUBSTANTIVE_EDIT_MESSAGE_PREFIX)) {
-        console.log('Comment was already edited by proposal-police once, so only refreshing its recorded copy.\n', payload.comment.body);
-        // Store the proposal itself, not the banner a previous run prepended to it
-        await refreshStoredProposal(openAI, issueNumber, commentID, payload.comment.user.login, payload.comment.body.trim().replace(SUBSTANTIVE_EDIT_MESSAGE_REGEX, ''));
+    // Strip any banner a previous run prepended so the edit check compares proposal text to
+    // proposal text. Leaving it on either side would make a timestamp-only difference look
+    // substantial, and prepending another banner on ACTION_EDIT would stack them.
+    const previousProposalBody = stripSubstantiveEditBanner(payload.changes.body?.from ?? '');
+    const editedProposalBody = stripSubstantiveEditBanner(payload.comment?.body ?? '');
+    const isAlreadyBannered = editedProposalBody !== (payload.comment?.body ?? '');
+
+    // Our own banner prepend comes back as another edited event. After stripping, the proposal
+    // is unchanged, so there is nothing to classify — and calling the model would just spend a
+    // request on a difference we introduced.
+    if (previousProposalBody === editedProposalBody) {
+        console.log('Proposal text is unchanged after stripping any edit banner, skipping the edit check.');
+        if (isAlreadyBannered) {
+            await refreshStoredProposal(openAI, issueNumber, commentID, payload.comment.user.login, editedProposalBody);
+        }
         return;
     }
 
     const response = await openAI.promptResponses({
         instructions: buildEditCheckInstructions(),
-        input: buildEditCheckInput(payload.changes.body?.from, payload.comment?.body),
+        input: buildEditCheckInput(previousProposalBody, editedProposalBody),
         model: PROPOSAL_POLICE_MODEL,
         promptCacheKey: 'proposal-police-edit-check',
         textFormat: EDIT_CHECK_RESPONSE_FORMAT,
@@ -339,6 +345,11 @@ async function run() {
     const action = parsedResponse?.action ?? CONST.NO_ACTION;
     if (action === CONST.NO_ACTION) {
         console.log('Detected NO_ACTION for comment, returning early.');
+        // An already-bannered comment can still have changed in a non-substantive way, and
+        // without this the Conversation would keep serving the copy stored before this edit.
+        if (isAlreadyBannered) {
+            await refreshStoredProposal(openAI, issueNumber, commentID, payload.comment.user.login, editedProposalBody);
+        }
         return;
     }
 
@@ -348,12 +359,12 @@ async function run() {
             ...context.repo,
             /* eslint-disable @typescript-eslint/naming-convention */
             comment_id: commentID,
-            body: `${buildSubstantiveEditMessage(formattedDate)}\n\n${payload.comment?.body}`,
+            body: `${buildSubstantiveEditMessage(formattedDate)}\n\n${editedProposalBody}`,
         });
 
         // The Conversation still holds this proposal as it read before the edit, so refresh it. Only
-        // substantial edits land here; minor rewording is deliberately left as-is.
-        await refreshStoredProposal(openAI, issueNumber, commentID, payload.comment?.user.login ?? '', payload.comment?.body ?? '');
+        // substantial edits land here; minor rewording of a never-bannered comment is deliberately left as-is.
+        await refreshStoredProposal(openAI, issueNumber, commentID, payload.comment?.user.login ?? '', editedProposalBody);
     }
 }
 

@@ -23,6 +23,7 @@ import type {Route} from '@src/ROUTES';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
+import {CONST as COMMON_CONST} from 'expensify-common';
 import React, {useCallback, useEffect} from 'react';
 
 type IssueNewCardConfirmValidateCodePageProps = PlatformStackScreenProps<
@@ -86,7 +87,8 @@ function IssueNewCardConfirmValidateCodePage({route}: IssueNewCardConfirmValidat
                 isLoading={issueNewCard?.isLoading}
                 title={translate('cardPage.validateCardTitle')}
                 descriptionPrimary={translate('cardPage.enterSecurityCode', primaryLogin)}
-                sendValidateCode={() => requestValidateCodeAction()}
+                sendValidateCode={() => requestValidateCodeAction({reasonCode: COMMON_CONST.VALIDATE_CODE_REASONS.ISSUE_CARD})}
+                validateCodeReasonCode={COMMON_CONST.VALIDATE_CODE_REASONS.ISSUE_CARD}
                 validateCodeActionErrorField={data?.cardType === CONST.EXPENSIFY_CARD.CARD_TYPE.PHYSICAL ? 'createExpensifyCard' : 'createAdminIssuedVirtualCard'}
                 handleSubmitForm={handleSubmit}
                 validateError={validateError}

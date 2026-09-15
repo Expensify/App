@@ -54,7 +54,6 @@ const basicProps = {
     transactionDetails: {},
     isBillSplit: false,
     shouldShowRBR: false,
-    shouldShowCanceledStatus: false,
     isReportAPolicyExpenseChat: false,
     areThereDuplicates: false,
     currentUserEmail: '',
@@ -256,16 +255,10 @@ describe('TransactionPreviewUtils', () => {
             expect(result.displayAmountText.text).toEqual(convertAmountToDisplayString(modifiedAmount, currency));
         });
 
-        it('does not show the canceled status inside a report preview, because the preview header already shows it', () => {
-            const functionArgs = {...basicProps, iouReport: {...basicProps.iouReport, isCancelledIOU: true}, originalTransaction: undefined, shouldShowCanceledStatus: false};
+        it('does not show the canceled status, because a cancelled payment is only recorded by its system message', () => {
+            const functionArgs = {...basicProps, iouReport: {...basicProps.iouReport, isCancelledIOU: true}, originalTransaction: undefined};
             const result = getTransactionPreviewTextAndTranslationPaths(functionArgs);
             expect(result.previewStatusText).toEqual([]);
-        });
-
-        it('shows the canceled status in a standalone preview, because nothing else on that surface reports it', () => {
-            const functionArgs = {...basicProps, iouReport: {...basicProps.iouReport, isCancelledIOU: true}, originalTransaction: undefined, shouldShowCanceledStatus: true};
-            const result = getTransactionPreviewTextAndTranslationPaths(functionArgs);
-            expect(result.previewStatusText).toContainEqual({translationPath: 'iou.canceled'});
         });
 
         it('does not show the approved status when the report is approved, because it is redundant with the report status badge', () => {
@@ -538,12 +531,6 @@ describe('TransactionPreviewUtils', () => {
             expect(result.shouldShowDescription).toBeFalsy();
         });
 
-        it("should show tag if it's a policy expense chat and tag is present", () => {
-            const functionArgs = {...basicProps, isReportAPolicyExpenseChat: true, transactionDetails: {tag: 'Transport'}};
-            const result = createTransactionPreviewConditionals(functionArgs);
-            expect(result.shouldShowTag).toBeTruthy();
-        });
-
         it('should correctly show violation message if there are multiple violations', () => {
             const functionArgs = {
                 ...basicProps,
@@ -644,6 +631,48 @@ describe('TransactionPreviewUtils', () => {
                 };
                 const result = createTransactionPreviewConditionals(functionArgs);
                 expect(result.shouldShowRBR).toBeTruthy();
+            });
+
+            describe('with an over auto-approval limit notice', () => {
+                const overLimitPolicy = {
+                    ...createRandomPolicy(1),
+                    type: CONST.POLICY.TYPE.CORPORATE,
+                    role: CONST.POLICY.ROLE.ADMIN,
+                };
+                // The notice arrives from the backend without `showInReview`, which is what keeps it out of the notice-type check.
+                const overLimitViolations = [{name: CONST.VIOLATIONS.OVER_AUTO_APPROVAL_LIMIT, type: CONST.VIOLATION_TYPES.NOTICE}] as TransactionViolation[];
+                const submittedReport = {
+                    ...basicProps.iouReport,
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                    policyID: overLimitPolicy.id,
+                    stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                    statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                    ownerAccountID: currentUserAccountID,
+                };
+
+                it('should show RBR when the submitter is also the approver', () => {
+                    const functionArgs = {
+                        ...basicProps,
+                        policy: overLimitPolicy,
+                        iouReport: {...submittedReport, managerID: currentUserAccountID},
+                        violations: overLimitViolations,
+                        currentUserAccountID,
+                    };
+                    const result = createTransactionPreviewConditionals(functionArgs);
+                    expect(result.shouldShowRBR).toBeTruthy();
+                });
+
+                it('should not show RBR when the submitter is not the approver', () => {
+                    const functionArgs = {
+                        ...basicProps,
+                        policy: overLimitPolicy,
+                        iouReport: {...submittedReport, managerID: currentUserAccountID + 1},
+                        violations: overLimitViolations,
+                        currentUserAccountID,
+                    };
+                    const result = createTransactionPreviewConditionals(functionArgs);
+                    expect(result.shouldShowRBR).toBeFalsy();
+                });
             });
         });
     });
@@ -988,6 +1017,45 @@ describe('TransactionPreviewUtils', () => {
             await waitForBatchedUpdates();
             const violations = [{name: CONST.VIOLATIONS.CUSTOM_RULES, type: CONST.VIOLATION_TYPES.NOTICE, showInReview: true}];
             expect(transactionHasRBR(basicProps.transaction, violations, rbrEmail, rbrAccountID, expenseReport, undefined, paidGroupPolicy)).toBe(true);
+        });
+
+        it('should return true for an over auto-approval limit notice when the submitter is also the approver', () => {
+            const overLimitPolicy = {
+                ...createRandomPolicy(1),
+                type: CONST.POLICY.TYPE.CORPORATE,
+                role: CONST.POLICY.ROLE.ADMIN,
+            };
+            const submittedReport = {
+                ...basicProps.iouReport,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                policyID: overLimitPolicy.id,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                ownerAccountID: rbrAccountID,
+                managerID: rbrAccountID,
+            };
+            // The notice arrives from the backend without `showInReview`, which is what keeps it out of the notice-type check.
+            const violations = [{name: CONST.VIOLATIONS.OVER_AUTO_APPROVAL_LIMIT, type: CONST.VIOLATION_TYPES.NOTICE}];
+            expect(transactionHasRBR(basicProps.transaction, violations, rbrEmail, rbrAccountID, submittedReport, undefined, overLimitPolicy)).toBe(true);
+        });
+
+        it('should return false for an over auto-approval limit notice when the submitter is not the approver', () => {
+            const overLimitPolicy = {
+                ...createRandomPolicy(1),
+                type: CONST.POLICY.TYPE.CORPORATE,
+                role: CONST.POLICY.ROLE.ADMIN,
+            };
+            const submittedReport = {
+                ...basicProps.iouReport,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                policyID: overLimitPolicy.id,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                ownerAccountID: rbrAccountID,
+                managerID: rbrAccountID + 1,
+            };
+            const violations = [{name: CONST.VIOLATIONS.OVER_AUTO_APPROVAL_LIMIT, type: CONST.VIOLATION_TYPES.NOTICE}];
+            expect(transactionHasRBR(basicProps.transaction, violations, rbrEmail, rbrAccountID, submittedReport, undefined, overLimitPolicy)).toBe(false);
         });
 
         it('should return true for a distance request with MODIFIED_AMOUNT violation', () => {

@@ -52,6 +52,7 @@ function CreateReportMenuItem() {
         selector: (policies: Parameters<typeof chatEnabledPaidGroupPoliciesSelector>[0]) => chatEnabledPaidGroupPoliciesSelector(policies, session?.email),
     });
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
     const defaultChatEnabledPolicy = getDefaultChatEnabledPolicy(groupPoliciesWithChatEnabled as Array<OnyxEntry<OnyxTypes.Policy>>, activePolicy);
 
@@ -73,6 +74,7 @@ function CreateReportMenuItem() {
             defaultChatEnabledPolicy,
             isTrackIntentUser,
             getCurrencyDecimals,
+            rules,
             false,
             shouldDismissEmptyReportsConfirmation,
         );

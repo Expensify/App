@@ -165,6 +165,7 @@ function TransactionListItemInner<TItem extends ListItem>({
         chatReportPolicyID: chatReport?.policyID,
     });
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
     const liveTransactionItem = useLiveRowCapabilities<TransactionListItemType>({
         item: transactionItem,
@@ -192,6 +193,7 @@ function TransactionListItemInner<TItem extends ListItem>({
         policy: rowPolicy ?? liveTransactionItem.policy,
         report: liveTransactionItem.report,
         isTrackIntentUser,
+        rules,
     });
 
     const onyxViolations = (transactionViolationsForRow ?? []).filter(
@@ -263,6 +265,7 @@ function TransactionListItemInner<TItem extends ListItem>({
             delegateAccountID,
             isTrackIntentUser,
             allViolations,
+            rules,
             conciergeChat,
         });
     };

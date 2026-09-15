@@ -6,23 +6,25 @@ import useOnyx from '@hooks/useOnyx';
 import {useSidebarOrderedReportsActions} from '@hooks/useSidebarOrderedReports';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {isUsingStagingApi} from '@libs/ApiUtils';
+import {getActiveServer} from '@libs/ApiUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 
 import {setShouldFailAllRequests, setShouldForceOffline, setShouldSimulatePoorConnection} from '@userActions/Network';
 import {expireSessionWithDelay, invalidateAuthToken, invalidateCredentials} from '@userActions/Session';
-import {setIsDebugModeEnabled, setShouldShowBranchNameInTitle, setShouldUseStagingServer} from '@userActions/User';
+import {getBackToParam} from '@userActions/TestTool';
+import {setActiveServer, setIsDebugModeEnabled, setShouldShowBranchNameInTitle} from '@userActions/User';
 
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 
 import React from 'react';
 import {Platform} from 'react-native';
 
 import BiometricsTestToolRow from './BiometricsTestToolRow';
-import Button from './ButtonComposed';
+import Button from './Button';
 import QAAuthTestToolRows from './QAAuthTestToolRows';
 import SoftKillTestToolRow from './SoftKillTestToolRow';
 import Switch from './Switch';
@@ -33,7 +35,7 @@ import Text from './Text';
 function TestToolMenu() {
     const [network] = useOnyx(ONYXKEYS.NETWORK);
     const [isUsingImportedState] = useOnyx(ONYXKEYS.IS_USING_IMPORTED_STATE);
-    const [shouldUseStagingServer = isUsingStagingApi()] = useOnyx(ONYXKEYS.SHOULD_USE_STAGING_SERVER);
+    const [activeServer = getActiveServer()] = useOnyx(ONYXKEYS.ACTIVE_SERVER);
     const [isDebugModeEnabled = false] = useOnyx(ONYXKEYS.IS_DEBUG_MODE_ENABLED);
     const [shouldShowBranchNameInTitle = false] = useOnyx(ONYXKEYS.SHOULD_SHOW_BRANCH_NAME_IN_TITLE);
     const styles = useThemeStyles();
@@ -126,10 +128,15 @@ function TestToolMenu() {
                             <Button
                                 size={CONST.BUTTON_SIZE.SMALL}
                                 onPress={() => {
-                                    if (Navigation.getActiveRoute().includes(ROUTES.TEST_TOOLS_MODAL.route)) {
-                                        Navigation.dismissModal();
+                                    const activeRoute = Navigation.getActiveRoute();
+                                    if (!activeRoute.includes(ROUTES.TEST_TOOLS_MODAL.route)) {
+                                        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.BETA_OVERRIDES.path, activeRoute));
+                                        return;
                                     }
-                                    Navigation.navigate(ROUTES.SETTINGS_TROUBLESHOOT_BETA_OVERRIDES);
+                                    // The modal stores the screen it was opened from in backTo, so the page opens over that screen and survives a reload
+                                    const backTo = getBackToParam() ?? ROUTES.HOME;
+                                    Navigation.dismissModal();
+                                    Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.BETA_OVERRIDES.path, backTo));
                                 }}
                             >
                                 <Button.Text>{translate('common.view')}</Button.Text>
@@ -152,8 +159,8 @@ function TestToolMenu() {
                 >
                     <Switch
                         accessibilityLabel="Use Staging Server"
-                        isOn={shouldUseStagingServer}
-                        onToggle={() => setShouldUseStagingServer(!shouldUseStagingServer)}
+                        isOn={activeServer === CONST.SERVER.STAGING}
+                        onToggle={(isOn) => setActiveServer(isOn ? CONST.SERVER.STAGING : CONST.SERVER.PRODUCTION)}
                     />
                 </TestToolRow>
             )}

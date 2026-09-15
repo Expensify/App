@@ -45,7 +45,6 @@ type DynamicIOURequestStepTimeProps = WithWritableReportOrNotFoundProps<typeof S
     /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
     transaction: OnyxEntry<OnyxTypes.Transaction>;
 
-    /** Indicates whether the transaction data is loading */
     isLoadingTransaction?: boolean;
 
     /** The report linked to the transaction */

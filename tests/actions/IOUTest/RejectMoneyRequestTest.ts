@@ -161,9 +161,10 @@ describe('actions/IOU/RejectMoneyRequest', () => {
                 policy,
                 TEST_USER_ACCOUNT_ID,
                 TEST_USER_EMAIL,
-                true,
+                [CONST.BETAS.ALL],
                 undefined,
                 getCurrencyDecimalsLocal,
+                {rules: undefined},
             );
 
             // Then: Should return navigation route to chat report
@@ -180,7 +181,18 @@ describe('actions/IOU/RejectMoneyRequest', () => {
             if (!transaction?.transactionID || !iouReport?.reportID) {
                 throw new Error('Required transaction or report data is missing');
             }
-            rejectMoneyRequest(transaction.transactionID, iouReport.reportID, comment, policy, TEST_USER_ACCOUNT_ID, TEST_USER_EMAIL, true, undefined, getCurrencyDecimalsLocal);
+            rejectMoneyRequest(
+                transaction.transactionID,
+                iouReport.reportID,
+                comment,
+                policy,
+                TEST_USER_ACCOUNT_ID,
+                TEST_USER_EMAIL,
+                [CONST.BETAS.ALL],
+                undefined,
+                getCurrencyDecimalsLocal,
+                {rules: undefined},
+            );
             await waitForBatchedUpdates();
 
             // Then: Verify violation is added
@@ -236,7 +248,18 @@ describe('actions/IOU/RejectMoneyRequest', () => {
             if (!transaction?.transactionID || !iouReport?.reportID) {
                 throw new Error('Required transaction or report data is missing');
             }
-            rejectMoneyRequest(transaction.transactionID, iouReport.reportID, comment, policy, TEST_USER_ACCOUNT_ID, TEST_USER_EMAIL, true, undefined, getCurrencyDecimalsLocal);
+            rejectMoneyRequest(
+                transaction.transactionID,
+                iouReport.reportID,
+                comment,
+                policy,
+                TEST_USER_ACCOUNT_ID,
+                TEST_USER_EMAIL,
+                [CONST.BETAS.ALL],
+                undefined,
+                getCurrencyDecimalsLocal,
+                {rules: undefined},
+            );
             await waitForBatchedUpdates();
 
             // Then: createdIOUReportActionID shouldn't be undefined
@@ -275,17 +298,45 @@ describe('actions/IOU/RejectMoneyRequest', () => {
                 throw new Error('Required transaction or report data is missing');
             }
 
-            rejectMoneyRequest(transaction.transactionID, iouReport.reportID, comment, policy, TEST_USER_ACCOUNT_ID, TEST_USER_EMAIL, true, undefined, getCurrencyDecimalsLocal, {
-                sharedRejectedToReportID,
-                existingRejectedReport,
-                setExistingRejectedReport,
-            });
+            rejectMoneyRequest(
+                transaction.transactionID,
+                iouReport.reportID,
+                comment,
+                policy,
+                TEST_USER_ACCOUNT_ID,
+                TEST_USER_EMAIL,
+                [CONST.BETAS.ALL],
+                undefined,
+                getCurrencyDecimalsLocal,
+                {
+                    rules: undefined,
+                    options: {
+                        sharedRejectedToReportID,
+                        existingRejectedReport,
+                        setExistingRejectedReport,
+                    },
+                },
+            );
 
-            rejectMoneyRequest(secondTransaction.transactionID, iouReport.reportID, comment, policy, TEST_USER_ACCOUNT_ID, TEST_USER_EMAIL, true, undefined, getCurrencyDecimalsLocal, {
-                sharedRejectedToReportID,
-                existingRejectedReport,
-                setExistingRejectedReport,
-            });
+            rejectMoneyRequest(
+                secondTransaction.transactionID,
+                iouReport.reportID,
+                comment,
+                policy,
+                TEST_USER_ACCOUNT_ID,
+                TEST_USER_EMAIL,
+                [CONST.BETAS.ALL],
+                undefined,
+                getCurrencyDecimalsLocal,
+                {
+                    rules: undefined,
+                    options: {
+                        sharedRejectedToReportID,
+                        existingRejectedReport,
+                        setExistingRejectedReport,
+                    },
+                },
+            );
             await waitForBatchedUpdates();
 
             let allReports: OnyxCollection<Report>;
@@ -336,7 +387,18 @@ describe('actions/IOU/RejectMoneyRequest', () => {
             if (!transaction?.transactionID || !iouReport?.reportID) {
                 throw new Error('Required transaction or report data is missing');
             }
-            rejectMoneyRequest(transaction.transactionID, iouReport.reportID, comment, policy, TEST_USER_ACCOUNT_ID, TEST_USER_EMAIL, true, undefined, getCurrencyDecimalsLocal);
+            rejectMoneyRequest(
+                transaction.transactionID,
+                iouReport.reportID,
+                comment,
+                policy,
+                TEST_USER_ACCOUNT_ID,
+                TEST_USER_EMAIL,
+                [CONST.BETAS.ALL],
+                undefined,
+                getCurrencyDecimalsLocal,
+                {rules: undefined},
+            );
             await waitForBatchedUpdates();
 
             // Then: expenseMovedReportActionID should not be present because we don't create
@@ -389,7 +451,7 @@ describe('actions/IOU/RejectMoneyRequest', () => {
             // eslint-disable-next-line rulesdir/no-multiple-api-calls
             const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
 
-            rejectExpenseReport(expenseReport, SUBMITTER_ACCOUNT_ID, comment, TEST_USER_ACCOUNT_ID, CURRENT_USER_DISPLAY_NAME, CURRENT_USER_AVATAR, false, undefined);
+            rejectExpenseReport(expenseReport, SUBMITTER_ACCOUNT_ID, comment, TEST_USER_ACCOUNT_ID, CURRENT_USER_DISPLAY_NAME, CURRENT_USER_AVATAR, false, undefined, undefined);
             await waitForBatchedUpdates();
 
             expect(writeSpy).toHaveBeenCalledWith(
@@ -410,7 +472,7 @@ describe('actions/IOU/RejectMoneyRequest', () => {
             // eslint-disable-next-line rulesdir/no-multiple-api-calls
             const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
 
-            rejectExpenseReport(expenseReport, SUBMITTER_ACCOUNT_ID, markdownComment, TEST_USER_ACCOUNT_ID, CURRENT_USER_DISPLAY_NAME, CURRENT_USER_AVATAR, false, undefined);
+            rejectExpenseReport(expenseReport, SUBMITTER_ACCOUNT_ID, markdownComment, TEST_USER_ACCOUNT_ID, CURRENT_USER_DISPLAY_NAME, CURRENT_USER_AVATAR, false, undefined, undefined);
             await waitForBatchedUpdates();
 
             expect(writeSpy).toHaveBeenCalledWith(
@@ -424,7 +486,7 @@ describe('actions/IOU/RejectMoneyRequest', () => {
         });
 
         it('should optimistically update the report when rejecting to submitter', async () => {
-            rejectExpenseReport(expenseReport, SUBMITTER_ACCOUNT_ID, comment, TEST_USER_ACCOUNT_ID, CURRENT_USER_DISPLAY_NAME, CURRENT_USER_AVATAR, false, undefined);
+            rejectExpenseReport(expenseReport, SUBMITTER_ACCOUNT_ID, comment, TEST_USER_ACCOUNT_ID, CURRENT_USER_DISPLAY_NAME, CURRENT_USER_AVATAR, false, undefined, undefined);
             await waitForBatchedUpdates();
 
             const updatedReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`);
@@ -434,7 +496,7 @@ describe('actions/IOU/RejectMoneyRequest', () => {
         });
 
         it('should optimistically update the report when rejecting to a previous approver', async () => {
-            rejectExpenseReport(expenseReport, APPROVER_ACCOUNT_ID, comment, TEST_USER_ACCOUNT_ID, CURRENT_USER_DISPLAY_NAME, CURRENT_USER_AVATAR, false, undefined);
+            rejectExpenseReport(expenseReport, APPROVER_ACCOUNT_ID, comment, TEST_USER_ACCOUNT_ID, CURRENT_USER_DISPLAY_NAME, CURRENT_USER_AVATAR, false, undefined, undefined);
             await waitForBatchedUpdates();
 
             const updatedReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`);
@@ -444,7 +506,7 @@ describe('actions/IOU/RejectMoneyRequest', () => {
         });
 
         it('should create optimistic report actions with passed user details', async () => {
-            rejectExpenseReport(expenseReport, SUBMITTER_ACCOUNT_ID, comment, TEST_USER_ACCOUNT_ID, CURRENT_USER_DISPLAY_NAME, CURRENT_USER_AVATAR, false, undefined);
+            rejectExpenseReport(expenseReport, SUBMITTER_ACCOUNT_ID, comment, TEST_USER_ACCOUNT_ID, CURRENT_USER_DISPLAY_NAME, CURRENT_USER_AVATAR, false, undefined, undefined);
             await waitForBatchedUpdates();
 
             const reportActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`);

@@ -12,7 +12,7 @@ import type {ThemeStyles} from '@styles/index';
 
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import type {AccountData, BillingGraceEndPeriod, Policy, Report} from '@src/types/onyx';
+import type {AccountData, Beta, BillingGraceEndPeriod, Policy, Report, Rule} from '@src/types/onyx';
 import type BankAccount from '@src/types/onyx/BankAccount';
 import type Fund from '@src/types/onyx/Fund';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
@@ -49,6 +49,8 @@ type SelectPaymentTypeParams = {
     isASAPSubmitBetaEnabled: boolean;
     confirmApproval?: () => void;
     iouReport?: OnyxEntry<Report>;
+    rules: OnyxCollection<Rule>;
+    betas: OnyxEntry<Beta[]>;
     userBillingGracePeriodEnds: OnyxCollection<BillingGraceEndPeriod>;
     amountOwed: OnyxEntry<number>;
     ownerBillingGracePeriodEnd: OnyxEntry<number>;
@@ -224,6 +226,8 @@ const selectPaymentType = (params: SelectPaymentTypeParams) => {
         isASAPSubmitBetaEnabled,
         confirmApproval,
         iouReport,
+        rules,
+        betas,
         userBillingGracePeriodEnds,
         amountOwed,
         ownerBillingGracePeriodEnd,
@@ -255,10 +259,12 @@ const selectPaymentType = (params: SelectPaymentTypeParams) => {
             approveMoneyRequest({
                 expenseReport: iouReport,
                 expenseReportPolicy,
+                rules,
                 currentUserAccountIDParam: currentAccountID,
                 currentUserEmailParam: currentEmail,
                 hasViolations,
                 isASAPSubmitBetaEnabled,
+                betas,
                 userBillingGracePeriodEnds,
                 amountOwed,
                 ownerBillingGracePeriodEnd,
