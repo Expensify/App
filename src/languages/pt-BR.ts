@@ -5148,6 +5148,9 @@ ${amount} para ${merchant} - ${date}`,
                 xeroInvoiceCollectionAccount: 'Conta de recebimentos de faturas do Xero',
                 xeroBillPaymentAccountDescription: 'Escolha de onde pagar as contas e nós criaremos o pagamento no Xero.',
                 invoiceAccountSelectorDescription: 'Escolha onde receber os pagamentos de faturas e nós criaremos o pagamento no Xero.',
+                xeroFxExpenseAccount: 'Conta de taxa de conversão de moeda do Xero',
+                fxExpenseAccountDescription:
+                    'Quando sua empresa cobrir o custo de conversão de moeda em um pagamento feito no exterior, nós lançaremos esse custo nesta conta no Xero como uma transação de saída de dinheiro.',
             },
             exportDate: {
                 label: 'Data da fatura de compra',
@@ -5514,6 +5517,9 @@ ${amount} para ${merchant} - ${date}`,
                 error: {
                     customFormID: 'Insira um ID de formulário personalizado numérico válido',
                 },
+                fxExpenseAccount: 'Conta de taxa de conversão de moeda',
+                fxExpenseAccountDescription:
+                    'Quando sua empresa cobrir o custo de conversão de moeda em um reembolso pago no exterior, vamos lançar esse custo na conta do NetSuite abaixo como um lançamento contábil.',
             },
             noAccountsFound: 'Nenhuma conta encontrada',
             noAccountsFoundDescription: 'Adicione a conta no NetSuite e sincronize a conexão novamente',
@@ -10920,6 +10926,8 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
         gpsTooltip: '<tooltip>Rastreamento por GPS em andamento! Quando terminar, pare o rastreamento abaixo.</tooltip>',
         hasFilterNegation: '<tooltip>Pesquise despesas sem recibos usando <strong>-has:receipt</strong>.</tooltip>',
         mileageRateAutoUpdated: '<tooltip>Nós atualizamos a taxa com base na sua data de viagem.</tooltip>',
+        markAllAsRead: '<tooltip>Clique com o botão direito para <strong>marcar tudo como lido</strong>.</tooltip>',
+        markAllAsReadTouchScreen: '<tooltip>Mantenha pressionado para <strong>marcar tudo como lido</strong>.</tooltip>',
     },
     discardChangesConfirmation: {
         title: 'Descartar alterações?',

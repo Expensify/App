@@ -551,11 +551,13 @@ function buildOptimisticTransaction(params: BuildOptimisticTransactionParams): T
             lodashSet(commentJSON, 'customUnit', customUnit);
         } else {
             const routeDistanceMeters = routes?.route0?.distance ?? existingTransaction?.routes?.route0?.distance;
-            lodashSet(commentJSON, 'customUnit', existingTransaction?.comment?.customUnit ?? {});
+            lodashSet(commentJSON, 'customUnit', {...existingTransaction?.comment?.customUnit});
             // Set the distance unit, which comes from the policy distance unit or the P2P rate data
             lodashSet(commentJSON, 'customUnit.distanceUnit', DistanceRequestUtils.getUpdatedDistanceUnit({transaction: existingTransaction, policy}));
             lodashSet(commentJSON, 'customUnit.quantity', distance);
-            lodashSet(commentJSON, 'customUnit.customUnitRateID', customUnitRateID);
+            if (customUnitRateID) {
+                lodashSet(commentJSON, 'customUnit.customUnitRateID', customUnitRateID);
+            }
             lodashSet(commentJSON, 'customUnit.name', existingTransaction?.comment?.customUnit?.name ?? CONST.CUSTOM_UNITS.NAME_DISTANCE);
             if (typeof routeDistanceMeters === 'number') {
                 lodashSet(commentJSON, 'customUnit.routeDistanceMeters', routeDistanceMeters);
@@ -2596,10 +2598,8 @@ function hasDuplicateTransactions(
     ownerLogin: string | undefined,
     policy: OnyxEntry<Policy>,
     allTransactionViolations: OnyxCollection<TransactionViolation[]>,
+    reportTransactions: Transaction[],
 ): boolean {
-    const transactionsByIouReportID = getReportTransactions(iouReport?.reportID);
-    const reportTransactions = transactionsByIouReportID;
-
     return (
         reportTransactions.length > 0 &&
         reportTransactions.some((transaction) =>
