@@ -25,6 +25,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {clearPolicyTagErrors, clearPolicyTagListErrors, deletePolicyTags, openPolicyTagsPage, setPolicyTagsRequired, setWorkspaceTagEnabled} from '@libs/actions/Policy/Tag';
+import appendParentTagsFilter from '@libs/Navigation/helpers/dynamicRoutesUtils/appendParentTagsFilter';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -125,14 +126,11 @@ function DynamicWorkspaceViewTagsPage({route}: DynamicWorkspaceViewTagsProps) {
                 return;
             }
 
-            const parentTagsFilter = tag?.rules?.parentTagsFilter;
-            const workspaceTagSettingsSuffix = parentTagsFilter
-                ? `${DYNAMIC_ROUTES.WORKSPACE_TAG_SETTINGS.getRoute(orderWeight, tag.name)}?parentTagsFilter=${encodeURIComponent(parentTagsFilter)}`
-                : DYNAMIC_ROUTES.WORKSPACE_TAG_SETTINGS.getRoute(orderWeight, tag.name);
+            const parentTagsFilter = tag?.rules?.parentTagsFilter ?? tag?.parentTagsFilter;
+            const tagSettingsSuffix = appendParentTagsFilter(DYNAMIC_ROUTES.WORKSPACE_TAG_SETTINGS.getRoute(orderWeight, tag.name), parentTagsFilter);
+            const settingsTagSettingsSuffix = appendParentTagsFilter(DYNAMIC_ROUTES.SETTINGS_TAG_SETTINGS.getRoute(orderWeight, tag.name), parentTagsFilter);
 
-            Navigation.navigate(
-                isQuickSettingsFlow ? createDynamicRoute(DYNAMIC_ROUTES.SETTINGS_TAG_SETTINGS.getRoute(orderWeight, tag.name)) : createDynamicRoute(workspaceTagSettingsSuffix),
-            );
+            Navigation.navigate(isQuickSettingsFlow ? createDynamicRoute(settingsTagSettingsSuffix) : createDynamicRoute(tagSettingsSuffix));
         },
         [canWriteTags, isQuickSettingsFlow, orderWeight],
     );

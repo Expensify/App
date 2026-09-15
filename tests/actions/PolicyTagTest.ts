@@ -27,7 +27,7 @@ import {
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PolicyTagLists, PolicyTags, RecentlyUsedTags} from '@src/types/onyx';
+import type {PolicyTag, PolicyTagLists, PolicyTags, RecentlyUsedTags} from '@src/types/onyx';
 
 import Onyx from 'react-native-onyx';
 import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
@@ -2546,6 +2546,51 @@ describe('actions/Policy', () => {
             if (updatedPolicyTags?.[tagListName]?.tags[tagName].pendingAction) {
                 expect(updatedPolicyTags[tagListName].tags[tagName].pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
             }
+        });
+
+        it('should update GL code for a dependent tag stored under a unique record key', async () => {
+            const fakePolicy = createRandomPolicy(0);
+            const tagListName = 'Project';
+            const engineeringRoadshowKey = 'Roadshow-1';
+            const fakePolicyTags: PolicyTagLists = {
+                [tagListName]: {
+                    name: tagListName,
+                    orderWeight: 1,
+                    required: false,
+                    tags: {
+                        Roadshow: {name: 'Roadshow', enabled: true, rules: {parentTagsFilter: '^Marketing$'}},
+                    },
+                },
+            };
+            const engineeringRoadshowTag: PolicyTag = {
+                name: 'Roadshow',
+                enabled: true,
+                rules: {parentTagsFilter: '^Engineering$'},
+            };
+            engineeringRoadshowTag['GL Code'] = '1111';
+            fakePolicyTags[tagListName].tags[engineeringRoadshowKey] = engineeringRoadshowTag;
+            const newGLCode = 'NEW_GL_CODE_789';
+
+            mockFetch.pause();
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`, fakePolicyTags);
+
+            setPolicyTagGLCode({
+                policyID: fakePolicy.id,
+                tagName: 'Roadshow',
+                tagListIndex: 1,
+                glCode: newGLCode,
+                policyTags: fakePolicyTags,
+                parentTagsFilter: '^Engineering$',
+            });
+            await waitForBatchedUpdates();
+
+            const updatedPolicyTags = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`);
+
+            expect(updatedPolicyTags?.[tagListName]?.tags['Roadshow-1']['GL Code']).toBe(newGLCode);
+            expect(updatedPolicyTags?.[tagListName]?.tags.Roadshow['GL Code']).toBeUndefined();
+
+            mockFetch.resume();
+            await waitForBatchedUpdates();
         });
     });
 

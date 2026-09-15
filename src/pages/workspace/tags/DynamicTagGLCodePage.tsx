@@ -14,10 +14,11 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import {getTagListByOrderWeight, hasAccountingConnections} from '@libs/PolicyUtils';
+import {findPolicyTagEntryByParentFilter, getTagListByOrderWeight, hasAccountingConnections} from '@libs/PolicyUtils';
 
 import type {SettingsNavigatorParamList} from '@navigation/types';
 
+import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 
 import {setPolicyTagGLCode} from '@userActions/Policy/Tag';
@@ -43,15 +44,17 @@ function DynamicTagGLCodePage({route}: DynamicEditTagGLCodePageProps) {
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
 
     const tagName = route.params.tagName;
+    const parentTagsFilter = route.params.parentTagsFilter;
     const orderWeight = Number(route.params.orderWeight);
     const {tags} = getTagListByOrderWeight(policyTags, orderWeight);
-    const glCode = tags?.[route.params.tagName]?.['GL Code'];
+    const currentPolicyTagEntry = findPolicyTagEntryByParentFilter(tags, tagName, parentTagsFilter);
+    const glCode = currentPolicyTagEntry?.tag?.['GL Code'];
     const isQuickSettingsFlow = route.name === SCREENS.SETTINGS_TAGS.DYNAMIC_SETTINGS_TAG_GL_CODE;
     const backPath = useDynamicBackPath(isQuickSettingsFlow ? DYNAMIC_ROUTES.SETTINGS_TAG_GL_CODE.path : DYNAMIC_ROUTES.WORKSPACE_TAG_GL_CODE.path);
 
     const goBack = useCallback(() => {
-        Navigation.goBack(backPath);
-    }, [backPath]);
+        Navigation.goBack(isQuickSettingsFlow ? backPath : undefined);
+    }, [backPath, isQuickSettingsFlow]);
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_TAG_FORM>) => {
@@ -71,12 +74,23 @@ function DynamicTagGLCodePage({route}: DynamicEditTagGLCodePageProps) {
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_TAG_FORM>) => {
             const newGLCode = values.glCode.trim();
             if (newGLCode !== glCode) {
-                setPolicyTagGLCode({policyID, tagName, tagListIndex: orderWeight, glCode: newGLCode, policyTags});
+                setPolicyTagGLCode({
+                    policyID,
+                    tagName,
+                    tagListIndex: orderWeight,
+                    glCode: newGLCode,
+                    policyTags,
+                    parentTagsFilter,
+                });
             }
             goBack();
         },
-        [glCode, goBack, policyID, tagName, orderWeight, policyTags],
+        [glCode, goBack, policyID, tagName, orderWeight, policyTags, parentTagsFilter],
     );
+
+    if (!currentPolicyTagEntry) {
+        return <NotFoundPage />;
+    }
 
     return (
         <AccessOrNotFoundWrapper
