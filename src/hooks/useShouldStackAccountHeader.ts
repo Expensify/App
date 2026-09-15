@@ -10,7 +10,9 @@ import useWindowDimensions from './useWindowDimensions';
  * Gated on the available viewport height rather than on orientation: the stacked header is ~236dp tall, and
  * `isInLandscapeMode` is a poor proxy for "there is room for it" — it lags a rotation because it is derived from
  * `useSafeAreaFrame`, and it is always false on tablets. Comparing the height directly also fails safe, because an
- * unknown (0) height reads as "not enough room" and renders the compact row, which fits everywhere.
+ * unknown (0) height reads as "not enough room" and renders the compact row, which fits everywhere. The breakpoint
+ * sits between the tallest phone in landscape (~480dp) and the shortest phone in portrait (~568dp), so phones stack
+ * in portrait and never in landscape.
  */
 function useShouldStackAccountHeader(): boolean {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
