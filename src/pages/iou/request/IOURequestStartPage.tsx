@@ -244,9 +244,11 @@ function IOURequestStartPage({
 
     useEffect(
         () => () => {
-            if (focusTimeoutRef.current) {
-                clearTimeout(focusTimeoutRef.current);
+            if (!focusTimeoutRef.current) {
+                return;
             }
+
+            clearTimeout(focusTimeoutRef.current);
         },
         [],
     );

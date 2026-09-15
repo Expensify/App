@@ -7,7 +7,9 @@ import type {ReactNode} from 'react';
 
 import React from 'react';
 
-import ConfirmationFieldsContext, {type RestoreFocus} from './context';
+import type {RestoreFocus} from './context';
+
+import ConfirmationFieldsContext from './context';
 
 type ProviderProps = {
     /** ID of the active transaction */
