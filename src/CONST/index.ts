@@ -2743,7 +2743,6 @@ const CONST = {
         SUSTAINED_FAILURE_WINDOW_MS: 10 * 1000,
         RECONNECT_STAMPEDE_JITTER_MS: 5000,
         STALLED_UPDATES_FETCH_BACKOFF_TIME_MS: 60 * 1000,
-        MAX_TRACKED_FAILED_UPDATE_IDS: 100,
         MAX_PAUSE_WATCHDOG_TIME_MS: 60 * 1000,
         MAX_PAUSE_WATCHDOG_ESCALATION_TIME_MS: 15 * 1000,
         // Hard ceiling on a single pause, measured from pause() and not extendable by progress. The re-arm signal

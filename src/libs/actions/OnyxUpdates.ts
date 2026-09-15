@@ -26,44 +26,10 @@ let lastUpdateIDPendingWriteFlush = 0;
 
 let lastUpdateIDPendingPusherApply = 0;
 
-const failedUpdateIDs = new Set<number>();
-
-let highestUntrackedFailedUpdateID = 0;
-let lowestUntrackedFailedUpdateID = 0;
-
-function getLowestTrackedFailedUpdateID(): number {
-    return failedUpdateIDs.size ? Math.min(...failedUpdateIDs) : 0;
-}
-
-function getHighestTrackedFailedUpdateID(): number {
-    return failedUpdateIDs.size ? Math.max(...failedUpdateIDs) : 0;
-}
-
-function hasOutstandingFailedUpdateIDs(): boolean {
-    return failedUpdateIDs.size > 0 || highestUntrackedFailedUpdateID > 0;
-}
-
-function trackFailedUpdateID(failedUpdateID: number) {
-    failedUpdateIDs.add(failedUpdateID);
-
-    if (failedUpdateIDs.size <= CONST.NETWORK.MAX_TRACKED_FAILED_UPDATE_IDS) {
-        return;
-    }
-
-    const highestFailedUpdateID = getHighestTrackedFailedUpdateID();
-    failedUpdateIDs.delete(highestFailedUpdateID);
-    highestUntrackedFailedUpdateID = Math.max(highestUntrackedFailedUpdateID, highestFailedUpdateID);
-    lowestUntrackedFailedUpdateID = lowestUntrackedFailedUpdateID ? Math.min(lowestUntrackedFailedUpdateID, highestFailedUpdateID) : highestFailedUpdateID;
-}
-
-function untrackFailedUpdateIDs() {
-    failedUpdateIDs.clear();
-    highestUntrackedFailedUpdateID = 0;
-    lowestUntrackedFailedUpdateID = 0;
-}
+let highestFailedUpdateID = 0;
 
 function getEffectiveLastUpdateID(): number {
-    if (hasOutstandingFailedUpdateIDs()) {
+    if (highestFailedUpdateID) {
         return lastUpdateIDAppliedToClient ?? 0;
     }
 
@@ -85,7 +51,7 @@ Onyx.connectWithoutView({
         if (val === undefined) {
             lastUpdateIDPendingWriteFlush = 0;
             lastUpdateIDPendingPusherApply = 0;
-            untrackFailedUpdateIDs();
+            highestFailedUpdateID = 0;
         }
     },
 });
@@ -242,40 +208,25 @@ function apply<TKey extends OnyxKey>({lastUpdateID, previousUpdateID, type, requ
     const advanceLastUpdateIDAfterApply = <T>(promise: Promise<T>): Promise<T> =>
         promise
             .then((result) => {
-                let coveredFrom: number | undefined;
-                if (isFullReconnectRequest || isOpenAppRequest) {
-                    coveredFrom = 0;
-                } else if (isCatchUpRequest) {
-                    coveredFrom = Number(request?.data?.updateIDFrom ?? 0);
-                } else if (Number(previousUpdateID) > 0 && Number(previousUpdateID) <= getPersistedLastUpdateID()) {
-                    coveredFrom = Number(previousUpdateID);
-                }
+                if (highestFailedUpdateID) {
+                    const doesResponseCoverFromWatermark =
+                        isFullReconnectRequest ||
+                        isOpenAppRequest ||
+                        (isCatchUpRequest
+                            ? Number(request?.data?.updateIDFrom ?? 0) <= getPersistedLastUpdateID()
+                            : Number(previousUpdateID) > 0 && Number(previousUpdateID) <= getPersistedLastUpdateID());
 
-                if (coveredFrom !== undefined && hasOutstandingFailedUpdateIDs()) {
-                    if (highestUntrackedFailedUpdateID && lowestUntrackedFailedUpdateID > coveredFrom && Number(lastUpdateID) >= highestUntrackedFailedUpdateID) {
-                        highestUntrackedFailedUpdateID = 0;
-                        lowestUntrackedFailedUpdateID = 0;
+                    if (!doesResponseCoverFromWatermark) {
+                        lastUpdateIDPendingPusherApply = 0;
+                        lastUpdateIDPendingWriteFlush = 0;
+
+                        Log.info('[OnyxUpdateManager] Not advancing past an update whose apply failed', false, {lastUpdateID, highestFailedUpdateID});
+                        return result;
                     }
 
-                    for (const failedUpdateID of [...failedUpdateIDs]) {
-                        if (failedUpdateID > coveredFrom && failedUpdateID <= Number(lastUpdateID)) {
-                            failedUpdateIDs.delete(failedUpdateID);
-                        }
+                    if (Number(lastUpdateID) >= highestFailedUpdateID) {
+                        highestFailedUpdateID = 0;
                     }
-                }
-
-                const lowestTrackedFailedUpdateID = getLowestTrackedFailedUpdateID();
-                if ((lowestTrackedFailedUpdateID && Number(lastUpdateID) >= lowestTrackedFailedUpdateID) || highestUntrackedFailedUpdateID) {
-                    lastUpdateIDPendingPusherApply = 0;
-                    lastUpdateIDPendingWriteFlush = 0;
-
-                    Log.info('[OnyxUpdateManager] Not advancing past an update whose apply failed', false, {
-                        lastUpdateID,
-                        lowestTrackedFailedUpdateID,
-                        failedUpdateCount: failedUpdateIDs.size,
-                        hasUntrackedFailedUpdateIDs: highestUntrackedFailedUpdateID > 0,
-                    });
-                    return result;
                 }
 
                 // Deferred updates apply concurrently (Promise.all) and can settle out of order, so re-check the
@@ -302,7 +253,7 @@ function apply<TKey extends OnyxKey>({lastUpdateID, previousUpdateID, type, requ
 
                 if (shouldAdvanceLastUpdateID) {
                     if (Number(lastUpdateID) > getPersistedLastUpdateID()) {
-                        trackFailedUpdateID(Number(lastUpdateID));
+                        highestFailedUpdateID = Math.max(highestFailedUpdateID, Number(lastUpdateID));
                     }
 
                     Log.alert('[OnyxUpdateManagerError] Applying the updates failed, not advancing lastUpdateID so the client can recover on the next reconnect', {
@@ -310,8 +261,7 @@ function apply<TKey extends OnyxKey>({lastUpdateID, previousUpdateID, type, requ
                         command: request?.command,
                         lastUpdateID,
                         previousLastUpdateIDAppliedToClient,
-                        failedUpdateCount: failedUpdateIDs.size,
-                        hasUntrackedFailedUpdateIDs: highestUntrackedFailedUpdateID > 0,
+                        highestFailedUpdateID,
                         error: error instanceof Error ? error.message : String(error),
                     });
                 }
