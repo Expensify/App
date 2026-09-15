@@ -5180,6 +5180,8 @@ const CONST = {
         },
     },
     PERSONAL_CARDS: {
+        // Account-not-found is ignored for company feed health, but a personal cardholder can reconnect this card.
+        ACCOUNT_NOT_FOUND_SCRAPE_STATUS: 434,
         STEP: {
             SELECT_BANK: 'SelectBank',
             BANK_CONNECTION: 'BankConnection',
