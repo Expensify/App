@@ -6,6 +6,7 @@ import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import LoadingIndicator from '@components/LoadingIndicator';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
+import type {RestoreFocus} from '@components/MoneyRequestConfirmationFields/context';
 import MoneyRequestConfirmationList from '@components/MoneyRequestConfirmationList';
 import {usePersonalDetails, usePolicyCategories} from '@components/OnyxListItemProvider';
 import ParticipantPicker from '@components/ParticipantPicker';
@@ -130,11 +131,8 @@ type IOURequestStepConfirmationProps = WithWritableReportOrNotFoundProps<IOURequ
         /** Reports whether the inline amount sign differs from its initial value (new manual expense flow) */
         onSignDirtyChange?: (isSignDirty: boolean) => void;
 
-        /** Increments when the embedded discard confirmation is cancelled, so the amount input can restore focus */
-        discardCancelSequence?: number;
-
-        /** Whether the embedded discard confirmation is visible, so inline inputs can release focus */
-        isDiscardModalVisible?: boolean;
+        /** Registers the inline field that should regain focus when the discard confirmation is cancelled */
+        onInputFocus?: (restoreFocus: RestoreFocus) => void;
 
         /** Suppresses the parent discard prompt when the embedded confirmation starts a successful submit */
         suppressDiscardPrompt?: () => void;
@@ -149,8 +147,7 @@ function IOURequestStepConfirmationContent({
     shouldHideHeader = false,
     navigation,
     onSignDirtyChange,
-    discardCancelSequence,
-    isDiscardModalVisible,
+    onInputFocus,
     suppressDiscardPrompt,
 }: IOURequestStepConfirmationProps) {
     const {getCurrencyDecimals, convertToDisplayString} = useCurrencyListActions();
@@ -1178,8 +1175,7 @@ function IOURequestStepConfirmationContent({
                                     isTimeRequest={isTimeRequest}
                                     shouldHideToSection={shouldHideToSection}
                                     onSignDirtyChange={onSignDirtyChange}
-                                    discardCancelSequence={discardCancelSequence}
-                                    isDiscardModalVisible={isDiscardModalVisible}
+                                    onInputFocus={onInputFocus}
                                 />
                             )}
                         </SubmitExpenseOrchestrator>

@@ -72,8 +72,7 @@ function AmountField({
     setFormError,
     isParticipantPickerVisible = false,
 }: AmountFieldProps) {
-    const {isEditingSplitBill, isReadOnly, didConfirm, transactionID, action, iouType, reportID, reportActionID, onSignDirtyChange, discardCancelSequence, isDiscardModalVisible} =
-        useConfirmationFields();
+    const {isEditingSplitBill, isReadOnly, didConfirm, transactionID, action, iouType, reportID, reportActionID, onSignDirtyChange, onInputFocus} = useConfirmationFields();
     const shouldAutoFocusOnMount = !canUseTouchScreen();
     const styles = useThemeStyles();
     const {translate, preferredLocale} = useLocalize();
@@ -84,7 +83,6 @@ function AmountField({
     const amountInputRef = useRef<BaseTextInputRef | null>(null);
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const baselineIsNegativeRef = useRef(amount < 0);
-    const previousDiscardCancelSequenceRef = useRef(discardCancelSequence);
 
     const transactionSlice = useTransactionSelector(transactionID, amountSliceSelector);
 
@@ -137,32 +135,6 @@ function AmountField({
             clearTimeout(focusTimeoutRef.current);
         };
     }, [shouldAutoFocusOnMount, isAmountFieldDisabled, isParticipantPickerVisible]);
-
-    useEffect(() => {
-        const didCancelDiscard = previousDiscardCancelSequenceRef.current !== discardCancelSequence;
-        previousDiscardCancelSequenceRef.current = discardCancelSequence;
-
-        if (!didCancelDiscard || isAmountFieldDisabled) {
-            return;
-        }
-
-        focusTimeoutRef.current = setTimeout(() => amountInputRef.current?.focus(), CONST.ANIMATED_TRANSITION);
-
-        return () => {
-            if (!focusTimeoutRef.current) {
-                return;
-            }
-            clearTimeout(focusTimeoutRef.current);
-        };
-    }, [discardCancelSequence, isAmountFieldDisabled]);
-
-    useEffect(() => {
-        if (!isDiscardModalVisible) {
-            return;
-        }
-
-        amountInputRef.current?.blur();
-    }, [isDiscardModalVisible]);
 
     const showCurrencyPicker = () => {
         setIsCurrencyPickerVisible(true);
@@ -356,6 +328,9 @@ function AmountField({
                         label={translate('iou.amount')}
                         errorText={amountFieldErrorText}
                         onInputChange={handleAmountChange}
+                        onFocus={() => {
+                            onInputFocus?.(() => amountInputRef.current?.focus());
+                        }}
                         allowNegativeInput={allowNegative}
                         shouldShowFlipButton
                         shouldShowCurrencyButton

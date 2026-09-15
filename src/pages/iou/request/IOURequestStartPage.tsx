@@ -2,6 +2,7 @@ import ActivityIndicator from '@components/ActivityIndicator';
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
 import FocusTrapContainerElement from '@components/FocusTrap/FocusTrapContainerElement';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import type {RestoreFocus} from '@components/MoneyRequestConfirmationFields/context';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TabSelector from '@components/TabSelector/TabSelector';
@@ -216,19 +217,44 @@ function IOURequestStartPage({
     const shouldEmbedConfirmation = shouldUseTab || iouType === CONST.IOU.TYPE.PAY;
 
     const [isSignDirty, setIsSignDirty] = useState(false);
-    const [discardCancelSequence, setDiscardCancelSequence] = useState(0);
-    const [isDiscardModalVisible, setIsDiscardModalVisible] = useState(false);
     const [hasSubmitted, setHasSubmitted] = useState(false);
     const hasSubmittedRef = useRef(false);
+    const lastFocusedInputRef = useRef<RestoreFocus | null>(null);
+    const focusTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     const hasAmountChanged = transaction?.isAmountSet === true;
     const getEmbeddedHasUnsavedChanges = () => shouldEmbedConfirmation && !hasSubmittedRef.current && (isSignDirty || hasAmountChanged);
     const isEmbeddedDirty = shouldEmbedConfirmation && !hasSubmitted && (isSignDirty || hasAmountChanged);
 
+    const restoreLastFocusedInput = () => {
+        const restoreFocus = lastFocusedInputRef.current;
+        if (!restoreFocus) {
+            return;
+        }
+
+        if (focusTimeoutRef.current) {
+            clearTimeout(focusTimeoutRef.current);
+        }
+
+        focusTimeoutRef.current = setTimeout(() => {
+            focusTimeoutRef.current = null;
+            restoreFocus();
+        }, CONST.ANIMATED_TRANSITION);
+    };
+
+    useEffect(
+        () => () => {
+            if (focusTimeoutRef.current) {
+                clearTimeout(focusTimeoutRef.current);
+            }
+        },
+        [],
+    );
+
     const {suppressDiscardPrompt} = useDiscardChangesConfirmation({
         getHasUnsavedChanges: getEmbeddedHasUnsavedChanges,
-        onCancel: () => setDiscardCancelSequence((sequence) => sequence + 1),
-        onVisibilityChange: setIsDiscardModalVisible,
+        shouldEnableNewFocusManagement: shouldEmbedConfirmation,
+        onCancel: restoreLastFocusedInput,
         onConfirm: cleanupPreInsertedDestination,
     });
 
@@ -302,8 +328,9 @@ function IOURequestStartPage({
                 navigation={navigation}
                 shouldHideHeader
                 onSignDirtyChange={setIsSignDirty}
-                discardCancelSequence={discardCancelSequence}
-                isDiscardModalVisible={isDiscardModalVisible}
+                onInputFocus={(restoreFocus) => {
+                    lastFocusedInputRef.current = restoreFocus;
+                }}
                 suppressDiscardPrompt={suppressEmbeddedDiscardPrompt}
             />
         );

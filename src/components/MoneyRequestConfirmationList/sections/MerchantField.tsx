@@ -1,6 +1,7 @@
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {useConfirmationFields} from '@components/MoneyRequestConfirmationFields/context';
 import TextInput from '@components/TextInput';
+import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
@@ -18,7 +19,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 
-import React, {useState} from 'react';
+import React, {useRef, useState} from 'react';
 import {View} from 'react-native';
 
 import {merchantStateSelector} from './selectors';
@@ -31,12 +32,13 @@ type MerchantFieldProps = {
 };
 
 function MerchantField({isMerchantRequired, shouldDisplayFieldError, formError}: MerchantFieldProps) {
-    const {action, iouType, transactionID, reportID, reportActionID, isReadOnly, didConfirm, isEditingSplitBill} = useConfirmationFields();
+    const {action, iouType, transactionID, reportID, reportActionID, isReadOnly, didConfirm, isEditingSplitBill, onInputFocus} = useConfirmationFields();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
 
     const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
+    const merchantInputRef = useRef<BaseTextInputRef | null>(null);
 
     const merchantState = useTransactionSelector(transactionID, merchantStateSelector);
 
@@ -115,11 +117,13 @@ function MerchantField({isMerchantRequired, shouldDisplayFieldError, formError}:
         return (
             <View style={[styles.mh4, styles.mv2]}>
                 <TextInput
+                    ref={merchantInputRef}
                     value={merchantInput}
                     readOnly={didConfirm}
                     onChangeText={handleMerchantInputChange}
                     onFocus={() => {
                         setIsMerchantInputFocused(true);
+                        onInputFocus?.(() => merchantInputRef.current?.focus());
                     }}
                     onBlur={() => {
                         setIsMerchantInputFocused(false);

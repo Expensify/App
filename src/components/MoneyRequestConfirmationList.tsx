@@ -41,6 +41,7 @@ import {useIsFocused} from '@react-navigation/native';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 
+import type {RestoreFocus} from './MoneyRequestConfirmationFields/context';
 import type {MeasurableInput, SelectionListWithSectionsHandle} from './SelectionList/SelectionListWithSections/types';
 
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from './DelegateNoAccessModalProvider';
@@ -93,11 +94,8 @@ type MoneyRequestConfirmationListProps = {
     /** Reports whether the inline amount sign differs from its initial value (new manual expense flow). */
     onSignDirtyChange?: (isSignDirty: boolean) => void;
 
-    /** Increments when the embedded discard confirmation is cancelled, so the amount input can restore focus. */
-    discardCancelSequence?: number;
-
-    /** Whether the embedded discard confirmation is visible, so inline inputs can release focus. */
-    isDiscardModalVisible?: boolean;
+    /** Registers the inline field that should regain focus when the discard confirmation is cancelled. */
+    onInputFocus?: (restoreFocus: RestoreFocus) => void;
 
     /** Should the list be read only, and not editable? */
     isReadOnly?: boolean;
@@ -202,8 +200,7 @@ function MoneyRequestConfirmationList({
     isTimeRequest = false,
     shouldHideToSection = false,
     onSignDirtyChange,
-    discardCancelSequence,
-    isDiscardModalVisible,
+    onInputFocus,
 }: MoneyRequestConfirmationListProps) {
     const policyCategories = usePolicyCategoriesForConfirmation(policyID);
     const {policyTags, policyTagLists} = usePolicyTagsForConfirmation(policyID);
@@ -553,8 +550,7 @@ function MoneyRequestConfirmationList({
             onSubmitForm={confirm}
             onTaxAmountEmptyChange={setIsTaxAmountEmpty}
             onSignDirtyChange={onSignDirtyChange}
-            discardCancelSequence={discardCancelSequence}
-            isDiscardModalVisible={isDiscardModalVisible}
+            onInputFocus={onInputFocus}
         >
             <View style={isCompactMode ? styles.flex1 : undefined}>
                 <MoneyRequestConfirmationListFooter

@@ -30,6 +30,7 @@ function useDiscardChangesConfirmation({
     getHasUnsavedChanges,
     onCancel,
     onVisibilityChange,
+    shouldEnableNewFocusManagement,
     onConfirm,
     onTabSwitchDiscard,
 }: UseDiscardChangesConfirmationOptions): DiscardChangesConfirmation {
@@ -66,6 +67,7 @@ function useDiscardChangesConfirmation({
         onVisibilityChange?.(true);
         showConfirmModal({
             ...getDiscardChangesModalConfig(translate),
+            shouldEnableNewFocusManagement,
             shouldIgnoreBackHandlerDuringTransition: true,
             shouldHandleNavigationBack: false,
         }).then((result) => {

@@ -22,6 +22,7 @@ function useDiscardChangesConfirmation({
     getHasUnsavedChanges,
     onCancel,
     onVisibilityChange,
+    shouldEnableNewFocusManagement,
     onConfirm,
     onTabSwitchDiscard,
 }: UseDiscardChangesConfirmationOptions): DiscardChangesConfirmation {
@@ -50,7 +51,7 @@ function useDiscardChangesConfirmation({
         blockedNavigationAction.current = blockedAction;
         isDiscardModalOpen.current = true;
         onVisibilityChange?.(true);
-        showConfirmModal(getDiscardChangesModalConfig(translate)).then((result) => {
+        showConfirmModal({...getDiscardChangesModalConfig(translate), shouldEnableNewFocusManagement}).then((result) => {
             isDiscardModalOpen.current = false;
             onVisibilityChange?.(false);
             if (result.action !== ModalActions.CONFIRM) {

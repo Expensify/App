@@ -7,7 +7,7 @@ import type {ReactNode} from 'react';
 
 import React from 'react';
 
-import ConfirmationFieldsContext from './context';
+import ConfirmationFieldsContext, {type RestoreFocus} from './context';
 
 type ProviderProps = {
     /** ID of the active transaction */
@@ -76,11 +76,8 @@ type ProviderProps = {
     /** Reports whether the inline amount sign differs from its initial value (new manual expense flow) */
     onSignDirtyChange?: (isSignDirty: boolean) => void;
 
-    /** Increments when the embedded discard confirmation is cancelled, so the amount input can restore focus */
-    discardCancelSequence?: number;
-
-    /** Whether the embedded discard confirmation is visible, so inline inputs can release focus */
-    isDiscardModalVisible?: boolean;
+    /** Registers the inline field that should regain focus when the discard confirmation is cancelled */
+    onInputFocus?: (restoreFocus: RestoreFocus) => void;
 
     /** Block components rendered inside the Provider */
     children: ReactNode;
@@ -109,8 +106,7 @@ function Provider({
     onSubmitForm,
     onTaxAmountEmptyChange,
     onSignDirtyChange,
-    discardCancelSequence,
-    isDiscardModalVisible,
+    onInputFocus,
     children,
 }: ProviderProps) {
     const value = {
@@ -136,8 +132,7 @@ function Provider({
         onSubmitForm,
         onTaxAmountEmptyChange,
         onSignDirtyChange,
-        discardCancelSequence,
-        isDiscardModalVisible,
+        onInputFocus,
     };
     return <ConfirmationFieldsContext.Provider value={value}>{children}</ConfirmationFieldsContext.Provider>;
 }
