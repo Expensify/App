@@ -96,7 +96,7 @@ To refresh the sync manually:
 4. Next to **TriNet**, select the three dots **(⋮)**, then click **Sync now**.
 5. Stay on the page and wait for the sync to complete. The **TriNet sync complete** screen then opens with the **Added**, **Removed**, and **Skipped** employee counts.
 
-You can also start a manual sync from the **Members** page:
+You can also start a manual sync from the **Members** tab:
 
 1. In the left menu, click **Members**.
 2. Click **More**, then click **Sync with TriNet**.
