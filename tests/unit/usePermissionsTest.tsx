@@ -158,8 +158,8 @@ describe('usePermissions', () => {
         expect(result.current.isBetaEnabled(CONST.BETAS.PER_DIEM)).toBe(true);
         expect(result.current.isBetaEnabled(CONST.BETAS.PREVENT_SPOTNANA_TRAVEL)).toBe(false);
 
-        expect(Permissions.isBetaEnabled(CONST.BETAS.PER_DIEM, [])).toBe(false);
-        expect(Permissions.isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS, [CONST.BETAS.DEFAULT_ROOMS])).toBe(true);
+        expect(Permissions.isBetaEnabled(CONST.BETAS.PER_DIEM, [], undefined, undefined)).toBe(false);
+        expect(Permissions.isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS, [CONST.BETAS.DEFAULT_ROOMS], undefined, undefined)).toBe(true);
 
         // When: The overrides are cleared
         Onyx.set(ONYXKEYS.BETA_OVERRIDES, null);
