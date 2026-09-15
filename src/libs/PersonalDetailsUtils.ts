@@ -61,6 +61,14 @@ Onyx.connect({
 
 const regexMergedAccount = new RegExp(CONST.REGEX.MERGED_ACCOUNT_PREFIX);
 
+type DisplayNameOrDefaultParams = {
+    passedPersonalDetails?: Partial<PersonalDetails> | null;
+    defaultValue?: string;
+    shouldFallbackToHidden?: boolean;
+    shouldAddCurrentUserPostfix?: boolean;
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
+};
+
 function getDisplayNameOrDefault(
     passedPersonalDetails?: Partial<PersonalDetails> | null,
     defaultValue = '',
@@ -109,25 +117,20 @@ function getDisplayNameOrDefault(
     return shouldFallbackToHidden ? hiddenTranslation : '';
 }
 
-function temporaryGetDisplayNameOrDefault({
+/**
+ * Shared implementation behind {@link temporaryGetDisplayNameOrDefault} and {@link getDisplayNameOrDefaultEnLocale}.
+ * The two callers differ only in where the `Hidden` fallback and the `(you)` postfix come from, so they resolve
+ * those strings and pass them in.
+ */
+function buildDisplayNameOrDefault({
     passedPersonalDetails,
     defaultValue = '',
     shouldFallbackToHidden = true,
     shouldAddCurrentUserPostfix = false,
-    youAfterTranslation,
-    translate,
     formatPhoneNumber,
-}: {
-    passedPersonalDetails?: Partial<PersonalDetails> | null;
-    defaultValue?: string;
-    shouldFallbackToHidden?: boolean;
-    shouldAddCurrentUserPostfix?: boolean;
-    youAfterTranslation?: string;
-    translate: LocalizedTranslate;
-    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
-}): string {
-    const temporaryHiddenTranslation = translate('common.hidden');
-    const temporaryYouTranslation = translate('common.you').toLowerCase();
+    hiddenText,
+    youText,
+}: DisplayNameOrDefaultParams & {hiddenText: string; youText: string}): string {
     let displayName = passedPersonalDetails?.displayName ?? '';
 
     const login = passedPersonalDetails?.login ?? '';
@@ -145,7 +148,7 @@ function temporaryGetDisplayNameOrDefault({
     }
 
     if (shouldAddCurrentUserPostfix && !!displayName) {
-        displayName = `${displayName} (${youAfterTranslation ?? temporaryYouTranslation})`;
+        displayName = `${displayName} (${youText})`;
     }
 
     if (passedPersonalDetails?.accountID === CONST.ACCOUNT_ID.CONCIERGE) {
@@ -166,7 +169,38 @@ function temporaryGetDisplayNameOrDefault({
         }
         return login;
     }
-    return shouldFallbackToHidden ? temporaryHiddenTranslation : '';
+    return shouldFallbackToHidden ? hiddenText : '';
+}
+
+function temporaryGetDisplayNameOrDefault({
+    youAfterTranslation,
+    translate,
+    ...params
+}: DisplayNameOrDefaultParams & {
+    youAfterTranslation?: string;
+    translate: LocalizedTranslate;
+}): string {
+    return buildDisplayNameOrDefault({
+        ...params,
+        hiddenText: translate('common.hidden'),
+        youText: youAfterTranslation ?? translate('common.you').toLowerCase(),
+    });
+}
+
+/**
+ * Same as {@link temporaryGetDisplayNameOrDefault} but always resolves the `Hidden` fallback and the `(you)`
+ * postfix in English. Used for building optimistic report action messages, which are stored on the action in
+ * English regardless of the viewer's locale, so they must not go through `translate`. This mirrors
+ * `convertToDisplayStringEnLocale` in `CurrencyUtils`.
+ *
+ * The strings are hardcoded rather than read via `translate(CONST.LOCALES.EN, …)` because locale bundles are
+ * loaded lazily (see `IntlStore`), so the `en` bundle is not guaranteed to be in memory when optimistic data
+ * is built.
+ *
+ * IMPORTANT: keep these in sync with `common.hidden` and `common.you` in `en.ts`.
+ */
+function getDisplayNameOrDefaultEnLocale(params: DisplayNameOrDefaultParams): string {
+    return buildDisplayNameOrDefault({...params, hiddenText: CONST.EN_LOCALE_TEXT.HIDDEN, youText: CONST.EN_LOCALE_TEXT.YOU});
 }
 
 function getPersonalDetailsByID(accountID: number | undefined, personalDetailsList: OnyxEntry<PersonalDetailsList>): PersonalDetails | undefined {
@@ -637,4 +671,5 @@ export {
     areAddressAndPersonalDetailsMissing,
     areTravelPersonalDetailsMissing,
     temporaryGetDisplayNameOrDefault,
+    getDisplayNameOrDefaultEnLocale,
 };
