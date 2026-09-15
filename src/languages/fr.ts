@@ -11333,9 +11333,9 @@ Voici un *reçu test* pour vous montrer comment ça fonctionne :`,
             permissions: 'Autorisations du groupe',
             createNewGroupButton: 'Nouveau groupe',
             createGroupSubmitButton: 'Créer le groupe',
-            expensifyCardPreferredWorkspace: 'Espace de travail préféré pour la carte Expensify',
+            expensifyCardPreferredWorkspace: 'Espace de travail préféré pour la carte',
             expensifyCardPreferredWorkspaceDescription:
-                "Toutes les transactions Expensify Card seront créées dans l'espace de travail préféré Expensify Card au lieu de l'espace de travail préféré.",
+                'Toutes les transactions par Carte Expensify et carte d’entreprise seront créées dans l’Espace de travail préféré pour les cartes au lieu de l’Espace de travail préféré. L’activation de cette fonctionnalité remplacera le paramètre d’Espace de travail préféré pour les transactions par carte uniquement.',
             strictlyEnforceWorkspaceRules: 'Appliquer strictement les règles de l’espace de travail',
             strictlyEnforceWorkspaceRulesDescription:
                 'Toutes les règles de l’espace de travail doivent être respectées avant de soumettre un rapport. Aucune exception manuelle n’est autorisée.',
@@ -11356,7 +11356,7 @@ Voici un *reçu test* pour vous montrer comment ça fonctionne :`,
             restrictDefaultLoginSelectionDescription:
                 'Empêche les membres de modifier leur e-mail de connexion en dehors du domaine de leur entreprise afin d’éviter les restrictions de politique.',
             expensifyCardPreferredWorkspaceDisabledMessage:
-                'Pour activer ce paramètre, veuillez d’abord activer un espace de travail préféré et configurer les cartes Expensify sur votre domaine.',
+                'Pour activer ce paramètre, commencez par activer un espace de travail préféré et configurer une Carte Expensify ou un flux de cartes de société sur votre domaine.',
             findGroup: 'Trouver un groupe',
         },
     },
