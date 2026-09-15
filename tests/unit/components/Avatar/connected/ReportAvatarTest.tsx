@@ -129,6 +129,7 @@ describe('ReportAvatar (connected)', () => {
 
         const singleAvatarContainerStyle = [{marginRight: 12}];
         const secondaryAvatarContainerStyle = [{borderColor: '#00ff00'}];
+        const subscriptAvatarContainerStyle = [{marginRight: 0}];
         const horizontalStacking = {maxRows: 2, maxAvatarsPerRow: 4, overlapDivider: 4};
 
         render(
@@ -137,8 +138,8 @@ describe('ReportAvatar (connected)', () => {
                 size={CONST.AVATAR_SIZE.SMALL}
                 singleAvatarContainerStyle={singleAvatarContainerStyle}
                 secondaryAvatarContainerStyle={secondaryAvatarContainerStyle}
+                subscriptAvatarContainerStyle={subscriptAvatarContainerStyle}
                 subscriptAvatarBorderColor="#ff0000"
-                noRightMarginOnSubscriptContainer
                 horizontalStacking={horizontalStacking}
                 sort={CONST.REPORT_ACTION_AVATARS.SORT_BY.REVERSE}
                 fallbackDisplayName={FALLBACK_NAME}
@@ -150,8 +151,8 @@ describe('ReportAvatar (connected)', () => {
             size: CONST.AVATAR_SIZE.SMALL,
             singleAvatarContainerStyle,
             secondaryAvatarContainerStyle,
+            subscriptAvatarContainerStyle,
             subscriptAvatarBorderColor: '#ff0000',
-            noRightMarginOnSubscriptContainer: true,
             horizontalStacking,
             sort: CONST.REPORT_ACTION_AVATARS.SORT_BY.REVERSE,
             fallbackDisplayName: FALLBACK_NAME,
