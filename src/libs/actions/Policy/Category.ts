@@ -317,7 +317,46 @@ function getPolicyCategories(policyID: string) {
         policyID,
     };
 
-    API.read(READ_COMMANDS.GET_POLICY_CATEGORIES, params);
+    type CategoriesLoadingKey = typeof ONYXKEYS.COLLECTION.RAM_ONLY_POLICY_CATEGORIES_LOADING_STATE;
+    const loadingStateKey = `${ONYXKEYS.COLLECTION.RAM_ONLY_POLICY_CATEGORIES_LOADING_STATE}${policyID}` as const;
+
+    const optimisticData: Array<OnyxUpdate<CategoriesLoadingKey>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: loadingStateKey,
+            value: {isLoading: true},
+        },
+    ];
+
+    // `hasOnceLoaded` is only ever written here, so a read that never landed leaves the policy eligible for a retry.
+    // The collection existing in Onyx cannot stand in for this: it may hold only the category already on the expense.
+    const successData: Array<OnyxUpdate<CategoriesLoadingKey>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: loadingStateKey,
+            value: {isLoading: false, hasOnceLoaded: true},
+        },
+    ];
+
+    const failureData: Array<OnyxUpdate<CategoriesLoadingKey>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: loadingStateKey,
+            value: {isLoading: false},
+        },
+    ];
+
+    API.read(READ_COMMANDS.GET_POLICY_CATEGORIES, params, {optimisticData, successData, failureData});
+}
+
+/**
+ * Clears the in-flight flag for a policy's categories read.
+ *
+ * A read cut off by a disconnect never gets a response, so its `failureData` never applies and `isLoading` would stay
+ * true for the rest of the session, blocking every retry. Callers clear it on reconnect.
+ */
+function clearPolicyCategoriesLoadingState(policyID: string) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.RAM_ONLY_POLICY_CATEGORIES_LOADING_STATE}${policyID}`, {isLoading: false});
 }
 
 function setWorkspaceCategoryEnabled({
@@ -2144,6 +2183,7 @@ export {
     downloadCategoriesCSV,
     enablePolicyCategories,
     getPolicyCategories,
+    clearPolicyCategoriesLoadingState,
     importPolicyCategories,
     openPolicyCategoriesPage,
     removePolicyCategoryReceiptsRequired,
