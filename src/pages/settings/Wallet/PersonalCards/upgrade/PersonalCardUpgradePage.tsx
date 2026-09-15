@@ -43,7 +43,7 @@ function PersonalCardUpgradePage() {
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
 
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const {accountID, email = ''} = currentUserPersonalDetails;
+    const {accountID, email = '', displayName} = currentUserPersonalDetails;
     const activePolicy = useActivePolicy();
     const hasActiveAdminPolicies = useHasActiveAdminPolicies();
     const hasOwnedPaidPolicy = useHasOwnedPaidPolicy();
@@ -52,7 +52,7 @@ function PersonalCardUpgradePage() {
     const onUpgrade = () => {
         createWorkspaceWithPolicyDraft({
             introSelected,
-            policyName: generateDefaultWorkspaceName(email, lastWorkspaceNumber, translate),
+            policyName: generateDefaultWorkspaceName(email, displayName, lastWorkspaceNumber, translate),
             currency: currentUserPersonalDetails.localCurrencyCode ?? CONST.CURRENCY.USD,
             transitionFromOldDot: false,
             makeMeAdmin: false,

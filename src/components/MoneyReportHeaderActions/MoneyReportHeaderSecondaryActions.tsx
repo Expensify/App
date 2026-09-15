@@ -136,7 +136,7 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
     );
 
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const {login: currentUserLogin, accountID, email} = currentUserPersonalDetails;
+    const {login: currentUserLogin, accountID, email, displayName} = currentUserPersonalDetails;
     const delegateAccountID = useDelegateAccountID();
 
     const {isOffline} = useNetwork();
@@ -216,7 +216,7 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
                 conciergeChat,
                 betas,
                 isSelfTourViewed,
-                defaultWorkspaceName: generateDefaultWorkspaceName(email ?? '', lastWorkspaceNumber, translate),
+                defaultWorkspaceName: generateDefaultWorkspaceName(email ?? '', displayName, lastWorkspaceNumber, translate),
                 chatReportActions: getChatReportActions(payAsBusiness),
                 delegateAccountID,
                 isTrackIntentUser,
