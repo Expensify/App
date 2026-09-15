@@ -19,7 +19,7 @@ import Log from '@libs/Log';
 import enhanceParameters from '@libs/Network/enhanceParameters';
 import Parser from '@libs/Parser';
 import * as PhoneNumber from '@libs/PhoneNumber';
-import {getDefaultApprover, isControlPolicy, isPolicyAdmin, isSubmitPolicy} from '@libs/PolicyUtils';
+import {getDefaultApprover, getOwnerChangePayerSuccessData, isControlPolicy, isPolicyAdmin, isSubmitPolicy} from '@libs/PolicyUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 
@@ -788,6 +788,7 @@ function requestWorkspaceOwnerChange(policy: OnyxEntry<Policy>, currentUserAccou
                 isChangeOwnerFailed: false,
                 owner: currentUserAccountLogin,
                 ownerAccountID: currentUserAccountID,
+                ...getOwnerChangePayerSuccessData(policy, currentUserAccountLogin),
             },
         },
     ];
