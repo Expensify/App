@@ -56,6 +56,7 @@ import {
     getPlaidInstitutionId,
     getSelectedFeed,
     getTranslationKeyForCardStatus,
+    getWalletProviderNameKey,
     getYearFromExpirationDateString,
     hasAssignedCardMatching,
     hasIssuedExpensifyCard,
@@ -4843,6 +4844,7 @@ describe('getCardConnectionStatusDisplay', () => {
         isCardBroken: false,
         shouldShowRBR: false,
         isCardInactive: false,
+        isExpensifyCard: false,
         isPersonalCard: false,
         isAdminForCardPolicy: false,
         policyID: undefined,
@@ -4897,6 +4899,33 @@ describe('getCardConnectionStatusDisplay', () => {
             shouldUsePersonalCardFix: false,
             shouldUseCompanyCardsLink: false,
             shouldUseReauthMessage: false,
+        });
+    });
+
+    // The status is still reported so the row renders like every other one, but with no message to fix a connection
+    // the card does not have.
+    it('reports a neutral inactive status with no message for an inactive Expensify Card', () => {
+        expect(getCardConnectionStatusDisplay({...defaultParams, isCardInactive: true, isExpensifyCard: true, isAdminForCardPolicy: true, policyID: 'ABC123'})).toEqual({
+            statusKey: 'walletPage.cardStatus.inactive',
+            statusTone: 'default',
+        });
+    });
+
+    // A feed or workspace error still shows its own dot on the row, but the card has no bank feed, so a connection
+    // message is never the right copy for it.
+    it('reports a neutral inactive status for an inactive Expensify Card whose feed reports an error', () => {
+        expect(getCardConnectionStatusDisplay({...defaultParams, isCardInactive: true, isExpensifyCard: true, shouldShowRBR: true, policyID: 'ABC123'})).toEqual({
+            statusKey: 'walletPage.cardStatus.inactive',
+            statusTone: 'default',
+        });
+    });
+
+    // A workspace error turns `shouldShowRBR` on for the Expensify Card feed key too, so an active card would
+    // otherwise read as Inactive with a connection to fix.
+    it('keeps an active Expensify Card active when its feed reports an error', () => {
+        expect(getCardConnectionStatusDisplay({...defaultParams, isExpensifyCard: true, shouldShowRBR: true, isAdminForCardPolicy: true, policyID: 'ABC123'})).toEqual({
+            statusKey: 'walletPage.cardStatus.active',
+            statusTone: 'success',
         });
     });
 
@@ -5020,5 +5049,19 @@ describe('getDomainByFundID', () => {
             [`${ONYXKEYS.COLLECTION.DOMAIN}2`]: domain,
         };
         expect(getDomainByFundID(domains, FUND_ID)).toBe(domain);
+    });
+});
+
+describe('getWalletProviderNameKey', () => {
+    it('maps APPLE_PAY to the Apple Wallet key', () => {
+        expect(getWalletProviderNameKey(CONST.EXPENSIFY_CARD.WALLET_PROVIDER.APPLE_PAY)).toBe('appleWallet');
+    });
+
+    it('maps ANDROID_PAY to the Google Wallet key, since that is how the card provider names Google Wallet', () => {
+        expect(getWalletProviderNameKey(CONST.EXPENSIFY_CARD.WALLET_PROVIDER.ANDROID_PAY)).toBe('googleWallet');
+    });
+
+    it('falls back to the generic key when the provider is missing, which happens when the card provider reports UNKNOWN', () => {
+        expect(getWalletProviderNameKey(undefined)).toBe('digitalWallet');
     });
 });
