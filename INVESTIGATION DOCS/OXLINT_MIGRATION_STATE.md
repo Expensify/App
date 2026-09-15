@@ -510,8 +510,8 @@ invocations in one session. Every failure landed immediately after other heavy w
 other oxlint scripts); every run on an otherwise idle machine passed. So this is not rare, and it is
 not random: it tracks free memory at invocation, exactly as the `os.freemem()` shard sizing implies.
 
-**Fixed 2026-09-15.** `OxlintLinter.run` now retries a shard that produced no JSON, once, and
-serially. Serial is the whole point: shard count comes from `os.freemem()` at invocation, so a second
+**Partly fixed 2026-09-15, and read the caveat below before trusting it.** `OxlintLinter.run` now
+retries a shard that produced no JSON, once, and serially. Serial is the whole point: shard count comes from `os.freemem()` at invocation, so a second
 parallel pass would most likely be killed the same way. The retry is deliberately narrow --
 `producedNoJSON` keys off "no JSON object on stdout", which is what a killed process leaves behind,
 and not off "the shard was fatal", so a thrown JS plugin or a mistyped path is still fatal on the
@@ -532,12 +532,25 @@ one. Verified by pointing the config at a nonexistent rule with `OXLINT_SHARDS=2
 retried, both reported `failed again`, exit 2 preserved. The healthy path adds no note and still
 exits 0. `producedNoJSON` has a test at `tests/tooling/lintPipeline.test.ts`, checked green-red-green.
 
-**What is still worth knowing:** the underlying message is `Failed to parse Oxlint JSON output.`,
-which reads as a parsing problem and not as a dead process. Diagnosing this cost a wrong conclusion
-here -- a config edit was briefly blamed, and the bisect that "confirmed" it was invalid because the
-spliced probe config really was malformed. Three clean runs on the committed config settled it. The
-retry removes most of that class, but the wording would still mislead the next person who hits a
-non-transient case.
+**Caveat: the retry is not proven against the real failure.** What is verified is the mechanism --
+forced no-JSON failures are retried once, serially, notes appear, exit codes are preserved, and the
+healthy path is untouched. What is *not* verified is that this is the path the transient failure
+takes. `npm run lint -- --linter=oxlint` returned exit 2 twice more after the retry landed, and both
+times stderr had been redirected to `/dev/null`, so there is no evidence about whether a retry fired.
+It has not recurred in the 15 runs since, including four under deliberate memory pressure, which is
+suggestive and nothing more.
+
+**The likely uncovered path, for whoever sees it next:** a JS plugin that dies under memory pressure
+may emit codeless diagnostics rather than dying silently, and `parseOxlintStdout` turns those into a
+fatal that `producedNoJSON` deliberately does not retry -- correctly so for a deterministic plugin
+throw, which is what `tests/tooling/lintPipeline.test.ts` pins. If the next occurrence shows codeless
+diagnostics rather than empty stdout, that is the case to handle, and it needs distinguishing an
+OOM-killed plugin from a genuinely broken one before adding a retry there.
+
+**So: capture stderr when it happens.** It already carries the reason
+(`LintPipeline.ts:37` surfaces a fatal linter's stderr as the report); every failed diagnosis here
+came from throwing that away. The wording is also still `Failed to parse Oxlint JSON output.`, which
+reads as a parsing problem rather than a dead process.
 
 ### 5.5 Port findings surfaced by the fixture campaign
 
@@ -637,11 +650,11 @@ Ordered by what blocks what.
     `react/rules-of-hooks` reporting as `react-hooks/rules-of-hooks` (section 5.5).
 11. **Every merge from `main` needs a manual `SEATBELT_INCREASE=all` pass.** The seatbelt auto-tightens
    but never auto-increases.
-12. ~~**Retry a dead oxlint shard once**~~ Done 2026-09-15, section 5.4. Retried once, serially,
-    only when the shard produced no JSON, and never silently. The pre-shard file listing got the same
-    treatment, since a killed lister read as "matched no files". What is left is cosmetic: the
-    `Failed to parse Oxlint JSON output.` wording still reads as a parsing problem rather than a dead
-    process.
+12. **Retry a dead oxlint shard** -- mechanism landed 2026-09-15 (section 5.4), still open as a
+    verification. Shards and the pre-shard file listing are each retried once, serially, only on a
+    no-JSON result. Not yet confirmed against the real transient failure: it recurred twice after the
+    fix with stderr discarded, then went quiet for 15 runs. **Next occurrence: keep stderr.** If it
+    shows codeless diagnostics rather than empty stdout, the OOM'd-JS-plugin path needs handling too.
    Low priority while the job is non-blocking, worth having before it becomes required.
 
 ---
