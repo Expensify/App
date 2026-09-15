@@ -6,7 +6,7 @@ import type {InsightsFilters} from './insightsFilters';
 
 import DEFAULT_INSIGHTS_FILTERS from './insightsFilters';
 
-/** The page-level filters every chart on the dashboard is narrowed by, once the Onyx data they are built from has loaded. */
+/** Returns the page-level filters every chart on the dashboard is narrowed by, and whether the Onyx data they are built from has loaded. */
 function useInsightsFilters(): {filters: InsightsFilters; isResolved: boolean} {
     const [activePolicy, isActivePolicyResolved] = useActivePolicy();
 
