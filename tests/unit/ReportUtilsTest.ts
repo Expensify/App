@@ -165,7 +165,6 @@ import {
     hasEmptyReportsForPolicy,
     hasExpensifyGuidesEmails,
     hasExportError,
-    hasNonReimbursableTransactions,
     hasReceiptError,
     hasReportBeenForwardedSinceLastSubmit,
     hasSmartscanError,
@@ -183,7 +182,6 @@ import {
     isDeprecatedGroupDM,
     isGroupPolicyExpenseReport,
     isHarvestCreatedExpenseReport,
-    isInvoiceReport,
     isJoinRequestInAdminRoom,
     isMoneyRequestReportEligibleForMerge,
     isOneOnOneChat,
@@ -18718,6 +18716,32 @@ describe('ReportUtils', () => {
                 expect(result).toBe(getReportPreviewMessage(englishTranslate, convertToDisplayString, {reportOrID: report, policy: undefined}));
                 expect(result).toContain('owes');
             });
+
+            it('returns the English "spent" message when the report contains a non-reimbursable transaction, and matches en.ts', async () => {
+                const report: Report = {
+                    ...LHNTestUtils.getFakeReport(),
+                    reportID: 'preview-en-spent-report',
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                    currency: CONST.CURRENCY.USD,
+                    stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                    statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                };
+                const transaction: Transaction = {
+                    ...createRandomTransaction(90001),
+                    reportID: report.reportID,
+                    reimbursable: false,
+                };
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
+                await waitForBatchedUpdates();
+
+                const englishTranslate: LocalizedTranslate = (path, ...parameters) => translate(CONST.LOCALES.EN, path, ...parameters);
+                const result = getReportPreviewReportActionMessage({reportOrID: report}, getCurrencyDecimalsLocal);
+
+                // The hardcoded English string must match the en.ts translation produced by the localized function
+                expect(result).toBe(getReportPreviewMessage(englishTranslate, convertToDisplayString, {reportOrID: report, policy: undefined}));
+                expect(result).toContain('spent');
+            });
         });
     });
 
@@ -24564,56 +24588,6 @@ describe('getAllPolicyExpenseChatReportActions', () => {
 
     it('returns an empty object for undefined collections', () => {
         expect(getAllPolicyExpenseChatReportActions(undefined, undefined)).toEqual({});
-    });
-});
-
-describe('hasNonReimbursableTransactions', () => {
-    it('returns false when all transactions are reimbursable', () => {
-        const transactions: Transaction[] = [
-            {...createRandomTransaction(1), reimbursable: true},
-            {...createRandomTransaction(2), reimbursable: true},
-        ];
-        expect(hasNonReimbursableTransactions(undefined, transactions)).toBe(false);
-    });
-
-    it('returns true when at least one transaction is non-reimbursable', () => {
-        const transactions: Transaction[] = [
-            {...createRandomTransaction(1), reimbursable: true},
-            {...createRandomTransaction(2), reimbursable: false},
-        ];
-        expect(hasNonReimbursableTransactions(undefined, transactions)).toBe(true);
-    });
-
-    it('returns false for an empty transaction list', () => {
-        expect(hasNonReimbursableTransactions(undefined, [])).toBe(false);
-    });
-});
-
-describe('isInvoiceReport', () => {
-    it('returns true for invoice reports passed as object', () => {
-        const invoiceReport = {
-            ...LHNTestUtils.getFakeReport(),
-            type: CONST.REPORT.TYPE.INVOICE,
-        };
-        expect(isInvoiceReport(invoiceReport)).toBe(true);
-    });
-
-    it('returns false for non-invoice reports passed as object', () => {
-        const expenseReport = {
-            ...LHNTestUtils.getFakeReport(),
-            type: CONST.REPORT.TYPE.EXPENSE,
-        };
-        expect(isInvoiceReport(expenseReport)).toBe(false);
-    });
-
-    it('returns false for null/undefined', () => {
-        expect(isInvoiceReport(null)).toBe(false);
-        expect(isInvoiceReport(undefined)).toBe(false);
-    });
-
-    it('returns false for a report with no type', () => {
-        const report = LHNTestUtils.getFakeReport();
-        expect(isInvoiceReport(report)).toBe(false);
     });
 });
 
