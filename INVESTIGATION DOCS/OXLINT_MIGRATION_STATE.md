@@ -19,8 +19,8 @@ without a fixture are a deliberate stop with the reasoning written down (section
 
 Config drift is at **0 open differences** (section 3.5), and two of the three rules that disagreed on
 findings are now explained: `no-deprecated` is priced tsgolint write-site strictness (section 5.1),
-and `set-state-in-effect` is an upstream detection gap with a nine-line reproducer ready to file
-(section 5.2).
+and `set-state-in-effect` is a readback defect in the `rc/` bridge rather than the detection gap it
+looked like, with a nine-line reproducer ready to file (section 5.2).
 
 What is left: the CI shadow job has never executed on `main`, `react-hooks/refs` still hides a
 disagreement behind equal totals (section 5.3), the `set-state-in-effect` bug needs filing upstream,
@@ -383,51 +383,66 @@ That is the measurable cost of the workaround, and it is small: **6 lost read-si
 91 files.** If tsgolint ever gains a read/write option, the override can shrink and those 6 come
 back. Until then this is a priced trade, not an open question.
 
-### 5.2 `react-hooks/set-state-in-effect`, 127 vs 47 -- an upstream detection gap
+### 5.2 `react-hooks/set-state-in-effect`, 127 vs 47 -- the readback path, not detection
 
-Investigated 2026-09-15. The cause is not in this repo, and there is a minimal reproducer:
-`oxlint-migration/setStateInEffectRepro.tsx`.
+Investigated 2026-09-15. Reproducer: `oxlint-migration/setStateInEffectRepro.tsx`, a nine-line
+component with no comments in it.
 
-The 47 are a strict subset of the 127: the split is **47 shared, 80 ESLint-only, 0 oxlint-only**.
-Grouped by file it is all-or-nothing, which is what pointed at the cause:
+**An earlier version of this section called it an upstream detection gap in `oxc-transform-react` and
+said to file it as one. That was wrong.** Oxlint's *native* `react/set-state-in-effect` reports the
+reproducer correctly. Detection works; what loses the findings is how the `rc/` bridge reads
+diagnostics back.
 
-| | files |
-| --- | ---: |
-| oxlint catches every finding in the file | 32 |
-| oxlint catches none of them | 67 |
-| oxlint catches some but not all | **0** |
+The split, by `(file, line)` over the full-repo reports: **47 shared, 80 ESLint-only, 0 oxlint-only**
+-- the bridge's findings are a strict subset. Grouped by file it is all-or-nothing, 32 files fully
+caught against 67 fully missed and **0 partial**, which is what pointed at a readback problem rather
+than a rule-logic one.
 
-Ruled out, each by measurement rather than reading:
+Ruled out by measurement: `ReactCompilerFilter` (this rule is not in
+`RULES_SUPPRESSED_BY_REACT_COMPILER`), the parse-failure early return at
+`reactCompilerRust.mjs:178`, rule-name mapping, setter provenance, and control-flow shape -- both
+sets are majority local `useState` setters and both hold guarded, unguarded and early-return forms in
+similar proportions.
 
-- **Not `ReactCompilerFilter`.** `RULES_SUPPRESSED_BY_REACT_COMPILER` holds only two rules and this
-  is not one of them, on either side.
-- **Not the documented `panicThreshold: 'all_errors'` truncation**
-  (`config/oxlint/reactCompilerRust.mjs:138-143`). Truncation would leave partial files and
-  other-rule diagnostics behind. Instrumenting `analyze()` over all 99 files: every one of the 67
-  returns `result.fatal === false` with `result.errors.length === 0`, and produces no diagnostic of
-  any rule name. The compiler compiles them and surfaces nothing.
-- **Not the parse-failure early return** at `reactCompilerRust.mjs:178`. None of the 67 reaches it.
-- **Not rule-name mapping, setter provenance, or control-flow shape.** Both sets are majority local
-  `useState` setters, and both contain guarded, unguarded and early-return forms in similar
-  proportions.
+**The mechanism.** `analyze()` reads diagnostics out of `result.errors` from `transformSync`, and
+`result.errors` only ever carries *fatal* diagnostics (oxc-project/oxc#26128, tracked as #26318).
+That is why `panicThreshold: 'all_errors'` is set at `reactCompilerRust.mjs:144` -- it is the only
+way to make anything readable at all. The consequence nobody had written down: a diagnostic the
+compiler does not classify as panic-worthy never becomes fatal, so it never reaches `result.errors`
+and the bridge cannot see it. Instrumenting `analyze()` over all 99 files, every one of the 67 missed
+returns `result.fatal === false` with `result.errors.length === 0` and no diagnostic of any rule
+name. The 32 caught are the files that had a genuine compiler bail, which is what populated the list.
 
-`result.fatal` splits the two groups perfectly, 32 true against 67 false, but that is a restatement
-rather than a cause: under `all_errors` every diagnostic is fatal, so `fatal` is a consequence of
-having found one.
+**How this relates to oxc-project/oxc#26277.** Directly: #26277 is the reason this bridge exists.
+A `disable-next-line` naming `react/exhaustive-deps` or `react/rules-of-hooks` suppresses every
+React Compiler diagnostic in the enclosing component on the native path, and this repo has 228 such
+comments. The bridge was built to pass `eslintSuppressionRules: []`, which the native rules do not
+expose (`reactCompilerRust.mjs:146-151`). So the two issues are the two horns of one dilemma: the
+native path loses findings to comment over-suppression, and the `transformSync` workaround built to
+escape that loses findings that are not fatal. Reproduced both here on 1.83.0.
 
-**The reproducer is a nine-line component**: `useState`, a `useEffect` whose body is a single
-`setValue(1)`, nothing else. `eslint-plugin-react-hooks` reports it. `oxc-transform-react` returns
-`[]`. So the gap reaches the most basic shape the rule exists for, which makes this worth filing
-upstream.
+**Neither path is a superset of ESLint**, so switching is not a one-line fix:
 
-It is not family-wide, which is why it needs filing as this one rule rather than as the bridge being
-broken. Whole-family counts, ESLint against oxlint: `refs` 215 = 215, `static-components` 2 = 2,
-`exhaustive-deps` 1 = 1, `immutability` 6 vs 7, `preserve-manual-memoization` 2 vs 65 -- that last
-one runs the other way and still has the `eslintSuppressionRules` explanation recorded below.
+| source | findings | of ESLint's 127 |
+| --- | ---: | ---: |
+| ESLint `eslint-plugin-react-hooks` | 127 | -- |
+| oxlint native `react/set-state-in-effect` | 415 | 69 |
+| the `rc/` bridge, what ships today | 47 | 47 |
+| native and bridge combined | -- | 90 |
 
-**Still open:** what distinguishes the 32 files the Rust port does detect. No syntactic discriminator
-separates them, and adding a deliberate compiler bail to the reproducer did not make the finding
-appear. Answering it is not needed to file the bug, only to predict the blast radius.
+The native rule is noisier (346 findings ESLint does not report, at default options this repo has
+never tuned) and still misses 58 that ESLint finds, while catching 21 the bridge misses. Union
+coverage is 90 of 127.
+
+**What to do.** File #26277's sibling upstream: not "the compiler misses this", but "lint-mode
+diagnostics are unreadable through `transformSync` unless they are fatal", with
+`setStateInEffectRepro.tsx` plus the note that the native rule reports the same file. Then decide the
+path deliberately -- the issue records that an `overrides` entry setting `react/exhaustive-deps` to
+`off` does *not* leak the way the comment does, so a native path with tuned options is worth costing
+out against keeping the bridge.
+
+**Still open:** the native rule's 346 extra findings are unexamined, and so is why native misses 58
+that ESLint catches. Both need doing before any switch, neither blocks filing the bug.
 
 `preserve-manual-memoization` 2 vs 65 in the same family is understood: ESLint's compiler skips
 functions carrying an `exhaustive-deps` disable comment, Oxlint's does not, and both production
@@ -495,11 +510,34 @@ invocations in one session. Every failure landed immediately after other heavy w
 other oxlint scripts); every run on an otherwise idle machine passed. So this is not rare, and it is
 not random: it tracks free memory at invocation, exactly as the `os.freemem()` shard sizing implies.
 
-It is also actively misleading. The message names JSON parsing, so the failure reads as a malformed
-`.oxlintrc.json` rather than a dead process. It cost a wrong conclusion here: a config edit was
-briefly blamed, and the bisect that "confirmed" it was itself invalid, because the spliced probe
-config really was malformed. Three clean runs on the committed config settled it. A single retry
-would have saved all of that.
+**Fixed 2026-09-15.** `OxlintLinter.run` now retries a shard that produced no JSON, once, and
+serially. Serial is the whole point: shard count comes from `os.freemem()` at invocation, so a second
+parallel pass would most likely be killed the same way. The retry is deliberately narrow --
+`producedNoJSON` keys off "no JSON object on stdout", which is what a killed process leaves behind,
+and not off "the shard was fatal", so a thrown JS plugin or a mistyped path is still fatal on the
+first attempt rather than being run twice for nothing. A config error is indistinguishable from a
+dead shard here and gets retried too; it fails again for the price of one extra process.
+
+The same treatment covers the step before the shards. `listLintedFiles` gathers the file list in its
+own `npx oxlint --debug=files` process, and a killed lister writes nothing, which is
+indistinguishable from a genuinely unmatched path -- it surfaced as `Oxlint matched no files`, which
+sends you looking at your targets rather than at memory. An empty list is now asked for a second
+time; a mistyped path answers empty again and still fails (the message now says it asked twice),
+while a killed lister answers with the files.
+
+A run that only passed because of a retry says so: the note
+`Oxlint shard N of M produced no JSON and was retried once: recovered`, or the lister equivalent, is
+appended to the merged stderr. Without that, a machine sitting one shard away from failing would look identical to a healthy
+one. Verified by pointing the config at a nonexistent rule with `OXLINT_SHARDS=2`: both shards
+retried, both reported `failed again`, exit 2 preserved. The healthy path adds no note and still
+exits 0. `producedNoJSON` has a test at `tests/tooling/lintPipeline.test.ts`, checked green-red-green.
+
+**What is still worth knowing:** the underlying message is `Failed to parse Oxlint JSON output.`,
+which reads as a parsing problem and not as a dead process. Diagnosing this cost a wrong conclusion
+here -- a config edit was briefly blamed, and the bisect that "confirmed" it was invalid because the
+spliced probe config really was malformed. Three clean runs on the committed config settled it. The
+retry removes most of that class, but the wording would still mislead the next person who hits a
+non-transient case.
 
 ### 5.5 Port findings surfaced by the fixture campaign
 
@@ -574,11 +612,12 @@ Ordered by what blocks what.
    nine documented with measurements. Note for whoever reads that section: two of the eleven were
    not differences, and acting on the original reading of them would have made oxlint stricter than
    ESLint.
-4. ~~**Explain `set-state-in-effect` 127 vs 47**~~ Done 2026-09-15, section 5.2. It is an upstream
-   detection gap in `oxc-transform-react`, with a nine-line reproducer at
-   `oxlint-migration/setStateInEffectRepro.tsx`. **File it upstream** -- that is the remaining
-   action, and it is the one item here that would ship a coverage regression if the flip happened
-   first.
+4. ~~**Explain `set-state-in-effect` 127 vs 47**~~ Done 2026-09-15, section 5.2. Not a detection gap:
+   oxlint's native rule reports the reproducer, so the loss is in the `rc/` bridge's readback, which
+   can only see diagnostics that are fatal. **File it upstream** as the sibling of
+   oxc-project/oxc#26277, using `oxlint-migration/setStateInEffectRepro.tsx`. Then cost out native
+   against the bridge (section 5.2 has the three-way coverage table) -- this is still the one item
+   here that would ship a coverage regression if the flip happened first.
 5. ~~**Explain `no-deprecated` 231 vs 399**~~ Done 2026-09-15, section 5.1. All 174 oxlint-only
    findings are write sites, the already-documented tsgolint strictness. All 6 ESLint-only findings
    are read sites the write-site override silences, which prices that workaround at 6 lost findings
@@ -598,9 +637,11 @@ Ordered by what blocks what.
     `react/rules-of-hooks` reporting as `react-hooks/rules-of-hooks` (section 5.5).
 11. **Every merge from `main` needs a manual `SEATBELT_INCREASE=all` pass.** The seatbelt auto-tightens
    but never auto-increases.
-12. **Retry a dead oxlint shard once** (section 5.4). Reproduced 2026-09-15 under ordinary
-    concurrent load, so raise this above "low priority": a transient OOM fails the whole lint run and
-    the message points at config rather than at a dead process.
+12. ~~**Retry a dead oxlint shard once**~~ Done 2026-09-15, section 5.4. Retried once, serially,
+    only when the shard produced no JSON, and never silently. The pre-shard file listing got the same
+    treatment, since a killed lister read as "matched no files". What is left is cosmetic: the
+    `Failed to parse Oxlint JSON output.` wording still reads as a parsing problem rather than a dead
+    process.
    Low priority while the job is non-blocking, worth having before it becomes required.
 
 ---
