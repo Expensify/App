@@ -44,7 +44,6 @@ function InboxTabSelector() {
     const {setActiveTab, getReportIDsForTab} = useSidebarOrderedReportsActions();
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {selector: reportNameValuePairsArchivedSelector});
     const icons = useMemoizedLazyExpensifyIcons(['Checkmark', 'Feed', 'ChatBubbleUnread', 'Task']);
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {showConfirmModal} = useConfirmModal();
     // Only show the tooltip if we have unread message > 3 months old.
     const {renderProductTrainingTooltip, shouldShowProductTrainingTooltip, hideProductTrainingTooltip} = useProductTrainingContext(

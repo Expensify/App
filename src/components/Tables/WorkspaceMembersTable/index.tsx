@@ -353,7 +353,6 @@ export default function WorkspaceMembersTable({
             filters={filterConfig}
             selectedKeys={selectedKeys}
             selectionEnabled={canSelectMembers}
-            shouldPreserveSelectionOnSearch
             columns={workspaceMembersColumns}
             initialSortColumn="member"
             title={translate('common.members')}
