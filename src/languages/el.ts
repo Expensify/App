@@ -9974,6 +9974,8 @@ ${reportName}`,
             category: 'Κατηγορία',
             tag: 'Ετικέτα',
         },
+        viewAsTable: 'Προβολή ως πίνακας',
+        viewAsSingleExpense: 'Προβολή ως μεμονωμένη δαπάνη',
     },
     report: {
         newReport: {

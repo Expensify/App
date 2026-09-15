@@ -150,6 +150,8 @@ function MoneyRequestReportView({report, reportIDFromRoute, reportLoadingState, 
     const reportTransactionIDs = visibleTransactions.map((transaction) => transaction.transactionID);
     const transactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, reportActions ?? [], isOffline, reportTransactionIDs);
 
+    const [shouldUseTableViewForSingleExpense = false] = useOnyx(ONYXKEYS.NVP_SINGLE_EXPENSE_TABLE_VIEW);
+
     const isReportLoadPending = useIsReportLoadPending(reportID);
     const dismissReportCreationError = useCallback(() => {
         goBackFromSearchMoneyRequest({afterTransition: () => removeFailedReport(reportID)});
@@ -166,10 +168,11 @@ function MoneyRequestReportView({report, reportIDFromRoute, reportLoadingState, 
     const shouldShowOpenReportLoadingSkeleton = !!(isReportLoadPending && reportActions.length === 0 && !isOffline) || shouldWaitForTransactions;
 
     const isEmptyTransactionReport = visibleTransactions?.length === 0 && transactionThreadReportID === undefined;
-    const shouldDisplayMoneyRequestActionsList = !!isEmptyTransactionReport || shouldDisplayReportTableView(report, visibleTransactions ?? []);
+    const shouldDisplayMoneyRequestActionsList = !!isEmptyTransactionReport || shouldDisplayReportTableView(report, visibleTransactions ?? [], shouldUseTableViewForSingleExpense);
 
     const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`);
-    const shouldShowWideRHPReceipt = visibleTransactions.length === 1 && !isSmallScreenWidth && !!transactionThreadReport;
+    // The side-by-side receipt is part of the single-expense view, so it drops away once the table takes over.
+    const shouldShowWideRHPReceipt = visibleTransactions.length === 1 && !isSmallScreenWidth && !!transactionThreadReport && !shouldUseTableViewForSingleExpense;
 
     const reportHeaderView = useMemo(
         () =>

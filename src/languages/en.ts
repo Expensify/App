@@ -9913,6 +9913,8 @@ const translations = {
             category: 'Category',
             tag: 'Tag',
         },
+        viewAsTable: 'View as table',
+        viewAsSingleExpense: 'View as single expense',
     },
     report: {
         newReport: {

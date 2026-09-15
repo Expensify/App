@@ -9593,6 +9593,8 @@ ${reportName}`,
             category: 'カテゴリ',
             tag: 'タグ',
         },
+        viewAsTable: 'テーブルとして表示',
+        viewAsSingleExpense: '単一の経費として表示',
     },
     report: {
         newReport: {

@@ -127,6 +127,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
 
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [shouldUseTableViewForSingleExpense = false] = useOnyx(ONYXKEYS.NVP_SINGLE_EXPENSE_TABLE_VIEW);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
@@ -182,8 +183,9 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
         return {snapshotTransaction: transaction, snapshotViolations: violations};
     }, [snapshot?.data, allReportTransactions, reportIDFromRoute]);
 
-    // If there is more than one transaction, display the report in Super Wide RHP, otherwise it will be shown in Wide RHP
-    const shouldShowSuperWideRHP = visibleTransactions.length > 1;
+    // If there is more than one transaction, display the report in Super Wide RHP, otherwise it will be shown in Wide RHP.
+    // A single-expense report switched to the table view needs the same width the table gets on a multi-expense report.
+    const shouldShowSuperWideRHP = visibleTransactions.length > 1 || (shouldUseTableViewForSingleExpense && visibleTransactions.length === 1);
 
     useRHPWidth(shouldShowSuperWideRHP ? 'super-wide' : 'wide');
 

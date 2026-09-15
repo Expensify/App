@@ -40,10 +40,11 @@ import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViol
 import useVerifyAccountAndResume from '@hooks/useVerifyAccountAndResume';
 
 import {generateDefaultWorkspaceName} from '@libs/actions/Policy/Policy';
+import {setSingleExpenseTableView} from '@libs/actions/ReportLayout';
 import {search} from '@libs/actions/Search';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import getPlatform from '@libs/getPlatform';
-import {getTotalAmountForIOUReportPreviewButton} from '@libs/MoneyRequestReportUtils';
+import {getTotalAmountForIOUReportPreviewButton, isSingleTransactionReport} from '@libs/MoneyRequestReportUtils';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
 import type {KYCFlowEvent, TriggerKYCFlow, WorkspacePolicyPaymentOption} from '@libs/PaymentUtils';
@@ -114,6 +115,7 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [shouldUseTableViewForSingleExpense = false] = useOnyx(ONYXKEYS.NVP_SINGLE_EXPENSE_TABLE_VIEW);
     const [isSelfTourViewed = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
         selector: hasSeenTourSelector,
     });
@@ -296,7 +298,7 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
             ? sortPoliciesByName(activeAdminPolicies, localeCompare)
             : [];
 
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Info', 'Cash', 'ArrowRight', 'Building']);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Info', 'Cash', 'ArrowRight', 'Building', 'Table', 'Receipt']);
 
     // Build PAY action sub-items. Workspace-policy entries carry the policy as data and have no onSelected;
     // MoneyReportHeaderKYCDropdown picks them up via onSubItemSelected where triggerKYCFlow is in scope.
@@ -398,6 +400,15 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
 
     // Merge all action implementations
     const secondaryActionsImplementation: Record<string, (typeof lifecycleActionEntries)[string]> = {
+        [CONST.REPORT.SECONDARY_ACTIONS.TOGGLE_TABLE_VIEW]: {
+            value: CONST.REPORT.SECONDARY_ACTIONS.TOGGLE_TABLE_VIEW,
+            text: shouldUseTableViewForSingleExpense ? translate('reportLayout.viewAsSingleExpense') : translate('reportLayout.viewAsTable'),
+            icon: shouldUseTableViewForSingleExpense ? expensifyIcons.Receipt : expensifyIcons.Table,
+            sentryLabel: CONST.SENTRY_LABEL.MORE_MENU.TOGGLE_TABLE_VIEW,
+            onSelected: () => {
+                setSingleExpenseTableView(!shouldUseTableViewForSingleExpense, shouldUseTableViewForSingleExpense);
+            },
+        },
         [CONST.REPORT.SECONDARY_ACTIONS.VIEW_DETAILS]: {
             value: CONST.REPORT.SECONDARY_ACTIONS.VIEW_DETAILS,
             text: translate('iou.viewDetails'),
@@ -421,6 +432,14 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
             subMenuItems: paymentSubMenuItems,
         },
     };
+
+    // The toggle only applies to reports holding exactly one expense; every other report already renders as a table.
+    if (isSingleTransactionReport(moneyRequestReport, nonPendingDeleteTransactions)) {
+        // REPORT_MORE_MENU_SECTIONS picks the section; order *within* a section follows this array, so the
+        // action must be inserted ahead of "View details" rather than appended.
+        const lastSectionIndex = secondaryActions.findIndex((action) => action === CONST.REPORT.SECONDARY_ACTIONS.VIEW_DETAILS || action === CONST.REPORT.SECONDARY_ACTIONS.DELETE);
+        secondaryActions.splice(lastSectionIndex === -1 ? secondaryActions.length : lastSectionIndex, 0, CONST.REPORT.SECONDARY_ACTIONS.TOGGLE_TABLE_VIEW);
+    }
 
     const applicableSecondaryActions = sortAndSectionPopoverMenuItems(
         secondaryActions.map((action) => secondaryActionsImplementation[action]).filter((action) => action?.shouldShow !== false && action?.value !== primaryAction),

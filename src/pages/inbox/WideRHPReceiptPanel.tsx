@@ -62,9 +62,14 @@ function WideRHPReceiptPanelGate() {
     const transactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, reportActions ?? [], isOffline, reportTransactionIDs);
     const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`);
 
+    const [shouldUseTableViewForSingleExpense = false] = useOnyx(ONYXKEYS.NVP_SINGLE_EXPENSE_TABLE_VIEW);
+
     const isMoneyRequestOrInvoiceReport = isMoneyRequestReport(report) || isInvoiceReport(report);
     const hasMultipleTransactions = (visibleTransactions?.length ?? 0) > 1;
-    const isConfirmedMultiTransactionReport = isMoneyRequestOrInvoiceReport && hasMultipleTransactions && shouldDisplayReportTableView(report, visibleTransactions ?? []);
+    // A single-expense report switched to the table view needs the same wide layout a multi-expense table gets.
+    const hasTransactionsInTable = hasMultipleTransactions || (shouldUseTableViewForSingleExpense && (visibleTransactions?.length ?? 0) === 1);
+    const isConfirmedMultiTransactionReport =
+        isMoneyRequestOrInvoiceReport && hasTransactionsInTable && shouldDisplayReportTableView(report, visibleTransactions ?? [], shouldUseTableViewForSingleExpense);
 
     const shouldShowWideRHP =
         !isConfirmedMultiTransactionReport &&

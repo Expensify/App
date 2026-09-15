@@ -110,6 +110,38 @@ function getReportLayoutSelection(storedLayoutOption: string | null | undefined,
     return getReportLayoutGroupBy(storedGroupBy);
 }
 
+const SINGLE_EXPENSE_TABLE_VIEW_NVP = 'expensify_singleExpenseTableView';
+
+/**
+ * Switch single-expense reports between the combined single-expense view and the multi-expense table.
+ *
+ * The preference is global: it applies to every report that holds exactly one expense.
+ */
+function setSingleExpenseTableView(shouldUseTableView: boolean, previousValue?: boolean) {
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.NVP_SINGLE_EXPENSE_TABLE_VIEW>> = [
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: ONYXKEYS.NVP_SINGLE_EXPENSE_TABLE_VIEW,
+            value: shouldUseTableView,
+        },
+    ];
+
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.NVP_SINGLE_EXPENSE_TABLE_VIEW>> = [
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: ONYXKEYS.NVP_SINGLE_EXPENSE_TABLE_VIEW,
+            value: previousValue ?? false,
+        },
+    ];
+
+    // An empty value deletes the NVP, which is how the back-end stores "off".
+    const parameters: SetNameValuePairsParams = {
+        [`nameValuePairs[${SINGLE_EXPENSE_TABLE_VIEW_NVP}]`]: shouldUseTableView ? 'true' : '',
+    };
+
+    API.write(WRITE_COMMANDS.SET_NAME_VALUE_PAIRS, parameters, {optimisticData, failureData});
+}
+
 /**
  * Set the user's report details columns preference
  */
@@ -137,4 +169,4 @@ function setReportDetailsColumns(columns: SearchCustomColumnIds[], previousValue
     API.write(WRITE_COMMANDS.SET_REPORT_DETAILS_COLUMNS, parameters, {optimisticData, failureData});
 }
 
-export {setReportLayout, getReportLayoutGroupBy, getReportLayoutSelection, isMatrixLayout, setReportDetailsColumns};
+export {setReportLayout, getReportLayoutGroupBy, getReportLayoutSelection, isMatrixLayout, setReportDetailsColumns, setSingleExpenseTableView};
