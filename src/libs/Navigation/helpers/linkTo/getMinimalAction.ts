@@ -1,4 +1,11 @@
-import type {State} from '@navigation/types';
+import getParamsFromRoute from '@libs/Navigation/helpers/getParamsFromRoute';
+import {isSplitNavigatorName} from '@libs/Navigation/helpers/isNavigatorName';
+import {SPLIT_TO_SIDEBAR} from '@libs/Navigation/linkingConfig/RELATIONS';
+import {isRecord} from '@libs/ObjectUtils';
+
+import type {NavigationRoute, State} from '@navigation/types';
+
+import CONST from '@src/CONST';
 
 import type {NavigationAction, NavigationState} from '@react-navigation/native';
 import type {Writable} from 'type-fest';
@@ -8,7 +15,74 @@ import type {ActionPayload} from './types';
 type MinimalAction = {
     action: Writable<NavigationAction>;
     targetState: State | undefined;
+    /** Present only when scope minimization produces a PUSH; goUp uses it to restore matching split history. */
+    scopedSplitPayload?: ActionPayload & {name: string};
 };
+
+function isNamedActionPayload(payload: unknown): payload is ActionPayload & {name: string} {
+    return isRecord(payload) && typeof payload.name === 'string';
+}
+
+// Workspace and domain screens carry their split's scope params (policyID or domainAccountID),
+// so the focused screen can identify the scope when the sidebar is absent.
+function getSplitScopeComparisonValues(currentRoute: NavigationRoute, payload: unknown) {
+    if (!isNamedActionPayload(payload)) {
+        return;
+    }
+
+    if (!isSplitNavigatorName(currentRoute.name) || currentRoute.name !== payload.name || !currentRoute.state) {
+        return;
+    }
+
+    const sidebarScreen = SPLIT_TO_SIDEBAR[currentRoute.name];
+    const scopeParams = getParamsFromRoute(sidebarScreen);
+    const sidebarRoute = currentRoute.state.routes.find((route) => route.name === sidebarScreen);
+    // Narrow layouts can contain only central screens. Keep an existing sidebar authoritative.
+    const scopeRoute = sidebarRoute ?? currentRoute.state.routes.at(currentRoute.state.index ?? -1);
+    const currentParams: unknown = scopeRoute?.params;
+    const targetParams = payload.params?.params;
+    if (!scopeParams.length || !isRecord(currentParams) || !isRecord(targetParams)) {
+        return;
+    }
+
+    return {scopeParams, currentParams, targetParams};
+}
+
+function getComparableScopeValue(value: unknown): string | undefined {
+    if (typeof value !== 'string' && typeof value !== 'number') {
+        return;
+    }
+
+    return String(value);
+}
+
+function hasDifferentSplitScope(currentRoute: NavigationRoute, payload: ActionPayload): boolean {
+    const scopeComparisonValues = getSplitScopeComparisonValues(currentRoute, payload);
+    if (!scopeComparisonValues) {
+        return false;
+    }
+
+    const {scopeParams, currentParams, targetParams} = scopeComparisonValues;
+    return scopeParams.some((param) => {
+        const currentValue = getComparableScopeValue(currentParams[param]);
+        const targetValue = getComparableScopeValue(targetParams[param]);
+        return currentValue !== undefined && targetValue !== undefined && currentValue !== targetValue;
+    });
+}
+
+function hasMatchingSplitScope(currentRoute: NavigationRoute, payload: unknown): boolean {
+    const scopeComparisonValues = getSplitScopeComparisonValues(currentRoute, payload);
+    if (!scopeComparisonValues) {
+        return false;
+    }
+
+    const {scopeParams, currentParams, targetParams} = scopeComparisonValues;
+    return scopeParams.every((param) => {
+        const currentValue = getComparableScopeValue(currentParams[param]);
+        const targetValue = getComparableScopeValue(targetParams[param]);
+        return currentValue !== undefined && currentValue === targetValue;
+    });
+}
 
 /**
  * Motivation for this function is described in NAVIGATION.md
@@ -21,16 +95,27 @@ function getMinimalAction(action: NavigationAction, state: NavigationState): Min
     let currentAction: NavigationAction = action;
     let currentState: State | undefined = state;
     let currentTargetKey: string | undefined;
+    let scopedSplitPayload: MinimalAction['scopedSplitPayload'];
 
-    while (currentAction.payload && 'name' in currentAction.payload && currentState?.routes[currentState.index ?? -1].name === currentAction.payload.name) {
-        if (!currentState?.routes[currentState.index ?? -1].state) {
+    while (isNamedActionPayload(currentAction.payload) && currentState) {
+        const currentRoute: NavigationRoute | undefined = currentState.routes.at(currentState.index ?? -1);
+        if (!currentRoute || currentRoute.name !== currentAction.payload.name) {
             break;
         }
 
-        currentState = currentState?.routes[currentState.index ?? -1].state;
-        currentTargetKey = currentState?.key;
+        const payload = currentAction.payload;
+        const isDifferentSplitScope = hasDifferentSplitScope(currentRoute, payload);
+        if (!currentRoute.state || isDifferentSplitScope) {
+            // Keep different workspace/domain scopes in separate splits so the existing sidebar is not reused.
+            if (isDifferentSplitScope && currentAction.type !== CONST.NAVIGATION.ACTION_TYPE.REPLACE) {
+                currentAction = {...currentAction, type: CONST.NAVIGATION.ACTION_TYPE.PUSH};
+                scopedSplitPayload = payload;
+            }
+            break;
+        }
 
-        const payload = currentAction.payload as ActionPayload;
+        currentState = currentRoute.state;
+        currentTargetKey = currentState?.key;
 
         // Creating new smaller action
         currentAction = {
@@ -43,7 +128,8 @@ function getMinimalAction(action: NavigationAction, state: NavigationState): Min
             target: currentTargetKey,
         };
     }
-    return {action: currentAction, targetState: currentState};
+    return {action: currentAction, targetState: currentState, scopedSplitPayload};
 }
 
+export {hasMatchingSplitScope};
 export default getMinimalAction;

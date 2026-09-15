@@ -11,7 +11,9 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 
-import React from 'react';
+import type {InitialState} from '@react-navigation/native';
+
+import React, {createContext, useContext} from 'react';
 
 import TestNavigationContainer from '../utils/TestNavigationContainer';
 
@@ -24,10 +26,161 @@ const mockedGetIsNarrowLayout = jest.mocked(getIsNarrowLayout);
 const mockedUseResponsiveLayout = jest.mocked(useResponsiveLayout);
 const mockedPolicyID = 'test-policy';
 const mockedBackToRoute = '/test';
+
+function buildWorkspaceSplitRoute(policyID: string, centralScreen: string = SCREENS.WORKSPACE.MEMBERS, centralParams: Record<string, unknown> = {policyID}, previousCentralScreen?: string) {
+    const centralRoutes = [...(previousCentralScreen ? [{name: previousCentralScreen, params: {policyID}}] : []), {name: centralScreen, params: centralParams}];
+    return {
+        name: NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR,
+        state: {
+            index: centralRoutes.length,
+            routes: [{name: SCREENS.WORKSPACE.INITIAL, params: {policyID}}, ...centralRoutes],
+        },
+    };
+}
+
+function buildDomainSplitRoute(domainAccountID: number, centralScreen: string = SCREENS.DOMAIN.MEMBERS) {
+    return {
+        name: NAVIGATORS.DOMAIN_SPLIT_NAVIGATOR,
+        state: {
+            index: 1,
+            routes: [
+                {name: SCREENS.DOMAIN.INITIAL, params: {domainAccountID}},
+                {name: centralScreen, params: {domainAccountID}},
+            ],
+        },
+    };
+}
+
+type WorkspaceScopeRoute = ReturnType<typeof buildWorkspaceSplitRoute> | ReturnType<typeof buildDomainSplitRoute>;
+
+function buildWorkspaceNavigationState(...workspaceSplits: WorkspaceScopeRoute[]): InitialState {
+    return {
+        index: 0,
+        routes: [
+            {
+                name: NAVIGATORS.TAB_NAVIGATOR,
+                state: {
+                    index: 4,
+                    routes: [
+                        {name: SCREENS.HOME},
+                        {name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR},
+                        {name: NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR},
+                        {name: NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR},
+                        {
+                            name: NAVIGATORS.WORKSPACE_NAVIGATOR,
+                            state: {
+                                index: workspaceSplits.length - 1,
+                                routes: workspaceSplits,
+                            },
+                        },
+                    ],
+                },
+            },
+        ],
+    };
+}
+
+const TestNarrowLayoutContext = createContext(true);
+
+function useTestResponsiveLayout() {
+    const shouldUseNarrowLayout = useContext(TestNarrowLayoutContext);
+    return {...CONST.NAVIGATION_TESTS.DEFAULT_USE_RESPONSIVE_LAYOUT_VALUE, shouldUseNarrowLayout};
+}
+
+function renderCentralOnlySplits(...workspaceSplits: WorkspaceScopeRoute[]) {
+    // Mount two root entries first, matching an in-app cross-tab deep link. A cold root adds a sidebar.
+    const initialState: InitialState = {index: 1, routes: [{name: NAVIGATORS.TAB_NAVIGATOR}, {name: NAVIGATORS.TAB_NAVIGATOR}]};
+    const view = render(
+        <TestNarrowLayoutContext.Provider value>
+            <TestNavigationContainer initialState={initialState} />
+        </TestNarrowLayoutContext.Provider>,
+    );
+    act(() => {
+        navigationRef.resetRoot({
+            index: 1,
+            routes: [{name: NAVIGATORS.TAB_NAVIGATOR}, ...buildWorkspaceNavigationState(...workspaceSplits).routes],
+        });
+    });
+    return {view, initialState};
+}
+
+function getActiveWorkspaceState() {
+    const root = navigationRef.getRootState();
+    const tabState = root.routes.at(root.index)?.state;
+    return tabState?.routes.find((route) => route.name === NAVIGATORS.WORKSPACE_NAVIGATOR)?.state;
+}
+
 describe('Go back on the narrow layout', () => {
     beforeEach(() => {
         mockedGetIsNarrowLayout.mockReturnValue(true);
         mockedUseResponsiveLayout.mockReturnValue({...CONST.NAVIGATION_TESTS.DEFAULT_USE_RESPONSIVE_LAYOUT_VALUE, shouldUseNarrowLayout: true});
+    });
+
+    describe('central-only scoped splits', () => {
+        const workspaceA = {name: NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR, state: {index: 0, routes: [{name: SCREENS.WORKSPACE.PROFILE, params: {policyID: 'policy-a'}}]}};
+        const workspaceB = {name: NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR, state: {index: 0, routes: [{name: SCREENS.WORKSPACE.MEMBERS, params: {policyID: 'policy-b'}}]}};
+        const domainA = {name: NAVIGATORS.DOMAIN_SPLIT_NAVIGATOR, state: {index: 0, routes: [{name: SCREENS.DOMAIN.SAML, params: {domainAccountID: 1}}]}};
+        const domainB = {name: NAVIGATORS.DOMAIN_SPLIT_NAVIGATOR, state: {index: 0, routes: [{name: SCREENS.DOMAIN.MEMBERS, params: {domainAccountID: 2}}]}};
+
+        it.each([
+            {scope: 'workspace', first: workspaceA, second: workspaceB, route: ROUTES.WORKSPACE_OVERVIEW.getRoute('policy-a'), expectedParams: {policyID: 'policy-a'}},
+            {scope: 'domain', first: domainA, second: domainB, route: ROUTES.DOMAIN_SAML.getRoute(1), expectedParams: {domainAccountID: '1'}},
+        ])('restores central-only $scope history for both parameter comparison modes', ({first, second, route, expectedParams}) => {
+            const {view} = renderCentralOnlySplits(first, second);
+            for (const compareParams of [true, false]) {
+                if (!compareParams) {
+                    act(() => {
+                        navigationRef.resetRoot({index: 1, routes: [{name: NAVIGATORS.TAB_NAVIGATOR}, ...buildWorkspaceNavigationState(first, second).routes]});
+                    });
+                }
+                const before = getActiveWorkspaceState();
+                const originalSplit = before?.routes.at(0);
+                expect(originalSplit?.state?.routes).toHaveLength(1);
+                expect(before?.routes.at(1)?.state?.routes).toHaveLength(1);
+                act(() => {
+                    Navigation.goBack(route, {compareParams});
+                });
+                const after = getActiveWorkspaceState();
+                expect(after?.routes).toHaveLength(1);
+                expect(after?.routes.at(0)?.key).toBe(originalSplit?.key);
+                expect(after?.routes.at(0)?.state?.routes.at(-1)?.name).toBe(first.state.routes.at(0)?.name);
+                expect(after?.routes.at(0)?.state?.routes.at(-1)?.params).toMatchObject(expectedParams);
+            }
+            view.unmount();
+        });
+
+        it('keeps workspace identity coherent after cross-scope navigation, widening, and Back', () => {
+            // Context updates reach memoized navigation screens, as the real responsive hook does.
+            mockedUseResponsiveLayout.mockImplementation(useTestResponsiveLayout);
+            const categoriesA = {name: NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR, state: {index: 0, routes: [{name: SCREENS.WORKSPACE.CATEGORIES, params: {policyID: 'policy-a'}}]}};
+            const {view, initialState} = renderCentralOnlySplits(categoriesA);
+            const originalSplit = getActiveWorkspaceState()?.routes.at(0);
+            expect(originalSplit?.state?.routes).toHaveLength(1);
+            act(() => {
+                Navigation.navigate(ROUTES.WORKSPACE_MORE_FEATURES.getRoute('policy-b'));
+            });
+            const afterNavigate = getActiveWorkspaceState();
+            expect(afterNavigate?.routes).toHaveLength(2);
+            expect(afterNavigate?.routes.at(0)?.key).toBe(originalSplit?.key);
+            expect(afterNavigate?.routes.at(-1)?.state?.routes.at(-1)?.params).toMatchObject({policyID: 'policy-b'});
+
+            mockedGetIsNarrowLayout.mockReturnValue(false);
+            view.rerender(
+                <TestNarrowLayoutContext.Provider value={false}>
+                    <TestNavigationContainer initialState={initialState} />
+                </TestNarrowLayoutContext.Provider>,
+            );
+            act(() => {
+                Navigation.goBack();
+            });
+            const restored = getActiveWorkspaceState();
+            expect(restored?.routes).toHaveLength(1);
+            expect(restored?.routes.at(0)?.key).toBe(originalSplit?.key);
+            expect(restored?.routes.at(0)?.state?.routes).toEqual([
+                expect.objectContaining({name: SCREENS.WORKSPACE.INITIAL, params: expect.objectContaining({policyID: 'policy-a'})}),
+                expect.objectContaining({name: SCREENS.WORKSPACE.CATEGORIES, params: expect.objectContaining({policyID: 'policy-a'})}),
+            ]);
+        });
     });
 
     describe('called without params', () => {
@@ -371,6 +524,291 @@ describe('Go back on the narrow layout', () => {
             const tabStateAfterGoBack = rootStateAfterGoBack?.routes.at(0)?.state;
             const activeTabAfterGoBack = tabStateAfterGoBack?.routes.at(tabStateAfterGoBack?.index ?? 0);
             expect(activeTabAfterGoBack?.name).toBe(NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR);
+        });
+    });
+
+    describe('called with a different workspace fallback route', () => {
+        const policyA = 'policy-a';
+        const policyB = 'policy-b';
+
+        it('Should pop to the matching workspace split', () => {
+            render(<TestNavigationContainer initialState={buildWorkspaceNavigationState(buildWorkspaceSplitRoute(policyA), buildWorkspaceSplitRoute(policyB))} />);
+
+            act(() => {
+                Navigation.goBack(ROUTES.WORKSPACE_MEMBERS.getRoute(policyA));
+            });
+
+            const tabState = navigationRef.current?.getRootState().routes.at(0)?.state;
+            const workspaceState = tabState?.routes.at(4)?.state;
+            const activeSplit = workspaceState?.routes.at(workspaceState.index ?? 0);
+            expect(workspaceState?.routes).toHaveLength(1);
+            expect(activeSplit?.state?.routes.at(0)?.params).toMatchObject({policyID: policyA});
+            expect(activeSplit?.state?.routes.at(-1)?.params).toMatchObject({policyID: policyA});
+        });
+
+        it.each([true, false])('Should preserve the workspace sidebar when applying a missing leaf with compareParams=%s', (compareParams) => {
+            const sidebarOnlySplit = {
+                name: NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR,
+                state: {
+                    index: 0,
+                    routes: [{name: SCREENS.WORKSPACE.INITIAL, params: {policyID: policyA, backTo: ROUTES.WORKSPACES_LIST.route}}],
+                },
+            };
+            render(<TestNavigationContainer initialState={buildWorkspaceNavigationState(sidebarOnlySplit, buildWorkspaceSplitRoute(policyB))} />);
+
+            const workspaceStateBeforeGoBack = navigationRef.current?.getRootState().routes.at(0)?.state?.routes.at(4)?.state;
+            const matchingSplitBeforeGoBack = workspaceStateBeforeGoBack?.routes.at(0);
+            const sidebarBeforeGoBack = matchingSplitBeforeGoBack?.state?.routes.at(0);
+            expect(matchingSplitBeforeGoBack?.state?.routes).toHaveLength(1);
+            expect(sidebarBeforeGoBack?.name).toBe(SCREENS.WORKSPACE.INITIAL);
+
+            act(() => {
+                Navigation.goBack(ROUTES.WORKSPACE_OVERVIEW.getRoute(policyA, ROUTES.HOME), {compareParams});
+            });
+
+            const workspaceState = navigationRef.current?.getRootState().routes.at(0)?.state?.routes.at(4)?.state;
+            const activeSplit = workspaceState?.routes.at(workspaceState.index ?? 0);
+            expect(workspaceState?.routes).toHaveLength(1);
+            expect(activeSplit?.key).toBe(matchingSplitBeforeGoBack?.key);
+            expect(activeSplit?.state?.index).toBe(1);
+            expect(activeSplit?.state?.routes).toHaveLength(2);
+            expect(activeSplit?.state?.routes.at(0)).toEqual(sidebarBeforeGoBack);
+            expect(activeSplit?.state?.routes.at(1)).toMatchObject({
+                name: SCREENS.WORKSPACE.PROFILE,
+                params: {policyID: policyA, backTo: ROUTES.HOME},
+            });
+
+            act(() => {
+                Navigation.goBack();
+            });
+
+            const workspaceStateAfterSecondBack = navigationRef.current?.getRootState().routes.at(0)?.state?.routes.at(4)?.state;
+            const splitAfterSecondBack = workspaceStateAfterSecondBack?.routes.at(0);
+            expect(workspaceStateAfterSecondBack?.routes).toHaveLength(1);
+            expect(splitAfterSecondBack?.key).toBe(matchingSplitBeforeGoBack?.key);
+            expect(splitAfterSecondBack?.state?.index).toBe(0);
+            expect(splitAfterSecondBack?.state?.routes).toEqual([sidebarBeforeGoBack]);
+        });
+
+        it.each([true, false])('Should update a restored workspace sidebar directly with compareParams=%s', (compareParams) => {
+            const sidebarOnlySplit = {
+                name: NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR,
+                state: {
+                    index: 0,
+                    routes: [{name: SCREENS.WORKSPACE.INITIAL, params: {policyID: policyA, backTo: ROUTES.WORKSPACES_LIST.route}}],
+                },
+            };
+            render(<TestNavigationContainer initialState={buildWorkspaceNavigationState(sidebarOnlySplit, buildWorkspaceSplitRoute(policyB))} />);
+
+            act(() => {
+                Navigation.goBack(ROUTES.WORKSPACE_INITIAL.getRoute(policyA, ROUTES.HOME), {compareParams});
+            });
+
+            const workspaceState = navigationRef.current?.getRootState().routes.at(0)?.state?.routes.at(4)?.state;
+            const activeSplit = workspaceState?.routes.at(workspaceState.index ?? 0);
+            expect(workspaceState?.routes).toHaveLength(1);
+            expect(activeSplit?.state?.index).toBe(0);
+            expect(activeSplit?.state?.routes).toHaveLength(1);
+            expect(activeSplit?.state?.routes.at(0)).toMatchObject({
+                name: SCREENS.WORKSPACE.INITIAL,
+                params: {policyID: policyA, backTo: ROUTES.HOME},
+            });
+        });
+
+        it.each([true, false])('Should pop to the matching workspace split and apply the requested leaf with compareParams=%s', (compareParams) => {
+            render(
+                <TestNavigationContainer
+                    initialState={buildWorkspaceNavigationState(buildWorkspaceSplitRoute(policyA, SCREENS.WORKSPACE.MORE_FEATURES), buildWorkspaceSplitRoute(policyB))}
+                />,
+            );
+
+            const tabStateBeforeGoBack = navigationRef.current?.getRootState().routes.at(0)?.state;
+            const workspaceStateBeforeGoBack = tabStateBeforeGoBack?.routes.at(4)?.state;
+            expect(workspaceStateBeforeGoBack?.routes.at(0)?.state?.routes.at(-1)?.name).toBe(SCREENS.WORKSPACE.MORE_FEATURES);
+
+            act(() => {
+                Navigation.goBack(ROUTES.WORKSPACE_OVERVIEW.getRoute(policyA), {compareParams});
+            });
+
+            const tabState = navigationRef.current?.getRootState().routes.at(0)?.state;
+            const workspaceState = tabState?.routes.at(4)?.state;
+            const activeSplit = workspaceState?.routes.at(workspaceState.index ?? 0);
+            expect(workspaceState?.routes).toHaveLength(1);
+            expect(activeSplit?.state?.routes).toHaveLength(2);
+            expect(activeSplit?.state?.routes.at(0)).toEqual(workspaceStateBeforeGoBack?.routes.at(0)?.state?.routes.at(0));
+            expect(activeSplit?.state?.routes.at(-1)).toMatchObject({
+                name: SCREENS.WORKSPACE.PROFILE,
+                params: {policyID: policyA},
+            });
+        });
+
+        it('Should pop within the matching workspace split when the requested leaf is already in its history', () => {
+            render(
+                <TestNavigationContainer
+                    initialState={buildWorkspaceNavigationState(
+                        buildWorkspaceSplitRoute(policyA, SCREENS.WORKSPACE.MORE_FEATURES, {policyID: policyA}, SCREENS.WORKSPACE.PROFILE),
+                        buildWorkspaceSplitRoute(policyB),
+                    )}
+                />,
+            );
+
+            const tabStateBeforeGoBack = navigationRef.current?.getRootState().routes.at(0)?.state;
+            const workspaceStateBeforeGoBack = tabStateBeforeGoBack?.routes.at(4)?.state;
+            const matchingSplitBeforeGoBack = workspaceStateBeforeGoBack?.routes.at(0);
+            const requestedLeafKey = matchingSplitBeforeGoBack?.state?.routes.at(1)?.key;
+            expect(matchingSplitBeforeGoBack?.state?.routes.map((route) => route.name)).toEqual([SCREENS.WORKSPACE.INITIAL, SCREENS.WORKSPACE.PROFILE, SCREENS.WORKSPACE.MORE_FEATURES]);
+
+            act(() => {
+                Navigation.goBack(ROUTES.WORKSPACE_OVERVIEW.getRoute(policyA));
+            });
+
+            const tabState = navigationRef.current?.getRootState().routes.at(0)?.state;
+            const workspaceState = tabState?.routes.at(4)?.state;
+            const activeSplit = workspaceState?.routes.at(workspaceState.index ?? 0);
+            expect(workspaceState?.routes).toHaveLength(1);
+            expect(activeSplit?.state?.routes).toHaveLength(2);
+            expect(activeSplit?.state?.routes.at(-1)).toMatchObject({
+                key: requestedLeafKey,
+                name: SCREENS.WORKSPACE.PROFILE,
+                params: {policyID: policyA},
+            });
+        });
+
+        it('Should replace the active split when the fallback workspace is not in the stack', () => {
+            render(<TestNavigationContainer initialState={buildWorkspaceNavigationState(buildWorkspaceSplitRoute(policyB))} />);
+
+            act(() => {
+                Navigation.goBack(ROUTES.WORKSPACE_MEMBERS.getRoute(policyA));
+            });
+
+            const tabState = navigationRef.current?.getRootState().routes.at(0)?.state;
+            const workspaceState = tabState?.routes.at(4)?.state;
+            const activeSplit = workspaceState?.routes.at(workspaceState.index ?? 0);
+            expect(workspaceState?.routes).toHaveLength(1);
+            expect(activeSplit?.state?.routes.at(0)?.params).toMatchObject({policyID: policyA});
+            expect(activeSplit?.state?.routes.at(-1)?.params).toMatchObject({policyID: policyA});
+        });
+
+        it('Should pop to the matching workspace split without comparing leaf params', () => {
+            const oldBackTo = ROUTES.WORKSPACES_LIST.route;
+            const requestedBackTo = ROUTES.HOME;
+            render(
+                <TestNavigationContainer
+                    initialState={buildWorkspaceNavigationState(
+                        buildWorkspaceSplitRoute(policyA, SCREENS.WORKSPACE.PROFILE, {policyID: policyA, backTo: oldBackTo}),
+                        buildWorkspaceSplitRoute(policyB),
+                    )}
+                />,
+            );
+
+            const tabStateBeforeGoBack = navigationRef.current?.getRootState().routes.at(0)?.state;
+            const workspaceStateBeforeGoBack = tabStateBeforeGoBack?.routes.at(4)?.state;
+            expect(workspaceStateBeforeGoBack?.routes.at(0)?.state?.routes.at(-1)).toMatchObject({
+                name: SCREENS.WORKSPACE.PROFILE,
+                params: {policyID: policyA, backTo: oldBackTo},
+            });
+
+            act(() => {
+                Navigation.goBack(ROUTES.WORKSPACE_OVERVIEW.getRoute(policyA, requestedBackTo), {compareParams: false});
+            });
+
+            const tabState = navigationRef.current?.getRootState().routes.at(0)?.state;
+            const workspaceState = tabState?.routes.at(4)?.state;
+            const activeSplit = workspaceState?.routes.at(workspaceState.index ?? 0);
+            expect(workspaceState?.routes).toHaveLength(1);
+            expect(activeSplit?.state?.routes.at(0)?.params).toMatchObject({policyID: policyA});
+            expect(activeSplit?.state?.routes.at(-1)).toMatchObject({
+                name: SCREENS.WORKSPACE.PROFILE,
+                params: {policyID: policyA, backTo: requestedBackTo},
+            });
+        });
+    });
+
+    describe('called with a different domain fallback route', () => {
+        const domainA = 1;
+        const domainB = 2;
+
+        it.each([true, false])('Should preserve the domain sidebar when applying a missing leaf with compareParams=%s', (compareParams) => {
+            const sidebarOnlySplit = {
+                name: NAVIGATORS.DOMAIN_SPLIT_NAVIGATOR,
+                state: {
+                    index: 0,
+                    routes: [{name: SCREENS.DOMAIN.INITIAL, params: {domainAccountID: domainA}}],
+                },
+            };
+            render(<TestNavigationContainer initialState={buildWorkspaceNavigationState(sidebarOnlySplit, buildDomainSplitRoute(domainB))} />);
+
+            const workspaceStateBeforeGoBack = navigationRef.current?.getRootState().routes.at(0)?.state?.routes.at(4)?.state;
+            const matchingSplitBeforeGoBack = workspaceStateBeforeGoBack?.routes.at(0);
+            const sidebarBeforeGoBack = matchingSplitBeforeGoBack?.state?.routes.at(0);
+            expect(matchingSplitBeforeGoBack?.state?.routes).toHaveLength(1);
+            expect(sidebarBeforeGoBack?.name).toBe(SCREENS.DOMAIN.INITIAL);
+
+            act(() => {
+                Navigation.goBack(ROUTES.DOMAIN_MEMBERS.getRoute(domainA), {compareParams});
+            });
+
+            const workspaceState = navigationRef.current?.getRootState().routes.at(0)?.state?.routes.at(4)?.state;
+            const activeSplit = workspaceState?.routes.at(workspaceState.index ?? 0);
+            expect(workspaceState?.routes).toHaveLength(1);
+            expect(activeSplit?.key).toBe(matchingSplitBeforeGoBack?.key);
+            expect(activeSplit?.state?.index).toBe(1);
+            expect(activeSplit?.state?.routes).toHaveLength(2);
+            expect(activeSplit?.state?.routes.at(0)).toEqual(sidebarBeforeGoBack);
+            expect(activeSplit?.state?.routes.at(1)).toMatchObject({
+                name: SCREENS.DOMAIN.MEMBERS,
+                params: {domainAccountID: String(domainA)},
+            });
+
+            act(() => {
+                Navigation.goBack();
+            });
+
+            const workspaceStateAfterSecondBack = navigationRef.current?.getRootState().routes.at(0)?.state?.routes.at(4)?.state;
+            const splitAfterSecondBack = workspaceStateAfterSecondBack?.routes.at(0);
+            expect(workspaceStateAfterSecondBack?.routes).toHaveLength(1);
+            expect(splitAfterSecondBack?.key).toBe(matchingSplitBeforeGoBack?.key);
+            expect(splitAfterSecondBack?.state?.index).toBe(0);
+            expect(splitAfterSecondBack?.state?.routes).toEqual([sidebarBeforeGoBack]);
+        });
+
+        it.each([true, false])('Should pop to the matching domain split with compareParams=%s', (compareParams) => {
+            render(<TestNavigationContainer initialState={buildWorkspaceNavigationState(buildDomainSplitRoute(domainA, SCREENS.DOMAIN.SAML), buildDomainSplitRoute(domainB))} />);
+
+            const tabStateBeforeGoBack = navigationRef.current?.getRootState().routes.at(0)?.state;
+            const workspaceStateBeforeGoBack = tabStateBeforeGoBack?.routes.at(4)?.state;
+            expect(workspaceStateBeforeGoBack?.routes.at(0)?.state?.routes.at(-1)?.name).toBe(SCREENS.DOMAIN.SAML);
+
+            act(() => {
+                Navigation.goBack(ROUTES.DOMAIN_MEMBERS.getRoute(domainA), {compareParams});
+            });
+
+            const tabState = navigationRef.current?.getRootState().routes.at(0)?.state;
+            const workspaceState = tabState?.routes.at(4)?.state;
+            const activeSplit = workspaceState?.routes.at(workspaceState.index ?? 0);
+            expect(workspaceState?.routes).toHaveLength(1);
+            expect(activeSplit?.state?.routes).toHaveLength(2);
+            expect(activeSplit?.state?.routes.at(0)).toEqual(workspaceStateBeforeGoBack?.routes.at(0)?.state?.routes.at(0));
+            expect(activeSplit?.state?.routes.at(0)?.params).toMatchObject({domainAccountID: domainA});
+            expect(activeSplit?.state?.routes.at(-1)).toMatchObject({
+                name: SCREENS.DOMAIN.MEMBERS,
+                params: {domainAccountID: String(domainA)},
+            });
+        });
+
+        it('Should replace the active split when the fallback domain is not in the stack', () => {
+            render(<TestNavigationContainer initialState={buildWorkspaceNavigationState(buildDomainSplitRoute(domainB))} />);
+
+            act(() => {
+                Navigation.goBack(ROUTES.DOMAIN_MEMBERS.getRoute(domainA));
+            });
+
+            const tabState = navigationRef.current?.getRootState().routes.at(0)?.state;
+            const workspaceState = tabState?.routes.at(4)?.state;
+            const activeSplit = workspaceState?.routes.at(workspaceState.index ?? 0);
+            expect(workspaceState?.routes).toHaveLength(1);
+            expect(activeSplit?.state?.routes.at(0)?.params).toMatchObject({domainAccountID: String(domainA)});
+            expect(activeSplit?.state?.routes.at(-1)?.params).toMatchObject({domainAccountID: String(domainA)});
         });
     });
 
