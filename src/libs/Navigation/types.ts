@@ -3473,6 +3473,7 @@ type SearchReportActionsParamList = {
     };
     [SCREENS.SEARCH.CHANGE_APPROVER.ROOT]: undefined;
     [SCREENS.SEARCH.CHANGE_APPROVER.ADD_APPROVER]: undefined;
+    [SCREENS.SEARCH.CHANGE_APPROVER.REASSIGN_APPROVER]: undefined;
 };
 
 type SearchFullscreenNavigatorParamList = {

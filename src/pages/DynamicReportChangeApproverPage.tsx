@@ -69,25 +69,6 @@ function DynamicReportChangeApproverPage({report, policy, isLoadingReportData}: 
         Navigation.goBack(backPath);
     };
 
-    const shouldNativeToUpgradePage = useCallback(
-        (selectedApproverOption: ApproverType) => {
-            if (policy && !isControlPolicy(policy)) {
-                Navigation.navigate(
-                    ROUTES.WORKSPACE_UPGRADE.getRoute(
-                        policy.id,
-                        CONST.UPGRADE_FEATURE_INTRO_MAPPING.multiApprovalLevels.alias,
-                        selectedApproverOption === APPROVER_TYPE.ADD_APPROVER
-                            ? ROUTES.REPORT_CHANGE_APPROVER_ADD_APPROVER.getRoute(report.reportID)
-                            : ROUTES.REPORT_CHANGE_APPROVER_REASSIGN_APPROVER.getRoute(report.reportID),
-                    ),
-                );
-                return true;
-            }
-            return false;
-        },
-        [policy, report.reportID],
-    );
-
     const changeApprover = useCallback(() => {
         if (!selectedApproverType) {
             setHasError(true);
@@ -95,7 +76,14 @@ function DynamicReportChangeApproverPage({report, policy, isLoadingReportData}: 
         }
         if (selectedApproverType === APPROVER_TYPE.ADD_APPROVER) {
             hasNavigatedAwayRef.current = true;
-            if (shouldNativeToUpgradePage(selectedApproverType)) {
+            if (policy && !isControlPolicy(policy)) {
+                Navigation.navigate(
+                    ROUTES.WORKSPACE_UPGRADE.getRoute(
+                        policy.id,
+                        CONST.UPGRADE_FEATURE_INTRO_MAPPING.multiApprovalLevels.alias,
+                        ROUTES.REPORT_CHANGE_APPROVER_ADD_APPROVER.getRoute(report.reportID),
+                    ),
+                );
                 return;
             }
             Navigation.navigate(ROUTES.REPORT_CHANGE_APPROVER_ADD_APPROVER.getRoute(report.reportID));
@@ -103,28 +91,13 @@ function DynamicReportChangeApproverPage({report, policy, isLoadingReportData}: 
         }
         if (selectedApproverType === APPROVER_TYPE.REASSIGN_APPROVER) {
             hasNavigatedAwayRef.current = true;
-            if (shouldNativeToUpgradePage(selectedApproverType)) {
-                return;
-            }
             Navigation.navigate(ROUTES.REPORT_CHANGE_APPROVER_REASSIGN_APPROVER.getRoute(report.reportID));
             return;
         }
 
         assignReportToMe(report, currentUserDetails.accountID, currentUserDetails.email ?? '', policy, hasViolations, isASAPSubmitBetaEnabled, isTrackIntentUser, formatPhoneNumber, rules);
         Navigation.dismissToPreviousRHP();
-    }, [
-        selectedApproverType,
-        report,
-        currentUserDetails.accountID,
-        currentUserDetails.email,
-        policy,
-        hasViolations,
-        isASAPSubmitBetaEnabled,
-        isTrackIntentUser,
-        formatPhoneNumber,
-        rules,
-        shouldNativeToUpgradePage,
-    ]);
+    }, [selectedApproverType, report, currentUserDetails.accountID, currentUserDetails.email, policy, hasViolations, isASAPSubmitBetaEnabled, isTrackIntentUser, formatPhoneNumber, rules]);
 
     const approverTypes = useMemo(() => {
         const data: Array<ListItem<ApproverType>> = [
@@ -146,7 +119,7 @@ function DynamicReportChangeApproverPage({report, policy, isLoadingReportData}: 
             });
         }
 
-        if (isAllowedToApproveExpenseReport(report, currentUserDetails.accountID, policy) && isPolicyAdmin(policy)) {
+        if (isPolicyAdmin(policy)) {
             data.push({
                 text: translate('iou.changeApprover.actions.reassignApprover'),
                 keyForList: APPROVER_TYPE.REASSIGN_APPROVER,

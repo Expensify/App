@@ -13,6 +13,8 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePressLoading from '@hooks/usePressLoading';
+import useReportTransactions from '@hooks/useReportTransactions';
+import useReportTransactionViolations from '@hooks/useReportTransactionViolations';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {addReportApprover} from '@libs/actions/IOU/ReportWorkflow';
@@ -21,13 +23,20 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportChangeApproverParamList} from '@libs/Navigation/types';
 import {sortAlphabetically} from '@libs/OptionsListUtils';
-import {getMemberAccountIDsForWorkspace} from '@libs/PolicyUtils';
-import {getDisplayNameForParticipant, hasViolations as hasViolationsReportUtils, isMoneyRequestReport, isMoneyRequestReportPendingDeletion} from '@libs/ReportUtils';
+import {getMemberAccountIDsForWorkspace, isPendingDeletePolicy, isPolicyAdmin} from '@libs/PolicyUtils';
+import {
+    getDisplayNameForParticipant,
+    hasViolations as hasViolationsReportUtils,
+    isAllowedToApproveExpenseReport,
+    isMoneyRequestReport,
+    isMoneyRequestReportPendingDeletion,
+} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import React, {useState} from 'react';
@@ -45,20 +54,31 @@ type MemberListItem = ListItem & {
     accountID: number;
 };
 
-function ReportReassignApproverPage({report, policy}: ReportReassignApproverPageProps) {
+function ReportReassignApproverPage({report, policy, isLoadingReportData}: ReportReassignApproverPageProps) {
     const {translate, formatPhoneNumber, localeCompare} = useLocalize();
     const styles = useThemeStyles();
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar']);
     const [selectedMemberEmail, setSelectedMemberEmail] = useState<string>();
-    const [hasError, setHasError] = useState(false);
     const {isLoading, startWithLoading} = usePressLoading();
     const currentUserDetails = useCurrentUserPersonalDetails();
     const {isBetaEnabled} = usePermissions();
-    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
+    const reportTransactions = useReportTransactions(report?.reportID);
+    const [transactionViolations] = useReportTransactionViolations(reportTransactions);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
-    const hasViolations = hasViolationsReportUtils(report?.reportID, transactionViolations, currentUserDetails.accountID, currentUserDetails.login ?? '');
+    const hasViolations = hasViolationsReportUtils(report?.reportID, transactionViolations, currentUserDetails.accountID, currentUserDetails.login ?? '', undefined, reportTransactions);
+
+    const shouldShowNotFoundView =
+        (isEmptyObject(policy) && !isLoadingReportData) ||
+        !isPolicyAdmin(policy) ||
+        isPendingDeletePolicy(policy) ||
+        !isMoneyRequestReport(report) ||
+        isMoneyRequestReportPendingDeletion(report);
+
+    if (shouldShowNotFoundView) {
+        return <NotFoundPage />;
+    }
 
     const employeeList = policy?.employeeList;
     const members = (() => {
@@ -76,8 +96,13 @@ function ReportReassignApproverPage({report, policy}: ReportReassignApproverPage
 
                 const accountID = policyMemberEmailsToAccountIDs[email];
 
-                // Filter out members pending deletion and members we cannot map to an account
-                if (!accountID || employee.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+                // Filter out the current approver, members pending deletion, members who cannot approve the report, and members we cannot map to an account
+                if (
+                    !accountID ||
+                    report.managerID === accountID ||
+                    employee.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ||
+                    !isAllowedToApproveExpenseReport(report, accountID, policy)
+                ) {
                     return null;
                 }
 
@@ -99,10 +124,6 @@ function ReportReassignApproverPage({report, policy}: ReportReassignApproverPage
         return sortAlphabetically(memberOptions, 'text', localeCompare);
     })();
 
-    if (!isMoneyRequestReport(report) || isMoneyRequestReportPendingDeletion(report)) {
-        return <NotFoundPage />;
-    }
-
     const listHeader = (
         <View style={[styles.ph5, styles.mb5]}>
             <Text style={styles.textSupporting}>{translate('iou.changeApprover.actions.reassignApproverPageHeader')}</Text>
@@ -112,7 +133,6 @@ function ReportReassignApproverPage({report, policy}: ReportReassignApproverPage
     const save = () => {
         const newApproverAccountID = members.find((member) => member.login === selectedMemberEmail)?.accountID;
         if (!selectedMemberEmail || !newApproverAccountID) {
-            setHasError(true);
             return;
         }
         startWithLoading(() => {
@@ -136,11 +156,10 @@ function ReportReassignApproverPage({report, policy}: ReportReassignApproverPage
 
     const footerContent = (
         <FormAlertWithSubmitButton
+            isDisabled={!selectedMemberEmail}
             buttonText={translate('common.save')}
             onSubmit={save}
             isLoading={isLoading}
-            isAlertVisible={hasError}
-            message={translate('common.error.pleaseSelectOne')}
             shouldShowLoadingImmediatelyOnPress={false}
             containerStyles={[styles.flexReset, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto]}
             enabledWhenOffline
@@ -166,7 +185,6 @@ function ReportReassignApproverPage({report, policy}: ReportReassignApproverPage
                 customListHeader={listHeader}
                 onSelectRow={(option) => {
                     setSelectedMemberEmail(option.keyForList);
-                    setHasError(false);
                 }}
                 initiallyFocusedItemKey={selectedMemberEmail}
                 footerContent={footerContent}
@@ -179,3 +197,5 @@ function ReportReassignApproverPage({report, policy}: ReportReassignApproverPage
 }
 
 export default withReportOrNotFound()(ReportReassignApproverPage);
+
+export {ReportReassignApproverPage};

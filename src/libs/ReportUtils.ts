@@ -9158,13 +9158,9 @@ function buildOptimisticChangeApproverReportAction(
     const newApproverName = getDisplayNameForParticipant({accountID: managerID, formatPhoneNumber});
     let text = `changed the approver to ${newApproverName}`;
     let html = `changed the approver to <mention-user accountID="${managerID}"/>`;
-    if (isReassignment) {
-        text = `changed the approver to ${newApproverName}`;
-        html = `changed the approver to <mention-user accountID="${managerID}"/>`;
-        if (previousApproverID) {
-            text += `, skipped ${getDisplayNameForParticipant({accountID: previousApproverID, formatPhoneNumber})}`;
-            html += `, skipped <mention-user accountID="${previousApproverID}"/>`;
-        }
+    if (isReassignment && previousApproverID) {
+        text += `, skipped ${getDisplayNameForParticipant({accountID: previousApproverID, formatPhoneNumber})}`;
+        html += `, skipped <mention-user accountID="${previousApproverID}"/>`;
     }
     return {
         actionName: managerID === actorAccountID ? CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL : CONST.REPORT.ACTIONS.TYPE.REROUTE,

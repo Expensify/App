@@ -16,7 +16,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {addReportApprover} from '@libs/actions/IOU/ReportWorkflow';
 import Navigation from '@libs/Navigation/Navigation';
-import {getMemberAccountIDsForWorkspace} from '@libs/PolicyUtils';
+import {getMemberAccountIDsForWorkspace, isPendingDeletePolicy, isPolicyAdmin} from '@libs/PolicyUtils';
 import {getDisplayNameForParticipant, hasViolations as hasViolationsReportUtils, isAllowedToApproveExpenseReport} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
@@ -27,7 +27,11 @@ import lodashIntersection from 'lodash/intersection';
 import lodashPick from 'lodash/pick';
 import React, {useEffect, useState} from 'react';
 
-function SearchAddApproverPage() {
+type SearchApproverPageProps = {
+    isReassignment?: boolean;
+};
+
+function SearchApproverPage({isReassignment = false}: SearchApproverPageProps) {
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar']);
@@ -58,7 +62,7 @@ function SearchAddApproverPage() {
         const firstWorkspaceEmployees = employeeLists.at(0);
         const intersectedEmployees = firstWorkspaceEmployees ? lodashPick(firstWorkspaceEmployees, lodashIntersection(...employeeLists.map(Object.keys))) : {};
         const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(intersectedEmployees, true, false);
-        // We get the intersection here as we only want to show members who belong to all workspaces when adding an additional approver
+        // We get the intersection here because the selected approver must belong to every workspace
         return Object.values(intersectedEmployees)
             .map((employee): SelectionListApprover | null => {
                 const isAdmin = employee?.role === CONST.REPORT.ROLE.ADMIN;
@@ -96,6 +100,9 @@ function SearchAddApproverPage() {
                     }
 
                     if (report.managerID === accountID) {
+                        if (isReassignment) {
+                            return false;
+                        }
                         return true;
                     }
 
@@ -151,6 +158,7 @@ function SearchAddApproverPage() {
                     isASAPSubmitBetaEnabled,
                     isTrackIntentUser,
                     formatPhoneNumber,
+                    isReassignment,
                 });
             }
 
@@ -186,24 +194,34 @@ function SearchAddApproverPage() {
         });
     }, [selectedReports.length]);
 
+    const canReassignAllReports = selectedReports.every((selectedReport) => {
+        const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${selectedReport.policyID}`];
+        return !!policy && isPolicyAdmin(policy) && !isPendingDeletePolicy(policy);
+    });
+
     if (isLoading) {
         return <FullScreenLoadingIndicator />;
     }
 
+    let subtitleKey: 'iou.changeApprover.actions.reassignApproverPageHeader' | 'iou.changeApprover.addApprover.subtitle' | 'iou.changeApprover.addApprover.bulkSubtitle';
+    if (isReassignment) {
+        subtitleKey = 'iou.changeApprover.actions.reassignApproverPageHeader';
+    } else if (selectedReports.length === 1) {
+        subtitleKey = 'iou.changeApprover.addApprover.subtitle';
+    } else {
+        subtitleKey = 'iou.changeApprover.addApprover.bulkSubtitle';
+    }
+
     return (
         <ApproverSelectionList
-            testID="SearchAddApproverPage"
-            headerTitle={translate('iou.changeApprover.actions.addApprover')}
+            testID={isReassignment ? 'SearchReassignApproverPage' : 'SearchAddApproverPage'}
+            headerTitle={translate(isReassignment ? 'iou.changeApprover.actions.reassignApprover' : 'iou.changeApprover.actions.addApprover')}
             onBackButtonPress={Navigation.goBack}
-            subtitle={
-                <Text style={[styles.ph5, styles.pb3]}>
-                    {translate(selectedReports.length === 1 ? 'iou.changeApprover.addApprover.subtitle' : 'iou.changeApprover.addApprover.bulkSubtitle')}
-                </Text>
-            }
+            subtitle={<Text style={[styles.ph5, styles.pb3]}>{translate(subtitleKey)}</Text>}
             isLoadingReportData={false}
             policy={allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${selectedReports.at(0)?.policyID}`]}
             shouldShowNotFoundViewLink={false}
-            shouldShowNotFoundView={false}
+            shouldShowNotFoundView={isReassignment && !canReassignAllReports}
             allApprovers={allApprovers}
             listEmptyContentSubtitle={translate(selectedReports.length === 1 ? 'workflowsPage.emptyContent.approverSubtitle' : 'workflowsPage.emptyContent.bulkApproverSubtitle')}
             allowMultipleSelection={false}
@@ -213,4 +231,10 @@ function SearchAddApproverPage() {
     );
 }
 
+function SearchAddApproverPage() {
+    return <SearchApproverPage />;
+}
+
 export default SearchAddApproverPage;
+
+export {SearchApproverPage};
