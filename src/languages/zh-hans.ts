@@ -419,7 +419,10 @@ const translations: TranslationDeepObject<typeof en> = {
             one: '下载报表',
             other: '下载报表',
         }),
-        downloadReceipts: '下载收据',
+        downloadReceipt: () => ({
+            one: '下载收据',
+            other: '下载收据',
+        }),
         downloadAsCSV: '下载为 CSV',
         submitViaPDF: '通过 PDF 提交',
         print: '打印',

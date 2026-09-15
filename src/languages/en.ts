@@ -467,7 +467,11 @@ const translations = {
             one: 'Download report',
             other: 'Download reports',
         }),
-        downloadReceipts: 'Download receipts',
+        // @context Button label for downloading the receipts of one or more expenses as a zip. The count is the number of receipts.
+        downloadReceipt: () => ({
+            one: 'Download receipt',
+            other: 'Download receipts',
+        }),
         downloadAsCSV: 'Download as CSV',
         submitViaPDF: 'Submit via PDF',
         print: 'Print',

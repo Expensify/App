@@ -420,7 +420,10 @@ const translations: TranslationDeepObject<typeof en> = {
             one: 'Bericht herunterladen',
             other: 'Berichte herunterladen',
         }),
-        downloadReceipts: 'Belege herunterladen',
+        downloadReceipt: () => ({
+            one: 'Beleg herunterladen',
+            other: 'Belege herunterladen',
+        }),
         downloadAsCSV: 'Als CSV herunterladen',
         submitViaPDF: 'Per PDF einreichen',
         print: 'Drucken',

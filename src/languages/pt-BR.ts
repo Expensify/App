@@ -419,7 +419,10 @@ const translations: TranslationDeepObject<typeof en> = {
             one: 'Baixar relatório',
             other: 'Baixar relatórios',
         }),
-        downloadReceipts: 'Baixar recibos',
+        downloadReceipt: () => ({
+            one: 'Baixar recibo',
+            other: 'Baixar recibos',
+        }),
         downloadAsCSV: 'Baixar como CSV',
         submitViaPDF: 'Enviar via PDF',
         print: 'Imprimir',

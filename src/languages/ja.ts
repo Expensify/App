@@ -419,7 +419,10 @@ const translations: TranslationDeepObject<typeof en> = {
             one: 'レポートをダウンロード',
             other: 'レポートをダウンロード',
         }),
-        downloadReceipts: '領収書をダウンロード',
+        downloadReceipt: () => ({
+            one: '領収書をダウンロード',
+            other: '領収書をダウンロード',
+        }),
         downloadAsCSV: 'CSVとしてダウンロード',
         submitViaPDF: 'PDFで提出',
         print: '印刷',
