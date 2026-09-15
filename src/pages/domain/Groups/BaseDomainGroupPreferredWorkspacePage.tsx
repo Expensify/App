@@ -4,6 +4,7 @@
  * gates access behind DomainNotFoundPageWrapper.
  */
 import type {FullPageNotFoundViewProps} from '@components/BlockingViews/FullPageNotFoundView';
+import CollapsibleHeaderOnKeyboard from '@components/CollapsibleHeaderOnKeyboard';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
@@ -11,6 +12,8 @@ import UserListItem from '@components/SelectionList/ListItem/UserListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 
+import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
+import useKeyboardState from '@hooks/useKeyboardState';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useSearchResults from '@hooks/useSearchResults';
@@ -75,6 +78,10 @@ function BaseDomainGroupPreferredWorkspacePage({
     const [draftPolicyID, setDraftPolicyID] = useState<string>();
     const checkedPolicyID = draftPolicyID ?? selectedPolicyID;
 
+    const isInLandscapeMode = useIsInLandscapeMode();
+    const {isKeyboardActive} = useKeyboardState();
+    const shouldFooterBeInsideList = isInLandscapeMode && isKeyboardActive;
+
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: createAdminPoliciesSelector(selectedPolicyID)});
 
     const workspaceOptions: WorkspaceListItem[] = [];
@@ -126,11 +133,13 @@ function BaseDomainGroupPreferredWorkspacePage({
                 testID={testID}
                 enableEdgeToEdgeBottomSafeAreaPadding
             >
-                <HeaderWithBackButton
-                    title={translate('domain.groups.preferredWorkspace')}
-                    onBackButtonPress={onBackButtonPress}
-                />
-                <Text style={[styles.ph5, styles.mb3]}>{translate('domain.groups.preferredWorkspaceSelectDescription')}</Text>
+                <CollapsibleHeaderOnKeyboard alwaysCollapseHeaderOnKeyboard>
+                    <HeaderWithBackButton
+                        title={translate('domain.groups.preferredWorkspace')}
+                        onBackButtonPress={onBackButtonPress}
+                    />
+                    <Text style={[styles.ph5, styles.mb3]}>{translate('domain.groups.preferredWorkspaceSelectDescription')}</Text>
+                </CollapsibleHeaderOnKeyboard>
                 <SelectionList<WorkspaceListItem>
                     data={filteredWorkspaceOptions}
                     ListItem={UserListItem}
@@ -145,6 +154,7 @@ function BaseDomainGroupPreferredWorkspacePage({
                     initiallyFocusedItemKey={selectedPolicyID}
                     shouldUpdateFocusedIndex
                     addBottomSafeAreaPadding
+                    shouldFooterBeInsideList={shouldFooterBeInsideList}
                 />
             </ScreenWrapper>
         </DomainNotFoundPageWrapper>
