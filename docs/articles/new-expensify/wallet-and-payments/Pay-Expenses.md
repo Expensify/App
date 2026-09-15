@@ -102,6 +102,16 @@ Only bank accounts that match the report's currency appear as payment options. I
 
 ---
 
+## Why do I see a Pay report prompt asking me to enable global reimbursements?
+
+The **Pay report** prompt appears when your workspace's USD business bank account is not enabled for global reimbursements and the submitter's deposit account is in a currency other than USD. Expensify cannot send the payment until one of those changes.
+
+Select **Enable Global Reimbursements** to start setting up global reimbursements on the USD business bank account, or select **Cancel** to close the prompt and ask the submitter to add a USD deposit account instead. Selecting **Cancel** leaves the report in the **Approved** state.
+
+[Learn how to enable global reimbursements on a USD business bank account](/articles/new-expensify/wallet-and-payments/Global-Reimbursement-United-States).
+
+---
+
 ## How do I pay a report with only non-reimbursable expenses?
 
 Reports containing only non-reimbursable expenses (e.g., company card charges) cannot be paid via ACH through Expensify. Instead, select **Mark as paid** from the **Pay** button dropdown to close the report.
