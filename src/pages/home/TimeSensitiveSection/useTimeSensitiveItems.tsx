@@ -3,11 +3,13 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useIsAnonymousUser from '@hooks/useIsAnonymousUser';
 import useOnyx from '@hooks/useOnyx';
 
+import {getExpensifyCardPendingWalletApproval} from '@libs/actions/Card';
 import {expensifyLoginsSelector, isCurrentUserValidated} from '@libs/UserUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
+import {useFocusEffect} from '@react-navigation/native';
 import {isUserValidatedSelector} from '@selectors/Account';
 import {createTimeSensitiveAdminPoliciesSelector} from '@selectors/Policy';
 import {emailSelector} from '@selectors/Session';
@@ -27,6 +29,7 @@ import AddHomeAddress from './items/AddHomeAddress';
 import AddPaymentCard from './items/AddPaymentCard';
 import AddShippingAddress from './items/AddShippingAddress';
 import AddVirtualCardPersonalDetails from './items/AddVirtualCardPersonalDetails';
+import ConfirmDigitalWalletAddition from './items/ConfirmDigitalWalletAddition';
 import EnterSignerInfo from './items/EnterSignerInfo';
 import FixCompanyCardConnection from './items/FixCompanyCardConnection';
 import FixFailedBilling from './items/FixFailedBilling';
@@ -57,11 +60,22 @@ function useTimeSensitiveItems(): React.ReactNode[] {
         shouldShowActivateCard,
         shouldShowReviewCardFraud,
         shouldShowAddVirtualCardPersonalDetails,
+        shouldShowConfirmDigitalWalletAddition,
+        hasActiveExpensifyCard,
         cardsNeedingShippingAddress,
         cardsNeedingActivation,
         cardsWithFraud,
         virtualCardsNeedingPersonalDetails,
+        cardsPendingDigitalWalletApproval,
     } = useTimeSensitiveCards();
+
+    // Only cardholders can have a pending wallet addition. Refresh on Home focus so new ones still show up.
+    useFocusEffect(() => {
+        if (!hasActiveExpensifyCard) {
+            return;
+        }
+        getExpensifyCardPendingWalletApproval();
+    });
     const {shouldShowFixFailedBilling} = useTimeSensitiveBilling();
     const {shouldShowAddHomeAddress} = useTimeSensitiveHomeAddress();
 
@@ -113,6 +127,7 @@ function useTimeSensitiveItems(): React.ReactNode[] {
     // 12. Expensify card shipping
     // 13. Expensify card activation
     // 14. Virtual Expensify card needs personal details
+    // 15. Digital wallet addition needs confirming
     const items: React.ReactNode[] = [];
 
     // Priority 1: Failed billing for existing customers
@@ -238,6 +253,17 @@ function useTimeSensitiveItems(): React.ReactNode[] {
             items.push(
                 <AddVirtualCardPersonalDetails
                     key={`virtual-card-details-${card.cardID}`}
+                    card={card}
+                />,
+            );
+        }
+    }
+    // Priority 15: Confirm a digital wallet addition
+    if (shouldShowConfirmDigitalWalletAddition) {
+        for (const card of cardsPendingDigitalWalletApproval) {
+            items.push(
+                <ConfirmDigitalWalletAddition
+                    key={`confirm-digital-wallet-${card.cardID}`}
                     card={card}
                 />,
             );
