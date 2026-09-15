@@ -1,4 +1,5 @@
 import ActivityIndicator from '@components/ActivityIndicator';
+import CollapsibleHeaderOnKeyboard from '@components/CollapsibleHeaderOnKeyboard';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {useSession} from '@components/OnyxListItemProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -8,6 +9,8 @@ import UserListItem from '@components/SelectionList/ListItem/UserListItem';
 
 import useDebouncedState from '@hooks/useDebouncedState';
 import {useIsAppLoadPending} from '@hooks/useInFlightRequests';
+import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
+import useKeyboardState from '@hooks/useKeyboardState';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -47,6 +50,10 @@ function SetDefaultWorkspacePage({route}: SetDefaultWorkspacePageProps) {
     const session = useSession();
 
     const [draftPolicyID, setDraftPolicyID] = useState<string>();
+
+    const isInLandscapeMode = useIsInLandscapeMode();
+    const {isKeyboardActive} = useKeyboardState();
+    const shouldFooterBeInsideList = isInLandscapeMode && isKeyboardActive;
 
     const selectPolicy = (selectedPolicyID?: string) => {
         if (!selectedPolicyID) {
@@ -107,10 +114,12 @@ function SetDefaultWorkspacePage({route}: SetDefaultWorkspacePageProps) {
         >
             {({didScreenTransitionEnd}) => (
                 <>
-                    <HeaderWithBackButton
-                        title={translate('workspace.common.setAsDefault')}
-                        onBackButtonPress={Navigation.goBack}
-                    />
+                    <CollapsibleHeaderOnKeyboard alwaysCollapseHeaderOnKeyboard>
+                        <HeaderWithBackButton
+                            title={translate('workspace.common.setAsDefault')}
+                            onBackButtonPress={Navigation.goBack}
+                        />
+                    </CollapsibleHeaderOnKeyboard>
                     {shouldShowLoadingIndicator ? (
                         <View style={[styles.flex1, styles.fullScreenLoading]}>
                             <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
@@ -125,6 +134,7 @@ function SetDefaultWorkspacePage({route}: SetDefaultWorkspacePageProps) {
                             shouldShowLoadingPlaceholder={fetchStatus.status === 'loading' || !didScreenTransitionEnd}
                             disableMaintainingScrollPosition
                             addBottomSafeAreaPadding
+                            shouldFooterBeInsideList={shouldFooterBeInsideList}
                         />
                     )}
                 </>
