@@ -2,35 +2,26 @@ import {setMoneyRequestTaxAmount, setMoneyRequestTaxRateValues} from '@libs/acti
 
 import {useEffect} from 'react';
 
-type TaxControllerProps = {
-    transactionID: string | undefined;
-    policyID: string | undefined;
-    isReadOnly: boolean;
-    shouldShowTax: boolean;
-    isMovingTransactionFromTrackExpense: boolean;
-    defaultTaxCode: string;
-    defaultTaxValue: string | null;
-    shouldKeepCurrentTaxSelection: boolean;
-    taxAmountInSmallestCurrencyUnits: number;
-    transactionTaxAmount: number | undefined;
-};
+import {useConfirmationData} from './ConfirmationDataContext';
 
 /**
  * Side-effect-only component that syncs tax rate defaults
  * and tax amount when the transaction or policy changes.
+ *
+ * Mounted only by the variants whose expense type can show a tax field.
  */
-function TaxController({
-    transactionID,
-    policyID,
-    isReadOnly,
-    shouldShowTax,
-    isMovingTransactionFromTrackExpense,
-    defaultTaxCode,
-    defaultTaxValue,
-    shouldKeepCurrentTaxSelection,
-    taxAmountInSmallestCurrencyUnits,
-    transactionTaxAmount,
-}: TaxControllerProps) {
+function TaxController() {
+    const {
+        transactionID,
+        policyID,
+        isReadOnly,
+        shouldShowTax,
+        isMovingTransactionFromTrackExpense,
+        transaction,
+        tax: {defaultTaxCode, defaultTaxValue, shouldKeepCurrentTaxSelection, taxAmountInSmallestCurrencyUnits},
+    } = useConfirmationData();
+    const transactionTaxAmount = transaction?.taxAmount;
+
     useEffect(() => {
         if (!transactionID || isReadOnly || !shouldShowTax || isMovingTransactionFromTrackExpense) {
             return;

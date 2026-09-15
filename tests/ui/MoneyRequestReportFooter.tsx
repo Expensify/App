@@ -4,7 +4,7 @@ import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import type {MenuItemProps} from '@components/MenuItem';
 import ConfirmationFieldsProvider from '@components/MoneyRequestConfirmationFields/Provider';
-import MoneyRequestConfirmationListFooter from '@components/MoneyRequestConfirmationListFooter';
+import ManualFooter from '@components/MoneyRequestConfirmationListFooter/variants/ManualFooter';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 
@@ -135,7 +135,7 @@ const renderMoneyRequestConfirmationListFooter = async (transaction: Transaction
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
             <ScreenWrapper testID="MoneyRequestConfirmationListFooter">
                 <ConfirmationFieldsProvider {...providerProps}>
-                    <MoneyRequestConfirmationListFooter {...defaultProps} />
+                    <ManualFooter {...defaultProps} />
                 </ConfirmationFieldsProvider>
             </ScreenWrapper>
         </ComposeProviders>,

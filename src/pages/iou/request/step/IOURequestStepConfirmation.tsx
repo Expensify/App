@@ -1142,17 +1142,19 @@ function IOURequestStepConfirmationContent({
                                     showRemoveExpenseConfirmModal={() => {
                                         confirmRemoveCurrentTransaction();
                                     }}
-                                    receiptPath={receiptPath}
-                                    receiptFilename={receiptFilename}
+                                    receiptOptions={{
+                                        receiptPath,
+                                        receiptFilename,
+                                        shouldDisplayReceipt:
+                                            !isMovingTransactionFromTrackExpense && (!isDistanceRequest || isManualDistanceRequest || isOdometerDistanceRequest) && !isPerDiemRequest,
+                                        isLoadingReceipt: isStitchingReceipt || (isOdometerDistanceRequest && !hasVerifiedBlobs),
+                                        isReceiptEditable: true,
+                                    }}
                                     iouType={iouType as Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND>}
                                     reportID={reportID}
-                                    shouldDisplayReceipt={
-                                        !isMovingTransactionFromTrackExpense && (!isDistanceRequest || isManualDistanceRequest || isOdometerDistanceRequest) && !isPerDiemRequest
-                                    }
                                     isPolicyExpenseChat={isPolicyExpenseChat}
                                     policyID={policyID}
                                     isOdometerDistanceRequest={isOdometerDistanceRequest}
-                                    isLoadingReceipt={isStitchingReceipt || (isOdometerDistanceRequest && !hasVerifiedBlobs)}
                                     receiptStitchError={stitchError}
                                     isPerDiemRequest={isPerDiemRequest}
                                     shouldShowSmartScanFields={shouldShowSmartScanFields}
@@ -1164,7 +1166,6 @@ function IOURequestStepConfirmationContent({
                                     isConfirming={isConfirming}
                                     onToggleReimbursable={setReimbursable}
                                     expensesNumber={transactions.length}
-                                    isReceiptEditable
                                     isTimeRequest={isTimeRequest}
                                     shouldHideToSection={shouldHideToSection}
                                 />

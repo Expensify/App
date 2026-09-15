@@ -31,16 +31,16 @@ type ReceiptSectionProps = {
     /** Whether the receipt can be replaced */
     isReceiptEditable?: boolean;
 
-    shouldDisplayReceipt: boolean;
+    shouldDisplayReceipt?: boolean;
 
     /** Whether the receipt is currently being stitched */
     isLoadingReceipt?: boolean;
 
     /** Path of the receipt asset (URL or local) */
-    receiptPath: string | number;
+    receiptPath?: string | number;
 
     /** Filename of the receipt asset */
-    receiptFilename: string;
+    receiptFilename?: string;
 
     /** Whether optional fields are expanded (drives compact-mode dimensions) */
     showMoreFields?: boolean;
@@ -54,9 +54,9 @@ type ReceiptSectionProps = {
 
 function ReceiptSection({
     policy,
-    shouldDisplayReceipt,
-    receiptPath,
-    receiptFilename,
+    shouldDisplayReceipt = false,
+    receiptPath = '',
+    receiptFilename = '',
     onPDFLoadError,
     onPDFPassword,
     showMoreFields = false,
