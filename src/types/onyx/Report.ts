@@ -132,8 +132,8 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** The time when user read the last message */
         lastReadTime?: string;
 
-        /** reportActionID the user explicitly marked as unread. Stable across the optimistic→confirmed
-         *  transition, unlike lastReadTime, so the "New" marker can anchor on a self-authored action. */
+        /** reportActionID the user explicitly marked as unread. Unlike lastReadTime it is stable across the
+         *  optimistic→confirmed transition, so the "New" marker can anchor on a self-authored action. */
         manuallyMarkedUnreadReportActionID?: string | null;
 
         /** The sequence number of the last report visit */

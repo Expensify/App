@@ -29,10 +29,9 @@ jest.mock('@hooks/useIsAnonymousUser', () => ({
     default: () => mockIsAnonymousUser,
 }));
 
-// The hook subscribes to `${ONYXKEYS.COLLECTION.REPORT}${reportID}` twice, each with its own selector
-// (one for `lastReadTime`, one for `manuallyMarkedUnreadReportActionID`). The mock applies the passed
-// selector to a fake report so each call returns the value it actually reads. The implementation is set
-// in beforeEach so it can use ONYXKEYS freely (a jest.mock factory cannot reference out-of-scope variables).
+// The hook subscribes to `${ONYXKEYS.COLLECTION.REPORT}${reportID}` twice with different selectors, so the mock
+// applies the passed selector to a fake report. The implementation is set in beforeEach so it can use ONYXKEYS
+// freely (a jest.mock factory cannot reference out-of-scope variables).
 type FakeReport = Pick<OnyxTypes.Report, 'lastReadTime' | 'manuallyMarkedUnreadReportActionID'>;
 type UseOnyxOptions = {selector?: (value: FakeReport | undefined) => unknown};
 const mockUseOnyx = jest.fn<[unknown], [string, UseOnyxOptions?]>();

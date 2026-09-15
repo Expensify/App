@@ -5446,7 +5446,7 @@ describe('actions/Report', () => {
     });
 
     describe('openReport with hasOnceLoadedReportActions', () => {
-        /** Puts a manual unread mark on the report, the way markCommentAsUnread does, so we can watch openReport clear it. */
+        /** Puts a manual unread mark on the report, the way markCommentAsUnread does. */
         async function givenAManualUnreadMark(reportID: string) {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {reportID, manuallyMarkedUnreadReportActionID: 'marked-action-id'});
             await waitForBatchedUpdates();

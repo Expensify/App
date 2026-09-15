@@ -380,10 +380,9 @@ type OpenReportActionParams = {
     hasReportActions: boolean | undefined;
 
     /**
-     * Whether this report's actions have already been loaded at least once this session, read from the RAM-only
-     * report loading state. Only the report screen knows this and only it needs to pass it: a falsy value means
-     * a page refresh / cold start, which is when a manual unread marker is cleared. Callers that open a report
-     * for any other reason omit it, and the marker is left alone.
+     * Whether this report's actions loaded at least once this session (RAM-only, so falsy means a page refresh /
+     * cold start — when a manual unread marker is cleared). Only the report screen passes it; other callers omit
+     * it to leave the marker alone.
      */
     hasOnceLoadedReportActions?: boolean;
 
@@ -533,17 +532,12 @@ Onyx.connect({
     },
 });
 
-// RAM-only set of reportIDs the user has navigated away from this session. It is populated when the report
-// screen blurs/unmounts (see `flagReportNavigatedAway`) and consumed by `openReport` to clear a manual unread
-// marker on the *return* trip only. A blur is the one signal that uniquely identifies "navigated away and back
-// to the chat": it does not fire on the multiple `openReport` calls of a single visit, and — being RAM-only —
-// it is empty after a page refresh, so the marker survives a refresh and is only cleared by a real navigation.
+// RAM-only set of reportIDs the user navigated away from this session, so `openReport` can clear a manual
+// unread marker on the return trip only. A blur uniquely identifies that trip: it doesn't fire on the repeated
+// openReport calls of a single visit, and being RAM-only it is empty after a refresh.
 const reportsNavigatedAwayFrom = new Set<string>();
 
-/**
- * Records that the user has navigated away from the given report. Called from the report screen when it blurs
- * or unmounts. The next `openReport` for this report will clear its manual unread marker and drop it from the set.
- */
+/** Records that the user navigated away from the report, so the next `openReport` clears its manual unread marker. */
 function flagReportNavigatedAway(reportID: string | undefined) {
     if (!reportID) {
         return;
@@ -1702,8 +1696,7 @@ function openReport(params: OpenReportActionParams) {
         isSelfTourViewed,
         hasCompletedGuidedSetupFlow,
         hasReportActions,
-        // Defaults to true so that only the report screen, which actually passes this, can clear a manual unread
-        // marker. Every other caller opens a report for an unrelated reason and must leave the marker untouched.
+        // Defaults to true so only the report screen, the one caller that passes it, can clear a manual unread marker.
         hasOnceLoadedReportActions = true,
         shouldMarkAsRead = true,
         conciergeChat,
@@ -1716,28 +1709,18 @@ function openReport(params: OpenReportActionParams) {
     const participantAccountIDList = participants.map((p) => p.accountID).filter((id): id is number => id !== undefined);
     const existingReportName = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]?.reportName;
     const isCreatingNewReport = !isEmptyObject(newReportObject);
-    // Whether the user navigated away from this report and is now coming back to it. The flag is set only when
-    // the report screen blurs/unmounts (see `flagReportNavigatedAway`), so it is true on a genuine return trip
-    // but false on the first open, on the repeated openReport calls of a single visit, and after a page refresh
-    // (the set is RAM-only). We consume it here to clear a manual unread marker on that return trip.
+    // True only on a genuine return trip: `flagReportNavigatedAway` sets it on blur/unmount, so it is false on the
+    // first open, on the repeated openReport calls of a single visit, and after a refresh (the set is RAM-only).
     const didNavigateBackToReport = reportsNavigatedAwayFrom.has(reportID);
     reportsNavigatedAwayFrom.delete(reportID);
-    // Whether this is the first load of the report this session. The report screen passes its RAM-only
-    // `hasOnceLoadedReportActions`, so a page refresh / cold start resets it to falsy — that's how we detect a
-    // refresh here. A manual unread marker can only be non-null on a first load if it was persisted from before
-    // the refresh, so clearing it here clears the marker on a page refresh while leaving genuine first opens
-    // (marker already null) untouched.
+    // A refresh resets the report screen's RAM-only `hasOnceLoadedReportActions`, which is how we detect one here.
+    // A genuine first open has no marker to clear, so this only affects a marker persisted from before the refresh.
     const isFirstLoadAfterRefresh = !hasOnceLoadedReportActions;
     const optimisticReport: Partial<Pick<Report, 'reportName' | 'manuallyMarkedUnreadReportActionID'>> = hasReportActions || !existingReportName ? {} : {reportName: existingReportName};
 
-    // An explicit mark-as-unread keeps its "New" marker anchored while the user stays in the report
-    // (readNewestAction no longer clears it, and the repeated openReport calls of a single visit don't
-    // either), so the user sees the marker they created. It is reconciled away in two cases: when the user
-    // navigates away and comes back (`didNavigateBackToReport`), and on a page refresh (`isFirstLoadAfterRefresh`).
-    // This is a purely client-side decision, so it lives in optimisticData: it must apply immediately and
-    // offline, and must not be dropped if openReport never succeeds (the navigate-away flag is already consumed
-    // above). We deliberately do NOT restore it in failureData — resurrecting a marker the user has already
-    // moved past would be wrong.
+    // A manual mark-as-unread keeps its marker anchored while the user stays in the report, and is cleared only on
+    // a return trip or a refresh. This is a client-side decision, so it goes in optimisticData to apply immediately
+    // and offline. It is deliberately not restored in failureData — that would resurrect a marker already moved past.
     if (didNavigateBackToReport || isFirstLoadAfterRefresh) {
         optimisticReport.manuallyMarkedUnreadReportActionID = null;
     }
@@ -3215,13 +3198,14 @@ function readNewestAction(reportID: string | undefined, isReportActionsLoaded: b
 
     const lastReadTime = getDBTimeWithSkew();
 
+    // Deliberately leaves `manuallyMarkedUnreadReportActionID` alone so an auto-read doesn't wipe a marker the
+    // user created. `openReport` clears it on a return trip or a refresh.
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: {
                 lastReadTime,
-                // Auto-reads keep a manual unread mark. The explicit "Mark as read" clears it here, openReport clears it on return or refresh.
             },
         },
     ];
@@ -3310,11 +3294,10 @@ function markCommentAsUnread(reportID: string | undefined, reportActions: OnyxEn
         },
     ];
 
-    // Do NOT reassert `manuallyMarkedUnreadReportActionID` in successData. `openReport` clears it optimistically
-    // when the user navigates away and comes back (or refreshes); if this request is still queued at that point
-    // (e.g. the mark happened offline), reasserting the id when it completes on reconnect would resurrect a
-    // marker the user has already moved past. The optimistic value set above persists on its own — the server
-    // response is a MERGE that never carries this client-only field — so there is nothing to reassert here.
+    // Deliberately omits `manuallyMarkedUnreadReportActionID`. If this request is still queued when `openReport`
+    // clears the marker (e.g. the mark happened offline), reasserting the id on reconnect would resurrect a marker
+    // the user has moved past. The optimistic value above persists on its own, since the server MERGE never
+    // carries this client-only field.
     const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
