@@ -37,6 +37,9 @@ type ProviderProps = {
     /** Whether we're editing an existing split expense */
     isEditingSplitBill?: boolean;
 
+    /** Whether this surface offers manual entry of the amount / merchant / date. False for splits, test receipts and moved tracked expenses. */
+    canEnterScanFieldsManually?: boolean;
+
     /** Whether the surface is in a policy-expense chat */
     isPolicyExpenseChat?: boolean;
 
@@ -93,6 +96,7 @@ function Provider({
     isReadOnly = false,
     didConfirm = false,
     isEditingSplitBill = false,
+    canEnterScanFieldsManually = false,
     isPolicyExpenseChat = false,
     isScanRequest = false,
     isDistanceRequest = false,
@@ -119,6 +123,7 @@ function Provider({
         isReadOnly,
         didConfirm,
         isEditingSplitBill,
+        canEnterScanFieldsManually,
         isPolicyExpenseChat,
         isScanRequest,
         isDistanceRequest,

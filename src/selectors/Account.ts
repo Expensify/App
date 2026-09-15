@@ -12,6 +12,8 @@ const primaryLoginSelector = (account: OnyxEntry<Account>) => account?.primaryLo
 
 const delegatesSelector = (account: OnyxEntry<Account>) => account?.delegatedAccess?.delegates;
 
+const canSwitchAccountsSelector = (account: OnyxEntry<Account>) => (account?.delegatedAccess?.delegators?.length ?? 0) > 0 || !!account?.delegatedAccess?.delegate;
+
 const requiresTwoFactorAuthSelector = (data: OnyxEntry<Account>) => data?.requiresTwoFactorAuth;
 
 const accountGuideDetailsSelector = (account: OnyxEntry<Account>) => account?.guideDetails;
@@ -26,6 +28,7 @@ const canDowngradeSelector = (account: OnyxEntry<Account>) => !!account?.canDown
 
 export {
     isActingAsDelegateSelector,
+    canSwitchAccountsSelector,
     delegateEmailSelector,
     isUserValidatedSelector,
     primaryLoginSelector,

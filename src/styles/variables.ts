@@ -30,6 +30,8 @@ const avatarSizes = {
 
 export default {
     bottomTabHeight: 72,
+    // styles.p3 (12) on each side of the DebugTabView row plus the View button (componentSizeNormal).
+    debugTabViewHeight: 64,
     contentHeaderHeight: getValueUsingPixelRatio(72, 100),
     contentHeaderDesktopHeight: getValueUsingPixelRatio(80, 100),
     componentSizeSmall: getValueUsingPixelRatio(28, 32),
@@ -133,6 +135,7 @@ export default {
     tableRowHeight: 56,
     tableRowHeightCompact: 60,
     tableRowPaddingVertical: 8,
+    tableRowPaddingVerticalCompact: 16,
     tableRowPaddingHorizontal: 12,
     htmlTableRowMinHeight: 40,
     htmlTableHeaderRowMinHeight: 30,
@@ -151,7 +154,7 @@ export default {
     tableCardStatusColumnWidth: 128,
     workspaceTagsTableCountColumnWidth: 100,
     domainTableActionColumnWidth: 64,
-    domainAdminsTableActionColumnWidth: 140,
+    domainAdminsTableActionColumnWidth: 220,
     agentsTableActionColumnWidth: 260,
     workspaceTableActionColumnWidth: 64,
     workspaceMembersRoleColumnWidth: 148,
@@ -243,7 +246,10 @@ export default {
     popoverWidth: 375,
     compactPopoverMenuWidth: 300,
     compactPopoverMenuVerticalMargin: 100,
-    searchRouterPopoverWidth: 512,
+    searchRouterPopoverWidth: 600,
+    searchRouterPopoverMaxHeight: 520,
+    searchRouterPopoverTopOffset: 100,
+    searchRouterPopoverMinTopOffset: 16,
     bankAccountActionPopoverRightSpacing: 32,
     bankAccountActionPopoverTopSpacing: 14,
     addPaymentPopoverRightSpacing: 23,
@@ -528,4 +534,19 @@ export default {
     permissionViewPaddingVertical: 108,
     permissionViewPaddingHorizontal: 61,
     permissionViewPaddingVerticalLandscape: 16,
+
+    // Search table chrome, shared by the dynamic column sizing and the horizontal scroller.
+    // The gap a row renders between two adjacent columns, matching its `gap3` styling.
+    searchTableColumnGap: 12,
+    // The margin and padding each row sits inside on both sides, from `mh5` on its wrapper and `ph3` on the row.
+    searchTableRowChromeWidth: (20 + 12) * 2,
+    searchTableRowCheckboxWidth: 24,
+    // What the status badge spends around its label, from `condensedBadge`'s horizontal padding and `defaultBadge`'s border.
+    statusBadgeChromeWidth: 6 * 2 + 1 * 2,
+    // What an editable cell spends around its value, from `editableCell`'s padding and the border it reserves for its focus ring.
+    editableCellChromeWidth: 4 * 2 + 1 * 2,
+    // What the edit button covers at the trailing edge of an editable cell, from `editableCellEditButton` and the inset it sits at.
+    editableCellEditButtonWidth: 28 + 4,
+    // How short a value has to be before that edit button is worth reserving room for.
+    narrowEditableContentWidth: 60,
 } as const;
