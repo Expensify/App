@@ -18,8 +18,8 @@ import {canUseTouchScreen as canUseTouchScreenLib} from '@libs/DeviceCapabilitie
 
 import CONST from '@src/CONST';
 
-import type {MutedChangeEventPayload, PlayingChangeEventPayload, StatusChangeEventPayload, TimeUpdateEventPayload, VideoPlayer} from 'expo-video';
-import type {RefObject} from 'react';
+import type {} from '@fullstory/react-native';
+import type {MutedChangeEventPayload, PlayingChangeEventPayload, StatusChangeEventPayload, VideoPlayer} from 'expo-video';
 
 import {useEvent, useEventListener} from 'expo';
 import {useVideoPlayer, VideoView} from 'expo-video';
@@ -99,10 +99,10 @@ function BaseVideoPlayer(props: BaseVideoPlayerProps) {
     /* eslint-enable no-param-reassign */
 
     // `useEvent` — direct `.playing` read wouldn't re-render when play state changes.
-    const {isPlaying} = useEvent(videoPlayerRef.current, 'playingChange', {isPlaying: videoPlayerRef.current.playing, oldIsPlaying: false} as PlayingChangeEventPayload);
+    const {isPlaying} = useEvent(videoPlayerRef.current, 'playingChange', {isPlaying: videoPlayerRef.current.playing, oldIsPlaying: false});
 
-    const {currentTime} = useEvent(videoPlayerRef.current, 'timeUpdate', {currentTime: 0, bufferedPosition: 0} as TimeUpdateEventPayload);
-    const {status} = useEvent(videoPlayerRef.current, 'statusChange', {status: shouldUseSharedVideoElement ? playerStatus.current : 'loading'} as StatusChangeEventPayload);
+    const {currentTime} = useEvent(videoPlayerRef.current, 'timeUpdate', {currentTime: 0, bufferedPosition: 0, currentLiveTimestamp: null, currentOffsetFromLive: null});
+    const {status} = useEvent(videoPlayerRef.current, 'statusChange', {status: shouldUseSharedVideoElement ? playerStatus.current : 'loading'});
 
     const isLoading = useMemo(() => {
         return status === 'loading';
@@ -145,7 +145,7 @@ function BaseVideoPlayer(props: BaseVideoPlayerProps) {
 
     const videoViewRef = useRef<VideoView | null>(null);
     const videoPlayerElementParentRef = useRef<View | HTMLDivElement | null>(null);
-    const videoPlayerElementRef = useRef<View | HTMLDivElement | null>(null);
+    const videoPlayerElementRef = useRef<View | HTMLVideoElement | null>(null);
     const sharedVideoPlayerParentRef = useRef<View | HTMLDivElement | null>(null);
     const isReadyForDisplayRef = useRef(false);
     const savedCurrentTimeRef = useRef(0);
@@ -350,7 +350,7 @@ function BaseVideoPlayer(props: BaseVideoPlayerProps) {
             return true;
         }
 
-        if (videoViewRef.current?.nativeRef?.current instanceof HTMLVideoElement) {
+        if (typeof HTMLVideoElement !== 'undefined' && videoViewRef.current?.nativeRef?.current instanceof HTMLVideoElement) {
             return Reflect.get(videoViewRef.current.nativeRef.current, 'webkitDisplayingFullscreen') === true;
         }
         return false;
@@ -369,11 +369,11 @@ function BaseVideoPlayer(props: BaseVideoPlayerProps) {
         };
 
         document.addEventListener('fullscreenchange', syncFullScreenState);
-        document.addEventListener('webkitfullscreenchange', syncFullScreenState as EventListener);
+        document.addEventListener('webkitfullscreenchange', syncFullScreenState);
 
         return () => {
             document.removeEventListener('fullscreenchange', syncFullScreenState);
-            document.removeEventListener('webkitfullscreenchange', syncFullScreenState as EventListener);
+            document.removeEventListener('webkitfullscreenchange', syncFullScreenState);
         };
     }, [isActuallyFullScreen, setIsFullScreen]);
 
@@ -504,11 +504,11 @@ function BaseVideoPlayer(props: BaseVideoPlayerProps) {
             videoPlayerRef.current = currentVideoPlayerRef.current;
             videoViewRef.current = currentVideoViewRef.current;
         }
-        if (currentlyPlayingURL === url && newParentRef && 'appendChild' in newParentRef) {
+        if (currentlyPlayingURL === url && newParentRef && 'appendChild' in newParentRef && typeof HTMLVideoElement !== 'undefined' && sharedElement instanceof HTMLVideoElement) {
             if (newParentRef.hasChildNodes()) {
-                newParentRef.firstElementChild?.replaceWith(sharedElement as HTMLDivElement);
+                newParentRef.firstElementChild?.replaceWith(sharedElement);
             } else {
-                newParentRef.appendChild(sharedElement as HTMLDivElement);
+                newParentRef.appendChild(sharedElement);
             }
         }
         // Restore the playback position after moving the video element in the DOM.
@@ -517,10 +517,10 @@ function BaseVideoPlayer(props: BaseVideoPlayerProps) {
             videoPlayerRef.current.currentTime = savedCurrentTimeRef.current;
         }
         return () => {
-            if (!originalParent || !('appendChild' in originalParent)) {
+            if (!originalParent || !('appendChild' in originalParent) || typeof HTMLVideoElement === 'undefined' || !(sharedElement instanceof HTMLVideoElement)) {
                 return;
             }
-            originalParent.appendChild(sharedElement as HTMLDivElement);
+            originalParent.appendChild(sharedElement);
 
             if (!newParentRef || !('childNodes' in newParentRef)) {
                 return;
@@ -545,8 +545,8 @@ function BaseVideoPlayer(props: BaseVideoPlayerProps) {
 
     // ensure that video loads after page refresh on iOS Safari
     useEffect(() => {
-        const videoElement = videoViewRef.current?.nativeRef?.current as HTMLVideoElement;
-        if (!videoElement || hasError || !isSafari() || sharedElement) {
+        const videoElement: unknown = videoViewRef.current?.nativeRef?.current;
+        if (typeof HTMLVideoElement === 'undefined' || !(videoElement instanceof HTMLVideoElement) || hasError || !isSafari() || sharedElement) {
             return;
         }
         videoElement.load();
@@ -588,7 +588,9 @@ function BaseVideoPlayer(props: BaseVideoPlayerProps) {
                                 {shouldUseSharedVideoElement ? (
                                     <>
                                         <View
-                                            ref={sharedVideoPlayerParentRef as RefObject<View | null>}
+                                            ref={(element) => {
+                                                sharedVideoPlayerParentRef.current = element;
+                                            }}
                                             style={[styles.flex1]}
                                         />
                                         {/* We are adding transparent absolute View between appended video component and control buttons to enable
@@ -604,9 +606,11 @@ function BaseVideoPlayer(props: BaseVideoPlayerProps) {
                                             if (!el) {
                                                 return;
                                             }
-                                            const elHTML = el as View | HTMLDivElement;
-                                            if ('childNodes' in elHTML && elHTML.childNodes[0]) {
-                                                videoPlayerElementRef.current = elHTML.childNodes[0] as HTMLDivElement;
+                                            if (typeof HTMLDivElement !== 'undefined' && el instanceof HTMLDivElement) {
+                                                const child = el.childNodes[0];
+                                                if (typeof HTMLVideoElement !== 'undefined' && child instanceof HTMLVideoElement) {
+                                                    videoPlayerElementRef.current = child;
+                                                }
                                             }
                                             videoPlayerElementParentRef.current = el;
                                         }}
