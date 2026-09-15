@@ -19,6 +19,7 @@ import type {ValueOf} from 'type-fest';
 import {areTransactionsEligibleForMerge} from './MergeTransactionUtils';
 import {
     arePaymentsEnabled as arePaymentsEnabledUtils,
+    canAdminPayReport,
     canMemberWrite,
     getConnectedIntegration,
     getCorrectedAutoReportingFrequency,
@@ -442,6 +443,14 @@ function getPayActionPaymentType(action: ReportAction | undefined): string | und
     return originalMessage && 'paymentType' in originalMessage ? originalMessage.paymentType : undefined;
 }
 
+// The bank account a payment was funded from. A paying admin picks the account and the pay action records it as
+// `bankAccountID`; automatic and older payments don't name one and were always funded by the workspace account.
+function getPayActionBankAccountID(action: ReportAction | undefined, policy: OnyxEntry<Policy>): number | undefined {
+    const originalMessage = action ? getOriginalMessage(action) : undefined;
+    const actionBankAccountID = originalMessage && 'bankAccountID' in originalMessage ? originalMessage.bankAccountID : undefined;
+    return actionBankAccountID ?? policy?.achAccount?.bankAccountID;
+}
+
 function hasPayActionPassedNachaCutoff(action: ReportAction | undefined): boolean {
     if (!action) {
         return false;
@@ -486,21 +495,23 @@ function isCancelPaymentAction(
         return everyPayActionHasPaymentType(payActions, (paymentType) => paymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY);
     }
 
-    // Mirror the pay gate (canIOUBePaid.canPay): whoever could mark the report paid can cancel it, no admin requirement.
-    const canCancelPayment =
-        isPayer ||
-        (policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL && canMemberWrite(policy, currentUserEmail, CONST.POLICY.POLICY_FEATURE.WORKFLOWS_PAYMENTS));
-
-    if (!canCancelPayment) {
-        return false;
-    }
-
     const payActions = getReportPayActions(report.reportID);
     const latestPayAction = getLatestPayAction(payActions);
     const latestPaymentType = getPayActionPaymentType(latestPayAction);
 
     // An undetermined payment type (no pay action) is treated as paid elsewhere below so we still surface Cancel.
     const isPaidViaBankAccount = !!latestPaymentType && latestPaymentType !== CONST.IOU.PAYMENT_TYPE.ELSEWHERE;
+
+    // Mirror the pay gate (canIOUBePaid.canPay): whoever could mark the report paid can cancel it, no admin requirement.
+    // A non-payer admin can always cancel a manual (paid elsewhere) payment, but a bank payment only when the account
+    // it was funded from is shared with them — same as Classic, since cancelling reverses a debit on that account.
+    const paymentBankAccountID = isPaidViaBankAccount ? getPayActionBankAccountID(latestPayAction, policy) : undefined;
+    const canAccessPaymentBankAccount = !!paymentBankAccountID && !!bankAccountList?.[paymentBankAccountID];
+    const canCancelPayment = isPayer || (canAdminPayReport(policy, currentUserEmail) && (!isPaidViaBankAccount || canAccessPaymentBankAccount));
+
+    if (!canCancelPayment) {
+        return false;
+    }
 
     // For reports marked as paid elsewhere or when we can't determine payment type, show cancel button
     if (report.stateNum === CONST.REPORT.STATE_NUM.APPROVED && report.statusNum === CONST.REPORT.STATUS_NUM.REIMBURSED && !isPaidViaBankAccount) {
