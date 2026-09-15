@@ -505,6 +505,12 @@ describe('SequentialQueue - conflict replace addressing', () => {
         };
     }
 
+    /**
+     * Runs `drain` while the queue's next storage write is still in flight, which is the window the race lives in.
+     *
+     * Onyx's jest provider resolves a set in a couple of microtasks; IndexedDB and SQLite resolve on a storage `complete` event or a WAL commit, so the
+     * queue really does keep draining while this write is in flight.
+     */
     function drainWhileTheNextQueueCommitIsPending(drain: () => void) {
         const originalSet = Onyx.set.bind(Onyx);
         let armed = true;
@@ -582,7 +588,7 @@ describe('SequentialQueue - conflict replace addressing', () => {
         }
     });
 
-    it('should not apply a nextAction replace at the stale position when the target carries no requestIndex', async () => {
+    it('should keep the queued write when the resolver cannot identify the replace target', async () => {
         SequentialQueue.pause();
         await SequentialQueue.push({command: 'OpenReport', data: {reportID: 'HEAD'}});
         await SequentialQueue.push(queuedAddComment('v1'));
@@ -607,12 +613,45 @@ describe('SequentialQueue - conflict replace addressing', () => {
         }
     });
 
+    it('should refuse a nextAction replace that omits requestIndex even though the type allows it', async () => {
+        SequentialQueue.pause();
+        await SequentialQueue.push(queuedAddComment('v1', 2));
+        await SequentialQueue.push(queuedUpdateComment('v2', 3));
+        await SequentialQueue.push({command: 'OpenReport', data: {reportID: 'VICTIM'}, requestIndex: 4});
+
+        const followUpWithoutIdentity: ConflictActionData = {
+            conflictAction: {type: 'delete', indices: [1], pushNewRequest: false, nextAction: {type: 'replace', index: 0}},
+        };
+
+        const logAlertSpy = jest.spyOn(Log, 'alert').mockImplementation(() => {});
+        const commit = drainWhileTheNextQueueCommitIsPending(processNextRequest);
+        try {
+            await SequentialQueue.push({
+                command: WRITE_COMMANDS.UPDATE_COMMENT,
+                data: {reportActionID, reportComment: 'v3'},
+                requestIndex: 5,
+                checkAndFixConflictingRequest: () => followUpWithoutIdentity,
+            });
+
+            expect(getOngoingRequest()?.command).toBe(WRITE_COMMANDS.ADD_COMMENT);
+            expect(getAll().map((r) => r.command)).toEqual(['OpenReport']);
+            expect(getAll().at(0)?.data?.reportID).toBe('VICTIM');
+            expect(logAlertSpy).toHaveBeenCalledWith(expect.stringContaining('carries no requestIndex'), expect.objectContaining({staleIndex: 0}));
+        } finally {
+            commit.mockRestore();
+            logAlertSpy.mockRestore();
+            SequentialQueue.unpause();
+            await mockFetch.resume();
+        }
+    });
+
     it('should refuse a nextAction delete rather than apply its stale indices', async () => {
         SequentialQueue.pause();
         await SequentialQueue.push(queuedAddComment('v1', 2));
         await SequentialQueue.push(queuedUpdateComment('v2', 3));
         await SequentialQueue.push({command: 'OpenReport', data: {reportID: 'VICTIM'}, requestIndex: 4});
 
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- test-only: force a follow-up delete past the narrowed type, since only a caller that bypasses it can reach this branch
         const forcedFollowUpDelete = {
             conflictAction: {type: 'delete', indices: [1], pushNewRequest: false, nextAction: {type: 'delete', indices: [0], pushNewRequest: false}},
         } as unknown as ConflictActionData;
