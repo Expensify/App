@@ -92,7 +92,14 @@ function ExpenseReportRulesSection({policyID, canWriteApprovals, canWritePayment
                     return;
                 }
 
-                enableAutoApprovalOptions(policyID, isEnabled, policy?.shouldShowAutoApprovalOptions, policy?.autoApproval?.limit, policy?.autoApproval?.auditRate);
+                enableAutoApprovalOptions(
+                    policyID,
+                    isEnabled,
+                    policy?.shouldShowAutoApprovalOptions,
+                    policy?.autoApproval?.limit,
+                    policy?.autoApproval?.auditRate,
+                    getReviewWorkspaceSettingsTaskCompletion(),
+                );
             },
             subMenuItems: [
                 <OfflineWithFeedback
@@ -140,7 +147,13 @@ function ExpenseReportRulesSection({policyID, canWriteApprovals, canWritePayment
                     return;
                 }
 
-                enablePolicyAutoReimbursementLimit(policyID, isEnabled, policy?.shouldShowAutoReimbursementLimitOption, policy?.autoReimbursement?.limit);
+                enablePolicyAutoReimbursementLimit(
+                    policyID,
+                    isEnabled,
+                    policy?.shouldShowAutoReimbursementLimitOption,
+                    policy?.autoReimbursement?.limit,
+                    getReviewWorkspaceSettingsTaskCompletion(),
+                );
             },
             disabled: autoPayApprovedReportsUnavailable || !canWritePayments,
             disabledAction: withPaymentsReadOnlyFallback(),

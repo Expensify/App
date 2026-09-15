@@ -22,7 +22,6 @@ import useOnyx from '@hooks/useOnyx';
 import usePersonalDetailByLogin from '@hooks/usePersonalDetailByLogin';
 import usePolicy from '@hooks/usePolicy';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
-import useReviewWorkspaceSettingsTaskCompletion from '@hooks/useReviewWorkspaceSettingsTaskCompletion';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {clearPolicyErrorField, isCurrencySupportedForDirectReimbursement, isCurrencySupportedForGlobalReimbursement, setWorkspaceReimbursement} from '@libs/actions/Policy/Policy';
@@ -60,7 +59,6 @@ type WorkflowsPaymentsTabProps = {
 function WorkflowsPaymentsTab({policyID}: WorkflowsPaymentsTabProps) {
     const {translate, formatPhoneNumber} = useLocalize();
     const styles = useThemeStyles();
-    const getReviewWorkspaceSettingsTaskCompletion = useReviewWorkspaceSettingsTaskCompletion();
     const policy = usePolicy(policyID);
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Plus']);
     const {showConfirmModal} = useConfirmModal();
@@ -257,7 +255,6 @@ function WorkflowsPaymentsTab({policyID}: WorkflowsPaymentsTabProps) {
                     addressName: policy?.achAccount?.addressName,
                     bankName: policy?.achAccount?.bankName,
                     state: policy?.achAccount?.state,
-                    reviewWorkspaceSettingsTaskData: getReviewWorkspaceSettingsTaskCompletion(),
                 });
             }}
             subMenuItems={

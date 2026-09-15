@@ -20,9 +20,6 @@ import Log from '@libs/Log';
 import {buildOnyxDataForPolicyDistanceRateUpdates, getExpectedUnitForCurrency} from '@libs/PolicyDistanceRatesUtils';
 import {goBackWhenEnableFeature, removePendingFieldsFromCustomUnit} from '@libs/PolicyUtils';
 
-import type {OnboardingTaskCompletionOnyxData} from '@userActions/Task';
-import {withReviewWorkspaceSettingsTaskData} from '@userActions/Task';
-
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {GovernmentMileageRate, TransactionViolation} from '@src/types/onyx';
@@ -549,7 +546,6 @@ function setPolicyCommuterExclusions(
     fixedDistance: number | undefined,
     fixedDistanceUnit: string | undefined,
     previousCommuterExclusions: CommuterExclusions | undefined,
-    reviewWorkspaceSettingsTaskData: OnboardingTaskCompletionOnyxData = {},
 ) {
     const policyKey = `${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const;
 
@@ -591,10 +587,8 @@ function setPolicyCommuterExclusions(
 
     // Only send distance when the server actually needs it. HomeAndOffice ignores the field.
     const parameters: SetPolicyCommuterExclusionsParams =
-        method === CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE
-            ? {policyID, commuterExclusionMethod: method, distance: fixedDistance, completedTaskReportActionID: reviewWorkspaceSettingsTaskData.completedTaskReportActionID}
-            : {policyID, commuterExclusionMethod: method, completedTaskReportActionID: reviewWorkspaceSettingsTaskData.completedTaskReportActionID};
-    API.write(WRITE_COMMANDS.SET_POLICY_COMMUTER_EXCLUSIONS, parameters, withReviewWorkspaceSettingsTaskData(onyxData, reviewWorkspaceSettingsTaskData));
+        method === CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE ? {policyID, commuterExclusionMethod: method, distance: fixedDistance} : {policyID, commuterExclusionMethod: method};
+    API.write(WRITE_COMMANDS.SET_POLICY_COMMUTER_EXCLUSIONS, parameters, onyxData);
 }
 
 /**
@@ -646,12 +640,7 @@ function disablePolicyCommuterExclusions(policyID: string, previousCommuterExclu
  * Turn the "Require GPS or map entry" setting on or off for a policy. When it's on, the manual and odometer
  * distance flows are unavailable because neither can produce a mapped route.
  */
-function setPolicyRequireMapOrGPS(
-    policyID: string,
-    requireMapOrGPS: boolean,
-    previousRequireMapOrGPS: boolean | undefined,
-    reviewWorkspaceSettingsTaskData: OnboardingTaskCompletionOnyxData = {},
-) {
+function setPolicyRequireMapOrGPS(policyID: string, requireMapOrGPS: boolean, previousRequireMapOrGPS: boolean | undefined) {
     const policyKey = `${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const;
 
     const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
@@ -688,8 +677,8 @@ function setPolicyRequireMapOrGPS(
         ],
     };
 
-    const parameters: SetPolicyRequireMapOrGPSParams = {policyID, enabled: requireMapOrGPS, completedTaskReportActionID: reviewWorkspaceSettingsTaskData.completedTaskReportActionID};
-    API.write(WRITE_COMMANDS.SET_POLICY_REQUIRE_MAP_OR_GPS, parameters, withReviewWorkspaceSettingsTaskData(onyxData, reviewWorkspaceSettingsTaskData));
+    const parameters: SetPolicyRequireMapOrGPSParams = {policyID, enabled: requireMapOrGPS};
+    API.write(WRITE_COMMANDS.SET_POLICY_REQUIRE_MAP_OR_GPS, parameters, onyxData);
 }
 
 function clearPolicyRequireMapOrGPSErrors(policyID: string) {

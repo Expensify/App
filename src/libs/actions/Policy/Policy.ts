@@ -323,7 +323,6 @@ type SetWorkspaceReimbursementActionParams = {
     currentReimbursementChoice: Policy['reimbursementChoice'];
     currentAchAccount: Policy['achAccount'];
     bankAccountList?: BankAccountList;
-    reviewWorkspaceSettingsTaskData?: OnboardingTaskCompletionOnyxData;
 };
 
 type SetWorkspaceApprovalModeAdditionalData = {
@@ -956,7 +955,6 @@ function setWorkspaceApprovalMode(
     isTrackIntentUser: boolean | undefined,
     rules: OnyxCollection<Rule>,
     additionalData?: SetWorkspaceApprovalModeAdditionalData,
-    reviewWorkspaceSettingsTaskData: OnboardingTaskCompletionOnyxData = {},
 ) {
     if (!policy) {
         return;
@@ -1149,14 +1147,13 @@ function setWorkspaceApprovalMode(
                 // This property should now be set to false for all Collect policies
                 isAutoApprovalEnabled: false,
             }),
-            completedTaskReportActionID: reviewWorkspaceSettingsTaskData.completedTaskReportActionID,
         };
         // eslint-disable-next-line rulesdir/no-multiple-api-calls
-        API.write(WRITE_COMMANDS.SET_WORKSPACE_APPROVAL_MODE, params, withReviewWorkspaceSettingsTaskData({optimisticData, failureData, successData}, reviewWorkspaceSettingsTaskData));
+        API.write(WRITE_COMMANDS.SET_WORKSPACE_APPROVAL_MODE, params, {optimisticData, failureData, successData});
     }
 }
 
-function setWorkspacePayer(policyID: string, reimburserEmail: string, currentReimburser: string | undefined, reviewWorkspaceSettingsTaskData: OnboardingTaskCompletionOnyxData = {}) {
+function setWorkspacePayer(policyID: string, reimburserEmail: string, currentReimburser: string | undefined) {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -1194,9 +1191,9 @@ function setWorkspacePayer(policyID: string, reimburserEmail: string, currentRei
         },
     ];
 
-    const params: SetWorkspacePayerParams = {policyID, reimburserEmail, completedTaskReportActionID: reviewWorkspaceSettingsTaskData.completedTaskReportActionID};
+    const params: SetWorkspacePayerParams = {policyID, reimburserEmail};
 
-    API.write(WRITE_COMMANDS.SET_WORKSPACE_PAYER, params, withReviewWorkspaceSettingsTaskData({optimisticData, failureData, successData}, reviewWorkspaceSettingsTaskData));
+    API.write(WRITE_COMMANDS.SET_WORKSPACE_PAYER, params, {optimisticData, failureData, successData});
 }
 
 function clearPolicyErrorField(policyID: string | undefined, fieldName: string) {
@@ -1285,7 +1282,6 @@ function setWorkspaceReimbursement({
     currentReimbursementChoice,
     currentAchAccount,
     bankAccountList = {},
-    reviewWorkspaceSettingsTaskData = {},
 }: SetWorkspaceReimbursementActionParams) {
     const lastUsedPaymentMethod = typeof lastPaymentMethod === 'string' ? lastPaymentMethod : lastPaymentMethod?.expense?.name;
 
@@ -1423,10 +1419,9 @@ function setWorkspaceReimbursement({
         policyID,
         reimbursementChoice,
         bankAccountID: shouldClearBankAccountID ? 0 : bankAccountID,
-        completedTaskReportActionID: reviewWorkspaceSettingsTaskData.completedTaskReportActionID,
     };
 
-    API.write(WRITE_COMMANDS.SET_WORKSPACE_REIMBURSEMENT, params, withReviewWorkspaceSettingsTaskData({optimisticData, failureData, successData}, reviewWorkspaceSettingsTaskData));
+    API.write(WRITE_COMMANDS.SET_WORKSPACE_REIMBURSEMENT, params, {optimisticData, failureData, successData});
 }
 
 function leaveWorkspace(currentUserAccountID: number, currentUserEmail: string, policy: OnyxEntry<Policy>) {
@@ -1899,7 +1894,7 @@ function createPolicyExpenseChats({
 /**
  * Updates a workspace avatar image
  */
-function updateWorkspaceAvatar(policyID: string, currentAvatarURL: string | undefined, file: File, reviewWorkspaceSettingsTaskData: OnboardingTaskCompletionOnyxData = {}) {
+function updateWorkspaceAvatar(policyID: string, currentAvatarURL: string | undefined, file: File) {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -1940,10 +1935,9 @@ function updateWorkspaceAvatar(policyID: string, currentAvatarURL: string | unde
     const params: UpdateWorkspaceAvatarParams = {
         policyID,
         file,
-        completedTaskReportActionID: reviewWorkspaceSettingsTaskData.completedTaskReportActionID,
     };
 
-    API.write(WRITE_COMMANDS.UPDATE_WORKSPACE_AVATAR, params, withReviewWorkspaceSettingsTaskData({optimisticData, finallyData, failureData}, reviewWorkspaceSettingsTaskData));
+    API.write(WRITE_COMMANDS.UPDATE_WORKSPACE_AVATAR, params, {optimisticData, finallyData, failureData});
 }
 
 /**
@@ -2368,7 +2362,7 @@ function updateWorkspaceClientID(policyID: string, clientID: string, currentClie
     });
 }
 
-function updateAddress(policyID: string, newAddress: CompanyAddress, reviewWorkspaceSettingsTaskData: OnboardingTaskCompletionOnyxData = {}) {
+function updateAddress(policyID: string, newAddress: CompanyAddress) {
     const parameters: UpdatePolicyAddressParams = {
         policyID,
         addressStreet: newAddress.addressStreet,
@@ -2377,7 +2371,6 @@ function updateAddress(policyID: string, newAddress: CompanyAddress, reviewWorks
         country: newAddress.country,
         state: newAddress.state,
         zipCode: newAddress.zipCode,
-        completedTaskReportActionID: reviewWorkspaceSettingsTaskData.completedTaskReportActionID,
     };
 
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
@@ -2406,7 +2399,7 @@ function updateAddress(policyID: string, newAddress: CompanyAddress, reviewWorks
         },
     ];
 
-    API.write(WRITE_COMMANDS.UPDATE_POLICY_ADDRESS, parameters, withReviewWorkspaceSettingsTaskData({optimisticData, finallyData}, reviewWorkspaceSettingsTaskData));
+    API.write(WRITE_COMMANDS.UPDATE_POLICY_ADDRESS, parameters, {optimisticData, finallyData});
 }
 
 /**
@@ -6560,12 +6553,7 @@ function setPolicyMaxExpenseAmount(
  * @param prohibitedExpenses - The full prohibited expenses values to save
  * @param previousProhibitedExpenses - The previous prohibited expenses values from Onyx
  */
-function setPolicyProhibitedExpenses(
-    policyID: string,
-    prohibitedExpenses: ProhibitedExpenses,
-    previousProhibitedExpenses: ProhibitedExpenses | undefined,
-    reviewWorkspaceSettingsTaskData: OnboardingTaskCompletionOnyxData = {},
-) {
+function setPolicyProhibitedExpenses(policyID: string, prohibitedExpenses: ProhibitedExpenses, previousProhibitedExpenses: ProhibitedExpenses | undefined) {
     const prohibitedExpenseKeys = Object.values(CONST.POLICY.PROHIBITED_EXPENSES);
     const changedKeys = prohibitedExpenseKeys.filter((key) => prohibitedExpenses[key] !== previousProhibitedExpenses?.[key]);
 
@@ -6619,10 +6607,9 @@ function setPolicyProhibitedExpenses(
     const parameters: SetPolicyProhibitedExpensesParams = {
         policyID,
         prohibitedExpenses: JSON.stringify(prohibitedExpensesWithoutPendingFields),
-        completedTaskReportActionID: reviewWorkspaceSettingsTaskData.completedTaskReportActionID,
     };
 
-    API.write(WRITE_COMMANDS.SET_POLICY_PROHIBITED_EXPENSES, parameters, withReviewWorkspaceSettingsTaskData(onyxData, reviewWorkspaceSettingsTaskData));
+    API.write(WRITE_COMMANDS.SET_POLICY_PROHIBITED_EXPENSES, parameters, onyxData);
 }
 
 /**
@@ -7558,6 +7545,7 @@ function enableAutoApprovalOptions(
     currentShouldShowAutoApprovalOptions: boolean | undefined,
     currentAutoApprovalLimit: number | undefined,
     currentAutoApprovalAuditRate: number | undefined,
+    reviewWorkspaceSettingsTaskData: OnboardingTaskCompletionOnyxData = {},
 ) {
     if (enabled === currentShouldShowAutoApprovalOptions) {
         return;
@@ -7618,13 +7606,14 @@ function enableAutoApprovalOptions(
     const parameters: EnablePolicyAutoApprovalOptionsParams = {
         enabled,
         policyID,
+        completedTaskReportActionID: reviewWorkspaceSettingsTaskData.completedTaskReportActionID,
     };
 
-    API.write(WRITE_COMMANDS.ENABLE_POLICY_AUTO_APPROVAL_OPTIONS, parameters, {
-        optimisticData,
-        successData,
-        failureData,
-    });
+    API.write(
+        WRITE_COMMANDS.ENABLE_POLICY_AUTO_APPROVAL_OPTIONS,
+        parameters,
+        withReviewWorkspaceSettingsTaskData({optimisticData, successData, failureData}, reviewWorkspaceSettingsTaskData),
+    );
 }
 
 /**
@@ -7713,6 +7702,7 @@ function enablePolicyAutoReimbursementLimit(
     enabled: boolean,
     currentShouldShowAutoReimbursementLimitOption: boolean | undefined,
     currentAutoReimbursementLimit: number | undefined,
+    reviewWorkspaceSettingsTaskData: OnboardingTaskCompletionOnyxData = {},
 ) {
     if (enabled === currentShouldShowAutoReimbursementLimitOption) {
         return;
@@ -7770,13 +7760,14 @@ function enablePolicyAutoReimbursementLimit(
     const parameters: EnablePolicyAutoReimbursementLimitParams = {
         enabled,
         policyID,
+        completedTaskReportActionID: reviewWorkspaceSettingsTaskData.completedTaskReportActionID,
     };
 
-    API.write(WRITE_COMMANDS.ENABLE_POLICY_AUTO_REIMBURSEMENT_LIMIT, parameters, {
-        optimisticData,
-        successData,
-        failureData,
-    });
+    API.write(
+        WRITE_COMMANDS.ENABLE_POLICY_AUTO_REIMBURSEMENT_LIMIT,
+        parameters,
+        withReviewWorkspaceSettingsTaskData({optimisticData, successData, failureData}, reviewWorkspaceSettingsTaskData),
+    );
 }
 
 function updateInvoiceCompanyName(policyID: string, companyName: string, currentCompanyName: string | undefined) {
