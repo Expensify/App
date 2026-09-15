@@ -36,6 +36,8 @@ type SidebarOrderedReportsStateContextValue = {
     chatTabBrickRoad: BrickRoad;
     activeTab: ValueOf<typeof CONST.INBOX_TAB>;
     inboxTabCounts: Record<typeof CONST.INBOX_TAB.TODO | typeof CONST.INBOX_TAB.UNREAD, number>;
+    /** Whether the Unread tab holds a report whose newest message is older than CONST.INBOX_TAB_STALE_UNREAD_MONTHS. */
+    hasStaleUnreadReport: boolean;
 };
 
 type SidebarOrderedReportsActionsContextValue = {
@@ -65,6 +67,7 @@ const SidebarOrderedReportsStateContext = createContext<SidebarOrderedReportsSta
         [CONST.INBOX_TAB.TODO]: 0,
         [CONST.INBOX_TAB.UNREAD]: 0,
     },
+    hasStaleUnreadReport: false,
 });
 
 const SidebarOrderedReportsActionsContext = createContext<SidebarOrderedReportsActionsContextValue>({
@@ -225,7 +228,7 @@ function SidebarOrderedReportsContextProvider({
             effectiveUpdatedReports = Object.keys(chatReports ?? {});
         }
         const shouldDoIncrementalUpdate = effectiveUpdatedReports.length > 0 && hasCachedReports;
-        let reportsToDisplay = {};
+        let reportsToDisplay: ReportsToDisplayInLHN = {};
         if (shouldDoIncrementalUpdate) {
             reportsToDisplay = SidebarUtils.updateReportsToDisplayInLHN({
                 displayedReports: currentReportsToDisplay,
@@ -343,8 +346,8 @@ function SidebarOrderedReportsContextProvider({
         return orderedReportIDs.filter((reportID) => baseSet.has(reportID) || reportID === stickyReportID);
     }, [orderedReportIDs, reportsToDisplayInLHN, activeTab, stickyReportTab, stickyReportID]);
 
-    // The count shown in each tab's badge, derived from the full "All" set (not the currently filtered view).
-    const inboxTabCounts = useMemo(() => SidebarUtils.getInboxTabCounts(orderedReportIDs, reportsToDisplayInLHN), [orderedReportIDs, reportsToDisplayInLHN]);
+    // Derived from the full "All" set (not the currently filtered view).
+    const {counts: inboxTabCounts, hasStaleUnreadReport} = useMemo(() => SidebarUtils.getInboxTabSummary(orderedReportIDs, reportsToDisplayInLHN), [orderedReportIDs, reportsToDisplayInLHN]);
 
     // Held in a ref so getReportIDsForTab stays referentially stable (keeping the actions context stable) and only
     // filters when a bulk tab action actually asks for a tab's reports, rather than on every LHN update.
@@ -426,6 +429,7 @@ function SidebarOrderedReportsContextProvider({
                 chatTabBrickRoad: getChatTabBrickRoad(updatedReportIDs, reportAttributes),
                 activeTab,
                 inboxTabCounts,
+                hasStaleUnreadReport,
             };
         }
 
@@ -436,6 +440,7 @@ function SidebarOrderedReportsContextProvider({
             chatTabBrickRoad: getChatTabBrickRoad(orderedReportIDs, reportAttributes),
             activeTab,
             inboxTabCounts,
+            hasStaleUnreadReport,
         };
     }, [
         getOrderedReportIDs,
@@ -448,6 +453,7 @@ function SidebarOrderedReportsContextProvider({
         reportAttributes,
         activeTab,
         inboxTabCounts,
+        hasStaleUnreadReport,
         reportsToDisplayInLHN,
     ]);
 
