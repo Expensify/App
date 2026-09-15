@@ -13,26 +13,26 @@ import java.io.OutputStream
 
 object FileUtils {
     private const val tag = "FileUtils"
-    private const val directoryName = "Expensify"
+    private const val shareDirectoryName = "sharedFiles"
 
-    private fun getInternalStorageDirectory(context: Context): File {
-        val internalStorageDirectory = File(context.filesDir.absolutePath, directoryName)
-        if (!internalStorageDirectory.exists()) {
-            internalStorageDirectory.mkdirs()
+    private fun getShareStorageDirectory(context: Context): File {
+        val shareStorageDirectory = File(context.filesDir.absolutePath, shareDirectoryName)
+        if (!shareStorageDirectory.exists()) {
+            shareStorageDirectory.mkdirs()
         }
-        return internalStorageDirectory
+        return shareStorageDirectory
     }
 
     fun clearInternalStorageDirectory(context: Context) {
-        val internalStorageDirectory = getInternalStorageDirectory(context)
-        if (internalStorageDirectory.exists()) {
-            val files = internalStorageDirectory.listFiles()
+        val shareStorageDirectory = getShareStorageDirectory(context)
+        if (shareStorageDirectory.exists()) {
+            val files = shareStorageDirectory.listFiles()
             if (files != null && files.isNotEmpty()) {
                 for (file in files) {
                     file.delete()
                 }
             } else {
-                Log.i(tag, "No files found to delete in directory: ${internalStorageDirectory.absolutePath}")
+                Log.i(tag, "No files found to delete in directory: ${shareStorageDirectory.absolutePath}")
             }
         }
     }
@@ -83,7 +83,7 @@ object FileUtils {
         val file: File = File.createTempFile(
             getUniqueFilePrefix(),
             fileExtension,
-            getInternalStorageDirectory(context)
+            getShareStorageDirectory(context)
         )
 
         Log.i(tag, "Created a temporary file at" + file.absolutePath)
@@ -98,28 +98,51 @@ object FileUtils {
      * @return The absolute path of the image
      */
     fun copyUriToStorage(fileUri: Uri, context: Context): String? {
-        val fileName = getFileName(context, fileUri) ?: return null
-        val destinationFile = File(getInternalStorageDirectory(context), fileName)
+        val fileName = getFileName(context, fileUri) ?: generateFileName(context, fileUri)
+        val destinationFile = File(getShareStorageDirectory(context), fileName)
 
         return try {
             saveFileFromProviderUri(fileUri, destinationFile, context)
+            if (!destinationFile.exists() || destinationFile.length() == 0L) {
+                destinationFile.delete()
+                return null
+            }
             destinationFile.absolutePath
-        } catch (ex: IOException) {
+        } catch (ex: Exception) {
             Log.e(tag, "Couldn't save file from intent", ex)
             null
         }
     }
 
+    private fun generateFileName(context: Context, uri: Uri): String {
+        val mimeTypeMap = MimeTypeMap.getSingleton()
+        val mimeType = try {
+            context.contentResolver.getType(uri)
+        } catch (e: Exception) {
+            null
+        }
+        val extension = if (mimeType != null) {
+            mimeTypeMap.getExtensionFromMimeType(mimeType)
+        } else {
+            null
+        } ?: "bin"
+        return "${getUniqueFilePrefix()}.$extension"
+    }
+
     private fun getFileName(context: Context, uri: Uri): String? {
         var name: String? = null
-        val cursor = context.contentResolver.query(uri, null, null, null, null)
-        cursor?.use {
-            if (it.moveToFirst()) {
-                val nameIndex = it.getColumnIndex(OpenableColumns.DISPLAY_NAME)
-                if (nameIndex != -1) {
-                    name = it.getString(nameIndex)
+        try {
+            val cursor = context.contentResolver.query(uri, null, null, null, null)
+            cursor?.use {
+                if (it.moveToFirst()) {
+                    val nameIndex = it.getColumnIndex(OpenableColumns.DISPLAY_NAME)
+                    if (nameIndex != -1) {
+                        name = it.getString(nameIndex)
+                    }
                 }
             }
+        } catch (e: Exception) {
+            Log.w(tag, "Failed to query filename from ContentResolver", e)
         }
         return name
     }

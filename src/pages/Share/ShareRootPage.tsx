@@ -99,16 +99,41 @@ function ShareRootPage() {
     }, [errorTitle, errorMessage]);
 
     const handleProcessFiles = useCallback(() => {
-        ShareActionHandler.processFiles((processedFiles) => {
-            const tempFile = Array.isArray(processedFiles) ? processedFiles.at(0) : (JSON.parse(processedFiles) as ShareTempFile);
+        ShareActionHandler.processFiles((processedFiles: unknown) => {
+            let tempFile: ShareTempFile | undefined;
+            if (Array.isArray(processedFiles)) {
+                tempFile = processedFiles.at(0) as ShareTempFile | undefined;
+            } else if (typeof processedFiles === 'object' && processedFiles !== null) {
+                tempFile = processedFiles as ShareTempFile;
+            } else if (typeof processedFiles === 'string' && processedFiles.trim().length > 0) {
+                try {
+                    tempFile = JSON.parse(processedFiles) as ShareTempFile;
+                } catch (error) {
+                    Log.warn('[ShareRootPage] Failed to parse processedFiles', {error, processedFiles});
+                }
+            }
             if (errorTitle) {
                 return;
             }
-            if (!tempFile?.mimeType || !shareFileMimeTypes.includes(tempFile?.mimeType)) {
-                setErrorTitle(translate('attachmentPicker.wrongFileType'));
-                setErrorMessage(translate('attachmentPicker.notAllowedExtension'));
+            if (!tempFile) {
+                setErrorTitle(translate('attachmentPicker.attachmentError'));
+                setErrorMessage(translate('attachmentPicker.errorWhileSelectingCorruptedAttachment'));
                 return;
             }
+
+            const rawMimeType = tempFile.mimeType?.split(';')[0]?.trim()?.toLowerCase() ?? '';
+            const isValidMimeType =
+                Boolean(rawMimeType) &&
+                (shareFileMimeTypes.includes(rawMimeType) || shareFileMimeTypes.some((allowed) => allowed.endsWith('/*') && rawMimeType.startsWith(allowed.replace('/*', ''))));
+
+            if (!isValidMimeType) {
+                setErrorTitle(translate('attachmentPicker.wrongFileType'));
+                setErrorMessage(translate('attachmentPicker.notAllowedExtension'));
+                setIsFileReady(true);
+                return;
+            }
+
+            tempFile.mimeType = rawMimeType;
 
             const isImage = /image\/.*/.test(tempFile?.mimeType);
             if (tempFile?.mimeType && tempFile?.mimeType !== 'txt' && !isImage) {
