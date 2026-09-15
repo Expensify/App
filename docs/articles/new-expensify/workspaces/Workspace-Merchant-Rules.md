@@ -1,7 +1,7 @@
 ---
 title: Merchant Rules
 description: Learn how to enable and use Merchant Rules to automatically apply consistent expense coding based on the expense merchant name.
-keywords: [New Expensify, workspace merchant rules, merchant rules, auto-categorize by merchant, expense automation, expense rules, workspace settings, import merchant rules, bulk import merchant rules, merchant rules spreadsheet]
+keywords: [New Expensify, workspace merchant rules, merchant rules, auto-categorize by merchant, expense automation, expense rules, workspace settings, import merchant rules, bulk import merchant rules, merchant rules spreadsheet, merchant rule deleted tag, tag missing from merchant rule]
 internalScope: Audience is Workspace Admins on the Control plan. Covers creating, using, and bulk-importing Merchant Rules to apply consistent expense coding based on merchant name. Does not cover personal expense rules, Category Rules, Tag Rules, or troubleshooting rule conflicts.
 ---
 
@@ -25,7 +25,7 @@ To create a Merchant Rule:
    - **Matches exactly**
 5. Select the fields you want the rule to update. 
 6. Optionally apply the rule to existing unsubmitted expenses and review matching expenses using **Preview matches**.
-7. Select **Save Rule**
+7. Click **Save rule**.
 
 ---
 
@@ -64,6 +64,7 @@ Keep these behaviors in mind:
 - Rules are applied when an expense is created.
 - If multiple rules match, the earliest-created rule is applied.
 - Fields that members manually set during expense creation aren't overwritten.
+- If a tag a rule applies is deleted from the workspace, the rule stops applying that tag and stops showing it. The rule's other updates still apply.
 
 ---
 
@@ -123,10 +124,26 @@ Common reasons include:
 - Another rule matched first.
 - A field was manually set during expense creation.
 - The rule was created after the expense and wasn't applied retroactively, unless you select "apply to existing expenses" when creating the rule.
+- The tag the rule applies was deleted from the workspace, so only that update is skipped.
 
 ## How do I clear a Category, Tag, or Tax value from a Merchant Rule?
 
 When you add or edit a rule and open the **Category**, **Tag**, or **Tax** field, select **None** to clear the previously selected value. Then select **Save rule**.
+
+## What happens to a Merchant Rule when the tag it applies is deleted?
+
+The rule stays in place and keeps applying its other updates, but the deleted tag is no longer applied to matching expenses and is no longer listed in the rule.
+
+You'll see this in two places:
+
+- In the **Merchant** section of the **Rules** page, the rule summary no longer lists the tag update.
+- When you open the rule, the **Tag** field is empty.
+
+To have the rule set a tag again, open the rule, select a value in the **Tag** field, then select **Save rule**. If you recreate a tag with the same name, the rule applies that tag again. Learn how to [create and manage expense tags](/articles/new-expensify/workspaces/Create-and-manage-expense-tags).
+
+## Why don't all of my tags appear when I select Tag in a Merchant Rule?
+
+The **Tag** field lists only the tags the rule can apply. Disabled tags are hidden, and on a workspace with multi-level tags, each level lists only the tags available under the levels you already selected.
 
 ## How do I leave Reimbursable or Billable unset in a Merchant Rule?
 
