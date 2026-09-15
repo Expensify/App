@@ -449,8 +449,7 @@ describe('ModifiedExpenseMessage', () => {
             // The backend groups the distance with a thousands separator, so the merchant only matches
             // DISTANCE_MERCHANT once that separator is allowed. Without it the message wrongly says "distance".
             it('says the rate changed even when the distance carries a thousands separator', () => {
-                const expectedResult =
-                    'changed the rate to 1,234.56 mi @ $0.70 / mi (previously 1,234.56 mi @ $0.67 / mi), which updated the amount to $864.19 (previously $827.16)';
+                const expectedResult = 'changed the rate to 1,234.56 mi @ $0.70 / mi (previously 1,234.56 mi @ $0.67 / mi), which updated the amount to $864.19 (previously $827.16)';
 
                 const result = getForReportAction({
                     convertToDisplayString,
@@ -481,8 +480,7 @@ describe('ModifiedExpenseMessage', () => {
             };
 
             it('says the distance changed', () => {
-                const expectedResult =
-                    'changed the distance to 2,345.67 mi @ $0.67 / mi (previously 1,234.56 mi @ $0.67 / mi), which updated the amount to $1,571.59 (previously $827.16)';
+                const expectedResult = 'changed the distance to 2,345.67 mi @ $0.67 / mi (previously 1,234.56 mi @ $0.67 / mi), which updated the amount to $1,571.59 (previously $827.16)';
 
                 const result = getForReportAction({
                     convertToDisplayString,
