@@ -1,0 +1,24 @@
+{
+    "overrides": [
+        {
+            "files": ["**/tlBatchTest.tsx"],
+            "jsPlugins": ["eslint-plugin-testing-library"],
+            "rules": {
+                "testing-library/await-async-queries": "error",
+                "testing-library/await-async-utils": "error",
+                "testing-library/no-manual-cleanup": "error",
+                "testing-library/no-unnecessary-act": "error",
+                "testing-library/prefer-find-by": "error",
+                "testing-library/prefer-presence-queries": "error",
+                "testing-library/prefer-screen-queries": "error"
+            }
+        },
+        {
+            "files": ["**/tlBatchLodash.ts"],
+            "jsPlugins": ["eslint-plugin-lodash"],
+            "rules": {
+                "lodash/import-scope": ["error", "method"]
+            }
+        }
+    ]
+}

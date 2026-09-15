@@ -1,0 +1,6 @@
+{
+    "flags": ["--type-aware"],
+    "rules": {
+        "typescript/no-floating-promises": "error"
+    }
+}

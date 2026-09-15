@@ -69,6 +69,9 @@ type DualResult = {
 
 const FILE_EXTENSIONS = ['.ts', '.tsx'];
 
+// Scratch/tooling directories whose files are never part of the app bundle and are exempt from the check.
+const EXCLUDED_PATH_PREFIXES = ['oxlint-migration/'];
+
 const IS_CI = process.env.CI === 'true';
 
 /**
@@ -250,7 +253,9 @@ async function checkChangedFiles(remote: string, verbose: boolean, checkOxc: Oxc
     const mainBaseCommitHash = await Git.getMainBranchCommitHash(remote);
     const changedFiles = await Git.getChangedFilesWithStatus(mainBaseCommitHash, undefined, true, FILE_EXTENSIONS);
 
-    const reactFiles = changedFiles.filter((f) => FILE_EXTENSIONS.some((ext) => f.filename.endsWith(ext)) && f.status !== 'removed');
+    const reactFiles = changedFiles.filter(
+        (f) => FILE_EXTENSIONS.some((ext) => f.filename.endsWith(ext)) && f.status !== 'removed' && !EXCLUDED_PATH_PREFIXES.some((prefix) => f.filename.startsWith(prefix)),
+    );
 
     if (reactFiles.length === 0) {
         logSuccess('No React files changed, skipping check.');

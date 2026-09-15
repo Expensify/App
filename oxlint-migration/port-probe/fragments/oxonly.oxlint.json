@@ -1,0 +1,59 @@
+{
+    "flags": ["--type-aware"],
+    "rules": {
+        "prefer-regex-literals": ["error", {"disallowRedundantWrapping": true}],
+        "arrow-body-style": ["error", "as-needed", {"requireReturnForObjectLiteral": false}],
+        "no-unexpected-multiline": "error"
+    },
+    "overrides": [
+        {
+            "files": ["**/oxonlyTyped.ts"],
+            "rules": {
+                "typescript/no-require-imports": "error",
+                "typescript/only-throw-error": "error",
+                "typescript/prefer-promise-reject-errors": "error",
+                "typescript/require-await": "error"
+            }
+        },
+        {
+            "files": ["**/oxonlyJsdoc.ts"],
+            "plugins": ["jsdoc"],
+            "rules": {
+                "jsdoc/check-tag-names": "error",
+                "jsdoc/require-param": "error",
+                "jsdoc/require-param-type": "error"
+            }
+        },
+        {
+            "files": ["**/oxonlyReportName.ts"],
+            "jsPlugins": ["../../config/eslint/plugins/eslint-plugin-report-name-utils.mjs"],
+            "rules": {
+                "report-name-utils/no-function-call-in-get-report-name": "error"
+            }
+        },
+        {
+            "files": ["**/oxonlyAlias.ts"],
+            "jsPlugins": ["@dword-design/eslint-plugin-import-alias"],
+            "rules": {
+                "@dword-design/import-alias/prefer-alias": [
+                    "error",
+                    {
+                        "alias": {
+                            "@assets": "./assets",
+                            "@components": "./src/components",
+                            "@hooks": "./src/hooks",
+                            "@userActions": "./src/libs/actions",
+                            "@libs": "./src/libs",
+                            "@navigation": "./src/libs/Navigation",
+                            "@pages": "./src/pages",
+                            "@prompts": "./prompts",
+                            "@styles": "./src/styles",
+                            "@src": "./src",
+                            "@github": "./.github"
+                        }
+                    }
+                ]
+            }
+        }
+    ]
+}
