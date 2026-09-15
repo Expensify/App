@@ -122,6 +122,7 @@ const defaultParams: Params = {
     allCards: {},
     allFeeds: {},
     options: {reports: [], personalDetails: []},
+    getReportByID: () => undefined,
     draftComments: {},
     betas: [],
     countryCode: 1,

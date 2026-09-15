@@ -62,7 +62,11 @@ function ShareTab() {
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
 
     const {didScreenTransitionEnd} = useScreenWrapperTransitionStatus();
-    const {options: listOptions, isLoading} = useFilteredOptions({
+    const {
+        options: listOptions,
+        isLoading,
+        getReportByID,
+    } = useFilteredOptions({
         enabled: didScreenTransitionEnd,
         isSearching: !!debouncedTextInputValue.trim(),
         includeP2P: true,
@@ -96,6 +100,7 @@ function ShareTab() {
               conciergeReportID,
               isTrackIntentUser,
               translate,
+              getReportByID,
               rules,
           }).options
         : defaultListOptions;
