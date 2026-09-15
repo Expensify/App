@@ -863,7 +863,8 @@ function Search({
             return;
         }
 
-        const nextOffset = serverOffset + CONST.SEARCH.RESULTS_PAGE_SIZE;
+        // the cursor rewinds but the cap doesn't, so serverOffset + 1 page can re-request rows already on screen
+        const nextOffset = shouldUseLiveData ? Math.max(serverOffset + CONST.SEARCH.RESULTS_PAGE_SIZE, liveRowLimit) : serverOffset + CONST.SEARCH.RESULTS_PAGE_SIZE;
         wantedOffsetRef.current = nextOffset;
         // Offline, the request would only fail and leave an error on the snapshot. Hold the page until reconnect.
         if (searchResults?.search?.isLoading || isOffline) {
