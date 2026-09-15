@@ -26,6 +26,7 @@ import React, {useCallback, useEffect, useRef, useState} from 'react';
 function SAMLSignInPage() {
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [credentials] = useOnyx(ONYXKEYS.CREDENTIALS);
+    const [session] = useOnyx(ONYXKEYS.SESSION);
     const [showNavigation, shouldShowNavigation] = useState(true);
     const [SAMLUrl, setSAMLUrl] = useState('');
     const {translate} = useLocalize();
@@ -70,7 +71,7 @@ function SAMLSignInPage() {
 
             if (!account?.isLoading && credentials?.login && shortLivedAuthToken) {
                 Log.info('SAMLSignInPage - Successfully received shortLivedAuthToken. Signing in...');
-                signInWithShortLivedAuthToken(shortLivedAuthToken, true);
+                signInWithShortLivedAuthToken(shortLivedAuthToken, session?.authToken, true);
                 return;
             }
 
@@ -87,7 +88,7 @@ function SAMLSignInPage() {
                 Navigation.navigate(ROUTES.HOME);
             });
         },
-        [credentials?.login, account?.isLoading, translate],
+        [credentials?.login, account?.isLoading, translate, session?.authToken],
     );
 
     useEffect(() => {

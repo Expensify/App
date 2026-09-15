@@ -414,7 +414,7 @@ describe('signInWithShortLivedAuthToken', () => {
             }),
         );
 
-        Session.signInWithShortLivedAuthToken('token', true);
+        Session.signInWithShortLivedAuthToken('token', undefined, true);
         await waitForBatchedUpdates();
 
         let isAuthenticating: boolean | undefined;
