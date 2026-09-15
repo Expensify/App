@@ -1,52 +1,47 @@
 import ConfirmationFieldsProvider from '@components/MoneyRequestConfirmationFields/Provider';
 import ConfirmationListLayout from '@components/MoneyRequestConfirmationList/ConfirmationListLayout';
-import DistanceRequestController from '@components/MoneyRequestConfirmationList/DistanceRequestController';
 import FieldAutoSelector from '@components/MoneyRequestConfirmationList/FieldAutoSelector';
 import useConfirmationListData from '@components/MoneyRequestConfirmationList/hooks/useConfirmationListData';
-import useDistanceRequestState from '@components/MoneyRequestConfirmationList/hooks/useDistanceRequestState';
 import useTaxAmount from '@components/MoneyRequestConfirmationList/hooks/useTaxAmount';
 import SplitBillController from '@components/MoneyRequestConfirmationList/SplitBillController';
 import TaxController from '@components/MoneyRequestConfirmationList/TaxController';
-import type {MoneyRequestConfirmationListProps} from '@components/MoneyRequestConfirmationList/types';
-import MoneyRequestConfirmationListFooter from '@components/MoneyRequestConfirmationListFooter';
+import type {ScanConfirmationListProps} from '@components/MoneyRequestConfirmationList/types';
+import ScanFooter from '@components/MoneyRequestConfirmationListFooter/variants/ScanFooter';
 
-import useBlockDistanceRequest from '@hooks/useBlockDistanceRequest';
+import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
-import usePolicyForTransaction from '@hooks/usePolicyForTransaction';
+import useThemeStyles from '@hooks/useThemeStyles';
 
-import DistanceRequestUtils from '@libs/DistanceRequestUtils';
-import {isMovingTransactionFromTrackExpense as isMovingTransactionFromTrackExpenseUtil} from '@libs/IOUUtils';
-import {
-    getCreated,
-    getCurrency,
-    hasValidModifiedAmount,
-    isDistanceRequest as isDistanceRequestUtil,
-    isGPSDistanceRequest as isGPSDistanceRequestUtil,
-    isManualDistanceRequest as isManualDistanceRequestUtil,
-} from '@libs/TransactionUtils';
+import {getCurrency, hasValidModifiedAmount} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
 
-import React from 'react';
+import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 
 /**
- * Confirms every expense type, by branching at runtime on which type it was handed.
- *
- * This is the body the per-type variants are being carved out of, and it shrinks as each one lands: a type that
- * has its own variant no longer reaches here. It goes away once the last variant is extracted.
+ * The errors the amount / merchant / date fields render inline rather than in the footer. Compact mode keeps those
+ * fields behind "Show more", so raising one has to reveal them or pressing Create looks like it did nothing.
  */
-function DefaultConfirmationList({
+const INLINE_FIELD_ERROR_KEYS = new Set<TranslationPaths | ''>(['common.error.fieldRequired', 'common.error.invalidAmount', 'iou.error.invalidMerchant']);
+
+/**
+ * Confirms a scanned expense. The only variant that reaches the compact layout, where the receipt fills the
+ * screen and the optional fields collapse behind a show-more button.
+ *
+ * A scan is never a distance request, so this mounts neither the distance state nor its controller. It keeps the
+ * tax controller: `useTaxAmount` reads `distance` only inside its distance branches, so the taxable amount comes
+ * from the transaction amount here.
+ */
+function ScanConfirmationList({
     transaction,
     onSendMoney,
     onConfirm,
     onOpenParticipantPicker,
     isParticipantPickerVisible = false,
     iouType = CONST.IOU.TYPE.SUBMIT,
-    isOdometerDistanceRequest = false,
     isLoadingReceipt = false,
-    receiptStitchError,
-    isPerDiemRequest = false,
     isPolicyExpenseChat = false,
     shouldShowSmartScanFields = true,
     canEnterScanFieldsManually = false,
@@ -73,45 +68,17 @@ function DefaultConfirmationList({
     onPDFPassword,
     onToggleReimbursable,
     showRemoveExpenseConfirmModal,
-    isTimeRequest = false,
     shouldHideToSection = false,
-}: MoneyRequestConfirmationListProps) {
-    const isDistanceRequest = isDistanceRequestUtil(transaction);
-    const isManualDistanceRequest = isManualDistanceRequestUtil(transaction);
-    const isGPSDistanceRequest = isGPSDistanceRequestUtil(transaction);
+}: ScanConfirmationListProps) {
+    const styles = useThemeStyles();
+    const isInLandscapeMode = useIsInLandscapeMode();
 
     const iouAmount = hasValidModifiedAmount(transaction) ? Number(transaction?.modifiedAmount) : (transaction?.amount ?? 0);
     const iouCurrencyCode = getCurrency(transaction);
 
     const {policyForMovingExpenses} = usePolicyForMovingExpenses();
-    const isMovingTransactionFromTrackExpense = isMovingTransactionFromTrackExpenseUtil(action);
-    const {policy} = usePolicyForTransaction({
-        transaction,
-        reportPolicyID: policyID,
-        action,
-        iouType,
-        isPerDiemRequest,
-    });
 
-    const distanceState = useDistanceRequestState({
-        transaction,
-        policy,
-        policyID,
-        policyForMovingExpenses,
-        isMovingTransactionFromTrackExpense,
-        isDistanceRequest,
-        iouAmount,
-        iouCurrencyCode,
-    });
-    const {defaultRate, mileageRate, unit, rate, currency, distance, shouldCalculateDistanceAmount, hasRoute, isDistanceRequestWithPendingRoute, distanceRequestAmount} = distanceState;
-
-    // Distance requests can be blocked before submission (a missing home address, or a policy that requires a map
-    // or GPS), so the guard wraps this surface's own confirm callback.
-    const blockDistanceRequestIfNeeded = useBlockDistanceRequest({
-        policyID: isPolicyExpenseChat ? policy?.id : undefined,
-        isManualDistanceRequest,
-        isOdometerDistanceRequest,
-    });
+    const [showMoreFields, setShowMoreFields] = useState(false);
 
     const {
         sections,
@@ -124,6 +91,7 @@ function DefaultConfirmationList({
         requiredFlags,
         visibilityFlags,
         errorState,
+        policy,
         policyTags,
         policyTagLists,
         policyCategories,
@@ -132,16 +100,13 @@ function DefaultConfirmationList({
         customUnitRateID,
         previousTransactionCurrency,
         currentUserAccountID,
-        isScanRequest,
         isTypeSplit,
-        isTypeInvoice,
         isCategoryRequired,
         isFocused,
+        isMovingTransactionFromTrackExpense,
         shouldShowCategories,
         shouldShowTax,
-        selectedParticipants,
         setFormError,
-        clearFormErrors,
         setIsTaxAmountEmpty,
     } = useConfirmationListData({
         transaction,
@@ -165,72 +130,51 @@ function DefaultConfirmationList({
         hasSmartScanFailed,
         shouldHideToSection,
         isLoadingReceipt,
-        onConfirm: () => {
-            if (blockDistanceRequestIfNeeded()) {
-                return;
-            }
-            onConfirm?.();
-        },
+        onConfirm,
         onSendMoney,
         onOpenParticipantPicker,
         onSwitchToTransaction,
         showRemoveExpenseConfirmModal,
-        isPerDiemRequest,
-        isTimeRequest,
-        isDistanceRequest,
-        distanceState,
     });
-
-    const shouldShowRateAutoUpdatedTooltip =
-        isDistanceRequest && !!transaction?.comment?.customUnit?.rateAutoUpdated && !!transaction.created && DistanceRequestUtils.isRateEligibleForDate(mileageRate, transaction.created);
 
     const {defaultTaxCode, defaultTaxValue, shouldKeepCurrentTaxSelection, taxAmountInSmallestCurrencyUnits} = useTaxAmount({
         transaction,
         policy,
         policyForMovingExpenses,
-        isDistanceRequest,
+        isDistanceRequest: false,
         isMovingTransactionFromTrackExpense,
         customUnitRateID,
-        distance,
-        distanceUnit: unit,
+        distance: 0,
+        distanceUnit: undefined,
         previousTransactionCurrency,
     });
 
-    // The expense-type flags below (`isDistanceRequest`, `isTimeRequest`, ...) are temporary: once this component
-    // forks per expense type, each variant knows its own type and they leave both the provider and the context.
+    // Reveal the collapsed fields when one of them raises an inline error, or opening the section and pressing
+    // Create looks like it did nothing. Done during render so it survives the remount a multi-scan switch causes.
+    if (INLINE_FIELD_ERROR_KEYS.has(errorState.formError) && !showMoreFields) {
+        setShowMoreFields(true);
+    }
+
+    useEffect(() => {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        setShowMoreFields(false);
+    }, [transactionID]);
+
+    const isCompactMode = !showMoreFields && !isInLandscapeMode;
+
     const listFooterContent = (
         <ConfirmationFieldsProvider
             {...confirmationFieldsProviderProps}
             isEditingSplitBill={isEditingSplitBill}
-            isScanRequest={isScanRequest}
-            isDistanceRequest={isDistanceRequest}
-            isPerDiemRequest={isPerDiemRequest}
-            isTimeRequest={isTimeRequest}
-            isTypeInvoice={isTypeInvoice}
-            isManualDistanceRequest={isManualDistanceRequest}
-            isOdometerDistanceRequest={isOdometerDistanceRequest}
-            isGPSDistanceRequest={isGPSDistanceRequest}
+            isScanRequest
             onTaxAmountEmptyChange={setIsTaxAmountEmpty}
         >
-            <View>
-                <MoneyRequestConfirmationListFooter
-                    receiptStitchError={receiptStitchError}
-                    isCompactMode={false}
+            <View style={isCompactMode ? styles.flex1 : undefined}>
+                <ScanFooter
+                    isCompactMode={isCompactMode}
                     policy={policy}
                     policyTags={policyTags}
                     selectedParticipants={selectedParticipantsProp}
-                    distanceData={{
-                        distance,
-                        hasRoute,
-                        unit,
-                        distanceRateName: mileageRate.name,
-                        distanceRateCurrency: currency,
-                        mileageRate,
-                        expenseDate: getCreated(transaction),
-                        customUnitRateID,
-                        shouldShowRateAutoUpdatedTooltip,
-                        customUnit: transaction?.comment?.customUnit,
-                    }}
                     amountDisplay={amountDisplay}
                     requiredFlags={requiredFlags}
                     visibilityFlags={{...visibilityFlags, isParticipantPickerVisible}}
@@ -245,9 +189,7 @@ function DefaultConfirmationList({
                         onPDFLoadError,
                         onPDFPassword,
                     }}
-                    // Only a scan reaches compact mode, and a scan now has its own variant, so nothing here can
-                    // read these. The footer prop stays required until its dispatcher is deleted.
-                    compactControls={{showMoreFields: false, setShowMoreFields: () => {}}}
+                    compactControls={{showMoreFields, setShowMoreFields}}
                 />
             </View>
         </ConfirmationFieldsProvider>
@@ -266,33 +208,6 @@ function DefaultConfirmationList({
                 shouldKeepCurrentTaxSelection={shouldKeepCurrentTaxSelection}
                 taxAmountInSmallestCurrencyUnits={taxAmountInSmallestCurrencyUnits}
                 transactionTaxAmount={transaction?.taxAmount}
-            />
-            <DistanceRequestController
-                transactionID={transactionID}
-                transaction={transaction}
-                isDistanceRequest={isDistanceRequest}
-                isManualDistanceRequest={isManualDistanceRequest}
-                isPolicyExpenseChat={isPolicyExpenseChat}
-                customUnitRateID={customUnitRateID}
-                mileageRate={mileageRate}
-                distance={distance}
-                unit={unit}
-                rate={rate}
-                currency={currency}
-                policy={policy}
-                isReadOnly={isReadOnly}
-                isMovingTransactionFromTrackExpense={isMovingTransactionFromTrackExpense}
-                isTypeSplit={isTypeSplit}
-                selectedParticipants={selectedParticipants}
-                selectedParticipantsProp={selectedParticipantsProp}
-                defaultMileageRateCustomUnitRateID={defaultRate}
-                hasRoute={hasRoute}
-                isDistanceRequestWithPendingRoute={isDistanceRequestWithPendingRoute}
-                shouldCalculateDistanceAmount={shouldCalculateDistanceAmount}
-                distanceRequestAmount={distanceRequestAmount}
-                currentUserAccountID={currentUserAccountID}
-                setFormError={setFormError}
-                clearFormErrors={clearFormErrors}
             />
             <SplitBillController
                 transaction={transaction}
@@ -321,6 +236,7 @@ function DefaultConfirmationList({
                 listRef={listRef}
                 footerContent={footerContent}
                 listFooterContent={listFooterContent}
+                isCompactMode={isCompactMode}
                 onSelectRow={navigateToParticipantPage}
                 onDismissError={dismissParticipantRowError}
             />
@@ -328,4 +244,4 @@ function DefaultConfirmationList({
     );
 }
 
-export default DefaultConfirmationList;
+export default ScanConfirmationList;

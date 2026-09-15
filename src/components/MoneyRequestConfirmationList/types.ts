@@ -107,4 +107,76 @@ type MoneyRequestConfirmationListProps = {
     shouldHideToSection?: boolean;
 };
 
-export type {MoneyRequestConfirmationListItem, MoneyRequestConfirmationListProps};
+/**
+ * What a per-diem confirmation reads. The rest of what the page hands the dispatcher cannot affect this surface:
+ * the receipt props because per diem shows no receipt, the scan props because it is never a scan, and
+ * `onSendMoney` / `onOpenParticipantPicker` because neither can be invoked here.
+ */
+type PerDiemConfirmationListProps = Pick<
+    MoneyRequestConfirmationListProps,
+    | 'transaction'
+    | 'action'
+    | 'iouType'
+    | 'policyID'
+    | 'reportID'
+    | 'reportActionID'
+    | 'selectedParticipants'
+    | 'payeePersonalDetails'
+    | 'isReadOnly'
+    | 'isPolicyExpenseChat'
+    | 'expensesNumber'
+    | 'isConfirmed'
+    | 'isConfirming'
+    | 'shouldShowSmartScanFields'
+    | 'canEnterScanFieldsManually'
+    | 'shouldHideToSection'
+    | 'onConfirm'
+    | 'onToggleBillable'
+    | 'onToggleReimbursable'
+    | 'showRemoveExpenseConfirmModal'
+>;
+
+/**
+ * What a time confirmation reads. It keeps the receipt props, which per diem does not, because `TimeFooter`
+ * renders a receipt section. It drops the scan props, `onSendMoney` (the time tab is only offered for SUBMIT and
+ * CREATE) and `onOpenParticipantPicker` (its participant row can never be edited).
+ */
+type TimeConfirmationListProps = Pick<
+    MoneyRequestConfirmationListProps,
+    | 'transaction'
+    | 'action'
+    | 'iouType'
+    | 'policyID'
+    | 'reportID'
+    | 'reportActionID'
+    | 'selectedParticipants'
+    | 'payeePersonalDetails'
+    | 'isReadOnly'
+    | 'isPolicyExpenseChat'
+    | 'expensesNumber'
+    | 'isConfirmed'
+    | 'isConfirming'
+    | 'shouldShowSmartScanFields'
+    | 'canEnterScanFieldsManually'
+    | 'shouldHideToSection'
+    | 'receiptPath'
+    | 'receiptFilename'
+    | 'isReceiptEditable'
+    | 'shouldDisplayReceipt'
+    | 'isLoadingReceipt'
+    | 'onPDFLoadError'
+    | 'onPDFPassword'
+    | 'onConfirm'
+    | 'onToggleBillable'
+    | 'onToggleReimbursable'
+    | 'showRemoveExpenseConfirmModal'
+>;
+
+/**
+ * What a scan confirmation reads. Scan is the widest variant — the only one that reaches compact mode and the
+ * multi-scan inline-error switch — so it drops only what belongs to the other types: the odometer stitch error
+ * and the per-diem, time and odometer flags.
+ */
+type ScanConfirmationListProps = Omit<MoneyRequestConfirmationListProps, 'receiptStitchError' | 'isPerDiemRequest' | 'isTimeRequest' | 'isOdometerDistanceRequest'>;
+
+export type {MoneyRequestConfirmationListItem, MoneyRequestConfirmationListProps, PerDiemConfirmationListProps, TimeConfirmationListProps, ScanConfirmationListProps};

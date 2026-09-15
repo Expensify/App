@@ -40,8 +40,11 @@ type VisibilityFlags = {
     shouldShowCategories: boolean;
     shouldShowTax: boolean;
 
-    /** Whether the parent-owned participant picker modal is currently open (new manual expense flow). Drives amount autofocus on picker close. */
-    isParticipantPickerVisible: boolean;
+    /**
+     * Whether the parent-owned participant picker modal is currently open (new manual expense flow). Drives amount
+     * autofocus on picker close, so only the variants that render an amount field pass it.
+     */
+    isParticipantPickerVisible?: boolean;
 };
 
 /** Shared error state surfaced into multiple fields */

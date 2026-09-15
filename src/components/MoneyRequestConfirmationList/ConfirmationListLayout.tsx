@@ -11,7 +11,12 @@ import React from 'react';
 
 import type {MoneyRequestConfirmationListItem} from './types';
 
+import ConfirmationTelemetry from './ConfirmationTelemetry';
+
 type ConfirmationListLayoutProps = {
+    /** ID of the transaction being confirmed. Closes the list-ready telemetry span once it is available. */
+    transactionID: string | undefined;
+
     /** Participant rows to render. Every expense field lives in `listFooterContent` instead. */
     sections: Array<Section<MoneyRequestConfirmationListItem>>;
 
@@ -38,7 +43,7 @@ type ConfirmationListLayoutProps = {
  * The chrome every confirmation shares: the participant list, the fields below it, and the confirm button. What
  * differs per expense type is passed in as `listFooterContent`.
  */
-function ConfirmationListLayout({sections, listRef, footerContent, listFooterContent, isCompactMode = false, onSelectRow, onDismissError}: ConfirmationListLayoutProps) {
+function ConfirmationListLayout({transactionID, sections, listRef, footerContent, listFooterContent, isCompactMode = false, onSelectRow, onDismissError}: ConfirmationListLayoutProps) {
     const styles = useThemeStyles();
 
     const selectionListStyle = {
@@ -49,6 +54,7 @@ function ConfirmationListLayout({sections, listRef, footerContent, listFooterCon
 
     return (
         <MouseProvider>
+            <ConfirmationTelemetry transactionID={transactionID} />
             <SelectionListWithSections<MoneyRequestConfirmationListItem>
                 ref={listRef}
                 sections={sections}

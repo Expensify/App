@@ -4,9 +4,7 @@ import ConfirmationFooterContent from '@components/MoneyRequestConfirmationList/
 import type {MeasurableInput, SelectionListWithSectionsHandle} from '@components/SelectionList/SelectionListWithSections/types';
 
 import useAttendees from '@hooks/useAttendees';
-import useBlockDistanceRequest from '@hooks/useBlockDistanceRequest';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import useLocalize from '@hooks/useLocalize';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import usePolicyForTransaction from '@hooks/usePolicyForTransaction';
@@ -64,40 +62,56 @@ type UseConfirmationListDataParams = {
     policyID?: string;
     reportID: string;
 
+    /** Only reaches `confirmationFieldsProviderProps`, where the field sections read it to build edit routes. */
+    reportActionID?: string;
+
     /** Selected participants from MoneyRequestModal with login / accountID */
     selectedParticipants: Participant[];
 
     /** Payee of the expense with login */
     payeePersonalDetails?: OnyxEntry<OnyxTypes.PersonalDetails> | null;
 
-    isReadOnly: boolean;
-    isPolicyExpenseChat: boolean;
+    isReadOnly?: boolean;
+    isPolicyExpenseChat?: boolean;
     isEditingSplitBill?: boolean;
-    expensesNumber: number;
-    receiptPath: string | number;
+    expensesNumber?: number;
+
+    /** Only reaches the CTA label, and only for a request that is not per diem and has no pending route. */
+    receiptPath?: string | number;
+
     isConfirmed?: boolean;
     isConfirming?: boolean;
-    shouldShowSmartScanFields: boolean;
-    canEnterScanFieldsManually: boolean;
+    shouldShowSmartScanFields?: boolean;
+    canEnterScanFieldsManually?: boolean;
+
+    /** Scan only: ID of a partially filled receipt among the transactions being confirmed. */
     partiallyManuallyFilledScanID?: string;
+
+    /** Scan only. */
     hasSmartScanFailed?: boolean;
-    shouldHideToSection: boolean;
+
+    shouldHideToSection?: boolean;
 
     /** Whether the odometer receipt is currently being stitched. Reaches the confirm button, which waits on it. */
-    isLoadingReceipt: boolean;
+    isLoadingReceipt?: boolean;
 
     onConfirm?: () => void;
+
+    /** Only invoked for a PAY confirmation, so the types that can never be paid omit it. */
     onSendMoney?: (paymentMethod: PaymentMethodType | undefined) => void;
-    onOpenParticipantPicker: () => void;
+
+    /** Omitted by the variants whose participant row can never be edited, where it could not be invoked. */
+    onOpenParticipantPicker?: () => void;
+
+    /** Scan only: brings another confirmed transaction on screen to show its inline errors. */
     onSwitchToTransaction?: (transactionID: string) => void;
+
     showRemoveExpenseConfirmModal?: () => void;
 
-    /** Expense-type flags. Each variant passes its own constants. */
-    isPerDiemRequest: boolean;
-    isTimeRequest: boolean;
-    isDistanceRequest: boolean;
-    isManualDistanceRequest: boolean;
-    isOdometerDistanceRequest: boolean;
+    /** Expense-type flags. A variant passes only the ones that are true for its own type. */
+    isPerDiemRequest?: boolean;
+    isTimeRequest?: boolean;
+    isDistanceRequest?: boolean;
 
     /** Only a distance variant passes this */
     distanceState?: ConfirmationDistanceState;
@@ -122,31 +136,30 @@ function useConfirmationListData({
     iouType,
     policyID,
     reportID,
+    reportActionID,
     selectedParticipants: selectedParticipantsProp,
     payeePersonalDetails: payeePersonalDetailsProp,
-    isReadOnly,
-    isPolicyExpenseChat,
+    isReadOnly = false,
+    isPolicyExpenseChat = false,
     isEditingSplitBill,
-    expensesNumber,
-    receiptPath,
+    expensesNumber = 0,
+    receiptPath = '',
     isConfirmed,
     isConfirming,
-    shouldShowSmartScanFields,
-    canEnterScanFieldsManually,
+    shouldShowSmartScanFields = true,
+    canEnterScanFieldsManually = false,
     partiallyManuallyFilledScanID,
     hasSmartScanFailed,
-    shouldHideToSection,
-    isLoadingReceipt,
+    shouldHideToSection = false,
+    isLoadingReceipt = false,
     onConfirm,
     onSendMoney,
     onOpenParticipantPicker,
     onSwitchToTransaction,
     showRemoveExpenseConfirmModal,
-    isPerDiemRequest,
-    isTimeRequest,
-    isDistanceRequest,
-    isManualDistanceRequest,
-    isOdometerDistanceRequest,
+    isPerDiemRequest = false,
+    isTimeRequest = false,
+    isDistanceRequest = false,
     distanceState,
 }: UseConfirmationListDataParams) {
     // Every distance branch below goes inert for the variants that pass no distance state.
@@ -165,7 +178,6 @@ function useConfirmationListData({
     const isMovingTransactionFromTrackExpense = isMovingTransactionFromTrackExpenseUtil(action);
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
-    const isInLandscapeMode = useIsInLandscapeMode();
     const {translate} = useLocalize();
 
     const {isTestReceipt, shouldShowProductTrainingTooltip, renderProductTrainingTooltip} = useReceiptTraining({
@@ -190,12 +202,6 @@ function useConfirmationListData({
     const scrollFocusedInputIntoView = useCallback((input: MeasurableInput) => {
         listRef.current?.scrollInputIntoView(input);
     }, []);
-
-    const blockDistanceRequestIfNeeded = useBlockDistanceRequest({
-        policyID: isPolicyExpenseChat ? policy?.id : undefined,
-        isManualDistanceRequest,
-        isOdometerDistanceRequest,
-    });
 
     const iouAmount = hasValidModifiedAmount(transaction) ? Number(transaction?.modifiedAmount) : (transaction?.amount ?? 0);
     const iouCurrencyCode = getCurrency(transaction);
@@ -246,12 +252,10 @@ function useConfirmationListData({
 
     const [didConfirm, setDidConfirm] = useState(isConfirmed);
     const [didConfirmSplit, setDidConfirmSplit] = useState(false);
-    const [showMoreFields, setShowMoreFields] = useState(false);
     const [isTaxAmountEmpty, setIsTaxAmountEmpty] = useState(false);
 
     useEffect(() => {
         // eslint-disable-next-line react-hooks/set-state-in-effect
-        setShowMoreFields(false);
         setIsTaxAmountEmpty(false);
     }, [transactionID]);
 
@@ -371,7 +375,7 @@ function useConfirmationListData({
             return;
         }
 
-        onOpenParticipantPicker();
+        onOpenParticipantPicker?.();
     };
 
     const {validate} = useConfirmationValidation({
@@ -429,22 +433,9 @@ function useConfirmationListData({
         setFormError,
         setDidConfirmSplit,
         showDelegateNoAccessModal,
-        onConfirm: () => {
-            if (blockDistanceRequestIfNeeded()) {
-                return;
-            }
-            onConfirm?.();
-        },
+        onConfirm,
         onSendMoney,
     });
-
-    // These errors render inline on fields that compact mode keeps behind "Show more", so opening the section or
-    // pressing Create looks like it did nothing. Done during render so it survives the remount a multi-scan switch causes.
-    if (INLINE_FIELD_ERROR_KEYS.has(formError) && !showMoreFields) {
-        setShowMoreFields(true);
-    }
-
-    const isCompactMode = !showMoreFields && isScanRequest && !isInLandscapeMode;
 
     const footerContent = isReadOnly ? undefined : (
         <ConfirmationFooterContent
@@ -470,16 +461,33 @@ function useConfirmationListData({
         sections,
         listRef,
         footerContent,
-        isCompactMode,
         navigateToParticipantPage,
         dismissParticipantRowError,
+
+        /**
+         * The `ConfirmationFieldsProvider` props that are the same for every expense type. A variant spreads these
+         * and adds only the type flags that are true for it.
+         */
+        confirmationFieldsProviderProps: {
+            transactionID,
+            reportID,
+            reportActionID,
+            action,
+            iouType,
+            policyID,
+            isReadOnly,
+            didConfirm: !!didConfirm,
+            canEnterScanFieldsManually,
+            isPolicyExpenseChat,
+            scrollFocusedInputIntoView,
+            onSubmitForm: confirm,
+        },
 
         // Footer prop bundles, shared by every variant's footer
         amountDisplay: {amount: amountToBeUsed, formattedAmount, formattedAmountPerAttendee},
         requiredFlags: {isCategoryRequired, isMerchantRequired, isDescriptionRequired},
         visibilityFlags: {shouldShowSmartScanFields, shouldShowAmountField: !isPerDiemRequest, shouldShowMerchant, shouldShowCategories, shouldShowTax},
         errorState: {shouldDisplayFieldError, formError, clearFormErrors, setFormError},
-        compactControls: {showMoreFields, setShowMoreFields},
 
         // Shared values the variants pass on to their own controllers and footers
         policy,
