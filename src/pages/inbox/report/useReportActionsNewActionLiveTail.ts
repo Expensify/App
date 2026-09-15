@@ -19,7 +19,7 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {useNavigation} from '@react-navigation/native';
-import {useCallback, useEffect, useEffectEvent, useRef, useState} from 'react';
+import {useEffect, useEffectEvent, useRef, useState} from 'react';
 
 // In the component we are subscribing to the arrival of new actions.
 // As there is the possibility that there are multiple instances of a ReportScreen
@@ -48,7 +48,8 @@ type UseReportActionsNewActionLiveTailParams = {
     hasNewerActions: boolean;
     linkedReportActionID: string | undefined;
     hasNewestReportAction: boolean;
-    sortedVisibleReportActions: OnyxTypes.ReportAction[];
+    /** Actions rendered by the list in chronological order. */
+    renderedVisibleReportActions: OnyxTypes.ReportAction[];
     sortedAllReportActionsForPagination: OnyxTypes.ReportAction[];
     reportActionPages: OnyxTypes.Pages | undefined;
     setTreatAsNoPaginationAnchor: (value: boolean) => void;
@@ -61,9 +62,8 @@ type LiveTailJumpStage = 'idle' | 'open_report' | 'await_scroll' | 'await_prune'
 
 /**
  * Owns subscribe-to-new-action scrolling, live-tail jump (openReport → scroll → prune), and the
- * deferred scroll + pagination prune after layout. Uses useEffectEvent for the Pusher subscription handler so it
- * always sees the latest props without mirror refs. The layout-time prune step uses useCallback so callers can invoke
- * it from list `onLayout` outside this hook.
+ * deferred scroll + pagination prune after the data render. Uses useEffectEvent for the Pusher subscription handler so it
+ * always sees the latest props without mirror refs. The prune callback completes the explicit scroll request in the caller.
  */
 function useReportActionsNewActionLiveTail({
     conciergeChat,
@@ -80,7 +80,7 @@ function useReportActionsNewActionLiveTail({
     hasNewerActions,
     linkedReportActionID,
     hasNewestReportAction,
-    sortedVisibleReportActions,
+    renderedVisibleReportActions,
     sortedAllReportActionsForPagination,
     reportActionPages,
     setTreatAsNoPaginationAnchor,
@@ -132,14 +132,14 @@ function useReportActionsNewActionLiveTail({
                     return;
                 }
 
-                const index = sortedVisibleReportActions.findIndex((item) => item.reportActionID === action?.reportActionID);
+                const index = renderedVisibleReportActions.findIndex((item) => item.reportActionID === action?.reportActionID);
                 if (action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) {
-                    if (index > 0) {
+                    setIsFloatingMessageCounterVisible(false);
+                    if (index >= 0 && index < renderedVisibleReportActions.length - 1) {
                         setTimeout(() => {
                             reportScrollManager.scrollToIndex(index);
                         }, 100);
                     } else {
-                        setIsFloatingMessageCounterVisible(false);
                         reportScrollManager.scrollToBottom();
                     }
                     if (action?.reportActionID) {
@@ -147,22 +147,20 @@ function useReportActionsNewActionLiveTail({
                     }
                 } else {
                     setIsFloatingMessageCounterVisible(false);
-                    reportScrollManager.scrollToBottom();
+                    setIsScrollToBottomEnabled(true);
                 }
-
-                setIsScrollToBottomEnabled(true);
             },
         });
     });
 
-    const completeLiveTailPruneAfterScrollToBottom = useCallback(() => {
+    const completeLiveTailPruneAfterScrollToBottom = () => {
         if (liveTailJumpRef.current.stage !== 'await_prune') {
             return;
         }
         pruneReportActionPagesToNewestWindow(reportID, sortedAllReportActionsForPagination, reportActionPages);
         setTreatAsNoPaginationAnchor(false);
         liveTailJumpRef.current = {stage: 'idle'};
-    }, [reportID, sortedAllReportActionsForPagination, reportActionPages, setTreatAsNoPaginationAnchor]);
+    };
 
     useEffect(() => {
         liveTailJumpRef.current = {stage: 'idle'};

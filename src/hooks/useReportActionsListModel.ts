@@ -56,6 +56,7 @@ function useReportActionsListModel(reportID: string, isReportLoadPending: boolea
     });
     const hasOnceLoadedReportActions = reportLoadingState?.hasOnceLoadedReportActions;
     const isLoadingInitialReportActions = reportLoadingState?.isLoadingInitialReportActions;
+    const isInitialReportLoadPending = !hasOnceLoadedReportActions && (isReportLoadPending || isLoadingInitialReportActions !== false);
     const isLoadingOlderReportActions = reportLoadingState?.isLoadingOlderReportActions;
     const hasLoadingOlderReportActionsError = reportLoadingState?.hasLoadingOlderReportActionsError;
 
@@ -146,7 +147,10 @@ function useReportActionsListModel(reportID: string, isReportLoadPending: boolea
     const state = {
         report,
         hasOnceLoadedReportActions,
+        isInitialReportLoadPending,
+        hasOlderActions,
         hasNewerActions,
+        oldestReportActionID: currentReportOldestActionID,
         sortedAllReportActions,
         oldestUnreadReportAction,
         transactionThreadReport,
