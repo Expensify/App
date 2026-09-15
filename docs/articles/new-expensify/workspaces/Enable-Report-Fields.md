@@ -28,11 +28,7 @@ Report fields are available on the **Control** plan only. If your workspace is c
 3. Click **Reports**.
 4. Enable **Report fields**.
 
-<!-- SCREENSHOT:
-Suggestion: The workspace Reports page with the Report fields toggle turned on and the Add field menu item visible below it.
-Location: Immediately after the steps in this section.
-Purpose: Report fields is enabled on the Reports page rather than on More features, so admins who look under More features can't find the toggle.
--->
+![The workspace Reports page with Report fields enabled and the Add field button below it]({{site.url}}/assets/images/ExpensifyHelp-ReportFields_01.png){:width="100%"}
 
 ---
 
