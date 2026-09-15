@@ -52,7 +52,6 @@ import MoneyRequestReportTransactionsNavigation from './MoneyRequestReportView/M
 import {useWideRHPState} from './WideRHPContextProvider';
 
 type MoneyRequestHeaderProps = {
-    /** The reportID of the report currently being looked at */
     reportID: string | undefined;
 
     /** Method to trigger when pressing close button of the header */

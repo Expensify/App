@@ -73,6 +73,19 @@ jest.mock('@components/OnyxListItemProvider', () => ({
     usePersonalDetails: () => ({}),
 }));
 
+const mockIsOffline = {value: false};
+
+jest.mock('@hooks/useNetwork', () => ({
+    __esModule: true,
+    default: () => ({isOffline: mockIsOffline.value}),
+}));
+
+// Only useIsFocused is overridden; findFocusedRoute is the real one, since the teardown assertions depend on it.
+jest.mock('@react-navigation/native', () => ({
+    ...jest.requireActual<Record<string, unknown>>('@react-navigation/native'),
+    useIsFocused: () => true,
+}));
+
 type ReactActual = {createElement: typeof React.createElement; Fragment: typeof React.Fragment};
 type ReactNativeActual = {
     Pressable: React.ComponentType<{testID?: string; disabled?: boolean; onPress?: () => void}>;
@@ -121,6 +134,7 @@ jest.mock('@navigation/navigationRef', () => ({
 jest.mock('@libs/actions/Report', () => ({
     createTransactionThreadReport: jest.fn(() => undefined),
     setOptimisticTransactionThread: jest.fn(),
+    openReport: jest.fn(),
 }));
 
 jest.mock('@libs/actions/TransactionThreadNavigation', () => ({
@@ -152,6 +166,7 @@ const resetMockState = () => {
     mockState.reportActionsCollection = {};
     mockState.reportsCollection = {};
     mockGetRootState.mockReturnValue(makeRootState('testRoute'));
+    mockIsOffline.value = false;
 };
 
 const setupUseOnyx = () => {

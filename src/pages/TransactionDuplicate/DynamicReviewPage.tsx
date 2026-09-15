@@ -1,5 +1,5 @@
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import ConfirmationPage from '@components/ConfirmationPage';
 import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -70,6 +70,7 @@ function DynamicReviewPage() {
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
     // The whole carousel this screen is about to displace, so the restore effect below can hand it back exactly as
     // it was. The owner has to be the screen the carousel came from (Search, or a report's list): re-seeding the
@@ -223,6 +224,7 @@ function DynamicReviewPage() {
             policy,
             isASAPSubmitBetaEnabled,
             allTransactions,
+            rules,
             currentTransactionViolations,
             isTrackIntentUser,
         });

@@ -1,4 +1,4 @@
-import LinkButton from '@components/ButtonComposed/composed/LinkButton';
+import LinkButton from '@components/Button/composed/LinkButton';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import Checkbox from '@components/Checkbox';
 import type FlatListRefType from '@components/FlashList/types';
@@ -42,7 +42,6 @@ import {groupTransactionsByCategory, groupTransactionsByTag} from '@libs/ReportL
 import {
     canAddTransaction,
     getActionErrorsByTransaction,
-    getAddExpenseDropdownOptions,
     getBillableAndTaxTotal,
     getMoneyRequestSpendBreakdown,
     getReportOfflinePendingActionAndErrors,
@@ -64,6 +63,8 @@ import isReportOpenInSuperWideRHP from '@navigation/helpers/isReportOpenInSuperW
 import Navigation from '@navigation/Navigation';
 
 import variables from '@styles/variables';
+
+import {getAddExpenseDropdownOptions} from '@userActions/IOU/StartExpenseFlows';
 
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -188,7 +189,6 @@ type MoneyRequestReportTransactionListProps = {
     /** Whether the report actions are being loaded, used to show 'Comments' during loading state */
     isLoadingInitialReportActions?: boolean;
 
-    /** Callback executed on layout */
     onLayout?: (event: LayoutChangeEvent) => void;
 
     /** Reversed list of report actions to render below the transactions section in the unified list. */
@@ -306,7 +306,8 @@ function MoneyRequestReportTransactionList({
     const ownerLoginSelector = useMemo(() => personalDetailsLoginSelector(report?.ownerAccountID), [report?.ownerAccountID]);
     const [ownerLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: ownerLoginSelector});
     const isReportArchived = useReportIsArchived(report?.reportID);
-    const shouldShowAddExpenseButton = canAddTransaction(report, isReportArchived) && isCurrentUserSubmitter(report);
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
+    const shouldShowAddExpenseButton = canAddTransaction(report, rules, isReportArchived) && isCurrentUserSubmitter(report);
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const [lastDistanceExpenseType] = useOnyx(ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE);
@@ -607,7 +608,8 @@ function MoneyRequestReportTransactionList({
         // "Recently added" flow) that belongs to the transaction thread sitting underneath this report.
         // Overwriting it would drop that carousel when the user navigates back. Row presses still seed the
         // correct siblings lazily via useNavigateToTransactionThread.
-        if (getActiveTransactionIDs().descriptors) {
+        const {ids: activeIDs, descriptors: activeDescriptors} = getActiveTransactionIDs();
+        if (activeDescriptors) {
             return;
         }
 
@@ -619,9 +621,18 @@ function MoneyRequestReportTransactionList({
             return;
         }
 
-        // Always re-seed from this report's own visual order. An earlier version bailed out whenever the active
-        // list was a superset of this report's transactions, which left a stale broader carousel (e.g. the Spend
-        // page's full expense list, or a list still holding a since-deleted expense) driving this report's
+        // A report preview press seeds these arrows in the carousel's order, which can differ from this list's order.
+        // Keep that seed while it still covers exactly these rows, and re-seed only when the rows themselves change.
+        if (activeIDs && activeIDs.length === visualOrderTransactionIDs.length) {
+            const activeIDSet = new Set(activeIDs);
+            if (visualOrderTransactionIDs.every((transactionID) => activeIDSet.has(transactionID))) {
+                return;
+            }
+        }
+
+        // Otherwise always re-seed from this report's own visual order. An earlier version bailed out whenever the
+        // active list was a superset of this report's transactions, which left a stale broader carousel (e.g. the
+        // Spend page's full expense list, or a list still holding a since-deleted expense) driving this report's
         // counter and arrows.
         setActiveTransactionIDs(visualOrderTransactionIDs, {source: carouselSource});
         hasSeededCarouselRef.current = true;

@@ -1,4 +1,4 @@
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import ReferralProgramCTA from '@components/ReferralProgramCTA';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -10,6 +10,7 @@ import type {ListItem, SelectionListWithSectionsHandle} from '@components/Select
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDismissedReferralBanners from '@hooks/useDismissedReferralBanners';
+import useIsSupportalSession from '@hooks/useIsSupportalSession';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -64,7 +65,6 @@ type NewChatPageRef = {
 };
 
 type NewChatPageProps = {
-    /** Reference to the outer element */
     ref?: Ref<NewChatPageRef>;
 };
 
@@ -87,6 +87,7 @@ function NewChatPage({ref}: NewChatPageProps) {
     const selectionListRef = useRef<SelectionListWithSectionsHandle | null>(null);
     const allPersonalDetails = usePersonalDetails();
     const {singleExecution} = useSingleExecution();
+    const isSupportalSession = useIsSupportalSession();
 
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
@@ -310,6 +311,7 @@ function NewChatPage({ref}: NewChatPageProps) {
                     hasCompletedGuidedSetupFlow: guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
                     betas,
                     conciergeChat,
+                    isSupportalSession,
                 }),
             )();
         });
@@ -424,6 +426,7 @@ function NewChatPage({ref}: NewChatPageProps) {
                 shouldSingleExecuteRowSelect
                 confirmButtonOptions={{
                     onConfirm: (e, option) => (latestSelectedOptionsRef.current.length > 0 ? createGroup() : selectOption(option)),
+                    isFooterConfirmEnabled: selectedOptions.length > 0,
                 }}
                 rightHandSideComponent={itemRightSideComponent}
                 footerContent={footerContent}

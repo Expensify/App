@@ -65,7 +65,8 @@ function useNavigateToTransactionThread() {
         // system message thread instead of the expense. The carousel this seeds resolves siblings the same way, so
         // using the loose lookup here made a row press and a prev/next step onto the same expense disagree.
         const iouAction = getExpenseCreationIOUActionForTransactionID(reportActions, transactionID);
-        const resolvedBackTo = backTo ?? Navigation.getActiveRoute();
+        const routeAtPress = Navigation.getActiveRoute();
+        const resolvedBackTo = backTo ?? routeAtPress;
         let reportIDToNavigate = iouAction?.childReportID;
 
         const routeParams: {reportID: string | undefined; reportActionID?: string; backTo?: string; anchorTransactionID?: string} = {
@@ -103,6 +104,10 @@ function useNavigateToTransactionThread() {
         // of the carousel: an earlier version kept a broader list (e.g. the Spend page's) alive here, which left
         // the report showing a counter and arrows for expenses that weren't in it.
         setActiveTransactionIDs(siblingTransactionIDs, {source: carouselSource}).then(() => {
+            // A second press made before this resolves would stack its expense on top of the first.
+            if (Navigation.getActiveRoute() !== routeAtPress) {
+                return;
+            }
             if (reportIDToNavigate) {
                 markReportRHPWidth(reportIDToNavigate, 'wide');
             }

@@ -6,10 +6,11 @@ import {useWideRHPActions} from '@components/WideRHPContextProvider';
 import useCarouselTransactionIDs from '@hooks/useCarouselTransactionIDs';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {setOptimisticTransactionThread} from '@libs/actions/Report';
+import {openReport, setOptimisticTransactionThread} from '@libs/actions/Report';
 import {clearActiveTransactionIDs} from '@libs/actions/TransactionThreadNavigation';
 import type {RightModalNavigatorParamList} from '@libs/Navigation/types';
 import {getExpenseCreationTransactionID} from '@libs/ReportActionsUtils';
@@ -29,9 +30,9 @@ import getEmptyArray from '@src/types/utils/getEmptyArray';
 import type {GestureResponderEvent} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
-import {findFocusedRoute} from '@react-navigation/native';
+import {findFocusedRoute, useIsFocused} from '@react-navigation/native';
 import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
-import React, {startTransition, useCallback, useEffect, useMemo} from 'react';
+import React, {startTransition, useCallback, useEffect, useMemo, useRef} from 'react';
 import {View} from 'react-native';
 
 const CAROUSEL_PRESERVING_SCREENS = [
@@ -96,7 +97,13 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
     const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
     const personalDetails = usePersonalDetails();
 
+    const {isOffline} = useNetwork();
+    const isFocused = useIsFocused();
+
     const currentTransactionIndex = transactionIDsList.findIndex((id) => id === currentTransactionID);
+
+    // A press made before the sibling's parent action has loaded is parked here and replayed once it arrives.
+    const pendingSiblingRef = useRef<{transactionID: string; originRoute: string} | null>(null);
 
     const {prevTransactionID, nextTransactionID} = useMemo(() => {
         if (transactionIDsList.length < 2 || currentTransactionIndex === -1) {
@@ -126,16 +133,20 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
     // a Map of every money request action on the three parent reports (fast-equals compares Maps in O(n^2)).
     const parentReportActionsSelector = useCallback(
         (allReportActions: OnyxCollection<OnyxTypes.ReportActions>) => {
+            // Whether the sibling's parent report has any actions at all, which is what separates "not fetched yet"
+            // from "fetched, but this expense has no creation action". Only the former is worth waiting for.
+            const hasPrevParentReportActions = !!Object.keys(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${prevTransaction?.reportID}`] ?? {}).length;
+            const hasNextParentReportActions = !!Object.keys(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${nextTransaction?.reportID}`] ?? {}).length;
             const parentActions: PrevNextParentReportActions = {prevParentReportAction: undefined, nextParentReportAction: undefined};
             if (!prevTransactionID && !nextTransactionID) {
-                return parentActions;
+                return {...parentActions, hasPrevParentReportActions, hasNextParentReportActions};
             }
             const parentReportIDs = new Set([currentTransaction?.reportID, prevTransaction?.reportID, nextTransaction?.reportID]);
             for (const parentReportID of parentReportIDs) {
                 const key = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}` as const;
                 collectParentReportActions(allReportActions?.[key], prevTransactionID, nextTransactionID, parentActions);
             }
-            return parentActions;
+            return {...parentActions, hasPrevParentReportActions, hasNextParentReportActions};
         },
         [currentTransaction?.reportID, nextTransaction?.reportID, nextTransactionID, prevTransaction?.reportID, prevTransactionID],
     );
@@ -196,12 +207,17 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
         };
     }, []);
 
-    // Two entries are the minimum for there to be anything to page between, and an anchor that isn't in the list
-    // means this expense doesn't belong to the active carousel at all. The list belongs to a screen the user has
-    // since left. Showing arrows then would step to an unrelated expense.
-    if (transactionIDsList.length < 2 || currentTransactionIndex === -1) {
-        return;
-    }
+    const stageSiblingPress = (transactionID: string | undefined, parentReportID: string | undefined) => {
+        // Offline there is no fetch to wait for, so the caller resolves the sibling with what it already has.
+        // Report "0" isn't a report that can be fetched either, so an unreported sibling never waits.
+        if (!transactionID || !parentReportID || parentReportID === CONST.REPORT.UNREPORTED_REPORT_ID || isOffline) {
+            return false;
+        }
+        pendingSiblingRef.current = {transactionID, originRoute: Navigation.getActiveRoute()};
+        // Always true here: we are fetching this report's actions, so it must not overwrite its cached name.
+        openReport({reportID: parentReportID, introSelected, conciergeChat, betas, currentUserAccountID: accountID, hasReportActions: true});
+        return true;
+    };
 
     const getBackTo = () => {
         let backTo = Navigation.getActiveRoute();
@@ -294,9 +310,27 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
         siblingParentReportAction: OnyxTypes.ReportAction | undefined,
         siblingParentReport: OnyxEntry<OnyxTypes.Report>,
         siblingThreadReport: OnyxEntry<OnyxTypes.Report>,
+        hasSiblingParentReportActions: boolean,
     ) => {
         e?.preventDefault();
         const backTo = getBackTo();
+
+        // A thread created before the parent action loads would have no parent, so wait for the fetch - but only
+        // when there is a fetch that could produce it. A parent report whose actions are already loaded won't grow
+        // a creation action by being re-fetched, a descriptor-backed sibling carries its own resolution, and a
+        // one-transaction report is opened directly; all three fall through to the resolver instead of waiting.
+        const hasDescriptor = !!siblingTransactionID && !!siblingDescriptorsByTransactionID?.[siblingTransactionID];
+        const isSingleExpenseReport = !!siblingTransaction?.reportID && siblingTransaction.reportID !== CONST.REPORT.UNREPORTED_REPORT_ID && isOneTransactionReport(siblingParentReport);
+        if (
+            !siblingParentReportAction &&
+            !hasSiblingParentReportActions &&
+            !hasDescriptor &&
+            !isSingleExpenseReport &&
+            stageSiblingPress(siblingTransactionID, siblingTransaction?.reportID)
+        ) {
+            return;
+        }
+
         const targetReportID = resolveSiblingReportID(siblingTransactionID, siblingTransaction, siblingParentReportAction, siblingParentReport, siblingThreadReport);
 
         // Report "0" is the unreported placeholder, not a report that can be opened. Navigating to it lands the user
@@ -311,10 +345,56 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
     };
 
     const onNext = (e: GestureResponderEvent | KeyboardEvent | undefined) =>
-        navigateToSibling(e, nextTransactionID, nextTransaction, nextParentReportAction, nextTransactionParentReport, nextThreadReport);
+        navigateToSibling(
+            e,
+            nextTransactionID,
+            nextTransaction,
+            nextParentReportAction,
+            nextTransactionParentReport,
+            nextThreadReport,
+            !!reportedParentReportActions?.hasNextParentReportActions,
+        );
 
     const onPrevious = (e: GestureResponderEvent | KeyboardEvent | undefined) =>
-        navigateToSibling(e, prevTransactionID, prevTransaction, prevParentReportAction, prevTransactionParentReport, prevThreadReport);
+        navigateToSibling(
+            e,
+            prevTransactionID,
+            prevTransaction,
+            prevParentReportAction,
+            prevTransactionParentReport,
+            prevThreadReport,
+            !!reportedParentReportActions?.hasPrevParentReportActions,
+        );
+
+    // Replays a staged press once its parent action arrives, but only if the user is still where they pressed -
+    // this screen stays mounted under a pushed RHP, and resuming from there would yank them out with a stale backTo.
+    useEffect(() => {
+        const pending = pendingSiblingRef.current;
+        if (!pending) {
+            return;
+        }
+        if (!isFocused || Navigation.getActiveRoute() !== pending.originRoute) {
+            pendingSiblingRef.current = null;
+            return;
+        }
+        if (pending.transactionID === nextTransactionID && nextParentReportAction) {
+            pendingSiblingRef.current = null;
+            onNext(undefined);
+            return;
+        }
+        if (pending.transactionID === prevTransactionID && prevParentReportAction) {
+            pendingSiblingRef.current = null;
+            onPrevious(undefined);
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- onNext/onPrevious are rebuilt every render, so listing them would defeat the dependency list
+    }, [isFocused, nextTransactionID, nextParentReportAction, prevTransactionID, prevParentReportAction]);
+
+    // Two entries are the minimum for there to be anything to page between, and an anchor that isn't in the list
+    // means this expense doesn't belong to the active carousel at all. The list belongs to a screen the user has
+    // since left. Showing arrows then would step to an unrelated expense.
+    if (transactionIDsList.length < 2 || currentTransactionIndex === -1) {
+        return;
+    }
 
     return (
         <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2]}>
