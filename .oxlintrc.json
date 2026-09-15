@@ -1699,6 +1699,30 @@
             }
         },
         {
+            // Mirrors config/eslint/eslint.config.mjs:585-602. These sources are bundled as real ESM, so a
+            // CJS idiom builds fine and then throws a ReferenceError in CI. ESLint replaces the rule value
+            // for this scope rather than merging, and so does an oxlint override, so the airbnb browser list
+            // from the root is deliberately not repeated here: this matches what ESLint actually resolves.
+            "files": [".github/actions/**/*.ts", ".github/libs/**/*.ts"],
+            "rules": {
+                "no-restricted-globals": [
+                    "error",
+                    {
+                        "name": "module",
+                        "message": "This file is bundled as ESM and runs on Node 24. For an entry-point guard use `import.meta.main` instead of `require.main === module`."
+                    },
+                    {
+                        "name": "__dirname",
+                        "message": "This file is bundled as ESM. Use `import.meta.dirname` instead of `__dirname`."
+                    },
+                    {
+                        "name": "__filename",
+                        "message": "This file is bundled as ESM. Use `import.meta.filename` instead of `__filename`."
+                    }
+                ]
+            }
+        },
+        {
             "files": ["tests/**/*"],
             "rules": {
                 "import/extensions": "off",
@@ -2419,6 +2443,12 @@
                 "**/*.story.ts", "**/*.story.tsx", "**/*.story.js", "**/*.story.jsx", "**/*.story.mjs", "**/*.story.cjs"
             ],
             "rules": {
+                // Mirrors the storybook preset, which ESLint picks up through
+                // `plugin:storybook/recommended` (config/eslint/eslint.config.mjs:241-246) and which
+                // turns this off for the same glob list. Stories call hook-like helpers outside a
+                // component, so the rule fires on shapes the preset considers legal. Oxlint enabled it
+                // everywhere and was the stricter of the two; this closes that difference.
+                "react/rules-of-hooks": "off",
                 "hosted/await-interactions": "error",
                 "hosted/context-in-play-function": "error",
                 "hosted/default-exports": "error",
