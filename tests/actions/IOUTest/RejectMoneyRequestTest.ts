@@ -405,6 +405,7 @@ describe('actions/IOU/RejectMoneyRequest', () => {
                     [CONST.BETAS.ALL],
                     undefined,
                     getCurrencyDecimalsLocal,
+                    {rules: undefined},
                 );
 
                 await waitForBatchedUpdates();
@@ -434,6 +435,7 @@ describe('actions/IOU/RejectMoneyRequest', () => {
                     [CONST.BETAS.ALL],
                     undefined,
                     getCurrencyDecimalsLocal,
+                    {rules: undefined},
                 );
                 await waitForBatchedUpdates();
 
@@ -463,6 +465,7 @@ describe('actions/IOU/RejectMoneyRequest', () => {
                     [CONST.BETAS.ALL],
                     undefined,
                     getCurrencyDecimalsLocal,
+                    {rules: undefined},
                 );
                 await waitForBatchedUpdates();
 
@@ -508,6 +511,7 @@ describe('actions/IOU/RejectMoneyRequest', () => {
                     [CONST.BETAS.ALL],
                     undefined,
                     getCurrencyDecimalsLocal,
+                    {rules: undefined},
                 );
                 await waitForBatchedUpdates();
                 await mockFetch?.resume?.();
@@ -549,6 +553,7 @@ describe('actions/IOU/RejectMoneyRequest', () => {
                     [CONST.BETAS.ALL],
                     undefined,
                     getCurrencyDecimalsLocal,
+                    {rules: undefined},
                 );
                 await waitForBatchedUpdates();
 
