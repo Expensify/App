@@ -92,6 +92,4 @@ function InsightsDataTableSkeleton({fixedNumItems, shouldShowAvatar}: InsightsDa
     );
 }
 
-InsightsDataTableSkeleton.displayName = 'InsightsDataTableSkeleton';
-
 export default InsightsDataTableSkeleton;

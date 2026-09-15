@@ -474,7 +474,6 @@ type SearchChartProps = {
     /** Position of currency symbol relative to value */
     unitPosition?: UnitPosition;
 
-    /** Whether the chart draws its own legend. */
     shouldShowLegend?: boolean;
 };
 

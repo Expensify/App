@@ -2,11 +2,9 @@ import type {ChartDataPoint} from '@components/Charts';
 import VictoryTheme from '@components/Charts/VictoryTheme';
 
 import {convertToFrontendAmountAsInteger} from '@libs/CurrencyUtils';
-import {format} from '@libs/NumberFormatUtils';
 import StringUtils from '@libs/StringUtils';
 
 import CONST from '@src/CONST';
-import type Locale from '@src/types/onyx/Locale';
 
 import type {ChartView, GroupedItem, SearchChartDataRow} from './types';
 
@@ -67,17 +65,4 @@ function buildChartSeries({data, view, getLabel, getShortLabel, getCurrencyDecim
     });
 }
 
-const SMALLEST_REPORTED_PERCENT = 0.1;
-
-/** Formats a group's share of total spend for display, to at most one decimal place. */
-function formatPercentOfTotal(percent: number, groupTotal: number, locale: Locale | undefined): string {
-    const options: Intl.NumberFormatOptions = {style: 'percent', maximumFractionDigits: 1};
-
-    if (percent < SMALLEST_REPORTED_PERCENT / 2 && groupTotal !== 0) {
-        return `<${format(locale, SMALLEST_REPORTED_PERCENT / 100, options)}`;
-    }
-
-    return format(locale, percent / 100, options);
-}
-
-export {buildChartSeries, formatPercentOfTotal, getSliceColorsByDataIndex};
+export {buildChartSeries, getSliceColorsByDataIndex};

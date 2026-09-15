@@ -5,7 +5,10 @@ import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {format} from '@libs/NumberFormatUtils';
+
 import CONST from '@src/CONST';
+import type Locale from '@src/types/onyx/Locale';
 
 import React from 'react';
 import {View} from 'react-native';
@@ -13,11 +16,23 @@ import {View} from 'react-native';
 import type {TransactionCardGroupListItemType, TransactionMemberGroupListItemType} from './SearchList/ListItem/types';
 import type {ChartView, GroupedItem, SearchChartDataRow, SearchGroupBy} from './types';
 
-import {formatPercentOfTotal} from './buildChartSeries';
 import InsightsDataTableSkeleton from './InsightsDataTableSkeleton';
 
 /** Placeholder rows while loading */
 const SKELETON_ROW_COUNT = 5;
+
+const SMALLEST_REPORTED_PERCENT = 0.1;
+
+/** Formats a group's share of total spend for display, to at most one decimal place. */
+function formatPercentOfTotal(percent: number, groupTotal: number, locale: Locale | undefined): string {
+    const options: Intl.NumberFormatOptions = {style: 'percent', maximumFractionDigits: 1};
+
+    if (percent < SMALLEST_REPORTED_PERCENT / 2 && groupTotal !== 0) {
+        return `<${format(locale, SMALLEST_REPORTED_PERCENT / 100, options)}`;
+    }
+
+    return format(locale, percent / 100, options);
+}
 
 type InsightsDataTableProps = {
     /** The plotted groups, prepared by `SearchChartView` */
@@ -33,8 +48,12 @@ type InsightsDataTableProps = {
 };
 
 /** Narrows a group to the member-based variants, the ones carrying the person's avatar and account ID. */
+function isMemberGroupBy(groupBy: SearchGroupBy) {
+    return groupBy === CONST.SEARCH.GROUP_BY.FROM || groupBy === CONST.SEARCH.GROUP_BY.CARD;
+}
+
 function isMemberGroup(item: GroupedItem): item is TransactionMemberGroupListItemType | TransactionCardGroupListItemType {
-    return item.groupedBy === CONST.SEARCH.GROUP_BY.FROM || item.groupedBy === CONST.SEARCH.GROUP_BY.CARD;
+    return isMemberGroupBy(item.groupedBy);
 }
 
 function InsightsDataTable({rows, view, groupBy, isLoading}: InsightsDataTableProps) {
@@ -42,7 +61,7 @@ function InsightsDataTable({rows, view, groupBy, isLoading}: InsightsDataTablePr
     const {translate, preferredLocale} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
 
-    const shouldShowAvatar = groupBy === CONST.SEARCH.GROUP_BY.FROM || groupBy === CONST.SEARCH.GROUP_BY.CARD;
+    const shouldShowAvatar = isMemberGroupBy(groupBy);
 
     if (isLoading) {
         return (
@@ -71,7 +90,7 @@ function InsightsDataTable({rows, view, groupBy, isLoading}: InsightsDataTablePr
                         style={[styles.flexRow, styles.alignItemsCenter, styles.gap3, styles.pv4, styles.ph4, !isLastRow && styles.borderBottom]}
                     >
                         {shouldShowColorDot && !!color && <View style={[styles.pieChartLegendDot, {backgroundColor: color}]} />}
-                        {shouldShowAvatar && isMemberGroup(item) && (
+                        {isMemberGroup(item) && (
                             <UserAvatar
                                 size={CONST.AVATAR_SIZE.DEFAULT}
                                 source={item.avatar}
@@ -102,6 +121,5 @@ function InsightsDataTable({rows, view, groupBy, isLoading}: InsightsDataTablePr
     );
 }
 
-InsightsDataTable.displayName = 'InsightsDataTable';
-
 export default InsightsDataTable;
+export {formatPercentOfTotal};
