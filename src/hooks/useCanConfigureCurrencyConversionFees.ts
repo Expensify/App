@@ -15,9 +15,7 @@ import usePermissions from './usePermissions';
 function useCanConfigureCurrencyConversionFees(policy: OnyxEntry<Policy>): boolean {
     const {isBetaEnabled} = usePermissions();
 
-    return (
-        isBetaEnabled(CONST.BETAS.GLOBAL_REIMBURSEMENT_FX) && policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES && !!policy?.achAccount?.bankAccountID
-    );
+    return isBetaEnabled(CONST.BETAS.GLOBAL_REIMBURSEMENT_FX) && policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES && !!policy?.achAccount?.bankAccountID;
 }
 
 export default useCanConfigureCurrencyConversionFees;
