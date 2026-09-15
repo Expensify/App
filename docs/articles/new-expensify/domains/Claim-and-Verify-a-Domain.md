@@ -1,8 +1,8 @@
 ---
 title: Claim and Verify a Domain
 description: Learn how to claim and verify a private domain in New Expensify to enable SAML login and unlock enhanced security features.
-internalScope: Audience is Domain Admins and IT admins. Covers claiming a domain, requesting admin access to a domain someone else already set up, and verifying domain ownership via DNS. Does not cover SAML configuration details, Domain Members management, Domain Groups, or login troubleshooting.
-keywords: [New Expensify, claim domain, verify domain, private domain, domain settings, enhanced security, SAML, domain admin, domain verification, DNS TXT record, verify domain for SAML, how to verify domain, SAML setup, domain already set up, domain exists, ask for admin access, request admin access, domain already exists in your account]
+internalScope: Audience is Domain Admins and IT admins. Covers claiming a domain, requesting admin access to a domain someone else already set up (from both the Domain exists page and the Access restricted screen), and verifying domain ownership via DNS. Does not cover SAML configuration details, Domain Members management, Domain Groups, or login troubleshooting.
+keywords: [New Expensify, claim domain, verify domain, private domain, domain settings, enhanced security, SAML, domain admin, domain verification, DNS TXT record, verify domain for SAML, how to verify domain, SAML setup, domain already set up, domain exists, ask for admin access, request admin access, access restricted, verification required, verify yourself, request sent, domain already exists in your account]
 ---
 
 If you have a private domain (e.g., yourcompany.com), you can claim and verify it in Expensify to manage employee permissions and enable additional security features.
@@ -47,7 +47,7 @@ Depending on your email setup:
 
 After the domain is successfully claimed, the domain will appear on the **Domains** tab in the **Not verified** state.
 
-## How to request admin access to a domain someone else set up
+## How to request admin access when you add a domain someone else set up
 
 A private domain can only be set up once. If another Expensify account already set up your domain, you can ask that domain’s admins to make you a Domain Admin.
 
@@ -62,15 +62,33 @@ To leave without sending a request, click **Never mind** instead. Both buttons r
 
 <!-- SCREENSHOT:
 Suggestion: The Domain exists page showing the heading "Domain already set up. Request access?" with the Ask for admin access and Never mind buttons.
-Location: After step 5 in "How to request admin access to a domain someone else set up".
+Location: After step 5 in "How to request admin access when you add a domain someone else set up".
 Purpose: Confirms members have hit the expected page rather than an error, so they don't retry adding the domain or contact Support believing the add failed.
+-->
+
+## How to request admin access from the Access restricted screen
+
+If a domain is already on your **Domains** tab but you are not a Domain Admin for it, opening that domain takes you to the **Access restricted** screen instead of the domain’s settings. You can ask for admin access from there.
+
+1. From the left-hand menu, select **Workspaces**, then select the **Domains** tab.
+2. Select the domain you are not an admin of.
+3. On the **Access restricted** screen, under the **Verification required** heading, click **Request admin access**.
+
+The button shows a spinner while the request sends, then changes to a disabled **Request sent** button. If the request fails, an error message appears below the buttons and you can click **Request admin access** again to retry. **Request admin access** is disabled while you are offline.
+
+To prove you are an authorized company administrator yourself instead of waiting on an existing admin, click **Verify yourself** on the same screen to start DNS verification.
+
+<!-- SCREENSHOT:
+Suggestion: The Access restricted screen showing the Verification required heading with the Request admin access and Verify yourself buttons.
+Location: After step 3 in "How to request admin access from the Access restricted screen".
+Purpose: Shows members that landing on Access restricted is an expected state with two available actions, rather than a bug or a permanent lockout.
 -->
 
 ## What happens after you ask for admin access
 
 - Your request goes to the existing Domain Admins for that domain. An admin has to add you before you can manage it.
-- The domain does **not** appear on your **Domains** tab while the request is pending, because you don’t have access to it yet.
-- If you start the flow again for the same domain before an admin responds, the **Domain exists** page shows a disabled **Request sent** button so you don’t send a duplicate request.
+- A domain you asked about from the **Domain exists** page does **not** appear on your **Domains** tab while the request is pending, because you don’t have access to it yet.
+- If you ask again for the same domain before an admin responds, the button is disabled and reads **Request sent**, so you don’t send a duplicate request. This applies on both the **Domain exists** page and the **Access restricted** screen.
 
 [Learn how to add and manage Domain Admins](/articles/new-expensify/domains/Domain-Admins) to see what you'll be able to do once an admin adds you.
 
@@ -104,9 +122,17 @@ Each private domain can only be set up once, and someone at your company got the
 
 Requesting access doesn't give you access. The domain only appears on your **Domains** tab after an existing Domain Admin adds you as a Domain Admin.
 
+## Why do I see Access restricted when I open a domain?
+
+The domain is on your **Domains** tab, but you are not a Domain Admin for it, so you can't open its settings. Click **Request admin access** to ask an existing Domain Admin to add you, or click **Verify yourself** to verify that you're an authorized company administrator.
+
 ## Why does the button say Request sent?
 
 You already asked for admin access to that domain and no admin has responded yet. The button is disabled so you don't send a duplicate request.
+
+## Why can't I click Request admin access?
+
+The button is disabled while you're offline, and it's also disabled after your request goes through, when it reads **Request sent**. Reconnect and reopen the **Access restricted** screen if you're offline.
 
 ## Can I verify multiple domains?
 
