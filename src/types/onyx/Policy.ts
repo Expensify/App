@@ -315,9 +315,6 @@ type ConnectionLastSync = {
     /** If the connection's last sync failed due to authentication error */
     isAuthenticationError: boolean;
 
-    /** If the connection's last sync failed because of its own settings, so the admin fixes the settings rather than reconnecting */
-    isConfigurationError?: boolean;
-
     /** Whether the connection's last sync was successful */
     isSuccessful: boolean;
 
@@ -338,6 +335,9 @@ type MergeConnectionLastSync = ConnectionLastSync & {
 
     /** Timestamps of the last few manual ("Sync now") syncs, used for blocking manual syncs client-side once the daily limit is reached */
     manualSyncTimestamps?: string[];
+
+    /** If the connection's last sync failed because of its own settings, so the admin fixes the settings rather than reconnecting */
+    isConfigurationError?: boolean;
 };
 
 /**

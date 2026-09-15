@@ -49,7 +49,7 @@ function isMergeHRCompleteSetupNeeded(policy?: OnyxEntry<Policy>): boolean {
 
 /**
  * True when a selected group ID is missing from the cached group list, meaning it no longer exists upstream.
- * Returns false if the cache itself is empty, since there's nothing to compare against.
+ * Returns false if the cache has never synced, since there's nothing to compare against.
  */
 function hasStaleMergeHRGroups(policy?: OnyxEntry<Policy>): boolean {
     const mergeHR = policy?.connections?.merge_hris;
@@ -57,7 +57,9 @@ function hasStaleMergeHRGroups(policy?: OnyxEntry<Policy>): boolean {
     // allGroupIDs (not the display-filtered groups) is what the backend prunes against, so a group
     // missing a name/type isn't wrongly flagged as deleted here.
     const availableGroupIDs = mergeHR?.data?.allGroupIDs;
-    if (!selectedGroupIDs?.length || !availableGroupIDs?.length) {
+    // allGroupIDs is explicitly [] once a sync has actually run and found zero groups, so only
+    // undefined (never synced) means there's nothing to compare against yet.
+    if (!selectedGroupIDs?.length || !availableGroupIDs) {
         return false;
     }
     return selectedGroupIDs.some((groupID) => !availableGroupIDs.includes(groupID));
@@ -65,13 +67,15 @@ function hasStaleMergeHRGroups(policy?: OnyxEntry<Policy>): boolean {
 
 /**
  * The admin's group selection, minus any group the cached list no longer has. Those have no row to uncheck and the API
- * rejects them, so keeping them would leave the selector unable to save. An empty cache has not loaded yet, so nothing is dropped.
+ * rejects them, so keeping them would leave the selector unable to save. A cache that has never synced is left untouched.
  */
 function getSelectableMergeHRGroupIDs(policy?: OnyxEntry<Policy>): string[] {
     const mergeHR = policy?.connections?.merge_hris;
     const selectedGroupIDs = mergeHR?.config?.groups ?? [];
     const availableGroups = mergeHR?.data?.groups;
-    if (!availableGroups?.length) {
+    // data.groups is explicitly [] once a sync has actually run and found zero renderable groups, so
+    // only undefined (cache never loaded) means the selection should be left untouched.
+    if (!availableGroups) {
         return [...selectedGroupIDs];
     }
     return selectedGroupIDs.filter((groupID) => availableGroups.some((group) => group.id === groupID));

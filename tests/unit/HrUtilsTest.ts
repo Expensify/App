@@ -344,13 +344,22 @@ describe('HRUtils', () => {
             expect(hasStaleMergeHRGroups(policy)).toBe(false);
         });
 
-        it('returns false when the cached group list has not been populated yet', () => {
+        it('returns false when the cache has never synced', () => {
+            const policy = makePolicy({
+                connections: {
+                    [MERGE_HR]: makeMergeHRConnection({config: {groups: ['g1']}, data: {}}),
+                },
+            });
+            expect(hasStaleMergeHRGroups(policy)).toBe(false);
+        });
+
+        it('returns true when a synced cache legitimately has zero groups', () => {
             const policy = makePolicy({
                 connections: {
                     [MERGE_HR]: makeMergeHRConnection({config: {groups: ['g1']}, data: {allGroupIDs: []}}),
                 },
             });
-            expect(hasStaleMergeHRGroups(policy)).toBe(false);
+            expect(hasStaleMergeHRGroups(policy)).toBe(true);
         });
 
         it('returns false when every selected group still exists', () => {
@@ -436,11 +445,18 @@ describe('HRUtils', () => {
             expect(getSelectableMergeHRGroupIDs(policy)).toEqual(['g1']);
         });
 
-        it('leaves the selection alone when the cached list has not loaded yet', () => {
+        it('leaves the selection alone when the cache has never synced', () => {
+            const policy = makePolicy({
+                connections: {[MERGE_HR]: makeMergeHRConnection({config: {groups: ['g1', 'g2']}, data: {}})},
+            });
+            expect(getSelectableMergeHRGroupIDs(policy)).toEqual(['g1', 'g2']);
+        });
+
+        it('drops the whole selection when a synced cache legitimately has zero renderable groups', () => {
             const policy = makePolicy({
                 connections: {[MERGE_HR]: makeMergeHRConnection({config: {groups: ['g1', 'g2']}, data: {groups: []}})},
             });
-            expect(getSelectableMergeHRGroupIDs(policy)).toEqual(['g1', 'g2']);
+            expect(getSelectableMergeHRGroupIDs(policy)).toEqual([]);
         });
     });
 

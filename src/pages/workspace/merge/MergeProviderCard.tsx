@@ -69,6 +69,8 @@ function MergeProviderCard({card, policy, handleConnect, canWriteMoreFeatures, s
         connectionDescription = translate('workspace.merge.lastSync', datetimeToRelative(card.successfulDate));
     }
 
+    // Checked in this order: reconnect, then a stale selection, then any other sync failure - a stale
+    // selection is reported here even if the same sync also failed for an unrelated reason.
     let lastSyncErrorMessage: ReactNode | undefined;
     if (card.needsReconnect) {
         lastSyncErrorMessage = (
@@ -89,7 +91,13 @@ function MergeProviderCard({card, policy, handleConnect, canWriteMoreFeatures, s
                 {`${translate('workspace.hr.mergeHR.groups.staleSelectionError', card.displayName)} `}
                 <TextLink
                     style={[styles.link, styles.fontSizeLabel]}
-                    onPress={() => Navigation.navigate(staleGroupsRoute)}
+                    onPress={() => {
+                        if (!canWriteMoreFeatures) {
+                            showReadOnlyModal();
+                            return;
+                        }
+                        Navigation.navigate(staleGroupsRoute);
+                    }}
                 >
                     {translate('workspace.hr.mergeHR.groups.updateSelectionLink')}
                 </TextLink>
