@@ -1,3 +1,4 @@
+import type {MoneyRequestConfirmationListItem} from '@components/MoneyRequestConfirmationList/types';
 import type {Section} from '@components/SelectionList/SelectionListWithSections/types';
 
 import useLocalize from '@hooks/useLocalize';
@@ -10,8 +11,6 @@ import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 
 import type {ReactElement} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
-
-import type {MoneyRequestConfirmationListItem} from '../types';
 
 type UseConfirmationSectionsParams = {
     /** Whether the current IOU type is split */
