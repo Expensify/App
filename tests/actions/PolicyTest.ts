@@ -88,7 +88,7 @@ describe('actions/Policy', () => {
 
             Policy.createWorkspace({
                 conciergeChat: undefined,
-                policyOwnerEmail: ESH_EMAIL,
+                policyOwner: {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID},
                 makeMeAdmin: true,
                 policyName: WORKSPACE_NAME,
                 policyID: Policy.generatePolicyID(),
@@ -102,7 +102,9 @@ describe('actions/Policy', () => {
                 isSelfTourViewed: false,
                 betas: undefined,
                 hasActiveAdminPolicies: false,
+                hasOwnedPaidPolicy: false,
                 activePolicy: undefined,
+                delegateAccountID: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -121,7 +123,7 @@ describe('actions/Policy', () => {
         it('omits the user-reported integration name from CreateWorkspace when it is undefined', async () => {
             Policy.createWorkspace({
                 conciergeChat: undefined,
-                policyOwnerEmail: ESH_EMAIL,
+                policyOwner: {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID},
                 makeMeAdmin: true,
                 policyName: WORKSPACE_NAME,
                 policyID: Policy.generatePolicyID(),
@@ -134,7 +136,9 @@ describe('actions/Policy', () => {
                 isSelfTourViewed: false,
                 betas: undefined,
                 hasActiveAdminPolicies: false,
+                hasOwnedPaidPolicy: false,
                 activePolicy: undefined,
+                delegateAccountID: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -161,7 +165,7 @@ describe('actions/Policy', () => {
 
             Policy.createWorkspace({
                 conciergeChat: undefined,
-                policyOwnerEmail: ESH_EMAIL,
+                policyOwner: {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID},
                 makeMeAdmin: true,
                 policyName: WORKSPACE_NAME,
                 policyID,
@@ -173,7 +177,9 @@ describe('actions/Policy', () => {
                 isSelfTourViewed: false,
                 betas: [CONST.BETAS.SUGGESTED_FOLLOWUPS],
                 hasActiveAdminPolicies: false,
+                hasOwnedPaidPolicy: false,
                 activePolicy: undefined,
+                delegateAccountID: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -216,7 +222,6 @@ describe('actions/Policy', () => {
             expect(policy?.arePerDiemRatesEnabled).toBe(false);
             expect(policy?.approvalMode).toBe(CONST.POLICY.APPROVAL_MODE.BASIC);
             expect(policy?.approver).toBe(ESH_EMAIL);
-            expect(policy?.isPolicyExpenseChatEnabled).toBe(true);
             expect(policy?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
             expect(policy?.employeeList).toEqual({[ESH_EMAIL]: {email: ESH_EMAIL, submitsTo: ESH_EMAIL, errors: {}, role: CONST.POLICY.ROLE.ADMIN}});
             expect(policy?.mccGroup).toBeDefined();
@@ -437,7 +442,6 @@ describe('actions/Policy', () => {
             expect(policy?.arePerDiemRatesEnabled).toBe(true);
             expect(policy?.approvalMode).toBe(fakePolicy.approvalMode);
             expect(policy?.approver).toBe(fakePolicy.approver);
-            expect(policy?.isPolicyExpenseChatEnabled).toBe(fakePolicy.isPolicyExpenseChatEnabled);
             expect(policy?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
             expect(policy?.employeeList).toEqual(fakePolicy.employeeList);
             expect(policy?.mccGroup).toBe(fakePolicy.mccGroup);
@@ -972,7 +976,7 @@ describe('actions/Policy', () => {
             // When a new workspace is created with introSelected set to MANAGE_TEAM
             Policy.createWorkspace({
                 conciergeChat: undefined,
-                policyOwnerEmail: ESH_EMAIL,
+                policyOwner: {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID},
                 makeMeAdmin: true,
                 policyName: WORKSPACE_NAME,
                 policyID,
@@ -984,7 +988,9 @@ describe('actions/Policy', () => {
                 isSelfTourViewed: false,
                 betas: undefined,
                 hasActiveAdminPolicies: false,
+                hasOwnedPaidPolicy: false,
                 activePolicy: undefined,
+                delegateAccountID: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -1006,7 +1012,7 @@ describe('actions/Policy', () => {
             const policyID = Policy.generatePolicyID();
             Policy.createWorkspace({
                 conciergeChat: undefined,
-                policyOwnerEmail: ESH_EMAIL,
+                policyOwner: {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID},
                 makeMeAdmin: true,
                 policyName: WORKSPACE_NAME,
                 policyID,
@@ -1017,7 +1023,9 @@ describe('actions/Policy', () => {
                 currency: undefined,
                 isSelfTourViewed: false,
                 hasActiveAdminPolicies: false,
+                hasOwnedPaidPolicy: false,
                 activePolicy: undefined,
+                delegateAccountID: undefined,
                 betas: [CONST.BETAS.SUGGESTED_FOLLOWUPS],
             });
             await waitForBatchedUpdates();
@@ -1042,7 +1050,7 @@ describe('actions/Policy', () => {
             // When a new workspace is created with introSelected set to TRACK_WORKSPACE
             Policy.createWorkspace({
                 conciergeChat: undefined,
-                policyOwnerEmail: ESH_EMAIL,
+                policyOwner: {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID},
                 makeMeAdmin: true,
                 policyName: WORKSPACE_NAME,
                 policyID,
@@ -1054,7 +1062,9 @@ describe('actions/Policy', () => {
                 isSelfTourViewed: false,
                 betas: undefined,
                 hasActiveAdminPolicies: false,
+                hasOwnedPaidPolicy: false,
                 activePolicy: undefined,
+                delegateAccountID: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -1083,7 +1093,7 @@ describe('actions/Policy', () => {
             const policyID = Policy.generatePolicyID();
             Policy.createWorkspace({
                 conciergeChat: undefined,
-                policyOwnerEmail: ESH_EMAIL,
+                policyOwner: {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID},
                 makeMeAdmin: true,
                 policyName: WORKSPACE_NAME,
                 policyID,
@@ -1095,7 +1105,9 @@ describe('actions/Policy', () => {
                 isSelfTourViewed: false,
                 betas: undefined,
                 hasActiveAdminPolicies: true,
+                hasOwnedPaidPolicy: false,
                 activePolicy: undefined,
+                delegateAccountID: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -1112,7 +1124,7 @@ describe('actions/Policy', () => {
             mockFetch?.fail?.();
             Policy.createWorkspace({
                 conciergeChat: undefined,
-                policyOwnerEmail: ESH_EMAIL,
+                policyOwner: {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID},
                 makeMeAdmin: true,
                 policyName: WORKSPACE_NAME,
                 policyID: undefined,
@@ -1124,7 +1136,9 @@ describe('actions/Policy', () => {
                 isSelfTourViewed: false,
                 betas: undefined,
                 hasActiveAdminPolicies: false,
+                hasOwnedPaidPolicy: false,
                 activePolicy: undefined,
+                delegateAccountID: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -1146,7 +1160,7 @@ describe('actions/Policy', () => {
             // When a new workspace is created with introSelected set to MANAGE_TEAM
             Policy.createWorkspace({
                 conciergeChat: undefined,
-                policyOwnerEmail: ESH_EMAIL,
+                policyOwner: {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID},
                 makeMeAdmin: true,
                 policyName: WORKSPACE_NAME,
                 policyID,
@@ -1158,7 +1172,9 @@ describe('actions/Policy', () => {
                 isSelfTourViewed: false,
                 betas: undefined,
                 hasActiveAdminPolicies: false,
+                hasOwnedPaidPolicy: false,
                 activePolicy: undefined,
+                delegateAccountID: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -1177,7 +1193,7 @@ describe('actions/Policy', () => {
             const policyID = Policy.generatePolicyID();
             Policy.createWorkspace({
                 conciergeChat: undefined,
-                policyOwnerEmail: ESH_EMAIL,
+                policyOwner: {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID},
                 makeMeAdmin: true,
                 policyName: WORKSPACE_NAME,
                 policyID,
@@ -1189,7 +1205,9 @@ describe('actions/Policy', () => {
                 isSelfTourViewed: false,
                 betas: undefined,
                 hasActiveAdminPolicies: false,
+                hasOwnedPaidPolicy: false,
                 activePolicy: undefined,
+                delegateAccountID: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -1209,7 +1227,7 @@ describe('actions/Policy', () => {
             // When a new workspace is created with introSelected set to MANAGE_TEAM
             Policy.createWorkspace({
                 conciergeChat: undefined,
-                policyOwnerEmail: ESH_EMAIL,
+                policyOwner: {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID},
                 makeMeAdmin: true,
                 policyName: WORKSPACE_NAME,
                 policyID,
@@ -1221,7 +1239,9 @@ describe('actions/Policy', () => {
                 isSelfTourViewed: false,
                 betas: undefined,
                 hasActiveAdminPolicies: false,
+                hasOwnedPaidPolicy: false,
                 activePolicy: undefined,
+                delegateAccountID: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -1239,7 +1259,7 @@ describe('actions/Policy', () => {
             // When a new workspace is created with introSelected set to LOOKING_AROUND
             Policy.createWorkspace({
                 conciergeChat: undefined,
-                policyOwnerEmail: ESH_EMAIL,
+                policyOwner: {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID},
                 makeMeAdmin: true,
                 policyName: WORKSPACE_NAME,
                 policyID,
@@ -1251,7 +1271,9 @@ describe('actions/Policy', () => {
                 isSelfTourViewed: false,
                 betas: undefined,
                 hasActiveAdminPolicies: false,
+                hasOwnedPaidPolicy: false,
                 activePolicy: undefined,
+                delegateAccountID: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -1269,7 +1291,7 @@ describe('actions/Policy', () => {
             // When a new workspace is created with introSelected set to TRACK_WORKSPACE
             Policy.createWorkspace({
                 conciergeChat: undefined,
-                policyOwnerEmail: ESH_EMAIL,
+                policyOwner: {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID},
                 makeMeAdmin: true,
                 policyName: WORKSPACE_NAME,
                 policyID,
@@ -1281,7 +1303,9 @@ describe('actions/Policy', () => {
                 isSelfTourViewed: false,
                 betas: undefined,
                 hasActiveAdminPolicies: false,
+                hasOwnedPaidPolicy: false,
                 activePolicy: undefined,
+                delegateAccountID: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -1299,7 +1323,7 @@ describe('actions/Policy', () => {
             // When a new workspace is created with introSelected set to EMPLOYER
             Policy.createWorkspace({
                 conciergeChat: undefined,
-                policyOwnerEmail: ESH_EMAIL,
+                policyOwner: {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID},
                 makeMeAdmin: true,
                 policyName: WORKSPACE_NAME,
                 policyID,
@@ -1311,7 +1335,9 @@ describe('actions/Policy', () => {
                 isSelfTourViewed: false,
                 betas: undefined,
                 hasActiveAdminPolicies: false,
+                hasOwnedPaidPolicy: false,
                 activePolicy: undefined,
+                delegateAccountID: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -1329,7 +1355,7 @@ describe('actions/Policy', () => {
             // When a new workspace is created with introSelected set to CHAT_SPLIT
             Policy.createWorkspace({
                 conciergeChat: undefined,
-                policyOwnerEmail: ESH_EMAIL,
+                policyOwner: {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID},
                 makeMeAdmin: true,
                 policyName: WORKSPACE_NAME,
                 policyID,
@@ -1341,7 +1367,9 @@ describe('actions/Policy', () => {
                 isSelfTourViewed: false,
                 betas: undefined,
                 hasActiveAdminPolicies: false,
+                hasOwnedPaidPolicy: false,
                 activePolicy: undefined,
+                delegateAccountID: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -1358,7 +1386,7 @@ describe('actions/Policy', () => {
             const policyID = Policy.generatePolicyID();
             Policy.createWorkspace({
                 conciergeChat: undefined,
-                policyOwnerEmail: ESH_EMAIL,
+                policyOwner: {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID},
                 makeMeAdmin: true,
                 policyName: WORKSPACE_NAME,
                 policyID,
@@ -1369,7 +1397,9 @@ describe('actions/Policy', () => {
                 isSelfTourViewed: false,
                 betas: undefined,
                 hasActiveAdminPolicies: false,
+                hasOwnedPaidPolicy: false,
                 activePolicy: undefined,
+                delegateAccountID: undefined,
                 type: CONST.POLICY.TYPE.SUBMIT,
                 currency: 'USD',
             });
@@ -1402,7 +1432,7 @@ describe('actions/Policy', () => {
             // When creating a workspace with distance rates feature enabled
             Policy.createWorkspace({
                 conciergeChat: undefined,
-                policyOwnerEmail: ESH_EMAIL,
+                policyOwner: {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID},
                 makeMeAdmin: false,
                 policyName: WORKSPACE_NAME,
                 policyID,
@@ -1420,7 +1450,9 @@ describe('actions/Policy', () => {
                 isSelfTourViewed: false,
                 betas: undefined,
                 hasActiveAdminPolicies: false,
+                hasOwnedPaidPolicy: false,
                 activePolicy: undefined,
+                delegateAccountID: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -1446,7 +1478,7 @@ describe('actions/Policy', () => {
             // When creating a workspace with isSelfTourViewed set to true
             Policy.createWorkspace({
                 conciergeChat: undefined,
-                policyOwnerEmail: ESH_EMAIL,
+                policyOwner: {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID},
                 makeMeAdmin: true,
                 policyName: WORKSPACE_NAME,
                 policyID,
@@ -1458,7 +1490,9 @@ describe('actions/Policy', () => {
                 isSelfTourViewed: true,
                 betas: undefined,
                 hasActiveAdminPolicies: false,
+                hasOwnedPaidPolicy: false,
                 activePolicy: undefined,
+                delegateAccountID: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -1484,7 +1518,7 @@ describe('actions/Policy', () => {
             // When creating a workspace with isSelfTourViewed set to false
             Policy.createWorkspace({
                 conciergeChat: undefined,
-                policyOwnerEmail: ESH_EMAIL,
+                policyOwner: {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID},
                 makeMeAdmin: true,
                 policyName: WORKSPACE_NAME,
                 policyID,
@@ -1496,7 +1530,9 @@ describe('actions/Policy', () => {
                 isSelfTourViewed: false,
                 betas: undefined,
                 hasActiveAdminPolicies: false,
+                hasOwnedPaidPolicy: false,
                 activePolicy: undefined,
+                delegateAccountID: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -1514,9 +1550,8 @@ describe('actions/Policy', () => {
 
         it('should mark VIEW_TOUR task as completed in guidedSetupData when isSelfTourViewed is true', async () => {
             await Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
-            // EMPLOYER posts onboarding tasks to the Concierge chat (not #admins). Set a concierge
-            // report ID so prepareOnboardingOnyxData can resolve a target chat and does not early-return.
-            await Onyx.set(ONYXKEYS.CONCIERGE_REPORT_ID, 'concierge-report-1');
+            // EMPLOYER posts onboarding tasks to the Concierge chat (not #admins), so the concierge
+            // chat is passed below and prepareOnboardingOnyxData does not early-return.
             await waitForBatchedUpdates();
 
             const apiWriteSpy = jest.spyOn(APIModule, 'write').mockImplementation(() => Promise.resolve());
@@ -1528,8 +1563,8 @@ describe('actions/Policy', () => {
             // EMPLOYER is used because it has a VIEW_TOUR task (testDriveEmployeeTask); MANAGE_TEAM now uses
             // the bespoke followups path (no tasks) so it no longer exercises this code path.
             Policy.createWorkspace({
-                conciergeChat: undefined,
-                policyOwnerEmail: ESH_EMAIL,
+                conciergeChat: {reportID: 'concierge-report-1', type: CONST.REPORT.TYPE.CHAT},
+                policyOwner: {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID},
                 makeMeAdmin: true,
                 policyName: WORKSPACE_NAME,
                 policyID,
@@ -1541,7 +1576,9 @@ describe('actions/Policy', () => {
                 isSelfTourViewed: true,
                 betas: undefined,
                 hasActiveAdminPolicies: false,
+                hasOwnedPaidPolicy: false,
                 activePolicy: undefined,
+                delegateAccountID: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -1564,9 +1601,8 @@ describe('actions/Policy', () => {
 
         it('should not mark VIEW_TOUR task as completed in guidedSetupData when isSelfTourViewed is false', async () => {
             await Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
-            // EMPLOYER posts onboarding tasks to the Concierge chat (not #admins). Set a concierge
-            // report ID so prepareOnboardingOnyxData can resolve a target chat and does not early-return.
-            await Onyx.set(ONYXKEYS.CONCIERGE_REPORT_ID, 'concierge-report-1');
+            // EMPLOYER posts onboarding tasks to the Concierge chat (not #admins), so the concierge
+            // chat is passed below and prepareOnboardingOnyxData does not early-return.
             await waitForBatchedUpdates();
 
             const apiWriteSpy = jest.spyOn(APIModule, 'write').mockImplementation(() => Promise.resolve());
@@ -1578,8 +1614,8 @@ describe('actions/Policy', () => {
             // EMPLOYER is used because it has a VIEW_TOUR task (testDriveEmployeeTask); MANAGE_TEAM now uses
             // the bespoke followups path (no tasks) so it no longer exercises this code path.
             Policy.createWorkspace({
-                conciergeChat: undefined,
-                policyOwnerEmail: ESH_EMAIL,
+                conciergeChat: {reportID: 'concierge-report-1', type: CONST.REPORT.TYPE.CHAT},
+                policyOwner: {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID},
                 makeMeAdmin: true,
                 policyName: WORKSPACE_NAME,
                 policyID,
@@ -1591,7 +1627,9 @@ describe('actions/Policy', () => {
                 isSelfTourViewed: false,
                 betas: undefined,
                 hasActiveAdminPolicies: false,
+                hasOwnedPaidPolicy: false,
                 activePolicy: undefined,
+                delegateAccountID: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -1626,7 +1664,7 @@ describe('actions/Policy', () => {
 
             // When creating a workspace with an explicitly threaded conciergeChat (EMPLOYER posts tasks to Concierge)
             Policy.createWorkspace({
-                policyOwnerEmail: ESH_EMAIL,
+                policyOwner: {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID},
                 makeMeAdmin: true,
                 policyName: WORKSPACE_NAME,
                 policyID,
@@ -1639,7 +1677,9 @@ describe('actions/Policy', () => {
                 isSelfTourViewed: false,
                 betas: undefined,
                 hasActiveAdminPolicies: false,
+                hasOwnedPaidPolicy: false,
                 activePolicy: undefined,
+                delegateAccountID: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -1663,7 +1703,7 @@ describe('actions/Policy', () => {
             // When creating a workspace with an adminParticipant
             Policy.createWorkspace({
                 conciergeChat: undefined,
-                policyOwnerEmail: ESH_EMAIL,
+                policyOwner: {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID},
                 makeMeAdmin: true,
                 policyName: WORKSPACE_NAME,
                 policyID,
@@ -1675,7 +1715,9 @@ describe('actions/Policy', () => {
                 isSelfTourViewed: false,
                 betas: undefined,
                 hasActiveAdminPolicies: false,
+                hasOwnedPaidPolicy: false,
                 activePolicy: undefined,
+                delegateAccountID: undefined,
                 adminParticipant: {participant: {login: adminEmail, accountID: adminAccountID}, doesPersonalDetailExist: true},
             });
             await waitForBatchedUpdates();
@@ -1705,7 +1747,7 @@ describe('actions/Policy', () => {
             // When creating a workspace with TEST_DRIVE_RECEIVER choice and createWorkspace task
             Policy.createWorkspace({
                 conciergeChat: undefined,
-                policyOwnerEmail: ESH_EMAIL,
+                policyOwner: {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID},
                 makeMeAdmin: true,
                 policyName: WORKSPACE_NAME,
                 policyID,
@@ -1717,7 +1759,9 @@ describe('actions/Policy', () => {
                 isSelfTourViewed: false,
                 betas: undefined,
                 hasActiveAdminPolicies: false,
+                hasOwnedPaidPolicy: false,
                 activePolicy: undefined,
+                delegateAccountID: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -1761,7 +1805,7 @@ describe('actions/Policy', () => {
             // never set it; MANAGE_TEAM only sets it for the *first* workspace, not subsequent ones).
             Policy.createWorkspace({
                 conciergeChat: undefined,
-                policyOwnerEmail: ESH_EMAIL,
+                policyOwner: {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID},
                 makeMeAdmin: true,
                 policyName: WORKSPACE_NAME,
                 policyID,
@@ -1773,7 +1817,9 @@ describe('actions/Policy', () => {
                 isSelfTourViewed: false,
                 betas: undefined,
                 hasActiveAdminPolicies: false,
+                hasOwnedPaidPolicy: false,
                 activePolicy: undefined,
+                delegateAccountID: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -1797,7 +1843,7 @@ describe('actions/Policy', () => {
             // the block should run so that onboarding tasks are attached to the new workspace.
             Policy.createWorkspace({
                 conciergeChat: undefined,
-                policyOwnerEmail: ESH_EMAIL,
+                policyOwner: {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID},
                 makeMeAdmin: true,
                 policyName: WORKSPACE_NAME,
                 policyID,
@@ -1809,7 +1855,9 @@ describe('actions/Policy', () => {
                 isSelfTourViewed: false,
                 betas: undefined,
                 hasActiveAdminPolicies: false,
+                hasOwnedPaidPolicy: false,
                 activePolicy: undefined,
+                delegateAccountID: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -1833,7 +1881,7 @@ describe('actions/Policy', () => {
             // the first disjunct so that the downstream Concierge createWorkspace task gets completed.
             Policy.createWorkspace({
                 conciergeChat: undefined,
-                policyOwnerEmail: ESH_EMAIL,
+                policyOwner: {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID},
                 makeMeAdmin: true,
                 policyName: WORKSPACE_NAME,
                 policyID,
@@ -1845,7 +1893,9 @@ describe('actions/Policy', () => {
                 isSelfTourViewed: false,
                 betas: undefined,
                 hasActiveAdminPolicies: false,
+                hasOwnedPaidPolicy: false,
                 activePolicy: undefined,
+                delegateAccountID: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -1872,7 +1922,7 @@ describe('actions/Policy', () => {
             // buildPolicyData should return early without setting guidedSetupData.
             Policy.createWorkspace({
                 conciergeChat: undefined,
-                policyOwnerEmail: ESH_EMAIL,
+                policyOwner: {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID},
                 makeMeAdmin: true,
                 policyName: WORKSPACE_NAME,
                 policyID,
@@ -1884,7 +1934,9 @@ describe('actions/Policy', () => {
                 isSelfTourViewed: false,
                 betas: undefined,
                 hasActiveAdminPolicies: false,
+                hasOwnedPaidPolicy: false,
                 activePolicy: undefined,
+                delegateAccountID: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -1903,7 +1955,7 @@ describe('actions/Policy', () => {
         it('should publish a workspace created event if this is their first policy', () => {
             Policy.createWorkspace({
                 conciergeChat: undefined,
-                policyOwnerEmail: ESH_EMAIL,
+                policyOwner: {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID},
                 makeMeAdmin: true,
                 policyName: WORKSPACE_NAME,
                 policyID: '1',
@@ -1915,7 +1967,9 @@ describe('actions/Policy', () => {
                 isSelfTourViewed: false,
                 betas: undefined,
                 hasActiveAdminPolicies: false,
+                hasOwnedPaidPolicy: false,
                 activePolicy: undefined,
+                delegateAccountID: undefined,
             });
 
             expect(GoogleTagManager.publishEvent).toHaveBeenCalledTimes(1);
@@ -1925,7 +1979,7 @@ describe('actions/Policy', () => {
         it('should not publish a workspace created event if this is not their first policy', () => {
             Policy.createWorkspace({
                 conciergeChat: undefined,
-                policyOwnerEmail: ESH_EMAIL,
+                policyOwner: {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID},
                 makeMeAdmin: true,
                 policyName: WORKSPACE_NAME,
                 policyID: '1',
@@ -1937,7 +1991,9 @@ describe('actions/Policy', () => {
                 isSelfTourViewed: false,
                 betas: undefined,
                 hasActiveAdminPolicies: true,
+                hasOwnedPaidPolicy: false,
                 activePolicy: undefined,
+                delegateAccountID: undefined,
             });
 
             expect(GoogleTagManager.publishEvent).not.toHaveBeenCalled();
@@ -1952,7 +2008,7 @@ describe('actions/Policy', () => {
 
             Policy.createWorkspace({
                 conciergeChat: undefined,
-                policyOwnerEmail: ESH_EMAIL,
+                policyOwner: {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID},
                 makeMeAdmin: true,
                 policyName: WORKSPACE_NAME,
                 policyID,
@@ -1963,7 +2019,9 @@ describe('actions/Policy', () => {
                 isSelfTourViewed: false,
                 betas: undefined,
                 hasActiveAdminPolicies: false,
+                hasOwnedPaidPolicy: false,
                 activePolicy: undefined,
+                delegateAccountID: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -1986,7 +2044,7 @@ describe('actions/Policy', () => {
 
             Policy.createWorkspace({
                 conciergeChat: undefined,
-                policyOwnerEmail: ESH_EMAIL,
+                policyOwner: {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID},
                 makeMeAdmin: true,
                 policyName: WORKSPACE_NAME,
                 policyID,
@@ -1997,8 +2055,10 @@ describe('actions/Policy', () => {
                 isSelfTourViewed: false,
                 betas: undefined,
                 hasActiveAdminPolicies: false,
+                hasOwnedPaidPolicy: false,
                 adminParticipant: {participant: {login: adminEmail, accountID: adminAccountID}, doesPersonalDetailExist: true},
                 activePolicy: undefined,
+                delegateAccountID: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -2030,7 +2090,7 @@ describe('actions/Policy', () => {
             // Create two workspaces with the same adminParticipant — each should get a unique expense chat
             Policy.createWorkspace({
                 conciergeChat: undefined,
-                policyOwnerEmail: ESH_EMAIL,
+                policyOwner: {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID},
                 makeMeAdmin: true,
                 policyName: 'Workspace 1',
                 introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
@@ -2040,14 +2100,16 @@ describe('actions/Policy', () => {
                 isSelfTourViewed: false,
                 betas: undefined,
                 hasActiveAdminPolicies: false,
+                hasOwnedPaidPolicy: false,
                 adminParticipant: {participant: {login: adminEmail, accountID: adminAccountID}, doesPersonalDetailExist: true},
                 activePolicy: undefined,
+                delegateAccountID: undefined,
             });
             await waitForBatchedUpdates();
 
             Policy.createWorkspace({
                 conciergeChat: undefined,
-                policyOwnerEmail: ESH_EMAIL,
+                policyOwner: {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID},
                 makeMeAdmin: true,
                 policyName: 'Workspace 2',
                 introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
@@ -2057,8 +2119,10 @@ describe('actions/Policy', () => {
                 isSelfTourViewed: false,
                 betas: undefined,
                 hasActiveAdminPolicies: false,
+                hasOwnedPaidPolicy: false,
                 adminParticipant: {participant: {login: adminEmail, accountID: adminAccountID}, doesPersonalDetailExist: true},
                 activePolicy: undefined,
+                delegateAccountID: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -2087,7 +2151,7 @@ describe('actions/Policy', () => {
             // Pass explicit GBP currency — this should win over the session user's EUR localCurrencyCode
             Policy.createWorkspace({
                 conciergeChat: undefined,
-                policyOwnerEmail: ESH_EMAIL,
+                policyOwner: {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID},
                 makeMeAdmin: true,
                 policyName: WORKSPACE_NAME,
                 policyID,
@@ -2099,7 +2163,9 @@ describe('actions/Policy', () => {
                 isSelfTourViewed: false,
                 betas: undefined,
                 hasActiveAdminPolicies: false,
+                hasOwnedPaidPolicy: false,
                 activePolicy: undefined,
+                delegateAccountID: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -3406,7 +3472,7 @@ describe('actions/Policy', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
             await waitForBatchedUpdates();
 
-            Policy.setWorkspaceApprovalMode(fakePolicy, ESH_EMAIL, CONST.POLICY.APPROVAL_MODE.OPTIONAL, ESH_ACCOUNT_ID, ESH_EMAIL, false);
+            Policy.setWorkspaceApprovalMode(fakePolicy, ESH_EMAIL, CONST.POLICY.APPROVAL_MODE.OPTIONAL, ESH_ACCOUNT_ID, ESH_EMAIL, false, undefined);
             await waitForBatchedUpdates();
 
             let policy: OnyxEntry<PolicyType> = await new Promise((resolve) => {
@@ -3473,7 +3539,7 @@ describe('actions/Policy', () => {
             const reportKey1 = `${ONYXKEYS.COLLECTION.REPORT}${submittedExpenseReport1.reportID}` as const;
             const reportKey2 = `${ONYXKEYS.COLLECTION.REPORT}${submittedExpenseReport2.reportID}` as const;
 
-            Policy.setWorkspaceApprovalMode(fakePolicy, ESH_EMAIL, CONST.POLICY.APPROVAL_MODE.OPTIONAL, ESH_ACCOUNT_ID, ESH_EMAIL, false, {
+            Policy.setWorkspaceApprovalMode(fakePolicy, ESH_EMAIL, CONST.POLICY.APPROVAL_MODE.OPTIONAL, ESH_ACCOUNT_ID, ESH_EMAIL, false, undefined, {
                 transactionViolations: {},
                 betas: [],
                 personalDetailsList: {},
@@ -3538,7 +3604,7 @@ describe('actions/Policy', () => {
             const customAccountID = 999;
             const customEmail = 'custom@example.com';
 
-            Policy.setWorkspaceApprovalMode(fakePolicy, ESH_EMAIL, CONST.POLICY.APPROVAL_MODE.OPTIONAL, customAccountID, customEmail, false, {
+            Policy.setWorkspaceApprovalMode(fakePolicy, ESH_EMAIL, CONST.POLICY.APPROVAL_MODE.OPTIONAL, customAccountID, customEmail, false, undefined, {
                 transactionViolations: {},
                 betas: [],
                 personalDetailsList: {},
@@ -3592,7 +3658,7 @@ describe('actions/Policy', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
             await waitForBatchedUpdates();
 
-            Policy.setWorkspaceApprovalMode(fakePolicy, ESH_EMAIL, CONST.POLICY.APPROVAL_MODE.OPTIONAL, ESH_ACCOUNT_ID, ESH_EMAIL, false);
+            Policy.setWorkspaceApprovalMode(fakePolicy, ESH_EMAIL, CONST.POLICY.APPROVAL_MODE.OPTIONAL, ESH_ACCOUNT_ID, ESH_EMAIL, false, undefined);
             await waitForBatchedUpdates();
 
             expect(getAllPolicyReportsSpy).not.toHaveBeenCalled();
@@ -3641,7 +3707,7 @@ describe('actions/Policy', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
             await waitForBatchedUpdates();
 
-            Policy.setWorkspaceApprovalMode(fakePolicy, ESH_EMAIL, CONST.POLICY.APPROVAL_MODE.OPTIONAL, ESH_ACCOUNT_ID, ESH_EMAIL, false);
+            Policy.setWorkspaceApprovalMode(fakePolicy, ESH_EMAIL, CONST.POLICY.APPROVAL_MODE.OPTIONAL, ESH_ACCOUNT_ID, ESH_EMAIL, false, undefined);
             await waitForBatchedUpdates();
 
             const policy: OnyxEntry<PolicyType> = await new Promise((resolve) => {
@@ -3688,7 +3754,7 @@ describe('actions/Policy', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
             await waitForBatchedUpdates();
 
-            Policy.setWorkspaceApprovalMode(fakePolicy, ESH_EMAIL, CONST.POLICY.APPROVAL_MODE.OPTIONAL, ESH_ACCOUNT_ID, ESH_EMAIL, false);
+            Policy.setWorkspaceApprovalMode(fakePolicy, ESH_EMAIL, CONST.POLICY.APPROVAL_MODE.OPTIONAL, ESH_ACCOUNT_ID, ESH_EMAIL, false, undefined);
             await waitForBatchedUpdates();
 
             expect(apiWriteSpy).toHaveBeenCalledWith(WRITE_COMMANDS.DISABLE_POLICY_APPROVALS, expect.objectContaining({policyID}), expect.anything());
@@ -3713,7 +3779,7 @@ describe('actions/Policy', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
             await waitForBatchedUpdates();
 
-            Policy.setWorkspaceApprovalMode(fakePolicy, ESH_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, ESH_ACCOUNT_ID, ESH_EMAIL, false);
+            Policy.setWorkspaceApprovalMode(fakePolicy, ESH_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, ESH_ACCOUNT_ID, ESH_EMAIL, false, undefined);
             await waitForBatchedUpdates();
 
             expect(apiWriteSpy).toHaveBeenCalledWith(WRITE_COMMANDS.SET_WORKSPACE_APPROVAL_MODE, expect.objectContaining({policyID}), expect.anything());
@@ -3755,7 +3821,7 @@ describe('actions/Policy', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
             await waitForBatchedUpdates();
 
-            Policy.setWorkspaceApprovalMode(fakePolicy, ESH_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, ESH_ACCOUNT_ID, ESH_EMAIL, false);
+            Policy.setWorkspaceApprovalMode(fakePolicy, ESH_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, ESH_ACCOUNT_ID, ESH_EMAIL, false, undefined);
             await waitForBatchedUpdates();
 
             // optimisticMembersState should be empty for non-OPTIONAL mode
@@ -3802,7 +3868,7 @@ describe('actions/Policy', () => {
             // Simulate API failure
             mockFetch?.fail?.();
 
-            Policy.setWorkspaceApprovalMode(fakePolicy, ESH_EMAIL, CONST.POLICY.APPROVAL_MODE.OPTIONAL, ESH_ACCOUNT_ID, ESH_EMAIL, false);
+            Policy.setWorkspaceApprovalMode(fakePolicy, ESH_EMAIL, CONST.POLICY.APPROVAL_MODE.OPTIONAL, ESH_ACCOUNT_ID, ESH_EMAIL, false, undefined);
             await waitForBatchedUpdates();
 
             const policy: OnyxEntry<PolicyType> = await new Promise((resolve) => {
@@ -3859,7 +3925,7 @@ describe('actions/Policy', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
             await waitForBatchedUpdates();
 
-            Policy.setWorkspaceApprovalMode(fakePolicy, ESH_EMAIL, CONST.POLICY.APPROVAL_MODE.OPTIONAL, ESH_ACCOUNT_ID, ESH_EMAIL, false);
+            Policy.setWorkspaceApprovalMode(fakePolicy, ESH_EMAIL, CONST.POLICY.APPROVAL_MODE.OPTIONAL, ESH_ACCOUNT_ID, ESH_EMAIL, false, undefined);
             await waitForBatchedUpdates();
 
             const writeOptions = requireRecord(requireCallArgument(apiWriteSpy.mock.calls.at(0), 2));
@@ -3908,7 +3974,7 @@ describe('actions/Policy', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
             await waitForBatchedUpdates();
 
-            Policy.setWorkspaceApprovalMode(fakePolicy, ESH_EMAIL, CONST.POLICY.APPROVAL_MODE.OPTIONAL, ESH_ACCOUNT_ID, ESH_EMAIL, false);
+            Policy.setWorkspaceApprovalMode(fakePolicy, ESH_EMAIL, CONST.POLICY.APPROVAL_MODE.OPTIONAL, ESH_ACCOUNT_ID, ESH_EMAIL, false, undefined);
             await waitForBatchedUpdates();
 
             const writeOptions = requireRecord(requireCallArgument(apiWriteSpy.mock.calls.at(0), 2));
@@ -3944,7 +4010,7 @@ describe('actions/Policy', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
             await waitForBatchedUpdates();
 
-            Policy.setWorkspaceApprovalMode(fakePolicy, ESH_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, ESH_ACCOUNT_ID, ESH_EMAIL, false);
+            Policy.setWorkspaceApprovalMode(fakePolicy, ESH_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, ESH_ACCOUNT_ID, ESH_EMAIL, false, undefined);
             await waitForBatchedUpdates();
 
             let policy: OnyxEntry<PolicyType> = await new Promise((resolve) => {
@@ -4000,7 +4066,7 @@ describe('actions/Policy', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
             await waitForBatchedUpdates();
 
-            Policy.setWorkspaceApprovalMode(fakePolicy, ESH_EMAIL, CONST.POLICY.APPROVAL_MODE.OPTIONAL, ESH_ACCOUNT_ID, ESH_EMAIL, false);
+            Policy.setWorkspaceApprovalMode(fakePolicy, ESH_EMAIL, CONST.POLICY.APPROVAL_MODE.OPTIONAL, ESH_ACCOUNT_ID, ESH_EMAIL, false, undefined);
             await waitForBatchedUpdates();
 
             let policy: OnyxEntry<PolicyType> = await new Promise((resolve) => {
@@ -4053,7 +4119,7 @@ describe('actions/Policy', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
             await waitForBatchedUpdates();
 
-            Policy.setWorkspaceApprovalMode(fakePolicy, ESH_EMAIL, CONST.POLICY.APPROVAL_MODE.OPTIONAL, ESH_ACCOUNT_ID, ESH_EMAIL, false);
+            Policy.setWorkspaceApprovalMode(fakePolicy, ESH_EMAIL, CONST.POLICY.APPROVAL_MODE.OPTIONAL, ESH_ACCOUNT_ID, ESH_EMAIL, false, undefined);
             await waitForBatchedUpdates();
 
             let policy: OnyxEntry<PolicyType> = await new Promise((resolve) => {
@@ -4110,7 +4176,7 @@ describe('actions/Policy', () => {
 
             mockFetch?.fail?.();
 
-            Policy.setWorkspaceApprovalMode(fakePolicy, ESH_EMAIL, CONST.POLICY.APPROVAL_MODE.OPTIONAL, ESH_ACCOUNT_ID, ESH_EMAIL, false);
+            Policy.setWorkspaceApprovalMode(fakePolicy, ESH_EMAIL, CONST.POLICY.APPROVAL_MODE.OPTIONAL, ESH_ACCOUNT_ID, ESH_EMAIL, false, undefined);
             await waitForBatchedUpdates();
 
             const policy: OnyxEntry<PolicyType> = await new Promise((resolve) => {
@@ -4341,6 +4407,98 @@ describe('actions/Policy', () => {
             });
 
             expect(activePolicyID).toBe(mostRecentlyCreatedGroupPolicy.id);
+        });
+
+        it('should clear reimbursement account errors when no admin group workspace remains after deleting a workspace', async () => {
+            const reimbursementAccountError = {};
+            const policyToDelete = createRandomPolicy(0, CONST.POLICY.TYPE.TEAM);
+            policyToDelete.pendingAction = null;
+            policyToDelete.role = CONST.POLICY.ROLE.ADMIN;
+
+            const personalPolicy = createRandomPolicy(1, CONST.POLICY.TYPE.PERSONAL);
+            personalPolicy.pendingAction = null;
+            personalPolicy.role = CONST.POLICY.ROLE.ADMIN;
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyToDelete.id}`, policyToDelete);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${personalPolicy.id}`, personalPolicy);
+            await Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {errors: reimbursementAccountError});
+            await waitForBatchedUpdates();
+
+            mockFetch.pause();
+
+            Policy.deleteWorkspace({
+                policies: {
+                    [`${ONYXKEYS.COLLECTION.POLICY}${policyToDelete.id}`]: policyToDelete,
+                    [`${ONYXKEYS.COLLECTION.POLICY}${personalPolicy.id}`]: personalPolicy,
+                },
+                policyID: policyToDelete.id,
+                personalPolicyID: personalPolicy.id,
+                activePolicyID: undefined,
+                policyName: policyToDelete.name,
+                lastAccessedWorkspacePolicyID: undefined,
+                policyCardFeeds: undefined,
+                lastSelectedFeed: undefined,
+                lastSelectedExpensifyCardFeed: undefined,
+                reportsToArchive: [],
+                transactionViolations: undefined,
+                reimbursementAccountError,
+                lastUsedPaymentMethods: undefined,
+                localeCompare: TestHelper.localeCompare,
+                currentUserAccountID: ESH_ACCOUNT_ID,
+                accountIDToLogin: {},
+            });
+            await waitForBatchedUpdates();
+
+            const reimbursementAccount = await getOnyxValue(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
+            expect(reimbursementAccount?.errors).toBeUndefined();
+
+            await mockFetch.resume?.();
+        });
+
+        it('should keep reimbursement account errors when another admin group workspace remains after deleting a workspace', async () => {
+            const reimbursementAccountError = {};
+            const policyToDelete = createRandomPolicy(0, CONST.POLICY.TYPE.TEAM);
+            policyToDelete.pendingAction = null;
+            policyToDelete.role = CONST.POLICY.ROLE.ADMIN;
+
+            const remainingGroupPolicy = createRandomPolicy(1, CONST.POLICY.TYPE.SUBMIT);
+            remainingGroupPolicy.pendingAction = null;
+            remainingGroupPolicy.role = CONST.POLICY.ROLE.ADMIN;
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyToDelete.id}`, policyToDelete);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${remainingGroupPolicy.id}`, remainingGroupPolicy);
+            await Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {errors: reimbursementAccountError});
+            await waitForBatchedUpdates();
+
+            mockFetch.pause();
+
+            Policy.deleteWorkspace({
+                policies: {
+                    [`${ONYXKEYS.COLLECTION.POLICY}${policyToDelete.id}`]: policyToDelete,
+                    [`${ONYXKEYS.COLLECTION.POLICY}${remainingGroupPolicy.id}`]: remainingGroupPolicy,
+                },
+                policyID: policyToDelete.id,
+                personalPolicyID: undefined,
+                activePolicyID: undefined,
+                policyName: policyToDelete.name,
+                lastAccessedWorkspacePolicyID: undefined,
+                policyCardFeeds: undefined,
+                lastSelectedFeed: undefined,
+                lastSelectedExpensifyCardFeed: undefined,
+                reportsToArchive: [],
+                transactionViolations: undefined,
+                reimbursementAccountError,
+                lastUsedPaymentMethods: undefined,
+                localeCompare: TestHelper.localeCompare,
+                currentUserAccountID: ESH_ACCOUNT_ID,
+                accountIDToLogin: {},
+            });
+            await waitForBatchedUpdates();
+
+            const reimbursementAccount = await getOnyxValue(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
+            expect(reimbursementAccount?.errors).toEqual(reimbursementAccountError);
+
+            await mockFetch.resume?.();
         });
 
         it('should reset lastAccessedWorkspacePolicyID when deleting the last accessed workspace', async () => {
@@ -6392,7 +6550,7 @@ describe('actions/Policy', () => {
         });
     });
 
-    describe('setPolicyProhibitedExpense', () => {
+    describe('setPolicyProhibitedExpenses', () => {
         it('should enable prohibited expense optimistically and succeed', async () => {
             // Given a policy with prohibited expenses
             const policyID = '1';
@@ -6407,9 +6565,9 @@ describe('actions/Policy', () => {
             Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
             await waitForBatchedUpdates();
 
-            // When setPolicyProhibitedExpense is called to enable alcohol
+            // When setPolicyProhibitedExpenses is called to enable alcohol
             mockFetch.pause();
-            Policy.setPolicyProhibitedExpense(policyID, 'alcohol', currentProhibitedExpenses);
+            Policy.setPolicyProhibitedExpenses(policyID, {...currentProhibitedExpenses, alcohol: true}, currentProhibitedExpenses);
             await waitForBatchedUpdates();
 
             // Then the prohibited expense should be updated optimistically
@@ -6441,9 +6599,9 @@ describe('actions/Policy', () => {
             Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
             await waitForBatchedUpdates();
 
-            // When setPolicyProhibitedExpense is called and fails
+            // When setPolicyProhibitedExpenses is called and fails
             mockFetch.fail();
-            Policy.setPolicyProhibitedExpense(policyID, 'alcohol', currentProhibitedExpenses);
+            Policy.setPolicyProhibitedExpenses(policyID, {...currentProhibitedExpenses, alcohol: true}, currentProhibitedExpenses);
             await waitForBatchedUpdates();
 
             // Then the prohibited expense should be reverted
@@ -7196,7 +7354,6 @@ describe('actions/Policy', () => {
             expect(policyDraft?.role).toBe(CONST.POLICY.ROLE.ADMIN);
             expect(policyDraft?.outputCurrency).toBe('USD');
             expect(policyDraft?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
-            expect(policyDraft?.isPolicyExpenseChatEnabled).toBe(true);
             expect(policyDraft?.areCategoriesEnabled).toBe(true);
             expect(policyDraft?.areCompanyCardsEnabled).toBe(true);
             expect(policyDraft?.areExpensifyCardsEnabled).toBe(false);
@@ -7410,6 +7567,7 @@ describe('actions/Policy', () => {
                 reportPreviewAction: undefined,
                 currentUserAccountID: customAccountID,
                 currentUserEmail: customEmail,
+                currentUserDisplayName: undefined,
                 iouReportOwnerEmail,
                 currentUserLocalCurrency: CONST.CURRENCY.USD,
                 lastWorkspaceNumber: undefined,
@@ -7417,6 +7575,7 @@ describe('actions/Policy', () => {
                 reportActionsList: {},
                 doesEmployeePersonalDetailExist: false,
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
+                hasOwnedPaidPolicy: false,
             });
             await waitForBatchedUpdates();
 
@@ -7439,6 +7598,56 @@ describe('actions/Policy', () => {
             isIOUReportUsingReportSpy.mockRestore();
         });
 
+        it.each([
+            ['leaves the #admins room unpinned when the payer already owns a paid workspace', true, false],
+            ['pins the #admins room when the payer owns no paid workspace yet', false, true],
+        ])('%s', async (_label, hasOwnedPaidPolicy, expectedIsPinned) => {
+            const employeeAccountID = 200;
+            const iouReport: Report = {
+                ...createRandomReport(1, undefined),
+                reportID: '700',
+                type: CONST.REPORT.TYPE.IOU,
+                ownerAccountID: employeeAccountID,
+                chatReportID: '701',
+                policyID: 'oldPolicyID',
+                currency: CONST.CURRENCY.USD,
+                total: 1000,
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`, iouReport);
+            await waitForBatchedUpdates();
+
+            const apiWriteSpy = jest.spyOn(APIModule, 'write').mockImplementation(() => Promise.resolve());
+            const isIOUReportUsingReportSpy = jest.spyOn(ReportUtils, 'isIOUReportUsingReport').mockReturnValue(true);
+
+            const result = Policy.createWorkspaceFromIOUPayment({
+                iouReport,
+                reportPreviewAction: undefined,
+                currentUserAccountID: ESH_ACCOUNT_ID,
+                currentUserEmail: ESH_EMAIL,
+                iouReportOwnerEmail: 'owner@example.com',
+                currentUserLocalCurrency: CONST.CURRENCY.USD,
+                lastWorkspaceNumber: undefined,
+                localeTranslate: TestHelper.translateLocal,
+                reportActionsList: {},
+                doesEmployeePersonalDetailExist: false,
+                getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
+                hasOwnedPaidPolicy,
+                currentUserDisplayName: undefined,
+            });
+            await waitForBatchedUpdates();
+
+            const writeOptions = requireRecord(requireCallArgument(apiWriteSpy.mock.calls.at(0), 2));
+            const adminsRoomUpdate = requireRecordArrayProperty(writeOptions, 'optimisticData').find(
+                (update) => requireStringProperty(update, 'key') === `${ONYXKEYS.COLLECTION.REPORT}${result?.adminsChatReportID}`,
+            );
+
+            expect(readProperty(requireRecord(readProperty(adminsRoomUpdate, 'value')), 'isPinned')).toBe(expectedIsPinned);
+
+            apiWriteSpy.mockRestore();
+            isIOUReportUsingReportSpy.mockRestore();
+        });
+
         it('should return undefined for non-IOU reports', () => {
             const nonIOUReport: Report = {
                 ...createRandomReport(1, undefined),
@@ -7451,6 +7660,7 @@ describe('actions/Policy', () => {
                 reportPreviewAction: undefined,
                 currentUserAccountID: ESH_ACCOUNT_ID,
                 currentUserEmail: ESH_EMAIL,
+                currentUserDisplayName: undefined,
                 iouReportOwnerEmail: 'owner@example.com',
                 currentUserLocalCurrency: CONST.CURRENCY.USD,
                 lastWorkspaceNumber: undefined,
@@ -7458,6 +7668,7 @@ describe('actions/Policy', () => {
                 reportActionsList: {},
                 doesEmployeePersonalDetailExist: false,
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
+                hasOwnedPaidPolicy: false,
             });
             expect(result).toBeUndefined();
         });
@@ -7509,6 +7720,7 @@ describe('actions/Policy', () => {
                 reportPreviewAction: undefined,
                 currentUserAccountID: ESH_ACCOUNT_ID,
                 currentUserEmail: ESH_EMAIL,
+                currentUserDisplayName: undefined,
                 iouReportOwnerEmail,
                 currentUserLocalCurrency: CONST.CURRENCY.USD,
                 lastWorkspaceNumber: undefined,
@@ -7516,6 +7728,7 @@ describe('actions/Policy', () => {
                 reportActionsList,
                 doesEmployeePersonalDetailExist: true,
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
+                hasOwnedPaidPolicy: false,
             });
 
             // Verify the function returns a valid result (not undefined)
@@ -7563,6 +7776,7 @@ describe('actions/Policy', () => {
                 reportPreviewAction: undefined,
                 currentUserAccountID: ESH_ACCOUNT_ID,
                 currentUserEmail: ESH_EMAIL,
+                currentUserDisplayName: undefined,
                 iouReportOwnerEmail,
                 currentUserLocalCurrency: CONST.CURRENCY.USD,
                 lastWorkspaceNumber: undefined,
@@ -7570,6 +7784,7 @@ describe('actions/Policy', () => {
                 reportActionsList: {},
                 doesEmployeePersonalDetailExist: false,
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
+                hasOwnedPaidPolicy: false,
             });
             await waitForBatchedUpdates();
 
@@ -7633,6 +7848,7 @@ describe('actions/Policy', () => {
                 reportPreviewAction: undefined,
                 currentUserAccountID: ESH_ACCOUNT_ID,
                 currentUserEmail: ESH_EMAIL,
+                currentUserDisplayName: undefined,
                 iouReportOwnerEmail,
                 currentUserLocalCurrency: CONST.CURRENCY.USD,
                 lastWorkspaceNumber: undefined,
@@ -7640,6 +7856,7 @@ describe('actions/Policy', () => {
                 reportActionsList: {},
                 doesEmployeePersonalDetailExist: false,
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
+                hasOwnedPaidPolicy: false,
             });
             await waitForBatchedUpdates();
 

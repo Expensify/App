@@ -215,6 +215,8 @@ function DeepLinkHandler({onInitialUrl}: DeepLinkHandlerProps) {
             introSelected,
             betas,
             conciergeChat,
+            // The public room already exists on the server, so no optimistic report is created and the personal details are never read.
+            personalDetails: undefined,
             hasReportActions: false,
             currentUserAccountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
             isSelfTourViewed: guidedSetupAndTourStatus?.isSelfTourViewed,

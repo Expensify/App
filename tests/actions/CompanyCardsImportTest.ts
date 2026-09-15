@@ -1,4 +1,5 @@
 import {importCSVCompanyCards} from '@libs/actions/CompanyCards';
+import type {ImportCSVCompanyCardsParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
 
 import CONST from '@src/CONST';
@@ -14,6 +15,8 @@ import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 const POLICY_ID = 'POLICY_1';
 const DOMAIN_ACCOUNT_ID = 777;
 const CSV_FEED = CONST.COMPANY_CARD.FEED_BANK_NAME.CSV;
+
+const isImportCSVCompanyCardsParams = (value: unknown): value is ImportCSVCompanyCardsParams => typeof value === 'object' && value !== null && 'settings' in value && 'csvData' in value;
 
 OnyxUpdateManager();
 describe('actions/CompanyCards importCSVCompanyCards', () => {
@@ -106,5 +109,93 @@ describe('actions/CompanyCards importCSVCompanyCards', () => {
         );
 
         apiWriteSpy.mockRestore();
+    });
+
+    describe('externalID', () => {
+        const sentImports: ImportCSVCompanyCardsParams[] = [];
+
+        beforeEach(() => {
+            sentImports.length = 0;
+            jest.spyOn(require('@libs/API'), 'write').mockImplementation((...args: unknown[]) => {
+                const parameters = args.at(1);
+                if (isImportCSVCompanyCardsParams(parameters)) {
+                    sentImports.push(parameters);
+                }
+                return Promise.resolve();
+            });
+        });
+
+        afterEach(() => {
+            jest.restoreAllMocks();
+        });
+
+        it('appends a generated externalID column when no unique ID column is mapped', () => {
+            // Given an import that maps no unique ID column
+            // When the file is imported
+            importCSVCompanyCards({
+                policyID: POLICY_ID,
+                domainAccountID: DOMAIN_ACCOUNT_ID,
+                layoutName: 'My Layout',
+                layoutType: CSV_FEED,
+                columnMappings: ['cardNumber', 'postedDate', 'merchant', 'amount', 'currency'],
+                csvData: [
+                    ['Card', 'Date', 'Merchant', 'Amount', 'Currency'],
+                    ['1234', '01/15/2024', 'Coffee Shop', '-5.00', 'USD'],
+                ],
+                workspaceCardFeeds: undefined,
+            });
+
+            // Then an externalID column is appended to the mappings and every row is filled with a generated ID
+            expect(sentImports.at(0)?.settings ?? '').toContain('"columnMappings":["cardNumber","postedDate","merchant","amount","currency","externalID"]');
+            expect(sentImports.at(0)?.csvData ?? '').toMatch(/,"USD","\d+"]/);
+        });
+
+        it('sends the mapped unique ID column values as externalID so re-imports can be deduped', () => {
+            // Given an import that maps a unique ID column
+            // When the file is imported
+            importCSVCompanyCards({
+                policyID: POLICY_ID,
+                domainAccountID: DOMAIN_ACCOUNT_ID,
+                layoutName: 'My Layout',
+                layoutType: CSV_FEED,
+                columnMappings: ['externalID', 'cardNumber', 'postedDate', 'merchant', 'amount', 'currency'],
+                csvData: [
+                    ['Unique ID', 'Card', 'Date', 'Merchant', 'Amount', 'Currency'],
+                    ['txn-abc-1', '1234', '01/15/2024', 'Coffee Shop', '-5.00', 'USD'],
+                    ['txn-abc-2', '1234', '01/16/2024', 'Book Store', '-10.00', 'USD'],
+                ],
+                workspaceCardFeeds: undefined,
+            });
+
+            // Then no externalID column is appended and the mapped values are sent as-is, so the backend can dedupe a re-upload
+            expect(sentImports.at(0)?.settings ?? '').toContain('"columnMappings":["externalID","cardNumber","postedDate","merchant","amount","currency"]');
+            expect(sentImports.at(0)?.csvData ?? '').toBe(
+                JSON.stringify([
+                    ['Unique ID', 'Card', 'Date', 'Merchant', 'Amount', 'Currency'],
+                    ['txn-abc-1', '1234', '2024-01-15', 'Coffee Shop', '-5.00', 'USD'],
+                    ['txn-abc-2', '1234', '2024-01-16', 'Book Store', '-10.00', 'USD'],
+                ]),
+            );
+        });
+
+        it('falls back to a generated externalID for rows with an empty unique ID value', () => {
+            // Given an import that maps a unique ID column, with a row missing its value
+            // When the file is imported
+            importCSVCompanyCards({
+                policyID: POLICY_ID,
+                domainAccountID: DOMAIN_ACCOUNT_ID,
+                layoutName: 'My Layout',
+                layoutType: CSV_FEED,
+                columnMappings: ['externalID', 'cardNumber', 'postedDate', 'merchant', 'amount', 'currency'],
+                csvData: [
+                    ['Unique ID', 'Card', 'Date', 'Merchant', 'Amount', 'Currency'],
+                    ['   ', '1234', '01/15/2024', 'Coffee Shop', '-5.00', 'USD'],
+                ],
+                workspaceCardFeeds: undefined,
+            });
+
+            // Then that row is sent with a generated ID instead of the blank value
+            expect(sentImports.at(0)?.csvData ?? '').toMatch(/\["\d+","1234",/);
+        });
     });
 });

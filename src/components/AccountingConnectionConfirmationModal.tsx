@@ -27,7 +27,7 @@ function AccountingConnectionConfirmationModal({integrationToConnect, integratio
             prompt={translate('workspace.accounting.connectPrompt', connectionName)}
             confirmText={translate('workspace.accounting.setup')}
             cancelText={translate('common.cancel')}
-            success
+            buttonVariant={CONST.BUTTON_VARIANT.SUCCESS}
         />
     );
 }

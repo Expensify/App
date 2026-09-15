@@ -95,6 +95,7 @@ function RejectExpenseReportPage({route}: RejectExpenseReportPageProps) {
     const [selectionError, setSelectionError] = useState<string>('');
     const isSubmitAttempt = useRef(false);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
     const lastForwardedActorDetails = getPersonalDetailByEmail(lastForwardedActorEmail);
     const previousApprover = !lastForwardedActorDetails?.accountID
@@ -167,6 +168,7 @@ function RejectExpenseReportPage({route}: RejectExpenseReportPageProps) {
             currentUserPersonalDetails?.avatar,
             isTrackIntentUser,
             delegateAccountID,
+            rules,
         );
         Navigation.goBack();
     };
@@ -190,7 +192,7 @@ function RejectExpenseReportPage({route}: RejectExpenseReportPageProps) {
                 onBeforeSubmit={handleBeforeSubmit}
                 enabledWhenOffline
                 shouldHideFixErrorsAlert
-                isSubmitActionDangerous
+                buttonVariant={CONST.BUTTON_VARIANT.DANGER}
                 shouldRenderFooterAboveSubmit
                 footerContent={selectionError ? <FormHelpMessage message={selectionError} /> : undefined}
             >

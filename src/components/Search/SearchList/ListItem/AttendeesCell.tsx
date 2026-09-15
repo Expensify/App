@@ -1,4 +1,4 @@
-import Avatar from '@components/Avatar';
+import UserAvatar from '@components/Avatar/UserAvatar';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
 import UserDetailsTooltip from '@components/UserDetailsTooltip';
@@ -11,7 +11,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getUserDetailTooltipText, sortIconsByName} from '@libs/ReportUtils';
-import {getDefaultAvatar} from '@libs/UserAvatarUtils';
+import {getAccountIDFromAvatarID, getDefaultAvatar} from '@libs/UserAvatarUtils';
 
 import colors from '@styles/theme/colors';
 import variables from '@styles/variables';
@@ -59,7 +59,7 @@ function AttendeesCell({attendees, isHovered, isPressed}: AttendeesCellProps) {
 
     // Attendee icons carry their own `displayName`, so sorting needs no personal-details subscription
     const icons = sortIconsByName(attendeeIcons, undefined, localeCompare);
-    const tooltipTexts = icons.map((icon) => getUserDetailTooltipText(Number(icon.id), formatPhoneNumber, translate, icon.name));
+    const tooltipTexts = icons.map((icon) => getUserDetailTooltipText(getAccountIDFromAvatarID(icon.id), formatPhoneNumber, translate, icon.name));
 
     return (
         <View
@@ -70,15 +70,20 @@ function AttendeesCell({attendees, isHovered, isPressed}: AttendeesCellProps) {
                 <UserDetailsTooltip
                     // eslint-disable-next-line react/no-array-index-key
                     key={`stackedAvatars-${icon.id}-${index}`}
-                    accountID={Number(icon.id)}
+                    accountID={getAccountIDFromAvatarID(icon.id)}
                     icon={icon}
                     fallbackUserDetails={{
                         displayName: icon.name,
                     }}
                     shouldRender
                 >
-                    <View style={[StyleUtils.getHorizontalStackedAvatarStyle(index, overlapSize, -oneAvatarBorderWidth), StyleUtils.getAvatarBorderRadius(size, icon.type)]}>
-                        <Avatar
+                    <View
+                        style={[
+                            StyleUtils.getHorizontalStackedAvatarStyle(index, overlapSize, -oneAvatarBorderWidth),
+                            StyleUtils.getAvatarBorderRadius(size, StyleUtils.getShapeFromIconType(icon.type)),
+                        ]}
+                    >
+                        <UserAvatar
                             iconAdditionalStyles={[
                                 StyleUtils.getHorizontalStackedAvatarBorderStyle({
                                     theme,
@@ -93,9 +98,7 @@ function AttendeesCell({attendees, isHovered, isPressed}: AttendeesCellProps) {
                             ]}
                             source={icon.source}
                             size={size}
-                            name={icon.name}
-                            avatarID={icon.id}
-                            type={icon.type}
+                            accountID={getAccountIDFromAvatarID(icon.id)}
                             fallbackIcon={icon.fallbackIcon}
                             testID="AttendeesCell-Avatar"
                         />
@@ -124,7 +127,7 @@ function AttendeesCell({attendees, isHovered, isPressed}: AttendeesCellProps) {
 
                             // Set overlay background color with RGBA value so that the text will not inherit opacity
                             StyleUtils.getHorizontalStackedOverlayAvatarStyle(size),
-                            icons.at(3)?.type === CONST.ICON_TYPE_WORKSPACE && StyleUtils.getAvatarBorderRadius(size, icons.at(3)?.type),
+                            icons.at(3)?.type === CONST.ICON_TYPE_WORKSPACE && StyleUtils.getAvatarBorderRadius(size, CONST.AVATAR_SHAPE.ROUNDED_SQUARE),
                             StyleUtils.getBackgroundColorWithOpacityStyle(colors.productDark400, variables.overlayOpacity),
                         ]}
                     >

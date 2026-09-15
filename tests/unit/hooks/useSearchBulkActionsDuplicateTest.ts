@@ -24,7 +24,7 @@ import createMock from '../../utils/createMock';
 
 jest.mock('@libs/actions/IOU/Duplicate', () => ({
     bulkDuplicateExpenses: jest.fn(),
-    bulkDuplicateReports: jest.fn(),
+    bulkDuplicateReports: jest.fn(() => Promise.resolve()),
 }));
 
 jest.mock('@libs/actions/Search', () => ({
@@ -214,6 +214,7 @@ function makeSelectedTransaction(overrides: Partial<SelectedTransactions[string]
         reportID: 'report1',
         policyID: 'policy1',
         amount: 100,
+        displayAmount: 100,
         currency: 'USD',
         isFromOneTransactionReport: false,
         ...overrides,

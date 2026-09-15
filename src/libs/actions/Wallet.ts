@@ -3,7 +3,7 @@ import type {AcceptWalletTermsParams, AnswerQuestionsForWalletParams, UpdatePers
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import Log from '@libs/Log';
 
-import type CONST from '@src/CONST';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ProvisioningCardData, WalletAdditionalQuestionDetails} from '@src/types/onyx';
 
@@ -294,10 +294,13 @@ function resetWalletAdditionalDetailsDraft() {
 }
 
 /**
- * Clears the errors shown while confirming a validateCode in the wallet additional-details step
+ * Clears wallet additional-details errors, preserving a pending SSN errorCode across navigation.
  */
-function clearWalletAdditionalDetailsErrors() {
-    Onyx.merge(ONYXKEYS.WALLET_ADDITIONAL_DETAILS, {errors: null, errorCode: null});
+function clearWalletAdditionalDetailsErrors(currentErrorCode?: string | null) {
+    Onyx.merge(ONYXKEYS.WALLET_ADDITIONAL_DETAILS, {
+        errors: null,
+        errorCode: currentErrorCode === CONST.WALLET.ERROR.SSN ? currentErrorCode : null,
+    });
 }
 
 function issuerEncryptPayloadCallback(nonce: string, nonceSignature: string, certificates: string[], cardID: number): Promise<IOSEncryptPayload> {
