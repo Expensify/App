@@ -6,15 +6,16 @@ import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/MerchantTypeRuleForm';
 import type {MerchantTypeRuleForm} from '@src/types/form/MerchantTypeRuleForm';
-import type {Policy, PolicyCategories} from '@src/types/onyx';
-import type {CodingRule} from '@src/types/onyx/Policy';
+import type {Policy, PolicyCategories, Rule} from '@src/types/onyx';
+
+import type {OnyxCollection} from 'react-native-onyx';
 
 import {DEFAULT_MCC_GROUP, isDefaultMccGroupID} from './actions/Policy/Category';
 import {setWorkspaceDefaultSpendCategory} from './actions/Policy/Policy';
-import {clearPolicyCodingRuleErrors} from './actions/Policy/Rules';
+import {clearMerchantRuleErrors} from './actions/Policy/Rules';
 import {getCategoryTaxRulesTableData, getTaxRateDisplayName} from './CategoryTaxRulesUtils';
 import {getDecodedCategoryName} from './CategoryUtils';
-import Parser from './Parser';
+import {getExpenseDefaultRuleSummaryFields, getPolicyExpenseDefaultRules, getRuleMerchantMatchSummary, isEditableMerchantRule, isExpenseDefaultTaxValue} from './ExpenseDefaultRuleUtils';
 import {getMccGroupDisplayName} from './PolicyRulesUtils';
 import {getCommaSeparatedTagNameWithSanitizedColons, getVendorRuleDisplayValue, isXeroActiveMatchingSource} from './PolicyUtils';
 
@@ -97,22 +98,24 @@ function getMerchantTypeRulesTableData({
     });
 }
 
-function getMerchantCodingRulesTableData({
+function getMerchantRulesTableData({
     policy,
     policyID,
+    rules,
     translate,
     isOffline,
     onNavigate,
 }: {
     policy: Policy | undefined;
     policyID: string;
+    rules: OnyxCollection<Rule> | undefined;
     translate: LocaleContextProps['translate'];
     isOffline: boolean;
     onNavigate: (route: Route) => void;
 }): ExpenseDefaultTableItem[] {
-    const codingRules = policy?.rules?.codingRules;
+    const policyRules = getPolicyExpenseDefaultRules(rules, policyID);
 
-    if (!codingRules) {
+    if (policyRules.length === 0) {
         return [];
     }
 
@@ -124,76 +127,69 @@ function getMerchantCodingRulesTableData({
         tax: translate('common.tax').toLowerCase(),
         vendor: translate(isOnXero ? 'common.supplier' : 'common.vendor').toLowerCase(),
     };
+    const {FIELD} = CONST.RULES.EXPENSE_DEFAULT;
 
-    // A merchant rule outlives the category or tax rate it sets — the backend keeps the rule and only drops that one
-    // default — so no pending state is borrowed here. Only the rule's own delete counts, and it reads the same way as
-    // a category rule's: online the delete resolves in a moment, so the row goes rather than flashing greyed, while
-    // offline it stays and is styled as deleting since there is nothing to wait for.
-    return Object.entries(codingRules)
-        .filter(([, rule]) => !!rule && (isOffline || rule.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE))
-        .map(([ruleID, rule]: [string, CodingRule]) => {
-            const merchantName = rule.filters?.right ?? '';
-            const hasOnlyMerchantRename =
-                !!rule.merchant &&
-                !rule.category &&
-                !rule.tag &&
-                !rule.comment &&
-                !rule.tax?.field_id_TAX?.value &&
-                !rule.vendorID &&
-                rule.reimbursable === undefined &&
-                rule.billable === undefined;
+    return policyRules
+        .filter(({rule}) => isOffline || rule.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
+        .sort((first, second) => ((second.rule.created ?? '') < (first.rule.created ?? '') ? -1 : 1))
+        .map(({ruleID, rule}) => {
+            const summaryFields = getExpenseDefaultRuleSummaryFields(rule);
+            const {merchants: merchantName} = getRuleMerchantMatchSummary(rule.filters);
+
+            const hasOnlyMerchantRename = summaryFields.length === 1 && summaryFields.at(0)?.field === FIELD.MERCHANT;
             const typeLabel = hasOnlyMerchantRename ? translate('workspace.rules.expenseDefaultsTable.rename') : translate('workspace.rules.expenseDefaultsTable.update');
 
             const actions: string[] = [];
-            if (rule.merchant) {
-                actions.push(translate('workspace.rules.merchantRules.ruleSummarySubtitleMerchant', rule.merchant));
-            }
-            if (rule.category) {
-                actions.push(translate('workspace.rules.merchantRules.ruleSummarySubtitleUpdateField', fieldLabels.category, getDecodedCategoryName(rule.category)));
-            }
-            if (rule.tag) {
-                actions.push(translate('workspace.rules.merchantRules.ruleSummarySubtitleUpdateField', fieldLabels.tag, getCommaSeparatedTagNameWithSanitizedColons(rule.tag)));
-            }
-            if (rule.comment) {
-                const commentMarkdown = Parser.htmlToMarkdown(rule.comment);
-                actions.push(translate('workspace.rules.merchantRules.ruleSummarySubtitleUpdateField', fieldLabels.description, commentMarkdown));
-            }
-            if (rule.tax?.field_id_TAX?.value) {
-                actions.push(
-                    translate(
-                        'workspace.rules.merchantRules.ruleSummarySubtitleUpdateField',
-                        fieldLabels.tax,
-                        getTaxRateDisplayName(policy, rule.tax.field_id_TAX.externalID, rule.tax.field_id_TAX),
-                    ),
-                );
-            }
-            if (rule.vendorID) {
-                const unavailableLabel = translate(isOnXero ? 'workspace.rules.merchantRules.supplierUnavailable' : 'workspace.rules.merchantRules.vendorUnavailable');
-                const vendorValue = getVendorRuleDisplayValue(policy, rule.vendorID, unavailableLabel);
-                actions.push(translate('workspace.rules.merchantRules.ruleSummarySubtitleUpdateField', fieldLabels.vendor, vendorValue));
-            }
-            if (rule.reimbursable !== undefined) {
-                actions.push(translate('workspace.rules.merchantRules.ruleSummarySubtitleReimbursable', rule.reimbursable));
-            }
-            if (rule.billable !== undefined) {
-                actions.push(translate('workspace.rules.merchantRules.ruleSummarySubtitleBillable', rule.billable));
+            for (const {field, value} of summaryFields) {
+                if (field === FIELD.MERCHANT && typeof value === 'string') {
+                    actions.push(translate('workspace.rules.merchantRules.ruleSummarySubtitleMerchant', value));
+                } else if (field === FIELD.CATEGORY && typeof value === 'string') {
+                    actions.push(translate('workspace.rules.merchantRules.ruleSummarySubtitleUpdateField', fieldLabels.category, getDecodedCategoryName(value)));
+                } else if (field === FIELD.TAG && typeof value === 'string') {
+                    actions.push(translate('workspace.rules.merchantRules.ruleSummarySubtitleUpdateField', fieldLabels.tag, getCommaSeparatedTagNameWithSanitizedColons(value)));
+                } else if (field === FIELD.COMMENT && typeof value === 'string') {
+                    actions.push(translate('workspace.rules.merchantRules.ruleSummarySubtitleUpdateField', fieldLabels.description, value));
+                } else if (field === FIELD.TAX && isExpenseDefaultTaxValue(value) && !!value.field_id_TAX.externalID) {
+                    // The rate saved on the rule is a snapshot, so resolve the live one first and keep the snapshot
+                    // as a fallback. Without this a renamed rate reads stale, and a rule saved before the rates
+                    // loaded has no snapshot at all and its tax default disappears from the summary.
+                    actions.push(
+                        translate(
+                            'workspace.rules.merchantRules.ruleSummarySubtitleUpdateField',
+                            fieldLabels.tax,
+                            getTaxRateDisplayName(policy, value.field_id_TAX.externalID, value.field_id_TAX),
+                        ),
+                    );
+                } else if (field === FIELD.VENDOR_ID && typeof value === 'string') {
+                    const unavailableLabel = translate(isOnXero ? 'workspace.rules.merchantRules.supplierUnavailable' : 'workspace.rules.merchantRules.vendorUnavailable');
+                    actions.push(translate('workspace.rules.merchantRules.ruleSummarySubtitleUpdateField', fieldLabels.vendor, getVendorRuleDisplayValue(policy, value, unavailableLabel)));
+                } else if (field === FIELD.REIMBURSABLE && typeof value === 'boolean') {
+                    actions.push(translate('workspace.rules.merchantRules.ruleSummarySubtitleReimbursable', value));
+                } else if (field === FIELD.BILLABLE && typeof value === 'boolean') {
+                    actions.push(translate('workspace.rules.merchantRules.ruleSummarySubtitleBillable', value));
+                }
             }
             const ruleDescription = actions.map((action, index) => (index === 0 ? action : action.charAt(0).toLowerCase() + action.slice(1))).join(', ');
             const pendingAction = rule.pendingAction;
+
+            // A rule the editor can't represent would lose whatever the form can't show if it were saved back,
+            // so the row summarizes it but doesn't open it. See `getMerchantRuleFormValues`.
+            const isEditable = isEditableMerchantRule(rule);
 
             return {
                 keyForList: ruleID,
                 ruleID,
                 section: CONST.POLICY.EXPENSE_DEFAULTS_SECTION.MERCHANTS,
                 isRename: hasOnlyMerchantRename,
+                isSelectionDisabled: !isEditable,
                 typeLabel,
                 conditionText: translate('workspace.rules.expenseDefaultsTable.merchantIs', merchantName),
                 ruleDescription,
                 searchTokens: [merchantName, ruleDescription],
                 pendingAction,
                 errors: rule.errors,
-                onCloseError: () => clearPolicyCodingRuleErrors(policyID, ruleID, rule),
-                disabled: pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                onCloseError: () => clearMerchantRuleErrors(ruleID, rule),
+                disabled: !isEditable || rule.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                 action: () => onNavigate(ROUTES.RULES_MERCHANT_EDIT.getRoute(policyID, ruleID)),
             };
         });
@@ -202,6 +198,7 @@ function getMerchantCodingRulesTableData({
 function getExpenseDefaultsTableData({
     policy,
     policyID,
+    rules,
     policyCategories,
     translate,
     isOffline,
@@ -209,6 +206,7 @@ function getExpenseDefaultsTableData({
 }: {
     policy: Policy | undefined;
     policyID: string;
+    rules: OnyxCollection<Rule> | undefined;
     /** Read for the pending state of a category a rule depends on, so the rule shows as deleting alongside it. */
     policyCategories: PolicyCategories | undefined;
     translate: LocaleContextProps['translate'];
@@ -216,7 +214,7 @@ function getExpenseDefaultsTableData({
     onNavigate: (route: Route) => void;
 }): ExpenseDefaultTableItem[] {
     const categoryTaxRules = getCategoryTaxRulesTableData({policy, policyCategories, translate, isOffline, onNavigate});
-    const merchantRules = getMerchantCodingRulesTableData({policy, policyID, translate, isOffline, onNavigate});
+    const merchantRules = getMerchantRulesTableData({policy, policyID, rules, translate, isOffline, onNavigate});
     const merchantTypeRules = getMerchantTypeRulesTableData({policy, translate, onNavigate});
 
     return [...categoryTaxRules, ...merchantRules, ...merchantTypeRules];
@@ -225,7 +223,7 @@ function getExpenseDefaultsTableData({
 export {
     getDefaultMccGroupCategory,
     getExpenseDefaultsTableData,
-    getMerchantCodingRulesTableData,
+    getMerchantRulesTableData,
     getMerchantTypeRuleFormFromMccGroup,
     isDefaultMccGroupID,
     isMerchantTypeRuleKey,

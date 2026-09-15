@@ -15,13 +15,18 @@ import ImportedMerchantRulesPage, {
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ImportedSpreadsheet, Policy, PolicyCategories} from '@src/types/onyx';
+import type {ImportedSpreadsheet, Policy, PolicyCategories, Rule} from '@src/types/onyx';
 
 import React from 'react';
 import Onyx from 'react-native-onyx';
 
 import {buildPersonalDetails} from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
+
+/** Mirrors the way the rules engine keys `triggers` and `actions` by a stringified index. */
+function toIndexMap<T>(values: T[]): Record<string, T> {
+    return Object.fromEntries(values.map((value, index) => [String(index), value]));
+}
 
 const POLICY_ID = 'imported-merchant-rules-test-policy';
 const ADMIN_EMAIL = 'admin@example.com';
@@ -268,7 +273,7 @@ describe('ImportedMerchantRulesPage', () => {
 
     describe('parseSpreadsheetRules', () => {
         it('builds a net-new rule from a mapped row', () => {
-            const result = parseSpreadsheetRules(buildSpreadsheet(), true, buildRulesEnabledControlPolicy(), undefined);
+            const result = parseSpreadsheetRules(buildSpreadsheet(), true, buildRulesEnabledControlPolicy(), undefined, {});
 
             expect(Object.keys(result.rules)).toHaveLength(1);
             expect(Object.values(result.rules).at(0)).toMatchObject({
@@ -279,22 +284,40 @@ describe('ImportedMerchantRulesPage', () => {
             expect(result.invalidCategoryNames.size).toBe(0);
         });
 
-        it('skips a row that duplicates an existing coding rule', () => {
+        it('skips a row that duplicates an existing merchant rule', () => {
             const policy = buildRulesEnabledControlPolicy();
-            policy.rules = {
-                codingRules: {
-                    existing: {filters: {left: 'merchant', operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, right: 'Starbucks'}, merchant: 'SBUX'},
-                },
+            const existingRule: Rule = {
+                scope: CONST.RULES.SCOPE.POLICY,
+                scopeID: policy.id,
+                triggers: toIndexMap([CONST.RULES.EXPENSE_DEFAULT.TRIGGER.CREATE_TRANSACTION]),
+                filters: {left: CONST.RULES.EXPENSE_DEFAULT.FIELD.MERCHANT, operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, right: 'Starbucks'},
+                actions: toIndexMap([{name: CONST.RULES.EXPENSE_DEFAULT.ACTION.SET, field: CONST.RULES.EXPENSE_DEFAULT.FIELD.MERCHANT, value: 'SBUX'}]),
             };
 
-            const result = parseSpreadsheetRules(buildSpreadsheet(), true, policy, undefined);
+            const result = parseSpreadsheetRules(buildSpreadsheet(), true, policy, undefined, {[`${ONYXKEYS.COLLECTION.RULE}existing`]: existingRule});
 
             expect(Object.keys(result.rules)).toHaveLength(0);
             expect(result.skippedDuplicateCount).toBe(1);
         });
 
+        it('does not treat a rule from another policy as a duplicate', () => {
+            const policy = buildRulesEnabledControlPolicy();
+            const otherPolicyRule: Rule = {
+                scope: CONST.RULES.SCOPE.POLICY,
+                scopeID: 'another-policy',
+                triggers: toIndexMap([CONST.RULES.EXPENSE_DEFAULT.TRIGGER.CREATE_TRANSACTION]),
+                filters: {left: CONST.RULES.EXPENSE_DEFAULT.FIELD.MERCHANT, operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, right: 'Starbucks'},
+                actions: toIndexMap([{name: CONST.RULES.EXPENSE_DEFAULT.ACTION.SET, field: CONST.RULES.EXPENSE_DEFAULT.FIELD.MERCHANT, value: 'SBUX'}]),
+            };
+
+            const result = parseSpreadsheetRules(buildSpreadsheet(), true, policy, undefined, {[`${ONYXKEYS.COLLECTION.RULE}other`]: otherPolicyRule});
+
+            expect(Object.keys(result.rules)).toHaveLength(1);
+            expect(result.skippedDuplicateCount).toBe(0);
+        });
+
         it('drops a row whose category cell does not match a workspace category', () => {
-            const result = parseSpreadsheetRules(buildInvalidCategorySpreadsheet(), true, buildRulesEnabledControlPolicy(), undefined);
+            const result = parseSpreadsheetRules(buildInvalidCategorySpreadsheet(), true, buildRulesEnabledControlPolicy(), undefined, {});
 
             expect(Object.keys(result.rules)).toHaveLength(0);
             expect([...result.invalidCategoryNames]).toEqual(['nonexistent category']);

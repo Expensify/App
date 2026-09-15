@@ -14,10 +14,11 @@ import {
     updateApprovalWorkflow,
     updateApprovalWorkflowRules,
 } from '@src/libs/actions/Workflow';
-import {calculateApprovers, convertApprovalWorkflowRulesToWorkflows, extractSubmitterEmails, getApprovalWorkflowRulesForPolicy} from '@src/libs/WorkflowUtils';
+import {calculateApprovers, convertApprovalWorkflowRulesToWorkflows, extractSubmitterEmails, getApprovalWorkflowRulesForPolicy, isApprovalWorkflowRule} from '@src/libs/WorkflowUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ApprovalWorkflowOnyx, PersonalDetailsList, Policy, Policy as PolicyType, Report} from '@src/types/onyx';
 import type {Approver} from '@src/types/onyx/ApprovalWorkflow';
+import type {ApprovalWorkflowRule} from '@src/types/onyx/ApprovalWorkflowRules';
 import type Rule from '@src/types/onyx/Rule';
 
 import type {OnyxCollection} from 'react-native-onyx';
@@ -71,10 +72,16 @@ async function getRulesCollection(): Promise<OnyxCollection<Rule>> {
     return collection;
 }
 
-async function getActivePolicyRules(policyID: string): Promise<Rule[]> {
+/** The rules collection also holds rules of other kinds, so these tests narrow it to approval workflow rules. */
+async function getActivePolicyRules(policyID: string): Promise<Array<Rule & ApprovalWorkflowRule>> {
     const collection = await getRulesCollection();
     return Object.values(collection ?? {}).filter(
-        (rule): rule is Rule => !!rule && rule.scope === CONST.RULES.SCOPE.POLICY && rule.scopeID === policyID && rule.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+        (rule): rule is Rule & ApprovalWorkflowRule =>
+            !!rule &&
+            rule.scope === CONST.RULES.SCOPE.POLICY &&
+            rule.scopeID === policyID &&
+            rule.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE &&
+            isApprovalWorkflowRule(rule),
     );
 }
 
