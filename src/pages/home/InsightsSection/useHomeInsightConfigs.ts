@@ -28,15 +28,8 @@ function useHomeInsightConfigs(): SearchTypeMenuItem[] {
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const {defaultCardFeed, cardFeedsByPolicy} = useCardFeedsForDisplay();
 
-    const {visibility, shouldShowExpensifyCard, topSpendersPolicyIDs} = getSuggestedSearchesVisibility(
-        session?.email,
-        cardFeedsByPolicy,
-        policies,
-        defaultExpensifyCard,
-        false,
-        !!isTrackIntentUser,
-    );
-    const suggestedSearches = getSuggestedSearches(session?.accountID, (defaultCardFeed ?? defaultExpensifyCard)?.id, shouldShowExpensifyCard, topSpendersPolicyIDs);
+    const {visibility, shouldShowExpensifyCard} = getSuggestedSearchesVisibility(session?.email, cardFeedsByPolicy, policies, defaultExpensifyCard, false, !!isTrackIntentUser);
+    const suggestedSearches = getSuggestedSearches(session?.accountID, (defaultCardFeed ?? defaultExpensifyCard)?.id, shouldShowExpensifyCard);
 
     return HOME_INSIGHT_KEYS.filter((key) => visibility[key]).map((key) => suggestedSearches[key]);
 }

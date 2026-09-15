@@ -15,7 +15,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 
-import type {NativeScrollEvent, NativeSyntheticEvent, ViewToken} from 'react-native';
+import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent, ViewToken} from 'react-native';
 
 import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
 import {useEffect, useEffectEvent, useRef, useState} from 'react';
@@ -71,8 +71,11 @@ type UseMoneyRequestReportScrollResult = {
     /** "Latest messages" pill click handler — scrolls to the bottom and marks the report as read once it lands */
     scrollToLatestMessages: () => void;
 
-    /** FlashList onContentSizeChange handler — keeps the list pinned to the bottom while stick-to-bottom is active */
-    onListContentSizeChange: () => void;
+    /** FlashList onContentSizeChange handler — refreshes the bottom offset and keeps the list pinned while stick-to-bottom is active */
+    onListContentSizeChange: (width: number, height: number) => void;
+
+    /** List onLayout handler — refreshes the bottom offset from the laid-out list height */
+    onListLayout: (event: LayoutChangeEvent) => void;
 
     /** FlashList onScrollBeginDrag handler — cancels stick-to-bottom and any pending mark-as-read */
     onListScrollBeginDrag: () => void;
@@ -129,7 +132,18 @@ function useMoneyRequestReportScroll({
         reportScrollManager.scrollToIndex(lastItemIndexRef.current, {animated: false, viewPosition: 1});
     };
 
+    const listLayoutHeightRef = useRef(0);
+    const listContentHeightRef = useRef(0);
+    const listScrollYRef = useRef(0);
     const scrollingVerticalBottomOffset = useRef(0);
+
+    const syncBottomOffset = () => {
+        const bottomOffset = listContentHeightRef.current - listLayoutHeightRef.current - listScrollYRef.current;
+        scrollingVerticalBottomOffset.current = bottomOffset;
+        scrollOffsetRef.current = bottomOffset;
+        onScrolledOverThresholdChange(bottomOffset >= CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD);
+    };
+
     const stickToBottomRef = useRef(false);
     const stickToBottomTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     // Set when the user taps "Latest messages"; the report is marked as read only once the scroll actually reaches the bottom.
@@ -144,15 +158,10 @@ function useMoneyRequestReportScroll({
         hasNewerActions,
         onTrackScrolling: (event: NativeSyntheticEvent<NativeScrollEvent>) => {
             const {layoutMeasurement, contentSize, contentOffset} = event.nativeEvent;
-            const fullContentHeight = contentSize.height;
-
-            /**
-             * Count the diff between current scroll position and the bottom of the list.
-             * Diff == (height of all items in the list) - (height of the layout with the list) - (how far user scrolled)
-             */
-            scrollingVerticalBottomOffset.current = fullContentHeight - layoutMeasurement.height - contentOffset.y;
-            scrollOffsetRef.current = scrollingVerticalBottomOffset.current;
-            onScrolledOverThresholdChange(scrollingVerticalBottomOffset.current >= CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD);
+            listContentHeightRef.current = contentSize.height;
+            listLayoutHeightRef.current = layoutMeasurement.height;
+            listScrollYRef.current = contentOffset.y;
+            syncBottomOffset();
 
             // Mark the report as read only once the scroll has actually reached the bottom. The jump fired by
             // "Latest messages" settles over several frames as deferred items hydrate, so we wait for the real end.
@@ -302,11 +311,19 @@ function useMoneyRequestReportScroll({
         };
     }, []);
 
-    const onListContentSizeChange = () => {
+    const onListContentSizeChange = (_width: number, height: number) => {
+        listContentHeightRef.current = height;
+        syncBottomOffset();
+
         if (!stickToBottomRef.current) {
             return;
         }
         scrollToBottom();
+    };
+
+    const onListLayout = (event: LayoutChangeEvent) => {
+        listLayoutHeightRef.current = event.nativeEvent.layout.height;
+        syncBottomOffset();
     };
 
     const onListScrollBeginDrag = () => {
@@ -325,6 +342,7 @@ function useMoneyRequestReportScroll({
         onViewableItemsChanged,
         scrollToLatestMessages,
         onListContentSizeChange,
+        onListLayout,
         onListScrollBeginDrag,
         updateLastItemIndex,
     };

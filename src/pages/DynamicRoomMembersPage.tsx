@@ -1,6 +1,6 @@
 import ActivityIndicator from '@components/ActivityIndicator';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption, RoomMemberBulkActionType} from '@components/ButtonWithDropdownMenu/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -334,6 +334,7 @@ function DynamicRoomMembersPage({report, policy}: DynamicRoomMembersPageProps) {
     }, [bulkActionsButtonOptions, inviteUser, isSmallScreenWidth, selectedMembers.length, styles, translate, canSelectMultiple, shouldUseNarrowLayout, icons.Plus]);
 
     const selectionModeHeader = isMobileSelectionModeEnabled && isSmallScreenWidth;
+    const tableHeaderComponent = <View style={[styles.pl5, styles.pr5]}>{headerButtons}</View>;
 
     let subtitleKey: '' | TranslationPaths | undefined;
     if (!isEmptyObject(report)) {
@@ -365,13 +366,16 @@ function DynamicRoomMembersPage({report, policy}: DynamicRoomMembersPageProps) {
                         navigateBackToReportDetails();
                     }}
                 />
-                <View style={[styles.pl5, styles.pr5]}>{headerButtons}</View>
                 {isLoading ? (
-                    <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
+                    <>
+                        {tableHeaderComponent}
+                        <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
+                    </>
                 ) : (
                     <View style={[styles.w100, styles.flex1]}>
                         <RoomMembersTable
                             ref={tableRef}
+                            headerComponent={tableHeaderComponent}
                             members={members}
                             selectionEnabled
                             selectedKeys={selectedKeys}

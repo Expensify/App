@@ -19,7 +19,6 @@ type MoneyRequestReportEmptyStateViewProps = {
     /** The workspace the report belongs to */
     policy: OnyxEntry<OnyxTypes.Policy>;
 
-    /** Callback executed on layout */
     onLayout?: (event: LayoutChangeEvent) => void;
 };
 

@@ -58,7 +58,6 @@ import useMoneyRequestReportVisibleActions from './useMoneyRequestReportVisibleA
 const EmptyParentReportActionForTransactionThread = undefined;
 
 type MoneyRequestReportListProps = {
-    /** Callback executed on layout */
     onLayout?: (event: LayoutChangeEvent) => void;
 };
 
@@ -89,6 +88,7 @@ function MoneyRequestReportActionsListContent({reportIDFromRoute, onLayout}: Mon
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDFromRoute}`);
     const [reportStable] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDFromRoute}`, {selector: getStableReportSelector});
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(report?.policyID)}`);
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const [reportLoadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${reportIDFromRoute}`);
     const [reportPaginationState] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_PAGINATION_STATE}${reportIDFromRoute}`);
     const reportID = report?.reportID;
@@ -118,7 +118,6 @@ function MoneyRequestReportActionsListContent({reportIDFromRoute, onLayout}: Mon
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.chatReportID)}`);
 
     // Opened from the "X Replies" link: land on the latest message instead of the default top of the report.
-    // The ref holds the report we already scrolled for, so the scroll fires only once per report open.
     const shouldScrollToLatestOnOpen = route?.params?.[REPORT_LINK_ROUTE_PARAMS.SHOULD_SCROLL_TO_LATEST] === 'true';
     const scrolledToLatestOnOpenForReportIDRef = useRef<string | undefined>(undefined);
 
@@ -184,25 +183,35 @@ function MoneyRequestReportActionsListContent({reportIDFromRoute, onLayout}: Mon
         report,
         transactionThreadReport,
         sortedVisibleReportActions: visibleReportActionsNewestFirst,
+        sortedReportActions: reportActions,
         isScrolledToEnd: !hasScrolledOverThreshold,
         hasNewerActions,
         scopeKey: 'moneyRequestReport',
+        shouldRequireScreenFocus: true,
     });
 
-    const {isFloatingMessageCounterVisible, trackVerticalScrolling, onViewableItemsChanged, scrollToLatestMessages, onListContentSizeChange, onListScrollBeginDrag, updateLastItemIndex} =
-        useMoneyRequestReportScroll({
-            reportID,
-            resetKey: reportID ?? reportIDFromRoute ?? '',
-            visibleReportActions,
-            reportActionsLength: reportActions.length,
-            lastAction,
-            hasNewestReportAction,
-            hasNewerActions,
-            unreadMarkerReportActionIndex,
-            onScrolledOverThresholdChange: setHasScrolledOverThreshold,
-            markNewestActionAsRead,
-            completeSkippedMarkAsRead,
-        });
+    const {
+        isFloatingMessageCounterVisible,
+        trackVerticalScrolling,
+        onViewableItemsChanged,
+        scrollToLatestMessages,
+        onListContentSizeChange,
+        onListScrollBeginDrag,
+        updateLastItemIndex,
+        onListLayout: syncBottomOffsetFromLayout,
+    } = useMoneyRequestReportScroll({
+        reportID,
+        resetKey: reportID ?? reportIDFromRoute ?? '',
+        visibleReportActions,
+        reportActionsLength: reportActions.length,
+        lastAction,
+        hasNewestReportAction,
+        hasNewerActions,
+        unreadMarkerReportActionIndex,
+        onScrolledOverThresholdChange: setHasScrolledOverThreshold,
+        markNewestActionAsRead,
+        completeSkippedMarkAsRead,
+    });
 
     // When the report is opened from the "X Replies" link, scroll to the latest message once the actions are
     // available (this list otherwise opens at the top). scrollToLatestMessages pins to the bottom while the
@@ -276,6 +285,11 @@ function MoneyRequestReportActionsListContent({reportIDFromRoute, onLayout}: Mon
         markOpenReportEnd(reportIDFromRoute, report, {warm: true});
     }, [reportIDFromRoute, report]);
 
+    const onListLayout = (event: LayoutChangeEvent) => {
+        syncBottomOffsetFromLayout(event);
+        recordTimeToMeasureItemLayout();
+    };
+
     const isReportEmpty = isEmpty(visibleReportActions) && isEmpty(transactions) && !isInitialReportLoadPending;
     const showEmptyState = isReportEmpty;
 
@@ -287,6 +301,7 @@ function MoneyRequestReportActionsListContent({reportIDFromRoute, onLayout}: Mon
         policy,
         report,
         isTrackIntentUser,
+        rules,
     });
 
     return (
@@ -332,7 +347,7 @@ function MoneyRequestReportActionsListContent({reportIDFromRoute, onLayout}: Mon
                         listRef={listRef}
                         onLastItemIndexChange={updateLastItemIndex}
                         accessibilityLabel={translate('sidebarScreen.listOfChatMessages')}
-                        onListLayout={recordTimeToMeasureItemLayout}
+                        onListLayout={onListLayout}
                         onScroll={trackVerticalScrolling}
                         onScrollBeginDrag={onListScrollBeginDrag}
                         onContentSizeChange={onListContentSizeChange}
@@ -351,18 +366,13 @@ function MoneyRequestReportActionsListContent({reportIDFromRoute, onLayout}: Mon
     );
 }
 
-/**
- * Public money-request report actions list. Thin wrapper that keys the content per report so all
- * hook state (unread marker time, pagination cursors, scroll refs) resets on report switch — the
- * same contract `ReportActionsList` gets from its `key={report.reportID}` consumers.
- */
 function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) {
     const route = useRoute<PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
     const reportIDFromRoute = route?.params?.reportID;
 
     return (
         <MoneyRequestReportActionsListContent
-            key={reportIDFromRoute}
+            key={reportIDFromRoute ?? ''}
             reportIDFromRoute={reportIDFromRoute}
             onLayout={onLayout}
         />
