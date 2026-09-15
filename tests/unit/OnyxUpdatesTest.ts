@@ -776,6 +776,19 @@ describe('OnyxUpdatesTest', () => {
             expect(await getOnyxValue(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT)).toBe(40);
         });
 
+        it('does not advance the watermark when a catch-up response starts above it but below the failed update', async () => {
+            await Onyx.merge(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, 10);
+            await waitForBatchedUpdates();
+
+            await failedReadResponse(40);
+
+            await OnyxUpdates.apply(catchUpResponse(19, 60));
+            await waitForBatchedUpdates();
+
+            expect(await getOnyxValue(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT)).toBe(10);
+            expect(OnyxUpdates.doesClientNeedToBeUpdated({previousUpdateID: 60})).toBe(true);
+        });
+
         it('advances the watermark again once a full reconnect covers the failed range', async () => {
             // Given the client is caught up to update 10
             await Onyx.merge(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, 10);
@@ -1160,6 +1173,45 @@ describe('OnyxUpdatesTest', () => {
             expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`)).toStrictEqual({reportID});
             expect(await getOnyxValue(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT)).toBe(10);
             expect(OnyxUpdates.doesClientNeedToBeUpdated({previousUpdateID: 50})).toBe(true);
+        });
+
+        it('releases the hold rather than the watermark alone when a catch-up response ends exactly at the failed update', async () => {
+            await Onyx.merge(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, 10);
+            await waitForBatchedUpdates();
+
+            await failedReadResponse(200);
+
+            await OnyxUpdates.apply(catchUpResponse(10, 200));
+            await waitForBatchedUpdates();
+            expect(await getOnyxValue(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT)).toBe(200);
+
+            await OnyxUpdates.apply(readResponse(220));
+            await waitForBatchedUpdates();
+            expect(await getOnyxValue(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT)).toBe(220);
+        });
+
+        it('releases every unrecovered failure when one contiguous response covers through the highest of many', async () => {
+            await Onyx.merge(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, 10);
+            await waitForBatchedUpdates();
+
+            PusherUtils.subscribeToMultiEvent('test.pusher.retain-many-failed', () => Promise.reject(new Error('handler failed')));
+
+            for (let index = 0; index < 105; index++) {
+                await OnyxUpdates.apply(pusherUpdate(20 + index * 2, 'test.pusher.retain-many-failed')).catch(() => {});
+            }
+            await waitForBatchedUpdates();
+
+            await OnyxUpdates.apply(readResponse(5000));
+            await waitForBatchedUpdates();
+            expect(await getOnyxValue(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT)).toBe(10);
+
+            await OnyxUpdates.apply(catchUpResponse(10, 300));
+            await waitForBatchedUpdates();
+            expect(await getOnyxValue(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT)).toBe(300);
+
+            await OnyxUpdates.apply(readResponse(310));
+            await waitForBatchedUpdates();
+            expect(await getOnyxValue(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT)).toBe(310);
         });
     });
 });
