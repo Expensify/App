@@ -73,7 +73,8 @@ function WorkspaceCompanyCardsTableHeaderButtons({policyID, feedName, isLoading,
     const hasOtherFeedWithRBR = Object.keys(companyFeeds ?? {}).some((feed) => feed !== feedName && shouldShowRbrForFeedNameWithDomainID[feed]);
     const shouldShowFeedSelectorRBR = hasOtherFeedWithRBR || !!feedErrors?.hasWorkspaceErrors;
     const shouldShowBrokenConnectionError = getShouldShowBrokenConnectionError(feedName, feedErrors);
-    const brokenConnectionMessage = isDirectFeed(feedName) ? translate('workspace.companyCards.brokenConnectionError') : `<rbr>${translate('common.genericErrorMessage')}</rbr>`;
+    // Only direct feeds can be reconnected in-app, so other feeds get the message without the bank login link.
+    const brokenConnectionMessage = isDirectFeed(feedName) ? translate('workspace.companyCards.brokenConnectionError') : `<rbr>${translate('personalCard.brokenConnection')}</rbr>`;
 
     const openBankConnection = () => {
         if (!feedName) {
