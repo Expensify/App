@@ -432,6 +432,72 @@ describe('ModifiedExpenseMessage', () => {
             });
         });
 
+        describe('when only the rate of a distance expense changes', () => {
+            const reportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
+                originalMessage: {
+                    merchant: '1,234.56 mi @ $0.70 / mi',
+                    oldMerchant: '1,234.56 mi @ $0.67 / mi',
+                    amount: 86419,
+                    currency: CONST.CURRENCY.USD,
+                    oldAmount: 82716,
+                    oldCurrency: CONST.CURRENCY.USD,
+                },
+            };
+
+            // The backend groups the distance with a thousands separator, so the merchant only matches
+            // DISTANCE_MERCHANT once that separator is allowed. Without it the message wrongly says "distance".
+            it('says the rate changed even when the distance carries a thousands separator', () => {
+                const expectedResult =
+                    'changed the rate to 1,234.56 mi @ $0.70 / mi (previously 1,234.56 mi @ $0.67 / mi), which updated the amount to $864.19 (previously $827.16)';
+
+                const result = getForReportAction({
+                    convertToDisplayString,
+                    translate: translateLocal,
+                    reportAction,
+                    policy: undefined,
+                    policyTags: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    currentUserLogin: CURRENT_USER_LOGIN,
+                });
+
+                expect(result).toEqual(expectedResult);
+            });
+        });
+
+        describe('when only the distance of a distance expense changes', () => {
+            const reportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
+                originalMessage: {
+                    merchant: '2,345.67 mi @ $0.67 / mi',
+                    oldMerchant: '1,234.56 mi @ $0.67 / mi',
+                    amount: 157159,
+                    currency: CONST.CURRENCY.USD,
+                    oldAmount: 82716,
+                    oldCurrency: CONST.CURRENCY.USD,
+                },
+            };
+
+            it('says the distance changed', () => {
+                const expectedResult =
+                    'changed the distance to 2,345.67 mi @ $0.67 / mi (previously 1,234.56 mi @ $0.67 / mi), which updated the amount to $1,571.59 (previously $827.16)';
+
+                const result = getForReportAction({
+                    convertToDisplayString,
+                    translate: translateLocal,
+                    reportAction,
+                    policy: undefined,
+                    policyTags: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    currentUserLogin: CURRENT_USER_LOGIN,
+                });
+
+                expect(result).toEqual(expectedResult);
+            });
+        });
+
         describe('when the amount and merchant are changed', () => {
             const reportAction = {
                 ...createRandomReportAction(1),
