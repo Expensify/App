@@ -5111,6 +5111,8 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
                 xeroInvoiceCollectionAccount: 'Xero請求書回収勘定',
                 xeroBillPaymentAccountDescription: '請求書の支払元を選択すると、Xero 内に支払処理を作成します。',
                 invoiceAccountSelectorDescription: '請求書の入金先を選択すると、Xero に支払いが作成されます。',
+                xeroFxExpenseAccount: 'Xero 通貨換算手数料勘定',
+                fxExpenseAccountDescription: '海外で行われた支払いに対する通貨換算コストを御社が負担する場合、そのコストは「支出入金取引」として Xero のこの勘定科目に計上します。',
             },
             exportDate: {
                 label: '仕入請求書の日付',
@@ -5468,6 +5470,8 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
                 error: {
                     customFormID: '有効な数値のカスタムフォームIDを入力してください',
                 },
+                fxExpenseAccount: '通貨換算手数料勘定',
+                fxExpenseAccountDescription: '海外で支払われる精算について、会社が為替換算コストを負担する場合、そのコストは仕訳として以下の NetSuite アカウントに計上します。',
             },
             noAccountsFound: 'アカウントが見つかりません',
             noAccountsFoundDescription: 'NetSuite にアカウントを追加して、接続をもう一度同期してください',
@@ -9174,6 +9178,35 @@ ${reportName}`,
             return `「${categoryName}」カテゴリの出席者を${newValue ? '必須' : '必須ではありません'}に変更しました（以前は${newValue ? '必須ではありません' : '必須'}）`;
         },
         updatedAutoHarvesting: (enabled: boolean) => `${enabled ? '有効' : '無効'} 件の提出`,
+        changedOverLimitForwardsTo: ({
+            member,
+            approver,
+            limit,
+            previousApprover,
+            previousLimit,
+        }: {
+            member: string;
+            approver: string;
+            limit: string;
+            previousApprover?: string;
+            previousLimit?: string;
+        }) => {
+            let text = previousApprover
+                ? `${member} の承認ワークフローを変更し、${limit} を超えるレポートを ${approver} に回付するようにしました`
+                : `${member} に対する承認ワークフローを設定し、${limit} を超えるレポートを ${approver} に回覧します`;
+            if (previousApprover && previousLimit) {
+                text += `（以前は ${previousLimit} を超えるレポートを ${previousApprover} に転送していました）`;
+            } else if (previousApprover) {
+                text += `（以前に ${previousApprover} に転送済み）`;
+            }
+            return text;
+        },
+        removedOverLimitForwardsTo: ({member, previousApprover, previousLimit}: {member: string; previousApprover?: string; previousLimit: string}) =>
+            previousApprover
+                ? `${member} さんの承認ワークフローを変更し、${previousLimit} を超えるレポートを転送しないようにしました（以前は ${previousApprover} さんに転送していました）`
+                : `${member} さんの承認ワークフローを変更し、${previousLimit} を超えるレポートを転送しないようにしました`,
+        changedApprovalLimit: ({member, limit, previousLimit}: {member: string; limit: string; previousLimit: string}) =>
+            `${member} さんの承認ワークフローを、${limit} を超えるレポートを転送するように変更しました（以前は ${previousLimit}）。`,
     },
     roomMembersPage: {
         memberNotFound: 'メンバーが見つかりません。',
@@ -10781,6 +10814,8 @@ ${reportName}`,
         gpsTooltip: '<tooltip>GPS追跡を実行中です！完了したら、下で追跡を停止してください。</tooltip>',
         hasFilterNegation: '<tooltip><strong>-has:receipt</strong> を使って、レシートのない経費を検索します。</tooltip>',
         mileageRateAutoUpdated: '<tooltip>出張日にもとづいてレートを更新しました。</tooltip>',
+        markAllAsRead: '<tooltip>右クリックで<strong>すべて既読にする</strong>ことができます。</tooltip>',
+        markAllAsReadTouchScreen: '<tooltip>長押しで<strong>すべて既読にする</strong>ことができます。</tooltip>',
     },
     discardChangesConfirmation: {
         title: '変更を破棄しますか？',
@@ -10858,6 +10893,7 @@ ${reportName}`,
         readyPartialBody: ({count, total}: {count: number; total: number}) =>
             `${count} of ${total} reports exported. If it didn't automatically download, use the button below. See which reports failed in <concierge-link>Concierge</concierge-link>.`,
         close: 'Close',
+        truncatedBody: 'お知らせです！このエクスポートはサイズが大きすぎるため、検索条件に一致した最初の 50,000 件のレポートに制限されています。',
     },
     domain: {
         notVerified: '未確認',
