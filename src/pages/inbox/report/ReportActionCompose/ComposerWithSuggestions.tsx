@@ -295,11 +295,16 @@ function ComposerWithSuggestions({
      * @param [forcedSelectionRange] Optional selection to apply after focus
      * @param [forceKeyboardIfAlreadyFocused] When already focused, use KeyboardController so the keyboard can show (e.g. edit-in-composer)
      */
-    const focus = useCallback((shouldDelay = false, forcedSelectionRange?: Selection, forceKeyboardIfAlreadyFocused = false) => {
-        // If we're stacked above another RHP, wait for the transition to complete before focusing.
-        const delay = shouldDelayAutoFocusRef.current ? CONST.ANIMATED_TRANSITION : CONST.COMPOSER_FOCUS_DELAY;
-        focusComposerWithDelay(composerRef.current, delay)(shouldDelay, forcedSelectionRange, forceKeyboardIfAlreadyFocused).catch(() => {});
-    }, []);
+    const focus = useCallback(
+        (shouldDelay = false, forcedSelectionRange?: Selection, forceKeyboardIfAlreadyFocused = false) => {
+            // If we're stacked above another RHP, wait for the transition to complete before focusing.
+            const delay = shouldDelayAutoFocusRef.current ? CONST.ANIMATED_TRANSITION : CONST.COMPOSER_FOCUS_DELAY;
+            // Another composer taking focus clears the side panel claim, so re-check it when the delay is up rather than trusting the value it had when focus was requested.
+            const canFocusAfterDelay = isInSidePanel ? () => !!ReportActionComposeFocusManager.sidePanelComposerRef.current : undefined;
+            focusComposerWithDelay(composerRef.current, delay, canFocusAfterDelay)(shouldDelay, forcedSelectionRange, forceKeyboardIfAlreadyFocused).catch(() => {});
+        },
+        [isInSidePanel],
+    );
 
     const shouldIgnoreEditSelectionResetRef = useRef(false);
     const ignoreEditSelectionResetTimeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
@@ -758,6 +763,15 @@ function ComposerWithSuggestions({
         }
     }, [isInSidePanel]);
 
+    useEffect(() => {
+        if (!isInSidePanel) {
+            return;
+        }
+        return () => {
+            ReportActionComposeFocusManager.sidePanelComposerRef.current = null;
+        };
+    }, [isInSidePanel]);
+
     /**
      * Set focus callback
      * @param shouldTakeOverFocus - Whether this composer should gain focus priority
@@ -868,6 +882,11 @@ function ComposerWithSuggestions({
 
         // Do not focus side panels composer if it wasn't focused before
         if (isInSidePanel && !ReportActionComposeFocusManager.sidePanelComposerRef.current) {
+            return;
+        }
+
+        // After a modal closes, focus goes back to the composer that had it before the modal opened, so do not compete with the side panel composer
+        if (!isInSidePanel && prevIsModalVisible && ReportActionComposeFocusManager.sidePanelComposerRef.current) {
             return;
         }
 
