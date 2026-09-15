@@ -18,6 +18,9 @@ type ReviewDomainAdminRequests = {
 /** Handles the "Review X domain admin request(s)" row on the "For you" section of the home page. */
 function useReviewDomainAdminRequests(): ReviewDomainAdminRequests {
     const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
+
+    // useOnyx holds the selector in a ref, so an inline factory selector is safe here
+    // eslint-disable-next-line rulesdir/no-inline-useOnyx-selector
     const [pendingDomainAdminRequests] = useOnyx(ONYXKEYS.COLLECTION.DOMAIN, {selector: createPendingDomainAdminRequestsSelector(accountID)});
     const count = pendingDomainAdminRequests?.count ?? 0;
     const domainAccountIDs = pendingDomainAdminRequests?.domainAccountIDs ?? [];
