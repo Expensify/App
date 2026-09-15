@@ -2,7 +2,7 @@ import {act, renderHook} from '@testing-library/react-native';
 
 import {useSearchRowSelectionActions, useSearchSelectionActions, useSearchSelectionContext} from '@components/Search/SearchContext';
 import {SearchContextProvider} from '@components/Search/SearchContextProvider';
-import type {TransactionCategoryGroupListItemType, TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
+import type {TransactionCategoryGroupListItemType, TransactionListItemType, TransactionReportGroupListItemType} from '@components/Search/SearchList/ListItem/types';
 import SearchWriteActionsProvider from '@components/Search/SearchWriteActionsProvider';
 
 import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
@@ -55,6 +55,54 @@ const loadedChildren = [
     {transactionID: '1', keyForList: '1', currency: 'USD', amount: -642, report: {reportID: '11'}},
     {transactionID: '2', keyForList: '2', currency: 'USD', amount: -642, report: {reportID: '11'}},
 ] as unknown as TransactionListItemType[];
+
+const makeReportTransaction = (transactionID: string, reportID: string, amount = -500) =>
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- minimal fixture: only fields read by selection builders are required
+    ({
+        transactionID,
+        keyForList: transactionID,
+        currency: 'USD',
+        amount,
+        reportID,
+        report: {reportID},
+        action: CONST.SEARCH.ACTION_TYPES.VIEW,
+    }) as unknown as TransactionListItemType;
+
+const makeExpenseReport = (reportID: string, transactionIDs: string[], transactionAmount = -500) =>
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- minimal fixture: only fields read by report selection are required
+    ({
+        groupedBy: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
+        reportID,
+        keyForList: reportID,
+        transactions: transactionIDs.map((transactionID) => makeReportTransaction(transactionID, reportID, transactionAmount)),
+        currency: 'USD',
+        total: transactionAmount * transactionIDs.length,
+        type: CONST.REPORT.TYPE.EXPENSE,
+    }) as unknown as TransactionReportGroupListItemType;
+
+const firstReport = makeExpenseReport('report-1', ['report-1-transaction-1', 'report-1-transaction-2']);
+const secondReport = makeExpenseReport('report-2', ['report-2-transaction-1']);
+const thirdReport = makeExpenseReport('report-3', ['report-3-transaction-1']);
+let reportFilteredData: TransactionReportGroupListItemType[] = [firstReport, secondReport];
+
+function makeReportSearchResults(): SearchResults {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- minimal fixture: only fields read by the selection reconciliation are required
+    return {
+        data: {},
+        search: {
+            type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
+            hash: 2,
+            sortBy: CONST.SEARCH.TABLE_COLUMNS.DATE,
+            sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
+            offset: 0,
+            hasMoreResults: true,
+            hasResults: true,
+            isLoading: false,
+        },
+    } as unknown as SearchResults;
+}
+
+let reportSearchResults = makeReportSearchResults();
 
 const FLAT_TRANSACTION_ID = 'flat-1';
 
@@ -135,6 +183,27 @@ function FlatWrapper({children}: {children: React.ReactNode}) {
     );
 }
 
+function ReportsWrapper({children}: {children: React.ReactNode}) {
+    const totalSelectableItemsCount = reportFilteredData.reduce((count, report) => count + report.transactions.length, 0);
+    return (
+        <SearchContextProvider>
+            <SearchWriteActionsProvider
+                filteredData={reportFilteredData}
+                totalSelectableItemsCount={totalSelectableItemsCount}
+                searchResults={reportSearchResults}
+                transactions={undefined}
+                isMobileSelectionModeEnabled={false}
+                type={CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT}
+                areItemsGrouped
+                isExpenseReportType
+                isSearchResultsEmpty={false}
+            >
+                {children}
+            </SearchWriteActionsProvider>
+        </SearchContextProvider>
+    );
+}
+
 const renderSelection = () =>
     renderHook(
         () => ({
@@ -153,6 +222,16 @@ const renderFlatSelection = () =>
             ...useSearchRowSelectionActions(),
         }),
         {wrapper: FlatWrapper},
+    );
+
+const renderReportSelection = () =>
+    renderHook(
+        () => ({
+            ...useSearchSelectionContext(),
+            ...useSearchSelectionActions(),
+            ...useSearchRowSelectionActions(),
+        }),
+        {wrapper: ReportsWrapper},
     );
 
 async function excludeFlatExpense(result: ReturnType<typeof renderFlatSelection>['result']) {
@@ -174,6 +253,8 @@ describe('Lazily loaded group selection', () => {
         flatExpense = makeFlatExpense(-3000);
         flatFilteredData = [flatExpense];
         flatSearchResults = makeFlatSearchResults(flatExpense);
+        reportFilteredData = [firstReport, secondReport];
+        reportSearchResults = makeReportSearchResults();
         await act(async () => {
             await Onyx.clear();
             await waitForBatchedUpdatesWithAct();
@@ -280,6 +361,192 @@ describe('Lazily loaded group selection', () => {
         await act(async () => waitForBatchedUpdatesWithAct());
 
         expect(result.current.excludedTransactions).toEqual({});
+        expect(result.current.areAllMatchingItemsSelected).toBe(true);
+    });
+
+    it('clears a multi-page all-matching report selection from the header', async () => {
+        const {result} = renderReportSelection();
+
+        await act(async () => {
+            result.current.toggleAll();
+            result.current.selectAllMatchingItems(true);
+            await waitForBatchedUpdatesWithAct();
+        });
+        expect(result.current.areAllMatchingItemsSelected).toBe(true);
+
+        await act(async () => {
+            result.current.toggleAll();
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        expect(result.current.selectedTransactions).toEqual({});
+        expect(result.current.excludedTransactions).toEqual({});
+        expect(result.current.areAllMatchingItemsSelected).toBe(false);
+        expect(result.current.hasSelectedTransactions).toBe(false);
+    });
+
+    it('keeps an excluded report unchecked while selecting reports loaded by pagination', async () => {
+        const {result, rerender} = renderReportSelection();
+
+        await act(async () => {
+            result.current.toggleAll();
+            result.current.selectAllMatchingItems(true);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        await act(async () => {
+            result.current.toggle(firstReport);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        expect(result.current.areAllMatchingItemsSelected).toBe(true);
+        expect(Object.keys(result.current.selectedTransactions)).toEqual(['report-2-transaction-1']);
+        expect(Object.keys(result.current.excludedTransactions)).toEqual(['report-1-transaction-1', 'report-1-transaction-2']);
+        expect(result.current.selectedReports.map((report) => report.reportID)).toEqual(['report-2']);
+
+        reportFilteredData = [firstReport, secondReport, thirdReport];
+        rerender({});
+        await act(async () => waitForBatchedUpdatesWithAct());
+
+        expect(Object.keys(result.current.selectedTransactions)).toEqual(['report-2-transaction-1', 'report-3-transaction-1']);
+        expect(Object.keys(result.current.excludedTransactions)).toEqual(['report-1-transaction-1', 'report-1-transaction-2']);
+
+        await act(async () => {
+            result.current.toggle(firstReport);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        expect(result.current.areAllMatchingItemsSelected).toBe(true);
+        expect(Object.keys(result.current.selectedTransactions)).toEqual(['report-2-transaction-1', 'report-3-transaction-1', 'report-1-transaction-1', 'report-1-transaction-2']);
+        expect(result.current.excludedTransactions).toEqual({});
+    });
+
+    it("refreshes an excluded report's expenses when their live amounts change", async () => {
+        const {result, rerender} = renderReportSelection();
+
+        await act(async () => {
+            result.current.toggleAll();
+            result.current.selectAllMatchingItems(true);
+            await waitForBatchedUpdatesWithAct();
+        });
+        await act(async () => {
+            result.current.toggle(firstReport);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        expect(result.current.excludedTransactions['report-1-transaction-1']?.amount).toBe(-500);
+        expect(result.current.excludedTransactions['report-1-transaction-2']?.amount).toBe(-500);
+
+        const updatedFirstReport = makeExpenseReport('report-1', ['report-1-transaction-1', 'report-1-transaction-2'], -700);
+        reportFilteredData = [updatedFirstReport, secondReport];
+        reportSearchResults = makeReportSearchResults();
+        rerender({});
+        await act(async () => waitForBatchedUpdatesWithAct());
+
+        expect(result.current.excludedTransactions['report-1-transaction-1']?.amount).toBe(-700);
+        expect(result.current.excludedTransactions['report-1-transaction-2']?.amount).toBe(-700);
+        expect(result.current.areAllMatchingItemsSelected).toBe(true);
+    });
+
+    it('keeps a new expense excluded when it is added to an excluded report', async () => {
+        const {result, rerender} = renderReportSelection();
+
+        await act(async () => {
+            result.current.selectAllMatchingItems(true);
+            await waitForBatchedUpdatesWithAct();
+        });
+        await act(async () => {
+            result.current.toggle(firstReport);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        const updatedFirstReport = makeExpenseReport('report-1', ['report-1-transaction-1', 'report-1-transaction-2', 'report-1-transaction-3']);
+        reportFilteredData = [updatedFirstReport, secondReport];
+        reportSearchResults = makeReportSearchResults();
+        rerender({});
+        await act(async () => waitForBatchedUpdatesWithAct());
+
+        expect(Object.keys(result.current.selectedTransactions)).toEqual(['report-2-transaction-1']);
+        expect(Object.keys(result.current.excludedTransactions)).toEqual(['report-1-transaction-3', 'report-1-transaction-1', 'report-1-transaction-2']);
+        expect(result.current.selectedReports.map((report) => report.reportID)).toEqual(['report-2']);
+        expect(result.current.areAllMatchingItemsSelected).toBe(true);
+    });
+
+    it('removes a deleted expense from an excluded report', async () => {
+        const {result, rerender} = renderReportSelection();
+
+        await act(async () => {
+            result.current.toggleAll();
+            result.current.selectAllMatchingItems(true);
+            await waitForBatchedUpdatesWithAct();
+        });
+        await act(async () => {
+            result.current.toggle(firstReport);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        reportFilteredData = [makeExpenseReport('report-1', ['report-1-transaction-1']), secondReport];
+        reportSearchResults = makeReportSearchResults();
+        rerender({});
+        await act(async () => waitForBatchedUpdatesWithAct());
+
+        expect(Object.keys(result.current.selectedTransactions)).toEqual(['report-2-transaction-1']);
+        expect(Object.keys(result.current.excludedTransactions)).toEqual(['report-1-transaction-1']);
+        expect(result.current.selectedReports.map((report) => report.reportID)).toEqual(['report-2']);
+        expect(result.current.areAllMatchingItemsSelected).toBe(true);
+    });
+
+    it('keeps an excluded report unchecked when its last expense is deleted', async () => {
+        const {result, rerender} = renderReportSelection();
+
+        await act(async () => {
+            result.current.toggleAll();
+            result.current.selectAllMatchingItems(true);
+            await waitForBatchedUpdatesWithAct();
+        });
+        await act(async () => {
+            result.current.toggle(firstReport);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        reportFilteredData = [makeExpenseReport('report-1', []), secondReport];
+        reportSearchResults = makeReportSearchResults();
+        rerender({});
+        await act(async () => waitForBatchedUpdatesWithAct());
+
+        expect(Object.keys(result.current.selectedTransactions)).toEqual(['report-2-transaction-1']);
+        expect(Object.keys(result.current.excludedTransactions)).toEqual(['report-1']);
+        expect(result.current.excludedTransactions['report-1']?.reportID).toBe('report-1');
+        expect(result.current.selectedReports.map((report) => report.reportID)).toEqual(['report-2']);
+        expect(result.current.areAllMatchingItemsSelected).toBe(true);
+    });
+
+    it('keeps a report excluded when its first expense is added', async () => {
+        const emptyReport = makeExpenseReport('empty-report', []);
+        reportFilteredData = [emptyReport, secondReport];
+        const {result, rerender} = renderReportSelection();
+
+        await act(async () => {
+            result.current.toggleAll();
+            result.current.selectAllMatchingItems(true);
+            await waitForBatchedUpdatesWithAct();
+        });
+        await act(async () => {
+            result.current.toggle(emptyReport);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        expect(result.current.excludedTransactions['empty-report']).toBeDefined();
+
+        reportFilteredData = [makeExpenseReport('empty-report', ['empty-report-transaction-1']), secondReport];
+        reportSearchResults = makeReportSearchResults();
+        rerender({});
+        await act(async () => waitForBatchedUpdatesWithAct());
+
+        expect(result.current.excludedTransactions['empty-report']).toBeUndefined();
+        expect(Object.keys(result.current.excludedTransactions)).toEqual(['empty-report-transaction-1']);
+        expect(result.current.excludedTransactions['empty-report-transaction-1']?.reportID).toBe('empty-report');
+        expect(result.current.selectedTransactions['empty-report-transaction-1']).toBeUndefined();
         expect(result.current.areAllMatchingItemsSelected).toBe(true);
     });
 });
