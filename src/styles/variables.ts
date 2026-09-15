@@ -101,6 +101,10 @@ export default {
     iouAmountTextSizeLarge: 48,
     extraSmallMobileResponsiveWidthBreakpoint: 320,
     extraSmallMobileResponsiveHeightBreakpoint: 667,
+    // The stacked account header (100dp avatar + h1 + login + Switch button) is ~236dp tall, so it only fits above the
+    // fold on a viewport meaningfully taller than that. Sits in the gap between the tallest phone in landscape (~480dp)
+    // and the shortest phone in portrait (~568dp), so phones stack in portrait and never in landscape.
+    stackedAccountHeaderMinHeightBreakpoint: 500,
     mobileResponsiveWidthBreakpoint: 800,
     tabletResponsiveWidthBreakpoint: 1024,
     sidePanelResponsiveWidthBreakpoint: 1300,

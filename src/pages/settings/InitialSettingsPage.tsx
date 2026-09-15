@@ -15,6 +15,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useScrollEventEmitter from '@hooks/useScrollEventEmitter';
+import useShouldStackAccountHeader from '@hooks/useShouldStackAccountHeader';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -44,7 +45,7 @@ import useInitialSettingsPageMenuData from './useInitialSettingsPageMenuData';
 type InitialSettingsPageProps = WithCurrentUserPersonalDetailsProps;
 
 function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPageProps) {
-    const {shouldUseNarrowLayout, isInLandscapeMode} = useResponsiveLayout();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [canSwitchAccounts = false] = useOnyx(ONYXKEYS.ACCOUNT, {selector: canSwitchAccountsSelector});
     const tabBarContent = <TabBarBottomContent selectedTab={NAVIGATION_TABS.SETTINGS} />;
     const styles = useThemeStyles();
@@ -104,8 +105,8 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
 
     const isPersonalDetailsEmpty = isEmptyObject(currentUserPersonalDetails) || currentUserPersonalDetails.displayName === undefined;
 
-    // Must match the same condition in AccountSwitcher, or the skeleton and the loaded header lay out differently.
-    const shouldStackHeader = shouldUseNarrowLayout && !isInLandscapeMode;
+    // Shared with AccountSwitcher, or the skeleton and the loaded header lay out differently.
+    const shouldStackHeader = useShouldStackAccountHeader();
 
     const headerContent = (
         <View style={[styles.ph5, styles.pv4]}>
