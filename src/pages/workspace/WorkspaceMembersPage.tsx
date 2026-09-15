@@ -12,6 +12,7 @@ import WorkspaceMembersTable from '@components/Tables/WorkspaceMembersTable';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 
+import useApprovalWorkflows from '@hooks/useApprovalWorkflows';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useHRSyncResultsPage from '@hooks/useHRSyncResultsPage';
@@ -53,6 +54,7 @@ import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import {isPersonalDetailsReady} from '@libs/OptionsListUtils';
 import {getPersonalDetailsByID, temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {
+    areApprovalsEnabled,
     canEditWorkspaceSettings as canEditWorkspaceSettingsUtil,
     canMemberAssignRole,
     canMemberManageMemberWithRole,
@@ -69,10 +71,11 @@ import {
     isSubmitPolicy,
     shouldFilterExpensifyTeam,
 } from '@libs/PolicyUtils';
+import type {MemberEmailsToAccountIDs} from '@libs/PolicyUtils';
 import {getDisplayNameForParticipant} from '@libs/ReportUtils';
 import getShouldPopoverUseScrollView from '@libs/shouldPopoverUseScrollView';
 import {generateAccountID} from '@libs/UserUtils';
-import {convertPolicyEmployeesToApprovalWorkflows, updateWorkflowDataOnApproverRemoval} from '@libs/WorkflowUtils';
+import {getFirstApproverByMemberEmail, hasMultiLevelApprovalWorkflow, updateWorkflowDataOnApproverRemoval} from '@libs/WorkflowUtils';
 
 import {close} from '@userActions/Modal';
 import {dismissAddedWithPrimaryLoginMessages} from '@userActions/Policy/Policy';
@@ -88,6 +91,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {ValueOf} from 'type-fest';
 
 import {useIsFocused} from '@react-navigation/native';
+import {Str} from 'expensify-common';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 
@@ -106,6 +110,14 @@ function invertObject(object: Record<string, string>): Record<string, string> {
     return Object.fromEntries(invertedEntries);
 }
 
+/**
+ * Resolves an account's ID from the personal-details join, falling back to a generated one when personal details
+ * for that email haven't loaded yet, so a member (or their approver) is still shown rather than blanked.
+ */
+function resolveMemberAccountID(email: string, policyMemberEmailsToAccountIDs: MemberEmailsToAccountIDs): number {
+    return policyMemberEmailsToAccountIDs[email] ? Number(policyMemberEmailsToAccountIDs[email]) : generateAccountID(email);
+}
+
 function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembersPageProps) {
     useWorkspaceDocumentTitle(policy?.name, 'common.members');
     const tableRef = useRef<TableHandle<WorkspaceMemberRowData, WorkspaceMembersTableColumnKey, string>>(null);
@@ -119,14 +131,14 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     const prevIsOffline = usePrevious(isOffline);
     const [isDownloadFailureModalVisible, setIsDownloadFailureModalVisible] = useState(false);
     const isOfflineAndNoMemberDataAvailable = isEmptyObject(policy?.employeeList) && isOffline;
-    const {translate, formatPhoneNumber, localeCompare} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const {isAccountLocked} = useLockedAccountState();
     const {showLockedAccountModal} = useLockedAccountActions();
     const [selectedEmployees, setSelectedEmployees] = useState<string[]>([]);
 
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to apply the correct modal type for the decision modal
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
-    const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
+    const {shouldUseNarrowLayout, isSmallScreenWidth, isMediumScreenWidth} = useResponsiveLayout();
     const currentUserLogin = currentUserPersonalDetails.login;
     const canEditWorkspaceSettings = canEditWorkspaceSettingsUtil(policy, currentUserLogin);
     const canWriteMembers = canMemberWrite(policy, currentUserLogin ?? '', CONST.POLICY.POLICY_FEATURE.MEMBERS);
@@ -150,15 +162,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     const invitedEmails = useMemo(() => Object.keys(invitedEmailsToAccountIDsDraft ?? {}), [invitedEmailsToAccountIDsDraft]);
 
     const ownerDetails = personalDetails?.[policy?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID] ?? ({} as PersonalDetails);
-    const {approvalWorkflows} = useMemo(
-        () =>
-            convertPolicyEmployeesToApprovalWorkflows({
-                policy,
-                personalDetails: personalDetails ?? {},
-                localeCompare,
-            }),
-        [personalDetails, policy, localeCompare],
-    );
+    const {approvalWorkflows} = useApprovalWorkflows({policy, personalDetails, currentUserLogin});
 
     const canSelectMultiple = canWriteMembers && (shouldUseNarrowLayout ? isMobileSelectionModeEnabled : true);
 
@@ -329,7 +333,10 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     const policyOwner = policy?.owner;
     const canAssignElevatedRoles = canMemberWrite(policy, currentUserLogin ?? '', CONST.POLICY.POLICY_FEATURE.ASSIGN_ELEVATED_ROLES);
     const invitedPrimaryToSecondaryLogins = useMemo(() => invertObject(policy?.primaryLoginsInvited ?? {}), [policy?.primaryLoginsInvited]);
-    const isControlPolicyWithWideLayout = !shouldUseNarrowLayout && isControlPolicy(policy);
+    // Hoisted out of isControlPolicyWithWideLayout so the Approver column can share the same notion of "wide" as the
+    // custom-field columns, rather than disagreeing about the medium-screen-width band.
+    const hasWideTableLayout = !shouldUseNarrowLayout && !isMediumScreenWidth;
+    const isControlPolicyWithWideLayout = hasWideTableLayout && isControlPolicy(policy);
 
     const filteredMembers = useMemo(() => {
         const shouldFilter = shouldFilterExpensifyTeam(policyOwner, currentUserLogin);
@@ -344,7 +351,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
             // haven't loaded (e.g. the backend under-returns them), that join is empty, so we fall back to a
             // generated accountID. This keeps the rendered count in sync with employeeList and matches OldDot,
             // which shows every member rather than silently dropping the ones without loaded details.
-            const accountID = policyMemberEmailsToAccountIDs[email] ? Number(policyMemberEmailsToAccountIDs[email]) : generateAccountID(email);
+            const accountID = resolveMemberAccountID(email, policyMemberEmailsToAccountIDs);
 
             // Render a fallback identity (email as display name) when personal details are missing so the member
             // is still shown instead of being dropped from the list.
@@ -373,6 +380,15 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     const shouldShowCustomField1Column = isControlPolicyWithWideLayout && hasAnyCustomField1;
     const shouldShowCustomField2Column = isControlPolicyWithWideLayout && hasAnyCustomField2;
 
+    // Unlike the custom fields, this column applies to every workspace type, so it isn't gated on Control.
+    const isApprovalsEnabled = areApprovalsEnabled(policy);
+    const firstApproverByMemberEmail = useMemo(() => (isApprovalsEnabled ? getFirstApproverByMemberEmail(approvalWorkflows) : {}), [approvalWorkflows, isApprovalsEnabled]);
+    // Keyed off approvals being enabled rather than off the derived map having entries. Removing an approver blanks the
+    // remaining members' `submitsTo` until the server resolves it, and gating on the map would drop the whole column
+    // for that window (indefinitely, while offline).
+    const shouldShowApproverColumn = hasWideTableLayout && isApprovalsEnabled;
+    const shouldUseOrdinalApproverLabel = useMemo(() => hasMultiLevelApprovalWorkflow(approvalWorkflows), [approvalWorkflows]);
+
     // Submit workspaces have a flat role model where every member, including the owner, is an Editor.
     const isSubmitWorkspace = isSubmitPolicy(policy);
 
@@ -385,8 +401,13 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
             const login = details.login ?? '';
             const memberEmail = formatPhoneNumber(login);
             const memberName = temporaryGetDisplayNameOrDefault({passedPersonalDetails: details, translate, formatPhoneNumber});
+            const approver = shouldShowApproverColumn ? firstApproverByMemberEmail[login] : undefined;
+            const approverAccountID = approver ? resolveMemberAccountID(approver.email, policyMemberEmailsToAccountIDs) : undefined;
+            const approverDisplayName = approver && Str.isSMSLogin(approver.displayName) ? formatPhoneNumber(approver.displayName) : (approver?.displayName ?? '');
 
             return {
+                approverAccountID,
+                approverDisplayName,
                 keyForList: login,
                 role,
                 login,
@@ -424,6 +445,9 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         session?.accountID,
         shouldShowCustomField1Column,
         shouldShowCustomField2Column,
+        shouldShowApproverColumn,
+        firstApproverByMemberEmail,
+        policyMemberEmailsToAccountIDs,
         invitedPrimaryToSecondaryLogins,
         openMemberDetails,
         dismissError,
@@ -849,6 +873,8 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                         selectedKeys={selectedEmployees}
                         shouldShowCustomField1Column={shouldShowCustomField1Column}
                         shouldShowCustomField2Column={shouldShowCustomField2Column}
+                        shouldShowApproverColumn={shouldShowApproverColumn}
+                        shouldUseOrdinalApproverLabel={shouldUseOrdinalApproverLabel}
                         onRowSelectionChange={setSelectedEmployees}
                         headerComponent={tableHeaderComponent}
                     />

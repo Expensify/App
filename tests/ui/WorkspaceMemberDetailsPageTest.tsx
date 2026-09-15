@@ -11,6 +11,7 @@ import {CurrentReportIDContextProvider} from '@hooks/useCurrentReportID';
 import * as useResponsiveLayoutModule from '@hooks/useResponsiveLayout';
 import type ResponsiveLayoutResult from '@hooks/useResponsiveLayout/types';
 
+import Navigation from '@libs/Navigation/Navigation';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import {generateAccountID} from '@libs/UserUtils';
 
@@ -20,6 +21,7 @@ import WorkspaceMemberDetailsPage from '@pages/workspace/members/WorkspaceMember
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 
 import {PortalProvider} from '@gorhom/portal';
@@ -297,6 +299,121 @@ describe('WorkspaceMemberDetailsPage', () => {
         // Editor is another payer role the admin payer can switch to, so the row is interactive with no lock hint.
         expect(roleItem).not.toBeDisabled();
         expect(screen.queryByText(/Role can/)).not.toBeOnTheScreen();
+
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
+    it('should show the approver row with the first approver of the member approval workflow', async () => {
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, {
+                approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+                approver: ownerEmail,
+                employeeList: {
+                    [invitedEmail]: {email: invitedEmail, role: CONST.POLICY.ROLE.USER, submitsTo: adminPayerEmail},
+                    [adminPayerEmail]: {email: adminPayerEmail, role: CONST.POLICY.ROLE.ADMIN, submitsTo: ownerEmail},
+                },
+            });
+        });
+
+        const {unmount} = renderPage({policyID: policy.id, accountID: String(invitedAccountID)});
+        await waitForBatchedUpdatesWithAct();
+
+        const approverItem = await screen.findByTestId('member-approver-menu-item');
+
+        expect(within(approverItem).getByText('AdminPayer User')).toBeOnTheScreen();
+
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
+    it('should keep the approver row tappable and empty for a member with no approver', async () => {
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, {
+                approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+                approver: ownerEmail,
+            });
+        });
+
+        const {unmount} = renderPage({policyID: policy.id, accountID: String(ownerAccountID)});
+        await waitForBatchedUpdatesWithAct();
+
+        const approverItem = await screen.findByTestId('member-approver-menu-item');
+
+        expect(approverItem).not.toBeDisabled();
+        expect(within(approverItem).queryByText('Owner User')).not.toBeOnTheScreen();
+
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
+    it('should open the workflow the member belongs to when they have an approver', async () => {
+        const navigateSpy = jest.spyOn(Navigation, 'navigate').mockImplementation(() => {});
+
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, {
+                approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+                approver: ownerEmail,
+                employeeList: {
+                    [invitedEmail]: {email: invitedEmail, role: CONST.POLICY.ROLE.USER, submitsTo: adminPayerEmail},
+                    [adminPayerEmail]: {email: adminPayerEmail, role: CONST.POLICY.ROLE.ADMIN, submitsTo: ownerEmail},
+                },
+            });
+        });
+
+        const {unmount} = renderPage({policyID: policy.id, accountID: String(invitedAccountID)});
+        await waitForBatchedUpdatesWithAct();
+
+        fireEvent.press(await screen.findByTestId('member-approver-menu-item'), {nativeEvent: {}});
+        await waitForBatchedUpdatesWithAct();
+
+        expect(navigateSpy).toHaveBeenCalledWith(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(policy.id, adminPayerEmail, invitedEmail));
+
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
+    it('should start a new workflow rather than open the one a self-approving member approves', async () => {
+        const navigateSpy = jest.spyOn(Navigation, 'navigate').mockImplementation(() => {});
+
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, {
+                approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+                approver: ownerEmail,
+                employeeList: {
+                    [ownerEmail]: {email: ownerEmail, role: CONST.POLICY.ROLE.ADMIN, submitsTo: ownerEmail},
+                    [invitedEmail]: {email: invitedEmail, role: CONST.POLICY.ROLE.USER, submitsTo: ownerEmail},
+                },
+            });
+        });
+
+        const {unmount} = renderPage({policyID: policy.id, accountID: String(ownerAccountID)});
+        await waitForBatchedUpdatesWithAct();
+
+        fireEvent.press(await screen.findByTestId('member-approver-menu-item'), {nativeEvent: {}});
+        await waitForBatchedUpdatesWithAct();
+
+        // The owner sits at the top of their own chain, so the row reads as having no approver. Opening the workflow
+        // they approve would let an admin reassign the approver for every other member on it.
+        expect(navigateSpy).toHaveBeenCalledWith(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_NEW.getRoute(policy.id));
+        expect(navigateSpy).not.toHaveBeenCalledWith(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(policy.id, ownerEmail, ownerEmail));
+
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
+    it('should hide the approver row when approvals are turned off', async () => {
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, {approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL});
+        });
+
+        const {unmount} = renderPage({policyID: policy.id, accountID: String(invitedAccountID)});
+        await waitForBatchedUpdatesWithAct();
+
+        await waitFor(() => {
+            expect(screen.getByTestId('WorkspaceMemberDetailsPage')).toBeOnTheScreen();
+        });
+        expect(screen.queryByTestId('member-approver-menu-item')).not.toBeOnTheScreen();
 
         unmount();
         await waitForBatchedUpdatesWithAct();

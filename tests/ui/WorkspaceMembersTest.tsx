@@ -662,4 +662,100 @@ describe('WorkspaceMembers', () => {
             unmount();
         });
     });
+
+    describe('Approver column', () => {
+        const approverHeaderLabel = () => TestHelper.translateLocal('workflowsPage.approver');
+
+        it("shows each member's first approver, blank for the self-approving admin", async () => {
+            // Given a policy with approvals on and every member (including the admin) submitting to the admin:
+            // the admin's own first approver resolves to themselves, so their row is treated as having no approver.
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, {
+                    approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+                    employeeList: {
+                        [ownerEmail]: {email: ownerEmail, role: CONST.POLICY.ROLE.ADMIN, submitsTo: adminEmail},
+                        [adminEmail]: {email: adminEmail, role: CONST.POLICY.ROLE.ADMIN, submitsTo: adminEmail},
+                        [auditorEmail]: {email: auditorEmail, role: CONST.POLICY.ROLE.AUDITOR, submitsTo: adminEmail},
+                        [userEmail]: {email: userEmail, role: CONST.POLICY.ROLE.USER, submitsTo: adminEmail},
+                        [selfEmail]: {email: selfEmail, role: CONST.POLICY.ROLE.ADMIN, submitsTo: adminEmail},
+                    },
+                });
+            });
+
+            const {unmount} = renderPage(SCREENS.WORKSPACE.MEMBERS, {policyID: policy.id});
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByLabelText(approverHeaderLabel())).toBeOnTheScreen();
+
+            const ownerRow = await screen.findByLabelText(new RegExp(`^Owner User, ${ownerEmail}, ${TestHelper.translateLocal('common.approver')}: Admin User`));
+            expect(ownerRow).toBeOnTheScreen();
+
+            // No "Approver: ..." segment between the email and the role label proves the admin's own row was
+            // treated as having no approver, rather than the assertion just missing a rendered Text node (the
+            // segment lives only in the row's accessibilityLabel, nothing else renders it).
+            const adminRoleLabel = TestHelper.translateLocal('workspace.common.roleName', CONST.POLICY.ROLE.ADMIN);
+            const adminRow = screen.getByLabelText(new RegExp(`^Admin User, ${adminEmail}, ${adminRoleLabel}$`));
+            expect(adminRow).toBeOnTheScreen();
+
+            unmount();
+        });
+
+        it('hides the column when approvals are turned off', async () => {
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, {approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL});
+            });
+
+            const {unmount} = renderPage(SCREENS.WORKSPACE.MEMBERS, {policyID: policy.id});
+            await waitForBatchedUpdatesWithAct();
+
+            await waitFor(() => {
+                expect(screen.getByText(ADMIN_OPTION)).toBeOnTheScreen();
+            });
+            expect(screen.queryByLabelText(approverHeaderLabel())).not.toBeOnTheScreen();
+
+            unmount();
+        });
+
+        it('hides the column on narrow layout', async () => {
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, {approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC});
+            });
+            jest.spyOn(useResponsiveLayoutModule, 'default').mockReturnValue(
+                createMock<ResponsiveLayoutResult>({
+                    isSmallScreenWidth: true,
+                    shouldUseNarrowLayout: true,
+                }),
+            );
+
+            const {unmount} = renderPage(SCREENS.WORKSPACE.MEMBERS, {policyID: policy.id});
+            await waitForBatchedUpdatesWithAct();
+
+            await waitFor(() => {
+                expect(screen.getByText(ADMIN_OPTION)).toBeOnTheScreen();
+            });
+            expect(screen.queryByLabelText(approverHeaderLabel())).not.toBeOnTheScreen();
+
+            unmount();
+        });
+
+        it("keeps the column while a removed approver's submitsTo is still resolving", async () => {
+            // Given approvals are on but no member has a resolved `submitsTo` yet (the base fixture's employeeList
+            // entries have none, e.g. the admin's own approver was just removed and the server hasn't responded):
+            // the derived approver map is empty, but the column must stay, since it is gated on approvals being
+            // enabled, not on the map having entries.
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, {approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC});
+            });
+
+            const {unmount} = renderPage(SCREENS.WORKSPACE.MEMBERS, {policyID: policy.id});
+            await waitForBatchedUpdatesWithAct();
+
+            await waitFor(() => {
+                expect(screen.getByText(ADMIN_OPTION)).toBeOnTheScreen();
+            });
+            expect(screen.getByLabelText(approverHeaderLabel())).toBeOnTheScreen();
+
+            unmount();
+        });
+    });
 });

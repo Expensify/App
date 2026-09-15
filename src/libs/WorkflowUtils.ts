@@ -299,6 +299,42 @@ function convertPolicyEmployeesToApprovalWorkflows({policy, personalDetails, fir
     return {approvalWorkflows: sortedApprovalWorkflows, usedApproverEmails: [...usedApproverEmails], availableMembers};
 }
 
+/**
+ * Map every workflow member's email to the first approver of the workflow they belong to.
+ * Members who approve their own expenses are left out, since they sit at the top of their own chain.
+ */
+function getFirstApproverByMemberEmail(approvalWorkflows: ApprovalWorkflow[]): Record<string, Approver> {
+    const firstApproverByMemberEmail: Record<string, Approver> = {};
+
+    for (const workflow of approvalWorkflows) {
+        const firstApprover = workflow.approvers.at(0);
+
+        if (!firstApprover?.email) {
+            continue;
+        }
+
+        for (const member of workflow.members) {
+            if (!member.email || member.email === firstApprover.email) {
+                continue;
+            }
+
+            firstApproverByMemberEmail[member.email] = firstApprover;
+        }
+    }
+
+    return firstApproverByMemberEmail;
+}
+
+/** Whether any approval workflow in the workspace has more than one approver */
+function hasMultiLevelApprovalWorkflow(approvalWorkflows: ApprovalWorkflow[]): boolean {
+    return approvalWorkflows.some((workflow) => workflow.approvers.length > 1);
+}
+
+/** Label for a member's first approver: "1st approver" when their workflow has more than one level, "Approver" otherwise. */
+function getFirstApproverLabel(hasMultipleApprovers: boolean, translate: LocaleContextProps['translate'], toLocaleOrdinalWithWords: LocaleContextProps['toLocaleOrdinalWithWords']): string {
+    return hasMultipleApprovers ? `${toLocaleOrdinalWithWords(1)} ${translate('workflowsPage.approver').toLowerCase()}` : translate('workflowsPage.approver');
+}
+
 type ConvertApprovalWorkflowToPolicyEmployeesParams = {
     /**
      * Approval workflow to convert
@@ -1730,10 +1766,13 @@ export {
     extractSubmitterEmails,
     getApprovalLimitDescription,
     getApprovalWorkflowRulesForPolicy,
+    getFirstApproverByMemberEmail,
     filterRulesForPolicy,
     getRulesSubmitterToFirstApprover,
     getRulesSubmitterToWorkflowKey,
     getWorkflowMemberEmails,
+    hasMultiLevelApprovalWorkflow,
+    getFirstApproverLabel,
     hasRuleBasedDefaultWorkflow,
     getEligibleExistingBusinessBankAccounts,
     getOpenConnectedToPolicyBusinessBankAccounts,
@@ -1746,4 +1785,4 @@ export {
     reconcileApprovalWorkflowRulesForRemove,
     updateWorkflowDataOnApproverRemoval,
 };
-export type {ApprovalWorkflowRulesDiff};
+export type {ApprovalWorkflowRulesDiff, PolicyConversionResult};
