@@ -58,6 +58,7 @@ import type Currency from './Currency';
 import type {CurrencyList} from './Currency';
 import type CustomStatusDraft from './CustomStatusDraft';
 import type DatabaseSizeMeasurement from './DatabaseSizeMeasurement';
+import type DeferredAttachmentEdits from './DeferredAttachmentEdits';
 import type {
     CardFeedErrorsDerivedValue,
     GuideAccountIDsDerivedValue,
@@ -338,6 +339,7 @@ export type {
     ReportActions,
     ReportActionsDraft,
     ReportActionsDrafts,
+    DeferredAttachmentEdits,
     ReportLastVisitTimes,
     ReportLoadingState,
     ReportMetadata,
