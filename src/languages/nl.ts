@@ -9631,6 +9631,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         tabs: {
             expenseReports: 'Declaraties',
             reports: 'Rapporten',
+            allReports: 'Alle rapporten',
             expenses: 'Declaraties',
             submit: 'Concepten',
             approve: 'Moet worden goedgekeurd',

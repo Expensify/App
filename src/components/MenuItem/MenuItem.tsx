@@ -203,6 +203,9 @@ type MenuItemBaseProps = ForwardedFSClassProps &
         /** Whether item is focused or active */
         focused?: boolean;
 
+        /** Paints the focused and hovered states with the shared navigation row colors, for rows that act as navigation */
+        shouldUseNavigationRowColors?: boolean;
+
         /** Should we disable this menu item? */
         disabled?: boolean;
 
@@ -482,6 +485,7 @@ function MenuItem({
     success = false,
     iconReportID,
     focused = false,
+    shouldUseNavigationRowColors = false,
     disabled = false,
     title,
     accessibilityLabel,
@@ -828,6 +832,9 @@ function MenuItem({
                                         ...(Array.isArray(wrapperStyle) ? wrapperStyle : [wrapperStyle]),
                                         shouldGreyOutWhenDisabled && disabled && styles.buttonOpacityDisabled,
                                         isHovered && interactive && !focused && !pressed && !shouldRemoveBackground && !shouldRemoveHoverBackground && styles.hoveredComponentBG,
+                                        // Listed last so they win over the generic button backgrounds above.
+                                        shouldUseNavigationRowColors && focused && styles.navigationRowSelected,
+                                        shouldUseNavigationRowColors && isHovered && interactive && !focused && !pressed && styles.navigationRowHovered,
                                     ] as StyleProp<ViewStyle>
                                 }
                                 disabledStyle={shouldUseDefaultCursorWhenDisabled && [styles.cursorDefault]}

@@ -9560,6 +9560,7 @@ const translations = {
         tabs: {
             expenseReports: 'Expense reports',
             reports: 'Reports',
+            allReports: 'All reports',
             expenses: 'Expenses',
             submit: 'Drafts',
             approve: 'Needs approval',

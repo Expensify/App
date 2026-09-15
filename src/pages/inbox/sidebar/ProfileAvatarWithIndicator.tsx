@@ -6,9 +6,12 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDefaultAvatars from '@hooks/useDefaultAvatars';
 import useOnyx from '@hooks/useOnyx';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getSmallSizeAvatar} from '@libs/UserAvatarUtils';
+
+import type {AvatarSizeName} from '@styles/utils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -22,14 +25,22 @@ import {View} from 'react-native';
 type ProfileAvatarWithIndicatorProps = {
     isSelected?: boolean;
     containerStyles?: StyleProp<ViewStyle>;
+
+    /** Rendered size of the avatar */
+    size?: AvatarSizeName;
 };
 
-function ProfileAvatarWithIndicator({isSelected = false, containerStyles}: ProfileAvatarWithIndicatorProps) {
+function ProfileAvatarWithIndicator({isSelected = false, containerStyles, size = CONST.AVATAR_SIZE.SMALL}: ProfileAvatarWithIndicatorProps) {
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const defaultAvatars = useDefaultAvatars();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [isLoadingApp = true] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const isLoading = !!(isLoadingApp && !currentUserPersonalDetails.avatar);
+
+    // selectedAvatarBorder is sized for the small avatar, so the ring has to follow whatever size is rendered.
+    const ringSize = StyleUtils.getAvatarSize(size) + 6;
+    const ringSizeStyle = {height: ringSize, width: ringSize, borderRadius: ringSize / 2};
 
     return (
         <OfflineWithFeedback
@@ -38,16 +49,16 @@ function ProfileAvatarWithIndicator({isSelected = false, containerStyles}: Profi
         >
             <View style={[styles.pRelative]}>
                 <View
-                    style={[isSelected && styles.selectedAvatarBorder, styles.pAbsolute]}
+                    style={[isSelected && [styles.selectedAvatarBorder, ringSizeStyle], styles.pAbsolute]}
                     testID="avatar-ring"
                 />
-                <View style={styles.sidebarAvatar}>
+                <View style={StyleUtils.getAvatarStyle(size)}>
                     {isLoading ? (
                         <AvatarSkeleton />
                     ) : (
                         <>
                             <UserAvatar
-                                size={CONST.AVATAR_SIZE.SMALL}
+                                size={size}
                                 source={getSmallSizeAvatar({
                                     avatarSource: currentUserPersonalDetails.avatar,
                                     accountID: currentUserPersonalDetails.accountID,

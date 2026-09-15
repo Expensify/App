@@ -9284,6 +9284,7 @@ ${reportName}`,
         tabs: {
             expenseReports: 'Informes de gastos',
             reports: 'Informes',
+            allReports: 'Todos los informes',
             expenses: 'Gastos',
             submit: 'Borradores',
             approve: 'Necesita aprobación',

@@ -9654,6 +9654,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
         tabs: {
             expenseReports: 'Raporty wydatków',
             reports: 'Raporty',
+            allReports: 'Wszystkie raporty',
             expenses: 'Wydatki',
             submit: 'Szkice',
             approve: 'Wymaga zatwierdzenia',

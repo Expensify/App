@@ -2,60 +2,28 @@ import {PressableWithFeedback} from '@components/Pressable';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import useOnyx from '@hooks/useOnyx';
-import useRootNavigationState from '@hooks/useRootNavigationState';
 import {useSidebarOrderedReportsState} from '@hooks/useSidebarOrderedReports';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import Navigation, {startOpenReportSpan} from '@libs/Navigation/Navigation';
-import navigationRef from '@libs/Navigation/navigationRef';
-import {isDeletedAction} from '@libs/ReportActionsUtils';
+import Navigation from '@libs/Navigation/Navigation';
 import {startSpan} from '@libs/telemetry/activeSpans';
 
 import CONST from '@src/CONST';
-import NAVIGATORS from '@src/NAVIGATORS';
-import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import SCREENS from '@src/SCREENS';
-import type {Report, ReportActions} from '@src/types/onyx';
 
-import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
-import {TabActions} from '@react-navigation/native';
-import React, {useEffect, useRef} from 'react';
+import React from 'react';
 
-import getLastRoute from './getLastRoute';
-import getReusableReportsTabStateKey, {getTabNavigatorStateKey} from './getReusableReportsTabStateKey';
-import getStringParam from './getStringParam';
 import NAVIGATION_TABS from './NAVIGATION_TABS';
 import TabBarItem from './TabBarItem';
-
-function startNavigateToInboxTabSpan({isWideLayout}: {isWideLayout: boolean}) {
-    startSpan(CONST.TELEMETRY.SPAN_NAVIGATE_TO_INBOX_TAB, {
-        name: CONST.TELEMETRY.SPAN_NAVIGATE_TO_INBOX_TAB,
-        op: CONST.TELEMETRY.SPAN_NAVIGATE_TO_INBOX_TAB,
-        forceTransaction: true,
-        attributes: {[CONST.TELEMETRY.ATTRIBUTE_WIDE_LAYOUT]: isWideLayout},
-    });
-}
+import useWideInboxNavigation from './useWideInboxNavigation';
 
 type InboxTabButtonProps = {
     selectedTab: ValueOf<typeof NAVIGATION_TABS>;
     isWideLayout: boolean;
 };
-
-function doesLastReportExistSelector(report: OnyxEntry<Report>) {
-    return !!report?.reportID;
-}
-
-function makeDoesLastReportActionExistSelector(actionID: string | undefined) {
-    return (reportActions: OnyxEntry<ReportActions>) => {
-        const reportAction = actionID ? reportActions?.[actionID] : undefined;
-        return !!reportAction && !isDeletedAction(reportAction);
-    };
-}
 
 type WideInboxTabButtonProps = {
     selectedTab: ValueOf<typeof NAVIGATION_TABS>;
@@ -70,107 +38,7 @@ function WideInboxTabButton({selectedTab, statusIndicatorColor, accessibilityLab
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Inbox']);
-    const hasVisitedInboxTab = useRef(selectedTab === NAVIGATION_TABS.INBOX);
-
-    useEffect(() => {
-        if (selectedTab !== NAVIGATION_TABS.INBOX) {
-            return;
-        }
-        hasVisitedInboxTab.current = true;
-    }, [selectedTab]);
-
-    const lastReportRouteReportID = useRootNavigationState((rootState) => {
-        if (!rootState) {
-            return undefined;
-        }
-        const route = getLastRoute(rootState, NAVIGATORS.REPORTS_SPLIT_NAVIGATOR, SCREENS.REPORT);
-        return getStringParam(route?.params, 'reportID');
-    });
-
-    const lastReportRouteReportActionID = useRootNavigationState((rootState) => {
-        if (!rootState) {
-            return undefined;
-        }
-        const route = getLastRoute(rootState, NAVIGATORS.REPORTS_SPLIT_NAVIGATOR, SCREENS.REPORT);
-        return getStringParam(route?.params, 'reportActionID');
-    });
-
-    const [doesLastReportExist] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${lastReportRouteReportID}`, {selector: doesLastReportExistSelector});
-
-    const [doesLastReportActionExist] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${lastReportRouteReportID}`, {
-        selector: makeDoesLastReportActionExistSelector(lastReportRouteReportActionID),
-    });
-
-    const navigateToChats = () => {
-        if (selectedTab === NAVIGATION_TABS.INBOX) {
-            return;
-        }
-
-        startNavigateToInboxTabSpan({isWideLayout: true});
-
-        if (doesLastReportExist) {
-            // Fetch route params on-demand to avoid storing the full route object in render-time state
-            const rootState = navigationRef.getRootState();
-            const lastRoute = rootState ? getLastRoute(rootState, NAVIGATORS.REPORTS_SPLIT_NAVIGATOR, SCREENS.REPORT) : undefined;
-            if (lastRoute) {
-                const reportID = getStringParam(lastRoute.params, 'reportID');
-                const reportActionID = getStringParam(lastRoute.params, 'reportActionID');
-                const referrer = getStringParam(lastRoute.params, 'referrer');
-                const backTo = getStringParam(lastRoute.params, 'backTo');
-                const tabNavigatorStateKey = getTabNavigatorStateKey(rootState);
-                const reusableReportsTabStateKey = getReusableReportsTabStateKey(rootState, reportID, reportActionID, doesLastReportActionExist);
-                const shouldDeferReportActions = !hasVisitedInboxTab.current;
-                const reportRoute = ROUTES.REPORT_WITH_ID.getRoute(reportID, doesLastReportActionExist ? reportActionID : undefined, referrer, backTo);
-
-                if (reusableReportsTabStateKey && !shouldDeferReportActions) {
-                    // Focusing the existing tab without nested params preserves the mounted ReportScreen and
-                    // avoids rebuilding its cached report list as part of the tab navigation commit.
-                    navigationRef.dispatch({
-                        ...TabActions.jumpTo(NAVIGATORS.REPORTS_SPLIT_NAVIGATOR),
-                        target: reusableReportsTabStateKey,
-                    });
-                    return;
-                }
-                if (tabNavigatorStateKey && reportID) {
-                    startOpenReportSpan(reportRoute);
-                    navigationRef.dispatch({
-                        ...TabActions.jumpTo(NAVIGATORS.REPORTS_SPLIT_NAVIGATOR, {
-                            screen: SCREENS.REPORT,
-                            ...(shouldDeferReportActions ? {shouldDeferInitialReportActions: true} : {}),
-                            params: {
-                                reportID,
-                                reportActionID: doesLastReportActionExist ? reportActionID : undefined,
-                                referrer,
-                                backTo,
-                            },
-                        }),
-                        target: tabNavigatorStateKey,
-                    });
-                    return;
-                }
-                Navigation.navigate(reportRoute);
-                return;
-            }
-        }
-
-        if (lastReportRouteReportID) {
-            Navigation.navigate(ROUTES.INBOX);
-            return;
-        }
-
-        const tabNavigatorStateKey = getTabNavigatorStateKey(navigationRef.getRootState());
-        if (tabNavigatorStateKey) {
-            navigationRef.dispatch({
-                ...TabActions.jumpTo(NAVIGATORS.REPORTS_SPLIT_NAVIGATOR, {
-                    shouldDeferInitialReportActions: true,
-                }),
-                target: tabNavigatorStateKey,
-            });
-            return;
-        }
-
-        Navigation.navigate(ROUTES.INBOX);
-    };
+    const navigateToChats = useWideInboxNavigation(selectedTab === NAVIGATION_TABS.INBOX);
 
     return (
         <PressableWithFeedback
@@ -225,7 +93,12 @@ function InboxTabButton({selectedTab, isWideLayout}: InboxTabButtonProps) {
             return;
         }
 
-        startNavigateToInboxTabSpan({isWideLayout: false});
+        startSpan(CONST.TELEMETRY.SPAN_NAVIGATE_TO_INBOX_TAB, {
+            name: CONST.TELEMETRY.SPAN_NAVIGATE_TO_INBOX_TAB,
+            op: CONST.TELEMETRY.SPAN_NAVIGATE_TO_INBOX_TAB,
+            forceTransaction: true,
+            attributes: {[CONST.TELEMETRY.ATTRIBUTE_WIDE_LAYOUT]: false},
+        });
         Navigation.navigate(ROUTES.INBOX);
     };
 
