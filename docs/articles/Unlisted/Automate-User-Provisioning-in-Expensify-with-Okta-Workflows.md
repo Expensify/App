@@ -108,6 +108,42 @@ To create or update a user, your API request must follow Expensify’s required 
 
 ---
 
+## How to remove a user in Expensify using Okta Workflows API
+
+Compared to creating a user with the Okta Workflows API, the main difference for removing a user is setting `"isTerminated": true`
+
+Your API request must follow Expensify’s required structure. Here's what your API request payload should include in the `requestJobDescription` parameter:
+
+```json
+{
+  "type": "update",
+  "credentials": {
+    "partnerUserID": "your_partnerUserID",
+    "partnerUserSecret": "your_partnerUserSecret"
+  },
+  "inputSettings": {
+    "type": "employees",
+    "entity": "generic",
+    "data": [
+      {
+        "employeeEmail": "user@example.com",
+        "managerEmail": "manager@example.com",
+        "policyID": "your_policy_id",
+        "employeeID": "unique_employee_id",
+        "firstName": "First",
+        "lastName": "Last",
+        "isTerminated": true
+      }
+    ]
+  },
+  "onFinish": {
+    "immediateResponse": true
+  }
+}
+```
+
+---
+
 ## End-to-end workflow example
 
 Here's how the Okta Workflows cards work together to create users in Expensify: 
