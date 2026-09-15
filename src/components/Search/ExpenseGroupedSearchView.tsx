@@ -121,8 +121,9 @@ function ExpenseGroupedSearchView({
     const {isLargeScreenWidth} = useResponsiveLayout();
     const {isOffline} = useNetwork();
 
-    // Deleting every expense in a group flags the group's own snapshot entry, so drop the row from the list and let
-    // its exit animation play. Offline the row stays put with its pending-delete styling, as elsewhere.
+    // Deleting every expense in a group flags the group's own snapshot entry. Online, drop the row from the list on
+    // that same render so it pops out rather than playing FadeOutUp. Offline the row stays put with its pending-delete
+    // styling, as elsewhere.
     const data = isOffline ? sourceData : sourceData.filter((item) => !isRowDeleted(item));
 
     // Read once for the whole list and handed to each GroupHeader, rather than each of them subscribing on its own:
