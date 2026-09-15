@@ -9705,6 +9705,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         tabs: {
             expenseReports: 'Spesenabrechnungen',
             reports: 'Berichte',
+            allReports: 'Alle Berichte',
             expenses: 'Ausgaben',
             submit: 'Entwürfe',
             approve: 'Genehmigung erforderlich',

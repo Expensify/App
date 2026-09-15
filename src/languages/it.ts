@@ -9663,6 +9663,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
         tabs: {
             expenseReports: 'Note spese',
             reports: 'Report',
+            allReports: 'Tutti i report',
             expenses: 'Spese',
             submit: 'Bozze',
             approve: 'Richiede approvazione',

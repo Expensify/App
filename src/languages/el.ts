@@ -9627,6 +9627,7 @@ ${reportName}`,
         tabs: {
             expenseReports: 'Αναφορές εξόδων',
             reports: 'Αναφορές',
+            allReports: 'Όλες οι αναφορές',
             expenses: 'Έξοδα',
             submit: 'Πρόχειρα',
             approve: 'Χρειάζεται έγκριση',

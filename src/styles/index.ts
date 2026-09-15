@@ -124,6 +124,9 @@ type Styles = Record<string, StyleObject | StyleFunction>;
 
 // touchCallout is an iOS safari only property that controls the display of the callout information when you touch and hold a target
 const touchCalloutNone: Pick<ViewStyle, 'WebkitTouchCallout'> = isMobileSafari() ? {WebkitTouchCallout: 'none'} : {};
+
+/** Horizontal padding inside a flat navigation bar row, also used to line nested rows up with their parent's label. */
+const flatNavigationBarItemPaddingHorizontal = 12;
 // to prevent vertical text offset in Safari for badges, new lineHeight values have been added
 const lineHeightBadge: Pick<TextStyle, 'lineHeight'> = isSafari() ? {lineHeight: variables.lineHeightXSmall} : {lineHeight: variables.lineHeightNormal};
 
@@ -719,7 +722,7 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         tabNavigatorBarContainer: {
-            width: variables.navigationTabBarSize + variables.sideBarWithLHBWidth,
+            width: variables.flatNavigationBarWidth + variables.sideBarWithLHBWidth,
             marginRight: -variables.sideBarWithLHBWidth,
             overflow: 'visible',
         },
@@ -777,6 +780,96 @@ const staticStyles = (theme: ThemeColors) =>
             justifyContent: 'center',
             alignItems: 'center',
             paddingHorizontal: 4,
+        },
+
+        flatNavigationBarContainer: {
+            height: '100%',
+            width: variables.flatNavigationBarWidth,
+            justifyContent: 'space-between',
+            borderRightWidth: 1,
+            borderRightColor: theme.border,
+            backgroundColor: theme.appBG,
+        },
+
+        flatNavigationBarHeader: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            height: variables.contentHeaderHeight,
+            paddingLeft: 20,
+            paddingRight: variables.flatNavigationBarHeaderPaddingRight,
+        },
+
+        flatNavigationBarItem: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            height: variables.flatNavigationBarItemHeight,
+            paddingHorizontal: flatNavigationBarItemPaddingHorizontal,
+            marginHorizontal: 8,
+            borderRadius: variables.componentBorderRadiusNormal,
+        },
+
+        /**
+         * Selected and hover backgrounds shared by every navigation row: the flat navigation bar, the Inbox LHN, and
+         * the Workspace, Domain and Account editor menus. hoverComponentBG and highlightBG are the product-300 and
+         * product-200 ramp steps in both themes.
+         */
+        navigationRowSelected: {
+            backgroundColor: theme.hoverComponentBG,
+        },
+
+        navigationRowHovered: {
+            backgroundColor: theme.highlightBG,
+        },
+
+        // Nested rows have no icon, so they indent by the row padding plus the icon's width. Their label then starts
+        // at the same x as the labels of the rows above them.
+        flatNavigationBarSubItem: {
+            paddingLeft: flatNavigationBarItemPaddingHorizontal + variables.iconSizeNormal,
+            height: variables.flatNavigationBarSubItemHeight,
+        },
+
+        flatNavigationBarSubItemLabel: {
+            fontSize: variables.fontSizeLabel,
+        },
+
+        // Bold is reserved for the selected nested row, so the rest fall back to the regular weight.
+        flatNavigationBarSubItemLabelRegular: {
+            ...FontUtils.fontFamily.platform.EXP_NEUE,
+        },
+
+        flatNavigationBarLabel: {
+            flex: 1,
+            marginLeft: 12,
+            fontSize: variables.fontSizeNormal,
+            ...FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
+        },
+
+        flatNavigationBarDividerContainer: {
+            paddingHorizontal: 16,
+            paddingVertical: 8,
+        },
+
+        flatNavigationBarDivider: {
+            height: 1,
+            backgroundColor: theme.border,
+        },
+
+        flatNavigationBarFooter: {
+            paddingBottom: 12,
+        },
+
+        // The account row is taller than a standard row so the 40px avatar keeps 8px of breathing room. The height is
+        // fixed so the row never resizes with its contents.
+        flatNavigationBarAccountItem: {
+            height: variables.flatNavigationBarAccountItemHeight,
+            paddingVertical: 8,
+        },
+
+        flatNavigationBarAccountAvatar: {
+            width: variables.avatarSizeMedium,
+            alignItems: 'center',
+            justifyContent: 'center',
         },
 
         button: {

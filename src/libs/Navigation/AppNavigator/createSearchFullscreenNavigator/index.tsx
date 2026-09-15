@@ -1,5 +1,3 @@
-import SearchSidebar from '@components/Navigation/SearchSidebar';
-
 import usePreserveNavigatorState from '@libs/Navigation/AppNavigator/createSplitNavigator/usePreserveNavigatorState';
 import addPushParamsRouterExtension from '@libs/Navigation/AppNavigator/routerExtensions/addPushParamsRouterExtension';
 import useNavigationResetOnLayoutChange from '@libs/Navigation/AppNavigator/useNavigationResetOnLayoutChange';
@@ -28,7 +26,6 @@ const SearchFullscreenNavigatorComponent = createPlatformStackNavigatorComponent
     defaultScreenOptions: defaultPlatformStackScreenOptions,
     Effects: SearchFullscreenNavigatorEffects,
     getCustomState,
-    ExtraContent: SearchSidebar,
 });
 
 function createSearchFullscreenNavigator<

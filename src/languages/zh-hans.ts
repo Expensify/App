@@ -9280,6 +9280,7 @@ ${reportName}`,
         tabs: {
             expenseReports: '报销报告',
             reports: '报表',
+            allReports: '所有报表',
             expenses: '报销费用',
             submit: '草稿',
             approve: '待审批',
