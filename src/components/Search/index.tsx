@@ -101,6 +101,7 @@ import ChatSearchView from './ChatSearchView';
 import ExpenseFlatSearchView from './ExpenseFlatSearchView';
 import ExpenseGroupedSearchView from './ExpenseGroupedSearchView';
 import ExpenseReportSearchView from './ExpenseReportSearchView';
+import useLiveRowLimit from './hooks/useLiveRowLimit';
 import useSearchSnapshot from './hooks/useSearchSnapshot';
 import SearchChartView from './SearchChartView';
 import SearchChartWrapper from './SearchChartWrapper';
@@ -189,18 +190,7 @@ function Search({
 
     const [, cardFeedsResult] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER);
 
-    // offset is written optimistically at request time, so hold the cap there until isLoading clears
-    const snapshotRowLimit = Math.max(
-        CONST.SEARCH.RESULTS_PAGE_SIZE,
-        searchResults?.search?.isLoading ? (searchResults?.search?.offset ?? 0) : (searchResults?.search?.offset ?? 0) + CONST.SEARCH.RESULTS_PAGE_SIZE,
-    );
-
-    // never lower the cap: a refresh rewinds the cursor to 0 but those rows are still in Onyx. key={queryJSON.hash} remounts per query, so no reset needed
-    const [revealedRows, setRevealedRows] = useState<number>(CONST.SEARCH.RESULTS_PAGE_SIZE);
-    const liveRowLimit = Math.max(revealedRows, snapshotRowLimit);
-    if (revealedRows < snapshotRowLimit) {
-        setRevealedRows(snapshotRowLimit);
-    }
+    const liveRowLimit = useLiveRowLimit(searchResults?.search?.offset, searchResults?.search?.isLoading);
 
     const searchDataType = useMemo(() => (shouldUseLiveData ? CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT : searchResults?.search?.type), [shouldUseLiveData, searchResults?.search?.type]);
     const isExpenseAllMatchingSelection = type === CONST.SEARCH.DATA_TYPES.EXPENSE && areAllMatchingItemsSelected;
