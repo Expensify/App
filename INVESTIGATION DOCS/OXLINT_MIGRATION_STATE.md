@@ -17,10 +17,16 @@ Rule evidence is now largely closed too. The fixture campaign took `compareFixtu
 entries to 306, all green and each batch red-green verified (section 4). The 128 core rules still
 without a fixture are a deliberate stop with the reasoning written down (section 4.1), not a queue.
 
-What is left: the CI shadow job has never executed on `main`, three rules disagree on findings for
-reasons nobody has written down (sections 5.1 to 5.3), and the campaign surfaced eight port findings
-that need an owner before the cutover (section 5.5) -- one of them, a real detection hole in
-`typescript/no-duplicate-type-constituents`, and one dead config, `react/jsx-filename-extension`.
+Config drift is at **0 open differences** (section 3.5), and two of the three rules that disagreed on
+findings are now explained: `no-deprecated` is priced tsgolint write-site strictness (section 5.1),
+and `set-state-in-effect` is an upstream detection gap with a nine-line reproducer ready to file
+(section 5.2).
+
+What is left: the CI shadow job has never executed on `main`, `react-hooks/refs` still hides a
+disagreement behind equal totals (section 5.3), the `set-state-in-effect` bug needs filing upstream,
+and the fixture campaign surfaced eight port findings that need an owner before the cutover
+(section 5.5) -- among them a real detection hole in `typescript/no-duplicate-type-constituents` and
+one piece of dead config, `react/jsx-filename-extension`.
 
 ---
 
@@ -36,7 +42,7 @@ that need an owner before the cutover (section 5.5) -- one of them, a real detec
 | Per-rule parity | `python3 oxlint-migration/port-probe/compareFixtures.py` | section 4 |
 | Sidecar rule evidence | `npm run oxlint-sidecar-coverage` | **192 / 192 covered** |
 | Rule inventory | `npm run oxlint-rule-inventory` | **494 rules, fixture coverage 306 / 494** |
-| Config drift | `npm run oxlint-config-drift` | 30 rules differ, **11 open**, nothing outside the LEDGER |
+| Config drift | `npm run oxlint-config-drift` | 28 rules differ, **0 open**, nothing outside the LEDGER |
 
 CI: `.github/workflows/oxlint.yml`, wired into `preDeploy.yml` and deliberately absent from
 `confirmPassingBuild`'s `needs`. The lint step carries `continue-on-error: true`. On a push to
@@ -53,7 +59,7 @@ process exits, not a reading of the output.
 | `lint-oxlint` | **1** | raw `oxlint .`, no pipeline and no seatbelt, so it prints the whole baseline (~4300 lines). Exit 1 is the designed behaviour of this script, not a regression |
 | `compare-oxlint` (`--fresh`) | **0** | 9234 tracked lintable files. Config coverage eslint=482, oxlint=487, shared=475. No unexplained ESLint-only rules. One rule with equal totals hiding a real disagreement (`react-hooks/refs`, section 5.3) |
 | `compare-oxlint-warm` | **0** | timing benchmark, not a correctness gate. Warm ESLint 543s vs oxlint 86s, **6.31x** (section 3.1) |
-| `oxlint-config-drift` | **0** | 45 files, 30 rules differ, 11 open. No unlisted drift |
+| `oxlint-config-drift` | **0** | 45 files, 28 rules differ, **0 open**. No unlisted drift |
 | `oxlint-jsx-uses-port` | **0** | `jsx-uses-react` and `jsx-uses-vars` produce the same observable outcome on both tools |
 | `oxlint-locale-compare-port` | **0** | the type-free port matches the type-aware original on every shape in `src/` |
 | `oxlint-react-compiler-gate` | **0** | the gate matches the ESLint side: silent where both compilers memoize, live where they do not |
@@ -209,34 +215,53 @@ what the enabled-rule union cannot: the same rule on both sides with different o
 scope and off in another.
 
 ```
-45 files, 30 rules differ
-  5 spelled differently, same behavior
- 14 accepted differences
- 11 open differences, nobody chose these
+45 files, 28 rules differ
+  7 spelled differently, same behavior
+ 21 accepted differences
+  0 open differences, nobody chose these
 ```
 
-The 11 open, grouped:
+**The 11 open differences are closed as of 2026-09-15**, two by porting and nine by writing down a
+measured reason. Working through them changed the picture rather than confirming it, so the
+reasoning is worth keeping.
 
-**An unexplained `scripts/**` and `.github/**` override, 6 rules.** Off in `.oxlintrc.json`, error in
-ESLint, and the override carries no comment in a file whose stated convention is that every "off"
-says why: `@typescript-eslint/no-unsafe-argument`, `no-unsafe-assignment`, `no-unsafe-call`,
-`no-unsafe-member-access`, `no-unsafe-return`, and `no-throw-literal`.
+**Ported, 2 rules.** Both were real gaps and both cost nothing to close: neither added a single
+finding, because the codebase already complies.
 
-**Oxlint is more lenient by option, 3 rules.** Each passes an option whose ESLint default is
-stricter: `no-redeclare` `{builtinGlobals: false}`, `prefer-const` `{ignoreReadBeforeAssign: true}`,
-`prefer-promise-reject-errors` `{allowEmptyReject: true}`.
+- `no-restricted-globals`: `.oxlintrc.json` now carries ESLint's `.github/actions/**/*.ts` and
+  `.github/libs/**/*.ts` block banning `module`, `__dirname` and `__filename`. Like ESLint, the
+  override replaces the root airbnb browser list for that scope rather than merging with it, which
+  is what ESLint actually resolves.
+- `react-hooks/rules-of-hooks`: `react/rules-of-hooks` is now `off` for the storybook glob list,
+  mirroring what the preset does on the ESLint side.
 
-**Two one-offs.**
+**Not a difference at all, 2 rules.** `prefer-const` and `prefer-promise-reject-errors` were listed
+as "oxlint is the more lenient of the two". They are not: `eslint-config-expensify` authors the
+identical options, at `configs/private/es6.js:93-96` and `configs/private/best-practices.js:365`, and
+`eslint --print-config` confirms that is what resolves. The false reading comes from
+`resolveConfigs.mjs`, which reads each flat block's literal `rules` and never expands an `extends:`
+key or a legacy preset object, so preset-authored options read as absent. **Anything authored in a
+preset is invisible to this check** -- worth remembering, since catching an
+`eslint-config-expensify` bump is the whole point of the script. Acting on the original reading would
+have made oxlint stricter than ESLint and added 10 findings ESLint reports none of.
 
-- `no-restricted-globals`: a different option set in the same scope. For `.github/actions/**/*.ts`
-  and `.github/libs/**/*.ts` ESLint bans `module`, `__dirname` and `__filename` because those
-  sources are bundled as real ESM and a CJS idiom builds fine then throws a `ReferenceError` in CI
-  (`config/eslint/eslint.config.mjs:588-613`). Oxlint applies the airbnb browser list there instead
-  and loses all three bans.
-- `react-hooks/rules-of-hooks`: scope difference over 2 files.
+**Deliberate and necessary, 1 rule.** `no-redeclare`: ESLint turns the core rule off and runs
+`@typescript-eslint/no-redeclare`, which ignores TypeScript declaration merging. Oxlint has no
+`typescript/no-redeclare` at all, so it runs the core rule with `builtinGlobals: false` -- the only
+lever that stops it firing on TS global augmentation. Restoring the default adds exactly 2 findings,
+`src/types/global.d.ts:69` and `src/types/expo.d.ts:2`, both global augmentation that ESLint reports
+none of.
 
-None currently produces a finding on either tool. They are latent, and they go live the moment
-ESLint is removed.
+**Load-bearing, not unexplained, 6 rules.** The `scripts/**` and `.github/**` override that turns off
+the five `@typescript-eslint/no-unsafe-*` rules plus `no-throw-literal` was described as carrying no
+comment in a file whose convention is that every "off" says why. The reason turned out to be
+substantial: **deleting it adds 695 findings that ESLint reports 0 of.** Oxlint's tsgolint port of
+that family is simply stricter than typescript-eslint's, and this is not a type-info problem -- on
+the same file with the same program, `typescript/no-unsafe-type-assertion` agrees exactly (1 = 1 on
+`.github/actions/javascript/proposalPoliceComment/proposalPoliceComment.ts`, 8 = 8 on
+`src/libs/memoize/index.ts`) while `no-unsafe-return` is 3 against 0 on that same memoize file. The
+divergence is global; the override only makes it visible, because that is where the loosely-typed
+GitHub Actions glue lives. ESLint's seatbelt carries 0 entries for all six rules repo-wide.
 
 ---
 
@@ -324,22 +349,85 @@ number is 128.
 
 ## 5. Open questions
 
-### 5.1 `@typescript-eslint/no-deprecated`, 231 vs 399
+### 5.1 `@typescript-eslint/no-deprecated`, 231 vs 399 -- explained
 
-168 extra Oxlint findings, unaccounted for. The obvious cause is ruled out: `.oxlintrc.json:567`
-enables `hosted/no-deprecated` alongside `typescript/no-deprecated`, but the hosted one is
-**`react`**/no-deprecated (`config/oxlint/ruleNames.mjs`), a different rule about class lifecycle
-methods. All 399 diagnostics carry `typescript(no-deprecated)` and there are 0 duplicates at the
-same `file:line:column`. So 168 real extra detections that nobody has explained. Already baselined,
-so not a gate risk.
+Resolved 2026-09-15. Every finding on both sides is accounted for, and the previous note that "168
+real extra detections nobody has explained" was both wrong in kind and slightly wrong in count.
 
-### 5.2 `react-hooks/set-state-in-effect`, 127 vs 47
+Matching on `(file, line, column)` over the two full-repo reports:
 
-The only row in the whole table where ESLint finds more than Oxlint. 80 findings Oxlint misses. Not
-a harness artifact: `RULES_SUPPRESSED_BY_REACT_COMPILER`
-(`config/reactCompiler/suppressedRules.mjs:14`) holds only
-`react/jsx-no-constructed-context-values` and `rulesdir/no-inline-useOnyx-selector`, so
-`ReactCompilerFilter` never touched this rule on either side.
+| | count |
+| --- | ---: |
+| shared | 225 |
+| oxlint-only | **174** |
+| ESLint-only | **6** |
+
+**All 174 oxlint-only findings are write sites.** 164 are explicit object-literal properties
+(`originalMessage: {...}`) and the other 10 are shorthand properties (`originalMessage,`,
+`{videoAttributeCache}`) that a naive read/write classifier misreads as reads. 172 of the 174 are the
+single deprecated property `originalMessage`; the rest are `prompt_cache_retention` and
+`videoAttributeCache`, one each. This is exactly the tsgolint write-site strictness already recorded
+in the `checkConfigDrift.py` LEDGER (typescript-eslint#10643): tsgolint reports assignments to a
+deprecated property, typescript-eslint does not, and no option separates reads from writes. Nothing
+unexplained remains here.
+
+**All 6 ESLint-only findings are read sites that the write-site override silences.** Each is a call
+to the deprecated `getReportTransactions` (`src/libs/ReportUtils.ts:1292-1296`), in
+`src/libs/actions/IOU/{DeleteMoneyRequest,RejectMoneyRequest,TrackExpense,UpdateMoneyRequest}.ts` and
+`src/libs/actions/Transaction.ts`. All five files are inside the 91-file override where
+`.oxlintrc.json` sets `typescript/no-deprecated` to `off`. So oxlint is not missing them by
+implementation: the override that holds back the write-site flood takes the legitimate read-site
+findings with it.
+
+That is the measurable cost of the workaround, and it is small: **6 lost read-site findings across
+91 files.** If tsgolint ever gains a read/write option, the override can shrink and those 6 come
+back. Until then this is a priced trade, not an open question.
+
+### 5.2 `react-hooks/set-state-in-effect`, 127 vs 47 -- an upstream detection gap
+
+Investigated 2026-09-15. The cause is not in this repo, and there is a minimal reproducer:
+`oxlint-migration/setStateInEffectRepro.tsx`.
+
+The 47 are a strict subset of the 127: the split is **47 shared, 80 ESLint-only, 0 oxlint-only**.
+Grouped by file it is all-or-nothing, which is what pointed at the cause:
+
+| | files |
+| --- | ---: |
+| oxlint catches every finding in the file | 32 |
+| oxlint catches none of them | 67 |
+| oxlint catches some but not all | **0** |
+
+Ruled out, each by measurement rather than reading:
+
+- **Not `ReactCompilerFilter`.** `RULES_SUPPRESSED_BY_REACT_COMPILER` holds only two rules and this
+  is not one of them, on either side.
+- **Not the documented `panicThreshold: 'all_errors'` truncation**
+  (`config/oxlint/reactCompilerRust.mjs:138-143`). Truncation would leave partial files and
+  other-rule diagnostics behind. Instrumenting `analyze()` over all 99 files: every one of the 67
+  returns `result.fatal === false` with `result.errors.length === 0`, and produces no diagnostic of
+  any rule name. The compiler compiles them and surfaces nothing.
+- **Not the parse-failure early return** at `reactCompilerRust.mjs:178`. None of the 67 reaches it.
+- **Not rule-name mapping, setter provenance, or control-flow shape.** Both sets are majority local
+  `useState` setters, and both contain guarded, unguarded and early-return forms in similar
+  proportions.
+
+`result.fatal` splits the two groups perfectly, 32 true against 67 false, but that is a restatement
+rather than a cause: under `all_errors` every diagnostic is fatal, so `fatal` is a consequence of
+having found one.
+
+**The reproducer is a nine-line component**: `useState`, a `useEffect` whose body is a single
+`setValue(1)`, nothing else. `eslint-plugin-react-hooks` reports it. `oxc-transform-react` returns
+`[]`. So the gap reaches the most basic shape the rule exists for, which makes this worth filing
+upstream.
+
+It is not family-wide, which is why it needs filing as this one rule rather than as the bridge being
+broken. Whole-family counts, ESLint against oxlint: `refs` 215 = 215, `static-components` 2 = 2,
+`exhaustive-deps` 1 = 1, `immutability` 6 vs 7, `preserve-manual-memoization` 2 vs 65 -- that last
+one runs the other way and still has the `eslintSuppressionRules` explanation recorded below.
+
+**Still open:** what distinguishes the 32 files the Rust port does detect. No syntactic discriminator
+separates them, and adding a deliberate compiler bail to the reproducer did not make the finding
+appear. Answering it is not needed to file the bug, only to predict the blast radius.
 
 `preserve-manual-memoization` 2 vs 65 in the same family is understood: ESLint's compiler skips
 functions carrying an `exhaustive-deps` disable comment, Oxlint's does not, and both production
@@ -471,13 +559,19 @@ Ordered by what blocks what.
 2. ~~**Evidence for the 294 native rules.**~~ Done to the point of diminishing returns.
    `compareFixtures.py` carries 306 entries, all green. The 128 remaining core rules are a
    deliberate stop with the reasoning written down (section 4.1), not outstanding work.
-3. **Drive the 11 open config differences to zero** (section 3.5). Each either gets ported or gets a
-   LEDGER entry naming who decided to drop it and why. Cheapest first: comment or delete the
-   `scripts/**` / `.github/**` override, then align the 3 lenient option sets.
-4. **Explain `set-state-in-effect` 127 vs 47** (section 5.2). Sample the 80 ESLint-only findings. If
-   Oxlint's rule genuinely misses them, the flip would ship a coverage regression.
-5. **Explain `no-deprecated` 231 vs 399** (section 5.1). Sample 10 Oxlint-only findings, confirm each
-   is a genuine deprecated usage, record the cause in `PORT_PLAN`.
+3. ~~**Drive the 11 open config differences to zero**~~ Done 2026-09-15, section 3.5. Two ported,
+   nine documented with measurements. Note for whoever reads that section: two of the eleven were
+   not differences, and acting on the original reading of them would have made oxlint stricter than
+   ESLint.
+4. ~~**Explain `set-state-in-effect` 127 vs 47**~~ Done 2026-09-15, section 5.2. It is an upstream
+   detection gap in `oxc-transform-react`, with a nine-line reproducer at
+   `oxlint-migration/setStateInEffectRepro.tsx`. **File it upstream** -- that is the remaining
+   action, and it is the one item here that would ship a coverage regression if the flip happened
+   first.
+5. ~~**Explain `no-deprecated` 231 vs 399**~~ Done 2026-09-15, section 5.1. All 174 oxlint-only
+   findings are write sites, the already-documented tsgolint strictness. All 6 ESLint-only findings
+   are read sites the write-site override silences, which prices that workaround at 6 lost findings
+   across 91 files.
 6. **`rulesdir/boolean-conditional-rendering`** has no replacement and no tracking issue.
 7. **Fix `react/jsx-filename-extension`** (section 5.5). As configured it can never produce a
    finding on any file in this repo. Either widen the disabled-extension override or drop the rule;
