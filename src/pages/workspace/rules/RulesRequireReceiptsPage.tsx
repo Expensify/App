@@ -133,7 +133,8 @@ function RulesRequireReceiptsPage({
             const itemizedValue = itemizedEnabled ? values.maxExpenseAmountNoItemizedReceipt : '';
 
             const updateReceipt = () => setPolicyMaxExpenseAmountNoReceipt(policyID, receiptValue, policy?.maxExpenseAmountNoReceipt, getReviewWorkspaceSettingsTaskCompletion());
-            const updateItemized = () => setPolicyMaxExpenseAmountNoItemizedReceipt(policyID, itemizedValue, policy?.maxExpenseAmountNoItemizedReceipt);
+            const updateItemized = () =>
+                setPolicyMaxExpenseAmountNoItemizedReceipt(policyID, itemizedValue, policy?.maxExpenseAmountNoItemizedReceipt, getReviewWorkspaceSettingsTaskCompletion());
 
             if (receiptChanged && itemizedChanged) {
                 // The two amounts are saved as separate requests, and each is validated on the server against the OTHER
