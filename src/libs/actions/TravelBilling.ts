@@ -144,7 +144,7 @@ function setTravelBillingSettlementAccount(policyID: string, workspaceAccountID:
             key: cardSettingsKey,
             value: {
                 [CONST.TRAVEL.PROGRAM_TRAVEL_US]: {
-                    paymentBankAccountID: settlementBankAccountID,
+                    paymentBankAccountID: previousPaymentBankAccountID ?? null,
                     previousPaymentBankAccountID,
                     monthlySettlementDate,
                 },
@@ -153,7 +153,10 @@ function setTravelBillingSettlementAccount(policyID: string, workspaceAccountID:
                     paymentBankAccountID: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                 },
                 errorFields: {
-                    paymentBankAccountID: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                    // The backend sends its own, more specific message keyed by microtime. Keying this fallback at 0
+                    // keeps it below that in getLatestErrorField, so the server message wins whenever there is one
+                    // and this is only shown when the request failed without one (e.g. no response at all).
+                    paymentBankAccountID: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage', 0),
                 },
             },
         },
