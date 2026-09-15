@@ -44,11 +44,16 @@ function UserPill({avatar, displayName, accountID, email, style, isCopyable = fa
             }}
         >
             <View style={[styles.flexRow, styles.alignItemsCenter, styles.alignSelfStart, styles.userPill, shouldUseNarrowLayout && styles.mw100, style]}>
-                <UserAvatar
-                    source={avatar}
-                    size={CONST.AVATAR_SIZE.XXX_SMALL}
-                    accountID={accountID ?? CONST.DEFAULT_NUMBER_ID}
-                />
+                <View
+                    style={isCopyable && styles.userSelectNone}
+                    dataSet={isCopyable ? {[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true} : undefined}
+                >
+                    <UserAvatar
+                        source={avatar}
+                        size={CONST.AVATAR_SIZE.XXX_SMALL}
+                        accountID={accountID ?? CONST.DEFAULT_NUMBER_ID}
+                    />
+                </View>
                 <Text
                     style={[styles.userPillText, isCopyable && styles.userSelectText]}
                     numberOfLines={1}
