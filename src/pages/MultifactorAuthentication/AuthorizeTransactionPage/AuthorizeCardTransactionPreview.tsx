@@ -15,6 +15,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import DateUtils from '@libs/DateUtils';
 import {formatLastFourPAN} from '@libs/TransactionPreviewUtils';
 
+import {fontScale} from '@styles/typography';
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
@@ -102,7 +103,7 @@ function AuthorizeCardTransactionPreview({transactionID, amount, currency, merch
                             </Text>
                             {shouldShowMerchantOrDescription && (
                                 <Text
-                                    fontSize={variables.fontSizeNormal}
+                                    fontSize={fontScale.text}
                                     style={styles.flexShrink1}
                                     numberOfLines={1}
                                 >
@@ -128,7 +129,7 @@ function AuthorizeCardTransactionPreview({transactionID, amount, currency, merch
                         </View>
                         {!!displayAmount && (
                             <Text
-                                fontSize={variables.fontSizeNormal}
+                                fontSize={fontScale.text}
                                 style={[styles.flexShrink0, styles.alignSelfCenter]}
                                 numberOfLines={1}
                             >

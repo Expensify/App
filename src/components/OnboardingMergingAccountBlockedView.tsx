@@ -16,13 +16,12 @@ import ROUTES from '@src/ROUTES';
 import React from 'react';
 
 import BlockingView from './BlockingViews/BlockingView';
-import Button from './ButtonComposed';
+import Button from './Button';
 
 type OnboardingMergingAccountBlockedViewProps = {
-    // Work email to display in the subtitle
+    /** Work email to display in the subtitle */
     workEmail: string | undefined;
 
-    // Whether the user is a VSB
     isVsb: boolean | undefined;
 
     /** Called when this blocking view was opened from a Concierge onboarding task. */
@@ -38,6 +37,10 @@ function OnboardingMergingAccountBlockedView({workEmail, isVsb, onConfirm}: Onbo
     const getErrorSubtitle = () => {
         if (onboardingErrorMessage === 'onboarding.mergeBlockScreen.validatedPublicDomainSubtitle') {
             return translate(onboardingErrorMessage, workEmail);
+        }
+        // This subtitle interpolates the work email, so translate it with the email explicitly.
+        if (onboardingErrorMessage === 'onboarding.mergeBlockScreen.domainControlledSubtitle') {
+            return translate('onboarding.mergeBlockScreen.domainControlledSubtitle', workEmail);
         }
         if (onboardingErrorMessage) {
             return translate(onboardingErrorMessage);

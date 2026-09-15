@@ -1,5 +1,6 @@
-import Button from '@components/ButtonComposed';
-import LinkButton from '@components/ButtonComposed/composed/LinkButton';
+import Button from '@components/Button';
+import ButtonDisabledWhenOffline from '@components/Button/composed/ButtonDisabledWhenOffline';
+import LinkButton from '@components/Button/composed/LinkButton';
 import OnboardingHeader from '@components/OnboardingHeader';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
@@ -45,7 +46,6 @@ import type {BaseOnboardingWorkspacesProps} from './types';
 
 function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboardingWorkspacesProps) {
     const icons = useMemoizedLazyExpensifyIcons(['DownArrow']);
-    const {isOffline} = useNetwork();
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -197,8 +197,7 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
             keyForList: policyInfo.policyID,
             isDisabled: true,
             rightElement: (
-                <Button
-                    isDisabled={isOffline}
+                <ButtonDisabledWhenOffline
                     variant={CONST.BUTTON_VARIANT.SUCCESS}
                     size={CONST.BUTTON_SIZE.MEDIUM}
                     onPress={() => {
@@ -207,7 +206,7 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
                     sentryLabel={CONST.SENTRY_LABEL.ONBOARDING.JOIN_WORKSPACE}
                 >
                     <Button.Text>{policyInfo.automaticJoiningEnabled ? translate('workspace.workspaceList.joinNow') : translate('workspace.workspaceList.askToJoin')}</Button.Text>
-                </Button>
+                </ButtonDisabledWhenOffline>
             ),
         }));
 

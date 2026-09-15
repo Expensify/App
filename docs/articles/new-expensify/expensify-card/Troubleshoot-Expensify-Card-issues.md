@@ -99,8 +99,9 @@ To check for bank account issues, navigate to **Workspaces > [Workspace Name] > 
 The workspace limit refreshes automatically after the workspace's regular Expensify Card settlement. To refresh it earlier:
 
 1. Go to **Workspaces > [Workspace Name] > Expensify Card**
-2. Click **Settle Balance** to trigger an early settlement.
-3. Once the settlement clears, the workspace limit will be refreshed.
+2. Click **Settle balance**.
+3. In the confirmation window, click **Settle balance** again to confirm the early settlement.
+4. Once the settlement clears, the workspace limit will be refreshed.
 
 </div>
 
