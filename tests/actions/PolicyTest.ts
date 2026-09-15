@@ -2,7 +2,6 @@ import type {GuidedSetupTask} from '@libs/actions/Report';
 import * as APIModule from '@libs/API';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import GoogleTagManager from '@libs/GoogleTagManager';
-import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import {isPolicyPayer} from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 
@@ -46,9 +45,7 @@ const WORKSPACE_NAME = "Esh's Workspace";
 const EMPLOYEE_EMAIL = 'employee@example.com';
 const TEST_EMAIL = 'esh@gmail.com';
 const TEST_EMAIL_2 = 'eshofficial@gmail.com';
-const TEST_ACCOUNT_ID = 1;
 const TEST_DISPLAY_NAME = 'Esh Gupta';
-const TEST_PHONE_NUMBER = '1234567890';
 const TEST_NON_PUBLIC_DOMAIN_EMAIL = 'esh@example.com';
 const TEST_SMS_DOMAIN_EMAIL = 'esh@expensify.sms';
 
@@ -4752,26 +4749,14 @@ describe('actions/Policy', () => {
             const domain = 'example.com';
             const displayNameForWorkspace = Str.UCFirst(domain.split('.').at(0) ?? '');
 
-            jest.spyOn(PersonalDetailsUtils, 'getPersonalDetailByEmail').mockReturnValue({
-                displayName: TEST_DISPLAY_NAME,
-                phoneNumber: TEST_PHONE_NUMBER,
-                accountID: TEST_ACCOUNT_ID,
-            });
-
-            const workspaceName = Policy.generateDefaultWorkspaceName(TEST_NON_PUBLIC_DOMAIN_EMAIL, undefined, TestHelper.translateLocal);
+            const workspaceName = Policy.generateDefaultWorkspaceName(TEST_NON_PUBLIC_DOMAIN_EMAIL, TEST_DISPLAY_NAME, undefined, TestHelper.translateLocal);
             expect(workspaceName).toBe(TestHelper.translateLocal('workspace.new.workspaceName', displayNameForWorkspace));
         });
 
         it('should generate a workspace name based on the display name when the domain is public and display name is available', () => {
             const displayNameForWorkspace = Str.UCFirst(TEST_DISPLAY_NAME);
 
-            jest.spyOn(PersonalDetailsUtils, 'getPersonalDetailByEmail').mockReturnValue({
-                displayName: TEST_DISPLAY_NAME,
-                phoneNumber: TEST_PHONE_NUMBER,
-                accountID: TEST_ACCOUNT_ID,
-            });
-
-            const workspaceName = Policy.generateDefaultWorkspaceName(TEST_EMAIL, undefined, TestHelper.translateLocal);
+            const workspaceName = Policy.generateDefaultWorkspaceName(TEST_EMAIL, TEST_DISPLAY_NAME, undefined, TestHelper.translateLocal);
             expect(workspaceName).toBe(TestHelper.translateLocal('workspace.new.workspaceName', displayNameForWorkspace));
         });
 
@@ -4780,13 +4765,7 @@ describe('actions/Policy', () => {
             const username = emailParts.at(0) ?? '';
             const displayNameForWorkspace = Str.UCFirst(username);
 
-            jest.spyOn(PersonalDetailsUtils, 'getPersonalDetailByEmail').mockReturnValue({
-                displayName: '',
-                phoneNumber: TEST_PHONE_NUMBER,
-                accountID: TEST_ACCOUNT_ID,
-            });
-
-            const workspaceName = Policy.generateDefaultWorkspaceName(TEST_EMAIL_2, undefined, TestHelper.translateLocal);
+            const workspaceName = Policy.generateDefaultWorkspaceName(TEST_EMAIL_2, '', undefined, TestHelper.translateLocal);
             expect(workspaceName).toBe(TestHelper.translateLocal('workspace.new.workspaceName', displayNameForWorkspace));
         });
 
@@ -4796,26 +4775,14 @@ describe('actions/Policy', () => {
                 ...createRandomPolicy(0, CONST.POLICY.TYPE.PERSONAL, `${TEST_DISPLAY_NAME}'s Workspace 1`),
             };
 
-            jest.spyOn(PersonalDetailsUtils, 'getPersonalDetailByEmail').mockReturnValue({
-                displayName: TEST_DISPLAY_NAME,
-                phoneNumber: TEST_PHONE_NUMBER,
-                accountID: TEST_ACCOUNT_ID,
-            });
-
             await Onyx.set(ONYXKEYS.COLLECTION.POLICY, existingPolicies);
 
-            const workspaceName = Policy.generateDefaultWorkspaceName(TEST_EMAIL, 1, TestHelper.translateLocal);
+            const workspaceName = Policy.generateDefaultWorkspaceName(TEST_EMAIL, TEST_DISPLAY_NAME, 1, TestHelper.translateLocal);
             expect(workspaceName).toBe(TestHelper.translateLocal('workspace.new.workspaceName', TEST_DISPLAY_NAME, 2));
         });
 
         it('should return "My Group Workspace" when the domain is SMS', () => {
-            jest.spyOn(PersonalDetailsUtils, 'getPersonalDetailByEmail').mockReturnValue({
-                displayName: TEST_DISPLAY_NAME,
-                phoneNumber: TEST_PHONE_NUMBER,
-                accountID: TEST_ACCOUNT_ID,
-            });
-
-            const workspaceName = Policy.generateDefaultWorkspaceName(TEST_SMS_DOMAIN_EMAIL, undefined, TestHelper.translateLocal);
+            const workspaceName = Policy.generateDefaultWorkspaceName(TEST_SMS_DOMAIN_EMAIL, TEST_DISPLAY_NAME, undefined, TestHelper.translateLocal);
             expect(workspaceName).toBe(TestHelper.translateLocal('workspace.new.myGroupWorkspace', {}));
         });
 
@@ -4827,17 +4794,11 @@ describe('actions/Policy', () => {
                 ...createRandomPolicy(0, CONST.POLICY.TYPE.PERSONAL, `${TEST_DISPLAY_NAME}'s Workspace 1`),
             };
 
-            jest.spyOn(PersonalDetailsUtils, 'getPersonalDetailByEmail').mockReturnValue({
-                displayName: TEST_DISPLAY_NAME,
-                phoneNumber: TEST_PHONE_NUMBER,
-                accountID: TEST_ACCOUNT_ID,
-            });
-
             jest.spyOn(Str, 'UCFirst').mockReturnValue(TEST_DISPLAY_NAME);
 
             await Onyx.set(ONYXKEYS.COLLECTION.POLICY, existingPolicies);
 
-            const workspaceName = Policy.generateDefaultWorkspaceName(TEST_EMAIL, 1, TestHelper.translateLocal);
+            const workspaceName = Policy.generateDefaultWorkspaceName(TEST_EMAIL, TEST_DISPLAY_NAME, 1, TestHelper.translateLocal);
             expect(workspaceName).toBe(TestHelper.translateLocal('workspace.new.workspaceName', TEST_DISPLAY_NAME, 2));
         });
     });

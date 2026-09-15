@@ -52,7 +52,7 @@ const PaymentContext = createContext<PaymentContextValue | undefined>(undefined)
  */
 function usePaymentContextValues(): PaymentContextValue {
     const {translate} = useLocalize();
-    const {login: currentUserLogin, accountID: currentUserAccountID, email, localCurrencyCode} = useCurrentUserPersonalDetails();
+    const {login: currentUserLogin, accountID: currentUserAccountID, email, displayName, localCurrencyCode} = useCurrentUserPersonalDetails();
     const lastWorkspaceNumber = useLastWorkspaceNumber();
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
@@ -67,7 +67,7 @@ function usePaymentContextValues(): PaymentContextValue {
     const delegateAccountID = useDelegateAccountID();
     const activePolicy = usePolicy(activePolicyID);
 
-    const defaultWorkspaceName = generateDefaultWorkspaceName(email ?? '', lastWorkspaceNumber, translate);
+    const defaultWorkspaceName = generateDefaultWorkspaceName(email ?? '', displayName, lastWorkspaceNumber, translate);
 
     return {
         currentUserAccountID,
