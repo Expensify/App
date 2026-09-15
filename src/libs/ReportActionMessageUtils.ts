@@ -1,0 +1,41 @@
+import type {OnyxInputOrEntry} from '@src/types/onyx';
+import type ReportAction from '@src/types/onyx/ReportAction';
+import type {OriginalMessage} from '@src/types/onyx/ReportAction';
+import type ReportActionName from '@src/types/onyx/ReportActionName';
+
+import type {PartialReportAction} from './ReportUtils';
+
+import Parser from './Parser';
+import stripFollowupListFromHtml from './ReportActionFollowupUtils/stripFollowupListFromHtml';
+
+function getReportActionMessage(reportAction: PartialReportAction) {
+    return Array.isArray(reportAction?.message) ? reportAction?.message.at(0) : reportAction?.message;
+}
+
+function getOriginalMessage<T extends ReportActionName>(reportAction: OnyxInputOrEntry<ReportAction<T>>): OriginalMessage<T> | undefined {
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
+    const candidate = !Array.isArray(reportAction?.message) ? (reportAction?.message ?? reportAction?.originalMessage) : reportAction?.originalMessage;
+
+    // OldDot actions sometimes store a plain notification string here where OriginalMessage<T> declares an object, and callers use `in` on the result.
+    if (candidate === null || typeof candidate !== 'object') {
+        return undefined;
+    }
+    return candidate as OriginalMessage<T>;
+}
+
+function getReportActionHtml(reportAction: PartialReportAction): string {
+    return getReportActionMessage(reportAction)?.html ?? '';
+}
+
+function getReportActionText(reportAction: PartialReportAction): string {
+    const message = getReportActionMessage(reportAction);
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const text = stripFollowupListFromHtml(message?.html) || (message?.text ?? '');
+    return text ? Parser.htmlToText(text) : '';
+}
+
+function getTextFromHtml(html?: string): string {
+    return html ? Parser.htmlToText(html) : '';
+}
+
+export {getOriginalMessage, getReportActionHtml, getReportActionMessage, getReportActionText, getTextFromHtml};
