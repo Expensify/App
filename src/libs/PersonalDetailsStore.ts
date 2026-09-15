@@ -7,19 +7,19 @@ import Onyx from 'react-native-onyx';
 let allPersonalDetails: PersonalDetailsList = {};
 let loginToPersonalDetails: Record<string, PersonalDetails> = {};
 
-function buildLoginIndex(personalDetailsList: PersonalDetailsList): Record<string, PersonalDetails> {
-    const index: Record<string, PersonalDetails> = {};
+function buildLoginMapping(personalDetailsList: PersonalDetailsList): Record<string, PersonalDetails> {
+    const mapping: Record<string, PersonalDetails> = {};
     for (const personalDetail of Object.values(personalDetailsList)) {
         if (!personalDetail?.login) {
             continue;
         }
         const login = personalDetail.login.toLowerCase();
-        const existing = index[login];
+        const existing = mapping[login];
         if (!existing || existing.isClosed || existing.isOptimisticPersonalDetail) {
-            index[login] = personalDetail;
+            mapping[login] = personalDetail;
         }
     }
-    return index;
+    return mapping;
 }
 
 // Only sanctioned connectWithoutView for personal details, don't add another: React uses @hooks/usePersonalDetails, everything else uses this store
@@ -27,7 +27,7 @@ Onyx.connectWithoutView({
     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
     callback: (value) => {
         allPersonalDetails = value ?? {};
-        loginToPersonalDetails = buildLoginIndex(allPersonalDetails);
+        loginToPersonalDetails = buildLoginMapping(allPersonalDetails);
     },
 });
 

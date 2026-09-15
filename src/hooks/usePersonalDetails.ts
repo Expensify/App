@@ -1,7 +1,6 @@
 /** Personal details reads for components, so nothing touches PERSONAL_DETAILS_LIST directly */
-import {getPersonalDetailsByID, getPersonalDetailsListByIDs} from '@libs/PersonalDetailsUtils';
-
 import ONYXKEYS from '@src/ONYXKEYS';
+import {personalDetailsListSelector, personalDetailsSelector} from '@src/selectors/PersonalDetails';
 import type {PersonalDetails, PersonalDetailsList} from '@src/types/onyx';
 
 import type {UseOnyxResult} from 'react-native-onyx';
@@ -9,11 +8,11 @@ import type {UseOnyxResult} from 'react-native-onyx';
 import useOnyx from './useOnyx';
 
 function usePersonalDetail(accountID: number | undefined): UseOnyxResult<PersonalDetails | undefined> {
-    return useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: (personalDetailsList) => getPersonalDetailsByID(accountID, personalDetailsList)});
+    return useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsSelector(accountID)});
 }
 
 function usePersonalDetailsByIDs(accountIDs: Array<number | undefined> | undefined): UseOnyxResult<PersonalDetailsList> {
-    return useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: (personalDetailsList) => getPersonalDetailsListByIDs(accountIDs, personalDetailsList)});
+    return useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsListSelector(accountIDs)});
 }
 
 // Re-renders on any account change, prefer usePersonalDetail/usePersonalDetailsByIDs when the accounts are known
