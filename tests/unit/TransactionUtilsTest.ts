@@ -2593,6 +2593,44 @@ describe('TransactionUtils', () => {
                 TransactionUtils.hasNoticeTypeViolation(transaction, visibleNoticeViolations, CURRENT_USER_EMAIL, CURRENT_USER_ID, processingReport, CURRENT_USER_EMAIL, policy, true),
             ).toBe(true);
         });
+
+        it('should not hide missing category violation for invoice report even when category is being analyzed', () => {
+            const invoiceReport: Report = {
+                ...createRandomReport(1, undefined),
+                type: CONST.REPORT.TYPE.INVOICE,
+            };
+
+            const policy: Policy = createRandomPolicy(1, CONST.POLICY.TYPE.TEAM);
+
+            const transaction = generateTransaction({
+                category: '',
+                merchant: 'Some Merchant',
+                amount: 100,
+                reportID: invoiceReport.reportID,
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+            });
+
+            expect(TransactionUtils.shouldShowViolation(invoiceReport, policy, CONST.VIOLATIONS.MISSING_CATEGORY, 'test@example.com', CURRENT_USER_ID, true, transaction)).toBe(true);
+        });
+
+        it('should hide missing category violation for expense report when category is being analyzed', () => {
+            const expenseReport: Report = {
+                ...createRandomReport(1, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+            };
+
+            const policy: Policy = createRandomPolicy(1, CONST.POLICY.TYPE.TEAM);
+
+            const transaction = generateTransaction({
+                category: '',
+                merchant: 'Some Merchant',
+                amount: 100,
+                reportID: expenseReport.reportID,
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+            });
+
+            expect(TransactionUtils.shouldShowViolation(expenseReport, policy, CONST.VIOLATIONS.MISSING_CATEGORY, 'test@example.com', CURRENT_USER_ID, true, transaction)).toBe(false);
+        });
     });
 
     describe('getReportOwnerAsAttendee', () => {
@@ -2982,7 +3020,7 @@ describe('TransactionUtils', () => {
 
     describe('isCategoryBeingAnalyzed', () => {
         it('should return false for undefined transaction', () => {
-            expect(TransactionUtils.isCategoryBeingAnalyzed(undefined)).toBe(false);
+            expect(TransactionUtils.isCategoryBeingAnalyzed(undefined, undefined)).toBe(false);
         });
 
         it('should return false when category is not missing', () => {
@@ -2990,7 +3028,7 @@ describe('TransactionUtils', () => {
                 category: 'Food',
             });
 
-            expect(TransactionUtils.isCategoryBeingAnalyzed(transaction)).toBe(false);
+            expect(TransactionUtils.isCategoryBeingAnalyzed(transaction, undefined)).toBe(false);
         });
 
         it('should return false for partial transactions (empty merchant and zero amount)', () => {
@@ -3001,7 +3039,7 @@ describe('TransactionUtils', () => {
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
             });
 
-            expect(TransactionUtils.isCategoryBeingAnalyzed(transaction)).toBe(false);
+            expect(TransactionUtils.isCategoryBeingAnalyzed(transaction, undefined)).toBe(false);
         });
 
         it('should return true when pendingAction is ADD and category is missing', () => {
@@ -3012,7 +3050,7 @@ describe('TransactionUtils', () => {
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
             });
 
-            expect(TransactionUtils.isCategoryBeingAnalyzed(transaction)).toBe(true);
+            expect(TransactionUtils.isCategoryBeingAnalyzed(transaction, undefined)).toBe(true);
         });
 
         it('should return true when within auto-categorization grace period', () => {
@@ -3029,7 +3067,7 @@ describe('TransactionUtils', () => {
                 },
             });
 
-            expect(TransactionUtils.isCategoryBeingAnalyzed(transaction)).toBe(true);
+            expect(TransactionUtils.isCategoryBeingAnalyzed(transaction, undefined)).toBe(true);
         });
 
         it('should return false when auto-categorization grace period has passed', () => {
@@ -3047,7 +3085,7 @@ describe('TransactionUtils', () => {
                 },
             });
 
-            expect(TransactionUtils.isCategoryBeingAnalyzed(transaction)).toBe(false);
+            expect(TransactionUtils.isCategoryBeingAnalyzed(transaction, undefined)).toBe(false);
         });
 
         it('should return false when pendingAutoCategorizationTime is invalid', () => {
@@ -3061,7 +3099,7 @@ describe('TransactionUtils', () => {
                 },
             });
 
-            expect(TransactionUtils.isCategoryBeingAnalyzed(transaction)).toBe(false);
+            expect(TransactionUtils.isCategoryBeingAnalyzed(transaction, undefined)).toBe(false);
         });
 
         it('should return false when category is Uncategorized but no pending action or auto-categorization', () => {
@@ -3072,7 +3110,7 @@ describe('TransactionUtils', () => {
                 pendingAction: undefined,
             });
 
-            expect(TransactionUtils.isCategoryBeingAnalyzed(transaction)).toBe(false);
+            expect(TransactionUtils.isCategoryBeingAnalyzed(transaction, undefined)).toBe(false);
         });
 
         it('should return false for unreported expenses', () => {
@@ -3084,25 +3122,41 @@ describe('TransactionUtils', () => {
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
             });
 
-            expect(TransactionUtils.isCategoryBeingAnalyzed(transaction)).toBe(false);
+            expect(TransactionUtils.isCategoryBeingAnalyzed(transaction, undefined)).toBe(false);
         });
 
-        it('should return false for invoice expenses', async () => {
-            const invoiceReportID = 'invoice123';
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${invoiceReportID}`, {
-                reportID: invoiceReportID,
-                type: CONST.REPORT.TYPE.INVOICE,
-            });
+        it('should return true for expense report with pendingAction ADD', () => {
+            const expenseReport = {
+                reportID: 'expense123',
+                type: CONST.REPORT.TYPE.EXPENSE,
+            };
 
             const transaction = generateTransaction({
                 category: '',
                 merchant: 'Some Merchant',
                 amount: 100,
-                reportID: invoiceReportID,
+                reportID: expenseReport.reportID,
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
             });
 
-            expect(TransactionUtils.isCategoryBeingAnalyzed(transaction)).toBe(false);
+            expect(TransactionUtils.isCategoryBeingAnalyzed(transaction, expenseReport)).toBe(true);
+        });
+
+        it('should return false for invoice expenses', () => {
+            const invoiceReport = {
+                reportID: 'invoice123',
+                type: CONST.REPORT.TYPE.INVOICE,
+            };
+
+            const transaction = generateTransaction({
+                category: '',
+                merchant: 'Some Merchant',
+                amount: 100,
+                reportID: invoiceReport.reportID,
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+            });
+
+            expect(TransactionUtils.isCategoryBeingAnalyzed(transaction, invoiceReport)).toBe(false);
         });
     });
 
@@ -5410,6 +5464,78 @@ describe('doesMoneyRequestDraftHaveUserInput', () => {
     });
 });
 
+describe('hasAllManuallyEnteredScanFields', () => {
+    function generateScanDraft(values: Partial<Transaction> = {}): Transaction {
+        return generateTransaction({iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN, ...values});
+    }
+
+    it('returns false while any of the three fields is still left to SmartScan', () => {
+        expect(TransactionUtils.hasAllManuallyEnteredScanFields(undefined)).toBe(false);
+        expect(TransactionUtils.hasAllManuallyEnteredScanFields(generateScanDraft())).toBe(false);
+        expect(TransactionUtils.hasAllManuallyEnteredScanFields(generateScanDraft({isAmountSet: true, isMerchantSet: true}))).toBe(false);
+    });
+
+    it('returns true once every one of them has been entered', () => {
+        expect(TransactionUtils.hasAllManuallyEnteredScanFields(generateScanDraft({isAmountSet: true, isMerchantSet: true, isCreatedSet: true}))).toBe(true);
+    });
+
+    it('returns false for expense types that populate those fields programmatically', () => {
+        const values = {isAmountSet: true, isMerchantSet: true, isCreatedSet: true};
+        expect(TransactionUtils.hasAllManuallyEnteredScanFields(generateTransaction({iouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL, ...values}))).toBe(false);
+        expect(TransactionUtils.hasAllManuallyEnteredScanFields(generateTransaction({iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE, ...values}))).toBe(false);
+    });
+});
+
+describe('hasAnyManuallyEnteredScanField / isPartiallyEnteredScanExpense', () => {
+    function generateScanDraft(values: Partial<Transaction> = {}): Transaction {
+        return generateTransaction({iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN, ...values});
+    }
+
+    it('reports nothing entered while all three fields are left to SmartScan', () => {
+        expect(TransactionUtils.hasAnyManuallyEnteredScanField(generateScanDraft())).toBe(false);
+        expect(TransactionUtils.isPartiallyEnteredScanExpense(generateScanDraft(), true)).toBe(false);
+    });
+
+    it.each([
+        ['amount', {isAmountSet: true}],
+        ['merchant', {isMerchantSet: true}],
+        ['date', {isCreatedSet: true}],
+    ])('treats the expense as partially filled once only the %s is entered', (_field, values) => {
+        expect(TransactionUtils.hasAnyManuallyEnteredScanField(generateScanDraft(values))).toBe(true);
+        expect(TransactionUtils.isPartiallyEnteredScanExpense(generateScanDraft(values), true)).toBe(true);
+    });
+
+    it('stops reporting a partially filled expense once all three are entered', () => {
+        const complete = generateScanDraft({isAmountSet: true, isMerchantSet: true, isCreatedSet: true});
+        expect(TransactionUtils.hasAnyManuallyEnteredScanField(complete)).toBe(true);
+        expect(TransactionUtils.isPartiallyEnteredScanExpense(complete, true)).toBe(false);
+    });
+
+    it('holds no surface to the rule unless it actually offers the three fields', () => {
+        // Splits, moved tracked expenses and test receipts carry the same flags without ever having shown them.
+        expect(TransactionUtils.isPartiallyEnteredScanExpense(generateScanDraft({isAmountSet: true}), false)).toBe(false);
+    });
+});
+
+describe('buildOptimisticTransaction receipt state', () => {
+    const receipt = {source: 'https://example.com/receipt.jpg', name: 'receipt.jpg', state: CONST.IOU.RECEIPT_STATE.SCAN_READY};
+
+    it('keeps the receipt state the caller validated when no override is given', () => {
+        const transaction = TransactionUtils.buildOptimisticTransaction({
+            transactionParams: {amount: 100, currency: 'USD', reportID: '1', comment: '', created: '2023-10-01', receipt},
+        });
+        expect(transaction.receipt?.state).toBe(CONST.IOU.RECEIPT_STATE.SCAN_READY);
+    });
+
+    it('prefers the override so a scan the user filled in never reads as "Scanning..."', () => {
+        const transaction = TransactionUtils.buildOptimisticTransaction({
+            transactionParams: {amount: 100, currency: 'USD', reportID: '1', comment: '', created: '2023-10-01', receipt, receiptState: CONST.IOU.RECEIPT_STATE.OPEN},
+        });
+        expect(transaction.receipt?.state).toBe(CONST.IOU.RECEIPT_STATE.OPEN);
+        expect(TransactionUtils.isReceiptBeingScanned(transaction)).toBe(false);
+    });
+});
+
 describe('isTransactionSubmittable', () => {
     it('returns true for a transaction that is on hold', () => {
         const transaction = generateTransaction({comment: {hold: 'holdID'}});
@@ -5679,5 +5805,33 @@ describe('getDistanceInMeters', () => {
             routes: undefined,
         });
         expect(TransactionUtils.getDistanceInMeters(transaction, CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES)).not.toBe(4680656);
+    });
+});
+
+describe('getReservationNights', () => {
+    const originalTimezone = process.env.TZ;
+
+    afterEach(() => {
+        process.env.TZ = originalTimezone;
+    });
+
+    it('returns 0 when the receipt has no reservation dates', () => {
+        expect(TransactionUtils.getReservationNights(generateTransaction({receipt: {}}))).toBe(0);
+        expect(TransactionUtils.getReservationNights(generateTransaction({receipt: {hotelReservationStartDate: '2026-03-01'}}))).toBe(0);
+    });
+
+    it('returns 0 when the reservation ends on or before it starts', () => {
+        expect(TransactionUtils.getReservationNights(generateTransaction({receipt: {hotelReservationStartDate: '2026-03-06', hotelReservationEndDate: '2026-03-06'}}))).toBe(0);
+        expect(TransactionUtils.getReservationNights(generateTransaction({receipt: {hotelReservationStartDate: '2026-03-06', hotelReservationEndDate: '2026-03-01'}}))).toBe(0);
+    });
+
+    it('counts the calendar days between check-in and check-out', () => {
+        expect(TransactionUtils.getReservationNights(generateTransaction({receipt: {hotelReservationStartDate: '2026-03-01', hotelReservationEndDate: '2026-03-06'}}))).toBe(5);
+    });
+
+    it('counts a one-night stay that crosses a DST change west of UTC', () => {
+        // Los Angeles falls back on 2026-11-01, so anchoring these dates to UTC would put check-out an hour before check-in
+        process.env.TZ = 'America/Los_Angeles';
+        expect(TransactionUtils.getReservationNights(generateTransaction({receipt: {hotelReservationStartDate: '2026-11-01', hotelReservationEndDate: '2026-11-02'}}))).toBe(1);
     });
 });

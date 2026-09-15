@@ -89,7 +89,7 @@ function useSelectionModePayment({
 
     const {currentSearchQueryJSON, currentSearchKey} = useSearchQueryContext();
     const {currentSearchResults} = useSearchResultsContext();
-    const shouldCalculateTotals = useSearchShouldCalculateTotals(currentSearchKey, currentSearchQueryJSON?.hash, true);
+    const shouldCalculateTotals = useSearchShouldCalculateTotals(currentSearchKey, true);
 
     const [moneyRequestReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportID)}`);
     const [ownerLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(moneyRequestReport?.ownerAccountID)});

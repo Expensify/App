@@ -42,13 +42,16 @@ import {
     getActionableCard3DSTransactionApprovalMessage,
     getActionableCardFraudAlertResolutionMessage,
     getAddedCardFeedMessage,
+    getApprovalLimitUpdateMessage,
     getAssignedCompanyCardMessage,
     getAutoPayApprovedReportsEnabledMessage,
     getAutoReimbursementMessage,
+    getCardConnectionBrokenMessage,
     getCardIssuedMessage,
     getCategoryTaxRateMessage,
     getChangedApproverActionMessage,
     getCompanyAddressUpdateMessage,
+    getCompanyCardConnectionBroken30DaysMessage,
     getCompanyCardConnectionBrokenMessage,
     getCreatedReportForUnapprovedTransactionsMessage,
     getCrossBorderReimbursedMessage,
@@ -74,6 +77,7 @@ import {
     getMccGroupCategoryMessage,
     getMessageOfOldDotReportAction,
     getOriginalMessage,
+    getOverLimitForwardsToUpdateMessage,
     getPlaidBalanceFailureMessage,
     getPolicyChangeLogDefaultBillableMessage,
     getPolicyChangeLogDefaultReimbursableMessage,
@@ -726,6 +730,14 @@ function computeReportNameBasedOnReportAction({
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_FORWARDS_TO)) {
         return getForwardsToUpdateMessage(translate, parentReportAction);
     }
+    if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_OVER_LIMIT_FORWARDS_TO)) {
+        // Non-React call path: pass the standalone util until this file's own convertToDisplayString threading PR.
+        return getOverLimitForwardsToUpdateMessage(translate, parentReportAction, convertToDisplayString);
+    }
+    if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_APPROVAL_LIMIT)) {
+        // Non-React call path: pass the standalone util until this file's own convertToDisplayString threading PR.
+        return getApprovalLimitUpdateMessage(translate, parentReportAction, convertToDisplayString);
+    }
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_INVOICE_COMPANY_NAME)) {
         return getInvoiceCompanyNameUpdateMessage(translate, parentReportAction);
     }
@@ -868,6 +880,18 @@ function computeReportNameBasedOnReportAction({
 
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.COMPANY_CARD_CONNECTION_BROKEN)) {
         return Parser.htmlToText(getCompanyCardConnectionBrokenMessage(translate, parentReportAction));
+    }
+
+    if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.COMPANY_CARD_CONNECTION_BROKEN_30_DAYS)) {
+        return Parser.htmlToText(getCompanyCardConnectionBroken30DaysMessage(translate, parentReportAction));
+    }
+
+    if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.PERSONAL_CARD_CONNECTION_BROKEN)) {
+        return Parser.htmlToText(getCardConnectionBrokenMessage(undefined, getOriginalMessage(parentReportAction)?.cardName, translate, false));
+    }
+
+    if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.PERSONAL_CARD_CONNECTION_BROKEN_30_DAYS)) {
+        return Parser.htmlToText(getCardConnectionBrokenMessage(undefined, getOriginalMessage(parentReportAction)?.cardName, translate, true));
     }
 
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.PLAID_BALANCE_FAILURE)) {

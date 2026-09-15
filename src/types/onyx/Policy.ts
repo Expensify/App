@@ -3329,6 +3329,9 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Whether the Recruiting feature is enabled */
         isRecruitingEnabled?: boolean;
 
+        /** Whether the MCP feature is enabled */
+        isMCPEnabled?: boolean;
+
         /** The verified bank account linked to the policy */
         achAccount?: ACHAccount;
 
@@ -3417,7 +3420,15 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Whether distance expenses on this policy must come from a mapped route or a GPS track, which rules out the manual and odometer flows */
         requireMapOrGPS?: boolean;
     } & Partial<PendingJoinRequestPolicy>,
-    'addWorkspaceRoom' | keyof ACHAccount | keyof Attributes | keyof WorkspaceTravelSettings | 'isHREnabled' | 'isRecruitingEnabled' | 'isTimeTrackingEnabled' | 'timeTrackingDefaultRate'
+    | 'addWorkspaceRoom'
+    | keyof ACHAccount
+    | keyof Attributes
+    | keyof WorkspaceTravelSettings
+    | 'isHREnabled'
+    | 'isMCPEnabled'
+    | 'isRecruitingEnabled'
+    | 'isTimeTrackingEnabled'
+    | 'timeTrackingDefaultRate'
 >;
 
 /** Stages of policy connection sync */

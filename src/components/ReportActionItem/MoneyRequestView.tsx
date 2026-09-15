@@ -5,7 +5,7 @@ import MenuItemAction from '@components/MenuItem/presets/MenuItemAction';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
-import {usePersonalDetails, usePolicyCategories, usePolicyTags} from '@components/OnyxListItemProvider';
+import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
 import {useSearchResultsContext} from '@components/Search/SearchContext';
@@ -87,7 +87,6 @@ import {
     canEditMoneyRequest,
     canUserPerformWriteAction as canUserPerformWriteActionReportUtils,
     getTransactionDetails,
-    getTripIDFromTransactionParentReportID,
     isExpenseReport,
     isInvoiceReport,
     isOpenReport,
@@ -270,11 +269,9 @@ function MoneyRequestView({
     // unreported expenses), else self-DM split editing wrongly redirects to RESTRICTED_ACTION.
     const restrictedActionPolicyID = useRestrictedActionPolicyID(expensePolicy);
 
-    const allPolicyCategories = usePolicyCategories();
-    const policyCategories = allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`];
+    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getNonEmptyStringOnyxID(policyID)}`);
     const targetPolicyID = updatedTransaction?.reportID ? parentReport?.policyID : policyID;
-    const allPolicyTags = usePolicyTags();
-    const policyTagList = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${targetPolicyID}`];
+    const [policyTagList] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(targetPolicyID)}`);
     const [nonPersonalAndWorkspaceCards] = useOnyx(ONYXKEYS.DERIVED.NON_PERSONAL_AND_WORKSPACE_CARD_LIST);
     const transactionCard = transaction?.cardID ? nonPersonalAndWorkspaceCards?.[transaction.cardID] : undefined;
     const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
@@ -565,27 +562,21 @@ function MoneyRequestView({
     const shouldShowVendor = hasVendorFeature(policy, isBetaEnabled(CONST.BETAS.VENDOR_MATCHING)) && !(updatedTransaction?.reimbursable ?? !!transactionReimbursable) && !isInvoice;
     const vendorFieldLabel = isXeroActiveMatchingSource(policy) ? translate('common.supplier') : translate('common.vendor');
 
-    const tripID = getTripIDFromTransactionParentReportID(parentReport?.parentReportID);
-    const shouldShowViewTripDetails = hasReservationList(transaction) && !!tripID;
-
     const transactionTripID = transaction?.comment?.tripID;
+    const [tripRoomReportID] = useOnyxWithoutSnapshots(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {
+        selector: (allReportNameValuePairs: OnyxCollection<OnyxTypes.ReportNameValuePairs>): string | undefined => {
+            if (!transactionTripID || !allReportNameValuePairs) {
+                return undefined;
+            }
 
-    // Trip rooms are the grandparent report, so check that first before scanning the collection.
-    const grandparentReportID = parentReport?.parentReportID;
-    const tripRoomReportSelector = (reports: OnyxCollection<OnyxTypes.Report>): OnyxEntry<OnyxTypes.Report> => {
-        if (!transactionTripID || !reports) {
-            return undefined;
-        }
-        const grandparent = grandparentReportID ? reports[`${ONYXKEYS.COLLECTION.REPORT}${grandparentReportID}`] : undefined;
-        const match =
-            grandparent?.tripData?.tripID === transactionTripID ? grandparent : Object.values(reports).find((candidateReport) => candidateReport?.tripData?.tripID === transactionTripID);
-        if (!match?.reportID) {
-            return undefined;
-        }
-        return match;
-    };
-    const [tripRoomReport] = useOnyxWithoutSnapshots(ONYXKEYS.COLLECTION.REPORT, {selector: tripRoomReportSelector});
-    const tripRoomReportID = tripRoomReport?.reportID;
+            const tripRoomReportNameValuePairsKey = Object.keys(allReportNameValuePairs).find((key) => allReportNameValuePairs[key]?.tripData?.tripID === transactionTripID);
+            return tripRoomReportNameValuePairsKey?.replace(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, '');
+        },
+    });
+    const [tripRoomReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${tripRoomReportID}`);
+    const [tripRoomReportNameValuePairs] = useOnyxWithoutSnapshots(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${tripRoomReportID}`);
+    const tripID = tripRoomReportNameValuePairs?.tripData?.tripID;
+    const shouldShowViewTripDetails = hasReservationList(transaction) && !!tripID;
 
     const derivedReportNames = useDerivedReportNamesByReportIDs([tripRoomReportID, parentReport?.reportID]);
 
@@ -707,6 +698,7 @@ function MoneyRequestView({
         }
         updateMoneyRequestBillable({
             transactionID: transaction.transactionID,
+            transaction,
             transactionThreadReport,
             parentReport,
             iouReportOwnerLogin,
@@ -734,6 +726,7 @@ function MoneyRequestView({
         }
         updateMoneyRequestReimbursable({
             transactionID: transaction.transactionID,
+            transaction,
             transactionThreadReport,
             parentReport,
             iouReportOwnerLogin,
@@ -875,6 +868,7 @@ function MoneyRequestView({
 
             updateMoneyRequestTaxRate({
                 transactionID: transaction?.transactionID,
+                transaction,
                 transactionThreadReport,
                 parentReport,
                 iouReportOwnerLogin,
@@ -915,6 +909,7 @@ function MoneyRequestView({
 
             updateMoneyRequestCategory({
                 transactionID,
+                transaction,
                 transactionThreadReport,
                 parentReport,
                 iouReportOwnerLogin,
@@ -956,6 +951,7 @@ function MoneyRequestView({
             const updatedTag = insertTagIntoTransactionTagsString(transactionTag ?? '', '', tagListIndex, policy?.hasMultipleTagLists ?? false);
             updateMoneyRequestTag({
                 transactionID,
+                transaction,
                 transactionThreadReport,
                 parentReport,
                 iouReportOwnerLogin,
@@ -1183,8 +1179,7 @@ function MoneyRequestView({
     const reportNameToDisplay = isFromMergeTransaction ? (updatedTransaction?.reportName ?? translate('common.none')) : getReportName(parentReport, parentReportDerivedName);
     const shouldShowReport = !!parentReportID || (isFromMergeTransaction && !!reportNameToDisplay);
     const reportCopyValue = !canEditReport && reportNameToDisplay !== translate('common.none') ? reportNameToDisplay : undefined;
-    const shouldShowCategoryAnalyzing = isCategoryBeingAnalyzed(updatedTransaction ?? transaction);
-
+    const shouldShowCategoryAnalyzing = isCategoryBeingAnalyzed(transaction, transactionReport);
     // In this case we want to use this value. The shouldUseNarrowLayout will always be true as this case is handled when we display ReportScreen in RHP.
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
