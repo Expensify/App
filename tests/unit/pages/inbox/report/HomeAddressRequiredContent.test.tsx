@@ -36,7 +36,7 @@ jest.mock('@components/RenderHTML', () => {
     return MockRenderHTML;
 });
 
-jest.mock('@components/ButtonComposed', () => {
+jest.mock('@components/Button', () => {
     function MockButton({children}: {children: React.ReactNode}) {
         return mockReact.createElement('mock-button', null, children);
     }

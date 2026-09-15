@@ -1,5 +1,5 @@
 import DropdownButton from '@components/Search/FilterDropdowns/DropdownButton';
-import SearchFiltersClearButton from '@components/Search/SearchPageHeader/SearchFiltersClearButton';
+import SearchFiltersResetButton from '@components/Search/SearchPageHeader/SearchFiltersResetButton';
 import {useTableContext} from '@components/Table/TableContext';
 
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -18,11 +18,11 @@ type TableFilterBarProps = PropsWithChildren<{
     /** Label and accessibility label for the search input. */
     label: string;
 
-    /** Whether to show a "Clear" button that resets all active filters. */
-    shouldShowClearFiltersButton?: boolean;
+    /** Whether to show a "Reset" button that resets all active filters. */
+    shouldShowResetFiltersButton?: boolean;
 }>;
 
-export default function TableFilterBar({label, shouldShowClearFiltersButton, children}: TableFilterBarProps) {
+export default function TableFilterBar({label, shouldShowResetFiltersButton, children}: TableFilterBarProps) {
     const styles = useThemeStyles();
     const {filterConfig, tableMethods, activeFilters, onSearchStringChange, columns, narrowLayoutSortColumn, originalDataLength, shouldUseNarrowTableLayout} = useTableContext();
 
@@ -48,11 +48,11 @@ export default function TableFilterBar({label, shouldShowClearFiltersButton, chi
             };
         });
 
-    const clearAllFilters = () => {
+    const resetFilters = () => {
         for (const filter of appliedFilters) {
             tableMethods.updateFilter({key: filter.key, value: []});
         }
-        // Also clear the search input so the Clear button resets both the filters and the search text.
+        // Also clear the search input so the Reset button resets both the filters and the search text.
         tableMethods.updateSearchString('');
         onSearchStringChange?.('');
     };
@@ -69,7 +69,7 @@ export default function TableFilterBar({label, shouldShowClearFiltersButton, chi
                     onClosePress={filter.onClosePress}
                 />
             ))}
-            {!!shouldShowClearFiltersButton && <SearchFiltersClearButton onPress={clearAllFilters} />}
+            {!!shouldShowResetFiltersButton && <SearchFiltersResetButton onPress={resetFilters} />}
         </View>
     );
 

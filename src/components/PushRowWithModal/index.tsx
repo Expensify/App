@@ -13,7 +13,6 @@ type PushRowWithModalProps = {
     /** The list of options that we want to display where key is option code and value is option name */
     optionsList: Record<string, string>;
 
-    /** Current value of the selected item */
     value?: string;
 
     /** Function called whenever list item is selected */
@@ -25,10 +24,7 @@ type PushRowWithModalProps = {
     /** The description for the picker */
     description: string;
 
-    /** The title of the modal */
     modalHeaderTitle: string;
-
-    /** The title of the search input */
     searchInputTitle: string;
 
     /** Whether the selected option is editable */
@@ -37,7 +33,6 @@ type PushRowWithModalProps = {
     /** Text to display on error message */
     errorText?: string;
 
-    /** The ID of the input that should be reset when the value changes */
     stateInputIDToReset?: string;
 
     /**  Callback to call when the picker modal is dismissed */
