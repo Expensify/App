@@ -1,5 +1,12 @@
 # `@react-navigation` patches
 
+### [@react-navigation+bottom-tabs+7.16.2+002+native-tab-label-and-badge-styles.patch](@react-navigation+bottom-tabs+7.16.2+002+native-tab-label-and-badge-styles.patch)
+
+- Reason: Exposes `tabBarActiveLabelStyle` and applies it to the selected iOS item appearance in all tab layouts, including the scroll-edge appearance. The normal label color takes precedence over the icon tint. Also forwards badge text color and font size so our GBR/RBR indicators can use a small circle glyph on a transparent badge instead of UIKit's larger badge background.
+- Upstream PR/issue: N/A; adds appearance options for the Liquid Glass prototype using the existing native item state APIs.
+- E/App issue: Tracked in the prototype PR below; remove when upstream provides equivalent options.
+- PR Introducing Patch: [#100887](https://github.com/Expensify/App/pull/100887)
+
 ### @react-navigation+package-name+7+fix-failing-jest-by-disabling-esmodule.patch
 #### [@react-navigation+bottom-tabs+7.16.2+001+fix-failing-jest-by-disabling-esmodule.patch](@react-navigation+bottom-tabs+7.16.2+001+fix-failing-jest-by-disabling-esmodule.patch)
 #### [@react-navigation+core+7.21.12+001+fix-failing-jest-by-disabling-esmodule.patch](@react-navigation+core+7.21.12+001+fix-failing-jest-by-disabling-esmodule.patch)

@@ -1989,6 +1989,21 @@ const staticStyles = (theme: ThemeColors) =>
             zIndex: 10,
         },
 
+        nativeTabBarLabel: {
+            color: theme.textSupporting,
+            fontWeight: FontUtils.fontWeight.normal,
+        },
+
+        nativeTabBarActiveLabel: {
+            color: theme.text,
+            fontWeight: FontUtils.fontWeight.bold,
+        },
+
+        nativeTabBarBadge: {
+            backgroundColor: theme.transparent,
+            fontSize: variables.fontSizeSmall,
+        },
+
         nativeTabBarFloatingButtons: {
             position: 'absolute',
             right: 0,

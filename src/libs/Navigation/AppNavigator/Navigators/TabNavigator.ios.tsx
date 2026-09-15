@@ -67,6 +67,8 @@ const INBOX_TAB_ICON = getNativeTabIcon(inboxIcon, inboxSelectedIcon);
 const SPEND_TAB_ICON = getNativeTabIcon(receiptMultipleIcon, receiptMultipleSelectedIcon);
 const WORKSPACES_TAB_ICON = getNativeTabIcon(buildingsIcon, buildingsSelectedIcon);
 const ACCOUNT_TAB_ICON = {type: 'sfSymbol', name: 'person.crop.circle'} as const;
+// A small circle glyph on a transparent badge avoids UIKit's minimum badge background size.
+const TAB_INDICATOR_DOT = '●';
 
 const TAB_ROOT_SCREENS_WITHOUT_GESTURE = new Set<string>([SCREENS.HOME, SCREENS.INBOX, SCREENS.SEARCH.ROOT, SCREENS.INSIGHTS, SCREENS.SETTINGS.ROOT]);
 
@@ -153,6 +155,7 @@ function TabNavigator() {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {translate} = useLocalize();
     const theme = useTheme();
+    const styles = useThemeStyles();
     const {chatTabBrickRoad} = useSidebarOrderedReportsState();
     const {indicatorColor: workspacesIndicatorColor, status: workspacesIndicatorStatus} = useWorkspacesTabIndicatorStatus();
     const {indicatorColor: accountIndicatorColor, status: accountIndicatorStatus} = useAccountTabIndicatorStatus();
@@ -236,6 +239,8 @@ function TabNavigator() {
         lazy: true,
         tabBarActiveTintColor: theme.iconMenu,
         tabBarInactiveTintColor: theme.icon,
+        tabBarLabelStyle: styles.nativeTabBarLabel,
+        tabBarActiveLabelStyle: styles.nativeTabBarActiveLabel,
         tabBarControllerMode: 'tabBar' as const,
         tabBarMinimizeBehavior: 'none' as const,
     };
@@ -258,8 +263,8 @@ function TabNavigator() {
                 options={{
                     tabBarLabel: translate('common.inbox'),
                     tabBarIcon: INBOX_TAB_ICON,
-                    tabBarBadge: chatTabBrickRoad ? ' ' : undefined,
-                    tabBarBadgeStyle: {backgroundColor: chatTabBrickRoad === CONST.BRICK_ROAD_INDICATOR_STATUS.INFO ? theme.iconSuccessFill : theme.danger},
+                    tabBarBadge: chatTabBrickRoad ? TAB_INDICATOR_DOT : undefined,
+                    tabBarBadgeStyle: {...styles.nativeTabBarBadge, color: chatTabBrickRoad === CONST.BRICK_ROAD_INDICATOR_STATUS.INFO ? theme.iconSuccessFill : theme.danger},
                 }}
             />
             <Tab.Screen
@@ -277,8 +282,8 @@ function TabNavigator() {
                 options={{
                     tabBarLabel: translate('common.workspacesTabTitle'),
                     tabBarIcon: WORKSPACES_TAB_ICON,
-                    tabBarBadge: workspacesIndicatorStatus ? ' ' : undefined,
-                    tabBarBadgeStyle: {backgroundColor: workspacesIndicatorColor},
+                    tabBarBadge: workspacesIndicatorStatus ? TAB_INDICATOR_DOT : undefined,
+                    tabBarBadgeStyle: {...styles.nativeTabBarBadge, color: workspacesIndicatorColor},
                 }}
             />
             <Tab.Screen
@@ -287,8 +292,8 @@ function TabNavigator() {
                 options={{
                     tabBarLabel: translate('initialSettingsPage.account'),
                     tabBarIcon: accountTabIcon,
-                    tabBarBadge: accountIndicatorStatus ? ' ' : undefined,
-                    tabBarBadgeStyle: {backgroundColor: accountIndicatorColor},
+                    tabBarBadge: accountIndicatorStatus ? TAB_INDICATOR_DOT : undefined,
+                    tabBarBadgeStyle: {...styles.nativeTabBarBadge, color: accountIndicatorColor},
                 }}
             />
         </Tab.Navigator>

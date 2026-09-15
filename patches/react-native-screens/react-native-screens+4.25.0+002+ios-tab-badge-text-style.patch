@@ -1,0 +1,153 @@
+diff --git a/node_modules/react-native-screens/ios/tabs/RNSTabBarAppearanceCoordinator.mm b/node_modules/react-native-screens/ios/tabs/RNSTabBarAppearanceCoordinator.mm
+index ae5873c..8b16682 100644
+--- a/node_modules/react-native-screens/ios/tabs/RNSTabBarAppearanceCoordinator.mm
++++ b/node_modules/react-native-screens/ios/tabs/RNSTabBarAppearanceCoordinator.mm
+@@ -243,6 +243,32 @@ + (void)configureTabBarItemStateAppearance:(nonnull UITabBarItemStateAppearance
+         [RCTConvert UIColor:itemStateAppearanceProps[@"tabBarItemBadgeBackgroundColor"]];
+   }
+ 
++  NSMutableDictionary *badgeTextAttributes = [tabBarItemStateAppearance.badgeTextAttributes mutableCopy];
++  if (badgeTextAttributes == nil) {
++    badgeTextAttributes = [[NSMutableDictionary alloc] init];
++  }
++
++  if (itemStateAppearanceProps[@"tabBarItemBadgeTextColor"] != nil) {
++    badgeTextAttributes[NSForegroundColorAttributeName] =
++        [RCTConvert UIColor:itemStateAppearanceProps[@"tabBarItemBadgeTextColor"]];
++  }
++
++  if (itemStateAppearanceProps[@"tabBarItemBadgeFontSize"] != nil) {
++    badgeTextAttributes[NSFontAttributeName] =
++        [RCTFont updateFont:badgeTextAttributes[NSFontAttributeName]
++                 withFamily:nil
++                       size:itemStateAppearanceProps[@"tabBarItemBadgeFontSize"]
++                     weight:nil
++                      style:nil
++                    variant:nil
++            scaleMultiplier:1.0];
++  }
++
++  if (itemStateAppearanceProps[@"tabBarItemBadgeTextColor"] != nil ||
++      itemStateAppearanceProps[@"tabBarItemBadgeFontSize"] != nil) {
++    tabBarItemStateAppearance.badgeTextAttributes = badgeTextAttributes;
++  }
++
+   if (itemStateAppearanceProps[@"tabBarItemIconColor"] != nil) {
+     tabBarItemStateAppearance.iconColor = [RCTConvert UIColor:itemStateAppearanceProps[@"tabBarItemIconColor"]];
+   }
+diff --git a/node_modules/react-native-screens/lib/commonjs/components/tabs/screen/TabsScreen.ios.js b/node_modules/react-native-screens/lib/commonjs/components/tabs/screen/TabsScreen.ios.js
+index 2bd1918..e60e0c9 100644
+--- a/node_modules/react-native-screens/lib/commonjs/components/tabs/screen/TabsScreen.ios.js
++++ b/node_modules/react-native-screens/lib/commonjs/components/tabs/screen/TabsScreen.ios.js
+@@ -99,6 +99,7 @@ function mapItemStateAppearanceToNativeProp(itemStateAppearance) {
+     tabBarItemTitleFontColor,
+     tabBarItemIconColor,
+     tabBarItemBadgeBackgroundColor,
++    tabBarItemBadgeTextColor,
+     tabBarItemTitleFontWeight
+   } = itemStateAppearance;
+   return {
+@@ -106,6 +107,7 @@ function mapItemStateAppearanceToNativeProp(itemStateAppearance) {
+     tabBarItemTitleFontColor: (0, _reactNative.processColor)(tabBarItemTitleFontColor),
+     tabBarItemIconColor: (0, _reactNative.processColor)(tabBarItemIconColor),
+     tabBarItemBadgeBackgroundColor: (0, _reactNative.processColor)(tabBarItemBadgeBackgroundColor),
++    tabBarItemBadgeTextColor: (0, _reactNative.processColor)(tabBarItemBadgeTextColor),
+     tabBarItemTitleFontWeight: tabBarItemTitleFontWeight !== undefined ? String(tabBarItemTitleFontWeight) : undefined
+   };
+ }
+diff --git a/node_modules/react-native-screens/lib/module/components/tabs/screen/TabsScreen.ios.js b/node_modules/react-native-screens/lib/module/components/tabs/screen/TabsScreen.ios.js
+index 481a849..7915f69 100644
+--- a/node_modules/react-native-screens/lib/module/components/tabs/screen/TabsScreen.ios.js
++++ b/node_modules/react-native-screens/lib/module/components/tabs/screen/TabsScreen.ios.js
+@@ -94,6 +94,7 @@ function mapItemStateAppearanceToNativeProp(itemStateAppearance) {
+     tabBarItemTitleFontColor,
+     tabBarItemIconColor,
+     tabBarItemBadgeBackgroundColor,
++    tabBarItemBadgeTextColor,
+     tabBarItemTitleFontWeight
+   } = itemStateAppearance;
+   return {
+@@ -101,6 +102,7 @@ function mapItemStateAppearanceToNativeProp(itemStateAppearance) {
+     tabBarItemTitleFontColor: processColor(tabBarItemTitleFontColor),
+     tabBarItemIconColor: processColor(tabBarItemIconColor),
+     tabBarItemBadgeBackgroundColor: processColor(tabBarItemBadgeBackgroundColor),
++    tabBarItemBadgeTextColor: processColor(tabBarItemBadgeTextColor),
+     tabBarItemTitleFontWeight: tabBarItemTitleFontWeight !== undefined ? String(tabBarItemTitleFontWeight) : undefined
+   };
+ }
+diff --git a/node_modules/react-native-screens/lib/typescript/components/tabs/screen/TabsScreen.ios.types.d.ts b/node_modules/react-native-screens/lib/typescript/components/tabs/screen/TabsScreen.ios.types.d.ts
+index 04f0c1d..ba00db1 100644
+--- a/node_modules/react-native-screens/lib/typescript/components/tabs/screen/TabsScreen.ios.types.d.ts
++++ b/node_modules/react-native-screens/lib/typescript/components/tabs/screen/TabsScreen.ios.types.d.ts
+@@ -181,6 +181,10 @@ export interface TabsScreenItemStateAppearanceIOS {
+      * @platform ios
+      */
+     tabBarItemBadgeBackgroundColor?: ColorValue | undefined;
++    /** The text color of the badge. */
++    tabBarItemBadgeTextColor?: ColorValue | undefined;
++    /** The font size of the badge text. */
++    tabBarItemBadgeFontSize?: TextStyle['fontSize'] | undefined;
+ }
+ export interface TabsScreenPropsIOS {
+     /**
+diff --git a/node_modules/react-native-screens/lib/typescript/fabric/tabs/TabsScreenIOSNativeComponent.d.ts b/node_modules/react-native-screens/lib/typescript/fabric/tabs/TabsScreenIOSNativeComponent.d.ts
+index 82a25fb..d718da7 100644
+--- a/node_modules/react-native-screens/lib/typescript/fabric/tabs/TabsScreenIOSNativeComponent.d.ts
++++ b/node_modules/react-native-screens/lib/typescript/fabric/tabs/TabsScreenIOSNativeComponent.d.ts
+@@ -14,6 +14,8 @@ export type ItemStateAppearance = {
+     } | undefined;
+     tabBarItemIconColor?: ProcessedColorValue | null | undefined;
+     tabBarItemBadgeBackgroundColor?: ProcessedColorValue | null | undefined;
++    tabBarItemBadgeTextColor?: ProcessedColorValue | null | undefined;
++    tabBarItemBadgeFontSize?: CT.Float | undefined;
+ };
+ export type ItemAppearance = {
+     normal?: ItemStateAppearance | undefined;
+diff --git a/node_modules/react-native-screens/src/components/tabs/screen/TabsScreen.ios.tsx b/node_modules/react-native-screens/src/components/tabs/screen/TabsScreen.ios.tsx
+index 6a13603..11beae0 100644
+--- a/node_modules/react-native-screens/src/components/tabs/screen/TabsScreen.ios.tsx
++++ b/node_modules/react-native-screens/src/components/tabs/screen/TabsScreen.ios.tsx
+@@ -131,6 +131,7 @@ function mapItemStateAppearanceToNativeProp(
+     tabBarItemTitleFontColor,
+     tabBarItemIconColor,
+     tabBarItemBadgeBackgroundColor,
++    tabBarItemBadgeTextColor,
+     tabBarItemTitleFontWeight,
+   } = itemStateAppearance;
+ 
+@@ -141,6 +142,7 @@ function mapItemStateAppearanceToNativeProp(
+     tabBarItemBadgeBackgroundColor: processColor(
+       tabBarItemBadgeBackgroundColor,
+     ),
++    tabBarItemBadgeTextColor: processColor(tabBarItemBadgeTextColor),
+     tabBarItemTitleFontWeight:
+       tabBarItemTitleFontWeight !== undefined
+         ? String(tabBarItemTitleFontWeight)
+diff --git a/node_modules/react-native-screens/src/components/tabs/screen/TabsScreen.ios.types.ts b/node_modules/react-native-screens/src/components/tabs/screen/TabsScreen.ios.types.ts
+index 3336c1e..a105bc6 100644
+--- a/node_modules/react-native-screens/src/components/tabs/screen/TabsScreen.ios.types.ts
++++ b/node_modules/react-native-screens/src/components/tabs/screen/TabsScreen.ios.types.ts
+@@ -201,6 +201,10 @@ export interface TabsScreenItemStateAppearanceIOS {
+    * @platform ios
+    */
+   tabBarItemBadgeBackgroundColor?: ColorValue | undefined;
++  /** The text color of the badge. */
++  tabBarItemBadgeTextColor?: ColorValue | undefined;
++  /** The font size of the badge text. */
++  tabBarItemBadgeFontSize?: TextStyle['fontSize'] | undefined;
+ }
+ 
+ export interface TabsScreenPropsIOS {
+diff --git a/node_modules/react-native-screens/src/fabric/tabs/TabsScreenIOSNativeComponent.ts b/node_modules/react-native-screens/src/fabric/tabs/TabsScreenIOSNativeComponent.ts
+index 26f587e..a0e8841 100644
+--- a/node_modules/react-native-screens/src/fabric/tabs/TabsScreenIOSNativeComponent.ts
++++ b/node_modules/react-native-screens/src/fabric/tabs/TabsScreenIOSNativeComponent.ts
+@@ -36,6 +36,8 @@ export type ItemStateAppearance = {
+     | undefined;
+   tabBarItemIconColor?: ProcessedColorValue | null | undefined;
+   tabBarItemBadgeBackgroundColor?: ProcessedColorValue | null | undefined;
++  tabBarItemBadgeTextColor?: ProcessedColorValue | null | undefined;
++  tabBarItemBadgeFontSize?: CT.Float | undefined;
+ };
+ 
+ export type ItemAppearance = {
