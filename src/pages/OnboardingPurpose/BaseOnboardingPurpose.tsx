@@ -36,6 +36,7 @@ import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import {useIsFocused} from '@react-navigation/native';
 import {hasSeenTourSelector} from '@selectors/Onboarding';
+import {PUBLIC_DOMAINS_SET} from 'expensify-common';
 import React, {useCallback, useImperativeHandle, useMemo, useRef} from 'react';
 import {View} from 'react-native';
 import {ScrollView} from 'react-native-gesture-handler';
@@ -119,12 +120,13 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, ro
                 // validation, so it still needs to add one; an unvalidated private-domain one already has one and
                 // only needs to validate it.
                 if (choice === CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE) {
-                    if (isValidated && !account?.isFromPublicDomain) {
+                    const isCurrentPrimaryPublicDomain = PUBLIC_DOMAINS_SET.has(session?.email?.split('@').at(1)?.toLowerCase() ?? '');
+                    if (isValidated && !isCurrentPrimaryPublicDomain) {
                         Navigation.navigate(ROUTES.ONBOARDING_WORKSPACES.getRoute(ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute()));
                         return;
                     }
                     Navigation.navigate(
-                        account?.isFromPublicDomain ? ROUTES.ONBOARDING_WORK_EMAIL.getRoute() : ROUTES.ONBOARDING_PRIVATE_DOMAIN.getRoute(ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute()),
+                        isCurrentPrimaryPublicDomain ? ROUTES.ONBOARDING_WORK_EMAIL.getRoute() : ROUTES.ONBOARDING_PRIVATE_DOMAIN.getRoute(ROUTES.ONBOARDING_PURPOSE.getRoute()),
                     );
                     return;
                 }

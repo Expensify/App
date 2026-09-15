@@ -38,6 +38,7 @@ import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/DisplayNameForm';
 
 import {hasSeenTourSelector} from '@selectors/Onboarding';
+import {PUBLIC_DOMAINS_SET} from 'expensify-common';
 import React, {useCallback, useEffect, useState} from 'react';
 import {View} from 'react-native';
 
@@ -80,7 +81,7 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
     const isPrivateDomainAndHasAccessiblePolicies = !account?.isFromPublicDomain && !!account?.hasAccessibleDomainPolicies;
     const isValidated = isCurrentUserValidated(loginList, session?.email);
     const workEmail = session?.email ?? '';
-    const isFromPublicDomain = account?.isFromPublicDomain;
+    const isFromPublicDomain = PUBLIC_DOMAINS_SET.has(getEmailDomain(workEmail));
 
     const isVsb = onboardingValues?.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.VSB;
     const isSmb = onboardingValues?.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.SMB;

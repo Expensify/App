@@ -13,7 +13,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import AccountUtils from '@libs/AccountUtils';
 import {openOldDotLink} from '@libs/actions/Link';
-import {setOnboardingErrorMessage, setOnboardingMergeAccountStepValue, updateOnboardingValuesAndNavigation} from '@libs/actions/Welcome';
+import {createJoinWorkspaceOnboardingContent, setOnboardingErrorMessage, setOnboardingMergeAccountStepValue, updateOnboardingValuesAndNavigation} from '@libs/actions/Welcome';
 import Navigation from '@libs/Navigation/Navigation';
 import {expensifyLoginsSelector, isCurrentUserValidated} from '@libs/UserUtils';
 
@@ -26,12 +26,12 @@ import ROUTES from '@src/ROUTES';
 
 import {useIsFocused} from '@react-navigation/native';
 import {hasCompletedGuidedSetupFlowSelector} from '@selectors/Onboarding';
-import React, {useEffect} from 'react';
+import React, {useCallback, useEffect} from 'react';
 import {View} from 'react-native';
 
 import type {BaseOnboardingWorkEmailValidationProps} from './types';
 
-function BaseOnboardingWorkEmailValidation({shouldUseNativeStyles}: BaseOnboardingWorkEmailValidationProps) {
+function BaseOnboardingWorkEmailValidation({shouldUseNativeStyles, route}: BaseOnboardingWorkEmailValidationProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
@@ -44,9 +44,12 @@ function BaseOnboardingWorkEmailValidation({shouldUseNativeStyles}: BaseOnboardi
     const {onboardingIsMediumOrLargerScreenWidth} = useResponsiveLayout();
     const [onboardingValues] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
     const onboardingIntent = useOnboardingIntent();
-    const isConciergeTaskFlow = onboardingIntent === CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE && hasCompletedGuidedSetupFlowSelector(onboardingValues);
+    const isConciergeTaskFlow =
+        onboardingIntent === CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE && hasCompletedGuidedSetupFlowSelector(onboardingValues) && route.params?.isJoinWorkspaceTask === 'true';
     const isCurrentPrimaryValidated = isCurrentUserValidated(loginList, session?.email) || (!!account?.validated && !loginList?.[session?.email ?? '']);
     const returnToOriginReport = useReturnToOriginReport();
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const isVsb = onboardingValues && 'signupQualifier' in onboardingValues && onboardingValues.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.VSB;
     const isSmb = onboardingValues?.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.SMB;
     const [onboardingErrorMessage] = useOnyx(ONYXKEYS.ONBOARDING_ERROR_MESSAGE_TRANSLATION_KEY);
@@ -103,6 +106,21 @@ function BaseOnboardingWorkEmailValidation({shouldUseNativeStyles}: BaseOnboardi
         MergeIntoAccountAndLogin(workEmail, validateCode, session?.accountID, onboardingEmail?.completedTaskReportActionID);
     };
 
+    const handleConciergeTaskExit = useCallback(() => {
+        setOnboardingErrorMessage(null);
+        if (!isConciergeTaskFlow) {
+            return;
+        }
+        const validateEmailTaskReportID = createJoinWorkspaceOnboardingContent('validateEmail', workEmail.split('@').at(1) ?? '', workEmail, conciergeChat);
+        if (validateEmailTaskReportID) {
+            Navigation.dismissModal({
+                afterTransition: () => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(validateEmailTaskReportID)),
+            });
+            return;
+        }
+        returnToOriginReport();
+    }, [conciergeChat, isConciergeTaskFlow, returnToOriginReport, workEmail]);
+
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom
@@ -115,7 +133,7 @@ function BaseOnboardingWorkEmailValidation({shouldUseNativeStyles}: BaseOnboardi
                     updateOnboardingValuesAndNavigation(onboardingValues);
                 }}
                 shouldShowCloseButton={isConciergeTaskFlow}
-                onCloseButtonPress={returnToOriginReport}
+                onCloseButtonPress={handleConciergeTaskExit}
             />
             {onboardingValues?.isMergingAccountBlocked ? (
                 <View style={[styles.flex1, onboardingIsMediumOrLargerScreenWidth && styles.mt5, onboardingIsMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5]}>
@@ -142,11 +160,11 @@ function BaseOnboardingWorkEmailValidation({shouldUseNativeStyles}: BaseOnboardi
                         buttonStyles={[styles.flex2, styles.justifyContentEnd, styles.mb5]}
                         shouldShowSkipButton
                         handleSkipButtonPress={() => {
-                            setOnboardingErrorMessage(null);
                             if (isConciergeTaskFlow) {
-                                returnToOriginReport();
+                                handleConciergeTaskExit();
                                 return;
                             }
+                            setOnboardingErrorMessage(null);
                             setOnboardingMergeAccountStepValue(true, true);
                         }}
                         isLoading={isValidateCodeFormSubmitting}

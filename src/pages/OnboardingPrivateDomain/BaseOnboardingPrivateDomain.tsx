@@ -62,7 +62,7 @@ function BaseOnboardingPrivateDomain({shouldUseNativeStyles, route}: BaseOnboard
     const hasCompletedGuidedSetupFlow = hasCompletedGuidedSetupFlowSelector(onboardingValues);
     const onboardingIntent = useOnboardingIntent();
     const isJoiningCompanyWorkspace = onboardingIntent === CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE;
-    const isConciergeTaskFlow = isJoiningCompanyWorkspace && hasCompletedGuidedSetupFlow;
+    const isConciergeTaskFlow = isJoiningCompanyWorkspace && hasCompletedGuidedSetupFlow && route.params?.isJoinWorkspaceTask === 'true';
 
     const {
         taskReport: validateEmailTaskReport,
@@ -73,6 +73,8 @@ function BaseOnboardingPrivateDomain({shouldUseNativeStyles, route}: BaseOnboard
     } = useOnboardingTaskInformation(CONST.ONBOARDING_TASK_TYPE.VALIDATE_EMAIL);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const returnToOriginReport = useReturnToOriginReport();
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
 
     const sendValidateCode = useCallback(() => {
         if (!email) {
@@ -120,18 +122,27 @@ function BaseOnboardingPrivateDomain({shouldUseNativeStyles, route}: BaseOnboard
         [isJoiningCompanyWorkspace, isConciergeTaskFlow, navigateToNextOnboardingStep, returnToOriginReport],
     );
 
-    const handleSkipButtonPress = useCallback(() => {
+    const handleConciergeTaskExit = useCallback(() => {
         if (isConciergeTaskFlow) {
-            const validateEmailTaskReportID = createJoinWorkspaceOnboardingContent('validateEmail', domain, email);
+            const validateEmailTaskReportID = createJoinWorkspaceOnboardingContent('validateEmail', domain, email, conciergeChat);
             if (validateEmailTaskReportID) {
-                Navigation.dismissModalWithReport({reportID: validateEmailTaskReportID});
+                Navigation.dismissModal({
+                    afterTransition: () => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(validateEmailTaskReportID)),
+                });
                 return;
             }
             returnToOriginReport();
             return;
         }
+    }, [conciergeChat, domain, email, isConciergeTaskFlow, returnToOriginReport]);
+
+    const handleSkipButtonPress = useCallback(() => {
+        if (isConciergeTaskFlow) {
+            handleConciergeTaskExit();
+            return;
+        }
         continueAfterPrivateDomain(route.params?.backTo);
-    }, [continueAfterPrivateDomain, domain, email, isConciergeTaskFlow, returnToOriginReport, route.params?.backTo]);
+    }, [continueAfterPrivateDomain, handleConciergeTaskExit, isConciergeTaskFlow, route.params?.backTo]);
 
     // Only users whose current primary login is both validated and public-domain are blocked from this screen, since
     // the "people on YOUR domain" copy would otherwise reference gmail.com. The account flag can lag a primary-login
@@ -186,7 +197,7 @@ function BaseOnboardingPrivateDomain({shouldUseNativeStyles, route}: BaseOnboard
                 shouldShowBackButton={!isConciergeTaskFlow}
                 onBackButtonPress={handleBackButtonPress}
                 shouldShowCloseButton={isConciergeTaskFlow}
-                onCloseButtonPress={returnToOriginReport}
+                onCloseButtonPress={handleConciergeTaskExit}
             />
             <ScrollView
                 style={[styles.w100, styles.h100, styles.flex1]}

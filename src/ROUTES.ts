@@ -4268,7 +4268,8 @@ const ROUTES = {
     ONBOARDING_PRIVATE_DOMAIN: {
         route: 'onboarding/private-domain',
 
-        getRoute: (backTo?: string) => getUrlWithBackToParam(`onboarding/private-domain`, backTo),
+        getRoute: (backTo?: string, isJoinWorkspaceTask = false) =>
+            getUrlWithParams(getUrlWithBackToParam(`onboarding/private-domain`, backTo), {isJoinWorkspaceTask: isJoinWorkspaceTask ? 'true' : undefined}),
     },
     ONBOARDING_EMPLOYEES: {
         route: 'onboarding/employees',
@@ -4299,12 +4300,12 @@ const ROUTES = {
     ONBOARDING_WORK_EMAIL: {
         route: 'onboarding/work-email',
 
-        getRoute: () => 'onboarding/work-email' as const,
+        getRoute: (isJoinWorkspaceTask = false) => getUrlWithParams('onboarding/work-email', {isJoinWorkspaceTask: isJoinWorkspaceTask ? 'true' : undefined}),
     },
     ONBOARDING_WORK_EMAIL_VALIDATION: {
         route: 'onboarding/work-email-validation',
 
-        getRoute: () => 'onboarding/work-email-validation' as const,
+        getRoute: (isJoinWorkspaceTask = false) => getUrlWithParams('onboarding/work-email-validation', {isJoinWorkspaceTask: isJoinWorkspaceTask ? 'true' : undefined}),
     },
     ONBOARDING_PERSONAL_TRACK_GOAL: {
         route: 'onboarding/personaltrackcase',

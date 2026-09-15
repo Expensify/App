@@ -16,7 +16,6 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
-import useOnboardingIntent from '@hooks/useOnboardingIntent';
 import useOnboardingTaskInformation from '@hooks/useOnboardingTaskInformation';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -62,7 +61,7 @@ const accountSelector = (account: OnyxEntry<Account>) => ({
     isFromPublicDomain: account?.isFromPublicDomain,
 });
 
-function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmailProps) {
+function BaseOnboardingWorkEmail({shouldUseNativeStyles, route}: BaseOnboardingWorkEmailProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const illustrations = useMemoizedLazyIllustrations(['EnvelopeReceipt', 'Gears', 'Profile']);
@@ -74,7 +73,10 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
         selector: expensifyLoginsSelector,
     });
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {selector: accountSelector});
-    const onboardingIntent = useOnboardingIntent();
+    const [onboardingPurposeSelected] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED);
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const isJoinWorkspaceTaskRoute = route.params?.isJoinWorkspaceTask === 'true';
+    const onboardingIntent = isJoinWorkspaceTaskRoute ? introSelected?.choice : onboardingPurposeSelected;
     const isJoiningCompanyWorkspace = onboardingIntent === CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE;
     const {
         taskReport: addWorkEmailTaskReport,
@@ -101,7 +103,8 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
     // AddWorkEmail can make an unvalidated work login primary while the account-level flag remains true. Fall back to
     // that flag only until the primary login itself has loaded into Onyx.
     const isCurrentPrimaryValidated = isCurrentUserValidated(loginList, sessionEmail) || (!!account?.validated && !loginList?.[sessionEmail ?? '']);
-    const isConciergeTaskFlow = isJoiningCompanyWorkspace && hasCompletedGuidedSetupFlow;
+    const isConciergeTaskFlow = isJoiningCompanyWorkspace && hasCompletedGuidedSetupFlow && isJoinWorkspaceTaskRoute;
+    const isCurrentPrimaryPublicDomain = PUBLIC_DOMAINS_SET.has(sessionEmail?.split('@').at(1)?.toLowerCase() ?? '');
 
     useEffect(() => {
         if (!isConciergeTaskFlow) {
@@ -134,7 +137,7 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
         // A Concierge task always opens the work-email form while the primary login is unvalidated, so the user can
         // replace a pending work email. Advancing to validation happens only after a submission in this modal session.
         if (isConciergeTaskFlow) {
-            if (isCurrentPrimaryValidated && !account?.isFromPublicDomain) {
+            if (isCurrentPrimaryValidated && !isCurrentPrimaryPublicDomain) {
                 Navigation.navigate(ROUTES.ONBOARDING_WORKSPACES.getRoute(), {forceReplace: true});
                 return;
             }
@@ -151,13 +154,25 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
 
             // A code is needed to confirm the work email just submitted (an account already exists under that domain).
             if (onboardingValues?.shouldValidate) {
-                Navigation.navigate(ROUTES.ONBOARDING_WORK_EMAIL_VALIDATION.getRoute(), {forceReplace: true});
+                Navigation.navigate(ROUTES.ONBOARDING_WORK_EMAIL_VALIDATION.getRoute(true), {forceReplace: true});
                 return;
             }
 
             // A newly added work email becomes the unvalidated primary login. Continue to the standard validation
             // screen instead of waiting for the asynchronous task-completion update.
-            Navigation.navigate(ROUTES.ONBOARDING_PRIVATE_DOMAIN.getRoute(), {forceReplace: true});
+            Navigation.navigate(ROUTES.ONBOARDING_PRIVATE_DOMAIN.getRoute(undefined, true), {forceReplace: true});
+            return;
+        }
+
+        if (isJoiningCompanyWorkspace) {
+            if (!hasSubmittedWorkEmail || onboardingValues?.isMergingAccountBlocked || onboardingValues?.shouldValidate === undefined) {
+                return;
+            }
+            if (onboardingValues.shouldValidate) {
+                Navigation.navigate(ROUTES.ONBOARDING_WORK_EMAIL_VALIDATION.getRoute(), {forceReplace: true});
+                return;
+            }
+            Navigation.navigate(ROUTES.ONBOARDING_PRIVATE_DOMAIN.getRoute(ROUTES.ONBOARDING_WORK_EMAIL.getRoute()), {forceReplace: true});
             return;
         }
 
@@ -185,15 +200,6 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
 
         // A directly added work email becomes the unvalidated primary login, so validate it before looking up
         // joinable workspaces for its domain.
-        if (isJoiningCompanyWorkspace && hasSubmittedWorkEmail) {
-            Navigation.navigate(ROUTES.ONBOARDING_PRIVATE_DOMAIN.getRoute(ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute()), {forceReplace: true});
-            return;
-        }
-
-        if (isJoiningCompanyWorkspace) {
-            return;
-        }
-
         navigateToNextStep();
     }, [
         account?.isFromPublicDomain,
@@ -205,6 +211,7 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
         isFocused,
         isJoiningCompanyWorkspace,
         isConciergeTaskFlow,
+        isJoinWorkspaceTaskRoute,
         hasSubmittedWorkEmail,
         returnToOriginReport,
         onboardingValues?.isMergeAccountStepCompleted,
@@ -224,7 +231,7 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
             // The work email was already added in an earlier visit, so let the user resume its validation without
             // sending AddWorkEmail for the current primary login again.
             if (isCurrentUnvalidatedWorkEmail) {
-                Navigation.navigate(ROUTES.ONBOARDING_PRIVATE_DOMAIN.getRoute(), {forceReplace: true});
+                Navigation.navigate(ROUTES.ONBOARDING_PRIVATE_DOMAIN.getRoute(undefined, true), {forceReplace: true});
                 return;
             }
 
@@ -248,6 +255,7 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
             currentUserPersonalDetails.accountID,
             isConciergeTaskFlow,
             isCurrentPrimaryValidated,
+            isCurrentPrimaryPublicDomain,
             sessionEmail,
         ],
     );
@@ -267,6 +275,12 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
         }
         setOnboardingErrorMessage(null);
     }, [onboardingErrorMessageTranslationKey]);
+
+    const handleRegularJoinWorkspaceErrorConfirm = useCallback(() => {
+        setOnboardingErrorMessage(null);
+        Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {isMergingAccountBlocked: false});
+        Navigation.navigate(ROUTES.ONBOARDING_PURPOSE.getRoute(), {forceReplace: true});
+    }, []);
 
     const shouldRenderOfflineFeedback = useCallback((errorTranslation: string) => {
         if (
@@ -340,7 +354,7 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
             <OnboardingHeader
                 shouldShowBackButton={isJoiningCompanyWorkspace && !isConciergeTaskFlow}
                 onBackButtonPress={() => Navigation.goBack()}
-                shouldShowCloseButton={false}
+                shouldShowCloseButton={isConciergeTaskFlow}
                 onCloseButtonPress={returnToOriginReport}
             />
             {onboardingValues?.isMergingAccountBlocked ? (
@@ -348,7 +362,7 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
                     <OnboardingMergingAccountBlockedView
                         workEmail={workEmail}
                         isVsb={isVsb}
-                        onConfirm={isConciergeTaskFlow ? returnToOriginReport : undefined}
+                        onConfirm={isConciergeTaskFlow ? returnToOriginReport : isJoiningCompanyWorkspace ? handleRegularJoinWorkspaceErrorConfirm : undefined}
                     />
                 </View>
             ) : (

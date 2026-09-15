@@ -154,7 +154,12 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
 
         completeOnboarding({
             engagementChoice: onboardingIntent ?? CONST.ONBOARDING_CHOICES.LOOKING_AROUND,
-            onboardingMessage: isJoiningCompanyWorkspace ? joinWorkspaceMessages.joinWorkspace : onboardingMessages[onboardingIntent ?? CONST.ONBOARDING_CHOICES.LOOKING_AROUND],
+            onboardingMessage:
+                isJoiningCompanyWorkspace && policy.automaticJoiningEnabled
+                    ? {...joinWorkspaceMessages.joinWorkspace, tasks: []}
+                    : isJoiningCompanyWorkspace
+                      ? joinWorkspaceMessages.joinWorkspace
+                      : onboardingMessages[onboardingIntent ?? CONST.ONBOARDING_CHOICES.LOOKING_AROUND],
             firstName: onboardingPersonalDetails?.firstName ?? '',
             lastName: onboardingPersonalDetails?.lastName ?? '',
             companySize: onboardingCompanySize,

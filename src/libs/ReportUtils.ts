@@ -12363,7 +12363,7 @@ function prepareOnboardingOnyxData({
         // The Concierge report is a VERIFY_ACCOUNT entry screen, which keeps the task conversation behind the
         // validation RHP instead of replacing it with Home.
         validateEmailLink: `${environmentURL}/${createDynamicRoute(DYNAMIC_ROUTES.VERIFY_ACCOUNT.getRoute(true), ROUTES.REPORT_WITH_ID.getRoute(targetChatReportID))}`,
-        workEmailLink: `${environmentURL}/${ROUTES.ONBOARDING_WORK_EMAIL.getRoute()}`,
+        workEmailLink: `${environmentURL}/${ROUTES.ONBOARDING_WORK_EMAIL.getRoute(true)}`,
         joinWorkspaceLink: `${environmentURL}/${ROUTES.ONBOARDING_WORKSPACES.getRoute()}`,
     };
 
