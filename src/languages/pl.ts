@@ -3283,6 +3283,7 @@ ${amount} dla ${merchant} - ${date}`,
         timeExpiredAnnouncement: 'Czas minął',
         error: {
             pleaseFillSecurityCode: 'Wpisz swój kod bezpieczeństwa',
+            tooManyAttempts: 'Za dużo prób. Spróbuj ponownie później.',
             incorrectSecurityCode: 'Nieprawidłowy lub nieważny kod zabezpieczający. Spróbuj ponownie albo poproś o nowy kod.',
             pleaseFillTwoFactorAuth: 'Wprowadź swój kod uwierzytelniania dwuskładnikowego',
         },
