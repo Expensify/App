@@ -307,7 +307,12 @@ export default function linkTo(navigation: NavigationContainerRef<RootNavigatorP
         }
     }
 
-    const {action: minimalAction} = getMinimalAction(action, navigation.getRootState());
+    const {action: minimalAction, isFocusedRouteInDifferentScope} = getMinimalAction(action, navigation.getRootState());
+    // The focused split belongs to another workspace or domain, so push a sibling instead of navigating into it.
+    // A forced replace stays a replace.
+    if (isFocusedRouteInDifferentScope && minimalAction.type === CONST.NAVIGATION.ACTION_TYPE.NAVIGATE) {
+        minimalAction.type = CONST.NAVIGATION.ACTION_TYPE.PUSH;
+    }
     if (
         action.type === CONST.NAVIGATION.ACTION_TYPE.NAVIGATE &&
         action.payload.name === NAVIGATORS.TAB_NAVIGATOR &&
