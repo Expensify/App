@@ -27,6 +27,7 @@ type SimpleMessageContentProps = {
 };
 
 const SIMPLE_MESSAGE_ACTION_TYPES = new Set<string>([
+    CONST.REPORT.ACTIONS.TYPE.AGENT_PROMPT_UPDATED,
     CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED,
     CONST.REPORT.ACTIONS.TYPE.HOLD,
     CONST.REPORT.ACTIONS.TYPE.HOLD_COMMENT,
@@ -53,6 +54,13 @@ function SimpleMessageContent({action}: SimpleMessageContentProps) {
     const {translate} = useLocalize();
     const {convertToDisplayString, convertToDisplayStringWithoutCurrency} = useCurrencyListActions();
 
+    if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.AGENT_PROMPT_UPDATED)) {
+        const originalMessage = getOriginalMessage(action);
+        if (!originalMessage) {
+            return null;
+        }
+        return <ReportActionItemBasicMessage message={translate('agentPromptUpdated', originalMessage)} />;
+    }
     if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED)) {
         return <ReportActionItemBasicMessage message={getMarkedReimbursedMessage(translate, action)} />;
     }

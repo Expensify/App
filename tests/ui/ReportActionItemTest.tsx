@@ -1299,6 +1299,26 @@ describe('ReportActionItem', () => {
             expect(textElement).toHaveStyle({color: colors.productDark800});
         });
 
+        it('AGENT_PROMPT_UPDATED action shows the modifier and prompt diff', async () => {
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.AGENT_PROMPT_UPDATED, {
+                previousPrompt: 'Categorize coffee as Meals.',
+                newPrompt: 'Categorize coffee as Meals and taxi trips as Travel.',
+                updatedByAccountID: ACTOR_ACCOUNT_ID,
+                updatedBy: actorEmail,
+            });
+            action.message = [];
+            renderItemWithAction(action);
+            await waitForBatchedUpdatesWithAct();
+
+            const auditMessage = `${actorEmail} updated this agent's instructions.\nPrevious instructions:\nCategorize coffee as Meals.\nNew instructions:\nCategorize coffee as Meals and taxi trips as Travel.`;
+            expect(screen.getByText(auditMessage)).toBeOnTheScreen();
+            expect(
+                screen.getByLabelText(
+                    /test@test\.com updated this agent's instructions\.[\s\S]*Previous instructions:[\s\S]*Categorize coffee as Meals\.[\s\S]*New instructions:[\s\S]*taxi trips as Travel\./,
+                ),
+            ).toBeOnTheScreen();
+        });
+
         it('DELETED_TRANSACTION action shows deleted transaction message', async () => {
             const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.DELETED_TRANSACTION, {
                 amount: 1500,

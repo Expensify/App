@@ -179,4 +179,28 @@ describe('ContextMenuActions copy message', () => {
 
         expect(mockSetString).toHaveBeenCalledWith('workspaceActions.updateAreAttendeesRequired');
     });
+
+    it('copies the localized message for an agent prompt update action', () => {
+        if (!copyMessageAction?.onPress) {
+            throw new Error('Copy message context menu action was not found');
+        }
+
+        copyMessageAction.onPress(
+            false,
+            createReportActionPayload(
+                createMock<CopyMessagePayload['reportAction']>({
+                    actionName: CONST.REPORT.ACTIONS.TYPE.AGENT_PROMPT_UPDATED,
+                    message: [{html: ''}],
+                    originalMessage: {
+                        previousPrompt: 'Review every expense',
+                        newPrompt: 'Review expenses over $100',
+                        updatedByAccountID: 1,
+                        updatedBy: 'owner@expensify.com',
+                    },
+                }),
+            ),
+        );
+
+        expect(mockSetString).toHaveBeenCalledWith('agentPromptUpdated');
+    });
 });
