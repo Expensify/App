@@ -1805,6 +1805,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
         optimisticTransactionID: requestMoneyInformation.optimisticTransactionID,
         currentReportActionID: requestMoneyInformation.currentReportActionID,
         existingTransactionThreadReportID: requestMoneyInformation.existingTransactionThreadReportID,
+        isTransactionAlreadyOnReport: requestMoneyInformation.isTransactionAlreadyOnReport,
         existingTransaction,
         retryParams,
         testDriveCommentReportActionID,

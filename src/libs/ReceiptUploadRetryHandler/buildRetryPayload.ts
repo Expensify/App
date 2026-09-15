@@ -144,6 +144,7 @@ function buildRetryPayload(context: ReceiptRetryContext, receiptFile: FileObject
         // transaction thread, leaving two report actions on one transaction, which reads as two expenses.
         currentReportActionID: iouActionID,
         existingTransactionThreadReportID: transactionThreadReportID,
+        isTransactionAlreadyOnReport: true,
         existingTransaction: transaction,
         existingTransactionDraft: undefined,
         shouldGenerateTransactionThreadReport: true,
