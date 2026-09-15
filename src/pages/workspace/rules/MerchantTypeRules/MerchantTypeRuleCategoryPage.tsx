@@ -1,7 +1,6 @@
 import RuleSelectionBase from '@components/Rule/RuleSelectionBase';
 
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 
@@ -27,8 +26,6 @@ function MerchantTypeRuleCategoryPage({route}: MerchantTypeRuleCategoryPageProps
     const {policyID, groupID} = route.params;
     const policy = usePolicy(policyID);
     const {canWrite: canWriteRules} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.RULES);
-    const {isBetaEnabled} = usePermissions();
-    const isRulesRevampEnabled = isBetaEnabled(CONST.BETAS.RULES_REVAMP);
 
     const [form] = useOnyx(ONYXKEYS.FORMS.MERCHANT_TYPE_RULE_FORM);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
@@ -55,7 +52,7 @@ function MerchantTypeRuleCategoryPage({route}: MerchantTypeRuleCategoryPageProps
             featureName={CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
             policyFeature={CONST.POLICY.POLICY_FEATURE.RULES}
-            shouldBeBlocked={!isRulesRevampEnabled || !canWriteRules}
+            shouldBeBlocked={!canWriteRules}
         >
             <RuleSelectionBase
                 titleKey="common.category"
