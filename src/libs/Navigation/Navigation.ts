@@ -400,9 +400,8 @@ function doesRouteMatchToMinimalActionPayload(route: NavigationStateRoute | Navi
         return false;
     }
 
-    // Every workspace and domain has its own split navigator instance under one shared route name, and
-    // `routeParamsIgnore` drops their scope params, so without this check any of them would answer for any other
-    // and going back would land in the wrong workspace.
+    // Splits of every workspace and domain share one route name, and `routeParamsIgnore` drops their scope params,
+    // so without this check any of them would answer for any other.
     if (hasDifferentSplitScope(route, minimalAction.payload)) {
         return false;
     }
@@ -427,11 +426,8 @@ type RouteToPopTo = {
 
 /**
  * @private
- * Locates the route the given action addresses within the target state.
- *
- * The distance is counted from the focused route rather than from the end of the list, because that is what
- * `StackActions.pop` counts from. They are the same for a stack, which always focuses its last route, but this runs
- * against navigators at every level, so it must not assume it.
+ * Locates the route the given action addresses within the target state. The distance is counted from the focused
+ * route, which is what `StackActions.pop` counts from and is not the last route in every navigator.
  */
 function findRouteToPopTo(targetState: State, minimalAction: Writable<NavigationAction>, compareParams: boolean): RouteToPopTo {
     const indexOfBackToRoute = targetState.routes.findLastIndex((route) => doesRouteMatchToMinimalActionPayload(route, minimalAction, compareParams));
@@ -469,36 +465,40 @@ function shouldReplaceInsteadOfPop(targetState: State, rootState: State, {indexO
 
 /**
  * @private
- * `getMinimalAction` descends through the focused route of each navigator, so it stops as soon as the navigator holding
- * `backToRoute` is not the focused one: an open modal covers the tab navigator, and a split navigator of another
- * workspace or domain covers the matching split (they all share one route name, so only their scope tells them apart).
- * `goUp` would then address the level where the descent stopped and never continue into it, which is how going back
- * lands in the wrong workspace, or applies the requested screen to the wrong navigator's stack.
+ * Returns the pop that focuses the navigator holding `backToRoute` for the resolution that follows, or nothing when
+ * it is focused already. The route it pops to is `backToRoute` itself when it sits in the focused stack.
  *
- * This walks the same path following the route that matches rather than the one that happens to be focused, and returns
- * the pop that makes each of those routes focused. Dispatching them first lets the resolution that follows see a state
- * where everything it addresses is focused, so every one of its branches applies unchanged.
+ * `getMinimalAction` descends through the *focused* route of each navigator, so it stops as soon as something else
+ * covers the navigator holding `backToRoute`: a modal over the tab navigator, or another workspace's split (splits
+ * share one route name). `goUp` would then address that level and never continue into it, landing in the wrong
+ * workspace. This walks the same path looking for the route that *matches* and pops the first level where it is not
+ * focused, which is enough because the resolution that follows handles one level itself.
  *
- * Pops and nothing else, because going back never adds a screen. The walk stops at any level it must not pop: one where
- * `goUp` replaces instead, since popping below a replace would discard the history the replace exists to keep; one whose
- * navigator has not mounted yet, which leaves a stale state with no key to target and no routes to pop; and one that is
- * not a stack, since only `StackRouter` handles `POP` and switching tabs is the `jumpTo` case `goUp` owns.
+ * A pop and nothing else, because going back never adds a screen. Nothing where popping is wrong either: `goUp`
+ * replaces at that level and popping first would discard the history the replace keeps; the navigator has not mounted,
+ * so there is no key to target; or it is not a stack, and only `StackRouter` handles `POP` (tabs are `goUp`'s `jumpTo`).
  */
-function getPopsToFocusBackToRoute(rootState: State, action: NavigationAction, compareParams: boolean): NavigationAction[] {
-    const collectPops = (state: State, currentAction: Writable<NavigationAction>): NavigationAction[] => {
+function getPopToNavigatorWithBackToRoute(rootState: State, action: NavigationAction, compareParams: boolean): NavigationAction | undefined {
+    let state: State | undefined = rootState;
+    let currentAction: Writable<NavigationAction> = action;
+    // Stops at the first level that needs a pop. Running out of levels means the match is already focused all the
+    // way down, so there is nothing to pop.
+    while (state) {
         const routeToPopTo = findRouteToPopTo(state, currentAction, compareParams);
-        const isMatchingRouteFocused = routeToPopTo.distanceToPop <= 0;
-
-        if (shouldReplaceInsteadOfPop(state, rootState, routeToPopTo) || !state.key || (!isMatchingRouteFocused && state.type !== 'stack')) {
-            return [];
+        if (shouldReplaceInsteadOfPop(state, rootState, routeToPopTo) || !state.key) {
+            return undefined;
         }
 
-        const matchingRoute = state.routes.at(routeToPopTo.indexOfBackToRoute);
-        const popsBelow = matchingRoute?.state ? collectPops(matchingRoute.state, getNestedAction(currentAction, matchingRoute.state)) : [];
-        return isMatchingRouteFocused ? popsBelow : [{...StackActions.pop(routeToPopTo.distanceToPop), target: state.key}, ...popsBelow];
-    };
+        if (routeToPopTo.distanceToPop > 0) {
+            return state.type === 'stack' ? {...StackActions.pop(routeToPopTo.distanceToPop), target: state.key} : undefined;
+        }
 
-    return collectPops(rootState, action);
+        const nestedState: State | undefined = state.routes.at(routeToPopTo.indexOfBackToRoute)?.state;
+        currentAction = nestedState ? getNestedAction(currentAction, nestedState) : currentAction;
+        state = nestedState;
+    }
+
+    return undefined;
 }
 
 const defaultGoBackOptions: Required<Pick<GoBackOptions, 'compareParams' | 'waitForTransition'>> = {
@@ -536,17 +536,16 @@ function goUp(backToRoute: Route, options?: GoBackOptions): boolean {
         return false;
     }
 
-    // Checked here, before anything is dispatched: resolving the action only narrows the navigator it is addressed at,
-    // it never changes its type, so an action that is not a NAVIGATE cannot become one further down.
+    // Checked before anything is dispatched: resolving the action only narrows the navigator it targets, never its
+    // type, so a non-NAVIGATE action cannot become one further down.
     if (action.type !== CONST.NAVIGATION.ACTION_TYPE.NAVIGATE) {
         Log.hmmm('[Navigation] Unable to go up. Action type is wrong.');
         return false;
     }
 
     // Arms the one-shot inline with each dispatch — no window between "set flag" and dispatch for an early-return to leak it.
-    // Focusing `backToRoute` makes one Back dispatch once per navigator it has to pop, so it arms the flag repeatedly.
-    // That is harmless: the dispatches are synchronous, React batches them into one commit, and the container emits a
-    // single `state` event, so the flag is read once no matter how many times it was set.
+    // Popping to `backToRoute`'s navigator first makes one Back dispatch twice, which arms the flag twice. Harmless: both
+    // dispatches are synchronous and batched into one commit, so the flag is read once.
     const dispatch = (actionToDispatch: NavigationAction) => {
         if (options?.shouldSkipFocusRestore) {
             skipNextFocusRestore();
@@ -554,15 +553,16 @@ function goUp(backToRoute: Route, options?: GoBackOptions): boolean {
         navigationRef.current?.dispatch(actionToDispatch);
     };
 
-    // Everything below this dispatches, so nothing below reports a failure to go up: once these pops are out, going
+    // Everything below this dispatches, so nothing below reports a failure to go up: once this pop is out, going
     // back has happened, and what follows only decides how much further it gets.
-    const focusPops = getPopsToFocusBackToRoute(navigationContainer.getRootState(), action, compareParams);
-    for (const popAction of focusPops) {
-        dispatch(popAction);
+    const popToNavigator = getPopToNavigatorWithBackToRoute(navigationContainer.getRootState(), action, compareParams);
+    if (popToNavigator) {
+        dispatch(popToNavigator);
     }
-    const didFocusBackToRoute = focusPops.length > 0;
+    const didPopToNavigator = !!popToNavigator;
 
-    // Read again: the pops above have already been applied, and this has to resolve against what they left.
+    // Read again: dispatch updates the container's state ref synchronously, and this has to resolve against what the
+    // pop above left.
     const rootState = navigationContainer.getRootState();
     const {action: minimalAction, targetState} = getMinimalAction(action, rootState);
 
@@ -571,7 +571,7 @@ function goUp(backToRoute: Route, options?: GoBackOptions): boolean {
         const payload = minimalAction.payload as NavigationRoute;
         if (!payload?.name) {
             Log.hmmm('[Navigation] Unable to switch tabs. Tab target missing screen name.');
-            return didFocusBackToRoute;
+            return didPopToNavigator;
         }
         // Cross-tab PUSH stacks a new TAB_NAVIGATOR on the root. When an underlying TAB_NAVIGATOR
         // already has the target tab active, pop to it instead of jumping — otherwise the pushed
@@ -611,7 +611,7 @@ function goUp(backToRoute: Route, options?: GoBackOptions): boolean {
 
     // Already at the target — `StackActions.pop(0)` would be a no-op that leaks the just-armed skip into the next Back/Esc.
     if (distanceToPop <= 0) {
-        return didFocusBackToRoute;
+        return didPopToNavigator;
     }
 
     dispatch({...StackActions.pop(distanceToPop), target: targetState.key});
