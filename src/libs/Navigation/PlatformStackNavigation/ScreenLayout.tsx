@@ -1,3 +1,4 @@
+import {markScreenClosing, markScreenSettled} from '@libs/Navigation/closingScreens';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import type {TransitionHandle} from '@libs/Navigation/TransitionTracker';
 
@@ -13,7 +14,7 @@ import type {PlatformSpecificNavigationOptions, PlatformStackNavigationOptions} 
 // it's used with. Keeping this minimal means passing a real (properly-typed) navigation prop into it - e.g. from
 // bottomTabScreenLayoutWrapper below - needs no unsafe cast, since every navigator's `addListener` structurally satisfies it.
 type TransitionAwareNavigation = {
-    addListener(type: 'transitionStart' | 'transitionEnd', callback: () => void): () => void;
+    addListener(type: 'transitionStart' | 'transitionEnd', callback: (event: {data?: {closing?: boolean}}) => void): () => void;
 };
 
 // screenLayout is invoked as a render function (not JSX), so we need this wrapper to create a proper React component boundary for hooks.
@@ -56,19 +57,27 @@ type ScreenLayoutProps = ScreenLayoutArgs<
     TransitionAwareNavigation
 >;
 
-function ScreenLayout({children, navigation}: ScreenLayoutProps) {
+function ScreenLayout({children, navigation, route}: ScreenLayoutProps) {
     const transitionHandleRef = useRef<TransitionHandle | null>(null);
     // Net-count overlapping starts so a single handle spans rapid back/forward re-fires — no decrement-to-zero seam for `runAfterTransitions` to flush through, and `transitionEnd` for the wrong leg can't end the active one.
     const pendingTransitionsRef = useRef(0);
 
     useLayoutEffect(() => {
-        const transitionStartListener = navigation.addListener('transitionStart', () => {
+        const transitionStartListener = navigation.addListener('transitionStart', (event) => {
+            // A closing transition starts as soon as an interactive swipe does, which is the only chance anything
+            // drawn outside the screens has to react before the pop commits.
+            if (event.data?.closing) {
+                markScreenClosing(route.key);
+            } else {
+                markScreenSettled(route.key);
+            }
             pendingTransitionsRef.current += 1;
             if (!transitionHandleRef.current) {
                 transitionHandleRef.current = TransitionTracker.startTransition('navigation');
             }
         });
         const transitionEndListener = navigation.addListener('transitionEnd', () => {
+            markScreenSettled(route.key);
             if (pendingTransitionsRef.current > 0) {
                 pendingTransitionsRef.current -= 1;
             }
@@ -81,6 +90,7 @@ function ScreenLayout({children, navigation}: ScreenLayoutProps) {
         return () => {
             transitionStartListener();
             transitionEndListener();
+            markScreenSettled(route.key);
             const handleToEnd = transitionHandleRef.current;
             transitionHandleRef.current = null;
             pendingTransitionsRef.current = 0;
@@ -92,7 +102,7 @@ function ScreenLayout({children, navigation}: ScreenLayoutProps) {
                 TransitionTracker.endTransition(handleToEnd);
             });
         };
-    }, [navigation]);
+    }, [navigation, route.key]);
 
     return children;
 }
