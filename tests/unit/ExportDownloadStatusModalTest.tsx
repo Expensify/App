@@ -137,6 +137,47 @@ describe('ExportDownloadStatusModal', () => {
         expect(screen.getByText('exportDownload.dismiss')).toBeTruthy();
     });
 
+    it('shows ready state with a Download button when the export is ready and the Concierge flag is set', async () => {
+        await Onyx.set(`${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}${EXPORT_ID}`, {state: 'ready', fileName: CSV_FILE_NAME, shouldSendFromConcierge: true});
+
+        renderModal();
+        await waitForBatchedUpdatesWithAct();
+
+        expect(screen.getByText('exportDownload.readyTitle')).toBeTruthy();
+        expect(screen.getByText('exportDownload.downloadFile')).toBeTruthy();
+        expect(screen.queryByText('exportDownload.conciergeTitle')).toBeNull();
+        expect(screen.queryByText('exportDownload.goToConcierge')).toBeNull();
+    });
+
+    it('shows the ready screen with a Download button when a flagged preparing record becomes ready', async () => {
+        await Onyx.set(`${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}${EXPORT_ID}`, {state: 'preparing', shouldSendFromConcierge: true});
+
+        renderModal();
+        await waitForBatchedUpdatesWithAct();
+
+        expect(screen.getByText('exportDownload.conciergeTitle')).toBeTruthy();
+
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}${EXPORT_ID}`, {state: 'ready', fileName: CSV_FILE_NAME});
+        await waitForBatchedUpdatesWithAct();
+
+        expect(screen.getByText('exportDownload.readyTitle')).toBeTruthy();
+        expect(screen.getByText('exportDownload.downloadFile')).toBeTruthy();
+        expect(screen.queryByText('exportDownload.conciergeTitle')).toBeNull();
+        expect(screen.queryByText('exportDownload.conciergeBody')).toBeNull();
+        expect(screen.queryByText('exportDownload.goToConcierge')).toBeNull();
+        expect(screen.queryByText('exportDownload.dismiss')).toBeNull();
+    });
+
+    it('shows Concierge state when the Concierge flag is set and no state is present', async () => {
+        await Onyx.set(`${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}${EXPORT_ID}`, {shouldSendFromConcierge: true});
+
+        renderModal();
+        await waitForBatchedUpdatesWithAct();
+
+        expect(screen.getByText('exportDownload.conciergeTitle')).toBeTruthy();
+        expect(screen.getByText('exportDownload.goToConcierge')).toBeTruthy();
+    });
+
     it('auto-downloads CSV on ready state transition with csvexport secureType', async () => {
         // Mount while preparing, then transition to ready so the modal auto-downloads only after it watched the transition.
         await Onyx.set(`${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}${EXPORT_ID}`, {state: 'preparing'});
@@ -198,6 +239,21 @@ describe('ExportDownloadStatusModal', () => {
         expect(mockFileDownload).not.toHaveBeenCalled();
 
         // The manual Download button is not leader-gated, so a deliberate click still downloads.
+        fireEvent.press(screen.getByText('exportDownload.downloadFile'));
+        expect(mockFileDownload).toHaveBeenCalled();
+    });
+
+    it('does not auto-download a flagged ready export, but the manual Download button still works', async () => {
+        await Onyx.set(`${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}${EXPORT_ID}`, {state: 'preparing', shouldSendFromConcierge: true});
+
+        renderModal();
+        await waitForBatchedUpdatesWithAct();
+
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}${EXPORT_ID}`, {state: 'ready', fileName: CSV_FILE_NAME});
+        await waitForBatchedUpdatesWithAct();
+
+        expect(mockFileDownload).not.toHaveBeenCalled();
+
         fireEvent.press(screen.getByText('exportDownload.downloadFile'));
         expect(mockFileDownload).toHaveBeenCalled();
     });
