@@ -5,6 +5,7 @@ import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import RuleNotFoundPageWrapper from '@components/Rule/RuleNotFoundPageWrapper';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
+import Switch from '@components/Switch';
 import Text from '@components/Text';
 
 import useLocalize from '@hooks/useLocalize';
@@ -101,6 +102,7 @@ function RulePageBase({titleKey, testID, hash}: RulePageBaseProps) {
     // Cannot use useRef because react compiler fails
     const [isSaving, setIsSaving] = useState(false);
     const [shouldShowError, setShouldShowError] = useState(false);
+    const [shouldUpdateMatchingTransactions, setShouldUpdateMatchingTransactions] = useState(false);
     const {isLoading, startWithLoading} = usePressLoading({isLoading: isSaving});
     const styles = useThemeStyles();
 
@@ -149,7 +151,7 @@ function RulePageBase({titleKey, testID, hash}: RulePageBaseProps) {
             setIsSaving(true);
 
             const newRule = extractRuleFromForm(form, selectedTaxRate);
-            saveExpenseRule(expenseRules, newRule, hash, getKeyForRule);
+            saveExpenseRule(expenseRules, newRule, hash, getKeyForRule, shouldUpdateMatchingTransactions);
 
             Navigation.goBack();
         });
@@ -290,6 +292,23 @@ function RulePageBase({titleKey, testID, hash}: RulePageBaseProps) {
                     isLoading={isLoading}
                     shouldShowLoadingImmediatelyOnPress={false}
                     enabledWhenOffline
+                    shouldRenderFooterAboveSubmit
+                    footerContent={
+                        <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.mb4]}>
+                            <Text
+                                style={[styles.textNormal]}
+                                accessible={false}
+                                aria-hidden
+                            >
+                                {translate('expenseRulesPage.addRule.applyToExistingExpenses')}
+                            </Text>
+                            <Switch
+                                accessibilityLabel={translate('expenseRulesPage.addRule.applyToExistingExpenses')}
+                                isOn={shouldUpdateMatchingTransactions}
+                                onToggle={setShouldUpdateMatchingTransactions}
+                            />
+                        </View>
+                    }
                 />
             </ScreenWrapper>
         </RuleNotFoundPageWrapper>
