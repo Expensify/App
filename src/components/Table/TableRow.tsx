@@ -63,6 +63,7 @@ export default function TableRow({
     sentryLabel,
     interactive,
     onPress,
+    onPressIn,
     offlineWithFeedback,
     checkboxReplacementElement,
     rowFooter,
@@ -269,6 +270,12 @@ export default function TableRow({
         tableMethods.setMobileSelectionModalRowKey(item.keyForList);
     };
 
+    // Snapshot at pointer down because blur clears isEditingCell before onPress.
+    // Native touch never fires onMouseDown, so this also runs from onPressIn.
+    const captureEditingOnPointerDown = () => {
+        wasEditingOnMouseDownRef.current = wasEditingOnMouseDownRef.current || isEditingCell;
+    };
+
     return (
         <OfflineWithFeedback
             {...offlineWithFeedback}
@@ -288,7 +295,7 @@ export default function TableRow({
                 role={interactive ? CONST.ROLE.BUTTON : CONST.ROLE.PRESENTATION}
                 {...getRowAccessibilityProps(isTableSemanticsEnabled, rowIndex, false, semanticTableHasHeader)}
                 onMouseDown={(e) => {
-                    wasEditingOnMouseDownRef.current = isEditingCell;
+                    captureEditingOnPointerDown();
 
                     const target = e?.target;
 
@@ -314,6 +321,10 @@ export default function TableRow({
                     }
                 }}
                 onPress={(event) => handleRowPress(event)}
+                onPressIn={(event) => {
+                    captureEditingOnPointerDown();
+                    onPressIn?.(event);
+                }}
                 onLongPress={handleRowLongPress}
                 {...props}
                 {...inertProps}

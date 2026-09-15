@@ -67,7 +67,7 @@ import type {CardLimitType} from '@src/types/onyx/Card';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 import EmptyCardView from './EmptyCardView';
@@ -131,6 +131,13 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
         return getCardsByCardholderName(cardsList, policyMembersAccountIDs);
     }, [cardsList, policy?.employeeList]);
 
+    // Confirm callbacks close over the card from the row click. Keep the list in a ref so confirm
+    // still reads current spend and rollback values if Onyx refreshes while the modal is open.
+    const cardsListRef = useRef(cardsList);
+    useEffect(() => {
+        cardsListRef.current = cardsList;
+    }, [cardsList]);
+
     const isCardListEmpty = allCards.length === 0;
     const [selectedCardKeys, setSelectedCardKeys] = useState<string[]>([]);
     const selectableCardKeySet = useMemo(() => new Set(allCards.map((card) => String(card.cardID))), [allCards]);
@@ -150,7 +157,7 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
                 return;
             }
 
-            const persistLimitType = () => updateExpensifyCardLimitTypeInline(fundID, card, newLimitType, defaultLimitType);
+            const persistLimitType = () => updateExpensifyCardLimitTypeInline(fundID, cardsListRef.current?.[String(card.cardID)] ?? card, newLimitType, defaultLimitType);
 
             if (!shouldConfirmExpensifyCardLimitTypeChange(card, newLimitType, defaultLimitType)) {
                 persistLimitType();
@@ -188,7 +195,7 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
                 return;
             }
 
-            const persistLimit = () => updateExpensifyCardLimitInline(fundID, card, newLimit);
+            const persistLimit = () => updateExpensifyCardLimitInline(fundID, cardsListRef.current?.[String(card.cardID)] ?? card, newLimit);
 
             if (getExpensifyCardNewAvailableSpend(card, nextLimit) > 0) {
                 persistLimit();
