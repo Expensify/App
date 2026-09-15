@@ -5,7 +5,7 @@ import type {DomainMemberErrors, DomainSecurityGroupErrors} from '@src/types/ony
 import type DomainPendingAction from '@src/types/onyx/DomainPendingActions';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 import {adminshipRequesterPendingActionSelector, isAdminSelector, pendingAdminRequesterAccountIDsSelector} from '@selectors/Domain';
 
@@ -108,6 +108,11 @@ function getDomainBrickRoadIndicator(hasErrors: boolean, hasPendingAdminRequests
     }
 }
 
+/** Counts how many domains currently have errors. Mirrors the tab-level RBR check in usePolicyIndicatorChecks. */
+function getDomainsWithErrorsCount(allDomainErrors: OnyxCollection<DomainErrors>): number {
+    return Object.values(allDomainErrors ?? {}).filter((domainErrors) => hasDomainErrors(domainErrors)).length;
+}
+
 /**
  * Checks if domain has any admin settings errors (technical contact email or billing card errors).
  */
@@ -181,4 +186,5 @@ export {
     hasDomainGroupDetailsErrors,
     getMemberCustomRowProps,
     getDomainBrickRoadIndicator,
+    getDomainsWithErrorsCount,
 };

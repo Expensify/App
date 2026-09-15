@@ -1,14 +1,19 @@
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useShouldDisplayButtonsInSeparateLine from '@hooks/useShouldDisplayButtonsInSeparateLine';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {getDomainsWithErrorsCount} from '@libs/DomainUtils';
 import Navigation from '@libs/Navigation/Navigation';
 
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+import {createPendingDomainAdminRequestsSelector} from '@src/selectors/Domain';
+import {accountIDSelector} from '@src/selectors/Session';
 
 import React from 'react';
 import {View} from 'react-native';
@@ -41,6 +46,26 @@ function WorkspaceListHeaderContent({activeTabKey, headerButton, shouldShowHeade
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Globe', 'Building']);
+    const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
+
+    // useOnyx holds the selector in a ref, so an inline factory selector is safe here
+    // eslint-disable-next-line rulesdir/no-inline-useOnyx-selector
+    const [pendingDomainAdminRequests] = useOnyx(ONYXKEYS.COLLECTION.DOMAIN, {selector: createPendingDomainAdminRequestsSelector(accountID)});
+    const pendingDomainAdminRequestsCount = pendingDomainAdminRequests?.count ?? 0;
+    const [domainErrorsCount = 0] = useOnyx(ONYXKEYS.COLLECTION.DOMAIN_ERRORS, {selector: getDomainsWithErrorsCount});
+
+    // Domains tab badge: domain errors (red) take priority over pending admin requests (green).
+    const hasDomainErrors = domainErrorsCount > 0;
+    const getDomainsBadgeText = () => {
+        if (hasDomainErrors) {
+            return domainErrorsCount.toString();
+        }
+        if (pendingDomainAdminRequestsCount > 0) {
+            return pendingDomainAdminRequestsCount.toString();
+        }
+        return undefined;
+    };
+    const domainsBadgeText = getDomainsBadgeText();
     const navigationOptions = [
         {
             key: 'workspaces',
@@ -55,6 +80,8 @@ function WorkspaceListHeaderContent({activeTabKey, headerButton, shouldShowHeade
             icon: icons.Globe,
             route: ROUTES.DOMAINS_LIST.getRoute(),
             screenName: SCREENS.DOMAINS_LIST,
+            badgeText: domainsBadgeText,
+            isBadgeError: hasDomainErrors,
         },
     ];
 

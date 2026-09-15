@@ -45,6 +45,9 @@ type TabSelectorBaseItem<K extends string = string> = WithSentryLabel & {
     /** Additional styles for the tab's badge. */
     badgeStyles?: StyleProp<ViewStyle>;
 
+    /** Whether the tab's badge should render in the error (red) style instead of success (green). */
+    isBadgeError?: boolean;
+
     /** Whether this tab is disabled */
     isDisabled?: boolean;
 
@@ -129,6 +132,9 @@ type TabSelectorItemProps = WithSentryLabel & {
 
     /** Additional styles for the tab's badge. */
     badgeStyles?: StyleProp<ViewStyle>;
+
+    /** Whether the tab's badge should render in the error (red) style instead of success (green). */
+    isBadgeError?: boolean;
 
     /** Whether this tab is disabled */
     isDisabled?: boolean;
