@@ -219,6 +219,7 @@ const workspaceIcons = {
     Gear: mockIcon,
     Bolt: mockIcon,
     Bot: mockIcon,
+    UserPlus: mockIcon,
 };
 
 function createWorkspacePolicy(id: string, name: string, overrides: Partial<Policy> = {}): Policy {
