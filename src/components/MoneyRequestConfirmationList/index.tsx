@@ -6,7 +6,7 @@ import React from 'react';
 
 import type {MoneyRequestConfirmationListProps} from './types';
 
-import DefaultConfirmationList from './variants/DefaultConfirmationList';
+import DistanceConfirmationList from './variants/DistanceConfirmationList';
 import InvoiceConfirmationList from './variants/InvoiceConfirmationList';
 import ManualConfirmationList from './variants/ManualConfirmationList';
 import PerDiemConfirmationList from './variants/PerDiemConfirmationList';
@@ -18,7 +18,7 @@ import TimeConfirmationList from './variants/TimeConfirmationList';
  *
  * The branches are keyed the same way, and in the same order, as the footer variants in
  * `MoneyRequestConfirmationListFooter` — on the request type and the action, since a type confirmed outside its
- * own flow confirms as a plain expense. Types that have no variant yet fall through to `DefaultConfirmationList`.
+ * own flow confirms as a plain expense. Every type now reaches a variant of its own, so there is no fallback.
  */
 function MoneyRequestConfirmationList(props: MoneyRequestConfirmationListProps) {
     const {transaction, iouType = CONST.IOU.TYPE.SUBMIT, action = CONST.IOU.ACTION.CREATE, isPerDiemRequest = false, isTimeRequest = false} = props;
@@ -48,15 +48,13 @@ function MoneyRequestConfirmationList(props: MoneyRequestConfirmationListProps) 
         return <ScanConfirmationList {...props} />;
     }
 
-    // Manual is the residual rather than a fallback: it also serves pay, per diem being moved off a track
-    // expense, and a time expense outside CREATE, all of which confirm as a plain expense. Distance is excluded
-    // explicitly because its three variants have not been extracted yet.
-    if (!isDistanceRequestUtil(transaction)) {
-        return <ManualConfirmationList {...props} />;
+    if (isDistanceRequestUtil(transaction)) {
+        return <DistanceConfirmationList {...props} />;
     }
 
-    // Distance only.
-    return <DefaultConfirmationList {...props} />;
+    // Manual is the residual rather than a fallback: it also serves pay, per diem being moved off a track
+    // expense, and a time expense outside CREATE, all of which confirm as a plain expense.
+    return <ManualConfirmationList {...props} />;
 }
 
 export default MoneyRequestConfirmationList;

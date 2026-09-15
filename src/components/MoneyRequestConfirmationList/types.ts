@@ -191,6 +191,16 @@ type ManualConfirmationListProps = Omit<
 >;
 
 /**
+ * What a distance confirmation reads, for all three distance shapes. It keeps `receiptStitchError` because the
+ * odometer flow builds one receipt from two photos and can fail, and `isOdometerDistanceRequest` because the page
+ * owns that distinction. It drops the per-diem, time and scan props, since a distance expense is none of those.
+ */
+type DistanceConfirmationListProps = Omit<
+    MoneyRequestConfirmationListProps,
+    'isPerDiemRequest' | 'isTimeRequest' | 'canEnterScanFieldsManually' | 'partiallyManuallyFilledScanID' | 'hasSmartScanFailed' | 'onSwitchToTransaction'
+>;
+
+/**
  * What an invoice confirmation reads. An invoice is always a manual expense and can never be a split or a
  * payment, so it drops `iouType` (it is always INVOICE), `onSendMoney`, `isEditingSplitBill`, the scan props and
  * the odometer stitch error.
@@ -218,4 +228,5 @@ export type {
     ScanConfirmationListProps,
     ManualConfirmationListProps,
     InvoiceConfirmationListProps,
+    DistanceConfirmationListProps,
 };

@@ -7,8 +7,10 @@ import useDistanceRequestState from '@components/MoneyRequestConfirmationList/ho
 import useTaxAmount from '@components/MoneyRequestConfirmationList/hooks/useTaxAmount';
 import SplitBillController from '@components/MoneyRequestConfirmationList/SplitBillController';
 import TaxController from '@components/MoneyRequestConfirmationList/TaxController';
-import type {MoneyRequestConfirmationListProps} from '@components/MoneyRequestConfirmationList/types';
-import MoneyRequestConfirmationListFooter from '@components/MoneyRequestConfirmationListFooter';
+import type {DistanceConfirmationListProps} from '@components/MoneyRequestConfirmationList/types';
+import DistanceManualFooter from '@components/MoneyRequestConfirmationListFooter/variants/DistanceManualFooter';
+import DistanceMapFooter from '@components/MoneyRequestConfirmationListFooter/variants/DistanceMapFooter';
+import DistanceOdometerFooter from '@components/MoneyRequestConfirmationListFooter/variants/DistanceOdometerFooter';
 
 import useBlockDistanceRequest from '@hooks/useBlockDistanceRequest';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
@@ -20,7 +22,6 @@ import {
     getCreated,
     getCurrency,
     hasValidModifiedAmount,
-    isDistanceRequest as isDistanceRequestUtil,
     isGPSDistanceRequest as isGPSDistanceRequestUtil,
     isManualDistanceRequest as isManualDistanceRequestUtil,
 } from '@libs/TransactionUtils';
@@ -31,12 +32,17 @@ import React from 'react';
 import {View} from 'react-native';
 
 /**
- * Confirms every expense type, by branching at runtime on which type it was handed.
+ * Confirms a distance expense, for all three of its shapes: a mapped route, a manually entered distance, and an
+ * odometer reading.
  *
- * This is the body the per-type variants are being carved out of, and it shrinks as each one lands: a type that
- * has its own variant no longer reaches here. It goes away once the last variant is extracted.
+ * The three share one list because they mount exactly the same things — `DistanceRequestController` gates every
+ * effect on `isDistanceRequest`, which is true for all of them, and the commuter-exclusion fields are written for
+ * all three. What differs is only the footer: the mapped route shows a map, and the odometer flow is the one that
+ * can surface a receipt stitch error.
+ *
+ * A distance expense is never a scan and never enters the compact layout.
  */
-function DefaultConfirmationList({
+function DistanceConfirmationList({
     transaction,
     onSendMoney,
     onConfirm,
@@ -46,12 +52,8 @@ function DefaultConfirmationList({
     isOdometerDistanceRequest = false,
     isLoadingReceipt = false,
     receiptStitchError,
-    isPerDiemRequest = false,
     isPolicyExpenseChat = false,
     shouldShowSmartScanFields = true,
-    canEnterScanFieldsManually = false,
-    partiallyManuallyFilledScanID,
-    onSwitchToTransaction,
     isEditingSplitBill,
     isReceiptEditable,
     selectedParticipants: selectedParticipantsProp,
@@ -62,7 +64,6 @@ function DefaultConfirmationList({
     receiptPath = '',
     receiptFilename = '',
     onToggleBillable,
-    hasSmartScanFailed,
     reportActionID,
     action = CONST.IOU.ACTION.CREATE,
     shouldDisplayReceipt = false,
@@ -73,10 +74,8 @@ function DefaultConfirmationList({
     onPDFPassword,
     onToggleReimbursable,
     showRemoveExpenseConfirmModal,
-    isTimeRequest = false,
     shouldHideToSection = false,
-}: MoneyRequestConfirmationListProps) {
-    const isDistanceRequest = isDistanceRequestUtil(transaction);
+}: DistanceConfirmationListProps) {
     const isManualDistanceRequest = isManualDistanceRequestUtil(transaction);
     const isGPSDistanceRequest = isGPSDistanceRequestUtil(transaction);
 
@@ -85,12 +84,14 @@ function DefaultConfirmationList({
 
     const {policyForMovingExpenses} = usePolicyForMovingExpenses();
     const isMovingTransactionFromTrackExpense = isMovingTransactionFromTrackExpenseUtil(action);
+
+    // The distance state needs the policy before the shared data hook runs, so this surface resolves it itself.
     const {policy} = usePolicyForTransaction({
         transaction,
         reportPolicyID: policyID,
         action,
         iouType,
-        isPerDiemRequest,
+        isPerDiemRequest: false,
     });
 
     const distanceState = useDistanceRequestState({
@@ -99,14 +100,14 @@ function DefaultConfirmationList({
         policyID,
         policyForMovingExpenses,
         isMovingTransactionFromTrackExpense,
-        isDistanceRequest,
+        isDistanceRequest: true,
         iouAmount,
         iouCurrencyCode,
     });
     const {defaultRate, mileageRate, unit, rate, currency, distance, shouldCalculateDistanceAmount, hasRoute, isDistanceRequestWithPendingRoute, distanceRequestAmount} = distanceState;
 
-    // Distance requests can be blocked before submission (a missing home address, or a policy that requires a map
-    // or GPS), so the guard wraps this surface's own confirm callback.
+    // A distance request can be blocked before submission by a missing home address, or by a policy that requires
+    // a map or GPS, so the guard wraps this surface's own confirm callback.
     const blockDistanceRequestIfNeeded = useBlockDistanceRequest({
         policyID: isPolicyExpenseChat ? policy?.id : undefined,
         isManualDistanceRequest,
@@ -132,9 +133,7 @@ function DefaultConfirmationList({
         customUnitRateID,
         previousTransactionCurrency,
         currentUserAccountID,
-        isScanRequest,
         isTypeSplit,
-        isTypeInvoice,
         isCategoryRequired,
         isFocused,
         shouldShowCategories,
@@ -160,9 +159,6 @@ function DefaultConfirmationList({
         isConfirmed,
         isConfirming,
         shouldShowSmartScanFields,
-        canEnterScanFieldsManually,
-        partiallyManuallyFilledScanID,
-        hasSmartScanFailed,
         shouldHideToSection,
         isLoadingReceipt,
         onConfirm: () => {
@@ -173,22 +169,16 @@ function DefaultConfirmationList({
         },
         onSendMoney,
         onOpenParticipantPicker,
-        onSwitchToTransaction,
         showRemoveExpenseConfirmModal,
-        isPerDiemRequest,
-        isTimeRequest,
-        isDistanceRequest,
+        isDistanceRequest: true,
         distanceState,
     });
-
-    const shouldShowRateAutoUpdatedTooltip =
-        isDistanceRequest && !!transaction?.comment?.customUnit?.rateAutoUpdated && !!transaction.created && DistanceRequestUtils.isRateEligibleForDate(mileageRate, transaction.created);
 
     const {defaultTaxCode, defaultTaxValue, shouldKeepCurrentTaxSelection, taxAmountInSmallestCurrencyUnits} = useTaxAmount({
         transaction,
         policy,
         policyForMovingExpenses,
-        isDistanceRequest,
+        isDistanceRequest: true,
         isMovingTransactionFromTrackExpense,
         customUnitRateID,
         distance,
@@ -196,60 +186,70 @@ function DefaultConfirmationList({
         previousTransactionCurrency,
     });
 
-    // The expense-type flags below (`isDistanceRequest`, `isTimeRequest`, ...) are temporary: once this component
-    // forks per expense type, each variant knows its own type and they leave both the provider and the context.
+    const shouldShowRateAutoUpdatedTooltip =
+        !!transaction?.comment?.customUnit?.rateAutoUpdated && !!transaction.created && DistanceRequestUtils.isRateEligibleForDate(mileageRate, transaction.created);
+
+    const footerProps = {
+        policy,
+        policyTags,
+        selectedParticipants: selectedParticipantsProp,
+        distanceData: {
+            distance,
+            hasRoute,
+            unit,
+            distanceRateName: mileageRate.name,
+            distanceRateCurrency: currency,
+            mileageRate,
+            expenseDate: getCreated(transaction),
+            customUnitRateID,
+            shouldShowRateAutoUpdatedTooltip,
+            customUnit: transaction?.comment?.customUnit,
+        },
+        amountDisplay,
+        requiredFlags,
+        visibilityFlags: {...visibilityFlags, isParticipantPickerVisible},
+        errorState,
+        toggleHandlers: {onToggleReimbursable, onToggleBillable},
+        receiptOptions: {
+            receiptFilename,
+            receiptPath,
+            isLoadingReceipt,
+            isReceiptEditable,
+            shouldDisplayReceipt,
+            onPDFLoadError,
+            onPDFPassword,
+        },
+    };
+
+    // Ordered as the footer dispatcher ordered them. A transaction carries a single request type, so at most one
+    // of these matches.
+    const renderFooter = () => {
+        if (isManualDistanceRequest) {
+            return <DistanceManualFooter {...footerProps} />;
+        }
+        if (isOdometerDistanceRequest) {
+            return (
+                <DistanceOdometerFooter
+                    {...footerProps}
+                    receiptStitchError={receiptStitchError}
+                />
+            );
+        }
+        // `DISTANCE`, `DISTANCE_MAP` and `DISTANCE_GPS` all confirm against the route map.
+        return <DistanceMapFooter {...footerProps} />;
+    };
+
     const listFooterContent = (
         <ConfirmationFieldsProvider
             {...confirmationFieldsProviderProps}
             isEditingSplitBill={isEditingSplitBill}
-            isScanRequest={isScanRequest}
-            isDistanceRequest={isDistanceRequest}
-            isPerDiemRequest={isPerDiemRequest}
-            isTimeRequest={isTimeRequest}
-            isTypeInvoice={isTypeInvoice}
+            isDistanceRequest
             isManualDistanceRequest={isManualDistanceRequest}
             isOdometerDistanceRequest={isOdometerDistanceRequest}
             isGPSDistanceRequest={isGPSDistanceRequest}
             onTaxAmountEmptyChange={setIsTaxAmountEmpty}
         >
-            <View>
-                <MoneyRequestConfirmationListFooter
-                    receiptStitchError={receiptStitchError}
-                    isCompactMode={false}
-                    policy={policy}
-                    policyTags={policyTags}
-                    selectedParticipants={selectedParticipantsProp}
-                    distanceData={{
-                        distance,
-                        hasRoute,
-                        unit,
-                        distanceRateName: mileageRate.name,
-                        distanceRateCurrency: currency,
-                        mileageRate,
-                        expenseDate: getCreated(transaction),
-                        customUnitRateID,
-                        shouldShowRateAutoUpdatedTooltip,
-                        customUnit: transaction?.comment?.customUnit,
-                    }}
-                    amountDisplay={amountDisplay}
-                    requiredFlags={requiredFlags}
-                    visibilityFlags={{...visibilityFlags, isParticipantPickerVisible}}
-                    errorState={errorState}
-                    toggleHandlers={{onToggleReimbursable, onToggleBillable}}
-                    receiptOptions={{
-                        receiptFilename,
-                        receiptPath,
-                        isLoadingReceipt,
-                        isReceiptEditable,
-                        shouldDisplayReceipt,
-                        onPDFLoadError,
-                        onPDFPassword,
-                    }}
-                    // Only a scan reaches compact mode, and a scan now has its own variant, so nothing here can
-                    // read these. The footer prop stays required until its dispatcher is deleted.
-                    compactControls={{showMoreFields: false, setShowMoreFields: () => {}}}
-                />
-            </View>
+            <View>{renderFooter()}</View>
         </ConfirmationFieldsProvider>
     );
 
@@ -270,7 +270,7 @@ function DefaultConfirmationList({
             <DistanceRequestController
                 transactionID={transactionID}
                 transaction={transaction}
-                isDistanceRequest={isDistanceRequest}
+                isDistanceRequest
                 isManualDistanceRequest={isManualDistanceRequest}
                 isPolicyExpenseChat={isPolicyExpenseChat}
                 customUnitRateID={customUnitRateID}
@@ -328,4 +328,4 @@ function DefaultConfirmationList({
     );
 }
 
-export default DefaultConfirmationList;
+export default DistanceConfirmationList;
