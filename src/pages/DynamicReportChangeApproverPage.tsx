@@ -1,5 +1,6 @@
 import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import MoneyReportHeaderModals from '@components/MoneyReportHeaderModals';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
@@ -55,6 +56,7 @@ function DynamicReportChangeApproverPage({report, policy, isLoadingReportData}: 
     const [selectedApproverType, setSelectedApproverType] = useState<ApproverType>();
     const [hasError, setHasError] = useState(false);
     const {isBetaEnabled} = usePermissions();
+
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const hasViolations = hasViolationsReportUtils(report?.reportID, transactionViolations, currentUserDetails.accountID, currentUserDetails.login ?? '');
@@ -63,6 +65,7 @@ function DynamicReportChangeApproverPage({report, policy, isLoadingReportData}: 
     const hasAutoAppliedRef = useRef(false);
     const hasNavigatedToAddApproverRef = useRef(false);
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.REPORT_CHANGE_APPROVER.path);
+    // The approved animation is part of the report header, which isn't mounted in this RHP, so there is nothing to animate here
 
     const goBack = () => {
         Navigation.goBack(backPath);
@@ -88,6 +91,7 @@ function DynamicReportChangeApproverPage({report, policy, isLoadingReportData}: 
             Navigation.navigate(ROUTES.REPORT_CHANGE_APPROVER_ADD_APPROVER.getRoute(report.reportID));
             return;
         }
+
         assignReportToMe(report, currentUserDetails.accountID, currentUserDetails.email ?? '', policy, hasViolations, isASAPSubmitBetaEnabled, isTrackIntentUser, formatPhoneNumber, rules);
         Navigation.dismissToPreviousRHP();
     }, [selectedApproverType, report, currentUserDetails.accountID, currentUserDetails.email, policy, hasViolations, isASAPSubmitBetaEnabled, isTrackIntentUser, formatPhoneNumber, rules]);
@@ -102,8 +106,7 @@ function DynamicReportChangeApproverPage({report, policy, isLoadingReportData}: 
             },
         ];
 
-        const isCurrentUserManager = report.managerID === currentUserDetails.accountID;
-        if (!isCurrentUserManager && isAllowedToApproveExpenseReport(report, currentUserDetails.accountID, policy)) {
+        if (isAllowedToApproveExpenseReport(report, currentUserDetails.accountID, policy)) {
             data.push({
                 text: translate('iou.changeApprover.actions.bypassApprovers'),
                 keyForList: APPROVER_TYPE.BYPASS_APPROVER,
@@ -189,6 +192,15 @@ function DynamicReportChangeApproverPage({report, policy, isLoadingReportData}: 
     );
 }
 
-export default withReportOrNotFound()(DynamicReportChangeApproverPage);
+// The page reads the hold menu from the MoneyReportHeaderModals context, so the provider has to sit above it
+function DynamicReportChangeApproverPageWithModals(props: DynamicReportChangeApproverPageProps) {
+    return (
+        <MoneyReportHeaderModals reportID={props.report.reportID}>
+            <DynamicReportChangeApproverPage {...props} />
+        </MoneyReportHeaderModals>
+    );
+}
+
+export default withReportOrNotFound()(DynamicReportChangeApproverPageWithModals);
 export {APPROVER_TYPE};
 export type {ApproverType};
