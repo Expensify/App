@@ -353,7 +353,6 @@ describe('handleActionButtonPress', () => {
             ownerBillingGracePeriodEnd: undefined,
             amountOwed: undefined,
             userBillingGracePeriodEnds: undefined,
-            onHoldMenuOpen: jest.fn(),
             policy: snapshotPolicy,
             chatReportActions: undefined,
             currentUserAccountID: 1206,
@@ -365,8 +364,8 @@ describe('handleActionButtonPress', () => {
         expect(goToItem).not.toHaveBeenCalled();
     });
 
-    test('Should open the hold menu when the report has one transaction on hold and action is approve', () => {
-        const onHoldMenuOpen = jest.fn();
+    test('Should approve the full report when the report has one transaction on hold and action is approve', () => {
+        const approveMoneyRequestMock = jest.spyOn(ReportWorkflow, 'approveMoneyRequest').mockImplementation(jest.fn());
         handleActionButtonPress({
             conciergeChat: undefined,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
@@ -381,7 +380,6 @@ describe('handleActionButtonPress', () => {
             userBillingGracePeriodEnds: undefined,
             ownerBillingGracePeriodEnd: undefined,
             amountOwed: undefined,
-            onHoldMenuOpen,
             policy: snapshotPolicy,
             chatReportActions: undefined,
             currentUserAccountID: 1206,
@@ -391,7 +389,8 @@ describe('handleActionButtonPress', () => {
             rules: undefined,
         });
 
-        expect(onHoldMenuOpen).toHaveBeenCalledWith(mockReportItemWithHold, CONST.IOU.REPORT_ACTION_TYPE.APPROVE);
+        expect(approveMoneyRequestMock).toHaveBeenCalledWith(expect.objectContaining({full: true}));
+        approveMoneyRequestMock.mockRestore();
     });
 
     test('Should not navigate to item when the hold is removed', () => {

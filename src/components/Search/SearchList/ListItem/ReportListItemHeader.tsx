@@ -215,6 +215,7 @@ function HeaderFirstRow<TItem extends ListItem>({
                         amount={reportItem.total}
                         shouldDisablePointerEvents={shouldDisableActionPointerEvents}
                         chatReport={chatReport}
+                        snapshotTransactions={reportItem.transactions}
                     />
                 </View>
             )}
