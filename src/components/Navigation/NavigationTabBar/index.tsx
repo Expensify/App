@@ -133,13 +133,11 @@ function NavigationTabBar({selectedTab, shouldShowFloatingButtons = true}: Navig
                                     selectedTab={selectedTab}
                                     isWideLayout
                                 />
-                                {!isInsightsTabVisible && (
-                                    <NavigationTabBarAvatar
-                                        style={styles.leftNavigationTabBarItem}
-                                        isSelected={selectedTab === NAVIGATION_TABS.SETTINGS}
-                                        onPress={navigateToSettings}
-                                    />
-                                )}
+                                <NavigationTabBarAvatar
+                                    style={styles.leftNavigationTabBarItem}
+                                    isSelected={selectedTab === NAVIGATION_TABS.SETTINGS}
+                                    onPress={navigateToSettings}
+                                />
                             </View>
                             <View style={styles.leftNavigationTabBarFAB}>
                                 <SupportalSwitcherButton isSidebarHovered={isSidebarHovered} />

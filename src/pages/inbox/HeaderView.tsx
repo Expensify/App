@@ -6,7 +6,6 @@ import ChronosTimerHeaderButton from '@components/ChronosTimerHeaderButton';
 import DisplayNames from '@components/DisplayNames';
 import HeaderLoadingBar from '@components/HeaderLoadingBar';
 import Icon from '@components/Icon';
-import AccountAvatarButton from '@components/Navigation/AccountAvatarButton';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import OnboardingHelpDropdownButton from '@components/OnboardingHelpDropdownButton';
 import ParentNavigationSubtitle from '@components/ParentNavigationSubtitle';
@@ -103,11 +102,9 @@ type HeaderViewProps = {
     onNavigationMenuButtonClicked: () => void;
 
     reportID: string | undefined;
-
-    shouldDisplayAccountButton?: boolean;
 };
 
-function HeaderView({onNavigationMenuButtonClicked, reportID, shouldDisplayAccountButton = false}: HeaderViewProps) {
+function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) {
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const parentReportAction = useParentReportAction(report);
 
@@ -505,7 +502,6 @@ function HeaderView({onNavigationMenuButtonClicked, reportID, shouldDisplayAccou
                                 )}
                                 {shouldDisplaySearchRouter && <SearchButton style={styles.ml2} />}
                                 {!shouldMirrorSidePanelHeader && !isConciergeChat && <SidePanelButton />}
-                                {shouldDisplayAccountButton && !shouldMirrorSidePanelHeader && !isReportInRHP && !shouldUseNarrowLayout && <AccountAvatarButton />}
                             </View>
                         </View>
                     )}

@@ -151,7 +151,6 @@ function PageNotFoundFallback({policyID, fullPageNotFoundViewProps, isFeatureEna
             }}
             {...fullPageNotFoundViewProps}
             shouldShowBackButton={fullPageNotFoundViewProps?.shouldShowBackButton ?? (!shouldShowFullScreenFallback ? shouldUseNarrowLayout : undefined)}
-            shouldDisplayAccountButton
         />
     );
 }

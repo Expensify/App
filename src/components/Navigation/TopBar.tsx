@@ -32,7 +32,6 @@ type TopBarProps = {
     breadcrumbLabel: string;
     shouldDisplaySearch?: boolean;
     shouldDisplayHelpButton?: boolean;
-    shouldDisplayAccountButton?: boolean;
     shouldShowLoadingBar?: boolean;
     cancelSearch?: () => void;
     children?: React.ReactNode;
@@ -41,16 +40,7 @@ type TopBarProps = {
 
 const authTokenTypeSelector = (session: OnyxEntry<Session>) => session && {authTokenType: session.authTokenType};
 
-function TopBar({
-    breadcrumbLabel,
-    shouldDisplaySearch = true,
-    shouldDisplayHelpButton = false,
-    shouldDisplayAccountButton = true,
-    cancelSearch,
-    shouldShowLoadingBar,
-    children,
-    breadcrumbAnimatedStyle,
-}: TopBarProps) {
+function TopBar({breadcrumbLabel, shouldDisplaySearch = true, shouldDisplayHelpButton = false, cancelSearch, shouldShowLoadingBar, children, breadcrumbAnimatedStyle}: TopBarProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
@@ -97,7 +87,7 @@ function TopBar({
                 )}
                 {displaySearch && <SearchButton />}
                 {shouldDisplayHelpButton && <SidePanelButton />}
-                {shouldDisplayAccountButton && <AccountAvatarButton />}
+                <AccountAvatarButton />
             </View>
             <LoadingBar shouldShow={!isWideRHPVisible && !!shouldShowLoadingBar} />
         </View>

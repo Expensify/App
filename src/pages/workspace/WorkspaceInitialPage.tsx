@@ -242,6 +242,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
                     policyAvatar={policyAvatar}
                     policyAvatarSize={CONST.AVATAR_SIZE.SMALL}
                     shouldDisplayHelpButton={shouldUseNarrowLayout}
+                    shouldDisplayAccountButton
                 />
 
                 <ScrollView contentContainerStyle={[styles.flexColumn, styles.pb14]}>

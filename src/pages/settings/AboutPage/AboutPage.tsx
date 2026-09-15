@@ -175,7 +175,6 @@ function AboutPage() {
                 shouldShowBackButton={shouldUseNarrowLayout}
                 shouldDisplaySearchRouter
                 shouldDisplayHelpButton
-                shouldDisplayAccountButton
                 onBackButtonPress={Navigation.goBack}
                 shouldUseHeadlineHeader
             />

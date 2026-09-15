@@ -56,11 +56,9 @@ type MoneyRequestHeaderProps = {
 
     /** Method to trigger when pressing close button of the header */
     onBackButtonPress: (prioritizeBackTo?: boolean, options?: {afterTransition?: () => void}) => void;
-
-    shouldDisplayAccountButton?: boolean;
 };
 
-function MoneyRequestHeader({reportID: reportIDProp, onBackButtonPress, shouldDisplayAccountButton = false}: MoneyRequestHeaderProps) {
+function MoneyRequestHeader({reportID: reportIDProp, onBackButtonPress}: MoneyRequestHeaderProps) {
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDProp}`);
     const [ownerLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(report?.ownerAccountID)});
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(report?.policyID)}`);
@@ -176,7 +174,6 @@ function MoneyRequestHeader({reportID: reportIDProp, onBackButtonPress, shouldDi
                 shouldShowBackButton={shouldUseNarrowLayout}
                 shouldDisplaySearchRouter={!isReportInRHP}
                 shouldDisplayHelpButton={!isReportInRHP}
-                shouldDisplayAccountButton={shouldDisplayAccountButton && !isReportInRHP}
                 onBackButtonPress={() => onBackButtonPress(isFromReviewDuplicates)}
                 shouldEnableDetailPageNavigation
                 openParentReportInCurrentTab={shouldOpenParentReportInCurrentTab}

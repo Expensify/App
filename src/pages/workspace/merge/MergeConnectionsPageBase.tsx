@@ -174,7 +174,6 @@ function MergeConnectionsPageBase({policyID, category, cards, footer, shouldBeBl
                 <HeaderWithBackButton
                     title={translate(`workspace.${category}.title`)}
                     shouldDisplayHelpButton
-                    shouldDisplayAccountButton
                     shouldShowBackButton={shouldUseNarrowLayout}
                     shouldUseHeadlineHeader
                     onBackButtonPress={() => Navigation.goBack()}

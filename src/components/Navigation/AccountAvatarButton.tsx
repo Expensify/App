@@ -8,6 +8,7 @@ import useAccountTabIndicatorStatus from '@hooks/useAccountTabIndicatorStatus';
 import useIsAnonymousUser from '@hooks/useIsAnonymousUser';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useRootNavigationState from '@hooks/useRootNavigationState';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -23,12 +24,14 @@ import {useIsFocused} from '@react-navigation/native';
 import React from 'react';
 
 /**
- * Avatar of the signed-in user that navigates to the Account tab.
+ * Avatar of the signed-in user that navigates to the Account tab. Rendered only in the narrow layout, where
+ * the Account tab is not part of the navigation tab bar.
  */
 function AccountAvatarButton() {
     const {isBetaEnabled} = usePermissions();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
 
-    if (!isBetaEnabled(CONST.BETAS.INSIGHTS_PAGE)) {
+    if (!shouldUseNarrowLayout || !isBetaEnabled(CONST.BETAS.INSIGHTS_PAGE)) {
         return null;
     }
 

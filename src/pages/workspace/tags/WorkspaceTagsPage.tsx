@@ -776,7 +776,6 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                         title={translate(selectionModeHeader ? 'common.selectMultiple' : 'workspace.common.tags')}
                         shouldShowBackButton={shouldUseNarrowLayout}
                         shouldDisplayHelpButton
-                        shouldDisplayAccountButton
                         onBackButtonPress={() => {
                             if (isMobileSelectionModeEnabled) {
                                 clearTableSelection();

@@ -59,9 +59,6 @@ type FullPageNotFoundViewProps = {
     /** Whether we should display the button that opens new SearchRouter */
     shouldDisplaySearchRouter?: boolean;
 
-    /** Whether we should display the avatar that navigates to the Account tab */
-    shouldDisplayAccountButton?: boolean;
-
     addBottomSafeAreaPadding?: boolean;
     addOfflineIndicatorBottomSafeAreaPadding?: boolean;
 };
@@ -81,7 +78,6 @@ function FullPageNotFoundView({
     shouldForceFullScreen = false,
     subtitleStyle,
     shouldDisplaySearchRouter,
-    shouldDisplayAccountButton = false,
     addBottomSafeAreaPadding = true,
     addOfflineIndicatorBottomSafeAreaPadding = addBottomSafeAreaPadding,
 }: FullPageNotFoundViewProps) {
@@ -98,7 +94,6 @@ function FullPageNotFoundView({
                     onBackButtonPress={onBackButtonPress}
                     shouldShowBackButton={shouldShowBackButton}
                     shouldDisplaySearchRouter={shouldDisplaySearchRouter && (isMediumScreenWidth || isLargeScreenWidth)}
-                    shouldDisplayAccountButton={shouldDisplayAccountButton}
                 />
                 <View
                     style={[styles.flex1, styles.blockingViewContainer]}

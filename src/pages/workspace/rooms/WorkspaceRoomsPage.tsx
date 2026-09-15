@@ -143,7 +143,6 @@ function WorkspaceRoomsPage({route}: WorkspaceRoomsPageProps) {
                     shouldShowBackButton={shouldUseNarrowLayout}
                     onBackButtonPress={Navigation.goBack}
                     shouldDisplayHelpButton
-                    shouldDisplayAccountButton
                 >
                     {!shouldUseNarrowLayout && !isArchived && (
                         <Button

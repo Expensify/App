@@ -49,7 +49,6 @@ function BaseSidebarScreen() {
                         breadcrumbLabel={translate('common.inbox')}
                         shouldDisplaySearch={shouldUseNarrowLayout}
                         shouldDisplayHelpButton={shouldUseNarrowLayout}
-                        shouldDisplayAccountButton={shouldUseNarrowLayout}
                     />
                     {!shouldShowSkeleton && <InboxTabSelector />}
                     <View style={[styles.flex1]}>{shouldShowSkeleton ? <OptionsListSkeletonView shouldAnimate /> : <SidebarLinksData insets={insets} />}</View>
