@@ -644,18 +644,13 @@ function getRateMatchingCurrentRate(mileageRates: Record<string, MileageRate>, c
 }
 
 /**
- * Selects the distance rate to use for an expense that is moving to a different workspace.
+ * Selects the distance rate for an expense moving to a different workspace: an equivalent rate on the destination policy, else its
+ * best rate for the expense date, else its default rate, else nothing so the caller keeps the `customUnitOutOfPolicy` violation.
  *
- * Selection order:
- * 1. A rate on the destination policy that is equivalent to the expense's current rate.
- * 2. The destination policy's best rate for the expense date, falling back to its default rate.
- * 3. Nothing, when the destination policy has no usable rate. Callers keep the `customUnitOutOfPolicy` violation in that case.
+ * `currentRate` resolves against the source policy, which this module cannot look up, so callers pass it in. It is optional because
+ * a P2P expense carries its rate on the transaction.
  *
- * `currentRate` resolves against the source policy, which this module cannot look up, so callers that have it pass it in. It is
- * optional only because a P2P expense carries its rate value on the transaction itself.
- *
- * Let's ensure this logic is consistent with the logic in the backend (Auth), which is authoritative here. The app computes the
- * same answer only to build optimistic data.
+ * Let's ensure this logic is consistent with the logic in the backend (Auth), which is authoritative here.
  */
 function getRateForPolicyChange({transaction, policy, currentRate}: {transaction: OnyxEntry<Transaction>; policy: OnyxEntry<Policy>; currentRate?: MileageRate}): MileageRate | undefined {
     const expenseDate = getFormattedCreated(transaction);
