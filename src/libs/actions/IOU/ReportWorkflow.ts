@@ -265,7 +265,8 @@ function canIOUBePaid(
     const isReportFinished = (isApproved || isClosed) && !iouReport?.isWaitingOnBankAccount;
     const isIOU = isIOUReport(iouReport);
     const canShowMarkedAsPaidForNegativeAmount = onlyShowPayElsewhere && reimbursableSpend < 0;
-    const isOnlyNonReimbursablePayElsewhere = onlyShowPayElsewhere && nonReimbursableSpend !== 0 && hasOnlyNonReimbursableTransactions(iouReport?.reportID, transactions);
+    const isOnlyNonReimbursablePayElsewhere =
+        onlyShowPayElsewhere && nonReimbursableSpend !== 0 && !policy?.preventPayoutNonReimbursableReports && hasOnlyNonReimbursableTransactions(iouReport?.reportID, transactions);
 
     if (isIOU && canPay && !iouSettled && reimbursableSpend > 0) {
         return true;
