@@ -3,6 +3,7 @@ import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import HighlightableMenuItemWithTopDescription from '@components/HighlightableMenuItemWithTopDescription';
+import MenuItem from '@components/MenuItem';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
@@ -186,6 +187,7 @@ function DynamicSplitExpenseEditPage({route}: DynamicSplitExpenseEditPageProps) 
         report && transaction && isSplitAction(currentReport, [transaction], originalTransaction, login ?? '', currentUserAccountID, rules, effectivePolicy, parentReport);
 
     const isCategoryRequired = !!effectivePolicy?.requiresCategory && !isSelfDMSplit;
+    const categoryValue = getDecodedLeafCategoryName(splitExpenseDraftTransactionDetails?.category ?? '');
     const derivedCurrentReportName = useDerivedReportNameByReportID(currentReport?.reportID);
     const reportName = getReportName(currentReport, derivedCurrentReportName) || parentReport?.reportName;
     const isDescriptionRequired = isCategoryDescriptionRequired(policyCategories, splitExpenseDraftTransactionDetails?.category, arePolicyRulesEnabled(effectivePolicy, policyCategories));
@@ -413,13 +415,11 @@ function DynamicSplitExpenseEditPage({route}: DynamicSplitExpenseEditPageProps) 
                         />
                         {distanceRequestFields}
                         {shouldShowCategory && (
-                            <MenuItemWithTopDescription
-                                shouldShowRightIcon
+                            <MenuItemField
                                 key={translate('common.category')}
-                                description={translate('common.category')}
-                                title={getDecodedLeafCategoryName(splitExpenseDraftTransactionDetails?.category ?? '')}
-                                numberOfLinesTitle={2}
-                                rightLabel={isCategoryRequired ? translate('common.required') : ''}
+                                name={translate('common.category')}
+                                value={categoryValue}
+                                numberOfLinesValue={2}
                                 onPress={() => {
                                     const categoryRoute = createDynamicRoute(
                                         DYNAMIC_ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute({
@@ -450,9 +450,9 @@ function DynamicSplitExpenseEditPage({route}: DynamicSplitExpenseEditPageProps) 
                                     }
                                     Navigation.navigate(categoryRoute);
                                 }}
-                                style={[styles.moneyRequestMenuItem]}
-                                titleStyle={styles.flex1}
-                            />
+                            >
+                                {!categoryValue && isCategoryRequired && <MenuItem.RightLabel>{translate('common.required')}</MenuItem.RightLabel>}
+                            </MenuItemField>
                         )}
                         {shouldShowTags &&
                             policyTagLists.map(({name}, index) => {
