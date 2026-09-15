@@ -9,8 +9,6 @@ import type {PlatformStackNavigationOptions} from '@libs/Navigation/PlatformStac
 
 import variables from '@styles/variables';
 
-import CONST from '@src/CONST';
-
 import type {StackCardInterpolationProps} from '@react-navigation/stack';
 
 import type {EnterAnimation} from './useModalCardStyleInterpolator';
@@ -18,6 +16,7 @@ import type {EnterAnimation} from './useModalCardStyleInterpolator';
 import hideKeyboardOnSwipe from './hideKeyboardOnSwipe';
 import RHP_WEB_TRANSITION_SPEC from './RHPTransitionSpec';
 import useModalCardStyleInterpolator from './useModalCardStyleInterpolator';
+import {useRootRHPCardStyleInterpolator} from './useRHPTransition';
 
 type RootNavigatorScreenOptions = {
     rightModalNavigator: PlatformStackNavigationOptions;
@@ -38,12 +37,12 @@ const useRootNavigatorScreenOptions = () => {
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
     const modalCardStyleInterpolator = useModalCardStyleInterpolator();
+    const rhpCardStyleInterpolator = useRootRHPCardStyleInterpolator();
     const {shouldUseNarrowLayout, onboardingIsMediumOrLargerScreenWidth} = useResponsiveLayout();
     const themeStyles = useThemeStyles();
 
     const fullScreenEnter: EnterAnimation = shouldUseNarrowLayout ? {kind: 'slide-from-width'} : {kind: 'none'};
     const onboardingEnter: EnterAnimation = onboardingIsMediumOrLargerScreenWidth ? {kind: 'fade'} : {kind: 'slide-from-width'};
-    const rhpEnter: EnterAnimation = shouldUseNarrowLayout ? {kind: 'slide-from-width'} : {kind: 'slide-and-fade', distancePx: CONST.MODAL.RHP_ENTER_OFFSET_PX_WEB};
 
     return {
         rightModalNavigator: {
@@ -54,12 +53,7 @@ const useRootNavigatorScreenOptions = () => {
             animationTypeForReplace: 'pop',
             web: {
                 presentation: Presentation.TRANSPARENT_MODAL,
-                cardStyleInterpolator: (props: StackCardInterpolationProps) =>
-                    modalCardStyleInterpolator({
-                        props,
-                        enter: rhpEnter,
-                        applySidePanelOffset: true,
-                    }),
+                cardStyleInterpolator: rhpCardStyleInterpolator,
                 transitionSpec: shouldUseNarrowLayout ? undefined : RHP_WEB_TRANSITION_SPEC,
             },
         },
@@ -67,23 +61,21 @@ const useRootNavigatorScreenOptions = () => {
             presentation: Presentation.TRANSPARENT_MODAL,
             web: {
                 cardOverlayEnabled: false,
-                cardStyle: {
+                cardStyle: StyleUtils.getStyleWithEnvSafeAreaPadding({
                     ...StyleUtils.getNavigationModalCardStyle(),
+                    ...themeStyles.modalStackNavigatorContainer,
                     backgroundColor: 'transparent',
                     width: '100%',
                     top: 0,
                     left: 0,
-                    position: 'fixed',
-                    paddingLeft: 'env(safe-area-inset-left)',
-                    paddingRight: 'env(safe-area-inset-right)',
-                },
+                }),
                 cardStyleInterpolator: (props: StackCardInterpolationProps) => modalCardStyleInterpolator({props, enter: onboardingEnter}),
             },
         },
         centeredModalNavigator: {
             presentation: Presentation.TRANSPARENT_MODAL,
-            native: {
-                contentStyle: {
+            web: {
+                cardStyle: {
                     ...StyleUtils.getBackgroundColorWithOpacityStyle(theme.overlay, variables.overlayOpacity),
                 },
             },

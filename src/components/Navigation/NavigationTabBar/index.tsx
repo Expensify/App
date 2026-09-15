@@ -10,6 +10,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -50,6 +51,7 @@ function NavigationTabBar({selectedTab, shouldShowFloatingButtons = true}: Navig
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['ExpensifyAppIcon', 'Home']);
 
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {paddingTop, paddingBottom} = useSafeAreaPaddings(true);
 
     const StyleUtils = useStyleUtils();
 
@@ -80,7 +82,7 @@ function NavigationTabBar({selectedTab, shouldShowFloatingButtons = true}: Navig
                 <Hoverable shouldUseNativeHoverEvents>
                     {(isSidebarHovered) => (
                         <View
-                            style={styles.leftNavigationTabBarContainer}
+                            style={[styles.leftNavigationTabBarContainer, styles.navigationTabBarSafeAreaInsets(paddingTop, paddingBottom)]}
                             testID="NavigationTabBar"
                         >
                             <View style={styles.flex1}>
@@ -103,6 +105,7 @@ function NavigationTabBar({selectedTab, shouldShowFloatingButtons = true}: Navig
                                     onPress={navigateToNewDotHome}
                                     role={CONST.ROLE.TAB}
                                     accessibilityLabel={translate('common.home')}
+                                    wrapperStyle={styles.leftNavigationTabBarItem}
                                     style={({hovered}) => [styles.leftNavigationTabBarItem, hovered && styles.navigationTabBarItemHovered]}
                                     sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.HOME}
                                 >
@@ -139,7 +142,7 @@ function NavigationTabBar({selectedTab, shouldShowFloatingButtons = true}: Navig
                                     onPress={navigateToSettings}
                                 />
                             </View>
-                            <View style={styles.leftNavigationTabBarFAB}>
+                            <View style={[styles.leftNavigationTabBarFAB, styles.leftNavigationTabBarFABPosition(paddingBottom)]}>
                                 <SupportalSwitcherButton isSidebarHovered={isSidebarHovered} />
                                 <NavigationTabBarFloatingActionButton />
                             </View>

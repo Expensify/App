@@ -23,8 +23,8 @@ function Backdrop({
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const Entering = new Keyframe(getModalInAnimation('fadeIn')).duration(animationInTiming);
-    const Exiting = new Keyframe(getModalOutAnimation('fadeOut')).duration(animationOutTiming);
+    const Entering = new Keyframe(getModalInAnimation('fadeIn', backdropOpacity)).duration(animationInTiming);
+    const Exiting = new Keyframe(getModalOutAnimation('fadeOut', backdropOpacity)).duration(animationOutTiming);
 
     const BackdropOverlay = (
         <Animated.View
@@ -40,8 +40,9 @@ function Backdrop({
         return (
             <PressableWithoutFeedback
                 accessible
-                accessibilityLabel={translate('modal.backdropLabel')}
-                onPressIn={onBackdropPress}
+                role={CONST.ROLE.BUTTON}
+                accessibilityLabel={translate('common.dismiss')}
+                onPress={onBackdropPress}
                 sentryLabel={CONST.SENTRY_LABEL.REANIMATED_MODAL.BACKDROP}
             >
                 {BackdropOverlay}

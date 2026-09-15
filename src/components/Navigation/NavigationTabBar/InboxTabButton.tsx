@@ -178,6 +178,7 @@ function WideInboxTabButton({selectedTab, statusIndicatorColor, accessibilityLab
             role={CONST.ROLE.TAB}
             accessibilityLabel={accessibilityLabel}
             accessibilityState={{selected: selectedTab === NAVIGATION_TABS.INBOX}}
+            wrapperStyle={styles.leftNavigationTabBarItem}
             style={({hovered}) => [styles.leftNavigationTabBarItem, hovered && styles.navigationTabBarItemHovered]}
             sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.INBOX}
         >

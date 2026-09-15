@@ -1,17 +1,19 @@
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 
-import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import type {OverlayStylesParams} from '@styles/index';
-import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 
+import {useIsFocused} from '@react-navigation/native';
 import {useCardAnimation} from '@react-navigation/stack';
 import React from 'react';
 // eslint-disable-next-line no-restricted-imports
-import {Animated, View} from 'react-native';
+import {Animated} from 'react-native';
+
+// Navigation supplies React Native Animated values, not Reanimated shared values.
+const AnimatedDismissal = Animated.createAnimatedComponent(PressableWithoutFeedback);
 
 type BaseOverlayProps = {
     /** Callback to close the modal */
@@ -25,44 +27,52 @@ type BaseOverlayProps = {
 
     /** Overlay position from the right edge of the container */
     positionRightValue?: number | Animated.Value | Animated.AnimatedAddition<number>;
+
+    /** Pointer dismissal stops at this right inset, independently of the visual scrim. */
+    dismissalPositionRight?: number | Animated.Value | Animated.AnimatedAddition<number>;
 };
 
-// The default value of positionLeftValue is equal to -2 * variables.sideBarWidth, because we need to stretch the overlay to cover the sidebar and the translate animation distance.
-function BaseOverlay({onPress, progress, positionLeftValue = -2 * variables.sideBarWidth, positionRightValue = 0}: BaseOverlayProps) {
+// Visual dimming and pointer dismissal are separate. Screen readers dismiss through the active panel's controls.
+function BaseOverlay({onPress, progress, positionLeftValue = 0, positionRightValue = 0, dismissalPositionRight}: BaseOverlayProps) {
     const styles = useThemeStyles();
     const {current} = useCardAnimation();
-    const {translate} = useLocalize();
+    const isFocused = useIsFocused();
+    const left = typeof positionLeftValue === 'number' ? Math.max(0, positionLeftValue) : positionLeftValue;
 
     return (
-        <Animated.View
-            id="BaseOverlay"
-            aria-hidden
-            style={[styles.pFixed, styles.t0, styles.b0, styles.overlayBackground, styles.overlayStyles({progress: progress ?? current.progress, positionLeftValue, positionRightValue})]}
-        >
-            <View style={[styles.flex1, styles.flexColumn]}>
-                {/* In the latest Electron version buttons can't be both clickable and draggable.
-             That's why we added this workaround. Because of two Pressable components on the desktop app
-             we have 30px draggable ba at the top and the rest of the dimmed area is clickable. On other devices,
-             everything behaves normally like one big pressable */}
-                <PressableWithoutFeedback
-                    style={[styles.draggableTopBar, styles.boxShadowNone, styles.cursorAuto]}
-                    onPress={onPress}
-                    accessibilityLabel={translate('common.close')}
-                    role={CONST.ROLE.BUTTON}
-                    id={CONST.OVERLAY.TOP_BUTTON_NATIVE_ID}
-                    tabIndex={-1}
-                />
-                <PressableWithoutFeedback
-                    style={[styles.flex1, styles.boxShadowNone, styles.cursorAuto]}
-                    onPress={onPress}
-                    accessibilityLabel={translate('common.close')}
-                    role={CONST.ROLE.BUTTON}
-                    noDragArea
+        <>
+            <Animated.View
+                id="BaseOverlay"
+                testID="rhp-overlay"
+                pointerEvents="none"
+                aria-hidden
+                accessible={false}
+                accessibilityElementsHidden
+                importantForAccessibility="no-hide-descendants"
+                style={[
+                    styles.pAbsolute,
+                    styles.t0,
+                    styles.b0,
+                    styles.overlayBackground,
+                    styles.overlayStyles({progress: progress ?? current.progress, positionLeftValue: left, positionRightValue}),
+                ]}
+            />
+            {!!onPress && isFocused && (
+                <AnimatedDismissal
+                    testID="rhp-overlay-dismiss"
                     id={CONST.OVERLAY.BOTTOM_BUTTON_NATIVE_ID}
+                    onPress={onPress}
+                    aria-hidden
+                    accessible={false}
+                    accessibilityElementsHidden
+                    importantForAccessibility="no-hide-descendants"
+                    shouldUseAutoHitSlop={false}
                     tabIndex={-1}
+                    style={[styles.pAbsolute, styles.t0, styles.b0, styles.boxShadowNone, styles.cursorAuto, {left, right: dismissalPositionRight ?? positionRightValue}]}
+                    sentryLabel="RHPOverlay-Dismiss"
                 />
-            </View>
-        </Animated.View>
+            )}
+        </>
     );
 }
 
