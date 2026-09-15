@@ -16,6 +16,7 @@ import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 
 import type {ListRenderItemInfo} from '@shopify/flash-list';
 import type {OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 
 import React from 'react';
 
@@ -39,6 +40,8 @@ type WorkspaceMemberRowData = TableData & {
     invitedSecondaryLogin: string;
     action: () => void;
     dismissError: () => void;
+    canEditRole?: boolean;
+    onChangeRole?: (role: ValueOf<typeof CONST.POLICY.ROLE>) => void;
 };
 
 type WorkspaceMembersTableProps = {
@@ -336,6 +339,7 @@ export default function WorkspaceMembersTable({
                 shouldUseNarrowTableLayout={shouldUseNarrowTableLayout}
                 shouldShowCustomField1Column={shouldShowCustomField1Column}
                 shouldShowCustomField2Column={shouldShowCustomField2Column}
+                policy={policy}
             />
         );
     };

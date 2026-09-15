@@ -40,8 +40,12 @@ type WorkspaceTagTableRowData = TableData & {
     isLocked: boolean;
     isSwitchDisabled?: boolean;
     showEnabledSwitch: boolean;
+    /** Only single-level tags opt in. */
+    canEditName?: boolean;
     action: () => void;
     onToggleEnabled?: (enabled: boolean) => void;
+    /** Provided only when `canEditName` is supported. */
+    onRenameName?: (newName: string) => void;
     onClose: () => void;
 };
 

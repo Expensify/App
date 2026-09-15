@@ -13,10 +13,9 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {updateExpensifyCardTitle} from '@libs/actions/Card';
-import {filterInactiveCardsForWorkspace} from '@libs/CardUtils';
-import {addErrorMessage} from '@libs/ErrorUtils';
+import {filterInactiveCardsForWorkspace, getCardNameError, getCardNameErrorMessage} from '@libs/CardUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import {getFieldRequiredErrors, isValidInputLength} from '@libs/ValidationUtils';
+import StringUtils from '@libs/StringUtils';
 
 import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
@@ -50,18 +49,18 @@ function DynamicExpensifyCardNamePage({route}: DynamicExpensifyCardNamePageProps
     }, [backPath]);
 
     const submit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.EDIT_EXPENSIFY_CARD_NAME_FORM>) => {
-        updateExpensifyCardTitle(defaultFundID, Number(cardID), values[INPUT_IDS.NAME], card?.nameValuePairs?.cardTitle);
+        updateExpensifyCardTitle(defaultFundID, Number(cardID), StringUtils.sanitizeName(values[INPUT_IDS.NAME]), card?.nameValuePairs?.cardTitle);
         goBack();
     };
 
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.EDIT_EXPENSIFY_CARD_NAME_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.EDIT_EXPENSIFY_CARD_NAME_FORM> => {
-        const errors = getFieldRequiredErrors(values, [INPUT_IDS.NAME], translate);
-        if (values.name) {
-            const {isValid, byteLength} = isValidInputLength(values.name, CONST.STANDARD_LENGTH_LIMIT);
-            if (!isValid) {
-                addErrorMessage(errors, INPUT_IDS.NAME, translate('common.error.characterLimitExceedCounter', byteLength, CONST.STANDARD_LENGTH_LIMIT));
-            }
+        const errors: FormInputErrors<typeof ONYXKEYS.FORMS.EDIT_EXPENSIFY_CARD_NAME_FORM> = {};
+        const error = getCardNameError(values.name);
+
+        if (error) {
+            errors[INPUT_IDS.NAME] = getCardNameErrorMessage(translate, error, values.name);
         }
+
         return errors;
     };
 
