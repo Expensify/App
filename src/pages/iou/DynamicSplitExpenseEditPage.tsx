@@ -3,6 +3,7 @@ import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import HighlightableMenuItemWithTopDescription from '@components/HighlightableMenuItemWithTopDescription';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -292,13 +293,9 @@ function DynamicSplitExpenseEditPage({route}: DynamicSplitExpenseEditPageProps) 
 
     const distanceRequestFields = isDistance ? (
         <>
-            <MenuItemWithTopDescription
-                description={translate('common.distance')}
-                title={distanceToDisplay}
-                interactive
-                shouldShowRightIcon
-                titleStyle={styles.flex1}
-                style={[styles.moneyRequestMenuItem]}
+            <MenuItemField
+                name={translate('common.distance')}
+                value={distanceToDisplay}
                 onPress={() => {
                     if (isOdometerDistance) {
                         Navigation.navigate(
@@ -497,12 +494,11 @@ function DynamicSplitExpenseEditPage({route}: DynamicSplitExpenseEditPageProps) 
                                     />
                                 );
                             })}
-                        <MenuItemWithTopDescription
-                            shouldShowRightIcon
+                        <MenuItemField
                             key={translate('common.date')}
-                            description={translate('common.date')}
-                            title={splitExpenseDraftTransactionDetails?.created}
-                            numberOfLinesTitle={2}
+                            name={translate('common.date')}
+                            value={splitExpenseDraftTransactionDetails?.created}
+                            numberOfLinesValue={2}
                             onPress={() => {
                                 Navigation.navigate(
                                     createDynamicRoute(
@@ -510,16 +506,13 @@ function DynamicSplitExpenseEditPage({route}: DynamicSplitExpenseEditPageProps) 
                                     ),
                                 );
                             }}
-                            style={[styles.moneyRequestMenuItem]}
-                            titleStyle={styles.flex1}
                         />
                         {shouldShowTax && (
-                            <MenuItemWithTopDescription
-                                shouldShowRightIcon
+                            <MenuItemField
                                 key={translate('common.tax')}
-                                description={taxRatesDescription ?? translate('common.tax')}
-                                title={taxRateTitle}
-                                numberOfLinesTitle={2}
+                                name={taxRatesDescription ?? translate('common.tax')}
+                                value={taxRateTitle}
+                                numberOfLinesValue={2}
                                 onPress={() => {
                                     if (shouldShowTaxDisabledAlert) {
                                         showTaxDisabledAlert();
@@ -531,8 +524,6 @@ function DynamicSplitExpenseEditPage({route}: DynamicSplitExpenseEditPageProps) 
                                         ),
                                     );
                                 }}
-                                style={[styles.moneyRequestMenuItem]}
-                                titleStyle={styles.flex1}
                             />
                         )}
                         {shouldShowReimbursable && (
@@ -549,14 +540,11 @@ function DynamicSplitExpenseEditPage({route}: DynamicSplitExpenseEditPageProps) 
                                 onToggle={(value) => updateSplitExpenseDraftField({billable: value})}
                             />
                         )}
-                        <MenuItemWithTopDescription
+                        <MenuItemField
                             key={translate('common.report')}
-                            description={translate('common.report')}
-                            title={reportName}
-                            numberOfLinesTitle={2}
-                            style={[styles.moneyRequestMenuItem]}
-                            titleStyle={styles.flex1}
-                            interactive={false}
+                            name={translate('common.report')}
+                            value={reportName}
+                            numberOfLinesValue={2}
                         />
                     </ScrollView>
                     <FixedFooter style={styles.mtAuto}>
