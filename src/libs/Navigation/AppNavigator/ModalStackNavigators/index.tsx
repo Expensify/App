@@ -321,8 +321,8 @@ const PolicyCopySettingsModalStackNavigator = createModalStackNavigator<PolicyCo
 });
 
 const MergeATSImportSettingsModalStackNavigator = createModalStackNavigator<RecruitingMergeImportSettingsNavigatorParamList>({
-    [SCREENS.RECRUITING_MERGE_IMPORT_SETTINGS.ROOT]: () => require<ReactComponentModule>('../../../../pages/workspace/recruiting/merge/MergeATSFiltersPage').default,
-    [SCREENS.RECRUITING_MERGE_IMPORT_SETTINGS.FILTER]: () => require<ReactComponentModule>('../../../../pages/workspace/recruiting/merge/MergeATSFilterSelectionPage').default,
+    [SCREENS.RECRUITING_MERGE_IMPORT_SETTINGS.ROOT]: () => require<ReactComponentModule>('../../../../pages/workspace/recruiting/merge/filters/MergeATSFiltersPage').default,
+    [SCREENS.RECRUITING_MERGE_IMPORT_SETTINGS.FILTER]: () => require<ReactComponentModule>('../../../../pages/workspace/recruiting/merge/filters/MergeATSFilterSelectionPage').default,
 });
 
 const TaskModalStackNavigator = createModalStackNavigator<TaskDetailsNavigatorParamList>({

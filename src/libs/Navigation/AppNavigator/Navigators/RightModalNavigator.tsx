@@ -35,7 +35,7 @@ import type {AuthScreensParamList, RightModalNavigatorParamList} from '@navigati
 
 import {PINContextProvider} from '@pages/MissingPersonalDetails/PINContext';
 import SearchAdvancedFiltersProvider from '@pages/Search/SearchAdvancedFiltersProvider';
-import MergeATSFiltersDraftProvider from '@pages/workspace/recruiting/merge/MergeATSFiltersDraftContext';
+import MergeATSFiltersDraftProvider from '@pages/workspace/recruiting/merge/filters/MergeATSFiltersDraftContext';
 
 import variables from '@styles/variables';
 
