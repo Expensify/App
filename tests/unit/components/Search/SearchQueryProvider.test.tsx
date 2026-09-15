@@ -1,4 +1,4 @@
-import {act, renderHook} from '@testing-library/react-native';
+import {renderHook} from '@testing-library/react-native';
 
 import {SearchQueryActionsContext, SearchQueryContext} from '@components/Search/SearchContextDefinitions';
 import SearchQueryProvider from '@components/Search/SearchQueryProvider';
@@ -29,7 +29,7 @@ const RECONCILIATION_QUERY_WITHOUT_WITHDRAWN =
 // The default query string of the "Reconciliation" suggested search.
 const RECONCILIATION_QUERY = `${RECONCILIATION_QUERY_WITHOUT_WITHDRAWN} ${CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWN}:${CONST.SEARCH.DATE_PRESETS.LAST_MONTH}`;
 
-const mockGetDeepestFocusedScreen = jest.fn<{name: string; params: {q?: string; rawQuery?: string}}, []>();
+const mockGetDeepestFocusedScreen = jest.fn<{name: string; params: {q?: string; rawQuery?: string; searchKey?: string}}, []>();
 const mockUseOnyx = jest.fn<[unknown], [key: string]>();
 
 jest.mock('@libs/Navigation/Navigation', () => ({
@@ -59,8 +59,13 @@ jest.mock('@libs/actions/Search', () => ({
     openSearchCategoryFiltersPage: jest.fn(),
 }));
 
-function mockNavigationQuery(query: string | undefined, rawQuery?: string) {
-    mockGetDeepestFocusedScreen.mockReturnValue({name: SCREENS.SEARCH.ROOT, params: {q: query, rawQuery}});
+function mockNavigationQuery(query: string | undefined, {rawQuery, searchKey}: {rawQuery?: string; searchKey?: string} = {}) {
+    mockGetDeepestFocusedScreen.mockReturnValue({name: SCREENS.SEARCH.ROOT, params: {q: query, rawQuery, searchKey}});
+}
+
+/** Focuses a screen on top of the search screen, the way an RHP does. */
+function mockNavigationBlurred() {
+    mockGetDeepestFocusedScreen.mockReturnValue({name: SCREENS.SEARCH.ADVANCED_FILTERS_RHP, params: {}});
 }
 
 function mockOnyx(data: Record<string, unknown> = {}) {
@@ -209,188 +214,139 @@ describe('SearchQueryProvider', () => {
         });
     });
 
-    describe('resetting on hash change', () => {
+    describe('searchKey route param', () => {
         const savedSearches = {[SAVED_SEARCH_ID]: {query: `type:${CONST.SEARCH.DATA_TYPES.EXPENSE} merchant:Amazon`, name: 'My search'}};
 
-        it('keeps the search key when the new query still has the default filters and same type', () => {
-            mockNavigationQuery(RECONCILIATION_QUERY);
+        it('wins over the key derived from the query', () => {
+            // The query is the "Reconciliation" default query, so it would otherwise resolve to that key.
+            mockNavigationQuery(RECONCILIATION_QUERY, {searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES});
+
+            const {result} = renderProvider();
+
+            expect(result.current.currentSearchKey).toBe(CONST.SEARCH.SEARCH_KEYS.EXPENSES);
+        });
+
+        it('survives a query change that keeps the default filters and type', () => {
+            mockNavigationQuery(RECONCILIATION_QUERY, {searchKey: CONST.SEARCH.SEARCH_KEYS.RECONCILIATION});
             const {result, rerender} = renderProvider();
             expect(result.current.currentSearchKey).toBe(CONST.SEARCH.SEARCH_KEYS.RECONCILIATION);
 
-            // Adding a filter changes the hash but keeps all the default filters + type, so the key must be preserved.
-            mockNavigationQuery(`${RECONCILIATION_QUERY} merchant:Amazon`);
+            // Tweaking a filter changes `q` but not `searchKey`, and the query still has all the default
+            // filters + type, so the key is preserved even though the query no longer matches the search.
+            mockNavigationQuery(`${RECONCILIATION_QUERY} merchant:Amazon`, {searchKey: CONST.SEARCH.SEARCH_KEYS.RECONCILIATION});
             rerender(undefined);
 
             expect(result.current.currentSearchKey).toBe(CONST.SEARCH.SEARCH_KEYS.RECONCILIATION);
         });
 
-        it('resets the search key when the new query drops a default filter', () => {
+        it('is ignored when the query drops one of the default filters', () => {
+            mockNavigationQuery(RECONCILIATION_QUERY_WITHOUT_WITHDRAWN, {searchKey: CONST.SEARCH.SEARCH_KEYS.RECONCILIATION});
+
+            const {result} = renderProvider();
+
+            expect(result.current.currentSearchKey).toBe(CONST.SEARCH.SEARCH_KEYS.EXPENSES);
+        });
+
+        it('is ignored when the query type differs from the default query type', () => {
+            const query = RECONCILIATION_QUERY.replace(`type:${CONST.SEARCH.DATA_TYPES.EXPENSE}`, `type:${CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT}`);
+            mockNavigationQuery(query, {searchKey: CONST.SEARCH.SEARCH_KEYS.RECONCILIATION});
+
+            const {result} = renderProvider();
+
+            expect(result.current.currentSearchKey).toBe(CONST.SEARCH.SEARCH_KEYS.REPORTS);
+        });
+
+        it('is ignored when it holds something that is not a search key', () => {
+            mockNavigationQuery(RECONCILIATION_QUERY, {searchKey: 'notASearchKey'});
+
+            const {result} = renderProvider();
+
+            expect(result.current.currentSearchKey).toBe(CONST.SEARCH.SEARCH_KEYS.RECONCILIATION);
+        });
+
+        it('keeps a saved search key whatever the query is, since saved searches have no default filters', () => {
+            mockOnyx({[ONYXKEYS.SAVED_SEARCHES]: savedSearches});
+            mockNavigationQuery(`type:${CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT} category:Food`, {searchKey: savedSearchIDToSearchKey(SAVED_SEARCH_ID)});
+
+            const {result} = renderProvider();
+
+            expect(result.current.currentSearchKey).toBe(savedSearchIDToSearchKey(SAVED_SEARCH_ID));
+        });
+
+        it('falls back to the key derived from the query when the param is absent', () => {
             mockNavigationQuery(RECONCILIATION_QUERY);
+
+            const {result} = renderProvider();
+
+            expect(result.current.currentSearchKey).toBe(CONST.SEARCH.SEARCH_KEYS.RECONCILIATION);
+        });
+
+        it('exposes the default query of the search key it resolved to', () => {
+            mockNavigationQuery(`${RECONCILIATION_QUERY} merchant:Amazon`, {searchKey: CONST.SEARCH.SEARCH_KEYS.RECONCILIATION});
+
+            const {result} = renderProvider();
+
+            expect(result.current.currentDefaultSearchQueryJSON?.hash).toBe(buildSearchQueryJSON(RECONCILIATION_QUERY)?.hash);
+        });
+
+        it('keeps the last value while another screen is focused on top of search', () => {
+            mockNavigationQuery(`${RECONCILIATION_QUERY} merchant:Amazon`, {searchKey: CONST.SEARCH.SEARCH_KEYS.RECONCILIATION});
             const {result, rerender} = renderProvider();
             expect(result.current.currentSearchKey).toBe(CONST.SEARCH.SEARCH_KEYS.RECONCILIATION);
 
+            // An RHP opening over search must not make the key fall back to the derived one, the same way it
+            // doesn't drop the query.
+            mockNavigationBlurred();
+            rerender(undefined);
+
+            expect(result.current.currentSearchKey).toBe(CONST.SEARCH.SEARCH_KEYS.RECONCILIATION);
+        });
+
+        it('derives the generic key after a filter tweak when the route carries no param', () => {
+            // With nothing on the route, the tweaked query no longer matches the search it came from, so the key
+            // falls back to the generic one - this is why navigation sites pass `searchKey` explicitly.
+            mockNavigationQuery(`${RECONCILIATION_QUERY} merchant:Amazon`);
+
+            const {result} = renderProvider();
+
+            expect(result.current.currentSearchKey).toBe(CONST.SEARCH.SEARCH_KEYS.EXPENSES);
+        });
+
+        it('distinguishes a search screen without the param from a screen that is not search', () => {
+            mockNavigationQuery(RECONCILIATION_QUERY, {searchKey: CONST.SEARCH.SEARCH_KEYS.RECONCILIATION});
+            const {result, rerender} = renderProvider();
+            expect(result.current.currentSearchKey).toBe(CONST.SEARCH.SEARCH_KEYS.RECONCILIATION);
+
+            // Navigating to a search that carries no key must drop the previous one rather than keep it.
             mockNavigationQuery(RECONCILIATION_QUERY_WITHOUT_WITHDRAWN);
             rerender(undefined);
 
             expect(result.current.currentSearchKey).toBe(CONST.SEARCH.SEARCH_KEYS.EXPENSES);
-        });
-
-        it('resets the search key when the query type changes', () => {
-            mockNavigationQuery(RECONCILIATION_QUERY);
-            const {result, rerender} = renderProvider();
-            expect(result.current.currentSearchKey).toBe(CONST.SEARCH.SEARCH_KEYS.RECONCILIATION);
-
-            mockNavigationQuery(RECONCILIATION_QUERY.replace(`type:${CONST.SEARCH.DATA_TYPES.EXPENSE}`, `type:${CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT}`));
-            rerender(undefined);
-
-            expect(result.current.currentSearchKey).toBe(CONST.SEARCH.SEARCH_KEYS.REPORTS);
-        });
-
-        it('keeps a saved search key when the query changes since there are no default filters to enforce', () => {
-            mockOnyx({[ONYXKEYS.SAVED_SEARCHES]: savedSearches});
-            mockNavigationQuery(`type:${CONST.SEARCH.DATA_TYPES.EXPENSE} merchant:Amazon`);
-            const {result, rerender} = renderProvider();
-            expect(result.current.currentSearchKey).toBe(savedSearchIDToSearchKey(SAVED_SEARCH_ID));
-
-            // The saved search query filters (and even its type) are not enforced, so the key survives the change.
-            mockNavigationQuery(`type:${CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT} category:Food`);
-            rerender(undefined);
-
-            expect(result.current.currentSearchKey).toBe(savedSearchIDToSearchKey(SAVED_SEARCH_ID));
-        });
-
-        it('recomputes the search key via the resetSearchKey action', () => {
-            mockNavigationQuery(`type:${CONST.SEARCH.DATA_TYPES.EXPENSE} merchant:Amazon`);
-            const {result} = renderProvider();
-            expect(result.current.currentSearchKey).toBe(CONST.SEARCH.SEARCH_KEYS.EXPENSES);
-
-            act(() => {
-                result.current.setCurrentSearchKey(CONST.SEARCH.SEARCH_KEYS.REPORTS);
-            });
-            expect(result.current.currentSearchKey).toBe(CONST.SEARCH.SEARCH_KEYS.REPORTS);
-
-            act(() => {
-                result.current.resetSearchKey(result.current.currentSearchQueryJSON);
-            });
-            expect(result.current.currentSearchKey).toBe(CONST.SEARCH.SEARCH_KEYS.EXPENSES);
-        });
-
-        it('always re-resolves the key, even when the target query hash is unchanged', () => {
-            const OTHER_SAVED_SEARCH_ID = '200';
-            const sharedQuery = `type:${CONST.SEARCH.DATA_TYPES.EXPENSE} merchant:Amazon`;
-            // Two saved searches with the exact same query. getInitialCurrentSearchKey resolves to the first
-            // one (id 100), but the current key is the second (id 200).
-            mockOnyx({
-                [ONYXKEYS.SAVED_SEARCHES]: {
-                    [SAVED_SEARCH_ID]: {query: sharedQuery, name: 'First'},
-                    [OTHER_SAVED_SEARCH_ID]: {query: sharedQuery, name: 'Second'},
-                },
-            });
-            mockNavigationQuery(sharedQuery);
-            const {result} = renderProvider();
-
-            act(() => {
-                result.current.setCurrentSearchKey(savedSearchIDToSearchKey(OTHER_SAVED_SEARCH_ID));
-            });
-            expect(result.current.currentSearchKey).toBe(savedSearchIDToSearchKey(OTHER_SAVED_SEARCH_ID));
-
-            // resetSearchKey doesn't special case a target query that resolves to the current search, so it
-            // switches to whatever getInitialCurrentSearchKey picks (the first saved search, id 100).
-            act(() => {
-                result.current.resetSearchKey(buildSearchQueryJSON(sharedQuery));
-            });
-            expect(result.current.currentSearchKey).toBe(savedSearchIDToSearchKey(SAVED_SEARCH_ID));
         });
     });
 
-    describe('pending search key', () => {
-        it('does not apply a pending setCurrentSearchKey until the query hash changes', () => {
-            mockNavigationQuery(`type:${CONST.SEARCH.DATA_TYPES.EXPENSE} merchant:Amazon`);
-            const {result, rerender} = renderProvider();
-            expect(result.current.currentSearchKey).toBe(CONST.SEARCH.SEARCH_KEYS.EXPENSES);
-
-            // The target query has a different hash than the current one, so the key must not change yet.
-            act(() => {
-                result.current.setCurrentSearchKey(CONST.SEARCH.SEARCH_KEYS.REPORTS, `type:${CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT} merchant:Amazon`);
-            });
-            expect(result.current.currentSearchKey).toBe(CONST.SEARCH.SEARCH_KEYS.EXPENSES);
-
-            // Once the query changes, the pending key is applied alongside the new query.
-            mockNavigationQuery(`type:${CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT} merchant:Amazon`);
-            rerender(undefined);
-            expect(result.current.currentSearchKey).toBe(CONST.SEARCH.SEARCH_KEYS.REPORTS);
-        });
-
-        it('applies setCurrentSearchKey immediately when no target query is passed', () => {
+    describe('getSearchKeyForQuery', () => {
+        it('resolves the key of a query other than the current one', () => {
             mockNavigationQuery(`type:${CONST.SEARCH.DATA_TYPES.EXPENSE} merchant:Amazon`);
             const {result} = renderProvider();
-            expect(result.current.currentSearchKey).toBe(CONST.SEARCH.SEARCH_KEYS.EXPENSES);
 
-            act(() => {
-                result.current.setCurrentSearchKey(CONST.SEARCH.SEARCH_KEYS.REPORTS);
-            });
-            expect(result.current.currentSearchKey).toBe(CONST.SEARCH.SEARCH_KEYS.REPORTS);
+            expect(result.current.getSearchKeyForQuery(buildSearchQueryJSON(RECONCILIATION_QUERY))).toBe(CONST.SEARCH.SEARCH_KEYS.RECONCILIATION);
+            expect(result.current.getSearchKeyForQuery(buildSearchQueryJSON(`type:${CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT} merchant:Amazon`))).toBe(CONST.SEARCH.SEARCH_KEYS.REPORTS);
         });
 
-        it('applies setCurrentSearchKey immediately when the target query has the current hash', () => {
-            const query = `type:${CONST.SEARCH.DATA_TYPES.EXPENSE} merchant:Amazon`;
-            mockNavigationQuery(query);
-            const {result} = renderProvider();
-            expect(result.current.currentSearchKey).toBe(CONST.SEARCH.SEARCH_KEYS.EXPENSES);
-
-            // The query isn't changing, so there is nothing to wait for and the key applies right away.
-            act(() => {
-                result.current.setCurrentSearchKey(CONST.SEARCH.SEARCH_KEYS.REPORTS, query);
-            });
-            expect(result.current.currentSearchKey).toBe(CONST.SEARCH.SEARCH_KEYS.REPORTS);
-        });
-
-        it('pending key wins over the recompute-on-hash-change logic', () => {
+        it('resolves a saved search by its query', () => {
+            mockOnyx({[ONYXKEYS.SAVED_SEARCHES]: {[SAVED_SEARCH_ID]: {query: `type:${CONST.SEARCH.DATA_TYPES.EXPENSE} merchant:Amazon`, name: 'My search'}}});
             mockNavigationQuery(RECONCILIATION_QUERY);
-            const {result, rerender} = renderProvider();
-            expect(result.current.currentSearchKey).toBe(CONST.SEARCH.SEARCH_KEYS.RECONCILIATION);
-
-            // Set a pending key, then change the query so a default filter is dropped.
-            // Without the pending logic the key would reset to EXPENSES, but the pending key must win.
-            act(() => {
-                result.current.setCurrentSearchKey(CONST.SEARCH.SEARCH_KEYS.REPORTS, RECONCILIATION_QUERY_WITHOUT_WITHDRAWN);
-            });
-            mockNavigationQuery(RECONCILIATION_QUERY_WITHOUT_WITHDRAWN);
-            rerender(undefined);
-            expect(result.current.currentSearchKey).toBe(CONST.SEARCH.SEARCH_KEYS.REPORTS);
-        });
-
-        it('does not apply a pending resetSearchKey until the query hash changes', () => {
-            mockNavigationQuery(`type:${CONST.SEARCH.DATA_TYPES.EXPENSE} merchant:Amazon`);
-            const {result, rerender} = renderProvider();
-            expect(result.current.currentSearchKey).toBe(CONST.SEARCH.SEARCH_KEYS.EXPENSES);
-
-            // The reset targets a different query, so nothing changes until the hash catches up.
-            const nextQueryJSON = buildSearchQueryJSON(`type:${CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT} merchant:Amazon`);
-            act(() => {
-                result.current.resetSearchKey(nextQueryJSON);
-            });
-            expect(result.current.currentSearchKey).toBe(CONST.SEARCH.SEARCH_KEYS.EXPENSES);
-
-            mockNavigationQuery(`type:${CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT} merchant:Amazon`);
-            rerender(undefined);
-            expect(result.current.currentSearchKey).toBe(CONST.SEARCH.SEARCH_KEYS.REPORTS);
-        });
-
-        it('applies resetSearchKey immediately when the target query matches the current hash', () => {
-            mockNavigationQuery(`type:${CONST.SEARCH.DATA_TYPES.EXPENSE} merchant:Amazon`);
             const {result} = renderProvider();
 
-            act(() => {
-                result.current.setCurrentSearchKey(CONST.SEARCH.SEARCH_KEYS.REPORTS);
-            });
-            expect(result.current.currentSearchKey).toBe(CONST.SEARCH.SEARCH_KEYS.REPORTS);
+            expect(result.current.getSearchKeyForQuery(buildSearchQueryJSON(`type:${CONST.SEARCH.DATA_TYPES.EXPENSE} merchant:Amazon`))).toBe(savedSearchIDToSearchKey(SAVED_SEARCH_ID));
+        });
 
-            // The queryJSON hash equals the current hash, so it applies right away instead of pending.
-            act(() => {
-                result.current.resetSearchKey(result.current.currentSearchQueryJSON);
-            });
-            expect(result.current.currentSearchKey).toBe(CONST.SEARCH.SEARCH_KEYS.EXPENSES);
+        it('is undefined when the query type has no generic key and nothing matches', () => {
+            mockNavigationQuery(RECONCILIATION_QUERY);
+            const {result} = renderProvider();
+
+            expect(result.current.getSearchKeyForQuery(buildSearchQueryJSON(`type:${CONST.SEARCH.DATA_TYPES.INVOICE}`))).toBeUndefined();
         });
     });
 });

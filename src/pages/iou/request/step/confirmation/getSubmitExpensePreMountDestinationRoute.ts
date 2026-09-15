@@ -104,8 +104,10 @@ function getSubmitExpensePreMountDestinationRoute({
     }
 
     if (shouldPreInsertSearch) {
+        const searchKey = iouType === CONST.IOU.TYPE.INVOICE ? undefined : CONST.SEARCH.SEARCH_KEYS.EXPENSES;
         return ROUTES.SEARCH_ROOT.getRoute({
             query: buildCannedSearchQuery({type: searchType}),
+            searchKey,
         });
     }
 

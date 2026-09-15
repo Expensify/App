@@ -626,6 +626,7 @@ function WalletPage() {
                                     type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                                     cardID: String(paymentMethod.methodID),
                                 }),
+                                searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES,
                             }),
                         );
                     });
