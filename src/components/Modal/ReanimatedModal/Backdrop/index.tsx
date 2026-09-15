@@ -40,8 +40,9 @@ function Backdrop({
         return (
             <PressableWithoutFeedback
                 accessible
-                accessibilityLabel={translate('modal.backdropLabel')}
-                onPressIn={onBackdropPress}
+                role={CONST.ROLE.BUTTON}
+                accessibilityLabel={translate('common.dismiss')}
+                onPress={onBackdropPress}
                 sentryLabel={CONST.SENTRY_LABEL.REANIMATED_MODAL.BACKDROP}
             >
                 {BackdropOverlay}

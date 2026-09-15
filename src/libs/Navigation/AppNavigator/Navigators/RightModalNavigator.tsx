@@ -199,8 +199,8 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
     // When the wide rhp page is opened as first one, it will be animated with the entire RightModalNavigator.
     const animationEnabledOnSearchReport = superWideRHPRouteKeys.length > 0 || wideRHPRouteKeys.length > 0 || isSmallScreenWidth;
 
-    // When the Concierge/Help Side Panel is open on a wide (extra large) layout, it shifts the whole RHP
-    // left by its width via paddingRight (see useModalCardStyleInterpolator + SidePanelContextProvider).
+    // When the Concierge/Help Side Panel is open on a wide (extra large) layout, the panel frame shifts
+    // left by its width (see useRHPFrameStyle + SidePanelContextProvider).
     // The super wide RHP already spans almost the full window, so without shrinking it by the same amount
     // its left edge would be pushed off-screen once the Side Panel opens. Subtract the Side Panel offset
     // from the super wide width only (progress === 2) so the sheet's left edge stays put while the Side
@@ -223,7 +223,7 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
     }
     const animatedWidthStyle = {width: shouldUseNarrowLayout ? '100%' : getRHPLayoutValue(rhpWidth, animatedWidth)} as const;
 
-    const overlayPositionLeft = useMemo(() => -1 * calculateSuperWideRHPWidth(windowWidth), [windowWidth]);
+    const dismissalPositionRight = getRHPLayoutValue(rhpWidth, Animated.add<number>(animatedWidth, sidePanelOffset.current));
 
     const screenListeners = useMemo(
         () => ({
@@ -288,8 +288,7 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
             <NoDropZone>
                 {!shouldUseNarrowLayout && (
                     <Overlay
-                        positionLeftValue={overlayPositionLeft}
-                        dismissalPositionRight={rhpWidth}
+                        dismissalPositionRight={dismissalPositionRight}
                         onPress={handleOverlayPress}
                     />
                 )}

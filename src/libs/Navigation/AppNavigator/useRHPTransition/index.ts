@@ -1,13 +1,15 @@
-// Web keeps its existing card transition; native separates the host from the moving panel.
+// Wide RHP scrims stay stationary while the panel follows the root stack's transition progress.
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSidePanelState from '@hooks/useSidePanelState';
 
-import useModalCardStyleInterpolator from '@libs/Navigation/AppNavigator/useModalCardStyleInterpolator';
+import useModalCardStyleInterpolator, {getModalCardMotionStyle} from '@libs/Navigation/AppNavigator/useModalCardStyleInterpolator';
+import getRHPLayoutValue from '@libs/Navigation/helpers/getRHPLayoutValue';
 
 import CONST from '@src/CONST';
 
 import type {StackCardInterpolationProps} from '@react-navigation/stack';
-// eslint-disable-next-line no-restricted-imports
-import type {Animated, StyleProp, ViewStyle} from 'react-native';
+
+import {useCardAnimation} from '@react-navigation/stack';
 
 function useRootRHPCardStyleInterpolator() {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -16,13 +18,25 @@ function useRootRHPCardStyleInterpolator() {
     return (props: StackCardInterpolationProps) =>
         interpolate({
             props,
-            enter: shouldUseNarrowLayout ? {kind: 'slide-from-width'} : {kind: 'slide-and-fade', distancePx: CONST.MODAL.RHP_ENTER_OFFSET_PX_WEB},
-            applySidePanelOffset: true,
+            enter: {kind: shouldUseNarrowLayout ? 'slide-from-width' : 'none'},
+            // Wide hosts fill the window; their panel frame owns the Concierge offset instead.
+            applySidePanelOffset: shouldUseNarrowLayout,
         });
 }
 
-function useRHPFrameStyle(): Animated.WithAnimatedValue<StyleProp<ViewStyle>> {
-    return undefined;
+function useRHPFrameStyle() {
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {sidePanelOffset} = useSidePanelState();
+    const props = useCardAnimation();
+
+    if (shouldUseNarrowLayout) {
+        return undefined;
+    }
+
+    return {
+        ...getModalCardMotionStyle(props, CONST.MODAL.RHP_ENTER_OFFSET_PX_WEB, true),
+        right: getRHPLayoutValue(0, sidePanelOffset.current),
+    };
 }
 
 export {useRootRHPCardStyleInterpolator, useRHPFrameStyle};

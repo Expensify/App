@@ -24,6 +24,23 @@ type ModalCardStyleInterpolatorProps = {
 
 type ModalCardStyleInterpolator = (props: ModalCardStyleInterpolatorProps) => StackCardInterpolatedStyle;
 
+// Panel frames share card motion without inheriting the root card's full-window geometry.
+function getModalCardMotionStyle({current: {progress}, inverted}: Pick<StackCardInterpolationProps, 'current' | 'inverted'>, distancePx: number, shouldFade: boolean) {
+    const translateX = Animated.multiply(
+        progress.interpolate({
+            inputRange: [0, 1],
+            outputRange: [distancePx, 0],
+            extrapolate: 'clamp',
+        }),
+        inverted,
+    );
+
+    return {
+        transform: [{translateX}],
+        ...(shouldFade ? {opacity: progress} : {}),
+    };
+}
+
 const useModalCardStyleInterpolator = (): ModalCardStyleInterpolator => {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const StyleUtils = useStyleUtils();
@@ -34,15 +51,11 @@ const useModalCardStyleInterpolator = (): ModalCardStyleInterpolator => {
     // Hardening the animated card (opaque background + dedicated compositor layer) avoids that glitch while keeping the animation.
     const shouldHardenAnimatedCardForMobileBrowser = (isMobileChrome() || isMobileSafari()) && shouldUseNarrowLayout;
 
-    const modalCardStyleInterpolator: ModalCardStyleInterpolator = ({
-        props: {
+    const modalCardStyleInterpolator: ModalCardStyleInterpolator = ({props, enter, applySidePanelOffset = false}) => {
+        const {
             current: {progress},
-            inverted,
             layouts: {screen},
-        },
-        enter,
-        applySidePanelOffset = false,
-    }) => {
+        } = props;
         const cardStyle = StyleUtils.getCardStyles(screen.width);
 
         if (applySidePanelOffset) {
@@ -64,24 +77,11 @@ const useModalCardStyleInterpolator = (): ModalCardStyleInterpolator => {
         const widthFallback = shouldUseNarrowLayout ? screen.width : variables.sideBarWidth;
         const distancePx = enter.kind === 'slide-and-fade' ? enter.distancePx : widthFallback;
 
-        const translateX = Animated.multiply(
-            progress.interpolate({
-                inputRange: [0, 1],
-                outputRange: [distancePx, 0],
-                extrapolate: 'clamp',
-            }),
-            inverted,
-        );
-
         if (shouldHardenAnimatedCardForMobileBrowser) {
             Object.assign(cardStyle, styles.appBG, styles.willChangeTransform);
         }
 
-        cardStyle.transform = [{translateX}];
-
-        if (enter.kind === 'slide-and-fade') {
-            cardStyle.opacity = progress;
-        }
+        Object.assign(cardStyle, getModalCardMotionStyle(props, distancePx, enter.kind === 'slide-and-fade'));
 
         return {
             containerStyle: {overflow: 'hidden'},
@@ -93,4 +93,5 @@ const useModalCardStyleInterpolator = (): ModalCardStyleInterpolator => {
 };
 
 export type {EnterAnimation};
+export {getModalCardMotionStyle};
 export default useModalCardStyleInterpolator;

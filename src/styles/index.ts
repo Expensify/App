@@ -6854,7 +6854,6 @@ const dynamicStyles = (theme: ThemeColors) =>
             positionRightValue: number | Animated.Value | Animated.AnimatedAddition<number>;
         }) =>
             ({
-                // We need to stretch the overlay to cover the sidebar and the translate animation distance.
                 left: positionLeftValue,
                 right: positionRightValue,
                 opacity: progress.interpolate({
