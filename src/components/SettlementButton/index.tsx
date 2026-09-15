@@ -407,6 +407,7 @@ function SettlementButton({
                     hasActiveAdminPolicies: !!activeAdminPolicies.length,
                     hasOwnedPaidPolicy,
                     policyName: generateDefaultWorkspaceName(email, lastWorkspaceNumber, translate),
+                    delegateAccountID,
                 }).policyID;
             };
 
