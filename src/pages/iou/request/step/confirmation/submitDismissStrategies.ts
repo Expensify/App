@@ -10,7 +10,11 @@ import {endSubmitFollowUpActionSpan, setPendingSubmitFollowUpAction} from '@libs
 
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+import type {Report} from '@src/types/onyx';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
+import type {EmptyObject} from '@src/types/utils/EmptyObject';
+
+import type {OnyxEntry} from 'react-native-onyx';
 
 function dismissOnly(runAfterDismiss: () => void) {
     setPendingSubmitFollowUpAction(CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_ONLY);
@@ -77,8 +81,8 @@ function dismissSuperWideRHP(destinationReportID: string | undefined, runAfterDi
     });
 }
 
-function dismissRHPToReport(reportID: string, runAfterDismiss: () => void) {
-    const report = getReportOrDraftReport(reportID);
+function dismissRHPToReport(reportID: string, runAfterDismiss: () => void, reportDraft: OnyxEntry<Report> | EmptyObject) {
+    const report = getReportOrDraftReport(reportID, undefined, undefined, reportDraft);
     const hasExistingTransactions = isMoneyRequestReport(report) && report?.transactionCount !== 0;
 
     if (!hasExistingTransactions) {
