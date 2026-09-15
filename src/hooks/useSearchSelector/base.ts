@@ -7,6 +7,7 @@ import useDebouncedState from '@hooks/useDebouncedState';
 import useFilteredOptions from '@hooks/useFilteredOptions';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import useSortedActions from '@hooks/useSortedActions';
 
 import type {GetOptionsConfig, Option, OptionList, Options, SearchOption} from '@libs/OptionsListUtils';
@@ -188,7 +189,7 @@ function useSearchSelectorBase({
 }: UseSearchSelectorConfig): UseSearchSelectorReturn {
     const {translate, dateFnsLocale} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const {isBetaEnabled} = usePermissions();
     const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const [selectedOptions, setSelectedOptions] = useState<OptionData[]>(initialSelected ?? []);
@@ -287,7 +288,7 @@ function useSearchSelectorBase({
                     draftComments,
                     dateFnsLocale,
                     convertToDisplayString,
-                    betas: betas ?? [],
+                    isDefaultRoomsBetaEnabled: isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS),
                     isUsedInChatFinder: true,
                     includeReadOnly: true,
                     searchQuery: computedSearchTerm,
@@ -318,7 +319,7 @@ function useSearchSelectorBase({
                     {
                         dateFnsLocale,
                         convertToDisplayString,
-                        betas: betas ?? [],
+                        isDefaultRoomsBetaEnabled: isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS),
                         searchString: computedSearchTerm,
                         searchInputValue: trimmedSearchInput,
                         maxElements: maxResults,
@@ -355,7 +356,7 @@ function useSearchSelectorBase({
                     {
                         dateFnsLocale,
                         convertToDisplayString,
-                        betas,
+                        isDefaultRoomsBetaEnabled: isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS),
                         selectedOptions,
                         includeMultipleParticipantReports: true,
                         showChatPreviewLine: true,
@@ -394,7 +395,7 @@ function useSearchSelectorBase({
                     {
                         dateFnsLocale,
                         convertToDisplayString,
-                        betas: betas ?? [],
+                        isDefaultRoomsBetaEnabled: isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS),
                         includeP2P: true,
                         includeSelectedOptions: false,
                         excludeLogins,

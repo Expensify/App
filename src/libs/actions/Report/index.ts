@@ -4507,7 +4507,6 @@ type BuildNewReportOptimisticDataParams = {
     reportPreviewReportActionID: string;
     hasViolationsParam: boolean;
     isASAPSubmitBetaEnabled: boolean;
-    betas: OnyxEntry<Beta[]>;
     isTrackIntentUser: boolean | undefined;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     rules: OnyxCollection<Rule>;
@@ -4522,7 +4521,6 @@ function buildNewReportOptimisticData({
     reportPreviewReportActionID,
     hasViolationsParam,
     isASAPSubmitBetaEnabled,
-    betas,
     isTrackIntentUser,
     getCurrencyDecimals,
     rules,
@@ -4531,7 +4529,18 @@ function buildNewReportOptimisticData({
     const {accountID, login, email} = ownerPersonalDetails;
     const timeOfCreation = DateUtils.getDBTime();
     const parentReport = getPolicyExpenseChat(accountID, policy?.id);
-    const optimisticReportData = buildOptimisticEmptyReport(reportID, accountID, login, parentReport, reportPreviewReportActionID, policy, timeOfCreation, betas, getCurrencyDecimals, rules);
+    const optimisticReportData = buildOptimisticEmptyReport(
+        reportID,
+        accountID,
+        login,
+        parentReport,
+        reportPreviewReportActionID,
+        policy,
+        timeOfCreation,
+        isASAPSubmitBetaEnabled,
+        getCurrencyDecimals,
+        rules,
+    );
 
     if (reportName) {
         optimisticReportData.reportName = reportName;
@@ -4752,13 +4761,11 @@ function buildNewReportOptimisticData({
 }
 
 // Refactoring this to a params object would touch every call site and is out of scope here.
-// eslint-disable-next-line @typescript-eslint/max-params
 function createNewReport(
     ownerPersonalDetails: CurrentUserPersonalDetails,
     hasViolationsParam: boolean,
     isASAPSubmitBetaEnabled: boolean,
     policy: OnyxEntry<Policy>,
-    betas: OnyxEntry<Beta[]>,
     isTrackIntentUser: boolean | undefined,
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'],
     rules: OnyxCollection<Rule>,
@@ -4779,7 +4786,6 @@ function createNewReport(
         reportPreviewReportActionID,
         hasViolationsParam,
         isASAPSubmitBetaEnabled,
-        betas,
         isTrackIntentUser,
         getCurrencyDecimals,
         rules,

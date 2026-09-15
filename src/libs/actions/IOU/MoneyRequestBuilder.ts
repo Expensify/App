@@ -201,7 +201,6 @@ type RequestMoneyInformation = {
     existingTransaction?: OnyxEntry<OnyxTypes.Transaction>;
     isSelfTourViewed: boolean;
     conciergeChat: OnyxEntry<OnyxTypes.Report>;
-    betas: OnyxEntry<OnyxTypes.Beta[]>;
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
     shouldDeferAutoSubmit?: boolean;
     delegateAccountID: number | undefined;
@@ -216,7 +215,6 @@ type MoneyRequestInformationParams = {
     existingIOUReport?: OnyxEntry<OnyxTypes.Report>;
     transactionParams: RequestMoneyTransactionParams;
     participantParams: RequestMoneyParticipantParams;
-    betas: OnyxEntry<OnyxTypes.Beta[]>;
     policyParams?: BasePolicyParams;
     moneyRequestReportID?: string;
     existingTransactionID?: string;
@@ -1306,7 +1304,6 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         quickAction,
         policyRecentlyUsedCurrencies,
         personalDetails,
-        betas,
         delegateAccountID,
         isTrackIntentUser,
         formatPhoneNumber,
@@ -1416,7 +1413,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
 
     const shouldCreateNewMoneyRequestReport = isSplitExpense
         ? false
-        : shouldCreateNewMoneyRequestReportReportUtils(iouReport, chatReport, isScanRequest, betas, rules, action, !!moneyRequestReportID);
+        : shouldCreateNewMoneyRequestReportReportUtils(iouReport, chatReport, isScanRequest, isASAPSubmitBetaEnabled, rules, action, !!moneyRequestReportID);
 
     // Generate IDs upfront so we can pass them to buildOptimisticExpenseReport for formula computation
     const optimisticTransactionID = existingTransactionID ?? providedOptimisticTransactionID ?? rand64();
@@ -1442,7 +1439,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
                   nonReimbursableTotal,
                   optimisticIOUReportID: optimisticReportID,
                   reportTransactions,
-                  betas,
+                  isASAPSubmitBetaEnabled,
                   getCurrencyDecimals,
                   rules,
               })

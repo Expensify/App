@@ -74,7 +74,6 @@ import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {
-    Beta,
     Locale,
     Login,
     OnyxInputOrEntry,
@@ -1804,7 +1803,7 @@ function isValidReport(
     hasGuidesEmails: boolean,
 ): boolean {
     const {
-        betas = [],
+        isDefaultRoomsBetaEnabled = false,
         includeMultipleParticipantReports = false,
         includeOwnedWorkspaceChats = false,
         includeThreads = false,
@@ -1834,7 +1833,7 @@ function isValidReport(
         report: option.item,
         chatReport,
         currentReportId: topmostReportId,
-        betas,
+        isDefaultRoomsBetaEnabled,
         doesReportHaveViolations,
         isInFocusMode: false,
         excludeEmptyChats: false,
@@ -2487,7 +2486,7 @@ type SearchOptionsConfig = {
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
     options: OptionList;
     draftComments: OnyxCollection<string>;
-    betas?: Beta[];
+    isDefaultRoomsBetaEnabled?: boolean;
     isUsedInChatFinder?: boolean;
     includeReadOnly?: boolean;
     searchQuery?: string;
@@ -2521,7 +2520,7 @@ function getSearchOptions({
     dateFnsLocale,
     options,
     draftComments,
-    betas,
+    isDefaultRoomsBetaEnabled,
     isUsedInChatFinder = true,
     includeReadOnly = true,
     searchQuery = '',
@@ -2559,7 +2558,7 @@ function getSearchOptions({
         {
             dateFnsLocale,
             convertToDisplayString,
-            betas,
+            isDefaultRoomsBetaEnabled,
             includeRecentReports,
             includeMultipleParticipantReports: true,
             showChatPreviewLine: isUsedInChatFinder,

@@ -1091,6 +1091,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                     policy: scanFailedPolicy,
                     chatReportPolicy: scanFailedPolicy,
                     betas: [CONST.BETAS.ALL],
+                    isASAPSubmitBetaEnabled: true,
                     isSelfTourViewed: false,
                     userBillingGracePeriodEnds: undefined,
                     amountOwed: 0,

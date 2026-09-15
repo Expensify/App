@@ -55,7 +55,6 @@ function AddExistingExpenseFooter({selectedIds, report, reportToConfirm, policy,
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [policyRecentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES);
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.chatReportID}`);
     const [policyTagList] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policy?.id}`);
     const [chatReportPolicyTagList] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${chatReport?.policyID}`);
@@ -88,7 +87,6 @@ function AddExistingExpenseFooter({selectedIds, report, reportToConfirm, policy,
                         policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
                         quickAction,
                         personalDetails,
-                        betas,
                         policyTagList: report?.policyID ? policyTagList : chatReportPolicyTagList,
                         selfDMReportActions,
                         delegateAccountID,

@@ -1077,7 +1077,7 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
             iouReport = getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${chatReport.iouReportID}`] ?? null;
         }
         const isScanRequest = isScanRequestTransactionUtils(existingTransaction);
-        shouldCreateNewMoneyRequestReport = shouldCreateNewMoneyRequestReportReportUtils(iouReport, chatReport, isScanRequest, betas, rules);
+        shouldCreateNewMoneyRequestReport = shouldCreateNewMoneyRequestReportReportUtils(iouReport, chatReport, isScanRequest, isASAPSubmitBetaEnabled, rules);
         if (!iouReport || shouldCreateNewMoneyRequestReport) {
             const reportTransactions = buildMinimalTransactionForFormula(optimisticTransactionID, optimisticExpenseReportID, created, amount, currency, merchant);
 
@@ -1088,7 +1088,7 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
                 total: amount,
                 currency,
                 nonReimbursableTotal: amount,
-                betas,
+                isASAPSubmitBetaEnabled,
                 optimisticIOUReportID: optimisticExpenseReportID,
                 reportTransactions,
                 getCurrencyDecimals,
@@ -1702,7 +1702,6 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
         existingTransaction: explicitExistingTransaction,
         isSelfTourViewed,
         conciergeChat,
-        betas,
         personalDetails,
         shouldDeferAutoSubmit,
         delegateAccountID,
@@ -1821,7 +1820,6 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
         transactionViolations,
         quickAction,
         policyRecentlyUsedCurrencies,
-        betas,
         personalDetails,
         delegateAccountID,
         isTrackIntentUser,
@@ -2018,7 +2016,6 @@ function convertBulkTrackedExpensesToIOU({
     policyRecentlyUsedCurrencies,
     quickAction,
     personalDetails,
-    betas,
     policyTagList,
     selfDMReportActions,
     delegateAccountID,
@@ -2037,7 +2034,6 @@ function convertBulkTrackedExpensesToIOU({
     policyRecentlyUsedCurrencies: string[];
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
-    betas: OnyxEntry<OnyxTypes.Beta[]>;
     policyTagList: OnyxEntry<OnyxTypes.PolicyTagLists>;
     selfDMReportActions: OnyxEntry<OnyxTypes.ReportActions>;
     delegateAccountID: number | undefined;
@@ -2159,7 +2155,6 @@ function convertBulkTrackedExpensesToIOU({
             quickAction,
             policyRecentlyUsedCurrencies,
             personalDetails,
-            betas,
             policyParams: {
                 policyTagList,
             },
