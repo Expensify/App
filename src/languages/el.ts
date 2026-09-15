@@ -532,6 +532,12 @@ const translations: TranslationDeepObject<typeof en> = {
             prompt: 'Θέλετε να ειδοποιείστε όταν απαντά ο Concierge;',
             cta: 'Ειδοποίηση',
         },
+        feedback: {
+            prompt: 'Ήταν χρήσιμη αυτή η απάντηση;',
+            useful: 'Χρήσιμη απάντηση',
+            notUseful: 'Μη χρήσιμη απάντηση',
+            thanks: 'Ευχαριστούμε για τα σχόλιά σας!',
+        },
     },
     supportalNoAccess: {
         title: 'Όχι τόσο γρήγορα',

@@ -9277,6 +9277,9 @@ const CONST = {
             REACTION_BUBBLE: 'EmojiReactions-ReactionBubble',
             ADD_REACTION_BUBBLE: 'EmojiReactions-AddReactionBubble',
         },
+        CONCIERGE_FEEDBACK: {
+            THUMB: 'ConciergeFeedback-Thumb',
+        },
         MINI_CONTEXT_MENU: {
             QUICK_REACTION: 'MiniContextMenu-QuickReaction',
             EMOJI_PICKER_BUTTON: 'MiniContextMenu-EmojiPickerButton',

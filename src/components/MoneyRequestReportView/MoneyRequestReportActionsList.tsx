@@ -25,7 +25,13 @@ import REPORT_LINK_ROUTE_PARAMS from '@libs/Navigation/reportLinkRouteParams';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import type {ReportsSplitNavigatorParamList} from '@libs/Navigation/types';
 import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
-import {getFilteredReportActionsForReportView, getOneTransactionThreadReportID, hasNextActionMadeBySameActor, isMoneyRequestAction} from '@libs/ReportActionsUtils';
+import {
+    getFilteredReportActionsForReportView,
+    getLatestConciergeFeedbackActionID,
+    getOneTransactionThreadReportID,
+    hasNextActionMadeBySameActor,
+    isMoneyRequestAction,
+} from '@libs/ReportActionsUtils';
 import {canUserPerformWriteAction, chatIncludesChronosWithID, getReportLastVisibleActionCreated, isHarvestCreatedExpenseReport, shouldShowMarkAsDone} from '@libs/ReportUtils';
 import markOpenReportEnd from '@libs/telemetry/markOpenReportEnd';
 
@@ -196,6 +202,12 @@ function MoneyRequestReportActionsListContent({reportIDFromRoute, onLayout}: Mon
     const reportActionIDs = useMemo(() => {
         return reportActions?.map((action) => action.reportActionID) ?? [];
     }, [reportActions]);
+
+    // Skip while a Concierge answer is still streaming, and while newer actions are not loaded because the newest reply may not be in the list yet
+    const latestConciergeFeedbackActionID = useMemo(
+        () => (isDraftPendingCompletion || hasNewerActions ? undefined : getLatestConciergeFeedbackActionID(visibleReportActionsNewestFirst, reportActionIDs)),
+        [isDraftPendingCompletion, hasNewerActions, visibleReportActionsNewestFirst, reportActionIDs],
+    );
 
     const {loadOlderChats, loadNewerChats} = useLoadReportActions({
         reportID,
@@ -471,6 +483,7 @@ function MoneyRequestReportActionsListContent({reportIDFromRoute, onLayout}: Mon
                         linkedReportActionID={linkedReportActionID}
                         isHarvestCreatedExpenseReport={shouldShowHarvestCreatedAction}
                         shouldDisableContextMenuForConciergeDraft={shouldDisableContextMenuForConciergeDraft}
+                        isLatestConciergeFeedbackAction={!!latestConciergeFeedbackActionID && latestConciergeFeedbackActionID === reportAction.reportActionID}
                     />
                 </ReportActionIndexContext.Provider>
             );
@@ -488,10 +501,14 @@ function MoneyRequestReportActionsListContent({reportIDFromRoute, onLayout}: Mon
             shouldShowHarvestCreatedAction,
             draftReportActionID,
             isDraftPendingCompletion,
+            latestConciergeFeedbackActionID,
         ],
     );
 
-    const reportActionsExtraData = useMemo(() => [draftReportActionID, isDraftPendingCompletion], [draftReportActionID, isDraftPendingCompletion]);
+    const reportActionsExtraData = useMemo(
+        () => [draftReportActionID, isDraftPendingCompletion, latestConciergeFeedbackActionID],
+        [draftReportActionID, isDraftPendingCompletion, latestConciergeFeedbackActionID],
+    );
 
     const scrollToLatestMessages = useCallback(() => {
         setIsFloatingMessageCounterVisible(false);
