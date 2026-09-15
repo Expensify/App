@@ -2,10 +2,104 @@
 
 **For**: an agent picking this up with no prior context.
 **Repo state**: branch `feat/oxlint`, oxlint 1.83.0, machine 14 cores.
-**Status**: a retry mechanism is implemented and committed (`bf400fbc078`). It is **not proven against
-the real failure.** That is the whole job below.
+**Status**: resolved on 2026-09-15 by measurement rather than by catching a failure in the act. Section 0
+has the findings and the fix; sections 1 to 8 are the original handoff, kept for the reasoning and the
+forced-failure recipes. Section 6's instruction still stands: if the gate ever exits 2 again, keep stderr.
 
-Read section 1, then section 5 (the one instruction that matters), then reproduce.
+---
+
+## 0. Resolution
+
+### What was actually happening
+
+Every shard spawned its own `oxlint-tsgolint`. Type-aware rules do not run inside oxlint; oxlint hands
+the file list to `tsgolint`, a separate multi-threaded Go binary, which builds a TypeScript program for
+the files' whole import graph. Measured on this machine with `/usr/bin/time -l` and `ps` sampling, one
+`oxlint --threads=1` shard is two processes:
+
+| files in the shard | oxlint (Node, JS plugins) | tsgolint child | peak of the pair | wall |
+| ---: | ---: | ---: | ---: | ---: |
+| 50 | | | 0.4 GB | 1.6 s |
+| 300 | | | 2.8 GB | 8.6 s |
+| 1300 | 1.5 GB | 3.4 to 4.3 GB | 4.3 GB | 19 s |
+| 2600 | | | 4.8 GB | 24 s |
+| 9093 (whole repo, one process) | | | 7.9 GB | 89 s |
+
+Seven shards therefore meant seven redundant type programs and a peak near 38 GB on a 48 GB machine
+that also runs other Conductor agents, an IDE and a browser. The shard sizing could not see this because
+of two independent errors:
+
+1. `SHARD_MEM_BUDGET_GB = 2` was the budget for the Node process alone. The real cost per shard was
+   4 to 5 GB, dominated by tsgolint.
+2. `os.freemem()` on macOS is the kernel's free-page count only. It excludes inactive, speculative and
+   purgeable pages, which the kernel reclaims on demand. On this idle 48 GB machine it reads 4.5 GB
+   while `vm_stat` shows 18 GB reclaimable. So `byMem` sat at 1 or 2 regardless of real headroom, which
+   is why the old doc saw "2 shards" and "6 shards" on the same machine and why the count moved with
+   "free memory" in a way that never matched the failures.
+
+The retry was pointed at the right symptom. What a dead tsgolint looks like, measured by SIGKILLing it
+mid-run: oxlint exits **1**, not a signal code, and prints
+`Error running tsgolint: "exit status: exit status: 1"` on stdout with no JSON. That is the
+`Failed to parse Oxlint JSON output.` path and `producedNoJSON` does catch it. Section 5's option 2
+(gate on exit code alone) would have missed it, so the exit-code check is added alongside, not instead.
+
+### What changed (`scripts/lint/oxlint/OxlintLinter.ts`)
+
+The sharded run is now the design from oxc#26621 with the type-aware work taken out of the shards. Two
+configs are derived from `.oxlintrc.json` at run time and written beside it (so relative plugin
+specifiers, override globs and ignore patterns resolve identically), then removed in `finally`:
+
+- **JS-plugin shards**: the full config with `options.typeAware: false`, fanned across N
+  `oxlint --threads=1 -c .oxlintrc.js-plugins.<pid>.json` processes over disjoint buckets. No shard
+  spawns tsgolint. Measured 1.4 GB per shard at 1300 files, 1.5 GB at 2600, 4.0 GB for the whole repo
+  in one process.
+- **one type-aware process**: the config without `jsPlugins` and without any rule they provide, over
+  the original targets, all threads. tsgolint builds one program. Measured 21.9 s and 9.3 GB for the
+  whole repo.
+
+Both kinds run native (Rust) rules; the merge drops a later leg's copy of a finding an earlier leg
+already reported for that file, and keeps duplicates within one leg (the `rc` bridge prints 49 of
+them in a single process too, so the seatbelt counts must not move). Raw `OxlintLinter.run(['.'])`
+output was compared old against new over the whole repo: 4307 messages each way, the same multiset,
+0 differences. Through the pipeline with `--format json --show-warnings` the two reports were also
+identical.
+
+Sizing: `defaultShardCount` uses `os.availableParallelism() / 2` for cores, and for memory reads
+`vm_stat` on macOS (free + inactive + speculative + purgeable pages; `os.freemem()` elsewhere), reserves
+10 GB for the type-aware process, and gives each JS shard 2 GB. `OXLINT_SHARDS=1` still runs one stock
+process with the original config, as the escape hatch and for comparison.
+
+Retry: unchanged in shape (once, serially, after every leg has finished), widened in trigger.
+`isTransientFailure` fires on no JSON **or** an exit code of 128 or more, which is `128 + signal`
+(Bun reports SIGKILL as 137 and SIGABRT, which is also a Node heap exhaustion, as 134; both verified).
+Codeless diagnostics with a normal exit code are still fatal without a retry, as the existing test pins.
+Every note now carries the exit code and whether JSON was present, and a failed or retried run also
+prints the plan it was sized to (shard count, cores, available memory), which closes the gap in
+section 6 item 3.
+
+`--fix` runs the legs one after another, because the type-aware process and the shards would otherwise
+write the same files at the same time.
+
+Separately, and found while costing runners: every CI run since the sharding commit had died in 3 s
+with exit 249 because `npx oxlint <files>` becomes one `sh -c` string and Linux caps a single argv
+element at 128 KB. Both the file listing and every leg now exec `node_modules/.bin/oxlint` directly.
+`OXLINT_MIGRATION_STATE.md` section 2 and TODO 14 carry the details and the CI run still owed.
+
+### Wall time
+
+Back-to-back, same machine, three rounds, old then new: 65.3 s against 33.8 s, 41.6 s against 35.6 s,
+55.6 s (6 shards) against 31.3 s (7 shards). Recorded in `OXLINT_MIGRATION_STATE.md` section 3.1.
+
+### What is still not proven
+
+Nobody has caught the original failure with stderr attached, so "tsgolint was killed under memory
+pressure" is the best-supported explanation, not an observed one. It is supported by: the per-shard
+footprint above, the fact that every failure followed heavy work in the same shell, and the fact that a
+killed tsgolint reproduces exactly the class of message (`Failed to parse Oxlint JSON output.`) the
+retry was written for. If the gate exits 2 again, its stderr now names the leg, the exit code and the
+plan; section 6's loop is still the way to catch it.
+
+---
 
 ---
 

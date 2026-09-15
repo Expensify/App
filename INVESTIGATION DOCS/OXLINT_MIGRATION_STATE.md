@@ -10,8 +10,9 @@ This file is current state and remaining work only. Resolved problems are not ke
 
 The pipeline is done. `scripts/lint/index.ts` runs either linter behind the same
 `Linter -> Processor[] -> Formatter` ports, each with its own seatbelt baseline, and Oxlint is green
-against its baseline over the whole repo in 43 seconds against ESLint's 394. Config parity is
-closed: every rule ESLint enables is either enabled in Oxlint or has a written reason not to be.
+against its baseline over the whole repo in 32 to 36 seconds against ESLint's 394 (section 3.1; the
+run is N JS-plugin shards plus one type-aware process, section 2.2). Config parity is closed: every
+rule ESLint enables is either enabled in Oxlint or has a written reason not to be.
 
 Rule evidence is now largely closed too. The fixture campaign took `compareFixtures.py` from 56
 entries to 306, all green and each batch red-green verified (section 4). The 128 core rules still
@@ -22,8 +23,14 @@ findings are now explained: `no-deprecated` is priced tsgolint write-site strict
 and `set-state-in-effect` is a readback defect in the `rc/` bridge rather than the detection gap it
 looked like, with a nine-line reproducer ready to file (section 5.2).
 
-What is left: the CI shadow job has never executed on `main`, `react-hooks/refs` still hides a
-disagreement behind equal totals (section 5.3), the `set-state-in-effect` bug needs filing upstream,
+What is left: the CI shadow job has never produced a real result anywhere. Since sharding landed it
+dies in 3 s on Linux behind `continue-on-error`, because `npx` turns the shard's file list into one
+`sh -c` argument over Linux's 128 KB limit (section 2, TODO 14; fixed in the working tree, one real
+CI run still owed). Its runner
+and shard count are costed against the ESLint job in section 3.1: on the free 4 vCPU runner oxlint
+is cheaper, not faster; on 8 vCPU with 4 shards roughly the same wall time at half the cost.
+`react-hooks/refs` still hides a disagreement behind equal totals (section 5.3), the
+`set-state-in-effect` bug needs filing upstream,
 and the fixture campaign surfaced eight port findings that need an owner before the cutover
 (section 5.5) -- among them a real detection hole in `typescript/no-duplicate-type-constituents` and
 one piece of dead config, `react/jsx-filename-extension`.
@@ -34,9 +41,9 @@ one piece of dead config, `react/jsx-filename-extension`.
 
 | check | command | result |
 | --- | --- | --- |
-| Oxlint, whole repo, through the pipeline | `npm run lint -- --linter=oxlint` | exit 0, nothing above baseline, **35 to 52 s** |
+| Oxlint, whole repo, through the pipeline | `npm run lint -- --linter=oxlint` | exit 0, nothing above baseline, **32 to 36 s** (7 or 4 JS-plugin shards plus one type-aware process, section 2.2) |
 | Types | `npm run typecheck` | **passed** |
-| Tooling tests | `npm run test:bun` | **587 pass / 0 fail**, 46 files |
+| Tooling tests | `npm run test:bun` | **593 pass / 0 fail**, 46 files |
 | Per-rule parity, all batches | `npm run oxlint-rule-fixtures` | **306 entries: 302 identical, 1 pinned divergence, 3 blocked upstream** |
 | Whole-repo parity | `bash oxlint-migration/compareFullRepo.sh --fresh` | section 3 |
 | Per-rule parity | `python3 oxlint-migration/port-probe/compareFixtures.py` | section 4 |
@@ -46,7 +53,21 @@ one piece of dead config, `react/jsx-filename-extension`.
 
 CI: `.github/workflows/oxlint.yml`, wired into `preDeploy.yml` and deliberately absent from
 `confirmPassingBuild`'s `needs`. The lint step carries `continue-on-error: true`. On a push to
-`main` it auto-commits its own tightened baseline, as `lint.yml` does for ESLint.
+`main` it auto-commits its own tightened baseline, as `lint.yml` does for ESLint. It runs on
+`ubuntu-latest` (4 vCPU, 16 GB, free on a public repo) with `OXLINT_SHARDS: 2`.
+
+**The CI job has not produced a real result since the sharding commit (`693d2a0f09c`, 2026-09-14).**
+Every run since then ends in 2 to 3 seconds with `Failed to parse Oxlint JSON output.` and
+`Process completed with exit code 249`, masked by `continue-on-error`. Cause, verified locally:
+`OxlintLinter` invokes `npx oxlint <files>`, `npx` hands the whole command to `sh -c` as **one**
+string (`@npmcli/run-script` sets `shell: true`), and Linux caps a single argv element at 128 KB
+(`MAX_ARG_STRLEN`). With 2 shards each command string is 229 KB (measured from the 9093-file list),
+so `execve` fails with `E2BIG`, errno 7; npm exits with `-7`, which the shell shows as 249. macOS
+has only the 1 MB total `ARG_MAX` and no per-element cap, so it never reproduced on a developer
+machine. Fix, applied 2026-09-15 in the working tree: `OxlintLinter` execs `node_modules/.bin/oxlint`
+directly for both the file listing and every leg, so each path is its own argv element (229 KB total
+against Linux's 2 MB `ARG_MAX`). Verified locally with `OXLINT_SHARDS=2`, exit 0, whole repo. The
+CI run that proves it on Linux has not happened yet; TODO 14.
 
 ### 2.1 Every oxlint script, rerun 2026-09-14
 
@@ -83,6 +104,34 @@ Two things to know before rerunning these:
 
 ---
 
+### 2.2 How the sharded run is put together
+
+Oxlint runs all 192 JS-plugin rules on one Node thread per process (upstream oxc#26621, open, no
+PR), so more cores only help through more processes. Type-aware rules are different: oxlint hands
+them to `oxlint-tsgolint`, a separate multi-threaded Go binary that builds a TypeScript program for
+the files' import graph. `OxlintLinter.run` therefore derives two configs from `.oxlintrc.json` per
+run, writes them beside it and removes them in `finally`:
+
+```text
+run(targets)
+  files = oxlint --debug=files targets                   # 9093 paths, one short process
+  N     = OXLINT_SHARDS, else min(cores / 2, (available memory - 10 GB) / 2 GB)
+  write .oxlintrc.js-plugins.<pid>.json                   # full config, options.typeAware: false
+  write .oxlintrc.type-aware.<pid>.json                   # no jsPlugins, none of their rules
+  in parallel
+    shard 1..N:  oxlint --threads=1 -c js-plugins.json files[slice i]   # ~1.5 GB each
+    type-aware:  oxlint -c type-aware.json targets                      # one tsgolint, ~9 GB
+  retry any leg that died (no JSON on stdout, or exit >= 128), one at a time
+  merge per file; a later leg's copy of an earlier leg's finding is dropped, duplicates within
+  one leg are kept
+```
+
+Native Rust rules run in every process; they cost seconds and the merge dedupes them. On an 8 vCPU
+runner with `OXLINT_SHARDS=4` this is 4 shard threads plus roughly 4 tsgolint threads, all cores
+busy, nothing queued; the type-aware leg (~40 s there) is the floor, so more shards only shrink the
+JS leg below a floor it cannot pass. Before this split every shard spawned its own tsgolint, so
+seven shards meant seven type programs and a peak near 38 GB (section 5.4).
+
 ## 3. Parity
 
 ### 3.1 Timings
@@ -92,11 +141,51 @@ Single cold run each, one developer machine, whole repo. Not a benchmark.
 | leg | seconds |
 | --- | --- |
 | ESLint, type-aware, `ESLINT_CONCURRENCY=2`, 16 GB heap, no cache | **396.0** |
-| Oxlint through the pipeline, sharded | **35 to 52** |
+| Oxlint through the pipeline, sharded, one tsgolint per shard (before 2026-09-15) | **35 to 52** |
+| Oxlint through the pipeline, JS-plugin shards plus one type-aware process | **31 to 36** |
 
-Roughly **9x**. Oxlint runs every JS plugin on one thread, so `--threads` does nothing for the 192
+Roughly **11x**. Oxlint runs every JS plugin on one thread, so `--threads` does nothing for the 192
 sidecar rules this repo enables (upstream oxc#26621); `OxlintLinter` fans the file list across
-several `oxlint --threads=1` processes and merges the reports. Findings are identical either way.
+several `oxlint --threads=1` processes with type information switched off, runs the type-aware rules
+in one separate multi-threaded process, and merges the reports. Findings are identical either way.
+
+Back-to-back on the same machine on 2026-09-15, `OxlintLinter.run(['.'])` alone, three rounds, old
+implementation then new: 65.3 s against 33.8 s, 41.6 s against 35.6 s, 55.6 s (6 shards) against
+31.3 s (7 shards). Same 4307 raw messages from both, same multiset. Peak memory of the whole run fell
+from roughly 38 GB (seven tsgolint programs) to roughly 19 GB (seven 1.4 GB shards plus one 9.3 GB
+type-aware process); section 5.4 has the per-process figures.
+
+Shard count against the 14-core Mac, whole repo through the pipeline, same day:
+
+| plan | oxlint stage | peak single process | CPU used |
+| --- | ---: | ---: | ---: |
+| 7 shards + type-aware | 31.8 to 32.9 s | 9.3 GB (tsgolint) | ~6 cores average |
+| 4 shards + type-aware (`OXLINT_SHARDS=4`) | 36.4 s | 8.4 GB (tsgolint) | 208 s user, ~5.2 cores average |
+
+Four shards cost about 4 s over seven here, and use a bit over five cores on average, so a 4-shard
+plan is not CPU-starved on an 8 vCPU runner.
+
+**Runner and cost against the ESLint job.** `lint.yml` runs ESLint on `blacksmith-16vcpu-ubuntu-2404`
+(64 GB) because a cold cache loads a 12 GB type program into each of two workers (its own `runs-on`
+comment). Blacksmith bills linearly per vCPU-minute and the repo's rule of thumb is 4 GB per vCPU.
+The oxlint plan needs one 9.3 GB type program plus 1.5 GB per shard:
+
+| runner | fits | shards | est. lint step | note |
+| --- | --- | ---: | ---: | --- |
+| `ubuntu-latest`, 4 vCPU / 16 GB | 9.3 + 2 × 1.5 = 12.3 GB, tight | 2 | ~90 s | free on a public repo; what `oxlint.yml` pins today |
+| `blacksmith-4vcpu`, 16 GB | same | 2 | ~90 s | half the ESLint runner's price per minute, quarter of its vCPUs |
+| `blacksmith-8vcpu`, 32 GB | 9.3 + 4 × 1.5 = 15 GB | 4 | ~45 s | half the ESLint runner's price; sticky disk for node_modules kicks in (`setupNode/action.yml:38`) |
+| 6 shards anywhere | 9.3 + 6 × 1.5 = 18 GB, over 16 GB | needs 8vcpu | | 6 + ~4 tsgolint threads oversubscribe 8 vCPU; no gain over 4 |
+
+The 90 s and 45 s are extrapolated from the Mac (cloud vCPU taken as 1.5 to 2x slower) and are
+**unverified on CI**; the job has not run to completion since sharding landed (section 2). The
+honest comparison with ESLint: on a warm cache the ESLint lint step is already under a minute because
+the cache means it re-lints only changed files, so on the 4 vCPU runner oxlint is **not faster, only
+cheaper** (free, or about 3x fewer vCPU-minutes) and free of the cache-miss and stale-cache retry
+cases (`lint.yml:77-90`). On the 8 vCPU runner with 4 shards it is roughly the ESLint job's warm wall
+time at about half the cost, and clearly faster on any cold-cache day. Beating the warm wall time
+outright is not a goal: it would mean linting only changed files on PRs, and the whole-repo run is
+what keeps the seatbelt honest.
 
 The ESLint leg needs `NODE_OPTIONS=--max_old_space_size=16384` and capped concurrency or its workers
 die with `ERR_WORKER_OUT_OF_MEMORY` even on a 48 GB machine. Oxlint needs neither.
@@ -552,6 +641,27 @@ OOM-killed plugin from a genuinely broken one before adding a retry there.
 came from throwing that away. The wording is also still `Failed to parse Oxlint JSON output.`, which
 reads as a parsing problem rather than a dead process.
 
+**Resolved 2026-09-15 by measurement; full write-up in `OXLINT_DEAD_SHARD_HANDOFF.md` section 0.**
+The short version. Every shard spawned its own `oxlint-tsgolint`, and that Go process, not the Node
+one, was the footprint: 3.4 to 4.3 GB per 1300-file shard against a Node process of 1.5 GB, so seven
+shards built seven redundant type programs and peaked near 38 GB. The sizing could not see it because
+`SHARD_MEM_BUDGET_GB = 2` was the Node cost alone, and because `os.freemem()` on macOS reports only
+truly free pages (4.5 GB on an idle 48 GB machine against 18 GB reclaimable in `vm_stat`), which is why
+the shard count wandered between 1 and 6 on one machine.
+
+`OxlintLinter` now derives two configs from `.oxlintrc.json` per run: the JS-plugin shards run with
+`typeAware: false` (1.4 GB each, no tsgolint), and one separate process runs the type-aware rules with
+no JS plugins on all threads (21.9 s, 9.3 GB, one program). Native rules run in both and the merge
+drops a later leg's copy of an earlier leg's finding; duplicates within one process are kept, because
+the `rc` bridge prints 49 of them (42 `rc(refs)`, 7 `rc(preserve-manual-memoization)`) and a single
+process keeps them too. Findings through the pipeline are identical old against new, whole repo.
+Memory sizing reads `vm_stat` on macOS, reserves 10 GB for the type-aware process and gives each shard
+2 GB. The retry also fires on an exit code of 128 or more (a signal), and every retry or failure note
+now carries the exit code, whether JSON was present, and the plan the run was sized to. A SIGKILLed
+tsgolint was measured to make oxlint exit 1 with `Error running tsgolint: "exit status: exit status:
+1"` and no JSON, which is the path `producedNoJSON` already retried, so the mechanism was aimed
+correctly; the footprint was the problem.
+
 ### 5.5 Port findings surfaced by the fixture campaign
 
 Each was measured while building a batch. None is a harness artifact; all are pinned in the
@@ -650,12 +760,26 @@ Ordered by what blocks what.
     `react/rules-of-hooks` reporting as `react-hooks/rules-of-hooks` (section 5.5).
 11. **Every merge from `main` needs a manual `SEATBELT_INCREASE=all` pass.** The seatbelt auto-tightens
    but never auto-increases.
-12. **Retry a dead oxlint shard** -- mechanism landed 2026-09-15 (section 5.4), still open as a
-    verification. Shards and the pre-shard file listing are each retried once, serially, only on a
-    no-JSON result. Not yet confirmed against the real transient failure: it recurred twice after the
-    fix with stderr discarded, then went quiet for 15 runs. **Next occurrence: keep stderr.** If it
-    shows codeless diagnostics rather than empty stdout, the OOM'd-JS-plugin path needs handling too.
-   Low priority while the job is non-blocking, worth having before it becomes required.
+12. ~~**Retry a dead oxlint shard**~~ Resolved 2026-09-15 (section 5.4, and
+    `OXLINT_DEAD_SHARD_HANDOFF.md` section 0). The cause was one `oxlint-tsgolint` per shard at 3 to
+    5 GB each plus a macOS `os.freemem()` reading that hid the headroom; the type-aware work now runs
+    in one process and the shards carry only JS plugins. The original failure was never caught with
+    stderr attached, so the explanation is measured rather than observed. **If the gate exits 2
+    again, keep stderr**: the note now names the leg, exit code and plan.
+13. **The `rc` bridge reports 49 diagnostics twice** (42 `rc(refs)`, 7
+    `rc(preserve-manual-memoization)`), identical file, position and text, in a single process. The
+    seatbelt counts both copies. Not changed by the split (the merge keeps within-process duplicates
+    on purpose), but worth fixing in `config/oxlint/plugins/rc-rules.mjs` and re-baselining, and
+    worth re-checking section 5.3's "equal totals" for `react-hooks/refs` against it.
+14. **Prove the direct-exec fix on Linux with one CI run.** The code change is in the working tree:
+    `OxlintLinter` execs `node_modules/.bin/oxlint` instead of `npx oxlint`, because through `npx` the
+    file list is one `sh -c` string and Linux rejects a single argv element over 128 KB, which is why
+    every run since `693d2a0f09c` died in 3 s with exit 249 behind `continue-on-error` (section 2).
+    Pin `OXLINT_SHARDS` to the runner in the same push (section 3.1): keep `ubuntu-latest` with 2
+    for the free run, or move to `blacksmith-8vcpu` with 4 for a ~45 s lint step at half the ESLint
+    job's cost. Read the lint step's duration and stderr from that run; both figures are Mac
+    extrapolations until then.
+
 
 ---
 
@@ -664,10 +788,13 @@ Ordered by what blocks what.
 Each phase is independently revertible and none removes a safety net before its replacement is
 proven.
 
-### Phase 1: land the shadow job (ready now)
+### Phase 1: land the shadow job (blocked on TODO 14)
 
 Merge `feat/oxlint`. Oxlint runs on every PR and every push to `main`, non-blocking, keeping its own
-baseline.
+baseline. Not before TODO 14 has its CI run: as of 2026-09-14 the job died in 3 s on Linux behind
+`continue-on-error`, and the fix has only been verified on macOS, so landing without that run could
+put a green-looking no-op on `main`. Pick the runner and shard count from section 3.1 in the same
+change.
 
 - Exit criteria: one week on `main` with `oxlint.seatbelt.tsv` auto-tightening cleanly and no
   observed interference with `lint.yml`'s auto-commit.

@@ -924,6 +924,7 @@
         "proguard",
         "purchaseamount",
         "purchasecurrency",
+        "purgeable",
         "QAPR",
         "QBWC",
         "qrcode",

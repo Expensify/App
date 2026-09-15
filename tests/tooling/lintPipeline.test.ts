@@ -1,7 +1,7 @@
 import {describe, expect, it} from 'bun:test';
 
 import type {ESLintJSONResult} from '../../scripts/lint/eslint/ESLintLinter';
-import type {OxlintDiagnostic} from '../../scripts/lint/oxlint/OxlintLinter';
+import type {OxlintConfig, OxlintDiagnostic} from '../../scripts/lint/oxlint/OxlintLinter';
 import type {LintMessage, LinterResult} from '../../scripts/lint/types';
 
 import {normalizeESLintResults, parseESLintStdout} from '../../scripts/lint/eslint/ESLintLinter';
@@ -9,7 +9,18 @@ import JSONFormatter from '../../scripts/lint/formatters/JSONFormatter';
 import StylishFormatter from '../../scripts/lint/formatters/StylishFormatter';
 import Linter from '../../scripts/lint/Linter';
 import Pipeline from '../../scripts/lint/LintPipeline';
-import {mergeShardResults, normalizeOxlintDiagnostics, parseOxlintStdout, producedNoJSON, resolveShardCount, shardFiles} from '../../scripts/lint/oxlint/OxlintLinter';
+import {
+    defaultShardCount,
+    deriveLegConfigs,
+    isTransientFailure,
+    jsPluginName,
+    mergeShardResults,
+    normalizeOxlintDiagnostics,
+    parseOxlintStdout,
+    producedNoJSON,
+    resolveShardCount,
+    shardFiles,
+} from '../../scripts/lint/oxlint/OxlintLinter';
 import {filterReactCompilerMessages, shouldPersistCompilerCache} from '../../scripts/lint/processors/ReactCompilerFilter';
 import Seatbelt, {SEATBELT_TSV_BY_LINTER, resolveSeatbeltOptions} from '../../scripts/lint/processors/Seatbelt';
 import {stratifyMessages} from '../../scripts/lint/processors/StratifyNoDeprecated';
@@ -54,13 +65,18 @@ describe('resolveSeatbeltOptions', () => {
     });
 
     it('lets SEATBELT_INCREASE force writes even locally', () => {
-        const options = resolveSeatbeltOptions(root, {SEATBELT_INCREASE: 'no-console'});
+        const options = resolveSeatbeltOptions(root, {
+            SEATBELT_INCREASE: 'no-console',
+        });
         expect(options.readOnly).toBe(false);
         expect(options.allowIncreaseRules).toEqual(new Set(['no-console']));
     });
 
     it('lets SEATBELT_INCREASE override SEATBELT_READ_ONLY', () => {
-        const options = resolveSeatbeltOptions(root, {SEATBELT_INCREASE: 'no-console', SEATBELT_READ_ONLY: '1'});
+        const options = resolveSeatbeltOptions(root, {
+            SEATBELT_INCREASE: 'no-console',
+            SEATBELT_READ_ONLY: '1',
+        });
         expect(options.readOnly).toBe(false);
         expect(options.allowIncreaseRules).toEqual(new Set(['no-console']));
     });
@@ -85,7 +101,18 @@ describe('resolveSeatbeltOptions', () => {
 describe('extractJSONArray via runESLint stdout', () => {
     it('normalizes results even when babel logs wrap the JSON array', () => {
         const wrapped = `babel.config.js\n  - running in: undefined\n${JSON.stringify([
-            {filePath: '/repo/src/a.ts', messages: [{ruleId: 'no-console', severity: 2, message: 'nope', line: 3, column: 4}]},
+            {
+                filePath: '/repo/src/a.ts',
+                messages: [
+                    {
+                        ruleId: 'no-console',
+                        severity: 2,
+                        message: 'nope',
+                        line: 3,
+                        column: 4,
+                    },
+                ],
+            },
         ])}\n`;
         const start = wrapped.indexOf('[');
         const end = wrapped.lastIndexOf(']');
@@ -107,7 +134,15 @@ describe('normalizeESLintResults', () => {
         const [result] = normalizeESLintResults([
             {
                 filePath: '/repo/src/a.ts',
-                messages: [{ruleId: 'no-console', severity: 2, message: 'nope', line: 3, column: 4}],
+                messages: [
+                    {
+                        ruleId: 'no-console',
+                        severity: 2,
+                        message: 'nope',
+                        line: 3,
+                        column: 4,
+                    },
+                ],
             },
         ]);
         expect(result.filePath).toBe('/repo/src/a.ts');
@@ -143,7 +178,10 @@ describe('filterReactCompilerMessages', () => {
     it('drops suppressible messages when both compilers memoize the file', async () => {
         const messages = [
             makeMessage({ruleID: 'react/jsx-no-constructed-context-values'}),
-            makeMessage({ruleID: 'react-hooks/exhaustive-deps', message: 'React Hook useCallback() Hook is missing a dependency'}),
+            makeMessage({
+                ruleID: 'react-hooks/exhaustive-deps',
+                message: 'React Hook useCallback() Hook is missing a dependency',
+            }),
             makeMessage({ruleID: 'no-console'}),
         ];
         const result = await filterReactCompilerMessages(messages, '/tmp', () => true);
@@ -157,7 +195,12 @@ describe('filterReactCompilerMessages', () => {
     });
 
     it('does not suppress genuine exhaustive-deps missing-deps warnings', async () => {
-        const messages = [makeMessage({ruleID: 'react-hooks/exhaustive-deps', message: 'React Hook useEffect has a missing dependency: "foo"'})];
+        const messages = [
+            makeMessage({
+                ruleID: 'react-hooks/exhaustive-deps',
+                message: 'React Hook useEffect has a missing dependency: "foo"',
+            }),
+        ];
         const result = await filterReactCompilerMessages(messages, '/tmp', () => true);
         expect(result).toEqual(messages);
     });
@@ -171,15 +214,38 @@ describe('filterReactCompilerMessages', () => {
     });
 
     it('keeps suppressible messages when the source file cannot be read', async () => {
-        const messages = [makeMessage({filePath: '/tmp/does-not-exist.tsx', ruleID: 'react/jsx-no-constructed-context-values'})];
+        const messages = [
+            makeMessage({
+                filePath: '/tmp/does-not-exist.tsx',
+                ruleID: 'react/jsx-no-constructed-context-values',
+            }),
+        ];
         const result = await filterReactCompilerMessages(messages, '/tmp');
         expect(result).toEqual(messages);
     });
 
     it('does not persist fallback compiler failures to cache', () => {
-        expect(shouldPersistCompilerCache({filename: 'a.tsx', bothMemoized: false, cacheable: false})).toBe(false);
-        expect(shouldPersistCompilerCache({filename: 'a.tsx', bothMemoized: false, cacheable: true})).toBe(true);
-        expect(shouldPersistCompilerCache({filename: 'a.tsx', bothMemoized: true, cacheable: true})).toBe(true);
+        expect(
+            shouldPersistCompilerCache({
+                filename: 'a.tsx',
+                bothMemoized: false,
+                cacheable: false,
+            }),
+        ).toBe(false);
+        expect(
+            shouldPersistCompilerCache({
+                filename: 'a.tsx',
+                bothMemoized: false,
+                cacheable: true,
+            }),
+        ).toBe(true);
+        expect(
+            shouldPersistCompilerCache({
+                filename: 'a.tsx',
+                bothMemoized: true,
+                cacheable: true,
+            }),
+        ).toBe(true);
         expect(shouldPersistCompilerCache(undefined)).toBe(false);
     });
 });
@@ -187,13 +253,25 @@ describe('filterReactCompilerMessages', () => {
 describe('stratifyMessages', () => {
     it('rewrites no-deprecated using the source expression at the lint location', () => {
         const source = 'const x = StyleSheet.absoluteFillObject;\n';
-        const messages = [makeMessage({ruleID: '@typescript-eslint/no-deprecated', message: '`absoluteFillObject` is deprecated.', line: 1, column: 11})];
+        const messages = [
+            makeMessage({
+                ruleID: '@typescript-eslint/no-deprecated',
+                message: '`absoluteFillObject` is deprecated.',
+                line: 1,
+                column: 11,
+            }),
+        ];
         const result = stratifyMessages(messages, source);
         expect(result.at(0)?.ruleID).toBe('@typescript-eslint/no-deprecated/StyleSheet.absoluteFillObject');
     });
 
     it('falls back to the backtick symbol in the message when there is no source', () => {
-        const messages = [makeMessage({ruleID: '@typescript-eslint/no-deprecated', message: '`Foo.bar` is deprecated.'})];
+        const messages = [
+            makeMessage({
+                ruleID: '@typescript-eslint/no-deprecated',
+                message: '`Foo.bar` is deprecated.',
+            }),
+        ];
         expect(stratifyMessages(messages, null).at(0)?.ruleID).toBe('@typescript-eslint/no-deprecated/Foo.bar');
     });
 
@@ -257,7 +335,11 @@ describe('normalizeOxlintDiagnostics', () => {
     });
 
     it('folds help and note into the message, which is the only text field downstream reads', () => {
-        const diagnostic = oxlintDiagnostic({message: 'Dependency cycle detected', help: 'Refactor to remove the cycle.', note: 'These paths form a cycle:\nA -> B -> A'});
+        const diagnostic = oxlintDiagnostic({
+            message: 'Dependency cycle detected',
+            help: 'Refactor to remove the cycle.',
+            note: 'These paths form a cycle:\nA -> B -> A',
+        });
         const [file] = normalizeOxlintDiagnostics([diagnostic], '/repo', ['src/a.ts']);
         expect(file.messages.at(0)?.message).toBe('Dependency cycle detected\nRefactor to remove the cycle.\nThese paths form a cycle:\nA -> B -> A');
     });
@@ -339,6 +421,105 @@ describe('oxlint sharding', () => {
         expect(resolveShardCount('not-a-number')).toBe(1);
     });
 
+    it('sizes the JS-plugin shards by half the cores, minus the memory one type-aware process needs', () => {
+        const gib = 1073741824;
+        expect(defaultShardCount(14, 48 * gib)).toBe(7);
+        expect(defaultShardCount(14, 18 * gib)).toBe(4);
+        expect(defaultShardCount(4, 16 * gib)).toBe(2);
+        expect(defaultShardCount(4, 4 * gib)).toBe(1);
+        expect(defaultShardCount(1, 64 * gib)).toBe(1);
+    });
+
+    it('derives the rule prefix of a jsPlugins entry the way oxlint does', () => {
+        expect(
+            jsPluginName({
+                name: 'rulesdir',
+                specifier: './config/oxlint/plugins/expensify-rules.mjs',
+            }),
+        ).toBe('rulesdir');
+        expect(jsPluginName('eslint-plugin-lodash')).toBe('lodash');
+        expect(jsPluginName('@dword-design/eslint-plugin-import-alias')).toBe('@dword-design/import-alias');
+        expect(jsPluginName('@scope/eslint-plugin')).toBe('@scope');
+    });
+
+    /* eslint-disable @typescript-eslint/naming-convention */
+    it('splits the config into a JS-plugin leg without type information and a type-aware leg without JS plugins', () => {
+        const config: OxlintConfig = {
+            plugins: ['typescript', 'import'],
+            jsPlugins: [{name: 'rulesdir', specifier: './plugins/rules.mjs'}, 'eslint-plugin-lodash'],
+            options: {typeAware: true},
+            ignorePatterns: ['dist/**'],
+            rules: {
+                'no-console': 'error',
+                'typescript/no-floating-promises': 'error',
+                'rulesdir/no-onyx-connect': 'error',
+                'lodash/import-scope': ['error', 'method'],
+            },
+            overrides: [
+                {
+                    files: ['**/*.test.ts'],
+                    jsPlugins: ['@dword-design/eslint-plugin-import-alias'],
+                    rules: {
+                        '@dword-design/import-alias/prefer-alias': 'error',
+                        'no-console': 'off',
+                    },
+                },
+                {files: ['**/*.js'], rules: {'rulesdir/no-onyx-connect': 'off'}},
+            ],
+        };
+        const {jsPlugins, typeAware} = deriveLegConfigs(config);
+
+        expect(jsPlugins.options).toEqual({typeAware: false});
+        expect(jsPlugins.jsPlugins).toEqual(config.jsPlugins);
+        expect(jsPlugins.rules).toEqual(config.rules);
+        expect(jsPlugins.overrides).toEqual(config.overrides);
+
+        expect(typeAware.options).toEqual({typeAware: true});
+        expect(typeAware).not.toHaveProperty('jsPlugins');
+        expect(typeAware.rules).toEqual({
+            'no-console': 'error',
+            'typescript/no-floating-promises': 'error',
+        });
+        expect(typeAware.overrides).toEqual([
+            {files: ['**/*.test.ts'], rules: {'no-console': 'off'}},
+            {files: ['**/*.js'], rules: {}},
+        ]);
+        expect(typeAware.overrides?.at(0)).not.toHaveProperty('jsPlugins');
+
+        expect(typeAware.ignorePatterns).toEqual(['dist/**']);
+        expect(typeAware.plugins).toEqual(['typescript', 'import']);
+        expect(config.jsPlugins).toHaveLength(2);
+        expect(config.options).toEqual({typeAware: true});
+    });
+    /* eslint-enable @typescript-eslint/naming-convention */
+
+    it('drops a finding a later leg repeats for the same file, but keeps one a single leg reports twice', () => {
+        const native = makeMessage({ruleID: 'no-console', line: 3, column: 4});
+        const typeAwareOnly = makeMessage({
+            ruleID: '@typescript-eslint/no-floating-promises',
+            line: 9,
+            column: 1,
+        });
+        const twiceInOneLeg = makeMessage({
+            ruleID: 'react-hooks/refs',
+            line: 12,
+            column: 5,
+        });
+        const merged = mergeShardResults([shardResult('/repo/a.ts', 1, [native, twiceInOneLeg, twiceInOneLeg]), shardResult('/repo/a.ts', 1, [native, typeAwareOnly])]);
+        expect(merged.files).toHaveLength(1);
+        expect(merged.files.at(0)?.messages).toEqual([native, twiceInOneLeg, twiceInOneLeg, typeAwareOnly]);
+    });
+
+    it('retries a leg that died, not one that failed deterministically', () => {
+        expect(isTransientFailure('', 137)).toBe(true);
+        expect(isTransientFailure('Error running tsgolint: "exit status: exit status: 1"\n', 1)).toBe(true);
+        expect(isTransientFailure(oxlintStdout([]), 137)).toBe(true);
+        expect(isTransientFailure(oxlintStdout([]), 134)).toBe(true);
+        expect(isTransientFailure(oxlintStdout([oxlintDiagnostic({code: undefined, message: 'plugin blew up'})]), 1)).toBe(false);
+        expect(isTransientFailure(oxlintStdout([oxlintDiagnostic()], 1), 1)).toBe(false);
+        expect(isTransientFailure(oxlintStdout([]), 0)).toBe(false);
+    });
+
     it('merges shards by concatenating files and taking the worst exit code', () => {
         const merged = mergeShardResults([shardResult('/repo/a.ts', 0, [makeMessage()]), shardResult('/repo/b.ts', 1, [makeMessage()]), shardResult('/repo/c.ts', 0)]);
         expect(merged.exitCode).toBe(1);
@@ -372,14 +553,22 @@ describe('JSONFormatter', () => {
     it('emits the linter-agnostic message list, warnings included', () => {
         const messages = [makeMessage(), makeMessage({severity: LINT_SEVERITY.WARNING, ruleID: 'no-debugger'})];
         const result = new JSONFormatter().format(messages);
-        expect(JSON.parse(result.text)).toEqual({messages, errorCount: 1, warningCount: 1});
+        expect(JSON.parse(result.text)).toEqual({
+            messages,
+            errorCount: 1,
+            warningCount: 1,
+        });
         expect(result.errorCount).toBe(1);
         expect(result.warningCount).toBe(1);
     });
 
     it('emits an empty report that still parses, rather than an empty string', () => {
         const result = new JSONFormatter().format([]);
-        expect(JSON.parse(result.text)).toEqual({messages: [], errorCount: 0, warningCount: 0});
+        expect(JSON.parse(result.text)).toEqual({
+            messages: [],
+            errorCount: 0,
+            warningCount: 0,
+        });
     });
 });
 
