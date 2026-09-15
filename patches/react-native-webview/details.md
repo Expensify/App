@@ -36,8 +36,3 @@
 - Upstream PR/issue: 🛑
 - E/App issue: 🛑
 - PR introducing patch: 🛑
-
-### Patches dropped in the 13.16.0 → 16.0.0 bump
-
-- `fix-dataDetectorTypes` (E/App [#8503](https://github.com/Expensify/App/issues/8503), introduced by [#13767](https://github.com/Expensify/App/pull/13767)) — fixed upstream in 16.0.0: `RNCWebView.mm` now reads `newViewProps.dataDetectorTypes` and accumulates the `WKDataDetectorTypes` bitmask with separate `if`s instead of an `else if` chain.
-- `fix-webview-props-type` — the `WebView<P = undefined>` regression from [#3931](https://github.com/react-native-webview/react-native-webview/pull/3931) is fixed upstream by [#3974](https://github.com/react-native-webview/react-native-webview/pull/3974), shipped in 16.0.0.
