@@ -90,7 +90,7 @@ type PnrData = {
             loyaltyInfos: unknown[];
         };
 
-        user: {
+        user?: {
             /** Email address of the traveler. */
             email?: string;
 
