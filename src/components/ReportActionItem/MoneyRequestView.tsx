@@ -2,6 +2,7 @@ import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import HighlightableMenuItemWithTopDescription from '@components/HighlightableMenuItemWithTopDescription';
 import Icon from '@components/Icon';
 import MenuItemAction from '@components/MenuItem/presets/MenuItemAction';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -1647,17 +1648,13 @@ function MoneyRequestView({
                 )}
                 {shouldShowTripRoomLink && (
                     <>
-                        <MenuItemWithTopDescription
-                            title={tripRoomName}
-                            description={translate('travel.trip')}
-                            style={[styles.moneyRequestMenuItem]}
-                            titleStyle={styles.flex1}
-                            numberOfLinesTitle={2}
-                            shouldShowRightIcon
+                        <MenuItemField
+                            value={tripRoomName}
+                            name={translate('travel.trip')}
+                            numberOfLinesValue={2}
                             onPress={() => {
                                 Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(tripRoomReportID, undefined, undefined, Navigation.getActiveRoute()));
                             }}
-                            interactive
                         />
                         <View style={styles.reportHorizontalRule} />
                     </>
