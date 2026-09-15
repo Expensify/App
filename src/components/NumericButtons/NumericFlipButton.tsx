@@ -1,5 +1,5 @@
-import Button from '@components/ButtonComposed';
-import type {BaseButtonProps} from '@components/ButtonComposed/types';
+import Button from '@components/Button';
+import type {ButtonProps} from '@components/Button';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -7,7 +7,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import CONST from '@src/CONST';
 
-type NumericFlipButtonProps = Pick<BaseButtonProps, 'isDisabled' | 'onPress' | 'style' | 'testID'>;
+type NumericFlipButtonProps = Pick<ButtonProps, 'isDisabled' | 'onPress' | 'style' | 'testID'>;
 
 /** Presentational sign toggle button shared by NumericInput and NumericField. */
 function NumericFlipButton({isDisabled = false, onPress, style, testID}: NumericFlipButtonProps) {
