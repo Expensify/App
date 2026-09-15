@@ -138,7 +138,7 @@ function DotIndicatorMessage({messages = {}, style, type, textStyles, dismissErr
             </View>
         );
         const buttonsRow = (
-            <View style={[styles.flexRow, styles.gap3]}>
+            <View style={[styles.flexRow, styles.flexWrap, styles.gap3]}>
                 {!!onRetryReceiptUpload && (
                     <Button
                         variant={CONST.BUTTON_VARIANT.SUCCESS}

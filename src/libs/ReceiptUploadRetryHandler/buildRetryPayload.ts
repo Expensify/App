@@ -4,6 +4,7 @@
  * second expense.
  */
 import {isLocalFile} from '@libs/fileDownload/FileUtils';
+import {getTransactionDetails} from '@libs/ReportUtils';
 import {getIsFromGlobalCreate, isDistanceRequest, isPerDiemRequest, isTimeRequest} from '@libs/TransactionUtils';
 
 import {getAllPersonalDetails, getAllReports, getAllTransactionViolations, getCurrentUserAccountIDFromSession, getCurrentUserPersonalDetails} from '@userActions/IOU';
@@ -108,6 +109,10 @@ function buildRetryPayload(context: ReceiptRetryContext, receiptFile: FileObject
     }
 
     const currentUser = getCurrentUserPersonalDetails();
+    const details = getTransactionDetails(transaction);
+    if (!details) {
+        return undefined;
+    }
     const receipt: Receipt = {...receiptFile, source: context.receiptError.source, state: CONST.IOU.RECEIPT_STATE.SCAN_READY};
 
     return {
@@ -119,17 +124,18 @@ function buildRetryPayload(context: ReceiptRetryContext, receiptFile: FileObject
         },
         policyParams,
         transactionParams: {
-            amount: transaction.amount ?? 0,
-            currency: transaction.currency ?? CONST.CURRENCY.USD,
-            created: transaction.created ?? '',
-            merchant: getMerchantForRetry(transaction.merchant),
-            comment: transaction.comment?.comment,
-            category: transaction.category,
-            tag: transaction.tag,
-            taxCode: transaction.taxCode,
-            taxAmount: transaction.taxAmount,
-            billable: transaction.billable,
-            reimbursable: transaction.reimbursable,
+            amount: details.amount,
+            currency: details.currency,
+            created: details.created,
+            merchant: getMerchantForRetry(details.merchant),
+            comment: details.comment,
+            category: details.category,
+            tag: details.tag,
+            taxCode: details.taxCode,
+            taxAmount: details.taxAmount,
+            billable: details.billable,
+            reimbursable: details.reimbursable,
+            // Not from `details`, which widens this to `string | Attendee[]` for the search fields.
             attendees: transaction.comment?.attendees,
             isFromGlobalCreate: getIsFromGlobalCreate(transaction),
             receipt,
