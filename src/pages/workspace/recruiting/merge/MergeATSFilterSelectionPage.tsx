@@ -15,7 +15,7 @@ import {isMergeConnected} from '@libs/merge/MergeUtils';
 import {getMergeATSFilterOptions} from '@libs/merge/RecruitingUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {MergeATSImportSettingsNavigatorParamList} from '@libs/Navigation/types';
+import type {RecruitingMergeImportSettingsNavigatorParamList} from '@libs/Navigation/types';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 
@@ -28,7 +28,7 @@ import {View} from 'react-native';
 
 import {useMergeATSFilters, useMergeATSFiltersActions} from './MergeATSFiltersDraftContext';
 
-type MergeATSFilterSelectionPageProps = PlatformStackScreenProps<MergeATSImportSettingsNavigatorParamList, typeof SCREENS.MERGE_ATS_IMPORT_SETTINGS.FILTER>;
+type MergeATSFilterSelectionPageProps = PlatformStackScreenProps<RecruitingMergeImportSettingsNavigatorParamList, typeof SCREENS.RECRUITING_MERGE_IMPORT_SETTINGS.FILTER>;
 
 const SKIP_IMPORT_KEY = 'skipImport';
 

@@ -17,7 +17,7 @@ import {getConnectedATSProvider, getMergeATSFilterLabel} from '@libs/merge/Recru
 import type {MergeATSFilterType} from '@libs/merge/RecruitingUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {MergeATSImportSettingsNavigatorParamList} from '@libs/Navigation/types';
+import type {RecruitingMergeImportSettingsNavigatorParamList} from '@libs/Navigation/types';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 
@@ -29,7 +29,7 @@ import React, {useState} from 'react';
 
 import {useMergeATSFilters} from './MergeATSFiltersDraftContext';
 
-type MergeATSFiltersPageProps = PlatformStackScreenProps<MergeATSImportSettingsNavigatorParamList, typeof SCREENS.MERGE_ATS_IMPORT_SETTINGS.ROOT>;
+type MergeATSFiltersPageProps = PlatformStackScreenProps<RecruitingMergeImportSettingsNavigatorParamList, typeof SCREENS.RECRUITING_MERGE_IMPORT_SETTINGS.ROOT>;
 
 function MergeATSFiltersPage({
     route: {

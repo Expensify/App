@@ -31,7 +31,7 @@ function useMergeATSFiltersActions(): MergeATSFiltersDraftActions {
 }
 
 function MergeATSFiltersDraftProvider({children}: ChildrenProps) {
-    const route = useRoute<PlatformStackRouteProp<RightModalNavigatorParamList, typeof SCREENS.RIGHT_MODAL.MERGE_ATS_IMPORT_SETTINGS>>();
+    const route = useRoute<PlatformStackRouteProp<RightModalNavigatorParamList, typeof SCREENS.RIGHT_MODAL.RECRUITING_MERGE_IMPORT_SETTINGS>>();
     const policy = usePolicy(route.params?.params?.policyID);
     const savedFilters = policy?.connections?.merge_ats?.config?.filters;
 

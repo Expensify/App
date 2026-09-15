@@ -15,7 +15,7 @@ import type {
     EditRequestNavigatorParamList,
     EnablePaymentsNavigatorParamList,
     FlagCommentNavigatorParamList,
-    MergeATSImportSettingsNavigatorParamList,
+    RecruitingMergeImportSettingsNavigatorParamList,
     MergeTransactionNavigatorParamList,
     MissingPersonalDetailsParamList,
     MoneyRequestNavigatorParamList,
@@ -320,9 +320,9 @@ const PolicyCopySettingsModalStackNavigator = createModalStackNavigator<PolicyCo
     [SCREENS.POLICY_COPY_SETTINGS.CONFIRM]: () => require<ReactComponentModule>('../../../../pages/workspace/copyPolicySettings/CopyPolicySettingsConfirmPage').default,
 });
 
-const MergeATSImportSettingsModalStackNavigator = createModalStackNavigator<MergeATSImportSettingsNavigatorParamList>({
-    [SCREENS.MERGE_ATS_IMPORT_SETTINGS.ROOT]: () => require<ReactComponentModule>('../../../../pages/workspace/recruiting/merge/MergeATSFiltersPage').default,
-    [SCREENS.MERGE_ATS_IMPORT_SETTINGS.FILTER]: () => require<ReactComponentModule>('../../../../pages/workspace/recruiting/merge/MergeATSFilterSelectionPage').default,
+const MergeATSImportSettingsModalStackNavigator = createModalStackNavigator<RecruitingMergeImportSettingsNavigatorParamList>({
+    [SCREENS.RECRUITING_MERGE_IMPORT_SETTINGS.ROOT]: () => require<ReactComponentModule>('../../../../pages/workspace/recruiting/merge/MergeATSFiltersPage').default,
+    [SCREENS.RECRUITING_MERGE_IMPORT_SETTINGS.FILTER]: () => require<ReactComponentModule>('../../../../pages/workspace/recruiting/merge/MergeATSFilterSelectionPage').default,
 });
 
 const TaskModalStackNavigator = createModalStackNavigator<TaskDetailsNavigatorParamList>({

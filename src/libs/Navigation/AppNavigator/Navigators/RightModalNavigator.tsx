@@ -78,7 +78,7 @@ function SearchAdvancedFiltersWithContext(props: Record<string, unknown>) {
     );
 }
 
-function MergeATSImportSettingsWithContext(props: Record<string, unknown>) {
+function MergeATSImportSettingsDraftWithContext(props: Record<string, unknown>) {
     return (
         <MergeATSFiltersDraftProvider>
             <ModalStackNavigators.MergeATSImportSettingsModalStackNavigator {...props} />
@@ -414,8 +414,8 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                                 component={ModalStackNavigators.PolicyCopySettingsModalStackNavigator}
                             />
                             <Stack.Screen
-                                name={SCREENS.RIGHT_MODAL.MERGE_ATS_IMPORT_SETTINGS}
-                                component={MergeATSImportSettingsWithContext}
+                                name={SCREENS.RIGHT_MODAL.RECRUITING_MERGE_IMPORT_SETTINGS}
+                                component={MergeATSImportSettingsDraftWithContext}
                             />
                             <Stack.Screen
                                 name={SCREENS.RIGHT_MODAL.NEW_TASK}
