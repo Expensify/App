@@ -1526,21 +1526,27 @@ describe('Transaction', () => {
             expect(snapshotUpdates.length).toBeGreaterThan(0);
 
             const hasPersonalDetails = snapshotUpdates.some((update) => {
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
                 const value = update.value as {data?: Record<string, unknown>} | undefined;
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
                 const personalDetails = value?.data?.[ONYXKEYS.PERSONAL_DETAILS_LIST] as Record<string, {displayName?: string}> | undefined;
                 return personalDetails?.[CURRENT_USER_ID]?.displayName === 'Current User';
             });
             expect(hasPersonalDetails).toBe(true);
 
             const hasSelfDMAction = snapshotUpdates.some((update) => {
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
                 const value = update.value as {data?: Record<string, unknown>} | undefined;
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
                 const reportActions = value?.data?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${FAKE_SELF_DM_REPORT_ID}`] as Record<string, {actorAccountID?: number}> | undefined;
                 return Object.values(reportActions ?? {}).some((action) => action?.actorAccountID === CURRENT_USER_ID);
             });
             expect(hasSelfDMAction).toBe(true);
 
             const hasClearedOldAction = snapshotUpdates.some((update) => {
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
                 const value = update.value as {data?: Record<string, unknown>} | undefined;
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
                 const reportActions = value?.data?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${FAKE_OLD_REPORT_ID}`] as
                     | Record<string, {originalMessage?: {IOUTransactionID?: string | null}}>
                     | undefined;
