@@ -8,10 +8,11 @@ import {useSidebarOrderedReportsState} from '@hooks/useSidebarOrderedReports';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {isReportsTabPreloaded} from '@libs/Navigation/helpers/tabNavigatorUtils';
 import Navigation, {startOpenReportSpan} from '@libs/Navigation/Navigation';
 import navigationRef from '@libs/Navigation/navigationRef';
 import {isDeletedAction} from '@libs/ReportActionsUtils';
-import {startSpan} from '@libs/telemetry/activeSpans';
+import {getSpan, startSpan} from '@libs/telemetry/activeSpans';
 
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -37,8 +38,17 @@ function startNavigateToInboxTabSpan({isWideLayout}: {isWideLayout: boolean}) {
         name: CONST.TELEMETRY.SPAN_NAVIGATE_TO_INBOX_TAB,
         op: CONST.TELEMETRY.SPAN_NAVIGATE_TO_INBOX_TAB,
         forceTransaction: true,
-        attributes: {[CONST.TELEMETRY.ATTRIBUTE_WIDE_LAYOUT]: isWideLayout},
+        // Read before the tab navigation is dispatched, because jumping to the tab drops its preloaded key.
+        attributes: {
+            [CONST.TELEMETRY.ATTRIBUTE_WIDE_LAYOUT]: isWideLayout,
+            [CONST.TELEMETRY.ATTRIBUTE_IS_PRELOADED]: isReportsTabPreloaded(navigationRef.getRootState()),
+            [CONST.TELEMETRY.ATTRIBUTE_OPENED_REPORT]: false,
+        },
     });
+}
+
+function markNavigateToInboxTabOpenedReport() {
+    getSpan(CONST.TELEMETRY.SPAN_NAVIGATE_TO_INBOX_TAB)?.setAttribute(CONST.TELEMETRY.ATTRIBUTE_OPENED_REPORT, true);
 }
 
 type InboxTabButtonProps = {
@@ -132,6 +142,7 @@ function WideInboxTabButton({selectedTab, statusIndicatorColor, accessibilityLab
                     return;
                 }
                 if (tabNavigatorStateKey && reportID) {
+                    markNavigateToInboxTabOpenedReport();
                     startOpenReportSpan(reportRoute);
                     navigationRef.dispatch({
                         ...TabActions.jumpTo(NAVIGATORS.REPORTS_SPLIT_NAVIGATOR, {
@@ -148,6 +159,7 @@ function WideInboxTabButton({selectedTab, statusIndicatorColor, accessibilityLab
                     });
                     return;
                 }
+                markNavigateToInboxTabOpenedReport();
                 Navigation.navigate(reportRoute);
                 return;
             }
