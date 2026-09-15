@@ -25,6 +25,8 @@ function NumericCurrencyButton({currency, accessibilityLabel, isDisabled = false
             contentContainerStyle={styles.justifyContentCenter}
             isDisabled={isDisabled}
             onPress={onPress}
+            // Keeps the input focused and its caret in place when the button is pressed on web.
+            onMouseDown={(event) => event.preventDefault()}
             size={CONST.BUTTON_SIZE.SMALL}
             style={style}
             testID={testID}
