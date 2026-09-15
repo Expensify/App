@@ -273,6 +273,7 @@ const SCREENS = {
         WORKSPACE_CONFIRMATION: 'Workspace_Confirmation',
         WORKSPACE_DUPLICATE: 'Workspace_Duplicate',
         POLICY_COPY_SETTINGS: 'Policy_Copy_Settings',
+        RECRUITING_MERGE_IMPORT_SETTINGS: 'RecruitingMergeImportSettings',
         REPORT_SETTINGS: 'Report_Settings',
         REPORT_DESCRIPTION: 'Report_Description',
         PARTICIPANTS: 'Participants',
@@ -511,6 +512,11 @@ const SCREENS = {
         SELECT_FEATURES: 'Policy_Copy_Settings_Select_Features',
         UPGRADE: 'Policy_Copy_Settings_Upgrade',
         CONFIRM: 'Policy_Copy_Settings_Confirm',
+    },
+
+    RECRUITING_MERGE_IMPORT_SETTINGS: {
+        ROOT: 'Recruiting_Merge_Import_Settings_Root',
+        FILTER: 'Recruiting_Merge_Import_Settings_Filter',
     },
 
     WORKSPACES_LIST: 'Workspaces_List',
