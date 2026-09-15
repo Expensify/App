@@ -15,6 +15,7 @@ import type {
     TaskListItemType,
     TransactionCardGroupListItemType,
     TransactionCategoryGroupListItemType,
+    TransactionDayGroupListItemType,
     TransactionGroupListItemType,
     TransactionListItemType,
     TransactionMemberGroupListItemType,
@@ -3930,6 +3931,41 @@ function getTagSections(data: OnyxTypes.SearchResults['data'], queryJSON: Search
 }
 
 /**
+ * Organizes data into list sections grouped by day.
+ */
+function getDaySections(
+    data: OnyxTypes.SearchResults['data'],
+    queryJSON: SearchQueryJSON | undefined,
+    dateFnsLocale: DateFnsLocale | undefined,
+): [TransactionDayGroupListItemType[], number, boolean] {
+    const daySections: Record<string, TransactionDayGroupListItemType> = {};
+    for (const key in data) {
+        if (!isGroupEntry(key)) {
+            continue;
+        }
+
+        const dayGroup = data[key];
+        if (!('day' in dayGroup) || typeof dayGroup.day !== 'string') {
+            continue;
+        }
+
+        const transactionsQueryJSON = queryJSON ? buildDateRangeGroupQuery(queryJSON, {start: dayGroup.day, end: dayGroup.day}).transactionsQueryJSON : undefined;
+        daySections[key] = {
+            groupedBy: 'day',
+            transactions: [],
+            transactionsQueryJSON,
+            ...dayGroup,
+            formattedDay: DateUtils.getFormattedDayForSearch(dayGroup.day, dateFnsLocale),
+            shortFormattedDay: DateUtils.getShortFormattedDayForSearch(dayGroup.day, dateFnsLocale),
+            keyForList: key,
+        };
+    }
+
+    const daySectionsValues = Object.values(daySections);
+    return [daySectionsValues, daySectionsValues.length, hasDeletedTransactionInData(data)];
+}
+
+/**
  * @private
  * Organizes data into List Sections grouped by month for display, for the TransactionGroupListItemType of Search Results.
  *
@@ -7606,6 +7642,7 @@ export {
     getSearchBulkEditPolicyID,
     getSuggestedSearches,
     getSections,
+    getDaySections,
     getSuggestedSearchesVisibility,
     getSortedSections,
     getSortedTransactionData,

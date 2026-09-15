@@ -2157,6 +2157,31 @@ const searchResultsGroupByMonth: OnyxTypes.SearchResults = {
     },
 };
 
+const searchResultsGroupByDay: OnyxTypes.SearchResults = {
+    data: {
+        personalDetailsList: {},
+        [`${CONST.SEARCH.GROUP_PREFIX}2026-09-15` as const]: {
+            day: '2026-09-15',
+            count: 5,
+            currency: 'USD',
+            total: 250,
+        },
+    },
+    search: {
+        count: 5,
+        currency: 'USD',
+        hasMoreResults: false,
+        hasResults: true,
+        offset: 0,
+        hash: 0,
+        sortBy: 'date',
+        sortOrder: 'desc',
+        total: 250,
+        isLoading: false,
+        type: 'expense',
+    },
+};
+
 const searchResultsGroupByYear: OnyxTypes.SearchResults = {
     data: {
         personalDetailsList: {},
@@ -3700,6 +3725,42 @@ describe('SearchUIUtils', () => {
             };
 
             expect(SearchUIUtils.isTransactionCategoryGroupListItemType(categoryItem)).toBe(true);
+        });
+
+        it('should build a day section with an exact-day transaction query', () => {
+            const parsedQuery = buildSearchQueryJSON('type:expense group-by:day');
+            if (!parsedQuery) {
+                throw new Error('Failed to parse day-grouped search query');
+            }
+
+            const [sections] = SearchUIUtils.getDaySections(searchResultsGroupByDay.data, {...parsedQuery}, undefined);
+            expect(sections).toHaveLength(1);
+            expect(sections.at(0)).toEqual(
+                expect.objectContaining({
+                    day: '2026-09-15',
+                    count: 5,
+                    currency: 'USD',
+                    total: 250,
+                    groupedBy: 'day',
+                    formattedDay: 'September 15, 2026',
+                    shortFormattedDay: 'Sep 15, ’26',
+                    transactions: [],
+                    keyForList: 'group_2026-09-15',
+                }),
+            );
+            expect(sections.at(0)?.transactionsQueryJSON?.groupBy).toBeUndefined();
+            expect(sections.at(0)?.transactionsQueryJSON?.flatFilters).toEqual(
+                expect.arrayContaining([
+                    {
+                        key: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
+                        filters: [{operator: CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN_OR_EQUAL_TO, value: '2026-09-15'}],
+                    },
+                    {
+                        key: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
+                        filters: [{operator: CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN_OR_EQUAL_TO, value: '2026-09-15'}],
+                    },
+                ]),
+            );
         });
 
         it('should return getMonthSections result when type is EXPENSE and groupBy is month', () => {
