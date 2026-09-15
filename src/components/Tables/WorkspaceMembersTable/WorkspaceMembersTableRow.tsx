@@ -7,6 +7,7 @@ import TextWithTooltip from '@components/TextWithTooltip';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -44,6 +45,7 @@ export default function WorkspaceMembersTableRow({
 }: WorkspaceMembersTableRowProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
 
@@ -110,10 +112,12 @@ export default function WorkspaceMembersTableRow({
                         >
                             {!!item.approverDisplayName && !!item.approverAccountID && (
                                 <>
+                                    {/* The avatar's default container has no size of its own for XXX_SMALL, so it falls back to the medium one and pushes the name away from the avatar. */}
                                     <AccountAvatar
                                         accountID={item.approverAccountID}
                                         fallbackDisplayName={item.approverDisplayName}
                                         size={CONST.AVATAR_SIZE.XXX_SMALL}
+                                        containerStyle={StyleUtils.getWidthAndHeightStyle(variables.avatarSizeXxxSmall)}
                                     />
                                     <TextWithTooltip
                                         shouldShowTooltip
