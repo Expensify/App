@@ -22,12 +22,11 @@ import usePolicy from '@hooks/usePolicy';
 import usePrimaryContactMethod from '@hooks/usePrimaryContactMethod';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {clearIssueNewCardFlow, clearIssueNewCardFormData, setIssueNewCardStepAndData, updateSelectedExpensifyCardFeed} from '@libs/actions/Card';
+import {clearIssueNewCardFlow, clearIssueNewCardFormData, updateSelectedExpensifyCardFeed} from '@libs/actions/Card';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import type {ExpensifyCardFeedEntry} from '@libs/ExpensifyCardFeedSelectorUtils';
 import {getExpensifyCardFeedDescription} from '@libs/ExpensifyCardFeedSelectorUtils';
 import {isEmailPublicDomain} from '@libs/LoginUtils';
-import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {canEditWorkspaceSettings, canMemberWrite} from '@libs/PolicyUtils';
@@ -44,7 +43,7 @@ import {linkCardFeedToPolicy} from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 
@@ -75,6 +74,8 @@ function WorkspaceExpensifyCardFeedSelectorPage({route}: WorkspaceExpensifyCardF
     const primaryContactMethod = usePrimaryContactMethod();
     const defaultFundID = useDefaultFundID(policyID);
     const lastSelectedExpensifyCardFeedID = lastSelectedExpensifyCardFeed ?? defaultFundID;
+    const [draftFundID, setDraftFundID] = useState<number>();
+    const currentSelectedFundID = draftFundID ?? lastSelectedExpensifyCardFeedID;
     const [feedWithError, setFeedWithError] = useState<{fundID?: number; error?: Errors} | undefined>(undefined);
     const {login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
 
@@ -101,26 +102,7 @@ function WorkspaceExpensifyCardFeedSelectorPage({route}: WorkspaceExpensifyCardF
         return undefined;
     };
 
-    const issueCardFundID = getIssueCardFundID();
-    const hasIssueCardFundID = issueCardFundID !== undefined;
-
-    const handleAddCardPress = () => {
-        if (issueCardFundID === undefined) {
-            return;
-        }
-        clearIssueNewCardFormData();
-        if (isAccountLocked) {
-            showLockedAccountModal();
-            return;
-        }
-        if (isDelegateAccessRestricted) {
-            showDelegateNoAccessModal();
-            return;
-        }
-        updateSelectedExpensifyCardFeed(issueCardFundID, policyID);
-        setIssueNewCardStepAndData({policyID, isChangeAssigneeDisabled: false});
-        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW.path, ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(policyID)));
-    };
+    const hasIssueCardFundID = getIssueCardFundID() !== undefined;
 
     /** When there is no primary feed for this workspace, mirror empty-state flow: bank account / new program setup (same as WORKSPACE_EXPENSIFY_CARD_BANK_ACCOUNT). */
     const handleSetUpNewProgramPress = () => {
@@ -142,7 +124,7 @@ function WorkspaceExpensifyCardFeedSelectorPage({route}: WorkspaceExpensifyCardF
             value: entry.fundID,
             text: getExpensifyCardFeedDescription(entry.settings, policies, domains, entry.fundID, cardList),
             keyForList: entry.fundID.toString(),
-            isSelected: entry.fundID === lastSelectedExpensifyCardFeedID,
+            isSelected: entry.fundID === currentSelectedFundID,
             isDisabled: isFeedPendingDelete || (isOtherWorkspaceSection && isOffline),
             pendingAction: entry.settings.pendingAction,
             errors: feedWithError?.fundID === entry.fundID ? feedWithError.error : undefined,
@@ -197,24 +179,39 @@ function WorkspaceExpensifyCardFeedSelectorPage({route}: WorkspaceExpensifyCardF
     };
 
     const selectFeed = (feed: ExpensifyFeedListItem) => {
+        setDraftFundID(feed.value);
+    };
+
+    const saveFeed = () => {
+        if (!currentSelectedFundID) {
+            return;
+        }
         resetCardFlowState();
-        updateSelectedExpensifyCardFeed(feed.value, policyID);
+        updateSelectedExpensifyCardFeed(currentSelectedFundID, policyID);
         goBack();
+    };
+
+    const confirmButtonOptions = {
+        showButton: true,
+        text: translate('common.save'),
+        onConfirm: saveFeed,
+        isDisabled: !currentSelectedFundID || currentSelectedFundID === lastSelectedExpensifyCardFeedID,
     };
 
     const primaryListData = primaryFeeds.map((entry) => toListItem(entry, false));
 
-    // Suppress the new-program branch on workspaces with unsupported currencies, and for members who cannot
-    // reach the bank account setup page. These workspaces may only issue cards on existing feeds
-    const shouldShowIssueCardButton = hasIssueCardFundID || (canEnrollNewCardProgram && canStartBankAccountSetup);
+    // Issuing a card on an already selected feed is already offered on the card list page, so this page only offers
+    // setting up a brand new program. Suppress that branch on workspaces with unsupported currencies, and for members
+    // who cannot reach the bank account setup page.
+    const shouldShowSetUpNewProgramButton = !hasIssueCardFundID && canEnrollNewCardProgram && canStartBankAccountSetup;
 
     const issueNewCardAndOtherFeedsFooter = canWriteExpensifyCard ? (
         <View style={[styles.w100, styles.flexColumn]}>
-            {shouldShowIssueCardButton && (
+            {shouldShowSetUpNewProgramButton && (
                 <MenuItemAction
-                    title={translate(hasIssueCardFundID ? 'workspace.expensifyCard.issueCard' : 'workspace.expensifyCard.issueNewCard')}
+                    title={translate('workspace.expensifyCard.issueNewCard')}
                     icon={expensifyIcons.Plus}
-                    onPress={hasIssueCardFundID ? handleAddCardPress : handleSetUpNewProgramPress}
+                    onPress={handleSetUpNewProgramPress}
                     sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.EXPENSIFY_CARD.ISSUE_CARD_BUTTON}
                 />
             )}
@@ -267,6 +264,7 @@ function WorkspaceExpensifyCardFeedSelectorPage({route}: WorkspaceExpensifyCardF
                         data={primaryListData}
                         alternateNumberOfSupportedLines={2}
                         initiallyFocusedItemKey={lastSelectedExpensifyCardFeedID.toString()}
+                        confirmButtonOptions={confirmButtonOptions}
                         addBottomSafeAreaPadding
                         listFooterContent={issueNewCardAndOtherFeedsFooter}
                         onDismissError={onDismissError}

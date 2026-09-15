@@ -80,6 +80,9 @@ function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedS
     const otherFeeds = useOtherFeedsForFeedSelector(policyID);
     const primaryContactMethod = usePrimaryContactMethod();
 
+    const [draftFeed, setDraftFeed] = useState<CompanyCardFeedWithDomainID>();
+    const currentSelectedFeed = draftFeed ?? selectedFeedName;
+
     const isUserFromPublicDomain = isEmailPublicDomain(primaryContactMethod);
 
     const feeds: CardFeedListItem[] = (Object.entries(companyCardFeeds ?? {}) as Array<[CompanyCardFeedWithDomainID, CombinedCardFeed]>).map(([feedName, feedSettings]) => {
@@ -97,7 +100,7 @@ function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedS
             alternateText: domainName ?? policyName,
             text: getCustomOrFormattedFeedName(translate, feedSettings.feed, feedSettings.customFeedName),
             keyForList: feedName,
-            isSelected: feedName === selectedFeedName,
+            isSelected: feedName === currentSelectedFeed,
             isDisabled: feedSettings.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
             pendingAction: feedSettings.pendingAction,
             brickRoadIndicator: shouldShowRBR ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
@@ -143,8 +146,22 @@ function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedS
     const goBack = () => Navigation.goBack(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID));
 
     const selectFeed = (feed: CardFeedListItem) => {
-        updateSelectedFeed(feed.value, policyID);
+        setDraftFeed(feed.value);
+    };
+
+    const saveFeed = () => {
+        if (!currentSelectedFeed) {
+            return;
+        }
+        updateSelectedFeed(currentSelectedFeed, policyID);
         goBack();
+    };
+
+    const confirmButtonOptions = {
+        showButton: true,
+        text: translate('common.save'),
+        onConfirm: saveFeed,
+        isDisabled: !currentSelectedFeed || currentSelectedFeed === selectedFeedName,
     };
 
     const selectOtherFeed = (feed: CardFeedListItem) => {
@@ -238,6 +255,7 @@ function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedS
                         data={feeds}
                         alternateNumberOfSupportedLines={2}
                         initiallyFocusedItemKey={selectedFeedName}
+                        confirmButtonOptions={confirmButtonOptions}
                         addBottomSafeAreaPadding
                         listFooterContent={otherMenuItemFeeds}
                     />
