@@ -71,11 +71,10 @@ function CarTripDetails({reservation, personalDetails}: CarTripDetailsProps) {
                 />
             )}
             {!!cancellationText && (
-                <MenuItemWithTopDescription
-                    description={translate('travel.carDetails.cancellation')}
-                    title={cancellationText}
-                    interactive={false}
-                    numberOfLinesTitle={2}
+                <MenuItemField
+                    name={translate('travel.carDetails.cancellation')}
+                    value={cancellationText}
+                    numberOfLinesValue={2}
                 />
             )}
             {!!reservation.reservationID && (

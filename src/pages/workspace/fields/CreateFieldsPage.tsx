@@ -3,6 +3,7 @@ import FormValueWatcher from '@components/Form/FormValueWatcher';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues, FormRef} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TextPicker from '@components/TextPicker';
@@ -219,12 +220,11 @@ function CreateFieldsPage({policy, policyID, isInvoiceField, listValuesRoute, ge
                             />
 
                             {inputValues[INPUT_IDS.TYPE] === CONST.REPORT_FIELD_TYPES.LIST && (
-                                <MenuItemWithTopDescription
-                                    description={translate('workspace.reportFields.listValues')}
-                                    shouldShowRightIcon
+                                <MenuItemField
+                                    name={translate('workspace.reportFields.listValues')}
+                                    value={listValues}
+                                    numberOfLinesValue={5}
                                     onPress={() => Navigation.navigate(listValuesRoute)}
-                                    title={listValues}
-                                    numberOfLinesTitle={5}
                                 />
                             )}
 
