@@ -67,6 +67,19 @@ describe('AddVendorPage', () => {
             ]);
         });
 
+        it('sorts vendors alphabetically by name', () => {
+            const policy = buildQBOPolicy([
+                {id: 'v-2', name: 'Zebra', currency: 'USD'},
+                {id: 'v-1', name: 'Acme Co', currency: 'USD'},
+                {id: 'v-3', name: 'Banana', currency: 'USD'},
+            ]);
+            expect(getVendorSelectionItems(policy)).toEqual([
+                {name: 'Acme Co', value: 'v-1'},
+                {name: 'Banana', value: 'v-3'},
+                {name: 'Zebra', value: 'v-2'},
+            ]);
+        });
+
         it('returns an empty list when the vendor list is loaded but empty', () => {
             expect(getVendorSelectionItems(buildQBOPolicy([]))).toEqual([]);
         });

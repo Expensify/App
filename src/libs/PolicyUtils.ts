@@ -2825,6 +2825,21 @@ function getMatchingVendors(policy: OnyxEntry<Policy>): Vendor[] {
 }
 
 /**
+ * Sorts vendors alphabetically by name using the provided localeCompare.
+ * Uses vendor id as a stable tie-breaker when names match.
+ * Non-mutating: returns a new sorted array.
+ */
+function sortVendors<TVendor extends {id: string; name: string}>(vendors: TVendor[], localeCompare: LocaleContextProps['localeCompare']): TVendor[] {
+    return [...vendors].sort((a, b) => {
+        const nameComparison = localeCompare(a.name ?? '', b.name ?? '');
+        if (nameComparison !== 0) {
+            return nameComparison;
+        }
+        return localeCompare(a.id ?? '', b.id ?? '');
+    });
+}
+
+/**
  * True only when the active vendor-matching integration's vendor list has been written to Onyx —
  * including the loaded-but-empty case. Lets callers distinguish "vendor not in list" (the
  * inactive-vendor case) from "vendor list hasn't synced yet" (a transient render before Onyx
@@ -3462,6 +3477,7 @@ export {
     getActiveVendorMatchingIntegration,
     getMatchingVendorByID,
     getMatchingVendors,
+    sortVendors,
     getVendorEmptyState,
     getVendorRuleDisplayValue,
     getXeroSupplierByID,

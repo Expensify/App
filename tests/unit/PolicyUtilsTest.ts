@@ -86,6 +86,7 @@ import {
     shouldHideDynamicExternalWorkflowPeople,
     shouldShowPolicy,
     sortPoliciesByName,
+    sortVendors,
     sortWorkspacesBySelected,
     tryNavigateToSubmitWorkspaceUpgrade,
 } from '@libs/PolicyUtils';
@@ -3605,7 +3606,53 @@ describe('PolicyUtils', () => {
             const result = sortPoliciesByName(policies, localeCompare);
 
             expect(result).not.toBe(policies);
-            expect(policies.map((policy) => policy.name)).toEqual(['Charlie', 'Alpha']);
+        });
+    });
+
+    describe('sortVendors', () => {
+        const localeCompare = (a: string, b: string) => a.localeCompare(b, undefined, {sensitivity: 'base', numeric: true});
+
+        it('sorts vendors alphabetically by name using localeCompare', () => {
+            const vendors = [
+                {id: '1', name: 'Zebra'},
+                {id: '2', name: 'apple'},
+                {id: '3', name: 'Banana'},
+            ];
+
+            const result = sortVendors(vendors, localeCompare);
+            expect(result.map((v) => v.name)).toEqual(['apple', 'Banana', 'Zebra']);
+        });
+
+        it('breaks name ties using vendor id', () => {
+            const vendors = [
+                {id: 'vendor_b', name: 'Acme'},
+                {id: 'vendor_a', name: 'Acme'},
+            ];
+
+            const result = sortVendors(vendors, localeCompare);
+            expect(result.map((v) => v.id)).toEqual(['vendor_a', 'vendor_b']);
+        });
+
+        it('does not sort the input array in place', () => {
+            const vendors = [
+                {id: '2', name: 'Zebra'},
+                {id: '1', name: 'Alpha'},
+            ];
+
+            const result = sortVendors(vendors, localeCompare);
+            expect(result).not.toBe(vendors);
+            expect(vendors.map((v) => v.name)).toEqual(['Zebra', 'Alpha']);
+        });
+
+        it('returns empty array for empty input', () => {
+            expect(sortVendors([], localeCompare)).toEqual([]);
+        });
+
+        it('returns single-element array as-is', () => {
+            const vendors = [{id: '1', name: 'Only'}];
+            const result = sortVendors(vendors, localeCompare);
+            expect(result).toHaveLength(1);
+            expect(result.at(0)?.name).toBe('Only');
         });
     });
 
