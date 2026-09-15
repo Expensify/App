@@ -8754,6 +8754,8 @@ function mergeReports({
                 pendingFields: {
                     preview: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                 },
+                errors: null,
+                errorFields: null,
             },
         });
 
@@ -8814,7 +8816,7 @@ function mergeReports({
     const failureData = [...moveFailureData, ...deleteFailureData];
 
     if (hash) {
-        const optimisticSnapshotData: SearchResultDataType = {};
+        const optimisticSnapshotData: NullishDeep<SearchResultDataType> = {};
         const failureSnapshotData: SearchResultDataType = {};
         for (const transaction of transactionsToMove) {
             optimisticSnapshotData[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`] = {
@@ -8830,7 +8832,8 @@ function mergeReports({
                 optimisticSnapshotData[`${ONYXKEYS.COLLECTION.REPORT}${sourceReportID}`] = {
                     ...sourceReport,
                     pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-                };
+                    errors: null,
+                } as NullishDeep<Report>;
 
                 failureSnapshotData[`${ONYXKEYS.COLLECTION.REPORT}${sourceReportID}`] = {...sourceReport, pendingAction: sourceReport.pendingAction ?? null};
             }
