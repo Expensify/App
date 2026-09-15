@@ -41,6 +41,7 @@ import usePolicyCategoriesForConfirmation from './usePolicyCategoriesForConfirma
 import usePolicyTagsForConfirmation from './usePolicyTagsForConfirmation';
 import useReceiptTraining from './useReceiptTraining';
 import useSplitParticipants from './useSplitParticipants';
+import useTaxAmount from './useTaxAmount';
 import useTransactionReportForConfirmation from './useTransactionReportForConfirmation';
 
 /**
@@ -50,17 +51,19 @@ import useTransactionReportForConfirmation from './useTransactionReportForConfir
  */
 type ConfirmationDistanceState = Pick<
     ReturnType<typeof useDistanceRequestState>,
-    'isDistanceRequestWithPendingRoute' | 'shouldCalculateDistanceAmount' | 'distanceRequestAmount' | 'currency' | 'prevCurrency'
+    'isDistanceRequestWithPendingRoute' | 'shouldCalculateDistanceAmount' | 'distanceRequestAmount' | 'currency' | 'prevCurrency' | 'distance' | 'unit'
 >;
 
 type UseConfirmationListDataParams = {
     /** Transaction that represents the expense */
-    transaction: OnyxEntry<OnyxTypes.Transaction>;
+    transaction?: OnyxEntry<OnyxTypes.Transaction>;
 
-    action: IOUAction;
-    iouType: Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND>;
+    /** Defaults match what the pages send, so a variant can spread its own props straight through. */
+    action?: IOUAction;
+
+    iouType?: Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND>;
     policyID?: string;
-    reportID: string;
+    reportID?: string;
 
     /** Only reaches `confirmationFieldsProviderProps`, where the field sections read it to build edit routes. */
     reportActionID?: string;
@@ -132,10 +135,10 @@ const INLINE_FIELD_ERROR_KEYS = new Set<TranslationPaths | ''>(['common.error.fi
  */
 function useConfirmationListData({
     transaction,
-    action,
-    iouType,
+    action = CONST.IOU.ACTION.CREATE,
+    iouType = CONST.IOU.TYPE.SUBMIT,
     policyID,
-    reportID,
+    reportID = '',
     reportActionID,
     selectedParticipants: selectedParticipantsProp,
     payeePersonalDetails: payeePersonalDetailsProp,
@@ -169,6 +172,8 @@ function useConfirmationListData({
         distanceRequestAmount = 0,
         currency: distanceCurrency,
         prevCurrency,
+        distance = 0,
+        unit: distanceUnit,
     }: Partial<ConfirmationDistanceState> = distanceState ?? {};
 
     const policyCategories = usePolicyCategoriesForConfirmation(policyID);
@@ -228,6 +233,20 @@ function useConfirmationListData({
     const shouldShowMerchant = (shouldShowSmartScanFields || isTypeSend) && !isDistanceRequest && !isPerDiemRequest && (!isTimeRequest || action !== CONST.IOU.ACTION.CREATE);
 
     const shouldShowTax = isTaxTrackingEnabled(isPolicyExpenseChat || isTrackExpense, policy, isDistanceRequest, isPerDiemRequest, isTimeRequest);
+
+    // Cheap for the types that never show a tax field — it reads the policy's rates and subscribes to nothing —
+    // so it is resolved here rather than in each variant that mounts `TaxController`.
+    const tax = useTaxAmount({
+        transaction,
+        policy,
+        policyForMovingExpenses,
+        isDistanceRequest,
+        isMovingTransactionFromTrackExpense,
+        customUnitRateID,
+        distance,
+        distanceUnit,
+        previousTransactionCurrency,
+    });
 
     const {amountToBeUsed, formattedAmount, formattedAmountPerAttendee, isScanRequest} = useConfirmationAmount({
         transaction,
@@ -457,12 +476,15 @@ function useConfirmationListData({
     );
 
     return {
-        // Surface chrome, handed straight to `ConfirmationListLayout`
-        sections,
-        listRef,
-        footerContent,
-        navigateToParticipantPage,
-        dismissParticipantRowError,
+        /** Handed straight to `ConfirmationListLayout`. Only `listFooterContent` differs per expense type. */
+        layoutProps: {
+            transactionID,
+            sections,
+            listRef,
+            footerContent,
+            onSelectRow: navigateToParticipantPage,
+            onDismissError: dismissParticipantRowError,
+        },
 
         /**
          * The `ConfirmationFieldsProvider` props that are the same for every expense type. A variant spreads these
@@ -489,8 +511,13 @@ function useConfirmationListData({
         visibilityFlags: {shouldShowSmartScanFields, shouldShowAmountField: !isPerDiemRequest, shouldShowMerchant, shouldShowCategories, shouldShowTax},
         errorState: {shouldDisplayFieldError, formError, clearFormErrors, setFormError},
 
-        // Shared values the variants pass on to their own controllers and footers
+        /** Resolved tax values, read by `TaxController`. */
+        tax,
+
+        // Shared values, read from context by the side-effect controllers and passed on to the footers
+        transaction,
         policy,
+        policyID,
         policyTags,
         policyTagLists,
         policyCategories,
@@ -503,6 +530,9 @@ function useConfirmationListData({
         previousTransactionCurrency,
         currentUserAccountID: currentUserPersonalDetails.accountID,
         isMovingTransactionFromTrackExpense,
+        isReadOnly,
+        isPolicyExpenseChat,
+        isDistanceRequest,
         isScanRequest,
         isTypeSplit,
         isTypeInvoice,
@@ -511,6 +541,7 @@ function useConfirmationListData({
         shouldShowCategories,
         shouldShowTax,
         selectedParticipants,
+        selectedParticipantsProp,
         didConfirm,
         confirm,
         scrollFocusedInputIntoView,

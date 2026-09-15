@@ -1,10 +1,10 @@
 import ConfirmationFieldsProvider from '@components/MoneyRequestConfirmationFields/Provider';
+import ConfirmationDataContext from '@components/MoneyRequestConfirmationList/ConfirmationDataContext';
 import ConfirmationListLayout from '@components/MoneyRequestConfirmationList/ConfirmationListLayout';
 import DistanceRequestController from '@components/MoneyRequestConfirmationList/DistanceRequestController';
 import FieldAutoSelector from '@components/MoneyRequestConfirmationList/FieldAutoSelector';
 import useConfirmationListData from '@components/MoneyRequestConfirmationList/hooks/useConfirmationListData';
 import useDistanceRequestState from '@components/MoneyRequestConfirmationList/hooks/useDistanceRequestState';
-import useTaxAmount from '@components/MoneyRequestConfirmationList/hooks/useTaxAmount';
 import SplitBillController from '@components/MoneyRequestConfirmationList/SplitBillController';
 import TaxController from '@components/MoneyRequestConfirmationList/TaxController';
 import type {DistanceConfirmationListProps} from '@components/MoneyRequestConfirmationList/types';
@@ -42,40 +42,30 @@ import {View} from 'react-native';
  *
  * A distance expense is never a scan and never enters the compact layout.
  */
-function DistanceConfirmationList({
-    transaction,
-    onSendMoney,
-    onConfirm,
-    onOpenParticipantPicker,
-    isParticipantPickerVisible = false,
-    iouType = CONST.IOU.TYPE.SUBMIT,
-    isOdometerDistanceRequest = false,
-    isLoadingReceipt = false,
-    receiptStitchError,
-    isPolicyExpenseChat = false,
-    shouldShowSmartScanFields = true,
-    isEditingSplitBill,
-    isReceiptEditable,
-    selectedParticipants: selectedParticipantsProp,
-    payeePersonalDetails: payeePersonalDetailsProp,
-    isReadOnly = false,
-    policyID,
-    reportID = '',
-    receiptPath = '',
-    receiptFilename = '',
-    onToggleBillable,
-    reportActionID,
-    action = CONST.IOU.ACTION.CREATE,
-    shouldDisplayReceipt = false,
-    expensesNumber = 0,
-    isConfirmed,
-    isConfirming,
-    onPDFLoadError,
-    onPDFPassword,
-    onToggleReimbursable,
-    showRemoveExpenseConfirmModal,
-    shouldHideToSection = false,
-}: DistanceConfirmationListProps) {
+function DistanceConfirmationList(props: DistanceConfirmationListProps) {
+    const {
+        transaction,
+        selectedParticipants,
+        isEditingSplitBill,
+        isOdometerDistanceRequest = false,
+        receiptStitchError,
+        isParticipantPickerVisible = false,
+        isPolicyExpenseChat = false,
+        iouType = CONST.IOU.TYPE.SUBMIT,
+        action = CONST.IOU.ACTION.CREATE,
+        policyID,
+        onConfirm,
+        onToggleBillable,
+        onToggleReimbursable,
+        receiptFilename = '',
+        receiptPath = '',
+        isLoadingReceipt = false,
+        isReceiptEditable,
+        shouldDisplayReceipt = false,
+        onPDFLoadError,
+        onPDFPassword,
+    } = props;
+
     const isManualDistanceRequest = isManualDistanceRequestUtil(transaction);
     const isGPSDistanceRequest = isGPSDistanceRequestUtil(transaction);
 
@@ -104,7 +94,7 @@ function DistanceConfirmationList({
         iouAmount,
         iouCurrencyCode,
     });
-    const {defaultRate, mileageRate, unit, rate, currency, distance, shouldCalculateDistanceAmount, hasRoute, isDistanceRequestWithPendingRoute, distanceRequestAmount} = distanceState;
+    const {mileageRate, unit, currency, distance, hasRoute} = distanceState;
 
     // A distance request can be blocked before submission by a missing home address, or by a policy that requires
     // a map or GPS, so the guard wraps this surface's own confirm callback.
@@ -114,85 +104,25 @@ function DistanceConfirmationList({
         isOdometerDistanceRequest,
     });
 
-    const {
-        sections,
-        listRef,
-        footerContent,
-        confirmationFieldsProviderProps,
-        navigateToParticipantPage,
-        dismissParticipantRowError,
-        amountDisplay,
-        requiredFlags,
-        visibilityFlags,
-        errorState,
-        policyTags,
-        policyTagLists,
-        policyCategories,
-        transactionID,
-        iouCategory,
-        customUnitRateID,
-        previousTransactionCurrency,
-        currentUserAccountID,
-        isTypeSplit,
-        isCategoryRequired,
-        isFocused,
-        shouldShowCategories,
-        shouldShowTax,
-        selectedParticipants,
-        setFormError,
-        clearFormErrors,
-        setIsTaxAmountEmpty,
-    } = useConfirmationListData({
-        transaction,
-        action,
-        iouType,
-        policyID,
-        reportID,
-        reportActionID,
-        selectedParticipants: selectedParticipantsProp,
-        payeePersonalDetails: payeePersonalDetailsProp,
-        isReadOnly,
-        isPolicyExpenseChat,
-        isEditingSplitBill,
-        expensesNumber,
-        receiptPath,
-        isConfirmed,
-        isConfirming,
-        shouldShowSmartScanFields,
-        shouldHideToSection,
-        isLoadingReceipt,
+    const data = useConfirmationListData({
+        ...props,
+        isDistanceRequest: true,
+        distanceState,
         onConfirm: () => {
             if (blockDistanceRequestIfNeeded()) {
                 return;
             }
             onConfirm?.();
         },
-        onSendMoney,
-        onOpenParticipantPicker,
-        showRemoveExpenseConfirmModal,
-        isDistanceRequest: true,
-        distanceState,
-    });
-
-    const {defaultTaxCode, defaultTaxValue, shouldKeepCurrentTaxSelection, taxAmountInSmallestCurrencyUnits} = useTaxAmount({
-        transaction,
-        policy,
-        policyForMovingExpenses,
-        isDistanceRequest: true,
-        isMovingTransactionFromTrackExpense,
-        customUnitRateID,
-        distance,
-        distanceUnit: unit,
-        previousTransactionCurrency,
     });
 
     const shouldShowRateAutoUpdatedTooltip =
         !!transaction?.comment?.customUnit?.rateAutoUpdated && !!transaction.created && DistanceRequestUtils.isRateEligibleForDate(mileageRate, transaction.created);
 
     const footerProps = {
-        policy,
-        policyTags,
-        selectedParticipants: selectedParticipantsProp,
+        policy: data.policy,
+        policyTags: data.policyTags,
+        selectedParticipants,
         distanceData: {
             distance,
             hasRoute,
@@ -201,24 +131,16 @@ function DistanceConfirmationList({
             distanceRateCurrency: currency,
             mileageRate,
             expenseDate: getCreated(transaction),
-            customUnitRateID,
+            customUnitRateID: data.customUnitRateID,
             shouldShowRateAutoUpdatedTooltip,
             customUnit: transaction?.comment?.customUnit,
         },
-        amountDisplay,
-        requiredFlags,
-        visibilityFlags: {...visibilityFlags, isParticipantPickerVisible},
-        errorState,
+        amountDisplay: data.amountDisplay,
+        requiredFlags: data.requiredFlags,
+        visibilityFlags: {...data.visibilityFlags, isParticipantPickerVisible},
+        errorState: data.errorState,
         toggleHandlers: {onToggleReimbursable, onToggleBillable},
-        receiptOptions: {
-            receiptFilename,
-            receiptPath,
-            isLoadingReceipt,
-            isReceiptEditable,
-            shouldDisplayReceipt,
-            onPDFLoadError,
-            onPDFPassword,
-        },
+        receiptOptions: {receiptFilename, receiptPath, isLoadingReceipt, isReceiptEditable, shouldDisplayReceipt, onPDFLoadError, onPDFPassword},
     };
 
     // Ordered as the footer dispatcher ordered them. A transaction carries a single request type, so at most one
@@ -241,90 +163,29 @@ function DistanceConfirmationList({
 
     const listFooterContent = (
         <ConfirmationFieldsProvider
-            {...confirmationFieldsProviderProps}
+            {...data.confirmationFieldsProviderProps}
             isEditingSplitBill={isEditingSplitBill}
             isDistanceRequest
             isManualDistanceRequest={isManualDistanceRequest}
             isOdometerDistanceRequest={isOdometerDistanceRequest}
             isGPSDistanceRequest={isGPSDistanceRequest}
-            onTaxAmountEmptyChange={setIsTaxAmountEmpty}
+            onTaxAmountEmptyChange={data.setIsTaxAmountEmpty}
         >
             <View>{renderFooter()}</View>
         </ConfirmationFieldsProvider>
     );
 
     return (
-        <>
-            <TaxController
-                transactionID={transactionID}
-                policyID={policyID}
-                isReadOnly={isReadOnly}
-                shouldShowTax={shouldShowTax}
-                isMovingTransactionFromTrackExpense={isMovingTransactionFromTrackExpense}
-                defaultTaxCode={defaultTaxCode}
-                defaultTaxValue={defaultTaxValue}
-                shouldKeepCurrentTaxSelection={shouldKeepCurrentTaxSelection}
-                taxAmountInSmallestCurrencyUnits={taxAmountInSmallestCurrencyUnits}
-                transactionTaxAmount={transaction?.taxAmount}
-            />
-            <DistanceRequestController
-                transactionID={transactionID}
-                transaction={transaction}
-                isDistanceRequest
-                isManualDistanceRequest={isManualDistanceRequest}
-                isPolicyExpenseChat={isPolicyExpenseChat}
-                customUnitRateID={customUnitRateID}
-                mileageRate={mileageRate}
-                distance={distance}
-                unit={unit}
-                rate={rate}
-                currency={currency}
-                policy={policy}
-                isReadOnly={isReadOnly}
-                isMovingTransactionFromTrackExpense={isMovingTransactionFromTrackExpense}
-                isTypeSplit={isTypeSplit}
-                selectedParticipants={selectedParticipants}
-                selectedParticipantsProp={selectedParticipantsProp}
-                defaultMileageRateCustomUnitRateID={defaultRate}
-                hasRoute={hasRoute}
-                isDistanceRequestWithPendingRoute={isDistanceRequestWithPendingRoute}
-                shouldCalculateDistanceAmount={shouldCalculateDistanceAmount}
-                distanceRequestAmount={distanceRequestAmount}
-                currentUserAccountID={currentUserAccountID}
-                setFormError={setFormError}
-                clearFormErrors={clearFormErrors}
-            />
-            <SplitBillController
-                transaction={transaction}
-                isTypeSplit={isTypeSplit}
-                iouAmount={iouAmount}
-                iouCurrencyCode={iouCurrencyCode}
-                currentUserAccountID={currentUserAccountID}
-                isFocused={isFocused}
-                onFormError={setFormError}
-            />
-            <FieldAutoSelector
-                transactionID={transactionID}
-                transaction={transaction}
-                policyCategories={policyCategories}
-                policyTagLists={policyTagLists}
-                policyTags={policyTags}
-                policy={policy}
-                shouldShowCategories={shouldShowCategories}
-                isCategoryRequired={isCategoryRequired}
-                iouCategory={iouCategory}
-                isMovingTransactionFromTrackExpense={isMovingTransactionFromTrackExpense}
-            />
+        <ConfirmationDataContext.Provider value={data}>
+            <TaxController />
+            <DistanceRequestController distanceState={distanceState} />
+            <SplitBillController />
+            <FieldAutoSelector />
             <ConfirmationListLayout
-                transactionID={transactionID}
-                sections={sections}
-                listRef={listRef}
-                footerContent={footerContent}
+                {...data.layoutProps}
                 listFooterContent={listFooterContent}
-                onSelectRow={navigateToParticipantPage}
-                onDismissError={dismissParticipantRowError}
             />
-        </>
+        </ConfirmationDataContext.Provider>
     );
 }
 
