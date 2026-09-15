@@ -179,4 +179,43 @@ type TimeConfirmationListProps = Pick<
  */
 type ScanConfirmationListProps = Omit<MoneyRequestConfirmationListProps, 'receiptStitchError' | 'isPerDiemRequest' | 'isTimeRequest' | 'isOdometerDistanceRequest'>;
 
-export type {MoneyRequestConfirmationListItem, MoneyRequestConfirmationListProps, PerDiemConfirmationListProps, TimeConfirmationListProps, ScanConfirmationListProps};
+/**
+ * What a manual confirmation reads. It keeps `isPerDiemRequest` and `isTimeRequest` because it is the residual
+ * case — a per diem moved off a track expense and a time expense outside CREATE both confirm here, and those
+ * flags still decide whether the amount, merchant and tax fields are shown. It drops the scan props and the
+ * odometer stitch error, since a manual expense is neither.
+ */
+type ManualConfirmationListProps = Omit<
+    MoneyRequestConfirmationListProps,
+    'receiptStitchError' | 'isOdometerDistanceRequest' | 'canEnterScanFieldsManually' | 'partiallyManuallyFilledScanID' | 'hasSmartScanFailed' | 'onSwitchToTransaction'
+>;
+
+/**
+ * What an invoice confirmation reads. An invoice is always a manual expense and can never be a split or a
+ * payment, so it drops `iouType` (it is always INVOICE), `onSendMoney`, `isEditingSplitBill`, the scan props and
+ * the odometer stitch error.
+ */
+type InvoiceConfirmationListProps = Omit<
+    MoneyRequestConfirmationListProps,
+    | 'iouType'
+    | 'onSendMoney'
+    | 'isEditingSplitBill'
+    | 'receiptStitchError'
+    | 'isPerDiemRequest'
+    | 'isTimeRequest'
+    | 'isOdometerDistanceRequest'
+    | 'canEnterScanFieldsManually'
+    | 'partiallyManuallyFilledScanID'
+    | 'hasSmartScanFailed'
+    | 'onSwitchToTransaction'
+>;
+
+export type {
+    MoneyRequestConfirmationListItem,
+    MoneyRequestConfirmationListProps,
+    PerDiemConfirmationListProps,
+    TimeConfirmationListProps,
+    ScanConfirmationListProps,
+    ManualConfirmationListProps,
+    InvoiceConfirmationListProps,
+};
