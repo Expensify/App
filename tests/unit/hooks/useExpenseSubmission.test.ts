@@ -1064,6 +1064,38 @@ describe('useExpenseSubmission orchestrator-suppressed cleanup', () => {
             expect(mockDismissModalAndOpenReportInInboxTab).toHaveBeenCalledTimes(1);
             expect(mockDismissModalAndOpenReportInInboxTab).toHaveBeenCalledWith('optimistic-scan-chat', undefined, false);
         });
+
+        it('marks every scan as first when the batch splits into a chat that already exists', async () => {
+            // No optimistic ID means the chat already exists, so no scan in the batch creates it.
+            mockResolveOptimisticSplitChatReportID.mockReturnValue({optimisticSplitChatReportID: undefined, chatReportID: REPORT_ID});
+            const firstSplit = buildTransaction({transactionID: 'transaction-1'});
+            const secondSplit = buildTransaction({transactionID: 'transaction-2'});
+            const receiptFiles: Record<string, Receipt> = {
+                [firstSplit.transactionID]: {source: 'file://receipt-1.jpg'},
+                [secondSplit.transactionID]: {source: 'file://receipt-2.jpg'},
+            };
+
+            const {result} = renderHook(() =>
+                useExpenseSubmission(
+                    buildParams({
+                        iouType: CONST.IOU.TYPE.SPLIT,
+                        transaction: firstSplit,
+                        transactions: [firstSplit, secondSplit],
+                        receiptFiles,
+                    }),
+                ),
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            await act(async () => {
+                result.current.createTransaction(false, true);
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            expect(mockStartSplitBillAction).toHaveBeenCalledTimes(2);
+            expect(mockStartSplitBillAction).toHaveBeenNthCalledWith(1, expect.objectContaining({isFirstSplitInBatch: true}));
+            expect(mockStartSplitBillAction).toHaveBeenNthCalledWith(2, expect.objectContaining({isFirstSplitInBatch: true}));
+        });
     });
 });
 

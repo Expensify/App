@@ -189,19 +189,7 @@ type CreateSplitsAndOnyxDataParams = {
     rules: OnyxCollection<OnyxTypes.Rule>;
 };
 
-type SplitBatchPosition =
-    | {
-          /** A later split joins the chat the first split is creating, so it needs that chat's id */
-          isFirstSplitInBatch: false;
-          optimisticSplitChatReportID: string;
-      }
-    | {
-          /** Also true for every split into a chat that already exists, because none of them creates it */
-          isFirstSplitInBatch: true;
-          optimisticSplitChatReportID?: string;
-      };
-
-type StartSplitBilActionParams = SplitBatchPosition & {
+type StartSplitBilActionParams = {
     participants: Participant[];
     currentUserLogin: string;
     currentUserAccountID: number;
@@ -217,6 +205,8 @@ type StartSplitBilActionParams = SplitBatchPosition & {
     taxAmount: number;
     taxValue?: string;
     shouldPlaySound?: boolean;
+    optimisticSplitChatReportID?: string;
+    isFirstSplitInBatch: boolean;
     policyRecentlyUsedCategories?: OnyxEntry<OnyxTypes.RecentlyUsedCategories>;
     policyRecentlyUsedTags: OnyxEntry<RecentlyUsedTags>;
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
@@ -531,6 +521,8 @@ function startSplitBill({
     taxAmount = 0,
     taxValue,
     shouldPlaySound = true,
+    optimisticSplitChatReportID,
+    isFirstSplitInBatch,
     policyRecentlyUsedCategories,
     policyRecentlyUsedTags,
     quickAction,
@@ -539,7 +531,6 @@ function startSplitBill({
     delegateAccountID,
     formatPhoneNumber,
     getCurrencyDecimals,
-    ...batchPosition
 }: StartSplitBilActionParams) {
     const currentUserEmailForIOUSplit = addSMSDomainIfPhoneNumber(currentUserLogin);
     const participantAccountIDs = participants.map((participant) => Number(participant.accountID));
@@ -548,7 +539,8 @@ function startSplitBill({
         participants,
         participantAccountIDs,
         currentUserAccountID,
-        batchPosition,
+        isFirstSplitInBatch,
+        optimisticSplitChatReportID,
     );
     const isOwnPolicyExpenseChat = !!splitChatReport.isOwnPolicyExpenseChat;
     const parsedComment = getParsedComment(comment);
@@ -718,7 +710,7 @@ function startSplitBill({
         },
     ];
 
-    const retryParams: StartSplitBilActionParams = {
+    const retryParams = {
         participants: participants.map(({icons, ...rest}) => rest),
         currentUserLogin,
         currentUserAccountID,
@@ -1447,7 +1439,8 @@ function getOrCreateOptimisticSplitChatReport(
     participants: Participant[],
     participantAccountIDs: number[],
     currentUserAccountID: number,
-    batchPosition: SplitBatchPosition,
+    isFirstSplitInBatch: boolean,
+    optimisticSplitChatReportID?: string,
 ) {
     const existingSplitChatReport = findExistingSplitChatReport(existingSplitChatReportID, participants, participantAccountIDs, currentUserAccountID);
 
@@ -1466,16 +1459,16 @@ function getOrCreateOptimisticSplitChatReport(
                   chatType: CONST.REPORT.CHAT_TYPE.GROUP,
                   notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
                   currentUserAccountID,
-                  optimisticReportID: batchPosition.optimisticSplitChatReportID,
+                  optimisticReportID: optimisticSplitChatReportID,
               })
             : buildOptimisticChatReport({
                   participantList: participantAccountIDs,
                   currentUserAccountID,
-                  optimisticReportID: batchPosition.optimisticSplitChatReportID,
+                  optimisticReportID: optimisticSplitChatReportID,
               });
 
-    // A later split joins the chat the first one is creating, which it cannot see yet.
-    if (!batchPosition.isFirstSplitInBatch) {
+    // A later split joins the chat the first one is creating, which it cannot see yet, so without the caller's id there is no chat to join and it has to create its own.
+    if (!isFirstSplitInBatch && optimisticSplitChatReportID) {
         return {existingSplitChatReport: splitChatReport, splitChatReport};
     }
 
@@ -1544,7 +1537,8 @@ function createSplitsAndOnyxData({
         participantAccountIDs,
         currentUserAccountID,
         // A manual split writes one expense, so it is always the first and only split of its batch.
-        {isFirstSplitInBatch: true, optimisticSplitChatReportID},
+        true,
+        optimisticSplitChatReportID,
     );
     const isOwnPolicyExpenseChat = !!splitChatReport.isOwnPolicyExpenseChat;
 
@@ -2430,4 +2424,4 @@ export {
     resetSplitShares,
 };
 
-export type {CreateDistanceRequestInformation, SplitBatchPosition, StartSplitBilActionParams};
+export type {CreateDistanceRequestInformation, StartSplitBilActionParams};
