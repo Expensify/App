@@ -698,13 +698,21 @@ function setPersonalDetailsAndRevealExpensifyCard(
     });
 }
 
+/**
+ * Submit personal details and request a physical Expensify card.
+ * This uses `makeRequestWithSideEffects` instead of `write` so we can inspect the response
+ * and only show the invalid-card-limit error when the backend explicitly returns a 400.
+ * Using `failureData` (write semantics) would fire the error for every non-200 response —
+ * including transient 5xx and network failures — incorrectly telling users their card limit is $0.
+ */
 function updatePersonalDetailsAndShipExpensifyCards(values: FormOnyxValues<typeof ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM>, validateCode: string, countryCode: number) {
     const parameters: SetPersonalDetailsAndShipExpensifyCardsParams = {
         ...buildSetPersonalDetailsAndShipExpensifyCardsParams(values, countryCode),
         validateCode,
     };
 
-    API.write(WRITE_COMMANDS.SET_PERSONAL_DETAILS_AND_SHIP_EXPENSIFY_CARDS, parameters, {
+    // eslint-disable-next-line rulesdir/no-api-side-effects-method
+    API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.SET_PERSONAL_DETAILS_AND_SHIP_EXPENSIFY_CARDS, parameters, {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -723,6 +731,16 @@ function updatePersonalDetailsAndShipExpensifyCards(values: FormOnyxValues<typeo
                 },
             },
         ],
+    }).then((response) => {
+        // Only surface the invalid-limit error for an explicit 400 from the backend.
+        // Using failureData would fire for every non-200 (e.g. 500s, network errors),
+        // incorrectly telling the user their card limit is $0.
+        if (response?.jsonCode !== CONST.JSON_CODE.BAD_REQUEST) {
+            return;
+        }
+        Onyx.merge(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, {
+            errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('cardPage.invalidCardLimit'),
+        });
     });
 }
 
