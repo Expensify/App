@@ -43,6 +43,7 @@ import {
     getPolicyByCustomUnitID,
     getPolicyIDFromDomainName,
     getRateDisplayValue,
+    getSageIntacctVendors,
     getReimburserEmail,
     getSubmitReportManagerAccountID,
     getSubmitToAccountID,
@@ -3653,6 +3654,65 @@ describe('PolicyUtils', () => {
             const result = sortVendors(vendors, localeCompare);
             expect(result).toHaveLength(1);
             expect(result.at(0)?.name).toBe('Only');
+        });
+    });
+
+    describe('getSageIntacctVendors', () => {
+        const localeCompare = (a: string, b: string) => a.localeCompare(b, undefined, {sensitivity: 'base', numeric: true});
+
+        it('sorts Intacct vendors alphabetically by value using localeCompare', () => {
+            const policy = createMock<Policy>({
+                connections: createMock<Connections>({
+                    [CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT]: {
+                        data: {
+                            vendors: [
+                                {id: '1', name: '1', value: 'Zebra'},
+                                {id: '2', name: '2', value: 'apple'},
+                                {id: '3', name: '3', value: 'Banana'},
+                            ],
+                        },
+                    },
+                }),
+            });
+
+            const result = getSageIntacctVendors(policy, undefined, localeCompare);
+            expect(result.map((v) => v.text)).toEqual(['apple', 'Banana', 'Zebra']);
+        });
+
+        it('breaks value ties using vendor id', () => {
+            const policy = createMock<Policy>({
+                connections: createMock<Connections>({
+                    [CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT]: {
+                        data: {
+                            vendors: [
+                                {id: 'vendor_b', name: 'b', value: 'Acme'},
+                                {id: 'vendor_a', name: 'a', value: 'Acme'},
+                            ],
+                        },
+                    },
+                }),
+            });
+
+            const result = getSageIntacctVendors(policy, undefined, localeCompare);
+            expect(result.map((v) => v.value)).toEqual(['vendor_a', 'vendor_b']);
+        });
+
+        it('returns unsorted vendors when localeCompare is not provided', () => {
+            const policy = createMock<Policy>({
+                connections: createMock<Connections>({
+                    [CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT]: {
+                        data: {
+                            vendors: [
+                                {id: '1', name: '1', value: 'Zebra'},
+                                {id: '2', name: '2', value: 'Apple'},
+                            ],
+                        },
+                    },
+                }),
+            });
+
+            const result = getSageIntacctVendors(policy, undefined);
+            expect(result.map((v) => v.text)).toEqual(['Zebra', 'Apple']);
         });
     });
 

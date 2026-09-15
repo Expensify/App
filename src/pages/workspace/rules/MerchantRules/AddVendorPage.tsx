@@ -31,10 +31,9 @@ type AddVendorPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, t
 type VendorSelectionItem = {name: string; value: string};
 
 /** Maps the policy's matching vendors to picker items (label = vendor name, value = the integration's external vendor ID). */
-function getVendorSelectionItems(policy: Policy | undefined, localeCompare?: LocaleContextProps['localeCompare']): VendorSelectionItem[] {
+function getVendorSelectionItems(policy: Policy | undefined, localeCompare: LocaleContextProps['localeCompare']): VendorSelectionItem[] {
     const vendors = getMatchingVendors(policy);
-    const sortedVendors = localeCompare ? sortVendors(vendors, localeCompare) : [...vendors].sort((a, b) => a.name.localeCompare(b.name) || a.id.localeCompare(b.id));
-    return sortedVendors.map((vendor) => ({name: vendor.name, value: vendor.id}));
+    return sortVendors(vendors, localeCompare).map((vendor) => ({name: vendor.name, value: vendor.id}));
 }
 
 /**

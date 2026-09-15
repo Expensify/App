@@ -2547,9 +2547,10 @@ function getSageIntacctBankAccounts(policy?: Policy, selectedBankAccountId?: str
     }));
 }
 
-function getSageIntacctVendors(policy?: Policy, selectedVendorId?: string): SelectorType[] {
+function getSageIntacctVendors(policy?: Policy, selectedVendorId?: string, localeCompare?: LocaleContextProps['localeCompare']): SelectorType[] {
     const vendors = policy?.connections?.intacct?.data?.vendors ?? [];
-    return vendors.map(({id, value}) => ({
+    const sortedVendors = localeCompare ? [...vendors].sort((a, b) => localeCompare(a.value ?? '', b.value ?? '') || localeCompare(a.id ?? '', b.id ?? '')) : vendors;
+    return sortedVendors.map(({id, value}) => ({
         value: id,
         text: value,
         keyForList: id,
