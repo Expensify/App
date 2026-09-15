@@ -11,6 +11,7 @@ type NavigationAwareCameraNativeProps = Omit<CameraProps, 'isActive'> & {
     cameraTabIndex: number;
     ref?: ForwardedRef<VisionCamera>;
     forceInactive?: boolean;
+    shouldStayActiveWhenBlurred?: boolean;
 };
 
 export type {NavigationAwareCameraProps, NavigationAwareCameraNativeProps};

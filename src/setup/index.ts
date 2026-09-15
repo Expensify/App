@@ -3,6 +3,7 @@ import {finishCloudflareSignInFromURL} from '@libs/CloudflareAccess/finishSignIn
 import intlPolyfill from '@libs/IntlPolyfill';
 import registerMiddlewares from '@libs/Middleware/register';
 import {startMainQueue} from '@libs/Network';
+import ReceiptStorage from '@libs/ReceiptStorage';
 import registerReportActionsPagination from '@libs/registerReportActionsPagination';
 
 import {setDeviceID} from '@userActions/Device';
@@ -100,6 +101,10 @@ export default function () {
     });
 
     cleanupPreMountedDraftReports();
+
+    // An interrupted swap can leave the receipt only under its backup name. Recovers it without waiting for
+    // the next upload, and waits for idle first so the folder listing does not compete with startup.
+    ReceiptStorage.sweepLeftovers();
 
     // Register the commands after Onyx is initialized so every JS runtime can process paginated
     // responses. Initial snapshots remain asynchronous and gate only pagination, not app startup.

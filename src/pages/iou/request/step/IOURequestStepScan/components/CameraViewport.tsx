@@ -60,6 +60,9 @@ type CameraViewportProps = {
     /** Whether a photo has been captured (forces camera inactive) */
     didCapturePhoto: boolean;
 
+    /** Whether a full-resolution photo capture is in flight, which keeps the camera session alive */
+    hasPendingPhotoCapture?: boolean;
+
     /** Callback fired when the camera finishes initializing */
     onInitialized: () => void;
 
@@ -89,6 +92,7 @@ function CameraViewport({
     blinkStyle,
     isAttachmentPickerActive,
     didCapturePhoto,
+    hasPendingPhotoCapture = false,
     onInitialized,
     canUseMultiScan,
     cameraPermissionStatus,
@@ -115,7 +119,10 @@ function CameraViewport({
                         zoom={device.neutralZoom}
                         photo
                         cameraTabIndex={1}
-                        forceInactive={isAttachmentPickerActive || didCapturePhoto}
+                        // Closing the session cancels an in-flight `takePhoto` with "Camera is closed.", so a
+                        // running capture keeps it open. This flag and losing focus would both close it.
+                        forceInactive={isAttachmentPickerActive || (didCapturePhoto && !hasPendingPhotoCapture)}
+                        shouldStayActiveWhenBlurred={hasPendingPhotoCapture}
                         onInitialized={onInitialized}
                         // Use TextureView on Android to fix partially blank images for takeSnapshot()
                         androidPreviewViewType="texture-view"
