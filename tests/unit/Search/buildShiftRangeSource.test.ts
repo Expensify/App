@@ -95,6 +95,12 @@ describe('isGroupSelected', () => {
         expect(isGroupSelected(groupOf({}, {children: [], areAllMatchingItemsSelected: true}))).toBe(true);
     });
 
+    it('does not count a loaded group whose rows are all excluded, even though select-all-matching still covers its own key', () => {
+        const params = groupOf({}, {areAllMatchingItemsSelected: true, excludedTransactions: selectionOf('c1')});
+        expect(isGroupSelected(params)).toBe(false);
+        expect(getGroupCheckboxState(params).isSelectAllChecked).toBe(false);
+    });
+
     it('ignores a row being deleted, so clicking the header cannot mean deselect while the checkbox reads unchecked', () => {
         const deletedChild = {...child, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE};
         const params = groupOf(selectionOf('c1'), {children: [deletedChild]});

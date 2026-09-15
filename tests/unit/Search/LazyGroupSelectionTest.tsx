@@ -427,6 +427,36 @@ describe('Lazily loaded group selection', () => {
         expect(result.current.selectedTransactions['2']).toBeUndefined();
     });
 
+    it('narrows a Select All onto one child of a group whose rows arrived afterwards, even once they are stored individually', async () => {
+        const {result, rerender} = renderSelection(PagingWrapper);
+        const [firstChild, secondChild] = loadedChildren;
+
+        // Given Select All while the group carries no rows, so no row is on screen for the block to cover yet
+        await act(async () => {
+            result.current.toggleAll();
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        // When its first page arrives, which writes the selection out into an entry per row
+        pagingGroup = cachedPartialGroup;
+        rerender({});
+        await act(async () => {
+            expandGroup(result, GROUP_KEY, loadedChildren);
+            await waitForBatchedUpdatesWithAct();
+        });
+        expect(result.current.selectedTransactions[secondChild.keyForList]?.isSelected).toBe(true);
+
+        // And a shift+click lands on the first child
+        await act(async () => {
+            result.current.toggle(firstChild, undefined, true);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        // Then the Select All narrows onto it, rather than those entries reading as hand-picked and resisting the collapse
+        expect(result.current.selectedTransactions[firstChild.keyForList]?.isSelected).toBe(true);
+        expect(result.current.selectedTransactions[secondChild.keyForList]).toBeUndefined();
+    });
+
     it('deselects a single child of a group that was selected before its children loaded', async () => {
         const {result} = renderSelection();
         const [firstChild] = loadedChildren;
@@ -1068,6 +1098,40 @@ describe('Lazily loaded group selection', () => {
         // And each row is named, since the group carries all of them and nothing is left for its own key to stand for
         expect(result.current.excludedTransactions[firstChild.keyForList]).toBeDefined();
         expect(result.current.excludedTransactions[secondChild.keyForList]).toBeDefined();
+    });
+
+    it('checks a group again when its header is pressed after being unchecked under select-all-matching', async () => {
+        const {result} = renderSelection();
+        const [firstChild, secondChild] = loadedChildren;
+
+        // Given every matching item selected, and a loaded group unchecked from its header
+        await act(async () => {
+            result.current.selectAllMatchingItems(true);
+            expandGroup(result, GROUP_KEY, loadedChildren);
+            await waitForBatchedUpdatesWithAct();
+        });
+        await act(async () => {
+            result.current.toggle(categoryGroup, loadedChildren);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        // When the header is pressed again
+        await act(async () => {
+            result.current.toggle(categoryGroup, loadedChildren);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        // Then its rows read as checked again, rather than select-all-matching covering the group's own key and turning the click into another uncheck
+        const isChecked = (rowKey: string) =>
+            isRowChecked({
+                rowKey,
+                parentGroupKey: GROUP_KEY,
+                selectedTransactions: result.current.selectedTransactions,
+                excludedTransactions: result.current.excludedTransactions,
+                areAllMatchingItemsSelected: result.current.areAllMatchingItemsSelected,
+            });
+        expect(isChecked(firstChild.keyForList)).toBe(true);
+        expect(isChecked(secondChild.keyForList)).toBe(true);
     });
 
     it('unchecks a group holding none of its rows, when select-all-matching is what checked it', async () => {

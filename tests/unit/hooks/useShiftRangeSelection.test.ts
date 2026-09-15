@@ -441,6 +441,25 @@ describe('useShiftRangeSelection', () => {
             expect(nthBatchKeys(onApplyRange, 1)).toEqual({toSelect: ['a'], toDeselect: ['b', 'd', 'e']});
         });
 
+        it('takes in rows that arrive between Select All and the click, so they collapse with the rest', () => {
+            const onApplyRange = makeApplyMock();
+            const {result, rerender} = renderHook((props: {items: Row[]}) => useShiftRangeSelection<Row>(makeParams({onApplyRange, items: props.items})), {
+                initialProps: {items: [ROW_A, ROW_B]},
+            });
+
+            // Given Select All while only the first rows are on screen
+            act(() => result.current.seedFullRange());
+
+            // When the rest arrive and a shift+click lands on the second row
+            rerender({items: ROWS});
+            act(() => {
+                result.current.applyShiftClick(ROW_B, true);
+            });
+
+            // Then the rows that arrived belong to the block and collapse with it
+            expect(nthBatchKeys(onApplyRange, 0)).toEqual({toSelect: ['a', 'b'], toDeselect: ['c', 'd', 'e']});
+        });
+
         it('spans only selectable rows, skipping excluded ones', () => {
             const onApplyRange = makeApplyMock();
             const {result} = renderHook(() => useShiftRangeSelection<Row>(makeParams({items: MIXED, onApplyRange, isDisabledItem: (row) => !!row.isDisabled})));

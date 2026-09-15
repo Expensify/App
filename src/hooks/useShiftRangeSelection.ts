@@ -38,10 +38,12 @@ type Api<TItem> = {
 };
 
 /** `painted` is held by key, so reordering the list cannot confuse what shrinking a range gives back. */
-type ResolvedSession = {kind: 'idle'} | {kind: 'anchored'; anchor: string} | {kind: 'ranging'; anchor: string; painted: ReadonlySet<string>};
+type RangingSession = {kind: 'ranging'; anchor: string; painted: ReadonlySet<string>};
 
-/** A seeded block resolves at the next shift+click, so rows that had not loaded when it was seeded still join. */
-type SessionState = ResolvedSession | {kind: 'seeded'; isMember: (key: string) => boolean};
+type ResolvedSession = {kind: 'idle'} | {kind: 'anchored'; anchor: string} | RangingSession;
+
+/** A seeded block resolves at the next shift+click, so rows that had not loaded when it was seeded still join, and `carried` rows stay in it after leaving the list. */
+type SessionState = ResolvedSession | {kind: 'seeded'; isMember: (key: string) => boolean; carried: ReadonlySet<string>};
 
 const IDLE: ResolvedSession = {kind: 'idle'};
 
@@ -86,7 +88,7 @@ function useShiftRangeSelection<TItem>(params: Params<TItem>): Api<TItem> {
         seedRangeFromSelection: (members) => {
             // Recorded, not resolved: the rows may not be in the list yet.
             if (typeof members === 'function') {
-                sessionRef.current = {kind: 'seeded', isMember: members};
+                sessionRef.current = {kind: 'seeded', isMember: members, carried: NO_KEYS};
                 return;
             }
             const set = members instanceof Set ? members : new Set(members);
@@ -94,11 +96,11 @@ function useShiftRangeSelection<TItem>(params: Params<TItem>): Api<TItem> {
             if (set.size === 0) {
                 return;
             }
-            sessionRef.current = {kind: 'seeded', isMember: (key) => set.has(key)};
+            sessionRef.current = {kind: 'seeded', isMember: (key) => set.has(key), carried: NO_KEYS};
         },
         seedFullRange: () => {
-            // Resolved now, so a row filtered out before the next shift+click is still painted and still collapses.
-            sessionRef.current = seedRangeState(paramsRef.current, () => true) ?? IDLE;
+            // Every row counts, including ones that load before the next shift+click, and the rows on screen now stay in even if they leave first.
+            sessionRef.current = {kind: 'seeded', isMember: () => true, carried: seedRangeState(paramsRef.current, () => true, NO_KEYS)?.painted ?? NO_KEYS};
         },
         clearAnchor: () => {
             sessionRef.current = IDLE;
@@ -126,9 +128,9 @@ function buildKeyIndex<TItem>(params: Params<TItem>): Map<string, number> {
     return keyToIndex;
 }
 
-function seedRangeState<TItem>(params: Params<TItem>, isIncluded: (key: string) => boolean): ResolvedSession | null {
+function seedRangeState<TItem>(params: Params<TItem>, isIncluded: (key: string) => boolean, carried: ReadonlySet<string>): RangingSession | null {
     let anchor: string | null = null;
-    const painted = new Set<string>();
+    const painted = new Set<string>(carried);
     for (const item of params.items) {
         if (isExcluded(params, item)) {
             continue;
@@ -187,7 +189,7 @@ function computeShiftRange<TItem>(params: Params<TItem>, state: SessionState, ta
     const keyToIndex = buildKeyIndex(params);
 
     // With none of a seeded block on screen there is nothing to narrow, so the click starts a range where it landed.
-    const resolved: ResolvedSession = state.kind === 'seeded' ? (seedRangeState(params, state.isMember) ?? {kind: 'anchored', anchor: targetKey}) : state;
+    const resolved: ResolvedSession = state.kind === 'seeded' ? (seedRangeState(params, state.isMember, state.carried) ?? {kind: 'anchored', anchor: targetKey}) : state;
 
     const seed = resolved.kind === 'idle' ? null : resolved.anchor;
     const anchor = resolveAnchor(params, keyToIndex, seed);
