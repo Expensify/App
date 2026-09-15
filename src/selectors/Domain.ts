@@ -339,4 +339,4 @@ export {
     isSecurityGroupPendingDeleteSelector,
 };
 
-export {type DomainSecurityGroupWithID, type PendingDomainAdminRequests};
+export {type DomainSecurityGroupWithID};
