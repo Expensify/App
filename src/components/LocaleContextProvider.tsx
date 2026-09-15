@@ -1,6 +1,7 @@
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnyx from '@hooks/useOnyx';
 
+import getCollator from '@libs/CollatorUtils';
 import DateUtils from '@libs/DateUtils';
 import {fromLocaleDigit as fromLocaleDigitLocaleDigitUtils, toLocaleDigit as toLocaleDigitLocaleDigitUtils, toLocaleOrdinal as toLocaleOrdinalLocaleDigitUtils} from '@libs/LocaleDigitUtils';
 import {formatPhoneNumberWithCountryCode} from '@libs/LocalePhoneNumber';
@@ -84,8 +85,6 @@ const LocaleContext = createContext<LocaleContextProps>({
     isCurrentLocaleLoaded: false,
 });
 
-const COLLATOR_OPTIONS: Intl.CollatorOptions = {usage: 'sort', sensitivity: 'variant', numeric: true, caseFirst: 'upper'};
-
 function LocaleContextProvider({children}: LocaleContextProviderProps) {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [countryCodeByIP = 1] = useOnyx(ONYXKEYS.COUNTRY_CODE);
@@ -115,7 +114,7 @@ function LocaleContextProvider({children}: LocaleContextProviderProps) {
 
     const selectedTimezone = currentUserPersonalDetails?.timezone?.selected;
     const effectiveTimezone = selectedTimezone ?? CONST.DEFAULT_TIME_ZONE.selected;
-    const collator = new Intl.Collator(currentLocale, COLLATOR_OPTIONS);
+    const collator = getCollator(currentLocale);
 
     const translate: LocaleContextProps['translate'] = (path, ...parameters) => translateLocalize(translationLocale ?? currentLocale, path, ...parameters);
 

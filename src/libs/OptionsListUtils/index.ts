@@ -537,6 +537,7 @@ function createOption({
                           reportAttributesDerived,
                           policyTags,
                           conciergeReportID,
+                          sortedActions,
                           currentUserAccountID,
                           rules,
                       },
@@ -577,6 +578,8 @@ function createOption({
         null,
         undefined,
         result?.private_isArchived,
+        undefined,
+        conciergeReportID,
     );
     result.subtitle = subtitle;
 
@@ -590,24 +593,36 @@ function createOption({
     return result;
 }
 
+type GetReportOptionParams = {
+    participant: Participant;
+    privateIsArchived: boolean | undefined;
+    policy: OnyxEntry<Policy>;
+    personalDetails: OnyxEntry<PersonalDetailsList>;
+    conciergeReportID: string | undefined;
+    reportAttributesDerived: ReportAttributesDerivedValue['reports'] | undefined;
+    reportDraft: OnyxEntry<Report>;
+    currentUserAccountID: number;
+    localize: {translate: LocalizedTranslate; preferredLocale: Locale; convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString']};
+    rules: OnyxCollection<Rule>;
+    policyTags?: OnyxCollection<PolicyTagLists>;
+};
+
 /**
  * Get the option for a given report.
  */
-// Refactoring this to a params object would touch every call site and is out of scope here.
-// eslint-disable-next-line @typescript-eslint/max-params
-function getReportOption(
-    participant: Participant,
-    privateIsArchived: boolean | undefined,
-    policy: OnyxEntry<Policy>,
-    personalDetails: OnyxEntry<PersonalDetailsList>,
-    conciergeReportID: string | undefined,
-    reportAttributesDerived: ReportAttributesDerivedValue['reports'] | undefined,
-    reportDraft: OnyxEntry<Report>,
-    currentUserAccountID: number,
-    localize: {translate: LocalizedTranslate; preferredLocale: Locale; convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString']},
-    rules: OnyxCollection<Rule>,
-    policyTags?: OnyxCollection<PolicyTagLists>,
-): OptionData {
+function getReportOption({
+    participant,
+    privateIsArchived,
+    policy,
+    personalDetails,
+    conciergeReportID,
+    reportAttributesDerived,
+    reportDraft,
+    currentUserAccountID,
+    localize,
+    rules,
+    policyTags,
+}: GetReportOptionParams): OptionData {
     const {translate, preferredLocale, convertToDisplayString} = localize;
     const report = getReportOrDraftReport(participant.reportID, undefined, undefined, reportDraft);
     const visibleParticipantAccountIDs = getParticipantsAccountIDsForDisplay(report, true);
@@ -630,6 +645,9 @@ function getReportOption(
         policyTags: reportPolicyTags,
         visibleReportActionsData: {},
         conciergeReportID,
+        // `sortedActions` is only read to build the report preview last message. These options are static (`showChatPreviewLine: false`) and their
+        // consumers don't render `lastMessageText`, so we verified nothing in this flow depends on it and pass undefined instead of threading it from every caller.
+        sortedActions: undefined,
         currentUserAccountID,
     });
 
@@ -715,6 +733,9 @@ function getReportDisplayOption({
         reportAttributesDerived,
         policyTags,
         visibleReportActionsData,
+        // `sortedActions` is only read to build the report preview last message. These options are static (`showChatPreviewLine: false`) and their
+        // consumers don't render `lastMessageText`, so we verified nothing in this flow depends on it and pass undefined instead of threading it from every caller.
+        sortedActions: undefined,
         currentUserAccountID,
     });
 
