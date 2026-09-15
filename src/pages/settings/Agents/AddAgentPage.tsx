@@ -162,7 +162,7 @@ function AddAgentPageContent({route, template}: AddAgentPageContentProps) {
     };
 
     const promptTopOffsetRef = useRef(0);
-    const handleInputFocus = () => scrollToMultilineInput(formRef, isInLandscapeMode, promptTopOffsetRef.current);
+    const handleInputFocus = () => scrollToMultilineInput(formRef, true, promptTopOffsetRef.current);
 
     const agentAvatar = avatarSource ? (
         <UserAvatar
@@ -191,7 +191,7 @@ function AddAgentPageContent({route, template}: AddAgentPageContentProps) {
                 validate={validate}
                 submitButtonText={translate('addAgentPage.createAgent')}
                 style={[styles.flex1, styles.ph5]}
-                shouldUseScrollView={isInLandscapeMode}
+                shouldUseScrollView
                 submitFlexEnabled={false}
                 shouldHideFixErrorsAlert
                 enabledWhenOffline
@@ -220,7 +220,11 @@ function AddAgentPageContent({route, template}: AddAgentPageContentProps) {
                         defaultValue={defaultAgentName}
                     />
                     <View
-                        style={shouldShrinkPromptInput ? StyleUtils.getHeight(PROMPT_MAX_HEIGHT_ON_KEYBOARD_OPEN_LANDSCAPE_MODE) : [isInLandscapeMode ? styles.h42 : styles.flex1]}
+                        style={
+                            shouldShrinkPromptInput
+                                ? StyleUtils.getHeight(PROMPT_MAX_HEIGHT_ON_KEYBOARD_OPEN_LANDSCAPE_MODE)
+                                : [isInLandscapeMode ? styles.h42 : styles.flex1, styles.minHeight42]
+                        }
                         onLayout={(event) => {
                             promptTopOffsetRef.current = event.nativeEvent.layout.y;
                         }}
