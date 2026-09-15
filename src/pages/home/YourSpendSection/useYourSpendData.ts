@@ -2,6 +2,7 @@ import useCardFeedErrors from '@hooks/useCardFeedErrors';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import useTabFocusedRefresh from '@hooks/useTabFocusedRefresh';
 
 import {search} from '@libs/actions/Search';
 import {WRITE_COMMANDS} from '@libs/API/types';
@@ -12,6 +13,7 @@ import {isGroupEntry} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import SCREENS from '@src/SCREENS';
 import type {Card, Policy, Report} from '@src/types/onyx';
 import type {CardFeedWithNumber} from '@src/types/onyx/CardFeeds';
 import type {AnyRequest} from '@src/types/onyx/Request';
@@ -20,8 +22,7 @@ import type SearchResults from '@src/types/onyx/SearchResults';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
-import {useIsFocused} from '@react-navigation/native';
-import {useEffect, useEffectEvent, useMemo, useState} from 'react';
+import {useMemo, useState} from 'react';
 
 import {YOUR_SPEND_CARD_KIND, YOUR_SPEND_ROW_STATE} from './const';
 import {buildAwaitingApprovalQuery, buildCardGroupQuery, buildRecentCardTransactionsQuery, buildRepaidLast30DaysQuery} from './queries';
@@ -376,7 +377,6 @@ function getYourSpendRowState({isApplicable, isOffline, searchResults}: GetYourS
 function useYourSpendData(): UseYourSpendDataReturn {
     const {accountID} = useCurrentUserPersonalDetails();
     const {isOffline} = useNetwork();
-    const isFocused = useIsFocused();
 
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
@@ -543,7 +543,7 @@ function useYourSpendData(): UseYourSpendDataReturn {
     // (which changes the policyID filter), or the set of OUTSTANDING reports changes.
     const applicabilityKey = [isApprovalApplicable ? 1 : 0, isPaymentApplicable ? 1 : 0, paidGroupPolicyIDs.join(','), outstandingReportsSignature].join('|');
 
-    const fireSearches = useEffectEvent(() => {
+    const fireSearches = () => {
         if (isOffline) {
             return;
         }
@@ -577,14 +577,9 @@ function useYourSpendData(): UseYourSpendDataReturn {
                 shouldUpdateLastSearchParams: false,
             });
         }
-    });
+    };
 
-    useEffect(() => {
-        if (!isFocused) {
-            return;
-        }
-        fireSearches();
-    }, [isFocused, isOffline, cardGroupQueryJSON?.hash, applicabilityKey, accountID]);
+    useTabFocusedRefresh(SCREENS.HOME, [isOffline, cardGroupQueryJSON?.hash, applicabilityKey, accountID].join('|'), fireSearches);
 
     return {
         approvalRowState,

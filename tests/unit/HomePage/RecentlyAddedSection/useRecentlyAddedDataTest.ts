@@ -17,8 +17,10 @@ import {renderHook} from '@testing-library/react-native';
 import type {SearchQueryJSON} from '@components/Search/types';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useIsTabFocused from '@hooks/useIsTabFocused';
 import useNetwork from '@hooks/useNetwork';
 
+import {search} from '@libs/actions/Search';
 import {buildQueryStringFromFilterFormValues, buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 
 import type {RecentlyAddedExpense} from '@pages/home/RecentlyAddedSection/useRecentlyAddedData';
@@ -28,6 +30,8 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, SearchResults, Transaction} from '@src/types/onyx';
 import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
+
+import {useIsFocused} from '@react-navigation/native';
 
 const ACCOUNT_ID = 12345;
 const OTHER_ACCOUNT_ID = 67890;
@@ -51,8 +55,15 @@ jest.mock('@hooks/useNetwork', () => ({
 }));
 
 jest.mock('@react-navigation/native', () => ({
-    useIsFocused: () => true,
+    useIsFocused: jest.fn(() => true),
     createNavigationContainerRef: () => ({}),
+}));
+
+// Mandatory: the real hook reads the root navigation state, which is never ready under Jest, so it
+// would report "not focused" and the search would silently never fire.
+jest.mock('@hooks/useIsTabFocused', () => ({
+    __esModule: true,
+    default: jest.fn(() => true),
 }));
 
 jest.mock('@libs/actions/Search', () => ({
@@ -66,6 +77,9 @@ jest.mock('@libs/SearchQueryUtils', () => ({
 }));
 
 const mockedUseNetwork = jest.mocked(useNetwork);
+const mockedSearch = jest.mocked(search);
+const mockedUseIsTabFocused = jest.mocked(useIsTabFocused);
+const mockedUseIsFocused = jest.mocked(useIsFocused);
 const mockedBuildQueryStringFromFilterFormValues = jest.mocked(buildQueryStringFromFilterFormValues);
 const mockedBuildSearchQueryJSON = jest.mocked(buildSearchQueryJSON);
 
@@ -171,6 +185,9 @@ beforeEach(() => {
         delete onyxData[k];
     }
     mockUseOnyx.mockClear();
+    mockedSearch.mockClear();
+    mockedUseIsTabFocused.mockReturnValue(true);
+    mockedUseIsFocused.mockReturnValue(true);
     mockedBuildQueryStringFromFilterFormValues.mockClear();
     mockedUseNetwork.mockReturnValue({isOffline: false});
     // Hash follows the account, as in production. A fixed hash would let the hook's `queryJSON` memo hide the change.
@@ -637,5 +654,60 @@ describe('useRecentlyAddedData — awaiting the first result', () => {
 
         expect(resultTransactionIDs(result.current.transactions)).toEqual(['t1']);
         expect(result.current.isAwaitingFirstResult).toBe(false);
+    });
+});
+
+describe('useRecentlyAddedData — refresh gating', () => {
+    it('searches once when Home is the active tab and visible', () => {
+        // Given the Home tab is active
+
+        // When the hook mounts
+        renderHook(() => useRecentlyAddedData());
+
+        // Then the expense list is fetched once
+        expect(mockedSearch).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not search again when an RHP opens and closes over Home', () => {
+        // Given Home has already fetched the list
+        const {rerender} = renderHook(() => useRecentlyAddedData());
+        expect(mockedSearch).toHaveBeenCalledTimes(1);
+
+        // When an RHP is pushed over Home and popped again, leaving the Home tab active throughout
+        mockedUseIsFocused.mockReturnValue(false);
+        rerender(undefined);
+        mockedUseIsFocused.mockReturnValue(true);
+        rerender(undefined);
+
+        // Then closing it does not refetch the same list
+        expect(mockedSearch).toHaveBeenCalledTimes(1);
+    });
+
+    it('searches again after the user switches tabs away and back', () => {
+        // Given Home has already fetched the list
+        const {rerender} = renderHook(() => useRecentlyAddedData());
+
+        // When the user switches to another tab and returns
+        mockedUseIsTabFocused.mockReturnValue(false);
+        mockedUseIsFocused.mockReturnValue(false);
+        rerender(undefined);
+        mockedUseIsTabFocused.mockReturnValue(true);
+        mockedUseIsFocused.mockReturnValue(true);
+        rerender(undefined);
+
+        // Then arriving back on Home refreshes the list
+        expect(mockedSearch).toHaveBeenCalledTimes(2);
+    });
+
+    it('does not search while another tab is active', () => {
+        // Given the user is on another tab
+        mockedUseIsTabFocused.mockReturnValue(false);
+        mockedUseIsFocused.mockReturnValue(false);
+
+        // When the hook renders
+        renderHook(() => useRecentlyAddedData());
+
+        // Then nothing is fetched for a screen the user isn't on
+        expect(mockedSearch).not.toHaveBeenCalled();
     });
 });
