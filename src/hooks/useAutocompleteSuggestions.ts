@@ -11,6 +11,7 @@ import type {OptionList} from '@libs/OptionsListUtils';
 import {getSearchOptions} from '@libs/OptionsListUtils';
 import {getAllTaxRates, getCleanedTagName, getExpensifyTeamExclusions, shouldShowPolicy} from '@libs/PolicyUtils';
 import {
+    CONTINUATION_DETECTION_SEARCH_FILTER_KEYS,
     getAutocompleteCategories,
     getAutocompleteRecentCategories,
     getAutocompleteRecentTags,
@@ -21,7 +22,7 @@ import {
 import {getUserFriendlyKey, getUserFriendlyValue} from '@libs/SearchQueryUtils';
 import {getDatePresets, getHasOptions} from '@libs/SearchUIUtils';
 
-import CONST, {CONTINUATION_DETECTION_SEARCH_FILTER_KEYS} from '@src/CONST';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Beta, CardFeeds, CardList, PersonalDetailsList, Policy} from '@src/types/onyx';
 import type {VisibleReportActionsDerivedValue} from '@src/types/onyx/DerivedValues';
@@ -571,7 +572,11 @@ function useAutocompleteSuggestions({
             }));
         }
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS: {
-            const hasAutocompleteList = getHasOptions(translate, currentType);
+            // Use {} while policies load so every has: option does not flash before the collection arrives.
+            const hasAutocompleteList = getHasOptions(translate, currentType, {
+                policies: policies ?? {},
+                policyCategories: allPolicyCategories,
+            });
             const filteredHasValues = hasAutocompleteList.filter((hasValue) => {
                 return hasValue.value.toLowerCase().includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.has(hasValue.value.toLowerCase());
             });

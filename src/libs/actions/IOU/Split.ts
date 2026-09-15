@@ -134,6 +134,10 @@ type CreateDistanceRequestInformation = {
     existingTransaction?: OnyxEntry<OnyxTypes.Transaction>;
     transactionParams: DistanceRequestTransactionParams;
     policyParams?: BasePolicyParams;
+    newReportTotal?: number;
+    newReimbursableTotal?: number;
+    newNonReimbursableTotal?: number;
+    newUnheldReimbursableTotal?: number;
     isASAPSubmitBetaEnabled: boolean;
     transactionViolations: OnyxCollection<OnyxTypes.TransactionViolation[]>;
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
@@ -157,7 +161,7 @@ type CreateDistanceRequestInformation = {
     rules: OnyxCollection<OnyxTypes.Rule>;
 };
 
-type CreateSplitsTransactionParams = Omit<BaseTransactionParams, 'customUnitRateID'> & {
+type CreateSplitsTransactionParams = BaseTransactionParams & {
     splitShares: SplitShares;
     iouRequestType?: IOURequestType;
     attendees?: Attendee[];
@@ -1503,6 +1507,7 @@ function createSplitsAndOnyxData({
         taxAmount = 0,
         taxValue,
         attendees,
+        customUnitRateID,
     },
     policyRecentlyUsedCategories,
     policyRecentlyUsedTags,
@@ -1556,6 +1561,7 @@ function createSplitsAndOnyxData({
             reimbursable,
             pendingFields: isDistanceRequest ? {waypoints: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD} : undefined,
             attendees,
+            customUnitRateID,
         },
     });
 
@@ -2060,6 +2066,10 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
         existingTransaction,
         transactionParams,
         policyParams = {},
+        newReportTotal,
+        newReimbursableTotal,
+        newNonReimbursableTotal,
+        newUnheldReimbursableTotal,
         isASAPSubmitBetaEnabled,
         transactionViolations,
         quickAction,
@@ -2161,6 +2171,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
                 taxAmount,
                 taxValue,
                 attendees,
+                customUnitRateID,
             },
             policyRecentlyUsedCategories,
             policyRecentlyUsedTags,
@@ -2226,6 +2237,10 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
             parentChatReport: currentChatReport,
             existingIOUReport,
             existingTransaction,
+            newReportTotal,
+            newReimbursableTotal,
+            newNonReimbursableTotal,
+            newUnheldReimbursableTotal,
             moneyRequestReportID,
             participantParams: {
                 participant,
@@ -2260,6 +2275,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
                 waypoints: validWaypoints,
                 odometerStart,
                 odometerEnd,
+                customUnitRateID,
             },
             shouldGenerateTransactionThreadReport: false,
             isASAPSubmitBetaEnabled,
