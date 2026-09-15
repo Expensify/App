@@ -108,6 +108,42 @@ To create or update a user, your API request must follow Expensify’s required 
 
 ---
 
+## How to remove a user in Expensify using Okta Workflows API
+
+Compared to creating a user with the Okta Workflows API, the main difference for removing a user is setting `"isTerminated": true`
+
+Your API request must follow Expensify’s required structure. Here's what your API request payload should include in the `requestJobDescription` parameter:
+
+```json
+{
+  "type": "update",
+  "credentials": {
+    "partnerUserID": "your_partnerUserID",
+    "partnerUserSecret": "your_partnerUserSecret"
+  },
+  "inputSettings": {
+    "type": "employees",
+    "entity": "generic",
+    "data": [
+      {
+        "employeeEmail": "user@example.com",
+        "managerEmail": "manager@example.com",
+        "policyID": "your_policy_id",
+        "employeeID": "unique_employee_id",
+        "firstName": "First",
+        "lastName": "Last",
+        "isTerminated": true
+      }
+    ]
+  },
+  "onFinish": {
+    "immediateResponse": true
+  }
+}
+```
+
+---
+
 ## End-to-end workflow example
 
 Here's how the Okta Workflows cards work together to create users in Expensify: 
@@ -205,7 +241,7 @@ Expensify enforces API rate limits. Avoid sending excessive requests in a short 
 
 ## Does Expensify support SCIM-based provisioning?
 
-No. Expensify does **not** support SCIM-based user provisioning. However, we do support SCIM-based deprovisioning for customers using Okta. To learn more, see [Okta SCIM API for User Deactivation](https://help.expensify.com/articles/expensify-classic/domains/Managing-Single-Sign-On-(SSO)-in-Expensify#:~:text=Advanced%20Configurations-,Okta%20SCIM%20API%20for%20User%20Deactivation,-Ensure%20your%20domain).
+No. Expensify does **not** support SCIM-based user provisioning. However, we do support [SCIM-based deprovisioning](https://help.expensify.com/articles/new-expensify/domains/Set-Up-SAML-SSO#advanced-configurations-for-saml-single-sign-on-sso) for customers using Okta.
 
 
 ---
