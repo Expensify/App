@@ -128,6 +128,8 @@ PODS:
     - ExpoModulesCore
   - ExpoFont (57.0.1):
     - ExpoModulesCore
+  - ExpoGlassEffect (57.0.3):
+    - ExpoModulesCore
   - ExpoImage (57.0.1):
     - ExpoModulesCore
     - libavif/libdav1d
@@ -4216,7 +4218,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - SocketRocket
     - Yoga
-  - RNSentry (8.7.0):
+  - RNSentry (8.25.0):
     - boost
     - DoubleConversion
     - fast_float
@@ -4243,7 +4245,6 @@ PODS:
     - ReactCodegen
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
-    - Sentry (= 9.8.0)
     - SocketRocket
     - Yoga
   - RNShare (11.0.2):
@@ -4431,9 +4432,6 @@ PODS:
   - SDWebImageWebPCoder (0.14.6):
     - libwebp (~> 1.0)
     - SDWebImage/Core (~> 5.17)
-  - Sentry (9.8.0):
-    - Sentry/Core (= 9.8.0)
-  - Sentry/Core (9.8.0)
   - SocketRocket (0.7.1)
   - SwiftUIIntrospect (1.3.0)
   - TrustKit (3.0.7)
@@ -4461,6 +4459,7 @@ DEPENDENCIES:
   - ExpoAudio (from `../node_modules/expo-audio/ios`)
   - "ExpoDomWebView (from `../node_modules/@expo/dom-webview/ios`)"
   - ExpoFont (from `../node_modules/expo-font/ios`)
+  - ExpoGlassEffect (from `../node_modules/expo-glass-effect/ios`)
   - ExpoImage (from `../node_modules/expo-image/ios`)
   - ExpoImageManipulator (from `../node_modules/expo-image-manipulator/ios`)
   - ExpoLocation (from `../node_modules/expo-location/ios`)
@@ -4645,7 +4644,6 @@ SPEC REPOS:
     - SDWebImageAVIFCoder
     - SDWebImageSVGCoder
     - SDWebImageWebPCoder
-    - Sentry
     - SocketRocket
     - SwiftUIIntrospect
     - TrustKit
@@ -4675,6 +4673,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/@expo/dom-webview/ios"
   ExpoFont:
     :path: "../node_modules/expo-font/ios"
+  ExpoGlassEffect:
+    :path: "../node_modules/expo-glass-effect/ios"
   ExpoImage:
     :path: "../node_modules/expo-image/ios"
   ExpoImageManipulator:
@@ -4971,7 +4971,7 @@ SPEC CHECKSUMS:
   AirshipServiceExtension: 50d11b2f62c4a490d4e81a1c36f70e2ecb70a27e
   AppAuth: d4f13a8fe0baf391b2108511793e4b479691fb73
   AppLogs: 3bc4e9b141dbf265b9464409caaa40416a9ee0e0
-  boost: 7e761d76ca2ce687f7cc98e698152abd03a18f90
+  boost: 659a89341ea4ab3df8259733813b52f26d8be9a5
   DoubleConversion: cb417026b2400c8f53ae97020b2be961b59470cb
   EXConstants: fa5647482320b7bde855057f8b86580456d4b9f0
   expensify-react-native-background-task: 03c640e1f5649692d058cba48c0a138f024a6dd3
@@ -4981,6 +4981,7 @@ SPEC CHECKSUMS:
   ExpoAudio: b69f36525132edba8d87a715b3a20c678ef78b30
   ExpoDomWebView: beaec034e51bd028428b98bb1f2633ab79c6d095
   ExpoFont: 59e1faf66ba9bcd232ae1e2ce58d202a48b6f65e
+  ExpoGlassEffect: ac454a05346de8610d61dc1324d624893ca22d14
   ExpoImage: 4c1e7634db6033185a98959fb028d8d4b1c89695
   ExpoImageManipulator: d3c962dabd86b331980f8ec6794c6073b3cb541a
   ExpoLocation: 187949911b868f72e34a8a6f8f487207ba86388a
@@ -5011,7 +5012,7 @@ SPEC CHECKSUMS:
   GTMAppAuth: f69bd07d68cd3b766125f7e072c45d7340dea0de
   GTMSessionFetcher: 5aea5ba6bd522a239e236100971f10cb71b96ab6
   GzipSwift: 893f3e48e597a1a4f62fafcb6514220fcf8287fa
-  hermes-engine: 8992dac2fb037a77b783469d993f59f96167417e
+  hermes-engine: 1637145fb37fdf98c062d0056874f15ddce37e20
   libavif: 84bbb62fb232c3018d6f1bab79beea87e35de7b7
   libdav1d: 23581a4d8ec811ff171ed5e2e05cd27bad64c39f
   libwebp: 02b23773aedb6ff1fd38cec7a77b81414c6842a8
@@ -5142,7 +5143,7 @@ SPEC CHECKSUMS:
   RNReactNativeHapticFeedback: 5f1542065f0b24c9252bd8cf3e83bc9c548182e4
   RNReanimated: de3eaf0bd2aec5036554a125eb02c28b59de45ae
   RNScreens: 2b6107925ee4e14a9b2eb0dfb52fe25223aa64d7
-  RNSentry: 67d50593363789905dde212b2fcab30a4f8b1846
+  RNSentry: b03603e1f0b5e9840742ee3f72706c3ab836913a
   RNShare: 1c1fde2c4134b9cf220ffebbd6df9c414036d382
   RNSVG: 88b18f5959cffb583527b9611ce17b53e54c1fb6
   RNWorklets: 25b8ee140def8e1561209a825b005ee70f3e26f5
@@ -5150,7 +5151,6 @@ SPEC CHECKSUMS:
   SDWebImageAVIFCoder: afe194a084e851f70228e4be35ef651df0fc5c57
   SDWebImageSVGCoder: 15a300a97ec1c8ac958f009c02220ac0402e936c
   SDWebImageWebPCoder: e38c0a70396191361d60c092933e22c20d5b1380
-  Sentry: 88746bf877eff714bc45315a39ad1d1efea2cdda
   SocketRocket: d4aabe649be1e368d1318fdf28a022d714d65748
   SwiftUIIntrospect: fee9aa07293ee280373a591e1824e8ddc869ba5d
   TrustKit: 1050f3ce0595f8ed775f1237b7f590e3a4f93e91

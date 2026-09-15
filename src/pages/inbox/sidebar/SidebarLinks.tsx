@@ -82,8 +82,12 @@ function SidebarLinks({insets, optionListItems, hasReportData, priorityMode = CO
 
     const viewMode = priorityMode === CONST.PRIORITY_MODE.GSD ? CONST.OPTION_MODE.COMPACT : CONST.OPTION_MODE.DEFAULT;
 
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    const contentContainerStyles = useMemo(() => StyleSheet.flatten([styles.pt2, {paddingBottom: StyleUtils.getSafeAreaMargins(insets).marginBottom}]), [insets]);
+    // On narrow layouts the floating tab bar covers the end of the list, and its footprint already clears the
+    // home indicator, so it replaces the safe area padding rather than adding to it.
+    const contentContainerStyles = useMemo(
+        () => StyleSheet.flatten([styles.pt2, shouldUseNarrowLayout ? styles.floatingTabBarContentInset : {paddingBottom: StyleUtils.getSafeAreaMargins(insets).marginBottom}]),
+        [StyleUtils, insets, shouldUseNarrowLayout, styles.floatingTabBarContentInset, styles.pt2],
+    );
 
     const shouldShowEmptyLHN = optionListItems.length === 0;
 

@@ -244,7 +244,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
                     shouldDisplayHelpButton={shouldUseNarrowLayout}
                 />
 
-                <ScrollView contentContainerStyle={[styles.flexColumn, styles.pb14]}>
+                <ScrollView contentContainerStyle={[styles.flexColumn, styles.pb14, shouldUseNarrowLayout && styles.floatingTabBarContentInset]}>
                     <OfflineWithFeedback
                         pendingAction={policy?.pendingAction}
                         onClose={() => dismissError(policyID, policy?.pendingAction)}

@@ -1,24 +1,16 @@
-import NavigationTabBar from '@components/Navigation/NavigationTabBar';
-
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
-
-import React from 'react';
+import type {FC} from 'react';
 
 import type TabBarBottomContentProps from './types';
 
-function TabBarBottomContent({selectedTab}: TabBarBottomContentProps) {
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
-
-    if (!shouldUseNarrowLayout) {
-        return null;
-    }
-
-    return (
-        <NavigationTabBar
-            selectedTab={selectedTab}
-            shouldShowFloatingButtons={false}
-        />
-    );
+/**
+ * Bottom slot that every tab root screen reserves for the tab bar. The navigator owns the only bar there is,
+ * so the slot renders nothing: one bar per preloaded screen would stack glass capsules behind the visible one.
+ * The slot itself stays because ScreenWrapper keys the placement of the bottom-docked offline indicator on it.
+ */
+function TabBarBottomContent() {
+    return null;
 }
 
-export default TabBarBottomContent;
+const tabBarBottomContent: FC<TabBarBottomContentProps> = TabBarBottomContent;
+
+export default tabBarBottomContent;

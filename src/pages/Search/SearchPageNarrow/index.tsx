@@ -228,7 +228,7 @@ function SearchPageNarrow({
     const isDataLoaded = shouldUseLiveData || isSearchDataLoaded(searchResults, queryJSON);
     // Use the request state because `isLoading` also covers temporary UI loading that should not keep this bar visible.
     const shouldShowLoadingState = !isOffline && (!isDataLoaded || isSearchPending(searchResults));
-    const contentContainerStyle = !isMobileSelectionModeEnabled ? styles.searchListContentContainerStyles(hasFilterBars) : undefined;
+    const contentContainerStyle = [!isMobileSelectionModeEnabled && styles.searchListContentContainerStyles(hasFilterBars), styles.floatingTabBarContentInset];
 
     const shouldRenderLayoutProbe = (isOverlayActive || !isHeaderInteractive) && !searchOverlayContent;
 
@@ -240,7 +240,7 @@ function SearchPageNarrow({
             <ReceiptScanDropZone
                 dropZoneRef={receiptDropTargetRef}
                 isDisabled={useStaticRendering && !isHeaderInteractive}
-                dropWrapperStyle={{marginBottom: variables.bottomTabHeight}}
+                dropWrapperStyle={{marginBottom: variables.floatingTabBarContentInset}}
             >
                 <ScreenWrapper
                     testID="SearchPageNarrow"

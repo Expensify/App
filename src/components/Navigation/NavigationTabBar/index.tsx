@@ -3,6 +3,7 @@ import FloatingGPSButton from '@components/FloatingGPSButton';
 import Hoverable from '@components/Hoverable';
 import ImageSVG from '@components/ImageSVG';
 import DebugTabView from '@components/Navigation/DebugTabView';
+import NavigationTabBarSurface from '@components/Navigation/NavigationTabBarSurface';
 import {PressableWithFeedback} from '@components/Pressable';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -69,8 +70,8 @@ function NavigationTabBar({selectedTab, shouldShowFloatingButtons = true}: Navig
         });
     };
 
-    // shouldShowFloatingButtons is false for the swipe-back duplicate tab bar rendered via
-    // bottomContent — gating the debug view on it prevents it from appearing in that copy too.
+    // The navigator drops shouldShowFloatingButtons while it hides the bar, and the debug view rides along
+    // so it cannot linger over a screen the bar has already left.
     const shouldShowDebugTabView = !!isDebugModeEnabled && shouldShowFloatingButtons;
 
     if (!shouldUseNarrowLayout) {
@@ -153,7 +154,7 @@ function NavigationTabBar({selectedTab, shouldShowFloatingButtons = true}: Navig
     return (
         <>
             {shouldShowDebugTabView && <DebugTabView selectedTab={selectedTab} />}
-            <View
+            <NavigationTabBarSurface
                 style={styles.navigationTabBarContainer}
                 testID="NavigationTabBar"
             >
@@ -162,13 +163,14 @@ function NavigationTabBar({selectedTab, shouldShowFloatingButtons = true}: Navig
                     role={CONST.ROLE.TAB}
                     accessibilityLabel={translate('common.home')}
                     wrapperStyle={styles.flex1}
-                    style={styles.navigationTabBarItem}
+                    style={[styles.navigationTabBarItem, selectedTab === NAVIGATION_TABS.HOME && styles.navigationTabBarItemSelected]}
                     sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.HOME}
                 >
                     <TabBarItem
                         icon={expensifyIcons.Home}
                         label={translate('common.home')}
                         isSelected={selectedTab === NAVIGATION_TABS.HOME}
+                        shouldShowLabel={false}
                     />
                 </PressableWithFeedback>
                 <InboxTabButton
@@ -190,11 +192,11 @@ function NavigationTabBar({selectedTab, shouldShowFloatingButtons = true}: Navig
                     isWideLayout={false}
                 />
                 <NavigationTabBarAvatar
-                    style={styles.navigationTabBarItem}
+                    style={[styles.navigationTabBarItem, selectedTab === NAVIGATION_TABS.SETTINGS && styles.navigationTabBarItemSelected]}
                     isSelected={selectedTab === NAVIGATION_TABS.SETTINGS}
                     onPress={navigateToSettings}
                 />
-            </View>
+            </NavigationTabBarSurface>
 
             {shouldShowFloatingButtons && (
                 <>

@@ -163,7 +163,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                 ref={scrollViewRef}
                 onScroll={onScroll}
                 scrollEventThrottle={CONST.TIMING.MIN_SMOOTH_SCROLL_EVENT_THROTTLE}
-                contentContainerStyle={[styles.w100]}
+                contentContainerStyle={[styles.w100, shouldUseNarrowLayout && styles.floatingTabBarContentInset]}
                 showsVerticalScrollIndicator={false}
             >
                 {headerContent}

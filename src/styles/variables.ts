@@ -28,8 +28,16 @@ const avatarSizes = {
     avatarBorderWidthLarge: 4,
 } as const;
 
+const floatingTabBarHeight = 60;
+const floatingTabBarBottomInset = 8;
+
 export default {
     bottomTabHeight: 72,
+    floatingTabBarHeight,
+    floatingTabBarHorizontalInset: 16,
+    floatingTabBarBottomInset,
+    // Vertical space the floating bar takes over the content it hides, so scrollable content can end above it.
+    floatingTabBarContentInset: floatingTabBarHeight + floatingTabBarBottomInset,
     // styles.p3 (12) on each side of the DebugTabView row plus the View button (componentSizeNormal).
     debugTabViewHeight: 64,
     contentHeaderHeight: getValueUsingPixelRatio(72, 100),
@@ -43,6 +51,7 @@ export default {
     spacing2: 8,
     rulesDocumentThumbnailMaxWidth: 368,
     rulesDocumentThumbnailHeight: 200,
+    hairlineBorderWidth: 0.5,
     componentBorderRadius: 8,
     componentBorderRadiusSmall: 4,
     componentBorderRadiusMedium: 6,

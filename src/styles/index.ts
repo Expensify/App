@@ -724,12 +724,36 @@ const staticStyles = (theme: ThemeColors) =>
             overflow: 'visible',
         },
 
+        // The narrow tab bar is a capsule floating above the screen content, so it paints no background of
+        // its own. NavigationTabBarSurface draws the glass (or the translucent fallback) behind the items.
         navigationTabBarContainer: {
             flexDirection: 'row',
-            height: variables.bottomTabHeight,
-            borderTopWidth: 1,
-            borderTopColor: theme.border,
-            backgroundColor: theme.appBG,
+            height: variables.floatingTabBarHeight,
+            marginHorizontal: variables.floatingTabBarHorizontalInset,
+            borderRadius: variables.componentBorderRadiusCircle,
+            // Insets the row so the selected item's capsule keeps a margin inside the bar's rounded edge.
+            ...spacing.p1,
+            // Clips each item's hover and press background to the capsule's rounded ends.
+            overflow: 'hidden',
+        },
+
+        // Stands in for liquid glass where the platform has no such material, so the capsule still reads as a
+        // translucent surface over the content it floats above.
+        navigationTabBarFallbackSurface: {
+            backgroundColor: theme.floatingTabBarBG,
+            borderWidth: variables.hairlineBorderWidth,
+            borderColor: theme.floatingTabBarBorder,
+        },
+
+        navigationTabBarItemSelected: {
+            backgroundColor: theme.floatingTabBarSelectedBG,
+            borderRadius: variables.componentBorderRadiusCircle,
+        },
+
+        // Ends a tab root screen's scrollable content above the floating bar, so its last row stays reachable
+        // while everything scrolled past it still passes behind the glass.
+        floatingTabBarContentInset: {
+            paddingBottom: variables.floatingTabBarContentInset,
         },
 
         navigationTabBarItem: {

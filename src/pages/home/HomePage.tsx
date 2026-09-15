@@ -53,7 +53,7 @@ function HomePage() {
         >
             <ReceiptScanDropZone
                 dropZoneRef={receiptDropTargetRef}
-                dropWrapperStyle={shouldUseNarrowLayout ? {marginBottom: variables.bottomTabHeight} : undefined}
+                dropWrapperStyle={shouldUseNarrowLayout ? {marginBottom: variables.floatingTabBarContentInset} : undefined}
             >
                 <ScreenWrapper
                     shouldEnablePickerAvoiding={false}
@@ -69,7 +69,7 @@ function HomePage() {
                         shouldDisplayHelpButton
                     />
                     <ScrollView
-                        contentContainerStyle={styles.homePageContentContainer}
+                        contentContainerStyle={[styles.homePageContentContainer, shouldUseNarrowLayout && styles.floatingTabBarContentInset]}
                         addBottomSafeAreaPadding
                         keyboardShouldPersistTaps="handled"
                     >

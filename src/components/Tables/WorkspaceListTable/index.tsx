@@ -222,7 +222,7 @@ export default function WorkspaceListTable({ref, workspaces, headerComponent, on
             />
 
             <Table.Header />
-            <Table.Body />
+            <Table.Body contentContainerStyle={shouldUseNarrowLayout && styles.floatingTabBarContentInset} />
         </Table>
     );
 }

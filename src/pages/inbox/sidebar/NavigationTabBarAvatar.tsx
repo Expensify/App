@@ -89,12 +89,15 @@ function NavigationTabBarAvatar({onPress, isSelected = false, style}: Navigation
             {({hovered}) => (
                 <>
                     {renderAvatar(isSelected || (!shouldUseNarrowLayout && hovered), hovered)}
-                    <Text
-                        numberOfLines={2}
-                        style={[styles.textSmall, styles.textAlignCenter, isSelected ? styles.textBold : styles.textSupporting, styles.mt0Half, styles.navigationTabBarLabel]}
-                    >
-                        {translate('initialSettingsPage.account')}
-                    </Text>
+                    {/* The floating bottom bar has no room for labels, so it renders the avatar alone. */}
+                    {!shouldUseNarrowLayout && (
+                        <Text
+                            numberOfLines={2}
+                            style={[styles.textSmall, styles.textAlignCenter, isSelected ? styles.textBold : styles.textSupporting, styles.mt0Half, styles.navigationTabBarLabel]}
+                        >
+                            {translate('initialSettingsPage.account')}
+                        </Text>
+                    )}
                 </>
             )}
         </PressableWithFeedback>
