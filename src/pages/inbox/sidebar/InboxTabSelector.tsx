@@ -140,6 +140,7 @@ function InboxTabSelector() {
                     vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
                 },
                 shiftVertical: 8,
+                wrapperStyle: styles.productTrainingTooltipWrapper,
             },
         },
         {
