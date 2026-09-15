@@ -42,6 +42,9 @@ type FilterPopupButtonProps = {
     popoverAnchorAlignment?: AnchorAlignment;
     PopoverComponent: (props: PopoverComponentProps) => ReactNode;
     renderButton: (props: ButtonComponentProps) => ReactNode;
+
+    /** Called instead of opening the popover when device is in landscape mode */
+    onLandscapePress?: () => void;
 };
 
 const ANCHOR_ORIGIN = {
@@ -49,10 +52,18 @@ const ANCHOR_ORIGIN = {
     vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
 };
 
-function FilterPopupButton({viewportOffsetTop, popoverWidth, wrapperStyle, popoverAnchorAlignment: popoverAnchorAlignmentProp, PopoverComponent, renderButton}: FilterPopupButtonProps) {
+function FilterPopupButton({
+    viewportOffsetTop,
+    popoverWidth,
+    wrapperStyle,
+    popoverAnchorAlignment: popoverAnchorAlignmentProp,
+    PopoverComponent,
+    renderButton,
+    onLandscapePress,
+}: FilterPopupButtonProps) {
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to distinguish RHP and narrow layout
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
-    const {isSmallScreenWidth} = useResponsiveLayout();
+    const {isSmallScreenWidth, isInLandscapeMode} = useResponsiveLayout();
     const isFocused = useIsFocused();
     const styles = useThemeStyles();
     const {isKeyboardActive} = useKeyboardState();
@@ -117,7 +128,7 @@ function FilterPopupButton({viewportOffsetTop, popoverWidth, wrapperStyle, popov
             style={wrapperStyle}
         >
             {/* Dropdown Trigger */}
-            {renderButton({ref: triggerRef, onPress: calculatePopoverPositionAndToggleOverlay, isExpanded: isOverlayVisible})}
+            {renderButton({ref: triggerRef, onPress: isInLandscapeMode && onLandscapePress ? onLandscapePress : calculatePopoverPositionAndToggleOverlay, isExpanded: isOverlayVisible})}
             {/* Dropdown overlay. Gated on hasEverExpanded so the (potentially heavy) content subtree isn't mounted
                 until the dropdown is first opened — PopoverWithMeasuredContentBase mounts children even while hidden. */}
             {isFocused && hasEverExpanded && (
