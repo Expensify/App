@@ -607,6 +607,38 @@ describe('SequentialQueue - conflict replace addressing', () => {
         }
     });
 
+    it('should refuse a nextAction delete rather than apply its stale indices', async () => {
+        SequentialQueue.pause();
+        await SequentialQueue.push(queuedAddComment('v1', 2));
+        await SequentialQueue.push(queuedUpdateComment('v2', 3));
+        await SequentialQueue.push({command: 'OpenReport', data: {reportID: 'VICTIM'}, requestIndex: 4});
+
+        const forcedFollowUpDelete = {
+            conflictAction: {type: 'delete', indices: [1], pushNewRequest: false, nextAction: {type: 'delete', indices: [0], pushNewRequest: false}},
+        } as unknown as ConflictActionData;
+
+        const logAlertSpy = jest.spyOn(Log, 'alert').mockImplementation(() => {});
+        const commit = drainWhileTheNextQueueCommitIsPending(processNextRequest);
+        try {
+            await SequentialQueue.push({
+                command: WRITE_COMMANDS.UPDATE_COMMENT,
+                data: {reportActionID, reportComment: 'v3'},
+                requestIndex: 5,
+                checkAndFixConflictingRequest: () => forcedFollowUpDelete,
+            });
+
+            expect(getOngoingRequest()?.command).toBe(WRITE_COMMANDS.ADD_COMMENT);
+            expect(getAll().map((r) => r.command)).toEqual(['OpenReport']);
+            expect(getAll().at(0)?.data?.reportID).toBe('VICTIM');
+            expect(logAlertSpy).toHaveBeenCalledWith(expect.stringContaining('requestIndex'), expect.objectContaining({nextActionType: 'delete'}));
+        } finally {
+            commit.mockRestore();
+            logAlertSpy.mockRestore();
+            SequentialQueue.unpause();
+            await mockFetch.resume();
+        }
+    });
+
     it('should not replace any request once the queue has promoted the conflict target', async () => {
         SequentialQueue.pause();
         await SequentialQueue.push(queuedAddComment('v1', 2));
