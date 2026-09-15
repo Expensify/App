@@ -78,6 +78,8 @@ jest.mock('@libs/OptionsListUtils', () => ({
         hasMore: false,
     })),
     combineOrderingOfReportsAndPersonalDetails: jest.fn(() => ({recentReports: [], personalDetails: []})),
+    createOptionFromReport: jest.fn(),
+    doesReportMatchSearchTerms: jest.fn(() => false),
     getAlternateText: jest.fn(),
 }));
 
@@ -194,10 +196,11 @@ describe('SearchAutocompleteList', () => {
         const mockUseFilteredOptions = jest.mocked(useFilteredOptions);
         const mockCombineOrdering = jest.mocked(combineOrderingOfReportsAndPersonalDetails);
 
-        // Before the report loads, the DM is just a personal detail keyed by accountID.
+        // Given a locally available DM represented by its participant accountID
         const dmAsPersonalDetail: OptionData = {reportID: '', keyForList: '123', accountID: 123, text: 'Alice', alternateText: '', lastMessageText: ''};
         mockCombineOrdering.mockReturnValue({recentReports: [dmAsPersonalDetail], personalDetails: []});
 
+        // When the search results are first rendered
         const {rerender, toJSON} = render(
             <OnyxListItemProvider>
                 <LocaleContextProvider>
@@ -212,18 +215,15 @@ describe('SearchAutocompleteList', () => {
 
         await waitForBatchedUpdatesWithAct();
 
-        // The DM shows up under "Recent chats" and its position is now frozen.
+        // Then the DM is shown in the "Recent chats" section
         const treeAfterFreeze = JSON.stringify(toJSON());
         expect(treeAfterFreeze).toContain('Recent chats');
         expect(treeAfterFreeze).toContain('Alice');
         expect(treeAfterFreeze.indexOf('Recent chats')).toBeLessThan(treeAfterFreeze.indexOf('Alice'));
 
-        // Now the search results come back. The DM's report loads, so its keyForList flips to the reportID
-        // (accountID stays the same). We hand back a new options reference so the list recomputes without
-        // touching the query, otherwise the frozen ranks would be rebuilt.
+        // When the server response hydrates the DM report and adds server-only reports
         const dmAsReport: OptionData = {reportID: '456', keyForList: '456', accountID: 123, isDM: true, text: 'Alice', alternateText: '', lastMessageText: ''};
-        // Alice also has a task report. It carries her accountID too, but it isn't the DM, so it should end up
-        // in the server section rather than pinned under "Recent chats".
+        // And a task report shares Alice's accountID without being the DM
         const aliceTaskReport: OptionData = {reportID: '999', keyForList: '999', accountID: 123, isDM: false, isTaskReport: true, text: 'Alice Task', alternateText: '', lastMessageText: ''};
         const brandNewServerReport: OptionData = {reportID: '789', keyForList: '789', accountID: 0, text: 'Bob', alternateText: '', lastMessageText: ''};
         mockUseFilteredOptions.mockReturnValue({
@@ -235,6 +235,10 @@ describe('SearchAutocompleteList', () => {
             isLoadingMore: false,
         });
         mockCombineOrdering.mockReturnValue({recentReports: [dmAsReport, aliceTaskReport, brandNewServerReport], personalDetails: []});
+
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.RAM_ONLY_SEARCH_RESULT_REPORT_IDS, ['999', '789', '456']);
+        });
 
         rerender(
             <OnyxListItemProvider>
@@ -258,20 +262,80 @@ describe('SearchAutocompleteList', () => {
         const aliceTaskIndex = treeAfterServer.indexOf('Alice Task');
         const bobIndex = treeAfterServer.indexOf('Bob');
 
-        // Both section headers and all three rows rendered.
+        // Then the hydrated DM remains in the "Recent chats" section, and the other reports appear in "Search results"
         expect(recentChatsIndex).toBeGreaterThanOrEqual(0);
         expect(serverResultsIndex).toBeGreaterThan(recentChatsIndex);
         expect(aliceDMIndex).toBeGreaterThanOrEqual(0);
         expect(aliceTaskIndex).toBeGreaterThanOrEqual(0);
         expect(bobIndex).toBeGreaterThanOrEqual(0);
 
-        // The DM stayed under "Recent chats" (before the "Search results" header) despite the keyForList flip.
         expect(aliceDMIndex).toBeGreaterThan(recentChatsIndex);
         expect(aliceDMIndex).toBeLessThan(serverResultsIndex);
 
-        // Alice's task report and Bob's report are in the server section - the task wasn't pinned just
-        // because it shares Alice's accountID.
+        // And "Search results" follows Auth's order without treating Alice's task as her DM
         expect(aliceTaskIndex).toBeGreaterThan(serverResultsIndex);
         expect(bobIndex).toBeGreaterThan(serverResultsIndex);
+        expect(aliceTaskIndex).toBeLessThan(bobIndex);
+    });
+
+    it('does not display a report when only Auth matches its hidden email', async () => {
+        const mockCombineOrdering = jest.mocked(combineOrderingOfReportsAndPersonalDetails);
+
+        // Given App has a report whose visible name is 123123 but does not match "a"
+        mockCombineOrdering.mockReturnValue({recentReports: [], personalDetails: []});
+        await act(async () => {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}456`, {reportID: '456'});
+            await Onyx.set(ONYXKEYS.RAM_ONLY_SEARCH_RESULT_REPORT_IDS, ['456']);
+        });
+
+        // When Auth returns its ID because the hidden email contains "a"
+        const {toJSON} = render(
+            <OnyxListItemProvider>
+                <LocaleContextProvider>
+                    <SearchAutocompleteList
+                        autocompleteQueryValue="a"
+                        handleSearch={jest.fn()}
+                        onListItemPress={jest.fn()}
+                    />
+                </LocaleContextProvider>
+            </OnyxListItemProvider>,
+        );
+
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the report is not added to "Search results"
+        expect(JSON.stringify(toJSON())).not.toContain('123123');
+    });
+
+    it('does not display Notifications when Auth returns it as a server-only result', async () => {
+        const mockCombineOrdering = jest.mocked(combineOrderingOfReportsAndPersonalDetails);
+
+        // Given App has no locally matched reports for the query
+        mockCombineOrdering.mockReturnValue({recentReports: [], personalDetails: []});
+        await act(async () => {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}456`, {
+                reportID: '456',
+                participants: {[CONST.ACCOUNT_ID.NOTIFICATIONS]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS}},
+            });
+            await Onyx.set(ONYXKEYS.RAM_ONLY_SEARCH_RESULT_REPORT_IDS, ['456']);
+        });
+
+        // When Auth returns Notifications
+        const {toJSON} = render(
+            <OnyxListItemProvider>
+                <LocaleContextProvider>
+                    <SearchAutocompleteList
+                        autocompleteQueryValue="notifications"
+                        handleSearch={jest.fn()}
+                        onListItemPress={jest.fn()}
+                    />
+                </LocaleContextProvider>
+            </OnyxListItemProvider>,
+        );
+
+        await waitForBatchedUpdatesWithAct();
+
+        // Then Notifications is not added to "Search results"
+        expect(JSON.stringify(toJSON())).not.toContain('456');
     });
 });
