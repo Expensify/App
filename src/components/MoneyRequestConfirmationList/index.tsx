@@ -1,8 +1,6 @@
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import ConfirmationFieldsProvider from '@components/MoneyRequestConfirmationFields/Provider';
 import MoneyRequestConfirmationListFooter from '@components/MoneyRequestConfirmationListFooter';
-import BareUserListItem from '@components/SelectionList/ListItem/BareUserListItem';
-import SelectionListWithSections from '@components/SelectionList/SelectionListWithSections';
 import type {MeasurableInput, SelectionListWithSectionsHandle} from '@components/SelectionList/SelectionListWithSections/types';
 
 import useAttendees from '@hooks/useAttendees';
@@ -10,7 +8,6 @@ import useBlockDistanceRequest from '@hooks/useBlockDistanceRequest';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import useLocalize from '@hooks/useLocalize';
-import {MouseProvider} from '@hooks/useMouseContext';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import usePolicyForTransaction from '@hooks/usePolicyForTransaction';
 import usePreferredPolicy from '@hooks/usePreferredPolicy';
@@ -23,7 +20,6 @@ import {isMovingTransactionFromTrackExpense as isMovingTransactionFromTrackExpen
 import {shouldShowConfirmationDate} from '@libs/MoneyRequestUtils';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
 import {arePolicyRulesEnabled, isTaxTrackingEnabled} from '@libs/PolicyUtils';
-import type {OptionData} from '@libs/ReportUtils';
 import {
     getCategory,
     getCreated,
@@ -51,6 +47,7 @@ import {View} from 'react-native';
 
 import buildConfirmAction from './confirmAction';
 import ConfirmationFooterContent from './ConfirmationFooterContent';
+import ConfirmationListLayout from './ConfirmationListLayout';
 import ConfirmationTelemetry from './ConfirmationTelemetry';
 import DistanceRequestController from './DistanceRequestController';
 import FieldAutoSelector from './FieldAutoSelector';
@@ -163,8 +160,6 @@ type MoneyRequestConfirmationListProps = {
     /** When true, hide the "To:" section (e.g. when adding an expense directly to the current report) */
     shouldHideToSection?: boolean;
 };
-
-type MoneyRequestConfirmationListItem = (Participant & {keyForList: string}) | OptionData;
 
 /**
  * The errors the amount / merchant / date fields render inline rather than in the footer. Raising one of these is
@@ -530,11 +525,6 @@ function MoneyRequestConfirmationList({
     }
 
     const isCompactMode = !showMoreFields && isScanRequest && !isInLandscapeMode;
-    const selectionListStyle = {
-        containerStyle: [styles.flexBasisAuto],
-        contentContainerStyle: isCompactMode ? [styles.flexGrow1] : undefined,
-        listFooterContentStyle: isCompactMode ? [styles.flex1, styles.mb3] : [styles.mb3],
-    };
 
     const footerContent = isReadOnly ? undefined : (
         <ConfirmationFooterContent
@@ -691,22 +681,15 @@ function MoneyRequestConfirmationList({
                 iouCategory={iouCategory}
                 isMovingTransactionFromTrackExpense={isMovingTransactionFromTrackExpense}
             />
-            <MouseProvider>
-                <SelectionListWithSections<MoneyRequestConfirmationListItem>
-                    ref={listRef}
-                    sections={sections}
-                    ListItem={BareUserListItem}
-                    onSelectRow={navigateToParticipantPage}
-                    onDismissError={dismissParticipantRowError}
-                    shouldSingleExecuteRowSelect
-                    shouldPreventDefaultFocusOnSelectRow
-                    shouldShowListEmptyContent={false}
-                    footerContent={footerContent}
-                    listFooterContent={listFooterContent}
-                    style={selectionListStyle}
-                    disableKeyboardShortcuts
-                />
-            </MouseProvider>
+            <ConfirmationListLayout
+                sections={sections}
+                listRef={listRef}
+                footerContent={footerContent}
+                listFooterContent={listFooterContent}
+                isCompactMode={isCompactMode}
+                onSelectRow={navigateToParticipantPage}
+                onDismissError={dismissParticipantRowError}
+            />
         </>
     );
 }
