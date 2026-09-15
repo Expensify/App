@@ -88,4 +88,4 @@ function getOptimisticSuggestedSearchHashes(accountID: number) {
     };
 }
 
-export {expenseStatusActionMapping, isEligibleForStatus, isValidExpenseStatus, getOptimisticSuggestedSearchHashes};
+export {expenseStatusActionMapping, isEligibleForStatus, getOptimisticSuggestedSearchHashes};

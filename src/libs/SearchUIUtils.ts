@@ -194,7 +194,7 @@ import {
     isSettled,
     shouldReportShowSubscript,
 } from './ReportUtils';
-import {expenseStatusActionMapping, isEligibleForStatus, isValidExpenseStatus} from './SearchOptimisticUpdateUtils';
+import {expenseStatusActionMapping, isEligibleForStatus} from './SearchOptimisticUpdateUtils';
 import {
     buildCannedSearchQuery,
     buildQueryStringFromFilterFormValues,
@@ -7665,7 +7665,6 @@ export {
     hasFlexColumn,
     isTransactionSearchType,
     splitGroupsIntoPairs,
-    isEligibleForStatus,
     SKIPPED_SEARCH_FILTERS,
     SEARCH_TYPE_MENU_ICON_NAMES,
 };
