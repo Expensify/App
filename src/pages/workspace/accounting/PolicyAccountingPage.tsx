@@ -138,20 +138,16 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
     const [cardLists] = useCardsLists();
     const connectionSyncStage = connectionSyncProgress?.stageInProgress;
 
-    const canUseDualEntryIntegration = isBetaEnabled(CONST.BETAS.DUALENTRY) || !!policy?.connections?.dualEntry;
     const canUseCampfireIntegration = isBetaEnabled(CONST.BETAS.CAMPFIRE) || !!policy?.connections?.campfire;
     const accountingIntegrations = useMemo(
         () =>
             CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES.filter((name) => {
-                if (name === CONST.POLICY.CONNECTIONS.NAME.DUALENTRY) {
-                    return canUseDualEntryIntegration;
-                }
                 if (name === CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE) {
                     return canUseCampfireIntegration;
                 }
                 return true;
             }),
-        [canUseDualEntryIntegration, canUseCampfireIntegration],
+        [canUseCampfireIntegration],
     );
     const accountingIntegrationOptions = useMemo(
         () =>
