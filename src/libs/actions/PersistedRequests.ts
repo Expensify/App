@@ -359,7 +359,7 @@ function update<TKey extends OnyxKey>(oldRequestIndex: number, newRequest: Reque
         requestIndexToReplace === undefined ? oldRequestIndex : requests.findIndex((persistedRequest) => getClientRequestIndex(persistedRequest) === requestIndexToReplace);
 
     if (indexToReplace === -1) {
-        Log.info('[PersistedRequests] Request to update is no longer queued, skipping the update', false, {
+        Log.info('[PersistedRequests] Update target is not in the queue, skipping the update', false, {
             command: newRequest.command,
             requestIndexToReplace,
             staleIndex: oldRequestIndex,

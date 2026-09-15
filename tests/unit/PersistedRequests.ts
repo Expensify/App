@@ -122,19 +122,13 @@ describe('PersistedRequests', () => {
         }
     });
 
-    it('do nothing when the positional index is out of range', () => {
+    it.each([
+        ['a positional index that is out of range', -1, undefined],
+        ['a requestIndex that is no longer queued', 0, 99],
+    ] as const)('do nothing when asked to replace %s', (_description, oldRequestIndex, requestIndexToReplace) => {
         PersistedRequests.save({...request, requestIndex: 11});
 
-        PersistedRequests.update(-1, {...request, requestIndex: 12});
-
-        expect(PersistedRequests.getLength()).toBe(2);
-        expect(PersistedRequests.getAll().map((r) => r.requestIndex)).toEqual([1, 11]);
-    });
-
-    it('do nothing when the request carrying the given requestIndex is no longer queued', () => {
-        PersistedRequests.save({...request, requestIndex: 11});
-
-        PersistedRequests.update(0, {...request, requestIndex: 12}, 99);
+        PersistedRequests.update(oldRequestIndex, {...request, requestIndex: 12}, requestIndexToReplace);
 
         expect(PersistedRequests.getLength()).toBe(2);
         expect(PersistedRequests.getAll().map((r) => r.requestIndex)).toEqual([1, 11]);

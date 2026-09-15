@@ -769,24 +769,24 @@ onPersistedRequestsInitialization(flush);
 // Flush the queue when another tab enqueues new requests
 onPersistedRequestsCrossTabMerge(flush);
 
-async function handleFollowUpConflictAction<TKey extends OnyxKey>(conflictAction: ConflictData, newRequest: OnyxRequest<TKey>): Promise<void> {
-    if (conflictAction.type !== 'replace') {
+async function handleFollowUpConflictAction<TKey extends OnyxKey>(nextAction: ConflictData, newRequest: OnyxRequest<TKey>): Promise<void> {
+    if (nextAction.type !== 'replace') {
         Log.alert('[SequentialQueue] Refusing a conflict follow-up action that cannot be addressed by requestIndex', {
             command: newRequest.command,
-            nextActionType: conflictAction.type,
+            nextActionType: nextAction.type,
         });
         return;
     }
 
-    if (conflictAction.requestIndex === undefined) {
+    if (nextAction.requestIndex === undefined) {
         Log.alert('[SequentialQueue] Refusing a conflict follow-up replace that carries no requestIndex', {
             command: newRequest.command,
-            staleIndex: conflictAction.index,
+            staleIndex: nextAction.index,
         });
         return;
     }
 
-    await updatePersistedRequest(conflictAction.index, conflictAction.request ?? (newRequest as AnyRequest), conflictAction.requestIndex);
+    await updatePersistedRequest(nextAction.index, nextAction.request ?? (newRequest as AnyRequest), nextAction.requestIndex);
 }
 
 async function handleConflictActions<TKey extends OnyxKey>(conflictAction: ConflictData, newRequest: OnyxRequest<TKey>): Promise<void> {

@@ -573,7 +573,7 @@ describe('SequentialQueue - conflict replace addressing', () => {
         await SequentialQueue.push(queuedUpdateComment('v2', 3));
         await SequentialQueue.push({command: 'OpenReport', data: {reportID: 'VICTIM'}, requestIndex: 4});
 
-        const commit = drainWhileTheNextQueueCommitIsPending(processNextRequest);
+        const setSpy = drainWhileTheNextQueueCommitIsPending(processNextRequest);
         try {
             await SequentialQueue.push(editQueuedComment('v3', 5));
 
@@ -582,7 +582,7 @@ describe('SequentialQueue - conflict replace addressing', () => {
             expect(getAll().at(0)?.data?.reportComment).toBe('v3');
             expect(getAll().at(1)?.data?.reportID).toBe('VICTIM');
         } finally {
-            commit.mockRestore();
+            setSpy.mockRestore();
             SequentialQueue.unpause();
             await mockFetch.resume();
         }
@@ -596,7 +596,7 @@ describe('SequentialQueue - conflict replace addressing', () => {
         await SequentialQueue.push({command: 'OpenReport', data: {reportID: 'VICTIM'}, requestIndex: 4});
 
         const logAlertSpy = jest.spyOn(Log, 'alert').mockImplementation(() => {});
-        const commit = drainWhileTheNextQueueCommitIsPending(processNextRequest);
+        const setSpy = drainWhileTheNextQueueCommitIsPending(processNextRequest);
         try {
             await SequentialQueue.push(editQueuedComment('v3'));
 
@@ -606,7 +606,7 @@ describe('SequentialQueue - conflict replace addressing', () => {
             expect(getAll().at(1)?.data?.reportID).toBe('VICTIM');
             expect(logAlertSpy).toHaveBeenCalledWith(expect.stringContaining('requestIndex'), expect.objectContaining({staleIndex: 1}));
         } finally {
-            commit.mockRestore();
+            setSpy.mockRestore();
             logAlertSpy.mockRestore();
             SequentialQueue.unpause();
             await mockFetch.resume();
@@ -624,7 +624,7 @@ describe('SequentialQueue - conflict replace addressing', () => {
         };
 
         const logAlertSpy = jest.spyOn(Log, 'alert').mockImplementation(() => {});
-        const commit = drainWhileTheNextQueueCommitIsPending(processNextRequest);
+        const setSpy = drainWhileTheNextQueueCommitIsPending(processNextRequest);
         try {
             await SequentialQueue.push({
                 command: WRITE_COMMANDS.UPDATE_COMMENT,
@@ -638,7 +638,7 @@ describe('SequentialQueue - conflict replace addressing', () => {
             expect(getAll().at(0)?.data?.reportID).toBe('VICTIM');
             expect(logAlertSpy).toHaveBeenCalledWith(expect.stringContaining('carries no requestIndex'), expect.objectContaining({staleIndex: 0}));
         } finally {
-            commit.mockRestore();
+            setSpy.mockRestore();
             logAlertSpy.mockRestore();
             SequentialQueue.unpause();
             await mockFetch.resume();
@@ -657,7 +657,7 @@ describe('SequentialQueue - conflict replace addressing', () => {
         } as unknown as ConflictActionData;
 
         const logAlertSpy = jest.spyOn(Log, 'alert').mockImplementation(() => {});
-        const commit = drainWhileTheNextQueueCommitIsPending(processNextRequest);
+        const setSpy = drainWhileTheNextQueueCommitIsPending(processNextRequest);
         try {
             await SequentialQueue.push({
                 command: WRITE_COMMANDS.UPDATE_COMMENT,
@@ -671,7 +671,7 @@ describe('SequentialQueue - conflict replace addressing', () => {
             expect(getAll().at(0)?.data?.reportID).toBe('VICTIM');
             expect(logAlertSpy).toHaveBeenCalledWith(expect.stringContaining('requestIndex'), expect.objectContaining({nextActionType: 'delete'}));
         } finally {
-            commit.mockRestore();
+            setSpy.mockRestore();
             logAlertSpy.mockRestore();
             SequentialQueue.unpause();
             await mockFetch.resume();
@@ -684,7 +684,7 @@ describe('SequentialQueue - conflict replace addressing', () => {
         await SequentialQueue.push(queuedUpdateComment('v2', 3));
         await SequentialQueue.push({command: 'OpenReport', data: {reportID: 'VICTIM'}, requestIndex: 4});
 
-        const commit = drainWhileTheNextQueueCommitIsPending(processNextRequest);
+        const setSpy = drainWhileTheNextQueueCommitIsPending(processNextRequest);
         try {
             await SequentialQueue.push(editQueuedComment('v3', 5));
 
@@ -693,7 +693,7 @@ describe('SequentialQueue - conflict replace addressing', () => {
             expect(getAll().map((r) => r.command)).toEqual(['OpenReport']);
             expect(getAll().at(0)?.data?.reportID).toBe('VICTIM');
         } finally {
-            commit.mockRestore();
+            setSpy.mockRestore();
             SequentialQueue.unpause();
             await mockFetch.resume();
         }
