@@ -81,6 +81,7 @@ To manage automation and other connection preferences:
 - **QuickBooks bill payment account**: Select where payments for expense reports are recorded
 - **QuickBooks invoice collections account**: Select where payments for invoices are recorded
 - **Sync Consolidated Travel Billing settlements**: This option appears only when [Consolidated Travel Billing](/travel/hubs/consolidated-travel-billing/) is enabled. Turn on this toggle to continuously reconcile settlements through QuickBooks Online. When enabled, select a **Reconciliation account** to match your settlement account. Auto-sync must be enabled to use this setting.
+- **FX expense account**: Select the account where currency conversion (FX) fees are recorded. When your workspace's **Currency conversion fees** setting under **Workflows** is set so the company pays, a cross-border reimbursement exports an additional journal entry for the FX cost (debit the FX expense account, credit cash) alongside the bill payment. The journal entry memo reads "Foreign Exchange Fees for Expensify report [reportID]". This account must be mapped for the FX journal entry to export.
 
 ---
 
