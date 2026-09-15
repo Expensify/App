@@ -1,3 +1,5 @@
+import isHTMLElement from '@libs/isHTMLElement';
+
 import type {RefObject} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {Text as RNText} from 'react-native';
@@ -85,13 +87,13 @@ function useTextWithMiddleEllipsis(props: TruncateProps): string {
 
     useEffect(() => {
         const element = ref.current;
-        if (!element) {
+        if (!isHTMLElement(element)) {
             return;
         }
 
         const measure = () => {
-            const style = window.getComputedStyle(element as unknown as Element);
-            const rect = (element as unknown as Element).getBoundingClientRect();
+            const style = window.getComputedStyle(element);
+            const rect = element.getBoundingClientRect();
             setFontStyle({
                 fontWeight: style.fontWeight,
                 fontStyle: style.fontStyle,
