@@ -2240,26 +2240,19 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
         bottom: bottomOffset,
     }),
 
-    getScrollableFeatureTrainingModalStyles: (
-        insets: EdgeInsets,
-        isKeyboardOpen = false,
-    ): {
+    /** The bottom safe area padding is applied by `useScrollableWrapper` in edge-to-edge mode, so it is not baked in here. */
+    getScrollableFeatureTrainingModalStyles: (): {
         style?: ViewStyle;
         containerStyle?: ViewStyle;
-    } => {
-        const {paddingBottom: safeAreaPaddingBottom} = getPlatformSafeAreaPadding(insets);
-        // When keyboard is open and we want to disregard safeAreaPaddingBottom.
-        const paddingBottom = getCombinedSpacing(styles.pb5.paddingBottom, safeAreaPaddingBottom, !isKeyboardOpen);
+    } => ({
         // Forces scroll on modal when keyboard is open and the modal larger than remaining screen height.
-        return {
-            style: isMobileChrome()
-                ? {
-                      maxHeight: '100dvh',
-                  }
-                : {},
-            containerStyle: {paddingBottom},
-        };
-    },
+        style: isMobileChrome()
+            ? {
+                  maxHeight: '100dvh',
+              }
+            : {},
+        containerStyle: styles.pb5,
+    }),
 
     /**
      * Returns a single crop view style by key. Use this from useAnimatedStyle to avoid building all 14 styles per frame.

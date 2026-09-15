@@ -5,11 +5,14 @@ import {PressableWithoutFeedback} from '@components/Pressable';
 import TextInput from '@components/TextInput';
 import Tooltip from '@components/Tooltip';
 
+import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
+import useKeyboardState from '@hooks/useKeyboardState';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePopoverPosition from '@hooks/usePopoverPosition';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -48,6 +51,13 @@ function SupportalSwitcherButton({isSidebarHovered}: SupportalSwitcherButtonProp
     const icons = useMemoizedLazyExpensifyIcons(['UserSearch']);
     const {calculatePopoverPosition} = usePopoverPosition();
     const {isOffline} = useNetwork();
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth -- must match PopoverWithMeasuredContent's dock decision (bottom-docked only when isSmallScreenWidth)
+    const {isSmallScreenWidth} = useResponsiveLayout();
+    const {isKeyboardActive} = useKeyboardState();
+    const bottomSafeAreaPaddingStyle = useBottomSafeSafeAreaPaddingStyle({
+        addBottomSafeAreaPadding: isSmallScreenWidth && !isKeyboardActive,
+        style: [styles.createMenuContainer, styles.ph5],
+    });
 
     const anchorRef = useRef<HTMLDivElement | null>(null);
     const [anchorPosition, setAnchorPosition] = useState<AnchorPosition>({horizontal: 0, vertical: 0});
@@ -156,8 +166,9 @@ function SupportalSwitcherButton({isSidebarHovered}: SupportalSwitcherButtonProp
                 anchorRef={anchorRef}
                 anchorPosition={anchorPosition}
                 anchorAlignment={ANCHOR_ALIGNMENT}
+                enableEdgeToEdgeBottomSafeAreaPadding
             >
-                <View style={[styles.createMenuContainer, styles.ph5]}>
+                <View style={bottomSafeAreaPaddingStyle}>
                     <TextInput
                         label={translate('supportalSwitcher.title')}
                         accessibilityLabel={translate('supportalSwitcher.emailLabel')}
