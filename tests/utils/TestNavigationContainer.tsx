@@ -187,6 +187,10 @@ function TestTabNavigator() {
                 component={TestSearchFullscreenNavigator}
             />
             <TabNav.Screen
+                name={SCREENS.INSIGHTS}
+                component={getEmptyComponent()}
+            />
+            <TabNav.Screen
                 name={NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR}
                 component={TestSettingsSplitNavigator}
             />

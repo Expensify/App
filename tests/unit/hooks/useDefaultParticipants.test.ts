@@ -50,19 +50,19 @@ jest.mock('@hooks/useSelfDMReport', () => ({
 
 const globalCreateTransaction: Transaction = {...createRandomTransaction(1), isFromGlobalCreate: true};
 
-function renderDefaultParticipantsHook(iouType: IOUType, transaction: Transaction = globalCreateTransaction, isNewManualExpenseFlowEnabled = true) {
-    return renderHook(() => useDefaultParticipants({sourceReport: undefined, transaction, iouType, isNewManualExpenseFlowEnabled}));
+function renderDefaultParticipantsHook(iouType: IOUType, transaction: Transaction = globalCreateTransaction) {
+    return renderHook(() => useDefaultParticipants({sourceReport: undefined, transaction, iouType}));
 }
 
 // The hook reads the billing NVPs through `useOnyx`, so the result is only settled once those subscriptions have.
-async function renderDefaultParticipantsResult(iouType: IOUType, transaction: Transaction = globalCreateTransaction, isNewManualExpenseFlowEnabled = true) {
-    const {result} = renderDefaultParticipantsHook(iouType, transaction, isNewManualExpenseFlowEnabled);
+async function renderDefaultParticipantsResult(iouType: IOUType, transaction: Transaction = globalCreateTransaction) {
+    const {result} = renderDefaultParticipantsHook(iouType, transaction);
     await act(waitForBatchedUpdates);
     return result.current;
 }
 
-async function renderDefaultParticipants(iouType: IOUType, transaction: Transaction = globalCreateTransaction, isNewManualExpenseFlowEnabled = true) {
-    return (await renderDefaultParticipantsResult(iouType, transaction, isNewManualExpenseFlowEnabled)).participants;
+async function renderDefaultParticipants(iouType: IOUType, transaction: Transaction = globalCreateTransaction) {
+    return (await renderDefaultParticipantsResult(iouType, transaction)).participants;
 }
 
 describe('useDefaultParticipants', () => {
@@ -118,12 +118,6 @@ describe('useDefaultParticipants', () => {
 
     it('should not seed anything when the expense is not started from global create', async () => {
         const participants = await renderDefaultParticipants(CONST.IOU.TYPE.TRACK, {...createRandomTransaction(1), isFromGlobalCreate: false});
-
-        expect(participants).toEqual([]);
-    });
-
-    it('should not seed anything when the new manual expense flow beta is disabled', async () => {
-        const participants = await renderDefaultParticipants(CONST.IOU.TYPE.TRACK, globalCreateTransaction, false);
 
         expect(participants).toEqual([]);
     });
