@@ -6,8 +6,7 @@
     //                               (core/, hosted/) because oxlint's native port diverges.
     //   OFF, mirrors ESLint       -- ESLint has it off in the same scope; parity, not a gap.
     //   OFF, coverage gap         -- we want the rule, something specific blocks it. The reason is
-    //                               on the line, and machine-readable in oxlint-migration/ruleMap.py
-    //                               (PORT_PLAN); `npm run oxlint-rule-availability` prints them.
+    //                               on the line.
     "$schema": "./node_modules/oxlint/configuration_schema.json",
     "plugins": ["typescript", "import", "jsx-a11y", "unicorn", "react"],
     // Aliases are declared here (oxlint's {name, specifier} form) rather than inferred from each
@@ -61,7 +60,7 @@
         // No `seatbelt` block, deliberately. eslint.config.mjs sets settings.seatbelt.seatbeltFile
         // with path.join(dirname, ...), which JSON cannot express, and nothing on this side reads it:
         // eslint-seatbelt suppresses through an ESLint processor, which oxlint has no concept of, so
-        // `eslint-seatbelt/configure` is off here (obstacle #1 in ruleMap.py's PORT_PLAN). The block
+        // `eslint-seatbelt/configure` is off here. The block
         // this replaces carried an absolute path from one developer's checkout, so it resolved
         // nowhere else; verified dead, the full-repo report is identical without it. A `seatbelt`
         // block belongs here again only once something on this side reads the baseline.
@@ -101,8 +100,7 @@
         "src/languages/nl.ts",
         "src/languages/pl.ts",
         "src/languages/pt-BR.ts",
-        "src/languages/zh-hans.ts",
-        "oxlint-migration/**"
+        "src/languages/zh-hans.ts"
     ],
     "rules": {
         "array-callback-return": [
@@ -469,8 +467,7 @@
         "rulesdir/use-double-negation-instead-of-boolean": "error",
         // The four rulesdir rules below are listed as OFF on purpose rather than left out: a rule
         // missing from this file is indistinguishable from an oversight. Each is still wanted — the
-        // reason it cannot run yet is on its own line, and the machine-readable copy lives in
-        // oxlint-migration/ruleMap.py (PORT_PLAN), printed by `npm run oxlint-rule-availability`.
+        // reason it cannot run yet is on its own line.
         // OFF, blocked upstream: needs the type of the `&&` left operand; jsPlugins get no type info.
         "rulesdir/boolean-conditional-rendering": "off",
         // OFF, superseded: needs typeChecker.isArrayType to tell arrays from records, so a syntactic
@@ -686,9 +683,8 @@
         // behind the React Compiler gate, which a native Rust rule cannot have. Going native was
         // measured and rejected on 2026-08-12: it works, but it needs 115 inline suppressions plus
         // one for every context provider written from then on, because it cannot ask the compilers.
-        // The native port also diverges twice (both upstream bugs, measured by
-        // `python3 oxlint-migration/compareNativeCtxValues.py`): it anchors on the JSX provider rather
-        // than the declaration, and it does not require the value to be declared in a component.
+        // The native port also diverges twice (both upstream bugs): it anchors on the JSX provider
+        // rather than the declaration, and it does not require the value to be declared in a component.
         "react/jsx-no-constructed-context-values": "off",
         "react/no-unstable-nested-components": "error",
         "react/no-namespace": "error",
@@ -907,7 +903,6 @@
         //
         // A drop-in alternative that matches ESLint exactly exists and is parked for speed: hosting
         // these twelve rules from eslint-plugin-react-hooks costs about 15 s per whole-repo run.
-        // Recipe and measurements in INVESTIGATION DOCS/OXLINT_MIGRATION_STATE.md section 5.1.
         "rc/refs": "error",
         "rc/set-state-in-effect": "error",
         "rc/set-state-in-render": "error",
@@ -947,7 +942,7 @@
         //
         // no-invalid-this is the one that could NOT be wired: ESLint's implementation reaches
         // sourceCode.getJSDocComment, which oxlint's JS bridge answers with a throw, so it errors
-        // on 36 files. Coverage gap, reason recorded in ruleMap.py (PORT_PLAN).
+        // on 36 files. Coverage gap.
         "core/no-octal": "error",
         "core/no-octal-escape": "error",
         "core/no-undef-init": "error",
@@ -1040,8 +1035,7 @@
         // rather than replaced: both need per-rule options to reach the compiler (a
         // `gating`/`dynamicGating` source, or an option for the config validator to reject), which the
         // shared per-file analysis behind rc/* deliberately does not take. Neither can fire in this
-        // repo, which passes them no options at all. Recorded as PORT_PLAN entries in
-        // oxlint-migration/ruleMap.py.
+        // repo, which passes them no options at all.
     },
     "overrides": [
         {
@@ -1058,9 +1052,9 @@
                 "jsdoc/check-tag-names": "error",
                 // Wired 2026-08-11, second half of the same wave. These six are enabled by ESLint
                 // for plain JS only -- typescript-eslint's `eslint-recommended` switches them off
-                // for TS, where the compiler or a typed rule covers them. They were invisible until
-                // ruleMap's REPRESENTATIVE_FILES gained a `.js` and a `.mjs` entry: every file in
-                // that list was TypeScript, so the coverage union never saw the plain-JS scope.
+                // for TS, where the compiler or a typed rule covers them. They went unnoticed
+                // because every file in the sampled coverage list was TypeScript, so the union
+                // never saw the plain-JS scope.
                 // Measured before wiring: all six report zero findings repo-wide.
                 "import/named": "error",
                 "no-undef": ["error", {"typeof": false}],
@@ -1113,8 +1107,7 @@
                 "typescript/no-base-to-string": "error",
                 "typescript/no-duplicate-enum-values": "error",
                 // Accepted gap: oxlint compares constituents syntactically, so `{a: string} & {a: string}`
-                // passes where typescript-eslint's type-checker comparison reports it. Pinned in
-                // oxlint-migration/port-probe/compareFixtures.py with oxlintLines; flips if oxlint changes.
+                // passes where typescript-eslint's type-checker comparison reports it.
                 "typescript/no-duplicate-type-constituents": "error",
                 "typescript/no-empty-object-type": "error",
                 "typescript/no-explicit-any": "error",
@@ -2443,8 +2436,18 @@
             // storybook plugin, so the scope has to be restated here. Severities are the upstream
             // ones, warn included, so the two tools report the same thing.
             "files": [
-                "**/*.stories.ts", "**/*.stories.tsx", "**/*.stories.js", "**/*.stories.jsx", "**/*.stories.mjs", "**/*.stories.cjs",
-                "**/*.story.ts", "**/*.story.tsx", "**/*.story.js", "**/*.story.jsx", "**/*.story.mjs", "**/*.story.cjs"
+                "**/*.stories.ts",
+                "**/*.stories.tsx",
+                "**/*.stories.js",
+                "**/*.stories.jsx",
+                "**/*.stories.mjs",
+                "**/*.stories.cjs",
+                "**/*.story.ts",
+                "**/*.story.tsx",
+                "**/*.story.js",
+                "**/*.story.jsx",
+                "**/*.story.mjs",
+                "**/*.story.cjs"
             ],
             "rules": {
                 // Mirrors the storybook preset, which ESLint picks up through

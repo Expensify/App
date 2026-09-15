@@ -79,8 +79,8 @@ const ENVIRONMENT = {
 };
 
 // Categories are only available inside the formatted `codeframe` string, which is not a public API of
-// oxc-transform-react. Hence the exact version pin in package.json, the throw on an unmapped category,
-// and the fixtures in oxlint-migration/port-probe/: an upstream rename has to fail loudly.
+// oxc-transform-react. Hence the exact version pin in package.json and the throw on an unmapped
+// category: an upstream rename has to fail loudly.
 //
 // Three of the twelve categories are `off` in .oxlintrc.json because the Rust compiler cannot be made
 // to hand them back at all; the rc/* block there has the reasoning and the numbers.

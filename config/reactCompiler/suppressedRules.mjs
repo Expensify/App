@@ -2,11 +2,10 @@
  * The lint rules React Compiler makes redundant, and the pattern that picks out the
  * `react-hooks/exhaustive-deps` messages it makes redundant.
  *
- * Three consumers read this, in three different runtimes, so the list lives here rather than in any
- * one of them: the lint pipeline's processor (`scripts/lint/processors/ReactCompilerFilter.ts`, bun),
- * oxlint's equivalent gate (`config/oxlint/plugins/hosted-rules.mjs`, oxlint's JS plugin runtime) and
- * the migration harness that proves the two agree (`oxlint-migration/rule-tester/`, node). Plain
- * `.mjs` because only the first of those can load TypeScript.
+ * Two consumers read this, in two different runtimes, so the list lives here rather than in either
+ * of them: the lint pipeline's processor (`scripts/lint/processors/ReactCompilerFilter.ts`, bun) and
+ * oxlint's equivalent gate (`config/oxlint/plugins/hosted-rules.mjs`, oxlint's JS plugin runtime).
+ * Plain `.mjs` because only the first of those can load TypeScript.
  */
 
 // Rules that are entirely unnecessary when React Compiler successfully compiles

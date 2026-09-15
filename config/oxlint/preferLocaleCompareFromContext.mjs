@@ -1,8 +1,7 @@
 // oxlint's JS plugins get no type information, so the type query ESLint's
 // rulesdir/prefer-locale-compare-from-context makes (`isString(getTypeAtLocation(...))`) cannot be made
 // here. `localeCompare` exists on exactly one built-in prototype, so the receiver check is dropped
-// rather than approximated. The resulting divergence on an object with its own `localeCompare` is
-// covered by oxlint-migration/checkLocaleComparePort.py.
+// rather than approximated. The resulting divergence is an object with its own `localeCompare`.
 import {createRequire} from 'node:module';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
