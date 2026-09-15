@@ -28,7 +28,6 @@ type CopyPolicySettings = {
      */
     currentStep?: ValueOf<typeof CONST.POLICY.COPY_SETTINGS_MODAL_STEP> | null;
 
-    /** Error state */
     errors?: Errors;
 };
 

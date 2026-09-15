@@ -11,8 +11,8 @@ import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
 
 import ActivityIndicator from './ActivityIndicator';
-import Button from './ButtonComposed';
-import Header from './Header';
+import Button from './Button';
+import HeaderTitle from './HeaderTitle';
 import Icon from './Icon';
 import Modal from './Modal';
 import {PressableWithFeedback} from './Pressable';
@@ -34,7 +34,6 @@ type PDFDownloadModalProps = {
     /** Whether the download button uses the success (green) style once the PDF is ready */
     shouldUseSuccessButton?: boolean;
 
-    /** Whether the modal is visible */
     isVisible: boolean;
 
     /** Whether this modal should count as covering the product marketing window */
@@ -106,7 +105,9 @@ function PDFDownloadModal({
                     <View style={[styles.flexRow, styles.mb4]}>
                         <View style={[styles.flex1]}>
                             <View style={[styles.flexRow]}>
-                                <Header title={translate('reportDetailsPage.generatingPDF')} />
+                                <HeaderTitle>
+                                    <HeaderTitle.Text>{translate('reportDetailsPage.generatingPDF')}</HeaderTitle.Text>
+                                </HeaderTitle>
                             </View>
                             <Text style={[styles.mt5, styles.textAlignLeft]}>{message}</Text>
                         </View>

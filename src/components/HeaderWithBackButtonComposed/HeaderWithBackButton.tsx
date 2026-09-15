@@ -171,6 +171,7 @@ function HeaderWithBackButton({
                     />
                 ) : (
                     <HeaderTitle
+                        title={title}
                         subtitle={subtitle}
                         stepCounter={stepCounter}
                         titleColor={titleColor}
@@ -178,9 +179,7 @@ function HeaderWithBackButton({
                         subTitleLink={subTitleLink}
                         shouldSkipFocusAfterTransition={shouldSkipFocusAfterTransition}
                         shouldUseHeadlineHeader={shouldUseHeadlineHeader}
-                    >
-                        {title}
-                    </HeaderTitle>
+                    />
                 )}
                 <HeaderRight>
                     <HeaderActions>

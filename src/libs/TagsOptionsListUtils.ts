@@ -38,7 +38,6 @@ type TagOption = Option & {
 };
 
 type TagVisibility = {
-    /** Flag indicating if the tag is required */
     isTagRequired: boolean;
 
     /** Flag indicating if the tag should be shown */

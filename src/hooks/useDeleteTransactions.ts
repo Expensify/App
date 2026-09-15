@@ -105,6 +105,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
     const [selfDMReportID] = useOnyx(ONYXKEYS.SELF_DM_REPORT_ID);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const {policyForMovingExpenses} = usePolicyForMovingExpenses();
     const personalPolicy = usePersonalPolicy();
     const restrictedActionPolicyID = useRestrictedActionPolicyID(policy);
@@ -327,6 +328,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
                     delegateAccountID,
                     isTrackIntentUser,
                     formatPhoneNumber,
+                    rules,
                 });
             }
 
@@ -452,6 +454,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
             formatPhoneNumber,
             getCurrencyDecimals,
             getCurrencySymbol,
+            rules,
         ],
     );
 
