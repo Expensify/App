@@ -420,7 +420,7 @@ const translations: TranslationDeepObject<typeof en> = {
             other: 'レポートをダウンロード',
         }),
         downloadReceipt: () => ({
-            one: '領収書をダウンロード',
+            one: 'レシートをダウンロード',
             other: '領収書をダウンロード',
         }),
         downloadAsCSV: 'CSVとしてダウンロード',

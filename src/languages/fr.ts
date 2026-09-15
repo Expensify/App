@@ -418,7 +418,7 @@ const translations: TranslationDeepObject<typeof en> = {
         validate: 'Valider',
         downloadReport: () => ({
             one: 'Télécharger la note de frais',
-            other: 'Télécharger les notes de frais',
+            other: 'Télécharger des notes de frais',
         }),
         downloadReceipt: () => ({
             one: 'Télécharger le reçu',

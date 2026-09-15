@@ -421,14 +421,10 @@ const translations: TranslationDeepObject<typeof en> = {
         validate: 'Zatwierdź',
         downloadReport: () => ({
             one: 'Pobierz raport',
-            few: 'Pobierz raporty',
-            many: 'Pobierz raporty',
             other: 'Pobierz raporty',
         }),
         downloadReceipt: () => ({
             one: 'Pobierz paragon',
-            few: 'Pobierz paragony',
-            many: 'Pobierz paragony',
             other: 'Pobierz paragony',
         }),
         downloadAsCSV: 'Pobierz jako CSV',

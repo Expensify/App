@@ -417,7 +417,7 @@ const translations: TranslationDeepObject<typeof en> = {
         validate: '验证',
         downloadReport: () => ({
             one: '下载报表',
-            other: '下载报表',
+            other: '下载报告',
         }),
         downloadReceipt: () => ({
             one: '下载收据',
