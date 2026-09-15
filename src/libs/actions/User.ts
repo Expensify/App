@@ -84,7 +84,7 @@ Onyx.connectWithoutView({
     },
 });
 
-// Used when the RECONNECT_APP pusher event fires for anonymous users so reconnect stays incremental.
+// This value is used in the handler for a RECONNECT_APP Pusher event (anonymous users), so it's not possible to use useOnyx().
 let lastUpdateIDAppliedToClient: OnyxEntry<number>;
 Onyx.connectWithoutView({
     key: ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT,
