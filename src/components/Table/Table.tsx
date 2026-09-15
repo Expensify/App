@@ -271,7 +271,6 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
     narrowLayoutSortColumn,
     children,
     selectionEnabled,
-    shouldPreserveSelectionOnSearch,
     shouldEnableSelectionInNarrowPaneModal,
     shouldUseDynamicColumns = false,
     onRowSelectionChange,
@@ -321,7 +320,6 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
         selectedKeys,
         onRowSelectionChange,
         shouldEnableSelectionInNarrowPaneModal,
-        shouldPreserveSelectionOnSearch,
     });
     const selectionData = selectionMiddleware(sortedData);
 
