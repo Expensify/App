@@ -2387,6 +2387,7 @@ const staticStyles = (theme: ThemeColors) =>
         askConciergeEmptyStateContainer: {
             alignItems: 'center',
             gap: 12,
+            paddingHorizontal: 20,
         },
 
         askConciergeEmptyStateTitle: {

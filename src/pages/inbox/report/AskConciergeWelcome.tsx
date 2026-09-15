@@ -1,7 +1,9 @@
+import ScrollView from '@components/ScrollView';
+
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import React from 'react';
-import {View} from 'react-native';
 
 import AskConciergeEmptyState from './AskConciergeEmptyState';
 import ConciergeChatHistoryToggle from './ConciergeChatHistoryToggle';
@@ -19,9 +21,14 @@ type AskConciergeWelcomeProps = {
 
 function AskConciergeWelcome({reportID, hasPreviousMessages, onShowPreviousMessages}: AskConciergeWelcomeProps) {
     const styles = useThemeStyles();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     return (
-        <View style={styles.conciergeAskColumn}>
+        <ScrollView
+            style={[shouldUseNarrowLayout ? styles.flex1 : styles.flexShrink1, styles.conciergeAskColumn]}
+            contentContainerStyle={[styles.flexGrow1, styles.justifyContentCenter]}
+            keyboardShouldPersistTaps="handled"
+        >
             <AskConciergeEmptyState />
             <ConciergeChatHistoryToggle
                 reportID={reportID}
@@ -30,7 +37,7 @@ function AskConciergeWelcome({reportID, hasPreviousMessages, onShowPreviousMessa
                 onShowPreviousMessages={onShowPreviousMessages}
                 containerStyles={styles.pv5}
             />
-        </View>
+        </ScrollView>
     );
 }
 

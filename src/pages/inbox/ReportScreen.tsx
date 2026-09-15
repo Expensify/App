@@ -78,7 +78,7 @@ function ReportScreen({route, navigation, shouldDeferReportActions = false}: Rep
     const styles = useThemeStyles();
     const reportIDFromRoute = getNonEmptyStringOnyxID(route.params?.reportID);
     const {shouldShowWelcome: shouldShowConciergeWelcome} = useConciergeAskState(reportIDFromRoute);
-    const {isInNarrowPaneModal} = useResponsiveLayout();
+    const {isInNarrowPaneModal, shouldUseNarrowLayout} = useResponsiveLayout();
     const {currentReportID: currentReportIDValue} = useCurrentReportIDState();
     const viewportOffsetTop = useViewportOffsetTop();
     const isTopMostReportId = currentReportIDValue === reportIDFromRoute;
@@ -151,7 +151,11 @@ function ReportScreen({route, navigation, shouldDeferReportActions = false}: Rep
                                                 <AgentZeroStatusProvider reportID={reportIDFromRoute}>
                                                     <ConciergeDraftProvider reportID={reportIDFromRoute}>
                                                         <View
-                                                            style={[styles.flex1, shouldShowConciergeWelcome ? styles.justifyContentCenter : styles.justifyContentEnd, styles.overflowHidden]}
+                                                            style={[
+                                                                styles.flex1,
+                                                                shouldShowConciergeWelcome && !shouldUseNarrowLayout ? styles.justifyContentCenter : styles.justifyContentEnd,
+                                                                styles.overflowHidden,
+                                                            ]}
                                                             testID="report-actions-view-wrapper"
                                                         >
                                                             <ReportActionsWithInboxTabDeferredMount
