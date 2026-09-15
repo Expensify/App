@@ -24,7 +24,7 @@ type ModifiedExpenseContentProps = {
 };
 
 function ModifiedExpenseContent({action, policyID, originalReport}: ModifiedExpenseContentProps) {
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
     const {email: currentUserEmail, accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const {policyForMovingExpensesID} = usePolicyForMovingExpenses();
@@ -50,6 +50,7 @@ function ModifiedExpenseContent({action, policyID, originalReport}: ModifiedExpe
         policyCategories,
         currentUserAccountID,
         currentUserLogin: currentUserEmail ?? '',
+        formatPhoneNumber,
     });
 
     return (
