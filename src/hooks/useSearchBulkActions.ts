@@ -2722,14 +2722,20 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         // stays hidden as before, so there is no entry into a screen that could only offer one submitter's reports to
         // everybody else's expenses. Requirements:
         //   - every owner resolved, or the count below cannot tell one cardholder's bulk selection from a mixed one
+        //   - every expense on a managed card, because the backend resolves each destination through the card; one
+        //     expense without a card fails the whole request with "404 Card not found"
         //   - nothing whose validity depends on the destination workspace, which the backend picks: per diem rates and
         //     the map/GPS rules on manual and odometer distance can only be checked against a known workspace
+        // An expense we cannot read fails all three, so it withholds the flow rather than risking a rejected move.
         const canAutoReportAcrossSubmitters =
             ownerAccountIDs.size > 1 &&
             !hasUnknownOwner &&
             selectedTransactionsKeys.every((id) => {
                 const transaction = selectedTransactions[id]?.transaction ?? allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`];
-                return !transaction || !(isPerDiemRequest(transaction) || isManualDistanceRequest(transaction) || isOdometerDistanceRequest(transaction));
+                if (!transaction || !isManagedCardTransaction(transaction)) {
+                    return false;
+                }
+                return !(isPerDiemRequest(transaction) || isManualDistanceRequest(transaction) || isOdometerDistanceRequest(transaction));
             });
 
         if (canAllTransactionsBeMoved && !isExpenseReportType && (!hasMultipleOwners || canAutoReportAcrossSubmitters)) {

@@ -23,6 +23,7 @@ import {generateReportID, getPersonalDetailsForAccountID, getReportOrDraftReport
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {
     isDistanceRequest as isDistanceRequestUtil,
+    isManagedCardTransaction,
     isManualDistanceRequest as isManualDistanceRequestUtil,
     isOdometerDistanceRequest as isOdometerDistanceRequestUtil,
     isUnreportedManagedCardTransaction,
@@ -123,6 +124,9 @@ function SearchTransactionsChangeReport() {
     // Only distinct resolved owners count. An owner we cannot resolve must not stand in for a second submitter: for an
     // unreported expense the report lookup can never resolve one (its reportID is `0`), so a search snapshot missing
     // the money-request action would otherwise file one cardholder's bulk selection as mixed and strip its report list.
+    // "Auto report" has the backend resolve each destination through the expense's card, so one expense without a card
+    // fails the whole request with "404 Card not found".
+    const areAllManagedCardTransactions = selectedTransactionsKeys.length > 0 && transactions.length === selectedTransactionsKeys.length && transactions.every(isManagedCardTransaction);
     const hasMultipleSubmitters = useMemo(() => {
         const ownerAccountIDs = new Set<number>();
 
@@ -331,6 +335,7 @@ function SearchTransactionsChangeReport() {
             isPerDiemRequest={hasPerDiemTransactions}
             isUnreportedManagedCardTransaction={hasUnreportedManagedCardTransactions}
             hasMultipleSubmitters={hasMultipleSubmitters}
+            areAllManagedCardTransactions={areAllManagedCardTransactions}
             autoReport={autoReport}
         />
     );

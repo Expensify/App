@@ -64,6 +64,8 @@ type Props = {
     isUnreportedManagedCardTransaction?: boolean;
     /** Whether the expenses being moved belong to more than one submitter */
     hasMultipleSubmitters?: boolean;
+    /** Whether every expense being moved sits on a managed card, which "Auto report" needs to resolve a destination */
+    areAllManagedCardTransactions?: boolean;
     /** Lets the backend pick a destination report per expense. Required to offer the action to multiple submitters */
     autoReport?: () => void;
 };
@@ -88,6 +90,7 @@ function IOURequestEditReportCommon({
     isTimeRequest = false,
     isUnreportedManagedCardTransaction = false,
     hasMultipleSubmitters = false,
+    areAllManagedCardTransactions = false,
     autoReport,
 }: Props) {
     const icons = useMemoizedLazyExpensifyIcons(['Close', 'Document', 'DocumentMagicWand']);
@@ -370,6 +373,12 @@ function IOURequestEditReportCommon({
             return undefined;
         }
 
+        // The backend resolves each destination through the expense's card, so an expense without one fails the whole
+        // request with "404 Card not found".
+        if (!areAllManagedCardTransactions) {
+            return undefined;
+        }
+
         // These expenses are only valid on some workspaces, and the guards that decide which — per diem rates, the
         // map/GPS rules on manual and odometer distance — need a destination the backend has not picked yet. Callers
         // are expected to withhold the whole flow for such a selection; this keeps the row honest if one does not.
@@ -385,7 +394,17 @@ function IOURequestEditReportCommon({
                 icon={icons.DocumentMagicWand}
             />
         );
-    }, [icons.DocumentMagicWand, autoReport, handleAutoReport, hasMultipleSubmitters, isManualDistanceRequest, isOdometerDistanceRequest, isPerDiemRequest, translate]);
+    }, [
+        icons.DocumentMagicWand,
+        areAllManagedCardTransactions,
+        autoReport,
+        handleAutoReport,
+        hasMultipleSubmitters,
+        isManualDistanceRequest,
+        isOdometerDistanceRequest,
+        isPerDiemRequest,
+        translate,
+    ]);
 
     const listHeaderContent = createReportOption ?? autoReportOption;
 
