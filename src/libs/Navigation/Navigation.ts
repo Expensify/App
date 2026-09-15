@@ -400,8 +400,7 @@ function doesRouteMatchToMinimalActionPayload(route: NavigationStateRoute | Navi
         return false;
     }
 
-    // Splits of every workspace and domain share one route name, and `routeParamsIgnore` drops their scope params,
-    // so without this check any of them would answer for any other.
+    // `routeParamsIgnore` drops the scope params, so without this every workspace's split answers for every other.
     if (hasDifferentSplitScope(route, minimalAction.payload)) {
         return false;
     }
@@ -465,24 +464,19 @@ function shouldReplaceInsteadOfPop(targetState: State, rootState: State, {indexO
 
 /**
  * @private
- * Returns the pop that focuses the navigator holding `backToRoute` for the resolution that follows, or nothing when
- * it is focused already. The route it pops to is `backToRoute` itself when it sits in the focused stack.
+ * Returns the single pop that focuses the navigator holding `backToRoute`, or nothing when it is already focused.
  *
  * `getMinimalAction` descends through the *focused* route of each navigator, so it stops as soon as something else
- * covers the navigator holding `backToRoute`: a modal over the tab navigator, or another workspace's split (splits
- * share one route name). `goUp` would then address that level and never continue into it, landing in the wrong
- * workspace. This walks the same path looking for the route that *matches* and pops the first level where it is not
- * focused, which is enough because the resolution that follows handles one level itself.
+ * covers the one holding `backToRoute` - a modal, or another workspace's split. `goUp` would then act on that level
+ * and land in the wrong place. This walks the same path looking for the route that *matches* instead, and popping
+ * only the highest obstacle is enough because the resolution that follows handles one level itself.
  *
- * A pop and nothing else, because going back never adds a screen. Nothing where popping is wrong either: `goUp`
- * replaces at that level and popping first would discard the history the replace keeps; the navigator has not mounted,
- * so there is no key to target; or it is not a stack, and only `StackRouter` handles `POP` (tabs are `goUp`'s `jumpTo`).
+ * See NAVIGATION.md for the cases where it must not pop.
  */
 function getPopToNavigatorWithBackToRoute(rootState: State, action: NavigationAction, compareParams: boolean): NavigationAction | undefined {
     let state: State | undefined = rootState;
     let currentAction: Writable<NavigationAction> = action;
-    // Stops at the first level that needs a pop. Running out of levels means the match is already focused all the
-    // way down, so there is nothing to pop.
+    // Running out of levels means the match is focused all the way down, so there is nothing to pop.
     while (state) {
         const routeToPopTo = findRouteToPopTo(state, currentAction, compareParams);
         if (shouldReplaceInsteadOfPop(state, rootState, routeToPopTo) || !state.key) {
@@ -544,8 +538,7 @@ function goUp(backToRoute: Route, options?: GoBackOptions): boolean {
     }
 
     // Arms the one-shot inline with each dispatch — no window between "set flag" and dispatch for an early-return to leak it.
-    // Popping to `backToRoute`'s navigator first makes one Back dispatch twice, which arms the flag twice. Harmless: both
-    // dispatches are synchronous and batched into one commit, so the flag is read once.
+    // One Back can dispatch twice now, arming the flag twice. Harmless: both dispatches batch into one commit.
     const dispatch = (actionToDispatch: NavigationAction) => {
         if (options?.shouldSkipFocusRestore) {
             skipNextFocusRestore();
@@ -553,16 +546,14 @@ function goUp(backToRoute: Route, options?: GoBackOptions): boolean {
         navigationRef.current?.dispatch(actionToDispatch);
     };
 
-    // Everything below this dispatches, so nothing below reports a failure to go up: once this pop is out, going
-    // back has happened, and what follows only decides how much further it gets.
+    // Once this pop is out, going back has happened, so nothing below may report a failure to go up.
     const popToNavigator = getPopToNavigatorWithBackToRoute(navigationContainer.getRootState(), action, compareParams);
     if (popToNavigator) {
         dispatch(popToNavigator);
     }
     const didPopToNavigator = !!popToNavigator;
 
-    // Read again: dispatch updates the container's state ref synchronously, and this has to resolve against what the
-    // pop above left.
+    // Read again: dispatch updates the state ref synchronously, and this must resolve against what the pop left.
     const rootState = navigationContainer.getRootState();
     const {action: minimalAction, targetState} = getMinimalAction(action, rootState);
 

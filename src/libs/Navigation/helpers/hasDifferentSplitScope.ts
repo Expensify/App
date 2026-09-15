@@ -7,12 +7,6 @@ import {isRecord} from '@libs/ObjectUtils';
 
 import type {NavigationRoute} from '@navigation/types';
 
-/**
- * Every workspace and every domain has its own split navigator instance, and they all share one route name. Only the
- * scope params of their screens (policyID, domainAccountID) tell the instances apart, so matching a route against an
- * action payload has to compare them - otherwise workspace B's split answers a request for workspace A's.
- */
-
 function getSplitScopeComparisonValues(route: NavigationRoute, payload: ActionPayload & {name?: unknown}) {
     if (!isSplitNavigatorName(route.name) || route.name !== payload.name) {
         return;
@@ -45,8 +39,9 @@ function getComparableScopeValue(value: unknown): string | undefined {
 }
 
 /**
- * Whether the route is a split navigator with the payload's name but another scope (workspace or domain). False when
- * there is nothing to compare: a split without scope params, a non-split route or a payload for another navigator.
+ * Whether the route is a split navigator with the payload's name but another scope. Workspace and domain splits all
+ * share one route name, so only the scope params of their sidebar (policyID, domainAccountID) tell the instances apart.
+ * False when there is nothing to compare: no scope params, a non-split route, or a payload for another navigator.
  */
 function hasDifferentSplitScope(route: NavigationRoute, payload: ActionPayload & {name?: unknown}): boolean {
     const scopeComparisonValues = getSplitScopeComparisonValues(route, payload);
