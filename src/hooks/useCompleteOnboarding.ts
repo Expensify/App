@@ -41,7 +41,7 @@ function useCompleteOnboarding() {
     const {onboardingMessages} = useOnboardingMessages();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {isBetaEnabled} = usePermissions();
-    const activePolicy = useActivePolicy();
+    const [activePolicy] = useActivePolicy();
     const hasActiveAdminPolicies = useHasActiveAdminPolicies();
     const hasOwnedPaidPolicy = useHasOwnedPaidPolicy();
     const lastWorkspaceNumber = useLastWorkspaceNumber();

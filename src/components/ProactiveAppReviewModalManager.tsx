@@ -22,7 +22,7 @@ const CONCIERGE_NEGATIVE_MESSAGE = "Hi there! I'm sorry to hear you aren't fully
 function ProactiveAppReviewModalManager() {
     const {shouldShowModal, proactiveAppReview} = useProactiveAppReview();
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
-    const activePolicy = useActivePolicy();
+    const [activePolicy] = useActivePolicy();
     // Only send a policyID for real group workspaces, not personal policies.
     const policyID = activePolicy && activePolicy.type !== CONST.POLICY.TYPE.PERSONAL ? activePolicy.id : undefined;
     const [isAnyOtherModalActive] = useOnyx(ONYXKEYS.MODAL, {

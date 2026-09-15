@@ -1,6 +1,3 @@
-import type {PopoverMenuItem} from '@components/PopoverMenu';
-import ThreeDotsMenu from '@components/ThreeDotsMenu';
-
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import variables from '@styles/variables';
@@ -8,6 +5,10 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 
 import React from 'react';
+
+import type {PopoverMenuItem} from './PopoverMenu';
+
+import ThreeDotsMenu from './ThreeDotsMenu';
 
 const ANCHOR_ALIGNMENT = {
     horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
