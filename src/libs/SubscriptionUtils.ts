@@ -505,10 +505,17 @@ function canCancelSubscription(
 }
 
 /**
+ * The only policy fields the billing restriction depends on: `ownerAccountID` for the check itself and `id` for the
+ * restricted-action route. Callers can pass this fixed-size projection instead of a whole `Policy`, so a `useOnyx`
+ * selector carrying a policy to the gate does not drag `employeeList`/`customUnits` through its output deep-compare.
+ */
+type BillingRestrictionPolicy = Pick<Policy, 'id' | 'ownerAccountID'>;
+
+/**
  * Whether the user's billable actions should be restricted.
  */
 function shouldRestrictUserBillableActions(
-    policy: OnyxEntry<Policy>,
+    policy: OnyxEntry<Pick<Policy, 'ownerAccountID'>>,
     ownerBillingGracePeriodEnd: OnyxEntry<number>,
     userBillingGracePeriodEnds: OnyxCollection<BillingGraceEndPeriod>,
     amountOwed: OnyxEntry<number>,
@@ -725,4 +732,4 @@ export {
     hasInsufficientFundsError,
 };
 
-export type {DiscountInfo};
+export type {BillingRestrictionPolicy, DiscountInfo};
