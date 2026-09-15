@@ -650,8 +650,15 @@ const DYNAMIC_ROUTES = {
     PROFILE: {
         path: 'a/:accountID',
         entryScreens: ['*'],
-        getRoute: (accountID?: number, login?: string) => getUrlWithParams(`a/${accountID}`, {login}),
-        queryParams: ['login'],
+        getRoute: (accountID?: number, login?: string, policyID?: string) => getUrlWithParams(`a/${accountID}`, {login, policyID}),
+        queryParams: ['login', 'policyID'],
+    },
+    PROFILE_DISPLAY_NAME: {
+        // `accountID` is carried as `memberAccountID` so it never collides with the `accountID` of the
+        // profile this is opened from.
+        path: 'display-name/:memberAccountID/:policyID',
+        entryScreens: [SCREENS.DYNAMIC_PROFILE],
+        getRoute: (memberAccountID: number, policyID: string) => `display-name/${memberAccountID}/${policyID}` as const,
     },
     PROFILE_AVATAR: {
         path: 'avatar/:accountID',
