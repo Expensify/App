@@ -23,7 +23,6 @@ import React from 'react';
 import {View} from 'react-native';
 
 type SearchActionHeaderProps = {
-    /** The report action being rendered. */
     action: ReportAction;
     /** The report this action belongs to. */
     report: OnyxEntry<Report>;

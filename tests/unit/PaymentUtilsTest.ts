@@ -148,6 +148,7 @@ describe('PaymentUtils', () => {
             hasViolations: false,
             isASAPSubmitBetaEnabled: false,
             iouReport: {reportID: '1'} as Report,
+            rules: undefined,
             betas: [],
             userBillingGracePeriodEnds: undefined,
             amountOwed: 0,
