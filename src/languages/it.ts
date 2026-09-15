@@ -9506,6 +9506,9 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
                 other: 'Duplica spese',
             }),
             noOptionsAvailable: 'Nessuna opzione disponibile per il gruppo di spese selezionato.',
+            markAsExportedAllMatchingTitle: 'Non è ancora possibile contrassegnare tutti i rapporti',
+            markAsExportedAllMatchingPrompt: ({total}: {total: number}) =>
+                `Per ora è possibile contrassegnare come esportati solo i rapporti caricati in questa pagina, non tutti i ${total} rapporti corrispondenti. Filtra o seleziona i rapporti singolarmente per contrassegnarli tutti.`,
             undelete: 'Ripristina',
             duplicateReport: () => ({
                 one: 'Duplica report',

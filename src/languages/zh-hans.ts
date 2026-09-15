@@ -9128,6 +9128,9 @@ ${reportName}`,
                 other: '复制报销',
             }),
             noOptionsAvailable: '所选报销的费用组没有可用选项。',
+            markAsExportedAllMatchingTitle: '暂时无法标记所有报告',
+            markAsExportedAllMatchingPrompt: ({total}: {total: number}) =>
+                `目前只能将本页已加载的报告标记为已导出，无法标记全部 ${total} 个匹配的报告。请缩小筛选范围或逐个选择报告以全部标记。`,
             undelete: '取消删除',
             duplicateReport: () => ({
                 one: '复制报表',

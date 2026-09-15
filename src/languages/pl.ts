@@ -9492,6 +9492,9 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
                 other: 'Duplikuj wydatki',
             }),
             noOptionsAvailable: 'Brak opcji dostępnych dla wybranej grupy wydatków.',
+            markAsExportedAllMatchingTitle: 'Nie można jeszcze oznaczyć wszystkich raportów',
+            markAsExportedAllMatchingPrompt: ({total}: {total: number}) =>
+                `Na razie jako wyeksportowane można oznaczyć tylko raporty załadowane na tej stronie, a nie wszystkie ${total} pasujące raporty. Zawęź filtr lub zaznacz raporty pojedynczo, aby oznaczyć je wszystkie.`,
             undelete: 'Cofnij usunięcie',
             duplicateReport: () => ({
                 one: 'Duplikuj raport',
