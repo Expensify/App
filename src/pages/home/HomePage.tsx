@@ -7,6 +7,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 
 import useDocumentTitle from '@hooks/useDocumentTitle';
+import useFloatingTabBarContentInsetStyle from '@hooks/useFloatingTabBarContentInsetStyle';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -32,6 +33,7 @@ import YourSpendSection from './YourSpendSection';
 
 function HomePage() {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const floatingTabBarContentInsetStyle = useFloatingTabBarContentInsetStyle();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     useDocumentTitle(translate('common.home'));
@@ -53,7 +55,7 @@ function HomePage() {
         >
             <ReceiptScanDropZone
                 dropZoneRef={receiptDropTargetRef}
-                dropWrapperStyle={shouldUseNarrowLayout ? {marginBottom: variables.floatingTabBarContentInset} : undefined}
+                dropWrapperStyle={shouldUseNarrowLayout ? {marginBottom: variables.bottomTabHeight} : undefined}
             >
                 <ScreenWrapper
                     shouldEnablePickerAvoiding={false}
@@ -69,7 +71,7 @@ function HomePage() {
                         shouldDisplayHelpButton
                     />
                     <ScrollView
-                        contentContainerStyle={[styles.homePageContentContainer, shouldUseNarrowLayout && styles.floatingTabBarContentInset]}
+                        contentContainerStyle={[styles.homePageContentContainer, floatingTabBarContentInsetStyle]}
                         addBottomSafeAreaPadding
                         keyboardShouldPersistTaps="handled"
                     >

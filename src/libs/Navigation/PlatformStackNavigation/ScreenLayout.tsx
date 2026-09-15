@@ -2,6 +2,7 @@ import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import type {TransitionHandle} from '@libs/Navigation/TransitionTracker';
 
 import type {BottomTabNavigationOptions, BottomTabNavigationProp} from '@react-navigation/bottom-tabs';
+import type {NativeBottomTabNavigationOptions, NativeBottomTabNavigationProp} from '@react-navigation/bottom-tabs/unstable';
 import type {ParamListBase, ScreenLayoutArgs} from '@react-navigation/native';
 
 import React, {useLayoutEffect, useRef} from 'react';
@@ -37,7 +38,23 @@ function bottomTabScreenLayoutWrapper({navigation, ...rest}: ScreenLayoutArgs<Pa
     );
 }
 
-type ScreenLayoutProps = ScreenLayoutArgs<ParamListBase, string, PlatformSpecificNavigationOptions | PlatformStackNavigationOptions | BottomTabNavigationOptions, TransitionAwareNavigation>;
+// Same again for the native bottom tab navigator, whose options type differs while its navigation prop still
+// carries the `addListener` that ScreenLayout needs.
+function nativeBottomTabScreenLayoutWrapper({navigation, ...rest}: ScreenLayoutArgs<ParamListBase, string, NativeBottomTabNavigationOptions, NativeBottomTabNavigationProp<ParamListBase>>) {
+    return (
+        <ScreenLayout
+            {...rest}
+            navigation={navigation}
+        />
+    );
+}
+
+type ScreenLayoutProps = ScreenLayoutArgs<
+    ParamListBase,
+    string,
+    PlatformSpecificNavigationOptions | PlatformStackNavigationOptions | BottomTabNavigationOptions | NativeBottomTabNavigationOptions,
+    TransitionAwareNavigation
+>;
 
 function ScreenLayout({children, navigation}: ScreenLayoutProps) {
     const transitionHandleRef = useRef<TransitionHandle | null>(null);
@@ -81,4 +98,4 @@ function ScreenLayout({children, navigation}: ScreenLayoutProps) {
 }
 
 export default screenLayoutWrapper;
-export {bottomTabScreenLayoutWrapper};
+export {bottomTabScreenLayoutWrapper, nativeBottomTabScreenLayoutWrapper};

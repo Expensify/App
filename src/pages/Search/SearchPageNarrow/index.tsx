@@ -16,6 +16,7 @@ import type {SearchParams, SearchQueryJSON} from '@components/Search/types';
 
 import useAndroidBackButtonHandler from '@hooks/useAndroidBackButtonHandler';
 import useEndSubmitNavigationSpans from '@hooks/useEndSubmitNavigationSpans';
+import useFloatingTabBarContentInsetStyle from '@hooks/useFloatingTabBarContentInsetStyle';
 import {useLoadingBarVisibility} from '@hooks/useInFlightRequests';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -82,6 +83,7 @@ function SearchPageNarrow({
     const {translate} = useLocalize();
     const {windowHeight} = useWindowDimensions();
     const styles = useThemeStyles();
+    const floatingTabBarContentInsetStyle = useFloatingTabBarContentInsetStyle();
     const StyleUtils = useStyleUtils();
     const {clearSelectedTransactions} = useSearchSelectionActions();
     const {shouldUseLiveData} = useSearchResultsContext();
@@ -227,7 +229,7 @@ function SearchPageNarrow({
     const isDataLoaded = shouldUseLiveData || isSearchDataLoaded(searchResults, queryJSON);
     // Use the request state because `isLoading` also covers temporary UI loading that should not keep this bar visible.
     const shouldShowLoadingState = !isOffline && (!isDataLoaded || isSearchPending(searchResults));
-    const contentContainerStyle = [!isMobileSelectionModeEnabled && styles.searchListContentContainerStyles(hasFilterBars), styles.floatingTabBarContentInset];
+    const contentContainerStyle = [!isMobileSelectionModeEnabled && styles.searchListContentContainerStyles(hasFilterBars), floatingTabBarContentInsetStyle];
 
     const shouldRenderLayoutProbe = (isOverlayActive || !isHeaderInteractive) && !searchOverlayContent;
 
@@ -239,7 +241,7 @@ function SearchPageNarrow({
             <ReceiptScanDropZone
                 dropZoneRef={receiptDropTargetRef}
                 isDisabled={useStaticRendering && !isHeaderInteractive}
-                dropWrapperStyle={{marginBottom: variables.floatingTabBarContentInset}}
+                dropWrapperStyle={{marginBottom: variables.bottomTabHeight}}
             >
                 <ScreenWrapper
                     testID="SearchPageNarrow"

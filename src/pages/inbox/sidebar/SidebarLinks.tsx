@@ -2,6 +2,7 @@ import LHNEmptyState from '@components/LHNOptionsList/LHNEmptyState';
 import LHNOptionsList from '@components/LHNOptionsList/LHNOptionsList';
 import OptionsListSkeletonView from '@components/OptionsListSkeletonView';
 
+import useFloatingTabBarContentInsetStyle from '@hooks/useFloatingTabBarContentInsetStyle';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import {useSidebarOrderedReportsActions} from '@hooks/useSidebarOrderedReports';
@@ -44,6 +45,7 @@ function SidebarLinks({insets, optionListItems, hasReportData, priorityMode = CO
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {shouldUseNarrowLayout, isInLandscapeMode} = useResponsiveLayout();
+    const floatingTabBarContentInsetStyle = useFloatingTabBarContentInsetStyle();
     const {setStickyReportID} = useSidebarOrderedReportsActions();
     const [isLoadingReportData = true] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA);
 
@@ -82,11 +84,11 @@ function SidebarLinks({insets, optionListItems, hasReportData, priorityMode = CO
 
     const viewMode = priorityMode === CONST.PRIORITY_MODE.GSD ? CONST.OPTION_MODE.COMPACT : CONST.OPTION_MODE.DEFAULT;
 
-    // On narrow layouts the floating tab bar covers the end of the list, and its footprint already clears the
-    // home indicator, so it replaces the safe area padding rather than adding to it.
+    // Where the floating tab bar covers the end of the list, its footprint already clears the home indicator,
+    // so it replaces the safe area padding rather than adding to it.
     const contentContainerStyles = useMemo(
-        () => StyleSheet.flatten([styles.pt2, shouldUseNarrowLayout ? styles.floatingTabBarContentInset : {paddingBottom: StyleUtils.getSafeAreaMargins(insets).marginBottom}]),
-        [StyleUtils, insets, shouldUseNarrowLayout, styles.floatingTabBarContentInset, styles.pt2],
+        () => StyleSheet.flatten([styles.pt2, floatingTabBarContentInsetStyle ?? {paddingBottom: StyleUtils.getSafeAreaMargins(insets).marginBottom}]),
+        [StyleUtils, floatingTabBarContentInsetStyle, insets, styles.pt2],
     );
 
     const shouldShowEmptyLHN = optionListItems.length === 0;

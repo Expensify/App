@@ -3,7 +3,6 @@ import FloatingGPSButton from '@components/FloatingGPSButton';
 import Hoverable from '@components/Hoverable';
 import ImageSVG from '@components/ImageSVG';
 import DebugTabView from '@components/Navigation/DebugTabView';
-import NavigationTabBarSurface from '@components/Navigation/NavigationTabBarSurface';
 import {PressableWithFeedback} from '@components/Pressable';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -154,8 +153,8 @@ function NavigationTabBar({selectedTab, shouldShowFloatingButtons = true}: Navig
     return (
         <>
             {shouldShowDebugTabView && <DebugTabView selectedTab={selectedTab} />}
-            <NavigationTabBarSurface
-                style={styles.navigationTabBarContainer}
+            <View
+                style={[styles.navigationTabBarContainer, styles.navigationTabBarSurface]}
                 testID="NavigationTabBar"
             >
                 <PressableWithFeedback
@@ -196,7 +195,7 @@ function NavigationTabBar({selectedTab, shouldShowFloatingButtons = true}: Navig
                     isSelected={selectedTab === NAVIGATION_TABS.SETTINGS}
                     onPress={navigateToSettings}
                 />
-            </NavigationTabBarSurface>
+            </View>
 
             {shouldShowFloatingButtons && (
                 <>

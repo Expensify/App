@@ -72,9 +72,7 @@ function TabNavigatorBar({state}: Pick<BottomTabBarProps, 'state'>) {
         // Negative marginTop overlays the tab bar on content (zero flex space) to prevent layout shifts.
         return (
             <View
-                // Hidden with display rather than opacity: a liquid glass surface anywhere under an opacity of 0
-                // stops rendering its material and does not come back once the opacity is restored.
-                style={[StyleUtils.getTabBarNarrowStyle(safeAreaPaddingBottom), isHidden && styles.dNone]}
+                style={[StyleUtils.getTabBarNarrowStyle(safeAreaPaddingBottom), isHidden && styles.opacity0]}
                 pointerEvents={isHidden ? 'none' : 'auto'}
             >
                 <NavigationTabBar

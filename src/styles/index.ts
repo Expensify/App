@@ -724,8 +724,8 @@ const staticStyles = (theme: ThemeColors) =>
             overflow: 'visible',
         },
 
-        // The narrow tab bar is a capsule floating above the screen content, so it paints no background of
-        // its own. NavigationTabBarSurface draws the glass (or the translucent fallback) behind the items.
+        // The narrow tab bar is a capsule floating above the screen content. Only mobile web renders it, since
+        // the native platforms hand the bottom bar over to UIKit and to Material.
         navigationTabBarContainer: {
             flexDirection: 'row',
             height: variables.floatingTabBarHeight,
@@ -737,9 +737,9 @@ const staticStyles = (theme: ThemeColors) =>
             overflow: 'hidden',
         },
 
-        // Stands in for liquid glass where the platform has no such material, so the capsule still reads as a
+        // Mobile web has no native tab bar to inherit a material from, so the capsule paints its own
         // translucent surface over the content it floats above.
-        navigationTabBarFallbackSurface: {
+        navigationTabBarSurface: {
             backgroundColor: theme.floatingTabBarBG,
             borderWidth: variables.hairlineBorderWidth,
             borderColor: theme.floatingTabBarBorder,
@@ -762,6 +762,17 @@ const staticStyles = (theme: ThemeColors) =>
             justifyContent: 'center',
             alignItems: 'center',
             paddingHorizontal: 4,
+        },
+
+        // Zero-height strip anchored above the native tab bar, so the floating buttons can be positioned
+        // against it without taking part in the tab screen's layout.
+        nativeTabBarFloatingButtons: {
+            position: 'absolute',
+            right: 0,
+            bottom: variables.bottomTabHeight + spacing.gap3.gap,
+            left: 0,
+            height: 0,
+            zIndex: 10,
         },
 
         navigationTabBarFABItem: {

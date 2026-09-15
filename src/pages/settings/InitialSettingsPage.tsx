@@ -10,6 +10,7 @@ import Text from '@components/Text';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 
+import useFloatingTabBarContentInsetStyle from '@hooks/useFloatingTabBarContentInsetStyle';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
@@ -45,6 +46,7 @@ type InitialSettingsPageProps = WithCurrentUserPersonalDetailsProps;
 
 function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPageProps) {
     const {shouldUseNarrowLayout, isInLandscapeMode} = useResponsiveLayout();
+    const floatingTabBarContentInsetStyle = useFloatingTabBarContentInsetStyle();
     const [canSwitchAccounts = false] = useOnyx(ONYXKEYS.ACCOUNT, {selector: canSwitchAccountsSelector});
     const tabBarContent = <TabBarBottomContent selectedTab={NAVIGATION_TABS.SETTINGS} />;
     const styles = useThemeStyles();
@@ -163,7 +165,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                 ref={scrollViewRef}
                 onScroll={onScroll}
                 scrollEventThrottle={CONST.TIMING.MIN_SMOOTH_SCROLL_EVENT_THROTTLE}
-                contentContainerStyle={[styles.w100, shouldUseNarrowLayout && styles.floatingTabBarContentInset]}
+                contentContainerStyle={[styles.w100, floatingTabBarContentInsetStyle]}
                 showsVerticalScrollIndicator={false}
             >
                 {headerContent}

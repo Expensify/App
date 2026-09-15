@@ -9,6 +9,7 @@ import ScrollView from '@components/ScrollView';
 
 import useCardFeedErrors from '@hooks/useCardFeedErrors';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
+import useFloatingTabBarContentInsetStyle from '@hooks/useFloatingTabBarContentInsetStyle';
 import useGetReceiptPartnersIntegrationData from '@hooks/useGetReceiptPartnersIntegrationData';
 import useIsWorkspacesTabFocused from '@hooks/useIsWorkspacesTabFocused';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -69,6 +70,7 @@ function dismissError(policyID: string | undefined, pendingAction: PendingAction
 function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: WorkspaceInitialPageProps) {
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const floatingTabBarContentInsetStyle = useFloatingTabBarContentInsetStyle();
     const {translate} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
     const {isBetaEnabled} = usePermissions();
@@ -244,7 +246,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
                     shouldDisplayHelpButton={shouldUseNarrowLayout}
                 />
 
-                <ScrollView contentContainerStyle={[styles.flexColumn, styles.pb14, shouldUseNarrowLayout && styles.floatingTabBarContentInset]}>
+                <ScrollView contentContainerStyle={[styles.flexColumn, styles.pb14, floatingTabBarContentInsetStyle]}>
                     <OfflineWithFeedback
                         pendingAction={policy?.pendingAction}
                         onClose={() => dismissError(policyID, policy?.pendingAction)}
