@@ -74,7 +74,7 @@ Managing multiple domains with one Entity ID is supported. Contact Concierge or 
 
 ## Okta SCIM API for account deprovisioning
 
-Once Okta SCIM is enabled, when a user is deactivated in Okta, they are immediately logged out of Expensify.
+Once Okta SCIM is enabled, when a member is deactivated in Okta, they are immediately logged out of Expensify.
 
 To enable Okta SCIM: 
 
