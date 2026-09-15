@@ -10,13 +10,10 @@ import {View} from 'react-native';
 const SKELETON_HEIGHT = 20;
 const BAR_HEIGHT = 8;
 const BAR_VERTICAL_OFFSET = (SKELETON_HEIGHT - BAR_HEIGHT) / 2;
-const COUNT_BAR_WIDTH = 80;
-const TOTAL_BAR_WIDTH = 110;
-const BAR_GAP = 16;
-const TOTAL_BAR_OFFSET = COUNT_BAR_WIDTH + BAR_GAP;
-const SKELETON_WIDTH = TOTAL_BAR_OFFSET + TOTAL_BAR_WIDTH;
+const SKELETON_WIDTH = 110;
 const skeletonContainerStyle = {height: SKELETON_HEIGHT, width: SKELETON_WIDTH};
 
+/** Stands in for the Spend footer's total while a search recomputes it. The count beside it keeps its real value. */
 function SearchPageFooterSkeleton() {
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -31,12 +28,7 @@ function SearchPageFooterSkeleton() {
             >
                 <SkeletonRect
                     transform={[{translateY: BAR_VERTICAL_OFFSET}]}
-                    width={COUNT_BAR_WIDTH}
-                    height={BAR_HEIGHT}
-                />
-                <SkeletonRect
-                    transform={[{translateX: TOTAL_BAR_OFFSET}, {translateY: BAR_VERTICAL_OFFSET}]}
-                    width={TOTAL_BAR_WIDTH}
+                    width={SKELETON_WIDTH}
                     height={BAR_HEIGHT}
                 />
             </SkeletonViewContentLoader>

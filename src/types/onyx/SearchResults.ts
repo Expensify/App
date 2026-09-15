@@ -80,11 +80,12 @@ type SearchResultsInfo = {
     /** The number of results */
     count?: number;
 
-    /** The number of matching reports across all pages, returned by the server for expense-report searches.
-     * Distinct from `count`, which is the number of expenses; used to label "Select all matching" on the Reports tab. */
+    /** The number of matching reports across all pages. Distinct from `count`, which is the number of expenses; used to
+     * label "Select all matching" on the Reports tab and to switch the Spend footer's count. Absent on grouped searches,
+     * which count expenses only. */
     reportCount?: number;
 
-    /** The total spend */
+    /** The total spend. Swapped for the aggregate the query's `footerTotal` filter asks for, if any. */
     total?: number;
 
     /** The currency of the total spend */
