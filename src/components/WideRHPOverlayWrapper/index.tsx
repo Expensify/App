@@ -50,8 +50,6 @@ function SecondaryOverlay() {
                 progress={secondOverlayRHPOnWideRHPProgress}
                 // If RHP is displayed on Wide RHP which is displayed above the Super Wide RHP, the secondary overlay's position left should be calculated from the left edge of the super wide RHP.
                 positionLeftValue={animatedReceiptPaneRHPWidth}
-                positionTopValue={variables.rhpFloatingCardMargin}
-                positionBottomValue={variables.rhpFloatingCardMargin}
                 overlayColor={theme.rhpOverlay}
                 maxOpacity={variables.rhpOverlayOpacity}
             />
@@ -63,8 +61,6 @@ function SecondaryOverlay() {
             <Overlay
                 progress={secondOverlayWideRHPProgress}
                 positionLeftValue={modalStackOverlayWideRHPPositionLeft}
-                positionTopValue={variables.rhpFloatingCardMargin}
-                positionBottomValue={variables.rhpFloatingCardMargin}
                 overlayColor={theme.rhpOverlay}
                 maxOpacity={variables.rhpOverlayOpacity}
             />
@@ -76,8 +72,6 @@ function SecondaryOverlay() {
             <Overlay
                 progress={secondOverlayRHPOnSuperWideRHPProgress}
                 positionLeftValue={modalStackOverlaySuperWideRHPPositionLeft}
-                positionTopValue={variables.rhpFloatingCardMargin}
-                positionBottomValue={variables.rhpFloatingCardMargin}
                 overlayColor={theme.rhpOverlay}
                 maxOpacity={variables.rhpOverlayOpacity}
             />

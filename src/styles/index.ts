@@ -6428,6 +6428,11 @@ const staticStyles = (theme: ThemeColors) =>
             height: '100%',
             right: 0,
             width: animatedWideRHPWidth,
+            borderRadius: variables.componentBorderRadiusLarge,
+            borderWidth: 1,
+            borderColor: theme.border,
+            overflow: 'hidden',
+            boxShadow: theme.shadow,
         },
 
         singleRHPExtendedCardInterpolatorStyles: {
@@ -6435,6 +6440,11 @@ const staticStyles = (theme: ThemeColors) =>
             height: '100%',
             right: 0,
             width: variables.sideBarWidth,
+            borderRadius: variables.componentBorderRadiusLarge,
+            borderWidth: 1,
+            borderColor: theme.border,
+            overflow: 'hidden',
+            boxShadow: theme.shadow,
         },
 
         flexibleHeight: {
@@ -6774,6 +6784,11 @@ const dynamicStyles = (theme: ThemeColors) =>
                 height: '100%',
                 right: 0,
                 width,
+                borderRadius: variables.componentBorderRadiusLarge,
+                borderWidth: 1,
+                borderColor: theme.border,
+                overflow: 'hidden',
+                boxShadow: theme.shadow,
             }) satisfies ViewStyle,
 
         uploadFileViewBorderWidth: (isSmallScreenWidth: boolean) =>
