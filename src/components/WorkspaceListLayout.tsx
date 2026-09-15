@@ -47,7 +47,9 @@ function WorkspaceListHeaderContent({activeTabKey, headerButton, shouldShowHeade
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Globe', 'Building']);
     const {count: pendingDomainAdminRequestsCount} = useReviewDomainAdminRequests();
-    const [domainErrorsCount = 0] = useOnyx(ONYXKEYS.COLLECTION.DOMAIN_ERRORS, {selector: getDomainsWithErrorsCount});
+    const [allDomainErrors] = useOnyx(ONYXKEYS.COLLECTION.DOMAIN_ERRORS);
+    const [allDomains] = useOnyx(ONYXKEYS.COLLECTION.DOMAIN);
+    const domainErrorsCount = getDomainsWithErrorsCount(allDomainErrors, allDomains);
 
     // Domains tab badge: domain errors (red) take priority over pending admin requests (green).
     const hasDomainErrors = domainErrorsCount > 0;
