@@ -22,7 +22,7 @@ import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {DualEntryVendor} from '@src/types/onyx/Policy';
 
-import React, {useMemo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 
 type VendorListItem = ListItem & {
@@ -38,17 +38,13 @@ function DualEntryDefaultCompanyCardVendorPage({policy}: WithPolicyConnectionsPr
     const defaultCompanyCardVendorID = dualentryConfig?.export?.defaultVendorID;
     const backPath = policyID ? ROUTES.POLICY_ACCOUNTING_DUALENTRY_EXPORT.getRoute(policyID) : undefined;
 
-    const sortedVendors = useMemo(() => sortVendors(getDualEntryVendors(policy), localeCompare), [policy, localeCompare]);
-    const data: VendorListItem[] = useMemo(
-        () =>
-            sortedVendors.map((vendorItem) => ({
-                value: vendorItem.id,
-                text: vendorItem.name,
-                keyForList: vendorItem.id,
-                isSelected: defaultCompanyCardVendorID === vendorItem.id,
-            })),
-        [sortedVendors, defaultCompanyCardVendorID],
-    );
+    const sortedVendors = sortVendors(getDualEntryVendors(policy), localeCompare);
+    const data: VendorListItem[] = sortedVendors.map((vendorItem) => ({
+        value: vendorItem.id,
+        text: vendorItem.name,
+        keyForList: vendorItem.id,
+        isSelected: defaultCompanyCardVendorID === vendorItem.id,
+    }));
     const {filteredData, textInputOptions} = useSelectionListSearch(data);
 
     const headerContent = (
