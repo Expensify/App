@@ -7134,7 +7134,7 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
                         case 'businessCentralSyncTitle':
                             return 'Sincronizando datos de Dynamics 365 Business Central';
                         case 'businessCentralSyncConnection':
-                            return 'Iniciando conexión con Dynamics 365 Business Central';
+                            return 'Iniciando la conexión a Dynamics 365 Business Central';
                         case 'businessCentralSyncImportData':
                             return 'Cargando datos';
                         default: {
@@ -8480,12 +8480,12 @@ ${reportName}`,
         businessCentral: {
             businessCentralSetup: 'Configuración de Dynamics 365 Business Central',
             prerequisitesTitle: 'Antes de conectar...',
-            followSteps: 'Sigue los pasos de nuestras instrucciones: Conectar con Dynamics 365 Business Central',
-            enterCredentials: 'Introduce los datos de tu Dynamics 365 Business Central',
+            followSteps: 'Sigue los pasos de nuestras instrucciones de la guía: Conectarse a Dynamics 365 Business Central',
+            enterCredentials: 'Introduce tus datos de Dynamics 365 Business Central',
             helpArticle: `<muted-text>Consulta este <a href="${CONST.BUSINESS_CENTRAL_HELP_URL}">artículo de ayuda</a> para encontrar esta información.</muted-text>`,
             subsidiary: 'Filial',
-            subsidiarySelectDescription: 'Selecciona la filial de Dynamics 365 Business Central que quieres sincronizar con este espacio de trabajo.',
-            noCompaniesFound: 'No se han encontrado empresas',
+            subsidiarySelectDescription: 'Selecciona la filial de Dynamics 365 Business Central con la que quieres sincronizar este espacio de trabajo.',
+            noCompaniesFound: 'No se encontraron empresas',
             noCompaniesFoundDescription: 'Por favor, añade una empresa en Dynamics 365 Business Central y sincroniza la conexión de nuevo',
         },
     },

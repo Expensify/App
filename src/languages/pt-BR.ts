@@ -7268,7 +7268,7 @@ O plano Control começa em US$ 9 por membro ativo por mês.`,
                         case 'businessCentralSyncTitle':
                             return 'Sincronizando dados do Dynamics 365 Business Central';
                         case 'businessCentralSyncConnection':
-                            return 'Inicializando conexão com o Dynamics 365 Business Central';
+                            return 'Iniciando conexão com o Dynamics 365 Business Central';
                         case 'businessCentralSyncImportData':
                             return 'Carregando dados';
                         default: {
@@ -8573,12 +8573,12 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
         },
         businessCentral: {
             businessCentralSetup: 'Configuração do Dynamics 365 Business Central',
-            prerequisitesTitle: 'Antes de conectar...',
-            followSteps: 'Siga as etapas do nosso guia: Conectar ao Dynamics 365 Business Central',
-            enterCredentials: 'Insira os dados do seu Dynamics 365 Business Central',
+            prerequisitesTitle: 'Antes de você se conectar...',
+            followSteps: 'Siga as etapas das nossas instruções em “Como fazer: conectar ao Dynamics 365 Business Central”',
+            enterCredentials: 'Insira os seus dados do Dynamics 365 Business Central',
             helpArticle: `<muted-text>Consulte este <a href="${CONST.BUSINESS_CENTRAL_HELP_URL}">artigo de ajuda</a> para encontrar essas informações.</muted-text>`,
             subsidiary: 'Subsidiária',
-            subsidiarySelectDescription: 'Selecione a subsidiária do Dynamics 365 Business Central para sincronizar com este espaço de trabalho.',
+            subsidiarySelectDescription: 'Selecione a subsidiária do Dynamics 365 Business Central para sincronizar com este workspace.',
             noCompaniesFound: 'Nenhuma empresa encontrada',
             noCompaniesFoundDescription: 'Adicione uma empresa no Dynamics 365 Business Central e sincronize a conexão novamente',
         },

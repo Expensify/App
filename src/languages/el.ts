@@ -7452,9 +7452,9 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                         case 'campfireSyncTravelSettlements':
                             return 'Συγχρονισμός εκκαθαρίσεων ταξιδιών';
                         case 'businessCentralSyncTitle':
-                            return 'Γίνεται συγχρονισμός δεδομένων Dynamics 365 Business Central';
+                            return 'Συγχρονισμός δεδομένων Dynamics 365 Business Central';
                         case 'businessCentralSyncConnection':
-                            return 'Γίνεται αρχικοποίηση σύνδεσης με το Dynamics 365 Business Central';
+                            return 'Γίνεται προετοιμασία σύνδεσης με το Dynamics 365 Business Central';
                         case 'businessCentralSyncImportData':
                             return 'Φόρτωση δεδομένων';
                         default: {
@@ -8806,13 +8806,13 @@ ${reportName}`,
         businessCentral: {
             businessCentralSetup: 'Ρύθμιση Dynamics 365 Business Central',
             prerequisitesTitle: 'Πριν συνδεθείτε...',
-            followSteps: 'Ακολουθήστε τα βήματα στον οδηγό μας: Σύνδεση με το Dynamics 365 Business Central',
-            enterCredentials: 'Εισαγάγετε τα στοιχεία του Dynamics 365 Business Central',
+            followSteps: 'Ακολουθήστε τα βήματα στις οδηγίες μας «Οδηγός: σύνδεση με το Dynamics 365 Business Central»',
+            enterCredentials: 'Εισαγάγετε τα στοιχεία του Dynamics 365 Business Central σας',
             helpArticle: `<muted-text>Ανατρέξτε σε αυτό το <a href="${CONST.BUSINESS_CENTRAL_HELP_URL}">άρθρο βοήθειας</a> για να βρείτε αυτές τις πληροφορίες.</muted-text>`,
             subsidiary: 'Θυγατρική',
-            subsidiarySelectDescription: 'Επιλέξτε τη θυγατρική του Dynamics 365 Business Central που θα συγχρονιστεί με αυτόν τον χώρο εργασίας.',
+            subsidiarySelectDescription: 'Επιλέξτε τη θυγατρική του Dynamics 365 Business Central για συγχρονισμό με αυτόν τον χώρο εργασίας.',
             noCompaniesFound: 'Δεν βρέθηκαν εταιρείες',
-            noCompaniesFoundDescription: 'Προσθέστε μια εταιρεία στο Dynamics 365 Business Central και συγχρονίστε ξανά τη σύνδεση',
+            noCompaniesFoundDescription: 'Παρακαλούμε προσθέστε μια εταιρεία στο Dynamics 365 Business Central και συγχρονίστε ξανά τη σύνδεση',
         },
     },
     getAssistancePage: {

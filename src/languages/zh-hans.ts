@@ -7021,7 +7021,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                         case 'campfireSyncTravelSettlements':
                             return '正在同步差旅结算';
                         case 'businessCentralSyncTitle':
-                            return '正在同步 Dynamics 365 Business Central 数据';
+                            return '同步 Dynamics 365 Business Central 数据';
                         case 'businessCentralSyncConnection':
                             return '正在初始化与 Dynamics 365 Business Central 的连接';
                         case 'businessCentralSyncImportData':
@@ -8267,14 +8267,14 @@ ${reportName}`,
         },
         businessCentral: {
             businessCentralSetup: 'Dynamics 365 Business Central 设置',
-            prerequisitesTitle: '连接之前...',
-            followSteps: '按照我们的操作指南进行操作：连接到 Dynamics 365 Business Central',
-            enterCredentials: '输入您的 Dynamics 365 Business Central 信息',
-            helpArticle: `<muted-text>请参阅此<a href="${CONST.BUSINESS_CENTRAL_HELP_URL}">帮助文章</a>以查找这些信息。</muted-text>`,
+            prerequisitesTitle: '在你连接之前…',
+            followSteps: '请按照我们的《操作指南：连接到 Dynamics 365 Business Central》中的步骤进行操作',
+            enterCredentials: '输入你的 Dynamics 365 Business Central 详细信息',
+            helpArticle: `<muted-text>请参阅此<a href="${CONST.BUSINESS_CENTRAL_HELP_URL}">帮助文章</a>以查找该信息。</muted-text>`,
             subsidiary: '子公司',
             subsidiarySelectDescription: '选择要与此工作区同步的 Dynamics 365 Business Central 子公司。',
             noCompaniesFound: '未找到公司',
-            noCompaniesFoundDescription: '请在 Dynamics 365 Business Central 中添加公司，然后重新同步连接',
+            noCompaniesFoundDescription: '请在 Dynamics 365 Business Central 中添加一家公司并重新同步连接',
         },
     },
     getAssistancePage: {
