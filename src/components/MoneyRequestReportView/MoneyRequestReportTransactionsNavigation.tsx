@@ -303,6 +303,20 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
         );
     };
 
+    /**
+     * Whether a press on a sibling's arrow can land anywhere, without the side effects `resolveSiblingReportID`
+     * has (it creates threads). Every resolution path there needs the sibling to be known from at least one of
+     * these three: its transaction, an existing thread on its parent action, or a descriptor.
+     *
+     * The arrows used to be disabled from list *position* alone, with resolvability consulted only inside the
+     * handler, which bailed silently - an enabled arrow whose press did nothing, with no spinner and no error.
+     */
+    const canResolveSibling = (
+        siblingTransactionID: string | undefined,
+        siblingTransaction: OnyxTypes.Transaction | undefined,
+        siblingParentReportAction: OnyxTypes.ReportAction | undefined,
+    ) => !!siblingTransactionID && (!!siblingTransaction || !!siblingParentReportAction?.childReportID || !!siblingDescriptorsByTransactionID?.[siblingTransactionID]);
+
     const navigateToSibling = (
         e: GestureResponderEvent | KeyboardEvent | undefined,
         siblingTransactionID: string | undefined,
@@ -399,13 +413,13 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
     return (
         <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2]}>
             {!shouldDisplayNarrowVersion && (
-                <Text style={[styles.mutedTextLabel, styles.textAlignRight, styles.mnw8]}>
+                <Text style={[styles.mutedTextLabel, styles.textAlignRight, styles.tabularNums]}>
                     {translate('common.currentOfTotal', {current: currentTransactionIndex + 1, total: transactionIDsList.length})}
                 </Text>
             )}
             <PrevNextButtons
-                isPrevButtonDisabled={!prevTransactionID}
-                isNextButtonDisabled={!nextTransactionID}
+                isPrevButtonDisabled={!canResolveSibling(prevTransactionID, prevTransaction, prevParentReportAction)}
+                isNextButtonDisabled={!canResolveSibling(nextTransactionID, nextTransaction, nextParentReportAction)}
                 onNext={onNext}
                 onPrevious={onPrevious}
             />

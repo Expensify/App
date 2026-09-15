@@ -152,15 +152,16 @@ function getActiveTransactionIDs(): {
  * background list must leave it alone until the user comes back out to it.
  */
 function shouldRefreshActiveTransactionIDs(source: string, ids: string[]): boolean {
-    if (ids.length < 2) {
-        return false;
-    }
     if (!lastSetIDs?.length) {
-        return true;
+        // Nothing owns the carousel: only take it over for a list there is actually something to page through.
+        return ids.length > 1;
     }
     if (lastSetSource !== source) {
         return false;
     }
+    // The length check deliberately does not apply to the owner. Gating it on `ids.length > 1` up front let an
+    // owner grow its carousel but never shrink or release it, so a list that dropped to a single expense left the
+    // old, longer list active. Writing the short list through is what lets the consumers drop the arrows.
     return !areIDListsEqual(lastSetIDs, ids);
 }
 

@@ -27,6 +27,8 @@ type MockOnyxState = {
     snapshot: {data: Record<string, unknown>} | undefined;
     siblingDescriptors: Record<string, unknown> | undefined;
     transactionsCollection: Record<string, unknown>;
+    /** Fetch status of the `transactions_` subscription, which is how the carousel tells "not loaded" from "gone" */
+    transactionsStatus: 'loading' | 'loaded';
     reportActionsCollection: Record<string, unknown>;
     reportsCollection: Record<string, unknown>;
 };
@@ -37,6 +39,7 @@ const mockState: MockOnyxState = {
     snapshot: undefined,
     siblingDescriptors: undefined,
     transactionsCollection: {},
+    transactionsStatus: 'loaded',
     reportActionsCollection: {},
     reportsCollection: {},
 };
@@ -88,7 +91,7 @@ jest.mock('@react-navigation/native', () => ({
 
 type ReactActual = {createElement: typeof React.createElement; Fragment: typeof React.Fragment};
 type ReactNativeActual = {
-    Pressable: React.ComponentType<{testID?: string; disabled?: boolean; onPress?: () => void}>;
+    Pressable: React.ComponentType<{testID?: string; accessibilityState?: {disabled?: boolean}; onPress?: () => void}>;
     Text: React.ComponentType<{children?: React.ReactNode}>;
 };
 
@@ -97,6 +100,10 @@ jest.mock('@components/Text', () => {
     return {__esModule: true, default: Text};
 });
 
+// The disabled flag is recorded on `accessibilityState` rather than forwarded to `Pressable`'s `disabled` prop
+// on purpose. A disabled Pressable returns `onStartShouldSetResponder: () => false`, RNTL then refuses to dispatch
+// the event, and `expect(setParams).not.toHaveBeenCalled()` becomes vacuous: it can't tell "correctly disabled"
+// from "handler bailed silently". Keeping the press live makes the two assertions independent.
 jest.mock('@components/PrevNextButtons', () => {
     const ReactLib = jest.requireActual<ReactActual>('react');
     const {Pressable} = jest.requireActual<ReactNativeActual>('react-native');
@@ -106,8 +113,8 @@ jest.mock('@components/PrevNextButtons', () => {
             ReactLib.createElement(
                 ReactLib.Fragment,
                 null,
-                ReactLib.createElement(Pressable, {testID: 'prev-button', disabled: props.isPrevButtonDisabled, onPress: () => props.onPrevious()}),
-                ReactLib.createElement(Pressable, {testID: 'next-button', disabled: props.isNextButtonDisabled, onPress: () => props.onNext()}),
+                ReactLib.createElement(Pressable, {testID: 'prev-button', accessibilityState: {disabled: !!props.isPrevButtonDisabled}, onPress: () => props.onPrevious()}),
+                ReactLib.createElement(Pressable, {testID: 'next-button', accessibilityState: {disabled: !!props.isNextButtonDisabled}, onPress: () => props.onNext()}),
             ),
     };
 });
@@ -163,6 +170,7 @@ const resetMockState = () => {
     mockState.snapshot = undefined;
     mockState.siblingDescriptors = undefined;
     mockState.transactionsCollection = {};
+    mockState.transactionsStatus = 'loaded';
     mockState.reportActionsCollection = {};
     mockState.reportsCollection = {};
     mockGetRootState.mockReturnValue(makeRootState('testRoute'));
@@ -172,29 +180,32 @@ const resetMockState = () => {
 const setupUseOnyx = () => {
     mockUseOnyx.mockImplementation((key: string, options?: {selector?: (data: unknown) => unknown}) => {
         const selector = options?.selector;
+        // Every branch returns the full `[value, metadata]` tuple `useOnyx` returns. Consumers read the metadata
+        // (`useCarouselTransactionIDs` gates on its `status`), so a value-only mock isn't the hook's contract.
+        const loaded = (value: unknown) => [value, {status: 'loaded'}];
         if (key === ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_TRANSACTION_IDS) {
-            return [mockState.transactionIDsList];
+            return loaded(mockState.transactionIDsList);
         }
         if (key === ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_SNAPSHOT_HASH) {
-            return [mockState.snapshotHash];
+            return loaded(mockState.snapshotHash);
         }
         if (key === `${ONYXKEYS.COLLECTION.SNAPSHOT}${mockState.snapshotHash}`) {
-            return [mockState.snapshot];
+            return loaded(mockState.snapshot);
         }
         if (key === ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_THREAD_REPORT_IDS) {
-            return [mockState.siblingDescriptors];
+            return loaded(mockState.siblingDescriptors);
         }
         if (key === ONYXKEYS.COLLECTION.TRANSACTION) {
-            return [selector ? selector(mockState.transactionsCollection) : undefined];
+            return [selector ? selector(mockState.transactionsCollection) : undefined, {status: mockState.transactionsStatus}];
         }
         if (key === ONYXKEYS.COLLECTION.REPORT_ACTIONS) {
-            return [selector ? selector(mockState.reportActionsCollection) : undefined];
+            return loaded(selector ? selector(mockState.reportActionsCollection) : undefined);
         }
         if (key.startsWith(ONYXKEYS.COLLECTION.REPORT)) {
-            return [mockState.reportsCollection[key]];
+            return loaded(mockState.reportsCollection[key]);
         }
         // NVP_ONBOARDING (selector-based), NVP_INTRO_SELECTED, BETAS and anything else are not relevant to resolution.
-        return [undefined];
+        return loaded(undefined);
     });
 };
 
@@ -202,6 +213,10 @@ const renderNavigation = () => render(<MoneyRequestReportTransactionsNavigation 
 
 // Navigation.setParams is deferred inside requestAnimationFrame. Run it synchronously so the resolved
 // navigation happens during the press and can be asserted immediately afterwards.
+const expectArrowDisabled = (testID: string, isDisabled: boolean) => {
+    expect(screen.getByTestId(testID).props.accessibilityState).toEqual({disabled: isDisabled});
+};
+
 const press = (testID: string) => {
     global.requestAnimationFrame = (callback: FrameRequestCallback) => {
         callback(0);
@@ -485,6 +500,7 @@ describe('MoneyRequestReportTransactionsNavigation', () => {
 
             expect(screen.getByText(counterFor(2, 2))).toBeTruthy();
             // The deleted expense is no longer reachable: it was the last entry, so there is nothing after it.
+            expectArrowDisabled('next-button', true);
             press('next-button');
             expect(Navigation.setParams).not.toHaveBeenCalled();
         });
@@ -499,14 +515,52 @@ describe('MoneyRequestReportTransactionsNavigation', () => {
             renderNavigation();
 
             expect(screen.getByText(counterFor(1, 2))).toBeTruthy();
+            expectArrowDisabled('prev-button', true);
             press('prev-button');
             expect(Navigation.setParams).not.toHaveBeenCalled();
         });
 
         // A transaction that hasn't loaded yet is not a transaction that is gone: dropping those would shrink the
         // carousel under the user on a cold open (https://github.com/Expensify/App/issues/99641).
-        it('keeps siblings that have not loaded into Onyx yet', () => {
+        it('keeps siblings while the transaction collection is still loading', () => {
             mockState.transactionsCollection = {};
+            mockState.transactionsStatus = 'loading';
+
+            renderNavigation();
+
+            expect(screen.getByText(counterFor(2, 3))).toBeTruthy();
+        });
+
+        // The other half of that rule, and the regression guard that matters: a confirmed delete SETs
+        // `transactions_<id>` to null, so once the collection has loaded, absence means the expense is gone. Keeping
+        // it would re-admit a deleted expense one network round-trip after the optimistic delete dropped it, which is
+        // https://github.com/Expensify/App/issues/99617 and https://github.com/Expensify/App/issues/99614 again.
+        it('drops siblings that are absent once the transaction collection has loaded', () => {
+            mockState.transactionsCollection = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${CURRENT_ID}`]: {transactionID: CURRENT_ID, reportID: 'rCur'},
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${PREV_ID}`]: {transactionID: PREV_ID, reportID: 'rPrev'},
+            };
+
+            renderNavigation();
+
+            expect(screen.getByText(counterFor(2, 2))).toBeTruthy();
+            // An arrow that leads nowhere must not be pressable in the first place: deriving the disabled state from
+            // list position alone left it enabled, and the press then bailed silently with no spinner and no error.
+            expectArrowDisabled('next-button', true);
+            press('next-button');
+            expect(Navigation.setParams).not.toHaveBeenCalled();
+        });
+
+        // Siblings seeded by a snapshot-backed flow (Home "Recently added") carry a descriptor precisely because
+        // they may never reach the live collection, so their absence there is expected rather than a deletion.
+        it('keeps descriptor-backed siblings that are absent from the collection', () => {
+            mockState.transactionsCollection = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${CURRENT_ID}`]: {transactionID: CURRENT_ID, reportID: 'rCur'},
+            };
+            mockState.siblingDescriptors = {
+                [PREV_ID]: {reportID: 'rPrev', transaction: {transactionID: PREV_ID}},
+                [NEXT_ID]: {reportID: 'rNext', transaction: {transactionID: NEXT_ID}},
+            };
 
             renderNavigation();
 

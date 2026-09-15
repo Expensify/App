@@ -3,6 +3,7 @@ import {isDeletedTransaction, isTransactionPendingDelete} from '@libs/Transactio
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
@@ -40,25 +41,37 @@ function useCarouselTransactionIDs(): CarouselTransactionIDs {
     // search hash rather than the one the carousel was seeded from, and it returns snapshot data *instead of*
     // live data, whereas here live data has to win over the snapshot.
     const [snapshotHash] = useOnyx(ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_SNAPSHOT_HASH);
+    // With no snapshot-backed carousel this resolves to `snapshot_undefined`, which Onyx skips: 'undefined' is one
+    // of CONST.SKIPPABLE_COLLECTION_MEMBER_IDS, so the read is short-circuited to undefined and nothing is pinned.
     const [snapshot] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${snapshotHash}`);
+    // Snapshot-backed flows (Home "Recently added") seed a descriptor per sibling precisely because those expenses
+    // may never reach the live `transactions_` collection. For those IDs, absence there is expected rather than a
+    // deletion, so the descriptor map is the positive signal that keeps them in the list.
+    const [siblingDescriptors] = useOnyx(ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_THREAD_REPORT_IDS);
 
     const validTransactionIDsSelector = useCallback(
         (allTransactions: OnyxCollection<OnyxTypes.Transaction>) =>
             seededTransactionIDs.filter((transactionID) => {
                 const key = `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}` as const;
                 const transaction = allTransactions?.[key] ?? snapshot?.data?.[key];
-                // An unknown transaction is one that hasn't loaded yet, not one that is gone. Dropping those would
-                // shrink the carousel under the user on a cold open.
                 if (!transaction) {
-                    return true;
+                    // "Absent from Onyx" reads the same for an expense that hasn't been fetched and one that is
+                    // hard-deleted - a confirmed delete SETs `transactions_<id>` to null. Keeping unknown IDs
+                    // therefore re-admitted a deleted expense one network round-trip after the optimistic delete
+                    // dropped it, leaving the counter one too high and an enabled arrow that navigated nowhere.
+                    // The only IDs legitimately missing from the collection are descriptor-backed siblings; the
+                    // not-yet-loaded window is handled by the `status` check below, which covers the whole list.
+                    return !!siblingDescriptors?.[transactionID];
                 }
                 return !isTransactionPendingDelete(transaction) && !isDeletedTransaction(transaction);
             }),
-        [seededTransactionIDs, snapshot],
+        [seededTransactionIDs, snapshot, siblingDescriptors],
     );
-    const [transactionIDs = getEmptyArray<string>()] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {selector: validTransactionIDsSelector});
+    const [validTransactionIDs = getEmptyArray<string>(), transactionsMetadata] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {selector: validTransactionIDsSelector});
 
-    return {transactionIDs, snapshot};
+    // Before the collection has loaded, absence means nothing at all, so keep the seeded list whole rather than
+    // shrinking the carousel under the user on a cold open.
+    return {transactionIDs: isLoadingOnyxValue(transactionsMetadata) ? seededTransactionIDs : validTransactionIDs, snapshot};
 }
 
 export default useCarouselTransactionIDs;

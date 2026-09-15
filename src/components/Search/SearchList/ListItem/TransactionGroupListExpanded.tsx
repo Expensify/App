@@ -225,7 +225,7 @@ function TransactionGroupListExpandedImpl({
                         shouldNavigate: false,
                     });
                     if (targetReportID) {
-                        openInternalRouteInNewTab(ROUTES.SEARCH_REPORT.getRoute({reportID: targetReportID, backTo}), event);
+                        openInternalRouteInNewTab(ROUTES.SEARCH_REPORT.getRoute({reportID: targetReportID, backTo, anchorTransactionID: transactionItem.transactionID}), event);
                     }
                     return;
                 }
@@ -246,7 +246,7 @@ function TransactionGroupListExpandedImpl({
                 return;
             }
             markReportRHPWidth(reportID, 'wide');
-            const route = ROUTES.SEARCH_REPORT.getRoute({reportID, backTo});
+            const route = ROUTES.SEARCH_REPORT.getRoute({reportID, backTo, anchorTransactionID: transactionItem.transactionID});
             if (openInternalRouteInNewTab(route, event)) {
                 return;
             }

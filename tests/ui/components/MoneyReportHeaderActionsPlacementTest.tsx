@@ -253,8 +253,22 @@ describe('MoneyReportHeader transaction carousel anchor', () => {
         originalMessage: {IOUTransactionID: THREAD_TRANSACTION_ID, type: CONST.IOU.REPORT_ACTION_TYPE.CREATE},
     };
 
-    /** Mirrors the failing state: the derived transactions index has nothing for this thread. */
-    function mockThread({activeIDs, parentActions}: {activeIDs: string[]; parentActions: Record<string, unknown> | undefined}) {
+    /**
+     * Mirrors the failing state: the derived transactions index has nothing for this thread.
+     *
+     * `transactions` seeds the live `transactions_` collection the header validates the carousel against. It
+     * defaults to a live row per active ID, because leaving the collection empty would make the filtered list
+     * unconditionally empty and hide the very disagreement these tests are about.
+     */
+    function mockThread({
+        activeIDs,
+        parentActions,
+        transactions = Object.fromEntries(activeIDs.map((id) => [`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`, {transactionID: id, reportID: PARENT_REPORT_ID}])),
+    }: {
+        activeIDs: string[];
+        parentActions: Record<string, unknown> | undefined;
+        transactions?: Record<string, unknown>;
+    }) {
         // The anchor is read through a `selector`, so the mock has to apply it the way useOnyx does.
         mockedUseOnyx.mockImplementation((key, options) => {
             const rawValue = (() => {
@@ -263,6 +277,9 @@ describe('MoneyReportHeader transaction carousel anchor', () => {
                 }
                 if (key === ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_TRANSACTION_IDS) {
                     return activeIDs;
+                }
+                if (key === ONYXKEYS.COLLECTION.TRANSACTION) {
+                    return transactions;
                 }
                 if (key === `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${PARENT_REPORT_ID}`) {
                     return parentActions;
@@ -304,5 +321,26 @@ describe('MoneyReportHeader transaction carousel anchor', () => {
         const {toJSON} = renderHeader();
 
         expect(getHeaderRowTestIDs(toJSON())).not.toContain(TRANSACTIONS_CAROUSEL_TEST_ID);
+    });
+
+    /**
+     * The header has to decide from the *validated* list, the same one the carousel renders from. Deciding from the
+     * raw Onyx list let it pick the expense branch while the carousel found nothing to page through, and since the
+     * report carousel sits in the other branch of that choice, the user was left with no arrows at all.
+     */
+    it('falls through to the report carousel when a sibling has been deleted out from under the list', () => {
+        mockThread({
+            activeIDs: ['other-tx', THREAD_TRANSACTION_ID],
+            parentActions: {[PARENT_ACTION_ID]: parentIOUAction},
+            transactions: {
+                // 'other-tx' is absent: a confirmed delete SETs its key to null, leaving one sibling behind.
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${THREAD_TRANSACTION_ID}`]: {transactionID: THREAD_TRANSACTION_ID, reportID: PARENT_REPORT_ID},
+            },
+        });
+
+        const {toJSON} = renderHeader();
+
+        expect(getHeaderRowTestIDs(toJSON())).not.toContain(TRANSACTIONS_CAROUSEL_TEST_ID);
+        expect(getHeaderRowTestIDs(toJSON())).toContain(REPORT_CAROUSEL_TEST_ID);
     });
 });

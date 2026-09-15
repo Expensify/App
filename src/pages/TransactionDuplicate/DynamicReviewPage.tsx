@@ -65,6 +65,11 @@ function DynamicReviewPage() {
     const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [transactionIDsList = getEmptyArray<string>()] = useOnyx(ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_TRANSACTION_IDS);
+    // Read alongside the IDs so the fallback below can hand a snapshot-backed carousel back intact. The module
+    // mirror is empty after a reload (it only ever lives for one JS session), and rebuilding from the IDs alone
+    // dropped the hash and the descriptors, which is exactly the data the siblings are resolved from.
+    const [activeSnapshotHash] = useOnyx(ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_SNAPSHOT_HASH);
+    const [activeSiblingDescriptors] = useOnyx(ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_THREAD_REPORT_IDS);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
@@ -191,7 +196,7 @@ function DynamicReviewPage() {
         }, []),
     );
 
-    const onPreviewPressed = (reportID: string) => {
+    const onPreviewPressed = (reportID: string, pressedTransactionID: string | undefined) => {
         // Capture the carousel we are about to displace before overwriting it, on the first press only, so the
         // restore effect re-seeds what was active when this screen mounted. setActiveTransactionIDs updates the
         // module mirror synchronously, so reading it afterwards would only ever return our own write back.
@@ -200,14 +205,14 @@ function DynamicReviewPage() {
             displacedCarouselRef.current = {
                 ids: active.ids ?? transactionIDsList,
                 source: active.source ?? undefined,
-                snapshotHash: active.snapshotHash ?? undefined,
-                descriptors: active.descriptors ?? undefined,
+                snapshotHash: active.snapshotHash ?? activeSnapshotHash,
+                descriptors: active.descriptors ?? activeSiblingDescriptors,
             };
         }
 
         const siblingTransactionIDsList = transactions.map((transaction) => transaction.transactionID);
         setActiveTransactionIDs(siblingTransactionIDsList, {source: CAROUSEL_SOURCE.duplicateReview(transactionID)}).then(() => {
-            Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID, backTo: Navigation.getActiveRoute()}));
+            Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID, backTo: Navigation.getActiveRoute(), anchorTransactionID: pressedTransactionID}));
         });
     };
 

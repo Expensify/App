@@ -9,6 +9,8 @@ import {
 
 import ONYXKEYS from '@src/ONYXKEYS';
 
+import type {OnyxEntry, OnyxKey, OnyxValue} from 'react-native-onyx';
+
 import Onyx from 'react-native-onyx';
 
 import createRandomTransaction from '../../../utils/collections/transaction';
@@ -36,11 +38,51 @@ describe('TransactionThreadNavigation carousel ownership', () => {
         await waitForBatchedUpdates();
     });
 
+    /** Reads the three carousel keys straight out of Onyx, which is where every consumer actually reads them. */
+    async function readCarouselFromOnyx() {
+        await waitForBatchedUpdates();
+        const readOnce = <TKey extends OnyxKey>(key: TKey) =>
+            new Promise<OnyxEntry<OnyxValue<TKey>>>((resolve) => {
+                const connection = Onyx.connect({
+                    key,
+                    callback: (value) => {
+                        Onyx.disconnect(connection);
+                        resolve(value);
+                    },
+                });
+            });
+        const [ids, snapshotHash, descriptors] = await Promise.all([
+            readOnce(ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_TRANSACTION_IDS),
+            readOnce(ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_SNAPSHOT_HASH),
+            readOnce(ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_THREAD_REPORT_IDS),
+        ]);
+        return {ids, snapshotHash, descriptors};
+    }
+
     describe('setActiveTransactionIDs', () => {
         it('records the owning source alongside the IDs', async () => {
             await setActiveTransactionIDs(SEEDED_IDS, {source: SEARCH_SOURCE, snapshotHash: SEARCH_HASH});
 
             expect(getActiveTransactionIDs()).toEqual({ids: SEEDED_IDS, descriptors: null, source: SEARCH_SOURCE, snapshotHash: SEARCH_HASH});
+        });
+
+        /**
+         * `getActiveTransactionIDs` reads the in-module mirror, which only arbitrates writes within one session.
+         * Every consumer - the header, the carousel - reads Onyx, so the Onyx writes need asserting on their own:
+         * without this, deleting them would leave the suite green while the arrows vanished app-wide.
+         */
+        it('writes the IDs, snapshot hash and descriptors through to Onyx', async () => {
+            const descriptors = {A1: {reportID: 'rA', transaction: {...createRandomTransaction(1), transactionID: 'A1'}}};
+            await setActiveTransactionIDs(SEEDED_IDS, {source: SEARCH_SOURCE, snapshotHash: SEARCH_HASH, descriptors});
+
+            await expect(readCarouselFromOnyx()).resolves.toEqual({ids: SEEDED_IDS, snapshotHash: SEARCH_HASH, descriptors});
+        });
+
+        it('clears all three Onyx keys when the carousel is released', async () => {
+            await setActiveTransactionIDs(SEEDED_IDS, {source: SEARCH_SOURCE, snapshotHash: SEARCH_HASH});
+            await clearActiveTransactionIDsForSource(SEARCH_SOURCE);
+
+            await expect(readCarouselFromOnyx()).resolves.toEqual({ids: undefined, snapshotHash: undefined, descriptors: undefined});
         });
 
         it('lets a different screen take ownership of the carousel', async () => {
@@ -87,6 +129,18 @@ describe('TransactionThreadNavigation carousel ownership', () => {
         it('does not seed a list with nothing to page between', () => {
             expect(shouldRefreshActiveTransactionIDs(SEARCH_SOURCE, ['A1'])).toBe(false);
             expect(shouldRefreshActiveTransactionIDs(SEARCH_SOURCE, [])).toBe(false);
+        });
+
+        /**
+         * That length rule applies only to taking the carousel over, never to the screen that already owns it.
+         * Applied to the owner too, it let a list grow its carousel but never shrink or release it, so a list that
+         * dropped to a single expense left the old, longer list active and the arrows still showing.
+         */
+        it('lets its owner shrink the carousel down to nothing to page between', async () => {
+            await setActiveTransactionIDs(SEEDED_IDS, {source: SEARCH_SOURCE, snapshotHash: SEARCH_HASH});
+
+            expect(shouldRefreshActiveTransactionIDs(SEARCH_SOURCE, ['A1'])).toBe(true);
+            expect(shouldRefreshActiveTransactionIDs(SEARCH_SOURCE, [])).toBe(true);
         });
 
         it('refreshes its own carousel when the list gained an expense', async () => {

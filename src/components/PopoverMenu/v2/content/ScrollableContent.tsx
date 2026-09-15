@@ -9,6 +9,8 @@ import Log from '@libs/Log';
 
 import variables from '@styles/variables';
 
+import CONST from '@src/CONST';
+
 import type {StyleProp, ViewStyle} from 'react-native';
 
 import React from 'react';
@@ -39,10 +41,9 @@ function ScrollableContent({contentContainerStyle, children, ...rest}: Scrollabl
         }
     }
     const {windowHeight} = useWindowDimensions();
-    // Cap to the window so the inner scroll has room. This matches PopoverMenu v1, and like it drops the old
-    // CONST.POPOVER_MENU_MAX_HEIGHT floor, which is taller than a short window and let the menu run off it.
+    // Cap to window height (with a floor of POPOVER_MENU_MAX_HEIGHT) so the inner scroll has room.
     const maxHeightStyle = useMaxHeightStyle({
-        desktopFallback: {maxHeight: windowHeight - variables.compactPopoverMenuVerticalMargin},
+        desktopFallback: {maxHeight: Math.max(windowHeight - variables.compactPopoverMenuVerticalMargin, CONST.POPOVER_MENU_MAX_HEIGHT)},
     });
 
     return (

@@ -36,6 +36,14 @@ jest.mock('@react-navigation/native', () => {
     };
 });
 
+// The one-transaction-report branch opens full-screen on narrow layout and in the RHP on wide, and only the RHP
+// renders the carousel, so tests have to drive this deliberately rather than inherit the test env's default.
+let mockShouldUseNarrowLayout = false;
+jest.mock('@hooks/useResponsiveLayout', () => ({
+    __esModule: true,
+    default: () => ({shouldUseNarrowLayout: mockShouldUseNarrowLayout}),
+}));
+
 const ACCOUNT_ID = 1;
 
 /**
@@ -68,6 +76,7 @@ describe('useReviewFlaggedExpenses', () => {
 
     beforeEach(async () => {
         mockIsFocused = true;
+        mockShouldUseNarrowLayout = false;
         await act(async () => {
             await Onyx.set(ONYXKEYS.SESSION, {accountID: ACCOUNT_ID, email: 'test@example.com'});
         });
@@ -138,6 +147,7 @@ describe('useReviewFlaggedExpenses', () => {
                 transaction: expect.objectContaining({transactionID: 't1'}),
                 reportActions: expect.arrayContaining([expect.objectContaining({reportActionID: 'action1', childReportID: 'thread-r1'})]),
                 siblingTransactionIDs: ['t1', 't2'],
+                carouselSource: 'home:reviewFlagged',
                 backTo: ROUTES.HOME,
             }),
         );
@@ -192,6 +202,7 @@ describe('useReviewFlaggedExpenses', () => {
      * or stepping forward and back drops the user on the report when they started on the thread.
      */
     it('opens the report and seeds the carousel when the flagged expenses sit in one-transaction reports', async () => {
+        mockShouldUseNarrowLayout = false;
         await act(async () => {
             await seedFlaggedExpenses({transactionID: 't1', reportID: 'r1'}, {transactionID: 't2', reportID: 'r2'});
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}r1`, {transactionCount: 1});
@@ -211,6 +222,33 @@ describe('useReviewFlaggedExpenses', () => {
 
         expect(mockNavigateToTransactionThread).not.toHaveBeenCalled();
         expect(mockSetActiveTransactionIDs).toHaveBeenCalledWith(['t1', 't2'], {source: 'home:reviewFlagged'});
+        expect(mockNavigate).toHaveBeenCalledTimes(1);
+        expect(mockNavigate.mock.calls.at(0)?.at(0)).toContain('r1');
+    });
+
+    /**
+     * On narrow layout the same branch opens the report full-screen, where the carousel has nowhere to live:
+     * stepping to a sibling lands on a transaction thread, and MoneyRequestHeader only renders the carousel inside
+     * the RHP, so the counter and both arrows would vanish and strand the user mid-review.
+     */
+    it('does not seed a carousel for a one-transaction report opened full-screen on narrow layout', async () => {
+        mockShouldUseNarrowLayout = true;
+        await act(async () => {
+            await seedFlaggedExpenses({transactionID: 't1', reportID: 'r1'}, {transactionID: 't2', reportID: 'r2'});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}r1`, {transactionCount: 1});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}r2`, {transactionCount: 1});
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        const {result} = renderHook(() => useReviewFlaggedExpenses());
+        await waitForBatchedUpdatesWithAct();
+
+        await act(async () => {
+            result.current.reviewExpenses();
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        expect(mockSetActiveTransactionIDs).not.toHaveBeenCalled();
         expect(mockNavigate).toHaveBeenCalledTimes(1);
         expect(mockNavigate.mock.calls.at(0)?.at(0)).toContain('r1');
     });

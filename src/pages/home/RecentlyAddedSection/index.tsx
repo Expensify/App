@@ -88,7 +88,10 @@ function RecentlyAddedSection() {
         // data loads, instead of flickering from narrow to wide.
         setActiveTransactionIDs(siblingTransactionIDs, {source: CAROUSEL_SOURCE.homeRecentlyAdded, descriptors: siblingDescriptorsByTransactionID}).then(() => {
             markReportRHPWidth(reportID, 'wide');
-            Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID, backTo: ROUTES.HOME}));
+            // The anchor is what lets the header show the carousel on a cold open: getReportIDToOpenForExpense
+            // resolves the snapshot's childReportID without materializing the thread, so the header has no
+            // transaction of its own until OpenReport round-trips, and the counter would pop in only after that.
+            Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID, backTo: ROUTES.HOME, anchorTransactionID: expense.transactionID}));
         });
     };
 
