@@ -47,6 +47,17 @@ describe('insightsQueries', () => {
             });
         });
 
+        it('asks for nothing the page filters did not set', () => {
+            // Given the spend dashboard filtered to the year to date, in USD, for one workspace
+            const filters: InsightsFilters = {...FILTERS, policyIDs: ['A1'], groupBy: CONST.SEARCH.GROUP_BY.MONTH, groupCurrency: 'USD'};
+
+            // When its request is built
+            const request = buildInsightsJsonQuery(CONST.INSIGHTS.DASHBOARD.SPEND, filters);
+
+            // Then the query carries those filters and nothing else, such as the sorting of a table no chart renders
+            expect(request?.queryString).toBe('groupBy:month groupCurrency:USD policyID:A1 date:year-to-date');
+        });
+
         it('leaves the workspaces out of the query until some are selected', () => {
             // Given a dashboard requested with no workspace selected
             const allWorkspaces = buildInsightsJsonQuery(CONST.INSIGHTS.DASHBOARD.SPEND, FILTERS);

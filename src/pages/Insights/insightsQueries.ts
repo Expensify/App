@@ -1,8 +1,7 @@
 import type {SearchGroupBy, SearchQueryString} from '@components/Search/types';
 
-import {buildQueryStringFromFilterFormValues, buildSearchQueryJSON, buildSearchQueryString} from '@libs/SearchQueryUtils';
+import {buildQueryStringFromFilterFormValues, buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 
-import CONST from '@src/CONST';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
 import type {InsightsDashboard, InsightsDashboardID, InsightsGraphKey} from '@src/types/onyx';
 
@@ -22,7 +21,6 @@ type InsightsQuery = {
 /** The page's filters in the shape a search query is built from. Workspaces are left out when none are selected, which reports on all of them. */
 function buildFilterFormValues(filters: InsightsFilters): Partial<SearchAdvancedFiltersForm> {
     return {
-        type: CONST.SEARCH.DATA_TYPES.EXPENSE,
         dateOn: filters.datePreset,
         groupCurrency: filters.groupCurrency,
         ...(filters.policyIDs.length > 0 && {policyID: filters.policyIDs}),
@@ -46,14 +44,7 @@ function buildSnapshotHashEntries(chart: InsightsChartSpec, filters: InsightsFil
 
 /** Builds one request for the whole dashboard: the shared filters query plus the snapshot hash each graph's data is stored under. */
 function buildInsightsJsonQuery(dashboard: InsightsDashboardID, filters: InsightsFilters): InsightsQuery | undefined {
-    const filtersQuery = buildQueryStringFromFilterFormValues({...buildFilterFormValues(filters), groupBy: filters.groupBy});
-
-    const filtersQueryJSON = buildSearchQueryJSON(filtersQuery);
-    if (!filtersQueryJSON) {
-        return undefined;
-    }
-
-    const queryString = buildSearchQueryString(filtersQueryJSON);
+    const queryString = buildQueryStringFromFilterFormValues({...buildFilterFormValues(filters), groupBy: filters.groupBy});
     const queryJSON = buildSearchQueryJSON(queryString);
 
     if (!queryJSON) {
