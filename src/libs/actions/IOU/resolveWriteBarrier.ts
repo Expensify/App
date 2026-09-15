@@ -19,6 +19,15 @@ import {AppState} from 'react-native';
  *  so this lets no-barrier callers get immediate `write()` behavior without branching to `API.write`. */
 const IMMEDIATE: WriteReadyBarrier = () => Promise.resolve();
 
+/** Barriers that resolve immediately. Writes behind them are not counted as deferred in telemetry. */
+const immediateBarriers = new WeakSet<WriteReadyBarrier>([IMMEDIATE]);
+
+/** Use for a barrier that wraps `IMMEDIATE` and only adds a callback, so its write is not counted as deferred. */
+function markBarrierAsImmediate<TBarrier extends WriteReadyBarrier>(barrier: TBarrier): TBarrier {
+    immediateBarriers.add(barrier);
+    return barrier;
+}
+
 type ResolveWriteBarrierParams = {
     /** Barrier the caller wants this write to wait on before applying optimistic data (see `API.armTransitionBarrier`). */
     writeBarrier?: WriteReadyBarrier;
@@ -41,7 +50,9 @@ type ResolveWriteBarrierParams = {
  */
 function resolveWriteBarrier({writeBarrier, optimisticWatchKey, isRetry = false}: ResolveWriteBarrierParams = {}): WriteReadyBarrier {
     if (writeBarrier) {
-        addOptimization(CONST.TELEMETRY.SUBMIT_OPTIMIZATION.DEFERRED_WRITE);
+        if (!immediateBarriers.has(writeBarrier)) {
+            addOptimization(CONST.TELEMETRY.SUBMIT_OPTIMIZATION.DEFERRED_WRITE);
+        }
 
         const searchGeneration = getPendingSearchWriteGeneration();
         if (searchGeneration === undefined) {
@@ -101,4 +112,4 @@ function resolveWriteBarrier({writeBarrier, optimisticWatchKey, isRetry = false}
 }
 
 export default resolveWriteBarrier;
-export {IMMEDIATE};
+export {IMMEDIATE, markBarrierAsImmediate};

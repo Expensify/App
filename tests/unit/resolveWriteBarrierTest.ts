@@ -1,4 +1,4 @@
-import resolveWriteBarrier, {IMMEDIATE} from '@libs/actions/IOU/resolveWriteBarrier';
+import resolveWriteBarrier, {IMMEDIATE, markBarrierAsImmediate} from '@libs/actions/IOU/resolveWriteBarrier';
 import type {WriteReadyBarrier} from '@libs/API';
 import {SAFETY_TIMEOUT_MS} from '@libs/API/writeWhenReady';
 import {flushPendingSearchWrite, getSearchWriteWatchKey, hasPendingSearchWrite, markPendingSearchWrite, resetForTesting} from '@libs/pendingSearchWrite';
@@ -49,6 +49,21 @@ describe('resolveWriteBarrier', () => {
         // Then it gets the shared already-resolved barrier, so the write goes out immediately, and no
         // deferral is recorded for the submit-expense telemetry
         expect(barrier).toBe(IMMEDIATE);
+        expect(isSettled()).toBe(true);
+        expect(addOptimization).not.toHaveBeenCalled();
+    });
+
+    it('records no deferral for a barrier marked immediate', async () => {
+        // Given a caller barrier that settles at once and is marked as such (a wrapper piggybacking a side effect on attach)
+        const writeBarrier = markBarrierAsImmediate(() => Promise.resolve());
+
+        // When a write barrier is resolved for it
+        const barrier = resolveWriteBarrier({writeBarrier});
+        const isSettled = settled(barrier);
+        await Promise.resolve();
+
+        // Then the write still goes out immediately and is not counted as a deferred write in telemetry
+        expect(barrier).toBe(writeBarrier);
         expect(isSettled()).toBe(true);
         expect(addOptimization).not.toHaveBeenCalled();
     });

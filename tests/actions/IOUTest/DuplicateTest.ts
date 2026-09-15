@@ -82,6 +82,48 @@ const isWriteMockCallForCommand =
         call.at(0) === command && isObject(call.at(1));
 
 OnyxUpdateManager();
+type OptimisticUpdates = Parameters<typeof Onyx.update>[0] | undefined;
+
+/** Applies a write's optimistic data, so assertions can read the result back out of Onyx. */
+function applyOptimisticUpdates(updates: OptimisticUpdates) {
+    if (!updates) {
+        return;
+    }
+    for (const update of updates) {
+        if (update.onyxMethod === Onyx.METHOD.MERGE) {
+            Onyx.merge(update.key, update.value);
+        } else if (update.onyxMethod === Onyx.METHOD.SET) {
+            Onyx.set(update.key, update.value);
+        }
+    }
+}
+
+/**
+ * Spies on both API write entry points and funnels their calls into `sink`. Both are needed: the migrated
+ * expense creations go out through `writeWhenReady`, while other commands in these flows still use `write`.
+ * Split into two functions at module scope because `no-multiple-api-calls` counts `API` tokens per
+ * function body.
+ */
+function spyOnApiWrites(sink: jest.Mock): jest.SpyInstance[] {
+    return [spyOnWrite(sink), spyOnWriteWhenReady(sink)];
+}
+
+function spyOnWrite(sink: jest.Mock) {
+    return jest.spyOn(API, 'write').mockImplementation((command, params, options) => {
+        sink(command, params, options);
+        applyOptimisticUpdates(options?.optimisticData);
+        return Promise.resolve();
+    });
+}
+
+function spyOnWriteWhenReady(sink: jest.Mock) {
+    return jest.spyOn(API, 'writeWhenReady').mockImplementation((command, params, options) => {
+        sink(command, params, options);
+        applyOptimisticUpdates(options?.optimisticData);
+        return Promise.resolve();
+    });
+}
+
 describe('actions/Duplicate', () => {
     beforeAll(() => {
         Onyx.init({keys: ONYXKEYS});
@@ -91,26 +133,16 @@ describe('actions/Duplicate', () => {
     });
 
     describe('mergeDuplicates', () => {
-        let writeSpy: jest.SpyInstance;
+        let writeSpy: jest.Mock;
+        let apiSpies: jest.SpyInstance[];
         let currencyListProvider: RenderAPI;
 
         beforeEach(async () => {
             jest.clearAllMocks();
             global.fetch = getGlobalFetchMock();
 
-            writeSpy = jest.spyOn(API, 'write').mockImplementation((command, params, options) => {
-                // Apply optimistic data for testing
-                if (options?.optimisticData) {
-                    for (const update of options.optimisticData) {
-                        if (update.onyxMethod === Onyx.METHOD.MERGE) {
-                            Onyx.merge(update.key, update.value);
-                        } else if (update.onyxMethod === Onyx.METHOD.SET) {
-                            Onyx.set(update.key, update.value);
-                        }
-                    }
-                }
-                return Promise.resolve();
-            });
+            writeSpy = jest.fn();
+            apiSpies = spyOnApiWrites(writeSpy);
             await Onyx.clear();
             currencyListProvider = await initCurrencyListContext({
                 keys: ONYXKEYS,
@@ -123,7 +155,9 @@ describe('actions/Duplicate', () => {
 
         afterEach(() => {
             currencyListProvider.unmount();
-            writeSpy.mockRestore();
+            for (const spy of apiSpies) {
+                spy.mockRestore();
+            }
         });
 
         const createMockTransaction = (id: string, reportID: string, amount = 100): Transaction => ({
@@ -1033,30 +1067,21 @@ describe('actions/Duplicate', () => {
     });
 
     describe('resolveDuplicates', () => {
-        let writeSpy: jest.SpyInstance;
+        let writeSpy: jest.Mock;
+        let apiSpies: jest.SpyInstance[];
 
         beforeEach(() => {
             jest.clearAllMocks();
             global.fetch = getGlobalFetchMock();
-            // eslint-disable-next-line rulesdir/no-multiple-api-calls
-            writeSpy = jest.spyOn(API, 'write').mockImplementation((command, params, options) => {
-                // Apply optimistic data for testing
-                if (options?.optimisticData) {
-                    for (const update of options.optimisticData) {
-                        if (update.onyxMethod === Onyx.METHOD.MERGE) {
-                            Onyx.merge(update.key, update.value);
-                        } else if (update.onyxMethod === Onyx.METHOD.SET) {
-                            Onyx.set(update.key, update.value);
-                        }
-                    }
-                }
-                return Promise.resolve();
-            });
+            writeSpy = jest.fn();
+            apiSpies = spyOnApiWrites(writeSpy);
             return Onyx.clear();
         });
 
         afterEach(() => {
-            writeSpy.mockRestore();
+            for (const spy of apiSpies) {
+                spy.mockRestore();
+            }
         });
 
         const createMockTransaction = (id: string, reportID: string, amount = 100): Transaction => ({
@@ -1319,7 +1344,6 @@ describe('actions/Duplicate', () => {
             expect(updatedMainViolations).toEqual([{name: CONST.VIOLATIONS.MISSING_CATEGORY, type: CONST.VIOLATION_TYPES.VIOLATION}]);
 
             // Then: Verify API was called
-            // eslint-disable-next-line
             expect(API.write).toHaveBeenCalledWith(WRITE_COMMANDS.RESOLVE_DUPLICATES, expect.objectContaining({}), expect.objectContaining({}));
         });
 
@@ -1726,7 +1750,8 @@ describe('actions/Duplicate', () => {
     });
 
     describe('duplicateExpenseTransaction', () => {
-        let writeSpy: jest.SpyInstance;
+        let writeSpy: jest.Mock;
+        let apiSpies: jest.SpyInstance[];
         let recentWaypoints: RecentWaypoint[] = [];
         let targetPolicyTags: OnyxEntry<PolicyTagLists>;
 
@@ -1749,20 +1774,8 @@ describe('actions/Duplicate', () => {
         beforeEach(async () => {
             jest.clearAllMocks();
             global.fetch = getGlobalFetchMock();
-            // eslint-disable-next-line rulesdir/no-multiple-api-calls
-            writeSpy = jest.spyOn(API, 'write').mockImplementation((command, params, options) => {
-                // Apply optimistic data for testing
-                if (options?.optimisticData) {
-                    for (const update of options.optimisticData) {
-                        if (update.onyxMethod === Onyx.METHOD.MERGE) {
-                            Onyx.merge(update.key, update.value);
-                        } else if (update.onyxMethod === Onyx.METHOD.SET) {
-                            Onyx.set(update.key, update.value);
-                        }
-                    }
-                }
-                return Promise.resolve();
-            });
+            writeSpy = jest.fn();
+            apiSpies = spyOnApiWrites(writeSpy);
             recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
             await getOnyxData({
                 key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}`,
@@ -1774,7 +1787,9 @@ describe('actions/Duplicate', () => {
         });
 
         afterEach(() => {
-            writeSpy.mockRestore();
+            for (const spy of apiSpies) {
+                spy.mockRestore();
+            }
         });
 
         it('threads the conciergeChat report through to requestMoney', () => {
@@ -3046,7 +3061,8 @@ describe('actions/Duplicate', () => {
     });
 
     describe('duplicateReport', () => {
-        let writeSpy: jest.SpyInstance;
+        let writeSpy: jest.Mock;
+        let apiSpies: jest.SpyInstance[];
 
         const mockPolicy = createRandomPolicy(1);
         const mockPolicyCategories = createRandomPolicyCategories(3);
@@ -3129,19 +3145,8 @@ describe('actions/Duplicate', () => {
         beforeEach(async () => {
             jest.clearAllMocks();
             global.fetch = getGlobalFetchMock();
-            // eslint-disable-next-line rulesdir/no-multiple-api-calls
-            writeSpy = jest.spyOn(API, 'write').mockImplementation((command, params, options) => {
-                if (options?.optimisticData) {
-                    for (const update of options.optimisticData) {
-                        if (update.onyxMethod === Onyx.METHOD.MERGE) {
-                            Onyx.merge(update.key, update.value);
-                        } else if (update.onyxMethod === Onyx.METHOD.SET) {
-                            Onyx.set(update.key, update.value);
-                        }
-                    }
-                }
-                return Promise.resolve();
-            });
+            writeSpy = jest.fn();
+            apiSpies = spyOnApiWrites(writeSpy);
             await Onyx.clear();
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${POLICY_EXPENSE_CHAT_REPORT_ID}`, {
                 reportID: POLICY_EXPENSE_CHAT_REPORT_ID,
@@ -3154,7 +3159,9 @@ describe('actions/Duplicate', () => {
         });
 
         afterEach(() => {
-            writeSpy.mockRestore();
+            for (const spy of apiSpies) {
+                spy.mockRestore();
+            }
         });
 
         it('should create a new report and duplicate all eligible transactions', async () => {
@@ -3781,7 +3788,8 @@ describe('actions/Duplicate', () => {
     });
 
     describe('bulkDuplicateExpenses', () => {
-        let writeSpy: jest.SpyInstance;
+        let writeSpy: jest.Mock;
+        let apiSpies: jest.SpyInstance[];
 
         const mockPolicy: Policy = {
             ...createRandomPolicy(1),
@@ -3796,26 +3804,17 @@ describe('actions/Duplicate', () => {
         beforeEach(async () => {
             jest.clearAllMocks();
             global.fetch = getGlobalFetchMock();
-            // eslint-disable-next-line rulesdir/no-multiple-api-calls
-            writeSpy = jest.spyOn(API, 'write').mockImplementation((command, params, options) => {
-                if (options?.optimisticData) {
-                    for (const update of options.optimisticData) {
-                        if (update.onyxMethod === Onyx.METHOD.MERGE) {
-                            Onyx.merge(update.key, update.value);
-                        } else if (update.onyxMethod === Onyx.METHOD.SET) {
-                            Onyx.set(update.key, update.value);
-                        }
-                    }
-                }
-                return Promise.resolve();
-            });
+            writeSpy = jest.fn();
+            apiSpies = spyOnApiWrites(writeSpy);
             await Onyx.clear();
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${mockPolicy.id}`, mockPolicy);
             await waitForBatchedUpdates();
         });
 
         afterEach(() => {
-            writeSpy.mockRestore();
+            for (const spy of apiSpies) {
+                spy.mockRestore();
+            }
         });
 
         it('should create a single IOU report for multiple bulk-duplicated expenses', async () => {
@@ -3942,7 +3941,8 @@ describe('actions/Duplicate', () => {
     });
 
     describe('bulkDuplicateReports', () => {
-        let writeSpy: jest.SpyInstance;
+        let writeSpy: jest.Mock;
+        let apiSpies: jest.SpyInstance[];
 
         const SOURCE_POLICY_ID = 'sourcePolicy1';
         const DEFAULT_POLICY_ID = 'defaultPolicy1';
@@ -4054,26 +4054,17 @@ describe('actions/Duplicate', () => {
         beforeEach(async () => {
             jest.clearAllMocks();
             global.fetch = getGlobalFetchMock();
-            // eslint-disable-next-line rulesdir/no-multiple-api-calls
-            writeSpy = jest.spyOn(API, 'write').mockImplementation((command, params, options) => {
-                if (options?.optimisticData) {
-                    for (const update of options.optimisticData) {
-                        if (update.onyxMethod === Onyx.METHOD.MERGE) {
-                            Onyx.merge(update.key, update.value);
-                        } else if (update.onyxMethod === Onyx.METHOD.SET) {
-                            Onyx.set(update.key, update.value);
-                        }
-                    }
-                }
-                return Promise.resolve();
-            });
+            writeSpy = jest.fn();
+            apiSpies = spyOnApiWrites(writeSpy);
             await Onyx.clear();
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${ACTIVE_PEC_REPORT_ID}`, activePolicyExpenseChat);
             await waitForBatchedUpdates();
         });
 
         afterEach(() => {
-            writeSpy.mockRestore();
+            for (const spy of apiSpies) {
+                spy.mockRestore();
+            }
         });
 
         it('should duplicate multiple reports, calling CREATE_APP_REPORT for each', async () => {
