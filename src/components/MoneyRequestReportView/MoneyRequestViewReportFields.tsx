@@ -47,6 +47,13 @@ type MoneyRequestViewReportFieldsProps = {
 
     /** Extra styles for the block. Each call site sits in a container with its own padding, so it sets the spacing it needs. */
     style?: StyleProp<ViewStyle>;
+
+    /**
+     * Stacks the fields one per row at any width, instead of filling rows of `CONST.REPORT_FIELDS_PER_ROW`.
+     * A one-expense report reads as a single expense rather than a table, so its fields stay vertical there.
+     * @default false
+     */
+    shouldUseSingleColumn?: boolean;
 };
 
 type EnrichedPolicyReportField = {
@@ -89,7 +96,7 @@ function ReportFieldView(
         </View>
     );
 }
-function MoneyRequestViewReportFields({report, policy, pendingAction, style}: MoneyRequestViewReportFieldsProps) {
+function MoneyRequestViewReportFields({report, policy, pendingAction, style, shouldUseSingleColumn = false}: MoneyRequestViewReportFieldsProps) {
     const styles = useThemeStyles();
     // The report view is a RightModalNavigator screen shown as a wide RHP, where `useResponsiveLayout` reports a narrow layout at any pane width.
     const {shouldUseNarrowLayout} = useResponsiveLayoutOnWideRHP();
@@ -135,7 +142,7 @@ function MoneyRequestViewReportFields({report, policy, pendingAction, style}: Mo
         return null;
     }
 
-    const columnCount = shouldUseNarrowLayout ? 1 : CONST.REPORT_FIELDS_PER_ROW;
+    const columnCount = shouldUseNarrowLayout || shouldUseSingleColumn ? 1 : CONST.REPORT_FIELDS_PER_ROW;
     const fieldRows: EnrichedPolicyReportField[][] = [];
     for (let index = 0; index < sortedPolicyReportFields.length; index += columnCount) {
         fieldRows.push(sortedPolicyReportFields.slice(index, index + columnCount));

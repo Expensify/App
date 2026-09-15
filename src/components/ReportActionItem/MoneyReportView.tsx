@@ -163,13 +163,15 @@ function MoneyReportView({
                     <>
                         {shouldDisplayReportFields &&
                             (!isCombinedReport || !isOnlyTitleFieldEnabled) && (
-                                // One-expense reports show the same editable grid as the report view, so a field is changed
-                                // in place here too instead of opening the report field editor page.
+                                // One-expense reports edit their fields in place like the report view does, instead of
+                                // opening the report field editor page. They stay one field per row though: this screen
+                                // reads as a single expense rather than a table, so the fields stack vertically here.
                                 <MoneyRequestViewReportFields
                                     report={report}
                                     policy={policy}
                                     pendingAction={pendingAction}
                                     style={styles.mt5}
+                                    shouldUseSingleColumn
                                 />
                             )}
                         {shouldShowTotalRow && (

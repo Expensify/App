@@ -151,7 +151,7 @@ const buildReport = (): OnyxTypes.Report => ({
     total: 0,
 });
 
-const renderReportFields = async (fieldCount: number, extraFields: OnyxTypes.PolicyReportField[] = []) => {
+const renderReportFields = async (fieldCount: number, extraFields: OnyxTypes.PolicyReportField[] = [], shouldUseSingleColumn = false) => {
     const policy = buildPolicy(fieldCount, extraFields);
     const report = buildReport();
 
@@ -166,6 +166,7 @@ const renderReportFields = async (fieldCount: number, extraFields: OnyxTypes.Pol
             <MoneyRequestViewReportFields
                 report={report}
                 policy={policy}
+                shouldUseSingleColumn={shouldUseSingleColumn}
             />
         </ComposeProviders>,
     );
@@ -208,6 +209,13 @@ describe('MoneyRequestViewReportFields', () => {
     it('shows one field per row on a narrow layout', async () => {
         mockShouldUseNarrowLayout = true;
         await renderReportFields(4);
+
+        expect(screen.getAllByTestId('reportFieldsRow')).toHaveLength(4);
+    });
+
+    it('shows one field per row on a wide layout when a single column is requested', async () => {
+        // A one-expense report passes `shouldUseSingleColumn`, so its fields stack even though the layout is wide
+        await renderReportFields(4, [], true);
 
         expect(screen.getAllByTestId('reportFieldsRow')).toHaveLength(4);
     });
