@@ -1,6 +1,6 @@
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {createMoveExpenseReportNVPSelector, getStableReportSelector, policyChatRoomsSelector} from '@src/selectors/Report';
+import {createMoveExpenseReportNVPSelector, getStableReportSelector, policyChatRoomsSelector, policyExpenseChatSelector} from '@src/selectors/Report';
 import type {Report} from '@src/types/onyx';
 
 describe('policyChatRoomsSelector', () => {
@@ -155,5 +155,75 @@ describe('getStableReportSelector', () => {
 
     it('passes undefined permissions through', () => {
         expect(getStableReportSelector({reportID: '1'} as Report)?.permissions).toBeUndefined();
+    });
+});
+describe('policyExpenseChatSelector', () => {
+    const REPORT_KEY_PREFIX = ONYXKEYS.COLLECTION.REPORT;
+    const ownerAccountID = 1;
+    const policyID = 'policy1';
+
+    const policyExpenseChat = {
+        reportID: '1',
+        policyID,
+        ownerAccountID,
+        chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+        type: CONST.REPORT.TYPE.CHAT,
+    } as Report;
+
+    it('returns undefined when ownerAccountID is undefined', () => {
+        const reports = {[`${REPORT_KEY_PREFIX}1`]: policyExpenseChat};
+        expect(policyExpenseChatSelector(undefined, policyID)(reports)).toBeUndefined();
+    });
+
+    it('returns undefined when policyID is undefined', () => {
+        const reports = {[`${REPORT_KEY_PREFIX}1`]: policyExpenseChat};
+        expect(policyExpenseChatSelector(ownerAccountID, undefined)(reports)).toBeUndefined();
+    });
+
+    it('returns the matching policy expense chat', () => {
+        const reports = {[`${REPORT_KEY_PREFIX}1`]: policyExpenseChat};
+        expect(policyExpenseChatSelector(ownerAccountID, policyID)(reports)?.reportID).toBe('1');
+    });
+
+    it('skips thread reports', () => {
+        const threadReport = {
+            ...policyExpenseChat,
+            reportID: '2',
+            parentReportID: '1',
+            parentReportActionID: 'action1',
+        } as Report;
+        const reports = {[`${REPORT_KEY_PREFIX}2`]: threadReport};
+        expect(policyExpenseChatSelector(ownerAccountID, policyID)(reports)).toBeUndefined();
+    });
+
+    it('skips reports with different ownerAccountID', () => {
+        const otherOwnerReport = {...policyExpenseChat, reportID: '3', ownerAccountID: 999} as Report;
+        const reports = {[`${REPORT_KEY_PREFIX}3`]: otherOwnerReport};
+        expect(policyExpenseChatSelector(ownerAccountID, policyID)(reports)).toBeUndefined();
+    });
+
+    it('skips reports with different policyID', () => {
+        const otherPolicyReport = {...policyExpenseChat, reportID: '4', policyID: 'other'} as Report;
+        const reports = {[`${REPORT_KEY_PREFIX}4`]: otherPolicyReport};
+        expect(policyExpenseChatSelector(ownerAccountID, policyID)(reports)).toBeUndefined();
+    });
+
+    it('returns the policy expense chat even when mixed with task reports', () => {
+        const taskReport = {
+            ...policyExpenseChat,
+            reportID: '10',
+            type: CONST.REPORT.TYPE.TASK,
+            parentReportID: '1',
+            parentReportActionID: 'action1',
+        } as Report;
+        const reports = {
+            [`${REPORT_KEY_PREFIX}10`]: taskReport,
+            [`${REPORT_KEY_PREFIX}1`]: policyExpenseChat,
+        };
+        expect(policyExpenseChatSelector(ownerAccountID, policyID)(reports)?.reportID).toBe('1');
+    });
+
+    it('returns undefined when reports is undefined', () => {
+        expect(policyExpenseChatSelector(ownerAccountID, policyID)(undefined)).toBeUndefined();
     });
 });
