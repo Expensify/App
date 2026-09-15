@@ -695,9 +695,11 @@ type GetSectionsParams = {
 };
 
 /**
- * Search keys whose menu items stay selected even when the user manually
- * changes the sort order.  Every other search key requires the current
- * sortBy/sortOrder to match the menu item's defaults for it to be active.
+ * Search keys whose default query constrains nothing beyond its type, so any query of that type
+ * belongs to them. That is why their menu items stay selected even when the user manually changes
+ * the sort order, while every other search key requires the current sortBy/sortOrder to match the
+ * menu item's defaults to stay active. For the same reason they must never be matched by their
+ * stored last query, which would let them shadow a more specific search.
  */
 const GENERIC_SEARCH_KEYS: ReadonlySet<SearchKey> = new Set([CONST.SEARCH.SEARCH_KEYS.EXPENSES, CONST.SEARCH.SEARCH_KEYS.REPORTS]);
 
@@ -7603,6 +7605,7 @@ function isTransactionMatchWithGroupItem(transaction: OnyxTypes.Transaction, gro
 }
 
 export {
+    GENERIC_SEARCH_KEYS,
     getSearchBulkEditPolicyID,
     getSuggestedSearches,
     getSections,

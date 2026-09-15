@@ -8,7 +8,7 @@ import useRootNavigationState from '@hooks/useRootNavigationState';
 import {getDeepestFocusedScreen} from '@libs/Navigation/Navigation';
 import {buildSearchQueryJSON, buildSearchQueryString, doesQueryMatchDefaultFilterKeysAndType} from '@libs/SearchQueryUtils';
 import type {SearchKey} from '@libs/SearchUIUtils';
-import {getLastSearchQuery, getSuggestedSearches, savedSearchIDToSearchKey, getSuggestedSearchesVisibility} from '@libs/SearchUIUtils';
+import {GENERIC_SEARCH_KEYS, getLastSearchQuery, getSuggestedSearches, savedSearchIDToSearchKey, searchKeyToSavedSearchID, getSuggestedSearchesVisibility} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -71,28 +71,67 @@ function SearchQueryProvider({children}: SearchQueryProviderProps) {
 
     const [shouldResetSearchQuery, setShouldResetSearchQuery] = useState(false);
 
-    const getSearchKeyForQuery = (queryJSON = currentSearchQueryJSON) => {
-        const suggestedSearchKey = Object.values(suggestedSearches).find((search) => {
-            const lastSearchFilterQuery = getLastSearchQuery(searchFilters, search.key);
-            const lastSearchFilter = lastSearchFilterQuery ? buildSearchQueryJSON(lastSearchFilterQuery) : undefined;
-            return search.similarSearchHash === queryJSON?.similarSearchHash || lastSearchFilter?.similarSearchHash === queryJSON?.similarSearchHash;
-        })?.key;
-        if (suggestedSearchKey) {
-            return suggestedSearchKey;
+    /**
+     * Resolves the key only from signals that positively identify the query as a specific search: a suggested
+     * search's own default query, or a saved search's exact query. A search's stored last query is deliberately
+     * excluded, because `similarSearchHash` compares only the filter *keys* of most filters, so an unrelated
+     * stored query collides with the current one (`merchant:Amazon` and `merchant:Zulu` hash identically).
+     *
+     * Neither signal is unique, though. "Card statements" and "Unapproved card" share a `similarSearchHash`
+     * whenever the card feed is empty, because both queries then collapse to an expense search grouped by card
+     * whose only filter is the similar-search-ignored feed. Two saved searches can also hold the same query.
+     * `preferredSearchKey` is the key we are already on, and it breaks those ties so that an ambiguous match
+     * never drags the user onto whichever search happens to be declared first.
+     */
+    const getExactSearchKeyForQuery = (queryJSON = currentSearchQueryJSON, preferredSearchKey?: SearchKey) => {
+        const suggestedSearchKeys = Object.values(suggestedSearches)
+            .filter((search) => search.similarSearchHash === queryJSON?.similarSearchHash)
+            .map((search) => search.key);
+        if (suggestedSearchKeys.length > 0) {
+            return preferredSearchKey && suggestedSearchKeys.includes(preferredSearchKey) ? preferredSearchKey : suggestedSearchKeys.at(0);
         }
 
-        const savedSearchID = Object.keys(savedSearches ?? {}).find((id) => {
+        const savedSearchIDs = Object.keys(savedSearches ?? {}).filter((id) => {
             const savedSearchQuery = savedSearches?.[id].query;
-            const lastSavedSearchQuery = getLastSearchQuery(searchFilters, savedSearchIDToSearchKey(id));
+            return savedSearchQuery ? buildSearchQueryJSON(savedSearchQuery)?.hash === queryJSON?.hash : false;
+        });
+        const firstSavedSearchID = savedSearchIDs.at(0);
+        if (!firstSavedSearchID) {
+            return undefined;
+        }
 
-            return (
-                (savedSearchQuery ? buildSearchQueryJSON(savedSearchQuery)?.hash === queryJSON?.hash : false) ||
-                (lastSavedSearchQuery ? buildSearchQueryJSON(lastSavedSearchQuery)?.hash === queryJSON?.hash : false)
-            );
+        const preferredSavedSearchID = searchKeyToSavedSearchID(preferredSearchKey);
+        return savedSearchIDToSearchKey(preferredSavedSearchID && savedSearchIDs.includes(preferredSavedSearchID) ? preferredSavedSearchID : firstSavedSearchID);
+    };
+
+    const getSearchKeyForQuery = (queryJSON = currentSearchQueryJSON) => {
+        const exactSearchKey = getExactSearchKeyForQuery(queryJSON);
+        if (exactSearchKey) {
+            return exactSearchKey;
+        }
+
+        // Only then fall back to the query each search was last used with. Generic keys are skipped here: their
+        // defaults constrain nothing, so they already win via the type fallback below, and matching them on a
+        // last query would let them shadow the specific search the query actually belongs to.
+        const lastQuerySearchKey = Object.values(suggestedSearches).find((search) => {
+            if (GENERIC_SEARCH_KEYS.has(search.key)) {
+                return false;
+            }
+            const lastSearchFilterQuery = getLastSearchQuery(searchFilters, search.key);
+            const lastSearchFilter = lastSearchFilterQuery ? buildSearchQueryJSON(lastSearchFilterQuery) : undefined;
+            return lastSearchFilter?.similarSearchHash === queryJSON?.similarSearchHash;
+        })?.key;
+        if (lastQuerySearchKey) {
+            return lastQuerySearchKey;
+        }
+
+        const lastQuerySavedSearchID = Object.keys(savedSearches ?? {}).find((id) => {
+            const lastSavedSearchQuery = getLastSearchQuery(searchFilters, savedSearchIDToSearchKey(id));
+            return lastSavedSearchQuery ? buildSearchQueryJSON(lastSavedSearchQuery)?.hash === queryJSON?.hash : false;
         });
 
-        if (savedSearchID) {
-            return savedSearchIDToSearchKey(savedSearchID);
+        if (lastQuerySavedSearchID) {
+            return savedSearchIDToSearchKey(lastQuerySavedSearchID);
         }
 
         return queryJSON?.type ? typeToGenericKey[queryJSON.type] : undefined;
@@ -129,6 +168,17 @@ function SearchQueryProvider({children}: SearchQueryProviderProps) {
         // it's not a "Card statements" search anymore. This can happen when accessing the page through a link/deeplink.
         else if (!doesQueryMatchDefaultFilterKeysAndType(currentSearchQueryJSON, currentDefaultSearchQueryJSON)) {
             resetSearchKey();
+        }
+        // The query can satisfy the current key's default filters and still be a different search entirely,
+        // because a generic key's default constrains nothing: every expense-report query "matches" Reports.
+        // So when the new query *is* another search's default (or a saved search), switch to that more
+        // specific key. Only those exact signals may switch the key here. A last-query match is too coarse
+        // to distinguish a genuine tab change from the user editing a filter on the current tab.
+        else {
+            const exactSearchKey = getExactSearchKeyForQuery(currentSearchQueryJSON, currentSearchKey);
+            if (exactSearchKey && exactSearchKey !== currentSearchKey) {
+                setCurrentSearchKey(exactSearchKey);
+            }
         }
     }
 
