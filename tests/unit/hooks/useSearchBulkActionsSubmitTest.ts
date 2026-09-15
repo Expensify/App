@@ -282,6 +282,7 @@ async function mergeTransaction(transactionID: string, reportID: string, overrid
         reportID,
         policyID: POLICY_ID,
         amount: 100,
+        displayAmount: 100,
         currency: 'USD',
         isFromOneTransactionReport: false,
     };
