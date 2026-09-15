@@ -186,14 +186,9 @@ function MoneyRequestReportActionsListContent({reportIDFromRoute, onLayout}: Mon
     const lastVisibleActionCreated = getReportLastVisibleActionCreated(report, transactionThreadReport);
     const hasNewestReportAction = lastAction?.created === lastVisibleActionCreated;
 
-    const reportActionIDs = useMemo(() => {
-        return reportActions?.map((action) => action.reportActionID) ?? [];
-    }, [reportActions]);
-
     const {onStartReached, onEndReached} = useMoneyRequestReportPagination({
         reportID,
         reportActions,
-        reportActionIDs,
         transactionThreadReportID,
         hasOlderActions,
         hasNewerActions,
