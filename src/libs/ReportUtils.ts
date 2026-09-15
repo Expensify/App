@@ -134,7 +134,6 @@ import {rand64} from './NumberUtils';
 import Parser from './Parser';
 import {getParsedMessageWithShortMentions} from './ParsingUtils';
 import {getBankAccountLastFourDigits} from './PaymentUtils';
-import Permissions from './Permissions';
 import {getAccountIDsByLogins, getDisplayNameOrDefault, getLoginByAccountID, getPersonalDetailByEmail, temporaryGetDisplayNameOrDefault} from './PersonalDetailsUtils';
 import {
     canSendInvoiceFromWorkspace,
@@ -1019,7 +1018,7 @@ type BuildOptimisticExpenseReportParams = {
     payeeAccountID: number;
     total: number;
     currency: string;
-    betas: OnyxEntry<Beta[]>;
+    isASAPSubmitBetaEnabled: boolean;
     nonReimbursableTotal?: number;
     parentReportActionID?: string;
     optimisticIOUReportID?: string;
@@ -7324,8 +7323,7 @@ function computeOptimisticReportNameWithMetadata(
  * Returns the stateNum and statusNum for an expense report based on the policy settings
  * @param policy
  */
-function getExpenseReportStateAndStatus(policy: OnyxEntry<Policy>, betas: OnyxEntry<Beta[]>, isEmptyOptimisticReport = false) {
-    const isASAPSubmitBetaEnabled = Permissions.isBetaEnabled(CONST.BETAS.ASAP_SUBMIT, betas);
+function getExpenseReportStateAndStatus(policy: OnyxEntry<Policy>, isASAPSubmitBetaEnabled: boolean, isEmptyOptimisticReport = false) {
     if (isASAPSubmitBetaEnabled) {
         return {
             stateNum: CONST.REPORT.STATE_NUM.OPEN,
@@ -7374,7 +7372,7 @@ function buildOptimisticExpenseReport({
     payeeAccountID,
     total,
     currency,
-    betas,
+    isASAPSubmitBetaEnabled,
     nonReimbursableTotal = 0,
     parentReportActionID,
     optimisticIOUReportID,
@@ -7394,7 +7392,7 @@ function buildOptimisticExpenseReport({
     const policyDraft = allPolicyDrafts?.[`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID}`];
     const policy = policyReal ?? policyDraft;
 
-    const {stateNum, statusNum} = getExpenseReportStateAndStatus(policy, betas);
+    const {stateNum, statusNum} = getExpenseReportStateAndStatus(policy, isASAPSubmitBetaEnabled);
 
     const created = createdTimestamp ?? DateUtils.getDBTime();
 
@@ -7452,11 +7450,11 @@ function buildOptimisticEmptyReport(
     parentReportActionID: string,
     policy: OnyxEntry<Policy>,
     timeOfCreation: string,
-    betas: OnyxEntry<Beta[]>,
+    isASAPSubmitBetaEnabled: boolean,
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'],
     rules: OnyxCollection<Rule>,
 ) {
-    const {stateNum, statusNum} = getExpenseReportStateAndStatus(policy, betas, true);
+    const {stateNum, statusNum} = getExpenseReportStateAndStatus(policy, isASAPSubmitBetaEnabled, true);
     const optimisticEmptyReport: OptimisticNewReport = {
         reportName: '',
         reportID,
@@ -9759,7 +9757,7 @@ function isIOUOwnedByCurrentUser(report: OnyxEntry<Report>, allReportsDict?: Ony
  * Assuming the passed in report is a default room, lets us know whether we can see it or not, based on permissions and
  * the various subsets of users we've allowed to use default rooms.
  */
-function canSeeDefaultRoom(report: OnyxEntry<Report>, betas: OnyxEntry<Beta[]>, hasGuidesEmails: boolean, isReportArchived = false): boolean {
+function canSeeDefaultRoom(report: OnyxEntry<Report>, isDefaultRoomsBetaEnabled: boolean, hasGuidesEmails: boolean, isReportArchived = false): boolean {
     // Include archived rooms
     if (isArchivedNonExpenseReport(report, isReportArchived)) {
         return true;
@@ -9776,12 +9774,12 @@ function canSeeDefaultRoom(report: OnyxEntry<Report>, betas: OnyxEntry<Beta[]>, 
     }
 
     // For all other cases, just check that the user belongs to the default rooms beta
-    return Permissions.isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS, betas ?? []);
+    return isDefaultRoomsBetaEnabled;
 }
 
-function canAccessReport(report: OnyxEntry<Report>, betas: OnyxEntry<Beta[]>, hasGuidesEmails: boolean, isReportArchived = false): boolean {
+function canAccessReport(report: OnyxEntry<Report>, isDefaultRoomsBetaEnabled: boolean, hasGuidesEmails: boolean, isReportArchived = false): boolean {
     // We hide default rooms (it's basically just domain rooms now) from people who aren't on the defaultRooms beta.
-    if (isDefaultRoom(report) && !canSeeDefaultRoom(report, betas, hasGuidesEmails, isReportArchived)) {
+    if (isDefaultRoom(report) && !canSeeDefaultRoom(report, isDefaultRoomsBetaEnabled, hasGuidesEmails, isReportArchived)) {
         return false;
     }
 
@@ -10239,7 +10237,7 @@ type ShouldReportBeInOptionListParams = {
     chatReport: OnyxEntry<Report>;
     currentReportId: string | undefined;
     isInFocusMode: boolean;
-    betas: OnyxEntry<Beta[]>;
+    isDefaultRoomsBetaEnabled: boolean;
     excludeEmptyChats: boolean;
     doesReportHaveViolations: boolean;
     includeSelfDM?: boolean;
@@ -10260,7 +10258,7 @@ function reasonForReportToBeInOptionList({
     chatReport,
     currentReportId,
     isInFocusMode,
-    betas,
+    isDefaultRoomsBetaEnabled,
     excludeEmptyChats,
     doesReportHaveViolations,
     draftComment,
@@ -10324,7 +10322,7 @@ function reasonForReportToBeInOptionList({
         return null;
     }
 
-    if (!canAccessReport(report, betas, hasGuidesEmails, isReportArchived)) {
+    if (!canAccessReport(report, isDefaultRoomsBetaEnabled, hasGuidesEmails, isReportArchived)) {
         return null;
     }
 
@@ -11517,8 +11515,8 @@ function isReportParticipant(accountID: number | undefined, report: OnyxEntry<Re
 /**
  * Check to see if the current user has access to view the report.
  */
-function canCurrentUserOpenReport(report: OnyxEntry<Report>, betas: OnyxEntry<Beta[]>, hasGuidesEmails: boolean, isReportArchived = false): boolean {
-    return (isReportParticipant(deprecatedCurrentUserAccountID, report) || isPublicRoom(report)) && canAccessReport(report, betas, hasGuidesEmails, isReportArchived);
+function canCurrentUserOpenReport(report: OnyxEntry<Report>, isDefaultRoomsBetaEnabled: boolean, hasGuidesEmails: boolean, isReportArchived = false): boolean {
+    return (isReportParticipant(deprecatedCurrentUserAccountID, report) || isPublicRoom(report)) && canAccessReport(report, isDefaultRoomsBetaEnabled, hasGuidesEmails, isReportArchived);
 }
 
 function shouldUseFullTitleToDisplay(report: OnyxEntry<Report>): boolean {
@@ -11934,7 +11932,7 @@ function shouldCreateNewMoneyRequestReport(
     existingIOUReport: OnyxInputOrEntry<Report> | undefined,
     chatReport: OnyxInputOrEntry<Report>,
     isScanRequest: boolean,
-    betas: OnyxEntry<Beta[]>,
+    isASAPSubmitBetaEnabled: boolean,
     rules: OnyxCollection<Rule>,
     action?: IOUAction,
     isFromExistingReport?: boolean,
@@ -11943,7 +11941,6 @@ function shouldCreateNewMoneyRequestReport(
         return true;
     }
 
-    const isASAPSubmitBetaEnabled = Permissions.isBetaEnabled(CONST.BETAS.ASAP_SUBMIT, betas);
     return (
         !existingIOUReport ||
         isReportPendingDelete(existingIOUReport) ||

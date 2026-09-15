@@ -434,7 +434,6 @@ function handleMoneyRequestStepDistanceNavigation({
                         policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
                         personalDetails,
                         recentWaypoints,
-                        betas,
                         previousOdometerDraft,
                         policyParams: {
                             policyTagList,

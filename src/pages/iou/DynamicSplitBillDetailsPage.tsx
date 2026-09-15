@@ -70,7 +70,6 @@ function DynamicSplitBillDetailsPage({report, reportAction}: SplitBillDetailsPag
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const reportAttributesDerived = useReportAttributes();
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`);
     const privateIsArchived = useReportIsArchived(reportID);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
@@ -123,7 +122,6 @@ function DynamicSplitBillDetailsPage({report, reportAction}: SplitBillDetailsPag
             isASAPSubmitBetaEnabled,
             quickAction,
             transactionViolations,
-            betas,
             personalDetails,
             delegateAccountID,
             isTrackIntentUser,
@@ -143,7 +141,6 @@ function DynamicSplitBillDetailsPage({report, reportAction}: SplitBillDetailsPag
         isASAPSubmitBetaEnabled,
         quickAction,
         transactionViolations,
-        betas,
         personalDetails,
         delegateAccountID,
         isTrackIntentUser,

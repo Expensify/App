@@ -48,7 +48,6 @@ import {submitWithDismissFirst} from './Navigation/helpers/submitWithDismissFirs
 import Navigation from './Navigation/Navigation';
 import {rand64} from './NumberUtils';
 import {getParticipantsOption, getReportOption} from './OptionsListUtils';
-import Permissions from './Permissions';
 import {getLoginByAccountID} from './PersonalDetailsUtils';
 import {isTaxTrackingEnabled} from './PolicyUtils';
 import {getPolicyExpenseChat, getTransactionDetails, isMoneyRequestReport, isPolicyExpenseChat, isSelfDM, shouldEnableNegative} from './ReportUtils';
@@ -104,7 +103,7 @@ type SubmitAmountArgs = {
     isTrackIntentUser: boolean | undefined;
     reportAttributesDerivedValue: OnyxEntry<ReportAttributesDerivedValue>;
     betas: OnyxEntry<OnyxTypes.Beta[]>;
-    betaConfiguration: OnyxEntry<OnyxTypes.BetaConfiguration>;
+    isASAPSubmitBetaEnabled: boolean;
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
     onboarding: OnyxEntry<OnyxTypes.Onboarding>;
     introSelected: OnyxEntry<OnyxTypes.IntroSelected>;
@@ -223,7 +222,7 @@ function navigateToParticipantPageDeferred(iouType: IOUType, transactionID: stri
 }
 
 function buildSubmitAmountContext(args: SubmitAmountArgs): SubmitAmountContext {
-    const {action, iouType, transaction, splitDraftTransaction, report, policy, currentUserPersonalDetails, betas, betaConfiguration, amount} = args;
+    const {action, iouType, transaction, splitDraftTransaction, report, policy, currentUserPersonalDetails, isASAPSubmitBetaEnabled, amount} = args;
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const isCreateAction = action === CONST.IOU.ACTION.CREATE;
     const isSubmitAction = action === CONST.IOU.ACTION.SUBMIT;
@@ -243,7 +242,7 @@ function buildSubmitAmountContext(args: SubmitAmountArgs): SubmitAmountContext {
         currentUserAccountID: currentUserPersonalDetails.accountID,
         currentUserEmail: currentUserPersonalDetails.login ?? '',
         existingTransactionID: getExistingTransactionID(transaction?.linkedTrackedExpenseReportAction),
-        isASAPSubmitBetaEnabled: Permissions.isBetaEnabled(CONST.BETAS.ASAP_SUBMIT, betas, betaConfiguration),
+        isASAPSubmitBetaEnabled,
         newAmount: convertToBackendAmount(Number.parseFloat(amount)),
     };
 }
@@ -417,7 +416,6 @@ function submitSkipConfirmationExpense(args: SubmitAmountArgs, ctx: SubmitAmount
             const existingTransactionDraft = existingTransactionID ? transactionDrafts?.[existingTransactionID] : undefined;
             requestMoney({
                 report,
-                betas,
                 participantParams: {
                     participant: participant ?? {},
                     payeeEmail: currentUserEmail,

@@ -230,7 +230,6 @@ function createTransaction({
 
             requestMoney({
                 report,
-                betas,
                 participantParams: {
                     payeeEmail: currentUserEmail,
                     payeeAccountID: currentUserAccountID,
