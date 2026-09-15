@@ -820,4 +820,14 @@ describe('DateUtils', () => {
             expect(DateUtils.getTime12HourWithTranslatedPeriod(translateJA, '2026-08-04 08:00:00')).toBe('08:00 午前');
         });
     });
+
+    describe('Search day formatting', () => {
+        test('formats a full day label', () => {
+            expect(DateUtils.getFormattedDayForSearch('2026-09-15', undefined)).toBe('September 15, 2026');
+        });
+
+        test('formats a compact day label', () => {
+            expect(DateUtils.getShortFormattedDayForSearch('2026-09-15', undefined)).toBe('Sep 15, ’26');
+        });
+    });
 });
