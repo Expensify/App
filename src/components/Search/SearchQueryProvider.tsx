@@ -1,15 +1,19 @@
 import useCardFeedsForDisplay from '@hooks/useCardFeedsForDisplay';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLoadSearchCategoryData from '@hooks/useLoadSearchCategoryData';
+import useOnyx from '@hooks/useOnyx';
 import usePreviousDefined from '@hooks/usePreviousDefined';
 import useRootNavigationState from '@hooks/useRootNavigationState';
 
 import {getDeepestFocusedScreen} from '@libs/Navigation/Navigation';
-import {buildSearchQueryJSON, buildSearchQueryString} from '@libs/SearchQueryUtils';
-import {getSuggestedSearches} from '@libs/SearchUIUtils';
+import {buildSearchQueryJSON, buildSearchQueryString, doesQueryMatchDefaultFilterKeysAndType} from '@libs/SearchQueryUtils';
+import type {SearchKey} from '@libs/SearchUIUtils';
+import {getLastSearchQuery, getSuggestedSearches, savedSearchIDToSearchKey, getSuggestedSearchesVisibility} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
+import {defaultExpensifyCardSelector} from '@src/selectors/Card';
 
 import type {NavigationState} from '@react-navigation/routers';
 
@@ -22,6 +26,11 @@ import {SearchQueryActionsContext, SearchQueryContext} from './SearchContextDefi
 
 type SearchQueryProviderProps = {
     children: React.ReactNode;
+};
+
+const typeToGenericKey: Record<string, SearchKey> = {
+    [CONST.SEARCH.DATA_TYPES.EXPENSE]: CONST.SEARCH.SEARCH_KEYS.EXPENSES,
+    [CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT]: CONST.SEARCH.SEARCH_KEYS.REPORTS,
 };
 
 function selectSearchQueryParam(state: NavigationState | undefined) {
@@ -46,27 +55,107 @@ function SearchQueryProvider({children}: SearchQueryProviderProps) {
     useLoadSearchCategoryData({shouldLoad: shouldLoadCategoryData});
 
     const {defaultCardFeed, activeExpensifyCardFeedID} = useCardFeedsForDisplay();
-    const {accountID} = useCurrentUserPersonalDetails();
+    const [defaultExpensifyCardID] = useOnyx(ONYXKEYS.DERIVED.NON_PERSONAL_AND_WORKSPACE_CARD_LIST, {selector: (card) => defaultExpensifyCardSelector(card)?.id});
+    const {accountID, email} = useCurrentUserPersonalDetails();
+    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const defaultCardFeedID = defaultCardFeed?.id;
-    const suggestedSearches = getSuggestedSearches(accountID, defaultCardFeedID, undefined, activeExpensifyCardFeedID);
+    const {shouldShowExpensifyCard} = getSuggestedSearchesVisibility(email, {}, policies, undefined);
+    const suggestedSearches = getSuggestedSearches(accountID, defaultCardFeedID ?? defaultExpensifyCardID, shouldShowExpensifyCard, activeExpensifyCardFeedID);
 
     const currentSearchHash = currentSearchQueryJSON?.hash ?? -1;
     const currentSimilarSearchHash = currentSearchQueryJSON?.similarSearchHash ?? -1;
-    const currentSearchKey = Object.values(suggestedSearches).find((search) => search.similarSearchHash === currentSimilarSearchHash)?.key;
+    const [prevCurrentSearchHash, setPrevCurrentSearchHash] = useState(currentSearchHash);
+
+    const [searchFilters] = useOnyx(ONYXKEYS.SEARCH_FILTERS);
+    const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES);
 
     const [shouldResetSearchQuery, setShouldResetSearchQuery] = useState(false);
+
+    const getSearchKeyForQuery = (queryJSON = currentSearchQueryJSON) => {
+        const suggestedSearchKey = Object.values(suggestedSearches).find((search) => {
+            const lastSearchFilterQuery = getLastSearchQuery(searchFilters, search.key);
+            const lastSearchFilter = lastSearchFilterQuery ? buildSearchQueryJSON(lastSearchFilterQuery) : undefined;
+            return search.similarSearchHash === queryJSON?.similarSearchHash || lastSearchFilter?.similarSearchHash === queryJSON?.similarSearchHash;
+        })?.key;
+        if (suggestedSearchKey) {
+            return suggestedSearchKey;
+        }
+
+        const savedSearchID = Object.keys(savedSearches ?? {}).find((id) => {
+            const savedSearchQuery = savedSearches?.[id].query;
+            const lastSavedSearchQuery = getLastSearchQuery(searchFilters, savedSearchIDToSearchKey(id));
+
+            return (
+                (savedSearchQuery ? buildSearchQueryJSON(savedSearchQuery)?.hash === queryJSON?.hash : false) ||
+                (lastSavedSearchQuery ? buildSearchQueryJSON(lastSavedSearchQuery)?.hash === queryJSON?.hash : false)
+            );
+        });
+
+        if (savedSearchID) {
+            return savedSearchIDToSearchKey(savedSearchID);
+        }
+
+        return queryJSON?.type ? typeToGenericKey[queryJSON.type] : undefined;
+    };
+
+    const [currentSearchKey, setCurrentSearchKey] = useState(getSearchKeyForQuery);
+    // Search key can be undefined when the query is not bound to any search key (e.g., query with type of chat).
+    // `null` means there is no pending current search key.
+    const [pendingCurrentSearchKey, setPendingCurrentSearchKey] = useState<SearchKey | undefined | null>(null);
+
+    const currentDefaultSearchQueryString = currentSearchKey ? suggestedSearches[currentSearchKey]?.searchQuery : undefined;
+    const currentDefaultSearchQueryJSON = currentDefaultSearchQueryString ? buildSearchQueryJSON(currentDefaultSearchQueryString) : undefined;
+    const currentDefaultSearchQueryFilterKeys = new Set(currentDefaultSearchQueryJSON?.flatFilters.map((filter) => filter.key));
+
+    const resetSearchKey = (queryJSON = currentSearchQueryJSON) => {
+        const searchKey = getSearchKeyForQuery(queryJSON);
+        if (queryJSON?.hash !== currentSearchHash) {
+            setPendingCurrentSearchKey(searchKey);
+        } else {
+            setCurrentSearchKey(searchKey);
+        }
+    };
+
+    if (currentSearchHash !== prevCurrentSearchHash) {
+        setPrevCurrentSearchHash(currentSearchHash);
+
+        if (pendingCurrentSearchKey !== null) {
+            setCurrentSearchKey(pendingCurrentSearchKey);
+            setPendingCurrentSearchKey(null);
+        }
+        // Every time the query changes, we invalidate the currentSearchKey if the new query doesn't have the default filters
+        // from the currently selected search key query or the type is different. For example, the "Card statements" suggested
+        // search default filters are Feed and Posted. When the query changes (by removing Posted), the search key becomes invalid,
+        // it's not a "Card statements" search anymore. This can happen when accessing the page through a link/deeplink.
+        else if (!doesQueryMatchDefaultFilterKeysAndType(currentSearchQueryJSON, currentDefaultSearchQueryJSON)) {
+            resetSearchKey();
+        }
+    }
 
     const queryValue: SearchQueryContextValue = {
         currentSearchHash,
         currentSimilarSearchHash,
         currentSearchKey,
         currentSearchQueryJSON,
+        currentDefaultSearchQueryJSON,
+        currentDefaultSearchQueryFilterKeys,
         suggestedSearches,
         shouldResetSearchQuery,
     };
 
     const queryActionsValue: SearchQueryActionsValue = {
         setShouldResetSearchQuery,
+        setCurrentSearchKey: (key, pendingQuery) => {
+            // We pending the update of the currentSearchKey to be updated later at the same time with the
+            // currentSearchQueryJSON so the consumer won't see mismatch value between search key and query JSON.
+            const pending = pendingQuery !== undefined && buildSearchQueryJSON(pendingQuery)?.hash !== currentSearchHash;
+            if (pending) {
+                setPendingCurrentSearchKey(key);
+            } else {
+                setCurrentSearchKey(key);
+            }
+        },
+        resetSearchKey,
     };
 
     return (
