@@ -1,8 +1,8 @@
 ---
 title: Navigating New Expensify
 description: Learn how to move around New Expensify using the navigation tabs and Search, including Home, Inbox, Spend, Workspaces, and Account on web and mobile.
-keywords: [New Expensify, navigation tabs, navigation, Home tab, Inbox tab, Inbox filters, Inbox tabs, All tab, Unread tab, To-dos, Spend tab, Workspaces tab, Account tab, Scan button, Create button, workspace filter, Search, go to, jump to destination]
-internalScope: Audience is all Expensify members. Covers how to navigate Expensify using the navigation tabs, the primary action buttons, and Search navigation suggestions. Does not explain the detailed behavior of the Home tab sections.
+keywords: [New Expensify, navigation tabs, navigation, Home tab, Inbox tab, Inbox filters, Inbox tabs, All tab, Unread tab, To-dos, Mark all as read, mark chats as read, clear unread messages, unread badge, Spend tab, Workspaces tab, Account tab, Scan button, Create button, workspace filter, Search, go to, jump to destination]
+internalScope: Audience is all Expensify members. Covers how to navigate Expensify using the navigation tabs, how to filter and clear the Inbox using the Inbox tabs, the primary action buttons, and Search navigation suggestions. Does not explain the detailed behavior of the Home tab sections.
 ---
 
 # Navigating New Expensify 
@@ -82,6 +82,37 @@ Your selected tab is remembered, so the Inbox reopens to the same tab the next t
 Suggestion: Inbox with the All, Unread, and To-dos tabs visible at the top, with a count badge on Unread or To-dos
 Location: After the "How to filter your Inbox using tabs" section
 Purpose: Show users where the filter tabs appear and what the count badge looks like
+-->
+
+---
+
+## How to mark all chats as read from the Inbox tabs
+
+You can clear your unread messages in one step from any of the **Inbox** tabs.
+
+**Web:**
+
+1. Right-click **All**, **Unread**, or **To-dos** at the top of the **Inbox**.
+2. Select **Mark all as read**.
+3. Select **Mark all as read** again to confirm, or select **Cancel** to keep your messages unread.
+
+**Mobile:**
+
+1. Long-press **All**, **Unread**, or **To-dos** at the top of the **Inbox**.
+2. Tap **Mark all as read**.
+3. Tap **Mark all as read** again to confirm, or tap **Cancel** to keep your messages unread.
+
+Which chats are marked as read depends on the tab you used:
+
+- **All** and **Unread** — Marks every unread chat as read.
+- **To-dos** — Marks only the chats listed in **To-dos** as read.
+
+If you have unread messages that are more than three months old, a tip appears next to the **Unread** count badge pointing you to this shortcut. You can dismiss the tip, and it reappears at most once a week.
+
+<!-- SCREENSHOT:
+Suggestion: The Inbox tab row with the Mark all as read menu open after right-clicking the Unread tab
+Location: After the "How to mark all chats as read from the Inbox tabs" section
+Purpose: Show that Mark all as read is only reachable by right-clicking or long-pressing a tab, which members cannot discover from the tab row alone
 -->
 
 ---
@@ -217,6 +248,18 @@ On web, navigation tabs appear on the left. On mobile, navigation tabs appear on
 ## Can I use Search to move between sections of Expensify?
 
 Yes. Select **Search** (the magnifying glass icon), then type the name of a top-level destination: **Home**, **Inbox**, **Spend**, **Workspaces**, or **Account**. Select the **Go to [destination]** result to open it. You can also type **go** or **go to** before the name.
+
+## How do I clear all my unread messages at once?
+
+Right-click (web) or long-press (mobile) **All**, **Unread**, or **To-dos** at the top of the **Inbox**, select **Mark all as read**, then confirm.
+
+## Does Mark all as read clear my to-do chats too?
+
+It depends on the tab you use. From **All** or **Unread**, every unread chat is marked as read. From **To-dos**, only the chats listed in **To-dos** are marked as read.
+
+## Why do I see a tip about Mark all as read next to the Unread tab?
+
+The tip appears when you have unread messages that are more than three months old. Dismiss it to hide it; it reappears at most once a week.
 
 ## Where do I manage workspace settings?
 
