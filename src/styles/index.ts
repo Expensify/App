@@ -2378,6 +2378,34 @@ const staticStyles = (theme: ThemeColors) =>
             paddingTop: 20,
         },
 
+        conciergeAskColumn: {
+            width: '100%',
+            maxWidth: variables.conciergeAskColumnMaxWidth,
+            alignSelf: 'center',
+        },
+
+        askConciergeEmptyStateContainer: {
+            alignItems: 'center',
+            gap: 12,
+            paddingHorizontal: 20,
+        },
+
+        askConciergeEmptyStateTitle: {
+            ...FontUtils.fontFamily.platform.EXP_NEW_KANSAS_MEDIUM,
+            fontSize: variables.fontSizeXLarge,
+            lineHeight: variables.lineHeightSizeH1,
+            textAlign: 'center',
+            color: theme.text,
+        },
+
+        askConciergeEmptyStateDescription: {
+            ...FontUtils.fontFamily.platform.EXP_NEUE,
+            fontSize: variables.fontSizeNormal,
+            lineHeight: variables.fontSizeNormalHeight,
+            textAlign: 'center',
+            color: theme.textSupporting,
+        },
+
         chatItemDraft: {
             display: 'flex',
             flexDirection: 'row',
