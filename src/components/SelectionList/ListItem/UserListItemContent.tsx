@@ -66,7 +66,7 @@ function UserListItemContent<TItem extends ListItem>({
     const {translate, formatPhoneNumber} = useLocalize();
 
     const focusedBackgroundColor = styles.sidebarLinkActive.backgroundColor;
-    const subscriptAvatarBorderColor = isFocused ? focusedBackgroundColor : theme.sidebar;
+    const backdropColor = isFocused ? focusedBackgroundColor : theme.sidebar;
     const hoveredBackgroundColor = !!styles.sidebarLinkHover && 'backgroundColor' in styles.sidebarLinkHover ? styles.sidebarLinkHover.backgroundColor : theme.sidebar;
 
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- some utils that are used to get reportID return empty string "", which would make subscription to the whole collection with nullish coalescing operator, example of this could be found in NewChatPage.tsx where some hooks return reportID as empty strings
@@ -90,12 +90,7 @@ function UserListItemContent<TItem extends ListItem>({
     if (reportExists) {
         avatar = (
             <ReportAvatar
-                subscriptAvatarBorderColor={isHovered && !isFocused ? hoveredBackgroundColor : subscriptAvatarBorderColor}
-                secondaryAvatarContainerStyle={[
-                    StyleUtils.getBackgroundAndBorderStyle(theme.sidebar),
-                    isFocused ? StyleUtils.getBackgroundAndBorderStyle(focusedBackgroundColor) : undefined,
-                    isHovered && !isFocused ? StyleUtils.getBackgroundAndBorderStyle(hoveredBackgroundColor) : undefined,
-                ]}
+                backdropColor={isHovered && !isFocused ? hoveredBackgroundColor : backdropColor}
                 reportID={item.reportID}
                 singleAvatarContainerStyle={[styles.actionAvatar, styles.mr3]}
                 fallbackDisplayName={fallbackDisplayName}
@@ -107,7 +102,7 @@ function UserListItemContent<TItem extends ListItem>({
                 policyID={policyID}
                 accountID={itemAccountID}
                 containerStyle={[styles.actionAvatar, styles.mr3]}
-                subscriptAvatarBorderColor={isHovered && !isFocused ? hoveredBackgroundColor : subscriptAvatarBorderColor}
+                backdropColor={isHovered && !isFocused ? hoveredBackgroundColor : backdropColor}
                 fallbackDisplayName={fallbackDisplayName}
             />
         );

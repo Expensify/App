@@ -10,8 +10,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import type {Icon} from '@src/types/onyx/OnyxCommon';
 
-import type {StyleProp, ViewStyle} from 'react-native';
-
 import React from 'react';
 import {View} from 'react-native';
 
@@ -24,14 +22,14 @@ import getDiagonalAvatarSizing from './getDiagonalAvatarSizing';
 const EMPTY_USER_ICON: Icon = {source: '', type: CONST.ICON_TYPE_AVATAR};
 
 type DiagonalAvatarsProps = MultipleAvatarsProps & {
-    secondaryAvatarContainerStyle?: StyleProp<ViewStyle>;
+    /** Whether the avatars are hovered */
     isHovered?: boolean;
 };
 
 /** `DiagonalAvatars` renders two avatars stacked diagonally — the primary in the top-left and the secondary in the bottom-right.
  * When more than two `icons` are passed, the secondary slot shows a "+N" overflow count instead of the second avatar.
  */
-function DiagonalAvatars({size, icons, isInReportAction, secondaryAvatarContainerStyle, isHovered = false, fallbackDisplayName}: DiagonalAvatarsProps) {
+function DiagonalAvatars({size, icons, isInReportAction, backdropColor, isHovered = false, fallbackDisplayName}: DiagonalAvatarsProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -40,7 +38,7 @@ function DiagonalAvatars({size, icons, isInReportAction, secondaryAvatarContaine
     const secondaryIcon = icons.at(1);
 
     const {avatarSize, singleAvatarStyleKey} = getDiagonalAvatarSizing(size);
-    const secondaryAvatarContainerStyles = secondaryAvatarContainerStyle ?? [StyleUtils.getBackgroundAndBorderStyle(isHovered ? theme.activeComponentBG : theme.componentBG)];
+    const secondaryAvatarContainerStyles = StyleUtils.getBackgroundAndBorderStyle(backdropColor ?? (isHovered ? theme.activeComponentBG : theme.componentBG));
 
     return (
         <DiagonalAvatarsFrame

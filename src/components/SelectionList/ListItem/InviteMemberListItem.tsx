@@ -6,7 +6,6 @@ import Text from '@components/Text';
 import TextWithTooltip from '@components/TextWithTooltip';
 
 import useLocalize from '@hooks/useLocalize';
-import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -41,11 +40,10 @@ function InviteMemberListItem<TItem extends ListItem>({
 }: InviteMemberListItemProps<TItem>) {
     const styles = useThemeStyles();
     const theme = useTheme();
-    const StyleUtils = useStyleUtils();
     const {translate, formatPhoneNumber} = useLocalize();
 
     const focusedBackgroundColor = styles.sidebarLinkActive.backgroundColor;
-    const subscriptAvatarBorderColor = isFocusVisible ? focusedBackgroundColor : theme.sidebar;
+    const backdropColor = isFocusVisible ? focusedBackgroundColor : theme.sidebar;
     const hoveredBackgroundColor = !!styles.sidebarLinkHover && 'backgroundColor' in styles.sidebarLinkHover ? styles.sidebarLinkHover.backgroundColor : theme.sidebar;
 
     const firstItemIconID = Number(item?.icons?.at(0)?.id);
@@ -90,12 +88,7 @@ function InviteMemberListItem<TItem extends ListItem>({
                                 />
                             ) : (
                                 <ReportAvatar
-                                    subscriptAvatarBorderColor={hovered && !isFocusVisible ? hoveredBackgroundColor : subscriptAvatarBorderColor}
-                                    secondaryAvatarContainerStyle={[
-                                        StyleUtils.getBackgroundAndBorderStyle(theme.sidebar),
-                                        isFocusVisible ? StyleUtils.getBackgroundAndBorderStyle(focusedBackgroundColor) : undefined,
-                                        hovered && !isFocusVisible ? StyleUtils.getBackgroundAndBorderStyle(hoveredBackgroundColor) : undefined,
-                                    ]}
+                                    backdropColor={hovered && !isFocusVisible ? hoveredBackgroundColor : backdropColor}
                                     fallbackDisplayName={item.text ?? item.alternateText ?? undefined}
                                     singleAvatarContainerStyle={[styles.actionAvatar, styles.mr3]}
                                     reportID={item.reportID}

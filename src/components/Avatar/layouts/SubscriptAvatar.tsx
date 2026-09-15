@@ -7,7 +7,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import type {Icon as IconType} from '@src/types/onyx/OnyxCommon';
 
-import type {ColorValue, StyleProp, ViewStyle} from 'react-native';
+import type {StyleProp, ViewStyle} from 'react-native';
 
 import React from 'react';
 
@@ -22,12 +22,12 @@ type SubscriptAvatarProps = BaseAvatarProps & {
     /** The secondary (subscript) avatar icon */
     secondaryAvatar?: IconType;
 
-    subscriptAvatarBorderColor?: ColorValue;
+    /** Style for  avatar container */
     containerStyle?: StyleProp<ViewStyle>;
 };
 
 /** `SubscriptAvatar` renders a primary avatar with a smaller secondary avatar overlaid as a subscript in the bottom-right corner. */
-function SubscriptAvatar({primaryAvatar, secondaryAvatar, size, subscriptAvatarBorderColor, fallbackDisplayName, containerStyle}: SubscriptAvatarProps) {
+function SubscriptAvatar({primaryAvatar, secondaryAvatar, size, backdropColor, fallbackDisplayName, containerStyle}: SubscriptAvatarProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -58,7 +58,7 @@ function SubscriptAvatar({primaryAvatar, secondaryAvatar, size, subscriptAvatarB
                         style={styles[containerStyleKey]}
                     >
                         <AvatarFromIcon
-                            iconAdditionalStyles={[StyleUtils.getAvatarBorderWidth(borderWidthSize), StyleUtils.getBorderColorStyle(subscriptAvatarBorderColor ?? theme.componentBG)]}
+                            iconAdditionalStyles={[StyleUtils.getAvatarBorderWidth(borderWidthSize), StyleUtils.getBorderColorStyle(backdropColor ?? theme.componentBG)]}
                             icon={secondaryAvatar}
                             size={subscriptSize}
                             testID="ReportActionAvatars-Subscript-SecondaryAvatar"
