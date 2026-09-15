@@ -5,8 +5,11 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import createSplitNavigator from '@libs/Navigation/AppNavigator/createSplitNavigator';
 import navigationRef from '@libs/Navigation/navigationRef';
+import StackScreenAccessibility from '@libs/Navigation/PlatformStackNavigation/StackScreenAccessibility';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportsSplitNavigatorParamList} from '@libs/Navigation/types';
+
+import SidebarLinksData from '@pages/inbox/sidebar/SidebarLinksData';
 
 import CONST from '@src/CONST';
 import SCREENS from '@src/SCREENS';
@@ -19,9 +22,24 @@ const Split = createSplitNavigator<ReportsSplitNavigatorParamList>();
 
 jest.mock('@hooks/useResponsiveLayout', () => jest.fn());
 jest.mock('@libs/getIsNarrowLayout', () => jest.fn());
+jest.mock('@hooks/useSidebarOrderedReports', () => ({useSidebarOrderedReportsState: () => ({filteredReports: [], orderedReportIDs: []})}));
+jest.mock('@pages/inbox/sidebar/SidebarLinks', () => {
+    const {View: MockView} = jest.requireActual<{View: typeof View}>('react-native');
+    return () => (
+        <MockView
+            accessible
+            accessibilityRole="button"
+            accessibilityLabel="Open chat"
+        />
+    );
+});
 
 function SidebarScreen() {
-    return <View testID="split-sidebar" />;
+    return (
+        <View testID="split-sidebar">
+            <SidebarLinksData insets={{top: 0, right: 0, bottom: 0, left: 0}} />
+        </View>
+    );
 }
 
 function CentralScreen({route}: PlatformStackScreenProps<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>) {
@@ -69,6 +87,43 @@ function setNarrowLayout(isNarrow: boolean) {
 }
 
 describe('Native split navigation', () => {
+    it('exposes the wide chat list beside a report but hides it when the root screen is covered', () => {
+        setNarrowLayout(false);
+        const renderInbox = (isCovered: boolean) => (
+            <StackScreenAccessibility isFocused={!isCovered}>
+                <TestNavigator />
+            </StackScreenAccessibility>
+        );
+        const {rerender} = render(renderInbox(false));
+
+        expect(navigationRef.getRootState().routes.at(-1)?.name).toBe(SCREENS.REPORT);
+        expect(screen.getByRole('button', {name: 'Open chat'})).toBeOnTheScreen();
+
+        // The root JS stack applies this accessibility boundary while an RHP covers the Inbox.
+        rerender(renderInbox(true));
+        expect(screen.queryByRole('button', {name: 'Open chat'})).toBeNull();
+        expect(screen.getByLabelText('Open chat', {includeHiddenElements: true})).toBeOnTheScreen();
+
+        rerender(renderInbox(false));
+        expect(screen.getByRole('button', {name: 'Open chat'})).toBeOnTheScreen();
+
+        setNarrowLayout(true);
+        rerender(renderInbox(false));
+        expect(screen.queryByRole('button', {name: 'Open chat'})).toBeNull();
+    });
+
+    it('exposes the narrow chat list only while the sidebar is focused', async () => {
+        setNarrowLayout(true);
+        render(<TestNavigator />);
+        expect(screen.getByRole('button', {name: 'Open chat'})).toBeOnTheScreen();
+
+        act(() => navigationRef.dispatch(StackActions.push(SCREENS.REPORT, {reportID: '1'})));
+        expect(screen.queryByRole('button', {name: 'Open chat'})).toBeNull();
+
+        act(() => navigationRef.dispatch(StackActions.pop()));
+        expect(await screen.findByRole('button', {name: 'Open chat'})).toBeOnTheScreen();
+    });
+
     it.each([true, false])('preserves central screen state across both breakpoint directions, starting narrow: %s', async (initiallyNarrow) => {
         setNarrowLayout(initiallyNarrow);
         const {rerender} = render(<TestNavigator />);
