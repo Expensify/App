@@ -155,6 +155,7 @@ import {
     getReportTransactions,
     getUploadingAttachmentHtmlFromComment,
     getUploadingAttachmentLabelFromDraft,
+    getUploadingAttachmentSource,
     hasOutstandingChildRequest,
     isAdminRoom,
     isChatThread as isChatThreadReportUtils,
@@ -257,7 +258,6 @@ import type {
     TransactionViolations,
     VisibleReportActionsDerivedValue,
 } from '@src/types/onyx';
-import type DeferredAttachmentEdits from '@src/types/onyx/DeferredAttachmentEdits';
 import type {DeferredAttachmentEdit} from '@src/types/onyx/DeferredAttachmentEdits';
 import type {Decision} from '@src/types/onyx/OriginalMessage';
 import type PersonalDetails from '@src/types/onyx/PersonalDetails';
@@ -270,7 +270,7 @@ import type {FileObject} from '@src/types/utils/Attachment';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {Dimensions} from '@src/types/utils/Layout';
 
-import type {Connection, NullishDeep, OnyxCollection, OnyxCollectionInputValue, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+import type {NullishDeep, OnyxCollection, OnyxCollectionInputValue, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import type {PartialDeep, ValueOf} from 'type-fest';
 
 /* eslint-disable max-lines */
@@ -280,6 +280,7 @@ import isEmpty from 'lodash/isEmpty';
 import {DeviceEventEmitter, Linking} from 'react-native';
 import Onyx from 'react-native-onyx';
 
+import {clearDeferredAttachmentEdit, deferAttachmentEdit, startDeferredAttachmentEditReplays} from './DeferredAttachmentEdits';
 import deleteReport from './DeleteReport';
 
 type SubscriberCallback = (isFromCurrentUser: boolean, reportAction: ReportAction | undefined) => void;
@@ -3636,85 +3637,17 @@ function handleUserDeletedLinksInHtml(
     return removeLinksFromHtml(htmlForNewComment, removedLinks);
 }
 
-const deferredAttachmentEditWatchers = new Map<string, () => void>();
-let deferredAttachmentEdits: OnyxEntry<DeferredAttachmentEdits>;
-
-function clearDeferredAttachmentEdit(reportActionID: string) {
-    deferredAttachmentEditWatchers.get(reportActionID)?.();
-    if (!deferredAttachmentEdits?.[reportActionID]) {
-        return;
+startDeferredAttachmentEditReplays((deferredEdit, syncedAction) => {
+    // The report cache can still be empty right after a cold start; a later update re-fires this callback.
+    const originalReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${deferredEdit.reportID}`];
+    if (!originalReport) {
+        return false;
     }
-    Onyx.merge(ONYXKEYS.DEFERRED_ATTACHMENT_EDITS, {[reportActionID]: null});
-}
+    const {textForNewComment, isOriginalReportArchived, currentUserLogin, videoAttributeCache} = deferredEdit;
 
-function watchDeferredAttachmentEdit(reportActionID: string, deferredEdit: DeferredAttachmentEdit) {
-    const {reportID, textForNewComment, currentUserLogin, isOriginalReportArchived, originalMessage, videoAttributeCache} = deferredEdit;
-    const reportActionsKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}` as const;
-    let connection: Connection | undefined;
-    let hasStopped = false;
-    const stop = () => {
-        hasStopped = true;
-        deferredAttachmentEditWatchers.delete(reportActionID);
-        if (connection !== undefined) {
-            Onyx.disconnect(connection);
-        }
-    };
-    deferredAttachmentEditWatchers.set(reportActionID, stop);
-
-    // We use connectWithoutView because this waits on a background sync and renders nothing itself.
-    connection = Onyx.connectWithoutView({
-        key: reportActionsKey,
-        callback: (reportActions) => {
-            if (hasStopped) {
-                return;
-            }
-            const syncedAction = reportActions?.[reportActionID];
-            if (!syncedAction) {
-                return;
-            }
-            if (!isEmptyObject(syncedAction.errors ?? {})) {
-                stop();
-                Onyx.merge(ONYXKEYS.DEFERRED_ATTACHMENT_EDITS, {[reportActionID]: null});
-                Onyx.merge(reportActionsKey, {[reportActionID]: {pendingAction: null, ...(originalMessage ? {message: [originalMessage]} : {})}});
-                return;
-            }
-            if (ReportActionsUtils.getReportActionHtml(syncedAction)?.includes(CONST.ATTACHMENT_OPTIMISTIC_SOURCE_ATTRIBUTE)) {
-                return;
-            }
-            // The report cache can still be empty right after a cold start; a later update re-fires this callback.
-            const originalReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
-            if (!originalReport) {
-                return;
-            }
-            stop();
-            Onyx.merge(ONYXKEYS.DEFERRED_ATTACHMENT_EDITS, {[reportActionID]: null});
-
-            // Off the current stack so the replay does not re-enter Onyx from inside its own subscriber.
-            Promise.resolve().then(() =>
-                editReportComment(originalReport, syncedAction, textForNewComment, isOriginalReportArchived, currentUserLogin, allPersonalDetails, videoAttributeCache),
-            );
-        },
-    });
-}
-
-// We use connectWithoutView because the deferred edits are persisted so they survive a restart, and the watchers
-// that replay them are background work with nothing to render.
-Onyx.connectWithoutView({
-    key: ONYXKEYS.DEFERRED_ATTACHMENT_EDITS,
-    callback: (deferredEdits) => {
-        deferredAttachmentEdits = deferredEdits;
-        for (const [reportActionID, stop] of deferredAttachmentEditWatchers) {
-            if (!deferredEdits?.[reportActionID]) {
-                stop();
-            }
-        }
-        for (const [reportActionID, deferredEdit] of Object.entries(deferredEdits ?? {})) {
-            if (!deferredEdit || deferredAttachmentEditWatchers.has(reportActionID)) {
-                continue;
-            }
-            watchDeferredAttachmentEdit(reportActionID, deferredEdit);
-        }
-    },
+    // Off the current stack so the replay does not re-enter Onyx from inside its own subscriber.
+    Promise.resolve().then(() => editReportComment(originalReport, syncedAction, textForNewComment, isOriginalReportArchived, currentUserLogin, allPersonalDetails, videoAttributeCache));
+    return true;
 });
 
 /** Saves a new message for a comment. Marks the comment as edited, which will be reflected in the UI. */
@@ -3772,7 +3705,7 @@ function editReportComment(
 
     // Optimistic message only: the sent copy is stripped, so without this the attachment vanishes until upload lands.
     const originalUploadingAttachmentHtml = shouldRemoveQueuedAttachment ? undefined : getUploadingAttachmentHtmlFromComment(originalCommentHTML);
-    const uploadingAttachmentSource = originalUploadingAttachmentHtml?.match(new RegExp(`${CONST.ATTACHMENT_OPTIMISTIC_SOURCE_ATTRIBUTE}="([^"]+)"`))?.at(1);
+    const uploadingAttachmentSource = getUploadingAttachmentSource(originalUploadingAttachmentHtml);
     const draftAttachmentLabel = uploadingAttachmentSource ? getUploadingAttachmentLabelFromDraft(textForNewComment, uploadingAttachmentSource) : undefined;
 
     // The server rebuilds the stored attachment from the uploaded file, so a rename has to travel with the queued
@@ -3859,7 +3792,7 @@ function editReportComment(
     if (uploadingAttachmentHtml && !hasQueuedAttachmentRequest) {
         Onyx.update(optimisticData);
         const deferredEdit: DeferredAttachmentEdit = {reportID: originalReportID, textForNewComment, currentUserLogin, isOriginalReportArchived, originalMessage, videoAttributeCache};
-        Onyx.merge(ONYXKEYS.DEFERRED_ATTACHMENT_EDITS, {[reportActionID]: deferredEdit});
+        deferAttachmentEdit(reportActionID, deferredEdit);
         return;
     }
 

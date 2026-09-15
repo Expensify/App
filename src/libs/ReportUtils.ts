@@ -6922,12 +6922,18 @@ function applyLabelToUploadingAttachmentHtml(uploadingAttachmentHtml: string, la
     return uploadingAttachmentHtml.replace(/>[\s\S]*?<\/(a|video)>$/i, `>${label}</$1>`);
 }
 
+const uploadingAttachmentSourceRegex = new RegExp(`${CONST.ATTACHMENT_OPTIMISTIC_SOURCE_ATTRIBUTE}="([^"]+)"`);
+
+function getUploadingAttachmentSource(currentCommentHtml: string | undefined): string | undefined {
+    return currentCommentHtml?.match(uploadingAttachmentSourceRegex)?.at(1);
+}
+
 /**
  * Whether a draft dropped a still-uploading attachment. Compared against the local URI, not the parsed HTML,
  * because a kept reference stays plain markdown and never parses back into an attachment tag.
  */
 function isUploadingAttachmentRemovedFromDraft(draftMarkdown: string, currentCommentHtml: string | undefined): boolean {
-    const localSource = currentCommentHtml?.match(new RegExp(`${CONST.ATTACHMENT_OPTIMISTIC_SOURCE_ATTRIBUTE}="([^"]+)"`))?.at(1);
+    const localSource = getUploadingAttachmentSource(currentCommentHtml);
     return !!localSource && !draftMarkdown.includes(localSource);
 }
 
@@ -14636,6 +14642,7 @@ export {
     getUploadingAttachmentHtmlFromComment,
     buildEditedCommentWithAttachment,
     getUploadingAttachmentLabelFromDraft,
+    getUploadingAttachmentSource,
     applyLabelToUploadingAttachmentHtml,
     parseMovedTransactionReportIDs,
 };
