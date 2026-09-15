@@ -758,11 +758,14 @@ describe('Go back on the narrow layout', () => {
             const workspaceState = rootState?.routes.at(0)?.state?.routes.find((route) => route.name === NAVIGATORS.WORKSPACE_NAVIGATOR)?.state;
             const activeSplit = workspaceState?.routes.at(workspaceState.index ?? 0);
             expect(workspaceState?.routes).toHaveLength(1);
-            // Every screen of the reached split belongs to workspace A. Which of A's screens is on top is not asserted:
-            // closing the modal focuses A's split, and the resolution that follows lands on whichever of its own screens
-            // was last visited rather than re-applying the requested one. That is a coherent split either way, which is
-            // what this test is about.
+            // Three levels cover the requested route at once here - the modal, workspace B's split and A's own central
+            // screen - so closing the modal and focusing A's split is not enough: the requested screen has to end up
+            // focused inside it too.
             expect(activeSplit?.state?.routes.every((route) => (route.params as {policyID?: string} | undefined)?.policyID === policyA)).toBe(true);
+            expect(activeSplit?.state?.routes.at(activeSplit.state.index ?? 0)).toMatchObject({
+                name: SCREENS.WORKSPACE.PROFILE,
+                params: {policyID: policyA},
+            });
             // Going back must never add a screen, and on web must never add a browser history entry with it.
             expect(dispatchSpy).not.toHaveBeenCalledWith(expect.objectContaining({type: CONST.NAVIGATION.ACTION_TYPE.PUSH}));
         });
