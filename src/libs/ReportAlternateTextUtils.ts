@@ -47,6 +47,7 @@ import {
     getAddedBudgetMessage,
     getAddedCardFeedMessage,
     getAddedConnectionMessage,
+    getApprovalLimitUpdateMessage,
     getAssignedCompanyCardMessage,
     getAutoPayApprovedReportsEnabledMessage,
     getAutoReimbursementMessage,
@@ -83,6 +84,7 @@ import {
     getMessageOfOldDotReportAction,
     getOneTransactionThreadReportID,
     getOriginalMessage,
+    getOverLimitForwardsToUpdateMessage,
     getPlaidBalanceFailureMessage,
     getPolicyChangeLogAddEmployeeMessage,
     getPolicyChangeLogDefaultBillableMessage,
@@ -864,6 +866,14 @@ function getLastMessageTextForReport({
     if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_AGENT_RULE)) {
         lastMessageTextFromReport = getDeleteAgentRuleMessage(translate, lastReportAction);
     }
+    if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_OVER_LIMIT_FORWARDS_TO)) {
+        // Non-React call path: pass the standalone util until this file's own convertToDisplayString threading PR.
+        lastMessageTextFromReport = getOverLimitForwardsToUpdateMessage(translate, lastReportAction, convertToDisplayString);
+    }
+    if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_APPROVAL_LIMIT)) {
+        // Non-React call path: pass the standalone util until this file's own convertToDisplayString threading PR.
+        lastMessageTextFromReport = getApprovalLimitUpdateMessage(translate, lastReportAction, convertToDisplayString);
+    }
     if (isPolicyCopyReportAction(lastReportAction)) {
         lastMessageTextFromReport = Parser.htmlToText(getPolicyChangeLogCopyMessage(translate, lastReportAction));
     }
@@ -1379,6 +1389,10 @@ function getReportAlternateText({
             alternateText = getSubmitsToUpdateMessage(translate, lastAction);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_FORWARDS_TO) {
             alternateText = getForwardsToUpdateMessage(translate, lastAction);
+        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_OVER_LIMIT_FORWARDS_TO) {
+            alternateText = getOverLimitForwardsToUpdateMessage(translate, lastAction, convertToDisplayString);
+        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_APPROVAL_LIMIT) {
+            alternateText = getApprovalLimitUpdateMessage(translate, lastAction, convertToDisplayString);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_INVOICE_COMPANY_NAME) {
             alternateText = getInvoiceCompanyNameUpdateMessage(translate, lastAction);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_INVOICE_COMPANY_WEBSITE) {
