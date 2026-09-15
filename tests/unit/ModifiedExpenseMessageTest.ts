@@ -252,6 +252,46 @@ describe('ModifiedExpenseMessage', () => {
     });
 
     describe('getForAction', () => {
+        describe('when a receipt is added', () => {
+            const reportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
+                originalMessage: {
+                    transactionID: '1234',
+                    receiptAdded: true,
+                },
+            };
+
+            it('returns the correct text message', () => {
+                const result = getForReportAction({
+                    convertToDisplayString,
+                    translate: translateLocal,
+                    reportAction,
+                    policy: undefined,
+                    policyTags: undefined,
+                    currentUserLogin: CURRENT_USER_LOGIN,
+                });
+
+                expect(result).toEqual('added a receipt');
+            });
+
+            it('takes precedence over the field fragments when other fields are also present', () => {
+                const result = getForReportAction({
+                    convertToDisplayString,
+                    translate: translateLocal,
+                    reportAction: {
+                        ...reportAction,
+                        originalMessage: {...reportAction.originalMessage, oldComment: 'old', newComment: 'new'},
+                    },
+                    policy: undefined,
+                    policyTags: undefined,
+                    currentUserLogin: CURRENT_USER_LOGIN,
+                });
+
+                expect(result).toEqual('added a receipt');
+            });
+        });
+
         describe('when the amount is changed', () => {
             const reportAction = {
                 ...createRandomReportAction(1),
