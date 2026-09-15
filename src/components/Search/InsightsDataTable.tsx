@@ -21,14 +21,14 @@ import InsightsDataTableSkeleton from './InsightsDataTableSkeleton';
 /** Placeholder rows while loading */
 const SKELETON_ROW_COUNT = 5;
 
-const SMALLEST_REPORTED_PERCENT = 0.1;
+const APPROXIMATELY_ZERO_PERCENT_THRESHOLD = 0.05;
 
 /** Formats a group's share of total spend for display, to at most one decimal place. */
 function formatPercentOfTotal(percent: number, groupTotal: number, locale: Locale | undefined): string {
     const options: Intl.NumberFormatOptions = {style: 'percent', maximumFractionDigits: 1};
 
-    if (percent < SMALLEST_REPORTED_PERCENT / 2 && groupTotal !== 0) {
-        return `<${format(locale, SMALLEST_REPORTED_PERCENT / 100, options)}`;
+    if (Math.abs(percent) < APPROXIMATELY_ZERO_PERCENT_THRESHOLD && groupTotal !== 0) {
+        return `~${format(locale, 0, options)}`;
     }
 
     return format(locale, percent / 100, options);
