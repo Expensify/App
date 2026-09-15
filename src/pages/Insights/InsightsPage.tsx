@@ -5,6 +5,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 
 import useDocumentTitle from '@hooks/useDocumentTitle';
+import useFloatingTabBarContentInsetStyle from '@hooks/useFloatingTabBarContentInsetStyle';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
 
@@ -24,6 +25,7 @@ type InsightsPageProps = BottomTabScreenProps<TabNavigatorParamList, typeof SCRE
 function InsightsPage({route}: InsightsPageProps) {
     const {translate} = useLocalize();
     const {isBetaEnabled} = usePermissions();
+    const floatingTabBarContentInsetStyle = useFloatingTabBarContentInsetStyle();
     useDocumentTitle(translate('common.insights'));
 
     const isKnownDashboard = route.params.dashboardID === CONST.INSIGHTS.DASHBOARD.SPEND;
@@ -43,7 +45,10 @@ function InsightsPage({route}: InsightsPageProps) {
                 breadcrumbLabel={translate('common.insights')}
                 shouldDisplayHelpButton
             />
-            <ScrollView addBottomSafeAreaPadding />
+            <ScrollView
+                addBottomSafeAreaPadding
+                contentContainerStyle={floatingTabBarContentInsetStyle}
+            />
         </ScreenWrapper>
     );
 }
