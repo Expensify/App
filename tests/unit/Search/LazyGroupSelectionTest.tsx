@@ -52,8 +52,8 @@ const categoryGroup = {
 /** The children as they look once the group has been expanded and its snapshot has loaded. */
 // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- minimal fixture: only the fields the selection logic reads are needed
 const loadedChildren = [
-    {transactionID: '1', keyForList: '1', currency: 'USD', amount: -642, report: {reportID: '11'}},
-    {transactionID: '2', keyForList: '2', currency: 'USD', amount: -642, report: {reportID: '11'}},
+    {transactionID: '1', keyForList: '1', currency: 'USD', amount: -642, report: {reportID: '11'}, selectionGroupKey: GROUP_KEY},
+    {transactionID: '2', keyForList: '2', currency: 'USD', amount: -642, report: {reportID: '11'}, selectionGroupKey: GROUP_KEY},
 ] as unknown as TransactionListItemType[];
 
 const FLAT_TRANSACTION_ID = 'flat-1';
@@ -227,6 +227,53 @@ describe('Lazily loaded group selection', () => {
         expect(result.current.selectedTransactions[GROUP_KEY]).toBeUndefined();
         expect(result.current.selectedTransactions['1']?.isSelected).toBe(true);
         expect(result.current.selectedTransactions['2']?.isSelected).toBe(true);
+        expect(result.current.selectedTransactions['1']?.isSelectedViaGroup).toBe(true);
+        expect(result.current.selectedTransactions['2']?.isSelectedViaGroup).toBe(true);
+        expect(result.current.selectedTransactions['1']?.isEntireGroupSelected).toBe(true);
+        expect(result.current.selectedTransactions['2']?.isEntireGroupSelected).toBe(true);
+    });
+
+    it('marks isEntireGroupSelected when every child is selected individually', async () => {
+        const {result} = renderSelection();
+        const firstChild = loadedChildren.at(0);
+        const secondChild = loadedChildren.at(1);
+        if (!firstChild || !secondChild) {
+            throw new Error('Expected two loaded children');
+        }
+
+        await act(async () => {
+            result.current.toggle(firstChild);
+            await waitForBatchedUpdatesWithAct();
+        });
+        expect(result.current.selectedTransactions['1']?.isSelectedViaGroup).toBeFalsy();
+        expect(result.current.selectedTransactions['1']?.isEntireGroupSelected).toBe(false);
+
+        await act(async () => {
+            result.current.toggle(secondChild);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        expect(result.current.selectedTransactions['1']?.isSelectedViaGroup).toBeFalsy();
+        expect(result.current.selectedTransactions['2']?.isSelectedViaGroup).toBeFalsy();
+        expect(result.current.selectedTransactions['1']?.isEntireGroupSelected).toBe(true);
+        expect(result.current.selectedTransactions['2']?.isEntireGroupSelected).toBe(true);
+    });
+
+    it('does not mark isEntireGroupSelected when the group checkbox selects fewer children than the group count', async () => {
+        const {result} = renderSelection();
+        const truncatedGroup = {...categoryGroup, count: 5};
+
+        await act(async () => {
+            result.current.toggle(truncatedGroup, loadedChildren);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        expect(result.current.selectedTransactions['1']?.isSelected).toBe(true);
+        expect(result.current.selectedTransactions['2']?.isSelected).toBe(true);
+        expect(result.current.selectedTransactions['1']?.isSelectedViaGroup).toBe(true);
+        expect(result.current.selectedTransactions['2']?.isSelectedViaGroup).toBe(true);
+        expect(result.current.selectedTransactions['1']?.isEntireGroupSelected).toBe(false);
+        expect(result.current.selectedTransactions['2']?.isEntireGroupSelected).toBe(false);
     });
 
     it('clears the parent exclusion when an expanded group is reselected', async () => {
