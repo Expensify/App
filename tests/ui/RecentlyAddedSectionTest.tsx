@@ -323,7 +323,7 @@ describe('RecentlyAddedSection', () => {
             await waitForBatchedUpdatesWithAct();
 
             expect(mockNavigate).toHaveBeenCalledTimes(1);
-            expect(mockNavigate).toHaveBeenCalledWith(ROUTES.SEARCH_REPORT.getRoute({reportID: ROW_1.reportID, backTo: ROUTES.HOME}));
+            expect(mockNavigate).toHaveBeenCalledWith(ROUTES.SEARCH_REPORT.getRoute({reportID: ROW_1.reportID, backTo: ROUTES.HOME, anchorTransactionID: ROW_1.transactionID}));
         });
 
         it('navigates to SEARCH_REPORT with backTo Home on narrow layout (carousel available on both layouts)', async () => {
@@ -337,7 +337,7 @@ describe('RecentlyAddedSection', () => {
             await waitForBatchedUpdatesWithAct();
 
             expect(mockNavigate).toHaveBeenCalledTimes(1);
-            expect(mockNavigate).toHaveBeenCalledWith(ROUTES.SEARCH_REPORT.getRoute({reportID: ROW_1.reportID, backTo: ROUTES.HOME}));
+            expect(mockNavigate).toHaveBeenCalledWith(ROUTES.SEARCH_REPORT.getRoute({reportID: ROW_1.reportID, backTo: ROUTES.HOME, anchorTransactionID: ROW_1.transactionID}));
         });
 
         it('opens the tapped expense in a multi-expense report by navigating to its transaction thread', async () => {
@@ -366,7 +366,7 @@ describe('RecentlyAddedSection', () => {
             await waitForBatchedUpdatesWithAct();
 
             expect(mockNavigate).toHaveBeenCalledTimes(1);
-            expect(mockNavigate).toHaveBeenCalledWith(ROUTES.SEARCH_REPORT.getRoute({reportID: threadReportID, backTo: ROUTES.HOME}));
+            expect(mockNavigate).toHaveBeenCalledWith(ROUTES.SEARCH_REPORT.getRoute({reportID: threadReportID, backTo: ROUTES.HOME, anchorTransactionID: ROW_1.transactionID}));
         });
 
         it('opens (creating if needed) the transaction thread for an expense in a one-transaction report, not the parent report', async () => {
@@ -390,7 +390,7 @@ describe('RecentlyAddedSection', () => {
 
             expect(mockCreateTransactionThreadReport).toHaveBeenCalledTimes(1);
             expect(mockNavigate).toHaveBeenCalledTimes(1);
-            expect(mockNavigate).toHaveBeenCalledWith(ROUTES.SEARCH_REPORT.getRoute({reportID: 'created_thread_report', backTo: ROUTES.HOME}));
+            expect(mockNavigate).toHaveBeenCalledWith(ROUTES.SEARCH_REPORT.getRoute({reportID: 'created_thread_report', backTo: ROUTES.HOME, anchorTransactionID: ROW_1.transactionID}));
         });
 
         it('seeds the prev/next carousel with the IDs and a lazy descriptor for every recently added expense', async () => {
