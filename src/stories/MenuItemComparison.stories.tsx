@@ -142,6 +142,136 @@ function Comparison() {
 
     return (
         <View style={[styles.p4, styles.flexRow, styles.flexWrap, styles.gap4]}>
+            <SectionHeading title="Phase 4 — title styles">numberOfLinesTitle became numberOfLines on the text leaves.</SectionHeading>
+
+            <Card
+                title="description, numberOfLinesTitle, title"
+                legacy={
+                    <MenuItemWithTopDescription
+                        description="Cancellation"
+                        title="Free until 24 hours before pickup, then the daily rate is charged"
+                        numberOfLinesTitle={2}
+                        interactive={false}
+                    />
+                }
+                composable={
+                    <MenuItem.Root>
+                        <MenuItem.Row>
+                            <MenuItem.Content>
+                                <MenuItem.FieldName>Cancellation</MenuItem.FieldName>
+                                <MenuItem.FieldValue numberOfLines={2}>Free until 24 hours before pickup, then the daily rate is charged</MenuItem.FieldValue>
+                            </MenuItem.Content>
+                        </MenuItem.Row>
+                    </MenuItem.Root>
+                }
+                preset={
+                    <MenuItemField
+                        name="Cancellation"
+                        value="Free until 24 hours before pickup, then the daily rate is charged"
+                        numberOfLinesValue={2}
+                    />
+                }
+            />
+
+            <Card
+                title="description, numberOfLinesTitle, onPress, shouldShowRightIcon, title"
+                legacy={
+                    <MenuItemWithTopDescription
+                        description="List values"
+                        title="Engineering, Design, Product, Marketing, Sales, Support, Finance"
+                        numberOfLinesTitle={5}
+                        shouldShowRightIcon
+                        onPress={noop}
+                    />
+                }
+                composable={
+                    <MenuItem.Root onPress={noop}>
+                        <MenuItem.Row>
+                            <MenuItem.Content>
+                                <MenuItem.FieldName>List values</MenuItem.FieldName>
+                                <MenuItem.FieldValue numberOfLines={5}>Engineering, Design, Product, Marketing, Sales, Support, Finance</MenuItem.FieldValue>
+                            </MenuItem.Content>
+                            <MenuItem.Trailing>
+                                <MenuItem.Chevron />
+                            </MenuItem.Trailing>
+                        </MenuItem.Row>
+                    </MenuItem.Root>
+                }
+                preset={
+                    <MenuItemField
+                        name="List values"
+                        onPress={noop}
+                        value="Engineering, Design, Product, Marketing, Sales, Support, Finance"
+                        numberOfLinesValue={5}
+                    />
+                }
+            />
+
+            <Card
+                title="description, numberOfLinesTitle={0}, title"
+                legacy={
+                    <MenuItemWithTopDescription
+                        description="Invite message"
+                        title="Hello! You have been invited to join the workspace. Take a look around and add your first expense."
+                        numberOfLinesTitle={0}
+                        interactive={false}
+                    />
+                }
+                composable={
+                    <MenuItem.Root>
+                        <MenuItem.Row>
+                            <MenuItem.Content>
+                                <MenuItem.FieldName>Invite message</MenuItem.FieldName>
+                                <MenuItem.FieldValue numberOfLines={0}>
+                                    Hello! You have been invited to join the workspace. Take a look around and add your first expense.
+                                </MenuItem.FieldValue>
+                            </MenuItem.Content>
+                        </MenuItem.Row>
+                    </MenuItem.Root>
+                }
+                preset={
+                    <MenuItemField
+                        name="Invite message"
+                        value="Hello! You have been invited to join the workspace. Take a look around and add your first expense."
+                        numberOfLinesValue={0}
+                    />
+                }
+            />
+
+            <Card
+                title="description, style, titleStyle, title"
+                legacy={
+                    <MenuItemWithTopDescription
+                        description="Tax amount"
+                        title="$4.20"
+                        style={[styles.moneyRequestMenuItem]}
+                        titleStyle={styles.flex1}
+                        shouldShowRightIcon
+                        onPress={noop}
+                    />
+                }
+                composable={
+                    <MenuItem.Root onPress={noop}>
+                        <MenuItem.Row>
+                            <MenuItem.Content>
+                                <MenuItem.FieldName>Tax amount</MenuItem.FieldName>
+                                <MenuItem.FieldValue>$4.20</MenuItem.FieldValue>
+                            </MenuItem.Content>
+                            <MenuItem.Trailing>
+                                <MenuItem.Chevron />
+                            </MenuItem.Trailing>
+                        </MenuItem.Row>
+                    </MenuItem.Root>
+                }
+                preset={
+                    <MenuItemField
+                        name="Tax amount"
+                        onPress={noop}
+                        value="$4.20"
+                    />
+                }
+            />
+
             <SectionHeading title="Phase 3 — MenuItemWithTopDescription">One card per prop shape, in frequency order. Every shape is the MenuItemField preset.</SectionHeading>
 
             <Card
