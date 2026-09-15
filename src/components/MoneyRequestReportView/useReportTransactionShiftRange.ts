@@ -24,6 +24,9 @@ type ReportTransactionShiftRangeParams = {
 
     /** Clearing goes through its own action rather than an empty write, so the hook takes it to own both branches */
     clearSelectedTransactions: (shouldClearIDs: true) => void;
+
+    /** Changes when the selection is cleared from anywhere, which ends the session the same way a new report does */
+    selectionClearGeneration: number;
 };
 
 type ReportTransactionShiftRange = {
@@ -43,6 +46,7 @@ function useReportTransactionShiftRange({
     selectedTransactionIDs,
     setSelectedTransactions,
     clearSelectedTransactions,
+    selectionClearGeneration,
 }: ReportTransactionShiftRangeParams): ReportTransactionShiftRange {
     // The engine asks this per row while resolving an anchor, so the lookup has to be constant time.
     const selectedTransactionIDsSet = new Set(selectedTransactionIDs);
@@ -58,7 +62,7 @@ function useReportTransactionShiftRange({
 
     useEffect(() => {
         rangeApi.clearAnchor();
-    }, [reportID, rangeApi]);
+    }, [reportID, selectionClearGeneration, rangeApi]);
 
     const toggleTransaction = (transactionID: string, shiftKey?: boolean) => {
         const item = transactionsByID.get(transactionID);

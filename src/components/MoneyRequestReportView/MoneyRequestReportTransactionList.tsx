@@ -4,7 +4,7 @@ import Checkbox from '@components/Checkbox';
 import type FlatListRefType from '@components/FlashList/types';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import DropdownButton from '@components/Search/FilterDropdowns/DropdownButton';
-import {useSearchSelectionActions, useSearchSelectionContext} from '@components/Search/SearchContext';
+import {useSearchSelectionActions, useSearchSelectionContext, useSelectionClearGeneration} from '@components/Search/SearchContext';
 import type {SearchCustomColumnIds, SortOrder} from '@components/Search/types';
 import SelectionList from '@components/SelectionList';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
@@ -576,12 +576,14 @@ function MoneyRequestReportTransactionList({
         [visualOrderTransactions],
     );
 
+    const selectionClearGeneration = useSelectionClearGeneration();
     const {toggleTransaction, toggleGroup, toggleAll} = useReportTransactionShiftRange({
         reportID,
         transactions: visualOrderTransactions,
         selectedTransactionIDs,
         setSelectedTransactions,
         clearSelectedTransactions,
+        selectionClearGeneration,
     });
 
     // Primitive proxy for visualOrderTransactionIDs used as the effect dependency below.

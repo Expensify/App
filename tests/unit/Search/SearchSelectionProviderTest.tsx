@@ -1,6 +1,6 @@
 import {act, renderHook} from '@testing-library/react-native';
 
-import {useSearchSelectionActions, useSearchSelectionContext} from '@components/Search/SearchContext';
+import {useSearchSelectionActions, useSearchSelectionContext, useSelectionClearGeneration} from '@components/Search/SearchContext';
 import {SearchQueryContext} from '@components/Search/SearchContextDefinitions';
 import {SearchSelectionProvider, useRowSelection} from '@components/Search/SearchSelectionProvider';
 import type {SearchQueryContextValue, SelectedTransactions} from '@components/Search/types';
@@ -328,5 +328,29 @@ describe('SearchSelectionProvider all-matching exclusions', () => {
 
         expect(result.current.state.areAllMatchingItemsSelected).toBe(true);
         expect(result.current.state.hasSelectedTransactions).toBe(false);
+    });
+});
+
+describe('SearchSelectionProvider clear generation', () => {
+    function renderClearGeneration() {
+        return renderHook(() => ({state: useSearchSelectionContext(), actions: useSearchSelectionActions(), clearGeneration: useSelectionClearGeneration()}), {wrapper});
+    }
+
+    it('moves only when a clear empties something, so a no-op clear cannot end a range session', () => {
+        const {result} = renderClearGeneration();
+
+        act(() => result.current.actions.clearSelectedTransactions(true));
+        act(() => result.current.actions.clearSelectedTransactions());
+        expect(result.current.clearGeneration).toBe(0);
+
+        act(() => result.current.actions.setSelectedTransactions(['tx_1']));
+        act(() => result.current.actions.clearSelectedTransactions(true));
+        expect(result.current.state.selectedTransactionIDs).toEqual([]);
+        expect(result.current.clearGeneration).toBe(1);
+
+        act(() => result.current.actions.setSelectedTransactions(buildSelected('tx_1')));
+        act(() => result.current.actions.clearSelectedTransactions());
+        expect(result.current.state.selectedTransactions).toEqual({});
+        expect(result.current.clearGeneration).toBe(2);
     });
 });

@@ -6,7 +6,7 @@ import React, {useEffect, useLayoutEffect, useRef, useState} from 'react';
 import type {SearchData, SearchSelectionActionsValue, SearchSelectionContextValue, SelectedReports, SelectedTransactions} from './types';
 
 import {useSearchQueryContext, useSearchSelectionActions, useSearchSelectionContext} from './SearchContext';
-import {SearchSelectionActionsContext, SearchSelectionContext} from './SearchContextDefinitions';
+import {SearchSelectionActionsContext, SearchSelectionClearGenerationContext, SearchSelectionContext} from './SearchContextDefinitions';
 import {deriveSelectedReports, isRowChecked} from './selectionBuilders';
 
 type SearchSelectionProviderProps = {
@@ -21,6 +21,7 @@ type SelectionState = {
     currentSelectedTransactionReportID: string | undefined;
     shouldTurnOffSelectionMode: boolean;
     areAllMatchingItemsSelected: boolean;
+    clearGeneration: number;
 };
 
 const defaultSelectionState: SelectionState = {
@@ -31,6 +32,7 @@ const defaultSelectionState: SelectionState = {
     currentSelectedTransactionReportID: undefined,
     shouldTurnOffSelectionMode: false,
     areAllMatchingItemsSelected: false,
+    clearGeneration: 0,
 };
 
 // Owns selection state + pure setters only; the write actions (toggle/toggleAll) live in SearchWriteActionsProvider.
@@ -57,14 +59,17 @@ function SearchSelectionProvider({children}: SearchSelectionProviderProps) {
         selectionState.selectedTransactionIDs.length > 0 ||
         Object.values(selectionState.selectedTransactions).some((t) => t.isSelected);
 
+    const {clearGeneration, ...selection} = selectionState;
     const selectionValue: SearchSelectionContextValue = {
-        ...selectionState,
+        ...selection,
         hasSelectedTransactions,
     };
 
     return (
         <SearchSelectionContext value={selectionValue}>
-            <SearchSelectionActionsContext value={selectionActionsValue}>{children}</SearchSelectionActionsContext>
+            <SearchSelectionActionsContext value={selectionActionsValue}>
+                <SearchSelectionClearGenerationContext value={clearGeneration}>{children}</SearchSelectionClearGenerationContext>
+            </SearchSelectionActionsContext>
         </SearchSelectionContext>
     );
 }
@@ -214,7 +219,9 @@ function createSelectionActions(setSelectionState: React.Dispatch<React.SetState
 
     const clearSelectedTransactions: SearchSelectionActionsValue['clearSelectedTransactions'] = (searchHashOrClearIDsFlag, shouldTurnOffSelectionMode = false) => {
         if (typeof searchHashOrClearIDsFlag === 'boolean') {
-            setSelectedTransactions([]);
+            setSelectionState((prevState) =>
+                prevState.selectedTransactionIDs.length === 0 ? prevState : {...prevState, selectedTransactionIDs: [], clearGeneration: prevState.clearGeneration + 1},
+            );
             return;
         }
 
@@ -239,6 +246,7 @@ function createSelectionActions(setSelectionState: React.Dispatch<React.SetState
                 excludedTransactions: {},
                 selectedReports: [],
                 areAllMatchingItemsSelected: false,
+                clearGeneration: prevState.clearGeneration + 1,
             };
         });
     };

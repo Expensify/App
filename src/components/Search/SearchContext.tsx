@@ -7,6 +7,7 @@ import {
     SearchResultsContext,
     SearchRowSelectionActionsContext,
     SearchSelectionActionsContext,
+    SearchSelectionClearGenerationContext,
     SearchSelectionContext,
     SearchShiftRangeGroupsContext,
 } from './SearchContextDefinitions';
@@ -48,6 +49,10 @@ function useSearchShiftRangeGroups() {
     return useContext(SearchShiftRangeGroupsContext);
 }
 
+function useSelectionClearGeneration() {
+    return useContext(SearchSelectionClearGenerationContext);
+}
+
 export {
     SearchQueryContext,
     SearchQueryActionsContext,
@@ -63,4 +68,5 @@ export {
     useSearchSelectionActions,
     useSearchRowSelectionActions,
     useSearchShiftRangeGroups,
+    useSelectionClearGeneration,
 };

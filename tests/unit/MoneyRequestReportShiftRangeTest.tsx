@@ -17,7 +17,7 @@ const rows = [buildTransaction('1'), buildTransaction('2'), buildTransaction('3'
 
 /** Drives the hook the way the list does, holding the selection the component reads from context. */
 function renderShiftRange(initialTransactions: OnyxTypes.Transaction[] = rows) {
-    const state = {selectedTransactionIDs: [] as string[], transactions: initialTransactions, reportID: REPORT_ID};
+    const state = {selectedTransactionIDs: [] as string[], transactions: initialTransactions, reportID: REPORT_ID, selectionClearGeneration: 0};
     const setSelectedTransactions = jest.fn((transactionIDs: string[]) => {
         state.selectedTransactionIDs = transactionIDs;
     });
@@ -32,6 +32,7 @@ function renderShiftRange(initialTransactions: OnyxTypes.Transaction[] = rows) {
             selectedTransactionIDs: state.selectedTransactionIDs,
             setSelectedTransactions,
             clearSelectedTransactions,
+            selectionClearGeneration: state.selectionClearGeneration,
         }),
     );
 
@@ -167,5 +168,23 @@ describe('MoneyRequestReport shift+click', () => {
         act(() => result.current.toggleTransaction('2', true));
 
         expect(state.selectedTransactionIDs).toEqual(['1', '2', '3', '4']);
+    });
+
+    it('forgets the session when the selection is cleared from outside the list, as the toolbar and bulk actions do', () => {
+        const {result, state, settle, rerender} = renderShiftRange();
+
+        // Given the last row clicked plainly, which becomes the anchor
+        act(() => result.current.toggleTransaction('3'));
+        settle();
+
+        // When something outside the hook clears the selection
+        state.selectedTransactionIDs = [];
+        state.selectionClearGeneration += 1;
+        rerender({});
+
+        // Then a shift+click runs from the top of the list, rather than from the row clicked before the clear
+        act(() => result.current.toggleTransaction('1', true));
+
+        expect(state.selectedTransactionIDs).toEqual(['1']);
     });
 });

@@ -35,7 +35,7 @@ import type {SearchListItem, TransactionListItemType} from './SearchList/ListIte
 import type {SearchData, SearchRowSelectionActionsValue, SelectedTransactionInfo, SelectedTransactions} from './types';
 
 import useOpenGroupsRegistry from './hooks/useOpenGroupsRegistry';
-import {useSearchSelectionActions, useSearchSelectionContext} from './SearchContext';
+import {useSearchSelectionActions, useSearchSelectionContext, useSelectionClearGeneration} from './SearchContext';
 import {SearchRowSelectionActionsContext, SearchShiftRangeGroupsContext} from './SearchContextDefinitions';
 import {useSyncSelectedReports} from './SearchSelectionProvider';
 import {
@@ -581,10 +581,11 @@ function SearchWriteActionsProvider({
         isHeaderItem: isShiftRangeHeaderItem,
     });
 
-    // The session belongs to one search, since a row can match both queries.
+    // The session belongs to one search and one selection, so a new query or a clear from outside the list ends it.
+    const selectionClearGeneration = useSelectionClearGeneration();
     useEffect(() => {
         rangeApi.clearAnchor();
-    }, [searchHash, rangeApi]);
+    }, [searchHash, selectionClearGeneration, rangeApi]);
 
     const seedGroup = (groupKey: string) => rangeApi.seedRangeFromSelection((childKey) => groupKeyByChildKeyRef.current.get(childKey) === groupKey);
 

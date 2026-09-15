@@ -98,6 +98,7 @@ const SearchSelectionContext = React.createContext<SearchSelectionContextValue>(
 const SearchSelectionActionsContext = React.createContext<SearchSelectionActionsValue>(defaultSearchSelectionActions);
 const SearchRowSelectionActionsContext = React.createContext<SearchRowSelectionActionsValue>(defaultRowSelectionActions);
 const SearchShiftRangeGroupsContext = React.createContext<SearchShiftRangeGroupsActions>(defaultSearchShiftRangeGroupsActions);
+const SearchSelectionClearGenerationContext = React.createContext(0);
 
 export {
     EMPTY_TRANSACTIONS_BY_REPORT_ID,
@@ -109,4 +110,5 @@ export {
     SearchSelectionActionsContext,
     SearchRowSelectionActionsContext,
     SearchShiftRangeGroupsContext,
+    SearchSelectionClearGenerationContext,
 };

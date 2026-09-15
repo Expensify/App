@@ -1403,6 +1403,30 @@ describe('Lazily loaded group selection', () => {
         expect(result.current.selectedTransactions['2']?.isSelected).toBe(true);
     });
 
+    it('starts cold after something outside the list clears the selection, rather than ranging from the last row clicked', async () => {
+        const {result} = renderSelection(ExpenseReportWrapper);
+        const [firstReport, , emptyReport] = reportGroups;
+
+        // Given the last report clicked plainly, which becomes the anchor
+        await act(async () => {
+            result.current.toggle(emptyReport, emptyReport.transactions);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        // When the selection is cleared from outside the list, as a bulk action does once it finishes
+        await act(async () => {
+            result.current.clearSelectedTransactions();
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        // Then a shift+click runs from the top of the list, rather than from the report clicked before the clear
+        await act(async () => {
+            result.current.toggle(firstReport, firstReport.transactions, true);
+            await waitForBatchedUpdatesWithAct();
+        });
+        expect(Object.keys(result.current.selectedTransactions)).toEqual(['6']);
+    });
+
     it('selects a report with no expenses of its own when a range reaches it', async () => {
         const {result} = renderSelection(ExpenseReportWrapper);
         const [firstReport, , emptyReport] = reportGroups;
