@@ -40,7 +40,6 @@ import {
     buildOptimisticUnapprovedReportAction,
     canBeAutoReimbursed,
     canSubmitAndIsAwaitingForCurrentUser,
-    didCurrentUserPlaceHoldOnReportExpense,
     getAllHeldTransactions as getAllHeldTransactionsReportUtils,
     getMoneyRequestSpendBreakdown,
     getNextApproverAccountID,
@@ -54,6 +53,7 @@ import {
     hasOutstandingChildRequest,
     isArchivedReport,
     isClosedReport as isClosedReportUtil,
+    isExcludedForHeldExpenses,
     isExpenseReport,
     isInvoiceReport as isInvoiceReportReportUtils,
     isIOUReport,
@@ -335,16 +335,13 @@ function getBadgeFromIOUReport(
     invoiceReceiverPolicy: OnyxEntry<OnyxTypes.Policy>,
     currentUserLogin: string,
     currentUserAccountID: number,
+    iouReportActions: OnyxEntry<OnyxTypes.ReportActions>,
 ): ValueOf<typeof CONST.REPORT.ACTION_BADGE> | undefined {
     const reportTransactions = getReportTransactions(iouReport?.reportID);
 
-    // An all-held report can't move to its next state, so it doesn't get an action badge. Keep it only for a report
-    // awaiting approval or payment where the current user placed a hold, since they can remove it. An open report stays
-    // excluded because only its owner can place a hold there, and that owner is the one who submits.
-    if (
-        hasOnlyHeldExpenses(reportTransactions) &&
-        (isOpenExpenseReportReportUtils(iouReport) || !didCurrentUserPlaceHoldOnReportExpense(getAllReportActions(iouReport?.reportID), reportTransactions, currentUserAccountID))
-    ) {
+    // An all-held report can't move to its next state, so it doesn't get an action badge. This is the same exclusion
+    // the LHN to-do check applies, shared so it's only implemented once.
+    if (isExcludedForHeldExpenses(iouReport, iouReportActions, reportTransactions, currentUserAccountID)) {
         return undefined;
     }
 
@@ -378,7 +375,7 @@ function getBadgeFromIOUReport(
         getAllTransactionViolations(),
         currentUserLogin,
         currentUserAccountID,
-        getAllReportActions(iouReport?.reportID),
+        iouReportActions,
     );
     if (isWaitingSubmitFromCurrentUser) {
         return CONST.REPORT.ACTION_BADGE.SUBMIT;
@@ -409,6 +406,7 @@ function getIOUReportActionWithBadge(
     currentUserAccountID: number,
     chatReportActions: OnyxEntry<OnyxTypes.ReportActions>,
     allReports?: OnyxCollection<OnyxTypes.Report>,
+    allReportActions?: OnyxCollection<OnyxTypes.ReportActions>,
 ): {
     reportAction: OnyxEntry<ReportAction>;
     actionBadge?: ValueOf<typeof CONST.REPORT.ACTION_BADGE>;
@@ -442,9 +440,12 @@ function getIOUReportActionWithBadge(
             continue;
         }
 
+        // Prefer the caller's own report-actions snapshot for the same reason we prefer its `allReports` above.
+        const iouReportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`] ?? getAllReportActions(iouReport.reportID);
+
         // An all-held report yields no badge, so it can't win the "oldest action" race and hide a sibling report that
         // still needs action from the current user.
-        const badge = getBadgeFromIOUReport(iouReport, chatReport, policy, reportMetadata, invoiceReceiverPolicy, currentUserLogin, currentUserAccountID);
+        const badge = getBadgeFromIOUReport(iouReport, chatReport, policy, reportMetadata, invoiceReceiverPolicy, currentUserLogin, currentUserAccountID, iouReportActions);
         if (!badge) {
             continue;
         }
