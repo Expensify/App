@@ -68,6 +68,7 @@ import {getPerDiemExpensePolicyID, hasCompletePerDiemCustomUnit, submitPerDiemEx
 import {getReceiverType, sendInvoice} from '@userActions/IOU/SendInvoice';
 import {sendMoneyElsewhere, sendMoneyWithWallet} from '@userActions/IOU/SendMoney';
 import {createDistanceRequest as createDistanceRequestIOUActions, resolveOptimisticSplitChatReportID, splitBill, splitBillAndOpenReport, startSplitBill} from '@userActions/IOU/Split';
+import type {SplitBatchPosition} from '@userActions/IOU/Split';
 import {requestMoney as requestMoneyIOUActions, trackExpense as trackExpenseIOUActions} from '@userActions/IOU/TrackExpense';
 import type {GPSPoint as GpsPoint} from '@userActions/IOU/types/TrackExpenseTransactionParams';
 
@@ -1058,7 +1059,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 // Re-resolving inside the loop would mint a different chat per scan, so resolve once up front.
                 const {optimisticSplitChatReportID, chatReportID} = resolveOptimisticSplitChatReportID(report?.reportID, selectedParticipants, currentUserPersonalDetails.accountID);
 
-                // The action hardcodes shouldDeferForSearch:false, so reserve here when a scan will actually write and land back on Search.
+                // The action hardcodes shouldDeferForSearch:false, so reserve here for Search. Each scan write flushes the one before it, so only the last one waits.
                 if (shouldDeferSplitForSearch) {
                     reserveDeferredWriteChannel(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH);
                 }
@@ -1066,6 +1067,9 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 for (const [index, item] of scannedItems.entries()) {
                     const transactionReceiptFile = receiptFiles[item.transactionID];
                     const itemTrimmedComment = item?.comment?.comment?.trim() ?? '';
+                    // Scans into a chat that already exists all count as first, because only a batch creating a chat has a later split to join it.
+                    const batchPosition: SplitBatchPosition =
+                        index > 0 && optimisticSplitChatReportID ? {isFirstSplitInBatch: false, optimisticSplitChatReportID} : {isFirstSplitInBatch: true, optimisticSplitChatReportID};
 
                     startSplitBill({
                         getCurrencyDecimals,
@@ -1084,8 +1088,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                         taxAmount: transactionTaxAmount,
                         taxValue: transactionTaxValue,
                         shouldPlaySound: index === scannedItems.length - 1,
-                        optimisticSplitChatReportID,
-                        isFirstSplitInBatch: index === 0,
+                        ...batchPosition,
                         policyRecentlyUsedCategories,
                         policyRecentlyUsedTags,
                         quickAction,
