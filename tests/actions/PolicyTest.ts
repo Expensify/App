@@ -6515,7 +6515,7 @@ describe('actions/Policy', () => {
         });
     });
 
-    describe('setPolicyProhibitedExpense', () => {
+    describe('setPolicyProhibitedExpenses', () => {
         it('should enable prohibited expense optimistically and succeed', async () => {
             // Given a policy with prohibited expenses
             const policyID = '1';
@@ -6530,9 +6530,9 @@ describe('actions/Policy', () => {
             Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
             await waitForBatchedUpdates();
 
-            // When setPolicyProhibitedExpense is called to enable alcohol
+            // When setPolicyProhibitedExpenses is called to enable alcohol
             mockFetch.pause();
-            Policy.setPolicyProhibitedExpense(policyID, 'alcohol', currentProhibitedExpenses);
+            Policy.setPolicyProhibitedExpenses(policyID, {...currentProhibitedExpenses, alcohol: true}, currentProhibitedExpenses);
             await waitForBatchedUpdates();
 
             // Then the prohibited expense should be updated optimistically
@@ -6564,9 +6564,9 @@ describe('actions/Policy', () => {
             Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
             await waitForBatchedUpdates();
 
-            // When setPolicyProhibitedExpense is called and fails
+            // When setPolicyProhibitedExpenses is called and fails
             mockFetch.fail();
-            Policy.setPolicyProhibitedExpense(policyID, 'alcohol', currentProhibitedExpenses);
+            Policy.setPolicyProhibitedExpenses(policyID, {...currentProhibitedExpenses, alcohol: true}, currentProhibitedExpenses);
             await waitForBatchedUpdates();
 
             // Then the prohibited expense should be reverted
