@@ -1,7 +1,7 @@
 ---
 title: Getting Started with the Spend Page
 description: Learn how to use the Spend page in New Expensify to view, filter, and manage your expense data using report previews, tables, filters, and smart suggestions.
-keywords: [New Expensify, Spend page, report preview, report table, filters, advanced filters, smart suggestions, expense management, add expenses, bulk actions, date range, search, expenses missing, Spend navigation, inline editing, edit expense inline, filter popover, apply filters, reset filters, total spend, total spend currency, change currency, currency converter, multi-currency total]
+keywords: [New Expensify, Spend page, report preview, report table, filters, advanced filters, smart suggestions, expense management, add expenses, bulk actions, date range, search, expenses missing, Spend navigation, inline editing, edit expense inline, filter popover, apply filters, reset filters, total spend, total spend currency, change currency, currency converter, multi-currency total, sort by amount, Amount column, sort amount column, negative amount, credit, refund, negative expense sorting, selected total, total spend negative]
 ---
 
 The Spend page in New Expensify gives you a full list of your reports and related expenses. From the Spend page you can explore, filter, and export your expense data.
@@ -97,6 +97,8 @@ The **Spend** page footer shows the **Total spend** for what you're viewing. Whe
 - **Total spend:** the combined amount, shown with a currency code. With nothing selected, this covers the whole search result; when you select rows, it covers just your selection.
 - **Expenses:** the number of expenses currently selected (shown when you've made a selection).
 
+Credits and refunds are negative amounts, so they reduce the **Total spend** instead of adding to it. If you select a $100 expense and a -$100 credit, the **Total spend** reads $0.00.
+
 The total is shown in your default currency until you choose a different one.
 
 ### How to change the total spend currency
@@ -121,6 +123,25 @@ The currency picker can't be opened in these cases:
 
 - You're offline, because converting the total requires a refresh from Expensify.
 - The totals are still loading.
+
+---
+
+## How to sort the Amount column on the Spend page
+
+1. On the **Spend** page, select **Expenses**.
+2. Click the **Amount** column header to sort from largest to smallest.
+3. Click the **Amount** column header again to reverse the order.
+
+The **Amount** column header is only available when your results are shown as a table. When you group your results, this column header reads **Total** instead of **Amount**.
+
+## How negative amounts sort in the Amount column on the Spend page
+
+The **Amount** column sorts by the signed value each row displays, not by its size. Because credits and refunds are negative amounts:
+
+- Sorting from largest to smallest puts every negative amount below every positive amount, ordered -$1, -$2, -$3 going down.
+- Sorting from smallest to largest puts every negative amount above every positive amount.
+
+A -$4,000 credit therefore sorts below a $10 expense rather than next to a $4,000 expense.
 
 ---
 
