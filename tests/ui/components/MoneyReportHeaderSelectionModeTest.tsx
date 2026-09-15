@@ -20,7 +20,6 @@ import type SCREENS from '@src/SCREENS';
 import type {Report, Transaction} from '@src/types/onyx';
 
 import type * as NativeNavigation from '@react-navigation/native';
-
 import type {UseOnyxResult} from 'react-native-onyx';
 
 import React from 'react';
@@ -162,7 +161,13 @@ function mockTransactions(pendingActions: Array<Transaction['pendingAction']>) {
     mockUseTransactionsAndViolationsForReport.mockReturnValue({transactions, violations: {}, isLoaded: true});
 }
 
-const renderHeader = () => render(<MoneyReportHeader reportID={REPORT_ID} onBackButtonPress={jest.fn()} />);
+const renderHeader = () =>
+    render(
+        <MoneyReportHeader
+            reportID={REPORT_ID}
+            onBackButtonPress={jest.fn()}
+        />,
+    );
 
 /**
  * The title the most recent `HeaderWithBackButton` render was given. Only the narrow selection-mode branch
