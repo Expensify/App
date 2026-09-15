@@ -2,8 +2,11 @@ import type {SearchDatePreset} from '@components/Search/types';
 
 import CONST from '@src/CONST';
 
+type InsightsDateFilter = {preset: SearchDatePreset} | {after: string; before: string};
+
 type InsightsFilters = {
-    datePreset: SearchDatePreset;
+    /** Period reported on, either one of the presets or a range closed at both ends. */
+    date: InsightsDateFilter;
 
     /** Workspaces to report on, or every workspace the user can see when empty. */
     policyIDs: string[];
@@ -16,10 +19,10 @@ type InsightsFilters = {
 };
 
 const DEFAULT_INSIGHTS_FILTERS: Omit<InsightsFilters, 'groupCurrency'> = {
-    datePreset: CONST.SEARCH.DATE_PRESETS.YEAR_TO_DATE,
+    date: {preset: CONST.SEARCH.DATE_PRESETS.YEAR_TO_DATE},
     policyIDs: [],
     groupBy: CONST.SEARCH.GROUP_BY.MONTH,
 };
 
-export type {InsightsFilters};
+export type {InsightsDateFilter, InsightsFilters};
 export default DEFAULT_INSIGHTS_FILTERS;

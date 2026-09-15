@@ -10,24 +10,16 @@ import type {InsightsFilters} from './insightsFilters';
 
 import INSIGHTS_DASHBOARD_SPECS from './dashboardSpecs';
 
-type InsightsQuery = {
-    /** Request payload for GetInsights. */
-    jsonQuery: string;
-
-    /** Same query in search syntax, stored in Onyx as the query the dashboard's data was requested for. */
-    queryString: string;
-};
-
-/** The page's filters in the shape a search query is built from. Workspaces are left out when none are selected, which reports on all of them. */
+/** Builds the page's filters in the shape a search query is built from. Leaves the workspaces out when none are selected, which reports on all of them. */
 function buildFilterFormValues(filters: InsightsFilters): Partial<SearchAdvancedFiltersForm> {
     return {
-        dateOn: filters.datePreset,
+        ...('preset' in filters.date ? {dateOn: filters.date.preset} : {dateAfter: filters.date.after, dateBefore: filters.date.before}),
         groupCurrency: filters.groupCurrency,
         ...(filters.policyIDs.length > 0 && {policyID: filters.policyIDs}),
     };
 }
 
-/** The query a chart plots, narrowed by the page's filters, optionally replacing the group-by it declares. */
+/** Builds a chart's query with the page's filters applied, optionally grouped differently than the chart declares. */
 function applyInsightsFilters(chart: InsightsChartSpec, filters: InsightsFilters, groupByOverride?: SearchGroupBy): SearchQueryString {
     return buildQueryStringFromFilterFormValues(
         {...buildFilterFormValues(filters), groupBy: groupByOverride ?? chart.groupBy, view: chart.view},
@@ -35,18 +27,24 @@ function applyInsightsFilters(chart: InsightsChartSpec, filters: InsightsFilters
     );
 }
 
-/** The graph slot and snapshot hash of one chart, or nothing when its query cannot be hashed. */
+/** Returns the chart's graph slot paired with its snapshot hash, or nothing when its query cannot be hashed. */
 function buildSnapshotHashEntries(chart: InsightsChartSpec, filters: InsightsFilters, groupByOverride?: SearchGroupBy): Array<[InsightsGraphKey, {snapshotHash: number}]> {
     const snapshotHash = buildSearchQueryJSON(applyInsightsFilters(chart, filters, groupByOverride))?.hash;
-
     return snapshotHash ? [[chart.graphKey, {snapshotHash}]] : [];
 }
 
+type InsightsQuery = {
+    /** Request payload for GetInsights. */
+    jsonQuery: string;
+
+    /** The same query the payload carries, kept apart so the dashboard can store what it asked for. */
+    inputQuery: SearchQueryString;
+};
+
 /** Builds one request for the whole dashboard: the shared filters query plus the snapshot hash each graph's data is stored under. */
 function buildInsightsJsonQuery(dashboard: InsightsDashboardID, filters: InsightsFilters): InsightsQuery | undefined {
-    const queryString = buildQueryStringFromFilterFormValues({...buildFilterFormValues(filters), groupBy: filters.groupBy});
-    const queryJSON = buildSearchQueryJSON(queryString);
-
+    const inputQuery = buildQueryStringFromFilterFormValues({...buildFilterFormValues(filters), groupBy: filters.groupBy});
+    const queryJSON = buildSearchQueryJSON(inputQuery);
     if (!queryJSON) {
         return undefined;
     }
@@ -61,11 +59,11 @@ function buildInsightsJsonQuery(dashboard: InsightsDashboardID, filters: Insight
         jsonQuery: JSON.stringify({
             groupBy: queryJSON.groupBy,
             filters: queryJSON.filters,
-            inputQuery: queryString,
+            inputQuery,
             searchKey,
             insightsHashes,
         }),
-        queryString,
+        inputQuery,
     };
 }
 

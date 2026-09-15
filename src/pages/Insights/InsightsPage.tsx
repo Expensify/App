@@ -28,11 +28,7 @@ import useInsightsFilters from './useInsightsFilters';
 
 type InsightsPageProps = BottomTabScreenProps<TabNavigatorParamList, typeof SCREENS.INSIGHTS>;
 
-type InsightsDashboardProps = {
-    dashboardID: InsightsDashboardID;
-};
-
-function InsightsDashboard({dashboardID}: InsightsDashboardProps) {
+function InsightsDashboard({dashboardID}: {dashboardID: InsightsDashboardID}) {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const isFocused = useIsFocused();
@@ -40,16 +36,14 @@ function InsightsDashboard({dashboardID}: InsightsDashboardProps) {
 
     const query = isResolved ? buildInsightsJsonQuery(dashboardID, filters) : undefined;
     const jsonQuery = query?.jsonQuery;
-    const queryString = query?.queryString;
+    const inputQuery = query?.inputQuery;
 
-    // Asks once per query, every time the tab is opened, so a dashboard returned to is refreshed and a request that
-    // failed is retried.
     useEffect(() => {
-        if (!jsonQuery || !queryString || !isFocused || isOffline) {
+        if (!jsonQuery || !inputQuery || !isFocused || isOffline) {
             return;
         }
-        getInsights(dashboardID, {jsonQuery, queryString});
-    }, [dashboardID, jsonQuery, queryString, isFocused, isOffline]);
+        getInsights(dashboardID, jsonQuery, inputQuery);
+    }, [dashboardID, jsonQuery, inputQuery, isFocused, isOffline]);
 
     return (
         <ScreenWrapper

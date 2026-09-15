@@ -19,18 +19,18 @@ type InsightsChartSpec = {
 
 type InsightsDashboardSpec = {
     /** Identifies the dashboard to the backend. */
-    searchKey: ValueOf<typeof CONST.SEARCH.INSIGHTS_SEARCH_KEYS>;
+    searchKey: ValueOf<typeof CONST.INSIGHTS.SEARCH_KEY>;
 
     /** Chart across the top of the page, the only one the group-by filter applies to */
     headlineChart: InsightsChartSpec;
 
-    /** Charts in the grid below, each grouped the way it declares */
+    /** Charts in the grid below, grouped the way each of them declares */
     supportingCharts: InsightsChartSpec[];
 };
 
 const INSIGHTS_DASHBOARD_SPECS: Record<InsightsDashboardID, InsightsDashboardSpec> = {
     [CONST.INSIGHTS.DASHBOARD.SPEND]: {
-        searchKey: CONST.SEARCH.INSIGHTS_SEARCH_KEYS.SPEND,
+        searchKey: CONST.INSIGHTS.SEARCH_KEY.SPEND,
         headlineChart: {
             graphKey: CONST.INSIGHTS.GRAPH.SPEND_OVER_TIME,
             view: CONST.SEARCH.VIEW.LINE,

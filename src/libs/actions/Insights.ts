@@ -9,12 +9,12 @@ import type {OnyxUpdate} from 'react-native-onyx';
 
 import Onyx from 'react-native-onyx';
 
-function getInsights(dashboard: InsightsDashboardID, query: {jsonQuery: string; queryString: string}) {
+function getInsights(dashboard: InsightsDashboardID, jsonQuery: string, inputQuery: string) {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.INSIGHTS>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.INSIGHTS}${dashboard}`,
-            value: {requestedQuery: query.queryString, errors: null},
+            value: {requestedQuery: inputQuery, errors: null},
         },
     ];
     const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.INSIGHTS>> = [
@@ -24,7 +24,7 @@ function getInsights(dashboard: InsightsDashboardID, query: {jsonQuery: string; 
             value: {requestedQuery: null, errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},
         },
     ];
-    read(READ_COMMANDS.GET_INSIGHTS, {jsonQuery: query.jsonQuery}, {optimisticData, failureData});
+    read(READ_COMMANDS.GET_INSIGHTS, {jsonQuery}, {optimisticData, failureData});
 }
 
 // eslint-disable-next-line import/prefer-default-export

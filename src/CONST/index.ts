@@ -8028,9 +8028,6 @@ const CONST = {
             SPEND_OVER_TIME: 'spendOverTime',
             VIOLATIONS_BY_SUBMITTER: 'violationsBySubmitter',
         },
-        INSIGHTS_SEARCH_KEYS: {
-            SPEND: 'insightsSpend',
-        },
         SAVED_SEARCH_PREFIX: 'savedSearch_',
         GROUP_PREFIX: 'group_',
         ANIMATION: {
@@ -9847,6 +9844,9 @@ const CONST = {
     INSIGHTS: {
         DASHBOARD: {
             SPEND: 'spend',
+        },
+        SEARCH_KEY: {
+            SPEND: 'insightsSpend',
         },
         GRAPH: {
             SPEND_OVER_TIME: 'spendOverTime',

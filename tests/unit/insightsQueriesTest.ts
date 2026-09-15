@@ -7,7 +7,7 @@ import buildInsightsJsonQuery, {applyInsightsFilters} from '@pages/Insights/insi
 import CONST from '@src/CONST';
 
 const FILTERS: InsightsFilters = {
-    datePreset: CONST.SEARCH.DATE_PRESETS.YEAR_TO_DATE,
+    date: {preset: CONST.SEARCH.DATE_PRESETS.YEAR_TO_DATE},
     policyIDs: [],
     groupBy: CONST.SEARCH.GROUP_BY.MONTH,
     groupCurrency: 'USD',
@@ -37,10 +37,10 @@ describe('insightsQueries', () => {
             const request = buildInsightsJsonQuery(CONST.INSIGHTS.DASHBOARD.SPEND, filters);
 
             // Then it is addressed to the spend dashboard and names the snapshot each chart's data belongs in
-            const queryJSON = request?.queryString ? buildSearchQueryJSON(request.queryString) : undefined;
+            const queryJSON = request?.inputQuery ? buildSearchQueryJSON(request.inputQuery) : undefined;
             expect(request?.jsonQuery ? JSON.parse(request.jsonQuery) : undefined).toEqual({
-                searchKey: CONST.SEARCH.INSIGHTS_SEARCH_KEYS.SPEND,
-                inputQuery: request?.queryString,
+                searchKey: CONST.INSIGHTS.SEARCH_KEY.SPEND,
+                inputQuery: request?.inputQuery,
                 groupBy: filters.groupBy,
                 filters: queryJSON?.filters,
                 insightsHashes: buildExpectedHashes(filters),
@@ -55,7 +55,22 @@ describe('insightsQueries', () => {
             const request = buildInsightsJsonQuery(CONST.INSIGHTS.DASHBOARD.SPEND, filters);
 
             // Then the query carries those filters and nothing else, such as the sorting of a table no chart renders
-            expect(request?.queryString).toBe('groupBy:month groupCurrency:USD policyID:A1 date:year-to-date');
+            expect(request?.inputQuery).toBe('groupBy:month groupCurrency:USD policyID:A1 date:year-to-date');
+        });
+
+        it('reports on a date range as well as a preset', () => {
+            // Given a dashboard filtered to a range rather than a preset
+            const filters: InsightsFilters = {
+                ...FILTERS,
+                date: {after: '2026-01-01', before: '2026-03-31'},
+            };
+
+            // When its request is built
+            const request = buildInsightsJsonQuery(CONST.INSIGHTS.DASHBOARD.SPEND, filters);
+
+            // Then the query is bounded by the range, and the charts ask for snapshots of it
+            expect(request?.inputQuery).toBe('groupBy:month groupCurrency:USD date>2026-01-01 date<2026-03-31');
+            expect(request?.jsonQuery ? JSON.parse(request.jsonQuery) : undefined).toEqual(expect.objectContaining({insightsHashes: buildExpectedHashes(filters)}));
         });
 
         it('leaves the workspaces out of the query until some are selected', () => {
@@ -67,28 +82,28 @@ describe('insightsQueries', () => {
             const twoWorkspaces = buildInsightsJsonQuery(CONST.INSIGHTS.DASHBOARD.SPEND, filters);
 
             // Then only the second query names them, and its charts point at different snapshots
-            expect(allWorkspaces?.queryString).not.toContain('policyID');
-            expect(twoWorkspaces?.queryString).toContain('policyID:A1,B2');
+            expect(allWorkspaces?.inputQuery).not.toContain('policyID');
+            expect(twoWorkspaces?.inputQuery).toContain('policyID:A1,B2');
             expect(twoWorkspaces?.jsonQuery ? JSON.parse(twoWorkspaces.jsonQuery) : undefined).toEqual(expect.objectContaining({insightsHashes: buildExpectedHashes(filters)}));
         });
     });
 
     describe('applyInsightsFilters', () => {
-        it('plots what the chart declares, narrowed by the page filters', () => {
+        it('keeps what the chart declares and adds the page filters', () => {
             // Given a supporting chart, which declares its own view, grouping, sorting and limit
             const [supportingChart] = SPEND_SPEC.supportingCharts;
 
             // When the page filters are applied to it
             const chartQuery = applyInsightsFilters(supportingChart, FILTERS);
 
-            // Then the chart plots what it declared, over the filtered expenses
+            // Then the query keeps everything the chart declared and carries the filters as well
             const chartQueryJSON = buildSearchQueryJSON(chartQuery);
             expect(chartQueryJSON?.view).toBe(supportingChart.view);
             expect(chartQueryJSON?.groupBy).toBe(supportingChart.groupBy);
             expect(chartQueryJSON?.sortBy).toBe(supportingChart.sortBy);
             expect(chartQueryJSON?.limit).toBe(supportingChart.limit);
             expect(chartQuery).toContain(`${CONST.SEARCH.SYNTAX_FILTER_KEYS.GROUP_CURRENCY}:${FILTERS.groupCurrency}`);
-            expect(chartQuery).toContain(FILTERS.datePreset);
+            expect(chartQuery).toContain(`${CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE}:${CONST.SEARCH.DATE_PRESETS.YEAR_TO_DATE}`);
         });
 
         it('replaces the declared group-by when one is passed', () => {
