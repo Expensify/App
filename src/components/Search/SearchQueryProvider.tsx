@@ -8,7 +8,7 @@ import useRootNavigationState from '@hooks/useRootNavigationState';
 import {getDeepestFocusedScreen} from '@libs/Navigation/Navigation';
 import {buildSearchQueryJSON, buildSearchQueryString, doesQueryMatchDefaultFilterKeysAndType} from '@libs/SearchQueryUtils';
 import type {SearchKey} from '@libs/SearchUIUtils';
-import {GENERIC_SEARCH_KEYS, getLastSearchQuery, getSuggestedSearches, savedSearchIDToSearchKey, getSuggestedSearchesVisibility} from '@libs/SearchUIUtils';
+import {GENERIC_SEARCH_KEYS, getLastSearchQuery, getSuggestedSearches, savedSearchIDToSearchKey, searchKeyToSavedSearchID, getSuggestedSearchesVisibility} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -76,19 +76,32 @@ function SearchQueryProvider({children}: SearchQueryProviderProps) {
      * search's own default query, or a saved search's exact query. A search's stored last query is deliberately
      * excluded, because `similarSearchHash` compares only the filter *keys* of most filters, so an unrelated
      * stored query collides with the current one (`merchant:Amazon` and `merchant:Zulu` hash identically).
+     *
+     * Neither signal is unique, though. "Card statements" and "Unapproved card" share a `similarSearchHash`
+     * whenever the card feed is empty, because both queries then collapse to an expense search grouped by card
+     * whose only filter is the similar-search-ignored feed. Two saved searches can also hold the same query.
+     * `preferredSearchKey` is the key we are already on, and it breaks those ties so that an ambiguous match
+     * never drags the user onto whichever search happens to be declared first.
      */
-    const getExactSearchKeyForQuery = (queryJSON = currentSearchQueryJSON) => {
-        const suggestedSearchKey = Object.values(suggestedSearches).find((search) => search.similarSearchHash === queryJSON?.similarSearchHash)?.key;
-        if (suggestedSearchKey) {
-            return suggestedSearchKey;
+    const getExactSearchKeyForQuery = (queryJSON = currentSearchQueryJSON, preferredSearchKey?: SearchKey) => {
+        const suggestedSearchKeys = Object.values(suggestedSearches)
+            .filter((search) => search.similarSearchHash === queryJSON?.similarSearchHash)
+            .map((search) => search.key);
+        if (suggestedSearchKeys.length > 0) {
+            return preferredSearchKey && suggestedSearchKeys.includes(preferredSearchKey) ? preferredSearchKey : suggestedSearchKeys.at(0);
         }
 
-        const savedSearchID = Object.keys(savedSearches ?? {}).find((id) => {
+        const savedSearchIDs = Object.keys(savedSearches ?? {}).filter((id) => {
             const savedSearchQuery = savedSearches?.[id].query;
             return savedSearchQuery ? buildSearchQueryJSON(savedSearchQuery)?.hash === queryJSON?.hash : false;
         });
+        const firstSavedSearchID = savedSearchIDs.at(0);
+        if (!firstSavedSearchID) {
+            return undefined;
+        }
 
-        return savedSearchID ? savedSearchIDToSearchKey(savedSearchID) : undefined;
+        const preferredSavedSearchID = searchKeyToSavedSearchID(preferredSearchKey);
+        return savedSearchIDToSearchKey(preferredSavedSearchID && savedSearchIDs.includes(preferredSavedSearchID) ? preferredSavedSearchID : firstSavedSearchID);
     };
 
     const getSearchKeyForQuery = (queryJSON = currentSearchQueryJSON) => {
@@ -162,7 +175,7 @@ function SearchQueryProvider({children}: SearchQueryProviderProps) {
         // specific key. Only those exact signals may switch the key here. A last-query match is too coarse
         // to distinguish a genuine tab change from the user editing a filter on the current tab.
         else {
-            const exactSearchKey = getExactSearchKeyForQuery(currentSearchQueryJSON);
+            const exactSearchKey = getExactSearchKeyForQuery(currentSearchQueryJSON, currentSearchKey);
             if (exactSearchKey && exactSearchKey !== currentSearchKey) {
                 setCurrentSearchKey(exactSearchKey);
             }

@@ -36,6 +36,7 @@ const APPROVE_QUERY = SUGGESTED_SEARCHES[CONST.SEARCH.SEARCH_KEYS.APPROVE].searc
 const REPORTS_QUERY = SUGGESTED_SEARCHES[CONST.SEARCH.SEARCH_KEYS.REPORTS].searchQuery;
 const EXPENSES_QUERY = SUGGESTED_SEARCHES[CONST.SEARCH.SEARCH_KEYS.EXPENSES].searchQuery;
 const STATEMENTS_QUERY = SUGGESTED_SEARCHES[CONST.SEARCH.SEARCH_KEYS.STATEMENTS].searchQuery;
+const UNAPPROVED_CARD_QUERY = SUGGESTED_SEARCHES[CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CARD].searchQuery;
 
 const mockGetDeepestFocusedScreen = jest.fn<{name: string; params: {q?: string; rawQuery?: string}}, []>();
 const mockUseOnyx = jest.fn<[unknown], [key: string]>();
@@ -408,6 +409,38 @@ describe('SearchQueryProvider', () => {
             rerender(undefined);
 
             expect(result.current.currentSearchKey).toBe(CONST.SEARCH.SEARCH_KEYS.EXPENSES);
+        });
+
+        it('keeps the current key when more than one suggested search has the same similar hash', () => {
+            // With no card feed, the card statements and unapproved card defaults both collapse to an expense
+            // search grouped by card whose only filter is the similar-search-ignored feed, so they share a
+            // `similarSearchHash`. Card statements is declared first, so editing a filter on the unapproved card
+            // tab must not hand the ambiguous match to card statements.
+            expect(buildSearchQueryJSON(UNAPPROVED_CARD_QUERY)?.similarSearchHash).toBe(buildSearchQueryJSON(STATEMENTS_QUERY)?.similarSearchHash);
+
+            mockNavigationQuery(UNAPPROVED_CARD_QUERY);
+            const {result, rerender} = renderProvider();
+
+            // Tapping the tab is the only way onto the shadowed key, and it is what the tab menu does.
+            act(() => result.current.setCurrentSearchKey(CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CARD));
+            expect(result.current.currentSearchKey).toBe(CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CARD);
+
+            // Sorting changes the hash but not the similar hash, so the re-resolve runs on an ambiguous match.
+            mockNavigationQuery(`${UNAPPROVED_CARD_QUERY} ${CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_BY}:${CONST.SEARCH.TABLE_COLUMNS.MERCHANT}`);
+            rerender(undefined);
+
+            expect(result.current.currentSearchKey).toBe(CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CARD);
+        });
+
+        it('still resolves an ambiguous similar hash to the first match when the current key is not one of them', () => {
+            mockNavigationQuery(EXPENSES_QUERY);
+            const {result, rerender} = renderProvider();
+            expect(result.current.currentSearchKey).toBe(CONST.SEARCH.SEARCH_KEYS.EXPENSES);
+
+            mockNavigationQuery(UNAPPROVED_CARD_QUERY);
+            rerender(undefined);
+
+            expect(result.current.currentSearchKey).toBe(CONST.SEARCH.SEARCH_KEYS.STATEMENTS);
         });
     });
 
