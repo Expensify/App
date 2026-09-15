@@ -12172,11 +12172,15 @@ function getOutstandingReportsForUser(
 }
 
 /**
- * Get the submitter's most recently created outstanding report for a policy, or null when they have none.
+ * Get the submitter's most recently created open report for a policy, or null when they have none.
  *
  * This is the fallback used when creating an expense on a workspace chat whose `iouReportID` can't be resolved,
- * so the expense joins the submitter's existing open report instead of starting a new one. Already-submitted
- * reports are excluded, since an expense must not be added to a report that is awaiting approval.
+ * so the expense joins the submitter's existing open report instead of starting a new one.
+ *
+ * Only reports that are still open qualify. `allowSubmitted = false` is not enough on its own: `isReportOutstanding`
+ * also returns submitted reports when `canAddTransaction` is true, which it is for a report awaiting first-level
+ * approval. Submitting a report clears the chat's `iouReportID`, which is precisely when this fallback runs, so
+ * without the open-only filter the next expense would land on the report the submitter just sent for approval.
  *
  * @param policyID - The policy ID to filter reports by
  * @param reportOwnerAccountID - The accountID of the report owner
@@ -12189,13 +12193,10 @@ function getNewestOutstandingReportForUser(
     reportNameValuePairs?: OnyxCollection<ReportNameValuePairs>,
     reports: OnyxCollection<Report> = deprecatedAllReports,
 ): OnyxInputValue<Report> {
-    const outstandingReports = getOutstandingReportsForUser(policyID, reportOwnerAccountID, rules, reportNameValuePairs, reports, false);
+    const openReports = getOutstandingReportsForUser(policyID, reportOwnerAccountID, rules, reportNameValuePairs, reports, false).filter(isOpenExpenseReport);
 
     // `created` is a fixed-width UTC datetime string, so ordinary string ordering is already chronological.
-    return outstandingReports.reduce<OnyxInputValue<Report>>(
-        (newest, report) => ((report?.created ?? '') > (newest?.created ?? '') ? (report ?? null) : newest),
-        outstandingReports.at(0) ?? null,
-    );
+    return openReports.reduce<OnyxInputValue<Report>>((newest, report) => ((report?.created ?? '') > (newest?.created ?? '') ? (report ?? null) : newest), openReports.at(0) ?? null);
 }
 
 /**

@@ -248,6 +248,9 @@ describe('getMoneyRequestInformation', () => {
         const NEWER_REPORT_ID = 'outstanding-expense-report-newer';
         const OTHER_OWNER_REPORT_ID = 'outstanding-expense-report-other-owner';
         const PENDING_REPORT_ID = 'expense-report-not-in-onyx-yet';
+        const SUBMITTED_REPORT_ID = 'expense-report-awaiting-approval';
+        const APPROVER_ACCOUNT_ID = 300;
+        const APPROVER_EMAIL = 'approver@example.com';
 
         function buildOutstandingExpenseReport(reportID: string, created: string, ownerAccountID = PAYEE_ACCOUNT_ID): Report {
             return {
@@ -333,6 +336,28 @@ describe('getMoneyRequestInformation', () => {
             });
 
             expect(result.iouReport.reportID).toBe(OLDER_REPORT_ID);
+        });
+
+        it('creates a new report when the submitter only has a report that is awaiting approval', async () => {
+            // Submitting a report clears the chat's `iouReportID`, so this fallback runs right after a submit too.
+            // The submitted report must never be reused — the next expense belongs on a fresh report.
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                [PAYEE_ACCOUNT_ID]: {accountID: PAYEE_ACCOUNT_ID, login: 'payee@example.com'},
+                [APPROVER_ACCOUNT_ID]: {accountID: APPROVER_ACCOUNT_ID, login: APPROVER_EMAIL},
+            });
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {approver: APPROVER_EMAIL, owner: APPROVER_EMAIL, approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${SUBMITTED_REPORT_ID}`, {
+                ...buildOutstandingExpenseReport(SUBMITTED_REPORT_ID, '2024-01-02'),
+                // Awaiting first-level approval, which is what makes `canAddTransaction` true for this report.
+                managerID: APPROVER_ACCOUNT_ID,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            });
+            await waitForBatchedUpdates();
+
+            const result = getMoneyRequestInformation({...baseParams, getCurrencyDecimals: getCurrencyDecimalsLocal});
+
+            expect(result.iouReport.reportID).not.toBe(SUBMITTED_REPORT_ID);
         });
     });
 
