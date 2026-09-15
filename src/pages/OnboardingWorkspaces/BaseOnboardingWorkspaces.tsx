@@ -11,7 +11,6 @@ import useAutoCreateSubmitWorkspace from '@hooks/useAutoCreateSubmitWorkspace';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import useNetwork from '@hooks/useNetwork';
 import useOnboardingIntent from '@hooks/useOnboardingIntent';
 import useOnboardingMessages from '@hooks/useOnboardingMessages';
 import useOnboardingTaskInformation from '@hooks/useOnboardingTaskInformation';
@@ -97,11 +96,12 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
     const onboardingIntent = useOnboardingIntent();
     const isEmployerWithSubmit = onboardingIntent === CONST.ONBOARDING_CHOICES.EMPLOYER;
     const isJoiningCompanyWorkspace = onboardingIntent === CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE;
-    const hasCompletedGuidedSetupFlow = hasCompletedGuidedSetupFlowSelector(onboardingValues);
+    const hasCompletedGuidedSetupFlow = hasCompletedGuidedSetupFlowSelector(onboardingValues) ?? false;
     const isConciergeTaskFlow = isJoiningCompanyWorkspace && route.params?.isJoinWorkspaceTask === 'true';
     const isPostOnboardingJoinWorkspaceFlow = isJoiningCompanyWorkspace && (hasCompletedGuidedSetupFlow || isConciergeTaskFlow);
     const createdEmptyWorkspaceContentDomains = useRef(new Set<string>());
     const createdJoinWorkspaceTask = useRef(false);
+    const hasRequestedAccessiblePolicies = useRef(false);
     const autoCreateSubmitWorkspace = useAutoCreateSubmitWorkspace();
 
     const returnToOriginReport = useReturnToOriginReport();
@@ -215,17 +215,28 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
 
     const wrapperPadding = onboardingIsMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5;
 
+    // Empty deps keep this cleanup tied to losing focus rather than to the data below changing, so the guard only
+    // clears when the screen is actually left and a later focus can retry.
+    useFocusEffect(
+        useCallback(
+            () => () => {
+                hasRequestedAccessiblePolicies.current = false;
+            },
+            [],
+        ),
+    );
+
     useFocusEffect(
         useCallback(() => {
-            if (!isValidated || joinablePoliciesLength > 0 || joinablePoliciesLoading) {
+            // Guarded by a ref instead of by omitting the loading/count dependencies: an empty response leaves the
+            // count at 0, so reacting to those updates would immediately issue another request.
+            if (!isValidated || joinablePoliciesLength > 0 || joinablePoliciesLoading || hasRequestedAccessiblePolicies.current) {
                 return;
             }
 
+            hasRequestedAccessiblePolicies.current = true;
             getAccessiblePolicies();
-            // Loading and policy-count updates must not restart this focus effect: an empty response would otherwise
-            // immediately issue another request. A later screen focus retries if the list is still empty.
-            // eslint-disable-next-line react-hooks/exhaustive-deps
-        }, [isValidated]),
+        }, [isValidated, joinablePoliciesLength, joinablePoliciesLoading]),
     );
 
     useEffect(() => {

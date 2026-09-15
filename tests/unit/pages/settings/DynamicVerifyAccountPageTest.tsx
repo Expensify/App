@@ -13,6 +13,7 @@ import {completeTask} from '@userActions/Task';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 
@@ -22,11 +23,19 @@ import Onyx from 'react-native-onyx';
 
 import waitForBatchedUpdates from '../../../utils/waitForBatchedUpdates';
 
-const mockVerifyAccountPageBase = jest.fn<null, [Record<string, unknown>]>(() => null);
+/** The subset of VerifyAccountPageBase's props these tests assert on. Typing them keeps the captured call inspectable
+ * without casting away the mock's argument type. */
+type MockedVerifyAccountPageBaseProps = {
+    navigateForwardTo?: Route;
+    onValidationSuccess?: () => void;
+    shouldShowCloseButton?: boolean;
+};
+
+const mockVerifyAccountPageBase = jest.fn<null, [MockedVerifyAccountPageBaseProps]>(() => null);
 
 jest.mock('@pages/settings/VerifyAccountPageBase', () => ({
     __esModule: true,
-    default: (props: Record<string, unknown>) => mockVerifyAccountPageBase(props),
+    default: (props: MockedVerifyAccountPageBaseProps) => mockVerifyAccountPageBase(props),
 }));
 
 jest.mock('@hooks/useDynamicBackPath', () => jest.fn(() => 'home'));
@@ -69,13 +78,14 @@ describe('DynamicVerifyAccountPage', () => {
         expect(mockVerifyAccountPageBase).toHaveBeenCalledWith(
             expect.objectContaining({
                 navigateForwardTo: ROUTES.ONBOARDING_WORKSPACES.getRoute('home', true),
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
                 onValidationSuccess: expect.any(Function),
                 shouldShowCloseButton: true,
             }),
         );
 
         const props = mockVerifyAccountPageBase.mock.calls.at(-1)?.[0];
-        (props?.onValidationSuccess as () => void)();
+        props?.onValidationSuccess?.();
 
         expect(completeTask).toHaveBeenCalledWith(undefined, false, false, undefined, undefined, undefined, true, true, CONST.ACCOUNT_ID.CONCIERGE);
         expect(getAccessiblePolicies).toHaveBeenCalled();

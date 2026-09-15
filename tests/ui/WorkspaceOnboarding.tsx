@@ -41,6 +41,9 @@ const mockCompleteOnboarding = jest.mocked(completeOnboarding);
 const mockJoinAccessiblePolicy = jest.mocked(joinAccessiblePolicy);
 const mockCreateJoinWorkspaceOnboardingContent = jest.mocked(createJoinWorkspaceOnboardingContent);
 
+// Matches the login TestHelper.signInWithTestUser signs in with, so the LOGINS entry keyed off it counts as validated.
+const VALIDATED_EMAIL = 'test@user.com';
+
 jest.mock('@userActions/Report', () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const actual = jest.requireActual('@userActions/Report');
@@ -279,9 +282,9 @@ describe('OnboardingWorkspaces Page', () => {
             });
             await Onyx.set(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED, CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE);
             await Onyx.set(ONYXKEYS.LOGINS, {
-                '1_test@user.com': {
+                [`1_${VALIDATED_EMAIL}`]: {
                     partnerID: CONST.PARTNER_ID.EXPENSIFY,
-                    partnerUserID: 'test@user.com',
+                    partnerUserID: VALIDATED_EMAIL,
                     validatedDate: '2026-09-12 00:00:00',
                 },
             });
