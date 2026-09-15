@@ -2,24 +2,25 @@
 title: Configure Company Card Settings
 description: Learn how to manage third-party company card feeds in Expensify, including commercial and direct feeds, accounting exports, and automated eReceipts.
 keywords: [New Expensify, company cards, card feed settings, third-party cards, commercial feeds, direct feeds, accounting exports, ereceipts, expense automation, card management, e-receipt, electronic receipt, digital receipt, auto-generated receipt, card admin]
-internalScope: Applies to Workspace Admins and Card Admins. Covers how to manage third-party feed settings on the workspace level. Does not cover company card troubleshooting, setup or card assignment. 
+internalScope: Applies to workspace admins and card admins. Covers how to manage third-party feed settings on the workspace level. Does not cover company card troubleshooting, setup, or card assignment.
+order: 2
 ---
 
 # Configure Company Card Settings
 
-Workspace Admins can manage company card settings, export logic, and eReceipt functionality at the workspace level. Card Admins can manage company card feed settings and assign export accounts to individual cards. This guide outlines how to configure your company card connection, route expenses to accounting systems, and automate receipt handling.
+Workspace admins can manage company card settings, export logic, and eReceipt functionality at the workspace level. Card admins can manage company card feed settings and assign export accounts to individual cards. This guide outlines how to configure your company card connection, route expenses to accounting systems, and automate receipt handling.
 
-To set up a direct company credit card feed on a Workspace, see [Direct Feeds](/articles/new-expensify/connect-credit-cards/Direct-feeds). 
+To set up a direct company credit card connection on a workspace, see [Set up a Direct Connection for Company Cards](/articles/new-expensify/connect-credit-cards/connect-company-cards/Set-up-a-Direct-Connection-for-Company-Cards).
 
-To set up a commercial card file feed on a Workspace, see [Commercial Feeds](https://help.expensify.com/articles/new-expensify/connect-credit-cards/Commercial-feeds). 
+To set up a commercial card file feed on a workspace, see [Set up a Commercial Feed for Company Cards](/articles/new-expensify/connect-credit-cards/connect-company-cards/Set-up-a-Commercial-Feed-for-Company-Cards).
 
 ---
 
-## How to configure settings for company card feeds 
+## How to configure settings for company card feeds
 
-1. In the navigation tabs (on the left on web, on the bottom on mobile) navigate to **Workspaces > [Workspace Name]**.
-2. Select **Company Cards** and chose the relevant company card feed. 
-3. Click **Settings**. 
+1. In the navigation tabs (on the left on web, on the bottom on mobile), go to **Workspaces > [Workspace name]**.
+2. Select **Company cards** and choose the relevant company card feed.
+3. Select **Settings**.
 
 You can manage the following options:
 
@@ -66,7 +67,7 @@ To override the central export account per card:
 
 ---
 
-## How to use eReceipts with third-party card Feeds
+## How to use eReceipts with third-party card feeds
 
 **eReceipts** are digital receipts that replace paper ones for many USD transactions of $75 or less on commercial and direct card feeds.
 
@@ -86,7 +87,7 @@ To override the central export account per card:
 ## Are commercial and direct card feeds limited by plan?
 
 Yes, below is a breakdown:  
-- On the **Collect plan**, you can connect one [commercial](https://help.expensify.com/articles/new-expensify/connect-credit-cards/Commercial-feeds) or [direct feed](https://help.expensify.com/articles/new-expensify/connect-credit-cards/Direct-feeds).
+- On the **Collect plan**, you can connect one [commercial feed](/articles/new-expensify/connect-credit-cards/connect-company-cards/Set-up-a-Commercial-Feed-for-Company-Cards) or [direct connection](/articles/new-expensify/connect-credit-cards/connect-company-cards/Set-up-a-Direct-Connection-for-Company-Cards).
 - The **Control plan** supports **unlimited** card connections.
 - The [Expensify Card](https://use.expensify.com/company-credit-card) is available on **both plans**.
 
