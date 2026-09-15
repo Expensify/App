@@ -12195,7 +12195,6 @@ function getNewestOutstandingReportForUser(
 ): OnyxInputValue<Report> {
     const openReports = getOutstandingReportsForUser(policyID, reportOwnerAccountID, rules, reportNameValuePairs, reports, false).filter(isOpenExpenseReport);
 
-    // `created` is a fixed-width UTC datetime string, so ordinary string ordering is already chronological.
     return openReports.reduce<OnyxInputValue<Report>>((newest, report) => ((report?.created ?? '') > (newest?.created ?? '') ? (report ?? null) : newest), openReports.at(0) ?? null);
 }
 
