@@ -194,6 +194,7 @@ import {
     isSettled,
     shouldReportShowSubscript,
 } from './ReportUtils';
+import {expenseStatusActionMapping, isEligibleForStatus} from './SearchOptimisticUpdateUtils';
 import {
     buildCannedSearchQuery,
     buildQueryStringFromFilterFormValues,
@@ -438,20 +439,6 @@ const transactionQuarterGroupColumnNamesToSortingProperty: TransactionQuarterGro
     ...transactionGroupBaseSortingProperties,
 };
 
-type ExpenseStatusPredicate = (expenseReport?: OnyxTypes.Report, transactionReportID?: string) => boolean;
-
-const expenseStatusActionMapping: Record<string, ExpenseStatusPredicate> = {
-    [CONST.SEARCH.STATUS.EXPENSE.DRAFTS]: (expenseReport) => expenseReport?.stateNum === CONST.REPORT.STATE_NUM.OPEN && expenseReport.statusNum === CONST.REPORT.STATUS_NUM.OPEN,
-    [CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING]: (expenseReport) =>
-        expenseReport?.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED && expenseReport.statusNum === CONST.REPORT.STATUS_NUM.SUBMITTED,
-    [CONST.SEARCH.STATUS.EXPENSE.APPROVED]: (expenseReport) => expenseReport?.stateNum === CONST.REPORT.STATE_NUM.APPROVED && expenseReport.statusNum === CONST.REPORT.STATUS_NUM.APPROVED,
-    [CONST.SEARCH.STATUS.EXPENSE.PAID]: (expenseReport) =>
-        (expenseReport?.stateNum ?? 0) >= CONST.REPORT.STATE_NUM.APPROVED && expenseReport?.statusNum === CONST.REPORT.STATUS_NUM.REIMBURSED,
-    [CONST.SEARCH.STATUS.EXPENSE.DONE]: (expenseReport) => expenseReport?.stateNum === CONST.REPORT.STATE_NUM.APPROVED && expenseReport.statusNum === CONST.REPORT.STATUS_NUM.CLOSED,
-    [CONST.SEARCH.STATUS.EXPENSE.UNREPORTED]: (expenseReport, transactionReportID) => !expenseReport && transactionReportID !== CONST.REPORT.TRASH_REPORT_ID,
-    [CONST.SEARCH.STATUS.EXPENSE.DELETED]: (_expenseReport, transactionReportID) => transactionReportID === CONST.REPORT.TRASH_REPORT_ID,
-};
-
 type TaskStatusPredicate = (taskReport?: OnyxTypes.Report | SearchTask) => boolean;
 
 const taskStatusActionMapping: Record<string, TaskStatusPredicate> = {
@@ -467,10 +454,6 @@ const nonSortableColumns = new Set<SearchColumnType>([
     CONST.SEARCH.TABLE_COLUMNS.AVATAR,
     CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS,
 ]);
-
-function isValidExpenseStatus(status: unknown): status is ValueOf<typeof CONST.SEARCH.STATUS.EXPENSE> {
-    return typeof status === 'string' && status in expenseStatusActionMapping;
-}
 
 function isValidTaskStatus(status: unknown): status is ValueOf<typeof CONST.SEARCH.STATUS.TASK> {
     return typeof status === 'string' && status in taskStatusActionMapping;
@@ -2214,28 +2197,6 @@ function hasVisibleViolations(
     }
 
     return hasActionable && hasUserVisible;
-}
-
-function isEligibleForStatus(currentQueryJSON: SearchQueryJSON | undefined, report: OnyxEntry<OnyxTypes.Report>, transactionItemReportID?: string) {
-    const status = getFilterFromQuery(currentQueryJSON, CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS);
-    if (!status.value) {
-        return true;
-    }
-
-    if (status.isNegated) {
-        return Object.keys(expenseStatusActionMapping).some((expenseStatus) => {
-            const isExcluded = status.value?.includes(expenseStatus);
-            return !isExcluded && expenseStatusActionMapping[expenseStatus](report, transactionItemReportID);
-        });
-    }
-
-    // Invalid statuses should be treated as if there were no status filter, mirroring backend behaviour.
-    const validStatuses = status.value.filter(isValidExpenseStatus);
-    if (validStatuses.length === 0) {
-        return true;
-    }
-
-    return validStatuses.some((expenseStatus) => expenseStatusActionMapping[expenseStatus](report, transactionItemReportID));
 }
 
 /**
@@ -7710,7 +7671,6 @@ export {
     hasFlexColumn,
     isTransactionSearchType,
     splitGroupsIntoPairs,
-    isEligibleForStatus,
     SKIPPED_SEARCH_FILTERS,
     SEARCH_TYPE_MENU_ICON_NAMES,
 };

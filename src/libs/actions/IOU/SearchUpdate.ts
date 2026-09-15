@@ -1,8 +1,8 @@
 import type {SearchQueryJSON} from '@components/Search/types';
 
 import {isExpenseReport, isOptimisticPersonalDetail} from '@libs/ReportUtils';
+import {getOptimisticSuggestedSearchHashes, isEligibleForStatus} from '@libs/SearchOptimisticUpdateUtils';
 import {buildCannedSearchQuery, buildSearchQueryJSON, buildSearchQueryString, getCurrentSearchQueryJSON, getFilterFromQuery} from '@libs/SearchQueryUtils';
-import {getSuggestedSearches, isEligibleForStatus} from '@libs/SearchUIUtils';
 import {isInvalidMerchantValue} from '@libs/ValidationUtils';
 
 import CONST from '@src/CONST';
@@ -41,6 +41,10 @@ type GetSearchOnyxUpdateParams = {
     isFromOneTransactionReport?: boolean;
     isInvoice?: boolean;
     transactionThreadReportID: string | undefined;
+    previousMoneyRequestAction?: {
+        reportID: string;
+        reportActionID: string;
+    };
 };
 
 //  Determines whether the current search results should be optimistically updated
@@ -75,10 +79,7 @@ function shouldOptimisticallyUpdateSearch(
         return false;
     }
 
-    const suggestedSearches = getSuggestedSearches(currentUserAccountID);
-    const submitQueryJSON = suggestedSearches[CONST.SEARCH.SEARCH_KEYS.SUBMIT].searchQueryJSON;
-    const approveQueryJSON = suggestedSearches[CONST.SEARCH.SEARCH_KEYS.APPROVE].searchQueryJSON;
-    const unapprovedCashSimilarSearchHash = suggestedSearches[CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CASH].similarSearchHash;
+    const {submitQueryJSON, approveQueryJSON, unapprovedCashSimilarSearchHash} = getOptimisticSuggestedSearchHashes(currentUserAccountID);
 
     const validSearchTypes =
         (!isInvoice && currentSearchQueryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE) ||
@@ -147,6 +148,7 @@ function getSearchOnyxUpdate({
     transactionThreadReportID,
     isFromOneTransactionReport,
     isInvoice,
+    previousMoneyRequestAction,
 }: GetSearchOnyxUpdateParams): OnyxData<typeof ONYXKEYS.COLLECTION.SNAPSHOT> | undefined {
     const toAccountID = participant?.accountID;
     const deprecatedCurrentUserPersonalDetails = getCurrentUserPersonalDetails();
@@ -187,8 +189,20 @@ function getSearchOnyxUpdate({
     if (iouReport) {
         baseSnapshotData[`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`] = iouReport;
     }
-    if (iouReport && iouAction) {
-        baseSnapshotData[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`] = {[iouAction.reportActionID]: iouAction};
+    if (iouAction?.reportActionID) {
+        const actionReportID = iouReport?.reportID ?? iouAction.reportID;
+        if (actionReportID && actionReportID !== CONST.REPORT.UNREPORTED_REPORT_ID) {
+            baseSnapshotData[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${actionReportID}`] = {[iouAction.reportActionID]: iouAction};
+        }
+    }
+    if (previousMoneyRequestAction) {
+        baseSnapshotData[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${previousMoneyRequestAction.reportID}`] = {
+            [previousMoneyRequestAction.reportActionID]: {
+                originalMessage: {
+                    IOUTransactionID: null,
+                },
+            },
+        };
     }
 
     const isOptimisticToAccountData = isOptimisticPersonalDetail(toAccountID);
