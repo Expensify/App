@@ -488,7 +488,18 @@ that also explains uncommitted files in this worktree being reverted twice the s
 another session had in-progress edits under `scripts/lint/` at that moment which have since been
 replaced.
 
-**Not currently reproducible: 13 consecutive clean runs since the merge.**
+**Reproduced repeatedly on 2026-09-15.** `npm run lint -- --linter=oxlint` returned exit 2 with
+`ESLint output (JSON parse failed: EOF while parsing a value at line 1 column 0)` on 3 of 9
+invocations in one session. Every failure landed immediately after other heavy work (a
+`compareWarmCache.sh` ESLint leg, `tsc` runs, a full-repo oxlint, or a back-to-back loop over the ten
+other oxlint scripts); every run on an otherwise idle machine passed. So this is not rare, and it is
+not random: it tracks free memory at invocation, exactly as the `os.freemem()` shard sizing implies.
+
+It is also actively misleading. The message names JSON parsing, so the failure reads as a malformed
+`.oxlintrc.json` rather than a dead process. It cost a wrong conclusion here: a config edit was
+briefly blamed, and the bisect that "confirmed" it was itself invalid, because the spliced probe
+config really was malformed. Three clean runs on the committed config settled it. A single retry
+would have saved all of that.
 
 ### 5.5 Port findings surfaced by the fixture campaign
 
@@ -587,7 +598,9 @@ Ordered by what blocks what.
     `react/rules-of-hooks` reporting as `react-hooks/rules-of-hooks` (section 5.5).
 11. **Every merge from `main` needs a manual `SEATBELT_INCREASE=all` pass.** The seatbelt auto-tightens
    but never auto-increases.
-12. **Retry a dead oxlint shard once** (section 5.4). Today a transient OOM fails the whole lint run.
+12. **Retry a dead oxlint shard once** (section 5.4). Reproduced 2026-09-15 under ordinary
+    concurrent load, so raise this above "low priority": a transient OOM fails the whole lint run and
+    the message points at config rather than at a dead process.
    Low priority while the job is non-blocking, worth having before it becomes required.
 
 ---
