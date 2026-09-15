@@ -1,6 +1,7 @@
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
+import getStoredDefaultP2PMileageRate from '@libs/getStoredDefaultP2PMileageRate';
 
 import CONST from '@src/CONST';
 import en from '@src/languages/en';
@@ -10,6 +11,10 @@ import type Transaction from '@src/types/onyx/Transaction';
 
 import createRandomTransaction from '../utils/collections/transaction';
 import {translateLocal} from '../utils/TestHelper';
+
+// Auto-mocked so it returns undefined by default, which is the "default P2P rate not loaded yet" state the
+// getRateForP2P tests below rely on. Individual tests override it when they need a loaded default.
+jest.mock('@libs/getStoredDefaultP2PMileageRate');
 
 const customUnitRateIDWithTaxClaimablePercentage = 'FG515011039A4';
 const rateWithTaxClaimablePercentage = 100;
@@ -834,6 +839,10 @@ describe('DistanceRequestUtils', () => {
 
         const defaultRate = buildRate('DEFAULT_RATE_ID', 67, {index: 0});
 
+        afterEach(() => {
+            jest.mocked(getStoredDefaultP2PMileageRate).mockReset();
+        });
+
         it('prefers a rate matching the current value, currency and unit over the default rate', () => {
             // Given a destination policy that has a rate equivalent to the expense's current rate
             const policy = buildDestinationPolicy({
@@ -950,6 +959,45 @@ describe('DistanceRequestUtils', () => {
 
             // Then the P2P rate value is matched against the destination policy
             expect(result?.customUnitRateID).toBe('MATCHING_RATE_ID');
+        });
+
+        it('matches a P2P expense against the unit saved on the transaction, not the loaded global default unit', () => {
+            // Given the global default P2P rate is loaded in miles while the expense itself was saved in kilometers
+            jest.mocked(getStoredDefaultP2PMileageRate).mockReturnValue({rate: 67, unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES});
+            const transaction = buildTransaction({
+                comment: {customUnit: {customUnitRateID: CONST.CUSTOM_UNITS.FAKE_P2P_ID, defaultP2PRate: 70, distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS}},
+            });
+            const policy = buildDestinationPolicy(
+                {
+                    DEFAULT_RATE_ID: defaultRate,
+                    MATCHING_RATE_ID: buildRate('MATCHING_RATE_ID', 70, {index: 1}),
+                },
+                CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS,
+            );
+
+            // When selecting the rate for the policy change
+            const result = DistanceRequestUtils.getRateForPolicyChange({transaction, policy});
+
+            // Then the kilometer rate still matches, so the expense is not repriced by the fallback rate
+            expect(result?.customUnitRateID).toBe('MATCHING_RATE_ID');
+        });
+
+        it('does not match a P2P expense against a destination policy whose unit differs from the transaction unit', () => {
+            // Given the global default P2P rate is loaded in miles and the destination policy is in miles, but the expense was saved in kilometers
+            jest.mocked(getStoredDefaultP2PMileageRate).mockReturnValue({rate: 67, unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES});
+            const transaction = buildTransaction({
+                comment: {customUnit: {customUnitRateID: CONST.CUSTOM_UNITS.FAKE_P2P_ID, defaultP2PRate: 70, distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS}},
+            });
+            const policy = buildDestinationPolicy({
+                DEFAULT_RATE_ID: defaultRate,
+                MATCHING_RATE_ID: buildRate('MATCHING_RATE_ID', 70, {index: 1}),
+            });
+
+            // When selecting the rate for the policy change
+            const result = DistanceRequestUtils.getRateForPolicyChange({transaction, policy});
+
+            // Then the unit mismatch disqualifies the match and the destination's default rate is used
+            expect(result?.customUnitRateID).toBe('DEFAULT_RATE_ID');
         });
 
         it('uses the modified date over the created date when checking rate eligibility', () => {

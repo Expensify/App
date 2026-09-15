@@ -583,7 +583,8 @@ function compareRatesByDateSpecificity(a: MileageRate, b: MileageRate): number {
         return bScore - aScore;
     }
 
-    if (aScore === 2 && bScore === 2) {
+    // Both scores are equal here, so aScore === 2 means both rates are fully bounded.
+    if (aScore === 2) {
         const aRange = getFullyBoundedDateRangeMs(a);
         const bRange = getFullyBoundedDateRangeMs(b);
         if (aRange !== undefined && bRange !== undefined && aRange !== bRange) {
@@ -635,17 +636,11 @@ function getRateMatchingCurrentRate(mileageRates: Record<string, MileageRate>, c
         return undefined;
     }
 
-    return Object.values(mileageRates)
-        .filter(
-            (rate) =>
-                rate.enabled !== false &&
-                rate.rate === currentRate.rate &&
-                rate.currency === currentRate.currency &&
-                rate.unit === currentRate.unit &&
-                isRateEligibleForDate(rate, expenseDate),
-        )
-        .sort(compareRatesByDateSpecificity)
-        .at(0);
+    const equivalentRates = Object.fromEntries(
+        Object.entries(mileageRates).filter(([, rate]) => rate.rate === currentRate.rate && rate.currency === currentRate.currency && rate.unit === currentRate.unit),
+    );
+
+    return getBestEligibleRate(equivalentRates, expenseDate);
 }
 
 /**
@@ -665,7 +660,10 @@ function getRateMatchingCurrentRate(mileageRates: Record<string, MileageRate>, c
 function getRateForPolicyChange({transaction, policy, currentRate}: {transaction: OnyxEntry<Transaction>; policy: OnyxEntry<Policy>; currentRate?: MileageRate}): MileageRate | undefined {
     const expenseDate = getFormattedCreated(transaction);
     const mileageRates = getMileageRates(policy);
-    const rateToMatch = currentRate ?? (isCustomUnitRateIDForP2P(transaction) ? getRateForP2P(getCurrency(transaction), transaction) : undefined);
+    const p2pRate = isCustomUnitRateIDForP2P(transaction) ? getRateForP2P(getCurrency(transaction), transaction) : undefined;
+    // getRateForP2P reports the loaded global default's unit, not the expense's, so read the unit off the transaction the way getRate does.
+    // Otherwise an expense saved in kilometers is matched as miles and the fallback rate reprices it.
+    const rateToMatch = currentRate ?? (p2pRate ? {...p2pRate, unit: getDistanceUnit(transaction, p2pRate)} : undefined);
 
     const selectedRate = getRateMatchingCurrentRate(mileageRates, rateToMatch, expenseDate) ?? getBestEligibleRateOrPolicyDefault(mileageRates, expenseDate, policy);
 
