@@ -207,11 +207,11 @@ function isGroupSelection(key: string, transaction: SelectedTransactions[string]
 /**
  * The group rows a selection covers in full.
  *
- * A group is fully selected when the number of selected children matches the group's snapshot `count`, which is
- * how many transactions the group actually has. Clicking the group checkbox is not enough on its own: a `limit:`
- * smaller than that count leaves children unloaded, so delete cannot remove the whole group. Selecting every
- * loaded child individually is enough when that loaded set is the whole group (`isEntireGroupSelected`). An empty
- * group row is still selected under its own group key.
+ * A group is fully selected when the number of selected children matches the group's remaining transaction
+ * count. Snapshot `count` is not decremented for pending-delete children, so `isEntireGroupSelected` (stamped
+ * after subtracting those children) is what covers a second-batch delete of the rest. Clicking the group
+ * checkbox is not enough on its own: a `limit:` smaller than that count leaves children unloaded, so delete
+ * cannot remove the whole group. An empty group row is still selected under its own group key.
  */
 function getSelectedGroupKeys(selectedTransactions: SelectedTransactions, searchData?: SearchResultDataType): SearchGroupKey[] {
     const selectedCountByGroupKey = new Map<SearchGroupKey, {selectedCount: number; isEntireGroupSelected: boolean}>();
@@ -234,7 +234,7 @@ function getSelectedGroupKeys(selectedTransactions: SelectedTransactions, search
     for (const [groupKey, {selectedCount, isEntireGroupSelected}] of selectedCountByGroupKey) {
         const groupCount = getSearchGroupCountByKey(searchData, groupKey);
         if (groupCount !== undefined) {
-            if (selectedCount === groupCount) {
+            if (isEntireGroupSelected || selectedCount === groupCount) {
                 groupKeys.add(groupKey);
             }
             continue;

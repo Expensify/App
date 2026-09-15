@@ -31,8 +31,21 @@ function getSearchGroupCountByKey(searchData: SearchResultDataType | undefined, 
 }
 
 /**
- * A group is fully selected only when every transaction it contains is selected. If the group count is unknown
- * (expense-report rows), the loaded children are treated as the whole group.
+ * Snapshot `count` is not decremented when a child is pending-delete, so drop those loaded children before
+ * comparing. A `limit:` that left children unloaded still leaves `count` larger than the remaining selectable
+ * rows, so that case stays a partial selection.
+ */
+function getRemainingSearchGroupCount(groupCount: number | undefined, loadedChildrenCount: number, loadedSelectableCount: number): number | undefined {
+    if (groupCount === undefined) {
+        return undefined;
+    }
+    const pendingDeleteLoadedCount = Math.max(loadedChildrenCount - loadedSelectableCount, 0);
+    return Math.max(groupCount - pendingDeleteLoadedCount, 0);
+}
+
+/**
+ * A group is fully selected only when every remaining transaction it contains is selected. If the group count
+ * is unknown (expense-report rows), the loaded selectable children are treated as the whole group.
  */
 function isSelectionCoveringEntireGroup(groupCount: number | undefined, selectedCount: number, loadedSelectableCount: number): boolean {
     if (selectedCount <= 0) {
@@ -48,16 +61,17 @@ type StampGroupCoverageFlagsParams = {
     selectedTransactions: SelectedTransactions;
     groupKey: string | undefined;
     groupCount: number | undefined;
+    loadedChildrenCount: number;
     loadedSelectableCount: number;
 };
 
 /**
- * Sets `isEntireGroupSelected` from whether the selection covers the group's real transaction count.
+ * Sets `isEntireGroupSelected` from whether the selection covers the group's remaining transaction count.
  * A `limit:` that leaves children unloaded must not look like a whole-group selection, because delete only
  * removes the loaded rows. `isSelectedViaGroup` is left alone so export can still treat a group-row click as a
  * group export.
  */
-function stampGroupCoverageFlags({selectedTransactions, groupKey, groupCount, loadedSelectableCount}: StampGroupCoverageFlagsParams): SelectedTransactions {
+function stampGroupCoverageFlags({selectedTransactions, groupKey, groupCount, loadedChildrenCount, loadedSelectableCount}: StampGroupCoverageFlagsParams): SelectedTransactions {
     if (!groupKey) {
         return selectedTransactions;
     }
@@ -71,7 +85,8 @@ function stampGroupCoverageFlags({selectedTransactions, groupKey, groupCount, lo
         selectedCount += 1;
     }
 
-    const isEntireGroupSelected = isSelectionCoveringEntireGroup(groupCount, selectedCount, loadedSelectableCount);
+    const remainingGroupCount = getRemainingSearchGroupCount(groupCount, loadedChildrenCount, loadedSelectableCount);
+    const isEntireGroupSelected = isSelectionCoveringEntireGroup(remainingGroupCount, selectedCount, loadedSelectableCount);
     for (const [key, transaction] of Object.entries(nextSelectedTransactions)) {
         if (key !== groupKey && transaction.groupKey !== groupKey) {
             continue;

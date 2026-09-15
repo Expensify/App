@@ -468,6 +468,7 @@ function SearchWriteActionsProvider({
                             selectedTransactions: updatedTransactions,
                             groupKey,
                             groupCount: getSearchGroupCount(parentGroup) ?? getSearchGroupCountByKey(searchResultsData, groupKey),
+                            loadedChildrenCount: loadedChildren.length,
                             loadedSelectableCount: loadedChildren.filter((transaction) => !isTransactionPendingDelete(transaction)).length,
                         });
                     }
@@ -553,6 +554,7 @@ function SearchWriteActionsProvider({
                     selectedTransactions: selectedViaGroup,
                     groupKey: item.keyForList,
                     groupCount: getSearchGroupCount(item) ?? getSearchGroupCountByKey(searchResultsData, item.keyForList),
+                    loadedChildrenCount: currentTransactions.length,
                     loadedSelectableCount: selectableTransactions.length,
                 });
             },
@@ -605,6 +607,7 @@ function SearchWriteActionsProvider({
                                 selectedTransactions: Object.fromEntries(entries),
                                 groupKey: item.keyForList,
                                 groupCount: getSearchGroupCount(item) ?? getSearchGroupCountByKey(searchResultsData, item.keyForList),
+                                loadedChildrenCount: item.transactions.length,
                                 loadedSelectableCount: selectableTransactions.length,
                             }),
                         );
