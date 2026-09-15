@@ -987,7 +987,6 @@ const translations: TranslationDeepObject<typeof en> = {
             },
             enterSignerInfo: {title: 'Se necesita la información del firmante', subtitle: ({bankAccountLastFour}: {bankAccountLastFour: string}) => `Cuenta bancaria ${bankAccountLastFour}`},
             payOverdueInvoice: {
-                title: ({date}: {date: string}) => `Paga tu factura antes del ${date} para evitar la interrupción del servicio`,
                 cta: 'Revisar',
                 dueSoonTitle: ({date}: {date: string}) => `Paga tu factura antes del ${date} para evitar la interrupción del servicio`,
                 overdueTitle: 'Tu pago está vencido, por favor paga tu factura',

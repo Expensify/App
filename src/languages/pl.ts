@@ -998,7 +998,6 @@ const translations: TranslationDeepObject<typeof en> = {
             addVirtualCardPersonalDetails: {title: 'Dodaj swoje dane, aby wyświetlić i zacząć używać swojej Karty Expensify.', subtitle: 'Karta Expensify', cta: 'Dodaj'},
             enterSignerInfo: {title: 'Wymagane dane podpisującego', subtitle: ({bankAccountLastFour}: {bankAccountLastFour: string}) => `Konto bankowe ${bankAccountLastFour}`},
             payOverdueInvoice: {
-                title: ({date}: {date: string}) => `Opłać fakturę do ${date}, aby uniknąć przerwy w świadczeniu usług`,
                 cta: 'Przejrzyj',
                 dueSoonTitle: ({date}: {date: string}) => `Opłać fakturę do ${date}, aby uniknąć przerwy w świadczeniu usługi`,
                 overdueTitle: 'Twoja płatność jest zaległa, zapłać proszę swoją fakturę',
