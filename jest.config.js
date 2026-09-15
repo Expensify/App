@@ -61,14 +61,6 @@ module.exports = {
     setupFilesAfterEnv: ['<rootDir>/jest/setupAfterEnv.ts', '<rootDir>/tests/perf-test/setupAfterEnv.ts'],
     cacheDirectory: '<rootDir>/.jest-cache',
     coverageReporters: ['json', 'lcov', 'text-summary'],
-    // There is deliberately no `collectCoverageFrom`. With it, Jest reports on every file it matches,
-    // so naming all of `src/**` forced each shard to load and instrument ~6.6k files no test imports —
-    // roughly 30% of the wall time of the `--coverage` run, for rows that were all zero. Without it,
-    // coverage covers exactly the files the tests actually load. The trade-off is that a file no test
-    // touches is absent from the report rather than present at 0%.
-    // These paths are loaded during tests but are not product code, so they are excluded explicitly.
-    // '/node_modules/' is Jest's default value for this option and has to be repeated to be kept.
-    coveragePathIgnorePatterns: ['/node_modules/', '<rootDir>/assets/', '<rootDir>/tests/', '<rootDir>/jest/', '<rootDir>/config/'],
     moduleNameMapper: {
         '\\.(lottie)$': '<rootDir>/__mocks__/fileMock.ts',
         '^@lottiefiles/dotlottie-react$': '<rootDir>/__mocks__/@lottiefiles/dotlottie-react.tsx',
