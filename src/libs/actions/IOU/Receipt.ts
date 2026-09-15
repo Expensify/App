@@ -391,5 +391,29 @@ function checkIfLocalFileIsAccessible(
     return readFileAsync(ReceiptStorage.resolve(receiptPath) ?? receiptPath.toString(), receiptFilename, onSuccess, onFailure, receiptType);
 }
 
-export {checkIfLocalFileIsAccessible, detachReceipt, navigateToStartStepIfScanFileCannotBeRead, replaceReceipt, setMoneyRequestReceipt};
+function clearReceiptUploadError({
+    transactionID,
+    reportID,
+    reportActionID,
+    reportIDWithCreationError,
+}: {
+    transactionID: string | undefined;
+    reportID: string | undefined;
+    reportActionID: string | undefined;
+    reportIDWithCreationError: string | undefined;
+}): Promise<unknown> {
+    const writes: Array<Promise<void>> = [];
+    if (transactionID) {
+        writes.push(Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {errors: null}));
+    }
+    if (reportID && reportActionID) {
+        writes.push(Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {[reportActionID]: {errors: null}}));
+    }
+    if (reportIDWithCreationError) {
+        writes.push(Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportIDWithCreationError}`, {errorFields: {addWorkspaceRoom: null, createChat: null, createReport: null}}));
+    }
+    return Promise.all(writes);
+}
+
+export {checkIfLocalFileIsAccessible, clearReceiptUploadError, detachReceipt, navigateToStartStepIfScanFileCannotBeRead, replaceReceipt, setMoneyRequestReceipt};
 export type {ReplaceReceiptRetryParams};

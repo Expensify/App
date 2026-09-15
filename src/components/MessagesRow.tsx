@@ -32,9 +32,12 @@ type MessagesRowProps = {
     containerStyles?: StyleProp<ViewStyle>;
     errorTextStyles?: StyleProp<TextStyle>;
     dismissError?: () => void;
+
+    /** Retries a failed receipt upload. */
+    onRetryReceiptUpload?: () => void;
 };
 
-function MessagesRow({messages = {}, type, onDismiss, containerStyles, dismissError = () => {}, errorTextStyles}: MessagesRowProps) {
+function MessagesRow({messages = {}, type, onDismiss, containerStyles, dismissError = () => {}, errorTextStyles, onRetryReceiptUpload}: MessagesRowProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -53,6 +56,7 @@ function MessagesRow({messages = {}, type, onDismiss, containerStyles, dismissEr
         <View style={[styles.flexRow, styles.alignItemsCenter, containerStyles]}>
             <DotIndicatorMessage
                 dismissError={dismissError}
+                onRetryReceiptUpload={onRetryReceiptUpload}
                 style={styles.flex1}
                 textStyles={errorTextStyles}
                 messages={messages}
