@@ -794,6 +794,17 @@ const tests = [
         },
     },
     {
+        query: 'type:expense group-by:day',
+        expected: {
+            type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+            sortBy: 'groupday',
+            sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
+            view: 'table',
+            groupBy: 'day',
+            filters: null,
+        },
+    },
+    {
         query: 'type:expense group-by:month',
         expected: {
             type: CONST.SEARCH.DATA_TYPES.EXPENSE,
@@ -1244,7 +1255,7 @@ const keywordTests = [
         },
     },
     {
-        query: 'columns:group-category,group-tag,group-merchant,group-month,group-week,group-year,group-quarter',
+        query: 'columns:group-category,group-tag,group-merchant,group-day,group-month,group-week,group-year,group-quarter',
         expected: {
             type: 'expense',
             sortBy: 'date',
@@ -1254,6 +1265,7 @@ const keywordTests = [
                 CONST.SEARCH.TABLE_COLUMNS.GROUP_CATEGORY,
                 CONST.SEARCH.TABLE_COLUMNS.GROUP_TAG,
                 CONST.SEARCH.TABLE_COLUMNS.GROUP_MERCHANT,
+                'groupday',
                 CONST.SEARCH.TABLE_COLUMNS.GROUP_MONTH,
                 CONST.SEARCH.TABLE_COLUMNS.GROUP_WEEK,
                 CONST.SEARCH.TABLE_COLUMNS.GROUP_YEAR,
@@ -1416,6 +1428,17 @@ const viewAndGroupByTests = [
     },
 
     // Time-based groupBy + view:bar defaults to sortOrder:asc
+    {
+        query: 'type:expense view:bar groupBy:day',
+        expected: {
+            type: 'expense',
+            sortBy: 'groupday',
+            sortOrder: 'asc',
+            view: 'bar',
+            groupBy: 'day',
+            filters: null,
+        },
+    },
     {
         query: 'type:expense view:bar groupBy:week',
         expected: {
