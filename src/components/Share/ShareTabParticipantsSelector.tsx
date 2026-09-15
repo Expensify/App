@@ -125,11 +125,14 @@ function ShareTabParticipantsSelectorComponent({detailsPageRouteObject}: ShareTa
             },
         });
 
-        // Flip the render state once the transition to the details page completes so the picker mounts underneath it,
-        // giving the user a usable screen when they back out. Doing this in the afterTransition callback (rather than
-        // calling setState synchronously in the effect body) avoids the react-hooks/set-state-in-effect violation.
+        // Update picker state once the transition completes so it remains selected on back navigation. Doing this in
+        // the afterTransition callback (rather than calling setState synchronously in the effect body) avoids the
+        // react-hooks/set-state-in-effect violation.
         Navigation.navigate(detailsPageRouteObject.getRoute(autoNavigateReportID.toString()), {
-            afterTransition: () => setHasAutoNavigatedToReport(true),
+            afterTransition: () => {
+                setSelectedReportID(autoNavigateReportID);
+                setHasAutoNavigatedToReport(true);
+            },
         });
     }, [autoNavigateReportID, draftTransactionIDs, detailsPageRouteObject, shouldWaitForDestination]);
 
