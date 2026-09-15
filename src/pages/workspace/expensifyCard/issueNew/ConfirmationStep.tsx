@@ -106,7 +106,7 @@ function ConfirmationStep({policyID, stepNames, startStepIndex}: ConfirmationSte
         if (AccountUtils.hasValidateCodeExtendedAccess(account)) {
             // Attempt to issue directly without validateCode when user has extended access
             // If this fails, the effect above will redirect to the validateCode page
-            issueExpensifyCard(defaultFundID, policyID, '', '', assigneeTimeZone, data);
+            issueExpensifyCard(defaultFundID, policyID, '', assigneeTimeZone, data);
         } else {
             // Navigate to validateCode page
             Navigation.navigate(buildDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_CONFIRM_VALIDATE_CODE.path));

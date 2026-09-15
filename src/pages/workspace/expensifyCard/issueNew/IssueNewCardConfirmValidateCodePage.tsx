@@ -64,8 +64,8 @@ function IssueNewCardConfirmValidateCodePage({route}: IssueNewCardConfirmValidat
 
     const handleSubmit = useCallback(
         (validateCode: string) => {
-            // The backend resolves the feedCountry from the domain's provisioned card programs
-            issueExpensifyCard(defaultFundID, policyID, '', validateCode, assigneeTimeZone, data);
+            // The request carries no feedCountry, so the backend resolves it from the domain's provisioned card programs
+            issueExpensifyCard(defaultFundID, policyID, validateCode, assigneeTimeZone, data);
         },
         [data, defaultFundID, policyID, assigneeTimeZone],
     );
