@@ -42,20 +42,29 @@ function IOURequestRedirectToStartPage({route}: IOURequestRedirectToStartPagePro
         // undefined) before the drafts load, so a fallback alone would clear nothing.
         clearMoneyRequest(CONST.IOU.OPTIMISTIC_TRANSACTION_ID, [CONST.IOU.OPTIMISTIC_TRANSACTION_ID, ...(draftTransactionIDs ?? [])]);
 
-        // Dismiss this modal because the redirects below will open a new modal and there shouldn't be two modals stacked on top of each other.
-        Navigation.dismissModal();
+        // Wait for the NavigationContainer before touching navigation. On a cold load (this route pasted into the
+        // address bar) this effect runs while the container is still initializing, and the dismiss and the redirect
+        // are then deferred through two different mechanisms: navigate() parks the route in `pendingNavigationCall`
+        // while dismissModal() queues itself on the navigation-ready promise. setIsNavigationReady() drains the
+        // pending route first and resolves the promise second, so the new modal is pushed and then immediately
+        // dismissed, dropping the user on the fullscreen page behind it instead of the start page. Running both
+        // inside one isNavigationReady() callback keeps them in the intended order: dismiss, then redirect.
+        Navigation.isNavigationReady().then(() => {
+            // Dismiss this modal because the redirects below will open a new modal and there shouldn't be two modals stacked on top of each other.
+            Navigation.dismissModal();
 
-        // Redirect the person to the right start page using a random reportID
-        const optimisticReportID = generateReportID();
-        if (iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE && iouType !== CONST.IOU.TYPE.SPLIT) {
-            startDistanceRequest(iouType, optimisticReportID, undefined);
-        } else if (iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER) {
-            Navigation.navigate(ROUTES.DISTANCE_REQUEST_CREATE_TAB_ODOMETER.getRoute(CONST.IOU.ACTION.CREATE, iouType, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, optimisticReportID));
-        } else if (iouRequestType !== CONST.IOU.REQUEST_TYPE.DISTANCE && isDistanceExpenseType(iouRequestType)) {
-            startDistanceRequest(iouType, optimisticReportID, undefined, iouRequestType);
-        } else {
-            startMoneyRequest(iouType, optimisticReportID, undefined, iouRequestType);
-        }
+            // Redirect the person to the right start page using a random reportID
+            const optimisticReportID = generateReportID();
+            if (iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE && iouType !== CONST.IOU.TYPE.SPLIT) {
+                startDistanceRequest(iouType, optimisticReportID, undefined);
+            } else if (iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER) {
+                Navigation.navigate(ROUTES.DISTANCE_REQUEST_CREATE_TAB_ODOMETER.getRoute(CONST.IOU.ACTION.CREATE, iouType, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, optimisticReportID));
+            } else if (iouRequestType !== CONST.IOU.REQUEST_TYPE.DISTANCE && isDistanceExpenseType(iouRequestType)) {
+                startDistanceRequest(iouType, optimisticReportID, undefined, iouRequestType);
+            } else {
+                startMoneyRequest(iouType, optimisticReportID, undefined, iouRequestType);
+            }
+        });
 
         // This useEffect should only run on mount which is why there are no dependencies being passed in the second parameter
         // eslint-disable-next-line react-hooks/exhaustive-deps
