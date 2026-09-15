@@ -104,6 +104,7 @@ import type {Receipt, ReceiptSource} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {OnyxCollection, OnyxEntry, OnyxInputValue, OnyxUpdate} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 
 import {fastMerge} from 'expensify-common';
 import Onyx from 'react-native-onyx';
@@ -158,6 +159,9 @@ type GetTrackExpenseInformationTransactionParams = {
     created: string;
     merchant: string;
     receipt: OnyxEntry<Receipt>;
+
+    /** Overrides the state carried on `receipt`, see `TrackExpenseTransactionParams.receiptState`. */
+    receiptState?: ValueOf<typeof CONST.IOU.RECEIPT_STATE>;
     category?: string;
     tag?: string;
     taxCode?: string;
@@ -665,6 +669,7 @@ type GetDeleteTrackExpenseInformationParams = {
     actionableWhisperReportActionID?: string;
     resolution?: string;
     shouldRemoveIOUTransaction?: boolean;
+    transactionThread?: OnyxEntry<OnyxTypes.Report>;
 };
 
 function getDeleteTrackExpenseInformation({
@@ -679,6 +684,7 @@ function getDeleteTrackExpenseInformation({
     actionableWhisperReportActionID = '',
     resolution = '',
     shouldRemoveIOUTransaction = true,
+    transactionThread,
 }: GetDeleteTrackExpenseInformationParams) {
     // STEP 1: Get all collections we're updating
     const transaction = getAllTransactions()?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
@@ -753,6 +759,7 @@ function getDeleteTrackExpenseInformation({
     const cleanUpTransactionThreadReportOnyxData = getCleanUpTransactionThreadReportOnyxData({
         transactionThreadID,
         shouldDeleteTransactionThread,
+        transactionThread,
         currentUserAccountID,
         transactionThreadReportActionsParam: transactionThreadReportActions,
     });
@@ -905,6 +912,7 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
         distance,
         merchant,
         receipt,
+        receiptState,
         category,
         tag,
         taxCode,
@@ -1127,6 +1135,7 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
             created,
             merchant,
             receipt,
+            receiptState,
             category,
             tag,
             taxCode,
@@ -1713,6 +1722,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
         merchant,
         comment = '',
         receipt,
+        receiptState,
         category,
         tag,
         taxCode = '',
@@ -1934,7 +1944,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
                 createdIOUReportActionID,
                 reportPreviewReportActionID: reportPreviewAction.reportActionID,
                 receipt: isFileUploadable(receipt) ? receipt : undefined,
-                receiptState: receipt?.state,
+                receiptState: receiptState ?? receipt?.state,
                 category,
                 tag,
                 taxCode,
@@ -2508,6 +2518,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
         distance,
         modifiedDistance,
         receipt,
+        receiptState,
         category,
         tag,
         taxCode = '',
@@ -2536,6 +2547,8 @@ function trackExpense(params: CreateTrackExpenseParams) {
 
     // Pass an open receipt so the distance expense will show a map with the route optimistically
     const trackedReceipt = validWaypoints ? {source: ReceiptGeneric as ReceiptSource, state: CONST.IOU.RECEIPT_STATE.OPEN, name: 'receipt-generic.png'} : receipt;
+    // The generic distance receipt above carries its own state, so only a real receipt takes the caller's override.
+    const trackedReceiptState = validWaypoints ? undefined : receiptState;
     const sanitizedWaypoints = validWaypoints ? stringifyWaypointsForAPI(validWaypoints) : undefined;
 
     const retryParams: CreateTrackExpenseParams = {
@@ -2626,6 +2639,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
             created,
             merchant,
             receipt: trackedReceipt,
+            receiptState: trackedReceiptState,
             category,
             tag,
             taxCode,
@@ -2900,7 +2914,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
                 // Tracked expenses in the CREATE flow are unreported and not tied to a policy
                 policyID: undefined,
                 receipt: isFileUploadable(trackedReceipt) ? trackedReceipt : undefined,
-                receiptState: trackedReceipt?.state,
+                receiptState: trackedReceiptState ?? trackedReceipt?.state,
                 reimbursable,
                 category,
                 tag,
