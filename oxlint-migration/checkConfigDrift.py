@@ -58,6 +58,7 @@ LEDGER = {
     'react-hooks/config': (ACCEPTED, 'not a compiler-category rule and not ported. Left behind when the rh/ sidecar was deleted'),
     'react-hooks/gating': (ACCEPTED, 'same'),
     'react-hooks/component-hook-factories': (ACCEPTED, 'ships as a deprecated stub upstream: create() returns {}, so it cannot report on either tool'),
+    'react/jsx-filename-extension': (ACCEPTED, 'off in oxlint, warn with [.js, .jsx, .tsx] at ESLint\'s root. Dead config on both: the JS override turns it off for .js/.jsx/.mjs/.cjs, leaving .ts/.mts/.cts as the only live scope, and JSX does not parse there (parse error, not a finding). 0 findings on either tool, no seatbelt row'),
     # Found 2026-09-10, the first run after the probe set widened from 8 representative files to every
     # rule-carrying block. None of these was visible before, because no representative file was a
     # story file, an `.github/actions` source, a `src/types/onyx` type or a `.d.ts`.

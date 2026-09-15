@@ -116,14 +116,16 @@ function resolveShardCount(override: string | undefined): number {
     return Number.isFinite(parsed) && parsed >= 1 ? parsed : 1;
 }
 
+// Round-robin, not contiguous slices: the file list is sorted by path, so slices hand one shard most
+// of the `.tsx` files and the React Compiler work that comes with them (1408 / 234 / 1570 / 679 across
+// four slices of this repo, against about 970 each interleaved).
 function shardFiles(files: readonly string[], count: number): string[][] {
     if (count <= 1) {
         return [files.slice()];
     }
-    const size = Math.ceil(files.length / count);
-    const shards: string[][] = [];
-    for (let start = 0; start < files.length; start += size) {
-        shards.push(files.slice(start, start + size));
+    const shards: string[][] = Array.from({length: Math.min(count, files.length)}, () => []);
+    for (const [index, file] of files.entries()) {
+        shards.at(index % shards.length)?.push(file);
     }
     return shards;
 }
@@ -482,6 +484,7 @@ export {
     defaultShardCount,
     deriveLegConfigs,
     extractJSONObject,
+    isOxlintConfig,
     isTransientFailure,
     joinDiagnosticText,
     jsPluginName,

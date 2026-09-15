@@ -642,12 +642,10 @@
                 "enforceDynamicLinks": "always"
             }
         ],
-        "react/jsx-filename-extension": [
-            "warn",
-            {
-                "extensions": [".js", ".jsx", ".tsx"]
-            }
-        ],
+        // OFF, dead config on both tools: ESLint's preset allows .js/.jsx/.tsx and the JS override
+        // below turns it off for .js/.jsx/.mjs/.cjs, leaving .ts/.mts/.cts as the only scope where it
+        // could fire, and JSX does not parse in any of them (parse error, not a finding).
+        "react/jsx-filename-extension": "off",
         "react/jsx-no-comment-textnodes": "error",
         "react/no-render-return-value": "error",
         "react/no-find-dom-node": "error",
@@ -906,6 +904,10 @@
         // a Babel-style logger; the Rust side already carries category, span and help text per
         // diagnostic and only the binding drops them. When that lands, `panicThreshold` can go back
         // to `none` and the iterative reveal goes away.
+        //
+        // A drop-in alternative that matches ESLint exactly exists and is parked for speed: hosting
+        // these twelve rules from eslint-plugin-react-hooks costs about 15 s per whole-repo run.
+        // Recipe and measurements in INVESTIGATION DOCS/OXLINT_MIGRATION_STATE.md section 5.1.
         "rc/refs": "error",
         "rc/set-state-in-effect": "error",
         "rc/set-state-in-render": "error",
@@ -1110,6 +1112,9 @@
                 "typescript/no-array-delete": "error",
                 "typescript/no-base-to-string": "error",
                 "typescript/no-duplicate-enum-values": "error",
+                // Accepted gap: oxlint compares constituents syntactically, so `{a: string} & {a: string}`
+                // passes where typescript-eslint's type-checker comparison reports it. Pinned in
+                // oxlint-migration/port-probe/compareFixtures.py with oxlintLines; flips if oxlint changes.
                 "typescript/no-duplicate-type-constituents": "error",
                 "typescript/no-empty-object-type": "error",
                 "typescript/no-explicit-any": "error",
@@ -1580,7 +1585,6 @@
         {
             "files": ["**/*.js", "**/*.jsx", "**/*.mjs", "**/*.cjs"],
             "rules": {
-                "react/jsx-filename-extension": "off",
                 "prefer-arrow-callback": "off",
                 "lodash/import-scope": "off"
             },

@@ -101,3 +101,32 @@ All run on `upstream/main` + this change.
 - `actions/Report/index -> actions/Policy/Member` (-5 / -1). `buildRoomMembersOnyxData` and the 148-line
   `buildAddMembersToWorkspaceOnyxData` need `ReportUtils` and `PolicyUtils`, and `Member.ts` uses both
   internally, so a leaf holding them would sit back inside the cluster. Same shape as the Tag case.
+
+## Rebase onto current `origin/main` (2026-09-14)
+
+Branch `fix/no-cycle-part11-policy-category-and-sort-v1`, pushed. It is the part 11 content + a merge of
+`origin/main`; all 22 part 1-9 PRs are in main's graph now, so the table below is the honest standalone
+number, not the 390 baseline above.
+
+| Measure | `origin/main` `f777fabb583` | + this branch |
+| --- | --- | --- |
+| findings / files | 268 / 84 | **235 / 78** |
+
+-33 findings / -6 files standalone; **202 / 64** with parts 5, 8, 9 and 10 also applied (-20 / -3 on top).
+25 files, +206 / -177 — unchanged from the original change.
+
+Three conflicts, all mechanical (the 12 files carrying part 9's and part 10's edits merged automatically):
+
+- `ReportWelcomeMessage.tsx`, `ReportActions.tsx` — overlapping import blocks only; took both sides.
+- `libs/actions/Policy/Card/rules/currency/index.ts` — whole-file conflict. Main grew this file with
+  `getPayeesPendingCardSettlement` and `getCardApprovalAccountIDsToNotify`; took main's version and
+  re-applied the one-line re-export swap by hand, so the rule-authoring helpers are preserved.
+
+Verification after the merge: `npm run typecheck` passed (all tsconfigs + server); 17 suites / **517 tests
+passed** over the touched modules (`PolicyCategoryTest`, `PolicyCompanyCardsEditCardMenuTest`,
+`PolicyCardRulesTest`, `PolicyCardFeed`, `search/*Approve*`, `PolicyExpenseListSelectRowTests`,
+`SearchReportActionsAvatarTest`, `ReportWelcomeMessageTextTest`, `ReportActionsTest`, `TaskReportUtilsTest`,
+`TaskTest`, `getWorkspaceNameWithoutFallbackTest`, `TaskUtilsTest`, `ReportPrimaryActionsTests`,
+`SearchQueryItemReportActionsTests`, `getFirstDuplicateCard`); `tests/actions/PolicyTest.ts` **215 passed**.
+Linted with the repo config: the new leaf files are clean, and the touched files report the same counts as
+main's copies (`npm run lint-changed` clean).

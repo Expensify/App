@@ -1,9 +1,13 @@
 import {describe, expect, it} from 'bun:test';
 
+import fs from 'node:fs';
+import path from 'node:path';
+
 import type {ESLintJSONResult} from '../../scripts/lint/eslint/ESLintLinter';
 import type {OxlintConfig, OxlintDiagnostic} from '../../scripts/lint/oxlint/OxlintLinter';
 import type {LintMessage, LinterResult} from '../../scripts/lint/types';
 
+import {oxlintCodeToESLintRuleID} from '../../config/oxlint/ruleNames.mjs';
 import {normalizeESLintResults, parseESLintStdout} from '../../scripts/lint/eslint/ESLintLinter';
 import JSONFormatter from '../../scripts/lint/formatters/JSONFormatter';
 import StylishFormatter from '../../scripts/lint/formatters/StylishFormatter';
@@ -12,6 +16,7 @@ import Pipeline from '../../scripts/lint/LintPipeline';
 import {
     defaultShardCount,
     deriveLegConfigs,
+    isOxlintConfig,
     isTransientFailure,
     jsPluginName,
     mergeShardResults,
@@ -22,8 +27,8 @@ import {
     shardFiles,
 } from '../../scripts/lint/oxlint/OxlintLinter';
 import {filterReactCompilerMessages, shouldPersistCompilerCache} from '../../scripts/lint/processors/ReactCompilerFilter';
-import Seatbelt, {SEATBELT_TSV_BY_LINTER, resolveSeatbeltOptions} from '../../scripts/lint/processors/Seatbelt';
-import {stratifyMessages} from '../../scripts/lint/processors/StratifyNoDeprecated';
+import Seatbelt, {SEATBELT_TSV_BY_LINTER, parseSeatbeltTSV, resolveSeatbeltOptions} from '../../scripts/lint/processors/Seatbelt';
+import {NO_DEPRECATED_RULE_ID, stratifyMessages} from '../../scripts/lint/processors/StratifyNoDeprecated';
 import {LINT_SEVERITY} from '../../scripts/lint/types';
 
 function makeMessage(overrides: Partial<LintMessage> = {}): LintMessage {
@@ -400,17 +405,19 @@ describe('oxlint sharding', () => {
         return {files: [{filePath, messages}], exitCode, stderr: ''};
     }
 
-    it('shards contiguously: every file in exactly one bucket, order preserved', () => {
+    it('interleaves files across shards so path-sorted neighbours land in different buckets', () => {
         const files = Array.from({length: 10}, (_, i) => `src/f${i}.ts`);
         const shards = shardFiles(files, 3);
-        expect(shards.map((shard) => shard.length)).toEqual([4, 4, 2]);
-        expect(shards.flat()).toEqual(files);
+        expect(shards.map((shard) => shard.length)).toEqual([4, 3, 3]);
+        expect(shards.at(0)).toEqual(['src/f0.ts', 'src/f3.ts', 'src/f6.ts', 'src/f9.ts']);
+        expect(shards.flat().sort()).toEqual([...files].sort());
     });
 
     it('a shard count of 1 or more than the file count never drops or duplicates a file', () => {
         const files = ['a.ts', 'b.ts', 'c.ts'];
         expect(shardFiles(files, 1)).toEqual([files]);
-        expect(shardFiles(files, 99).flat()).toEqual(files);
+        expect(shardFiles(files, 99).flat().sort()).toEqual(files);
+        expect(shardFiles(files, 99)).toHaveLength(3);
     });
 
     it('auto-shards by machine size and honours explicit overrides', () => {
@@ -546,6 +553,64 @@ describe('oxlint sharding', () => {
 
         // Oxlint prints warnings ahead of the JSON, which must not read as a dead shard.
         expect(producedNoJSON(`No files found to lint.\n${oxlintStdout([])}`)).toBe(false);
+    });
+});
+
+describe('oxlint rule names', () => {
+    it('every rule id in the oxlint seatbelt is one the enabled config still produces through the mapping', () => {
+        const root = path.join(import.meta.dir, '..', '..');
+        const config: unknown = Bun.JSONC.parse(fs.readFileSync(path.join(root, '.oxlintrc.json'), 'utf8'));
+        if (!isOxlintConfig(config)) {
+            throw new Error('.oxlintrc.json is not an object');
+        }
+        const configuredRules = [config.rules, ...(config.overrides ?? []).map((override) => override.rules)].flatMap((rules) => Object.keys(rules ?? {}));
+        const toDiagnosticCode = (rule: string) => {
+            const slash = rule.lastIndexOf('/');
+            return slash < 0 ? `eslint(${rule})` : `${rule.slice(0, slash).replace('jsx-a11y', 'jsx_a11y')}(${rule.slice(slash + 1)})`;
+        };
+        const reachable = new Set(configuredRules.map((rule) => oxlintCodeToESLintRuleID(toDiagnosticCode(rule))));
+
+        const {data} = parseSeatbeltTSV(fs.readFileSync(path.join(root, SEATBELT_TSV_BY_LINTER.oxlint), 'utf8'));
+        const seatbeltRuleIDs = new Set(
+            [...data.values()].flatMap((file) => file.lines.map((line) => (line.ruleID.startsWith(`${NO_DEPRECATED_RULE_ID}/`) ? NO_DEPRECATED_RULE_ID : line.ruleID))),
+        );
+
+        expect(seatbeltRuleIDs.size).toBeGreaterThan(20);
+        expect([...seatbeltRuleIDs].filter((ruleID) => !reachable.has(ruleID))).toEqual([]);
+    });
+});
+
+function knownOxlintPlugins(schema: unknown): string[] {
+    if (typeof schema !== 'object' || schema === null || !('definitions' in schema)) {
+        return [];
+    }
+    const definitions: unknown = schema.definitions;
+    if (typeof definitions !== 'object' || definitions === null || !('LintPluginOptionsSchema' in definitions)) {
+        return [];
+    }
+    const pluginSchema: unknown = definitions.LintPluginOptionsSchema;
+    if (typeof pluginSchema !== 'object' || pluginSchema === null || !('enum' in pluginSchema) || !Array.isArray(pluginSchema.enum)) {
+        return [];
+    }
+    return pluginSchema.enum.filter((entry): entry is string => typeof entry === 'string');
+}
+
+describe('oxlint config', () => {
+    it('names only plugins oxlint knows, at the root and in every override', () => {
+        // An unknown name in an override's `plugins` array is not an error: the override's other rules
+        // keep working while the rules the missing plugin owns report nothing.
+        const root = path.join(import.meta.dir, '..', '..');
+        const known = new Set(knownOxlintPlugins(JSON.parse(fs.readFileSync(path.join(root, 'node_modules/oxlint/configuration_schema.json'), 'utf8'))));
+        expect(known.size).toBeGreaterThan(5);
+
+        const config: unknown = Bun.JSONC.parse(fs.readFileSync(path.join(root, '.oxlintrc.json'), 'utf8'));
+        if (!isOxlintConfig(config)) {
+            throw new Error('.oxlintrc.json is not an object');
+        }
+        const named = [config.plugins, ...(config.overrides ?? []).map((override) => override.plugins)].flatMap((plugins: unknown) =>
+            Array.isArray(plugins) ? plugins.map((entry: unknown) => entry) : [],
+        );
+        expect(named.filter((plugin) => typeof plugin !== 'string' || !known.has(plugin))).toEqual([]);
     });
 });
 

@@ -58,8 +58,8 @@ specifiers, override globs and ignore patterns resolve identically), then remove
   whole repo.
 
 Both kinds run native (Rust) rules; the merge drops a later leg's copy of a finding an earlier leg
-already reported for that file, and keeps duplicates within one leg (the `rc` bridge prints 49 of
-them in a single process too, so the seatbelt counts must not move). Raw `OxlintLinter.run(['.'])`
+already reported for that file, and keeps duplicates within one leg (the React Compiler reports some
+diagnostics twice on both tools, 49 through the bridge, so the seatbelt counts must not move). Raw `OxlintLinter.run(['.'])`
 output was compared old against new over the whole repo: 4307 messages each way, the same multiset,
 0 differences. Through the pipeline with `--format json --show-warnings` the two reports were also
 identical.

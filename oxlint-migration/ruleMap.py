@@ -72,6 +72,14 @@ PORT_PLAN = {
                  'diagnostic means the options that file hands the compiler are wrong, which is a bug '
                  'there rather than a finding about the file being linted',
     },
+    'react/jsx-filename-extension': {
+        'mechanism': 'dropped - dead config on both tools',
+        'effort': 'none', 'proven': True,
+        'notes': 'ESLint allows .js/.jsx/.tsx at the root and turns the rule off for .js/.jsx/.mjs/.cjs, '
+                 'leaving .ts/.mts/.cts as the only live scope, and JSX does not parse there (parse '
+                 'error, not a finding). 0 findings on either tool, no seatbelt row; off in .oxlintrc.json '
+                 'since 2026-09-15 with the reason beside it',
+    },
     'react-hooks/gating': {
         'mechanism': 'dropped - needs a gating/dynamicGating source in rule options',
         'effort': 'none', 'proven': False,

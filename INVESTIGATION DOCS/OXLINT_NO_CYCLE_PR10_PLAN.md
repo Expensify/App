@@ -86,3 +86,34 @@ All run on `upstream/main` + this change, in the dev worktree.
 `getReportAction` reads the module-scope `allReportActions` Onyx cache in `ReportActionsUtils`, so it is
 not a leaf. Including that consumer would have been worth -1 finding and needed an Onyx subscription in
 the new module, so it was skipped.
+
+## Rebase onto current `origin/main` (2026-09-14)
+
+Branch `fix/no-cycle-part10-report-action-readers-v1`, pushed. It is the part 10 content + a merge of
+`origin/main`; all 22 part 1-9 PRs are in main's graph now, so the table below is the honest standalone
+number, not the 390 baseline above.
+
+| Measure | `origin/main` `f777fabb583` | + this branch |
+| --- | --- | --- |
+| findings / files | 268 / 84 | **256 / 81** |
+
+Still -12 findings / -3 files, i.e. the effect did not decay. 11 files, +96 / -58 — byte-identical to the
+original change.
+
+One conflict, in `ReportActionsUtils.ts`, because main extracted more of the same neighbourhood:
+
+- main added a `PERSONAL_CARD_CONNECTION_BROKEN_30_DAYS` variant of `isCardBrokenConnectionAction`, plus
+  `getPersonalCardName` and an `is30DaysReminder` parameter on `getCardConnectionBrokenMessage` — **kept**.
+- main's `getOriginalMessage` is byte-identical to the one this PR moved into
+  `ReportActionMessageUtils.ts` (that file only adds the `no-deprecated` disable), and main's
+  `isActionOfType` is identical to the one in `ReportActionTypeGuards.ts` — **main's copies dropped**, the
+  leaf copies stay.
+
+Verification after the merge: `npm run typecheck` passed (all tsconfigs + server);
+`jest ReportActionsUtilsTest AgentRuleChangeLogUtilsTest SpendRuleChangeLogUtilsTest IOUUtilsTest
+ModifiedExpenseMessageTest NextStepUtilsTest ClearReportActionErrorsTest showReportActionNotificationTest`
+8 suites / **736 tests passed**; `jest ParentNavigationSubtitleTest useReportActionsScrollTest ReportUtilsTest
+TaskTest ReportActionsFollowupUtilsTest` 5 suites / **1481 tests passed** (up from 1453 — main added tests);
+new leaf files lint-clean, and the nine touched existing files carry 125 ESLint errors vs **127** on main's
+copies of the same files (the grandfathered backlog; the change adds none — `npm run lint-changed` is clean).
+
