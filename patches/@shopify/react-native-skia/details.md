@@ -43,6 +43,11 @@
     site cannot prevent either: a capability check runs when the chart mounts, but
     the context is created much later, after the CanvasKit WASM module loads.
 
+    GetWebGLContext does not return a falsy handle when the browser refuses the
+    context outright - it throws ("failed to create webgl context") - so the
+    constructor wraps it in a try/catch and treats a throw like a falsy handle.
+    Without that, the exhausted-context-limit case would never reach the fallback.
+
     Fix: keep the renderer alive without a GrDirectContext and fall back to
     CanvasKit.MakeSWCanvasSurface in onResize, so the chart still renders (on the
     CPU) instead of crashing the page. If that also fails, leave this.surface null -

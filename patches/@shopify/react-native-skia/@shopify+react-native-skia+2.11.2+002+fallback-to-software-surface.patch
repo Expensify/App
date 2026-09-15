@@ -1,28 +1,36 @@
 diff --git a/node_modules/@shopify/react-native-skia/lib/commonjs/views/SkiaPictureView.web.js b/node_modules/@shopify/react-native-skia/lib/commonjs/views/SkiaPictureView.web.js
-index c5c64be..5c8b1fc 100644
+index c5c64be..cc9e6b0 100644
 --- a/node_modules/@shopify/react-native-skia/lib/commonjs/views/SkiaPictureView.web.js
 +++ b/node_modules/@shopify/react-native-skia/lib/commonjs/views/SkiaPictureView.web.js
-@@ -30,19 +30,32 @@ class WebGLRenderer {
+@@ -30,19 +30,40 @@ class WebGLRenderer {
      _defineProperty(this, "grContext", null);
      _defineProperty(this, "contextHandle", 0);
      _defineProperty(this, "pd", 1);
-+    _defineProperty(this, "canUseSoftware", false);
-+    // Context creation fails when the browser cannot give us WebGL2 - hardware acceleration disabled,
-+    // GPU blocklisted, or the per-page live context limit exhausted. Throwing here tears down the view
-+    // tree, and the sibling throw in onResize escapes a ResizeObserver callback where no try/catch or
-+    // React error boundary can reach it. Fall back to CanvasKit's software surface instead, matching how
-+    // renderPictureToSurface below already treats a failed WebGL surface as recoverable.
-     this.contextHandle = CanvasKit.GetWebGLContext(canvas);
+-    this.contextHandle = CanvasKit.GetWebGLContext(canvas);
 -    if (!this.contextHandle) {
 -      throw new Error("Could not create a WebGL context");
 -    }
 -    this.grContext = CanvasKit.MakeWebGLContext(this.contextHandle);
 -    if (!this.grContext) {
 -      CanvasKit.deleteContext(this.contextHandle);
--      this.contextHandle = 0;
++    _defineProperty(this, "canUseSoftware", false);
++    // Context creation fails when the browser cannot give us WebGL2 - hardware acceleration disabled,
++    // GPU blocklisted, or the per-page live context limit exhausted. Throwing here tears down the view
++    // tree, and the sibling throw in onResize escapes a ResizeObserver callback where no try/catch or
++    // React error boundary can reach it. Fall back to CanvasKit's software surface instead, matching how
++    // renderPictureToSurface below already treats a failed WebGL surface as recoverable.
++    try {
++      this.contextHandle = CanvasKit.GetWebGLContext(canvas);
++      if (this.contextHandle) {
++        this.grContext = CanvasKit.MakeWebGLContext(this.contextHandle);
++      }
++    } catch (e) {
++      // GetWebGLContext throws instead of returning a falsy handle when the browser refuses the
++      // context outright, which is what happens once the per-page live context limit is exhausted.
++      // Treat it the same as a falsy handle and continue into the software path below.
+       this.contextHandle = 0;
 -      throw new Error("Could not create a graphics context");
-+    if (this.contextHandle) {
-+      this.grContext = CanvasKit.MakeWebGLContext(this.contextHandle);
++      this.grContext = null;
      }
 -    const ctx = canvas.getContext("webgl2");
 -    if (ctx) {
@@ -46,7 +54,7 @@ index c5c64be..5c8b1fc 100644
      }
      this.onResize();
    }
-@@ -61,7 +74,7 @@ class WebGLRenderer {
+@@ -61,7 +82,7 @@ class WebGLRenderer {
      const {
        canvas
      } = this;
@@ -55,14 +63,13 @@ index c5c64be..5c8b1fc 100644
        return;
      }
      this.pd = window.devicePixelRatio;
-@@ -76,9 +89,29 @@ class WebGLRenderer {
+@@ -76,9 +97,29 @@ class WebGLRenderer {
      }
      // Reuse the existing WebGL context and GrDirectContext: only the surface
      // needs to be recreated when the canvas is resized.
 -    const surface = CanvasKit.MakeOnScreenGLSurface(this.grContext, canvas.width, canvas.height, CanvasKit.ColorSpace.SRGB);
 +    let surface = this.grContext ? CanvasKit.MakeOnScreenGLSurface(this.grContext, canvas.width, canvas.height, CanvasKit.ColorSpace.SRGB) : null;
-     if (!surface) {
--      throw new Error("Could not create surface");
++    if (!surface) {
 +      try {
 +        // MakeSWCanvasSurface only stores the canvas and calls getContext("2d") later, when the surface
 +        // is flushed. A canvas that already holds a WebGL context can never return a 2D context, so
@@ -72,7 +79,8 @@ index c5c64be..5c8b1fc 100644
 +        surface = null;
 +      }
 +    }
-+    if (!surface) {
+     if (!surface) {
+-      throw new Error("Could not create surface");
 +      this.surface = null;
 +      // Let the host application know the chart cannot render, so it can show a fallback instead of a
 +      // blank canvas. Without a listener this is a no-op. Deferred a frame so a listener attached in a
@@ -88,30 +96,38 @@ index c5c64be..5c8b1fc 100644
      this.surface = new _JsiSkSurface.JsiSkSurface(CanvasKit, surface);
    }
 diff --git a/node_modules/@shopify/react-native-skia/lib/module/views/SkiaPictureView.web.js b/node_modules/@shopify/react-native-skia/lib/module/views/SkiaPictureView.web.js
-index 671ea7b..d614950 100644
+index 671ea7b..b918995 100644
 --- a/node_modules/@shopify/react-native-skia/lib/module/views/SkiaPictureView.web.js
 +++ b/node_modules/@shopify/react-native-skia/lib/module/views/SkiaPictureView.web.js
-@@ -24,19 +24,32 @@ class WebGLRenderer {
+@@ -24,19 +24,40 @@ class WebGLRenderer {
      _defineProperty(this, "grContext", null);
      _defineProperty(this, "contextHandle", 0);
      _defineProperty(this, "pd", 1);
-+    _defineProperty(this, "canUseSoftware", false);
-+    // Context creation fails when the browser cannot give us WebGL2 - hardware acceleration disabled,
-+    // GPU blocklisted, or the per-page live context limit exhausted. Throwing here tears down the view
-+    // tree, and the sibling throw in onResize escapes a ResizeObserver callback where no try/catch or
-+    // React error boundary can reach it. Fall back to CanvasKit's software surface instead, matching how
-+    // renderPictureToSurface below already treats a failed WebGL surface as recoverable.
-     this.contextHandle = CanvasKit.GetWebGLContext(canvas);
+-    this.contextHandle = CanvasKit.GetWebGLContext(canvas);
 -    if (!this.contextHandle) {
 -      throw new Error("Could not create a WebGL context");
 -    }
 -    this.grContext = CanvasKit.MakeWebGLContext(this.contextHandle);
 -    if (!this.grContext) {
 -      CanvasKit.deleteContext(this.contextHandle);
--      this.contextHandle = 0;
++    _defineProperty(this, "canUseSoftware", false);
++    // Context creation fails when the browser cannot give us WebGL2 - hardware acceleration disabled,
++    // GPU blocklisted, or the per-page live context limit exhausted. Throwing here tears down the view
++    // tree, and the sibling throw in onResize escapes a ResizeObserver callback where no try/catch or
++    // React error boundary can reach it. Fall back to CanvasKit's software surface instead, matching how
++    // renderPictureToSurface below already treats a failed WebGL surface as recoverable.
++    try {
++      this.contextHandle = CanvasKit.GetWebGLContext(canvas);
++      if (this.contextHandle) {
++        this.grContext = CanvasKit.MakeWebGLContext(this.contextHandle);
++      }
++    } catch (e) {
++      // GetWebGLContext throws instead of returning a falsy handle when the browser refuses the
++      // context outright, which is what happens once the per-page live context limit is exhausted.
++      // Treat it the same as a falsy handle and continue into the software path below.
+       this.contextHandle = 0;
 -      throw new Error("Could not create a graphics context");
-+    if (this.contextHandle) {
-+      this.grContext = CanvasKit.MakeWebGLContext(this.contextHandle);
++      this.grContext = null;
      }
 -    const ctx = canvas.getContext("webgl2");
 -    if (ctx) {
@@ -135,7 +151,7 @@ index 671ea7b..d614950 100644
      }
      this.onResize();
    }
-@@ -55,7 +68,7 @@ class WebGLRenderer {
+@@ -55,7 +76,7 @@ class WebGLRenderer {
      const {
        canvas
      } = this;
@@ -144,14 +160,13 @@ index 671ea7b..d614950 100644
        return;
      }
      this.pd = window.devicePixelRatio;
-@@ -70,9 +83,29 @@ class WebGLRenderer {
+@@ -70,9 +91,29 @@ class WebGLRenderer {
      }
      // Reuse the existing WebGL context and GrDirectContext: only the surface
      // needs to be recreated when the canvas is resized.
 -    const surface = CanvasKit.MakeOnScreenGLSurface(this.grContext, canvas.width, canvas.height, CanvasKit.ColorSpace.SRGB);
 +    let surface = this.grContext ? CanvasKit.MakeOnScreenGLSurface(this.grContext, canvas.width, canvas.height, CanvasKit.ColorSpace.SRGB) : null;
-     if (!surface) {
--      throw new Error("Could not create surface");
++    if (!surface) {
 +      try {
 +        // MakeSWCanvasSurface only stores the canvas and calls getContext("2d") later, when the surface
 +        // is flushed. A canvas that already holds a WebGL context can never return a 2D context, so
@@ -161,7 +176,8 @@ index 671ea7b..d614950 100644
 +        surface = null;
 +      }
 +    }
-+    if (!surface) {
+     if (!surface) {
+-      throw new Error("Could not create surface");
 +      this.surface = null;
 +      // Let the host application know the chart cannot render, so it can show a fallback instead of a
 +      // blank canvas. Without a listener this is a no-op. Deferred a frame so a listener attached in a
