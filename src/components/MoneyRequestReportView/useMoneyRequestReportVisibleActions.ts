@@ -1,3 +1,13 @@
+/**
+ * Owns the visibility filtering for the money-request report view.
+ *
+ * The paginated report actions chain contains entries this view must not render: the expense/transaction
+ * data lives in a separate list at the top of the report, actions pending deletion disappear as soon as we
+ * are back online, and IOU actions can outlive the transaction they point at. This hook applies those rules
+ * in one place and hands the result back in both orderings the view needs - oldest-first for the
+ * non-inverted unified list, newest-first for the shared unread/mark-as-read hooks - so callers never
+ * re-derive or re-sort them.
+ */
 import useOnyx from '@hooks/useOnyx';
 
 import {isActionVisibleOnMoneyRequestReport} from '@libs/MoneyRequestReportUtils';

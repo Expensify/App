@@ -203,6 +203,16 @@ function MoneyRequestReportActionsListContent({reportIDFromRoute, onLayout}: Mon
     });
 
     const [hasScrolledOverThreshold, setHasScrolledOverThreshold] = useState(false);
+    const listLayoutHeightRef = useRef(0);
+    const listContentHeightRef = useRef(0);
+    const listScrollYRef = useRef(0);
+
+    const syncBottomOffset = () => {
+        const bottomOffset = listContentHeightRef.current - listLayoutHeightRef.current - listScrollYRef.current;
+        scrollingVerticalBottomOffset.current = bottomOffset;
+        scrollOffsetRef.current = bottomOffset;
+        setHasScrolledOverThreshold(bottomOffset >= CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD);
+    };
 
     const {unreadMarkerReportActionID, unreadMarkerReportActionIndex} = useUnreadMarker({
         reportID: reportID ?? reportIDFromRoute ?? '',
@@ -235,15 +245,15 @@ function MoneyRequestReportActionsListContent({reportIDFromRoute, onLayout}: Mon
         hasNewerActions,
         onTrackScrolling: (event: NativeSyntheticEvent<NativeScrollEvent>) => {
             const {layoutMeasurement, contentSize, contentOffset} = event.nativeEvent;
-            const fullContentHeight = contentSize.height;
 
             /**
              * Count the diff between current scroll position and the bottom of the list.
              * Diff == (height of all items in the list) - (height of the layout with the list) - (how far user scrolled)
              */
-            scrollingVerticalBottomOffset.current = fullContentHeight - layoutMeasurement.height - contentOffset.y;
-            scrollOffsetRef.current = scrollingVerticalBottomOffset.current;
-            setHasScrolledOverThreshold(scrollingVerticalBottomOffset.current >= CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD);
+            listContentHeightRef.current = contentSize.height;
+            listLayoutHeightRef.current = layoutMeasurement.height;
+            listScrollYRef.current = contentOffset.y;
+            syncBottomOffset();
 
             // Mark the report as read only once the scroll has actually reached the bottom. The jump fired by
             // "Latest messages" settles over several frames as deferred items hydrate, so we wait for the real end.
@@ -462,7 +472,10 @@ function MoneyRequestReportActionsListContent({reportIDFromRoute, onLayout}: Mon
         Navigation.setParams({[REPORT_LINK_ROUTE_PARAMS.SHOULD_SCROLL_TO_LATEST]: undefined});
     }, [shouldScrollToLatestOnOpen, visibleReportActions.length, scrollToLatestMessages, reportIDFromRoute]);
 
-    const onListContentSizeChange = () => {
+    const onListContentSizeChange = (_width: number, height: number) => {
+        listContentHeightRef.current = height;
+        syncBottomOffset();
+
         if (!stickToBottomRef.current) {
             return;
         }
@@ -491,6 +504,12 @@ function MoneyRequestReportActionsListContent({reportIDFromRoute, onLayout}: Mon
 
         markOpenReportEnd(reportIDFromRoute, report, {warm: true});
     }, [reportIDFromRoute, report]);
+
+    const onListLayout = (event: LayoutChangeEvent) => {
+        listLayoutHeightRef.current = event.nativeEvent.layout.height;
+        syncBottomOffset();
+        recordTimeToMeasureItemLayout();
+    };
 
     const isReportEmpty = isEmpty(visibleReportActions) && isEmpty(transactions) && !isInitialReportLoadPending;
     const showEmptyState = isReportEmpty;
@@ -549,7 +568,7 @@ function MoneyRequestReportActionsListContent({reportIDFromRoute, onLayout}: Mon
                         listRef={listRef}
                         onLastItemIndexChange={updateLastItemIndex}
                         accessibilityLabel={translate('sidebarScreen.listOfChatMessages')}
-                        onListLayout={recordTimeToMeasureItemLayout}
+                        onListLayout={onListLayout}
                         onScroll={trackVerticalScrolling}
                         onScrollBeginDrag={onListScrollBeginDrag}
                         onContentSizeChange={onListContentSizeChange}

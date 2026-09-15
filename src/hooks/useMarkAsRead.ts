@@ -67,6 +67,12 @@ function releaseScope(scopeKey: string, instanceID: number) {
     scopeOwners.set(scopeKey, owners);
 }
 
+/** Test-only: clears the module-level scope tracking so state doesn't leak between test cases. */
+function resetMarkAsReadScopes() {
+    scopeOwners.clear();
+    lastInstanceID = 0;
+}
+
 type UseMarkAsReadParams = {
     reportID: string;
     report: OnyxEntry<OnyxTypes.Report>;
@@ -170,6 +176,9 @@ function useMarkAsRead({
         }
 
         readNewestAction(reportID, isReportActionsLoaded);
+        // `hasNewerActions` and `isScrolledToEnd` are read but intentionally left out of the deps: this effect is the
+        // one-shot initial mark-as-read, and re-running it whenever the user scrolls or pagination state changes would
+        // mark the report as read long after mount.
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isReportUnreadValue, reportID, isReportActionsLoaded]);
 
@@ -274,3 +283,4 @@ function useMarkAsRead({
 }
 
 export default useMarkAsRead;
+export {resetMarkAsReadScopes};

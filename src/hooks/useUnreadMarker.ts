@@ -149,10 +149,10 @@ function useUnreadMarker({
     // would move the watermark past the unread message and permanently hide the New divider. The
     // synthetic greeting is not a valid push target either, because its `created` tracks
     // report.lastReadTime and would drag the watermark to "now".
+    const isRealAction = (action: OnyxTypes.ReportAction) => action.reportActionID !== CONST.CONCIERGE_GREETING_ACTION_ID;
     const newestVisibleReportActionCreated = sortedVisibleReportActions.at(isReversed ? -1 : 0)?.created ?? '';
     const prevNewestVisibleReportActionCreated = usePrevious(newestVisibleReportActionCreated);
-    const isValidPushTarget = (action: OnyxTypes.ReportAction) => action.reportActionID !== CONST.CONCIERGE_GREETING_ACTION_ID;
-    const mostRecentReportActionCreated = (isReversed ? sortedVisibleReportActions.findLast(isValidPushTarget) : sortedVisibleReportActions.find(isValidPushTarget))?.created ?? '';
+    const mostRecentReportActionCreated = (isReversed ? sortedVisibleReportActions.findLast(isRealAction) : sortedVisibleReportActions.find(isRealAction))?.created ?? '';
     if (!isAnonymousUser && !unreadMarkerReportActionID && mostRecentReportActionCreated > unreadMarkerTime && newestVisibleReportActionCreated > prevNewestVisibleReportActionCreated) {
         setUnreadMarkerTime(mostRecentReportActionCreated);
     }
