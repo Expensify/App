@@ -6375,6 +6375,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 disabledTitle: '别急...',
                 disabledMessage: '要启用或禁用此功能，您需要更改会计导入设置。',
             },
+            recruitingWarningModal: {disconnectText: ({integration}: {integration: string}) => `若要停用招聘功能，请先将此工作区与 ${integration} 断开连接。`},
         },
         reports: {
             reportsCustomTitleExamples: '示例：',
@@ -7615,6 +7616,12 @@ ${reportName}`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>自动更新政府费率仅适用于 Control 方案，起价为<strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `每位成员每月。` : `每位活跃成员每月。`}</muted-text>`,
             },
+            [CONST.UPGRADE_FEATURE_INTRO_MAPPING.recruiting.id]: {
+                title: '多级审批',
+                description: '多级审批是一个工作流程工具，适用于在报销前需要多人审批报表的公司。',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>多级审批仅在 Control 方案中提供，起价为<strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `每位成员每月。` : `每位活跃成员每月。`}</muted-text>`,
+            },
         },
         downgrade: {
             commonFeatures: {
@@ -8272,6 +8279,7 @@ ${reportName}`,
             importSettings: '导入设置',
             defaultApprover: '默认审批人',
             approverFields: {recruiter: '招聘人员', recruitingCoordinator: '招聘协调员'},
+            subtitle: '连接招聘工具并保持候选人审批同步。',
         },
         merge: {
             connections: '连接',

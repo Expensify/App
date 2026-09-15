@@ -6534,6 +6534,7 @@ ${amount} para ${merchant} - ${date}`,
                 subtitle: 'Establecer una tarifa por hora facturable para el seguimiento de tiempo.',
                 defaultHourlyRate: 'Tarifa por hora predeterminada',
             },
+            recruitingWarningModal: {disconnectText: ({integration}: {integration: string}) => `Para desactivar Recruiting, primero desconecta ${integration} de este espacio de trabajo.`},
         },
         reports: {
             reportsCustomTitleExamples: 'Ejemplos:',
@@ -7376,6 +7377,7 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
             importSettings: 'Importar ajustes',
             defaultApprover: 'Aprobador predeterminado',
             approverFields: {recruiter: 'Reclutador', recruitingCoordinator: 'Coordinador de selección'},
+            subtitle: 'Conecta herramientas de selección y mantén sincronizadas las aprobaciones de candidatos.',
         },
         merge: {
             connections: 'Conexiones',
@@ -7941,6 +7943,13 @@ ${reportName}`,
                 description: 'Si quieres que Expensify mantenga tus tasas de kilometraje actualizadas cada vez que tu gobierno publique nuevas directrices, esta función es para ti.',
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>La actualización automática de tasas gubernamentales solo está disponible en el plan Controlar, desde <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `por miembro al mes.` : `por miembro activo al mes.`}</muted-text>`,
+            },
+            [CONST.UPGRADE_FEATURE_INTRO_MAPPING.recruiting.id]: {
+                title: 'Varios niveles de aprobación',
+                description:
+                    'Los múltiples niveles de aprobación son una herramienta de flujo de trabajo para empresas que requieren que más de una persona apruebe un informe antes de poder reembolsarlo.',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Los múltiples niveles de aprobación solo están disponibles en el plan Controlar, a partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `por miembro al mes.` : `por miembro activo al mes.`}</muted-text>`,
             },
         },
         downgrade: {

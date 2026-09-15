@@ -6605,6 +6605,7 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                 disabledTitle: 'Niet zo snel...',
                 disabledMessage: 'Om deze functie in of uit te schakelen, moet je je boekhoudimportinstellingen wijzigen.',
             },
+            recruitingWarningModal: {disconnectText: ({integration}: {integration: string}) => `Om Werving uit te schakelen, koppel ${integration} eerst los van deze workspace.`},
         },
         reports: {
             reportsCustomTitleExamples: 'Voorbeelden:',
@@ -7879,6 +7880,13 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>Automatisch bijwerken van overheidspercentages is alleen beschikbaar in het Control-abonnement, vanaf <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per lid per maand.` : `per actief lid per maand.`}</muted-text>`,
             },
+            [CONST.UPGRADE_FEATURE_INTRO_MAPPING.recruiting.id]: {
+                title: 'Meerdere goedkeuringsniveaus',
+                description:
+                    'Meerdere goedkeuringsniveaus is een workflowhulpmiddel voor bedrijven die meer dan één persoon nodig hebben om een rapport goed te keuren voordat het kan worden vergoed.',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Meerdere goedkeuringsniveaus zijn alleen beschikbaar in het Control-abonnement, vanaf <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per lid per maand.` : `per actieve deelnemer per maand.`}</muted-text>`,
+            },
         },
         downgrade: {
             commonFeatures: {
@@ -8576,6 +8584,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             importSettings: 'Importinstellingen',
             defaultApprover: 'Standaardgoedkeurder',
             approverFields: {recruiter: 'Recruiter', recruitingCoordinator: 'Coördinator werving'},
+            subtitle: 'Koppel wervingstools en houd kandidaategoedkeuringen gesynchroniseerd.',
         },
         merge: {
             connections: 'Verbindingen',

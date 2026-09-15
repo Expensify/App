@@ -6655,6 +6655,9 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                 disabledTitle: 'Nicht so schnell...',
                 disabledMessage: 'Um diese Funktion zu aktivieren oder zu deaktivieren, müssen Sie Ihre Buchhaltungsimporteinstellungen ändern.',
             },
+            recruitingWarningModal: {
+                disconnectText: ({integration}: {integration: string}) => `Um Recruiting zu deaktivieren, trennen Sie bitte zuerst die Verbindung von ${integration} mit diesem Workspace.`,
+            },
         },
         reports: {
             reportsCustomTitleExamples: 'Beispiele:',
@@ -7944,6 +7947,13 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>Automatisch aktualisierte amtliche Sätze sind nur im Control-Tarif verfügbar, ab <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `pro Mitglied pro Monat.` : `pro aktivem Mitglied und Monat.`}</muted-text>`,
             },
+            [CONST.UPGRADE_FEATURE_INTRO_MAPPING.recruiting.id]: {
+                title: 'Mehrere Genehmigungsebenen',
+                description:
+                    'Mehrere Genehmigungsstufen sind ein Workflow-Tool für Unternehmen, die mehr als eine Person benötigen, um einen Bericht zu genehmigen, bevor er erstattet werden kann.',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Mehrere Genehmigungsebenen sind nur im Control-Tarif verfügbar, beginnend bei <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `pro Mitglied und Monat.` : `pro aktivem Mitglied und Monat.`}</muted-text>`,
+            },
         },
         downgrade: {
             commonFeatures: {
@@ -8647,6 +8657,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             importSettings: 'Import-Einstellungen',
             defaultApprover: 'Standardgenehmiger',
             approverFields: {recruiter: 'Personalvermittler', recruitingCoordinator: 'Recruiting-Koordinator'},
+            subtitle: 'Verknüpfen Sie Recruiting-Tools und halten Sie Kandidatengenehmigungen synchron.',
         },
         merge: {
             connections: 'Verbindungen',

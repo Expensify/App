@@ -6782,6 +6782,10 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                 disabledTitle: 'Όχι τόσο γρήγορα...',
                 disabledMessage: 'Για να ενεργοποιήσετε ή να απενεργοποιήσετε αυτήν τη λειτουργία, θα πρέπει να αλλάξετε τις ρυθμίσεις εισαγωγής λογιστικής.',
             },
+            recruitingWarningModal: {
+                disconnectText: ({integration}: {integration: string}) =>
+                    `Για να απενεργοποιήσετε την προσέλκυση προσωπικού, αποσυνδέστε πρώτα το ${integration} από αυτόν τον χώρο εργασίας.`,
+            },
         },
         reports: {
             reportsCustomTitleExamples: 'Παραδείγματα:',
@@ -7635,6 +7639,7 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
             importSettings: 'Ρυθμίσεις εισαγωγής',
             defaultApprover: 'Προεπιλεγμένος εγκρίνων',
             approverFields: {recruiter: 'Στρατολογητής', recruitingCoordinator: 'Συντονιστής προσλήψεων'},
+            subtitle: 'Συνδέστε τα εργαλεία προσλήψεων και διατηρήστε τις εγκρίσεις υποψηφίων συγχρονισμένες.',
         },
         merge: {
             connections: 'Συνδέσεις',
@@ -8200,6 +8205,13 @@ ${reportName}`,
                     'Αν θέλετε η Expensify να διατηρεί τις χρεώσεις χιλιομέτρων σας ενημερωμένες κάθε φορά που η κυβέρνησή σας δημοσιεύει νέες οδηγίες, αυτή η δυνατότητα είναι για εσάς.',
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>Η αυτόματη ενημέρωση κυβερνητικών συντελεστών είναι διαθέσιμη μόνο στο πρόγραμμα Control, ξεκινώντας από <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `ανά μέλος ανά μήνα.` : `ανά ενεργό μέλος ανά μήνα.`}</muted-text>`,
+            },
+            [CONST.UPGRADE_FEATURE_INTRO_MAPPING.recruiting.id]: {
+                title: 'Πολλαπλά επίπεδα έγκρισης',
+                description:
+                    'Τα πολλαπλά επίπεδα έγκρισης είναι ένα εργαλείο ροής εργασίας για εταιρείες που απαιτούν περισσότερα από ένα άτομα να εγκρίνουν μια αναφορά πριν μπορέσει να αποζημιωθεί.',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Πολλαπλά επίπεδα έγκρισης είναι διαθέσιμα μόνο στο πρόγραμμα Control, ξεκινώντας από <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `ανά μέλος ανά μήνα.` : `ανά ενεργό μέλος ανά μήνα.`}</muted-text>`,
             },
         },
         downgrade: {
