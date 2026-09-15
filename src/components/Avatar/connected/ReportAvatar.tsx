@@ -30,7 +30,6 @@ type ReportAvatarProps = {
     /** Subscript avatar container styles */
     subscriptAvatarContainerStyle?: StyleProp<ViewStyle>;
 
-    /** Border color for the subscript avatar */
     subscriptAvatarBorderColor?: ColorValue;
 
     /** Whether (and how) to stack the avatars horizontally */
