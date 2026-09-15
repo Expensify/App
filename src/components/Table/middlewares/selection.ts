@@ -132,7 +132,7 @@ export default function useSelection<DataType extends TableData>({
         clearSelection();
     }, [isSelectionModeEnabled, selectedKeys.length, clearSelection, wasSelectionModeEnabled]);
 
-    // Filtering and searching both change which rows the table can act on, so clear the selection whenever either changes.
+    // When the table filters or the search string change, clear the current selection
     useEffect(() => clearSelection(), [currentFilters, activeSearchString, clearSelection]);
 
     // When the table unmounts, clear the selection. Should only run on unmount
