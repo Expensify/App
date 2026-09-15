@@ -3,7 +3,7 @@ import {useSearchQueryActions, useSearchQueryContext} from '@components/Search/S
 
 import {deleteSavedSearch} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
-import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
+import {buildCannedSearchQuery, getValidLastQuery} from '@libs/SearchQueryUtils';
 import {searchKeyToSavedSearchID} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
@@ -39,7 +39,7 @@ export default function useDeleteSavedSearch() {
                 deleteSavedSearch(savedSearchID);
 
                 if (savedSearchID === searchKeyToSavedSearchID(currentSearchKey)) {
-                    const query = lastExpensesSearchQuery ?? buildCannedSearchQuery();
+                    const query = getValidLastQuery(lastExpensesSearchQuery, buildCannedSearchQuery());
                     setCurrentSearchKey(CONST.SEARCH.SEARCH_KEYS.EXPENSES, query);
                     Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query}));
                 }

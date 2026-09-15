@@ -5,7 +5,7 @@ import SearchQueryProvider from '@components/Search/SearchQueryProvider';
 
 import type * as SearchActions from '@libs/actions/Search';
 import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
-import {savedSearchIDToSearchKey} from '@libs/SearchUIUtils';
+import {getSuggestedSearches, savedSearchIDToSearchKey} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -28,6 +28,14 @@ const RECONCILIATION_QUERY_WITHOUT_WITHDRAWN =
 
 // The default query string of the "Reconciliation" suggested search.
 const RECONCILIATION_QUERY = `${RECONCILIATION_QUERY_WITHOUT_WITHDRAWN} ${CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWN}:${CONST.SEARCH.DATE_PRESETS.LAST_MONTH}`;
+
+// The provider resolves its suggested searches with the default account ID and no card feed, which is what
+// the mocked Onyx returns, so these are the exact default query strings it compares against.
+const SUGGESTED_SEARCHES = getSuggestedSearches(CONST.DEFAULT_NUMBER_ID);
+const APPROVE_QUERY = SUGGESTED_SEARCHES[CONST.SEARCH.SEARCH_KEYS.APPROVE].searchQuery;
+const REPORTS_QUERY = SUGGESTED_SEARCHES[CONST.SEARCH.SEARCH_KEYS.REPORTS].searchQuery;
+const EXPENSES_QUERY = SUGGESTED_SEARCHES[CONST.SEARCH.SEARCH_KEYS.EXPENSES].searchQuery;
+const STATEMENTS_QUERY = SUGGESTED_SEARCHES[CONST.SEARCH.SEARCH_KEYS.STATEMENTS].searchQuery;
 
 const mockGetDeepestFocusedScreen = jest.fn<{name: string; params: {q?: string; rawQuery?: string}}, []>();
 const mockUseOnyx = jest.fn<[unknown], [key: string]>();
@@ -182,6 +190,37 @@ describe('SearchQueryProvider', () => {
 
             expect(result.current.currentSearchKey).toBeUndefined();
         });
+
+        it('prefers a suggested search default over a generic key that was last used with the same query', () => {
+            // A generic key's stored last query gets overwritten with whatever query the page last ran, so it can
+            // end up holding another search's query. It must never shadow the search that query belongs to.
+            mockOnyx({[ONYXKEYS.SEARCH_FILTERS]: {[CONST.SEARCH.SEARCH_KEYS.REPORTS]: mockSearchFilter(APPROVE_QUERY)}});
+            mockNavigationQuery(APPROVE_QUERY);
+
+            const {result} = renderProvider();
+
+            expect(result.current.currentSearchKey).toBe(CONST.SEARCH.SEARCH_KEYS.APPROVE);
+        });
+
+        it('prefers a suggested search default over the generic expenses key that was last used with the same query', () => {
+            mockOnyx({[ONYXKEYS.SEARCH_FILTERS]: {[CONST.SEARCH.SEARCH_KEYS.EXPENSES]: mockSearchFilter(STATEMENTS_QUERY)}});
+            mockNavigationQuery(STATEMENTS_QUERY);
+
+            const {result} = renderProvider();
+
+            expect(result.current.currentSearchKey).toBe(CONST.SEARCH.SEARCH_KEYS.STATEMENTS);
+        });
+
+        it('does not match a generic key by its last query', () => {
+            // `merchant:Zulu` matches no suggested default, so the only candidate is the reports last query.
+            // Generic keys are excluded from last-query matching, but reports still wins via the type fallback.
+            mockOnyx({[ONYXKEYS.SEARCH_FILTERS]: {[CONST.SEARCH.SEARCH_KEYS.REPORTS]: mockSearchFilter(`type:${CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT} merchant:Zulu`)}});
+            mockNavigationQuery(`type:${CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT} merchant:Zulu`);
+
+            const {result} = renderProvider();
+
+            expect(result.current.currentSearchKey).toBe(CONST.SEARCH.SEARCH_KEYS.REPORTS);
+        });
     });
 
     describe('currentDefaultSearchQueryJSON', () => {
@@ -300,6 +339,75 @@ describe('SearchQueryProvider', () => {
                 result.current.resetSearchKey(buildSearchQueryJSON(sharedQuery));
             });
             expect(result.current.currentSearchKey).toBe(savedSearchIDToSearchKey(SAVED_SEARCH_ID));
+        });
+    });
+
+    describe('switching to a more specific key on hash change', () => {
+        it('switches from a generic key to the suggested search the new query is the default of', () => {
+            mockNavigationQuery(REPORTS_QUERY);
+            const {result, rerender} = renderProvider();
+            expect(result.current.currentSearchKey).toBe(CONST.SEARCH.SEARCH_KEYS.REPORTS);
+
+            // The approve query keeps every default filter of the generic reports search (it has none) and the
+            // same type, so the invalidation guard passes and only this re-resolve can move off reports.
+            mockNavigationQuery(APPROVE_QUERY);
+            rerender(undefined);
+
+            expect(result.current.currentSearchKey).toBe(CONST.SEARCH.SEARCH_KEYS.APPROVE);
+        });
+
+        it('switches from a generic key to a saved search the new query matches exactly', () => {
+            const savedSearchQuery = `type:${CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT} category:Food`;
+            mockOnyx({[ONYXKEYS.SAVED_SEARCHES]: {[SAVED_SEARCH_ID]: {query: savedSearchQuery, name: 'My search'}}});
+            mockNavigationQuery(REPORTS_QUERY);
+            const {result, rerender} = renderProvider();
+            expect(result.current.currentSearchKey).toBe(CONST.SEARCH.SEARCH_KEYS.REPORTS);
+
+            mockNavigationQuery(savedSearchQuery);
+            rerender(undefined);
+
+            expect(result.current.currentSearchKey).toBe(savedSearchIDToSearchKey(SAVED_SEARCH_ID));
+        });
+
+        it('stays on the current key when the new query only edits a filter, even if another search was last used with a similar query', () => {
+            // `similarSearchHash` compares only the filter *keys* of a merchant filter, so `merchant:Zulu` and
+            // `merchant:Amazon` hash identically. Editing a filter on the reports tab must not flip to submit.
+            mockOnyx({[ONYXKEYS.SEARCH_FILTERS]: {[CONST.SEARCH.SEARCH_KEYS.SUBMIT]: mockSearchFilter(`type:${CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT} merchant:Zulu`)}});
+            mockNavigationQuery(REPORTS_QUERY);
+            const {result, rerender} = renderProvider();
+            expect(result.current.currentSearchKey).toBe(CONST.SEARCH.SEARCH_KEYS.REPORTS);
+
+            mockNavigationQuery(`type:${CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT} merchant:Amazon`);
+            rerender(undefined);
+
+            expect(result.current.currentSearchKey).toBe(CONST.SEARCH.SEARCH_KEYS.REPORTS);
+        });
+
+        it('stays on a specific key when the new query keeps its default filters', () => {
+            mockNavigationQuery(RECONCILIATION_QUERY);
+            const {result, rerender} = renderProvider();
+            expect(result.current.currentSearchKey).toBe(CONST.SEARCH.SEARCH_KEYS.RECONCILIATION);
+
+            // Narrowing a specific search is not another search's default, so nothing switches.
+            mockNavigationQuery(`${RECONCILIATION_QUERY} merchant:Amazon`);
+            rerender(undefined);
+
+            expect(result.current.currentSearchKey).toBe(CONST.SEARCH.SEARCH_KEYS.RECONCILIATION);
+        });
+
+        it('does not switch to a search the new query only resembles', () => {
+            // A card query that groups by card and filters on posted looks like the card statements search, but
+            // its filter keys differ from that search's default, so it is not the same search and must not switch.
+            mockNavigationQuery(EXPENSES_QUERY);
+            const {result, rerender} = renderProvider();
+            expect(result.current.currentSearchKey).toBe(CONST.SEARCH.SEARCH_KEYS.EXPENSES);
+
+            mockNavigationQuery(
+                `type:${CONST.SEARCH.DATA_TYPES.EXPENSE} ${CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY}:${CONST.SEARCH.GROUP_BY.CARD} ${CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED}:${CONST.SEARCH.DATE_PRESETS.LAST_STATEMENT}`,
+            );
+            rerender(undefined);
+
+            expect(result.current.currentSearchKey).toBe(CONST.SEARCH.SEARCH_KEYS.EXPENSES);
         });
     });
 
