@@ -372,7 +372,8 @@ function update<TKey extends OnyxKey>(oldRequestIndex: number, newRequest: Reque
     Log.info('[PersistedRequests] Updating a request', false, {
         oldRequest: sanitizeLogParams(oldRequest),
         newRequest: sanitizeLogParams(newRequest),
-        oldRequestIndex: indexToReplace,
+        oldRequestIndex,
+        resolvedIndex: indexToReplace,
         requestIndexToReplace,
     });
     requests.splice(indexToReplace, 1, newRequest as AnyRequest);

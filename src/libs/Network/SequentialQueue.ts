@@ -769,6 +769,26 @@ onPersistedRequestsInitialization(flush);
 // Flush the queue when another tab enqueues new requests
 onPersistedRequestsCrossTabMerge(flush);
 
+async function handleFollowUpConflictAction<TKey extends OnyxKey>(conflictAction: ConflictData, newRequest: OnyxRequest<TKey>): Promise<void> {
+    if (conflictAction.type !== 'replace') {
+        Log.alert('[SequentialQueue] Refusing a conflict follow-up action that cannot be addressed by requestIndex', {
+            command: newRequest.command,
+            nextActionType: conflictAction.type,
+        });
+        return;
+    }
+
+    if (conflictAction.requestIndex === undefined) {
+        Log.alert('[SequentialQueue] Refusing a conflict follow-up replace that carries no requestIndex', {
+            command: newRequest.command,
+            staleIndex: conflictAction.index,
+        });
+        return;
+    }
+
+    await updatePersistedRequest(conflictAction.index, conflictAction.request ?? (newRequest as AnyRequest), conflictAction.requestIndex);
+}
+
 async function handleConflictActions<TKey extends OnyxKey>(conflictAction: ConflictData, newRequest: OnyxRequest<TKey>): Promise<void> {
     Log.info('[SequentialQueue] handleConflictActions', false, {
         conflictType: conflictAction.type,
@@ -807,7 +827,7 @@ async function handleConflictActions<TKey extends OnyxKey>(conflictAction: Confl
                 command: newRequest.command,
                 nextActionType: conflictAction.nextAction.type,
             });
-            await handleConflictActions(conflictAction.nextAction, newRequest);
+            await handleFollowUpConflictAction(conflictAction.nextAction, newRequest);
         }
     } else {
         Log.info('[SequentialQueue] No action performed, request ignored', false, {

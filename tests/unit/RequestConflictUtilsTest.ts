@@ -134,6 +134,19 @@ describe('RequestConflictUtils', () => {
         });
     });
 
+    it('resolveEditCommentWithNewAddCommentRequest should not touch any queued request when the add comment is no longer queued', () => {
+        const reportActionID = '2';
+        const persistedRequests = [
+            {command: 'UpdateComment', data: {reportActionID, reportComment: 'test edit'}},
+            {command: 'AddComment', data: {reportActionID, reportComment: 'queued untouched'}},
+        ];
+        const parameters = {reportID: '1', reportActionID, reportComment: 'new edit comment'};
+        const result = resolveEditCommentWithNewAddCommentRequest(persistedRequests, parameters, reportActionID, -1);
+
+        expect(result).toEqual({conflictAction: {type: 'delete', indices: [0], pushNewRequest: false, nextAction: null}});
+        expect(persistedRequests.at(1)?.data?.reportComment).toBe('queued untouched');
+    });
+
     it('resolveEditCommentWithNewAddCommentRequest should only replace the add comment with the update comment text when no other update comments are found', () => {
         const reportActionID = '2';
         const persistedRequests = [{command: 'AddComment', data: {reportActionID, reportComment: 'test'}, requestIndex: 7}, {command: 'CloseAccount'}, {command: 'OpenReport'}];

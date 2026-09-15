@@ -1,3 +1,5 @@
+import Log from '@libs/Log';
+
 import type {OnyxInput, OnyxKey} from 'react-native-onyx';
 
 import Onyx from 'react-native-onyx';
@@ -96,6 +98,7 @@ describe('PersistedRequests', () => {
     });
 
     it('update the request carrying the given requestIndex instead of the one at the stale index', () => {
+        const logInfoSpy = jest.spyOn(Log, 'info').mockImplementation(() => {});
         PersistedRequests.save({...request, requestIndex: 11});
         PersistedRequests.save({...request, command: 'AddComment', requestIndex: 12});
         const newRequest: Request<'reportMetadata_1' | 'reportMetadata_2'> = {
@@ -105,9 +108,27 @@ describe('PersistedRequests', () => {
             requestIndex: 13,
         };
 
-        PersistedRequests.update(0, newRequest, 11);
+        try {
+            PersistedRequests.update(0, newRequest, 11);
 
-        expect(PersistedRequests.getAll().map((r) => r.requestIndex)).toEqual([1, 13, 12]);
+            expect(PersistedRequests.getAll().map((r) => r.requestIndex)).toEqual([1, 13, 12]);
+            expect(logInfoSpy).toHaveBeenCalledWith(
+                '[PersistedRequests] Updating a request',
+                false,
+                expect.objectContaining({oldRequestIndex: 0, resolvedIndex: 1, requestIndexToReplace: 11}),
+            );
+        } finally {
+            logInfoSpy.mockRestore();
+        }
+    });
+
+    it('do nothing when the positional index is out of range', () => {
+        PersistedRequests.save({...request, requestIndex: 11});
+
+        PersistedRequests.update(-1, {...request, requestIndex: 12});
+
+        expect(PersistedRequests.getLength()).toBe(2);
+        expect(PersistedRequests.getAll().map((r) => r.requestIndex)).toEqual([1, 11]);
     });
 
     it('do nothing when the request carrying the given requestIndex is no longer queued', () => {

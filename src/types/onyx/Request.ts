@@ -134,9 +134,6 @@ type ConflictRequestReplace = {
      */
     index: number;
 
-    /**
-     * When set, the queued request with this requestIndex is replaced instead of the one at `index`.
-     */
     requestIndex?: number;
 
     /**
@@ -165,9 +162,9 @@ type ConflictRequestDelete = {
     pushNewRequest: boolean;
 
     /**
-     * The next action to execute after the current conflict is resolved.
+     * The next action to execute after the current conflict is resolved. This runs after an awaited disk commit, so the queue may have shifted by then: only a replace addressed by requestIndex is accepted.
      */
-    nextAction?: ConflictData;
+    nextAction?: ConflictRequestReplace;
 };
 
 /**

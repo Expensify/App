@@ -484,15 +484,15 @@ describe('SequentialQueue', () => {
 describe('SequentialQueue - conflict replace addressing', () => {
     const reportActionID = 'A1';
 
-    function queuedAddComment(reportComment: string, requestIndex: number): Request<never> {
+    function queuedAddComment(reportComment: string, requestIndex?: number): Request<never> {
         return {command: WRITE_COMMANDS.ADD_COMMENT, data: {reportActionID, reportComment}, requestIndex};
     }
 
-    function queuedUpdateComment(reportComment: string, requestIndex: number): Request<never> {
+    function queuedUpdateComment(reportComment: string, requestIndex?: number): Request<never> {
         return {command: WRITE_COMMANDS.UPDATE_COMMENT, data: {reportActionID, reportComment}, requestIndex};
     }
 
-    function editQueuedComment(reportComment: string, requestIndex: number): Request<never> {
+    function editQueuedComment(reportComment: string, requestIndex?: number): Request<never> {
         const parameters: UpdateCommentParams = {reportID: 'r1', reportComment, reportActionID};
         return {
             command: WRITE_COMMANDS.UPDATE_COMMENT,
@@ -514,8 +514,6 @@ describe('SequentialQueue - conflict replace addressing', () => {
                 return commit;
             }
             armed = false;
-            // Onyx's jest provider resolves a set in a couple of microtasks; IndexedDB and SQLite resolve on a storage
-            // `complete` event or a WAL commit, so the queue really does keep draining while this write is in flight.
             return new Promise<void>((resolvePromise) => {
                 drain();
                 commit.then(resolvePromise);
@@ -579,6 +577,31 @@ describe('SequentialQueue - conflict replace addressing', () => {
             expect(getAll().at(1)?.data?.reportID).toBe('VICTIM');
         } finally {
             commit.mockRestore();
+            SequentialQueue.unpause();
+            await mockFetch.resume();
+        }
+    });
+
+    it('should not apply a nextAction replace at the stale position when the target carries no requestIndex', async () => {
+        SequentialQueue.pause();
+        await SequentialQueue.push({command: 'OpenReport', data: {reportID: 'HEAD'}});
+        await SequentialQueue.push(queuedAddComment('v1'));
+        await SequentialQueue.push(queuedUpdateComment('v2'));
+        await SequentialQueue.push({command: 'OpenReport', data: {reportID: 'VICTIM'}, requestIndex: 4});
+
+        const logAlertSpy = jest.spyOn(Log, 'alert').mockImplementation(() => {});
+        const commit = drainWhileTheNextQueueCommitIsPending(processNextRequest);
+        try {
+            await SequentialQueue.push(editQueuedComment('v3'));
+
+            expect(getOngoingRequest()?.data?.reportID).toBe('HEAD');
+            expect(getAll().map((r) => r.command)).toEqual([WRITE_COMMANDS.ADD_COMMENT, 'OpenReport']);
+            expect(getAll().at(0)?.data?.reportComment).toBe('v3');
+            expect(getAll().at(1)?.data?.reportID).toBe('VICTIM');
+            expect(logAlertSpy).toHaveBeenCalledWith(expect.stringContaining('requestIndex'), expect.objectContaining({staleIndex: 1}));
+        } finally {
+            commit.mockRestore();
+            logAlertSpy.mockRestore();
             SequentialQueue.unpause();
             await mockFetch.resume();
         }
