@@ -2399,7 +2399,10 @@ function updateAddress(policyID: string, newAddress: CompanyAddress) {
         },
     ];
 
-    API.write(WRITE_COMMANDS.UPDATE_POLICY_ADDRESS, parameters, {optimisticData, finallyData});
+    API.write(WRITE_COMMANDS.UPDATE_POLICY_ADDRESS, parameters, {
+        optimisticData,
+        finallyData,
+    });
 }
 
 /**
