@@ -48,7 +48,6 @@ import {scheduleOnRN} from 'react-native-worklets';
 
 import {SearchActionsBarSwitch, SearchFiltersBarSwitch, SearchPageInputSwitch, SearchTypeMenuSwitch} from './Switches';
 
-const TOO_CLOSE_TO_TOP_DISTANCE = 10;
 const TOO_CLOSE_TO_BOTTOM_DISTANCE = 10;
 const ANIMATION_DURATION_IN_MS = 300;
 
@@ -130,7 +129,7 @@ function SearchPageNarrow({
 
                 scheduleOnRN(saveScrollOffset, route, currentOffset);
 
-                if (isScrollingDown && contentOffset.y > TOO_CLOSE_TO_TOP_DISTANCE) {
+                if (isScrollingDown && contentOffset.y > 0) {
                     topBarOffset.set(
                         clamp(
                             topBarOffset.get() - distanceScrolled,
@@ -271,7 +270,7 @@ function SearchPageNarrow({
                                                 showStatic={!isHeaderInteractive}
                                                 queryJSON={queryJSON}
                                             />
-                                            <View style={[styles.flex1, styles.flexRow, styles.pt1, styles.mh5, styles.mb4, styles.gap3]}>
+                                            <View style={[styles.flex1, styles.flexRow, styles.pt2, styles.mh5, styles.mb3, styles.gap3]}>
                                                 <SearchPageInputSwitch
                                                     showStatic={!isHeaderInteractive}
                                                     queryJSON={queryJSON}
