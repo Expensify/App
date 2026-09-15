@@ -1,7 +1,7 @@
 ---
 title: Workspace Workflows
 description: Configure your workspace approval and submission workflows to match your team's needs.
-keywords: [New Expensify, workflows, approval workflows, delay submission, add approver, connect bank, workspace settings, submission frequency, authorized payer, mark as paid, payer]
+keywords: [New Expensify, workflows, approval workflows, delay submission, add approver, connect bank, workspace settings, submission frequency, authorized payer, mark as paid, payer, who can pay a report]
 internalScope: Audience is Workspace Admins. Covers configuring approval, submission, and reimbursement workflows including choosing an authorized payer; does not cover connecting a bank account.
 ---
 
@@ -99,7 +99,14 @@ When **Payments** is enabled, you can set an **Authorized payer** even if no ban
 
 ## What happens after you set an authorized payer
 
-Only the authorized payer is prompted to pay reports. They'll see a payment reminder in their **Inbox** and a **Pay** button next to the workspace chat, while other admins won't receive those prompts. Other admins can still open a report and pay it.
+Only the authorized payer is prompted to pay reports. They'll see a payment reminder in their **Inbox** and a **Pay** button next to the workspace chat, while other admins won't receive those prompts.
+
+Who else can pay a report depends on whether a business bank account is connected to the workspace:
+
+- **No bank account connected:** other Workspace Admins can open an approved report, click **Pay**, and select **Mark as paid** to record a payment made outside of Expensify.
+- **Bank account connected:** only the authorized payer and Workspace Admins the business bank account has been shared with can pay reports. Other admins won't see **Pay** on the report.
+
+Learn how to [share a business bank account with another admin](/articles/new-expensify/wallet-and-payments/Share-a-Business-Bank-Account).
 
 ---
 
