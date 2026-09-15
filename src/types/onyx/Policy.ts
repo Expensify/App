@@ -3576,4 +3576,11 @@ export type {
     DualEntrySync,
     CampfireConnectionsConfig,
     CampfireSubsidiary,
+    CampfireCoding,
+    CampfireExportDate,
+    CampfireVendor,
+    CampfireAccount,
+    CampfireExport,
+    CampfireAutoSync,
+    CampfireSync,
 };
