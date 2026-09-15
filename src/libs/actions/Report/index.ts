@@ -193,6 +193,7 @@ import {appendParam, getSearchParamFromPath} from '@libs/Url';
 import {buildSecureDownloadURL} from '@libs/UrlUtils';
 import Visibility from '@libs/Visibility';
 
+import {showSupportalPermissionDenied} from '@userActions/App';
 import {cacheAttachment, removeCachedAttachment} from '@userActions/Attachment';
 import {clearByKey} from '@userActions/CachedPDFPaths';
 import {setDownload} from '@userActions/Download';
@@ -409,6 +410,7 @@ type AddCommentParams = {
     delegateAccountID: number | undefined;
     conciergeReportID: string | undefined;
     conciergeThreadReportID?: string;
+    shouldNavigateToConciergeThread?: boolean;
 };
 
 type AddActionsParams = {
@@ -426,6 +428,7 @@ type AddActionsParams = {
     delegateAccountID: number | undefined;
     conciergeReportID: string | undefined;
     conciergeThreadReportID?: string;
+    shouldNavigateToConciergeThread?: boolean;
 };
 
 type AddAttachmentWithCommentParams = {
@@ -441,6 +444,8 @@ type AddAttachmentWithCommentParams = {
     delegateAccountID: number | undefined;
     sidePanelContext?: SidePanelContext;
     conciergeReportID: string | undefined;
+    conciergeThreadReportID?: string;
+    shouldNavigateToConciergeThread?: boolean;
 };
 
 type MergeReportsProps = {
@@ -881,6 +886,7 @@ function addActions({
     delegateAccountID,
     conciergeReportID,
     conciergeThreadReportID,
+    shouldNavigateToConciergeThread = true,
 }: AddActionsParams) {
     if (!report?.reportID) {
         return;
@@ -1156,7 +1162,6 @@ function addActions({
 
         const optimisticThread = buildOptimisticChatReport({
             participantList: [currentUserAccountID, CONST.ACCOUNT_ID.CONCIERGE],
-            reportName: reportCommentText,
             parentReportActionID: resolvedReportActionID,
             parentReportID: reportID,
             optimisticReportID: conciergeThreadReportID,
@@ -1264,7 +1269,12 @@ function addActions({
     startSendMessagePhase(reportActionID, CONST.TELEMETRY.SPAN_SEND_MESSAGE_PHASE.PROPAGATE);
 
     if (conciergeThreadReportID && resolvedReportActionID) {
-        Onyx.update(conciergeThreadOnyxData).then(() => Navigation.navigate(getReportRouteForCurrentContext({reportID: conciergeThreadReportID})));
+        Onyx.update(conciergeThreadOnyxData).then(() => {
+            if (!shouldNavigateToConciergeThread) {
+                return;
+            }
+            Navigation.navigate(getReportRouteForCurrentContext({reportID: conciergeThreadReportID}));
+        });
     }
     notifyNewAction(resolvedNotifyReportID, lastAction, lastAction?.actorAccountID === currentUserAccountID);
 }
@@ -1283,6 +1293,8 @@ function addAttachmentWithComment({
     delegateAccountID,
     sidePanelContext,
     conciergeReportID,
+    conciergeThreadReportID,
+    shouldNavigateToConciergeThread,
 }: AddAttachmentWithCommentParams) {
     if (!report?.reportID) {
         return;
@@ -1309,13 +1321,30 @@ function addAttachmentWithComment({
             delegateAccountID,
             sidePanelContext,
             conciergeReportID,
+            conciergeThreadReportID,
+            shouldNavigateToConciergeThread,
         });
         handlePlaySound();
         return;
     }
 
     // Multiple attachments - first: combine text + first attachment as a single action
-    addActions({report, notifyReportID, ancestors, timezoneParam: timezone, currentUserAccountID, text, file: attachments?.at(0), isInSidePanel, delegateAccountID, conciergeReportID});
+    addActions({
+        report,
+        notifyReportID,
+        ancestors,
+        timezoneParam: timezone,
+        currentUserAccountID,
+        text,
+        file: attachments?.at(0),
+        isInSidePanel,
+        delegateAccountID,
+        conciergeReportID,
+
+        // Several attachments post one message each, so they stay in the DM instead of opening a thread.
+        conciergeThreadReportID: attachments.length === 1 ? conciergeThreadReportID : undefined,
+        shouldNavigateToConciergeThread,
+    });
 
     // Remaining: attachment-only actions (no text duplication)
     for (let i = 1; i < attachments?.length; i += 1) {
@@ -1354,6 +1383,7 @@ function addComment({
     delegateAccountID,
     conciergeReportID,
     conciergeThreadReportID,
+    shouldNavigateToConciergeThread,
 }: AddCommentParams) {
     if (shouldPlaySound) {
         playSound(SOUNDS.DONE);
@@ -1372,6 +1402,7 @@ function addComment({
         sidePanelContext,
         conciergeReportID,
         conciergeThreadReportID,
+        shouldNavigateToConciergeThread,
     });
 }
 
@@ -2544,6 +2575,9 @@ type NavigateToAndOpenReportParams = {
     hasCompletedGuidedSetupFlow: boolean | undefined;
     betas: OnyxEntry<Beta[]>;
     conciergeChat: OnyxEntry<Report>;
+
+    /** Whether the current session is a supportal session.*/
+    isSupportalSession: boolean;
     shouldDismissModal?: boolean;
     shouldRevalidateExistingChat?: boolean;
     hasReportActions?: boolean;
@@ -2562,6 +2596,7 @@ function navigateToAndOpenReport({
     hasCompletedGuidedSetupFlow,
     betas,
     conciergeChat,
+    isSupportalSession,
     shouldDismissModal = true,
     shouldRevalidateExistingChat = false,
     hasReportActions,
@@ -2570,6 +2605,15 @@ function navigateToAndOpenReport({
     const participantAccountIDs = PersonalDetailsUtils.getAccountIDsByLogins(userLogins);
     const chat = getChatByParticipants([...participantAccountIDs, currentUserAccountID]);
     const createAndOpenNewOptimisticChat = (sourceCachedReportID?: string) => {
+        // The server rejects chat creation during a support session, so block it here instead of letting the agent land on an
+        // optimistic report that then fails with a generic error. This has to live inside the create closure (not before the
+        // existing-vs-new branch below) because the shouldRevalidateExistingChat path re-enters it asynchronously for chats
+        // that only turn out to be notFound later. Opening an existing chat stays allowed.
+        if (isSupportalSession) {
+            showSupportalPermissionDenied({command: WRITE_COMMANDS.OPEN_REPORT});
+            return;
+        }
+
         const fallbackChat = buildOptimisticChatReport({
             participantList: [...participantAccountIDs, currentUserAccountID],
             notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
@@ -2667,6 +2711,9 @@ type NavigateToAndCreateGroupChatParams = {
     hasCompletedGuidedSetupFlow: boolean;
     conciergeChat: OnyxEntry<Report>;
     currentUserAccountID: number;
+
+    /** Whether the current session is a supportal session.*/
+    isSupportalSession: boolean;
     avatarUri?: string;
     avatarFile?: File | CustomRNImageManipulatorResult | undefined;
 };
@@ -2682,9 +2729,17 @@ function navigateToAndCreateGroupChat(params: NavigateToAndCreateGroupChatParams
         hasCompletedGuidedSetupFlow,
         conciergeChat,
         currentUserAccountID,
+        isSupportalSession,
         avatarUri,
         avatarFile,
     } = params;
+
+    // Creating a group chat is always a create, so it is blocked outright during a support session.
+    if (isSupportalSession) {
+        showSupportalPermissionDenied({command: WRITE_COMMANDS.OPEN_REPORT});
+        return;
+    }
+
     const userLogins = Object.values(participantsPersonalDetails ?? {})
         .map((participant) => participant?.login)
         .filter((login): login is string => !!login);
@@ -3697,7 +3752,7 @@ function editReportComment(
         });
     }
 
-    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.REPORT>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${originalReportID}`,
@@ -3709,6 +3764,22 @@ function editReportComment(
             },
         },
     ];
+
+    // A thread is named after a snapshot of its parent message, so the snapshot needs refreshing whenever that message changes.
+    const childReportID = originalReportAction.childReportID;
+    const childReport = childReportID ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${childReportID}`] : undefined;
+    if (childReportID && childReport && (childReport.reportName === originalCommentHTML || childReport.reportName === originalMessage?.text)) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${childReportID}`,
+            value: {reportName: reportComment},
+        });
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${childReportID}`,
+            value: {reportName: childReport.reportName},
+        });
+    }
 
     const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [
         {
@@ -4407,6 +4478,9 @@ function navigateToConciergeChat(
                 // TODO: Pass the correct hasCompletedGuidedSetupFlow from Onyx data in the next PR. Refactor issue: https://github.com/Expensify/App/issues/66424
                 hasCompletedGuidedSetupFlow: undefined,
                 betas,
+                // Not gated: this is the Concierge fallback, not the Start chat flow. Concierge is a core report reached while
+                // simply navigating around, so blocking it for support agents would pop the denied modal during plain navigation.
+                isSupportalSession: false,
                 shouldDismissModal,
                 linkToOptions,
             });

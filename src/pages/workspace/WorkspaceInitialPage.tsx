@@ -99,7 +99,6 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
         'Document',
         'ExpensifyAppIcon',
         'ExpensifyCard',
-        'Feed',
         'Folder',
         'Gear',
         'Hashtag',
@@ -113,6 +112,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
         'LuggageWithLines',
         'Clock',
         'Bolt',
+        'Bot',
     ]);
 
     const policyName = policy?.name ?? '';
@@ -182,7 +182,6 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
         previousPendingFields: prevPendingFields,
         shouldShowEnterCredentialsError,
         shouldShowRBR,
-        isRulesRevampBetaEnabled: isBetaEnabled(CONST.BETAS.RULES_REVAMP),
         isVendorMatchingBetaEnabled: isBetaEnabled(CONST.BETAS.VENDOR_MATCHING),
         convertToDisplayString,
     }).map((item) => ({
