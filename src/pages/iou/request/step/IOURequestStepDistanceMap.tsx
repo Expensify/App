@@ -27,6 +27,7 @@ import {shouldUseTransactionDraft} from '@libs/IOUUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {isPolicyExpenseChat as isPolicyExpenseChatUtil} from '@libs/ReportUtils';
+import shouldUseDefaultExpensePolicyUtil from '@libs/shouldUseDefaultExpensePolicy';
 import {doesMoneyRequestDraftHaveUserInput, getRateID, getRequestType} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
@@ -77,10 +78,28 @@ function IOURequestStepDistanceMap({
     const isArchived = useReportIsArchived(report?.reportID);
     const selfDMReport = useSelfDMReport();
     const {policy} = usePolicyForTransaction({transaction, reportPolicyID: report?.policyID, action, iouType});
-    const blockDistanceRequestIfNeeded = useBlockDistanceRequest({policyID: policy?.id, isDistanceRequest: true});
     const personalPolicy = usePersonalPolicy();
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const defaultExpensePolicy = useDefaultExpensePolicy();
+    const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
+    const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
+    const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
+    const shouldUseDefaultExpensePolicy = shouldUseDefaultExpensePolicyUtil(
+        iouType,
+        defaultExpensePolicy,
+        amountOwed,
+        userBillingGracePeriodEnds,
+        ownerBillingGracePeriodEnd,
+        currentUserPersonalDetails.accountID,
+    );
+    const shouldAutoReportToDefaultWorkspace = shouldUseDefaultExpensePolicy && (!!defaultExpensePolicy?.autoReporting || !!personalPolicy?.autoReporting);
+    // Scope the commuter-exclusion check to where the expense is actually going, the same way the Manual and
+    // Odometer tabs do. `policy` here can be the member's active workspace even for a Self-DM track expense, and
+    // personal expenses are exempt from a workspace's commuter rule.
+    const blockDistanceRequestIfNeeded = useBlockDistanceRequest({
+        policyID: report?.policyID ?? (shouldAutoReportToDefaultWorkspace ? defaultExpensePolicy?.id : undefined),
+        isDistanceRequest: true,
+    });
     const [skipConfirmation] = useOnyx(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${transactionID}`);
     const [optimisticWaypoints, setOptimisticWaypoints] = useState<WaypointCollection | null>(null);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
