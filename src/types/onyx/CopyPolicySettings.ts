@@ -28,6 +28,12 @@ type CopyPolicySettings = {
      */
     currentStep?: ValueOf<typeof CONST.POLICY.COPY_SETTINGS_MODAL_STEP> | null;
 
+    /**
+     * Timestamp (ms) of when the copy request was sent. The progress modal uses it to bound how long
+     * it waits on the backend, so the deadline survives navigating away from the Workspaces list.
+     */
+    startedAt?: number | null;
+
     errors?: Errors;
 };
 

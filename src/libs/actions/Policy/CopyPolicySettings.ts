@@ -554,10 +554,12 @@ function buildCopyPolicySettingsData(
     // Step 4: drive currentStep on the COPY_POLICY_SETTINGS key itself.
     // Success intentionally omits this key — the backend transitions the bulk policy
     // copy NVP state to complete, which the UI uses to show the completion modal.
+    // startedAt gives the progress modal an absolute deadline to fall back on if that
+    // state never arrives, so it can't be reset by navigating away and back.
     optimisticData.push({
         onyxMethod: Onyx.METHOD.MERGE,
         key: ONYXKEYS.COPY_POLICY_SETTINGS,
-        value: {currentStep: CONST.POLICY.COPY_SETTINGS_MODAL_STEP.LOADING},
+        value: {currentStep: CONST.POLICY.COPY_SETTINGS_MODAL_STEP.LOADING, startedAt: Date.now()},
     });
 
     // Optimistically set NVP state to 'in-progress' to avoid stale state flash
@@ -571,7 +573,7 @@ function buildCopyPolicySettingsData(
     failureData.push({
         onyxMethod: Onyx.METHOD.MERGE,
         key: ONYXKEYS.COPY_POLICY_SETTINGS,
-        value: {currentStep: null},
+        value: {currentStep: null, startedAt: null},
     });
 
     return {optimisticData, successData, failureData};
