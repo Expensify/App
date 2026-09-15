@@ -461,7 +461,7 @@ function getFilterFromQuery(queryJSON: SearchQueryJSON | undefined, filterKey: S
 /**
  * Whether the query includes a positive `has:submitted-violation` or `has:approved-violation` filter.
  * Used so the Violations column and CSV export only appear when those filters are active. Normal
- * search snapshots can still include FORWARDED actions with violation data (#100877).
+ * search snapshots can still include FORWARDED actions with violation data.
  */
 function queryHasViolationFilter(queryJSON: SearchQueryJSON | undefined): boolean {
     const hasFilterGroups = queryJSON?.flatFilters.filter((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS) ?? [];
@@ -478,6 +478,13 @@ function queryHasViolationFilter(queryJSON: SearchQueryJSON | undefined): boolea
             return value === CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION || value === CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION;
         }),
     );
+}
+
+/**
+ * Same meaning as queryHasViolationFilter, for the advanced-filters form `has` array rather than parsed query JSON.
+ */
+function hasValuesIncludeViolationFilter(hasValues: readonly string[] | undefined): boolean {
+    return !!hasValues?.includes(CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION) || !!hasValues?.includes(CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION);
 }
 
 /**
@@ -1001,9 +1008,8 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
     }
 
     if (columns?.length) {
-        // Violations is only meaningful with has:submitted-violation / has:approved-violation (#100877).
-        const shouldIncludeViolationsColumn =
-            !!supportedFilterValues.has?.includes(CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION) || !!supportedFilterValues.has?.includes(CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION);
+        // Violations is only meaningful with has:submitted-violation / has:approved-violation.
+        const shouldIncludeViolationsColumn = hasValuesIncludeViolationFilter(supportedFilterValues.has);
         const filterValueArray = [...new Set<string>(columns)].filter((column) => shouldIncludeViolationsColumn || column !== CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS);
         if (filterValueArray.length) {
             filtersString.push(`${CONST.SEARCH.SYNTAX_ROOT_KEYS.COLUMNS}:${filterValueArray.map((value) => sanitizeSearchValue(value)).join(',')}`);
@@ -2772,6 +2778,7 @@ export {
     getValidLastQuery,
     doesQueryMatchDefaultFilterKeysAndType,
     queryHasViolationFilter,
+    hasValuesIncludeViolationFilter,
 };
 
 export type {BuildUserReadableQueryStringParams};

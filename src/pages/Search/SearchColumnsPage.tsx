@@ -4,7 +4,7 @@ import type {SearchCustomColumnIds} from '@components/Search/types';
 import useOnyx from '@hooks/useOnyx';
 
 import Navigation from '@libs/Navigation/Navigation';
-import {buildQueryStringFromFilterFormValues, getCurrentSearchQueryJSON} from '@libs/SearchQueryUtils';
+import {buildQueryStringFromFilterFormValues, getCurrentSearchQueryJSON, hasValuesIncludeViolationFilter} from '@libs/SearchQueryUtils';
 import {getCustomColumnDefault, getCustomColumns, insertColumnBeforeTotalAmount} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
@@ -20,9 +20,8 @@ function SearchColumnsPage() {
     const groupBy = searchAdvancedFiltersForm?.groupBy;
     const queryType = searchAdvancedFiltersForm?.type ?? CONST.SEARCH.DATA_TYPES.EXPENSE;
 
-    // Violations data is only returned when these filters are set, so hide the column otherwise (#100877).
-    const shouldRequireViolationsColumn =
-        !!searchAdvancedFiltersForm?.has?.includes(CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION) || !!searchAdvancedFiltersForm?.has?.includes(CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION);
+    // Violations data is only returned when these filters are set, so hide the column otherwise.
+    const shouldRequireViolationsColumn = hasValuesIncludeViolationFilter(searchAdvancedFiltersForm?.has);
 
     const allTypeCustomColumns = getCustomColumns(queryType).filter((column) => shouldRequireViolationsColumn || column !== CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS);
     const allGroupCustomColumns = getCustomColumns(groupBy);

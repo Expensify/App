@@ -134,14 +134,11 @@ function GroupHeader({
     const snapshotData = transactionsSnapshot?.data;
     const snapshotSearchType = transactionsSnapshot?.search.type;
 
-    const subHeaderColumns = useMemo(() => {
-        if (isExpenseReportType) {
-            return columns ?? [];
-        }
-        if (!snapshotData) {
-            return [];
-        }
-        return getColumnsToShow({
+    let subHeaderColumns: SearchColumnType[] = [];
+    if (isExpenseReportType) {
+        subHeaderColumns = columns ?? [];
+    } else if (snapshotData) {
+        subHeaderColumns = getColumnsToShow({
             currentAccountID: currentUserDetails.accountID,
             data: snapshotData,
             visibleColumns,
@@ -149,7 +146,7 @@ function GroupHeader({
             shouldShowViolationsColumn: queryHasViolationFilter(groupItem.transactionsQueryJSON),
             fallbackPolicyID: policyForMovingExpensesID,
         });
-    }, [isExpenseReportType, columns, snapshotData, snapshotSearchType, currentUserDetails.accountID, visibleColumns, groupItem.transactionsQueryJSON, policyForMovingExpensesID]);
+    }
 
     const {
         isAmountColumnWide: isSubHeaderAmountColumnWide,
