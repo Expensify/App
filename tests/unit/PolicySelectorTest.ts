@@ -7,6 +7,7 @@ import {
     createAdminPoliciesSelector,
     createCopySettingsEligibleTargetsSelector,
     createIOURequestStartPoliciesSelector,
+    createPoliciesByIDsSelector,
     createWorkspaceListPoliciesSelector,
     isAdminForPolicyByIDSelector,
     lastWorkspaceNumberSelector,
@@ -135,6 +136,44 @@ describe('createAdminPoliciesSelector', () => {
         const entry = result[`${P}1`];
         expect(entry).toBeDefined();
         expect(Object.keys(entry ?? {})).toEqual(['id', 'name', 'avatarURL', 'created']);
+    });
+});
+
+describe('createPoliciesByIDsSelector', () => {
+    const P = ONYXKEYS.COLLECTION.POLICY;
+
+    const policy1 = buildPolicy({id: '1', name: 'Workspace 1'});
+    const policy2 = buildPolicy({id: '2', name: 'Workspace 2'});
+    const policy3 = buildPolicy({id: '3', name: 'Workspace 3'});
+    const allPolicies = {
+        [`${P}1`]: policy1,
+        [`${P}2`]: policy2,
+        [`${P}3`]: policy3,
+    };
+
+    it('returns an empty object for an empty ID list without touching the collection', () => {
+        expect(createPoliciesByIDsSelector([])(allPolicies)).toEqual({});
+    });
+
+    it('returns an empty object when the collection is undefined', () => {
+        expect(createPoliciesByIDsSelector(['1', '2'])(undefined)).toEqual({});
+    });
+
+    it('returns only the requested keys and drops policies that were not requested', () => {
+        const result = createPoliciesByIDsSelector(['1', '3'])(allPolicies);
+        expect(Object.keys(result).sort()).toEqual([`${P}1`, `${P}3`]);
+    });
+
+    it('omits a requested ID that has no policy in the collection', () => {
+        const result = createPoliciesByIDsSelector(['1', 'missing'])(allPolicies);
+        expect(Object.keys(result)).toEqual([`${P}1`]);
+        expect(`${P}missing` in result).toBe(false);
+    });
+
+    it('returns the same object references as the input, without copying or narrowing', () => {
+        const result = createPoliciesByIDsSelector(['1', '2'])(allPolicies);
+        expect(result[`${P}1`]).toBe(policy1);
+        expect(result[`${P}2`]).toBe(policy2);
     });
 });
 
