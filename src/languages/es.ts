@@ -5121,6 +5121,9 @@ ${amount} para ${merchant} - ${date}`,
                 xeroInvoiceCollectionAccount: 'Cuenta de cobro de las facturas Xero',
                 xeroBillPaymentAccountDescription: 'Elige desde dónde pagar las facturas y crearemos el pago en Xero.',
                 invoiceAccountSelectorDescription: 'Elige dónde recibir los pagos de facturas y crearemos el pago en Xero.',
+                xeroFxExpenseAccount: 'Cuenta de comisión por conversión de divisa de Xero',
+                fxExpenseAccountDescription:
+                    'Cuando tu empresa cubra el coste de conversión de moneda en un pago realizado en el extranjero, registraremos ese coste en esta cuenta en Xero como una transacción de gasto de dinero.',
             },
             exportDate: {
                 label: 'Fecha de la factura de compra',
@@ -5488,6 +5491,9 @@ ${amount} para ${merchant} - ${date}`,
                 error: {
                     customFormID: 'Introduzca un ID numérico válido para el formulario personalizado',
                 },
+                fxExpenseAccount: 'Cuenta de comisión por conversión de moneda',
+                fxExpenseAccountDescription:
+                    'Cuando tu empresa cubra el coste de conversión de divisa en un reembolso pagado en el extranjero, registraremos ese coste en la cuenta de NetSuite de abajo como un asiento contable.',
             },
             noAccountsFound: 'No se han encontrado cuentas',
             noAccountsFoundDescription: 'Añade la cuenta en NetSuite y sincroniza la conexión de nuevo',
@@ -9179,6 +9185,35 @@ ${reportName}`,
             return `cambió los asistentes de la categoría «${categoryName}» a ${newValue ? 'obligatorio' : 'no es obligatorio'} (previamente ${newValue ? 'no es obligatorio' : 'obligatorio'})`;
         },
         updatedAutoHarvesting: (enabled: boolean) => `${enabled ? 'habilitado' : 'desactivado'} envíos`,
+        changedOverLimitForwardsTo: ({
+            member,
+            approver,
+            limit,
+            previousApprover,
+            previousLimit,
+        }: {
+            member: string;
+            approver: string;
+            limit: string;
+            previousApprover?: string;
+            previousLimit?: string;
+        }) => {
+            let text = previousApprover
+                ? `cambió el flujo de aprobación para ${member} para reenviar los informes superiores a ${limit} a ${approver}`
+                : `establecer el flujo de aprobación para ${member} para reenviar los informes superiores a ${limit} a ${approver}`;
+            if (previousApprover && previousLimit) {
+                text += ` (previamente envió informes superiores a ${previousLimit} a ${previousApprover})`;
+            } else if (previousApprover) {
+                text += ` (previamente reenviado a ${previousApprover})`;
+            }
+            return text;
+        },
+        removedOverLimitForwardsTo: ({member, previousApprover, previousLimit}: {member: string; previousApprover?: string; previousLimit: string}) =>
+            previousApprover
+                ? `cambió el flujo de aprobación para ${member} para dejar de reenviar informes superiores a ${previousLimit} (anteriormente se reenviaban a ${previousApprover})`
+                : `cambió el flujo de aprobación para ${member} para dejar de reenviar informes por encima de ${previousLimit}`,
+        changedApprovalLimit: ({member, limit, previousLimit}: {member: string; limit: string; previousLimit: string}) =>
+            `cambió el flujo de aprobación para ${member} para reenviar los informes superiores a ${limit} (previamente ${previousLimit})`,
     },
     roomMembersPage: {
         memberNotFound: 'Miembro no encontrado.',
@@ -11181,6 +11216,8 @@ ${reportName}`,
         gpsTooltip: '<tooltip>¡Seguimiento por GPS en curso! Cuando termines, detén el seguimiento a continuación.</tooltip>',
         hasFilterNegation: '<tooltip>Busca gastos sin recibos usando <strong>-has:receipt</strong>.</tooltip>',
         mileageRateAutoUpdated: '<tooltip>Hemos actualizado la tasa según tu fecha de viaje.</tooltip>',
+        markAllAsRead: '<tooltip>Haz clic derecho para <strong>marcar todo como leído</strong>.</tooltip>',
+        markAllAsReadTouchScreen: '<tooltip>Mantén pulsado para <strong>marcar todo como leído</strong>.</tooltip>',
     },
     discardChangesConfirmation: {
         title: '¿Descartar cambios?',
@@ -11256,6 +11293,7 @@ ${reportName}`,
         readyPartialBody: ({count, total}: {count: number; total: number}) =>
             `${count} of ${total} reports exported. If it didn't automatically download, use the button below. See which reports failed in <concierge-link>Concierge</concierge-link>.`,
         close: 'Cerrar',
+        truncatedBody: '¡Atención! Esta exportación era demasiado grande y se ha limitado a los primeros 50.000 informes que coincidían con tu búsqueda.',
     },
     openAppFailureModal: {
         title: 'Algo salió mal...',
