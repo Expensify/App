@@ -87,7 +87,7 @@ function WorkspaceExpensifyCardAddWorkEmailPage({route}: WorkspaceExpensifyCardA
                     setLoading(false);
                 });
         } else {
-            AddWorkEmail(submittedEmail);
+            AddWorkEmail(submittedEmail, ONYXKEYS.FORMS.ADD_WORK_EMAIL_FORM);
         }
         setEmail(submittedEmail);
     };
