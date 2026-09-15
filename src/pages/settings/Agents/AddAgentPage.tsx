@@ -67,7 +67,6 @@ function AddAgentPageContent({route, template}: AddAgentPageContentProps) {
     const {isKeyboardActive} = useKeyboardState();
     const isInLandscapeMode = isInLandscapeModeUtil(windowWidth, windowHeight);
     const shouldShrinkPromptInput = isInLandscapeMode && isKeyboardActive;
-    const shouldHideAvatar = isKeyboardActive && !isInLandscapeMode;
     const {accountID: ownerAccountID, login: ownerLogin, displayName} = useCurrentUserPersonalDetails();
     const defaultAgentName = template?.name ?? (displayName ? translate('addAgentPage.defaultAgentName', displayName) : undefined);
     const defaultPrompt = template?.prompt ?? translate('addAgentPage.defaultPrompt');
@@ -163,7 +162,7 @@ function AddAgentPageContent({route, template}: AddAgentPageContentProps) {
     };
 
     const promptTopOffsetRef = useRef(0);
-    const handleInputFocus = () => scrollToMultilineInput(formRef, isInLandscapeMode, promptTopOffsetRef.current);
+    const handleInputFocus = () => scrollToMultilineInput(formRef, true, promptTopOffsetRef.current);
 
     const agentAvatar = avatarSource ? (
         <UserAvatar
@@ -192,7 +191,7 @@ function AddAgentPageContent({route, template}: AddAgentPageContentProps) {
                 validate={validate}
                 submitButtonText={translate('addAgentPage.createAgent')}
                 style={[styles.flex1, styles.ph5]}
-                shouldUseScrollView={isInLandscapeMode}
+                shouldUseScrollView
                 submitFlexEnabled={false}
                 shouldHideFixErrorsAlert
                 enabledWhenOffline
@@ -200,7 +199,7 @@ function AddAgentPageContent({route, template}: AddAgentPageContentProps) {
                 isSubmitDisabled={isDraftLoading}
             >
                 <View style={[styles.flex1, styles.flexColumn, styles.gap5]}>
-                    <View style={[styles.alignItemsCenter, shouldHideAvatar && styles.dNone]}>
+                    <View style={[styles.alignItemsCenter]}>
                         <AvatarButtonWithIcon
                             text={translate('addAgentPage.editAvatar')}
                             avatar={agentAvatar}
@@ -221,7 +220,11 @@ function AddAgentPageContent({route, template}: AddAgentPageContentProps) {
                         defaultValue={defaultAgentName}
                     />
                     <View
-                        style={shouldShrinkPromptInput ? StyleUtils.getHeight(PROMPT_MAX_HEIGHT_ON_KEYBOARD_OPEN_LANDSCAPE_MODE) : [isInLandscapeMode ? styles.h42 : styles.flex1]}
+                        style={
+                            shouldShrinkPromptInput
+                                ? StyleUtils.getHeight(PROMPT_MAX_HEIGHT_ON_KEYBOARD_OPEN_LANDSCAPE_MODE)
+                                : [isInLandscapeMode ? styles.h42 : styles.flex1, styles.minHeight42]
+                        }
                         onLayout={(event) => {
                             promptTopOffsetRef.current = event.nativeEvent.layout.y;
                         }}
