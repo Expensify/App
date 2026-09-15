@@ -277,7 +277,7 @@ function TabNavigator() {
         tabBarInactiveTintColor: theme.icon,
         tabBarControllerMode: 'tabBar' as const,
         // The bar stays put while the content scrolls, instead of collapsing the way iOS 26 does by default.
-        tabBarMinimizeBehavior: 'never' as const,
+        tabBarMinimizeBehavior: 'none' as const,
     };
 
     return (
