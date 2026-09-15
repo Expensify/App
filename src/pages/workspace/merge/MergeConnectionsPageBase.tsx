@@ -1,5 +1,5 @@
 import CollapsibleSection from '@components/CollapsibleSection';
-import ConnectToHRFlow from '@components/ConnectToHRFlow';
+import ConnectToMergeFlow from '@components/ConnectToMergeFlow';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -8,6 +8,7 @@ import Section from '@components/Section';
 
 import useConfirmModal from '@hooks/useConfirmModal';
 import useLocalize from '@hooks/useLocalize';
+import useMergeInitialSyncingModal from '@hooks/useMergeInitialSyncingModal';
 import useNetwork from '@hooks/useNetwork';
 import usePolicy from '@hooks/usePolicy';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
@@ -27,6 +28,7 @@ import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 
+import {useIsFocused} from '@react-navigation/native';
 import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 
@@ -40,11 +42,13 @@ const PAGE_CONFIG = {
         featureName: CONST.POLICY.MORE_FEATURES.IS_HR_ENABLED,
         openPage: openPolicyHRPage,
         testID: 'WorkspaceHRPage',
+        connectionName: CONST.POLICY.CONNECTIONS.NAME.MERGE_HR,
     },
     [CONST.POLICY.CONNECTIONS.CATEGORY.RECRUITING]: {
         featureName: CONST.POLICY.MORE_FEATURES.IS_RECRUITING_ENABLED,
         openPage: openPolicyRecruitingPage,
         testID: 'WorkspaceRecruitingPage',
+        connectionName: CONST.POLICY.CONNECTIONS.NAME.MERGE_ATS,
     },
 } as const;
 
@@ -77,10 +81,13 @@ function MergeConnectionsPageBase({policyID, category, cards, footer, shouldBeBl
     const policy = usePolicy(policyID);
     const [activeSetupFlow, setActiveSetupFlow] = useState<{setupLink: string; key: number} | undefined>();
     const {showConfirmModal} = useConfirmModal();
+    const isFocused = useIsFocused();
 
-    const {featureName, openPage, testID} = PAGE_CONFIG[category];
+    const {featureName, openPage, testID, connectionName} = PAGE_CONFIG[category];
 
     useWorkspaceDocumentTitle(undefined, `workspace.common.${category}`);
+
+    useMergeInitialSyncingModal(policyID, connectionName, isFocused);
 
     useNetwork({onReconnect: () => openPage(policyID)});
 
@@ -165,9 +172,10 @@ function MergeConnectionsPageBase({policyID, category, cards, footer, shouldBeBl
                 offlineIndicatorStyle={styles.mtAuto}
             >
                 {!!activeSetupFlow && (
-                    <ConnectToHRFlow
+                    <ConnectToMergeFlow
                         key={activeSetupFlow.key}
                         setupLink={activeSetupFlow.setupLink}
+                        title={translate(`workspace.common.${category}`)}
                         onDone={() => setActiveSetupFlow(undefined)}
                     />
                 )}
