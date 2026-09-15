@@ -65,7 +65,8 @@ When you group expenses on the **Spend** page, you can export the grouped result
 3. Click **Apply**.
 4. Check the box next to the groups you want to export, or use the top checkbox to select all.
 5. Click the selection button at the top (for example, **1 selected**).
-6. Select **Current view**.
+6. Select **Export**. If **Export** is the only action available, the export options are already listed under an **Export** heading—skip to the next step.
+7. Select **Current view**.
 
 In the exported file:
 - Each group appears as its own section with a header row.
@@ -104,7 +105,7 @@ Yes, use the **All Data – Report Level Export** template. All other templates 
 
 ## Can I keep my groups when I export?
 
-Yes. Group your expenses using **Display** > **Group by**, select the groups, then choose **Current view**. The exported file keeps each group as its own section with the expenses listed below their group header, using the columns currently shown on the page.
+Yes. Group your expenses using **Display** > **Group by**, select the groups, then choose **Export** > **Current view**. The exported file keeps each group as its own section with the expenses listed below their group header, using the columns currently shown on the page.
 
 ## Can I export in PDF or XLS format?
 
@@ -117,7 +118,7 @@ No, PDF export is only available for full reports.
 
 ## Can I customize the columns in the CSV export?
 
-Yes. Select **Current view** to download a CSV that matches the columns currently shown on the page. Adjust which columns appear by selecting **Display** > **Edit columns**. The other export templates use a fixed set of columns.
+Yes. Select **Export** > **Current view** to download a CSV that matches the columns currently shown on the page. Adjust which columns appear by selecting **Display** > **Edit columns**. The other export templates use a fixed set of columns.
 
 ## How do I export to an accounting integration?
 
