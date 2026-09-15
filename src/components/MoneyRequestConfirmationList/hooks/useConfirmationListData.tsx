@@ -555,4 +555,3 @@ function useConfirmationListData({
 }
 
 export default useConfirmationListData;
-export type {ConfirmationDistanceState};

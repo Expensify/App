@@ -63,4 +63,4 @@ type ScanFooterProps = ConfirmationFooterBaseProps &
         compactControls: CompactControls;
     };
 
-export type {ConfirmationFooterBaseProps, TimeFooterProps, PerDiemFooterProps, DistanceFooterProps, DistanceOdometerFooterProps, ScanFooterProps, ManualFooterProps, InvoiceFooterProps};
+export type {TimeFooterProps, PerDiemFooterProps, DistanceFooterProps, DistanceOdometerFooterProps, ScanFooterProps, ManualFooterProps, InvoiceFooterProps};
