@@ -26670,6 +26670,12 @@ function getDeployTableMessage(platformResult) {
       return `${platformResult} \u274C`;
   }
 }
+function parseDeployList(input) {
+  if (!Array.isArray(input) || input.some((item) => typeof item !== "string" && typeof item !== "number")) {
+    throw new TypeError("Deploy pull request list must be an array of strings or numbers");
+  }
+  return input.map((item) => Number.parseInt(String(item), 10));
+}
 async function commentPR(PR, message, repo = context2.repo.repo) {
   try {
     await GithubUtils_default.createComment(repo, PR, message);
@@ -26716,7 +26722,10 @@ async function commentOnDeployChecklistPRs(prList, repoName, recentTags, getDepl
         const deployMessage = deployer ? getDeployMessage(deployer, isCP ? "Cherry-picked" : "Deployed", title) : "";
         await commentPR(prNumber, deployMessage, repoName);
       } catch (error2) {
-        if (error2.status === 404) {
+        if (error2 === null || error2 === void 0) {
+          throw new TypeError(`Cannot read properties of ${String(error2)} (reading 'status')`);
+        }
+        if ((typeof error2 === "object" || typeof error2 === "function") && "status" in error2 && error2.status === 404) {
           console.log(`Unable to comment on ${repoName} PR #${prNumber}. GitHub responded with 404.`);
         } else if (repoName === CONST_default.MOBILE_EXPENSIFY_REPO && process.env.GITHUB_REPOSITORY !== `${CONST_default.GITHUB_OWNER}/${CONST_default.APP_REPO}`) {
           console.warn(`Unable to comment on ${repoName} PR #${prNumber} from forked repository. This is expected.`);
@@ -26729,10 +26738,10 @@ async function commentOnDeployChecklistPRs(prList, repoName, recentTags, getDepl
   await Promise.all(commentPromises);
 }
 async function run() {
-  const prList = getJSONInput("PR_LIST", { required: true }).map((num) => Number.parseInt(num, 10));
+  const prList = parseDeployList(getJSONInput("PR_LIST", { required: true }));
   const mobileExpensifyPRListInput = getJSONInput("MOBILE_EXPENSIFY_PR_LIST", { required: false });
-  const mobileExpensifyPRList = Array.isArray(mobileExpensifyPRListInput) ? mobileExpensifyPRListInput.map((num) => Number.parseInt(num, 10)) : [];
-  const isProd = getJSONInput("IS_PRODUCTION_DEPLOY", {
+  const mobileExpensifyPRList = Array.isArray(mobileExpensifyPRListInput) ? parseDeployList(mobileExpensifyPRListInput) : [];
+  const isProd = !!getJSONInput("IS_PRODUCTION_DEPLOY", {
     required: true
   });
   const version = getInput("DEPLOY_VERSION", { required: true });
