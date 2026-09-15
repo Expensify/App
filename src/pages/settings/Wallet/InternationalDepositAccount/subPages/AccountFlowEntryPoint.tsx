@@ -46,11 +46,14 @@ function AccountFlowEntryPoint({policyName = '', onBackButtonPress}: AccountFlow
 
     const [isPlaidDisabled] = useOnyx(ONYXKEYS.IS_PLAID_DISABLED);
     const [personalBankAccount, personalBankAccountResult] = useOnyx(ONYXKEYS.PERSONAL_BANK_ACCOUNT);
+    const [, personalBankAccountDraftResult] = useOnyx(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT);
+    const [, plaidDataResult] = useOnyx(ONYXKEYS.PLAID_DATA);
     const isLoadingPersonalBankAccount = isLoadingOnyxValue(personalBankAccountResult);
+    const isLoadingResumeState = isLoadingOnyxValue(personalBankAccountDraftResult, plaidDataResult);
     const onSuccessFallbackRoute = personalBankAccount?.onSuccessFallbackRoute;
 
     useEffect(() => {
-        if (isLoadingPersonalBankAccount) {
+        if (isLoadingPersonalBankAccount || isLoadingResumeState || personalBankAccount?.source === CONST.BANK_ACCOUNT.SOURCE.WALLET) {
             return;
         }
 
@@ -58,7 +61,7 @@ function AccountFlowEntryPoint({policyName = '', onBackButtonPress}: AccountFlow
         // openPersonalBankAccountSetupView also resets state, but this handles direct navigation to this screen.
         clearPersonalBankAccount(onSuccessFallbackRoute ? {onSuccessFallbackRoute} : undefined);
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isLoadingPersonalBankAccount]);
+    }, [isLoadingPersonalBankAccount, isLoadingResumeState, personalBankAccount?.source]);
 
     const handleConnectManually = () => {
         updateAddPersonalBankAccountDraft({

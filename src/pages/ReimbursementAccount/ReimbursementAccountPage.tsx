@@ -111,6 +111,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
     const bankAccountIDParam = route.params?.bankAccountID;
     const subStepParam = route.params?.subStep;
     const backTo = route.params?.backTo;
+    const isWalletSetup = backTo === ROUTES.SETTINGS_BANK_ACCOUNT_PURPOSE;
     const isChangingBankAccount = !!route.params?.isChangingBankAccount;
     const isComingFromExpensifyCard = (backTo as string)?.includes(CONST.EXPENSIFY_CARD.ROUTE as string);
     const styles = useThemeStyles();
@@ -121,6 +122,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
     const hasClearedStalePlaidErrorsRef = useRef(false);
     const isChangingBankAccountRef = useRef(isChangingBankAccount);
     const hasShownConnectedBankAccountRef = useRef(false);
+    const shouldPreserveWalletSetupRef = useRef(isWalletSetup);
     // Latches the pending-USD redirect below so the effect dispatches the navigation at most once per mount, even
     // though its dependencies change again while the transition is in flight.
     const hasRedirectedToPendingValidationRef = useRef(false);
@@ -190,18 +192,36 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
     const isConnectedVerifiedBankAccountData = isNonUSDSetup ? achData?.state === CONST.BANK_ACCOUNT.STATE.OPEN : achData?.currentStep === CONST.BANK_ACCOUNT.STEP.ENABLE;
 
     useEffect(() => {
+        shouldPreserveWalletSetupRef.current = isWalletSetup && !isConnectedVerifiedBankAccountData;
+    }, [isConnectedVerifiedBankAccountData, isWalletSetup]);
+
+    useEffect(() => {
         const isChangingBankAccountInstance = isChangingBankAccountRef.current;
         return () => {
-            if (!isChangingBankAccountInstance) {
+            const hasRedirectedToPendingValidation = hasRedirectedToPendingValidationRef.current;
+            const isLeavingPendingValidationFlow = isLeavingPendingValidationFlowRef.current;
+            const shouldPreserveWalletSetup = shouldPreserveWalletSetupRef.current && !isLeavingPendingValidationFlow;
+
+            if (!isChangingBankAccountInstance && hasRedirectedToPendingValidation && shouldPreserveWalletSetup) {
+                // Keep the country and currency used to resume the Wallet setup, but never retain a validation attempt.
+                setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {
+                    [INPUT_IDS.AMOUNT1]: null,
+                    [INPUT_IDS.AMOUNT2]: null,
+                    [INPUT_IDS.AMOUNT3]: null,
+                });
+            } else if (!isChangingBankAccountInstance && !shouldPreserveWalletSetup) {
                 // The draft is always safe to clear. Nothing in the validation step branches on it, while the
                 // micro-deposit inputs save into it, so leaving it behind prefills the previous attempt's amounts
                 // against the limited number of validation attempts the next time the account is opened.
                 clearReimbursementAccountDraft();
+            }
+
+            if (!isChangingBankAccountInstance && !shouldPreserveWalletSetup) {
                 // The account itself must survive an unmount that happens only because this page redirected into the
                 // validation step of the same flow. ConnectBankAccount reads achData.state and does no fetching, so
                 // clearing here resets it to DEFAULT_DATA underneath it and renders a blank header-only RHP. Once the
                 // flow is actually being left, nothing is left to read it and the usual wipe applies again.
-                if (!hasRedirectedToPendingValidationRef.current || isLeavingPendingValidationFlowRef.current) {
+                if (!hasRedirectedToPendingValidation || isLeavingPendingValidationFlow) {
                     clearReimbursementAccount();
                 }
             }
@@ -302,7 +322,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
         }
         if (bankAccountIDParam) {
             // we don't need to send the stepToOpen and subStep when opening by bankAccountID - the step is returned from the backend
-            openReimbursementAccountPage({bankAccountID: Number(bankAccountIDParam)});
+            openReimbursementAccountPage({bankAccountID: Number(bankAccountIDParam), shouldPreserveDraft: isWalletSetup});
             return;
         }
         // We can specify a step to navigate to by using route params when the component mounts.
@@ -319,7 +339,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
 
         // When preserving the current step (e.g., coming back online), also preserve the draft
         // to prevent losing user selections made while offline
-        openReimbursementAccountPage({stepToOpen, subStep, localCurrentStep, policyID: policyIDParam, shouldPreserveDraft: preserveCurrentStep});
+        openReimbursementAccountPage({stepToOpen, subStep, localCurrentStep, policyID: policyIDParam, shouldPreserveDraft: preserveCurrentStep || isWalletSetup});
     }
 
     // When the workspace's bank account is switched, the switch request and the refetch that reloads
@@ -385,7 +405,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
             return;
         }
 
-        if (policyIDParam) {
+        if (policyIDParam && !isWalletSetup) {
             setReimbursementAccountLoading(true);
             clearReimbursementAccountDraft();
         }

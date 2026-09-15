@@ -114,6 +114,33 @@ describe('AddressPageTest', () => {
         expect(screen.getByDisplayValue('Suite 500')).toBeDefined();
     });
 
+    it('should ignore stale address line 2 draft values when drafts are not enabled', async () => {
+        await TestHelper.signInWithTestUser();
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.FORMS.HOME_ADDRESS_FORM_DRAFT, {
+                addressLine2: 'BANKTEST123',
+            });
+            await Onyx.merge(`${ONYXKEYS.PRIVATE_PERSONAL_DETAILS}`, {
+                addresses: [
+                    {
+                        country: 'US',
+                        street: '123 Main St',
+                        street2: 'Suite 500',
+                    },
+                ],
+            });
+            await Onyx.merge(`${ONYXKEYS.IS_LOADING_APP}`, false);
+        });
+
+        await waitForBatchedUpdatesWithAct();
+
+        renderPage(SCREENS.SETTINGS.PROFILE.ADDRESS);
+
+        await waitForBatchedUpdatesWithAct();
+        expect(screen.getByDisplayValue('Suite 500')).toBeDefined();
+        expect(screen.queryByDisplayValue('BANKTEST123')).toBeNull();
+    });
+
     it('should prefill address line 2 from legacy newline when street2 is missing', async () => {
         await TestHelper.signInWithTestUser();
         await act(async () => {
