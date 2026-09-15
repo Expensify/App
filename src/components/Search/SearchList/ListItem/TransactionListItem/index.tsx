@@ -13,6 +13,7 @@ import type {ListItem} from '@components/SelectionList/types';
 import useConfirmModal from '@hooks/useConfirmModal';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDistanceRateOriginalPolicy from '@hooks/useDistanceRateOriginalPolicy';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import {useReportPaymentContext} from '@hooks/usePaymentContext';
@@ -23,10 +24,11 @@ import type {TransactionPreviewData} from '@libs/actions/Search';
 import {handleActionButtonPress as handleActionButtonPressUtil} from '@libs/actions/Search';
 import {syncMissingAttendeesViolation} from '@libs/AttendeeUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import {isAttendeeTrackingEnabled} from '@libs/PolicyUtils';
+import {getDistanceRateCustomUnitRate, isAttendeeTrackingEnabled} from '@libs/PolicyUtils';
 import {isInvoiceReport, shouldShowMarkAsDone} from '@libs/ReportUtils';
 import {
     isDeletedTransaction as isDeletedTransactionUtil,
+    isDistanceRequest,
     isViolationDismissed,
     mergeProhibitedViolations,
     shouldShowAttendees,
@@ -34,6 +36,7 @@ import {
     showHeldExpensesBlockModal,
     showPendingCardTransactionsBlockModal,
 } from '@libs/TransactionUtils';
+import {syncCustomUnitOutOfPolicyViolation} from '@libs/Violations/ViolationsUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -183,6 +186,10 @@ function TransactionListItemInner<TItem extends ListItem>({
         isTrackIntentUser,
         rules,
     });
+    const liveTransaction = transaction ?? transactionItem;
+    const customUnitRateID = isDistanceRequest(liveTransaction) ? liveTransaction.comment?.customUnit?.customUnitRateID : undefined;
+    const shouldLookupDistancePolicy = !!customUnitRateID && !getDistanceRateCustomUnitRate(policyForViolations, customUnitRateID);
+    const distanceOriginalPolicy = useDistanceRateOriginalPolicy(customUnitRateID, shouldLookupDistancePolicy);
 
     const onyxViolations = (transactionViolationsForRow ?? []).filter(
         (violation: TransactionViolation) =>
@@ -204,7 +211,9 @@ function TransactionListItemInner<TItem extends ListItem>({
         isInvoice,
     );
 
-    const transactionViolations = mergeProhibitedViolations(attendeeOnyxViolations);
+    const rateOnyxViolations = syncCustomUnitOutOfPolicyViolation(attendeeOnyxViolations, liveTransaction, policyForViolations, distanceOriginalPolicy);
+
+    const transactionViolations = mergeProhibitedViolations(rateOnyxViolations);
 
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();

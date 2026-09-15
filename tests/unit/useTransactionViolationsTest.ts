@@ -21,6 +21,7 @@ jest.mock('@libs/Violations/ViolationsUtils', () => {
     return {
         ...actual,
         syncCustomUnitRateOutOfDateRangeViolation: (violations: TransactionViolation[]) => violations,
+        syncCustomUnitOutOfPolicyViolation: (violations: TransactionViolation[]) => violations,
     };
 });
 
