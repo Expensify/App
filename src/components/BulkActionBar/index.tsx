@@ -227,15 +227,16 @@ function BulkActionBar<TValueType>({
     // The button it replaces is about as wide, so hoisting cannot push the bar past the width the count was fitted to.
     const getInlineCount = (actionCount: number) => (options.length === actionCount + 1 ? options.length : actionCount);
 
-    // The width the bar took at each layout, keyed by what was actually on screen: the container's width is excluded
-    // (it moves every resize frame) and so are labels behind "More" (they don't affect this width, so keying on them
-    // left `onLayout` with nothing to fire and the bar stuck hidden).
+    // The width the bar took at each layout, keyed by what was actually on screen. The container's width is excluded
+    // because it moves every resize frame, and so are the labels behind "More" because they do not reach this width.
     const [measuredWidths, setMeasuredWidths] = useState<Record<string, number>>({});
 
-    // The count label is as much of the bar's width as the buttons are, and it changes without the options changing
-    // ("All matching items selected" against "3 selected", or the spinner against either). Leaving it out let a width
-    // measured under a long label go on gating a count the bar had since re-rendered short enough to fit.
     const countLabel = isSelectedCountLoading ? '' : (customText ?? translate('workspace.common.selected', {count: selectedCount}));
+
+    // Only a custom label can outgrow the width the count is given, so it is the one part of the label the bar's own
+    // width depends on. A plain count stays inside that width at any size the selection reaches, and keying on it would
+    // re-fit the bar on every selection change over a width that never moved.
+    const widthAffectingLabel = isSelectedCountLoading ? '' : (customText ?? '');
 
     const getMeasurementKey = (actionCount: number) => {
         const inlineCount = getInlineCount(actionCount);
@@ -244,7 +245,7 @@ function BulkActionBar<TValueType>({
             .slice(0, inlineCount)
             .map((option) => option.text)
             .join('|');
-        return `${inlineLabels}|${hasMoreMenuAtCount}|${noticeText ?? ''}|${countLabel}|${isSelectedCountLoading ?? false}`;
+        return `${inlineLabels}|${hasMoreMenuAtCount}|${noticeText ?? ''}|${widthAffectingLabel}`;
     };
 
     // The width the bar has to stay within, keeping it clear of the container's edges rather than flush against them.
@@ -258,32 +259,18 @@ function BulkActionBar<TValueType>({
         inlineActionCount -= 1;
     }
 
-    // Laying out a set of buttons for the first time is a guess that may not survive its own measurement, so it is kept
-    // hidden until it lands. Otherwise a bar that turns out to be too wide is briefly on screen at that width. The
-    // exception is the very first layout of all, which shows immediately: there is nothing on screen yet for a
-    // correction to disturb, and waiting for a measurement there is what would make the bar late to appear.
-    //
-    // A hidden layout is always resolved: changing the count changes the bar's width, so its `onLayout` is certain to
-    // follow, and every count below one already measured has itself been measured on the way down.
-    const hasSettled = measuredWidths[getMeasurementKey(inlineActionCount)] !== undefined || Object.keys(measuredWidths).length === 0;
-
     // The bar appears where nothing was before, so it springs up into place to draw the eye there, the same way the
-    // report's floating message counter animates itself in. It waits for the fitting pass so the motion is only ever
-    // run on the layout the viewer actually sees.
+    // report's floating message counter animates itself in.
     const translateY = useSharedValue<number>(CONST.BULK_ACTION_BAR.SLIDE_IN_DISTANCE);
 
     useEffect(() => {
-        if (!hasSettled) {
-            return;
-        }
-
         if (isReducedMotionEnabled) {
             translateY.set(0);
             return;
         }
 
         translateY.set(withSpring(0, CONST.BULK_ACTION_BAR.SLIDE_IN_SPRING));
-    }, [hasSettled, isReducedMotionEnabled, translateY]);
+    }, [isReducedMotionEnabled, translateY]);
 
     const layerAnimatedStyle = useAnimatedStyle(() => ({
         transform: [{translateY: translateY.get()}],
@@ -291,7 +278,7 @@ function BulkActionBar<TValueType>({
 
     return (
         <Animated.View
-            style={[styles.bulkActionBarLayer, style, layerAnimatedStyle, !hasSettled && styles.opacity0]}
+            style={[styles.bulkActionBarLayer, style, layerAnimatedStyle]}
             pointerEvents="box-none"
             onLayout={(event) => setAvailableWidth(event.nativeEvent.layout.width)}
         >
