@@ -110,7 +110,7 @@ describe('RequestConflictUtils', () => {
     it('resolveEditCommentWithNewAddCommentRequest should return delete and replace when update comment are found and new comment is added', () => {
         const reportActionID = '2';
         const persistedRequests = [
-            {command: 'AddComment', data: {reportActionID, reportComment: 'test'}},
+            {command: 'AddComment', data: {reportActionID, reportComment: 'test'}, requestIndex: 7},
             {command: 'UpdateComment', data: {reportActionID, reportComment: 'test edit'}},
             {command: 'UpdateComment', data: {reportActionID, reportComment: 'test edit edit'}},
             {command: 'CloseAccount'},
@@ -127,7 +127,8 @@ describe('RequestConflictUtils', () => {
                 nextAction: {
                     type: 'replace',
                     index: addCommentIndex,
-                    request: {command: 'AddComment', data: {reportID: '1', reportActionID, reportComment: 'new edit comment'}},
+                    requestIndex: 7,
+                    request: {command: 'AddComment', data: {reportID: '1', reportActionID, reportComment: 'new edit comment'}, requestIndex: 7},
                 },
             },
         });
@@ -135,7 +136,7 @@ describe('RequestConflictUtils', () => {
 
     it('resolveEditCommentWithNewAddCommentRequest should only replace the add comment with the update comment text when no other update comments are found', () => {
         const reportActionID = '2';
-        const persistedRequests = [{command: 'AddComment', data: {reportActionID, reportComment: 'test'}}, {command: 'CloseAccount'}, {command: 'OpenReport'}];
+        const persistedRequests = [{command: 'AddComment', data: {reportActionID, reportComment: 'test'}, requestIndex: 7}, {command: 'CloseAccount'}, {command: 'OpenReport'}];
         const parameters = {reportID: '1', reportActionID, reportComment: 'new edit comment'};
         const addCommentIndex = 0;
         const result = resolveEditCommentWithNewAddCommentRequest(persistedRequests, parameters, reportActionID, addCommentIndex);
@@ -143,7 +144,8 @@ describe('RequestConflictUtils', () => {
             conflictAction: {
                 type: 'replace',
                 index: addCommentIndex,
-                request: {command: 'AddComment', data: {reportID: '1', reportActionID, reportComment: 'new edit comment'}},
+                requestIndex: 7,
+                request: {command: 'AddComment', data: {reportID: '1', reportActionID, reportComment: 'new edit comment'}, requestIndex: 7},
             },
         });
     });

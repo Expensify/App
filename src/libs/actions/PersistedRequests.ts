@@ -353,11 +353,29 @@ function deleteRequestsByIndices(indices: number[]): Promise<void> {
         });
 }
 
-function update<TKey extends OnyxKey>(oldRequestIndex: number, newRequest: Request<TKey>): Promise<void> {
+function update<TKey extends OnyxKey>(oldRequestIndex: number, newRequest: Request<TKey>, requestIndexToReplace?: number): Promise<void> {
     const requests = [...persistedRequests];
-    const oldRequest = requests.at(oldRequestIndex);
-    Log.info('[PersistedRequests] Updating a request', false, {oldRequest: sanitizeLogParams(oldRequest), newRequest: sanitizeLogParams(newRequest), oldRequestIndex});
-    requests.splice(oldRequestIndex, 1, newRequest as AnyRequest);
+    const indexToReplace =
+        requestIndexToReplace === undefined ? oldRequestIndex : requests.findIndex((persistedRequest) => getClientRequestIndex(persistedRequest) === requestIndexToReplace);
+
+    if (indexToReplace === -1) {
+        Log.info('[PersistedRequests] Request to update is no longer queued, skipping the update', false, {
+            command: newRequest.command,
+            requestIndexToReplace,
+            staleIndex: oldRequestIndex,
+            queueLength: requests.length,
+        });
+        return Promise.resolve();
+    }
+
+    const oldRequest = requests.at(indexToReplace);
+    Log.info('[PersistedRequests] Updating a request', false, {
+        oldRequest: sanitizeLogParams(oldRequest),
+        newRequest: sanitizeLogParams(newRequest),
+        oldRequestIndex: indexToReplace,
+        requestIndexToReplace,
+    });
+    requests.splice(indexToReplace, 1, newRequest as AnyRequest);
     persistedRequests = requests;
     const requestIndex = getClientRequestIndex(newRequest as AnyRequest);
     if (requestIndex != null) {
@@ -544,6 +562,7 @@ export {
     save,
     getAll,
     getCommands,
+    getClientRequestIndex,
     endRequestAndRemoveFromQueue,
     update,
     getLength,

@@ -787,7 +787,7 @@ async function handleConflictActions<TKey extends OnyxKey>(conflictAction: Confl
             replaceIndex: conflictAction.index,
             replacementRequest: conflictAction.request?.command ?? newRequest.command,
         });
-        await updatePersistedRequest(conflictAction.index, conflictAction.request ?? (newRequest as AnyRequest));
+        await updatePersistedRequest(conflictAction.index, conflictAction.request ?? (newRequest as AnyRequest), conflictAction.requestIndex);
     } else if (conflictAction.type === 'delete') {
         Log.info('[SequentialQueue] Conflict resolution: DELETE', false, {
             command: newRequest.command,

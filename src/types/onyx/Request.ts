@@ -135,6 +135,11 @@ type ConflictRequestReplace = {
     index: number;
 
     /**
+     * When set, the queued request with this requestIndex is replaced instead of the one at `index`.
+     */
+    requestIndex?: number;
+
+    /**
      * The new request to replace the existing request in the queue.
      */
     request?: AnyRequest;

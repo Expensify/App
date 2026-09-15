@@ -1,15 +1,16 @@
-import {resolveOpenAppDuplicationConflictAction, resolveReconnectDuplicationConflictAction} from '@libs/actions/RequestConflictUtils';
+import {resolveEditCommentWithNewAddCommentRequest, resolveOpenAppDuplicationConflictAction, resolveReconnectDuplicationConflictAction} from '@libs/actions/RequestConflictUtils';
 import {isClientTheLeader} from '@libs/ActiveClientManager';
+import type {UpdateCommentParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import Log from '@libs/Log';
 import * as NetworkState from '@libs/NetworkState';
 
-import {clear as clearPersistedRequests, getAll, getLength, getOngoingRequest, updateOngoingRequest} from '@userActions/PersistedRequests';
+import {clear as clearPersistedRequests, getAll, getLength, getOngoingRequest, processNextRequest, updateOngoingRequest} from '@userActions/PersistedRequests';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
-import type {OnyxKey, OnyxUpdate} from 'react-native-onyx';
+import type {OnyxInput, OnyxKey, OnyxUpdate} from 'react-native-onyx';
 
 import Onyx from 'react-native-onyx';
 
@@ -257,15 +258,14 @@ describe('SequentialQueue', () => {
         }
     });
 
-    it('should replace request in queue while a similar one is ongoing and keep the same index', async () => {
+    it('should replace the identified request in the queue while a similar one is ongoing', async () => {
         mockFetch.pause();
         try {
-            // First push moves into `ongoingRequest`; subsequent pushes stack in the queue.
             await SequentialQueue.push({command: 'OpenReport'});
             await waitForBatchedUpdates();
             expect(getOngoingRequest()?.command).toBe('OpenReport');
 
-            await SequentialQueue.push(request);
+            await SequentialQueue.push({...request, requestIndex: 20});
 
             const requestWithConflictResolution: Request<never> = {
                 command: 'ReconnectApp',
@@ -275,7 +275,7 @@ describe('SequentialQueue', () => {
                     if (index === -1) {
                         return {conflictAction: {type: 'push'}};
                     }
-                    return {conflictAction: {type: 'replace', index}};
+                    return {conflictAction: {type: 'replace', index, requestIndex: persistedRequests.at(index)?.requestIndex}};
                 },
             };
 
@@ -286,36 +286,35 @@ describe('SequentialQueue', () => {
             expect(getLength()).toBe(4);
             const persistedRequests = getAll();
             expect(getOngoingRequest()?.command).toBe('OpenReport');
+            expect(persistedRequests.at(0)?.command).toBe('ReconnectApp');
             expect(persistedRequests.at(0)?.data?.accountID).toBe(56789);
+            expect(persistedRequests.filter((r) => r.command === 'ReconnectApp')).toHaveLength(1);
         } finally {
             await mockFetch.resume();
         }
     });
 
-    // need to test a race condition between processing the next request and then pushing a new request with conflict resolver
     it('should resolve the conflict and replace the correct request in the queue while a new request is picked up after unpausing', async () => {
         SequentialQueue.pause();
         for (let i = 0; i < 5; i++) {
             SequentialQueue.push({command: `OpenReport${i}`});
             SequentialQueue.push({command: `AddComment${i}`});
         }
-        SequentialQueue.push(request);
+        SequentialQueue.push({...request, requestIndex: 30});
         SequentialQueue.push({command: 'AddComment6'});
         SequentialQueue.push({command: 'OpenReport6'});
-        // wait for Onyx.connect execute the callback and start processing the queue
         await Promise.resolve();
         const requestWithConflictResolution: Request<never> = {
             command: 'ReconnectApp-replaced',
             data: {accountID: 56789},
             checkAndFixConflictingRequest: (persistedRequests) => {
-                // should be one instance of ReconnectApp, get the index to replace it later
                 const index = persistedRequests.findIndex((r) => r.command === 'ReconnectApp');
                 if (index === -1) {
                     return {conflictAction: {type: 'push'}};
                 }
 
                 return {
-                    conflictAction: {type: 'replace', index},
+                    conflictAction: {type: 'replace', index, requestIndex: persistedRequests.at(index)?.requestIndex},
                 };
             },
         };
@@ -331,8 +330,6 @@ describe('SequentialQueue', () => {
         await Promise.resolve();
         const persistedRequests = getAll();
 
-        // We know ReconnectApp is at index 9 in the queue, so we can get it to verify
-        // that was replaced by the new request.
         expect(persistedRequests.at(9)?.command).toBe('ReconnectApp-replaced');
         expect(persistedRequests.at(9)?.data?.accountID).toBe(56789);
     });
@@ -480,6 +477,131 @@ describe('SequentialQueue', () => {
             expect(SequentialQueue.sequentialQueueRequestThrottle.getLastRequestWaitTime()).toBe(0);
         } finally {
             offlineSpy.mockRestore();
+        }
+    });
+});
+
+describe('SequentialQueue - conflict replace addressing', () => {
+    const reportActionID = 'A1';
+
+    function queuedAddComment(reportComment: string, requestIndex: number): Request<never> {
+        return {command: WRITE_COMMANDS.ADD_COMMENT, data: {reportActionID, reportComment}, requestIndex};
+    }
+
+    function queuedUpdateComment(reportComment: string, requestIndex: number): Request<never> {
+        return {command: WRITE_COMMANDS.UPDATE_COMMENT, data: {reportActionID, reportComment}, requestIndex};
+    }
+
+    function editQueuedComment(reportComment: string, requestIndex: number): Request<never> {
+        const parameters: UpdateCommentParams = {reportID: 'r1', reportComment, reportActionID};
+        return {
+            command: WRITE_COMMANDS.UPDATE_COMMENT,
+            data: {...parameters},
+            requestIndex,
+            checkAndFixConflictingRequest: (persistedRequests) => {
+                const addCommentIndex = persistedRequests.findIndex((r) => r.command === WRITE_COMMANDS.ADD_COMMENT && r.data?.reportActionID === reportActionID);
+                return resolveEditCommentWithNewAddCommentRequest(persistedRequests, parameters, reportActionID, addCommentIndex);
+            },
+        };
+    }
+
+    function drainWhileTheNextQueueCommitIsPending(drain: () => void) {
+        const originalSet = Onyx.set.bind(Onyx);
+        let armed = true;
+        return jest.spyOn(Onyx, 'set').mockImplementation(<TKey extends OnyxKey>(key: TKey, value: OnyxInput<TKey>) => {
+            const commit = originalSet(key, value);
+            if (!armed || key !== ONYXKEYS.PERSISTED_REQUESTS) {
+                return commit;
+            }
+            armed = false;
+            // Onyx's jest provider resolves a set in a couple of microtasks; IndexedDB and SQLite resolve on a storage
+            // `complete` event or a WAL commit, so the queue really does keep draining while this write is in flight.
+            return new Promise<void>((resolvePromise) => {
+                drain();
+                commit.then(resolvePromise);
+            });
+        });
+    }
+
+    it('should replace the request the resolver identified when the queue drained before the resolver ran', async () => {
+        SequentialQueue.pause();
+        mockFetch.pause();
+        try {
+            for (let i = 0; i < 5; i++) {
+                SequentialQueue.push({command: `OpenReport${i}`});
+                SequentialQueue.push({command: `AddComment${i}`});
+            }
+            SequentialQueue.push({...request, requestIndex: 30});
+            SequentialQueue.push({command: 'AddComment6'});
+            SequentialQueue.push({command: 'OpenReport6'});
+            await waitForBatchedUpdates();
+            expect(getAll()).toHaveLength(13);
+
+            processNextRequest();
+            await waitForBatchedUpdates();
+
+            let indexSeenByResolver: number | undefined;
+            const requestWithConflictResolution: Request<never> = {
+                command: 'ReconnectApp-replaced',
+                data: {accountID: 56789},
+                checkAndFixConflictingRequest: (persistedRequests) => {
+                    const index = persistedRequests.findIndex((r) => r.command === 'ReconnectApp');
+                    indexSeenByResolver = index;
+                    return {conflictAction: {type: 'replace', index, requestIndex: persistedRequests.at(index)?.requestIndex}};
+                },
+            };
+            await SequentialQueue.push(requestWithConflictResolution);
+
+            expect(indexSeenByResolver).toBe(9);
+            expect(getOngoingRequest()?.command).toBe('OpenReport0');
+            expect(getAll().at(9)?.command).toBe('ReconnectApp-replaced');
+            expect(getAll().at(9)?.data?.accountID).toBe(56789);
+        } finally {
+            SequentialQueue.unpause();
+            await mockFetch.resume();
+        }
+    });
+
+    it('should replace the request carrying the target requestIndex after the queue renumbers under it', async () => {
+        SequentialQueue.pause();
+        await SequentialQueue.push({command: 'OpenReport', data: {reportID: 'HEAD'}, requestIndex: 1});
+        await SequentialQueue.push(queuedAddComment('v1', 2));
+        await SequentialQueue.push(queuedUpdateComment('v2', 3));
+        await SequentialQueue.push({command: 'OpenReport', data: {reportID: 'VICTIM'}, requestIndex: 4});
+
+        const commit = drainWhileTheNextQueueCommitIsPending(processNextRequest);
+        try {
+            await SequentialQueue.push(editQueuedComment('v3', 5));
+
+            expect(getOngoingRequest()?.data?.reportID).toBe('HEAD');
+            expect(getAll().map((r) => r.command)).toEqual([WRITE_COMMANDS.ADD_COMMENT, 'OpenReport']);
+            expect(getAll().at(0)?.data?.reportComment).toBe('v3');
+            expect(getAll().at(1)?.data?.reportID).toBe('VICTIM');
+        } finally {
+            commit.mockRestore();
+            SequentialQueue.unpause();
+            await mockFetch.resume();
+        }
+    });
+
+    it('should not replace any request once the queue has promoted the conflict target', async () => {
+        SequentialQueue.pause();
+        await SequentialQueue.push(queuedAddComment('v1', 2));
+        await SequentialQueue.push(queuedUpdateComment('v2', 3));
+        await SequentialQueue.push({command: 'OpenReport', data: {reportID: 'VICTIM'}, requestIndex: 4});
+
+        const commit = drainWhileTheNextQueueCommitIsPending(processNextRequest);
+        try {
+            await SequentialQueue.push(editQueuedComment('v3', 5));
+
+            expect(getOngoingRequest()?.command).toBe(WRITE_COMMANDS.ADD_COMMENT);
+            expect(getOngoingRequest()?.data?.reportComment).toBe('v3');
+            expect(getAll().map((r) => r.command)).toEqual(['OpenReport']);
+            expect(getAll().at(0)?.data?.reportID).toBe('VICTIM');
+        } finally {
+            commit.mockRestore();
+            SequentialQueue.unpause();
+            await mockFetch.resume();
         }
     });
 });

@@ -95,6 +95,30 @@ describe('PersistedRequests', () => {
         expect(PersistedRequests.getAll().at(0)).toEqual(newRequest);
     });
 
+    it('update the request carrying the given requestIndex instead of the one at the stale index', () => {
+        PersistedRequests.save({...request, requestIndex: 11});
+        PersistedRequests.save({...request, command: 'AddComment', requestIndex: 12});
+        const newRequest: Request<'reportMetadata_1' | 'reportMetadata_2'> = {
+            command: 'AddComment',
+            successData: [{key: 'reportMetadata_1', onyxMethod: 'set', value: {}}],
+            failureData: [{key: 'reportMetadata_2', onyxMethod: 'set', value: {}}],
+            requestIndex: 13,
+        };
+
+        PersistedRequests.update(0, newRequest, 11);
+
+        expect(PersistedRequests.getAll().map((r) => r.requestIndex)).toEqual([1, 13, 12]);
+    });
+
+    it('do nothing when the request carrying the given requestIndex is no longer queued', () => {
+        PersistedRequests.save({...request, requestIndex: 11});
+
+        PersistedRequests.update(0, {...request, requestIndex: 12}, 99);
+
+        expect(PersistedRequests.getLength()).toBe(2);
+        expect(PersistedRequests.getAll().map((r) => r.requestIndex)).toEqual([1, 11]);
+    });
+
     it('update the ongoing request with new data', () => {
         const newRequest: Request<'reportMetadata_1' | 'reportMetadata_2'> = {
             command: 'OpenReport',
