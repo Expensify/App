@@ -150,6 +150,25 @@ function extractJSONObject(text: string): string | null {
     return text.slice(start, end + 1);
 }
 
+/**
+ * Did this shard produce no JSON object at all? That is the signature of a process that died: an
+ * OOM kill writes no stdout. A config error looks identical from here, which is fine, because the
+ * two want the same treatment for different reasons -- a dead shard usually passes on a second run,
+ * and a config error fails again for the price of one extra process.
+ *
+ * Deliberately narrower than "the shard was fatal". A shard that returned codeless diagnostics threw
+ * inside a JS plugin, and a shard that matched no files is a mistyped path; both are deterministic,
+ * so retrying them buys nothing and only doubles the wait.
+ *
+ * Retries are issued one shard at a time, never as a second parallel pass. Shard count is derived
+ * from `os.freemem()` at invocation (`defaultShardCount`), so a shard the OS killed under memory
+ * pressure would most likely be killed again by a concurrent retry. Serialising is the part that
+ * makes the retry worth having, not the retry itself.
+ */
+function producedNoJSON(stdout: string): boolean {
+    return extractJSONObject(stdout) === null;
+}
+
 function fatal(reason: string, stdout: string, stderr: string, exitCode: number): LinterResult {
     return {
         files: [],
@@ -218,10 +237,27 @@ class OxlintLinter extends Linter {
             .filter(Boolean);
     }
 
+    /**
+     * The file list is gathered by its own `npx oxlint --debug=files` process, before any shard runs,
+     * and it is exposed to the same transient death as a shard: if it is killed, it writes nothing and
+     * an empty list is indistinguishable from a genuinely unmatched path. That reads as
+     * `Oxlint matched no files`, which sends you looking at your targets instead of at memory.
+     *
+     * So an empty list is asked for a second time. A mistyped path answers empty again, for the cost
+     * of one more short process; a killed lister answers with the files.
+     */
+    private async listLintedFilesWithRetry(targets: string[]): Promise<{files: string[]; retried: boolean}> {
+        const files = await this.listLintedFiles(targets);
+        if (files.length > 0) {
+            return {files, retried: false};
+        }
+        return {files: await this.listLintedFiles(targets), retried: true};
+    }
+
     async run(targets: string[]): Promise<LinterResult> {
-        const lintedFiles = await this.listLintedFiles(targets);
+        const {files: lintedFiles, retried: listerRetried} = await this.listLintedFilesWithRetry(targets);
         if (lintedFiles.length === 0) {
-            return fatal(`Oxlint matched no files for: ${targets.join(' ')}`, '', '', FATAL_EXIT_CODE);
+            return fatal(`Oxlint matched no files for: ${targets.join(' ')} (asked twice, in case the first listing died)`, '', '', FATAL_EXIT_CODE);
         }
 
         const shardCount = resolveShardCount(this.options.shards ?? process.env.OXLINT_SHARDS);
@@ -239,20 +275,40 @@ class OxlintLinter extends Linter {
             }
         }
 
-        const jobs = buckets.map((bucket) => {
+        const runBucket = (bucket: string[]) => {
             const args = sharded ? ['--threads=1', ...baseArgs, ...bucket] : [...baseArgs, ...bucket];
             return $`npx oxlint ${args}`
                 .cwd(this.options.projectRoot)
                 .env({...process.env, LINT_PIPELINE: '1'})
                 .nothrow()
                 .quiet();
-        });
+        };
 
-        const outputs = await Promise.all(jobs);
-        const parsed = outputs.map((output, index) => parseOxlintStdout(output.stdout.toString(), output.stderr.toString(), output.exitCode, this.options.projectRoot, buckets[index]));
+        const attempts = await Promise.all(buckets.map(async (bucket) => ({bucket, output: await runBucket(bucket)})));
+        const parsed = attempts.map(({bucket, output}) => parseOxlintStdout(output.stdout.toString(), output.stderr.toString(), output.exitCode, this.options.projectRoot, bucket));
+
+        const notes: string[] = [];
+        if (listerRetried) {
+            notes.push(`Oxlint listed no files on the first attempt and ${lintedFiles.length} on the second, so that listing died rather than matching nothing.`);
+        }
+        for (const [index, {bucket, output}] of attempts.entries()) {
+            if (!producedNoJSON(output.stdout.toString())) {
+                continue;
+            }
+            const retry = await runBucket(bucket);
+            const recovered = !producedNoJSON(retry.stdout.toString());
+            parsed[index] = parseOxlintStdout(retry.stdout.toString(), retry.stderr.toString(), retry.exitCode, this.options.projectRoot, bucket);
+            notes.push(`Oxlint shard ${index + 1} of ${attempts.length} produced no JSON and was retried once: ${recovered ? 'recovered' : 'failed again'}.`);
+        }
 
         try {
-            return mergeShardResults(parsed);
+            const merged = mergeShardResults(parsed);
+            if (notes.length === 0) {
+                return merged;
+            }
+            // Never silent: a run that only passed because of a retry says so, otherwise a machine that
+            // is quietly one shard away from failing looks exactly like a healthy one.
+            return {...merged, stderr: [merged.stderr, ...notes].filter(Boolean).join('\n')};
         } catch (error) {
             return fatal(error instanceof Error ? error.message : String(error), '', '', FATAL_EXIT_CODE);
         }
@@ -260,5 +316,5 @@ class OxlintLinter extends Linter {
 }
 
 export default OxlintLinter;
-export {defaultShardCount, extractJSONObject, joinDiagnosticText, mergeShardResults, normalizeOxlintDiagnostics, parseOxlintStdout, resolveShardCount, shardFiles};
+export {defaultShardCount, extractJSONObject, joinDiagnosticText, mergeShardResults, normalizeOxlintDiagnostics, parseOxlintStdout, producedNoJSON, resolveShardCount, shardFiles};
 export type {OxlintDiagnostic, OxlintLinterOptions};

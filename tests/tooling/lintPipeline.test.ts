@@ -9,7 +9,7 @@ import JSONFormatter from '../../scripts/lint/formatters/JSONFormatter';
 import StylishFormatter from '../../scripts/lint/formatters/StylishFormatter';
 import Linter from '../../scripts/lint/Linter';
 import Pipeline from '../../scripts/lint/LintPipeline';
-import {mergeShardResults, normalizeOxlintDiagnostics, parseOxlintStdout, resolveShardCount, shardFiles} from '../../scripts/lint/oxlint/OxlintLinter';
+import {mergeShardResults, normalizeOxlintDiagnostics, parseOxlintStdout, producedNoJSON, resolveShardCount, shardFiles} from '../../scripts/lint/oxlint/OxlintLinter';
 import {filterReactCompilerMessages, shouldPersistCompilerCache} from '../../scripts/lint/processors/ReactCompilerFilter';
 import Seatbelt, {SEATBELT_TSV_BY_LINTER, resolveSeatbeltOptions} from '../../scripts/lint/processors/Seatbelt';
 import {stratifyMessages} from '../../scripts/lint/processors/StratifyNoDeprecated';
@@ -351,6 +351,20 @@ describe('oxlint sharding', () => {
         const merged = mergeShardResults([clean, crash]);
         expect(merged.exitCode).toBe(2);
         expect(merged.stderr).toContain('plugin blew up');
+    });
+
+    it('only a shard that produced no JSON is worth retrying', () => {
+        // A killed process writes nothing, and a config error prints its complaint without JSON.
+        expect(producedNoJSON('')).toBe(true);
+        expect(producedNoJSON('Failed to parse oxlint configuration file.\n  x Rule not found\n')).toBe(true);
+
+        // Deterministic failures are not retried: both of these carry a JSON body.
+        expect(producedNoJSON(oxlintStdout([oxlintDiagnostic({code: undefined, message: 'plugin blew up'})]))).toBe(false);
+        expect(producedNoJSON(oxlintStdout([oxlintDiagnostic()], 1))).toBe(false);
+        expect(producedNoJSON(oxlintStdout([]))).toBe(false);
+
+        // Oxlint prints warnings ahead of the JSON, which must not read as a dead shard.
+        expect(producedNoJSON(`No files found to lint.\n${oxlintStdout([])}`)).toBe(false);
     });
 });
 
