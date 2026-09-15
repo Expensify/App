@@ -485,6 +485,30 @@ describe('handleReplaceFullscreenUnderRHP — WORKSPACE_NAVIGATOR seeding', () =
     });
 });
 
+describe('handleRemoveFullscreenUnderRHP — Share modal host', () => {
+    it('restores the original tab route when the Share modal, not the RHP, is on top', () => {
+        // Given a tab-switch pre-insert performed under the Share modal (#100767)
+        mockStubbedParsedState = makeParsedState(INCOMING_SPLIT_ONLY);
+        const shareRoute = makeRoute(NAVIGATORS.SHARE_MODAL_NAVIGATOR, undefined, undefined, 'share-key');
+        const originalTabRoute = makeRoute(NAVIGATORS.TAB_NAVIGATOR, undefined, {index: 0, routes: [{key: 'workspace-nav-key', name: NAVIGATORS.WORKSPACE_NAVIGATOR}]}, 'tab-nav-key');
+        const existingState = makeStackState([originalTabRoute, shareRoute]);
+        const preInsertedState = handleReplaceFullscreenUnderRHP(existingState, makeAction(true), CONFIG_OPTIONS, stackRouter);
+        if (!preInsertedState) {
+            throw new Error('Expected the pre-insert to return a navigation state');
+        }
+        expect(getBufferRoute(preInsertedState)).toBeDefined();
+
+        // When the user backs out and the teardown action is dispatched
+        const restoredState = handleRemoveFullscreenUnderRHP(preInsertedState, makeRemoveAction(), CONFIG_OPTIONS, stackRouter);
+
+        // Then the handler does not bail: the buffer is gone and the original tab route is back under the Share modal
+        expect(restoredState).not.toBeNull();
+        expect(getBufferRoute(restoredState)).toBeUndefined();
+        expect(restoredState?.routes.map((r) => r.name)).toEqual([NAVIGATORS.TAB_NAVIGATOR, NAVIGATORS.SHARE_MODAL_NAVIGATOR]);
+        expect(restoredState?.routes.at(0)?.key).toBe('tab-nav-key');
+    });
+});
+
 describe('handleReplaceFullscreenUnderRHP / handleRemoveFullscreenUnderRHP — shouldInsertPreMountBuffer', () => {
     it('inserts the buffer route directly under the RHP on the tab-switch path when shouldInsertPreMountBuffer is true', () => {
         // Given a tab-switch pre-insert that needs protection from native RHP dismissal

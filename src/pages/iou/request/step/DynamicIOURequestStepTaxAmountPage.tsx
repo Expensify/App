@@ -78,6 +78,7 @@ function DynamicIOURequestStepTaxAmountPage({
     const [reportPolicyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(parentReport?.policyID)}`);
     const [iouReportOwnerLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(parentReport?.ownerAccountID)});
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
     const {translate} = useLocalize();
     const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
@@ -149,6 +150,7 @@ function DynamicIOURequestStepTaxAmountPage({
                 isTrackIntentUser,
                 getCurrencyDecimals,
                 getCurrencySymbol,
+                rules,
             });
             saveAndNavigateBack();
             return;

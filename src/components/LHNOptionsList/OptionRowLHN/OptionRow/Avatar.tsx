@@ -45,8 +45,10 @@ function AvatarInner({optionItem, viewMode, avatarBackgroundColor}: AvatarProps)
 
     // Match the header's delegate avatar logic: when a delegate exists on the
     // parent report action, the header (useReportActionAvatars) shows the
-    // delegate's avatar as primary instead of the report owner's.
-    const skipDelegate = optionItem?.type === CONST.REPORT.TYPE.INVOICE || (optionItem?.isTaskReport && !optionItem?.chatReportID);
+    // delegate's avatar as primary instead of the report owner's. A Concierge thread is the exception the header
+    // already makes: its icon is Concierge rather than whoever asked, so swapping in the copilot would both disagree
+    // with the thread header and read as "acted as Concierge".
+    const skipDelegate = !!optionItem?.isConciergeThread || optionItem?.type === CONST.REPORT.TYPE.INVOICE || (optionItem?.isTaskReport && !optionItem?.chatReportID);
 
     let icons: AvatarIcon[] = optionItem?.icons ?? [];
     if (!skipDelegate && delegateAccountID && personalDetails && icons.length > 0) {
