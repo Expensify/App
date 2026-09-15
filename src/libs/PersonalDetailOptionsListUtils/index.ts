@@ -78,7 +78,7 @@ function createOption(
             accountID: personalDetail.accountID,
             formatPhoneNumber,
             personalDetailsData: {[personalDetail.accountID]: personalDetail},
-            translate,
+            hiddenTranslation: translate?.('common.hidden'),
         }) || formatPhoneNumber(personalDetail.login ?? '');
     result.icons = [
         {

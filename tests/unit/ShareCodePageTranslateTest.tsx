@@ -89,7 +89,7 @@ describe('ShareCodePage', () => {
         await waitForBatchedUpdates();
 
         // Each participant's name resolves via getDisplayNameForParticipant, which must receive the translate from useLocalize.
-        expect(mockGetDisplayNameForParticipant).toHaveBeenCalledWith(expect.objectContaining({translate: mockTranslate}));
+        expect(mockGetDisplayNameForParticipant).toHaveBeenCalledWith(expect.objectContaining({hiddenTranslation: 'common.hidden'}));
     });
 
     describe('profile QR code avatar logo', () => {

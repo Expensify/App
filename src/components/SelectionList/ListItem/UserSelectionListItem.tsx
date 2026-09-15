@@ -48,7 +48,7 @@ function UserSelectionListItem<TItem extends ListItem>({
     const userDisplayName = getDisplayNameForParticipant({
         accountID: item.accountID ?? CONST.DEFAULT_NUMBER_ID,
         formatPhoneNumber,
-        translate,
+        hiddenTranslation: translate('common.hidden'),
     });
 
     const icon = item.icons?.at(0);
