@@ -114,9 +114,10 @@ function PlatformNavigatorImpl<RouterOptions extends PlatformStackRouterOptions 
 
     const content = (
         <NavigationContent>
-            {split ? (
+            {/* Keep the central stack under the same parents across breakpoints so its screens retain local state. */}
+            {sidebarScreen ? (
                 <View style={[styles.flex1, styles.flexRow]}>
-                    <View style={[styles.nativeSplitSidebar, styles.borderRight, styles.overflowHidden]}>{wrappedDescriptors[split.sidebarRoute.key]?.render()}</View>
+                    {!!split && <View style={[styles.nativeSplitSidebar, styles.borderRight, styles.overflowHidden]}>{wrappedDescriptors[split.sidebarRoute.key]?.render()}</View>}
                     <View style={[styles.flex1, styles.mnw0, styles.overflowHidden]}>{stack}</View>
                 </View>
             ) : (

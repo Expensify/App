@@ -1,18 +1,19 @@
-import {act, render, screen, waitFor} from '@testing-library/react-native';
+import {act, fireEvent, render, screen, waitFor} from '@testing-library/react-native';
 
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import createSplitNavigator from '@libs/Navigation/AppNavigator/createSplitNavigator';
 import navigationRef from '@libs/Navigation/navigationRef';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportsSplitNavigatorParamList} from '@libs/Navigation/types';
 
 import CONST from '@src/CONST';
 import SCREENS from '@src/SCREENS';
 
 import {CommonActions, NavigationContainer, StackActions} from '@react-navigation/native';
-import React from 'react';
-import {View} from 'react-native';
+import React, {useState} from 'react';
+import {TextInput, View} from 'react-native';
 
 const Split = createSplitNavigator<ReportsSplitNavigatorParamList>();
 
@@ -23,8 +24,18 @@ function SidebarScreen() {
     return <View testID="split-sidebar" />;
 }
 
-function CentralScreen() {
-    return <View testID="split-central" />;
+function CentralScreen({route}: PlatformStackScreenProps<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>) {
+    const [draft, setDraft] = useState('');
+
+    return (
+        <View testID="split-central">
+            <TextInput
+                accessibilityLabel={`report-${route.params?.reportID}-draft`}
+                value={draft}
+                onChangeText={setDraft}
+            />
+        </View>
+    );
 }
 
 function TestNavigator() {
@@ -58,6 +69,31 @@ function setNarrowLayout(isNarrow: boolean) {
 }
 
 describe('Native split navigation', () => {
+    it.each([true, false])('preserves central screen state across both breakpoint directions, starting narrow: %s', async (initiallyNarrow) => {
+        setNarrowLayout(initiallyNarrow);
+        const {rerender} = render(<TestNavigator />);
+
+        act(() => navigationRef.dispatch(StackActions.push(SCREENS.REPORT, {reportID: '1'})));
+        fireEvent.changeText(await screen.findByLabelText('report-1-draft'), 'First report draft');
+
+        act(() => navigationRef.dispatch(StackActions.push(SCREENS.REPORT, {reportID: '2'})));
+        fireEvent.changeText(await screen.findByLabelText('report-2-draft'), 'Second report draft');
+        const routeKeys = navigationRef.getRootState().routes.map((route) => route.key);
+
+        setNarrowLayout(!initiallyNarrow);
+        rerender(<TestNavigator />);
+        expect(navigationRef.getRootState().routes.map((route) => route.key)).toEqual(routeKeys);
+        expect(screen.getByLabelText('report-2-draft')).toHaveDisplayValue('Second report draft');
+
+        setNarrowLayout(initiallyNarrow);
+        rerender(<TestNavigator />);
+        expect(navigationRef.getRootState().routes.map((route) => route.key)).toEqual(routeKeys);
+        expect(screen.getByLabelText('report-2-draft')).toHaveDisplayValue('Second report draft');
+
+        act(() => navigationRef.dispatch(StackActions.pop()));
+        await waitFor(() => expect(screen.getByLabelText('report-1-draft')).toHaveDisplayValue('First report draft'));
+    });
+
     it('renders both panes, keeps route keys on resize, and pops central history', async () => {
         setNarrowLayout(false);
         const {rerender} = render(<TestNavigator />);
