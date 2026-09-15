@@ -667,7 +667,9 @@ function IOURequestStepConfirmationContent({
     const firstParticipant = participants.at(0);
 
     // Split creates or resolves its own group chat report ID, so it cannot reuse the transaction's P2P report ID.
-    const isP2PDestination = iouType !== CONST.IOU.TYPE.SPLIT && !!firstParticipant && !firstParticipant.isPolicyExpenseChat;
+    // A self-DM participant is not a policy expense chat either, but it carries accountID 0, so leaving it in here
+    // sends `getChatByParticipants` looking for a chat with account 0 that can never exist.
+    const isP2PDestination = iouType !== CONST.IOU.TYPE.SPLIT && !!firstParticipant && !firstParticipant.isPolicyExpenseChat && !isSelfDMDestination;
     const reusableP2PReportID = isP2PDestination ? getReusableP2PReportID(firstParticipant, transaction?.reportID) : undefined;
     const p2pRecipientAccountID = firstParticipant?.accountID ?? CONST.DEFAULT_NUMBER_ID;
 
