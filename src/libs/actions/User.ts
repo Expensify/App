@@ -839,7 +839,13 @@ function subscribeToUserEvents(
             previousUpdateID: Number(pushJSON.previousUpdateID ?? CONST.DEFAULT_NUMBER_ID),
         };
         Log.info('[subscribeToUserEvents] Applying Onyx updates');
-        applyOnyxUpdatesReliably(updates);
+        applyOnyxUpdatesReliably(updates).catch((error: unknown) => {
+            Log.alert('[subscribeToUserEvents] Applying the updates failed, the watermark is held so the next update recovers the range', {
+                lastUpdateID: updates.lastUpdateID,
+                previousUpdateID: updates.previousUpdateID,
+                error: error instanceof Error ? error.message : String(error),
+            });
+        });
     });
 
     // Debounce the playSoundForMessageType function to avoid playing sounds too often, for example when a user comeback after offline and a lot of messages come in
