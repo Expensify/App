@@ -11,6 +11,7 @@ import SidePanelButton from '@components/SidePanel/SidePanelButton';
 import ThreeDotsMenu from '@components/ThreeDotsMenu';
 import Tooltip from '@components/Tooltip';
 
+import useContentHeaderHeight from '@hooks/useContentHeaderHeight';
 import useDialogLabelRegistration from '@hooks/useDialogLabelRegistration';
 import useInitialFocusRef from '@hooks/useInitialFocusRef';
 import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
@@ -101,6 +102,7 @@ function HeaderWithBackButton({
     const [isDownloadButtonActive, temporarilyDisableDownloadButton] = useThrottledButtonState();
     const {translate} = useLocalize();
     const isInLandscapeMode = useIsInLandscapeMode();
+    const {contentHeaderHeightStyle} = useContentHeaderHeight();
     const setBackButtonRef = useInitialFocusRef({shouldSkip: shouldSkipFocusAfterTransition});
 
     const middleContent = useMemo(() => {
@@ -204,7 +206,7 @@ function HeaderWithBackButton({
         <View
             style={[
                 styles.headerBar,
-                shouldUseHeadlineHeader && styles.headerBarHeight,
+                contentHeaderHeightStyle,
                 shouldShowBorderBottom && styles.borderBottom,
                 shouldShowBackButton && [styles.pl2],
                 shouldOverlay && StyleSheet.absoluteFill,
