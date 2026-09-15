@@ -1,10 +1,12 @@
 import {render} from '@testing-library/react-native';
 
+import ApproverSelectionList from '@components/ApproverSelectionList';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
 import {getDisplayNameForParticipant} from '@libs/ReportUtils';
 
 import SearchAddApproverPage from '@pages/Search/SearchAddApproverPage';
+import SearchReassignApproverPage from '@pages/Search/SearchReassignApproverPage';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -58,6 +60,7 @@ jest.mock('@libs/ReportUtils', () => {
 });
 
 const mockGetDisplayNameForParticipant = jest.mocked(getDisplayNameForParticipant);
+const mockApproverSelectionList = jest.mocked(ApproverSelectionList);
 
 const APPROVER_ACCOUNT_ID = 737001;
 const APPROVER_EMAIL = 'search-approver@test.com';
@@ -69,9 +72,11 @@ describe('SearchAddApproverPage', () => {
         return waitForBatchedUpdates();
     });
 
-    it('resolves candidate approver names through the translate function from useLocalize', async () => {
+    beforeEach(async () => {
+        jest.clearAllMocks();
         const policy = createMock<Policy>({
             id: POLICY_ID,
+            role: CONST.POLICY.ROLE.ADMIN,
             employeeList: {
                 [APPROVER_EMAIL]: {email: APPROVER_EMAIL, role: CONST.POLICY.ROLE.USER},
             },
@@ -81,7 +86,9 @@ describe('SearchAddApproverPage', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, policy);
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${SELECTED_REPORT_ID}`, report);
         await waitForBatchedUpdates();
+    });
 
+    it('resolves candidate approver names through the translate function from useLocalize', async () => {
         render(
             <OnyxListItemProvider>
                 <SearchAddApproverPage />
@@ -91,5 +98,24 @@ describe('SearchAddApproverPage', () => {
 
         // Each candidate approver's name resolves via getDisplayNameForParticipant, which must receive the translate from useLocalize.
         expect(mockGetDisplayNameForParticipant).toHaveBeenCalledWith(expect.objectContaining({accountID: APPROVER_ACCOUNT_ID, translate: mockTranslate}));
+    });
+
+    it('renders the bulk reassignment picker with eligible workspace members', async () => {
+        render(
+            <OnyxListItemProvider>
+                <SearchReassignApproverPage />
+            </OnyxListItemProvider>,
+        );
+        await waitForBatchedUpdates();
+
+        expect(mockApproverSelectionList).toHaveBeenLastCalledWith(
+            expect.objectContaining({
+                testID: 'SearchReassignApproverPage',
+                headerTitle: 'iou.changeApprover.actions.reassignApprover',
+                allApprovers: [expect.objectContaining({login: APPROVER_EMAIL, value: APPROVER_ACCOUNT_ID})],
+                shouldShowNotFoundView: false,
+            }),
+            undefined,
+        );
     });
 });

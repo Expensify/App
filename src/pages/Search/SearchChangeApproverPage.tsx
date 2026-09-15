@@ -165,6 +165,11 @@ function SearchChangeApproverPage() {
             return;
         }
 
+        if (selectedApproverType === APPROVER_TYPE.REASSIGN_APPROVER) {
+            Navigation.navigate(ROUTES.CHANGE_APPROVER_REASSIGN_APPROVER_SEARCH_RHP);
+            return;
+        }
+
         for (const selectedReport of selectedReports) {
             const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${selectedReport.policyID}`];
             const report = selectedReport.reportID ? onyxReports?.[selectedReport.reportID] : undefined;
@@ -202,19 +207,22 @@ function SearchChangeApproverPage() {
             },
         ];
 
-        const hasPermission = selectedReports.every((selectedReport) => {
+        const hasAdminPermission = selectedReports.every((selectedReport) => {
             const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${selectedReport.policyID}`];
-            const report = selectedReport.reportID ? onyxReports?.[selectedReport.reportID] : undefined;
-
-            if (!policy || !report) {
-                return false;
-            }
-
-            return isPolicyAdmin(policy) && isAllowedToApproveExpenseReport(report, currentUserDetails.accountID, policy);
+            return !!policy && isPolicyAdmin(policy);
         });
 
+        const isAllowedToBypassApprovers =
+            hasAdminPermission &&
+            selectedReports.every((selectedReport) => {
+                const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${selectedReport.policyID}`];
+                const report = selectedReport.reportID ? onyxReports?.[selectedReport.reportID] : undefined;
+
+                return !!policy && !!report && isAllowedToApproveExpenseReport(report, currentUserDetails.accountID, policy);
+            });
+
         const shouldShowBypassApproversOption =
-            hasPermission &&
+            isAllowedToBypassApprovers &&
             selectedReports.some((selectedReport) => {
                 const report = selectedReport.reportID ? onyxReports?.[selectedReport.reportID] : undefined;
 
@@ -231,6 +239,15 @@ function SearchChangeApproverPage() {
                 keyForList: APPROVER_TYPE.BYPASS_APPROVER,
                 alternateText: translate('iou.changeApprover.actions.bypassApproversSubtitle'),
                 isSelected: selectedApproverType === APPROVER_TYPE.BYPASS_APPROVER,
+            });
+        }
+
+        if (hasAdminPermission) {
+            data.push({
+                text: translate('iou.changeApprover.actions.reassignApprover'),
+                keyForList: APPROVER_TYPE.REASSIGN_APPROVER,
+                alternateText: translate('iou.changeApprover.actions.reassignApproverSubtitle'),
+                isSelected: selectedApproverType === APPROVER_TYPE.REASSIGN_APPROVER,
             });
         }
 
