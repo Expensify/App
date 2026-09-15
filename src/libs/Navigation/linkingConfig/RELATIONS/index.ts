@@ -1,8 +1,10 @@
 import DOMAIN_TO_RHP from './DOMAIN_TO_RHP';
 import HOME_TO_RHP from './HOME_TO_RHP';
+import HOME_TO_RHP_DEEPLINK from './HOME_TO_RHP_DEEPLINK';
 import SEARCH_TO_RHP from './SEARCH_TO_RHP';
 import SEARCH_TO_RHP_DEEPLINK from './SEARCH_TO_RHP_DEEPLINK';
 import SETTINGS_TO_RHP from './SETTINGS_TO_RHP';
+import SETTINGS_TO_RHP_DEEPLINK from './SETTINGS_TO_RHP_DEEPLINK';
 import SIDEBAR_TO_RHP from './SIDEBAR_TO_RHP';
 import SIDEBAR_TO_SPLIT from './SIDEBAR_TO_SPLIT';
 import WORKSPACE_TO_RHP from './WORKSPACE_TO_RHP';
@@ -29,6 +31,7 @@ function createInverseRelation<T extends string, K extends string>(relations: Pa
 }
 
 const RHP_TO_SETTINGS = createInverseRelation(SETTINGS_TO_RHP);
+const RHP_TO_SETTINGS_DEEPLINK = createInverseRelation(SETTINGS_TO_RHP_DEEPLINK);
 const RHP_TO_WORKSPACE = createInverseRelation(WORKSPACE_TO_RHP);
 const RHP_TO_SIDEBAR = createInverseRelation(SIDEBAR_TO_RHP);
 const SPLIT_TO_SIDEBAR = createInverseRelation(SIDEBAR_TO_SPLIT);
@@ -39,5 +42,19 @@ const RHP_TO_SEARCH = createInverseRelation(SEARCH_TO_RHP);
 const RHP_TO_SEARCH_DEEPLINK = createInverseRelation(SEARCH_TO_RHP_DEEPLINK);
 const RHP_TO_DOMAIN = createInverseRelation(DOMAIN_TO_RHP);
 const RHP_TO_HOME = createInverseRelation(HOME_TO_RHP);
+const RHP_TO_HOME_DEEPLINK = createInverseRelation(HOME_TO_RHP_DEEPLINK);
 
-export {RHP_TO_SETTINGS, RHP_TO_WORKSPACE, RHP_TO_SIDEBAR, RHP_TO_SEARCH, RHP_TO_SEARCH_DEEPLINK, SIDEBAR_TO_SPLIT, SPLIT_TO_SIDEBAR, RHP_TO_WORKSPACES_LIST, RHP_TO_DOMAIN, RHP_TO_HOME};
+export {
+    RHP_TO_SETTINGS,
+    RHP_TO_SETTINGS_DEEPLINK,
+    RHP_TO_WORKSPACE,
+    RHP_TO_SIDEBAR,
+    RHP_TO_SEARCH,
+    RHP_TO_SEARCH_DEEPLINK,
+    SIDEBAR_TO_SPLIT,
+    SPLIT_TO_SIDEBAR,
+    RHP_TO_WORKSPACES_LIST,
+    RHP_TO_DOMAIN,
+    RHP_TO_HOME,
+    RHP_TO_HOME_DEEPLINK,
+};
