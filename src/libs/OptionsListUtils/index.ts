@@ -579,6 +579,8 @@ function createOption({
         null,
         undefined,
         result?.private_isArchived,
+        undefined,
+        conciergeReportID,
     );
     result.subtitle = subtitle;
 

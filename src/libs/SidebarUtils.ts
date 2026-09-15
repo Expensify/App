@@ -846,6 +846,7 @@ function getOptionData({
     result.hasOutstandingChildTask = report.hasOutstandingChildTask;
     result.hasParentAccess = report.hasParentAccess;
     result.isConciergeChat = isConciergeChatReport(report, conciergeReportID);
+    result.isConciergeThread = isChatThread(report) && !!conciergeReportID && report.parentReportID === conciergeReportID;
     result.participants = report.participants;
 
     const isExpense = isExpenseReport(report);
@@ -948,6 +949,7 @@ function getOptionData({
         invoiceReceiverPolicy,
         isReportArchived,
         getPendingDeleteMemberAccountIDs(reportMetadata?.pendingChatMembers),
+        conciergeReportID,
     );
 
     // IOU icon trimming (single vs diagonal) is handled at the component level
