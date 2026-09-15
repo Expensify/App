@@ -591,7 +591,7 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
                 requiredDepositCurrency: 'string',
             });
         case 'tripData':
-            return validateObject<ObjectElement<Report, 'tripData'>>(value, {
+            return validateObject<ObjectElement<ReportNameValuePairs, 'tripData'>>(value, {
                 startDate: 'string',
                 endDate: 'string',
                 tripID: 'string',
@@ -857,6 +857,9 @@ function validateReportActionDraftProperty(key: keyof ReportAction, value: strin
                 isTestDriveReceipt: 'boolean',
                 thumbnail: 'string',
                 receiptTraceId: 'string',
+                receiptEnqueuedAt: 'number',
+                hotelReservationStartDate: 'string',
+                hotelReservationEndDate: 'string',
                 pageCount: 'number',
             });
         case 'childRecentReceiptTransactionIDs':
@@ -1212,6 +1215,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                     splitsEndDate: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     withdrawalID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     isAmountSet: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    isCreatedSet: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     selectedRouteKey: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 },
                 'string',
@@ -1230,6 +1234,9 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                 isTestDriveReceipt: 'boolean',
                 thumbnail: 'string',
                 receiptTraceId: 'string',
+                receiptEnqueuedAt: 'number',
+                hotelReservationStartDate: 'string',
+                hotelReservationEndDate: 'string',
                 pageCount: 'number',
             });
         case 'taxRate':
@@ -1377,6 +1384,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
             });
         case 'isAmountSet':
         case 'isMerchantSet':
+        case 'isCreatedSet':
             return validateBoolean(value);
     }
 }
@@ -1428,6 +1436,7 @@ function validateTransactionViolationDraftProperty(key: keyof TransactionViolati
                 isSupplierViolation: 'boolean',
                 startDate: 'string',
                 endDate: 'string',
+                nights: 'number',
             });
         case 'showInReview':
             return validateBoolean(value);

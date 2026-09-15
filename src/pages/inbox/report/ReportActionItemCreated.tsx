@@ -7,6 +7,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useIsInSidePanel from '@hooks/useIsInSidePanel';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useOptimisticPersonalDetails from '@hooks/useOptimisticPersonalDetails';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -48,6 +49,7 @@ function ReportActionItemCreated({reportID, policyID}: ReportActionItemCreatedPr
     const {accountID: currentUserAccountID} = currentUserPersonalDetail;
     const [conciergePersonalDetail] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: conciergePersonalDetailSelector});
     const [reportOwnerPersonalDetail] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsSelector(report?.ownerAccountID)});
+    const optimisticPersonalDetails = useOptimisticPersonalDetails();
 
     const otherParticipantAccountID =
         Object.keys(report?.participants ?? {})
@@ -77,6 +79,7 @@ function ReportActionItemCreated({reportID, policyID}: ReportActionItemCreatedPr
                     reportOwnerPersonalDetail,
                     currentUserPersonalDetail,
                     conciergePersonalDetail,
+                    optimisticPersonalDetails,
                 )
             }
         >
