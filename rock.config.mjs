@@ -5,21 +5,11 @@ import {pluginRepack} from '@rock-js/plugin-repack';
 import {providerS3} from '@rock-js/provider-s3';
 
 const isHybrid = process.env.IS_HYBRID_APP === 'true';
-// Metro stays installed so `BUNDLER=metro` switches the whole native build back with no code change.
+// `BUNDLER=metro` reverts the native build to Metro. Keep it while HybridApp still bundles with
+// Metro: its release builds go through the Gradle plugin's own Metro task, so deleting Metro here is
+// blocked on moving hybrid bundling onto Rock in the wrapper repo first.
 const useMetro = process.env.BUNDLER === 'metro';
 const isPublicAccess = !process.env.AWS_ACCESS_KEY_ID || !process.env.AWS_SECRET_ACCESS_KEY;
-
-// `rock run:*` starts the dev server for every configured platform, so Re.Pack compiles both and
-// they fight for CPU. Inject `--platform` for the one being run. `rock start` keeps both.
-const runPlatform = process.argv.find((arg) => arg === 'run:ios' || arg === 'run:android')?.split(':')[1];
-
-const bundlerRepack = (api) => {
-    const plugin = pluginRepack()(api);
-    if (!runPlatform) {
-        return plugin;
-    }
-    return {...plugin, start: (options) => plugin.start({...options, args: {...options.args, platform: runPlatform}})};
-};
 
 // The dSYM mode changes what a build produces, so it belongs in the fingerprint below. Everything that
 // reads this variable compares it to '1', while the fingerprint hashes the raw string - collapse every
@@ -36,7 +26,7 @@ export default {
         secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
         publicAccess: isPublicAccess,
     }),
-    bundler: useMetro ? pluginMetro() : bundlerRepack,
+    bundler: useMetro ? pluginMetro() : pluginRepack(),
     platforms: {
         ios: platformIOS({sourceDir: isHybrid ? './Mobile-Expensify/iOS' : './ios'}),
         android: platformAndroid({sourceDir: isHybrid ? './Mobile-Expensify/Android' : './android'}),

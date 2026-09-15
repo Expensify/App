@@ -12,6 +12,7 @@ const CACHE_DIR = 'node_modules/.cache/react-compiler';
 const REACT_COMPILER_FINGERPRINT_FILES = [
     'babel.config.js',
     'config/babel/reactCompilerConfig.js',
+    'config/babel/oxcReactCompilerConfig.js',
     'config/reactCompiler/checkBoth.mjs',
     'config/reactCompiler/checkWithBabel.mjs',
     'config/reactCompiler/checkWithOxc.mjs',

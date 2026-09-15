@@ -2,16 +2,32 @@ import * as Repack from '@callstack/repack';
 import {ExpoModulesPlugin} from '@callstack/repack-plugin-expo-modules';
 import {ReanimatedPlugin} from '@callstack/repack-plugin-reanimated';
 import {RsdoctorRspackPlugin} from '@rsdoctor/rspack-plugin';
-import {SwcJsMinimizerRspackPlugin} from '@rspack/core';
+import {DefinePlugin, SwcJsMinimizerRspackPlugin} from '@rspack/core';
+import dotenv from 'dotenv';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 
+import oxcReactCompilerConfig from '../babel/oxcReactCompilerConfig.js';
 import SentryDebugIdPlugin from './sentryDebugIdPlugin.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 // This file lives in config/repack; the project root is two levels up.
 const projectRoot = path.resolve(__dirname, '../..');
+
+dotenv.config({path: path.resolve(projectRoot, '.env')});
+
+/**
+ * `EXPO_PUBLIC_*` parity with the Metro lane. Metro bakes these values into the bundle at transform
+ * time; OXC does not, so the reads reach Hermes as `process.env` lookups that evaluate to undefined
+ * and every branch on them takes the false path. Values and defaults match `babel.config.js`.
+ */
+process.env.EXPO_PUBLIC_USE_RN_FETCH ??= '1';
+const expoPublicDefines = Object.fromEntries(
+    Object.keys(process.env)
+        .filter((key) => key.startsWith('EXPO_PUBLIC_'))
+        .map((key) => [`process.env.${key}`, JSON.stringify(process.env[key])]),
+);
 
 /**
  * Packages that must stay on babel + hermes-parser: Flow-typed runtime JS (OXC/SWC can't parse
@@ -71,6 +87,7 @@ export default Repack.defineRspackConfig((env) => {
             buildDependencies: [
                 path.resolve(projectRoot, 'babel.config.js'),
                 path.resolve(projectRoot, 'config/babel/reactCompilerConfig.js'),
+                path.resolve(projectRoot, 'config/babel/oxcReactCompilerConfig.js'),
                 path.resolve(projectRoot, 'config/repack/rspack.config.mjs'),
                 path.resolve(projectRoot, 'config/repack/cjs-inline-requires-loader.mjs'),
                 path.resolve(projectRoot, 'config/repack/hermesParserShim.mjs'),
@@ -128,7 +145,7 @@ export default Repack.defineRspackConfig((env) => {
                             loader: path.resolve(__dirname, '../rsbuild/loaders/oxc-react-compiler-loader.mjs'),
                             // Same options as the web build (config/rsbuild/rsbuild.common.ts).
                             options: {
-                                reactCompiler: {target: '19', panicThreshold: 'none', isDev},
+                                reactCompiler: oxcReactCompilerConfig(),
                                 jsx: {runtime: 'automatic', development: isDev, refresh: isDev},
                             },
                         },
@@ -196,6 +213,7 @@ export default Repack.defineRspackConfig((env) => {
         plugins: [
             !isDev && new SentryDebugIdPlugin(),
             new Repack.RepackPlugin(),
+            new DefinePlugin(expoPublicDefines),
             new ExpoModulesPlugin(),
             new ReanimatedPlugin({unstable_disableTransform: true}),
             process.env.RSDOCTOR && new RsdoctorRspackPlugin(),
