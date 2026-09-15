@@ -5152,6 +5152,9 @@ ${amount} voor ${merchant} - ${date}`,
                 xeroInvoiceCollectionAccount: 'Xero-incasso rekening voor facturen',
                 xeroBillPaymentAccountDescription: 'Kies vanwaar je rekeningen wilt betalen en wij maken de betaling aan in Xero.',
                 invoiceAccountSelectorDescription: 'Kies waar je factuurbetalingen wilt ontvangen en wij maken de betaling aan in Xero.',
+                xeroFxExpenseAccount: 'Xero-account voor valutaconversiekosten',
+                fxExpenseAccountDescription:
+                    'Wanneer je bedrijf de kosten voor valutaconversie dekt voor een betaling in het buitenland, boeken we die kosten op deze rekening in Xero als een ‘spend money’-transactie.',
             },
             exportDate: {
                 label: 'Aankoopfactuurdatum',
@@ -5520,6 +5523,9 @@ ${amount} voor ${merchant} - ${date}`,
                 error: {
                     customFormID: 'Voer een geldige numerieke aangepaste formulier-ID in',
                 },
+                fxExpenseAccount: 'Kostenrekening voor valutaconversie',
+                fxExpenseAccountDescription:
+                    'Wanneer je bedrijf de kosten voor valutaomrekening dekt bij een terugbetaling die in het buitenland wordt uitbetaald, boeken we die kosten als een journaalpost op de onderstaande NetSuite‑rekening.',
             },
             noAccountsFound: 'Geen accounts gevonden',
             noAccountsFoundDescription: 'Voeg het account toe in NetSuite en synchroniseer de verbinding opnieuw',
@@ -10925,6 +10931,8 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         gpsTooltip: '<tooltip>GPS-tracking bezig! Als je klaar bent, stop dan hieronder met bijhouden.</tooltip>',
         hasFilterNegation: '<tooltip>Zoek naar uitgaven zonder bonnen met <strong>-has:receipt</strong>.</tooltip>',
         mileageRateAutoUpdated: '<tooltip>We hebben het tarief bijgewerkt op basis van je reisdatum.</tooltip>',
+        markAllAsRead: '<tooltip>Klik met de rechtermuisknop om <strong>alles als gelezen te markeren</strong>.</tooltip>',
+        markAllAsReadTouchScreen: '<tooltip>Houd ingedrukt om <strong>alles als gelezen te markeren</strong>.</tooltip>',
     },
     discardChangesConfirmation: {
         title: 'Wijzigingen negeren?',
