@@ -134,7 +134,7 @@ function getTravelSettlementAccount(cardSettings: ExpensifyCardSettingsBase | un
 
 /**
  * Gets the settlement frequency for Travel Billing.
- * - If monthlySettlementDate is truthy (a Date), frequency is Monthly.
+ * - If monthlySettlementDate is truthy (a day of the month), frequency is Monthly.
  * - If monthlySettlementDate is falsy (null/undefined), frequency is Daily.
  * - If cardSettings is missing, default to Monthly per design doc.
  */

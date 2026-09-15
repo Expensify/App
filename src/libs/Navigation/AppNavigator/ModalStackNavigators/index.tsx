@@ -731,6 +731,7 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
         require<ReactComponentModule>('../../../../pages/settings/Wallet/ReportCardLostConfirmValidateCodePage').default,
     [SCREENS.SETTINGS.DYNAMIC_KEYBOARD_SHORTCUTS]: () => require<ReactComponentModule>('../../../../pages/settings/DynamicKeyboardShortcutsPage').default,
     [SCREENS.SETTINGS.DYNAMIC_APP_DOWNLOAD_LINKS]: () => require<ReactComponentModule>('../../../../pages/settings/DynamicAppDownloadLinksPage').default,
+    [SCREENS.SETTINGS.DYNAMIC_BETA_OVERRIDES]: () => require<ReactComponentModule>('../../../../pages/settings/Troubleshoot/DynamicBetaOverridesPage').default,
     [SCREENS.SETTINGS.DYNAMIC_EXIT_SURVEY_REASON]: () => require<ReactComponentModule>('../../../../pages/settings/ExitSurvey/DynamicExitSurveyReasonPage').default,
     [SCREENS.SETTINGS.DYNAMIC_EXIT_SURVEY_CONFIRM]: () => require<ReactComponentModule>('../../../../pages/settings/ExitSurvey/DynamicExitSurveyConfirmPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_SETUP]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/qbo/QuickbooksOnlineSetupPage').default,
@@ -791,6 +792,8 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
         require<ReactComponentModule>('../../../../pages/workspace/accounting/xero/export/DynamicXeroPreferredExporterSelectPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.XERO_BILL_PAYMENT_ACCOUNT_SELECTOR]: () =>
         require<ReactComponentModule>('../../../../pages/workspace/accounting/xero/advanced/XeroBillPaymentAccountSelectorPage').default,
+    [SCREENS.WORKSPACE.ACCOUNTING.XERO_FX_EXPENSE_ACCOUNT_SELECTOR]: () =>
+        require<ReactComponentModule>('../../../../pages/workspace/accounting/xero/advanced/XeroFxExpenseAccountSelectorPage').default,
 
     [SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_SUBSIDIARY_SELECTOR]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/netsuite/NetSuiteSubsidiarySelector').default,
     [SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_REUSE_EXISTING_CONNECTIONS]: () =>
@@ -855,6 +858,8 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
         require<ReactComponentModule>('../../../../pages/workspace/accounting/netsuite/advanced/NetSuiteJournalEntryApprovalLevelSelectPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_APPROVAL_ACCOUNT_SELECT]: () =>
         require<ReactComponentModule>('../../../../pages/workspace/accounting/netsuite/advanced/NetSuiteApprovalAccountSelectPage').default,
+    [SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_FX_EXPENSE_ACCOUNT_SELECT]: () =>
+        require<ReactComponentModule>('../../../../pages/workspace/accounting/netsuite/advanced/NetSuiteFxExpenseAccountSelectPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_CUSTOM_FORM_ID]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/netsuite/advanced/NetSuiteCustomFormIDPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_NETSUITE_AUTO_SYNC]: () =>
         require<ReactComponentModule>('../../../../pages/workspace/accounting/netsuite/advanced/DynamicNetSuiteAutoSyncPage').default,

@@ -1016,6 +1016,9 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.ACCOUNTING.XERO_BILL_PAYMENT_ACCOUNT_SELECTOR]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.ACCOUNTING.XERO_FX_EXPENSE_ACCOUNT_SELECTOR]: {
+        policyID: string;
+    };
     [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_SAGE_INTACCT_PREREQUISITES]: {
         policyID: string;
     };
@@ -1146,6 +1149,9 @@ type SettingsNavigatorParamList = {
         policyID: string;
     };
     [SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_APPROVAL_ACCOUNT_SELECT]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_FX_EXPENSE_ACCOUNT_SELECT]: {
         policyID: string;
     };
     [SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_CUSTOM_FORM_ID]: {
@@ -1451,6 +1457,7 @@ type SettingsNavigatorParamList = {
     };
     [SCREENS.SETTINGS.DYNAMIC_KEYBOARD_SHORTCUTS]: undefined;
     [SCREENS.SETTINGS.DYNAMIC_APP_DOWNLOAD_LINKS]: undefined;
+    [SCREENS.SETTINGS.DYNAMIC_BETA_OVERRIDES]: undefined;
     [SCREENS.WORKSPACE.TAX_CREATE]: {
         policyID: string;
     };
@@ -2887,7 +2894,6 @@ type RightModalNavigatorParamList = {
     [SCREENS.RIGHT_MODAL.RESTRICTED_ACTION]: NavigatorScreenParams<RestrictedActionParamList>;
     [SCREENS.RIGHT_MODAL.SEARCH_ADVANCED_FILTERS]: NavigatorScreenParams<SearchAdvancedFiltersParamList>;
     [SCREENS.RIGHT_MODAL.SEARCH_SAVE]: undefined;
-    [SCREENS.RIGHT_MODAL.BETA_OVERRIDES]: undefined;
     [SCREENS.RIGHT_MODAL.SEARCH_SAVED_SEARCH]: NavigatorScreenParams<SearchSavedSearchParamList>;
     [SCREENS.RIGHT_MODAL.MISSING_PERSONAL_DETAILS]: NavigatorScreenParams<MissingPersonalDetailsParamList>;
     [SCREENS.RIGHT_MODAL.DEBUG]: NavigatorScreenParams<DebugParamList>;

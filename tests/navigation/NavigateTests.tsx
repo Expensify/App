@@ -27,6 +27,17 @@ jest.mock('@pages/inbox/sidebar/NavigationTabBarAvatar');
 const mockedGetIsNarrowLayout = jest.mocked(getIsNarrowLayout);
 const mockedUseResponsiveLayout = jest.mocked(useResponsiveLayout);
 
+/**
+ * Looks the Workspace navigator up by name rather than by a hardcoded index, so adding a tab to TAB_SCREENS
+ * doesn't silently shift the index and make these assertions read `undefined`.
+ */
+function getWorkspaceNavigatorState() {
+    return navigationRef.current
+        ?.getRootState()
+        .routes.at(0)
+        ?.state?.routes.findLast((route) => route.name === NAVIGATORS.WORKSPACE_NAVIGATOR)?.state;
+}
+
 describe('Navigate', () => {
     beforeEach(() => {
         mockedGetIsNarrowLayout.mockReturnValue(true);
@@ -152,11 +163,12 @@ describe('Navigate', () => {
                             {
                                 name: NAVIGATORS.TAB_NAVIGATOR,
                                 state: {
-                                    index: 4,
+                                    index: 5,
                                     routes: [
                                         {name: SCREENS.HOME},
                                         {name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR},
                                         {name: NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR},
+                                        {name: SCREENS.INSIGHTS},
                                         {name: NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR},
                                         {
                                             name: NAVIGATORS.WORKSPACE_NAVIGATOR,
@@ -177,7 +189,7 @@ describe('Navigate', () => {
                 Navigation.navigate(ROUTES.WORKSPACE_MEMBERS.getRoute('workspace-a'), {shouldSkipInitialSplitNavigatorSidebar: true});
             });
 
-            const workspaceStateAfterNavigate = navigationRef.current?.getRootState().routes.at(0)?.state?.routes.at(4)?.state;
+            const workspaceStateAfterNavigate = getWorkspaceNavigatorState();
             expect(workspaceStateAfterNavigate?.routes.at(0)?.name).toBe(SCREENS.WORKSPACES_LIST);
             expect(workspaceStateAfterNavigate?.routes.at(-1)?.name).toBe(NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR);
             const workspaceSplitState = workspaceStateAfterNavigate?.routes.at(-1)?.state;
@@ -189,7 +201,7 @@ describe('Navigate', () => {
                 Navigation.goBack();
             });
 
-            const workspaceStateAfterGoBack = navigationRef.current?.getRootState().routes.at(0)?.state?.routes.at(4)?.state;
+            const workspaceStateAfterGoBack = getWorkspaceNavigatorState();
             expect(workspaceStateAfterGoBack?.routes.at(-1)?.name).toBe(SCREENS.WORKSPACES_LIST);
         });
 
@@ -202,11 +214,12 @@ describe('Navigate', () => {
                             {
                                 name: NAVIGATORS.TAB_NAVIGATOR,
                                 state: {
-                                    index: 4,
+                                    index: 5,
                                     routes: [
                                         {name: SCREENS.HOME},
                                         {name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR},
                                         {name: NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR},
+                                        {name: SCREENS.INSIGHTS},
                                         {name: NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR},
                                         {
                                             name: NAVIGATORS.WORKSPACE_NAVIGATOR,
@@ -243,7 +256,7 @@ describe('Navigate', () => {
             if (!rootState) {
                 throw new Error('Expected the navigation state to be initialized');
             }
-            const workspaceState = rootState.routes.at(0)?.state?.routes.at(4)?.state;
+            const workspaceState = getWorkspaceNavigatorState();
             const workspaceSplitState = workspaceState?.routes.at(-1)?.state;
             expect(workspaceSplitState?.routes.at(-1)?.name).toBe(SCREENS.WORKSPACE.MEMBERS);
             expect(workspaceSplitState?.routes.at(-1)?.params).toEqual({policyID: 'workspace-a'});
@@ -253,7 +266,7 @@ describe('Navigate', () => {
                 Navigation.goBack();
             });
 
-            const workspaceStateAfterGoBack = navigationRef.current?.getRootState().routes.at(0)?.state?.routes.at(4)?.state;
+            const workspaceStateAfterGoBack = getWorkspaceNavigatorState();
             expect(workspaceStateAfterGoBack?.routes.at(-1)?.state?.routes.at(-1)?.name).toBe(SCREENS.WORKSPACE.PROFILE);
         });
 
@@ -751,11 +764,12 @@ describe('Navigate', () => {
                             {
                                 name: NAVIGATORS.TAB_NAVIGATOR,
                                 state: {
-                                    index: 4,
+                                    index: 5,
                                     routes: [
                                         {name: SCREENS.HOME},
                                         {name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR},
                                         {name: NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR},
+                                        {name: SCREENS.INSIGHTS},
                                         {name: NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR},
                                         {
                                             name: NAVIGATORS.WORKSPACE_NAVIGATOR,
@@ -776,7 +790,7 @@ describe('Navigate', () => {
                 Navigation.navigate(ROUTES.WORKSPACE_MEMBERS.getRoute('workspace-a'), {shouldSkipInitialSplitNavigatorSidebar: true});
             });
 
-            const workspaceState = navigationRef.current?.getRootState().routes.at(0)?.state?.routes.at(4)?.state;
+            const workspaceState = getWorkspaceNavigatorState();
             const workspaceSplitState = workspaceState?.routes.at(-1)?.state;
             expect(workspaceSplitState?.routes.at(0)?.name).toBe(SCREENS.WORKSPACE.INITIAL);
             expect(workspaceSplitState?.routes.at(0)?.params).toEqual({policyID: 'workspace-a'});

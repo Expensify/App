@@ -5152,6 +5152,9 @@ ${amount} voor ${merchant} - ${date}`,
                 xeroInvoiceCollectionAccount: 'Xero-incasso rekening voor facturen',
                 xeroBillPaymentAccountDescription: 'Kies vanwaar je rekeningen wilt betalen en wij maken de betaling aan in Xero.',
                 invoiceAccountSelectorDescription: 'Kies waar je factuurbetalingen wilt ontvangen en wij maken de betaling aan in Xero.',
+                xeroFxExpenseAccount: 'Xero-account voor valutaconversiekosten',
+                fxExpenseAccountDescription:
+                    'Wanneer je bedrijf de kosten voor valutaconversie dekt voor een betaling in het buitenland, boeken we die kosten op deze rekening in Xero als een ‘spend money’-transactie.',
             },
             exportDate: {
                 label: 'Aankoopfactuurdatum',
@@ -5520,6 +5523,9 @@ ${amount} voor ${merchant} - ${date}`,
                 error: {
                     customFormID: 'Voer een geldige numerieke aangepaste formulier-ID in',
                 },
+                fxExpenseAccount: 'Kostenrekening voor valutaconversie',
+                fxExpenseAccountDescription:
+                    'Wanneer je bedrijf de kosten voor valutaomrekening dekt bij een terugbetaling die in het buitenland wordt uitbetaald, boeken we die kosten als een journaalpost op de onderstaande NetSuite‑rekening.',
             },
             noAccountsFound: 'Geen accounts gevonden',
             noAccountsFoundDescription: 'Voeg het account toe in NetSuite en synchroniseer de verbinding opnieuw',
@@ -9265,6 +9271,35 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             return `heeft de deelnemers van categorie "${categoryName}" gewijzigd naar ${newValue ? 'verplicht' : 'niet verplicht'} (voorheen ${newValue ? 'niet verplicht' : 'verplicht'})`;
         },
         updatedAutoHarvesting: (enabled: boolean) => `${enabled ? 'ingeschakeld' : 'uitgeschakeld'} inzendingen`,
+        changedOverLimitForwardsTo: ({
+            member,
+            approver,
+            limit,
+            previousApprover,
+            previousLimit,
+        }: {
+            member: string;
+            approver: string;
+            limit: string;
+            previousApprover?: string;
+            previousLimit?: string;
+        }) => {
+            let text = previousApprover
+                ? `heeft de fiatteringsworkflow voor ${member} gewijzigd zodat rapporten boven ${limit} worden doorgestuurd naar ${approver}`
+                : `stel de goedkeuringsworkflow voor ${member} in om rapporten boven ${limit} door te sturen naar ${approver}`;
+            if (previousApprover && previousLimit) {
+                text += ` (voorheen doorgestuurde rapporten boven ${previousLimit} naar ${previousApprover})`;
+            } else if (previousApprover) {
+                text += ` (eerder doorgestuurd naar ${previousApprover})`;
+            }
+            return text;
+        },
+        removedOverLimitForwardsTo: ({member, previousApprover, previousLimit}: {member: string; previousApprover?: string; previousLimit: string}) =>
+            previousApprover
+                ? `heeft de goedkeuringsworkflow voor ${member} gewijzigd zodat rapporten boven ${previousLimit} niet meer worden doorgestuurd (werd eerder doorgestuurd naar ${previousApprover})`
+                : `heeft de goedkeuringsworkflow voor ${member} gewijzigd zodat rapporten boven ${previousLimit} niet meer worden doorgestuurd`,
+        changedApprovalLimit: ({member, limit, previousLimit}: {member: string; limit: string; previousLimit: string}) =>
+            `heeft de goedkeuringsworkflow voor ${member} gewijzigd om rapporten boven ${limit} door te sturen (voorheen ${previousLimit})`,
     },
     roomMembersPage: {
         memberNotFound: 'Lid niet gevonden.',
@@ -10896,6 +10931,8 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         gpsTooltip: '<tooltip>GPS-tracking bezig! Als je klaar bent, stop dan hieronder met bijhouden.</tooltip>',
         hasFilterNegation: '<tooltip>Zoek naar uitgaven zonder bonnen met <strong>-has:receipt</strong>.</tooltip>',
         mileageRateAutoUpdated: '<tooltip>We hebben het tarief bijgewerkt op basis van je reisdatum.</tooltip>',
+        markAllAsRead: '<tooltip>Klik met de rechtermuisknop om <strong>alles als gelezen te markeren</strong>.</tooltip>',
+        markAllAsReadTouchScreen: '<tooltip>Houd ingedrukt om <strong>alles als gelezen te markeren</strong>.</tooltip>',
     },
     discardChangesConfirmation: {
         title: 'Wijzigingen negeren?',
@@ -10973,6 +11010,7 @@ Hier is een *proefbon* om je te laten zien hoe het werkt:`,
         readyPartialBody: ({count, total}: {count: number; total: number}) =>
             `${count} of ${total} reports exported. If it didn't automatically download, use the button below. See which reports failed in <concierge-link>Concierge</concierge-link>.`,
         close: 'Close',
+        truncatedBody: 'Let op! Deze export was te groot en is beperkt tot de eerste 50.000 rapporten die aan je zoekopdracht voldeden.',
     },
     domain: {
         notVerified: 'Niet geverifieerd',
