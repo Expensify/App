@@ -139,9 +139,7 @@ describe('OptionsListUtils', () => {
             isPinned: false,
             reportID: '1',
             participants: {
-                2: {
-                    notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
-                },
+                2: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
                 1: {
                     notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
                 },
@@ -158,12 +156,8 @@ describe('OptionsListUtils', () => {
             isPinned: false,
             reportID: '2',
             participants: {
-                2: {
-                    notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
-                },
-                3: {
-                    notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
-                },
+                2: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                3: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
             },
             reportName: 'Spider-Man',
             type: CONST.REPORT.TYPE.CHAT,
@@ -176,9 +170,7 @@ describe('OptionsListUtils', () => {
             isPinned: true,
             reportID: '3',
             participants: {
-                2: {
-                    notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
-                },
+                2: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
                 1: {
                     notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
                 },
@@ -192,9 +184,7 @@ describe('OptionsListUtils', () => {
             isPinned: false,
             reportID: '4',
             participants: {
-                2: {
-                    notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
-                },
+                2: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
                 4: {
                     notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
                 },
@@ -208,9 +198,7 @@ describe('OptionsListUtils', () => {
             isPinned: false,
             reportID: '5',
             participants: {
-                2: {
-                    notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
-                },
+                2: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
                 5: {
                     notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
                 },
@@ -224,9 +212,7 @@ describe('OptionsListUtils', () => {
             isPinned: false,
             reportID: '6',
             participants: {
-                2: {
-                    notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
-                },
+                2: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
                 6: {
                     notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
                 },
@@ -242,9 +228,7 @@ describe('OptionsListUtils', () => {
             isPinned: false,
             reportID: '7',
             participants: {
-                2: {
-                    notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
-                },
+                2: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
                 7: {
                     notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
                 },
@@ -260,9 +244,7 @@ describe('OptionsListUtils', () => {
             isPinned: false,
             reportID: '8',
             participants: {
-                2: {
-                    notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
-                },
+                2: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
                 12: {
                     notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
                 },
@@ -278,9 +260,7 @@ describe('OptionsListUtils', () => {
             isPinned: false,
             reportID: '9',
             participants: {
-                2: {
-                    notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
-                },
+                2: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
                 8: {
                     notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
                 },
@@ -297,9 +277,7 @@ describe('OptionsListUtils', () => {
             reportID: '10',
             isPinned: false,
             participants: {
-                2: {
-                    notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
-                },
+                2: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
                 7: {
                     notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
                 },
@@ -360,9 +338,7 @@ describe('OptionsListUtils', () => {
             isPinned: false,
             reportID: '11',
             participants: {
-                2: {
-                    notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
-                },
+                2: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
                 999: {
                     notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
                 },
@@ -380,9 +356,7 @@ describe('OptionsListUtils', () => {
             isPinned: false,
             reportID: '12',
             participants: {
-                2: {
-                    notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
-                },
+                2: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
                 1000: {
                     notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
                 },
@@ -400,9 +374,7 @@ describe('OptionsListUtils', () => {
             isPinned: false,
             reportID: '13',
             participants: {
-                2: {
-                    notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
-                },
+                2: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
                 1001: {
                     notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
                 },
@@ -420,18 +392,14 @@ describe('OptionsListUtils', () => {
             isPinned: false,
             reportID: '14',
             participants: {
-                2: {
-                    notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
-                },
+                2: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
                 1: {
                     notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
                 },
                 10: {
                     notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
                 },
-                3: {
-                    notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
-                },
+                3: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
             },
             reportName: '',
             oldPolicyName: 'Avengers Room',
@@ -449,12 +417,8 @@ describe('OptionsListUtils', () => {
             isPinned: false,
             reportID: '15',
             participants: {
-                2: {
-                    notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
-                },
-                3: {
-                    notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
-                },
+                2: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                3: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
                 4: {
                     notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
                 },
@@ -472,9 +436,7 @@ describe('OptionsListUtils', () => {
             isPinned: false,
             reportID: '16',
             participants: {
-                2: {
-                    notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
-                },
+                2: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
             },
             reportName: 'Expense Report',
             type: CONST.REPORT.TYPE.EXPENSE,
@@ -485,9 +447,7 @@ describe('OptionsListUtils', () => {
             isPinned: false,
             reportID: '17',
             participants: {
-                2: {
-                    notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
-                },
+                2: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
             },
             reportName: '',
             type: CONST.REPORT.TYPE.CHAT,
@@ -810,13 +770,7 @@ describe('OptionsListUtils', () => {
             MOCK_REPORT_ATTRIBUTES_DERIVED,
             EMPTY_PRIVATE_IS_ARCHIVED_MAP,
             allPolicies,
-            {
-                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                dateFnsLocale: undefined,
-                convertToDisplayString,
-                conciergeReportID: undefined,
-                isSearching: true,
-            },
+            {currentUserAccountID: CURRENT_USER_ACCOUNT_ID, dateFnsLocale: undefined, convertToDisplayString, conciergeReportID: undefined, isSearching: true},
             undefined,
         );
         OPTIONS_WITH_CONCIERGE = createFilteredOptionList(
@@ -825,13 +779,7 @@ describe('OptionsListUtils', () => {
             MOCK_REPORT_ATTRIBUTES_DERIVED_WITH_CONCIERGE,
             EMPTY_PRIVATE_IS_ARCHIVED_MAP,
             undefined,
-            {
-                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                dateFnsLocale: undefined,
-                convertToDisplayString,
-                conciergeReportID: undefined,
-                isSearching: true,
-            },
+            {currentUserAccountID: CURRENT_USER_ACCOUNT_ID, dateFnsLocale: undefined, convertToDisplayString, conciergeReportID: undefined, isSearching: true},
             undefined,
         );
         OPTIONS_WITH_CHRONOS = createFilteredOptionList(
@@ -840,13 +788,7 @@ describe('OptionsListUtils', () => {
             MOCK_REPORT_ATTRIBUTES_DERIVED_WITH_CHRONOS,
             EMPTY_PRIVATE_IS_ARCHIVED_MAP,
             undefined,
-            {
-                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                dateFnsLocale: undefined,
-                convertToDisplayString,
-                conciergeReportID: undefined,
-                isSearching: true,
-            },
+            {currentUserAccountID: CURRENT_USER_ACCOUNT_ID, dateFnsLocale: undefined, convertToDisplayString, conciergeReportID: undefined, isSearching: true},
             undefined,
         );
         OPTIONS_WITH_RECEIPTS = createFilteredOptionList(
@@ -855,13 +797,7 @@ describe('OptionsListUtils', () => {
             MOCK_REPORT_ATTRIBUTES_DERIVED_WITH_RECEIPTS,
             EMPTY_PRIVATE_IS_ARCHIVED_MAP,
             undefined,
-            {
-                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                dateFnsLocale: undefined,
-                convertToDisplayString,
-                conciergeReportID: undefined,
-                isSearching: true,
-            },
+            {currentUserAccountID: CURRENT_USER_ACCOUNT_ID, dateFnsLocale: undefined, convertToDisplayString, conciergeReportID: undefined, isSearching: true},
             undefined,
         );
         OPTIONS_WITH_WORKSPACE_ROOM = createFilteredOptionList(
@@ -870,13 +806,7 @@ describe('OptionsListUtils', () => {
             MOCK_REPORT_ATTRIBUTES_DERIVED_WITH_WORKSPACE_ROOM,
             EMPTY_PRIVATE_IS_ARCHIVED_MAP,
             undefined,
-            {
-                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                dateFnsLocale: undefined,
-                convertToDisplayString,
-                conciergeReportID: undefined,
-                isSearching: true,
-            },
+            {currentUserAccountID: CURRENT_USER_ACCOUNT_ID, dateFnsLocale: undefined, convertToDisplayString, conciergeReportID: undefined, isSearching: true},
             undefined,
         );
     });
@@ -938,9 +868,7 @@ describe('OptionsListUtils', () => {
                         [CURRENT_USER_ACCOUNT_ID]: {
                             notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
                         },
-                        3: {
-                            notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
-                        },
+                        3: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
                     },
                     reportName: "Spider-Man's expenses",
                     chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
@@ -956,13 +884,7 @@ describe('OptionsListUtils', () => {
                 createMockReportAttributesDerived(memberWorkspaceChat, PERSONAL_DETAILS, CURRENT_USER_ACCOUNT_ID),
                 EMPTY_PRIVATE_IS_ARCHIVED_MAP,
                 allPolicies,
-                {
-                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                    dateFnsLocale: undefined,
-                    convertToDisplayString,
-                    conciergeReportID: undefined,
-                    isSearching: true,
-                },
+                {currentUserAccountID: CURRENT_USER_ACCOUNT_ID, dateFnsLocale: undefined, convertToDisplayString, conciergeReportID: undefined, isSearching: true},
                 undefined,
             );
 
@@ -1262,10 +1184,7 @@ describe('OptionsListUtils', () => {
             // Given a set of reports and personalDetails
             // When we call getValidOptions()
             const {options: validOptions} = getValidOptions(
-                {
-                    reports: OPTIONS.reports,
-                    personalDetails: OPTIONS.personalDetails,
-                },
+                {reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails},
                 allPolicies,
                 {},
                 loginList,
@@ -1444,13 +1363,7 @@ describe('OptionsListUtils', () => {
                 undefined,
                 EMPTY_PRIVATE_IS_ARCHIVED_MAP,
                 allPolicies,
-                {
-                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                    dateFnsLocale: undefined,
-                    convertToDisplayString,
-                    conciergeReportID: undefined,
-                    isSearching: true,
-                },
+                {currentUserAccountID: CURRENT_USER_ACCOUNT_ID, dateFnsLocale: undefined, convertToDisplayString, conciergeReportID: undefined, isSearching: true},
                 undefined,
             );
 
@@ -1485,10 +1398,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 CURRENT_USER_ACCOUNT_ID,
                 personalDetails,
-                {
-                    dateFnsLocale: undefined,
-                    convertToDisplayString,
-                },
+                {dateFnsLocale: undefined, convertToDisplayString},
                 undefined,
             );
 
@@ -1999,13 +1909,7 @@ describe('OptionsListUtils', () => {
                 MOCK_REPORT_ATTRIBUTES_DERIVED,
                 EMPTY_PRIVATE_IS_ARCHIVED_MAP,
                 allPolicies,
-                {
-                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                    dateFnsLocale: undefined,
-                    convertToDisplayString,
-                    conciergeReportID: undefined,
-                    isSearching: true,
-                },
+                {currentUserAccountID: CURRENT_USER_ACCOUNT_ID, dateFnsLocale: undefined, convertToDisplayString, conciergeReportID: undefined, isSearching: true},
                 undefined,
             );
             const eagerList = hydrateAllPersonalDetails(lazyList);
@@ -2140,22 +2044,12 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 CURRENT_USER_ACCOUNT_ID,
                 PERSONAL_DETAILS,
-                {
-                    dateFnsLocale: undefined,
-                    convertToDisplayString,
-                },
+                {dateFnsLocale: undefined, convertToDisplayString},
                 undefined,
             );
 
             // Then the report must survive both filtering stages
-            expect(filteredOptions.recentReports).toEqual(
-                expect.arrayContaining([
-                    expect.objectContaining({
-                        reportID: report.reportID,
-                        text: reportText,
-                    }),
-                ]),
-            );
+            expect(filteredOptions.recentReports).toEqual(expect.arrayContaining([expect.objectContaining({reportID: report.reportID, text: reportText})]));
         });
 
         it('should keep every shell filter and sort field identical to the hydrated option', () => {
@@ -2237,13 +2131,7 @@ describe('OptionsListUtils', () => {
                 MOCK_REPORT_ATTRIBUTES_DERIVED,
                 EMPTY_PRIVATE_IS_ARCHIVED_MAP,
                 allPolicies,
-                {
-                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                    dateFnsLocale: undefined,
-                    convertToDisplayString,
-                    conciergeReportID: undefined,
-                    isSearching: true,
-                },
+                {currentUserAccountID: CURRENT_USER_ACCOUNT_ID, dateFnsLocale: undefined, convertToDisplayString, conciergeReportID: undefined, isSearching: true},
                 undefined,
             );
 
@@ -2466,13 +2354,7 @@ describe('OptionsListUtils', () => {
                 attributesWithError,
                 EMPTY_PRIVATE_IS_ARCHIVED_MAP,
                 allPolicies,
-                {
-                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                    dateFnsLocale: undefined,
-                    convertToDisplayString,
-                    conciergeReportID: undefined,
-                    isSearching: true,
-                },
+                {currentUserAccountID: CURRENT_USER_ACCOUNT_ID, dateFnsLocale: undefined, convertToDisplayString, conciergeReportID: undefined, isSearching: true},
                 undefined,
             );
             const shell = lazyList.personalDetails.find((option) => option.reportID === dmReportID);
@@ -2628,17 +2510,11 @@ describe('OptionsListUtils', () => {
             reportName: 'Parity Contact',
             lastVisibleActionCreated: '2024-01-01 00:00:00.000',
             participants: {
-                [CURRENT_USER_ACCOUNT_ID]: {
-                    notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
-                },
-                [PARITY_ACCOUNT_ID]: {
-                    notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
-                },
+                [CURRENT_USER_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                [PARITY_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
             },
         };
-        const PARITY_REPORTS: OnyxCollection<Report> = {
-            [PARITY_REPORT_ID]: PARITY_REPORT,
-        };
+        const PARITY_REPORTS: OnyxCollection<Report> = {[PARITY_REPORT_ID]: PARITY_REPORT};
 
         // Non-default hydration inputs. Each one drives a different field of the built option, asserted below.
         const PARITY_ATTRIBUTES: Record<string, ReportAttributes> = {
@@ -2662,13 +2538,7 @@ describe('OptionsListUtils', () => {
                 PARITY_ATTRIBUTES,
                 PARITY_ARCHIVED_MAP,
                 allPolicies,
-                {
-                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                    dateFnsLocale: undefined,
-                    convertToDisplayString,
-                    conciergeReportID: undefined,
-                    isSearching: true,
-                },
+                {currentUserAccountID: CURRENT_USER_ACCOUNT_ID, dateFnsLocale: undefined, convertToDisplayString, conciergeReportID: undefined, isSearching: true},
                 undefined,
             );
             const shell = list.personalDetails.at(0);
@@ -2779,11 +2649,7 @@ describe('OptionsListUtils', () => {
                 visibleReportActionsData: {},
             });
 
-            expect(hydrated).toEqual({
-                item: PARITY_PERSONAL_DETAIL,
-                ...withConcierge,
-                isHydrated: true,
-            });
+            expect(hydrated).toEqual({item: PARITY_PERSONAL_DETAIL, ...withConcierge, isHydrated: true});
         });
     });
 
@@ -2861,13 +2727,7 @@ describe('OptionsListUtils', () => {
                 MOCK_REPORT_ATTRIBUTES_DERIVED,
                 EMPTY_PRIVATE_IS_ARCHIVED_MAP,
                 allPolicies,
-                {
-                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                    dateFnsLocale: undefined,
-                    convertToDisplayString,
-                    conciergeReportID: undefined,
-                    isSearching: true,
-                },
+                {currentUserAccountID: CURRENT_USER_ACCOUNT_ID, dateFnsLocale: undefined, convertToDisplayString, conciergeReportID: undefined, isSearching: true},
                 undefined,
             );
             const shell = list.personalDetails.at(0);
@@ -2909,13 +2769,7 @@ describe('OptionsListUtils', () => {
                 MOCK_REPORT_ATTRIBUTES_DERIVED,
                 EMPTY_PRIVATE_IS_ARCHIVED_MAP,
                 allPolicies,
-                {
-                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                    dateFnsLocale: undefined,
-                    convertToDisplayString,
-                    conciergeReportID: undefined,
-                    isSearching: true,
-                },
+                {currentUserAccountID: CURRENT_USER_ACCOUNT_ID, dateFnsLocale: undefined, convertToDisplayString, conciergeReportID: undefined, isSearching: true},
                 undefined,
             );
             const option = list.personalDetails.at(0);
@@ -3594,10 +3448,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 CURRENT_USER_ACCOUNT_ID,
                 PERSONAL_DETAILS,
-                {
-                    dateFnsLocale: undefined,
-                    convertToDisplayString,
-                },
+                {dateFnsLocale: undefined, convertToDisplayString},
                 undefined,
             );
 
@@ -3636,11 +3487,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 CURRENT_USER_ACCOUNT_ID,
                 PERSONAL_DETAILS,
-                {
-                    dateFnsLocale: undefined,
-                    convertToDisplayString,
-                    sortByReportTypeInSearch: true,
-                },
+                {dateFnsLocale: undefined, convertToDisplayString, sortByReportTypeInSearch: true},
                 undefined,
             );
 
@@ -3686,10 +3533,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 CURRENT_USER_ACCOUNT_ID,
                 PERSONAL_DETAILS,
-                {
-                    dateFnsLocale: undefined,
-                    convertToDisplayString,
-                },
+                {dateFnsLocale: undefined, convertToDisplayString},
                 undefined,
             );
 
@@ -3711,13 +3555,7 @@ describe('OptionsListUtils', () => {
                 MOCK_REPORT_ATTRIBUTES_DERIVED,
                 archivedMap,
                 undefined,
-                {
-                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                    dateFnsLocale: undefined,
-                    convertToDisplayString,
-                    conciergeReportID: undefined,
-                    isSearching: true,
-                },
+                {currentUserAccountID: CURRENT_USER_ACCOUNT_ID, dateFnsLocale: undefined, convertToDisplayString, conciergeReportID: undefined, isSearching: true},
                 undefined,
             );
             // When we call getSearchOptions with all betas
@@ -3748,10 +3586,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 CURRENT_USER_ACCOUNT_ID,
                 PERSONAL_DETAILS,
-                {
-                    dateFnsLocale: undefined,
-                    convertToDisplayString,
-                },
+                {dateFnsLocale: undefined, convertToDisplayString},
                 undefined,
             );
 
@@ -3771,13 +3606,7 @@ describe('OptionsListUtils', () => {
                 undefined,
                 EMPTY_PRIVATE_IS_ARCHIVED_MAP,
                 undefined,
-                {
-                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                    dateFnsLocale: undefined,
-                    convertToDisplayString,
-                    conciergeReportID: undefined,
-                    isSearching: true,
-                },
+                {currentUserAccountID: CURRENT_USER_ACCOUNT_ID, dateFnsLocale: undefined, convertToDisplayString, conciergeReportID: undefined, isSearching: true},
                 undefined,
             );
             // When we call getSearchOptions with all betas
@@ -3807,11 +3636,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 CURRENT_USER_ACCOUNT_ID,
                 PERSONAL_DETAILS_WITH_PERIODS,
-                {
-                    dateFnsLocale: undefined,
-                    convertToDisplayString,
-                    sortByReportTypeInSearch: true,
-                },
+                {dateFnsLocale: undefined, convertToDisplayString, sortByReportTypeInSearch: true},
                 undefined,
             );
 
@@ -3851,10 +3676,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 CURRENT_USER_ACCOUNT_ID,
                 PERSONAL_DETAILS,
-                {
-                    dateFnsLocale: undefined,
-                    convertToDisplayString,
-                },
+                {dateFnsLocale: undefined, convertToDisplayString},
                 undefined,
             );
 
@@ -3894,10 +3716,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 CURRENT_USER_ACCOUNT_ID,
                 PERSONAL_DETAILS,
-                {
-                    dateFnsLocale: undefined,
-                    convertToDisplayString,
-                },
+                {dateFnsLocale: undefined, convertToDisplayString},
                 undefined,
             );
 
@@ -3917,13 +3736,7 @@ describe('OptionsListUtils', () => {
                 MOCK_REPORT_ATTRIBUTES_DERIVED_WITH_CHAT_ROOM,
                 EMPTY_PRIVATE_IS_ARCHIVED_MAP,
                 undefined,
-                {
-                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                    dateFnsLocale: undefined,
-                    convertToDisplayString,
-                    conciergeReportID: undefined,
-                    isSearching: true,
-                },
+                {currentUserAccountID: CURRENT_USER_ACCOUNT_ID, dateFnsLocale: undefined, convertToDisplayString, conciergeReportID: undefined, isSearching: true},
                 undefined,
             );
             // When we call getSearchOptions with all betas
@@ -3953,10 +3766,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 CURRENT_USER_ACCOUNT_ID,
                 PERSONAL_DETAILS,
-                {
-                    dateFnsLocale: undefined,
-                    convertToDisplayString,
-                },
+                {dateFnsLocale: undefined, convertToDisplayString},
                 undefined,
             );
 
@@ -3996,10 +3806,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 CURRENT_USER_ACCOUNT_ID,
                 PERSONAL_DETAILS,
-                {
-                    dateFnsLocale: undefined,
-                    convertToDisplayString,
-                },
+                {dateFnsLocale: undefined, convertToDisplayString},
                 undefined,
             );
 
@@ -4041,10 +3848,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 CURRENT_USER_ACCOUNT_ID,
                 PERSONAL_DETAILS,
-                {
-                    dateFnsLocale: undefined,
-                    convertToDisplayString,
-                },
+                {dateFnsLocale: undefined, convertToDisplayString},
                 undefined,
             );
 
@@ -4229,10 +4033,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 CURRENT_USER_ACCOUNT_ID,
                 PERSONAL_DETAILS,
-                {
-                    dateFnsLocale: undefined,
-                    convertToDisplayString,
-                },
+                {dateFnsLocale: undefined, convertToDisplayString},
                 undefined,
             );
 
@@ -4290,10 +4091,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 CURRENT_USER_ACCOUNT_ID,
                 PERSONAL_DETAILS,
-                {
-                    dateFnsLocale: undefined,
-                    convertToDisplayString,
-                },
+                {dateFnsLocale: undefined, convertToDisplayString},
                 undefined,
             );
 
@@ -4354,10 +4152,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 CURRENT_USER_ACCOUNT_ID,
                 PERSONAL_DETAILS,
-                {
-                    dateFnsLocale: undefined,
-                    convertToDisplayString,
-                },
+                {dateFnsLocale: undefined, convertToDisplayString},
                 undefined,
             );
 
@@ -4418,10 +4213,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 CURRENT_USER_ACCOUNT_ID,
                 PERSONAL_DETAILS,
-                {
-                    dateFnsLocale: undefined,
-                    convertToDisplayString,
-                },
+                {dateFnsLocale: undefined, convertToDisplayString},
                 undefined,
             );
 
@@ -4456,10 +4248,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 CURRENT_USER_ACCOUNT_ID,
                 PERSONAL_DETAILS,
-                {
-                    dateFnsLocale: undefined,
-                    convertToDisplayString,
-                },
+                {dateFnsLocale: undefined, convertToDisplayString},
                 undefined,
             );
 
@@ -4480,12 +4269,8 @@ describe('OptionsListUtils', () => {
                     isPinned: false,
                     reportID: '18',
                     participants: {
-                        2: {
-                            notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
-                        },
-                        3: {
-                            notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
-                        },
+                        2: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                        3: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
                         4: {
                             notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
                         },
@@ -4502,13 +4287,7 @@ describe('OptionsListUtils', () => {
                 undefined,
                 EMPTY_PRIVATE_IS_ARCHIVED_MAP,
                 undefined,
-                {
-                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                    dateFnsLocale: undefined,
-                    convertToDisplayString,
-                    conciergeReportID: undefined,
-                    isSearching: true,
-                },
+                {currentUserAccountID: CURRENT_USER_ACCOUNT_ID, dateFnsLocale: undefined, convertToDisplayString, conciergeReportID: undefined, isSearching: true},
                 undefined,
             );
 
@@ -4547,12 +4326,8 @@ describe('OptionsListUtils', () => {
                     isPinned: false,
                     reportID: '18',
                     participants: {
-                        2: {
-                            notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
-                        },
-                        3: {
-                            notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
-                        },
+                        2: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                        3: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
                         4: {
                             notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
                         },
@@ -4569,13 +4344,7 @@ describe('OptionsListUtils', () => {
                 undefined,
                 EMPTY_PRIVATE_IS_ARCHIVED_MAP,
                 undefined,
-                {
-                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                    dateFnsLocale: undefined,
-                    convertToDisplayString,
-                    conciergeReportID: undefined,
-                    isSearching: true,
-                },
+                {currentUserAccountID: CURRENT_USER_ACCOUNT_ID, dateFnsLocale: undefined, convertToDisplayString, conciergeReportID: undefined, isSearching: true},
                 undefined,
             );
 
@@ -4614,12 +4383,8 @@ describe('OptionsListUtils', () => {
                     isPinned: false,
                     reportID: '18',
                     participants: {
-                        2: {
-                            notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
-                        },
-                        3: {
-                            notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
-                        },
+                        2: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                        3: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
                         4: {
                             notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
                         },
@@ -4636,13 +4401,7 @@ describe('OptionsListUtils', () => {
                 undefined,
                 EMPTY_PRIVATE_IS_ARCHIVED_MAP,
                 undefined,
-                {
-                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                    dateFnsLocale: undefined,
-                    convertToDisplayString,
-                    conciergeReportID: undefined,
-                    isSearching: true,
-                },
+                {currentUserAccountID: CURRENT_USER_ACCOUNT_ID, dateFnsLocale: undefined, convertToDisplayString, conciergeReportID: undefined, isSearching: true},
                 undefined,
             );
 
@@ -4681,12 +4440,8 @@ describe('OptionsListUtils', () => {
                     isPinned: false,
                     reportID: '18',
                     participants: {
-                        2: {
-                            notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
-                        },
-                        3: {
-                            notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
-                        },
+                        2: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                        3: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
                         4: {
                             notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
                         },
@@ -4703,13 +4458,7 @@ describe('OptionsListUtils', () => {
                 undefined,
                 EMPTY_PRIVATE_IS_ARCHIVED_MAP,
                 undefined,
-                {
-                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                    dateFnsLocale: undefined,
-                    convertToDisplayString,
-                    conciergeReportID: undefined,
-                    isSearching: true,
-                },
+                {currentUserAccountID: CURRENT_USER_ACCOUNT_ID, dateFnsLocale: undefined, convertToDisplayString, conciergeReportID: undefined, isSearching: true},
                 undefined,
             );
 
@@ -4765,13 +4514,7 @@ describe('OptionsListUtils', () => {
                 undefined,
                 EMPTY_PRIVATE_IS_ARCHIVED_MAP,
                 undefined,
-                {
-                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                    dateFnsLocale: undefined,
-                    convertToDisplayString,
-                    conciergeReportID: undefined,
-                    isSearching: true,
-                },
+                {currentUserAccountID: CURRENT_USER_ACCOUNT_ID, dateFnsLocale: undefined, convertToDisplayString, conciergeReportID: undefined, isSearching: true},
                 undefined,
             );
 
@@ -4803,10 +4546,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 CURRENT_USER_ACCOUNT_ID,
                 PERSONAL_DETAILS,
-                {
-                    dateFnsLocale: undefined,
-                    convertToDisplayString,
-                },
+                {dateFnsLocale: undefined, convertToDisplayString},
                 undefined,
             );
 
@@ -4842,10 +4582,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 CURRENT_USER_ACCOUNT_ID,
                 PERSONAL_DETAILS,
-                {
-                    dateFnsLocale: undefined,
-                    convertToDisplayString,
-                },
+                {dateFnsLocale: undefined, convertToDisplayString},
                 undefined,
             );
 
@@ -4883,10 +4620,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 CURRENT_USER_ACCOUNT_ID,
                 PERSONAL_DETAILS,
-                {
-                    dateFnsLocale: undefined,
-                    convertToDisplayString,
-                },
+                {dateFnsLocale: undefined, convertToDisplayString},
                 undefined,
             );
 
@@ -4924,10 +4658,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 CURRENT_USER_ACCOUNT_ID,
                 PERSONAL_DETAILS,
-                {
-                    dateFnsLocale: undefined,
-                    convertToDisplayString,
-                },
+                {dateFnsLocale: undefined, convertToDisplayString},
                 undefined,
             );
 
@@ -4964,10 +4695,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 CURRENT_USER_ACCOUNT_ID,
                 PERSONAL_DETAILS,
-                {
-                    dateFnsLocale: undefined,
-                    convertToDisplayString,
-                },
+                {dateFnsLocale: undefined, convertToDisplayString},
                 undefined,
             );
 
@@ -5002,10 +4730,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 CURRENT_USER_ACCOUNT_ID,
                 PERSONAL_DETAILS,
-                {
-                    dateFnsLocale: undefined,
-                    convertToDisplayString,
-                },
+                {dateFnsLocale: undefined, convertToDisplayString},
                 undefined,
             );
 
@@ -5045,10 +4770,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 CURRENT_USER_ACCOUNT_ID,
                 PERSONAL_DETAILS,
-                {
-                    dateFnsLocale: undefined,
-                    convertToDisplayString,
-                },
+                {dateFnsLocale: undefined, convertToDisplayString},
                 undefined,
             );
 
@@ -5088,10 +4810,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 CURRENT_USER_ACCOUNT_ID,
                 PERSONAL_DETAILS,
-                {
-                    dateFnsLocale: undefined,
-                    convertToDisplayString,
-                },
+                {dateFnsLocale: undefined, convertToDisplayString},
                 undefined,
             );
 
@@ -5131,10 +4850,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 CURRENT_USER_ACCOUNT_ID,
                 PERSONAL_DETAILS,
-                {
-                    dateFnsLocale: undefined,
-                    convertToDisplayString,
-                },
+                {dateFnsLocale: undefined, convertToDisplayString},
                 undefined,
             );
 
@@ -5256,10 +4972,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 CURRENT_USER_ACCOUNT_ID,
                 PERSONAL_DETAILS,
-                {
-                    dateFnsLocale: undefined,
-                    convertToDisplayString,
-                },
+                {dateFnsLocale: undefined, convertToDisplayString},
                 undefined,
             );
 
@@ -5294,11 +5007,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 CURRENT_USER_ACCOUNT_ID,
                 PERSONAL_DETAILS,
-                {
-                    dateFnsLocale: undefined,
-                    convertToDisplayString,
-                    sortByReportTypeInSearch: true,
-                },
+                {dateFnsLocale: undefined, convertToDisplayString, sortByReportTypeInSearch: true},
                 undefined,
             );
 
@@ -5384,10 +5093,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 CURRENT_USER_ACCOUNT_ID,
                 PERSONAL_DETAILS,
-                {
-                    dateFnsLocale: undefined,
-                    convertToDisplayString,
-                },
+                {dateFnsLocale: undefined, convertToDisplayString},
                 undefined,
             );
 
@@ -5425,10 +5131,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 CURRENT_USER_ACCOUNT_ID,
                 PERSONAL_DETAILS,
-                {
-                    dateFnsLocale: undefined,
-                    convertToDisplayString,
-                },
+                {dateFnsLocale: undefined, convertToDisplayString},
                 undefined,
             );
 
@@ -5449,13 +5152,7 @@ describe('OptionsListUtils', () => {
                         undefined,
                         EMPTY_PRIVATE_IS_ARCHIVED_MAP,
                         undefined,
-                        {
-                            currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                            dateFnsLocale: undefined,
-                            convertToDisplayString,
-                            conciergeReportID: undefined,
-                            isSearching: true,
-                        },
+                        {currentUserAccountID: CURRENT_USER_ACCOUNT_ID, dateFnsLocale: undefined, convertToDisplayString, conciergeReportID: undefined, isSearching: true},
                         undefined,
                     );
                     // When we call getSearchOptions
@@ -5484,11 +5181,7 @@ describe('OptionsListUtils', () => {
                         CURRENT_USER_EMAIL,
                         CURRENT_USER_ACCOUNT_ID,
                         PERSONAL_DETAILS_WITH_PERIODS,
-                        {
-                            dateFnsLocale: undefined,
-                            convertToDisplayString,
-                            sortByReportTypeInSearch: true,
-                        },
+                        {dateFnsLocale: undefined, convertToDisplayString, sortByReportTypeInSearch: true},
                         undefined,
                     );
 
@@ -5533,10 +5226,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 CURRENT_USER_ACCOUNT_ID,
                 PERSONAL_DETAILS,
-                {
-                    dateFnsLocale: undefined,
-                    convertToDisplayString,
-                },
+                {dateFnsLocale: undefined, convertToDisplayString},
                 undefined,
             );
             const matchingEntries = filteredOptions.personalDetails.filter((detail) => detail.login === login);
@@ -5555,13 +5245,7 @@ describe('OptionsListUtils', () => {
                 undefined,
                 EMPTY_PRIVATE_IS_ARCHIVED_MAP,
                 undefined,
-                {
-                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                    dateFnsLocale: undefined,
-                    convertToDisplayString,
-                    conciergeReportID: undefined,
-                    isSearching: true,
-                },
+                {currentUserAccountID: CURRENT_USER_ACCOUNT_ID, dateFnsLocale: undefined, convertToDisplayString, conciergeReportID: undefined, isSearching: true},
                 undefined,
             );
 
@@ -5592,10 +5276,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 CURRENT_USER_ACCOUNT_ID,
                 PERSONAL_DETAILS,
-                {
-                    dateFnsLocale: undefined,
-                    convertToDisplayString,
-                },
+                {dateFnsLocale: undefined, convertToDisplayString},
                 undefined,
             );
 
@@ -5631,10 +5312,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 CURRENT_USER_ACCOUNT_ID,
                 PERSONAL_DETAILS,
-                {
-                    dateFnsLocale: undefined,
-                    convertToDisplayString,
-                },
+                {dateFnsLocale: undefined, convertToDisplayString},
                 undefined,
             );
             const spaceSeparatedQueryResults = filterAndOrderOptions(
@@ -5645,10 +5323,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 CURRENT_USER_ACCOUNT_ID,
                 PERSONAL_DETAILS,
-                {
-                    dateFnsLocale: undefined,
-                    convertToDisplayString,
-                },
+                {dateFnsLocale: undefined, convertToDisplayString},
                 undefined,
             );
 
@@ -5708,13 +5383,7 @@ describe('OptionsListUtils', () => {
                 undefined,
                 EMPTY_PRIVATE_IS_ARCHIVED_MAP,
                 allPolicies,
-                {
-                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                    dateFnsLocale: undefined,
-                    convertToDisplayString,
-                    conciergeReportID: undefined,
-                    isSearching: true,
-                },
+                {currentUserAccountID: CURRENT_USER_ACCOUNT_ID, dateFnsLocale: undefined, convertToDisplayString, conciergeReportID: undefined, isSearching: true},
                 undefined,
             ).reports;
 
@@ -5732,13 +5401,7 @@ describe('OptionsListUtils', () => {
                 undefined,
                 EMPTY_PRIVATE_IS_ARCHIVED_MAP,
                 allPolicies,
-                {
-                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                    dateFnsLocale: undefined,
-                    convertToDisplayString,
-                    conciergeReportID: undefined,
-                    isSearching: true,
-                },
+                {currentUserAccountID: CURRENT_USER_ACCOUNT_ID, dateFnsLocale: undefined, convertToDisplayString, conciergeReportID: undefined, isSearching: true},
                 undefined,
             ).reports;
             // Then the returned reports should change to Spanish
@@ -5829,13 +5492,7 @@ describe('OptionsListUtils', () => {
                 undefined,
                 archivedMap,
                 undefined,
-                {
-                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                    dateFnsLocale: undefined,
-                    convertToDisplayString,
-                    conciergeReportID: undefined,
-                    isSearching: true,
-                },
+                {currentUserAccountID: CURRENT_USER_ACCOUNT_ID, dateFnsLocale: undefined, convertToDisplayString, conciergeReportID: undefined, isSearching: true},
                 undefined,
             ).reports;
             const archivedReport = reports.find((report) => report.reportID === '10');
@@ -5850,12 +5507,8 @@ describe('OptionsListUtils', () => {
         const DM_REPORT_ID = '9200';
 
         const participants = {
-            2: {
-                notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
-            },
-            3: {
-                notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
-            },
+            2: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+            3: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
         };
 
         const buildRoomReport = (overrides: Partial<Report> = {}): Report => ({
@@ -5917,11 +5570,7 @@ describe('OptionsListUtils', () => {
             // Given a DM whose last action is a plain comment containing markup typed by the user
             const report = buildDMReport({lastMessageText: '<b>test</b>'});
             await setReport(report);
-            const option: OptionData = {
-                reportID: DM_REPORT_ID,
-                keyForList: '',
-                lastMessageText: '<b>test</b>',
-            };
+            const option: OptionData = {reportID: DM_REPORT_ID, keyForList: '', lastMessageText: '<b>test</b>'};
 
             const result = getAlternateText(option, {showChatPreviewLine: true}, buildConfig(undefined, DM_REPORT_ID));
 
@@ -5931,16 +5580,9 @@ describe('OptionsListUtils', () => {
 
         it('should strip HTML from the last message when the last action is not ADD_COMMENT', async () => {
             // Given a DM whose last action is not a comment, so the last message is server-built HTML
-            const report = buildDMReport({
-                lastMessageText: '<b>test</b>',
-                lastActionType: CONST.REPORT.ACTIONS.TYPE.RENAMED,
-            });
+            const report = buildDMReport({lastMessageText: '<b>test</b>', lastActionType: CONST.REPORT.ACTIONS.TYPE.RENAMED});
             await setReport(report);
-            const option: OptionData = {
-                reportID: DM_REPORT_ID,
-                keyForList: '',
-                lastMessageText: '<b>test</b>',
-            };
+            const option: OptionData = {reportID: DM_REPORT_ID, keyForList: '', lastMessageText: '<b>test</b>'};
 
             const result = getAlternateText(option, {showChatPreviewLine: true}, buildConfig(undefined, DM_REPORT_ID));
 
@@ -5950,12 +5592,7 @@ describe('OptionsListUtils', () => {
         it('should prefix the room preview with the last actor display name', async () => {
             await setReport(buildRoomReport());
             const comment = buildAction(CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, 3);
-            const option: OptionData = {
-                reportID: ROOM_REPORT_ID,
-                keyForList: '',
-                lastMessageText: 'hello',
-                isChatRoom: true,
-            };
+            const option: OptionData = {reportID: ROOM_REPORT_ID, keyForList: '', lastMessageText: 'hello', isChatRoom: true};
 
             const result = getAlternateText(option, {showChatPreviewLine: true}, buildConfig(comment));
 
@@ -5965,12 +5602,7 @@ describe('OptionsListUtils', () => {
         it('should use "You" as the prefix when the current user sent the last message', async () => {
             await setReport(buildRoomReport({lastActorAccountID: CURRENT_USER_ACCOUNT_ID}));
             const comment = buildAction(CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, CURRENT_USER_ACCOUNT_ID);
-            const option: OptionData = {
-                reportID: ROOM_REPORT_ID,
-                keyForList: '',
-                lastMessageText: 'hello',
-                isChatRoom: true,
-            };
+            const option: OptionData = {reportID: ROOM_REPORT_ID, keyForList: '', lastMessageText: 'hello', isChatRoom: true};
 
             const result = getAlternateText(option, {showChatPreviewLine: true}, buildConfig(comment));
 
@@ -5980,12 +5612,7 @@ describe('OptionsListUtils', () => {
         it('should omit the actor prefix when the report is archived', async () => {
             await setReport(buildRoomReport());
             const comment = buildAction(CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, 3);
-            const option: OptionData = {
-                reportID: ROOM_REPORT_ID,
-                keyForList: '',
-                lastMessageText: 'hello',
-                isChatRoom: true,
-            };
+            const option: OptionData = {reportID: ROOM_REPORT_ID, keyForList: '', lastMessageText: 'hello', isChatRoom: true};
 
             const result = getAlternateText(option, {showChatPreviewLine: true}, buildConfig(comment, ROOM_REPORT_ID, {isReportArchived: true}));
 
@@ -5995,38 +5622,17 @@ describe('OptionsListUtils', () => {
         it('should omit the actor prefix when currentUserAccountID is undefined', async () => {
             await setReport(buildRoomReport());
             const comment = buildAction(CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, 3);
-            const option: OptionData = {
-                reportID: ROOM_REPORT_ID,
-                keyForList: '',
-                lastMessageText: 'hello',
-                isChatRoom: true,
-            };
+            const option: OptionData = {reportID: ROOM_REPORT_ID, keyForList: '', lastMessageText: 'hello', isChatRoom: true};
 
-            const result = getAlternateText(
-                option,
-                {showChatPreviewLine: true},
-                buildConfig(comment, ROOM_REPORT_ID, {
-                    currentUserAccountID: undefined,
-                }),
-            );
+            const result = getAlternateText(option, {showChatPreviewLine: true}, buildConfig(comment, ROOM_REPORT_ID, {currentUserAccountID: undefined}));
 
             expect(result).toBe('hello');
         });
 
         it('should omit the actor prefix when the last action is a report preview', async () => {
-            await setReport(
-                buildRoomReport({
-                    lastActionType: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
-                    lastMessageText: 'owes $10',
-                }),
-            );
+            await setReport(buildRoomReport({lastActionType: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW, lastMessageText: 'owes $10'}));
             const preview = buildAction(CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW, 3);
-            const option: OptionData = {
-                reportID: ROOM_REPORT_ID,
-                keyForList: '',
-                lastMessageText: 'owes $10',
-                isChatRoom: true,
-            };
+            const option: OptionData = {reportID: ROOM_REPORT_ID, keyForList: '', lastMessageText: 'owes $10', isChatRoom: true};
 
             const result = getAlternateText(option, {showChatPreviewLine: true}, buildConfig(preview));
 
@@ -6037,12 +5643,7 @@ describe('OptionsListUtils', () => {
             await setReport(buildRoomReport({lastActorAccountID: 999}));
             // The fake action carries person: [{text: 'Email One'}] and account 999 is not in PERSONAL_DETAILS
             const comment = buildAction(CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, 999);
-            const option: OptionData = {
-                reportID: ROOM_REPORT_ID,
-                keyForList: '',
-                lastMessageText: 'hello',
-                isChatRoom: true,
-            };
+            const option: OptionData = {reportID: ROOM_REPORT_ID, keyForList: '', lastMessageText: 'hello', isChatRoom: true};
 
             const result = getAlternateText(option, {showChatPreviewLine: true}, buildConfig(comment));
 
@@ -6050,22 +5651,9 @@ describe('OptionsListUtils', () => {
         });
 
         it('should replace the preview with the rename message for a RENAMED last action', async () => {
-            await setReport(
-                buildRoomReport({
-                    lastActionType: CONST.REPORT.ACTIONS.TYPE.RENAMED,
-                    lastMessageText: 'renamed this room',
-                }),
-            );
-            const renamed = buildAction(CONST.REPORT.ACTIONS.TYPE.RENAMED, 3, {
-                oldName: 'Old Room',
-                newName: 'New Room',
-            });
-            const option: OptionData = {
-                reportID: ROOM_REPORT_ID,
-                keyForList: '',
-                lastMessageText: 'renamed this room',
-                isChatRoom: true,
-            };
+            await setReport(buildRoomReport({lastActionType: CONST.REPORT.ACTIONS.TYPE.RENAMED, lastMessageText: 'renamed this room'}));
+            const renamed = buildAction(CONST.REPORT.ACTIONS.TYPE.RENAMED, 3, {oldName: 'Old Room', newName: 'New Room'});
+            const option: OptionData = {reportID: ROOM_REPORT_ID, keyForList: '', lastMessageText: 'renamed this room', isChatRoom: true};
 
             const result = getAlternateText(option, {showChatPreviewLine: true}, buildConfig(renamed));
 
@@ -6075,12 +5663,7 @@ describe('OptionsListUtils', () => {
         it('should replace the preview with the leave message for a room LEAVE_ROOM last action', async () => {
             await setReport(buildRoomReport({lastMessageText: 'left the chat'}));
             const leave = buildAction(CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.LEAVE_ROOM, 3);
-            const option: OptionData = {
-                reportID: ROOM_REPORT_ID,
-                keyForList: '',
-                lastMessageText: 'left the chat',
-                isChatRoom: true,
-            };
+            const option: OptionData = {reportID: ROOM_REPORT_ID, keyForList: '', lastMessageText: 'left the chat', isChatRoom: true};
 
             const result = getAlternateText(option, {showChatPreviewLine: true}, buildConfig(leave));
 
@@ -6091,12 +5674,7 @@ describe('OptionsListUtils', () => {
             await setReport(buildRoomReport({lastMessageText: 'left the workspace'}));
             // The fake action's message text is 'hey'
             const leave = buildAction(CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.LEAVE_ROOM, 3);
-            const option: OptionData = {
-                reportID: ROOM_REPORT_ID,
-                keyForList: '',
-                lastMessageText: 'left the workspace',
-                isChatRoom: true,
-            };
+            const option: OptionData = {reportID: ROOM_REPORT_ID, keyForList: '', lastMessageText: 'left the workspace', isChatRoom: true};
 
             const result = getAlternateText(option, {showChatPreviewLine: true}, buildConfig(leave));
 
@@ -6106,12 +5684,7 @@ describe('OptionsListUtils', () => {
         it('should build the invite message with member count and room name', async () => {
             await setReport(buildRoomReport({lastMessageText: 'invited'}));
             const invite = buildAction(CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.INVITE_TO_ROOM, 3, {targetAccountIDs: [4, 5], roomName: '#galaxy'});
-            const option: OptionData = {
-                reportID: ROOM_REPORT_ID,
-                keyForList: '',
-                lastMessageText: 'invited',
-                isChatRoom: true,
-            };
+            const option: OptionData = {reportID: ROOM_REPORT_ID, keyForList: '', lastMessageText: 'invited', isChatRoom: true};
 
             const result = getAlternateText(option, {showChatPreviewLine: true}, buildConfig(invite));
 
@@ -6121,12 +5694,7 @@ describe('OptionsListUtils', () => {
         it('should build the remove message with a singular member and room name', async () => {
             await setReport(buildRoomReport({lastMessageText: 'removed'}));
             const remove = buildAction(CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.REMOVE_FROM_ROOM, 3, {targetAccountIDs: [4], roomName: '#galaxy'});
-            const option: OptionData = {
-                reportID: ROOM_REPORT_ID,
-                keyForList: '',
-                lastMessageText: 'removed',
-                isChatRoom: true,
-            };
+            const option: OptionData = {reportID: ROOM_REPORT_ID, keyForList: '', lastMessageText: 'removed', isChatRoom: true};
 
             const result = getAlternateText(option, {showChatPreviewLine: true}, buildConfig(remove));
 
@@ -6141,12 +5709,7 @@ describe('OptionsListUtils', () => {
                 }),
             );
             const invite = buildAction(CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.INVITE_TO_ROOM, 3, {targetAccountIDs: []});
-            const option: OptionData = {
-                reportID: ROOM_REPORT_ID,
-                keyForList: '',
-                lastMessageText: 'invited',
-                isChatRoom: true,
-            };
+            const option: OptionData = {reportID: ROOM_REPORT_ID, keyForList: '', lastMessageText: 'invited', isChatRoom: true};
 
             const result = getAlternateText(option, {showChatPreviewLine: true}, buildConfig(invite));
 
@@ -6156,19 +5719,9 @@ describe('OptionsListUtils', () => {
         it.each([CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED, CONST.REPORT.ACTIONS.TYPE.RETRACTED])(
             'should suppress the actor prefix for %s because its text already embeds the actor',
             async (actionName) => {
-                await setReport(
-                    buildRoomReport({
-                        lastActionType: actionName,
-                        lastMessageText: 'issued a new card',
-                    }),
-                );
+                await setReport(buildRoomReport({lastActionType: actionName, lastMessageText: 'issued a new card'}));
                 const action = buildAction(actionName, 3);
-                const option: OptionData = {
-                    reportID: ROOM_REPORT_ID,
-                    keyForList: '',
-                    lastMessageText: 'issued a new card',
-                    isChatRoom: true,
-                };
+                const option: OptionData = {reportID: ROOM_REPORT_ID, keyForList: '', lastMessageText: 'issued a new card', isChatRoom: true};
 
                 const result = getAlternateText(option, {showChatPreviewLine: true}, buildConfig(action));
 
@@ -6181,32 +5734,12 @@ describe('OptionsListUtils', () => {
             // getWhisperedTo prefers message.whisperedTo over originalMessage, so mark the whisper there
             const whisper = {
                 ...buildAction(CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, 4),
-                message: [
-                    {
-                        type: 'COMMENT',
-                        html: 'psst',
-                        text: 'psst',
-                        isEdited: false,
-                        whisperedTo: [999],
-                        isDeletedParentAction: false,
-                    },
-                ],
+                message: [{type: 'COMMENT', html: 'psst', text: 'psst', isEdited: false, whisperedTo: [999], isDeletedParentAction: false}],
             } as ReportAction;
             const comment = buildAction(CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, 3);
-            const option: OptionData = {
-                reportID: ROOM_REPORT_ID,
-                keyForList: '',
-                lastMessageText: 'hello',
-                isChatRoom: true,
-            };
+            const option: OptionData = {reportID: ROOM_REPORT_ID, keyForList: '', lastMessageText: 'hello', isChatRoom: true};
 
-            const result = getAlternateText(
-                option,
-                {showChatPreviewLine: true},
-                buildConfig(undefined, ROOM_REPORT_ID, {
-                    sortedActions: {[ROOM_REPORT_ID]: [whisper, comment]},
-                }),
-            );
+            const result = getAlternateText(option, {showChatPreviewLine: true}, buildConfig(undefined, ROOM_REPORT_ID, {sortedActions: {[ROOM_REPORT_ID]: [whisper, comment]}}));
 
             expect(result).toBe('Spider-Man: hello');
         });
@@ -6219,12 +5752,7 @@ describe('OptionsListUtils', () => {
             const comment = buildAction(CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, 3);
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${onyxRoomReportID}`, {[comment.reportActionID]: comment});
             await waitForBatchedUpdates();
-            const option: OptionData = {
-                reportID: onyxRoomReportID,
-                keyForList: '',
-                lastMessageText: 'hello',
-                isChatRoom: true,
-            };
+            const option: OptionData = {reportID: onyxRoomReportID, keyForList: '', lastMessageText: 'hello', isChatRoom: true};
 
             const withSortedActions = getAlternateText(option, {showChatPreviewLine: true}, buildConfig(comment, onyxRoomReportID));
             const fromOnyx = getAlternateText(option, {showChatPreviewLine: true}, buildConfig(undefined, onyxRoomReportID));
@@ -6235,18 +5763,8 @@ describe('OptionsListUtils', () => {
 
         it('should fall back to type subtitles when showChatPreviewLine is false', async () => {
             await setReport(buildRoomReport());
-            const roomOption: OptionData = {
-                reportID: ROOM_REPORT_ID,
-                keyForList: '',
-                lastMessageText: 'hello',
-                isChatRoom: true,
-                subtitle: 'Custom subtitle',
-            };
-            const threadOption: OptionData = {
-                reportID: '',
-                keyForList: '',
-                isThread: true,
-            };
+            const roomOption: OptionData = {reportID: ROOM_REPORT_ID, keyForList: '', lastMessageText: 'hello', isChatRoom: true, subtitle: 'Custom subtitle'};
+            const threadOption: OptionData = {reportID: '', keyForList: '', isThread: true};
 
             expect(getAlternateText(roomOption, {showChatPreviewLine: false}, buildConfig())).toBe('Custom subtitle');
             expect(getAlternateText(threadOption, {showChatPreviewLine: false}, buildConfig())).toBe(translateLocal('threads.thread'));
@@ -6264,13 +5782,7 @@ describe('OptionsListUtils', () => {
                 undefined,
                 EMPTY_PRIVATE_IS_ARCHIVED_MAP,
                 undefined,
-                {
-                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                    dateFnsLocale: undefined,
-                    convertToDisplayString,
-                    conciergeReportID: undefined,
-                    isSearching: true,
-                },
+                {currentUserAccountID: CURRENT_USER_ACCOUNT_ID, dateFnsLocale: undefined, convertToDisplayString, conciergeReportID: undefined, isSearching: true},
                 undefined,
             );
 
@@ -6306,16 +5818,7 @@ describe('OptionsListUtils', () => {
             // Align the action's own message with report.lastMessageText — the LHN reads the former, search options the latter
             const comment = {
                 ...buildAction(CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, 3),
-                message: [
-                    {
-                        type: 'COMMENT',
-                        html: 'hello',
-                        text: 'hello',
-                        isEdited: false,
-                        whisperedTo: [],
-                        isDeletedParentAction: false,
-                    },
-                ],
+                message: [{type: 'COMMENT', html: 'hello', text: 'hello', isEdited: false, whisperedTo: [], isDeletedParentAction: false}],
             } as ReportAction;
 
             const lhnOption = SidebarUtils.getOptionData({
@@ -6343,12 +5846,7 @@ describe('OptionsListUtils', () => {
                 formatPhoneNumber,
             });
 
-            const option: OptionData = {
-                reportID: ROOM_REPORT_ID,
-                keyForList: '',
-                lastMessageText: 'hello',
-                isChatRoom: true,
-            };
+            const option: OptionData = {reportID: ROOM_REPORT_ID, keyForList: '', lastMessageText: 'hello', isChatRoom: true};
             const searchAlternateText = getAlternateText(option, {showChatPreviewLine: true}, buildConfig(comment));
 
             expect(lhnOption?.alternateText).toBe('Spider-Man: hello');
@@ -6360,22 +5858,11 @@ describe('OptionsListUtils', () => {
             async (actionName) => {
                 // Given a room whose last action is a policy change log action that has no custom
                 // alternate text branch in SidebarUtils.getOptionData, so the LHN shows `Name: message`
-                const report = buildRoomReport({
-                    lastMessageText: 'updated a custom unit',
-                });
+                const report = buildRoomReport({lastMessageText: 'updated a custom unit'});
                 await setReport(report);
                 const action = {
                     ...buildAction(actionName, 3),
-                    message: [
-                        {
-                            type: 'COMMENT',
-                            html: 'updated a custom unit',
-                            text: 'updated a custom unit',
-                            isEdited: false,
-                            whisperedTo: [],
-                            isDeletedParentAction: false,
-                        },
-                    ],
+                    message: [{type: 'COMMENT', html: 'updated a custom unit', text: 'updated a custom unit', isEdited: false, whisperedTo: [], isDeletedParentAction: false}],
                 } as ReportAction;
 
                 const lhnOption = SidebarUtils.getOptionData({
@@ -6403,12 +5890,7 @@ describe('OptionsListUtils', () => {
                     formatPhoneNumber,
                 });
 
-                const option: OptionData = {
-                    reportID: ROOM_REPORT_ID,
-                    keyForList: '',
-                    lastMessageText: 'updated a custom unit',
-                    isChatRoom: true,
-                };
+                const option: OptionData = {reportID: ROOM_REPORT_ID, keyForList: '', lastMessageText: 'updated a custom unit', isChatRoom: true};
                 const searchAlternateText = getAlternateText(option, {showChatPreviewLine: true}, buildConfig(action));
 
                 expect(lhnOption?.alternateText).toBe('Spider-Man: updated a custom unit');
@@ -6461,35 +5943,19 @@ describe('OptionsListUtils', () => {
                 reportActionID: '9402',
                 reportID: TRANSACTION_THREAD_REPORT_ID,
                 created: '2024-01-02 10:00:00.000',
-                message: [
-                    {
-                        type: 'COMMENT',
-                        html: 'thread comment',
-                        text: 'thread comment',
-                        isEdited: false,
-                        whisperedTo: [],
-                        isDeletedParentAction: false,
-                    },
-                ],
+                message: [{type: 'COMMENT', html: 'thread comment', text: 'thread comment', isEdited: false, whisperedTo: [], isDeletedParentAction: false}],
             };
 
             // Reports must exist before the report actions merge so the one-transaction thread caches resolve the thread ID
             await setReport(expenseReport);
             await setReport(transactionThreadReport);
             await Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {
-                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${EXPENSE_REPORT_ID}`]: {
-                    [iouAction.reportActionID]: iouAction,
-                },
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${EXPENSE_REPORT_ID}`]: {[iouAction.reportActionID]: iouAction},
                 [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${TRANSACTION_THREAD_REPORT_ID}`]: {[threadComment.reportActionID]: threadComment},
             });
             await waitForBatchedUpdates();
 
-            const option: OptionData = {
-                reportID: EXPENSE_REPORT_ID,
-                keyForList: '',
-                lastMessageText: 'thread comment',
-                isMoneyRequestReport: true,
-            };
+            const option: OptionData = {reportID: EXPENSE_REPORT_ID, keyForList: '', lastMessageText: 'thread comment', isMoneyRequestReport: true};
 
             // When the alternate text is built without sortedActions, forcing the fallback last-action lookup
             const result = getAlternateText(option, {showChatPreviewLine: true}, buildConfig(undefined, EXPENSE_REPORT_ID));
@@ -6515,13 +5981,7 @@ describe('OptionsListUtils', () => {
                 undefined,
                 privateIsArchivedMap,
                 undefined,
-                {
-                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                    dateFnsLocale: undefined,
-                    convertToDisplayString,
-                    conciergeReportID: undefined,
-                    isSearching: true,
-                },
+                {currentUserAccountID: CURRENT_USER_ACCOUNT_ID, dateFnsLocale: undefined, convertToDisplayString, conciergeReportID: undefined, isSearching: true},
                 undefined,
             );
 
@@ -6543,13 +6003,7 @@ describe('OptionsListUtils', () => {
                 undefined,
                 emptyMap,
                 undefined,
-                {
-                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                    dateFnsLocale: undefined,
-                    convertToDisplayString,
-                    conciergeReportID: undefined,
-                    isSearching: true,
-                },
+                {currentUserAccountID: CURRENT_USER_ACCOUNT_ID, dateFnsLocale: undefined, convertToDisplayString, conciergeReportID: undefined, isSearching: true},
                 undefined,
             );
 
@@ -6573,13 +6027,7 @@ describe('OptionsListUtils', () => {
                 undefined,
                 privateIsArchivedMap,
                 undefined,
-                {
-                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                    dateFnsLocale: undefined,
-                    convertToDisplayString,
-                    conciergeReportID: undefined,
-                    isSearching: true,
-                },
+                {currentUserAccountID: CURRENT_USER_ACCOUNT_ID, dateFnsLocale: undefined, convertToDisplayString, conciergeReportID: undefined, isSearching: true},
                 undefined,
             );
 
@@ -6880,13 +6328,7 @@ describe('OptionsListUtils', () => {
         it('should match a user with an accented name when searching using non-accented characters', () => {
             // Given a report with accented characters in the text property
             // cspell:disable-next-line
-            const reports: OptionData[] = [
-                {
-                    text: "Álex Timón D'artagnan Zo-e",
-                    reportID: 'accented',
-                    keyForList: 'accented',
-                },
-            ];
+            const reports: OptionData[] = [{text: "Álex Timón D'artagnan Zo-e", reportID: 'accented', keyForList: 'accented'}];
             // Given a search term with non-accented characters
             // cspell:disable-next-line
             const searchTerms = ['Alex Timon Dartagnan Zoe'];
@@ -6915,11 +6357,7 @@ describe('OptionsListUtils', () => {
             },
         ])('should match report text containing $description', ({reportText, searchText}) => {
             // Given a report whose display text contains characters normalized by report search
-            const report: OptionData = {
-                text: reportText,
-                reportID: 'normalized',
-                keyForList: 'normalized',
-            };
+            const report: OptionData = {text: reportText, reportID: 'normalized', keyForList: 'normalized'};
 
             // When the report is filtered with the normalized search value
             const filteredReports = filterReports([report], [searchText]);
@@ -7523,9 +6961,7 @@ describe('OptionsListUtils', () => {
                     1: {
                         notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
                     },
-                    2: {
-                        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
-                    },
+                    2: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
                 },
             };
 
@@ -7560,9 +6996,7 @@ describe('OptionsListUtils', () => {
                     1: {
                         notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
                     },
-                    2: {
-                        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
-                    },
+                    2: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
                 },
             };
 
@@ -7721,9 +7155,7 @@ describe('OptionsListUtils', () => {
                 type: CONST.REPORT.TYPE.CHAT,
                 chatType: CONST.REPORT.CHAT_TYPE.SELF_DM,
                 participants: {
-                    2: {
-                        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
-                    },
+                    2: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
                 },
             };
             const personalDetails: PersonalDetailsList = PERSONAL_DETAILS;
@@ -7854,9 +7286,7 @@ describe('OptionsListUtils', () => {
                 ...createRandomReport(0, undefined),
                 reportID: 'test-personal-details-1',
                 participants: {
-                    3: {
-                        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
-                    },
+                    3: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
                 },
             };
             // Use a modified personalDetails that differs from what's in Onyx
@@ -8120,11 +7550,7 @@ describe('OptionsListUtils', () => {
                 reportAttributesDerived: undefined,
                 reportDraft: undefined,
                 currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
-                localize: {
-                    translate: translateLocal,
-                    dateFnsLocale: undefined,
-                    convertToDisplayString,
-                },
+                localize: {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString},
                 rules: undefined,
             });
 
@@ -8147,24 +7573,13 @@ describe('OptionsListUtils', () => {
                 // A self DM's own participant entry is excluded from the display list (the backend sends an empty
                 // notificationPreference, which isHiddenForCurrentUser treats the same as HIDDEN), so createOption has
                 // no personal details to build a name from and has to fall back to the report name.
-                participants: {
-                    [ownerAccountID]: {
-                        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
-                    },
-                },
+                participants: {[ownerAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN}},
             };
             const selfPersonalDetails = {
-                [ownerAccountID]: {
-                    accountID: ownerAccountID,
-                    displayName: 'Test',
-                    login: 'test@test.com',
-                },
+                [ownerAccountID]: {accountID: ownerAccountID, displayName: 'Test', login: 'test@test.com'},
             };
 
-            await Onyx.merge(ONYXKEYS.SESSION, {
-                accountID: ownerAccountID,
-                email: 'test@test.com',
-            });
+            await Onyx.merge(ONYXKEYS.SESSION, {accountID: ownerAccountID, email: 'test@test.com'});
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
             await waitForBatchedUpdates();
 
@@ -8177,11 +7592,7 @@ describe('OptionsListUtils', () => {
                 reportAttributesDerived: undefined,
                 reportDraft: undefined,
                 currentUserAccountID: ownerAccountID,
-                localize: {
-                    translate: translateLocal,
-                    dateFnsLocale: undefined,
-                    convertToDisplayString,
-                },
+                localize: {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString},
                 rules: undefined,
             });
 
@@ -8246,11 +7657,7 @@ describe('OptionsListUtils', () => {
                 reportAttributesDerived: undefined,
                 reportDraft: undefined,
                 currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
-                localize: {
-                    translate: translateLocal,
-                    dateFnsLocale: undefined,
-                    convertToDisplayString,
-                },
+                localize: {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString},
                 rules: undefined,
             });
 
@@ -8271,9 +7678,7 @@ describe('OptionsListUtils', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${reportID}`, report);
             await waitForBatchedUpdates();
 
-            const participant = {
-                reportID,
-            };
+            const participant = {reportID};
 
             const option = getReportOption({
                 participant,
@@ -8284,11 +7689,7 @@ describe('OptionsListUtils', () => {
                 reportAttributesDerived: undefined,
                 reportDraft: report,
                 currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
-                localize: {
-                    translate: translateLocal,
-                    dateFnsLocale: undefined,
-                    convertToDisplayString,
-                },
+                localize: {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString},
                 rules: undefined,
             });
 
@@ -8340,11 +7741,7 @@ describe('OptionsListUtils', () => {
                 reportAttributesDerived: undefined,
                 reportDraft: undefined,
                 currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
-                localize: {
-                    translate: translateLocal,
-                    dateFnsLocale: undefined,
-                    convertToDisplayString,
-                },
+                localize: {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString},
                 rules: undefined,
             });
 
@@ -8390,11 +7787,7 @@ describe('OptionsListUtils', () => {
                 reportAttributesDerived: undefined,
                 reportDraft: undefined,
                 currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
-                localize: {
-                    translate: translateLocal,
-                    dateFnsLocale: undefined,
-                    convertToDisplayString,
-                },
+                localize: {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString},
                 rules: undefined,
             });
 
@@ -8409,9 +7802,7 @@ describe('OptionsListUtils', () => {
                 isPinned: false,
                 reportID: '18',
                 participants: {
-                    2: {
-                        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
-                    },
+                    2: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
                 },
                 reportName: '',
                 policyID,
@@ -8447,11 +7838,7 @@ describe('OptionsListUtils', () => {
                 reportAttributesDerived: undefined,
                 reportDraft: undefined,
                 currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
-                localize: {
-                    translate: translateLocal,
-                    dateFnsLocale: undefined,
-                    convertToDisplayString,
-                },
+                localize: {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString},
                 rules: undefined,
             });
 
@@ -8467,12 +7854,8 @@ describe('OptionsListUtils', () => {
                 isPinned: false,
                 reportID: '19',
                 participants: {
-                    2: {
-                        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
-                    },
-                    3: {
-                        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
-                    },
+                    2: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                    3: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
                 },
                 reportName: 'Draft Report',
                 type: CONST.REPORT.TYPE.CHAT,
@@ -8505,11 +7888,7 @@ describe('OptionsListUtils', () => {
                 reportAttributesDerived: {},
                 reportDraft: draftReport,
                 currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
-                localize: {
-                    translate: translateLocal,
-                    dateFnsLocale: undefined,
-                    convertToDisplayString,
-                },
+                localize: {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString},
                 rules: undefined,
             });
 
@@ -8539,11 +7918,7 @@ describe('OptionsListUtils', () => {
                 reportAttributesDerived: undefined,
                 reportDraft: undefined,
                 currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
-                localize: {
-                    translate: translateLocal,
-                    dateFnsLocale: undefined,
-                    convertToDisplayString,
-                },
+                localize: {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString},
                 rules: undefined,
             });
 
@@ -8570,11 +7945,7 @@ describe('OptionsListUtils', () => {
                 reportAttributesDerived: undefined,
                 reportDraft: draftReport,
                 currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
-                localize: {
-                    translate: translateLocal,
-                    dateFnsLocale: undefined,
-                    convertToDisplayString,
-                },
+                localize: {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString},
                 rules: undefined,
             });
 
@@ -8605,11 +7976,7 @@ describe('OptionsListUtils', () => {
                 reportAttributesDerived: undefined,
                 reportDraft: undefined,
                 currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
-                localize: {
-                    translate: translateLocal,
-                    dateFnsLocale: undefined,
-                    convertToDisplayString,
-                },
+                localize: {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString},
                 rules: undefined,
             });
 
@@ -8816,11 +8183,7 @@ describe('OptionsListUtils', () => {
                 reportAttributesDerived: undefined,
                 reportDraft: undefined,
                 currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
-                localize: {
-                    translate: translateLocal,
-                    dateFnsLocale: undefined,
-                    convertToDisplayString,
-                },
+                localize: {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString},
                 rules: undefined,
             });
 
@@ -8839,9 +8202,7 @@ describe('OptionsListUtils', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
             await waitForBatchedUpdates();
 
-            const participant = {
-                reportID,
-            };
+            const participant = {reportID};
 
             const option = getReportOption({
                 participant,
@@ -8852,11 +8213,7 @@ describe('OptionsListUtils', () => {
                 reportAttributesDerived: undefined,
                 reportDraft: undefined,
                 currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
-                localize: {
-                    translate: translateLocal,
-                    dateFnsLocale: undefined,
-                    convertToDisplayString,
-                },
+                localize: {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString},
                 rules: undefined,
             });
 
@@ -8875,9 +8232,7 @@ describe('OptionsListUtils', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
             await waitForBatchedUpdates();
 
-            const participant = {
-                reportID,
-            };
+            const participant = {reportID};
 
             // Test that the function works with reportAttributesDerived parameter (optional)
             const option = getReportOption({
@@ -8889,11 +8244,7 @@ describe('OptionsListUtils', () => {
                 reportAttributesDerived: undefined,
                 reportDraft: undefined,
                 currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
-                localize: {
-                    translate: translateLocal,
-                    dateFnsLocale: undefined,
-                    convertToDisplayString,
-                },
+                localize: {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString},
                 rules: undefined,
             });
 
@@ -8927,9 +8278,7 @@ describe('OptionsListUtils', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
             await waitForBatchedUpdates();
 
-            const participant = {
-                reportID,
-            };
+            const participant = {reportID};
 
             const option = getReportOption({
                 participant,
@@ -8940,11 +8289,7 @@ describe('OptionsListUtils', () => {
                 reportAttributesDerived: undefined,
                 reportDraft: undefined,
                 currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
-                localize: {
-                    translate: translateLocal,
-                    dateFnsLocale: undefined,
-                    convertToDisplayString,
-                },
+                localize: {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString},
                 rules: undefined,
             });
 
@@ -9017,11 +8362,7 @@ describe('OptionsListUtils', () => {
                 reportAttributesDerived: undefined,
                 reportDraft: undefined,
                 currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
-                localize: {
-                    translate: translateLocal,
-                    dateFnsLocale: undefined,
-                    convertToDisplayString,
-                },
+                localize: {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString},
                 rules: undefined,
             });
 
@@ -9043,9 +8384,7 @@ describe('OptionsListUtils', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
             await waitForBatchedUpdates();
 
-            const participant = {
-                reportID,
-            };
+            const participant = {reportID};
 
             // Pass empty personalDetails
             const option = getReportOption({
@@ -9057,11 +8396,7 @@ describe('OptionsListUtils', () => {
                 reportAttributesDerived: undefined,
                 reportDraft: undefined,
                 currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
-                localize: {
-                    translate: translateLocal,
-                    dateFnsLocale: undefined,
-                    convertToDisplayString,
-                },
+                localize: {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString},
                 rules: undefined,
             });
 
@@ -9080,9 +8415,7 @@ describe('OptionsListUtils', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
             await waitForBatchedUpdates();
 
-            const participant = {
-                reportID,
-            };
+            const participant = {reportID};
 
             // Pass undefined personalDetails
             const option = getReportOption({
@@ -9094,11 +8427,7 @@ describe('OptionsListUtils', () => {
                 reportAttributesDerived: undefined,
                 reportDraft: undefined,
                 currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
-                localize: {
-                    translate: translateLocal,
-                    dateFnsLocale: undefined,
-                    convertToDisplayString,
-                },
+                localize: {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString},
                 rules: undefined,
             });
 
@@ -9159,11 +8488,7 @@ describe('OptionsListUtils', () => {
                 reportAttributesDerived: undefined,
                 reportDraft: undefined,
                 currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
-                localize: {
-                    translate: translateLocal,
-                    dateFnsLocale: undefined,
-                    convertToDisplayString,
-                },
+                localize: {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString},
                 rules: undefined,
             });
 
@@ -9196,11 +8521,7 @@ describe('OptionsListUtils', () => {
                 reportAttributesDerived: undefined,
                 reportDraft: undefined,
                 currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
-                localize: {
-                    translate: translateLocal,
-                    dateFnsLocale: undefined,
-                    convertToDisplayString,
-                },
+                localize: {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString},
                 rules: undefined,
             });
 
@@ -9230,11 +8551,7 @@ describe('OptionsListUtils', () => {
                 reportAttributesDerived: undefined,
                 reportDraft: undefined,
                 currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
-                localize: {
-                    translate: translateLocal,
-                    dateFnsLocale: undefined,
-                    convertToDisplayString,
-                },
+                localize: {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString},
                 rules: undefined,
             });
 
@@ -9282,11 +8599,7 @@ describe('OptionsListUtils', () => {
                 reportAttributesDerived: undefined,
                 reportDraft: undefined,
                 currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
-                localize: {
-                    translate: translateLocal,
-                    dateFnsLocale: undefined,
-                    convertToDisplayString,
-                },
+                localize: {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString},
                 rules: undefined,
             });
 
@@ -9317,11 +8630,7 @@ describe('OptionsListUtils', () => {
                 reportAttributesDerived: undefined,
                 reportDraft: undefined,
                 currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
-                localize: {
-                    translate: translateLocal,
-                    dateFnsLocale: undefined,
-                    convertToDisplayString,
-                },
+                localize: {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString},
                 rules: undefined,
             });
             const optionWithoutConcierge = getReportOption({
@@ -9333,11 +8642,7 @@ describe('OptionsListUtils', () => {
                 reportAttributesDerived: undefined,
                 reportDraft: undefined,
                 currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
-                localize: {
-                    translate: translateLocal,
-                    dateFnsLocale: undefined,
-                    convertToDisplayString,
-                },
+                localize: {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString},
                 rules: undefined,
             });
 
@@ -9361,9 +8666,7 @@ describe('OptionsListUtils', () => {
                 policyID: testPolicyID,
                 ownerAccountID,
                 participants: {
-                    [ownerAccountID]: {
-                        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
-                    },
+                    [ownerAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
                 },
             };
 
@@ -9389,12 +8692,7 @@ describe('OptionsListUtils', () => {
             await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, testPersonalDetails);
             await waitForBatchedUpdates();
 
-            const participant = {
-                reportID,
-                policyID: testPolicyID,
-                isPolicyExpenseChat: true,
-                selected: true,
-            };
+            const participant = {reportID, policyID: testPolicyID, isPolicyExpenseChat: true, selected: true};
 
             const option = getPolicyExpenseReportOption(
                 participant,
@@ -9402,11 +8700,7 @@ describe('OptionsListUtils', () => {
                 testPersonalDetails,
                 report,
                 undefined,
-                {
-                    translate: translateLocal,
-                    dateFnsLocale: undefined,
-                    convertToDisplayString,
-                },
+                {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString},
                 CURRENT_USER_ACCOUNT_ID,
                 undefined,
             );
@@ -9435,23 +8729,14 @@ describe('OptionsListUtils', () => {
             // A translate that tags the workspace subtitle so we can prove the option used the injected translate
             const translateWithMarker: LocalizedTranslate = (path, ...parameters) => (path === 'workspace.common.workspace' ? 'WorkspaceMarker' : translateLocal(path, ...parameters));
 
-            const participant = {
-                reportID,
-                policyID: testPolicyID,
-                isPolicyExpenseChat: true,
-                selected: false,
-            };
+            const participant = {reportID, policyID: testPolicyID, isPolicyExpenseChat: true, selected: false};
             const option = getPolicyExpenseReportOption(
                 participant,
                 undefined,
                 {},
                 report,
                 undefined,
-                {
-                    translate: translateWithMarker,
-                    dateFnsLocale: undefined,
-                    convertToDisplayString,
-                },
+                {translate: translateWithMarker, dateFnsLocale: undefined, convertToDisplayString},
                 CURRENT_USER_ACCOUNT_ID,
                 undefined,
             );
@@ -9474,9 +8759,7 @@ describe('OptionsListUtils', () => {
                 policyID: testPolicyID,
                 ownerAccountID,
                 participants: {
-                    [ownerAccountID]: {
-                        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
-                    },
+                    [ownerAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
                     [memberAccountID]: {
                         notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
                     },
@@ -9522,11 +8805,7 @@ describe('OptionsListUtils', () => {
                 testPersonalDetails,
                 report,
                 undefined,
-                {
-                    translate: translateLocal,
-                    dateFnsLocale: undefined,
-                    convertToDisplayString,
-                },
+                {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString},
                 CURRENT_USER_ACCOUNT_ID,
                 undefined,
             );
@@ -9548,9 +8827,7 @@ describe('OptionsListUtils', () => {
                 policyID: testPolicyID,
                 ownerAccountID,
                 participants: {
-                    [ownerAccountID]: {
-                        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
-                    },
+                    [ownerAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
                 },
             };
 
@@ -9580,11 +8857,7 @@ describe('OptionsListUtils', () => {
                 {},
                 report,
                 undefined,
-                {
-                    translate: translateLocal,
-                    dateFnsLocale: undefined,
-                    convertToDisplayString,
-                },
+                {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString},
                 CURRENT_USER_ACCOUNT_ID,
                 undefined,
             );
@@ -9606,9 +8879,7 @@ describe('OptionsListUtils', () => {
                 policyID: testPolicyID,
                 ownerAccountID,
                 participants: {
-                    [ownerAccountID]: {
-                        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
-                    },
+                    [ownerAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
                 },
             };
 
@@ -9638,11 +8909,7 @@ describe('OptionsListUtils', () => {
                 undefined,
                 report,
                 undefined,
-                {
-                    translate: translateLocal,
-                    dateFnsLocale: undefined,
-                    convertToDisplayString,
-                },
+                {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString},
                 CURRENT_USER_ACCOUNT_ID,
                 undefined,
             );
@@ -9664,9 +8931,7 @@ describe('OptionsListUtils', () => {
                 policyID: testPolicyID,
                 ownerAccountID,
                 participants: {
-                    [ownerAccountID]: {
-                        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
-                    },
+                    [ownerAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
                 },
             };
 
@@ -9704,11 +8969,7 @@ describe('OptionsListUtils', () => {
                 {},
                 report,
                 undefined,
-                {
-                    translate: translateLocal,
-                    dateFnsLocale: undefined,
-                    convertToDisplayString,
-                },
+                {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString},
                 CURRENT_USER_ACCOUNT_ID,
                 undefined,
             );
@@ -9720,11 +8981,7 @@ describe('OptionsListUtils', () => {
                 {},
                 report,
                 undefined,
-                {
-                    translate: translateLocal,
-                    dateFnsLocale: undefined,
-                    convertToDisplayString,
-                },
+                {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString},
                 CURRENT_USER_ACCOUNT_ID,
                 undefined,
             );
@@ -9748,9 +9005,7 @@ describe('OptionsListUtils', () => {
                 policyID: testPolicyID,
                 ownerAccountID,
                 participants: {
-                    [ownerAccountID]: {
-                        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
-                    },
+                    [ownerAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
                 },
             };
 
@@ -9765,12 +9020,7 @@ describe('OptionsListUtils', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
             await waitForBatchedUpdates();
 
-            const participant = {
-                reportID,
-                policyID: testPolicyID,
-                isPolicyExpenseChat: true,
-                selected: true,
-            };
+            const participant = {reportID, policyID: testPolicyID, isPolicyExpenseChat: true, selected: true};
 
             const optionWithCurrentUser = getPolicyExpenseReportOption(
                 participant,
@@ -9778,11 +9028,7 @@ describe('OptionsListUtils', () => {
                 testPersonalDetails,
                 report,
                 undefined,
-                {
-                    translate: translateLocal,
-                    dateFnsLocale: undefined,
-                    convertToDisplayString,
-                },
+                {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString},
                 CURRENT_USER_ACCOUNT_ID,
                 undefined,
             );
@@ -9792,11 +9038,7 @@ describe('OptionsListUtils', () => {
                 testPersonalDetails,
                 report,
                 undefined,
-                {
-                    translate: translateLocal,
-                    dateFnsLocale: undefined,
-                    convertToDisplayString,
-                },
+                {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString},
                 9999,
                 undefined,
             );
@@ -9821,9 +9063,7 @@ describe('OptionsListUtils', () => {
                 policyID: testPolicyID,
                 ownerAccountID,
                 participants: {
-                    [ownerAccountID]: {
-                        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
-                    },
+                    [ownerAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
                 },
             };
 
@@ -9849,12 +9089,7 @@ describe('OptionsListUtils', () => {
             await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, testPersonalDetails);
             await waitForBatchedUpdates();
 
-            const participant = {
-                reportID,
-                policyID: testPolicyID,
-                isPolicyExpenseChat: true,
-                selected: false,
-            };
+            const participant = {reportID, policyID: testPolicyID, isPolicyExpenseChat: true, selected: false};
 
             const option = getPolicyExpenseReportOption(
                 participant,
@@ -9862,11 +9097,7 @@ describe('OptionsListUtils', () => {
                 testPersonalDetails,
                 report,
                 undefined,
-                {
-                    translate: translateLocal,
-                    dateFnsLocale: undefined,
-                    convertToDisplayString,
-                },
+                {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString},
                 CURRENT_USER_ACCOUNT_ID,
                 undefined,
             );
@@ -9889,9 +9120,7 @@ describe('OptionsListUtils', () => {
                 policyID: testPolicyID,
                 ownerAccountID,
                 participants: {
-                    [ownerAccountID]: {
-                        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
-                    },
+                    [ownerAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
                 },
             };
 
@@ -9920,11 +9149,7 @@ describe('OptionsListUtils', () => {
                 {},
                 report,
                 undefined,
-                {
-                    translate: translateLocal,
-                    dateFnsLocale: undefined,
-                    convertToDisplayString,
-                },
+                {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString},
                 CURRENT_USER_ACCOUNT_ID,
                 undefined,
             );
@@ -9976,9 +9201,7 @@ describe('OptionsListUtils', () => {
                 policyID: formatTestPolicyID,
                 ownerAccountID: formatOwnerAccountID,
                 participants: {
-                    [formatOwnerAccountID]: {
-                        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
-                    },
+                    [formatOwnerAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
                 },
             };
 
@@ -10306,9 +9529,7 @@ describe('OptionsListUtils', () => {
                 policyID: formatTestPolicyID,
                 ownerAccountID: formatOwnerAccountID,
                 participants: {
-                    [formatOwnerAccountID]: {
-                        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
-                    },
+                    [formatOwnerAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
                 },
             };
             const getReportByID = (reportID: string | undefined) => (reportID === resolverReportID ? resolverReport : undefined);
@@ -10418,9 +9639,7 @@ describe('OptionsListUtils', () => {
             lastActorAccountID: OTHER_ACTOR_ACCOUNT_ID,
             lastMessageText: 'Older message',
             participants: {
-                [CURRENT_USER_ACCOUNT_ID]: {
-                    notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
-                },
+                [CURRENT_USER_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
                 [OTHER_ACTOR_ACCOUNT_ID]: {
                     notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
                 },
@@ -10569,10 +9788,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 CURRENT_USER_ACCOUNT_ID,
                 PERSONAL_DETAILS,
-                {
-                    dateFnsLocale: undefined,
-                    convertToDisplayString,
-                },
+                {dateFnsLocale: undefined, convertToDisplayString},
                 undefined,
             );
 
@@ -10712,9 +9928,7 @@ describe('OptionsListUtils', () => {
                     1: {
                         notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
                     },
-                    2: {
-                        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
-                    },
+                    2: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
                 },
             };
 
@@ -10755,9 +9969,7 @@ describe('OptionsListUtils', () => {
                 reportID,
                 chatReportID,
                 participants: {
-                    2: {
-                        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
-                    },
+                    2: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
                 },
             };
 
@@ -10829,11 +10041,7 @@ describe('OptionsListUtils', () => {
                 PERSONAL_DETAILS,
                 report,
                 undefined,
-                {
-                    translate: translateLocal,
-                    dateFnsLocale: undefined,
-                    convertToDisplayString,
-                },
+                {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString},
                 CURRENT_USER_ACCOUNT_ID,
                 undefined,
             );
@@ -10851,9 +10059,7 @@ describe('OptionsListUtils', () => {
                 reportName: 'Chat',
                 type: CONST.REPORT.TYPE.CHAT,
                 participants: {
-                    [CURRENT_USER_ACCOUNT_ID]: {
-                        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
-                    },
+                    [CURRENT_USER_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
                     1: {
                         notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
                     },
@@ -10895,9 +10101,7 @@ describe('OptionsListUtils', () => {
                 reportName: 'Test Report',
                 type: CONST.REPORT.TYPE.CHAT,
                 participants: {
-                    [CURRENT_USER_ACCOUNT_ID]: {
-                        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
-                    },
+                    [CURRENT_USER_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
                     1: {
                         notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
                     },
@@ -10929,9 +10133,7 @@ describe('OptionsListUtils', () => {
                 reportName: 'Archived Report',
                 type: CONST.REPORT.TYPE.CHAT,
                 participants: {
-                    [CURRENT_USER_ACCOUNT_ID]: {
-                        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
-                    },
+                    [CURRENT_USER_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
                     1: {
                         notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
                     },
@@ -10962,9 +10164,7 @@ describe('OptionsListUtils', () => {
                 reportName: 'Non-Archived Report',
                 type: CONST.REPORT.TYPE.CHAT,
                 participants: {
-                    [CURRENT_USER_ACCOUNT_ID]: {
-                        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
-                    },
+                    [CURRENT_USER_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
                     1: {
                         notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
                     },
@@ -10995,9 +10195,7 @@ describe('OptionsListUtils', () => {
                 reportName: 'Report with Attributes',
                 type: CONST.REPORT.TYPE.CHAT,
                 participants: {
-                    [CURRENT_USER_ACCOUNT_ID]: {
-                        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
-                    },
+                    [CURRENT_USER_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
                     1: {
                         notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
                     },
@@ -11028,9 +10226,7 @@ describe('OptionsListUtils', () => {
                 reportName: 'Report with Config',
                 type: CONST.REPORT.TYPE.CHAT,
                 participants: {
-                    [CURRENT_USER_ACCOUNT_ID]: {
-                        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
-                    },
+                    [CURRENT_USER_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
                     1: {
                         notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
                     },
@@ -11065,9 +10261,7 @@ describe('OptionsListUtils', () => {
                 chatType: CONST.REPORT.CHAT_TYPE.POLICY_ADMINS,
                 policyID,
                 participants: {
-                    [CURRENT_USER_ACCOUNT_ID]: {
-                        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
-                    },
+                    [CURRENT_USER_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
                     1: {
                         notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
                     },
@@ -11117,9 +10311,7 @@ describe('OptionsListUtils', () => {
             chatType,
             lastVisibleActionCreated,
             participants: {
-                [CURRENT_USER_ACCOUNT_ID]: {
-                    notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
-                },
+                [CURRENT_USER_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
                 1: {
                     notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
                 },
@@ -11275,9 +10467,7 @@ describe('OptionsListUtils', () => {
                     type: CONST.REPORT.TYPE.CHAT,
                     lastVisibleActionCreated: '2022-01-01 00:00:00',
                     participants: {
-                        [CURRENT_USER_ACCOUNT_ID]: {
-                            notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
-                        },
+                        [CURRENT_USER_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
                         1: {
                             notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
                         },
@@ -11289,9 +10479,7 @@ describe('OptionsListUtils', () => {
                     type: CONST.REPORT.TYPE.CHAT,
                     lastVisibleActionCreated: '2024-01-01 00:00:00',
                     participants: {
-                        [CURRENT_USER_ACCOUNT_ID]: {
-                            notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
-                        },
+                        [CURRENT_USER_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
                         1: {
                             notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
                         },
@@ -11303,9 +10491,7 @@ describe('OptionsListUtils', () => {
                     type: CONST.REPORT.TYPE.CHAT,
                     lastVisibleActionCreated: '2023-01-01 00:00:00',
                     participants: {
-                        [CURRENT_USER_ACCOUNT_ID]: {
-                            notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
-                        },
+                        [CURRENT_USER_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
                         1: {
                             notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
                         },
@@ -11423,9 +10609,7 @@ describe('OptionsListUtils', () => {
                 type: CONST.REPORT.TYPE.CHAT,
                 lastVisibleActionCreated: '2024-01-01 00:00:00',
                 participants: {
-                    [CURRENT_USER_ACCOUNT_ID]: {
-                        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
-                    },
+                    [CURRENT_USER_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
                     1: {
                         notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
                     },
@@ -11466,13 +10650,7 @@ describe('OptionsListUtils', () => {
                 undefined,
                 {},
                 undefined,
-                {
-                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                    dateFnsLocale: undefined,
-                    convertToDisplayString,
-                    conciergeReportID: undefined,
-                    isSearching: true,
-                },
+                {currentUserAccountID: CURRENT_USER_ACCOUNT_ID, dateFnsLocale: undefined, convertToDisplayString, conciergeReportID: undefined, isSearching: true},
                 undefined,
             );
 
@@ -11487,14 +10665,7 @@ describe('OptionsListUtils', () => {
                 undefined,
                 {},
                 {},
-                {
-                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                    dateFnsLocale: undefined,
-                    convertToDisplayString,
-                    conciergeReportID: undefined,
-                    isSearching: true,
-                    maxRecentReports: 2,
-                },
+                {currentUserAccountID: CURRENT_USER_ACCOUNT_ID, dateFnsLocale: undefined, convertToDisplayString, conciergeReportID: undefined, isSearching: true, maxRecentReports: 2},
                 undefined,
             );
 
@@ -11799,9 +10970,7 @@ describe('OptionsListUtils', () => {
                 type: CONST.REPORT.TYPE.CHAT,
                 policyID,
                 participants: {
-                    [CURRENT_USER_ACCOUNT_ID]: {
-                        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
-                    },
+                    [CURRENT_USER_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
                     1: {
                         notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
                     },
@@ -11832,9 +11001,7 @@ describe('OptionsListUtils', () => {
                 type: CONST.REPORT.TYPE.CHAT,
                 policyID,
                 participants: {
-                    [CURRENT_USER_ACCOUNT_ID]: {
-                        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
-                    },
+                    [CURRENT_USER_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
                     1: {
                         notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
                     },
@@ -11866,9 +11033,7 @@ describe('OptionsListUtils', () => {
                 policyID,
                 ownerAccountID: 1,
                 participants: {
-                    [CURRENT_USER_ACCOUNT_ID]: {
-                        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
-                    },
+                    [CURRENT_USER_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
                     1: {
                         notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
                     },
@@ -11888,11 +11053,7 @@ describe('OptionsListUtils', () => {
                 PERSONAL_DETAILS,
                 report,
                 POLICY,
-                {
-                    translate: translateLocal,
-                    dateFnsLocale: undefined,
-                    convertToDisplayString,
-                },
+                {translate: translateLocal, dateFnsLocale: undefined, convertToDisplayString},
                 CURRENT_USER_ACCOUNT_ID,
                 undefined,
             );
@@ -12388,27 +11549,9 @@ describe('OptionsListUtils', () => {
     describe('orderPersonalDetailsOptions()', () => {
         it('sorts options alphabetically using text values', () => {
             const options: SearchOptionData[] = [
-                {
-                    accountID: 1,
-                    reportID: '1',
-                    keyForList: '1',
-                    text: 'Charlie',
-                    login: 'c@example.com',
-                },
-                {
-                    accountID: 2,
-                    reportID: '2',
-                    keyForList: '2',
-                    text: 'aaron',
-                    login: 'a@example.com',
-                },
-                {
-                    accountID: 3,
-                    reportID: '3',
-                    keyForList: '3',
-                    text: 'Bob',
-                    login: 'b@example.com',
-                },
+                {accountID: 1, reportID: '1', keyForList: '1', text: 'Charlie', login: 'c@example.com'},
+                {accountID: 2, reportID: '2', keyForList: '2', text: 'aaron', login: 'a@example.com'},
+                {accountID: 3, reportID: '3', keyForList: '3', text: 'Bob', login: 'b@example.com'},
             ];
 
             const sorted = orderPersonalDetailsOptions(options);
@@ -12426,13 +11569,7 @@ describe('OptionsListUtils', () => {
                     alternateText: 'mango',
                     login: 'm@example.com',
                 },
-                {
-                    accountID: 2,
-                    reportID: '2',
-                    keyForList: '2',
-                    text: 'apple',
-                    login: 'a@example.com',
-                },
+                {accountID: 2, reportID: '2', keyForList: '2', text: 'apple', login: 'a@example.com'},
                 {
                     accountID: 3,
                     reportID: '3',

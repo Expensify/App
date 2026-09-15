@@ -192,9 +192,7 @@ function SearchAutocompleteList({
     const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT);
     const [recentSearches, recentSearchesMetadata] = useOnyx(ONYXKEYS.RECENT_SEARCHES);
     const [countryCode] = useOnyx(ONYXKEYS.COUNTRY_CODE);
-    const [loginList] = useOnyx(ONYXKEYS.LOGINS, {
-        selector: expensifyLoginsSelector,
-    });
+    const [loginList] = useOnyx(ONYXKEYS.LOGINS, {selector: expensifyLoginsSelector});
     const [policies = getEmptyObject<NonNullable<OnyxCollection<Policy>>>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [visibleReportActionsData] = useOnyx(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS);
     const sortedActions = useSortedActions();
@@ -220,9 +218,7 @@ function SearchAutocompleteList({
     const currentUserAccountID = currentUserPersonalDetails.accountID;
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['History', 'MagnifyingGlass']);
     const taxRates = useMemo(() => getAllTaxRates(policies), [policies]);
-    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {
-        selector: isTrackIntentUserSelector,
-    });
+    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
 
     const {
         options: listOptions,
@@ -516,10 +512,7 @@ function SearchAutocompleteList({
         };
 
         if (searchQueryItems && searchQueryItems.length > 0) {
-            pushSection({
-                data: searchQueryItems as AutocompleteListItem[],
-                sectionIndex: sectionIndex++,
-            });
+            pushSection({data: searchQueryItems as AutocompleteListItem[], sectionIndex: sectionIndex++});
         }
 
         const additionalSections = getAdditionalSections?.(searchOptions, sectionIndex);
@@ -532,11 +525,7 @@ function SearchAutocompleteList({
         }
 
         if (!hasEffectiveInputQuery && recentSearchesData && recentSearchesData.length > 0) {
-            pushSection({
-                title: translate('search.recentSearches'),
-                data: recentSearchesData as AutocompleteListItem[],
-                sectionIndex: sectionIndex++,
-            });
+            pushSection({title: translate('search.recentSearches'), data: recentSearchesData as AutocompleteListItem[], sectionIndex: sectionIndex++});
         }
 
         const nextStyledRecentReports = recentReportsOptions.map((option) => {
@@ -565,11 +554,7 @@ function SearchAutocompleteList({
             // No active (debounced) query yet: single "Recent chats" section. This also covers the debounce window
             // right after the user starts typing, so we keep recent chats visible instead of flashing search rows.
             if (!isLoadingOptions) {
-                pushSection({
-                    title: translate('search.recentChats'),
-                    data: nextStyledRecentReports,
-                    sectionIndex: sectionIndex++,
-                });
+                pushSection({title: translate('search.recentChats'), data: nextStyledRecentReports, sectionIndex: sectionIndex++});
             } else {
                 pushSection({
                     title: translate('search.recentChats'),
@@ -595,11 +580,7 @@ function SearchAutocompleteList({
             localRows.sort((a, b) => (frozenLocalRank.get(getStableRankKey(a) ?? '') ?? 0) - (frozenLocalRank.get(getStableRankKey(b) ?? '') ?? 0));
 
             if (localRows.length > 0 || !isLoadingOptions) {
-                pushSection({
-                    title: translate('search.recentChats'),
-                    data: localRows,
-                    sectionIndex: sectionIndex++,
-                });
+                pushSection({title: translate('search.recentChats'), data: localRows, sectionIndex: sectionIndex++});
             } else {
                 // Options are still loading and no local results matched — show a skeleton so the
                 // user sees feedback instead of a bare section header.
@@ -642,18 +623,10 @@ function SearchAutocompleteList({
                 };
             });
 
-            pushSection({
-                title: translate('search.suggestions'),
-                data: autocompleteData,
-                sectionIndex: sectionIndex++,
-            });
+            pushSection({title: translate('search.suggestions'), data: autocompleteData, sectionIndex: sectionIndex++});
         }
 
-        return {
-            sections: nextSections,
-            styledRecentReports: nextStyledRecentReports,
-            suggestionsCount: nextSuggestionsCount,
-        };
+        return {sections: nextSections, styledRecentReports: nextStyledRecentReports, suggestionsCount: nextSuggestionsCount};
     }, [
         hasEffectiveInputQuery,
         hasActiveSearchResults,

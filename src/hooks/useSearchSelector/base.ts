@@ -194,9 +194,7 @@ function useSearchSelectorBase({
     const [selectedOptions, setSelectedOptions] = useState<OptionData[]>(initialSelected ?? []);
     const [maxResults, setMaxResults] = useState(maxResultsPerPage);
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
-    const [loginList] = useOnyx(ONYXKEYS.LOGINS, {
-        selector: expensifyLoginsSelector,
-    });
+    const [loginList] = useOnyx(ONYXKEYS.LOGINS, {selector: expensifyLoginsSelector});
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT);
     const [visibleReportActionsData] = useOnyx(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS);
@@ -207,9 +205,7 @@ function useSearchSelectorBase({
     const personalDetails = usePersonalDetails();
     const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
-    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {
-        selector: isTrackIntentUserSelector,
-    });
+    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
     // Searching bypasses the recent-reports pre-filter so a typed query can still match reports outside the top 500 most recently active ones.
@@ -271,12 +267,7 @@ function useSearchSelectorBase({
         return {
             ...defaultOptions,
             // Imported contacts are already hydrated.
-            personalDetails: defaultOptions.personalDetails.concat(
-                dedupedContactOptions.map((contact) => ({
-                    ...contact,
-                    isHydrated: true as const,
-                })),
-            ),
+            personalDetails: defaultOptions.personalDetails.concat(dedupedContactOptions.map((contact) => ({...contact, isHydrated: true as const}))),
         };
     })();
 

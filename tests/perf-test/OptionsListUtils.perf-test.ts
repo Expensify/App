@@ -430,10 +430,7 @@ describe('OptionsListUtils', () => {
         );
 
         const {options: formattedOptions} = getValidOptions(
-            {
-                reports: largeOptionList.reports,
-                personalDetails: largeOptionList.personalDetails,
-            },
+            {reports: largeOptionList.reports, personalDetails: largeOptionList.personalDetails},
             allPolicies,
             {},
             loginList,

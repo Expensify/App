@@ -136,14 +136,6 @@ import {doesPersonalDetailMatchSearchTerm, getCurrentUserSearchTerms, getPersona
  * methods should be named for the views they build options for and then exported for use in a component.
  */
 
-let allReports: OnyxCollection<Report>;
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.REPORT,
-    callback: (value) => {
-        allReports = value;
-    },
-});
-
 let activePolicyID: OnyxEntry<string>;
 Onyx.connect({
     key: ONYXKEYS.NVP_ACTIVE_POLICY_ID,
@@ -176,19 +168,9 @@ function getParticipantsOption(participant: OptionData | Participant, personalDe
     if (participant?.displayName) {
         displayName = participant.displayName;
     } else if (detail?.login) {
-        displayName = temporaryGetDisplayNameOrDefault({
-            passedPersonalDetails: detail,
-            defaultValue: formattedLogin,
-            translate,
-            formatPhoneNumber: formatPhoneNumberPhoneUtils,
-        });
+        displayName = temporaryGetDisplayNameOrDefault({passedPersonalDetails: detail, defaultValue: formattedLogin, translate, formatPhoneNumber: formatPhoneNumberPhoneUtils});
     } else {
-        const detailDisplayName = temporaryGetDisplayNameOrDefault({
-            passedPersonalDetails: detail,
-            defaultValue: formattedLogin,
-            translate,
-            formatPhoneNumber: formatPhoneNumberPhoneUtils,
-        });
+        const detailDisplayName = temporaryGetDisplayNameOrDefault({passedPersonalDetails: detail, defaultValue: formattedLogin, translate, formatPhoneNumber: formatPhoneNumberPhoneUtils});
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- empty string from device contacts should fall through to the formatted phone number
         displayName = participant?.text || detailDisplayName;
     }
@@ -567,22 +549,10 @@ function createOption({
                 : '');
 
         reportName = showPersonalDetails
-            ? getPersonalDetailOptionText({
-                  accountID: accountIDs.at(0),
-                  hasReport: true,
-                  personalDetails,
-                  login: personalDetail?.login,
-                  translate: translateFn,
-              })
+            ? getPersonalDetailOptionText({accountID: accountIDs.at(0), hasReport: true, personalDetails, login: personalDetail?.login, translate: translateFn})
             : computedReportName;
     } else {
-        reportName = getPersonalDetailOptionText({
-            accountID: accountIDs.at(0),
-            hasReport: false,
-            personalDetails,
-            login: personalDetail?.login,
-            translate: translateFn,
-        });
+        reportName = getPersonalDetailOptionText({accountID: accountIDs.at(0), hasReport: false, personalDetails, login: personalDetail?.login, translate: translateFn});
         result.keyForList = String(accountIDs.at(0));
 
         result.alternateText = formatPhoneNumberPhoneUtils(personalDetails?.[accountIDs[0]]?.login ?? '');
@@ -625,11 +595,7 @@ type GetReportOptionParams = {
     reportAttributesDerived: ReportAttributesDerivedValue['reports'] | undefined;
     reportDraft: OnyxEntry<Report>;
     currentUserAccountID: number;
-    localize: {
-        translate: LocalizedTranslate;
-        dateFnsLocale: DateFnsLocale | undefined;
-        convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
-    };
+    localize: {translate: LocalizedTranslate; dateFnsLocale: DateFnsLocale | undefined; convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString']};
     rules: OnyxCollection<Rule>;
     policyTags?: OnyxCollection<PolicyTagLists>;
 };
@@ -685,11 +651,7 @@ function getReportOption({
         option.text = deprecatedGetReportName(report, reportAttributesDerived);
         option.alternateText = translate('workspace.common.invoices');
     } else {
-        option.text = getPolicyName({
-            report,
-            policy,
-            unavailableTranslation: translate('workspace.common.unavailable'),
-        });
+        option.text = getPolicyName({report, policy, unavailableTranslation: translate('workspace.common.unavailable')});
         option.alternateText = translate('workspace.common.workspace');
 
         if (report?.policyID) {
@@ -779,19 +741,9 @@ function getReportDisplayOption({
     } else if (unknownUserDetails) {
         option.text = unknownUserDetails.text ?? unknownUserDetails.login;
         option.alternateText = unknownUserDetails.login;
-        option.participantsList = [
-            {
-                ...unknownUserDetails,
-                displayName: unknownUserDetails.login,
-                accountID: unknownUserDetails.accountID ?? CONST.DEFAULT_NUMBER_ID,
-            },
-        ];
+        option.participantsList = [{...unknownUserDetails, displayName: unknownUserDetails.login, accountID: unknownUserDetails.accountID ?? CONST.DEFAULT_NUMBER_ID}];
     } else if (report?.ownerAccountID !== 0 || !option.text) {
-        option.text = getPolicyName({
-            report,
-            policy,
-            unavailableTranslation: translate('workspace.common.unavailable'),
-        });
+        option.text = getPolicyName({report, policy, unavailableTranslation: translate('workspace.common.unavailable')});
         option.alternateText = translate('workspace.common.workspace');
     }
     option.isDisabled = true;
@@ -811,11 +763,7 @@ function getPolicyExpenseReportOption(
     personalDetails: OnyxEntry<PersonalDetailsList>,
     expenseReport: OnyxEntry<Report>,
     policy: OnyxEntry<Policy>,
-    localize: {
-        translate: LocalizedTranslate;
-        dateFnsLocale: DateFnsLocale | undefined;
-        convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
-    },
+    localize: {translate: LocalizedTranslate; dateFnsLocale: DateFnsLocale | undefined; convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString']},
     currentUserAccountID: number,
     rules: OnyxCollection<Rule>,
     reportAttributesDerived?: ReportAttributesDerivedValue['reports'],
@@ -849,11 +797,7 @@ function getPolicyExpenseReportOption(
     });
 
     // Update text & alternateText because createOption returns workspace name only if report is owned by the user
-    option.text = getPolicyName({
-        report: expenseReport,
-        policy,
-        unavailableTranslation: translate('workspace.common.unavailable'),
-    });
+    option.text = getPolicyName({report: expenseReport, policy, unavailableTranslation: translate('workspace.common.unavailable')});
     option.alternateText = translate('workspace.common.workspace');
     option.isSelected = participant.selected;
     option.selected = participant.selected; // Keep for backwards compatibility
@@ -1055,9 +999,7 @@ function buildFilteredOptionListCacheKey(args: Array<string | number | boolean>)
 function cloneOptionList(optionList: OptionList): OptionList {
     return {
         reports: optionList.reports.map((option) => ({...option})),
-        personalDetails: optionList.personalDetails.map((option) => ({
-            ...option,
-        })),
+        personalDetails: optionList.personalDetails.map((option) => ({...option})),
     };
 }
 
@@ -1157,13 +1099,7 @@ function buildPersonalDetailsOptions(reportMapForAccountIDs: Record<number, Repo
         // Match createOption's personal-details lookup.
         const detail = getPersonalDetailForAccountID(accountID, personalDetails);
         // Keep shell text identical to the hydrated option.
-        const text = getPersonalDetailOptionText({
-            accountID,
-            hasReport: !!report,
-            personalDetails,
-            login: detail?.login,
-            translate,
-        });
+        const text = getPersonalDetailOptionText({accountID, hasReport: !!report, personalDetails, login: detail?.login, translate});
 
         // Do not capture the shell: getValidOptions mutates its transient marks.
         let built: HydratedPersonalDetailOption | undefined;
@@ -1583,10 +1519,7 @@ function optionsOrderAndGroupBy<T = SearchOptionData>(
 
     // If limit is 0 or negative, return N+1 empty arrays
     if (limit !== undefined && limit <= 0) {
-        return {
-            options: Array.from({length: separators.length + 1}, () => []),
-            hasMore,
-        };
+        return {options: Array.from({length: separators.length + 1}, () => []), hasMore};
     }
 
     const heaps = Array.from({length: separators.length}, () => createDecoratedOptionHeap<T>(reversed, limit));
@@ -1780,11 +1713,7 @@ function getUserToInviteOption({
     currentUserEmail,
     visibleReportActionsData = {},
     rules,
-}: GetUserToInviteConfig & {
-    visibleReportActionsData?: VisibleReportActionsDerivedValue;
-    dateFnsLocale: DateFnsLocale | undefined;
-    rules: OnyxCollection<Rule>;
-}): SearchOptionData | null {
+}: GetUserToInviteConfig & {visibleReportActionsData?: VisibleReportActionsDerivedValue; dateFnsLocale: DateFnsLocale | undefined; rules: OnyxCollection<Rule>}): SearchOptionData | null {
     if (!searchValue) {
         return null;
     }
@@ -2140,11 +2069,7 @@ function prepareReportOptionsForDisplay(
         }
 
         if (shouldSeparateWorkspaceChat && newReportOption.isPolicyExpenseChat && !newReportOption.private_isArchived) {
-            newReportOption.text = getPolicyName({
-                report,
-                policy,
-                unavailableTranslation: translate('workspace.common.unavailable'),
-            });
+            newReportOption.text = getPolicyName({report, policy, unavailableTranslation: translate('workspace.common.unavailable')});
             newReportOption.alternateText = translate('workspace.common.workspace');
 
             if (report?.policyID) {
@@ -2519,11 +2444,7 @@ function getValidOptions(
     let userToInvite: SearchOptionData | null = null;
     if (includeUserToInvite) {
         userToInvite = filterUserToInvite(
-            {
-                currentUserOption: currentUserRef.current,
-                recentReports: recentReportOptions,
-                personalDetails: personalDetailsOptions,
-            },
+            {currentUserOption: currentUserRef.current, recentReports: recentReportOptions, personalDetails: personalDetailsOptions},
             searchString ?? '',
             loginList,
             currentUserEmail,
@@ -2680,21 +2601,10 @@ function getIOUConfirmationOptionsFromPayeePersonalDetail(
 ): PayeePersonalDetails {
     const login = personalDetail?.login ?? '';
     return {
-        text: temporaryGetDisplayNameOrDefault({
-            passedPersonalDetails: personalDetail,
-            defaultValue: formatPhoneNumber(login),
-            translate,
-            formatPhoneNumber,
-        }),
+        text: temporaryGetDisplayNameOrDefault({passedPersonalDetails: personalDetail, defaultValue: formatPhoneNumber(login), translate, formatPhoneNumber}),
         alternateText:
             formatPhoneNumber(login) ||
-            temporaryGetDisplayNameOrDefault({
-                passedPersonalDetails: personalDetail,
-                defaultValue: '',
-                shouldFallbackToHidden: false,
-                translate,
-                formatPhoneNumber,
-            }),
+            temporaryGetDisplayNameOrDefault({passedPersonalDetails: personalDetail, defaultValue: '', shouldFallbackToHidden: false, translate, formatPhoneNumber}),
         icons: [
             {
                 source: personalDetail?.avatar ?? FallbackAvatar,

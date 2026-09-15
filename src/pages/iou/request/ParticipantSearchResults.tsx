@@ -166,9 +166,7 @@ function ParticipantSearchResults({
     const {didScreenTransitionEnd} = useScreenWrapperTransitionStatus();
     const [isSearchingForUsers] = useOnyx(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_USERS);
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
-    const [loginList] = useOnyx(ONYXKEYS.LOGINS, {
-        selector: expensifyLoginsSelector,
-    });
+    const [loginList] = useOnyx(ONYXKEYS.LOGINS, {selector: expensifyLoginsSelector});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserEmail = currentUserPersonalDetails.email ?? '';
     const currentUserAccountID = currentUserPersonalDetails.accountID;
@@ -193,9 +191,7 @@ function ParticipantSearchResults({
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const {isRestrictedToPreferredPolicy, preferredPolicyID} = usePreferredPolicy();
 
-    const {isDismissed: isDismissedReferralBanner} = useDismissedReferralBanners({
-        referralContentType: CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SUBMIT_EXPENSE,
-    });
+    const {isDismissed: isDismissedReferralBanner} = useDismissedReferralBanners({referralContentType: CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SUBMIT_EXPENSE});
 
     const isGroupPolicy = isGroupPolicyUtil(policy);
     const activeAdminWorkspaces = getActiveAdminWorkspaces(allPolicies, currentUserLogin);
@@ -313,10 +309,7 @@ function ParticipantSearchResults({
         const selectedParticipantKeys = new Set(participants.map((participant) => getParticipantOptionKey(participant)).filter(Boolean));
         const formatResults = formatSectionsFromSearchTerm(
             searchTerm,
-            participants.map((participant) => ({
-                ...participant,
-                reportID: participant.reportID,
-            })) as OptionData[],
+            participants.map((participant) => ({...participant, reportID: participant.reportID})) as OptionData[],
             [],
             [],
             privateIsArchivedMap,

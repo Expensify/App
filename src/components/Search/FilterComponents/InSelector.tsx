@@ -44,11 +44,7 @@ const defaultListOptions = {
 };
 
 function getSelectedOptionData(option: Option & Pick<OptionData, 'reportID'>): OptionData {
-    return {
-        ...option,
-        isSelected: true,
-        keyForList: option.keyForList ?? option.reportID,
-    };
+    return {...option, isSelected: true, keyForList: option.keyForList ?? option.reportID};
 }
 
 function InSelector({value = [], selectionListTextInputStyle, selectionListStyle, autoFocus, ready = true, footer, onChange}: InSelectorProps) {
@@ -65,9 +61,7 @@ function InSelector({value = [], selectionListTextInputStyle, selectionListStyle
 
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
-    const [loginList] = useOnyx(ONYXKEYS.LOGINS, {
-        selector: expensifyLoginsSelector,
-    });
+    const [loginList] = useOnyx(ONYXKEYS.LOGINS, {selector: expensifyLoginsSelector});
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const sortedActions = useSortedActions();
 
@@ -82,9 +76,7 @@ function InSelector({value = [], selectionListTextInputStyle, selectionListStyle
     const privateIsArchivedMap = usePrivateIsArchivedMap();
     const [policyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
-    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {
-        selector: isTrackIntentUserSelector,
-    });
+    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
     const buildReportOption = (id: string, isSelected: boolean): OptionData => {

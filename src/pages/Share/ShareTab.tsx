@@ -47,9 +47,7 @@ function ShareTab() {
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [selectedReportID, setSelectedReportID] = useState<string | number | undefined>();
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
-    const [loginList] = useOnyx(ONYXKEYS.LOGINS, {
-        selector: expensifyLoginsSelector,
-    });
+    const [loginList] = useOnyx(ONYXKEYS.LOGINS, {selector: expensifyLoginsSelector});
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT);
     const [visibleReportActionsData] = useOnyx(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS);
@@ -60,9 +58,7 @@ function ShareTab() {
     const currentUserAccountID = currentUserPersonalDetails.accountID;
     const currentUserEmail = currentUserPersonalDetails.email ?? '';
     const personalDetails = usePersonalDetails();
-    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {
-        selector: isTrackIntentUserSelector,
-    });
+    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
 
     const {didScreenTransitionEnd} = useScreenWrapperTransitionStatus();
     const {
@@ -180,9 +176,7 @@ function ShareTab() {
             data={areOptionsInitialized ? styledRecentReports : (CONST.EMPTY_ARRAY as unknown as never[])}
             customListHeaderContent={customListHeader}
             textInputOptions={textInputOptions}
-            style={{
-                listStyle: [styles.ph2, styles.pb2, styles.overscrollBehaviorContain],
-            }}
+            style={{listStyle: [styles.ph2, styles.pb2, styles.overscrollBehaviorContain]}}
             ListItem={InviteMemberListItem}
             shouldShowLoadingPlaceholder={shouldShowLoadingPlaceholder}
             shouldSingleExecuteRowSelect
