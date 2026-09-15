@@ -4,7 +4,6 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import type {OverlayStylesParams} from '@styles/index';
-import type {Color} from '@styles/theme/types';
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
@@ -27,9 +26,6 @@ type BaseOverlayProps = {
     /** Overlay position from the right edge of the container */
     positionRightValue?: number | Animated.Value | Animated.AnimatedAddition<number>;
 
-    /** Scrim background color override. Defaults to `theme.overlay`; the floating RHP passes the lighter `theme.rhpOverlay`. */
-    overlayColor?: Color;
-
     /** Max opacity the scrim ramps up to. Defaults to `variables.overlayOpacity`; the floating RHP passes the lighter `rhpOverlayOpacity`. */
     maxOpacity?: number;
 
@@ -46,7 +42,6 @@ function BaseOverlay({
     progress,
     positionLeftValue = -2 * variables.sideBarWidth,
     positionRightValue = 0,
-    overlayColor,
     maxOpacity,
     positionTopValue,
     positionBottomValue,
@@ -61,7 +56,7 @@ function BaseOverlay({
             aria-hidden
             style={[
                 styles.pFixed,
-                overlayColor ? {backgroundColor: overlayColor} : styles.overlayBackground,
+                styles.overlayBackground,
                 styles.overlayStyles({progress: progress ?? current.progress, positionLeftValue, positionRightValue, positionTopValue, positionBottomValue, maxOpacity}),
             ]}
         >

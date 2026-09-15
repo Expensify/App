@@ -13,7 +13,6 @@ import {
 
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSidePanelState from '@hooks/useSidePanelState';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 
@@ -62,6 +61,13 @@ const Stack = createRightModalNavigator<RightModalNavigatorParamList, typeof NAV
 const singleRHPWidth = variables.sideBarWidth;
 const getWideRHPWidth = (windowWidth: number) => variables.sideBarWidth + calculateReceiptPaneRHPWidth(windowWidth);
 
+// These overlays paint above the floating RHP frame, so on the top and bottom edges they have to stop inside its 1px
+// border. Insetting them by the card margin alone would dim the border itself, leaving a visible seam where the overlay
+// ends. The right edge deliberately uses the bare card margin instead: it makes the overlay reach 1px past the left edge
+// of the card above and cover that card's `borderLeftWidth`, which would otherwise read as a dark line down the seam
+// between the two stacked cards.
+const overlayInset = variables.rhpFloatingCardMargin + variables.rhpFloatingCardBorderWidth;
+
 function MissingPersonalDetailsWithPINContext(props: Record<string, unknown>) {
     return (
         <PINContextProvider>
@@ -81,16 +87,14 @@ function SearchAdvancedFiltersWithContext(props: Record<string, unknown>) {
 function SecondaryOverlay() {
     const {shouldRenderSecondaryOverlayForWideRHP, shouldRenderSecondaryOverlayForRHPOnWideRHP, shouldRenderSecondaryOverlayForRHPOnSuperWideRHP} = useWideRHPState();
     const {sidePanelOffset} = useSidePanelState();
-    const theme = useTheme();
 
     if (shouldRenderSecondaryOverlayForWideRHP) {
         return (
             <Overlay
                 progress={secondOverlayWideRHPProgress}
                 positionRightValue={Animated.add(Animated.add(sidePanelOffset.current, animatedWideRHPWidth), variables.rhpFloatingCardMargin)}
-                positionTopValue={variables.rhpFloatingCardMargin}
-                positionBottomValue={variables.rhpFloatingCardMargin}
-                overlayColor={theme.rhpOverlay}
+                positionTopValue={overlayInset}
+                positionBottomValue={overlayInset}
                 maxOpacity={variables.rhpOverlayOpacity}
                 onPress={() => Navigation.closeRHPFlow()}
             />
@@ -102,9 +106,8 @@ function SecondaryOverlay() {
             <Overlay
                 progress={secondOverlayRHPOnWideRHPProgress}
                 positionRightValue={Animated.add(sidePanelOffset.current, variables.sideBarWidth + variables.rhpFloatingCardMargin)}
-                positionTopValue={variables.rhpFloatingCardMargin}
-                positionBottomValue={variables.rhpFloatingCardMargin}
-                overlayColor={theme.rhpOverlay}
+                positionTopValue={overlayInset}
+                positionBottomValue={overlayInset}
                 maxOpacity={variables.rhpOverlayOpacity}
                 onPress={Navigation.dismissToPreviousRHP}
             />
@@ -116,9 +119,8 @@ function SecondaryOverlay() {
             <Overlay
                 progress={secondOverlayRHPOnSuperWideRHPProgress}
                 positionRightValue={Animated.add(sidePanelOffset.current, variables.sideBarWidth + variables.rhpFloatingCardMargin)}
-                positionTopValue={variables.rhpFloatingCardMargin}
-                positionBottomValue={variables.rhpFloatingCardMargin}
-                overlayColor={theme.rhpOverlay}
+                positionTopValue={overlayInset}
+                positionBottomValue={overlayInset}
                 maxOpacity={variables.rhpOverlayOpacity}
                 onPress={Navigation.dismissToSuperWideRHP}
             />
@@ -187,7 +189,6 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
     const {windowWidth} = useWindowDimensions();
     const modalStackScreenOptions = useModalStackScreenOptions();
     const styles = useThemeStyles();
-    const theme = useTheme();
     const {sidePanelOffset} = useSidePanelState();
 
     // When a fullscreen route is pre-inserted under the RHP, disable the slide-out animation
@@ -226,18 +227,23 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
         superWideRHPSidePanelOffset,
     );
 
-    const animatedWidthStyle = useMemo(() => {
-        return {
-            width: shouldUseNarrowLayout ? '100%' : animatedWidth,
-        } as const;
-    }, [animatedWidth, shouldUseNarrowLayout]);
-
-    const overlayPositionLeft = useMemo(() => -1 * calculateSuperWideRHPWidth(windowWidth), [windowWidth]);
-
     // Floating RHP (web wide layout only): inset the card from the viewport edges and give it rounded corners, a 1px
     // border, and a shadow. This replaces the full-bleed `r0`/`h100` anchoring; width stays driven by the animated
     // RHP width. Narrow layout and native keep the full-bleed frame.
     const isFloatingRHP = Platform.OS === 'web' && !shouldUseNarrowLayout;
+
+    const animatedWidthStyle = useMemo(() => {
+        if (shouldUseNarrowLayout) {
+            return {width: '100%'} as const;
+        }
+        // The floating frame is border-box, so its border would eat into the content box and clip the fixed-width
+        // panes inside the wide RHP. Grow the frame by the border on both sides to keep the content box equal to
+        // the animated RHP width.
+        return {width: isFloatingRHP ? Animated.add(animatedWidth, 2 * variables.rhpFloatingCardBorderWidth) : animatedWidth} as const;
+    }, [animatedWidth, isFloatingRHP, shouldUseNarrowLayout]);
+
+    const overlayPositionLeft = useMemo(() => -1 * calculateSuperWideRHPWidth(windowWidth), [windowWidth]);
+
     const frameStyle = isFloatingRHP
         ? [styles.pAbsolute, styles.overflowHidden, styles.RHPFloatingCard, animatedWidthStyle]
         : [styles.pAbsolute, styles.r0, styles.h100, styles.overflowHidden, animatedWidthStyle];
@@ -306,8 +312,7 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                 {!shouldUseNarrowLayout && (
                     <Overlay
                         positionLeftValue={overlayPositionLeft}
-                        overlayColor={theme.rhpOverlay}
-                        maxOpacity={variables.rhpOverlayOpacity}
+                                maxOpacity={variables.rhpOverlayOpacity}
                         onPress={handleOverlayPress}
                     />
                 )}
@@ -578,10 +583,9 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                     <Overlay
                         progress={thirdOverlayProgress}
                         positionRightValue={Animated.add(sidePanelOffset.current, variables.sideBarWidth + variables.rhpFloatingCardMargin)}
-                        positionTopValue={variables.rhpFloatingCardMargin}
-                        positionBottomValue={variables.rhpFloatingCardMargin}
-                        overlayColor={theme.rhpOverlay}
-                        maxOpacity={variables.rhpOverlayOpacity}
+                        positionTopValue={overlayInset}
+                        positionBottomValue={overlayInset}
+                                maxOpacity={variables.rhpOverlayOpacity}
                         onPress={Navigation.dismissToPreviousRHP}
                     />
                 )}

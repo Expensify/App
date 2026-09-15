@@ -49,7 +49,6 @@ const lightTheme = {
 
     // Additional keys
     overlay: colors.productLight300,
-    rhpOverlay: colors.productLight300,
     inverse: colors.productLight900,
     shadow: '0px 4px 12px 0px rgba(2,18,4,0.06)',
     componentBG: colors.productLight100,

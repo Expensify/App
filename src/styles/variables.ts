@@ -110,6 +110,8 @@ export default {
     sidePanelWidth: 375,
     // Inset on the top/right/bottom edges of the floating RHP card (web wide layout only).
     rhpFloatingCardMargin: 12,
+    // Border on the floating RHP card. Shared so the frame width can compensate for it and the overlays can stop inside it.
+    rhpFloatingCardBorderWidth: 1,
     // Screen inset shared by the top- and bottom-anchored growl containers so both stay in sync.
     growlNotificationInset: 20,
     receiptPaneRHPMaxWidth: 465,

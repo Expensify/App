@@ -3328,7 +3328,7 @@ const staticStyles = (theme: ThemeColors) =>
             right: variables.rhpFloatingCardMargin,
             bottom: variables.rhpFloatingCardMargin,
             borderRadius: variables.componentBorderRadiusLarge,
-            borderWidth: 1,
+            borderWidth: variables.rhpFloatingCardBorderWidth,
             borderColor: theme.border,
             boxShadow: theme.shadow,
         },
@@ -6426,10 +6426,9 @@ const staticStyles = (theme: ThemeColors) =>
             right: 0,
             width: animatedWideRHPWidth,
             borderRadius: variables.componentBorderRadiusLarge,
-            borderWidth: 1,
-            borderColor: theme.border,
+            borderLeftWidth: 1,
+            borderLeftColor: theme.border,
             overflow: 'hidden',
-            boxShadow: theme.shadow,
         },
 
         singleRHPExtendedCardInterpolatorStyles: {
@@ -6438,10 +6437,9 @@ const staticStyles = (theme: ThemeColors) =>
             right: 0,
             width: variables.sideBarWidth,
             borderRadius: variables.componentBorderRadiusLarge,
-            borderWidth: 1,
-            borderColor: theme.border,
+            borderLeftWidth: 1,
+            borderLeftColor: theme.border,
             overflow: 'hidden',
-            boxShadow: theme.shadow,
         },
 
         flexibleHeight: {
@@ -6782,10 +6780,9 @@ const dynamicStyles = (theme: ThemeColors) =>
                 right: 0,
                 width,
                 borderRadius: variables.componentBorderRadiusLarge,
-                borderWidth: 1,
-                borderColor: theme.border,
+                borderLeftWidth: 1,
+                borderLeftColor: theme.border,
                 overflow: 'hidden',
-                boxShadow: theme.shadow,
             }) satisfies ViewStyle,
 
         uploadFileViewBorderWidth: (isSmallScreenWidth: boolean) =>
