@@ -44,7 +44,7 @@ function PersonalCardUpgradePage() {
 
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {accountID, email = ''} = currentUserPersonalDetails;
-    const activePolicy = useActivePolicy();
+    const [activePolicy] = useActivePolicy();
     const hasActiveAdminPolicies = useHasActiveAdminPolicies();
     const hasOwnedPaidPolicy = useHasOwnedPaidPolicy();
     const lastWorkspaceNumber = useLastWorkspaceNumber();

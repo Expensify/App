@@ -40,7 +40,7 @@ function DynamicWorkspaceConfirmationPage() {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const privateSubscription = usePrivateSubscription();
     const isAnnualSubscription = privateSubscription?.type === CONST.SUBSCRIPTION.TYPE.ANNUAL;
-    const activePolicy = useActivePolicy();
+    const [activePolicy] = useActivePolicy();
     const hasActiveAdminPolicies = useHasActiveAdminPolicies();
     const hasOwnedPaidPolicy = useHasOwnedPaidPolicy();
 
