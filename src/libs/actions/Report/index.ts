@@ -416,6 +416,7 @@ type AddCommentParams = {
     delegateAccountID: number | undefined;
     conciergeReportID: string | undefined;
     conciergeThreadReportID?: string;
+    shouldNavigateToConciergeThread?: boolean;
 };
 
 type AddActionsParams = {
@@ -433,6 +434,7 @@ type AddActionsParams = {
     delegateAccountID: number | undefined;
     conciergeReportID: string | undefined;
     conciergeThreadReportID?: string;
+    shouldNavigateToConciergeThread?: boolean;
 };
 
 type AddAttachmentWithCommentParams = {
@@ -448,6 +450,8 @@ type AddAttachmentWithCommentParams = {
     delegateAccountID: number | undefined;
     sidePanelContext?: SidePanelContext;
     conciergeReportID: string | undefined;
+    conciergeThreadReportID?: string;
+    shouldNavigateToConciergeThread?: boolean;
 };
 
 type MergeReportsProps = {
@@ -888,6 +892,7 @@ function addActions({
     delegateAccountID,
     conciergeReportID,
     conciergeThreadReportID,
+    shouldNavigateToConciergeThread = true,
 }: AddActionsParams) {
     if (!report?.reportID) {
         return;
@@ -1163,7 +1168,6 @@ function addActions({
 
         const optimisticThread = buildOptimisticChatReport({
             participantList: [currentUserAccountID, CONST.ACCOUNT_ID.CONCIERGE],
-            reportName: reportCommentText,
             parentReportActionID: resolvedReportActionID,
             parentReportID: reportID,
             optimisticReportID: conciergeThreadReportID,
@@ -1271,7 +1275,12 @@ function addActions({
     startSendMessagePhase(reportActionID, CONST.TELEMETRY.SPAN_SEND_MESSAGE_PHASE.PROPAGATE);
 
     if (conciergeThreadReportID && resolvedReportActionID) {
-        Onyx.update(conciergeThreadOnyxData).then(() => Navigation.navigate(getReportRouteForCurrentContext({reportID: conciergeThreadReportID})));
+        Onyx.update(conciergeThreadOnyxData).then(() => {
+            if (!shouldNavigateToConciergeThread) {
+                return;
+            }
+            Navigation.navigate(getReportRouteForCurrentContext({reportID: conciergeThreadReportID}));
+        });
     }
     notifyNewAction(resolvedNotifyReportID, lastAction, lastAction?.actorAccountID === currentUserAccountID);
 }
@@ -1290,6 +1299,8 @@ function addAttachmentWithComment({
     delegateAccountID,
     sidePanelContext,
     conciergeReportID,
+    conciergeThreadReportID,
+    shouldNavigateToConciergeThread,
 }: AddAttachmentWithCommentParams) {
     if (!report?.reportID) {
         return;
@@ -1316,13 +1327,30 @@ function addAttachmentWithComment({
             delegateAccountID,
             sidePanelContext,
             conciergeReportID,
+            conciergeThreadReportID,
+            shouldNavigateToConciergeThread,
         });
         handlePlaySound();
         return;
     }
 
     // Multiple attachments - first: combine text + first attachment as a single action
-    addActions({report, notifyReportID, ancestors, timezoneParam: timezone, currentUserAccountID, text, file: attachments?.at(0), isInSidePanel, delegateAccountID, conciergeReportID});
+    addActions({
+        report,
+        notifyReportID,
+        ancestors,
+        timezoneParam: timezone,
+        currentUserAccountID,
+        text,
+        file: attachments?.at(0),
+        isInSidePanel,
+        delegateAccountID,
+        conciergeReportID,
+
+        // Several attachments post one message each, so they stay in the DM instead of opening a thread.
+        conciergeThreadReportID: attachments.length === 1 ? conciergeThreadReportID : undefined,
+        shouldNavigateToConciergeThread,
+    });
 
     // Remaining: attachment-only actions (no text duplication)
     for (let i = 1; i < attachments?.length; i += 1) {
@@ -1361,6 +1389,7 @@ function addComment({
     delegateAccountID,
     conciergeReportID,
     conciergeThreadReportID,
+    shouldNavigateToConciergeThread,
 }: AddCommentParams) {
     if (shouldPlaySound) {
         playSound(SOUNDS.DONE);
@@ -1379,6 +1408,7 @@ function addComment({
         sidePanelContext,
         conciergeReportID,
         conciergeThreadReportID,
+        shouldNavigateToConciergeThread,
     });
 }
 
@@ -3752,7 +3782,7 @@ function editReportComment(
         });
     }
 
-    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.REPORT>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${originalReportID}`,
@@ -3764,6 +3794,22 @@ function editReportComment(
             },
         },
     ];
+
+    // A thread is named after a snapshot of its parent message, so the snapshot needs refreshing whenever that message changes.
+    const childReportID = originalReportAction.childReportID;
+    const childReport = childReportID ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${childReportID}`] : undefined;
+    if (childReportID && childReport && (childReport.reportName === originalCommentHTML || childReport.reportName === originalMessage?.text)) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${childReportID}`,
+            value: {reportName: reportComment},
+        });
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${childReportID}`,
+            value: {reportName: childReport.reportName},
+        });
+    }
 
     const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [
         {
