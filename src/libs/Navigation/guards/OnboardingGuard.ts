@@ -136,7 +136,7 @@ function isObjectPayload(value: unknown): value is DeepestFocusedScreenInput {
 }
 
 function getActionPayloadScreenName(action: NavigationAction): string | undefined {
-    // NAVIGATE/PUSH payloads aren't full NavigationStates; getDeepestFocusedScreen accepts that shape.
+    // NAVIGATE/PUSH payloads aren't full NavigationStates. getDeepestFocusedScreen accepts that shape.
     // Use a type guard (not `as`) so we stay within this file's no-unsafe-type-assertion seatbelt.
     if (!isObjectPayload(action.payload)) {
         return undefined;
@@ -184,6 +184,15 @@ function isNavigatingToOnboardingFlow(action: NavigationAction): boolean {
     }
 
     return false;
+}
+
+/**
+ * Check if the navigation action pushes the user out of the onboarding flow.
+ * Only NAVIGATE/PUSH can do this. GO_BACK, POP, SET_PARAMS and DISMISS_MODAL stay inside it.
+ */
+function isNavigatingAwayFromOnboardingFlow(action: NavigationAction): boolean {
+    const isNavigateOrPush = action.type === CONST.NAVIGATION.ACTION_TYPE.NAVIGATE || action.type === CONST.NAVIGATION.ACTION_TYPE.PUSH;
+    return isNavigateOrPush && !isNavigatingToOnboardingFlow(action);
 }
 
 /**
@@ -260,6 +269,12 @@ const OnboardingGuard: NavigationGuard = {
         // triggers further actions, creating an infinite navigation loop (APP-7FR).
         const isOnboardingFocused = state.routes[state.index]?.name === NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR;
         if (isOnboardingFocused) {
+            // A deep link that arrives while the app is warm reaches the root router as NAVIGATE/PUSH,
+            // so shouldPreventReset never sees it. Block those unless they target onboarding itself.
+            // BLOCK is not REDIRECT, so the APP-7FR loop protection above is preserved.
+            if (isNavigatingAwayFromOnboardingFlow(action)) {
+                return {type: 'BLOCK', reason: 'Cannot navigate away from onboarding before it is completed'};
+            }
             return {type: 'ALLOW'};
         }
 
