@@ -80,6 +80,7 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
         taskReport: addWorkEmailTaskReport,
         taskParentReport: addWorkEmailTaskParentReport,
         isOnboardingTaskParentReportArchived: isAddWorkEmailTaskParentReportArchived,
+        hasOutstandingChildTask: addWorkEmailTaskHasOutstandingChildTask,
         parentReportAction: addWorkEmailTaskParentReportAction,
     } = useOnboardingTaskInformation(CONST.ONBOARDING_TASK_TYPE.ADD_WORK_EMAIL);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
@@ -103,9 +104,11 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
     const isConciergeTaskFlow = isJoiningCompanyWorkspace && hasCompletedGuidedSetupFlow;
 
     useEffect(() => {
-        if (isConciergeTaskFlow) {
+        if (!isConciergeTaskFlow) {
+            setOnboardingErrorMessage(null);
             return;
         }
+        clearWorkEmailFormErrors();
         setOnboardingErrorMessage(null);
     }, [isConciergeTaskFlow]);
 
@@ -231,6 +234,7 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
                 addWorkEmailTaskReport,
                 addWorkEmailTaskParentReport,
                 isAddWorkEmailTaskParentReportArchived,
+                addWorkEmailTaskHasOutstandingChildTask,
                 addWorkEmailTaskParentReportAction,
                 currentUserPersonalDetails.accountID,
             );
@@ -239,6 +243,7 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
             addWorkEmailTaskReport,
             addWorkEmailTaskParentReport,
             isAddWorkEmailTaskParentReportArchived,
+            addWorkEmailTaskHasOutstandingChildTask,
             addWorkEmailTaskParentReportAction,
             currentUserPersonalDetails.accountID,
             isConciergeTaskFlow,
@@ -335,7 +340,7 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
             <OnboardingHeader
                 shouldShowBackButton={isJoiningCompanyWorkspace && !isConciergeTaskFlow}
                 onBackButtonPress={() => Navigation.goBack()}
-                shouldShowCloseButton={isConciergeTaskFlow}
+                shouldShowCloseButton={false}
                 onCloseButtonPress={returnToOriginReport}
             />
             {onboardingValues?.isMergingAccountBlocked ? (

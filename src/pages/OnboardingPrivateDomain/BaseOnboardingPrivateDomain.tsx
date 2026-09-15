@@ -122,7 +122,11 @@ function BaseOnboardingPrivateDomain({shouldUseNativeStyles, route}: BaseOnboard
 
     const handleSkipButtonPress = useCallback(() => {
         if (isConciergeTaskFlow) {
-            createJoinWorkspaceOnboardingContent('validateEmail', domain, email);
+            const validateEmailTaskReportID = createJoinWorkspaceOnboardingContent('validateEmail', domain, email);
+            if (validateEmailTaskReportID) {
+                Navigation.dismissModalWithReport({reportID: validateEmailTaskReportID});
+                return;
+            }
             returnToOriginReport();
             return;
         }

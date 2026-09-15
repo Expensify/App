@@ -34,7 +34,6 @@ import * as MainQueue from '@libs/Network/MainQueue';
 import * as NetworkStore from '@libs/Network/NetworkStore';
 import {getCurrentUserEmail} from '@libs/Network/NetworkStore';
 import * as SequentialQueue from '@libs/Network/SequentialQueue';
-import {rand64} from '@libs/NumberUtils';
 import clearPrefetchOnAppStart from '@libs/Prefetch/clearPrefetchOnAppStart';
 import Pusher from '@libs/Pusher';
 import reauthenticate from '@libs/Reauthentication';
@@ -57,7 +56,7 @@ import {setErrorFields} from '@userActions/FormActions';
 import type HybridAppSettings from '@userActions/HybridApp/types';
 import {close} from '@userActions/Modal';
 import redirectToSignIn from '@userActions/SignInRedirect';
-import {canActionTask} from '@userActions/Task';
+import {canActionTask, getOnboardingTaskCompletionOnSuccessData} from '@userActions/Task';
 import * as Welcome from '@userActions/Welcome';
 
 import CONFIG from '@src/CONFIG';
@@ -1663,19 +1662,28 @@ function AddWorkEmail(
     formIDOrTaskReport: AddWorkEmailFormID | OnyxEntry<Report> = ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM,
     addWorkEmailTaskParentReport?: OnyxEntry<Report>,
     isAddWorkEmailTaskParentReportArchived?: boolean,
+    addWorkEmailTaskHasOutstandingChildTask?: boolean,
     addWorkEmailTaskParentReportAction?: OnyxEntry<ReportAction>,
     currentUserAccountID?: number,
 ) {
     const isOnboardingFlow = typeof formIDOrTaskReport !== 'string' || formIDOrTaskReport === ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM;
     const formID = typeof formIDOrTaskReport === 'string' ? formIDOrTaskReport : ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM;
     const addWorkEmailTaskReport = typeof formIDOrTaskReport === 'string' ? undefined : formIDOrTaskReport;
-    const completedTaskReportActionID =
+    const addWorkEmailTaskCompletion =
         isOnboardingFlow &&
         addWorkEmailTaskReport &&
         currentUserAccountID &&
         canActionTask(addWorkEmailTaskReport, addWorkEmailTaskParentReportAction, currentUserAccountID, addWorkEmailTaskParentReport, isAddWorkEmailTaskParentReportArchived)
-            ? rand64()
+            ? getOnboardingTaskCompletionOnSuccessData(
+                  addWorkEmailTaskReport,
+                  addWorkEmailTaskParentReport,
+                  isAddWorkEmailTaskParentReportArchived ?? false,
+                  currentUserAccountID,
+                  addWorkEmailTaskHasOutstandingChildTask ?? false,
+                  addWorkEmailTaskParentReportAction,
+              )
             : undefined;
+    const completedTaskReportActionID = addWorkEmailTaskCompletion?.completedTaskReportActionID;
 
     const optimisticData: Array<OnyxUpdate<AddWorkEmailFormID | typeof ONYXKEYS.ONBOARDING_ERROR_MESSAGE_TRANSLATION_KEY>> = isOnboardingFlow
         ? [
@@ -1733,7 +1741,7 @@ function AddWorkEmail(
         {workEmail, completedTaskReportActionID},
         {
             optimisticData,
-            successData: getLoadingFinishedData(),
+            successData: [...getLoadingFinishedData(), ...(addWorkEmailTaskCompletion?.successData ?? [])],
             failureData: getLoadingFinishedData(),
         },
     ).then((response) => {
