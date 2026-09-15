@@ -1,4 +1,4 @@
-import type {ChartDataPoint, UnitPosition, UnitWithFallback} from '@components/Charts';
+import type {ChartDataPoint} from '@components/Charts';
 import type {PaymentMethod} from '@components/KYCWall/types';
 import type {SelectionListStyle} from '@components/SelectionList/types';
 
@@ -459,24 +459,6 @@ type SearchChartDataRow = {
     color?: string;
 };
 
-type SearchChartProps = {
-    /** The points to plot, prepared by `SearchChartView` */
-    data: ChartDataPoint[];
-
-    /** Callback when a chart item is pressed - receives the index of the pressed point */
-    onItemPress?: (index: number) => void;
-
-    isLoading?: boolean;
-
-    /** Currency unit with font fallback support */
-    unit?: UnitWithFallback;
-
-    /** Position of currency symbol relative to value */
-    unitPosition?: UnitPosition;
-
-    shouldShowLegend?: boolean;
-};
-
 type SearchFilterCommonProps<T> = {
     value: T;
     selectionListTextInputStyle?: StyleProp<ViewStyle>;
@@ -544,6 +526,5 @@ export type {
     SearchCustomColumnIds,
     GroupedItem,
     SearchChartDataRow,
-    SearchChartProps,
     SearchFilterCommonProps,
 };
