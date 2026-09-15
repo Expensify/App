@@ -1,10 +1,10 @@
+/**
+ * Returns the current active route derived from the navigation state.
+ */
 import navigationRef from '@libs/Navigation/navigationRef';
 
 import getPathFromState from './getPathFromState';
 
-/**
- * Returns the current active route.
- */
 function getActiveRoute(): string {
     if (!navigationRef.isReady()) {
         return '';
