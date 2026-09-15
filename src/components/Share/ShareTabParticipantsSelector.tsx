@@ -56,6 +56,8 @@ function ShareTabParticipantsSelectorComponent({detailsPageRouteObject}: ShareTa
     const canUseDefaultPolicy =
         isSubmitFlow &&
         !isRestrictedToPreferredPolicy &&
+        // Use CREATE because shouldUseDefaultExpensePolicy is the existing eligibility predicate for automatically selecting
+        // a default expense policy; passing SUBMIT would always return false.
         shouldUseDefaultExpensePolicy(CONST.IOU.TYPE.CREATE, defaultExpensePolicy, amountOwed, userBillingGracePeriodEnds, ownerBillingGracePeriodEnd, currentUserAccountID);
 
     // When the user's domain security group restricts submission to a single workspace, skip the participant picker and
