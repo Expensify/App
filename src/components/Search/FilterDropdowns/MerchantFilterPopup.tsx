@@ -1,6 +1,9 @@
+/**
+ * Edits the Merchant filter value and match type from its search filter chip.
+ */
+import MerchantMatchTypeSelector from '@components/Search/FilterComponents/MerchantMatchTypeSelector';
 import NegatableFilter from '@components/Search/FilterComponents/NegatableFilter';
 import useTextFilterValidation from '@components/Search/hooks/useTextFilterValidation';
-import type {ReportFieldTextKey, SearchTextFilterKeys} from '@components/Search/types';
 import TextInput from '@components/TextInput';
 
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -9,28 +12,37 @@ import {getFilterFormValues} from '@libs/SearchQueryUtils';
 import {getFilterNegatableValue} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
-import type {SearchAdvancedFiltersForm} from '@src/types/form/SearchAdvancedFiltersForm';
+import FILTER_KEYS from '@src/types/form/SearchAdvancedFiltersForm';
+import type {MerchantMatchType, SearchAdvancedFiltersForm} from '@src/types/form/SearchAdvancedFiltersForm';
 
 import React, {useState} from 'react';
+import {View} from 'react-native';
 
 import type {PopoverComponentProps} from './FilterPopupButton';
 
 import BasePopup from './BasePopup';
 
-type TextFilterPopupProps = {
-    baseFilterKey: Exclude<SearchTextFilterKeys, typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.LIMIT | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT | ReportFieldTextKey>;
+type MerchantFilterPopupProps = {
+    /** The Merchant filter key. */
+    baseFilterKey: typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT;
+    /** The current search filter form values. */
     values: Partial<SearchAdvancedFiltersForm> | undefined;
+    /** The translated filter label. */
     label: string;
+    /** Closes the filter popup. */
     closeOverlay: PopoverComponentProps['closeOverlay'];
+    /** Applies the updated Merchant filter values. */
     updateFilterForm: (value: Partial<SearchAdvancedFiltersForm>) => void;
 };
 
-function TextFilterPopup({baseFilterKey, values, label, updateFilterForm, closeOverlay}: TextFilterPopupProps) {
+function MerchantFilterPopup({baseFilterKey, values, label, updateFilterForm, closeOverlay}: MerchantFilterPopupProps) {
     const styles = useThemeStyles();
 
     const {isNegated: initialIsNegated, value: initialValue} = getFilterNegatableValue(baseFilterKey, values);
     const [isNegated, setIsNegated] = useState(initialIsNegated);
     const [value, setValue] = useState(initialValue);
+    const shouldShowMerchantMatchType = !isNegated;
+    const [merchantOperator, setMerchantOperator] = useState<MerchantMatchType>(values?.[FILTER_KEYS.MERCHANT_OPERATOR] ?? CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS);
 
     const error = useTextFilterValidation(baseFilterKey, value);
     const filterInput = (
@@ -42,7 +54,7 @@ function TextFilterPopup({baseFilterKey, values, label, updateFilterForm, closeO
             onChangeText={setValue}
             accessibilityLabel={label}
             role={CONST.ROLE.PRESENTATION}
-            containerStyles={[styles.ph5]}
+            containerStyles={shouldShowMerchantMatchType ? [styles.ph5, styles.mb5] : [styles.ph5]}
         />
     );
 
@@ -50,7 +62,10 @@ function TextFilterPopup({baseFilterKey, values, label, updateFilterForm, closeO
         if (error) {
             return;
         }
-        updateFilterForm(getFilterFormValues(baseFilterKey, value, isNegated));
+        updateFilterForm({
+            ...getFilterFormValues(baseFilterKey, value, isNegated),
+            [FILTER_KEYS.MERCHANT_OPERATOR]: isNegated ? CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO : merchantOperator,
+        });
         closeOverlay();
     };
 
@@ -65,10 +80,20 @@ function TextFilterPopup({baseFilterKey, values, label, updateFilterForm, closeO
                 isNegated={isNegated}
                 onNegationChange={setIsNegated}
             >
-                {filterInput}
+                {shouldShowMerchantMatchType ? (
+                    <View>
+                        {filterInput}
+                        <MerchantMatchTypeSelector
+                            value={merchantOperator}
+                            onChange={setMerchantOperator}
+                        />
+                    </View>
+                ) : (
+                    filterInput
+                )}
             </NegatableFilter>
         </BasePopup>
     );
 }
 
-export default TextFilterPopup;
+export default MerchantFilterPopup;
