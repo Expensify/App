@@ -5,7 +5,11 @@ import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeed
 import Text from '@components/Text';
 
 import * as QuickbooksOnline from '@libs/actions/connections/QuickbooksOnline';
+import {SettingsModalStackNavigator} from '@libs/Navigation/AppNavigator/ModalStackNavigators';
+import getStateFromPath from '@libs/Navigation/helpers/getStateFromPath';
 import Navigation from '@libs/Navigation/Navigation';
+
+import type {SettingsNavigatorParamList} from '@navigation/types';
 
 import QuickbooksCustomDimensionPage from '@pages/workspace/accounting/qbo/import/QuickbooksCustomDimensionPage';
 import QuickbooksImportPage from '@pages/workspace/accounting/qbo/import/QuickbooksImportPage';
@@ -13,9 +17,12 @@ import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import type {ToggleSettingOptionRowProps} from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 
 import CONST from '@src/CONST';
+import NAVIGATORS from '@src/NAVIGATORS';
 import ROUTES from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
 import type {Policy} from '@src/types/onyx';
 
+import {createNavigationContainerRef, NavigationContainer} from '@react-navigation/native';
 import React from 'react';
 import {Switch} from 'react-native';
 
@@ -30,8 +37,9 @@ let mockPolicy: Policy;
 jest.mock('@hooks/useLocalize', () => () => ({
     translate: (key: string) => key,
 }));
-jest.mock('@hooks/useThemeStyles', () => () => ({}));
+jest.mock('@hooks/useThemeStyles', () => () => ({modalStackNavigatorContainerWidth: () => ({})}));
 jest.mock('@libs/actions/connections/QuickbooksOnline');
+jest.mock('@libs/Navigation/AppNavigator/ModalStackNavigators/useModalStackScreenOptions', () => () => () => ({}));
 jest.mock('@libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
     goBack: jest.fn(),
@@ -180,6 +188,39 @@ describe('Quickbooks custom dimension import', () => {
         // Then only that dimension is selected for import as tags
         expect(QuickbooksOnline.updateQuickbooksOnlineSyncCustomDimensions).toHaveBeenCalledWith(POLICY_ID, {project: 'TAG'}, {department: 'TAG'});
         expect(QuickbooksOnline.updateQuickbooksOnlineSyncClasses).not.toHaveBeenCalled();
+    });
+
+    it('opens the registered dimension page from its URL with the correct workspace and dimension', () => {
+        // Given a URL for an active dimension in this workspace
+        const path = ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_CUSTOM_DIMENSION.getRoute(POLICY_ID, 'project');
+        expect(path).toBe('workspaces/123/accounting/quickbooks-online/import/custom-dimension/project');
+        const modalState = getStateFromPath(path).routes.find((route) => route.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR)?.state;
+        const settingsState = modalState?.routes.find((route) => route.name === SCREENS.RIGHT_MODAL.SETTINGS)?.state;
+        expect(settingsState).toBeDefined();
+        const navigation = createNavigationContainerRef<SettingsNavigatorParamList>();
+
+        // When the URL is opened through the registered settings navigator
+        render(
+            <NavigationContainer
+                ref={navigation}
+                initialState={settingsState}
+            >
+                <SettingsModalStackNavigator />
+            </NavigationContainer>,
+        );
+
+        // Then the correct dimension page receives both route parameters
+        expect(navigation.getCurrentRoute()).toEqual(
+            expect.objectContaining({
+                name: SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_CUSTOM_DIMENSION,
+                params: {policyID: POLICY_ID, dimensionID: 'project'},
+            }),
+        );
+        expect(screen.getByText('Project')).toBeOnTheScreen();
+
+        // And enabling import saves the dimension for the workspace from the URL
+        fireEvent(screen.getByLabelText('Project'), 'valueChange', true);
+        expect(QuickbooksOnline.updateQuickbooksOnlineSyncCustomDimensions).toHaveBeenCalledWith(POLICY_ID, {project: 'TAG'}, {department: 'TAG'});
     });
 
     it('disables an imported dimension from its settings page', () => {
