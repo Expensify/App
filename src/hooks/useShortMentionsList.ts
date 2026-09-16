@@ -8,11 +8,10 @@ import type {PersonalDetailsList} from '@src/types/onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {useMemo} from 'react';
-// eslint-disable-next-line no-restricted-imports
-import {useOnyx as useOnyxWithoutSnapshots} from 'react-native-onyx';
 
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useOnyx from './useOnyx';
+import {useAllPersonalDetailsWithoutSnapshots} from './usePersonalDetails';
 
 const emptyLoginsList: string[] = [];
 
@@ -59,10 +58,8 @@ export default function useShortMentionsList() {
     const [currentUserLogin = ''] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector});
 
     // The selector output is compared by value, so consumers re-render only when the list changes.
-    // The raw hook skips the search-snapshot redirect: this list must always read live data.
-    const [availableLoginsList = emptyLoginsList] = useOnyxWithoutSnapshots(ONYXKEYS.PERSONAL_DETAILS_LIST, {
-        selector: (personalDetails) => buildAvailableLoginsList(personalDetails, currentUserLogin),
-    });
+    // The hook skips the search-snapshot redirect: this list must always read live data.
+    const [availableLoginsList = emptyLoginsList] = useAllPersonalDetailsWithoutSnapshots((personalDetails) => buildAvailableLoginsList(personalDetails, currentUserLogin));
 
     // We want to highlight both short and long version of current user login
     const currentUserMentions = useMemo(() => {

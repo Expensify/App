@@ -5,6 +5,9 @@ import type {PersonalDetails, PersonalDetailsList} from '@src/types/onyx';
 
 import type {UseOnyxResult} from 'react-native-onyx';
 
+// eslint-disable-next-line no-restricted-imports
+import {useOnyx as useOnyxWithoutSnapshots} from 'react-native-onyx';
+
 import useOnyx from './useOnyx';
 
 function usePersonalDetail(accountID: number | undefined): UseOnyxResult<PersonalDetails | undefined> {
@@ -22,4 +25,11 @@ function useAllPersonalDetails<TReturn>(selector?: (value: PersonalDetailsList |
     return useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector});
 }
 
-export {usePersonalDetail, usePersonalDetailsByIDs, useAllPersonalDetails};
+// Reads the raw hook from react-native-onyx so search surfaces (list items, to-do page) bypass the snapshot redirect
+function useAllPersonalDetailsWithoutSnapshots(): UseOnyxResult<PersonalDetailsList | undefined>;
+function useAllPersonalDetailsWithoutSnapshots<TReturn>(selector: (value: PersonalDetailsList | undefined) => TReturn): UseOnyxResult<TReturn>;
+function useAllPersonalDetailsWithoutSnapshots<TReturn>(selector?: (value: PersonalDetailsList | undefined) => TReturn) {
+    return useOnyxWithoutSnapshots(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector});
+}
+
+export {usePersonalDetail, usePersonalDetailsByIDs, useAllPersonalDetails, useAllPersonalDetailsWithoutSnapshots};
