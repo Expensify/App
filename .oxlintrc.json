@@ -2320,8 +2320,18 @@
             // oxlint has no storybook plugin, so the story-file scope `plugin:storybook/recommended`
             // applies internally is restated here, with the upstream severities.
             "files": [
-                "**/*.stories.ts", "**/*.stories.tsx", "**/*.stories.js", "**/*.stories.jsx", "**/*.stories.mjs", "**/*.stories.cjs",
-                "**/*.story.ts", "**/*.story.tsx", "**/*.story.js", "**/*.story.jsx", "**/*.story.mjs", "**/*.story.cjs"
+                "**/*.stories.ts",
+                "**/*.stories.tsx",
+                "**/*.stories.js",
+                "**/*.stories.jsx",
+                "**/*.stories.mjs",
+                "**/*.stories.cjs",
+                "**/*.story.ts",
+                "**/*.story.tsx",
+                "**/*.story.js",
+                "**/*.story.jsx",
+                "**/*.story.mjs",
+                "**/*.story.cjs"
             ],
             "rules": {
                 // The storybook preset turns this rule off for story globs; oxlint enabled it

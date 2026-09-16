@@ -97,9 +97,7 @@
         "oxlintRule": "react/no-redundant-should-component-update",
         "expected": 1,
         "why": "enabled in .oxlintrc.json with no parity evidence before this batch",
-        "oxlintLines": [
-            44
-        ],
+        "oxlintLines": [44],
         "whyOxlintLines": "same violation, different anchor convention: ESLint reports on the shouldComponentUpdate declaration (line 43), oxlint reports one line further in. Counts match at 1. Same suppression-placement consequence as the tsBatch anchor rows: a disable comment aimed at one tool's line misses the other."
     },
     "react/state-in-constructor": {

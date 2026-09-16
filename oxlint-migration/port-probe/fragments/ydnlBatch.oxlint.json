@@ -1,12 +1,8 @@
 {
     "overrides": [
         {
-            "files": [
-                "**/ydnlBatch*.ts"
-            ],
-            "jsPlugins": [
-                "eslint-plugin-you-dont-need-lodash-underscore"
-            ],
+            "files": ["**/ydnlBatch*.ts"],
+            "jsPlugins": ["eslint-plugin-you-dont-need-lodash-underscore"],
             "rules": {
                 "you-dont-need-lodash-underscore/all": "error",
                 "you-dont-need-lodash-underscore/any": "error",

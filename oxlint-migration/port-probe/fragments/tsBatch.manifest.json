@@ -4,9 +4,7 @@
         "oxlintRule": "typescript/adjacent-overload-signatures",
         "expected": 1,
         "why": "enabled in .oxlintrc.json with no parity evidence before this batch; declare-function overloads split by an unrelated signature; the consecutive pair below is the control",
-        "oxlintLines": [
-            38
-        ],
+        "oxlintLines": [38],
         "whyOxlintLines": "same violation, different anchor convention: ESLint reports on the out-of-order signature (the second `interleaved`, line 40), oxlint reports on the first signature of the split group (line 38). Counts match at 1. Matters for suppressions: a disable comment placed for one tool misses the other."
     },
     "@typescript-eslint/array-type": {
@@ -104,9 +102,7 @@
         "oxlintRule": "typescript/no-duplicate-enum-values",
         "expected": 1,
         "why": "enabled in .oxlintrc.json with no parity evidence before this batch; the second member repeats the value 1; the uniquely valued enum is the control",
-        "oxlintLines": [
-            102
-        ],
+        "oxlintLines": [102],
         "whyOxlintLines": "same violation, different anchor convention: ESLint reports on the duplicate member (`Second = 1`, line 103), oxlint reports on the first member holding that value (`First = 1`, line 102). Counts match at 1. Same suppression-placement consequence as adjacent-overload-signatures."
     },
     "@typescript-eslint/no-duplicate-type-constituents": {
@@ -114,9 +110,7 @@
         "oxlintRule": "typescript/no-duplicate-type-constituents",
         "expected": 2,
         "why": "enabled in .oxlintrc.json with no parity evidence before this batch; production's ignoreUnions:true leaves the duplicated intersection reporting and the duplicated union quiet",
-        "oxlintLines": [
-            114
-        ],
+        "oxlintLines": [114],
         "whyOxlintLines": "oxlint reports the primitive intersection (string & string) but not the structurally identical object literals on the next line; ESLint asks the type checker and catches both. Measured: with this rule enabled alone, oxlint reports `string & string` and `string | string` (the latter only with ignoreUnions off, so the option is honoured) and stays silent on `{a: string} | {a: string}` and `{b: string} & {b: string}`. The gap is structural comparison of object types, not unions vs intersections. Production enables this rule, so that is a real hole; this row flips the day oxlint compares structurally."
     },
     "@typescript-eslint/no-empty-object-type": {
@@ -226,9 +220,7 @@
         "oxlintRule": "typescript/no-unsafe-declaration-merging",
         "expected": 2,
         "why": "enabled in .oxlintrc.json with no parity evidence before this batch; a class merged with an interface of the same name; interface-with-interface is the safe control",
-        "oxlintLines": [
-            207
-        ],
+        "oxlintLines": [207],
         "whyOxlintLines": "both tools find the unsafe merge; they anchor it differently. ESLint reports twice, once on the interface and once on the class that merges with it, while oxlint reports once on the interface. Same defect, one diagnostic instead of two -- not a missed detection."
     },
     "@typescript-eslint/no-unsafe-enum-comparison": {

@@ -1,12 +1,8 @@
 {
     "overrides": [
         {
-            "files": [
-                "**/reactNativeRulesA.tsx"
-            ],
-            "plugins": [
-                "react"
-            ],
+            "files": ["**/reactNativeRulesA.tsx"],
+            "plugins": ["react"],
             "rules": {
                 "react/jsx-boolean-value": [
                     "error",
@@ -15,19 +11,14 @@
                         "always": []
                     }
                 ],
-                "react/jsx-fragments": [
-                    "error",
-                    "syntax"
-                ],
+                "react/jsx-fragments": ["error", "syntax"],
                 "react/jsx-no-comment-textnodes": "error",
                 "react/jsx-no-script-url": [
                     "error",
                     [
                         {
                             "name": "Link",
-                            "props": [
-                                "to"
-                            ]
+                            "props": ["to"]
                         }
                     ]
                 ],
@@ -56,12 +47,7 @@
                         "forbid": [
                             {
                                 "propName": "fsClass",
-                                "allowedFor": [
-                                    "View",
-                                    "Animated.View",
-                                    "Text",
-                                    "Pressable"
-                                ],
+                                "allowedFor": ["View", "Animated.View", "Text", "Pressable"],
                                 "message": "The 'fsClass' prop doesn't work for custom components, only RN's View, Text and Pressable.\nPlease use the 'ForwardedFSClassProps' or 'MultipleFSClassProps' types to pass down the desired 'fsClass' value to the allowed components."
                             }
                         ]
@@ -71,20 +57,13 @@
             }
         },
         {
-            "files": [
-                "**/reactNativeRulesB.tsx"
-            ],
-            "plugins": [
-                "react"
-            ],
+            "files": ["**/reactNativeRulesB.tsx"],
+            "plugins": ["react"],
             "rules": {
                 "react/no-did-update-set-state": "error",
                 "react/no-will-update-set-state": "error",
                 "react/no-redundant-should-component-update": "error",
-                "react/state-in-constructor": [
-                    "error",
-                    "always"
-                ],
+                "react/state-in-constructor": ["error", "always"],
                 "react/no-unsafe": [
                     "error",
                     {
@@ -94,12 +73,8 @@
             }
         },
         {
-            "files": [
-                "**/reactNativeRulesC.jsx"
-            ],
-            "plugins": [
-                "react"
-            ],
+            "files": ["**/reactNativeRulesC.jsx"],
+            "plugins": ["react"],
             "rules": {
                 "react/jsx-no-duplicate-props": "error",
                 "react/jsx-no-undef": "error",
@@ -109,10 +84,7 @@
                 "react/no-this-in-sfc": "error",
                 "react/style-prop-object": "error",
                 "react/void-dom-elements-no-children": "error",
-                "react/prefer-es6-class": [
-                    "error",
-                    "always"
-                ],
+                "react/prefer-es6-class": ["error", "always"],
                 "react/no-is-mounted": "error",
                 "react/require-render-return": "error",
                 "react/no-find-dom-node": "error",

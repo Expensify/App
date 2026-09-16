@@ -1,9 +1,7 @@
 {
     "overrides": [
         {
-            "files": [
-                "**/sbTitleBatch.stories.tsx"
-            ],
+            "files": ["**/sbTitleBatch.stories.tsx"],
             "rules": {
                 "hosted/hierarchy-separator": "error",
                 "hosted/no-redundant-story-name": "error",
@@ -11,33 +9,25 @@
             }
         },
         {
-            "files": [
-                "**/sbNoDefault.stories.tsx"
-            ],
+            "files": ["**/sbNoDefault.stories.tsx"],
             "rules": {
                 "hosted/default-exports": "error"
             }
         },
         {
-            "files": [
-                "**/sbNoStories.stories.tsx"
-            ],
+            "files": ["**/sbNoStories.stories.tsx"],
             "rules": {
                 "hosted/story-exports": "error"
             }
         },
         {
-            "files": [
-                "**/sbRenderer.stories.tsx"
-            ],
+            "files": ["**/sbRenderer.stories.tsx"],
             "rules": {
                 "hosted/no-renderer-packages": "error"
             }
         },
         {
-            "files": [
-                "**/sbPlay.stories.tsx"
-            ],
+            "files": ["**/sbPlay.stories.tsx"],
             "rules": {
                 "hosted/context-in-play-function": "error",
                 "hosted/use-storybook-expect": "error",
@@ -45,17 +35,13 @@
             }
         },
         {
-            "files": [
-                "**/sbAwait.stories.tsx"
-            ],
+            "files": ["**/sbAwait.stories.tsx"],
             "rules": {
                 "hosted/await-interactions": "error"
             }
         },
         {
-            "files": [
-                "**/sbMain.ts"
-            ],
+            "files": ["**/sbMain.ts"],
             "rules": {
                 "hosted/no-uninstalled-addons": [
                     "error",
@@ -66,17 +52,12 @@
             }
         },
         {
-            "files": [
-                "**/sbRequireJsdoc.ts"
-            ],
+            "files": ["**/sbRequireJsdoc.ts"],
             "rules": {
                 "hosted/require-jsdoc": [
                     "error",
                     {
-                        "contexts": [
-                            "TSInterfaceDeclaration",
-                            "TSTypeAliasDeclaration"
-                        ]
+                        "contexts": ["TSInterfaceDeclaration", "TSTypeAliasDeclaration"]
                     }
                 ]
             }

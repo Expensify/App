@@ -6,11 +6,7 @@
             "plugins": ["import"],
             "rules": {
                 "import/consistent-type-specifier-style": ["error", "prefer-top-level"],
-                "import/extensions": [
-                    "error",
-                    "ignorePackages",
-                    {"js": "never", "mjs": "never", "jsx": "never", "ts": "never", "tsx": "never", "cts": "never", "mts": "never"}
-                ],
+                "import/extensions": ["error", "ignorePackages", {"js": "never", "mjs": "never", "jsx": "never", "ts": "never", "tsx": "never", "cts": "never", "mts": "never"}],
                 "import/first": "error",
                 "import/newline-after-import": "error",
                 "import/no-amd": "error",

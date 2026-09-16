@@ -34,9 +34,7 @@
         "oxlintRule": "jsdoc/require-param",
         "expected": 1,
         "why": "same native-jsdoc population; one undocumented parameter so the count is one finding rather than one per parameter",
-        "oxlintLines": [
-            17
-        ],
+        "oxlintLines": [17],
         "whyOxlintLines": "oxlint's native port anchors require-param on the function declaration (line 17) while eslint-plugin-jsdoc anchors it on the JSDoc block opener (line 14); same finding, different anchor, and the count and rule both agree"
     },
     "jsdoc/require-param-type": {
