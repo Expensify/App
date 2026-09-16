@@ -1,7 +1,7 @@
 ---
 title: Use Agent Templates
 description: Learn what each built-in agent template does, how it works, and when to use it.
-keywords: [agent templates, agents, TipMaster, Translator Tess, Splitter Sam, AI agent, receipt translator, card splitter]
+keywords: [agent templates, agents, TipMaster, Translator Tess, Splitter Sam, Description Dan, AI agent, receipt translator, card splitter, automate description]
 internalScope: Audience is New Expensify members creating AI agents. Covers the built-in agent templates available when creating a new agent and what each one does. Does not cover creating custom agents, editing agent instructions, Agent rules, or RuleBot.
 contentType: topic
 platform: New Expensify
@@ -9,11 +9,11 @@ platform: New Expensify
 
 # Use Agent Templates
 
-Agent templates are ready-to-use agents with prewritten instructions for common tasks. Instead of creating an agent from scratch, you can start with a template and customize its instructions at any time.
+Agent templates are prebuilt personal Agents with instructions already written for common tasks. Instead of creating an agent from scratch, you can start with a template and customize its instructions at any time.
 
 Expensify includes a growing library of built-in templates, each designed for a specific workflow. This article explains what each template does and when you might want to use it.
 
-To learn how agents work or create your own, see [Create and use agents](/articles/new-expensify/ai-agents/Create-and-Use-Custom-Agents).
+To learn how to create an agent, see [Create and use agents](/articles/new-expensify/ai-agents/Create-and-Use-Custom-Agents).
 
 ---
 
@@ -23,13 +23,13 @@ Every template is a standard Expensify agent with instructions that are already 
 
 Each template monitors your expenses and receipts for specific conditions. When those conditions are met, the agent performs its configured action, such as adding a comment or moving an expense to another report. If an expense doesn't match the template's instructions, the agent takes no action.
 
-After creating a template, you can edit its instructions at any time to customize its behavior.
+When you create an agent from a template, you can edit its instructions at any time to customize its behavior.
+
+![Agents page showing available templates]({{site.url}}/assets/images/Agent_Templates.png){:width="100%"}
 
 ---
 
 ## What TipMaster does
-
-TipMaster reviews restaurant receipts and identifies tips that exceed 20% of the pre-tax subtotal.
 
 When you add a restaurant receipt, TipMaster calculates the tip percentage using the pre-tax subtotal. If the tip is greater than 20%, it adds a comment showing the subtotal, tip amount, and calculated percentage. It ignores receipts that aren't from restaurants and tips that are 20% or less.
 
@@ -47,13 +47,23 @@ Translator Tess is useful for international travel, reviewing foreign-language r
 
 ---
 
-## What Splitter Sam does
+## What HotelSplitBot does
 
-Splitter Sam organizes company card expenses by moving them to the correct card report.
+HotelSplitBot itemizes hotel expenses so each charge can have its own category.
 
-When a card expense is submitted to the wrong report, Splitter Sam moves it to the report for the card it was charged to, creating that report if necessary. Cash expenses aren't affected.
+When a hotel receipt includes separate charges, such as the room, meals, parking, or laundry, HotelSplitBot splits them into individual expenses while keeping the room charge as its own expense. The split amounts add up to the original expense total. Hotel expenses that only include a room charge or have already been split aren't changed.
 
-Splitter Sam is useful if you use multiple company cards and want each card's expenses grouped on its own report for easier reconciliation.
+HotelSplitBot is useful for itemizing hotel stays and categorizing room charges and incidentals separately.
+
+---
+
+## What Description Dan Does 
+
+Description Dan automatically adds descriptions to expenses based on descriptions you've previously used for the same merchant.
+
+When an expense has no description, Description Dan looks at your past expenses from that merchant. If the same description has been used repeatedly, it adds that description to the new expense. Expenses that already have a manually entered description aren't changed.
+
+Description Dan is useful for recurring purchases where you typically use the same description, helping keep expense details consistent without entering them manually each time.
 
 ---
 
