@@ -11038,6 +11038,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         mileageRateAutoUpdated: '<tooltip>Wir haben den Kurs basierend auf Ihrem Reisedatum aktualisiert.</tooltip>',
         markAllAsRead: '<tooltip>Rechtsklick, um <strong>alles als gelesen zu markieren</strong>.</tooltip>',
         markAllAsReadTouchScreen: '<tooltip>Lange drücken, um <strong>alles als gelesen zu markieren</strong>.</tooltip>',
+        accountMovedToTopBar: '<tooltip>Greifen Sie auf Ihr Konto und Ihre persönlichen Einstellungen zu.</tooltip>',
     },
     discardChangesConfirmation: {
         title: 'Änderungen verwerfen?',

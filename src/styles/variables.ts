@@ -17,6 +17,7 @@ const avatarSizes = {
     avatarSizeXxSmall: 20,
     avatarSizeXSmall: 24,
     avatarSizeSmall: 28,
+    avatarSizeMidSmall: 32,
     avatarSizeMedium: 40,
     avatarSizeLarge: 48,
     avatarSizeXLarge: 52,
