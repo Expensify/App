@@ -50,6 +50,7 @@ type AmountSubmitData = Pick<
     | 'ownerBillingGracePeriodEnd'
     | 'conciergeReportID'
     | 'conciergeChat'
+    | 'rules'
 >;
 
 type AmountSubmitDataSyncProps = {
@@ -102,6 +103,7 @@ function AmountSubmitDataSync({report, transaction, transactionID, policyID, isE
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
     const duplicateTransactionIDs = isEditing && transactionID ? [transactionID] : [];
     const {duplicateTransactions, duplicateTransactionViolations} = useDuplicateTransactionsAndViolations(duplicateTransactionIDs);
@@ -139,6 +141,7 @@ function AmountSubmitDataSync({report, transaction, transactionID, policyID, isE
             ownerBillingGracePeriodEnd,
             conciergeReportID,
             conciergeChat,
+            rules,
         };
     }, [
         submitDataRef,
@@ -170,6 +173,7 @@ function AmountSubmitDataSync({report, transaction, transactionID, policyID, isE
         ownerBillingGracePeriodEnd,
         conciergeReportID,
         conciergeChat,
+        rules,
     ]);
 
     return null;
