@@ -59,7 +59,6 @@ function renderPagination(params: Partial<Params> = {}) {
     const initialParams: Params = {
         reportID: REPORT_ID,
         reportActions: [makeAction('1')],
-        reportActionIDs: ['1'],
         transactionThreadReportID: undefined,
         hasOlderActions: true,
         hasNewerActions: false,
@@ -105,7 +104,7 @@ describe('useMoneyRequestReportPagination', () => {
         });
 
         it('should not load newer actions when there are no loaded actions yet', () => {
-            renderPagination({hasNewerActions: true, reportActions: [], reportActionIDs: []});
+            renderPagination({hasNewerActions: true, reportActions: []});
 
             expect(mockLoadNewerChats).not.toHaveBeenCalled();
         });
@@ -117,7 +116,6 @@ describe('useMoneyRequestReportPagination', () => {
             rerender({
                 reportID: REPORT_ID,
                 reportActions: [makeAction('1')],
-                reportActionIDs: ['1'],
                 transactionThreadReportID: undefined,
                 hasOlderActions: true,
                 hasNewerActions: true,
@@ -133,7 +131,6 @@ describe('useMoneyRequestReportPagination', () => {
             const props: Params = {
                 reportID: REPORT_ID,
                 reportActions: [makeAction('1')],
-                reportActionIDs: ['1'],
                 transactionThreadReportID: undefined,
                 hasOlderActions: true,
                 hasNewerActions: true,
@@ -145,7 +142,7 @@ describe('useMoneyRequestReportPagination', () => {
             expect(mockLoadNewerChats).toHaveBeenCalledTimes(1);
 
             // The same cursor coming back means the server has no more newer data to give.
-            rerender({...props, reportActions: [makeAction('1'), makeAction('2')], reportActionIDs: ['1', '2']});
+            rerender({...props, reportActions: [makeAction('1'), makeAction('2')]});
 
             expect(mockLoadNewerChats).toHaveBeenCalledTimes(1);
         });
@@ -199,7 +196,6 @@ describe('useMoneyRequestReportPagination', () => {
             const props: Params = {
                 reportID: REPORT_ID,
                 reportActions,
-                reportActionIDs: reportActions.map((action) => action.reportActionID),
                 transactionThreadReportID: undefined,
                 hasOlderActions: true,
                 hasNewerActions: false,
@@ -223,7 +219,6 @@ describe('useMoneyRequestReportPagination', () => {
             const props: Params = {
                 reportID: REPORT_ID,
                 reportActions,
-                reportActionIDs: reportActions.map((action) => action.reportActionID),
                 transactionThreadReportID: undefined,
                 hasOlderActions: true,
                 hasNewerActions: false,
@@ -251,10 +246,10 @@ describe('useMoneyRequestReportPagination', () => {
             expect(mockCancel).toHaveBeenCalled();
         });
 
-        // The hook keeps its backfill cursor in refs and has no render-phase reset for a report
-        // switch: it relies on `MoneyRequestReportActionsList` mounting it with `key={reportID}`.
-        // A fresh mount for another report must therefore start the backfill from scratch.
-        it('should restart the backfill from the newest-fetched cursor when mounted for another report', () => {
+        // Each renderHook call gets fresh refs, so this does not exercise the `key={reportID}`
+        // remount contract in `MoneyRequestReportActionsList`. What it does guard is the cursor
+        // refs being hoisted to module scope, which would leak one report's cursor into the next.
+        it('should start a fresh backfill pass from the newest-fetched cursor on a fresh mount', () => {
             const reportActions = makeActionsAboveBackfillThreshold();
             const {unmount} = renderPagination({
                 reportID: 'A',
