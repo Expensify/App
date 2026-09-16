@@ -465,7 +465,7 @@ const getTransactionGroupHeaders = (groupBy: SearchGroupBy, icons: SearchHeaderI
             return [
                 {
                     columnName: CONST.SEARCH.TABLE_COLUMNS.GROUP_DAY,
-                    translationKey: 'common.day',
+                    translationKey: 'search.filters.groupBy.day',
                     isColumnSortable: true,
                 },
                 ...commonGroupHeaders,

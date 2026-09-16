@@ -4998,7 +4998,7 @@ function getSearchColumnTranslationKey(column: SearchSortBy): TranslationPaths {
         case CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWAL_ID:
             return 'common.withdrawalID';
         case CONST.SEARCH.TABLE_COLUMNS.GROUP_DAY:
-            return 'common.day';
+            return 'search.filters.groupBy.day';
         case CONST.SEARCH.TABLE_COLUMNS.GROUP_MONTH:
             return 'common.month';
         case CONST.SEARCH.TABLE_COLUMNS.GROUP_WEEK:
