@@ -85,6 +85,7 @@ function UserSelectionListItem<TItem extends ListItem>({
                         />
                     )}
                 </View>
+                {item.rightElement}
             </View>
         </SelectableListItem>
     );
