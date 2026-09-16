@@ -1,6 +1,6 @@
 /**
- * Shows the outcome of a finished sync for one connection category — employees added, removed and skipped for HR,
- * candidates for Recruiting.
+ * Shows the outcome of a finished sync for one connection category. For HR it lists employees added,
+ * removed and skipped; for Recruiting it lists candidates.
  *
  * The sync payload is read from Onyx (the policy's connection sync progress), so only the workspace's
  * `policyID` needs to travel through the route.

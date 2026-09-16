@@ -1269,8 +1269,8 @@ const DYNAMIC_ROUTES = {
         entryScreens: [SCREENS.WORKSPACE.HR, SCREENS.WORKSPACE.MEMBERS],
     },
     WORKSPACE_RECRUITING_SYNC_RESULTS: {
-        // The results screen opens automatically when an HR sync finishes, and a sync can complete
-        // while the user is on either the HR page or the members list, so both are entry screens.
+        // The results screen opens automatically when a recruiting sync finishes, and a sync can complete
+        // while the user is on either the recruiting page or the members list, so both are entry screens.
         path: 'recruiting-sync-results',
         entryScreens: [SCREENS.WORKSPACE.RECRUITING, SCREENS.WORKSPACE.MEMBERS],
     },
