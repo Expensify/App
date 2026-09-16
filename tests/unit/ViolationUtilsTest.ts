@@ -3560,6 +3560,19 @@ describe('getViolationsOnyxData', () => {
                 isInvoiceTransaction: false,
             });
 
+        const getViolationsForExistingInactiveVendor = (isVendorMatchingBetaEnabled: boolean | undefined) =>
+            ViolationsUtils.getViolationsOnyxData({
+                isVendorMatchingBetaEnabled,
+                ownerLogin: undefined,
+                updatedTransaction: {...transaction, comment: {...transaction.comment, vendor: {externalID: 'xcMissing', wasManuallySet: true}}},
+                transactionViolations: [inactiveVendorViolation],
+                policy: policyWithXeroVendorFeature(),
+                policyTagList: policyTags,
+                policyCategories,
+                hasDependentTags: false,
+                isInvoiceTransaction: false,
+            });
+
         afterEach(async () => {
             await Onyx.set(ONYXKEYS.BETA_OVERRIDES, null);
             await waitForBatchedUpdates();
@@ -3589,6 +3602,20 @@ describe('getViolationsOnyxData', () => {
 
             // Then the override wins and the violation is left out
             expect(result.value).not.toEqual(expect.arrayContaining([inactiveSupplierViolation]));
+        });
+
+        it('leaves an existing violation alone while the account betas have not loaded yet, and clears it once they load with the beta off', () => {
+            // Given a transaction that already carries a server-fired violation
+            // When violations are recomputed before the betas are known
+            const beforeBetasLoad = getViolationsForExistingInactiveVendor(undefined);
+
+            // Then the violation survives, because treating an unknown beta as off would strip it
+            expect(beforeBetasLoad.value).toEqual(expect.arrayContaining([inactiveVendorViolation]));
+
+            // And once the betas have loaded and the beta really is off, the same call clears it.
+            // Matching on the name alone, so that changing the violation's flags cannot pass for removing it
+            const afterBetasLoad = getViolationsForExistingInactiveVendor(false);
+            expect(afterBetasLoad.value).not.toEqual(expect.arrayContaining([expect.objectContaining({name: CONST.VIOLATIONS.INACTIVE_VENDOR})]));
         });
     });
 
