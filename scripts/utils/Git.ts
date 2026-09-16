@@ -12,6 +12,11 @@ import {promisify} from 'util';
 import {error as logError, warn as logWarn} from './Logger';
 
 type ExecOptions = Omit<ExecWithCallbackOptions, 'encoding'> & {cwd?: ExecWithCallbackOptions['cwd']};
+
+function isStringExecResult(result: {stdout: string | Buffer; stderr: string | Buffer}): result is {stdout: string; stderr: string} {
+    return typeof result.stdout === 'string' && typeof result.stderr === 'string';
+}
+
 function exec(command: string, options?: ExecOptions) {
     const optionsWithEncoding = {
         encoding: 'utf8',
@@ -19,7 +24,13 @@ function exec(command: string, options?: ExecOptions) {
         ...options,
     };
 
-    return promisify(execWithCallback)(command, optionsWithEncoding) as Promise<{stdout: string; stderr: string}>;
+    return promisify(execWithCallback)(command, optionsWithEncoding).then((result) => {
+        if (!isStringExecResult(result)) {
+            throw new Error('Expected git command output to be text');
+        }
+
+        return result;
+    });
 }
 
 type ExecSyncOptions = Omit<ExecSyncOptionsWithStringEncoding, 'encoding' | 'cwd'> & {
