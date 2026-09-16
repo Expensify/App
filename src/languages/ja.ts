@@ -9508,6 +9508,8 @@ ${reportName}`,
         noCategory: 'カテゴリなし',
         noMerchant: '店舗なし',
         noTag: 'タグなし',
+        noVendor: 'ベンダーなし',
+        noSupplier: 'サプライヤーなし',
         expenseType: '経費の種類',
         receiptType: '領収書の種類',
         receiptTypeValues: {

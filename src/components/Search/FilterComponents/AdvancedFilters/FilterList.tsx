@@ -8,19 +8,26 @@ import Text from '@components/Text';
 import useAdvancedSearchFilters from '@hooks/useAdvancedSearchFilters';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import getButtonState from '@libs/getButtonState';
-import {FILTER_VIEW_MAP} from '@libs/SearchUIUtils';
+import {getVendorSearchAvailability} from '@libs/PolicyUtils';
+import {FILTER_VIEW_MAP, getSearchFilterLabelKey} from '@libs/SearchUIUtils';
 import type {SearchFilter} from '@libs/SearchUIUtils';
 
 import variables from '@styles/variables';
 
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import type {Policy} from '@src/types/onyx';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 
 import type {StyleProp, ViewStyle} from 'react-native';
+import type {OnyxCollection} from 'react-native-onyx';
 
 import React from 'react';
 import {View} from 'react-native';
@@ -49,15 +56,17 @@ type FilterListProps = FilterItemCallbacks & {
 type FilterItemProps = FilterItemCallbacks & {
     filterKey: SearchFilter['key'];
     isSelected?: boolean;
+    shouldUseSupplierLabel: boolean;
 };
 
-function FilterItem({filterKey, isSelected, onPress, onHoverIn, onFocus}: FilterItemProps) {
+function FilterItem({filterKey, isSelected, shouldUseSupplierLabel, onPress, onHoverIn, onFocus}: FilterItemProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const theme = useTheme();
 
-    const {labelKey, icon} = FILTER_VIEW_MAP[filterKey];
+    const labelKey = getSearchFilterLabelKey(filterKey, shouldUseSupplierLabel);
+    const {icon} = FILTER_VIEW_MAP[filterKey];
     const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', icon]);
 
     const getPressableBackgroundStyle = (pressed: boolean) => {
@@ -111,6 +120,11 @@ function FilterItem({filterKey, isSelected, onPress, onHoverIn, onFocus}: Filter
 function FilterList({type, policyID, selectedFilter, style, contentContainerStyle, onHoverIn, onFocus, onPress, onPointerMove, onPointerLeave}: FilterListProps) {
     const styles = useThemeStyles();
     const typeFiltersKeys = useAdvancedSearchFilters(type, policyID);
+    const {isBetaEnabled} = usePermissions();
+    const isVendorMatchingBetaEnabled = isBetaEnabled(CONST.BETAS.VENDOR_MATCHING);
+    const [shouldUseSupplierLabel = false] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
+        selector: (allPolicies: OnyxCollection<Policy>) => getVendorSearchAvailability(allPolicies, isVendorMatchingBetaEnabled).shouldUseSupplierLabel,
+    });
 
     return (
         <ScrollView
@@ -133,6 +147,7 @@ function FilterList({type, policyID, selectedFilter, style, contentContainerStyl
                             key={item}
                             filterKey={item}
                             isSelected={item === selectedFilter}
+                            shouldUseSupplierLabel={shouldUseSupplierLabel}
                             onHoverIn={onHoverIn}
                             onFocus={onFocus}
                             onPress={onPress}

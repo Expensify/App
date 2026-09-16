@@ -9594,6 +9594,8 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
         noCategory: 'Sem categoria',
         noMerchant: 'Sem comerciante',
         noTag: 'Sem tag',
+        noVendor: 'Sem fornecedor',
+        noSupplier: 'Sem fornecedor',
         expenseType: 'Tipo de despesa',
         receiptType: 'Tipo de recibo',
         receiptTypeValues: {

@@ -9534,6 +9534,8 @@ ${reportName}`,
         noCategory: 'Sin categoría',
         noMerchant: 'Sin comerciante',
         noTag: 'Sin etiqueta',
+        noVendor: 'Sin proveedor',
+        noSupplier: 'Sin proveedor',
         expenseType: 'Tipo de gasto',
         receiptType: 'Tipo de recibo',
         receiptTypeValues: {

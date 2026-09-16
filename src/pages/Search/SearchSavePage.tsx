@@ -20,11 +20,13 @@ import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {saveSearch} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
 import {rand64} from '@libs/NumberUtils';
+import {getVendorSearchAvailability} from '@libs/PolicyUtils';
 import {getCustomColumnDefault, getSearchColumnTranslationKey, mapFiltersFormToLabelValueList, savedSearchIDToSearchKey} from '@libs/SearchUIUtils';
 import type {SearchFilter} from '@libs/SearchUIUtils';
 import {getFieldRequiredErrors} from '@libs/ValidationUtils';
@@ -33,7 +35,10 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
 import INPUT_IDS from '@src/types/form/SearchSaveForm';
+import type {Policy} from '@src/types/onyx';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
+
+import type {OnyxCollection} from 'react-native-onyx';
 
 import React from 'react';
 import {View} from 'react-native';
@@ -181,6 +186,11 @@ function SearchSavePage() {
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.SEARCH_SAVE_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.SEARCH_SAVE_FORM> =>
         getFieldRequiredErrors(values, [INPUT_IDS.NAME], translate);
 
+    const {isBetaEnabled} = usePermissions();
+    const isVendorMatchingBetaEnabled = isBetaEnabled(CONST.BETAS.VENDOR_MATCHING);
+    const [shouldUseSupplierLabel = false] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
+        selector: (allPolicies: OnyxCollection<Policy>) => getVendorSearchAvailability(allPolicies, isVendorMatchingBetaEnabled).shouldUseSupplierLabel,
+    });
     const appliedFilters = mapFiltersFormToLabelValueList(
         searchAdvancedFiltersForm,
         currentDefaultSearchQueryFilterKeys,
@@ -189,6 +199,8 @@ function SearchSavePage() {
         dateFnsLocale,
         localeCompare,
         convertToDisplayStringWithoutCurrency,
+        undefined,
+        shouldUseSupplierLabel,
     );
     const appliedDisplays = getAppliedDisplays(searchAdvancedFiltersForm, currentSearchQueryJSON, translate);
 

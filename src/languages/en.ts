@@ -9850,6 +9850,8 @@ const translations = {
         noCategory: 'No category',
         noMerchant: 'No merchant',
         noTag: 'No tag',
+        noVendor: 'No vendor',
+        noSupplier: 'No supplier',
         expenseType: 'Expense type',
         receiptType: 'Receipt type',
         receiptTypeValues: {

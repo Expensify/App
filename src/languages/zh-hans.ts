@@ -9257,6 +9257,8 @@ ${reportName}`,
         noCategory: '无类别',
         noMerchant: '无商家',
         noTag: '无标签',
+        noVendor: '无供应商',
+        noSupplier: '无供应商',
         expenseType: '报销类型',
         receiptType: '收据类型',
         receiptTypeValues: {

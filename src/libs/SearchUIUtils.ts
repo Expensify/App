@@ -319,6 +319,7 @@ const transactionColumnNamesToSortingProperty: TransactionSorting = {
     [CONST.SEARCH.TABLE_COLUMNS.EXPORTED]: 'exported' as const,
     [CONST.SEARCH.TABLE_COLUMNS.TAG]: 'tag' as const,
     [CONST.SEARCH.TABLE_COLUMNS.MERCHANT]: 'formattedMerchant' as const,
+    [CONST.SEARCH.TABLE_COLUMNS.VENDOR]: null,
     [CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT]: 'formattedTotal' as const,
     [CONST.SEARCH.TABLE_COLUMNS.CATEGORY]: 'category' as const,
     [CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT]: 'originalAmount' as const,
@@ -4305,7 +4306,10 @@ function getCustomColumnDefault(value?: SearchDataTypes | SearchGroupBy): Search
     }
 }
 
-function getSearchColumnTranslationKey(column: SearchSortBy): TranslationPaths {
+/**
+ * Xero calls vendors suppliers, so the vendor column reads "Supplier" when every eligible workspace takes its vendors from Xero.
+ */
+function getSearchColumnTranslationKey(column: SearchSortBy, shouldUseSupplierLabel = false): TranslationPaths {
     switch (column) {
         case CONST.SEARCH.TABLE_COLUMNS.AVATAR:
             return 'common.avatar';
@@ -4327,6 +4331,8 @@ function getSearchColumnTranslationKey(column: SearchSortBy): TranslationPaths {
             return 'search.filters.exported';
         case CONST.SEARCH.TABLE_COLUMNS.MERCHANT:
             return 'common.merchant';
+        case CONST.SEARCH.TABLE_COLUMNS.VENDOR:
+            return shouldUseSupplierLabel ? 'common.supplier' : 'common.vendor';
         case CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION:
             return 'common.description';
         case CONST.SEARCH.TABLE_COLUMNS.FROM:
@@ -5499,6 +5505,10 @@ const FILTER_VIEW_MAP = {
         labelKey: 'common.tag',
         icon: 'Tag',
     },
+    [CONST.SEARCH.SYNTAX_FILTER_KEYS.VENDOR]: {
+        labelKey: 'common.vendor',
+        icon: 'Building',
+    },
     [CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE]: {
         labelKey: 'workspace.taxes.taxRate',
         icon: 'Percent',
@@ -5712,6 +5722,7 @@ function getDisplayValue(
     type: SearchDataTypes,
     translate: LocalizedTranslate,
     localeCompare: LocaleContextProps['localeCompare'],
+    shouldUseSupplierLabel = false,
 ) {
     if (key === FILTER_KEYS.TYPE) {
         const filterValue = form[key];
@@ -5730,6 +5741,13 @@ function getDisplayValue(
         return form[key]
             ?.sort((a, b) => sortOptionsWithEmptyValue(a, b, localeCompare))
             .map(mapFn)
+            .join(', ');
+    }
+
+    if (key === FILTER_KEYS.VENDOR) {
+        return form[key]
+            ?.sort((a, b) => sortOptionsWithEmptyValue(a, b, localeCompare))
+            .map((value) => (value === CONST.SEARCH.VENDOR_EMPTY_VALUE ? translate(shouldUseSupplierLabel ? 'search.noSupplier' : 'search.noVendor') : value))
             .join(', ');
     }
 
@@ -5918,6 +5936,16 @@ function isMappedFilterKey(key: string): key is MappedFilterKey {
     return hasKey(FILTER_VIEW_MAP, removeNegation(key));
 }
 
+/**
+ * Xero calls vendors suppliers, so the vendor filter reads "Supplier" when every eligible workspace takes its vendors from Xero.
+ */
+function getSearchFilterLabelKey(filterKey: SearchFilter['key'], shouldUseSupplierLabel = false): TranslationPaths {
+    if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.VENDOR && shouldUseSupplierLabel) {
+        return 'common.supplier';
+    }
+    return FILTER_VIEW_MAP[filterKey].labelKey;
+}
+
 function mapFiltersFormToLabelValueList(
     searchAdvancedFiltersForm: Partial<SearchAdvancedFiltersForm>,
     defaultSearchQueryFilterKeys: Set<SearchFilterKey>,
@@ -5926,6 +5954,8 @@ function mapFiltersFormToLabelValueList(
     dateFnsLocale: DateFnsLocale | undefined,
     localeCompare: LocaleContextProps['localeCompare'],
     convertToDisplayStringWithoutCurrency: CurrencyListActionsContextType['convertToDisplayStringWithoutCurrency'],
+    mapper?: undefined,
+    shouldUseSupplierLabel?: boolean,
 ): SearchFilter[];
 function mapFiltersFormToLabelValueList<T extends Record<string, unknown>>(
     searchAdvancedFiltersForm: Partial<SearchAdvancedFiltersForm>,
@@ -5936,6 +5966,7 @@ function mapFiltersFormToLabelValueList<T extends Record<string, unknown>>(
     localeCompare: LocaleContextProps['localeCompare'],
     convertToDisplayStringWithoutCurrency: CurrencyListActionsContextType['convertToDisplayStringWithoutCurrency'],
     mapper: (filterKey: MappedFilterKey, isDefault: boolean) => T,
+    shouldUseSupplierLabel?: boolean,
 ): Array<SearchFilter & T>;
 function mapFiltersFormToLabelValueList(
     searchAdvancedFiltersForm: Partial<SearchAdvancedFiltersForm>,
@@ -5946,6 +5977,7 @@ function mapFiltersFormToLabelValueList(
     localeCompare: LocaleContextProps['localeCompare'],
     convertToDisplayStringWithoutCurrency: CurrencyListActionsContextType['convertToDisplayStringWithoutCurrency'],
     mapper?: (filterKey: MappedFilterKey, isDefault: boolean) => Record<string, unknown>,
+    shouldUseSupplierLabel = false,
 ): SearchFilter[] {
     const defaultFilters: SearchFilter[] = [];
     const nonDefaultFilters: SearchFilter[] = [];
@@ -6000,8 +6032,8 @@ function mapFiltersFormToLabelValueList(
         }
 
         const baseKey = removeNegation(key);
-        const labelKey = FILTER_VIEW_MAP[baseKey].labelKey;
-        const value = getDisplayValue(key, searchAdvancedFiltersForm, type, translate, localeCompare);
+        const labelKey = getSearchFilterLabelKey(baseKey, shouldUseSupplierLabel);
+        const value = getDisplayValue(key, searchAdvancedFiltersForm, type, translate, localeCompare, shouldUseSupplierLabel);
         const label = getLabelValue(key, labelKey, translate);
 
         if (label && value && !(Array.isArray(value) && value.length === 0)) {
@@ -6394,6 +6426,7 @@ function getColumnsToShow({
               [CONST.SEARCH.TABLE_COLUMNS.SUBMITTED]: false,
               [CONST.SEARCH.TABLE_COLUMNS.APPROVED]: false,
               [CONST.SEARCH.TABLE_COLUMNS.MERCHANT]: false,
+              [CONST.SEARCH.TABLE_COLUMNS.VENDOR]: false,
               [CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION]: false,
               [CONST.SEARCH.TABLE_COLUMNS.FROM]: false,
               [CONST.SEARCH.TABLE_COLUMNS.TO]: false,
@@ -6493,6 +6526,10 @@ function getColumnsToShow({
 
         if (getDescription(transaction) !== '') {
             columns[CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION] = true;
+        }
+
+        if (!isExpenseReportView && !!transaction.comment?.vendor?.externalID) {
+            columns[CONST.SEARCH.TABLE_COLUMNS.VENDOR] = true;
         }
 
         const hasCategory = (() => {
@@ -7008,6 +7045,7 @@ function shouldShowDeleteOption(
 
 const FLEX_COLUMNS = new Set<string>([
     CONST.SEARCH.TABLE_COLUMNS.MERCHANT,
+    CONST.SEARCH.TABLE_COLUMNS.VENDOR,
     CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION,
     CONST.SEARCH.TABLE_COLUMNS.CATEGORY,
     CONST.SEARCH.TABLE_COLUMNS.CATEGORY_GL_CODE,
@@ -7195,6 +7233,7 @@ export {
     MONTHLY_ACCRUAL_SEARCH_KEYS,
     RECONCILIATION_SEARCH_KEYS,
     FILTER_VIEW_MAP,
+    getSearchFilterLabelKey,
     doesSearchItemMatchSort,
     isPolicyEligibleForSpendOverTime,
     hasFlexColumn,

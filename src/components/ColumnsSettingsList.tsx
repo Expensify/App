@@ -1,12 +1,19 @@
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useListKeyboardNav from '@hooks/useListKeyboardNav';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {getVendorSearchAvailability} from '@libs/PolicyUtils';
 import {getSearchColumnTranslationKey} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import type {Policy} from '@src/types/onyx';
+
+import type {OnyxCollection} from 'react-native-onyx';
 
 import React, {useRef, useState} from 'react';
 import {View} from 'react-native';
@@ -74,6 +81,11 @@ function ColumnsSettingsList({allColumns, defaultSelectedColumns, currentColumns
     const styles = useThemeStyles();
     const icons = useMemoizedLazyExpensifyIcons(['DragHandles']);
     const {translate, localeCompare} = useLocalize();
+    const {isBetaEnabled} = usePermissions();
+    const isVendorMatchingBetaEnabled = isBetaEnabled(CONST.BETAS.VENDOR_MATCHING);
+    const [shouldUseSupplierLabel = false] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
+        selector: (allPolicies: OnyxCollection<Policy>) => getVendorSearchAvailability(allPolicies, isVendorMatchingBetaEnabled).shouldUseSupplierLabel,
+    });
 
     const isGrouped = !!groupBy;
 
@@ -85,8 +97,8 @@ function ColumnsSettingsList({allColumns, defaultSelectedColumns, currentColumns
         const unselected = columnsToSort
             .filter((col) => !col.isSelected)
             .sort((a, b) => {
-                const textA = translate(getSearchColumnTranslationKey(a.value));
-                const textB = translate(getSearchColumnTranslationKey(b.value));
+                const textA = translate(getSearchColumnTranslationKey(a.value, shouldUseSupplierLabel));
+                const textB = translate(getSearchColumnTranslationKey(b.value, shouldUseSupplierLabel));
                 return localeCompare(textA, textB);
             });
         return [...selected, ...unselected];
@@ -118,7 +130,7 @@ function ColumnsSettingsList({allColumns, defaultSelectedColumns, currentColumns
             const isEffectivelySelected = isRequired || isSelected;
             const isDragDisabled = !isEffectivelySelected;
             return {
-                text: translate(getSearchColumnTranslationKey(columnId)),
+                text: translate(getSearchColumnTranslationKey(columnId, shouldUseSupplierLabel)),
                 value: columnId,
                 keyForList: columnId,
                 isSelected: isEffectivelySelected,
@@ -164,8 +176,8 @@ function ColumnsSettingsList({allColumns, defaultSelectedColumns, currentColumns
                 const selectedCols = prevColumns.filter((col) => col.isSelected);
                 const unselected = prevColumns.filter((col) => !col.isSelected && col.columnId !== updatedColumnId);
                 const unselectedSorted = unselected.sort((a, b) => {
-                    const textA = translate(getSearchColumnTranslationKey(a.columnId));
-                    const textB = translate(getSearchColumnTranslationKey(b.columnId));
+                    const textA = translate(getSearchColumnTranslationKey(a.columnId, shouldUseSupplierLabel));
+                    const textB = translate(getSearchColumnTranslationKey(b.columnId, shouldUseSupplierLabel));
                     return localeCompare(textA, textB);
                 });
                 return [...selectedCols, {columnId: updatedColumnId, isSelected: true}, ...unselectedSorted];

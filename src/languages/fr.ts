@@ -9705,6 +9705,8 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         noCategory: 'Aucune catégorie',
         noMerchant: 'Aucun commerçant',
         noTag: 'Aucun tag',
+        noVendor: 'Aucun fournisseur',
+        noSupplier: 'Aucun fournisseur',
         expenseType: 'Type de dépense',
         receiptType: 'Type de reçu',
         receiptTypeValues: {

@@ -41,6 +41,7 @@ exports[`Column availability single source of truth the derived picker lists mat
   "posted",
   "exported",
   "merchant",
+  "vendor",
   "description",
   "from",
   "to",

@@ -9629,6 +9629,8 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
         noCategory: 'Brak kategorii',
         noMerchant: 'Brak sprzedawcy',
         noTag: 'Brak tagu',
+        noVendor: 'Brak dostawcy',
+        noSupplier: 'Brak dostawcy',
         expenseType: 'Typ wydatku',
         receiptType: 'Typ paragonu',
         receiptTypeValues: {

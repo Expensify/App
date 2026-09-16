@@ -9597,6 +9597,8 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         noCategory: 'Geen categorie',
         noMerchant: 'Geen handelaar',
         noTag: 'Geen tag',
+        noVendor: 'Geen leverancier',
+        noSupplier: 'Geen leverancier',
         expenseType: 'Onkostentype',
         receiptType: 'Bontype',
         receiptTypeValues: {

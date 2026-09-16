@@ -41,6 +41,7 @@ import type {
 } from '@src/types/onyx/Policy';
 import type PolicyEmployee from '@src/types/onyx/PolicyEmployee';
 import type Rule from '@src/types/onyx/Rule';
+import type {TransactionCommentVendor} from '@src/types/onyx/Transaction';
 import type {WorkspaceTravelSettings} from '@src/types/onyx/TravelSettings';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
@@ -2724,6 +2725,37 @@ function hasVendorFeature(policy: OnyxEntry<Policy>, isVendorMatchingBetaEnabled
     );
 }
 
+type VendorSearchAvailability = {
+    /** Whether at least one workspace the user can see has the vendor feature, so Search can offer the vendor filter and column. */
+    isAvailable: boolean;
+
+    /** Whether every eligible workspace takes its vendors from Xero, which calls them suppliers. */
+    shouldUseSupplierLabel: boolean;
+
+    /** IDs of the workspaces that have the vendor feature. */
+    eligiblePolicyIDs: string[];
+};
+
+/**
+ * Search spans every workspace at once, so the vendor filter and column are offered when any workspace has the vendor
+ * feature, and the "Supplier" wording is only used when no eligible workspace would call them vendors.
+ */
+function getVendorSearchAvailability(policies: OnyxCollection<Policy>, isVendorMatchingBetaEnabled: boolean): VendorSearchAvailability {
+    const eligiblePolicyIDs: string[] = [];
+    let areAllEligiblePoliciesXero = true;
+    for (const policy of Object.values(policies ?? {})) {
+        if (!policy?.id || !hasVendorFeature(policy, isVendorMatchingBetaEnabled)) {
+            continue;
+        }
+        eligiblePolicyIDs.push(policy.id);
+        if (!isXeroActiveMatchingSource(policy)) {
+            areAllEligiblePoliciesXero = false;
+        }
+    }
+    const isAvailable = eligiblePolicyIDs.length > 0;
+    return {isAvailable, shouldUseSupplierLabel: isAvailable && areAllEligiblePoliciesXero, eligiblePolicyIDs};
+}
+
 /**
  * Single source of truth for which connected integration scopes the vendor field for this workspace
  * (QBO, Sage Intacct, Xero, Rillet, or DualEntry) and what its vendor list looks like. Returns `undefined` when no
@@ -2892,6 +2924,18 @@ function findVendorByID(policy: OnyxEntry<Policy>, vendorID: string | undefined)
         };
     }
     return getDualEntryVendors(policy).find((vendor) => vendor.id === vendorID);
+}
+
+/**
+ * Display name of the vendor assigned to a transaction, or an empty string when none is assigned. The workspace's
+ * synced vendor list wins so renames in the accounting system show through, then the name persisted on the
+ * transaction when the vendor was assigned covers vendors that have since left the synced list.
+ */
+function getVendorDisplayName(policy: OnyxEntry<Policy>, vendor: TransactionCommentVendor | undefined): string {
+    if (!vendor?.externalID) {
+        return '';
+    }
+    return findVendorByID(policy, vendor.externalID)?.name ?? vendor.name ?? '';
 }
 
 /**
@@ -3459,6 +3503,7 @@ export {
     getConnectedIntegration,
     getConnectionExporters,
     findVendorByID,
+    getVendorDisplayName,
     getActiveVendorMatchingIntegration,
     getMatchingVendorByID,
     getMatchingVendors,
@@ -3472,6 +3517,7 @@ export {
     isXeroActiveMatchingSource,
     isXeroVendorMatchingActive,
     hasVendorFeature,
+    getVendorSearchAvailability,
     isMatchingVendorListLoaded,
     getValidConnectedIntegration,
     getCountOfEnabledTagsOfList,

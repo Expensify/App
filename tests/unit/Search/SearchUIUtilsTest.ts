@@ -48,6 +48,7 @@ import type {OnyxCollection} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 
 import createRandomPolicy from '../../utils/collections/policies';
+import createRandomTransaction from '../../utils/collections/transaction';
 import createMock from '../../utils/createMock';
 import getOnyxValue from '../../utils/getOnyxValue';
 import {convertToDisplayString, formatPhoneNumber, getCurrencyDecimalsLocal, localeCompare, translateLocal} from '../../utils/TestHelper';
@@ -11089,6 +11090,18 @@ describe('SearchUIUtils', () => {
     });
 
     describe('Test getColumnsToShow', () => {
+        test('Should show the vendor column only when an expense has a vendor assigned', () => {
+            const transactionWithoutVendor = createRandomTransaction(1);
+            const transactionWithVendor = {...createRandomTransaction(2), comment: {vendor: {externalID: 'qbo-1', name: 'Acme Tools', wasManuallySet: true}}};
+
+            expect(SearchUIUtils.getColumnsToShow({currentAccountID: 1, data: [transactionWithoutVendor], visibleColumns: [], type: CONST.SEARCH.DATA_TYPES.EXPENSE})).not.toContain(
+                CONST.SEARCH.TABLE_COLUMNS.VENDOR,
+            );
+            expect(SearchUIUtils.getColumnsToShow({currentAccountID: 1, data: [transactionWithVendor], visibleColumns: [], type: CONST.SEARCH.DATA_TYPES.EXPENSE})).toContain(
+                CONST.SEARCH.TABLE_COLUMNS.VENDOR,
+            );
+        });
+
         test('Should show all default columns when no custom columns are saved & viewing expense reports', () => {
             expect(SearchUIUtils.getColumnsToShow({currentAccountID: 1, data: [], visibleColumns: [], type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT})).toEqual([
                 CONST.SEARCH.TABLE_COLUMNS.AVATAR,
@@ -13963,6 +13976,20 @@ describe('SearchUIUtils', () => {
                     translateLocal,
                 ),
             ).toBe(`${translateLocal('violations.shortName.missingCategory')}, ${translateLocal('violations.shortName.missingTag')}, ${translateLocal('violations.shortName.overLimit')}`);
+        });
+    });
+
+    describe('vendor column and filter labels', () => {
+        test('Should label the vendor column and filter as Vendor by default and as Supplier for Xero-only workspaces', () => {
+            expect(SearchUIUtils.getSearchColumnTranslationKey(CONST.SEARCH.TABLE_COLUMNS.VENDOR)).toBe('common.vendor');
+            expect(SearchUIUtils.getSearchColumnTranslationKey(CONST.SEARCH.TABLE_COLUMNS.VENDOR, true)).toBe('common.supplier');
+            expect(SearchUIUtils.getSearchFilterLabelKey(CONST.SEARCH.SYNTAX_FILTER_KEYS.VENDOR)).toBe('common.vendor');
+            expect(SearchUIUtils.getSearchFilterLabelKey(CONST.SEARCH.SYNTAX_FILTER_KEYS.VENDOR, true)).toBe('common.supplier');
+        });
+
+        test('Should leave other labels untouched when the supplier wording is on', () => {
+            expect(SearchUIUtils.getSearchColumnTranslationKey(CONST.SEARCH.TABLE_COLUMNS.CATEGORY, true)).toBe('common.category');
+            expect(SearchUIUtils.getSearchFilterLabelKey(CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY, true)).toBe('common.category');
         });
     });
 
