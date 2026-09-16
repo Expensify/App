@@ -38,7 +38,7 @@ import ROUTES from '@src/ROUTES';
 import type {JoinablePolicy} from '@src/types/onyx/JoinablePolicies';
 
 import {useFocusEffect} from '@react-navigation/native';
-import {hasCompletedGuidedSetupFlowSelector, hasSeenTourSelector} from '@selectors/Onboarding';
+import {hasSeenTourSelector} from '@selectors/Onboarding';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
@@ -98,9 +98,7 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
     const onboardingIntent = useOnboardingIntent();
     const isEmployerWithSubmit = onboardingIntent === CONST.ONBOARDING_CHOICES.EMPLOYER;
     const isJoiningCompanyWorkspace = onboardingIntent === CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE;
-    const hasCompletedGuidedSetupFlow = hasCompletedGuidedSetupFlowSelector(onboardingValues) ?? false;
-    const isConciergeTaskFlow = isJoiningCompanyWorkspace && route.params?.isJoinWorkspaceTask === 'true';
-    const isPostOnboardingJoinWorkspaceFlow = isJoiningCompanyWorkspace && (hasCompletedGuidedSetupFlow || isConciergeTaskFlow);
+    const isConciergeTaskFlow = route.params?.isJoinWorkspaceTask === 'true';
     const createdEmptyWorkspaceContentDomains = useRef(new Set<string>());
     const createdJoinWorkspaceTask = useRef(false);
     const hasRequestedAccessiblePolicies = useRef(false);
@@ -149,7 +147,7 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
         // Reached from a Concierge task rather than as an onboarding step. Onboarding is already finished, so
         // completing it again would post the whole welcome message and task list a second time - just join and return
         // the user to wherever they opened this from.
-        if (isJoiningCompanyWorkspace && hasCompletedGuidedSetupFlow) {
+        if (isConciergeTaskFlow) {
             returnToOriginReport();
             return;
         }
@@ -277,13 +275,9 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
         }
 
         if (isJoiningCompanyWorkspace) {
-            // Opened from a Concierge task after onboarding finished: there is no onboarding step to continue into,
-            // so just close instead of completing onboarding again.
-            if (isPostOnboardingJoinWorkspaceFlow) {
-                if (!isConciergeTaskFlow) {
-                    returnToOriginReport();
-                    return;
-                }
+            // A marked Concierge task has no onboarding step to continue into, so just create or reopen the next
+            // task instead of completing onboarding again.
+            if (isConciergeTaskFlow) {
                 createAndOpenJoinWorkspaceTask();
                 return;
             }
@@ -322,9 +316,9 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
             shouldShowOfflineIndicator={isSmallScreenWidth}
         >
             <OnboardingHeader
-                shouldShowBackButton={!isPostOnboardingJoinWorkspaceFlow && !shouldHideBackButton}
+                shouldShowBackButton={!isConciergeTaskFlow && !shouldHideBackButton}
                 onBackButtonPress={() => Navigation.goBack()}
-                shouldShowCloseButton={isPostOnboardingJoinWorkspaceFlow}
+                shouldShowCloseButton={isConciergeTaskFlow}
                 onCloseButtonPress={closeJoinWorkspaceTask}
             />
             <SelectionList

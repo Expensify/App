@@ -150,6 +150,14 @@ function getActionPayloadScreenName(action: NavigationAction): string | undefine
     return getDeepestFocusedScreen(action.payload)?.name;
 }
 
+function getActionPayloadScreenParams(action: NavigationAction): Record<string, unknown> | undefined {
+    if (!isObjectPayload(action.payload)) {
+        return undefined;
+    }
+
+    return getDeepestFocusedScreen(action.payload)?.params;
+}
+
 function isCurrentlyOnTwoFactorSetupRoute(state: NavigationState): boolean {
     return isTwoFactorSetupScreen(getDeepestFocusedScreen(state)?.name);
 }
@@ -181,6 +189,10 @@ function shouldPreventReset(state: NavigationState, action: NavigationAction) {
  * This handles NAVIGATE/PUSH actions that target the OnboardingModalNavigator directly.
  */
 function isNavigatingToOnboardingFlow(action: NavigationAction): boolean {
+    if (action.type === CONST.NAVIGATION_ACTIONS.RESET && isObjectPayload(action.payload)) {
+        return isOnboardingFlowName(findFocusedRoute(action.payload as NavigationState)?.name);
+    }
+
     if (
         (action.type === CONST.NAVIGATION.ACTION_TYPE.NAVIGATE || action.type === CONST.NAVIGATION.ACTION_TYPE.PUSH) &&
         (action.payload as {name?: string} | undefined)?.name === NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR
@@ -192,7 +204,16 @@ function isNavigatingToOnboardingFlow(action: NavigationAction): boolean {
 }
 
 function isNavigatingToJoinWorkspaceTask(action: NavigationAction): boolean {
-    return isNavigatingToOnboardingFlow(action) && JOIN_WORKSPACE_TASK_SCREENS.has(getActionPayloadScreenName(action) ?? '');
+    if (!isNavigatingToOnboardingFlow(action)) {
+        return false;
+    }
+
+    if (action.type === CONST.NAVIGATION_ACTIONS.RESET && isObjectPayload(action.payload)) {
+        const targetRoute = findFocusedRoute(action.payload as NavigationState);
+        return JOIN_WORKSPACE_TASK_SCREENS.has(targetRoute?.name ?? '') && targetRoute?.params?.isJoinWorkspaceTask === 'true';
+    }
+
+    return JOIN_WORKSPACE_TASK_SCREENS.has(getActionPayloadScreenName(action) ?? '') && getActionPayloadScreenParams(action)?.isJoinWorkspaceTask === 'true';
 }
 
 /**
@@ -226,15 +247,11 @@ const OnboardingGuard: NavigationGuard = {
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         const isInvitedOrGroupMember = (hasNonPersonalPolicy || wasInvitedToNewDot) ?? false;
 
-        // The join-workspace intent hands out Concierge task links that reopen these screens after the flow has
-        // completed. ONBOARDING_PURPOSE_SELECTED is local-only and does not survive a reload, so fall back to the
-        // server-persisted introSelected NVP, like useOnboardingIntent does.
-        const isJoiningCompanyWorkspaceIntent = (introSelected?.choice ?? onboardingPurposeSelected) === CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE;
         const isNavigatingToJoinWorkspaceTaskRoute = isNavigatingToJoinWorkspaceTask(action);
 
         // Redirect completed users who try to navigate to onboarding routes (e.g. via deep link), since onboarding
         // is not something they should be able to re-enter once it is done.
-        if (isOnboardingCompleted && isNavigatingToOnboardingFlow(action) && (!isJoiningCompanyWorkspaceIntent || !isNavigatingToJoinWorkspaceTaskRoute)) {
+        if (isOnboardingCompleted && isNavigatingToOnboardingFlow(action) && !isNavigatingToJoinWorkspaceTaskRoute) {
             Log.info('[OnboardingGuard] Redirecting user away from onboarding route to home');
             return {type: 'REDIRECT', route: ROUTES.HOME};
         }

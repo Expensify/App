@@ -61,7 +61,7 @@ function BaseOnboardingWorkEmailValidation({shouldUseNativeStyles, route}: BaseO
             return;
         }
 
-        Navigation.navigate(ROUTES.ONBOARDING_WORKSPACES.getRoute(), {forceReplace: true});
+        Navigation.navigate(ROUTES.ONBOARDING_WORKSPACES.getRoute(undefined, true), {forceReplace: true});
     }, [isConciergeTaskFlow, isCurrentPrimaryValidated]);
 
     useEffect(() => {
@@ -83,7 +83,7 @@ function BaseOnboardingWorkEmailValidation({shouldUseNativeStyles, route}: BaseO
         }
 
         if (!onboardingValues?.isMergeAccountStepSkipped) {
-            Navigation.navigate(ROUTES.ONBOARDING_WORKSPACES.getRoute(), {
+            Navigation.navigate(ROUTES.ONBOARDING_WORKSPACES.getRoute(undefined, isConciergeTaskFlow), {
                 forceReplace: true,
             });
             return;
