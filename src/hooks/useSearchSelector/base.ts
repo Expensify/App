@@ -1,4 +1,4 @@
-import {usePersonalDetails} from '@components/OnyxListItemProvider';
+import {usePersonalDetails, useCardList, useWorkspaceCardList} from '@components/OnyxListItemProvider';
 
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -186,8 +186,8 @@ function useSearchSelectorBase({
     shouldKeepSelectedInAvailableOptions = false,
     shouldSeparateNonExistingSelectedOptions = false,
 }: UseSearchSelectorConfig): UseSearchSelectorReturn {
-    const {translate, dateFnsLocale} = useLocalize();
-    const {convertToDisplayString} = useCurrencyListActions();
+    const {translate, dateFnsLocale, localeCompare, formatPhoneNumber} = useLocalize();
+    const {convertToDisplayString, convertToDisplayStringWithoutCurrency} = useCurrencyListActions();
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
@@ -200,9 +200,13 @@ function useSearchSelectorBase({
     const [visibleReportActionsData] = useOnyx(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS);
     const sortedReportActionsData = useSortedReportActionsData();
     const sortedActions = sortedReportActionsData?.sortedActions;
+    const transactionThreadIDs = sortedReportActionsData?.transactionThreadIDs;
+    const lastActions = sortedReportActionsData?.lastActions;
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserAccountID = currentUserPersonalDetails.accountID;
     const currentUserEmail = currentUserPersonalDetails.email ?? '';
+    const cardList = useCardList();
+    const workspaceCardList = useWorkspaceCardList();
     const personalDetails = usePersonalDetails();
     const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
@@ -288,6 +292,7 @@ function useSearchSelectorBase({
                     draftComments,
                     dateFnsLocale,
                     convertToDisplayString,
+                    convertToDisplayStringWithoutCurrency,
                     betas: betas ?? [],
                     isUsedInChatFinder: true,
                     includeReadOnly: true,
@@ -302,6 +307,12 @@ function useSearchSelectorBase({
                     currentUserEmail,
                     personalDetails,
                     sortedActions,
+                    transactionThreadIDs,
+                    lastActions,
+                    cardList,
+                    workspaceCardList,
+                    localeCompare,
+                    formatPhoneNumber,
                     conciergeReportID,
                     isTrackIntentUser,
                     translate,
@@ -319,6 +330,7 @@ function useSearchSelectorBase({
                     {
                         dateFnsLocale,
                         convertToDisplayString,
+                        convertToDisplayStringWithoutCurrency,
                         betas: betas ?? [],
                         searchString: computedSearchTerm,
                         searchInputValue: trimmedSearchInput,
@@ -338,6 +350,12 @@ function useSearchSelectorBase({
                         reportAttributesDerived: reportAttributesDerived?.reports,
                         allPolicyTags,
                         sortedActions,
+                        transactionThreadIDs,
+                        lastActions,
+                        cardList,
+                        workspaceCardList,
+                        localeCompare,
+                        formatPhoneNumber,
                         isTrackIntentUser,
                         ...appliedGetValidOptionsConfig,
                     },
@@ -356,6 +374,7 @@ function useSearchSelectorBase({
                     {
                         dateFnsLocale,
                         convertToDisplayString,
+                        convertToDisplayStringWithoutCurrency,
                         betas,
                         selectedOptions,
                         includeMultipleParticipantReports: true,
@@ -377,6 +396,12 @@ function useSearchSelectorBase({
                         reportAttributesDerived: reportAttributesDerived?.reports,
                         allPolicyTags,
                         sortedActions,
+                        transactionThreadIDs,
+                        lastActions,
+                        cardList,
+                        workspaceCardList,
+                        localeCompare,
+                        formatPhoneNumber,
                         isTrackIntentUser,
                         ...appliedGetValidOptionsConfig,
                     },
@@ -395,6 +420,7 @@ function useSearchSelectorBase({
                     {
                         dateFnsLocale,
                         convertToDisplayString,
+                        convertToDisplayStringWithoutCurrency,
                         betas: betas ?? [],
                         includeP2P: true,
                         includeSelectedOptions: false,
@@ -414,6 +440,12 @@ function useSearchSelectorBase({
                         reportAttributesDerived: reportAttributesDerived?.reports,
                         allPolicyTags,
                         sortedActions,
+                        transactionThreadIDs,
+                        lastActions,
+                        cardList,
+                        workspaceCardList,
+                        localeCompare,
+                        formatPhoneNumber,
                         isTrackIntentUser,
                         ...appliedGetValidOptionsConfig,
                     },

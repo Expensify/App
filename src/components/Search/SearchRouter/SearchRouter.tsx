@@ -89,7 +89,7 @@ function searchForReportsAndUsersInServer(searchInput: string) {
 
 function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDisplayed, ref}: SearchRouterProps) {
     const {translate, formatPhoneNumber, dateFnsLocale} = useLocalize();
-    const {convertToDisplayString} = useCurrencyListActions();
+    const {convertToDisplayString, convertToDisplayStringWithoutCurrency} = useCurrencyListActions();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {setShouldResetSearchQuery, resetSearchKey} = useSearchQueryActions();
@@ -108,6 +108,8 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
     const personalDetails = usePersonalDetails();
     const sortedReportActionsData = useSortedReportActionsData();
     const sortedActions = sortedReportActionsData?.sortedActions;
+    const transactionThreadIDs = sortedReportActionsData?.transactionThreadIDs;
+    const lastActions = sortedReportActionsData?.lastActions;
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {windowHeight} = useWindowDimensions();
     const listRef = useRef<SelectionListWithSectionsHandle>(null);
@@ -235,12 +237,17 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                 const option = createOptionFromReport({
                     dateFnsLocale,
                     convertToDisplayString,
+                    convertToDisplayStringWithoutCurrency,
                     report: contextualReport,
                     personalDetails,
                     privateIsArchived: contextualReportNVP,
                     rules,
                     policy: contextualReportPolicy,
                     sortedActions,
+                    transactionThreadIDs,
+                    lastActions,
+                    currentUserAccountID,
+                    currentUserLogin: currentUserPersonalDetails.login,
                     conciergeReportID,
                     reportAttributesDerived: reportAttributes,
                     config: {
@@ -312,12 +319,17 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
             contextualReport,
             personalDetails,
             sortedActions,
+            transactionThreadIDs,
+            lastActions,
+            currentUserAccountID,
+            currentUserPersonalDetails.login,
             contextualReportNVP,
             contextualReportPolicy,
             reportAttributes,
             isTrackIntentUser,
             dateFnsLocale,
             convertToDisplayString,
+            convertToDisplayStringWithoutCurrency,
             rules,
         ],
     );
