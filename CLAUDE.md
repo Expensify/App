@@ -62,7 +62,7 @@ Do not use `useMemo`, `useCallback`, or `React.memo` in components or hooks that
 
 ### Code Quality
 
-- **ESLint**: Linter. Pre-existing violations are grandfathered via [`eslint-seatbelt`](https://github.com/justjake/eslint-seatbelt).
+- **ESLint**: Linter. Pre-existing violations are grandfathered via the seatbelt ratchet in `scripts/lint/`.
 
 ### Post-Edit Checklist (IMPORTANT)
 

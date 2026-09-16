@@ -51,13 +51,11 @@ type WorkspaceExpensifyCardTableRowData = TableData & {
 };
 
 type WorkspaceExpensifyCardsTableProps = {
-    /** Policy ID */
     policyID: string;
 
     /** Optional page-level content rendered above the card labels that scrolls with the rows */
     headerComponent?: ReactElement;
 
-    /** List of Expensify cards to display in the table */
     cards: WorkspaceExpensifyCardTableRowData[];
 
     /** Whether multi selection is enabled */
@@ -66,7 +64,6 @@ type WorkspaceExpensifyCardsTableProps = {
     /** The list of selected keys for the table */
     selectedKeys: string[];
 
-    /** Callback when row selection changes */
     onRowSelectionChange: (selectedRowKeys: string[]) => void;
 
     /** Card settings used to display labels and top-level errors */
@@ -81,10 +78,7 @@ type WorkspaceExpensifyCardsTableProps = {
     /** Optional footer component rendered at the bottom of the scrollable list */
     listFooterComponent?: ReactElement;
 
-    /** Optional styles for the list footer component */
     listFooterComponentStyle?: StyleProp<ViewStyle>;
-
-    /** Optional styles for the list content container */
     listContentContainerStyle?: StyleProp<ViewStyle>;
 };
 

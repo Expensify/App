@@ -1,6 +1,9 @@
+import type {LocalizedTranslate} from '@components/LocaleContextProvider';
+
 import {isChronosStartOrStopMessage, isConsecutiveChronosAutomaticTimerAction} from '@libs/ChronosUtils';
 import {getEnvironmentURL} from '@libs/Environment/Environment';
 import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import getReportURLForCurrentContext from '@libs/Navigation/helpers/getReportURLForCurrentContext';
 import {setHasRadio} from '@libs/NetworkState';
 import {isExpenseReport} from '@libs/ReportUtils';
@@ -13,7 +16,7 @@ import type {ValueOf} from 'type-fest';
 import Onyx from 'react-native-onyx';
 
 import type {CompanyAddressOriginalMessage, UpdateACHAccountOriginalMessage} from '../../src/libs/ReportActionsUtils';
-import type {Card, DecisionName, PersonalDetailsList, Report, ReportAction, ReportActions} from '../../src/types/onyx';
+import type {Card, DecisionName, PersonalDetails, PersonalDetailsList, Report, ReportAction, ReportActions} from '../../src/types/onyx';
 import type {OriginalMessageExportIntegration} from '../../src/types/onyx/OriginalMessage';
 import type {ReportCollectionDataSet} from '../../src/types/onyx/Report';
 import type {ReportActionsCollectionDataSet} from '../../src/types/onyx/ReportAction';
@@ -27,6 +30,7 @@ import {
     getAssignedCompanyCardMessage,
     getAutoPayApprovedReportsEnabledMessage,
     getAutoReimbursementMessage,
+    getApprovalLimitUpdateMessage,
     getCardIssuedMessage,
     getCategoryTaxRateMessage,
     getCombinedReportActions,
@@ -41,10 +45,12 @@ import {
     getIntegrationSyncFailedMessage,
     getInvoiceCompanyNameUpdateMessage,
     getInvoiceCompanyWebsiteUpdateMessage,
+    getJoinRequestMessage,
     getMccGroupCategoryMessage,
     getModerationFlagState,
     getOneTransactionThreadReportID,
     getOriginalMessage,
+    getOverLimitForwardsToUpdateMessage,
     getPolicyChangeLogMaxExpenseAgeMessage,
     getPolicyChangeLogMaxExpenseAmountMessage,
     getPolicyChangeLogMaxExpenseAmountNoItemizedReceiptMessage,
@@ -60,6 +66,7 @@ import {
     getUnassignedCompanyCardMessage,
     getUpdateACHAccountMessage,
     getUpdatedAutoHarvestingMessage,
+    getUpdatedCommuterExclusionsMessage,
     getUpdatedCardFeedLiabilityMessage,
     getUpdatedCardFeedStatementPeriodMessage,
     hasNextActionMadeBySameActor,
@@ -2228,6 +2235,59 @@ describe('ReportActionsUtils', () => {
             expect(ReportActionsUtils.getRenamedAction(translateLocal, reportAction, isExpenseReport(report), 'John')).toBe('John renamed to "New name" (previously "Old name")');
         });
     });
+
+    describe('getJoinRequestMessage', () => {
+        const joinRequestAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_JOIN_REQUEST> = {
+            actionName: CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_JOIN_REQUEST,
+            reportActionID: 'join-request-1',
+            created: '2024-10-01 10:00:00.000',
+            originalMessage: {
+                choice: CONST.REPORT.ACTIONABLE_MENTION_JOIN_WORKSPACE_RESOLUTION.ACCEPT,
+                policyID: '1',
+                accountID: 2,
+                email: 'requester@expensify.com',
+            },
+        };
+
+        it('should use the display name and login when the requester has a first name', () => {
+            const userDetail: PersonalDetails = {
+                accountID: 2,
+                firstName: 'John',
+                displayName: 'John Doe',
+                login: 'john.doe@expensify.com',
+            };
+
+            expect(getJoinRequestMessage(translateLocal, 'Expensify', joinRequestAction, userDetail)).toBe('John Doe (john.doe@expensify.com) requested to join Expensify');
+        });
+
+        it('should use only the login when the requester has no first name', () => {
+            const userDetail: PersonalDetails = {
+                accountID: 2,
+                displayName: 'John Doe',
+                login: 'john.doe@expensify.com',
+            };
+
+            expect(getJoinRequestMessage(translateLocal, 'Expensify', joinRequestAction, userDetail)).toBe('john.doe@expensify.com requested to join Expensify');
+        });
+
+        it('should fall back to the email from the original message when the personal details are missing', () => {
+            expect(getJoinRequestMessage(translateLocal, 'Expensify', joinRequestAction, undefined)).toBe('requester@expensify.com requested to join Expensify');
+        });
+
+        it('should fall back to an empty user when there are neither personal details nor an email', () => {
+            const actionWithoutEmail: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_JOIN_REQUEST> = {
+                ...joinRequestAction,
+                originalMessage: {
+                    choice: CONST.REPORT.ACTIONABLE_MENTION_JOIN_WORKSPACE_RESOLUTION.ACCEPT,
+                    policyID: '1',
+                    accountID: 2,
+                },
+            };
+
+            expect(getJoinRequestMessage(translateLocal, 'Expensify', actionWithoutEmail, undefined)).toBe(' requested to join Expensify');
+        });
+    });
+
     describe('getCardIssuedMessage', () => {
         const mockVirtualCardIssuedAction: ReportAction = {
             actionName: CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED_VIRTUAL,
@@ -2262,6 +2322,7 @@ describe('ReportActionsUtils', () => {
                     expensifyCard: undefined,
                     translate: translateLocal,
                     currentUserAccountID: 1,
+                    buildDynamicRoute: createDynamicRoute,
                 });
 
                 expect(messageResult).toBe('issued <mention-user accountID="456"/> a virtual Expensify Card! The card can be used right away.');
@@ -2275,6 +2336,7 @@ describe('ReportActionsUtils', () => {
                     expensifyCard: activeExpensifyCard,
                     translate: translateLocal,
                     currentUserAccountID: 1,
+                    buildDynamicRoute: createDynamicRoute,
                 });
 
                 expect(messageResult).toBe(
@@ -2314,6 +2376,7 @@ describe('ReportActionsUtils', () => {
                     companyCard: mockCompanyCard,
                     translate: translateLocal,
                     currentUserAccountID: 456,
+                    buildDynamicRoute: createDynamicRoute,
                 });
 
                 expect(messageResult).toContain(`<a href='https://dev.new.expensify.com:8082/settings/wallet'>`);
@@ -2326,6 +2389,7 @@ describe('ReportActionsUtils', () => {
                     companyCard: mockCompanyCard,
                     translate: translateLocal,
                     currentUserAccountID: 1,
+                    buildDynamicRoute: createDynamicRoute,
                 });
 
                 expect(messageResult).not.toContain('<a href=');
@@ -3965,6 +4029,113 @@ describe('ReportActionsUtils', () => {
         });
     });
 
+    describe('getOverLimitForwardsToUpdateMessage', () => {
+        const member = {email: 'member@example.com', name: 'Member', accountID: 100};
+        const approver = {email: 'approver@example.com', name: 'Approver', accountID: 200};
+        const previousApprover = {email: 'oldapprover@example.com', name: 'Old Approver', accountID: 300};
+
+        it('should return set message when overLimitForwardsTo is set for the first time', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_OVER_LIMIT_FORWARDS_TO,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {member, overLimitForwardsTo: approver, limit: 10000, currency: 'USD'},
+            } as ReportAction;
+            const result = getOverLimitForwardsToUpdateMessage(translateLocal, action, convertToDisplayString);
+            expect(result).toBe('set the approval workflow for member@example.com to forward reports over $100.00 to approver@example.com');
+        });
+
+        it('should return changed message naming only the previous approver when the limit did not change', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_OVER_LIMIT_FORWARDS_TO,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {member, overLimitForwardsTo: approver, previousOverLimitForwardsTo: previousApprover, limit: 10000, previousLimit: 10000, currency: 'USD'},
+            } as ReportAction;
+            const result = getOverLimitForwardsToUpdateMessage(translateLocal, action, convertToDisplayString);
+            expect(result).toBe(
+                'changed the approval workflow for member@example.com to forward reports over $100.00 to approver@example.com (previously forwarded to oldapprover@example.com)',
+            );
+        });
+
+        it('should return changed message naming the previous limit as well when both changed', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_OVER_LIMIT_FORWARDS_TO,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {member, overLimitForwardsTo: approver, previousOverLimitForwardsTo: previousApprover, limit: 20000, previousLimit: 10000, currency: 'USD'},
+            } as ReportAction;
+            const result = getOverLimitForwardsToUpdateMessage(translateLocal, action, convertToDisplayString);
+            expect(result).toBe(
+                'changed the approval workflow for member@example.com to forward reports over $200.00 to approver@example.com (previously forwarded reports over $100.00 to oldapprover@example.com)',
+            );
+        });
+
+        it('should return removed message naming the limit that is going away', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_OVER_LIMIT_FORWARDS_TO,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {member, previousOverLimitForwardsTo: previousApprover, previousLimit: 10000, currency: 'USD'},
+            } as ReportAction;
+            const result = getOverLimitForwardsToUpdateMessage(translateLocal, action, convertToDisplayString);
+            expect(result).toBe('changed the approval workflow for member@example.com to stop forwarding reports over $100.00 (previously forwarded to oldapprover@example.com)');
+        });
+
+        it('should not pass a previous limit to the translator when there is no previous approver, even if the limit field changed', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_OVER_LIMIT_FORWARDS_TO,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {member, overLimitForwardsTo: approver, limit: 20000, previousLimit: 10000, currency: 'USD'},
+            } as ReportAction;
+            const translate: LocalizedTranslate = jest.fn().mockReturnValue('translated');
+
+            getOverLimitForwardsToUpdateMessage(translate, action, convertToDisplayString);
+
+            expect(translate).toHaveBeenCalledWith('workspaceActions.changedOverLimitForwardsTo', {
+                member: 'member@example.com',
+                approver: 'approver@example.com',
+                limit: '$200.00',
+                previousApprover: undefined,
+                previousLimit: undefined,
+            });
+        });
+    });
+
+    describe('getApprovalLimitUpdateMessage', () => {
+        it('should return changed message naming the new and the previous limit and no approver', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_APPROVAL_LIMIT,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    member: {email: 'member@example.com', name: 'Member', accountID: 100},
+                    limit: 20000,
+                    previousLimit: 10000,
+                    currency: 'USD',
+                },
+            } as ReportAction;
+            const result = getApprovalLimitUpdateMessage(translateLocal, action, convertToDisplayString);
+            expect(result).toBe('changed the approval workflow for member@example.com to forward reports over $200.00 (previously $100.00)');
+        });
+
+        it('should fall back to the report action text when limit or previousLimit is missing', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_APPROVAL_LIMIT,
+                reportActionID: '1',
+                created: '',
+                message: [{type: 'COMMENT', text: 'fallback text'}],
+                originalMessage: {
+                    member: {email: 'member@example.com', name: 'Member', accountID: 100},
+                    currency: 'USD',
+                },
+            } as ReportAction;
+            const result = getApprovalLimitUpdateMessage(translateLocal, action, convertToDisplayString);
+            expect(result).toBe('fallback text');
+        });
+    });
+
     describe('getPolicyChangeLogMaxExpenseAgeMessage', () => {
         it('should return set message when setting from disabled to a value', () => {
             const action = {
@@ -4212,6 +4383,38 @@ describe('ReportActionsUtils', () => {
 
             const result = getUpdatedAutoHarvestingMessage(translateLocal, action);
             expect(result).toBe('disabled submissions');
+        });
+    });
+
+    describe('getUpdatedCommuterExclusionsMessage', () => {
+        const buildMethodChangeAction = (newValue: string, oldValue?: string) =>
+            ({
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_COMMUTER_EXCLUSIONS,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    updatedField: CONST.POLICY.COMMUTER_EXCLUSION_TYPE.METHOD,
+                    newValue,
+                    ...(oldValue ? {oldValue} : {}),
+                },
+                message: [],
+            }) as ReportAction;
+
+        it.each([
+            [CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE, undefined, 'changed exclude commutes to calculate by home and office (previously do not exclude commutes)'],
+            [
+                CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE,
+                CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE,
+                'changed exclude commutes to calculate by home and office (previously fixed distance per claim)',
+            ],
+            [
+                CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE,
+                CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE,
+                'changed exclude commutes to a fixed distance per claim (previously home and office)',
+            ],
+            [CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE, undefined, 'changed exclude commutes to a fixed distance per claim (previously do not exclude commutes)'],
+        ])('names both the new and the previous method for %s from %s', (newValue, oldValue, expected) => {
+            expect(getUpdatedCommuterExclusionsMessage(translateLocal, buildMethodChangeAction(newValue, oldValue))).toBe(expected);
         });
     });
 

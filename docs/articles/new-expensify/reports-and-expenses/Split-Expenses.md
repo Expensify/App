@@ -133,6 +133,10 @@ Splits are locked if they're on a report that’s approved, reimbursed, or close
 
 Yes. Each split is treated as a regular expense and follows all workspace requirements.
 
+## Why don’t I see the Reimbursable toggle on a split?
+
+The workspace’s **Cash expenses** rule is set to **Always reimbursable** or **Always non-reimbursable**. Those options fix the reimbursable value for every cash expense, so each split is created with the workspace default and the **Reimbursable** toggle is hidden. Imported company card expenses are always non-reimbursable, so their splits don’t show the toggle either. [Learn how to configure Workspace Rules](/articles/new-expensify/workspaces/Workspace-Rules).
+
 ## Can I split a distance or mileage expense?
 
 Yes. You can split distance expenses just like any other expense. However, total distance must not exceed the original value, and rows cannot be split by percentage or date.
