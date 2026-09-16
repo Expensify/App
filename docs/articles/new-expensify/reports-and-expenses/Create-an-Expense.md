@@ -1,8 +1,8 @@
 ---
 title: Create an Expense
 description: Learn how to create and submit expenses in Expensify using SmartScan, manual entry, distance tracking, or time expenses.
-keywords: [New Expensify, create expense, submit expense, SmartScan, manual expense, distance expense, time expense, create time expense, log time, track hours, expense report, submit to workspace, submit to individual, split expense, scan receipts, bulk upload, GPS, GPS tracking, GPS mileage, Proofpoint, email forwarding, receipt forwarding, email receipt, forward receipt, forward email receipt, email receipts@expensify.com, scan receipt, receipt email]
-internalScope: Audience is submitters, approvers, and Workspace Admins. Covers how to create and submit expenses to a workspace or individual using SmartScan, manual entry, distance tracking, or Time expenses. Does not cover credit card import or Time Tracking
+keywords: [New Expensify, create expense, submit expense, SmartScan, manual expense, distance expense, time expense, create time expense, log time, track hours, expense report, submit to workspace, submit to individual, split expense, scan receipts, bulk upload, GPS, GPS tracking, GPS mileage, Proofpoint, email forwarding, receipt forwarding, email receipt, forward receipt, forward email receipt, email receipts@expensify.com, scan receipt, receipt email, which report does my expense go to, new report created for expense, Report field, change report before creating expense, expense added to existing report, draft report]
+internalScope: Audience is submitters, approvers, and Workspace Admins. Covers how to create and submit expenses to a workspace or individual using SmartScan, manual entry, distance tracking, or Time expenses, and which report a new workspace expense is added to. Does not cover credit card import or Time Tracking
 ---
 
 You can create expenses in Expensify by scanning a receipt, entering details manually, tracking distance, or logging time. Once created, expenses can be submitted to either a workspace (for business reimbursement) or an individual (for personal repayment).
@@ -125,13 +125,34 @@ The total amount will be calculated automatically using the hourly rate set for 
 
 ## What happens after submitting an expense to a workspace
 
-- Expenses are automatically added to a report.
+- Expenses are automatically added to a report. See [How Expensify chooses the report your workspace expense is added to](#how-expensify-chooses-the-report-your-workspace-expense-is-added-to) below.
 - [Workspace Merchant Rules](https://help.expensify.com/articles/new-expensify/workspaces/Workspace-Merchant-Rules) may automatically apply categories, tags, descriptions, and other coding based on the merchant name.
 - Workspace rules check for violations or missing fields.
 - Approvers are notified to review and approve.
 - Reports can be submitted manually or automatically.
 - Approved expenses are ready for payment.
 - [Connect your bank account](https://help.expensify.com/articles/new-expensify/expenses-and-payments/Connect-a-Personal-Bank-Account) to receive payment.
+
+---
+
+## How Expensify chooses the report your workspace expense is added to
+
+When you create an expense on a workspace, Expensify picks the report for you:
+
+- If you already have a report in **Draft** status on that workspace, the expense is added to your most recently created **Draft** report.
+- If you have no **Draft** report on that workspace, Expensify creates a new report and adds the expense to it.
+- Expensify only reuses a report you own. A report that belongs to another member of the same workspace is never used.
+- Submitting a report moves it out of **Draft** status, so the next expense you create starts a new report unless you have another **Draft** report.
+
+The **Report** field on the expense confirmation page shows the report the expense will be added to. If you have more than one **Draft** report on that workspace, select **Report** to pick a different one, then select **Create expense**.
+
+<!-- SCREENSHOT:
+Suggestion: The expense confirmation page for a workspace expense, scrolled so the Report field and its current value are visible above the Create expense button.
+Location: Immediately after the paragraph describing the Report field in "How Expensify chooses the report your workspace expense is added to"
+Purpose: Members do not realize the destination report is shown and changeable before the expense is created, so they only discover which report it landed on afterwards and think Expensify picked the wrong one.
+-->
+
+To learn what each report status means, see [Understanding Report Statuses and Actions](/articles/new-expensify/reports-and-expenses/Understanding-Report-Statuses-and-Actions).
 
 ---
 
@@ -173,6 +194,10 @@ Each person will receive a notification via email or text with the request detai
 ---
 
 # FAQ
+
+## Why was my expense added to a new report instead of my existing report?
+
+Expensify only adds a new workspace expense to a report you own that is still in **Draft** status. A new report is created when you have no **Draft** report on that workspace — for example, because you submitted your last report, deleted it, or a Workspace Admin moved your expenses onto a different report. Check the **Report** field on the expense confirmation page before you select **Create expense** to see where the expense will go.
 
 ## What is Smart Receipt Detection?
 
