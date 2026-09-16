@@ -49,6 +49,19 @@ describe('SearchChangeApproverPage', () => {
             expect(result).toBe(false);
         });
 
+        it('should return false when some selected policies are missing from Onyx', () => {
+            const result = shouldAutoApplyApprover({
+                isLoadingBulkChangeApproverPage: false,
+                selectedReports: [{reportID: 'reportA'}],
+                onyxReports: {reportA: buildReport('reportA')},
+                approverTypes: [ADD_APPROVER_OPTION],
+                selectedApproverType: APPROVER_TYPE.ADD_APPROVER,
+                areSelectedPoliciesLoaded: false,
+            });
+
+            expect(result).toBe(false);
+        });
+
         it('should return false when onyxReports is undefined', () => {
             const result = shouldAutoApplyApprover({
                 isLoadingBulkChangeApproverPage: false,

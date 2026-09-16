@@ -9171,6 +9171,10 @@ function buildOptimisticChangeApproverReportAction(
         text += `, skipped ${getDisplayNameForParticipant({accountID: previousApproverID, formatPhoneNumber})}`;
         html += `, skipped <mention-user accountID="${previousApproverID}"/>`;
     }
+    const mentionedAccountIDs = [managerID];
+    if (isReassignment && previousApproverID && previousApproverID !== managerID) {
+        mentionedAccountIDs.push(previousApproverID);
+    }
     return {
         actionName: managerID === actorAccountID ? CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL : CONST.REPORT.ACTIONS.TYPE.REROUTE,
         actorAccountID,
@@ -9192,7 +9196,7 @@ function buildOptimisticChangeApproverReportAction(
         ],
         originalMessage: {
             lastModified: created,
-            mentionedAccountIDs: [managerID],
+            mentionedAccountIDs,
             ...(isReassignment ? {isReassignment: true, previousApproverID} : {}),
         },
         shouldShow: false,

@@ -20,7 +20,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {assignReportToMe} from '@libs/actions/IOU/ReportWorkflow';
 import {openBulkChangeApproverPage} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
-import {isControlPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
+import {isControlPolicy, isPendingDeletePolicy, isPolicyAdmin} from '@libs/PolicyUtils';
 import {hasViolations as hasViolationsReportUtils, isAllowedToApproveExpenseReport} from '@libs/ReportUtils';
 
 import {APPROVER_TYPE} from '@pages/DynamicReportChangeApproverPage';
@@ -51,14 +51,16 @@ function shouldAutoApplyApprover({
     onyxReports,
     approverTypes,
     selectedApproverType,
+    areSelectedPoliciesLoaded = true,
 }: {
     isLoadingBulkChangeApproverPage: boolean;
     selectedReports: SelectedReportRef[];
     onyxReports: Record<string, Report> | undefined;
     approverTypes: Array<{keyForList: ApproverType}>;
     selectedApproverType: ApproverType | undefined;
+    areSelectedPoliciesLoaded?: boolean;
 }): boolean {
-    if (isLoadingBulkChangeApproverPage || selectedReports.length === 0) {
+    if (isLoadingBulkChangeApproverPage || selectedReports.length === 0 || !areSelectedPoliciesLoaded) {
         return false;
     }
 
@@ -138,6 +140,7 @@ function SearchChangeApproverPage() {
         return Array.from(policies.values());
     };
     const selectedPolicies = getSelectedPolicies();
+    const areSelectedPoliciesLoaded = selectedReports.every((selectedReport) => !!allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${selectedReport.policyID}`]);
 
     const changeApprover = () => {
         if (selectedApproverType === APPROVER_TYPE.ADD_APPROVER) {
@@ -209,7 +212,7 @@ function SearchChangeApproverPage() {
 
         const hasAdminPermission = selectedReports.every((selectedReport) => {
             const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${selectedReport.policyID}`];
-            return !!policy && isPolicyAdmin(policy);
+            return !!policy && isPolicyAdmin(policy) && !isPendingDeletePolicy(policy);
         });
 
         const isAllowedToBypassApprovers =
@@ -279,6 +282,7 @@ function SearchChangeApproverPage() {
         onyxReports,
         approverTypes,
         selectedApproverType,
+        areSelectedPoliciesLoaded,
     });
 
     useEffect(() => {

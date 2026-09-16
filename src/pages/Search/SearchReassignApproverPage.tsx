@@ -1,4 +1,4 @@
-import {SearchApproverPage} from './SearchAddApproverPage';
+import SearchApproverPage from './SearchApproverPage';
 
 function SearchReassignApproverPage() {
     return <SearchApproverPage isReassignment />;

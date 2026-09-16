@@ -1,10 +1,7 @@
+import ApproverSelectionList from '@components/ApproverSelectionList';
+import type {SelectionListApprover} from '@components/ApproverSelectionList';
 import Badge from '@components/Badge';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import ScreenWrapper from '@components/ScreenWrapper';
-import SelectionList from '@components/SelectionList';
-import InviteMemberListItem from '@components/SelectionList/ListItem/InviteMemberListItem';
-import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -22,7 +19,6 @@ import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/crea
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportChangeApproverParamList} from '@libs/Navigation/types';
-import {sortAlphabetically} from '@libs/OptionsListUtils';
 import {getMemberAccountIDsForWorkspace, isPendingDeletePolicy, isPolicyAdmin} from '@libs/PolicyUtils';
 import {
     getDisplayNameForParticipant,
@@ -30,6 +26,7 @@ import {
     isAllowedToApproveExpenseReport,
     isMoneyRequestReport,
     isMoneyRequestReportPendingDeletion,
+    isProcessingReport,
 } from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
@@ -40,22 +37,15 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import React, {useState} from 'react';
-import {View} from 'react-native';
 
 import type {WithReportOrNotFoundProps} from './inbox/report/withReportOrNotFound';
 
-import NotFoundPage from './ErrorPage/NotFoundPage';
 import withReportOrNotFound from './inbox/report/withReportOrNotFound';
 
 type ReportReassignApproverPageProps = WithReportOrNotFoundProps & PlatformStackScreenProps<ReportChangeApproverParamList, typeof SCREENS.REPORT_CHANGE_APPROVER.REASSIGN_APPROVER>;
 
-type MemberListItem = ListItem & {
-    /** Account ID of the workspace member */
-    accountID: number;
-};
-
 function ReportReassignApproverPage({report, policy, isLoadingReportData}: ReportReassignApproverPageProps) {
-    const {translate, formatPhoneNumber, localeCompare} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const styles = useThemeStyles();
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar']);
@@ -69,26 +59,25 @@ function ReportReassignApproverPage({report, policy, isLoadingReportData}: Repor
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const hasViolations = hasViolationsReportUtils(report?.reportID, transactionViolations, currentUserDetails.accountID, currentUserDetails.login ?? '', undefined, reportTransactions);
 
+    const isApprovalEnabled = !!policy?.approvalMode && policy.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL;
     const shouldShowNotFoundView =
         (isEmptyObject(policy) && !isLoadingReportData) ||
         !isPolicyAdmin(policy) ||
         isPendingDeletePolicy(policy) ||
         !isMoneyRequestReport(report) ||
-        isMoneyRequestReportPendingDeletion(report);
-
-    if (shouldShowNotFoundView) {
-        return <NotFoundPage />;
-    }
+        isMoneyRequestReportPendingDeletion(report) ||
+        !isProcessingReport(report) ||
+        !isApprovalEnabled;
 
     const employeeList = policy?.employeeList;
-    const members = (() => {
+    const allApprovers = (() => {
         if (!employeeList) {
             return [];
         }
 
         const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(employeeList, true, false);
         const memberOptions = Object.values(employeeList)
-            .map((employee): MemberListItem | null => {
+            .map((employee): SelectionListApprover | null => {
                 const email = employee.email;
                 if (!email) {
                     return null;
@@ -113,25 +102,19 @@ function ReportReassignApproverPage({report, policy, isLoadingReportData}: Repor
                     alternateText: email,
                     keyForList: email,
                     login: email,
-                    accountID,
+                    value: accountID,
                     isSelected: selectedMemberEmail === email,
                     icons: [{source: avatar ?? icons.FallbackAvatar, type: CONST.ICON_TYPE_AVATAR, name: displayName, id: accountID}],
                     rightElement: employee.role === CONST.POLICY.ROLE.ADMIN ? <Badge text={translate('common.admin')} /> : undefined,
                 };
             })
-            .filter((member): member is MemberListItem => !!member);
+            .filter((member): member is SelectionListApprover => !!member);
 
-        return sortAlphabetically(memberOptions, 'text', localeCompare);
+        return memberOptions;
     })();
 
-    const listHeader = (
-        <View style={[styles.ph5, styles.mb5]}>
-            <Text style={styles.textSupporting}>{translate('iou.changeApprover.actions.reassignApproverPageHeader')}</Text>
-        </View>
-    );
-
     const save = () => {
-        const newApproverAccountID = members.find((member) => member.login === selectedMemberEmail)?.accountID;
+        const newApproverAccountID = allApprovers.find((member) => member.login === selectedMemberEmail)?.value;
         if (!selectedMemberEmail || !newApproverAccountID) {
             return;
         }
@@ -139,7 +122,7 @@ function ReportReassignApproverPage({report, policy, isLoadingReportData}: Repor
             addReportApprover({
                 report,
                 newApproverEmail: selectedMemberEmail,
-                newApproverAccountID,
+                newApproverAccountID: Number(newApproverAccountID),
                 accountID: currentUserDetails.accountID,
                 email: currentUserDetails.email ?? '',
                 policy,
@@ -167,32 +150,34 @@ function ReportReassignApproverPage({report, policy, isLoadingReportData}: Repor
         />
     );
 
+    const toggleApprover = (approvers: SelectionListApprover[]) => {
+        const selectedApprover = approvers.at(0);
+        if (!selectedApprover?.keyForList) {
+            setSelectedMemberEmail(undefined);
+            return;
+        }
+        setSelectedMemberEmail(selectedApprover.keyForList);
+    };
+
     return (
-        <ScreenWrapper
+        <ApproverSelectionList
             testID="ReportReassignApproverPage"
-            includeSafeAreaPaddingBottom
-            shouldEnableMaxHeight
-        >
-            <HeaderWithBackButton
-                title={translate('iou.changeApprover.actions.reassignApprover')}
-                onBackButtonPress={() => {
-                    Navigation.goBack(createDynamicRoute(DYNAMIC_ROUTES.REPORT_CHANGE_APPROVER.path, ROUTES.REPORT_WITH_ID.getRoute(report.reportID)), {compareParams: false});
-                }}
-            />
-            <SelectionList
-                data={members}
-                ListItem={InviteMemberListItem}
-                customListHeader={listHeader}
-                onSelectRow={(option) => {
-                    setSelectedMemberEmail(option.keyForList);
-                }}
-                initiallyFocusedItemKey={selectedMemberEmail}
-                footerContent={footerContent}
-                shouldUpdateFocusedIndex
-                isRowMultilineSupported
-                showScrollIndicator
-            />
-        </ScreenWrapper>
+            headerTitle={translate('iou.changeApprover.actions.reassignApprover')}
+            onBackButtonPress={() => {
+                Navigation.goBack(createDynamicRoute(DYNAMIC_ROUTES.REPORT_CHANGE_APPROVER.path, ROUTES.REPORT_WITH_ID.getRoute(report.reportID)), {compareParams: false});
+            }}
+            subtitle={<Text style={[styles.ph5, styles.pb3]}>{translate('iou.changeApprover.actions.reassignApproverPageHeader')}</Text>}
+            isLoadingReportData={isLoadingReportData}
+            policy={policy}
+            shouldShowNotFoundViewLink={false}
+            shouldShowNotFoundView={shouldShowNotFoundView}
+            allApprovers={allApprovers}
+            listEmptyContentSubtitle={translate('workflowsPage.emptyContent.approverSubtitle')}
+            allowMultipleSelection={false}
+            onSelectApprover={toggleApprover}
+            footerContent={footerContent}
+            shouldShowLoadingPlaceholder={isLoadingReportData}
+        />
     );
 }
 

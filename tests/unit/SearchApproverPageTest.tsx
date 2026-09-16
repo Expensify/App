@@ -24,6 +24,9 @@ const mockFormatPhoneNumber = jest.fn((value: string) => value);
 
 const SELECTED_REPORT_ID = '737100';
 const POLICY_ID = 'search-approver-policy';
+const SECOND_REPORT_ID = '737101';
+const SECOND_POLICY_ID = 'search-approver-policy-2';
+let mockSelectedReports = [{reportID: SELECTED_REPORT_ID, policyID: POLICY_ID}];
 
 jest.mock('@hooks/useLocalize', () => () => ({translate: mockTranslate, formatPhoneNumber: mockFormatPhoneNumber}));
 
@@ -43,7 +46,7 @@ jest.mock('@components/Search/SearchContext', () => {
         ...actual,
         __esModule: true,
         useSearchSelectionActions: () => ({clearSelectedTransactions: jest.fn()}),
-        useSearchSelectionContext: () => ({selectedReports: [{reportID: '737100', policyID: 'search-approver-policy'}]}),
+        useSearchSelectionContext: () => ({selectedReports: mockSelectedReports}),
     };
 });
 
@@ -66,7 +69,7 @@ const APPROVER_ACCOUNT_ID = 737001;
 const APPROVER_EMAIL = 'search-approver@test.com';
 const MANAGER_ACCOUNT_ID = 737002;
 
-describe('SearchAddApproverPage', () => {
+describe('SearchApproverPage', () => {
     beforeAll(() => {
         Onyx.init({keys: ONYXKEYS});
         return waitForBatchedUpdates();
@@ -74,6 +77,7 @@ describe('SearchAddApproverPage', () => {
 
     beforeEach(async () => {
         jest.clearAllMocks();
+        mockSelectedReports = [{reportID: SELECTED_REPORT_ID, policyID: POLICY_ID}];
         const policy = createMock<Policy>({
             id: POLICY_ID,
             role: CONST.POLICY.ROLE.ADMIN,
@@ -81,10 +85,20 @@ describe('SearchAddApproverPage', () => {
                 [APPROVER_EMAIL]: {email: APPROVER_EMAIL, role: CONST.POLICY.ROLE.USER},
             },
         });
+        const secondPolicy = createMock<Policy>({
+            id: SECOND_POLICY_ID,
+            role: CONST.POLICY.ROLE.ADMIN,
+            employeeList: {
+                [APPROVER_EMAIL]: {email: APPROVER_EMAIL, role: CONST.POLICY.ROLE.USER},
+            },
+        });
         const report = createMock<Report>({reportID: SELECTED_REPORT_ID, type: CONST.REPORT.TYPE.EXPENSE, policyID: POLICY_ID, managerID: MANAGER_ACCOUNT_ID});
+        const secondReport = createMock<Report>({reportID: SECOND_REPORT_ID, type: CONST.REPORT.TYPE.EXPENSE, policyID: SECOND_POLICY_ID, managerID: MANAGER_ACCOUNT_ID});
         await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[APPROVER_ACCOUNT_ID]: buildPersonalDetails(APPROVER_EMAIL, APPROVER_ACCOUNT_ID, 'Approver')});
         await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, policy);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${SECOND_POLICY_ID}`, secondPolicy);
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${SELECTED_REPORT_ID}`, report);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${SECOND_REPORT_ID}`, secondReport);
         await waitForBatchedUpdates();
     });
 
@@ -117,5 +131,48 @@ describe('SearchAddApproverPage', () => {
             }),
             undefined,
         );
+    });
+
+    it('allows reassignment to a member who already manages only some selected reports', async () => {
+        mockSelectedReports = [
+            {reportID: SELECTED_REPORT_ID, policyID: POLICY_ID},
+            {reportID: SECOND_REPORT_ID, policyID: SECOND_POLICY_ID},
+        ];
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${SELECTED_REPORT_ID}`, {managerID: APPROVER_ACCOUNT_ID});
+        await waitForBatchedUpdates();
+
+        render(
+            <OnyxListItemProvider>
+                <SearchReassignApproverPage />
+            </OnyxListItemProvider>,
+        );
+        await waitForBatchedUpdates();
+
+        expect(mockApproverSelectionList).toHaveBeenLastCalledWith(
+            expect.objectContaining({allApprovers: [expect.objectContaining({login: APPROVER_EMAIL, value: APPROVER_ACCOUNT_ID})]}),
+            undefined,
+        );
+    });
+
+    it('excludes a member who is pending deletion in any selected workspace', async () => {
+        mockSelectedReports = [
+            {reportID: SELECTED_REPORT_ID, policyID: POLICY_ID},
+            {reportID: SECOND_REPORT_ID, policyID: SECOND_POLICY_ID},
+        ];
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${SECOND_POLICY_ID}`, {
+            employeeList: {
+                [APPROVER_EMAIL]: {email: APPROVER_EMAIL, role: CONST.POLICY.ROLE.USER, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
+            },
+        });
+        await waitForBatchedUpdates();
+
+        render(
+            <OnyxListItemProvider>
+                <SearchReassignApproverPage />
+            </OnyxListItemProvider>,
+        );
+        await waitForBatchedUpdates();
+
+        expect(mockApproverSelectionList).toHaveBeenLastCalledWith(expect.objectContaining({allApprovers: []}), undefined);
     });
 });

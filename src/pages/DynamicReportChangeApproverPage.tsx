@@ -1,4 +1,3 @@
-import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -30,7 +29,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {ValueOf} from 'type-fest';
 
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
 
 import type {WithReportOrNotFoundProps} from './inbox/report/withReportOrNotFound';
@@ -53,16 +52,13 @@ function DynamicReportChangeApproverPage({report, policy, isLoadingReportData}: 
     const styles = useThemeStyles();
     const {environmentURL} = useEnvironment();
     const currentUserDetails = useCurrentUserPersonalDetails();
-    const [selectedApproverType, setSelectedApproverType] = useState<ApproverType>();
-    const [hasError, setHasError] = useState(false);
+    const [selectedApproverType, setSelectedApproverType] = useState<ApproverType>(APPROVER_TYPE.ADD_APPROVER);
     const {isBetaEnabled} = usePermissions();
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const hasViolations = hasViolationsReportUtils(report?.reportID, transactionViolations, currentUserDetails.accountID, currentUserDetails.login ?? '');
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
-    const hasAutoAppliedRef = useRef(false);
-    const hasNavigatedAwayRef = useRef(false);
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.REPORT_CHANGE_APPROVER.path);
 
     const goBack = () => {
@@ -70,12 +66,7 @@ function DynamicReportChangeApproverPage({report, policy, isLoadingReportData}: 
     };
 
     const changeApprover = useCallback(() => {
-        if (!selectedApproverType) {
-            setHasError(true);
-            return;
-        }
         if (selectedApproverType === APPROVER_TYPE.ADD_APPROVER) {
-            hasNavigatedAwayRef.current = true;
             if (policy && !isControlPolicy(policy)) {
                 Navigation.navigate(
                     ROUTES.WORKSPACE_UPGRADE.getRoute(
@@ -90,7 +81,6 @@ function DynamicReportChangeApproverPage({report, policy, isLoadingReportData}: 
             return;
         }
         if (selectedApproverType === APPROVER_TYPE.REASSIGN_APPROVER) {
-            hasNavigatedAwayRef.current = true;
             Navigation.navigate(ROUTES.REPORT_CHANGE_APPROVER_REASSIGN_APPROVER.getRoute(report.reportID));
             return;
         }
@@ -130,18 +120,6 @@ function DynamicReportChangeApproverPage({report, policy, isLoadingReportData}: 
 
         return data;
     }, [translate, selectedApproverType, policy, report, currentUserDetails.accountID]);
-
-    useEffect(() => {
-        if (selectedApproverType === undefined && approverTypes.length > 0) {
-            setSelectedApproverType(approverTypes.at(0)?.keyForList);
-            return;
-        }
-
-        if (!hasAutoAppliedRef.current && approverTypes.length === 1 && selectedApproverType === approverTypes.at(0)?.keyForList && !hasNavigatedAwayRef.current) {
-            hasAutoAppliedRef.current = true;
-            changeApprover();
-        }
-    }, [approverTypes, selectedApproverType, changeApprover]);
 
     const shouldShowNotFoundView = (isEmptyObject(policy) && !isLoadingReportData) || !isPolicyAdmin(policy) || !isMoneyRequestReport(report) || isMoneyRequestReportPendingDeletion(report);
 
@@ -186,21 +164,12 @@ function DynamicReportChangeApproverPage({report, policy, isLoadingReportData}: 
                         return;
                     }
                     setSelectedApproverType(option.keyForList);
-                    setHasError(false);
                 }}
                 confirmButtonOptions={confirmButtonOptions}
                 shouldUpdateFocusedIndex
                 customListHeader={listHeader}
                 initiallyFocusedItemKey={selectedApproverType}
-            >
-                {hasError && (
-                    <FormHelpMessage
-                        isError
-                        style={[styles.ph5, styles.mb3]}
-                        message={translate('common.error.pleaseSelectOne')}
-                    />
-                )}
-            </SelectionList>
+            />
         </ScreenWrapper>
     );
 }

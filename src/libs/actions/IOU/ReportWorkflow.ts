@@ -1889,6 +1889,7 @@ function addReportApprover({
                 value: {
                     [takeControlReportAction.reportActionID]: {
                         pendingAction: null,
+                        isOptimisticAction: null,
                         errors: null,
                     },
                 },

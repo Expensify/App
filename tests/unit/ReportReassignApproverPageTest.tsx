@@ -1,6 +1,6 @@
 import {act, render} from '@testing-library/react-native';
 
-import SelectionList from '@components/SelectionList';
+import ApproverSelectionList from '@components/ApproverSelectionList';
 
 import {isAllowedToApproveExpenseReport} from '@libs/ReportUtils';
 
@@ -25,8 +25,7 @@ const CURRENT_MANAGER_EMAIL = 'current-manager@test.com';
 const SUBMITTER_EMAIL = 'submitter@test.com';
 const ELIGIBLE_APPROVER_EMAIL = 'eligible-approver@test.com';
 
-jest.mock('@components/SelectionList', () => jest.fn(() => null));
-jest.mock('@pages/ErrorPage/NotFoundPage', () => jest.fn(() => null));
+jest.mock('@components/ApproverSelectionList', () => jest.fn(() => null));
 
 jest.mock('@hooks/useCurrentUserPersonalDetails', () => () => ({
     accountID: CURRENT_USER_ACCOUNT_ID,
@@ -57,7 +56,7 @@ jest.mock('@libs/ReportUtils', () => {
     };
 });
 
-const mockSelectionList = jest.mocked(SelectionList);
+const mockApproverSelectionList = jest.mocked(ApproverSelectionList);
 const mockIsAllowedToApproveExpenseReport = jest.mocked(isAllowedToApproveExpenseReport);
 
 const report = createMock<Report>({
@@ -66,12 +65,14 @@ const report = createMock<Report>({
     policyID: 'reassign-policy',
     managerID: CURRENT_MANAGER_ACCOUNT_ID,
     ownerAccountID: SUBMITTER_ACCOUNT_ID,
+    statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
 });
 
 function buildPolicy(role: Policy['role'] = CONST.POLICY.ROLE.ADMIN): Policy {
     return createMock<Policy>({
         id: report.policyID,
         role,
+        approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
         employeeList: {
             [CURRENT_MANAGER_EMAIL]: {email: CURRENT_MANAGER_EMAIL, role: CONST.POLICY.ROLE.USER},
             [SUBMITTER_EMAIL]: {email: SUBMITTER_EMAIL, role: CONST.POLICY.ROLE.USER},
@@ -80,12 +81,12 @@ function buildPolicy(role: Policy['role'] = CONST.POLICY.ROLE.ADMIN): Policy {
     });
 }
 
-function renderPage(policy: Policy) {
+function renderPage(policy: Policy, reportOverride = report) {
     return render(
         <ReportReassignApproverPage
             // @ts-expect-error Only the report, policy, and loading state are read by the unwrapped page.
             route={{params: {reportID: report.reportID}}}
-            report={report}
+            report={reportOverride}
             policy={policy}
             isLoadingReportData={false}
         />,
@@ -93,7 +94,7 @@ function renderPage(policy: Policy) {
 }
 
 function getSubmitButtonDisabled() {
-    const footerContent = mockSelectionList.mock.calls.at(-1)?.[0].footerContent;
+    const footerContent = mockApproverSelectionList.mock.calls.at(-1)?.[0].footerContent;
     if (!React.isValidElement<{isDisabled?: boolean}>(footerContent)) {
         throw new Error('Expected the selection list to have a submit button');
     }
@@ -119,8 +120,8 @@ describe('ReportReassignApproverPage', () => {
     it('only lists members who can replace the current approver', () => {
         renderPage(buildPolicy());
 
-        const data = mockSelectionList.mock.calls.at(-1)?.[0].data;
-        expect(data).toEqual([expect.objectContaining({accountID: ELIGIBLE_APPROVER_ACCOUNT_ID, login: ELIGIBLE_APPROVER_EMAIL})]);
+        const data = mockApproverSelectionList.mock.calls.at(-1)?.[0].allApprovers;
+        expect(data).toEqual([expect.objectContaining({value: ELIGIBLE_APPROVER_ACCOUNT_ID, login: ELIGIBLE_APPROVER_EMAIL})]);
     });
 
     it('disables Save until an approver is selected', () => {
@@ -128,21 +129,28 @@ describe('ReportReassignApproverPage', () => {
 
         expect(getSubmitButtonDisabled()).toBe(true);
 
-        const selectionListProps = mockSelectionList.mock.calls.at(-1)?.[0];
-        const selectedOption = selectionListProps?.data.at(0);
+        const selectionListProps = mockApproverSelectionList.mock.calls.at(-1)?.[0];
+        const selectedOption = selectionListProps?.allApprovers.at(0);
         if (!selectionListProps || !selectedOption) {
             throw new Error('Expected an eligible approver');
         }
         act(() => {
-            selectionListProps.onSelectRow?.(selectedOption);
+            selectionListProps.onSelectApprover?.([selectedOption]);
         });
 
         expect(getSubmitButtonDisabled()).toBe(false);
     });
 
-    it('does not render the reassignment controls for non-admins', () => {
-        renderPage(buildPolicy(CONST.POLICY.ROLE.USER));
+    it('passes the policy to the shared list so it blocks non-admins', () => {
+        const policy = buildPolicy(CONST.POLICY.ROLE.USER);
+        renderPage(policy);
 
-        expect(mockSelectionList).not.toHaveBeenCalled();
+        expect(mockApproverSelectionList).toHaveBeenLastCalledWith(expect.objectContaining({policy}), undefined);
+    });
+
+    it('shows the not-found view when the report is no longer processing', () => {
+        renderPage(buildPolicy(), {...report, statusNum: CONST.REPORT.STATUS_NUM.APPROVED});
+
+        expect(mockApproverSelectionList).toHaveBeenLastCalledWith(expect.objectContaining({shouldShowNotFoundView: true}), undefined);
     });
 });

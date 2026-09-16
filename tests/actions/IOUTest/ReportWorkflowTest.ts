@@ -4043,7 +4043,12 @@ describe('actions/IOU/ReportWorkflow', () => {
                     html: `changed the approver to <mention-user accountID="${RORY_ACCOUNT_ID}"/>, skipped <mention-user accountID="${CARLOS_ACCOUNT_ID}"/>`,
                 }),
             ]);
-            expect(reportAction.originalMessage).toEqual(expect.objectContaining({isReassignment: true, previousApproverID: CARLOS_ACCOUNT_ID}));
+            expect(reportAction.originalMessage).toEqual(
+                expect.objectContaining({isReassignment: true, previousApproverID: CARLOS_ACCOUNT_ID, mentionedAccountIDs: [RORY_ACCOUNT_ID, CARLOS_ACCOUNT_ID]}),
+            );
+
+            const reportActionsSuccessUpdate = getRequiredOnyxUpdate(onyxData, 'successData', `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, Onyx.METHOD.MERGE, true);
+            expect(getRequiredReportAction(reportActionsSuccessUpdate)).toEqual(expect.objectContaining({pendingAction: null, isOptimisticAction: null, errors: null}));
         });
     });
 

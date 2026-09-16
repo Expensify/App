@@ -1525,12 +1525,6 @@ type OriginalMessageReassignApprover = {
 
     /** Account ID of the approver the new one replaced */
     previousApproverID?: number;
-
-    /** Why the approver was reassigned */
-    reasoning?: string;
-
-    /** Account ID of whoever changed the workflow that triggered the reassignment */
-    actorAccountID?: number;
 };
 
 /**
