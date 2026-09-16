@@ -1212,6 +1212,36 @@ describe('useSearchBulkActions - export options', () => {
         expect(mockShowConfirmModal).toHaveBeenCalledWith(expect.objectContaining({title: 'workspace.exportPartialModal.title'}));
     });
 
+    it('warns under select all when more results exist but the matching total is unavailable', async () => {
+        /**
+         * Given: Reports-tab "select all matching" is on and more pages of reports exist (`hasMoreResults`), but the
+         *        server total is unavailable (e.g. offline with a stale snapshot, or a failed totals request).
+         *
+         * When: the user clicks "Mark as exported".
+         *
+         * Then: the safeguard still fires from `hasMoreResults` alone, so the unloaded reports aren't silently marked.
+         */
+        mockAreAllMatchingItemsSelected = true;
+        mockCurrentSearchResults = makeSearchResults([makeSnapshotReport()]);
+        mockCurrentSearchResults.search.hasMoreResults = true;
+        mockSelectedReports = [makeSelectedReport()];
+        mockSelectedTransactions = {tx1: makeSelectedTransaction()};
+
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}), {wrapper: OnyxListItemProvider});
+
+        await waitFor(() => {
+            expect(getExportOptionByText(result.current.headerButtonsOptions, 'workspace.common.markAsExported')).toBeDefined();
+        });
+
+        getExportOptionByText(result.current.headerButtonsOptions, 'workspace.common.markAsExported')?.onSelected?.();
+
+        await waitFor(() => {
+            expect(mockShowConfirmModal).toHaveBeenCalledWith(expect.objectContaining({title: 'search.bulkActions.markAsExportedAllMatchingTitle'}));
+        });
+
+        expect(markAsManuallyExported).not.toHaveBeenCalled();
+    });
+
     it('marks already-exported reports without showing the export-again modal', async () => {
         /**
          * Given: a single-integration selection where every selected report has already been exported

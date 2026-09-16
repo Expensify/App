@@ -9327,8 +9327,8 @@ ${reportName}`,
             }),
             noOptionsAvailable: '選択した経費グループには利用できるオプションがありません。',
             markAsExportedAllMatchingTitle: 'まだすべてのレポートをエクスポートできません',
-            markAsExportedAllMatchingPrompt: ({total}: {total: number}) =>
-                `現在、このページに読み込まれているレポートのみをエクスポートできます。一致する${total}件すべてのレポートはエクスポートできません。すべてエクスポートするには、絞り込むかレポートを個別に選択してください。`,
+            markAsExportedAllMatchingPrompt: ({total}: {total?: number}) =>
+                `現在、このページに読み込まれているレポートのみをエクスポートできます${total ? `。一致する${total}件すべてのレポートはエクスポートできません` : ''}。すべてエクスポートするには、絞り込むかレポートを個別に選択してください。`,
             undelete: '削除を取り消す',
             duplicateReport: () => ({
                 one: 'レポートを複製',

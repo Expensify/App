@@ -9418,8 +9418,8 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             }),
             noOptionsAvailable: 'Nenhuma opção disponível para o grupo de despesas selecionado.',
             markAsExportedAllMatchingTitle: 'Ainda não é possível exportar todos os relatórios',
-            markAsExportedAllMatchingPrompt: ({total}: {total: number}) =>
-                `Por enquanto, só é possível exportar os relatórios carregados nesta página, não todos os ${total} relatórios correspondentes. Filtre ou selecione os relatórios individualmente para exportá-los todos.`,
+            markAsExportedAllMatchingPrompt: ({total}: {total?: number}) =>
+                `Por enquanto, só é possível exportar os relatórios carregados nesta página${total ? `, não todos os ${total} relatórios correspondentes` : ''}. Filtre ou selecione os relatórios individualmente para exportá-los todos.`,
             undelete: 'Restaurar',
             duplicateReport: () => ({
                 one: 'Duplicar relatório',

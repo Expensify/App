@@ -9492,8 +9492,8 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             }),
             noOptionsAvailable: 'Für die ausgewählte Ausgabengruppe sind keine Optionen verfügbar.',
             markAsExportedAllMatchingTitle: 'Es können noch nicht alle Berichte exportiert werden',
-            markAsExportedAllMatchingPrompt: ({total}: {total: number}) =>
-                `Derzeit können nur die auf dieser Seite geladenen Berichte exportiert werden, nicht alle ${total} übereinstimmenden Berichte. Filtere oder wähle Berichte einzeln aus, um alle zu exportieren.`,
+            markAsExportedAllMatchingPrompt: ({total}: {total?: number}) =>
+                `Derzeit können nur die auf dieser Seite geladenen Berichte exportiert werden${total ? `, nicht alle ${total} übereinstimmenden Berichte` : ''}. Filtere oder wähle Berichte einzeln aus, um alle zu exportieren.`,
             undelete: 'Wiederherstellen',
             duplicateReport: () => ({
                 one: 'Bericht duplizieren',

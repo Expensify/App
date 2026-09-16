@@ -1918,6 +1918,9 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 
             // Server-side count of every report matching the query, larger than the loaded page the client can act on.
             const allMatchingReportsCount = currentSearchResults?.search?.reportCount;
+            // The server has matching reports beyond the loaded page. True whenever more pages exist, even when the total
+            // count itself is unavailable (offline with a stale snapshot, or a failed totals request).
+            const hasMoreMatchingReports = !!currentSearchResults?.search?.hasMoreResults;
 
             // Shared confirmation flow used by BOTH "Export to <integration>" and "Mark as exported" so the
             // two actions behave identically. When applicable, the partial-export modal is shown first and,
@@ -1938,10 +1941,16 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     // under Reports-tab "select all matching" they would silently cover only the loaded page (~50) while the
                     // header shows every match. Until a query-based backend command exists, warn instead of exporting a
                     // page-sized subset without any indication. See https://github.com/Expensify/App/issues/101106.
-                    // Compare the server total against the whole loaded selection, not this integration's eligible subset:
-                    // a smaller `integrationReportIDs` (reports split across integrations, or some ineligible) means a
-                    // partial export the existing partial-export modal already handles, not unloaded reports.
-                    if (areAllMatchingItemsSelected && isExpenseReportType && typeof allMatchingReportsCount === 'number' && allMatchingReportsCount > totalSelectedReportsCount) {
+                    // Fire whenever reports are unloaded: either more pages exist (`hasMoreMatchingReports`, which also
+                    // covers an unavailable total offline/on error) or the known total exceeds the whole loaded selection.
+                    // Compare against the full loaded selection, not this integration's eligible subset: a smaller
+                    // `integrationReportIDs` (reports split across integrations, or some ineligible) is a partial export the
+                    // existing partial-export modal already handles, not unloaded reports.
+                    if (
+                        areAllMatchingItemsSelected &&
+                        isExpenseReportType &&
+                        (hasMoreMatchingReports || (typeof allMatchingReportsCount === 'number' && allMatchingReportsCount > totalSelectedReportsCount))
+                    ) {
                         showConfirmModal({
                             title: translate('search.bulkActions.markAsExportedAllMatchingTitle'),
                             prompt: translate('search.bulkActions.markAsExportedAllMatchingPrompt', {total: allMatchingReportsCount}),
@@ -2869,6 +2878,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         searchResults,
         currentSearchResults?.data,
         currentSearchResults?.search?.reportCount,
+        currentSearchResults?.search?.hasMoreResults,
         selectedTransactionReportIDs,
         selectedPolicyIDs,
         policies,

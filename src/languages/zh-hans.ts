@@ -9079,7 +9079,8 @@ ${reportName}`,
             }),
             noOptionsAvailable: '所选报销的费用组没有可用选项。',
             markAsExportedAllMatchingTitle: '暂时无法导出所有报告',
-            markAsExportedAllMatchingPrompt: ({total}: {total: number}) => `目前只能导出本页已加载的报告，无法导出全部 ${total} 个匹配的报告。请缩小筛选范围或逐个选择报告以全部导出。`,
+            markAsExportedAllMatchingPrompt: ({total}: {total?: number}) =>
+                `目前只能导出本页已加载的报告${total ? `，无法导出全部 ${total} 个匹配的报告` : ''}。请缩小筛选范围或逐个选择报告以全部导出。`,
             undelete: '取消删除',
             duplicateReport: () => ({
                 one: '复制报表',

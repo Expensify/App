@@ -9512,8 +9512,8 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             }),
             noOptionsAvailable: 'Aucune option n’est disponible pour le groupe de dépenses sélectionné.',
             markAsExportedAllMatchingTitle: 'Impossible d’exporter tous les rapports pour l’instant',
-            markAsExportedAllMatchingPrompt: ({total}: {total: number}) =>
-                `Pour l’instant, seuls les rapports chargés sur cette page peuvent être exportés, et non l’ensemble des ${total} rapports correspondants. Filtrez ou sélectionnez les rapports individuellement pour tous les exporter.`,
+            markAsExportedAllMatchingPrompt: ({total}: {total?: number}) =>
+                `Pour l’instant, seuls les rapports chargés sur cette page peuvent être exportés${total ? `, et non l’ensemble des ${total} rapports correspondants` : ''}. Filtrez ou sélectionnez les rapports individuellement pour tous les exporter.`,
             undelete: 'Restaurer',
             duplicateReport: () => ({
                 one: 'Dupliquer la note de frais',
