@@ -37,6 +37,9 @@ jobs:
             echo "::warning::Could not read the merge ref's base parent; keying the baseline on pull_request.base.sha instead."
             SHA="$BASE_SHA"
           fi
+          # DEMO ONLY: force a main commit that has no cache entry, so this run takes the miss
+          # path. Real, reachable commit, so the fallback checkout below can fetch it.
+          SHA=35077ad9fd98657d8df9b429147c1a6f71a25a55
           echo "sha=$SHA" >> "$GITHUB_OUTPUT"
 
       # seedJestPerfCache.yml already measured this commit on main, so a hit leaves this job a restore
