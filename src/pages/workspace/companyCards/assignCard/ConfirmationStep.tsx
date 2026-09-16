@@ -95,6 +95,12 @@ function ConfirmationStep({route}: ConfirmationStepProps) {
         });
     }, [assignCard?.isAssignmentFinished]);
 
+    useEffect(() => {
+        return () => {
+            clearAssignCardErrorsAction();
+        };
+    }, []);
+
     const submit = () => {
         if (!policyID) {
             return;
