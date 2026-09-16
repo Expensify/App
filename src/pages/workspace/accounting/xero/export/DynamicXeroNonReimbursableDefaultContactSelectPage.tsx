@@ -171,7 +171,7 @@ function DynamicXeroNonReimbursableDefaultContactSelectPage({policy}: WithPolicy
                 value: searchText,
                 onChangeText: setSearchText,
             }}
-            initiallyFocusedOptionKey={shouldShowClearOption ? clearOption.keyForList : data.find((item) => item.isSelected)?.keyForList}
+            initiallyFocusedOptionKey={data.find((item) => item.isSelected)?.keyForList}
             listEmptyContent={listEmptyContent}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.XERO}
             onBackButtonPress={goBack}
