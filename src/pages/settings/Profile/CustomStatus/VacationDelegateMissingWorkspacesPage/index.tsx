@@ -9,9 +9,11 @@ import ScrollView from '@components/ScrollView';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {openWorkspaceMembersPage} from '@libs/actions/Policy/Member';
 import {clearVacationDelegateError, inviteVacationDelegateToWorkspaces, setVacationDelegate} from '@libs/actions/VacationDelegate';
 import Navigation from '@libs/Navigation/Navigation';
 
@@ -21,12 +23,13 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {createPoliciesByIDsSelector} from '@src/selectors/Policy';
 import type {Policy, VacationDelegatePolicyDiff} from '@src/types/onyx';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import type {NavigationAction} from '@react-navigation/native';
 
 import {useNavigation, usePreventRemove} from '@react-navigation/native';
-import React, {useRef, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 
 import MissingWorkspacesFooter from './MissingWorkspacesFooter';
 import MissingWorkspacesIntro from './MissingWorkspacesIntro';
@@ -56,10 +59,31 @@ function VacationDelegateMissingWorkspacesPage() {
 
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: createPoliciesByIDsSelector([...adminPolicies, ...nonAdminPolicies])});
 
-    // Only loaded workspaces can be invited into, so a missing one has to block the invite rather than be dropped from it.
-    const adminWorkspaces = adminPolicies.map((policyID) => policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]).filter((policy): policy is Policy => !!policy?.id);
+    // The invite builds the optimistic #announce room from employeeList, so refresh every admin workspace on entry.
+    const fetchAdminWorkspaceMembers = () => {
+        for (const policyID of adminPolicies) {
+            const knownMemberEmails = Object.keys(policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]?.employeeList ?? {});
+            openWorkspaceMembersPage(policyID, knownMemberEmails);
+        }
+    };
+
+    useNetwork({onReconnect: fetchAdminWorkspaceMembers});
+
+    // Depends only on the admin workspaces: the response updates `policies`, which would refetch in a loop.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    useEffect(fetchAdminWorkspaceMembers, [policyDiff?.adminPolicies]);
+
+    const adminWorkspaces: Policy[] = [];
+    let hasUnresolvedAdminPolicy = false;
+    for (const policyID of adminPolicies) {
+        const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
+        if (policy?.id && !isEmptyObject(policy.employeeList)) {
+            adminWorkspaces.push(policy);
+        } else {
+            hasUnresolvedAdminPolicy = true;
+        }
+    }
     const canInvite = adminPolicies.length > 0;
-    const hasUnresolvedAdminPolicy = adminWorkspaces.length !== adminPolicies.length;
 
     const isSubmittingRef = useRef(false);
 

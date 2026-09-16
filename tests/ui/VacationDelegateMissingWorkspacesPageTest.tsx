@@ -8,7 +8,7 @@ import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import PersonalDetailsByLoginProvider from '@components/PersonalDetailsByLoginProvider';
 import Text from '@components/Text';
 
-import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
@@ -180,6 +180,7 @@ async function seedVacationDelegate(policyDiff?: VacationDelegatePolicyDiff, del
 
 describe('VacationDelegateMissingWorkspacesPage', () => {
     let apiSideEffectSpy: jest.SpyInstance;
+    let apiReadSpy: jest.SpyInstance;
     let apiWriteSpy: jest.SpyInstance<Promise<void>, ApiWriteCall>;
 
     beforeAll(() => {
@@ -201,6 +202,7 @@ describe('VacationDelegateMissingWorkspacesPage', () => {
         // require('@libs/API') is untyped (any), so the spy has to be re-typed here for mock.calls to be readable.
         // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
         apiWriteSpy = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve()) as jest.SpyInstance<Promise<void>, ApiWriteCall>;
+        apiReadSpy = jest.spyOn(require('@libs/API'), 'read').mockImplementation(() => {});
 
         await act(async () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${MEMBER_POLICY_ID}`, {
@@ -402,6 +404,60 @@ describe('VacationDelegateMissingWorkspacesPage', () => {
 
         expect(apiWriteSpy).not.toHaveBeenCalledWith(WRITE_COMMANDS.ADD_MEMBERS_TO_WORKSPACE, expect.anything(), expect.anything());
         expect(apiWriteSpy).not.toHaveBeenCalledWith(WRITE_COMMANDS.SET_VACATION_DELEGATE, expect.anything(), expect.anything());
+    });
+
+    // A workspace with no employee list at all cannot be invited into. A partial list is accepted, the same as in the
+    // regular invite flow, since it only affects the optimistic #announce room; every admin workspace is refreshed on
+    // entry so the list is as complete as possible by the time Invite is pressed.
+    it('disables Invite when an admin policy has no employee list, and refreshes every admin policy on entry', async () => {
+        const SUMMARY_POLICY_ID = 'summaryPolicy';
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${SUMMARY_POLICY_ID}`, getFakePolicy(SUMMARY_POLICY_ID, 'Summary Workspace'));
+        });
+        await seedVacationDelegate({adminPolicies: [ADMIN_POLICY_ID, SUMMARY_POLICY_ID], nonAdminPolicies: []});
+        renderPage();
+        await waitForBatchedUpdatesWithAct();
+
+        // The workspace is named here, unlike one missing from Onyx entirely, so the blocked Invite is the only signal it is not ready.
+        expect(screen.getByText('Summary Workspace')).toBeOnTheScreen();
+        // The members the client already knows are sent so the server can drop the ones that no longer exist.
+        expect(apiReadSpy).toHaveBeenCalledWith(
+            READ_COMMANDS.OPEN_WORKSPACE_MEMBERS_PAGE,
+            expect.objectContaining({policyID: ADMIN_POLICY_ID, clientMemberEmails: JSON.stringify([CREATOR_EMAIL])}),
+        );
+        expect(apiReadSpy).toHaveBeenCalledWith(READ_COMMANDS.OPEN_WORKSPACE_MEMBERS_PAGE, expect.objectContaining({policyID: SUMMARY_POLICY_ID, clientMemberEmails: '[]'}));
+
+        fireEvent.press(screen.getByRole('button', {name: TestHelper.translateLocal('common.invite')}));
+        await waitForBatchedUpdatesWithAct();
+
+        expect(apiWriteSpy).not.toHaveBeenCalledWith(WRITE_COMMANDS.ADD_MEMBERS_TO_WORKSPACE, expect.anything(), expect.anything());
+        expect(apiWriteSpy).not.toHaveBeenCalledWith(WRITE_COMMANDS.SET_VACATION_DELEGATE, expect.anything(), expect.anything());
+    });
+
+    it('enables Invite once the fetched employee list arrives', async () => {
+        const SUMMARY_POLICY_ID = 'summaryPolicy';
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${SUMMARY_POLICY_ID}`, getFakePolicy(SUMMARY_POLICY_ID, 'Summary Workspace'));
+        });
+        await seedVacationDelegate({adminPolicies: [SUMMARY_POLICY_ID], nonAdminPolicies: []});
+        renderPage();
+        await waitForBatchedUpdatesWithAct();
+
+        fireEvent.press(screen.getByRole('button', {name: TestHelper.translateLocal('common.invite')}));
+        await waitForBatchedUpdatesWithAct();
+        expect(apiWriteSpy).not.toHaveBeenCalledWith(WRITE_COMMANDS.ADD_MEMBERS_TO_WORKSPACE, expect.anything(), expect.anything());
+
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${SUMMARY_POLICY_ID}`, {
+                employeeList: {[CREATOR_EMAIL]: {email: CREATOR_EMAIL, role: CONST.POLICY.ROLE.ADMIN}},
+            });
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        fireEvent.press(screen.getByRole('button', {name: TestHelper.translateLocal('common.invite')}));
+        await waitForBatchedUpdatesWithAct();
+
+        expect(apiWriteSpy).toHaveBeenCalledWith(WRITE_COMMANDS.ADD_MEMBERS_TO_WORKSPACE, expect.objectContaining({policyID: SUMMARY_POLICY_ID}), expect.anything());
     });
 
     it('shows both sections, member-of before admin-of, for a mixed diff', async () => {
