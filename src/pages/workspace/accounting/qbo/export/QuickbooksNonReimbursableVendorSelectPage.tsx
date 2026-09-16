@@ -111,7 +111,7 @@ function QuickbooksNonReimbursableVendorSelectPage({policy, configKey, updateVen
             data={data}
             onSelectRow={selectVendor}
             shouldSingleExecuteRowSelect
-            initiallyFocusedOptionKey={shouldShowClearOption ? clearOption.keyForList : data.find((mode) => mode.isSelected)?.keyForList}
+            initiallyFocusedOptionKey={data.find((mode) => mode.isSelected)?.keyForList}
             listEmptyContent={listEmptyContent}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.QBO}
             onBackButtonPress={() => Navigation.goBack()}
