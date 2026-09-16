@@ -20,7 +20,7 @@ type PreferredCurrency = ValueOf<typeof CONST.PAYMENT_CARD_CURRENCY>;
  */
 function usePreferredCurrency(): PreferredCurrency {
     const [session] = useOnyx(ONYXKEYS.SESSION);
-    const [currentUserPersonalDetail] = usePersonalDetail(session?.accountID);
+    const [currentUserPersonalDetail] = usePersonalDetail(session?.accountID ?? CONST.DEFAULT_NUMBER_ID);
     const [fundList] = useOnyx(ONYXKEYS.FUND_LIST);
 
     const paymentCardCurrency = useMemo(() => Object.values(fundList ?? {}).find((card) => card.accountData?.additionalData?.isBillingCard)?.accountData?.currency, [fundList]);

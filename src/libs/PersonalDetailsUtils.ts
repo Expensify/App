@@ -153,7 +153,7 @@ function temporaryGetDisplayNameOrDefault({
 }
 
 function getPersonalDetailsByID(accountID: number | undefined, personalDetailsList: OnyxEntry<PersonalDetailsList>): PersonalDetails | undefined {
-    return accountID ? (personalDetailsList?.[accountID] ?? undefined) : undefined;
+    return accountID !== undefined ? (personalDetailsList?.[accountID] ?? undefined) : undefined;
 }
 
 function getPersonalDetailsByIDs(accountIDs: number[] | undefined, personalDetails: OnyxEntry<PersonalDetailsList>): PersonalDetails[] {
