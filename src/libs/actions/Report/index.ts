@@ -76,7 +76,7 @@ import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/crea
 import getReportRouteForCurrentContext from '@libs/Navigation/helpers/getReportRouteForCurrentContext';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import type {LinkToOptions} from '@libs/Navigation/helpers/linkTo/types';
-import {resetOnboardingStackToRoot} from '@libs/Navigation/helpers/OnboardingNavigationUtils';
+import resetOnboardingStackToRoot from '@libs/Navigation/helpers/OnboardingNavigationUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import REPORT_LINK_ROUTE_PARAMS from '@libs/Navigation/reportLinkRouteParams';
 import enhanceParameters from '@libs/Network/enhanceParameters';
@@ -6097,6 +6097,10 @@ type CompleteOnboardingProps = {
     selfDMReport?: OnyxEntry<Report>;
     /** Whether onboarding is handled outside the Concierge DM, so no message, tasks, or sign-off should be posted there. */
     shouldSkipConciergeOnboarding?: boolean;
+    /** The domain of the user's company, used by the join-workspace onboarding tasks. */
+    companyDomain?: string;
+    /** The user's work email, used by the join-workspace onboarding tasks. */
+    workEmail?: string;
     /** AccountID of the delegate acting on behalf of the current user */
     delegateAccountID: number | undefined;
 };
@@ -6124,6 +6128,8 @@ async function completeOnboarding({
     adminsChatReport,
     selfDMReport,
     shouldSkipConciergeOnboarding,
+    companyDomain,
+    workEmail,
     delegateAccountID,
 }: CompleteOnboardingProps) {
     const onboardingData = prepareOnboardingOnyxData({
@@ -6142,6 +6148,8 @@ async function completeOnboarding({
         adminsChatReport,
         selfDMReport,
         shouldSkipConciergeOnboarding,
+        companyDomain,
+        workEmail,
         delegateAccountID,
     });
     if (!onboardingData) {

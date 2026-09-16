@@ -3237,6 +3237,7 @@ ${amount} para ${merchant} - ${date}`,
             title: '¿Qué quieres hacer hoy?',
             errorContinue: 'Por favor, haz click en continuar para configurar tu cuenta',
             errorBackButton: 'Por favor, finaliza las preguntas de configuración para empezar a utilizar la aplicación',
+            [CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE]: 'Únete al espacio de trabajo de mi empresa',
             [CONST.ONBOARDING_CHOICES.EMPLOYER]: 'Enviar gastos a mi empleador',
             [CONST.ONBOARDING_CHOICES.MANAGE_TEAM]: 'Gestionar los gastos de mi equipo',
             [CONST.ONBOARDING_CHOICES.TRACK_BUSINESS]: 'Controlar gastos de mi negocio',
@@ -3296,6 +3297,8 @@ ${amount} para ${merchant} - ${date}`,
         mergeBlockScreen: {
             title: 'No se pudo añadir el correo electrónico de trabajo',
             subtitle: (workEmail) => `No pudimos añadir ${workEmail}. Por favor, inténtalo de nuevo más tarde en Configuración o chatea con Concierge para obtener ayuda.`,
+            validatedPublicDomainSubtitle: (workEmail) =>
+                `No pudimos añadir ${workEmail}. Para fusionar estas cuentas, cierra sesión, inicia sesión con tu correo electrónico ${workEmail} y ve a Cuenta > Seguridad > Fusionar cuentas para completar el proceso.`,
             workAccountClosedSubtitle:
                 'La cuenta de trabajo asociada a este correo electrónico está cerrada. Ponte en contacto con el administrador de tu empresa para reactivarla o regístrate con un correo electrónico diferente.',
             domainControlledSubtitle: (workEmail) => `${workEmail} es un inicio de sesión controlado por dominio de una cuenta de Expensify existente.`,
@@ -3542,6 +3545,34 @@ ${amount} para ${merchant} - ${date}`,
                     ¡Y listo!
                 `),
             },
+            addWorkEmailTask: {
+                title: 'Añade tu correo electrónico del trabajo',
+                description: ({workEmailLink = ''}) =>
+                    Str.dedent(`
+                        1. Abre [Añadir correo de trabajo](${workEmailLink}).
+                        2. Introduce la dirección de correo electrónico de tu empresa.
+                        3. Introduce el código que te enviamos por correo electrónico.
+                        4. Elige un espacio de trabajo al que unirte o haz clic en *Pedir unirse* para enviar una solicitud a la persona propietaria del espacio de trabajo.
+                    `),
+            },
+            validateEmailTask: {
+                title: 'Valida tu correo electrónico',
+                description: ({validateEmailLink = '', workEmail = ''}) =>
+                    Str.dedent(`
+                        1. Abre [Valida tu cuenta](${validateEmailLink}).
+                        2. Introduce el código que enviamos a ${workEmail}.
+                        3. Elige un espacio de trabajo al que unirte o haz clic en *Pedir unirse* para enviar una solicitud a la persona propietaria del espacio de trabajo.
+                    `),
+            },
+            joinWorkspaceTask: {
+                title: 'Únete al espacio de trabajo de tu empresa',
+                description: ({joinWorkspaceLink = ''}) =>
+                    Str.dedent(`
+                        1. Abre [Unirse a un espacio de trabajo](${joinWorkspaceLink}).
+                        2. Busca tu equipo en la lista. Cada uno muestra a su propietario y cuántas personas hay en él, empezando por el más grande. Haz clic en *Mostrar más* si no ves el tuyo.
+                        3. Haz clic en *Unirse ahora*, o en *Solicitar unirse* si necesita la aprobación de un administrador.
+                    `),
+            },
         },
         testDrive: {
             name: ({testDriveURL}) => (testDriveURL ? `Haz una [prueba](${testDriveURL})` : 'Haz una prueba'),
@@ -3564,6 +3595,14 @@ ${amount} para ${merchant} - ${date}`,
             onboardingChatSplitMessage: 'Dividir cuentas con amigos es tan fácil como enviar un mensaje. Así se hace.',
             onboardingAdminMessage: 'Aprende a gestionar el espacio de tu equipo como administrador y enviar tus propios gastos.',
             onboardingTestDriveReceiverMessage: '*¡Tienes 3 meses gratis! Empieza abajo.*',
+            onboardingJoinWorkspaceAddWorkEmailMessage:
+                'Como quieres unirte al espacio de trabajo de tu empresa, no he creado uno para ti. Añade tu correo electrónico del trabajo y comprobaré a qué espacios de trabajo de tu empresa puedes unirte.',
+            onboardingJoinWorkspaceValidateEmailMessage: ({companyDomain = ''}: {companyDomain?: string}) =>
+                `Como quieres unirte al espacio de trabajo de tu empresa, no he creado uno para ti. Verifica tu correo electrónico y comprobaré a qué espacios de trabajo en ${companyDomain} puedes unirte.`,
+            onboardingJoinWorkspaceMessage: ({companyDomain = '', joinWorkspaceLink = ''}: {companyDomain?: string; joinWorkspaceLink?: string}) =>
+                `Como estás buscando unirte al espacio de trabajo de tu empresa, no he creado uno para ti. Tu equipo en ${companyDomain} ya está en Expensify. [Echa un vistazo a los espacios de trabajo a los que puedes unirte.](${joinWorkspaceLink})`,
+            onboardingJoinWorkspaceEmptyMessage:
+                'Parece que tu empresa no tiene espacios de trabajo a los que puedas unirte. Ponte en contacto con tu administrador y pídele que te invite a su espacio de trabajo.',
         },
         workspace: {
             title: 'Mantente organizado con un espacio de trabajo',

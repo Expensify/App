@@ -953,6 +953,28 @@ describe('ReportUtils', () => {
             );
         });
 
+        it('provides the Concierge report as the base for a join-workspace validation task link', () => {
+            const description = jest.fn(() => '');
+
+            prepareOnboardingOnyxData({
+                introSelected: undefined,
+                engagementChoice: CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE,
+                onboardingMessage: {
+                    message: 'This is a test',
+                    tasks: [{type: CONST.ONBOARDING_TASK_TYPE.VALIDATE_EMAIL, title: '', description, autoCompleted: false}],
+                },
+                companySize: undefined,
+                conciergeChat: {reportID: REPORT_ID},
+            });
+
+            expect(description).toHaveBeenCalledWith(
+                expect.objectContaining<OnboardingTaskLinks>({
+                    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+                    validateEmailLink: expect.stringContaining(`/r/${REPORT_ID}/verify-account?isJoinWorkspaceTask=true`),
+                }),
+            );
+        });
+
         it('should send tasks to server but not add them to optimisticData for MANAGE_TEAM', async () => {
             const adminsChatReportID = '1';
             // Not having `+` in the email allows for `isPostingTasksInAdminsRoom` flow

@@ -275,6 +275,21 @@ function AddWorkEmailWithSingleSignOnError() {
     return waitForBatchedUpdates().then(() => (HttpUtils.xhr = originalXhr));
 }
 
+function AddWorkEmailWithValidatedAccountError() {
+    const originalXhr = HttpUtils.xhr;
+    HttpUtils.xhr = jest.fn().mockImplementation(() => {
+        const mockedResponse: OnyxResponse<typeof ONYXKEYS.NVP_ONBOARDING> = {
+            jsonCode: CONST.JSON_CODE.EXP_ERROR,
+            message: '403 Forbidden',
+            title: CONST.WORK_DOMAIN_CONTROLLED_ERROR,
+        };
+
+        return Promise.resolve(mockedResponse);
+    });
+    AddWorkEmail(workEmail, {reportID: '123'});
+    return waitForBatchedUpdates().then(() => (HttpUtils.xhr = originalXhr));
+}
+
 function AddWorkEmailWithDomainControlledError() {
     const originalXhr = HttpUtils.xhr;
     HttpUtils.xhr = jest.fn().mockImplementation(() => {
@@ -326,9 +341,7 @@ describe('OnboardingWorkEmail Page', () => {
 
         await waitForBatchedUpdatesWithAct();
 
-        await waitFor(() => {
-            expect(screen.getByText(TestHelper.translateLocal('onboarding.workEmail.title'))).toBeOnTheScreen();
-        });
+        expect(screen.getByText(TestHelper.translateLocal('onboarding.workEmail.title'))).toBeOnTheScreen();
         await waitFor(() => {
             expect(screen.getByText(TestHelper.translateLocal('onboarding.workEmail.addWorkEmail'))).toBeOnTheScreen();
         });
@@ -573,6 +586,93 @@ describe('OnboardingWorkEmail Page', () => {
         await waitForBatchedUpdatesWithAct();
     });
 
+    it('should continue a Concierge add-work-email task to validation after a direct add', async () => {
+        await TestHelper.signInWithTestUser();
+
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {
+                hasCompletedGuidedSetupFlow: true,
+                shouldValidate: false,
+            });
+            await Onyx.set(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED, CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE);
+            await Onyx.merge(ONYXKEYS.ACCOUNT, {validated: false, isFromPublicDomain: true});
+        });
+
+        const {unmount} = renderOnboardingWorkEmailPage(SCREENS.ONBOARDING.WORK_EMAIL, undefined);
+
+        await waitForBatchedUpdatesWithAct();
+
+        fireEvent.changeText(screen.getByLabelText(TestHelper.translateLocal('common.workEmail')), workEmail);
+        fireEvent.press(screen.getByText(TestHelper.translateLocal('onboarding.workEmail.addWorkEmail')));
+
+        await waitFor(() => {
+            expect(navigate).toHaveBeenCalledWith(ROUTES.ONBOARDING_PRIVATE_DOMAIN.getRoute(), {forceReplace: true});
+        });
+
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
+    it('should show the work-email form when reopening a completed task with an unvalidated primary login', async () => {
+        const taskReportID = '123';
+
+        await TestHelper.signInWithTestUser();
+
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {
+                hasCompletedGuidedSetupFlow: true,
+            });
+            await Onyx.set(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED, CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE);
+            await Onyx.set(ONYXKEYS.NVP_INTRO_SELECTED, {
+                choice: CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE,
+                addWorkEmail: taskReportID,
+            });
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${taskReportID}`, {
+                reportID: taskReportID,
+                statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+            });
+            await Onyx.merge(ONYXKEYS.ACCOUNT, {validated: false, isFromPublicDomain: true});
+        });
+
+        const {unmount} = renderOnboardingWorkEmailPage(SCREENS.ONBOARDING.WORK_EMAIL, undefined);
+
+        await waitForBatchedUpdatesWithAct();
+
+        expect(screen.getByText(TestHelper.translateLocal('onboarding.workEmail.title'))).toBeOnTheScreen();
+        expect(navigate).not.toHaveBeenCalled();
+
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
+    it('should resume validation when the current unvalidated work email is resubmitted', async () => {
+        const pendingWorkEmail = 'pending@privateemail.com';
+
+        await TestHelper.signInWithTestUser(1, pendingWorkEmail);
+
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {
+                hasCompletedGuidedSetupFlow: true,
+            });
+            await Onyx.set(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED, CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE);
+            await Onyx.merge(ONYXKEYS.ACCOUNT, {validated: false, isFromPublicDomain: false});
+        });
+
+        const {unmount} = renderOnboardingWorkEmailPage(SCREENS.ONBOARDING.WORK_EMAIL, undefined);
+
+        await waitForBatchedUpdatesWithAct();
+
+        fireEvent.changeText(screen.getByLabelText(TestHelper.translateLocal('common.workEmail')), pendingWorkEmail);
+        fireEvent.press(screen.getByText(TestHelper.translateLocal('onboarding.workEmail.addWorkEmail')));
+
+        await waitFor(() => {
+            expect(navigate).toHaveBeenCalledWith(ROUTES.ONBOARDING_PRIVATE_DOMAIN.getRoute(), {forceReplace: true});
+        });
+
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
     it('should skip Onboarding private domain for a validated public-domain user after guided setup is complete', async () => {
         await TestHelper.signInWithTestUser();
 
@@ -613,6 +713,80 @@ describe('OnboardingWorkEmail Page', () => {
         expect(navigate).not.toHaveBeenCalled();
 
         unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
+    it('should reopen workspace selection for a validated join-workspace task', async () => {
+        await TestHelper.signInWithTestUser();
+
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {
+                hasCompletedGuidedSetupFlow: true,
+            });
+            await Onyx.set(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED, CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE);
+            await Onyx.merge(ONYXKEYS.ACCOUNT, {validated: true, isFromPublicDomain: false});
+        });
+
+        const {unmount} = renderOnboardingWorkEmailPage(SCREENS.ONBOARDING.WORK_EMAIL, undefined);
+
+        await waitFor(() => {
+            expect(navigate).toHaveBeenCalledWith(ROUTES.ONBOARDING_WORKSPACES.getRoute(), {forceReplace: true});
+        });
+
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
+    it('should show merge guidance when a validated public-domain user submits the Concierge task', async () => {
+        const taskReportID = '123';
+        const getTopmostReportId = jest.spyOn(Navigation, 'getTopmostReportId').mockReturnValue(taskReportID);
+        const dismissModal = jest.spyOn(Navigation, 'dismissModal').mockImplementation((options) => options?.afterTransition?.());
+        await TestHelper.signInWithTestUser();
+
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {
+                hasCompletedGuidedSetupFlow: true,
+            });
+            await Onyx.set(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED, CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE);
+            await Onyx.merge(ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM, {
+                onboardingWorkEmail: workEmail,
+            });
+            await Onyx.merge(ONYXKEYS.ACCOUNT, {validated: true, isFromPublicDomain: true});
+        });
+
+        const {unmount} = renderOnboardingWorkEmailPage(SCREENS.ONBOARDING.WORK_EMAIL, undefined);
+
+        await waitForBatchedUpdatesWithAct();
+
+        expect(screen.getByText(TestHelper.translateLocal('onboarding.workEmail.title'))).toBeOnTheScreen();
+        expect(navigate).not.toHaveBeenCalledWith(ROUTES.ONBOARDING_WORKSPACES.getRoute(), {forceReplace: true});
+
+        await AddWorkEmailWithValidatedAccountError();
+
+        await waitFor(() => {
+            expect(screen.getByText(TestHelper.translateLocal('onboarding.mergeBlockScreen.validatedPublicDomainSubtitle', workEmail))).toBeOnTheScreen();
+        });
+
+        fireEvent.press(screen.getByText(TestHelper.translateLocal('common.buttonConfirm')));
+
+        await waitFor(() => {
+            expect(navigate).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(taskReportID));
+        });
+
+        expect(screen.getByText(TestHelper.translateLocal('onboarding.mergeBlockScreen.validatedPublicDomainSubtitle', workEmail))).toBeOnTheScreen();
+
+        getTopmostReportId.mockRestore();
+        dismissModal.mockRestore();
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+
+        const {unmount: unmountReopenedTask} = renderOnboardingWorkEmailPage(SCREENS.ONBOARDING.WORK_EMAIL, undefined);
+
+        await waitFor(() => {
+            expect(screen.getByText(TestHelper.translateLocal('onboarding.mergeBlockScreen.validatedPublicDomainSubtitle', workEmail))).toBeOnTheScreen();
+        });
+
+        unmountReopenedTask();
         await waitForBatchedUpdatesWithAct();
     });
 
@@ -859,6 +1033,30 @@ describe('OnboardingWorkEmailValidation Page', () => {
         await waitForBatchedUpdatesWithAct();
     });
 
+    it('should reopen workspace selection for a validated join-workspace validation task', async () => {
+        await TestHelper.signInWithTestUser();
+
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {
+                hasCompletedGuidedSetupFlow: true,
+            });
+            await Onyx.set(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED, CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE);
+            await Onyx.merge(ONYXKEYS.ACCOUNT, {validated: true});
+            await Onyx.merge(ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM, {
+                onboardingWorkEmail: workEmail,
+            });
+        });
+
+        const {unmount} = renderOnboardingWorkEmailValidationPage(SCREENS.ONBOARDING.WORK_EMAIL_VALIDATION, undefined);
+
+        await waitFor(() => {
+            expect(navigate).toHaveBeenCalledWith(ROUTES.ONBOARDING_WORKSPACES.getRoute(), {forceReplace: true});
+        });
+
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
     it('should redirect to classic when merging is completed and shouldRedirectToClassicAfterMerge is returned as `true` by the API', async () => {
         await TestHelper.signInWithTestUser();
 
@@ -1067,7 +1265,7 @@ describe('OnboardingPrivateDomain Page', () => {
     });
 
     it('should redirect a public-domain user away to the purpose step', async () => {
-        await TestHelper.signInWithTestUser();
+        await TestHelper.signInWithTestUser(1, 'test@gmail.com');
 
         await act(async () => {
             await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {
@@ -1089,7 +1287,7 @@ describe('OnboardingPrivateDomain Page', () => {
     });
 
     it('should redirect a public-domain SMB user away to the employees step', async () => {
-        await TestHelper.signInWithTestUser();
+        await TestHelper.signInWithTestUser(1, 'test@gmail.com');
 
         await act(async () => {
             await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {
@@ -1112,7 +1310,7 @@ describe('OnboardingPrivateDomain Page', () => {
     });
 
     it('should redirect a public-domain VSB user away to the employees step', async () => {
-        await TestHelper.signInWithTestUser();
+        await TestHelper.signInWithTestUser(1, 'test@gmail.com');
 
         await act(async () => {
             await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {

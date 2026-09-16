@@ -23,6 +23,7 @@ function ValidateCodeActionContent({
     descriptionPrimary,
     descriptionSecondary,
     onClose,
+    shouldShowCloseButton = false,
     validateError,
     validatePendingAction,
     validateCodeActionErrorField,
@@ -78,6 +79,9 @@ function ValidateCodeActionContent({
             <HeaderWithBackButton
                 title={title}
                 onBackButtonPress={hide}
+                onCloseButtonPress={hide}
+                shouldShowBackButton={!shouldShowCloseButton}
+                shouldShowCloseButton={shouldShowCloseButton}
                 threeDotsMenuItems={threeDotsMenuItems}
                 shouldShowThreeDotsButton={threeDotsMenuItems.length > 0}
                 shouldOverlayDots

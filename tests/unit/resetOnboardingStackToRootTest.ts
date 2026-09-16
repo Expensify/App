@@ -1,4 +1,4 @@
-import {resetOnboardingStackToRoot} from '@libs/Navigation/helpers/OnboardingNavigationUtils';
+import resetOnboardingStackToRoot from '@libs/Navigation/helpers/OnboardingNavigationUtils';
 import navigationRef from '@libs/Navigation/navigationRef';
 
 import NAVIGATORS from '@src/NAVIGATORS';

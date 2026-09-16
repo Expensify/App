@@ -56,6 +56,7 @@ import {setErrorFields} from '@userActions/FormActions';
 import type HybridAppSettings from '@userActions/HybridApp/types';
 import {close} from '@userActions/Modal';
 import redirectToSignIn from '@userActions/SignInRedirect';
+import {canActionTask, getOnboardingTaskCompletionOnSuccessData} from '@userActions/Task';
 import * as Welcome from '@userActions/Welcome';
 
 import CONFIG from '@src/CONFIG';
@@ -67,7 +68,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {DynamicRouteSuffix, Route} from '@src/ROUTES';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import ADD_WORK_EMAIL_INPUT_IDS from '@src/types/form/AddWorkEmailForm';
-import type {TryNewDot} from '@src/types/onyx';
+import type {Report, ReportAction, TryNewDot} from '@src/types/onyx';
 import type Credentials from '@src/types/onyx/Credentials';
 import type Locale from '@src/types/onyx/Locale';
 import type {OnyxData} from '@src/types/onyx/Request';
@@ -1656,8 +1657,33 @@ type AddWorkEmailFormID = typeof ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM | typ
  * @param formID the form that submitted the request. Its loading state and errors follow the request, so the submit button stops spinning and the failure
  * renders inline. Defaults to the onboarding form, which is where this action is called from during onboarding.
  */
-function AddWorkEmail(workEmail: string, formID: AddWorkEmailFormID = ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM) {
-    const isOnboardingFlow = formID === ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM;
+function AddWorkEmail(
+    workEmail: string,
+    formIDOrTaskReport: AddWorkEmailFormID | OnyxEntry<Report> = ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM,
+    addWorkEmailTaskParentReport?: OnyxEntry<Report>,
+    isAddWorkEmailTaskParentReportArchived?: boolean,
+    addWorkEmailTaskHasOutstandingChildTask?: boolean,
+    addWorkEmailTaskParentReportAction?: OnyxEntry<ReportAction>,
+    currentUserAccountID?: number,
+) {
+    const isOnboardingFlow = typeof formIDOrTaskReport !== 'string' || formIDOrTaskReport === ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM;
+    const formID = typeof formIDOrTaskReport === 'string' ? formIDOrTaskReport : ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM;
+    const addWorkEmailTaskReport = typeof formIDOrTaskReport === 'string' ? undefined : formIDOrTaskReport;
+    const addWorkEmailTaskCompletion =
+        isOnboardingFlow &&
+        addWorkEmailTaskReport &&
+        currentUserAccountID &&
+        canActionTask(addWorkEmailTaskReport, addWorkEmailTaskParentReportAction, currentUserAccountID, addWorkEmailTaskParentReport, isAddWorkEmailTaskParentReportArchived)
+            ? getOnboardingTaskCompletionOnSuccessData(
+                  addWorkEmailTaskReport,
+                  addWorkEmailTaskParentReport,
+                  isAddWorkEmailTaskParentReportArchived ?? false,
+                  currentUserAccountID,
+                  addWorkEmailTaskHasOutstandingChildTask ?? false,
+                  addWorkEmailTaskParentReportAction,
+              )
+            : undefined;
+    const completedTaskReportActionID = addWorkEmailTaskCompletion?.completedTaskReportActionID;
 
     const optimisticData: Array<OnyxUpdate<AddWorkEmailFormID | typeof ONYXKEYS.ONBOARDING_ERROR_MESSAGE_TRANSLATION_KEY>> = isOnboardingFlow
         ? [
@@ -1667,6 +1693,7 @@ function AddWorkEmail(workEmail: string, formID: AddWorkEmailFormID = ONYXKEYS.F
                   value: {
                       onboardingWorkEmail: workEmail,
                       isLoading: true,
+                      completedTaskReportActionID,
                   },
               },
               {
@@ -1678,7 +1705,7 @@ function AddWorkEmail(workEmail: string, formID: AddWorkEmailFormID = ONYXKEYS.F
         : [
               {
                   onyxMethod: Onyx.METHOD.MERGE,
-                  key: ONYXKEYS.FORMS.ADD_WORK_EMAIL_FORM,
+                  key: formID,
                   value: {
                       isLoading: true,
                       errorFields: null,
@@ -1700,7 +1727,7 @@ function AddWorkEmail(workEmail: string, formID: AddWorkEmailFormID = ONYXKEYS.F
             : [
                   {
                       onyxMethod: Onyx.METHOD.MERGE,
-                      key: ONYXKEYS.FORMS.ADD_WORK_EMAIL_FORM,
+                      key: formID,
                       value: {
                           isLoading: false,
                       },
@@ -1711,10 +1738,10 @@ function AddWorkEmail(workEmail: string, formID: AddWorkEmailFormID = ONYXKEYS.F
     // eslint-disable-next-line rulesdir/no-api-side-effects-method
     API.makeRequestWithSideEffects(
         SIDE_EFFECT_REQUEST_COMMANDS.ADD_WORK_EMAIL,
-        {workEmail},
+        {workEmail, completedTaskReportActionID},
         {
             optimisticData,
-            successData: getLoadingFinishedData(),
+            successData: [...getLoadingFinishedData(), ...(addWorkEmailTaskCompletion?.successData ?? [])],
             failureData: getLoadingFinishedData(),
         },
     ).then((response) => {
@@ -1734,7 +1761,7 @@ function AddWorkEmail(workEmail: string, formID: AddWorkEmailFormID = ONYXKEYS.F
         // Outside of onboarding we show the failure on the form the user is looking at, instead of writing onboarding-only state that the caller doesn't render.
         // The backend also rejects this command with errors we have no specific copy for (e.g. a 403), so fall back to a generic message rather than showing nothing.
         if (!isOnboardingFlow) {
-            setErrorFields(ONYXKEYS.FORMS.ADD_WORK_EMAIL_FORM, {
+            setErrorFields(formID, {
                 [ADD_WORK_EMAIL_INPUT_IDS.EMAIL]: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey(errorTranslationKey ?? 'common.genericErrorMessage'),
             });
             return;
@@ -1749,11 +1776,14 @@ function AddWorkEmail(workEmail: string, formID: AddWorkEmailFormID = ONYXKEYS.F
         if (response?.message === CONST.WORK_DOMAIN_CONTROLLED_ERROR || response?.title === CONST.WORK_DOMAIN_CONTROLLED_ERROR) {
             Onyx.merge(ONYXKEYS.ONBOARDING_ERROR_MESSAGE_TRANSLATION_KEY, 'onboarding.mergeBlockScreen.domainControlledSubtitle');
         }
+        if (addWorkEmailTaskReport && response?.message === '403 Forbidden') {
+            Onyx.merge(ONYXKEYS.ONBOARDING_ERROR_MESSAGE_TRANSLATION_KEY, 'onboarding.mergeBlockScreen.validatedPublicDomainSubtitle');
+        }
         Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {isMergingAccountBlocked: true});
     });
 }
 
-function MergeIntoAccountAndLogin(workEmail: string | undefined, validateCode: string, accountID: number | undefined) {
+function MergeIntoAccountAndLogin(workEmail: string | undefined, validateCode: string, accountID: number | undefined, completedTaskReportActionID?: string) {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.ONBOARDING_ERROR_MESSAGE_TRANSLATION_KEY | typeof ONYXKEYS.ACCOUNT>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -1807,7 +1837,7 @@ function MergeIntoAccountAndLogin(workEmail: string | undefined, validateCode: s
     // eslint-disable-next-line rulesdir/no-api-side-effects-method
     API.makeRequestWithSideEffects(
         SIDE_EFFECT_REQUEST_COMMANDS.MERGE_INTO_ACCOUNT_AND_LOGIN,
-        {workEmail, validateCode, accountID},
+        {workEmail, validateCode, accountID, completedTaskReportActionID},
         {
             optimisticData,
             successData,

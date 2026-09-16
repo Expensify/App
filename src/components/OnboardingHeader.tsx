@@ -10,6 +10,7 @@ import CONST from '@src/CONST';
 import React from 'react';
 import {View} from 'react-native';
 
+import HeaderCloseButton from './HeaderWithBackButtonComposed/primitives/HeaderCloseButton';
 import Icon from './Icon';
 import {PressableWithoutFeedback} from './Pressable';
 import Text from './Text';
@@ -17,14 +18,18 @@ import Text from './Text';
 type OnboardingHeaderProps = {
     onBackButtonPress?: () => void;
 
+    onCloseButtonPress?: () => void;
+
     shouldShowBackButton?: boolean;
+
+    shouldShowCloseButton?: boolean;
 };
 
 /**
  * Popover-style back link: caret + "Back" label.
  * Matches the submenu back row used by PopoverMenu.
  */
-function OnboardingHeader({onBackButtonPress, shouldShowBackButton = true}: OnboardingHeaderProps) {
+function OnboardingHeader({onBackButtonPress, onCloseButtonPress, shouldShowBackButton = true, shouldShowCloseButton = false}: OnboardingHeaderProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const theme = useTheme();
@@ -48,6 +53,11 @@ function OnboardingHeader({onBackButtonPress, shouldShowBackButton = true}: Onbo
                     />
                     <Text style={styles.createMenuHeaderText}>{translate('common.back')}</Text>
                 </PressableWithoutFeedback>
+            ) : null}
+            {shouldShowCloseButton && onCloseButtonPress ? (
+                <View style={styles.mlAuto}>
+                    <HeaderCloseButton onPress={onCloseButtonPress} />
+                </View>
             ) : null}
         </View>
     );

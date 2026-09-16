@@ -12287,6 +12287,10 @@ type PrepareOnboardingOnyxDataParams = {
     currentUserAccountID?: number;
     /** Whether onboarding is handled outside the Concierge DM, so no message, tasks, or sign-off should be posted there. */
     shouldSkipConciergeOnboarding?: boolean;
+    /** The domain of the user's company, used by the join-workspace onboarding tasks. */
+    companyDomain?: string;
+    /** The user's work email, used by the join-workspace onboarding tasks. */
+    workEmail?: string;
 };
 
 function prepareOnboardingOnyxData({
@@ -12308,6 +12312,8 @@ function prepareOnboardingOnyxData({
     delegateAccountID,
     currentUserAccountID,
     shouldSkipConciergeOnboarding = false,
+    companyDomain,
+    workEmail,
 }: PrepareOnboardingOnyxDataParams) {
     if (engagementChoice === CONST.ONBOARDING_CHOICES.PERSONAL_SPEND) {
         // eslint-disable-next-line no-param-reassign
@@ -12378,6 +12384,13 @@ function prepareOnboardingOnyxData({
         testDriveURL: `${environmentURL}/${testDriveURL}`,
         workspaceAccountingLink: `${environmentURL}/${ROUTES.POLICY_ACCOUNTING.getRoute(onboardingPolicyID)}`,
         corporateCardLink: `${environmentURL}/${ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(onboardingPolicyID)}`,
+        companyDomain: companyDomain ?? '',
+        workEmail: workEmail ?? '',
+        // The Concierge report is a VERIFY_ACCOUNT entry screen, which keeps the task conversation behind the
+        // validation RHP instead of replacing it with Home.
+        validateEmailLink: `${environmentURL}/${createDynamicRoute(DYNAMIC_ROUTES.VERIFY_ACCOUNT.getRoute(true), ROUTES.REPORT_WITH_ID.getRoute(targetChatReportID))}`,
+        workEmailLink: `${environmentURL}/${ROUTES.ONBOARDING_WORK_EMAIL.getRoute(true)}`,
+        joinWorkspaceLink: `${environmentURL}/${ROUTES.ONBOARDING_WORKSPACES.getRoute()}`,
     };
 
     // Text message
@@ -12398,6 +12411,9 @@ function prepareOnboardingOnyxData({
     let setupTagsTaskReportID;
     let setupCategoriesAndTagsTaskReportID;
     let reviewWorkspaceSettingsTaskReportID;
+    let addWorkEmailTaskReportID;
+    let validateEmailTaskReportID;
+    let joinWorkspaceTaskReportID;
     const tasks = onboardingMessage.tasks;
     const tasksData = tasks
         .filter((task) => {
@@ -12478,6 +12494,15 @@ function prepareOnboardingOnyxData({
             }
             if (task.type === CONST.ONBOARDING_TASK_TYPE.REVIEW_WORKSPACE_SETTINGS) {
                 reviewWorkspaceSettingsTaskReportID = currentTask.reportID;
+            }
+            if (task.type === CONST.ONBOARDING_TASK_TYPE.ADD_WORK_EMAIL) {
+                addWorkEmailTaskReportID = currentTask.reportID;
+            }
+            if (task.type === CONST.ONBOARDING_TASK_TYPE.VALIDATE_EMAIL) {
+                validateEmailTaskReportID = currentTask.reportID;
+            }
+            if (task.type === CONST.ONBOARDING_TASK_TYPE.JOIN_WORKSPACE) {
+                joinWorkspaceTaskReportID = currentTask.reportID;
             }
 
             return {
@@ -12694,6 +12719,9 @@ function prepareOnboardingOnyxData({
                 setupTags: setupTagsTaskReportID,
                 setupCategoriesAndTags: setupCategoriesAndTagsTaskReportID,
                 reviewWorkspaceSettings: reviewWorkspaceSettingsTaskReportID,
+                addWorkEmail: addWorkEmailTaskReportID,
+                validateEmail: validateEmailTaskReportID,
+                joinWorkspace: joinWorkspaceTaskReportID,
             },
         },
     );
@@ -12770,6 +12798,9 @@ function prepareOnboardingOnyxData({
                 setupCategoriesAndTags: null,
                 setupTags: null,
                 reviewWorkspaceSettings: null,
+                addWorkEmail: null,
+                validateEmail: null,
+                joinWorkspace: null,
             },
         },
     );

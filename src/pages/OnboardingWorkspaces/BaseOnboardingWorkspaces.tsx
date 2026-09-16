@@ -8,16 +8,21 @@ import BareUserListItem from '@components/SelectionList/ListItem/BareUserListIte
 import Text from '@components/Text';
 
 import useAutoCreateSubmitWorkspace from '@hooks/useAutoCreateSubmitWorkspace';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useOnboardingIntent from '@hooks/useOnboardingIntent';
 import useOnboardingMessages from '@hooks/useOnboardingMessages';
+import useOnboardingTaskInformation from '@hooks/useOnboardingTaskInformation';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useReturnToOriginReport from '@hooks/useReturnToOriginReport';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {getEmailDomain} from '@libs/LoginUtils';
 import {navigateAfterOnboardingWithMicrotaskQueue, navigateToSubmitWorkspaceAfterOnboardingWithMicrotaskQueue} from '@libs/navigateAfterOnboarding';
 import Navigation from '@libs/Navigation/Navigation';
 import {expensifyLoginsSelector, isCurrentUserValidated} from '@libs/UserUtils';
@@ -25,7 +30,7 @@ import {expensifyLoginsSelector, isCurrentUserValidated} from '@libs/UserUtils';
 import {askToJoinPolicy, joinAccessiblePolicy} from '@userActions/Policy/Member';
 import {getAccessiblePolicies} from '@userActions/Policy/Policy';
 import {completeOnboarding} from '@userActions/Report';
-import {setOnboardingAdminsChatReportID, setOnboardingPolicyID} from '@userActions/Welcome';
+import {createJoinWorkspaceOnboardingContent, setOnboardingAdminsChatReportID, setOnboardingPolicyID} from '@userActions/Welcome';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -33,8 +38,8 @@ import ROUTES from '@src/ROUTES';
 import type {JoinablePolicy} from '@src/types/onyx/JoinablePolicies';
 
 import {useFocusEffect} from '@react-navigation/native';
-import {hasSeenTourSelector} from '@selectors/Onboarding';
-import React, {useState} from 'react';
+import {hasCompletedGuidedSetupFlowSelector, hasSeenTourSelector} from '@selectors/Onboarding';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 import type {BaseOnboardingWorkspacesProps} from './types';
@@ -44,12 +49,16 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {onboardingMessages} = useOnboardingMessages();
+    const {onboardingMessages, joinWorkspaceMessages} = useOnboardingMessages();
     const [showAll, setShowAll] = useState(false);
 
-    // We need to use isSmallScreenWidth, see navigateAfterOnboarding function comment
-    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
-    const {onboardingIsMediumOrLargerScreenWidth, isSmallScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
+    const {
+        onboardingIsMediumOrLargerScreenWidth,
+        // We need to use isSmallScreenWidth, see navigateAfterOnboarding function comment
+        // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
+        isSmallScreenWidth,
+        shouldUseNarrowLayout,
+    } = useResponsiveLayout();
     const [joinablePolicies] = useOnyx(ONYXKEYS.JOINABLE_POLICIES);
     const [getAccessiblePoliciesAction] = useOnyx(ONYXKEYS.VALIDATE_USER_AND_GET_ACCESSIBLE_POLICIES);
 
@@ -58,10 +67,22 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
 
     const [onboardingPersonalDetails] = useOnyx(ONYXKEYS.FORMS.ONBOARDING_PERSONAL_DETAILS_FORM);
     const [onboardingCompanySize] = useOnyx(ONYXKEYS.ONBOARDING_COMPANY_SIZE);
-    const [loginList] = useOnyx(ONYXKEYS.LOGINS, {selector: expensifyLoginsSelector});
+    const [loginList] = useOnyx(ONYXKEYS.LOGINS, {
+        selector: expensifyLoginsSelector,
+    });
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
+    const {
+        taskReport: joinWorkspaceTaskReport,
+        taskParentReport: joinWorkspaceTaskParentReport,
+        isOnboardingTaskParentReportArchived: isJoinWorkspaceTaskParentReportArchived,
+        hasOutstandingChildTask: joinWorkspaceTaskHasOutstandingChildTask,
+        parentReportAction: joinWorkspaceTaskParentReportAction,
+    } = useOnboardingTaskInformation(CONST.ONBOARDING_TASK_TYPE.JOIN_WORKSPACE);
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
+        selector: hasSeenTourSelector,
+    });
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
 
     const isValidated = isCurrentUserValidated(loginList, session?.email);
@@ -74,30 +95,81 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
     const [onboardingValues] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
     const isVsb = onboardingValues?.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.VSB;
     const isSmb = onboardingValues?.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.SMB;
-    const [onboardingPurposeSelected] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED);
-    const isEmployerWithSubmit = onboardingPurposeSelected === CONST.ONBOARDING_CHOICES.EMPLOYER;
+    const onboardingIntent = useOnboardingIntent();
+    const isEmployerWithSubmit = onboardingIntent === CONST.ONBOARDING_CHOICES.EMPLOYER;
+    const isJoiningCompanyWorkspace = onboardingIntent === CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE;
+    const hasCompletedGuidedSetupFlow = hasCompletedGuidedSetupFlowSelector(onboardingValues) ?? false;
+    const isConciergeTaskFlow = isJoiningCompanyWorkspace && route.params?.isJoinWorkspaceTask === 'true';
+    const isPostOnboardingJoinWorkspaceFlow = isJoiningCompanyWorkspace && (hasCompletedGuidedSetupFlow || isConciergeTaskFlow);
+    const createdEmptyWorkspaceContentDomains = useRef(new Set<string>());
+    const createdJoinWorkspaceTask = useRef(false);
+    const hasRequestedAccessiblePolicies = useRef(false);
     const autoCreateSubmitWorkspace = useAutoCreateSubmitWorkspace();
+
+    const returnToOriginReport = useReturnToOriginReport();
     const shouldHideBackButton = onboardingValues?.shouldValidate === false && route.params?.backTo === ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute();
+
+    const createAndOpenJoinWorkspaceTask = () => {
+        const companyDomain = session?.email ? getEmailDomain(session.email) : '';
+        const joinWorkspaceTaskReportID = joinWorkspaceTaskReport?.reportID ?? createJoinWorkspaceOnboardingContent('joinWorkspace', companyDomain, session?.email ?? '', conciergeChat);
+        if (joinWorkspaceTaskReportID) {
+            Navigation.dismissModalWithReport({reportID: joinWorkspaceTaskReportID});
+            return;
+        }
+        returnToOriginReport();
+    };
+
+    const closeJoinWorkspaceTask = () => {
+        if (isConciergeTaskFlow) {
+            createAndOpenJoinWorkspaceTask();
+            return;
+        }
+        returnToOriginReport();
+    };
 
     const handleJoinWorkspace = (policy: JoinablePolicy) => {
         const isJoiningSubmitPolicy = policy.policyType === CONST.POLICY.TYPE.SUBMIT;
         const shouldUseSubmitFlow = policy.automaticJoiningEnabled && isJoiningSubmitPolicy;
 
         if (policy.automaticJoiningEnabled) {
-            joinAccessiblePolicy(policy.policyID);
+            joinAccessiblePolicy(
+                policy.policyID,
+                joinWorkspaceTaskReport,
+                joinWorkspaceTaskParentReport,
+                isJoinWorkspaceTaskParentReportArchived,
+                joinWorkspaceTaskHasOutstandingChildTask,
+                joinWorkspaceTaskParentReportAction,
+                currentUserPersonalDetails.accountID,
+            );
         } else {
+            // Asking to join only sends a request, so the task stays open until an admin approves it.
             askToJoinPolicy(policy.policyID);
         }
 
+        // Reached from a Concierge task rather than as an onboarding step. Onboarding is already finished, so
+        // completing it again would post the whole welcome message and task list a second time - just join and return
+        // the user to wherever they opened this from.
+        if (isJoiningCompanyWorkspace && hasCompletedGuidedSetupFlow) {
+            returnToOriginReport();
+            return;
+        }
+
         completeOnboarding({
-            engagementChoice: CONST.ONBOARDING_CHOICES.LOOKING_AROUND,
-            onboardingMessage: onboardingMessages[CONST.ONBOARDING_CHOICES.LOOKING_AROUND],
+            engagementChoice: onboardingIntent ?? CONST.ONBOARDING_CHOICES.LOOKING_AROUND,
+            onboardingMessage:
+                isJoiningCompanyWorkspace && policy.automaticJoiningEnabled
+                    ? {...joinWorkspaceMessages.joinWorkspace, tasks: []}
+                    : isJoiningCompanyWorkspace
+                      ? joinWorkspaceMessages.joinWorkspace
+                      : onboardingMessages[onboardingIntent ?? CONST.ONBOARDING_CHOICES.LOOKING_AROUND],
             firstName: onboardingPersonalDetails?.firstName ?? '',
             lastName: onboardingPersonalDetails?.lastName ?? '',
             companySize: onboardingCompanySize,
             introSelected,
             isSelfTourViewed,
             conciergeChat,
+            companyDomain: session?.email ? getEmailDomain(session.email) : '',
+            workEmail: session?.email ?? '',
             delegateAccountID,
         });
         setOnboardingAdminsChatReportID();
@@ -123,7 +195,10 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
         .sort((a, b) => b.employeeCount - a.employeeCount)
         .map((policyInfo) => ({
             text: policyInfo.policyName,
-            alternateText: translate('onboarding.workspaceMemberList', {count: policyInfo.employeeCount, policyOwner: policyInfo.policyOwner}),
+            alternateText: translate('onboarding.workspaceMemberList', {
+                count: policyInfo.employeeCount,
+                policyOwner: policyInfo.policyOwner,
+            }),
             // The user is not a member of these workspaces yet, so they are absent from Onyx and the avatar falls back
             // to the default one seeded from `text` - the same icon this list used to build by hand.
             policyID: policyInfo.policyID,
@@ -148,17 +223,86 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
 
     const wrapperPadding = onboardingIsMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5;
 
-    useFocusEffect(() => {
-        if (!isValidated || joinablePoliciesLength > 0 || joinablePoliciesLoading) {
+    // Empty deps keep this cleanup tied to losing focus rather than to the data below changing, so the guard only
+    // clears when the screen is actually left and a later focus can retry.
+    useFocusEffect(
+        useCallback(
+            () => () => {
+                hasRequestedAccessiblePolicies.current = false;
+            },
+            [],
+        ),
+    );
+
+    useFocusEffect(
+        useCallback(() => {
+            // Guarded by a ref instead of by omitting the loading/count dependencies: an empty response leaves the
+            // count at 0, so reacting to those updates would immediately issue another request.
+            if (!isValidated || joinablePoliciesLength > 0 || joinablePoliciesLoading || hasRequestedAccessiblePolicies.current) {
+                return;
+            }
+
+            hasRequestedAccessiblePolicies.current = true;
+            getAccessiblePolicies();
+        }, [isValidated, joinablePoliciesLength, joinablePoliciesLoading]),
+    );
+
+    useEffect(() => {
+        if (!isConciergeTaskFlow || joinablePoliciesLoading !== false || joinablePoliciesLength > 0) {
             return;
         }
 
-        getAccessiblePolicies();
-    });
+        const companyDomain = session?.email ? getEmailDomain(session.email) : '';
+        if (companyDomain && !createdEmptyWorkspaceContentDomains.current.has(companyDomain)) {
+            createdEmptyWorkspaceContentDomains.current.add(companyDomain);
+            createJoinWorkspaceOnboardingContent('empty', companyDomain, session?.email ?? '', conciergeChat);
+        }
+        returnToOriginReport();
+    }, [conciergeChat, isConciergeTaskFlow, joinablePoliciesLength, joinablePoliciesLoading, returnToOriginReport, session?.email]);
+
+    useEffect(() => {
+        if (!isConciergeTaskFlow || joinablePoliciesLength === 0 || joinWorkspaceTaskReport || createdJoinWorkspaceTask.current) {
+            return;
+        }
+
+        createdJoinWorkspaceTask.current = true;
+        const companyDomain = session?.email ? getEmailDomain(session.email) : '';
+        createJoinWorkspaceOnboardingContent('joinWorkspace', companyDomain, session?.email ?? '', conciergeChat);
+    }, [conciergeChat, isConciergeTaskFlow, joinWorkspaceTaskReport, joinablePoliciesLength, session?.email]);
 
     const skipJoiningWorkspaces = () => {
         if (isEmployerWithSubmit) {
             autoCreateSubmitWorkspace(onboardingPersonalDetails?.firstName ?? '', onboardingPersonalDetails?.lastName ?? '');
+            return;
+        }
+
+        if (isJoiningCompanyWorkspace) {
+            // Opened from a Concierge task after onboarding finished: there is no onboarding step to continue into,
+            // so just close instead of completing onboarding again.
+            if (isPostOnboardingJoinWorkspaceFlow) {
+                if (!isConciergeTaskFlow) {
+                    returnToOriginReport();
+                    return;
+                }
+                createAndOpenJoinWorkspaceTask();
+                return;
+            }
+
+            completeOnboarding({
+                engagementChoice: CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE,
+                onboardingMessage: joinWorkspaceMessages.joinWorkspace,
+                firstName: onboardingPersonalDetails?.firstName ?? '',
+                lastName: onboardingPersonalDetails?.lastName ?? '',
+                companySize: onboardingCompanySize,
+                introSelected,
+                isSelfTourViewed,
+                conciergeChat,
+                companyDomain: session?.email ? getEmailDomain(session.email) : '',
+                workEmail: session?.email ?? '',
+            });
+            setOnboardingAdminsChatReportID();
+
+            navigateAfterOnboardingWithMicrotaskQueue(isSmallScreenWidth, isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS), conciergeReportID, reportNameValuePairs, undefined, undefined, false);
             return;
         }
 
@@ -178,14 +322,18 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
             shouldShowOfflineIndicator={isSmallScreenWidth}
         >
             <OnboardingHeader
-                shouldShowBackButton={!shouldHideBackButton}
+                shouldShowBackButton={!isPostOnboardingJoinWorkspaceFlow && !shouldHideBackButton}
                 onBackButtonPress={() => Navigation.goBack()}
+                shouldShowCloseButton={isPostOnboardingJoinWorkspaceFlow}
+                onCloseButtonPress={closeJoinWorkspaceTask}
             />
             <SelectionList
                 data={policyIDItems}
                 onSelectRow={() => {}}
                 ListItem={BareUserListItem}
-                style={{listItemWrapperStyle: onboardingIsMediumOrLargerScreenWidth ? [styles.pl8, styles.pr8, styles.cursorDefault] : []}}
+                style={{
+                    listItemWrapperStyle: onboardingIsMediumOrLargerScreenWidth ? [styles.pl8, styles.pr8, styles.cursorDefault] : [],
+                }}
                 shouldShowLoadingPlaceholder={joinablePoliciesLoading}
                 shouldStopPropagation
                 showScrollIndicator
