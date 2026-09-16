@@ -81,7 +81,6 @@ import type {
     SearchCardGroup,
     SearchCategoryGroup,
     SearchDataTypes,
-    SearchDayGroup,
     SearchMemberGroup,
     SearchMerchantGroup,
     SearchMonthGroup,
@@ -3596,9 +3595,8 @@ function getActiveGroupSearchHashes(data: OnyxTypes.SearchResults['data'] | unde
                 break;
             }
             case CONST.SEARCH.GROUP_BY.DAY: {
-                const dayGroup = group as SearchDayGroup;
-                if (dayGroup.day) {
-                    transactionsQueryJSON = buildDateRangeGroupQuery(queryJSON, {start: dayGroup.day, end: dayGroup.day}).transactionsQueryJSON;
+                if ('day' in group && typeof group.day === 'string' && group.day) {
+                    transactionsQueryJSON = buildDateRangeGroupQuery(queryJSON, {start: group.day, end: group.day}).transactionsQueryJSON;
                 }
                 break;
             }
@@ -7645,9 +7643,8 @@ function isTransactionMatchWithGroupItem(transaction: OnyxTypes.Transaction, gro
         return (transaction.merchant ?? '') === ((groupItem as TransactionMerchantGroupListItemType).merchant ?? '');
     }
     if (groupBy === CONST.SEARCH.GROUP_BY.DAY) {
-        const dayGroup = groupItem as TransactionDayGroupListItemType;
         const transactionDateString = transaction.modifiedCreated ?? transaction.created ?? '';
-        return transactionDateString.substring(0, 10) === dayGroup.day;
+        return isTransactionDayGroupListItemType(groupItem) && transactionDateString.substring(0, 10) === groupItem.day;
     }
     if (groupBy === CONST.SEARCH.GROUP_BY.MONTH) {
         const monthGroup = groupItem as TransactionMonthGroupListItemType;

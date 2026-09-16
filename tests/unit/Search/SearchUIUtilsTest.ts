@@ -3764,6 +3764,9 @@ describe('SearchUIUtils', () => {
                 }),
             );
             const daySection = sections.at(0);
+            if (!daySection) {
+                throw new Error('Expected a day group section');
+            }
             expect(SearchUIUtils.isTransactionDayGroupListItemType(daySection)).toBe(true);
             if (!SearchUIUtils.isTransactionDayGroupListItemType(daySection)) {
                 throw new Error('Expected a day group section');

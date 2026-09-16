@@ -72,6 +72,10 @@ import WeekListItemHeader from './WeekListItemHeader';
 import WithdrawalIDListItemHeader from './WithdrawalIDListItemHeader';
 import YearListItemHeader from './YearListItemHeader';
 
+function isTransactionDayGroupListItemType(item: TransactionGroupListItemType): item is TransactionDayGroupListItemType {
+    return 'groupedBy' in item && item.groupedBy === CONST.SEARCH.GROUP_BY.DAY;
+}
+
 /**
  * Non-generic implementation so OXC's React Compiler can memoize the component.
  * OXC bails on type params inside components ("Unsupported declaration type for hoisting").
@@ -297,7 +301,7 @@ function TransactionGroupListItemImpl({
     };
 
     const getHeader = (hovered: boolean) => {
-        const headers: Record<SearchGroupBy, React.JSX.Element> = {
+        const headers: Record<SearchGroupBy, React.ReactNode> = {
             [CONST.SEARCH.GROUP_BY.FROM]: (
                 <MemberListItemHeader
                     member={groupItem as TransactionMemberGroupListItemType}
@@ -378,19 +382,24 @@ function TransactionGroupListItemImpl({
                     isExpanded={isExpanded}
                 />
             ),
-            [CONST.SEARCH.GROUP_BY.DAY]: (
-                <DayListItemHeader
-                    day={groupItem as TransactionDayGroupListItemType}
-                    onCheckboxPress={handleSelectionButtonPress}
-                    isDisabled={isDisabledOrEmpty}
-                    columns={columns}
-                    canSelectMultiple={canSelectMultiple}
-                    isSelectAllChecked={isSelectAllChecked}
-                    isIndeterminate={isIndeterminate}
-                    onDownArrowClick={onExpandIconPress}
-                    isExpanded={isExpanded}
-                />
-            ),
+            [CONST.SEARCH.GROUP_BY.DAY]: (() => {
+                if (!isTransactionDayGroupListItemType(groupItem)) {
+                    return null;
+                }
+                return (
+                    <DayListItemHeader
+                        day={groupItem}
+                        onCheckboxPress={handleSelectionButtonPress}
+                        isDisabled={isDisabledOrEmpty}
+                        columns={columns}
+                        canSelectMultiple={canSelectMultiple}
+                        isSelectAllChecked={isSelectAllChecked}
+                        isIndeterminate={isIndeterminate}
+                        onDownArrowClick={onExpandIconPress}
+                        isExpanded={isExpanded}
+                    />
+                );
+            })(),
             [CONST.SEARCH.GROUP_BY.MONTH]: (
                 <MonthListItemHeader
                     month={groupItem as TransactionMonthGroupListItemType}
