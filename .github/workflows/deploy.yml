@@ -257,7 +257,7 @@ jobs:
           fi
           echo "aabPath=$AAB_PATH" >> "$GITHUB_ENV"
 
-          BETA_TRACK_AAB_PATH="$(pwd)/betaTrack/${{ needs.androidBuild.outputs.AAB_FILENAME }}"
+          BETA_TRACK_AAB_PATH="$(pwd)/betaTrack/${{ needs.androidBuildBetaTrack.outputs.AAB_FILENAME }}"
           if [ -f "$BETA_TRACK_AAB_PATH" ]; then
             echo "betaTrackAabPath=$BETA_TRACK_AAB_PATH" >> "$GITHUB_ENV"
           else

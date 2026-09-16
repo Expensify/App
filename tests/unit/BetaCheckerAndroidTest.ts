@@ -21,7 +21,7 @@ function mockVersionCode(versionCode: string) {
 describe('betaChecker (android)', () => {
     beforeEach(() => {
         jest.restoreAllMocks();
-        mockVersionCode('0509047702');
+        mockVersionCode('509047702');
     });
 
     it('reports a beta build for the Play beta-track flavour (versionCode prefix 06) even though the Play Store installed it', async () => {
