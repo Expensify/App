@@ -2,7 +2,7 @@
 title: Create and Manage Domain Groups
 description: Learn how to create and manage domain groups (domain security groups) to apply different permission rules to different sets of domain members.
 internalScope: Audience is Domain Admins. Covers creating and managing Domain Groups (Domain Security Groups) and what each group permission controls. Does not cover workspace-level rules configuration or troubleshooting user access issues.
-keywords: [New Expensify, domain groups, domain security groups, how to create domain group, restrict workspace creation, enforce workspace rules, require company email, preferred workspace, Expensify Card preferred workspace, domain permissions, Domain Admin]
+keywords: [New Expensify, domain groups, domain security groups, how to create domain group, restrict workspace creation, enforce workspace rules, require company email, preferred workspace, card preferred workspace, company card preferred workspace, Expensify Card preferred workspace, domain permissions, Domain Admin]
 ---
 
 <div id="new-expensify" markdown="1">
@@ -37,9 +37,9 @@ Only **Domain Admins** can create and manage Domain Groups.
 
 Follow the steps in **Where to find Domain Groups** above, then:
 
-1. Click **Create group**.
+1. Click **New group**.
 2. Configure the group settings and permissions (see **What Domain Group permission settings control** below).
-3. Click **Save**.
+3. Click **Create group**.
 
 ---
 
@@ -61,13 +61,22 @@ Enable this to require members to use their company email address to access Expe
 
 Enable this to prevent members from creating or removing workspaces. Restrict expense workspace creation/removal ensures centralized workspace management and prevents employees from creating additional workspaces outside the company’s approved setup.
 
-## What Preferred workspace does
+## What Preferred Workspace does
 
-Set a preferred workspace to automatically route a group’s expenses and reports to a specific workspace. This is helpful if different members use different workspaces and you want to reduce manual workspace selection. If you have multiple workspaces, use this to route a group’s expenses to the right workspace by default.
+Enable **Preferred Workspace** to automatically route a group’s expenses and reports to a specific workspace. This is helpful if different members use different workspaces and you want to reduce manual workspace selection. If you have multiple workspaces, use this to route a group’s expenses to the right workspace by default.
 
-## What Expensify Card preferred workspace does
+## What Card preferred workspace does
 
-If a preferred workspace is set, enable this option to automatically post **Expensify Card** transactions to that workspace. This ensures transactions are routed correctly and reconciliation is simplified.
+If **Preferred Workspace** is set, enable **Card preferred workspace** to automatically post both Expensify Card and company card transactions to a separate workspace. Enabling it overrides the **Preferred Workspace** setting for card transactions only, so every other expense and report still goes to the group’s **Preferred Workspace**.
+
+**Card preferred workspace** stays locked until both of the following are true:
+
+- The group has **Preferred Workspace** enabled with a workspace selected.
+- Your domain has either an Expensify Card or a company card feed set up.
+
+If either is missing, tapping the toggle shows: “To enable this setting, please first enable a preferred workspace and set up an Expensify Card or a company card feed on your domain.”
+
+Learn how to [set up a direct company card feed connection](/articles/new-expensify/connect-credit-cards/Set-up-a-Direct-Company-Card-Feed-Connection).
 
 ---
 
@@ -85,8 +94,16 @@ No, each member can only belong to one Domain Group.
 
 New domain members are automatically assigned to that group, ensuring they receive the correct permissions immediately.
 
-## Does Preferred workspace move existing expenses?
+## Does Preferred Workspace move existing expenses?
 
-No. Preferred workspace applies to new expenses and reports going forward.
+No. **Preferred Workspace** applies to new expenses and reports going forward.
+
+## Does Card preferred workspace apply to company cards?
+
+Yes. **Card preferred workspace** applies to Expensify Card transactions and to transactions imported from a company card feed on your domain.
+
+## Why is Card preferred workspace locked?
+
+Either the group doesn’t have **Preferred Workspace** enabled with a workspace selected, or your domain doesn’t have an Expensify Card or a company card feed set up. Enable both, then the toggle becomes available.
 
 </div>
