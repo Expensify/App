@@ -46,7 +46,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
-import {domainNameSelector, hasPendingAdminshipRequestSelector, memberAccountIDsSelector, memberPendingActionSelector, selectSecurityGroupForAccount} from '@selectors/Domain';
+import {domainNameSelector, memberAccountIDsSelector, memberPendingActionSelector, selectSecurityGroupForAccount} from '@selectors/Domain';
 import React, {useState} from 'react';
 import {View} from 'react-native';
 
@@ -176,7 +176,7 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
                 continue;
             }
             const securityGroupData = selectSecurityGroupForAccount(accountID)(domain);
-            closeUserAccount(domainAccountID, domainName, memberLogin, accountID, securityGroupData, hasPendingAdminshipRequestSelector(accountID)(domain), shouldForceCloseAccount);
+            closeUserAccount(domainAccountID, domainName, memberLogin, accountID, securityGroupData, shouldForceCloseAccount);
         }
 
         setShouldForceCloseAccount(undefined);
