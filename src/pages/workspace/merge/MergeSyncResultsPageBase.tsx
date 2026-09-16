@@ -18,6 +18,7 @@ import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -67,6 +68,7 @@ function MergeSyncResultsPageBase({policyID, category}: MergeSyncResultsPageBase
     const {translate} = useLocalize();
     const theme = useTheme();
     const styles = useThemeStyles();
+    const {isBetaEnabled} = usePermissions();
     const icons = useMemoizedLazyExpensifyIcons(['DownArrow']);
     const illustrations = useMemoizedLazyIllustrations(['SyncUsers']);
     const [isSkippedSectionExpanded, setIsSkippedSectionExpanded] = useState(false);
@@ -104,6 +106,7 @@ function MergeSyncResultsPageBase({policyID, category}: MergeSyncResultsPageBase
             policyID={policyID}
             featureName={featureName}
             policyFeature={CONST.POLICY.POLICY_FEATURE.MORE_FEATURES}
+            shouldBeBlocked={category === CONST.POLICY.CONNECTIONS.CATEGORY.RECRUITING ? !isBetaEnabled(CONST.BETAS.MERGE_ATS) : false}
         >
             <ScreenWrapper
                 testID={testID}
