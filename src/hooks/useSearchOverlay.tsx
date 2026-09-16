@@ -4,7 +4,7 @@ import type {SearchQueryJSON} from '@components/Search/types';
 
 import {hasDeferredWrite} from '@libs/deferredLayoutWrite';
 import Navigation from '@libs/Navigation/Navigation';
-import {isDefaultExpensesQuery} from '@libs/SearchQueryUtils';
+import {isDefaultExpensesQuery, queryHasViolationFilter} from '@libs/SearchQueryUtils';
 import {getColumnsToShow, getValidGroupBy, isTransactionSearchType} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
@@ -123,6 +123,7 @@ function useSearchOverlay({
             shouldUseStrictDefaultExpenseColumns,
             fallbackPolicyID: policyForMovingExpensesID,
             sortBy: queryJSON.sortBy,
+            shouldShowViolationsColumn: queryHasViolationFilter(queryJSON),
         });
     })();
 

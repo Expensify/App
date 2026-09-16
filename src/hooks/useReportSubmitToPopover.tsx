@@ -100,6 +100,7 @@ function useReportSubmitToPopover({reportID, onSubmitSuccess, anchorAlignment = 
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(report?.policyID)}`);
     const [isLoadingReportData] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA);
     const [ownerLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(report?.ownerAccountID)});
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const [willAlertModalBecomeVisible] = useOnyx(ONYXKEYS.MODAL, {
         selector: willAlertModalBecomeVisibleSelector,
     });
@@ -112,7 +113,7 @@ function useReportSubmitToPopover({reportID, onSubmitSuccess, anchorAlignment = 
         willAlertModalBecomeVisibleRef.current = willAlertModalBecomeVisible;
     }, [willAlertModalBecomeVisible]);
 
-    const submitToContentKey = `${reportID}:${getSubmitToEmail(policy, report, ownerLogin)}`;
+    const submitToContentKey = `${reportID}:${getSubmitToEmail(policy, report, ownerLogin, rules)}`;
 
     const clearDismissGuard = useCallback(() => {
         setIsDismissGuardActive(false);
