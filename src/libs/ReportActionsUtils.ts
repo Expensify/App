@@ -1376,7 +1376,7 @@ function shouldReportActionBeVisible(
         // action is created outside a NewDot request (e.g. a background job), which lets the redundant row
         // leak through alongside the IOU PAY action. Since NewDot shows the IOU PAY action instead, hide
         // MARKED_REIMBURSED when the same payment attempt has a sibling IOU PAY action. Scoped to
-        // MARKED_REIMBURSED so REIMBURSED behavior is unchanged.
+        // MARKED_REIMBURSED: REIMBURSED can carry bank-account and arrival details that PAY does not replace.
         if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED) && hasSiblingPayReportAction(reportAction, reportAction.reportID ?? reportID)) {
             return false;
         }
@@ -1874,10 +1874,16 @@ function isPayAction(reportAction: OnyxInputOrEntry<ReportAction | OptimisticIOU
 }
 
 /**
- * A cancellation or failed reimbursement separates payment attempts on the same report.
+ * A cancellation, failed reimbursement, or workflow reset separates payment attempts on the same report.
  */
 function isPaymentAttemptBoundary(action: OnyxEntry<ReportAction>): boolean {
-    return isReimbursementDeQueuedOrCanceledAction(action) || isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_ACH_BOUNCE);
+    return (
+        isReimbursementDeQueuedOrCanceledAction(action) ||
+        isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_ACH_BOUNCE) ||
+        isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.RETRACTED) ||
+        isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.REOPENED) ||
+        isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.UNAPPROVED)
+    );
 }
 
 /**
@@ -1891,6 +1897,11 @@ function hasSiblingPayReportAction(reportAction: OnyxEntry<ReportAction>, report
     }
 
     const reportActions = getAllReportActions(reportID);
+    // An action absent from loaded history cannot be matched. Avoid caching the empty fallback for unknown reports.
+    if (!reportActions[reportAction.reportActionID]) {
+        return false;
+    }
+
     const cachedSiblings = paySiblingCache.get(reportActions);
     if (cachedSiblings) {
         return cachedSiblings.has(reportAction.reportActionID);
