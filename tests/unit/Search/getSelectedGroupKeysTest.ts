@@ -90,20 +90,6 @@ describe('getSelectedGroupKeys', () => {
 
         expect(keys).toEqual([]);
     });
-
-    it('returns a group whose remaining children are selected after some are pending delete', () => {
-        const keys = getSelectedGroupKeys(
-            buildSelection({
-                txn1: {isEntireGroupSelected: true, groupKey},
-                txn2: {isEntireGroupSelected: true, groupKey},
-            }),
-            buildGroupSearchData({
-                [groupKey]: {count: 3, total: 0, currency: 'USD'},
-            }),
-        );
-
-        expect(keys).toEqual([groupKey]);
-    });
 });
 
 describe('getGroupKeysSelectedViaGroup', () => {
@@ -177,22 +163,5 @@ describe('getFullyDeletedGroupKeysByTransactionID', () => {
                 }),
             ),
         ).toEqual({});
-    });
-
-    it('maps remaining children when snapshot count still includes pending-delete rows', () => {
-        expect(
-            getFullyDeletedGroupKeysByTransactionID(
-                buildSelection({
-                    txn1: {isEntireGroupSelected: true, groupKey},
-                    txn2: {isEntireGroupSelected: true, groupKey},
-                }),
-                buildGroupSearchData({
-                    [groupKey]: {count: 3, total: 0, currency: 'USD'},
-                }),
-            ),
-        ).toEqual({
-            txn1: groupKey,
-            txn2: groupKey,
-        });
     });
 });

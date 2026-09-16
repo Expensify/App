@@ -1349,7 +1349,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             // whose selected children cover the group's full count are flagged, so a `limit:` that left rows unloaded
             // does not hide a group that still has expenses.
             const fullyDeletedGroupKeys = queryJSON?.groupBy ? getFullyDeletedGroupKeysByTransactionID(selectedTransactions, searchResults?.data) : {};
-
             // Route individual transactions through the split-aware hook so that deleting a
             // split child triggers updateSplitTransactions (e.g. reverse-split) instead of a
             // bare deleteMoneyRequest.

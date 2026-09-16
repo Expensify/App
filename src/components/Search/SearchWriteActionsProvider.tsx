@@ -218,12 +218,47 @@ function useReconcileSelectionWithData({
                         policyID: transactionItem.report?.policyID,
                         groupKey: previousSelection?.groupKey ?? (propagateSelectionToAllRows && !isExpenseReportType ? reportKey : undefined),
                         isSelectedViaGroup: previousSelection?.isSelectedViaGroup,
-                        isEntireGroupSelected: previousSelection?.isEntireGroupSelected,
                     };
                     liveSelectionEntries.set(listKey, liveSelectionEntry);
                     liveSelectionEntries.set(transactionItem.transactionID, liveSelectionEntry);
                     if (shouldInclude) {
                         newTransactionList[listKey] = liveSelectionEntry;
+                    }
+                }
+
+                // Copying `isEntireGroupSelected` would leave delete thinking the group is still fully covered
+                // after a new child lands in it (the create path bumps `count` without touching the selection).
+                if (reportKey) {
+                    for (const transactionItem of transactionGroup.transactions) {
+                        const listKey = transactionItem.keyForList ?? transactionItem.transactionID;
+                        const selectedEntry = newTransactionList[listKey];
+                        if (!selectedEntry) {
+                            continue;
+                        }
+                        newTransactionList[listKey] = {...selectedEntry, groupKey: selectedEntry.groupKey ?? reportKey};
+                    }
+
+                    const stampedSelection = stampGroupCoverageFlags({
+                        selectedTransactions: newTransactionList,
+                        groupKey: reportKey,
+                        groupCount: getSearchGroupCount(transactionGroup) ?? getSearchGroupCountByKey(searchResultsData, reportKey),
+                        loadedChildrenCount: transactionGroup.transactions.length,
+                        loadedSelectableCount: transactionGroup.transactions.filter((transaction) => !isTransactionPendingDelete(transaction)).length,
+                    });
+                    for (const [key, entry] of Object.entries(stampedSelection)) {
+                        newTransactionList[key] = entry;
+                    }
+
+                    const isEntireGroupSelected = Object.values(stampedSelection).some((entry) => entry.groupKey === reportKey && entry.isEntireGroupSelected);
+                    for (const transactionItem of transactionGroup.transactions) {
+                        const listKey = transactionItem.keyForList ?? transactionItem.transactionID;
+                        const liveEntry = liveSelectionEntries.get(listKey) ?? liveSelectionEntries.get(transactionItem.transactionID);
+                        if (!liveEntry) {
+                            continue;
+                        }
+                        const nextEntry = stampedSelection[listKey] ?? {...liveEntry, groupKey: liveEntry.groupKey ?? reportKey, isEntireGroupSelected};
+                        liveSelectionEntries.set(listKey, nextEntry);
+                        liveSelectionEntries.set(transactionItem.transactionID, nextEntry);
                     }
                 }
             }
@@ -282,7 +317,7 @@ function useReconcileSelectionWithData({
                         ...liveEntry,
                         groupKey: excludedTransaction.groupKey,
                         isSelectedViaGroup: excludedTransaction.isSelectedViaGroup,
-                        isEntireGroupSelected: excludedTransaction.isEntireGroupSelected,
+                        isEntireGroupSelected: liveEntry.isEntireGroupSelected,
                     };
                     continue;
                 }
