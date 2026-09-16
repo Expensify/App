@@ -380,6 +380,7 @@ function useYourSpendData(): UseYourSpendDataReturn {
 
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
+    const [spendDataSignature] = useOnyx(ONYXKEYS.DERIVED.SPEND_DATA_SIGNATURE);
 
     const {isApprovalApplicable, isPaymentApplicable, paidGroupPolicyIDs} = getYourSpendApplicability(policies);
 
@@ -407,6 +408,9 @@ function useYourSpendData(): UseYourSpendDataReturn {
         selector: (reports) => getYourSpendReportsSignature(reports, paidGroupPolicyIDs, accountID),
     });
     const outstandingReportsSignature = reportsSignature?.outstandingReportIDs ?? '';
+    // The "Repaid last 30 days" snapshot is not patched when a report is reimbursed, so without this
+    // the row keeps the pre-payment total until something else fetches again it.
+    const reimbursedReportsSignature = reportsSignature?.reimbursedReportIDs ?? '';
     const [queuedSpendRequests] = useOnyx(ONYXKEYS.PERSISTED_REQUESTS, {selector: projectQueuedSpendRequests});
     const [ongoingSpendRequests] = useOnyx(ONYXKEYS.PERSISTED_ONGOING_REQUESTS, {selector: projectOngoingSpendRequest});
     const pendingSpendBuckets = useMemo(
@@ -541,7 +545,16 @@ function useYourSpendData(): UseYourSpendDataReturn {
 
     // Re-fires the search effect when applicability flips, the user joins/leaves a workspace
     // (which changes the policyID filter), or the set of OUTSTANDING reports changes.
-    const applicabilityKey = [isApprovalApplicable ? 1 : 0, isPaymentApplicable ? 1 : 0, paidGroupPolicyIDs.join(','), outstandingReportsSignature].join('|');
+    // Card charges move the grouped card totals without changing any query, and that snapshot is never
+    // patched, so the counter is what tells the row it is out of date.
+    const applicabilityKey = [
+        isApprovalApplicable ? 1 : 0,
+        isPaymentApplicable ? 1 : 0,
+        paidGroupPolicyIDs.join(','),
+        outstandingReportsSignature,
+        reimbursedReportsSignature,
+        spendDataSignature?.cardExpenses ?? 0,
+    ].join('|');
 
     const fireSearches = () => {
         if (isOffline) {
