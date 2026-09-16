@@ -1,5 +1,7 @@
 import {fireEvent, render, screen, waitFor} from '@testing-library/react-native';
 
+import Navigation from '@libs/Navigation/Navigation';
+
 import CopilotPage from '@pages/settings/Copilot/CopilotPage';
 
 import CONST from '@src/CONST';
@@ -11,6 +13,7 @@ const SESSION_EMAIL = 'me@example.com';
 const OWNER_EMAIL = 'owner@example.com';
 let mockIsAgentAccount = false;
 let mockPersonalDetailsByLogin: Record<string, {displayName: string}> = {};
+let mockIsOffline = false;
 
 jest.mock('@hooks/useIsAgentAccount', () => () => mockIsAgentAccount);
 
@@ -39,7 +42,7 @@ jest.mock('@components/LockedAccountModalProvider', () => ({
     useLockedAccountState: jest.fn(() => ({isAccountLocked: false})),
 }));
 
-jest.mock('@hooks/useNetwork', () => jest.fn(() => ({isOffline: false})));
+jest.mock('@hooks/useNetwork', () => jest.fn(() => ({isOffline: mockIsOffline})));
 
 jest.mock('@hooks/useConfirmModal', () => jest.fn(() => ({showConfirmModal: jest.fn()})));
 
@@ -170,6 +173,7 @@ describe('CopilotPage', () => {
         jest.clearAllMocks();
         mockIsAgentAccount = false;
         mockPersonalDetailsByLogin = {};
+        mockIsOffline = false;
     });
 
     function setOnyxAccount(account: Record<string, unknown> | undefined, overrides: {sessionEmail?: string} = {}) {
@@ -319,5 +323,33 @@ describe('CopilotPage', () => {
             expect(output).toContain('common.noResultsFoundMatching');
             expect(output).toContain('delegate.addCopilot');
         });
+    });
+
+    it('makes a delegate row non-interactive and hides its three-dot menu while its removal is pending', () => {
+        mockIsOffline = true;
+        setOnyxAccount({
+            validated: true,
+            delegatedAccess: {
+                delegators: [],
+                delegates: [
+                    {
+                        email: 'removed@example.com',
+                        role: 'all',
+                        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                        pendingFields: {email: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE, role: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
+                    },
+                ],
+            },
+        });
+
+        const {toJSON} = render(<CopilotPage />);
+        const output = JSON.stringify(toJSON());
+
+        expect(output).toContain('removed@example.com');
+        expect(output).not.toContain('icon-three-dots');
+
+        fireEvent.press(screen.getByText('removed@example.com'));
+
+        expect(Navigation.navigate).not.toHaveBeenCalled();
     });
 });
