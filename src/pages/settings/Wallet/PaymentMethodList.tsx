@@ -267,6 +267,7 @@ function PaymentMethodList({
             const hasMissingPersonalDetails = areAddressAndPersonalDetailsMissing(privatePersonalDetails);
             for (const card of assignedCardsSorted) {
                 const isDisabled = card.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+                const isUserExpensifyCard = isExpensifyCard(card);
                 const isUserPersonalCard = isPersonalCard(card);
                 const isCSVCard = card.bank === CONST.COMPANY_CARD.FEED_BANK_NAME.UPLOAD || card.bank.includes(CONST.COMPANY_CARD.FEED_BANK_NAME.CSV);
                 const assignedCardsGrouped = isUserPersonalCard ? personalCardsGrouped : companyCardsGrouped;
@@ -293,11 +294,14 @@ function PaymentMethodList({
 
                 let brickRoadIndicator: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS> | undefined;
                 if (!card.errors) {
-                    if (shouldShowRBR) {
+                    // An Expensify Card has no bank connection, so its feed's RBR is never something the cardholder can
+                    // fix and it is the RBR this card is not supposed to show. Fraud and the pending-action prompt below
+                    // are still theirs to act on, so those keep their indicator.
+                    if (shouldShowRBR && !isUserExpensifyCard) {
                         brickRoadIndicator = CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
                     } else if (card.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.DOMAIN || card.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.INDIVIDUAL) {
                         brickRoadIndicator = CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
-                    } else if (isExpensifyCard(card) && isExpensifyCardPendingAction(card, privatePersonalDetails)) {
+                    } else if (isUserExpensifyCard && isExpensifyCardPendingAction(card, privatePersonalDetails)) {
                         brickRoadIndicator = CONST.BRICK_ROAD_INDICATOR_STATUS.INFO;
                     }
                 }
@@ -316,6 +320,7 @@ function PaymentMethodList({
                     isCardBroken,
                     shouldShowRBR,
                     isCardInactive: isCardInactiveState,
+                    isExpensifyCard: isUserExpensifyCard,
                     isPersonalCard: isUserPersonalCard,
                     isAdminForCardPolicy,
                     doesCardNeedReauthentication: doesCardConnectionNeedReauthentication(card),
@@ -329,7 +334,7 @@ function PaymentMethodList({
                 // A personal card row renders no card error of its own, so letting one replace the connection message
                 // there would leave the row with a status and nothing to explain it.
                 const doesCardErrorReplaceConnectionMessage = !isUserPersonalCard && shouldShowCardErrorMessages;
-                const shouldShowCardLastSync = shouldShowConnectionStatus && !isExpensifyCard(card) && !isCSVCard;
+                const shouldShowCardLastSync = shouldShowConnectionStatus && !isUserExpensifyCard && !isCSVCard;
                 let cardLastSyncText: string | undefined;
                 if (shouldShowCardLastSync) {
                     if (card.lastScrape) {
@@ -379,7 +384,7 @@ function PaymentMethodList({
                     };
                 }
 
-                if (!isExpensifyCard(card)) {
+                if (!isUserExpensifyCard) {
                     const lastFourPAN = lastFourNumbersFromCardName(card.cardName);
                     const plaidUrl = getPlaidInstitutionIconUrl(card.bank);
                     const isCSVImportCard = card.bank === CONST.COMPANY_CARD.FEED_BANK_NAME.UPLOAD;

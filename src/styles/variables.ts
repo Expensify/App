@@ -30,6 +30,8 @@ const avatarSizes = {
 
 export default {
     bottomTabHeight: 72,
+    // styles.p3 (12) on each side of the DebugTabView row plus the View button (componentSizeNormal).
+    debugTabViewHeight: 64,
     contentHeaderHeight: getValueUsingPixelRatio(72, 100),
     contentHeaderDesktopHeight: getValueUsingPixelRatio(80, 100),
     componentSizeSmall: getValueUsingPixelRatio(28, 32),
@@ -244,7 +246,10 @@ export default {
     popoverWidth: 375,
     compactPopoverMenuWidth: 300,
     compactPopoverMenuVerticalMargin: 100,
-    searchRouterPopoverWidth: 512,
+    searchRouterPopoverWidth: 600,
+    searchRouterPopoverMaxHeight: 520,
+    searchRouterPopoverTopOffset: 100,
+    searchRouterPopoverMinTopOffset: 16,
     bankAccountActionPopoverRightSpacing: 32,
     bankAccountActionPopoverTopSpacing: 14,
     addPaymentPopoverRightSpacing: 23,
@@ -413,11 +418,11 @@ export default {
     inlineImagePreviewMinSize: 64,
     inlineImagePreviewMaxSize: 148,
 
-    minimalTopBarOffset: -118,
-    minimalTopBarWithFiltersOffset: -162,
+    minimalTopBarOffset: -120,
+    minimalTopBarWithFiltersOffset: -164,
     searchHeaderDefaultOffset: 0,
-    searchListContentMarginTop: 118,
-    searchListContentWithFiltersMarginTop: 162,
+    searchListContentMarginTop: 120,
+    searchListContentWithFiltersMarginTop: 164,
     searchTopBarZIndex: 9,
 
     searchAutocompleteInputSkeletonHeight: 8,
