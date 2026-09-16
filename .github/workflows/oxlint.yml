@@ -1,5 +1,3 @@
-# Keeps its own baseline, config/oxlint/oxlint.seatbelt.tsv, because the seatbelt tightens itself
-# and a file shared with lint.yml would ping-pong between the two tools' counts.
 name: Oxlint check (non-blocking)
 
 on:

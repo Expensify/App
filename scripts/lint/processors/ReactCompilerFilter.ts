@@ -3,8 +3,6 @@ import path from 'node:path';
 
 import type {LintMessage, ProcessorContext} from '../types';
 
-// The shared rule list is ESM (.mjs) so oxlint's JS plugin runtime and the migration harness can
-// read the same source; Bun resolves it without the extension.
 // eslint-disable-next-line import/extensions
 import {EXHAUSTIVE_DEPS_USECALLBACK_USEMEMO_PATTERN, RULES_SUPPRESSED_BY_REACT_COMPILER} from '../../../config/reactCompiler/suppressedRules.mjs';
 import WorkerPool from '../../utils/WorkerPool';

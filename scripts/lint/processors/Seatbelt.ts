@@ -9,8 +9,6 @@ import Processor from '../Processor';
 import {LINT_SEVERITY} from '../types';
 
 const SEATBELT_NAME = 'eslint-seatbelt';
-// One baseline per linter. The seatbelt tightens itself, so a shared file would ping-pong between
-// ESLint's and Oxlint's counts on every CI run.
 const SEATBELT_TSV_BY_LINTER = {
     eslint: 'config/eslint/eslint.seatbelt.tsv',
     oxlint: 'config/oxlint/oxlint.seatbelt.tsv',

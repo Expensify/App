@@ -1,20 +1,8 @@
 {
-    // Mirrors config/eslint/eslint.config.mjs rule for rule. Every `"off"` in this file carries a
-    // comment saying which of three things it means, because "no findings today" is never the
-    // reason a rule is off here:
-    //   OFF, shadowed not dropped -- ESLint's own rule runs instead under a jsPlugin alias
-    //                               (core/, hosted/) because oxlint's native port diverges.
-    //   OFF, mirrors ESLint       -- ESLint has it off in the same scope; parity, not a gap.
-    //   OFF, coverage gap         -- we want the rule, something specific blocks it. The reason is
-    //                               on the line.
     "$schema": "./node_modules/oxlint/configuration_schema.json",
     "plugins": ["typescript", "import", "jsx-a11y", "unicorn", "react"],
-    // Aliases are declared here (oxlint's {name, specifier} form) rather than inferred from each
-    // plugin's meta.name: the alias is the prefix every suppression comment and comparison script
-    // has to use, so it belongs where a reader looks for it. The invented names are unavoidable --
-    // `react`, `import`, `jsdoc` are reserved for oxlint's native ports, and `core` cannot match
-    // ESLint's bare core ids (`no-restricted-syntax`) because a jsPlugin rule always has a prefix.
-    // Per-override jsPlugins stay bare package specifiers: their meta.name already matches the
+    // Aliases are declared here because oxlint reserves `react`, `import` and `jsdoc` for its native
+    // ports, and a jsPlugin rule id always carries a prefix.
     // prefix ESLint uses, so declaring it would only add noise.
     "jsPlugins": [
         {"name": "rulesdir", "specifier": "./config/oxlint/plugins/expensify-rules.mjs"},
@@ -29,14 +17,6 @@
     "options": {
         "typeAware": true
     },
-    // The 1058-entry globals list the migrator generated is gone (2026-08-11). Every name in it
-    // resolves through these env presets instead, and the presets track upstream rather than
-    // freezing a snapshot. Verified, not assumed: a generated file referencing all 1058 names
-    // produces zero `no-undef` findings, assigning to all 124 the list marked "writable"
-    // produces zero `no-global-assign` findings, and the union of the `globals` package presets
-    // used here contains nothing ESLint does not also define (which would silence a real
-    // no-undef). browser + audioworklet replace the bulk; jest mirrors the globals.jest block
-    // eslint.config.mjs applies to every file.
     "env": {
         "builtin": true,
         "es2026": true,
@@ -45,7 +25,6 @@
         "audioworklet": true,
         "jest": true
     },
-    // The one global no preset carries: eslint.config.mjs declares it next to globals.jest.
     "globals": {
         "__DEV__": "readonly"
     },
@@ -57,13 +36,8 @@
         "progress": {
             "hide": false
         }
-        // No `seatbelt` block, deliberately. eslint.config.mjs sets settings.seatbelt.seatbeltFile
-        // with path.join(dirname, ...), which JSON cannot express, and nothing on this side reads it:
-        // eslint-seatbelt suppresses through an ESLint processor, which oxlint has no concept of, so
-        // `eslint-seatbelt/configure` is off here. The block
-        // this replaces carried an absolute path from one developer's checkout, so it resolved
-        // nowhere else; verified dead, the full-repo report is identical without it. A `seatbelt`
-        // block belongs here again only once something on this side reads the baseline.
+        // `eslint-seatbelt/configure` is off: eslint-seatbelt suppresses through an ESLint processor,
+        // which oxlint has no concept of.
     },
     "ignorePatterns": [
         "!**/.storybook",
@@ -424,9 +398,6 @@
         "import/no-webpack-loader-syntax": "error",
         "import/no-named-default": "error",
         "import/no-self-import": "error",
-        // ON, and it is the one rule where oxlint is deliberately stricter than ESLint rather than
-        // mirroring it: ESLint enables this rule too but reports 0, while oxlint's implementation
-        // works. Every finding is a real cycle. Kept on so the cleanup has a number to work against.
         "import/no-cycle": "error",
         "rulesdir/context-provider-split-values": "error",
         "rulesdir/no-acc-spread-in-reduce": "error",
@@ -465,27 +436,16 @@
         "rulesdir/require-live-region-for-status-updates": "error",
         "rulesdir/require-locale-for-localized-date-format": "error",
         "rulesdir/use-double-negation-instead-of-boolean": "error",
-        // The four rulesdir rules below are listed as OFF on purpose rather than left out: a rule
-        // missing from this file is indistinguishable from an oversight. Each is still wanted — the
-        // reason it cannot run yet is on its own line.
         // OFF, blocked upstream: needs the type of the `&&` left operand; jsPlugins get no type info.
         "rulesdir/boolean-conditional-rendering": "off",
-        // OFF, superseded: needs typeChecker.isArrayType to tell arrays from records, so a syntactic
-        // port would fire on every obj[key]. Measured 2026-08-13: unicorn/prefer-at with
-        // checkAllIndexAccess reports 413 findings in src/, 0 of the sampled 104 real. What replaces
-        // it is `unicorn/prefer-at` at DEFAULT options, enabled above: that covers the
-        // x[x.length - N] half with no type information at all. Re-measured 2026-09-10 under this
-        // file's own ignorePatterns: 2 findings, the same 2 ESLint's copy of the rule reports.
-        // Plain arr[0] / arr[i] stays uncovered until jsPlugins get types.
+        // OFF, superseded: needs typeChecker.isArrayType, and jsPlugins get no type info.
+        // `unicorn/prefer-at` at default options stands in for the x[x.length - N] family.
         "rulesdir/prefer-at": "off",
-        // OFF here, ON for src/**/*.ts(x) below, mirroring ESLint's scope exactly. ESLint's copy of
-        // this rule needs the type checker, so oxlint runs a type-free rewrite
-        // (config/oxlint/preferLocaleCompareFromContext.mjs): the only type question it asks is
-        // "is the receiver a string", and localeCompare exists on exactly one built-in prototype.
+        // OFF here, ON for src/**/*.ts(x): ESLint's copy needs the type checker, so oxlint runs a
+        // type-free rewrite (config/oxlint/preferLocaleCompareFromContext.mjs) instead.
         "rulesdir/prefer-locale-compare-from-context": "off",
-        // Wired 2026-08-12 behind the React Compiler gate (config/oxlint/reactCompilerGate.mjs).
-        // Without the gate this reports 238 findings across 186 files that ESLint never shows,
-        // because its processor drops every message from this rule in a dual-memoized file.
+        // Hosted behind the React Compiler gate (config/oxlint/reactCompilerGate.mjs): ESLint's
+        // processor drops this rule's messages in a dual-memoized file, and the gate mirrors that.
         "rulesdir/no-inline-useOnyx-selector": "error",
         "no-array-constructor": "error",
         "no-bitwise": "error",
@@ -515,10 +475,8 @@
         "unicorn/prefer-array-find": "error",
         "unicorn/prefer-set-size": "error",
         "unicorn/prefer-string-replace-all": "error",
-        // ON with no ESLint counterpart, deliberately: it stands in for `rulesdir/prefer-at`, which
-        // cannot be ported because it needs the type checker. Default options only, which restricts
-        // it to the x[x.length - N] family and needs no type information; `checkAllIndexAccess` is
-        // what makes it unusable. See the `rulesdir/prefer-at` comment below.
+        // ON with no ESLint counterpart: stands in for `rulesdir/prefer-at`, which needs the type
+        // checker. Default options only; `checkAllIndexAccess` is what makes it unusable.
         "unicorn/prefer-at": "error",
         "no-delete-var": "error",
         "no-label-var": "error",
@@ -639,9 +597,6 @@
                 "enforceDynamicLinks": "always"
             }
         ],
-        // OFF, dead config on both tools: ESLint's preset allows .js/.jsx/.tsx and the JS override
-        // below turns it off for .js/.jsx/.mjs/.cjs, leaving .ts/.mts/.cts as the only scope where it
-        // could fire, and JSX does not parse in any of them (parse error, not a finding).
         "react/jsx-filename-extension": "off",
         "react/jsx-no-comment-textnodes": "error",
         "react/no-render-return-value": "error",
@@ -679,12 +634,9 @@
         // OFF, shadowed not dropped: oxlint's native port also fires inside Jest mock factories,
         // where ESLint's does not. ESLint's own rule runs as `hosted/function-component-definition`.
         "react/function-component-definition": "off",
-        // OFF, shadowed not dropped: ESLint's own rule runs as `hosted/jsx-no-constructed-context-values`
-        // behind the React Compiler gate, which a native Rust rule cannot have. Going native was
-        // measured and rejected on 2026-08-12: it works, but it needs 115 inline suppressions plus
-        // one for every context provider written from then on, because it cannot ask the compilers.
-        // The native port also diverges twice (both upstream bugs): it anchors on the JSX provider
-        // rather than the declaration, and it does not require the value to be declared in a component.
+        // OFF, ESLint's own rule runs as `hosted/jsx-no-constructed-context-values` behind the React
+        // Compiler gate, which a native Rust rule cannot have. The native port diverges too: it
+        // anchors on the JSX provider rather than the declaration.
         "react/jsx-no-constructed-context-values": "off",
         "react/no-unstable-nested-components": "error",
         "react/no-namespace": "error",
@@ -865,44 +817,14 @@
                 "message": "`with` is disallowed in strict mode because it makes code impossible to predict and optimize. It is also deprecated."
             }
         ],
-        // NOT oxlint's native react/exhaustive-deps: that is a Rust rule, and ESLint runs this rule
-        // behind the React Compiler message gate, which can only wrap a JS plugin. Native reported
-        // 49 against ESLint's 1, every one of them the "changes every render" advice the gate drops
-        // in a dual-memoized file. See config/oxlint/plugins/hosted-rules.mjs.
+        // NOT oxlint's native react/exhaustive-deps: it is a Rust rule, and the React Compiler
+        // message gate can only wrap a JS plugin. See config/oxlint/plugins/hosted-rules.mjs.
         "hosted/exhaustive-deps": "error",
-        // The React Compiler rules run as rc/* below, on the Rust compiler rather than the JavaScript
-        // one: config/oxlint/reactCompilerRust.mjs, which explains why `panicThreshold: "all_errors"`
-        // is what makes any of them report at all.
-        //
-        // All twelve are on, deliberately including the ones that only report part of what ESLint
-        // does. A rule that under-reports is visible in `npm run compare-oxlint`; a rule switched off
-        // reads identically to a clean codebase, which is the failure mode worth avoiding.
-        //
-        // Measured whole-repo against ESLint on oxc-transform-react 0.149.0:
-        //   refs                        215 vs 215   same count, 3 ESLint-only and 3 oxlint-only
-        //   set-state-in-effect         127 vs  47   partial, see below
-        //   preserve-manual-memoization   2 vs  65   over-reports, and 15 of its 25 files are flagged
-        //                                            by no other rc rule, so it is not just noise
-        //   immutability                  6 vs   7   one extra
-        //   static-components             2 vs   2   exact
-        //   the other seven                0 vs   0   latent in this repo
-        //
-        // Why some under-report: a fatal abort stops at the first function in a file that fails to
-        // compile and carries only the diagnostics accumulated by then, so later functions are not
-        // analyzed on that pass. Findings surface iteratively, one function per fix, rather than all
-        // at once. That is the whole reason `panicThreshold` has to be `all_errors`:
-        // oxc-transform-react 0.148.0 narrowed `result.errors` to fatal React Compiler diagnostics
-        // (oxc-project/oxc#26128) and `should_panic` answers false for the `none` default, so on the
-        // default every one of these rules reports exactly nothing.
-        //
-        // Tracked upstream as oxc-project/oxc#26318, "expose recoverable React Compiler diagnostics",
-        // open and unanswered as of 2026-09-09. It asks for a `diagnostics` array beside `errors`, or
-        // a Babel-style logger; the Rust side already carries category, span and help text per
-        // diagnostic and only the binding drops them. When that lands, `panicThreshold` can go back
-        // to `none` and the iterative reveal goes away.
-        //
-        // A drop-in alternative that matches ESLint exactly exists and is parked for speed: hosting
-        // these twelve rules from eslint-plugin-react-hooks costs about 15 s per whole-repo run.
+        // The React Compiler rules run as rc/* below, on the Rust compiler
+        // (config/oxlint/reactCompilerRust.mjs). `panicThreshold: "all_errors"` is what makes any of
+        // them report at all: oxc-transform-react narrowed `result.errors` to fatal diagnostics
+        // (oxc-project/oxc#26128), so on the default every one of these rules reports nothing.
+        // Tracked upstream as oxc-project/oxc#26318.
         "rc/refs": "error",
         "rc/set-state-in-effect": "error",
         "rc/set-state-in-render": "error",
@@ -926,45 +848,26 @@
         "core/no-unreachable-loop": ["error", {"ignore": []}],
         "hosted/jsx-no-bind": ["error", {"ignoreRefs": true, "allowArrowFunctions": true, "allowFunctions": false, "allowBind": false, "ignoreDOMComponents": true}],
         "hosted/function-component-definition": ["error", {"namedComponents": "function-declaration", "unnamedComponents": "arrow-function"}],
-        // Wired 2026-08-12 behind the React Compiler gate (config/oxlint/reactCompilerGate.mjs),
-        // which is why it is hosted rather than native: see the `react/` entry above.
         "hosted/jsx-no-constructed-context-values": "error",
         "hosted/prefer-default-export": "error",
         "hosted/order": ["error", {"groups": [["builtin", "external", "internal"]], "distinctGroup": true, "sortTypesGroup": false, "named": false, "warnOnUnassignedImports": false}],
         "hosted/no-types": "error",
-        // Wired 2026-08-11. These are the rules `npm run oxlint-rule-availability` used to report
-        // as "no oxlint counterpart". That label only ever meant "no native Rust port": core-rules
-        // .mjs loads ESLint's whole builtinRules map and hosted-rules.mjs the whole
-        // eslint-plugin-react / eslint-plugin-import maps, so each one was a single line away.
-        // Measured on a 101-second full-repo run: the core+import group costs +6 s, the 17 react
-        // rules +13 s. All of them report zero findings today and have zero seatbelt entries,
-        // which is why they were never noticed as missing -- and is not a reason to leave them out.
-        //
-        // no-invalid-this is the one that could NOT be wired: ESLint's implementation reaches
-        // sourceCode.getJSDocComment, which oxlint's JS bridge answers with a throw, so it errors
-        // on 36 files. Coverage gap.
+        // no-invalid-this is off: ESLint's implementation reaches sourceCode.getJSDocComment, which
+        // oxlint's JS bridge answers with a throw.
         "core/no-octal": "error",
         "core/no-octal-escape": "error",
         "core/no-undef-init": "error",
         "core/strict": ["error", "never"],
-        // Native in oxlint 1.78.0 (linter/eslint: Implement one-var rule, #24470), so no sidecar.
         "one-var": ["error", "never"],
-        // Stands in for ESLint's `no-new-object`, which ESLint itself deprecated in 8.50 and
-        // replaced with this rule. Oxlint only implements the new name. Deliberate difference,
-        // from ESLint's own deprecation note: the replacement also flags a bare `Object()` call
-        // and does NOT flag `new Object(arg)`. Neither shape exists in this repo.
+        // Stands in for ESLint's deprecated `no-new-object`: oxlint only implements the new name,
+        // which also flags bare `Object()` while not flagging `new Object(arg)`.
         "no-object-constructor": "error",
         "hosted/no-import-module-exports": ["error", {"exceptions": []}],
         "hosted/no-relative-packages": "error",
         "hosted/no-useless-path-segments": ["error", {"commonjs": true}],
-        // eslint-plugin-react's PropTypes / class-component era. Zero findings by design: none of
-        // them can fire on a function component with a TS props type. They guard the way back.
         "hosted/default-props-match-prop-types": ["error", {"allowRequiredDefaults": false}],
         "hosted/forbid-foreign-prop-types": ["error", {"allowInPropTypes": true}],
         "hosted/forbid-prop-types": ["error", {"forbid": ["any", "array", "object"], "checkContextTypes": true, "checkChildContextTypes": true}],
-        // jsx-uses-react and jsx-uses-vars never report: they only mark identifiers as used for
-        // no-unused-vars, which oxlint already handles JSX-aware. Enabled so the rule sets match
-        // exactly; there is no fixture for them because a rule that cannot report cannot have one.
         "hosted/jsx-uses-react": "error",
         "hosted/jsx-uses-vars": "error",
         "hosted/no-access-state-in-setstate": "error",
@@ -975,10 +878,7 @@
         "hosted/no-unused-class-component-methods": "error",
         "hosted/no-unused-prop-types": ["error", {"customValidators": [], "skipShapeProps": true}],
         "hosted/no-unused-state": "error",
-        // prefer-exact-props is the third rule with no fixture, for a different reason: it only
-        // reports when settings.propWrapperFunctions marks a wrapper `{exact: true}`, and this repo
-        // lists plain strings, so getExactPropWrapperFunctions returns an empty set and the rule is
-        // inert on BOTH tools. Enabled anyway, so that fixing the settings would enable it on both.
+        // Inert on both tools until settings.propWrapperFunctions marks a wrapper `{exact: true}`.
         "hosted/prefer-exact-props": "error",
         "hosted/prefer-stateless-function": ["error", {"ignorePureComponents": true}],
         "hosted/sort-comp": [
@@ -1031,11 +931,6 @@
             }
         ],
         "hosted/static-property-placement": ["error", "property assignment"]
-        // `config` and `gating` are the two compiler checks with no rc/* twin, and they are dropped
-        // rather than replaced: both need per-rule options to reach the compiler (a
-        // `gating`/`dynamicGating` source, or an option for the config validator to reject), which the
-        // shared per-file analysis behind rc/* deliberately does not take. Neither can fire in this
-        // repo, which passes them no options at all.
     },
     "overrides": [
         {
@@ -1050,20 +945,12 @@
                 "jsdoc/require-param": "error",
                 "jsdoc/require-param-type": "error",
                 "jsdoc/check-tag-names": "error",
-                // Wired 2026-08-11, second half of the same wave. These six are enabled by ESLint
-                // for plain JS only -- typescript-eslint's `eslint-recommended` switches them off
-                // for TS, where the compiler or a typed rule covers them. They went unnoticed
-                // because every file in the sampled coverage list was TypeScript, so the union
-                // never saw the plain-JS scope.
-                // Measured before wiring: all six report zero findings repo-wide.
                 "import/named": "error",
                 "no-undef": ["error", {"typeof": false}],
                 // Stands in for ESLint's `no-new-symbol`, deprecated in 9.x for this rule. Same
                 // rename mechanism as no-new-object -> no-object-constructor, see OXLINT_RENAMES.
                 "no-new-native-nonconstructor": "error",
                 // No native oxlint rule of any name; hosted from ESLint core through `core/`.
-                // `dot-notation` exists natively only as `typescript/dot-notation`, which this
-                // override switches off along with the rest of the typed rules.
                 "core/dot-notation": ["error", {"allowKeywords": true, "allowPattern": ""}],
                 "core/no-dupe-args": "error",
                 "core/no-return-await": "error"
@@ -1073,8 +960,6 @@
         {
             "files": ["**/*.ts", "**/*.tsx", "**/*.mts", "**/*.cts"],
             "rules": {
-                // Core rules the TypeScript compiler already enforces, off exactly as
-                // typescript-eslint's `eslint-recommended` switches them off for TS files.
                 "constructor-super": "off",
                 "getter-return": "off",
                 "no-class-assign": "off",
@@ -1123,10 +1008,7 @@
                 "typescript/no-require-imports": "error",
                 "typescript/no-this-alias": "error",
                 // ON although ESLint reports 0: tsgolint's TS7 inference disagrees with the repo's
-                // TS 6.0.2 about which assertions are unnecessary, so this is 685 findings ESLint
-                // does not show. Kept because it costs 3 s of a 78 s run, loses no finding on the
-                // other side, and has nothing to migrate: the seatbelt holds no rows for it and the
-                // repo carries one disable comment, which oxlint honors natively.
+                // TS 6.0.2 about which assertions are unnecessary.
                 "typescript/no-unnecessary-type-assertion": "error",
                 "typescript/no-unnecessary-type-constraint": "error",
                 "typescript/no-unsafe-declaration-merging": "error",
@@ -1143,12 +1025,8 @@
                 "typescript/restrict-template-expressions": "error",
                 "typescript/triple-slash-reference": "error",
                 "typescript/unbound-method": "error",
-                // typescript-eslint's own rule, hosted by config/oxlint/plugins/hosted-rules.mjs because
-                // tsgolint has not implemented it. It reports under the `hosted/` alias: oxlint
-                // rejects `@typescript-eslint` as a JS-plugin name ("reserved ... already implemented
-                // natively"), so ESLint's id cannot be reused and suppression comments need this one.
-                // TS-only, exactly as eslint-config-expensify scopes it; options copied verbatim
-                // from configs/public/typescript.js.
+                // Hosted because tsgolint has not implemented it; oxlint rejects `@typescript-eslint`
+                // as a JS-plugin name, so it reports under the `hosted/` alias.
                 "hosted/naming-convention": [
                     "error",
                     {"selector": ["variable", "property"], "format": null, "filter": {"regex": "^__esModule$", "match": true}},
@@ -1157,9 +1035,6 @@
                     {"selector": ["typeLike", "enumMember"], "format": ["PascalCase"]},
                     {"selector": ["parameter", "method"], "format": ["camelCase", "PascalCase"], "leadingUnderscore": "allow"}
                 ],
-                // TS-only as well: eslint-config-expensify sets it in configs/public/typescript.js,
-                // and its formatting config is not applied to plain JS here, so `index.js` has the
-                // rule absent. Verified with `eslint --print-config` on both, not assumed.
                 "core/lines-between-class-members": ["error", "always", {"exceptAfterSingleLine": false}]
             }
         },
@@ -1345,7 +1220,6 @@
                 ]
             },
             "plugins": ["jsdoc"]
-            // `env: {jest: true}` removed: the root env carries it, at the same scope ESLint does.
         },
         {
             "files": ["**/*.ts", "**/*.tsx", "**/*.js", "**/*.jsx", "**/*.mjs", "**/*.cjs"],
@@ -1571,9 +1445,6 @@
             },
             "jsPlugins": ["eslint-plugin-react-native-a11y", "@dword-design/eslint-plugin-import-alias", "eslint-plugin-lodash"],
             "plugins": ["jsdoc"]
-            // `env: {jest: true}` and `globals: {__DEV__}` removed: both are on at the root now,
-            // which is the same scope ESLint applies them at (its globals.jest block matches every
-            // linted extension).
         },
         {
             "files": ["**/*.js", "**/*.jsx", "**/*.mjs", "**/*.cjs"],
@@ -1674,10 +1545,6 @@
                 "no-await-in-loop": "off",
                 "core/no-restricted-syntax": ["error", "ForInStatement", "LabeledStatement", "WithStatement"]
             }
-            // No globals block here any more: all 70 names it listed (Buffer, AbortController,
-            // Blob, ...) resolve through the root `env.node`, verified by probing every one of
-            // them for `no-undef`. ESLint scopes globals.node to these directories; oxlint has
-            // had it repo-wide since the migration, so the list was already only documentation.
         },
         {
             "files": [".github/**/*"],
@@ -1696,10 +1563,8 @@
             }
         },
         {
-            // Mirrors config/eslint/eslint.config.mjs:585-602. These sources are bundled as real ESM, so a
-            // CJS idiom builds fine and then throws a ReferenceError in CI. ESLint replaces the rule value
-            // for this scope rather than merging, and so does an oxlint override, so the airbnb browser list
-            // from the root is deliberately not repeated here: this matches what ESLint actually resolves.
+            // An oxlint override replaces the rule value rather than merging, so the airbnb browser
+            // list from the root is deliberately not repeated here.
             "files": [".github/actions/**/*.ts", ".github/libs/**/*.ts"],
             "rules": {
                 "no-restricted-globals": [
@@ -2063,14 +1928,12 @@
             }
         },
         {
-            // The typography token files are where raw font sizes and line heights are defined.
             "files": ["src/styles/typography.ts", "src/styles/variables.ts"],
             "rules": {
                 "rulesdir/no-raw-typography": "off"
             }
         },
         {
-            // The styles layer composes tokens out of `variables`, so it reads them by name. Raw numeric literals stay banned.
             "files": ["src/styles/**"],
             "excludeFiles": ["src/styles/typography.ts", "src/styles/variables.ts"],
             "rules": {
@@ -2349,8 +2212,6 @@
         {
             "files": ["**/*.js", "**/*.jsx", "**/*.mjs", "**/*.cjs"],
             "rules": {
-                // Every typed rule below is OFF only to mirror ESLint: typescript-eslint switches
-                // its typed rules off for plain-JS files, so these are parity, not coverage gaps.
                 "typescript/await-thenable": "off",
                 "typescript/consistent-type-exports": "off",
                 "typescript/dot-notation": "off",
@@ -2402,8 +2263,6 @@
                 "typescript/switch-exhaustiveness-check": "off",
                 "typescript/unbound-method": "off",
                 "typescript/use-unknown-in-catch-callback-variable": "off",
-                // Also off in the `scripts/**` / `.github/**` block above, to the same value, so the
-                // 27 plain-JS files the two share get the same answer either way.
                 "typescript/no-unsafe-assignment": "off",
                 "typescript/no-unsafe-argument": "off",
                 "typescript/no-unsafe-return": "off",
@@ -2431,10 +2290,8 @@
             }
         },
         {
-            // Mirrors `plugin:storybook/recommended`, which config/eslint/eslint.config.mjs pulls in
-            // through FlatCompat. The plugin scopes these to story files itself; oxlint has no
-            // storybook plugin, so the scope has to be restated here. Severities are the upstream
-            // ones, warn included, so the two tools report the same thing.
+            // oxlint has no storybook plugin, so the story-file scope `plugin:storybook/recommended`
+            // applies internally is restated here, with the upstream severities.
             "files": [
                 "**/*.stories.ts",
                 "**/*.stories.tsx",
@@ -2450,11 +2307,8 @@
                 "**/*.story.cjs"
             ],
             "rules": {
-                // Mirrors the storybook preset, which ESLint picks up through
-                // `plugin:storybook/recommended` (config/eslint/eslint.config.mjs:241-246) and which
-                // turns this off for the same glob list. Stories call hook-like helpers outside a
-                // component, so the rule fires on shapes the preset considers legal. Oxlint enabled it
-                // everywhere and was the stricter of the two; this closes that difference.
+                // The storybook preset turns this rule off for story globs; oxlint enabled it
+                // everywhere, so this mirrors the preset's scope.
                 "react/rules-of-hooks": "off",
                 "hosted/await-interactions": "error",
                 "hosted/context-in-play-function": "error",
@@ -2477,8 +2331,6 @@
             }
         },
         {
-            // Mirrors config/eslint/eslint.config.mjs: every Onyx type carries a comment. Documented
-            // there as the one place jsdoc/require-jsdoc is worth enforcing.
             "files": ["src/types/onyx/**/*.ts"],
             "rules": {
                 "hosted/require-jsdoc": ["error", {"contexts": ["TSInterfaceDeclaration", "TSTypeAliasDeclaration"]}]
