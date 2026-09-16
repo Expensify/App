@@ -94,6 +94,8 @@ function isHarvestCreatedExpenseReport(origin?: string, originalID?: string): bo
     return !!originalID && origin === 'harvest';
 }
 
+const reportsWithPayAction = new Set<string>();
+
 let allReportActions: OnyxCollection<ReportActions>;
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
@@ -1804,7 +1806,18 @@ function hasSiblingPayReportAction(reportAction: OnyxEntry<ReportAction>): boole
     if (!reportID) {
         return false;
     }
-    return Object.values(getAllReportActions(reportID)).some((action) => isPayAction(action));
+
+    if (reportsWithPayAction.has(reportID)) {
+        return true;
+    }
+
+    // Once a PAY action is found, unrelated report updates cannot change the result. Don't cache misses since PAY may arrive later.
+    const hasPayAction = Object.values(getAllReportActions(reportID)).some((action) => isPayAction(action));
+    if (hasPayAction) {
+        reportsWithPayAction.add(reportID);
+    }
+
+    return hasPayAction;
 }
 
 function isTaskAction(reportAction: OnyxEntry<ReportAction>): boolean {
