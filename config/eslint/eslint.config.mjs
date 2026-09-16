@@ -44,16 +44,6 @@ rulesdir.RULES_DIR = [expensifyRulesDir, localRulesDir];
 
 const restrictedImportPaths = [
     {
-        name: '@components/Button',
-        importNames: ['default'],
-        message: 'The legacy Button is deprecated. Please use the composed Button from `@components/ButtonComposed` instead. Importing the `ButtonProps` type from here is still allowed.',
-    },
-    {
-        name: '@src/components/Button',
-        importNames: ['default'],
-        message: 'The legacy Button is deprecated. Please use the composed Button from `@components/ButtonComposed` instead. Importing the `ButtonProps` type from here is still allowed.',
-    },
-    {
         name: 'react-native',
         importNames: [
             'useWindowDimensions',
@@ -692,6 +682,28 @@ const config = defineConfig([
                 {
                     paths: restrictedImportPaths,
                     patterns: [...restrictedImportPatterns, ...restrictedReportNameImportPatterns, ...restrictedPaidGroupPolicyImportPatterns],
+                },
+            ],
+        },
+    },
+
+    {
+        files: ['**/*.ts', '**/*.tsx'],
+        plugins: {
+            '@typescript-eslint': tseslint.plugin,
+        },
+        rules: {
+            '@typescript-eslint/no-restricted-imports': [
+                'error',
+                {
+                    paths: [
+                        {
+                            name: 'react-native-onyx/dist/OnyxUtils',
+                            message:
+                                'OnyxUtils is not a sanctioned way to read Onyx data. Use useOnyx() from @hooks/useOnyx in render paths, or a short-lived Onyx.connectWithoutView() for non-render logic. Type-only imports are still allowed.',
+                            allowTypeImports: true,
+                        },
+                    ],
                 },
             ],
         },
