@@ -2533,7 +2533,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         if (isExpenseReportSearch && selectedReportIDs.length > 0) {
             options.push({
                 icon: expensifyIcons.Download,
-                text: translate('common.downloadAsPDF'),
+                text: translate('common.downloadReport', {count: selectedReportIDs.length}),
                 value: CONST.SEARCH.BULK_ACTION_TYPES.DOWNLOAD_PDF,
                 shouldCloseModalOnSelect: true,
                 onSelected: async () => {
@@ -2560,13 +2560,13 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             });
         }
 
-        const hasSelectedReportsWithReceipts = Object.values(allTransactions ?? {}).some(
+        const selectedReportReceiptCount = Object.values(allTransactions ?? {}).filter(
             (transaction) => !!transaction && selectedReports.some((report) => report.reportID === transaction.reportID) && hasReceiptTransactionUtils(transaction),
-        );
-        if (isExpenseReportSearch && selectedReportIDs.length > 0 && hasSelectedReportsWithReceipts) {
+        ).length;
+        if (isExpenseReportSearch && selectedReportIDs.length > 0 && selectedReportReceiptCount > 0) {
             options.push({
                 icon: expensifyIcons.Download,
-                text: translate('common.downloadReceipts'),
+                text: translate('common.downloadReceipt', {count: selectedReportReceiptCount}),
                 value: CONST.SEARCH.BULK_ACTION_TYPES.DOWNLOAD_RECEIPTS,
                 shouldCloseModalOnSelect: true,
                 onSelected: () => {
@@ -2596,7 +2596,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         if (isExpenseSearch && transactionIDs.length > 0) {
             options.push({
                 icon: expensifyIcons.Download,
-                text: translate('common.downloadReceipts'),
+                text: translate('common.downloadReceipt', {count: transactionIDs.length}),
                 value: CONST.SEARCH.BULK_ACTION_TYPES.DOWNLOAD_RECEIPTS,
                 shouldCloseModalOnSelect: true,
                 onSelected: () => {

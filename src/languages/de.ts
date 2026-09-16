@@ -416,8 +416,14 @@ const translations: TranslationDeepObject<typeof en> = {
         subrate: 'Nebensatzrate',
         perDiem: 'Tagegeld',
         validate: 'Validieren',
-        downloadAsPDF: 'Als PDF herunterladen',
-        downloadReceipts: 'Belege herunterladen',
+        downloadReport: () => ({
+            one: 'Bericht herunterladen',
+            other: 'Berichte herunterladen',
+        }),
+        downloadReceipt: () => ({
+            one: 'Beleg herunterladen',
+            other: 'Belege herunterladen',
+        }),
         downloadAsCSV: 'Als CSV herunterladen',
         submitViaPDF: 'Per PDF einreichen',
         print: 'Drucken',

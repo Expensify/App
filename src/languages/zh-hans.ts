@@ -415,8 +415,14 @@ const translations: TranslationDeepObject<typeof en> = {
         subrate: '次级费率',
         perDiem: '每日津贴',
         validate: '验证',
-        downloadAsPDF: '下载为 PDF',
-        downloadReceipts: '下载收据',
+        downloadReport: () => ({
+            one: '下载报表',
+            other: '下载报告',
+        }),
+        downloadReceipt: () => ({
+            one: '下载收据',
+            other: '下载收据',
+        }),
         downloadAsCSV: '下载为 CSV',
         submitViaPDF: '通过 PDF 提交',
         print: '打印',
