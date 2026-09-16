@@ -1369,7 +1369,6 @@ const translations: TranslationDeepObject<typeof en> = {
             cta: 'Προσθήκη οικιακής διεύθυνσης',
         },
         amount: 'Ποσό',
-        expenseDetails: 'Λεπτομέρειες εξόδου',
         percent: 'Ποσοστό',
         date: 'Ημερομηνία',
         taxAmount: 'Ποσό φόρου',
