@@ -21,9 +21,9 @@ import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct'
 
 /**
  * Locks in the bulk-edit tag deselect fix (issue #100538). A select then deselect of the same tag level
- * is a net no-op, so `saveTag` must return the draft to "no tag edit": drop the recorded intent AND drop
- * the flattened summary tag when nothing real is left. We assert the exact payload `saveTag` hands to
- * `updateBulkEditDraftTransaction`, which is what apply time later replays onto each expense.
+ * is a net no-op, so `saveTag` must drop the recorded per-level intent. `bulkEditTagChanges` is the single
+ * source of truth for the save (the flattened `tag` is display-only), so we assert the recorded intent.
+ * The apply-time write safety is covered in tests/actions/IOUTest/BulkEditTest.ts.
  */
 
 const POLICY_ID = 'A1B2C3';
@@ -141,9 +141,8 @@ describe('SearchEditMultipleTagPage saveTag (bulk-edit tag deselect, #100538)', 
             tappedTag: 'TagA',
         });
 
-        // Intent deleted (null) and flattened tag cleared: apply time writes nothing, so no flicker and
-        // no MODIFIED_EXPENSE system message.
-        expect(payload).toEqual({tag: null, bulkEditTagChanges: expectChanges([[0, null]])});
+        // Intent deleted (null): apply time writes nothing, so no flicker and no MODIFIED_EXPENSE message.
+        expect(payload?.bulkEditTagChanges).toEqual(expectChanges([[0, null]]));
     });
 
     it('independent multi-level: deselecting the child leaves the shared parent intact', async () => {
@@ -155,8 +154,8 @@ describe('SearchEditMultipleTagPage saveTag (bulk-edit tag deselect, #100538)', 
             tappedTag: 'P7',
         });
 
-        // Nothing real remains, so the flattened tag is dropped instead of collapsing to R1 and wiping P7.
-        expect(payload).toEqual({tag: null, bulkEditTagChanges: expectChanges([[1, null]])});
+        // Child intent deleted, so apply time keeps each expense's own R1:P7 instead of collapsing to R1.
+        expect(payload?.bulkEditTagChanges).toEqual(expectChanges([[1, null]]));
     });
 
     it('dependent multi-level: deselecting the child does not strip it (null-alone regression)', async () => {
@@ -168,9 +167,8 @@ describe('SearchEditMultipleTagPage saveTag (bulk-edit tag deselect, #100538)', 
             tappedTag: 'IndicationX',
         });
 
-        // Deleting only the intent would leave the flattened tag as CostCenterA and strip IndicationX on
-        // save. Clearing the flattened tag too keeps CostCenterA:IndicationX untouched.
-        expect(payload).toEqual({tag: null, bulkEditTagChanges: expectChanges([[1, null]])});
+        // Child intent deleted, so apply time keeps CostCenterA:IndicationX untouched (null-alone regression).
+        expect(payload?.bulkEditTagChanges).toEqual(expectChanges([[1, null]]));
     });
 
     it('dependent multi-level: deselecting an auto-selected child still records a real clear', async () => {
@@ -184,8 +182,7 @@ describe('SearchEditMultipleTagPage saveTag (bulk-edit tag deselect, #100538)', 
             tappedTag: 'IndicationX',
         });
 
-        // Keeps '' so apply time trims the child, and keeps the flattened parent because a real intent
-        // (CostCenterA) survives. This preserves the behavior PR #97951 intentionally added.
-        expect(payload).toEqual({tag: 'CostCenterA', bulkEditTagChanges: expectChanges([[1, '']])});
+        // Keeps '' so apply time genuinely trims the child. This preserves the behavior PR #97951 added.
+        expect(payload?.bulkEditTagChanges).toEqual(expectChanges([[1, '']]));
     });
 });
