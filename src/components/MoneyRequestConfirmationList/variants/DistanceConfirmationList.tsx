@@ -174,7 +174,7 @@ function DistanceConfirmationList(props: DistanceConfirmationListProps) {
 
     return (
         <ConfirmationDataContext.Provider value={data}>
-            <TaxController />
+            <TaxController distanceState={distanceState} />
             <DistanceRequestController distanceState={distanceState} />
             <SplitBillController />
             <FieldAutoSelector />

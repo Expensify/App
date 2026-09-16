@@ -42,7 +42,6 @@ import usePolicyCategoriesForConfirmation from './usePolicyCategoriesForConfirma
 import usePolicyTagsForConfirmation from './usePolicyTagsForConfirmation';
 import useReceiptTraining from './useReceiptTraining';
 import useSplitParticipants from './useSplitParticipants';
-import useTaxAmount from './useTaxAmount';
 import useTransactionReportForConfirmation from './useTransactionReportForConfirmation';
 
 /**
@@ -52,7 +51,7 @@ import useTransactionReportForConfirmation from './useTransactionReportForConfir
  */
 type ConfirmationDistanceState = Pick<
     ReturnType<typeof useDistanceRequestState>,
-    'isDistanceRequestWithPendingRoute' | 'shouldCalculateDistanceAmount' | 'distanceRequestAmount' | 'currency' | 'prevCurrency' | 'distance' | 'unit'
+    'isDistanceRequestWithPendingRoute' | 'shouldCalculateDistanceAmount' | 'distanceRequestAmount' | 'currency' | 'prevCurrency'
 >;
 
 type UseConfirmationListDataParams = {
@@ -174,8 +173,6 @@ function useConfirmationListData({
         distanceRequestAmount = 0,
         currency: distanceCurrency,
         prevCurrency,
-        distance = 0,
-        unit: distanceUnit,
     }: Partial<ConfirmationDistanceState> = distanceState ?? {};
 
     const {receiptPath = '', isLoadingReceipt = false} = receiptOptions ?? {};
@@ -183,7 +180,7 @@ function useConfirmationListData({
     const policyCategories = usePolicyCategoriesForConfirmation(policyID);
     const {policyTags, policyTagLists} = usePolicyTagsForConfirmation(policyID);
     const transactionReport = useTransactionReportForConfirmation(transaction?.reportID);
-    const {policyForMovingExpenses, shouldSelectPolicy} = usePolicyForMovingExpenses();
+    const {shouldSelectPolicy} = usePolicyForMovingExpenses();
     const isMovingTransactionFromTrackExpense = isMovingTransactionFromTrackExpenseUtil(action);
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
@@ -224,7 +221,6 @@ function useConfirmationListData({
     const isFromGlobalCreateAndCanEditParticipant = !!transaction?.isFromGlobalCreate && !isPerDiemRequest && !isTimeRequest;
 
     const transactionID = transaction?.transactionID;
-    const previousTransactionCurrency = usePrevious(transaction?.currency);
     const customUnitRateID = getRateID(transaction);
 
     const subRates = transaction?.comment?.customUnit?.subRates ?? [];
@@ -237,20 +233,6 @@ function useConfirmationListData({
     const shouldShowMerchant = (shouldShowSmartScanFields || isTypeSend) && !isDistanceRequest && !isPerDiemRequest && (!isTimeRequest || action !== CONST.IOU.ACTION.CREATE);
 
     const shouldShowTax = isTaxTrackingEnabled(isPolicyExpenseChat || isTrackExpense, policy, isDistanceRequest, isPerDiemRequest, isTimeRequest);
-
-    // Cheap for the types that never show a tax field — it reads the policy's rates and subscribes to nothing —
-    // so it is resolved here rather than in each variant that mounts `TaxController`.
-    const tax = useTaxAmount({
-        transaction,
-        policy,
-        policyForMovingExpenses,
-        isDistanceRequest,
-        isMovingTransactionFromTrackExpense,
-        customUnitRateID,
-        distance,
-        distanceUnit,
-        previousTransactionCurrency,
-    });
 
     const {amountToBeUsed, formattedAmount, formattedAmountPerAttendee, isScanRequest} = useConfirmationAmount({
         transaction,
@@ -514,9 +496,6 @@ function useConfirmationListData({
         requiredFlags: {isCategoryRequired, isMerchantRequired, isDescriptionRequired},
         visibilityFlags: {shouldShowSmartScanFields, shouldShowAmountField: !isPerDiemRequest, shouldShowMerchant, shouldShowCategories, shouldShowTax},
         errorState: {shouldDisplayFieldError, formError, clearFormErrors, setFormError},
-
-        /** Resolved tax values, read by `TaxController`. */
-        tax,
 
         // Shared values, read from context by the side-effect controllers and passed on to the footers
         transaction,
