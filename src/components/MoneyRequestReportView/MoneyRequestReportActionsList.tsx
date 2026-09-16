@@ -42,7 +42,7 @@ import {useActionListContext, useActionListRef} from '@pages/inbox/ActionListCon
 import {useAgentZeroStatus} from '@pages/inbox/AgentZeroStatusContext';
 import {useConciergeDraft} from '@pages/inbox/ConciergeDraftContext';
 import FloatingMessageCounter from '@pages/inbox/report/FloatingMessageCounter';
-import ReportActionIndexContext from '@pages/inbox/report/ReportActionIndexContext';
+import {ReportActionPositionContextProvider, ReportActionScrollToNewestContext} from '@pages/inbox/report/ReportActionIndexContext';
 import ReportActionsListItemRenderer from '@pages/inbox/report/ReportActionsListItemRenderer';
 import useReportUnreadMessageScrollTracking from '@pages/inbox/report/useReportUnreadMessageScrollTracking';
 
@@ -465,27 +465,33 @@ function MoneyRequestReportActionsListContent({reportIDFromRoute, onLayout}: Mon
                 !isConsecutiveChronosAutomaticTimerAction(visibleReportActions, indexWithinReportActions, chatIncludesChronosWithID(reportAction?.reportID), isOffline) &&
                 hasNextActionMadeBySameActor(visibleReportActions, indexWithinReportActions, isOffline);
             const shouldDisableContextMenuForConciergeDraft = isDraftPendingCompletion && draftReportActionID === reportAction.reportActionID;
+            const isNewestReportAction = indexWithinReportActions === visibleReportActions.length - 1;
 
             return (
-                <ReportActionIndexContext.Provider value={indexWithinReportActions}>
-                    <ReportActionsListItemRenderer
-                        reportAction={reportAction}
-                        parentReportAction={parentReportAction}
-                        parentReportActionForTransactionThread={EmptyParentReportActionForTransactionThread}
-                        report={reportStable}
-                        transactionThreadReport={transactionThreadReport}
-                        chatReport={chatReport}
-                        displayAsGroup={displayAsGroup}
-                        shouldDisplayNewMarker={reportAction.reportActionID === unreadMarkerReportActionID}
-                        shouldDisplayReplyDivider={visibleReportActions.length > 1}
-                        isFirstVisibleReportAction={firstVisibleReportActionID === reportAction.reportActionID}
-                        shouldHideThreadDividerLine
-                        linkedReportActionID={linkedReportActionID}
-                        isHarvestCreatedExpenseReport={shouldShowHarvestCreatedAction}
-                        shouldDisableContextMenuForConciergeDraft={shouldDisableContextMenuForConciergeDraft}
-                        isLatestConciergeFeedbackAction={!!latestConciergeFeedbackActionID && latestConciergeFeedbackActionID === reportAction.reportActionID}
-                    />
-                </ReportActionIndexContext.Provider>
+                <ReportActionScrollToNewestContext.Provider value={scrollToBottom}>
+                    <ReportActionPositionContextProvider
+                        index={indexWithinReportActions}
+                        isNewest={isNewestReportAction}
+                    >
+                        <ReportActionsListItemRenderer
+                            reportAction={reportAction}
+                            parentReportAction={parentReportAction}
+                            parentReportActionForTransactionThread={EmptyParentReportActionForTransactionThread}
+                            report={reportStable}
+                            transactionThreadReport={transactionThreadReport}
+                            chatReport={chatReport}
+                            displayAsGroup={displayAsGroup}
+                            shouldDisplayNewMarker={reportAction.reportActionID === unreadMarkerReportActionID}
+                            shouldDisplayReplyDivider={visibleReportActions.length > 1}
+                            isFirstVisibleReportAction={firstVisibleReportActionID === reportAction.reportActionID}
+                            shouldHideThreadDividerLine
+                            linkedReportActionID={linkedReportActionID}
+                            isHarvestCreatedExpenseReport={shouldShowHarvestCreatedAction}
+                            shouldDisableContextMenuForConciergeDraft={shouldDisableContextMenuForConciergeDraft}
+                            isLatestConciergeFeedbackAction={!!latestConciergeFeedbackActionID && latestConciergeFeedbackActionID === reportAction.reportActionID}
+                        />
+                    </ReportActionPositionContextProvider>
+                </ReportActionScrollToNewestContext.Provider>
             );
         },
         [
@@ -502,6 +508,7 @@ function MoneyRequestReportActionsListContent({reportIDFromRoute, onLayout}: Mon
             draftReportActionID,
             isDraftPendingCompletion,
             latestConciergeFeedbackActionID,
+            scrollToBottom,
         ],
     );
 
