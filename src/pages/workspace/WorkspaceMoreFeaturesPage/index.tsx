@@ -96,10 +96,10 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {translate} = useLocalize();
     const {isBetaEnabled, isBetaEnabledOrUnknown} = usePermissions();
+    // Undefined until the betas load. The action calls below need that distinction, the UI gating just treats it as off
     const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const {showConfirmModal} = useConfirmModal();
-    const isVendorMatchingEnabled = isBetaEnabled(CONST.BETAS.VENDOR_MATCHING);
     const isRecruitingBetaEnabled = isBetaEnabled(CONST.BETAS.MERGE_ATS);
     const illustrations = useMemoizedLazyIllustrations([
         'FolderOpen',
@@ -184,7 +184,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
             CONST.POLICY.CONNECTIONS.NAME.RILLET,
             CONST.POLICY.CONNECTIONS.NAME.DUALENTRY,
         ]);
-    const shouldShowVendorsFeature = vendorMatchingConnection === CONST.POLICY.CONNECTIONS.NAME.QBO || (isVendorMatchingEnabled && !!vendorMatchingConnection);
+    const shouldShowVendorsFeature = vendorMatchingConnection === CONST.POLICY.CONNECTIONS.NAME.QBO || (!!isVendorMatchingBetaEnabled && !!vendorMatchingConnection);
 
     const warnAccountingManagesOrganizeFeature = async () => {
         if (!hasAccountingConnection || !policyID) {
@@ -571,7 +571,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                                 icon={illustrations.Briefcase}
                                 title={translate('workspace.moreFeatures.vendors.title')}
                                 subtitle={translate('workspace.moreFeatures.vendors.subtitle')}
-                                isActive={hasVendorFeature(policy, isVendorMatchingEnabled)}
+                                isActive={hasVendorFeature(policy, isVendorMatchingBetaEnabled ?? false)}
                                 // The Vendors switch is locked for everyone until the EnablePolicyVendors backend command exists.
                                 // Its active state is derived from policy.connections (via hasVendorFeature), so there's nothing
                                 // to toggle yet; locking it avoids shipping a switch that silently no-ops. Read-only users still
