@@ -87,6 +87,7 @@ function renderSubmission(overrides: Partial<UseParticipantSubmissionParams> = {
             isMovingTransactionFromTrackExpense: true,
             isFocused: true,
             isWorkspacesOnly: false,
+            shouldExcludeWorkspaces: false,
             ...overrides,
         }),
     );
