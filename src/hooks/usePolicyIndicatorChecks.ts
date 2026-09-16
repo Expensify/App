@@ -1,6 +1,6 @@
 import {isConnectionInProgress} from '@libs/actions/connections';
 import {shouldShowQBOReimbursableExportDestinationAccountError} from '@libs/actions/connections/QuickbooksOnline';
-import {hasDomainErrors, hasPendingDomainAdminRequestsToReview} from '@libs/DomainUtils';
+import {getDomainsWithErrors, hasPendingDomainAdminRequestsToReview} from '@libs/DomainUtils';
 import {isMergeHRCompleteSetupNeeded, shouldShowHRConnectionError} from '@libs/merge/HRUtils';
 import {
     getUberConnectionErrorDirectlyFromPolicy,
@@ -79,14 +79,7 @@ function usePolicyIndicatorChecks(): PolicyIndicatorChecksResult {
     const policyInfoChecks: Array<[IndicatorStatus, Policy | undefined]> = [
         [CONST.INDICATOR_STATUS.HAS_MERGE_HR_SETUP_NEEDED, cleanPolicies.find((policy) => isPolicyAdmin(policy) && isMergeHRCompleteSetupNeeded(policy))],
     ];
-    const domainChecks: Array<[IndicatorStatus, boolean]> = [
-        [
-            CONST.INDICATOR_STATUS.HAS_DOMAIN_ERRORS,
-            Object.entries(allDomainErrors ?? {}).some(([key, domainErrors]) =>
-                hasDomainErrors(domainErrors, allDomains?.[key.replace(ONYXKEYS.COLLECTION.DOMAIN_ERRORS, ONYXKEYS.COLLECTION.DOMAIN)]),
-            ),
-        ],
-    ];
+    const domainChecks: Array<[IndicatorStatus, boolean]> = [[CONST.INDICATOR_STATUS.HAS_DOMAIN_ERRORS, getDomainsWithErrors(allDomainErrors, allDomains).length > 0]];
     const domainInfoChecks: Array<[IndicatorStatus, boolean]> = [[CONST.INDICATOR_STATUS.HAS_PENDING_DOMAIN_ADMIN_REQUESTS, hasPendingDomainAdminRequests]];
 
     const activePolicyErrorCheck = policyErrorChecks.find(([, value]) => value);

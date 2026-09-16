@@ -6,7 +6,7 @@ import useShouldDisplayButtonsInSeparateLine from '@hooks/useShouldDisplayButton
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {getDomainsWithErrorsCount} from '@libs/DomainUtils';
+import {getDomainsWithErrors} from '@libs/DomainUtils';
 import Navigation from '@libs/Navigation/Navigation';
 
 import useReviewDomainAdminRequests from '@pages/home/ForYouSection/useReviewDomainAdminRequests';
@@ -49,7 +49,7 @@ function WorkspaceListHeaderContent({activeTabKey, headerButton, shouldShowHeade
     const {count: pendingDomainAdminRequestsCount} = useReviewDomainAdminRequests();
     const [allDomainErrors] = useOnyx(ONYXKEYS.COLLECTION.DOMAIN_ERRORS);
     const [allDomains] = useOnyx(ONYXKEYS.COLLECTION.DOMAIN);
-    const domainErrorsCount = getDomainsWithErrorsCount(allDomainErrors, allDomains);
+    const domainErrorsCount = getDomainsWithErrors(allDomainErrors, allDomains).length;
 
     // Domains tab badge: domain errors (red) take priority over pending admin requests (green).
     const hasDomainErrors = domainErrorsCount > 0;

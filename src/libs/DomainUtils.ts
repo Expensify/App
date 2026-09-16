@@ -109,11 +109,11 @@ function getDomainBrickRoadIndicator(hasErrors: boolean, hasPendingAdminRequests
     }
 }
 
-/** Counts how many domains currently have errors. Mirrors the tab-level RBR check in usePolicyIndicatorChecks. */
-function getDomainsWithErrorsCount(allDomainErrors: OnyxCollection<DomainErrors>, allDomains: OnyxCollection<Domain>): number {
+/** Returns the domain error entries for domains that currently have errors. */
+function getDomainsWithErrors(allDomainErrors: OnyxCollection<DomainErrors>, allDomains: OnyxCollection<Domain>): Array<[string, OnyxEntry<DomainErrors>]> {
     return Object.entries(allDomainErrors ?? {}).filter(([key, domainErrors]) =>
         hasDomainErrors(domainErrors, allDomains?.[key.replace(ONYXKEYS.COLLECTION.DOMAIN_ERRORS, ONYXKEYS.COLLECTION.DOMAIN)]),
-    ).length;
+    );
 }
 
 /**
@@ -189,5 +189,5 @@ export {
     hasDomainGroupDetailsErrors,
     getMemberCustomRowProps,
     getDomainBrickRoadIndicator,
-    getDomainsWithErrorsCount,
+    getDomainsWithErrors,
 };
