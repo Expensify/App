@@ -8562,12 +8562,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                 }
             },
             syncResults: {
-                title: (provider: string) => `Sincronização com ${provider} concluída`,
-                successTitle: (provider: string) => `Conexão com ${provider} sincronizada com sucesso!`,
-                added: 'Adicionado',
-                removed: 'Removido',
-                skipped: 'Ignorado',
-                employeeCount: () => ({
+                importedCount: () => ({
                     one: '1 funcionário',
                     other: (count: number) => `${count} funcionários`,
                 }),
@@ -8624,6 +8619,13 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                 advanced: 'Aprovação avançada',
             },
             syncLimitReached: {title: 'Tente novamente amanhã', prompt: 'Você atingiu o limite de sincronizações de hoje.'},
+            syncResults: {
+                title: (provider: string) => `Sincronização com ${provider} concluída`,
+                successTitle: (provider: string) => `Conexão com ${provider} sincronizada com sucesso!`,
+                added: 'Adicionado',
+                removed: 'Removido',
+                skipped: 'Ignorado',
+            },
         },
         emptyDomain: {
             title: 'Aumente sua segurança com domínios',

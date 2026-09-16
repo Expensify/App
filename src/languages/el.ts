@@ -7611,12 +7611,7 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                 }
             },
             syncResults: {
-                title: (provider: string) => `Η συγχρονισμός με το ${provider} ολοκληρώθηκε`,
-                successTitle: (provider: string) => `Ο συγχρονισμός της σύνδεσής σας με το ${provider} ολοκληρώθηκε με επιτυχία!`,
-                added: 'Προστέθηκε',
-                removed: 'Αφαιρέθηκε',
-                skipped: 'Παραλείφθηκε',
-                employeeCount: () => ({
+                importedCount: () => ({
                     one: '1 υπάλληλος',
                     other: (count: number) => `${count} υπάλληλοι`,
                 }),
@@ -7678,6 +7673,13 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
             syncLimitReached: {
                 title: 'Δοκιμάστε ξανά αύριο',
                 prompt: 'Έχετε φτάσει το όριο συγχρονισμών σας για σήμερα.',
+            },
+            syncResults: {
+                title: (provider: string) => `Η συγχρονισμός με το ${provider} ολοκληρώθηκε`,
+                successTitle: (provider: string) => `Ο συγχρονισμός της σύνδεσής σας με το ${provider} ολοκληρώθηκε με επιτυχία!`,
+                added: 'Προστέθηκε',
+                removed: 'Αφαιρέθηκε',
+                skipped: 'Παραλείφθηκε',
             },
         },
         export: {

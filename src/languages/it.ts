@@ -8580,12 +8580,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
                 }
             },
             syncResults: {
-                title: (provider: string) => `Sincronizzazione ${provider} completata`,
-                successTitle: (provider: string) => `Connessione ${provider} sincronizzata correttamente!`,
-                added: 'Aggiunto',
-                removed: 'Rimosso',
-                skipped: 'Saltato',
-                employeeCount: () => ({
+                importedCount: () => ({
                     one: '1 dipendente',
                     other: (count: number) => `${count} dipendenti`,
                 }),
@@ -8642,6 +8637,13 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
                 advanced: 'Approvazione avanzata',
             },
             syncLimitReached: {title: 'Riprova domani', prompt: 'Hai raggiunto il limite di sincronizzazioni per oggi.'},
+            syncResults: {
+                title: (provider: string) => `Sincronizzazione ${provider} completata`,
+                successTitle: (provider: string) => `Connessione ${provider} sincronizzata correttamente!`,
+                added: 'Aggiunto',
+                removed: 'Rimosso',
+                skipped: 'Saltato',
+            },
         },
         emptyDomain: {
             title: 'Migliora la tua sicurezza con i domini',

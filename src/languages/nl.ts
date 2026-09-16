@@ -8559,12 +8559,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 }
             },
             syncResults: {
-                title: (provider: string) => `Synchronisatie met ${provider} voltooid`,
-                successTitle: (provider: string) => `Je ${provider}-verbinding is succesvol gesynchroniseerd!`,
-                added: 'Toegevoegd',
-                removed: 'Verwijderd',
-                skipped: 'Overgeslagen',
-                employeeCount: () => ({
+                importedCount: () => ({
                     one: '1 werknemer',
                     other: (count: number) => `${count} medewerkers`,
                 }),
@@ -8621,6 +8616,13 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 advanced: 'Geavanceerde goedkeuring',
             },
             syncLimitReached: {title: 'Probeer het morgen opnieuw', prompt: 'Je hebt je synchronisatielimiet voor vandaag bereikt.'},
+            syncResults: {
+                title: (provider: string) => `Synchronisatie met ${provider} voltooid`,
+                successTitle: (provider: string) => `Je ${provider}-verbinding is succesvol gesynchroniseerd!`,
+                added: 'Toegevoegd',
+                removed: 'Verwijderd',
+                skipped: 'Overgeslagen',
+            },
         },
         emptyDomain: {title: 'Verbeter je beveiliging met domeinen', subtitle: 'Vereis dat leden op je domein inloggen via single sign-on, beperk het aanmaken van werkruimtes en meer.'},
         campfire: {

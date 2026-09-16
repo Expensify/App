@@ -8472,12 +8472,7 @@ ${reportName}`,
                 }
             },
             syncResults: {
-                title: (provider: string) => `${provider} の同期が完了しました`,
-                successTitle: (provider: string) => `${provider} との接続が正常に同期されました！`,
-                added: '追加済み',
-                removed: '削除済み',
-                skipped: 'スキップ済み',
-                employeeCount: () => ({
+                importedCount: () => ({
                     one: '1 従業員',
                     other: (count: number) => `${count} 従業員`,
                 }),
@@ -8533,6 +8528,13 @@ ${reportName}`,
                 advanced: '詳細承認',
             },
             syncLimitReached: {title: '明日もう一度お試しください', prompt: '本日の同期上限に達しました。'},
+            syncResults: {
+                title: (provider: string) => `${provider} の同期が完了しました`,
+                successTitle: (provider: string) => `${provider} との接続が正常に同期されました！`,
+                added: '追加済み',
+                removed: '削除済み',
+                skipped: 'スキップ済み',
+            },
         },
         emptyDomain: {
             title: 'ドメインでセキュリティを強化しましょう',

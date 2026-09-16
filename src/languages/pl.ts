@@ -8577,12 +8577,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
                 }
             },
             syncResults: {
-                title: (provider: string) => `Synchronizacja z ${provider} zakończona`,
-                successTitle: (provider: string) => `Pomyślnie zsynchronizowano twoje połączenie z ${provider}!`,
-                added: 'Dodano',
-                removed: 'Usunięto',
-                skipped: 'Pominięto',
-                employeeCount: () => ({
+                importedCount: () => ({
                     one: '1 pracownik',
                     other: (count: number) => `${count} pracownicy`,
                 }),
@@ -8639,6 +8634,13 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
                 advanced: 'Zaawansowane zatwierdzanie',
             },
             syncLimitReached: {title: 'Spróbuj ponownie jutro', prompt: 'Osiągnąłeś dzienny limit synchronizacji.'},
+            syncResults: {
+                title: (provider: string) => `Synchronizacja z ${provider} zakończona`,
+                successTitle: (provider: string) => `Pomyślnie zsynchronizowano twoje połączenie z ${provider}!`,
+                added: 'Dodano',
+                removed: 'Usunięto',
+                skipped: 'Pominięto',
+            },
         },
         emptyDomain: {
             title: 'Zwiększ swoje bezpieczeństwo dzięki domenom',

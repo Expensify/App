@@ -7351,12 +7351,7 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
                 }
             },
             syncResults: {
-                title: (provider: string) => `Sincronización de ${provider} completada`,
-                successTitle: (provider: string) => `¡Se sincronizó correctamente tu conexión de ${provider}!`,
-                added: 'Añadido',
-                removed: 'Eliminado',
-                skipped: 'Omitido',
-                employeeCount: () => ({
+                importedCount: () => ({
                     one: '1 empleado',
                     other: (count: number) => `${count} empleados`,
                 }),
@@ -7413,6 +7408,13 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
                 advanced: 'Aprobación avanzada',
             },
             syncLimitReached: {title: 'Inténtalo de nuevo mañana', prompt: 'Has alcanzado tu límite de sincronización de hoy.'},
+            syncResults: {
+                title: (provider: string) => `Sincronización de ${provider} completada`,
+                successTitle: (provider: string) => `¡Se sincronizó correctamente tu conexión de ${provider}!`,
+                added: 'Añadido',
+                removed: 'Eliminado',
+                skipped: 'Omitido',
+            },
         },
         export: {
             notReadyHeading: 'No está listo para exportar',
