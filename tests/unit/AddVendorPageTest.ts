@@ -54,6 +54,7 @@ const buildQBOWithStaleXeroPolicy = (qboVendors: Array<{id: string; name: string
 
 describe('AddVendorPage', () => {
     const vendorUnavailable = 'Vendor unavailable';
+    const localeCompare = (a: string, b: string) => a.localeCompare(b);
 
     describe('getVendorSelectionItems', () => {
         it('maps each matching vendor to a {name, value} picker item (value is the external vendor ID)', () => {
@@ -61,23 +62,36 @@ describe('AddVendorPage', () => {
                 {id: 'v-1', name: 'Acme Co', currency: 'USD'},
                 {id: 'v-2', name: 'Globex', currency: 'USD'},
             ]);
-            expect(getVendorSelectionItems(policy)).toEqual([
+            expect(getVendorSelectionItems(policy, localeCompare)).toEqual([
                 {name: 'Acme Co', value: 'v-1'},
                 {name: 'Globex', value: 'v-2'},
             ]);
         });
 
+        it('sorts vendors alphabetically by name', () => {
+            const policy = buildQBOPolicy([
+                {id: 'v-2', name: 'Zebra', currency: 'USD'},
+                {id: 'v-1', name: 'Acme Co', currency: 'USD'},
+                {id: 'v-3', name: 'Banana', currency: 'USD'},
+            ]);
+            expect(getVendorSelectionItems(policy, localeCompare)).toEqual([
+                {name: 'Acme Co', value: 'v-1'},
+                {name: 'Banana', value: 'v-3'},
+                {name: 'Zebra', value: 'v-2'},
+            ]);
+        });
+
         it('returns an empty list when the vendor list is loaded but empty', () => {
-            expect(getVendorSelectionItems(buildQBOPolicy([]))).toEqual([]);
+            expect(getVendorSelectionItems(buildQBOPolicy([]), localeCompare)).toEqual([]);
         });
 
         it('returns an empty list when the vendor list has not synced yet', () => {
-            expect(getVendorSelectionItems(buildQBOPolicy(undefined))).toEqual([]);
+            expect(getVendorSelectionItems(buildQBOPolicy(undefined), localeCompare)).toEqual([]);
         });
 
         it('sources supplier contacts on a Xero workspace', () => {
             const policy = buildXeroPolicy({xc1: {id: 'xc1', name: 'Acme Xero', email: 'acme@example.com'}});
-            expect(getVendorSelectionItems(policy)).toEqual([{name: 'Acme Xero', value: 'xc1'}]);
+            expect(getVendorSelectionItems(policy, localeCompare)).toEqual([{name: 'Acme Xero', value: 'xc1'}]);
         });
     });
 
