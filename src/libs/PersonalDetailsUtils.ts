@@ -360,21 +360,9 @@ function getPersonalDetailsOnyxDataForOptimisticUsers(
         personalDetailsCleanup[accountID] = null;
     }
 
-    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.PERSONAL_DETAILS_LIST>> = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-            value: personalDetailsNew,
-        },
-    ];
+    const optimisticData: PersonalDetailsOnyxUpdate[] = [buildPersonalDetailsUpdate(personalDetailsNew)];
 
-    const finallyData: Array<OnyxUpdate<typeof ONYXKEYS.PERSONAL_DETAILS_LIST>> = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-            value: personalDetailsCleanup,
-        },
-    ];
+    const finallyData: PersonalDetailsOnyxUpdate[] = [buildPersonalDetailsUpdate(personalDetailsCleanup)];
 
     return {
         optimisticData,

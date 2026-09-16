@@ -18,6 +18,8 @@ import Text from '@components/Text';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {buildPersonalDetailsUpdate} from '@libs/PersonalDetailsUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
@@ -50,13 +52,15 @@ const STORY_POLICY_ID = 'menuItemComparisonStoryPolicy';
 /** Seeds the personal details, policy and report the ID-driven avatar cases read from */
 async function seedStoryOnyxData() {
     await Promise.all([
-        Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
-            [STORY_ACCOUNT_ID]: {
-                accountID: STORY_ACCOUNT_ID,
-                displayName: 'John Doe',
-                login: 'john@example.com',
-            },
-        }),
+        Onyx.update([
+            buildPersonalDetailsUpdate({
+                [STORY_ACCOUNT_ID]: {
+                    accountID: STORY_ACCOUNT_ID,
+                    displayName: 'John Doe',
+                    login: 'john@example.com',
+                },
+            }),
+        ]),
         Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${STORY_POLICY_ID}`, {
             id: STORY_POLICY_ID,
             name: 'Expensify Inc',
