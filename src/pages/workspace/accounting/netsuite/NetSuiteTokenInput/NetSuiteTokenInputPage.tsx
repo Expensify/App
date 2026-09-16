@@ -1,7 +1,6 @@
 import ConnectionLayout from '@components/ConnectionLayout';
 import InteractiveStepSubPageHeader from '@components/InteractiveStepSubPageHeader';
 
-import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
 import useSubPage from '@hooks/useSubPage';
@@ -49,13 +48,11 @@ function NetSuiteTokenInputPage({policy}: WithPolicyConnectionsProps) {
     const policyID = policy?.id;
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {isDevelopment} = useEnvironment();
     const {isBetaEnabled} = usePermissions();
     const {params} = useRoute<NetSuiteTokenInputRoute>();
     const {authType} = params;
 
-    // A dev environment gets the OAuth 2.0 flow without the beta, therefore new dev connections use REST by default.
-    const canUseNetSuiteOAuth = isDevelopment || isBetaEnabled(CONST.BETAS.NETSUITE_OAUTH);
+    const canUseNetSuiteOAuth = isBetaEnabled(CONST.BETAS.NETSUITE_OAUTH);
     const isOAuthFlow = canUseNetSuiteOAuth && authType !== CONST.NETSUITE_CONFIG.TOKEN_INPUT.AUTH_TYPE.TBA;
     const pages = isOAuthFlow ? oauthPages : tokenPages;
     const stepNames = isOAuthFlow ? CONST.NETSUITE_CONFIG.TOKEN_INPUT.OAUTH_STEP_INDEX_LIST : CONST.NETSUITE_CONFIG.TOKEN_INPUT.STEP_INDEX_LIST;
