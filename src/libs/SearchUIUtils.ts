@@ -4560,6 +4560,15 @@ function isSearchKey(value: string | undefined): value is SearchKey {
     return value.startsWith(CONST.SEARCH.SAVED_SEARCH_PREFIX) || Object.values<string>(CONST.SEARCH.SEARCH_KEYS).includes(value);
 }
 
+const DATA_TYPE_TO_SEARCH_KEY: Partial<Record<SearchDataTypes, SearchKey>> = {
+    [CONST.SEARCH.DATA_TYPES.EXPENSE]: CONST.SEARCH.SEARCH_KEYS.EXPENSES,
+    [CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT]: CONST.SEARCH.SEARCH_KEYS.REPORTS,
+};
+
+function getSearchKeyForDataType(type: SearchDataTypes | undefined): SearchKey | undefined {
+    return type ? DATA_TYPE_TO_SEARCH_KEY[type] : undefined;
+}
+
 /**
  * Checks if the passed username is a correct standard username, and not a placeholder
  */
@@ -7102,6 +7111,7 @@ function isTransactionMatchWithGroupItem(transaction: OnyxTypes.Transaction, gro
 
 export {
     getSearchBulkEditPolicyID,
+    getSearchKeyForDataType,
     getSuggestedSearches,
     getSections,
     getSuggestedSearchesVisibility,

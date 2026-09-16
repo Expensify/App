@@ -8,7 +8,7 @@ import useRootNavigationState from '@hooks/useRootNavigationState';
 import {getDeepestFocusedScreen} from '@libs/Navigation/Navigation';
 import {buildSearchQueryJSON, buildSearchQueryString, doesQueryMatchDefaultFilterKeysAndType} from '@libs/SearchQueryUtils';
 import type {SearchKey} from '@libs/SearchUIUtils';
-import {getLastSearchQuery, getSuggestedSearches, isSearchKey, savedSearchIDToSearchKey, getSuggestedSearchesVisibility} from '@libs/SearchUIUtils';
+import {getLastSearchQuery, getSearchKeyForDataType, getSuggestedSearches, isSearchKey, savedSearchIDToSearchKey, getSuggestedSearchesVisibility} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -31,11 +31,6 @@ type SearchQueryProviderProps = {
 // `usePreviousDefined` keeps the last non-nullish value, so the focused-but-keyless case needs a value of its
 // own that isn't `undefined`. An empty string is never a valid search key, so `isSearchKey` rejects it.
 const NO_SEARCH_KEY = '';
-
-const typeToGenericKey: Record<string, SearchKey> = {
-    [CONST.SEARCH.DATA_TYPES.EXPENSE]: CONST.SEARCH.SEARCH_KEYS.EXPENSES,
-    [CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT]: CONST.SEARCH.SEARCH_KEYS.REPORTS,
-};
 
 function selectSearchQueryParam(state: NavigationState | undefined) {
     const focused = getDeepestFocusedScreen(state);
@@ -117,7 +112,7 @@ function SearchQueryProvider({children}: SearchQueryProviderProps) {
             return savedSearchIDToSearchKey(savedSearchID);
         }
 
-        return queryJSON?.type ? typeToGenericKey[queryJSON.type] : undefined;
+        return getSearchKeyForDataType(queryJSON?.type);
     };
 
     const getDefaultSearchQueryJSON = (searchKey: SearchKey | undefined) => {

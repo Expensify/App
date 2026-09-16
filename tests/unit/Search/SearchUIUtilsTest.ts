@@ -14235,6 +14235,27 @@ describe('SearchUIUtils', () => {
         });
     });
 
+    describe('getSearchKeyForDataType', () => {
+        it('maps the expense type to the Expenses search', () => {
+            expect(SearchUIUtils.getSearchKeyForDataType(CONST.SEARCH.DATA_TYPES.EXPENSE)).toBe(CONST.SEARCH.SEARCH_KEYS.EXPENSES);
+        });
+
+        it('maps the expense report type to the Reports search', () => {
+            expect(SearchUIUtils.getSearchKeyForDataType(CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT)).toBe(CONST.SEARCH.SEARCH_KEYS.REPORTS);
+        });
+
+        it.each([CONST.SEARCH.DATA_TYPES.INVOICE, CONST.SEARCH.DATA_TYPES.TASK, CONST.SEARCH.DATA_TYPES.TRIP, CONST.SEARCH.DATA_TYPES.CHAT])(
+            'returns undefined for the "%s" type',
+            (type) => {
+                expect(SearchUIUtils.getSearchKeyForDataType(type)).toBeUndefined();
+            },
+        );
+
+        it('returns undefined when the type is undefined', () => {
+            expect(SearchUIUtils.getSearchKeyForDataType(undefined)).toBeUndefined();
+        });
+    });
+
     describe('mapFiltersFormToLabelValueList', () => {
         const convertToDisplayStringWithoutCurrency = jest.fn((amount = 0) => `${amount}`);
 

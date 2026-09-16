@@ -15,6 +15,7 @@ import reserveSearchChannelIfGlobalCreate from '@libs/Navigation/helpers/reserve
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import {getReportOrDraftReport, isMoneyRequestReport} from '@libs/ReportUtils';
 import {buildCannedSearchQuery, getCurrentSearchQueryJSON} from '@libs/SearchQueryUtils';
+import {getSearchKeyForDataType} from '@libs/SearchUIUtils';
 import getSubmitExpenseScenario from '@libs/telemetry/getSubmitExpenseScenario';
 import {setFastPath, setPendingSubmitFollowUpAction, startTracking} from '@libs/telemetry/submitFollowUpAction';
 
@@ -324,7 +325,7 @@ function SubmitExpenseOrchestrator({
                         return;
                     }
 
-                    const searchKey = iouType === CONST.IOU.TYPE.INVOICE ? undefined : CONST.SEARCH.SEARCH_KEYS.EXPENSES;
+                    const searchKey = getSearchKeyForDataType(searchType);
                     Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery({type: searchType}), searchKey}), {forceReplace: !shouldSkipForceReplace});
                 });
             },
