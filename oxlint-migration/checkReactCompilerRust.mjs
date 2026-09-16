@@ -181,5 +181,21 @@ check(
     notEnabled.length === 0 ? `${ALL_RULES.length} of ${ALL_RULES.length}` : `not "error": ${notEnabled.map((rule) => `rc/${rule} (is ${severityOf(rule) ?? 'missing'})`).join(', ')}`,
 );
 
+console.log('\n9. a byte offset past a non-ASCII character still anchors on the right line');
+// oxc hands back UTF-8 byte offsets; a JavaScript string is indexed in UTF-16 code units. Indexing
+// the source with one directly drifts one unit per extra byte, so the diagnostic lands past its own
+// line and an `eslint-disable-next-line` on the correct line stops suppressing it. 281 of src/'s
+// .tsx files contain non-ASCII, so this is the common case rather than a corner.
+const nonAsciiFile = path.join(PROBE_DIR, 'NonAscii.tsx');
+const nonAsciiLines = fs.readFileSync(nonAsciiFile, 'utf8').split('\n');
+const refReadLine = nonAsciiLines.findIndex((line) => line.includes('ref.current * 2')) + 1;
+const refReadColumn = nonAsciiLines[refReadLine - 1].indexOf('ref.current');
+const nonAsciiPoints = diagnose(nonAsciiFile).map((diagnostic) => `${diagnostic.loc.start.line}:${diagnostic.loc.start.column}`);
+check(
+    JSON.stringify(nonAsciiPoints) === JSON.stringify([`${refReadLine}:${refReadColumn}`]),
+    'NonAscii.tsx reports rc/refs on the ref read itself',
+    `got ${nonAsciiPoints.join(' and ') || 'nothing'}, expected ${refReadLine}:${refReadColumn}`,
+);
+
 console.log(failed ? '\nFAILED' : '\nAll assertions hold.');
 process.exit(failed ? 1 : 0);
