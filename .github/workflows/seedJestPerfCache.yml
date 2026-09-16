@@ -67,17 +67,6 @@ jobs:
           path: .reassure/baseline.perf
           key: ${{ format('{0}-{1}-reassure-baseline-{2}', runner.os, runner.arch, github.sha) }}
 
-      - name: Upload this commit's baseline
-        if: steps.lookupBaseline.outputs.cache-hit != 'true'
-        # v6
-        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
-        with:
-          name: reassure-baseline-${{ github.sha }}
-          path: .reassure/baseline.perf
-          include-hidden-files: true
-          overwrite: true
-          retention-days: 14
-
       - name: Save the Jest transform cache
         if: steps.restoreJestCache.outputs.cache-hit != 'true'
         # v5.0.1
