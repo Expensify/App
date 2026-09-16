@@ -109,7 +109,7 @@ jest.mock('@hooks/useOnyx', () => ({
 
 jest.mock('@hooks/usePermissions', () => ({
     __esModule: true,
-    default: () => ({isBetaEnabled: mockIsBetaEnabled}),
+    default: () => ({isBetaEnabled: mockIsBetaEnabled, isBetaEnabledOrUnknown: mockIsBetaEnabled}),
 }));
 
 jest.mock('@hooks/usePreferredPolicy', () => ({

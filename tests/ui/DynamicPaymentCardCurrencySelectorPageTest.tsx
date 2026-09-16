@@ -26,7 +26,7 @@ let capturedOnSelectRow: ((option: CurrencyOption) => void) | undefined;
 let capturedCustomListHeader: SelectionListProps<CurrencyOption>['customListHeader'];
 let capturedConfirmButtonOptions: ConfirmButtonOptions | undefined;
 
-jest.mock('@hooks/usePermissions', () => jest.fn(() => ({isBetaEnabled: () => false})));
+jest.mock('@hooks/usePermissions', () => jest.fn(() => ({isBetaEnabled: () => false, isBetaEnabledOrUnknown: () => false})));
 
 jest.mock('@hooks/useLocalize', () =>
     jest.fn(() => ({
