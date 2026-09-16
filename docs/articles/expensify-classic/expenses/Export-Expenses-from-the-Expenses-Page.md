@@ -72,7 +72,7 @@ Admins can edit **tags** and **categories**, but can only modify the amount, dat
 
 No, you cannot search or filter expenses in the Expensify Classic mobile app. 
 
-You can search and filter expenses in the New Expensify mobile app. [Learn how to filter expenses and reports in New Expensify](https://help.expensify.com/articles/new-expensify/getting-started/Using-Reports-in-New-Expensify).
+You can search and filter expenses in the New Expensify mobile app. [Learn how to filter expenses and reports in New Expensify](/articles/new-expensify/getting-started/Using-Reports-in-New-Expensify).
 
 ## Can I bulk download receipts without opening each receipt individually? 
 
