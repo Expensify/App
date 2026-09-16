@@ -73,7 +73,7 @@ You can use the following operators to filter expenses:
 | `amount:` / `purchase-amount:` | Filter by amount using `=`, `>`, `<`, `>=`, or `<=` | `amount:>100` |
 | `status:` | Filter by expense status (`unreported`, `draft`, `outstanding`, `approved`, `paid`, `done`) | `status:approved` |
 | `date:` | Filter by expense date using relative dates or comparison operators for a date range | `date:this-month` |
-| `has:` | Filter by expenses with an `attachment`, `receipt`, `category`, `tag`, or `submitted-violation` | `has:receipt` |
+| `has:` | Filter by expenses with an `attachment`, `receipt`, `category`, `tag`, `submitted-violation`, or `approved-violation` | `has:receipt` |
 | `expense-type:` | Filter by expense type (`cash`, `card`, `distance`, `per-diem`) | `expense-type:card` |
 | `receipt-type:` | Filter by receipt type (`ereceipt`, `itemized`) | `receipt-type:itemized` |
 | `reimbursable:` | Filter by whether an expense is reimbursable (`yes` or `no`) | `reimbursable:yes` |
@@ -85,6 +85,8 @@ You can use the following operators to filter expenses:
 **Example queries:**
 - `type:expense merchant:Starbucks category:Meals amount>20 has:receipt`
 - `type:expense -has:tag` – find expenses that have no tag assigned
+
+> **Note:** The **Violations** column only appears in your results when the query includes `has:submitted-violation` or `has:approved-violation`. Without one of those filters, the column is left out even if you ask for it.
 
 ---
 

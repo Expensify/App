@@ -1,7 +1,7 @@
 ---
 title: View the Violations by submitter report
 description: Learn how Workspace Admins and Auditors can use the Violations by submitter report to see which members submitted the most expenses with rule violations.
-keywords: [New Expensify, Violations by submitter, policy violations, compliance, submitted violations, has:submitted-violation, violation, Workspace Admin, Auditor, Rules, insight, virtual CFO, spend insights, broken rule, rule violation, out of compliance]
+keywords: [New Expensify, Violations by submitter, policy violations, compliance, submitted violations, has:submitted-violation, has:approved-violation, Violations column, violation, Workspace Admin, Auditor, Rules, insight, virtual CFO, spend insights, broken rule, rule violation, out of compliance]
 internalScope: Audience is Workspace Admins and Auditors on Control workspaces with Rules enabled. Covers using the Violations by submitter suggested search to see who submitted the most expenses with violations. Does not cover configuring Rules, approver-stage violations, or building custom reports.
 ---
 
@@ -66,6 +66,10 @@ To create your own custom search, [learn how to use search operators to filter a
 ## Can I export the Violations by submitter report?
 
 Not directly — the Violations by submitter report can’t be exported with its grouped totals or summary data. However, if you expand each group to reveal the individual expenses, you can then select those expenses and use Export to CSV to download the raw data.
+
+## Why did the Violations column disappear after I changed the filters?
+
+The **Violations** column only appears when the search includes the **Submitted violation** or **Approved violation** option under the **Has** filter. Violations by submitter applies **Submitted violation** for you. If you clear that filter while exploring the results, the **Violations** column is removed from the table and from any **Current view** CSV you export.
 
 ## How is the Violations by submitter report calculated?
 
