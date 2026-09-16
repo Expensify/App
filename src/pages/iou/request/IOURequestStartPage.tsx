@@ -236,9 +236,10 @@ function IOURequestStartPage({
             clearTimeout(blurTimeoutRef.current);
         }
         blurTimeoutRef.current = setTimeout(() => {
-            if (!isDiscardModalOpenRef.current) {
-                lastFocusedInputRef.current = null;
+            if (isDiscardModalOpenRef.current) {
+                return;
             }
+            lastFocusedInputRef.current = null;
         }, 100);
     };
 
