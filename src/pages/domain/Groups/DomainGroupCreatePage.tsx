@@ -70,10 +70,8 @@ function DomainGroupCreatePage({route}: DomainGroupCreatePageProps) {
     const hasAdminPolicies = !!firstAdminPolicy;
     const preferredWorkspaceName = preferredPolicyName ?? firstAdminPolicy?.name;
 
-    // Each toggle's dependency (an admin workspace for Preferred Workspace, a card feed for Card preferred workspace)
-    // can disappear while this page is open, e.g. removed from another device. We don't silently flip what the person
-    // set: the toggle keeps its value, we surface the problem when they press Create (see onSubmit), and a toggle is
-    // only locked once it is off while its condition is unmet, mirroring how it would be locked from the start.
+    // Each toggle's dependency can disappear while this page is open (e.g. removed from another device). We don't flip
+    // what the person set: the toggle keeps its value and we surface the problem when they press Create (see onSubmit).
     const canEnablePreferredWorkspace = hasAdminPolicies;
     const canEnableCardPreferredWorkspace = preferredWorkspace && isDomainUsingCard;
 

@@ -11550,7 +11550,7 @@ ${reportName}`,
             restrictDefaultLoginSelection: 'Restringir el inicio de sesión predeterminado',
             restrictDefaultLoginSelectionDescription: 'Evita que los miembros cambien su correo de inicio de sesión fuera del dominio de la empresa para eludir restricciones de políticas.',
             expensifyCardPreferredWorkspaceDisabledMessage:
-                'Para habilitar esta opción, primero habilita un espacio de trabajo preferido y configura una Tarjeta Expensify o una alimentación de tarjeta de empresa en tu dominio.',
+                'Para habilitar esta opción, primero habilita un espacio de trabajo preferido y configura una Tarjeta Expensify o una fuente de tarjetas de la empresa en tu dominio.',
             findGroup: 'Encontrar grupo',
         },
     },
