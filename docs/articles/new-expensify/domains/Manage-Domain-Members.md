@@ -119,5 +119,5 @@ No. To remove a Domain Member, you must deactivate (close) the account. However,
 
 ## Can I add or remove a vacation delegate for a Domain Member?
 
-Yes. As a Domain Admin, you can add or remove a vacation delegate on behalf of a domain member. This is a great option if the member is already out of office, but forgot to set their own delegate.
+Yes. As a Domain Admin, you can add or remove a Vacation Delegate on behalf of a domain member. This is a great option if the member is already out of office, but forgot to set their own delegate.
 
