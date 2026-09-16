@@ -324,8 +324,8 @@ describe('EditAgentPage', () => {
             await act(async () => {
                 await Onyx.multiSet({
                     [ONYXKEYS.PERSONAL_DETAILS_LIST]: {[realAccountID]: {accountID: realAccountID, displayName: 'Created agent'}},
-                    [`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${realAccountID}`]: {prompt: 'Created instructions'},
-                    [`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${optimisticAccountID}`]: null,
+                    [`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${realAccountID}` as const]: {prompt: 'Created instructions'},
+                    [`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${optimisticAccountID}` as const]: null,
                     [ONYXKEYS.OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING]: {[optimisticAccountID]: realAccountID},
                 });
                 await waitForBatchedUpdates();
@@ -351,7 +351,7 @@ describe('EditAgentPage', () => {
             const realAccountID = 12347;
             await Onyx.multiSet({
                 [ONYXKEYS.PERSONAL_DETAILS_LIST]: {[realAccountID]: {accountID: realAccountID, displayName: 'Already created agent'}},
-                [`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${realAccountID}`]: {prompt: 'Already created instructions'},
+                [`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${realAccountID}` as const]: {prompt: 'Already created instructions'},
                 [ONYXKEYS.OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING]: {[optimisticAccountID]: realAccountID},
             });
             const {toJSON} = render(
