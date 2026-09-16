@@ -248,7 +248,7 @@ describe('useHtmlPaste - handlePastePlainText', () => {
         expect(textInputRef.current?.textContent).toBe('Normal Text. :tada: *Bold*');
     });
 
-    it('converts iOS Safari blob emoji image filenames to Unicode emoji', async () => {
+    it('replaces an iOS Safari emoji image with its matched shortcode', async () => {
         mockIsMobileSafari = true;
         const html = '<p>Normal Text. <img src="blob:https://new.expensify.com/123" alt="1f389@2x.png"> Bold</p>';
         const event = createMockClipboardEvent('Normal Text. :tada: Bold', html);
@@ -260,10 +260,10 @@ describe('useHtmlPaste - handlePastePlainText', () => {
 
         act(() => document.dispatchEvent(event));
 
-        expect(textInputRef.current?.textContent).toBe('Normal Text. 🎉 Bold');
+        expect(textInputRef.current?.textContent).toBe('Normal Text. :tada: Bold');
     });
 
-    it('converts multiple matching iOS Safari emoji images including skin tones', async () => {
+    it('preserves matched iOS Safari shortcodes including skin tones', async () => {
         mockIsMobileSafari = true;
         const html =
             '<p>Start <img src="blob:https://new.expensify.com/1" alt="1f389@2x.png"> <img src="blob:https://new.expensify.com/2" alt="1f44d-1f3fd@2x.png"> <img src="blob:https://new.expensify.com/3" alt="2764-fe0f@2x.png"> <strong>Bold</strong></p>';
@@ -276,7 +276,7 @@ describe('useHtmlPaste - handlePastePlainText', () => {
 
         act(() => document.dispatchEvent(event));
 
-        expect(textInputRef.current?.textContent).toBe('Start 🎉 👍🏽 ❤️ *Bold*');
+        expect(textInputRef.current?.textContent).toBe('Start :tada: :+1::skin-tone-4: :heart: *Bold*');
     });
 
     it('validates an iOS Safari emoji against a supported Slack shortcode alias', async () => {
@@ -291,7 +291,52 @@ describe('useHtmlPaste - handlePastePlainText', () => {
 
         act(() => document.dispatchEvent(event));
 
-        expect(textInputRef.current?.textContent).toBe('Normal Text. 👍🏽 Bold');
+        expect(textInputRef.current?.textContent).toBe('Normal Text. :thumbs_up::skin-tone-4: Bold');
+    });
+
+    it('replaces a valid iOS Safari emoji when a normal image appears first', async () => {
+        mockIsMobileSafari = true;
+        const html = '<p>Start <img src="https://example.com/photo.png" alt="Photo"> <img src="blob:https://new.expensify.com/1" alt="1f389@2x.png"> End</p>';
+        const event = createMockClipboardEvent('Start Photo :tada: End', html);
+        mockWindowSelection('');
+
+        // @ts-expect-error -- this web test intentionally passes a contenteditable DOM ref to the shared hybrid hook.
+        renderHook(() => useHtmlPaste(textInputRef, undefined, true));
+        await waitForBatchedUpdatesWithAct();
+
+        act(() => document.dispatchEvent(event));
+
+        expect(textInputRef.current?.textContent).toBe('Start ![Photo](https://example.com/photo.png) :tada: End');
+    });
+
+    it('replaces valid iOS Safari emojis beside an unsupported custom emoji', async () => {
+        mockIsMobileSafari = true;
+        const html = '<p>Start <img src="blob:https://new.expensify.com/custom" alt="thankyou_pink@2x.png"> <img src="blob:https://new.expensify.com/1" alt="1f389@2x.png"> End</p>';
+        const event = createMockClipboardEvent('Start :thankyou_pink: :tada: End', html);
+        mockWindowSelection('');
+
+        // @ts-expect-error -- this web test intentionally passes a contenteditable DOM ref to the shared hybrid hook.
+        renderHook(() => useHtmlPaste(textInputRef, undefined, true));
+        await waitForBatchedUpdatesWithAct();
+
+        act(() => document.dispatchEvent(event));
+
+        expect(textInputRef.current?.textContent).toBe('Start ![thankyou_pink@2x.png](blob:https://new.expensify.com/custom) :tada: End');
+    });
+
+    it('does not trust an unknown shortcode from a normal iOS Safari image', async () => {
+        mockIsMobileSafari = true;
+        const html = '<p>Start <img src="blob:https://example.com/photo" alt=":thankyou_pink:"> <img src="blob:https://new.expensify.com/1" alt="1f389@2x.png"> End</p>';
+        const event = createMockClipboardEvent('Start :thankyou_pink: :tada: End', html);
+        mockWindowSelection('');
+
+        // @ts-expect-error -- this web test intentionally passes a contenteditable DOM ref to the shared hybrid hook.
+        renderHook(() => useHtmlPaste(textInputRef, undefined, true));
+        await waitForBatchedUpdatesWithAct();
+
+        act(() => document.dispatchEvent(event));
+
+        expect(textInputRef.current?.textContent).toBe('Start ![:thankyou_pink:](blob:https://example.com/photo) :tada: End');
     });
 
     it('does not convert an iOS Safari image when the shortcode at its position represents another emoji', async () => {

@@ -131,7 +131,8 @@ const getTextWithImageMarkers = (node: Node, imageMarkers: Map<Node, string>): s
  * Finds Slack shortcodes that occupy the same positions as candidate images in iOS Safari HTML.
  *
  * Safari removes Slack's identifying data attributes, so the plain-text clipboard value is used
- * only as positional evidence. The returned map does not approve an image by itself; the Unicode
+ * only as positional evidence. All images participate in the comparison so their own plain-text
+ * representations are not dropped. The returned map does not approve an image by itself; the Unicode
  * value is checked again before the image is replaced.
  *
  * @param htmlDocument Parsed clipboard HTML document containing candidate images.
@@ -144,8 +145,9 @@ const getIOSSafariEmojiShortcodes = (htmlDocument: Document, plainText: string):
         return shortcodes;
     }
 
-    const images = Array.from(htmlDocument.images).filter((image) => image.src.startsWith('blob:') && CONST.REGEX.EMOJI_IMAGE_ALT.test(image.alt));
-    if (images.length === 0) {
+    const images = Array.from(htmlDocument.images);
+    const emojiImages = new Set(images.filter((image) => image.src.startsWith('blob:') && CONST.REGEX.EMOJI_IMAGE_ALT.test(image.alt)));
+    if (emojiImages.size === 0) {
         return shortcodes;
     }
 
@@ -170,7 +172,9 @@ const getIOSSafariEmojiShortcodes = (htmlDocument: Document, plainText: string):
         }
 
         pattern += escapeRegExp(htmlText.slice(previousMarkerEnd, markerStart));
-        pattern += `(${CONST.REGEX.SLACK_EMOJI_SHORTCODE_PATTERN})`;
+        const normalizedAlt = normalizeClipboardText(image.alt);
+        const imageTextPattern = normalizedAlt ? `${CONST.REGEX.SLACK_EMOJI_SHORTCODE_PATTERN}|${escapeRegExp(normalizedAlt)}` : `${CONST.REGEX.SLACK_EMOJI_SHORTCODE_PATTERN}|`;
+        pattern += `(${imageTextPattern})`;
         previousMarkerEnd = markerStart + marker.length;
     }
 
@@ -181,8 +185,12 @@ const getIOSSafariEmojiShortcodes = (htmlDocument: Document, plainText: string):
     }
 
     for (const [index, image] of images.entries()) {
+        if (!emojiImages.has(image)) {
+            continue;
+        }
+
         const shortcode = match.at(index + 1);
-        if (shortcode) {
+        if (shortcode && CONST.REGEX.SLACK_EMOJI_SHORTCODE.test(shortcode)) {
             shortcodes.set(image, shortcode);
         }
     }
@@ -255,13 +263,9 @@ const getEmojiReplacementText = (image: HTMLImageElement, shortcodeAtImagePositi
         return shortcode?.length ? shortcode : image.alt;
     }
 
-    // iOS Safari removes Slack's data-* metadata, so verify the corresponding plain-text shortcode before decoding the image filename.
+    // iOS Safari removes Slack's data-* metadata, so use the filename only to verify the corresponding plain-text shortcode.
     if (isIOSSafariEmojiImage(image, shortcodeAtImagePosition)) {
-        const emojiFromImageAlt = getEmojiFromImageAlt(image.alt);
-
-        if (emojiFromImageAlt) {
-            return emojiFromImageAlt;
-        }
+        return shortcodeAtImagePosition ?? '';
     }
 
     return '';
