@@ -2593,6 +2593,7 @@ function hasViolation(
         (violation) =>
             violation.type === CONST.VIOLATION_TYPES.VIOLATION &&
             (showInReview === undefined || showInReview === (violation.showInReview ?? false)) &&
+            (violation.name !== CONST.VIOLATIONS.DUPLICATED_TRANSACTION || !isIOUReport(iouReport)) &&
             !isViolationDismissed(transaction, violation, currentUserEmail, currentUserAccountID, iouReport, iouReportOwnerLogin, policy),
     );
 }
