@@ -42,7 +42,14 @@ import type {Domain, PersonalDetailsList} from '@src/types/onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {requiresTwoFactorAuthSelector} from '@selectors/Account';
-import {accountLockSelector, domainMemberSettingsSelector, domainNameSelector, selectSecurityGroupForAccount, vacationDelegateSelector} from '@selectors/Domain';
+import {
+    accountLockSelector,
+    domainMemberSettingsSelector,
+    domainNameSelector,
+    hasPendingAdminshipRequestSelector,
+    selectSecurityGroupForAccount,
+    vacationDelegateSelector,
+} from '@selectors/Domain';
 import {personalDetailsSelector} from '@selectors/PersonalDetails';
 import React, {useCallback, useState} from 'react';
 import {View} from 'react-native';
@@ -75,6 +82,10 @@ function DomainMemberDetailsPage({route}: DomainMemberDetailsPageProps) {
 
     const [vacationDelegate] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {
         selector: vacationDelegateSelector(accountID),
+    });
+
+    const [hasPendingAdminshipRequest] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {
+        selector: hasPendingAdminshipRequestSelector(accountID),
     });
 
     const [domainSettings] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${domainAccountID}`, {
@@ -111,7 +122,7 @@ function DomainMemberDetailsPage({route}: DomainMemberDetailsPageProps) {
             setShouldForceCloseAccount(undefined);
             return;
         }
-        closeUserAccount(domainAccountID, domainName ?? '', memberLogin, userSecurityGroup, shouldForceCloseAccount);
+        closeUserAccount(domainAccountID, domainName ?? '', memberLogin, accountID, userSecurityGroup, !!hasPendingAdminshipRequest, shouldForceCloseAccount);
         setShouldForceCloseAccount(undefined);
         Navigation.dismissModal();
     };

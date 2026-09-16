@@ -607,7 +607,7 @@ describe('actions/Domain', () => {
                 },
             };
 
-            closeUserAccount(domainAccountID, domainName, targetEmail, securityGroupsData);
+            closeUserAccount(domainAccountID, domainName, targetEmail, accountID, securityGroupsData, false);
 
             expect(apiWriteSpy).toHaveBeenCalledWith(
                 WRITE_COMMANDS.DELETE_DOMAIN_MEMBER,
@@ -660,13 +660,79 @@ describe('actions/Domain', () => {
             const domainAccountID = 123;
             const domainName = 'test.com';
             const targetEmail = 'user@test.com';
+            const accountID = 456;
 
-            closeUserAccount(domainAccountID, domainName, targetEmail, undefined, true);
+            closeUserAccount(domainAccountID, domainName, targetEmail, accountID, undefined, false, true);
 
             expect(apiWriteSpy).toHaveBeenCalledWith(
                 WRITE_COMMANDS.DELETE_DOMAIN_MEMBER,
                 {domain: domainName, targetEmail, overrideProcessingReports: true, domainAccountID},
                 expect.any(Object),
+            );
+
+            apiWriteSpy.mockRestore();
+        });
+
+        it('closeUserAccount - drops the pending adminship request of the closed account and restores it on failure', () => {
+            const apiWriteSpy = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
+            const domainAccountID = 123;
+            const domainName = 'test.com';
+            const targetEmail = 'user@test.com';
+            const accountID = 456;
+
+            closeUserAccount(domainAccountID, domainName, targetEmail, accountID, undefined, true);
+
+            expect(apiWriteSpy).toHaveBeenCalledWith(
+                WRITE_COMMANDS.DELETE_DOMAIN_MEMBER,
+                expect.any(Object),
+                expect.objectContaining({
+                    optimisticData: expect.arrayContaining([
+                        expect.objectContaining({
+                            key: `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`,
+                            // eslint-disable-next-line @typescript-eslint/naming-convention
+                            value: {domain_adminRequesters: {[accountID]: null}},
+                        }),
+                        expect.objectContaining({
+                            key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
+                            value: {adminshipRequester: {[accountID]: null}},
+                        }),
+                    ]),
+                    failureData: expect.arrayContaining([
+                        expect.objectContaining({
+                            key: `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`,
+                            // eslint-disable-next-line @typescript-eslint/naming-convention
+                            value: {domain_adminRequesters: {[accountID]: 'read'}},
+                        }),
+                    ]),
+                }),
+            );
+
+            apiWriteSpy.mockRestore();
+        });
+
+        it('closeUserAccount - leaves the adminship requesters map untouched when the member has no pending request', () => {
+            const apiWriteSpy = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
+            const domainAccountID = 123;
+            const domainName = 'test.com';
+            const targetEmail = 'user@test.com';
+            const accountID = 456;
+
+            closeUserAccount(domainAccountID, domainName, targetEmail, accountID, undefined, false);
+
+            expect(apiWriteSpy).toHaveBeenCalledWith(
+                WRITE_COMMANDS.DELETE_DOMAIN_MEMBER,
+                expect.any(Object),
+                expect.objectContaining({
+                    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+                    optimisticData: expect.not.arrayContaining([expect.objectContaining({key: `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`})]),
+                    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+                    failureData: expect.not.arrayContaining([
+                        expect.objectContaining({
+                            // eslint-disable-next-line @typescript-eslint/naming-convention
+                            value: {domain_adminRequesters: {[accountID]: 'read'}},
+                        }),
+                    ]),
+                }),
             );
 
             apiWriteSpy.mockRestore();

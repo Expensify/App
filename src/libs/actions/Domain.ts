@@ -1455,11 +1455,21 @@ function clearDomainMemberError(domainAccountID: number, accountID: number, emai
  * @param domainAccountID Account ID of a domain
  * @param domain Domain name
  * @param targetEmail Email of a user to be removed
+ * @param targetAccountID Account ID of the removed user, which their adminship request is keyed by
  * @param securityGroupsData Data of a security group user is in
+ * @param hasPendingAdminshipRequest Whether the user has a pending adminship request to drop
  * @param overrideProcessingReports "Force" flag. If true user will be removed regardless of if they have outstanding reports
  */
-function closeUserAccount(domainAccountID: number, domain: string, targetEmail: string, securityGroupsData: UserSecurityGroupData, overrideProcessingReports = false) {
-    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS | typeof ONYXKEYS.COLLECTION.DOMAIN_ERRORS>> = [
+function closeUserAccount(
+    domainAccountID: number,
+    domain: string,
+    targetEmail: string,
+    targetAccountID: number,
+    securityGroupsData: UserSecurityGroupData,
+    hasPendingAdminshipRequest: boolean,
+    overrideProcessingReports = false,
+) {
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.DOMAIN | typeof ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS | typeof ONYXKEYS.COLLECTION.DOMAIN_ERRORS>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
@@ -1524,6 +1534,35 @@ function closeUserAccount(domainAccountID: number, domain: string, targetEmail: 
                 : {}) as PrefixedRecord<typeof CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX, Partial<DomainSecurityGroup>>,
         },
     ];
+
+    // A closed account can never become an admin, so its adminship request goes with it.
+    if (hasPendingAdminshipRequest) {
+        optimisticData.push(
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`,
+                value: {
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    domain_adminRequesters: {[targetAccountID]: null},
+                },
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
+                value: {
+                    adminshipRequester: {[targetAccountID]: null},
+                },
+            },
+        );
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`,
+            value: {
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                domain_adminRequesters: {[targetAccountID]: 'read'},
+            },
+        });
+    }
 
     const parameters: DeleteDomainMemberParams = {
         domain,
