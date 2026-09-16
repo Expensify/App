@@ -50,9 +50,9 @@ jest.mock('@components/FixedFooter', () => {
     return jest.fn(({children}: {children?: React.ReactNode}) => <RN.View testID="netsuite-custom-field-fixed-footer">{children}</RN.View>);
 });
 
-jest.mock('@components/MenuItemWithTopDescription', () => {
+jest.mock('@components/MenuItem/presets/MenuItemField', () => {
     const RN = jest.requireActual<Record<string, React.ComponentType<{testID?: string; children?: React.ReactNode}>>>('react-native');
-    return ({title}: {title?: string}) => <RN.Text testID="netsuite-custom-field-record-row">{title}</RN.Text>;
+    return ({value}: {value?: string}) => <RN.Text testID="netsuite-custom-field-record-row">{value}</RN.Text>;
 });
 
 jest.mock('@components/WorkspaceEmptyStateSection', () => {
