@@ -10997,6 +10997,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
         mileageRateAutoUpdated: '<tooltip>Abbiamo aggiornato il tasso in base alla tua data di viaggio.</tooltip>',
         markAllAsRead: '<tooltip>Fai clic destro per <strong>segnare tutto come letto</strong>.</tooltip>',
         markAllAsReadTouchScreen: '<tooltip>Tieni premuto per <strong>segnare tutto come letto</strong>.</tooltip>',
+        accountMovedToTopBar: '<tooltip>Accedi al tuo account e alle impostazioni personali.</tooltip>',
     },
     discardChangesConfirmation: {
         title: 'Scartare le modifiche?',

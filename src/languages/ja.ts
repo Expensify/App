@@ -10844,6 +10844,7 @@ ${reportName}`,
         mileageRateAutoUpdated: '<tooltip>出張日にもとづいてレートを更新しました。</tooltip>',
         markAllAsRead: '<tooltip>右クリックで<strong>すべて既読にする</strong>ことができます。</tooltip>',
         markAllAsReadTouchScreen: '<tooltip>長押しで<strong>すべて既読にする</strong>ことができます。</tooltip>',
+        accountMovedToTopBar: '<tooltip>アカウントと個人設定にアクセスします。</tooltip>',
     },
     discardChangesConfirmation: {
         title: '変更を破棄しますか？',

@@ -11227,6 +11227,7 @@ const translations = {
         mileageRateAutoUpdated: '<tooltip>We updated the rate based on your travel date.</tooltip>',
         markAllAsRead: '<tooltip>Right-click to <strong>mark all as read</strong>.</tooltip>',
         markAllAsReadTouchScreen: '<tooltip>Long-press to <strong>mark all as read</strong>.</tooltip>',
+        accountMovedToTopBar: '<tooltip>Access your account and personal settings.</tooltip>',
     },
     discardChangesConfirmation: {
         title: 'Discard changes?',
