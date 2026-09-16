@@ -104,6 +104,7 @@ import lodashDeepClone from 'lodash/cloneDeep';
 import lodashSet from 'lodash/set';
 import Onyx from 'react-native-onyx';
 
+import {hasValidModifiedAmount, isAmountMissing, isFailedScanAmountPlaceholder} from './amountUtils';
 import getDistanceInMeters from './getDistanceInMeters';
 import getSelectedRouteKey from './getSelectedRouteKey';
 
@@ -684,40 +685,6 @@ function shouldShowAttendees(iouType: IOUType, policy: OnyxEntry<Policy>): boole
  */
 function isPartialMerchant(merchant: string): boolean {
     return merchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
-}
-
-function isFailedScanAmountPlaceholder(transaction: OnyxEntry<Transaction>) {
-    // OPEN is included since editing another field (e.g. merchant) optimistically flips receipt.state to OPEN,
-    // which would otherwise flicker the amount back to "$0.00" until the server confirms it's still missing.
-    // isAmountSet is exclusively a draft-transaction concept (set by setMoneyRequestAmount during the
-    // create/confirmation flow, before the transaction has a modifiedAmount). It's never set on an already-created
-    // transaction, so this only affects drafts and leaves every other caller (editing an existing transaction)
-    // unaffected — the true signal for those remains hasValidModifiedAmount.
-    return (
-        isScanRequest(transaction) &&
-        (transaction?.receipt?.state === CONST.IOU.RECEIPT_STATE.SCAN_FAILED || transaction?.receipt?.state === CONST.IOU.RECEIPT_STATE.OPEN) &&
-        (transaction?.amount === 0 || transaction?.amount === undefined) &&
-        !hasValidModifiedAmount(transaction) &&
-        !transaction?.isAmountSet
-    );
-}
-
-function isAmountMissing(transaction: OnyxEntry<Transaction>, isFromExpenseReport = true) {
-    if (isFailedScanAmountPlaceholder(transaction)) {
-        return true;
-    }
-
-    if (isFromExpenseReport) {
-        return transaction?.amount === undefined && (transaction?.modifiedAmount === undefined || transaction?.modifiedAmount === '');
-    }
-    return (transaction?.amount === 0 || transaction?.amount === undefined) && !hasValidModifiedAmount(transaction);
-}
-
-function hasValidModifiedAmount(transaction: OnyxEntry<Transaction> | null): boolean {
-    if (!transaction) {
-        return false;
-    }
-    return transaction?.modifiedAmount !== undefined && transaction?.modifiedAmount !== null && transaction?.modifiedAmount !== '';
 }
 
 /**
