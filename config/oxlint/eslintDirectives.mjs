@@ -23,17 +23,9 @@ function parseComment(comment) {
     return {kind, ruleIds: ruleIds.length ? ruleIds : [ALL_RULES]};
 }
 
-function add(map, key, value) {
-    if (!map.has(key)) {
-        map.set(key, []);
-    }
-    map.get(key).push(value);
-}
-
 function parseDirectives(comments) {
     const lines = new Map();
-    const ranges = new Map();
-    const open = new Map();
+    const blocks = [];
 
     for (const comment of comments) {
         const parsed = parseComment(comment);
@@ -52,31 +44,13 @@ function parseDirectives(comments) {
                     lines.set(ruleId, new Set());
                 }
                 lines.get(ruleId).add(parsed.kind === 'eslint-disable-line' ? start : start + 1);
-            } else if (parsed.kind === 'eslint-disable') {
-                if (!open.has(ruleId)) {
-                    open.set(ruleId, start);
-                }
             } else {
-                const from = open.get(ruleId);
-                if (from != null) {
-                    add(ranges, ruleId, [from, start]);
-                    open.delete(ruleId);
-                }
-                // A bare `eslint-enable` closes every range still open.
-                if (ruleId === ALL_RULES) {
-                    for (const [openRule, openFrom] of open) {
-                        add(ranges, openRule, [openFrom, start]);
-                    }
-                    open.clear();
-                }
+                blocks.push({line: start, ruleId, disable: parsed.kind === 'eslint-disable'});
             }
         }
     }
 
-    for (const [ruleId, from] of open) {
-        add(ranges, ruleId, [from, Number.POSITIVE_INFINITY]);
-    }
-    return {lines, ranges};
+    return {lines, blocks};
 }
 
 function directivesFor(filename, comments) {
@@ -87,18 +61,29 @@ function directivesFor(filename, comments) {
     return cache.get(key);
 }
 
-function suppressedFor(directives, ruleId, line) {
-    if (directives.lines.get(ruleId)?.has(line)) {
-        return true;
-    }
-    return (directives.ranges.get(ruleId) ?? []).some(([from, to]) => line >= from && line <= to);
-}
-
+// Mirrors ESLint: the last block directive at or before the line that names the rule (or no rule)
+// decides. A bare `eslint-disable` followed by `eslint-enable foo` therefore re-enables `foo` alone,
+// and a bare `eslint-enable` re-enables every rule.
 function isSuppressed(directives, eslintRuleId, line) {
     if (line == null) {
         return false;
     }
-    return suppressedFor(directives, eslintRuleId, line) || suppressedFor(directives, ALL_RULES, line);
+    if (directives.lines.get(eslintRuleId)?.has(line) || directives.lines.get(ALL_RULES)?.has(line)) {
+        return true;
+    }
+    let disabled = false;
+    for (const block of directives.blocks) {
+        if (block.line > line || (block.ruleId !== ALL_RULES && block.ruleId !== eslintRuleId)) {
+            continue;
+        }
+        // A report on the `eslint-enable` line itself stays suppressed, as with the previous inclusive range.
+        if (block.disable) {
+            disabled = true;
+        } else if (block.line < line) {
+            disabled = false;
+        }
+    }
+    return disabled;
 }
 
 function reportLine(args) {
