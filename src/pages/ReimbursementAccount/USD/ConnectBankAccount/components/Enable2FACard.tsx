@@ -28,7 +28,6 @@ function Enable2FACard() {
             title={translate('connectBankAccountStep.enable2FATitle')}
             icon={ShieldYellow}
             titleStyles={styles.mb4}
-            containerStyles={styles.mh5}
         >
             <View style={styles.mb6}>
                 <Text>{translate('connectBankAccountStep.enable2FAText')}</Text>

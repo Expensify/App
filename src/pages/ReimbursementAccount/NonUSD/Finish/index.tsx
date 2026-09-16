@@ -58,7 +58,7 @@ function Finish() {
                 <Section
                     title={translate('finishStep.letsFinish')}
                     icon={illustrations.ConciergeBubble}
-                    containerStyles={[styles.mb8, styles.mh5]}
+                    containerStyles={styles.mb8}
                     titleStyles={[styles.mb3, styles.textHeadline]}
                 >
                     <Text style={[styles.mb6, styles.mt3, styles.textLabelSupportingEmptyValue]}>{translate('finishStep.thanksFor')}</Text>
@@ -74,7 +74,6 @@ function Finish() {
                     title={translate('finishStep.enable2FA')}
                     icon={illustrations.ShieldYellow}
                     titleStyles={[styles.mb4, styles.textHeadline]}
-                    containerStyles={[styles.mh5]}
                 >
                     <View style={styles.mb6}>
                         <Text style={[styles.mt3, styles.textLabelSupportingEmptyValue]}>{translate('finishStep.weTake')}</Text>
