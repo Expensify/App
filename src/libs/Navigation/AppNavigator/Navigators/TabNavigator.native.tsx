@@ -41,6 +41,7 @@ import SCREENS from '@src/SCREENS';
 
 import type {NativeBottomTabIcon, NativeBottomTabNavigatorProps} from '@react-navigation/bottom-tabs/unstable';
 import type {NavigationAction, NavigationState, PartialState, Router, TabNavigationState} from '@react-navigation/native';
+import type {SkCanvas} from '@shopify/react-native-skia';
 import type {ImageSourcePropType} from 'react-native';
 
 import {createNativeBottomTabNavigator} from '@react-navigation/bottom-tabs/unstable';
@@ -48,6 +49,7 @@ import {findFocusedRoute, useNavigation, useNavigationState, useRoute} from '@re
 import {BlendMode, ClipOp, ImageFormat, Skia} from '@shopify/react-native-skia';
 import React, {useEffect, useState} from 'react';
 import {Image, View} from 'react-native';
+import Animated, {FadeIn, FadeOut} from 'react-native-reanimated';
 
 import ReportsSplitNavigator from './ReportsSplitNavigator';
 import SearchFullscreenNavigator from './SearchFullscreenNavigator';
@@ -94,13 +96,23 @@ function isRealizedNavigationState(state: NavigationState | PartialState<Navigat
 /** The recolored copies of one tab icon, one per selection state. */
 type TintedTabIconPair = {active: NativeBottomTabIcon; inactive: NativeBottomTabIcon};
 
+/** Paints the status dot in the canvas' top right corner, where a native badge would have sat. */
+function drawStatusDot(canvas: SkCanvas, canvasWidth: number, scale: number, color: string) {
+    const radius = variables.nativeTabIconDotRadius * scale;
+    const paint = Skia.Paint();
+    paint.setColor(Skia.Color(color));
+    canvas.drawCircle(canvasWidth - radius, radius, radius, paint);
+}
+
 /**
- * iOS 26 draws the bar's glass material itself and ignores the per-item `UITabBarItemAppearance`, so the inactive
- * icon color never reaches an unselected template icon — it lands on the system label color instead. Recoloring the
- * icon off-screen and handing it over as an opaque image is the only way to keep the theme's icon color there.
- * Both selection states go through this, because RNScreens rejects a tab whose icon and selectedIcon differ in type.
+ * iOS 26 draws the bar's glass material itself and honors very little of what a tab item is told about its colors.
+ * The inactive icon color from `UITabBarItemAppearance` never arrives, and every badge is painted in the color of
+ * whichever tab is selected — measured to hold for `badgeBackgroundColor` and for `UITabBarItem.badgeColor` alike.
+ * The image handed to an item is honored, though, so the glyph is recolored off-screen and the status dot is drawn
+ * into it. Both selection states go through this, because RNScreens rejects a tab whose icon and selectedIcon
+ * differ in type. Every icon reserves the same room for the dot so the glyphs stay aligned across tabs.
  */
-async function createTintedIcon(source: ImageSourcePropType, color: string): Promise<NativeBottomTabIcon | undefined> {
+async function createTabIcon(source: ImageSourcePropType, color: string, dotColor: string | undefined): Promise<NativeBottomTabIcon | undefined> {
     const asset = Image.resolveAssetSource(source);
     if (!asset?.uri) {
         return undefined;
@@ -109,7 +121,11 @@ async function createTintedIcon(source: ImageSourcePropType, color: string): Pro
     const response = await fetch(asset.uri);
     const encodedImage = Skia.Data.fromBytes(new Uint8Array(await response.arrayBuffer()));
     const image = Skia.Image.MakeImageFromEncoded(encodedImage);
-    const surface = image ? Skia.Surface.MakeOffscreen(image.width(), image.height()) : null;
+    const scale = asset.scale ?? 1;
+    const padding = variables.nativeTabIconDotRadius * 2 * scale;
+    const canvasWidth = image ? image.width() + padding : 0;
+    const canvasHeight = image ? image.height() + padding : 0;
+    const surface = image ? Skia.Surface.MakeOffscreen(canvasWidth, canvasHeight) : null;
 
     if (!image || !surface) {
         image?.dispose();
@@ -117,11 +133,18 @@ async function createTintedIcon(source: ImageSourcePropType, color: string): Pro
         return undefined;
     }
 
-    const bounds = Skia.XYWHRect(0, 0, image.width(), image.height());
     const paint = Skia.Paint();
     // SrcIn keeps the glyph's alpha and replaces every colored pixel with the theme color.
     paint.setColorFilter(Skia.ColorFilter.MakeBlend(Skia.Color(color), BlendMode.SrcIn));
-    surface.getCanvas().drawImageRect(image, bounds, bounds, paint);
+
+    const canvas = surface.getCanvas();
+    // The glyph sits in the bottom left so the reserved room ends up under the dot.
+    canvas.drawImageRect(image, Skia.XYWHRect(0, 0, image.width(), image.height()), Skia.XYWHRect(0, padding, image.width(), image.height()), paint);
+
+    if (dotColor) {
+        drawStatusDot(canvas, canvasWidth, scale, dotColor);
+    }
+
     surface.flush();
 
     const snapshot = surface.makeImageSnapshot();
@@ -131,19 +154,23 @@ async function createTintedIcon(source: ImageSourcePropType, color: string): Pro
     snapshot.dispose();
     surface.dispose();
 
-    return {type: 'image', source: {uri: `data:image/png;base64,${base64}`, width: asset.width, height: asset.height, scale: asset.scale}, tinted: false};
+    return {type: 'image', source: {uri: `data:image/png;base64,${base64}`, width: canvasWidth / scale, height: canvasHeight / scale, scale}, tinted: false};
 }
 
 /**
  * The account tab shows the user's avatar, and a tab icon has to be a square image, so the avatar is cropped to a
- * circle off-screen and handed over as a data URI.
+ * circle off-screen and handed over as a data URI. It reserves the same room for the status dot as every other tab
+ * icon, so the avatar lines up with the glyphs next to it.
  */
-async function createCircularAvatarIcon(uri: string): Promise<string | undefined> {
+async function createCircularAvatarIcon(uri: string, dotColor: string | undefined): Promise<string | undefined> {
     const response = await fetch(uri);
     const encodedImage = Skia.Data.fromBytes(new Uint8Array(await response.arrayBuffer()));
     const image = Skia.Image.MakeImageFromEncoded(encodedImage);
-    const iconSize = variables.iconBottomBar * 3;
-    const surface = Skia.Surface.MakeOffscreen(iconSize, iconSize);
+    const scale = variables.nativeTabIconScale;
+    const avatarSize = variables.iconBottomBar * scale;
+    const padding = variables.nativeTabIconDotRadius * 2 * scale;
+    const canvasSize = avatarSize + padding;
+    const surface = Skia.Surface.MakeOffscreen(canvasSize, canvasSize);
 
     if (!image || !surface) {
         image?.dispose();
@@ -155,11 +182,18 @@ async function createCircularAvatarIcon(uri: string): Promise<string | undefined
     const sourceX = (image.width() - sourceSize) / 2;
     const sourceY = (image.height() - sourceSize) / 2;
     const circle = Skia.Path.Make();
-    circle.addCircle(iconSize / 2, iconSize / 2, iconSize / 2);
+    circle.addCircle(avatarSize / 2, padding + avatarSize / 2, avatarSize / 2);
 
     const canvas = surface.getCanvas();
+    canvas.save();
     canvas.clipPath(circle, ClipOp.Intersect, true);
-    canvas.drawImageRect(image, Skia.XYWHRect(sourceX, sourceY, sourceSize, sourceSize), Skia.XYWHRect(0, 0, iconSize, iconSize), Skia.Paint());
+    canvas.drawImageRect(image, Skia.XYWHRect(sourceX, sourceY, sourceSize, sourceSize), Skia.XYWHRect(0, padding, avatarSize, avatarSize), Skia.Paint());
+    canvas.restore();
+
+    if (dotColor) {
+        drawStatusDot(canvas, canvasSize, scale, dotColor);
+    }
+
     surface.flush();
 
     const snapshot = surface.makeImageSnapshot();
@@ -214,7 +248,10 @@ function NativeTabLayout({children, state, descriptors}: NativeTabLayoutProps) {
             {children}
             {!!isDebugModeEnabled && shouldShowNativeTabBar && <DebugTabView selectedTab={selectedTab} />}
             {shouldShowNativeTabBar && (
-                <View
+                // The buttons belong to the bar, so they fade with it rather than appearing in place.
+                <Animated.View
+                    entering={FadeIn.duration(CONST.ANIMATED_TRANSITION)}
+                    exiting={FadeOut.duration(CONST.ANIMATED_TRANSITION)}
                     style={styles.nativeTabBarFloatingButtons}
                     pointerEvents="box-none"
                 >
@@ -223,7 +260,7 @@ function NativeTabLayout({children, state, descriptors}: NativeTabLayoutProps) {
                     </View>
                     <FloatingGPSButton />
                     <FloatingCameraButton />
-                </View>
+                </Animated.View>
             )}
         </View>
     );
@@ -250,17 +287,36 @@ function TabNavigator() {
     const activeTabRouteName = isRealizedNavigationState(tabState) ? tabState.routes[tabState.index]?.name : SCREENS.HOME;
     const selectedTab = ROUTE_TO_NAVIGATION_TAB[activeTabRouteName ?? SCREENS.HOME] ?? NAVIGATION_TABS.HOME;
 
-    const [tintedIcons, setTintedIcons] = useState<{inactiveColor: string; activeColor: string; icons: Record<string, TintedTabIconPair>}>();
-    const tintedIconsForTheme = tintedIcons?.inactiveColor === theme.icon && tintedIcons.activeColor === theme.iconMenu ? tintedIcons.icons : undefined;
+    let inboxDotColor: string | undefined;
+    if (chatTabBrickRoad) {
+        inboxDotColor = chatTabBrickRoad === CONST.BRICK_ROAD_INDICATOR_STATUS.INFO ? theme.iconSuccessFill : theme.danger;
+    }
+    const workspacesDotColor = workspacesIndicatorStatus ? workspacesIndicatorColor : undefined;
+    const accountDotColor = accountIndicatorStatus ? accountIndicatorColor : undefined;
+    const dotColors: Record<string, string | undefined> = {
+        [NAVIGATORS.REPORTS_SPLIT_NAVIGATOR]: inboxDotColor,
+        [NAVIGATORS.WORKSPACE_NAVIGATOR]: workspacesDotColor,
+        [NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR]: accountDotColor,
+    };
+    // The signature covers everything baked into the bitmaps, so a status that comes or goes redraws them.
+    const iconsSignature = `${theme.icon}|${theme.iconMenu}|${inboxDotColor}|${workspacesDotColor}|${accountDotColor}`;
+
+    const [tintedIcons, setTintedIcons] = useState<{signature: string; icons: Record<string, TintedTabIconPair>}>();
+    const tintedIconsForTheme = tintedIcons?.signature === iconsSignature ? tintedIcons.icons : undefined;
 
     useEffect(() => {
         let isActive = true;
         const inactiveColor = theme.icon;
         const activeColor = theme.iconMenu;
+        const signature = iconsSignature;
 
         Promise.all(
             TAB_ICONS.map(([name, source]) =>
-                Promise.all([createTintedIcon(source, inactiveColor), createTintedIcon(source, activeColor)]).then(([inactive, active]) => ({name, inactive, active})),
+                Promise.all([createTabIcon(source, inactiveColor, dotColors[name]), createTabIcon(source, activeColor, dotColors[name])]).then(([inactive, active]) => ({
+                    name,
+                    inactive,
+                    active,
+                })),
             ),
         )
             .then((results) => {
@@ -273,14 +329,15 @@ function TabNavigator() {
                         icons[result.name] = {inactive: result.inactive, active: result.active};
                     }
                 }
-                setTintedIcons({inactiveColor, activeColor, icons});
+                setTintedIcons({signature, icons});
             })
             .catch(() => {});
 
         return () => {
             isActive = false;
         };
-    }, [theme.icon, theme.iconMenu]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [iconsSignature]);
 
     /** Falls back to the template icon until both tinted copies are ready, so a tab is never left without one. */
     const getTabBarIcon = (name: string, fallbackIcon: NativeBottomTabIcon) => {
@@ -296,10 +353,12 @@ function TabNavigator() {
         accountID: currentUserPersonalDetails.accountID,
     });
     const avatarURI = typeof avatarSource === 'string' ? avatarSource : undefined;
-    const [circularAvatar, setCircularAvatar] = useState<{source: string; uri: string}>();
-    const circularAvatarURI = circularAvatar && circularAvatar.source === avatarURI ? circularAvatar.uri : undefined;
+    const avatarSignature = `${avatarURI}|${accountDotColor}`;
+    const [circularAvatar, setCircularAvatar] = useState<{signature: string; uri: string}>();
+    const circularAvatarURI = circularAvatar?.signature === avatarSignature ? circularAvatar.uri : undefined;
+    const accountIconSize = variables.iconBottomBar + variables.nativeTabIconDotRadius * 2;
     const accountTabIcon: NativeBottomTabIcon = circularAvatarURI
-        ? {type: 'image', source: {uri: circularAvatarURI, width: variables.iconBottomBar, height: variables.iconBottomBar, scale: 3}, tinted: false}
+        ? {type: 'image', source: {uri: circularAvatarURI, width: accountIconSize, height: accountIconSize, scale: variables.nativeTabIconScale}, tinted: false}
         : ACCOUNT_TAB_ICON;
 
     useEffect(() => {
@@ -310,19 +369,21 @@ function TabNavigator() {
             };
         }
 
-        createCircularAvatarIcon(avatarURI)
+        const signature = avatarSignature;
+        createCircularAvatarIcon(avatarURI, accountDotColor)
             .then((result) => {
                 if (!isActive || !result) {
                     return;
                 }
-                setCircularAvatar({source: avatarURI, uri: result});
+                setCircularAvatar({signature, uri: result});
             })
             .catch(() => {});
 
         return () => {
             isActive = false;
         };
-    }, [avatarURI]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [avatarSignature]);
 
     useEffect(() => {
         if (!shouldUseNarrowLayout || !parentNavigation) {
@@ -396,8 +457,6 @@ function TabNavigator() {
                 options={{
                     tabBarLabel: translate('common.inbox'),
                     tabBarIcon: getTabBarIcon(NAVIGATORS.REPORTS_SPLIT_NAVIGATOR, INBOX_TAB_ICON),
-                    tabBarBadge: chatTabBrickRoad ? ' ' : undefined,
-                    tabBarBadgeStyle: {backgroundColor: chatTabBrickRoad === CONST.BRICK_ROAD_INDICATOR_STATUS.INFO ? theme.iconSuccessFill : theme.danger},
                 }}
             />
             <Tab.Screen
@@ -411,8 +470,6 @@ function TabNavigator() {
                 options={{
                     tabBarLabel: translate('common.workspacesTabTitle'),
                     tabBarIcon: getTabBarIcon(NAVIGATORS.WORKSPACE_NAVIGATOR, WORKSPACES_TAB_ICON),
-                    tabBarBadge: workspacesIndicatorStatus ? ' ' : undefined,
-                    tabBarBadgeStyle: {backgroundColor: workspacesIndicatorColor},
                 }}
             />
             <Tab.Screen
@@ -421,8 +478,6 @@ function TabNavigator() {
                 options={{
                     tabBarLabel: translate('initialSettingsPage.account'),
                     tabBarIcon: circularAvatarURI ? accountTabIcon : getTabBarIcon(NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR, accountTabIcon),
-                    tabBarBadge: accountIndicatorStatus ? ' ' : undefined,
-                    tabBarBadgeStyle: {backgroundColor: accountIndicatorColor},
                 }}
             />
         </Tab.Navigator>

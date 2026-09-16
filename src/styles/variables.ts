@@ -104,6 +104,10 @@ export default {
     iconSizeMegaLarge: 105,
     iconSizeMenuItem: 32,
     iconBottomBar: 24,
+    /** Radius of the status dot drawn into a native tab bar icon, and the room reserved for it around the glyph. */
+    nativeTabIconDotRadius: 4,
+    /** Pixel density the native tab bar icons are rasterized at. */
+    nativeTabIconScale: 3,
     iconHeader: 48,
     iconSection: 68,
     iouAmountTextSize: 40,
