@@ -92,8 +92,8 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {ValueOf} from 'type-fest';
 
 import {useIsFocused} from '@react-navigation/native';
-import {Str} from 'expensify-common';
 import {createOutstandingReportsForPolicySelector} from '@selectors/Report';
+import {Str} from 'expensify-common';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 
@@ -167,7 +167,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     const invitedEmails = useMemo(() => Object.keys(invitedEmailsToAccountIDsDraft ?? {}), [invitedEmailsToAccountIDsDraft]);
 
     const ownerDetails = personalDetails?.[policy?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID] ?? ({} as PersonalDetails);
-    const {approvalWorkflows} = useApprovalWorkflows({policy, personalDetails, currentUserLogin});
+    const {approvalWorkflows, enforcedApprovalWorkflows} = useApprovalWorkflows({policy, personalDetails, currentUserLogin});
 
     const canSelectMultiple = canWriteMembers && (shouldUseNarrowLayout ? isMobileSelectionModeEnabled : true);
 
@@ -391,12 +391,12 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
 
     // Unlike the custom fields, this column applies to every workspace type, so it isn't gated on Control.
     const isApprovalsEnabled = areApprovalsEnabled(policy);
-    const firstApproverByMemberEmail = useMemo(() => (isApprovalsEnabled ? getFirstApproverByMemberEmail(approvalWorkflows) : {}), [approvalWorkflows, isApprovalsEnabled]);
+    const firstApproverByMemberEmail = useMemo(() => (isApprovalsEnabled ? getFirstApproverByMemberEmail(enforcedApprovalWorkflows) : {}), [enforcedApprovalWorkflows, isApprovalsEnabled]);
     // Keyed off approvals being enabled rather than off the derived map having entries. Removing an approver blanks the
     // remaining members' `submitsTo` until the server resolves it, and gating on the map would drop the whole column
     // for that window (indefinitely, while offline).
     const shouldShowApproverColumn = hasWideTableLayout && isApprovalsEnabled;
-    const shouldUseOrdinalApproverLabel = useMemo(() => hasMultiLevelApprovalWorkflow(approvalWorkflows), [approvalWorkflows]);
+    const shouldUseOrdinalApproverLabel = useMemo(() => hasMultiLevelApprovalWorkflow(enforcedApprovalWorkflows), [enforcedApprovalWorkflows]);
 
     // Submit workspaces have a flat role model where every member, including the owner, is an Editor.
     const isSubmitWorkspace = isSubmitPolicy(policy);

@@ -705,8 +705,6 @@ describe('WorkspaceMembers', () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, {approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL});
             });
 
-    describe('Selection and search', () => {
-        it('should clear a Select All made inside a search once the search field is cleared', async () => {
             const {unmount} = renderPage(SCREENS.WORKSPACE.MEMBERS, {policyID: policy.id});
             await waitForBatchedUpdatesWithAct();
 
@@ -756,6 +754,54 @@ describe('WorkspaceMembers', () => {
                 expect(screen.getByText(ADMIN_OPTION)).toBeOnTheScreen();
             });
             expect(screen.getByLabelText(approverHeaderLabel())).toBeOnTheScreen();
+
+            unmount();
+        });
+
+        it('hides an approver the workspace no longer enforces after a downgrade', async () => {
+            // Given a workspace that was downgraded out of advanced approvals: the extra workflow is gone from the
+            // Workflows tab, but every member's `submitsTo` survives the downgrade, so the approver it names must
+            // not keep showing here either.
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, {
+                    type: CONST.POLICY.TYPE.TEAM,
+                    approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+                    approver: adminEmail,
+                    employeeList: {
+                        [ownerEmail]: {email: ownerEmail, role: CONST.POLICY.ROLE.ADMIN, submitsTo: auditorEmail},
+                        [adminEmail]: {email: adminEmail, role: CONST.POLICY.ROLE.ADMIN, submitsTo: adminEmail},
+                        [auditorEmail]: {email: auditorEmail, role: CONST.POLICY.ROLE.AUDITOR, submitsTo: adminEmail},
+                    },
+                });
+            });
+
+            const {unmount} = renderPage(SCREENS.WORKSPACE.MEMBERS, {policyID: policy.id});
+            await waitForBatchedUpdatesWithAct();
+
+            await waitFor(() => {
+                expect(screen.getByText(ADMIN_OPTION)).toBeOnTheScreen();
+            });
+
+            // The owner submits to the auditor, which is no longer one of the workspace's enforced workflows, so
+            // their row carries no approver segment at all.
+            const ownerRoleLabel = TestHelper.translateLocal('workspace.common.roleName', CONST.POLICY.ROLE.ADMIN);
+            expect(screen.getByLabelText(new RegExp(`^Owner User, ${ownerEmail}, ${ownerRoleLabel}$`))).toBeOnTheScreen();
+
+            // The auditor is on the default workflow, so their approver still shows.
+            expect(screen.getByLabelText(new RegExp(`^Auditor User, ${auditorEmail}, ${TestHelper.translateLocal('common.approver')}: Admin User`))).toBeOnTheScreen();
+
+            unmount();
+        });
+    });
+
+    describe('Selection and search', () => {
+        it('should clear a Select All made inside a search once the search field is cleared', async () => {
+            const {unmount} = renderPage(SCREENS.WORKSPACE.MEMBERS, {policyID: policy.id});
+            await waitForBatchedUpdatesWithAct();
+
+            await waitFor(() => {
+                expect(screen.getByText(ADMIN_OPTION)).toBeOnTheScreen();
+            });
 
             // Given a search that narrows the list to a subset of the members
             const searchInput = screen.getByPlaceholderText(TestHelper.translateLocal('workspace.people.findMember'));

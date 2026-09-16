@@ -28,7 +28,7 @@ import type {ValueOf} from 'type-fest';
 import {Str} from 'expensify-common';
 
 import {isBankAccountPartiallySetup} from './BankAccountUtils';
-import {getHRAdvancedModeFinalApprover, getHRFinalApprover} from './merge/HRUtils';
+import {getHRAdvancedModeFinalApprover, getHRFinalApprover, isHRAdvancedMode} from './merge/HRUtils';
 import {rand64} from './NumberUtils';
 import {getDefaultApprover, isExpensifyTeam, shouldFilterExpensifyTeam} from './PolicyUtils';
 
@@ -297,6 +297,24 @@ function convertPolicyEmployeesToApprovalWorkflows({policy, personalDetails, fir
     availableMembers.sort((a, b) => localeCompare(a.displayName ?? a.email, b.displayName ?? b.email));
 
     return {approvalWorkflows: sortedApprovalWorkflows, usedApproverEmails: [...usedApproverEmails], availableMembers};
+}
+
+/**
+ * The workflows a workspace actually enforces. Only the advanced approval modes run more than one workflow, so under
+ * every other mode the default workflow is the only one in force and the rest are inert. They can still be derived
+ * from `employeeList`, because downgrading a workspace leaves each member's `submitsTo` in place.
+ */
+function getEnforcedApprovalWorkflows(approvalWorkflows: ApprovalWorkflow[], policy: OnyxEntry<Policy>, isMultipleApproversBetaEnabled: boolean): ApprovalWorkflow[] {
+    if (
+        isMultipleApproversBetaEnabled ||
+        policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.ADVANCED ||
+        policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL ||
+        isHRAdvancedMode(policy)
+    ) {
+        return approvalWorkflows;
+    }
+
+    return approvalWorkflows.filter((workflow) => workflow.isDefault);
 }
 
 /**
@@ -1767,6 +1785,7 @@ export {
     getApprovalLimitDescription,
     getApprovalWorkflowRulesForPolicy,
     getFirstApproverByMemberEmail,
+    getEnforcedApprovalWorkflows,
     filterRulesForPolicy,
     getRulesSubmitterToFirstApprover,
     getRulesSubmitterToWorkflowKey,

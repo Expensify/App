@@ -1,12 +1,21 @@
-import {convertApprovalWorkflowRulesToWorkflows, convertPolicyEmployeesToApprovalWorkflows, filterRulesForPolicy, getApprovalWorkflowRulesForPolicy} from '@libs/WorkflowUtils';
+import {
+    convertApprovalWorkflowRulesToWorkflows,
+    convertPolicyEmployeesToApprovalWorkflows,
+    filterRulesForPolicy,
+    getApprovalWorkflowRulesForPolicy,
+    getEnforcedApprovalWorkflows,
+} from '@libs/WorkflowUtils';
 import type {PolicyConversionResult} from '@libs/WorkflowUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, PersonalDetailsList} from '@src/types/onyx';
+import type ApprovalWorkflow from '@src/types/onyx/ApprovalWorkflow';
 import type Rule from '@src/types/onyx/Rule';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+
+import {useMemo} from 'react';
 
 import useLocalize from './useLocalize';
 import useOnyx from './useOnyx';
@@ -25,22 +34,34 @@ type UseApprovalWorkflowsParams = {
     currentUserLogin?: string;
 };
 
+type UseApprovalWorkflowsResult = PolicyConversionResult & {
+    /**
+     * The workflows the workspace's approval mode actually enforces. Read this wherever a member's approver is
+     * surfaced, so a workflow the workspace has stopped enforcing isn't presented as if it still applied.
+     */
+    enforcedApprovalWorkflows: ApprovalWorkflow[];
+};
+
 /** Derives the policy's approval workflows, from rules or from `employeeList` depending on the `MULTIPLE_APPROVERS` beta. */
-function useApprovalWorkflows({policy, personalDetails, currentUserLogin}: UseApprovalWorkflowsParams): PolicyConversionResult {
+function useApprovalWorkflows({policy, personalDetails, currentUserLogin}: UseApprovalWorkflowsParams): UseApprovalWorkflowsResult {
     const {localeCompare} = useLocalize();
     const {isBetaEnabled} = usePermissions();
     const policyID = policy?.id;
+    const isMultipleApproversBetaEnabled = isBetaEnabled(CONST.BETAS.MULTIPLE_APPROVERS);
 
     // `rules` is resolved inside the beta branch below, so the collection is not traversed on the default path.
-    const [rulesCollection] = useOnyx(ONYXKEYS.COLLECTION.RULE, {selector: policyRulesSelector(policyID)});
+    // Memoized because `policyRulesSelector` is a factory, so calling it inline would hand `useOnyx` a new selector
+    // on every render.
+    const rulesSelector = useMemo(() => policyRulesSelector(policyID), [policyID]);
+    const [rulesCollection] = useOnyx(ONYXKEYS.COLLECTION.RULE, {selector: rulesSelector});
 
     const params = {policy, personalDetails: personalDetails ?? {}, localeCompare, currentUserLogin};
 
-    if (!isBetaEnabled(CONST.BETAS.MULTIPLE_APPROVERS)) {
-        return convertPolicyEmployeesToApprovalWorkflows(params);
-    }
+    const result = isMultipleApproversBetaEnabled
+        ? convertApprovalWorkflowRulesToWorkflows({...params, rules: getApprovalWorkflowRulesForPolicy(rulesCollection, policyID)})
+        : convertPolicyEmployeesToApprovalWorkflows(params);
 
-    return convertApprovalWorkflowRulesToWorkflows({...params, rules: getApprovalWorkflowRulesForPolicy(rulesCollection, policyID)});
+    return {...result, enforcedApprovalWorkflows: getEnforcedApprovalWorkflows(result.approvalWorkflows, policy, isMultipleApproversBetaEnabled)};
 }
 
 export default useApprovalWorkflows;

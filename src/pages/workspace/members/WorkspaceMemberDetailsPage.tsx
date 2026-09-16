@@ -166,10 +166,10 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const {isAccountLocked} = useLockedAccountState();
     const {showLockedAccountModal} = useLockedAccountActions();
 
-    const {approvalWorkflows, availableMembers, usedApproverEmails} = useApprovalWorkflows({policy, personalDetails, currentUserLogin});
+    const {approvalWorkflows, enforcedApprovalWorkflows, availableMembers, usedApproverEmails} = useApprovalWorkflows({policy, personalDetails, currentUserLogin});
 
     // The label follows this member's own workflow depth, not the workspace's.
-    const memberApprovalWorkflow = approvalWorkflows.find((workflow) => workflow.members.some((workflowMember) => workflowMember.email === memberLogin));
+    const memberApprovalWorkflow = enforcedApprovalWorkflows.find((workflow) => workflow.members.some((workflowMember) => workflowMember.email === memberLogin));
     const memberFirstApprover = memberApprovalWorkflow?.approvers.at(0);
     const isApprovalsEnabled = areApprovalsEnabled(policy);
     // An HR integration in a read-only approval mode owns the workflows, so the editor rejects manual edits.
