@@ -21,7 +21,8 @@ const getRHPFrameStyle: GetRHPFrameStyle = ({styles, animatedWidth, shouldUseNar
 
     // The card is border-box, so its border has to be added back on top of the animated width. Without it the content
     // box ends up narrower than the RHP width and the fixed-width panes inside the wide RHP get clipped.
-    return [styles.pAbsolute, styles.overflowHidden, styles.RHPFloatingCard, {width: Animated.add(animatedWidth, 2 * variables.rhpFloatingCardBorderWidth)}];
+    // translateZ0 makes the frame a containing block so it clips the fixed RHP screen; without it the screen overflows past the radius.
+    return [styles.pAbsolute, styles.overflowHidden, styles.translateZ0, styles.RHPFloatingCard, {width: Animated.add(animatedWidth, 2 * variables.rhpFloatingCardBorderWidth)}];
 };
 
 export default getRHPFrameStyle;
