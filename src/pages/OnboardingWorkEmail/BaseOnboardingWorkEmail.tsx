@@ -39,12 +39,14 @@ import INPUT_IDS from '@src/types/form/OnboardingWorkEmailForm';
 import type {Account} from '@src/types/onyx';
 import type IconAsset from '@src/types/utils/IconAsset';
 
+import type {OnyxEntry} from 'react-native-onyx';
+
 import {useIsFocused} from '@react-navigation/native';
 import {hasCompletedGuidedSetupFlowSelector} from '@selectors/Onboarding';
 import {PUBLIC_DOMAINS_SET, Str} from 'expensify-common';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
-import Onyx, {type OnyxEntry} from 'react-native-onyx';
+import Onyx from 'react-native-onyx';
 
 import type {BaseOnboardingWorkEmailProps} from './types';
 
