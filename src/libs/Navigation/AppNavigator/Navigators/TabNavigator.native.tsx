@@ -248,10 +248,12 @@ function NativeTabLayout({children, state, descriptors}: NativeTabLayoutProps) {
             {children}
             {!!isDebugModeEnabled && shouldShowNativeTabBar && <DebugTabView selectedTab={selectedTab} />}
             {shouldShowNativeTabBar && (
-                // The buttons belong to the bar, so they fade with it rather than appearing in place.
+                // The buttons belong to the bar, so they fade with it rather than appearing in place. UIKit animates
+                // the bar itself over roughly the 0.35s it gives every bar, which the FAB's own timing already
+                // matches on the way in; it leaves faster so it stops covering the bar that is still sliding out.
                 <Animated.View
-                    entering={FadeIn.duration(CONST.ANIMATED_TRANSITION)}
-                    exiting={FadeOut.duration(CONST.ANIMATED_TRANSITION)}
+                    entering={FadeIn.duration(CONST.MODAL.ANIMATION_TIMING.FAB_IN)}
+                    exiting={FadeOut.duration(CONST.MODAL.ANIMATION_TIMING.FAB_OUT)}
                     style={styles.nativeTabBarFloatingButtons}
                     pointerEvents="box-none"
                 >
