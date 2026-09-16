@@ -951,7 +951,14 @@ function MoneyRequestReportTransactionList({
                             if (!isSortableColumnName(selectedSortBy)) {
                                 return;
                             }
-                            setSortConfig((prevState) => ({...prevState, sortBy: selectedSortBy, sortOrder: selectedSortOrder}));
+                            setSortConfig((prevState) => ({
+                                ...prevState,
+                                sortBy: selectedSortBy,
+                                sortOrder:
+                                    selectedSortBy === CONST.SEARCH.TABLE_COLUMNS.DATE && prevState.sortBy !== CONST.SEARCH.TABLE_COLUMNS.DATE
+                                        ? CONST.SEARCH.SORT_ORDER.ASC
+                                        : selectedSortOrder,
+                            }));
                         }}
                     />
                 )}
