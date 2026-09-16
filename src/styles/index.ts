@@ -3728,6 +3728,16 @@ const staticStyles = (theme: ThemeColors) =>
             ...spacing.ph5,
         },
 
+        listItemRow: {
+            flex: 1,
+            width: '100%',
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            ...spacing.ph5,
+            ...userSelect.userSelectNone,
+        },
+
         dotIndicatorMessage: {
             display: 'flex',
             flexDirection: 'row',
@@ -5558,7 +5568,6 @@ const staticStyles = (theme: ThemeColors) =>
 
         // Extra 2 to account for the borders
         searchPageInputWideTouchableWrapper: {height: 34, width: 202},
-        searchPageInputNarrowTouchableWrapper: {height: 46},
 
         // Compact search inputs that appear above lists/popovers. Matches the smaller
         // "above the table" search input heights (34 on web/desktop, 46 on mobile).
