@@ -23,6 +23,12 @@ type HRConnectionErrorFieldName = 'approvalMode' | 'finalApprover' | 'groups';
 type RecruitingConnectionErrorFieldName = 'approvalMode' | 'finalApprover' | 'filters' | 'approverField';
 type MergeConnectionErrorFieldName = HRConnectionErrorFieldName | RecruitingConnectionErrorFieldName;
 
+/** Client-side "initial sync modal shown" flag for each Merge connection, cleared when the connection is removed. */
+const MERGE_INITIAL_SYNC_MODAL_SHOWN_KEYS = {
+    [CONST.POLICY.CONNECTIONS.NAME.MERGE_HR]: ONYXKEYS.COLLECTION.POLICY_MERGE_HR_INITIAL_SYNC_MODAL_SHOWN,
+    [CONST.POLICY.CONNECTIONS.NAME.MERGE_ATS]: ONYXKEYS.COLLECTION.POLICY_MERGE_ATS_INITIAL_SYNC_MODAL_SHOWN,
+} as const;
+
 function getMergeSetupLink(policyID: string, integration: MergeHRProviderSlug | MergeATSProviderSlug, category: ValueOf<typeof CONST.MERGE.CATEGORY>) {
     const params: ConnectPolicyToMergeParams = {policyID, integration, category};
     const commandURL = getCommandURL({
@@ -30,6 +36,11 @@ function getMergeSetupLink(policyID: string, integration: MergeHRProviderSlug | 
         shouldSkipWebProxy: true,
     });
     return commandURL + new URLSearchParams(params).toString();
+}
+
+/** Remembers that the initial sync modal has been shown for the given Merge connection, so it is only shown once. */
+function setMergeInitialSyncModalShown(policyID: string, connectionName: MergeConnectionName) {
+    Onyx.set(`${MERGE_INITIAL_SYNC_MODAL_SHOWN_KEYS[connectionName]}${policyID}`, true);
 }
 
 /**
@@ -243,5 +254,5 @@ function clearMergeConnectionErrorField(policyID: string | undefined, connection
     });
 }
 
-export {clearMergeConnectionErrorField, getMergeSetupLink, syncMerge, updateMergeApprovalMode, updateMergeFinalApprover};
+export {MERGE_INITIAL_SYNC_MODAL_SHOWN_KEYS, clearMergeConnectionErrorField, getMergeSetupLink, setMergeInitialSyncModalShown, syncMerge, updateMergeApprovalMode, updateMergeFinalApprover};
 export type {MergeConnectionErrorFieldName};
