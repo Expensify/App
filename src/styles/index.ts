@@ -1916,23 +1916,6 @@ const staticStyles = (theme: ThemeColors) =>
             borderColor: theme.appBG,
         },
 
-        sidebarAvatar: {
-            borderRadius: variables.avatarSizeSmall,
-            height: variables.avatarSizeSmall,
-            width: variables.avatarSizeSmall,
-        },
-
-        selectedAvatarBorder: {
-            padding: 1,
-            borderWidth: 2,
-            borderRadius: 20,
-            height: variables.avatarSizeSmall + 6,
-            width: variables.avatarSizeSmall + 6,
-            borderColor: theme.success,
-            right: -3,
-            top: -3,
-        },
-
         floatingActionButton: {
             backgroundColor: theme.success,
             height: variables.componentSizeLarge,
@@ -3728,6 +3711,16 @@ const staticStyles = (theme: ThemeColors) =>
             ...spacing.ph5,
         },
 
+        listItemRow: {
+            flex: 1,
+            width: '100%',
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            ...spacing.ph5,
+            ...userSelect.userSelectNone,
+        },
+
         dotIndicatorMessage: {
             display: 'flex',
             flexDirection: 'row',
@@ -5143,18 +5136,10 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         sidebarStatusAvatarContainer: {
-            height: variables.avatarSizeMedium,
-            width: variables.avatarSizeMedium,
             backgroundColor: theme.componentBG,
             alignItems: 'center',
             justifyContent: 'center',
             borderRadius: variables.avatarSizeMedium / 2,
-        },
-
-        sidebarStatusAvatarWithEmojiContainer: {
-            height: variables.avatarSizeSmall,
-            width: variables.avatarSizeSmall,
-            top: -2,
         },
 
         sidebarStatusAvatar: {

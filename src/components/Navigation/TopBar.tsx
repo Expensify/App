@@ -26,6 +26,8 @@ import React from 'react';
 import {Keyboard, View} from 'react-native';
 import Animated from 'react-native-reanimated';
 
+import AccountAvatarButton from './AccountAvatarButton';
+
 type TopBarProps = {
     breadcrumbLabel: string;
     shouldDisplaySearch?: boolean;
@@ -85,6 +87,7 @@ function TopBar({breadcrumbLabel, shouldDisplaySearch = true, shouldDisplayHelpB
                 )}
                 {displaySearch && <SearchButton />}
                 {shouldDisplayHelpButton && <SidePanelButton />}
+                <AccountAvatarButton />
             </View>
             <LoadingBar shouldShow={!isWideRHPVisible && !!shouldShowLoadingBar} />
         </View>
