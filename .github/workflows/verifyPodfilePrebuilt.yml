@@ -10,7 +10,7 @@ on:
     paths:
       - 'ios/Podfile.lock'
       - '.github/scripts/verifyPodfilePrebuilt.sh'
-      - '.github/scripts/verifyPodfilePrebuiltRemedy.md'
+      - '.github/VERIFY_PODFILE_PREBUILT_REMEDY.md'
       - '.github/workflows/verifyPodfilePrebuilt.yml'
   workflow_call:
 
@@ -41,7 +41,7 @@ jobs:
           ref: main
           sparse-checkout: |
             .github/scripts/verifyPodfilePrebuilt.sh
-            .github/scripts/verifyPodfilePrebuiltRemedy.md
+            .github/VERIFY_PODFILE_PREBUILT_REMEDY.md
             scripts/shellUtils.sh
           sparse-checkout-cone-mode: false
           path: .github-app-scripts
@@ -58,12 +58,14 @@ jobs:
             echo "LOCKFILE=iOS/Podfile.lock" >> "$GITHUB_OUTPUT"
           fi
 
-      # Delay the job failure so the comment step runs first. The job still fails at the end.
+      # Delay the job failure so the comment step runs first. The job still fails at the end. The
+      # 2nd arg has the script save the exact remedy text it renders (repo-specific artifact target
+      # and pod-install command), so the comment step below just reuses it instead of re-deriving it.
       - name: Check which react-native the lockfile resolved against
         id: mode
         run: |
           set +e
-          "${{ steps.scripts.outputs.DIR }}/verifyPodfilePrebuilt.sh" "${{ steps.scripts.outputs.LOCKFILE }}"
+          "${{ steps.scripts.outputs.DIR }}/verifyPodfilePrebuilt.sh" "${{ steps.scripts.outputs.LOCKFILE }}" "${RUNNER_TEMP}/verifyPodfilePrebuiltRemedy.rendered.md"
           STATUS=$?
           set -e
           echo "STATUS=$STATUS" >> "$GITHUB_OUTPUT"
@@ -73,7 +75,6 @@ jobs:
         continue-on-error: true
         uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
         env:
-          SCRIPTS_DIR: ${{ steps.scripts.outputs.DIR }}
           LOCKFILE_PATH: ${{ steps.scripts.outputs.LOCKFILE }}
         with:
           script: |
@@ -82,8 +83,8 @@ jobs:
             const status = '${{ steps.mode.outputs.STATUS }}';
 
             const {owner, repo} = context.repo;
-            const issue_number = context.payload.pull_request.number;
-            const comments = await github.paginate(github.rest.issues.listComments, {owner, repo, issue_number});
+            const prNumber = context.payload.pull_request.number;
+            const comments = await github.paginate(github.rest.issues.listComments, {owner, repo, issue_number: prNumber});
             const existing = comments.find((comment) => comment.body?.includes(MARKER));
 
             // A fixed lockfile takes the comment down; a check that couldn't run leaves it alone.
@@ -94,7 +95,7 @@ jobs:
               return;
             }
 
-            const remedy = require('fs').readFileSync(`${process.env.SCRIPTS_DIR}/verifyPodfilePrebuiltRemedy.md`, 'utf8');
+            const remedy = require('fs').readFileSync(`${process.env.RUNNER_TEMP}/verifyPodfilePrebuiltRemedy.rendered.md`, 'utf8');
 
             const body = [
               MARKER,
@@ -108,7 +109,7 @@ jobs:
             if (existing) {
               await github.rest.issues.updateComment({owner, repo, comment_id: existing.id, body});
             } else {
-              await github.rest.issues.createComment({owner, repo, issue_number, body});
+              await github.rest.issues.createComment({owner, repo, issue_number: prNumber, body});
             }
 
       # Echo a reason for the failed step.
