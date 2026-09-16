@@ -409,6 +409,26 @@ describe('SearchQueryProvider', () => {
             expect(mockSetParams).toHaveBeenCalledTimes(1);
         });
 
+        it('does not write the key onto a screen that is not search', () => {
+            // `setParams` targets whatever is focused, so writing while a report screen or an RHP is on top would
+            // put a `searchKey` on that route instead. This is what broke PaginationTest and GroupChatNameTests.
+            mockNavigationBlurred();
+
+            renderProvider();
+
+            expect(mockSetParams).not.toHaveBeenCalled();
+        });
+
+        it('stops writing once another screen is focused on top of search', () => {
+            mockNavigationQuery(RECONCILIATION_QUERY, {searchKey: CONST.SEARCH.SEARCH_KEYS.RECONCILIATION});
+            const {rerender} = renderProvider();
+
+            mockNavigationBlurred();
+            rerender(undefined);
+
+            expect(mockSetParams).not.toHaveBeenCalled();
+        });
+
         it('never takes back a generic key once it is on the route, because it validates against any expense query', () => {
             // The `expenses` default query carries no filters at all, so `doesQueryMatchDefaultFilterKeysAndType`
             // accepts it for every expense query - including one that is an exact "Reconciliation" match. The write

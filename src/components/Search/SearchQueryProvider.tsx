@@ -142,11 +142,11 @@ function SearchQueryProvider({children}: SearchQueryProviderProps) {
     });
 
     useEffect(() => {
-        if (isSearchKeyFromParamValid) {
+        if (searchKeyParam === undefined || isSearchKeyFromParamValid) {
             return;
         }
         updateSearchKey();
-    }, [isSearchKeyFromParamValid]);
+    }, [isSearchKeyFromParamValid, searchKeyParam]);
 
     const queryValue: SearchQueryContextValue = {
         currentSearchHash,
