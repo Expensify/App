@@ -1,4 +1,4 @@
-import {act, render, screen} from '@testing-library/react-native';
+import {act, cleanup, render, screen, waitFor} from '@testing-library/react-native';
 
 import ComposeProviders from '@components/ComposeProviders';
 import {CurrentUserPersonalDetailsProvider} from '@components/CurrentUserPersonalDetailsProvider';
@@ -7,7 +7,7 @@ import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
 import * as API from '@libs/API';
 import {READ_COMMANDS} from '@libs/API/types';
-import {navigationRef} from '@libs/Navigation/Navigation';
+import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import type {WorkspacesDomainModalNavigatorParamList} from '@libs/Navigation/types';
 
@@ -15,6 +15,7 @@ import WorkspacesVerifyDomainPage from '@pages/domain/WorkspacesVerifyDomainPage
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 
 import {PortalProvider} from '@gorhom/portal';
@@ -38,6 +39,7 @@ const DOMAIN_ADMIN_ACCESS = {
 };
 
 const apiReadSpy = jest.spyOn(API, 'read').mockImplementation(() => {});
+const navigateSpy = jest.spyOn(Navigation, 'navigate').mockImplementation(() => {});
 
 const Stack = createPlatformStackNavigator<WorkspacesDomainModalNavigatorParamList>();
 
@@ -69,11 +71,15 @@ describe('BaseVerifyDomainPage', () => {
     });
 
     afterEach(async () => {
-        apiReadSpy.mockClear();
+        // Unmount first, otherwise clearing the domain looks like losing access to it and schedules a redirect into the next test
+        cleanup();
         await act(async () => {
             await Onyx.clear();
         });
         await waitForBatchedUpdatesWithAct();
+        // Cleared last so a redirect this test queued on the microtask queue has already run and cannot count against the next one
+        apiReadSpy.mockClear();
+        navigateSpy.mockClear();
     });
 
     it('renders the DNS verification screen for a non-admin on an already-validated domain instead of NotFoundPage', async () => {
@@ -141,5 +147,45 @@ describe('BaseVerifyDomainPage', () => {
         // Then the verify screen renders
         expect(screen.getByTestId('BaseVerifyDomainPage')).toBeTruthy();
         expect(apiReadSpy).toHaveBeenCalledWith(READ_COMMANDS.GET_DOMAIN_VALIDATE_CODE, {domainName: DOMAIN_NAME}, expect.anything());
+    });
+    it('sends the requester to the domain exists page when the domain is taken away mid-verification', async () => {
+        // Given a domain the requester can see while their adminship request is open
+        await TestHelper.signInWithTestUser();
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.DOMAIN}${DOMAIN_ACCOUNT_ID}`, {
+                accountID: DOMAIN_ACCOUNT_ID,
+                email: DOMAIN_EMAIL,
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                domain_adminRequesters: {[TEST_USER_ACCOUNT_ID]: 'read'},
+            });
+        });
+        await waitForBatchedUpdatesWithAct();
+        renderVerifyDomainPage();
+        await waitForBatchedUpdatesWithAct();
+        expect(screen.getByTestId('BaseVerifyDomainPage')).toBeTruthy();
+
+        // When an admin denies the request, which takes the domain away from the requester
+        await act(async () => {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.DOMAIN}${DOMAIN_ACCOUNT_ID}`, null);
+        });
+
+        // Then there is nothing left to verify, so the requester is sent to the domain exists page instead of a not found page
+        await waitFor(() => expect(navigateSpy).toHaveBeenCalledWith(ROUTES.WORKSPACES_DOMAIN_ALREADY_EXISTS.getRoute(DOMAIN_ACCOUNT_ID), {forceReplace: true}));
+        expect(screen.queryByTestId('BaseVerifyDomainPage')).toBeNull();
+        expect(screen.queryByText(TestHelper.translateLocal('notFound.notHere'))).toBeNull();
+    });
+
+    it('renders NotFoundPage for a domain that was never there and does not redirect', async () => {
+        // Given no domain entry at all, as when the verify page is deep-linked for a domain the user cannot see
+        await TestHelper.signInWithTestUser();
+
+        // When the verify-domain page is opened
+        renderVerifyDomainPage();
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the not found page is shown, nothing is fetched and the user is not sent anywhere
+        expect(screen.getByText(TestHelper.translateLocal('notFound.notHere'))).toBeTruthy();
+        expect(navigateSpy).not.toHaveBeenCalled();
+        expect(apiReadSpy).not.toHaveBeenCalledWith(READ_COMMANDS.GET_DOMAIN_VALIDATE_CODE, expect.anything(), expect.anything());
     });
 });

@@ -14,6 +14,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import {useMemoizedLazyAsset} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useRedirectOnDomainAccessLost from '@hooks/useRedirectOnDomainAccessLost';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -51,17 +52,22 @@ type BaseVerifyDomainPageProps = {
 
     /** Route to navigate to after successful verification */
     forwardTo: Route;
+
+    /** Route to replace this page with when the domain is taken away mid-visit, instead of dead-ending on the not found page */
+    fallbackTo?: Route;
 };
 
-function BaseVerifyDomainPage({domainAccountID, forwardTo}: BaseVerifyDomainPageProps) {
+function BaseVerifyDomainPage({domainAccountID, forwardTo, fallbackTo}: BaseVerifyDomainPageProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
     const [domain, domainMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`);
-    const domainName = domain ? Str.extractEmailDomain(domain.email) : '';
+    const isLoadingDomain = isLoadingOnyxValue(domainMetadata);
+    const domainName = domain?.email ? Str.extractEmailDomain(domain.email) : '';
     const doesDomainExist = !!domain;
+    const hasLostDomainAccess = useRedirectOnDomainAccessLost(domainAccountID, fallbackTo);
 
     // A domain admin has nothing to verify once the domain is validated, so keep them out of the flow if they deep-link; non-admins still land here to re-verify
     const isVerifiedDomainAdmin = !!domain?.validated && isAdminSelector(currentUserAccountID)(domain);
@@ -76,7 +82,7 @@ function BaseVerifyDomainPage({domainAccountID, forwardTo}: BaseVerifyDomainPage
     }, [domainAccountID, domain?.hasValidationSucceeded, forwardTo]);
 
     useFocusEffect(() => {
-        if (isVerifiedDomainAdmin || !doesDomainExist || domain?.validateCode || domain?.isValidateCodeLoading || domain?.validateCodeError) {
+        if (isVerifiedDomainAdmin || !domainName || domain?.validateCode || domain?.isValidateCodeLoading || domain?.validateCodeError) {
             return;
         }
         getDomainValidationCode(domainAccountID, domainName);
@@ -89,12 +95,11 @@ function BaseVerifyDomainPage({domainAccountID, forwardTo}: BaseVerifyDomainPage
         resetDomainValidationError(domainAccountID);
     }, [domainAccountID, doesDomainExist]);
 
-    const isLoadingDomain = isLoadingOnyxValue(domainMetadata);
-    if (isLoadingDomain) {
+    if (isLoadingDomain || hasLostDomainAccess) {
         return <FullScreenLoadingIndicator />;
     }
 
-    if (!domain) {
+    if (!domain || !domainName) {
         return <NotFoundPage onLinkPress={() => Navigation.dismissModal()} />;
     }
 
@@ -130,12 +135,20 @@ function BaseVerifyDomainPage({domainAccountID, forwardTo}: BaseVerifyDomainPage
                 >
                     <View style={[styles.pt3, styles.gap5]}>
                         <View style={[styles.renderHTML, styles.webViewStyles.baseFontStyle]}>
-                            <RenderHTML html={translate('domain.verifyDomain.beforeProceeding', {domainName})} />
+                            <RenderHTML
+                                html={translate('domain.verifyDomain.beforeProceeding', {
+                                    domainName,
+                                })}
+                            />
                         </View>
 
                         <View style={[styles.renderHTML, styles.webViewStyles.baseFontStyle]}>
                             <OrderedListRow index={1}>
-                                <RenderHTML html={translate('domain.verifyDomain.accessYourDNS', {domainName})} />
+                                <RenderHTML
+                                    html={translate('domain.verifyDomain.accessYourDNS', {
+                                        domainName,
+                                    })}
+                                />
                             </OrderedListRow>
                         </View>
 
@@ -156,7 +169,9 @@ function BaseVerifyDomainPage({domainAccountID, forwardTo}: BaseVerifyDomainPage
 
                             {!!domain.validateCodeError && (
                                 <FormHelpMessageRowWithRetryButton
-                                    message={getLatestErrorMessage({errors: domain.validateCodeError})}
+                                    message={getLatestErrorMessage({
+                                        errors: domain.validateCodeError,
+                                    })}
                                     onRetry={() => getDomainValidationCode(domainAccountID, domainName)}
                                     size={CONST.BUTTON_SIZE.SMALL}
                                 />
@@ -186,7 +201,9 @@ function BaseVerifyDomainPage({domainAccountID, forwardTo}: BaseVerifyDomainPage
                 <FormAlertWithSubmitButton
                     buttonText={translate('domain.verifyDomain.title')}
                     onSubmit={() => validateDomain(domainAccountID, domainName)}
-                    message={getLatestErrorMessage({errors: domain.domainValidationError})}
+                    message={getLatestErrorMessage({
+                        errors: domain.domainValidationError,
+                    })}
                     isAlertVisible={!!domain.domainValidationError}
                     containerStyles={styles.mb5}
                     isLoading={domain.isValidationPending}
