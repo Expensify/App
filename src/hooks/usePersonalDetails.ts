@@ -25,7 +25,7 @@ function useAllPersonalDetails<TReturn>(selector?: (value: PersonalDetailsList |
     return useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector});
 }
 
-// @hooks/useOnyx redirects this key to the search snapshot; search surfaces need the live list
+// @hooks/useOnyx redirects this key to the search snapshot. Search surfaces need the live list.
 function useAllPersonalDetailsWithoutSnapshots(): UseOnyxResult<PersonalDetailsList | undefined>;
 function useAllPersonalDetailsWithoutSnapshots<TReturn>(selector: (value: PersonalDetailsList | undefined) => TReturn): UseOnyxResult<TReturn>;
 function useAllPersonalDetailsWithoutSnapshots<TReturn>(selector?: (value: PersonalDetailsList | undefined) => TReturn) {
