@@ -11232,6 +11232,7 @@ ${reportName}`,
         mileageRateAutoUpdated: '<tooltip>Ενημερώσαμε την τιμή με βάση την ημερομηνία του ταξιδιού σας.</tooltip>',
         markAllAsRead: '<tooltip>Δεξί κλικ για <strong>επισήμανση όλων ως αναγνωσμένων</strong>.</tooltip>',
         markAllAsReadTouchScreen: '<tooltip>Παρατεταμένο πάτημα για <strong>επισήμανση όλων ως αναγνωσμένων</strong>.</tooltip>',
+        accountMovedToTopBar: '<tooltip>Αποκτήστε πρόσβαση στον λογαριασμό και τις προσωπικές σας ρυθμίσεις.</tooltip>',
     },
     discardChangesConfirmation: {
         title: 'Απόρριψη αλλαγών;',
