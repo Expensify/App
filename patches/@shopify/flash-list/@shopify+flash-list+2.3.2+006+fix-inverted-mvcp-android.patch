@@ -1,5 +1,5 @@
 diff --git a/node_modules/@shopify/flash-list/dist/recyclerview/hooks/useRecyclerViewController.js b/node_modules/@shopify/flash-list/dist/recyclerview/hooks/useRecyclerViewController.js
-index 70f856a..52546f7 100644
+index bc5b0ae..fe87b9b 100644
 --- a/node_modules/@shopify/flash-list/dist/recyclerview/hooks/useRecyclerViewController.js
 +++ b/node_modules/@shopify/flash-list/dist/recyclerview/hooks/useRecyclerViewController.js
 @@ -1,5 +1,5 @@
@@ -38,8 +38,8 @@ index 70f856a..52546f7 100644
 +            }
              // If we have a tracked first visible item, maintain its position
              if (firstVisibleItemKey.current) {
-                 const currentIndexOfFirstVisibleItem = (_a = recyclerViewManager
-@@ -115,10 +122,31 @@ export function useRecyclerViewController(recyclerViewManager, ref, scrollViewRe
+                 // Try engaged indices first (fast O(n) over rendered items), then
+@@ -125,10 +132,31 @@ export function useRecyclerViewController(recyclerViewManager, ref, scrollViewRe
                          !pauseOffsetCorrection.current &&
                          !recyclerViewManager.animationOptimizationsEnabled) {
                          // console.log("diff", diff, firstVisibleItemKey.current);
@@ -73,7 +73,7 @@ index 70f856a..52546f7 100644
                          else {
                              const scrollToParams = horizontal
                                  ? {
-@@ -162,6 +190,13 @@ export function useRecyclerViewController(recyclerViewManager, ref, scrollViewRe
+@@ -172,6 +200,13 @@ export function useRecyclerViewController(recyclerViewManager, ref, scrollViewRe
               * Handles RTL layouts and first item offset adjustments.
               */
              scrollToOffset: ({ offset, animated, skipFirstItemOffset = true, }) => {
@@ -87,7 +87,7 @@ index 70f856a..52546f7 100644
                  const { horizontal } = recyclerViewManager.props;
                  if (scrollViewRef.current) {
                      // Adjust offset for RTL layouts in horizontal mode
-@@ -205,6 +240,13 @@ export function useRecyclerViewController(recyclerViewManager, ref, scrollViewRe
+@@ -215,6 +250,13 @@ export function useRecyclerViewController(recyclerViewManager, ref, scrollViewRe
               * Scrolls to the end of the list.
               */
              scrollToEnd: async ({ animated } = {}) => {
@@ -101,7 +101,7 @@ index 70f856a..52546f7 100644
                  const { data } = recyclerViewManager.props;
                  if (data && data.length > 0) {
                      const lastIndex = data.length - 1;
-@@ -238,6 +280,10 @@ export function useRecyclerViewController(recyclerViewManager, ref, scrollViewRe
+@@ -248,6 +290,10 @@ export function useRecyclerViewController(recyclerViewManager, ref, scrollViewRe
                  if (!recyclerViewManager.hasLayout()) {
                      return Promise.resolve();
                  }

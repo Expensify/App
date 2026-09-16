@@ -1,5 +1,5 @@
 diff --git a/node_modules/@shopify/flash-list/dist/FlashListProps.d.ts b/node_modules/@shopify/flash-list/dist/FlashListProps.d.ts
-index fa786bf..014eb62 100644
+index cd99ea1..d926c81 100644
 --- a/node_modules/@shopify/flash-list/dist/FlashListProps.d.ts
 +++ b/node_modules/@shopify/flash-list/dist/FlashListProps.d.ts
 @@ -99,6 +99,15 @@ export interface FlashListProps<TItem> extends Omit<ScrollViewProps, "maintainVi
@@ -19,19 +19,19 @@ index fa786bf..014eb62 100644
       * Draw distance for advanced rendering (in dp/px)
       */
 diff --git a/node_modules/@shopify/flash-list/dist/recyclerview/RecyclerView.js b/node_modules/@shopify/flash-list/dist/recyclerview/RecyclerView.js
-index ef4daf2..063fd1a 100644
+index 27d9f87..c00fc99 100644
 --- a/node_modules/@shopify/flash-list/dist/recyclerview/RecyclerView.js
 +++ b/node_modules/@shopify/flash-list/dist/recyclerview/RecyclerView.js
 @@ -28,7 +28,7 @@ import { RenderTimeTracker } from "./helpers/RenderTimeTracker";
  const RecyclerViewComponent = (props, ref) => {
-     var _a, _b, _c, _d;
+     var _a, _b, _c, _d, _e;
      // Destructure props and initialize refs
 -    const { horizontal, renderItem, data, extraData, onLoad, CellRendererComponent, overrideProps, refreshing, onRefresh, progressViewOffset, ListEmptyComponent, ListHeaderComponent, ListHeaderComponentStyle, ListFooterComponent, ListFooterComponentStyle, ItemSeparatorComponent, renderScrollComponent, style, stickyHeaderIndices, maintainVisibleContentPosition, onCommitLayoutEffect, onChangeStickyIndex, stickyHeaderConfig, inverted, ...rest } = props;
 +    const { horizontal, renderItem, data, extraData, onLoad, CellRendererComponent, overrideProps, refreshing, onRefresh, progressViewOffset, ListEmptyComponent, ListHeaderComponent, ListHeaderComponentStyle, ListFooterComponent, ListFooterComponentStyle, ItemSeparatorComponent, renderScrollComponent, style, stickyHeaderIndices, maintainVisibleContentPosition, onCommitLayoutEffect, onChangeStickyIndex, stickyHeaderConfig, inverted, overrideWindowSize, ...rest } = props;
      const [renderTimeTracker] = useState(() => new RenderTimeTracker());
      renderTimeTracker.startTracking();
      // Sticky header config
-@@ -147,12 +147,15 @@ const RecyclerViewComponent = (props, ref) => {
+@@ -148,12 +148,15 @@ const RecyclerViewComponent = (props, ref) => {
                  : horizontal
                      ? firstChildViewLayout.x
                      : firstChildViewLayout.y;
@@ -50,7 +50,7 @@ index ef4daf2..063fd1a 100644
                  ? firstItemOffset -
                      recyclerViewManager.getChildContainerDimensions().width
 diff --git a/node_modules/@shopify/flash-list/src/FlashListProps.ts b/node_modules/@shopify/flash-list/src/FlashListProps.ts
-index 76dd0c8..5a5c0f5 100644
+index 1dba06c..9531d92 100644
 --- a/node_modules/@shopify/flash-list/src/FlashListProps.ts
 +++ b/node_modules/@shopify/flash-list/src/FlashListProps.ts
 @@ -160,6 +160,16 @@ export interface FlashListProps<TItem>
@@ -71,7 +71,7 @@ index 76dd0c8..5a5c0f5 100644
     * Draw distance for advanced rendering (in dp/px)
     */
 diff --git a/node_modules/@shopify/flash-list/src/recyclerview/RecyclerView.tsx b/node_modules/@shopify/flash-list/src/recyclerview/RecyclerView.tsx
-index bc27739..a7829d5 100644
+index ea42f73..4d6b24e 100644
 --- a/node_modules/@shopify/flash-list/src/recyclerview/RecyclerView.tsx
 +++ b/node_modules/@shopify/flash-list/src/recyclerview/RecyclerView.tsx
 @@ -90,6 +90,7 @@ const RecyclerViewComponent = <T,>(
@@ -82,7 +82,7 @@ index bc27739..a7829d5 100644
      ...rest
    } = props;
  
-@@ -265,13 +266,17 @@ const RecyclerViewComponent = <T,>(
+@@ -266,13 +267,17 @@ const RecyclerViewComponent = <T,>(
            ? firstChildViewLayout.x
            : firstChildViewLayout.y;
  

@@ -1,8 +1,8 @@
 diff --git a/node_modules/@shopify/flash-list/dist/recyclerview/RecyclerView.js b/node_modules/@shopify/flash-list/dist/recyclerview/RecyclerView.js
-index ffcdad8..ee42f63 100644
+index bcaa951..88ca8b1 100644
 --- a/node_modules/@shopify/flash-list/dist/recyclerview/RecyclerView.js
 +++ b/node_modules/@shopify/flash-list/dist/recyclerview/RecyclerView.js
-@@ -166,9 +166,6 @@ const RecyclerViewComponent = (props, ref) => {
+@@ -167,9 +167,6 @@ const RecyclerViewComponent = (props, ref) => {
      // eslint-disable-next-line react-hooks/exhaustive-deps
      useLayoutEffect(() => {
          var _a, _b;
@@ -12,7 +12,7 @@ index ffcdad8..ee42f63 100644
          if (((_a = containerViewSizeRef.current) === null || _a === void 0 ? void 0 : _a.width) === 0 &&
              ((_b = containerViewSizeRef.current) === null || _b === void 0 ? void 0 : _b.height) === 0) {
              return;
-@@ -196,8 +193,17 @@ const RecyclerViewComponent = (props, ref) => {
+@@ -197,8 +194,17 @@ const RecyclerViewComponent = (props, ref) => {
          }
          if (recyclerViewManager.modifyChildrenLayout(layoutInfo, (_a = data === null || data === void 0 ? void 0 : data.length) !== null && _a !== void 0 ? _a : 0) &&
              !hasExceededMaxRendersWithoutCommit) {
@@ -33,10 +33,10 @@ index ffcdad8..ee42f63 100644
          else {
              (_b = viewHolderCollectionRef.current) === null || _b === void 0 ? void 0 : _b.commitLayout();
 diff --git a/node_modules/@shopify/flash-list/src/recyclerview/RecyclerView.tsx b/node_modules/@shopify/flash-list/src/recyclerview/RecyclerView.tsx
-index 8a7deff..b2bd67a 100644
+index a6db0d9..c09ba9b 100644
 --- a/node_modules/@shopify/flash-list/src/recyclerview/RecyclerView.tsx
 +++ b/node_modules/@shopify/flash-list/src/recyclerview/RecyclerView.tsx
-@@ -287,9 +287,6 @@ const RecyclerViewComponent = <T,>(
+@@ -288,9 +288,6 @@ const RecyclerViewComponent = <T,>(
     */
    // eslint-disable-next-line react-hooks/exhaustive-deps
    useLayoutEffect(() => {
@@ -46,7 +46,7 @@ index 8a7deff..b2bd67a 100644
      const layoutInfo = Array.from(refHolder, ([index, viewHolderRef]) => {
        const layout = measureItemLayout(
          viewHolderRef.current!,
-@@ -323,8 +320,17 @@ const RecyclerViewComponent = <T,>(
+@@ -324,8 +321,17 @@ const RecyclerViewComponent = <T,>(
        recyclerViewManager.modifyChildrenLayout(layoutInfo, data?.length ?? 0) &&
        !hasExceededMaxRendersWithoutCommit
      ) {

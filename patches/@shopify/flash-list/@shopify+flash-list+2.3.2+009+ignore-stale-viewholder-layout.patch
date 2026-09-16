@@ -1,7 +1,8 @@
 diff --git a/node_modules/@shopify/flash-list/dist/recyclerview/RecyclerView.js b/node_modules/@shopify/flash-list/dist/recyclerview/RecyclerView.js
+index 085c819..b8ab103 100644
 --- a/node_modules/@shopify/flash-list/dist/recyclerview/RecyclerView.js
 +++ b/node_modules/@shopify/flash-list/dist/recyclerview/RecyclerView.js
-@@ -316,7 +316,10 @@ function RecyclerView(props) {
+@@ -317,7 +317,10 @@ const RecyclerViewComponent = (props, ref) => {
       */
      const validateItemSize = useCallback((index, size) => {
          var _a, _b, _c, _d;
@@ -14,9 +15,11 @@ diff --git a/node_modules/@shopify/flash-list/dist/recyclerview/RecyclerView.js 
          const height = Math.max(Math.min(layout.height, (_c = layout.maxHeight) !== null && _c !== void 0 ? _c : Infinity), (_d = layout.minHeight) !== null && _d !== void 0 ? _d : 0);
          if (areDimensionsNotEqual(width, size.width) ||
 diff --git a/node_modules/@shopify/flash-list/src/recyclerview/RecyclerView.tsx b/node_modules/@shopify/flash-list/src/recyclerview/RecyclerView.tsx
+index 974b485..ea42f73 100644
 --- a/node_modules/@shopify/flash-list/src/recyclerview/RecyclerView.tsx
 +++ b/node_modules/@shopify/flash-list/src/recyclerview/RecyclerView.tsx
-@@ -465,6 +465,9 @@ function RecyclerView<T>(props: RecyclerViewProps<T>) {
+@@ -466,7 +466,10 @@ const RecyclerViewComponent = <T,>(
+    */
    const validateItemSize = useCallback(
      (index: number, size: RVDimension) => {
 -      const layout = recyclerViewManager.getLayout(index);

@@ -1,8 +1,8 @@
 diff --git a/node_modules/@shopify/flash-list/dist/recyclerview/RecyclerView.js b/node_modules/@shopify/flash-list/dist/recyclerview/RecyclerView.js
-index 063fd1a..c37ff3a 100644
+index c00fc99..a65347b 100644
 --- a/node_modules/@shopify/flash-list/dist/recyclerview/RecyclerView.js
 +++ b/node_modules/@shopify/flash-list/dist/recyclerview/RecyclerView.js
-@@ -349,8 +349,27 @@ const RecyclerViewComponent = (props, ref) => {
+@@ -350,8 +350,27 @@ const RecyclerViewComponent = (props, ref) => {
              recyclerViewContext.layout();
          }
      }, [recyclerViewContext, recyclerViewManager]);
@@ -32,7 +32,7 @@ index 063fd1a..c37ff3a 100644
          recyclerViewManager.getDataLength() > 0) {
          parentRecyclerViewContext === null || parentRecyclerViewContext === void 0 ? void 0 : parentRecyclerViewContext.markChildLayoutAsPending(recyclerViewId);
 diff --git a/node_modules/@shopify/flash-list/dist/recyclerview/hooks/useRecyclerViewController.js b/node_modules/@shopify/flash-list/dist/recyclerview/hooks/useRecyclerViewController.js
-index 40bdddb..c505e59 100644
+index dddd8ba..4c3862c 100644
 --- a/node_modules/@shopify/flash-list/dist/recyclerview/hooks/useRecyclerViewController.js
 +++ b/node_modules/@shopify/flash-list/dist/recyclerview/hooks/useRecyclerViewController.js
 @@ -51,6 +51,10 @@ export function useRecyclerViewController(recyclerViewManager, ref, scrollViewRe
@@ -71,7 +71,7 @@ index 40bdddb..c505e59 100644
              }
          }
      }, [recyclerViewManager]);
-@@ -128,15 +143,21 @@ export function useRecyclerViewController(recyclerViewManager, ref, scrollViewRe
+@@ -138,15 +153,21 @@ export function useRecyclerViewController(recyclerViewManager, ref, scrollViewRe
                      : undefined);
                  if (currentIndexOfFirstVisibleItem !== undefined &&
                      currentIndexOfFirstVisibleItem >= 0) {
@@ -95,7 +95,7 @@ index 40bdddb..c505e59 100644
                      if (diff !== 0 &&
                          !pauseOffsetCorrection.current &&
                          !recyclerViewManager.animationOptimizationsEnabled) {
-@@ -147,13 +168,16 @@ export function useRecyclerViewController(recyclerViewManager, ref, scrollViewRe
+@@ -157,13 +178,16 @@ export function useRecyclerViewController(recyclerViewManager, ref, scrollViewRe
                          }
                          else if (useAndroidInvertedFallback) {
                              if (!shouldSkipAndroidInvertedCorrection) {
@@ -114,7 +114,7 @@ index 40bdddb..c505e59 100644
                                          animated: false,
                                      };
                                  if (pendingAndroidInvertedRafId.current !== null) {
-@@ -169,17 +193,17 @@ export function useRecyclerViewController(recyclerViewManager, ref, scrollViewRe
+@@ -179,17 +203,17 @@ export function useRecyclerViewController(recyclerViewManager, ref, scrollViewRe
                          else {
                              const scrollToParams = horizontal
                                  ? {
@@ -160,7 +160,7 @@ index 4d7a945..26133d6 100644
       * Creates the footer component with optional styling.
       */
 diff --git a/node_modules/@shopify/flash-list/src/recyclerview/RecyclerView.tsx b/node_modules/@shopify/flash-list/src/recyclerview/RecyclerView.tsx
-index a7829d5..ec5d7b7 100644
+index 4d6b24e..3782805 100644
 --- a/node_modules/@shopify/flash-list/src/recyclerview/RecyclerView.tsx
 +++ b/node_modules/@shopify/flash-list/src/recyclerview/RecyclerView.tsx
 @@ -16,6 +16,7 @@ import React, {
@@ -171,7 +171,7 @@ index a7829d5..ec5d7b7 100644
    NativeScrollEvent,
    NativeSyntheticEvent,
    Platform,
-@@ -501,6 +502,31 @@ const RecyclerViewComponent = <T,>(
+@@ -502,6 +503,31 @@ const RecyclerViewComponent = <T,>(
      [recyclerViewContext, recyclerViewManager]
    );
  
@@ -203,7 +203,7 @@ index a7829d5..ec5d7b7 100644
    // Get secondary props and components
    const {
      refreshControl,
-@@ -509,7 +535,7 @@ const RecyclerViewComponent = <T,>(
+@@ -510,7 +536,7 @@ const RecyclerViewComponent = <T,>(
      renderEmpty,
      CompatScrollView,
      renderStickyHeaderBackdrop,
@@ -213,7 +213,7 @@ index a7829d5..ec5d7b7 100644
    if (
      !recyclerViewManager.getIsFirstLayoutComplete() &&
 diff --git a/node_modules/@shopify/flash-list/src/recyclerview/hooks/useRecyclerViewController.tsx b/node_modules/@shopify/flash-list/src/recyclerview/hooks/useRecyclerViewController.tsx
-index 3012391..7375752 100644
+index 3689830..1308c15 100644
 --- a/node_modules/@shopify/flash-list/src/recyclerview/hooks/useRecyclerViewController.tsx
 +++ b/node_modules/@shopify/flash-list/src/recyclerview/hooks/useRecyclerViewController.tsx
 @@ -57,6 +57,10 @@ export function useRecyclerViewController<T>(
@@ -255,7 +255,7 @@ index 3012391..7375752 100644
        }
      }
    }, [recyclerViewManager]);
-@@ -156,15 +174,23 @@ export function useRecyclerViewController<T>(
+@@ -166,15 +184,23 @@ export function useRecyclerViewController<T>(
            currentIndexOfFirstVisibleItem !== undefined &&
            currentIndexOfFirstVisibleItem >= 0
          ) {
@@ -281,7 +281,7 @@ index 3012391..7375752 100644
            if (
              diff !== 0 &&
              !pauseOffsetCorrection.current &&
-@@ -175,20 +201,27 @@ export function useRecyclerViewController<T>(
+@@ -185,20 +211,27 @@ export function useRecyclerViewController<T>(
                // console.log("scrollBy", diff);
                scrollAnchorRef.current?.scrollBy(diff);
              } else {

@@ -1,5 +1,5 @@
 diff --git a/node_modules/@shopify/flash-list/dist/FlashListProps.d.ts b/node_modules/@shopify/flash-list/dist/FlashListProps.d.ts
-index fa786bf..586014c 100644
+index 5e90a5c..cd99ea1 100644
 --- a/node_modules/@shopify/flash-list/dist/FlashListProps.d.ts
 +++ b/node_modules/@shopify/flash-list/dist/FlashListProps.d.ts
 @@ -127,10 +127,12 @@ export interface FlashListProps<TItem> extends Omit<ScrollViewProps, "maintainVi
@@ -16,10 +16,10 @@ index fa786bf..586014c 100644
      /**
       * Used to extract a unique key for a given item at the specified index.
 diff --git a/node_modules/@shopify/flash-list/dist/recyclerview/RecyclerViewManager.js b/node_modules/@shopify/flash-list/dist/recyclerview/RecyclerViewManager.js
-index 3b69234..a9474c1 100644
+index 1aa651d..e069462 100644
 --- a/node_modules/@shopify/flash-list/dist/recyclerview/RecyclerViewManager.js
 +++ b/node_modules/@shopify/flash-list/dist/recyclerview/RecyclerViewManager.js
-@@ -294,11 +294,26 @@ export class RecyclerViewManager {
+@@ -293,11 +293,26 @@ export class RecyclerViewManager {
              // re-estimate unmeasured items with an updated average height, changing
              // the target item's position. Reading before recompute would capture a
              // stale offset, causing the wrong items to be rendered.
@@ -48,7 +48,7 @@ index 3b69234..a9474c1 100644
              this.engagedIndicesTracker.scrollOffset = initialItemOffset;
          }
          else {
-@@ -317,8 +332,20 @@ export class RecyclerViewManager {
+@@ -316,8 +331,20 @@ export class RecyclerViewManager {
              this.applyInitialScrollAdjustment();
              const visibleIndices = this.computeVisibleIndices();
              // console.log("---------> visibleIndices", visibleIndices);
@@ -71,7 +71,7 @@ index 3b69234..a9474c1 100644
              if (this.hasRenderedProgressively) {
                  this.isFirstLayoutComplete = true;
              }
-@@ -327,9 +354,13 @@ export class RecyclerViewManager {
+@@ -326,9 +353,13 @@ export class RecyclerViewManager {
              // If everything is measured then render stack will be in sync. The buffer items will get rendered in the next update
              // triggered by the useOnLoad hook.
              !this.hasRenderedProgressively &&
@@ -89,7 +89,7 @@ index 3b69234..a9474c1 100644
      }
      getItemType(index) {
 diff --git a/node_modules/@shopify/flash-list/dist/recyclerview/hooks/useRecyclerViewController.js b/node_modules/@shopify/flash-list/dist/recyclerview/hooks/useRecyclerViewController.js
-index 18e59ce..40bdddb 100644
+index 48e0bdc..dddd8ba 100644
 --- a/node_modules/@shopify/flash-list/dist/recyclerview/hooks/useRecyclerViewController.js
 +++ b/node_modules/@shopify/flash-list/dist/recyclerview/hooks/useRecyclerViewController.js
 @@ -25,6 +25,10 @@ export function useRecyclerViewController(recyclerViewManager, ref, scrollViewRe
@@ -103,7 +103,7 @@ index 18e59ce..40bdddb 100644
      // True while a `scrollToIndex` / `scrollToOffset` smooth scroll is in
      // flight. Cleared exactly once on `isMomentumEnd` via
      // `notifyProgrammaticScrollSettled`.
-@@ -566,18 +570,55 @@ export function useRecyclerViewController(recyclerViewManager, ref, scrollViewRe
+@@ -576,18 +580,55 @@ export function useRecyclerViewController(recyclerViewManager, ref, scrollViewRe
              }, 500);
              pauseOffsetCorrection.current = true;
              const additionalOffset = (_c = initialScrollIndexParams === null || initialScrollIndexParams === void 0 ? void 0 : initialScrollIndexParams.viewOffset) !== null && _c !== void 0 ? _c : 0;

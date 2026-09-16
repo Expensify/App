@@ -1,8 +1,8 @@
 diff --git a/node_modules/@shopify/flash-list/dist/recyclerview/RecyclerView.js b/node_modules/@shopify/flash-list/dist/recyclerview/RecyclerView.js
-index ee42f63..4e8d8c0 100644
+index 88ca8b1..085c819 100644
 --- a/node_modules/@shopify/flash-list/dist/recyclerview/RecyclerView.js
 +++ b/node_modules/@shopify/flash-list/dist/recyclerview/RecyclerView.js
-@@ -380,16 +380,15 @@ const RecyclerViewComponent = (props, ref) => {
+@@ -382,16 +382,15 @@ const RecyclerViewComponent = (props, ref) => {
          }
          return onScrollHandler;
      }, [onScrollHandler, scrollY, stickyHeaders, stickyHeaderUseNativeDriver]);
@@ -19,9 +19,9 @@ index ee42f63..4e8d8c0 100644
 -    }, [maintainVisibleContentPosition, shouldMaintainVisibleContentPosition]);
 +    }, [maintainVisibleContentPosition]);
      const shouldRenderFromBottom = recyclerViewManager.getDataLength() > 0 &&
-         ((_d = maintainVisibleContentPosition === null || maintainVisibleContentPosition === void 0 ? void 0 : maintainVisibleContentPosition.startRenderingFromBottom) !== null && _d !== void 0 ? _d : false);
+         ((_e = maintainVisibleContentPosition === null || maintainVisibleContentPosition === void 0 ? void 0 : maintainVisibleContentPosition.startRenderingFromBottom) !== null && _e !== void 0 ? _e : false);
      // Create view for measuring bounded size
-@@ -401,11 +399,11 @@ const RecyclerViewComponent = (props, ref) => {
+@@ -403,11 +402,11 @@ const RecyclerViewComponent = (props, ref) => {
              }, ref: firstChildViewRef }));
      }, [horizontal, stickyHeaderOffset]);
      const scrollAnchor = useMemo(() => {
@@ -36,10 +36,10 @@ index ee42f63..4e8d8c0 100644
      // Render the main RecyclerView structure
      return (React.createElement(RecyclerViewContextProvider, { value: recyclerViewContext },
 diff --git a/node_modules/@shopify/flash-list/src/recyclerview/RecyclerView.tsx b/node_modules/@shopify/flash-list/src/recyclerview/RecyclerView.tsx
-index b2bd67a..d4bf02d 100644
+index c09ba9b..974b485 100644
 --- a/node_modules/@shopify/flash-list/src/recyclerview/RecyclerView.tsx
 +++ b/node_modules/@shopify/flash-list/src/recyclerview/RecyclerView.tsx
-@@ -572,18 +572,15 @@ const RecyclerViewComponent = <T,>(
+@@ -575,18 +575,15 @@ const RecyclerViewComponent = <T,>(
      return onScrollHandler;
    }, [onScrollHandler, scrollY, stickyHeaders, stickyHeaderUseNativeDriver]);
  
@@ -60,7 +60,7 @@ index b2bd67a..d4bf02d 100644
  
    const shouldRenderFromBottom =
      recyclerViewManager.getDataLength() > 0 &&
-@@ -604,7 +600,7 @@ const RecyclerViewComponent = <T,>(
+@@ -607,7 +604,7 @@ const RecyclerViewComponent = <T,>(
    }, [horizontal, stickyHeaderOffset]);
  
    const scrollAnchor = useMemo(() => {
@@ -69,7 +69,7 @@ index b2bd67a..d4bf02d 100644
        return (
          <ScrollAnchor
            horizontal={Boolean(horizontal)}
-@@ -613,7 +609,7 @@ const RecyclerViewComponent = <T,>(
+@@ -616,7 +613,7 @@ const RecyclerViewComponent = <T,>(
        );
      }
      return null;

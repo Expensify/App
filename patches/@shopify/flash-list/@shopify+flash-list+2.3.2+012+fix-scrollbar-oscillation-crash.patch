@@ -16,7 +16,7 @@ index 12375d9..bfc3ee2 100644
  /**
   * LinearLayoutManager implementation that arranges items in a single row or column.
   * Supports both horizontal and vertical layouts with dynamic item sizing.
-@@ -10,6 +19,8 @@
+@@ -10,6 +19,8 @@ export class RVLinearLayoutManagerImpl extends RVLayoutManager {
          this.hasSize = false;
          /** Height of the tallest item */
          this.tallestItemHeight = 0;
@@ -25,7 +25,7 @@ index 12375d9..bfc3ee2 100644
          this.boundedSize = this.horizontal
              ? params.windowSize.height
              : params.windowSize.width;
-@@ -23,9 +34,15 @@
+@@ -23,9 +34,15 @@ export class RVLinearLayoutManagerImpl extends RVLayoutManager {
          const prevHorizontal = this.horizontal;
          super.updateLayoutParams(params);
          const oldBoundedSize = this.boundedSize;
@@ -42,10 +42,11 @@ index 12375d9..bfc3ee2 100644
          if (oldBoundedSize !== this.boundedSize ||
              prevHorizontal !== this.horizontal) {
              if (this.layouts.length > 0) {
-@@ -36,6 +53,81 @@
+@@ -35,6 +52,81 @@ export class RVLinearLayoutManagerImpl extends RVLayoutManager {
+             }
          }
      }
-     /**
++    /**
 +     * Web only. Stops the re-layout loop caused by a scrollbar that keeps showing and hiding.
 +     *
 +     * The list measures its width without the scrollbar, so each toggle changes the width, which
@@ -120,7 +121,6 @@ index 12375d9..bfc3ee2 100644
 +        ];
 +        return smaller;
 +    }
-+    /**
+     /**
       * Processes layout information for items, updating their dimensions.
       * For horizontal layouts, also normalizes heights of items.
-      * @param layoutInfo Array of layout information for items
