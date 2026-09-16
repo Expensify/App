@@ -82,7 +82,7 @@ const renderOnboardingWorkEmailPage = (initialRouteName: typeof SCREENS.ONBOARDI
 
 const renderOnboardingWorkEmailValidationPage = (
     initialRouteName: typeof SCREENS.ONBOARDING.WORK_EMAIL_VALIDATION,
-    initialParams: OnboardingModalNavigatorParamList[typeof SCREENS.ONBOARDING.WORK_EMAIL_VALIDATION],
+    initialParams?: OnboardingModalNavigatorParamList[typeof SCREENS.ONBOARDING.WORK_EMAIL_VALIDATION],
 ) => {
     return render(
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrentReportIDContextProvider]}>
