@@ -384,8 +384,9 @@ describe('useAccountIndicatorChecks', () => {
             expect(result.current.accountStatus).not.toBe(CONST.INDICATOR_STATUS.HAS_PAYMENT_METHOD_ERROR);
         });
 
-        // A failed action writes a fresh error long after the last sync, and it still has to lead the user to it.
-        it('surfaces a personal card error recorded after the grace period has passed', async () => {
+        // Past the grace period the wallet row shows only the connection message, so lighting the Account button
+        // would lead the user to a row with no error on it.
+        it('does not surface a personal card error recorded after the grace period has passed', async () => {
             await act(async () => {
                 await Onyx.multiSet(
                     createMock<OnyxMultiSetInput>({
@@ -413,10 +414,10 @@ describe('useAccountIndicatorChecks', () => {
             const {result} = renderHook(() => useAccountIndicatorChecks());
             await waitForBatchedUpdatesWithAct();
 
-            expect(result.current.accountStatus).toBe(CONST.INDICATOR_STATUS.HAS_PAYMENT_METHOD_ERROR);
+            expect(result.current.accountStatus).not.toBe(CONST.INDICATOR_STATUS.HAS_PAYMENT_METHOD_ERROR);
         });
 
-        it('surfaces a company card error recorded after the grace period has passed', async () => {
+        it('does not surface a company card error recorded after the grace period has passed', async () => {
             await act(async () => {
                 await Onyx.multiSet(
                     createMock<OnyxMultiSetInput>({
@@ -451,7 +452,7 @@ describe('useAccountIndicatorChecks', () => {
             const {result} = renderHook(() => useAccountIndicatorChecks());
             await waitForBatchedUpdatesWithAct();
 
-            expect(result.current.accountStatus).toBe(CONST.INDICATOR_STATUS.HAS_PAYMENT_METHOD_ERROR);
+            expect(result.current.accountStatus).not.toBe(CONST.INDICATOR_STATUS.HAS_PAYMENT_METHOD_ERROR);
         });
 
         it('still surfaces a company card broken connection on the Account button within the grace period', async () => {

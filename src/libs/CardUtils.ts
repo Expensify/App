@@ -41,7 +41,6 @@ import type {
     NonConnectableBankName,
 } from '@src/types/onyx/CardFeeds';
 import type {CardFeedErrors} from '@src/types/onyx/DerivedValues';
-import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type {SelectedTimezone} from '@src/types/onyx/PersonalDetails';
 import type {Connections} from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -1531,27 +1530,6 @@ function parseCardLastScrape(card: Card): Date | undefined {
 }
 
 /**
- * The card's errors that came from an action the user took, rather than from the connection itself. The two are told
- * apart by how they are keyed: the server names its connection error `connectionError`, while a user action records
- * its error under a microsecond timestamp. Keying on the shape rather than on the age matters because `lastScrape` is
- * the last successful sync, which a broken card never advances, so every error on such a card looks recent.
- *
- * @param card the card to read
- * @returns the errors a user action recorded
- */
-function getCardActionErrors(card: Card): Errors {
-    return Object.fromEntries(Object.entries(card.errors ?? {}).filter(([errorKey]) => !Number.isNaN(Number(errorKey))));
-}
-
-/**
- * @param card the card to check
- * @returns true if an action the user took left an error on the card, false otherwise
- */
-function hasCardActionErrors(card: Card): boolean {
-    return !isEmptyObject(getCardActionErrors(card));
-}
-
-/**
  * Check whether a card's last successful sync is at least the dismiss threshold (90 days) old.
  *
  * `lastScrape` is the last successful update timestamp (a separate `lastImportAttempt` tracks
@@ -2312,8 +2290,6 @@ export {
     isCardHiddenFromSearch,
     getCSVFeedType,
     getFeedType,
-    getCardActionErrors,
-    hasCardActionErrors,
     isCardConnectionBroken,
     hasCardConnectionIssue,
     doesCardConnectionNeedReauthentication,
