@@ -778,14 +778,11 @@ describe('WorkspaceMembers', () => {
             const {unmount} = renderPage(SCREENS.WORKSPACE.MEMBERS, {policyID: policy.id});
             await waitForBatchedUpdatesWithAct();
 
-            await waitFor(() => {
-                expect(screen.getByText(ADMIN_OPTION)).toBeOnTheScreen();
-            });
-
             // The owner submits to the auditor, which is no longer one of the workspace's enforced workflows, so
-            // their row carries no approver segment at all.
+            // their row carries no approver segment at all. Anchored on the row label rather than on the admin's
+            // name, which this fixture renders both as a member and as the auditor's approver.
             const ownerRoleLabel = TestHelper.translateLocal('workspace.common.roleName', CONST.POLICY.ROLE.ADMIN);
-            expect(screen.getByLabelText(new RegExp(`^Owner User, ${ownerEmail}, ${ownerRoleLabel}$`))).toBeOnTheScreen();
+            expect(await screen.findByLabelText(new RegExp(`^Owner User, ${ownerEmail}, ${ownerRoleLabel}$`))).toBeOnTheScreen();
 
             // The auditor is on the default workflow, so their approver still shows.
             expect(screen.getByLabelText(new RegExp(`^Auditor User, ${auditorEmail}, ${TestHelper.translateLocal('common.approver')}: Admin User`))).toBeOnTheScreen();
