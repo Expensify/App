@@ -2232,6 +2232,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             hasActiveAdminPolicies: false,
             hasOwnedPaidPolicy: false,
             activePolicy: undefined,
+            delegateAccountID: undefined,
         });
         const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
         setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, RORY_ACCOUNT_ID, RORY_EMAIL, false, undefined);
@@ -2470,6 +2471,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             hasOwnedPaidPolicy: false,
             activePolicy: undefined,
             conciergeChat: undefined,
+            delegateAccountID: undefined,
         });
         const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
         setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, RORY_ACCOUNT_ID, RORY_EMAIL, false, undefined);
@@ -3763,6 +3765,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             hasOwnedPaidPolicy: false,
             activePolicy: undefined,
             betas: [],
+            delegateAccountID: undefined,
         });
         const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
         setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, RORY_ACCOUNT_ID, RORY_EMAIL, false, undefined);
@@ -4375,6 +4378,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             hasActiveAdminPolicies: false,
             hasOwnedPaidPolicy: false,
             activePolicy: undefined,
+            delegateAccountID: undefined,
         });
 
         const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
@@ -4561,6 +4565,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             hasActiveAdminPolicies: false,
             hasOwnedPaidPolicy: false,
             activePolicy: undefined,
+            delegateAccountID: undefined,
         });
 
         const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
@@ -4751,6 +4756,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             hasActiveAdminPolicies: false,
             hasOwnedPaidPolicy: false,
             activePolicy: undefined,
+            delegateAccountID: undefined,
         });
 
         const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
@@ -4950,6 +4956,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             hasActiveAdminPolicies: false,
             hasOwnedPaidPolicy: false,
             activePolicy: undefined,
+            delegateAccountID: undefined,
         });
 
         const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
@@ -5234,6 +5241,7 @@ describe('updateSplitTransactions', () => {
             hasActiveAdminPolicies: false,
             hasOwnedPaidPolicy: false,
             activePolicy: undefined,
+            delegateAccountID: undefined,
         });
         const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
         setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, RORY_ACCOUNT_ID, RORY_EMAIL, false, undefined);
@@ -5377,6 +5385,7 @@ describe('updateSplitTransactions', () => {
             hasActiveAdminPolicies: false,
             hasOwnedPaidPolicy: false,
             activePolicy: undefined,
+            delegateAccountID: undefined,
         });
         const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
         setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, RORY_ACCOUNT_ID, RORY_EMAIL, false, undefined);
@@ -5522,6 +5531,7 @@ describe('updateSplitTransactions', () => {
             hasActiveAdminPolicies: false,
             hasOwnedPaidPolicy: false,
             activePolicy: undefined,
+            delegateAccountID: undefined,
         });
         const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
         setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, RORY_ACCOUNT_ID, RORY_EMAIL, false, undefined);
@@ -5677,6 +5687,7 @@ describe('updateSplitTransactions', () => {
             hasActiveAdminPolicies: false,
             hasOwnedPaidPolicy: false,
             activePolicy: undefined,
+            delegateAccountID: undefined,
         });
         const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
         setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, RORY_ACCOUNT_ID, RORY_EMAIL, false, undefined);
@@ -10072,6 +10083,64 @@ describe('createDistanceRequest', () => {
             },
         });
         expect(Object.values(allTransactions ?? {}).length).toBeGreaterThanOrEqual(1);
+    });
+
+    // Offline the server response never arrives to correct the transaction, so the rate has to survive the optimistic build.
+    it('keeps the selected rate on the optimistic transaction for a manual distance request', async () => {
+        const testReport = createRandomReport(1, undefined);
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${testReport.reportID}`, testReport);
+        const recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
+        const customUnitRateID = 'manualDistanceRate';
+        const draftTransaction: Transaction = {
+            transactionID: CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
+            reportID: testReport.reportID,
+            amount: 1000,
+            currency: CONST.CURRENCY.USD,
+            created: '2026-09-08',
+            merchant: '',
+            iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL,
+            comment: {customUnit: {customUnitRateID, quantity: 10, name: CONST.CUSTOM_UNITS.NAME_DISTANCE}},
+        };
+
+        const result = createDistanceRequest({
+            ...getDefaultDistanceRequestParams(testReport, {amount: 1000, distance: 10, customUnitRateID}, recentWaypoints),
+            existingTransaction: draftTransaction,
+        });
+        await waitForBatchedUpdates();
+
+        const createdTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${result.transactionID}`);
+        expect(createdTransaction?.comment?.customUnit?.customUnitRateID).toBe(customUnitRateID);
+        // The draft is still referenced by the confirmation flow, so building the optimistic transaction must not mutate it
+        expect(draftTransaction.comment?.customUnit?.customUnitRateID).toBe(customUnitRateID);
+    });
+
+    it('keeps the selected rate on the optimistic transaction for a split distance request', async () => {
+        const customUnitRateID = 'splitDistanceRate';
+        await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`, {
+            transactionID: CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
+            reportID: CONST.REPORT.SPLIT_REPORT_ID,
+            amount: 3000,
+            currency: CONST.CURRENCY.USD,
+            created: '2026-09-08',
+            merchant: '',
+            iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
+            comment: {customUnit: {customUnitRateID, quantity: 30, name: CONST.CUSTOM_UNITS.NAME_DISTANCE}},
+        });
+        await waitForBatchedUpdates();
+        const recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
+
+        const result = createDistanceRequest({
+            ...getDefaultDistanceRequestParams(undefined, {amount: 3000, distance: 30, customUnitRateID}, recentWaypoints),
+            iouType: CONST.IOU.TYPE.SPLIT,
+            participants: [
+                {accountID: CARLOS_ACCOUNT_ID, login: CARLOS_EMAIL},
+                {accountID: VIT_ACCOUNT_ID, login: VIT_EMAIL},
+            ],
+        });
+        await waitForBatchedUpdates();
+
+        const splitTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${result.transactionID}`);
+        expect(splitTransaction?.comment?.customUnit?.customUnitRateID).toBe(customUnitRateID);
     });
 
     it('creates a distance request with odometer values', async () => {

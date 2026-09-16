@@ -54,6 +54,8 @@ const translations: TranslationDeepObject<typeof en> = {
         unshare: 'Delen stoppen',
         yes: 'Ja',
         no: 'Nee',
+        approve: 'Goedkeuren',
+        deny: 'Weigeren',
         dontChange: 'Niet wijzigen',
         ok: 'OK',
         notNow: 'Nu niet',
@@ -961,6 +963,14 @@ const translations: TranslationDeepObject<typeof en> = {
             addPaymentCard: {title: 'Voeg een betaalkaart toe om Expensify te blijven gebruiken', subtitle: 'Account > Abonnement', cta: 'Toevoegen'},
             addBankAccount: {title: 'Voeg een bankrekening toe om je terugbetaling te ontvangen'},
             activateCard: {title: 'Activeer je Expensify Kaart', subtitle: 'Valideer je kaart en begin met uitgeven.', cta: 'Activeren'},
+            confirmDigitalWalletAddition: {
+                title: ({walletName}: {walletName: string}) => `Toevoegen van ${walletName}-kaart vereist jouw goedkeuring`,
+                subtitle: 'Expensify Kaart',
+                cta: 'Beoordelen',
+                appleWallet: 'Apple Wallet',
+                googleWallet: 'Google Wallet',
+                digitalWallet: 'Digitale portemonnee',
+            },
             reviewCardFraud: {
                 title: 'Controleer mogelijk misbruik van je Expensify Kaart',
                 titleWithDetails: ({amount, merchant}: {amount: string; merchant: string}) => `Controleer ${amount} aan mogelijke fraude bij ${merchant}`,
@@ -1159,6 +1169,10 @@ const translations: TranslationDeepObject<typeof en> = {
         dragAndDropMultiLevelTag: `<muted-link>Sleep je spreadsheet hierheen of kies hieronder een bestand. <a href="${CONST.IMPORT_SPREADSHEET.MULTI_LEVEL_TAGS_ARTICLE_LINK}">Meer informatie</a> over ondersteunde bestandsindelingen.</muted-link>`,
         chooseSpreadsheet: '<muted-link>Selecteer een spreadsheetbestand om te importeren. Ondersteunde formaten: .csv, .txt, .xls en .xlsx.</muted-link>',
         chooseSpreadsheetMultiLevelTag: `<muted-link>Selecteer een spreadsheetbestand om te importeren. <a href="${CONST.IMPORT_SPREADSHEET.MULTI_LEVEL_TAGS_ARTICLE_LINK}">Meer informatie</a> over ondersteunde bestandsindelingen.</muted-link>`,
+        dragAndDropTransactions:
+            '<muted-link>Sleep je spreadsheet of bankafschrift hierheen of kies hieronder een bestand. Ondersteunde indelingen: .csv, .txt, .xls, .xlsx, .ofx en .qfx.</muted-link>',
+        chooseSpreadsheetTransactions:
+            '<muted-link>Selecteer een spreadsheet- of bankafschriftbestand om te importeren. Ondersteunde formaten: .csv, .txt, .xls, .xlsx, .ofx en .qfx.</muted-link>',
         fileContainsHeader: 'Bestand bevat kolomkoppen',
         column: (name: string) => `Kolom ${name}`,
         fieldNotMapped: (fieldName: string) => `Oeps! Een vereist veld ("${fieldName}") is niet toegewezen. Controleer het en probeer het opnieuw.`,
@@ -1219,6 +1233,7 @@ const translations: TranslationDeepObject<typeof en> = {
             one: '1 transactie is geïmporteerd.',
             other: `${count} transacties zijn geïmporteerd.`,
         }),
+        importStatementSuccessfulDescription: 'Je bankafschrift is geüpload.',
         importFailedTitle: 'Import mislukt',
         importFailedDescription: 'Zorg dat alle velden correct zijn ingevuld en probeer het opnieuw. Neem als het probleem aanhoudt contact op met Concierge.',
         importDescription: 'Kies welke velden je uit je spreadsheet wilt koppelen door op het dropdownmenu naast elke geïmporteerde kolom hieronder te klikken.',
@@ -1610,6 +1625,11 @@ const translations: TranslationDeepObject<typeof en> = {
                 'Je kunt dit rapport niet markeren als voltooid omdat alle transacties in behandeling zijn. Het kan een paar dagen duren voordat ze worden verwerkt.',
             allExpensesOnHoldDescription: 'Je kunt dit rapport niet indienen omdat alle uitgaven zijn gepauzeerd. Verwijder de pauzering om het in te dienen.',
             allExpensesOnHoldMarkAsDoneDescription: 'Je kunt dit rapport niet markeren als voltooid omdat alle uitgaven zijn gepauzeerd. Verwijder de pauzering om door te gaan.',
+            reportsNotSubmittedTitle: 'Rapporten indienen',
+            reportsNotMarkedAsDoneTitle: 'Rapporten markeren als voltooid',
+            reportsNotSubmittedDescription: 'Deze rapporten konden niet worden ingediend. Controleer of er geen onkosten vastgehouden of in behandeling zijn en probeer het dan opnieuw.',
+            reportsNotMarkedAsDoneDescription:
+                'Deze rapporten konden niet als voltooid worden gemarkeerd. Controleer of er geen onkostendeclaraties vastgehouden of in behandeling zijn en probeer het dan opnieuw.',
             stitchOdometerImagesFailed: 'Odometerafbeeldingen combineren mislukt. Probeer het later opnieuw.',
             failedToSaveOdometerDraft: 'De conceptkilometerstand kon niet worden opgeslagen. Probeer het opnieuw.',
         },
@@ -2715,6 +2735,24 @@ const translations: TranslationDeepObject<typeof en> = {
             accountRequiresAttention: 'Deze account vereist aandacht',
             unlock: 'Ontgrendelen',
         },
+    },
+    addCardToDigitalWallet: {
+        title: ({walletName}: {walletName: string}) => `Kaart toevoegen aan ${walletName}`,
+        appleWallet: 'Apple Wallet',
+        googleWallet: 'Google Wallet',
+        digitalWallet: 'digitale portemonnee',
+        confirmHeading: 'Bevestig je verzoek',
+        confirmDescription: ({walletName, lastFourDigits}: {walletName: string; lastFourDigits: string}) =>
+            `Wil je je Expensify Kaart (eindigend op ${lastFourDigits}) toevoegen aan je ${walletName}?`,
+        deny: 'Weigeren',
+        confirm: 'Bevestigen',
+        verifyTitle: 'Laten we controleren of jij het bent',
+        enterSecurityCode: (contactMethod: string) =>
+            `Voer de beveiligingscode in die is verzonden naar ${contactMethod} om dit verzoek te bevestigen. Die zou binnen een à twee minuten moeten aankomen.`,
+        successHeading: 'Gelukt!',
+        successDescription: ({walletName}: {walletName: string}) => `Je kaart is nu actief en klaar voor gebruik in je ${walletName}.`,
+        deniedHeading: 'Verzoek geweigerd',
+        deniedDescription: ({walletName}: {walletName: string}) => `Je kaart is niet toegevoegd aan je ${walletName}.`,
     },
     cardPage: {
         expensifyCard: 'Expensify Kaart',
@@ -5124,6 +5162,9 @@ ${amount} voor ${merchant} - ${date}`,
                 xeroInvoiceCollectionAccount: 'Xero-incasso rekening voor facturen',
                 xeroBillPaymentAccountDescription: 'Kies vanwaar je rekeningen wilt betalen en wij maken de betaling aan in Xero.',
                 invoiceAccountSelectorDescription: 'Kies waar je factuurbetalingen wilt ontvangen en wij maken de betaling aan in Xero.',
+                xeroFxExpenseAccount: 'Xero-account voor valutaconversiekosten',
+                fxExpenseAccountDescription:
+                    'Wanneer je bedrijf de kosten voor valutaconversie dekt voor een betaling in het buitenland, boeken we die kosten op deze rekening in Xero als een ‘spend money’-transactie.',
             },
             exportDate: {
                 label: 'Aankoopfactuurdatum',
@@ -5492,6 +5533,9 @@ ${amount} voor ${merchant} - ${date}`,
                 error: {
                     customFormID: 'Voer een geldige numerieke aangepaste formulier-ID in',
                 },
+                fxExpenseAccount: 'Kostenrekening voor valutaconversie',
+                fxExpenseAccountDescription:
+                    'Wanneer je bedrijf de kosten voor valutaomrekening dekt bij een terugbetaling die in het buitenland wordt uitbetaald, boeken we die kosten als een journaalpost op de onderstaande NetSuite‑rekening.',
             },
             noAccountsFound: 'Geen accounts gevonden',
             noAccountsFoundDescription: 'Voeg het account toe in NetSuite en synchroniseer de verbinding opnieuw',
@@ -6571,6 +6615,7 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                 disabledTitle: 'Niet zo snel...',
                 disabledMessage: 'Om deze functie in of uit te schakelen, moet je je boekhoudimportinstellingen wijzigen.',
             },
+            recruitingWarningModal: {disconnectText: ({integration}: {integration: string}) => `Om Werving uit te schakelen, koppel ${integration} eerst los van deze workspace.`},
         },
         reports: {
             reportsCustomTitleExamples: 'Voorbeelden:',
@@ -7845,6 +7890,13 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>Automatisch bijwerken van overheidspercentages is alleen beschikbaar in het Control-abonnement, vanaf <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per lid per maand.` : `per actief lid per maand.`}</muted-text>`,
             },
+            [CONST.UPGRADE_FEATURE_INTRO_MAPPING.recruiting.id]: {
+                title: 'Meerdere goedkeuringsniveaus',
+                description:
+                    'Meerdere goedkeuringsniveaus is een workflowhulpmiddel voor bedrijven die meer dan één persoon nodig hebben om een rapport goed te keuren voordat het kan worden vergoed.',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Meerdere goedkeuringsniveaus zijn alleen beschikbaar in het Control-abonnement, vanaf <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per lid per maand.` : `per actieve deelnemer per maand.`}</muted-text>`,
+            },
         },
         downgrade: {
             commonFeatures: {
@@ -7928,7 +7980,6 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
                 alwaysReimbursableDescription: 'Onkosten worden altijd terugbetaald aan medewerkers',
                 alwaysNonReimbursable: 'Altijd niet-declarabel',
                 alwaysNonReimbursableDescription: 'Onkosten worden nooit aan medewerkers terugbetaald',
-                billableDefault: 'Factureerbaar als standaard',
                 billableDefaultDescription: 'Kies of contante en creditcarduitgaven standaard factureerbaar moeten zijn.',
                 billable: 'Factureerbaar',
                 billableDescription: 'Uitgaven worden meestal doorbelast aan klanten',
@@ -7955,10 +8006,12 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
                 publicReceiptVisibilityHintDisabled: 'Bonnetjes zijn alleen zichtbaar voor Expensify-leden met toegang tot het rapport dat het bonnetje bevat.',
                 enableTagsToUnlockTitle: 'Tags inschakelen?',
                 enableTagsToUnlockPrompt: 'Schakel Labels in (onder Meer functies) om te ontgrendelen.',
-                enableTagsAndRequirePrompt: 'Weet je zeker dat je tags wilt inschakelen en ze verplicht wilt maken voor alle uitgaven?',
                 enableCategoriesToUnlockTitle: 'Categorieën inschakelen?',
                 enableCategoriesToUnlockPrompt: 'Schakel Categorieën (onder Meer functies) in om te ontgrendelen.',
                 enableCategoriesAndRequirePrompt: 'Weet je zeker dat je categorieën wilt inschakelen en ze verplicht wilt maken voor alle uitgaven?',
+                enableTagsPrompt: 'Weet je zeker dat je labels wilt inschakelen? Je kunt ze verplicht maken voor alle uitgaven zodra je minstens één label hebt.',
+                noTagsToRequirePrompt: 'Je hebt nog geen tags. Maak alsjeblieft een tag aan.',
+                noCategoriesToRequirePrompt: 'Je hebt nog geen categorieën. Maak een categorie aan.',
             },
             expenseReportRules: {
                 title: 'Geavanceerd',
@@ -8541,6 +8594,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             importSettings: 'Importinstellingen',
             defaultApprover: 'Standaardgoedkeurder',
             approverFields: {recruiter: 'Recruiter', recruitingCoordinator: 'Coördinator werving'},
+            subtitle: 'Koppel wervingstools en houd kandidaategoedkeuringen gesynchroniseerd.',
         },
         merge: {
             connections: 'Verbindingen',
@@ -9057,7 +9111,10 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         addedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `heeft ‘${prohibitedExpense}’ toegevoegd aan verboden uitgaven`,
         removedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `heeft „${prohibitedExpense}” verwijderd uit verboden uitgaven`,
         commuterExclusions: {
-            changedToFixedDistance: 'wijzigde woon-werkverkeer uitsluiten naar een vaste afstand per declaratie',
+            changedToFixedDistance: ({previousMethod}: {previousMethod: string}) => `heeft woon-werkverkeer wijzigen in een vaste afstand per declaratie (voorheen ${previousMethod})`,
+            changedToHomeAndOffice: ({previousMethod}: {previousMethod: string}) =>
+                `uitsluiten van woon-werkverkeer gewijzigd naar berekenen op basis van huis en kantoor (voorheen ${previousMethod})`,
+            previousMethod: {disabled: 'woon-werkverkeer niet uitsluiten', fixedDistance: 'vast bedrag per declaratie', homeAndOffice: 'thuis en kantoor'},
             setFixedDistance: ({formattedDistance}: {formattedDistance: string}) => `stel vaste afstandsuitsluiting in op ${formattedDistance} per declaratie`,
             changedFixedDistance: ({formattedOldDistance, formattedNewDistance}: {formattedOldDistance: string; formattedNewDistance: string}) =>
                 `vaste afstandsuitsluiting gewijzigd naar ${formattedNewDistance} per declaratie (voorheen ${formattedOldDistance})`,
@@ -9236,6 +9293,35 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             return `heeft de deelnemers van categorie "${categoryName}" gewijzigd naar ${newValue ? 'verplicht' : 'niet verplicht'} (voorheen ${newValue ? 'niet verplicht' : 'verplicht'})`;
         },
         updatedAutoHarvesting: (enabled: boolean) => `${enabled ? 'ingeschakeld' : 'uitgeschakeld'} inzendingen`,
+        changedOverLimitForwardsTo: ({
+            member,
+            approver,
+            limit,
+            previousApprover,
+            previousLimit,
+        }: {
+            member: string;
+            approver: string;
+            limit: string;
+            previousApprover?: string;
+            previousLimit?: string;
+        }) => {
+            let text = previousApprover
+                ? `heeft de fiatteringsworkflow voor ${member} gewijzigd zodat rapporten boven ${limit} worden doorgestuurd naar ${approver}`
+                : `stel de goedkeuringsworkflow voor ${member} in om rapporten boven ${limit} door te sturen naar ${approver}`;
+            if (previousApprover && previousLimit) {
+                text += ` (voorheen doorgestuurde rapporten boven ${previousLimit} naar ${previousApprover})`;
+            } else if (previousApprover) {
+                text += ` (eerder doorgestuurd naar ${previousApprover})`;
+            }
+            return text;
+        },
+        removedOverLimitForwardsTo: ({member, previousApprover, previousLimit}: {member: string; previousApprover?: string; previousLimit: string}) =>
+            previousApprover
+                ? `heeft de goedkeuringsworkflow voor ${member} gewijzigd zodat rapporten boven ${previousLimit} niet meer worden doorgestuurd (werd eerder doorgestuurd naar ${previousApprover})`
+                : `heeft de goedkeuringsworkflow voor ${member} gewijzigd zodat rapporten boven ${previousLimit} niet meer worden doorgestuurd`,
+        changedApprovalLimit: ({member, limit, previousLimit}: {member: string; limit: string; previousLimit: string}) =>
+            `heeft de goedkeuringsworkflow voor ${member} gewijzigd om rapporten boven ${limit} door te sturen (voorheen ${previousLimit})`,
     },
     roomMembersPage: {
         memberNotFound: 'Lid niet gevonden.',
@@ -10867,6 +10953,9 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         gpsTooltip: '<tooltip>GPS-tracking bezig! Als je klaar bent, stop dan hieronder met bijhouden.</tooltip>',
         hasFilterNegation: '<tooltip>Zoek naar uitgaven zonder bonnen met <strong>-has:receipt</strong>.</tooltip>',
         mileageRateAutoUpdated: '<tooltip>We hebben het tarief bijgewerkt op basis van je reisdatum.</tooltip>',
+        markAllAsRead: '<tooltip>Klik met de rechtermuisknop om <strong>alles als gelezen te markeren</strong>.</tooltip>',
+        markAllAsReadTouchScreen: '<tooltip>Houd ingedrukt om <strong>alles als gelezen te markeren</strong>.</tooltip>',
+        accountMovedToTopBar: '<tooltip>Ga naar je account en persoonlijke instellingen.</tooltip>',
     },
     discardChangesConfirmation: {
         title: 'Wijzigingen negeren?',
@@ -10944,6 +11033,7 @@ Hier is een *proefbon* om je te laten zien hoe het werkt:`,
         readyPartialBody: ({count, total}: {count: number; total: number}) =>
             `${count} of ${total} reports exported. If it didn't automatically download, use the button below. See which reports failed in <concierge-link>Concierge</concierge-link>.`,
         close: 'Close',
+        truncatedBody: 'Let op! Deze export was te groot en is beperkt tot de eerste 50.000 rapporten die aan je zoekopdracht voldeden.',
     },
     domain: {
         notVerified: 'Niet geverifieerd',
@@ -11053,6 +11143,9 @@ Hier is een *proefbon* om je te laten zien hoe het werkt:`,
             consolidatedDomainBillingError: 'Gefactureerde geconsolideerde domeinen konden niet worden gewijzigd. Probeer het later opnieuw.',
             addAdmin: 'Beheerder toevoegen',
             addAdminError: 'Kan dit lid niet als beheerder toevoegen. Probeer het opnieuw.',
+            requests: 'Verzoeken',
+            approveRequestError: 'Kan dit verzoek niet goedkeuren. Probeer het opnieuw.',
+            declineRequestError: 'Kan dit verzoek niet weigeren. Probeer het opnieuw.',
             revokeAdminAccess: 'Beheerdersrechten intrekken',
             cantRevokeAdminAccess: 'Kan beheerdersrechten niet intrekken van de technische contactpersoon',
             error: {

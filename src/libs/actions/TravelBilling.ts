@@ -88,9 +88,9 @@ function setTravelBillingSettlementAccount(policyID: string, workspaceAccountID:
     const isFirstEnable = settlementBankAccountID !== 0 && !previousPaymentBankAccountID;
     const isDisabling = settlementBankAccountID === 0;
 
-    let monthlySettlementDate: Date | null | undefined;
+    let monthlySettlementDate: number | null | undefined;
     if (isFirstEnable) {
-        monthlySettlementDate = new Date();
+        monthlySettlementDate = new Date().getDate();
     } else if (isDisabling) {
         monthlySettlementDate = null;
     }
@@ -305,11 +305,11 @@ function clearTravelBillingSettlementAccountErrors(workspaceAccountID: number, p
  * Optimistically updates the monthlySettlementDate based on the selected frequency.
  * Supports offline behavior - changes are queued and synced when back online.
  */
-function updateTravelBillingSettlementFrequency(workspaceAccountID: number, frequency: ValueOf<typeof CONST.EXPENSIFY_CARD.FREQUENCY_SETTING>, currentMonthlySettlementDate?: Date) {
+function updateTravelBillingSettlementFrequency(workspaceAccountID: number, frequency: ValueOf<typeof CONST.EXPENSIFY_CARD.FREQUENCY_SETTING>, currentMonthlySettlementDate?: number) {
     const cardSettingsKey = getTravelBillingCardSettingsKey(workspaceAccountID);
 
-    // If Monthly, set date (optimistically today). If Daily, set null.
-    const monthlySettlementDate = frequency === CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.MONTHLY ? new Date() : null;
+    // If Monthly, set the day of the month (optimistically today). If Daily, set null.
+    const monthlySettlementDate = frequency === CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.MONTHLY ? new Date().getDate() : null;
 
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS>> = [
         {
@@ -379,7 +379,7 @@ function updateTravelBillingSettlementFrequency(workspaceAccountID: number, freq
 /**
  * Clears any errors from the Travel Billing settlement frequency settings.
  */
-function clearTravelBillingSettlementFrequencyErrors(workspaceAccountID: number, monthlySettlementDate: Date | null | undefined) {
+function clearTravelBillingSettlementFrequencyErrors(workspaceAccountID: number, monthlySettlementDate: number | null | undefined) {
     Onyx.merge(getTravelBillingCardSettingsKey(workspaceAccountID), {
         [CONST.TRAVEL.PROGRAM_TRAVEL_US]: {
             monthlySettlementDate: monthlySettlementDate ?? null,
