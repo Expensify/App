@@ -85,10 +85,11 @@ function DistanceConfirmationList(props: DistanceConfirmationListProps) {
         policyForMovingExpenses,
         isMovingTransactionFromTrackExpense,
         isDistanceRequest: true,
+        isPolicyExpenseChat,
         iouAmount,
         iouCurrencyCode,
     });
-    const {mileageRate, unit, currency, distance, hasRoute} = distanceState;
+    const {mileageRate, unit, currency, distance, hasRoute, isDistanceRequestWithPendingRoute} = distanceState;
 
     // A distance request can be blocked before submission by a missing home address, or by a policy that requires
     // a map or GPS, so the guard wraps this surface's own confirm callback.
@@ -119,7 +120,9 @@ function DistanceConfirmationList(props: DistanceConfirmationListProps) {
         selectedParticipants,
         distanceData: {
             distance,
-            hasRoute,
+            // The distance field reads this to decide whether it has a figure worth showing, so a
+            // pending route (or a commuter exclusion still being decided) reads as not having one.
+            hasRoute: hasRoute && !isDistanceRequestWithPendingRoute,
             unit,
             distanceRateName: mileageRate.name,
             distanceRateCurrency: currency,
