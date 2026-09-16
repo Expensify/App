@@ -770,18 +770,11 @@ onPersistedRequestsInitialization(flush);
 onPersistedRequestsCrossTabMerge(flush);
 
 async function handleFollowUpConflictAction<TKey extends OnyxKey>(nextAction: ConflictData, newRequest: OnyxRequest<TKey>): Promise<void> {
-    if (nextAction.type !== 'replace') {
-        Log.alert('[SequentialQueue] Refusing a conflict follow-up action that cannot be addressed by requestIndex', {
+    if (nextAction.type !== 'replace' || nextAction.requestIndex === undefined) {
+        Log.alert('[SequentialQueue] Refusing a conflict follow-up that cannot be addressed by requestIndex', {
             command: newRequest.command,
             nextActionType: nextAction.type,
-        });
-        return;
-    }
-
-    if (nextAction.requestIndex === undefined) {
-        Log.alert('[SequentialQueue] Refusing a conflict follow-up replace that carries no requestIndex', {
-            command: newRequest.command,
-            staleIndex: nextAction.index,
+            staleIndex: nextAction.type === 'replace' ? nextAction.index : undefined,
         });
         return;
     }
@@ -807,7 +800,7 @@ async function handleConflictActions<TKey extends OnyxKey>(conflictAction: Confl
             replaceIndex: conflictAction.index,
             replacementRequest: conflictAction.request?.command ?? newRequest.command,
         });
-        await updatePersistedRequest(conflictAction.index, conflictAction.request ?? (newRequest as AnyRequest), conflictAction.requestIndex);
+        await updatePersistedRequest(conflictAction.index, conflictAction.request ?? (newRequest as AnyRequest));
     } else if (conflictAction.type === 'delete') {
         Log.info('[SequentialQueue] Conflict resolution: DELETE', false, {
             command: newRequest.command,

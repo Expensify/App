@@ -353,6 +353,11 @@ function deleteRequestsByIndices(indices: number[]): Promise<void> {
         });
 }
 
+/**
+ * Replace one queued request with newRequest. With requestIndexToReplace the target is that identity, looked up in the
+ * live queue, and oldRequestIndex is only the caller's now-stale guess (logged as staleIndex); without it, the target
+ * is oldRequestIndex itself. A target that is not queued is skipped, never appended.
+ */
 function update<TKey extends OnyxKey>(oldRequestIndex: number, newRequest: Request<TKey>, requestIndexToReplace?: number): Promise<void> {
     const requests = [...persistedRequests];
     const indexToReplace =
