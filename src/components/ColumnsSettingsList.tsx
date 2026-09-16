@@ -14,7 +14,7 @@ import {View} from 'react-native';
 import type {SearchCustomColumnIds} from './Search/types';
 import type {ListItem} from './SelectionList/types';
 
-import Button from './ButtonComposed';
+import Button from './Button';
 import DraggableList from './DraggableList';
 import HeaderWithBackButton from './HeaderWithBackButton';
 import Icon from './Icon';
@@ -28,10 +28,7 @@ type ColumnItem = {
     /** Display label for the column */
     text: string;
 
-    /** Column identifier value */
     value: SearchCustomColumnIds;
-
-    /** Unique key used for list rendering */
     keyForList: SearchCustomColumnIds;
 
     /** Whether the column is currently enabled/visible */
@@ -48,7 +45,6 @@ type ColumnItem = {
 };
 
 type ColumnsSettingsListProps = {
-    /** All available column IDs that can be displayed */
     allColumns: SearchCustomColumnIds[];
 
     /** The default set of selected columns when no customization has been applied */

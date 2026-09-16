@@ -88,7 +88,7 @@ function useBankAccountThreeDotsMenu(bankAccountList: OnyxTypes.BankAccountList,
     const onThreeDotsMenuPress = ({accountData, accountType, methodID, isDefault, icon, description}: PaymentMethodPressHandlerParams) => {
         if (accountData?.state === CONST.BANK_ACCOUNT.STATE.LOCKED && accountData?.bankAccountID) {
             pressLockedBankAccount(accountData.bankAccountID, translate, conciergeReportID ?? undefined, delegateAccountID);
-            navigateToConciergeChat(conciergeReportID ?? undefined, introSelected, currentUserAccountID, isSelfTourViewed, betas);
+            navigateToConciergeChat({conciergeReportID: conciergeReportID ?? undefined, introSelected, currentUserAccountID, isSelfTourViewed, betas});
             return;
         }
 
