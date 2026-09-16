@@ -64,8 +64,6 @@ function ForYouSection({isConciergeMenuVisible, setIsConciergeMenuVisible}: ForY
     const payCount = reportCounts[CONST.SEARCH.SEARCH_KEYS.PAY];
     const exportCount = reportCounts[CONST.SEARCH.SEARCH_KEYS.EXPORT];
 
-    const hasAnyTodos = flaggedExpensesCount > 0 || submitCount > 0 || approveCount > 0 || payCount > 0 || exportCount > 0 || domainAdminRequestsCount > 0;
-
     const navigateToReport = useCallback(
         (reportID: string) => {
             if (shouldUseNarrowLayout) {
@@ -172,6 +170,8 @@ function ForYouSection({isConciergeMenuVisible, setIsConciergeMenuVisible}: ForY
             submitCount,
         ],
     );
+
+    const hasAnyTodos = todoItems.length > 0;
 
     const forYouRows: React.ReactNode[] = todoItems.map(({key, count, icon, translationKey, handler, buttonVariant}) => (
         <BaseWidgetItem
