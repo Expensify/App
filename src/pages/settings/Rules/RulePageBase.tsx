@@ -5,7 +5,6 @@ import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import RuleNotFoundPageWrapper from '@components/Rule/RuleNotFoundPageWrapper';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
-import Switch from '@components/Switch';
 import Text from '@components/Text';
 
 import useLocalize from '@hooks/useLocalize';
@@ -294,20 +293,13 @@ function RulePageBase({titleKey, testID, hash}: RulePageBaseProps) {
                     enabledWhenOffline
                     shouldRenderFooterAboveSubmit
                     footerContent={
-                        <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.mb4]}>
-                            <Text
-                                style={[styles.textNormal]}
-                                accessible={false}
-                                aria-hidden
-                            >
-                                {translate('expenseRulesPage.addRule.applyToExistingExpenses')}
-                            </Text>
-                            <Switch
-                                accessibilityLabel={translate('expenseRulesPage.addRule.applyToExistingExpenses')}
-                                isOn={shouldUpdateMatchingTransactions}
-                                onToggle={setShouldUpdateMatchingTransactions}
-                            />
-                        </View>
+                        <ToggleSettingOptionRow
+                            isActive={shouldUpdateMatchingTransactions}
+                            onToggle={setShouldUpdateMatchingTransactions}
+                            switchAccessibilityLabel={translate('expenseRulesPage.addRule.applyToExistingExpenses')}
+                            title={translate('expenseRulesPage.addRule.applyToExistingExpenses')}
+                            wrapperStyle={styles.mb4}
+                        />
                     }
                 />
             </ScreenWrapper>
