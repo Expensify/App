@@ -135,6 +135,7 @@ import Parser from './Parser';
 import {getParsedMessageWithShortMentions} from './ParsingUtils';
 import {getBankAccountLastFourDigits} from './PaymentUtils';
 import Permissions from './Permissions';
+import {getAllPersonalDetails, getPersonalDetail} from './PersonalDetailsStore';
 import {getAccountIDsByLogins, getDisplayNameOrDefault, getLoginByAccountID, getPersonalDetailByEmail, temporaryGetDisplayNameOrDefault} from './PersonalDetailsUtils';
 import {
     canSendInvoiceFromWorkspace,
@@ -1073,18 +1074,6 @@ Onyx.connect({
     },
 });
 
-let allPersonalDetails: OnyxEntry<PersonalDetailsList>;
-let currentUserPersonalDetails: OnyxEntry<PersonalDetails>;
-Onyx.connect({
-    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-    callback: (value) => {
-        if (deprecatedCurrentUserAccountID) {
-            currentUserPersonalDetails = value?.[deprecatedCurrentUserAccountID] ?? undefined;
-        }
-        allPersonalDetails = value ?? {};
-    },
-});
-
 let deprecatedAllReportsDraft: OnyxCollection<Report>;
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT_DRAFT,
@@ -1259,11 +1248,11 @@ Onyx.connect({
 });
 
 function getCurrentUserAvatar(): AvatarSource | undefined {
-    return currentUserPersonalDetails?.avatar;
+    return getPersonalDetail(deprecatedCurrentUserAccountID)?.avatar;
 }
 
 function getCurrentUserDisplayNameOrEmail(): string | undefined {
-    return currentUserPersonalDetails?.displayName ?? deprecatedCurrentUserEmail;
+    return getPersonalDetail(deprecatedCurrentUserAccountID)?.displayName ?? deprecatedCurrentUserEmail;
 }
 
 function getChatType(report: OnyxInputOrEntry<Report> | Participant): ValueOf<typeof CONST.REPORT.CHAT_TYPE> | undefined {
@@ -1811,10 +1800,11 @@ function getBankAccountRoute(report: OnyxEntry<Report>, areInvoicesEnabled: bool
 
 /**
  * Check if personal detail of accountID is empty or optimistic data
- * TODO: Remove this function once allPersonalDetails module-level variable is removed (https://github.com/Expensify/App/issues/66413)
+ * TODO: Remove this function once callers pass personal details explicitly (https://github.com/Expensify/App/issues/66413)
  */
 function isOptimisticPersonalDetail(accountID: number): boolean {
-    return isEmptyObject(allPersonalDetails?.[accountID]) || !!allPersonalDetails?.[accountID]?.isOptimisticPersonalDetail;
+    const personalDetail = getPersonalDetail(accountID);
+    return isEmptyObject(personalDetail) || !!personalDetail?.isOptimisticPersonalDetail;
 }
 
 /**
@@ -2083,7 +2073,7 @@ function isAwaitingFirstLevelApproval(report: OnyxEntry<Report>, rules: OnyxColl
         return false;
     }
 
-    const submitsToAccountID = getSubmitToAccountID(policy, report, getLoginByAccountID(report.ownerAccountID, allPersonalDetails), rules);
+    const submitsToAccountID = getSubmitToAccountID(policy, report, getLoginByAccountID(report.ownerAccountID, getAllPersonalDetails()), rules);
 
     return isProcessingReport(report) && submitsToAccountID === report.managerID && !hasReportBeenForwardedSinceLastSubmit(report);
 }
@@ -2494,7 +2484,7 @@ function hasExpensifyGuidesEmails(accountIDs: number[], guideAccountIDs: GuideAc
     }
 
     // TODO: Remove fallback once all callers pass guideAccountIDs (https://github.com/Expensify/App/issues/66413)
-    return accountIDs.some((accountID) => Str.extractEmailDomain(allPersonalDetails?.[accountID]?.login ?? '') === CONST.EMAIL.GUIDES_DOMAIN);
+    return accountIDs.some((accountID) => Str.extractEmailDomain(getPersonalDetail(accountID)?.login ?? '') === CONST.EMAIL.GUIDES_DOMAIN);
 }
 
 function getMostRecentlyVisitedReport(reports: Array<OnyxEntry<Report>>, lastVisitTimes: Record<string, string>): OnyxEntry<Report> {
@@ -2547,7 +2537,7 @@ function findLastAccessedReport(
             // We allow public announce rooms, admins, and announce rooms through since we bypass the default rooms beta for them.
             // Check where findLastAccessedReport is called in MainDrawerNavigator.js for more context.
             // Domain rooms are now the only type of default room that are on the defaultRooms beta.
-            // When guideAccountIDs is undefined, hasExpensifyGuidesEmails falls back to allPersonalDetails (https://github.com/Expensify/App/issues/66413)
+            // When guideAccountIDs is undefined, hasExpensifyGuidesEmails falls back to the personal details store (https://github.com/Expensify/App/issues/66413)
             if (ignoreDomainRooms && isDomainRoom(report) && !hasExpensifyGuidesEmails(Object.keys(report?.participants ?? {}).map(Number), guideAccountIDs)) {
                 return false;
             }
@@ -3147,7 +3137,7 @@ function canSubmitAndIsAwaitingForCurrentUser(
         !hasAutoRejectedTransactionsForManager &&
         canSubmitReport(
             iouReport,
-            getLoginByAccountID(iouReport?.ownerAccountID, allPersonalDetails),
+            getLoginByAccountID(iouReport?.ownerAccountID, getAllPersonalDetails()),
             policy,
             transactions,
             undefined,
@@ -3531,7 +3521,7 @@ function getWorkspaceIcon(report: OnyxInputOrEntry<Report>, translate: Localized
 }
 
 /**
- * Gets the personal details for a login by looking in the ONYXKEYS.PERSONAL_DETAILS_LIST Onyx key (stored in the local variable, allPersonalDetails). If it doesn't exist in Onyx,
+ * Gets the personal details for a login by looking in the personal details store. If it doesn't exist in Onyx,
  * then a default object is constructed.
  */
 function getPersonalDetailsForAccountID(accountID: number | undefined, personalDetailsData?: Partial<PersonalDetailsList>): Partial<PersonalDetails> {
@@ -3544,7 +3534,7 @@ function getPersonalDetailsForAccountID(accountID: number | undefined, personalD
     };
 
     if (!personalDetailsData) {
-        return allPersonalDetails?.[accountID] ?? defaultDetails;
+        return getPersonalDetail(accountID) ?? defaultDetails;
     }
 
     return personalDetailsData?.[accountID] ?? defaultDetails;
@@ -3567,7 +3557,7 @@ function getDisplayNameForParticipant({
     shouldUseShortForm = false,
     shouldFallbackToHidden = true,
     shouldAddCurrentUserPostfix = false,
-    personalDetailsData = allPersonalDetails,
+    personalDetailsData = getAllPersonalDetails(),
     shouldRemoveDomain = false,
     formatPhoneNumber,
     translate,
@@ -3678,7 +3668,7 @@ function getParticipantsAccountIDsForDisplay(
     shouldExcludeDeleted = false,
     shouldForceExcludeCurrentUser = false,
     reportMetadataParam?: OnyxEntry<ReportMetadata>,
-    personalDetails: OnyxEntry<PersonalDetailsList> = allPersonalDetails,
+    personalDetails: OnyxEntry<PersonalDetailsList> = getAllPersonalDetails(),
 ): number[] {
     const reportParticipants = report?.participants ?? {};
     const reportMetadata = reportMetadataParam ?? getReportMetadata(report?.reportID);
@@ -4091,7 +4081,7 @@ function getIcons(
     report: OnyxInputOrEntry<Report>,
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
     translate: LocalizedTranslate,
-    personalDetails: OnyxInputOrEntry<PersonalDetailsList> = allPersonalDetails,
+    personalDetails: OnyxInputOrEntry<PersonalDetailsList> = getAllPersonalDetails(),
     defaultIcon: AvatarSource | null = null,
     defaultName = '',
     defaultAccountID = -1,
@@ -5140,7 +5130,7 @@ function canEditMoneyRequest(
     }
 
     // Resolve approver from policy (managerID stale on drafts). Fail closed on unresolved ownerLogin — else falls back to policy.approver.
-    const ownerLogin = getLoginByAccountID(moneyRequestReport?.ownerAccountID, allPersonalDetails);
+    const ownerLogin = getLoginByAccountID(moneyRequestReport?.ownerAccountID, getAllPersonalDetails());
     const isWorkflowApproverEditing =
         !!ownerLogin &&
         isExpenseReport(moneyRequestReport) &&
@@ -5158,7 +5148,7 @@ function canEditMoneyRequest(
 
     if (reportPolicy?.type === CONST.POLICY.TYPE.CORPORATE && moneyRequestReport && isSubmitted && isCurrentUserSubmitter(moneyRequestReport)) {
         const isForwarded =
-            getSubmitToAccountID(reportPolicy, moneyRequestReport, getLoginByAccountID(moneyRequestReport.ownerAccountID, allPersonalDetails), rules) !== moneyRequestReport.managerID ||
+            getSubmitToAccountID(reportPolicy, moneyRequestReport, getLoginByAccountID(moneyRequestReport.ownerAccountID, getAllPersonalDetails()), rules) !== moneyRequestReport.managerID ||
             hasReportBeenForwardedSinceLastSubmit(moneyRequestReport, reportActions);
         return !isForwarded;
     }
@@ -5179,7 +5169,7 @@ function getNextApproverAccountID(report: OnyxEntry<Report>, rules: OnyxCollecti
         return bypassApproverAccountID === deprecatedCurrentUserAccountID && !isUnapproved ? undefined : bypassApproverAccountID;
     }
 
-    const ownerLogin = getLoginByAccountID(report?.ownerAccountID, allPersonalDetails);
+    const ownerLogin = getLoginByAccountID(report?.ownerAccountID, getAllPersonalDetails());
     const approvalChain = getApprovalChain(policy, report, ownerLogin, rules);
     const submitToAccountID = getSubmitToAccountID(policy, report, ownerLogin, rules);
 
@@ -5326,7 +5316,7 @@ function canCurrentUserEditExpense(
     const isManager = isExpenseReport(moneyRequestReport) && deprecatedCurrentUserAccountID === moneyRequestReport?.managerID;
     const isRequestor = deprecatedCurrentUserAccountID === reportAction?.actorAccountID;
     // Resolve approver from policy (managerID stale on drafts). Fail closed on unresolved ownerLogin — else falls back to policy.approver.
-    const ownerLogin = getLoginByAccountID(moneyRequestReport?.ownerAccountID, allPersonalDetails);
+    const ownerLogin = getLoginByAccountID(moneyRequestReport?.ownerAccountID, getAllPersonalDetails());
     const isApprover =
         !!ownerLogin &&
         isExpenseReport(moneyRequestReport) &&
@@ -6534,8 +6524,8 @@ function getChatRoomSubtitle(
         return report?.reportName?.substring(1) ?? '';
     }
     if ((isPolicyExpenseChat(report) && !!report?.isOwnPolicyExpenseChat) || isExpenseReport(report)) {
-        const submitToAccountID = getSubmitToAccountID(policy, report, getLoginByAccountID(report?.ownerAccountID, allPersonalDetails), rules);
-        const submitsToAccountDetails = allPersonalDetails?.[submitToAccountID];
+        const submitToAccountID = getSubmitToAccountID(policy, report, getLoginByAccountID(report?.ownerAccountID, getAllPersonalDetails()), rules);
+        const submitsToAccountDetails = getPersonalDetail(submitToAccountID);
         const subtitle = submitsToAccountDetails?.displayName ?? submitsToAccountDetails?.login;
 
         if (!subtitle || !isPolicyNamePreferred) {
@@ -6586,7 +6576,7 @@ function getParentNavigationSubtitle(
 
     if (isEmptyObject(parentReport)) {
         const ownerAccountID = report?.ownerAccountID;
-        const personalDetails = ownerAccountID ? allPersonalDetails?.[ownerAccountID] : undefined;
+        const personalDetails = getPersonalDetail(ownerAccountID);
         const login = personalDetails ? personalDetails.login : null;
 
         const reportOwnerDisplayName =
@@ -6616,7 +6606,7 @@ function getParentNavigationSubtitle(
         const invoiceReceiverPolicyID = getInvoiceReceiverPolicyID(parentReport);
         const invoiceReceiverPolicy = invoiceReceiverPolicyID ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${invoiceReceiverPolicyID}`] : undefined;
         const isCurrentUserReceiver = isCurrentUserInvoiceReceiver(parentReport);
-        const invoiceReceiverPersonalDetail = getInvoiceReceiverPersonalDetail(parentReport, allPersonalDetails);
+        const invoiceReceiverPersonalDetail = getInvoiceReceiverPersonalDetail(parentReport, getAllPersonalDetails());
         const invoicePayerName = getInvoicePayerName(parentReport, translate, invoiceReceiverPersonalDetail, invoiceReceiverPolicy);
 
         let reportName = senderWorkspaceName;
@@ -6969,12 +6959,12 @@ function buildOptimisticAddCommentReportAction({
             person: [
                 {
                     style: 'strong',
-                    text: allPersonalDetails?.[accountID]?.displayName ?? currentUserEmail ?? deprecatedCurrentUserEmail,
+                    text: getPersonalDetail(accountID)?.displayName ?? currentUserEmail ?? deprecatedCurrentUserEmail,
                     type: 'TEXT',
                 },
             ],
             automatic: false,
-            avatar: allPersonalDetails?.[accountID]?.avatar,
+            avatar: getPersonalDetail(accountID)?.avatar,
             created: anchorCreatedToServer ? getServerAnchoredDBTime(Date.now() + createdOffset, lastActionCreated) : getDBTimeWithSkew(Date.now() + createdOffset),
             message: [
                 {
@@ -7301,8 +7291,8 @@ function computeOptimisticReportNameWithMetadata(
     }
 
     const titleReportField = getTitleReportField(getReportFieldsByPolicyID(policy) ?? {});
-    const submitterPersonalDetails = report.ownerAccountID ? (allPersonalDetails?.[report.ownerAccountID] ?? undefined) : undefined;
-    const managerPersonalDetails = report.managerID ? (allPersonalDetails?.[report.managerID] ?? undefined) : undefined;
+    const submitterPersonalDetails = getPersonalDetail(report.ownerAccountID);
+    const managerPersonalDetails = getPersonalDetail(report.managerID);
     const formulaContext: FormulaContext = {
         report,
         policy,
@@ -7427,7 +7417,7 @@ function buildOptimisticExpenseReport({
     };
 
     // Get the approver/manager for this report to properly display the optimistic data
-    const submitToAccountID = getSubmitToAccountID(policy, expenseReport, getLoginByAccountID(expenseReport.ownerAccountID, allPersonalDetails), rules);
+    const submitToAccountID = getSubmitToAccountID(policy, expenseReport, getLoginByAccountID(expenseReport.ownerAccountID, getAllPersonalDetails()), rules);
     if (submitToAccountID) {
         expenseReport.managerID = submitToAccountID;
     }
@@ -8345,7 +8335,7 @@ function buildOptimisticModifiedExpenseReportAction(
         person: [
             {
                 style: 'strong',
-                text: currentUserPersonalDetails?.displayName ?? String(deprecatedCurrentUserAccountID),
+                text: getPersonalDetail(deprecatedCurrentUserAccountID)?.displayName ?? String(deprecatedCurrentUserAccountID),
                 type: 'TEXT',
             },
         ],
@@ -8383,7 +8373,7 @@ function buildOptimisticDetachReceipt(reportID: string | undefined, transactionI
         person: [
             {
                 style: 'strong',
-                text: currentUserPersonalDetails?.displayName ?? String(deprecatedCurrentUserAccountID),
+                text: getPersonalDetail(deprecatedCurrentUserAccountID)?.displayName ?? String(deprecatedCurrentUserAccountID),
                 type: 'TEXT',
             },
         ],
@@ -8477,7 +8467,7 @@ function buildOptimisticTaskReportAction(
 
     // Derive the avatar/person from the actor rather than the current user: onboarding tasks are completed as a
     // side effect by Concierge (or the assigned guide), so `actorAccountID` is not always the current user.
-    const actorPersonalDetails = allPersonalDetails?.[actorAccountID ?? CONST.DEFAULT_NUMBER_ID];
+    const actorPersonalDetails = getPersonalDetail(actorAccountID ?? CONST.DEFAULT_NUMBER_ID);
 
     return {
         actionName,
@@ -11320,8 +11310,9 @@ function getTaskAssigneeChatOnyxData({
 
     // If you're choosing to share the task in the same DM as the assignee then we don't need to create another reportAction indicating that you've been assigned
     if (assigneeChatReportID !== parentReportID) {
+        const assigneePersonalDetails = getPersonalDetail(assigneeAccountID);
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        const displayname = allPersonalDetails?.[assigneeAccountID]?.displayName || allPersonalDetails?.[assigneeAccountID]?.login || '';
+        const displayname = assigneePersonalDetails?.displayName || assigneePersonalDetails?.login || '';
         optimisticAssigneeAddComment = buildOptimisticTaskCommentReportAction(
             taskReportID,
             title,

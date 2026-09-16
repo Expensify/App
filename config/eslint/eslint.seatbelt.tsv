@@ -806,7 +806,7 @@
 "../../src/libs/MergeTransactionUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	5
 "../../src/libs/Middleware/HandleUnusedOptimisticID.ts"	"@typescript-eslint/no-unsafe-type-assertion"	4
 "../../src/libs/Middleware/HandleUnusedOptimisticID.ts"	"no-restricted-syntax"	1
-"../../src/libs/Middleware/HandleUnusedOptimisticID.ts"	"rulesdir/no-direct-personal-details-list"	4
+"../../src/libs/Middleware/HandleUnusedOptimisticID.ts"	"rulesdir/no-direct-personal-details-list"	3
 "../../src/libs/Middleware/Logging.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/Middleware/Pagination.ts"	"@typescript-eslint/no-unsafe-type-assertion"	5
 "../../src/libs/Middleware/SaveResponseInOnyx.ts"	"no-restricted-syntax"	1
@@ -926,7 +926,7 @@
 "../../src/libs/ReportUtils.ts"	"@typescript-eslint/no-deprecated/getReportTransactions"	17
 "../../src/libs/ReportUtils.ts"	"@typescript-eslint/no-deprecated/translateLocal"	8
 "../../src/libs/ReportUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	32
-"../../src/libs/ReportUtils.ts"	"rulesdir/no-direct-personal-details-list"	6
+"../../src/libs/ReportUtils.ts"	"rulesdir/no-direct-personal-details-list"	5
 "../../src/libs/ReportUtils.ts"	"rulesdir/no-onyx-connect"	15
 "../../src/libs/sanitizeLogParams.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/libs/SearchAutocompleteUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
