@@ -51,10 +51,11 @@ jobs:
 
       # Must be the invocation the perf jobs run: Jest hashes the serialized project config into every
       # entry's key, so a different testMatch populates a key space they never read. Left to fail the
-      # job - the saves below imply success(), so no partial entry is written.
+      # job - the saves below imply success(), so no partial entry is written. Also runs when only the
+      # transform entry is missing, since the measure is the only thing that fills .jest-cache.
       - name: Measure the baseline
         id: measureBaseline
-        if: steps.lookupBaseline.outputs.cache-hit != 'true'
+        if: steps.lookupBaseline.outputs.cache-hit != 'true' || steps.restoreJestCache.outputs.cache-hit != 'true'
         shell: bash
         run: NODE_OPTIONS=--experimental-vm-modules npx reassure --baseline
 
@@ -77,9 +78,8 @@ jobs:
           overwrite: true
           retention-days: 14
 
-      # Also guarded on the baseline lookup: a cached baseline skips the measure, so nothing was built.
       - name: Save the Jest transform cache
-        if: steps.restoreJestCache.outputs.cache-hit != 'true' && steps.lookupBaseline.outputs.cache-hit != 'true'
+        if: steps.restoreJestCache.outputs.cache-hit != 'true'
         # v5.0.1
         uses: actions/cache/save@9255dc7a253b0ccc959486e2bca901246202afeb
         with:
