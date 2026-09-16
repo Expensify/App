@@ -446,6 +446,7 @@ describe('getViolationsOnyxData', () => {
                             currency: 'USD',
                             customUnitRateID,
                             enabled: false,
+                            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                             name: '2025 mileage',
                             rate: 65.5,
                             startDate: '2025-01-01',
@@ -472,6 +473,104 @@ describe('getViolationsOnyxData', () => {
                     name: CONST.VIOLATIONS.CUSTOM_UNIT_RATE_OUT_OF_DATE_RANGE,
                 }),
             );
+            expect(result.value).toContainEqual(expect.objectContaining({name: CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY}));
+        });
+
+        it('should keep the customUnitOutOfPolicy violation when the distance rate is pending deletion', () => {
+            transactionViolations = [customUnitOutOfPolicyViolation];
+            policy.customUnits = {
+                unitId: {
+                    attributes: {unit: 'mi'},
+                    customUnitID: 'unitId',
+                    defaultCategory: 'Car',
+                    enabled: true,
+                    name: 'Distance',
+                    rates: {
+                        [customUnitRateID]: {
+                            currency: 'USD',
+                            customUnitRateID,
+                            enabled: false,
+                            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                            name: '2025 mileage',
+                            rate: 65.5,
+                        },
+                    },
+                },
+            };
+
+            const result = ViolationsUtils.getViolationsOnyxData({
+                ownerLogin: undefined,
+                updatedTransaction: transaction,
+                transactionViolations,
+                policy,
+                policyTagList: policyTags,
+                policyCategories,
+                hasDependentTags: false,
+                isInvoiceTransaction: false,
+            });
+
+            expect(result.value).toContainEqual(expect.objectContaining({name: CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY}));
+        });
+
+        it('should clear the customUnitOutOfPolicy violation when the distance rate is disabled but still on the policy', () => {
+            transactionViolations = [customUnitOutOfPolicyViolation];
+            policy.customUnits = {
+                unitId: {
+                    attributes: {unit: 'mi'},
+                    customUnitID: 'unitId',
+                    defaultCategory: 'Car',
+                    enabled: true,
+                    name: 'Distance',
+                    rates: {
+                        [customUnitRateID]: {
+                            currency: 'USD',
+                            customUnitRateID,
+                            enabled: false,
+                            name: '2025 mileage',
+                            rate: 65.5,
+                        },
+                    },
+                },
+            };
+
+            const result = ViolationsUtils.getViolationsOnyxData({
+                ownerLogin: undefined,
+                updatedTransaction: transaction,
+                transactionViolations,
+                policy,
+                policyTagList: policyTags,
+                policyCategories,
+                hasDependentTags: false,
+                isInvoiceTransaction: false,
+            });
+
+            expect(result.value).not.toContainEqual(expect.objectContaining({name: CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY}));
+        });
+
+        it('should keep the customUnitOutOfPolicy violation when the distance rate is not on the policy at all', () => {
+            transactionViolations = [customUnitOutOfPolicyViolation];
+            policy.customUnits = {
+                unitId: {
+                    attributes: {unit: 'mi'},
+                    customUnitID: 'unitId',
+                    defaultCategory: 'Car',
+                    enabled: true,
+                    name: 'Distance',
+                    rates: {},
+                },
+            };
+
+            const result = ViolationsUtils.getViolationsOnyxData({
+                ownerLogin: undefined,
+                updatedTransaction: transaction,
+                transactionViolations,
+                policy,
+                policyTagList: policyTags,
+                policyCategories,
+                hasDependentTags: false,
+                isInvoiceTransaction: false,
+            });
+
             expect(result.value).toContainEqual(expect.objectContaining({name: CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY}));
         });
 
