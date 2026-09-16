@@ -1,22 +1,16 @@
 import focusComposerWithDelay from '@libs/focusComposerWithDelay';
-import type {InputType} from '@libs/focusComposerWithDelay/types';
+
+import CONST from '@src/CONST';
 
 function createInput() {
-    const input = {
-        focus: jest.fn(),
-        isFocused: jest.fn(() => false),
-    };
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- test double only implements the InputType methods the focus logic calls
-    return {input: input as unknown as InputType, focus: input.focus};
+    const input = document.createElement('textarea');
+    return {input, focus: jest.spyOn(input, 'focus')};
 }
 
 describe('focusComposerWithDelay', () => {
+    // jest/setupAfterEnv.ts switches every suite back to real timers, so the config's global fake timers have to be re-enabled here.
     beforeEach(() => {
         jest.useFakeTimers();
-    });
-
-    afterEach(() => {
-        jest.useRealTimers();
     });
 
     it('focuses the input after the delay', async () => {
@@ -32,8 +26,7 @@ describe('focusComposerWithDelay', () => {
         const {input, focus} = createInput();
         let hasFocusClaim = true;
 
-        await focusComposerWithDelay(input, 150, () => hasFocusClaim)(true);
-        // Another composer takes focus while the delayed focus is still pending.
+        await focusComposerWithDelay(input, CONST.COMPOSER_FOCUS_DELAY, () => hasFocusClaim)(true);
         hasFocusClaim = false;
         jest.runAllTimers();
 
@@ -43,7 +36,7 @@ describe('focusComposerWithDelay', () => {
     it('focuses the input when the condition still holds once the delay is up', async () => {
         const {input, focus} = createInput();
 
-        await focusComposerWithDelay(input, 150, () => true)(true);
+        await focusComposerWithDelay(input, CONST.COMPOSER_FOCUS_DELAY, () => true)(true);
         jest.runAllTimers();
 
         expect(focus).toHaveBeenCalled();

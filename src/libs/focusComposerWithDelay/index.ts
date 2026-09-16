@@ -12,7 +12,7 @@ import setTextInputSelection from './setTextInputSelection';
 
 /**
  * Create a function that focuses the composer.
- * @param [canFocusAfterDelay] Re-checked right before the delayed focus runs, so a composer that lost its focus claim while the delay was pending does not take focus back
+ * @param [canFocusAfterDelay] Re-checked when the delay is up, so a composer that lost its focus claim meanwhile does not take focus back
  */
 function focusComposerWithDelay(textInput: InputType | null, delay: number = CONST.COMPOSER_FOCUS_DELAY, canFocusAfterDelay?: () => boolean): FocusComposerWithDelay {
     function getIsFocused() {
