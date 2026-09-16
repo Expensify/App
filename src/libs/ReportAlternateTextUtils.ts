@@ -6,6 +6,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {
     Card,
+    CardList,
     PersonalDetails,
     PersonalDetailsList,
     Policy,
@@ -18,6 +19,7 @@ import type {
     Rule,
     Transaction,
     VisibleReportActionsDerivedValue,
+    WorkspaceCardsList,
 } from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
@@ -36,7 +38,7 @@ import createDynamicRoute from './Navigation/helpers/dynamicRoutesUtils/createDy
 import {getIsOffline} from './NetworkState';
 import Parser from './Parser';
 import {getLoginByAccountID, getPersonalDetailsByID, getPersonalDetailsForAccountIDs, getPersonalDetailsListByIDs, temporaryGetDisplayNameOrDefault} from './PersonalDetailsUtils';
-import {getCleanedTagName, hasDynamicExternalWorkflow} from './PolicyUtils';
+import {getCleanedTagName, hasDynamicExternalWorkflow, isPolicyAdmin} from './PolicyUtils';
 import {
     getActionableCard3DSTransactionApprovalMessage,
     getActionableCardFraudAlertResolutionMessage,
@@ -45,14 +47,17 @@ import {
     getAddedBudgetMessage,
     getAddedCardFeedMessage,
     getAddedConnectionMessage,
+    getApprovalLimitUpdateMessage,
     getAssignedCompanyCardMessage,
     getAutoPayApprovedReportsEnabledMessage,
     getAutoReimbursementMessage,
+    getCardConnectionBrokenMessage,
     getCardIssuedMessage,
     getCategoryTaxRateMessage,
     getChangedApproverActionMessage,
     getCombinedReportActions,
     getCompanyAddressUpdateMessage,
+    getCompanyCardConnectionBroken30DaysMessage,
     getCompanyCardConnectionBrokenMessage,
     getCurrencyConversionFeeMessage,
     getCurrencyDefaultTaxUpdateMessage,
@@ -79,6 +84,7 @@ import {
     getMessageOfOldDotReportAction,
     getOneTransactionThreadReportID,
     getOriginalMessage,
+    getOverLimitForwardsToUpdateMessage,
     getPlaidBalanceFailureMessage,
     getPolicyChangeLogAddEmployeeMessage,
     getPolicyChangeLogDefaultBillableMessage,
@@ -243,6 +249,7 @@ import {getAddExpensifyCardRuleMessage, getRemoveExpensifyCardRuleMessage, getUp
 import StringUtils from './StringUtils';
 import {getTaskCreatedMessage, getTaskReportActionMessage} from './TaskUtils';
 import {getAmount as getTransactionAmount, getCurrency as getTransactionCurrency, getDescription, isScanning} from './TransactionUtils';
+import {getTravelBillingFeedID} from './TravelBillingUtils';
 
 let allReports: OnyxCollection<Report>;
 // connectWithoutView is justified: this is module-level, non-render preview computation shared by LHN and Search;
@@ -859,6 +866,14 @@ function getLastMessageTextForReport({
     if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_AGENT_RULE)) {
         lastMessageTextFromReport = getDeleteAgentRuleMessage(translate, lastReportAction);
     }
+    if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_OVER_LIMIT_FORWARDS_TO)) {
+        // Non-React call path: pass the standalone util until this file's own convertToDisplayString threading PR.
+        lastMessageTextFromReport = getOverLimitForwardsToUpdateMessage(translate, lastReportAction, convertToDisplayString);
+    }
+    if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_APPROVAL_LIMIT)) {
+        // Non-React call path: pass the standalone util until this file's own convertToDisplayString threading PR.
+        lastMessageTextFromReport = getApprovalLimitUpdateMessage(translate, lastReportAction, convertToDisplayString);
+    }
     if (isPolicyCopyReportAction(lastReportAction)) {
         lastMessageTextFromReport = Parser.htmlToText(getPolicyChangeLogCopyMessage(translate, lastReportAction));
     }
@@ -1284,6 +1299,12 @@ function getReportAlternateText({
             alternateText = Parser.htmlToText(getIntegrationSyncFailedMessage(translate, lastAction, report?.policyID));
         } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.COMPANY_CARD_CONNECTION_BROKEN)) {
             alternateText = Parser.htmlToText(getCompanyCardConnectionBrokenMessage(translate, lastAction));
+        } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.COMPANY_CARD_CONNECTION_BROKEN_30_DAYS)) {
+            alternateText = Parser.htmlToText(getCompanyCardConnectionBroken30DaysMessage(translate, lastAction));
+        } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.PERSONAL_CARD_CONNECTION_BROKEN)) {
+            alternateText = Parser.htmlToText(getCardConnectionBrokenMessage(undefined, getOriginalMessage(lastAction)?.cardName, translate, false));
+        } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.PERSONAL_CARD_CONNECTION_BROKEN_30_DAYS)) {
+            alternateText = Parser.htmlToText(getCardConnectionBrokenMessage(undefined, getOriginalMessage(lastAction)?.cardName, translate, true));
         } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.PLAID_BALANCE_FAILURE)) {
             alternateText = Parser.htmlToText(getPlaidBalanceFailureMessage(translate, lastAction));
         } else if (lastAction?.actionName && isCategoryModificationAction(lastAction.actionName)) {
@@ -1368,6 +1389,10 @@ function getReportAlternateText({
             alternateText = getSubmitsToUpdateMessage(translate, lastAction);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_FORWARDS_TO) {
             alternateText = getForwardsToUpdateMessage(translate, lastAction);
+        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_OVER_LIMIT_FORWARDS_TO) {
+            alternateText = getOverLimitForwardsToUpdateMessage(translate, lastAction, convertToDisplayString);
+        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_APPROVAL_LIMIT) {
+            alternateText = getApprovalLimitUpdateMessage(translate, lastAction, convertToDisplayString);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_INVOICE_COMPANY_NAME) {
             alternateText = getInvoiceCompanyNameUpdateMessage(translate, lastAction);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_INVOICE_COMPANY_WEBSITE) {
@@ -1595,9 +1620,38 @@ function getReportAlternateText({
     return alternateText;
 }
 
+function getExpensifyCardFromReportAction({
+    reportAction,
+    policy,
+    cardList,
+    workspaceCardList,
+}: {
+    reportAction: OnyxEntry<ReportAction>;
+    policy: OnyxEntry<Policy>;
+    cardList: OnyxEntry<CardList>;
+    workspaceCardList: OnyxCollection<WorkspaceCardsList>;
+}): Card | undefined {
+    const workspaceAccountID = policy?.policyAccountID ?? CONST.DEFAULT_NUMBER_ID;
+
+    const cardIssuedActionOriginalMessage = isCardIssuedAction(reportAction) ? getOriginalMessage(reportAction) : undefined;
+    const cardID = cardIssuedActionOriginalMessage?.cardID ?? CONST.DEFAULT_NUMBER_ID;
+    if (!isPolicyAdmin(policy)) {
+        return cardList?.[cardID];
+    }
+
+    // Issued Expensify Cards live on one of two Onyx keys: regular cards on the 2-segment key,
+    // Travel Billing cards on the `_TRAVEL_US` variant. Check both.
+    return (
+        workspaceCardList?.[`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`]?.[cardID] ??
+        workspaceCardList?.[`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${getTravelBillingFeedID(workspaceAccountID)}`]?.[cardID] ??
+        cardList?.[cardID]
+    );
+}
+
 export {
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     deprecatedCachedOneTransactionThreadReportIDs,
+    getExpensifyCardFromReportAction,
     getLastActorDisplayName,
     getLastActorDisplayNameFromLastVisibleActions,
     getLastMessageTextForReport,

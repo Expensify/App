@@ -24,8 +24,10 @@ import type {
     EnablePolicyConnectionsParams,
     EnablePolicyExpensifyCardsParams,
     EnablePolicyHRParams,
+    EnablePolicyRecruitingParams,
     EnablePolicyInvoiceFieldsParams,
     EnablePolicyInvoicingParams,
+    EnablePolicyMCPParams,
     EnablePolicyReportFieldsParams,
     EnablePolicyTaxesParams,
     EnablePolicyWorkflowsParams,
@@ -283,6 +285,8 @@ type BuildPolicyDataOptions = {
     // TODO: Make it required once we complete refactoring the buildPolicyData function to use isSelfTourViewed. Refactor issue: https://github.com/Expensify/App/issues/66424
     isSelfTourViewed?: boolean;
     hasActiveAdminPolicies: boolean | undefined;
+    /** AccountID of the delegate acting on behalf of the current user */
+    delegateAccountID: number | undefined;
     /** Whether the current user already owns a paid workspace. CreatePolicy leaves the #admins room unpinned when they do. */
     hasOwnedPaidPolicy: boolean | undefined;
     betas?: OnyxEntry<Beta[]>;
@@ -2756,6 +2760,7 @@ function buildPolicyData(options: BuildPolicyDataOptions): OnyxData<BuildPolicyD
         type,
         isSelfTourViewed,
         hasActiveAdminPolicies,
+        delegateAccountID,
         hasOwnedPaidPolicy,
         personalTrackGoal,
     } = options;
@@ -3230,6 +3235,7 @@ function buildPolicyData(options: BuildPolicyDataOptions): OnyxData<BuildPolicyD
             companySize: companySize ?? (introSelected?.companySize as OnboardingCompanySize),
             isSelfTourViewed,
             conciergeChat,
+            delegateAccountID,
         });
         if (!onboardingData) {
             return {successData, optimisticData, failureData, params};
@@ -5020,6 +5026,102 @@ function enablePolicyHR(policyID: string, enabled: boolean) {
     }
 }
 
+function enablePolicyRecruiting(policyID: string, enabled: boolean) {
+    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    isRecruitingEnabled: enabled,
+                    pendingFields: {
+                        isRecruitingEnabled: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    },
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    pendingFields: {
+                        isRecruitingEnabled: null,
+                    },
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    isRecruitingEnabled: !enabled,
+                    pendingFields: {
+                        isMCPEnabled: null,
+                    },
+                },
+            },
+        ],
+    };
+
+    const parameters: EnablePolicyRecruitingParams = {policyID, enabled};
+
+    API.writeWithNoDuplicatesEnableFeatureConflicts(WRITE_COMMANDS.ENABLE_POLICY_RECRUITING, parameters, onyxData);
+
+    if (enabled && getIsNarrowLayout()) {
+        goBackWhenEnableFeature();
+    }
+}
+
+function enablePolicyMCP(policyID: string, enabled: boolean) {
+    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    isMCPEnabled: enabled,
+                    pendingFields: {
+                        isMCPEnabled: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    },
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    pendingFields: {
+                        isMCPEnabled: null,
+                    },
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    isMCPEnabled: !enabled,
+                    pendingFields: {
+                        isMCPEnabled: null,
+                    },
+                },
+            },
+        ],
+    };
+
+    const parameters: EnablePolicyMCPParams = {policyID, enabled};
+
+    API.writeWithNoDuplicatesEnableFeatureConflicts(WRITE_COMMANDS.ENABLE_POLICY_MCP, parameters, onyxData);
+
+    if (enabled && getIsNarrowLayout()) {
+        goBackWhenEnableFeature();
+    }
+}
+
 function enablePolicyReceiptPartners(policyID: string, enabled: boolean) {
     const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
         optimisticData: [
@@ -6581,14 +6683,6 @@ function setPolicyProhibitedExpenses(policyID: string, prohibitedExpenses: Prohi
  * @param policyID
  * @param prohibitedExpense
  */
-function setPolicyProhibitedExpense(policyID: string, prohibitedExpense: keyof ProhibitedExpenses, currentProhibitedExpense: ProhibitedExpenses | undefined) {
-    const prohibitedExpenses = {
-        ...currentProhibitedExpense,
-        [prohibitedExpense]: !currentProhibitedExpense?.[prohibitedExpense],
-    };
-
-    setPolicyProhibitedExpenses(policyID, prohibitedExpenses, currentProhibitedExpense);
-}
 
 /**
  * Call the API to set the max expense age for the given policy
@@ -8012,6 +8106,8 @@ export {
     enableCompanyCards,
     enablePolicyConnections,
     enablePolicyHR,
+    enablePolicyRecruiting,
+    enablePolicyMCP,
     enablePolicyReceiptPartners,
     enablePolicyReportFields,
     enablePolicyInvoiceFields,
@@ -8067,7 +8163,6 @@ export {
     setPolicyMaxExpenseAmount,
     setPolicyMaxExpenseAge,
     updateCustomRules,
-    setPolicyProhibitedExpense,
     setPolicyProhibitedExpenses,
     setDuplicateWorkspaceData,
     clearDuplicateWorkspace,

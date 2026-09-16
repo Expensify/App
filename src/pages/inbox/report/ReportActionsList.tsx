@@ -69,7 +69,7 @@ import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import React, {useEffect, useImperativeHandle, useRef, useState} from 'react';
 
 import FloatingMessageCounter from './FloatingMessageCounter';
-import ReportActionIndexContext from './ReportActionIndexContext';
+import {ReportActionPositionContextProvider} from './ReportActionIndexContext';
 import {useReportActionsListActions, useReportActionsListState} from './ReportActionsListContext';
 import ReportActionsListHeader from './ReportActionsListHeader';
 import ReportActionsListItemRenderer from './ReportActionsListItemRenderer';
@@ -492,7 +492,11 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
         const reportActionIndex = reportActionsToRender.length - index - 1;
 
         return (
-            <ReportActionIndexContext.Provider value={{index, isNewest: index === listData.length - 1, isRecycling: true}}>
+            <ReportActionPositionContextProvider
+                index={index}
+                isNewest={index === listData.length - 1}
+                isRecycling
+            >
                 <ReportActionsListItemRenderer
                     reportAction={reportAction}
                     parentReportAction={parentReportAction}
@@ -522,7 +526,7 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
                         onPress={onShowPreviousMessages}
                     />
                 )}
-            </ReportActionIndexContext.Provider>
+            </ReportActionPositionContextProvider>
         );
     };
 

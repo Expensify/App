@@ -60,9 +60,16 @@ function useEditMessage({
         clearAllReportActionDrafts();
 
         // Scroll to the last comment after editing to make sure the whole comment is clearly visible in the report.
-        if (shouldScrollToLastMessage) {
-            (scrollToLastMessage ?? reportScrollManager.scrollToBottom)();
+        if (!shouldScrollToLastMessage) {
+            return;
         }
+
+        if (scrollToLastMessage) {
+            scrollToLastMessage();
+            return;
+        }
+
+        reportScrollManager.scrollToBottom();
     }
 
     /**

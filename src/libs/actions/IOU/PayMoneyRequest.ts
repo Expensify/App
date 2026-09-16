@@ -51,8 +51,11 @@ import type {ValueOf} from 'type-fest';
 
 import Onyx from 'react-native-onyx';
 
+import type AdditionalPayOnyxData from './types/AdditionalPayOnyxData';
+
 import {getAllPersonalDetails, getAllTransactionViolations} from '.';
 import {getReportFromHoldRequestsOnyxData} from './Hold';
+import mergeAdditionalPayOnyxData from './mergeAdditionalPayOnyxData';
 import {getReportPreviewReportAction} from './MoneyRequestBuilder';
 
 type PayInvoiceArgs = {
@@ -94,14 +97,6 @@ type PayMoneyRequestData = {
     >;
 };
 
-type SearchPayOnyxKey = typeof ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE | typeof ONYXKEYS.COLLECTION.SNAPSHOT | typeof ONYXKEYS.COLLECTION.REPORT;
-
-type AdditionalPayOnyxData = {
-    optimisticData?: Array<OnyxUpdate<SearchPayOnyxKey>>;
-    successData?: Array<OnyxUpdate<SearchPayOnyxKey>>;
-    failureData?: Array<OnyxUpdate<SearchPayOnyxKey>>;
-};
-
 type PayMoneyRequestFunctionParams = {
     paymentType: PaymentMethodType;
     chatReport: OnyxTypes.Report;
@@ -131,25 +126,6 @@ type PayMoneyRequestFunctionParams = {
     isFallbackChatReport?: boolean;
     rules: OnyxCollection<OnyxTypes.Rule>;
 };
-
-function mergeAdditionalPayOnyxData<
-    T extends {
-        optimisticData?: readonly unknown[];
-        successData?: readonly unknown[];
-        failureData?: readonly unknown[];
-    },
->(onyxData: T, additionalOnyxData?: AdditionalPayOnyxData): T {
-    if (!additionalOnyxData) {
-        return onyxData;
-    }
-
-    return {
-        ...onyxData,
-        optimisticData: [...(onyxData.optimisticData ?? []), ...(additionalOnyxData.optimisticData ?? [])],
-        successData: [...(onyxData.successData ?? []), ...(additionalOnyxData.successData ?? [])],
-        failureData: [...(onyxData.failureData ?? []), ...(additionalOnyxData.failureData ?? [])],
-    };
-}
 
 function getPayMoneyRequestParams({
     initialChatReport,
@@ -252,6 +228,7 @@ function getPayMoneyRequestParams({
             isSelfTourViewed,
             // hasActiveAdminPolicies is only needed if lastUsedPaymentMethod is passed
             hasActiveAdminPolicies: undefined,
+            delegateAccountID,
             // This workspace is created by the invoice payment command, which does not apply CreatePolicy's
             // paid-workspace check, so the #admins room keeps starting out pinned here.
             hasOwnedPaidPolicy: undefined,
@@ -846,6 +823,7 @@ function completePaymentOnboarding(
     betas: OnyxEntry<OnyxTypes.Beta[]>,
     currentUserAccountID: number,
     conciergeChat: OnyxEntry<OnyxTypes.Report>,
+    delegateAccountID: number | undefined,
     adminsChatReportID?: string,
     onboardingPolicyID?: string,
 ) {
@@ -881,6 +859,7 @@ function completePaymentOnboarding(
         introSelected,
         isSelfTourViewed,
         conciergeChat,
+        delegateAccountID,
     });
 }
 
@@ -925,7 +904,7 @@ function payMoneyRequest(params: PayMoneyRequestFunctionParams) {
     }
 
     const paymentSelected = paymentType === CONST.IOU.PAYMENT_TYPE.VBBA ? CONST.IOU.PAYMENT_SELECTED.BBA : CONST.IOU.PAYMENT_SELECTED.PBA;
-    completePaymentOnboarding(paymentSelected, introSelected, isSelfTourViewed, betas, currentUserAccountID, conciergeChat);
+    completePaymentOnboarding(paymentSelected, introSelected, isSelfTourViewed, betas, currentUserAccountID, conciergeChat, delegateAccountID);
 
     const recipient = {accountID: iouReport?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID};
     const {params: payMoneyRequestParams, onyxData} = getPayMoneyRequestParams({
@@ -1201,7 +1180,7 @@ function payInvoice({
     });
 
     const paymentSelected = paymentMethodType === CONST.IOU.PAYMENT_TYPE.VBBA ? CONST.IOU.PAYMENT_SELECTED.BBA : CONST.IOU.PAYMENT_SELECTED.PBA;
-    completePaymentOnboarding(paymentSelected, introSelected, isSelfTourViewed, betas, currentUserAccountIDParam, conciergeChat);
+    completePaymentOnboarding(paymentSelected, introSelected, isSelfTourViewed, betas, currentUserAccountIDParam, conciergeChat, delegateAccountID);
 
     let params: PayInvoiceParams = {
         reportID: invoiceReport?.reportID,
@@ -1261,5 +1240,4 @@ function savePreferredPaymentMethod(
     });
 }
 
-export {cancelPayment, completePaymentOnboarding, markReportPaymentReceived, mergeAdditionalPayOnyxData, payInvoice, payMoneyRequest, savePreferredPaymentMethod};
-export type {AdditionalPayOnyxData};
+export {cancelPayment, completePaymentOnboarding, markReportPaymentReceived, payInvoice, payMoneyRequest, savePreferredPaymentMethod};

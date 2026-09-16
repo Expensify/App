@@ -9,7 +9,7 @@ import {editReportComment} from '@libs/actions/Report';
 
 import * as ReportActionContextMenu from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
 import {ReportActionEditMessageContextProvider} from '@pages/inbox/report/ReportActionEditMessageContext';
-import ReportActionIndexContext, {ReportActionScrollToNewestContext} from '@pages/inbox/report/ReportActionIndexContext';
+import {ReportActionPositionContextProvider, ReportActionScrollToNewestContext} from '@pages/inbox/report/ReportActionIndexContext';
 import type {ReportActionItemMessageEditProps} from '@pages/inbox/report/ReportActionItemMessageEdit';
 import ReportActionItemMessageEdit from '@pages/inbox/report/ReportActionItemMessageEdit';
 import {draftMessageVideoAttributeCache} from '@pages/inbox/report/useDraftMessageVideoAttributeCache';
@@ -91,12 +91,15 @@ const renderReportActionItemMessageEdit = (props?: Partial<ReportActionItemMessa
     return render(
         <ReportScreenProviders>
             <ReportActionScrollToNewestContext.Provider value={listContext?.scrollToNewestAction}>
-                <ReportActionIndexContext.Provider value={{index: listContext?.index ?? 0, isNewest: listContext?.isNewest ?? false}}>
+                <ReportActionPositionContextProvider
+                    index={listContext?.index ?? 0}
+                    isNewest={listContext?.isNewest ?? true}
+                >
                     <ReportActionItemMessageEdit
                         {...defaultProps}
                         {...props}
                     />
-                </ReportActionIndexContext.Provider>
+                </ReportActionPositionContextProvider>
             </ReportActionScrollToNewestContext.Provider>
         </ReportScreenProviders>,
     );
@@ -224,6 +227,16 @@ describe('ReportActionCompose Integration Tests', () => {
             fireEvent.press(screen.getByLabelText('common.saveChanges'));
 
             expect(scrollToNewestAction).toHaveBeenCalledTimes(1);
+        });
+
+        it('should not scroll after saving a non-newest message at index zero', () => {
+            const scrollToNewestAction = jest.fn();
+            renderReportActionItemMessageEdit(undefined, {index: 0, isNewest: false, scrollToNewestAction});
+
+            fireEvent.changeText(screen.getByTestId('composer'), 'Edited message');
+            fireEvent.press(screen.getByLabelText('common.saveChanges'));
+
+            expect(scrollToNewestAction).not.toHaveBeenCalled();
         });
     });
 });

@@ -144,7 +144,7 @@ describe('useEditMessage', () => {
         expect(args?.[1]?.reportActionID).toBe(props.reportAction?.reportActionID);
     });
 
-    it('scrolls to the bottom after deleting the newest message draft', () => {
+    it('scrolls to the bottom after deleting the newest message draft without a list-specific callback', () => {
         const {hook} = renderUseEditMessage({shouldScrollToLastMessage: true});
 
         act(() => {
@@ -157,7 +157,7 @@ describe('useEditMessage', () => {
         expect(mockScrollToBottom).toHaveBeenCalledTimes(1);
     });
 
-    it('uses the list-specific bottom scroll after deleting the newest message draft', () => {
+    it('uses the list-specific scroll after deleting the newest message draft', () => {
         const scrollToLastMessage = jest.fn();
         const {hook} = renderUseEditMessage({shouldScrollToLastMessage: true, scrollToLastMessage});
 
@@ -169,6 +169,18 @@ describe('useEditMessage', () => {
         });
 
         expect(scrollToLastMessage).toHaveBeenCalledTimes(1);
+        expect(mockScrollToBottom).not.toHaveBeenCalled();
+    });
+
+    it('does not scroll after deleting a non-newest message draft', () => {
+        const scrollToLastMessage = jest.fn();
+        const {hook} = renderUseEditMessage({shouldScrollToLastMessage: false, scrollToLastMessage});
+
+        act(() => {
+            hook.result.current.deleteDraft();
+        });
+
+        expect(scrollToLastMessage).not.toHaveBeenCalled();
         expect(mockScrollToBottom).not.toHaveBeenCalled();
     });
 });

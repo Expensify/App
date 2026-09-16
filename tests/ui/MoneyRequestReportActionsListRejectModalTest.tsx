@@ -38,7 +38,7 @@ const MOCK_UNIFIED_LAST_ITEM_INDEX = 37;
 const mockScrollToIndex = jest.fn();
 const mockScrollToEnd = jest.fn();
 const mockScrollToOffset = jest.fn();
-let mockReportActionPosition: {index: number; isNewest: boolean} | undefined;
+let mockIsNewestReportAction: boolean | undefined;
 let mockScrollToNewestAction: (() => void) | undefined;
 
 jest.mock('@react-navigation/native', () => ({
@@ -200,7 +200,7 @@ jest.mock('@pages/inbox/report/ReportActionsListItemRenderer', () => {
         jest.requireActual<typeof ReportActionIndexContexts>('@pages/inbox/report/ReportActionIndexContext');
 
     return jest.fn(() => {
-        mockReportActionPosition = ReactActual.useContext(ReportActionIndexContextActual);
+        mockIsNewestReportAction = ReactActual.useContext(ReportActionIndexContextActual).isNewest;
         mockScrollToNewestAction = ReactActual.useContext(ReportActionScrollToNewestContextActual);
         return null;
     });
@@ -309,7 +309,7 @@ describe('MoneyRequestReportActionsList - Reject Educational Modal', () => {
 
     beforeEach(async () => {
         jest.clearAllMocks();
-        mockReportActionPosition = undefined;
+        mockIsNewestReportAction = undefined;
         mockScrollToNewestAction = undefined;
         jest.spyOn(NativeNavigation, 'useIsFocused').mockReturnValue(true);
         mockUseIsReportLoadPending.mockReturnValue(false);
@@ -338,7 +338,7 @@ describe('MoneyRequestReportActionsList - Reject Educational Modal', () => {
         renderComponent();
         await waitForBatchedUpdatesWithAct();
 
-        expect(mockReportActionPosition).toEqual(expect.objectContaining({isNewest: true}));
+        expect(mockIsNewestReportAction).toBe(true);
         act(() => mockScrollToNewestAction?.());
         expect(mockScrollToIndex).toHaveBeenCalledWith({index: MOCK_UNIFIED_LAST_ITEM_INDEX, animated: false, viewPosition: 1});
         expect(mockScrollToEnd).not.toHaveBeenCalled();
