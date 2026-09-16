@@ -6488,7 +6488,9 @@ describe('ReportActionsUtils', () => {
             ).toBe(false);
         });
 
-        it('returns false when message is from current user and is already present (not new, not optimistic) and no existing marker', () => {
+        it('returns false for a self-authored already-present action on a cold open when no marker exists and it was not explicitly marked unread (Expensify/App#91940 guard)', () => {
+            // A persisted self-authored action (e.g. a reimbursable toggle) that reads as unread must not anchor
+            // the marker on a cold open. An explicit mark-as-unread is handled separately, by the tests below.
             const message = makeAction({actorAccountID: currentUserAccountID, reportActionID: 'existing-action-id'});
             const prevSortedVisibleReportActionsObjects = {
                 [message.reportActionID]: makeAction({actorAccountID: currentUserAccountID, reportActionID: 'existing-action-id'}),
@@ -6515,6 +6517,65 @@ describe('ReportActionsUtils', () => {
                     message,
                     prevSortedVisibleReportActionsObjects,
                     prevUnreadMarkerReportActionID: 'deleted-action-id',
+                    isOffline: false,
+                }),
+            ).toBe(true);
+        });
+
+        it('does not move the marker from one self-authored action to a different self-authored action while the previous anchor is still present', () => {
+            // The previous anchor is still present, so `isDifferentUnread` stops this action stealing the marker
+            // off it (the Expensify/App#91940 hop) even though it reads as unread.
+            const message = makeAction({actorAccountID: currentUserAccountID, reportActionID: 'self-action-b'});
+            const prevMarkedAction = makeAction({actorAccountID: currentUserAccountID, reportActionID: 'self-action-a'});
+            const prevSortedVisibleReportActionsObjects = {
+                [prevMarkedAction.reportActionID]: prevMarkedAction,
+                [message.reportActionID]: makeAction({actorAccountID: currentUserAccountID, reportActionID: 'self-action-b'}),
+            };
+            expect(
+                shouldDisplayNewMarkerOnReportAction({
+                    ...baseParams,
+                    message,
+                    prevSortedVisibleReportActionsObjects,
+                    prevUnreadMarkerReportActionID: 'self-action-a',
+                    isPrevUnreadMarkerReportActionPresent: true,
+                    isOffline: false,
+                }),
+            ).toBe(false);
+        });
+
+        it('moves the marker to another self-authored action once the previous anchor has been deleted', () => {
+            // The previous anchor was deleted, so the marker must be free to relocate to the next unread message.
+            const message = makeAction({actorAccountID: currentUserAccountID, reportActionID: 'self-action-b'});
+            const prevMarkedAction = makeAction({actorAccountID: currentUserAccountID, reportActionID: 'self-action-a'});
+            const prevSortedVisibleReportActionsObjects = {
+                [prevMarkedAction.reportActionID]: prevMarkedAction,
+                [message.reportActionID]: makeAction({actorAccountID: currentUserAccountID, reportActionID: 'self-action-b'}),
+            };
+            expect(
+                shouldDisplayNewMarkerOnReportAction({
+                    ...baseParams,
+                    message,
+                    prevSortedVisibleReportActionsObjects,
+                    prevUnreadMarkerReportActionID: 'self-action-a',
+                    isPrevUnreadMarkerReportActionPresent: false,
+                    isOffline: false,
+                }),
+            ).toBe(true);
+        });
+
+        it('keeps the marker on the same self-authored action it was previously anchored on', () => {
+            // The action being evaluated is the previous anchor, so `isDifferentUnread` is false and it keeps the marker.
+            const message = makeAction({actorAccountID: currentUserAccountID, reportActionID: 'self-action-a'});
+            const prevSortedVisibleReportActionsObjects = {
+                [message.reportActionID]: makeAction({actorAccountID: currentUserAccountID, reportActionID: 'self-action-a'}),
+            };
+            expect(
+                shouldDisplayNewMarkerOnReportAction({
+                    ...baseParams,
+                    message,
+                    prevSortedVisibleReportActionsObjects,
+                    prevUnreadMarkerReportActionID: 'self-action-a',
+                    isPrevUnreadMarkerReportActionPresent: true,
                     isOffline: false,
                 }),
             ).toBe(true);
@@ -6560,6 +6621,93 @@ describe('ReportActionsUtils', () => {
                     isOffline: false,
                 }),
             ).toBe(true);
+        });
+
+        it('anchors the marker on the explicitly marked-unread action even after its confirmed created drifts before unreadMarkerTime', () => {
+            // The offline→online case: the confirmed `created` lands before unreadMarkerTime, so the timestamp
+            // check reads the action as "read" and only the stable id can still anchor the marker.
+            const message = makeAction({actorAccountID: currentUserAccountID, reportActionID: 'marked-action-id', pendingAction: null, created: '2023-01-01 09:00:00.000'});
+            const prevSortedVisibleReportActionsObjects = {
+                [message.reportActionID]: makeAction({
+                    actorAccountID: currentUserAccountID,
+                    reportActionID: 'marked-action-id',
+                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                }),
+            };
+            expect(
+                shouldDisplayNewMarkerOnReportAction({
+                    ...baseParams,
+                    message,
+                    prevSortedVisibleReportActionsObjects,
+                    manuallyMarkedUnreadReportActionID: 'marked-action-id',
+                    isOffline: false,
+                }),
+            ).toBe(true);
+        });
+
+        it('does not anchor the marker on a just-sent self-message when no action is marked unread', () => {
+            // Same confirmed self-message, but with nothing marked unread the just-sent suppression still applies,
+            // keeping the #91443 fix intact.
+            const message = makeAction({actorAccountID: currentUserAccountID, reportActionID: 'confirmed-action-id', pendingAction: null});
+            const prevSortedVisibleReportActionsObjects = {
+                [message.reportActionID]: makeAction({
+                    actorAccountID: currentUserAccountID,
+                    reportActionID: 'confirmed-action-id',
+                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                }),
+            };
+            expect(
+                shouldDisplayNewMarkerOnReportAction({
+                    ...baseParams,
+                    message,
+                    prevSortedVisibleReportActionsObjects,
+                    manuallyMarkedUnreadReportActionID: null,
+                    isOffline: false,
+                }),
+            ).toBe(false);
+        });
+
+        it('keeps the marker on the explicitly marked-unread action even when a newer message is present', () => {
+            // The marked action is the oldest unread by construction (lastReadTime = its created - 1ms), so a
+            // newer message arriving after the mark must not steal the marker off it.
+            const message = makeAction({actorAccountID: currentUserAccountID, reportActionID: 'marked-action-id', created: '2023-01-01 11:00:00.000'});
+            const nextMessage = makeAction({created: '2023-01-01 11:30:00.000'});
+            expect(
+                shouldDisplayNewMarkerOnReportAction({
+                    ...baseParams,
+                    message,
+                    nextMessage,
+                    manuallyMarkedUnreadReportActionID: 'marked-action-id',
+                    isOffline: false,
+                }),
+            ).toBe(true);
+        });
+
+        it('returns false for any action that is not the marked one while a manual mark is active (sole anchor)', () => {
+            // The marked action is the sole anchor, so even an unread message from another user is suppressed.
+            const message = makeAction({actorAccountID: 99, reportActionID: 'other-action-id', created: '2023-01-01 11:00:00.000'});
+            expect(
+                shouldDisplayNewMarkerOnReportAction({
+                    ...baseParams,
+                    message,
+                    manuallyMarkedUnreadReportActionID: 'marked-action-id',
+                    isOffline: false,
+                }),
+            ).toBe(false);
+        });
+
+        it('returns false for the earliest-received-offline message while a different action is marked unread', () => {
+            // The manual mark takes precedence over the earliest-received-offline branch.
+            const message = makeAction({actorAccountID: 99, reportActionID: 'offline-action-id', created: '2023-01-01 11:00:00.000'});
+            expect(
+                shouldDisplayNewMarkerOnReportAction({
+                    ...baseParams,
+                    message,
+                    isEarliestReceivedOfflineMessage: true,
+                    manuallyMarkedUnreadReportActionID: 'marked-action-id',
+                    isOffline: false,
+                }),
+            ).toBe(false);
         });
     });
 
