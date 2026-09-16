@@ -8,6 +8,7 @@ import Section from '@components/Section';
 
 import useConfirmModal from '@hooks/useConfirmModal';
 import useLocalize from '@hooks/useLocalize';
+import useMergeSyncResultsPage from '@hooks/useMergeSyncResultsPage';
 import useNetwork from '@hooks/useNetwork';
 import usePolicy from '@hooks/usePolicy';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
@@ -81,6 +82,7 @@ function MergeConnectionsPageBase({policyID, category, cards, footer, shouldBeBl
     const {featureName, openPage, testID} = PAGE_CONFIG[category];
 
     useWorkspaceDocumentTitle(undefined, `workspace.common.${category}`);
+    useMergeSyncResultsPage(policyID);
 
     useNetwork({onReconnect: () => openPage(policyID)});
 

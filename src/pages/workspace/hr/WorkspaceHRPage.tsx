@@ -1,4 +1,3 @@
-import useHRSyncResultsPage from '@hooks/useHRSyncResultsPage';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useMergeHRInitialSyncingModal from '@hooks/useMergeHRInitialSyncingModal';
@@ -34,7 +33,6 @@ function WorkspaceHRPage({
     const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policyID}`);
     const icons = useMemoizedLazyExpensifyIcons(['GustoSquare', 'TriNetSquare']);
 
-    useHRSyncResultsPage(connectionSyncProgress, isFocused);
     useMergeHRInitialSyncingModal(policyID, isFocused);
 
     const cards = getHRCards({

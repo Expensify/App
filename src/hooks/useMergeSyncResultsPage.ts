@@ -5,20 +5,31 @@ import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
-import type {PolicyConnectionSyncProgress} from '@src/types/onyx/Policy';
+import type {ConnectionName, PolicyConnectionSyncProgress} from '@src/types/onyx/Policy';
 
-import type {OnyxEntry} from 'react-native-onyx';
-
+import {useIsFocused} from '@react-navigation/native';
 import {isModalActiveSelector} from '@selectors/Modal';
 import {useEffect, useEffectEvent, useRef} from 'react';
 
 import useOnyx from './useOnyx';
 
+function getSyncResultsRoutePath(connectionName: ConnectionName | undefined) {
+    if (CONST.POLICY.CONNECTIONS.HR_CONNECTION_NAMES.some((hrConnectionName) => hrConnectionName === connectionName)) {
+        return DYNAMIC_ROUTES.WORKSPACE_HR_SYNC_RESULTS.path;
+    }
+    if (CONST.POLICY.CONNECTIONS.RECRUITING_CONNECTION_NAMES.some((recruitingConnectionName) => recruitingConnectionName === connectionName)) {
+        return DYNAMIC_ROUTES.WORKSPACE_RECRUITING_SYNC_RESULTS.path;
+    }
+    return undefined;
+}
+
 /**
- * Watches an HR provider's sync progress and automatically opens the HR sync results screen
- * when the sync reaches the `JOB_DONE` stage with a result payload.
+ * Watches an HR or recruiting provider's sync progress and automatically opens that category's sync results
+ * screen when the sync reaches the `JOB_DONE` stage with a result payload.
  */
-function useHRSyncResultsPage(connectionSyncProgress: OnyxEntry<PolicyConnectionSyncProgress>, isFocused: boolean) {
+function useMergeSyncResultsPage(policyID: string) {
+    const isFocused = useIsFocused();
+    const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policyID}`);
     const pendingSyncResultRef = useRef<Pick<PolicyConnectionSyncProgress, 'connectionName' | 'result'> | null>(null);
 
     // The backend sends the `JOB_DONE` stage and the result in separate Onyx updates, and it does not
@@ -30,29 +41,30 @@ function useHRSyncResultsPage(connectionSyncProgress: OnyxEntry<PolicyConnection
 
     const connectionName = connectionSyncProgress?.connectionName;
     const openSyncResultsScreen = useEffectEvent((syncResult: PolicyConnectionSyncProgress['result'], syncConnectionName: PolicyConnectionSyncProgress['connectionName']) => {
-        if (!syncResult || !syncConnectionName) {
+        const routePath = getSyncResultsRoutePath(syncConnectionName);
+        if (!syncResult || !routePath) {
             return;
         }
 
         // The result payload stays in Onyx; the screen re-reads it from the `policyID` it inherits
         // from the workspace route, so nothing rich has to be serialized into navigation params.
-        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_HR_SYNC_RESULTS.path));
+        Navigation.navigate(createDynamicRoute(routePath));
     });
 
     useEffect(() => {
         const syncResult = connectionSyncProgress?.result;
         const stageInProgress = connectionSyncProgress?.stageInProgress;
-        const isHRConnectionName = CONST.POLICY.CONNECTIONS.HR_CONNECTION_NAMES.some((hrConnectionName) => hrConnectionName === connectionName);
-        const isSyncRunning = isHRConnectionName && !!stageInProgress && stageInProgress !== CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.JOB_DONE;
+        const hasResultsScreen = !!getSyncResultsRoutePath(connectionName);
+        const isSyncRunning = hasResultsScreen && !!stageInProgress && stageInProgress !== CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.JOB_DONE;
 
         if (isSyncRunning) {
             didWatchSyncRunRef.current = true;
         }
 
-        const isHRSyncDoneWithResult = isHRConnectionName && stageInProgress === CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.JOB_DONE && !!syncResult;
-        const didHRSyncComplete = isFocused && isHRSyncDoneWithResult && didWatchSyncRunRef.current;
+        const isSyncDoneWithResult = hasResultsScreen && stageInProgress === CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.JOB_DONE && !!syncResult;
+        const didSyncComplete = isFocused && isSyncDoneWithResult && didWatchSyncRunRef.current;
 
-        if (didHRSyncComplete && syncResult && connectionName) {
+        if (didSyncComplete && syncResult && connectionName) {
             pendingSyncResultRef.current = {connectionName, result: syncResult};
             didWatchSyncRunRef.current = false;
         }
@@ -73,4 +85,4 @@ function useHRSyncResultsPage(connectionSyncProgress: OnyxEntry<PolicyConnection
     }, [connectionName, connectionSyncProgress?.result, connectionSyncProgress?.stageInProgress, connectionSyncProgress?.timestamp, isAnyModalActive, isFocused]);
 }
 
-export default useHRSyncResultsPage;
+export default useMergeSyncResultsPage;
