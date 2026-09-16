@@ -1,5 +1,5 @@
 import * as API from '@libs/API';
-import type {SelectIntuitEnterpriseSuiteEntityParams, UpdateQuickbooksOnlineAccountingMethodParams} from '@libs/API/parameters';
+import type {SelectIntuitEnterpriseSuiteEntityParams, UpdatePolicyConnectionConfigurationParams, UpdateQuickbooksOnlineAccountingMethodParams} from '@libs/API/parameters';
 import type UpdateQuickbooksOnlineAutoCreateVendorParams from '@libs/API/parameters/UpdateQuickbooksOnlineAutoCreateVendorParams';
 import type UpdateQuickbooksOnlineGenericTypeParams from '@libs/API/parameters/UpdateQuickbooksOnlineGenericTypeParams';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
@@ -394,6 +394,25 @@ function updateQuickbooksOnlineSyncClasses<TSettingValue extends Connections['qu
     API.write(WRITE_COMMANDS.UPDATE_QUICKBOOKS_ONLINE_SYNC_CLASSES, parameters, onyxData);
 }
 
+function updateQuickbooksOnlineSyncCustomDimensions(
+    policyID: string,
+    mappings: NonNullable<QBOConnectionConfig['syncCustomDimensions']>,
+    oldMappings: QBOConnectionConfig['syncCustomDimensions'],
+) {
+    const previousMappings = Object.fromEntries(Object.keys(mappings).map((id) => [id, oldMappings?.[id] ?? CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE]));
+    const onyxData = buildOnyxDataForQuickbooksConfiguration(policyID, CONST.QUICKBOOKS_CONFIG.SYNC_CUSTOM_DIMENSIONS, mappings, previousMappings);
+    const parameters: UpdatePolicyConnectionConfigurationParams = {
+        policyID,
+        connectionName: CONST.POLICY.CONNECTIONS.NAME.QBO,
+        settingName: CONST.QUICKBOOKS_CONFIG.SYNC_CUSTOM_DIMENSIONS,
+        settingValue: JSON.stringify(mappings),
+        idempotencyKey: CONST.QUICKBOOKS_CONFIG.SYNC_CUSTOM_DIMENSIONS,
+    };
+
+    // This existing command queues a sync only after Auth saves the mappings, including when an offline write is replayed.
+    API.write(WRITE_COMMANDS.UPDATE_POLICY_CONNECTION_CONFIGURATION, parameters, onyxData);
+}
+
 function updateQuickbooksOnlineNonReimbursableBillDefaultVendor<TSettingValue extends Connections['quickbooksOnline']['config']['nonReimbursableBillDefaultVendor']>(
     policyID: string,
     settingValue: TSettingValue,
@@ -638,6 +657,7 @@ export {
     updateQuickbooksOnlineNonReimbursableCreditCardDefaultVendor,
     updateQuickbooksOnlineSyncTax,
     updateQuickbooksOnlineSyncClasses,
+    updateQuickbooksOnlineSyncCustomDimensions,
     updateQuickbooksOnlineSyncLocations,
     updateQuickbooksOnlineSyncCustomers,
     updateQuickbooksOnlineAccountingMethod,
