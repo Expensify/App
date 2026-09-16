@@ -17,7 +17,7 @@ type UpcomingReservation = ReservationData & {
 };
 
 function isCurrentUserTraveler(reportNameValuePairs: Pick<ReportNameValuePairs, 'tripData'> | undefined, currentUserEmail: string): boolean {
-    return reportNameValuePairs?.tripData?.payload?.pnrs.some((pnr) => pnr.data.travelers.some((traveler) => traveler.user.email === currentUserEmail)) ?? false;
+    return reportNameValuePairs?.tripData?.payload?.pnrs.some((pnr) => pnr.data.travelers.some((traveler) => traveler.user?.email === currentUserEmail)) ?? false;
 }
 
 function useUpcomingTravelReservations(): UpcomingReservation[] {
