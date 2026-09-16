@@ -68,15 +68,16 @@ Set up default or custom approval workflows to route expenses through one or mor
 
 Instead of adding workflows one member at a time, you can set up multiple members' approval workflows at once by importing a spreadsheet directly from the **Workflows** page.
 
-1. Navigate to **Workspaces > [Workspace Name] > Workflows**.
-2. Under **Approvals**, click **More**.
-3. Select **Import workflows**.
-4. Drag and drop your file or click **Upload File** to browse.
-5. Map each column in your file to a member field, then complete the import.
+1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Workspaces > [workspace name]**.
+2. Select **Workflows**.
+3. Under **Approvals**.
+4. Select **Import workflows**.
+5. Drag and drop your file or click **Upload File** to browse.
+6. Map each column in your file to a member field, then complete the import.
 
 To route each member's expenses through the right approvers, map the **Submit to**, **Forward to**, and **Over limit forward to** columns. These fields set up each member's approval workflow, which you can review under **Workflows** after the import completes.
 
-**Control plan required:** The **Submit to**, **Forward to**, **Over limit forward to**, and **Approval limit** fields are only available on the Control plan. If your workspace isn't on the Control plan, you'll be prompted to upgrade before the import can finish.
+**Note:** The **Submit to**, **Forward to**, **Over limit forward to**, and **Approval limit** fields are only available on the Control plan. If your workspace isn't on the Control plan, you'll be prompted to upgrade before the import can finish.
 
 The import uses the same spreadsheet mapping screen as the Members importer, so when the import completes you're returned to the **Members** page. Learn more about the column mapping and template in [Invite Multiple Members via Spreadsheet](/articles/new-expensify/workspaces/Managing-Workspace-Members#invite-multiple-members-via-spreadsheet).
 
