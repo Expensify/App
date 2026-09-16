@@ -3,10 +3,7 @@
 # Verifies that a Podfile.lock was resolved against our prebuilt react-native artifacts, not a
 # from-source build - the Podfile is identical either way, only the resolved pod list differs.
 #
-# Usage: verifyPodfilePrebuilt.sh <path-to-Podfile.lock> [rendered-remedy-output-path]
-# The optional 2nd arg also saves the rendered remedy (with placeholders filled in) to a file, so a
-# caller - e.g. the CI workflow's PR comment step - can reuse the exact same text instead of
-# re-deriving it.
+# Usage: verifyPodfilePrebuilt.sh <path-to-Podfile.lock>
 # Exit codes: 0 prebuilt, 1 resolved from source, 2 the check could not run at all.
 
 set -e
@@ -18,7 +15,6 @@ readonly ROOT_DIR
 source "$ROOT_DIR/scripts/shellUtils.sh"
 
 readonly LOCKFILE="$1"
-readonly REMEDY_OUTPUT_PATH="$2"
 
 if [[ -z "$LOCKFILE" ]]; then
   error "Usage: $0 <path-to-Podfile.lock>"
@@ -85,22 +81,8 @@ fi
 
 echo ""
 
-# App's ios/Podfile.lock is the Standalone target; Mobile-Expensify's iOS/Podfile.lock is HybridApp.
-if [[ "$LOCKFILE" == iOS/* ]]; then
-  ARTIFACT_TARGET='HybridApp'
-  POD_INSTALL_CMD='npm run pod-install'
-else
-  ARTIFACT_TARGET='Standalone'
-  POD_INSTALL_CMD='npm run pod-install-standalone'
-fi
-
-# Also posted as a PR comment (when REMEDY_OUTPUT_PATH is given), but a fork's token can't write
-# comments, so this log is the fallback.
-RENDERED_REMEDY=$(sed -e "s/{{ARTIFACT_TARGET}}/$ARTIFACT_TARGET/" -e "s/{{POD_INSTALL_CMD}}/$POD_INSTALL_CMD/" \
-  "$ROOT_DIR/.github/VERIFY_PODFILE_PREBUILT_REMEDY.md")
-readonly RENDERED_REMEDY
-
-echo "$RENDERED_REMEDY"
-[[ -n "$REMEDY_OUTPUT_PATH" ]] && echo "$RENDERED_REMEDY" > "$REMEDY_OUTPUT_PATH"
+# Also posted as a PR comment (by the CI workflow, which renders it the same way), but a fork's
+# token can't write comments, so this log is the fallback.
+"$SCRIPT_DIR/renderVerifyPodfilePrebuiltRemedy.sh" "$LOCKFILE"
 
 exit 1
