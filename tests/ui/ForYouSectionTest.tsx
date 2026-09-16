@@ -9,6 +9,7 @@ import useTodoCounts from '@hooks/useTodoCounts';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import Navigation from '@libs/Navigation/Navigation';
 import type * as NetworkStateModule from '@libs/NetworkState';
+import type {SearchKey} from '@libs/SearchUIUtils';
 
 import ForYouSection from '@pages/home/ForYouSection';
 
@@ -144,8 +145,8 @@ jest.mock('react-native-reanimated', () => {
 
 // ForYouSection renders outside SearchContextProvider here, so the real hooks return no-op defaults and the
 // search key a to-do sets could not be observed. Mock just the two action hooks it uses.
-const mockSetCurrentSearchKey = jest.fn();
-const mockClearSelectedTransactions = jest.fn();
+const mockSetCurrentSearchKey = jest.fn<void, [SearchKey, string | undefined]>();
+const mockClearSelectedTransactions = jest.fn<void, []>();
 jest.mock('@components/Search/SearchContext', () => ({
     ...jest.requireActual<typeof SearchContextModule>('@components/Search/SearchContext'),
     useSearchQueryActions: () => ({setCurrentSearchKey: mockSetCurrentSearchKey, setShouldResetSearchQuery: jest.fn(), resetSearchKey: jest.fn()}),
@@ -886,9 +887,11 @@ describe('ForYouSection', () => {
             // The key is context state rather than part of the URL, so navigating with only a query left whatever
             // tab was selected before (e.g. Spend > Reports) focused on the approve results.
             expect(mockSetCurrentSearchKey).toHaveBeenCalledTimes(1);
-            const [searchKey, pendingQuery] = mockSetCurrentSearchKey.mock.calls.at(0) ?? [];
-            expect(searchKey).toBe(CONST.SEARCH.SEARCH_KEYS.APPROVE);
-            expect(mockNavigate).toHaveBeenCalledWith(ROUTES.SEARCH_ROOT.getRoute({query: pendingQuery as string}));
+            const call = mockSetCurrentSearchKey.mock.calls.at(0);
+            expect(call?.at(0)).toBe(CONST.SEARCH.SEARCH_KEYS.APPROVE);
+            const pendingQuery = call?.at(1);
+            expect(pendingQuery).toBeTruthy();
+            expect(mockNavigate).toHaveBeenCalledWith(ROUTES.SEARCH_ROOT.getRoute({query: pendingQuery ?? ''}));
             expect(mockClearSelectedTransactions).toHaveBeenCalledTimes(1);
         });
 
