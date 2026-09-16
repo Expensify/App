@@ -193,6 +193,7 @@ function MoneyRequestReportActionsListContent({reportIDFromRoute, onLayout}: Mon
         onListContentSizeChange,
         onListScrollBeginDrag,
         updateLastItemIndex,
+        scrollToBottom,
         onListLayout: syncBottomOffsetFromLayout,
     } = useMoneyRequestReportScroll({
         reportID,

@@ -71,6 +71,9 @@ type UseMoneyRequestReportScrollResult = {
     /** "Latest messages" pill click handler — scrolls to the bottom and marks the report as read once it lands */
     scrollToLatestMessages: () => void;
 
+    /** Jumps the list to its last item — the way action items reach the newest message (e.g. while editing) */
+    scrollToBottom: () => void;
+
     /** FlashList onContentSizeChange handler — refreshes the bottom offset and keeps the list pinned while stick-to-bottom is active */
     onListContentSizeChange: (width: number, height: number) => void;
 
@@ -345,6 +348,7 @@ function useMoneyRequestReportScroll({
         onListLayout,
         onListScrollBeginDrag,
         updateLastItemIndex,
+        scrollToBottom,
     };
 }
 
