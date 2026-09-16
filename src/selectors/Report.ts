@@ -140,6 +140,12 @@ const policyChatRoomsSelector =
         return list;
     };
 
+/** Selects the outstanding reports that belong to the given policy. */
+const createOutstandingReportsForPolicySelector =
+    (policyID: string | undefined) =>
+    (outstandingReportsByPolicyID: OnyxEntry<OutstandingReportsByPolicyIDDerivedValue>): OnyxCollection<Report> =>
+        outstandingReportsByPolicyID?.[policyID ?? CONST.DEFAULT_NUMBER_ID];
+
 /**
  * Selects archived report NVPs for the current report and possible "Move expense" destination reports.
  * This limits updates to data used to determine whether each destination report is archived.
@@ -341,6 +347,7 @@ export {
     policyChatRoomsSelector,
     reportAvatarKindSelector,
     createMoveExpenseReportNVPSelector,
+    createOutstandingReportsForPolicySelector,
     openExpenseReportIDsSelector,
     getStableReportSelector,
     isDraftReportSelector,
