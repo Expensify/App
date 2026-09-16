@@ -212,6 +212,7 @@ type ExcludedFields = ValidReportKeys<
         'lastMessageHtml',
         'lastActorAccountID',
         'lastActionType',
+        'lastActionIsAutomatic',
     ]
 >;
 

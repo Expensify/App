@@ -50,6 +50,7 @@ type WhitelistedReport = OnyxCommon.OnyxValueWithOfflineFeedback<
         lastMessageHtml: unknown;
         lastActorAccountID: unknown;
         lastActionType: unknown;
+        lastActionIsAutomatic: unknown;
         ownerAccountID: unknown;
         participants: unknown;
         total: unknown;

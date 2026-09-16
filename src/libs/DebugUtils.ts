@@ -485,6 +485,7 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
             return validateString(value);
         case 'hasOutstandingChildRequest':
         case 'hasOutstandingChildTask':
+        case 'lastActionIsAutomatic':
         case 'isOwnPolicyExpenseChat':
         case 'isPinned':
         case 'hasParentAccess':
@@ -661,6 +662,7 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
                 lastMessageHtml: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 lastActorAccountID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 lastActionType: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                lastActionIsAutomatic: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 ownerAccountID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 participants: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 total: CONST.RED_BRICK_ROAD_PENDING_ACTION,
