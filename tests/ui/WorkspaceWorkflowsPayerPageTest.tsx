@@ -59,14 +59,19 @@ jest.mock('@hooks/useLocalize', () =>
     })),
 );
 jest.mock('@libs/PolicyUtils', () => {
-    const actual = jest.requireActual('@libs/PolicyUtils');
+    const actual = jest.requireActual<typeof import('@libs/PolicyUtils')>('@libs/PolicyUtils');
     return {
         ...actual,
         canMemberWrite: jest.fn(() => true),
         isExpensifyTeam: jest.fn(() => false),
         isPendingDeletePolicy: jest.fn(() => false),
         goBackFromInvalidPolicy: jest.fn(),
-        getMemberAccountIDsForWorkspace: jest.fn(() => ({'payer@test.com': 2, 'admin@test.com': 3})),
+        getMemberAccountIDsForWorkspace: jest.fn(() =>
+            Object.fromEntries([
+                ['payer@test.com', 2],
+                ['admin@test.com', 3],
+            ]),
+        ),
     };
 });
 
@@ -80,33 +85,38 @@ type MockSectionsListProps = {
     initiallyFocusedItemKey?: string;
 };
 
-const PERSONAL_DETAILS = {
-    2: {accountID: 2, login: 'payer@test.com', displayName: 'Payer'},
-    3: {accountID: 3, login: 'admin@test.com', displayName: 'Admin'},
-} as unknown as PersonalDetailsList;
+// eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- only the login field of each entry is read in this page
+const PERSONAL_DETAILS = Object.fromEntries([
+    [2, {accountID: 2, login: 'payer@test.com', displayName: 'Payer'}],
+    [3, {accountID: 3, login: 'admin@test.com', displayName: 'Admin'}],
+]) as unknown as PersonalDetailsList;
 
+// eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- only a handful of policy fields are read in this page
 const POLICY = {
     id: 'policy1',
     owner: 'owner@test.com',
     ownerAccountID: 1,
     reimbursementChoice: 'reimburseManual',
     achAccount: {reimburser: 'payer@test.com', bankAccountID: 55, state: 'OPEN'},
-    employeeList: {
-        'payer@test.com': {role: 'admin'},
-        'admin@test.com': {role: 'admin'},
-    },
+    employeeList: Object.fromEntries([
+        ['payer@test.com', {role: 'admin'}],
+        ['admin@test.com', {role: 'admin'}],
+    ]),
 } as unknown as Policy;
+
+type PageProps = {policy: Policy; personalDetails: PersonalDetailsList; isLoadingReportData: boolean; route: {params: {policyID: string}}};
+
+// The identity-mocked HOC renders the inner component, so re-type the export to the props it actually accepts.
+// eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- re-typing the identity-mocked HOC export to its inner component props
+const Page = WorkspaceWorkflowsPayerPage as unknown as React.ComponentType<PageProps>;
 
 function pageElement() {
     return (
-        <WorkspaceWorkflowsPayerPage
+        <Page
             policy={POLICY}
             personalDetails={PERSONAL_DETAILS}
             isLoadingReportData={false}
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- only route.params.policyID is read
-            route={{params: {policyID: 'policy1'}} as never}
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- navigation object is unused in this test
-            navigation={{} as never}
+            route={{params: {policyID: 'policy1'}}}
         />
     );
 }

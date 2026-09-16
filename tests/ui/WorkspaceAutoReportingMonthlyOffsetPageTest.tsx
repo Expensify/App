@@ -61,13 +61,18 @@ type MockSelectionListProps = {
     onSelectRow: (item: MockListItem) => void;
 };
 
+type PageProps = {policy: Policy; route: {params: {policyID: string}}};
+
+// The identity-mocked withPolicy renders the inner component, so re-type the export to the props it actually accepts.
+// eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- re-typing the identity-mocked HOC export to its inner component props
+const Page = WorkspaceAutoReportingMonthlyOffsetPage as unknown as React.ComponentType<PageProps>;
+
 function pageElement(offset: number) {
     return (
-        <WorkspaceAutoReportingMonthlyOffsetPage
+        <Page
             // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- only the offset field is read in this page
             policy={{id: 'policy1', autoReportingOffset: offset} as Policy}
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- only route.params.policyID is read
-            route={{params: {policyID: 'policy1'}} as never}
+            route={{params: {policyID: 'policy1'}}}
         />
     );
 }
