@@ -1,7 +1,7 @@
 ---
 title: Add Approvals
 description: Require report approvals in your Expensify workspace, including setting approval thresholds and over-limit approvers.
-keywords: [New Expensify, approvals, report approvals, approving reports, approval workflow, workspace workflows, approver, final approver, approval chain, approval threshold, approval limit, over-limit approval, report amount limit, dollar limit approver, reassign approver, automatic approver reassignment, change approver workflow, automatic approval, approval audit, category approver, tag approver, category rules, tag rules, invite member to approval workflow, invite new user approval workflow]
+keywords: [New Expensify, approvals, report approvals, approving reports, approval workflow, workspace workflows, approver, final approver, approval chain, approval threshold, approval limit, over-limit approval, report amount limit, dollar limit approver, reassign approver, automatic approver reassignment, change approver workflow, automatic approval, approval audit, category approver, tag approver, category rules, tag rules, invite member to approval workflow, invite new user approval workflow, approval workflow hidden, cannot see approval workflow, custom approval workflow enabled on this workspace, add approval workflow missing]
 ---
 
 Each Expensify workspace can be configured to require additional approvals for reports before payments are authorized. When approvals are enabled, admins can set a default approval workflow for all members or create custom workflows for individual members.
@@ -144,6 +144,16 @@ This is why you may see the following warning when editing a workflow:
 Deleting and recreating the workflow won't change this, because the limitation is tied to the shared approver's forwarding rather than to any one submitter's workflow.
 
 To keep a second-level approver limited to a single submitter, that submitter's first approver must be unique to their chain — that is, not shared as an approver for any other member. If your goal is instead to add an extra review step only when a report exceeds a certain amount, use the workflow-specific over-limit **Additional approver** (set in the **Report amount** field), which applies only to that workflow.
+
+## Why can't I see the approval workflows on my workspace?
+
+Some workspaces route approvals through a workflow that Expensify sets up and maintains for you, rather than one you build on the **Workflows** page. On those workspaces, the **Approvals** section shows this message in place of the approval workflow list:
+
+> A custom approval workflow is enabled on this workspace. To review or change this workflow, please reach out to your Account Manager or Concierge.
+
+The **Approvals** toggle is still there, but the approval workflow list, the search field, and the **Add approval workflow** row are hidden — and the **More** menu is hidden too, so **Import workflows** and **Download workflows** aren't available. This applies to every member of the workspace, including Workspace Admins, People Admins, and the workspace owner. Opening an approvals settings page from a direct link shows a not-found page instead.
+
+To review or change the workflow, reach out to your Account Manager or Concierge. Some workspaces don't have an Account Manager, so the message asks you to reach out to Concierge only.
 
 ## How can I assign custom approval workflows to specific members?
 
