@@ -5,6 +5,7 @@ import Text from '@components/Text';
 import ValidateCodeForm from '@components/ValidateCodeActionModal/ValidateCodeForm';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useLocalize from '@hooks/useLocalize';
 import useOnboardingIntent from '@hooks/useOnboardingIntent';
 import useOnboardingTaskInformation from '@hooks/useOnboardingTaskInformation';
@@ -73,6 +74,7 @@ function BaseOnboardingPrivateDomain({shouldUseNativeStyles, route}: BaseOnboard
     } = useOnboardingTaskInformation(CONST.ONBOARDING_TASK_TYPE.VALIDATE_EMAIL);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const returnToOriginReport = useReturnToOriginReport();
+    const delegateAccountID = useDelegateAccountID();
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
 
@@ -123,18 +125,18 @@ function BaseOnboardingPrivateDomain({shouldUseNativeStyles, route}: BaseOnboard
     );
 
     const handleConciergeTaskExit = useCallback(() => {
-        if (isConciergeTaskFlow) {
-            const validateEmailTaskReportID = createJoinWorkspaceOnboardingContent('validateEmail', domain, email, conciergeChat);
-            if (validateEmailTaskReportID) {
-                Navigation.dismissModal({
-                    afterTransition: () => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(validateEmailTaskReportID)),
-                });
-                return;
-            }
-            returnToOriginReport();
+        if (!isConciergeTaskFlow) {
             return;
         }
-    }, [conciergeChat, domain, email, isConciergeTaskFlow, returnToOriginReport]);
+        const validateEmailTaskReportID = createJoinWorkspaceOnboardingContent('validateEmail', domain, email, conciergeChat, delegateAccountID);
+        if (validateEmailTaskReportID) {
+            Navigation.dismissModal({
+                afterTransition: () => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(validateEmailTaskReportID)),
+            });
+            return;
+        }
+        returnToOriginReport();
+    }, [conciergeChat, delegateAccountID, domain, email, isConciergeTaskFlow, returnToOriginReport]);
 
     const handleSkipButtonPress = useCallback(() => {
         if (isConciergeTaskFlow) {

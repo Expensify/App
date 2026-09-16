@@ -965,6 +965,7 @@ describe('ReportUtils', () => {
                 },
                 companySize: undefined,
                 conciergeChat: {reportID: REPORT_ID},
+                delegateAccountID: undefined,
             });
 
             expect(description).toHaveBeenCalledWith(

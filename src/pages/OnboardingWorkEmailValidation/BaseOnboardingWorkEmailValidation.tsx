@@ -4,6 +4,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import ValidateCodeForm from '@components/ValidateCodeActionModal/ValidateCodeForm';
 
+import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useLocalize from '@hooks/useLocalize';
 import useOnboardingIntent from '@hooks/useOnboardingIntent';
 import useOnyx from '@hooks/useOnyx';
@@ -48,6 +49,7 @@ function BaseOnboardingWorkEmailValidation({shouldUseNativeStyles, route}: BaseO
         onboardingIntent === CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE && hasCompletedGuidedSetupFlowSelector(onboardingValues) && route.params?.isJoinWorkspaceTask === 'true';
     const isCurrentPrimaryValidated = isCurrentUserValidated(loginList, session?.email) || (!!account?.validated && !loginList?.[session?.email ?? '']);
     const returnToOriginReport = useReturnToOriginReport();
+    const delegateAccountID = useDelegateAccountID();
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const isVsb = onboardingValues && 'signupQualifier' in onboardingValues && onboardingValues.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.VSB;
@@ -111,7 +113,8 @@ function BaseOnboardingWorkEmailValidation({shouldUseNativeStyles, route}: BaseO
         if (!isConciergeTaskFlow) {
             return;
         }
-        const validateEmailTaskReportID = createJoinWorkspaceOnboardingContent('validateEmail', workEmail.split('@').at(1) ?? '', workEmail, conciergeChat);
+        const taskWorkEmail = workEmail ?? '';
+        const validateEmailTaskReportID = createJoinWorkspaceOnboardingContent('validateEmail', taskWorkEmail.split('@').at(1) ?? '', taskWorkEmail, conciergeChat, delegateAccountID);
         if (validateEmailTaskReportID) {
             Navigation.dismissModal({
                 afterTransition: () => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(validateEmailTaskReportID)),
@@ -119,7 +122,7 @@ function BaseOnboardingWorkEmailValidation({shouldUseNativeStyles, route}: BaseO
             return;
         }
         returnToOriginReport();
-    }, [conciergeChat, isConciergeTaskFlow, returnToOriginReport, workEmail]);
+    }, [conciergeChat, delegateAccountID, isConciergeTaskFlow, returnToOriginReport, workEmail]);
 
     return (
         <ScreenWrapper

@@ -267,7 +267,7 @@ describe('OnboardingWorkspaces Page', () => {
             expect(dismissModal).toHaveBeenCalled();
             expect(navigate).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute('123'));
         });
-        expect(mockCreateJoinWorkspaceOnboardingContent).toHaveBeenCalledWith('empty', expect.any(String), expect.any(String), undefined);
+        expect(mockCreateJoinWorkspaceOnboardingContent).toHaveBeenCalledWith('empty', expect.any(String), expect.any(String), undefined, undefined);
 
         unmount();
         await waitForBatchedUpdatesWithAct();
@@ -338,7 +338,7 @@ describe('OnboardingWorkspaces Page', () => {
         });
 
         await waitFor(() => {
-            expect(mockCreateJoinWorkspaceOnboardingContent).toHaveBeenCalledWith('joinWorkspace', expect.any(String), expect.any(String), undefined);
+            expect(mockCreateJoinWorkspaceOnboardingContent).toHaveBeenCalledWith('joinWorkspace', expect.any(String), expect.any(String), undefined, undefined);
         });
 
         unmount();
@@ -369,7 +369,7 @@ describe('OnboardingWorkspaces Page', () => {
         fireEvent.press(screen.getByTestId('onboardingWorkSpaceSkipButton'));
 
         await waitFor(() => {
-            expect(mockCreateJoinWorkspaceOnboardingContent).toHaveBeenCalledWith('joinWorkspace', expect.any(String), expect.any(String), undefined);
+            expect(mockCreateJoinWorkspaceOnboardingContent).toHaveBeenCalledWith('joinWorkspace', expect.any(String), expect.any(String), undefined, undefined);
         });
         expect(dismissModalWithReport).toHaveBeenCalledWith({reportID: '456'});
         expect(mockCompleteOnboarding).not.toHaveBeenCalled();
@@ -403,7 +403,7 @@ describe('OnboardingWorkspaces Page', () => {
         fireEvent.press(screen.getByLabelText(TestHelper.translateLocal('common.close')));
 
         await waitFor(() => {
-            expect(mockCreateJoinWorkspaceOnboardingContent).toHaveBeenCalledWith('joinWorkspace', expect.any(String), expect.any(String), undefined);
+            expect(mockCreateJoinWorkspaceOnboardingContent).toHaveBeenCalledWith('joinWorkspace', expect.any(String), expect.any(String), undefined, undefined);
         });
         expect(dismissModalWithReport).toHaveBeenCalledWith({reportID: '456'});
 

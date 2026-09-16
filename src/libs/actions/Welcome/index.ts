@@ -112,7 +112,17 @@ function setOnboardingMergeAccountStepValue(value: boolean, skipped = false) {
     Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {isMergeAccountStepCompleted: value, isMergeAccountStepSkipped: skipped});
 }
 
-function createJoinWorkspaceOnboardingContent(contentType: JoinWorkspaceOnboardingContentType, companyDomain: string, workEmail: string, conciergeChat?: OnyxEntry<Report>) {
+function setOnboardingMergingAccountBlocked(value: boolean) {
+    Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {isMergingAccountBlocked: value});
+}
+
+function createJoinWorkspaceOnboardingContent(
+    contentType: JoinWorkspaceOnboardingContentType,
+    companyDomain: string,
+    workEmail: string,
+    conciergeChat: OnyxEntry<Report>,
+    delegateAccountID: number | undefined,
+) {
     const {joinWorkspaceMessages} = getOnboardingMessages();
     let onboardingMessage = joinWorkspaceMessages.joinWorkspace;
     if (contentType === 'validateEmail') {
@@ -131,6 +141,7 @@ function createJoinWorkspaceOnboardingContent(contentType: JoinWorkspaceOnboardi
         companyDomain,
         workEmail,
         conciergeChat,
+        delegateAccountID,
     });
 
     if (!onboardingData) {
@@ -280,6 +291,7 @@ export {
     setOnboardingCompanySize,
     setSelfTourViewed,
     setOnboardingMergeAccountStepValue,
+    setOnboardingMergingAccountBlocked,
     createJoinWorkspaceOnboardingContent,
     updateOnboardingValuesAndNavigation,
     setOnboardingUserReportedIntegration,

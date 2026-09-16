@@ -111,7 +111,8 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
 
     const createAndOpenJoinWorkspaceTask = () => {
         const companyDomain = session?.email ? getEmailDomain(session.email) : '';
-        const joinWorkspaceTaskReportID = joinWorkspaceTaskReport?.reportID ?? createJoinWorkspaceOnboardingContent('joinWorkspace', companyDomain, session?.email ?? '', conciergeChat);
+        const joinWorkspaceTaskReportID =
+            joinWorkspaceTaskReport?.reportID ?? createJoinWorkspaceOnboardingContent('joinWorkspace', companyDomain, session?.email ?? '', conciergeChat, delegateAccountID);
         if (joinWorkspaceTaskReportID) {
             Navigation.dismissModalWithReport({reportID: joinWorkspaceTaskReportID});
             return;
@@ -130,6 +131,10 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
     const handleJoinWorkspace = (policy: JoinablePolicy) => {
         const isJoiningSubmitPolicy = policy.policyType === CONST.POLICY.TYPE.SUBMIT;
         const shouldUseSubmitFlow = policy.automaticJoiningEnabled && isJoiningSubmitPolicy;
+
+        // Auto-joining finishes the join-workspace task immediately, so the welcome message drops its task list.
+        const joinWorkspaceOnboardingMessage = policy.automaticJoiningEnabled ? {...joinWorkspaceMessages.joinWorkspace, tasks: []} : joinWorkspaceMessages.joinWorkspace;
+        const onboardingMessage = isJoiningCompanyWorkspace ? joinWorkspaceOnboardingMessage : onboardingMessages[onboardingIntent ?? CONST.ONBOARDING_CHOICES.LOOKING_AROUND];
 
         if (policy.automaticJoiningEnabled) {
             joinAccessiblePolicy(
@@ -156,12 +161,7 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
 
         completeOnboarding({
             engagementChoice: onboardingIntent ?? CONST.ONBOARDING_CHOICES.LOOKING_AROUND,
-            onboardingMessage:
-                isJoiningCompanyWorkspace && policy.automaticJoiningEnabled
-                    ? {...joinWorkspaceMessages.joinWorkspace, tasks: []}
-                    : isJoiningCompanyWorkspace
-                      ? joinWorkspaceMessages.joinWorkspace
-                      : onboardingMessages[onboardingIntent ?? CONST.ONBOARDING_CHOICES.LOOKING_AROUND],
+            onboardingMessage,
             firstName: onboardingPersonalDetails?.firstName ?? '',
             lastName: onboardingPersonalDetails?.lastName ?? '',
             companySize: onboardingCompanySize,
@@ -255,10 +255,10 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
         const companyDomain = session?.email ? getEmailDomain(session.email) : '';
         if (companyDomain && !createdEmptyWorkspaceContentDomains.current.has(companyDomain)) {
             createdEmptyWorkspaceContentDomains.current.add(companyDomain);
-            createJoinWorkspaceOnboardingContent('empty', companyDomain, session?.email ?? '', conciergeChat);
+            createJoinWorkspaceOnboardingContent('empty', companyDomain, session?.email ?? '', conciergeChat, delegateAccountID);
         }
         returnToOriginReport();
-    }, [conciergeChat, isConciergeTaskFlow, joinablePoliciesLength, joinablePoliciesLoading, returnToOriginReport, session?.email]);
+    }, [conciergeChat, delegateAccountID, isConciergeTaskFlow, joinablePoliciesLength, joinablePoliciesLoading, returnToOriginReport, session?.email]);
 
     useEffect(() => {
         if (!isConciergeTaskFlow || joinablePoliciesLength === 0 || joinWorkspaceTaskReport || createdJoinWorkspaceTask.current) {
@@ -267,8 +267,8 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
 
         createdJoinWorkspaceTask.current = true;
         const companyDomain = session?.email ? getEmailDomain(session.email) : '';
-        createJoinWorkspaceOnboardingContent('joinWorkspace', companyDomain, session?.email ?? '', conciergeChat);
-    }, [conciergeChat, isConciergeTaskFlow, joinWorkspaceTaskReport, joinablePoliciesLength, session?.email]);
+        createJoinWorkspaceOnboardingContent('joinWorkspace', companyDomain, session?.email ?? '', conciergeChat, delegateAccountID);
+    }, [conciergeChat, delegateAccountID, isConciergeTaskFlow, joinWorkspaceTaskReport, joinablePoliciesLength, session?.email]);
 
     const skipJoiningWorkspaces = () => {
         if (isEmployerWithSubmit) {
@@ -299,6 +299,7 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
                 conciergeChat,
                 companyDomain: session?.email ? getEmailDomain(session.email) : '',
                 workEmail: session?.email ?? '',
+                delegateAccountID,
             });
             setOnboardingAdminsChatReportID();
 
