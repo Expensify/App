@@ -31,10 +31,11 @@ const RECONCILIATION_QUERY = `${RECONCILIATION_QUERY_WITHOUT_WITHDRAWN} ${CONST.
 
 const mockGetDeepestFocusedScreen = jest.fn<{name: string; params: {q?: string; rawQuery?: string; searchKey?: string}}, []>();
 const mockUseOnyx = jest.fn<[unknown], [key: string]>();
+const mockSetParams = jest.fn<void, [params: Record<string, unknown>]>();
 
 jest.mock('@libs/Navigation/Navigation', () => ({
     __esModule: true,
-    default: {},
+    default: {setParams: (params: Record<string, unknown>) => mockSetParams(params)},
     getDeepestFocusedScreen: () => mockGetDeepestFocusedScreen(),
 }));
 
@@ -88,6 +89,7 @@ describe('SearchQueryProvider', () => {
     beforeEach(() => {
         mockGetDeepestFocusedScreen.mockReset();
         mockUseOnyx.mockReset();
+        mockSetParams.mockReset();
         mockOnyx();
     });
 
@@ -322,6 +324,111 @@ describe('SearchQueryProvider', () => {
             rerender(undefined);
 
             expect(result.current.currentSearchKey).toBe(CONST.SEARCH.SEARCH_KEYS.EXPENSES);
+        });
+    });
+
+    describe('searchKey route param sync', () => {
+        const savedSearches = {[SAVED_SEARCH_ID]: {query: `type:${CONST.SEARCH.DATA_TYPES.EXPENSE} merchant:Amazon`, name: 'My search'}};
+
+        it('writes the resolved key back when the route carries no param', () => {
+            mockNavigationQuery(RECONCILIATION_QUERY);
+
+            renderProvider();
+
+            expect(mockSetParams).toHaveBeenCalledWith({searchKey: CONST.SEARCH.SEARCH_KEYS.RECONCILIATION});
+        });
+
+        it('writes a saved search key back when the route carries no param', () => {
+            mockOnyx({[ONYXKEYS.SAVED_SEARCHES]: savedSearches});
+            mockNavigationQuery(`type:${CONST.SEARCH.DATA_TYPES.EXPENSE} merchant:Amazon`);
+
+            renderProvider();
+
+            expect(mockSetParams).toHaveBeenCalledWith({searchKey: savedSearchIDToSearchKey(SAVED_SEARCH_ID)});
+        });
+
+        it('replaces a param that holds something that is not a search key', () => {
+            mockNavigationQuery(RECONCILIATION_QUERY, {searchKey: 'notASearchKey'});
+
+            renderProvider();
+
+            expect(mockSetParams).toHaveBeenCalledWith({searchKey: CONST.SEARCH.SEARCH_KEYS.RECONCILIATION});
+        });
+
+        it('replaces a key the query has outgrown', () => {
+            // Dropping `withdrawn`, one of the "Reconciliation" default filters, makes it a plain expense search.
+            mockNavigationQuery(RECONCILIATION_QUERY_WITHOUT_WITHDRAWN, {searchKey: CONST.SEARCH.SEARCH_KEYS.RECONCILIATION});
+
+            renderProvider();
+
+            expect(mockSetParams).toHaveBeenCalledWith({searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES});
+        });
+
+        it('clears the param when the query resolves to no key at all', () => {
+            mockNavigationQuery(`type:${CONST.SEARCH.DATA_TYPES.INVOICE}`, {searchKey: CONST.SEARCH.SEARCH_KEYS.RECONCILIATION});
+
+            renderProvider();
+
+            expect(mockSetParams).toHaveBeenCalledWith({searchKey: undefined});
+        });
+
+        it('leaves a valid param alone', () => {
+            mockNavigationQuery(RECONCILIATION_QUERY, {searchKey: CONST.SEARCH.SEARCH_KEYS.RECONCILIATION});
+
+            renderProvider();
+
+            expect(mockSetParams).not.toHaveBeenCalled();
+        });
+
+        it('leaves a param alone when the query only adds a filter on top of the default ones', () => {
+            mockNavigationQuery(`${RECONCILIATION_QUERY} merchant:Amazon`, {searchKey: CONST.SEARCH.SEARCH_KEYS.RECONCILIATION});
+
+            renderProvider();
+
+            expect(mockSetParams).not.toHaveBeenCalled();
+        });
+
+        it('leaves a valid saved search param alone, whatever the query is', () => {
+            mockOnyx({[ONYXKEYS.SAVED_SEARCHES]: savedSearches});
+            mockNavigationQuery(`type:${CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT} category:Food`, {searchKey: savedSearchIDToSearchKey(SAVED_SEARCH_ID)});
+
+            renderProvider();
+
+            expect(mockSetParams).not.toHaveBeenCalled();
+        });
+
+        it('writes the key once and stops, rather than re-dispatching on every render', () => {
+            mockNavigationQuery(RECONCILIATION_QUERY);
+            const {rerender} = renderProvider();
+            expect(mockSetParams).toHaveBeenCalledTimes(1);
+
+            // The write makes the param valid, so a re-render must not queue the same params again.
+            mockNavigationQuery(RECONCILIATION_QUERY, {searchKey: CONST.SEARCH.SEARCH_KEYS.RECONCILIATION});
+            rerender(undefined);
+
+            expect(mockSetParams).toHaveBeenCalledTimes(1);
+        });
+
+        it('never takes back a generic key once it is on the route, because it validates against any expense query', () => {
+            // The `expenses` default query carries no filters at all, so `doesQueryMatchDefaultFilterKeysAndType`
+            // accepts it for every expense query - including one that is an exact "Reconciliation" match. The write
+            // is therefore one-way: whatever key the effect commits can never be revised to a more specific one.
+            mockNavigationQuery(RECONCILIATION_QUERY, {searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES});
+
+            const {result} = renderProvider();
+
+            expect(result.current.currentSearchKey).toBe(CONST.SEARCH.SEARCH_KEYS.EXPENSES);
+            expect(mockSetParams).not.toHaveBeenCalled();
+        });
+
+        it('does not re-dispatch for a query that keeps resolving to no key', () => {
+            mockNavigationQuery(`type:${CONST.SEARCH.DATA_TYPES.INVOICE}`);
+            const {rerender} = renderProvider();
+            const callsAfterMount = mockSetParams.mock.calls.length;
+
+            rerender(undefined);
+
+            expect(mockSetParams).toHaveBeenCalledTimes(callsAfterMount);
         });
     });
 

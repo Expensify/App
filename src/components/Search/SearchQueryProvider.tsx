@@ -5,7 +5,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePreviousDefined from '@hooks/usePreviousDefined';
 import useRootNavigationState from '@hooks/useRootNavigationState';
 
-import {getDeepestFocusedScreen} from '@libs/Navigation/Navigation';
+import Navigation, {getDeepestFocusedScreen} from '@libs/Navigation/Navigation';
 import {buildSearchQueryJSON, buildSearchQueryString, doesQueryMatchDefaultFilterKeysAndType} from '@libs/SearchQueryUtils';
 import type {SearchKey} from '@libs/SearchUIUtils';
 import {getLastSearchQuery, getSearchKeyForDataType, getSuggestedSearches, isExistingSearchKey, savedSearchIDToSearchKey, getSuggestedSearchesVisibility} from '@libs/SearchUIUtils';
@@ -19,7 +19,7 @@ import ObjectUtils from '@src/types/utils/ObjectUtils';
 import type {NavigationState} from '@react-navigation/routers';
 
 import {useNavigation} from '@react-navigation/native';
-import React, {useState} from 'react';
+import React, {useEffect, useEffectEvent, useState} from 'react';
 
 import type {SearchQueryActionsValue, SearchQueryContextValue, SearchQueryJSON} from './types';
 
@@ -136,6 +136,17 @@ function SearchQueryProvider({children}: SearchQueryProviderProps) {
     const currentSearchKey = isSearchKeyFromParamValid ? searchKeyFromParam : getSearchKeyForQuery(currentSearchQueryJSON);
     const currentDefaultSearchQueryJSON = isSearchKeyFromParamValid ? paramDefaultSearchQueryJSON : getDefaultSearchQueryJSON(currentSearchKey);
     const currentDefaultSearchQueryFilterKeys = new Set(currentDefaultSearchQueryJSON?.flatFilters.map((filter) => filter.key));
+
+    const updateSearchKey = useEffectEvent(() => {
+        Navigation.setParams({searchKey: currentSearchKey});
+    });
+
+    useEffect(() => {
+        if (isSearchKeyFromParamValid) {
+            return;
+        }
+        updateSearchKey();
+    }, [isSearchKeyFromParamValid]);
 
     const queryValue: SearchQueryContextValue = {
         currentSearchHash,
