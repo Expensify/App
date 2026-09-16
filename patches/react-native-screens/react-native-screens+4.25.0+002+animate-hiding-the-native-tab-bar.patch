@@ -1,0 +1,24 @@
+diff --git a/node_modules/react-native-screens/ios/tabs/host/RNSTabsHostComponentView.mm b/node_modules/react-native-screens/ios/tabs/host/RNSTabsHostComponentView.mm
+index b92035c..f6c85fe 100644
+--- a/node_modules/react-native-screens/ios/tabs/host/RNSTabsHostComponentView.mm
++++ b/node_modules/react-native-screens/ios/tabs/host/RNSTabsHostComponentView.mm
+@@ -298,7 +298,8 @@ - (void)updateProps:(const facebook::react::Props::Shared &)props
+     _tabBarHidden = newComponentProps.tabBarHidden;
+ #if RNS_IPHONE_OS_VERSION_AVAILABLE(18_0)
+     if (@available(iOS 18.0, *)) {
+-      [_controller setTabBarHidden:_tabBarHidden animated:NO];
++      // Animated so the bar slides out with the screen that hid it instead of blinking away.
++      [_controller setTabBarHidden:_tabBarHidden animated:YES];
+     } else
+ #endif // RNS_IPHONE_OS_VERSION_AVAILABLE(18_0)
+     {
+@@ -488,7 +489,8 @@ - (void)setTabBarHidden:(BOOL)tabBarHidden
+   _tabBarHidden = tabBarHidden;
+ #if RNS_IPHONE_OS_VERSION_AVAILABLE(18_0)
+   if (@available(iOS 18.0, *)) {
+-    [_controller setTabBarHidden:_tabBarHidden animated:NO];
++    // Animated so the bar slides out with the screen that hid it instead of blinking away.
++    [_controller setTabBarHidden:_tabBarHidden animated:YES];
+   } else
+ #endif // RNS_IPHONE_OS_VERSION_AVAILABLE(18_0)
+   {

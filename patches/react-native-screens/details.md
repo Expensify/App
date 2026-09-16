@@ -7,3 +7,10 @@
 - E/App issue: [#93842](https://github.com/Expensify/App/issues/93842)
 - PR introducing patch: [#98632](https://github.com/Expensify/App/pull/98632)
 
+
+### [react-native-screens+4.25.0+002+animate-hiding-the-native-tab-bar.patch](react-native-screens+4.25.0+002+animate-hiding-the-native-tab-bar.patch)
+
+- Reason: The App hides the native tab bar on screens that are not a tab root, which React Navigation forwards to RNScreens as `tabBarHidden` (it derives the flag from `tabBarStyle.display === 'none'`). RNScreens calls UIKit's `setTabBarHidden:animated:` with `animated:NO`, so the bar blinks in and out instead of travelling with the screen that hid it. The patch passes `YES` at both call sites, which lets UIKit run its own show/hide animation. The pre-iOS 18 branch is left alone: it assigns `tabBar.hidden` directly and has no animated counterpart.
+- Upstream PR/issue: not reported yet.
+- E/App issue: n/a — found while building the native tab bar in `TabNavigator.native.tsx`.
+- PR introducing patch: n/a
