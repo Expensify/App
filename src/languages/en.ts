@@ -4822,6 +4822,7 @@ const translations = {
             defaultDescription: 'One place for all your receipts and expenses.',
             descriptionHint: 'Share information about this workspace with all members.',
             welcomeNote: 'Please use Expensify to submit your receipts for reimbursement, thanks!',
+            invitedYouToWorkspace: (inviterName: string, workspaceName: string) => `# ${inviterName} invited you to ${workspaceName}`,
             subscription: 'Subscription',
             markAsEntered: 'Mark as manually entered',
             markAsExported: 'Mark as exported',

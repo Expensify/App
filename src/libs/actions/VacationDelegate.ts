@@ -223,7 +223,7 @@ function inviteVacationDelegateToWorkspaces({delegate, policies, inviter, transl
             invitedEmailsToAccountIDs,
             // Writes resolve in queue order, so only the last invitation may clean the optimistic delegate up from under the ones still in flight.
             isLastInvite ? personalDetailsOnyxData : {optimisticData: personalDetailsOnyxData.optimisticData},
-            `# ${inviter.displayName ?? ''} invited you to ${policy.name}\n\n${translate('workspace.common.welcomeNote')}`,
+            `${translate('workspace.common.invitedYouToWorkspace', inviter.displayName ?? '', policy.name)}\n\n${translate('workspace.common.welcomeNote')}`,
             policy,
             Object.values(getMemberAccountIDsForWorkspace(policy.employeeList, false, false)),
             CONST.POLICY.ROLE.USER,

@@ -4637,6 +4637,7 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             defaultDescription: 'すべての領収書と経費を一か所で管理。',
             descriptionHint: 'このワークスペースに関する情報をすべてのメンバーと共有します。',
             welcomeNote: '精算のための領収書提出には Expensify をご利用ください。ありがとうございます！',
+            invitedYouToWorkspace: (inviterName: string, workspaceName: string) => `# ${inviterName}さんがあなたを${workspaceName}に招待しました`,
             subscription: 'サブスクリプション',
             markAsEntered: '手入力としてマーク',
             markAsExported: 'エクスポート済みにする',
