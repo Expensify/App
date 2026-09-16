@@ -654,12 +654,12 @@ function updateSettlementFrequency(
     workspaceAccountID: number,
     programKey: CardProgramKey,
     settlementFrequency: ValueOf<typeof CONST.EXPENSIFY_CARD.FREQUENCY_SETTING>,
-    currentFrequency?: Date,
+    currentMonthlySettlementDate?: number,
 ) {
-    const monthlySettlementDate = settlementFrequency === CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.DAILY ? null : new Date();
+    const monthlySettlementDate = settlementFrequency === CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.DAILY ? null : new Date().getDate();
 
     const settlementValue = {[programKey]: {monthlySettlementDate}};
-    const failureValue = {[programKey]: {monthlySettlementDate: currentFrequency}};
+    const failureValue = {[programKey]: {monthlySettlementDate: currentMonthlySettlementDate}};
 
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS>> = [
         {
