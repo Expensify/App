@@ -2152,13 +2152,7 @@ function getSubmitViolationsSummary(
  * Whether a summary contains any violation that blocks submitting until the user acknowledges it.
  */
 function hasAnySubmitViolation(summary: SubmitViolationsSummary): boolean {
-    return (
-        summary.hasSevenDayHoldViolation ||
-        summary.hasGenericPendingRTERViolation ||
-        summary.hasRejectedViolation ||
-        summary.hasReportBeenRejected ||
-        summary.otherViolations.length > 0
-    );
+    return summary.hasSevenDayHoldViolation || summary.hasGenericPendingRTERViolation || summary.hasRejectedViolation || summary.hasReportBeenRejected || summary.otherViolations.length > 0;
 }
 
 /**

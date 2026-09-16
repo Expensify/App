@@ -121,11 +121,7 @@ jest.mock('@libs/TransactionUtils', () => ({
     // Mirrors the real implementation so the value stays derived from whatever getSubmitViolationsSummary returns
     hasAnySubmitViolation: jest.fn(
         (summary: SubmitViolationsSummary) =>
-            summary.hasSevenDayHoldViolation ||
-            summary.hasGenericPendingRTERViolation ||
-            summary.hasRejectedViolation ||
-            summary.hasReportBeenRejected ||
-            summary.otherViolations.length > 0,
+            summary.hasSevenDayHoldViolation || summary.hasGenericPendingRTERViolation || summary.hasRejectedViolation || summary.hasReportBeenRejected || summary.otherViolations.length > 0,
     ),
     showPendingCardTransactionsBlockModal: jest.fn(),
     showHeldExpensesBlockModal: jest.fn(),
