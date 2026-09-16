@@ -63,6 +63,9 @@ type UseSortingProps<T, ColumnKey extends string = string> = {
     initialSortColumn?: ColumnKey;
     narrowLayoutSortColumn?: ColumnKey;
     shouldUseNarrowTableLayout?: boolean;
+
+    /** Keys of the columns currently rendered, so sorting can fall back once its active column is no longer one of them. */
+    columnKeys: ColumnKey[];
 };
 
 /**
@@ -92,9 +95,17 @@ function resolveActiveSorting<ColumnKey extends string = string>(
     shouldUseNarrowTableLayout: boolean | undefined,
     narrowLayoutSortColumn: ColumnKey | undefined,
     userSorting: ActiveSorting<ColumnKey>,
+    columnKeys: ColumnKey[],
+    initialSortColumn: ColumnKey | undefined,
 ): ActiveSorting<ColumnKey> {
     if (shouldUseNarrowTableLayout && narrowLayoutSortColumn) {
         return {columnKey: narrowLayoutSortColumn, order: 'asc'};
+    }
+
+    // A column that stops being rendered (e.g. a conditional column loses its last value) can leave the table sorted
+    // by a key no header shows an arrow for. Falling back to the initial column keeps the sort visible and correct.
+    if (userSorting.columnKey && !columnKeys.includes(userSorting.columnKey)) {
+        return {columnKey: initialSortColumn, order: 'asc'};
     }
 
     return userSorting;
@@ -114,13 +125,14 @@ function useSorting<T, ColumnKey extends string = string>({
     initialSortColumn,
     narrowLayoutSortColumn,
     shouldUseNarrowTableLayout,
+    columnKeys,
 }: UseSortingProps<T, ColumnKey>): UseSortingResult<T, ColumnKey> {
     const [userSorting, setUserSorting] = useState<ActiveSorting<ColumnKey>>({
         columnKey: initialSortColumn,
         order: 'asc',
     });
 
-    const activeSorting = resolveActiveSorting(shouldUseNarrowTableLayout, narrowLayoutSortColumn, userSorting);
+    const activeSorting = resolveActiveSorting(shouldUseNarrowTableLayout, narrowLayoutSortColumn, userSorting, columnKeys, initialSortColumn);
 
     const toggleColumnSorting: SortingMethods<ColumnKey>['toggleColumnSorting'] = (columnKey) => {
         setUserSorting((previousSorting) => {
