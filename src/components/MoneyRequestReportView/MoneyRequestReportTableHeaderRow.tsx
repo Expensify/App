@@ -55,7 +55,7 @@ type MoneyRequestReportTableHeaderRowProps = {
     /** Width bucket of the tax-amount column */
     taxAmountColumnSize: TableColumnSize;
 
-    /** True when the table scrolls horizontally — the column headers must stay visible then */
+    /** True when the table scrolls horizontally, so the column headers must stay visible */
     shouldScrollHorizontally: boolean;
 };
 
