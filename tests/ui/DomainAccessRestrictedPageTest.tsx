@@ -42,6 +42,9 @@ const DOMAIN_ACCOUNT_ID = 4242;
 const CURRENT_USER_ACCOUNT_ID = 1;
 const DOMAIN_EMAIL = 'admin@domain.com';
 const DOMAIN_KEY = `${ONYXKEYS.COLLECTION.DOMAIN}${DOMAIN_ACCOUNT_ID}` as const;
+const DOMAIN_ADMIN_ACCESS = {
+    [`${CONST.DOMAIN.EXPENSIFY_ADMIN_ACCESS_PREFIX}0`]: CURRENT_USER_ACCOUNT_ID,
+};
 
 const apiWriteSpy = jest.spyOn(API, 'write').mockImplementation(() => Promise.resolve());
 const navigateSpy = jest.spyOn(Navigation, 'navigate').mockImplementation(() => {});
@@ -215,6 +218,30 @@ describe('DomainAccessRestrictedPage', () => {
         // Then the requester is taken to the domain exists page instead of a not found page
         await waitFor(() => expect(navigateSpy).toHaveBeenCalledWith(ROUTES.WORKSPACES_DOMAIN_ALREADY_EXISTS.getRoute(DOMAIN_ACCOUNT_ID), {forceReplace: true}));
         expect(screen.queryByText(TestHelper.translateLocal('notFound.notHere'))).toBeNull();
+    });
+
+    it('sends an approved requester to the domain page instead of offering to request access again', async () => {
+        // Given a domain the requester can see while their adminship request is open
+        await act(async () => {
+            // eslint-disable-next-line @typescript-eslint/naming-convention
+            await Onyx.merge(DOMAIN_KEY, {domain_adminRequesters: {[CURRENT_USER_ACCOUNT_ID]: 'read'}});
+        });
+        renderDomainAccessRestrictedPage();
+        await waitForBatchedUpdatesWithAct();
+        expect(screen.getByTestId('DomainAccessRestrictedPage')).toBeOnTheScreen();
+
+        // When an admin approves the request, which makes the requester an admin
+        await act(async () => {
+            await Onyx.merge(DOMAIN_KEY, {
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                domain_adminRequesters: {[CURRENT_USER_ACCOUNT_ID]: null},
+                ...DOMAIN_ADMIN_ACCESS,
+            });
+        });
+
+        // Then the new admin is taken to the domain page and the access restricted screen is gone
+        await waitFor(() => expect(navigateSpy).toHaveBeenCalledWith(ROUTES.DOMAIN_INITIAL.getRoute(DOMAIN_ACCOUNT_ID)));
+        expect(screen.queryByTestId('DomainAccessRestrictedPage')).toBeNull();
     });
 
     it('shows the not found page when the domain was never there', async () => {

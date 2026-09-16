@@ -9,7 +9,7 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
-import useRedirectOnDomainAccessLost from '@hooks/useRedirectOnDomainAccessLost';
+import useRedirectOnDomainAccessChange from '@hooks/useRedirectOnDomainAccessChange';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {clearRequestAdminshipError, requestDomainAdminship} from '@libs/actions/Domain';
@@ -45,13 +45,16 @@ function DomainAccessRestrictedPage({route}: DomainAccessRestrictedPageProps) {
     const [isRequestPending] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`, {selector: (pendingActions) => !!pendingActions?.requestAdminship});
     const [requestError] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`, {selector: (errors) => errors?.requestAdminshipError});
 
-    const hasLostDomainAccess = useRedirectOnDomainAccessLost(domainAccountID, ROUTES.WORKSPACES_DOMAIN_ALREADY_EXISTS.getRoute(domainAccountID));
+    const isRedirecting = useRedirectOnDomainAccessChange(domainAccountID, {
+        whenAccessLost: ROUTES.WORKSPACES_DOMAIN_ALREADY_EXISTS.getRoute(domainAccountID),
+        whenAdmin: ROUTES.DOMAIN_INITIAL.getRoute(domainAccountID),
+    });
 
     useEffect(() => {
         return () => clearRequestAdminshipError(domainAccountID);
     }, [domainAccountID]);
 
-    if (hasLostDomainAccess) {
+    if (isRedirecting) {
         return <FullScreenLoadingIndicator shouldUseGoBackButton />;
     }
 

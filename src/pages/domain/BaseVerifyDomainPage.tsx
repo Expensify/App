@@ -14,7 +14,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import {useMemoizedLazyAsset} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import useRedirectOnDomainAccessLost from '@hooks/useRedirectOnDomainAccessLost';
+import useRedirectOnDomainAccessChange from '@hooks/useRedirectOnDomainAccessChange';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -67,7 +67,7 @@ function BaseVerifyDomainPage({domainAccountID, forwardTo, fallbackTo}: BaseVeri
     const isLoadingDomain = isLoadingOnyxValue(domainMetadata);
     const domainName = domain?.email ? Str.extractEmailDomain(domain.email) : '';
     const doesDomainExist = !!domain;
-    const hasLostDomainAccess = useRedirectOnDomainAccessLost(domainAccountID, fallbackTo);
+    const hasLostDomainAccess = useRedirectOnDomainAccessChange(domainAccountID, {whenAccessLost: fallbackTo});
 
     // A domain admin has nothing to verify once the domain is validated, so keep them out of the flow if they deep-link; non-admins still land here to re-verify
     const isVerifiedDomainAdmin = !!domain?.validated && isAdminSelector(currentUserAccountID)(domain);
