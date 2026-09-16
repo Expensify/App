@@ -11,7 +11,7 @@ import React from 'react';
 import {View} from 'react-native';
 
 // The base item is stubbed to render just the left element, so the avatar wiring is exercised without the full row chrome.
-jest.mock('@components/SelectionList/ListItem/BaseSelectListItem', () => jest.fn(({leftElement}: {leftElement?: React.ReactNode}) => leftElement ?? null));
+jest.mock('@components/SelectionList/ListItem/BaseSelectListItem', () => jest.fn(({item}: {item: ListItem}) => item.leftElement ?? null));
 
 jest.mock('@components/Avatar/AvatarFromIcon', () => jest.fn(() => null));
 
@@ -61,11 +61,10 @@ describe('MultiSelectListItem', () => {
         expect(mockAvatarFromIcon.mock.calls.at(0)?.at(0)).toEqual(expect.objectContaining({icon: ICON}));
     });
 
-    it('leaves leftElement undefined when there are no icons, so the item value is used', () => {
+    it('keeps the item leftElement when there are no icons', () => {
         const customLeftElement = <View testID="custom-left-element" />;
         const props = renderItem({keyForList: 'row', text: 'Row', leftElement: customLeftElement});
 
-        expect(props?.leftElement).toBeUndefined();
         expect(props?.item.leftElement).toBe(customLeftElement);
     });
 });

@@ -350,7 +350,6 @@ function NewChatPage({ref}: NewChatPageProps) {
         );
     };
 
-    // Every row carries its own trailing control, so the rows stay plain data and the button reads its focus state from the row context.
     const sectionsWithRowActions = sections.map((section) => ({
         ...section,
         data: section.data.map((option) => ({...option, actionElement: getRowActionElement(option)})),

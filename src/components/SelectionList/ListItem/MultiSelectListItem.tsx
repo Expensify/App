@@ -40,14 +40,18 @@ function MultiSelectListItem<TItem extends ListItem>({
 
     return (
         <BaseSelectListItem
-            item={item}
-            leftElement={
-                icon ? (
-                    <ListItemComposed.CompactAvatar
-                        icon={icon}
-                        style={styles.mr3}
-                    />
-                ) : undefined
+            item={
+                icon
+                    ? {
+                          ...item,
+                          leftElement: (
+                              <ListItemComposed.CompactAvatar
+                                  icon={icon}
+                                  style={styles.mr3}
+                              />
+                          ),
+                      }
+                    : item
             }
             isFocused={isFocused}
             isFocusVisible={isFocusVisible}

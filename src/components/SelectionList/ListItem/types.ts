@@ -55,14 +55,14 @@ type ListItem<K extends string | number = string> = {
 
     accountID?: number | null;
     login?: string | null;
+
+    /** Content rendered before the text column (e.g. an avatar or icon) */
     leftElement?: ReactNode;
+
+    /** Content rendered beside the text (e.g. a badge or inline icon) */
     rightElement?: ReactNode;
 
-    /**
-     * Standalone control rendered at the very end of the row: after the selection button and outside the row's
-     * accessible content group, so screen readers can focus it independently. Use `rightElement` instead for
-     * content that belongs beside the text (badges, inline icons).
-     */
+    /** Standalone control (e.g. a button) rendered after the selection button at the row's end */
     actionElement?: ReactNode;
 
     /** Icons for the user (can be multiple if it's a Workspace) */
@@ -229,15 +229,12 @@ type ListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
     isFirstItem?: boolean;
 };
 
-/**
- * Props of the composed ListItem pressable root. Row content is passed as plain children; hover/focus/tooltip state reaches it through ListItemContext.
- * Content-level props (wrapper style, multiline options) are omitted: the pressable never reads them, so the variant that renders them declares them.
- */
+/** Props of the ListItem pressable root. Row content comes as children and reads hover/focus/tooltip state from ListItemContext */
 type ListItemPressableProps<TItem extends ListItem> = PropsWithChildren<
     Omit<CommonListItemProps<TItem>, 'showTooltip' | 'wrapperStyle' | 'isMultilineSupported' | 'isAlternateTextMultilineSupported' | 'alternateTextNumberOfLines' | 'titleNumberOfLines'> & {
         item: TItem;
 
-        /** Whether content inside the row should show tooltips (provided to children via ListItemContext) */
+        /** Whether content inside the row should show tooltips */
         shouldShowTooltip: boolean;
 
         /** Overrides the row's screen-reader name. Defaults to the item's derived label when omitted. */

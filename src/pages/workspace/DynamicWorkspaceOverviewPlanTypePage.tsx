@@ -70,7 +70,6 @@ function DynamicWorkspaceOverviewPlanTypePage({policy}: WithPolicyProps) {
     const isControl = policy?.type === CONST.POLICY.TYPE.CORPORATE;
     const isAnnual = privateSubscription?.type === CONST.SUBSCRIPTION.TYPE.ANNUAL;
 
-    /** If user has the annual Control plan and their first billing cycle is completed, they cannot downgrade the Workspace plan to Collect. */
     const isPlanTypeLocked = isControl && isAnnual && !policy.canDowngrade;
 
     const isCurrentPolicySubmit = isSubmitPolicy(policy);

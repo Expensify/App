@@ -18,11 +18,7 @@ type AddToGroupButtonProps = {
     onPress: (item: OptionWithKey) => void;
 };
 
-/**
- * The "Add to group" action rendered at the end of an eligible NewChatPage row.
- * Takes the row's focus state from ListItemContext so the button picks up the hovered
- * appearance while its row is the list's focused one.
- */
+/** The "Add to group" action rendered at the end of an eligible NewChatPage row. */
 function AddToGroupButton({item, onPress}: AddToGroupButtonProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();

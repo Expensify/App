@@ -53,7 +53,7 @@ function SearchMergeReportsListItem<TItem extends ListItem>({item, isFocused, sh
             shouldDisableHoverStyle={false}
         >
             <View style={[styles.flex1, styles.userSelectNone, styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.gap3, styles.cursorPointer]}>
-                <View style={[styles.flex1]}>
+                <View style={styles.flex1}>
                     <UserInfoAndActionButtonRow
                         item={reportItem}
                         shouldShowUserInfo={!!reportItem?.from}
