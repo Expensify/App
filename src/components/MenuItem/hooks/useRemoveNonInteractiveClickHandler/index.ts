@@ -1,4 +1,4 @@
-import {useEffect} from 'react';
+import {useLayoutEffect} from 'react';
 
 import type UseRemoveNonInteractiveClickHandler from './types';
 
@@ -9,10 +9,7 @@ import type UseRemoveNonInteractiveClickHandler from './types';
  * its own delegated listener on the root container.
  */
 const useRemoveNonInteractiveClickHandler: UseRemoveNonInteractiveClickHandler = (ref, isInteractive) => {
-    // Must stay passive: `PressableWithSecondaryInteraction` (web) forwards its ref in its own passive effect, so at
-    // layout-effect time `ref.current` is still null and this silently no-ops. Passive effects flush child-first.
-    // Nothing here is visible to paint, so there is no flicker argument for `useLayoutEffect`.
-    useEffect(() => {
+    useLayoutEffect(() => {
         const element = ref.current;
         if (isInteractive || !(element instanceof HTMLElement)) {
             return;
