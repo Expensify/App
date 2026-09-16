@@ -237,18 +237,15 @@ type ColumnRole = {
     /** Translated text to be displayed */
     text: string;
 
-    /** Unique value of the option */
     value: string;
 
     /** Used for any additional text - e.g. if the field is required */
     description?: string;
 
-    /** Whether the column is required for import */
     isRequired?: boolean;
 };
 
 type ImportColumnProps = {
-    /** It is an array of all values in specific column */
     column: string[];
 
     /** It is column[0] when containsHeader = true or it is Column A, B, C,... otherwise */
@@ -260,7 +257,6 @@ type ImportColumnProps = {
     /** Index of the column in the spreadsheet */
     columnIndex: number;
 
-    /** Whether to show the dropdown menu */
     shouldShowDropdownMenu?: boolean;
 };
 

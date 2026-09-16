@@ -25,6 +25,12 @@ function getDistanceInMeters(transaction: OnyxInputOrEntry<Transaction>, unit: U
         return selectedRouteDistance;
     }
 
+    // Routes are cleared once the request is saved, leaving `routeDistanceMeters` (already in meters) as the only distance until the backend writes `quantity` back.
+    const routeDistanceMeters = transaction?.comment?.customUnit?.routeDistanceMeters;
+    if (routeDistanceMeters) {
+        return routeDistanceMeters;
+    }
+
     return 0;
 }
 

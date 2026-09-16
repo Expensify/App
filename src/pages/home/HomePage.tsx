@@ -17,6 +17,7 @@ import variables from '@styles/variables';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 
+import {PortalHost} from '@gorhom/portal';
 import React, {useRef, useState} from 'react';
 import {View} from 'react-native';
 
@@ -46,10 +47,13 @@ function HomePage() {
     const [isConciergeMenuVisible, setIsConciergeMenuVisible] = useState(false);
 
     return (
-        <View style={styles.flex1}>
-            <View
-                ref={receiptDropTargetRef}
-                style={styles.flex1}
+        <View
+            ref={receiptDropTargetRef}
+            style={styles.flex1}
+        >
+            <ReceiptScanDropZone
+                dropZoneRef={receiptDropTargetRef}
+                dropWrapperStyle={shouldUseNarrowLayout ? {marginBottom: variables.bottomTabHeight} : undefined}
             >
                 <ScreenWrapper
                     shouldEnablePickerAvoiding={false}
@@ -117,12 +121,9 @@ function HomePage() {
                             )}
                         </View>
                     </ScrollView>
+                    <PortalHost name="suggestions" />
                 </ScreenWrapper>
-            </View>
-            <ReceiptScanDropZone
-                targetRef={receiptDropTargetRef}
-                dropWrapperStyle={shouldUseNarrowLayout ? {marginBottom: variables.bottomTabHeight} : undefined}
-            />
+            </ReceiptScanDropZone>
         </View>
     );
 }

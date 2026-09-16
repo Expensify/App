@@ -55,6 +55,18 @@ If your workspace uses multi-level Tags, the **Edit multiple** panel shows each 
 - **Dependent Tags**: The levels above the one you edited are kept, and the levels below it are cleared. Lower-level options depend on the level you just changed, so the previous values are no longer valid. Select those levels again to set new values.
 
 Learn more about [dependent and independent multi-level Tags](/articles/new-expensify/workspaces/Create-and-manage-expense-tags).
+## How to add attendees to multiple expenses at once
+
+**Attendees** appears in the **Edit multiple expenses** panel when every selected expense belongs to a Workspace on the Control plan that has **Attendee tracking** enabled. [Learn how to enable Workspace Rules](/articles/new-expensify/workspaces/Workspace-Rules).
+
+1. In the navigation tabs (on the left on web, on the bottom on mobile), go to **Spend > Expenses**. 
+2. Select 2 or more expenses using the checkboxes.
+3. Click **Selected**. 
+4. Choose **Edit multiple**.
+5. Click **Attendees**.
+6. Select attendees from **Recents**, **Contacts**, or enter a name, email, or phone number.
+7. Click **Save**.
+8. Click **Save** again to apply your changes to every selected expense.
 
 ---
 ## What expense fields can be edited 
@@ -97,6 +109,14 @@ No, expenses on Paid and Done reports are locked and cannot be reopened for edit
 ## Why are some fields not editable in the Edit multiple panel?
 
 If a field is restricted for any selected expense (for example, amount on a card expense), it will be disabled in the **Edit multiple** panel.
+
+## Why don't I see the Attendees field in Edit multiple?
+
+**Attendees** only appears when every expense you selected sits on a Workspace that is on the Control plan and has **Attendee tracking** enabled under **Rules**. It is not available for invoices or for personal expenses that aren't on a Workspace.
+
+## Does editing attendees in bulk keep the attendees already on my expenses?
+
+No. The attendees you select replace the ones already on selected expense.
 
 ## Why can't I see the Edit multiple option?
 
