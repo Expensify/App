@@ -24,6 +24,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {isMobileChrome, isMobileSafari, isSafari} from '@libs/Browser';
+import HapticFeedback from '@libs/HapticFeedback';
 import {scrollToRight} from '@libs/InputUtils';
 import isInputAutoFilled from '@libs/isInputAutoFilled';
 
@@ -214,6 +215,7 @@ function BaseTextInput({
     }, [animateLabel, forceActiveLabel, prefixCharacter, suffixCharacter, value]);
 
     const onFocus = (event: FocusEvent) => {
+        HapticFeedback.selection();
         inputProps.onFocus?.(event);
     };
 

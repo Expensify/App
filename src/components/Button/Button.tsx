@@ -164,6 +164,7 @@ function Button({
                       ]
                     : []
             }
+            shouldUseHapticsOnPress={false}
             onLayout={onLayout}
             onPressIn={onPressIn}
             onPressOut={onPressOut}
@@ -179,6 +180,8 @@ function Button({
 
                 if (enableHapticFeedback) {
                     HapticFeedback.press();
+                } else {
+                    HapticFeedback.selection();
                 }
 
                 if (isDisabled || isLoading) {

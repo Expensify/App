@@ -54,13 +54,13 @@ type PressableProps = RNPressableProps &
 
         /**
          * Specifies if haptic feedback should be used on press
-         * @default false
+         * @default true
          */
         shouldUseHapticsOnPress?: boolean;
 
         /**
          * Specifies if haptic feedback should be used on long press
-         * @default false
+         * @default true
          */
         shouldUseHapticsOnLongPress?: boolean;
 

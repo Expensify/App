@@ -24,7 +24,7 @@ const hapticFeedback: HapticFeedback = {
             enableVibrateFallback: true,
         });
     },
-    inputFocus: () => {
+    selection: () => {
         Presets.System.selection();
     },
     expenseSuccess: () => {
