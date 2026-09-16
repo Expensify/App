@@ -168,14 +168,18 @@ describe('ExpenseReportAvatar (connected)', () => {
         ['the uploaded workspace avatar when the policy has one', {policy: {avatarURL: POLICY_AVATAR_URL}}, POLICY_AVATAR_URL],
         // A workspace with no uploaded avatar stores an empty string, which has to fall through to the default avatar.
         ['the default workspace avatar when avatarURL is an empty string', {policy: {avatarURL: ''}}, getDefaultWorkspaceAvatar(POLICY_NAME)],
-        // The report-carried `policyAvatar` only applies while the policy row is entirely absent.
-        ["the report's policyAvatar when the policy row is missing", {reportPolicyAvatar: REPORT_POLICY_AVATAR_URL}, REPORT_POLICY_AVATAR_URL],
-        ["the parent chat's policyAvatar when the report carries none either", {parentChatPolicyAvatar: PARENT_POLICY_AVATAR_URL}, PARENT_POLICY_AVATAR_URL],
-        // A report-carried '' means "no uploaded avatar" and must fall through to the parent chat's avatar, not shadow it.
+        // Carried avatars only apply while the policy row is entirely absent, and the parent chat's comes first since the report's can be stale mid-move.
         [
-            "the parent chat's policyAvatar when the report's policyAvatar is an empty string",
-            {reportPolicyAvatar: '', parentChatPolicyAvatar: PARENT_POLICY_AVATAR_URL},
+            "the parent chat's policyAvatar when the policy row is missing",
+            {reportPolicyAvatar: REPORT_POLICY_AVATAR_URL, parentChatPolicyAvatar: PARENT_POLICY_AVATAR_URL},
             PARENT_POLICY_AVATAR_URL,
+        ],
+        ["the report's policyAvatar when the parent chat carries none", {reportPolicyAvatar: REPORT_POLICY_AVATAR_URL}, REPORT_POLICY_AVATAR_URL],
+        // A chat-carried '' means "no uploaded avatar" and must fall through to the report's avatar, not shadow it.
+        [
+            "the report's policyAvatar when the parent chat's policyAvatar is an empty string",
+            {reportPolicyAvatar: REPORT_POLICY_AVATAR_URL, parentChatPolicyAvatar: ''},
+            REPORT_POLICY_AVATAR_URL,
         ],
     ])(
         'should resolve %s as the subscript source',
@@ -214,11 +218,15 @@ describe('ExpenseReportAvatar (connected)', () => {
     );
 
     it.each([
-        ['the policy name', {policy: {name: POLICY_NAME}, report: {policyName: 'Report Policy Name'}}, POLICY_NAME],
-        ["the report's policyName when the policy row is missing", {report: {policyName: 'Report Policy Name', oldPolicyName: 'Old Policy Name'}}, 'Report Policy Name'],
-        ["the report's oldPolicyName when there is no policyName", {report: {oldPolicyName: 'Old Policy Name'}}, 'Old Policy Name'],
-        ["the parent chat's policyName when the report has neither", {parentChat: {policyName: 'Parent Policy Name', oldPolicyName: 'Parent Old Name'}}, 'Parent Policy Name'],
-        ["the parent chat's oldPolicyName as the next fallback", {parentChat: {oldPolicyName: 'Parent Old Name'}}, 'Parent Old Name'],
+        ['the policy name', {policy: {name: POLICY_NAME}, report: {policyName: 'Report Policy Name'}, parentChat: {policyName: 'Parent Policy Name'}}, POLICY_NAME],
+        [
+            "the parent chat's policyName when the policy row is missing",
+            {report: {policyName: 'Report Policy Name'}, parentChat: {policyName: 'Parent Policy Name', oldPolicyName: 'Parent Old Name'}},
+            'Parent Policy Name',
+        ],
+        ["the parent chat's oldPolicyName when it has no policyName", {report: {policyName: 'Report Policy Name'}, parentChat: {oldPolicyName: 'Parent Old Name'}}, 'Parent Old Name'],
+        ["the report's policyName when the parent chat carries neither", {report: {policyName: 'Report Policy Name', oldPolicyName: 'Old Policy Name'}}, 'Report Policy Name'],
+        ["the report's oldPolicyName as the next fallback", {report: {oldPolicyName: 'Old Policy Name'}}, 'Old Policy Name'],
         ['the unavailable-workspace translation when nothing resolves', {}, UNAVAILABLE_WORKSPACE_NAME_KEY],
     ])(
         'should name the workspace icon after %s',

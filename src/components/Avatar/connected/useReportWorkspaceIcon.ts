@@ -27,12 +27,12 @@ function useReportWorkspaceIcon(report: WorkspaceIconReportFields | undefined): 
     const policyID = getNonEmptyStringOnyxID(parentChatPolicyID) ?? getNonEmptyStringOnyxID(reportPolicyID);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {selector: policyAvatarFieldsSelector});
 
-    // '' (no name) falls through to the next fallback
+    // Without a policy row, the chat's carried fields come before the report's, which can hold stale values mid-move. '' (no name) falls through.
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const workspaceName = policy?.name || report?.policyName || report?.oldPolicyName || parentChat?.policyName || parentChat?.oldPolicyName || translate('workspace.common.unavailable');
-    // Report-carried avatars only apply while the policy row is missing entirely. An avatar can be '' (no uploaded avatar), which must fall through
+    const workspaceName = policy?.name || parentChat?.policyName || parentChat?.oldPolicyName || report?.policyName || report?.oldPolicyName || translate('workspace.common.unavailable');
+    // Carried avatars only apply while the policy row is missing entirely. An avatar can be '' (no uploaded avatar), which must fall through
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const avatarURL = policy ? policy.avatarURL : report?.policyAvatar || parentChat?.policyAvatar;
+    const avatarURL = policy ? policy.avatarURL : parentChat?.policyAvatar || report?.policyAvatar;
 
     return {
         id: policyID,
