@@ -42,6 +42,7 @@ jobs:
           sparse-checkout: |
             .github/scripts/verifyPodfilePrebuilt.sh
             .github/scripts/verifyPodfilePrebuiltRemedy.md
+            scripts/shellUtils.sh
           sparse-checkout-cone-mode: false
           path: .github-app-scripts
 

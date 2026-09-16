@@ -8,29 +8,37 @@
 
 set -e
 
+SCRIPT_DIR=$(dirname "${BASH_SOURCE[0]}")
+readonly SCRIPT_DIR
+ROOT_DIR=$(dirname "$(dirname "$SCRIPT_DIR")")
+readonly ROOT_DIR
+source "$ROOT_DIR/scripts/shellUtils.sh"
+
 LOCKFILE="$1"
+readonly LOCKFILE
 
 if [[ -z "$LOCKFILE" ]]; then
-  echo "Usage: $0 <path-to-Podfile.lock>" >&2
+  error "Usage: $0 <path-to-Podfile.lock>"
   exit 2
 fi
 
 if [[ ! -f "$LOCKFILE" ]]; then
-  echo "Error: $LOCKFILE not found" >&2
+  error "$LOCKFILE not found"
   exit 2
 fi
 
 # Pods that exist only when react-native is consumed prebuilt.
-PREBUILT_MARKERS=(React-Core-prebuilt ReactNativeDependencies)
+readonly PREBUILT_MARKERS=(React-Core-prebuilt ReactNativeDependencies)
 
 # Pods that only a source build pulls in (mutually exclusive with the set above).
-SOURCE_MARKERS=(boost DoubleConversion fast_float fmt glog RCT-Folly SocketRocket)
+readonly SOURCE_MARKERS=(boost DoubleConversion fast_float fmt glog RCT-Folly SocketRocket)
 
 # Only PODS: records what actually resolved; DEPENDENCIES: just echoes the Podfile's intent.
 PODS_SECTION=$(awk '/^PODS:/{inSection = 1; next} /^[A-Z]/{inSection = 0} inSection' "$LOCKFILE")
+readonly PODS_SECTION
 
 if [[ -z "$PODS_SECTION" ]]; then
-  echo "Error: $LOCKFILE has no PODS: section, so it is not a lockfile this check can read" >&2
+  error "$LOCKFILE has no PODS: section, so it is not a lockfile this check can read"
   exit 2
 fi
 
@@ -54,28 +62,27 @@ for POD in "${SOURCE_MARKERS[@]}"; do
 done
 
 if [[ ${#MISSING_PREBUILT[@]} -eq 0 && ${#FOUND_SOURCE[@]} -eq 0 ]]; then
-  echo "✓ $LOCKFILE was resolved against the prebuilt react-native artifacts."
+  success "$LOCKFILE was resolved against the prebuilt react-native artifacts."
   exit 0
 fi
 
-echo ""
-echo "❌ $LOCKFILE was resolved against a react-native compiled from source."
+error "$LOCKFILE was resolved against a react-native compiled from source."
 echo ""
 
 if [[ ${#FOUND_SOURCE[@]} -gt 0 ]]; then
-  echo "   Pods that only a source build pulls in:"
+  info "   Pods that only a source build pulls in:"
   printf '     - %s\n' "${FOUND_SOURCE[@]}"
   echo ""
 fi
 
 if [[ ${#MISSING_PREBUILT[@]} -gt 0 ]]; then
-  echo "   Pods that a prebuilt build must contain, but are missing:"
+  info "   Pods that a prebuilt build must contain, but are missing:"
   printf '     - %s\n' "${MISSING_PREBUILT[@]}"
   echo ""
 fi
 
 # Also posted as a PR comment, but a fork's token can't write comments, so this log is the fallback.
-cat "$(dirname "$0")/verifyPodfilePrebuiltRemedy.md"
+cat "$SCRIPT_DIR/verifyPodfilePrebuiltRemedy.md"
 
 echo ""
 exit 1
