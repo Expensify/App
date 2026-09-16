@@ -25,7 +25,7 @@ The NS0023 error occurs when:
 
 Expensify matches employees based on both email address and subsidiary configuration.
 
-If the employee record exists but is deactivated in NetSuite, you will see the NS0995 export error instead.
+When Expensify confirms that the employee is inactive, you will see the NS0995 export error instead.
 
 ---
 
