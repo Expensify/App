@@ -440,8 +440,7 @@ function getIOUReportActionWithBadge(
             continue;
         }
 
-        // Prefer the caller's own report-actions snapshot for the same reason we prefer its `allReports` above.
-        const iouReportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`] ?? getAllReportActions(iouReport.reportID);
+        const iouReportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`];
 
         // An all-held report yields no badge, so it can't win the "oldest action" race and hide a sibling report that
         // still needs action from the current user.

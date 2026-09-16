@@ -4648,7 +4648,9 @@ function getReasonAndReportActionThatRequiresAttention(
         currentUserAccountID,
         reportActions,
         reports,
-        allReportActionsParam,
+        // getIOUReportActionWithBadge reads each child report's actions straight out of this collection, so fall back to
+        // the module cache here rather than letting it reach into Onyx itself.
+        allReportActionsParam ?? allReportActions,
     );
     // Fall back to the chat's outstanding child so the pending-only check still runs when no badge action was found.
     const iouReportID = getIOUReportIDFromReportActionPreview(iouReportActionToApproveOrPay) ?? optionOrReport.iouReportID;
