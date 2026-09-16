@@ -7,6 +7,8 @@ import type {ReactNode} from 'react';
 
 import React from 'react';
 
+import type {RestoreFocus} from './context';
+
 import ConfirmationFieldsContext from './context';
 
 type ProviderProps = {
@@ -76,6 +78,12 @@ type ProviderProps = {
     /** Reports whether the inline tax amount field is currently empty, so submission can be blocked when it is left empty */
     onTaxAmountEmptyChange?: (isEmpty: boolean) => void;
 
+    /** Reports whether the inline amount sign differs from its initial value (new manual expense flow) */
+    onSignDirtyChange?: (isSignDirty: boolean) => void;
+
+    /** Registers the inline field that should regain focus when the discard confirmation is cancelled */
+    onInputFocus?: (restoreFocus: RestoreFocus) => void;
+
     /** Block components rendered inside the Provider */
     children: ReactNode;
 };
@@ -103,6 +111,8 @@ function Provider({
     scrollFocusedInputIntoView,
     onSubmitForm,
     onTaxAmountEmptyChange,
+    onSignDirtyChange,
+    onInputFocus,
     children,
 }: ProviderProps) {
     const value = {
@@ -128,6 +138,8 @@ function Provider({
         scrollFocusedInputIntoView,
         onSubmitForm,
         onTaxAmountEmptyChange,
+        onSignDirtyChange,
+        onInputFocus,
     };
     return <ConfirmationFieldsContext.Provider value={value}>{children}</ConfirmationFieldsContext.Provider>;
 }

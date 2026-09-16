@@ -23,7 +23,16 @@ const LOADER_TEST_ID = 'manualTabPendingReset';
 const AMOUNT_TEST_ID = 'EmbeddedAmount';
 const CURRENT_USER_EMAIL = 'invoice.sender@example.com';
 
+let mockGetHasUnsavedChanges: (() => boolean) | undefined;
+let mockOnSignDirtyChange: ((isSignDirty: boolean) => void) | undefined;
+let mockSuppressEmbeddedDiscardPrompt: (() => void) | undefined;
+let mockOnTabSelected: ((tab: string) => void) | undefined;
+
 jest.mock('@userActions/Tab');
+jest.mock('@hooks/useDiscardChangesConfirmation', () => (options: {getHasUnsavedChanges: () => boolean}) => {
+    mockGetHasUnsavedChanges = options.getHasUnsavedChanges;
+    return {suppressDiscardPrompt: jest.fn()};
+});
 jest.mock('@rnmapbox/maps', () => ({
     default: jest.fn(),
     MarkerView: jest.fn(),
@@ -46,7 +55,10 @@ jest.mock('@libs/Navigation/OnyxTabNavigator', () => {
     const ReactModule = jest.requireActual<typeof React>('react');
     return {
         __esModule: true,
-        default: ({children}: {children: React.ReactNode}) => ReactModule.createElement(ReactModule.Fragment, null, children),
+        default: ({children, onTabSelected}: {children: React.ReactNode; onTabSelected: (tab: string) => void}) => {
+            mockOnTabSelected = onTabSelected;
+            return ReactModule.createElement(ReactModule.Fragment, null, children);
+        },
         TopTab: {
             Screen: ({children}: {children: () => React.ReactNode}) => ReactModule.createElement(ReactModule.Fragment, null, typeof children === 'function' ? children() : children),
         },
@@ -59,7 +71,11 @@ jest.mock('@pages/iou/request/step/IOURequestStepScan', () => () => null);
 jest.mock('@pages/iou/request/step/IOURequestStepConfirmation', () => {
     const ReactModule = jest.requireActual<typeof React>('react');
     const {View} = jest.requireActual<{View: React.ComponentType<{testID: string}>}>('react-native');
-    const ConfirmationStub = () => ReactModule.createElement(View, {testID: 'EmbeddedConfirmation'});
+    const ConfirmationStub = ({onSignDirtyChange, suppressDiscardPrompt}: {onSignDirtyChange?: (isSignDirty: boolean) => void; suppressDiscardPrompt?: () => void}) => {
+        mockOnSignDirtyChange = onSignDirtyChange;
+        mockSuppressEmbeddedDiscardPrompt = suppressDiscardPrompt;
+        return ReactModule.createElement(View, {testID: 'EmbeddedConfirmation'});
+    };
     return {
         __esModule: true,
         // The standalone RHP route, which brings its own ScreenWrapper.
@@ -87,6 +103,10 @@ describe('IOURequestStartPage manual tab content', () => {
     });
 
     afterEach(async () => {
+        mockGetHasUnsavedChanges = undefined;
+        mockOnSignDirtyChange = undefined;
+        mockSuppressEmbeddedDiscardPrompt = undefined;
+        mockOnTabSelected = undefined;
         await act(async () => {
             await Onyx.clear();
         });
@@ -165,6 +185,60 @@ describe('IOURequestStartPage manual tab content', () => {
         // Then the confirmation is mounted and the pending-reset loader is gone
         expect(screen.getByTestId(CONFIRMATION_TEST_ID)).toBeOnTheScreen();
         expect(screen.queryByTestId(LOADER_TEST_ID)).not.toBeOnTheScreen();
+    });
+
+    it('tracks embedded amount and sign changes for the discard guard', async () => {
+        await renderStartPage({iouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL});
+
+        expect(mockGetHasUnsavedChanges?.()).toBe(false);
+
+        act(() => {
+            mockOnSignDirtyChange?.(true);
+        });
+        expect(mockGetHasUnsavedChanges?.()).toBe(true);
+
+        act(() => {
+            mockOnSignDirtyChange?.(false);
+        });
+        expect(mockGetHasUnsavedChanges?.()).toBe(false);
+
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`, {isAmountSet: true});
+        });
+        await waitForBatchedUpdatesWithAct();
+        expect(mockGetHasUnsavedChanges?.()).toBe(true);
+
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`, {isAmountSet: false});
+        });
+        await waitForBatchedUpdatesWithAct();
+        expect(mockGetHasUnsavedChanges?.()).toBe(false);
+    });
+
+    it('clears the embedded discard guard on tab switch and keeps it suppressed during submission', async () => {
+        await renderStartPage({iouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL});
+
+        act(() => {
+            mockOnSignDirtyChange?.(true);
+        });
+        expect(mockGetHasUnsavedChanges?.()).toBe(true);
+
+        act(() => {
+            mockOnTabSelected?.(CONST.TAB_REQUEST.SCAN);
+        });
+        expect(mockGetHasUnsavedChanges?.()).toBe(false);
+
+        act(() => {
+            mockOnSignDirtyChange?.(true);
+            mockSuppressEmbeddedDiscardPrompt?.();
+        });
+        expect(mockGetHasUnsavedChanges?.()).toBe(false);
+
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`, {isAmountSet: true});
+        });
+        await waitForBatchedUpdatesWithAct();
+        expect(mockGetHasUnsavedChanges?.()).toBe(false);
     });
 
     it('lands the tab-less pay flow directly on the embedded confirmation instead of the amount page', async () => {
