@@ -4548,16 +4548,21 @@ function getLastSearchQuery(searchFilters: OnyxEntry<OnyxTypes.SearchFilters>, s
     return typeof searchFilter === 'object' ? searchFilter.query : undefined;
 }
 
-function searchKeyToSavedSearchID(key: SearchKey | undefined) {
+function searchKeyToSavedSearchID(key: string | undefined) {
     return key?.startsWith(CONST.SEARCH.SAVED_SEARCH_PREFIX) ? key.replace(CONST.SEARCH.SAVED_SEARCH_PREFIX, '') : undefined;
 }
 
-function isSearchKey(value: string | undefined): value is SearchKey {
+function isExistingSearchKey(value: string | undefined, suggestedSearchKeys: SearchKey[], savedSearchIDs: string[]): value is SearchKey {
     if (!value) {
         return false;
     }
 
-    return value.startsWith(CONST.SEARCH.SAVED_SEARCH_PREFIX) || Object.values<string>(CONST.SEARCH.SEARCH_KEYS).includes(value);
+    const savedSearchID = searchKeyToSavedSearchID(value);
+    if (savedSearchID) {
+        return savedSearchIDs.includes(savedSearchID);
+    }
+
+    return suggestedSearchKeys.some((searchKey) => searchKey === value);
 }
 
 const DATA_TYPE_TO_SEARCH_KEY: Partial<Record<SearchDataTypes, SearchKey>> = {
@@ -7138,7 +7143,7 @@ export {
     shouldShowYear,
     getOverflowMenu,
     getLastSearchQuery,
-    isSearchKey,
+    isExistingSearchKey,
     savedSearchIDToSearchKey,
     searchKeyToSavedSearchID,
     isCorrectSearchUserName,
