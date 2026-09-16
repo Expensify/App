@@ -64,6 +64,7 @@ function SearchColumnsPage() {
         const queryString = buildQueryStringFromFilterFormValues(updatedAdvancedFilters, {
             sortBy: currentQueryJSON?.sortBy,
             sortOrder: currentQueryJSON?.sortOrder,
+            flatFilters: currentQueryJSON?.flatFilters,
         });
 
         Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: queryString}), {forceReplace: true});
