@@ -58,7 +58,6 @@ export default function useShortMentionsList() {
     const [currentUserLogin = ''] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector});
 
     // The selector output is compared by value, so consumers re-render only when the list changes.
-    // The hook skips the search-snapshot redirect: this list must always read live data.
     const [availableLoginsList = emptyLoginsList] = useAllPersonalDetailsWithoutSnapshots((personalDetails) => buildAvailableLoginsList(personalDetails, currentUserLogin));
 
     // We want to highlight both short and long version of current user login
