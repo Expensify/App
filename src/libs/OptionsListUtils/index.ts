@@ -2238,6 +2238,7 @@ function prepareReportOptionsForDisplay(
         sortedActions,
         transactionThreadIDs,
         lastActions,
+        rules,
         cardList,
         workspaceCardList,
         conciergeReportID,
