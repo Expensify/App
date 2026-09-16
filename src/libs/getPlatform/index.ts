@@ -10,3 +10,5 @@ export default function getPlatform(shouldMobileWebBeDistinctFromWeb = false): P
     }
     return CONST.PLATFORM.WEB;
 }
+
+// Demo only: gives this PR a src change so reassurePerformanceTests.yml is not skipped by paths-ignore.
