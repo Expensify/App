@@ -1,5 +1,5 @@
 diff --git a/node_modules/react-native-screens/ios/tabs/RNSTabBarAppearanceCoordinator.mm b/node_modules/react-native-screens/ios/tabs/RNSTabBarAppearanceCoordinator.mm
-index ae5873c..e277003 100644
+index ae5873c..33e35b1 100644
 --- a/node_modules/react-native-screens/ios/tabs/RNSTabBarAppearanceCoordinator.mm
 +++ b/node_modules/react-native-screens/ios/tabs/RNSTabBarAppearanceCoordinator.mm
 @@ -40,6 +40,29 @@ - (void)updateAppearanceOfTabBar:(nullable UITabBar *)tabBar
@@ -32,3 +32,15 @@ index ae5873c..e277003 100644
  }
  
  - (void)configureTabBarItemForTabScreenController:(nonnull RNSTabsScreenViewController *)tabScreenCtrl
+@@ -50,6 +73,11 @@ - (void)configureTabBarItemForTabScreenController:(nonnull RNSTabsScreenViewCont
+   tabBarItem.standardAppearance = tabScreenCtrl.tabScreenComponentView.standardAppearance;
+   tabBarItem.scrollEdgeAppearance = tabScreenCtrl.tabScreenComponentView.scrollEdgeAppearance;
+ 
++  // The badge color reaches the bar through the same per-item appearance, so on iOS 26 every badge ends up drawn in
++  // the color of whichever tab is selected. Setting it on the item's own badgeColor keeps each tab's color with that
++  // tab: a plain UITabBarItem property, the same kind as the icons below, which the new bar does honor.
++  tabBarItem.badgeColor = tabScreenCtrl.tabScreenComponentView.standardAppearance.stackedLayoutAppearance.normal.badgeBackgroundColor;
++
+   [self setIconsForTabBarItem:tabBarItem
+                fromScreenView:tabScreenCtrl.tabScreenComponentView
+               withImageLoader:imageLoader];
