@@ -63,6 +63,7 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
     const [getAccessiblePoliciesAction] = useOnyx(ONYXKEYS.VALIDATE_USER_AND_GET_ACCESSIBLE_POLICIES);
 
     const joinablePoliciesLoading = getAccessiblePoliciesAction?.loading;
+    const joinablePoliciesErrors = getAccessiblePoliciesAction?.errors;
     const joinablePoliciesLength = Object.keys(joinablePolicies ?? {}).length;
 
     const [onboardingPersonalDetails] = useOnyx(ONYXKEYS.FORMS.ONBOARDING_PERSONAL_DETAILS_FORM);
@@ -246,7 +247,7 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
     );
 
     useEffect(() => {
-        if (!isConciergeTaskFlow || joinablePoliciesLoading !== false || joinablePoliciesLength > 0) {
+        if (!isConciergeTaskFlow || joinablePoliciesLoading !== false || joinablePoliciesErrors || joinablePoliciesLength > 0) {
             return;
         }
 
@@ -256,7 +257,7 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
             createJoinWorkspaceOnboardingContent('empty', companyDomain, session?.email ?? '', conciergeChat);
         }
         returnToOriginReport();
-    }, [conciergeChat, isConciergeTaskFlow, joinablePoliciesLength, joinablePoliciesLoading, returnToOriginReport, session?.email]);
+    }, [conciergeChat, isConciergeTaskFlow, joinablePoliciesErrors, joinablePoliciesLength, joinablePoliciesLoading, returnToOriginReport, session?.email]);
 
     useEffect(() => {
         if (!isConciergeTaskFlow || joinablePoliciesLength === 0 || joinWorkspaceTaskReport || createdJoinWorkspaceTask.current) {
