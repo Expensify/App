@@ -419,8 +419,14 @@ const translations: TranslationDeepObject<typeof en> = {
         subrate: 'Stawka dodatkowa',
         perDiem: 'Dieta',
         validate: 'Zatwierdź',
-        downloadAsPDF: 'Pobierz jako PDF',
-        downloadReceipts: 'Pobierz paragony',
+        downloadReport: () => ({
+            one: 'Pobierz raport',
+            other: 'Pobierz raporty',
+        }),
+        downloadReceipt: () => ({
+            one: 'Pobierz paragon',
+            other: 'Pobierz paragony',
+        }),
         downloadAsCSV: 'Pobierz jako CSV',
         submitViaPDF: 'Prześlij przez PDF',
         print: 'Drukuj',
@@ -1188,6 +1194,10 @@ const translations: TranslationDeepObject<typeof en> = {
         dragAndDropMultiLevelTag: `<muted-link>Przeciągnij i upuść tutaj swój arkusz kalkulacyjny lub wybierz plik poniżej. <a href="${CONST.IMPORT_SPREADSHEET.MULTI_LEVEL_TAGS_ARTICLE_LINK}">Dowiedz się więcej</a> o obsługiwanych formatach plików.</muted-link>`,
         chooseSpreadsheet: '<muted-link>Wybierz plik arkusza kalkulacyjnego do zaimportowania. Obsługiwane formaty: .csv, .txt, .xls i .xlsx.</muted-link>',
         chooseSpreadsheetMultiLevelTag: `<muted-link>Wybierz plik arkusza kalkulacyjnego do zaimportowania. <a href="${CONST.IMPORT_SPREADSHEET.MULTI_LEVEL_TAGS_ARTICLE_LINK}">Dowiedz się więcej</a> o obsługiwanych formatach plików.</muted-link>`,
+        dragAndDropTransactions:
+            '<muted-link>Przeciągnij i upuść tutaj swój arkusz kalkulacyjny lub wyciąg bankowy albo wybierz plik poniżej. Obsługiwane formaty: .csv, .txt, .xls, .xlsx, .ofx i .qfx.</muted-link>',
+        chooseSpreadsheetTransactions:
+            '<muted-link>Wybierz plik arkusza kalkulacyjnego lub wyciągu bankowego do zaimportowania. Obsługiwane formaty: .csv, .txt, .xls, .xlsx, .ofx i .qfx.</muted-link>',
         fileContainsHeader: 'Plik zawiera nagłówki kolumn',
         column: (name: string) => `Kolumna ${name}`,
         fieldNotMapped: (fieldName: string) => `Ups! Wymagane pole („${fieldName}”) nie zostało zmapowane. Sprawdź i spróbuj ponownie.`,
@@ -1261,6 +1271,7 @@ const translations: TranslationDeepObject<typeof en> = {
             many: `Zaimportowano ${count} transakcji.`,
             other: `Zaimportowano ${count} transakcji.`,
         }),
+        importStatementSuccessfulDescription: 'Twój wyciąg bankowy został przesłany.',
         importFailedTitle: 'Import nieudany',
         importFailedDescription: 'Upewnij się, że wszystkie pola zostały poprawnie wypełnione i spróbuj ponownie. Jeśli problem będzie się powtarzał, skontaktuj się z Concierge.',
         importDescription: 'Wybierz, które pola zmapować z arkusza kalkulacyjnego, klikając menu rozwijane obok każdej zaimportowanej kolumny poniżej.',
@@ -1651,6 +1662,10 @@ const translations: TranslationDeepObject<typeof en> = {
             allTransactionsPendingMarkAsDoneDescription: 'Nie możesz oznaczyć tego raportu jako wykonanego, ponieważ wszystkie transakcje są w toku. Zaksięgowanie ich może zająć kilka dni.',
             allExpensesOnHoldDescription: 'Nie możesz przesłać tego raportu, ponieważ wszystkie wydatki są wstrzymane. Usuń wstrzymanie, aby przesłać.',
             allExpensesOnHoldMarkAsDoneDescription: 'Nie możesz oznaczyć tego raportu jako wykonanego, ponieważ wszystkie wydatki są wstrzymane. Usuń wstrzymanie, aby kontynuować.',
+            reportsNotSubmittedTitle: 'Wyślij raporty',
+            reportsNotMarkedAsDoneTitle: 'Oznacz raporty jako gotowe',
+            reportsNotSubmittedDescription: 'Nie udało się wysłać tych raportów. Sprawdź, czy wydatki nie są wstrzymane ani oczekujące, a potem spróbuj ponownie.',
+            reportsNotMarkedAsDoneDescription: 'Nie udało się oznaczyć tych raportów jako zakończone. Sprawdź, czy wydatki nie są wstrzymane ani oczekujące, a następnie spróbuj ponownie.',
             stitchOdometerImagesFailed: 'Nie udało się połączyć zdjęć licznika kilometrów. Spróbuj ponownie później.',
             failedToSaveOdometerDraft: 'Nie udało się zapisać Twojego szkicu licznika przebiegu. Spróbuj ponownie.',
         },
@@ -5179,6 +5194,9 @@ ${amount} dla ${merchant} - ${date}`,
                 xeroInvoiceCollectionAccount: 'Konto rozliczeniowe faktur Xero',
                 xeroBillPaymentAccountDescription: 'Wybierz, z jakiego konta opłacać rachunki, a my utworzymy płatność w Xero.',
                 invoiceAccountSelectorDescription: 'Wybierz, gdzie chcesz otrzymywać płatności za faktury, a my utworzymy płatność w Xero.',
+                xeroFxExpenseAccount: 'Konto opłat za przewalutowanie Xero',
+                fxExpenseAccountDescription:
+                    'Gdy twoja firma pokrywa koszt przewalutowania przy płatności dokonanej za granicą, zaksięgujemy ten koszt na tym koncie w Xero jako transakcję „wydanie pieniędzy”.',
             },
             exportDate: {
                 label: 'Data rachunku zakupu',
@@ -5547,6 +5565,9 @@ ${amount} dla ${merchant} - ${date}`,
                 error: {
                     customFormID: 'Wprowadź prawidłowy numeryczny identyfikator niestandardowego formularza',
                 },
+                fxExpenseAccount: 'Konto opłat za przewalutowanie',
+                fxExpenseAccountDescription:
+                    'Gdy twoja firma pokrywa koszt przewalutowania przy zwrocie kosztów wypłacanym za granicą, zaksięgujemy ten koszt na poniższym koncie NetSuite jako zapis w dzienniku.',
             },
             noAccountsFound: 'Nie znaleziono kont',
             noAccountsFoundDescription: 'Dodaj konto w NetSuite i ponownie zsynchronizuj połączenie',
@@ -6624,6 +6645,7 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                 disabledTitle: 'Nie tak szybko...',
                 disabledMessage: 'Aby włączyć lub wyłączyć tę funkcję, musisz zmienić ustawienia importu księgowego.',
             },
+            recruitingWarningModal: {disconnectText: ({integration}: {integration: string}) => `Aby wyłączyć Rekrutację, najpierw odłącz ${integration} od tego workspace.`},
         },
         reports: {
             reportsCustomTitleExamples: 'Przykłady:',
@@ -7900,6 +7922,12 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>Automatyczna aktualizacja stawek rządowych jest dostępna tylko w planie Control, od <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `za użytkownika miesięcznie.` : `na aktywnego członka za miesiąc.`}</muted-text>`,
             },
+            [CONST.UPGRADE_FEATURE_INTRO_MAPPING.recruiting.id]: {
+                title: 'Wiele poziomów zatwierdzania',
+                description: 'Wiele poziomów akceptacji to narzędzie workflow dla firm, które wymagają, aby więcej niż jedna osoba zatwierdziła raport, zanim zostanie on rozliczony.',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Wiele poziomów zatwierdzania jest dostępnych tylko w planie Control, zaczynając od <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `za użytkownika miesięcznie.` : `za aktywnego członka miesięcznie.`}</muted-text>`,
+            },
         },
         downgrade: {
             commonFeatures: {
@@ -8590,6 +8618,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             importSettings: 'Ustawienia importu',
             defaultApprover: 'Domyślny zatwierdzający',
             approverFields: {recruiter: 'Rekruter', recruitingCoordinator: 'Koordynator rekrutacji'},
+            subtitle: 'Połącz narzędzia rekrutacyjne i utrzymuj zgody kandydatów w synchronizacji.',
         },
         merge: {
             connections: 'Połączenia',
@@ -9105,7 +9134,9 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
         addedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `dodano „${prohibitedExpense}” do zabronionych wydatków`,
         removedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `usunięto „${prohibitedExpense}” z wydatków zabronionych`,
         commuterExclusions: {
-            changedToFixedDistance: 'zmieniono wykluczanie dojazdów na stałą odległość na zgłoszenie',
+            changedToFixedDistance: ({previousMethod}: {previousMethod: string}) => `zmienił(-a) wykluczanie dojazdów na stałą odległość na zgłoszenie (wcześniej ${previousMethod})`,
+            changedToHomeAndOffice: ({previousMethod}: {previousMethod: string}) => `zmienił(-a) wykluczanie dojazdów na obliczanie według domu i biura (wcześniej ${previousMethod})`,
+            previousMethod: {disabled: 'nie wykluczaj dojazdów', fixedDistance: 'stała odległość na zgłoszenie', homeAndOffice: 'dom i biuro'},
             setFixedDistance: ({formattedDistance}: {formattedDistance: string}) => `ustaw stałe wyłączenie dystansu na ${formattedDistance} na zgłoszenie`,
             changedFixedDistance: ({formattedOldDistance, formattedNewDistance}: {formattedOldDistance: string; formattedNewDistance: string}) =>
                 `zmieniono stałe wykluczenie odległości na ${formattedNewDistance} na zgłoszenie (wcześniej ${formattedOldDistance})`,
@@ -10948,6 +10979,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
         mileageRateAutoUpdated: '<tooltip>Zaktualizowaliśmy stawkę na podstawie daty twojej podróży.</tooltip>',
         markAllAsRead: '<tooltip>Kliknij prawym przyciskiem myszy, aby <strong>oznaczyć wszystko jako przeczytane</strong>.</tooltip>',
         markAllAsReadTouchScreen: '<tooltip>Przytrzymaj, aby <strong>oznaczyć wszystko jako przeczytane</strong>.</tooltip>',
+        accountMovedToTopBar: '<tooltip>Uzyskaj dostęp do swojego konta i ustawień osobistych.</tooltip>',
     },
     discardChangesConfirmation: {
         title: 'Odrzucić zmiany?',
@@ -11025,6 +11057,7 @@ Oto *paragon testowy*, żeby pokazać Ci, jak to działa:`,
         readyPartialBody: ({count, total}: {count: number; total: number}) =>
             `${count} of ${total} reports exported. If it didn't automatically download, use the button below. See which reports failed in <concierge-link>Concierge</concierge-link>.`,
         close: 'Close',
+        truncatedBody: 'Uwaga! Ten eksport był zbyt duży i został ograniczony do pierwszych 50 000 raportów pasujących do twojego wyszukiwania.',
     },
     domain: {
         notVerified: 'Niezweryfikowane',

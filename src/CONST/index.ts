@@ -423,6 +423,11 @@ const CONST = {
     // Allowed extensions for text files that are used as spreadsheets
     TEXT_SPREADSHEET_EXTENSIONS: ['txt', 'csv'],
 
+    // Bank statement extensions, parsed by the backend instead of the spreadsheet library
+    OFX_STATEMENT_EXTENSIONS: ['ofx', 'qfx'],
+
+    DEFAULT_IMPORTED_CARD_NAME: 'Imported Card',
+
     // This is limit set on servers, do not update without wider internal discussion
     API_TRANSACTION_CATEGORY_MAX_LENGTH: 255,
 
@@ -3177,6 +3182,7 @@ const CONST = {
         ENABLED: 'enabled',
         REIMBURSEMENT_ACCOUNT_ID: 'reimbursementAccountID',
         INVOICE_COLLECTIONS_ACCOUNT_ID: 'invoiceCollectionsAccountID',
+        FX_EXPENSE_ACCOUNT: 'fxExpenseAccount',
         SYNC_REIMBURSED_REPORTS: 'syncReimbursedReports',
         ENABLE_NEW_CATEGORIES: 'enableNewCategories',
         EXPORTER: 'exporter',
@@ -3448,6 +3454,7 @@ const CONST = {
         COLLECTION_ACCOUNT: 'collectionAccount',
         AUTO_CREATE_ENTITIES: 'autoCreateEntities',
         APPROVAL_ACCOUNT: 'approvalAccount',
+        FX_EXPENSE_ACCOUNT: 'fxExpenseAccount',
         CUSTOM_FORM_ID_OPTIONS: 'customFormIDOptions',
         TOKEN_INPUT: {
             STEP_INDEX_LIST: ['1', '2', '3', '4'],
@@ -4997,6 +5004,7 @@ const CONST = {
         XX_SMALL: 'xx-small',
         X_SMALL: 'x-small',
         SMALL: 'small',
+        MID_SMALL: 'mid-small',
         // The default avatar size, mapping to the medium avatar dimensions (variables.avatarSizeMedium)
         DEFAULT: 'medium',
         LARGE: 'large',
@@ -8371,6 +8379,15 @@ const CONST = {
                 icon: 'Members',
                 requiredPlan: this.POLICY.TYPE.CORPORATE,
             },
+            recruiting: {
+                id: 'recruiting' as const,
+                alias: 'recruiting',
+                name: 'Recruiting',
+                title: 'workspace.upgrade.recruiting.title' as const,
+                description: 'workspace.upgrade.recruiting.description' as const,
+                icon: 'NewUser',
+                requiredPlan: this.POLICY.TYPE.CORPORATE,
+            },
             travel: {
                 id: 'travel' as const,
                 alias: 'travel',
@@ -8758,6 +8775,7 @@ const CONST = {
         HAS_FILTER_NEGATION: 'hasFilterNegation',
         MILEAGE_RATE_AUTO_UPDATED: 'mileageRateAutoUpdated',
         MARK_ALL_AS_READ: 'markAllAsRead',
+        ACCOUNT_MOVED_TO_TOP_BAR: 'accountMovedToTopBar',
         REQUIRE_FIELDS_RULE_RECEIPT_COUPLING_TOOLTIP: 'requireFieldsRuleReceiptCouplingTooltip',
         REQUIRE_FIELDS_RULE_ITEMIZED_RECEIPT_COUPLING_TOOLTIP: 'requireFieldsRuleItemizedReceiptCouplingTooltip',
     },
@@ -9007,6 +9025,7 @@ const CONST = {
         },
         TOP_BAR: {
             CANCEL_BUTTON: 'TopBar-CancelButton',
+            ACCOUNT_BUTTON: 'TopBar-AccountButton',
         },
         COLLAPSIBLE_SECTION: {
             TOGGLE: 'CollapsibleSection-Toggle',
@@ -9448,6 +9467,7 @@ const CONST = {
                 REPORTS: 'WorkspaceInitial-Reports',
                 ACCOUNTING: 'WorkspaceInitial-Accounting',
                 HR: 'WorkspaceInitial-HR',
+                RECRUITING: 'WorkspaceInitial-Recruiting',
                 RECEIPT_PARTNERS: 'WorkspaceInitial-ReceiptPartners',
                 CATEGORIES: 'WorkspaceInitial-Categories',
                 TAGS: 'WorkspaceInitial-Tags',
