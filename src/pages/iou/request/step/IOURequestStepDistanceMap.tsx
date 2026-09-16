@@ -93,9 +93,6 @@ function IOURequestStepDistanceMap({
         currentUserPersonalDetails.accountID,
     );
     const shouldAutoReportToDefaultWorkspace = shouldUseDefaultExpensePolicy && (!!defaultExpensePolicy?.autoReporting || !!personalPolicy?.autoReporting);
-    // Scope the commuter-exclusion check to where the expense is actually going, the same way the Manual and
-    // Odometer tabs do. `policy` here can be the member's active workspace even for a Self-DM track expense, and
-    // personal expenses are exempt from a workspace's commuter rule.
     const blockDistanceRequestIfNeeded = useBlockDistanceRequest({
         policyID: report?.policyID ?? (shouldAutoReportToDefaultWorkspace ? defaultExpensePolicy?.id : undefined),
         isDistanceRequest: true,
