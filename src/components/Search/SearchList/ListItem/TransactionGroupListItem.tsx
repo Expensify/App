@@ -21,6 +21,7 @@ import type {TransactionPreviewData} from '@libs/actions/Search';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import type {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
 import {getLoginByAccountID} from '@libs/PersonalDetailsUtils';
+import {isTransactionDayGroupListItemType} from '@libs/SearchUIUtils';
 import {getVisibleTransactionViolations, isTransactionPendingDelete} from '@libs/TransactionUtils';
 
 import variables from '@styles/variables';
@@ -41,7 +42,6 @@ import {useOnyx as useOnyxWithoutSnapshots} from 'react-native-onyx';
 import type {
     TransactionCardGroupListItemType,
     TransactionCategoryGroupListItemType,
-    TransactionDayGroupListItemType,
     TransactionGroupListItemProps,
     TransactionGroupListItemType,
     TransactionListItemType,
@@ -71,10 +71,6 @@ import useLiveRowCapabilities from './useLiveRowCapabilities';
 import WeekListItemHeader from './WeekListItemHeader';
 import WithdrawalIDListItemHeader from './WithdrawalIDListItemHeader';
 import YearListItemHeader from './YearListItemHeader';
-
-function isTransactionDayGroupListItemType(item: TransactionGroupListItemType): item is TransactionDayGroupListItemType {
-    return 'groupedBy' in item && item.groupedBy === CONST.SEARCH.GROUP_BY.DAY;
-}
 
 /**
  * Non-generic implementation so OXC's React Compiler can memoize the component.
