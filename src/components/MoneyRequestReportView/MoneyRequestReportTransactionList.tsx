@@ -42,7 +42,6 @@ import {groupTransactionsByCategory, groupTransactionsByTag} from '@libs/ReportL
 import {
     canAddTransaction,
     getActionErrorsByTransaction,
-    getAddExpenseDropdownOptions,
     getBillableAndTaxTotal,
     getMoneyRequestSpendBreakdown,
     getReportOfflinePendingActionAndErrors,
@@ -64,6 +63,8 @@ import isReportOpenInSuperWideRHP from '@navigation/helpers/isReportOpenInSuperW
 import Navigation from '@navigation/Navigation';
 
 import variables from '@styles/variables';
+
+import {getAddExpenseDropdownOptions} from '@userActions/IOU/StartExpenseFlows';
 
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -212,7 +213,7 @@ type MoneyRequestReportTransactionListProps = {
     accessibilityLabel: string;
 
     /** FlashList onLayout callback (distinct from the empty-state `onLayout` above). */
-    onListLayout: () => void;
+    onListLayout: (event: LayoutChangeEvent) => void;
 
     /** FlashList onScroll callback. */
     onScroll: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
@@ -221,7 +222,7 @@ type MoneyRequestReportTransactionListProps = {
     onScrollBeginDrag: () => void;
 
     /** FlashList onContentSizeChange callback. */
-    onContentSizeChange: () => void;
+    onContentSizeChange: (width: number, height: number) => void;
 
     /** FlashList onViewableItemsChanged callback. */
     onViewableItemsChanged: (info: {viewableItems: ViewToken[]; changed: ViewToken[]}) => void;

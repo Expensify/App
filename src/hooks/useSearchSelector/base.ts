@@ -7,7 +7,7 @@ import useDebouncedState from '@hooks/useDebouncedState';
 import useFilteredOptions from '@hooks/useFilteredOptions';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import useSortedActions from '@hooks/useSortedActions';
+import useSortedReportActionsData from '@hooks/useSortedReportActionsData';
 
 import type {GetOptionsConfig, Option, OptionList, Options, SearchOption} from '@libs/OptionsListUtils';
 import {getEmptyOptions, getSearchOptions, getSearchValueForPhoneOrEmail, getValidOptions} from '@libs/OptionsListUtils';
@@ -198,7 +198,8 @@ function useSearchSelectorBase({
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT);
     const [visibleReportActionsData] = useOnyx(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS);
-    const sortedActions = useSortedActions();
+    const sortedReportActionsData = useSortedReportActionsData();
+    const sortedActions = sortedReportActionsData?.sortedActions;
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserAccountID = currentUserPersonalDetails.accountID;
     const currentUserEmail = currentUserPersonalDetails.email ?? '';
@@ -427,18 +428,23 @@ function useSearchSelectorBase({
     // Two independent pagination cursors are checked here on purpose:
     // - hasMore/maxResults track how many relevance-sorted options are rendered.
     // - hasMoreReports/loadMoreReports track the raw Onyx report pool size by useFilteredOptions
-    const onListEndReached = useDebounce(() => {
-        if (!areOptionsInitialized) {
-            return;
-        }
+    const onListEndReached = useDebounce(
+        () => {
+            if (!areOptionsInitialized) {
+                return;
+            }
 
-        if (hasMore) {
-            setMaxResults((previous) => previous + maxResultsPerPage);
-        }
-        if (hasMoreReports) {
-            loadMoreReports();
-        }
-    }, CONST.TIMING.SEARCH_OPTION_LIST_DEBOUNCE_TIME);
+            if (hasMore) {
+                setMaxResults((previous) => previous + maxResultsPerPage);
+            }
+            if (hasMoreReports) {
+                loadMoreReports();
+            }
+        },
+        CONST.TIMING.SEARCH_OPTION_LIST_DEBOUNCE_TIME,
+        // maxWait keeps pages arriving while the scrolling continues.
+        {maxWait: CONST.TIMING.SEARCH_OPTION_LIST_DEBOUNCE_TIME},
+    );
 
     const isOptionSelected = (option: OptionData) => selectedOptions.some((selected) => doOptionsMatch(selected, option));
 
