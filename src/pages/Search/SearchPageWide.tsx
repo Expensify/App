@@ -43,6 +43,9 @@ type SearchPageWideProps = {
     contentQueryJSON?: SearchQueryJSON;
     contentSearchResults: OnyxEntry<SearchResults>;
 
+    /** True while the area holds a resolved query's results under a newer one that is still loading. */
+    isContentStale: boolean;
+
     isMobileSelectionModeEnabled: boolean;
     handleSearchAction: (value: SearchParams | string) => void;
     onSortPressedCallback: () => void;
@@ -58,6 +61,7 @@ function SearchPageWide({
     searchResults,
     contentQueryJSON,
     contentSearchResults,
+    isContentStale,
     isMobileSelectionModeEnabled,
     handleSearchAction,
     onSortPressedCallback,
@@ -142,11 +146,14 @@ function SearchPageWide({
                                     {/* skipEntering keeps the delayed fade off the very first mount, so opening Search cold paints immediately. */}
                                     <LayoutAnimationConfig skipEntering>
                                         {/* Keyed on the resolved query, so this only remounts once the new results arrive. Absolutely
-                                            filled so it never shares the parent's column layout with the layer it replaces. */}
+                                            filled so it never shares the parent's column layout with the layer it replaces.
+                                            Held rows read the newer query's hash and snapshot from the Search contexts, so their
+                                            actions would target the wrong search — inert until the results they belong to are current. */}
                                         <Animated.View
                                             key={contentQueryJSON.hash}
                                             entering={FadeIn.duration(CONST.SEARCH.ANIMATION.FADE_DURATION)}
                                             style={StyleSheet.absoluteFill}
+                                            pointerEvents={isContentStale ? 'none' : undefined}
                                         >
                                             {shouldShowLoadingSkeleton ? (
                                                 <SearchLoadingSkeleton />

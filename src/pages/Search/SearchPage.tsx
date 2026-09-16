@@ -21,6 +21,7 @@ import {searchInServer} from '@libs/actions/Report';
 import {clearFooterConversion, search} from '@libs/actions/Search';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
+import type {SearchKey} from '@libs/SearchUIUtils';
 import {isSearchDataLoaded} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
@@ -78,9 +79,11 @@ function SearchPage({route}: SearchPageProps) {
     const [isSorting, setIsSorting] = useState(false);
 
     // Sorting keeps the previous results on screen while the re-sorted ones load, so changing the search has to cancel
-    // it or those rows render under the new query. Adjusted during rendering because searchResults consumes it below.
-    const previousQueryHash = usePrevious(currentSearchQueryJSON?.hash);
-    if (isSorting && previousQueryHash !== currentSearchQueryJSON?.hash) {
+    // it or those rows render under the new query. Compared on recentSearchHash, which ignores sortBy and sortOrder:
+    // sorting navigates to a new query of its own, and the primary hash would cancel the hold it just started.
+    // Adjusted during rendering because searchResults consumes it below.
+    const previousRecentSearchHash = usePrevious(currentSearchQueryJSON?.recentSearchHash);
+    if (isSorting && previousRecentSearchHash !== currentSearchQueryJSON?.recentSearchHash) {
         setIsSorting(false);
     }
 
@@ -121,13 +124,13 @@ function SearchPage({route}: SearchPageProps) {
         setIsSorting(false);
     }, [currentSearchResults?.isLoading, isSorting, prevIsLoading]);
 
-    const [lastResolvedSearch, setLastResolvedSearch] = useState<{queryJSON: SearchQueryJSON; searchResults: SearchResults} | undefined>(undefined);
+    const [lastResolvedSearch, setLastResolvedSearch] = useState<{queryJSON: SearchQueryJSON; searchResults: SearchResults; searchKey: SearchKey | undefined} | undefined>(undefined);
 
     // Keying the results area on the requested query would mount it with no data, since a filter builds a query that
     // has never been cached. isCurrentSearchResolved, not a hash comparison: a response folds sort defaults into its own hash.
     const isSearchResolvedForCurrentQuery = isCurrentSearchResolved && !!searchResults && !!currentSearchQueryJSON;
     if (isSearchResolvedForCurrentQuery && currentSearchQueryJSON && searchResults && lastResolvedSearch?.searchResults !== searchResults) {
-        setLastResolvedSearch({queryJSON: currentSearchQueryJSON, searchResults});
+        setLastResolvedSearch({queryJSON: currentSearchQueryJSON, searchResults, searchKey: currentSearchKey});
     }
 
     // A slow query would otherwise hold the previous results up indefinitely, and the wide layout has no loading bar.
@@ -153,9 +156,11 @@ function SearchPage({route}: SearchPageProps) {
     const hasStaleHoldTimedOut = staleHoldTimedOutHash !== undefined && staleHoldTimedOutHash === currentQueryHash;
 
     // A sidebar item or saved search asks for a different search, so its results area starts from the skeleton rather
-    // than showing rows from the query the user just left. Sidebar items are the suggested searches, so they resolve a
-    // currentSearchKey; saved searches carry a name. A filter refinement matches neither.
-    const isDifferentSearch = !!currentSearchKey || !!route.params.name;
+    // than showing rows from the query the user just left. The search key names the suggested search or saved search a
+    // query belongs to, so refining the held search keeps its key while jumping elsewhere changes it. Compared against
+    // the held search rather than the previous render, which would match again after one render and resume the hold
+    // mid-load.
+    const isDifferentSearch = !!lastResolvedSearch && lastResolvedSearch.searchKey !== currentSearchKey;
     const shouldHoldLastResolvedSearch = !isSearchResolvedForCurrentQuery && !!lastResolvedSearch && !hasStaleHoldTimedOut && !isDifferentSearch;
     const contentQueryJSON = shouldHoldLastResolvedSearch ? lastResolvedSearch.queryJSON : currentSearchQueryJSON;
     const contentSearchResults = shouldHoldLastResolvedSearch ? lastResolvedSearch.searchResults : searchResults;
@@ -194,6 +199,7 @@ function SearchPage({route}: SearchPageProps) {
                             searchResults={searchResults}
                             contentQueryJSON={contentQueryJSON}
                             contentSearchResults={contentSearchResults}
+                            isContentStale={shouldHoldLastResolvedSearch}
                             isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
                             onSortPressedCallback={onSortPressedCallback}
                             searchOverlayContent={searchOverlayContent}
@@ -207,6 +213,7 @@ function SearchPage({route}: SearchPageProps) {
                             searchResults={searchResults}
                             contentQueryJSON={contentQueryJSON}
                             contentSearchResults={contentSearchResults}
+                            isContentStale={shouldHoldLastResolvedSearch}
                             isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
                             handleSearchAction={handleSearchAction}
                             onSortPressedCallback={onSortPressedCallback}

@@ -60,6 +60,9 @@ type SearchPageNarrowProps = {
     contentQueryJSON?: SearchQueryJSON;
     contentSearchResults: SearchResults | undefined;
 
+    /** True while the area holds a resolved query's results under a newer one that is still loading. */
+    isContentStale: boolean;
+
     isMobileSelectionModeEnabled: boolean;
     onSortPressedCallback: () => void;
     /** Overlay rendered above Search content during expense-creation flows (SearchStaticList or null). */
@@ -79,6 +82,7 @@ function SearchPageNarrow({
     searchResults,
     contentQueryJSON,
     contentSearchResults,
+    isContentStale,
     isMobileSelectionModeEnabled,
     onSortPressedCallback,
     searchOverlayContent,
@@ -325,18 +329,23 @@ function SearchPageNarrow({
                             {useStaticRendering && (
                                 <>
                                     {isInteractive && (
-                                        <Search
-                                            searchResults={contentSearchResults}
-                                            queryJSON={contentQueryJSON}
-                                            key={contentQueryJSON.hash}
-                                            contentContainerStyle={contentContainerStyle}
-                                            handleSearch={handleSearchAction}
-                                            isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
-                                            onSearchListScroll={scrollHandler}
-                                            onDestinationVisible={endSubmitNavigationSpans}
-                                            onContentReady={onSearchContentReady}
-                                            hasFilterBars={hasFilterBars}
-                                        />
+                                        <View
+                                            style={styles.flex1}
+                                            pointerEvents={isContentStale ? 'none' : undefined}
+                                        >
+                                            <Search
+                                                searchResults={contentSearchResults}
+                                                queryJSON={contentQueryJSON}
+                                                key={contentQueryJSON.hash}
+                                                contentContainerStyle={contentContainerStyle}
+                                                handleSearch={handleSearchAction}
+                                                isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
+                                                onSearchListScroll={scrollHandler}
+                                                onDestinationVisible={endSubmitNavigationSpans}
+                                                onContentReady={onSearchContentReady}
+                                                hasFilterBars={hasFilterBars}
+                                            />
+                                        </View>
                                     )}
                                     {shouldRenderLayoutProbe && <View onLayout={onSearchLayout} />}
                                     {!!searchOverlayContent && (
@@ -354,11 +363,14 @@ function SearchPageNarrow({
                                     {/* skipEntering keeps the delayed fade off the very first mount, so opening Search cold paints immediately. */}
                                     <LayoutAnimationConfig skipEntering>
                                         {/* Keyed on the resolved query, so this only remounts once the new results arrive. Absolutely
-                                            filled so it never shares the parent's column layout with the layer it replaces. */}
+                                            filled so it never shares the parent's column layout with the layer it replaces.
+                                            Held rows read the newer query's hash and snapshot from the Search contexts, so their
+                                            actions would target the wrong search — inert until the results they belong to are current. */}
                                         <Animated.View
                                             key={contentQueryJSON.hash}
                                             entering={FadeIn.duration(CONST.SEARCH.ANIMATION.FADE_DURATION)}
                                             style={StyleSheet.absoluteFill}
+                                            pointerEvents={isContentStale ? 'none' : undefined}
                                         >
                                             {shouldShowLoadingSkeleton ? (
                                                 <SearchLoadingSkeleton containerStyle={styles.searchListContentContainerStyles(hasFilterBars)} />
