@@ -1,6 +1,5 @@
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import buildConfirmAction from '@components/MoneyRequestConfirmationList/confirmAction';
-import ConfirmationFooterContent from '@components/MoneyRequestConfirmationList/ConfirmationFooterContent';
 import type {ReceiptOptions} from '@components/MoneyRequestConfirmationListFooter/fieldGroupTypes';
 import type {MeasurableInput, SelectionListWithSectionsHandle} from '@components/SelectionList/SelectionListWithSections/types';
 
@@ -29,18 +28,16 @@ import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {useIsFocused} from '@react-navigation/native';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 
 import type useDistanceRequestState from './useDistanceRequestState';
 
 import useConfirmationAmount from './useConfirmationAmount';
-import useConfirmationCtaText from './useConfirmationCtaText';
 import useConfirmationSections from './useConfirmationSections';
 import useConfirmationValidation from './useConfirmationValidation';
 import useFormErrorManagement from './useFormErrorManagement';
 import usePolicyCategoriesForConfirmation from './usePolicyCategoriesForConfirmation';
 import usePolicyTagsForConfirmation from './usePolicyTagsForConfirmation';
-import useReceiptTraining from './useReceiptTraining';
 import useSplitParticipants from './useSplitParticipants';
 import useTransactionReportForConfirmation from './useTransactionReportForConfirmation';
 
@@ -80,9 +77,8 @@ type UseConfirmationListDataParams = {
     expensesNumber?: number;
 
     /**
-     * Everything the receipt section renders from. This hook reads only `receiptPath` (the CTA label, and only
-     * for a request that is not per diem and has no pending route) and `isLoadingReceipt` (the confirm button
-     * waits on an odometer receipt still being stitched); the rest is the footer's.
+     * Everything the receipt section renders from. Passed through untouched; the confirm footer reads
+     * `receiptPath` (for the CTA label) and `isLoadingReceipt` (the button waits on a receipt still being stitched).
      */
     receiptOptions?: ReceiptOptions;
 
@@ -175,8 +171,6 @@ function useConfirmationListData({
         prevCurrency,
     }: Partial<ConfirmationDistanceState> = distanceState ?? {};
 
-    const {receiptPath = '', isLoadingReceipt = false} = receiptOptions ?? {};
-
     const policyCategories = usePolicyCategoriesForConfirmation(policyID);
     const {policyTags, policyTagLists} = usePolicyTagsForConfirmation(policyID);
     const transactionReport = useTransactionReportForConfirmation(transaction?.reportID);
@@ -186,9 +180,8 @@ function useConfirmationListData({
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
     const {translate} = useLocalize();
 
-    const {isTestReceipt, shouldShowProductTrainingTooltip, renderProductTrainingTooltip} = useReceiptTraining({
-        transaction,
-    });
+    // The Test Drive tooltip itself lives in `ConfirmationFooterContent`, which mounts `useReceiptTraining`.
+    const isTestReceipt = transaction?.receipt?.isTestReceipt ?? false;
 
     const isTrackExpense = iouType === CONST.IOU.TYPE.TRACK;
     const {policy} = usePolicyForTransaction({
@@ -215,7 +208,6 @@ function useConfirmationListData({
     const iouCategory = getCategory(transaction);
     const iouAttendees = useAttendees(transaction);
 
-    const isTypeRequest = iouType === CONST.IOU.TYPE.SUBMIT;
     const isTypeSend = iouType === CONST.IOU.TYPE.PAY;
     const isTypeInvoice = iouType === CONST.IOU.TYPE.INVOICE;
     const isFromGlobalCreateAndCanEditParticipant = !!transaction?.isFromGlobalCreate && !isPerDiemRequest && !isTimeRequest;
@@ -310,20 +302,6 @@ function useConfirmationListData({
         // eslint-disable-next-line react-hooks/set-state-in-effect
         setDidConfirm(isConfirmed);
     }, [isConfirmed]);
-
-    const splitOrRequestOptions = useConfirmationCtaText({
-        expensesNumber,
-        isTypeInvoice,
-        isTypeSplit,
-        isTypeRequest,
-        iouAmount,
-        iouType,
-        policy,
-        formattedAmount,
-        receiptPath,
-        isDistanceRequestWithPendingRoute,
-        isPerDiemRequest,
-    });
 
     const selectedParticipants = selectedParticipantsProp.filter((participant) => participant.selected);
     const payeePersonalDetails = payeePersonalDetailsProp ?? currentUserPersonalDetails;
@@ -442,32 +420,12 @@ function useConfirmationListData({
         onSendMoney,
     });
 
-    const footerContent = isReadOnly ? undefined : (
-        <ConfirmationFooterContent
-            iouType={iouType}
-            confirm={confirm}
-            iouCurrencyCode={iouCurrencyCode}
-            policyID={policyID}
-            reportID={reportID}
-            isConfirmed={isConfirmed}
-            isConfirming={isConfirming}
-            isLoadingReceipt={isLoadingReceipt}
-            splitOrRequestOptions={splitOrRequestOptions}
-            errorMessage={errorMessage}
-            expensesNumber={expensesNumber}
-            showRemoveExpenseConfirmModal={showRemoveExpenseConfirmModal}
-            shouldShowProductTrainingTooltip={shouldShowProductTrainingTooltip}
-            renderProductTrainingTooltip={renderProductTrainingTooltip}
-        />
-    );
-
     return {
         /** Handed straight to `ConfirmationListLayout`. Only `listFooterContent` differs per expense type. */
         layoutProps: {
             transactionID,
             sections,
             listRef,
-            footerContent,
             onSelectRow: navigateToParticipantPage,
             onDismissError: dismissParticipantRowError,
         },
@@ -524,6 +482,20 @@ function useConfirmationListData({
         setFormError,
         clearFormErrors,
         setIsTaxAmountEmpty,
+
+        // Read from context by `ConfirmationFooterContent`, which owns the CTA label and the Test Drive tooltip
+        confirm,
+        formattedAmount,
+        iouType,
+        reportID,
+        receiptOptions,
+        isConfirmed,
+        isConfirming,
+        errorMessage,
+        expensesNumber,
+        showRemoveExpenseConfirmModal,
+        isPerDiemRequest,
+        isDistanceRequestWithPendingRoute,
     };
 }
 

@@ -5,12 +5,14 @@ import type {Section, SelectionListWithSectionsHandle} from '@components/Selecti
 import {MouseProvider} from '@hooks/useMouseContext';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import type {ReactNode, RefObject} from 'react';
+import type {RefObject} from 'react';
 
 import React from 'react';
 
 import type {MoneyRequestConfirmationListItem} from './types';
 
+import {useConfirmationData} from './ConfirmationDataContext';
+import ConfirmationFooterContent from './ConfirmationFooterContent';
 import ConfirmationTelemetry from './ConfirmationTelemetry';
 
 type ConfirmationListLayoutProps = {
@@ -22,9 +24,6 @@ type ConfirmationListLayoutProps = {
 
     /** Lets the surface scroll an inline footer field into view when it is focused */
     listRef: RefObject<SelectionListWithSectionsHandle | null>;
-
-    /** The confirm button and its error message. Omitted when the surface is read-only. */
-    footerContent: ReactNode;
 
     /** The expense fields for the type being confirmed */
     listFooterContent: React.JSX.Element | null | undefined;
@@ -43,8 +42,13 @@ type ConfirmationListLayoutProps = {
  * The chrome every confirmation shares: the participant list, the fields below it, and the confirm button. What
  * differs per expense type is passed in as `listFooterContent`.
  */
-function ConfirmationListLayout({transactionID, sections, listRef, footerContent, listFooterContent, isCompactMode = false, onSelectRow, onDismissError}: ConfirmationListLayoutProps) {
+function ConfirmationListLayout({transactionID, sections, listRef, listFooterContent, isCompactMode = false, onSelectRow, onDismissError}: ConfirmationListLayoutProps) {
     const styles = useThemeStyles();
+    const {isReadOnly} = useConfirmationData();
+
+    // The list drops its bottom safe-area padding only when there is no footer, so the read-only case must pass
+    // `undefined` rather than a footer that renders nothing.
+    const footerContent = isReadOnly ? undefined : <ConfirmationFooterContent />;
 
     const selectionListStyle = {
         containerStyle: [styles.flexBasisAuto],
