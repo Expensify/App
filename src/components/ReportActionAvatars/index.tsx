@@ -140,7 +140,7 @@ function ReportActionAvatars({
     const {
         avatarType: notPreciseAvatarType,
         avatars: unsortedIcons,
-        details: {delegateAccountID},
+        details: {delegateAccountID, shouldUseConciergeAvatar},
         source,
     } = useReportActionAvatars({
         report,
@@ -191,7 +191,7 @@ function ReportActionAvatars({
         return null;
     }
 
-    const delegateAccountIDFromAction = source.action?.delegateAccountID;
+    const delegateAccountIDFromAction = shouldUseConciergeAvatar ? undefined : source.action?.delegateAccountID;
     const singleAvatar: AvatarIcon = delegateAccountIDFromAction
         ? {
               ...primaryAvatar,
