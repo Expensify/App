@@ -9,7 +9,6 @@ type JSONReport = {
     warningCount: number;
 };
 
-/** Never filters: a seatbelt-demoted finding cannot be recovered once dropped. */
 class JSONFormatter extends Formatter {
     readonly name = 'json';
 
