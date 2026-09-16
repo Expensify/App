@@ -1,6 +1,7 @@
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import {usePersonalDetailsByIDs} from '@hooks/usePersonalDetails';
 import useReportTransactions from '@hooks/useReportTransactions';
 
 import {createTransactionThreadReport, setOptimisticTransactionThread} from '@libs/actions/Report';
@@ -71,7 +72,6 @@ function ExpenseAddedGrowlContent({transactionID, signal, active, setActive}: Ex
 
     const {translate} = useLocalize();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
@@ -86,6 +86,8 @@ function ExpenseAddedGrowlContent({transactionID, signal, active, setActive}: Ex
     const selfDMReportID = isUnreportedExpense ? findSelfDMReportID() : undefined;
     const hostReportID = isUnreportedExpense ? selfDMReportID : reportID;
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${hostReportID}`);
+    const iouAction = getIOUActionForTransactionID(Object.values(reportActions ?? {}), transactionID);
+    const [personalDetails] = usePersonalDetailsByIDs([currentUserPersonalDetails?.accountID, iouAction?.actorAccountID]);
 
     // A tracked expense lives in a chat, not an expense report. Leaving iouReportID undefined tells
     // navigateToCreatedExpense to open the transaction thread directly instead of an expense report RHP.
@@ -128,7 +130,6 @@ function ExpenseAddedGrowlContent({transactionID, signal, active, setActive}: Ex
     // Build the thread on press rather than when the growl shows, so it is only created if the user taps
     // "View" and is built against the freshest Onyx data.
     const navigateToExpense = () => {
-        const iouAction = getIOUActionForTransactionID(Object.values(reportActions ?? {}), active.transactionID);
         let threadReportID = transaction?.transactionThreadReportID ?? iouAction?.childReportID;
         if (threadReportID) {
             setOptimisticTransactionThread(threadReportID, iouReport?.reportID, iouAction?.reportActionID, iouReport?.policyID);
