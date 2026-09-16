@@ -18,7 +18,7 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent, ViewToken} from 'react-native';
 
 import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
-import {useEffect, useEffectEvent, useRef, useState} from 'react';
+import {useEffect, useEffectEvent, useRef} from 'react';
 
 // Amount of time to wait until all list items should be rendered and scrollToEnd will behave well
 const DELAY_FOR_SCROLLING_TO_END = 100;
@@ -214,7 +214,7 @@ function useMoneyRequestReportScroll({
     }, [isThinkingIndicatorVisible, reportScrollManager]);
 
     // When the just-sent action hasn't landed in the visible data yet, remember it and scroll once it does.
-    const [pendingScrollToActionID, setPendingScrollToActionID] = useState<string | null>(null);
+    const pendingScrollToActionIDRef = useRef<string | null>(null);
 
     // Effect Event so the Pusher subscription below can stay subscribed once per report while still
     // reading the latest visible actions.
@@ -237,7 +237,7 @@ function useMoneyRequestReportScroll({
                         scrollToBottom();
                     }, DELAY_FOR_SCROLLING_TO_END);
                 } else {
-                    setPendingScrollToActionID(reportAction?.reportActionID ?? null);
+                    pendingScrollToActionIDRef.current = reportAction?.reportActionID ?? null;
                 }
             },
         });
@@ -256,21 +256,27 @@ function useMoneyRequestReportScroll({
         };
     }, [reportID]);
 
+    // No per-run cleanup on purpose: actions keep landing within the delay, and cancelling the pending jump on
+    // each of those renders is what stops the list from ever reaching the newest message.
+    const pendingScrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     useEffect(() => {
-        if (!pendingScrollToActionID) {
+        const pendingActionID = pendingScrollToActionIDRef.current;
+        if (!pendingActionID) {
             return;
         }
-        const index = visibleReportActions.findIndex((item) => item.reportActionID === pendingScrollToActionID);
+        const index = visibleReportActions.findIndex((item) => item.reportActionID === pendingActionID);
         if (index === -1) {
             return;
         }
-        const timeoutID = setTimeout(() => {
+        pendingScrollToActionIDRef.current = null;
+        if (pendingScrollTimeoutRef.current) {
+            clearTimeout(pendingScrollTimeoutRef.current);
+        }
+        pendingScrollTimeoutRef.current = setTimeout(() => {
+            pendingScrollTimeoutRef.current = null;
             scrollToBottom();
-            setPendingScrollToActionID(null);
         }, DELAY_FOR_SCROLLING_TO_END);
-
-        return () => clearTimeout(timeoutID);
-    }, [pendingScrollToActionID, visibleReportActions, scrollToBottom]);
+    }, [visibleReportActions, scrollToBottom]);
 
     const scrollToLatestMessages = () => {
         setIsFloatingMessageCounterVisible(false);
@@ -307,10 +313,13 @@ function useMoneyRequestReportScroll({
 
     useEffect(() => {
         return () => {
-            if (!stickToBottomTimeoutRef.current) {
+            if (stickToBottomTimeoutRef.current) {
+                clearTimeout(stickToBottomTimeoutRef.current);
+            }
+            if (!pendingScrollTimeoutRef.current) {
                 return;
             }
-            clearTimeout(stickToBottomTimeoutRef.current);
+            clearTimeout(pendingScrollTimeoutRef.current);
         };
     }, []);
 
