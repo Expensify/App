@@ -3,6 +3,7 @@ import Text from '@components/Text';
 
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {format} from '@libs/NumberFormatUtils';
@@ -58,6 +59,7 @@ function isMemberGroup(item: GroupedItem): item is TransactionMemberGroupListIte
 
 function InsightsDataTable({rows, view, groupBy, isLoading}: InsightsDataTableProps) {
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const {translate, preferredLocale} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
 
@@ -89,7 +91,7 @@ function InsightsDataTable({rows, view, groupBy, isLoading}: InsightsDataTablePr
                         key={item.keyForList}
                         style={[styles.flexRow, styles.alignItemsCenter, styles.gap3, styles.pv4, styles.ph4, !isLastRow && styles.borderBottom]}
                     >
-                        {shouldShowColorDot && !!color && <View style={[styles.pieChartLegendDot, {backgroundColor: color}]} />}
+                        {shouldShowColorDot && !!color && <View style={[styles.pieChartLegendDot, StyleUtils.getBackgroundColorStyle(color)]} />}
                         {isMemberGroup(item) && (
                             <UserAvatar
                                 size={CONST.AVATAR_SIZE.DEFAULT}
