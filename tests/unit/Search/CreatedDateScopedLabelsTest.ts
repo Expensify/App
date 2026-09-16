@@ -71,7 +71,7 @@ describe('Created date scoped labels (#98148)', () => {
     });
 
     describe('getTableMinWidth (horizontal-scroll budget)', () => {
-        // 24 is the leading checkbox; DATE budgets its actual fixed width (w80 created, w62 otherwise).
+        // 24 = leading checkbox; 80/62 = Created/Date column width
         const CREATED_DATE_MIN_WIDTH = 24 + 80;
         const DATE_MIN_WIDTH = 24 + 62;
 
