@@ -13,8 +13,6 @@ Agent templates are prebuilt personal Agents with instructions already written f
 
 Expensify includes a growing library of built-in templates, each designed for a specific workflow. This article explains what each template does and when you might want to use it.
 
-To learn how to create an agent, see [Create and use agents](/articles/new-expensify/ai-agents/Create-and-Use-Custom-Agents).
-
 ---
 
 ## How agent templates work
@@ -70,14 +68,6 @@ Description Dan is useful for recurring purchases where you typically use the sa
 ## How to create an agent from a template
 
 When you create a new agent, Expensify suggests the available agent templates alongside the option to create a custom agent. Choosing a template automatically creates an agent with prewritten instructions that you can review and customize before saving.
-
-<!-- SCREENSHOT:
-Suggestion: The agent template picker showing the available templates.
-Location: After this section.
-Purpose: Helps members recognize the available templates before creating an agent.
--->
-
-For step-by-step instructions, see [Create and use agents](/articles/new-expensify/ai-agents/Create-and-Use-Custom-Agents).
 
 ---
 
