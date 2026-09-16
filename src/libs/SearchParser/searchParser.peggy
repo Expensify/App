@@ -286,6 +286,7 @@ key "key"
       / paidStatus
       / withdrawalID
       / submitted
+      / anyApproval
       / approved
       / paid
       / exportedTo
