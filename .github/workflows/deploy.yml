@@ -226,7 +226,7 @@ jobs:
     name: Upload Android to Google Play
     needs: [prep, androidBuild, androidBuildBetaTrack]
     runs-on: blacksmith-2vcpu-ubuntu-2404
-    if: ${{ !cancelled() && needs.androidBuild.result == 'success' }}
+    if: ${{ fromJSON(needs.prep.outputs.SHOULD_BUILD_NATIVE) }}
     steps:
       - name: Checkout
         uses: useblacksmith/checkout@0647fdbab2614a5eb86d2971070e325060d91056 # v1.7.0
@@ -241,7 +241,6 @@ jobs:
           path: ./
 
       - name: Download Android beta-track build artifact
-        if: ${{ needs.androidBuildBetaTrack.result == 'success' }}
         # v7
         uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131
         with:
@@ -258,11 +257,11 @@ jobs:
           echo "aabPath=$AAB_PATH" >> "$GITHUB_ENV"
 
           BETA_TRACK_AAB_PATH="$(pwd)/betaTrack/${{ needs.androidBuildBetaTrack.outputs.AAB_FILENAME }}"
-          if [ -f "$BETA_TRACK_AAB_PATH" ]; then
-            echo "betaTrackAabPath=$BETA_TRACK_AAB_PATH" >> "$GITHUB_ENV"
-          else
-            echo "::warning::No beta-track AAB, Play testing tracks will not be updated"
+          if [ ! -f "$BETA_TRACK_AAB_PATH" ]; then
+            echo "::error::Expected beta-track AAB not found at $BETA_TRACK_AAB_PATH"
+            exit 1
           fi
+          echo "betaTrackAabPath=$BETA_TRACK_AAB_PATH" >> "$GITHUB_ENV"
 
       - name: Setup Ruby
         # v1.310.0

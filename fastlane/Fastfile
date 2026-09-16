@@ -184,12 +184,6 @@ platform :android do
     )
 
     # Beta-track artifact (versionCode prefix 06, defaults to staging). Its higher versionCode is what testers get.
-    # Optional: a failed beta-track build must not hold back the production artifact.
-    if ENV[KEY_BETA_TRACK_AAB_PATH].to_s.empty?
-      UI.important("No beta-track AAB, skipping the beta and Internal Testers tracks")
-      next
-    end
-
     upload_to_play_store(
       package_name: ENV["ANDROID_PACKAGE_NAME"],
       json_key: './android-fastlane-json-key.json',
