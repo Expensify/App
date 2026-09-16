@@ -160,13 +160,8 @@ const splitExtensionFromFileName: SplitExtensionFromFileName = (fullFileName) =>
 };
 
 /**
- * Returns the file name, recovering it from the URI when the name itself is missing.
- *
- * A file picker can hand back a file with no metadata at all - the iOS document picker does this whenever it fails to
- * read the file's resource values, leaving `name`, `size` and `type` null. The URI still holds the real file name in
- * that case, so take it from there rather than from a placeholder that carries no extension, which every extension
- * check downstream would reject. `defaultFileName` is only used when the URI has no extension either, as is the case
- * for the `content://` URIs Android returns.
+ * Returns the file name, reading it from the URI when the picker returns none, as the iOS document picker can.
+ * Falls back to `defaultFileName` only when the URI has no extension either, as with Android's `content://` URIs.
  */
 function getFileNameWithFallback(fileName: string | null | undefined, uri: string, defaultFileName: string): string {
     if (fileName) {
