@@ -2170,7 +2170,7 @@ function getForwardsToAccount(policy: OnyxEntry<Policy>, employeeEmail: string, 
  * Returns the accountID of the policy reimburser, if not available returns -1.
  */
 function getReimburserAccountID(policy: OnyxEntry<Policy>): number {
-    const reimburserEmail = policy?.achAccount?.reimburser ?? '';
+    const reimburserEmail = policy?.achAccount?.reimburser ?? policy?.owner ?? '';
     return reimburserEmail ? (getAccountIDsByLogins([reimburserEmail]).at(0) ?? -1) : -1;
 }
 
@@ -2547,9 +2547,10 @@ function getSageIntacctBankAccounts(policy?: Policy, selectedBankAccountId?: str
     }));
 }
 
-function getSageIntacctVendors(policy?: Policy, selectedVendorId?: string): SelectorType[] {
+function getSageIntacctVendors(policy?: Policy, selectedVendorId?: string, localeCompare?: LocaleContextProps['localeCompare']): SelectorType[] {
     const vendors = policy?.connections?.intacct?.data?.vendors ?? [];
-    return vendors.map(({id, value}) => ({
+    const sortedVendors = localeCompare ? [...vendors].sort((a, b) => localeCompare(a.value ?? '', b.value ?? '') || localeCompare(a.id, b.id)) : vendors;
+    return sortedVendors.map(({id, value}) => ({
         value: id,
         text: value,
         keyForList: id,
@@ -2822,6 +2823,21 @@ function getActiveVendorMatchingVendors(policy: OnyxEntry<Policy>): Vendor[] | u
  */
 function getMatchingVendors(policy: OnyxEntry<Policy>): Vendor[] {
     return getActiveVendorMatchingVendors(policy) ?? [];
+}
+
+/**
+ * Sorts vendors alphabetically by name using the provided localeCompare.
+ * Uses vendor id as a stable tie-breaker when names match.
+ * Non-mutating: returns a new sorted array.
+ */
+function sortVendors<TVendor extends {id: string; name: string}>(vendors: TVendor[], localeCompare: LocaleContextProps['localeCompare']): TVendor[] {
+    return [...vendors].sort((a, b) => {
+        const nameComparison = localeCompare(a.name ?? '', b.name ?? '');
+        if (nameComparison !== 0) {
+            return nameComparison;
+        }
+        return localeCompare(a.id, b.id);
+    });
 }
 
 /**
@@ -3462,6 +3478,7 @@ export {
     getActiveVendorMatchingIntegration,
     getMatchingVendorByID,
     getMatchingVendors,
+    sortVendors,
     getVendorEmptyState,
     getVendorRuleDisplayValue,
     getXeroSupplierByID,

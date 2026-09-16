@@ -32,8 +32,7 @@ const defaultSearchQueryContext: SearchQueryContextValue = {
 
 const defaultSearchQueryActions: SearchQueryActionsValue = {
     setShouldResetSearchQuery: () => {},
-    setCurrentSearchKey: () => {},
-    resetSearchKey: () => {},
+    getSearchKeyForQuery: () => undefined,
 };
 
 const EMPTY_TRANSACTIONS_BY_REPORT_ID: SearchResultsContextValue['currentSearchTransactionsByReportID'] = new Map();
