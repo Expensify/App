@@ -36,6 +36,7 @@ function TaskSearchView({
     columns,
     canSelectMultiple,
     isActionColumnWide,
+    columnSizeOptions,
     isMobileSelectionModeEnabled,
     SearchTableHeader: searchTableHeader,
     tableHeaderVisible,
@@ -89,6 +90,7 @@ function TaskSearchView({
             columns={columns}
             type={type}
             isActionColumnWide={isActionColumnWide}
+            columnSizeOptions={columnSizeOptions}
             isHeaderVisible={!!searchTableHeader}
             dataKey={data}
             isKeyboardShown={isKeyboardShown}

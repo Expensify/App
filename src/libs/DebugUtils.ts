@@ -591,7 +591,7 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
                 requiredDepositCurrency: 'string',
             });
         case 'tripData':
-            return validateObject<ObjectElement<Report, 'tripData'>>(value, {
+            return validateObject<ObjectElement<ReportNameValuePairs, 'tripData'>>(value, {
                 startDate: 'string',
                 endDate: 'string',
                 tripID: 'string',
@@ -856,6 +856,9 @@ function validateReportActionDraftProperty(key: keyof ReportAction, value: strin
                 isTestDriveReceipt: 'boolean',
                 thumbnail: 'string',
                 receiptTraceId: 'string',
+                receiptEnqueuedAt: 'number',
+                hotelReservationStartDate: 'string',
+                hotelReservationEndDate: 'string',
                 pageCount: 'number',
             });
         case 'childRecentReceiptTransactionIDs':
@@ -1164,6 +1167,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                     transactionThreadReportID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     reportName: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     routes: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    commuterExclusionPreview: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     routeDistanceMeters: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     transactionID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     selectedTransactionIDs: CONST.RED_BRICK_ROAD_PENDING_ACTION,
@@ -1211,6 +1215,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                     splitsEndDate: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     withdrawalID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     isAmountSet: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    isCreatedSet: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     selectedRouteKey: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 },
                 'string',
@@ -1229,6 +1234,9 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                 isTestDriveReceipt: 'boolean',
                 thumbnail: 'string',
                 receiptTraceId: 'string',
+                receiptEnqueuedAt: 'number',
+                hotelReservationStartDate: 'string',
+                hotelReservationEndDate: 'string',
                 pageCount: 'number',
             });
         case 'taxRate':
@@ -1307,6 +1315,13 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                 },
                 'string',
             );
+        case 'commuterExclusionPreview':
+            return validateObject<ObjectElement<Transaction, 'commuterExclusionPreview'>>(value, {
+                policyID: 'string',
+                hasExclusion: 'boolean',
+                isWholeTripExcluded: 'boolean',
+                commuteDistanceMeters: 'number',
+            });
         case 'mccGroup':
             return validateConstantEnum(value, CONST.MCC_GROUPS);
         case 'modifiedMCCGroup':
@@ -1376,6 +1391,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
             });
         case 'isAmountSet':
         case 'isMerchantSet':
+        case 'isCreatedSet':
             return validateBoolean(value);
     }
 }
@@ -1427,6 +1443,7 @@ function validateTransactionViolationDraftProperty(key: keyof TransactionViolati
                 isSupplierViolation: 'boolean',
                 startDate: 'string',
                 endDate: 'string',
+                nights: 'number',
             });
         case 'showInReview':
             return validateBoolean(value);

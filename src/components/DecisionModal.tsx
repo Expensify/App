@@ -7,8 +7,8 @@ import CONST from '@src/CONST';
 import React from 'react';
 import {View} from 'react-native';
 
-import Button from './ButtonComposed';
-import Header from './Header';
+import Button from './Button';
+import HeaderTitle from './HeaderTitle';
 import Modal from './Modal';
 import RenderHTML from './RenderHTML';
 import ScrollView from './ScrollView';
@@ -110,10 +110,9 @@ function DecisionModal({
             >
                 <View>
                     <View style={[styles.flexRow, styles.mb5]}>
-                        <Header
-                            title={title}
-                            containerStyles={styles.alignItemsCenter}
-                        />
+                        <HeaderTitle style={styles.alignItemsCenter}>
+                            <HeaderTitle.Text>{title}</HeaderTitle.Text>
+                        </HeaderTitle>
                     </View>
                     <RenderHTML html={prompt} />
                 </View>

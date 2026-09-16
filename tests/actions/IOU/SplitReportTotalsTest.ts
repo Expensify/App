@@ -482,6 +482,7 @@ describe('actions/IOU', () => {
             delegateAccountID: undefined,
             isTrackIntentUser: false,
             formatPhoneNumber,
+            rules: undefined,
         });
 
         it('returns valid splitData with chatReportID, transactionID, and reportActionID', () => {
@@ -749,6 +750,7 @@ describe('actions/IOU', () => {
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
                 formatPhoneNumber,
+                rules: undefined,
                 ...overrides,
             };
         }

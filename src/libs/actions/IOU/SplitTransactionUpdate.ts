@@ -123,6 +123,7 @@ type UpdateSplitTransactionsParams = {
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol'];
+    rules: OnyxCollection<OnyxTypes.Rule>;
 };
 
 /**
@@ -207,6 +208,7 @@ function updateSplitTransactions({
     formatPhoneNumber,
     getCurrencyDecimals,
     getCurrencySymbol,
+    rules,
 }: UpdateSplitTransactionsParams) {
     const parentTransactionReport = getReportOrDraftReport(transactionReport?.parentReportID);
     // For selfDM-origin splits the caller can't resolve a real `expenseReport` (the draft/source
@@ -685,6 +687,7 @@ function updateSplitTransactions({
             isTrackIntentUser,
             formatPhoneNumber,
             getCurrencyDecimals,
+            rules,
         } as MoneyRequestInformationParams;
 
         if (isReverseSplitOperation) {
@@ -793,7 +796,9 @@ function updateSplitTransactions({
             moneyRequestReportID: moneyRequestReportIDForSplit,
             existingTransaction,
             existingTransactionID,
-            newReportTotal: reportTotals.get(splitExpense?.reportID ?? String(CONST.DEFAULT_NUMBER_ID)) ?? 0,
+            // No `?? 0` fallback: a missing entry must stay `undefined` so the builder keeps applying its own
+            // per-transaction arithmetic. It now honours a real `0`, which the old truthiness check dropped.
+            newReportTotal: reportTotals.get(splitExpense?.reportID ?? String(CONST.DEFAULT_NUMBER_ID)),
             newNonReimbursableTotal: (transactionReport?.nonReimbursableTotal ?? 0) - changesInReportTotal,
             isSplitExpense: true,
             isReverseSplitOperation,
@@ -811,6 +816,7 @@ function updateSplitTransactions({
             isTrackIntentUser,
             formatPhoneNumber,
             getCurrencyDecimals,
+            rules,
         });
 
         let updateMoneyRequestParamsOnyxData: OnyxData<UpdateMoneyRequestDataKeys> = {};
@@ -909,6 +915,7 @@ function updateSplitTransactions({
                     violations: transactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${existingTransactionID}`],
                     getCurrencyDecimals,
                     getCurrencySymbol,
+                    rules,
                 });
                 if (currentSplit) {
                     currentSplit.modifiedExpenseReportActionID = params.reportActionID;

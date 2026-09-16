@@ -35,6 +35,7 @@
         "Amal",
         "Amal's",
         "Amina",
+        "Anysphere",
         "Areport",
         "Authy",
         "Ashby",
@@ -763,6 +764,7 @@
         "lastiPhoneLogin",
         "lastname",
         "lefthook",
+        "legendapp",
         "libc",
         "Libc",
         "libc's",
@@ -918,6 +920,7 @@
         "QAPR",
         "QBWC",
         "qrcode",
+        "quasis",
         "quotepath",
         "rach",
         "reactnative",
@@ -1050,6 +1053,7 @@
         "tosorted",
         "touchables",
         "tranid",
+        "travelled",
         "trinet",
         "trivago",
         "trustcacerts",
@@ -1234,6 +1238,6 @@
         "tests/unit/__snapshots__/ReportAlternateTextParityTest.ts.snap",
         "evals/proposalPolice/fixtures/**"
     ],
-    "ignoreRegExpList": ["@assets/.*", "[A-Za-z0-9+/]{43}="],
+    "ignoreRegExpList": ["@assets/.*", "(?<![A-Za-z0-9+/])(?:sha256/)?[A-Za-z0-9+/]{43}="],
     "useGitignore": true
 }

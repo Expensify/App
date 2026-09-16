@@ -44,6 +44,7 @@ import {
     enablePolicyHR,
     enablePolicyInvoiceFields,
     enablePolicyInvoicing,
+    enablePolicyRecruiting,
     enablePolicyReportFields,
     enablePolicyRules,
     isCurrencySupportedForDirectReimbursement,
@@ -137,6 +138,7 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
     const policyData = usePolicyData(policyID);
     const policyDataRef = useRef(policyData);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
     useEffect(() => {
         policyDataRef.current = policyData;
@@ -296,9 +298,12 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.hr.id:
                 enablePolicyHR(policyID, true);
                 break;
+            case CONST.UPGRADE_FEATURE_INTRO_MAPPING.recruiting.id:
+                enablePolicyRecruiting(policyID, true);
+                break;
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.id:
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvalSubmit.id:
-                setWorkspaceApprovalMode(policy, defaultApprover, CONST.POLICY.APPROVAL_MODE.ADVANCED, accountID, email, isTrackIntentUser);
+                setWorkspaceApprovalMode(policy, defaultApprover, CONST.POLICY.APPROVAL_MODE.ADVANCED, accountID, email, isTrackIntentUser, rules);
                 break;
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvalSubmitReport.id:
                 break;
@@ -361,6 +366,7 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
         categoryId,
         getReviewWorkspaceSettingsTaskCompletion,
         isTrackIntentUser,
+        rules,
     ]);
 
     useWorkspaceUpgradeConfirmation({
