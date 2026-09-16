@@ -191,7 +191,6 @@
 "../../src/components/KYCWall/BaseKYCWall.tsx"	"react-hooks/refs"	2
 "../../src/components/KYCWall/BaseKYCWall.tsx"	"rulesdir/no-direct-personal-details-list"	2
 "../../src/components/LHNOptionsList/LHNEmptyState.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/components/LHNOptionsList/LHNOptionsList.tsx"	"rulesdir/no-direct-personal-details-list"	1
 "../../src/components/LHNOptionsList/OptionRowLHN/OptionRow/Pressable.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/LocaleContextProvider.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/LocaleContextProvider.tsx"	"react-hooks/set-state-in-effect"	1
@@ -255,7 +254,6 @@
 "../../src/components/PDFView/index.native.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/PDFView/index.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/PDFView/index.tsx"	"react-hooks/set-state-in-effect"	1
-"../../src/components/PersonalDetailsByLoginProvider.tsx"	"rulesdir/no-direct-personal-details-list"	1
 "../../src/components/Picker/BasePicker.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../src/components/Picker/index.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/PopoverMenu/index.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
@@ -443,7 +441,6 @@
 "../../src/Expensify.tsx"	"react-hooks/refs"	1
 "../../src/Expensify.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/GlobalModals.tsx"	"no-restricted-syntax"	2
-"../../src/hooks/useAccountIDToNameMap.ts"	"rulesdir/no-direct-personal-details-list"	1
 "../../src/hooks/useAccountIndicatorChecks.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/hooks/useAdvancedSearchFilters.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/hooks/useAnimatedHighlightStyle/index.ts"	"react-hooks/set-state-in-effect"	2
@@ -507,8 +504,6 @@
 "../../src/hooks/useParticipantSubmission.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/hooks/usePaymentOptions.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../src/hooks/usePaymentOptions.ts"	"react-hooks/refs"	1
-"../../src/hooks/usePersonalDetailsByEmail.ts"	"rulesdir/no-direct-personal-details-list"	1
-"../../src/hooks/usePersonalDetailsByLogin.ts"	"rulesdir/no-direct-personal-details-list"	1
 "../../src/hooks/usePersonalPolicy.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/hooks/usePolicyData/index.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/hooks/usePreferredCurrency.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
@@ -1427,7 +1422,6 @@
 "../../src/pages/workspace/upgrade/WorkspaceUpgradePage.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/withPolicy.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../src/pages/workspace/withPolicyAndFullscreenLoading.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/pages/workspace/withPolicyAndFullscreenLoading.tsx"	"rulesdir/no-direct-personal-details-list"	1
 "../../src/pages/workspace/withPolicyConnections.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/workspace/workflows/approvals/DynamicWorkspaceWorkflowsApprovalsExpensesFromPage.tsx"	"rulesdir/no-direct-personal-details-list"	1
 "../../src/pages/workspace/workflows/approvals/WorkspaceWorkflowsApprovalsEditPage.tsx"	"rulesdir/no-direct-personal-details-list"	1
