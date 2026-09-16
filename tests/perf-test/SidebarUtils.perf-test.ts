@@ -16,7 +16,7 @@ import createPersonalDetails from '../utils/collections/personalDetails';
 import createRandomPolicy from '../utils/collections/policies';
 import createRandomReportAction, {getRandomDate} from '../utils/collections/reportActions';
 import {createRandomReport} from '../utils/collections/reports';
-import {convertToDisplayString, localeCompare, translateLocal, formatPhoneNumber} from '../utils/TestHelper';
+import {convertToDisplayString, convertToDisplayStringWithoutCurrency, localeCompare, translateLocal, formatPhoneNumber} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const REPORTS_COUNT = 15000;
@@ -89,12 +89,14 @@ describe('SidebarUtils', () => {
                 lastAction: undefined,
                 translate: translateLocal,
                 convertToDisplayString,
+                convertToDisplayStringWithoutCurrency,
                 localeCompare,
                 lastActionReport: undefined,
                 isReportArchived: undefined,
                 currentUserAccountID: 1,
                 currentUserLogin: CURRENT_USER_LOGIN,
                 formatPhoneNumber,
+                rules: undefined,
             }),
         );
     });
@@ -114,6 +116,7 @@ describe('SidebarUtils', () => {
                 currentUserLogin: CURRENT_USER_LOGIN,
                 currentUserAccountID: 1,
                 reportNameValuePairs: {},
+                guideAccountIDs: [],
                 conciergeReportID: undefined,
             }),
         );
@@ -134,6 +137,7 @@ describe('SidebarUtils', () => {
                 currentUserLogin: CURRENT_USER_LOGIN,
                 currentUserAccountID: 1,
                 reportNameValuePairs: {},
+                guideAccountIDs: [],
                 conciergeReportID: undefined,
             }),
         );

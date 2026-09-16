@@ -25,7 +25,6 @@ type WorkspaceEmptyStateSectionProps = {
     /** The icon to display along with the title */
     icon: IconAsset;
 
-    /** Additional style for container */
     containerStyle?: StyleProp<ViewStyle>;
 
     /** Whether to apply card style to container */

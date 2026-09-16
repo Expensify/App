@@ -1,5 +1,5 @@
 import Badge from '@components/Badge';
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import Icon from '@components/Icon';
 import RenderHTML from '@components/RenderHTML';
 import Text from '@components/Text';
@@ -45,7 +45,6 @@ type UpgradeIntroViewProps = {
     /** Primary button label. */
     buttonText: string;
 
-    /** Unlock badge text. */
     unlockBadgeText?: string;
 
     /** Called when the primary button is pressed. */

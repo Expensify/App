@@ -14,13 +14,8 @@ import React from 'react';
 import {View} from 'react-native';
 
 type AvatarIconProps = AvatarPrimitivesCommonProps & {
-    /** Icon asset to render as the avatar. */
     avatarSource: IconAsset;
-
-    /** Test ID used for the fallback avatar. */
     fallbackAvatarTestID: string;
-
-    /** Styles for View wrapping Icon / Image. */
     iconContainerStyles?: StyleProp<ViewStyle & ImageStyle>;
 
     /** Fill and background colors for the icon, or null to use the defaults. */
@@ -29,7 +24,6 @@ type AvatarIconProps = AvatarPrimitivesCommonProps & {
     /** The fill color for the icon */
     fill?: string;
 
-    /** Additional styles for Icon */
     iconAdditionalStyles?: StyleProp<ViewStyle>;
 };
 

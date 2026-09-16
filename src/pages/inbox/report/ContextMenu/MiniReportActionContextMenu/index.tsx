@@ -1,5 +1,7 @@
 import useStyleUtils from '@hooks/useStyleUtils';
 
+import moveMiniToolbarFocusWithArrowKey from '@libs/moveContextMenuFocusWithArrowKey';
+
 import BaseReportActionContextMenu from '@pages/inbox/report/ContextMenu/BaseReportActionContextMenu';
 
 import CONST from '@src/CONST';
@@ -16,6 +18,7 @@ function MiniReportActionContextMenu({displayAsGroup = false, ...rest}: MiniRepo
         <View
             style={StyleUtils.getMiniReportActionContextMenuWrapperStyle(displayAsGroup)}
             dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: rest.isVisible ?? false}}
+            onKeyDown={moveMiniToolbarFocusWithArrowKey}
         >
             <BaseReportActionContextMenu
                 isMini

@@ -74,8 +74,8 @@ function Confirmation({onNext, onMove, isEditing, ownerBeingModifiedID}: Confirm
                 ? [
                       {
                           id: 'ssn',
-                          title: values.ssnLast4,
-                          description: translate('ownershipInfoStep.last4'),
+                          title: values.ssn,
+                          description: translate('common.ssnFull9'),
                           shouldShowRightIcon: true,
                           onPress: () => {
                               onMove(5);
@@ -163,7 +163,7 @@ function Confirmation({onNext, onMove, isEditing, ownerBeingModifiedID}: Confirm
             values.nationality,
             values.ownershipPercentage,
             values.proofOfOwnership,
-            values.ssnLast4,
+            values.ssn,
             values.state,
             values.street,
             values.zipCode,
@@ -178,6 +178,7 @@ function Confirmation({onNext, onMove, isEditing, ownerBeingModifiedID}: Confirm
             pageTitle={translate('ownershipInfoStep.letsDoubleCheck')}
             summaryItems={summaryItems}
             showOnfidoLinks={false}
+            forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
         />
     );
 }

@@ -28,19 +28,10 @@ type DateSelectPopupProps = {
     /** The label to show when in an overlay on mobile */
     label?: string;
 
-    /** The current date values */
     value: SearchDateValues;
-
-    /** The date presets */
     presets?: SearchDatePreset[];
-
-    /** Additional style props */
     style?: StyleProp<ViewStyle>;
-
-    /** Function to call when changes are applied */
     onChange: (value: SearchDateValues) => void;
-
-    /** Function to call to close the overlay when changes are applied */
     closeOverlay: () => void;
 
     /** Function to set the popover width dynamically */

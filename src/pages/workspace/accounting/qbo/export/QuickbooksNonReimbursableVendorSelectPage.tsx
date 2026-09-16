@@ -1,6 +1,7 @@
 import BlockingView from '@components/BlockingViews/BlockingView';
 import type {ListItem} from '@components/SelectionList/types';
 import SelectionScreen from '@components/SelectionScreen';
+import Text from '@components/Text';
 
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -21,6 +22,7 @@ import {clearQBOErrorField} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 
 import React from 'react';
+import {View} from 'react-native';
 
 type VendorConfigKey = 'nonReimbursableBillDefaultVendor' | 'nonReimbursableCreditCardDefaultVendor';
 
@@ -74,6 +76,12 @@ function QuickbooksNonReimbursableVendorSelectPage({policy, configKey, updateVen
         Navigation.goBack();
     };
 
+    const listHeaderContent = (
+        <View style={[styles.pb2, styles.ph5]}>
+            <Text style={[styles.pb5, styles.textNormal]}>{translate('workspace.accounting.defaultVendorSelectHeader')}</Text>
+        </View>
+    );
+
     const listEmptyContent = (
         <BlockingView
             icon={illustrations.Telescope}
@@ -92,6 +100,7 @@ function QuickbooksNonReimbursableVendorSelectPage({policy, configKey, updateVen
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             displayName={displayName}
             title="workspace.accounting.defaultVendor"
+            headerContent={listHeaderContent}
             data={data}
             onSelectRow={selectVendor}
             shouldSingleExecuteRowSelect

@@ -42,7 +42,6 @@ type CurrencySelectorProps = {
     /** Whether to show currency symbol in the title */
     shouldShowCurrencySymbol?: boolean;
 
-    /** Reference to the outer element */
     ref: ForwardedRef<View>;
 };
 
