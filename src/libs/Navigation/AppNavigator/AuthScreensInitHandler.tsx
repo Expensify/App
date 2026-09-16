@@ -152,7 +152,8 @@ function AuthScreensInitHandler() {
         }
         // This means sign in in RHP was successful, so we can subscribe to user events
         initializePusher(session?.accountID, session?.email, () => topmostOneTransactionThreadReportIDRef.current, formatPhoneNumber, () => reportAttributesRef.current);
-    }, [session?.accountID, session?.email, formatPhoneNumber]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- This handler should only be re-registered when the session changes.
+    }, [session?.accountID, session?.email]);
 
     useEffect(() => {
         const isLoggingInAsNewUser = !!session?.email && SessionUtils.isLoggingInAsNewUser(currentUrl, session.email);
