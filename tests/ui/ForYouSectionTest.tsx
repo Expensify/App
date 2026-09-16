@@ -1,5 +1,7 @@
 import {act, fireEvent, render, screen} from '@testing-library/react-native';
 
+import type * as SearchContextModule from '@components/Search/SearchContext';
+
 import type useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTodoCounts from '@hooks/useTodoCounts';
@@ -139,6 +141,16 @@ jest.mock('react-native-reanimated', () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return require('react-native-reanimated/mock');
 });
+
+// ForYouSection renders outside SearchContextProvider here, so the real hooks return no-op defaults and the
+// search key a to-do sets could not be observed. Mock just the two action hooks it uses.
+const mockSetCurrentSearchKey = jest.fn();
+const mockClearSelectedTransactions = jest.fn();
+jest.mock('@components/Search/SearchContext', () => ({
+    ...jest.requireActual<typeof SearchContextModule>('@components/Search/SearchContext'),
+    useSearchQueryActions: () => ({setCurrentSearchKey: mockSetCurrentSearchKey, setShouldResetSearchQuery: jest.fn(), resetSearchKey: jest.fn()}),
+    useSearchSelectionActions: () => ({clearSelectedTransactions: mockClearSelectedTransactions}),
+}));
 
 const mockNavigate = jest.mocked(Navigation.navigate);
 const mockUseResponsiveLayout = jest.mocked(useResponsiveLayout);
@@ -855,6 +867,47 @@ describe('ForYouSection', () => {
                 return;
             }
             expect(calledRoute).toContain(ROUTES.SEARCH_ROOT.route);
+        });
+
+        it('selects the approve search key so the Search page does not keep the previously selected tab', async () => {
+            await act(async () => {
+                setTodoCounts({
+                    ...BASE_TODOS,
+                    reportsToApprove: [{reportID: '3'}, {reportID: '4'}],
+                });
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            renderForYouSection();
+            await waitForBatchedUpdatesWithAct();
+
+            pressFirstBeginButton();
+
+            // The key is context state rather than part of the URL, so navigating with only a query left whatever
+            // tab was selected before (e.g. Spend > Reports) focused on the approve results.
+            expect(mockSetCurrentSearchKey).toHaveBeenCalledTimes(1);
+            const [searchKey, pendingQuery] = mockSetCurrentSearchKey.mock.calls.at(0) ?? [];
+            expect(searchKey).toBe(CONST.SEARCH.SEARCH_KEYS.APPROVE);
+            expect(mockNavigate).toHaveBeenCalledWith(ROUTES.SEARCH_ROOT.getRoute({query: pendingQuery as string}));
+            expect(mockClearSelectedTransactions).toHaveBeenCalledTimes(1);
+        });
+
+        it.each([
+            {name: 'submit', todos: {reportsToSubmit: [{reportID: '1'}, {reportID: '2'}]}, searchKey: CONST.SEARCH.SEARCH_KEYS.SUBMIT},
+            {name: 'pay', todos: {reportsToPay: [{reportID: '5'}, {reportID: '6'}]}, searchKey: CONST.SEARCH.SEARCH_KEYS.PAY},
+            {name: 'export', todos: {reportsToExport: [{reportID: '7'}, {reportID: '8'}]}, searchKey: CONST.SEARCH.SEARCH_KEYS.EXPORT},
+        ])('selects the $name search key for the $name to-do', async ({todos, searchKey}) => {
+            await act(async () => {
+                setTodoCounts({...BASE_TODOS, ...todos});
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            renderForYouSection();
+            await waitForBatchedUpdatesWithAct();
+
+            pressFirstBeginButton();
+
+            expect(mockSetCurrentSearchKey).toHaveBeenCalledWith(searchKey, expect.any(String));
         });
     });
 
