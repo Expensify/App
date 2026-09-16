@@ -135,10 +135,12 @@ export default function WorkspaceTaxesTable({taxes, selectionEnabled, selectedKe
         return nameComparison;
     };
 
+    // Narrow and medium layouts collapse the columns into a card that leaves the code out, so it is only searchable at
+    // the widths that render it.
+    const shouldSearchTaxCode = !shouldUseNarrowTableLayout && shouldShowTaxCodeColumn;
+
     const isItemInSearch: IsItemInSearchCallback<WorkspaceTaxTableRowData> = (item, searchValue) => {
-        // The tax code is only searchable where it's actually rendered, so mobile search never matches on text the
-        // user can't see.
-        const searchableFields = [item.name, item.taxRateValue, ...(shouldShowTaxCodeColumn ? [item.taxCode] : [])];
+        const searchableFields = [item.name, item.taxRateValue, ...(shouldSearchTaxCode ? [item.taxCode] : [])];
         const results = tokenizedSearch([item], searchValue, () => searchableFields);
         return results.length > 0;
     };

@@ -2,7 +2,13 @@
  * Compares two optional cell values, keeping rows without a value last in both sort directions and falling back to
  * `tieBreaker` when the values match or are both missing.
  */
-function compareOptionalValues(value1: string, value2: string, compare: (a: string, b: string) => number, orderMultiplier: number, tieBreaker: number): number {
+function compareOptionalValues(
+    value1: string | undefined,
+    value2: string | undefined,
+    compare: (comparedValue1: string, comparedValue2: string) => number,
+    orderMultiplier: number,
+    tieBreaker: number,
+): number {
     if (!value1 && !value2) {
         return tieBreaker;
     }

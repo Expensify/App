@@ -71,7 +71,13 @@ function WorkspaceTaxesTableRow({item, rowIndex, shouldUseNarrowTableLayout, sho
     // narrow layouts the columns collapse, so the rate value and default indicator share the name's supporting line.
     const nameSupportingText = shouldUseNarrowTableLayout ? [item.taxRateValue, item.defaultLabel].filter(Boolean).join(` ${CONST.DOT_SEPARATOR} `) : item.defaultLabel;
 
-    const accessibilityLabel = [item.name, nameSupportingText, shouldShowTaxCodeCell && item.taxCode ? `${translate('workspace.taxes.taxCode')}: ${item.taxCode}` : null, enabledStatusLabel]
+    const accessibilityLabel = [
+        item.name,
+        nameSupportingText,
+        !shouldUseNarrowTableLayout && item.taxRateValue ? `${translate('workspace.taxes.taxRate')}: ${item.taxRateValue}` : null,
+        shouldShowTaxCodeCell && item.taxCode ? `${translate('workspace.taxes.taxCode')}: ${item.taxCode}` : null,
+        enabledStatusLabel,
+    ]
         .filter(Boolean)
         .join(', ');
 

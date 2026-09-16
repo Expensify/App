@@ -135,14 +135,11 @@ function useSorting<T, ColumnKey extends string = string>({
     const activeSorting = resolveActiveSorting(shouldUseNarrowTableLayout, narrowLayoutSortColumn, userSorting, columnKeys, initialSortColumn);
 
     const toggleColumnSorting: SortingMethods<ColumnKey>['toggleColumnSorting'] = (columnKey) => {
-        setUserSorting((previousSorting) => {
-            const columnKeyToUse = columnKey ?? previousSorting.columnKey;
-            const orderToUse = previousSorting.order === 'asc' ? 'desc' : 'asc';
-
-            return {
-                columnKey: columnKeyToUse,
-                order: orderToUse,
-            };
+        // Flipped from the sorting the headers actually show rather than the stored one, which the fallback above can
+        // diverge from. Otherwise the first press after a column disappears asks for the order already on screen.
+        setUserSorting({
+            columnKey: columnKey ?? activeSorting.columnKey,
+            order: activeSorting.order === 'asc' ? 'desc' : 'asc',
         });
     };
 
