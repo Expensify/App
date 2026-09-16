@@ -73,13 +73,15 @@ describe('actions/BankAccounts', () => {
             } as Partial<ReimbursementAccountForm>);
 
             // When we connect with Plaid for Chase on a new account
-            connectBankAccountWithPlaid(CONST.DEFAULT_NUMBER_ID, getPlaidBankAccount(CONST.BANK_NAMES_USER_FRIENDLY[CONST.BANK_NAMES.CHASE]), POLICY_ID);
+            const didStartRequest = connectBankAccountWithPlaid(CONST.DEFAULT_NUMBER_ID, getPlaidBankAccount(CONST.BANK_NAMES_USER_FRIENDLY[CONST.BANK_NAMES.CHASE]), POLICY_ID);
             await waitForBatchedUpdates();
 
             // Then we should not call the backend, and should move user to manual with cleared account/routing draft fields
             const reimbursementAccount = await getOnyxValue(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
             const reimbursementAccountDraft = await getOnyxValue(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
 
+            // ...and report that no request was started, so the caller does not arm deferred navigation
+            expect(didStartRequest).toBe(false);
             TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.CONNECT_BANK_ACCOUNT_WITH_PLAID, 0);
             expect(reimbursementAccount?.achData?.currentStep).toBe(CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT);
             expect(reimbursementAccount?.achData?.subStep).toBe(CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL);
@@ -97,9 +99,10 @@ describe('actions/BankAccounts', () => {
             const selectedPlaidBankAccount = getPlaidBankAccount(CONST.BANK_NAMES_USER_FRIENDLY[CONST.BANK_NAMES.CHASE]);
 
             // When we connect with Plaid
-            connectBankAccountWithPlaid(bankAccountID, selectedPlaidBankAccount, POLICY_ID);
+            const didStartRequest = connectBankAccountWithPlaid(bankAccountID, selectedPlaidBankAccount, POLICY_ID);
             return waitForBatchedUpdates().then(() => {
-                // Then we should call the existing API command
+                // Then we should call the existing API command and report that a request was started
+                expect(didStartRequest).toBe(true);
                 TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.CONNECT_BANK_ACCOUNT_WITH_PLAID, 1);
                 const call = TestHelper.getFetchMockCalls(WRITE_COMMANDS.CONNECT_BANK_ACCOUNT_WITH_PLAID).at(0);
                 if (!call) {
@@ -126,6 +129,27 @@ describe('actions/BankAccounts', () => {
                     }),
                 );
             });
+        });
+
+        test('does not short-circuit a new account when the bank is not Chase', async () => {
+            // Given a new (bankAccountID 0) non-Chase bank account in Plaid setup
+            await Onyx.set(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {
+                achData: {
+                    currentStep: CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT,
+                    subStep: CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID,
+                },
+            });
+
+            // When we connect with Plaid
+            const didStartRequest = connectBankAccountWithPlaid(CONST.DEFAULT_NUMBER_ID, getPlaidBankAccount('Wells Fargo'), POLICY_ID);
+            await waitForBatchedUpdates();
+
+            // Then we should call the API, report that a request was started, and stay in the Plaid sub step
+            expect(didStartRequest).toBe(true);
+            TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.CONNECT_BANK_ACCOUNT_WITH_PLAID, 1);
+
+            const reimbursementAccount = await getOnyxValue(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
+            expect(reimbursementAccount?.achData?.subStep).toBe(CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID);
         });
     });
 
