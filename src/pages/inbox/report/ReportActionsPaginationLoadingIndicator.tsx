@@ -20,7 +20,7 @@ function ReportActionsPaginationLoadingIndicator({direction}: ReportActionsPagin
     return (
         <View
             testID={testID}
-            style={[{height: CONST.PAGINATION_LOADING_INDICATOR_HEIGHT}, styles.alignItemsCenter, styles.justifyContentCenter, styles.pt16, styles.pb6]}
+            style={[{height: CONST.PAGINATION_LOADING_INDICATOR_HEIGHT}, styles.alignItemsCenter, styles.justifyContentCenter, styles.pt18, styles.pb6]}
             pointerEvents="none"
             accessibilityElementsHidden
             importantForAccessibility="no-hide-descendants"
