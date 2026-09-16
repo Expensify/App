@@ -1039,7 +1039,7 @@ function setContactMethodAsDefault(
     ];
 
     // Pattern C: apply all actual data changes only after server confirms success
-    const successData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT | typeof ONYXKEYS.SESSION | typeof ONYXKEYS.LOGINS | typeof ONYXKEYS.PERSONAL_DETAILS_LIST>> = [
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT | typeof ONYXKEYS.SESSION | typeof ONYXKEYS.LOGINS> | PersonalDetailsUtils.PersonalDetailsOnyxUpdate> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
@@ -1065,16 +1065,12 @@ function setContactMethodAsDefault(
                 },
             },
         },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-            value: {
-                [currentUserPersonalDetails.accountID]: {
-                    login: newDefaultContactMethod,
-                    displayName: PersonalDetailsUtils.createDisplayName(newDefaultContactMethod, currentUserPersonalDetails, formatPhoneNumber),
-                },
+        PersonalDetailsUtils.buildPersonalDetailsUpdate({
+            [currentUserPersonalDetails.accountID]: {
+                login: newDefaultContactMethod,
+                displayName: PersonalDetailsUtils.createDisplayName(newDefaultContactMethod, currentUserPersonalDetails, formatPhoneNumber),
             },
-        },
+        }),
     ];
 
     const failureData: Array<OnyxUpdate<typeof ONYXKEYS.LOGINS>> = [
@@ -1143,16 +1139,12 @@ function setHighContrastIntent(hasIntent: boolean | null) {
  * Sets a custom status
  */
 function updateCustomStatus(currentUserAccountID: number, status: Status) {
-    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.PERSONAL_DETAILS_LIST>> = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-            value: {
-                [currentUserAccountID]: {
-                    status,
-                },
+    const optimisticData: PersonalDetailsUtils.PersonalDetailsOnyxUpdate[] = [
+        PersonalDetailsUtils.buildPersonalDetailsUpdate({
+            [currentUserAccountID]: {
+                status,
             },
-        },
+        }),
     ];
 
     const parameters: UpdateStatusParams = {text: status.text, emojiCode: status.emojiCode, clearAfter: status.clearAfter};
@@ -1166,16 +1158,12 @@ function updateCustomStatus(currentUserAccountID: number, status: Status) {
  * Clears the custom status
  */
 function clearCustomStatus(currentUserAccountID: number) {
-    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.PERSONAL_DETAILS_LIST>> = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-            value: {
-                [currentUserAccountID]: {
-                    status: null, // Clearing the field
-                },
+    const optimisticData: PersonalDetailsUtils.PersonalDetailsOnyxUpdate[] = [
+        PersonalDetailsUtils.buildPersonalDetailsUpdate({
+            [currentUserAccountID]: {
+                status: null, // Clearing the field
             },
-        },
+        }),
     ];
     API.write(WRITE_COMMANDS.CLEAR_STATUS, null, {optimisticData});
 }

@@ -1059,13 +1059,8 @@ function addActions({
     }
 
     const optimisticData: Array<
-        OnyxUpdate<
-            | typeof ONYXKEYS.COLLECTION.REPORT
-            | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
-            | typeof ONYXKEYS.COLLECTION.REPORT_METADATA
-            | typeof ONYXKEYS.PERSONAL_DETAILS_LIST
-            | typeof ONYXKEYS.COLLECTION.SNAPSHOT
-        >
+        | OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.REPORT_METADATA | typeof ONYXKEYS.COLLECTION.SNAPSHOT>
+        | PersonalDetailsUtils.PersonalDetailsOnyxUpdate
     > = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -1149,11 +1144,7 @@ function addActions({
     if (DateUtils.canUpdateTimezone() && currentUserAccountID) {
         const timezone = DateUtils.getCurrentTimezone(timezoneParam);
         parameters.timezone = JSON.stringify(timezone);
-        optimisticData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-            value: {[currentUserAccountID]: {timezone}},
-        });
+        optimisticData.push(PersonalDetailsUtils.buildPersonalDetailsUpdate({[currentUserAccountID]: {timezone}}));
         DateUtils.setTimezoneUpdated();
     }
 
@@ -1582,18 +1573,19 @@ type GuidedSetupOptimisticOnyxUpdate = OnyxUpdate<
     typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.NVP_INTRO_SELECTED | typeof ONYXKEYS.NVP_ONBOARDING | typeof ONYXKEYS.COLLECTION.POLICY
 >;
 
-type GuidedSetupSuccessOnyxUpdate = OnyxUpdate<
-    typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.PERSONAL_DETAILS_LIST | typeof ONYXKEYS.NVP_ONBOARDING
->;
+type GuidedSetupSuccessOnyxUpdate =
+    | OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.NVP_ONBOARDING>
+    | PersonalDetailsUtils.PersonalDetailsOnyxUpdate;
 
-type GuidedSetupFailureOnyxUpdate = OnyxUpdate<
-    | typeof ONYXKEYS.COLLECTION.REPORT
-    | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
-    | typeof ONYXKEYS.NVP_INTRO_SELECTED
-    | typeof ONYXKEYS.NVP_ONBOARDING
-    | typeof ONYXKEYS.COLLECTION.POLICY
-    | typeof ONYXKEYS.PERSONAL_DETAILS_LIST
->;
+type GuidedSetupFailureOnyxUpdate =
+    | OnyxUpdate<
+          | typeof ONYXKEYS.COLLECTION.REPORT
+          | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
+          | typeof ONYXKEYS.NVP_INTRO_SELECTED
+          | typeof ONYXKEYS.NVP_ONBOARDING
+          | typeof ONYXKEYS.COLLECTION.POLICY
+      >
+    | PersonalDetailsUtils.PersonalDetailsOnyxUpdate;
 
 type GuidedSetupDataForOpenReport = {
     optimisticData: GuidedSetupOptimisticOnyxUpdate[];
@@ -1725,18 +1717,18 @@ function openReport(params: OpenReportActionParams) {
     const optimisticReport: Partial<Pick<Report, 'reportName'>> = hasReportActions || !existingReportName ? {} : {reportName: existingReportName};
 
     const optimisticData: Array<
-        OnyxUpdate<
-            | typeof ONYXKEYS.COLLECTION.REPORT_METADATA
-            | typeof ONYXKEYS.COLLECTION.REPORT
-            | typeof ONYXKEYS.COLLECTION.TRANSACTION
-            | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS
-            | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
-            | typeof ONYXKEYS.NVP_INTRO_SELECTED
-            | typeof ONYXKEYS.COLLECTION.POLICY
-            | typeof ONYXKEYS.NVP_ONBOARDING
-            | typeof ONYXKEYS.PERSONAL_DETAILS_LIST
-            | typeof ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE
-        >
+        | OnyxUpdate<
+              | typeof ONYXKEYS.COLLECTION.REPORT_METADATA
+              | typeof ONYXKEYS.COLLECTION.REPORT
+              | typeof ONYXKEYS.COLLECTION.TRANSACTION
+              | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS
+              | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
+              | typeof ONYXKEYS.NVP_INTRO_SELECTED
+              | typeof ONYXKEYS.COLLECTION.POLICY
+              | typeof ONYXKEYS.NVP_ONBOARDING
+              | typeof ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE
+          >
+        | PersonalDetailsUtils.PersonalDetailsOnyxUpdate
     > = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -1763,15 +1755,15 @@ function openReport(params: OpenReportActionParams) {
     }
 
     const successData: Array<
-        OnyxUpdate<
-            | typeof ONYXKEYS.COLLECTION.REPORT
-            | typeof ONYXKEYS.COLLECTION.REPORT_METADATA
-            | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
-            | typeof ONYXKEYS.COLLECTION.POLICY
-            | typeof ONYXKEYS.PERSONAL_DETAILS_LIST
-            | typeof ONYXKEYS.NVP_ONBOARDING
-            | typeof ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE
-        >
+        | OnyxUpdate<
+              | typeof ONYXKEYS.COLLECTION.REPORT
+              | typeof ONYXKEYS.COLLECTION.REPORT_METADATA
+              | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
+              | typeof ONYXKEYS.COLLECTION.POLICY
+              | typeof ONYXKEYS.NVP_ONBOARDING
+              | typeof ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE
+          >
+        | PersonalDetailsUtils.PersonalDetailsOnyxUpdate
     > = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -1793,16 +1785,16 @@ function openReport(params: OpenReportActionParams) {
     ];
 
     const failureData: Array<
-        OnyxUpdate<
-            | typeof ONYXKEYS.COLLECTION.REPORT
-            | typeof ONYXKEYS.COLLECTION.REPORT_METADATA
-            | typeof ONYXKEYS.NVP_INTRO_SELECTED
-            | typeof ONYXKEYS.NVP_ONBOARDING
-            | typeof ONYXKEYS.COLLECTION.POLICY
-            | typeof ONYXKEYS.PERSONAL_DETAILS_LIST
-            | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
-            | typeof ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE
-        >
+        | OnyxUpdate<
+              | typeof ONYXKEYS.COLLECTION.REPORT
+              | typeof ONYXKEYS.COLLECTION.REPORT_METADATA
+              | typeof ONYXKEYS.NVP_INTRO_SELECTED
+              | typeof ONYXKEYS.NVP_ONBOARDING
+              | typeof ONYXKEYS.COLLECTION.POLICY
+              | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
+              | typeof ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE
+          >
+        | PersonalDetailsUtils.PersonalDetailsOnyxUpdate
     > = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -2058,17 +2050,9 @@ function openReport(params: OpenReportActionParams) {
             },
         );
 
-        optimisticData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-            value: optimisticPersonalDetails,
-        });
+        optimisticData.push(PersonalDetailsUtils.buildPersonalDetailsUpdate(optimisticPersonalDetails));
         if (!shouldKeepPersonalDetailsOnFailure) {
-            failureData.push({
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-                value: settledPersonalDetails,
-            });
+            failureData.push(PersonalDetailsUtils.buildPersonalDetailsUpdate(settledPersonalDetails));
         }
 
         if (!isNewThread) {
@@ -2188,15 +2172,15 @@ function createGroupChat({
     };
 
     const optimisticData: Array<
-        OnyxUpdate<
-            | typeof ONYXKEYS.COLLECTION.REPORT_METADATA
-            | typeof ONYXKEYS.COLLECTION.REPORT
-            | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
-            | typeof ONYXKEYS.PERSONAL_DETAILS_LIST
-            | typeof ONYXKEYS.NVP_ONBOARDING
-            | typeof ONYXKEYS.COLLECTION.POLICY
-            | typeof ONYXKEYS.NVP_INTRO_SELECTED
-        >
+        | OnyxUpdate<
+              | typeof ONYXKEYS.COLLECTION.REPORT_METADATA
+              | typeof ONYXKEYS.COLLECTION.REPORT
+              | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
+              | typeof ONYXKEYS.NVP_ONBOARDING
+              | typeof ONYXKEYS.COLLECTION.POLICY
+              | typeof ONYXKEYS.NVP_INTRO_SELECTED
+          >
+        | PersonalDetailsUtils.PersonalDetailsOnyxUpdate
     > = [
         {
             onyxMethod: Onyx.METHOD.SET,
@@ -2220,15 +2204,15 @@ function createGroupChat({
     ];
 
     const successData: Array<
-        OnyxUpdate<
-            | typeof ONYXKEYS.COLLECTION.REPORT
-            | typeof ONYXKEYS.COLLECTION.REPORT_METADATA
-            | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
-            | typeof ONYXKEYS.COLLECTION.POLICY
-            | typeof ONYXKEYS.PERSONAL_DETAILS_LIST
-            | typeof ONYXKEYS.NVP_ONBOARDING
-            | typeof ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE
-        >
+        | OnyxUpdate<
+              | typeof ONYXKEYS.COLLECTION.REPORT
+              | typeof ONYXKEYS.COLLECTION.REPORT_METADATA
+              | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
+              | typeof ONYXKEYS.COLLECTION.POLICY
+              | typeof ONYXKEYS.NVP_ONBOARDING
+              | typeof ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE
+          >
+        | PersonalDetailsUtils.PersonalDetailsOnyxUpdate
     > = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -2262,16 +2246,16 @@ function createGroupChat({
     ];
 
     const failureData: Array<
-        OnyxUpdate<
-            | typeof ONYXKEYS.COLLECTION.REPORT
-            | typeof ONYXKEYS.COLLECTION.REPORT_METADATA
-            | typeof ONYXKEYS.NVP_INTRO_SELECTED
-            | typeof ONYXKEYS.NVP_ONBOARDING
-            | typeof ONYXKEYS.COLLECTION.POLICY
-            | typeof ONYXKEYS.PERSONAL_DETAILS_LIST
-            | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
-            | typeof ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE
-        >
+        | OnyxUpdate<
+              | typeof ONYXKEYS.COLLECTION.REPORT
+              | typeof ONYXKEYS.COLLECTION.REPORT_METADATA
+              | typeof ONYXKEYS.NVP_INTRO_SELECTED
+              | typeof ONYXKEYS.NVP_ONBOARDING
+              | typeof ONYXKEYS.COLLECTION.POLICY
+              | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
+              | typeof ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE
+          >
+        | PersonalDetailsUtils.PersonalDetailsOnyxUpdate
     > = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -2318,17 +2302,9 @@ function createGroupChat({
         settledPersonalDetails[accountID] = null;
     }
 
-    optimisticData.push({
-        onyxMethod: Onyx.METHOD.MERGE,
-        key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-        value: optimisticPersonalDetails,
-    });
+    optimisticData.push(PersonalDetailsUtils.buildPersonalDetailsUpdate(optimisticPersonalDetails));
 
-    failureData.push({
-        onyxMethod: Onyx.METHOD.MERGE,
-        key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-        value: settledPersonalDetails,
-    });
+    failureData.push(PersonalDetailsUtils.buildPersonalDetailsUpdate(settledPersonalDetails));
     failureData.push({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
@@ -5030,7 +5006,7 @@ function cleanUpOptimisticPersonalDetailsForFailedChat(report: OnyxEntry<Report>
         return;
     }
 
-    Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetailsToRemove);
+    Onyx.update([PersonalDetailsUtils.buildPersonalDetailsUpdate(personalDetailsToRemove)]);
 }
 
 function clearCreateChatError(
@@ -5577,7 +5553,7 @@ function buildInviteToRoomOnyxData(
         return participantCleanUp;
     }, {});
 
-    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_METADATA | typeof ONYXKEYS.PERSONAL_DETAILS_LIST>> = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_METADATA> | PersonalDetailsUtils.PersonalDetailsOnyxUpdate> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
@@ -5600,7 +5576,7 @@ function buildInviteToRoomOnyxData(
               (pendingMember) => !(inviteeAccountIDs.includes(Number(pendingMember.accountID)) && pendingMember.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE),
           )
         : null;
-    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_METADATA | typeof ONYXKEYS.PERSONAL_DETAILS_LIST>> = [
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_METADATA> | PersonalDetailsUtils.PersonalDetailsOnyxUpdate> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
@@ -5706,9 +5682,7 @@ function clearAddRoomMemberError(reportID: string, invitedAccountID: string) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`, {
         pendingChatMembers: reportMetadata?.pendingChatMembers?.filter((pendingChatMember) => pendingChatMember.accountID !== invitedAccountID),
     });
-    Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
-        [invitedAccountID]: null,
-    });
+    Onyx.update([PersonalDetailsUtils.buildPersonalDetailsUpdate({[invitedAccountID]: null})]);
 }
 
 function updateGroupChatMemberRoles(reportID: string, accountIDList: number[], role: ValueOf<typeof CONST.REPORT.ROLE>) {
@@ -7494,24 +7468,19 @@ function moveIOUReportToPolicyAndInviteSubmitter(
     }
 
     const optimisticData: Array<
-        OnyxUpdate<
-            | typeof ONYXKEYS.COLLECTION.POLICY
-            | typeof ONYXKEYS.PERSONAL_DETAILS_LIST
-            | typeof ONYXKEYS.COLLECTION.REPORT
-            | typeof ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS
-            | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
-            | typeof ONYXKEYS.COLLECTION.REPORT_METADATA
-            | typeof ONYXKEYS.COLLECTION.TRANSACTION
-        >
+        | OnyxUpdate<
+              | typeof ONYXKEYS.COLLECTION.POLICY
+              | typeof ONYXKEYS.COLLECTION.REPORT
+              | typeof ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS
+              | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
+              | typeof ONYXKEYS.COLLECTION.REPORT_METADATA
+              | typeof ONYXKEYS.COLLECTION.TRANSACTION
+          >
+        | PersonalDetailsUtils.PersonalDetailsOnyxUpdate
     > = [];
     const successData: Array<
-        OnyxUpdate<
-            | typeof ONYXKEYS.COLLECTION.POLICY
-            | typeof ONYXKEYS.PERSONAL_DETAILS_LIST
-            | typeof ONYXKEYS.COLLECTION.REPORT
-            | typeof ONYXKEYS.COLLECTION.REPORT_METADATA
-            | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
-        >
+        | OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_METADATA | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>
+        | PersonalDetailsUtils.PersonalDetailsOnyxUpdate
     > = [];
     const failureData: Array<
         OnyxUpdate<

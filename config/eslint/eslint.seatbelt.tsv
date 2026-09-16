@@ -556,7 +556,6 @@
 "../../src/libs/actions/__mocks__/App.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/actions/__mocks__/App.ts"	"no-restricted-syntax"	2
 "../../src/libs/actions/__mocks__/OnyxUpdates.ts"	"no-restricted-syntax"	1
-"../../src/libs/actions/Agent.ts"	"rulesdir/no-direct-personal-details-list"	9
 "../../src/libs/actions/App.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/actions/App.ts"	"no-restricted-syntax"	1
 "../../src/libs/actions/applyOnyxUpdatesReliably.ts"	"no-restricted-syntax"	1
@@ -582,7 +581,6 @@
 "../../src/libs/actions/Delegate.ts"	"rulesdir/no-direct-personal-details-list"	1
 "../../src/libs/actions/Domain.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../src/libs/actions/Domain.ts"	"no-restricted-syntax"	1
-"../../src/libs/actions/Domain.ts"	"rulesdir/no-direct-personal-details-list"	6
 "../../src/libs/actions/ExitSurvey.ts"	"no-restricted-syntax"	1
 "../../src/libs/actions/getCompanyCardBankConnection/index.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	4
 "../../src/libs/actions/getCompanyCardBankConnection/index.tsx"	"no-restricted-imports"	1
@@ -666,7 +664,7 @@
 "../../src/libs/actions/Policy/Member.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/libs/actions/Policy/Member.ts"	"no-restricted-imports"	1
 "../../src/libs/actions/Policy/Member.ts"	"no-restricted-syntax"	7
-"../../src/libs/actions/Policy/Member.ts"	"rulesdir/no-direct-personal-details-list"	2
+"../../src/libs/actions/Policy/Member.ts"	"rulesdir/no-direct-personal-details-list"	1
 "../../src/libs/actions/Policy/Member.ts"	"rulesdir/no-onyx-connect"	1
 "../../src/libs/actions/Policy/PerDiem.ts"	"no-restricted-syntax"	1
 "../../src/libs/actions/Policy/Plan.ts"	"no-restricted-syntax"	1
@@ -686,13 +684,12 @@
 "../../src/libs/actions/QueuedOnyxUpdates.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/actions/ReimbursementAccount/resetNonUSDBankAccount.ts"	"no-restricted-syntax"	1
 "../../src/libs/actions/ReimbursementAccount/resetUSDBankAccount.ts"	"no-restricted-syntax"	1
-"../../src/libs/actions/replaceOptimisticAgentWithActualAgent.ts"	"rulesdir/no-direct-personal-details-list"	1
 "../../src/libs/actions/replaceOptimisticReportWithActualReport.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/libs/actions/Report/index.ts"	"@typescript-eslint/no-deprecated/getReportTransactions"	3
 "../../src/libs/actions/Report/index.ts"	"@typescript-eslint/no-deprecated/reportAction.originalMessage"	1
 "../../src/libs/actions/Report/index.ts"	"@typescript-eslint/no-unsafe-type-assertion"	19
 "../../src/libs/actions/Report/index.ts"	"no-restricted-syntax"	7
-"../../src/libs/actions/Report/index.ts"	"rulesdir/no-direct-personal-details-list"	8
+"../../src/libs/actions/Report/index.ts"	"rulesdir/no-direct-personal-details-list"	1
 "../../src/libs/actions/Report/index.ts"	"rulesdir/no-onyx-connect"	3
 "../../src/libs/actions/Report/MarkAllMessageAsRead.tsx"	"no-restricted-syntax"	1
 "../../src/libs/actions/ReportLayout.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
@@ -703,7 +700,6 @@
 "../../src/libs/actions/Search.ts"	"@typescript-eslint/no-unsafe-type-assertion"	16
 "../../src/libs/actions/Session/index.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../src/libs/actions/Session/index.ts"	"no-restricted-syntax"	9
-"../../src/libs/actions/Session/index.ts"	"rulesdir/no-direct-personal-details-list"	1
 "../../src/libs/actions/Session/index.ts"	"rulesdir/no-onyx-connect"	2
 "../../src/libs/actions/SplitExpenses.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/libs/actions/StatsCounter.ts"	"no-restricted-syntax"	2
@@ -715,7 +711,7 @@
 "../../src/libs/actions/Task.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../src/libs/actions/Task.ts"	"no-restricted-imports"	1
 "../../src/libs/actions/Task.ts"	"no-restricted-syntax"	5
-"../../src/libs/actions/Task.ts"	"rulesdir/no-direct-personal-details-list"	2
+"../../src/libs/actions/Task.ts"	"rulesdir/no-direct-personal-details-list"	1
 "../../src/libs/actions/TaxRate.ts"	"no-restricted-syntax"	1
 "../../src/libs/actions/TeachersUnite.ts"	"no-restricted-syntax"	1
 "../../src/libs/actions/Transaction.ts"	"@typescript-eslint/no-deprecated/getReportTransactions"	2
@@ -728,7 +724,6 @@
 "../../src/libs/actions/User.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../src/libs/actions/User.ts"	"no-restricted-imports"	1
 "../../src/libs/actions/User.ts"	"no-restricted-syntax"	7
-"../../src/libs/actions/User.ts"	"rulesdir/no-direct-personal-details-list"	3
 "../../src/libs/actions/VacationDelegate.ts"	"no-restricted-syntax"	2
 "../../src/libs/actions/Wallet.ts"	"@typescript-eslint/no-unsafe-type-assertion"	4
 "../../src/libs/actions/Wallet.ts"	"no-restricted-syntax"	1
