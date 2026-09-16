@@ -67,6 +67,8 @@ function useInsightData(config: SearchTypeMenuItem | undefined) {
     const [searchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${queryJSON?.hash}`);
 
     const {isOffline} = useNetwork();
+    // The chart is built from a snapshot that no update patches, so an expense change has to move the key.
+    const [spendDataSignature] = useOnyx(ONYXKEYS.DERIVED.SPEND_DATA_SIGNATURE);
 
     const retry = () => {
         // `search.isLoading` is persisted and may be stale after a reload. Call `search()` again and let it ignore a request that is still running.
@@ -85,7 +87,7 @@ function useInsightData(config: SearchTypeMenuItem | undefined) {
         });
     };
 
-    useTabFocusedRefresh(SCREENS.HOME, [queryJSON?.hash, isOffline].join('|'), retry);
+    useTabFocusedRefresh(SCREENS.HOME, [queryJSON?.hash, isOffline, spendDataSignature?.expenses ?? 0].join('|'), retry);
 
     const sortedSections =
         searchResults?.data && queryJSON && groupBy && login
