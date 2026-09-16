@@ -161,7 +161,7 @@ describe('Quickbooks custom dimension import', () => {
         expect(screen.queryAllByRole('switch')).toHaveLength(0);
 
         // When opening an individual dimension
-        fireEvent.press(screen.getByRole('button', {name: 'Project'}));
+        fireEvent.press(screen.getByRole('button', {name: 'Project'}), {nativeEvent: {}});
 
         // Then the row navigates to its settings without saving a mapping
         expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_CUSTOM_DIMENSION.getRoute(POLICY_ID, 'project'));
