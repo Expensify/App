@@ -1,4 +1,7 @@
+import {translate} from '@libs/Localize';
+
 import CONFIG from '@src/CONFIG';
+import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 /**
@@ -50,10 +53,11 @@ function updateDocumentTitle() {
         return;
     }
     const hasUnread = unreadTotalCount !== 0;
+    const hasConciergeAttention = shouldShowConciergeFavicon();
 
     // Chrome reverts the tab title to the previous entry on back navigation; blanking it first forces a refresh.
     document.title = '';
-    const baseTitle = currentPageTitle || CONFIG.SITE_TITLE;
+    const baseTitle = hasConciergeAttention ? translate(IntlStore.getCurrentLocale(), 'concierge.hasAnAnswer') : currentPageTitle || CONFIG.SITE_TITLE;
     const titleWithUnread = hasUnread ? `(${unreadTotalCount}) ${baseTitle}` : baseTitle;
     document.title = shouldShowBranchNameInTitle && __GIT_BRANCH__ ? `[${__GIT_BRANCH__}] ${titleWithUnread}` : titleWithUnread;
 
@@ -61,7 +65,7 @@ function updateDocumentTitle() {
     if (favicon instanceof HTMLLinkElement) {
         const defaultIcon = hasUnread ? CONFIG.FAVICON.UNREAD : CONFIG.FAVICON.DEFAULT;
         // Completed replies follow the same report eligibility and read state as the ordinary icon.
-        favicon.href = shouldShowConciergeFavicon() ? CONFIG.FAVICON.CONCIERGE_UNREAD : defaultIcon;
+        favicon.href = hasConciergeAttention ? CONFIG.FAVICON.CONCIERGE_UNREAD : defaultIcon;
     }
 }
 

@@ -561,6 +561,7 @@ const translations = {
         linkedin: 'Follow us on LinkedIn',
     },
     concierge: {
+        hasAnAnswer: 'Concierge has an answer!',
         collapseReasoning: 'Collapse reasoning',
         expandReasoning: 'Expand reasoning',
         enableNotifications: {

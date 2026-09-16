@@ -525,6 +525,7 @@ const translations: TranslationDeepObject<typeof en> = {
         linkedin: 'Seguici su LinkedIn',
     },
     concierge: {
+        hasAnAnswer: 'Concierge ha una risposta!',
         collapseReasoning: 'Comprimi ragionamento',
         expandReasoning: 'Espandi ragionamento',
         enableNotifications: {prompt: 'Vuoi ricevere una notifica quando Concierge risponde?', cta: 'Notifica'},

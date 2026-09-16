@@ -6,6 +6,8 @@ import updateUnread, {setPageTitle, setUnreadUpdateCallback} from '@libs/UnreadI
 
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
+import es from '@src/languages/es';
+import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 import Onyx from 'react-native-onyx';
@@ -111,9 +113,10 @@ async function markRead(lastReadTime = finalReadTime, id = reportID) {
     await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${id}`, {reportID: id, lastReadTime});
 }
 
-describe('Concierge response favicon', () => {
+describe('Concierge response favicon and tab title', () => {
     beforeEach(async () => {
         await Onyx.clear();
+        await IntlStore.load(CONST.LOCALES.EN);
         requestChannels.length = 0;
         Object.defineProperty(globalThis, 'BroadcastChannel', {value: MockRequestChannel, configurable: true, writable: true});
         await Onyx.set(ONYXKEYS.SESSION, {accountID});
@@ -145,18 +148,33 @@ describe('Concierge response favicon', () => {
 
     it('preserves ordinary unread counts while thinking and prioritizes Concierge once streaming starts', async () => {
         expect(favicon()).toBe(CONFIG.FAVICON.DEFAULT);
+        expect(document.title).toBe('Inbox');
         await start();
         expect(favicon()).toBe(CONFIG.FAVICON.DEFAULT);
         updateUnread(2);
         expect(favicon()).toBe(CONFIG.FAVICON.UNREAD);
         emit({bodyMarkdown: ''});
         expect(favicon()).toBe(CONFIG.FAVICON.UNREAD);
+        expect(document.title).toBe('(2) Inbox');
         emit({status: 'updated', sequence: 2});
         expect(favicon()).toBe(CONFIG.FAVICON.CONCIERGE_UNREAD);
+        expect(document.title).toBe('(2) Concierge has an answer!');
         setPageTitle('Settings');
         window.dispatchEvent(new PopStateEvent('popstate'));
-        expect(document.title).toContain('(2) Settings');
+        expect(document.title).toBe('(2) Concierge has an answer!');
         expect(favicon()).toBe(CONFIG.FAVICON.CONCIERGE_UNREAD);
+        emit({status: 'failed', sequence: 3});
+        expect(document.title).toBe('(2) Settings');
+    });
+
+    it('localizes the answer title and restores the default site title when there is no page title', async () => {
+        await IntlStore.load(CONST.LOCALES.ES);
+        setPageTitle('');
+        await start();
+        emit();
+        expect(document.title).toBe(es.concierge.hasAnAnswer);
+        emit({status: 'failed', sequence: 2});
+        expect(document.title).toBe(CONFIG.SITE_TITLE);
     });
 
     it.each(['draft completion', 'the durable reply'])('honors an existing read when %s arrives first', async (completion) => {
@@ -174,6 +192,7 @@ describe('Concierge response favicon', () => {
         expect(favicon()).toBe(CONFIG.FAVICON.UNREAD);
         updateUnread(0);
         expect(favicon()).toBe(CONFIG.FAVICON.DEFAULT);
+        expect(document.title).toBe('Inbox');
         await saveResponse();
         emit({status: 'completed', sequence: 4});
         expect(favicon()).toBe(CONFIG.FAVICON.DEFAULT);
@@ -208,6 +227,7 @@ describe('Concierge response favicon', () => {
         }
         emit({status: 'completed', sequence: 2}, true);
         expect(favicon()).toBe(CONFIG.FAVICON.CONCIERGE_UNREAD);
+        expect(document.title).toBe('Concierge has an answer!');
         if (order === 'after') {
             // An unrelated unread calculation can still contain the report state from before the reply.
             updateUnread(0);
@@ -221,9 +241,11 @@ describe('Concierge response favicon', () => {
         updateUnread(1, [reportID]);
         jest.advanceTimersByTime(300000);
         expect(favicon()).toBe(CONFIG.FAVICON.CONCIERGE_UNREAD);
+        expect(document.title).toBe('(1) Concierge has an answer!');
         // A fresh snapshot still applies ordinary unread eligibility, including muted and hidden reports.
         updateUnread(0);
         expect(favicon()).toBe(CONFIG.FAVICON.DEFAULT);
+        expect(document.title).toBe('Settings');
     });
 
     it('tracks a question from another tab and clears its reply through shared read state', async () => {
@@ -329,10 +351,12 @@ describe('Concierge response favicon', () => {
         jest.advanceTimersByTime(119999);
         emit();
         expect(favicon()).toBe(CONFIG.FAVICON.CONCIERGE_UNREAD);
+        expect(document.title).toBe('Concierge has an answer!');
         jest.advanceTimersByTime(119999);
         expect(favicon()).toBe(CONFIG.FAVICON.CONCIERGE_UNREAD);
         jest.advanceTimersByTime(1);
         expect(favicon()).toBe(CONFIG.FAVICON.DEFAULT);
+        expect(document.title).toBe('Inbox');
         emit({status: 'updated', sequence: 2});
         expect(favicon()).toBe(CONFIG.FAVICON.DEFAULT);
     });
