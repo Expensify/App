@@ -2601,6 +2601,23 @@ describe('ReportActionItem', () => {
                 assertion: /fwd@test\.com/,
             },
             {
+                testTitle: 'UPDATE_OVER_LIMIT_FORWARDS_TO',
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_OVER_LIMIT_FORWARDS_TO,
+                originalMessage: {
+                    member: {email: 'member@test.com', name: 'Member', accountID: 789},
+                    overLimitForwardsTo: {email: 'overlimit@test.com', name: 'Over Limit Approver', accountID: 456},
+                    limit: 10000,
+                    currency: 'USD',
+                },
+                assertion: /overlimit@test\.com/,
+            },
+            {
+                testTitle: 'UPDATE_APPROVAL_LIMIT',
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_APPROVAL_LIMIT,
+                originalMessage: {member: {email: 'member@test.com', name: 'Member', accountID: 789}, limit: 20000, previousLimit: 10000, currency: 'USD'},
+                assertion: /member@test\.com/,
+            },
+            {
                 testTitle: 'UPDATE_AUTO_REIMBURSEMENT',
                 actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUTO_REIMBURSEMENT,
                 originalMessage: {oldLimit: 0, newLimit: 50000, currency: 'USD'},
