@@ -11,6 +11,7 @@
         {"name": "hosted", "specifier": "./config/oxlint/plugins/hosted-rules.mjs"},
         {"name": "rc", "specifier": "./config/oxlint/plugins/rc-rules.mjs"}
     ],
+    // Categories off: every rule is listed explicitly to mirror eslint.config.mjs.
     "categories": {
         "correctness": "off"
     },
@@ -597,6 +598,7 @@
                 "enforceDynamicLinks": "always"
             }
         ],
+        // Dead on both tools: after the JS override below only .ts/.mts/.cts stay in scope, and JSX does not parse there.
         "react/jsx-filename-extension": "off",
         "react/jsx-no-comment-textnodes": "error",
         "react/no-render-return-value": "error",
@@ -960,6 +962,7 @@
         {
             "files": ["**/*.ts", "**/*.tsx", "**/*.mts", "**/*.cts"],
             "rules": {
+                // Core rules the TypeScript compiler enforces; off as typescript-eslint's eslint-recommended does for TS.
                 "constructor-super": "off",
                 "getter-return": "off",
                 "no-class-assign": "off",
@@ -1041,6 +1044,8 @@
         {
             "files": ["**/*.ts", "**/*.tsx", "**/*.cts", "**/*.mts"],
             "rules": {
+                // Every "off" in this block mirrors ESLint's resolved config for TS files: TypeScript-covered core rules,
+                // and typed rules eslint-config-expensify leaves off. Parity, not coverage gaps.
                 "typescript/adjacent-overload-signatures": "error",
                 "typescript/array-type": [
                     "error",
@@ -1189,6 +1194,7 @@
         {
             "files": ["**/scripts/**", "**/server/**", "**/.github/**"],
             "rules": {
+                // CLI output; ESLint resolves no-console off for these directories too.
                 "no-console": "off"
             }
         },
@@ -1209,6 +1215,7 @@
                 "jestSetup.js"
             ],
             "rules": {
+                // Mirrors ESLint's test-file block.
                 "no-console": "off",
                 "no-await-in-loop": "off",
                 "no-import-assign": "off",
@@ -1224,6 +1231,7 @@
         {
             "files": ["**/*.ts", "**/*.tsx", "**/*.js", "**/*.jsx", "**/*.mjs", "**/*.cjs"],
             "rules": {
+                // Every "off" in this block is off in eslint.config.mjs for the same files.
                 "react-native-a11y/has-accessibility-hint": "off",
                 "react-native-a11y/has-accessibility-props": "error",
                 "react-native-a11y/has-valid-accessibility-actions": "error",
@@ -1449,6 +1457,7 @@
         {
             "files": ["**/*.js", "**/*.jsx", "**/*.mjs", "**/*.cjs"],
             "rules": {
+                // Mirrors ESLint's plain-JS block.
                 "prefer-arrow-callback": "off",
                 "lodash/import-scope": "off"
             },
@@ -1457,6 +1466,7 @@
         {
             "files": ["**/*.mjs", "**/*.cjs", ".storybook/**/*.ts", ".storybook/**/*.tsx", "config/rsbuild/**/*.ts"],
             "rules": {
+                // Node ESM, Storybook and the Rsbuild config need explicit extensions on relative imports; off in ESLint too.
                 "import/extensions": "off"
             }
         },
@@ -1525,6 +1535,8 @@
                 "you-dont-need-lodash-underscore/replace": "error",
                 "you-dont-need-lodash-underscore/omit": "error",
                 "you-dont-need-lodash-underscore/flatten": "error",
+                // throttle and clone-deep stay off as in ESLint; structuredClone, the suggested clone-deep replacement, is
+                // unsupported in Hermes (facebook/hermes#68).
                 "you-dont-need-lodash-underscore/throttle": "off",
                 "you-dont-need-lodash-underscore/is-string": "error",
                 "you-dont-need-lodash-underscore/cast-array": "error",
@@ -1542,6 +1554,7 @@
         {
             "files": [".github/**/*", "scripts/**/*", "server/**/*", "tests/**/*"],
             "rules": {
+                // Sequential awaits are fine in scripts and tests; off in eslint.config.mjs for the same directories.
                 "no-await-in-loop": "off",
                 "core/no-restricted-syntax": ["error", "ForInStatement", "LabeledStatement", "WithStatement"]
             }
@@ -1587,6 +1600,7 @@
         {
             "files": ["tests/**/*"],
             "rules": {
+                // Mirrors ESLint's tests block.
                 "import/extensions": "off",
                 "no-import-assign": "off",
                 "@dword-design/import-alias/prefer-alias": ["off"],
@@ -1773,6 +1787,7 @@
         {
             "files": ["modules/ExpensifyNitroUtils/src/**/*"],
             "rules": {
+                // Off in eslint.config.mjs for the same files.
                 "typescript/consistent-type-definitions": "off"
             }
         },
@@ -1930,6 +1945,7 @@
         {
             "files": ["src/styles/typography.ts", "src/styles/variables.ts"],
             "rules": {
+                // The typography token files are where raw font sizes and line heights are defined.
                 "rulesdir/no-raw-typography": "off"
             }
         },
@@ -2093,12 +2109,15 @@
         {
             "files": ["src/languages/**", "src/CONST/index.ts", "src/NAICS.ts"],
             "rules": {
+                // ESLint applies max-lines to src/** with these files in its ignores list.
                 "max-lines": "off"
             }
         },
         {
             "files": ["scripts/**", ".github/**"],
             "rules": {
+                // Deliberate difference, not a mirror: tsgolint's no-unsafe-* port is stricter than typescript-eslint's and this
+                // loosely typed Actions glue is where it shows. Removing this block adds 695 findings ESLint reports 0 of.
                 "typescript/no-unsafe-assignment": "off",
                 "typescript/no-unsafe-argument": "off",
                 "typescript/no-unsafe-return": "off",
@@ -2206,12 +2225,15 @@
                 "tests/utils/createSharedValueMock.ts"
             ],
             "rules": {
+                // tsgolint reports writes to deprecated properties, typescript-eslint does not (typescript-eslint#10643); off
+                // where that would flood. Costs 6 read-site findings ESLint reports in these files.
                 "typescript/no-deprecated": "off"
             }
         },
         {
             "files": ["**/*.js", "**/*.jsx", "**/*.mjs", "**/*.cjs"],
             "rules": {
+                // Typed rules off for plain JS, as typescript-eslint does; parity, not coverage gaps.
                 "typescript/await-thenable": "off",
                 "typescript/consistent-type-exports": "off",
                 "typescript/dot-notation": "off",
@@ -2275,6 +2297,8 @@
         {
             "files": ["**/*.d.ts", "**/*.d.tsx"],
             "rules": {
+                // ESLint's code-path analyzer throws on declaration files under oxlint's plugin bridge
+                // (`Cannot read properties of undefined (reading 'parent')`), and a thrown plugin fails the run.
                 "core/no-unreachable-loop": "off"
             }
         },
