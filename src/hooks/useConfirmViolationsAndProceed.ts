@@ -2,9 +2,10 @@ import {ModalActions} from '@components/Modal/Global/ModalContext';
 import SubmitViolationsBulletList from '@components/SubmitViolationsBulletList';
 
 import type {SubmitViolationsSummary} from '@libs/TransactionUtils';
+import {hasAnySubmitViolation} from '@libs/TransactionUtils';
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';
 
-import React, {useCallback} from 'react';
+import React from 'react';
 
 import useConfirmModal from './useConfirmModal';
 import {useCurrencyListActions} from './useCurrencyList';
@@ -22,66 +23,50 @@ function useConfirmViolationsAndProceed(violationsSummary: SubmitViolationsSumma
     const {convertToDisplayString} = useCurrencyListActions();
 
     const {hasSevenDayHoldViolation, hasGenericPendingRTERViolation, hasRejectedViolation, hasReportBeenRejected, otherViolations} = violationsSummary;
-    const hasAnyViolation = hasSevenDayHoldViolation || hasGenericPendingRTERViolation || hasRejectedViolation || hasReportBeenRejected || otherViolations.length > 0;
+    const hasAnyViolation = hasAnySubmitViolation(violationsSummary);
 
-    return useCallback(
-        (onProceed: () => void) => {
-            if (!hasAnyViolation) {
-                onProceed();
+    return (onProceed: () => void) => {
+        if (!hasAnyViolation) {
+            onProceed();
+            return;
+        }
+
+        const promptLines: string[] = [];
+        if (hasSevenDayHoldViolation) {
+            promptLines.push(translate('iou.sevenDayHoldSubmitDescription'));
+        }
+        if (hasGenericPendingRTERViolation) {
+            promptLines.push(translate('iou.pendingMatchSubmitDescription'));
+        }
+        if (hasRejectedViolation || hasReportBeenRejected) {
+            promptLines.push(translate('iou.rejectedExpenseSubmitDescription'));
+        }
+        for (const violation of otherViolations) {
+            const violationTranslation = ViolationsUtils.getViolationTranslation({violation, translate, dateFnsLocale, convertToDisplayString});
+            if (!violationTranslation) {
+                continue;
+            }
+            promptLines.push(violationTranslation);
+        }
+
+        showConfirmModal({
+            title: translate('iou.pendingMatchSubmitTitle'),
+            prompt: React.createElement(SubmitViolationsBulletList, {header: translate('iou.submitReportPolicyViolationsDescription'), items: promptLines}),
+            confirmText: translate('iou.submitAnyway'),
+            cancelText: translate('common.cancel'),
+        }).then((result) => {
+            if (result.action !== ModalActions.CONFIRM) {
                 return;
             }
-
-            const promptLines: string[] = [];
-            if (hasSevenDayHoldViolation) {
-                promptLines.push(translate('iou.sevenDayHoldSubmitDescription'));
+            if (hasSevenDayHoldViolation || hasGenericPendingRTERViolation) {
+                onMarkPendingRTERTransactionsAsCash();
             }
-            if (hasGenericPendingRTERViolation) {
-                promptLines.push(translate('iou.pendingMatchSubmitDescription'));
+            if (hasRejectedViolation) {
+                onMarkRejectedTransactionsAsResolved();
             }
-            if (hasRejectedViolation || hasReportBeenRejected) {
-                promptLines.push(translate('iou.rejectedExpenseSubmitDescription'));
-            }
-            for (const violation of otherViolations) {
-                const violationTranslation = ViolationsUtils.getViolationTranslation({violation, translate, dateFnsLocale, convertToDisplayString});
-                if (!violationTranslation) {
-                    continue;
-                }
-                promptLines.push(violationTranslation);
-            }
-
-            showConfirmModal({
-                title: translate('iou.pendingMatchSubmitTitle'),
-                prompt: React.createElement(SubmitViolationsBulletList, {header: translate('iou.submitReportPolicyViolationsDescription'), items: promptLines}),
-                confirmText: translate('iou.submitAnyway'),
-                cancelText: translate('common.cancel'),
-            }).then((result) => {
-                if (result.action !== ModalActions.CONFIRM) {
-                    return;
-                }
-                if (hasSevenDayHoldViolation || hasGenericPendingRTERViolation) {
-                    onMarkPendingRTERTransactionsAsCash();
-                }
-                if (hasRejectedViolation) {
-                    onMarkRejectedTransactionsAsResolved();
-                }
-                onProceed();
-            });
-        },
-        [
-            hasAnyViolation,
-            hasSevenDayHoldViolation,
-            hasGenericPendingRTERViolation,
-            hasRejectedViolation,
-            hasReportBeenRejected,
-            otherViolations,
-            showConfirmModal,
-            translate,
-            dateFnsLocale,
-            convertToDisplayString,
-            onMarkPendingRTERTransactionsAsCash,
-            onMarkRejectedTransactionsAsResolved,
-        ],
-    );
+            onProceed();
+        });
+    };
 }
 
 export default useConfirmViolationsAndProceed;

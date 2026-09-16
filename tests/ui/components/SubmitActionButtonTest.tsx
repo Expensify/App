@@ -7,6 +7,7 @@ import useOnyx from '@hooks/useOnyx';
 
 import {isSubmitPolicy} from '@libs/PolicyUtils';
 import {hasOnlyHeldExpenses, hasViolations, shouldBlockSubmitDueToPreventSelfApproval, shouldBlockSubmitDueToStrictPolicyRules} from '@libs/ReportUtils';
+import type {SubmitViolationsSummary} from '@libs/TransactionUtils';
 import {
     getSubmitViolationsSummary,
     getTransactionViolations,
@@ -117,6 +118,15 @@ jest.mock('@libs/TransactionUtils', () => ({
         hasReportBeenRejected: false,
         otherViolations: [],
     })),
+    // Mirrors the real implementation so the value stays derived from whatever getSubmitViolationsSummary returns
+    hasAnySubmitViolation: jest.fn(
+        (summary: SubmitViolationsSummary) =>
+            summary.hasSevenDayHoldViolation ||
+            summary.hasGenericPendingRTERViolation ||
+            summary.hasRejectedViolation ||
+            summary.hasReportBeenRejected ||
+            summary.otherViolations.length > 0,
+    ),
     showPendingCardTransactionsBlockModal: jest.fn(),
     showHeldExpensesBlockModal: jest.fn(),
 }));

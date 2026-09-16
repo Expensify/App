@@ -27,7 +27,7 @@ import {hasDynamicExternalWorkflow, isSubmitPolicy} from '@libs/PolicyUtils';
 import {getFilteredReportActionsForReportView} from '@libs/ReportActionsUtils';
 import {isSubmitViaPDFAction} from '@libs/ReportPrimaryActionUtils';
 import {hasViolations as hasViolationsReportUtils, shouldBlockSubmitDueToPreventSelfApproval, shouldBlockSubmitDueToStrictPolicyRules, shouldShowMarkAsDone} from '@libs/ReportUtils';
-import {getSubmitViolationsSummary, hasOnlyPendingCardTransactions, showPendingCardTransactionsBlockModal} from '@libs/TransactionUtils';
+import {getSubmitViolationsSummary, hasAnySubmitViolation, hasOnlyPendingCardTransactions, showPendingCardTransactionsBlockModal} from '@libs/TransactionUtils';
 
 import {markRejectedTransactionsAsResolved} from '@userActions/IOU/RejectMoneyRequest';
 import {retractReport, setPreferredReportSubmissionMethod, submitReport} from '@userActions/IOU/ReportWorkflow';
@@ -101,12 +101,7 @@ function SubmitPrimaryActionContent({reportID}: SubmitPrimaryActionProps) {
     const transactions = Object.values(reportTransactions);
     const hasViolations = hasViolationsReportUtils(moneyRequestReport?.reportID, allTransactionViolations, accountID, email ?? '');
     const violationsSummary = getSubmitViolationsSummary(transactions, allTransactionViolations, email ?? '', accountID, moneyRequestReport, submitterLogin, policy);
-    const shouldResolveAcknowledgedViolations =
-        violationsSummary.hasSevenDayHoldViolation ||
-        violationsSummary.hasGenericPendingRTERViolation ||
-        violationsSummary.hasRejectedViolation ||
-        violationsSummary.hasReportBeenRejected ||
-        violationsSummary.otherViolations.length > 0;
+    const shouldResolveAcknowledgedViolations = hasAnySubmitViolation(violationsSummary);
     const isDEWSubmission = hasDynamicExternalWorkflow(policy);
 
     const handleMarkPendingRTERTransactionsAsCash = () => {

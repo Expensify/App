@@ -22,7 +22,7 @@ import {
 } from '@libs/ReportUtils';
 import refreshSearchAfterReportAction from '@libs/SearchRefreshUtils';
 import showConfirmModalAfterMoreMenuDismiss from '@libs/showConfirmModalAfterMoreMenuDismiss';
-import {getSubmitViolationsSummary, hasOnlyPendingCardTransactions, showHeldExpensesBlockModal, showPendingCardTransactionsBlockModal} from '@libs/TransactionUtils';
+import {getSubmitViolationsSummary, hasAnySubmitViolation, hasOnlyPendingCardTransactions, showHeldExpensesBlockModal, showPendingCardTransactionsBlockModal} from '@libs/TransactionUtils';
 
 import {cancelPayment, markReportPaymentReceived} from '@userActions/IOU/PayMoneyRequest';
 import {markRejectedTransactionsAsResolved} from '@userActions/IOU/RejectMoneyRequest';
@@ -166,12 +166,7 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
     const isAnyTransactionOnHold = hasHeldExpensesReportUtils(transactions);
 
     const violationsSummary = getSubmitViolationsSummary(transactions, allTransactionViolations, email ?? '', accountID, moneyRequestReport, submitterLogin, policy);
-    const shouldResolveAcknowledgedViolations =
-        violationsSummary.hasSevenDayHoldViolation ||
-        violationsSummary.hasGenericPendingRTERViolation ||
-        violationsSummary.hasRejectedViolation ||
-        violationsSummary.hasReportBeenRejected ||
-        violationsSummary.otherViolations.length > 0;
+    const shouldResolveAcknowledgedViolations = hasAnySubmitViolation(violationsSummary);
 
     const handleMarkPendingRTERTransactionsAsCash = () => {
         markPendingRTERTransactionsAsCash(transactions, allTransactionViolations, reportActions);

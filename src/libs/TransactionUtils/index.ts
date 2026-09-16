@@ -2030,8 +2030,9 @@ function hasTransactionBeenRejected(transactionViolations: OnyxEntry<Transaction
 }
 
 /**
- * Check if a single violation is a pending (unmatched) RTER violation — i.e. still awaiting a card match and not a
- * broken card connection (which is surfaced separately, since a broken connection has no cash-matching resolution).
+ * Check if a single violation is a pending (unmatched) RTER violation, meaning it is still awaiting a card match
+ * and is not a broken card connection. A broken connection is surfaced separately because it has no cash-matching
+ * resolution.
  */
 function isPendingRTERViolation(violation: TransactionViolation): boolean {
     return violation.name === CONST.VIOLATIONS.RTER && !!violation.data?.pendingPattern && !isBrokenConnectionViolation(violation);
@@ -2075,7 +2076,7 @@ type SubmitViolationsSummary = {
     hasSevenDayHoldViolation: boolean;
     /**
      * Whether any transaction has a recently-pending (non-broken-connection, non-seven-day-hold) RTER violation.
-     * This predates #101213 — the pre-existing "mark as cash" resolution for this case is preserved as-is.
+     * This predates #101213. The pre-existing "mark as cash" resolution for this case is preserved as-is.
      */
     hasGenericPendingRTERViolation: boolean;
     /** Whether any transaction has been rejected by an approver and not yet marked as resolved. */
@@ -2090,10 +2091,10 @@ export type {SubmitViolationsSummary};
 
 /**
  * Categorizes a report's non-dismissed transaction violations, plus the whole-report-rejected state, for the
- * pre-submit acknowledgement modal: violations with a known one-click resolution (seven-day hold / generic pending
- * RTER -> mark as cash, rejected expense -> mark as resolved) are tracked as booleans so the modal can offer that
- * resolution; everything else (including a whole-report rejection, which has no resolution beyond resubmitting) is
- * collected for display only.
+ * pre-submit acknowledgement modal. Violations with a known one-click resolution (seven-day hold or generic pending
+ * RTER resolve to "mark as cash", rejected expense resolves to "mark as resolved") are tracked as booleans so the
+ * modal can offer that resolution. Everything else, including a whole-report rejection that has no resolution beyond
+ * resubmitting, is collected for display only.
  */
 function getSubmitViolationsSummary(
     transactions: Array<OnyxEntry<Transaction>>,
@@ -2145,6 +2146,19 @@ function getSubmitViolationsSummary(
         hasReportBeenRejected,
         otherViolations: Array.from(otherViolationsByName.values()),
     };
+}
+
+/**
+ * Whether a summary contains any violation that blocks submitting until the user acknowledges it.
+ */
+function hasAnySubmitViolation(summary: SubmitViolationsSummary): boolean {
+    return (
+        summary.hasSevenDayHoldViolation ||
+        summary.hasGenericPendingRTERViolation ||
+        summary.hasRejectedViolation ||
+        summary.hasReportBeenRejected ||
+        summary.otherViolations.length > 0
+    );
 }
 
 /**
@@ -3966,6 +3980,7 @@ export {
     isBrokenConnectionViolation,
     isSevenDayHoldViolation,
     getSubmitViolationsSummary,
+    hasAnySubmitViolation,
     shouldSuppressBrokenConnectionStatus,
     shouldShowBrokenConnectionViolation,
     shouldShowBrokenConnectionViolationForMultipleTransactions,

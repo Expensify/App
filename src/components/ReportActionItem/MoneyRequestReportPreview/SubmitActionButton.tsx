@@ -22,6 +22,7 @@ import {
 import {
     getSubmitViolationsSummary,
     getTransactionViolations,
+    hasAnySubmitViolation,
     hasOnlyPendingCardTransactions,
     showHeldExpensesBlockModal,
     showPendingCardTransactionsBlockModal,
@@ -96,12 +97,7 @@ function SubmitActionButtonContent() {
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const hasViolations = hasViolationsReportUtils(iouReport?.reportID, transactionViolations, currentUserAccountID, currentUserEmail, undefined, transactions);
     const violationsSummary = getSubmitViolationsSummary(transactions, transactionViolations, currentUserEmail, currentUserAccountID, iouReport, submitterLogin, policy);
-    const shouldResolveAcknowledgedViolations =
-        violationsSummary.hasSevenDayHoldViolation ||
-        violationsSummary.hasGenericPendingRTERViolation ||
-        violationsSummary.hasRejectedViolation ||
-        violationsSummary.hasReportBeenRejected ||
-        violationsSummary.otherViolations.length > 0;
+    const shouldResolveAcknowledgedViolations = hasAnySubmitViolation(violationsSummary);
     const isDEWSubmission = hasDynamicExternalWorkflow(policy);
 
     const handleMarkPendingRTERTransactionsAsCash = () => {
