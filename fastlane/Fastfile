@@ -174,7 +174,7 @@ platform :android do
     # Google is very unreliable, so we retry a few times
     ENV["SUPPLY_UPLOAD_MAX_RETRIES"]="5"
 
-    # Production artifact. alpha only holds it until the production deploy promotes it; no tester is on alpha.
+    # Later promoted to production.
     upload_to_play_store(
       package_name: ENV["ANDROID_PACKAGE_NAME"],
       json_key: './android-fastlane-json-key.json',
