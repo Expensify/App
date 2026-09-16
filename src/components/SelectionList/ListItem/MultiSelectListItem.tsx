@@ -1,5 +1,3 @@
-import ListItemComposed from '@components/SelectionList/ListItemComposed';
-
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import CONST from '@src/CONST';
@@ -40,19 +38,7 @@ function MultiSelectListItem<TItem extends ListItem>({
 
     return (
         <BaseSelectListItem
-            item={
-                icon
-                    ? {
-                          ...item,
-                          leftElement: (
-                              <ListItemComposed.CompactAvatar
-                                  icon={icon}
-                                  style={styles.mr3}
-                              />
-                          ),
-                      }
-                    : item
-            }
+            item={item}
             isFocused={isFocused}
             isFocusVisible={isFocusVisible}
             showTooltip={showTooltip}

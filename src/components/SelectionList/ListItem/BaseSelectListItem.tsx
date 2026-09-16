@@ -16,6 +16,7 @@ import SelectableListItem from './SelectableListItem';
 
 /**
  * A text-only row with a title and optional subtitle. Serves as the base for SingleSelectListItem and MultiSelectListItem.
+ * The text column is preceded by a compact avatar of the item's first icon, or by `item.leftElement` when there is none.
  */
 function BaseSelectListItem<TItem extends ListItem>({
     item,
@@ -41,6 +42,7 @@ function BaseSelectListItem<TItem extends ListItem>({
 }: ListItemProps<TItem>) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
+    const icon = item.icons?.at(0);
     const fullTitle = isMultilineSupported ? item.text?.trimStart() : item.text;
     const indentsLength = (item.text?.length ?? 0) - (fullTitle?.length ?? 0);
     const paddingLeft = Math.floor(indentsLength / CONST.INDENTS.length) * styles.ml3.marginLeft;
@@ -80,7 +82,14 @@ function BaseSelectListItem<TItem extends ListItem>({
             selectionButtonPosition={selectionButtonPosition}
         >
             <>
-                {item.leftElement}
+                {icon ? (
+                    <ListItemComposed.CompactAvatar
+                        icon={icon}
+                        style={styles.mr3}
+                    />
+                ) : (
+                    item.leftElement
+                )}
                 <View style={[styles.flex1, styles.alignItemsStart, !!item.rightElement && styles.pr3]}>
                     <ListItemComposed.Title
                         text={fullTitle ?? ''}
