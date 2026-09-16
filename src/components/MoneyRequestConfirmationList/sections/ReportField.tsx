@@ -20,9 +20,10 @@ import type {Participant} from '@src/types/onyx/IOU';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
+import {createOutstandingReportsForPolicySelector} from '@selectors/Report';
 import React from 'react';
 
-import {createOutstandingReportsForPolicySelector, reportFieldTransactionStateSelector} from './selectors';
+import {reportFieldTransactionStateSelector} from './selectors';
 import useTransactionSelector from './useTransactionSelector';
 
 type ReportFieldProps = {
