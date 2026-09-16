@@ -5,8 +5,6 @@ import type {MeasurableInput, SelectionListWithSectionsHandle} from '@components
 
 import useAttendees from '@hooks/useAttendees';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
-import usePolicyForTransaction from '@hooks/usePolicyForTransaction';
 import usePrevious from '@hooks/usePrevious';
 
 import {isCategoryDescriptionRequired} from '@libs/CategoryUtils';
@@ -31,11 +29,10 @@ import {useCallback, useEffect, useRef, useState} from 'react';
 import type useDistanceRequestState from './useDistanceRequestState';
 
 import useConfirmationAmount from './useConfirmationAmount';
+import useConfirmationPolicyData from './useConfirmationPolicyData';
 import useConfirmationValidation from './useConfirmationValidation';
 import useFormErrorManagement from './useFormErrorManagement';
 import useParticipantSection from './useParticipantSection';
-import usePolicyCategoriesForConfirmation from './usePolicyCategoriesForConfirmation';
-import usePolicyTagsForConfirmation from './usePolicyTagsForConfirmation';
 import useTransactionReportForConfirmation from './useTransactionReportForConfirmation';
 
 /**
@@ -168,22 +165,20 @@ function useConfirmationListData({
         prevCurrency,
     }: Partial<ConfirmationDistanceState> = distanceState ?? {};
 
-    const policyCategories = usePolicyCategoriesForConfirmation(policyID);
-    const {policyTags, policyTagLists} = usePolicyTagsForConfirmation(policyID);
     const transactionReport = useTransactionReportForConfirmation(transaction?.reportID);
-    const {shouldSelectPolicy} = usePolicyForMovingExpenses();
+    const {policy, policyCategories, policyTags, policyTagLists, shouldSelectPolicy} = useConfirmationPolicyData({
+        transaction,
+        policyID,
+        action,
+        iouType,
+        isPerDiemRequest,
+    });
+
     const isMovingTransactionFromTrackExpense = isMovingTransactionFromTrackExpenseUtil(action);
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
 
     const isTrackExpense = iouType === CONST.IOU.TYPE.TRACK;
-    const {policy} = usePolicyForTransaction({
-        transaction,
-        reportPolicyID: policyID,
-        action,
-        iouType,
-        isPerDiemRequest,
-    });
 
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const listRef = useRef<SelectionListWithSectionsHandle>(null);
