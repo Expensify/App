@@ -463,6 +463,13 @@ type TaxCode = {
  * TODO: QBO remaining comments will be handled here (https://github.com/Expensify/App/issues/43033)
  */
 type QBOConnectionData = {
+    /** Custom dimensions available in the connected IES entity */
+    customDimensions?: Array<{
+        id: string;
+        label: string;
+        active: boolean;
+    }>;
+
     /** Country code */
     country: ValueOf<typeof CONST.COUNTRY>;
 
@@ -587,6 +594,9 @@ type QBOConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
 
     /** Whether Quickbooks Online classes should be imported */
     syncClasses: IntegrationEntityMap;
+
+    /** Import mappings keyed by the connected IES entity's custom dimension IDs */
+    syncCustomDimensions?: Record<string, typeof CONST.INTEGRATION_ENTITY_MAP_TYPES.TAG | typeof CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE>;
 
     /** Whether Quickbooks Online customers should be imported */
     syncCustomers: IntegrationEntityMap;
