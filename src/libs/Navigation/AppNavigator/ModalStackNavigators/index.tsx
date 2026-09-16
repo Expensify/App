@@ -1324,9 +1324,9 @@ const SearchReportActionsModalStackNavigator = createModalStackNavigator<SearchR
 });
 
 const MergeATSApprovalModalStackNavigator = createModalStackNavigator<MergeATSApprovalNavigatorParamList>({
-    [SCREENS.WORKSPACE.RECRUITING_MERGE_APPROVAL_MODE]: () => require<ReactComponentModule>('../../../../pages/workspace/recruiting/MergeATSApprovalModePage').default,
-    [SCREENS.WORKSPACE.RECRUITING_MERGE_APPROVER_FIELD]: () => require<ReactComponentModule>('../../../../pages/workspace/recruiting/MergeATSApproverFieldPage').default,
-    [SCREENS.WORKSPACE.RECRUITING_MERGE_FINAL_APPROVER]: () => require<ReactComponentModule>('../../../../pages/workspace/recruiting/MergeATSFinalApproverPage').default,
+    [SCREENS.WORKSPACE.RECRUITING_MERGE_APPROVAL_MODE]: () => require<ReactComponentModule>('../../../../pages/workspace/recruiting/approver/MergeATSApprovalModePage').default,
+    [SCREENS.WORKSPACE.RECRUITING_MERGE_APPROVER_FIELD]: () => require<ReactComponentModule>('../../../../pages/workspace/recruiting/approver/MergeATSApproverFieldPage').default,
+    [SCREENS.WORKSPACE.RECRUITING_MERGE_FINAL_APPROVER]: () => require<ReactComponentModule>('../../../../pages/workspace/recruiting/approver/MergeATSFinalApproverPage').default,
 });
 
 const SearchAdvancedFiltersModalStackNavigator = createModalStackNavigator({

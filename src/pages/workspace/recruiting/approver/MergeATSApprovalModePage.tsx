@@ -24,6 +24,7 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {MergeATSApprovalNavigatorParamList} from '@libs/Navigation/types';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+import {getApproverFieldName} from '@pages/workspace/recruiting/utils';
 
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
@@ -36,7 +37,6 @@ import type {ATSApprovalMode} from './MergeATSApprovalDraftContext';
 
 import {useMergeATSApprovalDraftActions, useMergeATSApprovalDraftState} from './MergeATSApprovalDraftContext';
 import MergeATSFinalApproverMenuItem from './MergeATSFinalApproverMenuItem';
-import {getApproverFieldName} from './utils';
 
 type MergeATSApprovalModePageProps = PlatformStackScreenProps<MergeATSApprovalNavigatorParamList, typeof SCREENS.WORKSPACE.RECRUITING_MERGE_APPROVAL_MODE>;
 

@@ -17,6 +17,7 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {MergeATSApprovalNavigatorParamList} from '@libs/Navigation/types';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+import {getApproverFieldName} from '@pages/workspace/recruiting/utils';
 
 import CONST from '@src/CONST';
 import type SCREENS from '@src/SCREENS';
@@ -26,7 +27,6 @@ import React from 'react';
 import {View} from 'react-native';
 
 import {useMergeATSApprovalDraftActions, useMergeATSApprovalDraftState} from './MergeATSApprovalDraftContext';
-import {getApproverFieldName} from './utils';
 
 type MergeATSApproverFieldPageProps = PlatformStackScreenProps<MergeATSApprovalNavigatorParamList, typeof SCREENS.WORKSPACE.RECRUITING_MERGE_APPROVER_FIELD>;
 
