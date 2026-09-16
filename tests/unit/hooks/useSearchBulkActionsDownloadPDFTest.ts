@@ -270,6 +270,7 @@ describe('useSearchBulkActions - Download as PDF', () => {
                 reportID: '1',
                 policyID: 'policy1',
                 amount: 100,
+                displayAmount: 100,
                 currency: 'USD',
                 isFromOneTransactionReport: false,
             },
@@ -299,6 +300,7 @@ describe('useSearchBulkActions - Download as PDF', () => {
                 reportID: '1',
                 policyID: 'policy1',
                 amount: 100,
+                displayAmount: 100,
                 currency: 'USD',
                 isFromOneTransactionReport: false,
             },
@@ -336,6 +338,7 @@ describe('useSearchBulkActions - Download as PDF', () => {
                 reportID: '1',
                 policyID: 'policy1',
                 amount: 100,
+                displayAmount: 100,
                 currency: 'USD',
                 isFromOneTransactionReport: false,
             },
@@ -378,6 +381,7 @@ describe('useSearchBulkActions - Download as PDF', () => {
                 reportID: '1',
                 policyID: 'policy1',
                 amount: 100,
+                displayAmount: 100,
                 currency: 'USD',
                 isFromOneTransactionReport: false,
             },
@@ -394,6 +398,7 @@ describe('useSearchBulkActions - Download as PDF', () => {
                 reportID: '2',
                 policyID: 'policy1',
                 amount: 200,
+                displayAmount: 200,
                 currency: 'USD',
                 isFromOneTransactionReport: false,
             },
@@ -429,6 +434,7 @@ describe('useSearchBulkActions - Download as PDF', () => {
                 reportID: '1',
                 policyID: 'policy1',
                 amount: 100,
+                displayAmount: 100,
                 currency: 'USD',
                 isFromOneTransactionReport: false,
             },
@@ -445,6 +451,7 @@ describe('useSearchBulkActions - Download as PDF', () => {
                 reportID: '2',
                 policyID: 'policy1',
                 amount: 200,
+                displayAmount: 200,
                 currency: 'USD',
                 isFromOneTransactionReport: false,
             },
@@ -464,7 +471,6 @@ describe('useSearchBulkActions - Download as PDF', () => {
         expect(exportReportsToPDF).toHaveBeenCalledTimes(1);
         expect(exportReportsToPDF).toHaveBeenCalledWith(expect.arrayContaining(['1', '2']));
         expect(exportReportToPDF).not.toHaveBeenCalled();
-        expect(result.current.exportDownloadStatusModal).not.toBeNull();
     });
 
     it('should show Export as PDF for selected Expensify Card settlement groups', async () => {

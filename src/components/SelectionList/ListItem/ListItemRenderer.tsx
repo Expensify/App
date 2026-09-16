@@ -12,7 +12,7 @@ import React from 'react';
 
 import type {ExtendedTargetedEvent, ListItem, SelectableListItemProps} from './types';
 
-type ListItemRendererProps<TItem extends ListItem> = Omit<SelectableListItemProps<TItem>, 'onSelectRow' | 'keyForList'> &
+type ListItemRendererProps<TItem extends ListItem> = Omit<SelectableListItemProps<TItem>, 'onSelectRow'> &
     Pick<SelectionListProps<TItem>, 'ListItem' | 'shouldIgnoreFocus' | 'shouldSingleExecuteRowSelect'> & {
         index: number;
         normalizedIndex?: number;
@@ -21,6 +21,7 @@ type ListItemRendererProps<TItem extends ListItem> = Omit<SelectableListItemProp
         singleExecution: ReturnType<typeof useSingleExecution>['singleExecution'];
         titleStyles?: StyleProp<TextStyle>;
         titleContainerStyles?: StyleProp<ViewStyle>;
+        isFirstItem?: boolean;
         isLastItem?: boolean;
         shouldHighlightSelectedItem?: boolean;
         shouldPreventEnterKeySubmit?: boolean;
@@ -55,9 +56,9 @@ function ListItemRenderer<TItem extends ListItem>({
     shouldHighlightSelectedItem,
     isFocusVisible,
     shouldDisableHoverStyle,
-    shouldShowRightCaret,
     selectionButtonPosition,
     errorRowStyles,
+    isFirstItem,
     isLastItem,
     shouldPreventEnterKeySubmit = true,
 }: ListItemRendererProps<TItem>) {
@@ -89,7 +90,6 @@ function ListItemRenderer<TItem extends ListItem>({
                 onDismissError={() => onDismissError?.(item)}
                 shouldPreventEnterKeySubmit={shouldPreventEnterKeySubmit}
                 rightHandSideComponent={rightHandSideComponent}
-                keyForList={item.keyForList}
                 isMultilineSupported={isMultilineSupported}
                 isAlternateTextMultilineSupported={isAlternateTextMultilineSupported}
                 alternateTextNumberOfLines={alternateTextNumberOfLines}
@@ -112,8 +112,8 @@ function ListItemRenderer<TItem extends ListItem>({
                 shouldHighlightSelectedItem={shouldHighlightSelectedItem}
                 isFocusVisible={isFocusVisible}
                 shouldDisableHoverStyle={shouldDisableHoverStyle}
-                shouldShowRightCaret={shouldShowRightCaret}
                 selectionButtonPosition={selectionButtonPosition}
+                isFirstItem={isFirstItem}
                 isLastItem={isLastItem}
             />
             {item.footerContent && item.footerContent}

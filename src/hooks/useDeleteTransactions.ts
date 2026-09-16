@@ -105,6 +105,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
     const [selfDMReportID] = useOnyx(ONYXKEYS.SELF_DM_REPORT_ID);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const {policyForMovingExpenses} = usePolicyForMovingExpenses();
     const personalPolicy = usePersonalPolicy();
     const restrictedActionPolicyID = useRestrictedActionPolicyID(policy);
@@ -327,6 +328,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
                     delegateAccountID,
                     isTrackIntentUser,
                     formatPhoneNumber,
+                    rules,
                 });
             }
 
@@ -363,6 +365,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
                         chatReportID: candidateIOUReport?.reportID,
                         chatReport: candidateIOUReport,
                         chatReportActions: selfDMReportActions,
+                        transactionThreadReportActions: allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${action?.childReportID}`],
                         transactionID,
                         reportAction: action,
                         iouReport: undefined,
@@ -392,6 +395,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
                     transactionID,
                     reportAction: action,
                     transactionThreadReport,
+                    transactionThreadReportActions: allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReport?.reportID}`],
                     transactions: duplicateTransactions,
                     violations: duplicateTransactionViolations,
                     iouReport,
@@ -450,6 +454,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
             formatPhoneNumber,
             getCurrencyDecimals,
             getCurrencySymbol,
+            rules,
         ],
     );
 

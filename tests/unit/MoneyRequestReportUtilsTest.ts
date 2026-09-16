@@ -14,7 +14,6 @@ const policyBaseMock: Policy = {
     outputCurrency: 'USD',
     type: 'team',
     owner: 'admin@test.com',
-    isPolicyExpenseChatEnabled: true,
 };
 
 const reportBaseMock: Report = {

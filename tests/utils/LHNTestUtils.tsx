@@ -249,7 +249,6 @@ function getFakePolicy(id = '1', name = 'Workspace-Test-001'): Policy {
         outputCurrency: 'BRL',
         avatarURL: '',
         employeeList: {},
-        isPolicyExpenseChatEnabled: true,
         lastModified: '1697323926777105',
         autoReporting: true,
         autoReportingFrequency: 'immediate',

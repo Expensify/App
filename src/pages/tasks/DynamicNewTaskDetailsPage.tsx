@@ -5,6 +5,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TextInput from '@components/TextInput';
 
+import useAccountIDToNameMap from '@hooks/useAccountIDToNameMap';
 import useAncestors from '@hooks/useAncestors';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -45,13 +46,14 @@ function DynamicNewTaskDetailsPage() {
     });
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const accountIDToName = useAccountIDToNameMap();
     const [localTitle, setLocalTitle] = useState<string>();
     const [localDescription, setLocalDescription] = useState<string>();
-    const taskTitle = localTitle ?? Parser.htmlToMarkdown(Parser.replace(task?.title ?? ''));
-    const taskDescription = localDescription ?? Parser.htmlToMarkdown(Parser.replace(task?.description ?? ''));
+    const taskTitle = localTitle ?? Parser.htmlToMarkdown(Parser.replace(task?.title ?? ''), {accountIDToName});
+    const taskDescription = localDescription ?? Parser.htmlToMarkdown(Parser.replace(task?.description ?? ''), {accountIDToName});
 
-    const titleDefaultValue = Parser.htmlToMarkdown(Parser.replace(taskTitle));
-    const descriptionDefaultValue = Parser.htmlToMarkdown(Parser.replace(taskDescription));
+    const titleDefaultValue = Parser.htmlToMarkdown(Parser.replace(taskTitle), {accountIDToName});
+    const descriptionDefaultValue = Parser.htmlToMarkdown(Parser.replace(taskDescription), {accountIDToName});
     const {inputCallbackRef} = useAutoFocusInput();
 
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.NEW_TASK_DETAILS.path);

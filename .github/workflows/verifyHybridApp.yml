@@ -89,4 +89,5 @@ jobs:
     with:
       ref: ${{ github.event.pull_request.head.sha }}
       variant: Release
+      download-dsyms: true
     secrets: inherit

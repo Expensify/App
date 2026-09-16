@@ -62,8 +62,11 @@ const addSkewList = new Set<string>([WRITE_COMMANDS.OPEN_REPORT, SIDE_EFFECT_REQ
 /**
  * Per-command server response messages we recognize as the PHP-wrapped "AlreadyCreated" error.
  * Add new variants here as we discover them for other non-idempotent commands.
+ *
+ * DUPLICATE_RECORD is also listed here because the API layer can re-wrap Auth's 400 as a 666. Without it,
+ * that form matches neither guard and a record that already exists on the server gets rolled back.
  */
-const ALREADY_CREATED_MESSAGES = new Set<string>([CONST.ERROR_TITLE.ALREADY_CREATED_TRANSACTION, CONST.ERROR_TITLE.ALREADY_PAID]);
+const ALREADY_CREATED_MESSAGES = new Set<string>([CONST.ERROR_TITLE.ALREADY_CREATED_TRANSACTION, CONST.ERROR_TITLE.ALREADY_PAID, CONST.ERROR_TITLE.DUPLICATE_RECORD]);
 
 /**
  * Regex to get API command from the command
@@ -213,6 +216,16 @@ function processHTTPRequest<TKey extends OnyxKey>(
                     message: CONST.ERROR.EXPENSIFY_SERVICE_INTERRUPTED,
                     status: CONST.JSON_CODE.EXP_ERROR.toString(),
                     title: CONST.ERROR_TITLE.SOCKET,
+                    requestID: response.requestID,
+                });
+            }
+
+            // The server sheds writes during instability with an app-level 503, which asks us to try again shortly
+            if (response.jsonCode === CONST.JSON_CODE.SERVICE_UNAVAILABLE) {
+                throw new HttpsError({
+                    message: CONST.ERROR.SERVICE_UNAVAILABLE,
+                    status: CONST.JSON_CODE.SERVICE_UNAVAILABLE.toString(),
+                    title: CONST.ERROR_TITLE.SERVICE_UNAVAILABLE,
                     requestID: response.requestID,
                 });
             }

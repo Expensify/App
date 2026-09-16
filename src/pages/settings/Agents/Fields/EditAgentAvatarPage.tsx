@@ -1,7 +1,7 @@
 import AttachmentPicker from '@components/AttachmentPicker';
 import UserAvatar from '@components/Avatar/UserAvatar';
 import AvatarPageFooter from '@components/AvatarPageFooter';
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
 import {PressableWithFeedback} from '@components/Pressable';
@@ -211,7 +211,7 @@ function EditAgentAvatarContent({accountID, fallbackRoute, onSave, initialPreset
                                             src={local}
                                             width={presetAvatarSize}
                                             height={presetAvatarSize}
-                                            additionalStyles={StyleUtils.getAvatarBorderStyle(CONST.AVATAR_SIZE.X_LARGE, CONST.ICON_TYPE_AVATAR)}
+                                            additionalStyles={StyleUtils.getAvatarBorderStyle(CONST.AVATAR_SIZE.X_LARGE, CONST.AVATAR_SHAPE.CIRCLE)}
                                         />
                                     </View>
                                 </PressableWithFeedback>

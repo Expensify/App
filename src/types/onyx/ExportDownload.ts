@@ -10,7 +10,6 @@ type ExportDownloadType = ValueOf<typeof CONST.EXPORT_DOWNLOAD.TYPE>;
 
 /** Model of an export download entry */
 type ExportDownload = {
-    /** Current state of the export download */
     state: ExportDownloadState;
 
     /** Type of export (csv, pdf or receipts), used to show the correct failure message */
@@ -36,6 +35,9 @@ type ExportDownload = {
 
     /** Whether the export file should be sent from Concierge */
     shouldSendFromConcierge?: boolean;
+
+    /** Whether the export was limited to the first 50,000 matching reports */
+    truncated?: boolean;
 };
 
 export default ExportDownload;
