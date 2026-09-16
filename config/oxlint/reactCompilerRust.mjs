@@ -78,18 +78,67 @@ function getLang(ext) {
     return 'jsx';
 }
 
-function offsetToPoint(source, offset) {
-    let line = 1;
-    let column = 0;
-    for (let index = 0; index < offset; index++) {
-        if (source[index] === '\n') {
-            line += 1;
-            column = 0;
-        } else {
-            column += 1;
+function utf8Length(code) {
+    if (code < 0x80) {
+        return 1;
+    }
+    if (code < 0x800) {
+        return 2;
+    }
+    // A lone surrogate is three bytes too: it is replaced with U+FFFD on the way into Rust, so the
+    // source oxc measured is the same width either way.
+    if (code < 0x10000) {
+        return 3;
+    }
+    return 4;
+}
+
+// `label.start`/`label.end` are UTF-8 *byte* offsets into the source oxc parsed, while a JavaScript
+// string is indexed in UTF-16 code units. Indexing `sourceText` with one directly overshoots by one
+// unit for every extra byte, which drifts across newlines in any file holding non-ASCII (281 of
+// src/'s .tsx files do), so a diagnostic would anchor on the wrong line and an
+// `eslint-disable-next-line` on the right line would stop suppressing it. This maps a byte offset
+// back to the line and UTF-16 column oxlint's `loc` expects. Built once per file rather than per
+// diagnostic, hence the closure.
+function buildOffsetToPoint(source) {
+    // Byte and UTF-16 offset of the start of each line, both indexed by line - 1.
+    const lineBytes = [0];
+    const lineUnits = [0];
+    let byte = 0;
+    for (let unit = 0; unit < source.length; ) {
+        const code = source.codePointAt(unit);
+        byte += utf8Length(code);
+        unit += code > 0xffff ? 2 : 1;
+        if (code === 0x0a) {
+            lineBytes.push(byte);
+            lineUnits.push(unit);
         }
     }
-    return {line, column};
+
+    return function offsetToPoint(offset) {
+        // The last line starting at or before `offset`. An offset past the end of the source clamps
+        // to the final line rather than running off it.
+        let low = 0;
+        let high = lineBytes.length - 1;
+        while (low < high) {
+            const mid = Math.ceil((low + high) / 2);
+            if (lineBytes[mid] <= offset) {
+                low = mid;
+            } else {
+                high = mid - 1;
+            }
+        }
+
+        // Walked rather than subtracted: a column is UTF-16 code units, not bytes.
+        let byteInLine = lineBytes[low];
+        let unit = lineUnits[low];
+        while (byteInLine < offset && unit < source.length) {
+            const code = source.codePointAt(unit);
+            byteInLine += utf8Length(code);
+            unit += code > 0xffff ? 2 : 1;
+        }
+        return {line: low + 1, column: unit - lineUnits[low]};
+    };
 }
 
 function buildMessage(category, error) {
@@ -149,6 +198,7 @@ function analyze(filename, sourceText) {
     }
 
     const diagnostics = [];
+    const offsetToPoint = buildOffsetToPoint(sourceText);
     for (const error of errors) {
         const match = CATEGORY_PATTERN.exec(error.codeframe ?? '');
         if (!match) {
@@ -173,8 +223,8 @@ function analyze(filename, sourceText) {
         diagnostics.push({
             ruleName,
             loc: {
-                start: offsetToPoint(sourceText, label?.start ?? 0),
-                end: offsetToPoint(sourceText, label?.end ?? label?.start ?? 0),
+                start: offsetToPoint(label?.start ?? 0),
+                end: offsetToPoint(label?.end ?? label?.start ?? 0),
             },
             message: buildMessage(category, error),
         });

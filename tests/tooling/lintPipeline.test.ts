@@ -405,7 +405,7 @@ describe('oxlint sharding', () => {
         return {files: [{filePath, messages}], exitCode, stderr: ''};
     }
 
-    it('interleaves files across shards so path-sorted neighbours land in different buckets', () => {
+    it('interleaves files across shards so adjacent paths land in different buckets', () => {
         const files = Array.from({length: 10}, (_, i) => `src/f${i}.ts`);
         const shards = shardFiles(files, 3);
         expect(shards.map((shard) => shard.length)).toEqual([4, 3, 3]);
