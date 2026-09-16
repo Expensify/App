@@ -403,7 +403,7 @@ function openLink(href: string, environmentURL: string, isAttachment = false) {
     const focusedSearchReportActionRoute = getFocusedSearchReportActionRoute(reportLinkRouteParams, currentState);
     const routeToNavigate = reportLinkRoute ?? internalNewExpensifyPath;
     const isRHPOpen = currentState?.routes?.at(-1)?.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR;
-    const isOnboardingTaskLink = routeToNavigate?.startsWith('onboarding/') || href.includes('isJoinWorkspaceTask=true');
+    const isOnboardingTaskLink = routeToNavigate?.includes('isJoinWorkspaceTask=true');
     let shouldCloseRHP = false;
     if (!isNarrowLayout && isRHPOpen && !focusedSearchReportActionRoute) {
         const targetWillNavigateToRHP = willRouteNavigateToRHP(routeToNavigate as Route);
