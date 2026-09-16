@@ -126,7 +126,7 @@ function CertiniaAdvancedPage({policy}: WithPolicyConnectionsProps) {
                     onCloseError={() => clearFinancialForceErrorField(policyID, CONST.CERTINIA_CONFIG.SYNC_REIMBURSED_REPORTS)}
                 />
             )}
-            {!isPSA && canConfigureCurrencyConversionFees && !!advancedConfig?.syncReimbursedReports && (
+            {!isPSA && canConfigureCurrencyConversionFees && (
                 <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.CERTINIA_CONFIG.FX_EXPENSE_ACCOUNT], config?.pendingFields)}>
                     <MenuItemWithTopDescription
                         shouldShowRightIcon
