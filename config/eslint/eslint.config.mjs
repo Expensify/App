@@ -653,7 +653,10 @@ const config = defineConfig([
         rules: {'report-name-utils/no-function-call-in-get-report-name': 'error'},
     },
 
-    // The key definition, the wrappers, and setup that seeds Onyx directly, so they migrate with the reshape
+    // Everything else must read personal details through `@hooks/usePersonalDetails`, `@libs/PersonalDetailsStore` or
+    // `buildPersonalDetailsUpdate`, so that changing the shape of the personal details data means changing those
+    // wrappers instead of ~200 call sites. The files below are exempt because they are the wrappers themselves, the
+    // place the key is declared, or test setup that has to seed Onyx by key.
     {
         files: [
             'src/ONYXKEYS.ts',
