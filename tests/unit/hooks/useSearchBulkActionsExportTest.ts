@@ -1136,6 +1136,40 @@ describe('useSearchBulkActions - export options', () => {
         expect(exportToIntegrationOnSearch).not.toHaveBeenCalled();
     });
 
+    it('warns instead of marking when Reports select-all matching would only cover the loaded page', async () => {
+        /**
+         * Given: Reports-tab "select all matching" is on and the query matches far more reports (147) than the
+         *        single one loaded on the page. Mark as exported builds its report ID list from the loaded rows,
+         *        so acting now would silently cover only that page.
+         *
+         * When: the user clicks "Mark as exported".
+         *
+         * Then: the interim safeguard modal is shown referencing the full matching count, and nothing is marked
+         *       or exported. See https://github.com/Expensify/App/issues/101106.
+         */
+        mockAreAllMatchingItemsSelected = true;
+        mockCurrentSearchResults = makeSearchResults([makeSnapshotReport()]);
+        mockCurrentSearchResults.search.reportCount = 147;
+        mockSelectedReports = [makeSelectedReport()];
+        mockSelectedTransactions = {tx1: makeSelectedTransaction()};
+
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}), {wrapper: OnyxListItemProvider});
+
+        // Under select all, the export options surface at the top level of the dropdown rather than in a nested submenu.
+        await waitFor(() => {
+            expect(getExportOptionByText(result.current.headerButtonsOptions, 'workspace.common.markAsExported')).toBeDefined();
+        });
+
+        getExportOptionByText(result.current.headerButtonsOptions, 'workspace.common.markAsExported')?.onSelected?.();
+
+        await waitFor(() => {
+            expect(mockShowConfirmModal).toHaveBeenCalledWith(expect.objectContaining({title: 'search.bulkActions.markAsExportedAllMatchingTitle'}));
+        });
+
+        expect(markAsManuallyExported).not.toHaveBeenCalled();
+        expect(exportToIntegrationOnSearch).not.toHaveBeenCalled();
+    });
+
     it('marks already-exported reports without showing the export-again modal', async () => {
         /**
          * Given: a single-integration selection where every selected report has already been exported

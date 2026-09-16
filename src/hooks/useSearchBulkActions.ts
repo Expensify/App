@@ -1916,8 +1916,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             // selection — the rest belong to other integrations (or to no integration) and are skipped.
             const totalSelectedReportsCount = selectedReportIDs.length;
 
-            // Server-side count of every report matching the query, which under "select all matching" is larger than the
-            // loaded page the client can act on. Used to warn before a Reports-tab mark/export silently covers only that page.
+            // Server-side count of every report matching the query, larger than the loaded page the client can act on.
             const allMatchingReportsCount = currentSearchResults?.search?.reportCount;
 
             // Shared confirmation flow used by BOTH "Export to <integration>" and "Mark as exported" so the
