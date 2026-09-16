@@ -184,26 +184,29 @@ uncaught. No tracking issue exists (TODO 3).
 
 ### 3.3 Findings per rule, whole repo
 
-ESLint 3083, Oxlint 4295. Both legs run through `scripts/lint/index.ts --format=json` with
+ESLint 3333, Oxlint 4552. Both legs run through `scripts/lint/index.ts --format=json` with
 `SEATBELT_DISABLE=1`, so both pass the same processors. A typescript-eslint extension rule is counted
-under the base rule oxlint runs, or one rule lands in two rows.
+under the base rule oxlint runs, or one rule lands in two rows. Rerun 2026-09-16 after merging
+`origin/main` and mirroring `no-direct-personal-details-list` (9306 tracked lintable files).
 
 | rule | eslint | oxlint | delta | reading |
 | --- | ---: | ---: | ---: | --- |
-| `@typescript-eslint/no-unsafe-type-assertion` | 1967 | 1969 | +2 | noise |
-| `@typescript-eslint/no-unnecessary-type-assertion` | 0 | 754 | +754 | both enable it; TS 6.0.2 and tsgo TS7 infer differently |
+| `@typescript-eslint/no-unsafe-type-assertion` | 1953 | 1955 | +2 | noise |
+| `@typescript-eslint/no-unnecessary-type-assertion` | 0 | 758 | +758 | both enable it; TS 6.0.2 and tsgo TS7 infer differently |
 | `no-restricted-syntax` | 327 | 327 | 0 | parity |
-| `@typescript-eslint/no-deprecated` | 231 | 399 | +168 | priced: all 174 oxlint-only are write sites (tsgolint strictness, typescript-eslint#10643); all 6 ESLint-only are read sites silenced by the 91-file write-site override. Accepted cost: 6 lost findings |
-| `react-hooks/refs` | 215 | 215 | 0 | equal totals, 3 locations differ each way, section 5.2 |
-| `import/no-cycle` | 0 | 268 | +268 | both enable it; ESLint's copy is inert |
-| `react-hooks/set-state-in-effect` | 127 | 47 | **-80** | **open**, the Rust bridge cannot see non-fatal compiler diagnostics; fix parked, section 5.1 |
+| `rulesdir/no-direct-personal-details-list` | 270 | 270 | 0 | parity; rule mirrored 2026-09-16, its impl from #101075 landed on main the same day |
+| `@typescript-eslint/no-deprecated` | 223 | 399 | +176 | priced: all 182 oxlint-only are write sites (tsgolint strictness, typescript-eslint#10643); all 6 ESLint-only are read sites silenced by the 91-file write-site override. Accepted cost: 6 lost findings |
+| `react-hooks/refs` | 212 | 212 | 0 | equal totals, 3 locations differ each way, section 5.2 |
+| `import/no-cycle` | 0 | 259 | +259 | both enable it; ESLint's copy is inert |
+| `react-hooks/set-state-in-effect` | 124 | 45 | **-79** | **open**, the Rust bridge cannot see non-fatal compiler diagnostics; fix parked, section 5.1 |
 | `no-restricted-imports` | 97 | 97 | 0 | parity, includes the ported OnyxUtils ban |
 | `rulesdir/no-raw-typography` | 44 | 44 | 0 | parity |
-| `rulesdir/no-onyx-connect` | 42 | 42 | 0 | parity |
-| `react-hooks/preserve-manual-memoization` | 2 | 65 | +63 | over-reports through the bridge; the parked fix brings it to 2, section 5.1 |
+| `rulesdir/no-onyx-connect` | 41 | 41 | 0 | parity |
+| `react-hooks/preserve-manual-memoization` | 12 | 75 | +63 | over-reports through the bridge; the parked fix brings it to 12, section 5.1 |
 | `rulesdir/no-default-id-values` | 21 | 21 | 0 | parity |
 | `react-hooks/immutability` | 6 | 7 | +1 | one extra through the bridge; the parked fix brings it to 6 |
 | `import/no-named-as-default` | 0 | 13 | +13 | shared config, Oxlint finds more |
+| `unicorn/prefer-at` | 0 | 4 | +4 | Oxlint-only, expected (default options, covers the type-free `x[x.length - N]` family) |
 | `react-hooks/static-components` | 2 | 2 | 0 | parity |
 | `react-hooks/exhaustive-deps` | 1 | 1 | 0 | parity |
 | `no-unsafe-optional-chaining` | 0 | 3 | +3 | Oxlint-only finding |
@@ -212,19 +215,17 @@ under the base rule oxlint runs, or one rule lands in two rows.
 | `import/no-duplicates` | 0 | 3 | +3 | Oxlint-only finding |
 | `no-empty-function` | 0 | 2 | +2 | Oxlint-only finding |
 | `@typescript-eslint/no-unsafe-member-access` | 0 | 2 | +2 | Oxlint-only finding |
-| `unicorn/prefer-at` | 0 | 2 | +2 | Oxlint-only, expected |
 | `react/no-unstable-nested-components` | 0 | 1 | +1 | Oxlint-only finding |
 | `react/button-has-type` | 0 | 1 | +1 | Oxlint-only finding |
 | `no-redeclare` | 0 | 1 | +1 | Oxlint-only finding |
 | `import/export` | 0 | 1 | +1 | Oxlint-only finding |
 | `react/jsx-key` | 0 | 1 | +1 | Oxlint-only finding |
 | `@typescript-eslint/no-unsafe-assignment` | 0 | 1 | +1 | Oxlint-only finding |
-| `rulesdir/prefer-at` | 1 | 0 | -1 | superseded, see the port plan above |
-| **totals** | **3083** | **4295** | **+1212** | |
+| **totals** | **3333** | **4552** | **+1219** | |
 
-Every rule not listed reports 0 on both tools. The +1212 decomposes exactly: +1022 from
-`no-unnecessary-type-assertion` and `import/no-cycle`, two rules ESLint enables but cannot report
-on; +168 `no-deprecated`; -16 net across `react-hooks/*`; +39 scattered singles, each an Oxlint
+Every rule not listed reports 0 on both tools. The +1219 decomposes exactly: +1017 from
+`no-unnecessary-type-assertion` (758) and `import/no-cycle` (259), two rules ESLint enables but cannot
+report on; +176 `no-deprecated`; -15 net across `react-hooks/*`; +41 scattered singles, each an Oxlint
 finding ESLint's copy of the same rule missed.
 
 The React Compiler reports some diagnostics twice, same file, position and text: ESLint's plugin
@@ -237,13 +238,17 @@ counts do not move with the shard plan. Not a defect to fix on the oxlint side.
 One file per linter. The seatbelt tightens itself, and a shared file would ping-pong between the two
 tools' counts on every CI run.
 
-| baseline | rows | grandfathered errors |
-| --- | ---: | ---: |
-| `config/eslint/eslint.seatbelt.tsv` | 1398 | 3092 |
-| `config/oxlint/oxlint.seatbelt.tsv` | 1849 | 4295 |
+| baseline | rows | grandfathered errors | live findings (2026-09-16) |
+| --- | ---: | ---: | ---: |
+| `config/eslint/eslint.seatbelt.tsv` | 1583 | 3333 | 3333 |
+| `config/oxlint/oxlint.seatbelt.tsv` | 2054 | 4591 | 4552 |
 
-The Oxlint baseline matches its live finding count. The seatbelt tightens but never increases on its
-own, so every merge from `main` needs a manual `SEATBELT_INCREASE=all` pass (TODO 4).
+The ESLint baseline matches its live count. The Oxlint baseline carries 4591 against a live 4552 — 39
+rows of slack left by the 2026-09-16 hand-merge of `82f9a6d`'s re-baseline against this branch's own
+(union-max, section 3.3), plus the #101075 personal-details changes that landed on `main` after it.
+Under CI's `SEATBELT_FROZEN=0` the extra rows only warn, so the gate still holds; the next
+`SEATBELT_INCREASE=all` regen tightens it back to the live count. The seatbelt tightens but never
+increases on its own, so every merge from `main` needs that manual pass anyway (TODO 4).
 
 `tests/tooling/lintPipeline.test.ts` checks that every rule id in the oxlint baseline is one the
 enabled config still produces through `config/oxlint/ruleNames.mjs`. If oxlint renames a diagnostic
