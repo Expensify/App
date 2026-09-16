@@ -3,6 +3,8 @@ import type {Account} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
+import {isActingAsDelegateSelector} from '@selectors/Account';
+
 const isValidateCodeFormSubmitting = (account: OnyxEntry<Account>) =>
     !!account?.isLoading && account.loadingForm === (account.requiresTwoFactorAuth ? CONST.FORMS.VALIDATE_TFA_CODE_FORM : CONST.FORMS.VALIDATE_CODE_FORM);
 
@@ -19,6 +21,12 @@ function isDelegateOnlySubmitter(account: OnyxEntry<Account>): boolean {
  * `twoFactorAuthSetupInProgress` is still set (post-complete handoff window).
  */
 function shouldShowRequire2FAPage(account: OnyxEntry<Account>, hasCompletedGuidedSetupFlow: boolean): boolean {
+    // While copiloting, the account holds the copiloted user's 2FA state. A copilot cannot set up 2FA
+    // for someone else, and the setup page is delegate-blocked, so the requirement is skipped here.
+    if (isActingAsDelegateSelector(account)) {
+        return false;
+    }
+
     return (
         (!!account?.needsTwoFactorAuthSetup && !account?.requiresTwoFactorAuth) ||
         (!!account?.twoFactorAuthSetupInProgress && !account?.requiresTwoFactorAuth && !hasCompletedGuidedSetupFlow)

@@ -1,5 +1,6 @@
 import type {Account} from '../../src/types/onyx';
 
+import CONST from '../../src/CONST';
 import AccountUtils from '../../src/libs/AccountUtils';
 
 describe('AccountUtils', () => {
@@ -29,6 +30,36 @@ describe('AccountUtils', () => {
             };
 
             expect(AccountUtils.shouldShowRequire2FAPage(account, false)).toBe(false);
+        });
+
+        it('should return false when copiloting into an account that needs 2FA setup', () => {
+            const account: Account = {
+                needsTwoFactorAuthSetup: true,
+                requiresTwoFactorAuth: false,
+                delegatedAccess: {delegate: 'copilot@example.com'},
+            };
+
+            expect(AccountUtils.shouldShowRequire2FAPage(account, false)).toBe(false);
+        });
+
+        it('should return false when copiloting into an account with 2FA setup in progress', () => {
+            const account: Account = {
+                twoFactorAuthSetupInProgress: true,
+                requiresTwoFactorAuth: false,
+                delegatedAccess: {delegate: 'copilot@example.com'},
+            };
+
+            expect(AccountUtils.shouldShowRequire2FAPage(account, false)).toBe(false);
+        });
+
+        it('should return true when the account has copilots but is not being copiloted', () => {
+            const account: Account = {
+                needsTwoFactorAuthSetup: true,
+                requiresTwoFactorAuth: false,
+                delegatedAccess: {delegates: [{email: 'copilot@example.com', role: CONST.DELEGATE_ROLE.ALL}]},
+            };
+
+            expect(AccountUtils.shouldShowRequire2FAPage(account, false)).toBe(true);
         });
     });
 
