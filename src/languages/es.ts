@@ -1169,6 +1169,10 @@ const translations: TranslationDeepObject<typeof en> = {
         dragAndDropMultiLevelTag: `<muted-link>Arrastra y suelta un archivo de hoja de cálculo aquí, o elige un archivo a continuación. <a href="${CONST.IMPORT_SPREADSHEET.MULTI_LEVEL_TAGS_ARTICLE_LINK}">Aprende más</a> sobre los formatos de archivo soportados.</muted-link>`,
         chooseSpreadsheet: '<muted-link>Elige un archivo de hoja de cálculo para importar. Los formatos soportados son .csv, .txt, .xls y .xlsx.</muted-link>',
         chooseSpreadsheetMultiLevelTag: `<muted-link>Elige un archivo de hoja de cálculo para importar. <a href="${CONST.IMPORT_SPREADSHEET.MULTI_LEVEL_TAGS_ARTICLE_LINK}">Aprende más</a> sobre los formatos de archivo soportados.</muted-link>`,
+        dragAndDropTransactions:
+            '<muted-link>Arrastra y suelta tu hoja de cálculo o extracto bancario aquí, o elige un archivo a continuación. Los formatos soportados son .csv, .txt, .xls, .xlsx, .ofx y .qfx.</muted-link>',
+        chooseSpreadsheetTransactions:
+            '<muted-link>Elige un archivo de hoja de cálculo o extracto bancario para importar. Los formatos soportados son .csv, .txt, .xls, .xlsx, .ofx y .qfx.</muted-link>',
         fileContainsHeader: 'El archivo contiene encabezados',
         column: (name) => `Columna ${name}`,
         fieldNotMapped: (fieldName) => `¡Vaya! Un campo obligatorio ("${fieldName}") no ha sido mapeado. Por favor, revisa e inténtalo de nuevo.`,
@@ -1227,6 +1231,7 @@ const translations: TranslationDeepObject<typeof en> = {
             one: 'Se ha importado 1 transacción.',
             other: `Se han importado ${count} transacciones.`,
         }),
+        importStatementSuccessfulDescription: 'Se ha subido tu extracto bancario.',
         importCompanyCardTransactionsSuccessfulDescription: ({count}: {count: number}) => ({
             one: 'Se ha añadido 1 transacción.',
             other: `Se han añadido ${count} transacciones.`,
@@ -1592,6 +1597,10 @@ const translations: TranslationDeepObject<typeof en> = {
             allTransactionsPendingMarkAsDoneDescription: 'No puedes marcar este informe como listo porque todas las transacciones están pendientes. Pueden tardar unos días en procesarse.',
             allExpensesOnHoldDescription: 'No puedes enviar este informe porque todos los gastos están retenidos. Elimina la retención para enviarlo.',
             allExpensesOnHoldMarkAsDoneDescription: 'No puedes marcar este informe como listo porque todos los gastos están retenidos. Elimina la retención para continuar.',
+            reportsNotSubmittedTitle: 'Enviar informes',
+            reportsNotMarkedAsDoneTitle: 'Marcar informes como listos',
+            reportsNotSubmittedDescription: 'No se han podido enviar estos informes. Comprueba que no haya gastos retenidos o pendientes y vuelve a intentarlo.',
+            reportsNotMarkedAsDoneDescription: 'No se ha podido marcar estos informes como completados. Comprueba que no haya gastos retenidos o pendientes y vuelve a intentarlo.',
             stitchOdometerImagesFailed: 'No se pudieron combinar las imágenes del odómetro. Por favor, inténtalo de nuevo más tarde.',
             failedToSaveOdometerDraft: 'No se pudo guardar el borrador del odómetro. Por favor, inténtalo de nuevo.',
             invalidIntegerAmount: 'Por favor, introduce un importe entero en dólares antes de continuar',
@@ -6573,6 +6582,7 @@ ${amount} para ${merchant} - ${date}`,
                 subtitle: 'Establecer una tarifa por hora facturable para el seguimiento de tiempo.',
                 defaultHourlyRate: 'Tarifa por hora predeterminada',
             },
+            recruitingWarningModal: {disconnectText: ({integration}: {integration: string}) => `Para desactivar Recruiting, primero desconecta ${integration} de este espacio de trabajo.`},
         },
         reports: {
             reportsCustomTitleExamples: 'Ejemplos:',
@@ -7415,6 +7425,7 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
             importSettings: 'Importar ajustes',
             defaultApprover: 'Aprobador predeterminado',
             approverFields: {recruiter: 'Reclutador', recruitingCoordinator: 'Coordinador de selección'},
+            subtitle: 'Conecta herramientas de selección y mantén sincronizadas las aprobaciones de candidatos.',
         },
         merge: {
             connections: 'Conexiones',
@@ -7980,6 +7991,13 @@ ${reportName}`,
                 description: 'Si quieres que Expensify mantenga tus tasas de kilometraje actualizadas cada vez que tu gobierno publique nuevas directrices, esta función es para ti.',
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>La actualización automática de tasas gubernamentales solo está disponible en el plan Controlar, desde <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `por miembro al mes.` : `por miembro activo al mes.`}</muted-text>`,
+            },
+            [CONST.UPGRADE_FEATURE_INTRO_MAPPING.recruiting.id]: {
+                title: 'Varios niveles de aprobación',
+                description:
+                    'Los múltiples niveles de aprobación son una herramienta de flujo de trabajo para empresas que requieren que más de una persona apruebe un informe antes de poder reembolsarlo.',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Los múltiples niveles de aprobación solo están disponibles en el plan Controlar, a partir de <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `por miembro al mes.` : `por miembro activo al mes.`}</muted-text>`,
             },
         },
         downgrade: {
@@ -8995,7 +9013,9 @@ ${reportName}`,
         addedProhibitedExpense: ({prohibitedExpense}) => `añadió "${prohibitedExpense}" a los gastos prohibidos`,
         removedProhibitedExpense: ({prohibitedExpense}) => `eliminó "${prohibitedExpense}" de los gastos prohibidos`,
         commuterExclusions: {
-            changedToFixedDistance: 'cambió la exclusión de desplazamientos a una distancia fija por solicitud',
+            changedToFixedDistance: ({previousMethod}: {previousMethod: string}) => `cambió “excluir desplazamientos” a una distancia fija por solicitud (previamente ${previousMethod})`,
+            changedToHomeAndOffice: ({previousMethod}: {previousMethod: string}) => `cambió la exclusión de desplazamientos para calcular por casa y oficina (previamente ${previousMethod})`,
+            previousMethod: {disabled: 'no excluyas los desplazamientos al trabajo', fixedDistance: 'distancia fija por reclamación', homeAndOffice: 'casa y oficina'},
             setFixedDistance: ({formattedDistance}: {formattedDistance: string}) => `establecer exclusión de distancia fija en ${formattedDistance} por reclamación`,
             changedFixedDistance: ({formattedOldDistance, formattedNewDistance}: {formattedOldDistance: string; formattedNewDistance: string}) =>
                 `cambió la exclusión de distancia fija a ${formattedNewDistance} por reclamación (previamente ${formattedOldDistance})`,
@@ -11332,6 +11352,7 @@ ${reportName}`,
         readyPartialBody: ({count, total}: {count: number; total: number}) =>
             `${count} of ${total} reports exported. If it didn't automatically download, use the button below. See which reports failed in <concierge-link>Concierge</concierge-link>.`,
         close: 'Cerrar',
+        truncatedBody: '¡Atención! Esta exportación era demasiado grande y se ha limitado a los primeros 50.000 informes que coincidían con tu búsqueda.',
     },
     openAppFailureModal: {
         title: 'Algo salió mal...',

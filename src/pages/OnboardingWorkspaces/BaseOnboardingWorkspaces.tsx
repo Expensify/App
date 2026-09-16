@@ -9,6 +9,7 @@ import Text from '@components/Text';
 
 import useAutoCreateSubmitWorkspace from '@hooks/useAutoCreateSubmitWorkspace';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnboardingIntent from '@hooks/useOnboardingIntent';
@@ -87,6 +88,7 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
     const isValidated = isCurrentUserValidated(loginList, session?.email);
 
     const {isBetaEnabled} = usePermissions();
+    const delegateAccountID = useDelegateAccountID();
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
 
@@ -168,6 +170,7 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
             conciergeChat,
             companyDomain: session?.email ? getEmailDomain(session.email) : '',
             workEmail: session?.email ?? '',
+            delegateAccountID,
         });
         setOnboardingAdminsChatReportID();
         setOnboardingPolicyID(policy.policyID);

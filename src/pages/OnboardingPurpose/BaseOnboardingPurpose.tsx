@@ -7,6 +7,7 @@ import Text from '@components/Text';
 
 import useAutoCreateSubmitWorkspace from '@hooks/useAutoCreateSubmitWorkspace';
 import useAutoCreateTrackWorkspace from '@hooks/useAutoCreateTrackWorkspace';
+import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnboardingMessages from '@hooks/useOnboardingMessages';
@@ -71,6 +72,7 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, ro
     );
     const {onboardingIsMediumOrLargerScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const delegateAccountID = useDelegateAccountID();
     const [conciergeReportID = ''] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const {onboardingMessages} = useOnboardingMessages();
@@ -168,6 +170,7 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, ro
                         isSelfTourViewed,
                         conciergeChat,
                         adminsChatReport,
+                        delegateAccountID,
                     }).then(() => {
                         navigateAfterOnboardingWithMicrotaskQueue(
                             shouldUseNarrowLayout,

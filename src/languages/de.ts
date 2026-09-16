@@ -1170,6 +1170,10 @@ const translations: TranslationDeepObject<typeof en> = {
         dragAndDropMultiLevelTag: `<muted-link>Ziehen Sie Ihre Tabelle hierher und legen Sie sie ab oder wählen Sie unten eine Datei aus. <a href="${CONST.IMPORT_SPREADSHEET.MULTI_LEVEL_TAGS_ARTICLE_LINK}">Erfahren Sie mehr</a> über unterstützte Dateiformate.</muted-link>`,
         chooseSpreadsheet: '<muted-link>Wähle eine Tabellenkalkulationsdatei zum Importieren aus. Unterstützte Formate: .csv, .txt, .xls und .xlsx.</muted-link>',
         chooseSpreadsheetMultiLevelTag: `<muted-link>Wählen Sie eine Tabellenkalkulationsdatei zum Importieren aus. <a href="${CONST.IMPORT_SPREADSHEET.MULTI_LEVEL_TAGS_ARTICLE_LINK}">Weitere Informationen</a> zu unterstützten Dateiformaten.</muted-link>`,
+        dragAndDropTransactions:
+            '<muted-link>Ziehen Sie Ihre Tabelle oder Ihren Kontoauszug hierher und legen Sie sie ab oder wählen Sie unten eine Datei aus. Unterstützte Formate: .csv, .txt, .xls, .xlsx, .ofx und .qfx.</muted-link>',
+        chooseSpreadsheetTransactions:
+            '<muted-link>Wähle eine Tabellenkalkulations- oder Kontoauszugsdatei zum Importieren aus. Unterstützte Formate: .csv, .txt, .xls, .xlsx, .ofx und .qfx.</muted-link>',
         fileContainsHeader: 'Datei enthält Spaltenüberschriften',
         column: (name: string) => `Spalte ${name}`,
         fieldNotMapped: (fieldName: string) => `Ups! Ein erforderliches Feld („${fieldName}“) wurde nicht zugeordnet. Bitte überprüfe es und versuche es erneut.`,
@@ -1230,6 +1234,7 @@ const translations: TranslationDeepObject<typeof en> = {
             one: '1 Transaktion wurde importiert.',
             other: `${count} Transaktionen wurden importiert.`,
         }),
+        importStatementSuccessfulDescription: 'Dein Kontoauszug wurde hochgeladen.',
         importFailedTitle: 'Import fehlgeschlagen',
         importFailedDescription: 'Bitte stelle sicher, dass alle Felder korrekt ausgefüllt sind, und versuche es erneut. Wenn das Problem weiterhin besteht, wende dich bitte an Concierge.',
         importDescription: 'Wähle aus, welche Felder aus deiner Tabelle zugeordnet werden sollen, indem du unten in der Dropdown-Liste neben jeder importierten Spalte klickst.',
@@ -1625,6 +1630,12 @@ const translations: TranslationDeepObject<typeof en> = {
                 'Sie können diesen Bericht nicht als erledigt markieren, weil alle Transaktionen ausstehen. Es kann einige Tage dauern, bis sie gebucht werden.',
             allExpensesOnHoldDescription: 'Sie können diesen Bericht nicht einreichen, da alle Ausgaben angehalten wurden. Entfernen Sie die Sperre, um ihn einzureichen.',
             allExpensesOnHoldMarkAsDoneDescription: 'Sie können diesen Bericht nicht als erledigt markieren, da alle Ausgaben angehalten wurden. Entfernen Sie die Sperre, um fortzufahren.',
+            reportsNotSubmittedTitle: 'Berichte einreichen',
+            reportsNotMarkedAsDoneTitle: 'Berichte als erledigt markieren',
+            reportsNotSubmittedDescription:
+                'Diese Berichte konnten nicht eingereicht werden. Stellen Sie sicher, dass Ausgaben nicht zurückgehalten oder ausstehend sind, und versuchen Sie es dann erneut.',
+            reportsNotMarkedAsDoneDescription:
+                'Diese Berichte konnten nicht als erledigt markiert werden. Prüfen Sie, dass Ausgaben nicht zurückgehalten oder ausstehend sind, und versuchen Sie es dann erneut.',
             stitchOdometerImagesFailed: 'Kilometerzählerbilder konnten nicht zusammengeführt werden. Bitte versuchen Sie es später noch einmal.',
             failedToSaveOdometerDraft: 'Dein Kilometerzähler-Entwurf konnte nicht gespeichert werden. Bitte versuche es erneut.',
         },
@@ -6694,6 +6705,9 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                 disabledTitle: 'Nicht so schnell...',
                 disabledMessage: 'Um diese Funktion zu aktivieren oder zu deaktivieren, müssen Sie Ihre Buchhaltungsimporteinstellungen ändern.',
             },
+            recruitingWarningModal: {
+                disconnectText: ({integration}: {integration: string}) => `Um Recruiting zu deaktivieren, trennen Sie bitte zuerst die Verbindung von ${integration} mit diesem Workspace.`,
+            },
         },
         reports: {
             reportsCustomTitleExamples: 'Beispiele:',
@@ -7983,6 +7997,13 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>Automatisch aktualisierte amtliche Sätze sind nur im Control-Tarif verfügbar, ab <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `pro Mitglied pro Monat.` : `pro aktivem Mitglied und Monat.`}</muted-text>`,
             },
+            [CONST.UPGRADE_FEATURE_INTRO_MAPPING.recruiting.id]: {
+                title: 'Mehrere Genehmigungsebenen',
+                description:
+                    'Mehrere Genehmigungsstufen sind ein Workflow-Tool für Unternehmen, die mehr als eine Person benötigen, um einen Bericht zu genehmigen, bevor er erstattet werden kann.',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Mehrere Genehmigungsebenen sind nur im Control-Tarif verfügbar, beginnend bei <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `pro Mitglied und Monat.` : `pro aktivem Mitglied und Monat.`}</muted-text>`,
+            },
         },
         downgrade: {
             commonFeatures: {
@@ -8686,6 +8707,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             importSettings: 'Import-Einstellungen',
             defaultApprover: 'Standardgenehmiger',
             approverFields: {recruiter: 'Personalvermittler', recruitingCoordinator: 'Recruiting-Koordinator'},
+            subtitle: 'Verknüpfen Sie Recruiting-Tools und halten Sie Kandidatengenehmigungen synchron.',
         },
         merge: {
             connections: 'Verbindungen',
@@ -9204,7 +9226,9 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         addedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `„${prohibitedExpense}“ zu verbotenen Ausgaben hinzugefügt`,
         removedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `„${prohibitedExpense}“ aus verbotenen Ausgaben entfernt`,
         commuterExclusions: {
-            changedToFixedDistance: 'Ausschluss von Arbeitswegen in eine feste Entfernung pro Abrechnung geändert',
+            changedToFixedDistance: ({previousMethod}: {previousMethod: string}) => `Ausschluss von Arbeitswegen in eine feste Entfernung pro Abrechnung geändert (zuvor ${previousMethod})`,
+            changedToHomeAndOffice: ({previousMethod}: {previousMethod: string}) => `Ausschluss von Pendelstrecken geändert, um nach Wohnort und Büro zu berechnen (zuvor ${previousMethod})`,
+            previousMethod: {disabled: 'Arbeitswege nicht ausschließen', fixedDistance: 'Feste Entfernung pro Antrag', homeAndOffice: 'Zuhause und Büro'},
             setFixedDistance: ({formattedDistance}: {formattedDistance: string}) => `feste Entfernungsausschlussgrenze von ${formattedDistance} pro Abrechnung festlegen`,
             changedFixedDistance: ({formattedOldDistance, formattedNewDistance}: {formattedOldDistance: string; formattedNewDistance: string}) =>
                 `Feste Streckenausschlussgrenze auf ${formattedNewDistance} pro Antrag geändert (zuvor ${formattedOldDistance})`,
@@ -11130,6 +11154,7 @@ Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
         readyPartialBody: ({count, total}: {count: number; total: number}) =>
             `${count} of ${total} reports exported. If it didn't automatically download, use the button below. See which reports failed in <concierge-link>Concierge</concierge-link>.`,
         close: 'Close',
+        truncatedBody: 'Achtung! Dieser Export war zu groß und wurde auf die ersten 50.000 Berichte begrenzt, die Ihrer Suche entsprachen.',
     },
     domain: {
         notVerified: 'Nicht verifiziert',
