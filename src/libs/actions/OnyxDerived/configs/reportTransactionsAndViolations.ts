@@ -61,7 +61,7 @@ export default createOnyxDerivedValueConfig({
 
         for (const transactionKey of transactionsToProcess) {
             const transaction = transactions[transactionKey];
-            // A reject the server refused leaves a stale local copy behind; show it on the original report so the
+            // A reject the server refused leaves a stale local copy behind. Show it on the original report so the
             // user can see the error and dismiss it.
             const reportID = transaction?.rejectFailedFromReportID ?? transaction?.reportID;
 

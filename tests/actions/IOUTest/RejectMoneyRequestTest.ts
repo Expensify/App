@@ -580,7 +580,7 @@ describe('actions/IOU/RejectMoneyRequest', () => {
                 clearError(transaction.transactionID);
                 await waitForBatchedUpdates();
 
-                // Then: The error and the report pin are cleared; the transaction record itself is preserved
+                // Then: The error and the report pin are cleared. The transaction record itself is preserved
                 const dismissedTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`);
                 expect(dismissedTransaction?.errorFields?.reject).toBeFalsy();
                 expect(dismissedTransaction?.rejectFailedFromReportID).toBeFalsy();
