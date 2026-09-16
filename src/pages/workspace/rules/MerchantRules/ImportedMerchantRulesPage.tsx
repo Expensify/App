@@ -382,9 +382,8 @@ function ImportedMerchantRulesPage({route}: ImportedMerchantRulesPageProps) {
 
     // The import short-circuits locally (no API call) only when every row was skipped, so that's the only case
     // where the button may stay active offline — and only when that short-circuit doesn't hinge on unvalidated
-    // categories or vendors.
-    const canImportOffline =
-        willImportShortCircuitLocally(parsedRules) && (areCategoriesReady || parsedRules.invalidCategoryNames.size === 0) && (isVendorListReady || parsedRules.invalidVendorNames.size === 0);
+    // categories.
+    const canImportOffline = willImportShortCircuitLocally(parsedRules) && (areCategoriesReady || parsedRules.invalidCategoryNames.size === 0);
 
     const importRules = async () => {
         setIsValidationEnabled(true);
