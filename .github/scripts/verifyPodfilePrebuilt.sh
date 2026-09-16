@@ -14,8 +14,7 @@ ROOT_DIR=$(dirname "$(dirname "$SCRIPT_DIR")")
 readonly ROOT_DIR
 source "$ROOT_DIR/scripts/shellUtils.sh"
 
-LOCKFILE="$1"
-readonly LOCKFILE
+readonly LOCKFILE="$1"
 
 if [[ -z "$LOCKFILE" ]]; then
   error "Usage: $0 <path-to-Podfile.lock>"
@@ -67,22 +66,20 @@ if [[ ${#MISSING_PREBUILT[@]} -eq 0 && ${#FOUND_SOURCE[@]} -eq 0 ]]; then
 fi
 
 error "$LOCKFILE was resolved against a react-native compiled from source."
-echo ""
 
 if [[ ${#FOUND_SOURCE[@]} -gt 0 ]]; then
-  info "   Pods that only a source build pulls in:"
-  printf '     - %s\n' "${FOUND_SOURCE[@]}"
   echo ""
+  info "  Pods that only a source build pulls in:"
+  printf '    - %s\n' "${FOUND_SOURCE[@]}"
 fi
 
 if [[ ${#MISSING_PREBUILT[@]} -gt 0 ]]; then
-  info "   Pods that a prebuilt build must contain, but are missing:"
-  printf '     - %s\n' "${MISSING_PREBUILT[@]}"
   echo ""
+  info "  Pods that a prebuilt build must contain, but are missing:"
+  printf '    - %s\n' "${MISSING_PREBUILT[@]}"
 fi
 
+echo ""
 # Also posted as a PR comment, but a fork's token can't write comments, so this log is the fallback.
 cat "$SCRIPT_DIR/verifyPodfilePrebuiltRemedy.md"
-
-echo ""
 exit 1
