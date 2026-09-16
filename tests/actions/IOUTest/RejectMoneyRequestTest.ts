@@ -1,5 +1,6 @@
-import {dismissRejectExpenseError, markRejectViolationAsResolved, rejectExpenseReport, rejectMoneyRequest} from '@libs/actions/IOU/RejectMoneyRequest';
+import {markRejectViolationAsResolved, rejectExpenseReport, rejectMoneyRequest} from '@libs/actions/IOU/RejectMoneyRequest';
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
+import {clearError} from '@libs/actions/Transaction';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import {getParsedComment} from '@libs/ReportUtils';
 
@@ -563,22 +564,27 @@ describe('actions/IOU/RejectMoneyRequest', () => {
                 expect(rejectedTransaction?.errorFields?.reject).toBeFalsy();
             });
 
-            it('should drop the stale local copy of the expense when its reject error is dismissed', async () => {
+            it('should clear the reject error and report pin when its reject error is dismissed', async () => {
                 if (!transaction?.transactionID) {
                     throw new Error('Required transaction data is missing');
                 }
 
-                // Given: An expense the server reported as already moved
-                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, {errorFields: {reject: SERVER_REJECT_ERROR}});
+                // Given: An expense the server reported as already moved, pinned to the original report
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, {
+                    errorFields: {reject: SERVER_REJECT_ERROR},
+                    rejectFailedFromReportID: iouReport?.reportID,
+                });
                 await waitForBatchedUpdates();
 
                 // When: The user dismisses the error
-                dismissRejectExpenseError(transaction.transactionID);
+                clearError(transaction.transactionID);
                 await waitForBatchedUpdates();
 
-                // Then: The expense is gone locally, so it stops showing on a report it is no longer on
+                // Then: The error and the report pin are cleared; the transaction record itself is preserved
                 const dismissedTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`);
-                expect(dismissedTransaction).toBeFalsy();
+                expect(dismissedTransaction?.errorFields?.reject).toBeFalsy();
+                expect(dismissedTransaction?.rejectFailedFromReportID).toBeFalsy();
+                expect(dismissedTransaction).toBeTruthy();
             });
         });
 
