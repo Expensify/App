@@ -1,16 +1,10 @@
 #!/bin/bash
 
-# Verifies that a Podfile.lock was resolved against our prebuilt react-native artifacts rather
-# than a react-native compiled from source.
-#
-# `pod install` picks between the two while the Podfile is evaluated and records the result in the
-# resolved pod list. The Podfile is identical either way, so only the pod list can tell them apart -
-# and the fallback to a source build only logs a warning, never fails, so it is easy to commit by
-# accident.
+# Verifies that a Podfile.lock was resolved against our prebuilt react-native artifacts, not a
+# from-source build - the Podfile is identical either way, only the resolved pod list differs.
 #
 # Usage: verifyPodfilePrebuilt.sh <path-to-Podfile.lock>
-#
-# Exit codes are: 0 prebuilt, 1 resolved from source, 2 the check could not run at all.
+# Exit codes: 0 prebuilt, 1 resolved from source, 2 the check could not run at all.
 
 set -e
 
@@ -29,20 +23,17 @@ fi
 # Pods that exist only when react-native is consumed prebuilt.
 PREBUILT_MARKERS=(React-Core-prebuilt ReactNativeDependencies)
 
-# Pods that only a source build pulls in. This set and the one above are mutually exclusive.
+# Pods that only a source build pulls in (mutually exclusive with the set above).
 SOURCE_MARKERS=(boost DoubleConversion fast_float fmt glog RCT-Folly SocketRocket)
 
-# Only the PODS: section records what actually resolved. DEPENDENCIES: echoes what the Podfile asked
-# for, so matching there would check intent instead of result.
+# Only PODS: records what actually resolved; DEPENDENCIES: just echoes the Podfile's intent.
 PODS_SECTION=$(awk '/^PODS:/{inSection = 1; next} /^[A-Z]/{inSection = 0} inSection' "$LOCKFILE")
 
-# An empty section means the file did not parse as a lockfile at all.
 if [[ -z "$PODS_SECTION" ]]; then
   echo "Error: $LOCKFILE has no PODS: section, so it is not a lockfile this check can read" >&2
   exit 2
 fi
 
-# A pod is present when the PODS: section lists it as a top-level entry: "  - <name> (<version>)".
 # Anchoring on the trailing " (" keeps `React-Core` from matching `React-Core-prebuilt`.
 function podIsPresent {
   grep -qE "^  - $1 \(" <<< "$PODS_SECTION"
@@ -83,8 +74,7 @@ if [[ ${#MISSING_PREBUILT[@]} -gt 0 ]]; then
   echo ""
 fi
 
-# The workflow also posts this as a pull request comment, but that needs a writable token - which a
-# fork does not get. This log is then the only place the author can read it.
+# Also posted as a PR comment, but a fork's token can't write comments, so this log is the fallback.
 cat "$(dirname "$0")/verifyPodfilePrebuiltRemedy.md"
 
 echo ""

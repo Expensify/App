@@ -1,11 +1,7 @@
 name: Verify Podfile.lock uses prebuilt react-native
 
-# Fails a pull request whose Podfile.lock was resolved against a react-native compiled from
-# source. The fallback to a source build only logs a warning during `pod install`, so it is easy to
-# commit by accident, and it makes everyone else compile react-native too.
-#
-# Also exposed via `workflow_call` so Mobile-Expensify can run this same check against its own
-# `iOS/Podfile.lock` instead of keeping a duplicated copy.
+# Fails a PR whose Podfile.lock was resolved from source instead of our prebuilt artifacts.
+# Also exposed via `workflow_call` so Mobile-Expensify can run this same check on its own lockfile.
 
 on:
   pull_request:
@@ -31,14 +27,12 @@ jobs:
     if: github.actor != 'OSBotify' && !endsWith(github.actor, '[bot]')
     runs-on: blacksmith-2vcpu-ubuntu-2404
     steps:
-      # Checks out the caller's own repo (App on a direct pull_request, or the calling repo - e.g.
-      # Mobile-Expensify - on a workflow_call), since that's where the Podfile.lock to verify lives.
+      # Checks out the caller's own repo - App directly, or Mobile-Expensify via workflow_call -
+      # since that's where the Podfile.lock to verify lives.
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
-      # The scripts this check runs only live in App. A direct pull_request already has them from
-      # the checkout above; a workflow_call from another repo does not, so fetch just those two
-      # files from App instead of assuming the caller keeps a duplicate.
+      # The scripts only live in App; fetch them when the caller is a different repo.
       - name: Checkout verifyPodfilePrebuilt scripts from App
         if: github.repository != 'Expensify/App'
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
@@ -51,8 +45,7 @@ jobs:
           sparse-checkout-cone-mode: false
           path: .github-app-scripts
 
-      # Each repo keeps its Podfile.lock at a fixed, different-cased path, so this is derived from
-      # github.repository rather than asked of the caller.
+      # Each repo keeps its Podfile.lock at a fixed, differently-cased path.
       - name: Resolve scripts directory and lockfile path
         id: scripts
         run: |
@@ -92,8 +85,7 @@ jobs:
             const comments = await github.paginate(github.rest.issues.listComments, {owner, repo, issue_number});
             const existing = comments.find((comment) => comment.body?.includes(MARKER));
 
-            // A fixed lockfile takes the comment down. A check that could not run says nothing about
-            // the lockfile, so it leaves whatever is there alone.
+            // A fixed lockfile takes the comment down; a check that couldn't run leaves it alone.
             if (status !== '1') {
               if (existing && status === '0') {
                 await github.rest.issues.deleteComment({owner, repo, comment_id: existing.id});
