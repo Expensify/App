@@ -54,7 +54,7 @@ const insertAtCaret = (target: HTMLElement, insertedText: string, maxLength: num
  * @param alt The image alt text to inspect.
  * @returns The decoded emoji, or an empty string when the filename is invalid or is not an emoji.
  */
-const getEmojiFromImageAlt = (alt: string): string => {
+function getEmojiFromImageAlt(alt: string): string {
     // iOS Safari can paste emoji images as blob URLs with codepoint filenames in alt text.
     const emojiHexCodepoints = alt.match(CONST.REGEX.EMOJI_IMAGE_ALT)?.at(1);
 
@@ -70,7 +70,7 @@ const getEmojiFromImageAlt = (alt: string): string => {
 
     const emoji = String.fromCodePoint(...codepoints);
     return containsOnlyEmojis(emoji) ? emoji : '';
-};
+}
 
 /**
  * Checks whether an image contains Slack's metadata identifying it as an emoji.
@@ -78,11 +78,11 @@ const getEmojiFromImageAlt = (alt: string): string => {
  * @param image The image element to inspect.
  * @returns `true` when Slack's emoji metadata is present; otherwise, `false`.
  */
-const isEmojiImage = (image: HTMLImageElement): boolean => {
+function isEmojiImage(image: HTMLImageElement): boolean {
     const dataset = image.dataset;
 
     return dataset.stringifyEmoji !== undefined || dataset.stringifyType === 'emoji';
-};
+}
 
 /**
  * Replaces different whitespace sequences with one space so HTML text and clipboard text can be compared.
@@ -90,7 +90,9 @@ const isEmojiImage = (image: HTMLImageElement): boolean => {
  * @param text Text extracted from HTML or the clipboard.
  * @returns Trimmed text with equivalent whitespace represented by one space.
  */
-const normalizeClipboardText = (text: string): string => text.replaceAll(/\s+/g, ' ').trim();
+function normalizeClipboardText(text: string): string {
+    return text.replaceAll(/\s+/g, ' ').trim();
+}
 
 /**
  * Escapes regular-expression characters before literal HTML text is added to a dynamic pattern.
@@ -98,7 +100,9 @@ const normalizeClipboardText = (text: string): string => text.replaceAll(/\s+/g,
  * @param text Literal text to escape.
  * @returns Text that can be safely inserted into a regular expression.
  */
-const escapeRegExp = (text: string): string => text.replaceAll(/[.*+?^${}()|[\]\\]/g, '\\$&');
+function escapeRegExp(text: string): string {
+    return text.replaceAll(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
 
 /**
  * Extracts readable text from HTML while replacing candidate images with unique markers.
@@ -107,7 +111,7 @@ const escapeRegExp = (text: string): string => text.replaceAll(/[.*+?^${}()|[\]\
  * @param imageMarkers Map of candidate images to their unique markers.
  * @returns Text representation of the node with image positions preserved.
  */
-const getTextWithImageMarkers = (node: Node, imageMarkers: Map<Node, string>): string => {
+function getTextWithImageMarkers(node: Node, imageMarkers: Map<Node, string>): string {
     if (node.nodeType === Node.TEXT_NODE) {
         return node.textContent ?? '';
     }
@@ -125,7 +129,7 @@ const getTextWithImageMarkers = (node: Node, imageMarkers: Map<Node, string>): s
         .join('');
 
     return CONST.HTML_BLOCK_ELEMENT_NAMES.has(node.nodeName) ? ` ${text} ` : text;
-};
+}
 
 /**
  * Finds Slack shortcodes that occupy the same positions as candidate images in iOS Safari HTML.
@@ -139,7 +143,7 @@ const getTextWithImageMarkers = (node: Node, imageMarkers: Map<Node, string>): s
  * @param plainText Plain-text clipboard value from the same paste event.
  * @returns A map from each candidate image to its matching shortcode.
  */
-const getIOSSafariEmojiShortcodes = (htmlDocument: Document, plainText: string): Map<HTMLImageElement, string> => {
+function getIOSSafariEmojiShortcodes(htmlDocument: Document, plainText: string): Map<HTMLImageElement, string> {
     const shortcodes = new Map<HTMLImageElement, string>();
     if (!isMobileSafari() || !plainText) {
         return shortcodes;
@@ -196,7 +200,7 @@ const getIOSSafariEmojiShortcodes = (htmlDocument: Document, plainText: string):
     }
 
     return shortcodes;
-};
+}
 
 /**
  * Resolves a Slack shortcode to its Unicode emoji, including an optional skin tone.
@@ -204,7 +208,7 @@ const getIOSSafariEmojiShortcodes = (htmlDocument: Document, plainText: string):
  * @param shortcode Slack shortcode such as `:tada:` or `:+1::skin-tone-4:`.
  * @returns The matching Unicode emoji, or an empty string when the shortcode is unsupported.
  */
-const getEmojiFromShortcode = (shortcode: string): string => {
+function getEmojiFromShortcode(shortcode: string): string {
     const match = shortcode.match(CONST.REGEX.SLACK_EMOJI_SHORTCODE);
     if (!match) {
         return '';
@@ -221,7 +225,7 @@ const getEmojiFromShortcode = (shortcode: string): string => {
     }
 
     return emoji.types?.at(6 - Number(skinTone)) ?? '';
-};
+}
 
 /**
  * Removes variation selectors before comparing equivalent emoji representations.
@@ -229,7 +233,9 @@ const getEmojiFromShortcode = (shortcode: string): string => {
  * @param emoji Unicode emoji to normalize for comparison.
  * @returns Emoji text without U+FE0F variation selectors.
  */
-const normalizeEmojiForComparison = (emoji: string): string => emoji.replaceAll('\uFE0F', '');
+function normalizeEmojiForComparison(emoji: string): string {
+    return emoji.replaceAll('\uFE0F', '');
+}
 
 /**
  * Verifies that a Safari blob image is the emoji represented by the shortcode at its exact position.
@@ -238,7 +244,7 @@ const normalizeEmojiForComparison = (emoji: string): string => emoji.replaceAll(
  * @param shortcodeAtImagePosition Plain-text shortcode matched to this image position.
  * @returns `true` only when the Safari, blob, filename, shortcode, and Unicode checks all pass.
  */
-const isIOSSafariEmojiImage = (image: HTMLImageElement, shortcodeAtImagePosition?: string): boolean => {
+function isIOSSafariEmojiImage(image: HTMLImageElement, shortcodeAtImagePosition?: string): boolean {
     if (!isMobileSafari() || !image.src.startsWith('blob:') || !CONST.REGEX.EMOJI_IMAGE_ALT.test(image.alt) || !shortcodeAtImagePosition) {
         return false;
     }
@@ -247,7 +253,7 @@ const isIOSSafariEmojiImage = (image: HTMLImageElement, shortcodeAtImagePosition
     const emojiFromShortcode = getEmojiFromShortcode(shortcodeAtImagePosition);
 
     return !!emojiFromImageAlt && !!emojiFromShortcode && normalizeEmojiForComparison(emojiFromImageAlt) === normalizeEmojiForComparison(emojiFromShortcode);
-};
+}
 
 /**
  * Returns the text that should replace an emoji image during paste.
@@ -256,7 +262,7 @@ const isIOSSafariEmojiImage = (image: HTMLImageElement, shortcodeAtImagePosition
  * @param shortcodeAtImagePosition Safari shortcode matched to this image's HTML position.
  * @returns Slack shortcode, Unicode emoji, or an empty string when the image should remain unchanged.
  */
-const getEmojiReplacementText = (image: HTMLImageElement, shortcodeAtImagePosition?: string): string => {
+function getEmojiReplacementText(image: HTMLImageElement, shortcodeAtImagePosition?: string): string {
     // Browsers that preserve Slack's data-* metadata can identify emoji images directly.
     if (isEmojiImage(image)) {
         const shortcode = image.dataset.stringifyEmoji;
@@ -269,7 +275,7 @@ const getEmojiReplacementText = (image: HTMLImageElement, shortcodeAtImagePositi
     }
 
     return '';
-};
+}
 
 /**
  * Replaces recognized emoji image tags while preserving every other character from the original clipboard HTML.
@@ -279,7 +285,7 @@ const getEmojiReplacementText = (image: HTMLImageElement, shortcodeAtImagePositi
  * @param replacements Replacement text keyed by its corresponding parsed image.
  * @returns Clipboard HTML with only recognized emoji image tags replaced.
  */
-const replaceEmojiImagesInHTML = (html: string, images: HTMLImageElement[], replacements: Map<HTMLImageElement, string>): string => {
+function replaceEmojiImagesInHTML(html: string, images: HTMLImageElement[], replacements: Map<HTMLImageElement, string>): string {
     if (replacements.size === 0) {
         return html;
     }
@@ -315,7 +321,7 @@ const replaceEmojiImagesInHTML = (html: string, images: HTMLImageElement[], repl
     }
 
     return htmlWithEmojiReplacements;
-};
+}
 
 const useHtmlPaste: UseHtmlPaste = (textInputRef, preHtmlPasteCallback, isActive = false, maxLength = CONST.MAX_COMMENT_LENGTH + 1) => {
     /**
