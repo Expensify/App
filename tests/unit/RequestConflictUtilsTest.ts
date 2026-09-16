@@ -266,9 +266,11 @@ describe('RequestConflictUtils', () => {
 
         it('rolls back the receipt added actions owned by the deleted replace-receipt requests', () => {
             const updateSpy = jest.spyOn(Onyx, 'update');
+            const firstReplacedReportActionID = '10';
+            const secondReplacedReportActionID = '11';
             const persistedRequests = [
-                {command: WRITE_COMMANDS.REPLACE_RECEIPT, data: {transactionID: '1', reportActionID: '10'}},
-                {command: WRITE_COMMANDS.REPLACE_RECEIPT, data: {transactionID: '1', reportActionID: '11'}},
+                {command: WRITE_COMMANDS.REPLACE_RECEIPT, data: {transactionID: '1', reportActionID: firstReplacedReportActionID}},
+                {command: WRITE_COMMANDS.REPLACE_RECEIPT, data: {transactionID: '1', reportActionID: secondReplacedReportActionID}},
                 {command: WRITE_COMMANDS.REPLACE_RECEIPT, data: {transactionID: '1', reportActionID: '12'}},
             ];
 
@@ -279,7 +281,7 @@ describe('RequestConflictUtils', () => {
                 {
                     onyxMethod: Onyx.METHOD.MERGE,
                     key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}5`,
-                    value: {10: null, 11: null},
+                    value: {[firstReplacedReportActionID]: null, [secondReplacedReportActionID]: null},
                 },
             ]);
             updateSpy.mockClear();
