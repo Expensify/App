@@ -92,6 +92,8 @@ To open a direct conversation with an agent:
 2. Click **Agents**.
 3. Find the agent you want to message, then click the chat icon on the agent's row.
 
+You can also open the agent's row to reach its **Edit agent** page, then click **Chat with agent**.
+
 ---
 
 ## How to Copilot into an agent's account
@@ -105,6 +107,17 @@ Use Copilot to see what the agent has done, review its activity, and inspect any
 3. Find the agent in the list and click **Copilot**.
 
 [Learn more about Copilot](/articles/new-expensify/settings/Act-as-a-Copilot).
+
+---
+
+## Where else you can Copilot into an agent's account
+
+**Copilot into account** is also available in two other places, and it starts the same Copilot session as the **Copilot** button on the agent's row:
+
+- On the agent's **Edit agent** page, click **Copilot into account**.
+- In the agent's chat, click the chat header to open the agent's **Profile** page, then click **Copilot into account**.
+
+Whichever entry point you use, Copiloting opens the agent's **Profile** page. Going back from there returns you to your **Account** page.
 
 ---
 
