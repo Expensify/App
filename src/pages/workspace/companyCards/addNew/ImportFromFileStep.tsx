@@ -1,6 +1,5 @@
 import Button from '@components/Button';
 import ButtonDisabledWhenOffline from '@components/Button/composed/ButtonDisabledWhenOffline';
-import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItem from '@components/MenuItem';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
@@ -136,10 +135,9 @@ function ImportFromFileStep() {
                         <MenuItem.Chevron />
                     </MenuItemField.Row>
                     {!!shouldShowLayoutNameError && (
-                        <FormHelpMessage
-                            shouldShowRedDotIndicator={false}
+                        <MenuItem.HelpText
+                            isError
                             message={translate('workspace.companyCards.addNewCard.cardLayoutNameRequired')}
-                            style={styles.menuItemError}
                         />
                     )}
                 </MenuItem.Root>

@@ -1,6 +1,5 @@
 import Accordion from '@components/Accordion';
 import ConnectionLayout from '@components/ConnectionLayout';
-import FormHelpMessage from '@components/FormHelpMessage';
 import MenuItem from '@components/MenuItem';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -108,11 +107,7 @@ function RilletAdvancedPage({policy}: WithPolicyConnectionsProps) {
                             )}
                             <MenuItem.Chevron />
                         </MenuItemField.Row>
-                        <FormHelpMessage
-                            isError={false}
-                            message={translate(`workspace.rillet.accountingMethods.alternateText.${accountingMethod}`)}
-                            style={styles.menuItemError}
-                        />
+                        <MenuItem.HelpText message={translate(`workspace.rillet.accountingMethods.alternateText.${accountingMethod}`)} />
                     </MenuItem.Root>
                 </OfflineWithFeedback>
             </Accordion>

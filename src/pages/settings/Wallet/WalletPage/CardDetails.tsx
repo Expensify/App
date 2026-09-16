@@ -1,4 +1,3 @@
-import FormHelpMessage from '@components/FormHelpMessage';
 import MenuItem from '@components/MenuItem';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -71,13 +70,7 @@ function CardDetails({pan = '', expiration = '', cvv = '', onUpdateAddressPress,
                         name={translate('workspace.card.issueNewCard.limitType')}
                         value={translate(getTranslationKeyForLimitType(limitType))}
                     />
-                    {!!cardHintText && (
-                        <FormHelpMessage
-                            isError={false}
-                            message={cardHintText}
-                            style={styles.menuItemError}
-                        />
-                    )}
+                    {!!cardHintText && <MenuItem.HelpText message={cardHintText} />}
                 </MenuItem.Root>
             )}
             {expiration?.length > 0 && (

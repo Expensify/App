@@ -1,6 +1,5 @@
 import Accordion from '@components/Accordion';
 import ConnectionLayout from '@components/ConnectionLayout';
-import FormHelpMessage from '@components/FormHelpMessage';
 import MenuItem from '@components/MenuItem';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -124,13 +123,7 @@ function SageIntacctToggleMappingsPage({route}: SageIntacctToggleMappingsPagePro
                             {areSettingsInErrorFields([mappingName], config?.errorFields) && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
                             <MenuItem.Chevron />
                         </MenuItemField.Row>
-                        {!!translationKeys?.descriptionKey && (
-                            <FormHelpMessage
-                                isError={false}
-                                message={translate(translationKeys.descriptionKey)}
-                                style={styles.menuItemError}
-                            />
-                        )}
+                        {!!translationKeys?.descriptionKey && <MenuItem.HelpText message={translate(translationKeys.descriptionKey)} />}
                     </MenuItem.Root>
                 </OfflineWithFeedback>
             </Accordion>

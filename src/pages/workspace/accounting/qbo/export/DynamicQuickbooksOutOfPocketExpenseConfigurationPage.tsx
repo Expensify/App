@@ -1,5 +1,4 @@
 import ConnectionLayout from '@components/ConnectionLayout';
-import FormHelpMessage from '@components/FormHelpMessage';
 import MenuItem from '@components/MenuItem';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -145,13 +144,7 @@ function DynamicQuickbooksOutOfPocketExpenseConfigurationPage({policy}: WithPoli
                             {!!section.brickRoadIndicator && <MenuItem.BrickRoadIndicator status={section.brickRoadIndicator} />}
                             <MenuItem.Chevron />
                         </MenuItemField.Row>
-                        {!!section.hintText && (
-                            <FormHelpMessage
-                                isError={false}
-                                message={section.hintText}
-                                style={styles.menuItemError}
-                            />
-                        )}
+                        {!!section.hintText && <MenuItem.HelpText message={section.hintText} />}
                     </MenuItem.Root>
                 </OfflineWithFeedback>
             ))}

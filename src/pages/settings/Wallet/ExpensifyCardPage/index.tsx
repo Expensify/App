@@ -6,7 +6,6 @@ import Button from '@components/Button';
 import ButtonDisabledWhenOffline from '@components/Button/composed/ButtonDisabledWhenOffline';
 import CardPreview from '@components/CardPreview';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
-import FormHelpMessage from '@components/FormHelpMessage';
 import FrozenCardHeader from '@components/FrozenCardHeader';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {useLockedAccountActions, useLockedAccountState} from '@components/LockedAccountModalProvider';
@@ -442,8 +441,7 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                                 name={translate('workspace.card.issueNewCard.limitType')}
                                 value={currentCardLimitTypeTranslationKey ? translate(currentCardLimitTypeTranslationKey) : ''}
                             />
-                            <FormHelpMessage
-                                isError={false}
+                            <MenuItem.HelpText
                                 message={getCardHintText(
                                     currentCard?.nameValuePairs?.validFrom,
                                     currentCard?.nameValuePairs?.validThru,
@@ -451,7 +449,6 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                                     dateFnsLocale,
                                     translate,
                                 )}
-                                style={styles.menuItemError}
                             />
                         </MenuItem.Root>
                         {shouldShowReportLostCardButton && (

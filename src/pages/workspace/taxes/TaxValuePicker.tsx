@@ -1,10 +1,8 @@
-import FormHelpMessage from '@components/FormHelpMessage';
 import MenuItem from '@components/MenuItem';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
-import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getTaxValueWithPercentage} from '@libs/actions/TaxRate';
 import Navigation from '@libs/Navigation/Navigation';
@@ -39,7 +37,6 @@ type TaxValuePickerProps = {
 
 function TaxValuePicker({policyID, value, errorText, rightLabel, onInputChange, onPress}: TaxValuePickerProps) {
     const {translate} = useLocalize();
-    const styles = useThemeStyles();
     const previousValue = usePrevious(value);
 
     useEffect(() => {
@@ -65,10 +62,9 @@ function TaxValuePicker({policyID, value, errorText, rightLabel, onInputChange, 
                 <MenuItem.Chevron />
             </MenuItemField.Row>
             {!!errorText && (
-                <FormHelpMessage
-                    shouldShowRedDotIndicator={false}
+                <MenuItem.HelpText
+                    isError
                     message={errorText}
-                    style={styles.menuItemError}
                 />
             )}
         </MenuItem.Root>

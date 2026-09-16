@@ -5,7 +5,6 @@ import Button from '@components/Button';
 import CompactMenuContext from '@components/CompactMenuContext';
 import DisplayNames from '@components/DisplayNames';
 import type {DisplayNameWithTooltip} from '@components/DisplayNames/types';
-import FormHelpMessage from '@components/FormHelpMessage';
 import MenuItem from '@components/MenuItem';
 import MenuItemAction from '@components/MenuItem/presets/MenuItemAction';
 import MenuItemAvatarNavigation from '@components/MenuItem/presets/MenuItemAvatarNavigation';
@@ -256,10 +255,9 @@ function Comparison() {
                             <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />
                             <MenuItem.Chevron />
                         </MenuItemField.Row>
-                        <FormHelpMessage
-                            shouldShowRedDotIndicator={false}
+                        <MenuItem.HelpText
+                            isError
                             message="Please select a country"
-                            style={styles.menuItemError}
                         />
                     </MenuItem.Root>
                 }
@@ -281,11 +279,7 @@ function Comparison() {
                             name="Limit type"
                             value="Smart limit"
                         />
-                        <FormHelpMessage
-                            isError={false}
-                            message="Resets every month"
-                            style={styles.menuItemError}
-                        />
+                        <MenuItem.HelpText message="Resets every month" />
                     </MenuItem.Root>
                 }
             />

@@ -1,9 +1,7 @@
-import FormHelpMessage from '@components/FormHelpMessage';
 import MenuItem from '@components/MenuItem';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 
 import useLocalize from '@hooks/useLocalize';
-import useThemeStyles from '@hooks/useThemeStyles';
 
 import type {Option} from '@libs/searchOptions';
 
@@ -28,7 +26,6 @@ type CountryPickerProps = {
 
 function CountryPicker({value, errorText, onInputChange = () => {}}: CountryPickerProps) {
     const {translate} = useLocalize();
-    const styles = useThemeStyles();
     const [isPickerVisible, setIsPickerVisible] = useState(false);
 
     const hidePickerModal = () => {
@@ -51,10 +48,9 @@ function CountryPicker({value, errorText, onInputChange = () => {}}: CountryPick
                     <MenuItem.Chevron />
                 </MenuItemField.Row>
                 {!!errorText && (
-                    <FormHelpMessage
-                        shouldShowRedDotIndicator={false}
+                    <MenuItem.HelpText
+                        isError
                         message={errorText}
-                        style={styles.menuItemError}
                     />
                 )}
             </MenuItem.Root>

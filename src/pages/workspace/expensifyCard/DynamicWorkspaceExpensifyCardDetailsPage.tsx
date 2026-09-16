@@ -2,7 +2,6 @@ import cardScarf from '@assets/images/card-scarf.svg';
 
 import Badge from '@components/Badge';
 import DecisionModal from '@components/DecisionModal';
-import FormHelpMessage from '@components/FormHelpMessage';
 import FrozenCardHeader from '@components/FrozenCardHeader';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ImageSVG from '@components/ImageSVG';
@@ -438,10 +437,8 @@ function DynamicWorkspaceExpensifyCardDetailsPage({route}: DynamicWorkspaceExpen
                             >
                                 {!!canWriteExpensifyCard && <MenuItem.Chevron />}
                             </MenuItemField.Row>
-                            <FormHelpMessage
-                                isError={false}
+                            <MenuItem.HelpText
                                 message={getCardHintText(card?.nameValuePairs?.validFrom, card?.nameValuePairs?.validThru, cardholder?.timezone?.selected, dateFnsLocale, translate)}
-                                style={styles.menuItemError}
                             />
                         </MenuItem.Root>
                     </OfflineWithFeedback>

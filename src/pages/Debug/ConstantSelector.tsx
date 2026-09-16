@@ -1,8 +1,5 @@
-import FormHelpMessage from '@components/FormHelpMessage';
 import MenuItem from '@components/MenuItem';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
-
-import useThemeStyles from '@hooks/useThemeStyles';
 
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
@@ -46,7 +43,6 @@ type ConstantSelectorProps = {
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 function ConstantSelector({formType, policyID, errorText = '', name, value, onInputChange, ref}: ConstantSelectorProps) {
-    const styles = useThemeStyles();
     const fieldValue = (useRoute().params as Record<string, string> | undefined)?.[name];
 
     useEffect(() => {
@@ -79,10 +75,9 @@ function ConstantSelector({formType, policyID, errorText = '', name, value, onIn
                 <MenuItem.Chevron />
             </MenuItemField.Row>
             {!!errorText && (
-                <FormHelpMessage
-                    shouldShowRedDotIndicator={false}
+                <MenuItem.HelpText
+                    isError
                     message={errorText}
-                    style={styles.menuItemError}
                 />
             )}
         </MenuItem.Root>

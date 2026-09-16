@@ -1,6 +1,5 @@
 import Button from '@components/Button';
 import DecisionModal from '@components/DecisionModal';
-import FormHelpMessage from '@components/FormHelpMessage';
 import MenuItem from '@components/MenuItem';
 import MenuItemAction from '@components/MenuItem/presets/MenuItemAction';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
@@ -235,10 +234,9 @@ function DomainMemberDetailsPage({route}: DomainMemberDetailsPageProps) {
                             )}
                         </MenuItem.Row>
                         {!!lockDomainErrorMessage && (
-                            <FormHelpMessage
-                                shouldShowRedDotIndicator={false}
+                            <MenuItem.HelpText
+                                isError
                                 message={lockDomainErrorMessage}
-                                style={styles.menuItemError}
                             />
                         )}
                     </MenuItem.Root>

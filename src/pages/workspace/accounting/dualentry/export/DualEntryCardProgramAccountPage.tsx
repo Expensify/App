@@ -1,5 +1,4 @@
 import ConnectionLayout from '@components/ConnectionLayout';
-import FormHelpMessage from '@components/FormHelpMessage';
 import MenuItem from '@components/MenuItem';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -88,11 +87,7 @@ function DualEntryCardProgramAccountPage({policy}: WithPolicyConnectionsProps) {
                                     <MenuItem.Chevron />
                                 </MenuItemField.Row>
                                 {!!cardsUsingCustomAccountsCount.perFeedCount[feedKey] && (
-                                    <FormHelpMessage
-                                        isError={false}
-                                        message={translate('workspace.dualEntry.cardAccount.countInfo', cardsUsingCustomAccountsCount.perFeedCount[feedKey])}
-                                        style={styles.menuItemError}
-                                    />
+                                    <MenuItem.HelpText message={translate('workspace.dualEntry.cardAccount.countInfo', cardsUsingCustomAccountsCount.perFeedCount[feedKey])} />
                                 )}
                             </MenuItem.Root>
                         </OfflineWithFeedback>

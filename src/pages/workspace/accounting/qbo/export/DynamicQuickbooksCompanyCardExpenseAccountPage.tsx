@@ -1,5 +1,4 @@
 import ConnectionLayout from '@components/ConnectionLayout';
-import FormHelpMessage from '@components/FormHelpMessage';
 import MenuItem from '@components/MenuItem';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -103,13 +102,7 @@ function DynamicQuickbooksCompanyCardExpenseAccountPage({policy}: WithPolicyConn
                             {areSettingsInErrorFields(section.subscribedSettings, qboConfig?.errorFields) && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
                             <MenuItem.Chevron />
                         </MenuItemField.Row>
-                        {!!section.hintText && (
-                            <FormHelpMessage
-                                isError={false}
-                                message={section.hintText}
-                                style={styles.menuItemError}
-                            />
-                        )}
+                        {!!section.hintText && <MenuItem.HelpText message={section.hintText} />}
                     </MenuItem.Root>
                 </OfflineWithFeedback>
             ))}

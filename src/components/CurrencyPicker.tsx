@@ -16,7 +16,6 @@ import type {CurrencyListItem} from './CurrencySelectionList/types';
 
 import FullPageOfflineBlockingView from './BlockingViews/FullPageOfflineBlockingView';
 import CurrencySelectionList from './CurrencySelectionList';
-import FormHelpMessage from './FormHelpMessage';
 import HeaderWithBackButton from './HeaderWithBackButton';
 import MenuItem from './MenuItem';
 import MenuItemField from './MenuItem/presets/MenuItemField';
@@ -76,10 +75,9 @@ function CurrencyPicker({label, value, errorText, headerContent, excludeCurrenci
                     <MenuItem.Chevron />
                 </MenuItemField.Row>
                 {!!errorText && (
-                    <FormHelpMessage
-                        shouldShowRedDotIndicator={false}
+                    <MenuItem.HelpText
+                        isError
                         message={errorText}
-                        style={styles.menuItemError}
                     />
                 )}
             </MenuItem.Root>

@@ -1,6 +1,5 @@
 import Accordion from '@components/Accordion';
 import ConnectionLayout from '@components/ConnectionLayout';
-import FormHelpMessage from '@components/FormHelpMessage';
 import MenuItem from '@components/MenuItem';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -121,11 +120,7 @@ function SageIntacctAdvancedPage({policy}: WithPolicyProps) {
                         <MenuItem.Chevron />
                     </MenuItemField.Row>
                     {!!config?.autoSync?.enabled && (
-                        <FormHelpMessage
-                            isError={false}
-                            message={translate(`workspace.sageIntacct.accountingMethods.alternateText.${accountingMethod}` as TranslationPaths)}
-                            style={styles.menuItemError}
-                        />
+                        <MenuItem.HelpText message={translate(`workspace.sageIntacct.accountingMethods.alternateText.${accountingMethod}` as TranslationPaths)} />
                     )}
                 </MenuItem.Root>
             </OfflineWithFeedback>

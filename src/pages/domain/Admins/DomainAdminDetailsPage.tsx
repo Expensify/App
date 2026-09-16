@@ -1,4 +1,3 @@
-import FormHelpMessage from '@components/FormHelpMessage';
 import MenuItem from '@components/MenuItem';
 import MenuItemAction from '@components/MenuItem/presets/MenuItemAction';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
@@ -7,7 +6,6 @@ import useConfirmModal from '@hooks/useConfirmModal';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import useThemeStyles from '@hooks/useThemeStyles';
 
 import {temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 
@@ -36,7 +34,6 @@ type DomainAdminDetailsPageProps = PlatformStackScreenProps<SettingsNavigatorPar
 function DomainAdminDetailsPage({route}: DomainAdminDetailsPageProps) {
     const {domainAccountID, accountID} = route.params;
 
-    const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Info', 'ClosedSign']);
 
@@ -102,13 +99,7 @@ function DomainAdminDetailsPage({route}: DomainAdminDetailsPageProps) {
                             <MenuItem.Title>{translate('domain.admins.revokeAdminAccess')}</MenuItem.Title>
                         </MenuItem.Content>
                     </MenuItem.Row>
-                    {isCurrentUserPrimaryContact && (
-                        <FormHelpMessage
-                            isError={false}
-                            message={translate('domain.admins.cantRevokeAdminAccess')}
-                            style={styles.menuItemError}
-                        />
-                    )}
+                    {isCurrentUserPrimaryContact && <MenuItem.HelpText message={translate('domain.admins.cantRevokeAdminAccess')} />}
                 </MenuItem.Root>
             )}
         </BaseDomainMemberDetailsComponent>

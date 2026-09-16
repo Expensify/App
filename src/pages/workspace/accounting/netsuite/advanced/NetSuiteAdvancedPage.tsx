@@ -1,6 +1,5 @@
 import Accordion from '@components/Accordion';
 import ConnectionLayout from '@components/ConnectionLayout';
-import FormHelpMessage from '@components/FormHelpMessage';
 import MenuItem from '@components/MenuItem';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -101,13 +100,7 @@ function NetSuiteAdvancedPage({policy}: WithPolicyConnectionsProps) {
                         {areSettingsInErrorFields(item.subscribedSettings, config?.errorFields) && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
                         <MenuItem.Chevron />
                     </MenuItemField.Row>
-                    {!!item.hintText && (
-                        <FormHelpMessage
-                            isError={false}
-                            message={item.hintText}
-                            style={styles.menuItemError}
-                        />
-                    )}
+                    {!!item.hintText && <MenuItem.HelpText message={item.hintText} />}
                 </MenuItem.Root>
             </OfflineWithFeedback>
         );
