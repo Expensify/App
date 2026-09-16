@@ -14,7 +14,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SearchAdvancedFiltersParamList} from '@libs/Navigation/types';
-import {FILTER_VIEW_MAP} from '@libs/SearchUIUtils';
+import {FILTER_VIEW_MAP, isAmountFilterKey, isReportFieldKey, isTextFilterKey} from '@libs/SearchUIUtils';
 import type {SearchFilter} from '@libs/SearchUIUtils';
 
 import {SearchAdvancedFiltersActionContext, SearchAdvancedFiltersContext} from '@pages/Search/SearchAdvancedFiltersProvider';
@@ -71,6 +71,8 @@ function SearchAdvancedFiltersContentBase() {
     const isFilterWithSelectionList =
         validFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.TO ||
         validFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM ||
+        validFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID_BY ||
+        validFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.BANK_ACCOUNT ||
         validFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY ||
         validFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_CURRENCY ||
         validFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY ||
@@ -93,18 +95,7 @@ function SearchAdvancedFiltersContentBase() {
         }
 
         // We want to make space for the confirm button for filters with text inputs without list
-        if (
-            validFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_FIELD ||
-            validFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_AMOUNT ||
-            validFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT ||
-            validFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT ||
-            validFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION ||
-            validFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID ||
-            validFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD ||
-            validFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.TITLE ||
-            validFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_ID ||
-            validFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.TOTAL
-        ) {
+        if (isAmountFilterKey(validFilterKey) || isTextFilterKey(validFilterKey) || isReportFieldKey(validFilterKey)) {
             return CONFIRM_BUTTON_HEIGHT;
         }
 

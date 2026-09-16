@@ -9,7 +9,7 @@ import CONST from '@src/CONST';
 
 import React, {useState} from 'react';
 
-function ListFilterContentPageWrapper({baseFilterKey, value: initialValue, isNegated: initialIsNegated, type, policyID, ready, onChange}: ListFilterContentWrapperProps) {
+function ListFilterContentPageWrapper({baseFilterKey, value: initialValue, isNegated: initialIsNegated, type, policyID, ready, onChange, buttonText}: ListFilterContentWrapperProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [value, setValue] = useState(initialValue);
@@ -33,7 +33,7 @@ function ListFilterContentPageWrapper({baseFilterKey, value: initialValue, isNeg
                     size={CONST.BUTTON_SIZE.LARGE}
                     onPress={() => onChange(value, isNegated)}
                 >
-                    <Button.Text>{translate('common.confirm')}</Button.Text>
+                    <Button.Text>{buttonText ?? translate('common.confirm')}</Button.Text>
                 </Button>
             }
         />
