@@ -139,6 +139,7 @@ const renderSelection = () =>
     renderHook(
         () => ({
             ...useSearchSelectionContext(),
+            ...useSearchSelectionActions(),
             ...useSearchRowSelectionActions(),
         }),
         {wrapper: Wrapper},
@@ -226,6 +227,31 @@ describe('Lazily loaded group selection', () => {
         expect(result.current.selectedTransactions[GROUP_KEY]).toBeUndefined();
         expect(result.current.selectedTransactions['1']?.isSelected).toBe(true);
         expect(result.current.selectedTransactions['2']?.isSelected).toBe(true);
+    });
+
+    it('clears the parent exclusion when an expanded group is reselected', async () => {
+        const {result} = renderSelection();
+
+        await act(async () => {
+            result.current.toggleAll();
+            result.current.selectAllMatchingItems(true);
+            await waitForBatchedUpdatesWithAct();
+        });
+        await act(async () => {
+            result.current.toggle(categoryGroup, []);
+            await waitForBatchedUpdatesWithAct();
+        });
+        expect(result.current.excludedTransactions[GROUP_KEY]).toBeDefined();
+
+        await act(async () => {
+            result.current.toggle(categoryGroup, loadedChildren);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        expect(result.current.excludedTransactions).toEqual({});
+        expect(result.current.selectedTransactions['1']?.isSelected).toBe(true);
+        expect(result.current.selectedTransactions['2']?.isSelected).toBe(true);
+        expect(result.current.areAllMatchingItemsSelected).toBe(true);
     });
 
     it('refreshes an excluded expense when its live row changes', async () => {

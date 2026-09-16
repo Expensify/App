@@ -1,4 +1,4 @@
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 
 import useLocalize from '@hooks/useLocalize';
@@ -89,11 +89,10 @@ function TravelBillingContinuousReconciliationSection({policy, connectionName, i
             />
             {!!travelBillingContinuousReconciliation && (
                 <OfflineWithFeedback pendingAction={travelBillingContinuousReconciliationPendingAction}>
-                    <MenuItemWithTopDescription
-                        description={translate('workspace.accounting.reconciliationAccount')}
+                    <MenuItemField
+                        name={translate('workspace.accounting.reconciliationAccount')}
                         onPress={navigateToTravelBillingReconciliationAccountSettings}
-                        title={travelBillingReconciliationBankAccount?.name}
-                        shouldShowRightIcon
+                        value={travelBillingReconciliationBankAccount?.name}
                     />
                 </OfflineWithFeedback>
             )}

@@ -15,7 +15,6 @@ import StateSelectorModal from './StateSelectorModal';
 type State = keyof typeof COMMON_CONST.STATES;
 
 type StatePickerProps = {
-    /** Current value of the selected item */
     value?: string;
 
     /** Callback when the list item is selected */

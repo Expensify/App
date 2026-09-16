@@ -1,7 +1,6 @@
 /**
  * `fetch` against the Cloudflare Access-protected QA origin: attaches the bearer token and recovers from an
- * expired one. Standalone on purpose. Nothing in the app routes to QA yet, so HttpUtils stays untouched.
- * This logic moves there once QA routing lands.
+ * expired one.
  */
 import {getCloudflareSession, refreshCloudflareSession} from '@userActions/CloudflareSession';
 
