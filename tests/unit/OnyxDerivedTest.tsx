@@ -86,13 +86,12 @@ describe('OnyxDerived', () => {
             },
         );
 
-        it('hides MARKED_REIMBURSED when its sibling PAY action arrives in a later update', async () => {
+        it('uses the collection reportID to hide MARKED_REIMBURSED when its sibling PAY arrives later', async () => {
             const reportID = 'reportWithLatePaySibling';
             const reportActionsKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}` as const;
             const markedReimbursedAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED> = {
                 actionName: CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED,
                 reportActionID: '1',
-                reportID,
                 created: '2025-01-01 00:00:00',
                 message: [{type: 'TEXT', style: 'normal', text: 'Marked as reimbursed'}],
                 originalMessage: {},
@@ -100,7 +99,6 @@ describe('OnyxDerived', () => {
             const payAction = {
                 actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                 reportActionID: '2',
-                reportID,
                 created: '2025-01-01 00:00:01',
                 message: [{type: 'TEXT', style: 'normal', text: 'paid'}],
                 originalMessage: {type: CONST.IOU.REPORT_ACTION_TYPE.PAY, IOUReportID: reportID, amount: 100, currency: CONST.CURRENCY.USD},
@@ -120,6 +118,9 @@ describe('OnyxDerived', () => {
             const updatedVisibility = await OnyxUtils.get(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS);
             expect(updatedVisibility?.[reportID]?.[payAction.reportActionID]).toBe(true);
             expect(isReportActionVisible(markedReimbursedAction, reportID, true, updatedVisibility)).toBe(false);
+            expect(isReportActionVisible(markedReimbursedAction, reportID, true)).toBe(false);
+            expect(isReportActionVisible(markedReimbursedAction, reportID, true, {})).toBe(false);
+            expect(isReportActionVisible({...markedReimbursedAction, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD}, reportID, true, updatedVisibility)).toBe(false);
         });
     });
 

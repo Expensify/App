@@ -1293,7 +1293,13 @@ function isResolvedConciergeDescriptionOptions(reportAction: OnyxEntry<ReportAct
  * and supported type, it's not deleted and also not closed.
  */
 // TODO: Remove optional (?) on currentUserAccountID once all callers pass it. Refactor issue: https://github.com/Expensify/App/issues/66408
-function shouldReportActionBeVisible(reportAction: OnyxEntry<ReportAction>, key: string | number, canUserPerformWriteAction?: boolean, currentUserAccountID?: number): boolean {
+function shouldReportActionBeVisible(
+    reportAction: OnyxEntry<ReportAction>,
+    key: string | number,
+    canUserPerformWriteAction?: boolean,
+    currentUserAccountID?: number,
+    reportID?: string,
+): boolean {
     if (!reportAction) {
         return false;
     }
@@ -1371,7 +1377,7 @@ function shouldReportActionBeVisible(reportAction: OnyxEntry<ReportAction>, key:
         // leak through alongside the IOU PAY action. Since NewDot shows the IOU PAY action instead, hide
         // MARKED_REIMBURSED when the same payment attempt has a sibling IOU PAY action. Scoped to
         // MARKED_REIMBURSED so REIMBURSED behavior is unchanged.
-        if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED) && hasSiblingPayReportAction(reportAction)) {
+        if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED) && hasSiblingPayReportAction(reportAction, reportAction.reportID ?? reportID)) {
             return false;
         }
     }
@@ -1414,18 +1420,18 @@ function isReportActionVisible(
     // from what's cached in visibleReportActions (which reflects persisted Onyx data).
     // We must recalculate visibility at runtime to ensure accuracy for these transient states.
     if (reportAction.pendingAction) {
-        return shouldReportActionBeVisible(reportAction, reportAction.reportActionID, canUserPerformWriteAction, currentUserAccountID);
+        return shouldReportActionBeVisible(reportAction, reportAction.reportActionID, canUserPerformWriteAction, currentUserAccountID, reportID);
     }
 
     if (visibleReportActions && reportID) {
         const reportCache = visibleReportActions[reportID];
         if (!reportCache) {
-            return shouldReportActionBeVisible(reportAction, reportAction.reportActionID, canUserPerformWriteAction, currentUserAccountID);
+            return shouldReportActionBeVisible(reportAction, reportAction.reportActionID, canUserPerformWriteAction, currentUserAccountID, reportID);
         }
         const staticVisibility = reportCache[reportAction.reportActionID];
         // If action is not in derived value cache, fall back to runtime calculation
         if (staticVisibility === undefined) {
-            return shouldReportActionBeVisible(reportAction, reportAction.reportActionID, canUserPerformWriteAction, currentUserAccountID);
+            return shouldReportActionBeVisible(reportAction, reportAction.reportActionID, canUserPerformWriteAction, currentUserAccountID, reportID);
         }
         if (!staticVisibility) {
             return false;
@@ -1435,7 +1441,7 @@ function isReportActionVisible(
         }
         return true;
     }
-    return shouldReportActionBeVisible(reportAction, reportAction.reportActionID, canUserPerformWriteAction, currentUserAccountID);
+    return shouldReportActionBeVisible(reportAction, reportAction.reportActionID, canUserPerformWriteAction, currentUserAccountID, reportID);
 }
 
 /**
@@ -1879,8 +1885,7 @@ function isPaymentAttemptBoundary(action: OnyxEntry<ReportAction>): boolean {
  * must not hide a later manual reimbursement after that payment was canceled or failed.
  * The write-time isNewDot/shouldShow flags can be stale for background jobs (Expensify/Expensify#636674).
  */
-function hasSiblingPayReportAction(reportAction: OnyxEntry<ReportAction>): boolean {
-    const reportID = reportAction?.reportID;
+function hasSiblingPayReportAction(reportAction: OnyxEntry<ReportAction>, reportID: string | undefined): boolean {
     if (!reportID || !reportAction?.reportActionID) {
         return false;
     }

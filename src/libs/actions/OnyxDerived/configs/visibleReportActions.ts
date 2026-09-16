@@ -21,7 +21,7 @@ function shouldSkipCachingAction(action: ReportAction): boolean {
  * actions. Rebuilding the whole map rather than updating individual entries keeps deletions correct:
  * a removed action is absent from `reportActions`, so it drops out of the result.
  */
-function computeReportVisibility(reportActions: ReportActions, currentUserAccountID: number | undefined): Record<string, boolean> {
+function computeReportVisibility(reportActions: ReportActions, currentUserAccountID: number | undefined, reportID: string): Record<string, boolean> {
     const reportVisibility: Record<string, boolean> = {};
 
     for (const [actionID, action] of Object.entries(reportActions)) {
@@ -36,7 +36,7 @@ function computeReportVisibility(reportActions: ReportActions, currentUserAccoun
         if (shouldSkipCachingAction(action)) {
             continue;
         }
-        reportVisibility[action.reportActionID] = shouldReportActionBeVisible(action, actionID, undefined, currentUserAccountID);
+        reportVisibility[action.reportActionID] = shouldReportActionBeVisible(action, actionID, undefined, currentUserAccountID, reportID);
     }
 
     return reportVisibility;
@@ -76,7 +76,7 @@ export default createOnyxDerivedValueConfig({
                 continue;
             }
 
-            result[reportID] = computeReportVisibility(reportActions, currentUserAccountID);
+            result[reportID] = computeReportVisibility(reportActions, currentUserAccountID, reportID);
         }
 
         return result;
