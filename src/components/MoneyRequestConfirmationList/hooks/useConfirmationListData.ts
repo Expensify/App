@@ -5,10 +5,8 @@ import type {MeasurableInput, SelectionListWithSectionsHandle} from '@components
 
 import useAttendees from '@hooks/useAttendees';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import useLocalize from '@hooks/useLocalize';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import usePolicyForTransaction from '@hooks/usePolicyForTransaction';
-import usePreferredPolicy from '@hooks/usePreferredPolicy';
 import usePrevious from '@hooks/usePrevious';
 
 import {isCategoryDescriptionRequired} from '@libs/CategoryUtils';
@@ -28,17 +26,16 @@ import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {useIsFocused} from '@react-navigation/native';
-import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import {useCallback, useEffect, useRef, useState} from 'react';
 
 import type useDistanceRequestState from './useDistanceRequestState';
 
 import useConfirmationAmount from './useConfirmationAmount';
-import useConfirmationSections from './useConfirmationSections';
 import useConfirmationValidation from './useConfirmationValidation';
 import useFormErrorManagement from './useFormErrorManagement';
+import useParticipantSection from './useParticipantSection';
 import usePolicyCategoriesForConfirmation from './usePolicyCategoriesForConfirmation';
 import usePolicyTagsForConfirmation from './usePolicyTagsForConfirmation';
-import useSplitParticipants from './useSplitParticipants';
 import useTransactionReportForConfirmation from './useTransactionReportForConfirmation';
 
 /**
@@ -178,10 +175,6 @@ function useConfirmationListData({
     const isMovingTransactionFromTrackExpense = isMovingTransactionFromTrackExpenseUtil(action);
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
-    const {translate} = useLocalize();
-
-    // The Test Drive tooltip itself lives in `ConfirmationFooterContent`, which mounts `useReceiptTraining`.
-    const isTestReceipt = transaction?.receipt?.isTestReceipt ?? false;
 
     const isTrackExpense = iouType === CONST.IOU.TYPE.TRACK;
     const {policy} = usePolicyForTransaction({
@@ -193,7 +186,6 @@ function useConfirmationListData({
     });
 
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const {isRestrictedToPreferredPolicy} = usePreferredPolicy();
     const listRef = useRef<SelectionListWithSectionsHandle>(null);
 
     // In the new manual expense flow the inline fields live in the list footer, so they can be hidden behind the keyboard.
@@ -210,7 +202,6 @@ function useConfirmationListData({
 
     const isTypeSend = iouType === CONST.IOU.TYPE.PAY;
     const isTypeInvoice = iouType === CONST.IOU.TYPE.INVOICE;
-    const isFromGlobalCreateAndCanEditParticipant = !!transaction?.isFromGlobalCreate && !isPerDiemRequest && !isTimeRequest;
 
     const transactionID = transaction?.transactionID;
     const customUnitRateID = getRateID(transaction);
@@ -241,9 +232,6 @@ function useConfirmationListData({
         currency: distanceCurrency,
         prevSubRates,
     });
-
-    const isManualRequest = transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.MANUAL;
-    const shouldForceTopEmptySections = iouType === CONST.IOU.TYPE.CREATE || isManualRequest || isScanRequest;
 
     const isFocused = useIsFocused();
 
@@ -303,63 +291,24 @@ function useConfirmationListData({
         setDidConfirm(isConfirmed);
     }, [isConfirmed]);
 
-    const selectedParticipants = selectedParticipantsProp.filter((participant) => participant.selected);
-    const payeePersonalDetails = payeePersonalDetailsProp ?? currentUserPersonalDetails;
-
-    const participantRowErrors = useMemo(() => {
-        if (formError !== 'iou.error.noParticipantSelected' && formError !== 'violations.missingAttendees') {
-            return undefined;
-        }
-        return {participants: translate(formError)};
-    }, [formError, translate]);
-
-    useEffect(() => {
-        if (selectedParticipants.length === 0) {
-            return;
-        }
-        clearFormErrors(['iou.error.noParticipantSelected']);
-    }, [selectedParticipants.length, clearFormErrors]);
-
-    const dismissParticipantRowError = useCallback(() => {
-        clearFormErrors(['iou.error.noParticipantSelected', 'violations.missingAttendees']);
-    }, [clearFormErrors]);
-
-    const {splitParticipants, getSplitSectionHeader} = useSplitParticipants({
-        isTypeSplit,
-        shouldShowReadOnlySplits,
-        payeePersonalDetails,
-        selectedParticipants,
+    const {selectedParticipants, sections, navigateToParticipantPage, dismissParticipantRowError} = useParticipantSection({
         transaction,
-        iouAmount,
-        iouCurrencyCode,
-        currentUserAccountID: currentUserPersonalDetails.accountID,
-    });
-
-    const canEditParticipant = isFromGlobalCreateAndCanEditParticipant && !isTestReceipt && (!isRestrictedToPreferredPolicy || isTypeInvoice);
-
-    const sections = useConfirmationSections({
+        iouType,
+        isScanRequest,
         isTypeSplit,
         isTypeInvoice,
+        isPerDiemRequest,
+        isTimeRequest,
         shouldHideToSection,
-        shouldForceTopEmptySections,
-        participantRowErrors,
-        canEditParticipant,
-        payeePersonalDetails,
-        splitParticipants,
-        selectedParticipants,
-        getSplitSectionHeader,
+        shouldShowReadOnlySplits,
+        selectedParticipantsProp,
+        payeePersonalDetailsProp,
+        formError,
+        clearFormErrors,
+        iouAmount,
+        iouCurrencyCode,
+        onOpenParticipantPicker,
     });
-
-    /**
-     * Navigate to the participant step
-     */
-    const navigateToParticipantPage = () => {
-        if (!canEditParticipant) {
-            return;
-        }
-
-        onOpenParticipantPicker?.();
-    };
 
     const {validate} = useConfirmationValidation({
         transaction,
