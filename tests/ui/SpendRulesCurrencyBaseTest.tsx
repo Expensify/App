@@ -72,6 +72,7 @@ type MockSelectionListProps = {
     data: Array<{value?: string; keyForList?: string; isSelected?: boolean}>;
     shouldScrollToFocusedIndexOnMount?: boolean;
     shouldUpdateFocusedIndex?: boolean;
+    disableMaintainingScrollPosition?: boolean;
     textInputOptions?: {onChangeText?: (value: string) => void};
 };
 
@@ -105,6 +106,8 @@ describe('SpendRulesCurrencyBase', () => {
         expect(props?.data.at(0)?.value).not.toBe('C01');
         expect(props?.shouldScrollToFocusedIndexOnMount).toBe(false);
         expect(props?.shouldUpdateFocusedIndex).toBe(true);
+        // Prevents the list from scrolling the pinned rows below the fold when a search is cleared.
+        expect(props?.disableMaintainingScrollPosition).toBe(true);
     });
 
     it('keeps a pinned currency at the top of the search results', () => {

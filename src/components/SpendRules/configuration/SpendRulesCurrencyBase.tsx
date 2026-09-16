@@ -191,6 +191,7 @@ export default function SpendRulesCurrencyBase({currencies, settlementCurrency, 
                 canSelectMultiple
                 shouldScrollToFocusedIndexOnMount={false}
                 shouldUpdateFocusedIndex
+                disableMaintainingScrollPosition
                 customListHeaderContent={ListHeaderContent}
                 ListItem={MultiSelectListItem}
                 data={filteredCurrencyItems}
