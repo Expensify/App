@@ -91,7 +91,7 @@ function PlatformNavigatorImpl<RouterOptions extends PlatformStackRouterOptions 
         parentRoute,
     };
 
-    // The sidebar is a sibling of the native stack, so keep the router's full central history.
+    // Preserve the full split history here; getNativeSplitRenderState limits the mounted central screens below.
     const isSplit = !shouldUseNarrowLayout && !!sidebarScreen;
     const state = isSplit ? originalState : (getCustomState?.({...customCodeProps, shouldUseNarrowLayout}) ?? originalState);
     const customCodePropsWithCustomState: CustomCodeProps<NativeStackNavigationOptions, NativeStackNavigationEventMap, ParamListBase, StackActionHelpers<ParamListBase>> = {

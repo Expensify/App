@@ -15,10 +15,11 @@ import CONST from '@src/CONST';
 import SCREENS from '@src/SCREENS';
 
 import {CommonActions, NavigationContainer, StackActions} from '@react-navigation/native';
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {TextInput, View} from 'react-native';
 
 const Split = createSplitNavigator<ReportsSplitNavigatorParamList>();
+const mountedCentralRouteKeys = new Set<string>();
 
 jest.mock('@hooks/useResponsiveLayout', () => jest.fn());
 jest.mock('@libs/getIsNarrowLayout', () => jest.fn());
@@ -44,6 +45,13 @@ function SidebarScreen() {
 
 function CentralScreen({route}: PlatformStackScreenProps<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>) {
     const [draft, setDraft] = useState('');
+
+    useEffect(() => {
+        mountedCentralRouteKeys.add(route.key);
+        return () => {
+            mountedCentralRouteKeys.delete(route.key);
+        };
+    }, [route.key]);
 
     return (
         <View testID="split-central">
@@ -87,6 +95,42 @@ function setNarrowLayout(isNarrow: boolean) {
 }
 
 describe('Native split navigation', () => {
+    it.each([true, false])('bounds mounted central screens while preserving history across resize and back navigation, starting narrow: %s', async (initiallyNarrow) => {
+        setNarrowLayout(initiallyNarrow);
+        const {rerender} = render(<TestNavigator />);
+
+        for (const reportID of ['1', '2', '3']) {
+            act(() => navigationRef.dispatch(StackActions.push(SCREENS.REPORT, {reportID})));
+            fireEvent.changeText(await screen.findByLabelText(`report-${reportID}-draft`), `Draft ${reportID}`);
+        }
+
+        const routeKeys = navigationRef.getRootState().routes.map((route) => route.key);
+        expect(routeKeys).toHaveLength(initiallyNarrow ? 4 : 5);
+        expect(mountedCentralRouteKeys).toEqual(new Set(routeKeys.slice(-2)));
+
+        setNarrowLayout(!initiallyNarrow);
+        rerender(<TestNavigator />);
+        expect(navigationRef.getRootState().routes.map((route) => route.key)).toEqual(routeKeys);
+        expect(mountedCentralRouteKeys).toEqual(new Set(routeKeys.slice(-2)));
+        expect(screen.getByLabelText('report-3-draft')).toHaveDisplayValue('Draft 3');
+
+        setNarrowLayout(initiallyNarrow);
+        rerender(<TestNavigator />);
+        expect(navigationRef.getRootState().routes.map((route) => route.key)).toEqual(routeKeys);
+        expect(mountedCentralRouteKeys).toEqual(new Set(routeKeys.slice(-2)));
+
+        act(() => navigationRef.dispatch(StackActions.pop()));
+        await waitFor(() => expect(screen.getByLabelText('report-2-draft')).toHaveDisplayValue('Draft 2'));
+        expect(navigationRef.getRootState().routes.map((route) => route.key)).toEqual(routeKeys.slice(0, -1));
+        expect(mountedCentralRouteKeys).toEqual(new Set(routeKeys.slice(-3, -1)));
+
+        // Evicted routes remain in history, but their component-local state resets when they mount again.
+        act(() => navigationRef.dispatch(StackActions.pop()));
+        await waitFor(() => expect(screen.getByLabelText('report-1-draft')).toHaveDisplayValue(''));
+        expect(navigationRef.getRootState().routes.map((route) => route.key)).toEqual(routeKeys.slice(0, -2));
+        expect(mountedCentralRouteKeys.size).toBeLessThanOrEqual(2);
+    });
+
     it('exposes the wide chat list beside a report but hides it when the root screen is covered', () => {
         setNarrowLayout(false);
         const renderInbox = (isCovered: boolean) => (

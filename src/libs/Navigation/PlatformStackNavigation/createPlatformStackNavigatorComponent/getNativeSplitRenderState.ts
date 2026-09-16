@@ -9,7 +9,8 @@ function getNativeSplitRenderState(state: PlatformStackNavigationState<ParamList
         return;
     }
 
-    const centralRoutes = state.routes.filter((route) => route.key !== sidebarRoute.key);
+    // Match the web split navigator's two-screen render window without truncating the router's history.
+    const centralRoutes = state.routes.filter((route) => route.key !== sidebarRoute.key).slice(-2);
     if (centralRoutes.length === 0) {
         return;
     }
