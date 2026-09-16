@@ -2,6 +2,7 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useShouldDisplayButtonsInSeparateLine from '@hooks/useShouldDisplayButtonsInSeparateLine';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import Navigation from '@libs/Navigation/Navigation';
@@ -12,6 +13,7 @@ import SCREENS from '@src/SCREENS';
 import React from 'react';
 import {View} from 'react-native';
 
+import {useDebugTabViewHeight} from './Navigation/DebugTabView';
 import NAVIGATION_TABS from './Navigation/NavigationTabBar/NAVIGATION_TABS';
 import TabBarBottomContent from './Navigation/TabBarBottomContent';
 import TopBarWithLoadingBar from './Navigation/TopBarWithLoadingBar';
@@ -80,9 +82,11 @@ function WorkspaceListHeaderContent({activeTabKey, headerButton, shouldShowHeade
 
 function WorkspaceListLayout({children, activeTabKey, headerButton, headerComponent, scrollHeaderWithTable = false}: WorkspaceListLayoutProps) {
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
 
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const debugTabViewHeight = useDebugTabViewHeight();
     const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine();
 
     const isWorkspacesListPage = activeTabKey === 'workspaces';
@@ -123,6 +127,12 @@ function WorkspaceListLayout({children, activeTabKey, headerButton, headerCompon
 
                     {content}
                     {!shouldUseNarrowLayout && <OfflineIndicator style={styles.pl5} />}
+                    {debugTabViewHeight > 0 && (
+                        <View
+                            style={StyleUtils.getHeight(debugTabViewHeight)}
+                            testID="DebugTabViewSpacer"
+                        />
+                    )}
                 </View>
             </View>
         </ScreenWrapper>
