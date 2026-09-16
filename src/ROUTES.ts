@@ -1412,6 +1412,11 @@ const DYNAMIC_ROUTES = {
         path: 'keyboard-shortcuts',
         entryScreens: ['*'],
     },
+    BETA_OVERRIDES: {
+        path: 'beta-overrides',
+        // Opened from the Test Tools modal, which can be summoned on any screen
+        entryScreens: ['*'],
+    },
     SETTINGS_TAG_APPROVER: {
         path: 'tag-approver',
         entryScreens: [SCREENS.SETTINGS_TAGS.DYNAMIC_SETTINGS_TAG_SETTINGS],
@@ -2617,7 +2622,6 @@ const ROUTES = {
     SETTINGS_STATUS_CLEAR_AFTER_TIME: 'settings/profile/status/clear-after/time',
     SETTINGS_VACATION_DELEGATE: 'settings/profile/status/vacation-delegate',
     SETTINGS_TROUBLESHOOT: 'settings/troubleshoot',
-    SETTINGS_TROUBLESHOOT_BETA_OVERRIDES: 'settings/troubleshoot/beta-overrides',
     SETTINGS_HELP: 'settings/help',
 
     SETTINGS_SAVE_THE_WORLD: 'settings/teachersunite',
@@ -2632,7 +2636,7 @@ const ROUTES = {
     REPORT: 'r',
     REPORT_WITH_ID: {
         route: 'r/:reportID?/:reportActionID?',
-        getRoute: (reportID: string | undefined, reportActionID?: string, referrer?: string, backTo?: string, secureKey?: string, isPendingCreation?: boolean) => {
+        getRoute: (reportID: string | undefined, reportActionID?: string, referrer?: string, backTo?: string, secureKey?: string, isPendingCreation?: boolean, sourceReportID?: string) => {
             if (!reportID) {
                 Log.warn('Invalid reportID is used to build the REPORT_WITH_ID route');
                 return getUrlWithBackToParam(ROUTES.HOME, backTo);
@@ -2649,6 +2653,11 @@ const ROUTES = {
             }
             if (isPendingCreation) {
                 queryParams.push('isPendingCreation=true');
+            }
+            // The report the user was viewing when they opened Concierge from the side-pane button (native).
+            // Threaded on the route so it stays scoped to this Concierge navigation entry instead of a global key.
+            if (sourceReportID) {
+                queryParams.push(`sourceReportID=${encodeURIComponent(sourceReportID)}`);
             }
 
             const queryString = queryParams.length > 0 ? `?${queryParams.join('&')}` : '';
@@ -4386,6 +4395,15 @@ const ROUTES = {
             return `workspaces/${policyID}/accounting/xero/advanced/invoice-account-selector` as const;
         },
     },
+    POLICY_ACCOUNTING_XERO_FX_EXPENSE_ACCOUNT_SELECTOR: {
+        route: 'workspaces/:policyID/accounting/xero/advanced/fx-expense-account-selector',
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_XERO_FX_EXPENSE_ACCOUNT_SELECTOR route');
+            }
+            return `workspaces/${policyID}/accounting/xero/advanced/fx-expense-account-selector` as const;
+        },
+    },
     POLICY_ACCOUNTING_XERO_BILL_PAYMENT_ACCOUNT_SELECTOR: {
         route: 'workspaces/:policyID/accounting/xero/advanced/bill-payment-account-selector',
         getRoute: (policyID: string | undefined) => {
@@ -4612,6 +4630,10 @@ const ROUTES = {
     POLICY_ACCOUNTING_NETSUITE_APPROVAL_ACCOUNT_SELECT: {
         route: 'workspaces/:policyID/connections/netsuite/advanced/approval-account/select',
         getRoute: (policyID: string) => `workspaces/${policyID}/connections/netsuite/advanced/approval-account/select` as const,
+    },
+    POLICY_ACCOUNTING_NETSUITE_FX_EXPENSE_ACCOUNT_SELECT: {
+        route: 'workspaces/:policyID/connections/netsuite/advanced/fx-expense-account/select',
+        getRoute: (policyID: string) => `workspaces/${policyID}/connections/netsuite/advanced/fx-expense-account/select` as const,
     },
     POLICY_ACCOUNTING_NETSUITE_CUSTOM_FORM_ID: {
         route: 'workspaces/:policyID/connections/netsuite/advanced/custom-form-id/:expenseType',
