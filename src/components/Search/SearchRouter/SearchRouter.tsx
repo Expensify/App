@@ -23,13 +23,12 @@ import useReportAttributes from '@hooks/useReportAttributes';
 import useReportOrReportDraft from '@hooks/useReportOrReportDraft';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useRootNavigationState from '@hooks/useRootNavigationState';
-import useSortedActions from '@hooks/useSortedActions';
+import useSortedReportActionsData from '@hooks/useSortedReportActionsData';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 
 import {scrollToRight} from '@libs/InputUtils';
-import backHistory from '@libs/Navigation/helpers/backHistory';
 import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
 import type {SearchOption} from '@libs/OptionsListUtils';
 import {createOptionFromReport} from '@libs/OptionsListUtils';
@@ -107,7 +106,8 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
     const [searchContext] = useOnyx(ONYXKEYS.SEARCH_CONTEXT);
     const isSupportalSession = useIsSupportalSession();
     const personalDetails = usePersonalDetails();
-    const sortedActions = useSortedActions();
+    const sortedReportActionsData = useSortedReportActionsData();
+    const sortedActions = sortedReportActionsData?.sortedActions;
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {windowHeight} = useWindowDimensions();
     const listRef = useRef<SelectionListWithSectionsHandle>(null);
@@ -388,17 +388,15 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
             // Reset the search query flag when performing a new search
             setShouldResetSearchQuery(false);
 
-            backHistory(() => {
-                onRouterClose();
-                setSearchContext(true);
-                const updatedQueryJSON = buildSearchQueryJSON(updatedQuery);
-                if (currentSearchHash !== updatedQueryJSON?.hash) {
-                    resetSearchKey(updatedQueryJSON);
-                }
-                Navigation.navigate(
-                    ROUTES.SEARCH_ROOT.getRoute({query: updatedQuery, rawQuery: shouldSkipAmountConversion || !isFromSearchPageSearchButton ? undefined : queryWithSubstitutions}),
-                );
-            });
+            onRouterClose();
+            setSearchContext(true);
+            const updatedQueryJSON = buildSearchQueryJSON(updatedQuery);
+            if (currentSearchHash !== updatedQueryJSON?.hash) {
+                resetSearchKey(updatedQueryJSON);
+            }
+            Navigation.navigate(
+                ROUTES.SEARCH_ROOT.getRoute({query: updatedQuery, rawQuery: shouldSkipAmountConversion || !isFromSearchPageSearchButton ? undefined : queryWithSubstitutions}),
+            );
 
             setTextInputValue('');
             setAutocompleteQueryValue('');
@@ -429,9 +427,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
 
             if (isSearchQueryItem(item)) {
                 if (item.searchItemType === CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.NAVIGATE && item.action) {
-                    backHistory(() => {
-                        onRouterClose(item.action);
-                    });
+                    onRouterClose(item.action);
                     return;
                 }
 
@@ -470,32 +466,28 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                     setFocusAndScrollToRight();
                 } else if (item.searchItemType === CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.ASK_CONCIERGE) {
                     const {searchQuery} = item;
-                    backHistory(() => {
-                        askConcierge(searchQuery);
-                    });
+                    askConcierge(searchQuery);
                     onRouterClose();
                 } else {
                     submitSearch(item.searchQuery, item.keyForList !== CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.FIND_ITEM);
                 }
             } else {
-                backHistory(() => {
-                    if (item?.reportID) {
-                        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(item.reportID));
-                    } else if ('login' in item) {
-                        navigateToAndOpenReport({
-                            userLogins: item.login ? [item.login] : [],
-                            personalDetails,
-                            currentUserAccountID,
-                            introSelected,
-                            isSelfTourViewed: guidedSetupAndTourStatus?.isSelfTourViewed,
-                            hasCompletedGuidedSetupFlow: guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
-                            betas,
-                            conciergeChat,
-                            isSupportalSession,
-                            shouldDismissModal: false,
-                        });
-                    }
-                });
+                if (item?.reportID) {
+                    Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(item.reportID));
+                } else if ('login' in item) {
+                    navigateToAndOpenReport({
+                        userLogins: item.login ? [item.login] : [],
+                        personalDetails,
+                        currentUserAccountID,
+                        introSelected,
+                        isSelfTourViewed: guidedSetupAndTourStatus?.isSelfTourViewed,
+                        hasCompletedGuidedSetupFlow: guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
+                        betas,
+                        conciergeChat,
+                        isSupportalSession,
+                        shouldDismissModal: false,
+                    });
+                }
                 onRouterClose();
             }
         },
