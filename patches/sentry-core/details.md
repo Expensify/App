@@ -1,6 +1,6 @@
 # `@sentry/core` patches
 
-### [@sentry+core+10.47.0+001+data-sentry-label-support.patch](@sentry+core+10.47.0+001+data-sentry-label-support.patch)
+### [@sentry+core+10.73.0+001+initial.patch](@sentry+core+10.73.0+001+initial.patch)
 
 - Reason: Enhances the `htmlTreeAsString` function to support `data-sentry-label` attributes for better element identification in Sentry spans. The patch:
   - Always includes `data-sentry-label` in the list of checked attributes for each DOM element
@@ -12,9 +12,7 @@
 - E/App issue: https://github.com/Expensify/App/issues/76128
 - PR Introducing Patch: https://github.com/Expensify/App/pull/76547
 
-### [@sentry+core+10.47.0+002+request-id-support.patch](@sentry+core+10.47.0+002+request-id-support.patch)
-
-Reason: improve developer experience by adding `request-id` to spans related to API calls. This takes request-id from response headers and write it to the span related to that response. With that information it is easier to connect backend request / logs with data retrieved from Sentry.
+The patch also adds `request-id` from fetch response headers to spans, making it easier to correlate Sentry data with backend logs.
 - Upstream PR/issue: N/A 
 - E/App issue: https://github.com/Expensify/App/issues/75588
 - PR Introducing Patch: https://github.com/Expensify/App/pull/79883
