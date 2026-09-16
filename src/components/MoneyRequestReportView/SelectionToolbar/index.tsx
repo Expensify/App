@@ -46,7 +46,6 @@ import SelectAllCheckbox from './SelectAllCheckbox';
 import SelectionDropdown from './SelectionDropdown';
 
 type SelectionToolbarProps = {
-    /** The reportID of the report */
     reportID: string;
 
     /** Filtered transactions for this report */

@@ -959,7 +959,7 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         buttonConfirmText: {
-            // This is to match production build after ButtonComposed migration.
+            // This is to match production build after the Button composition migration.
             ...spacing.ph6,
         },
 
@@ -1145,6 +1145,10 @@ const staticStyles = (theme: ThemeColors) =>
             // laid out inside a 16px line box, which native resolves asymmetrically and renders the text
             // too high. Unsetting it lets the text center on its own font metrics.
             lineHeight: undefined,
+        },
+
+        condensedBadgeTextDefaultSize: {
+            fontSize: variables.fontSizeSmall,
         },
 
         badgeDefaultText: {
@@ -2780,6 +2784,22 @@ const staticStyles = (theme: ThemeColors) =>
             minHeight: variables.tableRowHeight,
         },
 
+        tableRowVerticalPadding: {
+            paddingVertical: variables.tableRowPaddingVertical,
+        },
+
+        tableRowVerticalPaddingCompact: {
+            paddingVertical: variables.tableRowPaddingVerticalCompact,
+        },
+
+        tableRowContentHeight: {
+            minHeight: variables.tableRowHeight - variables.tableRowPaddingVertical * 2 - variables.borderTopWidth,
+        },
+
+        tableRowContentHeightCompact: {
+            minHeight: variables.tableRowHeightCompact - variables.tableRowPaddingVerticalCompact * 2 - variables.borderTopWidth,
+        },
+
         tableHeaderContentHeight: {
             minHeight: variables.tableHeaderContentHeight,
         },
@@ -3165,8 +3185,6 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         accountSettingsSectionContainer: {
-            borderBottomWidth: 1,
-            borderBottomColor: theme.border,
             ...spacing.mt0,
             ...spacing.mb0,
             ...spacing.pt0,
@@ -3710,6 +3728,16 @@ const staticStyles = (theme: ThemeColors) =>
             ...spacing.ph5,
         },
 
+        listItemRow: {
+            flex: 1,
+            width: '100%',
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            ...spacing.ph5,
+            ...userSelect.userSelectNone,
+        },
+
         dotIndicatorMessage: {
             display: 'flex',
             flexDirection: 'row',
@@ -3803,6 +3831,25 @@ const staticStyles = (theme: ThemeColors) =>
             height: 180,
             width: 180,
             marginBottom: 20,
+        },
+
+        digitalWalletConfirmIllustration: {
+            width: variables.w102,
+            height: variables.w102,
+            marginBottom: 12,
+        },
+
+        digitalWalletConfirmError: {
+            position: 'absolute',
+            bottom: '100%',
+            left: 0,
+            right: 0,
+        },
+
+        digitalWalletResultIllustration: {
+            width: variables.iconSection,
+            height: variables.iconSection,
+            marginBottom: 12,
         },
 
         googleSearchSeparator: {
@@ -4278,8 +4325,7 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         cardSectionTitle: {
-            fontSize: variables.fontSizeLarge,
-            lineHeight: variables.lineHeightXLarge,
+            ...textVariants.textStrong,
         },
 
         emptyCardSectionTitle: {
@@ -4435,6 +4481,45 @@ const staticStyles = (theme: ThemeColors) =>
             color: theme.textReversed,
             lineHeight: variables.lineHeightLarge,
             flexShrink: 1,
+        },
+
+        merchantRuleCalloutContainer: {
+            backgroundColor: theme.tooltipHighlightBG,
+            borderRadius: variables.componentBorderRadiusNormal,
+        },
+
+        // Pins the callout to the top of the scroll area, like floatingMessageCounterWrapper, so scrolling cannot hide it.
+        // Both occupy that strip, so the callout sits one layer above: it is dismissible, and the "New messages" pill
+        // underneath it stays reachable once the callout is gone.
+        merchantRuleCalloutOverlay: {
+            ...positioning.pAbsolute,
+            ...positioning.t0,
+            ...positioning.l0,
+            ...positioning.r0,
+            zIndex: 101,
+        },
+
+        // Floats above the composer without taking height, so the conversation does not jump when it appears.
+        merchantRuleCalloutComposerOverlay: {
+            ...positioning.pAbsolute,
+            ...positioning.bFull,
+            ...positioning.l0,
+            ...positioning.r0,
+            zIndex: 100,
+        },
+
+        merchantRuleCalloutText: {
+            ...textVariants.label,
+            color: theme.textReversed,
+            // Banner sets breakAll on its container, which would split this sentence mid-word
+            ...wordBreak.breakWord,
+        },
+
+        // The callout sits on a reversed surface, dark in the light theme and light in the dark one, so text and link
+        // use the reversed colors.
+        merchantRuleCalloutAction: {
+            ...textVariants.labelStrong,
+            color: theme.linkReversed,
         },
 
         quickReactionsContainer: {
@@ -4696,11 +4781,6 @@ const staticStyles = (theme: ThemeColors) =>
         reportHorizontalRule: {
             borderColor: theme.border,
             ...spacing.mh5,
-        },
-
-        assigneeTextStyle: {
-            ...FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
-            minHeight: variables.avatarSizeXxSmall,
         },
 
         taskRightIconContainer: {
@@ -5477,7 +5557,7 @@ const staticStyles = (theme: ThemeColors) =>
             alignSelf: 'flex-start',
         },
 
-        searchFiltersClearButton: {
+        searchFiltersResetButton: {
             flexDirection: 'row',
             gap: 4,
             alignItems: 'center',
@@ -5488,7 +5568,6 @@ const staticStyles = (theme: ThemeColors) =>
 
         // Extra 2 to account for the borders
         searchPageInputWideTouchableWrapper: {height: 34, width: 202},
-        searchPageInputNarrowTouchableWrapper: {height: 46},
 
         // Compact search inputs that appear above lists/popovers. Matches the smaller
         // "above the table" search input heights (34 on web/desktop, 46 on mobile).
@@ -7254,9 +7333,7 @@ const plainStyles = (theme: ThemeColors) =>
 
         getWidgetContainerTitleStyle: (color: string) =>
             ({
-                ...FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
-                fontSize: 17,
-                lineHeight: variables.widgetHeaderTitleLineHeight,
+                ...textVariants.textStrong,
                 color,
             }) satisfies TextStyle,
 

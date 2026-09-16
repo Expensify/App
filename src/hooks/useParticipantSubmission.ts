@@ -260,32 +260,44 @@ function useParticipantSubmission({
             setMoneyRequestParticipants(initialTransactionID, val);
         }
 
-        if (!isMovingTransactionFromTrackExpense || !isPolicyExpenseChat) {
-            // If not moving the transaction from track expense, select the default rate automatically.
-            // Otherwise, keep the original p2p rate and let the user manually change it to the one they want from the workspace.
-            if (drafts.length > 0) {
-                for (const transaction of drafts) {
-                    const rateID = DistanceRequestUtils.getCustomUnitRateID({
-                        reportID: firstParticipantReportID,
-                        isPolicyExpenseChat,
-                        policy,
-                        lastSelectedDistanceRates: distanceRates,
-                        expenseDate: transaction.created,
-                    });
-                    setCustomUnitRateID(transaction.transactionID, rateID, transaction, policy, false, personalPolicy?.outputCurrency);
+        const isMovingToPolicyExpenseChat = isMovingTransactionFromTrackExpense && isPolicyExpenseChat;
+        const destinationRates = isMovingToPolicyExpenseChat ? DistanceRequestUtils.getMileageRates(policy) : undefined;
+        const shouldKeepTrackExpenseRate = (transaction: OnyxEntry<Transaction>) => {
+            if (!isDistanceRequest(transaction)) {
+                return true;
+            }
+            const currentRateID = transaction?.comment?.customUnit?.customUnitRateID;
+            return currentRateID === CONST.CUSTOM_UNITS.FAKE_P2P_ID || (!!currentRateID && !!destinationRates?.[currentRateID]);
+        };
+
+        if (drafts.length > 0) {
+            for (const transaction of drafts) {
+                if (isMovingToPolicyExpenseChat && shouldKeepTrackExpenseRate(transaction)) {
+                    continue;
                 }
-            } else {
-                // Fallback to using initialTransactionID directly
                 const rateID = DistanceRequestUtils.getCustomUnitRateID({
                     reportID: firstParticipantReportID,
                     isPolicyExpenseChat,
                     policy,
                     lastSelectedDistanceRates: distanceRates,
+                    expenseDate: transaction.created,
                 });
-                // personalPolicyOutputCurrency is intentionally omitted: setCustomUnitRateID only resolves a (P2P) rate when a transaction is passed,
-                // and no transaction is passed here, so the currency is never read.
-                setCustomUnitRateID(initialTransactionID, rateID, undefined, policy, false, undefined);
+                if (isMovingToPolicyExpenseChat && rateID === CONST.CUSTOM_UNITS.FAKE_P2P_ID) {
+                    continue;
+                }
+                setCustomUnitRateID(transaction.transactionID, rateID, transaction, policy, false, personalPolicy?.outputCurrency);
             }
+        } else if (!isMovingToPolicyExpenseChat) {
+            // Fallback to using initialTransactionID directly
+            const rateID = DistanceRequestUtils.getCustomUnitRateID({
+                reportID: firstParticipantReportID,
+                isPolicyExpenseChat,
+                policy,
+                lastSelectedDistanceRates: distanceRates,
+            });
+            // personalPolicyOutputCurrency is intentionally omitted: setCustomUnitRateID only resolves a (P2P) rate when a transaction is passed,
+            // and no transaction is passed here, so the currency is never read.
+            setCustomUnitRateID(initialTransactionID, rateID, undefined, policy, false, undefined);
         }
 
         // When multiple valid participants are selected, the reportID is generated at the end of the confirmation step.

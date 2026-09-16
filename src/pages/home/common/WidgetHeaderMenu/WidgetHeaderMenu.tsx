@@ -18,10 +18,7 @@ type WidgetHeaderMenuProps = {
     /** Items shown in the popover opened by the three-dots trigger */
     menuItems: PopoverMenuItem[];
 
-    /** Test ID for the trigger */
     testID?: string;
-
-    /** Sentry label for the trigger */
     sentryLabel?: string;
 };
 
