@@ -173,6 +173,7 @@ import {
     isActionCreator,
     isAdminOwnerApproverOrReportOwner,
     isAllowedToApproveExpenseReport,
+    isApproverOfOutstandingPolicyReports,
     isArchivedNonExpenseReport,
     isArchivedReport,
     isChatUsedForOnboarding,
@@ -915,6 +916,7 @@ describe('ReportUtils', () => {
                 },
                 adminsChatReportID: '1',
                 companySize: CONST.ONBOARDING_COMPANY_SIZE.SMALL,
+                delegateAccountID: undefined,
             });
 
             expect(title).toHaveBeenCalledWith(
@@ -945,6 +947,7 @@ describe('ReportUtils', () => {
                 },
                 adminsChatReportID: '1',
                 companySize: CONST.ONBOARDING_COMPANY_SIZE.SMALL,
+                delegateAccountID: undefined,
             });
 
             expect(description).toHaveBeenCalledWith(
@@ -971,6 +974,7 @@ describe('ReportUtils', () => {
                 },
                 adminsChatReportID,
                 companySize: CONST.ONBOARDING_COMPANY_SIZE.MICRO,
+                delegateAccountID: undefined,
             });
             // Tasks are sent to server via guidedSetupData; not added optimistically to avoid flash.
             expect(result?.guidedSetupData.filter((d) => d.type === 'task')).toHaveLength(1);
@@ -987,6 +991,7 @@ describe('ReportUtils', () => {
                 engagementChoice: CONST.ONBOARDING_CHOICES.EMPLOYER,
                 onboardingMessage: {message: 'This is a test', tasks: []},
                 companySize: undefined,
+                delegateAccountID: undefined,
             });
 
             expect(result?.guidedSetupData.filter((d) => d.type === 'task').length).toBeGreaterThan(0);
@@ -1000,6 +1005,7 @@ describe('ReportUtils', () => {
                 engagementChoice: CONST.ONBOARDING_CHOICES.EMPLOYER,
                 onboardingMessage: {message: 'This is a test', tasks: []},
                 companySize: undefined,
+                delegateAccountID: undefined,
                 shouldSkipConciergeOnboarding: true,
             });
 
@@ -1023,6 +1029,7 @@ describe('ReportUtils', () => {
                 },
                 adminsChatReportID,
                 companySize: CONST.ONBOARDING_COMPANY_SIZE.SMALL,
+                delegateAccountID: undefined,
             });
             expect(result?.guidedSetupData.filter((d) => d.type === 'task')).toHaveLength(1);
             expect(result?.optimisticConciergeReportActionID).toBeDefined();
@@ -1043,6 +1050,7 @@ describe('ReportUtils', () => {
                 },
                 adminsChatReportID,
                 companySize: CONST.ONBOARDING_COMPANY_SIZE.LARGE,
+                delegateAccountID: undefined,
             });
             expect(result?.guidedSetupData.filter((d) => d.type === 'task')).toHaveLength(1);
             expect(result?.optimisticConciergeReportActionID).toBeDefined();
@@ -1063,6 +1071,7 @@ describe('ReportUtils', () => {
                 },
                 adminsChatReportID,
                 companySize: CONST.ONBOARDING_COMPANY_SIZE.MEDIUM_SMALL,
+                delegateAccountID: undefined,
             });
             expect(result?.guidedSetupData.filter((d) => d.type === 'task')).toHaveLength(1);
             expect(result?.optimisticConciergeReportActionID).toBeDefined();
@@ -1083,6 +1092,7 @@ describe('ReportUtils', () => {
                 },
                 adminsChatReportID,
                 companySize: CONST.ONBOARDING_COMPANY_SIZE.MEDIUM,
+                delegateAccountID: undefined,
             });
             expect(result?.guidedSetupData.filter((d) => d.type === 'task')).toHaveLength(1);
             expect(result?.optimisticConciergeReportActionID).toBeDefined();
@@ -1103,6 +1113,7 @@ describe('ReportUtils', () => {
                 },
                 adminsChatReportID,
                 companySize: CONST.ONBOARDING_COMPANY_SIZE.SMALL,
+                delegateAccountID: undefined,
                 userReportedIntegration: 'quickbooksOnline',
             });
             // Message content is now generated server-side; client only generates the deduplication ID.
@@ -1123,6 +1134,7 @@ describe('ReportUtils', () => {
                 },
                 adminsChatReportID,
                 companySize: CONST.ONBOARDING_COMPANY_SIZE.SMALL,
+                delegateAccountID: undefined,
             });
             // MANAGE_TEAM: tasks sent to server via guidedSetupData but excluded from optimisticData to prevent flash.
             expect(result?.guidedSetupData.filter((data) => data.type === 'task')).toHaveLength(1);
@@ -1145,6 +1157,7 @@ describe('ReportUtils', () => {
                 },
                 adminsChatReportID,
                 companySize: CONST.ONBOARDING_COMPANY_SIZE.MICRO,
+                delegateAccountID: undefined,
             });
             // Tasks sent to server via guidedSetupData; no optimistic task actions added.
             expect(result?.guidedSetupData.filter((data) => data.type === 'task')).toHaveLength(1);
@@ -1164,6 +1177,7 @@ describe('ReportUtils', () => {
                 },
                 adminsChatReportID: '1',
                 companySize: CONST.ONBOARDING_COMPANY_SIZE.MICRO,
+                delegateAccountID: undefined,
             });
 
             expect(result?.guidedSetupData.filter((data) => data.type === 'task')).toHaveLength(1);
@@ -1183,6 +1197,7 @@ describe('ReportUtils', () => {
                 },
                 adminsChatReportID: '1',
                 companySize: CONST.ONBOARDING_COMPANY_SIZE.MICRO,
+                delegateAccountID: undefined,
             });
 
             const messageEntries = result?.guidedSetupData.filter((d) => d.type === 'message');
@@ -1211,6 +1226,7 @@ describe('ReportUtils', () => {
                 },
                 adminsChatReportID: '1',
                 companySize: CONST.ONBOARDING_COMPANY_SIZE.MICRO,
+                delegateAccountID: undefined,
             });
 
             const personalDetailsCall = mergeSpy.mock.calls.find((call) => call[0] === ONYXKEYS.PERSONAL_DETAILS_LIST);
@@ -1260,6 +1276,7 @@ describe('ReportUtils', () => {
                 },
                 adminsChatReportID: '1',
                 companySize: CONST.ONBOARDING_COMPANY_SIZE.SMALL,
+                delegateAccountID: undefined,
             });
 
             expect(title).toHaveBeenCalledWith(
@@ -1286,6 +1303,7 @@ describe('ReportUtils', () => {
                 },
                 adminsChatReportID: '1',
                 companySize: CONST.ONBOARDING_COMPANY_SIZE.MICRO,
+                delegateAccountID: undefined,
             });
 
             expect(result?.guidedSetupData).toHaveLength(0);
@@ -1302,6 +1320,7 @@ describe('ReportUtils', () => {
                 },
                 adminsChatReportID: '1',
                 companySize: CONST.ONBOARDING_COMPANY_SIZE.MICRO,
+                delegateAccountID: undefined,
             });
 
             // For LOOKING_AROUND with empty message and no tasks, guidedSetupData should be empty
@@ -1324,6 +1343,7 @@ describe('ReportUtils', () => {
                 },
                 adminsChatReportID: '1',
                 companySize: CONST.ONBOARDING_COMPANY_SIZE.MICRO,
+                delegateAccountID: undefined,
             });
 
             // Non-LOOKING_AROUND intents with a message should have guidedSetupData entries
@@ -1351,6 +1371,7 @@ describe('ReportUtils', () => {
                 },
                 adminsChatReportID: '1',
                 companySize: CONST.ONBOARDING_COMPANY_SIZE.SMALL,
+                delegateAccountID: undefined,
                 isSelfTourViewed: true,
             });
 
@@ -1379,6 +1400,7 @@ describe('ReportUtils', () => {
                 },
                 adminsChatReportID: '1',
                 companySize: CONST.ONBOARDING_COMPANY_SIZE.SMALL,
+                delegateAccountID: undefined,
                 isSelfTourViewed: false,
             });
 
@@ -1387,6 +1409,43 @@ describe('ReportUtils', () => {
             );
             expect(viewTourTask).toBeDefined();
             expect(viewTourTask?.completedTaskReportActionID).toBeUndefined();
+        });
+
+        it('sets the passed delegateAccountID on the optimistic onboarding comment actions', () => {
+            const DELEGATE_ACCOUNT_ID = 424242;
+
+            const result = prepareOnboardingOnyxData({
+                introSelected: undefined,
+                engagementChoice: CONST.ONBOARDING_CHOICES.LOOKING_AROUND,
+                onboardingMessage: {
+                    message: 'This is a test',
+                    tasks: [
+                        {
+                            type: CONST.ONBOARDING_TASK_TYPE.CREATE_REPORT,
+                            title: () => 'Create a report',
+                            description: () => 'Report description',
+                            autoCompleted: false,
+                        },
+                    ],
+                },
+                adminsChatReportID: '1',
+                companySize: CONST.ONBOARDING_COMPANY_SIZE.SMALL,
+                delegateAccountID: DELEGATE_ACCOUNT_ID,
+                conciergeChat: conciergeChatReport,
+            });
+
+            const commentActions = (result?.optimisticData ?? [])
+                .filter((update) => update.key.startsWith(ONYXKEYS.COLLECTION.REPORT_ACTIONS))
+                .flatMap((update): unknown[] => Object.values(update.value ?? {}))
+                .filter(
+                    (reportAction): reportAction is ReportAction =>
+                        typeof reportAction === 'object' && reportAction !== null && 'actionName' in reportAction && reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                );
+
+            expect(commentActions.length).toBeGreaterThan(0);
+            for (const commentAction of commentActions) {
+                expect(commentAction.delegateAccountID).toBe(DELEGATE_ACCOUNT_ID);
+            }
         });
 
         it('should auto-complete VIEW_TOUR task when isSelfTourViewed is undefined but onboarding.selfTourViewed is true via Onyx', async () => {
@@ -1410,6 +1469,7 @@ describe('ReportUtils', () => {
                 },
                 adminsChatReportID: '1',
                 companySize: CONST.ONBOARDING_COMPANY_SIZE.SMALL,
+                delegateAccountID: undefined,
                 isSelfTourViewed: undefined,
             });
 
@@ -11040,6 +11100,80 @@ describe('ReportUtils', () => {
 
             const reportNameValuePair = {private_isArchived: '2024-01-01 00:00:00.000'};
             expect(isReportOutstanding(report, policy.id, undefined, reportNameValuePair)).toBe(false);
+        });
+    });
+
+    describe('isApproverOfOutstandingPolicyReports', () => {
+        const approverAccountID = 123;
+        const noArchivedReports: Record<string, boolean> = {};
+        const buildOutstandingReport = (reportID: number, report: Partial<Report>): OnyxCollection<Report> => ({
+            [`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]: {
+                ...createRandomReport(reportID, undefined),
+                policyID: policy.id,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                ...report,
+            },
+        });
+
+        it('should return true when the member is the approver of a report awaiting their approval', () => {
+            // Given a submitted report whose approver is the member, which is how "Change approver" assigns an approver
+            const outstandingReports = buildOutstandingReport(1, {
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                managerID: approverAccountID,
+            });
+
+            // Then the member is recognized as an approver
+            expect(isApproverOfOutstandingPolicyReports(approverAccountID, outstandingReports, noArchivedReports)).toBe(true);
+        });
+
+        it('should return false when the member is the approver of an open report', () => {
+            // Given an open report that is not waiting for anyone's approval yet
+            const outstandingReports = buildOutstandingReport(1, {
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                managerID: approverAccountID,
+            });
+
+            // Then the member is not recognized as an approver
+            expect(isApproverOfOutstandingPolicyReports(approverAccountID, outstandingReports, noArchivedReports)).toBe(false);
+        });
+
+        it('should return false when the report awaiting approval is archived', () => {
+            // Given a submitted report whose approver is the member, which stays submitted once it is archived
+            const outstandingReports = buildOutstandingReport(1, {
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                managerID: approverAccountID,
+            });
+
+            // Then the member is not recognized as an approver
+            expect(isApproverOfOutstandingPolicyReports(approverAccountID, outstandingReports, {[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}1`]: true})).toBe(false);
+        });
+
+        it('should return false when the member only submitted the report', () => {
+            // Given a submitted report that the member owns but somebody else approves
+            const outstandingReports = buildOutstandingReport(1, {
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                ownerAccountID: approverAccountID,
+                managerID: 456,
+            });
+
+            // Then the member is not recognized as an approver
+            expect(isApproverOfOutstandingPolicyReports(approverAccountID, outstandingReports, noArchivedReports)).toBe(false);
+        });
+
+        it('should return false when there are no reports or no account ID', () => {
+            const outstandingReports = buildOutstandingReport(1, {
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                managerID: approverAccountID,
+            });
+
+            expect(isApproverOfOutstandingPolicyReports(approverAccountID, undefined, noArchivedReports)).toBe(false);
+            expect(isApproverOfOutstandingPolicyReports(approverAccountID, {}, noArchivedReports)).toBe(false);
+            expect(isApproverOfOutstandingPolicyReports(undefined, outstandingReports, noArchivedReports)).toBe(false);
         });
     });
 
