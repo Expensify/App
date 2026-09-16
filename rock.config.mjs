@@ -35,7 +35,7 @@ export default {
             ...(isHybrid ? ['Mobile-Expensify/patches'] : []),
             '.github/actions/composite/getXcodeVersion/action.yml',
         ],
-        env: ['USE_WEB_PROXY', 'PUSHER_DEV_SUFFIX', 'SECURE_NGROK_URL', 'NGROK_URL', 'USE_NGROK', 'FORCE_NATIVE_BUILD', 'RCT_SYMBOLICATE_PREBUILT_FRAMEWORKS'],
+        env: ['USE_WEB_PROXY', 'PUSHER_DEV_SUFFIX', 'SECURE_NGROK_URL', 'NGROK_URL', 'USE_NGROK', 'FORCE_NATIVE_BUILD', 'RCT_SYMBOLICATE_PREBUILT_FRAMEWORKS', 'IS_BETA_TRACK_BUILD'],
         ignorePaths: ['Mobile-Expensify/Android/assets/app/shared/bundle.js'],
     },
     // Forces React Native to build from source to include our custom patches

@@ -14,9 +14,21 @@ function mockInstaller(installerPackageName: string) {
     jest.spyOn(DeviceInfo, 'getInstallerPackageNameSync').mockReturnValue(installerPackageName);
 }
 
+function mockVersionCode(versionCode: string) {
+    jest.spyOn(DeviceInfo, 'getBuildNumber').mockReturnValue(versionCode);
+}
+
 describe('betaChecker (android)', () => {
     beforeEach(() => {
         jest.restoreAllMocks();
+        mockVersionCode('0509047702');
+    });
+
+    it('reports a beta build for the Play beta-track flavour (versionCode prefix 06) even though the Play Store installed it', async () => {
+        mockVersionCode('609047702');
+        mockInstaller(PLAY_STORE_INSTALLER);
+
+        await expect(betaChecker.isBetaBuild()).resolves.toBe(true);
     });
 
     describe('sideloaded builds', () => {
