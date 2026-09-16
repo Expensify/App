@@ -3,7 +3,7 @@ import type {ApiRequestCommandParameters} from '@libs/API/types';
 import {WRITE_COMMANDS} from '@libs/API/types';
 
 import CONST from '@src/CONST';
-import {updateQuickbooksDesktopTravelBillingPayableAccount} from '@src/libs/actions/connections/QuickbooksDesktop';
+import {updateQuickbooksDesktopFxExpenseAccount, updateQuickbooksDesktopTravelBillingPayableAccount} from '@src/libs/actions/connections/QuickbooksDesktop';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 import Onyx from 'react-native-onyx';
@@ -73,6 +73,70 @@ describe('actions/connections/QuickbooksDesktop', () => {
                     }),
                 }),
             );
+        });
+    });
+
+    describe('updateQuickbooksDesktopFxExpenseAccount', () => {
+        it('writes the UpdateQuickbooksDesktopFxExpenseAccount command with the account ID', () => {
+            updateQuickbooksDesktopFxExpenseAccount(MOCK_POLICY_ID, 'account-123', 'old-account');
+
+            const call = writeSpy.mock.calls.at(0);
+            if (!call) {
+                throw new Error('API.write was not called');
+            }
+            const [command, parameters] = call;
+            expect(command).toBe(WRITE_COMMANDS.UPDATE_QUICKBOOKS_DESKTOP_FX_EXPENSE_ACCOUNT);
+
+            // Auth parses settingValue as JSON and 400s on anything else, so the ID goes over the wire quoted
+            const expectedParameters = {
+                policyID: MOCK_POLICY_ID,
+                settingValue: JSON.stringify('account-123'),
+                idempotencyKey: String(CONST.QUICKBOOKS_DESKTOP_CONFIG.FX_EXPENSE_ACCOUNT),
+            } satisfies ApiRequestCommandParameters[typeof WRITE_COMMANDS.UPDATE_QUICKBOOKS_DESKTOP_FX_EXPENSE_ACCOUNT];
+            expect(parameters).toEqual(expectedParameters);
+        });
+
+        it('merges fxExpenseAccount optimistically onto the QBD config and reverts on failure', () => {
+            updateQuickbooksDesktopFxExpenseAccount(MOCK_POLICY_ID, 'account-123', 'old-account');
+
+            const call = writeSpy.mock.calls.at(0);
+            if (!call) {
+                throw new Error('API.write was not called');
+            }
+            const [, , onyxData] = call;
+            const optimisticUpdate = onyxData?.optimisticData?.at(0);
+            expect(optimisticUpdate?.value).toEqual(
+                expect.objectContaining({
+                    connections: expect.objectContaining({
+                        quickbooksDesktop: expect.objectContaining({
+                            config: expect.objectContaining({fxExpenseAccount: 'account-123'}),
+                        }),
+                    }),
+                }),
+            );
+
+            const failureUpdate = onyxData?.failureData?.at(0);
+            expect(failureUpdate?.value).toEqual(
+                expect.objectContaining({
+                    connections: expect.objectContaining({
+                        quickbooksDesktop: expect.objectContaining({
+                            config: expect.objectContaining({fxExpenseAccount: 'old-account'}),
+                        }),
+                    }),
+                }),
+            );
+        });
+
+        it('skips the API call when the account has not changed', () => {
+            updateQuickbooksDesktopFxExpenseAccount(MOCK_POLICY_ID, 'old-account', 'old-account');
+
+            expect(writeSpy).not.toHaveBeenCalled();
+        });
+
+        it('skips the API call when policyID is missing', () => {
+            updateQuickbooksDesktopFxExpenseAccount(undefined, 'account-123', 'old-account');
+
+            expect(writeSpy).not.toHaveBeenCalled();
         });
     });
 });
