@@ -49,14 +49,14 @@ function NetSuiteTokenInputPage({policy}: WithPolicyConnectionsProps) {
     const policyID = policy?.id;
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {isDevelopment} = useEnvironment();
+    const {isProduction} = useEnvironment();
     const {isBetaEnabled} = usePermissions();
     const {params} = useRoute<NetSuiteTokenInputRoute>();
     const {authType} = params;
 
     const canUseNetSuiteOAuth = isBetaEnabled(CONST.BETAS.NETSUITE_OAUTH);
-    // Only a dev environment can move a beta member back to token-based authentication. Outside dev the route param is ignored.
-    const canSwitchToTokenAuthentication = canUseNetSuiteOAuth && isDevelopment;
+    // Only dev and staging can move a beta member back to token-based authentication. Production ignores the route param.
+    const canSwitchToTokenAuthentication = canUseNetSuiteOAuth && !isProduction;
     const isTokenAuthenticationSelected = canSwitchToTokenAuthentication && authType === CONST.NETSUITE_CONFIG.TOKEN_INPUT.AUTH_TYPE.TBA;
     const isOAuthFlow = canUseNetSuiteOAuth && !isTokenAuthenticationSelected;
     const pages = isOAuthFlow ? oauthPages : tokenPages;

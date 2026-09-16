@@ -8,6 +8,8 @@ import type {CustomSubPageTokenInputProps} from '@pages/workspace/accounting/net
 
 import CONST from '@src/CONST';
 
+import type {ValueOf} from 'type-fest';
+
 import React from 'react';
 import {View} from 'react-native';
 
@@ -88,12 +90,12 @@ jest.mock('@pages/workspace/accounting/netsuite/NetSuiteTokenInput/subPages/NetS
 const mockedUseEnvironment = jest.mocked(useEnvironment);
 const mockedUsePermissions = jest.mocked(usePermissions);
 
-function setEnvironment({isDevelopment, isOAuthBetaEnabled}: {isDevelopment: boolean; isOAuthBetaEnabled: boolean}) {
+function setEnvironment({environment, isOAuthBetaEnabled}: {environment: ValueOf<typeof CONST.ENVIRONMENT>; isOAuthBetaEnabled: boolean}) {
     mockedUseEnvironment.mockReturnValue({
-        environment: isDevelopment ? CONST.ENVIRONMENT.DEV : CONST.ENVIRONMENT.PRODUCTION,
+        environment,
         environmentURL: 'https://new.expensify.com',
-        isProduction: !isDevelopment,
-        isDevelopment,
+        isProduction: environment === CONST.ENVIRONMENT.PRODUCTION,
+        isDevelopment: environment === CONST.ENVIRONMENT.DEV,
     });
     mockedUsePermissions.mockReturnValue({
         isBetaEnabled: (beta) => beta === CONST.BETAS.NETSUITE_OAUTH && isOAuthBetaEnabled,
@@ -120,15 +122,15 @@ describe('NetSuiteTokenInputPage', () => {
     });
 
     it('runs the token-based authentication flow without the netSuiteOAuth beta', () => {
-        setEnvironment({isDevelopment: false, isOAuthBetaEnabled: false});
+        setEnvironment({environment: CONST.ENVIRONMENT.PRODUCTION, isOAuthBetaEnabled: false});
         renderPage(PAGE_NAME.CREDENTIALS);
 
         expect(screen.getByTestId('token-form')).toBeOnTheScreen();
         expect(mockStepNames.current).toBe(CONST.NETSUITE_CONFIG.TOKEN_INPUT.STEP_INDEX_LIST);
     });
 
-    it('runs the OAuth flow with the netSuiteOAuth beta and hides the token-based link outside dev', () => {
-        setEnvironment({isDevelopment: false, isOAuthBetaEnabled: true});
+    it('runs the OAuth flow with the netSuiteOAuth beta and hides the token-based link in production', () => {
+        setEnvironment({environment: CONST.ENVIRONMENT.PRODUCTION, isOAuthBetaEnabled: true});
         renderPage(PAGE_NAME.CREDENTIALS);
 
         expect(screen.getByTestId('oauth-form')).toBeOnTheScreen();
@@ -136,15 +138,15 @@ describe('NetSuiteTokenInputPage', () => {
         expect(mockStepNames.current).toBe(CONST.NETSUITE_CONFIG.TOKEN_INPUT.OAUTH_STEP_INDEX_LIST);
     });
 
-    it('ignores the token-based route param outside dev', () => {
-        setEnvironment({isDevelopment: false, isOAuthBetaEnabled: true});
+    it('ignores the token-based route param in production', () => {
+        setEnvironment({environment: CONST.ENVIRONMENT.PRODUCTION, isOAuthBetaEnabled: true});
         renderPage(PAGE_NAME.CREDENTIALS, CONST.NETSUITE_CONFIG.TOKEN_INPUT.AUTH_TYPE.TBA);
 
         expect(screen.getByTestId('oauth-form')).toBeOnTheScreen();
     });
 
-    it('offers the token-based link to beta members on dev', () => {
-        setEnvironment({isDevelopment: true, isOAuthBetaEnabled: true});
+    it('offers the token-based link to beta members on staging', () => {
+        setEnvironment({environment: CONST.ENVIRONMENT.STAGING, isOAuthBetaEnabled: true});
         renderPage(PAGE_NAME.CREDENTIALS);
 
         expect(screen.getByTestId('oauth-form')).toBeOnTheScreen();
@@ -152,7 +154,7 @@ describe('NetSuiteTokenInputPage', () => {
     });
 
     it('runs the token-based authentication flow on dev when the route asks for it', () => {
-        setEnvironment({isDevelopment: true, isOAuthBetaEnabled: true});
+        setEnvironment({environment: CONST.ENVIRONMENT.DEV, isOAuthBetaEnabled: true});
         renderPage(PAGE_NAME.CREDENTIALS, CONST.NETSUITE_CONFIG.TOKEN_INPUT.AUTH_TYPE.TBA);
 
         expect(screen.getByTestId('token-form')).toBeOnTheScreen();
