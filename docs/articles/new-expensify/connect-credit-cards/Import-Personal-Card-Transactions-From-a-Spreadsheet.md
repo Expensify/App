@@ -2,7 +2,7 @@
 title: Import personal card transactions from a spreadsheet
 description: Learn how Members can manually import personal card transactions using a spreadsheet in Wallet. 
 keywords: [New Expensify, import personal card, upload file, import spreadsheet, CSV, TXT, XLS, XLSX, Wallet, card feed, reimbursable, bring your own card, BYOC, csv import, import csv, upload csv, spreadsheet import, import transactions, csv file, excel import, xls import]
-internalScope: Audience is all members. Covers how to import, update, and delete personal card transactions via CSV. Does not cover company cards or Plaid connections.
+internalScope: Audience is all members. Covers how to import, update, and delete personal card transactions via CSV. Does not cover bank statement (OFX/QFX) imports, company cards, or Plaid connections.
 ---
 
 # Import personal card transactions from a spreadsheet
@@ -10,6 +10,8 @@ internalScope: Audience is all members. Covers how to import, update, and delete
 If your bank isn't supported by a direct connection, you can still import personal card transactions into Expensify using a spreadsheet file. This allows you to track and submit expenses without connecting your bank account.
 
 If your bank is supported, you can connect your account to automatically import transactions. [Learn how to manage personal cards](/articles/new-expensify/connect-credit-cards/Manage-Personal-Cards). 
+
+If your bank gives you an OFX or QFX file instead of a spreadsheet, [learn how to import personal card transactions from a bank statement](/articles/new-expensify/connect-credit-cards/Import-Personal-Card-Transactions-From-a-Bank-Statement).
 
 ---
 
@@ -21,12 +23,14 @@ Anyone can import personal card transactions using a spreadsheet file in their a
 
 ## How to import personal card transactions from a spreadsheet
 
-1. In the navigation tabs (on the left on web, on the bottom on mobile) select **Wallet**.
-2. In the **Cards** section, choose **Import transactions**.
-3.  Enter a display name and configure the currency, reimbursable state, and amount sign direction.
-3. Enter a display name and configure the currency, reimbursable state, and amount sign direction.
-5. Map your spreadsheet columns to the required fields (**Date**, **Merchant**, **Amount**).
-6. Click **Import**.
+1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Wallet**.
+2. In the **Cards** section, select **Import transactions**.
+3. On **Import transactions from file**, enter a **Card display name**.
+4. Set the **Currency**, the **Transactions are reimbursable** toggle, and the **Flip amount sign** toggle.
+5. Click **Next**.
+6. Drag and drop your spreadsheet onto the upload area, or click **Choose file** and select it.
+7. Map your spreadsheet columns to the required fields (**Date**, **Merchant**, **Amount**).
+8. Click **Import**.
 
 ---
 
@@ -49,6 +53,8 @@ You can import the following file types:
 - .TXT  
 - .XLS  
 - .XLSX  
+
+Bank statement files (.OFX and .QFX) are accepted at the same upload step, but Expensify reads them for you and skips column mapping. [Learn how to import personal card transactions from a bank statement](/articles/new-expensify/connect-credit-cards/Import-Personal-Card-Transactions-From-a-Bank-Statement).
 
 ## What columns are required for personal card spreadsheet imports?
 
