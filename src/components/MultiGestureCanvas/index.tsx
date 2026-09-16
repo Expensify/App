@@ -50,13 +50,11 @@ type MultiGestureCanvasProps = ChildrenProps & {
     /** A shared value updated while transform gestures or transform animations are active. */
     isTransformGestureActive?: SharedValue<boolean>;
 
-    /** A shared value to enable/disable the pager scroll */
     isPagerScrollEnabled: SharedValue<boolean>;
 
     /** If there is a pager wrapping the canvas, we need to disable the pan gesture in case the pager is swiping */
     pagerRef?: ForwardedRef<PagerView | GestureType>; // TODO: For TS migration: Exclude<GestureRef, number>
 
-    /** Whether the component is being used inside a carousel */
     isUsedInCarousel: boolean;
 
     /** Handles scale changed event */

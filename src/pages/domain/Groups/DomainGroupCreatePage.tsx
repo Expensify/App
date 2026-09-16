@@ -2,7 +2,7 @@ import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
@@ -68,6 +68,7 @@ function DomainGroupCreatePage({route}: DomainGroupCreatePageProps) {
         .sort((a, b) => localeCompare(a?.created ?? '', b?.created ?? ''))
         .at(0);
     const hasAdminPolicies = !!firstAdminPolicy;
+    const preferredWorkspaceName = preferredPolicyName ?? firstAdminPolicy?.name;
 
     // Each toggle's dependency (an admin workspace for Preferred Workspace, a card feed for Card preferred workspace)
     // can disappear while this page is open, e.g. removed from another device. We don't silently flip what the person
@@ -230,12 +231,11 @@ function DomainGroupCreatePage({route}: DomainGroupCreatePageProps) {
                         shouldPlaceSubtitleBelowSwitch
                     />
                     {hasAdminPolicies && (
-                        <MenuItemWithTopDescription
-                            description={translate('domain.groups.preferredWorkspace')}
-                            title={preferredPolicyName ?? firstAdminPolicy?.name}
-                            shouldShowRightIcon
+                        <MenuItemField
+                            name={translate('domain.groups.preferredWorkspace')}
                             onPress={() => Navigation.navigate(ROUTES.DOMAIN_GROUP_CREATE_PREFERRED_WORKSPACE.getRoute(domainAccountID))}
-                            disabled={!preferredWorkspace}
+                            isDisabled={!preferredWorkspace}
+                            value={preferredWorkspaceName}
                         />
                     )}
                     <ToggleSettingOptionRow
