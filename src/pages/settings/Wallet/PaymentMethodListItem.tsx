@@ -18,10 +18,8 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {navigateToAddCardToDigitalWallet} from '@libs/actions/Card';
 import {openExternalLink} from '@libs/actions/Link';
 import {getBankAccountState, hasBankAccountAllowDebit, isBankAccountPartiallySetup} from '@libs/BankAccountUtils';
-import {getWalletProviderNameKey} from '@libs/CardUtils';
 import Log from '@libs/Log';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
@@ -45,6 +43,8 @@ import type {ValueOf} from 'type-fest';
 
 import React, {useMemo, useRef} from 'react';
 import {View} from 'react-native';
+
+import PendingDigitalWalletApprovalRow from './PendingDigitalWalletApprovalRow';
 
 type ConnectionStatusDetails = {
     statusText: string;
@@ -341,27 +341,11 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
                 </View>
             )}
             {!!digitalWalletApprovalCardID && (
-                <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.pv3, shouldUseNarrowLayout ? styles.ph5 : styles.ph8]}>
-                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.flex1, styles.mr2]}>
-                        <Icon
-                            src={icons.DotIndicator}
-                            fill={theme.success}
-                            additionalStyles={[styles.mr2]}
-                        />
-                        <Text style={[styles.mutedNormalTextLabel, styles.label, styles.textSuccess, styles.flexShrink1]}>
-                            {translate('walletPage.confirmDigitalWalletAddition.title', {
-                                walletName: translate(`walletPage.confirmDigitalWalletAddition.${getWalletProviderNameKey(item.digitalWalletProvider)}`),
-                            })}
-                        </Text>
-                    </View>
-                    <Button
-                        size={CONST.BUTTON_SIZE.SMALL}
-                        variant={CONST.BUTTON_VARIANT.SUCCESS}
-                        onPress={() => navigateToAddCardToDigitalWallet(digitalWalletApprovalCardID)}
-                    >
-                        <Button.Text>{translate('walletPage.confirmDigitalWalletAddition.cta')}</Button.Text>
-                    </Button>
-                </View>
+                <PendingDigitalWalletApprovalRow
+                    cardID={digitalWalletApprovalCardID}
+                    walletProvider={item.digitalWalletProvider}
+                    style={[styles.pv3, shouldUseNarrowLayout ? styles.ph5 : styles.ph8]}
+                />
             )}
             {isChaseAccountConnectedViaPlaid && (
                 <View style={[styles.pb3, shouldUseNarrowLayout ? styles.pl5 : styles.pl8]}>

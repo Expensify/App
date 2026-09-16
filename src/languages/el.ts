@@ -1014,12 +1014,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 cta: 'Ενεργοποίηση',
             },
             confirmDigitalWalletAddition: {
-                title: ({walletName}: {walletName: string}) => `Η προσθήκη της κάρτας ${walletName} χρειάζεται την έγκρισή σας`,
                 subtitle: 'Κάρτα Expensify',
-                cta: 'Έλεγχος',
-                appleWallet: 'Apple Wallet',
-                googleWallet: 'Google Wallet',
-                digitalWallet: 'Ψηφιακό πορτοφόλι',
             },
             reviewCardFraud: {
                 title: 'Ελέγξτε πιθανή απάτη στην Κάρτα Expensify',
@@ -2746,13 +2741,6 @@ const translations: TranslationDeepObject<typeof en> = {
             subtitle: 'Παρακαλούμε εισαγάγετε τα προσωπικά σας στοιχεία για να ξεκινήσετε να χρησιμοποιείτε την κάρτα σας',
             cta: 'Προσθέστε λεπτομέρειες',
         },
-        confirmDigitalWalletAddition: {
-            title: ({walletName}: {walletName: string}) => `Η προσθήκη της κάρτας ${walletName} χρειάζεται την έγκρισή σας`,
-            cta: 'Έλεγχος',
-            appleWallet: 'Apple Wallet',
-            googleWallet: 'Google Wallet',
-            digitalWallet: 'Ψηφιακό πορτοφόλι',
-        },
         expensifyCard: 'Κάρτα Expensify',
         walletActivationPending: 'Εξετάζουμε τις πληροφορίες σας. Παρακαλούμε ελέγξτε ξανά σε λίγα λεπτά!',
         walletActivationFailed: 'Δυστυχώς, το πορτοφόλι σας δεν μπορεί να ενεργοποιηθεί αυτή τη στιγμή. Παρακαλούμε συνομιλήστε με το Concierge για περαιτέρω βοήθεια.',
@@ -2813,6 +2801,9 @@ const translations: TranslationDeepObject<typeof en> = {
         appleWallet: 'Apple Wallet',
         googleWallet: 'Google Wallet',
         digitalWallet: 'ψηφιακό πορτοφόλι',
+        digitalWalletCapitalized: 'Ψηφιακό πορτοφόλι',
+        approvalNeeded: ({walletName}: {walletName: string}) => `Η προσθήκη της κάρτας ${walletName} χρειάζεται την έγκρισή σας`,
+        review: 'Έλεγχος',
         confirmHeading: 'Επιβεβαιώστε το αίτημά σας',
         confirmDescription: ({walletName, lastFourDigits}: {walletName: string; lastFourDigits: string}) =>
             `Θέλετε να προσθέσετε την Κάρτα Expensify (που λήγει σε ${lastFourDigits}) στο ${walletName} σας;`,

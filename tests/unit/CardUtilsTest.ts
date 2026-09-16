@@ -5170,4 +5170,9 @@ describe('getWalletProviderNameKey', () => {
     it('falls back to the generic key when the provider is missing, which happens when the card provider reports UNKNOWN', () => {
         expect(getWalletProviderNameKey(undefined)).toBe('digitalWallet');
     });
+
+    it('capitalizes only the generic key, since the brand names already read correctly at the start of a sentence', () => {
+        expect(getWalletProviderNameKey(undefined, true)).toBe('digitalWalletCapitalized');
+        expect(getWalletProviderNameKey(CONST.EXPENSIFY_CARD.WALLET_PROVIDER.APPLE_PAY, true)).toBe('appleWallet');
+    });
 });

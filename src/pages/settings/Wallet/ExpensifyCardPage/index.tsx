@@ -30,7 +30,7 @@ import useOnyx from '@hooks/useOnyx';
 import useRefreshPendingDigitalWalletApproval from '@hooks/useRefreshPendingDigitalWalletApproval';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {freezeCard, navigateToAddCardToDigitalWallet, unfreezeCard} from '@libs/actions/Card';
+import {freezeCard, unfreezeCard} from '@libs/actions/Card';
 import {buildSetPersonalDetailsAndShipExpensifyCardsParams} from '@libs/actions/PersonalDetails';
 import navigateToCardTransactions from '@libs/CardNavigationUtils';
 import {
@@ -39,7 +39,6 @@ import {
     getCardOrFeedCurrency,
     getDomainCards,
     getTranslationKeyForLimitType,
-    getWalletProviderNameKey,
     isCardFrozen,
     isCardPendingDigitalWalletApproval,
     isOfflinePINMarket,
@@ -68,6 +67,7 @@ import {getSpendRuleByCardID, getSpendRuleSummaryText} from '@libs/SpendRulesUti
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import {getNormalizedSubPageValues} from '@pages/MissingPersonalDetails/utils';
 import CardDetailsActionButtons, {CardDetailsActionButton} from '@pages/settings/Wallet/CardDetailsActionButtons';
+import PendingDigitalWalletApprovalRow from '@pages/settings/Wallet/PendingDigitalWalletApprovalRow';
 import RedDotCardSection from '@pages/settings/Wallet/RedDotCardSection';
 import CardDetails from '@pages/settings/Wallet/WalletPage/CardDetails';
 
@@ -408,31 +408,11 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                             </CardDetailsActionButtons>
                         )}
                         {!!cardPendingDigitalWalletApproval && (
-                            <View style={[styles.flexRow, styles.alignItemsCenter, styles.ph5, styles.mt6, styles.mb5]}>
-                                <DotIndicatorMessage
-                                    style={[styles.flex1, styles.mr3]}
-                                    textStyles={styles.textSuccess}
-                                    messages={{
-                                        pendingDigitalWalletApproval: translate('walletPage.confirmDigitalWalletAddition.title', {
-                                            walletName: translate(
-                                                `walletPage.confirmDigitalWalletAddition.${getWalletProviderNameKey(
-                                                    cardPendingDigitalWalletApproval.nameValuePairs?.pendingDigitalWalletApproval?.walletProvider,
-                                                )}`,
-                                            ),
-                                        }),
-                                    }}
-                                    type="success"
-                                />
-                                <Button
-                                    variant={CONST.BUTTON_VARIANT.SUCCESS}
-                                    size={CONST.BUTTON_SIZE.SMALL}
-                                    onPress={() => {
-                                        navigateToAddCardToDigitalWallet(cardPendingDigitalWalletApproval.cardID);
-                                    }}
-                                >
-                                    <Button.Text>{translate('walletPage.confirmDigitalWalletAddition.cta')}</Button.Text>
-                                </Button>
-                            </View>
+                            <PendingDigitalWalletApprovalRow
+                                cardID={cardPendingDigitalWalletApproval.cardID}
+                                walletProvider={cardPendingDigitalWalletApproval.nameValuePairs?.pendingDigitalWalletApproval?.walletProvider}
+                                style={[styles.ph5, styles.mt6, styles.mb5]}
+                            />
                         )}
                         {shouldShowChangePINRow && isCardPINBlocked && (
                             <View style={[styles.flexRow, styles.alignItemsCenter, styles.ph5, styles.mb5]}>

@@ -964,12 +964,7 @@ const translations: TranslationDeepObject<typeof en> = {
             addBankAccount: {title: 'Voeg een bankrekening toe om je terugbetaling te ontvangen'},
             activateCard: {title: 'Activeer je Expensify Kaart', subtitle: 'Valideer je kaart en begin met uitgeven.', cta: 'Activeren'},
             confirmDigitalWalletAddition: {
-                title: ({walletName}: {walletName: string}) => `Toevoegen van ${walletName}-kaart vereist jouw goedkeuring`,
                 subtitle: 'Expensify Kaart',
-                cta: 'Beoordelen',
-                appleWallet: 'Apple Wallet',
-                googleWallet: 'Google Wallet',
-                digitalWallet: 'Digitale portemonnee',
             },
             reviewCardFraud: {
                 title: 'Controleer mogelijk misbruik van je Expensify Kaart',
@@ -2681,13 +2676,6 @@ const translations: TranslationDeepObject<typeof en> = {
             subtitle: 'Voer uw persoonlijke gegevens in om uw kaart te gebruiken',
             cta: 'Details toevoegen',
         },
-        confirmDigitalWalletAddition: {
-            title: ({walletName}: {walletName: string}) => `Toevoegen van ${walletName}-kaart vereist jouw goedkeuring`,
-            cta: 'Beoordelen',
-            appleWallet: 'Apple Wallet',
-            googleWallet: 'Google Wallet',
-            digitalWallet: 'Digitale portemonnee',
-        },
         expensifyCard: 'Expensify Kaart',
         walletActivationPending: 'We controleren je gegevens. Kom over een paar minuten terug!',
         walletActivationFailed: 'Helaas kan je wallet op dit moment niet worden ingeschakeld. Chat met Concierge voor verdere hulp.',
@@ -2748,6 +2736,9 @@ const translations: TranslationDeepObject<typeof en> = {
         appleWallet: 'Apple Wallet',
         googleWallet: 'Google Wallet',
         digitalWallet: 'digitale portemonnee',
+        digitalWalletCapitalized: 'Digitale portemonnee',
+        approvalNeeded: ({walletName}: {walletName: string}) => `Toevoegen van ${walletName}-kaart vereist jouw goedkeuring`,
+        review: 'Beoordelen',
         confirmHeading: 'Bevestig je verzoek',
         confirmDescription: ({walletName, lastFourDigits}: {walletName: string; lastFourDigits: string}) =>
             `Wil je je Expensify Kaart (eindigend op ${lastFourDigits}) toevoegen aan je ${walletName}?`,

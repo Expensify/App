@@ -31,6 +31,7 @@ import DateUtils from '@libs/DateUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import localFileDownload from '@libs/localFileDownload';
 import Log from '@libs/Log';
+import deferNavigate from '@libs/Navigation/deferNavigate';
 import Navigation from '@libs/Navigation/Navigation';
 import {rand64} from '@libs/NumberUtils';
 import {temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
@@ -239,7 +240,8 @@ function navigateToAddCardToDigitalWallet(cardID: number) {
     const isOpenedOverCardDetails = Navigation.getActiveRouteWithoutParams() === `/${ROUTES.SETTINGS_WALLET_DOMAIN_CARD.getRoute(String(cardID))}`;
     const backTo = isOpenedOverCardDetails ? undefined : Navigation.getActiveRoute();
 
-    Navigation.navigate(ROUTES.SETTINGS_WALLET_CARD_ADD_TO_DIGITAL_WALLET.getRoute(String(cardID), backTo));
+    // Called straight from a press handler, so defer it and let the touch finish before the RHP mounts.
+    deferNavigate(() => Navigation.navigate(ROUTES.SETTINGS_WALLET_CARD_ADD_TO_DIGITAL_WALLET.getRoute(String(cardID), backTo)));
 }
 
 /**

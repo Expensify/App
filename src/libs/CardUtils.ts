@@ -1744,15 +1744,18 @@ function hasCardPendingDigitalWalletApproval(cards: CardList | undefined) {
     return hasAssignedCardMatching(cards, (card) => isActiveExpensifyCard(card) && isCardPendingDigitalWalletApproval(card));
 }
 
-/** Maps the card provider's wallet name. Google Wallet comes back as ANDROID_PAY. */
-function getWalletProviderNameKey(walletProvider?: ValueOf<typeof CONST.EXPENSIFY_CARD.WALLET_PROVIDER>): 'appleWallet' | 'googleWallet' | 'digitalWallet' {
+/** Maps the card provider's wallet name. Google Wallet comes back as ANDROID_PAY. Only the generic name needs a capitalized variant. */
+function getWalletProviderNameKey(
+    walletProvider?: ValueOf<typeof CONST.EXPENSIFY_CARD.WALLET_PROVIDER>,
+    shouldStartSentence = false,
+): 'appleWallet' | 'googleWallet' | 'digitalWallet' | 'digitalWalletCapitalized' {
     if (walletProvider === CONST.EXPENSIFY_CARD.WALLET_PROVIDER.APPLE_PAY) {
         return 'appleWallet';
     }
     if (walletProvider === CONST.EXPENSIFY_CARD.WALLET_PROVIDER.ANDROID_PAY) {
         return 'googleWallet';
     }
-    return 'digitalWallet';
+    return shouldStartSentence ? 'digitalWalletCapitalized' : 'digitalWallet';
 }
 
 function isCardWithCustomZeroLimit(card: Card): boolean {

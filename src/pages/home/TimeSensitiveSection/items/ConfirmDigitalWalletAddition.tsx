@@ -20,14 +20,14 @@ type ConfirmDigitalWalletAdditionProps = {
 function ConfirmDigitalWalletAddition({card}: ConfirmDigitalWalletAdditionProps) {
     const {translate} = useLocalize();
 
-    const walletName = translate(`homePage.timeSensitiveSection.confirmDigitalWalletAddition.${getWalletProviderNameKey(card.nameValuePairs?.pendingDigitalWalletApproval?.walletProvider)}`);
+    const walletName = translate(`addCardToDigitalWallet.${getWalletProviderNameKey(card.nameValuePairs?.pendingDigitalWalletApproval?.walletProvider, true)}`);
 
     return (
         <BaseWidgetItem
             icon={ExpensifyCardIcon}
-            title={translate('homePage.timeSensitiveSection.confirmDigitalWalletAddition.title', {walletName})}
+            title={translate('addCardToDigitalWallet.approvalNeeded', {walletName})}
             subtitle={translate('homePage.timeSensitiveSection.confirmDigitalWalletAddition.subtitle')}
-            ctaText={translate('homePage.timeSensitiveSection.confirmDigitalWalletAddition.cta')}
+            ctaText={translate('addCardToDigitalWallet.review')}
             onCtaPress={() => navigateToAddCardToDigitalWallet(card.cardID)}
             buttonVariant={CONST.BUTTON_VARIANT.SUCCESS}
         />

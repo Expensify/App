@@ -965,12 +965,7 @@ const translations: TranslationDeepObject<typeof en> = {
             addBankAccount: {title: 'Aggiungi un conto bancario per ricevere il rimborso'},
             activateCard: {title: 'Attiva la tua Carta Expensify', subtitle: 'Convalida la tua carta e inizia a spendere.', cta: 'Attiva'},
             confirmDigitalWalletAddition: {
-                title: ({walletName}: {walletName: string}) => `L’aggiunta della carta ${walletName} richiede la tua approvazione`,
                 subtitle: 'Carta Expensify',
-                cta: 'Rivedi',
-                appleWallet: 'Apple Wallet',
-                googleWallet: 'Google Wallet',
-                digitalWallet: 'Portafoglio digitale',
             },
             reviewCardFraud: {
                 title: 'Esamina una possibile frode sulla tua Carta Expensify',
@@ -2679,13 +2674,6 @@ const translations: TranslationDeepObject<typeof en> = {
             subtitle: 'Inserisci i tuoi dati personali per iniziare a usare la tua carta',
             cta: 'Aggiungi dettagli',
         },
-        confirmDigitalWalletAddition: {
-            title: ({walletName}: {walletName: string}) => `L’aggiunta della carta ${walletName} richiede la tua approvazione`,
-            cta: 'Rivedi',
-            appleWallet: 'Apple Wallet',
-            googleWallet: 'Google Wallet',
-            digitalWallet: 'Portafoglio digitale',
-        },
         expensifyCard: 'Carta Expensify',
         walletActivationPending: 'Stiamo verificando le tue informazioni. Riprova tra qualche minuto!',
         walletActivationFailed: 'Sfortunatamente, il tuo portafoglio non può essere abilitato in questo momento. Chatta con Concierge per ulteriore assistenza.',
@@ -2745,6 +2733,9 @@ const translations: TranslationDeepObject<typeof en> = {
         appleWallet: 'Apple Wallet',
         googleWallet: 'Google Wallet',
         digitalWallet: 'portafoglio digitale',
+        digitalWalletCapitalized: 'Portafoglio digitale',
+        approvalNeeded: ({walletName}: {walletName: string}) => `L’aggiunta della carta ${walletName} richiede la tua approvazione`,
+        review: 'Rivedi',
         confirmHeading: 'Conferma la tua richiesta',
         confirmDescription: ({walletName, lastFourDigits}: {walletName: string; lastFourDigits: string}) =>
             `Vuoi aggiungere la tua Carta Expensify (che termina con ${lastFourDigits}) al tuo ${walletName}?`,
