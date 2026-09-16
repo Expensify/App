@@ -2,14 +2,11 @@ import type {NavigationPartialRoute, TabNavigatorParamList} from '@libs/Navigati
 
 import NAVIGATORS from '@src/NAVIGATORS';
 
-import type {NavigationState, PartialState} from '@react-navigation/native';
+import type {NavigationState, PartialState, TabNavigationState} from '@react-navigation/native';
 
-type RootTabState = {
-    key?: string;
+// Partial because a linking-derived root state can still hold a tab route without a key, index or preload list.
+type RootTabState = Partial<Pick<TabNavigationState<TabNavigatorParamList>, 'key' | 'index' | 'preloadedRouteKeys'>> & {
     routes: Array<{name: string; key?: string; state?: NavigationState}>;
-    index?: number;
-    // SwitchRouter tracks preloaded tabs here, but the public NavigationState type doesn't declare it.
-    preloadedRouteKeys?: string[];
 };
 
 type RootNavigationState = NavigationState | PartialState<NavigationState> | undefined;
@@ -25,8 +22,21 @@ function getTabState(route: {name: string; state?: NavigationState | {routes: Ar
     return undefined;
 }
 
+function getTabNavigatorRoute(rootState: RootNavigationState) {
+    return rootState?.routes.findLast((route) => route.name === NAVIGATORS.TAB_NAVIGATOR);
+}
+
 function getTabNavigatorState(rootState: RootNavigationState): RootTabState | undefined {
-    return getTabState(rootState?.routes.findLast((route) => route.name === NAVIGATORS.TAB_NAVIGATOR));
+    return getTabState(getTabNavigatorRoute(rootState));
+}
+
+function getTabNavigatorStateKey(rootState: RootNavigationState): string | undefined {
+    return getTabNavigatorState(rootState)?.key;
+}
+
+/** For screens inside the tab navigator: `tabState` is what `useNavigationState` hands them. */
+function isTabRoutePreloaded(tabState: {routes: unknown[]; preloadedRouteKeys?: string[]}, routeKey: string): boolean {
+    return !!tabState.preloadedRouteKeys?.includes(routeKey);
 }
 
 /** Read before dispatching a tab navigation: jumping to the tab drops its key from `preloadedRouteKeys`. */
@@ -60,4 +70,4 @@ function getTabScreenParam(route: NavigationPartialRoute | {name: string; params
     return undefined;
 }
 
-export {getTabState, getTabScreenParam, getTabNavigatorState, getReportsTabPreloadTarget, isReportsTabPreloaded};
+export {getTabState, getTabScreenParam, getTabNavigatorRoute, getTabNavigatorState, getTabNavigatorStateKey, getReportsTabPreloadTarget, isReportsTabPreloaded, isTabRoutePreloaded};

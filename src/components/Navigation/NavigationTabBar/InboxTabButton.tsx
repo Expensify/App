@@ -8,7 +8,7 @@ import {useSidebarOrderedReportsState} from '@hooks/useSidebarOrderedReports';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {isReportsTabPreloaded} from '@libs/Navigation/helpers/tabNavigatorUtils';
+import {getTabNavigatorStateKey, isReportsTabPreloaded} from '@libs/Navigation/helpers/tabNavigatorUtils';
 import Navigation, {startOpenReportSpan} from '@libs/Navigation/Navigation';
 import navigationRef from '@libs/Navigation/navigationRef';
 import {isDeletedAction} from '@libs/ReportActionsUtils';
@@ -28,7 +28,7 @@ import {TabActions} from '@react-navigation/native';
 import React, {useEffect, useRef} from 'react';
 
 import getLastRoute from './getLastRoute';
-import getReusableReportsTabStateKey, {getTabNavigatorStateKey} from './getReusableReportsTabStateKey';
+import getReusableReportsTabStateKey from './getReusableReportsTabStateKey';
 import getStringParam from './getStringParam';
 import NAVIGATION_TABS from './NAVIGATION_TABS';
 import TabBarItem from './TabBarItem';
@@ -42,13 +42,13 @@ function startNavigateToInboxTabSpan({isWideLayout}: {isWideLayout: boolean}) {
         attributes: {
             [CONST.TELEMETRY.ATTRIBUTE_WIDE_LAYOUT]: isWideLayout,
             [CONST.TELEMETRY.ATTRIBUTE_IS_PRELOADED]: isReportsTabPreloaded(navigationRef.getRootState()),
-            [CONST.TELEMETRY.ATTRIBUTE_OPENED_REPORT]: false,
+            [CONST.TELEMETRY.ATTRIBUTE_WAITED_ON_OPEN_REPORT]: false,
         },
     });
 }
 
-function markNavigateToInboxTabOpenedReport() {
-    getSpan(CONST.TELEMETRY.SPAN_NAVIGATE_TO_INBOX_TAB)?.setAttribute(CONST.TELEMETRY.ATTRIBUTE_OPENED_REPORT, true);
+function markNavigateToInboxTabWaitedOnOpenReport() {
+    getSpan(CONST.TELEMETRY.SPAN_NAVIGATE_TO_INBOX_TAB)?.setAttribute(CONST.TELEMETRY.ATTRIBUTE_WAITED_ON_OPEN_REPORT, true);
 }
 
 type InboxTabButtonProps = {
@@ -129,10 +129,17 @@ function WideInboxTabButton({selectedTab, statusIndicatorColor, accessibilityLab
                 const backTo = getStringParam(lastRoute.params, 'backTo');
                 const tabNavigatorStateKey = getTabNavigatorStateKey(rootState);
                 const reusableReportsTabStateKey = getReusableReportsTabStateKey(rootState, reportID, reportActionID, doesLastReportActionExist);
-                const shouldDeferReportActions = !hasVisitedInboxTab.current;
+                // A preloaded tab already rendered the report, so there is nothing left to defer. Passing nested params
+                // here would change the route and fire a second OpenReport.
+                const isPreloaded = isReportsTabPreloaded(rootState);
+                const shouldDeferReportActions = !hasVisitedInboxTab.current && !isPreloaded;
                 const reportRoute = ROUTES.REPORT_WITH_ID.getRoute(reportID, doesLastReportActionExist ? reportActionID : undefined, referrer, backTo);
 
                 if (reusableReportsTabStateKey && !shouldDeferReportActions) {
+                    if (isPreloaded) {
+                        // The preloaded ReportScreen held its OpenReport until the tab is opened, so this tap triggers it.
+                        markNavigateToInboxTabWaitedOnOpenReport();
+                    }
                     // Focusing the existing tab without nested params preserves the mounted ReportScreen and
                     // avoids rebuilding its cached report list as part of the tab navigation commit.
                     navigationRef.dispatch({
@@ -142,7 +149,7 @@ function WideInboxTabButton({selectedTab, statusIndicatorColor, accessibilityLab
                     return;
                 }
                 if (tabNavigatorStateKey && reportID) {
-                    markNavigateToInboxTabOpenedReport();
+                    markNavigateToInboxTabWaitedOnOpenReport();
                     startOpenReportSpan(reportRoute);
                     navigationRef.dispatch({
                         ...TabActions.jumpTo(NAVIGATORS.REPORTS_SPLIT_NAVIGATOR, {
@@ -159,7 +166,7 @@ function WideInboxTabButton({selectedTab, statusIndicatorColor, accessibilityLab
                     });
                     return;
                 }
-                markNavigateToInboxTabOpenedReport();
+                markNavigateToInboxTabWaitedOnOpenReport();
                 Navigation.navigate(reportRoute);
                 return;
             }

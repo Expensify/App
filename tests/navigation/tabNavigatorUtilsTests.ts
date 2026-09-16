@@ -1,4 +1,13 @@
-import {getReportsTabPreloadTarget, getTabNavigatorState, getTabScreenParam, getTabState, isReportsTabPreloaded} from '@libs/Navigation/helpers/tabNavigatorUtils';
+import {
+    getReportsTabPreloadTarget,
+    getTabNavigatorRoute,
+    getTabNavigatorState,
+    getTabNavigatorStateKey,
+    getTabScreenParam,
+    getTabState,
+    isReportsTabPreloaded,
+    isTabRoutePreloaded,
+} from '@libs/Navigation/helpers/tabNavigatorUtils';
 
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
@@ -83,6 +92,54 @@ describe('getTabNavigatorState', () => {
 
     it('returns undefined when the root state is undefined', () => {
         expect(getTabNavigatorState(undefined)).toBeUndefined();
+    });
+});
+
+describe('getTabNavigatorRoute', () => {
+    it('returns the last TAB_NAVIGATOR route', () => {
+        const lastTabRoute = {name: NAVIGATORS.TAB_NAVIGATOR, key: 'tab-2'};
+        const rootState = {routes: [{name: NAVIGATORS.TAB_NAVIGATOR, key: 'tab-1'}, lastTabRoute, {name: NAVIGATORS.RIGHT_MODAL_NAVIGATOR}]};
+        expect(getTabNavigatorRoute(rootState)).toBe(lastTabRoute);
+    });
+
+    it('returns undefined when the root state is undefined', () => {
+        expect(getTabNavigatorRoute(undefined)).toBeUndefined();
+    });
+});
+
+describe('getTabNavigatorStateKey', () => {
+    it('returns the key of the tab navigator state', () => {
+        const rootState = {routes: [{name: NAVIGATORS.TAB_NAVIGATOR, state: {key: 'tab-1', routes: [{name: SCREENS.HOME}], index: 0}}]};
+        expect(getTabNavigatorStateKey(rootState)).toBe('tab-1');
+    });
+
+    it('returns undefined when the tab navigator state has no key yet', () => {
+        const rootState = {routes: [{name: NAVIGATORS.TAB_NAVIGATOR, state: {routes: [{name: SCREENS.HOME}]}}]};
+        expect(getTabNavigatorStateKey(rootState)).toBeUndefined();
+    });
+});
+
+describe('isTabRoutePreloaded', () => {
+    const buildTabState = (preloadedRouteKeys?: string[]) => ({
+        key: 'tab-1',
+        index: 0,
+        routes: [
+            {key: 'home', name: SCREENS.HOME},
+            {key: 'reports', name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR},
+        ],
+        ...(preloadedRouteKeys ? {preloadedRouteKeys} : {}),
+    });
+
+    it('returns true when the route key is in preloadedRouteKeys', () => {
+        expect(isTabRoutePreloaded(buildTabState(['reports']), 'reports')).toBe(true);
+    });
+
+    it('returns false for a route that is not preloaded', () => {
+        expect(isTabRoutePreloaded(buildTabState(['reports']), 'home')).toBe(false);
+    });
+
+    it('returns false when the state has no preloadedRouteKeys', () => {
+        expect(isTabRoutePreloaded(buildTabState(), 'reports')).toBe(false);
     });
 });
 

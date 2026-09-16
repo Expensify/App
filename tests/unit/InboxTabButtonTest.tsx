@@ -15,6 +15,7 @@ const mockDispatch = jest.fn();
 const mockNavigate = jest.fn();
 const mockStartOpenReportSpan = jest.fn();
 const mockStartSpan = jest.fn();
+const mockSetSpanAttribute = jest.fn();
 
 let mockOnyxEntry: {reportID: string} | undefined = {reportID: '123'};
 let mockRootState: unknown;
@@ -94,11 +95,10 @@ jest.mock('@libs/telemetry/activeSpans', () => ({
         mockStartSpan(...args);
         return undefined;
     },
-    // Needed even though `startSpan` returns undefined: the tab button calls `getSpan` to stamp `opened_report`.
-    getSpan: () => undefined,
+    getSpan: () => ({setAttribute: mockSetSpanAttribute}),
 }));
 
-function buildRootState() {
+function buildRootState(preloadedRouteKeys: string[] = []) {
     return {
         key: 'root-state',
         index: 0,
@@ -109,6 +109,7 @@ function buildRootState() {
                 state: {
                     key: 'tab-state',
                     index: 0,
+                    preloadedRouteKeys,
                     routes: [
                         {
                             key: 'reports-route',
@@ -163,6 +164,31 @@ describe('InboxTabButton', () => {
             }),
         );
         expect(mockNavigate).not.toHaveBeenCalled();
+        expect(mockSetSpanAttribute).toHaveBeenCalledWith('waited_on_open_report', true);
+    });
+
+    it('reuses the preloaded report on the first tap and marks the span as waiting on OpenReport', () => {
+        mockRootState = buildRootState(['reports-route']);
+
+        render(
+            <InboxTabButton
+                selectedTab={NAVIGATION_TABS.HOME}
+                isWideLayout
+            />,
+        );
+
+        fireEvent.press(screen.getByTestId('inbox-tab-button'));
+
+        expect(mockStartOpenReportSpan).not.toHaveBeenCalled();
+        expect(mockDispatch).toHaveBeenCalledWith(
+            expect.objectContaining({
+                target: 'tab-state',
+                payload: {
+                    name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR,
+                },
+            }),
+        );
+        expect(mockSetSpanAttribute).toHaveBeenCalledWith('waited_on_open_report', true);
     });
 
     it('reuses the report without a span or nested params after Inbox was visited', () => {
@@ -196,6 +222,7 @@ describe('InboxTabButton', () => {
                 },
             }),
         );
+        expect(mockSetSpanAttribute).not.toHaveBeenCalled();
     });
 
     it('requests initial report actions defer when no previous report route exists', () => {

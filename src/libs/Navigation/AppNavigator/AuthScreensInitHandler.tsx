@@ -15,7 +15,7 @@ import useRootNavigationState from '@hooks/useRootNavigationState';
 import {init, isClientTheLeader} from '@libs/ActiveClientManager';
 import Log from '@libs/Log';
 import getCurrentUrl from '@libs/Navigation/currentUrl';
-import {getReportsTabPreloadTarget, getTabNavigatorState} from '@libs/Navigation/helpers/tabNavigatorUtils';
+import {getReportsTabPreloadTarget, getTabNavigatorStateKey} from '@libs/Navigation/helpers/tabNavigatorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import navigationRef from '@libs/Navigation/navigationRef';
 import Pusher from '@libs/Pusher';
@@ -101,7 +101,7 @@ function AuthScreensInitHandler() {
 
     const topmostReportID = useRootNavigationState(Navigation.getFocusedReportId);
     // Not `Navigation.isNavigationReady()`: that resolves on the container's first render, before this navigator exists.
-    const tabNavigatorStateKey = useRootNavigationState((rootState) => getTabNavigatorState(rootState)?.key);
+    const tabNavigatorStateKey = useRootNavigationState(getTabNavigatorStateKey);
     const topmostOneTransactionThreadReportID = useOneTransactionThreadReportID(topmostReportID);
     // We use a ref so the Pusher callback (registered once on mount) always reads the latest value without re-subscribing.
     const topmostOneTransactionThreadReportIDRef = useRef(topmostOneTransactionThreadReportID);
