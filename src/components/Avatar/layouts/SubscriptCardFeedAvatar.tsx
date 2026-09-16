@@ -32,7 +32,6 @@ type SubscriptCardFeedAvatarProps = BaseAvatarProps & {
 
     cardFeedIconSize?: {width: number; height: number};
 
-    /** Style for the avatar container */
     containerStyle?: StyleProp<ViewStyle>;
 };
 
