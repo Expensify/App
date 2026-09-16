@@ -44,6 +44,10 @@ function showErrorAlert(title: string, message: string) {
     Navigation.navigate(ROUTES.INBOX);
 }
 
+function isShareTempFile(file: unknown): file is ShareTempFile {
+    return typeof file === 'object' && file !== null && 'id' in file && typeof file.id === 'string' && 'content' in file && typeof file.content === 'string';
+}
+
 function ShareRootPage() {
     const [currentAttachment] = useOnyx(ONYXKEYS.SHARE_TEMP_FILE);
 
@@ -102,12 +106,18 @@ function ShareRootPage() {
         ShareActionHandler.processFiles((processedFiles: unknown) => {
             let tempFile: ShareTempFile | undefined;
             if (Array.isArray(processedFiles)) {
-                tempFile = processedFiles.at(0) as ShareTempFile | undefined;
-            } else if (typeof processedFiles === 'object' && processedFiles !== null) {
-                tempFile = processedFiles as ShareTempFile;
+                const first: unknown = (processedFiles as unknown[]).at(0);
+                if (isShareTempFile(first)) {
+                    tempFile = first;
+                }
+            } else if (isShareTempFile(processedFiles)) {
+                tempFile = processedFiles;
             } else if (typeof processedFiles === 'string' && processedFiles.trim().length > 0) {
                 try {
-                    tempFile = JSON.parse(processedFiles) as ShareTempFile;
+                    const parsed: unknown = JSON.parse(processedFiles);
+                    if (isShareTempFile(parsed)) {
+                        tempFile = parsed;
+                    }
                 } catch (error) {
                     Log.warn('[ShareRootPage] Failed to parse processedFiles', {error, processedFiles});
                 }
@@ -123,7 +133,7 @@ function ShareRootPage() {
 
             const rawMimeType = tempFile.mimeType?.split(';')[0]?.trim()?.toLowerCase() ?? '';
             const isValidMimeType =
-                Boolean(rawMimeType) &&
+                !!rawMimeType &&
                 (shareFileMimeTypes.includes(rawMimeType) || shareFileMimeTypes.some((allowed) => allowed.endsWith('/*') && rawMimeType.startsWith(allowed.replace('/*', ''))));
 
             if (!isValidMimeType) {
