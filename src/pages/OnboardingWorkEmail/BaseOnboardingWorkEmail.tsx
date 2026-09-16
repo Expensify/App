@@ -12,7 +12,6 @@ import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
-import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -78,14 +77,7 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles, route}: BaseOnboardingW
     const isJoinWorkspaceTaskRoute = route.params?.isJoinWorkspaceTask === 'true';
     const onboardingIntent = isJoinWorkspaceTaskRoute ? introSelected?.choice : onboardingPurposeSelected;
     const isJoiningCompanyWorkspace = onboardingIntent === CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE;
-    const {
-        taskReport: addWorkEmailTaskReport,
-        taskParentReport: addWorkEmailTaskParentReport,
-        isOnboardingTaskParentReportArchived: isAddWorkEmailTaskParentReportArchived,
-        hasOutstandingChildTask: addWorkEmailTaskHasOutstandingChildTask,
-        parentReportAction: addWorkEmailTaskParentReportAction,
-    } = useOnboardingTaskInformation(CONST.ONBOARDING_TASK_TYPE.ADD_WORK_EMAIL);
-    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const {taskReport: addWorkEmailTaskReport} = useOnboardingTaskInformation(CONST.ONBOARDING_TASK_TYPE.ADD_WORK_EMAIL);
     const returnToOriginReport = useReturnToOriginReport();
     const [formValue] = useOnyx(ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM);
     const workEmail = formValue?.[INPUT_IDS.ONBOARDING_WORK_EMAIL];
@@ -236,28 +228,9 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles, route}: BaseOnboardingW
             }
 
             setHasSubmittedWorkEmail(true);
-            AddWorkEmail(
-                submittedWorkEmail,
-                addWorkEmailTaskReport,
-                addWorkEmailTaskParentReport,
-                isAddWorkEmailTaskParentReportArchived,
-                addWorkEmailTaskHasOutstandingChildTask,
-                addWorkEmailTaskParentReportAction,
-                currentUserPersonalDetails.accountID,
-            );
+            AddWorkEmail(submittedWorkEmail, addWorkEmailTaskReport);
         },
-        [
-            addWorkEmailTaskReport,
-            addWorkEmailTaskParentReport,
-            isAddWorkEmailTaskParentReportArchived,
-            addWorkEmailTaskHasOutstandingChildTask,
-            addWorkEmailTaskParentReportAction,
-            currentUserPersonalDetails.accountID,
-            isConciergeTaskFlow,
-            isCurrentPrimaryValidated,
-            isCurrentPrimaryPublicDomain,
-            sessionEmail,
-        ],
+        [addWorkEmailTaskReport, isConciergeTaskFlow, isCurrentPrimaryValidated, isCurrentPrimaryPublicDomain, sessionEmail],
     );
 
     useEffect(() => {

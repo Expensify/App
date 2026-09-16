@@ -34,6 +34,7 @@ import * as MainQueue from '@libs/Network/MainQueue';
 import * as NetworkStore from '@libs/Network/NetworkStore';
 import {getCurrentUserEmail} from '@libs/Network/NetworkStore';
 import * as SequentialQueue from '@libs/Network/SequentialQueue';
+import {rand64} from '@libs/NumberUtils';
 import clearPrefetchOnAppStart from '@libs/Prefetch/clearPrefetchOnAppStart';
 import Pusher from '@libs/Pusher';
 import reauthenticate from '@libs/Reauthentication';
@@ -56,7 +57,6 @@ import {setErrorFields} from '@userActions/FormActions';
 import type HybridAppSettings from '@userActions/HybridApp/types';
 import {close} from '@userActions/Modal';
 import redirectToSignIn from '@userActions/SignInRedirect';
-import {canActionTask, getOnboardingTaskCompletionOnSuccessData} from '@userActions/Task';
 import * as Welcome from '@userActions/Welcome';
 
 import CONFIG from '@src/CONFIG';
@@ -68,7 +68,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {DynamicRouteSuffix, Route} from '@src/ROUTES';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import ADD_WORK_EMAIL_INPUT_IDS from '@src/types/form/AddWorkEmailForm';
-import type {Report, ReportAction, TryNewDot} from '@src/types/onyx';
+import type {Report, TryNewDot} from '@src/types/onyx';
 import type Credentials from '@src/types/onyx/Credentials';
 import type Locale from '@src/types/onyx/Locale';
 import type {OnyxData} from '@src/types/onyx/Request';
@@ -1657,33 +1657,13 @@ type AddWorkEmailFormID = typeof ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM | typ
  * @param formID the form that submitted the request. Its loading state and errors follow the request, so the submit button stops spinning and the failure
  * renders inline. Defaults to the onboarding form, which is where this action is called from during onboarding.
  */
-function AddWorkEmail(
-    workEmail: string,
-    formIDOrTaskReport: AddWorkEmailFormID | OnyxEntry<Report> = ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM,
-    addWorkEmailTaskParentReport?: OnyxEntry<Report>,
-    isAddWorkEmailTaskParentReportArchived?: boolean,
-    addWorkEmailTaskHasOutstandingChildTask?: boolean,
-    addWorkEmailTaskParentReportAction?: OnyxEntry<ReportAction>,
-    currentUserAccountID?: number,
-) {
+function AddWorkEmail(workEmail: string, formIDOrTaskReport: AddWorkEmailFormID | OnyxEntry<Report> = ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM) {
     const isOnboardingFlow = typeof formIDOrTaskReport !== 'string' || formIDOrTaskReport === ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM;
     const formID = typeof formIDOrTaskReport === 'string' ? formIDOrTaskReport : ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM;
     const addWorkEmailTaskReport = typeof formIDOrTaskReport === 'string' ? undefined : formIDOrTaskReport;
-    const addWorkEmailTaskCompletion =
-        isOnboardingFlow &&
-        addWorkEmailTaskReport &&
-        currentUserAccountID &&
-        canActionTask(addWorkEmailTaskReport, addWorkEmailTaskParentReportAction, currentUserAccountID, addWorkEmailTaskParentReport, isAddWorkEmailTaskParentReportArchived)
-            ? getOnboardingTaskCompletionOnSuccessData(
-                  addWorkEmailTaskReport,
-                  addWorkEmailTaskParentReport,
-                  isAddWorkEmailTaskParentReportArchived ?? false,
-                  currentUserAccountID,
-                  addWorkEmailTaskHasOutstandingChildTask ?? false,
-                  addWorkEmailTaskParentReportAction,
-              )
-            : undefined;
-    const completedTaskReportActionID = addWorkEmailTaskCompletion?.completedTaskReportActionID;
+    // Auth completes direct additions and MergeIntoAccountAndLogin completes existing-account additions. Both commands
+    // need the same client-generated action ID, but AddWorkEmail must not complete the task before a required merge.
+    const completedTaskReportActionID = addWorkEmailTaskReport ? rand64() : undefined;
 
     const optimisticData: Array<OnyxUpdate<AddWorkEmailFormID | typeof ONYXKEYS.ONBOARDING_ERROR_MESSAGE_TRANSLATION_KEY>> = isOnboardingFlow
         ? [
@@ -1741,7 +1721,7 @@ function AddWorkEmail(
         {workEmail, completedTaskReportActionID},
         {
             optimisticData,
-            successData: [...getLoadingFinishedData(), ...(addWorkEmailTaskCompletion?.successData ?? [])],
+            successData: getLoadingFinishedData(),
             failureData: getLoadingFinishedData(),
         },
     ).then((response) => {
