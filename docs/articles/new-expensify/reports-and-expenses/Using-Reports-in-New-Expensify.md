@@ -1,7 +1,7 @@
 ---
 title: Using Spend in New Expensify
 description: Learn how to use Spend in New Expensify to search, filter, customize columns, and save searches for expenses, invoices, trips, and chats.
-keywords: [Spend, New Expensify, report filters, search commands, custom columns, saved searches, share saved search, My expenses saved search, default saved search, group expenses, invoices, expenses, chats, trips, reimbursement tracking, view expenses, customize report view, reporting table columns, Tag GL code, Category GL code, Paid by column, Paid by filter, who paid a report, Edit columns, Display menu]
+keywords: [Spend, New Expensify, report filters, search commands, custom columns, saved searches, share saved search, My expenses saved search, default saved search, group expenses, invoices, expenses, chats, trips, reimbursement tracking, view expenses, customize report view, reporting table columns, Tag GL code, Category GL code, Paid by column, Paid by filter, who paid a report, Edit columns, Display menu, Violations column, Submitted violation, Approved violation, Has filter]
 ---
 
 <div id="new-expensify" markdown="1">
@@ -87,6 +87,8 @@ You can choose from a wide range of columns, including:
 - **International reimbursement IDs** – The reference IDs for international reimbursements on the report
 
 To view the full list of available columns, click **Display** in the **Spend** tab, then select **Edit columns**.
+
+The **Violations** column works differently from the rest. It only appears in **Edit columns** when your search includes the **Submitted violation** or **Approved violation** option under the **Has** filter. While one of those filters is applied, the **Violations** column is always shown in the table and can’t be deselected. Clear the filter and the column is removed again.
 
 ---
 
@@ -212,6 +214,9 @@ Expensify ensures cross-platform consistency where possible. However, certain fe
 
 ## Can I change which columns appear in my reports?
 Yes! You can choose which columns to show or hide in the **Reports** and **Expenses** views on web. Click **Display**, then select **Edit columns**, to customize your table layout.
+
+## Why can’t I find the Violations column?
+The **Violations** column only appears in **Edit columns** when your search includes the **Submitted violation** or **Approved violation** option under the **Has** filter. Those two options are available on Control workspaces with Rules enabled. Once you apply one of them, the **Violations** column is added to the table for you.
 
 ## Can I reorder the columns?
 Absolutely. Just drag and drop the columns in the order you prefer within the **Edit columns** panel.
