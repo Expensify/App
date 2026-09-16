@@ -63,6 +63,8 @@ If every expense on the report is held, only the **Approve [full amount]** optio
 
 The approver you added is now the current approver, and the original workflow will continue after their approval. 
 
+**Note:** If that approver is later removed from the workspace, the **Remove member** confirmation warns that they’re an approver and that the workspace owner will replace them, and the report is reassigned to the workspace owner. Learn more about [removing a member who is an approver](/articles/new-expensify/workspaces/Managing-Workspace-Members).
+
 ---
 
 ## How to bypass an approver on a report
