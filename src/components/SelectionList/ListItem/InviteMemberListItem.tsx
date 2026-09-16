@@ -3,7 +3,6 @@ import shouldShowRBRIndicator from '@components/SelectionList/utils/shouldShowRB
 import TextWithTooltip from '@components/TextWithTooltip';
 
 import useLocalize from '@hooks/useLocalize';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {Str} from 'expensify-common';
