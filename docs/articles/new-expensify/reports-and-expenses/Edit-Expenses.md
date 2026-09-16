@@ -17,6 +17,8 @@ You can edit a single expense from within a report, or update multiple expenses 
 
 Expenses on Approved reports must be unapproved before they can be edited. Expenses on Paid and Done reports cannot be edited. 
 
+The one exception is receipts: a Workspace Admin can attach or replace a receipt on an expense in an Approved report without unapproving it. [Learn how to attach or replace a receipt on an Approved report](/articles/new-expensify/reports-and-expenses/Attach-and-edit-receipts-on-expenses).
+
 ---
 
 ## How to edit a single expense
@@ -91,7 +93,7 @@ Yes, expenses on Draft and Outstanding reports can still be edited.
 
 ## Can I edit expenses on Approved reports? 
 
-Yes. However, the report submitter will need to ask the approver to unapprove the report before the expenses can be edited again.
+Yes. However, the report submitter will need to ask the approver to unapprove the report before the expenses can be edited again. A Workspace Admin can attach or replace a receipt on an Approved report without unapproving it.
 
 ## Can I edit expenses on Paid and Done reports? 
 
