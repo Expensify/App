@@ -18,7 +18,7 @@ import type {ValueOf} from 'type-fest';
 
 import {expenseReportAvatarSelector} from '@selectors/Report';
 import {getReportActionByIDSelector} from '@selectors/ReportAction';
-import React, {useCallback} from 'react';
+import React from 'react';
 
 import useAccountIcons from './useAccountIcons';
 import useReportWorkspaceIcon from './useReportWorkspaceIcon';
@@ -49,10 +49,7 @@ function ExpenseReportAvatar({reportID, size, backdropColor, containerStyle, fal
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {selector: expenseReportAvatarSelector});
     const defaultAvatars = useDefaultAvatars();
     const parentReportActionID = report?.parentReportActionID;
-    const delegateAccountIDSelector = useCallback(
-        (reportActions: OnyxEntry<ReportActions>) => getDelegateAccountIDFromReportAction(getReportActionByIDSelector(reportActions, parentReportActionID)),
-        [parentReportActionID],
-    );
+    const delegateAccountIDSelector = (reportActions: OnyxEntry<ReportActions>) => getDelegateAccountIDFromReportAction(getReportActionByIDSelector(reportActions, parentReportActionID));
     const parentChatReportID = getNonEmptyStringOnyxID(report?.chatReportID) ?? getNonEmptyStringOnyxID(report?.parentReportID);
     const [delegateAccountID] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentChatReportID}`, {selector: delegateAccountIDSelector});
     const ownerAccountID = report?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID;
