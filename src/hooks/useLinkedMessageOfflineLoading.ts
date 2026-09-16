@@ -1,5 +1,7 @@
-import {useEffect} from 'react';
 import {updateLoadingInitialReportAction} from '@libs/actions/Report';
+
+import {useEffect} from 'react';
+
 import useNetwork from './useNetwork';
 
 type UseLinkedMessageOfflineLoadingParams = {

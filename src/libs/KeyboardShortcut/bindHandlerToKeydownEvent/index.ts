@@ -1,7 +1,9 @@
 import {isCancellingDndKeyboardDrag} from '@libs/cancelDndKeyboardDrag';
 import getKeyEventModifiers from '@libs/KeyboardShortcut/getKeyEventModifiers';
 import isEnterWhileComposition from '@libs/KeyboardShortcut/isEnterWhileComposition';
+
 import CONST from '@src/CONST';
+
 import type BindHandlerToKeydownEvent from './types';
 
 /**

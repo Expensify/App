@@ -1,18 +1,27 @@
-import type {FlashListRef, ListRenderItem, ListRenderItemInfo} from '@shopify/flash-list';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {View} from 'react-native';
-import type {ViewToken} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import Text from '@components/Text';
+
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useIsFocusedRef from '@hooks/useIsFocusedRef';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import shouldAdjustScroll from '@libs/shouldAdjustScroll';
 import {compareByRBR} from '@libs/TransactionPreviewUtils';
 import {getCreated} from '@libs/TransactionUtils';
+
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import {personalDetailsLoginSelector} from '@src/selectors/PersonalDetails';
 import type {Policy, Report, Transaction} from '@src/types/onyx';
+
+import type {FlashListRef, ListRenderItem, ListRenderItemInfo} from '@shopify/flash-list';
+import type {ViewToken} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
+
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import {View} from 'react-native';
+
 import type {MoneyRequestReportPreviewStyleType} from './types';
 
 const MAX_PREVIEWS_NUMBER = 10;
@@ -25,6 +34,9 @@ const ITEM_LAYOUT_TYPE = {
 type UseReportPreviewCarouselParams = {
     /** Transactions that belong to the previewed report */
     transactions: Transaction[];
+
+    /** Called with the transactions in the order the carousel renders them, used to seed the expense view's arrows */
+    onOrderedTransactionsChange?: (orderedTransactions: Transaction[]) => void;
 
     /** Violations for the previewed transactions, used to sort RBR transactions first */
     transactionViolations: Parameters<typeof compareByRBR>[2];
@@ -57,6 +69,7 @@ type UseReportPreviewCarouselParams = {
  */
 function useReportPreviewCarousel({
     transactions,
+    onOrderedTransactionsChange,
     transactionViolations,
     iouReport,
     policy,
@@ -69,22 +82,34 @@ function useReportPreviewCarousel({
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const currentUserDetails = useCurrentUserPersonalDetails();
+    const [ownerLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(iouReport?.ownerAccountID)});
     const isFocusedRef = useIsFocusedRef();
 
-    const carouselTransactions = useMemo(() => {
+    const sortedTransactions = useMemo(() => {
         if (shouldShowAccessPlaceHolder) {
             return [];
         }
         const sorted = [...transactions].sort((a, b) => {
-            const rbrComparison = compareByRBR(a, b, transactionViolations, currentUserDetails?.login ?? '', currentUserDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID, iouReport, policy);
+            const rbrComparison = compareByRBR(
+                a,
+                b,
+                transactionViolations,
+                currentUserDetails?.login ?? '',
+                currentUserDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+                iouReport,
+                ownerLogin,
+                policy,
+            );
             if (rbrComparison !== 0) {
                 return rbrComparison;
             }
             // Tiebreak by date (ascending — oldest first) so position is stable across RBR state changes
             return localeCompare(getCreated(a), getCreated(b));
         });
-        return sorted.slice(0, MAX_PREVIEWS_NUMBER + 1);
-    }, [shouldShowAccessPlaceHolder, transactions, transactionViolations, currentUserDetails?.login, currentUserDetails?.accountID, iouReport, policy, localeCompare]);
+        return sorted;
+    }, [shouldShowAccessPlaceHolder, transactions, transactionViolations, currentUserDetails?.login, currentUserDetails?.accountID, iouReport, ownerLogin, policy, localeCompare]);
+
+    const carouselTransactions = useMemo(() => sortedTransactions.slice(0, MAX_PREVIEWS_NUMBER + 1), [sortedTransactions]);
     const prevCarouselTransactionLength = useRef(0);
 
     useEffect(() => {
@@ -137,7 +162,8 @@ function useReportPreviewCarousel({
 
     useEffect(() => {
         carouselTransactionsRef.current = carouselTransactions;
-    }, [carouselTransactions]);
+        onOrderedTransactionsChange?.(sortedTransactions);
+    }, [carouselTransactions, onOrderedTransactionsChange, sortedTransactions]);
 
     useEffect(() => {
         const index = carouselTransactions.findIndex((transaction) => newTransactionIDs?.has(transaction.transactionID));

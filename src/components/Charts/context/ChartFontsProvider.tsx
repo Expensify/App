@@ -1,5 +1,7 @@
-import React from 'react';
 import type ChartFontsValue from '@components/Charts/types/chartFontsTypes';
+
+import React from 'react';
+
 import {ChartFontsContext} from './ChartFontsContext';
 import ChartFontsLoaderProvider from './ChartFontsLoaderProvider';
 

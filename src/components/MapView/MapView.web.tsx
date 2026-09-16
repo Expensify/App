@@ -1,12 +1,15 @@
-import React, {lazy, Suspense, useEffect, useState} from 'react';
-import {ErrorBoundary} from 'react-error-boundary';
 import ActivityIndicator from '@components/ActivityIndicator';
+
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+
+import React, {lazy, Suspense, useEffect, useState} from 'react';
+import {ErrorBoundary} from 'react-error-boundary';
+
 import type {MapViewProps} from './MapViewTypes';
+
 import PendingMapView from './PendingMapView';
 
 const MapViewImpl = lazy(() => import('./MapViewImpl.web'));
@@ -16,11 +19,6 @@ function MapView({ref, ...props}: MapViewProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [errorResetKey, setErrorResetKey] = useState(0);
-
-    const mapLoadingReasonAttributes: SkeletonSpanReasonAttributes = {
-        context: 'MapView',
-        isOffline,
-    };
 
     // Retry the error when reconnecting.
     const wasOffline = usePrevious(isOffline);
@@ -47,7 +45,6 @@ function MapView({ref, ...props}: MapViewProps) {
                     <ActivityIndicator
                         size="large"
                         style={[styles.h100]}
-                        reasonAttributes={mapLoadingReasonAttributes}
                     />
                 }
             >

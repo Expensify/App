@@ -1,6 +1,7 @@
-import type {NavigationState, PartialState} from '@react-navigation/native';
 import findFocusedRouteWithOnyxTabGuard from '@libs/Navigation/helpers/findFocusedRouteWithOnyxTabGuard';
 import {screensWithOnyxTabNavigator as guardSet} from '@libs/Navigation/linkingConfig/config';
+
+import type {NavigationState, PartialState} from '@react-navigation/native';
 
 jest.mock('@libs/Navigation/linkingConfig/config', () => ({
     screensWithOnyxTabNavigator: new Set<string>(),

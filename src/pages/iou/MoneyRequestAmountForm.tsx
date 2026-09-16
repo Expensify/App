@@ -1,7 +1,3 @@
-import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
-import type {ForwardedRef} from 'react';
-import {View} from 'react-native';
-import type {ValueOf} from 'type-fest';
 import Button from '@components/Button';
 import MoneyRequestAmountInput from '@components/MoneyRequestAmountInput';
 import type {MoneyRequestAmountInputProps} from '@components/MoneyRequestAmountInput';
@@ -9,20 +5,30 @@ import type {NumberWithSymbolFormRef} from '@components/NumberWithSymbolForm';
 import ScrollView from '@components/ScrollView';
 import SettlementButton from '@components/SettlementButton';
 import type {PaymentActionParams} from '@components/SettlementButton/types';
+
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {convertToFrontendAmountAsString} from '@libs/CurrencyUtils';
 import {canUseTouchScreen as canUseTouchScreenUtil} from '@libs/DeviceCapabilities';
 import {isTaxAmountInvalid} from '@libs/MoneyRequestUtils';
 import Navigation from '@libs/Navigation/Navigation';
+
 import variables from '@styles/variables';
+
 import type {BaseTextInputRef} from '@src/components/TextInput/BaseTextInput/types';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {SelectedTabRequest} from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
+
+import type {ForwardedRef} from 'react';
+import type {ValueOf} from 'type-fest';
+
+import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
+import {View} from 'react-native';
 
 type CurrentMoney = {amount: string; currency: string; paymentMethod?: PaymentMethodType};
 
@@ -41,17 +47,15 @@ type MoneyRequestAmountFormProps = Omit<MoneyRequestAmountInputProps, 'shouldSho
     /** Whether the amount is being edited or not */
     isEditing?: boolean;
 
-    /** Whether the confirmation screen should be skipped */
     skipConfirmation?: boolean;
-
-    /** Type of the IOU */
     iouType?: ValueOf<typeof CONST.IOU.TYPE>;
-
-    /** The policyID of the request */
     policyID?: string;
 
     /** Fired when submit button pressed, saves the given amount and navigates to the next page */
     onSubmitButtonPress: (currentMoney: CurrentMoney) => void;
+
+    /** Fired when the visible amount sign differs from its initial value */
+    onSignDirtyChange?: (isSignDirty: boolean) => void;
 
     /** The current tab we have navigated to in the expense modal. String that corresponds to the expense type. */
     selectedTab?: SelectedTabRequest;
@@ -59,10 +63,7 @@ type MoneyRequestAmountFormProps = Omit<MoneyRequestAmountInputProps, 'shouldSho
     /** Whether the user input should be kept or not */
     shouldKeepUserInput?: boolean;
 
-    /** Whether to allow flipping the amount */
     allowFlippingAmount?: boolean;
-
-    /** The chatReportID of the request */
     chatReportID?: string;
 
     /** Whether this is a P2P (1:1) request */
@@ -100,6 +101,8 @@ function MoneyRequestAmountForm({
     policyID = '',
     onCurrencyButtonPress,
     onSubmitButtonPress,
+    onAmountChange,
+    onSignDirtyChange,
     selectedTab = CONST.TAB_REQUEST.MANUAL,
     shouldKeepUserInput = false,
     chatReportID,
@@ -118,6 +121,8 @@ function MoneyRequestAmountForm({
     const moneyRequestAmountInputRef = useRef<NumberWithSymbolFormRef | null>(null);
 
     const [isNegative, setIsNegative] = useState(false);
+    const isUserSignOverrideRef = useRef(false);
+    const initialIsNegativeRef = useRef(false);
 
     useImperativeHandle(amountFormRef, () => ({
         getNumber: () => {
@@ -149,19 +154,35 @@ function MoneyRequestAmountForm({
     );
 
     const toggleNegative = useCallback(() => {
-        setIsNegative(!isNegative);
-    }, [isNegative]);
+        const nextIsNegative = !isNegative;
+        isUserSignOverrideRef.current = true;
+        setIsNegative(nextIsNegative);
+        onSignDirtyChange?.(nextIsNegative !== initialIsNegativeRef.current);
+        // The sign flip bypasses the input's change handler, so report the newly signed value like a keystroke would
+        const currentNumber = moneyRequestAmountInputRef.current?.getNumber() ?? '';
+        onAmountChange?.(currentNumber && nextIsNegative ? `-${currentNumber}` : currentNumber);
+    }, [isNegative, onAmountChange, onSignDirtyChange]);
 
     const clearNegative = useCallback(() => {
+        isUserSignOverrideRef.current = true;
         setIsNegative(false);
-    }, []);
+        onSignDirtyChange?.(initialIsNegativeRef.current);
+    }, [onSignDirtyChange]);
 
-    const initializeIsNegative = useCallback((currentAmount: number) => {
-        if (currentAmount >= 0) {
-            setIsNegative(false);
+    const initializeIsNegative = useCallback((currentAmount: number, shouldResetUserSign = false) => {
+        // A tab switch is the only place we deliberately discard a user's manual sign flip. A plain `amount` update
+        // (e.g. an async transaction load) must preserve it, so it leaves isUserSignOverrideRef untouched.
+        if (shouldResetUserSign) {
+            isUserSignOverrideRef.current = false;
+        }
+
+        if (isUserSignOverrideRef.current) {
             return;
         }
-        setIsNegative(true);
+
+        const nextIsNegative = currentAmount < 0;
+        initialIsNegativeRef.current = nextIsNegative;
+        setIsNegative(nextIsNegative);
     }, []);
 
     useEffect(() => {
@@ -174,7 +195,7 @@ function MoneyRequestAmountForm({
         }
 
         initializeAmount(absoluteAmount);
-        initializeIsNegative(amount);
+        initializeIsNegative(amount, true);
 
         // we want to re-initialize the state only when the selected tab
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -234,7 +255,7 @@ function MoneyRequestAmountForm({
                         currency={currency ?? CONST.CURRENCY.USD}
                         policyID={policyID}
                         style={[styles.w100, canUseTouchScreen ? styles.mt5 : styles.mt0]}
-                        buttonSize={CONST.DROPDOWN_BUTTON_SIZE.LARGE}
+                        size={CONST.BUTTON_SIZE.LARGE}
                         kycWallAnchorAlignment={{
                             horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
                             vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
@@ -250,18 +271,17 @@ function MoneyRequestAmountForm({
                     />
                 ) : (
                     <Button
-                        success
-                        // Prevent bubbling on edit amount Page to prevent double page submission when two CTA are stacked.
-                        allowBubble={!isEditing}
-                        pressOnEnter
-                        medium={isExtraSmallScreenHeight}
-                        large={!isExtraSmallScreenHeight}
+                        variant={CONST.BUTTON_VARIANT.SUCCESS}
+                        size={isExtraSmallScreenHeight ? CONST.BUTTON_SIZE.MEDIUM : CONST.BUTTON_SIZE.LARGE}
                         style={[styles.w100, canUseTouchScreen ? styles.mt5 : styles.mt0]}
                         onPress={() => submitAndNavigateToNextPage()}
-                        text={buttonText}
                         testID="next-button"
                         sentryLabel={CONST.SENTRY_LABEL.MONEY_REQUEST.AMOUNT_NEXT_BUTTON}
-                    />
+                    >
+                        {/* Prevent bubbling on edit amount Page to prevent double page submission when two CTA are stacked. */}
+                        <Button.KeyboardShortcut allowBubble={!isEditing} />
+                        <Button.Text>{buttonText}</Button.Text>
+                    </Button>
                 )}
             </View>
         ),
@@ -293,7 +313,9 @@ function MoneyRequestAmountForm({
                 isCurrencyPressable={isCurrencyPressable}
                 onCurrencyButtonPress={onCurrencyButtonPress}
                 onFormatAmount={onFormatAmount}
-                onAmountChange={() => {
+                onAmountChange={(newAmount) => {
+                    // Signed the same way `getNumber` composes it, so the parent compares like-for-like
+                    onAmountChange?.(newAmount && isNegative ? `-${newAmount}` : newAmount);
                     if (!formError) {
                         return;
                     }

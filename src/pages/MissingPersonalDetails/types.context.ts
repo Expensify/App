@@ -10,7 +10,6 @@ type PINStateContextType = {
 };
 
 type PINActionsContextType = {
-    /** Set the PIN value */
     setPIN: (PIN: string) => void;
 
     /** Clear the PIN and reset verification status */

@@ -1,5 +1,7 @@
-import lodashIsObject from 'lodash/isObject';
 import type {CartesianChartProps} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/types';
+
+import lodashIsObject from 'lodash/isObject';
+
 import parseAttribute from './parseAttribute';
 
 type Padding = CartesianChartProps['padding'];

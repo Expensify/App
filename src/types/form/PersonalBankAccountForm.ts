@@ -1,4 +1,5 @@
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
+
 import type Form from './Form';
 
 const INPUT_IDS = {

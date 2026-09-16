@@ -1,15 +1,14 @@
+import ONYXKEYS from '@src/ONYXKEYS';
+
 // eslint-disable-next-line no-restricted-imports
 import {ExpensiMark} from 'expensify-common';
 import Onyx from 'react-native-onyx';
-import ONYXKEYS from '@src/ONYXKEYS';
-import Log from './Log';
 
-const accountIDToNameMap: Record<string, string> = {};
+import Log from './Log';
 
 let reportIDToNameMap: Record<string, string> = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT,
-    waitForCollectionCallback: true,
     callback: (value) => {
         // Clear the map so removed reports don’t linger
         reportIDToNameMap = {};
@@ -27,9 +26,12 @@ Onyx.connect({
     },
 });
 
+let accountIDToNameMap: Record<string, string> = {};
 Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
     callback: (personalDetailsList) => {
+        // Clear the map so removed personal detail don’t linger
+        accountIDToNameMap = {};
         for (const personalDetails of Object.values(personalDetailsList ?? {})) {
             if (!personalDetails) {
                 continue;
@@ -66,10 +68,6 @@ class ExpensiMarkWithContext extends ExpensiMark {
 
     isHTML(text: string): boolean {
         return /<[^>]+>/.test(text) || /&[#\w]+;/.test(text);
-    }
-
-    truncateHTML(htmlString: string, limit: number, extras?: {ellipsis: string | undefined}): string {
-        return super.truncateHTML(htmlString, limit, extras);
     }
 }
 

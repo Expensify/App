@@ -3,6 +3,7 @@
  */
 import type CONST from '@src/CONST';
 import type {Base64URLString} from '@src/utils/Base64URL';
+
 import type VALUES from './VALUES';
 
 type NativeBiometricsHSMKeyInfo = {

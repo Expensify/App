@@ -1,12 +1,17 @@
+import type {SearchQueryJSON} from '@components/Search/types';
+
+import useThemeStyles from '@hooks/useThemeStyles';
+
+import type {SearchResults} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
 // NOTE: This component has a static twin in SearchPageNarrow/StaticSearchActionsBar.tsx
 // used for fast perceived performance. If you change the UI here, verify the
 // static version still looks visually identical.
 import React from 'react';
 import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
-import type {SearchQueryJSON} from '@components/Search/types';
-import useThemeStyles from '@hooks/useThemeStyles';
-import type {SearchResults} from '@src/types/onyx';
+
 import SearchAdvancedFiltersButton from './SearchAdvancedFiltersButton';
 import SearchDisplayDropdownButton from './SearchDisplayDropdownButton';
 import SearchSaveButton from './SearchSaveButton';

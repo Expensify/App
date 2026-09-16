@@ -1,10 +1,17 @@
-import React, {useEffect, useRef, useState} from 'react';
-import {View} from 'react-native';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import ControlSelection from '@libs/ControlSelection';
+
+import CONST from '@src/CONST';
+
+import type {ValueOf} from 'type-fest';
+
+import React, {useEffect, useRef, useState} from 'react';
+import {View} from 'react-native';
+
 import Button from './Button';
 
 type BigNumberPadProps = {
@@ -17,7 +24,6 @@ type BigNumberPadProps = {
     /** Used to locate this view from native classes. */
     id?: string;
 
-    /** Whether long press is disabled */
     isLongPressDisabled?: boolean;
 };
 
@@ -59,6 +65,15 @@ function BigNumberPad({numberPressed, longPressHandlerStateChanged = () => {}, i
         setTimer(newTimer);
     };
 
+    let numberPadButtonSize: ValueOf<typeof CONST.BUTTON_SIZE>;
+    if (isInLandscapeMode) {
+        numberPadButtonSize = CONST.BUTTON_SIZE.SMALL;
+    } else if (isExtraSmallScreenHeight) {
+        numberPadButtonSize = CONST.BUTTON_SIZE.MEDIUM;
+    } else {
+        numberPadButtonSize = CONST.BUTTON_SIZE.LARGE;
+    }
+
     return (
         <View
             style={[styles.flexColumn, styles.w100]}
@@ -77,13 +92,9 @@ function BigNumberPad({numberPressed, longPressHandlerStateChanged = () => {}, i
                         return (
                             <Button
                                 key={column}
-                                small={isInLandscapeMode}
-                                medium={isExtraSmallScreenHeight && !isInLandscapeMode}
-                                large={!isExtraSmallScreenHeight && !isInLandscapeMode}
-                                shouldEnableHapticFeedback
+                                size={numberPadButtonSize}
+                                enableHapticFeedback
                                 style={[styles.flex1, marginLeft]}
-                                text={column === '<' ? undefined : toLocaleDigit(column)}
-                                icon={column === '<' ? icons.BackArrow : undefined}
                                 onLongPress={() => handleLongPress(column)}
                                 onPress={() => numberPressed(column)}
                                 onPressIn={ControlSelection.block}
@@ -100,7 +111,9 @@ function BigNumberPad({numberPressed, longPressHandlerStateChanged = () => {}, i
                                 }}
                                 isLongPressDisabled={isLongPressDisabled}
                                 testID={`button_${column}`}
-                            />
+                            >
+                                {column === '<' ? <Button.Icon src={icons.BackArrow} /> : <Button.Text>{toLocaleDigit(column)}</Button.Text>}
+                            </Button>
                         );
                     })}
                 </View>

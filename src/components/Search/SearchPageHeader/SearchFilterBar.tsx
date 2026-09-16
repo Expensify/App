@@ -1,4 +1,3 @@
-import React from 'react';
 import DropdownButton from '@components/Search/FilterDropdowns/DropdownButton';
 import type {DropdownButtonProps} from '@components/Search/FilterDropdowns/DropdownButton';
 import useFilterBankAccountValue from '@components/Search/hooks/useFilterBankAccountValue';
@@ -8,8 +7,13 @@ import useFilterReportValue from '@components/Search/hooks/useFilterReportValue'
 import useFilterTaxRateValue from '@components/Search/hooks/useFilterTaxRateValue';
 import useFilterUserValue from '@components/Search/hooks/useFilterUserValue';
 import useFilterWorkspaceValue from '@components/Search/hooks/useFilterWorkspaceValue';
+
 import type {SearchFilter} from '@libs/SearchUIUtils';
+
 import CONST from '@src/CONST';
+
+import React from 'react';
+
 import type {FilterItem} from './useSearchFiltersBar';
 
 type DropdownProps = Pick<DropdownButtonProps, 'label' | 'PopoverComponent' | 'sentryLabel' | 'onClosePress'> & {
@@ -110,6 +114,7 @@ function ReportDropdown({label, value, PopoverComponent, sentryLabel, onClosePre
 const FILTER_COMPONENT_MAP: Partial<Record<SearchFilter['key'], React.ComponentType<DropdownProps>>> = {
     [CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM]: UserDropdown,
     [CONST.SEARCH.SYNTAX_FILTER_KEYS.TO]: UserDropdown,
+    [CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID_BY]: UserDropdown,
     [CONST.SEARCH.SYNTAX_FILTER_KEYS.ATTENDEE]: UserDropdown,
     [CONST.SEARCH.SYNTAX_FILTER_KEYS.ASSIGNEE]: UserDropdown,
 

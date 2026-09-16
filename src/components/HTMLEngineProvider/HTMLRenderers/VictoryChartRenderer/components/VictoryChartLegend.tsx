@@ -1,12 +1,15 @@
-import {Circle, Skia, Text as SkText} from '@shopify/react-native-skia';
-import type {Color, SkFont} from '@shopify/react-native-skia';
-import React, {Fragment} from 'react';
 import {useChartTypefaces} from '@components/Charts/context/ChartFontsContext';
 import getChartSkiaTypeface from '@components/Charts/utils/getChartSkiaTypeface';
 import type {LegendItem} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/types';
 import getSkiaLineMetrics from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/getSkiaLineMetrics';
 import resolveChartThemeColor from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/resolveChartThemeColor';
+
 import useTheme from '@hooks/useTheme';
+
+import type {Color, SkFont} from '@shopify/react-native-skia';
+
+import {Circle, Skia, Text as SkText} from '@shopify/react-native-skia';
+import React, {Fragment} from 'react';
 
 type VictoryChartLegendProps = LegendItem & {
     chartWidth?: number;
@@ -33,7 +36,7 @@ function VictoryChartLegend({x, y, entries, gutter, symbolSpacer, chartWidth}: V
     const theme = useTheme();
     const processedEntries = entries.reduce(
         (acc, {text, color, fontSize, fontWeight, fontFamily, fontStyle, symbolColor, symbolSize}) => {
-            const typeface = getChartSkiaTypeface(typefaces, {fontFamily, fontStyle, fontWeight});
+            const typeface = getChartSkiaTypeface(typefaces, {fontFamily, fontStyle, fontWeight}, text);
             const font = typeface && fontSize ? Skia.Font(typeface, fontSize) : null;
             const {ascent, descent, lineHeight} = getSkiaLineMetrics(font);
             const rowCenterY = y + lineHeight / 2;

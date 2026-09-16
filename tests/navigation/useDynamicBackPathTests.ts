@@ -1,10 +1,14 @@
 import {renderHook} from '@testing-library/react-native';
+
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
-import type {DynamicRouteSuffix} from '@src/ROUTES';
+
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 
 jest.mock('@hooks/useRootNavigationState', () => jest.fn());
 jest.mock('@libs/Navigation/helpers/getPathFromState', () => jest.fn());
+jest.mock('@libs/Navigation/linkingConfig/config', () => ({
+    dynamicTabPatternToTabPaths: new Map(),
+}));
 jest.mock('@src/ROUTES', () => ({
     default: {
         HOME: 'home',
@@ -23,6 +27,14 @@ jest.mock('@src/ROUTES', () => ({
 const useRootNavigationStateMock = jest.requireMock<jest.Mock>('@hooks/useRootNavigationState');
 const getPathFromStateMock: jest.Mock = jest.requireMock('@libs/Navigation/helpers/getPathFromState');
 
+const GENERATED_ROUTE_PATHS = [
+    DYNAMIC_ROUTES.VERIFY_ACCOUNT.path,
+    'custom-test-route',
+    DYNAMIC_ROUTES.ADDRESS_COUNTRY.path,
+    DYNAMIC_ROUTES.FLAG_COMMENT.path,
+    'member-details/:accountID',
+] as const;
+
 describe('useDynamicBackPath', () => {
     beforeEach(() => {
         jest.clearAllMocks();
@@ -32,21 +44,28 @@ describe('useDynamicBackPath', () => {
     it('should return HOME when path is null or undefined', () => {
         getPathFromStateMock.mockReturnValue(undefined);
 
-        const {result} = renderHook(() => useDynamicBackPath('verify-account'));
+        const {result} = renderHook(() => useDynamicBackPath(DYNAMIC_ROUTES.VERIFY_ACCOUNT.path));
 
         expect(result.current).toBe(ROUTES.HOME);
     });
 
-    for (const {path} of Object.values(DYNAMIC_ROUTES)) {
-        if (path.includes('?')) {
-            continue;
-        }
+    for (const path of GENERATED_ROUTE_PATHS) {
         it(`should remove suffix ${path} when it is the last segment`, () => {
             const pathPrefix = 'settings/wallet';
             const fullPath = `${pathPrefix}/${path}`;
             getPathFromStateMock.mockReturnValue(fullPath);
 
-            const {result} = renderHook(() => useDynamicBackPath(path));
+            const {result} = renderHook(() => {
+                if (path === 'custom-test-route') {
+                    // @ts-expect-error -- deliberately tests a mock-only navigation route outside the production suffix union.
+                    return useDynamicBackPath(path);
+                }
+                if (path === 'member-details/:accountID') {
+                    // @ts-expect-error -- deliberately tests a mock-only navigation route outside the production suffix union.
+                    return useDynamicBackPath(path);
+                }
+                return useDynamicBackPath(path);
+            });
 
             expect(result.current).toBe(pathPrefix);
         });
@@ -92,13 +111,16 @@ describe('useDynamicBackPath', () => {
         expect(result.current).toBe('settings/wallet');
     });
 
-    const FLAG_COMMENT_PATH = 'flag/:reportID/:reportActionID' as DynamicRouteSuffix;
-    const MEMBER_DETAILS_PATH = 'member-details/:accountID' as DynamicRouteSuffix;
+    const FLAG_COMMENT_PATH = DYNAMIC_ROUTES.FLAG_COMMENT.path;
+    const MEMBER_DETAILS_PATH = 'member-details/:accountID';
 
     it('should remove parametric suffix with single param', () => {
         getPathFromStateMock.mockReturnValue('r/123/members/member-details/456');
 
-        const {result} = renderHook(() => useDynamicBackPath(MEMBER_DETAILS_PATH));
+        const {result} = renderHook(() => {
+            // @ts-expect-error -- deliberately tests a mock-only navigation route outside the production suffix union.
+            return useDynamicBackPath(MEMBER_DETAILS_PATH);
+        });
 
         expect(result.current).toBe('r/123/members');
     });
@@ -136,13 +158,16 @@ describe('useDynamicBackPath', () => {
     });
 
     describe('optional path params', () => {
-        const OPT_TRAILING_PATH = 'opt-page/:id?' as DynamicRouteSuffix;
-        const OPT_MIDDLE_PATH = 'wrap/:p?/end' as DynamicRouteSuffix;
+        const OPT_TRAILING_PATH = 'opt-page/:id?';
+        const OPT_MIDDLE_PATH = 'wrap/:p?/end';
 
         it('removes a trailing-optional suffix when the optional segment is present', () => {
             getPathFromStateMock.mockReturnValue('r/123/opt-page/789');
 
-            const {result} = renderHook(() => useDynamicBackPath(OPT_TRAILING_PATH));
+            const {result} = renderHook(() => {
+                // @ts-expect-error -- deliberately tests a mock-only navigation route outside the production suffix union.
+                return useDynamicBackPath(OPT_TRAILING_PATH);
+            });
 
             expect(result.current).toBe('r/123');
         });
@@ -150,7 +175,10 @@ describe('useDynamicBackPath', () => {
         it('removes a trailing-optional suffix when the optional segment is absent', () => {
             getPathFromStateMock.mockReturnValue('r/123/opt-page');
 
-            const {result} = renderHook(() => useDynamicBackPath(OPT_TRAILING_PATH));
+            const {result} = renderHook(() => {
+                // @ts-expect-error -- deliberately tests a mock-only navigation route outside the production suffix union.
+                return useDynamicBackPath(OPT_TRAILING_PATH);
+            });
 
             expect(result.current).toBe('r/123');
         });
@@ -158,7 +186,10 @@ describe('useDynamicBackPath', () => {
         it('removes a middle-optional suffix when the optional segment is present', () => {
             getPathFromStateMock.mockReturnValue('r/123/wrap/x/end');
 
-            const {result} = renderHook(() => useDynamicBackPath(OPT_MIDDLE_PATH));
+            const {result} = renderHook(() => {
+                // @ts-expect-error -- deliberately tests a mock-only navigation route outside the production suffix union.
+                return useDynamicBackPath(OPT_MIDDLE_PATH);
+            });
 
             expect(result.current).toBe('r/123');
         });
@@ -166,7 +197,10 @@ describe('useDynamicBackPath', () => {
         it('removes a middle-optional suffix when the optional segment is absent', () => {
             getPathFromStateMock.mockReturnValue('r/123/wrap/end');
 
-            const {result} = renderHook(() => useDynamicBackPath(OPT_MIDDLE_PATH));
+            const {result} = renderHook(() => {
+                // @ts-expect-error -- deliberately tests a mock-only navigation route outside the production suffix union.
+                return useDynamicBackPath(OPT_MIDDLE_PATH);
+            });
 
             expect(result.current).toBe('r/123');
         });
@@ -174,7 +208,10 @@ describe('useDynamicBackPath', () => {
         it('preserves query params when stripping optional present-form', () => {
             getPathFromStateMock.mockReturnValue('r/123/opt-page/789?tab=details');
 
-            const {result} = renderHook(() => useDynamicBackPath(OPT_TRAILING_PATH));
+            const {result} = renderHook(() => {
+                // @ts-expect-error -- deliberately tests a mock-only navigation route outside the production suffix union.
+                return useDynamicBackPath(OPT_TRAILING_PATH);
+            });
 
             expect(result.current).toBe('r/123?tab=details');
         });
@@ -182,7 +219,10 @@ describe('useDynamicBackPath', () => {
         it('preserves query params when stripping optional absent-form', () => {
             getPathFromStateMock.mockReturnValue('r/123/opt-page?tab=details');
 
-            const {result} = renderHook(() => useDynamicBackPath(OPT_TRAILING_PATH));
+            const {result} = renderHook(() => {
+                // @ts-expect-error -- deliberately tests a mock-only navigation route outside the production suffix union.
+                return useDynamicBackPath(OPT_TRAILING_PATH);
+            });
 
             expect(result.current).toBe('r/123?tab=details');
         });
@@ -190,7 +230,10 @@ describe('useDynamicBackPath', () => {
         it('does NOT remove optional suffix when the path does not actually end with the pattern', () => {
             getPathFromStateMock.mockReturnValue('r/123/opt-page/789/extra');
 
-            const {result} = renderHook(() => useDynamicBackPath(OPT_TRAILING_PATH));
+            const {result} = renderHook(() => {
+                // @ts-expect-error -- deliberately tests a mock-only navigation route outside the production suffix union.
+                return useDynamicBackPath(OPT_TRAILING_PATH);
+            });
 
             expect(result.current).toBe('r/123/opt-page/789/extra');
         });

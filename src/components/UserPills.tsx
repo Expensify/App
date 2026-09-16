@@ -1,10 +1,14 @@
+import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
+
+import type {AvatarSource} from '@libs/UserAvatarUtils';
+
+import CONST from '@src/CONST';
+
 import {Str} from 'expensify-common';
 import React from 'react';
 import {View} from 'react-native';
-import useLocalize from '@hooks/useLocalize';
-import useThemeStyles from '@hooks/useThemeStyles';
-import type {AvatarSource} from '@libs/UserAvatarUtils';
-import CONST from '@src/CONST';
+
 import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
 import Text from './Text';
 import Tooltip from './Tooltip';
@@ -34,7 +38,7 @@ const DEFAULT_MAX_VISIBLE = 6;
 
 function UserPills({users, maxVisible = DEFAULT_MAX_VISIBLE, onShowAllPress, showAllSentryLabel}: UserPillsProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
 
     // Show the extra pill instead of "+1 more" when only 1 would be hidden.
     const visibleUsers = users.length <= maxVisible + 1 ? users : users.slice(0, maxVisible);
@@ -43,7 +47,7 @@ function UserPills({users, maxVisible = DEFAULT_MAX_VISIBLE, onShowAllPress, sho
         hiddenCount > 0
             ? users
                   .slice(visibleUsers.length)
-                  .map((u) => Str.removeSMSDomain(u.displayName))
+                  .map((u) => (Str.isSMSLogin(u.displayName) ? formatPhoneNumber(u.displayName) : u.displayName))
                   .join(', ')
             : '';
 

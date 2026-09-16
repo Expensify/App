@@ -1,5 +1,7 @@
-import {useMemo} from 'react';
 import {sortPoliciesByName} from '@libs/PolicyUtils';
+
+import {useMemo} from 'react';
+
 import useActiveAdminPolicies from './useActiveAdminPolicies';
 import useLocalize from './useLocalize';
 

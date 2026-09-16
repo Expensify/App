@@ -1,6 +1,8 @@
-import React, {useEffect, useRef, useState} from 'react';
 import LocationPermissionModal from '@components/LocationPermissionModal';
+
 import useOnyx from '@hooks/useOnyx';
+import type {AfterTransition} from '@hooks/usePreMountDestination';
+
 import DateUtils from '@libs/DateUtils';
 import {cancelDeferredWrite, flushDeferredWrite, reserveDeferredWriteChannel} from '@libs/deferredLayoutWrite';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
@@ -9,21 +11,28 @@ import isReportOpenInRHP from '@libs/Navigation/helpers/isReportOpenInRHP';
 import isReportOpenInSuperWideRHP from '@libs/Navigation/helpers/isReportOpenInSuperWideRHP';
 import isReportTopmostSplitNavigator from '@libs/Navigation/helpers/isReportTopmostSplitNavigator';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
+import reserveSearchChannelIfGlobalCreate from '@libs/Navigation/helpers/reserveSearchChannelIfGlobalCreate';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import {getReportOrDraftReport, isMoneyRequestReport} from '@libs/ReportUtils';
 import {buildCannedSearchQuery, getCurrentSearchQueryJSON} from '@libs/SearchQueryUtils';
 import getSubmitExpenseScenario from '@libs/telemetry/getSubmitExpenseScenario';
 import {setFastPath, setPendingSubmitFollowUpAction, startTracking} from '@libs/telemetry/submitFollowUpAction';
+
 import {updateLastLocationPermissionPrompt} from '@userActions/IOU/MoneyRequest';
+
 import type {IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import SCREENS from '@src/SCREENS';
 import type {Receipt} from '@src/types/onyx/Transaction';
-import {getSubmitHandler, SUBMIT_HANDLER} from './getSubmitHandler';
+
+import React, {useEffect, useRef, useState} from 'react';
+
 import type {SubmitHandler, SubmitNavigationSnapshot} from './getSubmitHandler';
+
+import getSubmitExpenseSearchType from './getSubmitExpenseSearchType';
+import {getSubmitHandler, SUBMIT_HANDLER} from './getSubmitHandler';
 import {dismissOnly, dismissRHPToReport, dismissSuperWideRHP, dismissWideToNewSearchType, executeDismissModalStrategy} from './submitDismissStrategies';
 
 type SubmitExpenseOrchestratorRenderProps = {
@@ -43,6 +52,19 @@ type SubmitExpenseOrchestratorProps = {
 
     /** Current IOU type (request, split, track, send, invoice, etc.). */
     iouType: IOUType;
+
+    /**
+     * Whether the sole recipient resolves to the current user's self-DM while the route iouType is still CREATE
+     * (new manual expense flow). Such a submit is routed through trackExpense, so it must navigate to the self-DM
+     * report like a TRACK expense instead of taking the global-create Search path.
+     */
+    isSelfDMDestination: boolean;
+
+    /**
+     * Whether the user onboarded as "Something else" (LOOKING_AROUND). Such users have no workspace, so a global-create
+     * expense is routed to Spend > Expenses (Search) instead of dismissing into their self-DM report.
+     */
+    isLookingAroundUser: boolean;
 
     /** Request sub-type (manual, scan, distance). Used for telemetry scenario derivation. */
     requestType: string | undefined;
@@ -85,20 +107,10 @@ type SubmitExpenseOrchestratorProps = {
 
     /** Render prop receiving onConfirm and isConfirming. */
     children: (props: SubmitExpenseOrchestratorRenderProps) => React.ReactNode;
+
+    /** Reveals the pre-mounted destination behind the confirmation RHP and dismisses the modal. */
+    revealPreMountDestination: (afterTransition?: AfterTransition) => void;
 };
-
-function getFocusedReportsSplitReportID(rootState: ReturnType<typeof navigationRef.getRootState>): string | undefined {
-    const topmostTabNavigatorRoute = rootState?.routes.findLast((route) => route.name === NAVIGATORS.TAB_NAVIGATOR);
-    const tabState = topmostTabNavigatorRoute?.state;
-    const activeTabRoute = tabState?.routes.at(tabState.index ?? 0);
-    if (activeTabRoute?.name !== NAVIGATORS.REPORTS_SPLIT_NAVIGATOR || !activeTabRoute.state) {
-        return undefined;
-    }
-
-    const focusedRoute = activeTabRoute.state.routes.at(activeTabRoute.state.index ?? 0);
-    const reportID = focusedRoute?.name === SCREENS.REPORT && focusedRoute.params && 'reportID' in focusedRoute.params ? focusedRoute.params.reportID : undefined;
-    return typeof reportID === 'string' ? reportID : undefined;
-}
 
 /**
  * Encapsulates the submit-expense navigation orchestration: telemetry lifecycle,
@@ -121,6 +133,8 @@ function SubmitExpenseOrchestrator({
     destinationReportID,
     isFromGlobalCreate,
     iouType,
+    isSelfDMDestination,
+    isLookingAroundUser,
     requestType,
     canDismissFromSearch,
     gpsRequired,
@@ -134,6 +148,7 @@ function SubmitExpenseOrchestrator({
     receiptFiles,
     isFromGlobalCreateOnTransaction,
     isFromFloatingActionButtonOnTransaction,
+    revealPreMountDestination,
     children,
 }: SubmitExpenseOrchestratorProps) {
     const [destinationReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${destinationReportID}`);
@@ -193,12 +208,14 @@ function SubmitExpenseOrchestrator({
             isReportPreInserted: isPreInserted && Navigation.getPreInsertedFullscreenRouteName() === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR,
             isFromGlobalCreate: isFromGlobalCreateForNavigation,
             canDismissFromSearch,
-            navigatesToDestinationReport: iouType === CONST.IOU.TYPE.SPLIT || iouType === CONST.IOU.TYPE.TRACK,
+            navigatesToDestinationReport: iouType === CONST.IOU.TYPE.SPLIT || iouType === CONST.IOU.TYPE.TRACK || isSelfDMDestination,
             destinationReportID,
             isReportInRHP: isReportOpenInRHP(rootState),
             isReportTopmostSplit: isReportTopmostSplitNavigator(),
             isSearchTopmostFullScreen: isSearchTopmostFullScreenRoute(),
             isDestinationReportLoaded: !!destinationReportID && !!getReportOrDraftReport(destinationReportID, undefined, undefined, undefined, destinationReport)?.reportID,
+            isLookingAroundUser,
+            isSelfDMDestination,
         };
     };
 
@@ -208,44 +225,30 @@ function SubmitExpenseOrchestrator({
     const handleSearchPreInsert = (locationPermissionGranted = false) => {
         setFastPath(CONST.TELEMETRY.FAST_PATH_HANDLER.SEARCH_PRE_INSERT, CONST.TELEMETRY.SUBMIT_OPTIMIZATION.PRE_INSERT, CONST.TELEMETRY.SUBMIT_OPTIMIZATION.DISMISS_FIRST);
         setPendingSubmitFollowUpAction(CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.NAVIGATE_TO_SEARCH);
-        Navigation.clearFullscreenPreInsertedFlag();
         reserveDeferredWriteChannel(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH);
-        Navigation.dismissModal({
-            afterTransition: () => {
-                // shouldHandleNavigation defaults to true here (other fast paths pass false). The Search screen was
-                // pre-inserted before the modal opened, so the nav stack is already correct and createTransaction's
-                // post-create cleanup (navigateAfterExpenseCreate) finishes the flow.
-                createTransaction(locationPermissionGranted);
-                setIsConfirming(false);
-            },
+        revealPreMountDestination(() => {
+            // shouldHandleNavigation defaults to true here (other fast paths pass false). The Search screen was
+            // pre-inserted before the modal opened, so the nav stack is already correct and createTransaction's
+            // post-create cleanup (navigateAfterExpenseCreate) finishes the flow.
+            createTransaction(locationPermissionGranted);
+            setIsConfirming(false);
         });
-    };
-
-    const dismissAfterEnsuringDestinationReportIsPreInserted = (reportID: string | undefined, afterTransition: () => void) => {
-        if (!reportID) {
-            Navigation.dismissModal({afterTransition});
-            return;
-        }
-
-        // Only trust the pre-inserted report if it is the focused child of the Reports tab.
-        // A stale report route can still exist behind Inbox in the Reports stack.
-        if (getFocusedReportsSplitReportID(navigationRef.getRootState()) === reportID) {
-            Navigation.dismissModal({afterTransition});
-            return;
-        }
-
-        Navigation.revealRouteBeforeDismissingModal(ROUTES.REPORT_WITH_ID.getRoute(reportID), {afterTransition});
     };
 
     const handleReportPreInsert = (locationPermissionGranted = false) => {
         setFastPath(CONST.TELEMETRY.FAST_PATH_HANDLER.REPORT_PRE_INSERT, CONST.TELEMETRY.SUBMIT_OPTIMIZATION.PRE_INSERT, CONST.TELEMETRY.SUBMIT_OPTIMIZATION.DISMISS_FIRST);
-        Navigation.clearFullscreenPreInsertedFlag();
         setPendingSubmitFollowUpAction(CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_AND_OPEN_REPORT, destinationReportID);
         reserveDeferredWriteChannel(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL, {destinationReportID});
-        dismissAfterEnsuringDestinationReportIsPreInserted(destinationReportID, () => {
+
+        const afterTransition = () => {
             createTransaction(locationPermissionGranted, false);
             setIsConfirming(false);
-        });
+        };
+
+        // No duplicate-route guard is needed here: getSubmitExpensePreMountDestinationRoute only yields a report route (and thus
+        // getSubmitHandler only selects REPORT_PRE_INSERT) when the report is NOT already the topmost fullscreen, so reveal()
+        // dismisses over this hook's own pre-inserted route rather than pushing a second copy.
+        revealPreMountDestination(afterTransition);
     };
 
     const handleDismissModalFastPath = (locationPermissionGranted = false) => {
@@ -274,10 +277,17 @@ function SubmitExpenseOrchestrator({
     // elapsed - SEARCH_PRE_INSERT is the primary narrow handler.
     const handleSearchDismiss = (locationPermissionGranted = false) => {
         setFastPath(CONST.TELEMETRY.FAST_PATH_HANDLER.SEARCH_DISMISS, CONST.TELEMETRY.SUBMIT_OPTIMIZATION.DISMISS_FIRST);
-        const searchType = iouType === CONST.IOU.TYPE.INVOICE ? CONST.SEARCH.DATA_TYPES.INVOICE : CONST.SEARCH.DATA_TYPES.EXPENSE;
+        const searchType = getSubmitExpenseSearchType(iouType);
         const isSameType = getCurrentSearchQueryJSON()?.type === searchType;
         const isNarrow = getIsNarrowLayout();
-        setPendingSubmitFollowUpAction(isSameType ? CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_ONLY : CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.NAVIGATE_TO_SEARCH);
+        // When the query type matches AND Search is already visible, a simple dismiss suffices.
+        // When Search is not visible (e.g. submitting from Home/Settings), we must navigate there.
+        const isSearchVisible = isSearchTopmostFullScreenRoute();
+        const shouldNavigateToSearch = !isSameType || !isSearchVisible;
+        // forceReplace resolves to a no-op for SEARCH.ROOT (it stays on the submitting tab), so skip it for the
+        // LOOKING_AROUND self-DM flow to make the navigation to Search actually happen. Other callers keep forceReplace.
+        const shouldSkipForceReplace = isFromGlobalCreateForNavigation && isLookingAroundUser && isSelfDMDestination;
+        setPendingSubmitFollowUpAction(shouldNavigateToSearch ? CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.NAVIGATE_TO_SEARCH : CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_ONLY);
         reserveDeferredWriteChannel(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH);
 
         const runAfterDismiss = () => {
@@ -302,7 +312,7 @@ function SubmitExpenseOrchestrator({
             });
         };
 
-        if (!isSameType && !isNarrow) {
+        if (shouldNavigateToSearch && !isNarrow) {
             dismissWideToNewSearchType(searchType, runAfterDismiss);
             return;
         }
@@ -310,12 +320,11 @@ function SubmitExpenseOrchestrator({
         Navigation.dismissModal({
             afterTransition: () => {
                 runAfterSearchDismissRecovery(() => {
-                    // Narrow fallback: pre-insert timer didn't fire, navigate after dismiss.
-                    if (isSameType) {
+                    if (!shouldNavigateToSearch) {
                         return;
                     }
 
-                    Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery({type: searchType})}), {forceReplace: true});
+                    Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery({type: searchType})}), {forceReplace: !shouldSkipForceReplace});
                 });
             },
         });
@@ -352,17 +361,9 @@ function SubmitExpenseOrchestrator({
         });
     };
 
-    // A global-create submit off the inbox lands on Search — reserve the channel so the optimistic write defers behind the skeleton.
-    const reserveSearchChannelIfGlobalCreate = () => {
-        if (!isFromGlobalCreateForNavigation || isReportTopmostSplitNavigator()) {
-            return;
-        }
-        reserveDeferredWriteChannel(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH);
-    };
-
     const handleDefaultSubmit = (locationPermissionGranted = false) => {
         setFastPath(CONST.TELEMETRY.FAST_PATH_HANDLER.DEFAULT);
-        reserveSearchChannelIfGlobalCreate();
+        reserveSearchChannelIfGlobalCreate(isFromGlobalCreateForNavigation);
         requestAnimationFrame(() => {
             createTransaction(locationPermissionGranted);
             requestAnimationFrame(() => {

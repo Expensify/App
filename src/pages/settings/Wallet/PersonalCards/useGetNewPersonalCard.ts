@@ -1,8 +1,10 @@
-import {useEffect, useRef, useState} from 'react';
 import useOnyx from '@hooks/useOnyx';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Card, CardList} from '@src/types/onyx';
 import {getEmptyObject, isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import {useEffect, useRef, useState} from 'react';
 
 export default function useGetNewPersonalCard() {
     const [cardList = getEmptyObject<CardList>()] = useOnyx(ONYXKEYS.CARD_LIST);

@@ -1,11 +1,14 @@
-import {useEffect, useRef, useState} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
 import {isOdometerDraftPendingHydration} from '@libs/actions/OdometerTransactionUtils';
 import type {OdometerResyncState} from '@libs/OdometerUtils';
 import {isExternalOdometerResync, shouldInitializeOdometerFromTransaction} from '@libs/OdometerUtils';
+
 import CONST from '@src/CONST';
 import type {OdometerDraft, Transaction} from '@src/types/onyx';
 import type {FileObject} from '@src/types/utils/Attachment';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {useEffect, useRef, useState} from 'react';
 
 type UseOdometerReadingsStateParams = {
     /** The transaction whose odometer values seed and re-sync the local form state. */
@@ -28,6 +31,17 @@ type UseOdometerReadingsStateParams = {
 
     /** Tracks whether the user has typed changes not yet written to the transaction - guards the resync from clobbering in-progress keystrokes. */
     userHasUnsavedTypingRef: React.RefObject<boolean>;
+};
+
+type ReadingsBaseline = {
+    /** The start reading captured at mount, mirroring `initialStartReadingRef`. */
+    start: string;
+
+    /** The end reading captured at mount, mirroring `initialEndReadingRef`. */
+    end: string;
+
+    /** True once the baseline has been captured, mirroring `hasInitializedRefs`. */
+    hasInitialized: boolean;
 };
 
 type UseOdometerReadingsStateResult = {
@@ -75,7 +89,12 @@ type UseOdometerReadingsStateResult = {
 
     /** True once the initial baseline has been captured - gates discard-changes detection. */
     hasInitializedRefs: React.RefObject<boolean>;
+
+    /** Render-visible mirror of the baseline refs above. The discard guard reads dirtiness during render, so the snapshot has to arrive with a commit. */
+    readingsBaseline: ReadingsBaseline;
 };
+
+const EMPTY_READINGS_BASELINE: ReadingsBaseline = {start: '', end: '', hasInitialized: false};
 
 function useOdometerReadingsState({
     currentTransaction,
@@ -102,6 +121,7 @@ function useOdometerReadingsState({
     const initialStartImageRef = useRef<FileObject | string | undefined>(undefined);
     const initialEndImageRef = useRef<FileObject | string | undefined>(undefined);
     const prevSelectedTabRef = useRef<string | undefined>(undefined);
+    const [readingsBaseline, setReadingsBaseline] = useState<ReadingsBaseline>(EMPTY_READINGS_BASELINE);
 
     const resetOdometerLocalState = () => {
         setStartReading('');
@@ -113,6 +133,7 @@ function useOdometerReadingsState({
         initialStartImageRef.current = undefined;
         initialEndImageRef.current = undefined;
         hasInitializedRefs.current = false;
+        setReadingsBaseline(EMPTY_READINGS_BASELINE);
     };
 
     // Reset component state when switching away from the odometer tab
@@ -160,6 +181,9 @@ function useOdometerReadingsState({
         initialStartImageRef.current = currentTransaction?.comment?.odometerStartImage;
         initialEndImageRef.current = currentTransaction?.comment?.odometerEndImage;
         hasInitializedRefs.current = true;
+        // The discard guard diffs the readings during render, so the baseline has to arrive with a commit, not only in a ref.
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        setReadingsBaseline({start: startValue, end: endValue, hasInitialized: true});
     }, [
         currentTransaction?.transactionID,
         currentTransaction?.iouRequestType,
@@ -209,6 +233,7 @@ function useOdometerReadingsState({
         if (isExternalResync) {
             initialStartReadingRef.current = startValue;
             initialEndReadingRef.current = endValue;
+            setReadingsBaseline((prev) => (prev.start === startValue && prev.end === endValue ? prev : {...prev, start: startValue, end: endValue}));
         }
     }, [currentTransaction?.comment?.odometerStart, currentTransaction?.comment?.odometerEnd, isEditing, userHasUnsavedTypingRef]);
 
@@ -228,6 +253,7 @@ function useOdometerReadingsState({
         initialEndImageRef,
         resetOdometerLocalState,
         hasInitializedRefs,
+        readingsBaseline,
     };
 }
 

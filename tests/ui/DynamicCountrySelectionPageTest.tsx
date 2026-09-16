@@ -1,12 +1,19 @@
-import type * as ReactNavigation from '@react-navigation/native';
 import {act, render} from '@testing-library/react-native';
-import React from 'react';
-import type {ComponentProps} from 'react';
+
 import SelectionList from '@components/SelectionList';
+
 import searchOptions from '@libs/searchOptions';
 import StringUtils from '@libs/StringUtils';
+
 import DynamicCountrySelectionPage from '@pages/settings/Profile/PersonalDetails/DynamicCountrySelectionPage';
+
 import CONST from '@src/CONST';
+
+import type * as ReactNavigation from '@react-navigation/native';
+import type {ComponentProps} from 'react';
+
+import React from 'react';
+
 import createMock from '../utils/createMock';
 
 type DynamicCountrySelectionPageProps = ComponentProps<typeof DynamicCountrySelectionPage>;
@@ -39,7 +46,7 @@ jest.mock('@hooks/useLocalize', () =>
         translate: (key: string) => {
             if (key.startsWith('allCountries.')) {
                 const countryISO = key.split('.').at(-1) ?? '';
-                return mockAllCountries[countryISO as keyof typeof mockAllCountries] ?? key;
+                return Object.entries(mockAllCountries).find(([iso]) => iso === countryISO)?.[1] ?? key;
             }
 
             return key;
@@ -94,12 +101,12 @@ describe('DynamicCountrySelectionPage', () => {
         const searchedProps = mockedSelectionList.mock.lastCall?.[0];
         const expectedSearchResults = searchOptions(
             'Uni',
-            Object.keys(CONST.ALL_COUNTRIES).map((countryISO) => ({
+            Object.entries(CONST.ALL_COUNTRIES).map(([countryISO, countryName]) => ({
                 value: countryISO,
                 keyForList: countryISO,
-                text: CONST.ALL_COUNTRIES[countryISO as keyof typeof CONST.ALL_COUNTRIES],
+                text: countryName,
                 isSelected: countryISO === 'US',
-                searchValue: StringUtils.sanitizeString(`${countryISO}${CONST.ALL_COUNTRIES[countryISO as keyof typeof CONST.ALL_COUNTRIES]}`),
+                searchValue: StringUtils.sanitizeString(`${countryISO}${countryName}`),
             })),
         );
 

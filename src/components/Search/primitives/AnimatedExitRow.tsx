@@ -1,7 +1,9 @@
+import useThemeStyles from '@hooks/useThemeStyles';
+
+import CONST from '@src/CONST';
+
 import React from 'react';
 import Animated, {Easing, FadeOutUp, LinearTransition} from 'react-native-reanimated';
-import useThemeStyles from '@hooks/useThemeStyles';
-import CONST from '@src/CONST';
 
 const easing = Easing.bezier(0.76, 0.0, 0.24, 1.0);
 
@@ -11,6 +13,9 @@ type AnimatedExitRowProps = {
 
     /** Whether the list shrank this render, so the remaining rows slide up via LinearTransition. */
     hasItemsBeingRemoved: boolean;
+
+    /** Whether this specific row is being removed (pending delete), so its FadeOutUp exit is armed. */
+    isRowExiting?: boolean;
 
     /** The row content to wrap. */
     children: React.ReactNode;
@@ -22,12 +27,12 @@ type AnimatedExitRowProps = {
  * Kept byte-identical to the original wrapper because FlashList v2 + reanimated exit animations are
  * timing-sensitive.
  */
-function AnimatedExitRow({shouldApplyAnimation, hasItemsBeingRemoved, children}: AnimatedExitRowProps) {
+function AnimatedExitRow({shouldApplyAnimation, hasItemsBeingRemoved, isRowExiting = false, children}: AnimatedExitRowProps) {
     const styles = useThemeStyles();
 
     return (
         <Animated.View
-            exiting={shouldApplyAnimation ? FadeOutUp.duration(CONST.SEARCH.EXITING_ANIMATION_DURATION).easing(easing) : undefined}
+            exiting={shouldApplyAnimation && isRowExiting ? FadeOutUp.duration(CONST.SEARCH.EXITING_ANIMATION_DURATION).easing(easing) : undefined}
             entering={undefined}
             style={styles.overflowHidden}
             layout={shouldApplyAnimation && hasItemsBeingRemoved ? LinearTransition.easing(easing).duration(CONST.SEARCH.EXITING_ANIMATION_DURATION) : undefined}

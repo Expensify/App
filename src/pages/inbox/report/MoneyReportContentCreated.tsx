@@ -1,15 +1,21 @@
-import React from 'react';
-import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import MoneyReportView from '@components/ReportActionItem/MoneyReportView';
 import MoneyRequestView from '@components/ReportActionItem/MoneyRequestView';
 import {ShowContextMenuActionsContext, ShowContextMenuStateContext, useShowContextMenuActions, useShowContextMenuState} from '@components/ShowContextMenuContext';
+
 import useReportTransactions from '@hooks/useReportTransactions';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {isSingleTransactionReport} from '@libs/MoneyRequestReportUtils';
 import {getCurrency} from '@libs/TransactionUtils';
+
 import type * as OnyxTypes from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import React from 'react';
+import {View} from 'react-native';
+
 import AnimatedEmptyStateBackground from './AnimatedEmptyStateBackground';
 
 type MoneyReportContentCreatedProps = {
@@ -28,7 +34,6 @@ type MoneyReportContentCreatedProps = {
     /** The CREATED report action that this content belongs to */
     action: OnyxEntry<OnyxTypes.ReportAction>;
 
-    /** Flag to show, hide the thread divider line */
     shouldHideThreadDividerLine: boolean;
 
     /** Pre-rendered thread divider node from the parent */

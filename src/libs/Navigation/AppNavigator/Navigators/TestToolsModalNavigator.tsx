@@ -1,20 +1,27 @@
-import React, {useCallback, useRef} from 'react';
-import type {MouseEvent} from 'react';
-import {View} from 'react-native';
 import NoDropZone from '@components/DragAndDrop/NoDropZone';
 import FocusTrapForScreens from '@components/FocusTrap/FocusTrapForScreen';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import TestToolsModalPage from '@components/TestToolsModalPage';
+
 import useIsAuthenticated from '@hooks/useIsAuthenticated';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import blurActiveElement from '@libs/Accessibility/blurActiveElement';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import type {TestToolsModalModalNavigatorParamList} from '@libs/Navigation/types';
+
 import toggleTestToolsModal from '@userActions/TestTool';
+
 import CONST from '@src/CONST';
 import SCREENS from '@src/SCREENS';
+
+import type {MouseEvent} from 'react';
+
+import React, {useCallback, useRef} from 'react';
+import {View} from 'react-native';
+
 import Overlay from './Overlay';
 
 const Stack = createPlatformStackNavigator<TestToolsModalModalNavigatorParamList>();

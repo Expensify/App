@@ -1,7 +1,3 @@
-import type {SyntheticEvent} from 'react';
-import React, {useCallback, useEffect, useRef, useState} from 'react';
-import type {GestureResponderEvent, LayoutChangeEvent} from 'react-native';
-import {View} from 'react-native';
 import AttachmentOfflineIndicator from '@components/AttachmentOfflineIndicator';
 import Image from '@components/Image';
 import RESIZE_MODES from '@components/Image/resizeModes';
@@ -9,13 +5,23 @@ import type {ImageOnLoadEvent} from '@components/Image/types';
 import Lightbox from '@components/Lightbox';
 import LoadingIndicator from '@components/LoadingIndicator';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
+
 import useNetwork from '@hooks/useNetwork';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {canUseTouchScreen as canUseTouchScreenUtil} from '@libs/DeviceCapabilities';
 import {isLocalFile} from '@libs/fileDownload/FileUtils';
+
 import CONST from '@src/CONST';
 import type {Dimensions} from '@src/types/utils/Layout';
+
+import type {SyntheticEvent} from 'react';
+import type {GestureResponderEvent, LayoutChangeEvent} from 'react-native';
+
+import React, {useCallback, useEffect, useRef, useState} from 'react';
+import {View} from 'react-native';
+
 import type ImageViewProps from './types';
 
 function calculateZoomScale(containerSize: Dimensions, imageSize: Dimensions) {

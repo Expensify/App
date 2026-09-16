@@ -1,11 +1,7 @@
-import debounce from 'lodash/debounce';
-import React, {useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
-import type {RefObject} from 'react';
-import {Dimensions, View} from 'react-native';
-import type {GestureResponderEvent} from 'react-native';
 import Badge from '@components/Badge';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import {useLockedAccountActions, useLockedAccountState} from '@components/LockedAccountModalProvider';
 import MenuItem from '@components/MenuItem';
 import type {MenuItemProps} from '@components/MenuItem';
@@ -18,8 +14,10 @@ import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
+
 import useConfirmModal from '@hooks/useConfirmModal';
 import useDocumentTitle from '@hooks/useDocumentTitle';
+import useIsAgentAccount from '@hooks/useIsAgentAccount';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -27,16 +25,19 @@ import usePersonalDetailsByLogin from '@hooks/usePersonalDetailsByLogin';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSwitchToDelegator from '@hooks/useSwitchToDelegator';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {clearDelegateErrorsByField, openSecuritySettingsPage, removeDelegate, removeDelegator} from '@libs/actions/Delegate';
 import {getLatestError} from '@libs/ErrorUtils';
 import getClickedTargetLocation from '@libs/getClickedTargetLocation';
 import Navigation from '@libs/Navigation/Navigation';
 import {sortAlphabetically} from '@libs/OptionsListUtils';
-import {useIsAgentAccount} from '@libs/SessionUtils';
 import {getDefaultAvatarURL} from '@libs/UserAvatarUtils';
+
 import type {AnchorPosition} from '@styles/index';
 import colors from '@styles/theme/colors';
+
 import {close as modalClose} from '@userActions/Modal';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -44,14 +45,33 @@ import type Account from '@src/types/onyx/Account';
 import type {Delegate, DelegateRole} from '@src/types/onyx/Account';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
+import type {RefObject} from 'react';
+import type {GestureResponderEvent} from 'react-native';
+
+import debounce from 'lodash/debounce';
+import React, {useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
+import {Dimensions, View} from 'react-native';
+
 const accountDelegationSelector = (accountValue: Account | undefined) => ({
     delegatedAccess: accountValue?.delegatedAccess,
     validated: accountValue?.validated,
 });
 
+/**
+ * Resolves the title and description a copilot row shows for one account.
+ * A name-less SMS account resolves to the formatted number, which is what the formatted email already holds,
+ * so the resolved title is compared to it to keep the row from printing the same number twice.
+ */
+function getCopilotRowText(displayName: string | undefined, email: string, formatPhoneNumber: LocaleContextProps['formatPhoneNumber']) {
+    const formattedEmail = formatPhoneNumber(email);
+    const titleText = formatPhoneNumber(displayName ?? email);
+
+    return {titleText, descriptionText: titleText === formattedEmail ? '' : formattedEmail};
+}
+
 function CopilotPage() {
     const icons = useMemoizedLazyExpensifyIcons(['ArrowCircleClockwise', 'CircleSlash', 'Pencil', 'ThreeDots', 'UserPlus']);
-    const illustrations = useMemoizedLazyIllustrations(['Copilots', 'Members']);
+    const illustrations = useMemoizedLazyIllustrations(['Copilots']);
     const styles = useThemeStyles();
     const {localeCompare, translate, formatPhoneNumber} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -79,21 +99,21 @@ function CopilotPage() {
             confirmText: translate('delegate.removeCopilot'),
             cancelText: translate('common.cancel'),
             shouldShowCancelButton: true,
-            danger: true,
+            buttonVariant: CONST.BUTTON_VARIANT.DANGER,
         });
     }, [showConfirmModal, translate]);
 
     const showRemoveDelegatorModal = (delegatorEmail: string) => {
         const personalDetail = personalDetailsByLogin[delegatorEmail.toLowerCase()];
-        const delegatorName = personalDetail?.displayName ?? formatPhoneNumber(delegatorEmail);
+        const delegatorName = formatPhoneNumber(personalDetail?.displayName ?? delegatorEmail);
 
         return showConfirmModal({
             title: translate('delegate.removeCopilotAccessTitle'),
-            prompt: translate('delegate.removeCopilotAccessConfirmation', {delegatorName}),
+            prompt: translate('delegate.removeCopilotAccessConfirmation', delegatorName),
             confirmText: translate('delegate.removeCopilotAccessConfirm'),
             cancelText: translate('common.cancel'),
             shouldShowCancelButton: true,
-            danger: true,
+            buttonVariant: CONST.BUTTON_VARIANT.DANGER,
         });
     };
 
@@ -174,7 +194,7 @@ function CopilotPage() {
                     </Text>
                     {!!role && (
                         <Badge
-                            text={translate('delegate.role', {role})}
+                            text={translate('delegate.role', role)}
                             isCondensed
                             badgeStyles={[styles.copilotRoleBadge, styles.flexShrink0]}
                         />
@@ -195,7 +215,7 @@ function CopilotPage() {
 
     const delegateMenuItems: MenuItemProps[] = useMemo(() => {
         const sortedDelegates = sortAlphabetically(
-            delegates.filter((d) => !d.optimisticAccountID).map((d) => ({...d, sortKey: personalDetailsByLogin[d.email.toLowerCase()]?.displayName ?? formatPhoneNumber(d.email)})),
+            delegates.filter((d) => !d.optimisticAccountID).map((d) => ({...d, sortKey: formatPhoneNumber(personalDetailsByLogin[d.email.toLowerCase()]?.displayName ?? d.email)})),
             'sortKey',
             localeCompare,
         );
@@ -203,7 +223,8 @@ function CopilotPage() {
             const personalDetail = personalDetailsByLogin[email.toLowerCase()];
             const addDelegateErrors = errorFields?.addDelegate?.[email];
             const error = getLatestError(addDelegateErrors);
-            const isOwnerRow = isAgentAccount && !!actingDelegateEmail && email.toLowerCase() === actingDelegateEmail;
+            const isOwnerRow = isAgentAccount === true && !!actingDelegateEmail && email.toLowerCase() === actingDelegateEmail;
+            const isPendingDelete = pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 
             const onPress = (e: GestureResponderEvent | KeyboardEvent) => {
                 if (isEmptyObject(pendingAction)) {
@@ -222,9 +243,7 @@ function CopilotPage() {
                 Navigation.navigate(ROUTES.SETTINGS_DELEGATE_CONFIRM.getRoute(email, role));
             };
 
-            const formattedEmail = formatPhoneNumber(email);
-            const titleText = personalDetail?.displayName ?? formattedEmail;
-            const descriptionText = personalDetail?.displayName ? formattedEmail : '';
+            const {titleText, descriptionText} = getCopilotRowText(personalDetail?.displayName, email, formatPhoneNumber);
             return {
                 key: email,
                 titleComponent: renderTitleWithRole(titleText, descriptionText, role),
@@ -232,12 +251,13 @@ function CopilotPage() {
                 icon: personalDetail?.avatar ?? (personalDetail ? getDefaultAvatarURL({accountID: personalDetail.accountID, accountEmail: email}) : undefined),
                 iconType: CONST.ICON_TYPE_AVATAR,
                 wrapperStyle: [styles.sectionMenuItemTopDescription],
-                iconRight: isOwnerRow ? undefined : icons.ThreeDots,
-                shouldShowRightIcon: !isOwnerRow,
+                iconRight: isOwnerRow || isPendingDelete ? undefined : icons.ThreeDots,
+                shouldShowRightIcon: !isOwnerRow && !isPendingDelete,
                 pendingAction,
                 shouldForceOpacity: !!pendingAction,
                 onPendingActionDismiss: () => clearDelegateErrorsByField({email, fieldName: 'addDelegate', delegatedAccess: account?.delegatedAccess}),
                 error,
+                disabled: isPendingDelete,
                 onPress: isOwnerRow ? undefined : onPress,
                 interactive: !isOwnerRow,
                 success: selectedEmail === email,
@@ -261,20 +281,18 @@ function CopilotPage() {
     ]);
 
     const sortedDelegators = sortAlphabetically(
-        delegators.map((d) => ({...d, sortKey: personalDetailsByLogin[d.email.toLowerCase()]?.displayName ?? formatPhoneNumber(d.email)})),
+        delegators.map((d) => ({...d, sortKey: formatPhoneNumber(personalDetailsByLogin[d.email.toLowerCase()]?.displayName ?? d.email)})),
         'sortKey',
         localeCompare,
     );
     const delegatorMenuItems: MenuItemProps[] = sortedDelegators.map(({email, role, pendingAction}) => {
         const personalDetail = personalDetailsByLogin[email.toLowerCase()];
-        const formattedEmail = formatPhoneNumber(email);
         const connectError = getLatestError(errorFields?.connect?.[email]);
         const removeDelegatorError = getLatestError(errorFields?.removeDelegator?.[email]);
         const error = getLatestError({...connectError, ...removeDelegatorError});
         const isCurrentUser = email === session?.email;
         const isPending = !!pendingAction;
-        const titleText = personalDetail?.displayName ?? formattedEmail;
-        const descriptionText = personalDetail?.displayName ? formattedEmail : '';
+        const {titleText, descriptionText} = getCopilotRowText(personalDetail?.displayName, email, formatPhoneNumber);
 
         return {
             key: email,
@@ -406,7 +424,6 @@ function CopilotPage() {
                         title={translate('delegate.copilot')}
                         shouldShowBackButton={shouldUseNarrowLayout}
                         onBackButtonPress={Navigation.goBack}
-                        icon={illustrations.Members}
                         shouldUseHeadlineHeader
                         shouldDisplaySearchRouter
                         shouldDisplayHelpButton
@@ -448,7 +465,7 @@ function CopilotPage() {
                                         <MenuItemList menuItems={delegateMenuItems} />
                                     </>
                                 )}
-                                {!isAgentAccount ? (
+                                {isAgentAccount === false ? (
                                     <MenuItem
                                         title={translate('delegate.addCopilot')}
                                         icon={icons.UserPlus}
@@ -482,6 +499,7 @@ function CopilotPage() {
                                     vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
                                 }}
                                 menuItems={delegatePopoverMenuItems}
+                                enableEdgeToEdgeBottomSafeAreaPadding
                                 onClose={() => {
                                     setShouldShowDelegatePopoverMenu(false);
                                     setSelectedEmail(undefined);
@@ -496,6 +514,7 @@ function CopilotPage() {
                                     vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
                                 }}
                                 menuItems={delegatorPopoverMenuItems}
+                                enableEdgeToEdgeBottomSafeAreaPadding
                                 onClose={() => {
                                     setShouldShowDelegatorPopoverMenu(false);
                                     setSelectedEmail(undefined);

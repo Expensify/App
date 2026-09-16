@@ -1,5 +1,6 @@
-import type {ViewStyle} from 'react-native';
 import type {Card} from '@src/types/onyx';
+
+import type {ViewStyle} from 'react-native';
 
 type AddToWalletButtonProps = {
     card: Card;

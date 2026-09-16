@@ -1,13 +1,17 @@
-import React, {useRef, useState} from 'react';
 import ReportFieldBase from '@components/Search/FilterComponents/ReportField';
 import type {ReportFieldHandle} from '@components/Search/FilterComponents/ReportField';
+
 import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+
 import CONST from '@src/CONST';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
 import type {PolicyReportField} from '@src/types/onyx';
+
+import React, {useRef, useState} from 'react';
+
 import BasePopup from './BasePopup';
 
 type ReportFieldPopupProps = {
@@ -24,8 +28,10 @@ function ReportFieldPopup({values, closeOverlay, updateFilterForm}: ReportFieldP
     const [selectedField, setSelectedField] = useState<PolicyReportField | null>(null);
     const reportFieldRef = useRef<ReportFieldHandle>(null);
 
+    const [error, setError] = useState<string>();
+
     const applyChanges = () => {
-        if (!reportFieldRef.current) {
+        if (!reportFieldRef.current || error) {
             return;
         }
 
@@ -51,6 +57,7 @@ function ReportFieldPopup({values, closeOverlay, updateFilterForm}: ReportFieldP
                 hasFeed={!!values.feed}
                 selectedField={selectedField}
                 onFieldSelected={setSelectedField}
+                onError={setError}
             />
         </BasePopup>
     );

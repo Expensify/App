@@ -1,12 +1,15 @@
-import React from 'react';
 import type {ListItem} from '@components/SelectionList/types';
+
 import CONST from '@src/CONST';
+
+import React from 'react';
+
 import type {BaseListItemHeaderProps} from './BaseListItemHeader';
-import BaseListItemHeader from './BaseListItemHeader';
 import type {TransactionWeekGroupListItemType} from './types';
 
+import BaseListItemHeader from './BaseListItemHeader';
+
 type WeekListItemHeaderProps<TItem extends ListItem> = Omit<BaseListItemHeaderProps<TItem>, 'item' | 'displayName' | 'groupColumnKey' | 'columnStyleKey'> & {
-    /** The week group currently being looked at */
     week: TransactionWeekGroupListItemType;
 };
 

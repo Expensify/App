@@ -1,14 +1,19 @@
-import React, {memo} from 'react';
-import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
-import {View} from 'react-native';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import getButtonState from '@libs/getButtonState';
+
 import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
+
+import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
+
+import React, {memo} from 'react';
+import {View} from 'react-native';
+
 import Button from './Button';
 import Hoverable from './Hoverable';
 import Icon from './Icon';
@@ -30,7 +35,6 @@ type BannerProps = {
     /** Should this component render the left-aligned exclamation icon? */
     shouldShowIcon?: boolean;
 
-    /** Should this component render a close button? */
     shouldShowCloseButton?: boolean;
 
     /** Should this component render the text as HTML? */
@@ -51,7 +55,6 @@ type BannerProps = {
     /** Whether to display button in the banner */
     shouldShowButton?: boolean;
 
-    /** Callback called when pressing the button */
     onButtonPress?: () => void;
 
     /** Custom action content rendered in the right side of the banner. Overrides the configured `shouldShowButton` when provided. */
@@ -103,7 +106,7 @@ function Banner({
                                 <View style={[styles.mr3]}>
                                     <Icon
                                         src={displayIcon}
-                                        fill={StyleUtils.getIconFillColor(getButtonState(shouldHighlight))}
+                                        fill={StyleUtils.getIconFillColor({buttonState: getButtonState({isActive: shouldHighlight})})}
                                     />
                                 </View>
                             )}
@@ -125,11 +128,12 @@ function Banner({
                         {children ??
                             (shouldShowButton && (
                                 <Button
-                                    success
+                                    variant={CONST.BUTTON_VARIANT.SUCCESS}
                                     style={[styles.ph3]}
-                                    text={translate('common.chatNow')}
                                     onPress={onButtonPress}
-                                />
+                                >
+                                    <Button.Text>{translate('common.chatNow')}</Button.Text>
+                                </Button>
                             ))}
                         {shouldShowCloseButton && !!onClose && (
                             <Tooltip text={translate('common.close')}>

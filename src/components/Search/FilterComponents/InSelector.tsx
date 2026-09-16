@@ -1,29 +1,36 @@
-import {isTrackIntentUserSelector} from '@selectors/Onboarding';
-import React, {useEffect} from 'react';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import type {SearchFilterCommonProps} from '@components/Search/types';
 import InviteMemberListItem from '@components/SelectionList/ListItem/InviteMemberListItem';
 import SelectionListWithSections from '@components/SelectionList/SelectionListWithSections';
 import type {TextInputOptions} from '@components/SelectionList/types';
+
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useFilteredOptions from '@hooks/useFilteredOptions';
+import useInitialValue from '@hooks/useInitialValue';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePrivateIsArchivedMap from '@hooks/usePrivateIsArchivedMap';
 import useReportAttributes from '@hooks/useReportAttributes';
-import useSortedActions from '@hooks/useSortedActions';
+import useSortedReportActionsData from '@hooks/useSortedReportActionsData';
+
 import {searchInServer} from '@libs/actions/Report';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import {createOptionFromReport, filterAndOrderOptions, formatSectionsFromSearchTerm, getAlternateText, getSearchOptions} from '@libs/OptionsListUtils';
+import {createOptionFromReport, filterAndOrderOptions, getAlternateText, getSearchOptions} from '@libs/OptionsListUtils';
 import type {Option, OptionWithKey, SelectionListSections} from '@libs/OptionsListUtils/types';
 import type {OptionData} from '@libs/ReportUtils';
 import {expensifyLoginsSelector} from '@libs/UserUtils';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import passthroughPolicyTagListSelector from '@src/selectors/PolicyTagList';
+
+import {isTrackIntentUserSelector} from '@selectors/Onboarding';
+import React, {useEffect} from 'react';
+
 import ListFilterView from './ListFilterViewWrapper';
 
 type InSelectorProps = SearchFilterCommonProps<string[] | undefined>;
@@ -41,19 +48,23 @@ function getSelectedOptionData(option: Option & Pick<OptionData, 'reportID'>): O
 }
 
 function InSelector({value = [], selectionListTextInputStyle, selectionListStyle, autoFocus, ready = true, footer, onChange}: InSelectorProps) {
-    const {translate} = useLocalize();
+    const {translate, dateFnsLocale} = useLocalize();
+    const {convertToDisplayString} = useCurrencyListActions();
     const personalDetails = usePersonalDetails();
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const {options, isLoading} = useFilteredOptions({
         enabled: ready,
         isSearching: !!debouncedSearchTerm.trim(),
+        // The sections below read recentReports and never personalDetails, so contacts would never reach the list.
+        includeP2P: false,
     });
 
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
     const [loginList] = useOnyx(ONYXKEYS.LOGINS, {selector: expensifyLoginsSelector});
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
-    const sortedActions = useSortedActions();
+    const sortedReportActionsData = useSortedReportActionsData();
+    const sortedActions = sortedReportActionsData?.sortedActions;
 
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserAccountID = currentUserPersonalDetails.accountID;
@@ -64,43 +75,68 @@ function InSelector({value = [], selectionListTextInputStyle, selectionListStyle
     const cleanSearchTerm = searchTerm.trim().toLowerCase();
     const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT);
     const privateIsArchivedMap = usePrivateIsArchivedMap();
-    const [policyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {selector: passthroughPolicyTagListSelector});
+    const [policyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
-    const selectedOptions: OptionData[] = value.map((id) => {
+    const buildReportOption = (id: string, isSelected: boolean): OptionData => {
         const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${id}`];
         const reportData = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${id}`];
         const reportPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${reportData?.policyID}`];
-        const report = getSelectedOptionData(
-            createOptionFromReport(
-                {...reportData, reportID: id},
-                personalDetails,
-                privateIsArchived,
-                reportPolicy,
-                sortedActions,
-                reportAttributesDerived,
-                undefined,
-                undefined,
-                undefined,
-                isTrackIntentUser,
+        const report = {
+            ...getSelectedOptionData(
+                createOptionFromReport({
+                    dateFnsLocale,
+                    convertToDisplayString,
+                    report: {...reportData, reportID: id},
+                    personalDetails,
+                    privateIsArchived,
+                    rules,
+                    policy: reportPolicy,
+                    sortedActions,
+                    conciergeReportID,
+                    reportAttributesDerived,
+                    isTrackIntentUser,
+                }),
             ),
-        );
+            isSelected,
+        };
         const isReportArchived = !!privateIsArchived;
         const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${reportData?.policyID}`];
         const reportPolicyTags = policyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(report?.policyID)}`];
         const alternateText = getAlternateText(
             report,
             {},
-            {isReportArchived, personalDetails, policy, reportAttributesDerived, policyTags: reportPolicyTags, conciergeReportID, isTrackIntentUser},
+            {
+                dateFnsLocale,
+                convertToDisplayString,
+                isReportArchived,
+                personalDetails,
+                policy,
+                reportAttributesDerived,
+                policyTags: reportPolicyTags,
+                conciergeReportID,
+                isTrackIntentUser,
+                rules,
+            },
         );
         return {...report, alternateText};
-    });
+    };
+
+    const selectedOptions: OptionData[] = value.map((id) => buildReportOption(id, true));
+
+    // Snapshot the reports that were already selected when the filter first opened. On a long list these stay
+    // pinned to the top so they're easy to find, but items toggled during the current session are NOT re-pinned:
+    // they keep their position so selecting doesn't scroll/jump the list.
+    const initialValue = useInitialValue(() => value);
 
     const defaultOptions =
         isLoading || !ready || !options
             ? defaultListOptions
             : getSearchOptions({
+                  dateFnsLocale,
+                  convertToDisplayString,
                   options,
                   draftComments,
                   betas: undefined,
@@ -114,35 +150,54 @@ function InSelector({value = [], selectionListTextInputStyle, selectionListStyle
                   sortedActions,
                   conciergeReportID,
                   isTrackIntentUser,
+                  translate,
+                  rules,
               }).options;
 
-    const chatOptions = filterAndOrderOptions(defaultOptions, cleanSearchTerm, countryCode, loginList, currentUserEmail, currentUserAccountID, personalDetails, {
-        selectedOptions,
-        excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
-    });
+    const chatOptions = filterAndOrderOptions(
+        defaultOptions,
+        cleanSearchTerm,
+        countryCode,
+        loginList,
+        currentUserEmail,
+        currentUserAccountID,
+        personalDetails,
+        {
+            dateFnsLocale,
+            convertToDisplayString,
+            selectedOptions,
+            excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
+        },
+        rules,
+    );
 
     const sections: SelectionListSections = [];
 
     if (!isLoading) {
-        const formattedResults = formatSectionsFromSearchTerm(
-            cleanSearchTerm,
-            selectedOptions,
-            chatOptions.recentReports,
-            chatOptions.personalDetails,
-            privateIsArchivedMap,
-            currentUserAccountID,
-            allPolicies,
-            personalDetails,
-            false,
-            undefined,
-            reportAttributesDerived,
-        );
+        // Only float the initially-selected reports to the top of a long list. Gate on the *unfiltered* list size so the
+        // decision doesn't flip as the user types, and key the pinned section on the snapshot (instead of the live
+        // `value`) so items toggled during this session stay put.
+        const shouldMoveSelectedToTop = defaultOptions.recentReports.length >= CONST.STANDARD_LIST_ITEM_LIMIT;
+        const pinnedReportIDs = shouldMoveSelectedToTop ? initialValue : [];
+        const pinnedReportIDSet = new Set(pinnedReportIDs);
 
-        sections.push(formattedResults.section);
+        // Keep the pinned reports at the top whether or not a search value is entered, for consistency. When a term is
+        // typed, only surface the pinned reports that still match the filtered results.
+        const matchedReportIDs = new Set(chatOptions.recentReports.map((report) => report.reportID));
+        const visiblePinnedReportIDs = cleanSearchTerm === '' ? pinnedReportIDs : pinnedReportIDs.filter((id) => matchedReportIDs.has(id));
+        const pinnedSelectedOptions = visiblePinnedReportIDs.map((id) => buildReportOption(id, value.includes(id)));
 
-        const visibleReportsWhenSearchTermNonEmpty = chatOptions.recentReports.map((report) => (value.includes(report.reportID) ? getSelectedOptionData(report) : report));
-        const visibleReportsWhenSearchTermEmpty = chatOptions.recentReports.filter((report) => !value.includes(report.reportID));
-        const reportsFiltered = cleanSearchTerm === '' ? visibleReportsWhenSearchTermEmpty : visibleReportsWhenSearchTermNonEmpty;
+        sections.push({
+            title: undefined,
+            sectionIndex: 0,
+            data: pinnedSelectedOptions,
+        });
+
+        // Drop the pinned reports from the main section (they already appear in the top section above) and mark the
+        // remaining reports selected in place based on the live `value`, so the checkmark toggles without reordering.
+        const reportsFiltered = chatOptions.recentReports
+            .filter((report) => !pinnedReportIDSet.has(report.reportID))
+            .map((report) => (value.includes(report.reportID) ? getSelectedOptionData(report) : report));
 
         sections.push({
             data: reportsFiltered,
@@ -199,6 +254,9 @@ function InSelector({value = [], selectionListTextInputStyle, selectionListStyle
                 onSelectRow={handleParticipantSelection}
                 ListItem={InviteMemberListItem}
                 canSelectMultiple
+                shouldClearInputOnSelect={false}
+                shouldUpdateFocusedIndex
+                shouldPreventAutoScrollOnSelect
                 shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
                 textInputOptions={textInputOptions}
                 isLoadingNewOptions={isLoadingNewOptions}

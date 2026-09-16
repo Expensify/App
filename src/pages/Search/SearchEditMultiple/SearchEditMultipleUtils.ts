@@ -1,10 +1,13 @@
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import {isAttendeeTrackingEnabled} from '@libs/PolicyUtils';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
-import {isIOUReport} from '@libs/ReportUtils';
+import {isInvoiceReport, isIOUReport} from '@libs/ReportUtils';
 import {getTagArrayFromName, isDistanceRequest, isPerDiemRequest} from '@libs/TransactionUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report, ReportActions, SearchResults, Transaction} from '@src/types/onyx';
+
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 /**
  * Returns the longest common dependent tag prefix for the provided transactions.
@@ -104,6 +107,27 @@ function isBulkEditTaxTrackingEnabled(
 }
 
 /**
+ * Reported expenses check their own workspace policy; unreported expenses fall back to
+ * the bulk-edit workspace policy because they have no report to resolve a per-transaction policy from.
+ */
+function isBulkEditAttendeeTrackingEnabled(
+    selectedTransactionContexts: Array<{transaction: Transaction; report: OnyxEntry<Report>; transactionPolicy: OnyxEntry<Policy>}>,
+    bulkEditPolicy: OnyxEntry<Policy>,
+): boolean {
+    return selectedTransactionContexts.every(({transaction, report, transactionPolicy}) => {
+        if (isInvoiceReport(report)) {
+            return false;
+        }
+
+        if (!transaction.reportID || transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
+            return isAttendeeTrackingEnabled(bulkEditPolicy) && bulkEditPolicy?.type === CONST.POLICY.TYPE.CORPORATE;
+        }
+
+        return isAttendeeTrackingEnabled(transactionPolicy) && transactionPolicy?.type === CONST.POLICY.TYPE.CORPORATE;
+    });
+}
+
+/**
  * After a hard refresh, transaction/report/reportAction data may only exist in the search snapshot,
  * not in the main Onyx collections. These helpers fill gaps from the snapshot so bulk edit can work.
  */
@@ -162,6 +186,7 @@ export {
     hasCustomUnitMerchantInSelection,
     areAllTransactionsExpenseCompatible,
     isBulkEditTaxTrackingEnabled,
+    isBulkEditAttendeeTrackingEnabled,
     withSnapshotTransactions,
     withSnapshotReportActions,
     withSnapshotReports,

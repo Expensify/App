@@ -1,11 +1,15 @@
 import {act, render, waitFor} from '@testing-library/react-native';
-import React from 'react';
-import Onyx from 'react-native-onyx';
+
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import LeaveWorkspaceFlow from '@components/Tables/WorkspaceListTable/LeaveWorkspaceFlow';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import React from 'react';
+import Onyx from 'react-native-onyx';
+
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 const mockLeaveWorkspace = jest.fn();
@@ -78,7 +82,7 @@ describe('LeaveWorkspaceFlow', () => {
         });
         renderAction();
         await waitForBatchedUpdatesWithAct();
-        expect(mockShowConfirmModal).toHaveBeenCalledWith(expect.objectContaining({success: true, shouldShowCancelButton: false}));
+        expect(mockShowConfirmModal).toHaveBeenCalledWith(expect.objectContaining({buttonVariant: CONST.BUTTON_VARIANT.SUCCESS, shouldShowCancelButton: false}));
     });
 
     it('calls onDismiss after the reimburser modal resolves', async () => {
@@ -104,7 +108,7 @@ describe('LeaveWorkspaceFlow', () => {
         });
         renderAction();
         await waitForBatchedUpdatesWithAct();
-        expect(mockShowConfirmModal).toHaveBeenCalledWith(expect.objectContaining({danger: true}));
+        expect(mockShowConfirmModal).toHaveBeenCalledWith(expect.objectContaining({buttonVariant: CONST.BUTTON_VARIANT.DANGER}));
     });
 
     it('calls leaveWorkspace and onDismiss on confirm when user is not the reimbursement contact', async () => {
@@ -148,6 +152,6 @@ describe('LeaveWorkspaceFlow', () => {
         });
         renderAction();
         await waitForBatchedUpdatesWithAct();
-        expect(mockShowConfirmModal).toHaveBeenCalledWith(expect.objectContaining({danger: true}));
+        expect(mockShowConfirmModal).toHaveBeenCalledWith(expect.objectContaining({buttonVariant: CONST.BUTTON_VARIANT.DANGER}));
     });
 });

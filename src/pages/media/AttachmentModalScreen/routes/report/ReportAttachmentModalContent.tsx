@@ -1,25 +1,33 @@
-import React, {useEffect, useRef} from 'react';
-import type {View} from 'react-native';
 import type {Attachment} from '@components/Attachments/types';
+
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useOriginalReportID from '@hooks/useOriginalReportID';
+
 import {openReport} from '@libs/actions/Report';
 import {getValidatedImageSource} from '@libs/AvatarUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {isReportNotFound} from '@libs/ReportUtils';
+
 import type {AttachmentModalBaseContentProps} from '@pages/media/AttachmentModalScreen/AttachmentModalBaseContent/types';
 import AttachmentModalContainer from '@pages/media/AttachmentModalScreen/AttachmentModalContainer';
 import useDownloadAttachment from '@pages/media/AttachmentModalScreen/routes/hooks/useDownloadAttachment';
 import useNavigateToReportOnRefresh from '@pages/media/AttachmentModalScreen/routes/hooks/useNavigateToReportOnRefresh';
 import useReportAttachmentModalType from '@pages/media/AttachmentModalScreen/routes/hooks/useReportAttachmentModalType';
 import type {AttachmentModalScreenProps} from '@pages/media/AttachmentModalScreen/types';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import SafeString from '@src/utils/SafeString';
+
+import type {View} from 'react-native';
+
+import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
+import {SafeString} from 'expensify-common';
+import React, {useEffect, useRef} from 'react';
 
 function ReportAttachmentModalContent({route, navigation}: AttachmentModalScreenProps<typeof SCREENS.REPORT_ATTACHMENTS>) {
     const {
@@ -39,8 +47,13 @@ function ReportAttachmentModalContent({route, navigation}: AttachmentModalScreen
     } = route.params;
 
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`);
+    const hasReportActions = !!reportActions;
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
+    const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
+    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
     const originalReportID = useOriginalReportID(reportID, reportActionID ? (reportActions?.[reportActionID ?? CONST.DEFAULT_NUMBER_ID] ?? {reportActionID}) : undefined);
     const reportActionReportID = originalReportID ?? reportID;
@@ -68,8 +81,29 @@ function ReportAttachmentModalContent({route, navigation}: AttachmentModalScreen
             return;
         }
 
-        openReport({reportID: reportActionReportID, introSelected, reportActionID, betas});
-    }, [reportActionReportID, shouldFetchReport, introSelected, reportActionID, betas]);
+        openReport({
+            reportID: reportActionReportID,
+            introSelected,
+            conciergeChat,
+            reportActionID,
+            betas,
+            hasReportActions,
+            currentUserAccountID,
+            isSelfTourViewed: guidedSetupAndTourStatus?.isSelfTourViewed,
+            hasCompletedGuidedSetupFlow: guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
+        });
+    }, [
+        reportActionReportID,
+        shouldFetchReport,
+        introSelected,
+        conciergeChat,
+        reportActionID,
+        betas,
+        hasReportActions,
+        currentUserAccountID,
+        guidedSetupAndTourStatus?.isSelfTourViewed,
+        guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
+    ]);
 
     const onCarouselAttachmentChange = (attachment: Attachment) => {
         const routeToNavigate = ROUTES.REPORT_ATTACHMENTS.getRoute({

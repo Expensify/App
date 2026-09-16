@@ -1,19 +1,19 @@
-import React from 'react';
 import {useConfirmationFields} from '@components/MoneyRequestConfirmationFields/context';
 import ReportField from '@components/MoneyRequestConfirmationList/sections/ReportField';
 import ToggleFields from '@components/MoneyRequestConfirmationList/sections/ToggleFields';
 import type {ToggleHandlers} from '@components/MoneyRequestConfirmationListFooter/fieldGroupTypes';
+
 import type {Participant} from '@src/types/onyx/IOU';
+
+import React from 'react';
+
 import type {FieldVisibility} from './fieldVisibility';
 
 type SettingsFieldsProps = {
     /** Selected participants (drives ReportField presentation) */
     selectedParticipants: Participant[];
 
-    /** Whether the billable toggle should be displayed */
     shouldShowBillable: boolean;
-
-    /** Whether the reimbursable toggle should be displayed */
     shouldShowReimbursable: boolean;
 
     /** Toggle callbacks for billable/reimbursable */

@@ -1,20 +1,29 @@
-/* eslint-disable react/no-array-index-key */
-import React from 'react';
-import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
+
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import {getExportIntegrationActionFragments, getExportIntegrationMessageHTML, hasReasoning} from '@libs/ReportActionsUtils';
+import {getExportIntegrationActionFragments, getExportIntegrationMessageHTML, getOriginalMessage, hasReasoning} from '@libs/ReportActionsUtils';
+
 import ReportActionItemMessageWithExplain from '@pages/inbox/report/ReportActionItemMessageWithExplain';
+
+import type CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, ReportAction} from '@src/types/onyx';
 
+import type {OnyxEntry} from 'react-native-onyx';
+
+/* eslint-disable react/no-array-index-key */
+import React from 'react';
+import {View} from 'react-native';
+
 type ExportIntegrationProps = {
-    action: OnyxEntry<ReportAction>;
+    action: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION>>;
 
     /** Original report from which the given reportAction is first created */
     originalReport: OnyxEntry<Report>;
@@ -23,10 +32,13 @@ type ExportIntegrationProps = {
 function ExportIntegration({action, originalReport}: ExportIntegrationProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [childReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(action?.childReportID)}`);
+    const selectableStyle = !canUseTouchScreen() || !shouldUseNarrowLayout ? styles.userSelectText : styles.userSelectNone;
+    const integrationName = getOriginalMessage(action)?.label;
 
     if (hasReasoning(action)) {
-        const message = getExportIntegrationMessageHTML(translate, action);
+        const message = getExportIntegrationMessageHTML(translate, action, integrationName);
         return (
             <ReportActionItemMessageWithExplain
                 message={message}
@@ -37,7 +49,7 @@ function ExportIntegration({action, originalReport}: ExportIntegrationProps) {
         );
     }
 
-    const fragments = getExportIntegrationActionFragments(translate, action);
+    const fragments = getExportIntegrationActionFragments(translate, action, integrationName);
 
     return (
         <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.flexWrap]}>
@@ -46,7 +58,7 @@ function ExportIntegration({action, originalReport}: ExportIntegrationProps) {
                     return (
                         <Text
                             key={index}
-                            style={[styles.chatItemMessage, styles.colorMuted]}
+                            style={[styles.chatItemMessage, styles.colorMuted, selectableStyle]}
                         >
                             {fragment.text}{' '}
                         </Text>

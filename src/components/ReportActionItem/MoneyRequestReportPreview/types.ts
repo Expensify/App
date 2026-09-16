@@ -1,9 +1,12 @@
+import type {TransactionPreviewStyleType} from '@components/ReportActionItem/TransactionPreview/types';
+
+import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
+
+import type {PersonalDetails, Policy, Report, ReportAction, Transaction, TransactionViolations} from '@src/types/onyx';
+
 import type {ListRenderItem} from '@shopify/flash-list';
 import type {LayoutChangeEvent, StyleProp, ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import type {TransactionPreviewStyleType} from '@components/ReportActionItem/TransactionPreview/types';
-import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
-import type {PersonalDetails, Policy, Report, ReportAction, Transaction, TransactionViolations} from '@src/types/onyx';
 
 type TransactionPreviewCarouselStyle = {
     [key in keyof TransactionPreviewStyleType]: number;
@@ -27,10 +30,7 @@ type MoneyRequestReportPreviewProps = {
     /** The report's policyID, used for Onyx subscription */
     policyID: string | undefined;
 
-    /** All the data of the action */
     action: ReportAction;
-
-    /** The associated chatReport */
     chatReportID: string | undefined;
 
     /** The chat report this preview belongs to */
@@ -62,6 +62,12 @@ type MoneyRequestReportPreviewContentOnyxProps = {
     invoiceReceiverPolicy: OnyxEntry<Policy>;
     iouReport: OnyxEntry<Report>;
     transactions: Transaction[];
+    /** Transactions with a receipt, derived from the report's full transaction set (including optimistically-deleted rows) */
+    transactionsWithReceipts: Transaction[];
+    /** Whether the report's full transaction set (including optimistically-deleted rows) has any non-reimbursable transaction */
+    hasNonReimbursableTransactions: boolean;
+    /** Whether every request in the report's full transaction set (including optimistically-deleted rows) is still being SmartScanned */
+    areAllRequestsBeingSmartScanned: boolean;
     policy: OnyxEntry<Policy>;
     invoiceReceiverPersonalDetail: OnyxEntry<PersonalDetails> | null;
     lastTransactionViolations: TransactionViolations;
@@ -73,7 +79,6 @@ type MoneyRequestReportPreviewContentProps = MoneyRequestReportPreviewContentOny
         /** Extra styles passed used by MoneyRequestReportPreviewContent */
         reportPreviewStyles: MoneyRequestReportPreviewStyleType;
 
-        /** MoneyRequestReportPreview's current width */
         currentWidth: number;
 
         /** Extra styles to pass to View wrapper */
@@ -85,8 +90,13 @@ type MoneyRequestReportPreviewContentProps = MoneyRequestReportPreviewContentOny
         /** Callback passed to Component wrapper view's onLayout */
         onWrapperLayout: (e: LayoutChangeEvent) => void;
 
-        /** Callback to render a transaction preview item */
         renderTransactionItem: ListRenderItem<Transaction>;
+
+        /** Called with the transactions in the order the carousel renders them */
+        onOrderedTransactionsChange?: (orderedTransactions: Transaction[]) => void;
+
+        /** Cancels anything a carousel press staged, so opening the report cannot be overtaken by it */
+        onCancelPendingPress?: () => void;
 
         /** Callback called when the whole preview is pressed */
         onPress: () => void;

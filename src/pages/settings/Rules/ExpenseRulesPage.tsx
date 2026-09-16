@@ -1,20 +1,17 @@
-import React, {useEffect, useState} from 'react';
-import {View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
 import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
-import ConfirmModal from '@components/ConfirmModal';
-import GenericEmptyStateComponent from '@components/EmptyStateComponent/GenericEmptyStateComponent';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 import ScreenWrapper from '@components/ScreenWrapper';
-import ScrollView from '@components/ScrollView';
 import type {PersonalExpenseRuleRowData} from '@components/Tables/PersonalExpenseRulesTable';
 import PersonalExpenseRulesTable from '@components/Tables/PersonalExpenseRulesTable';
 import Text from '@components/Text';
+
+import useConfirmModal from '@hooks/useConfirmModal';
 import useDocumentTitle from '@hooks/useDocumentTitle';
-import useGenericEmptyStateIllustration from '@hooks/useGenericEmptyStateIllustration';
-import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
@@ -22,12 +19,13 @@ import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useShouldDisplayButtonsInSeparateLine from '@hooks/useShouldDisplayButtonsInSeparateLine';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {clearDraftRule, clearExpenseRuleErrors, deleteExpenseRules, setDraftRule} from '@libs/actions/User';
 import {formatExpenseRuleChanges, getKeyForRule} from '@libs/ExpenseRuleUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import Parser from '@libs/Parser';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -35,6 +33,9 @@ import type {ExpenseRule} from '@src/types/onyx';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+
+import React, {useEffect, useRef, useState} from 'react';
+import {View} from 'react-native';
 
 const getKeyForList = (rule: ExpenseRule, index: number) => `${getKeyForRule(rule)}-${index}`;
 
@@ -46,18 +47,23 @@ function ExpenseRulesPage() {
     const {isOffline} = useNetwork();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
-    const genericIllustration = useGenericEmptyStateIllustration();
-    const illustrations = useMemoizedLazyIllustrations(['Flash']);
     const icons = useMemoizedLazyExpensifyIcons(['Pencil', 'Plus', 'Trashcan']);
     const [expenseRules = getEmptyArray<ExpenseRule>(), expenseRulesResult] = useOnyx(ONYXKEYS.NVP_EXPENSE_RULES);
 
     const [selectedRules, setSelectedRules] = useState<string[]>([]);
-    const [deleteConfirmModalVisible, setDeleteConfirmModalVisible] = useState(false);
+    const {showConfirmModal} = useConfirmModal();
 
     useEffect(() => {
         // Clear selection when rule is changed as hash is outdated
         // eslint-disable-next-line react-hooks/set-state-in-effect
         setSelectedRules([]);
+    }, [expenseRules]);
+
+    // The confirmation modal is global, so its promise resolves in a closure holding the rules from the render that opened it.
+    // This ref exposes the collection as it is at confirmation time so that snapshot can be checked for staleness.
+    const latestExpenseRulesRef = useRef(expenseRules);
+    useEffect(() => {
+        latestExpenseRulesRef.current = expenseRules;
     }, [expenseRules]);
 
     const hasRules = expenseRules.filter((rule) => isOffline || rule.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length > 0;
@@ -93,13 +99,41 @@ function ExpenseRulesPage() {
         Navigation.navigate(ROUTES.SETTINGS_RULES_EDIT.getRoute(hash));
     };
 
-    const handleDeleteRules = () => {
-        if (selectedRules.length > 0) {
-            deleteExpenseRules(expenseRules, selectedRules, getKeyForRule);
+    const handleDeleteRules = (rulesToDelete: string[]) => {
+        if (rulesToDelete.length > 0) {
+            deleteExpenseRules(expenseRules, rulesToDelete, getKeyForRule);
         }
-        setDeleteConfirmModalVisible(false);
         turnOffMobileSelectionMode();
         setSelectedRules([]);
+    };
+
+    const askForConfirmationToDelete = () => {
+        const isSingleRule = selectedRules.length === 1;
+        const rulesToDelete = selectedRules;
+        const expenseRulesWhenShown = expenseRules;
+
+        showConfirmModal({
+            title: translate(isSingleRule ? 'expenseRulesPage.deleteRule.deleteSingle' : 'expenseRulesPage.deleteRule.deleteMultiple'),
+            prompt: translate(isSingleRule ? 'expenseRulesPage.deleteRule.deleteSinglePrompt' : 'expenseRulesPage.deleteRule.deleteMultiplePrompt'),
+            confirmText: translate('common.delete'),
+            cancelText: translate('common.cancel'),
+            buttonVariant: CONST.BUTTON_VARIANT.DANGER,
+        }).then(({action}) => {
+            if (action !== ModalActions.CONFIRM) {
+                return;
+            }
+
+            // `deleteExpenseRules` rewrites the whole rule collection from the array it is given, so applying a snapshot
+            // taken before the rules changed would revive deleted rules and drop ones added while the modal was open.
+            // The keys are index based, so they cannot be remapped onto the new collection — drop the deletion instead,
+            // which is what happened before the modal became global and the effect above cleared the selection first.
+            if (latestExpenseRulesRef.current !== expenseRulesWhenShown) {
+                handleDeleteRules([]);
+                return;
+            }
+
+            handleDeleteRules(rulesToDelete);
+        });
     };
 
     const personalExpenseRules: PersonalExpenseRuleRowData[] = expenseRules
@@ -116,27 +150,31 @@ function ExpenseRulesPage() {
         .filter((rule) => isOffline || rule.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
 
     const headerDropdownOptions: Array<DropdownOption<DeepValueOf<typeof CONST.EXPENSE_RULES.BULK_ACTION_TYPES>>> = [
+        ...(selectedRules.length === 1
+            ? [
+                  {
+                      icon: icons.Pencil,
+                      text: translate('expenseRulesPage.editRule.title'),
+                      value: CONST.EXPENSE_RULES.BULK_ACTION_TYPES.EDIT,
+                      onSelected: () => navigateToEditRulePage(selectedRules.at(0)),
+                  },
+              ]
+            : []),
         {
             icon: icons.Trashcan,
             text: translate(selectedRules.length === 1 ? 'expenseRulesPage.deleteRule.deleteSingle' : 'expenseRulesPage.deleteRule.deleteMultiple'),
             value: CONST.EXPENSE_RULES.BULK_ACTION_TYPES.DELETE,
-            onSelected: () => setDeleteConfirmModalVisible(true),
+            shouldSkipFocusRestore: true,
+            onSelected: askForConfirmationToDelete,
         },
     ];
-    if (selectedRules.length === 1) {
-        headerDropdownOptions.unshift({
-            icon: icons.Pencil,
-            text: translate('expenseRulesPage.editRule.title'),
-            value: CONST.EXPENSE_RULES.BULK_ACTION_TYPES.EDIT,
-            onSelected: () => navigateToEditRulePage(selectedRules.at(0)),
-        });
-    }
 
     const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine();
 
     const headerButton = isInSelectionMode ? (
         <ButtonWithDropdownMenu
-            buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
+            variant={CONST.BUTTON_VARIANT.SUCCESS}
+            size={CONST.BUTTON_SIZE.MEDIUM}
             customText={translate('workspace.common.selected', {count: selectedRules.length})}
             isDisabled={!selectedRules.length}
             isSplitButton={false}
@@ -149,39 +187,22 @@ function ExpenseRulesPage() {
     ) : (
         <View style={[styles.flexRow, styles.gap2, shouldDisplayButtonsInSeparateLine && styles.mb3]}>
             <Button
-                success
+                variant={CONST.BUTTON_VARIANT.SUCCESS}
                 onPress={navigateToNewRulePage}
-                icon={icons.Plus}
-                text={translate('expenseRulesPage.newRule')}
                 style={[shouldDisplayButtonsInSeparateLine && styles.flex1]}
                 sentryLabel={CONST.SENTRY_LABEL.SETTINGS_RULES.NEW_RULE}
-            />
+            >
+                <Button.Icon src={icons.Plus} />
+                <Button.Text>{translate('expenseRulesPage.newRule')}</Button.Text>
+            </Button>
         </View>
     );
 
-    const emptyStateComponent = (
-        <ScrollView contentContainerStyle={[styles.flexGrow1, styles.flexShrink0]}>
-            <GenericEmptyStateComponent
-                {...genericIllustration}
-                title={translate('expenseRulesPage.emptyRules.title')}
-                subtitle={translate('expenseRulesPage.emptyRules.subtitle')}
-                headerStyles={styles.emptyStateCardIllustrationContainer}
-                buttons={[
-                    {
-                        success: true,
-                        buttonAction: navigateToNewRulePage,
-                        icon: icons.Plus,
-                        buttonText: translate('expenseRulesPage.newRule'),
-                    },
-                ]}
-            />
-        </ScrollView>
+    const expenseRulesSubtitle = (
+        <View style={[styles.ph5, styles.pb5, styles.pt3, shouldUseNarrowLayout && styles.workspaceSectionMobile]}>
+            <Text style={[styles.textNormal, styles.colorMuted]}>{translate('expenseRulesPage.subtitle')}</Text>
+        </View>
     );
-
-    const loadingReasonAttributes: SkeletonSpanReasonAttributes = {
-        context: 'ExpenseRulesPage.loading',
-        isLoading,
-    };
 
     return (
         <ScreenWrapper
@@ -192,7 +213,6 @@ function ExpenseRulesPage() {
             offlineIndicatorStyle={styles.mtAuto}
         >
             <HeaderWithBackButton
-                icon={!selectionModeHeader ? illustrations.Flash : undefined}
                 onBackButtonPress={() => {
                     if (isMobileSelectionModeEnabled) {
                         setSelectedRules([]);
@@ -211,15 +231,12 @@ function ExpenseRulesPage() {
             </HeaderWithBackButton>
             {shouldDisplayButtonsInSeparateLine && hasRules && <View style={[styles.pl5, styles.pr5]}>{headerButton}</View>}
 
-            <View style={[styles.ph5, styles.pb5, styles.pt3, shouldUseNarrowLayout && styles.workspaceSectionMobile]}>
-                <Text style={[styles.textNormal, styles.colorMuted]}>{translate('expenseRulesPage.subtitle')}</Text>
-            </View>
+            {!hasRules && expenseRulesSubtitle}
 
             {!hasRules && isLoading && (
                 <ActivityIndicator
                     size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
                     style={[styles.flex1]}
-                    reasonAttributes={loadingReasonAttributes}
                 />
             )}
 
@@ -228,20 +245,9 @@ function ExpenseRulesPage() {
                     selectedKeys={selectedRules}
                     personalExpenseRules={personalExpenseRules}
                     onRowSelectionChange={setSelectedRules}
-                    EmptyStateComponent={emptyStateComponent}
+                    headerComponent={hasRules ? expenseRulesSubtitle : undefined}
                 />
             )}
-
-            <ConfirmModal
-                isVisible={deleteConfirmModalVisible}
-                onConfirm={handleDeleteRules}
-                onCancel={() => setDeleteConfirmModalVisible(false)}
-                title={translate(selectedRules.length === 1 ? 'expenseRulesPage.deleteRule.deleteSingle' : 'expenseRulesPage.deleteRule.deleteMultiple')}
-                prompt={translate(selectedRules.length === 1 ? 'expenseRulesPage.deleteRule.deleteSinglePrompt' : 'expenseRulesPage.deleteRule.deleteMultiplePrompt')}
-                confirmText={translate('common.delete')}
-                cancelText={translate('common.cancel')}
-                danger
-            />
         </ScreenWrapper>
     );
 }

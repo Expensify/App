@@ -1,42 +1,59 @@
-import {useIsFocused} from '@react-navigation/native';
-import React, {useCallback, useMemo} from 'react';
-import {View} from 'react-native';
 import BaseWidgetItem from '@components/BaseWidgetItem';
 import WidgetContainer from '@components/WidgetContainer';
+
+import {useAppLoadSkeletonState} from '@hooks/useInFlightRequests';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTodoCounts from '@hooks/useTodoCounts';
+
+import {setHasSeenForYouTodo} from '@libs/actions/Todos';
 import Navigation from '@libs/Navigation/Navigation';
 import {buildQueryStringFromFilterFormValues} from '@libs/SearchQueryUtils';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
-import colors from '@styles/theme/colors';
+
+import HomeTaskGroup from '@pages/home/HomeTaskGroup';
+import useTimeSensitiveItems from '@pages/home/TimeSensitiveSection/useTimeSensitiveItems';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import {hasCompletedGuidedSetupFlowSelector} from '@src/selectors/Onboarding';
 import {accountIDSelector} from '@src/selectors/Session';
+
+import {useIsFocused} from '@react-navigation/native';
+import React, {useCallback, useEffect, useMemo} from 'react';
+
+import ConciergePromptBox from './ConciergePromptBox';
 import EmptyState from './EmptyState';
 import ForYouSkeleton from './ForYouSkeleton';
+import shouldHideForYouSection from './shouldHideForYouSection';
 import useReviewFlaggedExpenses from './useReviewFlaggedExpenses';
 
-function ForYouSection() {
+type ForYouSectionProps = {
+    /** Concierge "+" menu visibility, owned by HomePage so it survives this section's remount on breakpoint change. */
+    isConciergeMenuVisible: boolean;
+    setIsConciergeMenuVisible: React.Dispatch<React.SetStateAction<boolean>>;
+};
+
+function ForYouSection({isConciergeMenuVisible, setIsConciergeMenuVisible}: ForYouSectionProps) {
     const styles = useThemeStyles();
-    const theme = useTheme();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
-    const [isLoadingApp = true] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const [isLoadingReportData = false] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA);
-    // HAS_LOADED_APP flips to true once the first OpenApp completes and persists across reconnects.
-    // Gating the skeleton on it prevents the section from flashing skeleton on every foreground/reconnect
-    // when IS_LOADING_REPORT_DATA is optimistically set to true by ReconnectApp.
-    const [hasLoadedApp = false] = useOnyx(ONYXKEYS.HAS_LOADED_APP);
+    const {shouldShowSkeleton: isInitialLoad} = useAppLoadSkeletonState({isLoadingReportData});
     const isFocused = useIsFocused();
     const {counts: reportCounts, singleReportIDs} = useTodoCounts(isFocused);
+    const [firstDayFreeTrial] = useOnyx(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL);
+    const [onboarding] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
+    const isOnboardingCompleted = hasCompletedGuidedSetupFlowSelector(onboarding);
+    // The onboarding NVP defaults to "completed" before it loads, so only trust it once the value is present.
+    const isOnboardingStatusKnown = onboarding !== undefined;
+    const [hasSeenForYouTodo = false] = useOnyx(ONYXKEYS.NVP_HAS_SEEN_FOR_YOU_TODO);
     const {count: flaggedExpensesCount, reviewExpenses} = useReviewFlaggedExpenses();
+    const timeSensitiveItems = useTimeSensitiveItems();
 
     const icons = useMemoizedLazyExpensifyIcons(['ReceiptSearch', 'MoneyBag', 'Send', 'ThumbsUp', 'Export']);
 
@@ -85,11 +102,9 @@ function ForYouSection() {
                     key: 'reviewExpenses',
                     count: flaggedExpensesCount,
                     icon: icons.ReceiptSearch,
-                    iconBackgroundColor: colors.tangerine100,
-                    iconFill: colors.tangerine500,
                     translationKey: 'homePage.forYouSection.reviewExpenses' as const,
                     handler: reviewExpenses,
-                    buttonProps: {danger: true} as const,
+                    buttonVariant: CONST.BUTTON_VARIANT.DANGER,
                 },
                 {
                     key: 'submit',
@@ -146,39 +161,75 @@ function ForYouSection() {
         ],
     );
 
-    const renderTodoItems = () => (
-        <View style={styles.getForYouSectionContainerStyle(shouldUseNarrowLayout)}>
-            {todoItems.map(({key, count, icon, iconBackgroundColor, iconFill, translationKey, handler, buttonProps}) => (
-                <BaseWidgetItem
-                    key={key}
-                    icon={icon}
-                    iconBackgroundColor={iconBackgroundColor ?? theme.widgetIconBG}
-                    iconFill={iconFill ?? theme.widgetIconFill}
-                    title={translate(translationKey, {count})}
-                    ctaText={translate('homePage.forYouSection.begin')}
-                    onCtaPress={handler}
-                    buttonProps={buttonProps ?? {success: true}}
-                />
-            ))}
-        </View>
-    );
+    const forYouRows: React.ReactNode[] = todoItems.map(({key, count, icon, translationKey, handler, buttonVariant}) => (
+        <BaseWidgetItem
+            key={key}
+            icon={icon}
+            title={translate(translationKey, {count})}
+            ctaText={translate('homePage.forYouSection.begin')}
+            onCtaPress={handler}
+            buttonVariant={buttonVariant ?? CONST.BUTTON_VARIANT.SUCCESS}
+        />
+    ));
 
-    const renderContent = () => {
-        const isInitialLoad = !hasLoadedApp && (isLoadingApp || isLoadingReportData);
-        if (isInitialLoad) {
-            const reasonAttributes: SkeletonSpanReasonAttributes = {
-                context: 'ForYouSection.ForYouSkeleton',
-                isLoadingApp,
-                isLoadingReportData,
-                hasLoadedApp,
-            };
-            return <ForYouSkeleton reasonAttributes={reasonAttributes} />;
+    // Persist a one-time flag the first time a to-do appears so the section stays visible even when later empty.
+    useEffect(() => {
+        if (isInitialLoad || !hasAnyTodos || hasSeenForYouTodo) {
+            return;
         }
+        setHasSeenForYouTodo();
+    }, [isInitialLoad, hasAnyTodos, hasSeenForYouTodo]);
 
-        return hasAnyTodos ? renderTodoItems() : <EmptyState />;
+    const hideForYou = shouldHideForYouSection({
+        isInitialLoad,
+        hasAnyTodos,
+        hasSeenTodo: hasSeenForYouTodo,
+        firstDayFreeTrial,
+        cutoffDate: CONST.HOME.FOR_YOU_NEW_USER_CUTOFF_DATE,
+        isOnboardingCompleted,
+        isOnboardingStatusKnown,
+    });
+
+    const visibleForYouRows = hideForYou ? [] : forYouRows;
+
+    // Show the skeleton while the to-dos load. Show the empty state only when both groups are empty.
+    const showSkeleton = isInitialLoad && !hideForYou;
+    const showEmptyState = !isInitialLoad && !hideForYou && visibleForYouRows.length === 0 && timeSensitiveItems.length === 0;
+    const willOnlyShowConciergePromptBox = timeSensitiveItems.length === 0 && visibleForYouRows.length === 0 && !showSkeleton && !showEmptyState;
+
+    const getForYouFallback = () => {
+        if (showSkeleton) {
+            return <ForYouSkeleton />;
+        }
+        if (showEmptyState) {
+            return <EmptyState />;
+        }
+        return null;
     };
 
-    return <WidgetContainer title={translate('homePage.forYou')}>{renderContent()}</WidgetContainer>;
+    return (
+        <WidgetContainer
+            containerStyles={willOnlyShowConciergePromptBox ? [styles.pb3] : undefined}
+            titleContent={
+                <ConciergePromptBox
+                    isMenuVisible={isConciergeMenuVisible}
+                    setIsMenuVisible={setIsConciergeMenuVisible}
+                />
+            }
+        >
+            <HomeTaskGroup
+                title={translate('homePage.timeSensitiveSection.title')}
+                rows={timeSensitiveItems}
+            />
+            <HomeTaskGroup
+                title={translate('homePage.toDos')}
+                rows={visibleForYouRows}
+                reducedTopGap={timeSensitiveItems.length > 0}
+            >
+                {getForYouFallback()}
+            </HomeTaskGroup>
+        </WidgetContainer>
+    );
 }
 
 export default ForYouSection;

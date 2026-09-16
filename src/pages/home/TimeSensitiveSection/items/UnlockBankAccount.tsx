@@ -1,15 +1,19 @@
-import {hasSeenTourSelector} from '@selectors/Onboarding';
-import React from 'react';
 import BaseWidgetItem from '@components/BaseWidgetItem';
+
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+
 import {pressLockedBankAccount} from '@libs/actions/BankAccounts';
 import {navigateToConciergeChat} from '@libs/actions/Report';
-import colors from '@styles/theme/colors';
+
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import {hasSeenTourSelector} from '@selectors/Onboarding';
+import React from 'react';
 
 type UnlockBankAccountProps = {
     /** The ID of the locked bank account */
@@ -37,19 +41,17 @@ function UnlockBankAccount({bankAccountID, policyName}: UnlockBankAccountProps) 
 
     const handleCtaPress = () => {
         pressLockedBankAccount(bankAccountID, translate, conciergeReportID, delegateAccountID);
-        navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas);
+        navigateToConciergeChat({conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas});
     };
 
     return (
         <BaseWidgetItem
             icon={icons.BankLock}
-            iconBackgroundColor={colors.tangerine100}
-            iconFill={colors.tangerine500}
             title={title}
             subtitle={subtitle}
             ctaText={translate('homePage.timeSensitiveSection.ctaFix')}
             onCtaPress={handleCtaPress}
-            buttonProps={{danger: true}}
+            buttonVariant={CONST.BUTTON_VARIANT.DANGER}
         />
     );
 }

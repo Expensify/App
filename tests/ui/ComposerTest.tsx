@@ -1,10 +1,15 @@
 import {act, render} from '@testing-library/react-native';
-import Onyx from 'react-native-onyx';
+
 import Composer from '@components/Composer';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import RNMarkdownTextInput from '@components/RNMarkdownTextInput';
+
 import variables from '@styles/variables';
+
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import Onyx from 'react-native-onyx';
+
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 jest.mock('@components/RNMarkdownTextInput', () => {
@@ -35,7 +40,7 @@ describe('Composer', () => {
 
         await waitForBatchedUpdatesWithAct();
 
-        const props = (RNMarkdownTextInput as jest.MockedFunction<typeof RNMarkdownTextInput>).mock.calls.at(0)?.at(0);
+        const props = jest.mocked(RNMarkdownTextInput).mock.calls.at(0)?.at(0);
         expect(props).toEqual(
             expect.objectContaining({
                 markdownStyle: expect.objectContaining({

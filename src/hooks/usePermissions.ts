@@ -1,7 +1,10 @@
-import {useContext, useMemo} from 'react';
-import {BetaConfigurationContext, BetasContext} from '@components/OnyxListItemProvider';
+import {BetaConfigurationContext, BetasContext, BetaOverridesContext} from '@components/OnyxListItemProvider';
+
 import Permissions from '@libs/Permissions';
+
 import type Beta from '@src/types/onyx/Beta';
+
+import {useContext, useMemo} from 'react';
 
 type PermissionKey = keyof typeof Permissions;
 type UsePermissions = Partial<Record<Exclude<PermissionKey, 'isBetaEnabled'>, boolean>> & {isBetaEnabled: (beta: Beta) => boolean};
@@ -10,9 +13,10 @@ let permissionKey: PermissionKey;
 export default function usePermissions(): UsePermissions {
     const betas = useContext(BetasContext);
     const betaConfiguration = useContext(BetaConfigurationContext);
+    const betaOverrides = useContext(BetaOverridesContext);
     return useMemo(() => {
         const permissions: UsePermissions = {
-            isBetaEnabled: (beta: Beta) => Permissions.isBetaEnabled(beta, betas, betaConfiguration),
+            isBetaEnabled: (beta: Beta) => Permissions.isBetaEnabled(beta, betas, betaConfiguration, betaOverrides),
         };
 
         for (permissionKey in Permissions) {
@@ -23,5 +27,5 @@ export default function usePermissions(): UsePermissions {
         }
 
         return permissions;
-    }, [betas, betaConfiguration]);
+    }, [betas, betaConfiguration, betaOverrides]);
 }

@@ -1,4 +1,5 @@
 import Clipboard from '@react-native-clipboard/clipboard';
+
 import type {CanSetHtml, SetHtml, SetString} from './types';
 
 /**

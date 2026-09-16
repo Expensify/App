@@ -1,6 +1,8 @@
 import type {SearchAutocompleteQueryRange, SearchFilterKey} from '@components/Search/types';
+
 import {parse} from '@libs/SearchParser/autocompleteParser';
 import {sanitizeSearchValue} from '@libs/SearchQueryUtils';
+
 import CONST from '@src/CONST';
 
 type SubstitutionMap = Record<string, string>;
@@ -12,6 +14,7 @@ const USER_FILTER_KEYS = new Set<string>([
     CONST.SEARCH.SYNTAX_FILTER_KEYS.TO,
     CONST.SEARCH.SYNTAX_FILTER_KEYS.ASSIGNEE,
     CONST.SEARCH.SYNTAX_FILTER_KEYS.PAYER,
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID_BY,
     CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTER,
     CONST.SEARCH.SYNTAX_FILTER_KEYS.ATTENDEE,
 ]);

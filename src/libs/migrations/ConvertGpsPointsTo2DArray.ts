@@ -1,10 +1,13 @@
-import Onyx from 'react-native-onyx';
-import type {OnyxEntry} from 'react-native-onyx';
 import is2dArray from '@libs/is2dArray';
 import Log from '@libs/Log';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {GpsDraftDetails} from '@src/types/onyx';
 import type {GPSPoint, GPSPointAddress} from '@src/types/onyx/GpsDraftDetails';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import Onyx from 'react-native-onyx';
 
 type OldGpsDraftDetails = Omit<GpsDraftDetails, 'gpsPoints'> & {
     gpsPoints: GPSPoint[] | GPSPoint[][];

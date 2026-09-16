@@ -1,10 +1,15 @@
-import * as Sentry from '@sentry/react-native';
-import Onyx from 'react-native-onyx';
-import type {OnyxEntry, OnyxKey} from 'react-native-onyx';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Account} from '@src/types/onyx';
+import type Credentials from '@src/types/onyx/Credentials';
 import type Response from '@src/types/onyx/Response';
+import type Session from '@src/types/onyx/Session';
+
+import type {OnyxEntry, OnyxKey} from 'react-native-onyx';
+
+import * as Sentry from '@sentry/react-native';
+import Onyx from 'react-native-onyx';
+
 import {isConnectedAsDelegate, restoreDelegateSession} from './actions/Delegate';
 import clearShortLivedAuthState from './actions/Session/clearShortLivedAuthState';
 import updateSessionAuthTokens from './actions/Session/updateSessionAuthTokens';
@@ -32,6 +37,20 @@ type Parameters = {
 
 let isAuthenticatingWithShortLivedToken = false;
 let isSupportAuthTokenUsed = false;
+let isSupportSession = false;
+
+type ReauthenticationResult = {
+    wasSuccessful: boolean;
+    didRestoreOriginalSession?: boolean;
+};
+
+// A SAML-required account cannot silently reauthenticate (there is no stored password), so an expired
+// session sends the user back through their IdP. When the token expires, the app fires several requests
+// at once (ReconnectApp, OpenApp, AuthenticatePusher, ...) and they all get a 407 in the same tick, so
+// each one would call redirectToSignIn on its own and the sign-in page would flash and re-initiate SAML
+// several times. This lets the first expired request trigger the redirect and skips the rest until the
+// next SAML sign-in begins.
+let hasQueuedSAMLReauthRedirect = false;
 
 // These session values are only used to help the user authentication with the API.
 // Since they aren't connected to a UI anywhere, it's OK to use connectWithoutView()
@@ -39,6 +58,7 @@ Onyx.connectWithoutView({
     key: ONYXKEYS.SESSION,
     callback: (value) => {
         isSupportAuthTokenUsed = !!value?.isSupportAuthTokenUsed;
+        isSupportSession = value?.authTokenType === CONST.AUTH_TOKEN_TYPES.SUPPORT;
 
         Sentry.setUser({
             id: value?.accountID,
@@ -52,6 +72,12 @@ Onyx.connectWithoutView({
     key: ONYXKEYS.RAM_ONLY_IS_AUTHENTICATING_WITH_SHORT_LIVED_TOKEN,
     callback: (value) => {
         isAuthenticatingWithShortLivedToken = !!value;
+
+        // A new short-lived-token SAML sign-in has begun, so allow the redirect again the next time
+        // this session's token expires.
+        if (value) {
+            hasQueuedSAMLReauthRedirect = false;
+        }
     },
 });
 
@@ -62,6 +88,25 @@ Onyx.connectWithoutView({
     key: ONYXKEYS.ACCOUNT,
     callback: (value) => {
         account = value;
+    },
+});
+
+// While connected as a delegate, the original user's credentials and session are stashed under these keys.
+// The reauth path reads them synchronously when a delegate token expires, and they aren't connected to any
+// UI, so it's okay to use connectWithoutView here.
+let stashedCredentials: Credentials | undefined;
+Onyx.connectWithoutView({
+    key: ONYXKEYS.STASHED_CREDENTIALS,
+    callback: (value) => {
+        stashedCredentials = value;
+    },
+});
+
+let stashedSession: Session | undefined;
+Onyx.connectWithoutView({
+    key: ONYXKEYS.STASHED_SESSION,
+    callback: (value) => {
+        stashedSession = value;
     },
 });
 
@@ -82,7 +127,7 @@ function Authenticate<TKey extends OnyxKey>(parameters: Parameters): Promise<Res
         Log.hmmm('[Reauthenticate] Redirecting to Sign In because we failed to reauthenticate', {
             error: errorMessage,
         });
-        redirectToSignIn(errorMessage);
+        redirectToSignIn(CONST.SIGN_OUT_REASON.REAUTH_FAILED, errorMessage);
         return Promise.resolve();
     }
 
@@ -115,7 +160,7 @@ function shouldRetryAuthenticateError(error: unknown): boolean {
     // Only retry transient connectivity/service issues. Real HTTP auth failures,
     // and auth throttling, should fall through to the normal sign-out path so we
     // do not spin on Authenticate before redirecting to sign in.
-    return error.message === CONST.ERROR.FAILED_TO_FETCH || error.message === CONST.ERROR.EXPENSIFY_SERVICE_INTERRUPTED;
+    return error.message === CONST.ERROR.FAILED_TO_FETCH || error.message === CONST.ERROR.EXPENSIFY_SERVICE_INTERRUPTED || error.message === CONST.ERROR.SERVICE_UNAVAILABLE;
 }
 
 function getAuthenticationErrorResponse(error: HttpsError): Response<OnyxKey> {
@@ -128,9 +173,9 @@ function getAuthenticationErrorResponse(error: HttpsError): Response<OnyxKey> {
 /**
  * Reauthenticate using the stored credentials and redirect to the sign in page if unable to do so.
  * @param [command] command name for logging purposes
- * @return returns true if reauthentication was successful, false otherwise.
+ * @return returns an object indicating if reauthentication was successful or restored the original session.
  */
-function reauthenticate(command = ''): Promise<boolean> {
+function reauthenticate(command = ''): Promise<ReauthenticationResult> {
     Log.hmmm('[Reauthenticate] Attempting re-authentication', {
         command,
     });
@@ -146,7 +191,7 @@ function reauthenticate(command = ''): Promise<boolean> {
                 isSupportAuthTokenUsed,
                 accountIsLoading: account?.isLoading,
             });
-            return Promise.resolve(false);
+            return Promise.resolve({wasSuccessful: false});
         }
 
         Log.alert('[Reauthenticate] Found stale shortLivedToken authentication state. Clearing it before re-authenticating.', {
@@ -166,22 +211,38 @@ function reauthenticate(command = ''): Promise<boolean> {
     });
 
     return hasReadRequiredDataFromStorage().then(() => {
-        const credentials = getCredentials();
+        // While connected as a delegate, ONYXKEYS.CREDENTIALS is wiped by clearOnyxForDelegateTransition; the original user's creds live in stashedCredentials.
+        const isDelegate = isConnectedAsDelegate({
+            delegatedAccess: account?.delegatedAccess,
+        });
+        const credentials = isDelegate ? stashedCredentials : getCredentials();
         const {partnerName, partnerPassword} = getPartnerCredentials(credentials?.autoGeneratedLogin);
 
-        if (account?.isSAMLRequired) {
-            Log.info(`[Reauthenticate] Redirecting to Sign In because SAML is required`);
+        // Supportal sessions authenticate with a short-lived support auth token and must never be sent through the
+        // customer's SAML flow. Skipping the SAML redirect lets a support session fall through to the normal
+        // sign-in redirect below instead of bouncing the agent to the customer's IdP (e.g. Okta).
+        if (account?.isSAMLRequired && !isSupportSession && !isSupportAuthTokenUsed) {
             setIsAuthenticating(false);
-            redirectToSignIn(undefined, true);
-            return false;
+
+            // Skip the redirect if an earlier expired request in this same burst already queued it, so the
+            // sign-in page is not torn down and re-mounted (and SAML re-initiated) once per concurrent 407.
+            if (hasQueuedSAMLReauthRedirect) {
+                Log.info('[Reauthenticate] SAML sign-in redirect already queued, skipping duplicate redirect');
+                return {wasSuccessful: false};
+            }
+
+            hasQueuedSAMLReauthRedirect = true;
+            Log.info(`[Reauthenticate] Redirecting to Sign In because SAML is required`);
+            redirectToSignIn(CONST.SIGN_OUT_REASON.SAML_REQUIRED, undefined, true);
+            return {wasSuccessful: false};
         }
 
         // Prevent reauthentication if credentials are missing (e.g. after sign out)
         if (!credentials?.autoGeneratedLogin || !credentials?.autoGeneratedPassword) {
             Log.info('[Reauthenticate] No credentials available, redirecting to sign in');
             setIsAuthenticating(false);
-            redirectToSignIn('No credentials available');
-            return false;
+            redirectToSignIn(CONST.SIGN_OUT_REASON.NO_CREDENTIALS, 'No credentials available');
+            return {wasSuccessful: false};
         }
 
         Log.info(`[Reauthenticate] Re-authenticating with ${checkIfShouldUseNewPartnerName(credentials?.autoGeneratedLogin) ? 'new' : 'old'} partner name`);
@@ -199,7 +260,7 @@ function reauthenticate(command = ''): Promise<boolean> {
         })
             .then((response) => {
                 if (!response) {
-                    return false;
+                    return {wasSuccessful: false};
                 }
 
                 Log.hmmm('[Reauthenticate] Processing authentication result', {
@@ -235,16 +296,31 @@ function reauthenticate(command = ''): Promise<boolean> {
                         command,
                         error: errorMessage,
                     });
-                    redirectToSignIn(errorMessage);
-                    return false;
+                    redirectToSignIn(CONST.SIGN_OUT_REASON.REAUTH_FAILED, errorMessage);
+                    return {wasSuccessful: false};
                 }
 
                 // If we reauthenticate due to an expired delegate token, restore the delegate's original account.
                 // This is because the credentials used to reauthenticate were for the delegate's original account, and not for the account they were connected as.
-                if (isConnectedAsDelegate({delegatedAccess: account?.delegatedAccess})) {
+                if (isDelegate) {
                     Log.info('[Reauthenticate] Reauthenticate while connected as a delegate. Restoring original account.');
-                    restoreDelegateSession(response);
-                    return true;
+                    restoreDelegateSession({
+                        authToken: response.authToken,
+                        encryptedAuthToken: response.encryptedAuthToken,
+                        accountID: response.accountID,
+                        email: response.email,
+                        stashedCredentials,
+                        stashedSession,
+                    }).catch((error: unknown) => {
+                        // If the restore chain is interrupted before it unpauses the network, the queue would stay
+                        // paused forever and the app would be stuck loading indefinitely.
+                        setIsAuthenticating(false);
+                        Log.hmmm('[Reauthenticate] Failed to restore the delegate session', {
+                            command,
+                            error: getErrorMessage(error),
+                        });
+                    });
+                    return {wasSuccessful: false, didRestoreOriginalSession: true};
                 }
 
                 // Update authToken in Onyx and in our local variables so that API requests will use the new authToken
@@ -262,7 +338,7 @@ function reauthenticate(command = ''): Promise<boolean> {
                     command,
                 });
 
-                return true;
+                return {wasSuccessful: true};
             })
             .catch((error) => {
                 if (error instanceof HttpsError && !shouldRetryAuthenticateError(error)) {
@@ -284,8 +360,8 @@ function reauthenticate(command = ''): Promise<boolean> {
                         error: error.message,
                         status: error.status,
                     });
-                    redirectToSignIn(errorMessage);
-                    return false;
+                    redirectToSignIn(CONST.SIGN_OUT_REASON.REAUTH_HTTP_ERROR, errorMessage);
+                    return {wasSuccessful: false};
                 }
 
                 // Caught values can be non-Error objects, but telemetry expects an Error instance.
@@ -305,3 +381,4 @@ function reauthenticate(command = ''): Promise<boolean> {
 }
 
 export default reauthenticate;
+export type {ReauthenticationResult};

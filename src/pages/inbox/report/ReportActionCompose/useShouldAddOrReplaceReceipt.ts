@@ -2,11 +2,13 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useReportTransactionsCollection from '@hooks/useReportTransactionsCollection';
+
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getAllNonDeletedTransactions} from '@libs/MoneyRequestReportUtils';
 import {getFilteredReportActionsForReportView, getLinkedTransactionID, getReportAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {canEditFieldOfMoneyRequest, canUserPerformWriteAction as canUserPerformWriteActionReportUtils, isReportTransactionThread} from '@libs/ReportUtils';
 import {getTransactionID} from '@libs/TransactionUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
@@ -16,6 +18,7 @@ function useShouldAddOrReplaceReceipt(reportID: string) {
     const isReportArchived = useReportIsArchived(report?.reportID);
     const allReportTransactions = useReportTransactionsCollection(reportID);
     const [rawReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.reportID}`);
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
     const isTransactionThreadView = isReportTransactionThread(report);
 
@@ -34,7 +37,7 @@ function useShouldAddOrReplaceReceipt(reportID: string) {
     const canUserPerformWriteAction = !!canUserPerformWriteActionReportUtils(report, isReportArchived);
     const canEditReceipt =
         canUserPerformWriteAction &&
-        canEditFieldOfMoneyRequest({reportAction: effectiveParentReportAction, fieldToEdit: CONST.EDIT_REQUEST_FIELD.RECEIPT, transaction}) &&
+        canEditFieldOfMoneyRequest({reportAction: effectiveParentReportAction, fieldToEdit: CONST.EDIT_REQUEST_FIELD.RECEIPT, transaction, rules}) &&
         !transaction?.receipt?.isTestDriveReceipt;
     const shouldAddOrReplaceReceipt = (isTransactionThreadView || isSingleTransactionView) && canEditReceipt;
 

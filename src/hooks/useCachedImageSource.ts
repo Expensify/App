@@ -1,7 +1,10 @@
-import type {ImageSource} from 'expo-image';
-import {useEffect, useState} from 'react';
 import Log from '@libs/Log';
+
 import CONST from '@src/CONST';
+
+import type {ImageSource} from 'expo-image';
+
+import {useEffect, useState} from 'react';
 
 const clearAuthImagesCache = async () => {
     if (!('caches' in window)) {

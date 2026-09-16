@@ -1,7 +1,9 @@
-import type {OnyxEntry} from 'react-native-onyx';
 import {useProductTrainingContext} from '@components/ProductTrainingContext';
+
 import CONST from '@src/CONST';
 import type * as OnyxTypes from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
 
 type UseReceiptTrainingParams = {
     /** Transaction whose receipt we're inspecting for product-training flags */

@@ -1,15 +1,20 @@
-import {useIsFocused} from '@react-navigation/native';
-import React, {useEffect, useRef} from 'react';
-import type {ForwardedRef} from 'react';
-import type {View} from 'react-native';
 import useGeographicalStateAndCountryFromRoute from '@hooks/useGeographicalStateAndCountryFromRoute';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
+
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
+
+import type {ForwardedRef} from 'react';
+import type {View} from 'react-native';
+
+import {useIsFocused} from '@react-navigation/native';
+import React, {useEffect, useRef} from 'react';
+
 import MenuItemWithTopDescription from './MenuItemWithTopDescription';
 
 type CountrySelectorProps = {
@@ -19,7 +24,6 @@ type CountrySelectorProps = {
     /** Callback called when the country changes. */
     onInputChange?: (value?: string) => void;
 
-    /** Current selected country  */
     value?: Country | '';
 
     /** inputID used by the Form component */
@@ -29,7 +33,6 @@ type CountrySelectorProps = {
     /** Callback to call when the picker modal is dismissed */
     onBlur?: () => void;
 
-    /** Reference to the outer element */
     ref?: ForwardedRef<View>;
 };
 

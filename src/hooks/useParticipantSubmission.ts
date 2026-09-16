@@ -1,14 +1,15 @@
-import {useEffect, useRef} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
 import {setTransactionReport} from '@libs/actions/Transaction';
 import {READ_COMMANDS} from '@libs/API/types';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import HttpUtils from '@libs/HttpUtils';
+import {isParticipantP2P} from '@libs/IOUUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {isGroupPolicy} from '@libs/PolicyUtils';
-import {findSelfDMReportID, generateReportID, isInvoiceRoomWithID} from '@libs/ReportUtils';
+import {findSelfDMReportID, generateReportID, getReportOrDraftReport, isInvoiceRoomWithID} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
-import {isDistanceRequest} from '@libs/TransactionUtils';
+import {isDistanceRequest, isManualDistanceRequest, isOdometerDistanceRequest} from '@libs/TransactionUtils';
+
 import {
     resetDraftTransactionsCustomUnit,
     setCustomUnitRateID,
@@ -19,19 +20,28 @@ import {
 } from '@userActions/IOU/MoneyRequest';
 import {setSplitShares} from '@userActions/IOU/Split';
 import {createDraftWorkspace, generateDefaultWorkspaceName} from '@userActions/Policy/Policy';
+
 import CONST from '@src/CONST';
 import type {IOUAction, IOUType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import {lastWorkspaceNumberSelector} from '@src/selectors/Policy';
 import type {Policy, Transaction} from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import KeyboardUtils from '@src/utils/keyboard';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {useEffect, useRef} from 'react';
+
+import useBlockDistanceRequest from './useBlockDistanceRequest';
+import {useCurrencyListActions} from './useCurrencyList';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useLocalize from './useLocalize';
 import useMappedPolicies from './useMappedPolicies';
 import useOnyx from './useOnyx';
 import useOptimisticDraftTransactions from './useOptimisticDraftTransactions';
+import usePersonalPolicy from './usePersonalPolicy';
 import usePolicyForMovingExpenses from './usePolicyForMovingExpenses';
 import useTransactionsByID from './useTransactionsByID';
 
@@ -43,7 +53,6 @@ const policyMapper = (policy: OnyxEntry<Policy>): OnyxEntry<Policy> =>
         role: policy.role,
         owner: policy.owner,
         outputCurrency: policy.outputCurrency,
-        isPolicyExpenseChatEnabled: policy.isPolicyExpenseChatEnabled,
         customUnits: policy.customUnits,
     };
 
@@ -54,10 +63,10 @@ type UseParticipantSubmissionParams = {
     participants: Participant[] | undefined;
     iouType: IOUType;
     action: IOUAction;
-    backTo: string | undefined;
     isSplitRequest: boolean;
     isMovingTransactionFromTrackExpense: boolean;
     isFocused: boolean;
+    isWorkspacesOnly: boolean;
 };
 
 function useParticipantSubmission({
@@ -67,12 +76,14 @@ function useParticipantSubmission({
     participants,
     iouType,
     action,
-    backTo,
     isSplitRequest,
     isMovingTransactionFromTrackExpense,
     isFocused,
+    isWorkspacesOnly,
 }: UseParticipantSubmissionParams) {
+    const {getCurrencyDecimals} = useCurrencyListActions();
     const {translate} = useLocalize();
+    const personalPolicy = usePersonalPolicy();
 
     const [allPolicies] = useMappedPolicies(policyMapper);
     const [lastSelectedDistanceRates] = useOnyx(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES);
@@ -93,11 +104,15 @@ function useParticipantSubmission({
     // explicit useMemo is needed here.
     const transactionIDs = draftTransactions?.map((transaction) => transaction.transactionID);
     const [transactions] = useTransactionsByID(transactionIDs);
+    const blockDistanceRequestIfNeeded = useBlockDistanceRequest({
+        isDistanceRequest: isDistanceRequest(initialTransaction),
+        isManualDistanceRequest: isManualDistanceRequest(initialTransaction),
+        isOdometerDistanceRequest: isOdometerDistanceRequest(initialTransaction),
+    });
 
     const isActivePolicyRequest =
         iouType === CONST.IOU.TYPE.CREATE &&
         isGroupPolicy(activePolicy) &&
-        activePolicy?.isPolicyExpenseChatEnabled &&
         !shouldRestrictUserBillableActions(activePolicy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, currentUserPersonalDetails.accountID);
 
     const dataRef = useRef({
@@ -187,25 +202,28 @@ function useParticipantSubmission({
                 lastSelectedDistanceRates: distanceRates,
                 expenseDate: transaction.created,
             });
-            setCustomUnitRateID(transaction.transactionID, rateID, transaction, movingPolicy);
+            setCustomUnitRateID(transaction.transactionID, rateID, transaction, movingPolicy, false, personalPolicy?.outputCurrency);
             const shouldSetParticipantAutoAssignment = iouType === CONST.IOU.TYPE.CREATE;
             setMoneyRequestParticipantsFromReport(transaction.transactionID, dmReport, userDetails.accountID, shouldSetParticipantAutoAssignment ? isActiveRequest : false);
             setTransactionReport(transaction.transactionID, {reportID: CONST.REPORT.UNREPORTED_REPORT_ID}, true);
         }
         const iouConfirmationPageRoute = ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(action, CONST.IOU.TYPE.TRACK, initialTransactionID, dmReportID);
         KeyboardUtils.dismissKeyboardAndExecute(() => {
-            // If the backTo parameter is set, we should navigate back to the confirmation screen that is already on the stack.
             Navigation.setNavigationActionToMicrotaskQueue(() => {
-                if (backTo) {
-                    // We don't want to compare params because we just changed the participants.
-                    Navigation.goBack(iouConfirmationPageRoute, {compareParams: false});
-                } else {
-                    // We wrap navigation in setNavigationActionToMicrotaskQueue so that data loading in Onyx and navigation do not occur simultaneously, which resets the amount to 0.
-                    // More information can be found here: https://github.com/Expensify/App/issues/73728
-                    Navigation.navigate(iouConfirmationPageRoute);
-                }
+                Navigation.goBack(iouConfirmationPageRoute, {compareParams: false});
             });
         });
+    };
+
+    // P2P chats don't support negative amounts. When a negative amount was entered before a participant was
+    // selected (e.g. "Submit it to someone" from a self DM track expense), assigning it to a P2P participant
+    // would fail at submit, so keep the expense on the self DM as a track expense — mirroring the guard in the
+    // confirmation step's handleParticipantsAdded. This doesn't apply to an expense already bound to a policy
+    // expense chat, which must stay on that workspace.
+    const shouldKeepNegativeExpenseOnSelfDM = (firstParticipant: Participant | undefined) => {
+        const currentTransaction = dataRef.current.initialTransaction;
+        const isTransactionOnPolicyExpenseChat = currentTransaction?.participants?.some((participant) => participant?.isPolicyExpenseChat);
+        return (currentTransaction?.amount ?? 0) < 0 && !isTransactionOnPolicyExpenseChat && isParticipantP2P(firstParticipant);
     };
 
     const addParticipant = (val: Participant[]) => {
@@ -213,8 +231,14 @@ function useParticipantSubmission({
 
         const firstParticipant = val.at(0);
 
-        if (firstParticipant?.isSelfDM && !isSplitRequest) {
+        if ((firstParticipant?.isSelfDM || shouldKeepNegativeExpenseOnSelfDM(firstParticipant)) && !isSplitRequest) {
             trackExpense();
+            return;
+        }
+
+        // Block selecting a workspace with commuter exclusions before participants/workspace are committed.
+        const selectedPolicyID = firstParticipant?.policyID ?? (firstParticipant?.reportID ? getReportOrDraftReport(firstParticipant.reportID)?.policyID : undefined);
+        if (blockDistanceRequestIfNeeded(selectedPolicyID)) {
             return;
         }
 
@@ -236,30 +260,44 @@ function useParticipantSubmission({
             setMoneyRequestParticipants(initialTransactionID, val);
         }
 
-        if (!isMovingTransactionFromTrackExpense || !isPolicyExpenseChat) {
-            // If not moving the transaction from track expense, select the default rate automatically.
-            // Otherwise, keep the original p2p rate and let the user manually change it to the one they want from the workspace.
-            if (drafts.length > 0) {
-                for (const transaction of drafts) {
-                    const rateID = DistanceRequestUtils.getCustomUnitRateID({
-                        reportID: firstParticipantReportID,
-                        isPolicyExpenseChat,
-                        policy,
-                        lastSelectedDistanceRates: distanceRates,
-                        expenseDate: transaction.created,
-                    });
-                    setCustomUnitRateID(transaction.transactionID, rateID, transaction, policy);
+        const isMovingToPolicyExpenseChat = isMovingTransactionFromTrackExpense && isPolicyExpenseChat;
+        const destinationRates = isMovingToPolicyExpenseChat ? DistanceRequestUtils.getMileageRates(policy) : undefined;
+        const shouldKeepTrackExpenseRate = (transaction: OnyxEntry<Transaction>) => {
+            if (!isDistanceRequest(transaction)) {
+                return true;
+            }
+            const currentRateID = transaction?.comment?.customUnit?.customUnitRateID;
+            return currentRateID === CONST.CUSTOM_UNITS.FAKE_P2P_ID || (!!currentRateID && !!destinationRates?.[currentRateID]);
+        };
+
+        if (drafts.length > 0) {
+            for (const transaction of drafts) {
+                if (isMovingToPolicyExpenseChat && shouldKeepTrackExpenseRate(transaction)) {
+                    continue;
                 }
-            } else {
-                // Fallback to using initialTransactionID directly
                 const rateID = DistanceRequestUtils.getCustomUnitRateID({
                     reportID: firstParticipantReportID,
                     isPolicyExpenseChat,
                     policy,
                     lastSelectedDistanceRates: distanceRates,
+                    expenseDate: transaction.created,
                 });
-                setCustomUnitRateID(initialTransactionID, rateID, undefined, policy);
+                if (isMovingToPolicyExpenseChat && rateID === CONST.CUSTOM_UNITS.FAKE_P2P_ID) {
+                    continue;
+                }
+                setCustomUnitRateID(transaction.transactionID, rateID, transaction, policy, false, personalPolicy?.outputCurrency);
             }
+        } else if (!isMovingToPolicyExpenseChat) {
+            // Fallback to using initialTransactionID directly
+            const rateID = DistanceRequestUtils.getCustomUnitRateID({
+                reportID: firstParticipantReportID,
+                isPolicyExpenseChat,
+                policy,
+                lastSelectedDistanceRates: distanceRates,
+            });
+            // personalPolicyOutputCurrency is intentionally omitted: setCustomUnitRateID only resolves a (P2P) rate when a transaction is passed,
+            // and no transaction is passed here, so the currency is never read.
+            setCustomUnitRateID(initialTransactionID, rateID, undefined, policy, false, undefined);
         }
 
         // When multiple valid participants are selected, the reportID is generated at the end of the confirmation step.
@@ -301,10 +339,19 @@ function useParticipantSubmission({
         // (last-rendered value from dataRef) because the Onyx write from addParticipant may not have
         // caused a re-render yet by the time goToNextStep is called.
         const effectiveParticipants = nextParticipants ?? currentParticipants;
+
+        // ParticipantSearchResults.addSingleParticipant fires onFinish (this callback) right after onParticipantsAdded
+        // for any non-self row. When the negative-amount P2P fallback in addParticipant already kept the expense on the
+        // self DM as a track expense (and queued that navigation), skip the submit navigation here so it doesn't
+        // override the track flow and land the user on a submit confirmation for the self-DM draft.
+        if (!isSplitRequest && shouldKeepNegativeExpenseOnSelfDM(effectiveParticipants?.at(0))) {
+            return;
+        }
+
         const isPolicyExpenseChat = effectiveParticipants?.some((participant) => participant.isPolicyExpenseChat);
         if (iouType === CONST.IOU.TYPE.SPLIT && !isPolicyExpenseChat && splitTransaction?.amount && splitTransaction?.currency) {
             const participantAccountIDs = effectiveParticipants?.map((participant) => participant.accountID) as number[];
-            setSplitShares(splitTransaction, splitTransaction.amount, splitTransaction.currency, participantAccountIDs, userDetails.accountID);
+            setSplitShares(splitTransaction, splitTransaction.amount, splitTransaction.currency, participantAccountIDs, userDetails.accountID, getCurrencyDecimals);
         }
 
         const newReportID = selectedReportID.current;
@@ -322,7 +369,13 @@ function useParticipantSubmission({
             const policyDistance = Object.values(policy?.customUnits ?? {}).find((customUnit) => customUnit.name === CONST.CUSTOM_UNITS.NAME_DISTANCE);
             const defaultCategory = isDistanceRequest(transaction) && policyDistance?.defaultCategory ? policyDistance?.defaultCategory : '';
             const category = isMovingTransactionFromTrackExpense ? (transaction?.category ?? '') : defaultCategory;
-            setMoneyRequestCategory(transaction.transactionID, category, isMovingTransactionFromTrackExpense ? movingPolicy : undefined, isMovingTransactionFromTrackExpense);
+            setMoneyRequestCategory(
+                transaction.transactionID,
+                category,
+                isMovingTransactionFromTrackExpense ? movingPolicy : undefined,
+                getCurrencyDecimals,
+                isMovingTransactionFromTrackExpense,
+            );
 
             if (shouldUpdateTransactionReportID) {
                 setTransactionReport(transaction.transactionID, {reportID: transactionReportID}, true);
@@ -331,10 +384,10 @@ function useParticipantSubmission({
 
         if ((isCategorizing || isShareAction) && numberOfParticipants.current === 0) {
             const email = userDetails.email ?? '';
-            const lastWorkspaceNumber = lastWorkspaceNumberSelector(policies, email);
+            const lastWorkspaceNumber = lastWorkspaceNumberSelector(policies, email, userDetails.displayName);
             const {expenseChatReportID, policyID, policyName} = createDraftWorkspace({
                 introSelected: intro,
-                workspaceName: generateDefaultWorkspaceName(email, lastWorkspaceNumber, translate),
+                workspaceName: generateDefaultWorkspaceName(email, lastWorkspaceNumber, translate, userDetails.displayName),
                 currentUserAccountID: userDetails.accountID,
                 currentUserEmail: email,
                 currency: userDetails.localCurrencyCode ?? CONST.CURRENCY.USD,
@@ -353,12 +406,46 @@ function useParticipantSubmission({
             }
             Navigation.setNavigationActionToMicrotaskQueue(() => {
                 if (isCategorizing) {
-                    Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(action, CONST.IOU.TYPE.SUBMIT, initialTransactionID, expenseChatReportID));
+                    Navigation.navigate(
+                        createDynamicRoute(
+                            DYNAMIC_ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute({action, iouType: CONST.IOU.TYPE.SUBMIT, transactionID: initialTransactionID, reportID: expenseChatReportID}),
+                        ),
+                    );
                 } else {
                     Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(action, CONST.IOU.TYPE.SUBMIT, initialTransactionID, expenseChatReportID, undefined, true));
                 }
             });
             return;
+        }
+
+        // Moving a tracked expense via "Send to someone"/"Submit it to someone" (SUBMIT) or "Share with accountant" (SHARE)
+        // replaces the picker in the RHP stack, so the confirmation page needs an explicit backTo to return to it. Without it,
+        // back falls through to navigateToStartMoneyRequestStep, which dismisses the whole RHP to the report. CATEGORIZE is
+        // excluded because it routes through the category step, which carries its own back path. See #99145.
+        const shouldReturnToParticipantPicker = isMovingTransactionFromTrackExpense && !isCategorizing;
+
+        // For SUBMIT we reconstruct the backTo rather than snapshotting Navigation.getActiveRoute(): pinning the picker's
+        // writable-report guard (its reportID param) to the persistent self DM keeps back writable after goToNextStep moves the
+        // draft off the source report, and carrying isWorkspacesOnly keeps the "Submit to my employer" picker workspaces-only on
+        // back (a positive transaction cannot re-infer that). The base path stays the report the user was viewing (reportID) so
+        // back does not swap the visible report. If the self DM is unresolved (cold start) we fall back to the active route. See
+        // #99371. SHARE always uses the active route because it routes back through the accountant step, not the picker.
+        let participantPickerBackTo: string | undefined;
+        if (shouldReturnToParticipantPicker) {
+            if (isShareAction || !currentSelfDMReportID) {
+                participantPickerBackTo = Navigation.getActiveRoute();
+            } else {
+                participantPickerBackTo = createDynamicRoute(
+                    DYNAMIC_ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute({
+                        action,
+                        iouType: CONST.IOU.TYPE.SUBMIT,
+                        transactionID: initialTransactionID,
+                        reportID: currentSelfDMReportID,
+                        isWorkspacesOnly,
+                    }),
+                    ROUTES.REPORT_WITH_ID.getRoute(reportID),
+                );
+            }
         }
 
         const iouConfirmationPageRoute = ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(
@@ -368,24 +455,21 @@ function useParticipantSubmission({
             newReportID,
             undefined,
             undefined,
-            action === CONST.IOU.ACTION.SHARE ? Navigation.getActiveRoute() : undefined,
+            participantPickerBackTo,
         );
 
         const route = isCategorizing
-            ? ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(action, iouType, initialTransactionID, selectedReportID.current || reportID, iouConfirmationPageRoute)
+            ? createDynamicRoute(
+                  DYNAMIC_ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute({action, iouType, transactionID: initialTransactionID, reportID: selectedReportID.current || reportID}),
+                  iouConfirmationPageRoute,
+              )
             : iouConfirmationPageRoute;
 
         KeyboardUtils.dismissKeyboardAndExecute(() => {
-            // If the backTo parameter is set, we should navigate back to the confirmation screen that is already on the stack.
             // We wrap navigation in setNavigationActionToMicrotaskQueue so that data loading in Onyx and navigation do not occur simultaneously, which resets the amount to 0.
             // More information can be found here: https://github.com/Expensify/App/issues/73728
             Navigation.setNavigationActionToMicrotaskQueue(() => {
-                if (backTo) {
-                    // We don't want to compare params because we just changed the participants.
-                    Navigation.goBack(route, {compareParams: false});
-                } else {
-                    Navigation.navigate(route);
-                }
+                Navigation.goBack(route, {compareParams: false});
             });
         });
     };
@@ -394,3 +478,4 @@ function useParticipantSubmission({
 }
 
 export default useParticipantSubmission;
+export type {UseParticipantSubmissionParams};

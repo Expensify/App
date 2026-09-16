@@ -1,10 +1,13 @@
-import React from 'react';
-import {View} from 'react-native';
 import type {DayProps} from '@components/DatePicker/CalendarPicker/Day';
 import Text from '@components/Text';
+
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import getButtonState from '@libs/getButtonState';
+
+import React from 'react';
+import {View} from 'react-native';
 
 function AvailableBookingDay({disabled, selected, pressed, hovered, children}: DayProps) {
     const themeStyles = useThemeStyles();
@@ -13,7 +16,7 @@ function AvailableBookingDay({disabled, selected, pressed, hovered, children}: D
         <View
             style={[
                 themeStyles.calendarDayContainer,
-                !disabled ? [themeStyles.buttonDefaultBG, StyleUtils.getButtonBackgroundColorStyle(getButtonState(hovered, pressed))] : {},
+                !disabled ? [themeStyles.buttonDefaultBG, StyleUtils.getButtonBackgroundColorStyle(getButtonState({isActive: hovered, isPressed: pressed}))] : {},
                 selected ? themeStyles.buttonSuccess : {},
             ]}
         >

@@ -1,15 +1,20 @@
-import {openAuthSessionAsync} from 'expo-web-browser';
-import React, {useEffect, useRef, useState} from 'react';
-import {StyleSheet, View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Modal from '@components/Modal';
+
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {getShortLivedAuthTokenURL} from '@userActions/Link';
+
 import CONST from '@src/CONST';
+
+import {openAuthSessionAsync} from 'expo-web-browser';
+import React, {useEffect, useRef, useState} from 'react';
+import {StyleSheet, View} from 'react-native';
+
 import type ConnectToHRFlowProps from './types';
 
 function ConnectToHRFlow({setupLink, onDone}: ConnectToHRFlowProps) {
@@ -35,7 +40,7 @@ function ConnectToHRFlow({setupLink, onDone}: ConnectToHRFlowProps) {
         hasOpened.current = true;
 
         getShortLivedAuthTokenURL(setupLink)
-            // CONST.DEEPLINK_BASE_URL is used as a sentinel so ASWebAuthenticationSession
+            // CONST.DEEPLINK_BASE_URL is used as the redirect URL so ASWebAuthenticationSession
             // auto-dismisses when the flow redirects back to the app via deep link.
             .then((url) => {
                 if (isDismissed.current) {
@@ -77,10 +82,7 @@ function ConnectToHRFlow({setupLink, onDone}: ConnectToHRFlowProps) {
             />
             <FullPageOfflineBlockingView>
                 <View style={[StyleSheet.absoluteFill, styles.fullScreenLoading]}>
-                    <ActivityIndicator
-                        size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                        reasonAttributes={{context: 'ConnectToHRFlow'}}
-                    />
+                    <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
                 </View>
             </FullPageOfflineBlockingView>
         </Modal>

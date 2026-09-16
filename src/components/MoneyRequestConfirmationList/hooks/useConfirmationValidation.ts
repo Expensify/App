@@ -1,11 +1,12 @@
-import type {OnyxEntry} from 'react-native-onyx';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
+
 import {isValidPerDiemExpenseAmount} from '@libs/actions/IOU/PerDiem';
 import {getIsMissingAttendeesViolation} from '@libs/AttendeeUtils';
+import {isCategoryMissing} from '@libs/CategoryUtils';
 import {convertToFrontendAmountAsString} from '@libs/CurrencyUtils';
-import {isTaxAmountInvalid, isValidMoneyRequestAmount, validateAmount} from '@libs/MoneyRequestUtils';
+import {isConfirmationAmountMissing, isConfirmationDateMissing, isTaxAmountInvalid, isValidMoneyRequestAmount, validateAmount} from '@libs/MoneyRequestUtils';
 import type {getTagLists as getTagListsFn} from '@libs/PolicyUtils';
-import {isAttendeeTrackingEnabled} from '@libs/PolicyUtils';
+import {canSubmitPerDiemExpenseFromWorkspace, isAttendeeTrackingEnabled} from '@libs/PolicyUtils';
 import {hasEnabledTags, hasMatchingTag} from '@libs/TagsOptionsListUtils';
 import {isValidTimeExpenseAmount} from '@libs/TimeTrackingUtils';
 import {
@@ -14,11 +15,12 @@ import {
     getTag,
     getTaxAmount,
     hasTaxRateWithMatchingValue,
-    isCreatedMissing,
     isMerchantMissing,
+    isPartiallyEnteredScanExpense,
     isScanRequest as isScanRequestUtil,
 } from '@libs/TransactionUtils';
 import {isValidInputLength} from '@libs/ValidationUtils';
+
 import type {IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -26,6 +28,8 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type {Attendee, Participant} from '@src/types/onyx/IOU';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
+
+import type {OnyxEntry} from 'react-native-onyx';
 
 type ValidationResult = {errorKey: TranslationPaths; shouldSetDidConfirmSplit?: boolean} | {errorKey: null};
 
@@ -72,7 +76,6 @@ type UseConfirmationValidationParams = {
     /** Participants selected for this IOU */
     selectedParticipants: Participant[];
 
-    /** Personal details of the current user */
     currentUserPersonalDetails: CurrentUserPersonalDetails;
 
     /** Whether we are editing an existing split bill */
@@ -102,14 +105,29 @@ type UseConfirmationValidationParams = {
     /** Whether the transaction is a per-diem request */
     isPerDiemRequest: boolean;
 
+    /** Whether a tracked expense is being moved into a workspace (submit/categorize/share from the self-DM) */
+    isMovingTransactionFromTrackExpense: boolean;
+
     /** Whether the transaction is a time-tracking request */
     isTimeRequest: boolean;
 
     /** Truthy when the route to the confirmation page has a known error */
     routeError: string | null | undefined;
 
-    /** Whether the new manual expense flow is enabled */
-    isNewManualExpenseFlowEnabled: boolean;
+    /** Whether this surface offers manual entry of the amount / merchant / date. False for splits, test receipts and moved tracked expenses. */
+    canEnterScanFieldsManually: boolean;
+
+    /** ID of a partially filled Scan among the transactions being confirmed. Can name a receipt other than this one. */
+    partiallyManuallyFilledScanID?: string;
+
+    /** Whether the confirmation fields are read-only (date is not inline-editable) */
+    isReadOnly: boolean;
+
+    /** Whether the date field is shown for this flow (mirrors the footer's date visibility) */
+    shouldShowDate: boolean;
+
+    /** Whether the inline tax amount field is currently left empty (new manual expense flow) */
+    isTaxAmountEmpty: boolean;
 };
 
 /**
@@ -151,12 +169,21 @@ function useConfirmationValidation({
     isDistanceRequest,
     isDistanceRequestWithPendingRoute,
     isPerDiemRequest,
+    isMovingTransactionFromTrackExpense,
     isTimeRequest,
     routeError,
-    isNewManualExpenseFlowEnabled,
+    canEnterScanFieldsManually,
+    partiallyManuallyFilledScanID,
+    isReadOnly,
+    shouldShowDate,
+    isTaxAmountEmpty,
 }: UseConfirmationValidationParams): {validate: (paymentType?: PaymentMethodType) => ValidationResult | null} {
     const {getCurrencyDecimals} = useCurrencyListActions();
     const selectedParticipantsCount = selectedParticipants.length;
+    // The Scan confirmation reveals the amount / merchant / date fields behind "Show more". Each is optional there:
+    // a field left blank is still read off the receipt, but one the user does fill in is subject to the same
+    // validation as a manually entered one.
+    const shouldValidateEnteredAmount = transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.MANUAL || canEnterScanFieldsManually;
     const validate = (paymentType?: PaymentMethodType): ValidationResult | null => {
         if (!!routeError || !transactionID) {
             return null;
@@ -173,15 +200,23 @@ function useConfirmationValidation({
         if (!isScanRequestUtil(transaction) && !isTimeRequest && !isDistanceRequest && iouAmount === 0 && isP2P) {
             return {errorKey: 'common.error.invalidAmount'};
         }
-        // isAmountSet only applies to manual expenses — scan, per diem, distance, and time set amount programmatically.
-        if (isNewManualExpenseFlowEnabled && transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.MANUAL && !transaction?.isAmountSet) {
+        // `isConfirmationAmountMissing` only applies to manually entered amounts. Per diem, distance and time set the
+        // amount programmatically, and a scan reads it off the receipt whenever the user leaves the field blank.
+        if (isConfirmationAmountMissing(transaction, canEnterScanFieldsManually)) {
+            return {errorKey: 'common.error.fieldRequired'};
+        }
+        // The three fields are all-or-nothing, so a partially filled set is blocked and each blank field flags inline.
+        if (isPartiallyEnteredScanExpense(transaction, canEnterScanFieldsManually)) {
+            return {errorKey: 'common.error.fieldRequired'};
+        }
+        // On a multi-scan the same rule has to hold for the receipts that are not on screen, since Create submits
+        // all of them at once. The caller brings the offending one into view so its blank fields raise this inline.
+        if (partiallyManuallyFilledScanID) {
             return {errorKey: 'common.error.fieldRequired'};
         }
         if (
-            isNewManualExpenseFlowEnabled &&
-            transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.MANUAL &&
+            shouldValidateEnteredAmount &&
             transaction?.isAmountSet &&
-            !isScanRequestUtil(transaction) &&
             !isTimeRequest &&
             !isDistanceRequest &&
             !isEditingSplitBill &&
@@ -189,8 +224,9 @@ function useConfirmationValidation({
         ) {
             return {errorKey: 'common.error.invalidAmount'};
         }
-        // The date is an inline required field in the new manual flow; block confirmation when the user cleared it.
-        if (isNewManualExpenseFlowEnabled && transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.MANUAL && isCreatedMissing(transaction)) {
+        // The date is an inline, clearable required field for every type that shows it (manual, distance, time,
+        // invoice, ...). Block confirmation when the user cleared it.
+        if (isConfirmationDateMissing(transaction, shouldShowDate, isReadOnly, canEnterScanFieldsManually)) {
             return {errorKey: 'common.error.fieldRequired'};
         }
         const merchantValue = iouMerchant ?? '';
@@ -216,7 +252,9 @@ function useConfirmationValidation({
 
         const isCategoryBeingCreated = policyCategories?.[iouCategory]?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD;
 
-        if (iouCategory && policyCategories && !policyCategories[iouCategory]?.enabled && !isCategoryBeingCreated) {
+        // The 'Uncategorized'/'none' placeholder means no category, so treat it as missing (not out of policy) here, mirroring
+        // isCategoryMissing/ViolationsUtils. Otherwise it wrongly blocks confirmation when the policy lacks that literal category.
+        if (iouCategory && !isCategoryMissing(iouCategory) && policyCategories && !policyCategories[iouCategory]?.enabled && !isCategoryBeingCreated) {
             return {errorKey: 'violations.categoryOutOfPolicy'};
         }
 
@@ -248,10 +286,14 @@ function useConfirmationValidation({
             return {errorKey: 'violations.taxOutOfPolicy'};
         }
 
-        // In the new manual expense flow the tax amount is edited inline, so the standalone tax amount step's
+        if (shouldShowTax && !isDistanceRequest && isTaxAmountEmpty) {
+            return {errorKey: 'iou.error.invalidAmount'};
+        }
+
+        // In the manual expense flow the tax amount is edited inline, so the standalone tax amount step's
         // guard (tax amount can't exceed the tax computed from the rate and the expense amount) runs here.
         // This also blocks creation when an invalid tax amount was persisted to the draft and then reloaded.
-        if (isNewManualExpenseFlowEnabled && shouldShowTax && !isDistanceRequest) {
+        if (shouldShowTax && !isDistanceRequest) {
             const decimals = getCurrencyDecimals(iouCurrencyCode);
             const maxTaxAmount = getCalculatedTaxAmount(policy, transaction, iouCurrencyCode, decimals);
             const currentTaxAmount = convertToFrontendAmountAsString(Math.abs(getTaxAmount(transaction, false)), decimals);
@@ -262,6 +304,13 @@ function useConfirmationValidation({
 
         if (isPerDiemRequest && (transaction?.comment?.customUnit?.subRates ?? []).length === 0) {
             return {errorKey: 'iou.error.invalidSubrateLength'};
+        }
+
+        // Per diem is a Control-plan feature, so block moving a tracked per diem expense into a workspace that can't
+        // process it (e.g. a Submit workspace created via "Submit to my employer"). Without this guard the submission
+        // falls through to a request the backend can't resolve, leaving the destination report stuck loading.
+        if (isPerDiemRequest && isMovingTransactionFromTrackExpense && !canSubmitPerDiemExpenseFromWorkspace(policy)) {
+            return {errorKey: 'iou.moveExpensesError'};
         }
 
         if (iouType !== CONST.IOU.TYPE.PAY) {
@@ -286,7 +335,9 @@ function useConfirmationValidation({
                 return {errorKey: 'iou.error.genericSmartscanFailureMessage', shouldSetDidConfirmSplit: true};
             }
 
-            if (isEditingSplitBill && iouAmount === 0) {
+            const isFullyCoveredByCommuterExclusion =
+                isDistanceRequest && (transaction?.comment?.customUnit?.commuterExclusion ?? 0) > 0 && transaction?.comment?.customUnit?.reimbursableDistance === 0;
+            if (isEditingSplitBill && iouAmount === 0 && !isFullyCoveredByCommuterExclusion) {
                 return {errorKey: 'iou.error.invalidAmount'};
             }
 

@@ -1,8 +1,10 @@
+import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
+
+import type {FileObject} from '@src/types/utils/Attachment';
+
 import type {MarkdownTextInput} from '@expensify/react-native-live-markdown';
 import type {Ref} from 'react';
 import type {StyleProp, TextInputProps, TextInputSelectionChangeEvent, TextStyle} from 'react-native';
-import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
-import type {FileObject} from '@src/types/utils/Attachment';
 
 type TextSelection = {
     start: number;
@@ -57,16 +59,12 @@ type ComposerProps = Omit<TextInputProps, 'onClear'> &
         /** Update selection position on change */
         onSelectionChange?: (event: CustomSelectionChangeEvent) => void;
 
-        /** Selection Object */
         selection?: TextSelection;
-
-        /** Should we calculate the caret position */
         shouldCalculateCaretPosition?: boolean;
 
         /** Function to check whether composer is covered up or not */
         checkComposerVisibility?: () => boolean;
 
-        /** Whether the full composer is open */
         isComposerFullSize?: boolean;
 
         /** Should make the input only scroll inside the element avoid scroll out to parent */

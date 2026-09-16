@@ -1,7 +1,10 @@
-import {useEffect} from 'react';
 import KeyboardShortcut from '@libs/KeyboardShortcut';
+
 import toggleTestToolsModal from '@userActions/TestTool';
+
 import CONST from '@src/CONST';
+
+import {useEffect} from 'react';
 
 function useDebugShortcut() {
     useEffect(() => {

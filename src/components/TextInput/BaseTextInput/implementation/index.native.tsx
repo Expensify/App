@@ -1,8 +1,3 @@
-import {Str} from 'expensify-common';
-import React, {useCallback, useEffect, useRef, useState} from 'react';
-import type {BlurEvent, FocusEvent, GestureResponderEvent, LayoutChangeEvent, StyleProp, TextInput, ViewStyle} from 'react-native';
-import {StyleSheet, View} from 'react-native';
-import {Easing, useSharedValue, withTiming} from 'react-native-reanimated';
 import ActivityIndicator from '@components/ActivityIndicator';
 import Checkbox from '@components/Checkbox';
 import FormHelpMessage from '@components/FormHelpMessage';
@@ -18,6 +13,7 @@ import * as styleConst from '@components/TextInput/styleConst';
 import TextInputClearButton from '@components/TextInput/TextInputClearButton';
 import TextInputLabel from '@components/TextInput/TextInputLabel';
 import TextInputMeasurement from '@components/TextInput/TextInputMeasurement';
+
 import useHtmlPaste from '@hooks/useHtmlPaste';
 import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -27,11 +23,20 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTextInputAccessibility from '@hooks/useTextInputAccessibility';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import getLandscapeTextInputRefProxy from '@libs/getLandscapeTextInputRefProxy';
 import isInputAutoFilled from '@libs/isInputAutoFilled';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
+
+import type {BlurEvent, FocusEvent, GestureResponderEvent, LayoutChangeEvent, StyleProp, TextInput, ViewStyle} from 'react-native';
+
+import {Str} from 'expensify-common';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
+import {StyleSheet, View} from 'react-native';
+import {Easing, useSharedValue, withTiming} from 'react-native-reanimated';
 
 function BaseTextInput({
     label = '',
@@ -293,6 +298,7 @@ function BaseTextInput({
     const autoGrowMeasurementStyles = StyleUtils.getTextInputMeasurementStyles(newTextInputContainerStyles);
 
     const verticalPaddingDiff = StyleUtils.getVerticalPaddingDiffFromStyle(newTextInputContainerStyles);
+    const autoGrowVerticalInset = StyleUtils.getAutoGrowHeightInputVerticalInset(newTextInputContainerStyles, isMultiline && hasLabel);
     const inputPaddingLeft = !!prefixCharacter && StyleUtils.getPaddingLeft(prefixCharacterPadding + styles.pl1.paddingLeft);
     const inputPaddingRight = !!suffixCharacter && StyleUtils.getPaddingRight(StyleUtils.getCharacterPadding(suffixCharacter) + styles.pr1.paddingRight);
 
@@ -302,10 +308,6 @@ function BaseTextInput({
     const resolvedAccessibilityLabel = inputProps.accessibilityLabel ?? accessibilityLabel;
     const {accessibilityValue, accessibilityLabelledBy, hiddenLabel} = useTextInputAccessibility(value, resolvedAccessibilityLabel);
     const isKeyboardType = props.keyboardType ? undefined : props.inputMode;
-    const loadingSpinnerReasonAttributes: SkeletonSpanReasonAttributes = {
-        context: 'BaseTextInput.isLoading',
-        isLoading: !!inputProps.isLoading,
-    };
 
     return (
         <>
@@ -395,7 +397,6 @@ function BaseTextInput({
                                     const elementRef = element as AnimatedTextInputRef | AnimatedMarkdownTextInputRef | null;
                                     input.current = elementRef;
                                 }}
-                                // eslint-disable-next-line
                                 {...inputProps}
                                 autoFocus={isInLandscapeMode && !shouldAllowFocusInLandscapeMode ? false : inputProps.autoFocus}
                                 accessibilityLabel={resolvedAccessibilityLabel}
@@ -421,7 +422,10 @@ function BaseTextInput({
 
                                     // Stop scrollbar flashing when breaking lines with autoGrowHeight enabled.
                                     ...(autoGrowHeight && !isAutoGrowHeightMarkdown
-                                        ? [StyleUtils.getAutoGrowHeightInputStyle(textInputHeight, typeof maxAutoGrowHeight === 'number' ? maxAutoGrowHeight : 0), styles.verticalAlignTop]
+                                        ? [
+                                              StyleUtils.getAutoGrowHeightInputStyle(textInputHeight, typeof maxAutoGrowHeight === 'number' ? maxAutoGrowHeight : 0, autoGrowVerticalInset),
+                                              styles.verticalAlignTop,
+                                          ]
                                         : []),
                                     isAutoGrowHeightMarkdown ? [StyleUtils.getMarkdownMaxHeight(maxAutoGrowHeight), styles.verticalAlignTop] : undefined,
                                     // Add disabled color theme when field is not editable.
@@ -469,10 +473,9 @@ function BaseTextInput({
                                 <ActivityIndicator
                                     color={theme.iconSuccessFill}
                                     style={[StyleUtils.getTextInputIconContainerStyles(hasLabel, false, verticalPaddingDiff), styles.ml1, loadingSpinnerStyle]}
-                                    reasonAttributes={loadingSpinnerReasonAttributes}
                                 />
                             )}
-                            {/* Render rightHandSideComponent only when clear button is not shown 
+                            {/* Render rightHandSideComponent only when clear button is not shown
                                 This prevents UI conflicts between clear button and custom components like flip/currency buttons */}
                             {!shouldShowClearButton && shouldHideClearButton && !inputProps.isLoading && !!rightHandSideComponent && (
                                 <View style={[StyleUtils.getTextInputIconContainerStyles(hasLabel, false, verticalPaddingDiff)]}>{rightHandSideComponent}</View>

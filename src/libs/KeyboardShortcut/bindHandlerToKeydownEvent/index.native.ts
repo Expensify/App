@@ -1,4 +1,5 @@
 import getKeyEventModifiers from '@libs/KeyboardShortcut/getKeyEventModifiers';
+
 import type BindHandlerToKeydownEvent from './types';
 
 /**

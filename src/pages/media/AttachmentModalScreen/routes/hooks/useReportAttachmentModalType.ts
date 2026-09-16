@@ -1,8 +1,9 @@
-import {Str} from 'expensify-common';
-import {useEffect, useState} from 'react';
 import CONST from '@src/CONST';
 import type {FileObject} from '@src/types/utils/Attachment';
 import type ModalType from '@src/types/utils/ModalType';
+
+import {Str} from 'expensify-common';
+import {useEffect, useState} from 'react';
 
 function isPdfFile(source: string | number, fileObject: FileObject) {
     if (!source) {

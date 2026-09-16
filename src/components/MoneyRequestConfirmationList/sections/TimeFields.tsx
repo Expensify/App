@@ -1,26 +1,22 @@
-import React from 'react';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import {useConfirmationFields} from '@components/MoneyRequestConfirmationFields/context';
+
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import Navigation from '@libs/Navigation/Navigation';
+
 import CONST from '@src/CONST';
-import type {IOUAction, IOUType} from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+
+import React from 'react';
+
 import {timeStateSelector} from './selectors';
 import useTransactionSelector from './useTransactionSelector';
 
-type TimeFieldsProps = {
-    isReadOnly: boolean;
-    didConfirm: boolean;
-    transactionID: string | undefined;
-    action: IOUAction;
-    iouType: Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND>;
-    reportID: string;
-    reportActionID: string | undefined;
-};
-
-function TimeFields({isReadOnly, didConfirm, transactionID, action, iouType, reportID, reportActionID}: TimeFieldsProps) {
+function TimeFields() {
+    const {isReadOnly, didConfirm, transactionID, action, iouType, reportID, reportActionID} = useConfirmationFields();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();

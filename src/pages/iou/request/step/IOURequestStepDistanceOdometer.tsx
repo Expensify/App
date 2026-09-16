@@ -1,17 +1,18 @@
-import {useIsFocused} from '@react-navigation/native';
-import lodashIsEmpty from 'lodash/isEmpty';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import Button from '@components/Button';
 import FormHelpMessage from '@components/FormHelpMessage';
+import KeyboardAvoidingView from '@components/KeyboardAvoidingView';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import ReceiptImage from '@components/ReceiptImage';
+import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
+
+import useAllTransactionViolations from '@hooks/useAllTransactionViolations';
+import useBlockDistanceRequest from '@hooks/useBlockDistanceRequest';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useDiscardChangesConfirmation from '@hooks/useDiscardChangesConfirmation';
@@ -30,43 +31,64 @@ import useSelfDMReport from '@hooks/useSelfDMReport';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {setMoneyRequestDistance} from '@libs/actions/IOU/MoneyRequest';
 import {setDraftSplitTransaction} from '@libs/actions/IOU/Split';
 import {updateMoneyRequestDistance} from '@libs/actions/IOU/UpdateMoneyRequest';
 import {clearOdometerDraft, getOdometerHasUnsavedChanges, removeMoneyRequestOdometerImage, saveOdometerDraft, setMoneyRequestOdometerReading} from '@libs/actions/OdometerTransactionUtils';
 import {restoreOriginalTransactionFromBackupWithImageCleanup} from '@libs/actions/TransactionEdit';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
+import focusComposerWithDelay from '@libs/focusComposerWithDelay';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import getPlatform from '@libs/getPlatform';
 import {shouldUseTransactionDraft} from '@libs/IOUUtils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import {roundToTwoDecimalPlaces} from '@libs/NumberUtils';
 import {getOdometerImageIdentity} from '@libs/OdometerUtils';
+import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
 import {isPolicyExpenseChat as isPolicyExpenseChatUtils} from '@libs/ReportUtils';
 import shouldUseDefaultExpensePolicyUtil from '@libs/shouldUseDefaultExpensePolicy';
 import {startSpan} from '@libs/telemetry/activeSpans';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+import {personalDetailsLoginSelector} from '@src/selectors/PersonalDetails';
 import type Transaction from '@src/types/onyx/Transaction';
 import type {FileObject} from '@src/types/utils/Attachment';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {useIsFocused} from '@react-navigation/native';
+import lodashIsEmpty from 'lodash/isEmpty';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import {View} from 'react-native';
+
+import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
+
 import useOdometerImageHandlers from './IOURequestStepDistance/hooks/useOdometerImageHandlers';
+import useOdometerKeyboardVerticalOffset from './IOURequestStepDistance/hooks/useOdometerKeyboardVerticalOffset';
 import useOdometerNavigation from './IOURequestStepDistance/hooks/useOdometerNavigation';
 import useOdometerReadingsState from './IOURequestStepDistance/hooks/useOdometerReadingsState';
 import useOdometerTransactionBackup from './IOURequestStepDistance/hooks/useOdometerTransactionBackup';
 import StepScreenWrapper from './StepScreenWrapper';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
-import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
 
 type IOURequestStepDistanceOdometerProps = WithCurrentUserPersonalDetailsProps &
     WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_DISTANCE_ODOMETER | typeof SCREENS.MONEY_REQUEST.DISTANCE_CREATE> & {
-        /** The transaction object being modified in Onyx */
         transaction: OnyxEntry<Transaction>;
     };
+
+/** `BaseTextInputRef` also covers masked-input refs (`HTMLFormElement`), which don't have `isFocused`. */
+function isFocusableTextInputRef(ref: BaseTextInputRef): ref is AnimatedTextInputRef {
+    return 'isFocused' in ref;
+}
 
 function IOURequestStepDistanceOdometer({
     report,
@@ -77,6 +99,7 @@ function IOURequestStepDistanceOdometer({
     transaction,
     currentUserPersonalDetails,
 }: IOURequestStepDistanceOdometerProps) {
+    const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
     const {translate, fromLocaleDigit, numberFormat} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -104,8 +127,10 @@ function IOURequestStepDistanceOdometer({
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [skipConfirmation] = useOnyx(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${transactionID}`);
     const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
+    const allTransactionViolations = useAllTransactionViolations(transaction?.transactionID);
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
-    const [parentReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
+    const [iouReportOwnerLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(parentReport?.ownerAccountID)});
+    const [reportPolicyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(parentReport?.policyID)}`);
     const policy = usePolicy(report?.policyID);
     const distanceOriginalPolicy = useDistanceRateOriginalPolicy(transaction?.comment?.customUnit?.customUnitRateID);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policy?.id}`);
@@ -133,11 +158,25 @@ function IOURequestStepDistanceOdometer({
     const currentUserEmailParam = currentUserPersonalDetails.login ?? '';
     const delegateAccountID = useDelegateAccountID();
     const isFocused = useIsFocused();
+    // Android can recycle this screen's native view while it's backgrounded, leaving KeyboardAvoidingView's internal
+    // state pointing at a stale view. Remounting is the only way to reset it. Scoped to Android, since that's the
+    // only platform where this recycling happens — iOS/web would otherwise pay for a remount they don't need.
+    let keyboardAvoidingViewInstanceKey = 'static';
+    if (getPlatform() === CONST.PLATFORM.ANDROID) {
+        keyboardAvoidingViewInstanceKey = isFocused ? 'focused' : 'unfocused';
+    }
+    const {keyboardVerticalOffset, onLayout: measureOwnLayout} = useOdometerKeyboardVerticalOffset();
 
     const shouldUseDefaultExpensePolicy = useMemo(
         () => shouldUseDefaultExpensePolicyUtil(iouType, defaultExpensePolicy, amountOwed, userBillingGracePeriodEnds, ownerBillingGracePeriodEnd, currentUserAccountIDParam),
         [iouType, defaultExpensePolicy, amountOwed, userBillingGracePeriodEnds, ownerBillingGracePeriodEnd, currentUserAccountIDParam],
     );
+    const shouldAutoReportToDefaultWorkspace = shouldUseDefaultExpensePolicy && (!!defaultExpensePolicy?.autoReporting || !!personalPolicy?.autoReporting);
+    const blockDistanceRequestIfNeeded = useBlockDistanceRequest({
+        policyID: report?.policyID ?? (shouldAutoReportToDefaultWorkspace ? defaultExpensePolicy?.id : undefined),
+        isOdometerDistanceRequest: true,
+        isEditingExistingDistanceRequest: isEditing,
+    });
 
     const mileageRate = DistanceRequestUtils.getRate({
         transaction: currentTransaction,
@@ -163,6 +202,8 @@ function IOURequestStepDistanceOdometer({
     });
 
     const [odometerDraft] = useOnyx(ONYXKEYS.ODOMETER_DRAFT);
+    const isTrackIntentUser = isTrackOnboardingChoice(introSelected?.choice);
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
     const {
         startReading,
@@ -179,7 +220,7 @@ function IOURequestStepDistanceOdometer({
         initialStartImageRef,
         initialEndImageRef,
         resetOdometerLocalState,
-        hasInitializedRefs,
+        readingsBaseline,
     } = useOdometerReadingsState({currentTransaction, isEditing, selectedTab, isLoadingSelectedTab, hasVerifiedBlobs, odometerDraft, userHasUnsavedTypingRef});
 
     useEffect(() => {
@@ -296,6 +337,7 @@ function IOURequestStepDistanceOdometer({
         }
         return true;
     };
+    const readingsMatchBaseline = (nextStart: string, nextEnd: string) => nextStart === initialStartReadingRef.current && nextEnd === initialEndReadingRef.current;
 
     const handleStartReadingChange = (text: string) => {
         if (!isOdometerInputValid(text, startReading)) {
@@ -304,7 +346,7 @@ function IOURequestStepDistanceOdometer({
         const textForDisplay = DistanceRequestUtils.prepareTextForDisplay(text);
         setStartReading(textForDisplay);
         startReadingRef.current = textForDisplay;
-        userHasUnsavedTypingRef.current = true;
+        userHasUnsavedTypingRef.current = !readingsMatchBaseline(textForDisplay, endReadingRef.current);
         if (formError) {
             setFormError('');
         }
@@ -317,7 +359,7 @@ function IOURequestStepDistanceOdometer({
         const textForDisplay = DistanceRequestUtils.prepareTextForDisplay(text);
         setEndReading(textForDisplay);
         endReadingRef.current = textForDisplay;
-        userHasUnsavedTypingRef.current = true;
+        userHasUnsavedTypingRef.current = !readingsMatchBaseline(startReadingRef.current, textForDisplay);
         if (formError) {
             setFormError('');
         }
@@ -367,7 +409,10 @@ function IOURequestStepDistanceOdometer({
                         odometerStart: start,
                         odometerEnd: end,
                     },
+                    getCurrencyDecimals,
+                    getCurrencySymbol,
                     policy,
+                    personalPolicy?.outputCurrency,
                 );
                 Navigation.goBack();
                 return;
@@ -385,6 +430,7 @@ function IOURequestStepDistanceOdometer({
                     transaction,
                     transactionThreadReport: report,
                     parentReport,
+                    iouReportOwnerLogin,
                     distance: calculatedDistance,
                     odometerStart: start,
                     odometerEnd: end,
@@ -397,9 +443,15 @@ function IOURequestStepDistanceOdometer({
                     currentUserAccountIDParam,
                     currentUserEmailParam,
                     isASAPSubmitBetaEnabled: false,
-                    parentReportNextStep,
                     recentWaypoints,
                     delegateAccountID,
+                    reportPolicyTags,
+                    isTrackIntentUser,
+                    personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
+                    violations: allTransactionViolations,
+                    getCurrencyDecimals,
+                    getCurrencySymbol,
+                    rules,
                 });
             }
             Navigation.goBack();
@@ -447,6 +499,10 @@ function IOURequestStepDistanceOdometer({
 
     // Handle form submission with validation
     const handleNext = () => {
+        if (blockDistanceRequestIfNeeded()) {
+            return;
+        }
+
         // Validation: Start and end readings must not be empty
         if (!startReading || !endReading) {
             setFormError(translate('iou.error.invalidReadings'));
@@ -485,7 +541,7 @@ function IOURequestStepDistanceOdometer({
     const getHasUnsavedChanges = () =>
         getOdometerHasUnsavedChanges({
             isGuardActive:
-                hasInitializedRefs.current &&
+                readingsBaseline.hasInitialized &&
                 isFocused &&
                 !isEditing &&
                 !shouldBypassDiscardConfirmationRef.current &&
@@ -498,7 +554,7 @@ function IOURequestStepDistanceOdometer({
             transactionEndImageUri: getOdometerImageIdentity(transaction?.comment?.odometerEndImage),
             baselineStartImageUri: getOdometerImageIdentity(initialStartImageRef.current),
             baselineEndImageUri: getOdometerImageIdentity(initialEndImageRef.current),
-            hasReadingChanges: startReadingRef.current !== initialStartReadingRef.current || endReadingRef.current !== initialEndReadingRef.current,
+            hasReadingChanges: startReading !== readingsBaseline.start || endReading !== readingsBaseline.end,
         });
 
     const handleTabSwitchDiscard = () => {
@@ -511,9 +567,16 @@ function IOURequestStepDistanceOdometer({
         setFormError('');
     };
 
-    const restoreLastInputFocus = useCallback(() => {
-        lastFocusedInputRef.current?.focus();
-    }, []);
+    // The inputs are `editable={!isDiscardModalVisible}`, so a bare focus() call here would still be a no-op:
+    // this fires before React commits the `isDiscardModalVisible: false` update, and on Android, before the
+    // native window even regains focus. focusComposerWithDelay waits on both (see its Android-specific gates)
+    // before focusing, so no extra effect/state is needed to defer past the commit.
+    const restoreLastInputFocus = () => {
+        const input = lastFocusedInputRef.current;
+        if (input && isFocusableTextInputRef(input)) {
+            focusComposerWithDelay(input)(true);
+        }
+    };
 
     useDiscardChangesConfirmation({
         getHasUnsavedChanges,
@@ -570,144 +633,157 @@ function IOURequestStepDistanceOdometer({
             shouldShowWrapper={!isCreatingNewRequest}
             includeSafeAreaPaddingBottom
         >
-            <View style={[styles.flex1, styles.flexColumn, styles.justifyContentBetween, styles.ph5, styles.pt5, styles.mb5]}>
-                <View>
-                    {/* Start Reading */}
-                    <View style={[styles.mb6, styles.flexRow, !isEditing && [styles.alignItemsCenter, styles.gap3]]}>
-                        <View style={[styles.flex1]}>
-                            <TextInput
-                                key={`start-${inputKey}`}
-                                ref={startReadingInputRef}
-                                label={translate('distance.odometer.startReading')}
-                                accessibilityLabel={translate('distance.odometer.startReading')}
-                                value={startReading}
-                                onChangeText={handleStartReadingChange}
-                                keyboardType={CONST.KEYBOARD_TYPE.DECIMAL_PAD}
-                                inputMode={CONST.INPUT_MODE.DECIMAL}
-                                editable={!isDiscardModalVisible}
-                                onFocus={() => {
-                                    lastFocusedInputRef.current = startReadingInputRef.current;
-                                }}
-                            />
-                        </View>
-                        {!isEditing && (
-                            <PressableWithFeedback
-                                accessibilityRole="button"
-                                accessibilityLabel={translate('distance.odometer.startTitle')}
-                                sentryLabel={CONST.SENTRY_LABEL.ODOMETER_EXPENSE.CAPTURE_IMAGE_START}
-                                onPress={handlePressStartImage}
-                                style={[
-                                    StyleUtils.getWidthAndHeightStyle(variables.inputHeight, variables.inputHeight),
-                                    StyleUtils.getBorderRadiusStyle(variables.componentBorderRadiusMedium),
-                                    styles.overflowHidden,
-                                    StyleUtils.getBackgroundColorStyle(theme.border),
-                                ]}
-                            >
-                                <ReceiptImage
-                                    source={startImageSource ?? ''}
-                                    shouldUseThumbnailImage
-                                    thumbnailContainerStyles={styles.bgTransparent}
-                                    isAuthTokenRequired
-                                    fallbackIcon={icons.GalleryPlus}
-                                    fallbackIconSize={variables.iconSizeNormal}
-                                    fallbackIconColor={theme.icon}
-                                    iconSize="x-small"
-                                    loadingIconSize="small"
-                                    shouldUseInitialObjectPosition
+            {/* The create flow has no ScreenWrapper of its own (`shouldShowWrapper` is false), so this is what keeps the buttons above the keyboard here. */}
+            <KeyboardAvoidingView
+                key={keyboardAvoidingViewInstanceKey}
+                testID="odometerKeyboardAvoidingView"
+                style={styles.flex1}
+                behavior="padding"
+                enabled={isCreatingNewRequest}
+                keyboardVerticalOffset={keyboardVerticalOffset}
+                shouldOffsetBottomSafeAreaPadding
+                onLayout={measureOwnLayout}
+            >
+                <View
+                    testID="odometerContentContainer"
+                    style={[styles.flex1, styles.flexColumn, styles.justifyContentBetween, styles.ph5, styles.pt5, styles.mb5]}
+                >
+                    <View>
+                        {/* Start Reading */}
+                        <View style={[styles.mb6, styles.flexRow, !isEditing && [styles.alignItemsCenter, styles.gap3]]}>
+                            <View style={[styles.flex1]}>
+                                <TextInput
+                                    key={`start-${inputKey}`}
+                                    ref={startReadingInputRef}
+                                    label={translate('distance.odometer.startReading')}
+                                    accessibilityLabel={translate('distance.odometer.startReading')}
+                                    value={startReading}
+                                    onChangeText={handleStartReadingChange}
+                                    keyboardType={CONST.KEYBOARD_TYPE.DECIMAL_PAD}
+                                    inputMode={CONST.INPUT_MODE.DECIMAL}
+                                    editable={!isDiscardModalVisible}
+                                    onFocus={() => {
+                                        lastFocusedInputRef.current = startReadingInputRef.current;
+                                    }}
                                 />
-                            </PressableWithFeedback>
-                        )}
-                    </View>
-                    {/* End Reading */}
-                    <View style={[styles.mb6, styles.flexRow, !isEditing && [styles.alignItemsCenter, styles.gap3]]}>
-                        <View style={[styles.flex1]}>
-                            <TextInput
-                                key={`end-${inputKey}`}
-                                ref={endReadingInputRef}
-                                label={translate('distance.odometer.endReading')}
-                                accessibilityLabel={translate('distance.odometer.endReading')}
-                                value={endReading}
-                                onChangeText={handleEndReadingChange}
-                                keyboardType={CONST.KEYBOARD_TYPE.DECIMAL_PAD}
-                                inputMode={CONST.INPUT_MODE.DECIMAL}
-                                editable={!isDiscardModalVisible}
-                                onFocus={() => {
-                                    lastFocusedInputRef.current = endReadingInputRef.current;
-                                }}
-                            />
+                            </View>
+                            {!isEditing && (
+                                <PressableWithFeedback
+                                    accessibilityRole="button"
+                                    accessibilityLabel={translate('distance.odometer.startTitle')}
+                                    sentryLabel={CONST.SENTRY_LABEL.ODOMETER_EXPENSE.CAPTURE_IMAGE_START}
+                                    onPress={handlePressStartImage}
+                                    style={[
+                                        StyleUtils.getWidthAndHeightStyle(variables.inputHeight, variables.inputHeight),
+                                        StyleUtils.getBorderRadiusStyle(variables.componentBorderRadiusMedium),
+                                        styles.overflowHidden,
+                                        StyleUtils.getBackgroundColorStyle(theme.border),
+                                    ]}
+                                >
+                                    <ReceiptImage
+                                        source={startImageSource ?? ''}
+                                        shouldUseThumbnailImage
+                                        thumbnailContainerStyles={styles.bgTransparent}
+                                        isAuthTokenRequired
+                                        fallbackIcon={icons.GalleryPlus}
+                                        fallbackIconSize={variables.iconSizeNormal}
+                                        fallbackIconColor={theme.icon}
+                                        iconSize="x-small"
+                                        loadingIconSize="small"
+                                        shouldUseInitialObjectPosition
+                                    />
+                                </PressableWithFeedback>
+                            )}
                         </View>
-                        {!isEditing && (
-                            <PressableWithFeedback
-                                accessibilityRole="button"
-                                accessibilityLabel={translate('distance.odometer.endTitle')}
-                                sentryLabel={CONST.SENTRY_LABEL.ODOMETER_EXPENSE.CAPTURE_IMAGE_END}
-                                onPress={handlePressEndImage}
-                                style={[
-                                    StyleUtils.getWidthAndHeightStyle(variables.inputHeight, variables.inputHeight),
-                                    StyleUtils.getBorderRadiusStyle(variables.componentBorderRadiusMedium),
-                                    styles.overflowHidden,
-                                    StyleUtils.getBackgroundColorStyle(theme.border),
-                                ]}
-                            >
-                                <ReceiptImage
-                                    source={endImageSource ?? ''}
-                                    shouldUseThumbnailImage
-                                    thumbnailContainerStyles={styles.bgTransparent}
-                                    isAuthTokenRequired
-                                    fallbackIcon={icons.GalleryPlus}
-                                    fallbackIconSize={variables.iconSizeNormal}
-                                    fallbackIconColor={theme.icon}
-                                    iconSize="x-small"
-                                    loadingIconSize="small"
-                                    shouldUseInitialObjectPosition
+                        {/* End Reading */}
+                        <View style={[styles.mb6, styles.flexRow, !isEditing && [styles.alignItemsCenter, styles.gap3]]}>
+                            <View style={[styles.flex1]}>
+                                <TextInput
+                                    key={`end-${inputKey}`}
+                                    ref={endReadingInputRef}
+                                    label={translate('distance.odometer.endReading')}
+                                    accessibilityLabel={translate('distance.odometer.endReading')}
+                                    value={endReading}
+                                    onChangeText={handleEndReadingChange}
+                                    keyboardType={CONST.KEYBOARD_TYPE.DECIMAL_PAD}
+                                    inputMode={CONST.INPUT_MODE.DECIMAL}
+                                    editable={!isDiscardModalVisible}
+                                    onFocus={() => {
+                                        lastFocusedInputRef.current = endReadingInputRef.current;
+                                    }}
                                 />
-                            </PressableWithFeedback>
-                        )}
-                    </View>
+                            </View>
+                            {!isEditing && (
+                                <PressableWithFeedback
+                                    accessibilityRole="button"
+                                    accessibilityLabel={translate('distance.odometer.endTitle')}
+                                    sentryLabel={CONST.SENTRY_LABEL.ODOMETER_EXPENSE.CAPTURE_IMAGE_END}
+                                    onPress={handlePressEndImage}
+                                    style={[
+                                        StyleUtils.getWidthAndHeightStyle(variables.inputHeight, variables.inputHeight),
+                                        StyleUtils.getBorderRadiusStyle(variables.componentBorderRadiusMedium),
+                                        styles.overflowHidden,
+                                        StyleUtils.getBackgroundColorStyle(theme.border),
+                                    ]}
+                                >
+                                    <ReceiptImage
+                                        source={endImageSource ?? ''}
+                                        shouldUseThumbnailImage
+                                        thumbnailContainerStyles={styles.bgTransparent}
+                                        isAuthTokenRequired
+                                        fallbackIcon={icons.GalleryPlus}
+                                        fallbackIconSize={variables.iconSizeNormal}
+                                        fallbackIconColor={theme.icon}
+                                        iconSize="x-small"
+                                        loadingIconSize="small"
+                                        shouldUseInitialObjectPosition
+                                    />
+                                </PressableWithFeedback>
+                            )}
+                        </View>
 
-                    {/* Total Distance Display - always shown, updated live */}
-                    <View style={[styles.borderRadiusComponentNormal, {backgroundColor: theme.componentBG}]}>
-                        <Text style={[styles.textSupporting]}>
-                            {`${translate('distance.odometer.totalDistance')}: ${totalDistance !== null ? roundToTwoDecimalPlaces(totalDistance) : 0} ${unit}`}
-                        </Text>
+                        {/* Total Distance Display - always shown, updated live */}
+                        <View style={[styles.borderRadiusComponentNormal, {backgroundColor: theme.componentBG}]}>
+                            <Text style={[styles.textSupporting]}>
+                                {`${translate('distance.odometer.totalDistance')}: ${totalDistance !== null ? roundToTwoDecimalPlaces(totalDistance) : 0} ${unit}`}
+                            </Text>
+                        </View>
+                    </View>
+                    <View>
+                        {/* Form Error Message */}
+                        {!!formError && (
+                            <FormHelpMessage
+                                style={[styles.mb4]}
+                                message={formError}
+                            />
+                        )}
+                        {/* Save for later Button */}
+                        {isCreatingNewRequest && (
+                            <Button
+                                size={isExtraSmallScreenHeight ? CONST.BUTTON_SIZE.MEDIUM : CONST.BUTTON_SIZE.LARGE}
+                                style={[styles.w100, styles.mb3]}
+                                onPress={handleSaveForLater}
+                                testID="save-for-later-button"
+                                sentryLabel={CONST.SENTRY_LABEL.IOU_REQUEST_STEP.DISTANCE_ODOMETER_SAVE_FOR_LATER_BUTTON}
+                            >
+                                <Button.Text>{translate('distance.odometer.saveForLater')}</Button.Text>
+                            </Button>
+                        )}
+                        {/* Next/Save Button */}
+                        <Button
+                            variant={CONST.BUTTON_VARIANT.SUCCESS}
+                            size={isExtraSmallScreenHeight ? CONST.BUTTON_SIZE.MEDIUM : CONST.BUTTON_SIZE.LARGE}
+                            style={[styles.w100]}
+                            onPress={handleNext}
+                            testID="next-save-button"
+                            sentryLabel={CONST.SENTRY_LABEL.IOU_REQUEST_STEP.DISTANCE_ODOMETER_NEXT_BUTTON}
+                        >
+                            <Button.KeyboardShortcut allowBubble={!isEditing} />
+                            <Button.Text>{buttonText}</Button.Text>
+                        </Button>
                     </View>
                 </View>
-                <View>
-                    {/* Form Error Message */}
-                    {!!formError && (
-                        <FormHelpMessage
-                            style={[styles.mb4]}
-                            message={formError}
-                        />
-                    )}
-                    {/* Save for later Button */}
-                    {isCreatingNewRequest && (
-                        <Button
-                            allowBubble
-                            medium={isExtraSmallScreenHeight}
-                            large={!isExtraSmallScreenHeight}
-                            style={[styles.w100, styles.mb3]}
-                            onPress={handleSaveForLater}
-                            text={translate('distance.odometer.saveForLater')}
-                            testID="save-for-later-button"
-                            sentryLabel={CONST.SENTRY_LABEL.IOU_REQUEST_STEP.DISTANCE_ODOMETER_SAVE_FOR_LATER_BUTTON}
-                        />
-                    )}
-                    {/* Next/Save Button */}
-                    <Button
-                        success
-                        allowBubble={!isEditing}
-                        pressOnEnter
-                        medium={isExtraSmallScreenHeight}
-                        large={!isExtraSmallScreenHeight}
-                        style={[styles.w100]}
-                        onPress={handleNext}
-                        text={buttonText}
-                        testID="next-save-button"
-                        sentryLabel={CONST.SENTRY_LABEL.IOU_REQUEST_STEP.DISTANCE_ODOMETER_NEXT_BUTTON}
-                    />
-                </View>
-            </View>
+            </KeyboardAvoidingView>
         </StepScreenWrapper>
     );
 }

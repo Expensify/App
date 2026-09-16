@@ -1,4 +1,3 @@
-import React from 'react';
 import {
     SearchQueryActionsContext,
     SearchQueryContext,
@@ -18,6 +17,8 @@ import type {
     SearchStateContextValue,
 } from '@components/Search/types';
 
+import React from 'react';
+
 type MockSearchContextProviderProps = {
     state: SearchStateContextValue;
     actions: SearchActionsContextValue;
@@ -35,11 +36,15 @@ function splitState(value: SearchStateContextValue): {
             currentSimilarSearchHash: value.currentSimilarSearchHash,
             currentSearchKey: value.currentSearchKey,
             currentSearchQueryJSON: value.currentSearchQueryJSON,
+            currentDefaultSearchQueryJSON: value.currentDefaultSearchQueryJSON,
+            currentDefaultSearchQueryFilterKeys: value.currentDefaultSearchQueryFilterKeys,
             suggestedSearches: value.suggestedSearches,
             shouldResetSearchQuery: value.shouldResetSearchQuery,
         },
         results: {
             currentSearchResults: value.currentSearchResults,
+            currentSearchTransactionsByReportID: value.currentSearchTransactionsByReportID,
+            currentSearchViolations: value.currentSearchViolations,
             shouldUseLiveData: value.shouldUseLiveData,
             sortedReportIDs: value.sortedReportIDs,
             shouldShowFiltersBarLoading: value.shouldShowFiltersBarLoading,
@@ -47,6 +52,7 @@ function splitState(value: SearchStateContextValue): {
         },
         selection: {
             selectedTransactions: value.selectedTransactions,
+            excludedTransactions: value.excludedTransactions,
             selectedTransactionIDs: value.selectedTransactionIDs,
             selectedReports: value.selectedReports,
             currentSelectedTransactionReportID: value.currentSelectedTransactionReportID,
@@ -63,7 +69,7 @@ function splitActions(value: SearchActionsContextValue): {
     selection: SearchSelectionActionsValue;
 } {
     return {
-        query: {setShouldResetSearchQuery: value.setShouldResetSearchQuery},
+        query: {setShouldResetSearchQuery: value.setShouldResetSearchQuery, setCurrentSearchKey: value.setCurrentSearchKey, resetSearchKey: value.resetSearchKey},
         results: {
             setSortedReportIDs: value.setSortedReportIDs,
             setShouldShowFiltersBarLoading: value.setShouldShowFiltersBarLoading,

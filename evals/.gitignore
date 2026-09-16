@@ -1,0 +1,3 @@
+# Raw output of `bun ./scripts/harvestProposalPoliceEvals.ts`. Candidates are copied out of here by hand
+# into the labelled fixture files beside it, so the raw pool itself is scratch.
+proposalPolice/fixtures/harvested/

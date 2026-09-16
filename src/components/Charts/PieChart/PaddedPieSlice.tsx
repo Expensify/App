@@ -1,6 +1,7 @@
+import type {PieSliceData} from 'victory-native';
+
 import {FillType, Path, Skia} from '@shopify/react-native-skia';
 import React from 'react';
-import type {PieSliceData} from 'victory-native';
 
 type PaddedPieSliceProps = {
     /** Slice data provided by Pie.Chart's children render function */

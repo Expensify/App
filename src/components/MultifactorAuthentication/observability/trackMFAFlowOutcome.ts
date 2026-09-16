@@ -1,9 +1,12 @@
-import * as Sentry from '@sentry/react-native';
 import type {MultifactorAuthenticationScenarioResponse} from '@components/MultifactorAuthentication/config/types';
+
 import Log from '@libs/Log';
 import type {MFAError} from '@libs/MultifactorAuthentication/shared/MFAResult';
 import type {AuthTypeName, MultifactorAuthenticationReason} from '@libs/MultifactorAuthentication/shared/types';
+
 import CONST from '@src/CONST';
+
+import * as Sentry from '@sentry/react-native';
 
 type FailureClassification = 'routine' | 'alternative_outcome' | 'anomalous' | 'unclassified';
 

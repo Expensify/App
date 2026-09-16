@@ -1,24 +1,20 @@
-import {isValid, parse} from 'date-fns';
-import React from 'react';
-import {View} from 'react-native';
 import CalendarPicker from '@components/DatePicker/CalendarPicker';
 import Text from '@components/Text';
+
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import CONST from '@src/CONST';
 
+import {isValid, parse} from 'date-fns';
+import React from 'react';
+import {View} from 'react-native';
+
 type RangeDatePickerProps = {
-    /** The "From" date value */
     fromValue?: string;
-
-    /** The "To" date value */
     toValue?: string;
-
-    /** Callback when "From" date is selected */
     onFromSelected: (date: string) => void;
-
-    /** Callback when "To" date is selected */
     onToSelected: (date: string) => void;
 
     /** Force vertical stacking of calendars */

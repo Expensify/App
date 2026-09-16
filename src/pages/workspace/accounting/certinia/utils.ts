@@ -1,14 +1,17 @@
-import type {TupleToUnion, ValueOf} from 'type-fest';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
+
 import {
     updateFinancialForceDimension1Mapping,
     updateFinancialForceDimension2Mapping,
     updateFinancialForceDimension3Mapping,
     updateFinancialForceDimension4Mapping,
 } from '@libs/actions/connections/FinancialForce';
+
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type {FinancialForceConnectionConfig, FinancialForceFFAExportStatus} from '@src/types/onyx/Policy';
+
+import type {TupleToUnion, ValueOf} from 'type-fest';
 
 const CERTINIA_DIMENSION_PARAMS = [
     CONST.CERTINIA_CONFIG.CODING_DIMENSION1,
@@ -115,20 +118,25 @@ function isCertiniaDimensionParam(dimension: string): dimension is CertiniaDimen
     return (CERTINIA_DIMENSION_PARAMS as readonly string[]).includes(dimension);
 }
 
-function isCertiniaSRPConnection(config: FinancialForceConnectionConfig | undefined): boolean {
-    return !!config?.hasPSA && config?.hasPSAOnly === false;
+function isCertiniaFFAConnection(config: FinancialForceConnectionConfig | undefined): boolean {
+    return config?.hasPSAOnly === false;
+}
+
+function getCertiniaSelectedCompanyID(config: FinancialForceConnectionConfig | undefined): string | undefined {
+    return config?.hasPSA ? config.export?.companyID : config?.company;
 }
 
 export {
     CERTINIA_DIMENSION_PARAMS,
     CERTINIA_FFA_EXPORT_STATUSES,
     dimensionParamToNumber,
+    getCertiniaSelectedCompanyID,
     getCertiniaReportExportStatusValue,
     getCertiniaFFAExportStatusValue,
     getDimensionLabel,
     getDisplayTypeLabel,
     getParentTagMappingLabel,
-    isCertiniaSRPConnection,
+    isCertiniaFFAConnection,
     isCertiniaDimensionParam,
     updateFinancialForceDimensionMapping,
 };

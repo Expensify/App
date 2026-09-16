@@ -1,10 +1,12 @@
+import useOnyx from '@hooks/useOnyx';
+
+import ONYXKEYS from '@src/ONYXKEYS';
+import type ChildrenProps from '@src/types/utils/ChildrenProps';
+
 // This component is compiled by the React Compiler
 /* eslint-disable react/jsx-no-constructed-context-values */
 import {Str} from 'expensify-common';
 import React, {useContext, useState} from 'react';
-import useOnyx from '@hooks/useOnyx';
-import ONYXKEYS from '@src/ONYXKEYS';
-import type ChildrenProps from '@src/types/utils/ChildrenProps';
 
 type LoginStateContextType = {
     login: string;

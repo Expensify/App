@@ -1,9 +1,13 @@
-import Mapbox from '@rnmapbox/maps';
 import ImageSVG from '@components/ImageSVG';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import getMapMarkerSize from '@hooks/useMapMarkers/getMapMarkerSize';
 import type {MapMarkerType} from '@hooks/useMapMarkers/types';
+
 import CONST from '@src/CONST';
+
+import Mapbox from '@rnmapbox/maps';
+
 import type {WayPoint} from './MapViewTypes';
 
 const WAYPOINT_ICON_NAMES: Record<MapMarkerType, string> = {
@@ -13,9 +17,8 @@ const WAYPOINT_ICON_NAMES: Record<MapMarkerType, string> = {
 };
 
 type GPSWaypointLayerProps = {
-    // List of waypoints to render
     waypoints?: WayPoint[];
-    // ID of the layer to render the waypoints below
+    /** ID of the layer to render the waypoints below */
     belowLayerID?: string;
 };
 
@@ -27,24 +30,18 @@ function GPSWaypointLayer({waypoints, belowLayerID}: GPSWaypointLayerProps) {
 
     const waypointFeatures = !waypoints?.length
         ? []
-        : waypoints.flatMap((waypoint) => {
-              if (!waypoint.markerType) {
-                  return [];
-              }
-
-              return [
-                  {
-                      type: 'Feature' as const,
-                      geometry: {
-                          type: 'Point' as const,
-                          coordinates: waypoint.coordinate,
-                      },
-                      properties: {
-                          icon: WAYPOINT_ICON_NAMES[waypoint.markerType],
-                      },
+        : waypoints.flatMap((waypoint) => [
+              {
+                  type: 'Feature' as const,
+                  geometry: {
+                      type: 'Point' as const,
+                      coordinates: waypoint.coordinate,
                   },
-              ];
-          });
+                  properties: {
+                      icon: WAYPOINT_ICON_NAMES[waypoint.markerType],
+                  },
+              },
+          ]);
 
     if (waypointFeatures.length === 0) {
         return null;

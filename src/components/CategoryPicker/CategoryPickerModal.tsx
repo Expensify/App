@@ -1,11 +1,17 @@
-import React, {useRef} from 'react';
-import {View} from 'react-native';
 import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
 import type PopoverWithMeasuredContentProps from '@components/PopoverWithMeasuredContent/types';
 import type {ListItem} from '@components/SelectionList/types';
+
+import useKeyboardState from '@hooks/useKeyboardState';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import CONST from '@src/CONST';
+
+import React, {useRef} from 'react';
+import {View} from 'react-native';
+
 import CategoryPicker from '.';
 
 const popoverDimensions = {
@@ -19,13 +25,11 @@ const DEFAULT_ANCHOR_ALIGNMENT = {
 };
 
 type CategoryPickerModalProps = {
-    /** Callback to close the modal */
     onClose: () => void;
 
     /** The policy whose categories should be shown */
     policyID: string | undefined;
 
-    /** Currently selected category */
     selectedCategory?: string;
 
     /** Called when the user confirms a category selection */
@@ -44,6 +48,9 @@ function CategoryPickerModal({
 }: CategoryPickerModalProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth -- must match PopoverWithMeasuredContent's dock decision (bottom-docked only when isSmallScreenWidth)
+    const {isSmallScreenWidth} = useResponsiveLayout();
+    const {isKeyboardActive} = useKeyboardState();
     const anchorRef = useRef<View>(null);
 
     const handleCategorySelect = (item: ListItem) => {
@@ -71,12 +78,15 @@ function CategoryPickerModal({
             shouldMeasureAnchorPositionFromTop={shouldMeasureAnchorPositionFromTop}
             shouldSkipRemeasurement
             shouldDisplayBelowModals
+            enableEdgeToEdgeBottomSafeAreaPadding
         >
             <View style={[StyleUtils.getHeight(popoverDimensions.height), styles.flexColumn, styles.pt4]}>
                 <CategoryPicker
                     selectedCategory={selectedCategory}
                     policyID={policyID}
                     onSubmit={handleCategorySelect}
+                    addBottomSafeAreaPadding={isSmallScreenWidth && !isKeyboardActive}
+                    shouldAutoFocusSearchInput
                 />
             </View>
         </PopoverWithMeasuredContent>

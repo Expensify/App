@@ -1,12 +1,20 @@
-import type {ValueOf} from 'type-fest';
 import {dismissProductTraining} from '@libs/actions/Welcome';
+import {canUseTouchScreen} from '@libs/DeviceCapabilities';
+
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 
-const {CONCIERGE_LHN_GBR, RENAME_SAVED_SEARCH, OUTSTANDING_FILTER, ACCOUNT_SWITCHER, SCAN_TEST_DRIVE_CONFIRMATION, GPS_TOOLTIP, HAS_FILTER_NEGATION, MILEAGE_RATE_AUTO_UPDATED} =
+import type {ValueOf} from 'type-fest';
+
+const {CONCIERGE_LHN_GBR, OUTSTANDING_FILTER, ACCOUNT_SWITCHER, SCAN_TEST_DRIVE_CONFIRMATION, GPS_TOOLTIP, HAS_FILTER_NEGATION, MILEAGE_RATE_AUTO_UPDATED, MARK_ALL_AS_READ} =
     CONST.PRODUCT_TRAINING_TOOLTIP_NAMES;
 
-type ProductTrainingTooltipName = Exclude<ValueOf<typeof CONST.PRODUCT_TRAINING_TOOLTIP_NAMES>, typeof CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.MULTI_SCAN_EDUCATIONAL_MODAL>;
+type ProductTrainingTooltipName = Exclude<
+    ValueOf<typeof CONST.PRODUCT_TRAINING_TOOLTIP_NAMES>,
+    | typeof CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.MULTI_SCAN_EDUCATIONAL_MODAL
+    | typeof CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.REQUIRE_FIELDS_RULE_RECEIPT_COUPLING_TOOLTIP
+    | typeof CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.REQUIRE_FIELDS_RULE_ITEMIZED_RECEIPT_COUPLING_TOOLTIP
+>;
 
 type ShouldShowConditionProps = {
     shouldUseNarrowLayout: boolean;
@@ -17,11 +25,17 @@ type ShouldShowConditionProps = {
 };
 
 type TooltipData = {
-    content: TranslationPaths;
+    content: TranslationPaths | (() => TranslationPaths);
     onHideTooltip: (isDismissedUsingCloseButton?: boolean) => void;
     name: ProductTrainingTooltipName;
     priority: number;
     shouldShow: (props: ShouldShowConditionProps) => boolean;
+
+    /**
+     * How long a dismissal suppresses the tooltip, in milliseconds. Omit it for tooltips that are dismissed
+     * permanently, which is the default.
+     */
+    reappearsAfterMs?: number;
 };
 
 const TOOLTIPS: Record<ProductTrainingTooltipName, TooltipData> = {
@@ -33,13 +47,6 @@ const TOOLTIPS: Record<ProductTrainingTooltipName, TooltipData> = {
         // TODO: CONCIERGE_LHN_GBR tooltip will be replaced by a tooltip in the #admins room
         // https://github.com/Expensify/App/issues/57045#issuecomment-2701455668
         shouldShow: () => false,
-    },
-    [RENAME_SAVED_SEARCH]: {
-        content: 'productTrainingTooltip.saveSearchTooltip',
-        onHideTooltip: (isDismissedUsingCloseButton = false) => dismissProductTraining(RENAME_SAVED_SEARCH, isDismissedUsingCloseButton),
-        name: RENAME_SAVED_SEARCH,
-        priority: 1250,
-        shouldShow: ({shouldUseNarrowLayout}) => !shouldUseNarrowLayout,
     },
     [ACCOUNT_SWITCHER]: {
         content: 'productTrainingTooltip.accountSwitcher',
@@ -82,6 +89,14 @@ const TOOLTIPS: Record<ProductTrainingTooltipName, TooltipData> = {
         name: MILEAGE_RATE_AUTO_UPDATED,
         priority: 800,
         shouldShow: () => true,
+    },
+    [MARK_ALL_AS_READ]: {
+        content: () => (canUseTouchScreen() ? 'productTrainingTooltip.markAllAsReadTouchScreen' : 'productTrainingTooltip.markAllAsRead'),
+        onHideTooltip: (isDismissedUsingCloseButton = false) => dismissProductTraining(MARK_ALL_AS_READ, isDismissedUsingCloseButton),
+        name: MARK_ALL_AS_READ,
+        priority: 900,
+        shouldShow: () => true,
+        reappearsAfterMs: CONST.PRODUCT_TRAINING_TOOLTIP_REAPPEAR_WINDOW.SEVEN_DAYS,
     },
 };
 

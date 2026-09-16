@@ -1,8 +1,11 @@
+import useDebounce from '@hooks/useDebounce';
+
+import Log from '@libs/Log';
+
+import CONST from '@src/CONST';
+
 import type {FlashListRef} from '@shopify/flash-list';
 import type {RefObject} from 'react';
-import useDebounce from '@hooks/useDebounce';
-import Log from '@libs/Log';
-import CONST from '@src/CONST';
 
 type ScrollToIndex = (index: number, animated?: boolean) => void;
 
@@ -29,7 +32,12 @@ function useSelectionListScroll<TData>(listRef: RefObject<Pick<FlashListRef<TDat
         }
     };
 
-    const debouncedScrollToIndex = useDebounce(scrollToIndex, CONST.TIMING.LIST_SCROLLING_DEBOUNCE_TIME, {leading: true, trailing: true});
+    // maxWait keeps the list following the focused row while an arrow key is held.
+    const debouncedScrollToIndex = useDebounce(scrollToIndex, CONST.TIMING.LIST_SCROLLING_DEBOUNCE_TIME, {
+        leading: true,
+        trailing: true,
+        maxWait: CONST.TIMING.LIST_SCROLLING_DEBOUNCE_TIME,
+    });
 
     return {scrollToIndex, debouncedScrollToIndex};
 }

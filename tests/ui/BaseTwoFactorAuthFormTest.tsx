@@ -1,12 +1,19 @@
-import type * as ReactNavigationNative from '@react-navigation/native';
 import {act, fireEvent, render, screen, waitFor} from '@testing-library/react-native';
-import React, {createRef} from 'react';
-import Onyx from 'react-native-onyx';
+
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import type {BaseTwoFactorAuthFormRef} from '@components/TwoFactorAuthForm/types';
+
 import ToggleTwoFactorAuthForm from '@pages/settings/Security/TwoFactorAuth/ToggleTwoFactorAuthForm';
+
 import {toggleTwoFactorAuth, validateTwoFactorAuth} from '@userActions/Session';
+
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import type * as ReactNavigationNative from '@react-navigation/native';
+
+import React, {createRef} from 'react';
+import Onyx from 'react-native-onyx';
+
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 jest.mock('@react-navigation/native', () => {
@@ -50,8 +57,8 @@ jest.mock('@userActions/Session', () => ({
     validateTwoFactorAuth: jest.fn(),
 }));
 
-const mockToggleTwoFactorAuth = toggleTwoFactorAuth as jest.MockedFunction<typeof toggleTwoFactorAuth>;
-const mockValidateTwoFactorAuth = validateTwoFactorAuth as jest.MockedFunction<typeof validateTwoFactorAuth>;
+const mockToggleTwoFactorAuth = jest.mocked(toggleTwoFactorAuth);
+const mockValidateTwoFactorAuth = jest.mocked(validateTwoFactorAuth);
 
 const RECOVERY_TOGGLE_LABEL = 'Use recovery code';
 const RECOVERY_BACK_LABEL = 'Use two-factor authentication code';

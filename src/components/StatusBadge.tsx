@@ -1,23 +1,19 @@
-import React from 'react';
-import {View} from 'react-native';
-import type {ColorValue, StyleProp, ViewStyle} from 'react-native';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import type {ColorValue, StyleProp, ViewStyle} from 'react-native';
+
+import React from 'react';
+import {View} from 'react-native';
+
 import Badge from './Badge';
 import Tooltip from './Tooltip';
 
 type StatusBadgeProps = {
-    /** Status text to display */
     text: string;
-
-    /** Background color for the status badge */
     backgroundColor?: ColorValue;
-
-    /** Text color for the status badge */
     textColor?: ColorValue;
-
-    /** Additional badge styles */
     badgeStyles?: StyleProp<ViewStyle>;
 
     /** Text to display in a tooltip shown on hover of the badge. The tooltip is omitted when empty. */

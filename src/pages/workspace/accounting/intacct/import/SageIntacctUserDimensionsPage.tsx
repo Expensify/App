@@ -1,24 +1,31 @@
-import React from 'react';
-import {View} from 'react-native';
 import Button from '@components/Button';
 import ConnectionLayout from '@components/ConnectionLayout';
 import FixedFooter from '@components/FixedFooter';
 import Icon from '@components/Icon';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItem from '@components/MenuItem';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
+
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import Navigation from '@libs/Navigation/Navigation';
 import {areSettingsInErrorFields, settingsPendingAction} from '@libs/PolicyUtils';
+
 import withPolicy from '@pages/workspace/withPolicy';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
+
 import {openExternalLink} from '@userActions/Link';
+
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+
+import React from 'react';
+import {View} from 'react-native';
 
 function SageIntacctUserDimensionsPage({policy}: WithPolicyProps) {
     const styles = useThemeStyles();
@@ -29,6 +36,8 @@ function SageIntacctUserDimensionsPage({policy}: WithPolicyProps) {
     const policyID = policy?.id ?? '-1';
     const config = policy?.connections?.intacct?.config;
     const userDimensions = policy?.connections?.intacct?.config?.mappings?.dimensions ?? [];
+
+    const addUserDefinedDimension = () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_ADD_USER_DIMENSION.getRoute(policyID));
 
     return (
         <ConnectionLayout
@@ -92,17 +101,15 @@ function SageIntacctUserDimensionsPage({policy}: WithPolicyProps) {
                                 key={userDimension.dimension}
                                 pendingAction={settingsPendingAction([`${CONST.SAGE_INTACCT_CONFIG.DIMENSION_PREFIX}${userDimension.dimension}`], config?.pendingFields)}
                             >
-                                <MenuItemWithTopDescription
-                                    title={userDimension.dimension}
-                                    description={translate('workspace.intacct.userDefinedDimension')}
-                                    shouldShowRightIcon
+                                <MenuItemField
+                                    name={translate('workspace.intacct.userDefinedDimension')}
                                     onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_EDIT_USER_DIMENSION.getRoute(policyID, userDimension.dimension))}
-                                    brickRoadIndicator={
-                                        areSettingsInErrorFields([`${CONST.SAGE_INTACCT_CONFIG.DIMENSION_PREFIX}${userDimension.dimension}`], config?.errorFields)
-                                            ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
-                                            : undefined
-                                    }
-                                />
+                                    value={userDimension.dimension}
+                                >
+                                    {areSettingsInErrorFields([`${CONST.SAGE_INTACCT_CONFIG.DIMENSION_PREFIX}${userDimension.dimension}`], config?.errorFields) && (
+                                        <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />
+                                    )}
+                                </MenuItemField>
                             </OfflineWithFeedback>
                         ))}
                     </ScrollView>
@@ -113,12 +120,13 @@ function SageIntacctUserDimensionsPage({policy}: WithPolicyProps) {
                 addBottomSafeAreaPadding
             >
                 <Button
-                    success
-                    text={translate('workspace.intacct.addUserDefinedDimension')}
-                    onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_ADD_USER_DIMENSION.getRoute(policyID))}
-                    pressOnEnter
-                    large
-                />
+                    variant={CONST.BUTTON_VARIANT.SUCCESS}
+                    onPress={addUserDefinedDimension}
+                    size={CONST.BUTTON_SIZE.LARGE}
+                >
+                    <Button.KeyboardShortcut />
+                    <Button.Text>{translate('workspace.intacct.addUserDefinedDimension')}</Button.Text>
+                </Button>
             </FixedFooter>
         </ConnectionLayout>
     );

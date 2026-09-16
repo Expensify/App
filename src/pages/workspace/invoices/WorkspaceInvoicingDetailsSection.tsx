@@ -1,17 +1,20 @@
-import React, {useMemo} from 'react';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import Section from '@components/Section';
+
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import Navigation from '@navigation/Navigation';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
+import React, {useMemo} from 'react';
+
 type WorkspaceInvoicingDetailsSectionProps = {
-    /** The current policy ID */
     policyID: string;
 
     /** Whether the current user can edit miscellaneous settings. */

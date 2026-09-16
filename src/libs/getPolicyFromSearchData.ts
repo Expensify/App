@@ -1,7 +1,9 @@
-import type {OnyxEntry} from 'react-native-onyx';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy} from '@src/types/onyx';
 import type SearchResults from '@src/types/onyx/SearchResults';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
 import getNonEmptyStringOnyxID from './getNonEmptyStringOnyxID';
 
 /**

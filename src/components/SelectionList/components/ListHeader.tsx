@@ -1,14 +1,18 @@
-import React from 'react';
-import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
-import {View} from 'react-native';
-import type {ValueOf} from 'type-fest';
 import Checkbox from '@components/Checkbox';
 import {PressableWithFeedback} from '@components/Pressable';
 import type {DataDetailsType, ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
+
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import CONST from '@src/CONST';
+
+import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
+import type {ValueOf} from 'type-fest';
+
+import React from 'react';
+import {View} from 'react-native';
 
 type ListHeaderProps<TItem extends ListItem> = {
     /** Data details containing selection state and items info */
@@ -17,10 +21,7 @@ type ListHeaderProps<TItem extends ListItem> = {
     /** Custom header content to render instead of the default select all header */
     customListHeader?: React.ReactNode;
 
-    /** Whether multiple items can be selected */
     canSelectMultiple: boolean;
-
-    /** Styles for the list header wrapper */
     headerStyle?: StyleProp<ViewStyle>;
 
     /** Styles for the "Select all" text (merged after textStrong) */
@@ -29,10 +30,7 @@ type ListHeaderProps<TItem extends ListItem> = {
     /** Function called when the select all button is pressed */
     onSelectAll: () => void;
 
-    /** Whether to show 'Select all' button */
     shouldShowSelectAllButton: boolean;
-
-    /** Whether to prevent default focus when selecting rows */
     shouldPreventDefaultFocusOnSelectRow?: boolean;
 
     /** Custom accessibility label for the select all checkbox, providing context about what is being selected */

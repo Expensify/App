@@ -1,6 +1,7 @@
+import {SUBMIT_FEATURE_IDS} from '@src/CONST';
+
 import {useFocusEffect} from '@react-navigation/native';
 import {useCallback, useEffect, useRef} from 'react';
-import {SUBMIT_FEATURE_IDS} from '@src/CONST';
 
 type UseWorkspaceUpgradeConfirmationParams = {
     policyID: string | undefined;

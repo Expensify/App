@@ -1,6 +1,8 @@
-import React from 'react';
 import {isSafari} from '@libs/Browser';
+
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
+
+import React from 'react';
 
 type SafariFormWrapperProps = ChildrenProps;
 

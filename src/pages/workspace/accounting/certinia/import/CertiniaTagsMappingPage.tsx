@@ -1,18 +1,23 @@
-import React from 'react';
 import type {ListItem} from '@components/SelectionList/types';
 import SelectionScreen from '@components/SelectionScreen';
+
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {clearFinancialForceErrorField, updateFinancialForceParentTagMapping} from '@libs/actions/connections/FinancialForce';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {settingsPendingAction} from '@libs/PolicyUtils';
+
 import type {CertiniaParentTagMapping} from '@pages/workspace/accounting/certinia/utils';
 import {getParentTagMappingLabel} from '@pages/workspace/accounting/certinia/utils';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
+
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+
+import React from 'react';
 
 type TagsMappingListItem = ListItem & {
     value: CertiniaParentTagMapping;

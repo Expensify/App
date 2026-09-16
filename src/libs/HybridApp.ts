@@ -1,10 +1,13 @@
-import HybridAppModule from '@expensify/react-native-hybrid-app';
-import Onyx from 'react-native-onyx';
-import type {OnyxEntry} from 'react-native-onyx';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Account, Credentials, HybridApp, Session, TryNewDot} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import HybridAppModule from '@expensify/react-native-hybrid-app';
+import Onyx from 'react-native-onyx';
+
 import {closeReactNativeApp, setReadyToShowAuthScreens, setUseNewDotSignInPage} from './actions/HybridApp';
 import Log from './Log';
 import {getCurrentUserEmail} from './Network/NetworkStore';

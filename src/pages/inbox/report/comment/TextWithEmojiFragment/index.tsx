@@ -1,8 +1,12 @@
-import React, {useMemo} from 'react';
 import Text from '@components/Text';
+
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import convertToLTR from '@libs/convertToLTR';
 import {splitTextWithEmojis} from '@libs/EmojiUtils';
+
+import React, {useMemo} from 'react';
+
 import type TextWithEmojiFragmentProps from './types';
 
 function TextWithEmojiFragment({message = '', style, alignCustomEmoji = false}: TextWithEmojiFragmentProps) {

@@ -1,12 +1,15 @@
-import Onyx from 'react-native-onyx';
 import {openApp, reconnectApp} from '@libs/actions/App';
 import {initReconnect, reconnect} from '@libs/actions/Reconnect';
 import type AppStateMonitorType from '@libs/AppStateMonitor';
 import {flush} from '@libs/Network/SequentialQueue';
 import {getIsOffline, setHasRadio, setSustainedFailures} from '@libs/NetworkState';
+
 import CONST from '@src/CONST';
 import type * as NetworkStateType from '@src/libs/NetworkState';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import Onyx from 'react-native-onyx';
+
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 jest.mock('@libs/Log');
@@ -111,7 +114,7 @@ describe('Reconnect', () => {
         expect(jest.mocked(reconnectApp)).toHaveBeenCalledTimes(1);
     });
 
-    test('foreground triggers reconnect and flush when app becomes active while online', async () => {
+    test('foreground flushes the queue without syncing', async () => {
         await Onyx.merge(ONYXKEYS.SESSION, {accountID: 1234, email: 'test@test.com'});
         await Onyx.merge(ONYXKEYS.IS_LOADING_APP, false);
         await waitForBatchedUpdates();
@@ -122,7 +125,7 @@ describe('Reconnect', () => {
 
         becameActiveCallback();
 
-        expect(jest.mocked(reconnectApp)).toHaveBeenCalledTimes(1);
+        expect(jest.mocked(reconnectApp)).not.toHaveBeenCalled();
         expect(jest.mocked(flush)).toHaveBeenCalledTimes(1);
     });
 

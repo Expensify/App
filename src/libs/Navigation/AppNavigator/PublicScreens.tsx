@@ -1,17 +1,23 @@
-import React from 'react';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
+
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import Animations, {InternalPlatformAnimations} from '@libs/Navigation/PlatformStackNavigation/navigationOptions/animation';
+
 import type {PublicScreensParamList} from '@navigation/types';
+
 import ConnectionCompletePage from '@pages/ConnectionCompletePage';
 import LogInWithShortLivedAuthTokenPage from '@pages/LogInWithShortLivedAuthTokenPage';
 import SAMLSignInPage from '@pages/signin/SAMLSignInPage';
 import SignInPage from '@pages/signin/SignInPage';
 import UnlinkLoginPage from '@pages/UnlinkLoginPage';
 import ValidateLoginPage from '@pages/ValidateLoginPage';
+
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
+
+import React from 'react';
+
 import defaultScreenOptions from './defaultScreenOptions';
 import TestToolsModalNavigator from './Navigators/TestToolsModalNavigator';
 import useRootNavigatorScreenOptions from './useRootNavigatorScreenOptions';

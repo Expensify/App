@@ -1,11 +1,15 @@
-import type {OnyxEntry} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
+
 import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
+
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type {Policy, ReportAttributesDerivedValue} from '@src/types/onyx';
 import type {CompanyAddress, Unit} from '@src/types/onyx/Policy';
+
+import type {OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
+
 import {getConnectionExporters, isPolicyAdmin, isPolicyApprover, isPolicyAuditor} from './PolicyUtils';
 
 type BrickRoad = ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS> | undefined;

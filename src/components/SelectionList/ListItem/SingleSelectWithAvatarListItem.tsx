@@ -1,11 +1,15 @@
+import AvatarFromIcon from '@components/Avatar/AvatarFromIcon';
+
+import useThemeStyles from '@hooks/useThemeStyles';
+
+import CONST from '@src/CONST';
+
 import React from 'react';
 import {View} from 'react-native';
-import Avatar from '@components/Avatar';
-import useThemeStyles from '@hooks/useThemeStyles';
-import variables from '@styles/variables';
-import CONST from '@src/CONST';
-import SingleSelectListItem from './SingleSelectListItem';
+
 import type {ListItem, SingleSelectListItemProps} from './types';
+
+import SingleSelectListItem from './SingleSelectListItem';
 
 /**
  * A SingleSelectListItem that prepends an avatar when icons are provided. Used in pickers
@@ -27,14 +31,10 @@ function SingleSelectWithAvatarListItem<TItem extends ListItem>({item, wrapperSt
 
     const avatarElement = (
         <View>
-            <Avatar
-                source={icon.source}
+            <AvatarFromIcon
+                icon={icon}
                 size={CONST.AVATAR_SIZE.DEFAULT}
-                name={icon.name}
-                avatarID={icon.id}
-                type={icon.type ?? CONST.ICON_TYPE_AVATAR}
-                fallbackIcon={icon.fallbackIcon}
-                iconAdditionalStyles={[{width: variables.avatarSizeNormal, height: variables.avatarSizeNormal}, styles.mr3]}
+                iconAdditionalStyles={styles.mr3}
             />
         </View>
     );
@@ -43,7 +43,7 @@ function SingleSelectWithAvatarListItem<TItem extends ListItem>({item, wrapperSt
         <SingleSelectListItem
             {...props}
             item={{...item, leftElement: avatarElement}}
-            wrapperStyle={[styles.optionRow, styles.pv0, styles.pv3, styles.w100, wrapperStyle]}
+            wrapperStyle={[styles.optionRow, styles.pv3, styles.w100, wrapperStyle]}
         />
     );
 }

@@ -1,5 +1,6 @@
-import type {PusherEvent} from '@pusher/pusher-websocket-react-native';
 import CONST from '@src/CONST';
+
+import type {PusherEvent} from '@pusher/pusher-websocket-react-native';
 
 type OnSubscriptionSucceeded = () => void;
 

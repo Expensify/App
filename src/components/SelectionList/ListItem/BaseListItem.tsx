@@ -1,13 +1,10 @@
-import React, {useRef} from 'react';
-import {View} from 'react-native';
-import {getButtonRole} from '@components/Button/utils';
 import Icon from '@components/Icon';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
-import type {PressableWithFeedbackProps} from '@components/Pressable/PressableWithFeedback';
-import getAccessibilityLabel from '@components/SelectionList/utils/getAccessibilityLabel';
-import {getItemRole} from '@components/SelectionList/utils/getItemRole';
-import {getSelectableState} from '@components/SelectionList/utils/getSelectableState';
+import getListItemAccessibilityProps from '@components/SelectionList/utils/getListItemAccessibilityProps';
+import isListItemSelected from '@components/SelectionList/utils/isListItemSelected';
+import shouldShowRBRIndicator from '@components/SelectionList/utils/shouldShowRBRIndicator';
+
 import useHover from '@hooks/useHover';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import {useMouseActions, useMouseState} from '@hooks/useMouseContext';
@@ -15,55 +12,15 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useSyncFocus from '@hooks/useSyncFocus';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getBrowser, isMobile} from '@libs/Browser';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
+
+import React, {useRef} from 'react';
+import {View} from 'react-native';
+
 import type {BaseListItemProps, ListItem} from './types';
-
-type AccessibilityProps = Pick<PressableWithFeedbackProps, 'accessible' | 'role' | 'tabIndex'>;
-
-type CalculatedAccessibilityProps = Pick<PressableWithFeedbackProps, 'role' | 'tabIndex' | 'accessibilityState'> & {
-    accessibleAndAccessibilityLabel: Pick<PressableWithFeedbackProps, 'accessible' | 'accessibilityLabel'>;
-    ariaCurrent: boolean | undefined;
-};
-
-function getAccessibilityProps<TItem extends ListItem>({
-    role,
-    tabIndex,
-    accessible,
-    item,
-    isFocused,
-    canSelectMultiple,
-}: AccessibilityProps & Pick<BaseListItemProps<TItem>, 'item' | 'isFocused' | 'canSelectMultiple'>) {
-    // For single-select lists, use role="option" with aria-selected so screen readers announce "selected"/"not selected".
-    // For multi-select (checkbox/radio), keep existing role and state.
-    const isSelectableOption = !canSelectMultiple && role !== CONST.ROLE.CHECKBOX && role !== CONST.ROLE.RADIO;
-    const effectiveRole = getItemRole(role, isSelectableOption);
-
-    const isCheckableRole = effectiveRole === CONST.ROLE.CHECKBOX || effectiveRole === CONST.ROLE.RADIO;
-    const accessibilityState = isCheckableRole ? {checked: !!item.isSelected, selected: !!isFocused} : getSelectableState(!!item.isSelected);
-    const ariaCurrent = !isCheckableRole && item.isSelected && getBrowser() === CONST.BROWSER.CHROME && !isMobile() ? true : undefined;
-
-    if (accessible === false) {
-        return {
-            role: CONST.ROLE.PRESENTATION,
-            tabIndex: -1,
-            accessibilityState,
-            accessibleAndAccessibilityLabel: {accessible: false},
-            ariaCurrent,
-        } satisfies CalculatedAccessibilityProps;
-    }
-
-    const accessibilityLabel = getAccessibilityLabel(item);
-
-    return {
-        role: effectiveRole,
-        tabIndex,
-        accessibilityState,
-        accessibleAndAccessibilityLabel: {accessible: undefined, accessibilityLabel},
-        ariaCurrent,
-    } satisfies CalculatedAccessibilityProps;
-}
 
 /**
  * The foundational pressable row that all list items build on. Handles press/hover/focus states,
@@ -82,25 +39,23 @@ function BaseListItem<TItem extends ListItem>({
     onSelectRow,
     onDismissError = () => {},
     rightHandSideComponent,
-    keyForList,
-    errors,
     errorRowStyles,
-    pendingAction,
     FooterComponent,
     children,
     isFocused,
     isFocusVisible = isFocused,
     shouldSyncFocus = true,
     shouldDisplayRBR = true,
-    shouldShowBlueBorderOnFocus = false,
     onFocus = () => {},
     hoverStyle,
     onLongPressRow,
     shouldHighlightSelectedItem = false,
     shouldDisableHoverStyle,
-    shouldShowRightCaret = false,
     accessible,
-    accessibilityRole = getButtonRole(true),
+    accessibilityLabel,
+    accessibilityRole = CONST.ROLE.BUTTON,
+    shouldUseOptionRole,
+    isSelected,
     forwardedFSClass,
     testID,
 }: BaseListItemProps<TItem>) {
@@ -110,7 +65,7 @@ function BaseListItem<TItem extends ListItem>({
     const {hovered, bind} = useHover();
     const {isMouseDownOnInput} = useMouseState();
     const {setMouseUp} = useMouseActions();
-    const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'Checkmark', 'DotIndicator']);
+    const icons = useMemoizedLazyExpensifyIcons(['DotIndicator']);
     const pressableRef = useRef<View>(null);
 
     // Sync focus on an item
@@ -155,22 +110,26 @@ function BaseListItem<TItem extends ListItem>({
         return rightHandSideComponent;
     };
 
-    const shouldShowRBRIndicator = (!item.isSelected || !!item.canShowSeveralIndicators) && !!item.brickRoadIndicator && shouldDisplayRBR;
+    const isRowSelected = isListItemSelected(item, isSelected);
+    const shouldShowRBR = shouldDisplayRBR && shouldShowRBRIndicator(item, isSelected);
 
-    const {role, tabIndex, accessibilityState, accessibleAndAccessibilityLabel, ariaCurrent} = getAccessibilityProps({
+    const {role, tabIndex, accessibilityState, accessibleAndAccessibilityLabel, ariaCurrent} = getListItemAccessibilityProps({
         role: accessibilityRole,
         accessible,
+        accessibilityLabel,
         tabIndex: item.tabIndex,
         item,
         isFocused,
         canSelectMultiple,
+        shouldUseOptionRole,
+        isSelected: isRowSelected,
     });
 
     return (
         <OfflineWithFeedback
             onClose={() => onDismissError(item)}
-            pendingAction={pendingAction}
-            errors={errors}
+            pendingAction={item.pendingAction}
+            errors={item.errors}
             errorRowStyles={[styles.mh5, errorRowStyles]}
             contentContainerStyle={containerStyle}
         >
@@ -193,26 +152,26 @@ function BaseListItem<TItem extends ListItem>({
                     }
                     onSelectRow(item, undefined, e);
                 }}
-                disabled={isDisabled && !item.isSelected}
+                disabled={isDisabled && !isRowSelected}
                 interactive={item.isInteractive}
                 isNested
                 hoverDimmingValue={1}
                 pressDimmingValue={item.isInteractive === false ? 1 : variables.pressDimValue}
-                hoverStyle={!shouldDisableHoverStyle ? [(!item.isDisabled || item.isSelected) && item.isInteractive !== false && styles.hoveredComponentBG, hoverStyle] : undefined}
-                dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true, [CONST.INNER_BOX_SHADOW_ELEMENT]: shouldShowBlueBorderOnFocus}}
+                hoverStyle={!shouldDisableHoverStyle ? [(!item.isDisabled || isRowSelected) && item.isInteractive !== false && styles.hoveredComponentBG, hoverStyle] : undefined}
+                dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true, [CONST.INNER_BOX_SHADOW_ELEMENT]: true}}
                 onMouseDown={(e) => {
                     if ((e?.target as HTMLElement)?.tagName === CONST.ELEMENT_NAME.INPUT) {
                         return;
                     }
                     e.preventDefault();
                 }}
-                id={keyForList ?? ''}
+                id={item.keyForList ?? ''}
                 testID={`${CONST.BASE_LIST_ITEM_TEST_ID}${item.keyForList}`}
                 style={[
                     pressableStyle,
                     isFocusVisible &&
                         StyleUtils.getItemBackgroundColorStyle(
-                            shouldHighlightSelectedItem && !!item.isSelected,
+                            shouldHighlightSelectedItem && !!isRowSelected,
                             !!isFocusVisible,
                             !!item.isDisabled,
                             theme.activeComponentBG,
@@ -238,7 +197,7 @@ function BaseListItem<TItem extends ListItem>({
                 >
                     {typeof children === 'function' ? children(hovered) : children}
 
-                    {shouldShowRBRIndicator && (
+                    {shouldShowRBR && (
                         <View style={[styles.alignItemsCenter, styles.justifyContentCenter, styles.ml3]}>
                             <Icon
                                 testID={CONST.DOT_INDICATOR_TEST_ID}
@@ -249,17 +208,6 @@ function BaseListItem<TItem extends ListItem>({
                     )}
 
                     {rightHandSideComponentRender()}
-                    {shouldShowRightCaret && (
-                        <View style={[styles.justifyContentCenter, styles.alignItemsCenter, styles.ml2]}>
-                            <Icon
-                                src={icons.ArrowRight}
-                                fill={theme.icon}
-                                additionalStyles={[styles.alignSelfCenter, !hovered && styles.opacitySemiTransparent]}
-                                width={variables.iconSizeNormal}
-                                height={variables.iconSizeNormal}
-                            />
-                        </View>
-                    )}
                 </View>
                 {FooterComponent}
             </PressableWithFeedback>

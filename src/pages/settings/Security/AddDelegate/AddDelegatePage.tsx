@@ -1,26 +1,30 @@
-import React, {useEffect} from 'react';
-import {View} from 'react-native';
 import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import UserListItem from '@components/SelectionList/ListItem/UserListItem';
 import SelectionListWithSections from '@components/SelectionList/SelectionListWithSections';
+
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePersonalDetailSearchSelector from '@hooks/usePersonalDetailSearchSelector';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {searchUserInServer} from '@libs/actions/Report';
 import Navigation from '@libs/Navigation/Navigation';
 import {getHeaderMessage} from '@libs/PersonalDetailOptionsListUtils';
 import type {OptionData} from '@libs/PersonalDetailOptionsListUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
+import React, {useEffect} from 'react';
+import {View} from 'react-native';
+
 function AddDelegatePage() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const [isSearchingForReports] = useOnyx(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS);
+    const [isSearchingForUsers] = useOnyx(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_USERS);
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
     const existingDelegates =
@@ -136,7 +140,7 @@ function AddDelegatePage() {
                             label: translate('selectionList.nameEmailOrPhoneNumber'),
                         }}
                         shouldShowLoadingPlaceholder={!areOptionsInitialized}
-                        isLoadingNewOptions={!!isSearchingForReports}
+                        isLoadingNewOptions={!!isSearchingForUsers}
                         shouldShowTextInput
                     />
                 </View>

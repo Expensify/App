@@ -1,23 +1,30 @@
-import {useRoute} from '@react-navigation/native';
-import React, {useCallback, useMemo} from 'react';
-import type {OnyxCollection} from 'react-native-onyx';
 import ColumnsSettingsList from '@components/ColumnsSettingsList';
 import type {SearchCustomColumnIds} from '@components/Search/types';
+
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnyx from '@hooks/useOnyx';
+
 import {setReportDetailsColumns} from '@libs/actions/ReportLayout';
-import {hasNonReimbursableTransactions, isBillableEnabledOnPolicy} from '@libs/MoneyRequestReportUtils';
+import {isBillableEnabledOnPolicy} from '@libs/MoneyRequestReportUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import {isPolicyTaxEnabled} from '@libs/PolicyUtils';
 import {isIOUReport} from '@libs/ReportUtils';
 import {getColumnsToShow} from '@libs/SearchUIUtils';
+import {hasNonReimbursableTransactions} from '@libs/TransactionUtils';
+
 import type {ReportSettingsNavigatorParamList} from '@navigation/types';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import type {Transaction} from '@src/types/onyx';
 import arraysEqual from '@src/utils/arraysEqual';
+
+import type {OnyxCollection} from 'react-native-onyx';
+
+import {useRoute} from '@react-navigation/native';
+import React, {useMemo} from 'react';
 
 /**
  * Default selected columns for the report details table.
@@ -30,8 +37,16 @@ const REPORT_DETAILS_DEFAULT_COLUMNS: SearchCustomColumnIds[] = [
     CONST.SEARCH.TABLE_COLUMNS.MERCHANT,
     CONST.SEARCH.TABLE_COLUMNS.CATEGORY,
     CONST.SEARCH.TABLE_COLUMNS.TAG,
-    CONST.SEARCH.TABLE_COLUMNS.TOTAL,
+    CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT,
 ];
+
+const REPORT_DETAILS_CUSTOM_COLUMNS = Object.values(CONST.SEARCH.REPORT_DETAILS_CUSTOM_COLUMNS);
+
+function isReportDetailsCustomColumn(column: string): column is SearchCustomColumnIds {
+    return REPORT_DETAILS_CUSTOM_COLUMNS.some((customColumn) => customColumn === column);
+}
+
+const ALL_REPORT_DETAILS_CUSTOM_COLUMNS = REPORT_DETAILS_CUSTOM_COLUMNS.filter(isReportDetailsCustomColumn);
 
 function ReportDetailsColumnsPage() {
     const route = useRoute<PlatformStackRouteProp<ReportSettingsNavigatorParamList, typeof SCREENS.REPORT_SETTINGS.COLUMNS>>();
@@ -39,22 +54,17 @@ function ReportDetailsColumnsPage() {
     const [reportDetailsColumns] = useOnyx(ONYXKEYS.NVP_REPORT_DETAILS_COLUMNS);
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`);
-    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report?.policyID}`);
     // Selector keeps re-renders scoped to this report's transactions. We intentionally return undefined
     // while the collection is loading so the caller can distinguish "loading" from "no transactions".
-    const reportTransactionsSelector = useCallback(
-        (transactions: OnyxCollection<Transaction>): Transaction[] | undefined => {
+    const [reportTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {
+        selector: (transactions: OnyxCollection<Transaction>): Transaction[] | undefined => {
             if (!transactions) {
                 return undefined;
             }
             return Object.values(transactions).filter((transaction): transaction is Transaction => !!transaction && transaction.reportID === reportID);
         },
-        [reportID],
-    );
-    const [reportTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {selector: reportTransactionsSelector}, [reportTransactionsSelector]);
+    });
     const currentUserDetails = useCurrentUserPersonalDetails();
-
-    const allTypeCustomColumns = Object.values(CONST.SEARCH.REPORT_DETAILS_CUSTOM_COLUMNS) as SearchCustomColumnIds[];
 
     // Wait for transactions to load before rendering. ColumnsSettingsList snapshots
     // currentColumns in useState on mount and does not sync prop updates, so we must
@@ -65,7 +75,7 @@ function ReportDetailsColumnsPage() {
     // return for this report so data-driven columns (e.g. Exchange rate, Original amount,
     // Tax rate, Tax amount) appear pre-selected when they have data on the table.
     const effectiveColumns = useMemo(() => {
-        const savedColumns = (reportDetailsColumns ?? []) as SearchCustomColumnIds[];
+        const savedColumns = (reportDetailsColumns ?? []).filter(isReportDetailsCustomColumn);
         if (savedColumns.length > 0) {
             return savedColumns;
         }
@@ -84,14 +94,13 @@ function ReportDetailsColumnsPage() {
             shouldShowReimbursableColumn: hasNonReimbursableTransactions(reportTransactions),
             reportCurrency: report?.currency,
             isPolicyTaxEnabled: isPolicyTaxEnabled(policy),
-            policyCategories,
         });
 
         // Filter to only columns available in the custom columns list (drops RECEIPT/TYPE/COMMENTS etc.)
-        return visibleColumns.filter((col) => allTypeCustomColumns.includes(col as SearchCustomColumnIds)) as SearchCustomColumnIds[];
-    }, [reportDetailsColumns, reportTransactions, currentUserDetails?.accountID, report, policy, policyCategories, allTypeCustomColumns]);
+        return visibleColumns.filter(isReportDetailsCustomColumn);
+    }, [reportDetailsColumns, reportTransactions, currentUserDetails?.accountID, report, policy]);
 
-    const requiredColumns = new Set<SearchCustomColumnIds>([CONST.SEARCH.TABLE_COLUMNS.TOTAL]);
+    const requiredColumns = new Set<SearchCustomColumnIds>([CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT]);
 
     const handleSave = (selectedColumnIds: SearchCustomColumnIds[]) => {
         // Skip saving if columns haven't changed from the effective state, to avoid
@@ -108,7 +117,7 @@ function ReportDetailsColumnsPage() {
 
     return (
         <ColumnsSettingsList
-            allColumns={allTypeCustomColumns}
+            allColumns={ALL_REPORT_DETAILS_CUSTOM_COLUMNS}
             defaultSelectedColumns={REPORT_DETAILS_DEFAULT_COLUMNS}
             currentColumns={effectiveColumns}
             requiredColumns={requiredColumns}

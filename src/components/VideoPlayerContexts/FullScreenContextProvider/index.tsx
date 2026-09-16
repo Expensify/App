@@ -1,7 +1,9 @@
+import type ChildrenProps from '@src/types/utils/ChildrenProps';
+
 // This component is compiled by the React Compiler
 /* eslint-disable react/jsx-no-constructed-context-values */
 import React, {createContext, useContext, useEffect, useRef, useState} from 'react';
-import type ChildrenProps from '@src/types/utils/ChildrenProps';
+
 import type {FullScreenActionsContextType, FullScreenStateContextType, ResponsiveLayoutProperties} from './types';
 
 const FullScreenStateContext = createContext<FullScreenStateContextType | null>(null);

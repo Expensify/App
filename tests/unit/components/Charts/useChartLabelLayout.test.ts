@@ -1,10 +1,14 @@
-import type {SkTypefaceFontProvider} from '@shopify/react-native-skia';
 import {renderHook} from '@testing-library/react-native';
+
 import useChartLabelLayout from '@components/Charts/hooks/useChartLabelLayout';
 import useChartLabelMeasurements from '@components/Charts/hooks/useChartLabelMeasurements';
 import type {ChartDataPoint} from '@components/Charts/types';
 import type * as ChartUtils from '@components/Charts/utils';
 import {SIN_45} from '@components/Charts/VictoryTheme';
+
+import type {SkTypefaceFontProvider} from '@shopify/react-native-skia';
+
+import createMock from '../../../utils/createMock';
 
 /**
  * Each glyph = PX_PER_CHAR wide. This gives deterministic widths:
@@ -26,7 +30,7 @@ jest.mock('@components/Charts/utils', () => {
     };
 });
 
-const mockFontMgr = {} as SkTypefaceFontProvider;
+const mockFontMgr = createMock<SkTypefaceFontProvider>({});
 const FONT_SIZE = 12;
 
 function makeData(...labels: string[]): ChartDataPoint[] {

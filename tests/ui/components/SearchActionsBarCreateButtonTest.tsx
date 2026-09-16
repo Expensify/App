@@ -1,20 +1,26 @@
 import {act, fireEvent, render, screen} from '@testing-library/react-native';
-import {getUnixTime, subDays} from 'date-fns';
-import React from 'react';
-import Onyx from 'react-native-onyx';
+
 import ComposeProviders from '@components/ComposeProviders';
 import {CurrentUserPersonalDetailsProvider} from '@components/CurrentUserPersonalDetailsProvider';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import SearchActionsBarCreateButton from '@components/Search/SearchPageHeader/SearchActionsBarCreateButton';
+
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
+
 import {createNewReport} from '@libs/actions/Report';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+
+import {getUnixTime, subDays} from 'date-fns';
+import React from 'react';
+import Onyx from 'react-native-onyx';
+
 import {translateLocal} from '../../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../../utils/waitForBatchedUpdatesWithAct';
 
@@ -69,7 +75,6 @@ const MOCK_POLICY = {
     name: 'Test Workspace',
     type: CONST.POLICY.TYPE.TEAM,
     role: CONST.POLICY.ROLE.ADMIN,
-    isPolicyExpenseChatEnabled: true,
     pendingAction: null,
     avatarURL: '',
     areInvoicesEnabled: false,
@@ -107,6 +112,7 @@ describe('SearchActionsBarCreateButton', () => {
             policyForMovingExpensesID: undefined,
             policyForMovingExpenses: undefined,
             shouldSelectPolicy: false,
+            shouldNavigateToUpgradePath: true,
         });
 
         await act(async () => {
@@ -167,9 +173,10 @@ describe('SearchActionsBarCreateButton', () => {
             policyForMovingExpensesID: 'some-policy',
             policyForMovingExpenses: MOCK_POLICY,
             shouldSelectPolicy: false,
+            shouldNavigateToUpgradePath: false,
         });
 
-        // Set up multiple policies with chat enabled
+        // Set up multiple eligible group workspaces
         await act(async () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${MOCK_POLICY_ID}`, MOCK_POLICY);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}policy-456`, {
@@ -204,6 +211,7 @@ describe('SearchActionsBarCreateButton', () => {
             policyForMovingExpensesID: MOCK_POLICY_ID,
             policyForMovingExpenses: MOCK_POLICY,
             shouldSelectPolicy: false,
+            shouldNavigateToUpgradePath: false,
         });
 
         await act(async () => {
@@ -270,6 +278,7 @@ describe('SearchActionsBarCreateButton', () => {
             policyForMovingExpensesID: MOCK_POLICY_ID,
             policyForMovingExpenses: MOCK_POLICY,
             shouldSelectPolicy: false,
+            shouldNavigateToUpgradePath: false,
         });
 
         await act(async () => {
@@ -299,6 +308,7 @@ describe('SearchActionsBarCreateButton', () => {
             policyForMovingExpensesID: MOCK_POLICY_ID,
             policyForMovingExpenses: MOCK_POLICY,
             shouldSelectPolicy: false,
+            shouldNavigateToUpgradePath: false,
         });
 
         await act(async () => {
@@ -339,6 +349,7 @@ describe('SearchActionsBarCreateButton', () => {
             policyForMovingExpensesID: MOCK_POLICY_ID,
             policyForMovingExpenses: MOCK_POLICY,
             shouldSelectPolicy: false,
+            shouldNavigateToUpgradePath: false,
         });
 
         await act(async () => {
@@ -377,6 +388,7 @@ describe('SearchActionsBarCreateButton', () => {
             policyForMovingExpensesID: MOCK_POLICY_ID,
             policyForMovingExpenses: MOCK_POLICY,
             shouldSelectPolicy: false,
+            shouldNavigateToUpgradePath: false,
         });
 
         await act(async () => {
@@ -418,6 +430,7 @@ describe('SearchActionsBarCreateButton', () => {
             policyForMovingExpensesID: MOCK_POLICY_ID,
             policyForMovingExpenses: MOCK_POLICY,
             shouldSelectPolicy: false,
+            shouldNavigateToUpgradePath: false,
         });
 
         await act(async () => {

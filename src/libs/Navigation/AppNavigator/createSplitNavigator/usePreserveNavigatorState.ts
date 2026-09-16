@@ -1,6 +1,8 @@
-import type {NavigationState, ParamListBase, RouteProp, StackNavigationState} from '@react-navigation/native';
-import {useEffect} from 'react';
 import NAVIGATORS from '@src/NAVIGATORS';
+
+import type {NavigationState, ParamListBase, RouteProp, StackNavigationState} from '@react-navigation/native';
+
+import {useEffect} from 'react';
 
 const preservedNavigatorStates: Record<string, NavigationState> = {};
 

@@ -1,32 +1,38 @@
-import React, {useCallback, useEffect} from 'react';
 import CheckboxWithLabel from '@components/CheckboxWithLabel';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import FormHelpMessage from '@components/FormHelpMessage';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import RenderHTML from '@components/RenderHTML';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
+
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
+
 import type CustomSubPageProps from '@pages/settings/Wallet/InternationalDepositAccount/types';
+
 import {clearReimbursementAccountBankCreation, createCorpayBankAccountForWalletFlow, hideBankAccountErrors} from '@userActions/BankAccounts';
+
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {CorpayFormField} from '@src/types/onyx';
 
+import React, {useCallback, useEffect} from 'react';
+
 const STEP_INDEXES = CONST.CORPAY_FIELDS.INDEXES.MAPPING;
 
 type MenuItemProps = {
+    id: string;
     description: string;
     title: string;
-    shouldShowRightIcon: boolean;
     onPress: () => void;
     interactive?: boolean;
     disabled?: boolean;
@@ -85,18 +91,18 @@ function Confirmation({onNext, onMove, formValues, fieldsMap}: CustomSubPageProp
 
     const summaryItems: MenuItemProps[] = [
         {
+            id: 'bankCountry',
             description: translate('common.country'),
             title: translate(`allCountries.${formValues.bankCountry}` as TranslationPaths),
-            shouldShowRightIcon: true,
             onPress: () => {
                 onMove(STEP_INDEXES.COUNTRY_SELECTOR);
             },
             disabled: isOffline,
         },
         {
+            id: 'bankCurrency',
             description: translate('common.currency'),
             title: `${formValues.bankCurrency} - ${getCurrencySymbol(formValues.bankCurrency)}`,
-            shouldShowRightIcon: true,
             onPress: () => {
                 onMove(STEP_INDEXES.BANK_ACCOUNT_DETAILS);
             },
@@ -106,9 +112,9 @@ function Confirmation({onNext, onMove, formValues, fieldsMap}: CustomSubPageProp
 
     for (const [fieldName, field] of Object.entries(fieldsMap[CONST.CORPAY_FIELDS.PAGE_NAME.ACCOUNT_DETAILS] ?? {})) {
         summaryItems.push({
+            id: `${CONST.CORPAY_FIELDS.PAGE_NAME.ACCOUNT_DETAILS}-${fieldName}`,
             description: field.label + (field.isRequired ? '' : ` (${translate('common.optional')})`),
             title: getTitle(field, fieldName),
-            shouldShowRightIcon: true,
             onPress: () => {
                 onMove(STEP_INDEXES.BANK_ACCOUNT_DETAILS);
             },
@@ -117,9 +123,9 @@ function Confirmation({onNext, onMove, formValues, fieldsMap}: CustomSubPageProp
 
     for (const [fieldName, field] of Object.entries(fieldsMap[CONST.CORPAY_FIELDS.PAGE_NAME.ACCOUNT_TYPE] ?? {})) {
         summaryItems.push({
+            id: `${CONST.CORPAY_FIELDS.PAGE_NAME.ACCOUNT_TYPE}-${fieldName}`,
             description: field.label + (field.isRequired ? '' : ` (${translate('common.optional')})`),
             title: getTitle(field, fieldName),
-            shouldShowRightIcon: true,
             onPress: () => {
                 onMove(STEP_INDEXES.ACCOUNT_TYPE);
             },
@@ -130,9 +136,9 @@ function Confirmation({onNext, onMove, formValues, fieldsMap}: CustomSubPageProp
         ([field1], [field2]) => CONST.CORPAY_FIELDS.BANK_INFORMATION_FIELDS.indexOf(field1) - CONST.CORPAY_FIELDS.BANK_INFORMATION_FIELDS.indexOf(field2),
     )) {
         summaryItems.push({
+            id: `${CONST.CORPAY_FIELDS.PAGE_NAME.BANK_INFORMATION}-${fieldName}`,
             description: field.label + (field.isRequired ? '' : ` (${translate('common.optional')})`),
             title: getTitle(field, fieldName),
-            shouldShowRightIcon: true,
             onPress: () => {
                 onMove(STEP_INDEXES.BANK_INFORMATION);
             },
@@ -143,9 +149,9 @@ function Confirmation({onNext, onMove, formValues, fieldsMap}: CustomSubPageProp
         ([field1], [field2]) => CONST.CORPAY_FIELDS.ACCOUNT_HOLDER_FIELDS.indexOf(field1) - CONST.CORPAY_FIELDS.ACCOUNT_HOLDER_FIELDS.indexOf(field2),
     )) {
         summaryItems.push({
+            id: `${CONST.CORPAY_FIELDS.PAGE_NAME.ACCOUNT_HOLDER_DETAILS}-${fieldName}`,
             description: field.label + (field.isRequired ? '' : ` (${translate('common.optional')})`),
             title: fieldName === CONST.CORPAY_FIELDS.ACCOUNT_HOLDER_COUNTRY_KEY ? translate(`allCountries.${formValues.bankCountry}` as TranslationPaths) : getTitle(field, fieldName),
-            shouldShowRightIcon: fieldName !== CONST.CORPAY_FIELDS.ACCOUNT_HOLDER_COUNTRY_KEY,
             onPress: () => {
                 onMove(STEP_INDEXES.ACCOUNT_HOLDER_INFORMATION);
             },
@@ -170,15 +176,14 @@ function Confirmation({onNext, onMove, formValues, fieldsMap}: CustomSubPageProp
         <ScrollView contentContainerStyle={styles.flexGrow1}>
             <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mb3]}>{translate('addPersonalBankAccount.confirmationStepHeader')}</Text>
             <Text style={[styles.mb6, styles.ph5, styles.textSupporting]}>{translate('addPersonalBankAccount.confirmationStepSubHeader')}</Text>
-            {summaryItems.map(({description, title, shouldShowRightIcon, interactive, disabled, onPress}) => (
-                <MenuItemWithTopDescription
-                    key={`${title}_${description}`}
-                    description={description}
-                    title={title}
-                    shouldShowRightIcon={shouldShowRightIcon}
-                    onPress={onPress}
-                    interactive={interactive}
-                    disabled={disabled}
+            {summaryItems.map(({id, description, title, interactive, disabled, onPress}) => (
+                <MenuItemField
+                    key={id}
+                    name={description}
+                    onPress={interactive === false ? undefined : onPress}
+                    isDisabled={disabled}
+                    testID={id}
+                    value={title}
                 />
             ))}
             <FormProvider

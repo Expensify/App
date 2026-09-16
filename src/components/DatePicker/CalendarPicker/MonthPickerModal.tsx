@@ -1,23 +1,25 @@
-import React, {useEffect, useMemo, useState} from 'react';
-import {Keyboard} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Modal from '@components/Modal';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
+
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import DateUtils from '@libs/DateUtils';
+
 import CONST from '@src/CONST';
 
+import React, {useEffect, useMemo, useState} from 'react';
+import {Keyboard} from 'react-native';
+
 type MonthPickerModalProps = {
-    /** Whether the modal is visible */
     isVisible: boolean;
 
     /** Currently selected month (0-indexed) */
     currentMonth?: number;
 
-    /** Function to call when the user selects a month */
     onMonthChange?: (month: number) => void;
 
     /** Function to call when the user closes the month picker */
@@ -29,9 +31,9 @@ type MonthPickerModalProps = {
 
 function MonthPickerModal({isVisible, currentMonth = new Date().getMonth(), onMonthChange, onClose, shouldEnableBackdropInNarrowPane = false}: MonthPickerModalProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, dateFnsLocale} = useLocalize();
     const [searchText, setSearchText] = useState('');
-    const monthNames = DateUtils.getMonthNames();
+    const monthNames = DateUtils.getMonthNames(dateFnsLocale);
 
     const allMonths = useMemo(() => DateUtils.getFilteredMonthItems(monthNames, currentMonth), [monthNames, currentMonth]);
 

@@ -1,12 +1,15 @@
-import React from 'react';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+
 import useLocalize from '@hooks/useLocalize';
+
 import Navigation from '@libs/Navigation/Navigation';
+
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
+import React from 'react';
+
 type NetSuiteCustomListPickerProps = {
-    /** Current value of the selected item */
     value?: string;
 
     /** Policy ID from the parent route's URL params (preferred over policy?.id because it is set before the Onyx policy record hydrates) */

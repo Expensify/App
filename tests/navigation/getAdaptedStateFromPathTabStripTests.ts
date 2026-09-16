@@ -1,10 +1,12 @@
-import type {NavigationState, PartialState} from '@react-navigation/native';
 import TAB_SCREENS from '@libs/Navigation/AppNavigator/Navigators/TAB_SCREENS';
 import getAdaptedStateFromPath from '@libs/Navigation/helpers/getAdaptedStateFromPath';
 import getMatchingNewRoute from '@libs/Navigation/helpers/getMatchingNewRoute';
 import getStateFromPath from '@libs/Navigation/helpers/getStateFromPath';
+
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
+
+import type {NavigationState, PartialState} from '@react-navigation/native';
 
 jest.mock('@libs/Navigation/helpers/getStateFromPath', () => jest.fn());
 jest.mock('@libs/Navigation/helpers/getMatchingNewRoute', () => jest.fn());

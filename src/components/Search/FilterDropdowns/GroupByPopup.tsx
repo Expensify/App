@@ -1,14 +1,19 @@
-import React, {useCallback, useMemo, useState} from 'react';
-import {View} from 'react-native';
 import ListFilterWrapper from '@components/Search/FilterComponents/ListFilterViewWrapper';
 import type {SearchGroupBy} from '@components/Search/types';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import SelectionListWithSections from '@components/SelectionList/SelectionListWithSections';
 import type {ListItem} from '@components/SelectionList/types';
+
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import type {GroupBySection} from '@libs/SearchUIUtils';
+
 import CONST from '@src/CONST';
+
+import React, {useCallback, useMemo, useState} from 'react';
+import {View} from 'react-native';
+
 import BasePopup from './BasePopup';
 
 type GroupByPopupItem = {
@@ -17,18 +22,10 @@ type GroupByPopupItem = {
 };
 
 type GroupByPopupProps = {
-    /** The grouped options to show in the list */
     sections: GroupBySection[];
-
-    /** The currently selected item */
     value: GroupByPopupItem | null;
-
     onBackButtonPress: () => void;
-
-    /** Function to call to close the overlay when changes are applied */
     closeOverlay: () => void;
-
-    /** Function to call when changes are applied */
     onChange: (item: GroupByPopupItem | null) => void;
 };
 

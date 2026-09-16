@@ -40,14 +40,6 @@ function getAttributeStringValue(attribute) {
     return null;
 }
 
-function getConstRoleValue(attribute) {
-    if (attribute?.value?.type !== 'JSXExpressionContainer') {
-        return null;
-    }
-
-    return getConstRoleValueFromExpression(attribute.value.expression);
-}
-
 function getConstRoleValueFromExpression(expression) {
     if (expression.type !== 'MemberExpression' || expression.computed || expression.property.type !== 'Identifier') {
         return null;
@@ -65,6 +57,14 @@ function getConstRoleValueFromExpression(expression) {
     }
 
     return expression.property.name.toLowerCase();
+}
+
+function getConstRoleValue(attribute) {
+    if (attribute?.value?.type !== 'JSXExpressionContainer') {
+        return null;
+    }
+
+    return getConstRoleValueFromExpression(attribute.value.expression);
 }
 
 function getResolvedRolesFromExpression(expression) {

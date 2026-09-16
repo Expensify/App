@@ -1,14 +1,19 @@
-import type {StyleProp, TextStyle, View, ViewStyle} from 'react-native';
-import {StyleSheet} from 'react-native';
-import type {SharedValue} from 'react-native-reanimated';
+import {fontScale, lineHeightScale} from '@styles/typography';
 import FontUtils from '@styles/utils/FontUtils';
 // eslint-disable-next-line no-restricted-imports
 import type StyleUtilGenerator from '@styles/utils/generators/types';
 // eslint-disable-next-line no-restricted-imports
 import spacing from '@styles/utils/spacing';
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import type {TooltipAnchorAlignment} from '@src/types/utils/AnchorAlignment';
+
+import type {StyleProp, TextStyle, View, ViewStyle} from 'react-native';
+import type {SharedValue} from 'react-native-reanimated';
+
+import {StyleSheet} from 'react-native';
+
 import computeHorizontalShift, {GUTTER_WIDTH} from './computeHorizontalShift';
 import isOverlappingAtTop from './isOverlappingAtTop';
 import tooltipPlatformStyle from './tooltipPlatformStyles';
@@ -258,9 +263,9 @@ const createTooltipStyleUtils: StyleUtilGenerator<GetTooltipStylesStyleUtil> = (
             textStyle: {
                 color: theme.textReversed,
                 ...FontUtils.fontFamily.platform.EXP_NEUE,
-                fontSize: variables.fontSizeSmall,
+                fontSize: fontScale.micro,
                 overflow: 'hidden',
-                lineHeight: variables.lineHeightSmall,
+                lineHeight: lineHeightScale.micro,
                 textAlign: 'center',
             },
             pointerWrapperStyle: {

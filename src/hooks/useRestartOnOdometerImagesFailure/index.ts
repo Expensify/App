@@ -1,16 +1,20 @@
-import {useEffect, useRef, useState} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
 import useOnyx from '@hooks/useOnyx';
+
 import {checkIfLocalFileIsAccessible} from '@libs/actions/IOU/Receipt';
 import clearOdometerDraftTransactionState, {hydrateOdometerDraftIntoTransaction} from '@libs/actions/OdometerTransactionUtils';
 import {navigateToStartMoneyRequestStep} from '@libs/IOUUtils';
 import {getOdometerImageUri} from '@libs/OdometerUtils';
+
 import type {IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {validTransactionDraftIDsSelector} from '@src/selectors/TransactionDraft';
 import type {Transaction} from '@src/types/onyx';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {useEffect, useRef, useState} from 'react';
 
 type BackupHandledArgs = {
     shouldResetLocalState: boolean;

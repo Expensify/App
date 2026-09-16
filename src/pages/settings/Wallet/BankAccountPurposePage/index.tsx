@@ -1,8 +1,12 @@
-import React, {useState} from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
+
 import useLocalize from '@hooks/useLocalize';
+
 import Navigation from '@navigation/Navigation';
+
+import React, {useState} from 'react';
+
 import BankAccountPurpose from './substeps/BankAccountPurpose';
 import CountrySelection from './substeps/CountrySelection';
 

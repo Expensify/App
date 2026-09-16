@@ -1,6 +1,8 @@
 import React from 'react';
-import BaseOnboardingPurpose from './BaseOnboardingPurpose';
+
 import type {OnboardingPurposeProps} from './types';
+
+import BaseOnboardingPurpose from './BaseOnboardingPurpose';
 
 function OnboardingPurpose({...rest}: OnboardingPurposeProps) {
     return (

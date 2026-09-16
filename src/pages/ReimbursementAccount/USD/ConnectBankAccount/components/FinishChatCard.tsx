@@ -1,10 +1,8 @@
-import {hasSeenTourSelector} from '@selectors/Onboarding';
-import React from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
-import MenuItem from '@components/MenuItem';
+import MenuItemNavigation from '@components/MenuItem/presets/MenuItemNavigation';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import Text from '@components/Text';
+
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -12,14 +10,24 @@ import useOnyx from '@hooks/useOnyx';
 import useResetBankAccountModal from '@hooks/useResetBankAccountModal';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import Navigation from '@libs/Navigation/Navigation';
+
 import {goToWithdrawalAccountSetupStep, requestResetBankAccount, setBankAccountSubStep} from '@userActions/BankAccounts';
 import {navigateToConciergeChat} from '@userActions/Report';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import type {Policy, ReimbursementAccount} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {hasSeenTourSelector} from '@selectors/Onboarding';
+import React from 'react';
+import {View} from 'react-native';
+
 import Enable2FACard from './Enable2FACard';
 
 type FinishChatCardProps = {
@@ -56,17 +64,15 @@ function FinishChatCard({requiresTwoFactorAuth, reimbursementAccount, policy, se
     });
 
     const handleNavigateToConciergeChat = () =>
-        navigateToConciergeChat(
+        navigateToConciergeChat({
             conciergeReportID,
             introSelected,
             currentUserAccountID,
             isSelfTourViewed,
             betas,
-            true,
-            undefined,
-            undefined,
-            reimbursementAccount?.achData?.ACHRequestReportActionID,
-        );
+            shouldDismissModal: true,
+            reportActionID: reimbursementAccount?.achData?.ACHRequestReportActionID,
+        });
 
     const icons = useMemoizedLazyExpensifyIcons(['ChatBubble', 'Pencil', 'RotateLeft']);
     const illustrations = useMemoizedLazyIllustrations(['ConciergeBubble']);
@@ -80,39 +86,35 @@ function FinishChatCard({requiresTwoFactorAuth, reimbursementAccount, policy, se
                 titleStyles={[styles.mb3]}
             >
                 <Text style={styles.mb6}>{translate('connectBankAccountStep.letsChatText')}</Text>
-                <MenuItem
-                    icon={icons.ChatBubble}
-                    title={translate('workspace.bankAccount.finishInChat')}
-                    onPress={handleNavigateToConciergeChat}
-                    outerWrapperStyle={shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8}
-                    shouldShowRightIcon
-                />
-                <MenuItem
-                    icon={icons.Pencil}
-                    title={translate('workspace.bankAccount.updateDetails')}
-                    onPress={() => {
-                        setBankAccountSubStep(CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL).then(() => {
-                            goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.REQUESTOR);
-                            Navigation.navigate(
-                                ROUTES.BANK_ACCOUNT_USD_SETUP.getRoute({
-                                    policyID: policy?.id,
-                                    page: CONST.BANK_ACCOUNT.PAGE_NAMES.REQUESTOR,
-                                    subPage: CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.SUB_PAGE_NAMES.FULL_NAME,
-                                    backTo,
-                                }),
-                            );
-                        });
-                    }}
-                    outerWrapperStyle={shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8}
-                    shouldShowRightIcon
-                />
-                <MenuItem
-                    icon={icons.RotateLeft}
-                    title={translate('workspace.bankAccount.startOver')}
-                    onPress={requestResetBankAccount}
-                    outerWrapperStyle={shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8}
-                    shouldShowRightIcon
-                />
+                <View style={shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8}>
+                    <MenuItemNavigation
+                        icon={icons.ChatBubble}
+                        title={translate('workspace.bankAccount.finishInChat')}
+                        onPress={handleNavigateToConciergeChat}
+                    />
+                    <MenuItemNavigation
+                        icon={icons.Pencil}
+                        title={translate('workspace.bankAccount.updateDetails')}
+                        onPress={() => {
+                            setBankAccountSubStep(CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL).then(() => {
+                                goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.REQUESTOR);
+                                Navigation.navigate(
+                                    ROUTES.BANK_ACCOUNT_USD_SETUP.getRoute({
+                                        policyID: policy?.id,
+                                        page: CONST.BANK_ACCOUNT.PAGE_NAMES.REQUESTOR,
+                                        subPage: CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.SUB_PAGE_NAMES.FULL_NAME,
+                                        backTo,
+                                    }),
+                                );
+                            });
+                        }}
+                    />
+                    <MenuItemNavigation
+                        icon={icons.RotateLeft}
+                        title={translate('workspace.bankAccount.startOver')}
+                        onPress={requestResetBankAccount}
+                    />
+                </View>
             </Section>
             {!requiresTwoFactorAuth && <Enable2FACard />}
         </ScrollView>

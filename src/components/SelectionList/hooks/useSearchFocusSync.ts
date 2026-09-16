@@ -1,6 +1,8 @@
-import {useEffect} from 'react';
 import type {ListItem} from '@components/SelectionList/ListItem/types';
+
 import usePrevious from '@hooks/usePrevious';
+
+import {useEffect} from 'react';
 
 type UseSearchFocusSyncParams<TItem extends ListItem, TData = TItem> = {
     /** The current search value from text input */
@@ -9,7 +11,6 @@ type UseSearchFocusSyncParams<TItem extends ListItem, TData = TItem> = {
     /** Array of items (filtered data) */
     data: TData[];
 
-    /** Count of currently selected options */
     selectedOptionsCount: number;
 
     /** Function to check if an item is selected */
@@ -21,10 +22,7 @@ type UseSearchFocusSyncParams<TItem extends ListItem, TData = TItem> = {
     /** Whether focus index should be updated when selection changes */
     shouldUpdateFocusedIndex: boolean;
 
-    /** Function to scroll to an index */
     scrollToIndex: (index: number, animated?: boolean) => void;
-
-    /** Function to set the focused index */
     setFocusedIndex: (index: number) => void;
 
     /** The first focusable index in the list (useful when index 0 is a header). Defaults to 0. */

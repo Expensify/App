@@ -1,5 +1,3 @@
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
-import {View} from 'react-native';
 import Checkbox from '@components/Checkbox';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
@@ -8,23 +6,32 @@ import SelectionList from '@components/SelectionList';
 import MultiSelectListItem from '@components/SelectionList/ListItem/MultiSelectListItem';
 import type {ConfirmButtonOptions, ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
+
 import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {readFileAsync} from '@libs/fileDownload/FileUtils';
 import {createFilteredMemberCountSelector, createInvoiceConfigurationTextSelector, getDistanceRateCustomUnit, getPerDiemCustomUnit, isCollectPolicy} from '@libs/PolicyUtils';
 import {formatAddressToString} from '@libs/ReportActionsUtils';
 import {getReportFieldsByPolicyID} from '@libs/ReportUtils';
+
 import Navigation from '@navigation/Navigation';
+
 import {duplicateWorkspace as duplicateWorkspaceAction, openDuplicatePolicyPage} from '@userActions/Policy/Policy';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Rate} from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import {View} from 'react-native';
+
 import {getAllValidConnectedIntegration, getWorkflowRules, getWorkspaceRules} from './utils';
 
 type WorkspaceDuplicateFormProps = {
@@ -45,18 +52,26 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
     const categoriesCount = Object.values(policyCategories ?? {}).filter((category) => category.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length;
     const codingRulesCount = Object.values(policy?.rules?.codingRules ?? {}).filter((rule) => rule.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length;
     const [selectedItems, setSelectedItems] = useState<string[]>([]);
-    const reportFields = Object.values(getReportFieldsByPolicyID(policy) ?? {}).filter((field) => field.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length ?? 0;
+    const policyFields = Object.values(getReportFieldsByPolicyID(policy) ?? {}).filter((field) => field.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+    const reportFields = policyFields.filter((field) => field.target !== CONST.REPORT_FIELD_TARGETS.INVOICE).length;
+    const invoiceFields = policyFields.filter((field) => field.target === CONST.REPORT_FIELD_TARGETS.INVOICE).length;
     const customUnits = getPerDiemCustomUnit(policy);
     const customUnitRates: Record<string, Rate> = customUnits?.rates ?? {};
     const allRates = Object.values(customUnitRates)?.filter((rate) => rate.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length ?? 0;
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const totalMembersSelector = useMemo(
+        () => createFilteredMemberCountSelector(policy?.employeeList, policy?.owner, currentUserPersonalDetails.login),
+        [policy?.employeeList, policy?.owner, currentUserPersonalDetails.login],
+    );
     const [totalMembers = 0] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
-        selector: createFilteredMemberCountSelector(policy?.employeeList, policy?.owner, currentUserPersonalDetails.login),
+        selector: totalMembersSelector,
     });
-    const invoiceCompany = [policy?.invoice?.companyName, policy?.invoice?.companyWebsite].filter(Boolean).join(', ');
+    // The invoicing company details are provisioned per workspace, so they aren't copied over to the duplicate and shouldn't be advertised here.
+    const invoiceConfigurationTextSelector = useMemo(() => createInvoiceConfigurationTextSelector(translate, ''), [translate]);
     const [invoiceConfigurationText = ''] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {
-        selector: createInvoiceConfigurationTextSelector(translate, invoiceCompany),
+        selector: invoiceConfigurationTextSelector,
     });
+    const invoiceDetails = [invoiceConfigurationText, invoiceFields ? `${invoiceFields} ${translate('workspace.common.invoiceFields').toLowerCase()}` : ''].filter(Boolean).join(', ');
 
     const accountingIntegrations = CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES;
     const connectedIntegration = getAllValidConnectedIntegration(policy, accountingIntegrations);
@@ -166,11 +181,11 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
                   }
                 : undefined,
 
-            policy?.areInvoicesEnabled && !!invoiceConfigurationText
+            policy?.areInvoicesEnabled
                 ? {
                       translation: translate('workspace.common.invoices'),
                       value: 'invoices',
-                      alternateText: invoiceConfigurationText,
+                      alternateText: invoiceDetails || undefined,
                   }
                 : undefined,
             policy?.isTravelEnabled
@@ -195,7 +210,7 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
         ratesCount,
         isCollect,
         allRates,
-        invoiceConfigurationText,
+        invoiceDetails,
         codingRulesCount,
     ]);
 
@@ -243,6 +258,7 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
                 expenses: selectedItems.includes('rules'),
                 distance: selectedItems.includes('distanceRates'),
                 invoices: selectedItems.includes('invoices'),
+                invoiceFields: selectedItems.includes('invoices'),
                 exportLayouts: selectedItems.includes('workflows'),
                 overview: selectedItems.includes('overview'),
                 travel: selectedItems.includes('travel'),
@@ -288,7 +304,7 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
             ),
             confirmText: translate('common.proceed'),
             cancelText: translate('common.cancel'),
-            success: true,
+            buttonVariant: CONST.BUTTON_VARIANT.SUCCESS,
         }).then((result) => {
             if (!policy || !duplicateWorkspaceName || !duplicateWorkspacePolicyID || result.action !== ModalActions.CONFIRM) {
                 return;

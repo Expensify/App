@@ -1,6 +1,8 @@
 import React from 'react';
-import BaseOnboardingPersonalTrackGoal from './BaseOnboardingPersonalTrackGoal';
+
 import type {OnboardingPersonalTrackGoalProps} from './types';
+
+import BaseOnboardingPersonalTrackGoal from './BaseOnboardingPersonalTrackGoal';
 
 function OnboardingPersonalTrackGoal(props: OnboardingPersonalTrackGoalProps) {
     return (

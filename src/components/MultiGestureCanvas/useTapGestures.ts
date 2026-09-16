@@ -1,10 +1,13 @@
-import {useCallback, useMemo} from 'react';
 import type {TapGesture} from 'react-native-gesture-handler';
+
+import {useCallback, useMemo} from 'react';
 import {Gesture} from 'react-native-gesture-handler';
 import {withSpring} from 'react-native-reanimated';
 import {scheduleOnRN} from 'react-native-worklets';
-import {DOUBLE_TAP_SCALE, SPRING_CONFIG} from './constants';
+
 import type {MultiGestureCanvasVariables} from './types';
+
+import {DOUBLE_TAP_SCALE, SPRING_CONFIG} from './constants';
 import * as MultiGestureCanvasUtils from './utils';
 
 type UseTapGesturesProps = Pick<
@@ -18,6 +21,7 @@ type UseTapGesturesProps = Pick<
     | 'pinchScale'
     | 'zoomScale'
     | 'shouldDisableTransformationGestures'
+    | 'isTransformGestureActive'
     | 'reset'
     | 'stopAnimation'
     | 'onScaleChanged'
@@ -36,6 +40,7 @@ const useTapGestures = ({
     reset,
     stopAnimation,
     shouldDisableTransformationGestures,
+    isTransformGestureActive,
     onScaleChanged,
     onTap,
 }: UseTapGesturesProps): {singleTapGesture: TapGesture; doubleTapGesture: TapGesture} => {
@@ -51,6 +56,7 @@ const useTapGestures = ({
             'worklet';
 
             stopAnimation();
+            isTransformGestureActive.set(true);
 
             // By how much the canvas is bigger than the content horizontally and vertically per side
             const horizontalCanvasOffset = Math.max(0, (canvasSize.width - scaledContentWidth) / 2);
@@ -113,10 +119,15 @@ const useTapGestures = ({
 
             offsetX.set(withSpring(offsetAfterZooming.x, SPRING_CONFIG));
             offsetY.set(withSpring(offsetAfterZooming.y, SPRING_CONFIG));
-            zoomScale.set(withSpring(doubleTapScale, SPRING_CONFIG, callback));
+            zoomScale.set(
+                withSpring(doubleTapScale, SPRING_CONFIG, () => {
+                    callback();
+                    isTransformGestureActive.set(false);
+                }),
+            );
             pinchScale.set(doubleTapScale);
         },
-        [stopAnimation, canvasSize.width, canvasSize.height, scaledContentWidth, scaledContentHeight, doubleTapScale, offsetX, offsetY, zoomScale, pinchScale],
+        [stopAnimation, isTransformGestureActive, canvasSize.width, canvasSize.height, scaledContentWidth, scaledContentHeight, doubleTapScale, offsetX, offsetY, zoomScale, pinchScale],
     );
 
     const doubleTapGesture = Gesture.Tap()
@@ -147,7 +158,11 @@ const useTapGestures = ({
             // If the content is already zoomed, we want to reset the zoom,
             // otherwise we want to zoom in
             if (zoomScale.get() > 1) {
-                reset(true, triggerScaleChangedEvent);
+                isTransformGestureActive.set(true);
+                reset(true, () => {
+                    triggerScaleChangedEvent();
+                    isTransformGestureActive.set(false);
+                });
             } else {
                 zoomToCoordinates(evt.x, evt.y, triggerScaleChangedEvent);
             }

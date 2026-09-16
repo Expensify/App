@@ -1,19 +1,24 @@
-import {CONST as COMMON_CONST} from 'expensify-common/dist/CONST';
-import React, {useState} from 'react';
-import {View} from 'react-native';
-import type {StyleProp, ViewStyle} from 'react-native';
 import AddressSearch from '@components/AddressSearch';
 import InputWrapper from '@components/Form/InputWrapper';
 import PushRowWithModal from '@components/PushRowWithModal';
 import TextInput from '@components/TextInput';
+
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 import {getCountryZipRegexDetails} from '@libs/ValidationUtils';
+
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type {Address} from '@src/types/onyx/PrivatePersonalDetails';
+
+import type {StyleProp, ViewStyle} from 'react-native';
+
+import {CONST as COMMON_CONST} from 'expensify-common';
+import React, {useState} from 'react';
+import {View} from 'react-native';
 
 type AddressInputKeys = {
     street: string;
@@ -38,43 +43,24 @@ type AddressFormProps = ForwardedFSClassProps & {
     /** Translate key for Street name */
     streetTranslationKey: TranslationPaths;
 
-    /** Default values */
     defaultValues?: Address;
-
-    /** Form values */
     values?: Address;
 
     /** Any errors that can arise from form validation */
     errors?: AddressErrors;
 
-    /** The map for inputID of the inputs */
     inputKeys: AddressInputKeys;
 
     /** Saves a draft of the input value when used in a form */
     shouldSaveDraft?: boolean;
 
-    /** Additional styles to apply to container */
     containerStyles?: StyleProp<ViewStyle>;
-
-    /** Indicates if country selector should be displayed */
     shouldDisplayCountrySelector?: boolean;
-
-    /** Indicates if state selector should be displayed */
     shouldDisplayStateSelector?: boolean;
-
-    /** Label for the state selector */
     stateSelectorLabel?: string;
-
-    /** The title of the state selector modal */
     stateSelectorModalHeaderTitle?: string;
-
-    /** The title of the state selector search input */
     stateSelectorSearchInputTitle?: string;
-
-    /** Callback to be called when the country is changed */
     onCountryChange?: (country: unknown) => void;
-
-    /** Indicates if country can be changed by user */
     shouldAllowCountryChange?: boolean;
 };
 

@@ -1,10 +1,14 @@
-import type {OnyxEntry} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
 import AppStateMonitor from '@libs/AppStateMonitor';
 import Log from '@libs/Log';
 import {flush} from '@libs/Network/SequentialQueue';
 import {getIsOffline, onReachabilityConfirmed as onNetworkReachabilityConfirmed, refresh as refreshNetworkState, subscribe as subscribeNetworkState} from '@libs/NetworkState';
+
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import Onyx from 'react-native-onyx';
+
 import {reconnectApp} from './App';
 
 let lastUpdateIDAppliedToClient: OnyxEntry<number>;
@@ -24,11 +28,6 @@ Onyx.connectWithoutView({
     },
 });
 
-/**
- * Centralized reconnection logic.
- * Syncs app data with the server — fetches missed Onyx updates.
- * Queue flushing is handled separately by the offline→online subscriber below.
- */
 function reconnect() {
     if (!currentAccountID) {
         Log.info('[Reconnect] Skipping reconnection — no active session');
@@ -57,13 +56,11 @@ const initReconnect = () => {
         wasOffline = offline;
     });
 
-    // App came to foreground — sync data and flush queue
     AppStateMonitor.addBecameActiveListener(() => {
         Log.info('[Reconnect] App became active');
         if (getIsOffline()) {
             refreshNetworkState();
         }
-        reconnect();
         flush();
     });
 };

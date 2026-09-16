@@ -1,6 +1,8 @@
-import React from 'react';
 import {CHART_TYPE} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/constants';
 import {useVictoryChartContext} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/context/VictoryChartContext';
+
+import React from 'react';
+
 import VictoryChartCartesian from './VictoryChartCartesian';
 import VictoryChartPolar from './VictoryChartPolar';
 

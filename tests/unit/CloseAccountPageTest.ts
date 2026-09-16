@@ -1,6 +1,8 @@
-import {Str} from 'expensify-common';
 import {formatE164PhoneNumber, getPhoneNumberWithoutSpecialChars, sanitizePhoneOrEmail} from '@libs/LoginUtils';
+
 import CONST from '@src/CONST';
+
+import {Str} from 'expensify-common';
 
 const validatePhoneOrEmail = (inputValue: string, storedValue: string, translate: (key: string) => string, countryCode?: number) => {
     const errors: {phoneOrEmail?: string} = {};

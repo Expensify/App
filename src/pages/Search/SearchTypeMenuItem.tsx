@@ -1,7 +1,3 @@
-import React, {useEffect} from 'react';
-import {View} from 'react-native';
-import type {GestureResponderEvent} from 'react-native';
-import Animated, {Easing, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import Badge from '@components/Badge';
 import Icon from '@components/Icon';
 import {SEARCH_SIDEBAR_COLLAPSE_ANIMATION_DURATION_MS, useSearchSidebarCollapse, useSearchSidebarCollapseFadeStyle} from '@components/Navigation/SearchSidebarCollapseStore';
@@ -9,19 +5,28 @@ import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeed
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
 import TooltipSense from '@components/Tooltip/TooltipSense';
+
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import getButtonState from '@libs/getButtonState';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
+
+import type {GestureResponderEvent} from 'react-native';
+
+import React, {useEffect} from 'react';
+import {View} from 'react-native';
+import Animated, {Easing, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 
 type SearchTypeMenuItemProps = {
     /** Translated title */
     title: string;
 
-    /** Icon component or asset */
     icon: IconAsset | undefined;
 
     /** Optional badge text (e.g. count) */
@@ -30,7 +35,6 @@ type SearchTypeMenuItemProps = {
     /** Whether the item is focused (keyboard nav) */
     focused?: boolean;
 
-    /** Press handler */
     onPress: (event?: GestureResponderEvent | KeyboardEvent) => void | Promise<void>;
 };
 
@@ -78,7 +82,7 @@ function SearchTypeMenuItem({title, icon, badgeText, focused = false, onPress}: 
                 styles.flexRow,
                 styles.sectionMenuItem(shouldUseNarrowLayout),
                 styles.searchTypeMenuItemPadding,
-                StyleUtils.getButtonBackgroundColorStyle(getButtonState(focused || hovered, pressed, false, false, true), true),
+                StyleUtils.getButtonBackgroundColorStyle(getButtonState({isActive: focused || hovered, isPressed: pressed}), true),
                 hovered && !focused && !pressed && styles.hoveredComponentBG,
             ]}
         >
@@ -90,7 +94,7 @@ function SearchTypeMenuItem({title, icon, badgeText, focused = false, onPress}: 
                                 src={icon}
                                 width={variables.iconSizeNormal}
                                 height={variables.iconSizeNormal}
-                                fill={StyleUtils.getIconFillColor(getButtonState(focused || hovered, pressed, false, false, true), true, true)}
+                                fill={StyleUtils.getIconFillColor({buttonState: getButtonState({isActive: focused || hovered, isPressed: pressed}), isMenuIcon: true, isPane: true})}
                             />
                             {!!badgeText && (
                                 <Animated.View

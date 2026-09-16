@@ -1,5 +1,6 @@
-import type {MarkdownRange} from '@expensify/react-native-live-markdown';
 import {decorateRangesWithShortMentions, getParsedMessageWithShortMentions} from '@libs/ParsingUtils';
+
+import type {MarkdownRange} from '@expensify/react-native-live-markdown';
 
 const TEST_COMPANY_DOMAIN = 'myCompany.com';
 

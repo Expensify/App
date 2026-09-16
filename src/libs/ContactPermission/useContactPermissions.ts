@@ -1,9 +1,12 @@
+import useAppState from '@hooks/useAppState';
+
+import type {AppStateStatus} from 'react-native';
+import type {PermissionStatus} from 'react-native-permissions';
+
 import {useFocusEffect} from '@react-navigation/native';
 import {useCallback} from 'react';
-import type {AppStateStatus} from 'react-native';
 import {RESULTS} from 'react-native-permissions';
-import type {PermissionStatus} from 'react-native-permissions';
-import useAppState from '@hooks/useAppState';
+
 import {getContactPermission} from './index';
 
 type UseContactPermissionsProps = {

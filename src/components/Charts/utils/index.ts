@@ -1,9 +1,12 @@
-import {FontStyle, FontWeight, Skia} from '@shopify/react-native-skia';
-import type {SkParagraph, SkParagraphBuilder, SkTypefaceFontProvider} from '@shopify/react-native-skia';
-import {scaleLinear} from 'd3-scale';
 import type {ChartDataPoint, LabelRotation, PieSlice} from '@components/Charts/types';
 import VictoryTheme, {CHART_Y_SCALE_HEIGHT, DIAGONAL_ANGLE_RADIAN_THRESHOLD, ELLIPSIS, LABEL_PADDING, LABEL_ROTATIONS, MAX_X_AXIS_LABEL_WIDTH, SIN_45} from '@components/Charts/VictoryTheme';
+
 import variables from '@styles/variables';
+
+import type {SkParagraph, SkParagraphBuilder, SkTypefaceFontProvider} from '@shopify/react-native-skia';
+
+import {FontStyle, FontWeight, Skia} from '@shopify/react-native-skia';
+import {scaleLinear} from 'd3-scale';
 
 /** One reusable ParagraphBuilder per fontManager instance. Auto-GC'd when fontManager is released. */
 const builderCache = new WeakMap<SkTypefaceFontProvider, SkParagraphBuilder>();
@@ -254,6 +257,11 @@ function processDataIntoSlices(
         ).slices;
 }
 
+/** Label to render on the x-axis for a data point: the compact one when provided, otherwise the full label. */
+function getXAxisLabel(point: ChartDataPoint): string {
+    return point.shortLabel ?? point.label;
+}
+
 /** Truncate `label` so its pixel width fits within `maxWidth`, adding ellipsis. */
 function truncateLabel(label: string, labelWidth: number, maxWidth: number, ellipsisWidth: number): string {
     if (labelWidth <= maxWidth) {
@@ -457,6 +465,7 @@ export {
     isAngleInSlice,
     findSliceAtPosition,
     processDataIntoSlices,
+    getXAxisLabel,
     truncateLabel,
     effectiveWidth,
     effectiveHeight,

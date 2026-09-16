@@ -1,7 +1,10 @@
-import React, {useState} from 'react';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import React, {useState} from 'react';
+
 import ConfirmModal from './ConfirmModal';
 
 function UpdateAppModal() {

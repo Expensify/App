@@ -1,14 +1,16 @@
-import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
 import type ONYXKEYS from '@src/ONYXKEYS';
 import type CollectionDataSet from '@src/types/utils/CollectionDataSet';
+
+import type {ValueOf} from 'type-fest';
+
 import type * as OnyxCommon from './OnyxCommon';
+import type {TripData} from './TripData';
 
 /**
  * Model for scheduled called on the report
  */
 type CalendlyCall = {
-    /** Status of the call */
     status: ValueOf<typeof CONST.SCHEDULE_CALL_STATUS>;
 
     /** The account executive the user confirmed the call with */
@@ -17,7 +19,6 @@ type CalendlyCall = {
     /** The selected date and time in YYYY-MM-DD HH:MM:SS format for the call */
     eventTime: string;
 
-    /** Unique identifier of the event  */
     eventURI: string;
 
     /** The time the call was inserted in this NVP in YYYY-MM-DD HH:MM:SS format */
@@ -28,9 +29,6 @@ type CalendlyCall = {
  * Guide call schedule
  */
 type GuideCalendlySchedule = {
-    /**
-     * Guide Email
-     */
     guideEmail: string;
     /**
      * Available slots for the guide
@@ -79,7 +77,6 @@ type ReportNameValuePairs = OnyxCommon.OnyxValueWithOfflineFeedback<{
         errors?: OnyxCommon.Errors;
     };
 
-    /** The time the report export failed */
     exportFailedTime?: string;
 
     /**
@@ -91,19 +88,30 @@ type ReportNameValuePairs = OnyxCommon.OnyxValueWithOfflineFeedback<{
      */
     agentZeroProcessingRequestIndicator?: Record<string, string | null> | string;
 
-    /** Parent report ID */
     parentReportID?: string;
+
+    /** The trip data for a trip room */
+    tripData?: {
+        /** The start date of a trip */
+        startDate?: string;
+
+        /** The end date of a trip */
+        endDate?: string;
+
+        /** The trip ID in Spotnana */
+        tripID: string;
+
+        payload?: TripData;
+    };
 
     /** Title field configuration copied from policy - presence indicates auto-generated names are allowed */
     // eslint-disable-next-line @typescript-eslint/naming-convention
     expensify_text_title?: {
-        /** Name of the field */
         name: string;
 
         /** Default value assigned to the field */
         defaultValue: string;
 
-        /** Unique id of the field */
         fieldID: string;
 
         /** Position at which the field should show up relative to the other fields */
@@ -115,10 +123,7 @@ type ReportNameValuePairs = OnyxCommon.OnyxValueWithOfflineFeedback<{
         /** Tells if the field is required or not */
         deletable: boolean;
 
-        /** Value of the field */
         value?: string | null;
-
-        /** Value of the target */
         target?: 'expense' | 'invoice' | 'paycheck';
 
         /** Options to select from if field is of type dropdown */

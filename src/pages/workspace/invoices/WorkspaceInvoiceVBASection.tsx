@@ -1,8 +1,7 @@
-import React, {useCallback, useMemo, useRef} from 'react';
-import type {TupleToUnion} from 'type-fest';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import Section from '@components/Section';
+
 import useConfirmModal from '@hooks/useConfirmModal';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -11,20 +10,29 @@ import usePaymentMethodState from '@hooks/usePaymentMethodState';
 import type {FormattedSelectedPaymentMethod} from '@hooks/usePaymentMethodState/types';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useVerifyAccountAndResume from '@hooks/useVerifyAccountAndResume';
+
 import {isCurrencySupportedForGlobalReimbursement} from '@libs/actions/Policy/Policy';
 import {navigateToBankAccountRoute} from '@libs/actions/ReimbursementAccount';
 import Navigation from '@libs/Navigation/Navigation';
 import {formatPaymentMethods, getPaymentMethodDescription} from '@libs/PaymentUtils';
 import {hasInProgressVBBA} from '@libs/ReimbursementAccountUtils';
 import {getEligibleExistingBusinessBankAccounts} from '@libs/WorkflowUtils';
+
 import PaymentMethodList from '@pages/settings/Wallet/PaymentMethodList';
 import type {PaymentMethodPressHandlerParams} from '@pages/settings/Wallet/WalletPage/types';
+
 import {deletePaymentBankAccount} from '@userActions/BankAccounts';
 import {close as closeModal} from '@userActions/Modal';
 import {setInvoicingTransferBankAccount} from '@userActions/PaymentMethods';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+
+import type {TupleToUnion} from 'type-fest';
+
+import React, {useCallback, useMemo, useRef} from 'react';
 
 type WorkspaceInvoiceVBASectionProps = {
     /** The policy ID currently being configured */
@@ -141,6 +149,16 @@ function WorkspaceInvoiceVBASection({policyID, canWriteMoreFeatures, showReadOnl
         }
     };
 
+    const continueAddBankAccountFlow = () => {
+        if (hasValidExistingAccounts && !shouldShowContinueModal) {
+            Navigation.navigate(ROUTES.BANK_ACCOUNT_CONNECT_EXISTING_BUSINESS_BANK_ACCOUNT.getRoute(policyID, ROUTES.WORKSPACE_INVOICES.getRoute(policyID)));
+            return;
+        }
+        navigateToBankAccountRoute({policyID, backTo: ROUTES.WORKSPACE_INVOICES.getRoute(policyID)});
+    };
+
+    const {isUserValidated, verifyAccountAndResume} = useVerifyAccountAndResume(() => continueAddBankAccountFlow());
+
     const onAddBankAccountPress = () => {
         if (!canWriteMoreFeatures) {
             showReadOnlyModal();
@@ -149,7 +167,7 @@ function WorkspaceInvoiceVBASection({policyID, canWriteMoreFeatures, showReadOnl
 
         if (!isSupportedGlobalReimbursement) {
             showConfirmModal({
-                danger: true,
+                buttonVariant: CONST.BUTTON_VARIANT.DANGER,
                 title: translate('workspace.bankAccount.workspaceCurrency'),
                 prompt: translate('workspace.bankAccount.updateCurrencyPrompt'),
                 confirmText: translate('workspace.bankAccount.updateToUSD'),
@@ -166,11 +184,12 @@ function WorkspaceInvoiceVBASection({policyID, canWriteMoreFeatures, showReadOnl
             return;
         }
 
-        if (hasValidExistingAccounts && !shouldShowContinueModal) {
-            Navigation.navigate(ROUTES.BANK_ACCOUNT_CONNECT_EXISTING_BUSINESS_BANK_ACCOUNT.getRoute(policyID, ROUTES.WORKSPACE_INVOICES.getRoute(policyID)));
+        if (!isUserValidated) {
+            verifyAccountAndResume(undefined);
             return;
         }
-        navigateToBankAccountRoute({policyID, backTo: ROUTES.WORKSPACE_INVOICES.getRoute(policyID)});
+
+        continueAddBankAccountFlow();
     };
 
     const threeDotsMenuItems = useMemo(() => {
@@ -208,7 +227,7 @@ function WorkspaceInvoiceVBASection({policyID, canWriteMoreFeatures, showReadOnl
             onSelected: () => {
                 closeModal(() => {
                     showConfirmModal({
-                        danger: true,
+                        buttonVariant: CONST.BUTTON_VARIANT.DANGER,
                         title: translate('walletPage.deleteAccount'),
                         prompt: translate('walletPage.deleteConfirmation'),
                         confirmText: translate('common.delete'),
@@ -261,14 +280,13 @@ function WorkspaceInvoiceVBASection({policyID, canWriteMoreFeatures, showReadOnl
                 onPress={onBankAccountRowPressed}
                 onAddBankAccountPress={onAddBankAccountPress}
                 onThreeDotsMenuPress={paymentMethodPressed}
-                shouldSkipDefaultAccountValidation={!canWriteMoreFeatures || !isSupportedGlobalReimbursement}
+                shouldSkipDefaultAccountValidation
                 invoiceTransferBankAccountID={transferBankAccountID}
                 activePaymentMethodID={transferBankAccountID}
                 threeDotsMenuItems={canWriteMoreFeatures ? threeDotsMenuItems : undefined}
                 addBankAccountItemStyle={!canWriteMoreFeatures ? styles.buttonOpacityDisabled : undefined}
                 style={[styles.mt5, shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8]}
                 listItemStyle={shouldUseNarrowLayout ? styles.ph5 : styles.ph8}
-                policyID={policyID}
                 filterType={CONST.BANK_ACCOUNT.TYPE.BUSINESS}
             />
         </Section>

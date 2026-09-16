@@ -1,8 +1,9 @@
 import type {ReactNode} from 'react';
-import React from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
-import {View} from 'react-native';
 import type {SharedValue} from 'react-native-reanimated';
+
+import React from 'react';
+import {View} from 'react-native';
 import Animated, {Easing, useAnimatedStyle, useDerivedValue, useSharedValue, withTiming} from 'react-native-reanimated';
 
 type AccordionProps = {
@@ -18,7 +19,6 @@ type AccordionProps = {
     /** Additional external style */
     style?: StyleProp<ViewStyle>;
 
-    /** Was toggle triggered */
     isToggleTriggered: SharedValue<boolean>;
 };
 
@@ -54,6 +54,9 @@ function Accordion({isExpanded, children, duration = 300, isToggleTriggered, sty
                     return;
                 }
                 isAnimating.set(false);
+
+                // Reset the toggled-state so we don't keep animating the accordion on remount
+                isToggleTriggered.set(false);
             },
         );
     });
@@ -73,8 +76,8 @@ function Accordion({isExpanded, children, duration = 300, isToggleTriggered, sty
         }
 
         return {
-            height: !isToggleTriggered.get() ? undefined : derivedHeight.get(),
-            maxHeight: !isToggleTriggered.get() ? undefined : derivedHeight.get(),
+            height: !isToggleTriggered.get() ? 'auto' : derivedHeight.get(),
+            maxHeight: !isToggleTriggered.get() ? 'none' : derivedHeight.get(),
             opacity: derivedOpacity.get(),
             overflow: isAnimating.get() ? 'hidden' : 'visible',
             display,

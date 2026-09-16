@@ -1,26 +1,29 @@
-import React, {useCallback, useEffect, useState} from 'react';
-import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import Button from '@components/Button';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import Text from '@components/Text';
+
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {clearWorkspaceOwnerChangeFlow, requestWorkspaceOwnerChange} from '@libs/actions/Policy/Member';
 import {getOwnershipChecksDisplayText} from '@libs/WorkspacesSettingsUtils';
+
 import Navigation from '@navigation/Navigation';
+
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 
-type WorkspaceOwnerChangeCheckProps = {
-    /** The policy */
-    policy: OnyxEntry<OnyxTypes.Policy>;
+import type {OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 
-    /** The accountID */
+import React, {useCallback, useEffect, useState} from 'react';
+import {View} from 'react-native';
+
+type WorkspaceOwnerChangeCheckProps = {
+    policy: OnyxEntry<OnyxTypes.Policy>;
     accountID: number;
 
     /** The error code */
@@ -77,11 +80,12 @@ function WorkspaceOwnerChangeCheck({policy, accountID, error}: WorkspaceOwnerCha
             <Text style={styles.flex1}>{displayTexts.text}</Text>
             <View style={styles.pb5}>
                 <Button
-                    success
-                    large
+                    variant={CONST.BUTTON_VARIANT.SUCCESS}
+                    size={CONST.BUTTON_SIZE.LARGE}
                     onPress={confirm}
-                    text={displayTexts.buttonText}
-                />
+                >
+                    <Button.Text>{displayTexts.buttonText}</Button.Text>
+                </Button>
             </View>
         </>
     );

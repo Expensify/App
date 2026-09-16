@@ -1,27 +1,32 @@
-import React, {useCallback, useEffect, useRef, useState} from 'react';
-import {View} from 'react-native';
 import Button from '@components/Button';
+import ButtonDisabledWhenOffline from '@components/Button/composed/ButtonDisabledWhenOffline';
 import IllustratedHeaderPageLayout from '@components/IllustratedHeaderPageLayout';
 import LottieAnimations from '@components/LottieAnimations';
-import MagicCodeInput from '@components/MagicCodeInput';
-import type {MagicCodeInputHandle} from '@components/MagicCodeInput';
 import Text from '@components/Text';
+import ValidateCodeInput from '@components/ValidateCodeInput';
+import type {ValidateCodeInputHandle} from '@components/ValidateCodeInput';
+
 import useLocalize from '@hooks/useLocalize';
-import useNetwork from '@hooks/useNetwork';
 import useNonPersonalCardList from '@hooks/useNonPersonalCardList';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {activatePhysicalExpensifyCard, clearCardListErrors} from '@libs/actions/Card';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
+
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
+
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {CardList} from '@src/types/onyx';
 import {getEmptyObject, isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import React, {useCallback, useEffect, useRef, useState} from 'react';
+import {View} from 'react-native';
 
 type ActivatePhysicalCardPageBaseProps = {
     cardID?: string;
@@ -38,7 +43,6 @@ function ActivatePhysicalCardPageBase({cardID = '', navigateBackTo, isFromDomain
     const styles = useThemeStyles();
     const {isExtraSmallScreenHeight} = useResponsiveLayout();
     const {translate} = useLocalize();
-    const {isOffline} = useNetwork();
     const cardList = useNonPersonalCardList() ?? getEmptyObject<CardList>();
 
     const [formError, setFormError] = useState('');
@@ -48,7 +52,7 @@ function ActivatePhysicalCardPageBase({cardID = '', navigateBackTo, isFromDomain
     const inactiveCard = cardList?.[cardID];
     const cardError = getLatestErrorMessage(inactiveCard ?? {});
 
-    const activateCardCodeInputRef = useRef<MagicCodeInputHandle>(null);
+    const activateCardCodeInputRef = useRef<ValidateCodeInputHandle>(null);
 
     /**
      * If state of the card is CONST.EXPENSIFY_CARD.STATE.OPEN, return to the card details screen.
@@ -88,7 +92,7 @@ function ActivatePhysicalCardPageBase({cardID = '', navigateBackTo, isFromDomain
         setCanShowError(true);
         activateCardCodeInputRef.current?.blur();
 
-        if (lastFourDigits.replace(CONST.MAGIC_CODE_EMPTY_CHAR, '').length !== LAST_FOUR_DIGITS_LENGTH) {
+        if (lastFourDigits.replace(CONST.VALIDATE_CODE_EMPTY_CHAR, '').length !== LAST_FOUR_DIGITS_LENGTH) {
             setFormError(translate('activateCardPage.error.thatDidNotMatch'));
             return;
         }
@@ -118,7 +122,7 @@ function ActivatePhysicalCardPageBase({cardID = '', navigateBackTo, isFromDomain
         >
             <Text style={[styles.mh5, styles.textHeadline]}>{translate('activateCardPage.pleaseEnterLastFour')}</Text>
             <View style={[styles.mh5, styles.mt5]}>
-                <MagicCodeInput
+                <ValidateCodeInput
                     autoComplete="off"
                     maxLength={LAST_FOUR_DIGITS_LENGTH}
                     name="activateCardCode"
@@ -129,17 +133,16 @@ function ActivatePhysicalCardPageBase({cardID = '', navigateBackTo, isFromDomain
                     ref={activateCardCodeInputRef}
                 />
             </View>
-            <Button
-                success
-                isDisabled={isOffline}
+            <ButtonDisabledWhenOffline
+                variant={CONST.BUTTON_VARIANT.SUCCESS}
                 isLoading={inactiveCard?.isLoading}
-                medium={isExtraSmallScreenHeight}
-                large={!isExtraSmallScreenHeight}
+                size={isExtraSmallScreenHeight ? CONST.BUTTON_SIZE.MEDIUM : CONST.BUTTON_SIZE.LARGE}
                 style={[styles.w100, styles.p5, styles.mtAuto]}
                 onPress={submitAndNavigateToNextPage}
-                pressOnEnter
-                text={translate('activateCardPage.activatePhysicalCard')}
-            />
+            >
+                <Button.KeyboardShortcut />
+                <Button.Text>{translate('activateCardPage.activatePhysicalCard')}</Button.Text>
+            </ButtonDisabledWhenOffline>
         </IllustratedHeaderPageLayout>
     );
 }

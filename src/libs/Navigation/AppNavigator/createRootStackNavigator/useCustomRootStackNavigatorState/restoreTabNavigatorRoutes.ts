@@ -1,6 +1,8 @@
-import type {NavigationRoute, NavigationState, ParamListBase, StackNavigationState} from '@react-navigation/native';
 import {getPreservedNavigatorState, setPreservedNavigatorState} from '@libs/Navigation/AppNavigator/createSplitNavigator/usePreserveNavigatorState';
+
 import NAVIGATORS from '@src/NAVIGATORS';
+
+import type {NavigationRoute, NavigationState, ParamListBase, StackNavigationState} from '@react-navigation/native';
 
 type Route = NavigationRoute<ParamListBase, string>;
 type TabRouteEntry = {key: string; state?: StackNavigationState<ParamListBase>};

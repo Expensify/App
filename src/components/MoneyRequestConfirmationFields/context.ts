@@ -1,7 +1,9 @@
-import {createContext, useContext} from 'react';
 import type {MeasurableInput} from '@components/SelectionList/SelectionListWithSections/types';
+
 import type {IOUAction, IOUType} from '@src/CONST';
 import type CONST from '@src/CONST';
+
+import {createContext, useContext} from 'react';
 
 /**
  * Cross-cutting state for the money-request confirmation surface. Anything that
@@ -21,10 +23,12 @@ type ConfirmationFieldsContextValue = {
     isReadOnly: boolean;
     didConfirm: boolean;
     isEditingSplitBill: boolean;
-    isNewManualExpenseFlowEnabled: boolean;
+    /** Whether this surface offers manual entry of the amount / merchant / date. False for splits, test receipts and moved tracked expenses. */
+    canEnterScanFieldsManually: boolean;
     isPolicyExpenseChat: boolean;
 
     // Mode — *what kind* of expense is being confirmed
+    isScanRequest: boolean;
     isDistanceRequest: boolean;
     isPerDiemRequest: boolean;
     isTimeRequest: boolean;
@@ -38,6 +42,9 @@ type ConfirmationFieldsContextValue = {
 
     /** Submits the whole expense. Used by inline inputs to keep Enter-to-confirm on hardware-keyboard setups (new manual expense flow). */
     onSubmitForm?: () => void;
+
+    /** Reports whether the inline tax amount field is currently empty, so submission can be blocked when it is left empty (new manual expense flow). */
+    onTaxAmountEmptyChange?: (isEmpty: boolean) => void;
 };
 
 const ConfirmationFieldsContext = createContext<ConfirmationFieldsContextValue | null>(null);

@@ -1,11 +1,13 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import {act, renderHook, waitFor} from '@testing-library/react-native';
-import Onyx from 'react-native-onyx';
+
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import {useLockedAccountActions, useLockedAccountState} from '@components/LockedAccountModalProvider';
+
 import useLifecycleActions from '@hooks/useLifecycleActions';
 import type {ReportSubmitToPopoverOpenOptions} from '@hooks/useReportSubmitToPopover';
 import useSelectionModeReportActions from '@hooks/useSelectionModeReportActions';
+
 import {submitReport} from '@libs/actions/IOU/ReportWorkflow';
 import {isSubmitPolicy} from '@libs/PolicyUtils';
 import {
@@ -17,9 +19,13 @@ import {
     isInvoiceReport,
     isReportOwner,
 } from '@libs/ReportUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {OnyxInputOrEntry, Policy, Report, Transaction} from '@src/types/onyx';
+
+import Onyx from 'react-native-onyx';
+
 import createRandomPolicy from '../../utils/collections/policies';
 import createRandomTransaction from '../../utils/collections/transaction';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
@@ -129,6 +135,9 @@ function mockLifecycleActionsReturn(overrides?: {shouldBlockSubmit?: boolean; is
         handleSubmitReport: mockLifecycleHandleSubmitReport,
         shouldBlockSubmit: overrides?.shouldBlockSubmit ?? false,
         isBlockSubmitDueToPreventSelfApproval: overrides?.isBlockSubmitDueToPreventSelfApproval ?? false,
+        approveSubMenuItems: undefined,
+        approveSubMenuHeaderText: '',
+        shouldShowApproveSubMenu: false,
     };
 }
 
@@ -138,20 +147,20 @@ jest.mock('@hooks/useLifecycleActions', () => ({
 }));
 
 const mockConfirmPayment = jest.fn();
-const mockShouldBlockAction = jest.fn(() => false);
+const mockRunPaymentAction = jest.fn();
 const mockOnSelectionModePaymentSelect = jest.fn();
 const mockSelectionModeKYCSuccess = jest.fn();
+const mockHandleWorkspaceSelected = jest.fn();
 
 jest.mock('@hooks/useSelectionModePayment', () => ({
     __esModule: true,
     default: jest.fn(() => ({
         confirmPayment: mockConfirmPayment,
-        shouldBlockAction: mockShouldBlockAction,
+        runPaymentAction: mockRunPaymentAction,
         onSelectionModePaymentSelect: mockOnSelectionModePaymentSelect,
         selectionModeKYCSuccess: mockSelectionModeKYCSuccess,
         paymentSubMenuItems: [],
-        workspacePolicyOptions: [],
-        handleWorkspaceSelected: jest.fn(),
+        handleWorkspaceSelected: mockHandleWorkspaceSelected,
         hasPayInSelectionMode: false,
         hasActualPaymentOptions: false,
         isAnyTransactionOnHold: false,
@@ -288,7 +297,6 @@ jest.mock('@libs/MoneyRequestReportUtils', () => ({
 
 jest.mock('@libs/PaymentUtils', () => ({
     __esModule: true,
-    handleUnvalidatedAccount: jest.fn(),
     selectPaymentType: jest.fn(),
 }));
 
@@ -648,10 +656,10 @@ describe('useSelectionModeReportActions', () => {
         });
     });
 
-    describe('shouldBlockAction guards', () => {
-        it('exposes shouldBlockAction from useSelectionModePayment', () => {
+    describe('handleWorkspaceSelected', () => {
+        it('exposes handleWorkspaceSelected from useSelectionModePayment', () => {
             const {result} = renderSelectionModeHook();
-            expect(result.current.shouldBlockAction).toBe(mockShouldBlockAction);
+            expect(result.current.handleWorkspaceSelected).toBe(mockHandleWorkspaceSelected);
         });
     });
 

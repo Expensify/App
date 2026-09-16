@@ -1,12 +1,17 @@
-import React, {useEffect} from 'react';
-import type {GestureResponderEvent} from 'react-native';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
+
 import {getTaxValueWithPercentage} from '@libs/actions/TaxRate';
 import Navigation from '@libs/Navigation/Navigation';
+
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+
+import type {GestureResponderEvent} from 'react-native';
+
+import React, {useEffect} from 'react';
 
 type TaxValuePickerProps = {
     /** ID of the policy the new tax rate belongs to. */
@@ -24,7 +29,6 @@ type TaxValuePickerProps = {
     /** Callback to call when the input changes. */
     onInputChange?: (value: string | undefined) => void;
 
-    /** Callback to call when the component is pressed. */
     onPress?: (event: GestureResponderEvent | KeyboardEvent) => void;
 };
 

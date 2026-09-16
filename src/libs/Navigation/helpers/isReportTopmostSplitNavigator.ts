@@ -1,4 +1,5 @@
 import NAVIGATORS from '@src/NAVIGATORS';
+
 import getTopmostFullScreenRoute from './getTopmostFullScreenRoute';
 
 const isReportTopmostSplitNavigator = (): boolean => {

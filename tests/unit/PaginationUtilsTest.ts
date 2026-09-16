@@ -1,5 +1,6 @@
 import CONST from '@src/CONST';
 import type {Pages} from '@src/types/onyx';
+
 import {getContinuousChain, mergeAndSortContinuousPages, mergePagesByIDOverlap, prunePagesToNewestWindow, selectNewestPageWithIndex} from '../../src/libs/PaginationUtils';
 
 type Item = {

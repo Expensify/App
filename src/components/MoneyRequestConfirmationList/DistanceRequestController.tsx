@@ -1,19 +1,32 @@
-import {useEffect, useRef} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import usePrevious from '@hooks/usePrevious';
-import {clearMoneyRequestRateAutoUpdated, setCustomUnitRateID, setMoneyRequestAmount, setMoneyRequestMerchant, setMoneyRequestPendingFields} from '@libs/actions/IOU/MoneyRequest';
+
+import {
+    clearMoneyRequestRateAutoUpdated,
+    setCustomUnitRateID,
+    setMoneyRequestAmount,
+    setMoneyRequestCommuterExclusionFields,
+    setMoneyRequestMerchant,
+    setMoneyRequestPendingFields,
+} from '@libs/actions/IOU/MoneyRequest';
 import {setSplitShares} from '@libs/actions/IOU/Split';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import type {MileageRate} from '@libs/DistanceRequestUtils';
+import {getCreated} from '@libs/TransactionUtils';
+
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Transaction} from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import type {Unit} from '@src/types/onyx/Policy';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {useEffect, useRef} from 'react';
 
 type DistanceRequestControllerProps = {
     transactionID: string | undefined;
@@ -76,7 +89,8 @@ function DistanceRequestController({
     clearFormErrors,
 }: DistanceRequestControllerProps) {
     const {translate, toLocaleDigit} = useLocalize();
-    const {getCurrencySymbol} = useCurrencyListActions();
+    const {getCurrencySymbol, getCurrencyDecimals} = useCurrencyListActions();
+    const personalPolicy = usePersonalPolicy();
     const [lastSelectedDistanceRates] = useOnyx(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES);
     const lastSelectedRate = policy?.id ? (lastSelectedDistanceRates?.[policy.id] ?? defaultMileageRateCustomUnitRateID) : defaultMileageRateCustomUnitRateID;
     const prevPolicy = usePrevious(policy);
@@ -106,7 +120,7 @@ function DistanceRequestController({
         // If there is a distance rate in the policy that matches the rate and unit of the currently selected mileage rate, select it automatically
         const matchingRate = Object.values(policyRates).find((policyRate) => policyRate.rate === mileageRate.rate && policyRate.unit === mileageRate.unit);
         if (matchingRate?.customUnitRateID) {
-            setCustomUnitRateID(transactionID, matchingRate.customUnitRateID, transaction, policy);
+            setCustomUnitRateID(transactionID, matchingRate.customUnitRateID, transaction, policy, false, personalPolicy?.outputCurrency);
             clearFormErrors([errorKey]);
             return;
         }
@@ -126,6 +140,7 @@ function DistanceRequestController({
         clearFormErrors,
         transaction,
         prevPolicy?.id,
+        personalPolicy?.outputCurrency,
     ]);
 
     useEffect(() => {
@@ -138,10 +153,10 @@ function DistanceRequestController({
         if (isReadOnly) {
             return;
         }
-        const amount = DistanceRequestUtils.getDistanceRequestAmount(distance, unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, rate ?? 0);
-        setMoneyRequestAmount(transactionID, amount, currency ?? '');
+        // Use the (commuter-exclusion-aware) reimbursable amount so the seeded amount matches what the backend will calculate.
+        setMoneyRequestAmount(transactionID, distanceRequestAmount, currency ?? '');
         isFirstUpdatedDistanceAmount.current = true;
-    }, [distance, rate, isReadOnly, unit, transactionID, currency, isDistanceRequest]);
+    }, [distanceRequestAmount, isReadOnly, transactionID, currency, isDistanceRequest]);
 
     useEffect(() => {
         if (!shouldCalculateDistanceAmount || !transactionID || isReadOnly) {
@@ -154,7 +169,7 @@ function DistanceRequestController({
         // If it's a split request among individuals, set the split shares
         const participantAccountIDs: number[] = selectedParticipantsProp.map((participant) => participant.accountID ?? CONST.DEFAULT_NUMBER_ID);
         if (isTypeSplit && !isPolicyExpenseChat && amount && transaction?.currency) {
-            setSplitShares(transaction, amount, currency, participantAccountIDs, currentUserAccountID);
+            setSplitShares(transaction, amount, currency, participantAccountIDs, currentUserAccountID, getCurrencyDecimals);
         }
     }, [
         shouldCalculateDistanceAmount,
@@ -167,11 +182,12 @@ function DistanceRequestController({
         selectedParticipantsProp,
         transaction,
         currentUserAccountID,
+        getCurrencyDecimals,
     ]);
 
     useEffect(() => {
         if (
-            !['-1', CONST.CUSTOM_UNITS.FAKE_P2P_ID].includes(customUnitRateID) ||
+            !DistanceRequestUtils.isUnsetDistanceCustomUnitRateID(customUnitRateID) ||
             !isDistanceRequest ||
             !isPolicyExpenseChat ||
             !transactionID ||
@@ -183,7 +199,7 @@ function DistanceRequestController({
         }
 
         let rateToUse = lastSelectedRate;
-        const expenseDate = transaction?.created;
+        const expenseDate = getCreated(transaction);
         if (expenseDate) {
             const mileageRates = DistanceRequestUtils.getMileageRates(policy);
             const lastRate = lastSelectedRate ? mileageRates[lastSelectedRate] : undefined;
@@ -192,7 +208,7 @@ function DistanceRequestController({
                 rateToUse = bestRate?.customUnitRateID ?? defaultMileageRateCustomUnitRateID ?? lastSelectedRate;
             }
         }
-        setCustomUnitRateID(transactionID, rateToUse, transaction, policy);
+        setCustomUnitRateID(transactionID, rateToUse, transaction, policy, false, personalPolicy?.outputCurrency);
     }, [
         customUnitRateID,
         transactionID,
@@ -204,6 +220,7 @@ function DistanceRequestController({
         policy,
         selectedParticipants,
         defaultMileageRateCustomUnitRateID,
+        personalPolicy?.outputCurrency,
     ]);
 
     useEffect(() => {
@@ -230,6 +247,20 @@ function DistanceRequestController({
             isManualDistanceRequest,
         );
         setMoneyRequestMerchant(transactionID, distanceMerchant, true);
+
+        setMoneyRequestCommuterExclusionFields({
+            transactionID,
+            transaction,
+            policy,
+            isPolicyExpenseChat,
+            customUnitRateID,
+            routeDistanceMeters: distance,
+            distanceUnit: unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+            translate,
+            toLocaleDigit,
+            getCurrencySymbol,
+            personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
+        });
     }, [
         isDistanceRequestWithPendingRoute,
         hasRoute,
@@ -245,6 +276,10 @@ function DistanceRequestController({
         isReadOnly,
         getCurrencySymbol,
         isManualDistanceRequest,
+        policy,
+        isPolicyExpenseChat,
+        customUnitRateID,
+        personalPolicy?.outputCurrency,
     ]);
 
     return null;

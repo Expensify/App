@@ -1,6 +1,8 @@
 import Navigation from '@libs/Navigation/Navigation';
+
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
+
 import isSearchTopmostFullScreenRoute from './isSearchTopmostFullScreenRoute';
 
 type GetReportRouteForCurrentContextParams = {

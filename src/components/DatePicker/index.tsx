@@ -1,22 +1,30 @@
-import {format, setYear} from 'date-fns';
-import debounce from 'lodash/debounce';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {Keyboard, View} from 'react-native';
-import type {TextInputKeyPressEvent} from 'react-native';
 import TextInput from '@components/TextInput';
 import type {BaseTextInputProps, BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
+
 import useAccessibilityAnnouncement from '@hooks/useAccessibilityAnnouncement';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+
 import ComposerFocusManager from '@libs/ComposerFocusManager';
 import {isNumeric} from '@libs/ValidationUtils';
+
 import {setDraftValues} from '@userActions/FormActions';
+
 import CONST from '@src/CONST';
-import DatePickerModal from './DatePickerModal';
+
+import type {TextInputKeyPressEvent} from 'react-native';
+
+import {format, setYear} from 'date-fns';
+import debounce from 'lodash/debounce';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import {Keyboard, View} from 'react-native';
+
 import type {DateInputWithPickerProps} from './types';
+
+import DatePickerModal from './DatePickerModal';
 
 const PADDING_MODAL_DATE_PICKER = 8;
 
@@ -40,6 +48,9 @@ function DatePicker({
     forwardedFSClass,
     shouldDeferShowUntilPositioned = false,
     shouldDismissKeyboardBeforeShow = false,
+    rightHandSideComponent,
+    onPickerVisibilityChange,
+    shouldHideCalendarIcon = false,
 }: DateInputWithPickerProps) {
     const icons = useMemoizedLazyExpensifyIcons(['Calendar']);
     const styles = useThemeStyles();
@@ -93,6 +104,14 @@ function DatePicker({
         [windowHeight],
     );
 
+    const setPickerVisibility = useCallback(
+        (isVisible: boolean) => {
+            setIsModalVisible(isVisible);
+            onPickerVisibilityChange?.(isVisible);
+        },
+        [onPickerVisibilityChange],
+    );
+
     const showDatePickerModal = useCallback(() => {
         cancelAutoFocus();
         // Blur the date input before showing the modal, so the focus won't be returned after the modal is closed
@@ -108,7 +127,7 @@ function DatePicker({
         const openPicker = () => {
             if (!shouldDeferShowUntilPositioned) {
                 calculatePopoverPosition();
-                setIsModalVisible(true);
+                setPickerVisibility(true);
                 return;
             }
 
@@ -117,16 +136,16 @@ function DatePicker({
                 if (!openIntentRef.current) {
                     return;
                 }
-                setIsModalVisible(true);
+                setPickerVisibility(true);
             });
         };
 
         openPicker();
-    }, [shouldDeferShowUntilPositioned, shouldDismissKeyboardBeforeShow, calculatePopoverPosition, cancelAutoFocus]);
+    }, [shouldDeferShowUntilPositioned, shouldDismissKeyboardBeforeShow, calculatePopoverPosition, cancelAutoFocus, setPickerVisibility]);
 
     const closeDatePicker = useCallback(() => {
         openIntentRef.current = false;
-        setIsModalVisible(false);
+        setPickerVisibility(false);
 
         if (!shouldDismissKeyboardBeforeShow) {
             return;
@@ -135,7 +154,7 @@ function DatePicker({
         textInputRef.current?.blur();
         ComposerFocusManager.blurActiveInput();
         Keyboard.dismiss();
-    }, [shouldDismissKeyboardBeforeShow]);
+    }, [shouldDismissKeyboardBeforeShow, setPickerVisibility]);
 
     const handlePress = useCallback<NonNullable<BaseTextInputProps['onPress']>>(
         (event) => {
@@ -214,7 +233,7 @@ function DatePicker({
                     ref={combinedTextInputRef}
                     inputID={inputID}
                     forceActiveLabel
-                    icon={selectedDate ? null : icons.Calendar}
+                    icon={selectedDate || shouldHideCalendarIcon ? null : icons.Calendar}
                     iconContainerStyle={styles.pr0}
                     label={label}
                     accessibilityLabel={label}
@@ -235,6 +254,7 @@ function DatePicker({
                     forwardedFSClass={forwardedFSClass}
                     autoComplete={autoComplete}
                     disableKeyboard
+                    rightHandSideComponent={rightHandSideComponent}
                 />
             </View>
 

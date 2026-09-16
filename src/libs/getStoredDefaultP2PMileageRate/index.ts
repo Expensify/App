@@ -1,3 +1,6 @@
+import ONYXKEYS from '@src/ONYXKEYS';
+import type DefaultP2PMileageRate from '@src/types/onyx/DefaultP2PMileageRate';
+
 // This module is used to load the default P2P mileage rate for a user based on their personal policy outputCurrency (default / reporting currency).
 // Whenever a user starts the "Track distance" flow the getDefaultP2PMileageRate action will fetch the rate and unit from the hard coded mapping stored in Auth
 // (CURRENCY_TO_DEFAULT_MILEAGE_RATE), via the API read command GetDefaultP2PMileageRate.
@@ -6,8 +9,6 @@
 // across the codebase.
 // DO NOT use this pattern for other Onyx data unless you get authorization from the internal Expensify team in Slack.
 import Onyx from 'react-native-onyx';
-import ONYXKEYS from '@src/ONYXKEYS';
-import type DefaultP2PMileageRate from '@src/types/onyx/DefaultP2PMileageRate';
 
 let defaultP2PMileageRate: DefaultP2PMileageRate | undefined;
 Onyx.connectWithoutView({

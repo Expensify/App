@@ -1,16 +1,22 @@
-import type {ListRenderItemInfo} from '@shopify/flash-list';
-import React from 'react';
-import {View} from 'react-native';
-import Table from '@components/Table';
 import type {CompareItemsCallback, IsItemInSearchCallback, TableColumn} from '@components/Table';
+import Table, {composeTableListHeader} from '@components/Table';
+import type {TableEmptyStateProps} from '@components/Table/TableEmptyStates/TableEmptyState';
+
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import tokenizedSearch from '@libs/tokenizedSearch';
+
 import variables from '@styles/variables';
-import CONST from '@src/CONST';
-import WorkspaceSpendRulesTableRow from './WorkspaceSpendRulesTableRow';
+
+import type {ListRenderItemInfo} from '@shopify/flash-list';
+
+import React from 'react';
+
 import type {SpendRuleTableItem} from './WorkspaceSpendRulesTableRow';
+
+import WorkspaceSpendRulesTableRow from './WorkspaceSpendRulesTableRow';
 
 type SpendRulesTableColumnKey = 'type' | 'card' | 'rule' | 'actions';
 
@@ -18,11 +24,12 @@ type WorkspaceSpendRulesTableProps = {
     rulesData: SpendRuleTableItem[];
     selectionEnabled: boolean;
     selectedKeys: string[];
+    emptyState: TableEmptyStateProps;
     onRowSelectionChange: (selectedRowKeys: string[]) => void;
-    emptyStateContent?: React.ReactElement;
+    headerComponent?: React.ReactElement;
 };
 
-function WorkspaceSpendRulesTable({rulesData, selectionEnabled, selectedKeys, onRowSelectionChange, emptyStateContent}: WorkspaceSpendRulesTableProps) {
+function WorkspaceSpendRulesTable({rulesData, selectionEnabled, selectedKeys, emptyState, onRowSelectionChange, headerComponent}: WorkspaceSpendRulesTableProps) {
     const {translate, localeCompare} = useLocalize();
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
@@ -36,9 +43,22 @@ function WorkspaceSpendRulesTable({rulesData, selectionEnabled, selectedKeys, on
             width: variables.tableTypeColumnWidth,
             styling: {containerStyles: [styles.justifyContentCenter]},
         },
-        {key: 'card', label: translate('workspace.rules.spendRules.tableColumnCard'), sortable: true},
-        {key: 'rule', label: translate('workspace.rules.spendRules.tableColumnRule'), sortable: false},
-        {key: 'actions', label: '', sortable: false, width: variables.tableCaretColumnWidth},
+        {
+            key: 'card',
+            label: translate('workspace.rules.spendRules.tableColumnCard'),
+            sortable: true,
+        },
+        {
+            key: 'rule',
+            label: translate('workspace.rules.spendRules.tableColumnRule'),
+            sortable: false,
+        },
+        {
+            key: 'actions',
+            label: '',
+            sortable: false,
+            width: variables.tableCaretColumnWidth,
+        },
     ];
 
     const compareItems: CompareItemsCallback<SpendRuleTableItem, SpendRulesTableColumnKey> = (a, b, activeSorting) => {
@@ -80,9 +100,8 @@ function WorkspaceSpendRulesTable({rulesData, selectionEnabled, selectedKeys, on
         />
     );
 
-    const shouldShowSearchBar = rulesData.length >= CONST.STANDARD_LIST_ITEM_LIMIT;
-
-    const isEmpty = rulesData.length === 0;
+    const searchBarComponent = <Table.FilterBar label={translate('workspace.rules.spendRules.findRule')} />;
+    const tableHeaderComponent = composeTableListHeader(headerComponent, searchBarComponent);
 
     return (
         <Table
@@ -99,14 +118,11 @@ function WorkspaceSpendRulesTable({rulesData, selectionEnabled, selectedKeys, on
             narrowLayoutSortColumn="card"
             title={translate('workspace.rules.tabs.cardRestrictions')}
         >
-            {isEmpty && !!emptyStateContent && <View style={[styles.flex1, styles.mnh0]}>{emptyStateContent}</View>}
-            {!isEmpty && (
-                <>
-                    {shouldShowSearchBar && <Table.SearchBar label={translate('workspace.rules.spendRules.findRule')} />}
-                    <Table.Header />
-                    <Table.Body />
-                </>
-            )}
+            <Table.ListHeader>{tableHeaderComponent}</Table.ListHeader>
+            <Table.EmptyState {...emptyState} />
+            <Table.NoResultsState />
+            <Table.Header />
+            <Table.Body />
         </Table>
     );
 }

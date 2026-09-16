@@ -1,15 +1,21 @@
-import type * as NativeNavigation from '@react-navigation/native';
-import React from 'react';
-import {View} from 'react-native';
-import Onyx from 'react-native-onyx';
-import {measureFunction, measureRenders} from 'reassure';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
+
 import useAdvancedSearchFilters from '@hooks/useAdvancedSearchFilters';
+
 import {isPolicyFeatureEnabled} from '@libs/PolicyUtils';
+
 import ComposeProviders from '@src/components/ComposeProviders';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy} from '@src/types/onyx';
+
+import type * as NativeNavigation from '@react-navigation/native';
+
+import React from 'react';
+import {View} from 'react-native';
+import Onyx from 'react-native-onyx';
+import {measureFunction, measureRenders} from 'reassure';
+
 import createCollection from '../utils/collections/createCollection';
 import createRandomPolicy from '../utils/collections/policies';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';

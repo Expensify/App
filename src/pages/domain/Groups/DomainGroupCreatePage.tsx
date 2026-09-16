@@ -1,32 +1,39 @@
-import {defaultSecurityGroupIDSelector} from '@selectors/Domain';
-import {createAdminPoliciesSelector, policyNameSelector} from '@selectors/Policy';
-import React, {useEffect, useRef, useState} from 'react';
-import {View} from 'react-native';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
+
 import useConfirmModal from '@hooks/useConfirmModal';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {addErrorMessage} from '@libs/ErrorUtils';
+
 import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@navigation/types';
+
 import DomainNotFoundPageWrapper from '@pages/domain/DomainNotFoundPageWrapper';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
+
 import {clearDomainGroupCreatePreferredPolicyID, createDomainSecurityGroup, setDomainGroupCreatePreferredPolicyID} from '@userActions/Domain';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/DomainGroupCreateForm';
+
+import {defaultSecurityGroupIDSelector} from '@selectors/Domain';
+import {createAdminPoliciesSelector, policyNameSelector} from '@selectors/Policy';
+import React, {useEffect, useRef, useState} from 'react';
+import {View} from 'react-native';
 
 type DomainGroupCreatePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.DOMAIN.GROUP_CREATE>;
 
@@ -61,6 +68,7 @@ function DomainGroupCreatePage({route}: DomainGroupCreatePageProps) {
         .sort((a, b) => localeCompare(a?.created ?? '', b?.created ?? ''))
         .at(0);
     const hasAdminPolicies = !!firstAdminPolicy;
+    const preferredWorkspaceName = preferredPolicyName ?? firstAdminPolicy?.name;
 
     useEffect(() => {
         return () => {
@@ -196,12 +204,11 @@ function DomainGroupCreatePage({route}: DomainGroupCreatePageProps) {
                         shouldPlaceSubtitleBelowSwitch
                     />
                     {hasAdminPolicies && (
-                        <MenuItemWithTopDescription
-                            description={translate('domain.groups.preferredWorkspace')}
-                            title={preferredPolicyName ?? firstAdminPolicy?.name}
-                            shouldShowRightIcon
+                        <MenuItemField
+                            name={translate('domain.groups.preferredWorkspace')}
                             onPress={() => Navigation.navigate(ROUTES.DOMAIN_GROUP_CREATE_PREFERRED_WORKSPACE.getRoute(domainAccountID))}
-                            disabled={!preferredWorkspace}
+                            isDisabled={!preferredWorkspace}
+                            value={preferredWorkspaceName}
                         />
                     )}
                     <ToggleSettingOptionRow

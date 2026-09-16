@@ -1,8 +1,11 @@
+import useThemeStyles from '@hooks/useThemeStyles';
+
+import type {CustomRendererProps, TBlock} from 'react-native-render-html';
+
 import React from 'react';
 import {View} from 'react-native';
-import type {CustomRendererProps, TBlock} from 'react-native-render-html';
 import {TNodeRenderer} from 'react-native-render-html';
-import useThemeStyles from '@hooks/useThemeStyles';
+
 import BulletItemRenderer from './BulletItemRenderer';
 
 /**

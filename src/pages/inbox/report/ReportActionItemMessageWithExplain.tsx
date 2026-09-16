@@ -1,31 +1,34 @@
-import {hasSeenTourSelector} from '@selectors/Onboarding';
-import React from 'react';
-import type {GestureResponderEvent} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import RenderHTML from '@components/RenderHTML';
+
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
+
 import {openLink} from '@libs/actions/Link';
 import {explain} from '@libs/actions/Report';
+import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {getParticipantsPersonalDetails} from '@libs/PersonalDetailsUtils';
 import {hasReasoning} from '@libs/ReportActionsUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, ReportAction} from '@src/types/onyx';
+
+import type {GestureResponderEvent} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {hasSeenTourSelector} from '@selectors/Onboarding';
+import React from 'react';
+
 import ReportActionItemBasicMessage from './ReportActionItemBasicMessage';
 
 type ReportActionItemMessageWithExplainProps = {
-    /** The message to display */
     message: string;
-
-    /** All the data of the action item */
     action: OnyxEntry<ReportAction>;
-
-    /** The child report of the action item */
     childReport: OnyxEntry<Report>;
 
     /** Original report from which the given reportAction is first created */
@@ -40,9 +43,12 @@ function ReportActionItemMessageWithExplain({message, action, childReport, origi
     const {translate} = useLocalize();
     const personalDetail = useCurrentUserPersonalDetails();
     const {environmentURL} = useEnvironment();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const delegateAccountID = useDelegateAccountID();
     const personalDetails = usePersonalDetails();
 
@@ -53,19 +59,20 @@ function ReportActionItemMessageWithExplain({message, action, childReport, origi
         // Handle the special "Explain" link
         if (href.endsWith(CONST.CONCIERGE_EXPLAIN_LINK_PATH)) {
             const participantsPersonalDetails = getParticipantsPersonalDetails([personalDetail.accountID, Number(action?.actorAccountID)], personalDetails);
-            explain(
+            explain({
                 childReport,
                 originalReport,
-                action,
+                reportAction: action,
                 translate,
-                personalDetail.accountID,
+                currentUserAccountID: personalDetail.accountID,
                 introSelected,
                 betas,
+                conciergeChat,
                 isSelfTourViewed,
                 delegateAccountID,
                 participantsPersonalDetails,
-                personalDetail?.timezone,
-            );
+                timezone: personalDetail?.timezone,
+            });
             return;
         }
 
@@ -77,7 +84,7 @@ function ReportActionItemMessageWithExplain({message, action, childReport, origi
         <ReportActionItemBasicMessage>
             <RenderHTML
                 html={`<comment><muted-text>${computedMessage}</muted-text></comment>`}
-                isSelectable={false}
+                isSelectable={!canUseTouchScreen() || !shouldUseNarrowLayout}
                 onLinkPress={handleLinkPress}
             />
         </ReportActionItemBasicMessage>

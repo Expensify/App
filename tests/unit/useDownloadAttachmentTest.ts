@@ -1,13 +1,18 @@
 import {renderHook} from '@testing-library/react-native';
-import Onyx from 'react-native-onyx';
+
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
+
 import fileDownload from '@libs/fileDownload';
+
 import useDownloadAttachment from '@pages/media/AttachmentModalScreen/routes/hooks/useDownloadAttachment';
+
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import Onyx from 'react-native-onyx';
 
 jest.mock('@libs/fileDownload');
 
-const mockFileDownload = fileDownload as jest.MockedFunction<typeof fileDownload>;
+const mockFileDownload = jest.mocked(fileDownload);
 
 const ENCRYPTED_TOKEN = 'testEncryptedToken123';
 const FILE_URL = 'https://example.com/file.jpg';

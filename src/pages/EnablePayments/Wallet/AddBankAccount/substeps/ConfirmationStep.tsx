@@ -1,20 +1,25 @@
-import React from 'react';
-import {View} from 'react-native';
 import Button from '@components/Button';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItem from '@components/MenuItem';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
+
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import type {SubPageProps} from '@hooks/useSubPage/types';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
+
 import useIsBankAccountAdded from '@pages/EnablePayments/Wallet/utils/useIsBankAccountAdded';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/PersonalBankAccountForm';
+
+import React from 'react';
+import {View} from 'react-native';
 
 type ConfirmationStepProps = SubPageProps;
 
@@ -47,13 +52,19 @@ function ConfirmationStep({onNext, onMove}: ConfirmationStepProps) {
         >
             <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5]}>{translate('walletPage.confirmYourBankAccount')}</Text>
             <Text style={[styles.mt3, styles.mb3, styles.ph5, styles.textSupporting]}>{translate('bankAccount.letsDoubleCheck')}</Text>
-            <MenuItemWithTopDescription
-                description={bankName}
-                title={`${translate('bankAccount.accountEnding')} ${accountNumber.slice(-4)}`}
-                shouldShowRightIcon={!isBankAccountAdded}
-                interactive={!isBankAccountAdded}
-                onPress={handleModifyAccountNumbers}
-            />
+            <MenuItem.Root onPress={!isBankAccountAdded ? handleModifyAccountNumbers : undefined}>
+                <MenuItem.Row>
+                    <MenuItem.Content>
+                        {!!bankName && <MenuItem.FieldName>{bankName}</MenuItem.FieldName>}
+                        <MenuItem.FieldValue>{`${translate('bankAccount.accountEnding')} ${accountNumber.slice(-4)}`}</MenuItem.FieldValue>
+                    </MenuItem.Content>
+                    {!isBankAccountAdded && (
+                        <MenuItem.Trailing>
+                            <MenuItem.Chevron />
+                        </MenuItem.Trailing>
+                    )}
+                </MenuItem.Row>
+            </MenuItem.Root>
             <View style={[styles.ph5, styles.pb5, styles.flexGrow1, styles.justifyContentEnd]}>
                 {!!error && error.length > 0 && (
                     <DotIndicatorMessage
@@ -65,12 +76,13 @@ function ConfirmationStep({onNext, onMove}: ConfirmationStepProps) {
                 <Button
                     isLoading={isLoading}
                     isDisabled={isLoading || isOffline}
-                    success
-                    large
+                    variant={CONST.BUTTON_VARIANT.SUCCESS}
+                    size={CONST.BUTTON_SIZE.LARGE}
                     style={[styles.w100]}
                     onPress={onNext}
-                    text={translate('common.confirm')}
-                />
+                >
+                    <Button.Text>{translate('common.confirm')}</Button.Text>
+                </Button>
             </View>
         </ScrollView>
     );

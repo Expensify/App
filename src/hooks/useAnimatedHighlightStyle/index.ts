@@ -1,12 +1,13 @@
+import useScreenWrapperTransitionStatus from '@hooks/useScreenWrapperTransitionStatus';
+import useTheme from '@hooks/useTheme';
+
+import CONST from '@src/CONST';
+
 import React, {useState} from 'react';
 import {Easing, interpolate, interpolateColor, useAnimatedStyle, useSharedValue, withDelay, withSequence, withTiming} from 'react-native-reanimated';
 import {scheduleOnRN} from 'react-native-worklets';
-import useScreenWrapperTransitionStatus from '@hooks/useScreenWrapperTransitionStatus';
-import useTheme from '@hooks/useTheme';
-import CONST from '@src/CONST';
 
 type Props = {
-    /** Border radius of the wrapper */
     borderRadius?: number;
 
     /** Height of the item that is to be faded */
@@ -15,10 +16,7 @@ type Props = {
     /** Delay before the highlighted item enters */
     itemEnterDelay?: number;
 
-    /** Duration in which the item enters */
     itemEnterDuration?: number;
-
-    /** Delay before the item starts to get highlighted */
     highlightStartDelay?: number;
 
     /** Duration in which the item gets fully highlighted */
@@ -30,7 +28,6 @@ type Props = {
     /** Duration in which the item gets fully un-highlighted */
     highlightEndDuration?: number;
 
-    /** Whether the item should be highlighted */
     shouldHighlight: boolean;
 
     /** Whether it should return height and border radius styles */

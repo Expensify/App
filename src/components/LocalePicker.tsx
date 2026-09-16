@@ -1,18 +1,25 @@
-import React, {useMemo} from 'react';
-import {View} from 'react-native';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import AccountUtils from '@libs/AccountUtils';
+
 import variables from '@styles/variables';
+
 import {setLocale} from '@userActions/App';
+
 import {LOCALE_TO_LANGUAGE_STRING, SORTED_LOCALES} from '@src/CONST/LOCALES';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import React, {useMemo} from 'react';
+import {View} from 'react-native';
+
+import type {PickerSize} from './Picker/types';
+
 import Icon from './Icon';
 import Picker from './Picker';
-import type {PickerSize} from './Picker/types';
 
 type LocalePickerProps = {
     /** Indicates size of a picker component and whether to render the label or not */

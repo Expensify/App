@@ -1,14 +1,20 @@
-import React from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import Text from '@components/Text';
 import UserPills from '@components/UserPills';
+
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import DateUtils from '@libs/DateUtils';
+
 import CONST from '@src/CONST';
 import type {PersonalDetails} from '@src/types/onyx';
 import type {Reservation} from '@src/types/onyx/Transaction';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import React from 'react';
 
 type CarTripDetailsProps = {
     reservation: Reservation;
@@ -17,14 +23,14 @@ type CarTripDetailsProps = {
 
 function CarTripDetails({reservation, personalDetails}: CarTripDetailsProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, dateFnsLocale} = useLocalize();
 
-    const pickUpDate = DateUtils.getFormattedTransportDateAndHour(new Date(reservation.start.date));
-    const dropOffDate = DateUtils.getFormattedTransportDateAndHour(new Date(reservation.end.date));
+    const pickUpDate = DateUtils.getFormattedTransportDateAndHour(translate, dateFnsLocale, new Date(reservation.start.date));
+    const dropOffDate = DateUtils.getFormattedTransportDateAndHour(translate, dateFnsLocale, new Date(reservation.end.date));
 
     let cancellationText = reservation.cancellationPolicy;
     if (reservation.cancellationDeadline) {
-        cancellationText = `${translate('travel.carDetails.cancellationUntil')} ${DateUtils.getFormattedCancellationDate(reservation.cancellationDeadline)}`;
+        cancellationText = `${translate('travel.carDetails.cancellationUntil')} ${DateUtils.getFormattedCancellationDate(translate, dateFnsLocale, reservation.cancellationDeadline)}`;
     }
 
     if (reservation.cancellationPolicy === null && reservation.cancellationDeadline === null) {
@@ -59,10 +65,9 @@ function CarTripDetails({reservation, personalDetails}: CarTripDetailsProps) {
                 helperTextStyle={[styles.pb3, styles.mtn2]}
             />
             {!!reservation.carInfo?.name && (
-                <MenuItemWithTopDescription
-                    description={translate('travel.carDetails.carType')}
-                    title={reservation.carInfo.name}
-                    interactive={false}
+                <MenuItemField
+                    name={translate('travel.carDetails.carType')}
+                    value={reservation.carInfo.name}
                 />
             )}
             {!!cancellationText && (

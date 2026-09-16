@@ -1,12 +1,16 @@
-import React from 'react';
 import type {PressableRef} from '@components/Pressable/GenericPressable/types';
 import PressableWithSecondaryInteraction from '@components/PressableWithSecondaryInteraction';
 import Text from '@components/Text';
+
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
-import type {ReactionListEvent} from '@pages/inbox/ReportScreenContext';
+
+import type {ReactionListEvent} from '@pages/inbox/ReactionListContext';
+
 import CONST from '@src/CONST';
+
+import React from 'react';
 
 type EmojiReactionBubbleProps = {
     /**
@@ -30,7 +34,6 @@ type EmojiReactionBubbleProps = {
      */
     count?: number;
 
-    /** Whether it is for context menu so we can modify its style */
     isContextMenu?: boolean;
 
     /**
@@ -41,7 +44,6 @@ type EmojiReactionBubbleProps = {
     /** We disable reacting with emojis on report actions that have errors */
     shouldBlockReactions?: boolean;
 
-    /** Reference to the outer element */
     ref?: PressableRef;
 };
 

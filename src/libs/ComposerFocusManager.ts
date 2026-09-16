@@ -1,6 +1,9 @@
-import {TextInput} from 'react-native';
-import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
+
+import type {ValueOf} from 'type-fest';
+
+import {TextInput} from 'react-native';
+
 import isWindowReadyToFocus from './isWindowReadyToFocus';
 
 type ModalId = number | undefined;

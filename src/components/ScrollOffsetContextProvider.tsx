@@ -1,25 +1,27 @@
-import {findFocusedRoute} from '@react-navigation/native';
-import type {ParamListBase} from '@react-navigation/native';
-import React, {createContext, useCallback, useEffect, useMemo, useRef} from 'react';
 import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
+
 import {isSidebarScreenName} from '@libs/Navigation/helpers/isNavigatorName';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {NavigationPartialRoute, State} from '@libs/Navigation/types';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
+
+import type {ParamListBase} from '@react-navigation/native';
+
+import {findFocusedRoute} from '@react-navigation/native';
+import React, {createContext, useCallback, useEffect, useMemo, useRef} from 'react';
 
 type ScrollOffsetContextValue = {
     /** Save scroll offset of FlashList on given screen */
     saveScrollOffset: (route: PlatformStackRouteProp<ParamListBase>, scrollOffset: number) => void;
 
-    /** Get scroll offset value for given screen */
     getScrollOffset: (route: PlatformStackRouteProp<ParamListBase>) => number | undefined;
 
     /** Save scroll index of FlashList on given screen */
     saveScrollIndex: (route: PlatformStackRouteProp<ParamListBase>, scrollIndex: number) => void;
 
-    /** Get scroll index value for given screen */
     getScrollIndex: (route: PlatformStackRouteProp<ParamListBase>) => number | undefined;
 
     /** Clean scroll offsets of screen that aren't anymore in the state */
@@ -27,7 +29,6 @@ type ScrollOffsetContextValue = {
 };
 
 type ScrollOffsetContextProviderProps = {
-    /** Actual content wrapped by this component */
     children: React.ReactNode;
 };
 

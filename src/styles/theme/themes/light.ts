@@ -1,5 +1,6 @@
 import colors from '@styles/theme/colors';
 import type {ThemeColors} from '@styles/theme/types';
+
 import CONST from '@src/CONST';
 import SCREENS from '@src/SCREENS';
 
@@ -27,8 +28,10 @@ const lightTheme = {
     syntax: colors.productLight800,
     link: colors.blue600,
     linkHover: colors.blue500,
+    linkReversed: colors.blue300,
     buttonDefaultBG: colors.productLight400,
     buttonHoveredBG: colors.productLight500,
+    buttonHoveredBGReversed: colors.productDark500,
     buttonPressedBG: colors.productLight600,
     buttonSuccessText: colors.productLight100,
     buttonDangerText: colors.white,
@@ -45,7 +48,7 @@ const lightTheme = {
     receiptPlaceholderPlus: colors.productLight100,
 
     // Additional keys
-    overlay: colors.productLight400,
+    overlay: colors.productLight300,
     inverse: colors.productLight900,
     shadow: '0px 4px 12px 0px rgba(2,18,4,0.06)',
     componentBG: colors.productLight100,

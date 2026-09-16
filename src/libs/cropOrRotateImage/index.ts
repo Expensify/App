@@ -1,6 +1,8 @@
 import {ImageManipulator} from 'expo-image-manipulator';
-import getSaveFormat from './getSaveFormat';
+
 import type {CropOrRotateImage} from './types';
+
+import getSaveFormat from './getSaveFormat';
 
 const cropOrRotateImage: CropOrRotateImage = (uri, actions, options) =>
     new Promise((resolve, reject) => {

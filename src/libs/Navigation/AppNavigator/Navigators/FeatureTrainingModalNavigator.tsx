@@ -1,14 +1,19 @@
-import React from 'react';
 import AutoSubmitModal from '@components/AutoSubmitModal';
 import NoDropZone from '@components/DragAndDrop/NoDropZone';
+
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+
 import RHP_WEB_TRANSITION_SPEC from '@libs/Navigation/AppNavigator/RHPTransitionSpec';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import Animations from '@libs/Navigation/PlatformStackNavigation/navigationOptions/animation';
 import type {FeatureTrainingNavigatorParamList} from '@libs/Navigation/types';
+
 import ChangePolicyEducationalModal from '@pages/ChangePolicyEducationalModal';
 import TrackTrainingPage from '@pages/TrackTrainingPage';
+
 import SCREENS from '@src/SCREENS';
+
+import React from 'react';
 
 const Stack = createPlatformStackNavigator<FeatureTrainingNavigatorParamList>();
 

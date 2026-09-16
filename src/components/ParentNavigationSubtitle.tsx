@@ -1,7 +1,3 @@
-import {useRoute} from '@react-navigation/native';
-import React from 'react';
-import type {ColorValue, StyleProp, TextStyle, ViewStyle} from 'react-native';
-import {View} from 'react-native';
 import useHover from '@hooks/useHover';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -11,17 +7,26 @@ import useRootNavigationState from '@hooks/useRootNavigationState';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {isFullScreenName} from '@libs/Navigation/helpers/isNavigatorName';
 import Navigation from '@libs/Navigation/Navigation';
 import type {RightModalNavigatorParamList} from '@libs/Navigation/types';
 import {getReportAction, isReportActionVisible} from '@libs/ReportActionsUtils';
 import {canUserPerformWriteAction as canUserPerformWriteActionReportUtils, isMoneyRequestReport} from '@libs/ReportUtils';
+
 import CONST from '@src/CONST';
 import type {ParentNavigationSummaryParams} from '@src/languages/params';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+
+import type {ColorValue, StyleProp, TextStyle, ViewStyle} from 'react-native';
+
+import {useRoute} from '@react-navigation/native';
+import React from 'react';
+import {View} from 'react-native';
+
 import StatusBadge from './StatusBadge';
 import Text from './Text';
 import TextLink from './TextLink';
@@ -32,13 +37,8 @@ type ParentNavigationSubtitleProps = {
     /** Current Report ID (to check hasParentAccess) */
     reportID?: string;
 
-    /** parent Report ID */
     parentReportID?: string;
-
-    /** parent Report Action ID */
     parentReportActionID?: string;
-
-    /** PressableWithoutFeedback additional styles */
     pressableStyles?: StyleProp<TextStyle>;
 
     /** Whether to open the parent report link in the current tab if possible */
@@ -50,19 +50,10 @@ type ParentNavigationSubtitleProps = {
     /** Text to display in a tooltip shown on hover of the status badge */
     statusTooltipText?: string;
 
-    /** The style of the text */
     textStyles?: StyleProp<TextStyle>;
-
-    /** The background color for the status text */
     statusTextBackgroundColor?: ColorValue;
-
-    /** The text color for the status text */
     statusTextColor?: ColorValue;
-
-    /** The style of the status text container */
     statusTextContainerStyles?: StyleProp<ViewStyle>;
-
-    /** The number of lines for the subtitle */
     subtitleNumberOfLines?: number;
 
     /** AccountID of the human agent assisting Concierge, gates the "- assisted by [...]" suffix */
@@ -71,7 +62,6 @@ type ParentNavigationSubtitleProps = {
     /** Display name of the human agent; falls back to a generic label when missing */
     humanAgentName?: string;
 
-    /** Whether to show the "from" prefix */
     shouldShowFromPrefix?: boolean;
 };
 
@@ -299,7 +289,7 @@ function ParentNavigationSubtitle({
                                 onMouseEnter={onMouseEnter}
                                 onMouseLeave={onMouseLeave}
                                 onPress={onPress}
-                                accessibilityLabel={translate('threads.parentNavigationSummary', {reportName, workspaceName})}
+                                accessibilityLabel={translate('threads.parentNavigationSummary', reportName, workspaceName)}
                                 style={[
                                     pressableStyles,
                                     styles.optionAlternateText,

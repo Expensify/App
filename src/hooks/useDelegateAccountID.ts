@@ -1,7 +1,10 @@
-import {delegateEmailSelector} from '@selectors/Account';
-import type {OnyxEntry} from 'react-native-onyx';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsList} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {delegateEmailSelector} from '@selectors/Account';
+
 import useOnyx from './useOnyx';
 
 function useDelegateAccountID(): number | undefined {

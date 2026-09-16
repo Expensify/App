@@ -1,13 +1,17 @@
-import React from 'react';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
+
 import {isWaypointNullIsland} from '@libs/TransactionUtils';
+
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type {WaypointCollection} from '@src/types/onyx/Transaction';
 import type WithSentryLabel from '@src/types/utils/SentryLabel';
+
+import React from 'react';
 
 type DistanceRequestProps = WithSentryLabel & {
     /** The waypoints for the distance expense */
@@ -16,19 +20,10 @@ type DistanceRequestProps = WithSentryLabel & {
     /** The index of the item */
     item?: string;
 
-    /** Function to call when the secondary interaction is triggered */
     onSecondaryInteraction?: () => void;
-
-    /** Function to get the index of the item */
     getIndex?: () => number | undefined;
-
-    /** Whether the item is active */
     isActive?: boolean;
-
-    /** Function to call when the user clicks the item */
     onPress?: (index: number) => void;
-
-    /** Whether the item is disabled */
     disabled?: boolean;
 };
 

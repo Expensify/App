@@ -1,17 +1,22 @@
-import {hasSeenTourSelector} from '@selectors/Onboarding';
-import React from 'react';
-import type {StyleProp, TextStyle} from 'react-native';
-import type {CustomRendererProps, RenderersProps, TPhrasing, TText} from 'react-native-render-html';
-import {TNodeChildrenRenderer, useRendererProps} from 'react-native-render-html';
 import * as HTMLEngineUtils from '@components/HTMLEngineProvider/htmlEngineUtils';
 import Text from '@components/Text';
+
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useEnterKeyHandler from '@hooks/useEnterKeyHandler';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {navigateToConciergeChat as navigateToConciergeChatAction} from '@userActions/Report';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import type {StyleProp, TextStyle} from 'react-native';
+import type {CustomRendererProps, RenderersProps, TPhrasing, TText} from 'react-native-render-html';
+
+import {hasSeenTourSelector} from '@selectors/Onboarding';
+import React from 'react';
+import {TNodeChildrenRenderer, useRendererProps} from 'react-native-render-html';
 
 type ConciergeLinkRendererProps = CustomRendererProps<TText | TPhrasing>;
 
@@ -39,7 +44,7 @@ function ConciergeLinkRenderer({tnode, style}: ConciergeLinkRendererProps) {
      */
     const navigateToConciergeChat = () => {
         onPressFromProps?.();
-        navigateToConciergeChatAction(conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas, false);
+        navigateToConciergeChatAction({conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas, shouldDismissModal: false});
     };
 
     // Define link style based on context

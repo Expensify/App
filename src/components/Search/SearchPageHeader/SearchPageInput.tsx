@@ -1,19 +1,26 @@
+import type {SearchQueryJSON} from '@components/Search/types';
+import TextInput from '@components/TextInput';
+
+import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
+
+import Navigation from '@libs/Navigation/Navigation';
+import {getKeywordQueryWithCurrentSearchContext, getQueryWithUpdatedValues, sanitizeSearchValue} from '@libs/SearchQueryUtils';
+
+import variables from '@styles/variables';
+
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
+import KeyboardUtils from '@src/utils/keyboard';
+
 // NOTE: This component has a static twin in SearchPageNarrow/StaticSearchPageInput.tsx
 // used for fast perceived performance. If you change the UI here, verify the
 // static version still looks visually identical.
 import React, {useState} from 'react';
-import type {SearchQueryJSON} from '@components/Search/types';
-import TextInput from '@components/TextInput';
-import useLocalize from '@hooks/useLocalize';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useTheme from '@hooks/useTheme';
-import useThemeStyles from '@hooks/useThemeStyles';
-import Navigation from '@libs/Navigation/Navigation';
-import {getKeywordQueryWithCurrentSearchContext, getQueryWithUpdatedValues, sanitizeSearchValue} from '@libs/SearchQueryUtils';
-import variables from '@styles/variables';
-import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
-import KeyboardUtils from '@src/utils/keyboard';
 
 type SearchPageInputProps = {
     queryJSON: SearchQueryJSON;
@@ -22,6 +29,7 @@ type SearchPageInputProps = {
 
 function SearchPageInput({queryJSON, onFocus}: SearchPageInputProps) {
     const {translate} = useLocalize();
+    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const styles = useThemeStyles();
     const theme = useTheme();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -39,7 +47,9 @@ function SearchPageInput({queryJSON, onFocus}: SearchPageInputProps) {
 
     function submitSearch(query: string) {
         const queryWithContext = getKeywordQueryWithCurrentSearchContext(query, queryJSON);
-        const updatedQuery = getQueryWithUpdatedValues(queryWithContext);
+        // queryWithContext is derived from queryJSON whose amount filters are already in backend cents,
+        // so skip the amount conversion to avoid multiplying the value by 100 again on every keyword change.
+        const updatedQuery = getQueryWithUpdatedValues(queryWithContext, true, policies);
 
         if (!updatedQuery) {
             return;
@@ -68,9 +78,9 @@ function SearchPageInput({queryJSON, onFocus}: SearchPageInputProps) {
                 submitSearch(textInputValue);
             }}
             containerStyles={[shouldUseNarrowLayout ? styles.flex1 : undefined]}
-            textInputContainerStyles={[styles.pb0, shouldUseNarrowLayout ? styles.ph3 : styles.ph2]}
-            inputStyle={[styles.w100, styles.lineHeightUndefined, shouldUseNarrowLayout ? undefined : styles.fontSizeLabel]}
-            touchableInputWrapperStyle={shouldUseNarrowLayout ? styles.searchPageInputNarrowTouchableWrapper : styles.searchPageInputWideTouchableWrapper}
+            textInputContainerStyles={shouldUseNarrowLayout ? [styles.border, styles.borderRadiusComponentNormal, styles.appBG, styles.p2] : [styles.pb0, styles.ph2]}
+            inputStyle={shouldUseNarrowLayout ? [styles.w100, styles.textLabel] : [styles.w100, styles.lineHeightUndefined, styles.fontSizeLabel]}
+            touchableInputWrapperStyle={shouldUseNarrowLayout ? styles.h11 : styles.searchPageInputWideTouchableWrapper}
             clearButtonStyle={shouldUseNarrowLayout ? undefined : styles.mh0}
             clearButtonIconSize={shouldUseNarrowLayout ? undefined : variables.iconSizeSmall}
             placeholderTextColor={theme.textSupporting}

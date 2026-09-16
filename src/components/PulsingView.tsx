@@ -1,10 +1,13 @@
-import React, {useEffect} from 'react';
+import shouldRenderOffscreen from '@libs/shouldRenderOffscreen';
+
+import CONST from '@src/CONST';
+
 import type {StyleProp, ViewStyle} from 'react-native';
+import type {AnimatedStyle, SharedValue} from 'react-native-reanimated';
+
+import React, {useEffect} from 'react';
 import {View} from 'react-native';
 import Animated, {cancelAnimation, Easing, useAnimatedReaction, useAnimatedStyle, useSharedValue, withDelay, withRepeat, withSequence, withTiming} from 'react-native-reanimated';
-import type {AnimatedStyle, SharedValue} from 'react-native-reanimated';
-import shouldRenderOffscreen from '@libs/shouldRenderOffscreen';
-import CONST from '@src/CONST';
 
 const {FADE_OUT_DURATION, FADE_IN_DURATION, PAUSE_DURATION, RECOVERY_DURATION} = CONST.PULSE_ANIMATION;
 
@@ -12,10 +15,7 @@ const EASING_OUT = Easing.out(Easing.quad);
 const EASING_IN = Easing.in(Easing.quad);
 
 type PulsingViewProps = {
-    /** Whether the view should pulse */
     shouldPulse: boolean;
-
-    /** Content to render */
     children: React.ReactNode;
 
     /**

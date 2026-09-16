@@ -1,12 +1,17 @@
-import React from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
 import Text from '@components/Text';
+
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {getHumanAgentFirstName} from '@libs/ReportActionsUtils';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import React from 'react';
 
 type HumanAgentAssistedByTextProps = {
     /** The action whose human agent's first name drives the "assisted by" label. */

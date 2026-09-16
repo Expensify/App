@@ -1,16 +1,19 @@
-import {domainSecurityGroupSettingErrorsSelector, domainSecurityGroupSettingPendingActionSelector, selectGroupByID} from '@selectors/Domain';
-import React from 'react';
-import {View} from 'react-native';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
+
 import {clearDomainSecurityGroupSettingError, updateDomainSecurityGroup} from '@userActions/Domain';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 
+import {domainSecurityGroupSettingErrorsSelector, domainSecurityGroupSettingPendingActionSelector, selectGroupByID} from '@selectors/Domain';
+import React from 'react';
+import {View} from 'react-native';
+
 type ExpensifyCardPreferredWorkspaceToggleProps = {
-    /** The account ID of the domain */
     domainAccountID: number;
 
     /** The ID of the security group */
