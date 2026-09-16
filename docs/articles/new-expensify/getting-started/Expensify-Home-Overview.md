@@ -1,8 +1,8 @@
 ---
 title: Expensify Home Overview
 description: Learn what you’ll see on Home and how it helps you understand what needs attention, get oriented, and stay informed when you sign in. 
-keywords: [New Expensify, Expensify Home, Home, Home tab, For you, Recently added, recently added expenses, view all expenses, Discover, Announcements, time-sensitive, urgent alerts, Expensify Card fraud, broken bank connection, Your spend, awaiting approval, repaid, recent transactions, Expensify Card, Spend over time, spending chart, insights, insight switcher, Top spenders, Top categories, Top merchants, Chart unavailable, Getting started, onboarding checklist, track and budget my expenses, organize my personal spending, personal spending, customize spend categories, link personal card]
-internalScope: Audience is all Expensify members. Covers what Home is and what appears on it, including the For you, Recently added, Spend over time and other insights, Discover, Announcements, Time-sensitive, Getting started, and Your spend sections. Does not cover how to complete actions like submitting, approving, paying, exporting, or fixing expenses.
+keywords: [New Expensify, Expensify Home, Home, Home tab, For you, Recently added, recently added expenses, view all expenses, Discover, Announcements, Time sensitive, time-sensitive, urgent alerts, Expensify Card fraud, broken bank connection, unpaid invoice, invoice past due, service interruption, Your spend, awaiting approval, repaid, recent transactions, Expensify Card, Spend over time, spending chart, insights, insight switcher, Top spenders, Top categories, Top merchants, Chart unavailable, Getting started, onboarding checklist, track and budget my expenses, organize my personal spending, personal spending, customize spend categories, link personal card]
+internalScope: Audience is all Expensify members. Covers what Home is and what appears on it, including the For you, Recently added, Spend over time and other insights, Discover, Announcements, Time sensitive, Getting started, and Your spend sections. Does not cover how to complete actions like submitting, approving, paying, exporting, or fixing expenses.
 
 ---
 
@@ -30,7 +30,7 @@ Home is the default view when you sign in.
 Home is made up of a small set of sections that summarize what’s happening in your account.
 
 Home includes:
-- **Time-sensitive alerts** (when applicable)
+- **Time sensitive** (when applicable)
 - **For you**
 - **Recently added**
 - **Spend over time** and other insights (when applicable)
@@ -43,18 +43,21 @@ Each section provides context so you know where to go next.
 
 ---
 
-## How Time-sensitive section works on Home
+## How the Time sensitive section works on Home
 
-The **Time-sensitive alerts** section appears only when there is something that requires immediate attention.
+The **Time sensitive** section appears only when there is something that requires immediate attention.
 
 These alerts appear when:
 - A workflow is blocked, such as a broken bank or accounting connection due to expired or invalid credentials
 - A bank account is locked, such as a business or personal bank account that has been locked due to a failed debit or bank-side restriction
 - A reimbursement is waiting for the payee to add a personal deposit account
 - There is potential risk, such as suspected Expensify Card fraud on an active card
+- A subscription invoice is unpaid, which the Workspace owner sees as **Pay your invoice by [date] to avoid service interruption** while the payment is still within the grace period, or as **Your payment is past due, please pay your invoice** once the grace period ends
 - An action must be taken within a short window, such as a limited-time offer or early adoption discount
 
-Alerts are only shown for active Expensify Cards. Deactivated or closed cards do not trigger time-sensitive alerts.
+Alerts are only shown for active Expensify Cards. Deactivated or closed cards do not trigger alerts in this section.
+
+Each alert includes a button that takes you where the issue is resolved. For an unpaid subscription invoice, select **Review** to open your invoices on the **Spend** page.
 
 If there are no urgent issues, this section will not appear.
 
@@ -179,9 +182,21 @@ The **Recently added** section shows up to five of your most recently added expe
 
 The **Recently added** section always appears on Home. If you haven’t added any expenses yet, it shows an empty state. Create an expense or drag a receipt onto it, and your expense will appear here.
 
-## Why don’t I see the Time-sensitive section?
+## Why don’t I see the Time sensitive section?
 
-The **Time-sensitive** section only appears when there is an urgent issue or limited-time action that requires attention. If everything is up to date, this section will not be visible.
+The **Time sensitive** section only appears when there is an urgent issue or limited-time action that requires attention. If everything is up to date, this section will not be visible.
+
+## Why don’t I see the unpaid invoice alert on Home?
+
+The unpaid subscription invoice alert is only shown to the Workspace owner, because only the Workspace owner is billed for the subscription. Members and Workspace Admins who are not the Workspace owner never see it.
+
+To learn who is billed for a workspace, see [What is a Workspace owner?](/articles/new-expensify/billing-and-subscriptions/Learn-About-Billing-Permissions#what-is-a-workspace-owner).
+
+## What happens if I ignore the unpaid invoice alert on Home?
+
+While the payment is still within the grace period, the alert shows the date your invoice is due. Once that date passes, the alert changes to **Your payment is past due, please pay your invoice** and the workspace loses access to paid features until the invoice is paid.
+
+To learn how to resolve an unpaid invoice, see [Fix a Billing Issue](/articles/new-expensify/billing-and-subscriptions/manage-your-subscription-and-billing/manage-billing/Fix-a-Billing-Issue).
 
 ## Why don’t I see the Spend over time section?
 

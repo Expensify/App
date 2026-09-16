@@ -1,8 +1,8 @@
 ---
 title: Fix a Billing Issue
 description: Learn how to resolve billing issues by updating your payment method or completing the action shown in Account > Subscription.
-keywords: [fix billing issue, payment failed, retry payment, good standing, update payment card, authenticate payment, billing issue, payment could not be processed]
-internalScope: Audience is Workspace owners. Covers resolving billing issues from Account > Subscription. Does not cover pricing, subscription management, or billing ownership.
+keywords: [fix billing issue, payment failed, retry payment, good standing, update payment card, authenticate payment, billing issue, payment could not be processed, payment past due, unpaid invoice, pay your invoice, service interruption, Time sensitive alert]
+internalScope: Audience is Workspace owners. Covers resolving billing issues from Account > Subscription, including the Time sensitive alert on Home that surfaces an unpaid invoice. Does not cover pricing, subscription management, or billing ownership.
 retrievalIntent: How to fix a failed payment.
 contentType: task
 platform: new
@@ -30,6 +30,19 @@ The notification remains visible until the billing issue is resolved.
 
 ![Account > Subscription showing the red billing-issue banner explaining the payment failure]({{site.url}}/assets/images/ExpensiHelp-Fix-a-Billing-Issue.png){:width="100%"}
 
+## Where to see an unpaid invoice on Home
+
+If your subscription is billed by invoice and that invoice hasn't been paid, the Workspace owner also sees an alert in the **Time sensitive** section on **Home**:
+
+- While the payment is still within the grace period, the alert reads **Pay your invoice by [date] to avoid service interruption**.
+- Once the grace period ends, the alert reads **Your payment is past due, please pay your invoice**.
+
+Select **Review** on the alert to open your invoices on the **Spend** page, then pay the outstanding invoice.
+
+This alert is only shown to the Workspace owner, and it disappears once the invoice is paid.
+
+To learn more about what appears on Home, see [Expensify Home Overview](/articles/new-expensify/getting-started/Expensify-Home-Overview).
+
 ## How to fix a billing issue
 
 1. In the navigation tabs (on the left on web, on the bottom on mobile) go to **Account > Subscription**.
@@ -43,7 +56,7 @@ The notification remains visible until the billing issue is resolved.
 | **Your payment card is expiring soon** | Update your payment card before it expires to avoid future billing issues. |
 | **Your payment requires authentication** | Complete the required authentication, such as 3D Secure verification. |
 | **Your payment information is outdated** | Update your payment card and **Retry payment**. |
-| **Your payment is past due** | Pay the outstanding balance. |
+| **Your payment is past due** | Pay the outstanding invoice. You can also select **Review** on the **Time sensitive** alert on **Home** to open your invoices on the **Spend** page. |
 | **A billing dispute is preventing payment** | Resolve the dispute with your bank before retrying the payment. |
 
 ---
@@ -54,6 +67,7 @@ After payment is successfully processed:
 
 - The message is removed from **Account > Subscription**.
 - The red notification dots are removed from **Account**.
+- Any related alert is removed from the **Time sensitive** section on **Home**.
 - A receipt for the successful payment appears under **View payment history**
 - Access to paid features is restored.
 
