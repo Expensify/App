@@ -420,7 +420,7 @@ function useYourSpendData(): UseYourSpendDataReturn {
 
     // Memo anchor: the compiler does not auto-cache these calls, so downstream
     // memos would invalidate every render without it.
-    const expensifyCards = useMemo(() => getDisplayableExpensifyCards(cardList), [cardList]);
+    const {cards: expensifyCards, cardIDsByShownCardID: expensifyCardIDsByShownCardID} = useMemo(() => getDisplayableExpensifyCards(cardList), [cardList]);
     const thirdPartyCards = useMemo(
         () => getDisplayableThirdPartyCards(cardList, {cardsWithBrokenFeedConnection, personalCardsWithBrokenConnection}),
         [cardList, cardsWithBrokenFeedConnection, personalCardsWithBrokenConnection],
@@ -441,8 +441,15 @@ function useYourSpendData(): UseYourSpendDataReturn {
     const cardRows: YourSpendCardRow[] = useMemo(
         () =>
             displayableCards.reduce<YourSpendCardRow[]>((acc, {card, kind}) => {
-                const totals = cardTotalsByCardID?.[card.cardID];
-                if (!totals) {
+                // A combo card duo collapses to one row keyed by the physical card, so the row stands
+                // for both halves. Third-party cards are never part of a duo and stand only for themselves.
+                const queriedCardIDs = expensifyCardIDsByShownCardID[card.cardID] ?? [card.cardID];
+
+                // The grouped search reports one entry per cardID, so a combo card duo arrives as two
+                // entries. Add them up so the row carries the duo's whole spend and shows up when
+                // either half of the duo spent.
+                const duoTotals = queriedCardIDs.map((duoCardID) => cardTotalsByCardID?.[duoCardID]).filter((entry): entry is YourSpendRowTotals => !!entry);
+                if (duoTotals.length === 0) {
                     return acc;
                 }
 
@@ -462,9 +469,11 @@ function useYourSpendData(): UseYourSpendDataReturn {
                 acc.push({
                     cardID: card.cardID,
                     lastFour,
-                    query: buildRecentCardTransactionsQuery(accountID, card.cardID),
-                    total: totals.total,
-                    currency: totals.currency,
+                    query: buildRecentCardTransactionsQuery(accountID, queriedCardIDs),
+                    total: duoTotals.every((entry) => entry.total === undefined) ? undefined : duoTotals.reduce((sum, entry) => sum + (entry.total ?? 0), 0),
+                    // Both halves of a duo are issued against the same fund and card program, so they
+                    // always report the same currency and the summed total above stays meaningful.
+                    currency: duoTotals.find((entry) => !!entry.currency)?.currency,
                     spentFraction,
                     kind,
                     bank: card.bank,
@@ -473,7 +482,7 @@ function useYourSpendData(): UseYourSpendDataReturn {
                 });
                 return acc;
             }, []),
-        [displayableCards, cardTotalsByCardID, accountID],
+        [displayableCards, cardTotalsByCardID, expensifyCardIDsByShownCardID, accountID],
     );
 
     const approvalRowStateRaw = getYourSpendRowState({isApplicable: isApprovalApplicable, isOffline, searchResults: approvalSearchResults});
