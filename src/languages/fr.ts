@@ -416,8 +416,14 @@ const translations: TranslationDeepObject<typeof en> = {
         subrate: 'Sous-taux',
         perDiem: 'Indemnité journalière',
         validate: 'Valider',
-        downloadAsPDF: 'Télécharger en PDF',
-        downloadReceipts: 'Télécharger les reçus',
+        downloadReport: () => ({
+            one: 'Télécharger la note de frais',
+            other: 'Télécharger des notes de frais',
+        }),
+        downloadReceipt: () => ({
+            one: 'Télécharger le reçu',
+            other: 'Télécharger les reçus',
+        }),
         downloadAsCSV: 'Télécharger au format CSV',
         submitViaPDF: 'Soumettre via PDF',
         print: 'Imprimer',
@@ -7618,8 +7624,6 @@ Le forfait Control commence à 9 $ par Membre actif et par mois.`,
             yourWorkspace: `Votre espace de travail est défini sur une devise non prise en charge. Consultez la <a href="${CONST.ENABLE_GLOBAL_REIMBURSEMENT_HELP_URL}">liste des devises prises en charge</a>.`,
             chooseAnExisting: 'Choisissez un compte bancaire existant pour payer les dépenses ou ajoutez-en un nouveau.',
             changeBankAccount: 'Changer de compte bancaire',
-            updateCurrencyForExpensifyCard:
-                "La Carte Expensify est disponible à l'émission en USD. Veuillez mettre à jour cet espace de travail en USD ou utiliser un autre espace de travail.",
             updateCurrencyForExpensifyCardTitle: 'Obtenir la Carte Expensify',
             euUkUpdateCurrencyForExpensifyCard:
                 'La Carte Expensify peut être émise en USD, GBP et EUR. Veuillez mettre à jour cet espace de travail vers une devise prise en charge ou utiliser un autre espace de travail.',
@@ -11334,9 +11338,9 @@ Voici un *reçu test* pour vous montrer comment ça fonctionne :`,
             permissions: 'Autorisations du groupe',
             createNewGroupButton: 'Nouveau groupe',
             createGroupSubmitButton: 'Créer le groupe',
-            expensifyCardPreferredWorkspace: 'Espace de travail préféré pour la carte Expensify',
+            expensifyCardPreferredWorkspace: 'Espace de travail préféré pour la carte',
             expensifyCardPreferredWorkspaceDescription:
-                "Toutes les transactions Expensify Card seront créées dans l'espace de travail préféré Expensify Card au lieu de l'espace de travail préféré.",
+                'Toutes les transactions par Carte Expensify et carte d’entreprise seront créées dans l’Espace de travail préféré pour les cartes au lieu de l’Espace de travail préféré. L’activation de cette fonctionnalité remplacera le paramètre d’Espace de travail préféré pour les transactions par carte uniquement.',
             strictlyEnforceWorkspaceRules: 'Appliquer strictement les règles de l’espace de travail',
             strictlyEnforceWorkspaceRulesDescription:
                 'Toutes les règles de l’espace de travail doivent être respectées avant de soumettre un rapport. Aucune exception manuelle n’est autorisée.',
@@ -11357,7 +11361,7 @@ Voici un *reçu test* pour vous montrer comment ça fonctionne :`,
             restrictDefaultLoginSelectionDescription:
                 'Empêche les membres de modifier leur e-mail de connexion en dehors du domaine de leur entreprise afin d’éviter les restrictions de politique.',
             expensifyCardPreferredWorkspaceDisabledMessage:
-                'Pour activer ce paramètre, veuillez d’abord activer un espace de travail préféré et configurer les cartes Expensify sur votre domaine.',
+                'Pour activer ce paramètre, commencez par activer un espace de travail préféré et configurer une Carte Expensify ou un flux de cartes de société sur votre domaine.',
             findGroup: 'Trouver un groupe',
         },
     },

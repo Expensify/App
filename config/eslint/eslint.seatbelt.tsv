@@ -182,7 +182,6 @@
 "../../src/components/ImageSVG/index.android.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/ImageSVG/index.ios.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/ImageSVG/index.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/components/ImageView/index.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/ImportOnyxState/index.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/ImportSpreadsheet.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../src/components/ImportSpreadsheet.tsx"	"react-hooks/refs"	1
