@@ -9878,7 +9878,7 @@ ${reportName}`,
             [CONST.SEARCH.GROUP_BY.MONTH]: 'Μήνες',
             [CONST.SEARCH.GROUP_BY.WEEK]: 'Εβδομάδες',
             [CONST.SEARCH.GROUP_BY.YEAR]: 'Έτη',
-            [CONST.SEARCH.GROUP_BY.QUARTER]: 'Τετράμηνα',
+            [CONST.SEARCH.GROUP_BY.QUARTER]: 'Τρίμηνα',
         },
         moneyRequestReport: {
             emptyStateTitle: 'Καμία δαπάνη ακόμη',
