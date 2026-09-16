@@ -13,6 +13,7 @@ import type {ListItem} from '@components/SelectionList/types';
 
 import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useInitialSelection from '@hooks/useInitialSelection';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -92,6 +93,8 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
     const [searchTerm, setSearchTerm] = useState('');
     const [sharedBankAccountData] = useOnyx(ONYXKEYS.SHARE_BANK_ACCOUNT);
     const [selectedPayer, setSelectedPayer] = useState<string | undefined>(policy?.achAccount?.reimburser ?? policy?.owner);
+    // Freeze the payer selected when the page opened so its row stays pinned to the top section for the whole open/focus cycle, even as the live selection changes.
+    const initialPayer = useInitialSelection(selectedPayer, {resetOnFocus: true});
     const shouldShowSuccess = sharedBankAccountData?.shouldShowSuccess ?? false;
     const styles = useThemeStyles();
     const {showConfirmModal, closeModal} = useConfirmModal();
@@ -125,6 +128,8 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
             }
             const roleBadge = <Badge text={isOwner ? translate('common.owner') : translate('workspace.common.roleName', policyEmployee.role)} />;
             const isAuthorizedPayer = selectedPayer === details?.login;
+            // Section placement is frozen to the initially selected payer so switching payers only moves the checkmark instead of reordering the list.
+            const isInitialPayer = initialPayer === details?.login;
             const formattedMember = {
                 keyForList: String(adminAccountID),
                 accountID: adminAccountID,
@@ -144,7 +149,7 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
                 errors: policyEmployee.errors,
                 pendingAction: (policyEmployee.pendingAction ?? isAuthorizedPayer) ? policy?.pendingFields?.reimburser : null,
             };
-            if (isAuthorizedPayer) {
+            if (isInitialPayer) {
                 authorizedPayerDetails.push(formattedMember);
             } else {
                 policyAdminDetails.push(formattedMember);
@@ -387,6 +392,7 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
                             }}
                             initiallyFocusedItemKey={formattedAuthorizedPayer.at(0)?.keyForList}
                             shouldSingleExecuteRowSelect
+                            shouldUpdateFocusedIndex
                             addBottomSafeAreaPadding
                             footerContent={
                                 <FormAlertWithSubmitButton
