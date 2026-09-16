@@ -956,7 +956,6 @@
 "../../src/pages/Debug/Report/DebugReportActions.tsx"	"rulesdir/no-direct-personal-details-list"	1
 "../../src/pages/Debug/Report/DebugReportPage.tsx"	"rulesdir/no-direct-personal-details-list"	2
 "../../src/pages/Debug/ReportAction/DebugReportActionCreatePage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	3
-"../../src/pages/Debug/ReportAction/DebugReportActionCreatePage.tsx"	"rulesdir/no-direct-personal-details-list"	1
 "../../src/pages/Debug/ReportAction/DebugReportActionPreview.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/pages/Debug/Transaction/DebugTransactionViolations.tsx"	"no-restricted-syntax"	1
 "../../src/pages/Debug/TransactionViolation/DebugTransactionViolationCreatePage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	4
@@ -981,12 +980,9 @@
 "../../src/pages/DynamicReportDetailsPage.tsx"	"react-hooks/preserve-manual-memoization"	4
 "../../src/pages/DynamicReportDetailsPage.tsx"	"rulesdir/no-direct-personal-details-list"	1
 "../../src/pages/DynamicReportParticipantDetailsPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/pages/DynamicReportParticipantDetailsPage.tsx"	"rulesdir/no-direct-personal-details-list"	1
 "../../src/pages/DynamicReportParticipantsInvitePage.tsx"	"rulesdir/no-direct-personal-details-list"	2
-"../../src/pages/DynamicReportParticipantsPage.tsx"	"rulesdir/no-direct-personal-details-list"	2
 "../../src/pages/DynamicRoomInvitePage.tsx"	"rulesdir/no-direct-personal-details-list"	2
 "../../src/pages/DynamicRoomMemberDetailsPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/pages/DynamicRoomMemberDetailsPage.tsx"	"rulesdir/no-direct-personal-details-list"	1
 "../../src/pages/DynamicRoomMembersPage.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/pages/DynamicRoomMembersPage.tsx"	"rulesdir/no-direct-personal-details-list"	1
 "../../src/pages/EnablePayments/shared/IdologyQuestions.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
@@ -1122,7 +1118,6 @@
 "../../src/pages/NewChatConfirmPage.tsx"	"rulesdir/no-direct-personal-details-list"	1
 "../../src/pages/OnboardingInterestedFeatures/BaseOnboardingInterestedFeatures.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/OnboardingPrivateDomain/BaseOnboardingPrivateDomain.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/pages/PrivateNotes/PrivateNotesListPage.tsx"	"rulesdir/no-direct-personal-details-list"	1
 "../../src/pages/ProfilePage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/ProfilePage.tsx"	"rulesdir/no-direct-personal-details-list"	1
 "../../src/pages/ReimbursementAccount/AddressFormFields.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
@@ -1177,7 +1172,6 @@
 "../../src/pages/settings/Agents/Fields/EditPromptPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/settings/Copilot/CopilotPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/pages/settings/ExitSurvey/DynamicExitSurveyConfirmPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/pages/settings/HelpPage/HelpPage.tsx"	"rulesdir/no-direct-personal-details-list"	1
 "../../src/pages/settings/Profile/AgentAIPromptSection.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/settings/Profile/Contacts/DynamicContactMethodDetailsPage.tsx"	"react-hooks/refs"	3
 "../../src/pages/settings/Profile/Contacts/DynamicContactMethodDetailsPage.tsx"	"react-hooks/set-state-in-effect"	3
