@@ -5421,9 +5421,9 @@ ${amount} pour ${merchant} - ${date}`,
             },
             fxExpenseAccount: 'Compte de frais de conversion de devise',
             fxExpenseAccountDescription:
-                'Lorsque votre entreprise prend en charge les frais de conversion de devise pour un paiement effectué à l’étranger, nous ajouterons ces frais à la facture fournisseur sous forme de ligne imputée à ce compte.',
+                'Lorsque votre entreprise prend en charge les frais de conversion de devise sur un paiement effectué à l’étranger, nous ajouterons ces frais à la facture à payer en tant que ligne imputée à ce compte.',
             noExpenseAccountsFound: 'Aucun compte trouvé',
-            noExpenseAccountsFoundDescription: 'Veuillez synchroniser à nouveau la connexion une fois que les comptes du grand livre général ont été ajoutés dans Certinia.',
+            noExpenseAccountsFoundDescription: 'Veuillez synchroniser à nouveau la connexion après l’ajout des comptes du grand livre général dans Certinia.',
         },
         netsuite: {
             subsidiary: 'Filiale',

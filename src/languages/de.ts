@@ -5416,7 +5416,7 @@ ${amount} für ${merchant} – ${date}`,
             },
             fxExpenseAccount: 'Konto für Währungsumrechnungsgebühren',
             fxExpenseAccountDescription:
-                'Wenn Ihr Unternehmen die Währungumrechnungskosten für eine im Ausland getätigte Zahlung übernimmt, fügen wir diese Kosten der Verbindlichen Rechnung als eine Position hinzu, die diesem Konto zugeordnet ist.',
+                'Wenn Ihr Unternehmen die Kosten für die Währungsumrechnung bei einer im Ausland getätigten Zahlung übernimmt, fügen wir diese Kosten der Verbindlichkeitsrechnung als Position hinzu, die diesem Konto zugeordnet ist.',
             noExpenseAccountsFound: 'Keine Konten gefunden',
             noExpenseAccountsFoundDescription: 'Bitte synchronisieren Sie die Verbindung erneut, nachdem Hauptbuchkonten in Certinia hinzugefügt wurden.',
         },
