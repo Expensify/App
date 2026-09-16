@@ -1180,7 +1180,6 @@
 "../../src/pages/ReimbursementAccount/USD/BusinessInfo/subSteps/WebsiteBusiness.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/ReimbursementAccount/USD/ConnectBankAccount/components/BankAccountValidationForm.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/pages/ReimbursementAccount/utils/getSubStepValues.ts"	"@typescript-eslint/no-unsafe-type-assertion"	4
-"../../src/pages/RejectExpenseReportPage.tsx"	"rulesdir/no-direct-personal-details-list"	1
 "../../src/pages/ReportAddApproverPage.tsx"	"rulesdir/no-direct-personal-details-list"	1
 "../../src/pages/ReportDescriptionPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/ReportDescriptionPage.tsx"	"no-restricted-syntax"	1
@@ -1247,7 +1246,6 @@
 "../../src/pages/settings/Wallet/WalletPage/index.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/pages/Share/ShareRootPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/Share/ShareTab.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/pages/Share/SubmitDetailsPage.tsx"	"rulesdir/no-direct-personal-details-list"	1
 "../../src/pages/ShareCodePage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/pages/signin/SAMLSignInPage/index.native.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/signin/SignInPage.tsx"	"react-hooks/set-state-in-effect"	1
