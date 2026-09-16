@@ -1,0 +1,34 @@
+diff --git a/node_modules/react-native-screens/ios/tabs/RNSTabBarAppearanceCoordinator.mm b/node_modules/react-native-screens/ios/tabs/RNSTabBarAppearanceCoordinator.mm
+index ae5873c..e277003 100644
+--- a/node_modules/react-native-screens/ios/tabs/RNSTabBarAppearanceCoordinator.mm
++++ b/node_modules/react-native-screens/ios/tabs/RNSTabBarAppearanceCoordinator.mm
+@@ -40,6 +40,29 @@ - (void)updateAppearanceOfTabBar:(nullable UITabBar *)tabBar
+ 
+     [self configureTabBarItemForTabScreenController:tabScreenCtrl imageLoader:imageLoader];
+   }
++
++  // Step 3 - mirror the unselected item color onto the bar itself.
++  // iOS 26 renders the tab bar's own glass material and ignores the unselected colors carried by the per-item
++  // UITabBarItemAppearance, which leaves unselected titles on the system label color. unselectedItemTintColor is a
++  // bar-level property and is still honored, so the color the screens already carry is reused for it.
++  [self updateUnselectedItemTintColorOfTabBar:tabBar fromTabScreenControllers:tabScreenCtrls];
++}
++
++- (void)updateUnselectedItemTintColorOfTabBar:(nonnull UITabBar *)tabBar
++                     fromTabScreenControllers:(nonnull NSArray<RNSTabsScreenViewController *> *)tabScreenCtrls
++{
++  for (RNSTabsScreenViewController *tabScreenCtrl in tabScreenCtrls) {
++    UITabBarAppearance *standardAppearance = tabScreenCtrl.tabScreenComponentView.standardAppearance;
++    if (standardAppearance == nil) {
++      continue;
++    }
++
++    UIColor *unselectedColor = standardAppearance.stackedLayoutAppearance.normal.iconColor;
++    if (unselectedColor != nil) {
++      tabBar.unselectedItemTintColor = unselectedColor;
++      return;
++    }
++  }
+ }
+ 
+ - (void)configureTabBarItemForTabScreenController:(nonnull RNSTabsScreenViewController *)tabScreenCtrl

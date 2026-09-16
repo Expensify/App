@@ -41,12 +41,13 @@ import SCREENS from '@src/SCREENS';
 
 import type {NativeBottomTabIcon, NativeBottomTabNavigatorProps} from '@react-navigation/bottom-tabs/unstable';
 import type {NavigationAction, NavigationState, PartialState, Router, TabNavigationState} from '@react-navigation/native';
+import type {ImageSourcePropType} from 'react-native';
 
 import {createNativeBottomTabNavigator} from '@react-navigation/bottom-tabs/unstable';
 import {findFocusedRoute, useNavigation, useNavigationState, useRoute} from '@react-navigation/native';
-import {ClipOp, ImageFormat, Skia} from '@shopify/react-native-skia';
+import {BlendMode, ClipOp, ImageFormat, Skia} from '@shopify/react-native-skia';
 import React, {useEffect, useState} from 'react';
-import {View} from 'react-native';
+import {Image, View} from 'react-native';
 
 import ReportsSplitNavigator from './ReportsSplitNavigator';
 import SearchFullscreenNavigator from './SearchFullscreenNavigator';
@@ -60,12 +61,21 @@ import WorkspaceNavigator from './WorkspaceNavigator';
  */
 const Tab = createNativeBottomTabNavigator<TabNavigatorParamList>();
 
-/** Template icons, so each platform tints them with the active and inactive colors taken from our theme. */
+/** Template icons, so the selected tab picks up the active color through the bar's own tint. */
 const HOME_TAB_ICON = {type: 'image', source: homeIcon} as const satisfies NativeBottomTabIcon;
 const INBOX_TAB_ICON = {type: 'image', source: inboxIcon} as const satisfies NativeBottomTabIcon;
 const SPEND_TAB_ICON = {type: 'image', source: receiptMultipleIcon} as const satisfies NativeBottomTabIcon;
 const WORKSPACES_TAB_ICON = {type: 'image', source: buildingsIcon} as const satisfies NativeBottomTabIcon;
 const ACCOUNT_TAB_ICON = {type: 'image', source: profileIcon} as const satisfies NativeBottomTabIcon;
+
+/** Every template icon the bar draws, paired with the tab it belongs to so the tinted copies can be looked up again. */
+const TAB_ICONS = [
+    [SCREENS.HOME, homeIcon],
+    [NAVIGATORS.REPORTS_SPLIT_NAVIGATOR, inboxIcon],
+    [NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR, receiptMultipleIcon],
+    [NAVIGATORS.WORKSPACE_NAVIGATOR, buildingsIcon],
+    [NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR, profileIcon],
+] as const;
 
 /**
  * Root-level tab screens where the swipe-back gesture should be disabled.
@@ -79,6 +89,49 @@ type NativeTabLayoutProps = Parameters<NonNullable<NativeBottomTabNavigatorProps
 /** stale === false distinguishes a fully realized NavigationState from a PartialState. */
 function isRealizedNavigationState(state: NavigationState | PartialState<NavigationState> | undefined): state is NavigationState {
     return state?.stale === false;
+}
+
+/** The recolored copies of one tab icon, one per selection state. */
+type TintedTabIconPair = {active: NativeBottomTabIcon; inactive: NativeBottomTabIcon};
+
+/**
+ * iOS 26 draws the bar's glass material itself and ignores the per-item `UITabBarItemAppearance`, so the inactive
+ * icon color never reaches an unselected template icon — it lands on the system label color instead. Recoloring the
+ * icon off-screen and handing it over as an opaque image is the only way to keep the theme's icon color there.
+ * Both selection states go through this, because RNScreens rejects a tab whose icon and selectedIcon differ in type.
+ */
+async function createTintedIcon(source: ImageSourcePropType, color: string): Promise<NativeBottomTabIcon | undefined> {
+    const asset = Image.resolveAssetSource(source);
+    if (!asset?.uri) {
+        return undefined;
+    }
+
+    const response = await fetch(asset.uri);
+    const encodedImage = Skia.Data.fromBytes(new Uint8Array(await response.arrayBuffer()));
+    const image = Skia.Image.MakeImageFromEncoded(encodedImage);
+    const surface = image ? Skia.Surface.MakeOffscreen(image.width(), image.height()) : null;
+
+    if (!image || !surface) {
+        image?.dispose();
+        surface?.dispose();
+        return undefined;
+    }
+
+    const bounds = Skia.XYWHRect(0, 0, image.width(), image.height());
+    const paint = Skia.Paint();
+    // SrcIn keeps the glyph's alpha and replaces every colored pixel with the theme color.
+    paint.setColorFilter(Skia.ColorFilter.MakeBlend(Skia.Color(color), BlendMode.SrcIn));
+    surface.getCanvas().drawImageRect(image, bounds, bounds, paint);
+    surface.flush();
+
+    const snapshot = surface.makeImageSnapshot();
+    const base64 = snapshot.encodeToBase64(ImageFormat.PNG, 100);
+
+    image.dispose();
+    snapshot.dispose();
+    surface.dispose();
+
+    return {type: 'image', source: {uri: `data:image/png;base64,${base64}`, width: asset.width, height: asset.height, scale: asset.scale}, tinted: false};
 }
 
 /**
@@ -197,6 +250,47 @@ function TabNavigator() {
     const activeTabRouteName = isRealizedNavigationState(tabState) ? tabState.routes[tabState.index]?.name : SCREENS.HOME;
     const selectedTab = ROUTE_TO_NAVIGATION_TAB[activeTabRouteName ?? SCREENS.HOME] ?? NAVIGATION_TABS.HOME;
 
+    const [tintedIcons, setTintedIcons] = useState<{inactiveColor: string; activeColor: string; icons: Record<string, TintedTabIconPair>}>();
+    const tintedIconsForTheme = tintedIcons?.inactiveColor === theme.icon && tintedIcons.activeColor === theme.iconMenu ? tintedIcons.icons : undefined;
+
+    useEffect(() => {
+        let isActive = true;
+        const inactiveColor = theme.icon;
+        const activeColor = theme.iconMenu;
+
+        Promise.all(
+            TAB_ICONS.map(([name, source]) =>
+                Promise.all([createTintedIcon(source, inactiveColor), createTintedIcon(source, activeColor)]).then(([inactive, active]) => ({name, inactive, active})),
+            ),
+        )
+            .then((results) => {
+                if (!isActive) {
+                    return;
+                }
+                const icons: Record<string, TintedTabIconPair> = {};
+                for (const result of results) {
+                    if (result.inactive && result.active) {
+                        icons[result.name] = {inactive: result.inactive, active: result.active};
+                    }
+                }
+                setTintedIcons({inactiveColor, activeColor, icons});
+            })
+            .catch(() => {});
+
+        return () => {
+            isActive = false;
+        };
+    }, [theme.icon, theme.iconMenu]);
+
+    /** Falls back to the template icon until both tinted copies are ready, so a tab is never left without one. */
+    const getTabBarIcon = (name: string, fallbackIcon: NativeBottomTabIcon) => {
+        const pair = tintedIconsForTheme?.[name];
+        if (!pair) {
+            return fallbackIcon;
+        }
+        return ({focused}: {focused: boolean}) => (focused ? pair.active : pair.inactive);
+    };
+
     const avatarSource = getAvatarURL({
         avatarSource: currentUserPersonalDetails.avatar,
         accountID: currentUserPersonalDetails.accountID,
@@ -272,7 +366,10 @@ function TabNavigator() {
 
     const screenOptions = {
         headerShown: false,
-        lazy: true,
+        // The native bar swaps the visible tab itself, so a tab that mounts on first focus hands the bar an empty
+        // container to show while its tree renders. Unfocused tabs render through a transition instead, which keeps
+        // them off the first paint and still leaves each one ready to draw its own skeleton the moment it is picked.
+        lazy: false,
         tabBarActiveTintColor: theme.iconMenu,
         tabBarInactiveTintColor: theme.icon,
         tabBarControllerMode: 'tabBar' as const,
@@ -291,14 +388,14 @@ function TabNavigator() {
             <Tab.Screen
                 name={SCREENS.HOME}
                 component={HomePage}
-                options={{tabBarLabel: translate('common.home'), tabBarIcon: HOME_TAB_ICON}}
+                options={{tabBarLabel: translate('common.home'), tabBarIcon: getTabBarIcon(SCREENS.HOME, HOME_TAB_ICON)}}
             />
             <Tab.Screen
                 name={NAVIGATORS.REPORTS_SPLIT_NAVIGATOR}
                 component={ReportsSplitNavigator}
                 options={{
                     tabBarLabel: translate('common.inbox'),
-                    tabBarIcon: INBOX_TAB_ICON,
+                    tabBarIcon: getTabBarIcon(NAVIGATORS.REPORTS_SPLIT_NAVIGATOR, INBOX_TAB_ICON),
                     tabBarBadge: chatTabBrickRoad ? ' ' : undefined,
                     tabBarBadgeStyle: {backgroundColor: chatTabBrickRoad === CONST.BRICK_ROAD_INDICATOR_STATUS.INFO ? theme.iconSuccessFill : theme.danger},
                 }}
@@ -306,14 +403,14 @@ function TabNavigator() {
             <Tab.Screen
                 name={NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR}
                 component={SearchFullscreenNavigator}
-                options={{tabBarLabel: translate('common.spend'), tabBarIcon: SPEND_TAB_ICON}}
+                options={{tabBarLabel: translate('common.spend'), tabBarIcon: getTabBarIcon(NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR, SPEND_TAB_ICON)}}
             />
             <Tab.Screen
                 name={NAVIGATORS.WORKSPACE_NAVIGATOR}
                 component={WorkspaceNavigator}
                 options={{
                     tabBarLabel: translate('common.workspacesTabTitle'),
-                    tabBarIcon: WORKSPACES_TAB_ICON,
+                    tabBarIcon: getTabBarIcon(NAVIGATORS.WORKSPACE_NAVIGATOR, WORKSPACES_TAB_ICON),
                     tabBarBadge: workspacesIndicatorStatus ? ' ' : undefined,
                     tabBarBadgeStyle: {backgroundColor: workspacesIndicatorColor},
                 }}
@@ -323,7 +420,7 @@ function TabNavigator() {
                 component={SettingsSplitNavigator}
                 options={{
                     tabBarLabel: translate('initialSettingsPage.account'),
-                    tabBarIcon: accountTabIcon,
+                    tabBarIcon: circularAvatarURI ? accountTabIcon : getTabBarIcon(NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR, accountTabIcon),
                     tabBarBadge: accountIndicatorStatus ? ' ' : undefined,
                     tabBarBadgeStyle: {backgroundColor: accountIndicatorColor},
                 }}
