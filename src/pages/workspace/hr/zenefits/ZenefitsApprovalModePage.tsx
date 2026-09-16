@@ -1,7 +1,7 @@
 import useLocalize from '@hooks/useLocalize';
 
 import {updateZenefitsApprovalMode} from '@libs/actions/connections/Zenefits';
-import {isZenefitsConnected} from '@libs/HRUtils';
+import {isZenefitsConnected} from '@libs/merge/HRUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 
@@ -30,7 +30,7 @@ function ZenefitsApprovalModePage({
         approvalModes: CONST.ZENEFITS.APPROVAL_MODE,
         getCurrentApprovalMode: (policy) => policy?.connections?.zenefits?.config?.approvalMode ?? null,
         getProviderName: () => translate('workspace.hr.zenefits.title'),
-        getHeaderTitle: () => translate('workspace.hr.approvalMode'),
+        getHeaderTitle: () => translate('workspace.merge.approvalMode'),
         handleSave: ({draftApprovalMode, currentApprovalMode}) => updateZenefitsApprovalMode(policyID, draftApprovalMode, currentApprovalMode),
     };
 

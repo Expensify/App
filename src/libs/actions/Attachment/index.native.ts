@@ -88,7 +88,11 @@ async function getCachedAttachment({attachmentID, attachment, currentSource}: Ge
         // exists. If it was purged, fall back to the current source and re-cache it.
         const localFileExists = await RNFS.exists(localSource);
         if (localFileExists) {
-            return localSource;
+            // The path is stored without a scheme so RNFS file operations (exists/unlink) accept it, but
+            // React Native's <Image> on Android only loads a local file when it carries a `file://`
+            // scheme (a bare path renders as a broken thumbnail), so add the scheme before the path
+            // reaches the image renderer.
+            return localSource.startsWith('file://') ? localSource : `file://${localSource}`;
         }
         cacheAttachment({attachmentID, uri: currentSource});
     }

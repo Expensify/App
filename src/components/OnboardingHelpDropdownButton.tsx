@@ -30,10 +30,7 @@ type OnboardingHelpButtonProps = {
     /** Whether we should display the Onboarding help button as in narrow layout */
     shouldUseNarrowLayout: boolean;
 
-    /** Should show Register for webinar option */
     shouldShowRegisterForWebinar: boolean;
-
-    /** Should show Guide booking option */
     shouldShowGuideBooking: boolean;
 
     /** Has user active Schedule call with guide */
@@ -87,11 +84,10 @@ function OnboardingHelpDropdownButton({reportID, shouldUseNarrowLayout, shouldSh
                 {locale: dateFnsLocale},
             )}`,
             value: CONST.ONBOARDING_HELP.EVENT_TIME,
-            description: `${DateUtils.formatInTimeZoneWithFallback(latestScheduledCall.eventTime, userTimezone, CONST.DATE.LOCAL_TIME_FORMAT, {locale: dateFnsLocale})} - ${DateUtils.formatInTimeZoneWithFallback(
+            description: `${DateUtils.formatTimeInTimeZoneWithPeriod(translate, latestScheduledCall.eventTime, userTimezone)} - ${DateUtils.formatTimeInTimeZoneWithPeriod(
+                translate,
                 addMinutes(latestScheduledCall.eventTime, 30),
                 userTimezone,
-                CONST.DATE.LOCAL_TIME_FORMAT,
-                {locale: dateFnsLocale},
             )} ${DateUtils.getZoneAbbreviation(new Date(latestScheduledCall.eventTime), userTimezone)}`,
             descriptionTextStyle: [styles.themeTextColor, styles.ml2],
             displayInDefaultIconColor: true,

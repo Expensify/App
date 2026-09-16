@@ -1,6 +1,6 @@
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {isMoneyRequestAction} from '@libs/ReportActionsUtils';
-import {canEditMoneyRequest, isSelfDM} from '@libs/ReportUtils';
+import {canEditMoneyRequest} from '@libs/ReportUtils';
 import {areRequiredFieldsEmpty} from '@libs/TransactionUtils';
 
 import type {IOUAction, IOUType} from '@src/CONST';
@@ -12,7 +12,6 @@ import type {OnyxEntry} from 'react-native-onyx';
 
 import {useMemo} from 'react';
 
-import useEnvironment from './useEnvironment';
 import useOnyx from './useOnyx';
 
 /**
@@ -31,6 +30,7 @@ const useShowNotFoundPageInIOUStep = (action: IOUAction, iouType: IOUType, repor
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`);
     const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(transaction?.reportID)}`);
     const [iouReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(transaction?.reportID)}`);
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
     const reportActionsReportID = useMemo(() => {
         let actionsReportID;
@@ -47,12 +47,9 @@ const useShowNotFoundPageInIOUStep = (action: IOUAction, iouType: IOUType, repor
         },
     });
 
-    const {isProduction} = useEnvironment();
-
     let shouldShowNotFoundPage = false;
     const canEditSplitBill = isSplitBill && reportAction && session?.accountID === reportAction.actorAccountID && areRequiredFieldsEmpty(transaction, iouReport);
-    const isSelfDMContext = isSelfDM(report) || isSelfDM(iouReport);
-    const canEditSplitExpense = isSplitExpense && !!transaction && !(isProduction && isSelfDMContext);
+    const canEditSplitExpense = isSplitExpense && !!transaction;
 
     if (isEditing) {
         if (isSplitBill) {
@@ -60,7 +57,7 @@ const useShowNotFoundPageInIOUStep = (action: IOUAction, iouType: IOUType, repor
         } else if (isSplitExpense) {
             shouldShowNotFoundPage = !canEditSplitExpense;
         } else {
-            shouldShowNotFoundPage = !isMoneyRequestAction(reportAction) || !canEditMoneyRequest(reportAction, transaction, false, iouReport, policy, iouReportActions);
+            shouldShowNotFoundPage = !isMoneyRequestAction(reportAction) || !canEditMoneyRequest(reportAction, transaction, rules, false, iouReport, policy, iouReportActions);
         }
     }
 

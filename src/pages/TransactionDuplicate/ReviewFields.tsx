@@ -6,7 +6,7 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import variables from '@styles/variables';
+import {fontScale} from '@styles/typography';
 
 import CONST from '@src/CONST';
 import type {ReviewDuplicates} from '@src/types/onyx';
@@ -21,22 +21,14 @@ type FieldItemType<T extends keyof ReviewDuplicates> = {
 };
 
 type ReviewFieldsProps<K extends keyof ReviewDuplicates> = {
-    /* Step Names which are displayed in stepper */
     stepNames: string[];
 
-    /* Label which is displayed to describe current step  */
+    /** Label which is displayed to describe current step */
     label: string;
 
-    /* Values to choose from */
     options: Array<{text: string; value: ReviewDuplicates[K]}> | undefined;
-
-    /* Current index */
     index: number;
-
-    /* Callback to what should happen after selecting row */
     onSelectRow: (item: FieldItemType<K>) => void;
-
-    /* Currently selected value */
     selectedValue?: ReviewDuplicates[K];
 };
 
@@ -81,7 +73,7 @@ function ReviewFields<K extends keyof ReviewDuplicates>({stepNames, label, optio
 
             <Text
                 family="EXP_NEW_KANSAS_MEDIUM"
-                fontSize={variables.fontSizeLarge}
+                fontSize={fontScale.pageHeader}
                 style={[styles.pb5, styles.ph5, stepNames.length < 1 && styles.mt3]}
             >
                 {label}

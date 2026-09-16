@@ -42,7 +42,6 @@ const createMockPolicy = (policyID: string, overrides: Partial<Policy> = {}): Po
     type: CONST.POLICY.TYPE.TEAM,
     owner: CURRENT_USER_EMAIL,
     outputCurrency: 'USD',
-    isPolicyExpenseChatEnabled: true,
     approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
     ...overrides,
 });
@@ -128,6 +127,7 @@ const baseParams = {
     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
     login: CURRENT_USER_EMAIL,
     areTransactionsLoaded: true,
+    rules: undefined,
 };
 
 describe('TodosUtils', () => {

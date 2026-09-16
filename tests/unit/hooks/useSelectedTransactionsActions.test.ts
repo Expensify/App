@@ -724,7 +724,7 @@ describe('useSelectedTransactionsActions', () => {
 
         unholdOption?.onSelected?.();
 
-        expect(unholdRequest).toHaveBeenCalledWith(transactionID, 'child123', undefined, false, CURRENT_USER_LOGIN, CURRENT_USER_ACCOUNT_ID, undefined, false, undefined);
+        expect(unholdRequest).toHaveBeenCalledWith(transactionID, 'child123', undefined, false, CURRENT_USER_LOGIN, CURRENT_USER_ACCOUNT_ID, undefined, false, undefined, {});
         expect(mockClearSelectedTransactions).toHaveBeenCalledWith(true);
     });
 
@@ -778,7 +778,7 @@ describe('useSelectedTransactionsActions', () => {
 
         unholdOption?.onSelected?.();
 
-        expect(unholdRequest).toHaveBeenCalledWith(transactionID, 'child123', undefined, true, CURRENT_USER_LOGIN, CURRENT_USER_ACCOUNT_ID, undefined, false, undefined);
+        expect(unholdRequest).toHaveBeenCalledWith(transactionID, 'child123', undefined, true, CURRENT_USER_LOGIN, CURRENT_USER_ACCOUNT_ID, undefined, false, undefined, {});
         expect(mockClearSelectedTransactions).toHaveBeenCalledWith(true);
     });
 
@@ -892,7 +892,6 @@ describe('useSelectedTransactionsActions', () => {
         };
         const policy = {
             ...createRandomPolicy(1),
-            isPolicyExpenseChatEnabled: true,
             role: CONST.POLICY.ROLE.ADMIN,
             employeeList: {
                 [CURRENT_USER_LOGIN]: {role: CONST.POLICY.ROLE.ADMIN},

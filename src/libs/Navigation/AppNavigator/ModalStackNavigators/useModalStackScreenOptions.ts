@@ -1,6 +1,8 @@
-import {useWideRHPState} from '@components/WideRHPContextProvider';
+import {animatedSuperWideRHPWidth, useWideRHPState} from '@components/WideRHPContextProvider';
 
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSidePanelState from '@hooks/useSidePanelState';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import enhanceCardStyleInterpolator from '@libs/Navigation/AppNavigator/enhanceCardStyleInterpolator';
@@ -16,9 +18,14 @@ import type {StackCardStyleInterpolator} from '@react-navigation/stack';
 
 import {CardStyleInterpolators} from '@react-navigation/stack';
 import {useCallback} from 'react';
+// Import Animated directly from 'react-native' as animations are used with navigation.
+// eslint-disable-next-line no-restricted-imports
+import {Animated} from 'react-native';
 
 function useWideModalStackScreenOptions() {
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
+
     const modalCardStyleInterpolator = useModalCardStyleInterpolator();
 
     // We have to use isSmallScreenWidth, otherwise the content of RHP 'jumps' on Safari - its width is set to size of screen and only after rerender it is set to the correct value
@@ -27,6 +34,7 @@ function useWideModalStackScreenOptions() {
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
     const {wideRHPRouteKeys, superWideRHPRouteKeys} = useWideRHPState();
+    const {sidePanelOffset} = useSidePanelState();
 
     return useCallback<({route}: {route: PlatformStackRouteProp<ParamListBase, string>}) => PlatformStackNavigationOptions>(
         ({route}) => {
@@ -39,7 +47,9 @@ function useWideModalStackScreenOptions() {
             if (!isSmallScreenWidth) {
                 if (superWideRHPRouteKeys.includes(route.key)) {
                     cardStyleInterpolator = enhanceCardStyleInterpolator(baseInterpolator, {
-                        cardStyle: styles.superWideRHPExtendedCardInterpolatorStyles,
+                        // Shrink the super wide sheet by the Side Panel width while it is open so the sheet's
+                        // left edge stays put instead of being pushed off-screen. See https://github.com/Expensify/App/issues/99035
+                        cardStyle: styles.getSuperWideRHPExtendedCardInterpolatorStyles(Animated.subtract(animatedSuperWideRHPWidth, sidePanelOffset.current)),
                     });
                 } else if (wideRHPRouteKeys.includes(route.key)) {
                     cardStyleInterpolator = enhanceCardStyleInterpolator(baseInterpolator, {
@@ -61,13 +71,13 @@ function useWideModalStackScreenOptions() {
                     contentStyle: styles.navigationScreenCardStyle,
                 },
                 web: {
-                    cardStyle: styles.navigationScreenCardStyle,
+                    cardStyle: isSmallScreenWidth ? StyleUtils.getStyleWithEnvSafeAreaPadding(styles.navigationScreenCardStyle) : styles.navigationScreenCardStyle,
                     cardStyleInterpolator,
                     transitionSpec: isSmallScreenWidth ? undefined : RHP_WEB_TRANSITION_SPEC,
                 },
             };
         },
-        [isSmallScreenWidth, modalCardStyleInterpolator, styles, superWideRHPRouteKeys, wideRHPRouteKeys],
+        [StyleUtils, isSmallScreenWidth, modalCardStyleInterpolator, sidePanelOffset, styles, superWideRHPRouteKeys, wideRHPRouteKeys],
     );
 }
 

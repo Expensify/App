@@ -26,6 +26,7 @@ import {getFreeTrialText, hasSubscriptionRedDotError} from '@libs/SubscriptionUt
 import {shouldHideOldAppRedirect} from '@libs/TryNewDotUtils';
 import {expensifyLoginsSelector, getProfilePageBrickRoadIndicator, hasDeviceManagementError} from '@libs/UserUtils';
 
+import useTimeSensitiveHomeAddress from '@pages/home/TimeSensitiveSection/hooks/useTimeSensitiveHomeAddress';
 import {BACKGROUND_LOCATION_TRACKING_TASK_NAME} from '@pages/iou/request/step/IOURequestStepDistanceGPS/const';
 import {stopGpsTripNotification} from '@pages/iou/request/step/IOURequestStepDistanceGPS/GPSNotifications';
 
@@ -85,6 +86,7 @@ function useInitialSettingsPageMenuData(currentUserPersonalDetails: CurrentUserP
     const {translate} = useLocalize();
     const hasActivatedWallet = ([CONST.WALLET.TIER_NAME.GOLD, CONST.WALLET.TIER_NAME.PLATINUM] as string[]).includes(userWallet?.tierName ?? '');
     const hasLockedBankAccount = bankAccountList ? Object.values(bankAccountList).some((bankAccount) => bankAccount.accountData?.state === CONST.BANK_ACCOUNT.STATE.LOCKED) : false;
+    const {shouldShowAddHomeAddress} = useTimeSensitiveHomeAddress();
     const [firstDayFreeTrial] = useOnyx(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL);
     const [isTrackingGPS = false] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS, {
         selector: isTrackingSelector,
@@ -136,7 +138,7 @@ function useInitialSettingsPageMenuData(currentUserPersonalDetails: CurrentUserP
             confirmText: confirmModalConfirmText,
             cancelText: translate('common.cancel'),
             shouldShowCancelButton: true,
-            danger: true,
+            buttonVariant: CONST.BUTTON_VARIANT.DANGER,
         });
     };
 
@@ -162,7 +164,7 @@ function useInitialSettingsPageMenuData(currentUserPersonalDetails: CurrentUserP
             confirmText: translate('initialSettingsPage.saveReceiptsAndSignOutConfirmation.confirm'),
             cancelText: translate('common.cancel'),
             shouldShowCancelButton: true,
-            danger: true,
+            buttonVariant: CONST.BUTTON_VARIANT.DANGER,
         });
     };
 
@@ -233,7 +235,7 @@ function useInitialSettingsPageMenuData(currentUserPersonalDetails: CurrentUserP
         surveyCompletedWithinLastMonth = daysSinceLastSurvey < surveyThresholdInDays;
     }
 
-    const profileBrickRoadIndicator = getProfilePageBrickRoadIndicator(loginList, privatePersonalDetails, vacationDelegate, session?.email);
+    const profileBrickRoadIndicator = getProfilePageBrickRoadIndicator(loginList, privatePersonalDetails, vacationDelegate, session?.email, shouldShowAddHomeAddress);
     const securityBrickRoadIndicator = hasDeviceManagementErrorValue ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined;
     const accountItems = navigationAccountMenuItemsData.items.map((item): MenuData => {
         if (item.screenName === SCREENS.SETTINGS.PROFILE.ROOT) {

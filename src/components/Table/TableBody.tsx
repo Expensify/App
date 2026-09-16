@@ -429,7 +429,7 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
 
 function TableBody(props: TableBodyProps) {
     const {translate} = useLocalize();
-    const {activeSearchString, hasActiveFilters, hasSearchString, listHeaderElement, isEmptyResult, listProps, originalDataLength} = useTableContext<TableData>();
+    const {activeSearchString, hasActiveFilters, hasSearchString, listHeaderElement, isEmptyResult, listProps, originalDataLength, isDefaultViewEmpty} = useTableContext<TableData>();
     let emptyMessage = '';
 
     if (hasSearchString) {
@@ -441,7 +441,7 @@ function TableBody(props: TableBodyProps) {
     useDebouncedAccessibilityAnnouncement(emptyMessage, isEmptyResult, activeSearchString);
 
     // Keep the body mounted when a page header or list empty state must remain visible without rows.
-    if ((isEmptyResult || !originalDataLength) && !doesBodyRenderWhenEmpty(listProps, listHeaderElement)) {
+    if ((isEmptyResult || isDefaultViewEmpty || !originalDataLength) && !doesBodyRenderWhenEmpty(listProps, listHeaderElement)) {
         return null;
     }
 

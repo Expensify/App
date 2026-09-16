@@ -1,53 +1,29 @@
-import * as AppUpdate from '@libs/actions/AppUpdate';
-
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 
-import Onyx from 'react-native-onyx';
-import semver from 'semver';
+import DeviceInfo from 'react-native-device-info';
 
 import type {IsBetaBuild} from './types';
 
-import pkg from '../../../../package.json';
-
-type GithubReleaseJSON = {
-    // eslint-disable-next-line @typescript-eslint/naming-convention
-    tag_name: string | semver.SemVer;
-};
-
-let isLastSavedBeta = false;
-// We have opted for `connectWithoutView` here as this is a strictly non-UI data.
-Onyx.connectWithoutView({
-    key: ONYXKEYS.IS_BETA,
-    callback: (value) => {
-        isLastSavedBeta = !!value;
-    },
-});
+/**
+ * Whether the Play Store put this build on the device. Anything else means a tester installed it from a GitHub
+ * release. `undefined` when the native call cannot say.
+ */
+function isPlayStoreInstall(): boolean | undefined {
+    try {
+        return DeviceInfo.getInstallerPackageNameSync() === CONST.PLAY_STORE_INSTALLER_PACKAGE_NAME;
+    } catch {
+        return undefined;
+    }
+}
 
 /**
- * Check the GitHub releases to see if the current build is a beta build or production build
+ * Whether this build is a beta (staging) build.
+ *
+ * Staging and production ship the same binary, so how the build arrived is the only signal.
+ * Anything the Play Store did not install is a beta.
  */
 function isBetaBuild(): IsBetaBuild {
-    return new Promise((resolve) => {
-        fetch(CONST.GITHUB_RELEASE_URL)
-            .then((res) => res.json())
-            .then((json: GithubReleaseJSON) => {
-                const productionVersion = json.tag_name;
-                if (!productionVersion) {
-                    AppUpdate.setIsAppInBeta(false);
-                    resolve(false);
-                }
-
-                // If the current version we are running is greater than the production version, we are on a beta version of Android
-                const isBeta = semver.gt(pkg.version, productionVersion);
-                AppUpdate.setIsAppInBeta(isBeta);
-                resolve(isBeta);
-            })
-            .catch(() => {
-                // Use isLastSavedBeta in case we fail to fetch the new one, e.g. when we are offline
-                resolve(isLastSavedBeta);
-            });
-    });
+    return Promise.resolve(isPlayStoreInstall() === false);
 }
 
 export default {

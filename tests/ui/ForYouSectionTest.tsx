@@ -57,6 +57,13 @@ jest.mock('@pages/home/ForYouSection/ForYouSkeleton', () => () => {
     return ReactModule.createElement('View', {testID: 'for-you-skeleton'});
 });
 
+jest.mock('@pages/home/ForYouSection/ConciergePromptBox', () => () => {
+    const ReactModule = jest.requireActual<typeof React>('react');
+    return ReactModule.createElement('View', {testID: 'concierge-prompt-box'});
+});
+
+jest.mock('@pages/home/TimeSensitiveSection/useTimeSensitiveItems', () => jest.fn(() => []));
+
 // ForYouSection calls useIsFocused() to freeze useTodoCounts when unfocused; this test renders it outside a
 // NavigationContainer, so stub the focus hook (useTodoCounts is mocked, so the focus value itself is irrelevant).
 jest.mock('@react-navigation/native', () => {
@@ -65,6 +72,7 @@ jest.mock('@react-navigation/native', () => {
     return {
         ...actualNavigation,
         useIsFocused: jest.fn(() => true),
+        useFocusEffect: jest.fn(),
     };
 });
 
@@ -80,6 +88,7 @@ jest.mock('@react-navigation/native', () => {
     return {
         ...actualNav,
         useIsFocused: () => mockIsFocused,
+        useFocusEffect: jest.fn(),
     };
 });
 
@@ -197,8 +206,11 @@ function setTodoCounts(todos: TodoFixture) {
     });
 }
 
+// ConciergePromptBox is mocked, so these props are inert here. They only satisfy ForYouSection's required prop types.
+const conciergeMenuProps = {isConciergeMenuVisible: false, setIsConciergeMenuVisible: () => {}};
+
 function renderForYouSection() {
-    return render(<ForYouSection />);
+    return render(<ForYouSection {...conciergeMenuProps} />);
 }
 
 function pressFirstBeginButton() {
@@ -438,7 +450,8 @@ describe('ForYouSection', () => {
             renderForYouSection();
             await waitForBatchedUpdatesWithAct();
 
-            expect(screen.queryByText('homePage.forYou')).not.toBeOnTheScreen();
+            expect(screen.queryByText('homePage.toDos')).not.toBeOnTheScreen();
+            expect(screen.queryByTestId('forYouEmptyState')).not.toBeOnTheScreen();
             expect(screen.queryByText('Begin')).not.toBeOnTheScreen();
         });
 
@@ -452,7 +465,7 @@ describe('ForYouSection', () => {
             renderForYouSection();
             await waitForBatchedUpdatesWithAct();
 
-            expect(screen.getByText('homePage.forYou')).toBeOnTheScreen();
+            expect(screen.getByTestId('forYouEmptyState')).toBeOnTheScreen();
         });
 
         it('renders to-do items for a new user who has todos', async () => {
@@ -468,7 +481,7 @@ describe('ForYouSection', () => {
             renderForYouSection();
             await waitForBatchedUpdatesWithAct();
 
-            expect(screen.getByText('homePage.forYou')).toBeOnTheScreen();
+            expect(screen.getByText('homePage.toDos')).toBeOnTheScreen();
             expect(screen.getByText('Begin')).toBeOnTheScreen();
         });
 
@@ -486,14 +499,14 @@ describe('ForYouSection', () => {
             await waitForBatchedUpdatesWithAct();
 
             // The section renders to-dos and persists the "has seen a to-do" flag.
-            expect(screen.getByText('homePage.forYou')).toBeOnTheScreen();
+            expect(screen.getByText('Begin')).toBeOnTheScreen();
 
-            // Clearing the to-dos must not unmount the section; it should stay visible (now empty).
+            // Clearing the to-dos must not unmount the section. It should stay visible (now the empty state).
             setTodoCounts(BASE_TODOS);
-            rerender(<ForYouSection />);
+            rerender(<ForYouSection {...conciergeMenuProps} />);
             await waitForBatchedUpdatesWithAct();
 
-            expect(screen.getByText('homePage.forYou')).toBeOnTheScreen();
+            expect(screen.getByTestId('forYouEmptyState')).toBeOnTheScreen();
             expect(screen.queryByText('Begin')).not.toBeOnTheScreen();
         });
 
@@ -508,7 +521,7 @@ describe('ForYouSection', () => {
             renderForYouSection();
             await waitForBatchedUpdatesWithAct();
 
-            expect(screen.queryByText('homePage.forYou')).not.toBeOnTheScreen();
+            expect(screen.queryByTestId('forYouEmptyState')).not.toBeOnTheScreen();
             expect(screen.queryByText('Begin')).not.toBeOnTheScreen();
         });
 
@@ -525,8 +538,8 @@ describe('ForYouSection', () => {
             renderForYouSection();
             await waitForBatchedUpdatesWithAct();
 
-            // The section wrapper (and its title) remain rendered while the skeleton is shown.
-            expect(screen.getByText('homePage.forYou')).toBeOnTheScreen();
+            // The skeleton is shown while the initial load is in flight.
+            expect(screen.getByTestId('for-you-skeleton')).toBeOnTheScreen();
         });
     });
 
@@ -651,7 +664,7 @@ describe('ForYouSection', () => {
             // While the Home tab is blurred the scan is skipped, but the hook retains the last computed count
             // in state, so the row keeps its count instead of flashing back to the empty state.
             mockIsFocused = false;
-            rerender(<ForYouSection />);
+            rerender(<ForYouSection {...conciergeMenuProps} />);
             await waitForBatchedUpdatesWithAct();
 
             expect(screen.getByText('homePage.forYouSection.reviewExpenses:{"count":1}')).toBeOnTheScreen();

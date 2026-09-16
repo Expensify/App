@@ -1,7 +1,8 @@
-import MenuItem from '@components/MenuItem';
+import MenuItemAction from '@components/MenuItem/presets/MenuItemAction';
 import Modal from '@components/Modal';
 import useScrollToFocusedInput from '@components/SelectionList/hooks/useScrollToFocusedInput';
 
+import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import useKeyboardState from '@hooks/useKeyboardState';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -20,6 +21,7 @@ import type {ReactElement} from 'react';
 import type {LayoutChangeEvent} from 'react-native';
 
 import React, {useEffect, useImperativeHandle, useLayoutEffect, useMemo, useRef, useState} from 'react';
+import {View} from 'react-native';
 
 import type {TableListMetadata} from './buildTableListData';
 import type {TableContextValue} from './TableContext';
@@ -269,7 +271,6 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
     narrowLayoutSortColumn,
     children,
     selectionEnabled,
-    shouldPreserveSelectionOnSearch,
     shouldEnableSelectionInNarrowPaneModal,
     shouldUseDynamicColumns = false,
     onRowSelectionChange,
@@ -280,6 +281,8 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
     const isMobileSelectionEnabled = useMobileSelectionMode();
     const icons = useMemoizedLazyExpensifyIcons(['CheckSquare']);
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
+    const bottomSafeAreaPaddingStyle = useBottomSafeSafeAreaPaddingStyle({addBottomSafeAreaPadding: true, addOfflineIndicatorBottomSafeAreaPadding: false});
+
     if (!columns || columns.length === 0) {
         throw new Error('Table columns must be provided');
     }
@@ -317,7 +320,6 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
         selectedKeys,
         onRowSelectionChange,
         shouldEnableSelectionInNarrowPaneModal,
-        shouldPreserveSelectionOnSearch,
     });
     const selectionData = selectionMiddleware(sortedData);
 
@@ -410,6 +412,11 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
      */
     useImperativeHandle(ref, () => createTableHandle(tableMethods, listRef, () => processedData, tableListMetadata));
 
+    // The default (unfiltered) view can still resolve to zero visible rows when `isItemInFilter` hides items by
+    // default — e.g. the Workspaces list shows only active workspaces until the user opts into the archived filter.
+    // In that case the data exists but nothing is shown, so we surface the empty state instead of a blank body.
+    const isDefaultViewEmpty = processedData.length === 0 && originalDataLength > 0 && !hasActiveSearchString && !hasActiveFilters;
+
     const handleMobileSelectionPress = () => {
         if (!mobileSelectionModalRowKey) {
             return;
@@ -472,6 +479,7 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
         hasSearchString: hasActiveSearchString,
         tableListMetadata,
         isEmptyResult,
+        isDefaultViewEmpty,
         shouldUseNarrowTableLayout,
         selectionEnabled,
         shouldEnableSelectionInNarrowPaneModal,
@@ -509,6 +517,7 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
                 type={CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED}
                 restoreFocusType={shouldSkipMobileSelectionFocusRestore ? CONST.MODAL.RESTORE_FOCUS_TYPE.DELETE : undefined}
                 onClose={() => tableMethods.setMobileSelectionModalRowKey(null)}
+                enableEdgeToEdgeBottomSafeAreaPadding
                 onModalHide={() => {
                     if (mobileSelectionModalRowKeyRef.current) {
                         return;
@@ -519,12 +528,14 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
                     setShouldSkipMobileSelectionFocusRestore(false);
                 }}
             >
-                <MenuItem
-                    icon={icons.CheckSquare}
-                    title={translate('common.select')}
-                    onPress={handleMobileSelectionPress}
-                    pressableTestID={CONST.SELECTION_LIST_WITH_MODAL_TEST_ID}
-                />
+                <View style={bottomSafeAreaPaddingStyle}>
+                    <MenuItemAction
+                        icon={icons.CheckSquare}
+                        title={translate('common.select')}
+                        onPress={handleMobileSelectionPress}
+                        testID={CONST.SELECTION_LIST_WITH_MODAL_TEST_ID}
+                    />
+                </View>
             </Modal>
         </TableContext.Provider>
     );

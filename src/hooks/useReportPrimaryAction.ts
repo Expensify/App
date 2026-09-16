@@ -34,6 +34,7 @@ function useReportPrimaryAction(reportID: string | undefined): ValueOf<typeof CO
     const [invoiceReceiverPolicy] = useOnyx(
         `${ONYXKEYS.COLLECTION.POLICY}${chatReport?.invoiceReceiver && 'policyID' in chatReport.invoiceReceiver ? chatReport.invoiceReceiver.policyID : undefined}`,
     );
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
     const {reportActions} = useMoneyReportTransactionThread();
     const {transactions: reportTransactions, violations} = useTransactionsAndViolationsForReport(moneyRequestReport?.reportID);
@@ -51,7 +52,8 @@ function useReportPrimaryAction(reportID: string | undefined): ValueOf<typeof CO
         return CONST.REPORT.PRIMARY_ACTIONS.SUBMIT;
     }
 
-    const nonPendingDeleteTransactions = Object.values(reportTransactions).filter((t) => !isTransactionPendingDelete(t));
+    // While offline, keep pending-delete transactions so a queued-for-delete expense still counts as a real transaction until the delete syncs.
+    const nonPendingDeleteTransactions = Object.values(reportTransactions).filter((t) => isOffline || !isTransactionPendingDelete(t));
 
     return getReportPrimaryAction({
         currentUserLogin: currentUserLogin ?? '',
@@ -68,6 +70,7 @@ function useReportPrimaryAction(reportID: string | undefined): ValueOf<typeof CO
         isChatReportArchived,
         invoiceReceiverPolicy,
         ownerLogin,
+        rules,
         isOffline,
     });
 }

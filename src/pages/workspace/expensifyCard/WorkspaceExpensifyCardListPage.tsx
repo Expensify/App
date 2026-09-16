@@ -1,4 +1,4 @@
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import CardFeedIcon from '@components/CardFeedIcon';
@@ -60,10 +60,7 @@ type WorkspaceExpensifyCardListPageProps = {
     /** Route from navigation */
     route: PlatformStackRouteProp<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.EXPENSIFY_CARD>;
 
-    /** List of Expensify cards */
     cardsList: OnyxEntry<WorkspaceCardsList>;
-
-    /** Fund ID */
     fundID: number;
 };
 
@@ -344,7 +341,7 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
                             {
                                 buttonText: translate('workspace.expensifyCard.issueCard'),
                                 buttonAction: handleIssueCardPress,
-                                success: true,
+                                buttonVariant: CONST.BUTTON_VARIANT.SUCCESS,
                                 innerStyles: !canWriteExpensifyCard ? styles.buttonOpacityDisabled : undefined,
                                 hoverStyles: !canWriteExpensifyCard ? styles.buttonOpacityDisabled : undefined,
                             },

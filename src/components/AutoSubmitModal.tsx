@@ -21,7 +21,7 @@ import React, {useMemo, useRef} from 'react';
 import {View} from 'react-native';
 
 import CenteredModalLayout from './CenteredModalLayout';
-import FeatureTrainingContent from './FeatureTrainingContent';
+import FeatureTraining from './FeatureTraining';
 import Icon from './Icon';
 import Text from './Text';
 
@@ -57,7 +57,6 @@ function AutoSubmitModal() {
         const shouldDismiss = !willShowAgainRef.current;
         willShowAgainRef.current = null;
 
-        // Defer the Onyx write until after the close transition finishes. This prevents potential checkbox flicker.
         TransitionTracker.runAfterTransitions({
             callback: () => dismissASAPSubmitExplanation(shouldDismiss),
             waitForUpcomingTransition: true,
@@ -70,7 +69,10 @@ function AutoSubmitModal() {
 
     const onConfirm = (willShowAgain: boolean) => {
         willShowAgainRef.current = willShowAgain;
+        handleClose();
     };
+
+    const shouldShowDismissOption = dismissedASAPSubmitExplanation === false;
 
     return (
         <CenteredModalLayout
@@ -78,43 +80,47 @@ function AutoSubmitModal() {
             width={variables.holdEducationModalWidth}
             contentStyle={[styles.pt0, styles.pb0]}
         >
-            <FeatureTrainingContent
-                title={translate('autoSubmitModal.title')}
-                description={translate('autoSubmitModal.description')}
-                confirmText={translate('common.buttonConfirm')}
-                image={illustrations.ReceiptsStackedOnPin}
-                contentFitImage="cover"
-                width={variables.holdEducationModalWidth}
-                imageWidth={variables.changePolicyEducationModalIconWidth}
-                imageHeight={variables.changePolicyEducationModalIconHeight}
-                illustrationAspectRatio={CONST.ILLUSTRATION_ASPECT_RATIO}
-                illustrationInnerContainerStyle={[styles.alignItemsCenter, styles.justifyContentCenter, StyleUtils.getBackgroundColorStyle(colors.green700), styles.p8]}
-                illustrationOuterContainerStyle={styles.p0}
-                shouldShowDismissModalOption={dismissedASAPSubmitExplanation === false}
+            <FeatureTraining
                 onConfirm={onConfirm}
                 onClose={handleClose}
-                titleStyles={[styles.mb1]}
-                contentInnerContainerStyles={[styles.mb5]}
+                width={variables.holdEducationModalWidth}
                 shouldUseScrollView
             >
-                {menuSections.map((section) => (
-                    <View
-                        key={section.titleTranslationKey}
-                        style={[styles.flexRow, styles.alignItemsCenter, styles.mt3]}
-                    >
-                        <Icon
-                            width={variables.menuIconSize}
-                            height={variables.menuIconSize}
-                            src={section.icon}
-                            additionalStyles={[styles.mr4]}
-                        />
-                        <View style={[styles.flex1, styles.justifyContentCenter]}>
-                            <Text style={[styles.textStrong, styles.mb1]}>{translate(section.titleTranslationKey as TranslationPaths)}</Text>
-                            <Text style={[styles.mutedTextLabel, styles.lh16]}>{translate(section.descriptionTranslationKey as TranslationPaths)}</Text>
-                        </View>
-                    </View>
-                ))}
-            </FeatureTrainingContent>
+                <FeatureTraining.Illustration
+                    image={illustrations.ReceiptsStackedOnPin}
+                    contentFitImage="cover"
+                    imageWidth={variables.changePolicyEducationModalIconWidth}
+                    imageHeight={variables.changePolicyEducationModalIconHeight}
+                    aspectRatio={CONST.ILLUSTRATION_ASPECT_RATIO}
+                    innerContainerStyle={[styles.alignItemsCenter, styles.justifyContentCenter, StyleUtils.getBackgroundColorStyle(colors.green700), styles.p8]}
+                    outerContainerStyle={styles.p0}
+                />
+                <FeatureTraining.Body>
+                    <FeatureTraining.BodyText style={styles.mb5}>
+                        <FeatureTraining.Title style={styles.mb1}>{translate('autoSubmitModal.title')}</FeatureTraining.Title>
+                        <FeatureTraining.Description>{translate('autoSubmitModal.description')}</FeatureTraining.Description>
+                        {menuSections.map((section) => (
+                            <View
+                                key={section.titleTranslationKey}
+                                style={[styles.flexRow, styles.alignItemsCenter, styles.mt3]}
+                            >
+                                <Icon
+                                    width={variables.menuIconSize}
+                                    height={variables.menuIconSize}
+                                    src={section.icon}
+                                    additionalStyles={[styles.mr4]}
+                                />
+                                <View style={[styles.flex1, styles.justifyContentCenter]}>
+                                    <Text style={[styles.textStrong, styles.mb1]}>{translate(section.titleTranslationKey as TranslationPaths)}</Text>
+                                    <Text style={[styles.mutedTextLabel, styles.lh16]}>{translate(section.descriptionTranslationKey as TranslationPaths)}</Text>
+                                </View>
+                            </View>
+                        ))}
+                    </FeatureTraining.BodyText>
+                    {shouldShowDismissOption && <FeatureTraining.DismissOption />}
+                    <FeatureTraining.ConfirmButton>{translate('common.buttonConfirm')}</FeatureTraining.ConfirmButton>
+                </FeatureTraining.Body>
+            </FeatureTraining>
         </CenteredModalLayout>
     );
 }

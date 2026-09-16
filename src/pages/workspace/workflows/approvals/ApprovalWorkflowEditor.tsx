@@ -34,26 +34,20 @@ import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 
 type ApprovalWorkflowEditorProps = {
-    /** The approval workflow to display */
     approvalWorkflow: ApprovalWorkflowOnyx;
-
-    /** Function to remove the approval workflow */
     removeApprovalWorkflow?: () => void | Promise<void>;
 
     /** The policy for the current route */
     policy: OnyxEntry<Policy>;
 
-    /** The policy ID */
     policyID: string;
-
-    /** Forwarded ref to pass to the ScrollView */
     ref: ForwardedRef<ScrollViewRN>;
 };
 
 function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, policy, policyID, ref}: ApprovalWorkflowEditorProps) {
     const icons = useMemoizedLazyExpensifyIcons(['Trashcan']);
     const styles = useThemeStyles();
-    const {translate, toLocaleOrdinalWithWords, localeCompare} = useLocalize();
+    const {translate, toLocaleOrdinalWithWords, localeCompare, formatPhoneNumber} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
     const approverCount = approvalWorkflow.approvers.length;
     const currency = policy?.outputCurrency ?? CONST.CURRENCY.USD;
@@ -94,7 +88,9 @@ function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, polic
         [approvalWorkflow.isDefault, approvalWorkflow.members, localeCompare],
     );
 
-    const members = approvalWorkflow.isDefault ? translate('workspace.common.everyone') : sortedMembers.map((m) => Str.removeSMSDomain(m.displayName)).join(', ');
+    const members = approvalWorkflow.isDefault
+        ? translate('workspace.common.everyone')
+        : sortedMembers.map((m) => (Str.isSMSLogin(m.displayName) ? formatPhoneNumber(m.displayName) : m.displayName)).join(', ');
 
     const memberPills = useMemo(
         () =>
@@ -121,12 +117,16 @@ function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, polic
                 if (!previousApprover || !approver) {
                     return;
                 }
-                return translate('workflowsPage.approverCircularReference', Str.removeSMSDomain(approver.displayName), Str.removeSMSDomain(previousApprover.displayName));
+                return translate(
+                    'workflowsPage.approverCircularReference',
+                    Str.isSMSLogin(approver.displayName) ? formatPhoneNumber(approver.displayName) : approver.displayName,
+                    Str.isSMSLogin(previousApprover.displayName) ? formatPhoneNumber(previousApprover.displayName) : previousApprover.displayName,
+                );
             }
 
             return translate(error);
         },
-        [approvalWorkflow.approvers, approvalWorkflow.errors, translate],
+        [approvalWorkflow.approvers, approvalWorkflow.errors, translate, formatPhoneNumber],
     );
 
     const editApprover = useCallback(
@@ -148,13 +148,15 @@ function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, polic
         // Always pass a backTo so that after editing expenses-from (including the invite-a-member detour),
         // we return to the page we came from. For EDIT that's the edit page; for CREATE we're on the
         // confirm (new) page, so return there instead of falling through to the Approver step.
+        // Preserve memberEmail so a fresh edit mount (e.g. after refresh) re-resolves this exact workflow
+        // instead of the first one sharing firstApproverEmail.
         const backTo =
             approvalWorkflow.action === CONST.APPROVAL_WORKFLOW.ACTION.EDIT
-                ? ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(policyID, firstApproverEmail)
+                ? ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(policyID, firstApproverEmail, approvalWorkflow.memberEmail)
                 : ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_NEW.getRoute(policyID);
 
         Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EXPENSES_FROM.path, backTo));
-    }, [approvalWorkflow.action, approvalWorkflow.originalApprovers, policyID]);
+    }, [approvalWorkflow.action, approvalWorkflow.originalApprovers, approvalWorkflow.memberEmail, policyID]);
 
     // User should be allowed to add additional approver only if they upgraded to Control Plan, otherwise redirected to the Upgrade Page
     const addAdditionalApprover = useCallback(() => {
@@ -206,6 +208,7 @@ function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, polic
                         approver,
                         currency,
                         translate,
+                        formatPhoneNumber,
                         convertToDisplayString,
                     });
                     const hintText = [isApproverInMultipleWorkflows ? translate('workflowsPage.approverInMultipleWorkflows') : undefined, limitDescription].filter(Boolean).join('\n');
@@ -217,7 +220,7 @@ function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, polic
                             pendingAction={getApprovalPendingAction(approverIndex)}
                         >
                             <MenuItemWithTopDescription
-                                accessibilityLabel={Str.removeSMSDomain(approver?.displayName ?? '')}
+                                accessibilityLabel={formatPhoneNumber(approver?.displayName ?? '')}
                                 titleStyle={styles.textNormalThemeText}
                                 wrapperStyle={styles.sectionMenuItemTopDescription}
                                 description={approverDescription(approverIndex)}

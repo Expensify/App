@@ -25,13 +25,11 @@ import React, {useState} from 'react';
 import {View} from 'react-native';
 
 type SpendRulesCurrencyBaseProps = {
-    /** The currently selected currencies */
     currencies: string[];
 
     /** The settlement currency of the currently selected cards */
     settlementCurrency: string;
 
-    /** Handle the currencies changing */
     onCurrenciesChange: (currencies: string[]) => void;
 };
 
@@ -141,7 +139,6 @@ export default function SpendRulesCurrencyBase({currencies, settlementCurrency, 
             <MultiSelectListItem
                 isFocused={false}
                 showTooltip={false}
-                keyForList="select-all"
                 item={{keyForList: 'select-all', text: translate('workspace.rules.spendRules.allCurrencies'), isSelected: areAllCurrenciesSelected}}
                 onSelectRow={toggleSelectAll}
             />

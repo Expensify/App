@@ -18,6 +18,7 @@ import type BankAccount from './BankAccount';
 import type BankAccountShareDetails from './BankAccountShareDetails';
 import type Beta from './Beta';
 import type BetaConfiguration from './BetaConfiguration';
+import type BetaOverrides from './BetaOverrides';
 import type BillingGraceEndPeriod from './BillingGraceEndPeriod';
 import type BillingReceiptDetails from './BillingReceiptDetails';
 import type BillingStatus from './BillingStatus';
@@ -43,6 +44,7 @@ import type {
 } from './CardFeeds';
 import type CardOnWaitlist from './CardOnWaitlist';
 import type ChronosTimeTracking from './ChronosTimeTracking';
+import type CloudflareSession from './CloudflareSession';
 import type CodingRuleMatchingTransaction from './CodingRuleMatchingTransaction';
 import type CompanyCardsLoadingState from './CompanyCardsLoadingState';
 import type ConciergePendingFollowupList from './ConciergePendingFollowupList';
@@ -50,12 +52,15 @@ import type CopyPolicySettings from './CopyPolicySettings';
 import type CopyPolicySettingsNVP from './CopyPolicySettingsNVP';
 import type {CorpayFields, CorpayFormField} from './CorpayFields';
 import type {CorpayOnboardingFields} from './CorpayOnboardingFields';
+import type CorpayPayModal from './CorpayPayModal';
 import type Credentials from './Credentials';
 import type Currency from './Currency';
 import type {CurrencyList} from './Currency';
 import type CustomStatusDraft from './CustomStatusDraft';
+import type DatabaseSizeMeasurement from './DatabaseSizeMeasurement';
 import type {
     CardFeedErrorsDerivedValue,
+    GuideAccountIDsDerivedValue,
     LoginToAccountIDMapDerivedValue,
     NonPersonalAndWorkspaceCardListDerivedValue,
     OutstandingReportsByPolicyIDDerivedValue,
@@ -77,6 +82,7 @@ import type Download from './Download';
 import type DuplicateWorkspace from './DuplicateWorkspace';
 import type ExpenseRule from './ExpenseRule';
 import type ExpensifyCardBankAccountMetadata from './ExpensifyCardBankAccountMetadata';
+import type ExpensifyCardLoadingState from './ExpensifyCardLoadingState';
 import type ExpensifyCardSettings from './ExpensifyCardSettings';
 import type {ExpensifyCardSettingsBase, NestedExpensifyCardSettings} from './ExpensifyCardSettings';
 import type ExpensifyCardStatement from './ExpensifyCardStatement';
@@ -107,6 +113,7 @@ import type Login from './Login';
 import type {Login as NewLogin} from './Logins';
 import type Logins from './Logins';
 import type MapboxAccessToken from './MapboxAccessToken';
+import type MerchantRuleSuggestion from './MerchantRuleSuggestion';
 import type MergeTransaction from './MergeTransaction';
 import type Modal from './Modal';
 import type Network from './Network';
@@ -134,6 +141,7 @@ import type PolicyEmployee from './PolicyEmployee';
 import type PolicyJoinMember from './PolicyJoinMember';
 import type PolicyOwnershipChangeChecks from './PolicyOwnershipChangeChecks';
 import type {ParticipantsPolicyTags, PolicyTag, PolicyTagLists, PolicyTags} from './PolicyTag';
+import type PolicyVendors from './PolicyVendor';
 import type PrivatePersonalDetails from './PrivatePersonalDetails';
 import type PrivatePromoDiscount from './PrivatePromoDiscount';
 import type PrivateSubscription from './PrivateSubscription';
@@ -164,11 +172,13 @@ import type Request from './Request';
 import type {AnyRequest} from './Request';
 import type Response from './Response';
 import type ReviewDuplicates from './ReviewDuplicates';
+import type Rule from './Rule';
 import type {SavedCSVColumnLayoutData, SavedCSVColumnLayoutList} from './SavedCSVColumnLayout';
 import type {SaveSearch} from './SaveSearch';
 import type ScheduleCallDraft from './ScheduleCallDraft';
 import type ScreenShareRequest from './ScreenShareRequest';
 import type SearchContext from './SearchContext';
+import type SearchFilters from './SearchFilters';
 import type SearchFooterConversion from './SearchFooterConversion';
 import type SearchResults from './SearchResults';
 import type SearchSidebar from './SearchSidebar';
@@ -226,6 +236,7 @@ export type {
     Beta,
     AddNewPersonalCard,
     BetaConfiguration,
+    BetaOverrides,
     BlockedFromConcierge,
     Card,
     CardList,
@@ -236,6 +247,7 @@ export type {
     Currency,
     CurrencyList,
     CustomStatusDraft,
+    DatabaseSizeMeasurement,
     UnshareBankAccount,
     DismissedReferralBanners,
     Domain,
@@ -250,6 +262,7 @@ export type {
     ExpensifyCardSettingsBase,
     NestedExpensifyCardSettings,
     ExpensifyCardBankAccountMetadata,
+    ExpensifyCardLoadingState,
     FrequentlyUsedEmoji,
     Fund,
     FundID,
@@ -297,6 +310,7 @@ export type {
     Policy,
     PolicyCategories,
     PolicyCategory,
+    PolicyVendors,
     PolicyEmployee,
     PolicyEmployeeList,
     PolicyConnectionName,
@@ -317,6 +331,7 @@ export type {
     RecentlyUsedTags,
     ReimbursementAccount,
     Report,
+    Rule,
     ReportNameValuePairs,
     ReportAction,
     ReportActionReactions,
@@ -345,6 +360,7 @@ export type {
     TaxRates,
     TaxRatesWithDefault,
     Transaction,
+    MerchantRuleSuggestion,
     MergeTransaction,
     TransactionViolation,
     TransactionViolations,
@@ -391,6 +407,7 @@ export type {
     WorkspaceCardFeedsStatus,
     DomainSettings,
     SaveSearch,
+    SearchFilters,
     RecentSearchItem,
     SearchContext,
     SearchFooterConversion,
@@ -409,6 +426,7 @@ export type {
     JoinablePolicies,
     DismissedProductTraining,
     TravelProvisioning,
+    CorpayPayModal,
     SidePanel,
     SidePanelContext,
     LastPaymentMethodType,
@@ -422,6 +440,7 @@ export type {
     PersonalAndWorkspaceCardListDerivedValue,
     CardFeedErrorsDerivedValue,
     LoginToAccountIDMapDerivedValue,
+    GuideAccountIDsDerivedValue,
     ScheduleCallDraft,
     ValidateUserAndGetAccessiblePolicies,
     VacationDelegate,
@@ -435,6 +454,7 @@ export type {
     DomainPendingActions,
     DomainSecurityGroup,
     ChronosTimeTracking,
+    CloudflareSession,
     CodingRuleMatchingTransaction,
     UserSecurityGroupData,
     DeviceBiometrics,
