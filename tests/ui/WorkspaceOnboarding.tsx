@@ -273,6 +273,27 @@ describe('OnboardingWorkspaces Page', () => {
         await waitForBatchedUpdatesWithAct();
     });
 
+    it('should not treat a failed workspace lookup as an empty result', async () => {
+        const dismissModal = jest.spyOn(Navigation, 'dismissModal');
+        await TestHelper.signInWithTestUser();
+
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: true});
+            await Onyx.set(ONYXKEYS.NVP_INTRO_SELECTED, {choice: CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE});
+            await Onyx.set(ONYXKEYS.VALIDATE_USER_AND_GET_ACCESSIBLE_POLICIES, {loading: false, errors: {getAccessiblePolicies: 'error'}});
+        });
+
+        const {unmount} = renderOnboardingWorkspacesPage(SCREENS.ONBOARDING.WORKSPACES, {backTo: '', isJoinWorkspaceTask: 'true'});
+        await waitForBatchedUpdatesWithAct();
+
+        expect(mockCreateJoinWorkspaceOnboardingContent).not.toHaveBeenCalled();
+        expect(dismissModal).not.toHaveBeenCalled();
+
+        dismissModal.mockRestore();
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
     it('should request accessible policies once when an empty response finishes loading', async () => {
         await TestHelper.signInWithTestUser();
 
