@@ -148,6 +148,10 @@ type SubmitReportFunctionParams = {
      * writes the generated PDF filename back into Onyx and the App auto-downloads it. Used by "Submit via PDF".
      */
     shouldExportToPDF?: boolean;
+
+    /** When true, submitted after the user confirmed pending violations (seven-day hold, rejected expense) in the pre-submit acknowledgement modal; tells the backend to resolve those violations server-side too. */
+    shouldResolveAcknowledgedViolations?: boolean;
+
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
 };
 
@@ -1333,6 +1337,7 @@ function submitReport({
     managerEmail,
     managerAccountID: managerAccountIDFromPopover,
     shouldExportToPDF,
+    shouldResolveAcknowledgedViolations,
     isTrackIntentUser,
     getCurrencyDecimals,
 }: SubmitReportFunctionParams) {
@@ -1666,6 +1671,11 @@ function submitReport({
                   optimisticHoldReportID,
                   optimisticHoldActionID,
                   optimisticHoldReportExpenseActionIDs,
+              }
+            : {}),
+        ...(shouldResolveAcknowledgedViolations
+            ? {
+                  shouldResolveAcknowledgedViolations: true,
               }
             : {}),
     };

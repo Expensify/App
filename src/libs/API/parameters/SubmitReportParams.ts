@@ -15,6 +15,9 @@ type SubmitReportParams = {
      * Array<{optimisticReportActionID: string; oldReportActionID: string}>
      */
     optimisticHoldReportExpenseActionIDs?: string;
+
+    /** When true, the backend also resolves the violations (seven-day hold, rejected expense) the submitter acknowledged. */
+    shouldResolveAcknowledgedViolations?: boolean;
 };
 
 export default SubmitReportParams;

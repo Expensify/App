@@ -1,5 +1,6 @@
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import type {Coordinate} from '@components/MapView/MapViewTypes';
+/* eslint-disable max-lines -- this file legitimately grew past the line cap with the submit-violation-categorization logic added for this feature; several other large files in this repo opt out the same way */
 import utils from '@components/MapView/utils';
 import type {UnreportedExpenseListItemType} from '@components/Search/SearchList/ListItem/types';
 import type {TransactionWithOptionalSearchFields} from '@components/TransactionItemRow/types';
@@ -2029,13 +2030,26 @@ function hasTransactionBeenRejected(transactionViolations: OnyxEntry<Transaction
 }
 
 /**
+ * Check if a single violation is a pending (unmatched) RTER violation — i.e. still awaiting a card match and not a
+ * broken card connection (which is surfaced separately, since a broken connection has no cash-matching resolution).
+ */
+function isPendingRTERViolation(violation: TransactionViolation): boolean {
+    return violation.name === CONST.VIOLATIONS.RTER && !!violation.data?.pendingPattern && !isBrokenConnectionViolation(violation);
+}
+
+/**
  * Check if there is pending rter violation in transactionViolations.
  */
 function hasPendingRTERViolation(transactionViolations?: TransactionViolations | null): boolean {
-    return !!transactionViolations?.some(
-        (transactionViolation: TransactionViolation) =>
-            transactionViolation.name === CONST.VIOLATIONS.RTER && transactionViolation.data?.pendingPattern && !isBrokenConnectionViolation(transactionViolation),
-    );
+    return !!transactionViolations?.some(isPendingRTERViolation);
+}
+
+/**
+ * Check if a pending RTER violation is specifically the seven-day-hold subtype (an unmatched receipt still pending
+ * after 7 days), as opposed to a recently-pending match or a broken card connection.
+ */
+function isSevenDayHoldViolation(violation: TransactionViolation): boolean {
+    return violation.name === CONST.VIOLATIONS.RTER && violation.data?.rterType === CONST.RTER_VIOLATION_TYPES.SEVEN_DAY_HOLD;
 }
 
 /**
@@ -2054,6 +2068,83 @@ function hasAnyPendingRTERViolation(
         const filteredViolations = getTransactionViolations(t, allTransactionViolations, currentUserEmail, currentUserAccountID, report, reportOwnerLogin, policy);
         return hasPendingRTERViolation(filteredViolations);
     });
+}
+
+type SubmitViolationsSummary = {
+    /** Whether any transaction has an unmatched RTER violation that has been pending for more than 7 days. */
+    hasSevenDayHoldViolation: boolean;
+    /**
+     * Whether any transaction has a recently-pending (non-broken-connection, non-seven-day-hold) RTER violation.
+     * This predates #101213 — the pre-existing "mark as cash" resolution for this case is preserved as-is.
+     */
+    hasGenericPendingRTERViolation: boolean;
+    /** Whether any transaction has been rejected by an approver and not yet marked as resolved. */
+    hasRejectedViolation: boolean;
+    /** Whether the whole report was rejected back to the submitter (a separate mechanism from a rejected expense, with no transaction violation of its own). */
+    hasReportBeenRejected: boolean;
+    /** Every other non-dismissed violation of type VIOLATION with no known one-click resolution, deduped by name. */
+    otherViolations: TransactionViolation[];
+};
+
+export type {SubmitViolationsSummary};
+
+/**
+ * Categorizes a report's non-dismissed transaction violations, plus the whole-report-rejected state, for the
+ * pre-submit acknowledgement modal: violations with a known one-click resolution (seven-day hold / generic pending
+ * RTER -> mark as cash, rejected expense -> mark as resolved) are tracked as booleans so the modal can offer that
+ * resolution; everything else (including a whole-report rejection, which has no resolution beyond resubmitting) is
+ * collected for display only.
+ */
+function getSubmitViolationsSummary(
+    transactions: Array<OnyxEntry<Transaction>>,
+    allTransactionViolations: OnyxCollection<TransactionViolations>,
+    currentUserEmail: string,
+    currentUserAccountID: number,
+    report: OnyxEntry<Report>,
+    reportOwnerLogin: string | undefined,
+    policy: OnyxEntry<Policy>,
+): SubmitViolationsSummary {
+    let hasSevenDayHoldViolation = false;
+    let hasGenericPendingRTERViolation = false;
+    let hasRejectedViolation = false;
+    const hasReportBeenRejected = report?.stateNum === CONST.REPORT.STATE_NUM.OPEN && report?.nextStep?.messageKey === CONST.NEXT_STEP.MESSAGE_KEY.REJECTED_REPORT;
+    const otherViolationsByName = new Map<string, TransactionViolation>();
+    for (const transaction of transactions) {
+        const filteredViolations = getTransactionViolations(transaction, allTransactionViolations, currentUserEmail, currentUserAccountID, report, reportOwnerLogin, policy) ?? [];
+        for (const violation of filteredViolations) {
+            if (isPendingRTERViolation(violation)) {
+                if (isSevenDayHoldViolation(violation)) {
+                    hasSevenDayHoldViolation = true;
+                } else {
+                    hasGenericPendingRTERViolation = true;
+                }
+                continue;
+            }
+            if (violation.name === CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE) {
+                hasRejectedViolation = true;
+                continue;
+            }
+            if (violation.type !== CONST.VIOLATION_TYPES.VIOLATION) {
+                continue;
+            }
+            if (violation.name === CONST.VIOLATIONS.HOLD) {
+                continue;
+            }
+            if (isBrokenConnectionViolation(violation)) {
+                continue;
+            }
+            if (!otherViolationsByName.has(violation.name)) {
+                otherViolationsByName.set(violation.name, violation);
+            }
+        }
+    }
+    return {
+        hasSevenDayHoldViolation,
+        hasGenericPendingRTERViolation,
+        hasRejectedViolation,
+        hasReportBeenRejected,
+        otherViolations: Array.from(otherViolationsByName.values()),
+    };
 }
 
 /**
@@ -3873,6 +3964,8 @@ export {
     hasSubmissionBlockingViolations,
     hasCustomUnitOutOfPolicyViolation,
     isBrokenConnectionViolation,
+    isSevenDayHoldViolation,
+    getSubmitViolationsSummary,
     shouldSuppressBrokenConnectionStatus,
     shouldShowBrokenConnectionViolation,
     shouldShowBrokenConnectionViolationForMultipleTransactions,

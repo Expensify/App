@@ -1420,8 +1420,12 @@ const translations: TranslationDeepObject<typeof en> = {
         pendingMatch: 'Oczekujące dopasowanie',
         pendingMatchWithCreditCardDescription: 'Oczekuje na dopasowanie paragonu do transakcji kartą. Oznacz jako gotówkę, aby anulować.',
         markAsCash: 'Oznacz jako gotówkę',
-        pendingMatchSubmitTitle: 'Wyślij raport',
+        pendingMatchSubmitTitle: 'Wysłać raport?',
+        submitReportPolicyViolationsDescription: 'Ten raport ma naruszenia zasad. Czy na pewno chcesz go wysłać bez wprowadzania zmian?',
         pendingMatchSubmitDescription: 'Niektóre wydatki oczekują na dopasowanie z transakcją kartą kredytową. Czy chcesz oznaczyć je jako gotówkę?',
+        sevenDayHoldSubmitDescription: 'Wydatek czeka na możliwe dopasowanie z transakcją kartą',
+        rejectedExpenseSubmitDescription: 'Odrzucony wydatek nieoznaczony jako rozwiązany',
+        submitAnyway: 'Wyślij mimo to',
         routePending: 'Trasa w toku…',
         automaticallyEnterExpenseDetails: 'Concierge uzupełni szczegóły za ciebie.',
         receiptScanning: () => ({

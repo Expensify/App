@@ -1390,8 +1390,12 @@ const translations: TranslationDeepObject<typeof en> = {
         pendingMatch: 'Ausstehende Zuordnung',
         pendingMatchWithCreditCardDescription: 'Beleg wartet auf Abgleich mit Kartenumsatz. Als Barzahlung markieren, um abzubrechen.',
         markAsCash: 'Als Bar markieren',
-        pendingMatchSubmitTitle: 'Bericht einreichen',
+        pendingMatchSubmitTitle: 'Bericht einreichen?',
+        submitReportPolicyViolationsDescription: 'Dieser Bericht enthält Richtlinienverstöße. Möchten Sie ihn wirklich ohne Änderungen einreichen?',
         pendingMatchSubmitDescription: 'Einige Ausgaben warten auf die Zuordnung mit einer Kreditkartentransaktion. Möchten Sie sie als Bar markieren?',
+        sevenDayHoldSubmitDescription: 'Ausgabe wartet auf eine mögliche Übereinstimmung mit einer Kartentransaktion',
+        rejectedExpenseSubmitDescription: 'Abgelehnte Ausgabe nicht als gelöst markiert',
+        submitAnyway: 'Trotzdem einreichen',
         routePending: 'Routing ausstehend ...',
         automaticallyEnterExpenseDetails: 'Concierge füllt die Details für Sie aus.',
         receiptScanning: () => ({

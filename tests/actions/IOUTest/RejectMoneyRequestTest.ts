@@ -1,4 +1,4 @@
-import {markRejectViolationAsResolved, rejectExpenseReport, rejectMoneyRequest} from '@libs/actions/IOU/RejectMoneyRequest';
+import {markRejectViolationAsResolved, markRejectedTransactionsAsResolved, rejectExpenseReport, rejectMoneyRequest} from '@libs/actions/IOU/RejectMoneyRequest';
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import {getParsedComment} from '@libs/ReportUtils';
@@ -8,7 +8,7 @@ import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
 import * as API from '@src/libs/API';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Policy, Report} from '@src/types/onyx';
+import type {Policy, Report, ReportAction, TransactionViolation} from '@src/types/onyx';
 import type Transaction from '@src/types/onyx/Transaction';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
@@ -689,6 +689,68 @@ describe('actions/IOU/RejectMoneyRequest', () => {
                 }),
             );
 
+            writeSpy.mockRestore();
+        });
+    });
+
+    describe('markRejectedTransactionsAsResolved', () => {
+        afterEach(async () => {
+            await Onyx.clear();
+            jest.clearAllMocks();
+        });
+
+        it('calls markRejectViolationAsResolved only for transactions with a rejected-expense violation, resolving to the transaction thread reportID', async () => {
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls
+            const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
+
+            const rejectedTransaction = createRandomTransaction(1);
+            const cleanTransaction = createRandomTransaction(2);
+            if (!rejectedTransaction?.transactionID || !cleanTransaction?.transactionID) {
+                throw new Error('Required transaction data is missing');
+            }
+
+            const threadReportID = 'thread-1';
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+            const reportActions = [
+                {
+                    actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                    reportActionID: 'action-1',
+                    childReportID: threadReportID,
+                    originalMessage: {IOUTransactionID: rejectedTransaction.transactionID},
+                },
+            ] as unknown as ReportAction[];
+
+            const transactionViolations: OnyxCollection<TransactionViolation[]> = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${rejectedTransaction.transactionID}`]: [
+                    {name: CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE, type: CONST.VIOLATION_TYPES.VIOLATION},
+                ],
+                [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${cleanTransaction.transactionID}`]: [{name: CONST.VIOLATIONS.MISSING_CATEGORY, type: CONST.VIOLATION_TYPES.VIOLATION}],
+            };
+
+            markRejectedTransactionsAsResolved([rejectedTransaction, cleanTransaction], transactionViolations, reportActions, false);
+            await waitForBatchedUpdates();
+
+            expect(writeSpy).toHaveBeenCalledTimes(1);
+            expect(writeSpy).toHaveBeenCalledWith(
+                WRITE_COMMANDS.MARK_TRANSACTION_VIOLATION_AS_RESOLVED,
+                expect.objectContaining({transactionID: rejectedTransaction.transactionID}),
+                expect.anything(),
+            );
+            writeSpy.mockRestore();
+        });
+
+        it('does nothing when no transaction has a rejected-expense violation', async () => {
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls
+            const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
+            const transaction = createRandomTransaction(1);
+            if (!transaction?.transactionID) {
+                throw new Error('Required transaction data is missing');
+            }
+
+            markRejectedTransactionsAsResolved([transaction], {}, [], false);
+            await waitForBatchedUpdates();
+
+            expect(writeSpy).not.toHaveBeenCalled();
             writeSpy.mockRestore();
         });
     });

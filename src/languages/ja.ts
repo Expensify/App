@@ -1374,8 +1374,12 @@ const translations: TranslationDeepObject<typeof en> = {
         pendingMatch: '保留中の照合',
         pendingMatchWithCreditCardDescription: 'レシートはカード取引との照合待ちです。現金としてマークしてキャンセルします。',
         markAsCash: '現金としてマーク',
-        pendingMatchSubmitTitle: 'レポートを提出',
+        pendingMatchSubmitTitle: 'レポートを提出しますか？',
+        submitReportPolicyViolationsDescription: 'このレポートにはポリシー違反があります。変更を加えずに提出してもよろしいですか？',
         pendingMatchSubmitDescription: '一部の経費がクレジットカード取引との照合待ちです。現金としてマークしますか？',
+        sevenDayHoldSubmitDescription: 'カード取引との照合待ちの経費',
+        rejectedExpenseSubmitDescription: '却下された経費が解決済みとしてマークされていません',
+        submitAnyway: 'それでも提出する',
         routePending: 'ルート保留中…',
         automaticallyEnterExpenseDetails: 'Concierge が詳細を入力します。',
         receiptScanning: () => ({

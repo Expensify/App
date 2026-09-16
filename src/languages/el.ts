@@ -1439,8 +1439,12 @@ const translations: TranslationDeepObject<typeof en> = {
         pendingMatch: 'Εκκρεμής αντιστοίχιση',
         pendingMatchWithCreditCardDescription: 'Η απόδειξη εκκρεμεί για αντιστοίχιση με συναλλαγή κάρτας. Επισημάνετε την ως μετρητά για ακύρωση.',
         markAsCash: 'Σήμανση ως μετρητά',
-        pendingMatchSubmitTitle: 'Υποβολή αναφοράς',
+        pendingMatchSubmitTitle: 'Υποβολή αναφοράς;',
+        submitReportPolicyViolationsDescription: 'Αυτή η αναφορά έχει παραβιάσεις πολιτικής. Είστε σίγουροι ότι θέλετε να την υποβάλετε χωρίς να κάνετε αλλαγές;',
         pendingMatchSubmitDescription: 'Κάποιες δαπάνες αναμένουν αντιστοίχιση με συναλλαγή πιστωτικής κάρτας. Θέλετε να τις σημάνετε ως μετρητά;',
+        sevenDayHoldSubmitDescription: 'Η δαπάνη αναμένει πιθανή αντιστοίχιση με συναλλαγή κάρτας',
+        rejectedExpenseSubmitDescription: 'Απορριφθείσα δαπάνη που δεν έχει σημειωθεί ως επιλυμένη',
+        submitAnyway: 'Υποβολή παρόλα αυτά',
         routePending: 'Εκκρεμεί προώθηση διαδρομής...',
         automaticallyEnterExpenseDetails: 'Το Concierge θα συμπληρώσει τις λεπτομέρειες για εσάς.',
         receiptScanning: () => ({

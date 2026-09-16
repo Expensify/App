@@ -1388,8 +1388,12 @@ const translations: TranslationDeepObject<typeof en> = {
         pendingMatch: 'Overeenkomst in behandeling',
         pendingMatchWithCreditCardDescription: 'Bon wordt nog gekoppeld aan kaarttransactie. Markeer als contant om te annuleren.',
         markAsCash: 'Markeren als contant',
-        pendingMatchSubmitTitle: 'Rapport indienen',
+        pendingMatchSubmitTitle: 'Rapport indienen?',
+        submitReportPolicyViolationsDescription: 'Dit rapport heeft beleidsschendingen. Weet u zeker dat u het zonder wijzigingen wilt indienen?',
         pendingMatchSubmitDescription: 'Sommige uitgaven wachten op koppeling met een creditcardtransactie. Wilt u ze als contant markeren?',
+        sevenDayHoldSubmitDescription: 'Uitgave wacht op een mogelijke koppeling met een kaarttransactie',
+        rejectedExpenseSubmitDescription: 'Afgewezen uitgave niet gemarkeerd als opgelost',
+        submitAnyway: 'Toch indienen',
         routePending: 'Routeren in behandeling...',
         automaticallyEnterExpenseDetails: 'Concierge vult de gegevens voor je in.',
         receiptScanning: () => ({

@@ -1388,8 +1388,12 @@ const translations: TranslationDeepObject<typeof en> = {
         pendingMatch: 'Corrispondenza in sospeso',
         pendingMatchWithCreditCardDescription: 'Ricevuta in attesa di abbinamento con la transazione della carta. Contrassegna come contante per annullare.',
         markAsCash: 'Segna come contante',
-        pendingMatchSubmitTitle: 'Invia report',
+        pendingMatchSubmitTitle: 'Inviare il report?',
+        submitReportPolicyViolationsDescription: 'Questo report presenta violazioni delle norme. Sei sicuro di volerlo inviare senza apportare modifiche?',
         pendingMatchSubmitDescription: 'Alcune spese sono in attesa di abbinamento con una transazione della carta di credito. Vuoi segnarle come contante?',
+        sevenDayHoldSubmitDescription: 'Spesa in attesa di un potenziale abbinamento con una transazione della carta',
+        rejectedExpenseSubmitDescription: 'Spesa rifiutata non contrassegnata come risolta',
+        submitAnyway: 'Invia comunque',
         routePending: 'Instradamento in sospeso...',
         automaticallyEnterExpenseDetails: 'Concierge compilerà i dettagli per te.',
         receiptScanning: () => ({

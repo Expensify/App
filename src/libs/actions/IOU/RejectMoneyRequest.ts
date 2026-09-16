@@ -9,7 +9,7 @@ import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTop
 import {navigationRef} from '@libs/Navigation/Navigation';
 import {buildOptimisticNextStep} from '@libs/NextStepUtils';
 import {isDelayedSubmissionEnabled} from '@libs/PolicyUtils';
-import {getIOUActionForReportID} from '@libs/ReportActionsUtils';
+import {getIOUActionForReportID, getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
 import {
     buildOptimisticExpenseReport,
     buildOptimisticMarkedAsResolvedReportAction,
@@ -28,7 +28,7 @@ import {
     isIOUReport,
     isOpenReport,
 } from '@libs/ReportUtils';
-import {getAmount, getCurrency} from '@libs/TransactionUtils';
+import {getAmount, getCurrency, hasTransactionBeenRejected} from '@libs/TransactionUtils';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
 
 import {notifyNewAction} from '@userActions/Report';
@@ -1037,6 +1037,29 @@ function markRejectViolationAsResolved(transactionID: string, isOffline: boolean
     notifyNewAction(currentReportID, undefined, true);
 }
 
+/**
+ * Marks every transaction with a not-yet-resolved rejected-expense violation as resolved, resolving each to its own
+ * transaction thread report (the same report markRejectViolationAsResolved posts the "marked as resolved" action to).
+ */
+function markRejectedTransactionsAsResolved(
+    transactions: Array<OnyxEntry<OnyxTypes.Transaction>>,
+    transactionViolations: OnyxCollection<OnyxTypes.TransactionViolations>,
+    reportActions: OnyxTypes.ReportAction[],
+    isOffline: boolean,
+) {
+    for (const transaction of transactions) {
+        if (!transaction?.transactionID) {
+            continue;
+        }
+        const txViolations = transactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`];
+        if (!hasTransactionBeenRejected(txViolations)) {
+            continue;
+        }
+        const action = getIOUActionForTransactionID(reportActions, transaction.transactionID);
+        markRejectViolationAsResolved(transaction.transactionID, isOffline, txViolations, action?.childReportID);
+    }
+}
+
 function rejectExpenseReport(
     report: OnyxTypes.Report,
     targetAccountID: number,
@@ -1215,5 +1238,5 @@ function rejectExpenseReport(
     API.write(WRITE_COMMANDS.REJECT_EXPENSE_REPORT, parameters, {optimisticData, successData, failureData});
 }
 
-export {dismissRejectUseExplanation, prepareRejectMoneyRequestData, rejectMoneyRequest, markRejectViolationAsResolved, rejectExpenseReport};
+export {dismissRejectUseExplanation, prepareRejectMoneyRequestData, rejectMoneyRequest, markRejectViolationAsResolved, markRejectedTransactionsAsResolved, rejectExpenseReport};
 export type {RejectMoneyRequestData};

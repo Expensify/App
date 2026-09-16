@@ -2,10 +2,11 @@ import AnimatedSubmitButton from '@components/AnimatedSubmitButton';
 import {ReportSubmitToPopoverAnchor, useOpenReportSubmitToPopover} from '@components/ReportSubmitToPopoverAnchor';
 
 import useConfirmModal from '@hooks/useConfirmModal';
-import useConfirmPendingRTERAndProceed from '@hooks/useConfirmPendingRTERAndProceed';
+import useConfirmViolationsAndProceed from '@hooks/useConfirmViolationsAndProceed';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import useStrictPolicyRules from '@hooks/useStrictPolicyRules';
@@ -19,13 +20,14 @@ import {
     shouldShowMarkAsDone,
 } from '@libs/ReportUtils';
 import {
+    getSubmitViolationsSummary,
     getTransactionViolations,
-    hasAnyPendingRTERViolation as hasAnyPendingRTERViolationTransactionUtils,
     hasOnlyPendingCardTransactions,
     showHeldExpensesBlockModal,
     showPendingCardTransactionsBlockModal,
 } from '@libs/TransactionUtils';
 
+import {markRejectedTransactionsAsResolved} from '@userActions/IOU/RejectMoneyRequest';
 import {submitReport} from '@userActions/IOU/ReportWorkflow';
 import {markPendingRTERTransactionsAsCash} from '@userActions/Transaction';
 
@@ -66,6 +68,7 @@ function SubmitActionButtonContent() {
     const currentUserAccountID = currentUserDetails.accountID;
     const currentUserEmail = currentUserDetails.email ?? '';
     const {isBetaEnabled} = usePermissions();
+    const {isOffline} = useNetwork();
     const {areStrictPolicyRulesEnabled} = useStrictPolicyRules();
     const openReportSubmitToPopover = useOpenReportSubmitToPopover();
 
@@ -92,22 +95,23 @@ function SubmitActionButtonContent() {
 
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const hasViolations = hasViolationsReportUtils(iouReport?.reportID, transactionViolations, currentUserAccountID, currentUserEmail, undefined, transactions);
-    const hasAnyPendingRTERViolation = hasAnyPendingRTERViolationTransactionUtils(
-        transactions,
-        transactionViolations,
-        currentUserEmail,
-        currentUserAccountID,
-        iouReport,
-        submitterLogin,
-        policy,
-    );
+    const violationsSummary = getSubmitViolationsSummary(transactions, transactionViolations, currentUserEmail, currentUserAccountID, iouReport, submitterLogin, policy);
+    const shouldResolveAcknowledgedViolations =
+        violationsSummary.hasSevenDayHoldViolation ||
+        violationsSummary.hasGenericPendingRTERViolation ||
+        violationsSummary.hasRejectedViolation ||
+        violationsSummary.hasReportBeenRejected ||
+        violationsSummary.otherViolations.length > 0;
     const isDEWSubmission = hasDynamicExternalWorkflow(policy);
 
     const handleMarkPendingRTERTransactionsAsCash = () => {
         markPendingRTERTransactionsAsCash(transactions, transactionViolations, Object.values(reportActions ?? {}));
     };
+    const handleMarkRejectedTransactionsAsResolved = () => {
+        markRejectedTransactionsAsResolved(transactions, transactionViolations, Object.values(reportActions ?? {}), isOffline);
+    };
 
-    const confirmPendingRTERAndProceed = useConfirmPendingRTERAndProceed(hasAnyPendingRTERViolation, handleMarkPendingRTERTransactionsAsCash);
+    const confirmViolationsAndProceed = useConfirmViolationsAndProceed(violationsSummary, handleMarkPendingRTERTransactionsAsCash, handleMarkRejectedTransactionsAsResolved);
 
     // The header's gate receives violations pre-filtered by useTransactionsAndViolationsForReport, which drops dismissals
     // that are only detectable with report/owner/policy context (e.g. RTER violations dismissed under instant submit). The
@@ -159,7 +163,7 @@ function SubmitActionButtonContent() {
             return;
         }
 
-        confirmPendingRTERAndProceed(() => {
+        confirmViolationsAndProceed(() => {
             if (isSubmitPolicy(policy) && iouReportID) {
                 openReportSubmitToPopover();
                 return;
@@ -173,6 +177,7 @@ function SubmitActionButtonContent() {
                 currentUserAccountIDParam: currentUserAccountID,
                 currentUserEmailParam: currentUserEmail,
                 hasViolations,
+                shouldResolveAcknowledgedViolations,
                 isASAPSubmitBetaEnabled,
                 betas,
                 userBillingGracePeriodEnds,

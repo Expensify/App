@@ -2,18 +2,20 @@ import {act, render} from '@testing-library/react-native';
 
 import SubmitActionButton from '@components/ReportActionItem/MoneyRequestReportPreview/SubmitActionButton';
 
+import useConfirmViolationsAndProceed from '@hooks/useConfirmViolationsAndProceed';
 import useOnyx from '@hooks/useOnyx';
 
 import {isSubmitPolicy} from '@libs/PolicyUtils';
 import {hasOnlyHeldExpenses, hasViolations, shouldBlockSubmitDueToPreventSelfApproval, shouldBlockSubmitDueToStrictPolicyRules} from '@libs/ReportUtils';
 import {
+    getSubmitViolationsSummary,
     getTransactionViolations,
-    hasAnyPendingRTERViolation,
     hasOnlyPendingCardTransactions,
     showHeldExpensesBlockModal,
     showPendingCardTransactionsBlockModal,
 } from '@libs/TransactionUtils';
 
+import {markRejectedTransactionsAsResolved} from '@userActions/IOU/RejectMoneyRequest';
 import {submitReport} from '@userActions/IOU/ReportWorkflow';
 
 import CONST from '@src/CONST';
@@ -85,6 +87,11 @@ jest.mock('@userActions/Transaction', () => ({
     markPendingRTERTransactionsAsCash: jest.fn(),
 }));
 
+jest.mock('@userActions/IOU/RejectMoneyRequest', () => ({
+    __esModule: true,
+    markRejectedTransactionsAsResolved: jest.fn(),
+}));
+
 jest.mock('@libs/PolicyUtils', () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment -- partial mock of the real module
     const actual = jest.requireActual('@libs/PolicyUtils');
@@ -103,7 +110,13 @@ jest.mock('@libs/TransactionUtils', () => ({
     __esModule: true,
     getTransactionViolations: jest.fn(),
     hasOnlyPendingCardTransactions: jest.fn(() => false),
-    hasAnyPendingRTERViolation: jest.fn(() => false),
+    getSubmitViolationsSummary: jest.fn(() => ({
+        hasSevenDayHoldViolation: false,
+        hasGenericPendingRTERViolation: false,
+        hasRejectedViolation: false,
+        hasReportBeenRejected: false,
+        otherViolations: [],
+    })),
     showPendingCardTransactionsBlockModal: jest.fn(),
     showHeldExpensesBlockModal: jest.fn(),
 }));
@@ -127,10 +140,12 @@ jest.mock('@libs/ReportUtils', () => {
     };
 });
 
-// The RTER confirmation wrapper is exercised by its own tests; here it just proceeds straight to the submission.
-jest.mock('@hooks/useConfirmPendingRTERAndProceed', () => ({
+// The violations confirmation wrapper is exercised by its own tests; by default it just proceeds straight to the
+// submission. Tests that need to prove the wiring of the mark-as-resolved callbacks override the implementation to
+// actually invoke them, mirroring what the real hook does when the user confirms.
+jest.mock('@hooks/useConfirmViolationsAndProceed', () => ({
     __esModule: true,
-    default: jest.fn(() => (proceed: () => void) => proceed()),
+    default: jest.fn(),
 }));
 
 // SubmitActionButton reads from context instead of props; these mock-prefixed objects back the mocked slice hooks.
@@ -160,10 +175,12 @@ const mockedShowPendingCardTransactionsBlockModal = jest.mocked(showPendingCardT
 const mockedHasOnlyHeldExpenses = jest.mocked(hasOnlyHeldExpenses);
 const mockedShowHeldExpensesBlockModal = jest.mocked(showHeldExpensesBlockModal);
 const mockedHasViolations = jest.mocked(hasViolations);
-const mockedHasAnyPendingRTERViolation = jest.mocked(hasAnyPendingRTERViolation);
+const mockedGetSubmitViolationsSummary = jest.mocked(getSubmitViolationsSummary);
 const mockedGetTransactionViolations = jest.mocked(getTransactionViolations);
 const mockedShouldBlockSubmitDueToStrictPolicyRules = jest.mocked(shouldBlockSubmitDueToStrictPolicyRules);
 const mockedShouldBlockSubmitDueToPreventSelfApproval = jest.mocked(shouldBlockSubmitDueToPreventSelfApproval);
+const mockedUseConfirmViolationsAndProceed = jest.mocked(useConfirmViolationsAndProceed);
+const mockedMarkRejectedTransactionsAsResolved = jest.mocked(markRejectedTransactionsAsResolved);
 
 describe('SubmitActionButton', () => {
     beforeEach(() => {
@@ -180,6 +197,16 @@ describe('SubmitActionButton', () => {
         // into every test that runs after it.
         mockedShouldBlockSubmitDueToStrictPolicyRules.mockReturnValue(false);
         mockedShouldBlockSubmitDueToPreventSelfApproval.mockReturnValue(false);
+        mockedGetSubmitViolationsSummary.mockReturnValue({
+            hasSevenDayHoldViolation: false,
+            hasGenericPendingRTERViolation: false,
+            hasRejectedViolation: false,
+            hasReportBeenRejected: false,
+            otherViolations: [],
+        });
+        // Default passthrough: proceed straight to submission. Tests proving the mark-as-resolved wiring override
+        // this to actually invoke the callbacks, the way the real hook does once the user confirms.
+        mockedUseConfirmViolationsAndProceed.mockImplementation(() => (proceed: () => void) => proceed());
         // Default to nothing-dismissed passthrough so the filtered collection mirrors the raw slice; individual tests
         // override the implementation to simulate dismissals.
         mockedGetTransactionViolations.mockImplementation((transaction, violations) => violations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction?.transactionID}`]);
@@ -252,7 +279,7 @@ describe('SubmitActionButton', () => {
         });
 
         expect(mockedHasViolations.mock.calls.at(-1)?.[1]).toBe(reportViolations);
-        expect(mockedHasAnyPendingRTERViolation.mock.calls.at(-1)?.[1]).toBe(reportViolations);
+        expect(mockedGetSubmitViolationsSummary.mock.calls.at(-1)?.[1]).toBe(reportViolations);
         expect(mockedSubmitReport).toHaveBeenCalledWith(expect.objectContaining({hasViolations: true}));
     });
 
@@ -362,5 +389,84 @@ describe('SubmitActionButton', () => {
         // Then the predicate received the same report and policy the header's gate reads (the policy is not hydrated
         // in this environment, so it is undefined)
         expect(mockedShouldBlockSubmitDueToPreventSelfApproval).toHaveBeenCalledWith(iouReport, undefined, undefined);
+    });
+
+    it('resolves rejected transactions and forwards shouldResolveAcknowledgedViolations to submitReport when a rejected violation is acknowledged', () => {
+        // Given a report with a rejected-expense violation that the confirmation modal's "submit anyway" resolves
+        mockedGetSubmitViolationsSummary.mockReturnValue({
+            hasSevenDayHoldViolation: false,
+            hasGenericPendingRTERViolation: false,
+            hasRejectedViolation: true,
+            hasReportBeenRejected: false,
+            otherViolations: [],
+        });
+        // Mirror what the real useConfirmViolationsAndProceed does once the user confirms: invoke the resolution
+        // callback(s) implied by the violations summary, then proceed with the submission.
+        mockedUseConfirmViolationsAndProceed.mockImplementation((violationsSummary, onMarkPendingRTERTransactionsAsCash, onMarkRejectedTransactionsAsResolved) => (proceed: () => void) => {
+            if (violationsSummary.hasSevenDayHoldViolation || violationsSummary.hasGenericPendingRTERViolation) {
+                onMarkPendingRTERTransactionsAsCash();
+            }
+            if (violationsSummary.hasRejectedViolation) {
+                onMarkRejectedTransactionsAsResolved();
+            }
+            proceed();
+        });
+
+        // When the button is pressed and the user confirms the modal
+        render(<SubmitActionButton />);
+
+        act(() => {
+            mockSubmitButtonPropsHolder.current?.onPress?.();
+        });
+
+        // Then the rejected transactions are marked as resolved, and submitReport is told to resolve the
+        // acknowledged violations server-side too
+        expect(mockedMarkRejectedTransactionsAsResolved).toHaveBeenCalled();
+        expect(mockedSubmitReport).toHaveBeenCalledWith(expect.objectContaining({shouldResolveAcknowledgedViolations: true}));
+    });
+
+    it('does not resolve rejected transactions and forwards shouldResolveAcknowledgedViolations as false when there are no resolvable violations', () => {
+        // Given a report with no seven-day-hold, pending-RTER, or rejected violations
+        mockedGetSubmitViolationsSummary.mockReturnValue({
+            hasSevenDayHoldViolation: false,
+            hasGenericPendingRTERViolation: false,
+            hasRejectedViolation: false,
+            hasReportBeenRejected: false,
+            otherViolations: [],
+        });
+
+        // When the button is pressed
+        render(<SubmitActionButton />);
+
+        act(() => {
+            mockSubmitButtonPropsHolder.current?.onPress?.();
+        });
+
+        // Then nothing is marked as resolved, and submitReport receives an explicit false rather than undefined,
+        // since shouldResolveAcknowledgedViolations is computed as a boolean OR expression
+        expect(mockedMarkRejectedTransactionsAsResolved).not.toHaveBeenCalled();
+        expect(mockedSubmitReport).toHaveBeenCalledWith(expect.objectContaining({shouldResolveAcknowledgedViolations: false}));
+    });
+
+    it('forwards shouldResolveAcknowledgedViolations as true for a report with only a non-resolvable "other" violation', () => {
+        // Given a report whose only violation is something with no known one-click resolution (e.g. over category
+        // limit) — the user still acknowledged a violation via the confirmation modal, so the backend should still be
+        // told to resolve the acknowledgement, even though there's nothing for the app itself to mark as resolved.
+        mockedGetSubmitViolationsSummary.mockReturnValue({
+            hasSevenDayHoldViolation: false,
+            hasGenericPendingRTERViolation: false,
+            hasRejectedViolation: false,
+            hasReportBeenRejected: false,
+            otherViolations: [{name: CONST.VIOLATIONS.MISSING_CATEGORY, type: CONST.VIOLATION_TYPES.VIOLATION}],
+        });
+
+        render(<SubmitActionButton />);
+
+        act(() => {
+            mockSubmitButtonPropsHolder.current?.onPress?.();
+        });
+
+        expect(mockedMarkRejectedTransactionsAsResolved).not.toHaveBeenCalled();
+        expect(mockedSubmitReport).toHaveBeenCalledWith(expect.objectContaining({shouldResolveAcknowledgedViolations: true}));
     });
 });

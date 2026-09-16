@@ -1473,8 +1473,12 @@ const translations = {
         pendingMatch: 'Pending match',
         pendingMatchWithCreditCardDescription: 'Receipt pending match with card transaction. Mark as cash to cancel.',
         markAsCash: 'Mark as cash',
-        pendingMatchSubmitTitle: 'Submit report',
+        pendingMatchSubmitTitle: 'Submit report?',
+        submitReportPolicyViolationsDescription: 'This report has policy violations. Are you sure you want to submit it without making changes?',
         pendingMatchSubmitDescription: 'Some expenses are awaiting a match with a credit card transaction. Do you want to mark them as cash?',
+        sevenDayHoldSubmitDescription: 'Expense awaiting a potential match with a card transaction',
+        rejectedExpenseSubmitDescription: 'Rejected expense not marked as resolved',
+        submitAnyway: 'Submit anyway',
         routePending: 'Route pending...',
         automaticallyEnterExpenseDetails: 'Concierge will fill in the details for you.',
         receiptScanning: () => ({

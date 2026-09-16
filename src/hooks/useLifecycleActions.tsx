@@ -22,14 +22,10 @@ import {
 } from '@libs/ReportUtils';
 import refreshSearchAfterReportAction from '@libs/SearchRefreshUtils';
 import showConfirmModalAfterMoreMenuDismiss from '@libs/showConfirmModalAfterMoreMenuDismiss';
-import {
-    hasAnyPendingRTERViolation as hasAnyPendingRTERViolationTransactionUtils,
-    hasOnlyPendingCardTransactions,
-    showHeldExpensesBlockModal,
-    showPendingCardTransactionsBlockModal,
-} from '@libs/TransactionUtils';
+import {getSubmitViolationsSummary, hasOnlyPendingCardTransactions, showHeldExpensesBlockModal, showPendingCardTransactionsBlockModal} from '@libs/TransactionUtils';
 
 import {cancelPayment, markReportPaymentReceived} from '@userActions/IOU/PayMoneyRequest';
+import {markRejectedTransactionsAsResolved} from '@userActions/IOU/RejectMoneyRequest';
 import {approveMoneyRequest, canIOUBePaid as canIOUBePaidAction, reopenReport, retractReport, submitReport, unapproveExpenseReport} from '@userActions/IOU/ReportWorkflow';
 import {markPendingRTERTransactionsAsCash} from '@userActions/Transaction';
 
@@ -45,7 +41,7 @@ import React from 'react';
 import type {ActionHandledType} from './useHoldMenuSubmit';
 
 import useConfirmModal from './useConfirmModal';
-import useConfirmPendingRTERAndProceed from './useConfirmPendingRTERAndProceed';
+import useConfirmViolationsAndProceed from './useConfirmViolationsAndProceed';
 import {useCurrencyListActions} from './useCurrencyList';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useDelegateAccountID from './useDelegateAccountID';
@@ -169,13 +165,22 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
 
     const isAnyTransactionOnHold = hasHeldExpensesReportUtils(transactions);
 
-    const hasAnyPendingRTERViolation = hasAnyPendingRTERViolationTransactionUtils(transactions, allTransactionViolations, email ?? '', accountID, moneyRequestReport, submitterLogin, policy);
+    const violationsSummary = getSubmitViolationsSummary(transactions, allTransactionViolations, email ?? '', accountID, moneyRequestReport, submitterLogin, policy);
+    const shouldResolveAcknowledgedViolations =
+        violationsSummary.hasSevenDayHoldViolation ||
+        violationsSummary.hasGenericPendingRTERViolation ||
+        violationsSummary.hasRejectedViolation ||
+        violationsSummary.hasReportBeenRejected ||
+        violationsSummary.otherViolations.length > 0;
 
     const handleMarkPendingRTERTransactionsAsCash = () => {
         markPendingRTERTransactionsAsCash(transactions, allTransactionViolations, reportActions);
     };
+    const handleMarkRejectedTransactionsAsResolved = () => {
+        markRejectedTransactionsAsResolved(transactions, allTransactionViolations, reportActions, isOffline);
+    };
 
-    const confirmPendingRTERAndProceed = useConfirmPendingRTERAndProceed(hasAnyPendingRTERViolation, handleMarkPendingRTERTransactionsAsCash);
+    const confirmViolationsAndProceed = useConfirmViolationsAndProceed(violationsSummary, handleMarkPendingRTERTransactionsAsCash, handleMarkRejectedTransactionsAsResolved);
 
     const onApprove = (isFullApproval: boolean, skipAnimation = false) => {
         if (isDelegateAccessRestricted) {
@@ -300,6 +305,7 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
                 currentUserAccountIDParam: accountID,
                 currentUserEmailParam: email ?? '',
                 hasViolations,
+                shouldResolveAcknowledgedViolations,
                 isASAPSubmitBetaEnabled,
                 betas,
                 userBillingGracePeriodEnds,
@@ -330,7 +336,7 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
             }
         };
 
-        confirmPendingRTERAndProceed(doSubmit);
+        confirmViolationsAndProceed(doSubmit);
     };
 
     const actions: Record<string, SecondaryActionEntry> = {

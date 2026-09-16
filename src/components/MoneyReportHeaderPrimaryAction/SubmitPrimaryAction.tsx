@@ -7,7 +7,7 @@ import {ReportSubmitToPopoverAnchor, useOpenReportSubmitToPopover} from '@compon
 import {useSearchQueryContext, useSearchResultsContext} from '@components/Search/SearchContext';
 
 import useConfirmModal from '@hooks/useConfirmModal';
-import useConfirmPendingRTERAndProceed from '@hooks/useConfirmPendingRTERAndProceed';
+import useConfirmViolationsAndProceed from '@hooks/useConfirmViolationsAndProceed';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
@@ -27,8 +27,9 @@ import {hasDynamicExternalWorkflow, isSubmitPolicy} from '@libs/PolicyUtils';
 import {getFilteredReportActionsForReportView} from '@libs/ReportActionsUtils';
 import {isSubmitViaPDFAction} from '@libs/ReportPrimaryActionUtils';
 import {hasViolations as hasViolationsReportUtils, shouldBlockSubmitDueToPreventSelfApproval, shouldBlockSubmitDueToStrictPolicyRules, shouldShowMarkAsDone} from '@libs/ReportUtils';
-import {hasAnyPendingRTERViolation as hasAnyPendingRTERViolationTransactionUtils, hasOnlyPendingCardTransactions, showPendingCardTransactionsBlockModal} from '@libs/TransactionUtils';
+import {getSubmitViolationsSummary, hasOnlyPendingCardTransactions, showPendingCardTransactionsBlockModal} from '@libs/TransactionUtils';
 
+import {markRejectedTransactionsAsResolved} from '@userActions/IOU/RejectMoneyRequest';
 import {retractReport, setPreferredReportSubmissionMethod, submitReport} from '@userActions/IOU/ReportWorkflow';
 import {markPendingRTERTransactionsAsCash} from '@userActions/Transaction';
 
@@ -99,13 +100,22 @@ function SubmitPrimaryActionContent({reportID}: SubmitPrimaryActionProps) {
     const {transactions: reportTransactions, violations} = useTransactionsAndViolationsForReport(moneyRequestReport?.reportID);
     const transactions = Object.values(reportTransactions);
     const hasViolations = hasViolationsReportUtils(moneyRequestReport?.reportID, allTransactionViolations, accountID, email ?? '');
-    const hasAnyPendingRTERViolation = hasAnyPendingRTERViolationTransactionUtils(transactions, allTransactionViolations, email ?? '', accountID, moneyRequestReport, submitterLogin, policy);
+    const violationsSummary = getSubmitViolationsSummary(transactions, allTransactionViolations, email ?? '', accountID, moneyRequestReport, submitterLogin, policy);
+    const shouldResolveAcknowledgedViolations =
+        violationsSummary.hasSevenDayHoldViolation ||
+        violationsSummary.hasGenericPendingRTERViolation ||
+        violationsSummary.hasRejectedViolation ||
+        violationsSummary.hasReportBeenRejected ||
+        violationsSummary.otherViolations.length > 0;
     const isDEWSubmission = hasDynamicExternalWorkflow(policy);
 
     const handleMarkPendingRTERTransactionsAsCash = () => {
         markPendingRTERTransactionsAsCash(transactions, allTransactionViolations, reportActions);
     };
-    const confirmPendingRTERAndProceed = useConfirmPendingRTERAndProceed(hasAnyPendingRTERViolation, handleMarkPendingRTERTransactionsAsCash);
+    const handleMarkRejectedTransactionsAsResolved = () => {
+        markRejectedTransactionsAsResolved(transactions, allTransactionViolations, reportActions, isOffline);
+    };
+    const confirmViolationsAndProceed = useConfirmViolationsAndProceed(violationsSummary, handleMarkPendingRTERTransactionsAsCash, handleMarkRejectedTransactionsAsResolved);
 
     const {showConfirmModal} = useConfirmModal();
 
@@ -153,7 +163,7 @@ function SubmitPrimaryActionContent({reportID}: SubmitPrimaryActionProps) {
             return;
         }
 
-        confirmPendingRTERAndProceed(() => {
+        confirmViolationsAndProceed(() => {
             if (!shouldExportToPDF && isSubmitPolicy(policy) && reportID) {
                 // On a Submit workspace, vanilla Submit prompts for the approver's email via the submit-to popover,
                 // which runs the submit itself once an approver is chosen.
@@ -169,6 +179,7 @@ function SubmitPrimaryActionContent({reportID}: SubmitPrimaryActionProps) {
                 currentUserAccountIDParam: accountID,
                 currentUserEmailParam: email ?? '',
                 hasViolations,
+                shouldResolveAcknowledgedViolations,
                 isASAPSubmitBetaEnabled,
                 betas,
                 userBillingGracePeriodEnds,
