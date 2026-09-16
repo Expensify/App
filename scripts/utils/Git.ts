@@ -1,7 +1,7 @@
 import CONST from '@github/libs/CONST';
 import GitHubUtils from '@github/libs/GithubUtils';
 
-import type {ExecSyncOptionsWithStringEncoding, ExecOptions as ExecWithCallbackOptions} from 'child_process';
+import type {ExecOptions as ExecWithCallbackOptions, ExecSyncOptionsWithStringEncoding} from 'child_process';
 
 import {context} from '@actions/github';
 import {exec as execWithCallback, execSync as originalExecSync} from 'child_process';
@@ -19,7 +19,7 @@ function exec(command: string, options?: ExecOptions) {
         ...options,
     };
 
-    return promisify(execWithCallback)(command, optionsWithEncoding);
+    return promisify(execWithCallback)(command, optionsWithEncoding) as Promise<{stdout: string; stderr: string}>;
 }
 
 type ExecSyncOptions = Omit<ExecSyncOptionsWithStringEncoding, 'encoding' | 'cwd'> & {
