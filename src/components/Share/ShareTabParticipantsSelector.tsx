@@ -142,8 +142,12 @@ function ShareTabParticipantsSelectorComponent({detailsPageRouteObject}: ShareTa
             iouType={CONST.IOU.TYPE.SUBMIT}
             initiallySelectedReportID={typeof selectedReportID === 'string' ? selectedReportID : undefined}
             onParticipantsAdded={(value) => {
-                // clear the existing draft transaction from the previous flow to prevent the old data from being displayed
-                clearMoneyRequest(CONST.IOU.OPTIMISTIC_TRANSACTION_ID, draftTransactionIDs);
+                // Clear the existing draft transaction only when starting a fresh share flow, to prevent leftover data
+                // from previous sessions from being displayed. When editing the destination after auto-navigating or
+                // selecting a report, we preserve the active draft so that user edits (amount, merchant, receipt, etc.) are kept.
+                if (!hasAutoNavigatedToReport && !selectedReportID) {
+                    clearMoneyRequest(CONST.IOU.OPTIMISTIC_TRANSACTION_ID, draftTransactionIDs);
+                }
 
                 const participant = value.at(0);
                 let reportID = participant?.reportID ?? CONST.DEFAULT_NUMBER_ID;
