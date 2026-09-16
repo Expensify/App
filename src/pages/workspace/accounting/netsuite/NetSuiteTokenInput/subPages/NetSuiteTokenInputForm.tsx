@@ -9,7 +9,6 @@ import TextInput from '@components/TextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
-import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTwoFactorAuthRoute from '@hooks/useTwoFactorAuthRoute';
@@ -21,6 +20,7 @@ import {addErrorMessage} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import Parser from '@libs/Parser';
 
+import NetSuiteTokenAuthenticationLink from '@pages/workspace/accounting/netsuite/NetSuiteTokenInput/NetSuiteTokenAuthenticationLink';
 import type {CustomSubPageTokenInputProps} from '@pages/workspace/accounting/netsuite/types';
 
 import CONST from '@src/CONST';
@@ -32,16 +32,14 @@ import {View} from 'react-native';
 
 import connectToNetSuiteOAuthSetup from './connectToNetSuiteOAuthSetup';
 
-function NetSuiteTokenInputForm({onNext, policyID}: CustomSubPageTokenInputProps) {
+function NetSuiteTokenInputForm({onNext, policyID, isOAuthFlow}: CustomSubPageTokenInputProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const policy = usePolicy(policyID);
     const {inputCallbackRef} = useAutoFocusInput();
-    const {isBetaEnabled} = usePermissions();
     const {environmentURL} = useEnvironment();
     const {is2FAEnabled, getTwoFactorAuthRoute} = useTwoFactorAuthRoute();
 
-    const isOAuthFlow = isBetaEnabled(CONST.BETAS.NETSUITE_OAUTH);
     const [isRequire2FAModalOpen, setIsRequire2FAModalOpen] = useState(false);
 
     const formInputs = isOAuthFlow ? [INPUT_IDS.NETSUITE_ACCOUNT_ID] : Object.values(INPUT_IDS);
@@ -100,6 +98,7 @@ function NetSuiteTokenInputForm({onNext, policyID}: CustomSubPageTokenInputProps
                 addBottomSafeAreaPadding={!isMobileSafari()}
                 keyboardSubmitBehavior={isOAuthFlow ? CONST.KEYBOARD_SUBMIT_BEHAVIOR.SUBMIT_ONLY : undefined}
                 shouldShowLoadingImmediatelyOnPress={!isOAuthFlow}
+                footerContent={isOAuthFlow ? <NetSuiteTokenAuthenticationLink policyID={policyID} /> : undefined}
             >
                 {formInputs.map((formInput, index) => (
                     <View

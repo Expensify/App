@@ -93,7 +93,12 @@ type CustomListSelectorType = SelectorType & {
     id: string;
 };
 
-type CustomSubPageTokenInputProps = SubPageProps & {policyID: string | undefined};
+type CustomSubPageTokenInputProps = SubPageProps & {
+    policyID: string | undefined;
+
+    /** Whether the wizard connects over OAuth 2.0 rather than token-based authentication */
+    isOAuthFlow: boolean;
+};
 
 export type {
     MenuItem,

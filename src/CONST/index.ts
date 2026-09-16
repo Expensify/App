@@ -3468,6 +3468,9 @@ const CONST = {
                 OAUTH: 'enable-oauth',
                 REST: 'enable-rest',
             },
+            AUTH_TYPE: {
+                TBA: 'tba',
+            },
             STEP_KEYS: {
                 install: 'installBundle',
                 authentication: 'enableTokenAuthentication',

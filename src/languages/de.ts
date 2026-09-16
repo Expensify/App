@@ -5584,6 +5584,7 @@ ${amount} für ${merchant} – ${date}`,
             noSubsidiariesFoundDescription: 'Bitte füge in NetSuite eine Tochtergesellschaft hinzu und synchronisiere die Verbindung erneut',
             tokenInput: {
                 title: 'NetSuite-Einrichtung',
+                connectWithTokenAuthentication: 'Stattdessen mit tokenbasierter Authentifizierung (SOAP) verbinden',
                 formSteps: {
                     installBundle: {
                         title: 'Expensify-Bundle installieren',

@@ -1,6 +1,7 @@
 import ConnectionLayout from '@components/ConnectionLayout';
 import InteractiveStepSubPageHeader from '@components/InteractiveStepSubPageHeader';
 
+import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
 import useSubPage from '@hooks/useSubPage';
@@ -8,6 +9,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {isAuthenticationError} from '@libs/actions/connections';
 import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 
 import type {CustomSubPageTokenInputProps} from '@pages/workspace/accounting/netsuite/types';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
@@ -15,8 +18,10 @@ import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+import type SCREENS from '@src/SCREENS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
+import {useRoute} from '@react-navigation/native';
 import React from 'react';
 import {View} from 'react-native';
 
@@ -38,15 +43,22 @@ const oauthPages = [
     {pageName: CONST.NETSUITE_CONFIG.TOKEN_INPUT.PAGE_NAME.CREDENTIALS, component: NetSuiteTokenInputForm},
 ];
 
-function NetSuiteTokenInputPage({policy, route}: WithPolicyConnectionsProps) {
+type NetSuiteTokenInputRoute = PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_TOKEN_INPUT>;
+
+function NetSuiteTokenInputPage({policy}: WithPolicyConnectionsProps) {
     const policyID = policy?.id;
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {isDevelopment} = useEnvironment();
     const {isBetaEnabled} = usePermissions();
+    const {params} = useRoute<NetSuiteTokenInputRoute>();
+    const {authType} = params;
 
-    const canUseNetSuiteOAuth = isBetaEnabled(CONST.BETAS.NETSUITE_OAUTH);
-    const pages = canUseNetSuiteOAuth ? oauthPages : tokenPages;
-    const stepNames = canUseNetSuiteOAuth ? CONST.NETSUITE_CONFIG.TOKEN_INPUT.OAUTH_STEP_INDEX_LIST : CONST.NETSUITE_CONFIG.TOKEN_INPUT.STEP_INDEX_LIST;
+    // A dev environment gets the OAuth 2.0 flow without the beta, therefore new dev connections use REST by default.
+    const canUseNetSuiteOAuth = isDevelopment || isBetaEnabled(CONST.BETAS.NETSUITE_OAUTH);
+    const isOAuthFlow = canUseNetSuiteOAuth && authType !== CONST.NETSUITE_CONFIG.TOKEN_INPUT.AUTH_TYPE.TBA;
+    const pages = isOAuthFlow ? oauthPages : tokenPages;
+    const stepNames = isOAuthFlow ? CONST.NETSUITE_CONFIG.TOKEN_INPUT.OAUTH_STEP_INDEX_LIST : CONST.NETSUITE_CONFIG.TOKEN_INPUT.STEP_INDEX_LIST;
 
     const hasAuthError = isAuthenticationError(policy, CONST.POLICY.CONNECTIONS.NAME.NETSUITE);
 
@@ -57,7 +69,7 @@ function NetSuiteTokenInputPage({policy, route}: WithPolicyConnectionsProps) {
     const {CurrentPage, nextPage, prevPage, pageIndex, moveTo, currentPageName} = useSubPage<CustomSubPageTokenInputProps>({
         pages,
         onFinished: submit,
-        buildRoute: (pageName) => ROUTES.POLICY_ACCOUNTING_NETSUITE_TOKEN_INPUT.getRoute(route.params.policyID, pageName),
+        buildRoute: (pageName) => ROUTES.POLICY_ACCOUNTING_NETSUITE_TOKEN_INPUT.getRoute(params.policyID, pageName, authType),
     });
 
     const handleBackButtonPress = () => {
@@ -99,6 +111,7 @@ function NetSuiteTokenInputPage({policy, route}: WithPolicyConnectionsProps) {
                 onMove={moveTo}
                 currentPageName={currentPageName}
                 policyID={policyID}
+                isOAuthFlow={isOAuthFlow}
             />
         </ConnectionLayout>
     );

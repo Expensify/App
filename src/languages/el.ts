@@ -5671,6 +5671,7 @@ ${amount} για ${merchant} - ${date}`,
             noSubsidiariesFoundDescription: 'Παρακαλούμε προσθέστε μια θυγατρική στο NetSuite και συγχρονίστε ξανά τη σύνδεση',
             tokenInput: {
                 title: 'Ρύθμιση NetSuite',
+                connectWithTokenAuthentication: 'Εναλλακτικά, συνδεθείτε με έλεγχο ταυτότητας με διακριτικό token (SOAP)',
                 formSteps: {
                     installBundle: {
                         title: 'Εγκαταστήστε το πακέτο Expensify',
