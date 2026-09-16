@@ -2,12 +2,14 @@ import ConnectionLayout from '@components/ConnectionLayout';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 
+import useCanConfigureCurrencyConversionFees from '@hooks/useCanConfigureCurrencyConversionFees';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {updateQuickbooksDesktopShouldAutoCreateVendor} from '@libs/actions/connections/QuickbooksDesktop';
 import {getLatestErrorField} from '@libs/ErrorUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {areSettingsInErrorFields, settingsPendingAction} from '@libs/PolicyUtils';
 
@@ -22,15 +24,21 @@ import type {TranslationPaths} from '@src/languages/types';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 
 import {CONST as COMMON_CONST} from 'expensify-common';
-import React from 'react';
+import React, {useMemo} from 'react';
+
+const fxExpenseAccountSettings = [CONST.QUICKBOOKS_DESKTOP_CONFIG.FX_EXPENSE_ACCOUNT];
 
 function DynamicQuickbooksDesktopAdvancedPage({policy}: WithPolicyConnectionsProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const canConfigureCurrencyConversionFees = useCanConfigureCurrencyConversionFees(policy);
     const policyID = policy?.id;
     const qbdConfig = policy?.connections?.quickbooksDesktop?.config;
+    const {expenseAccounts} = policy?.connections?.quickbooksDesktop?.data ?? {};
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_DESKTOP_ADVANCED.path);
     const accountingMethod = qbdConfig?.export?.accountingMethod ?? COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH;
+
+    const selectedFxExpenseAccountName = useMemo(() => expenseAccounts?.find(({id}) => id === qbdConfig?.fxExpenseAccount)?.name, [expenseAccounts, qbdConfig?.fxExpenseAccount]);
 
     const qbdToggleSettingItems = [
         {
@@ -78,6 +86,18 @@ function DynamicQuickbooksDesktopAdvancedPage({policy}: WithPolicyConnectionsPro
                     })()}
                 />
             </OfflineWithFeedback>
+            {canConfigureCurrencyConversionFees && (
+                <OfflineWithFeedback pendingAction={settingsPendingAction(fxExpenseAccountSettings, qbdConfig?.pendingFields)}>
+                    <MenuItemWithTopDescription
+                        title={selectedFxExpenseAccountName}
+                        description={translate('workspace.qbd.advancedConfig.fxExpenseAccount')}
+                        shouldShowRightIcon
+                        wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mt3]}
+                        onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_FX_EXPENSE_ACCOUNT_SELECT.path))}
+                        brickRoadIndicator={areSettingsInErrorFields(fxExpenseAccountSettings, qbdConfig?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                    />
+                </OfflineWithFeedback>
+            )}
             {qbdToggleSettingItems.map((item) => (
                 <ToggleSettingOptionRow
                     key={item.title}
