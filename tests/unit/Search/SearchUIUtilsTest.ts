@@ -4,6 +4,7 @@ import type {
     ReportActionListItemType,
     TransactionCardGroupListItemType,
     TransactionCategoryGroupListItemType,
+    TransactionDayGroupListItemType,
     TransactionListItemType,
     TransactionMemberGroupListItemType,
     TransactionMerchantGroupListItemType,
@@ -3784,6 +3785,27 @@ describe('SearchUIUtils', () => {
                     },
                 ]),
             );
+        });
+
+        it('should match a day group using created when modifiedCreated is empty', () => {
+            const dayGroup: TransactionDayGroupListItemType = {
+                day: '2026-09-15',
+                count: 1,
+                currency: 'USD',
+                total: 100,
+                groupedBy: CONST.SEARCH.GROUP_BY.DAY,
+                formattedDay: 'September 15, 2026',
+                shortFormattedDay: 'Sep 15, ’26',
+                transactions: [],
+                transactionsQueryJSON: undefined,
+                keyForList: 'group_2026-09-15',
+            };
+            const transaction = createMock<OnyxTypes.Transaction>({
+                created: '2026-09-15 12:00:00',
+                modifiedCreated: '',
+            });
+
+            expect(SearchUIUtils.isTransactionMatchWithGroupItem(transaction, dayGroup, CONST.SEARCH.GROUP_BY.DAY)).toBe(true);
         });
 
         it('should return getMonthSections result when type is EXPENSE and groupBy is month', () => {

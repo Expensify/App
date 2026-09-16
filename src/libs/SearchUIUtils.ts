@@ -7643,7 +7643,7 @@ function isTransactionMatchWithGroupItem(transaction: OnyxTypes.Transaction, gro
         return (transaction.merchant ?? '') === ((groupItem as TransactionMerchantGroupListItemType).merchant ?? '');
     }
     if (groupBy === CONST.SEARCH.GROUP_BY.DAY) {
-        const transactionDateString = transaction.modifiedCreated ?? transaction.created ?? '';
+        const transactionDateString = getTransactionCreatedDate(transaction);
         return isTransactionDayGroupListItemType(groupItem) && transactionDateString.substring(0, 10) === groupItem.day;
     }
     if (groupBy === CONST.SEARCH.GROUP_BY.MONTH) {
