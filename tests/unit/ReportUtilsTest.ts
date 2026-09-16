@@ -1519,6 +1519,7 @@ describe('ReportUtils', () => {
                 companySize: CONST.ONBOARDING_COMPANY_SIZE.SMALL,
                 conciergeChat: chatReport,
                 currentUserAccountID: EXPLICIT_ACCOUNT_ID,
+                delegateAccountID: undefined,
             });
 
             expect(result).toBeTruthy();

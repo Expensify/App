@@ -3465,6 +3465,7 @@ describe('actions/Report', () => {
                 introSelected: {choice: engagementChoice},
                 isSelfTourViewed: false,
                 currentUserAccountID: TEST_USER_ACCOUNT_ID,
+                delegateAccountID: undefined,
             });
 
             await waitForBatchedUpdates();
