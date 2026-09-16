@@ -987,7 +987,6 @@
         "socklen",
         "syscalls",
         "serveo",
-        "audioworklet",
         "nonconstructor",
         "setstate",
         "setuptools",
