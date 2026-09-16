@@ -206,6 +206,12 @@ function clearWorkEmailFormErrors(isLoading = false) {
     });
 }
 
+function clearOnboardingMergeAccountBlocked() {
+    Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {isMergingAccountBlocked: false});
+    setOnboardingErrorMessage(null);
+    clearWorkEmailFormErrors();
+}
+
 // We use `connectWithoutView` here since this connection only to get loading flag
 // and doesn't need to trigger component re-renders.
 Onyx.connectWithoutView({
@@ -290,4 +296,5 @@ export {
     setOnboardingPersonalTrackGoal,
     addWorkEmailFormError,
     clearWorkEmailFormErrors,
+    clearOnboardingMergeAccountBlocked,
 };

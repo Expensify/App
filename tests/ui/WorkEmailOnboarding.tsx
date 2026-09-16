@@ -594,11 +594,11 @@ describe('OnboardingWorkEmail Page', () => {
                 hasCompletedGuidedSetupFlow: true,
                 shouldValidate: false,
             });
-            await Onyx.set(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED, CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE);
+            await Onyx.set(ONYXKEYS.NVP_INTRO_SELECTED, {choice: CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE});
             await Onyx.merge(ONYXKEYS.ACCOUNT, {validated: false, isFromPublicDomain: true});
         });
 
-        const {unmount} = renderOnboardingWorkEmailPage(SCREENS.ONBOARDING.WORK_EMAIL, undefined);
+        const {unmount} = renderOnboardingWorkEmailPage(SCREENS.ONBOARDING.WORK_EMAIL, {isJoinWorkspaceTask: 'true'});
 
         await waitForBatchedUpdatesWithAct();
 
@@ -747,14 +747,14 @@ describe('OnboardingWorkEmail Page', () => {
             await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {
                 hasCompletedGuidedSetupFlow: true,
             });
-            await Onyx.set(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED, CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE);
+            await Onyx.set(ONYXKEYS.NVP_INTRO_SELECTED, {choice: CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE});
             await Onyx.merge(ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM, {
                 onboardingWorkEmail: workEmail,
             });
             await Onyx.merge(ONYXKEYS.ACCOUNT, {validated: true, isFromPublicDomain: true});
         });
 
-        const {unmount} = renderOnboardingWorkEmailPage(SCREENS.ONBOARDING.WORK_EMAIL, undefined);
+        const {unmount} = renderOnboardingWorkEmailPage(SCREENS.ONBOARDING.WORK_EMAIL, {isJoinWorkspaceTask: 'true'});
 
         await waitForBatchedUpdatesWithAct();
 
@@ -773,18 +773,17 @@ describe('OnboardingWorkEmail Page', () => {
             expect(navigate).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(taskReportID));
         });
 
-        expect(screen.getByText(TestHelper.translateLocal('onboarding.mergeBlockScreen.validatedPublicDomainSubtitle', workEmail))).toBeOnTheScreen();
-
         getTopmostReportId.mockRestore();
         dismissModal.mockRestore();
         unmount();
         await waitForBatchedUpdatesWithAct();
 
-        const {unmount: unmountReopenedTask} = renderOnboardingWorkEmailPage(SCREENS.ONBOARDING.WORK_EMAIL, undefined);
+        const {unmount: unmountReopenedTask} = renderOnboardingWorkEmailPage(SCREENS.ONBOARDING.WORK_EMAIL, {isJoinWorkspaceTask: 'true'});
 
         await waitFor(() => {
-            expect(screen.getByText(TestHelper.translateLocal('onboarding.mergeBlockScreen.validatedPublicDomainSubtitle', workEmail))).toBeOnTheScreen();
+            expect(screen.getByText(TestHelper.translateLocal('onboarding.workEmail.title'))).toBeOnTheScreen();
         });
+        expect(screen.queryByText(TestHelper.translateLocal('onboarding.mergeBlockScreen.validatedPublicDomainSubtitle', workEmail))).not.toBeOnTheScreen();
 
         unmountReopenedTask();
         await waitForBatchedUpdatesWithAct();

@@ -28,7 +28,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {expensifyLoginsSelector, isCurrentUserValidated} from '@libs/UserUtils';
 
 import {AddWorkEmail} from '@userActions/Session';
-import {addWorkEmailFormError, clearWorkEmailFormErrors, setOnboardingErrorMessage, setOnboardingMergeAccountStepValue} from '@userActions/Welcome';
+import {addWorkEmailFormError, clearOnboardingMergeAccountBlocked, clearWorkEmailFormErrors, setOnboardingErrorMessage, setOnboardingMergeAccountStepValue} from '@userActions/Welcome';
 
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -256,6 +256,11 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles, route}: BaseOnboardingW
         Navigation.navigate(ROUTES.ONBOARDING_PURPOSE.getRoute(), {forceReplace: true});
     }, []);
 
+    const handleConciergeTaskErrorConfirm = useCallback(() => {
+        clearOnboardingMergeAccountBlocked();
+        returnToOriginReport();
+    }, [returnToOriginReport]);
+
     const shouldRenderOfflineFeedback = useCallback((errorTranslation: string) => {
         if (
             errorTranslation !== 'onboarding.workEmail2FAError' &&
@@ -336,7 +341,7 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles, route}: BaseOnboardingW
                     <OnboardingMergingAccountBlockedView
                         workEmail={workEmail}
                         isVsb={isVsb}
-                        onConfirm={isConciergeTaskFlow ? returnToOriginReport : isJoiningCompanyWorkspace ? handleRegularJoinWorkspaceErrorConfirm : undefined}
+                        onConfirm={isConciergeTaskFlow ? handleConciergeTaskErrorConfirm : isJoiningCompanyWorkspace ? handleRegularJoinWorkspaceErrorConfirm : undefined}
                     />
                 </View>
             ) : (
