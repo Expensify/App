@@ -218,7 +218,7 @@ jobs:
     with:
       ref: ${{ needs.prep.outputs.DEPLOY_SHA }}
       variant: Release
-      beta-track: 'true'
+      beta-track: true
       artifact-prefix: betaTrack-
     secrets: inherit
 

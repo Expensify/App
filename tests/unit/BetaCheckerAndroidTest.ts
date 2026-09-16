@@ -31,6 +31,15 @@ describe('betaChecker (android)', () => {
         await expect(betaChecker.isBetaBuild()).resolves.toBe(true);
     });
 
+    it('falls back to the installer check when the versionCode cannot be read', async () => {
+        jest.spyOn(DeviceInfo, 'getBuildNumber').mockImplementation(() => {
+            throw new Error('RNDeviceInfo is not available');
+        });
+        mockInstaller(PLAY_STORE_INSTALLER);
+
+        await expect(betaChecker.isBetaBuild()).resolves.toBe(false);
+    });
+
     describe('sideloaded builds', () => {
         // 'unknown' is what react-native-device-info reports when the installer is null, e.g. a plain `adb install`
         it.each([['com.google.android.packageinstaller'], ['com.android.packageinstaller'], ['com.android.shell'], ['unknown']])(
