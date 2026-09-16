@@ -141,7 +141,7 @@ function TransactionGroupListExpandedImpl({
                 currentAccountID: accountID,
                 data: transactionsSnapshot?.data,
                 visibleColumns,
-                type: transactionsSnapshot?.search.type,
+                type: transactionsSnapshot?.search?.type,
                 fallbackPolicyID: policyForMovingExpensesID,
             });
         }

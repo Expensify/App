@@ -34,6 +34,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Card, Policy, Report} from '@src/types/onyx';
 import type {CardFeedErrors, CardFeedErrorState} from '@src/types/onyx/DerivedValues';
 import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
+import type {SearchResultsInfo} from '@src/types/onyx/SearchResults';
 import type SearchResults from '@src/types/onyx/SearchResults';
 
 import type {OnyxCollection} from 'react-native-onyx';
@@ -150,7 +151,7 @@ function makeCorporatePolicy(overrides: Partial<Policy> = {}): Policy {
     } as Policy;
 }
 
-function makeSearchResultsWithCount(count: number): SearchResults {
+function makeSearchResultsWithCount(count: number): SearchResults & {search: SearchResultsInfo} {
     return {
         search: {
             type: 'expense',

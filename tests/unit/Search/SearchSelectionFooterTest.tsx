@@ -8,6 +8,7 @@ import {getFooterConvertedAmounts} from '@libs/actions/Search';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {SearchResults} from '@src/types/onyx';
+import type {SearchResultsInfo} from '@src/types/onyx/SearchResults';
 
 import Onyx from 'react-native-onyx';
 
@@ -24,7 +25,7 @@ jest.mock('@libs/actions/Search', () => ({
 type MockSearchQueryContext = {
     currentSearchHash: number;
     currentSearchKey: undefined;
-    currentSearchQueryJSON: {hash: number; type: SearchResults['search']['type']} | undefined;
+    currentSearchQueryJSON: {hash: number; type: SearchResultsInfo['type']} | undefined;
 };
 
 const mockSearchQueryContext: {current: MockSearchQueryContext} = {
@@ -72,7 +73,7 @@ const ACCOUNT_ID = 1;
 const PERSONAL_POLICY_ID = 'personalPolicy1';
 const WORKSPACE_POLICY_ID = 'workspacePolicy1';
 
-function buildSearchResults(currency: string | undefined, count = 1, total = -100, type: SearchResults['search']['type'] = CONST.SEARCH.DATA_TYPES.EXPENSE): SearchResults {
+function buildSearchResults(currency: string | undefined, count = 1, total = -100, type: SearchResultsInfo['type'] = CONST.SEARCH.DATA_TYPES.EXPENSE): SearchResults {
     return {
         search: {
             count,

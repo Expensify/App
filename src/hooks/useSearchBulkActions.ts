@@ -934,7 +934,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     }, [policies]);
 
     const exportSearchData = searchResults?.data;
-    const exportSearchType = searchResults?.search.type ?? queryJSON?.type;
+    const exportSearchType = searchResults?.search?.type ?? queryJSON?.type;
 
     const getCSVExportParameters = useCallback(
         (isBasicExport: boolean, queryJSONToExport: SearchQueryJSON | undefined, exactMatchFilterKeys?: ReadonlySet<SearchFilterKey>) => {
@@ -2251,7 +2251,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             return deletedTransactionOptions;
         }
 
-        const isExpenseReportSearch = isExpenseReportType || searchResults?.search.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
+        const isExpenseReportSearch = isExpenseReportType || searchResults?.search?.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
         const selectedTransactionsList = Object.values(selectedTransactions)
             .map((transaction) => transaction.transaction)
             .filter((transaction): transaction is Transaction => !!transaction);
@@ -2549,7 +2549,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             });
         }
 
-        const isExpenseSearch = queryJSON?.type === CONST.SEARCH.DATA_TYPES.EXPENSE || searchResults?.search.type === CONST.SEARCH.DATA_TYPES.EXPENSE;
+        const isExpenseSearch = queryJSON?.type === CONST.SEARCH.DATA_TYPES.EXPENSE || searchResults?.search?.type === CONST.SEARCH.DATA_TYPES.EXPENSE;
         // Only export transactions that have a downloadable receipt. Drop group_ keys (a group selected before its
         // children load is not a real transaction ID) and deleted transactions so ExportReceiptsToZip gets a clean set.
         const transactionIDs = selectedTransactionsKeys.filter((key) => {
@@ -2668,7 +2668,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             });
         }
 
-        if (selectedTransactionsKeys.length < 3 && searchResults?.search.type !== CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT && searchResults?.data) {
+        if (selectedTransactionsKeys.length < 3 && searchResults?.search?.type !== CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT && searchResults?.data) {
             const {transactions: searchedTransactions, reports, policies: transactionPolicies} = getTransactionsAndReportsFromSearch(searchResults, selectedTransactionsKeys);
 
             if (isMergeActionForSelectedTransactions(searchedTransactions, reports, transactionPolicies, rules, accountID)) {

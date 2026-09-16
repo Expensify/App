@@ -349,7 +349,9 @@ type SearchResultDataType = PrefixedRecord<typeof ONYXKEYS.COLLECTION.TRANSACTIO
 
 /** Model of search results */
 type SearchResults = {
-    search: SearchResultsInfo;
+    /** Metadata about the search, absent from snapshots returned by GetInsights */
+    search?: SearchResultsInfo;
+
     data: SearchResultDataType;
 
     /** Whether search data is being fetched from server */
