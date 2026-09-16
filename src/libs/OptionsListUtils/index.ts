@@ -279,7 +279,7 @@ function fallbackLocaleCompare(a: string, b: string): number {
 
 /**
  * Fallback for the non-React option builders that cannot provide the hook-bound convertToDisplayStringWithoutCurrency. Those builders never
- * render a chat preview; every preview caller threads the context implementation from useCurrencyListActions().
+ * render a chat preview. Every preview caller threads the context implementation from useCurrencyListActions().
  */
 function fallbackConvertToDisplayStringWithoutCurrency(amountInCents: number, currencyCode: string = CONST.CURRENCY.USD): string {
     return convertToDisplayStringWithoutCurrencyForLocale(IntlStore.getCurrentLocale(), amountInCents, currencyCode, getCurrencyDecimals);
