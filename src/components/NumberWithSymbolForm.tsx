@@ -118,6 +118,12 @@ type NumberWithSymbolFormProps = {
 
     /** Accessibility label for the trailing dropdown button (defaults to currency-based copy when unset) */
     currencyButtonAccessibilityLabel?: string;
+
+    /**
+     * Renders the flip and currency buttons as their icon plus label, without the pill background, so they read as
+     * part of the field rather than as controls stacked on top of it. Their tap targets are unchanged.
+     */
+    shouldUseBorderlessButtons?: boolean;
 } & Omit<TextInputWithSymbolProps, 'formattedAmount' | 'onAmountChange' | 'placeholder' | 'onSelectionChange' | 'onKeyPress' | 'onMouseDown' | 'onMouseUp'>;
 
 type NumberWithSymbolFormRef = {
@@ -191,6 +197,7 @@ function NumberWithSymbolForm({
     onCurrencyButtonPress,
     currencyButtonLabel,
     currencyButtonAccessibilityLabel,
+    shouldUseBorderlessButtons = false,
     ...props
 }: NumberWithSymbolFormProps) {
     const icons = useMemoizedLazyExpensifyIcons(['DownArrow', 'PlusMinus', 'CoinsButton']);
@@ -491,6 +498,7 @@ function NumberWithSymbolForm({
                 {shouldShowFlipButton && allowNegativeInput && canUseTouchScreen && (
                     <Button
                         size={CONST.BUTTON_SIZE.SMALL}
+                        innerStyles={shouldUseBorderlessButtons ? styles.bgTransparent : undefined}
                         onPress={handleFlipPress}
                         onMouseDown={(e) => e.preventDefault()}
                         contentContainerStyle={styles.justifyContentCenter}
@@ -507,6 +515,7 @@ function NumberWithSymbolForm({
                 {shouldShowCurrencyButton && !!currencyOrUnitButtonText && (
                     <Button
                         size={CONST.BUTTON_SIZE.SMALL}
+                        innerStyles={shouldUseBorderlessButtons ? styles.bgTransparent : undefined}
                         onPress={onTrailingDropdownPress}
                         // Keep the press from blurring the input. Callers that only reveal these buttons while the
                         // field is focused would otherwise unmount this one before the press lands, leaving the
@@ -529,6 +538,7 @@ function NumberWithSymbolForm({
         shouldShowFlipButton,
         allowNegativeInput,
         disabled,
+        shouldUseBorderlessButtons,
         shouldShowCurrencyButton,
         leadingRightHandSideComponent,
         styles,

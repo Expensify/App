@@ -28,6 +28,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 
+import type {ReactNode} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import React, {useEffect, useRef, useState} from 'react';
@@ -50,6 +51,12 @@ type AmountFieldProps = {
     clearFormErrors: (errors: string[]) => void;
     setFormError: (error: TranslationPaths | '') => void;
     isParticipantPickerVisible?: boolean;
+
+    /** Action rendered beside the field, vertically aligned with it, e.g. the compact add-receipt button */
+    trailingAction?: ReactNode;
+
+    /** Renders the flip and currency buttons without their pill background, so they read as part of the field */
+    shouldUseBorderlessButtons?: boolean;
 };
 
 function AmountField({
@@ -65,6 +72,8 @@ function AmountField({
     clearFormErrors,
     setFormError,
     isParticipantPickerVisible = false,
+    trailingAction,
+    shouldUseBorderlessButtons = false,
 }: AmountFieldProps) {
     const {isEditingSplitBill, canEnterScanFieldsManually, isReadOnly, didConfirm, transactionID, action, iouType, reportID, reportActionID} = useConfirmationFields();
     // The Scan confirmation keeps the amount unfocused: its fields sit behind "Show more", which the user also opens
@@ -306,33 +315,37 @@ function AmountField({
                 onInputChange={updateCurrency}
             />
             {!isAmountFieldDisabled ? (
-                <View style={[styles.mh4, styles.mv2]}>
-                    <NumberWithSymbolForm
-                        key={transactionID}
-                        ref={amountInputRef}
-                        displayAsTextInput
-                        autoFocus={false}
-                        value={transactionAmount}
-                        decimals={decimals}
-                        currency={effectiveCurrency}
-                        symbol={getLocalizedCurrencySymbol(preferredLocale, effectiveCurrency) ?? ''}
-                        label={translate('iou.amount')}
-                        errorText={amountFieldErrorText}
-                        onInputChange={handleAmountChange}
-                        allowNegativeInput={allowNegative}
-                        shouldShowFlipButton={shouldShowAmountButtons}
-                        shouldShowCurrencyButton={shouldShowAmountButtons}
-                        shouldShowBigNumberPad={false}
-                        onCurrencyButtonPress={showCurrencyPicker}
-                        onFocus={() => {
-                            setIsAmountInputFocused(true);
-                        }}
-                        onBlur={() => {
-                            setIsAmountInputFocused(false);
-                        }}
-                        leadingRightHandSideComponent={shouldShowAutomaticHint ? <AutomaticFieldHint /> : undefined}
-                        disabled={isAmountFieldDisabled}
-                    />
+                <View style={[styles.mh4, styles.mv2, styles.flexRow, styles.gap2]}>
+                    <View style={styles.flex1}>
+                        <NumberWithSymbolForm
+                            key={transactionID}
+                            ref={amountInputRef}
+                            displayAsTextInput
+                            autoFocus={false}
+                            value={transactionAmount}
+                            decimals={decimals}
+                            currency={effectiveCurrency}
+                            symbol={getLocalizedCurrencySymbol(preferredLocale, effectiveCurrency) ?? ''}
+                            label={translate('iou.amount')}
+                            errorText={amountFieldErrorText}
+                            onInputChange={handleAmountChange}
+                            allowNegativeInput={allowNegative}
+                            shouldShowFlipButton={shouldShowAmountButtons}
+                            shouldShowCurrencyButton={shouldShowAmountButtons}
+                            shouldShowBigNumberPad={false}
+                            onCurrencyButtonPress={showCurrencyPicker}
+                            onFocus={() => {
+                                setIsAmountInputFocused(true);
+                            }}
+                            onBlur={() => {
+                                setIsAmountInputFocused(false);
+                            }}
+                            leadingRightHandSideComponent={shouldShowAutomaticHint ? <AutomaticFieldHint /> : undefined}
+                            shouldUseBorderlessButtons={shouldUseBorderlessButtons}
+                            disabled={isAmountFieldDisabled}
+                        />
+                    </View>
+                    {trailingAction}
                 </View>
             ) : (
                 <MenuItemWithTopDescription

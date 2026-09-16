@@ -23,6 +23,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 
 import React from 'react';
 
+import ExpenseFieldRow from './ExpenseFieldRow';
 import {attendeeSliceSelector} from './selectors';
 import useTransactionSelector from './useTransactionSelector';
 
@@ -34,9 +35,12 @@ type AttendeeFieldProps = {
     iouType: Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND>;
     reportID: string;
     formError: string;
+
+    /** Whether the row renders as one of the form's bordered fields instead of as a push row */
+    shouldUseDropdownRows: boolean;
 };
 
-function AttendeeField({formattedAmountPerAttendee, isReadOnly, transactionID, action, iouType, reportID, formError}: AttendeeFieldProps) {
+function AttendeeField({formattedAmountPerAttendee, isReadOnly, transactionID, action, iouType, reportID, formError, shouldUseDropdownRows}: AttendeeFieldProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const personalDetailsList = usePersonalDetails();
@@ -48,37 +52,57 @@ function AttendeeField({formattedAmountPerAttendee, isReadOnly, transactionID, a
     const rawIouAttendees = useAttendees(attendeeSlice as OnyxEntry<OnyxTypes.Transaction>);
     const iouAttendees = enrichAndSortAttendees(rawIouAttendees, loginToAccountIDMap, personalDetailsList, localeCompare);
 
+    const attendeesDescription = `${translate('iou.attendees')} ${
+        iouAttendees?.length && iouAttendees.length > 1 && formattedAmountPerAttendee ? `· ${formattedAmountPerAttendee} ${translate('common.perPerson')}` : ''
+    }`;
+    const attendeesAccessibilityLabel = `${translate('iou.attendees')}, ${Array.isArray(iouAttendees) ? getAttendeesListDisplayString(iouAttendees) : ''}`;
+    const attendeePills = Array.isArray(iouAttendees) ? (
+        <UserPills
+            users={iouAttendees.map((a) => ({
+                avatar: a?.avatarUrl,
+                displayName: a?.displayName ?? a?.email ?? '',
+                accountID: a?.accountID,
+                email: a?.email,
+            }))}
+            maxVisible={isReadOnly ? iouAttendees.length : undefined}
+        />
+    ) : undefined;
+
+    const openAttendeePage = () => {
+        if (!transactionID) {
+            return;
+        }
+
+        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_ATTENDEE.getRoute(action, iouType, transactionID, reportID)));
+    };
+
+    if (shouldUseDropdownRows) {
+        return (
+            <ExpenseFieldRow
+                name={attendeesDescription}
+                valueComponent={attendeePills}
+                // The creator is always an attendee, so the row reads as filled in from the start.
+                hasValueComponent
+                accessibilityLabel={attendeesAccessibilityLabel}
+                errorText={shouldDisplayAttendeesError ? translate(formError as TranslationPaths) : ''}
+                onPress={openAttendeePage}
+                isInteractive={!isReadOnly}
+                sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.ATTENDEES_FIELD}
+            />
+        );
+    }
+
     return (
         <MenuItemWithTopDescription
             key="attendees"
             shouldShowRightIcon={!isReadOnly}
-            accessibilityLabel={`${translate('iou.attendees')}, ${Array.isArray(iouAttendees) ? getAttendeesListDisplayString(iouAttendees) : ''}`}
-            description={`${translate('iou.attendees')} ${
-                iouAttendees?.length && iouAttendees.length > 1 && formattedAmountPerAttendee ? `· ${formattedAmountPerAttendee} ${translate('common.perPerson')}` : ''
-            }`}
+            accessibilityLabel={attendeesAccessibilityLabel}
+            description={attendeesDescription}
             descriptionTextStyle={styles.textLabelSupportingNormal}
-            titleComponent={
-                Array.isArray(iouAttendees) ? (
-                    <UserPills
-                        users={iouAttendees.map((a) => ({
-                            avatar: a?.avatarUrl,
-                            displayName: a?.displayName ?? a?.email ?? '',
-                            accountID: a?.accountID,
-                            email: a?.email,
-                        }))}
-                        maxVisible={isReadOnly ? iouAttendees.length : undefined}
-                    />
-                ) : undefined
-            }
+            titleComponent={attendeePills}
             style={[styles.moneyRequestMenuItem]}
             titleStyle={styles.flex1}
-            onPress={() => {
-                if (!transactionID) {
-                    return;
-                }
-
-                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_ATTENDEE.getRoute(action, iouType, transactionID, reportID)));
-            }}
+            onPress={openAttendeePage}
             interactive={!isReadOnly}
             brickRoadIndicator={shouldDisplayAttendeesError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
             errorText={shouldDisplayAttendeesError ? translate(formError as TranslationPaths) : ''}

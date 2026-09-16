@@ -57,6 +57,12 @@ type ConfirmationFieldListProps = {
 
     /** Compact-mode bookkeeping */
     compactState?: CompactState;
+
+    /**
+     * Whether every selectable row renders as one of the form's bordered fields with a down caret, instead of as a
+     * borderless push row. Only the manual expense form uses this treatment.
+     */
+    shouldUseDropdownRows?: boolean;
 };
 
 function ConfirmationFieldList({
@@ -70,6 +76,7 @@ function ConfirmationFieldList({
     errorState,
     toggleHandlers,
     compactState = {isCompactMode: false, setShowMoreFields: () => {}},
+    shouldUseDropdownRows = false,
 }: ConfirmationFieldListProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -158,6 +165,7 @@ function ConfirmationFieldList({
                     formattedAmountPerAttendee={amountDisplay.formattedAmountPerAttendee}
                     isCompactMode={compactState.isCompactMode}
                     fieldVisibility={fieldVisibility}
+                    shouldUseDropdownRows={shouldUseDropdownRows}
                 />
 
                 <SettingsFields
@@ -167,6 +175,7 @@ function ConfirmationFieldList({
                     toggleHandlers={toggleHandlers}
                     isCompactMode={compactState.isCompactMode}
                     fieldVisibility={fieldVisibility}
+                    shouldUseDropdownRows={shouldUseDropdownRows}
                 />
 
                 {compactState.isCompactMode && shouldShowMoreButton && (

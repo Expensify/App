@@ -18,6 +18,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 
 import React from 'react';
 
+import ExpenseFieldRow from './ExpenseFieldRow';
 import {categoryStateSelector} from './selectors';
 import useTransactionSelector from './useTransactionSelector';
 
@@ -34,6 +35,9 @@ type CategoryFieldProps = {
     formError: string;
     shouldNavigateToUpgradePath: boolean;
     shouldSelectPolicy: boolean;
+
+    /** Whether the row renders as one of the form's bordered fields instead of as a push row */
+    shouldUseDropdownRows: boolean;
 };
 
 function CategoryField({
@@ -49,6 +53,7 @@ function CategoryField({
     formError,
     shouldNavigateToUpgradePath,
     shouldSelectPolicy,
+    shouldUseDropdownRows,
 }: CategoryFieldProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -72,40 +77,84 @@ function CategoryField({
         return '';
     };
 
+    const openCategoryPage = () => {
+        if (!transactionID) {
+            return;
+        }
+
+        if (shouldNavigateToUpgradePath) {
+            Navigation.navigate(
+                createDynamicRoute(
+                    DYNAMIC_ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
+                        action,
+                        iouType,
+                        transactionID,
+                        reportID,
+                        upgradeBackTo: createDynamicRoute(
+                            DYNAMIC_ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute({
+                                action,
+                                iouType,
+                                transactionID,
+                                reportID,
+                                reportActionID,
+                            }),
+                        ),
+                        upgradePath: CONST.UPGRADE_PATHS.CATEGORIES,
+                    }),
+                ),
+            );
+        } else if (!policy && shouldSelectPolicy) {
+            Navigation.navigate(
+                ROUTES.SET_DEFAULT_WORKSPACE.getRoute(
+                    createDynamicRoute(
+                        DYNAMIC_ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute({
+                            action,
+                            iouType,
+                            transactionID,
+                            reportID,
+                            reportActionID,
+                        }),
+                    ),
+                ),
+            );
+        } else {
+            Navigation.navigate(
+                createDynamicRoute(
+                    DYNAMIC_ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute({
+                        action,
+                        iouType,
+                        transactionID,
+                        reportID,
+                        reportActionID,
+                    }),
+                ),
+            );
+        }
+    };
+
+    if (shouldUseDropdownRows) {
+        return (
+            <ExpenseFieldRow
+                name={translate('common.category')}
+                value={decodedCategoryName}
+                rightLabel={getCategoryRightLabel()}
+                rightLabelIcon={getCategoryRightLabelIcon()}
+                errorText={shouldDisplayCategoryError ? translate(formError as TranslationPaths) : ''}
+                onPress={openCategoryPage}
+                isDisabled={didConfirm}
+                isInteractive={!isReadOnly}
+                sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.CATEGORY_FIELD}
+            />
+        );
+    }
+
     return (
         <MenuItemWithTopDescription
             shouldShowRightIcon={!isReadOnly}
             title={decodedCategoryName}
             description={translate('common.category')}
             numberOfLinesTitle={2}
-            onPress={() => {
-                if (!transactionID) {
-                    return;
-                }
-
-                if (shouldNavigateToUpgradePath) {
-                    Navigation.navigate(
-                        createDynamicRoute(
-                            DYNAMIC_ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
-                                action,
-                                iouType,
-                                transactionID,
-                                reportID,
-                                upgradeBackTo: createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute({action, iouType, transactionID, reportID, reportActionID})),
-                                upgradePath: CONST.UPGRADE_PATHS.CATEGORIES,
-                            }),
-                        ),
-                    );
-                } else if (!policy && shouldSelectPolicy) {
-                    Navigation.navigate(
-                        ROUTES.SET_DEFAULT_WORKSPACE.getRoute(
-                            createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute({action, iouType, transactionID, reportID, reportActionID})),
-                        ),
-                    );
-                } else {
-                    Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute({action, iouType, transactionID, reportID, reportActionID})));
-                }
-            }}
+            onPress={openCategoryPage}
             style={[styles.moneyRequestMenuItem]}
             titleStyle={styles.flex1}
             disabled={didConfirm}

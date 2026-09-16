@@ -6,6 +6,7 @@ import type {AmountDisplay, ErrorState, RequiredFlags} from '@components/MoneyRe
 
 import type * as OnyxTypes from '@src/types/onyx';
 
+import type {ReactNode} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import React from 'react';
@@ -25,12 +26,26 @@ type ManualDetailsFieldsProps = {
 
     /** Whether the parent-owned participant picker modal is currently open (new manual expense flow) */
     isParticipantPickerVisible: boolean;
+
+    /** Action rendered beside the amount field, e.g. the compact add-receipt button of the manual form */
+    amountTrailingAction?: ReactNode;
+
+    /** Renders the amount field's flip and currency buttons without their pill background */
+    shouldUseBorderlessAmountButtons?: boolean;
 };
 
 /**
  * The expense-type-driven fields for a manual, scanned or invoice confirmation: Amount, Merchant and Description.
  */
-function ManualDetailsFields({policy, amountDisplay, requiredFlags, errorState, isParticipantPickerVisible}: ManualDetailsFieldsProps) {
+function ManualDetailsFields({
+    policy,
+    amountDisplay,
+    requiredFlags,
+    errorState,
+    isParticipantPickerVisible,
+    amountTrailingAction,
+    shouldUseBorderlessAmountButtons = false,
+}: ManualDetailsFieldsProps) {
     const {fieldVisibility, isCompactMode, iouCurrencyCode} = useDetailsFields();
 
     return (
@@ -44,6 +59,8 @@ function ManualDetailsFields({policy, amountDisplay, requiredFlags, errorState, 
                     shouldShowTimeRequestFields={false}
                     policy={policy}
                     isParticipantPickerVisible={isParticipantPickerVisible}
+                    trailingAction={amountTrailingAction}
+                    shouldUseBorderlessButtons={shouldUseBorderlessAmountButtons}
                     {...errorState}
                 />
             )}

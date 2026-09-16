@@ -24,6 +24,12 @@ type SettingsFieldsProps = {
 
     /** Per-field visibility decisions resolved by `computeFieldVisibility` */
     fieldVisibility: Pick<FieldVisibility, 'toggles' | 'report'>;
+
+    /**
+     * Whether the selectable rows render as the form's bordered fields instead of as push rows. The toggles stay
+     * borderless either way — a toggle is not a value to pick — and group below Report rather than above it.
+     */
+    shouldUseDropdownRows: boolean;
 };
 
 /**
@@ -31,36 +37,48 @@ type SettingsFieldsProps = {
  * Gating ReportField behind `isPolicyExpenseChat` keeps its 5 Onyx subscriptions
  * (including `COLLECTION.REPORT_NVP`) from instantiating on non-policy-expense flows.
  */
-function SettingsFields({selectedParticipants, shouldShowBillable, shouldShowReimbursable, toggleHandlers, isCompactMode, fieldVisibility}: SettingsFieldsProps) {
+function SettingsFields({selectedParticipants, shouldShowBillable, shouldShowReimbursable, toggleHandlers, isCompactMode, fieldVisibility, shouldUseDropdownRows}: SettingsFieldsProps) {
     const {action, iouType, transactionID, reportID, reportActionID, isReadOnly, isPolicyExpenseChat, isPerDiemRequest} = useConfirmationFields();
 
     if (isCompactMode) {
         return null;
     }
-    return (
+
+    const toggles = fieldVisibility.toggles ? (
+        <ToggleFields
+            isReadOnly={isReadOnly}
+            shouldShowReimbursable={shouldShowReimbursable}
+            shouldShowBillable={shouldShowBillable}
+            onToggleReimbursable={toggleHandlers.onToggleReimbursable}
+            onToggleBillable={toggleHandlers.onToggleBillable}
+            transactionID={transactionID}
+        />
+    ) : null;
+
+    const report = fieldVisibility.report ? (
+        <ReportField
+            selectedParticipants={selectedParticipants}
+            isPolicyExpenseChat={isPolicyExpenseChat}
+            iouType={iouType}
+            reportID={reportID}
+            reportActionID={reportActionID}
+            action={action}
+            transactionID={transactionID}
+            isPerDiemRequest={isPerDiemRequest}
+            shouldUseDropdownRows={shouldUseDropdownRows}
+        />
+    ) : null;
+
+    // The toggles group at the bottom of the dropdown-row form, so Report comes first there.
+    return shouldUseDropdownRows ? (
         <>
-            {fieldVisibility.toggles && (
-                <ToggleFields
-                    isReadOnly={isReadOnly}
-                    shouldShowReimbursable={shouldShowReimbursable}
-                    shouldShowBillable={shouldShowBillable}
-                    onToggleReimbursable={toggleHandlers.onToggleReimbursable}
-                    onToggleBillable={toggleHandlers.onToggleBillable}
-                    transactionID={transactionID}
-                />
-            )}
-            {fieldVisibility.report && (
-                <ReportField
-                    selectedParticipants={selectedParticipants}
-                    isPolicyExpenseChat={isPolicyExpenseChat}
-                    iouType={iouType}
-                    reportID={reportID}
-                    reportActionID={reportActionID}
-                    action={action}
-                    transactionID={transactionID}
-                    isPerDiemRequest={isPerDiemRequest}
-                />
-            )}
+            {report}
+            {toggles}
+        </>
+    ) : (
+        <>
+            {toggles}
+            {report}
         </>
     );
 }

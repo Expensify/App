@@ -1320,6 +1320,7 @@ const translations: TranslationDeepObject<typeof en> = {
             cta: 'Heimatadresse hinzufügen',
         },
         amount: 'Betrag',
+        expenseDetails: 'Ausgabendetails',
         percent: 'Prozent',
         date: 'Datum',
         taxAmount: 'Steuerbetrag',
