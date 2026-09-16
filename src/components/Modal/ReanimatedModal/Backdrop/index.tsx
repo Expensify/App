@@ -10,6 +10,7 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 
 import React from 'react';
+import {StyleSheet} from 'react-native';
 import Animated, {Keyframe} from 'react-native-reanimated';
 
 function Backdrop({
@@ -39,6 +40,8 @@ function Backdrop({
     if (!customBackdrop) {
         return (
             <PressableWithoutFeedback
+                // The absolute child doesn't size its parent. Native touch handling needs full-screen bounds to allow small finger movements.
+                style={StyleSheet.absoluteFill}
                 accessible
                 role={CONST.ROLE.BUTTON}
                 accessibilityLabel={translate('common.dismiss')}
