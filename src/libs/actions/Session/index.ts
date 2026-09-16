@@ -1600,7 +1600,7 @@ function waitForUserSignIn(): Promise<boolean> {
 function handleExitToNavigation(exitTo: Route) {
     waitForUserSignIn().then(() => {
         Navigation.waitForProtectedRoutes().then(() => {
-            Navigation.goBack(ROUTES.HOME, {waitForTransition: true});
+            Navigation.goBack(navigationRef.canGoBack() ? undefined : ROUTES.HOME, {waitForTransition: true});
             Navigation.navigate(exitTo, {waitForTransition: true});
         });
     });
