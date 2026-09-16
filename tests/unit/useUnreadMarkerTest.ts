@@ -2,6 +2,7 @@ import {act, renderHook} from '@testing-library/react-native';
 
 import useUnreadMarker from '@hooks/useUnreadMarker';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 
@@ -123,6 +124,117 @@ describe('useUnreadMarker', () => {
         expect(result.current.unreadMarkerReportActionIndex).toBe(-1);
     });
 
+    it('does not push the read watermark on a bulk history reveal without a session boundary (marker appears on the next render)', () => {
+        const greeting = makeAction(CONST.CONCIERGE_GREETING_ACTION_ID, {created: LAST_READ_TIME});
+        const createdAction = makeAction('created', {created: '2023-01-01 08:00:00.000', actionName: CONST.REPORT.ACTIONS.TYPE.CREATED});
+        const welcomeActions = [greeting, createdAction];
+
+        const {result, rerender} = renderHook(
+            (sortedVisibleReportActions: OnyxTypes.ReportAction[]) =>
+                useUnreadMarker({
+                    reportID: REPORT_ID,
+                    sortedVisibleReportActions,
+                    sortedReportActions: sortedVisibleReportActions,
+                    oldestUnreadReportActionID: undefined,
+                    isScrolledOverThreshold: false,
+                    hasOnceLoadedReportActions: true,
+                }),
+            {initialProps: welcomeActions},
+        );
+        expect(result.current.unreadMarkerReportActionID).toBeNull();
+
+        const bumpedGreeting = makeAction(CONST.CONCIERGE_GREETING_ACTION_ID, {created: '2023-01-01 12:00:00.000'});
+        rerender([bumpedGreeting, createdAction]);
+        expect(result.current.unreadMarkerReportActionID).toBeNull();
+
+        const unreadMessage = makeAction('unread', {created: '2023-01-01 11:00:00.000'});
+        const readMessage = makeAction('read', {created: '2023-01-01 09:00:00.000'});
+        const fullHistory = [unreadMessage, readMessage, createdAction];
+        rerender(fullHistory);
+
+        rerender(fullHistory);
+        expect(result.current.unreadMarkerReportActionID).toBe('unread');
+        expect(result.current.unreadMarkerReportActionIndex).toBe(0);
+    });
+
+    it('shows the marker immediately on the reveal render when a session boundary is provided ("Show history")', () => {
+        const sessionStartTime = '2023-01-01 11:30:00.000';
+        const greeting = makeAction(CONST.CONCIERGE_GREETING_ACTION_ID, {created: LAST_READ_TIME});
+        const createdAction = makeAction('created', {created: '2023-01-01 08:00:00.000', actionName: CONST.REPORT.ACTIONS.TYPE.CREATED});
+
+        const {result, rerender} = renderHook(
+            (sortedVisibleReportActions: OnyxTypes.ReportAction[]) =>
+                useUnreadMarker({
+                    reportID: REPORT_ID,
+                    sortedVisibleReportActions,
+                    sortedReportActions: sortedVisibleReportActions,
+                    oldestUnreadReportActionID: undefined,
+                    isScrolledOverThreshold: false,
+                    hasOnceLoadedReportActions: true,
+                    newMessageBoundaryTime: sessionStartTime,
+                }),
+            {initialProps: [greeting, createdAction]},
+        );
+        expect(result.current.unreadMarkerReportActionID).toBeNull();
+
+        const unreadMessage = makeAction('unread', {created: '2023-01-01 11:00:00.000'});
+        const readMessage = makeAction('read', {created: '2023-01-01 09:00:00.000'});
+        rerender([unreadMessage, readMessage, createdAction]);
+
+        expect(result.current.unreadMarkerReportActionID).toBe('unread');
+        expect(result.current.unreadMarkerReportActionIndex).toBe(0);
+    });
+
+    it('still auto-reads a live message received while caught up when a session boundary is provided', () => {
+        const sessionStartTime = '2023-01-01 10:30:00.000';
+        const oldMessage = makeAction('old', {created: '2023-01-01 09:00:00.000'});
+
+        const {result, rerender} = renderHook(
+            (sortedVisibleReportActions: OnyxTypes.ReportAction[]) =>
+                useUnreadMarker({
+                    reportID: REPORT_ID,
+                    sortedVisibleReportActions,
+                    sortedReportActions: sortedVisibleReportActions,
+                    oldestUnreadReportActionID: undefined,
+                    isScrolledOverThreshold: false,
+                    hasOnceLoadedReportActions: true,
+                    newMessageBoundaryTime: sessionStartTime,
+                }),
+            {initialProps: [oldMessage]},
+        );
+        expect(result.current.unreadMarkerReportActionID).toBeNull();
+
+        const incoming = makeAction('incoming', {created: '2023-01-01 11:00:00.000'});
+        rerender([incoming, oldMessage]);
+        expect(result.current.unreadMarkerReportActionID).toBeNull();
+        rerender([incoming, oldMessage]);
+        expect(result.current.unreadMarkerReportActionID).toBeNull();
+    });
+
+    it('still pushes the watermark past a new message received while caught up', () => {
+        const oldMessage = makeAction('old', {created: '2023-01-01 09:00:00.000'});
+
+        const {result, rerender} = renderHook(
+            (sortedVisibleReportActions: OnyxTypes.ReportAction[]) =>
+                useUnreadMarker({
+                    reportID: REPORT_ID,
+                    sortedVisibleReportActions,
+                    sortedReportActions: sortedVisibleReportActions,
+                    oldestUnreadReportActionID: undefined,
+                    isScrolledOverThreshold: false,
+                    hasOnceLoadedReportActions: true,
+                }),
+            {initialProps: [oldMessage]},
+        );
+        expect(result.current.unreadMarkerReportActionID).toBeNull();
+
+        const incoming = makeAction('incoming', {created: '2023-01-01 11:00:00.000'});
+        rerender([incoming, oldMessage]);
+        expect(result.current.unreadMarkerReportActionID).toBeNull();
+        rerender([incoming, oldMessage]);
+        expect(result.current.unreadMarkerReportActionID).toBeNull();
+    });
+
     it('seeds the marker from the switched-to report lastReadTime (one mount per report)', () => {
         // Setup: report 'A' was last read at 10:00 and 'B' at 12:00; one action from another user lands
         // at 11:00 — after A's read time (unread on A) but before B's read time (already read on B).
@@ -141,5 +253,34 @@ describe('useUnreadMarker', () => {
         const {result: resultB} = renderUnreadMarker({reportID: 'B', sortedVisibleReportActions: [action], sortedReportActions: [action]});
         expect(resultB.current.unreadMarkerReportActionID).toBeNull();
         expect(resultB.current.unreadMarkerReportActionIndex).toBe(-1);
+    });
+
+    it('should scan an oldest-first list from the end when isReversed is set', () => {
+        const readAction = makeAction('read', {created: '2023-01-01 09:00:00.000'});
+        const unreadAction = makeAction('unread', {created: '2023-01-01 11:00:00.000'});
+        const oldestFirstActions = [readAction, unreadAction];
+
+        const {result} = renderUnreadMarker({
+            sortedVisibleReportActions: oldestFirstActions,
+            sortedReportActions: oldestFirstActions,
+            isReversed: true,
+        });
+
+        expect(result.current.unreadMarkerReportActionID).toBe('unread');
+        expect(result.current.unreadMarkerReportActionIndex).toBe(1);
+    });
+
+    it('should find the same action in an oldest-first list as in the equivalent newest-first list', () => {
+        const readAction = makeAction('read', {created: '2023-01-01 09:00:00.000'});
+        const unreadAction = makeAction('unread', {created: '2023-01-01 11:00:00.000'});
+
+        const newestFirst = [unreadAction, readAction];
+        const {result: newestFirstResult} = renderUnreadMarker({sortedVisibleReportActions: newestFirst, sortedReportActions: newestFirst});
+
+        const oldestFirst = [readAction, unreadAction];
+        const {result: oldestFirstResult} = renderUnreadMarker({sortedVisibleReportActions: oldestFirst, sortedReportActions: oldestFirst, isReversed: true});
+
+        expect(newestFirstResult.current.unreadMarkerReportActionID).toBe('unread');
+        expect(oldestFirstResult.current.unreadMarkerReportActionID).toBe('unread');
     });
 });

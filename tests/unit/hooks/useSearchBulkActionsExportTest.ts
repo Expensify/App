@@ -355,6 +355,7 @@ function makeSelectedTransaction(overrides: Partial<SelectedTransactions[string]
         reportID: REPORT_ID,
         policyID: POLICY_ID,
         amount: 100,
+        displayAmount: 100,
         currency: 'USD',
         isFromOneTransactionReport: false,
         ...overrides,
@@ -859,7 +860,7 @@ describe('useSearchBulkActions - export options', () => {
             expect.objectContaining({
                 title: 'workspace.exportPartialModal.title',
                 subtitle: 'workspace.exportPartialModal.description',
-                prompt: 'Approved report',
+                prompt: `${CONST.DOT_SEPARATOR} Approved report`,
                 shouldEnablePromptScroll: true,
             }),
         );
@@ -904,7 +905,7 @@ describe('useSearchBulkActions - export options', () => {
             expect.objectContaining({
                 title: 'workspace.exportPartialModal.title',
                 subtitle: 'workspace.exportPartialModal.description',
-                prompt: 'Approved report',
+                prompt: `${CONST.DOT_SEPARATOR} Approved report`,
                 shouldEnablePromptScroll: true,
             }),
         );
@@ -989,7 +990,7 @@ describe('useSearchBulkActions - export options', () => {
             expect.objectContaining({
                 title: 'workspace.exportAgainModal.title',
                 subtitle: 'workspace.exportAgainModal.description',
-                prompt: 'Approved report',
+                prompt: `${CONST.DOT_SEPARATOR} Approved report`,
                 shouldEnablePromptScroll: true,
             }),
         );
@@ -1028,7 +1029,7 @@ describe('useSearchBulkActions - export options', () => {
             expect.objectContaining({
                 title: 'workspace.exportAgainModal.title',
                 subtitle: 'workspace.exportAgainModal.description',
-                prompt: 'Approved report',
+                prompt: `${CONST.DOT_SEPARATOR} Approved report`,
                 shouldEnablePromptScroll: true,
             }),
         );

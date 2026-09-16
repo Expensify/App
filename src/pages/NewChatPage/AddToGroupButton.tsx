@@ -1,4 +1,4 @@
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import {useListItemContext} from '@components/SelectionList/ListItemContext';
 
 import useLocalize from '@hooks/useLocalize';

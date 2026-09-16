@@ -69,7 +69,7 @@ describe('PolicyUtils', () => {
                 100000,
             );
             await Onyx.mergeCollection(ONYXKEYS.COLLECTION.TRANSACTION, transactions);
-            await measureFunction(() => getSubmitToAccountID(policy, expenseReport, ''));
+            await measureFunction(() => getSubmitToAccountID(policy, expenseReport, '', undefined));
         });
 
         describe('not a submit and close policy', () => {
@@ -101,7 +101,7 @@ describe('PolicyUtils', () => {
                     10000,
                 );
                 await Onyx.mergeCollection(ONYXKEYS.COLLECTION.TRANSACTION, transactions);
-                await measureFunction(() => getSubmitToAccountID(policy, expenseReport, ''));
+                await measureFunction(() => getSubmitToAccountID(policy, expenseReport, '', undefined));
             });
 
             test('all transactions have category, but no category approval rules', async () => {
@@ -131,7 +131,7 @@ describe('PolicyUtils', () => {
                     10000,
                 );
                 await Onyx.mergeCollection(ONYXKEYS.COLLECTION.TRANSACTION, transactions);
-                await measureFunction(() => getSubmitToAccountID(policy, expenseReport, ''));
+                await measureFunction(() => getSubmitToAccountID(policy, expenseReport, '', undefined));
             });
         });
     });

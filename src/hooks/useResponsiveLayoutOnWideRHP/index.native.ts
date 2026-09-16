@@ -8,7 +8,6 @@ export default function useResponsiveLayoutOnWideRHP(): ResponsiveLayoutOnWideRH
 
     return {
         ...responsiveLayoutValues,
-        shouldUseNarrowLayoutIgnoringWideRHP: responsiveLayoutValues.shouldUseNarrowLayout,
         isWideRHPDisplayedOnWideLayout: false,
         isSuperWideRHPDisplayedOnWideLayout: false,
     };
