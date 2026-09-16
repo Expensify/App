@@ -245,6 +245,15 @@ describe('OnboardingFlow', () => {
             );
         });
 
+        it('should not duplicate the join-workspace task marker', () => {
+            const joinWorkspaceTask = getOnboardingMessages(CONST.LOCALES.EN).joinWorkspaceMessages.joinWorkspace.tasks.at(0);
+            const description =
+                typeof joinWorkspaceTask?.description === 'function' && joinWorkspaceTask.description({joinWorkspaceLink: 'onboarding/join-workspaces?isJoinWorkspaceTask=true'});
+
+            expect(description).toContain('[Join a workspace](onboarding/join-workspaces?isJoinWorkspaceTask=true)');
+            expect(description).not.toContain('isJoinWorkspaceTask=true?isJoinWorkspaceTask=true');
+        });
+
         it('should use the no-workspaces message without a task', () => {
             const emptyMessage = getOnboardingMessages(CONST.LOCALES.EN).joinWorkspaceMessages.empty;
 
