@@ -266,7 +266,7 @@ describe('SequentialQueue', () => {
             await waitForBatchedUpdates();
             expect(getOngoingRequest()?.command).toBe('OpenReport');
 
-            // And a similar ReconnectApp is queued, identified by requestIndex 20
+            // And a similar ReconnectApp is queued behind it
             await SequentialQueue.push({...request, requestIndex: 20});
 
             const requestWithConflictResolution: Request<never> = {
@@ -277,11 +277,11 @@ describe('SequentialQueue', () => {
                     if (index === -1) {
                         return {conflictAction: {type: 'push'}};
                     }
-                    return {conflictAction: {type: 'replace', index, requestIndex: persistedRequests.at(index)?.requestIndex}};
+                    return {conflictAction: {type: 'replace', index}};
                 },
             };
 
-            // When a conflicting ReconnectApp is pushed with a resolver that addresses the queued one by requestIndex, followed by two unrelated requests
+            // When a conflicting ReconnectApp is pushed, followed by two unrelated requests
             await SequentialQueue.push(requestWithConflictResolution);
             await SequentialQueue.push({command: 'AddComment'});
             await SequentialQueue.push({command: 'OpenReport'});
@@ -319,7 +319,7 @@ describe('SequentialQueue', () => {
                 }
 
                 return {
-                    conflictAction: {type: 'replace', index, requestIndex: persistedRequests.at(index)?.requestIndex},
+                    conflictAction: {type: 'replace', index},
                 };
             },
         };
@@ -336,7 +336,7 @@ describe('SequentialQueue', () => {
         await Promise.resolve();
         const persistedRequests = getAll();
 
-        // Then the request the resolver identified is the one replaced at index 9
+        // Then the request the resolver pointed at is the one replaced at index 9
         expect(persistedRequests.at(9)?.command).toBe('ReconnectApp-replaced');
         expect(persistedRequests.at(9)?.data?.accountID).toBe(56789);
     });
@@ -560,7 +560,7 @@ describe('SequentialQueue - conflict replace addressing', () => {
                 checkAndFixConflictingRequest: (persistedRequests) => {
                     const index = persistedRequests.findIndex((r) => r.command === 'ReconnectApp');
                     indexSeenByResolver = index;
-                    return {conflictAction: {type: 'replace', index, requestIndex: persistedRequests.at(index)?.requestIndex}};
+                    return {conflictAction: {type: 'replace', index}};
                 },
             };
             // When a conflicting ReconnectApp is pushed with a resolver that records the index it sees
@@ -630,19 +630,29 @@ describe('SequentialQueue - conflict replace addressing', () => {
         }
     });
 
-    it('should refuse a nextAction replace that omits requestIndex even though the type allows it', async () => {
+    it.each([
+        // A follow-up replace with no identity, which the type allows
+        {
+            name: 'replace that omits requestIndex',
+            resolution: {conflictAction: {type: 'delete', indices: [1], pushNewRequest: false, nextAction: {type: 'replace', index: 0}}} satisfies ConflictActionData,
+            alertPayload: {staleIndex: 0},
+        },
+        {
+            name: 'delete',
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- test-only: force a follow-up delete past the narrowed type, since only a caller that bypasses it can reach this branch
+            resolution: {
+                conflictAction: {type: 'delete', indices: [1], pushNewRequest: false, nextAction: {type: 'delete', indices: [0], pushNewRequest: false}},
+            } as unknown as ConflictActionData,
+            alertPayload: {nextActionType: 'delete'},
+        },
+    ])('should refuse a nextAction $name rather than apply its stale position', async ({resolution, alertPayload}) => {
         SequentialQueue.pause();
         // Given three queued requests, each identified by its requestIndex
         await SequentialQueue.push(queuedAddComment('v1', 2));
         await SequentialQueue.push(queuedUpdateComment('v2', 3));
         await SequentialQueue.push({command: 'OpenReport', data: {reportID: 'VICTIM'}, requestIndex: 4});
 
-        // And a conflict resolution whose follow-up replace carries no requestIndex
-        const followUpWithoutIdentity: ConflictActionData = {
-            conflictAction: {type: 'delete', indices: [1], pushNewRequest: false, nextAction: {type: 'replace', index: 0}},
-        };
-
-        // When a request with that resolver is pushed while the queue drains under it
+        // When a request carrying that follow-up is pushed while the queue drains under it
         const logAlertSpy = jest.spyOn(Log, 'alert').mockImplementation(() => {});
         const setSpy = drainWhileTheNextQueueCommitIsPending(processNextRequest);
         try {
@@ -650,51 +660,14 @@ describe('SequentialQueue - conflict replace addressing', () => {
                 command: WRITE_COMMANDS.UPDATE_COMMENT,
                 data: {reportActionID, reportComment: 'v3'},
                 requestIndex: 5,
-                checkAndFixConflictingRequest: () => followUpWithoutIdentity,
+                checkAndFixConflictingRequest: () => resolution,
             });
 
-            // Then the follow-up replace is refused and alerted instead of hitting the request now at that index
+            // Then the follow-up is refused and alerted instead of touching the request now at that position
             expect(getOngoingRequest()?.command).toBe(WRITE_COMMANDS.ADD_COMMENT);
             expect(getAll().map((r) => r.command)).toEqual(['OpenReport']);
             expect(getAll().at(0)?.data?.reportID).toBe('VICTIM');
-            expect(logAlertSpy).toHaveBeenCalledWith(expect.stringContaining('carries no requestIndex'), expect.objectContaining({staleIndex: 0}));
-        } finally {
-            setSpy.mockRestore();
-            logAlertSpy.mockRestore();
-            SequentialQueue.unpause();
-            await mockFetch.resume();
-        }
-    });
-
-    it('should refuse a nextAction delete rather than apply its stale indices', async () => {
-        SequentialQueue.pause();
-        // Given three queued requests, each identified by its requestIndex
-        await SequentialQueue.push(queuedAddComment('v1', 2));
-        await SequentialQueue.push(queuedUpdateComment('v2', 3));
-        await SequentialQueue.push({command: 'OpenReport', data: {reportID: 'VICTIM'}, requestIndex: 4});
-
-        // And a conflict resolution forced to carry a follow-up delete, which the narrowed type would not allow
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- test-only: force a follow-up delete past the narrowed type, since only a caller that bypasses it can reach this branch
-        const forcedFollowUpDelete = {
-            conflictAction: {type: 'delete', indices: [1], pushNewRequest: false, nextAction: {type: 'delete', indices: [0], pushNewRequest: false}},
-        } as unknown as ConflictActionData;
-
-        // When a request with that resolver is pushed while the queue drains under it
-        const logAlertSpy = jest.spyOn(Log, 'alert').mockImplementation(() => {});
-        const setSpy = drainWhileTheNextQueueCommitIsPending(processNextRequest);
-        try {
-            await SequentialQueue.push({
-                command: WRITE_COMMANDS.UPDATE_COMMENT,
-                data: {reportActionID, reportComment: 'v3'},
-                requestIndex: 5,
-                checkAndFixConflictingRequest: () => forcedFollowUpDelete,
-            });
-
-            // Then the follow-up delete is refused and alerted rather than applied at its stale indices
-            expect(getOngoingRequest()?.command).toBe(WRITE_COMMANDS.ADD_COMMENT);
-            expect(getAll().map((r) => r.command)).toEqual(['OpenReport']);
-            expect(getAll().at(0)?.data?.reportID).toBe('VICTIM');
-            expect(logAlertSpy).toHaveBeenCalledWith(expect.stringContaining('requestIndex'), expect.objectContaining({nextActionType: 'delete'}));
+            expect(logAlertSpy).toHaveBeenCalledWith(expect.stringContaining('cannot be addressed by requestIndex'), expect.objectContaining(alertPayload));
         } finally {
             setSpy.mockRestore();
             logAlertSpy.mockRestore();
