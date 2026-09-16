@@ -508,6 +508,7 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
                 rowCount={processedData.length}
                 columnCount={semanticColumnCount}
                 rendersBodyWhenEmpty={rendersBodyWhenEmpty}
+                shouldUseDynamicColumns={shouldUseDynamicColumns}
                 scrollWidth={dynamicScrollWidth}
                 onLayout={isDynamicSizingEnabled ? handleTableLayout : undefined}
             >
