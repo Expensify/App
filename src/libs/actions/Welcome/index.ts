@@ -131,6 +131,7 @@ function createJoinWorkspaceOnboardingContent(contentType: JoinWorkspaceOnboardi
         companyDomain,
         workEmail,
         conciergeChat,
+        delegateAccountID: undefined,
         isIncremental: true,
     });
 

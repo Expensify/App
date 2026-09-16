@@ -111,7 +111,8 @@ function BaseOnboardingWorkEmailValidation({shouldUseNativeStyles, route}: BaseO
         if (!isConciergeTaskFlow) {
             return;
         }
-        const validateEmailTaskReportID = createJoinWorkspaceOnboardingContent('validateEmail', workEmail.split('@').at(1) ?? '', workEmail, conciergeChat);
+        const workEmailToValidate = workEmail ?? '';
+        const validateEmailTaskReportID = createJoinWorkspaceOnboardingContent('validateEmail', workEmailToValidate.split('@').at(1) ?? '', workEmailToValidate, conciergeChat);
         if (validateEmailTaskReportID) {
             Navigation.dismissModal({
                 afterTransition: () => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(validateEmailTaskReportID)),

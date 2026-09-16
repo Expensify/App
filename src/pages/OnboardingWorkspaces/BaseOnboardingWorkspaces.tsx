@@ -294,6 +294,7 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
                 conciergeChat,
                 companyDomain: session?.email ? getEmailDomain(session.email) : '',
                 workEmail: session?.email ?? '',
+                delegateAccountID,
             });
             setOnboardingAdminsChatReportID();
 

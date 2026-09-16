@@ -955,7 +955,7 @@ type GetTaskAssigneeChatOnyxDataParams = {
     assigneeChatReport: OnyxEntry<Report>;
     currentUserEmail: string;
     currentUserAccountID: number;
-    delegateAccountID: number | undefined;
+    delegateAccountID?: number;
     isOptimisticAssigneeChatReport?: boolean;
 };
 
