@@ -45,6 +45,8 @@ jest.mock('@libs/SearchUIUtils', () => ({
     isTodoSearch: jest.fn(() => false),
     isCreatedDateType: jest.fn(() => false),
     getSubmittedViolationsForTransaction: jest.fn(() => ''),
+    getGroupColumnWidthFlags: jest.fn(() => ({isAmountColumnWide: false, isTaxAmountColumnWide: false, shouldShowYear: false, isActionColumnWide: false})),
+    getGroupTableScrollLayout: jest.fn(() => ({dataColumns: [], minTableWidth: 0, shouldScrollHorizontally: false})),
     getViolationsForTransaction: jest.fn(() => ''),
 }));
 
