@@ -74,7 +74,6 @@ function CardDetails({pan = '', expiration = '', cvv = '', onUpdateAddressPress,
                     {!!cardHintText && (
                         <FormHelpMessage
                             isError={false}
-                            shouldShowRedDotIndicator={false}
                             message={cardHintText}
                             style={styles.menuItemError}
                         />

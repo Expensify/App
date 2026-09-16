@@ -80,7 +80,6 @@ function ConstantSelector({formType, policyID, errorText = '', name, value, onIn
             </MenuItemField.Row>
             {!!errorText && (
                 <FormHelpMessage
-                    isError
                     shouldShowRedDotIndicator={false}
                     message={errorText}
                     style={styles.menuItemError}

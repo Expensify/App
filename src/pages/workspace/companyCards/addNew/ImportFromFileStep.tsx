@@ -137,7 +137,6 @@ function ImportFromFileStep() {
                     </MenuItemField.Row>
                     {!!shouldShowLayoutNameError && (
                         <FormHelpMessage
-                            isError
                             shouldShowRedDotIndicator={false}
                             message={translate('workspace.companyCards.addNewCard.cardLayoutNameRequired')}
                             style={styles.menuItemError}

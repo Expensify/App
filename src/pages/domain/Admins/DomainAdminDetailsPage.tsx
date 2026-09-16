@@ -105,7 +105,6 @@ function DomainAdminDetailsPage({route}: DomainAdminDetailsPageProps) {
                     {isCurrentUserPrimaryContact && (
                         <FormHelpMessage
                             isError={false}
-                            shouldShowRedDotIndicator={false}
                             message={translate('domain.admins.cantRevokeAdminAccess')}
                             style={styles.menuItemError}
                         />

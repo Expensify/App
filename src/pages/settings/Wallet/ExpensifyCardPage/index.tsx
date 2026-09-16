@@ -444,7 +444,6 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                             />
                             <FormHelpMessage
                                 isError={false}
-                                shouldShowRedDotIndicator={false}
                                 message={getCardHintText(
                                     currentCard?.nameValuePairs?.validFrom,
                                     currentCard?.nameValuePairs?.validThru,

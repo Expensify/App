@@ -26,8 +26,8 @@ type MenuItemFieldProps = Omit<MenuItemRootProps, 'accessibilityLabel'> & Omit<M
 
 /**
  * The line a field preset draws, without a `MenuItem.Root` of its own. Reach for it over the
- * `MenuItemField` preset when the row needs siblings inside the same `Root` — an error or a hint
- * line under the row, say — and render the trailing leaves, chevron included, as its children.
+ * `MenuItemField` preset when the row needs siblings inside the same `Root` (an error or a hint
+ * line under the row).
  */
 function MenuItemFieldRow({name, value, children}: MenuItemFieldRowProps) {
     return (
@@ -49,8 +49,7 @@ function MenuItemFieldRow({name, value, children}: MenuItemFieldRowProps) {
 
 /**
  * Field preset: a field name plus its value. With no `value` the name takes over the row.
- *
- * `children` land in the trailing cell, next to the chevron — not under the row.
+ * `children` land in the trailing cell, next to the chevron.
  */
 function MenuItemFieldPreset({name, value, children, onPress, isDisabled = false, sentryLabel, testID}: MenuItemFieldProps) {
     return (
@@ -78,4 +77,3 @@ function MenuItemFieldPreset({name, value, children, onPress, isDisabled = false
 const MenuItemField = Object.assign(MenuItemFieldPreset, {Row: MenuItemFieldRow});
 
 export default MenuItemField;
-export type {MenuItemFieldProps, MenuItemFieldRowProps};

@@ -89,7 +89,6 @@ function DualEntryCardAccountPage({policy}: WithPolicyConnectionsProps) {
                                 {!!cardsUsingCustomAccountsCount.perFeedCount[feedKey] && (
                                     <FormHelpMessage
                                         isError={false}
-                                        shouldShowRedDotIndicator={false}
                                         message={translate('workspace.dualEntry.cardAccount.countInfo', cardsUsingCustomAccountsCount.perFeedCount[feedKey])}
                                         style={styles.menuItemError}
                                     />

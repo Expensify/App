@@ -148,7 +148,6 @@ function DynamicQuickbooksOutOfPocketExpenseConfigurationPage({policy}: WithPoli
                         {!!section.hintText && (
                             <FormHelpMessage
                                 isError={false}
-                                shouldShowRedDotIndicator={false}
                                 message={section.hintText}
                                 style={styles.menuItemError}
                             />

@@ -111,7 +111,6 @@ function DualEntryAdvancedPage({policy}: WithPolicyConnectionsProps) {
                         </MenuItemField.Row>
                         <FormHelpMessage
                             isError={false}
-                            shouldShowRedDotIndicator={false}
                             message={translate(`workspace.dualEntry.accountingMethods.alternateText.${accountingMethod}`)}
                             style={styles.menuItemError}
                         />

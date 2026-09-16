@@ -1,6 +1,8 @@
 import ConnectionLayout from '@components/ConnectionLayout';
+import FormHelpMessage from '@components/FormHelpMessage';
 import MenuItem from '@components/MenuItem';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
+import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
@@ -104,7 +106,6 @@ function DynamicQuickbooksCompanyCardExpenseAccountPage({policy}: WithPolicyConn
                         {!!section.hintText && (
                             <FormHelpMessage
                                 isError={false}
-                                shouldShowRedDotIndicator={false}
                                 message={section.hintText}
                                 style={styles.menuItemError}
                             />

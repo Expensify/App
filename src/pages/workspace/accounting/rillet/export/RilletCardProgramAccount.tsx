@@ -90,7 +90,6 @@ function RilletCardProgramAccount({policy}: WithPolicyConnectionsProps) {
                                 {!!cardsUsingCustomAccountsCount.perFeedCount[feedKey] && (
                                     <FormHelpMessage
                                         isError={false}
-                                        shouldShowRedDotIndicator={false}
                                         message={translate('workspace.rillet.cardAccount.countInfo', cardsUsingCustomAccountsCount.perFeedCount[feedKey])}
                                         style={styles.menuItemError}
                                     />

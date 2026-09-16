@@ -49,7 +49,6 @@ function NetSuiteCustomListPicker({value, policyID, errorText, isEditing}: NetSu
             </MenuItemField.Row>
             {!!errorText && (
                 <FormHelpMessage
-                    isError
                     shouldShowRedDotIndicator={false}
                     message={errorText}
                     style={styles.menuItemError}

@@ -55,7 +55,6 @@ function StatePicker({value, errorText, onInputChange = () => {}}: StatePickerPr
                 </MenuItemField.Row>
                 {!!errorText && (
                     <FormHelpMessage
-                        isError
                         shouldShowRedDotIndicator={false}
                         message={errorText}
                         style={styles.menuItemError}

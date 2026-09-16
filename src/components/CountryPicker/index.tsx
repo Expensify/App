@@ -52,7 +52,6 @@ function CountryPicker({value, errorText, onInputChange = () => {}}: CountryPick
                 </MenuItemField.Row>
                 {!!errorText && (
                     <FormHelpMessage
-                        isError
                         shouldShowRedDotIndicator={false}
                         message={errorText}
                         style={styles.menuItemError}

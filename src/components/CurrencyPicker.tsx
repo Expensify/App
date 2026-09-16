@@ -79,7 +79,6 @@ function CurrencyPicker({label, value, errorText, headerContent, excludeCurrenci
                 </MenuItemField.Row>
                 {!!errorText && (
                     <FormHelpMessage
-                        isError
                         shouldShowRedDotIndicator={false}
                         message={errorText}
                         style={styles.menuItemError}

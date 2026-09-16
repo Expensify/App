@@ -127,7 +127,6 @@ function SageIntacctToggleMappingsPage({route}: SageIntacctToggleMappingsPagePro
                         {!!translationKeys?.descriptionKey && (
                             <FormHelpMessage
                                 isError={false}
-                                shouldShowRedDotIndicator={false}
                                 message={translate(translationKeys.descriptionKey)}
                                 style={styles.menuItemError}
                             />

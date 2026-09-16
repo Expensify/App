@@ -236,7 +236,6 @@ function DomainMemberDetailsPage({route}: DomainMemberDetailsPageProps) {
                         </MenuItem.Row>
                         {!!lockDomainErrorMessage && (
                             <FormHelpMessage
-                                isError
                                 shouldShowRedDotIndicator={false}
                                 message={lockDomainErrorMessage}
                                 style={styles.menuItemError}

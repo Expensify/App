@@ -66,7 +66,6 @@ function TaxValuePicker({policyID, value, errorText, rightLabel, onInputChange, 
             </MenuItemField.Row>
             {!!errorText && (
                 <FormHelpMessage
-                    isError
                     shouldShowRedDotIndicator={false}
                     message={errorText}
                     style={styles.menuItemError}

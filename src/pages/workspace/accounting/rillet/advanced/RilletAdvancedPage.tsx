@@ -110,7 +110,6 @@ function RilletAdvancedPage({policy}: WithPolicyConnectionsProps) {
                         </MenuItemField.Row>
                         <FormHelpMessage
                             isError={false}
-                            shouldShowRedDotIndicator={false}
                             message={translate(`workspace.rillet.accountingMethods.alternateText.${accountingMethod}`)}
                             style={styles.menuItemError}
                         />

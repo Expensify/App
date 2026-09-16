@@ -104,7 +104,6 @@ function NetSuiteAdvancedPage({policy}: WithPolicyConnectionsProps) {
                     {!!item.hintText && (
                         <FormHelpMessage
                             isError={false}
-                            shouldShowRedDotIndicator={false}
                             message={item.hintText}
                             style={styles.menuItemError}
                         />

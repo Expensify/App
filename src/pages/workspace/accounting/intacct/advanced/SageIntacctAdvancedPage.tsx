@@ -123,7 +123,6 @@ function SageIntacctAdvancedPage({policy}: WithPolicyProps) {
                     {!!config?.autoSync?.enabled && (
                         <FormHelpMessage
                             isError={false}
-                            shouldShowRedDotIndicator={false}
                             message={translate(`workspace.sageIntacct.accountingMethods.alternateText.${accountingMethod}` as TranslationPaths)}
                             style={styles.menuItemError}
                         />

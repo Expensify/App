@@ -440,7 +440,6 @@ function DynamicWorkspaceExpensifyCardDetailsPage({route}: DynamicWorkspaceExpen
                             </MenuItemField.Row>
                             <FormHelpMessage
                                 isError={false}
-                                shouldShowRedDotIndicator={false}
                                 message={getCardHintText(card?.nameValuePairs?.validFrom, card?.nameValuePairs?.validThru, cardholder?.timezone?.selected, dateFnsLocale, translate)}
                                 style={styles.menuItemError}
                             />

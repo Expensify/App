@@ -95,7 +95,6 @@ function DynamicQuickbooksDesktopCompanyCardExpenseAccountPage({policy}: WithPol
                         {!!section.hintText && (
                             <FormHelpMessage
                                 isError={false}
-                                shouldShowRedDotIndicator={false}
                                 message={section.hintText}
                                 style={styles.menuItemError}
                             />
