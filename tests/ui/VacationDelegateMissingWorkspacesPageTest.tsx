@@ -5,6 +5,7 @@ import {CurrentUserPersonalDetailsProvider} from '@components/CurrentUserPersona
 import HTMLEngineProvider from '@components/HTMLEngineProvider';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
+import PersonalDetailsByLoginProvider from '@components/PersonalDetailsByLoginProvider';
 import Text from '@components/Text';
 
 import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
@@ -140,7 +141,7 @@ function renderPage(shouldIncludeBackRoute = false) {
         : undefined;
 
     return render(
-        <ComposeProviders components={[OnyxListItemProvider, CurrentUserPersonalDetailsProvider, LocaleContextProvider, HTMLEngineProvider]}>
+        <ComposeProviders components={[OnyxListItemProvider, CurrentUserPersonalDetailsProvider, LocaleContextProvider, HTMLEngineProvider, PersonalDetailsByLoginProvider]}>
             <PortalProvider>
                 <NavigationContainer
                     ref={navigationRef}
@@ -260,6 +261,19 @@ describe('VacationDelegateMissingWorkspacesPage', () => {
 
         expect(screen.queryByText(smsDelegate)).not.toBeOnTheScreen();
         expect(screen.getByText(formatPhoneNumber(smsDelegate))).toBeOnTheScreen();
+    });
+
+    it('uses the display name for the intro copy instead of the raw login when the delegate has one', async () => {
+        const DELEGATE_DISPLAY_NAME = 'Jane Doe';
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[DELEGATE_ACCOUNT_ID]: {accountID: DELEGATE_ACCOUNT_ID, login: DELEGATE_EMAIL, displayName: DELEGATE_DISPLAY_NAME}});
+        });
+        await seedVacationDelegate({adminPolicies: [], nonAdminPolicies: [MEMBER_POLICY_ID]});
+        renderPage();
+        await waitForBatchedUpdatesWithAct();
+
+        expect(screen.getByText(DELEGATE_DISPLAY_NAME)).toBeOnTheScreen();
+        expect(screen.queryByText(DELEGATE_EMAIL)).not.toBeOnTheScreen();
     });
 
     it('shows only the admin-of section and Invite/Skip buttons when the delegate is admin of all, and Skip sends no invites', async () => {

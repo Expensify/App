@@ -52,6 +52,16 @@ jest.mock('@react-navigation/native', () => {
     };
 });
 
+// The real confirm modal is bridged through the global modal system, which needs Navigation methods this file's
+// lightweight Navigation mock doesn't provide. Stub the hook instead so tests can assert on what VacationDelegatePage
+// asks it to show without pulling in that machinery.
+const mockShowConfirmModal = jest.fn();
+jest.mock('@hooks/useConfirmModal', () =>
+    jest.fn(() => ({
+        showConfirmModal: mockShowConfirmModal,
+    })),
+);
+
 // Replaces the real, personal-details-backed selection list with two plain pressable rows so tests can
 // simulate rapid row taps on VacationDelegatePage's onSelectRow without driving the full list UI.
 jest.mock('@components/BaseVacationDelegateSelectionComponent', () => {
@@ -113,6 +123,7 @@ describe('VacationDelegatePage', () => {
     });
 
     beforeEach(async () => {
+        mockShowConfirmModal.mockReset().mockResolvedValue({action: 'CLOSE'});
         await act(async () => {
             await Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.EN);
         });
@@ -144,6 +155,42 @@ describe('VacationDelegatePage', () => {
             expect.anything(),
         );
         expect(Navigation.goBack).toHaveBeenCalledWith(ROUTES.SETTINGS_STATUS);
+    });
+
+    // Regression: an EXP_ERROR response's server-provided message must reach the error modal instead of being dropped for the generic copy.
+    it('surfaces the EXP_ERROR response message in the error modal and restores the previous delegate on dismissal', async () => {
+        const EXP_ERROR_MESSAGE = 'This delegate has already been assigned as your submitsTo approver.';
+        apiSideEffectSpy = jest
+            .spyOn(require('@libs/API'), 'makeRequestWithSideEffects')
+            .mockImplementation(() => Promise.resolve({jsonCode: CONST.JSON_CODE.EXP_ERROR, message: EXP_ERROR_MESSAGE}));
+        // jest.mock's factory functions (unlike jest.spyOn) are not reset by jest.restoreAllMocks() in afterEach, so call counts otherwise leak across tests in this file.
+        jest.mocked(Navigation.goBack).mockClear();
+
+        renderPage();
+        await waitForBatchedUpdatesWithAct();
+
+        fireEvent.press(screen.getByTestId('select-delegate-a'));
+        await waitForBatchedUpdatesWithAct();
+
+        expect(mockShowConfirmModal).toHaveBeenCalledWith(expect.objectContaining({prompt: EXP_ERROR_MESSAGE}));
+        expect(Navigation.goBack).not.toHaveBeenCalled();
+
+        const vacationDelegate = await getOnyxValue(ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE);
+        expect(vacationDelegate?.delegate).toBeFalsy();
+        expect(vacationDelegate?.errors).toBeFalsy();
+    });
+
+    // Without a server message (e.g. a non-EXP_ERROR failure, or a transport rejection), the generic translation is used instead.
+    it('falls back to the generic error copy when the response carries no EXP_ERROR message', async () => {
+        apiSideEffectSpy = jest.spyOn(require('@libs/API'), 'makeRequestWithSideEffects').mockImplementation(() => Promise.resolve({jsonCode: CONST.JSON_CODE.BAD_REQUEST}));
+
+        renderPage();
+        await waitForBatchedUpdatesWithAct();
+
+        fireEvent.press(screen.getByTestId('select-delegate-a'));
+        await waitForBatchedUpdatesWithAct();
+
+        expect(mockShowConfirmModal).toHaveBeenCalledWith(expect.objectContaining({prompt: TestHelper.translateLocal('statusPage.vacationDelegateError')}));
     });
 
     it('ignores a second row selection while the first request is still pending', async () => {

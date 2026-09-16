@@ -3762,11 +3762,11 @@ ${amount} für ${merchant} – ${date}`,
         asVacationDelegate: (nameOrEmail: string) => `als Urlaubsvertretung von ${nameOrEmail}`,
         toAsVacationDelegate: (submittedToName: string, vacationDelegateName: string) => `an ${submittedToName} als Urlaubsvertretung für ${vacationDelegateName}`,
         vacationDelegate: {
-            notAMemberAdminsWillBeAsked: (email: string) =>
-                `<strong>${email}</strong> ist kein Mitglied der unten aufgeführten Arbeitsbereiche. Admins der Arbeitsbereiche, die Sie nicht verwalten, werden gebeten, die Person hinzuzufügen.`,
-            notAMemberInviteThemNow: (email: string) => `<strong>${email}</strong> ist kein Mitglied der unten aufgeführten Arbeitsbereiche. Möchten Sie die Person jetzt einladen?`,
-            notAMemberMixed: (email: string) =>
-                `<strong>${email}</strong> ist kein Mitglied der unten aufgeführten Arbeitsbereiche. Admins der Arbeitsbereiche, die Sie nicht verwalten, werden gebeten, die Person hinzuzufügen. Möchten Sie die Person jetzt zu den Arbeitsbereichen einladen, in denen Sie Admin sind?`,
+            notAMemberAdminsWillBeAsked: (delegate: string) =>
+                `<strong>${delegate}</strong> ist kein Mitglied der unten aufgeführten Arbeitsbereiche. Admins der Arbeitsbereiche, die Sie nicht verwalten, werden gebeten, die Person hinzuzufügen.`,
+            notAMemberInviteThemNow: (delegate: string) => `<strong>${delegate}</strong> ist kein Mitglied der unten aufgeführten Arbeitsbereiche. Möchten Sie die Person jetzt einladen?`,
+            notAMemberMixed: (delegate: string) =>
+                `<strong>${delegate}</strong> ist kein Mitglied der unten aufgeführten Arbeitsbereiche. Admins der Arbeitsbereiche, die Sie nicht verwalten, werden gebeten, die Person hinzuzufügen. Möchten Sie die Person jetzt zu den Arbeitsbereichen einladen, in denen Sie Admin sind?`,
             youAreAMemberOf: 'Sie sind Mitglied dieser Arbeitsbereiche:',
             youAreAnAdminOf: 'Sie sind Admin dieser Arbeitsbereiche:',
         },

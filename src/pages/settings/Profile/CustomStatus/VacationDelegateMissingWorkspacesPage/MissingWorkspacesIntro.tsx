@@ -2,6 +2,9 @@ import RenderHTML from '@components/RenderHTML';
 
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useVacationDelegatePersonalDetails from '@hooks/useVacationDelegatePersonalDetails';
+
+import getVacationDelegateDisplayName from '@libs/getVacationDelegateDisplayName';
 
 import {Str} from 'expensify-common';
 import React from 'react';
@@ -21,9 +24,11 @@ type MissingWorkspacesIntroProps = {
 function MissingWorkspacesIntro({delegate, hasAdminWorkspaces, hasNonAdminWorkspaces}: MissingWorkspacesIntroProps) {
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
+    const delegatePersonalDetails = useVacationDelegatePersonalDetails(delegate);
 
-    // Format SMS delegates as phone numbers rather than raw @expensify.sms logins, and escape the result since this copy is rendered as HTML.
-    const escapedDelegate = Str.htmlEncode(formatPhoneNumber(delegate));
+    // Prefer the delegate's display name over their raw login, formatting an SMS delegate as a phone number when it falls back to
+    // one, and escape the result since this copy is rendered as HTML.
+    const escapedDelegate = Str.htmlEncode(getVacationDelegateDisplayName(delegate, delegatePersonalDetails?.displayName, formatPhoneNumber));
     let copy: string;
     if (!hasAdminWorkspaces) {
         copy = translate('statusPage.vacationDelegate.notAMemberAdminsWillBeAsked', escapedDelegate);
