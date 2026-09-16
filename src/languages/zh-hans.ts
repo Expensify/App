@@ -10564,6 +10564,7 @@ ${reportName}`,
         mileageRateAutoUpdated: '<tooltip>我们已根据您的出行日期更新了汇率。</tooltip>',
         markAllAsRead: '<tooltip>右键点击即可<strong>将所有内容标记为已读</strong>。</tooltip>',
         markAllAsReadTouchScreen: '<tooltip>长按即可<strong>将所有内容标记为已读</strong>。</tooltip>',
+        accountMovedToTopBar: '<tooltip>访问你的账户和个人设置。</tooltip>',
     },
     discardChangesConfirmation: {
         title: '放弃更改？',
