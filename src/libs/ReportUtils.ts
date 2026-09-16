@@ -5133,12 +5133,14 @@ function canEditMoneyRequest(
         return false;
     }
 
-    // Only an expense report confers admin/manager editing rights, matching canCurrentUserEditExpense. Without this
-    // guard an unreported expense (self-DM track expense) is weighed against the caller's policy, which is the viewer's
-    // own default workspace rather than the expense's, so anyone who admins any workspace could edit someone else's
-    // expense. A self-DM also has no managerID, so an unresolved account ID would otherwise match it.
-    const isAdmin = isExpenseReport(moneyRequestReport) && reportPolicy?.role === CONST.POLICY.ROLE.ADMIN;
-    const isManager = isExpenseReport(moneyRequestReport) && isManagerOfReport;
+    // Admin/manager rights only apply when the expense actually sits on a workspace report. Without this guard an
+    // unreported expense (self-DM track expense) is weighed against the caller's policy, which is the viewer's own
+    // default workspace rather than the expense's, so anyone who admins any workspace could edit someone else's
+    // expense. A self-DM also has no managerID, so an unresolved account ID would otherwise match it. Invoice reports
+    // stay included so a policy admin keeps the rights they had before this guard existed.
+    const isReportOnAWorkspace = isFinancialReportsForBusinesses(moneyRequestReport);
+    const isAdmin = isReportOnAWorkspace && reportPolicy?.role === CONST.POLICY.ROLE.ADMIN;
+    const isManager = isReportOnAWorkspace && isManagerOfReport;
 
     // Admin & managers can always edit coding fields such as tag, category, billable, etc.
     if (isAdmin || isManager) {
