@@ -377,6 +377,28 @@ describe('DynamicReportDetailsPage', () => {
         });
     });
 
+    test('[DynamicReportDetailsPage] should re-render a workspace room when a new message arrives', async () => {
+        // A real incoming message writes the action AND merges lastMessageText/lastVisibleActionCreated into the report,
+        // so the action-only and report-only scenarios above always happen together in production.
+        const scenario = async () => {
+            await screen.findByText(TestHelper.translateLocal('common.members'));
+
+            for (let index = 0; index < UPDATES_PER_SCENARIO; index++) {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${ROOM_REPORT_ID}`, buildRoomActions(1, ROOM_ACTIONS_COUNT + 1 + index));
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${ROOM_REPORT_ID}`, {
+                    lastMessageText: `message ${index}`,
+                    lastVisibleActionCreated: `2026-01-01 00:00:0${index}.000`,
+                });
+                await waitForBatchedUpdates();
+            }
+        };
+
+        await measureRenders(renderPage(roomReport), {
+            scenario,
+            wrapper: Wrapper,
+        });
+    });
+
     test('[DynamicReportDetailsPage] should pin and unpin a workspace room', async () => {
         const scenario = async () => {
             const pinButton = await screen.findByText(TestHelper.translateLocal('common.pin'));
