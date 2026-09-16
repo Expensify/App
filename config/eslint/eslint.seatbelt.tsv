@@ -607,7 +607,6 @@
 "../../src/libs/actions/IOU/MoneyRequestBuilder.ts"	"@typescript-eslint/no-deprecated/getReportTransactions"	2
 "../../src/libs/actions/IOU/MoneyRequestBuilder.ts"	"@typescript-eslint/no-deprecated/translateLocal"	1
 "../../src/libs/actions/IOU/MoneyRequestBuilder.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
-"../../src/libs/actions/IOU/MoneyRequestBuilder.ts"	"rulesdir/no-direct-personal-details-list"	2
 "../../src/libs/actions/IOU/PayMoneyRequest.ts"	"@typescript-eslint/no-deprecated/getReportTransactions"	2
 "../../src/libs/actions/IOU/PayMoneyRequest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/libs/actions/IOU/PayMoneyRequest.ts"	"no-restricted-imports"	1
@@ -624,15 +623,12 @@
 "../../src/libs/actions/IOU/SearchUpdate.ts"	"rulesdir/no-direct-personal-details-list"	2
 "../../src/libs/actions/IOU/SendInvoice.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/actions/IOU/SendInvoice.ts"	"no-restricted-syntax"	1
-"../../src/libs/actions/IOU/SendInvoice.ts"	"rulesdir/no-direct-personal-details-list"	2
 "../../src/libs/actions/IOU/SendMoney.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/actions/IOU/SendMoney.ts"	"no-restricted-syntax"	1
-"../../src/libs/actions/IOU/SendMoney.ts"	"rulesdir/no-direct-personal-details-list"	2
 "../../src/libs/actions/IOU/Split.ts"	"@typescript-eslint/no-deprecated/getReportTransactions"	1
 "../../src/libs/actions/IOU/Split.ts"	"@typescript-eslint/no-deprecated/Localize.translateLocal"	2
 "../../src/libs/actions/IOU/Split.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/libs/actions/IOU/Split.ts"	"no-restricted-syntax"	3
-"../../src/libs/actions/IOU/Split.ts"	"rulesdir/no-direct-personal-details-list"	1
 "../../src/libs/actions/IOU/SplitExpenseItems.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/actions/IOU/SplitTransactionUpdate.ts"	"@typescript-eslint/no-unsafe-type-assertion"	20
 "../../src/libs/actions/IOU/TrackExpense.ts"	"@typescript-eslint/no-deprecated/getReportTransactions"	1

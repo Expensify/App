@@ -16,6 +16,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {roundToTwoDecimalPlaces} from '@libs/NumberUtils';
 import * as NumberUtils from '@libs/NumberUtils';
 import Parser from '@libs/Parser';
+import {buildPersonalDetailsUpdate} from '@libs/PersonalDetailsUtils';
 import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
 import {getReportActionHtml, getReportActionText} from '@libs/ReportActionsUtils';
 import {
@@ -786,10 +787,8 @@ function startSplitBill({
 
         const participantPersonalDetails = getAllPersonalDetails()[participant?.accountID ?? CONST.DEFAULT_NUMBER_ID];
         if (!participantPersonalDetails) {
-            optimisticData.push({
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-                value: {
+            optimisticData.push(
+                buildPersonalDetailsUpdate({
                     [accountID]: {
                         accountID,
                         // Disabling this line since participant.displayName can be an empty string
@@ -800,8 +799,8 @@ function startSplitBill({
                         login: participant.login || participant.text,
                         isOptimisticPersonalDetail: true,
                     },
-                },
-            });
+                }),
+            );
             // BE will send different participants. We clear the optimistic ones to avoid duplicated entries
             redundantParticipants[accountID] = null;
         }
