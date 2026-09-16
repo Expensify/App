@@ -2,11 +2,13 @@ import FormHelpMessage from '@components/FormHelpMessage';
 
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import type {ReactNode} from 'react';
+
 import React from 'react';
 
 type MenuItemHelpTextProps = {
     /** Error or hint text to render under the row. Nothing renders when it is empty */
-    message?: string;
+    message?: string | ReactNode;
 
     /** Whether the text reads as an error (red) instead of a hint (muted) */
     isError?: boolean;
