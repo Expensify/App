@@ -1034,6 +1034,59 @@ describe('actions/PolicyMember', () => {
             expect(Object.keys(failedMember?.errors ?? {}).length).toBeGreaterThan(0);
         });
 
+        it('should preserve an existing pending member update when approver removal fails', async () => {
+            const policyID = '124';
+            const ownerEmail = 'owner@gmail.com';
+            const ownerAccountID = 1238;
+            const approverEmail = 'approver@gmail.com';
+            const approverAccountID = 1237;
+            const pendingMemberEmail = 'pending-member@gmail.com';
+            const pendingMemberAccountID = 1239;
+
+            await Onyx.set(`${ONYXKEYS.PERSONAL_DETAILS_LIST}`, {
+                [ownerAccountID]: {login: ownerEmail},
+                [approverAccountID]: {login: approverEmail},
+                [pendingMemberAccountID]: {login: pendingMemberEmail},
+            });
+            const policy: PolicyType = {
+                ...createRandomPolicy(Number(policyID)),
+                owner: ownerEmail,
+                approver: approverEmail,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+                employeeList: {
+                    [ownerEmail]: {role: CONST.POLICY.ROLE.ADMIN, submitsTo: ownerEmail},
+                    [approverEmail]: {role: CONST.POLICY.ROLE.USER, submitsTo: approverEmail},
+                    [pendingMemberEmail]: {
+                        role: CONST.POLICY.ROLE.USER,
+                        submitsTo: approverEmail,
+                        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                        pendingFields: {role: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+                    },
+                },
+            };
+            const approvalWorkflowUpdates = [
+                {
+                    isDefault: true,
+                    approvers: [{email: ownerEmail, displayName: 'Owner'}],
+                    members: [{email: pendingMemberEmail, displayName: 'Pending member'}],
+                },
+            ];
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
+
+            mockFetch?.fail?.();
+            Member.removeMembers(policy, [approverEmail], {[approverEmail]: approverAccountID}, approvalWorkflowUpdates);
+
+            await waitForBatchedUpdates();
+
+            const policyResult = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+            const pendingMember = policyResult?.employeeList?.[pendingMemberEmail];
+            expect(pendingMember?.submitsTo).toBe(approverEmail);
+            expect(pendingMember?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+            expect(pendingMember?.pendingFields?.role).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+            expect(pendingMember?.pendingFields?.submitsTo).toBeUndefined();
+        });
+
         // For more details on what a detached member is, see https://github.com/Expensify/App/issues/75514#issuecomment-3568453686
         it('should not remove unrelated members that only lack personal details', async () => {
             const policyID = '23456';
