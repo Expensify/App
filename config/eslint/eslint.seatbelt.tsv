@@ -660,7 +660,6 @@
 "../../src/libs/actions/PersonalCards.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/actions/PersonalDetails.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/actions/PersonalDetails.ts"	"no-restricted-syntax"	5
-"../../src/libs/actions/PersonalDetails.ts"	"rulesdir/no-direct-personal-details-list"	15
 "../../src/libs/actions/Plaid.ts"	"no-restricted-syntax"	1
 "../../src/libs/actions/Policy/Category.ts"	"no-restricted-syntax"	5
 "../../src/libs/actions/Policy/DistanceRate.ts"	"no-restricted-syntax"	2
