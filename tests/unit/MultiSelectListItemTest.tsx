@@ -47,7 +47,7 @@ describe('MultiSelectListItem', () => {
     it.each([
         ['icons only', {icons: [ICON]}, true, false],
         ['leftElement only', {leftElement: <View testID={CUSTOM_LEFT_ELEMENT_TEST_ID} />}, false, true],
-        ['both icons and leftElement', {icons: [ICON], leftElement: <View testID={CUSTOM_LEFT_ELEMENT_TEST_ID} />}, true, false],
+        ['both icons and leftElement', {icons: [ICON], leftElement: <View testID={CUSTOM_LEFT_ELEMENT_TEST_ID} />}, false, true],
         ['neither', {}, false, false],
     ])('with %s renders avatar=%s and custom left element=%s', (_label, itemFields, expectsAvatar, expectsLeftElement) => {
         renderItem({keyForList: 'row', text: 'Row', ...itemFields});

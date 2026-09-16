@@ -16,7 +16,7 @@ import SelectableListItem from './SelectableListItem';
 
 /**
  * A text-only row with a title and optional subtitle. Serves as the base for SingleSelectListItem and MultiSelectListItem.
- * The text column is preceded by a compact avatar of the item's first icon, or by `item.leftElement` when there is none.
+ * The text column is preceded by `item.leftElement`, or by a compact avatar of the item's first icon when there is none.
  */
 function BaseSelectListItem<TItem extends ListItem>({
     item,
@@ -82,14 +82,13 @@ function BaseSelectListItem<TItem extends ListItem>({
             selectionButtonPosition={selectionButtonPosition}
         >
             <>
-                {icon ? (
-                    <ListItemComposed.CompactAvatar
-                        icon={icon}
-                        style={styles.mr3}
-                    />
-                ) : (
-                    item.leftElement
-                )}
+                {item.leftElement ??
+                    (icon ? (
+                        <ListItemComposed.CompactAvatar
+                            icon={icon}
+                            style={styles.mr3}
+                        />
+                    ) : undefined)}
                 <View style={[styles.flex1, styles.alignItemsStart, !!item.rightElement && styles.pr3]}>
                     <ListItemComposed.Title
                         text={fullTitle ?? ''}
