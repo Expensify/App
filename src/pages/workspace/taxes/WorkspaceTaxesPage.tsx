@@ -52,7 +52,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {TaxRate} from '@src/types/onyx';
 
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
@@ -151,17 +150,6 @@ function WorkspaceTaxesPage({
         [defaultExternalID, foreignTaxDefault, translate],
     );
 
-    const textForDefault = useCallback(
-        (taxID: string, taxRate: TaxRate): string => {
-            const suffix = getDefaultLabel(taxID);
-            if (suffix) {
-                return `${taxRate.value} ${CONST.DOT_SEPARATOR} ${suffix}`;
-            }
-            return `${taxRate.value}`;
-        },
-        [getDefaultLabel],
-    );
-
     const updateWorkspaceTaxEnabled = useCallback(
         (value: boolean, taxID: string) => {
             if (!canWriteTaxes) {
@@ -197,7 +185,6 @@ function WorkspaceTaxesPage({
             acc.push({
                 keyForList: key,
                 name: value.name,
-                alternateText: textForDefault(key, value),
                 taxRateValue: value.value,
                 // The record is keyed by the tax code, but only a customized code is a code the admin set, so the rest
                 // are internal ids that would mean nothing in the column. This matches what WorkspaceEditTaxPage shows.
@@ -217,7 +204,7 @@ function WorkspaceTaxesPage({
 
             return acc;
         }, []);
-    }, [canWriteTaxes, getDefaultLabel, isOffline, navigateToEditTaxRate, policy, policyID, textForDefault, updateWorkspaceTaxEnabled, withReadOnlyFallback]);
+    }, [canWriteTaxes, getDefaultLabel, isOffline, navigateToEditTaxRate, policy, policyID, updateWorkspaceTaxEnabled, withReadOnlyFallback]);
 
     // Tax codes are a Control feature, and a Collect workspace is sent to the upgrade path instead of an editable code,
     // so the column has nothing to show there.

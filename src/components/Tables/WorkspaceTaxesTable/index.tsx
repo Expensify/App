@@ -1,5 +1,6 @@
 import type {CompareItemsCallback, IsItemInSearchCallback, TableColumn} from '@components/Table';
 import Table, {composeTableListHeader} from '@components/Table';
+import compareOptionalValues from '@components/Table/compareOptionalValues';
 
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -25,7 +26,7 @@ type WorkspaceTaxesTableProps = {
     selectionEnabled: boolean;
     selectedKeys: string[];
 
-    /** Whether the tax code column is visible on web screens or not */
+    /** Whether the tax code column is visible on wide layouts or not */
     shouldShowTaxCodeColumn: boolean;
 
     onRowSelectionChange: (selectedRowKeys: string[]) => void;
@@ -39,7 +40,7 @@ function compareTaxRateValues(value1: string, value2: string): number {
     const number1 = Number.parseFloat(value1);
     const number2 = Number.parseFloat(value2);
 
-    if (Number.isNaN(number1) || Number.isNaN(number2) || number1 === number2) {
+    if (Number.isNaN(number1) || Number.isNaN(number2)) {
         return 0;
     }
 
@@ -128,33 +129,17 @@ export default function WorkspaceTaxesTable({taxes, selectionEnabled, selectedKe
         }
 
         if (activeSorting.columnKey === 'taxCode') {
-            // Rates without a code sort last in both directions, so the codes stay grouped together.
-            if (!item1.taxCode && !item2.taxCode) {
-                return nameComparison;
-            }
-
-            if (!item1.taxCode) {
-                return 1;
-            }
-
-            if (!item2.taxCode) {
-                return -1;
-            }
-
-            const codeComparison = localeCompare(item1.taxCode, item2.taxCode);
-
-            if (codeComparison !== 0) {
-                return codeComparison * orderMultiplier;
-            }
-
-            return nameComparison;
+            return compareOptionalValues(item1.taxCode, item2.taxCode, localeCompare, orderMultiplier, nameComparison);
         }
 
         return nameComparison;
     };
 
     const isItemInSearch: IsItemInSearchCallback<WorkspaceTaxTableRowData> = (item, searchValue) => {
-        const results = tokenizedSearch([item], searchValue, (option) => [option.name, option.alternateText, option.taxCode]);
+        // The tax code is only searchable where it's actually rendered, so mobile search never matches on text the
+        // user can't see.
+        const searchableFields = [item.name, item.taxRateValue, ...(shouldShowTaxCodeColumn ? [item.taxCode] : [])];
+        const results = tokenizedSearch([item], searchValue, () => searchableFields);
         return results.length > 0;
     };
 

@@ -21,10 +21,7 @@ import {View} from 'react-native';
 type WorkspaceTaxTableRowData = TableData & {
     name: string;
 
-    /** The rate's value and default indicator on one line, rendered on narrow layouts where the columns collapse */
-    alternateText: string;
-
-    /** The rate's value, rendered in its own column on wide layouts */
+    /** The rate's value, rendered in its own column on wide layouts and folded into the name's supporting text on narrow layouts */
     taxRateValue: string;
 
     /** The rate's tax code, empty when the workspace has no code for it */
@@ -70,12 +67,13 @@ function WorkspaceTaxesTableRow({item, rowIndex, shouldUseNarrowTableLayout, sho
     // not announce a value the row never renders.
     const shouldShowTaxCodeCell = !shouldUseNarrowTableLayout && shouldShowTaxCodeColumn;
 
-    const accessibilityLabel = [item.name, item.alternateText, shouldShowTaxCodeCell && item.taxCode ? `${translate('workspace.taxes.taxCode')}: ${item.taxCode}` : null, enabledStatusLabel]
+    // On wide layouts the rate value moves into its own column, so the name only carries the default indicator. On
+    // narrow layouts the columns collapse, so the rate value and default indicator share the name's supporting line.
+    const nameSupportingText = shouldUseNarrowTableLayout ? [item.taxRateValue, item.defaultLabel].filter(Boolean).join(` ${CONST.DOT_SEPARATOR} `) : item.defaultLabel;
+
+    const accessibilityLabel = [item.name, nameSupportingText, shouldShowTaxCodeCell && item.taxCode ? `${translate('workspace.taxes.taxCode')}: ${item.taxCode}` : null, enabledStatusLabel]
         .filter(Boolean)
         .join(', ');
-
-    // On wide layouts the rate value moves into its own column, so the name only carries the default indicator.
-    const nameSupportingText = shouldUseNarrowTableLayout ? item.alternateText : item.defaultLabel;
 
     return (
         <Table.Row
