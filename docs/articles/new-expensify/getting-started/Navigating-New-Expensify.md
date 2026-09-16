@@ -1,8 +1,8 @@
 ---
 title: Navigating New Expensify
-description: Learn how to move around New Expensify using the navigation tabs and Search, including Home, Inbox, Spend, Workspaces, and Account on web and mobile.
-keywords: [New Expensify, navigation tabs, navigation, Home tab, Inbox tab, Inbox filters, Inbox tabs, All tab, Unread tab, To-dos, Spend tab, Workspaces tab, Account tab, Scan button, Create button, workspace filter, Search, go to, jump to destination]
-internalScope: Audience is all Expensify members. Covers how to navigate Expensify using the navigation tabs, the primary action buttons, and Search navigation suggestions. Does not explain the detailed behavior of the Home tab sections.
+description: Learn how to move around New Expensify using the navigation tabs and Search, including Home, Inbox, Spend, Workspaces, Domains, and Account on web and mobile.
+keywords: [New Expensify, navigation tabs, navigation, Home tab, Inbox tab, Inbox filters, Inbox tabs, All tab, Unread tab, To-dos, Spend tab, Workspaces tab, Account tab, Scan button, Create button, workspace filter, Search, go to, jump to destination, go to Domains, domain search suggestions, Domain admin]
+internalScope: Audience is all Expensify members, including Domain Admins. Covers how to navigate Expensify using the navigation tabs, the primary action buttons, and Search navigation suggestions, including Domain suggestions. Does not explain the detailed behavior of the Home tab sections, and does not cover how to claim, verify, or configure a domain.
 ---
 
 # Navigating New Expensify 
@@ -198,13 +198,37 @@ If you’re not sure where to go:
 You can move to a top-level destination without using the navigation tabs by typing its name in **Search**.
 
 1. Select **Search** (the magnifying glass icon).
-2. Type the name of the destination you want to open: **Home**, **Inbox**, **Spend**, **Workspaces**, or **Account**. You can also type **go** or **go to** before the name, such as **go to inbox**.
+2. Type the name of the destination you want to open: **Home**, **Inbox**, **Spend**, **Workspaces**, **Domains**, or **Account**. You can also type **go** or **go to** before the name, such as **go to inbox**.
 3. Select the destination to open it.
+
+**Go to Domains** opens the **Domains** page, which lists the domains you can access.
 
 You can also use keyboard shortcuts on web to jump directly to specific items:
 
 - Press **⌘+Shift+G** (Mac) or **Ctrl+Shift+G** (Windows/Linux), then enter a report ID to open that report.
 - Press **⌘+Shift+P** (Mac) or **Ctrl+Shift+P** (Windows/Linux), from a report, to jump directly to the workspace that the report belongs to.
+
+---
+
+## How to open a domain page using Search
+
+If you are a Domain Admin, **Search** also suggests the pages inside each domain you administer, so you can open them without going through the **Domains** page first.
+
+1. Select **Search** (the magnifying glass icon).
+2. Type the name of the page you want to open: **Domain members**, **Domain admins**, **Groups**, or **SAML**. You can also type the domain name to see all four pages for that domain.
+3. Select the suggestion to open that page for that domain.
+
+Each suggestion shows the domain name on the right, so you can tell the pages apart when you administer more than one domain.
+
+Suggestions only appear for domains you administer. If you are not a Domain Admin, only **Go to Domains** appears.
+
+Learn more about [what Domain Admins can manage](/articles/new-expensify/domains/Domain-Admins).
+
+<!-- SCREENSHOT:
+Suggestion: Search with a domain name typed, showing the Go to Domain members, Go to Domain admins, Go to Groups, and Go to SAML suggestions with the domain name displayed on the right of each row
+Location: After the "How to open a domain page using Search" section
+Purpose: Shows Domain Admins that the domain name on the right identifies which domain each suggestion opens, which is the only way to tell duplicate page names apart when they administer several domains
+-->
 
 ---
 
@@ -216,7 +240,11 @@ On web, navigation tabs appear on the left. On mobile, navigation tabs appear on
 
 ## Can I use Search to move between sections of Expensify?
 
-Yes. Select **Search** (the magnifying glass icon), then type the name of a top-level destination: **Home**, **Inbox**, **Spend**, **Workspaces**, or **Account**. Select the **Go to [destination]** result to open it. You can also type **go** or **go to** before the name.
+Yes. Select **Search** (the magnifying glass icon), then type the name of a top-level destination: **Home**, **Inbox**, **Spend**, **Workspaces**, **Domains**, or **Account**. Select the **Go to [destination]** result to open it. You can also type **go** or **go to** before the name.
+
+## Why don't I see domain page suggestions in Search?
+
+Domain page suggestions only appear for domains you administer. If you are not a Domain Admin on any domain, **Search** shows **Go to Domains** but not **Go to Domain members**, **Go to Domain admins**, **Go to Groups**, or **Go to SAML**. Domains that are being deleted are also excluded.
 
 ## Where do I manage workspace settings?
 
