@@ -136,11 +136,14 @@ function RulesRequireFieldsPage({
         const hasTagLevelChanges = hasPerLevelTagRequired && changedTagLevels.length > 0;
         const hasSingleTagChange = !hasPerLevelTagRequired && tagRequired !== initialTagRequired;
         const categoryUpdateForTagRecompute = hasCategoryChange ? {requiresCategory: categoryRequired} : {};
-        const reviewWorkspaceSettingsTaskData = getReviewWorkspaceSettingsTaskCompletion();
+        // Only one of the two calls below should carry this, otherwise both requests would ask the backend to complete
+        // the same onboarding task with the same reportActionID.
+        let reviewWorkspaceSettingsTaskData = getReviewWorkspaceSettingsTaskCompletion();
 
         if (hasCategoryChange) {
             // With a tag change in the same save, the tag action owns the one violation recompute and carries requiresCategory into it.
             setWorkspaceRequiresCategory(policyData, categoryRequired, !hasTagLevelChanges && !hasSingleTagChange, reviewWorkspaceSettingsTaskData);
+            reviewWorkspaceSettingsTaskData = {};
         }
 
         if (hasTagLevelChanges) {
