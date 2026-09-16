@@ -2,7 +2,7 @@
 title: Edit Expenses
 description: Learn how to edit individual expenses, and edit multiple expenses at once.
 keywords: [bulk edit expenses, edit multiple expenses Expensify, update expenses in bulk, modify multiple expenses, inline editing, edit expense inline, bulk edit multi-level tags, edit one tag level]
-internalScope: Audience is all members. Covers editing expenses individually and in bulk editing multiple expenses at once, including how multi-level Tags are updated in bulk. Does not cover creating, submitting or reopening reports, or configuring workspace tags. 
+internalScope: Audience is all members. Covers editing expenses individually and in bulk editing multiple expenses at once, including how multi-level Tags are updated in bulk. Does not cover creating, submitting or reopening reports, or configuring tags. 
 ---
 
 # Edit Expenses 
@@ -49,7 +49,7 @@ Use edit multiple to update the same field across several expenses simultaneousl
 
 ## How multi-level Tags are updated when you edit multiple expenses
 
-If your workspace uses multi-level Tags, the **Edit multiple** panel shows each tag level as its own field. Editing one level updates only that level on each selected expense, even when the selected expenses currently have different values on the other levels.
+If your Workspace uses multi-level Tags, the **Edit multiple** panel shows each tag level as its own field. Editing one level updates only that level on each selected expense, even when the selected expenses currently have different values on the other levels.
 
 - **Independent Tags**: The levels you did not edit keep the value each expense already had. For example, if you update only the top level, each expense keeps its own lower-level tags.
 - **Dependent Tags**: The levels above the one you edited are kept, and the levels below it are cleared. Lower-level options depend on the level you just changed, so the previous values are no longer valid. Select those levels again to set new values.
@@ -88,7 +88,6 @@ On Draft and Outstanding reports, you can edit:
 - Edits apply to all selected expenses.
 - Changes are saved immediately for each expense.
 - Existing values are overwritten with the new values you enter.
-- For multi-level Tags, only the tag levels you edit are changed on each expense.
 
 ---
 
